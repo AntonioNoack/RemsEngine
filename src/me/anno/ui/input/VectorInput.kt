@@ -1,0 +1,226 @@
+package me.anno.ui.input
+
+import me.anno.gpu.GFX
+import me.anno.maths.clamp
+import me.anno.maths.pow
+import me.anno.objects.animation.AnimatedProperty
+import me.anno.ui.base.TextPanel
+import me.anno.ui.base.Visibility
+import me.anno.ui.base.constraints.WrapAlign
+import me.anno.ui.base.groups.PanelListX
+import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.style.Style
+import org.joml.Quaternionf
+import org.joml.Vector2f
+import org.joml.Vector3f
+import org.joml.Vector4f
+import kotlin.math.max
+
+class VectorInput(style: Style, var title: String,
+                  val type: AnimatedProperty.Type): PanelListY(style){
+
+    constructor(style: Style, title: String, value: Vector2f, type: AnimatedProperty.Type): this(style, title, type){
+        setValue(value)
+    }
+
+    constructor(style: Style, title: String, value: Vector3f, type: AnimatedProperty.Type): this(style, title, type){
+        setValue(value)
+    }
+
+    constructor(style: Style, title: String, value: Vector4f, type: AnimatedProperty.Type): this(style, title, type){
+        setValue(value)
+    }
+
+    constructor(style: Style, title: String, value: Quaternionf,
+                type: AnimatedProperty.Type = AnimatedProperty.Type.QUATERNION): this(style, title, type){
+        setValue(value)
+    }
+
+    val components: Int = type.components
+    val valueFields = ArrayList<PureTextInput>(components)
+
+    fun addComponent(i: Int, title: String): FloatInput {
+        val pseudo = FloatInput(style, title, type)
+            .setChangeListener {
+                changeListener(
+                    compX.lastValue.toFloat(),
+                    compY.lastValue.toFloat(),
+                    compZ?.lastValue?.toFloat() ?: 0f,
+                    compW?.lastValue?.toFloat() ?: 0f)
+            }
+        // titleList += pseudo.titlePanel.setWeight(1f)
+        val input = pseudo.inputPanel
+        valueList += input.setWeight(1f)
+        valueFields += input
+        return pseudo
+    }
+
+    // val titleList = PanelListX(style)
+    val valueList = PanelListX(style)
+    val titleView = object: TextPanel(title, style){
+        override fun onMouseDown(x: Float, y: Float, button: Int) { this@VectorInput.onMouseDown(x,y,button) }
+        override fun onMouseUp(x: Float, y: Float, button: Int) { this@VectorInput.onMouseUp(x,y,button) }
+        override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) { this@VectorInput.onMouseMoved(x,y,dx,dy) }
+        override fun onCopyRequested(x: Float, y: Float): String? = "[${compX.lastValue}, ${compY.lastValue}, ${compZ?.lastValue ?: 0f}, ${compW?.lastValue ?: 0f}]"
+        override fun onPaste(x: Float, y: Float, pasted: String) {
+            val allComponents = pasted.toDoubleOrNull()
+            if(allComponents != null){
+                compX.setValue(allComponents)
+                compY.setValue(allComponents)
+                compZ?.setValue(allComponents)
+                compW?.setValue(allComponents)
+            } else {
+                // parse vector
+                if(pasted.startsWith("[") && pasted.endsWith("]")){
+                    val values = pasted.substring(1, pasted.lastIndex).split(',').map { it.trim().toDoubleOrNull() }
+                    if(values.size in 3 .. 4){
+                        values[0]?.apply { compX.setValue(this) }
+                        values[1]?.apply { compY.setValue(this) }
+                        values.getOrNull(2)?.apply { compZ?.setValue(this) }
+                        values.getOrNull(3)?.apply { compW?.setValue(this) }
+                    }
+                }
+            }
+        }
+    }.setWeight(1f)
+
+    init {
+
+        // titleList += WrapAlign.Top
+        valueList += WrapAlign.Top
+
+        this += titleView
+        // this += titleList
+        this += valueList
+
+    }
+
+    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+        super.draw(x0, y0, x1, y1)
+        val focused = titleView.isInFocus || valueList.children.count { it.isInFocus } > 0
+        if(focused) isSelectedListener?.invoke()
+        valueList.visibility = if(focused) Visibility.VISIBLE else Visibility.GONE
+        super.draw(x0, y0, x1, y1)
+        compX.updateValueMaybe()
+        compY.updateValueMaybe()
+        compZ?.updateValueMaybe()
+        compW?.updateValueMaybe()
+    }
+
+    val compX = addComponent(0, "x")
+    val compY = addComponent(1, "y")
+    val compZ = if(components > 2) addComponent(2, "z") else null
+    val compW = if(components > 3) addComponent(3, "w") else null
+
+    val vx get() = compX.lastValue.toFloat()
+    val vy get() = compY.lastValue.toFloat()
+    val vz get() = compZ!!.lastValue.toFloat()
+    val vw get() = compW!!.lastValue.toFloat()
+
+    fun setValue(v: Vector2f){
+        compX.setValue(v.x)
+        compY.setValue(v.y)
+    }
+
+    fun setValue(v: Vector3f){
+        compX.setValue(v.x)
+        compY.setValue(v.y)
+        compZ?.setValue(v.z)
+    }
+
+    fun setValue(v: Vector4f){
+        compX.setValue(v.x)
+        compY.setValue(v.y)
+        compZ?.setValue(v.z)
+        compW?.setValue(v.w)
+    }
+
+    fun setValue(v: Quaternionf){
+        compX.setValue(v.x)
+        compY.setValue(v.y)
+        compZ?.setValue(v.z)
+        compW?.setValue(v.w)
+    }
+
+    var changeListener: (x: Float, y: Float, z: Float, w: Float) -> Unit = {
+        _,_,_,_ ->
+    }
+
+    fun setChangeListener(listener: (x: Float, y: Float, z: Float, w: Float) -> Unit): VectorInput {
+        changeListener = listener
+        return this
+    }
+
+    private var isSelectedListener: (() -> Unit)? = null
+    fun setIsSelectedListener(listener: () -> Unit): VectorInput {
+        isSelectedListener = listener
+        return this
+    }
+
+    override fun onMouseDown(x: Float, y: Float, button: Int) {
+        super.onMouseDown(x, y, button)
+        mouseIsDown = true
+    }
+
+    var mouseIsDown = false
+    override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
+        super.onMouseMoved(x, y, dx, dy)
+        if(mouseIsDown){
+            val size = (if(GFX.isShiftDown) 4f else 20f) / max(GFX.width,GFX.height)
+            val dx0 = dx*size
+            val dy0 = dy*size
+            val delta = dx0-dy0
+            when(type){
+                AnimatedProperty.Type.POSITION -> {
+                    val scaleFactor = 0.2f
+                    setValue(Vector3f(vx + dx0 * scaleFactor, vy - dy0 * scaleFactor, vz))
+                }
+                AnimatedProperty.Type.ROT_YXZ -> {
+                    val scaleFactor = 20f
+                    if(GFX.isControlDown){
+                        setValue(Vector3f(vx, vy, vz + delta * scaleFactor))
+                    } else {
+                        setValue(Vector3f(vx + dy0 * scaleFactor, vy + dx0 * scaleFactor, vz))
+                    }
+                }
+                AnimatedProperty.Type.SCALE -> {
+                    val scaleFactor = 1.03f
+                    if(GFX.isControlDown){
+                        val scaleX = pow(scaleFactor, dx0)
+                        val scaleY = pow(scaleFactor, -dy0)
+                        setValue(Vector3f(vx * scaleX, vy * scaleY, vz))
+                    } else {
+                        val scale = pow(scaleFactor, delta)
+                        setValue(Vector3f(vx * scale, vy * scale, vz * scale))
+                    }
+                }
+                AnimatedProperty.Type.COLOR -> {// todo change the design
+                    val scaleFactor = 1.10f
+                    val scale = pow(scaleFactor, delta)
+                    if(GFX.isControlDown){
+                        setValue(Vector4f(vx * scale, vy * scale, vz * scale, vw))
+                    } else {
+                        setValue(Vector4f(vx, vy, vz, clamp(vw + delta, 0f, 1f)))
+                    }
+                }
+                AnimatedProperty.Type.SKEW_2D -> {
+                    if(GFX.isShiftDown){
+                        setValue(Vector2f(vx, vy + dy0/5))
+                    } else {
+                        setValue(Vector2f(vx + dx0/5, vy))
+                    }
+                }
+            }
+            // todo show the keys for tutorials
+            // todo apply change to all coordinates?
+            // todo no, only to x and y... if 3d, otherwise all
+            // setValue(lastValue * pow(1.01f, delta))
+        }
+    }
+
+    override fun onMouseUp(x: Float, y: Float, button: Int) {
+        super.onMouseUp(x, y, button)
+        mouseIsDown = false
+    }
+
+}
