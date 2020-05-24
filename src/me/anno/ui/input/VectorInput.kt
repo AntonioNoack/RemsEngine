@@ -1,8 +1,8 @@
 package me.anno.ui.input
 
 import me.anno.gpu.GFX
-import me.anno.maths.clamp
-import me.anno.maths.pow
+import me.anno.utils.clamp
+import me.anno.utils.pow
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.Visibility

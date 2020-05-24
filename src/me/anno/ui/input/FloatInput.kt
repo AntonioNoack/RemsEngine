@@ -1,7 +1,7 @@
 package me.anno.ui.input
 
 import me.anno.gpu.GFX
-import me.anno.maths.pow
+import me.anno.utils.pow
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.parser.SimpleExpressionParser
 import me.anno.ui.base.TextPanel
@@ -123,7 +123,7 @@ class FloatInput(style: Style, title: String, val type: AnimatedProperty.Type = 
             val dy0 = dy*size
             val delta = dx0-dy0
             // todo chose between exponential and linear curve, depending on the use-case
-            setValue(lastValue * pow(if(lastValue < 0) 1f/1.03f else 1.03f, delta) + delta * 0.1f)
+            setValue(lastValue * pow(if (lastValue < 0) 1f / 1.03f else 1.03f, delta) + delta * 0.1f)
         }
     }
 

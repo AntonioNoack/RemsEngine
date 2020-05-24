@@ -1,5 +1,6 @@
 package me.anno.gpu
 
+import me.anno.gpu.buffer.Attribute
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL15
 import org.lwjgl.opengl.GL20.*
@@ -56,15 +57,8 @@ abstract class Buffer(val attributes: List<Attribute>, val stride: Int, val usag
         glDrawArrays(GL_TRIANGLES, 0, nioBuffer!!.capacity() / stride)
     }
 
-    class Attribute(val name: String, val type: AttributeType, val components: Int){
-        constructor(name: String, components: Int): this(name, AttributeType.FLOAT, components)
-        val byteSize = components * type.byteSize
-        var offset = 0L
-    }
 
-    enum class AttributeType(val byteSize: Int, val glType: Int, val normalized: Boolean){
-        FLOAT(4, GL11.GL_FLOAT, false),
 
-    }
+
 
 }

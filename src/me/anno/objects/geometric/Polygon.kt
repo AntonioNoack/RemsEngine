@@ -3,6 +3,7 @@ package me.anno.objects.geometric
 import me.anno.config.DefaultConfig
 import me.anno.gpu.Buffer
 import me.anno.gpu.GFX
+import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticFloatBuffer
 import me.anno.objects.GFXTransform
 import me.anno.objects.Transform
@@ -47,7 +48,7 @@ class Polygon(parent: Transform?): GFXTransform(parent){
             if(cached != null) return cached
             if(n < minEdges) return getBuffer(minEdges)
             if(n > maxEdges) return getBuffer(maxEdges)
-            val buffer = StaticFloatBuffer(listOf(Buffer.Attribute("attr0", 2)), (n-2) * 3 * 2)
+            val buffer = StaticFloatBuffer(listOf(Attribute("attr0", 2)), (n-2) * 3 * 2)
             val angles = FloatArray(n+1){ i -> (i*Math.PI*2.0/n).toFloat() }
             val sin = angles.map { sin(it)*.5f+.5f }
             val cos = angles.map { -cos(it)*.5f+.5f }

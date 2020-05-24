@@ -4,7 +4,6 @@ import me.anno.config.DefaultConfig.style
 import me.anno.fonts.FontManagerV01
 import me.anno.gpu.GFX
 import me.anno.io.base.BaseWriter
-import me.anno.maths.clamp
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.input.FileInput

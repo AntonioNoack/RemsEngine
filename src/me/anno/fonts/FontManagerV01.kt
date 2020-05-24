@@ -12,8 +12,6 @@ import kotlin.math.round
 // todo use them instead of this class
 object FontManagerV01 {
 
-    //val fontMap = HashMap<String, Font>()
-
     init {
         // todo this is a bottleneck with 0.245s
         // todo therefore this should be parallized with other stuff...
@@ -45,18 +43,6 @@ object FontManagerV01 {
         letterCache[key] = texture
         return texture
     }
-
-    /*fun getChar(fontName: String, fontSize: Float, char: Int): Texture2D {
-        val fontSizeIndex = getFontSizeIndex(fontSize)
-        val key = Triple(fontName, fontSizeIndex, char)
-        val cached = letterCache[key]
-        if(cached != null) return cached
-        val font = getFont(fontName)
-        val averageFontSize = getAvgFontSize(fontSizeIndex)
-        val texture = font.generateTexture(char, averageFontSize) ?: return getDefaultChar()
-        letterCache[key] = texture
-        return texture
-    }*/
 
     val fonts = HashMap<String, XFont>()
 

@@ -1,7 +1,7 @@
 package me.anno.ui.input
 
 import me.anno.gpu.GFX
-import me.anno.maths.clamp
+import me.anno.utils.clamp
 import me.anno.ui.base.TextPanel
 import me.anno.ui.style.Style
 import org.lwjgl.glfw.GLFW.*
@@ -56,7 +56,7 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
     fun calculateOffset(required: Int, cursor: Int){
         // todo center the cursor, 1/3 of the width, if possible;
         // todo clamp left/right
-        drawingOffset = -clamp(cursor - w/3, 0, max(0, required-w))
+        drawingOffset = -clamp(cursor - w / 3, 0, max(0, required - w))
     }
 
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {

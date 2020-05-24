@@ -5,7 +5,7 @@ import me.anno.gpu.GFX.toRadians
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.text.TextWriter
-import me.anno.maths.clamp
+import me.anno.utils.clamp
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.input.ColorInput
@@ -112,7 +112,9 @@ open class Transform(
 
         list += ColorInput(style, "Color", color?.get(lastLocalTime) ?: one4, AnimatedProperty.Type.COLOR).setChangeListener { x, y, z, w ->
             if(color == null) color = AnimatedProperty.color()
-            putValue(color!!, Vector4f(max(0f, x), max(0f, y), max(0f, z), clamp(w, 0f, 1f)))
+            putValue(color!!, Vector4f(max(0f, x), max(0f, y), max(0f, z),
+                clamp(w, 0f, 1f)
+            ))
         }.setIsSelectedListener { show(color) }
         list += FloatInput(style, "Time Offset").setChangeListener { timeOffset = it }
         list += FloatInput(style, "Time Dilation").setChangeListener { timeDilation = it }

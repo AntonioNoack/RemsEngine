@@ -2,8 +2,8 @@ package me.anno.ui.impl.timeline
 
 import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
-import me.anno.maths.clamp
-import me.anno.maths.pow
+import me.anno.utils.clamp
+import me.anno.utils.pow
 import me.anno.ui.base.Panel
 import me.anno.ui.style.Style
 

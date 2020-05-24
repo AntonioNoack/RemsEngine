@@ -3,7 +3,7 @@ package me.anno.ui.impl
 import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
 import me.anno.io.text.TextReader
-import me.anno.maths.clamp
+import me.anno.utils.clamp
 import me.anno.objects.Image
 import me.anno.objects.Transform
 import me.anno.objects.Video
@@ -13,7 +13,6 @@ import me.anno.ui.base.*
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelList
-import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.style.Style
 import org.joml.Vector4f
 import java.io.File
@@ -35,10 +34,10 @@ class TreeView(var root: Transform, style: Style):
     var clickedTransform: Transform? = null
 
     fun Vector4f.toRGB(scale: Int = 255): Int {
-        return clamp((x*scale).toInt(), 0, 255).shl(16) or
-                clamp((y*scale).toInt(), 0, 255).shl(8) or
-                clamp((z*scale).toInt(), 0, 255) or
-                clamp((w*255).toInt(), 0, 255).shl(24)
+        return clamp((x * scale).toInt(), 0, 255).shl(16) or
+                clamp((y * scale).toInt(), 0, 255).shl(8) or
+                clamp((z * scale).toInt(), 0, 255) or
+                clamp((w * 255).toInt(), 0, 255).shl(24)
     }
 
     fun updateTree(){
