@@ -16,7 +16,9 @@ import me.anno.ui.base.groups.PanelList
 import me.anno.ui.style.Style
 import org.joml.Vector4f
 import java.io.File
+import java.lang.Exception
 import kotlin.concurrent.thread
+import kotlin.math.roundToInt
 
 // todo support for multiple cameras? -> just use scenes?
 // todo switch back and forth? how -> multiple cameras... how?
@@ -50,7 +52,7 @@ class TreeView(var root: Transform, style: Style):
             panel.padding.left = inset * depth + panel.padding.right
             panel.text = transform.name
             if(!transform.isCollapsed){
-                todo.addAll(transform.children.map { it to (depth+1) })
+                todo.addAll(transform.children.map { it to (depth+1) }.reversed())
             }
         }
         for(i in index until list.children.size){
@@ -69,10 +71,37 @@ class TreeView(var root: Transform, style: Style):
 
         val focused = focused
         if(focused != null && takenElement != null){
-            val x = focused.x
-            val y = focused.y
+            val h = focused.h
             val mx = GFX.mx.toInt()
             val my = GFX.my.toInt()
+            val hoveredTransformIndex = (my - (list.children.firstOrNull()?.y ?: 0)).toFloat() / (h + list.spacing)
+            val fractionalHTI = hoveredTransformIndex % 1f
+            if(fractionalHTI in 0.25f .. 0.75f){
+                // on top
+                // todo add as child
+                val targetY = my - 1 + h/2 - (fractionalHTI * h).toInt()
+                GFX.drawRect(this.x+2, targetY, 3, 1, -1)
+                addHereFunction = {
+                    transformByIndex.getOrNull(hoveredTransformIndex.toInt())?.addChild(it)
+                }
+            } else {
+                // in between
+                // todo add in between elements
+                val targetY = my - 1 + h/2 - (((hoveredTransformIndex + 0.5f) % 1f) * h).toInt()
+                GFX.drawRect(this.x+2, targetY, 3, 1, -1)
+                addHereFunction = {
+                    val inQuestion = transformByIndex.getOrNull(hoveredTransformIndex.roundToInt()) ?: transformByIndex.last()
+                    val parent = inQuestion.parent
+                    if(parent != null){
+                        val index = parent.children.indexOf(inQuestion)
+                        parent.children.add(index, it)
+                        it.parent = parent
+                    }
+                    //?.addChild(it)
+                }
+            }
+            val x = focused.x
+            val y = focused.y
             focused.x = mx - focused.w / 2
             focused.y = my - focused.h / 2
             focused.draw(x0, y0, x1, y1)
@@ -82,13 +111,19 @@ class TreeView(var root: Transform, style: Style):
 
     }
 
+    var addHereFunction: ((Transform) -> Unit)? = null
+
+
+
     var focused: Panel? = null
     var takenElement: Transform? = null
 
     fun getOrCreateChild(index: Int, transform0: Transform): TextPanel {
         if(index < list.children.size){
             transformByIndex[index] = transform0
-            return list.children[index] as TextPanel
+            val panel = list.children[index] as TextPanel
+            panel.visibility = Visibility.VISIBLE
+            return panel
         }
         val child = object: TextPanel("", style){
 
@@ -157,8 +192,13 @@ class TreeView(var root: Transform, style: Style):
             }
 
             override fun onPaste(x: Float, y: Float, pasted: String) {
-                val child = TextReader.fromText(pasted).firstOrNull { it is Transform } as? Transform ?: return super.onPaste(x, y, pasted)
-                transformByIndex[index].addChild(child)
+                try {
+                    val child = TextReader.fromText(pasted).firstOrNull { it is Transform } as? Transform ?: return super.onPaste(x, y, pasted)
+                    transformByIndex[index].addChild(child)
+                } catch (e: Exception){
+                    e.printStackTrace()
+                    super.onPaste(x, y, pasted)
+                }
             }
 
             override fun onDeleteKey(x: Float, y: Float) {
@@ -187,6 +227,11 @@ class TreeView(var root: Transform, style: Style):
             // todo always give the user hints? :D
             // todo we'd need a selection mode with the arrow keys, too...
         }
+    }
+
+    override fun onMouseUp(x: Float, y: Float, button: Int) {
+        println("mouse went up")
+        super.onMouseUp(x, y, button)
     }
 
     override fun getClassName(): String = "TreeView"

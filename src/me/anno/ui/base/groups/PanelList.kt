@@ -1,5 +1,6 @@
 package me.anno.ui.base.groups
 
+import me.anno.config.DefaultStyle.black
 import me.anno.ui.base.Panel
 import me.anno.ui.base.TextPanel
 import me.anno.ui.style.Style
@@ -8,6 +9,7 @@ open class PanelList(val sorter: Comparator<Panel>?, style: Style): PanelGroup(s
 
     override val children = ArrayList<Panel>()
     var spacing = style.getSize("spacerWidth", 1)
+    var spaceColor = style.getChild("spacer").getColor("background", black)
 
     fun clear() = children.clear()
 

@@ -58,6 +58,13 @@ abstract class Buffer(val attributes: List<Attribute>, val stride: Int, val usag
     }
 
 
+    fun destroy(){
+        if(buffer > -1){
+            GL15.glDeleteBuffers(buffer)
+            buffer = -1
+        }
+    }
+
 
 
 

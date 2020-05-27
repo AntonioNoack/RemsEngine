@@ -1,0 +1,50 @@
+<component name="libraryTable">
+  <library name="KotlinJavaRuntime">
+    <CLASSES>
+      <root url="jar://$KOTLIN_BUNDLED$/lib/kotlin-stdlib.jar!/" />
+      <root url="jar://$KOTLIN_BUNDLED$/lib/kotlin-reflect.jar!/" />
+      <root url="jar://$KOTLIN_BUNDLED$/lib/kotlin-test.jar!/" />
+      <root url="jar://$KOTLIN_BUNDLED$/lib/kotlin-stdlib-jdk7.jar!/" />
+      <root url="jar://$KOTLIN_BUNDLED$/lib/kotlin-stdlib-jdk8.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-assimp-natives-windows.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-assimp.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-glfw-natives-windows.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-glfw.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-natives-windows.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-openal-natives-windows.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-openal.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-opengl-natives-windows.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-opengl.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-stb-natives-windows.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-stb.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjglx-debug-1.0.0.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/slick.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/joml-1.9.24.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-assimp-javadoc.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-glfw-javadoc.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-javadoc.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-openal-javadoc.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-opengl-javadoc.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-stb-javadoc.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/joml-1.9.24-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$KOTLIN_BUNDLED$/lib/kotlin-stdlib-sources.jar!/" />
+      <root url="jar://$KOTLIN_BUNDLED$/lib/kotlin-reflect-sources.jar!/" />
+      <root url="jar://$KOTLIN_BUNDLED$/lib/kotlin-test-sources.jar!/" />
+      <root url="jar://$KOTLIN_BUNDLED$/lib/kotlin-stdlib-jdk7-sources.jar!/" />
+      <root url="jar://$KOTLIN_BUNDLED$/lib/kotlin-stdlib-jdk8-sources.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-assimp-sources.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-glfw-sources.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-openal-sources.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-opengl-sources.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-sources.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-stb-sources.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjglx-debug-1.0.0-sources.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/joml-1.9.24-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

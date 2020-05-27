@@ -2,9 +2,11 @@ package me.anno.io.base
 
 import me.anno.io.Saveable
 import me.anno.io.utils.StringMap
+import me.anno.objects.SimpleText
 import me.anno.objects.Transform
 import me.anno.objects.Video
 import me.anno.objects.animation.AnimatedProperty
+import me.anno.objects.animation.Keyframe
 import me.anno.objects.geometric.Circle
 import me.anno.objects.geometric.Polygon
 import java.io.File
@@ -22,6 +24,7 @@ abstract class BaseReader {
             "Circle" -> Circle(null)
             "Polygon" -> Polygon(null)
             "Video" -> Video(File(""), null)
+            "SimpleText" -> SimpleText("", null)
             "AnimatedProperty<float>" -> AnimatedProperty.float()
             "AnimatedProperty<pos>" -> AnimatedProperty.pos()
             "AnimatedProperty<scale>" -> AnimatedProperty.scale()
@@ -29,6 +32,7 @@ abstract class BaseReader {
             "AnimatedProperty<skew2D>" -> AnimatedProperty.skew()
             "AnimatedProperty<color>" -> AnimatedProperty.color()
             "AnimatedProperty<quaternion>" -> AnimatedProperty.quat()
+            "Keyframe" -> Keyframe<Any>(0f, 0f)
             else -> throw RuntimeException("Unknown class $clazz")
         }
     }

@@ -1,4 +1,4 @@
-package me.anno.objects
+package me.anno.objects.cache
 
 import me.anno.gpu.GFX
 import me.anno.video.FFMPEGStream

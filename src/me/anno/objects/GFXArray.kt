@@ -33,12 +33,8 @@ class GFXArray(parent: Transform?): GFXTransform(parent) {
         }
     }
 
-    override fun draw(stack: Matrix4fStack, parentTime: Float, parentColor: Vector4f, style: Style) {
-        super.draw(stack, parentTime, parentColor, style)
-    }
-
-    override fun createInspector(list: PanelListY) {
-        super.createInspector(list)
+    override fun createInspector(list: PanelListY, style: Style) {
+        super.createInspector(list, style)
         // todo create apply button?
         // todo we need to be able to insert properties...
         // todo replace? :D, # String Array

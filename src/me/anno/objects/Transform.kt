@@ -7,11 +7,9 @@ import me.anno.io.base.BaseWriter
 import me.anno.io.text.TextWriter
 import me.anno.utils.clamp
 import me.anno.objects.animation.AnimatedProperty
+import me.anno.objects.blending.BlendMode
 import me.anno.ui.base.groups.PanelListY
-import me.anno.ui.input.ColorInput
-import me.anno.ui.input.FloatInput
-import me.anno.ui.input.TextInput
-import me.anno.ui.input.VectorInput
+import me.anno.ui.input.*
 import me.anno.ui.style.Style
 import org.joml.*
 import java.lang.RuntimeException
@@ -33,6 +31,8 @@ open class Transform(
     ): Saveable(){
 
     constructor(parent: Transform?): this(null, null, null, null, parent)
+
+    var blendMode = BlendMode.UNSPECIFIED
 
     var localSkew: AnimatedProperty<Vector2f>? = null
 
@@ -65,9 +65,8 @@ open class Transform(
         GFX.selectedProperty = anim
     }
 
-    open fun createInspector(list: PanelListY){
+    open fun createInspector(list: PanelListY, style: Style){
 
-        val style = list.style
         // todo update by time :)
         val one3 = Vector3f(1f,1f,1f)
         val one4 = Vector4f(1f,1f,1f,1f)
@@ -122,6 +121,9 @@ open class Transform(
             if(timeAnimated == null) timeAnimated = AnimatedProperty.float()
             putValue(timeAnimated!!, x)
         }.setIsSelectedListener { show(timeAnimated) }
+        list += TextInput("Blend Mode", style, blendMode.id)
+            .setChangeListener { blendMode = BlendMode[it] }
+
 
     }
 
@@ -139,9 +141,9 @@ open class Transform(
         else parentColor
     }
 
-    fun applyTransform(transform: Matrix4f, parentTime: Float){
 
-        val time = getLocalTime(parentTime)
+    fun applyTransformLT(transform: Matrix4f, time: Float){
+
         val translation = localPosition
         val scale = localScale
         val rotationYXZ = localRotationYXZ
@@ -174,27 +176,42 @@ open class Transform(
 
     }
 
+    fun applyTransformPT(transform: Matrix4f, parentTime: Float) = applyTransformLT(transform, getLocalTime(parentTime))
+
     /**
      * stack with camera already included
      * */
-    open fun draw(stack: Matrix4fStack, parentTime: Float, parentColor: Vector4f, style: Style){
+    fun draw(stack: Matrix4fStack, parentTime: Float, parentColor: Vector4f){
+
         val time = getLocalTime(parentTime)
         lastLocalTime = time
         val color = getLocalColor(parentColor, time)
+
+        blendMode.apply()
+        onDraw(stack, time, color)
+        drawChildren(stack, time, color)
+
+    }
+
+    fun drawChildren(stack: Matrix4fStack, time: Float, color: Vector4f){
         if(color.w > 0.00025f){// 12 bit = 4k
 
-            applyTransform(stack, parentTime)
+            applyTransformLT(stack, time)
 
             children.forEach { child ->
 
+                blendMode.apply()
+
                 stack.pushMatrix()
-                child.draw(stack, time, color, style)
+                child.draw(stack, time, color)
                 stack.popMatrix()
 
             }
 
         }
     }
+
+    open fun onDraw(stack: Matrix4fStack, time: Float, color: Vector4f){}
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
@@ -208,6 +225,7 @@ open class Transform(
         writer.writeFloat("timeDilation", timeDilation)
         writer.writeObject(this, "timeAnimated", timeAnimated)
         writer.writeObject(this, "color", color)
+        writer.writeString("blendMode", blendMode.id)
         writer.writeList(this, "children", children)
     }
 
@@ -268,6 +286,7 @@ open class Transform(
     override fun readString(name: String, value: String) {
         when(name){
             "name" -> this.name = value
+            "blendMode" -> this.blendMode = BlendMode[value]
             else -> super.readString(name, value)
         }
     }

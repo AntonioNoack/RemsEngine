@@ -3,15 +3,21 @@ package me.anno.fonts.mesh
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.buffer.StaticFloatBuffer
+import me.anno.ui.base.DefaultRenderingHints
 import me.anno.utils.*
+import org.joml.Intersectionf
 import org.joml.Vector2f
+import java.awt.Color
 import java.awt.Font
 import java.awt.Graphics2D
 import java.awt.font.FontRenderContext
 import java.awt.font.TextLayout
 import java.awt.geom.GeneralPath
 import java.awt.geom.PathIterator
+import java.awt.image.BufferedImage
+import java.io.File
 import java.lang.RuntimeException
+import javax.imageio.ImageIO
 import kotlin.math.*
 
 // our triangulator can't handle holes
@@ -26,23 +32,40 @@ class FontMesh(val font: Font, val text: String){
 
     val buffer: StaticFloatBuffer
 
-    fun testIsInsideTriangle(){
-        val ta = Vector2f(0f,0f)
-        val tb = Vector2f(0f, 1f)
-        val tc = Vector2f(1f, 0f)
-        val t1 = Vector2f(0.1f, 0.1f).isInsideTriangle(ta,tb,tc)
-        if(!t1) throw RuntimeException("wrong answer")
-        val t2 = Vector2f(1f, 1f).isInsideTriangle(ta,tb,tc)
-        if(t2) throw RuntimeException("wrong answer")
+    fun testTriangulator(){
+        Triangulator.ringToTriangles(
+            listOf(
+                Vector2f(0f, 0f),
+                Vector2f(0f, 1f),
+                Vector2f(1f, 1f),
+                Vector2f(1f, 0f)
+            )
+        )
+    }
+
+    fun testInside(){
+        for(i in 0 until 5000){
+            val p = Vector2f(Math.random().toFloat()*2-1, Math.random().toFloat()*2-1).normalize()
+            if(!p.isInsideTriangle(Vector2f(-1.5f, -1.5f), Vector2f(2f, -0.5f), Vector2f(-0.5f, 2.5f))){
+                println(p.print())
+                println(i)
+                assert(false)
+            }
+        }
     }
 
     init {
 
+        if(false) testTriangulator()
+        if(false) testInside()
+
         val debugPieces = false
 
+        // todo the text looks ugly;
+        // todo we did the triangulation wrong somehow
         // was 30 before it had O(x²) complexity ;)
-        val quadAccuracy = 10f
-        val cubicAccuracy = 10f
+        val quadAccuracy = 1f
+        val cubicAccuracy = 1f
 
         val fragments = ArrayList<Fragment>()
 
@@ -167,19 +190,21 @@ class FontMesh(val font: Font, val text: String){
         //  - large areas are outside
         //  - if there is overlap, the smaller one is inside, the larger outside
 
-        // val img = BufferedImage(1100,480,1)
-        // val gfx = img.graphics as Graphics2D
-        // gfx.setRenderingHints(DefaultRenderingHints.hints)
+        val img = if(debugPieces) BufferedImage(1100,480,1) else null
+        val gfx = img?.graphics as? Graphics2D
+        gfx?.setRenderingHints(DefaultRenderingHints.hints)
 
-        /*fragments.sortByDescending { it.size }
-        fragments.forEach {
-            it.apply {
-                gfx.color = Color.RED
-                drawTriangles(gfx, triangles)
-                gfx.color = Color.BLUE
-                drawOutline(gfx, ring)
+        fragments.sortByDescending { it.size }
+        gfx?.apply {
+            fragments.forEach {
+                it.apply {
+                    color = Color.RED
+                    drawTriangles(gfx, 1, triangles)
+                    color = Color.BLUE
+                    drawOutline(gfx, ring)
+                }
             }
-        }*/
+        }
 
         fragments.forEachIndexed { index1, fragment ->
             if(!fragment.isInside){
@@ -210,8 +235,7 @@ class FontMesh(val font: Font, val text: String){
         val outerFragments = fragments.filter { !it.isInside }
         // println("found ${outerFragments.size} outer rings")
 
-        // gfx.dispose()
-        // ImageIO.write(img, "png", File("C:/Users/Antonio/Desktop/text1.png"))
+        if(img != null) ImageIO.write(img, "png", File("C:/Users/Antonio/Desktop/text1.png"))
 
         outerFragments.forEach { outer ->
             outer.apply {
@@ -220,15 +244,19 @@ class FontMesh(val font: Font, val text: String){
                 }
                 needingRemoval.clear()
                 triangles = Triangulator.ringToTriangles(ring)
-                /*gfx.color = Color.GRAY
-                drawTriangles(gfx, triangles)
-                gfx.color = Color.YELLOW
-                drawOutline(gfx, ring)*/
+                gfx?.apply {
+                    gfx.color = Color.GRAY
+                    drawTriangles(gfx, 1, triangles)
+                    gfx.color = Color.YELLOW
+                    drawOutline(gfx, ring)
+                }
             }
         }
 
-        // gfx.dispose()
-        // ImageIO.write(img, "png", File("C:/Users/Antonio/Desktop/text2.png"))
+        gfx?.apply {
+            gfx.dispose()
+            ImageIO.write(img, "png", File("C:/Users/Antonio/Desktop/text2.png"))
+        }
 
         val triangles = ArrayList<Vector2f>(outerFragments.sumBy { it.triangles.size })
         outerFragments.forEach {
@@ -238,10 +266,6 @@ class FontMesh(val font: Font, val text: String){
         buffer = StaticFloatBuffer(listOf(
             Attribute("attr0", AttributeType.FLOAT, 2)
         ), triangles.size * 2)
-        triangles.forEach {
-            buffer.put(it.x)
-            buffer.put(it.y)
-        }
 
         outerFragments.forEach {
             minX = min(minX, it.minX)
@@ -249,6 +273,18 @@ class FontMesh(val font: Font, val text: String){
             maxX = max(maxX, it.maxX)
             maxY = max(maxY, it.maxY)
         }
+
+        val deltaX = (maxX-minX)/2
+        // todo center the text, ignore the characters itself
+        val difY = 0f//layout.ascent / 2
+
+        val baseScale = 0.2f/(layout.ascent + layout.descent)
+
+        triangles.forEach {
+            buffer.put((it.x - deltaX) * baseScale * 0.5f + 0.5f)
+            buffer.put((it.y + difY) * baseScale * 0.5f + 0.5f)
+        }
+
 
     }
 
@@ -283,20 +319,6 @@ class FontMesh(val font: Font, val text: String){
 
     }
 
-    fun Vector2f.hash() = x.toRawBits().toLong().shl(32) or y.toRawBits().toLong()
-
-    fun getPair(a: Vector2f, b: Vector2f): Pair<Vector2f, Vector2f>{
-        val aHash = a.hash()
-        val bHash = b.hash()
-        return if(aHash < bHash) a to b else b to a
-    }
-
-    fun getPairHash(a: Vector2f, b: Vector2f): Int128 {
-        val aHash = a.hash()
-        val bHash = b.hash()
-        return if(aHash < bHash) Int128(aHash, bHash) else Int128(bHash, aHash)
-    }
-
     fun List<Vector2f>.iterateTriangleLines(iterator: (Vector2f, Vector2f) -> Unit){
         for(i in indices step 3){
             val a = this[i]
@@ -308,42 +330,6 @@ class FontMesh(val font: Font, val text: String){
         }
     }
 
-    fun linesAreCrossing(v1: Vector2f, v2: Vector2f,
-                         v3: Vector2f, v4: Vector2f): Vector2f? {
-        val c = intersectionCoefficients(v1, v2, v3, v4) ?: return null
-        val (ca, cb) = c
-        return if(ca in 0f .. 1f && cb in 0f .. 1f){
-            v1.lerp(v2, ca, Vector2f())
-        } else null
-    }
-
-    fun intersectionCoefficients(
-        x1: Float, y1: Float,
-        x2: Float, y2: Float,
-        x3: Float, y3: Float,
-        x4: Float, y4: Float
-    ): Pair<Float, Float>? {
-        // https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection
-        val x12 = x1-x2
-        val y12 = y1-y2
-        val x13 = x1-x3
-        val y13 = y1-y3
-        val x34 = x3-x4
-        val y34 = y3-y4
-        val det = x12*y34 - y12*x34
-        if(abs(det) < 1e-9f) return null // parallel
-        val tTop = x13*y34 - y13*x34
-        val tBot = x12*y34 - y12*x34
-        val t = tTop / tBot
-        val uTop = x12*y13 - y12*x13
-        val uBot = x12*y34 - y12*x34
-        val u = uTop / uBot
-        return t to u
-    }
-
-    fun intersectionCoefficients(v1: Vector2f, v2: Vector2f, v3: Vector2f, v4: Vector2f): Pair<Float, Float>?
-            = intersectionCoefficients(v1.x, v1.y, v2.x, v2.y, v3.x, v3.y, v4.x, v4.y)
-
     fun ix(v: Vector2f) = (10 + v.x * 50).toInt()
     fun iy(v: Vector2f) = ((v.y + 9) * 50).toInt()
 
@@ -353,16 +339,25 @@ class FontMesh(val font: Font, val text: String){
             val b = if(i == 0) pts.last() else pts[i-1]
             gfx.drawLine(ix(a), iy(a), ix(b), iy(b))
         }
+        gfx.color = Color.GRAY
+        for(i in pts.indices){
+            val a = pts[i]
+            gfx.drawRect(ix(a), iy(a), 1, 1)
+            gfx.drawString("$i", ix(a), iy(a))
+        }
     }
 
-    fun drawTriangles(gfx: Graphics2D, triangles: List<Vector2f>){
+    fun drawTriangles(gfx: Graphics2D, d: Int, triangles: List<Vector2f>){
         for(i in triangles.indices step 3){
             val a = triangles[i]
             val b = triangles[i+1]
             val c = triangles[i+2]
-            gfx.drawLine(ix(a), iy(a), ix(b), iy(b))
-            gfx.drawLine(ix(c), iy(c), ix(b), iy(b))
-            gfx.drawLine(ix(a), iy(a), ix(c), iy(c))
+            gfx.drawLine(ix(a)+d, iy(a)+d, ix(b)+d, iy(b)+d)
+            gfx.drawLine(ix(c)+d, iy(c)+d, ix(b)+d, iy(b)+d)
+            gfx.drawLine(ix(a)+d, iy(a)+d, ix(c)+d, iy(c)+d)
+            val center = avg(a,b,c)
+            gfx.drawRect(ix(center)+d, iy(center)+d, 1, 1)
+            gfx.drawString("${i/3}", ix(center), iy(center))
         }
     }
 
@@ -407,9 +402,13 @@ class FontMesh(val font: Font, val text: String){
         }
     }
 
+    fun assert(b: Boolean){
+        if(!b) throw RuntimeException()
+    }
+
 }
 
 
 fun main(){
-    FontMesh(Font.decode("Verdana"), "o8a")
+    FontMesh(Font.decode("Verdana"), "sHa")
 }

@@ -12,6 +12,11 @@ import java.nio.ByteBuffer
 
 class Texture2D(val w: Int, val h: Int){
 
+    constructor(img: BufferedImage): this(img.width, img.height){
+        create(img)
+        filtering(true)
+    }
+
     var pointer = -1
 
     fun ensurePointer(){
@@ -21,7 +26,7 @@ class Texture2D(val w: Int, val h: Int){
     fun create(){
         ensurePointer()
         bind()
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, null as ByteBuffer?)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL11.GL_RGBA, GL_UNSIGNED_BYTE, null as ByteBuffer?)
     }
 
     fun createFP32(){
@@ -82,7 +87,7 @@ class Texture2D(val w: Int, val h: Int){
     }
 
     fun bind(index: Int){
-        GL13.glActiveTexture(GL_TEXTURE0 + index)
+        glActiveTexture(GL_TEXTURE0 + index)
         glBindTexture(GL_TEXTURE_2D, pointer)
     }
 

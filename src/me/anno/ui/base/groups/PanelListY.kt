@@ -1,5 +1,6 @@
 package me.anno.ui.base.groups
 
+import me.anno.gpu.GFX
 import me.anno.ui.base.Panel
 import me.anno.ui.base.Visibility
 import me.anno.ui.style.Style
@@ -12,6 +13,16 @@ open class PanelListY(sorter: Comparator<Panel>?, style: Style): PanelList(sorte
 
     var sumConst = 0
     var sumWeight = 0f
+
+    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+        super.draw(x0, y0, x1, y1)
+        if(spacing > 0){
+            for(i in 1 until children.size){
+                val y = children[i].y
+                GFX.drawRect(x,y-spacing,w,spacing,spaceColor)
+            }
+        }
+    }
 
     override fun calculateSize(w: Int, h: Int) {
         super.calculateSize(w, h)

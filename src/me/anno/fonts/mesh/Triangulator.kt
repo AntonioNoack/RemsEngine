@@ -1,12 +1,13 @@
 package me.anno.fonts.mesh
 
-import me.anno.utils.isInsideTriangle
+import me.anno.utils.*
 import org.joml.Vector2f
+import java.lang.RuntimeException
 
 object Triangulator {
 
-    fun ringToTriangles(pts: List<Vector2f>) =
-        ringToTriangleIndices(pts).map { pts[it] }.toMutableList()
+    //fun ringToTriangles(pts: List<Vector2f>) =
+    //    ringToTriangleIndices(pts).map { pts[it] }.toMutableList()
 
     // operator fun Vector2f.minus(s: Vector2f) = Vector2f(x-s.x, y-s.y)
 
@@ -24,75 +25,114 @@ object Triangulator {
         return area * 0.5f
     }
 
-    fun ringToTriangleIndices(pts: List<Vector2f>): List<Int> {
+    fun ringToTriangles(input: List<Vector2f>): List<Vector2f> {
 
-        val triangles = ArrayList<Int>()
-        val n = pts.size
-        if(n < 3) return triangles
+        val n = input.size
+        if(n < 3) return emptyList()
 
-        val areaForSign = getGuessArea(pts)
-        val indices = if(areaForSign > 0){
-            IntArray(n){ it }
-        } else {
-            IntArray(n){ n-1-it }
-        }
+        val areaForSign = getGuessArea(input)
 
-        fun snip(u: Int, v: Int, w: Int, n: Int): Boolean {
+        val pts = if(areaForSign > 0){
+            input.reversed()
+        } else input
 
-            val a = pts[indices[u]]
-            val b = pts[indices[v]]
-            val c = pts[indices[w]]
+        fun containsSomething(a: Vector2f, b: Vector2f, c: Vector2f): Boolean {
 
-            val area = (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x)
-            if(area < 1e-7) return false
-
-            for(p in 0 until n){
-                if(p == u || p == v || p == w) continue
-                val P = pts[indices[p]]
-                if(P.isInsideTriangle(a, b, c)){
-                    return false
+            for(p in pts){
+                if(p === a || p === b || p === c) continue
+                if(p.isInsideTriangle(a, b, c)){
+                    return true
                 }
             }
 
-            return true
+            return false
 
         }
 
-        var nv = n
-        var count = 2 * nv
+        fun cutsSomething(a: Vector2f, b: Vector2f): Boolean {
 
-        var v = nv - 1
-        while(nv > 2){
-
-            if(count-- <= 0) return triangles
-
-            var u = v
-            if(nv <= u) u = 0
-            v = u+1
-            if(nv <= v) v = 0
-            var w = v + 1
-            if(nv <= w) w = 0
-
-            if(snip(u, v, w, nv)){
-                triangles += indices[u]
-                triangles += indices[v]
-                triangles += indices[w]
-                var s = v
-                var t = v + 1
-                while(t < nv){
-
-                    indices[s] = indices[t]
-
-                    s++
-                    t++
+            for((i, p1) in pts.withIndex()){
+                if(p1 === a || p1 === b) continue
+                val p0 = if(i == 0) pts.last() else pts[i-1]
+                if(p0 === a || p0 === b) continue
+                val cut = getStrictLineIntersection(a, b, p0, p1)
+                if(cut != null){
+                    println("cut of line (${a.print(input)}-${b.print(input)}):" +
+                            " at ${cut.print()} with ${p0.print(input)}-${p1.print(input)}")
+                    println(a.print())
+                    println(b.print())
+                    println(cut.print())
+                    println(p0.print())
+                    println(p1.print())
+                    throw RuntimeException()
+                    return true
                 }
-                nv--
-                count = 2 * nv
             }
 
+            return false
+
         }
 
-        return triangles
+
+        // our own,
+        // always working solution...
+
+        // we have a list of points we need to connect
+        // try all combinations to create triangles :)
+
+        // use a linked list for performance reasons?
+        // -> no, the checks are in O(n), so improving the remove operation to O(1) is useless for
+        // lists with many points
+
+        val maxTriangleCount = pts.size - 2
+        val triangulation = ArrayList<Vector2f>(maxTriangleCount * 3)
+        val shrinkingRing = ArrayList(pts)
+        search@ while(shrinkingRing.size > 3){
+
+            var wasChanged = false
+
+            for(ai in shrinkingRing.indices){
+
+                val m = shrinkingRing.size
+                if(ai >= m) continue@search // was changed anyways
+                if(m <= 3) break@search
+
+                val bi = (ai+1) % m
+                val ci = (ai+2) % m
+
+                val a = shrinkingRing[ai]
+                val b = shrinkingRing[bi]
+                val c = shrinkingRing[ci]
+
+                // check if b can be removed
+                if(b.getSideSign(a, c) < 0){
+                    // correct order :)
+                    // now check, if we don't cross other lines
+                    // this is fulfilled most times, if we contain no foreign point
+                    if(!containsSomething(a, b, c)){
+                        //if(!cutsSomething(a, c)){// can this even happen??? I believe it happened and caused issues...
+
+                            triangulation.add(a)
+                            triangulation.add(b)
+                            triangulation.add(c)
+                            shrinkingRing.removeAt(bi)
+                            wasChanged = true
+
+                        //}
+                    }
+                }
+
+            }
+
+            if(!wasChanged) break
+
+        }
+
+        if(shrinkingRing.size == 3){
+            triangulation.addAll(shrinkingRing)
+        } else warn("Polygon could not be triangulated!, ${shrinkingRing.size}, ${pts.joinToString { it.print() }} -> ${triangulation.joinToString()}")
+
+        return triangulation
 
     }
 

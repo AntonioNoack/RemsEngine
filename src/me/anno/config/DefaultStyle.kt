@@ -23,6 +23,8 @@ object DefaultStyle {
     init {
         val textSize = 15
         set("textSize", textSize)
+        set("small.textSize", 12)
+        set("small.textColor", fontGray and 0x7fffffff)
         set(
             "textColor",
             black,
@@ -31,10 +33,11 @@ object DefaultStyle {
         set(
             "background",
             white,
-            deepDark
+            flatDark
         )
         set("treeView.background", flatDark)
         set("propertyInspector.background", flatDark)
+        set("sceneView.background", deepDark)
         set("spacer.background", deepDark)
         set("spacerWidth", 1)
         set("treeView.inset", textSize/2)

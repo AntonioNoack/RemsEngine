@@ -1,17 +1,25 @@
 package me.anno
 
 import me.anno.config.DefaultConfig
+import me.anno.config.DefaultConfig.style
 import me.anno.gpu.GFX
+import me.anno.objects.SimpleText
 import me.anno.objects.Transform
 import me.anno.objects.Video
+import me.anno.objects.animation.AnimatedProperty
+import me.anno.objects.cache.Cache
 import me.anno.run.startTime
 import me.anno.ui.base.Panel
+import me.anno.ui.base.TextPanel
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.impl.*
+import me.anno.ui.impl.sceneView.SceneView
+import org.joml.Vector4f
 import java.io.File
 import java.util.*
+import kotlin.math.roundToInt
 
 class RemsStudio {
 
@@ -35,7 +43,8 @@ class RemsStudio {
             if(GFX.previousSelectedTransform != GFX.selectedTransform){
                 inspector.list.clear()
                 GFX.previousSelectedTransform = GFX.selectedTransform
-                GFX.selectedTransform?.createInspector(inspector.list)
+                val list = inspector.list
+                GFX.selectedTransform?.createInspector(list, list.style)
             }
 
             windowStack.forEach {
@@ -50,12 +59,27 @@ class RemsStudio {
                 it.draw(0,0,w,h)
             }
 
+            /* dragging can be a nice way to work, but dragging values to change them,
+            // and copying by ctrl+c/v is probably better :)
+            val dragged = GFX.draggedObject
+            if(dragged != null && dragged.isNotBlank()){
+                val maxSize = 10
+                var displayed = dragged.trim()
+                if(displayed.length > maxSize) displayed = displayed.substring(0, maxSize - 3) + "..."
+                GFX.drawText(GFX.mx.roundToInt() - 5, GFX.my.roundToInt() - 5,
+                    style.getSize("dragging.textSize", 10), displayed,
+                    style.getColor("dragging.textColor", -1),
+                    style.getColor("dragging.background", 0))
+            }*/
+
             check()
 
             if(frameCtr == 0){
                 println("Used ${(System.nanoTime()-startTime)*1e-9f}s from start to finishing the first frame")
             }
             frameCtr++
+
+            Cache.update()
 
             false
         }
@@ -70,6 +94,7 @@ class RemsStudio {
 
     lateinit var startMenu: Panel
     lateinit var ui: Panel
+    lateinit var console: Panel
 
     fun createUI(){
 
@@ -96,6 +121,8 @@ class RemsStudio {
         // for(i in 0 until 2) Transform(null, null, null, b)
 
         val video = Video(File("C:\\Users\\Antonio\\Videos\\Captures\\Cities_ Skylines 2020-01-06 19-32-23.mp4"), root)
+        val simpleText = SimpleText("Hi! \uD83D\uDE09", root)
+        simpleText.color = AnimatedProperty.color().set(Vector4f(1f, 0.3f, 0.3f, 1f))
 
         val animationWindow = PanelListX(null, style)
         ui += animationWindow
@@ -108,13 +135,14 @@ class RemsStudio {
         animationWindow += inspector
         animationWindow.setWeight(1f)
 
+        val timeline = Timeline(style)
+        ui += timeline
+
         val explorer = FileExplorer(style)
         ui += explorer
 
-
-
-        val timeline = Timeline(style)
-        ui += timeline
+        console = TextPanel("Welcome to Rem's Studio!", style.getChild("small"))
+        ui += console
 
         windowStack.clear()
         windowStack += ui

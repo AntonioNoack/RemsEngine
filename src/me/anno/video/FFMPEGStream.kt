@@ -25,6 +25,8 @@ class FFMPEGStream(arguments: List<String>, waitToFinish: Boolean, interpretMeta
             "-f", "rawvideo", "-"// format
             // "pipe:1" // 1 = stdout, 2 = stdout
         ), waitToFinish = false, interpretMeta = true)
+        fun getImageSequence(input: File, startFrame: Int, frameCount: Int, fps: Float = 10f) =
+            getImageSequence(input, startFrame * fps, frameCount, fps)
         fun getImageSequence(input: File, startTime: Float, frameCount: Int, fps: Float = 10f) = FFMPEGStream(listOf(
             "-i", input.absolutePath,
             "-ss", "$startTime",

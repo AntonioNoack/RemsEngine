@@ -10,7 +10,7 @@ import kotlin.math.round
 
 // todo there are char-char relations in me.anno.fonts, which could improve the quality of the font
 // todo use them instead of this class
-object FontManagerV01 {
+object FontManager {
 
     init {
         // todo this is a bottleneck with 0.245s
@@ -46,7 +46,13 @@ object FontManagerV01 {
 
     val fonts = HashMap<String, XFont>()
 
-    fun getFont(name: String, fontSize: Float, fontSizeIndex: Int): XFont {
+    fun getFont(name: String, fontSize: Float): XFont {
+        val fontSizeIndex = getFontSizeIndex(fontSize)
+        val averageFontSize = getAvgFontSize(fontSizeIndex)
+        return getFont(name, averageFontSize, fontSizeIndex)
+    }
+
+    private fun getFont(name: String, fontSize: Float, fontSizeIndex: Int): XFont {
         val font = fonts[name]
         if(font != null) return font
         val awtName = "$name:$fontSizeIndex"

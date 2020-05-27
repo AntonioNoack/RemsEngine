@@ -2,7 +2,6 @@ package me.anno.ui.base
 
 import me.anno.gpu.GFX
 import me.anno.io.Saveable
-import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.Margin
 import me.anno.ui.style.Style
 import me.anno.utils.Tabs
@@ -14,7 +13,7 @@ open class Panel(val style: Style): Saveable(){
 
     var weight = 0f
 
-    var backgroundColor = style.getColor("background", (GFX.panelCtr++).and(15) * 0x080808) // (Math.random() * 1e8).toInt() and 0x7f3f7f
+    var backgroundColor = style.getColor("background", -1)
 
     var parent: Panel? = null
     val alignmentConstraints = ArrayList<Constraint>()
@@ -103,6 +102,7 @@ open class Panel(val style: Style): Saveable(){
     open fun onMouseClicked(x: Float, y: Float, button: Int, long: Boolean){
         onClickListener?.invoke(x,y,button,long) ?: parent?.onMouseClicked(x,y,button,long)
     }
+
     open fun onDoubleClick(x: Float, y: Float, button: Int){ parent?.onDoubleClick(x,y,button)}
     open fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float){ parent?.onMouseMoved(x,y,dx,dy) }
     open fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float){ parent?.onMouseWheel(x,y,dx,dy) }
@@ -114,9 +114,11 @@ open class Panel(val style: Style): Saveable(){
 
     open fun onEmpty(x: Float, y: Float) { parent?.onEmpty(x,y) }
     open fun onPaste(x: Float, y: Float, pasted: String){ parent?.onPaste(x,y,pasted) }
-    open fun onCopyRequested(x: Float, y: Float): String? { return parent?.onCopyRequested(x,y) }
+    open fun onCopyRequested(x: Float, y: Float): String? = parent?.onCopyRequested(x,y)
 
     open fun onSelectAll(x: Float, y: Float){ parent?.onSelectAll(x,y) }
+
+    open fun onGotAction(x: Float, y: Float, action: String){ parent?.onGotAction(x, y, action) }
 
     open fun onBackKey(x: Float, y: Float){ parent?.onBackKey(x,y) }
     open fun onEnterKey(x: Float, y: Float){ parent?.onEnterKey(x,y) }

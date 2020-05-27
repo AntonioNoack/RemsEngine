@@ -1,10 +1,11 @@
 package me.anno.objects
 
 import me.anno.config.DefaultConfig.style
-import me.anno.fonts.FontManagerV01
+import me.anno.fonts.FontManager
 import me.anno.gpu.GFX
 import me.anno.io.base.BaseWriter
 import me.anno.objects.animation.AnimatedProperty
+import me.anno.objects.cache.VideoCache
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.input.FileInput
 import me.anno.ui.input.FloatInput
@@ -30,9 +31,7 @@ class Video(var file: File, parent: Transform?): GFXTransform(parent){
 
     val duration get() = videoCache.duration
 
-    // todo a mode, where drawing frames is forced; for rendering
-    override fun draw(stack: Matrix4fStack, parentTime: Float, parentColor: Vector4f, style: Style) {
-        super.draw(stack, parentTime, parentColor, style)
+    override fun onDraw(stack: Matrix4fStack, time: Float, color: Vector4f) {
 
         if(lastFile != file){
             videoCache = VideoCache.getVideo(file)
@@ -40,7 +39,6 @@ class Video(var file: File, parent: Transform?): GFXTransform(parent){
         }
 
         if(file.exists()){
-            val time = getLocalTime(parentTime)
             if(time in startTime .. endTime){
 
                 // todo draw the current or last texture
@@ -49,19 +47,18 @@ class Video(var file: File, parent: Transform?): GFXTransform(parent){
 
                 val frame = videoCache.getFrame(frameIndex)
                 if(frame != null){
-                    val color = getLocalColor(parentColor, time)
                     GFX.draw3D(stack, frame, color, isBillboard.getValueAt(time))
                 }
 
                 stack.scale(0.1f)
-                GFX.draw3D(stack, FontManagerV01.getString("Verdana",15f, "$frameIndex:$localIndex")!!, Vector4f(1f,1f,1f,1f), 0f)
+                GFX.draw3D(stack, FontManager.getString("Verdana",15f, "$frameIndex:$localIndex")!!, Vector4f(1f,1f,1f,1f), 0f)
 
             }
         }
     }
 
-    override fun createInspector(list: PanelListY) {
-        super.createInspector(list)
+    override fun createInspector(list: PanelListY, style: Style) {
+        super.createInspector(list, style)
         val fileInput = FileInput("Path", style)
             .setText(file.toString())
             .setChangeListener { text -> file = File(text) }

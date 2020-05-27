@@ -1,13 +1,16 @@
-package me.anno.ui.impl
+package me.anno.ui.impl.sceneView
 
 import me.anno.config.DefaultStyle.black
+import me.anno.config.DefaultStyle.deepDark
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.editorHoverTime
 import me.anno.gpu.GFX.flat01
-import me.anno.gpu.GFX.smoothTime
+import me.anno.gpu.GFX.editorTime
 import me.anno.gpu.Shader
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.objects.Camera
 import me.anno.objects.Transform
+import me.anno.objects.blending.BlendMode
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelFrame
@@ -17,7 +20,6 @@ import org.joml.Matrix4fStack
 import org.joml.Vector4f
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL30.*
-import kotlin.math.max
 
 class SceneView(var root: Transform, style: Style): PanelFrame(null, style.getChild("sceneView")){
 
@@ -73,6 +75,8 @@ class SceneView(var root: Transform, style: Style): PanelFrame(null, style.getCh
         // todo ideally we could zoom in the image etc...
         // todo only do this, if we are appended to a camera :), not if we are building a 3D scene
 
+        GFX.drawRect(x,y,w,h, deepDark)
+
         var dx = 0
         var dy = 0
         var rw = w
@@ -118,9 +122,11 @@ class SceneView(var root: Transform, style: Style): PanelFrame(null, style.getCh
         GFX.applyCameraTransform(camera, 0f, stack)
 
         stack.pushMatrix()
-        root.draw(stack, smoothTime, Vector4f(1f,1f,1f,1f), style)
+        // root.draw(stack, editorHoverTime, Vector4f(1f,1f,1f,1f))
+        root.draw(stack, editorTime, Vector4f(1f,1f,1f,1f))
         stack.popMatrix()
 
+        BlendMode.DEFAULT.apply()
 
         GL11.glDisable(GL11.GL_DEPTH_TEST)
 

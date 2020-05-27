@@ -112,8 +112,13 @@ class AWTFont(val font: Font): XFont {
         var fallback = false
         var fallbackBegin = 0
         val codePoints = text.codePoints().toList()
-        for (i in 0 until codePoints.size) {
-            val curFallback = !mainFont.canDisplay(text[i])
+        for (i in codePoints.indices) {
+            // 😉
+            val inQuestion = codePoints[i]
+            val curFallback = !mainFont.canDisplay(inQuestion)
+            if(curFallback){
+                println("${String(Character.toChars(inQuestion))}, $inQuestion needs fallback, supported? ${fallbackFont.canDisplay(inQuestion)}")
+            }
             if (curFallback != fallback) {
                 fallback = curFallback
                 if (fallback) {
@@ -131,7 +136,7 @@ class AWTFont(val font: Font): XFont {
         val staticMetrics = staticGfx.fontMetrics
         val staticFontRenderCTX = staticGfx.fontRenderContext
 
-        var fallbackFont0 = Font("Serif", Font.PLAIN, 25)
+        var fallbackFont0 = Font("Segoe UI Emoji", Font.PLAIN, 25)
         val fallbackFonts = HashMap<Float, Font>()
         fun getFallback(size: Float): Font {
             val cached = fallbackFonts[size]

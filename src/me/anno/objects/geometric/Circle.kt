@@ -19,16 +19,12 @@ class Circle(parent: Transform?): GFXTransform(parent){
     var startDegrees = AnimatedProperty.float()
     var endDegrees = AnimatedProperty.float().set(360f)
 
-    override fun draw(stack: Matrix4fStack, parentTime: Float, parentColor: Vector4f, style: Style) {
-        super.draw(stack, parentTime, parentColor, style)
-        val time = getLocalTime(parentTime)
-        val color = getLocalColor(parentColor, time)
+    override fun onDraw(stack: Matrix4fStack, time: Float, color: Vector4f) {
         GFX.draw3DCircle(stack, innerRadius[time], startDegrees[time], endDegrees[time], color, isBillboard[time])
     }
 
-    override fun createInspector(list: PanelListY) {
-        super.createInspector(list)
-        val style = list.style
+    override fun createInspector(list: PanelListY, style: Style) {
+        super.createInspector(list, style)
         list += FloatInput(style, "Inner Radius", innerRadius[lastLocalTime], AnimatedProperty.Type.FLOAT)
             .setChangeListener { putValue(innerRadius, it) }
             .setIsSelectedListener { show(innerRadius) }

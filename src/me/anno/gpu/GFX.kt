@@ -3,13 +3,14 @@ package me.anno.gpu
 import me.anno.RemsStudio
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.black
-import me.anno.fonts.FontManagerV01
+import me.anno.fonts.FontManager
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.buffer.StaticFloatBuffer
 import me.anno.gpu.texture.Texture2D
 import me.anno.objects.Camera
 import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
+import me.anno.objects.blending.BlendMode
 import me.anno.ui.base.MenuBase
 import me.anno.ui.base.Panel
 import me.anno.ui.base.SpacePanel
@@ -17,6 +18,7 @@ import me.anno.ui.base.TextPanel
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.base.groups.PanelListY
+import me.anno.utils.length
 import me.anno.video.Frame
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4fStack
@@ -36,6 +38,8 @@ import kotlin.math.*
 
 
 object GFX: GFXBase() {
+
+    var targetFPS = 30f
 
     val workerTasks = ConcurrentLinkedQueue<() -> Int>()
     val eventTasks = ConcurrentLinkedQueue<() -> Unit>()
@@ -72,9 +76,11 @@ object GFX: GFXBase() {
     lateinit var flatShaderTexture: Shader
     lateinit var subpixelCorrectTextShader: Shader
     lateinit var shader3D: Shader
+    lateinit var shader3DPolygon: Shader
     lateinit var shader3DYUV: Shader
     lateinit var shader3DCircle: Shader
-    val whiteTexture = Texture2D(1,1)
+    val whiteTexture = Texture2D(1, 1)
+    val stripeTexture = Texture2D(5, 1)
     val colorShowTexture = Texture2D(2,2)
 
     val flat01Name = flat01.getName()
@@ -88,7 +94,9 @@ object GFX: GFXBase() {
 
     var panelCtr = 0
 
-    var smoothTime = 0f
+    var editorTime = 0f
+    var editorHoverTime = 0f
+
     var smoothSin = 0f
     var smoothCos = 0f
 
@@ -106,6 +114,10 @@ object GFX: GFXBase() {
 
     var selectedTransform: Transform? = null
     var selectedProperty: AnimatedProperty<*>? = null
+
+    var mouseDownX = 0f
+    var mouseDownY = 0f
+    var mouseKeysDown = HashSet<Int>()
 
     fun clip(x: Int, y: Int, w: Int, h: Int){
         // from the bottom to the top
@@ -187,16 +199,22 @@ object GFX: GFXBase() {
                 when(action){
                     GLFW_PRESS -> {
                         // find the clicked element
+                        mouseDownX = mx
+                        mouseDownY = my
                         inFocus = getClickedPanel(mx,my)
                         inFocus?.onMouseDown(mx,my,button)
                         mouseStart = System.nanoTime()
+                        mouseKeysDown.add(button)
                     }
                     GLFW_RELEASE -> {
+
                         inFocus?.onMouseUp(mx,my,button)
                         val mouseDuration = System.nanoTime() - mouseStart
                         val longClickMillis = DefaultConfig["longClick"] as? Int ?: 300
                         val isLongClick = mouseDuration/1_000_000 < longClickMillis
                         inFocus?.onMouseClicked(mx,my,button,isLongClick)
+                        mouseKeysDown.remove(button)
+
                     }
                 }
                 keyModState = mods
@@ -284,6 +302,7 @@ object GFX: GFXBase() {
     }
 
     fun drawRect(x: Int, y: Int, w: Int, h: Int, color: Int){
+        if(w == 0 || h == 0) return
         check()
         val shader = flatShader
         shader.use()
@@ -300,7 +319,7 @@ object GFX: GFXBase() {
     fun drawText(x: Int, y: Int, font: String, fontSize: Int, text: String, color: Int, backgroundColor: Int) = writeText(x, y, font, fontSize, text, color, backgroundColor)
     fun writeText(x: Int, y: Int, font: String, fontSize: Int, text: String, color: Int, backgroundColor: Int): Pair<Int, Int> {
         check()
-        val texture = FontManagerV01.getString(font, fontSize.toFloat(), text) ?: return 0 to fontSize
+        val texture = FontManager.getString(font, fontSize.toFloat(), text) ?: return 0 to fontSize
         check()
         val w = texture.w
         val h = texture.h
@@ -404,6 +423,18 @@ object GFX: GFXBase() {
         check()
     }
 
+    fun draw3DPolygon(stack: Matrix4fStack, buffer: StaticFloatBuffer,
+                      texture: Texture2D, color: Vector4f,
+                      inset: Float,
+                      isBillboard: Float){
+        val shader = shader3DPolygon
+        shader3DUniforms(shader, stack, texture.w, texture.h, color, isBillboard)
+        shader.v1("inset", inset)
+        texture.bind(0)
+        buffer.draw(shader)
+        check()
+    }
+
     fun draw3D(stack: Matrix4fStack, texture: Texture2D, color: Vector4f, isBillboard: Float){
         return draw3D(stack, flat01, texture, color, isBillboard)
     }
@@ -419,7 +450,7 @@ object GFX: GFXBase() {
 
     fun getTextSize(fontSize: Int, text: String) = getTextSize(defaultFont, fontSize, text)
     fun getTextSize(font: String = "Verdana", fontSize: Int, text: String): Pair<Int, Int> {
-        val texture = FontManagerV01.getString(font, fontSize.toFloat(), text) ?: return 0 to fontSize
+        val texture = FontManager.getString(font, fontSize.toFloat(), text) ?: return 0 to fontSize
         return texture.w to texture.h
     }
 
@@ -484,7 +515,7 @@ object GFX: GFXBase() {
         // todo test this shader...
         // with texture
 
-        val v3D = "" +
+        val v3DBase = "" +
                 "a2 $flat01Name;\n" +
                 "u2 pos, size, billboardSize;\n" +
                 "uniform mat4 transform;\n" +
@@ -498,8 +529,10 @@ object GFX: GFXBase() {
                 "" +
                 "vec4 transform3D(vec2 betterUV){" +
                 "   return transform * vec4(betterUV, 0.0, 1.0);\n" +
-                "}" +
-                "" +
+                "}"
+
+
+        val v3D = v3DBase +
                 "void main(){\n" +
                 "   vec2 betterUV = (pos + $flat01Name * size);\n" +
                 "   vec4 billboard = billboardTransform(betterUV);\n" +
@@ -507,6 +540,19 @@ object GFX: GFXBase() {
                 "   gl_Position = mix(in3D, billboard, isBillboard);\n" +
                 "   uv = $flat01Name;\n" +
                 "}"
+
+        val v3DPolygon = v3DBase +
+                "in vec2 attr1;\n" +
+                "uniform float inset;\n" +
+                "void main(){\n" +
+                "   vec2 betterUV = (pos + $flat01Name * size);\n" +
+                "   betterUV *= mix(1.0, attr1.r, inset);\n" +
+                "   vec4 billboard = billboardTransform(betterUV);\n" +
+                "   vec4 in3D = transform3D(betterUV);\n" +
+                "   gl_Position = mix(in3D, billboard, isBillboard);\n" +
+                "   uv = attr1.yx;\n" +
+                "}"
+
         val y3D = "" +
                 "varying v2 uv;\n"
 
@@ -557,6 +603,10 @@ object GFX: GFXBase() {
         shader3D.use()
         GL20.glUniform1i(shader3D["tex"], 0)
 
+        shader3DPolygon = Shader(v3DPolygon, y3D, f3D)
+        shader3DPolygon.use()
+        GL20.glUniform1i(shader3DPolygon["tex"], 0)
+
         shader3DCircle = Shader(v3D, y3D, f3DCircle)
 
         shader3DYUV = Shader(v3D, y3D, f3DYUV)
@@ -568,7 +618,11 @@ object GFX: GFXBase() {
     }
 
     override fun renderStep0() {
-        whiteTexture.createMonochrome(byteArrayOf(255.toByte()))
+        whiteTexture.create(
+            byteArrayOf(255.toByte(), 255.toByte(), 255.toByte(), 255.toByte()))
+        whiteTexture.filtering(true)
+        stripeTexture.createMonochrome(
+            byteArrayOf(255.toByte(), 255.toByte(), 255.toByte(), 255.toByte(), 255.toByte()))
         colorShowTexture.create(
             intArrayOf(
                 255,255,255,0, 255,255,255,255,
@@ -603,7 +657,7 @@ object GFX: GFXBase() {
         glDisable(GL11.GL_DEPTH_TEST)
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
         glEnable(GL_BLEND)
-        glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA)
+        BlendMode.DEFAULT.apply()
         glDisable(GL_CULL_FACE)
         glDisable(GL_ALPHA_TEST)
 
@@ -615,9 +669,9 @@ object GFX: GFXBase() {
         fps += (1f / rawDeltaTime - fps) * 0.1f
         lastTime = thisTime
 
-        smoothTime = (smoothTime + deltaTime * timeDilation) % 6.2831853f
-        smoothSin = sin(smoothTime)
-        smoothCos = cos(smoothTime)
+        editorTime = (editorTime + deltaTime * timeDilation) % 6.2831853f
+        smoothSin = sin(editorTime)
+        smoothCos = cos(editorTime)
 
         gameLoop(width, height)
 
