@@ -10,6 +10,32 @@ class FFMPEGMetaParser(): StringMap(){
 
     var debug = false
 
+    /**
+     * video (mp4):
+    Output #0, rawvideo, to 'pipe:':
+        Metadata:
+            major_brand     : mp42
+            minor_version   : 0
+            compatible_brands: mp41isom
+            title           : HITMAN 2
+            artist          : Microsoft Game DVR
+            encoder         : Lavf58.29.100
+            Stream #0:0(und): Video: rawvideo (I420 / 0x30323449), yuv420p, 1728x1080 [SAR 1:1 DAR 8:5], q=2-31, 537477 kb/s, 24 fps, 24 tbn, 24 tbc (default)
+            Metadata:
+                creation_time   : 2020-03-19T13:25:46.000000Z
+                handler_name    : VideoHandler
+                encoder         : Lavc58.54.100 rawvideo
+
+     * image(webp, not argb):
+    Output #0, rawvideo, to 'pipe:':
+        Metadata:
+            encoder         : Lavf58.29.100
+            Stream #0:0: Video: rawvideo (I420 / 0x30323449), yuv420p, 530x735, q=2-31, 112190 kb/s, 24 fps, 24 tbn, 24 tbc
+            Metadata:
+                encoder         : Lavc58.54.100 rawvideo
+     *
+     * */
+
     constructor(data: String): this(){
         parse(data)
     }
@@ -72,7 +98,7 @@ class FFMPEGMetaParser(): StringMap(){
 
     fun parseLine(line: String, stream: FFMPEGStream){
         if(line.isBlank()) return
-        // println(line)
+        // if(debug) println(line)
         val depth = getDepth(line)
         val data = line.trim().specialSplit()
         if(debug) println("$depth $data")
@@ -82,7 +108,7 @@ class FFMPEGMetaParser(): StringMap(){
             }
             1 -> {
                 // to do parse dar for correct ratio? ... can be corrected manually...
-                level1Type = data[1]
+                level1Type = data[0]
                 when(level1Type){
                     "Duration" -> {
                         if(level0Type == "Input"){
@@ -93,6 +119,7 @@ class FFMPEGMetaParser(): StringMap(){
                                     throw RuntimeException("Invalid ffmpeg-duration? $data")
                                 }
                                 val duration = when(durParts.size){
+                                    1 -> durParts[0].toFloatOrNull() ?: 0.01f
                                     3 -> durParts[0].toFloat() * 60 + durParts[2].toFloat()
                                     5 -> durParts[0].toFloat() * 3600 + durParts[2].toFloat() * 60 + durParts[4].toFloat()
                                     7 -> durParts[0].toFloat() * 3600 * 24 + durParts[2].toFloat() * 3600 + durParts[4].toFloat() * 60 + durParts[6].toFloat()
@@ -109,7 +136,11 @@ class FFMPEGMetaParser(): StringMap(){
                 }
             }
             2 -> {
-                if(level0Type == "Input" && data[0] == "Stream"){
+                if(level0Type == "Output" && data[0] == "Stream"){
+                    val videoTypeIndex = data.indexOf("rawvideo")
+                    if(videoTypeIndex > -1 && videoTypeIndex+2 < data.size && data[videoTypeIndex+1] == "("){
+                        stream.codec = data[videoTypeIndex+2]
+                    }
                     removeBrackets(data)
                     val wh = data.mapNotNull {
                         try {

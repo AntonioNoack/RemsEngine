@@ -13,10 +13,10 @@ import me.anno.objects.Camera
 import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.blending.BlendMode
-import me.anno.ui.base.MenuBase
 import me.anno.ui.base.Panel
 import me.anno.ui.base.SpacePanel
 import me.anno.ui.base.TextPanel
+import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.base.groups.PanelListY
 import me.anno.video.Frame
@@ -38,6 +38,9 @@ object GFX: GFXBase() {
 
     var targetFPS = 30f
 
+    var targetWidth = 1920
+    var targetHeight = 1080
+
     val workerTasks = ConcurrentLinkedQueue<() -> Int>()
     val eventTasks = ConcurrentLinkedQueue<() -> Unit>()
 
@@ -54,6 +57,7 @@ object GFX: GFXBase() {
 
     val LOGGER = LogManager.getLogger()
 
+    lateinit var gameInit: () -> Unit
     lateinit var gameLoop: (w: Int, h: Int) -> Boolean
     lateinit var shutdown: () -> Unit
 
@@ -72,6 +76,8 @@ object GFX: GFXBase() {
     lateinit var shader3D: Shader
     lateinit var shader3DPolygon: Shader
     lateinit var shader3DYUV: Shader
+    lateinit var shader3DARGB: Shader
+    lateinit var shader3DBGRA: Shader
     lateinit var shader3DCircle: Shader
     val whiteTexture = Texture2D(1, 1)
     val stripeTexture = Texture2D(5, 1)
@@ -230,7 +236,8 @@ object GFX: GFXBase() {
         shader.use()
         stack.get(matrixBuffer)
         GL20.glUniformMatrix4fv(shader["transform"], false, matrixBuffer)
-        val avgSize = sqrt(w * h.toFloat())
+        val avgSize = if(w * targetHeight > h * targetWidth) w.toFloat() * targetHeight / targetWidth  else h.toFloat()
+        // val avgSize = sqrt(w * h.toFloat())
         val sx = w / avgSize
         val sy = h / avgSize
         val avgSize2 = sqrt(windowWidth * windowHeight.toFloat())
@@ -294,7 +301,7 @@ object GFX: GFXBase() {
     }
 
     fun draw3D(stack: Matrix4fStack, texture: Frame, color: Vector4f, isBillboard: Float){
-        val shader = shader3DYUV
+        val shader = texture.get3DShader()
         shader3DUniforms(shader, stack, texture.w, texture.h, color, isBillboard)
         texture.bind(0)
         flat01.draw(shader)
@@ -453,22 +460,36 @@ object GFX: GFXBase() {
                 "   gl_FragColor.rgb *= gl_FragColor.rgb;\n" +
                 "}"
 
-        shader3D = Shader(v3D, y3D, f3D)
-        shader3D.use()
-        GL20.glUniform1i(shader3D["tex"], 0)
-
-        shader3DPolygon = Shader(v3DPolygon, y3D, f3D)
-        shader3DPolygon.use()
-        GL20.glUniform1i(shader3DPolygon["tex"], 0)
-
+        shader3D = createCustomShader(v3D, y3D, f3D, listOf("tex"))
+        shader3DPolygon = createCustomShader(v3DPolygon, y3D, f3D, listOf("tex"))
         shader3DCircle = Shader(v3D, y3D, f3DCircle)
 
-        shader3DYUV = Shader(v3D, y3D, f3DYUV)
-        shader3DYUV.use()
-        GL20.glUniform1i(shader3DYUV["texY"], 0)
-        GL20.glUniform1i(shader3DYUV["texU"], 1)
-        GL20.glUniform1i(shader3DYUV["texV"], 2)
+        shader3DYUV = createCustomShader(v3D, y3D, f3DYUV, listOf("texY", "texU", "texV"))
 
+        shader3DARGB = createCustomShader(v3D, y3D, "" +
+                "uniform vec4 tint;" +
+                "uniform sampler2D tex;\n" +
+                "void main(){\n" +
+                "   gl_FragColor = tint * texture(tex, uv).gbar;\n" +
+                "   gl_FragColor.rgb *= gl_FragColor.rgb;\n" +
+                "}", listOf("tex"))
+        shader3DBGRA = createCustomShader(v3D, y3D, "" +
+                "uniform vec4 tint;" +
+                "uniform sampler2D tex;\n" +
+                "void main(){\n" +
+                "   gl_FragColor = tint * texture(tex, uv).bgra;\n" +
+                "   gl_FragColor.rgb *= gl_FragColor.rgb;\n" +
+                "}", listOf("tex"))
+
+    }
+
+    fun createCustomShader(v3D: String, y3D: String, fragmentShader: String, textures: List<String>): Shader {
+        val shader = Shader(v3D, y3D, fragmentShader)
+        shader.use()
+        textures.forEachIndexed { index, name ->
+            GL20.glUniform1i(shader[name], index)
+        }
+        return shader
     }
 
     override fun renderStep0() {
@@ -536,8 +557,7 @@ object GFX: GFXBase() {
     fun openMenu(x: Int, y: Int, title: String, options: List<Pair<String, (button: Int, isLong: Boolean) -> Boolean>>){
         val style = DefaultConfig.style
         val list = PanelListY(style)
-        val createNewStuffMenu = MenuBase(list, style)
-        val window = Window(createNewStuffMenu, x, y)
+        val window = Window(list, x, y)
         list += TextPanel(title, style)
         list += SpacePanel(1, 1, style)
         for((name, action) in options){
@@ -549,6 +569,7 @@ object GFX: GFXBase() {
             }
             list += buttonView
         }
+        list += WrapAlign.LeftTop
         windowStack.add(window)
     }
     fun openMenu(x: Float, y: Float, title: String, options: List<Pair<String, (button: Int, isLong: Boolean) -> Boolean>>, delta: Int = 10){

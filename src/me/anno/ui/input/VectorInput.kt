@@ -1,5 +1,6 @@
 package me.anno.ui.input
 
+import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
 import me.anno.input.Input.isControlDown
 import me.anno.input.Input.isShiftDown
@@ -18,18 +19,24 @@ import org.joml.Vector3f
 import org.joml.Vector4f
 import kotlin.math.max
 
-class VectorInput(style: Style, var title: String,
-                  val type: AnimatedProperty.Type): PanelListY(style){
+class VectorInput(
+    style: Style, var title: String,
+    val type: AnimatedProperty.Type,
+    val owningProperty: AnimatedProperty<*>? = null
+): PanelListY(style){
 
-    constructor(style: Style, title: String, value: Vector2f, type: AnimatedProperty.Type): this(style, title, type){
+    constructor(style: Style, title: String, value: Vector2f, type: AnimatedProperty.Type,
+                owningProperty: AnimatedProperty<*>? = null): this(style, title, type, owningProperty){
         setValue(value)
     }
 
-    constructor(style: Style, title: String, value: Vector3f, type: AnimatedProperty.Type): this(style, title, type){
+    constructor(style: Style, title: String, value: Vector3f, type: AnimatedProperty.Type,
+                owningProperty: AnimatedProperty<*>? = null): this(style, title, type, owningProperty){
         setValue(value)
     }
 
-    constructor(style: Style, title: String, value: Vector4f, type: AnimatedProperty.Type): this(style, title, type){
+    constructor(style: Style, title: String, value: Vector4f, type: AnimatedProperty.Type,
+                owningProperty: AnimatedProperty<*>? = null): this(style, title, type, owningProperty){
         setValue(value)
     }
 
@@ -42,7 +49,7 @@ class VectorInput(style: Style, var title: String,
     val valueFields = ArrayList<PureTextInput>(components)
 
     fun addComponent(i: Int, title: String): FloatInput {
-        val pseudo = FloatInput(style, title, type)
+        val pseudo = FloatInput(style, title, type, owningProperty)
             .setChangeListener {
                 changeListener(
                     compX.lastValue.toFloat(),
@@ -99,9 +106,10 @@ class VectorInput(style: Style, var title: String,
 
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.draw(x0, y0, x1, y1)
-        val focused = titleView.isInFocus || valueList.children.count { it.isInFocus } > 0
-        if(focused) isSelectedListener?.invoke()
-        valueList.visibility = if(focused) Visibility.VISIBLE else Visibility.GONE
+        val focused1 = titleView.isInFocus || valueList.children.count { it.isInFocus } > 0
+        if(focused1) isSelectedListener?.invoke()
+        val focused2 = focused1 || owningProperty == GFX.selectedProperty
+        valueList.visibility = if(focused2) Visibility.VISIBLE else Visibility.GONE
         super.draw(x0, y0, x1, y1)
         compX.updateValueMaybe()
         compY.updateValueMaybe()
@@ -224,5 +232,7 @@ class VectorInput(style: Style, var title: String,
         super.onMouseUp(x, y, button)
         mouseIsDown = false
     }
+
+    override fun getCursor(): Long = Cursor.drag
 
 }

@@ -72,6 +72,10 @@ class AnimatedProperty<V>(val type: Type): Saveable(){
         sort()
     }
 
+    fun remove(keyframe: Keyframe<*>){
+        keyframes.remove(keyframe)
+    }
+
     operator fun get(time: Float) = getValueAt(time)
     fun getValueAt(time: Float): V {
         return when(keyframes.size){

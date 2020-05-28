@@ -257,38 +257,52 @@ class TimelineBody(style: Style): Panel(style.getChild("deep")){
         GFX.editorTime = getTimeAt(x)
     }
 
-    override fun onMouseDown(x: Float, y: Float, button: Int) {
-        // todo find the dragged element
-        draggedKeyframe = null
-        if(button == 0){
-            val property = GFX.selectedProperty ?: return
-            var bestDragged: Keyframe<*>? = null
-            var bestChannel = 0
-            val maxMargin = dotSize*2f/3f + 1f
-            var bestDistance = maxMargin
-            property.keyframes.forEach { keyframe ->
-                val dx = x - getXAt(keyframe.time)
-                if(abs(dx) < maxMargin){// todo get best distance instead of this? yes :)
-                    for(channel in 0 until property.type.components){
-                        val dy = y - getYAt(keyframe.getValue(channel))
-                        if(abs(dy) < maxMargin){
-                            val distance = length(dx, dy)
-                            if(distance < bestDistance){
-                                bestDragged = keyframe
-                                bestChannel = channel
-                                bestDistance = distance
-                            }
+    fun getKeyframeAt(x: Float, y: Float): Pair<Keyframe<*>, Int>? {
+        val property = GFX.selectedProperty ?: return null
+        var bestDragged: Keyframe<*>? = null
+        var bestChannel = 0
+        val maxMargin = dotSize*2f/3f + 1f
+        var bestDistance = maxMargin
+        property.keyframes.forEach { keyframe ->
+            val dx = x - getXAt(keyframe.time)
+            if(abs(dx) < maxMargin){// todo get best distance instead of this? yes :)
+                for(channel in 0 until property.type.components){
+                    val dy = y - getYAt(keyframe.getValue(channel))
+                    if(abs(dy) < maxMargin){
+                        val distance = length(dx, dy)
+                        if(distance < bestDistance){
+                            bestDragged = keyframe
+                            bestChannel = channel
+                            bestDistance = distance
                         }
                     }
                 }
             }
-            draggedKeyframe = bestDragged
-            draggedChannel = bestChannel
+        }
+        return bestDragged?.to(bestChannel)
+    }
+
+    override fun onMouseDown(x: Float, y: Float, button: Int) {
+        // find the dragged element
+        draggedKeyframe = null
+        if(button == 0){
+            val keyframe = getKeyframeAt(x, y)
+            if(keyframe != null){
+                draggedKeyframe = keyframe.first
+                draggedChannel = keyframe.second
+            }
         }
     }
 
     override fun onMouseUp(x: Float, y: Float, button: Int) {
         draggedKeyframe = null
+    }
+
+    override fun onDeleteKey(x: Float, y: Float) {
+        val kf = getKeyframeAt(x, y)
+        kf?.apply {
+            GFX.selectedProperty?.remove(kf.first)
+        }
     }
 
     override fun onKeyTyped(x: Float, y: Float, key: Int) {

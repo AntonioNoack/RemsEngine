@@ -1,7 +1,8 @@
 package me.anno.objects.cache
 
 import me.anno.gpu.GFX
-import me.anno.gpu.texture.Texture2D
+import me.anno.objects.cache.VideoData.Companion.framesPerContainer
+import me.anno.video.FFMPEGStream
 import me.anno.video.Frame
 import java.io.File
 import java.io.FileNotFoundException
@@ -47,21 +48,29 @@ object Cache {
     }
 
     // todo specify fps for our needs...
-    fun getVideoFrame(file: File, index: Int): Frame? {
+    fun getVideoFrame(file: File, index: Int, maxIndex: Int, isLooping: Boolean = false): Frame? {
         if(index < 0) return null
-        val bufferIndex = index/VideoData.framesPerContainer
+        val bufferIndex = index/framesPerContainer
         val videoData = getVideoFrames(file, bufferIndex) ?: return null
         if(videoData.time0 != GFX.lastTime){
             if(GFX.editorTimeDilation > 0.01f){
-                // todo check if that buffer still would be valid
-                getVideoFrames(file, bufferIndex+1)
+                if((bufferIndex+1)*framesPerContainer <= maxIndex){
+                    getVideoFrames(file, bufferIndex+1)
+                } else if(isLooping){
+                    getVideoFrames(file, 0)
+                }
             } else if(GFX.editorTimeDilation < -0.01f){
                 if(bufferIndex > 0){
                     getVideoFrames(file, bufferIndex-1)
+                } else {
+                    val maybeIndex = FFMPEGStream.frameCountByFile[file]
+                    if(maybeIndex != null){// 1/16 probability, that this won't work ...
+                        getVideoFrames(file, (maybeIndex-1)/framesPerContainer)
+                    }
                 }
             }
         }
-        return videoData.frames.getOrNull(index % VideoData.framesPerContainer)
+        return videoData.frames.getOrNull(index % framesPerContainer)
     }
 
     fun getVideoFrames(file: File, index: Int) = getEntry(file, false, index){

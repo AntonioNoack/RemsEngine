@@ -3,9 +3,10 @@ package me.anno.ui.impl.sceneView
 import me.anno.config.DefaultStyle.black
 import me.anno.config.DefaultStyle.deepDark
 import me.anno.gpu.GFX
-import me.anno.gpu.GFX.editorHoverTime
 import me.anno.gpu.GFX.flat01
 import me.anno.gpu.GFX.editorTime
+import me.anno.gpu.GFX.targetHeight
+import me.anno.gpu.GFX.targetWidth
 import me.anno.gpu.Shader
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.objects.Camera
@@ -22,9 +23,6 @@ import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL30.*
 
 class SceneView(var root: Transform, style: Style): PanelFrame(null, style.getChild("sceneView")){
-
-    var sceneWidth = 1920
-    var sceneHeight = 1080
 
     init {
         weight = 1f
@@ -82,11 +80,11 @@ class SceneView(var root: Transform, style: Style): PanelFrame(null, style.getCh
         var rw = w
         var rh = h
 
-        if(w*sceneHeight > sceneWidth*h){
-            rw = h * sceneWidth/sceneHeight
+        if(w*targetHeight > targetWidth*h){
+            rw = h * targetWidth/targetHeight
             dx = (w-rw)/2
         } else {
-            rh = w * sceneHeight/sceneWidth
+            rh = w * targetHeight/targetWidth
             dy = (h-rh)/2
         }
 

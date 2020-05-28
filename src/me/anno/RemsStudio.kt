@@ -2,8 +2,11 @@ package me.anno
 
 import me.anno.audio.AudioManager
 import me.anno.config.DefaultConfig
+import me.anno.gpu.Cursor
+import me.anno.gpu.Cursor.useCursor
 import me.anno.gpu.GFX
 import me.anno.gpu.Window
+import me.anno.input.Input
 import me.anno.objects.SimpleText
 import me.anno.objects.Transform
 import me.anno.objects.Video
@@ -40,10 +43,13 @@ class RemsStudio {
         // val src = File("C:\\Users\\Antonio\\Videos\\Captures", "Cities_ Skylines 2020-01-06 19-32-23.mp4")
         // FFMPEGStream.getImageSequence(src)
 
-        AudioManager.init()
 
         createUI()
         GFX.windowStack = windowStack
+        GFX.gameInit = {
+            AudioManager.init()
+            Cursor.init()
+        }
         GFX.gameLoop = { w, h ->
             check()
 
@@ -53,6 +59,8 @@ class RemsStudio {
                 val list = inspector.list
                 GFX.selectedTransform?.createInspector(list, list.style)
             }
+
+            GFX.getClickedPanel(Input.mouseX, Input.mouseY)?.getCursor()?.useCursor()
 
             windowStack.forEach { window ->
                 val panel = window.panel
@@ -93,6 +101,7 @@ class RemsStudio {
         }
         GFX.shutdown = {
             AudioManager.destroy()
+            Cursor.destroy()
         }
         // GFX.init()
         GFX.run()

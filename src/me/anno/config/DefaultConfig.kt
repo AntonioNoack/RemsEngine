@@ -18,6 +18,7 @@ object DefaultConfig: StringMap() {
         val t0 = System.nanoTime()
 
         this["style"] = "dark"
+        this["ffmpegPath"] = "C:\\Users\\Antonio\\Downloads\\lib\\ffmpeg\\bin\\ffmpeg.exe"
 
         val newConfig = ConfigBasics.loadConfig("main.config", this, true)
         if(newConfig != this){

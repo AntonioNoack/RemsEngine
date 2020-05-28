@@ -24,11 +24,11 @@ import kotlin.math.max
 
 open class Transform(var parent: Transform? = null): Saveable(){
 
-    var localPosition = AnimatedProperty.pos()
-    var localScale = AnimatedProperty.scale()
-    var localRotationYXZ = AnimatedProperty.rotYXZ()
-    var localRotationQuaternion: AnimatedProperty<Quaternionf>? = null
-    var localSkew = AnimatedProperty.skew()
+    var position = AnimatedProperty.pos()
+    var scale = AnimatedProperty.scale()
+    var rotationYXZ = AnimatedProperty.rotYXZ()
+    var rotationQuaternion: AnimatedProperty<Quaternionf>? = null
+    var skew = AnimatedProperty.skew()
     var color = AnimatedProperty.color()
 
     var blendMode = BlendMode.UNSPECIFIED
@@ -55,7 +55,7 @@ open class Transform(var parent: Transform? = null): Saveable(){
         list.addKeyframe(lastLocalTime, value, 0.1f)
     }
 
-    val usesEuler get() = localRotationQuaternion == null
+    val usesEuler get() = rotationQuaternion == null
 
     fun show(anim: AnimatedProperty<*>?){
         GFX.selectedProperty = anim
@@ -76,30 +76,39 @@ open class Transform(var parent: Transform? = null): Saveable(){
                 comment = it
             }
 
-        list += VectorInput(style, "Position", localPosition[lastLocalTime], AnimatedProperty.Type.POSITION).setChangeListener { x, y, z, w ->
-            putValue(localPosition, Vector3f(x,y,z))
-        }.setIsSelectedListener { show(localPosition) }
-        list += VectorInput(style, "Scale", localScale[lastLocalTime], AnimatedProperty.Type.SCALE).setChangeListener { x, y, z, w ->
-            putValue(localScale, Vector3f(x,y,z))
-        }.setIsSelectedListener { show(localScale) }
+        list += VectorInput(style, "Position", position[lastLocalTime],
+            AnimatedProperty.Type.POSITION, position)
+            .setChangeListener { x, y, z, w ->
+                putValue(position, Vector3f(x,y,z))
+            }.setIsSelectedListener { show(position) }
+        list += VectorInput(style, "Scale", scale[lastLocalTime],
+            AnimatedProperty.Type.SCALE, scale)
+            .setChangeListener { x, y, z, w ->
+                putValue(scale, Vector3f(x,y,z)) }
+            .setIsSelectedListener { show(scale) }
 
         if(usesEuler){
-            list += VectorInput(style, "Rotation (YXZ)", localRotationYXZ[lastLocalTime], AnimatedProperty.Type.ROT_YXZ).setChangeListener { x, y, z, w ->
-                putValue(localRotationYXZ, Vector3f(x,y,z))
-            }.setIsSelectedListener { show(localRotationYXZ) }
+            list += VectorInput(style, "Rotation (YXZ)", rotationYXZ[lastLocalTime],
+                AnimatedProperty.Type.ROT_YXZ, rotationYXZ)
+                .setChangeListener { x, y, z, w ->
+                    putValue(rotationYXZ, Vector3f(x,y,z)) }
+                .setIsSelectedListener { show(rotationYXZ) }
         } else {
-            list += VectorInput(style, "Rotation (Quaternion)", localRotationQuaternion?.get(lastLocalTime) ?: Quaternionf()).setChangeListener { x, y, z, w ->
-                if(localRotationQuaternion == null) localRotationQuaternion = AnimatedProperty.quat()
-                putValue(localRotationQuaternion!!, Quaternionf(x,y,z,w+1e-9f).normalize())
-            }.setIsSelectedListener { show(localRotationQuaternion) }
+            list += VectorInput(style, "Rotation (Quaternion)", rotationQuaternion?.get(lastLocalTime) ?: Quaternionf())
+                .setChangeListener { x, y, z, w ->
+                    if(rotationQuaternion == null) rotationQuaternion = AnimatedProperty.quat()
+                    putValue(rotationQuaternion!!, Quaternionf(x,y,z,w+1e-9f).normalize()) }
+                .setIsSelectedListener { show(rotationQuaternion) }
         }
 
-        list += VectorInput(style, "Skew", localSkew[lastLocalTime], AnimatedProperty.Type.SKEW_2D)
+        list += VectorInput(style, "Skew", skew[lastLocalTime],
+            AnimatedProperty.Type.SKEW_2D, skew)
             .setChangeListener { x, y, z, w ->
-                putValue(localSkew, Vector2f(x,y))
-            }.setIsSelectedListener { show(localSkew) }
+                putValue(skew, Vector2f(x,y))
+            }.setIsSelectedListener { show(skew) }
 
-        list += ColorInput(style, "Color", color[lastLocalTime], AnimatedProperty.Type.COLOR).setChangeListener { x, y, z, w ->
+        list += ColorInput(style, "Color", color[lastLocalTime],
+            AnimatedProperty.Type.COLOR, color).setChangeListener { x, y, z, w ->
             putValue(color, Vector4f(max(0f, x), max(0f, y), max(0f, z),
                 clamp(w, 0f, 1f)
             ))
@@ -129,12 +138,12 @@ open class Transform(var parent: Transform? = null): Saveable(){
 
     fun applyTransformLT(transform: Matrix4f, time: Float){
 
-        val position = localPosition[time]
-        val scale = localScale[time]
-        val euler = localRotationYXZ[time]
-        val rotationQuat = localRotationQuaternion
+        val position = position[time]
+        val scale = scale[time]
+        val euler = rotationYXZ[time]
+        val rotationQuat = rotationQuaternion
         val usesEuler = usesEuler
-        val skew = localSkew[time]
+        val skew = skew[time]
 
         if(position.x != 0f || position.y != 0f || position.z != 0f){
             transform.translate(position)
@@ -196,10 +205,10 @@ open class Transform(var parent: Transform? = null): Saveable(){
         super.save(writer)
         writer.writeObject(this, "parent", parent)
         writer.writeString("name", name)
-        writer.writeObject(this, "position", localPosition)
-        writer.writeObject(this, "scale", localScale)
-        writer.writeObject(this, "rotationYXZ", localRotationYXZ)
-        writer.writeObject(this, "rotationQuat", localRotationQuaternion)
+        writer.writeObject(this, "position", position)
+        writer.writeObject(this, "scale", scale)
+        writer.writeObject(this, "rotationYXZ", rotationYXZ)
+        writer.writeObject(this, "rotationQuat", rotationQuaternion)
         writer.writeFloat("timeOffset", timeOffset)
         writer.writeFloat("timeDilation", timeDilation)
         writer.writeObject(this, "timeAnimated", timeAnimated)
@@ -212,7 +221,7 @@ open class Transform(var parent: Transform? = null): Saveable(){
         when(name){
             "parent" -> {
                 if(value is Transform){
-                    parent = this
+                    value.addChild(this)
                 }
             }
             "children" -> {
@@ -222,22 +231,22 @@ open class Transform(var parent: Transform? = null): Saveable(){
             }
             "position" -> {
                 if(value is AnimatedProperty<*> && value.type == AnimatedProperty.Type.POSITION){
-                    localPosition = value as AnimatedProperty<Vector3f>
+                    position = value as AnimatedProperty<Vector3f>
                 }
             }
             "scale" -> {
                 if(value is AnimatedProperty<*> && value.type == AnimatedProperty.Type.SCALE){
-                    localScale = value as AnimatedProperty<Vector3f>
+                    scale = value as AnimatedProperty<Vector3f>
                 }
             }
             "rotationYXZ" -> {
                 if(value is AnimatedProperty<*> && value.type == AnimatedProperty.Type.ROT_YXZ){
-                    localRotationYXZ = value as AnimatedProperty<Vector3f>
+                    rotationYXZ = value as AnimatedProperty<Vector3f>
                 }
             }
             "rotationQuat" -> {
                 if(value is AnimatedProperty<*> && value.type == AnimatedProperty.Type.QUATERNION){
-                    localRotationQuaternion = value as AnimatedProperty<Quaternionf>
+                    rotationQuaternion = value as AnimatedProperty<Quaternionf>
                 }
             }
             "timeAnimated" -> {

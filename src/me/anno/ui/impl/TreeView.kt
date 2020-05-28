@@ -1,15 +1,13 @@
 package me.anno.ui.impl
 
 import me.anno.config.DefaultStyle.black
+import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
 import me.anno.input.Input.mouseX
 import me.anno.input.Input.mouseY
 import me.anno.io.text.TextReader
-import me.anno.objects.Audio
+import me.anno.objects.*
 import me.anno.utils.clamp
-import me.anno.objects.Image
-import me.anno.objects.Transform
-import me.anno.objects.Video
 import me.anno.objects.geometric.Circle
 import me.anno.objects.geometric.Polygon
 import me.anno.ui.base.*
@@ -17,6 +15,7 @@ import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.style.Style
+import me.anno.utils.warn
 import org.joml.Vector4f
 import java.io.File
 import java.lang.Exception
@@ -124,14 +123,19 @@ class TreeView(var root: Transform, style: Style):
     fun addChildFromFile(parent: Transform, file: File){
         val ending = file.name.split('.').last()
         when(ending.toLowerCase()){// todo better user-customizable
-            "png", "jpg", "jpeg", "gif", "tiff" -> Image(file, parent)
+            "png", "jpg", "jpeg", "tiff" -> Image(file, parent)
+            "webp" -> {
+                warn("WebP will only work correctly, if backed by png :/")
+                Image(file, parent)
+            }
             "txt" -> {
-                // todo add text?, with line breaks?
+                // add text?, with line breaks?
+                SimpleText(file.readText(), parent)
             }
             "md" -> {
                 // todo parse, and create constructs?
             }
-            "mp4" -> Video(file, parent)
+            "mp4", "gif" -> Video(file, parent)
             "mp3", "wav", "ogg" -> Audio(file, parent)
             else -> println("Unknown file type: $ending")
         }
@@ -245,6 +249,7 @@ class TreeView(var root: Transform, style: Style):
             }
 
             override fun onBackKey(x: Float, y: Float) = onDeleteKey(x,y)
+            override fun getCursor() = Cursor.drag
 
         }
         transformByIndex += transform0

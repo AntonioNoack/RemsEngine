@@ -106,6 +106,7 @@ public class GFXBase0 {
 
         debugProc = GLUtil.setupDebugMessageCallback();
 
+        GFX.gameInit.invoke();
         renderStep0();
 
         while (!destroyed) {
@@ -125,7 +126,6 @@ public class GFXBase0 {
     }
 
     public void renderStep0(){
-        glClearColor(0.3f, 0.5f, 0.7f, 0.0f);
     }
 
     public void renderStep(){

@@ -1,5 +1,6 @@
 package me.anno.ui.base
 
+import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
 import me.anno.io.Saveable
 import me.anno.ui.base.constraints.Margin
@@ -128,6 +129,8 @@ open class Panel(val style: Style): Saveable(){
 
     override fun getClassName(): String = "Panel"
     override fun getApproxSize(): Int = 1
+
+    open fun getCursor(): Long? = parent?.getCursor() ?: 0L
 
     open fun printLayout(depth: Int){
         println("${Tabs.spaces(depth*2)}${javaClass.simpleName}($weight) $x $y += $w $h ($minW $minH)")

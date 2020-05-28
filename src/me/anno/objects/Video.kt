@@ -5,15 +5,16 @@ import me.anno.gpu.GFX
 import me.anno.io.base.BaseWriter
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.cache.Cache
-import me.anno.objects.cache.VideoData
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.input.FileInput
 import me.anno.ui.input.FloatInput
 import me.anno.ui.style.Style
+import me.anno.video.FFMPEGStream
 import org.joml.Matrix4fStack
 import org.joml.Vector4f
 import java.io.File
 import kotlin.concurrent.thread
+import kotlin.math.max
 
 // todo button and calculation to match video/image/... to screen size
 
@@ -27,8 +28,14 @@ class Video(var file: File, parent: Transform?): GFXTransform(parent){
     var startTime = 0f
     var endTime = 100f
 
+    var duration = 0f
+
+    var isLooping = true
+
     // val fps get() = videoCache.fps
     var fps = -1f
+
+    val frameCount get() =  max(1, FFMPEGStream.frameCountByFile[file] ?: (duration * fps).toInt())
 
     // val duration get() = videoCache.duration
 
@@ -37,6 +44,7 @@ class Video(var file: File, parent: Transform?): GFXTransform(parent){
         if(lastFile != file){
             lastFile = file
             fps = -1f
+            duration = -1f
             if(file.exists()){
                 // request the metadata :)
                 thread {
@@ -45,7 +53,8 @@ class Video(var file: File, parent: Transform?): GFXTransform(parent){
                         val frames = Cache.getVideoFrames(file, 0)
                         if(frames != null){
                             fps = frames.fps
-                            if(fps > 0f) break@loop
+                            duration = frames.stream.sourceLength
+                            if(fps > 0f && duration > 0f) break@loop
                         } else Thread.sleep(1)
                     }
                 }
@@ -54,22 +63,26 @@ class Video(var file: File, parent: Transform?): GFXTransform(parent){
 
         var wasDrawn = false
 
-        if(file.exists()){
+        if(file.exists() && duration > 0f){
+
+            if(startTime >= duration) startTime = duration
+            if(endTime >= duration) endTime = duration
 
             if(fps > 0f){
-                if(time in startTime .. endTime){
+                if(time >= startTime && (isLooping || time < endTime)){
 
                     // todo draw the current or last texture
-                    val frameIndex = ((time-startTime)*fps).toInt()
+                    val frameIndex = ((time-startTime)*fps).toInt() % frameCount
 
-                    val frame = Cache.getVideoFrame(file, frameIndex)
+                    val frame = Cache.getVideoFrame(file, frameIndex, frameCount, isLooping)
                     if(frame != null){
                         GFX.draw3D(stack, frame, color, isBillboard.getValueAt(time))
                         wasDrawn = true
                     }
 
-                    // stack.scale(0.1f)
-                    // GFX.draw3D(stack, FontManager.getString("Verdana",15f, "$frameIndex")!!, Vector4f(1f,1f,1f,1f), 0f)
+                    stack.scale(0.1f)
+                    GFX.draw3D(stack, FontManager.getString("Verdana",15f, "$frameIndex/$fps/$duration/$frameCount")!!, Vector4f(1f,1f,1f,1f), 0f)
+                    stack.scale(10f)
 
                 }
             }

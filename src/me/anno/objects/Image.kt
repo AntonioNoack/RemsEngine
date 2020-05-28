@@ -13,9 +13,16 @@ import java.io.File
 class Image(var file: File, parent: Transform?): GFXTransform(parent){
 
     override fun onDraw(stack: Matrix4fStack, time: Float, color: Vector4f) {
-        val texture = Cache.getImage(file)
-        texture?.apply {
-            GFX.draw3D(stack, texture, color, isBillboard[time])
+        if(file.name.endsWith("webp", true)){
+            val texture = Cache.getVideoFrame(file, 0, 0)
+            texture?.apply {
+                GFX.draw3D(stack, texture, color, isBillboard[time])
+            }
+        } else {
+            val texture = Cache.getImage(file)
+            texture?.apply {
+                GFX.draw3D(stack, texture, color, isBillboard[time])
+            }
         }
     }
 

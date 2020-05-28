@@ -9,6 +9,7 @@ import org.lwjgl.opengl.GL30.*
 import java.awt.image.BufferedImage
 import java.lang.RuntimeException
 import java.nio.ByteBuffer
+import java.nio.ByteOrder
 
 class Texture2D(val w: Int, val h: Int){
 
@@ -40,6 +41,21 @@ class Texture2D(val w: Int, val h: Int){
         bind()
         val intData = img.getRGB(0, 0, w, h, null, 0, img.width)
         GFX.check()
+        if(ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN){
+            for(i in intData.indices){// argb -> abgr
+                val argb = intData[i]
+                val r = (argb and 0xff0000).shr(16)
+                val b = (argb and 0xff).shl(16)
+                intData[i] = argb and 0xff00ff00.toInt() or r or b
+            }
+        } else {
+            for(i in intData.indices){// argb -> rgba
+                val argb = intData[i]
+                val a = argb.shr(24) and 255
+                val rgb = argb.and(0xffffff) shl 8
+                intData[i] = rgb or a
+            }
+        }
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, intData)
         GFX.check()
         filtering(true)
@@ -72,6 +88,21 @@ class Texture2D(val w: Int, val h: Int){
             .put(data)
             .position(0)
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, byteBuffer)
+        filtering(false)
+        GFX.check()
+    }
+
+    fun createRGB(data: ByteArray){
+        if(w*h*3 != data.size) throw RuntimeException("incorrect size!")
+        ensurePointer()
+        bind()
+        GFX.check()
+        val byteBuffer = ByteBuffer
+            .allocateDirect(data.size)
+            .position(0)
+            .put(data)
+            .position(0)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, byteBuffer)
         filtering(false)
         GFX.check()
     }

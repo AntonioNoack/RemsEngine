@@ -9,6 +9,7 @@ import java.awt.font.TextLayout
 import java.awt.image.BufferedImage
 import java.lang.StrictMath.round
 import java.text.AttributedString
+import kotlin.math.roundToInt
 import kotlin.streams.toList
 
 
@@ -33,13 +34,18 @@ class AWTFont(val font: Font): XFont {
         return false
     }
 
-    override fun generateTexture(text: String, fontSize: Float): Texture2D? {
+    fun String.countLines() = count { it == '\n' } + 1
+
+    override fun generateTexture(text: String, fontSize: Float): Texture2D? {// todo center left/center/right for multiline
 
         if(text.isBlank()) return null
         if(containsSpecialChar(text)) return generateTexture2(text, fontSize)
 
         val width = fontMetrics.stringWidth(text)
-        val height = fontMetrics.height
+        val lineCount = text.countLines()
+        val spaceBetweenLines = (0.5f * fontSize).roundToInt()
+        val fontHeight = fontMetrics.height
+        val height = fontHeight * lineCount + (lineCount - 1) * spaceBetweenLines
 
         if(width < 1 || height < 1) return null
 
@@ -47,11 +53,17 @@ class AWTFont(val font: Font): XFont {
         val gfx = image.graphics as Graphics2D
         prepareGraphics(gfx)
 
-        val x = (image.width - width) * 0.5f
-        val y = (image.height - height) * 0.5f + fontMetrics.ascent
+        val x = 0
+        val y = fontMetrics.ascent
 
-        gfx.drawString(text, x, y)
-
+        if(lineCount == 1){
+            gfx.drawString(text, x, y)
+        } else {
+            val lines = text.split('\n')
+            lines.forEachIndexed { index, line ->
+                gfx.drawString(line, x, y + index * (fontHeight + spaceBetweenLines))
+            }
+        }
 
         gfx.dispose()
 

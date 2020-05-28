@@ -150,7 +150,13 @@ object Input {
             addEvent {
                 fun keyTyped(key: Int) {
                     when (key) {
-                        GLFW.GLFW_KEY_ENTER -> inFocus?.onEnterKey(mouseX, mouseY)
+                        GLFW.GLFW_KEY_ENTER -> {
+                            if(isShiftDown || isControlDown){
+                                inFocus?.onCharTyped(mouseX, mouseY, '\n'.toInt())
+                            } else {
+                                inFocus?.onEnterKey(mouseX, mouseY)
+                            }
+                        }
                         GLFW.GLFW_KEY_DELETE -> inFocus?.onDeleteKey(mouseX, mouseY)
                         GLFW.GLFW_KEY_BACKSPACE -> inFocus?.onBackKey(mouseX, mouseY)
                         GLFW.GLFW_KEY_ESCAPE -> {

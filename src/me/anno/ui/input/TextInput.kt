@@ -1,5 +1,6 @@
 package me.anno.ui.input
 
+import me.anno.gpu.Cursor
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.style.Style
@@ -62,6 +63,8 @@ open class TextInput(title:String, style: Style): PanelContainer(PureTextInput(s
         val keyFile = files.first()
         setText(keyFile.toString())
     }
+
+    override fun getCursor(): Long = Cursor.drag
 
 
 }

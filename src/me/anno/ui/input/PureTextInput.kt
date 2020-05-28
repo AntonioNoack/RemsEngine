@@ -1,5 +1,6 @@
 package me.anno.ui.input
 
+import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
 import me.anno.input.Input.isControlDown
 import me.anno.input.Input.isShiftDown
@@ -222,5 +223,7 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
     override fun onEmpty(x: Float, y: Float) {
         deleteKeys()
     }
+
+    override fun getCursor() = Cursor.editText
 
 }

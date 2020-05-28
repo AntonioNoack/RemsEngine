@@ -1,5 +1,6 @@
 package me.anno.ui.input
 
+import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
 import me.anno.input.Input.isShiftDown
 import me.anno.utils.pow
@@ -11,7 +12,11 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.style.Style
 import kotlin.math.max
 
-class FloatInput(style: Style, title: String, val type: AnimatedProperty.Type = AnimatedProperty.Type.FLOAT): PanelListY(style) {
+class FloatInput(
+    style: Style, title: String,
+    val type: AnimatedProperty.Type = AnimatedProperty.Type.FLOAT,
+    val owningProperty: AnimatedProperty<*>? = null
+): PanelListY(style) {
 
     constructor(style: Style, title: String, value0: Float, type: AnimatedProperty.Type = AnimatedProperty.Type.FLOAT): this(style, title, type){
         setValue(value0)
@@ -36,9 +41,10 @@ class FloatInput(style: Style, title: String, val type: AnimatedProperty.Type = 
     var changeListener = { value: Float -> }
 
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        val focused = titlePanel.isInFocus || inputPanel.isInFocus
-        if(focused) isSelectedListener?.invoke()
-        inputPanel.visibility = if(focused) Visibility.VISIBLE else Visibility.GONE
+        val focused1 = titlePanel.isInFocus || inputPanel.isInFocus
+        if(focused1) isSelectedListener?.invoke()
+        val focused2 = focused1 || owningProperty == GFX.selectedProperty
+        inputPanel.visibility = if(focused2) Visibility.VISIBLE else Visibility.GONE
         super.draw(x0, y0, x1, y1)
         updateValueMaybe()
     }
@@ -133,6 +139,6 @@ class FloatInput(style: Style, title: String, val type: AnimatedProperty.Type = 
         mouseIsDown = false
     }
 
-
+    override fun getCursor(): Long = Cursor.drag
 
 }
