@@ -1,4 +1,4 @@
-package me.anno.ui.impl
+package me.anno.ui.impl.timeline
 
 import me.anno.config.DefaultStyle.black
 import me.anno.ui.base.TextPanel

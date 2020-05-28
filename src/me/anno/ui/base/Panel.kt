@@ -5,6 +5,7 @@ import me.anno.io.Saveable
 import me.anno.ui.base.constraints.Margin
 import me.anno.ui.style.Style
 import me.anno.utils.Tabs
+import java.io.File
 import java.lang.RuntimeException
 
 open class Panel(val style: Style): Saveable(){
@@ -114,6 +115,7 @@ open class Panel(val style: Style): Saveable(){
 
     open fun onEmpty(x: Float, y: Float) { parent?.onEmpty(x,y) }
     open fun onPaste(x: Float, y: Float, pasted: String){ parent?.onPaste(x,y,pasted) }
+    open fun onPasteFiles(x: Float, y: Float, files: List<File>){ parent?.onPasteFiles(x,y,files) ?: println("Paste Ignored! $files") }
     open fun onCopyRequested(x: Float, y: Float): String? = parent?.onCopyRequested(x,y)
 
     open fun onSelectAll(x: Float, y: Float){ parent?.onSelectAll(x,y) }

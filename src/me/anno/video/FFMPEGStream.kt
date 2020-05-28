@@ -1,5 +1,6 @@
 package me.anno.video
 
+import me.anno.gpu.GFX
 import java.io.File
 import java.io.InputStream
 import java.util.concurrent.TimeUnit
@@ -18,15 +19,8 @@ class FFMPEGStream(arguments: List<String>, waitToFinish: Boolean, interpretMeta
         fun getSupportedFormats() = FFMPEGStream(listOf(
             "-formats"
         ), waitToFinish = true, interpretMeta = false).stringData
-        fun getImageSequence(input: File, frames: Int = 200, fps: Float = 10f) = FFMPEGStream(listOf(
-            "-i", input.absolutePath,
-            "-r", "$fps",
-            "-vframes", "$frames",
-            "-f", "rawvideo", "-"// format
-            // "pipe:1" // 1 = stdout, 2 = stdout
-        ), waitToFinish = false, interpretMeta = true)
         fun getImageSequence(input: File, startFrame: Int, frameCount: Int, fps: Float = 10f) =
-            getImageSequence(input, startFrame * fps, frameCount, fps)
+            getImageSequence(input, startFrame / fps, frameCount, fps)
         fun getImageSequence(input: File, startTime: Float, frameCount: Int, fps: Float = 10f) = FFMPEGStream(listOf(
             "-i", input.absolutePath,
             "-ss", "$startTime",
@@ -41,9 +35,7 @@ class FFMPEGStream(arguments: List<String>, waitToFinish: Boolean, interpretMeta
 
     fun destroy(){
         synchronized(frames){
-            frames.forEach {
-                it.destroy()
-            }
+            frames.forEach { GFX.addTask { it.destroy(); 3 } }
             frames.clear()
             isDestroyed = true
         }
@@ -64,6 +56,7 @@ class FFMPEGStream(arguments: List<String>, waitToFinish: Boolean, interpretMeta
 
     fun run(arguments: List<String>, interpretMeta: Boolean): Process {
         // val time0 = System.nanoTime()
+        println(arguments)
         val ffmpeg = File("C:\\Users\\Antonio\\Downloads\\lib\\ffmpeg\\bin\\ffmpeg.exe")
         val args = ArrayList<String>(arguments.size+2)
         args += ffmpeg.absolutePath

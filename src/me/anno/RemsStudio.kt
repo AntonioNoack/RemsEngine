@@ -1,8 +1,9 @@
 package me.anno
 
+import me.anno.audio.AudioManager
 import me.anno.config.DefaultConfig
-import me.anno.config.DefaultConfig.style
 import me.anno.gpu.GFX
+import me.anno.gpu.Window
 import me.anno.objects.SimpleText
 import me.anno.objects.Transform
 import me.anno.objects.Video
@@ -16,17 +17,21 @@ import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.impl.*
 import me.anno.ui.impl.sceneView.SceneView
+import me.anno.ui.impl.timeline.Timeline
 import org.joml.Vector4f
 import java.io.File
+import java.io.OutputStream
+import java.io.PrintStream
 import java.util.*
-import kotlin.math.roundToInt
 
 class RemsStudio {
+
+    val originalOutput = System.out
 
     var lastWidth = 0
     var lastHeight = 0
 
-    val windowStack = Stack<Panel>()
+    val windowStack = Stack<Window>()
 
     lateinit var inspector: PropertyInspector
 
@@ -34,6 +39,8 @@ class RemsStudio {
 
         // val src = File("C:\\Users\\Antonio\\Videos\\Captures", "Cities_ Skylines 2020-01-06 19-32-23.mp4")
         // FFMPEGStream.getImageSequence(src)
+
+        AudioManager.init()
 
         createUI()
         GFX.windowStack = windowStack
@@ -47,16 +54,17 @@ class RemsStudio {
                 GFX.selectedTransform?.createInspector(list, list.style)
             }
 
-            windowStack.forEach {
+            windowStack.forEach { window ->
+                val panel = window.panel
                 val t0 = System.nanoTime()
-                it.calculateSize(w,h)
+                panel.calculateSize(w-window.x,h-window.y)
                 val t1 = System.nanoTime()
-                it.placeInParent(0, 0)
+                panel.placeInParent(window.x, window.y)
                 val t2 = System.nanoTime()
                 val dt1 = (t1-t0)*1e-9f
                 val dt2 = (t2-t1)*1e-9f
                 if(dt1 > 0.1f) println("Warn: Used ${dt1}s + ${dt2}s for layout")
-                it.draw(0,0,w,h)
+                panel.draw(window.x,window.y,w,h)
             }
 
             /* dragging can be a nice way to work, but dragging values to change them,
@@ -84,7 +92,7 @@ class RemsStudio {
             false
         }
         GFX.shutdown = {
-
+            AudioManager.destroy()
         }
         // GFX.init()
         GFX.run()
@@ -94,7 +102,7 @@ class RemsStudio {
 
     lateinit var startMenu: Panel
     lateinit var ui: Panel
-    lateinit var console: Panel
+    lateinit var console: TextPanel
 
     fun createUI(){
 
@@ -106,6 +114,9 @@ class RemsStudio {
         // todo show the file location up there, too?
         // todo fully customizable content
         val options = OptionBar(style)
+        options.addAction("File", "Save"){
+
+        }
         options.addMajor("File")
         options.addMajor("Edit")
         options.addMajor("View")
@@ -113,7 +124,7 @@ class RemsStudio {
         options.addMajor("Code")
         ui += options
 
-        val root = Transform(null, null, null, null)
+        val root = Transform(null)
         root.name = "Root"
         // val a = Transform(Vector3f(10f, 50f, 0f), Vector3f(1f,1f,1f), Quaternionf(1f,0f,0f,0f), root)
         // for(i in 0 until 3) Transform(null, null, null, a)
@@ -144,8 +155,27 @@ class RemsStudio {
         console = TextPanel("Welcome to Rem's Studio!", style.getChild("small"))
         ui += console
 
+        System.setOut(PrintStream(object: OutputStream(){
+            var line = ""
+            override fun write(b: Int) {
+                when {
+                    b == '\n'.toInt() -> {
+                        console.text = line
+                        line = ""
+                    }
+                    line.length < 100 -> {
+                        line += b.toChar()
+                    }
+                    line.length == 100 -> {
+                        line += "..."
+                    }
+                }
+                originalOutput.write(b)
+            }
+        }))
+
         windowStack.clear()
-        windowStack += ui
+        windowStack += Window(ui, 0, 0)
 
         // todo debug line at the bottom?
     }

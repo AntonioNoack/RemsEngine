@@ -12,14 +12,15 @@ class AnimatedProperty<V>(val type: Type): Saveable(){
         val code: String,
         val defaultValue: Any,
         val components: Int,
+        val unitScale: Float,
         val accepts: (Any?) -> Boolean){
-        FLOAT("float", 0f, 1, { it is Float }),
-        POSITION("pos", Vector3f(), 3, { it is Vector3f }),
-        SCALE("scale", Vector3f(), 3, { it is Vector3f }),
-        ROT_YXZ("rotYXZ", Vector3f(), 3, { it is Vector3f }),
-        SKEW_2D("skew2D", Vector2f(), 2, { it is Vector2f }),
-        QUATERNION("quaternion", Quaternionf(), 4, { it is Quaternionf }),
-        COLOR("color", Vector4f(1f,1f,1f,1f), 4, { it is Vector4f });
+        FLOAT("float", 0f, 1, 1f, { it is Float }),
+        POSITION("pos", Vector3f(), 3, 1f, { it is Vector3f }),
+        SCALE("scale", Vector3f(1f, 1f, 1f), 3, 1f, { it is Vector3f }),
+        ROT_YXZ("rotYXZ", Vector3f(), 3, 360f, { it is Vector3f }),
+        SKEW_2D("skew2D", Vector2f(), 2, 1f, { it is Vector2f }),
+        QUATERNION("quaternion", Quaternionf(), 4, 1f, { it is Quaternionf }),
+        COLOR("color", Vector4f(1f,1f,1f,1f), 4, 1f, { it is Vector4f });
         init { types[code] = this }
     }
 
@@ -53,7 +54,13 @@ class AnimatedProperty<V>(val type: Type): Saveable(){
         return this
     }
 
-    fun addKeyframe(time: Float, value: V, equalityDt: Float){
+    fun addKeyframe(time: Float, value: Any, equalityDt: Float){
+        if(type.accepts(value)){
+            addKeyframeInternal(time, value as V, equalityDt)
+        }
+    }
+
+    private fun addKeyframeInternal(time: Float, value: V, equalityDt: Float){
         ensureCorrectType(value)
         keyframes.forEachIndexed { index, it ->
             if(abs(it.time - time) < equalityDt){
@@ -62,7 +69,7 @@ class AnimatedProperty<V>(val type: Type): Saveable(){
             }
         }
         keyframes.add(Keyframe(time, value))
-        keyframes.sort()
+        sort()
     }
 
     operator fun get(time: Float) = getValueAt(time)
@@ -117,7 +124,7 @@ class AnimatedProperty<V>(val type: Type): Saveable(){
     fun getIndexBefore(time: Float): Int {
         // todo does this get the correct time, or do we need to inverse?
         val rawIndex = keyframes.binarySearch { it.time.compareTo(time) }
-        return if(rawIndex < 0) -rawIndex-1 else rawIndex
+        return (if(rawIndex < 0) -rawIndex-1 else rawIndex) - 1
     }
 
     override fun getClassName(): String = "AnimatedProperty<${type.code}>"
@@ -125,15 +132,19 @@ class AnimatedProperty<V>(val type: Type): Saveable(){
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
-        keyframes.sortBy { it.time }
+        sort()
         writer.writeList(this, "keyframes", keyframes)
+    }
+
+    fun sort(){
+        keyframes.sort()
     }
 
     override fun readObject(name: String, value: Saveable?) {
         when(name){
             "keyframes" -> {
                 if(value is Keyframe<*> && type.accepts(value.value)){
-                    addKeyframe(value.time, value.value as V, 0f)
+                    addKeyframe(value.time, value.value!!, 0f)
                 } else println("dropped keyframe!, incompatible type $value")
             }
             else -> super.readObject(name, value)

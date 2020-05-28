@@ -119,6 +119,9 @@ public class GFXBase0 {
                 }
             }
         }
+
+        GFX.shutdown.invoke();
+
     }
 
     public void renderStep0(){

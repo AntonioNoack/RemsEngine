@@ -1,6 +1,8 @@
 package me.anno.ui.input
 
 import me.anno.gpu.GFX
+import me.anno.input.Input.isControlDown
+import me.anno.input.Input.isShiftDown
 import me.anno.utils.clamp
 import me.anno.ui.base.TextPanel
 import me.anno.ui.style.Style
@@ -149,7 +151,7 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
         lastMove = GFX.lastTime
         when(key){
             GLFW_KEY_RIGHT, GLFW_KEY_KP_SUBTRACT -> {
-                if(GFX.isShiftDown){
+                if(isShiftDown){
                     cursor2++
                 } else {
                     if(cursor2 != cursor1){
@@ -162,7 +164,7 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
                 ensureCursorBounds()
             }
             GLFW_KEY_LEFT, GLFW_KEY_KP_DIVIDE -> {
-                if(GFX.isShiftDown){
+                if(isShiftDown){
                     cursor2--
                 } else {
                     cursor1--
@@ -196,7 +198,7 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
     override fun onMouseClicked(x: Float, y: Float, button: Int, long: Boolean) {
         // todo set cursor to correct position
         lastMove = GFX.lastTime
-        if(GFX.isControlDown){
+        if(isControlDown){
             cursor1 = 0
             cursor2 = characters.size
         } else {

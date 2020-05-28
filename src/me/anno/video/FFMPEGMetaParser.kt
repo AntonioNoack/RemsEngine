@@ -72,6 +72,7 @@ class FFMPEGMetaParser(): StringMap(){
 
     fun parseLine(line: String, stream: FFMPEGStream){
         if(line.isBlank()) return
+        // println(line)
         val depth = getDepth(line)
         val data = line.trim().specialSplit()
         if(debug) println("$depth $data")
@@ -98,6 +99,7 @@ class FFMPEGMetaParser(): StringMap(){
                                     else -> throw RuntimeException("Invalid ffmpeg-duration? $data")
                                 }
                                 stream.sourceLength = duration
+                                println("duration: $duration")
                             } catch (e: Exception){
                                 e.message?.apply { warn(this) }
                                 e.printStackTrace()

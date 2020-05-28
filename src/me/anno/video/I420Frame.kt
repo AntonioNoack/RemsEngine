@@ -17,13 +17,13 @@ class I420Frame(w: Int, h: Int): Frame(w,h){
         val s1 = (w/2)*(h/2)
         val yData = input.readNBytes(s0)
         if(yData.size < s0) throw RuntimeException("not enough data, only ${yData.size}")
-        GFX.addTask { y.createMonochrome(yData); 0 }
+        GFX.addTask { y.createMonochrome(yData); 10 }
         val uData = input.readNBytes((w/2)*(h/2))
         if(uData.size < s1) throw RuntimeException("not enough data")
-        GFX.addTask { u.createMonochrome(uData); 0 }
+        GFX.addTask { u.createMonochrome(uData); 10 }
         val vData = input.readNBytes((w/2)*(h/2))
         if(vData.size < s1) throw RuntimeException("not enough data")
-        GFX.addTask { v.createMonochrome(vData); isLoaded = true; 0 }
+        GFX.addTask { v.createMonochrome(vData); isLoaded = true; 10 }
     }
 
     override fun bind(offset: Int){

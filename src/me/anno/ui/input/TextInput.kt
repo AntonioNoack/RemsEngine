@@ -3,6 +3,7 @@ package me.anno.ui.input
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.style.Style
+import java.io.File
 
 open class TextInput(title:String, style: Style): PanelContainer(PureTextInput(style), Padding(0), style) {
 
@@ -55,6 +56,11 @@ open class TextInput(title:String, style: Style): PanelContainer(PureTextInput(s
     fun setIsSelectedListener(listener: () -> Unit): TextInput {
         isSelectedListener = listener
         return this
+    }
+
+    override fun onPasteFiles(x: Float, y: Float, files: List<File>) {
+        val keyFile = files.first()
+        setText(keyFile.toString())
     }
 
 

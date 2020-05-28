@@ -2,7 +2,10 @@ package me.anno.ui.impl
 
 import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
+import me.anno.input.Input.mouseX
+import me.anno.input.Input.mouseY
 import me.anno.io.text.TextReader
+import me.anno.objects.Audio
 import me.anno.utils.clamp
 import me.anno.objects.Image
 import me.anno.objects.Transform
@@ -72,8 +75,8 @@ class TreeView(var root: Transform, style: Style):
         val focused = focused
         if(focused != null && takenElement != null){
             val h = focused.h
-            val mx = GFX.mx.toInt()
-            val my = GFX.my.toInt()
+            val mx = mouseX.toInt()
+            val my = mouseY.toInt()
             val hoveredTransformIndex = (my - (list.children.firstOrNull()?.y ?: 0)).toFloat() / (h + list.spacing)
             val fractionalHTI = hoveredTransformIndex % 1f
             if(fractionalHTI in 0.25f .. 0.75f){
@@ -118,6 +121,22 @@ class TreeView(var root: Transform, style: Style):
     var focused: Panel? = null
     var takenElement: Transform? = null
 
+    fun addChildFromFile(parent: Transform, file: File){
+        val ending = file.name.split('.').last()
+        when(ending.toLowerCase()){// todo better user-customizable
+            "png", "jpg", "jpeg", "gif", "tiff" -> Image(file, parent)
+            "txt" -> {
+                // todo add text?, with line breaks?
+            }
+            "md" -> {
+                // todo parse, and create constructs?
+            }
+            "mp4" -> Video(file, parent)
+            "mp3", "wav", "ogg" -> Audio(file, parent)
+            else -> println("Unknown file type: $ending")
+        }
+    }
+
     fun getOrCreateChild(index: Int, transform0: Transform): TextPanel {
         if(index < list.children.size){
             transformByIndex[index] = transform0
@@ -136,7 +155,8 @@ class TreeView(var root: Transform, style: Style):
                 super.draw(x0, y0, x1, y1)
                 val transform = transformByIndex[index]
                 textColor = black or (transform.getLocalColor().toRGB(180))
-                if(isInFocus) textColor = textColor and accentColor
+                val isInFocus = isInFocus || GFX.selectedTransform == transformByIndex[index]
+                if(isInFocus) textColor = accentColor
                 GFX.drawText(x + padding.left, y + padding.top, fontSize, text, textColor, backgroundColor)
             }
 
@@ -176,12 +196,14 @@ class TreeView(var root: Transform, style: Style):
                                 } else false
                             }
                         }
-                        GFX.openMenu(GFX.mx, GFX.my, "Add Component",
-                            "Video" to add { Video(File(""), it) },
-                            "Folder" to add { Transform(it) },
-                            "Circle" to add { Circle(it) },
-                            "Polygon" to add { Polygon(it) },
-                            "Image" to add { Image(File(""), it) }
+                        GFX.openMenu(mouseX, mouseY, "Add Component",
+                            listOf(
+                                "Video" to add { Video(File(""), it) },
+                                "Folder" to add { Transform(it) },
+                                "Circle" to add { Circle(it) },
+                                "Polygon" to add { Polygon(it) },
+                                "Image" to add { Image(File(""), it) }
+                            )
                         )
                     }
                 }
@@ -198,6 +220,18 @@ class TreeView(var root: Transform, style: Style):
                 } catch (e: Exception){
                     e.printStackTrace()
                     super.onPaste(x, y, pasted)
+                }
+            }
+
+            override fun onPasteFiles(x: Float, y: Float, files: List<File>) {
+                val transform = transformByIndex[index]
+                if(files.size == 1){
+                    // todo check if it matches
+
+                    // return // if it matches
+                }
+                files.forEach {
+                    addChildFromFile(transform, it)
                 }
             }
 
@@ -232,6 +266,12 @@ class TreeView(var root: Transform, style: Style):
     override fun onMouseUp(x: Float, y: Float, button: Int) {
         println("mouse went up")
         super.onMouseUp(x, y, button)
+    }
+
+    override fun onPasteFiles(x: Float, y: Float, files: List<File>) {
+        files.forEach {
+            addChildFromFile(root, it)
+        }
     }
 
     override fun getClassName(): String = "TreeView"

@@ -1,12 +1,14 @@
 package me.anno.gpu
 
-import me.anno.RemsStudio
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.black
 import me.anno.fonts.FontManager
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.buffer.StaticFloatBuffer
 import me.anno.gpu.texture.Texture2D
+import me.anno.input.Input
+import me.anno.input.Input.isControlDown
+import me.anno.input.Input.isShiftDown
 import me.anno.objects.Camera
 import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
@@ -15,10 +17,8 @@ import me.anno.ui.base.MenuBase
 import me.anno.ui.base.Panel
 import me.anno.ui.base.SpacePanel
 import me.anno.ui.base.TextPanel
-import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.base.groups.PanelListY
-import me.anno.utils.length
 import me.anno.video.Frame
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4fStack
@@ -29,9 +29,6 @@ import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL30.*
-import java.awt.Toolkit
-import java.awt.datatransfer.DataFlavor
-import java.awt.datatransfer.StringSelection
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.math.*
@@ -53,7 +50,7 @@ object GFX: GFXBase() {
     }
 
     var isTestingRawFPS = false
-    var timeDilation = 0f
+    var editorTimeDilation = 0f
 
     val LOGGER = LogManager.getLogger()
 
@@ -64,9 +61,6 @@ object GFX: GFXBase() {
     var windowY = 0
     var windowWidth = 0
     var windowHeight = 0
-
-    var mx = 0f
-    var my = 0f
 
     val flat01 = SimpleBuffer.flat01
     val defaultFont = DefaultConfig["font"]?.toString() ?: "Verdana"
@@ -100,13 +94,6 @@ object GFX: GFXBase() {
     var smoothSin = 0f
     var smoothCos = 0f
 
-    var keyModState = 0
-    val isControlDown get() = (keyModState and GLFW_MOD_CONTROL) != 0
-    val isShiftDown get() = (keyModState and GLFW_MOD_SHIFT) != 0
-    val isCapsLockDown get() = (keyModState and GLFW_MOD_CAPS_LOCK) != 0
-    val isAltDown get() = (keyModState and GLFW_MOD_ALT) != 0
-    val isSuperDown get() = (keyModState and GLFW_MOD_SUPER) != 0
-
     var inFocus: Panel? = null
     fun requestFocus(panel: Panel){
         inFocus = panel
@@ -114,10 +101,6 @@ object GFX: GFXBase() {
 
     var selectedTransform: Transform? = null
     var selectedProperty: AnimatedProperty<*>? = null
-
-    var mouseDownX = 0f
-    var mouseDownY = 0f
-    var mouseKeysDown = HashSet<Int>()
 
     fun clip(x: Int, y: Int, w: Int, h: Int){
         // from the bottom to the top
@@ -134,12 +117,12 @@ object GFX: GFXBase() {
 
     fun clip2(x1: Int, y1: Int, x2: Int, y2: Int) = clip(x1,y1,x2-x1,y2-y1)
 
-    lateinit var windowStack: Stack<Panel>
+    lateinit var windowStack: Stack<Window>
 
     fun getClickedPanel(x: Float, y: Float) = getClickedPanel(x.toInt(), y.toInt())
     fun getClickedPanel(x: Int, y: Int): Panel? {
         for(root in windowStack.reversed()){
-            val panel = getClickedPanel(root, x, y)
+            val panel = getClickedPanel(root.panel, x, y)
             if(panel != null) return panel
         }
         return null
@@ -165,140 +148,7 @@ object GFX: GFXBase() {
 
     override fun addCallbacks() {
         super.addCallbacks()
-        glfwSetCharCallback(window){ _, codepoint ->
-            addEvent {
-                println("char event $codepoint")
-            }
-        }
-        glfwSetCharModsCallback(window){ _, codepoint, mods ->
-            addEvent {
-                inFocus?.onCharTyped(mx, my, codepoint)
-                keyModState = mods
-                println("char mods event $codepoint $mods")
-            }
-        }
-        glfwSetCursorPosCallback(window){ _, xpos, ypos ->
-            addEvent {
-
-                val newX = xpos.toFloat()
-                val newY = ypos.toFloat()
-
-                val dx = newX - mx
-                val dy = newY - my
-
-                mx = newX
-                my = newY
-
-                inFocus?.onMouseMoved(mx,my,dx,dy)
-
-            }
-        }
-        var mouseStart = 0L
-        glfwSetMouseButtonCallback(window){ _, button, action, mods ->
-            addEvent {
-                when(action){
-                    GLFW_PRESS -> {
-                        // find the clicked element
-                        mouseDownX = mx
-                        mouseDownY = my
-                        inFocus = getClickedPanel(mx,my)
-                        inFocus?.onMouseDown(mx,my,button)
-                        mouseStart = System.nanoTime()
-                        mouseKeysDown.add(button)
-                    }
-                    GLFW_RELEASE -> {
-
-                        inFocus?.onMouseUp(mx,my,button)
-                        val mouseDuration = System.nanoTime() - mouseStart
-                        val longClickMillis = DefaultConfig["longClick"] as? Int ?: 300
-                        val isLongClick = mouseDuration/1_000_000 < longClickMillis
-                        inFocus?.onMouseClicked(mx,my,button,isLongClick)
-                        mouseKeysDown.remove(button)
-
-                    }
-                }
-                keyModState = mods
-            }
-        }
-        glfwSetScrollCallback(window){ window, xoffset, yoffset ->
-            addEvent {
-                val clicked = getClickedPanel(mx,my)
-                clicked?.onMouseWheel(mx, my, xoffset.toFloat(), yoffset.toFloat())
-            }
-        }
-        glfwSetKeyCallback(window){ window, key, scancode, action, mods ->
-            addEvent {
-                fun keyTyped(key: Int){
-                    when(key){
-                        GLFW_KEY_ENTER -> inFocus?.onEnterKey(mx,my)
-                        GLFW_KEY_DELETE -> inFocus?.onDeleteKey(mx,my)
-                        GLFW_KEY_BACKSPACE -> inFocus?.onBackKey(mx,my)
-                        GLFW_KEY_ESCAPE -> {
-                            if(inFocus == RemsStudio.sceneView){
-                                if(windowStack.size < 2){
-                                    openMenu(mx,my,"Exit?",
-                                        "Save" to { b, l -> true },
-                                        "Save & Exit" to { b, l -> true },
-                                        "Exit" to { _, _ -> requestExit(); true })
-                                } else windowStack.pop()
-                            } else {
-                                inFocus = RemsStudio.sceneView
-                            }
-                        }
-                        GLFW_KEY_PRINT_SCREEN -> {
-                            println("Layout:")
-                            for (panel in windowStack) {
-                                panel.printLayout(1)
-                            }
-                        }
-                        else -> {
-                            fun copy(){
-                                val copied = inFocus?.onCopyRequested(mx,my)
-                                if(copied != null){
-                                    val selection = StringSelection(copied)
-                                    Toolkit.getDefaultToolkit().systemClipboard.setContents(selection, selection)
-                                }
-                            }
-                            fun paste(){
-                                val data = Toolkit.getDefaultToolkit().systemClipboard.getData(DataFlavor.stringFlavor) as? String
-                                if(data != null) inFocus?.onPaste(mx,my,data)
-                            }
-                            fun save(){
-                                // todo save the scene
-                            }
-                            if(isControlDown){
-                                if(action == GLFW_PRESS){
-                                    when(key){
-                                        GLFW_KEY_S -> save()
-                                        GLFW_KEY_V -> paste()
-                                        GLFW_KEY_C -> copy()
-                                        GLFW_KEY_X -> {
-                                            copy()
-                                            inFocus?.onEmpty(mx,my)
-                                        }
-                                        GLFW_KEY_A -> inFocus?.onSelectAll(mx,my)
-                                    }
-                                }
-                            }
-                            // println("typed by $action")
-                            inFocus?.onKeyTyped(mx,my,key)
-                            // inFocus?.onCharTyped(mx,my,key)
-                        }
-                    }
-                }
-                // todo handle the keys in our action manager :)
-                when(action){
-                    GLFW_PRESS -> {
-                        inFocus?.onKeyDown(mx,my,key) // 264
-                        keyTyped(key)
-                    }
-                    GLFW_RELEASE -> inFocus?.onKeyUp(mx,my,key) // 265
-                    GLFW_REPEAT -> keyTyped(key)
-                }
-                println("event $key $scancode $action $mods")
-                keyModState = mods
-            }
-        }
+        Input.initForGLFW()
     }
 
     fun drawRect(x: Int, y: Int, w: Int, h: Int, color: Int){
@@ -415,12 +265,16 @@ object GFX: GFXBase() {
         check()
     }
 
-    fun draw3D(stack: Matrix4fStack, buffer: StaticFloatBuffer, texture: Texture2D, color: Vector4f, isBillboard: Float){
+    fun draw3D(stack: Matrix4fStack, buffer: StaticFloatBuffer, texture: Texture2D, w: Int, h:Int, color: Vector4f, isBillboard: Float){
         val shader = shader3D
-        shader3DUniforms(shader, stack, texture.w, texture.h, color, isBillboard)
+        shader3DUniforms(shader, stack, w, h, color, isBillboard)
         texture.bind(0)
         buffer.draw(shader)
         check()
+    }
+
+    fun draw3D(stack: Matrix4fStack, buffer: StaticFloatBuffer, texture: Texture2D, color: Vector4f, isBillboard: Float){
+        draw3D(stack, buffer, texture, texture.w, texture.h, color, isBillboard)
     }
 
     fun draw3DPolygon(stack: Matrix4fStack, buffer: StaticFloatBuffer,
@@ -625,8 +479,8 @@ object GFX: GFXBase() {
             byteArrayOf(255.toByte(), 255.toByte(), 255.toByte(), 255.toByte(), 255.toByte()))
         colorShowTexture.create(
             intArrayOf(
-                255,255,255,0, 255,255,255,255,
-                255,255,255,255, 255,255,255,0
+                255,255,255,127, 255,255,255,255,
+                255,255,255,255, 255,255,255,127
             ).map { it.toByte() }.toByteArray())
         colorShowTexture.filtering(true)
         initShaders()
@@ -669,7 +523,7 @@ object GFX: GFXBase() {
         fps += (1f / rawDeltaTime - fps) * 0.1f
         lastTime = thisTime
 
-        editorTime = (editorTime + deltaTime * timeDilation) % 6.2831853f
+        editorTime = max(editorTime + deltaTime * editorTimeDilation, 0f)
         smoothSin = sin(editorTime)
         smoothCos = cos(editorTime)
 
@@ -679,31 +533,31 @@ object GFX: GFXBase() {
 
     }
 
-    fun openMenu(x: Float, y: Float, title: String, vararg options: Pair<String, (button: Int, isLong: Boolean) -> Boolean>){
+    fun openMenu(x: Int, y: Int, title: String, options: List<Pair<String, (button: Int, isLong: Boolean) -> Boolean>>){
         val style = DefaultConfig.style
         val list = PanelListY(style)
-        val createNewStuffMenu = MenuBase(list, style.getChild("contextMenu"))
+        val createNewStuffMenu = MenuBase(list, style)
+        val window = Window(createNewStuffMenu, x, y)
         list += TextPanel(title, style)
         list += SpacePanel(1, 1, style)
         for((name, action) in options){
             val buttonView = TextPanel(name, style)
             buttonView.setOnClickListener { x, y, button, long ->
                 if(action(button, long)){
-                    windowStack.remove(createNewStuffMenu)
+                    windowStack.remove(window)
                 }
             }
             list += buttonView
         }
-        list += WrapAlign.CenterX
-        // list += WrapAlign.LeftTop
-        createNewStuffMenu.padding.left = x.toInt() - 10
-        createNewStuffMenu.padding.top = y.toInt() - 10
-        windowStack.add(createNewStuffMenu)
+        windowStack.add(window)
+    }
+    fun openMenu(x: Float, y: Float, title: String, options: List<Pair<String, (button: Int, isLong: Boolean) -> Boolean>>, delta: Int = 10){
+        openMenu(x.roundToInt() - delta, y.roundToInt() - delta, title, options)
     }
 
     fun pauseOrUnpause(){
-        timeDilation = if(abs(timeDilation) < 1e-3f){
-            1f
+        editorTimeDilation = if(abs(editorTimeDilation) < 1e-3f || isShiftDown || isControlDown){
+            (if(isControlDown) -1f else 1f) * (if(isShiftDown) 0.2f else 1f)
         } else 0f
     }
 

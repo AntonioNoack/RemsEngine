@@ -1,6 +1,8 @@
 package me.anno.fonts
 
 import me.anno.gpu.texture.Texture2D
+import me.anno.objects.cache.Cache
+import me.anno.objects.cache.TextureCache
 import java.awt.Font
 import java.awt.GraphicsEnvironment
 import java.lang.RuntimeException
@@ -29,19 +31,16 @@ object FontManager {
     fun getFontSizeIndex(fontSize: Float): Int = round(100.0 * ln(fontSize)).toInt()
     fun getAvgFontSize(fontSizeIndex: Int): Float = exp(fontSizeIndex * 0.01f)
 
-    val letterCache = HashMap<Triple<String, Int, String>, Texture2D>()
-
     fun getString(fontName: String, fontSize: Float, text: String): Texture2D? {
         if(text.isBlank()) return null
         val fontSizeIndex = getFontSizeIndex(fontSize)
-        val key = Triple(fontName, fontSizeIndex, text)
-        val cached = letterCache[key]
-        if(cached != null) return cached
-        val font = getFont(fontName, fontSize, fontSizeIndex)
-        val averageFontSize = getAvgFontSize(fontSizeIndex)
-        val texture = font.generateTexture(text, averageFontSize) ?: return null
-        letterCache[key] = texture
-        return texture
+        val cache = Cache.getEntry(fontName, text, fontSizeIndex){
+            val font = getFont(fontName, fontSize, fontSizeIndex)
+            val averageFontSize = getAvgFontSize(fontSizeIndex)
+            val texture = font.generateTexture(text, averageFontSize)
+            TextureCache(texture)
+        } as TextureCache
+        return cache.texture
     }
 
     val fonts = HashMap<String, XFont>()

@@ -3,9 +3,9 @@ package me.anno.audio
 import org.joml.Vector3f
 import org.lwjgl.openal.AL10.*
 
-class SoundListener {
+object SoundListener {
 
-    fun setSpeed(speed: Vector3f){
+    fun setVelocity(speed: Vector3f){
         alListener3f(AL_VELOCITY, speed.x, speed.y, speed.z)
     }
 

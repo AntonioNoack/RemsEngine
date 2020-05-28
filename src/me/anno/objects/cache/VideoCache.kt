@@ -25,6 +25,7 @@ class VideoCache(val file: File){
 
     fun getFrame(frameIndex: Int): Frame? {
         val timeForExpiration = GFX.lastTime
+        if(frameIndex >= framesPerContainer) getFrame(timeForExpiration, frameIndex - framesPerContainer, true)
         getFrame(timeForExpiration, frameIndex + framesPerContainer, true)
         val result = getFrame(timeForExpiration, frameIndex, true)
         if(Math.random() < 0.1){
@@ -57,19 +58,6 @@ class VideoCache(val file: File){
         val stream = FFMPEGStream.getImageSequence(file, startTime, framesPerContainer, fps)
         frameContainers[index] = stream
         return stream
-    }
-
-    companion object {
-        val cache = HashMap<File, VideoCache>()
-        fun getVideo(file: File): VideoCache {
-            synchronized(cache){
-                val cached = cache[file]
-                if(cached != null) return cached
-                val video = VideoCache(file)
-                cache[file] = video
-                return video
-            }
-        }
     }
 
 }

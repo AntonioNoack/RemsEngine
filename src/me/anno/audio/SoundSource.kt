@@ -22,7 +22,7 @@ class SoundSource(val loop: Boolean, val relative: Boolean){
         alSource3f(source, AL_POSITION, position.x, position.y, position.z)
     }
 
-    fun setSpeed(speed: Vector3f){
+    fun setVelocity(speed: Vector3f){
         alSource3f(source, AL_VELOCITY, speed.x, speed.y, speed.z)
     }
 

@@ -1,6 +1,7 @@
 package me.anno.ui.input
 
 import me.anno.gpu.GFX
+import me.anno.input.Input.isShiftDown
 import me.anno.utils.pow
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.parser.SimpleExpressionParser
@@ -118,7 +119,7 @@ class FloatInput(style: Style, title: String, val type: AnimatedProperty.Type = 
         super.onMouseMoved(x, y, dx, dy)
         if(mouseIsDown){
             val scale = if(type == AnimatedProperty.Type.ROT_YXZ) 10f else 1f
-            val size = scale * (if(GFX.isShiftDown) 4f else 20f) / max(GFX.width,GFX.height)
+            val size = scale * (if(isShiftDown) 4f else 20f) / max(GFX.width,GFX.height)
             val dx0 = dx*size
             val dy0 = dy*size
             val delta = dx0-dy0

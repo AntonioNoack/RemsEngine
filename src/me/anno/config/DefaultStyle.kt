@@ -35,6 +35,10 @@ object DefaultStyle {
             white,
             flatDark
         )
+        set("menu.background",
+            white and 0x7fffffff,
+            black and 0x7fffffff
+        )
         set("treeView.background", flatDark)
         set("propertyInspector.background", flatDark)
         set("sceneView.background", deepDark)
@@ -47,7 +51,7 @@ object DefaultStyle {
         set("deep.edit.background", deepDark)
         set("textPadding", 2)
         set("deep.propertyInspector.background", deepDark)
-        set("accentColor", black or 0xffe697)
+        set("accentColor", black or 0xffba50)
         /*for((key, value) in loadStyle("style.config")){
             baseTheme.values[key] = value
         }*/

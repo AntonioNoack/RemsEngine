@@ -16,6 +16,7 @@ open class PanelContainer(val child: Panel, val padding: Padding, style: Style):
         child.applyConstraints()
         minW = child.minW + padding.width
         minH = child.minH + padding.height
+        applyConstraints()
     }
 
     override fun placeInParent(x: Int, y: Int) {

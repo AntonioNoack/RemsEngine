@@ -22,26 +22,22 @@ import kotlin.math.max
 // todo load 3D meshes :D
 // todo gradients?
 
-open class Transform(
-    var localPosition: AnimatedProperty<Vector3f>?,
-    var localScale: AnimatedProperty<Vector3f>?,
-    var localRotationYXZ: AnimatedProperty<Vector3f>?,
-    var localRotationQuaternion: AnimatedProperty<Quaternionf>?,
-    var parent: Transform? = null
-    ): Saveable(){
+open class Transform(var parent: Transform? = null): Saveable(){
 
-    constructor(parent: Transform?): this(null, null, null, null, parent)
+    var localPosition = AnimatedProperty.pos()
+    var localScale = AnimatedProperty.scale()
+    var localRotationYXZ = AnimatedProperty.rotYXZ()
+    var localRotationQuaternion: AnimatedProperty<Quaternionf>? = null
+    var localSkew = AnimatedProperty.skew()
+    var color = AnimatedProperty.color()
 
     var blendMode = BlendMode.UNSPECIFIED
 
-    var localSkew: AnimatedProperty<Vector2f>? = null
-
     var timeOffset = 0f
     var timeDilation = 1f
-    // todo make this animatable, calculate the integral to get a mapping
-    var timeAnimated: AnimatedProperty<Float>? = null
 
-    var color: AnimatedProperty<Vector4f>? = null
+    // todo make this animatable, calculate the integral to get a mapping
+    var timeAnimated = AnimatedProperty.float()
 
     var name = if(getClassName() == "Transform") "Folder" else getClassName()
     var comment = ""
@@ -55,7 +51,7 @@ open class Transform(
 
     var lastLocalTime = 0f
 
-    fun <V> putValue(list: AnimatedProperty<V>, value: V){
+    fun putValue(list: AnimatedProperty<*>, value: Any){
         list.addKeyframe(lastLocalTime, value, 0.1f)
     }
 
@@ -68,8 +64,6 @@ open class Transform(
     open fun createInspector(list: PanelListY, style: Style){
 
         // todo update by time :)
-        val one3 = Vector3f(1f,1f,1f)
-        val one4 = Vector4f(1f,1f,1f,1f)
 
         list += TextInput("Name", style, name)
             .setChangeListener {
@@ -82,19 +76,16 @@ open class Transform(
                 comment = it
             }
 
-        list += VectorInput(style, "Position", localPosition?.get(lastLocalTime) ?: Vector3f(), AnimatedProperty.Type.POSITION).setChangeListener { x, y, z, w ->
-            if(localPosition == null) localPosition = AnimatedProperty.pos()
-            putValue(localPosition!!, Vector3f(x,y,z))
+        list += VectorInput(style, "Position", localPosition[lastLocalTime], AnimatedProperty.Type.POSITION).setChangeListener { x, y, z, w ->
+            putValue(localPosition, Vector3f(x,y,z))
         }.setIsSelectedListener { show(localPosition) }
-        list += VectorInput(style, "Scale", localScale?.get(lastLocalTime) ?: one3, AnimatedProperty.Type.SCALE).setChangeListener { x, y, z, w ->
-            if(localScale == null) localScale = AnimatedProperty.scale()
-            putValue(localScale!!, Vector3f(x,y,z))
+        list += VectorInput(style, "Scale", localScale[lastLocalTime], AnimatedProperty.Type.SCALE).setChangeListener { x, y, z, w ->
+            putValue(localScale, Vector3f(x,y,z))
         }.setIsSelectedListener { show(localScale) }
 
         if(usesEuler){
-            list += VectorInput(style, "Rotation (YXZ)", localRotationYXZ?.get(lastLocalTime) ?: Vector3f(), AnimatedProperty.Type.ROT_YXZ).setChangeListener { x, y, z, w ->
-                if(localRotationYXZ == null) localRotationYXZ = AnimatedProperty.rotYXZ()
-                putValue(localRotationYXZ!!, Vector3f(x,y,z))
+            list += VectorInput(style, "Rotation (YXZ)", localRotationYXZ[lastLocalTime], AnimatedProperty.Type.ROT_YXZ).setChangeListener { x, y, z, w ->
+                putValue(localRotationYXZ, Vector3f(x,y,z))
             }.setIsSelectedListener { show(localRotationYXZ) }
         } else {
             list += VectorInput(style, "Rotation (Quaternion)", localRotationQuaternion?.get(lastLocalTime) ?: Quaternionf()).setChangeListener { x, y, z, w ->
@@ -103,23 +94,20 @@ open class Transform(
             }.setIsSelectedListener { show(localRotationQuaternion) }
         }
 
-        list += VectorInput(style, "Skew", localSkew?.get(lastLocalTime) ?: Vector2f(), AnimatedProperty.Type.SKEW_2D)
+        list += VectorInput(style, "Skew", localSkew[lastLocalTime], AnimatedProperty.Type.SKEW_2D)
             .setChangeListener { x, y, z, w ->
-                if(localSkew == null) localSkew = AnimatedProperty.skew()
-                putValue(localSkew!!, Vector2f(x,y))
+                putValue(localSkew, Vector2f(x,y))
             }.setIsSelectedListener { show(localSkew) }
 
-        list += ColorInput(style, "Color", color?.get(lastLocalTime) ?: one4, AnimatedProperty.Type.COLOR).setChangeListener { x, y, z, w ->
-            if(color == null) color = AnimatedProperty.color()
-            putValue(color!!, Vector4f(max(0f, x), max(0f, y), max(0f, z),
+        list += ColorInput(style, "Color", color[lastLocalTime], AnimatedProperty.Type.COLOR).setChangeListener { x, y, z, w ->
+            putValue(color, Vector4f(max(0f, x), max(0f, y), max(0f, z),
                 clamp(w, 0f, 1f)
             ))
         }.setIsSelectedListener { show(color) }
-        list += FloatInput(style, "Time Offset").setChangeListener { timeOffset = it }
-        list += FloatInput(style, "Time Dilation").setChangeListener { timeDilation = it }
-        list += FloatInput(style, "Time Manipulation").setChangeListener {  x ->
-            if(timeAnimated == null) timeAnimated = AnimatedProperty.float()
-            putValue(timeAnimated!!, x)
+        list += FloatInput(style, "Time Offset", timeOffset).setChangeListener { timeOffset = it }
+        list += FloatInput(style, "Time Dilation", timeDilation).setChangeListener { timeDilation = it }
+        list += FloatInput(style, "Time Manipulation", timeAnimated[lastLocalTime]).setChangeListener {  x ->
+            putValue(timeAnimated, x)
         }.setIsSelectedListener { show(timeAnimated) }
         list += TextInput("Blend Mode", style, blendMode.id)
             .setChangeListener { blendMode = BlendMode[it] }
@@ -129,50 +117,44 @@ open class Transform(
 
     fun getLocalTime(parentTime: Float): Float {
         var localTime0 = (parentTime - timeOffset) * timeDilation
-        val anim = timeAnimated
-        if(anim != null) localTime0 += anim[localTime0]
+        localTime0 += timeAnimated[localTime0]
         return localTime0
     }
 
     fun getLocalColor(): Vector4f = getLocalColor(parent?.getLocalColor() ?: Vector4f(1f,1f,1f,1f), lastLocalTime)
     fun getLocalColor(parentColor: Vector4f, time: Float): Vector4f {
-        val col = color?.getValueAt(time)
-        return if(col != null) Vector4f(col).mul(parentColor)
-        else parentColor
+        val col = color.getValueAt(time)
+        return Vector4f(col).mul(parentColor)
     }
-
 
     fun applyTransformLT(transform: Matrix4f, time: Float){
 
-        val translation = localPosition
-        val scale = localScale
-        val rotationYXZ = localRotationYXZ
+        val position = localPosition[time]
+        val scale = localScale[time]
+        val euler = localRotationYXZ[time]
         val rotationQuat = localRotationQuaternion
         val usesEuler = usesEuler
-        val skew = localSkew
+        val skew = localSkew[time]
 
-        if(translation != null) transform.translate(translation[time])
+        if(position.x != 0f || position.y != 0f || position.z != 0f){
+            transform.translate(position)
+        }
+
         if(usesEuler){// y x z
-            if(rotationYXZ != null) {
-                val euler = rotationYXZ[time]
-                transform.rotate(toRadians(euler.y), Vector3f(0f,1f,0f))
-                transform.rotate(toRadians(euler.x), Vector3f(1f,0f,0f))
-                transform.rotate(toRadians(euler.z), Vector3f(0f,0f,1f))
-            }
+            if(euler.y != 0f) transform.rotate(toRadians(euler.y), yAxis)
+            if(euler.x != 0f) transform.rotate(toRadians(euler.x), xAxis)
+            if(euler.z != 0f) transform.rotate(toRadians(euler.z), zAxis)
         } else {
             if(rotationQuat != null) transform.rotate(rotationQuat[time])
         }
 
-        if(scale != null) transform.scale(scale[time])
+        if(scale.x != 0f || scale.y != 0f || scale.z != 0f) transform.scale(scale)
 
-        if(skew != null){
-            val a = skew[time]
-            transform.mul3x3(// works
-                1f, a.y, 0f,
-                a.x, 1f, 0f,
-                0f, 0f, 1f
-            )
-        }
+        if(skew.x != 0f || skew.y != 0f) transform.mul3x3(// works
+            1f, skew.y, 0f,
+            skew.x, 1f, 0f,
+            0f, 0f, 1f
+        )
 
     }
 
@@ -187,26 +169,23 @@ open class Transform(
         lastLocalTime = time
         val color = getLocalColor(parentColor, time)
 
-        blendMode.apply()
-        onDraw(stack, time, color)
-        drawChildren(stack, time, color)
+        if(color.w > 0.00025f){ // 12 bit = 4k
+            blendMode.apply()
+            applyTransformLT(stack, time)
+            onDraw(stack, time, color)
+            drawChildren(stack, time, color)
+        }
 
     }
 
     fun drawChildren(stack: Matrix4fStack, time: Float, color: Vector4f){
-        if(color.w > 0.00025f){// 12 bit = 4k
+        children.forEach { child ->
 
-            applyTransformLT(stack, time)
+            blendMode.apply()
 
-            children.forEach { child ->
-
-                blendMode.apply()
-
-                stack.pushMatrix()
-                child.draw(stack, time, color)
-                stack.popMatrix()
-
-            }
+            stack.pushMatrix()
+            child.draw(stack, time, color)
+            stack.popMatrix()
 
         }
     }
@@ -332,6 +311,11 @@ open class Transform(
         return data
     }
 
+    companion object {
+        val xAxis = Vector3f(1f,0f,0f)
+        val yAxis = Vector3f(0f,1f,0f)
+        val zAxis = Vector3f(0f, 0f, 1f)
+    }
 
 
 }

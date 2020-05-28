@@ -14,8 +14,8 @@ object AudioManager {
     var soundSourceMap = HashMap<String, SoundSource>()
     var soundBuffers = ArrayList<SoundBuffer>()
 
-    var device = 0L
-    var context = 0L
+    private var device = 0L
+    private var context = 0L
 
     fun init(){
         device = alcOpenDevice(null as ByteBuffer?)
@@ -25,6 +25,13 @@ object AudioManager {
         if(context == 0L) throw IllegalStateException("Failed to create OpenAL context")
         alcMakeContextCurrent(context)
         AL.createCapabilities(deviceCaps)
+        Audio.check()
+    }
+
+    fun destroy(){
+        Audio.check()
+        alcCloseDevice(device)
+        device = 0L
     }
 
 }

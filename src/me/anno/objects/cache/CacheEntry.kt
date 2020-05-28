@@ -4,16 +4,10 @@ import me.anno.gpu.GFX
 import java.io.File
 import kotlin.math.abs
 
-class CacheEntry(val file: File, val index: Int, var data: CacheData?, var lastUsed: Long){
+class CacheEntry(var data: CacheData?, var lastUsed: Long){
 
     fun destroy(){
-
+        data?.destroy()
     }
-
-    companion object {
-
-
-    }
-
 
 }

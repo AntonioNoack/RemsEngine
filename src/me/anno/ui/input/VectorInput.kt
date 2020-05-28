@@ -1,6 +1,8 @@
 package me.anno.ui.input
 
 import me.anno.gpu.GFX
+import me.anno.input.Input.isControlDown
+import me.anno.input.Input.isShiftDown
 import me.anno.utils.clamp
 import me.anno.utils.pow
 import me.anno.objects.animation.AnimatedProperty
@@ -166,7 +168,7 @@ class VectorInput(style: Style, var title: String,
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
         super.onMouseMoved(x, y, dx, dy)
         if(mouseIsDown){
-            val size = (if(GFX.isShiftDown) 4f else 20f) / max(GFX.width,GFX.height)
+            val size = (if(isShiftDown) 4f else 20f) / max(GFX.width,GFX.height)
             val dx0 = dx*size
             val dy0 = dy*size
             val delta = dx0-dy0
@@ -177,7 +179,7 @@ class VectorInput(style: Style, var title: String,
                 }
                 AnimatedProperty.Type.ROT_YXZ -> {
                     val scaleFactor = 20f
-                    if(GFX.isControlDown){
+                    if(isControlDown){
                         setValue(Vector3f(vx, vy, vz + delta * scaleFactor))
                     } else {
                         setValue(Vector3f(vx + dy0 * scaleFactor, vy + dx0 * scaleFactor, vz))
@@ -185,7 +187,7 @@ class VectorInput(style: Style, var title: String,
                 }
                 AnimatedProperty.Type.SCALE -> {
                     val scaleFactor = 1.03f
-                    if(GFX.isControlDown){
+                    if(isControlDown){
                         val scaleX = pow(scaleFactor, dx0)
                         val scaleY = pow(scaleFactor, -dy0)
                         setValue(Vector3f(vx * scaleX, vy * scaleY, vz))
@@ -197,14 +199,14 @@ class VectorInput(style: Style, var title: String,
                 AnimatedProperty.Type.COLOR -> {// todo change the design
                     val scaleFactor = 1.10f
                     val scale = pow(scaleFactor, delta)
-                    if(GFX.isControlDown){
+                    if(isControlDown){
                         setValue(Vector4f(vx * scale, vy * scale, vz * scale, vw))
                     } else {
                         setValue(Vector4f(vx, vy, vz, clamp(vw + delta, 0f, 1f)))
                     }
                 }
                 AnimatedProperty.Type.SKEW_2D -> {
-                    if(GFX.isShiftDown){
+                    if(isShiftDown){
                         setValue(Vector2f(vx, vy + dy0/5))
                     } else {
                         setValue(Vector2f(vx + dx0/5, vy))

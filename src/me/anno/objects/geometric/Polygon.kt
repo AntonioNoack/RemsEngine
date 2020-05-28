@@ -9,6 +9,8 @@ import me.anno.io.base.BaseWriter
 import me.anno.objects.GFXTransform
 import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
+import me.anno.objects.cache.Cache
+import me.anno.objects.cache.SFBufferData
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.input.FloatInput
 import me.anno.ui.style.Style
@@ -72,14 +74,20 @@ class Polygon(parent: Transform?): GFXTransform(parent){
     }
 
     companion object {
+
         val minEdges = 3
-        val maxEdges = DefaultConfig["polygon.maxEdges"] as? Int ?: 200
-        val buffers = HashMap<Int, StaticFloatBuffer>()
+        val maxEdges = DefaultConfig["polygon.maxEdges"] as? Int ?: 1000
+
         fun getBuffer(n: Int): StaticFloatBuffer {
-            val cached = buffers[n]
-            if(cached != null) return cached
             if(n < minEdges) return getBuffer(minEdges)
             if(n > maxEdges) return getBuffer(maxEdges)
+            val cached = Cache.getEntry("Mesh", "Polygon", n){
+                SFBufferData(createBuffer(n))
+            } as SFBufferData
+            return cached.buffer
+        }
+
+        fun createBuffer(n: Int): StaticFloatBuffer {
             val buffer = StaticFloatBuffer(listOf(Attribute("attr0", 2), Attribute("attr1", 2)), n * 3 * 4)
             val angles = FloatArray(n+1){ i -> (i*Math.PI*2.0/n).toFloat() }
             val sin = angles.map { sin(it)*.5f+.5f }
