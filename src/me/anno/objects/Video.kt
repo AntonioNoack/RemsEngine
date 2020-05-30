@@ -16,9 +16,9 @@ import java.io.File
 import kotlin.concurrent.thread
 import kotlin.math.max
 
-// todo button and calculation to match video/image/... to screen size
+// idea: hovering needs to be used to predict when the user steps forward in time
+// -> no, that's too taxing; we'd need to pre-render a smaller version
 
-// todo hovering needs to be used to predict when the user steps forward in time
 class Video(var file: File, parent: Transform?): GFXTransform(parent){
 
     private var lastFile: Any? = null
@@ -111,6 +111,7 @@ class Video(var file: File, parent: Transform?): GFXTransform(parent){
             .setChangeListener { endTime = it }
             .setIsSelectedListener { GFX.selectedProperty = null }
         // todo a third mode, where the video is reversed after playing?
+        // KISS principle? just allow modules to be created :)
         list += BooleanInput("Looping?", style, isLooping)
             .setChangeListener { isLooping = it }
             .setIsSelectedListener { GFX.selectedProperty = null }

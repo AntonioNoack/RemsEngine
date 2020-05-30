@@ -266,7 +266,7 @@ class TreeView(style: Style):
 
             override fun getTooltipText(x: Float, y: Float): String? {
                 val transform = transformByIndex[index]
-                return if(transform is Camera) "Shift-Click to set current!" else null
+                return if(transform is Camera) "Shift-Click to set current" else null
             }
 
         }

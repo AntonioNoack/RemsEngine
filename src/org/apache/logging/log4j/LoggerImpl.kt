@@ -2,7 +2,7 @@ package org.apache.logging.log4j
 
 class LoggerImpl: Logger {
 
-    fun interleave(msg: String, args: Array<java.lang.Object>): String {
+    fun interleave(msg: String, args: Array<Object>): String {
         val parts = msg.split("{}")
         return parts.take(parts.size-1).mapIndexed { index, s -> "$s${args.getOrNull(index)}" }.joinToString("") + parts.last()
     }
@@ -11,7 +11,7 @@ class LoggerImpl: Logger {
         println("[INFO] $msg")
     }
 
-    override fun info(msg: String, obj: Array<java.lang.Object>) {
+    override fun info(msg: String, obj: Array<Object>) {
         info(interleave(msg, obj))
     }
 
@@ -28,7 +28,7 @@ class LoggerImpl: Logger {
         println("[ERR] $msg")
     }
 
-    override fun error(msg: String, obj: Array<java.lang.Object>) {
+    override fun error(msg: String, obj: Array<Object>) {
         error(interleave(msg, obj))
     }
 
@@ -41,7 +41,7 @@ class LoggerImpl: Logger {
         println("[FATAL] $msg")
     }
 
-    override fun fatal(msg: String, obj: Array<java.lang.Object>) {
+    override fun fatal(msg: String, obj: Array<Object>) {
         fatal(interleave(msg, obj))
     }
 
@@ -54,7 +54,7 @@ class LoggerImpl: Logger {
         println("[WARN] $msg")
     }
 
-    override fun warn(msg: String, obj: Array<java.lang.Object>) {
+    override fun warn(msg: String, obj: Array<Object>) {
         warn(interleave(msg, obj))
     }
 

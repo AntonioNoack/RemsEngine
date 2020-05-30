@@ -1,39 +1,20 @@
 package me.anno.studio
 
 import me.anno.audio.AudioManager
-import me.anno.config.DefaultConfig
 import me.anno.gpu.Cursor
 import me.anno.gpu.Cursor.useCursor
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.getClickedPanelAndWindow
 import me.anno.gpu.GFX.hoveredPanel
 import me.anno.gpu.GFX.hoveredWindow
-import me.anno.gpu.GFX.root
 import me.anno.gpu.Window
 import me.anno.input.Input
-import me.anno.input.Input.save
-import me.anno.objects.Camera
-import me.anno.objects.Text
-import me.anno.objects.Transform
-import me.anno.objects.Video
-import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.cache.Cache
-import me.anno.run.startTime
 import me.anno.ui.base.Panel
-import me.anno.ui.base.SpacePanel
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.Tooltips
-import me.anno.ui.base.components.Padding
-import me.anno.ui.base.groups.PanelListY
-import me.anno.ui.custom.CustomListX
-import me.anno.ui.custom.CustomListY
 import me.anno.ui.impl.*
 import me.anno.ui.impl.sceneView.SceneView
-import me.anno.ui.impl.timeline.Timeline
-import org.joml.Vector4f
-import java.io.File
-import java.io.OutputStream
-import java.io.PrintStream
 import java.util.*
 
 // todo close properties, when another one is clicked
@@ -109,7 +90,7 @@ object RemsStudio {
             check()
 
             if(frameCtr == 0){
-                println("Used ${(System.nanoTime()-startTime)*1e-9f}s from start to finishing the first frame")
+                println("Used ${(System.nanoTime()- startTime)*1e-9f}s from start to finishing the first frame")
             }
             frameCtr++
 

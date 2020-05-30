@@ -1,6 +1,4 @@
-package me.anno.run
-
-import me.anno.studio.RemsStudio
+package me.anno.studio
 
 val startTime = System.nanoTime()
 

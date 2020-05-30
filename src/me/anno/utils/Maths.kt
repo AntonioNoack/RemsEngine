@@ -1,15 +1,14 @@
 package me.anno.utils
 
-import me.anno.config.DefaultStyle.black
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
 
-
 fun clamp(x: Int, min: Int, max: Int) = if(x < min) min else if(x < max) x else max
 fun clamp(x: Float, min: Float, max: Float) = if(x < min) min else if(x < max) x else max
+fun clamp(x: Double, min: Double, max: Double) = if(x < min) min else if(x < max) x else max
 fun pow(base: Float, power: Float) = StrictMath.pow(base.toDouble(), power.toDouble()).toFloat()
 
 fun length(dx: Float, dy: Float) = sqrt(dx*dx+dy*dy)
