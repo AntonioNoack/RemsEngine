@@ -1,7 +1,7 @@
 package me.anno.io.text
 
+import me.anno.io.ISaveable
 import me.anno.io.base.BaseReader
-import me.anno.io.Saveable
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -91,7 +91,7 @@ class TextReader(val data: String): BaseReader(){
         }
     }
 
-    fun readObject(): Saveable {
+    fun readObject(): ISaveable {
         assertChar(skipSpace(), '"')
         val firstProperty = readString()
         assert(firstProperty == "class", "Expected first property to be 'class', was $firstProperty")
@@ -104,7 +104,7 @@ class TextReader(val data: String): BaseReader(){
         return obj
     }
 
-    fun readList(): List<Saveable> {
+    fun readList(): List<ISaveable> {
         TODO("read the list")
     }
 
@@ -120,7 +120,7 @@ class TextReader(val data: String): BaseReader(){
         }
     }
 
-    fun propertyLoop(obj: Saveable){
+    fun propertyLoop(obj: ISaveable){
         while(true){
             when(val next = skipSpace()){
                 ',' -> readProperty(obj)
@@ -130,7 +130,7 @@ class TextReader(val data: String): BaseReader(){
         }
     }
 
-    fun readProperty(obj: Saveable){
+    fun readProperty(obj: ISaveable){
         assertChar(skipSpace(), '"')
         val typeName = readString()
         assertChar(skipSpace(), ':')
@@ -299,7 +299,7 @@ class TextReader(val data: String): BaseReader(){
     }
 
     companion object {
-        fun fromText(data: String): List<Saveable> {
+        fun fromText(data: String): List<ISaveable> {
             val reader = TextReader(data)
             reader.readAllInList()
             return reader.content.values.toList()

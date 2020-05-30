@@ -1,5 +1,6 @@
 package me.anno.io.base
 
+import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import org.joml.Vector2f
 import org.joml.Vector3f
@@ -14,7 +15,7 @@ abstract class BaseWriter {
     var nextUUID = 1L
 
     val listed = HashSet<Long>()
-    val todo = ArrayList<Saveable>(256)
+    val todo = ArrayList<ISaveable>(256)
 
     // the type is important to notice incompatibilities by changes
     abstract fun writeBool(name: String, value: Boolean, force: Boolean = false)
@@ -30,7 +31,7 @@ abstract class BaseWriter {
     abstract fun writeVector3(name: String, value: Vector3f, force: Boolean = false)
     abstract fun writeVector4(name: String, value: Vector4f, force: Boolean = false)
 
-    fun writeObject(self: Saveable?, name: String, value: Saveable?, force: Boolean = false){
+    fun writeObject(self: ISaveable?, name: String, value: ISaveable?, force: Boolean = false){
         if(!force && value == null) return
         if(value == null){
             writeNull(name)
@@ -63,14 +64,14 @@ abstract class BaseWriter {
 
     abstract fun writeNull(name: String)
     abstract fun writePointer(name: String, className: String, uuid: Long)
-    abstract fun writeObjectImpl(name: String?, value: Saveable)
+    abstract fun writeObjectImpl(name: String?, value: ISaveable)
 
-    abstract fun <V: Saveable> writeList(self: Saveable?, name: String, elements: List<V>?, force: Boolean = false)
+    abstract fun <V: Saveable> writeList(self: ISaveable?, name: String, elements: List<V>?, force: Boolean = false)
     abstract fun writeListV2(name: String, elements: List<Vector2f>?, force: Boolean = false)
     abstract fun writeListV3(name: String, elements: List<Vector3f>?, force: Boolean = false)
     abstract fun writeListV4(name: String, elements: List<Vector4f>?, force: Boolean = false)
 
-    fun add(obj: Saveable){
+    fun add(obj: ISaveable){
         if(obj.uuid == 0L){
             obj.uuid = nextUUID++
         }
@@ -95,9 +96,9 @@ abstract class BaseWriter {
         writeListEnd()
     }
 
-    fun writeSomething(self: Saveable, name: String, value: Any?, force: Boolean){
+    fun writeSomething(self: ISaveable, name: String, value: Any?, force: Boolean){
         when(value){
-            is Saveable -> writeObject(self, name, value, force)
+            is ISaveable -> writeObject(self, name, value, force)
             is Boolean -> writeBool(name, value, force)
             is Byte -> writeByte(name, value, force)
             is Short -> writeShort(name, value, force)
@@ -109,9 +110,8 @@ abstract class BaseWriter {
             is Vector2f -> writeVector2(name, value, force)
             is Vector3f -> writeVector3(name, value, force)
             null -> writeObject(self, name, value, force)
-            else -> throw RuntimeException("todo implement saving an $value")
+            else -> throw RuntimeException("todo implement saving an $value, maybe it needs to be me.anno.io.[I]Saveable?")
         }
     }
-
 
 }

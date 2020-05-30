@@ -1,6 +1,6 @@
 package me.anno.io.base
 
-import me.anno.io.Saveable
+import me.anno.io.ISaveable
 import me.anno.io.utils.StringMap
 import me.anno.objects.Image
 import me.anno.objects.Text
@@ -15,10 +15,10 @@ import java.lang.RuntimeException
 
 abstract class BaseReader {
 
-    val content = HashMap<Long, Saveable>()
-    val missingReferences = HashMap<Long, ArrayList<Pair<Saveable, String>>>()
+    val content = HashMap<Long, ISaveable>()
+    val missingReferences = HashMap<Long, ArrayList<Pair<ISaveable, String>>>()
 
-    fun getNewClassInstance(clazz: String): Saveable {
+    fun getNewClassInstance(clazz: String): ISaveable {
         return when(clazz){
             "SMap" -> StringMap()
             "Transform" -> Transform(null)
@@ -35,11 +35,13 @@ abstract class BaseReader {
             "AnimatedProperty<color>" -> AnimatedProperty.color()
             "AnimatedProperty<quaternion>" -> AnimatedProperty.quat()
             "Keyframe" -> Keyframe<Any>(0f, 0f)
-            else -> throw RuntimeException("Unknown class $clazz")
+            else -> {
+                ISaveable.objectTypeRegistry[clazz]?.invoke() ?: throw RuntimeException("Unknown class $clazz")
+            }
         }
     }
 
-    fun register(value: Saveable){
+    fun register(value: ISaveable){
         val uuid = value.uuid
         if(uuid != 0L){
             content[uuid] = value
@@ -49,7 +51,7 @@ abstract class BaseReader {
         } else println("got object with uuid 0: $value, it will be ignored")
     }
 
-    fun addMissingReference(owner: Saveable, name: String, childPtr: Long){
+    fun addMissingReference(owner: ISaveable, name: String, childPtr: Long){
         val list = missingReferences[childPtr]
         val entry = owner to name
         if(list != null){
@@ -68,5 +70,6 @@ abstract class BaseReader {
     }
 
     fun error(msg: String): Nothing = throw RuntimeException(msg)
+
 
 }

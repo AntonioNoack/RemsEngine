@@ -54,9 +54,10 @@ object DefaultStyle {
         set("textPadding", 2)
         set("deep.propertyInspector.background", deepDark)
         set("accentColor", black or 0xffba50)
-        /*for((key, value) in loadStyle("style.config")){
+
+        for((key, value) in loadStyle("style.config")){
             baseTheme.values[key] = value
-        }*/
+        }
     }
 
     operator fun set(key: String, both: Any){
