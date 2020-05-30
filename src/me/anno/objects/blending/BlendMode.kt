@@ -2,7 +2,7 @@ package me.anno.objects.blending
 
 import org.lwjgl.opengl.GL30.*
 
-// todo custom blend modes?
+// todo custom blend modes? -> maybe... could be customizable...
 class BlendMode(
     val displayName: String,
     val id: String

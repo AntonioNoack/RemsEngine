@@ -1,4 +1,4 @@
-package me.anno.ui.impl.sceneView
+package me.anno.ui.editor.sceneView
 
 import me.anno.config.DefaultStyle.black
 import me.anno.config.DefaultStyle.deepDark
@@ -16,22 +16,18 @@ import me.anno.input.Input
 import me.anno.input.Input.keysDown
 import me.anno.input.Input.mouseKeysDown
 import me.anno.objects.Camera
-import me.anno.objects.Transform
 import me.anno.objects.blending.BlendMode
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelFrame
 import me.anno.ui.base.groups.PanelListX
-import me.anno.ui.impl.CustomContainer
+import me.anno.ui.editor.CustomContainer
 import me.anno.ui.style.Style
 import me.anno.utils.clamp
 import me.anno.utils.plus
-import me.anno.utils.print
 import me.anno.utils.times
 import org.joml.Matrix4fStack
 import org.joml.Vector3f
-import org.joml.Vector4f
-import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL30.*
 import kotlin.math.max
 
@@ -141,6 +137,11 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
         GFX.applyCameraTransform(camera, cameraTime, cameraTransform, stack)
 
         val white = camera.color[cameraTime]
+
+        stack.pushMatrix()
+        Grid.draw(stack, cameraTransform)
+        stack.popMatrix()
+
         stack.pushMatrix()
         // root.draw(stack, editorHoverTime, Vector4f(1f,1f,1f,1f))
         nullCamera.draw(stack, editorTime, white)
@@ -203,8 +204,9 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
             val (cameraTransform, cameraTime) = camera.getGlobalTransform(editorTime)
             val oldPosition = camera.position[cameraTime]
             val step = (velocity * dt)
+            val step2 = cameraTransform.transformDirection(step)
             // todo transform into the correct space: from that camera to this camera
-            val newPosition = oldPosition + step
+            val newPosition = oldPosition + step2
             camera.position.addKeyframe(cameraTime, newPosition, 0.01f)
         }
 

@@ -1,11 +1,9 @@
-package me.anno.ui.impl
+package me.anno.ui.editor
 
 import me.anno.ui.base.Panel
 import me.anno.ui.base.ScrollPanel
 import me.anno.ui.base.components.Padding
-import me.anno.ui.base.constraints.Exactly
 import me.anno.ui.base.constraints.WrapAlign
-import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.style.Style
 

@@ -13,11 +13,12 @@ import me.anno.objects.cache.Cache
 import me.anno.ui.base.Panel
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.Tooltips
-import me.anno.ui.impl.*
-import me.anno.ui.impl.sceneView.SceneView
+import me.anno.ui.editor.*
+import me.anno.ui.editor.sceneView.SceneView
 import java.util.*
 
-// todo close properties, when another one is clicked
+// todo open full log when clicking on the bottom;
+// todo or get more details?
 
 object RemsStudio {
 

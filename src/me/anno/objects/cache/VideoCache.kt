@@ -9,10 +9,9 @@ import kotlin.math.abs
 class VideoCache(val file: File){
 
     // todo add audio component...
-    // todo get properties
 
     var startTime = 0f
-    var endTime = 100f
+    var endTime = 1e9f
 
     var fps = 24f
 

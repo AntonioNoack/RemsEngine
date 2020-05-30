@@ -326,6 +326,10 @@ open class Transform(var parent: Transform? = null): Saveable(){
         return parentTransform to localTime
     }
 
+    fun removeFromParent(){
+        parent?.removeChild(this)
+    }
+
     companion object {
         val xAxis = Vector3f(1f,0f,0f)
         val yAxis = Vector3f(0f,1f,0f)

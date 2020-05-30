@@ -9,6 +9,11 @@ open class StaticFloatBuffer(attributes: List<Attribute>, val floatCount: Int): 
         createNioBuffer()
     }
 
+    fun put(x: Float, y: Float){
+        put(x)
+        put(y)
+    }
+
     fun put(f: Float){
         floatBuffer.put(f)
         isUpToDate = false

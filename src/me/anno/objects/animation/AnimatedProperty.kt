@@ -127,7 +127,7 @@ class AnimatedProperty<V>(val type: Type): Saveable(){
     }
 
     fun getIndexBefore(time: Float): Int {
-        // todo does this get the correct time, or do we need to inverse?
+        // get the index of the time
         val rawIndex = keyframes.binarySearch { it.time.compareTo(time) }
         return (if(rawIndex < 0) -rawIndex-1 else rawIndex) - 1
     }

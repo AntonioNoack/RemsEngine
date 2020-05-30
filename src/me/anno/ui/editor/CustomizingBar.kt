@@ -1,10 +1,9 @@
-package me.anno.ui.impl
+package me.anno.ui.editor
 
 import me.anno.gpu.Cursor
 import me.anno.input.Input
 import me.anno.ui.base.SpacePanel
 import me.anno.ui.custom.CustomList
-import me.anno.ui.custom.CustomListX
 import me.anno.ui.style.Style
 
 class CustomizingBar(val index: Int, sizeX: Int, sizeY: Int, style: Style): SpacePanel(sizeX, sizeY, style){

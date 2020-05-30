@@ -2,6 +2,7 @@ package me.anno.parser
 
 import me.anno.utils.clamp
 import java.lang.RuntimeException
+import java.lang.StrictMath.cbrt
 import kotlin.math.*
 
 object Functions {
@@ -146,6 +147,10 @@ object Functions {
 
     init {
 
+        constants["pi"] = Math.PI
+        constants["e"] = Math.E
+        constants["°"] = Math.toDegrees(1.0)
+
         // min/max
         functions1["min"] = { it }
         functions1["max"] = { it }
@@ -166,9 +171,12 @@ object Functions {
         functions4["square"] = functions4["sq"]!!
 
         functions1["sqrt"] = { sqrt(it) }
+        functions1["cbrt"] = { cbrt(it) }
         functions1["root"] = functions1["sqrt"]!!
 
         functions2["root"] = { n, number -> StrictMath.pow(number, 1.0 / n) }
+
+        functions2["hypot"] = { a, b -> hypot(a, b) }
 
         // logarithm
         // log is not implemented to prevent confusion
@@ -179,24 +187,36 @@ object Functions {
         functions1["log10"] = { log10(it) }
         functions2["log"] = { x, base -> log(x, base) }
 
-        // todo length functions
+        functions1["length"] = { abs(it) }
+        functions2["length"] = { a, b -> sqrt(a*a+b*b) }
+        functions3["length"] = { a, b, c -> sqrt(a*a+b*b+c*c) }
+        functions4["length"] = { a, b, c, d -> sqrt(a*a+b*b+c*c+d*d) }
+
+        functions1["abs"] = { abs(it) }
+        functions1["absolute"] = functions1["abs"]!!
+
 
         // sin,cos,tan, with degrees
         functions1["sin"] = { sin(Math.toRadians(it)) }
         functions1["sine"] = functions1["sin"]!!
         functions1["asin"] = { Math.toDegrees(asin(it)) }
         functions1["arcsine"] = functions1["asin"]!!
+        functions1["sinh"] = { sinh(it) }
+        functions1["asinh"] = { asinh(it) }
 
         functions1["cos"] = { cos(Math.toRadians(it)) }
         functions1["cosine"] = functions1["cos"]!!
         functions1["acos"] = { Math.toDegrees(acos(it)) }
         functions1["arccosine"] = functions1["acos"]!!
+        functions1["cosh"] = { cosh(it) }
+        functions1["acosh"] = { acosh(it) }
 
         functions1["tan"] = { tan(Math.toRadians(it)) }
         functions1["tangent"] = functions1["tan"]!!
         functions2["atan"] = { x, y -> atan2(x,y) }
         functions2["arctan"] = functions2["atan"]!!
         functions2["atan2"] = functions2["atan"]!!
+        functions1["atanh"] = { atanh(it) }
 
         functions1["exp"] = { exp(it) }
         functions2["pow"] = { base, exponent -> StrictMath.pow(base, exponent) }

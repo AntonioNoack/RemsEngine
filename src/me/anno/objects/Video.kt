@@ -18,6 +18,7 @@ import kotlin.math.max
 
 // idea: hovering needs to be used to predict when the user steps forward in time
 // -> no, that's too taxing; we'd need to pre-render a smaller version
+// todo pre-render small version for scrubbing
 
 class Video(var file: File, parent: Transform?): GFXTransform(parent){
 
@@ -71,7 +72,7 @@ class Video(var file: File, parent: Transform?): GFXTransform(parent){
             if(fps > 0f){
                 if(time + startTime >= 0f && (isLooping || time < endTime)){
 
-                    // todo draw the current or last texture
+                    // draw the current texture
                     val duration = endTime - startTime
                     val localTime = startTime + (time % duration)
                     val frameIndex = (localTime*fps).toInt() % frameCount

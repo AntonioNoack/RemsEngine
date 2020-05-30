@@ -42,7 +42,8 @@ abstract class Buffer(val attributes: List<Attribute>, val stride: Int, val usag
 
     abstract fun createNioBuffer()
 
-    open fun draw(shader: Shader){
+    open fun draw(shader: Shader) = draw(shader, GL_TRIANGLES)
+    open fun draw(shader: Shader, mode: Int){
         if(!isUpToDate) upload()
         else glBindBuffer(GL15.GL_ARRAY_BUFFER, buffer)
         shader.use()
@@ -54,7 +55,7 @@ abstract class Buffer(val attributes: List<Attribute>, val stride: Int, val usag
                 glEnableVertexAttribArray(index)
             }
         }
-        glDrawArrays(GL_TRIANGLES, 0, nioBuffer!!.capacity() / stride)
+        glDrawArrays(mode, 0, nioBuffer!!.capacity() / stride)
     }
 
 

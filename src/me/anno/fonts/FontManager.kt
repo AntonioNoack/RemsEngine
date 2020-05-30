@@ -10,8 +10,6 @@ import kotlin.math.exp
 import kotlin.math.ln
 import kotlin.math.round
 
-// todo there are char-char relations in me.anno.fonts, which could improve the quality of the font
-// todo use them instead of this class
 object FontManager {
 
     init {

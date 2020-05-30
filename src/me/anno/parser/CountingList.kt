@@ -6,11 +6,11 @@ class CountingList(capacity: Int = 16): MutableList<Any> {
 
     val internal = ArrayList<Any>(capacity)
 
-    val counters = IntArray(maxCounted - minCounted)
+    val counters = IntArray(isCounted.size)
 
     fun update(char: Char, delta: Int){
         val ci = char.toInt() - minCounted
-        if(ci in 0 until maxCounted){
+        if(ci in counters.indices){
             counters[ci] += delta
         }
     }
@@ -57,7 +57,7 @@ class CountingList(capacity: Int = 16): MutableList<Any> {
 
     override fun indexOf(element: Any): Int = internal.indexOf(element)
 
-    private val notSupported = RuntimeException("Operation not supported, because of lazyness ;)")
+    private val notSupported = RuntimeException("Operation not supported, because of laziness ;)")
 
     override fun add(index: Int, element: Any) = throw notSupported
     override fun addAll(elements: Collection<Any>) = throw notSupported
@@ -76,11 +76,13 @@ class CountingList(capacity: Int = 16): MutableList<Any> {
         }
     }
 
+    override fun toString() = internal.toString()
+
     companion object {
         private const val countedCharacters = "+-/*^!()"
         private val minCounted = countedCharacters.min()?.toInt() ?: 0
         private val maxCounted = countedCharacters.max()?.toInt() ?: 1
-        private val isCounted = BooleanArray(maxCounted - minCounted)
+        private val isCounted = BooleanArray(maxCounted + 1 - minCounted)
         init {
             countedCharacters.forEach {
                 isCounted[it.toInt() - minCounted] = true

@@ -1,4 +1,4 @@
-package me.anno.ui.impl
+package me.anno.ui.editor
 
 import me.anno.ui.base.ScrollPanel
 import me.anno.ui.base.TextPanel
@@ -7,7 +7,7 @@ import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelListMultiline
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
-import me.anno.ui.impl.explorer.FileEntry
+import me.anno.ui.editor.explorer.FileEntry
 import me.anno.ui.input.TextInput
 import me.anno.ui.style.Style
 import java.io.File

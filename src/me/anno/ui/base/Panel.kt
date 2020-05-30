@@ -3,6 +3,7 @@ package me.anno.ui.base
 import me.anno.gpu.GFX
 import me.anno.io.Saveable
 import me.anno.ui.base.constraints.Margin
+import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.style.Style
 import me.anno.utils.Tabs
 import java.io.File
@@ -19,7 +20,7 @@ open class Panel(val style: Style): Saveable(){
 
     var backgroundColor = style.getColor("background", -1)
 
-    var parent: Panel? = null
+    var parent: PanelGroup? = null
     val layoutConstraints = ArrayList<Constraint>()
 
     var w = 258
@@ -87,6 +88,10 @@ open class Panel(val style: Style): Saveable(){
     fun add(c: Constraint): Panel {
         this += c
         return this
+    }
+
+    fun removeFromParent(){
+        parent?.remove(this)
     }
 
     private var onClickListener: ((Float, Float, Int, Boolean) -> Unit)? = null

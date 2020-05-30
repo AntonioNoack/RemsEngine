@@ -4,7 +4,7 @@ import me.anno.ui.base.Panel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.groups.PanelListX
-import me.anno.ui.impl.CustomizingBar
+import me.anno.ui.editor.CustomizingBar
 import me.anno.ui.style.Style
 import me.anno.utils.clamp
 import kotlin.math.max

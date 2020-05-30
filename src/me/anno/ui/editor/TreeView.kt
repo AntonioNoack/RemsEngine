@@ -1,4 +1,4 @@
-package me.anno.ui.impl
+package me.anno.ui.editor
 
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.black
@@ -172,7 +172,7 @@ class TreeView(style: Style):
                 backgroundColor = if(transform === GFX.selectedCamera) cameraBackground else defaultBackground
                 val isInFocus = isInFocus || GFX.selectedTransform == transformByIndex[index]
                 if(isInFocus) textColor = accentColor
-                GFX.drawText(x + padding.left, y + padding.top, fontSize, text, textColor, backgroundColor)
+                drawText(x, y, text, textColor)
             }
 
             override fun onMouseDown(x: Float, y: Float, button: Int) {

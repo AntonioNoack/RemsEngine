@@ -1,4 +1,4 @@
-package me.anno.ui.impl.timeline
+package me.anno.ui.editor.timeline
 
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.groups.PanelListY

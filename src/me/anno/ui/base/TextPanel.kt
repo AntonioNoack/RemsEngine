@@ -15,6 +15,10 @@ open class TextPanel(open var text: String, style: Style): Panel(style){
     // can be disabled for parents to copy ALL lines, e.g. for a bug report :)
     var disableCopy = false
 
+    fun drawText(x: Int, y: Int, text: String, color: Int){
+        GFX.drawText(x + padding.left, y + padding.top, fontSize, text, color, backgroundColor)
+    }
+
     override fun calculateSize(w: Int, h: Int) {
         super.calculateSize(w, h)
         val (w2, h2) = GFX.getTextSize("Verdana", fontSize, if(text.isBlank()) "x" else text)
@@ -24,7 +28,7 @@ open class TextPanel(open var text: String, style: Style): Panel(style){
 
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.draw(x0, y0, x1, y1)
-        GFX.drawText(x + padding.left, y + padding.top, fontSize, text, if(isInFocus) focusTextColor else textColor, backgroundColor)
+        drawText(x, y, text, if(isInFocus) focusTextColor else textColor)
     }
 
     override fun onCopyRequested(x: Float, y: Float): String? {

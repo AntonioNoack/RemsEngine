@@ -11,6 +11,8 @@ import kotlin.math.min
 abstract class PanelGroup(style: Style): Panel(style){
 
     abstract val children: List<Panel>
+    abstract fun remove(child: Panel)
+
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.draw(x0, y0, x1, y1)
         var hadVisibleChild = false

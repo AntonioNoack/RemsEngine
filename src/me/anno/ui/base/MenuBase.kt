@@ -1,6 +1,5 @@
 package me.anno.ui.base
 
-import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.WrapAlign

@@ -5,6 +5,7 @@ import me.anno.parser.Functions.applyFunc2
 import me.anno.parser.Functions.applyFunc3
 import me.anno.parser.Functions.applyFunc4
 import me.anno.parser.Functions.applyFunc5
+import me.anno.parser.Functions.constants
 import java.lang.Exception
 import java.lang.RuntimeException
 import java.lang.StrictMath.pow
@@ -13,6 +14,7 @@ import kotlin.math.max
 /**
  * intended for SMALL calculations
  * doesn't care about helpful errors much or top performance
+ * todo assignments
  * */
 object SimpleExpressionParser {
 
@@ -188,12 +190,26 @@ object SimpleExpressionParser {
         return false
     }
 
+    private fun MutableList<Any>.replaceConstants() {
+        for(i in indices){
+            val name = this[i] as? String ?: continue
+            if(getOrNull(i+1) != '('){
+                val replacement = constants[name] ?: constants[name.toLowerCase()]
+                if(replacement != null){
+                    this[i] = replacement
+                }
+            }
+        }
+    }
+
     fun parseDouble(expr: String): Double? {
 
         try {
 
             val parts = expr.split()
             // println(parts)
+
+            parts.replaceConstants()
 
             // simplify the expression until empty
             // performance of long strings is improved by CountingList and skipping of steps
@@ -223,7 +239,7 @@ object SimpleExpressionParser {
 
         } catch (e: Exception){
             println(e.message)
-            e.printStackTrace()
+            // e.printStackTrace()
             return null
         }
 

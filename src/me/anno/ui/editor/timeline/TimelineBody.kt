@@ -1,4 +1,4 @@
-package me.anno.ui.impl.timeline
+package me.anno.ui.editor.timeline
 
 import me.anno.config.DefaultStyle.black
 import me.anno.config.DefaultStyle.fontGray

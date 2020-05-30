@@ -1,4 +1,4 @@
-package me.anno.ui.impl.explorer
+package me.anno.ui.editor.explorer
 
 import me.anno.ui.base.TextPanel
 import me.anno.ui.style.Style

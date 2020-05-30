@@ -338,14 +338,28 @@ object GFX: GFXBase() {
         check()
     }
 
+    fun String.endSpaceCount(): Int {
+        var spaceCount = 0
+        var index = lastIndex
+        loop@while(index > -1){
+            when(this[index]){
+                ' ' -> spaceCount++
+                '\t' -> spaceCount += 4
+                else -> break@loop
+            }
+            index--
+        }
+        return spaceCount
+    }
 
     fun getTextSize(fontSize: Int, text: String) = getTextSize(defaultFont, fontSize, text)
     fun getTextSize(font: String = "Verdana", fontSize: Int, text: String): Pair<Int, Int> {
-        val texture = FontManager.getString(font, fontSize.toFloat(), text) ?: return 0 to fontSize
-        return texture.w to texture.h
+        // count how many spaces there are at the end
+        // todo get accurate space and tab widths
+        val spaceWidth = text.endSpaceCount() * fontSize / 4
+        val texture = FontManager.getString(font, fontSize.toFloat(), text) ?: return spaceWidth to fontSize
+        return (texture.w + spaceWidth) to texture.h
     }
-
-    // todo we need a function, that generates text, which does not use subpixel rendering
 
     fun initShaders(){
 

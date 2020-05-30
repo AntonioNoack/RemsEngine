@@ -4,11 +4,23 @@ import me.anno.ui.base.Panel
 import me.anno.ui.base.components.Padding
 import me.anno.ui.style.Style
 
-open class PanelContainer(var child: Panel, val padding: Padding, style: Style): PanelGroup(style) {
+open class PanelContainer(onlyChild: Panel, val padding: Padding, style: Style): PanelGroup(style) {
 
-    init { child.parent = this }
+    init { onlyChild.parent = this }
+
+    var child: Panel = onlyChild
+        set(value) {
+            child.parent = null
+            value.parent?.remove(value)
+            value.parent = this
+            field = value
+        }
 
     override val children: List<Panel> get() = listOf(child)
+
+    override fun remove(child: Panel) {
+        this.child = Panel(style)
+    }
 
     override fun calculateSize(w: Int, h: Int) {
         super.calculateSize(w, h)

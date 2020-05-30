@@ -19,9 +19,9 @@ import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.custom.CustomListX
 import me.anno.ui.custom.CustomListY
-import me.anno.ui.impl.*
-import me.anno.ui.impl.sceneView.SceneView
-import me.anno.ui.impl.timeline.Timeline
+import me.anno.ui.editor.*
+import me.anno.ui.editor.sceneView.SceneView
+import me.anno.ui.editor.timeline.Timeline
 import org.joml.Vector4f
 import java.io.File
 import java.io.OutputStream
@@ -39,16 +39,19 @@ object Layout {
 
         RemsStudio.ui = ui
 
-        // todo top ui bar
         // todo show the file location up there, too?
         // todo fully customizable content
         val options = OptionBar(style)
-        options.addAction("File", "Save"){ Input.save() }
         options.addMajor("File")
         options.addMajor("Edit")
         options.addMajor("View")
         options.addMajor("Navigate")
         options.addMajor("Code")
+
+        options.addAction("File", "Save"){ Input.save() }
+        options.addAction("File", "Load"){  }
+
+
         ui += options
 
         GFX.root = Transform(null)
@@ -110,7 +113,6 @@ object Layout {
         windowStack.clear()
         windowStack += Window(ui, 0, 0)
 
-        // todo debug line at the bottom?
     }
 
 }

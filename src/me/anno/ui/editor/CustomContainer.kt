@@ -1,13 +1,12 @@
-package me.anno.ui.impl
+package me.anno.ui.editor
 
-import me.anno.config.DefaultStyle.black
 import me.anno.config.DefaultStyle.white
 import me.anno.gpu.GFX
 import me.anno.objects.cache.Cache
 import me.anno.ui.base.Panel
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer
-import me.anno.ui.impl.sceneView.SceneView
+import me.anno.ui.editor.sceneView.SceneView
 import me.anno.ui.style.Style
 
 class CustomContainer(default: Panel, style: Style): PanelContainer(default, Padding(0), style){

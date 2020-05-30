@@ -61,8 +61,6 @@ class FontMesh(val font: Font, val text: String){
 
         val debugPieces = false
 
-        // todo the text looks ugly;
-        // todo we did the triangulation wrong somehow
         // was 30 before it had O(x²) complexity ;)
         val quadAccuracy = 1f
         val cubicAccuracy = 1f
@@ -275,7 +273,7 @@ class FontMesh(val font: Font, val text: String){
         }
 
         val deltaX = (maxX-minX)/2
-        // todo center the text, ignore the characters itself
+        // todo center the text, ignore the characters themselves
         val difY = 0f//layout.ascent / 2
 
         val baseScale = 0.2f/(layout.ascent + layout.descent)

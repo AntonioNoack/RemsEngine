@@ -1,4 +1,4 @@
-package me.anno.ui.impl
+package me.anno.ui.editor
 
 import me.anno.gpu.GFX
 import me.anno.ui.base.constraints.WrapAlign
