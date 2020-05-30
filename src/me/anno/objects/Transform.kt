@@ -2,6 +2,7 @@ package me.anno.objects
 
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.toRadians
+import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.text.TextWriter
@@ -212,7 +213,7 @@ open class Transform(var parent: Transform? = null): Saveable(){
         writer.writeList(this, "children", children)
     }
 
-    override fun readObject(name: String, value: Saveable?) {
+    override fun readObject(name: String, value: ISaveable?) {
         when(name){
             "parent" -> {
                 if(value is Transform){

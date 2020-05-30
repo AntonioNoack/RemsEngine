@@ -1,5 +1,6 @@
 package me.anno.io.text
 
+import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.Saveable
 import org.joml.Vector2f
@@ -184,7 +185,7 @@ class TextWriter(val beautify: Boolean): BaseWriter() {
         close(true)
     }
 
-    override fun <V : Saveable> writeList(self: Saveable?, name: String, elements: List<V>?, force: Boolean) {
+    override fun <V : Saveable> writeList(self: ISaveable?, name: String, elements: List<V>?, force: Boolean) {
         // todo a real list...
         elements?.forEach {
             writeObject(self, name, it, force)
@@ -242,7 +243,7 @@ class TextWriter(val beautify: Boolean): BaseWriter() {
         }
     }
 
-    override fun writeObjectImpl(name: String?, value: Saveable) {
+    override fun writeObjectImpl(name: String?, value: ISaveable) {
         if(name != null && name.isNotEmpty()){
             writeAttributeStart(value.getClassName(), name)
             open(false)

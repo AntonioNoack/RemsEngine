@@ -1,6 +1,6 @@
 package me.anno.objects
 
-import me.anno.io.Saveable
+import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.ui.base.groups.PanelListY
@@ -24,7 +24,7 @@ abstract class GFXTransform(parent: Transform?): Transform(parent){
         writer.writeObject(this, "isBillboard", isBillboard)
     }
 
-    override fun readObject(name: String, value: Saveable?) {
+    override fun readObject(name: String, value: ISaveable?) {
         when(name){
             "isBillboard" -> {
                 if(value is AnimatedProperty<*>){

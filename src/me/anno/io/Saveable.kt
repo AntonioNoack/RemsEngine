@@ -37,11 +37,11 @@ abstract class Saveable: ISaveable {
     }
     override fun readIntArray(name: String, value: IntArray) = readSomething(name, value)
     override fun readString(name: String, value: String) = readSomething(name, value)
-    override fun readArray(name: String, value: List<Saveable>) = readSomething(name, value)
+    override fun readArray(name: String, value: List<ISaveable>) = readSomething(name, value)
     override fun readFloatArray(name: String, value: FloatArray) = readSomething(name, value)
     override fun readFloatArray2D(name: String, value: Array<FloatArray>) = readSomething(name, value)
 
-    override fun readObject(name: String, value: Saveable?) = readSomething(name, value)
+    override fun readObject(name: String, value: ISaveable?) = readSomething(name, value)
 
     override fun readVector2(name: String, value: Vector2f) = readSomething(name, value)
     override fun readVector3(name: String, value: Vector3f) = readSomething(name, value)

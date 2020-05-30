@@ -1,5 +1,6 @@
 package me.anno.objects.animation
 
+import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import org.joml.*
@@ -144,7 +145,7 @@ class AnimatedProperty<V>(val type: Type): Saveable(){
         keyframes.sort()
     }
 
-    override fun readObject(name: String, value: Saveable?) {
+    override fun readObject(name: String, value: ISaveable?) {
         when(name){
             "keyframes" -> {
                 if(value is Keyframe<*> && type.accepts(value.value)){

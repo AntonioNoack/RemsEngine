@@ -4,6 +4,7 @@ import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticFloatBuffer
+import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.GFXTransform
@@ -57,7 +58,7 @@ class Polygon(parent: Transform?): GFXTransform(parent){
         writer.writeObject(this, "inset", inset)
     }
 
-    override fun readObject(name: String, value: Saveable?) {
+    override fun readObject(name: String, value: ISaveable?) {
         when(name){
             "vertexCount" -> {
                 if(value is AnimatedProperty<*> && value.type == AnimatedProperty.Type.FLOAT){
