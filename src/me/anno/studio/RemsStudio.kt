@@ -1,23 +1,32 @@
-package me.anno
+package me.anno.studio
 
 import me.anno.audio.AudioManager
 import me.anno.config.DefaultConfig
 import me.anno.gpu.Cursor
 import me.anno.gpu.Cursor.useCursor
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.getClickedPanelAndWindow
+import me.anno.gpu.GFX.hoveredPanel
+import me.anno.gpu.GFX.hoveredWindow
+import me.anno.gpu.GFX.root
 import me.anno.gpu.Window
 import me.anno.input.Input
-import me.anno.objects.SimpleText
+import me.anno.input.Input.save
+import me.anno.objects.Camera
+import me.anno.objects.Text
 import me.anno.objects.Transform
 import me.anno.objects.Video
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.cache.Cache
 import me.anno.run.startTime
 import me.anno.ui.base.Panel
+import me.anno.ui.base.SpacePanel
 import me.anno.ui.base.TextPanel
+import me.anno.ui.base.Tooltips
 import me.anno.ui.base.components.Padding
-import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.custom.CustomListX
+import me.anno.ui.custom.CustomListY
 import me.anno.ui.impl.*
 import me.anno.ui.impl.sceneView.SceneView
 import me.anno.ui.impl.timeline.Timeline
@@ -27,7 +36,9 @@ import java.io.OutputStream
 import java.io.PrintStream
 import java.util.*
 
-class RemsStudio {
+// todo close properties, when another one is clicked
+
+object RemsStudio {
 
     val originalOutput = System.out
 
@@ -44,7 +55,7 @@ class RemsStudio {
         // FFMPEGStream.getImageSequence(src)
 
 
-        createUI()
+        Layout.createUI()
         GFX.windowStack = windowStack
         GFX.gameInit = {
             AudioManager.init()
@@ -60,20 +71,27 @@ class RemsStudio {
                 GFX.selectedTransform?.createInspector(list, list.style)
             }
 
-            GFX.getClickedPanel(Input.mouseX, Input.mouseY)?.getCursor()?.useCursor()
+            val hovered = getClickedPanelAndWindow(Input.mouseX, Input.mouseY)
+            hoveredPanel = hovered?.first
+            hoveredWindow = hovered?.second
+
+            hoveredPanel?.getCursor()?.useCursor()
 
             windowStack.forEach { window ->
                 val panel = window.panel
                 val t0 = System.nanoTime()
                 panel.calculateSize(w-window.x,h-window.y)
+                panel.applyConstraints()
                 val t1 = System.nanoTime()
                 panel.placeInParent(window.x, window.y)
                 val t2 = System.nanoTime()
                 val dt1 = (t1-t0)*1e-9f
                 val dt2 = (t2-t1)*1e-9f
                 if(dt1 > 0.1f) println("Warn: Used ${dt1}s + ${dt2}s for layout")
-                panel.draw(window.x,window.y,w,h)
+                panel.draw(window.x,window.y,window.x+panel.w,window.y+panel.h)
             }
+
+            Tooltips.draw()
 
             /* dragging can be a nice way to work, but dragging values to change them,
             // and copying by ctrl+c/v is probably better :)
@@ -113,87 +131,11 @@ class RemsStudio {
     lateinit var ui: Panel
     lateinit var console: TextPanel
 
-    fun createUI(){
 
-        val style = DefaultConfig.style
-
-        val ui = PanelListY(null, style)
-        this.ui = ui
-        // todo top ui bar
-        // todo show the file location up there, too?
-        // todo fully customizable content
-        val options = OptionBar(style)
-        options.addAction("File", "Save"){
-
-        }
-        options.addMajor("File")
-        options.addMajor("Edit")
-        options.addMajor("View")
-        options.addMajor("Navigate")
-        options.addMajor("Code")
-        ui += options
-
-        val root = Transform(null)
-        root.name = "Root"
-        // val a = Transform(Vector3f(10f, 50f, 0f), Vector3f(1f,1f,1f), Quaternionf(1f,0f,0f,0f), root)
-        // for(i in 0 until 3) Transform(null, null, null, a)
-        // val b = Transform(null, null, null, root)
-        // for(i in 0 until 2) Transform(null, null, null, b)
-
-        val video = Video(File("C:\\Users\\Antonio\\Videos\\Captures\\Cities_ Skylines 2020-01-06 19-32-23.mp4"), root)
-        val simpleText = SimpleText("Hi! \uD83D\uDE09", root)
-        simpleText.color = AnimatedProperty.color().set(Vector4f(1f, 0.3f, 0.3f, 1f))
-
-        val animationWindow = PanelListX(null, style)
-        ui += animationWindow
-
-        inspector = PropertyInspector(style, Padding(3,3,3,3))
-
-        sceneView = SceneView(root, style)
-        animationWindow += TreeView(root, style)
-        animationWindow += sceneView
-        animationWindow += inspector
-        animationWindow.setWeight(1f)
-
-        val timeline = Timeline(style)
-        ui += timeline
-
-        val explorer = FileExplorer(style)
-        ui += explorer
-
-        console = TextPanel("Welcome to Rem's Studio!", style.getChild("small"))
-        ui += console
-
-        System.setOut(PrintStream(object: OutputStream(){
-            var line = ""
-            override fun write(b: Int) {
-                when {
-                    b == '\n'.toInt() -> {
-                        console.text = line
-                        line = ""
-                    }
-                    line.length < 100 -> {
-                        line += b.toChar()
-                    }
-                    line.length == 100 -> {
-                        line += "..."
-                    }
-                }
-                originalOutput.write(b)
-            }
-        }))
-
-        windowStack.clear()
-        windowStack += Window(ui, 0, 0)
-
-        // todo debug line at the bottom?
-    }
 
     fun check() = GFX.check()
 
-    companion object {
-        lateinit var sceneView: SceneView
-    }
+    lateinit var sceneView: SceneView
 
 
 }

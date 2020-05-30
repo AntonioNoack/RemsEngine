@@ -28,14 +28,15 @@ open class ScrollPanel(child: Panel, padding: Padding,
     override fun calculateSize(w: Int, h: Int) {
         super.calculateSize(w, h)
 
-        if(h > GFX.height) throw RuntimeException()
+        // if(h > GFX.height) throw RuntimeException()
 
         child.calculateSize(w-padding.width, maxLength)
+        child.applyConstraints()
 
         minW = child.minW + padding.width
         minH = 100
 
-        if(h > GFX.height) throw RuntimeException()
+        // if(h > GFX.height) throw RuntimeException()
 
         // warn("scroll fini $x += $w ($minW), $y += $h ($minH) by ${child.h}, ${child.minH}")
 
@@ -44,10 +45,7 @@ open class ScrollPanel(child: Panel, padding: Padding,
     override fun placeInParent(x: Int, y: Int) {
         super.placeInParent(x, y)
 
-        if(h > GFX.height) throw RuntimeException()
-
         val scroll = scrollPosition.toInt()
-
         child.placeInParent(x+padding.left,y+padding.top-scroll)
 
     }

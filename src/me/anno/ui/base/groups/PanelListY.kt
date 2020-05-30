@@ -5,6 +5,7 @@ import me.anno.ui.base.Panel
 import me.anno.ui.base.Visibility
 import me.anno.ui.style.Style
 import me.anno.utils.warn
+import java.lang.RuntimeException
 import kotlin.math.max
 import kotlin.math.roundToInt
 

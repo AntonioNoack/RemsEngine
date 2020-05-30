@@ -12,11 +12,12 @@ import me.anno.ui.style.Style
 class PropertyInspector(style: Style, padding: Padding):
     ScrollPanel(style.getChild("propertyInspector"), padding, WrapAlign.AxisAlignment.MIN){
 
+    val list = child as PanelListY
+
     init {
-        this += Exactly(style.getSize("textSize", 12) * 20, null)
+        padding.top = 8
     }
 
-    val list = child as PanelListY
     operator fun plusAssign(panel: Panel){
         list += panel
     }

@@ -2,24 +2,23 @@ package me.anno.ui.base.groups
 
 import me.anno.config.DefaultStyle.black
 import me.anno.ui.base.Panel
-import me.anno.ui.base.TextPanel
 import me.anno.ui.style.Style
 
-open class PanelList(val sorter: Comparator<Panel>?, style: Style): PanelGroup(style){
+abstract class PanelList(val sorter: Comparator<Panel>?, style: Style): PanelGroup(style){
 
     override val children = ArrayList<Panel>()
-    var spacing = style.getSize("spacerWidth", 1)
-    var spaceColor = style.getChild("spacer").getColor("background", black)
+    var spacing = style.getSize("spacer.width", 0)
+    var spaceColor = style.getColor("spacer.background", 0)
 
     fun clear() = children.clear()
 
-    operator fun plusAssign(panel: Panel){
-        children += panel
-        panel.parent = this
+    operator fun plusAssign(child: Panel){
+        add(child)
     }
 
-    fun add(child: Panel): PanelList {
-        this += child
+    open fun add(child: Panel): PanelList {
+        children += child
+        child.parent = this
         return this
     }
 
@@ -29,5 +28,7 @@ open class PanelList(val sorter: Comparator<Panel>?, style: Style): PanelGroup(s
         }
         super.calculateSize(w, h)
     }
+
+
 
 }

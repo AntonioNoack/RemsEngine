@@ -1,11 +1,11 @@
 package me.anno.objects
 
-import me.anno.fonts.FontManager
 import me.anno.gpu.GFX
 import me.anno.io.base.BaseWriter
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.cache.Cache
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.input.BooleanInput
 import me.anno.ui.input.FileInput
 import me.anno.ui.input.FloatInput
 import me.anno.ui.style.Style
@@ -69,10 +69,12 @@ class Video(var file: File, parent: Transform?): GFXTransform(parent){
             if(endTime >= duration) endTime = duration
 
             if(fps > 0f){
-                if(time >= startTime && (isLooping || time < endTime)){
+                if(time + startTime >= 0f && (isLooping || time < endTime)){
 
                     // todo draw the current or last texture
-                    val frameIndex = ((time-startTime)*fps).toInt() % frameCount
+                    val duration = endTime - startTime
+                    val localTime = startTime + (time % duration)
+                    val frameIndex = (localTime*fps).toInt() % frameCount
 
                     val frame = Cache.getVideoFrame(file, frameIndex, frameCount, isLooping)
                     if(frame != null){
@@ -80,11 +82,11 @@ class Video(var file: File, parent: Transform?): GFXTransform(parent){
                         wasDrawn = true
                     }
 
-                    stack.scale(0.1f)
-                    GFX.draw3D(stack, FontManager.getString("Verdana",15f, "$frameIndex/$fps/$duration/$frameCount")!!, Vector4f(1f,1f,1f,1f), 0f)
-                    stack.scale(10f)
+                    // stack.scale(0.1f)
+                    // GFX.draw3D(stack, FontManager.getString("Verdana",15f, "$frameIndex/$fps/$duration/$frameCount")!!, Vector4f(1f,1f,1f,1f), 0f)
+                    // stack.scale(10f)
 
-                }
+                } else wasDrawn = true
             }
 
 
@@ -98,14 +100,20 @@ class Video(var file: File, parent: Transform?): GFXTransform(parent){
 
     override fun createInspector(list: PanelListY, style: Style) {
         super.createInspector(list, style)
-        val fileInput = FileInput("Path", style)
+        list += FileInput("Path", style)
             .setText(file.toString())
             .setChangeListener { text -> file = File(text) }
-        list += FloatInput(style, "Start Time", startTime, AnimatedProperty.Type.FLOAT)
+            .setIsSelectedListener { GFX.selectedProperty = null }
+        list += FloatInput(style, "Video Start", startTime, AnimatedProperty.Type.FLOAT)
             .setChangeListener { startTime = it }
-        list += FloatInput(style, "End Time", endTime, AnimatedProperty.Type.FLOAT)
+            .setIsSelectedListener { GFX.selectedProperty = null }
+        list += FloatInput(style, "Video End", endTime, AnimatedProperty.Type.FLOAT)
             .setChangeListener { endTime = it }
-        list += fileInput
+            .setIsSelectedListener { GFX.selectedProperty = null }
+        // todo a third mode, where the video is reversed after playing?
+        list += BooleanInput("Looping?", style, isLooping)
+            .setChangeListener { isLooping = it }
+            .setIsSelectedListener { GFX.selectedProperty = null }
     }
 
     override fun getClassName(): String = "Video"

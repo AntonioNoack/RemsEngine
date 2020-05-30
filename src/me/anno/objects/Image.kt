@@ -30,6 +30,7 @@ class Image(var file: File, parent: Transform?): GFXTransform(parent){
         super.createInspector(list, style)
         list += TextInput("File Location", style, file.toString())
             .setChangeListener { file = File(it) }
+            .setIsSelectedListener { GFX.selectedProperty = null }
     }
 
     override fun save(writer: BaseWriter) {

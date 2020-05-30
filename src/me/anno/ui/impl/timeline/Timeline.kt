@@ -1,9 +1,7 @@
 package me.anno.ui.impl.timeline
 
-import me.anno.config.DefaultStyle.black
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.groups.PanelListY
-import me.anno.ui.impl.timeline.TimelineBody
 import me.anno.ui.style.Style
 
 class Timeline(style: Style): PanelListY(style) {
@@ -13,7 +11,7 @@ class Timeline(style: Style): PanelListY(style) {
 
     init {
         this += title
-        this += body
+        this += body.setWeight(1f)
     }
 
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {

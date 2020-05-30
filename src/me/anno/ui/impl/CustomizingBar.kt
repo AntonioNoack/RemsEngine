@@ -1,11 +1,21 @@
 package me.anno.ui.impl
 
 import me.anno.gpu.Cursor
+import me.anno.input.Input
 import me.anno.ui.base.SpacePanel
+import me.anno.ui.custom.CustomList
+import me.anno.ui.custom.CustomListX
 import me.anno.ui.style.Style
 
-class CustomizingBar(size: Int, style: Style): SpacePanel(size, size, style){
+class CustomizingBar(val index: Int, sizeX: Int, sizeY: Int, style: Style): SpacePanel(sizeX, sizeY, style){
 
-    override fun getCursor(): Long? = Cursor.drag
+    override fun getCursor(): Long? = if(minW < minH) Cursor.vResize else Cursor.hResize
+
+    override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
+        if(isInFocus && 0 in Input.mouseKeysDown){
+            val delta = if(minW == 0) dy else dx
+            (parent as CustomList).move(index, delta)
+        }
+    }
 
 }

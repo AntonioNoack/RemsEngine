@@ -24,6 +24,10 @@ import kotlin.math.max
 
 open class Transform(var parent: Transform? = null): Saveable(){
 
+    init {
+        parent?.addChild(this)
+    }
+
     var position = AnimatedProperty.pos()
     var scale = AnimatedProperty.scale()
     var rotationYXZ = AnimatedProperty.rotYXZ()
@@ -66,32 +70,24 @@ open class Transform(var parent: Transform? = null): Saveable(){
         // todo update by time :)
 
         list += TextInput("Name", style, name)
-            .setChangeListener {
-                name = if(it.isEmpty()) "-" else it
-
-            }
-
+            .setChangeListener { name = if(it.isEmpty()) "-" else it }
+            .setIsSelectedListener { GFX.selectedProperty = null }
         list += TextInput("Comment", style, comment)
-            .setChangeListener {
-                comment = it
-            }
+            .setChangeListener { comment = it }
+            .setIsSelectedListener { GFX.selectedProperty = null }
 
         list += VectorInput(style, "Position", position[lastLocalTime],
             AnimatedProperty.Type.POSITION, position)
-            .setChangeListener { x, y, z, w ->
-                putValue(position, Vector3f(x,y,z))
-            }.setIsSelectedListener { show(position) }
-        list += VectorInput(style, "Scale", scale[lastLocalTime],
-            AnimatedProperty.Type.SCALE, scale)
-            .setChangeListener { x, y, z, w ->
-                putValue(scale, Vector3f(x,y,z)) }
+            .setChangeListener { x, y, z, w -> putValue(position, Vector3f(x,y,z)) }
+            .setIsSelectedListener { show(position) }
+
+        list += VectorInput(style, "Scale", scale[lastLocalTime], AnimatedProperty.Type.SCALE, scale)
+            .setChangeListener { x, y, z, w -> putValue(scale, Vector3f(x,y,z)) }
             .setIsSelectedListener { show(scale) }
 
         if(usesEuler){
-            list += VectorInput(style, "Rotation (YXZ)", rotationYXZ[lastLocalTime],
-                AnimatedProperty.Type.ROT_YXZ, rotationYXZ)
-                .setChangeListener { x, y, z, w ->
-                    putValue(rotationYXZ, Vector3f(x,y,z)) }
+            list += VectorInput(style, "Rotation (YXZ)", rotationYXZ[lastLocalTime], AnimatedProperty.Type.ROT_YXZ, rotationYXZ)
+                .setChangeListener { x, y, z, w -> putValue(rotationYXZ, Vector3f(x,y,z)) }
                 .setIsSelectedListener { show(rotationYXZ) }
         } else {
             list += VectorInput(style, "Rotation (Quaternion)", rotationQuaternion?.get(lastLocalTime) ?: Quaternionf())
@@ -101,25 +97,24 @@ open class Transform(var parent: Transform? = null): Saveable(){
                 .setIsSelectedListener { show(rotationQuaternion) }
         }
 
-        list += VectorInput(style, "Skew", skew[lastLocalTime],
-            AnimatedProperty.Type.SKEW_2D, skew)
-            .setChangeListener { x, y, z, w ->
-                putValue(skew, Vector2f(x,y))
-            }.setIsSelectedListener { show(skew) }
-
-        list += ColorInput(style, "Color", color[lastLocalTime],
-            AnimatedProperty.Type.COLOR, color).setChangeListener { x, y, z, w ->
-            putValue(color, Vector4f(max(0f, x), max(0f, y), max(0f, z),
-                clamp(w, 0f, 1f)
-            ))
-        }.setIsSelectedListener { show(color) }
-        list += FloatInput(style, "Time Offset", timeOffset).setChangeListener { timeOffset = it }
-        list += FloatInput(style, "Time Dilation", timeDilation).setChangeListener { timeDilation = it }
-        list += FloatInput(style, "Time Manipulation", timeAnimated[lastLocalTime]).setChangeListener {  x ->
-            putValue(timeAnimated, x)
-        }.setIsSelectedListener { show(timeAnimated) }
+        list += VectorInput(style, "Skew", skew[lastLocalTime], AnimatedProperty.Type.SKEW_2D, skew)
+            .setChangeListener { x, y, z, w -> putValue(skew, Vector2f(x,y)) }
+            .setIsSelectedListener { show(skew) }
+        list += ColorInput(style, "Color", color[lastLocalTime], AnimatedProperty.Type.COLOR, color)
+            .setChangeListener { x, y, z, w -> putValue(color, Vector4f(max(0f, x), max(0f, y), max(0f, z), clamp(w, 0f, 1f))) }
+            .setIsSelectedListener { show(color) }
+        list += FloatInput(style, "Start Time", timeOffset)
+            .setChangeListener { timeOffset = it }
+            .setIsSelectedListener { GFX.selectedProperty = null }
+        list += FloatInput(style, "Time Multiplier", timeDilation)
+            .setChangeListener { timeDilation = it }
+            .setIsSelectedListener { GFX.selectedProperty = null }
+        list += FloatInput(style, "Advanced Time", timeAnimated[lastLocalTime])
+            .setChangeListener {  x -> putValue(timeAnimated, x) }
+            .setIsSelectedListener { show(timeAnimated) }
         list += TextInput("Blend Mode", style, blendMode.id)
             .setChangeListener { blendMode = BlendMode[it] }
+            .setIsSelectedListener { GFX.selectedProperty = null }
 
 
     }
@@ -281,8 +276,10 @@ open class Transform(var parent: Transform? = null): Saveable(){
 
     fun contains(t: Transform): Boolean {
         if(t === this) return true
-        for(child in children){
-            if(child === t || child.contains(t)) return true
+        if(children != null){
+            for(child in children){
+                if(child === t || child.contains(t)) return true
+            }
         }
         return false
     }
@@ -302,10 +299,6 @@ open class Transform(var parent: Transform? = null): Saveable(){
         children.remove(child)
     }
 
-    init {
-        parent?.addChild(this)
-    }
-
     fun clearIds(){
         uuid = 0L
         for(child in children) child.clearIds()
@@ -318,6 +311,18 @@ open class Transform(var parent: Transform? = null): Saveable(){
         val data = TextWriter.toText(this, false)
         parent = myParent
         return data
+    }
+
+    fun setName(name: String): Transform {
+        this.name = name
+        return this
+    }
+
+    fun getGlobalTransform(time: Float): Pair<Matrix4f, Float> {
+        val (parentTransform, parentTime) = parent?.getGlobalTransform(time) ?: Matrix4f() to time
+        val localTime = getLocalTime(parentTime)
+        applyTransformLT(parentTransform, localTime)
+        return parentTransform to localTime
     }
 
     companion object {

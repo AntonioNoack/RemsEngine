@@ -19,6 +19,15 @@ object DefaultConfig: StringMap() {
 
         this["style"] = "dark"
         this["ffmpegPath"] = "C:\\Users\\Antonio\\Downloads\\lib\\ffmpeg\\bin\\ffmpeg.exe"
+        this["tooltip.reactionTime"] = 300
+
+        addImportMappings("Image", "png", "jpg", "jpeg", "tiff", "webp")
+        addImportMappings("Video", "mp4", "gif", "mpeg", "avi")
+        addImportMappings("Text", "txt")
+        addImportMappings("Markdown", "md")
+        addImportMappings("Audio", "mp3", "wav", "ogg")
+
+        this["import.mapping.*"] = "Text"
 
         val newConfig = ConfigBasics.loadConfig("main.config", this, true)
         if(newConfig != this){
@@ -32,6 +41,12 @@ object DefaultConfig: StringMap() {
         val t1 = System.nanoTime()
         println("used ${(t1-t0)*1e-9f} to read the config")
 
+    }
+
+    fun addImportMappings(result: String, vararg extensions: String){
+        for(extension in extensions){
+            this["import.mapping.$extension"] = result
+        }
     }
 
 }

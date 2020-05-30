@@ -4,9 +4,7 @@ import me.anno.gpu.GFX
 import me.anno.ui.base.Panel
 import me.anno.ui.base.Visibility
 import me.anno.ui.style.Style
-import me.anno.utils.warn
 import kotlin.math.max
-import kotlin.math.min
 import kotlin.math.roundToInt
 
 open class PanelListX(sorter: Comparator<Panel>?, style: Style): PanelList(sorter, style){
@@ -28,25 +26,25 @@ open class PanelListX(sorter: Comparator<Panel>?, style: Style): PanelList(sorte
 
     override fun calculateSize(w: Int, h: Int) {
         super.calculateSize(w, h)
-        var w = 0
-        var h = 0
+        var sumW = 0
+        var maxH = 0
         var weight = 0f
         for(child in children.filter { it.visibility != Visibility.GONE }){
-            child.calculateSize(w, h) // calculate w,h,minw,minh
+            child.calculateSize(sumW, maxH) // calculate w,h,minw,minh
             child.applyConstraints()
-            w += child.minW
-            h = max(h, child.minH)
+            sumW += child.minW
+            maxH = max(maxH, child.minH)
             if(child.weight >= 0f){
                 // has weight
                 weight += child.weight
             }
         }
         val spaceCount = children.size - 1
-        w += spacing * spaceCount
-        sumConst = w
+        sumW += spacing * spaceCount
+        sumConst = sumW
         sumWeight = weight
         minW = sumConst
-        minH = h
+        minH = maxH
 
     }
 

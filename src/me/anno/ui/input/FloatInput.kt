@@ -9,6 +9,7 @@ import me.anno.parser.SimpleExpressionParser
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.input.components.PureTextInput
 import me.anno.ui.style.Style
 import kotlin.math.max
 
@@ -17,6 +18,10 @@ class FloatInput(
     val type: AnimatedProperty.Type = AnimatedProperty.Type.FLOAT,
     val owningProperty: AnimatedProperty<*>? = null
 ): PanelListY(style) {
+
+    constructor(style: Style, title: String, owningProperty: AnimatedProperty<*>, time: Float): this(style, title, owningProperty.type, owningProperty){
+        setValue(owningProperty[time] as Float)
+    }
 
     constructor(style: Style, title: String, value0: Float, type: AnimatedProperty.Type = AnimatedProperty.Type.FLOAT): this(style, title, type){
         setValue(value0)
@@ -43,7 +48,7 @@ class FloatInput(
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
         val focused1 = titlePanel.isInFocus || inputPanel.isInFocus
         if(focused1) isSelectedListener?.invoke()
-        val focused2 = focused1 || owningProperty == GFX.selectedProperty
+        val focused2 = focused1 || (owningProperty != null && owningProperty == GFX.selectedProperty)
         inputPanel.visibility = if(focused2) Visibility.VISIBLE else Visibility.GONE
         super.draw(x0, y0, x1, y1)
         updateValueMaybe()

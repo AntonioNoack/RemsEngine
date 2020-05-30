@@ -126,7 +126,7 @@ class FFMPEGMetaParser(): StringMap(){
                                     else -> throw RuntimeException("Invalid ffmpeg-duration? $data")
                                 }
                                 stream.sourceLength = duration
-                                println("duration: $duration")
+                                // println("duration: $duration")
                             } catch (e: Exception){
                                 e.message?.apply { warn(this) }
                                 e.printStackTrace()

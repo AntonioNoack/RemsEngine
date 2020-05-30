@@ -1,17 +1,26 @@
 package me.anno.objects.cache
 
 import me.anno.gpu.GFX
+import me.anno.gpu.texture.Texture2D
 import me.anno.objects.cache.VideoData.Companion.framesPerContainer
 import me.anno.video.FFMPEGStream
 import me.anno.video.Frame
 import java.io.File
 import java.io.FileNotFoundException
 import java.lang.Exception
+import java.lang.RuntimeException
 import kotlin.math.abs
 
 object Cache {
 
     private val cache = HashMap<Any, CacheEntry>()
+
+    fun getIcon(name: String): Texture2D {
+        val cache = getEntry("Icon", name, 0){
+            TextureCache(Texture2D(GFX.loadBImage(name)))
+        } as? TextureCache
+        return cache?.texture ?: GFX.whiteTexture
+    }
 
     fun getEntry(file: File, allowDirectories: Boolean, index: Int, generator: () -> CacheData): CacheData? {
         if(!file.exists() || (!allowDirectories && file.isDirectory)) return null

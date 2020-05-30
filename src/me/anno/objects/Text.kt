@@ -11,7 +11,7 @@ import me.anno.ui.style.Style
 import org.joml.Matrix4fStack
 import org.joml.Vector4f
 
-class SimpleText(var text: String, parent: Transform?): GFXTransform(parent){
+class Text(var text: String, parent: Transform?): GFXTransform(parent){
 
     var font = FontManager.getFont("Verdana", 20f)
     var buffer: FontMesh? = null
@@ -51,8 +51,9 @@ class SimpleText(var text: String, parent: Transform?): GFXTransform(parent){
         super.createInspector(list, style)
         list += TextInput("Text", style, text)
             .setChangeListener { text = it }
+            .setIsSelectedListener { GFX.selectedProperty = null }
     }
 
-    override fun getClassName(): String = "SimpleText"
+    override fun getClassName(): String = "Text"
 
 }

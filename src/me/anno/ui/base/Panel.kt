@@ -1,6 +1,5 @@
 package me.anno.ui.base
 
-import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
 import me.anno.io.Saveable
 import me.anno.ui.base.constraints.Margin
@@ -11,6 +10,9 @@ import java.lang.RuntimeException
 
 open class Panel(val style: Style): Saveable(){
 
+    var minW = 1
+    var minH = 1
+
     var visibility = Visibility.VISIBLE
 
     var weight = 0f
@@ -18,15 +20,12 @@ open class Panel(val style: Style): Saveable(){
     var backgroundColor = style.getColor("background", -1)
 
     var parent: Panel? = null
-    val alignmentConstraints = ArrayList<Constraint>()
+    val layoutConstraints = ArrayList<Constraint>()
 
     var w = 258
     var h = 259
     var x = 0
     var y = 0
-
-    var minW = 10
-    var minH = 10
 
     val isInFocus get() = GFX.inFocus === this
     val canBeSeen get() = canBeSeen(0,0,GFX.width,GFX.height)
@@ -53,13 +52,13 @@ open class Panel(val style: Style): Saveable(){
     }
 
     operator fun plusAssign(c: Constraint){
-        alignmentConstraints += c
-        alignmentConstraints.sortBy { it.order }
+        layoutConstraints += c
+        layoutConstraints.sortBy { it.order }
     }
 
     fun addPadding(left: Int, top: Int, right: Int, bottom: Int){
-        alignmentConstraints.add(Margin(left, top, right, bottom))
-        alignmentConstraints.sortBy { it.order }
+        layoutConstraints.add(Margin(left, top, right, bottom))
+        layoutConstraints.sortBy { it.order }
     }
 
     fun addPadding(x: Int, y: Int) = addPadding(x,y,x,y)
@@ -74,15 +73,13 @@ open class Panel(val style: Style): Saveable(){
         this.y = y
     }
 
-    fun applyConstraints(){
-        for(c in alignmentConstraints){
+    open fun applyConstraints(){
+        for(c in layoutConstraints){
             c.apply(this)
         }
     }
 
     open fun calculateSize(w: Int, h: Int){
-        minW = 10
-        minH = 10
         this.w = w
         this.h = h
     }
@@ -131,6 +128,8 @@ open class Panel(val style: Style): Saveable(){
     override fun getApproxSize(): Int = 1
 
     open fun getCursor(): Long? = parent?.getCursor() ?: 0L
+
+    open fun getTooltipText(x: Float, y: Float): String? = parent?.getTooltipText(x, y)
 
     open fun printLayout(depth: Int){
         println("${Tabs.spaces(depth*2)}${javaClass.simpleName}($weight) $x $y += $w $h ($minW $minH)")

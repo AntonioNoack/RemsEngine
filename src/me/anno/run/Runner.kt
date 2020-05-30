@@ -1,10 +1,9 @@
 package me.anno.run
 
-import me.anno.RemsStudio
+import me.anno.studio.RemsStudio
 
 val startTime = System.nanoTime()
 
 fun main(){
-    // Multithreaded().run()
-    RemsStudio().run()
+    RemsStudio.run()
 }

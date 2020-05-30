@@ -17,10 +17,14 @@ import me.anno.ui.base.Panel
 import me.anno.ui.base.SpacePanel
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.constraints.WrapAlign
+import me.anno.ui.base.groups.PanelFrame
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.base.groups.PanelListY
+import me.anno.utils.minus
+import me.anno.utils.toVec3f
 import me.anno.video.Frame
 import org.apache.logging.log4j.LogManager
+import org.joml.Matrix4f
 import org.joml.Matrix4fStack
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -35,6 +39,28 @@ import kotlin.math.*
 
 
 object GFX: GFXBase() {
+
+    val nullCamera = Camera(null)
+
+    init {
+        nullCamera.name = "Inspector Camera"
+        nullCamera.onlyShowTarget = false
+    }
+
+    var root = Transform()
+    var selectedCamera = nullCamera
+    var selectedTransform: Transform? = null
+    var selectedProperty: AnimatedProperty<*>? = null
+
+    var hoveredPanel: Panel? = null
+    var hoveredWindow: Window? = null
+
+    fun select(transform: Transform){
+        selectedTransform = transform
+        if(isShiftDown && transform is Camera){
+            selectedCamera = transform
+        }
+    }
 
     var targetFPS = 30f
 
@@ -105,9 +131,6 @@ object GFX: GFXBase() {
         inFocus = panel
     }
 
-    var selectedTransform: Transform? = null
-    var selectedProperty: AnimatedProperty<*>? = null
-
     fun clip(x: Int, y: Int, w: Int, h: Int){
         // from the bottom to the top
         check()
@@ -124,6 +147,15 @@ object GFX: GFXBase() {
     fun clip2(x1: Int, y1: Int, x2: Int, y2: Int) = clip(x1,y1,x2-x1,y2-y1)
 
     lateinit var windowStack: Stack<Window>
+
+    fun getClickedPanelAndWindow(x: Float, y: Float) = getClickedPanelAndWindow(x.toInt(), y.toInt())
+    fun getClickedPanelAndWindow(x: Int, y: Int): Pair<Panel, Window>? {
+        for(root in windowStack.reversed()){
+            val panel = getClickedPanel(root.panel, x, y)
+            if(panel != null) return panel to root
+        }
+        return null
+    }
 
     fun getClickedPanel(x: Float, y: Float) = getClickedPanel(x.toInt(), y.toInt())
     fun getClickedPanel(x: Int, y: Int): Panel? {
@@ -214,19 +246,17 @@ object GFX: GFXBase() {
 
     }
 
-    fun applyCameraTransform(camera: Camera, time: Float, stack: Matrix4fStack){
+    fun applyCameraTransform(camera: Camera, time: Float, cameraTransform: Matrix4f, stack: Matrix4fStack){
+        val position = cameraTransform.transformProject(Vector3f(0f, 0f, 0f))
+        val up = cameraTransform.transformProject(Vector3f(0f, 1f, 0f)) - position
+        val lookAt = cameraTransform.transformProject(Vector3f(0f, 0f, -1f))
         stack
             .perspective(
                 Math.toRadians(camera.fovDegrees.getValueAt(time).toDouble()).toFloat(),
                 windowWidth*1f/windowHeight,
                 camera.nearZ.getValueAt(time),
                 camera.farZ.getValueAt(time))
-            .lookAt(
-                camera.position.getValueAt(time), // eye
-                camera.lookAt.getValueAt(time), // lookat
-                Vector3f(0f, 1f, 0f) // todo use a rotatable up
-            )// .get(matrixBuffer)
-        // GL20.glUniformMatrix4fv()
+            .lookAt(position, lookAt, up.normalize())
     }
 
     // todo generate text as mesh?
@@ -545,6 +575,10 @@ object GFX: GFXBase() {
         lastTime = thisTime
 
         editorTime = max(editorTime + deltaTime * editorTimeDilation, 0f)
+        if(editorTime == 0f && editorTimeDilation < 0f){
+            editorTimeDilation = 0f
+        }
+
         smoothSin = sin(editorTime)
         smoothCos = cos(editorTime)
 
@@ -555,18 +589,29 @@ object GFX: GFXBase() {
     }
 
     fun openMenu(x: Int, y: Int, title: String, options: List<Pair<String, (button: Int, isLong: Boolean) -> Boolean>>){
-        val style = DefaultConfig.style
+        val style = DefaultConfig.style.getChild("menu")
         val list = PanelListY(style)
         val window = Window(list, x, y)
-        list += TextPanel(title, style)
-        list += SpacePanel(1, 1, style)
+        fun close(){
+            windowStack.remove(window)
+        }
+        val padding = 4
+        if(title.isNotEmpty()){
+            val titlePanel = TextPanel(title, style)
+            titlePanel.padding.left = padding
+            titlePanel.padding.right = padding
+            list += titlePanel
+            list += SpacePanel(0, 1, style)
+        }
         for((name, action) in options){
             val buttonView = TextPanel(name, style)
             buttonView.setOnClickListener { x, y, button, long ->
                 if(action(button, long)){
-                    windowStack.remove(window)
+                    close()
                 }
             }
+            buttonView.padding.left = padding
+            buttonView.padding.right = padding
             list += buttonView
         }
         list += WrapAlign.LeftTop

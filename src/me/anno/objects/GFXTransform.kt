@@ -15,9 +15,8 @@ abstract class GFXTransform(parent: Transform?): Transform(parent){
     override fun createInspector(list: PanelListY, style: Style) {
         super.createInspector(list, style)
         list += FloatInput(list.style, "Alignment with Camera", AnimatedProperty.Type.FLOAT)
-            .setChangeListener {
-                putValue(isBillboard, clamp(it, 0f, 1f))
-            }.setIsSelectedListener { show(isBillboard) }
+            .setChangeListener { putValue(isBillboard, clamp(it, 0f, 1f)) }
+            .setIsSelectedListener { show(isBillboard) }
     }
 
     override fun save(writer: BaseWriter) {

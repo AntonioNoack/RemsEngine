@@ -1,8 +1,11 @@
 package me.anno.ui.impl
 
+import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.black
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.nullCamera
+import me.anno.gpu.GFX.root
 import me.anno.input.Input.mouseX
 import me.anno.input.Input.mouseY
 import me.anno.io.text.TextReader
@@ -15,7 +18,7 @@ import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.style.Style
-import me.anno.utils.warn
+import me.anno.utils.mixARGB
 import org.joml.Vector4f
 import java.io.File
 import java.lang.Exception
@@ -25,10 +28,15 @@ import kotlin.math.roundToInt
 // todo support for multiple cameras? -> just use scenes?
 // todo switch back and forth? how -> multiple cameras... how?
 
-class TreeView(var root: Transform, style: Style):
+// todo a panel for linear video editing
+// todo maybe control the cameras there...
+
+class TreeView(style: Style):
     ScrollPanel(style.getChild("treeView"), Padding(1), WrapAlign.AxisAlignment.MIN) {
 
     val list = child as PanelList
+
+    init { padding.top = 16 }
 
     val transformByIndex = ArrayList<Transform>()
     var inset = style.getSize("treeView.inset", style.getSize("textSize", 12)/3)
@@ -47,6 +55,7 @@ class TreeView(var root: Transform, style: Style):
     fun updateTree(){
         val todo = ArrayList<Pair<Transform, Int>>()
         todo.add(root to 0)
+        todo.add(nullCamera to 0)
         index = 0
         while(todo.isNotEmpty()){
             val (transform, depth) = todo.removeAt(todo.lastIndex)
@@ -122,23 +131,22 @@ class TreeView(var root: Transform, style: Style):
 
     fun addChildFromFile(parent: Transform, file: File){
         val ending = file.name.split('.').last()
-        when(ending.toLowerCase()){// todo better user-customizable
-            "png", "jpg", "jpeg", "tiff" -> Image(file, parent)
-            "webp" -> {
-                warn("WebP will only work correctly, if backed by png :/")
-                Image(file, parent)
-            }
-            "txt" -> {
-                // add text?, with line breaks?
-                SimpleText(file.readText(), parent)
-            }
-            "md" -> {
+        val name = file.name
+        val type0 = DefaultConfig["import.mapping.$ending"]
+        val type1 = DefaultConfig["import.mapping.${ending.toLowerCase()}"]
+        val type2 = DefaultConfig["import.mapping.*"] ?: "Text"
+        when((type0 ?: type1 ?: type2).toString()){
+            "Image" -> Image(file, parent).name = name
+            "Video" -> Video(file, parent).name = name
+            "Text" -> Text(file.readText(), parent).name = name
+            "Markdown" -> {
                 // todo parse, and create constructs?
+                println("Markdown is not yet implemented!")
             }
-            "mp4", "gif" -> Video(file, parent)
-            "mp3", "wav", "ogg" -> Audio(file, parent)
+            "Audio" -> Audio(file, parent).name = name
             else -> println("Unknown file type: $ending")
         }
+
     }
 
     fun getOrCreateChild(index: Int, transform0: Transform): TextPanel {
@@ -154,11 +162,14 @@ class TreeView(var root: Transform, style: Style):
             var isClicked = 0
             // val textColor0 = textColor
             val accentColor = style.getColor("accentColor", black or 0xff0000)
+            val defaultBackground = backgroundColor
+            val cameraBackground = mixARGB(accentColor, defaultBackground, 0.9f)
 
             override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
                 super.draw(x0, y0, x1, y1)
                 val transform = transformByIndex[index]
                 textColor = black or (transform.getLocalColor().toRGB(180))
+                backgroundColor = if(transform === GFX.selectedCamera) cameraBackground else defaultBackground
                 val isInFocus = isInFocus || GFX.selectedTransform == transformByIndex[index]
                 if(isInFocus) textColor = accentColor
                 GFX.drawText(x + padding.left, y + padding.top, fontSize, text, textColor, backgroundColor)
@@ -187,7 +198,7 @@ class TreeView(var root: Transform, style: Style):
                 val transform = transformByIndex[index]
                 when(button){
                     0 -> {
-                        GFX.selectedTransform = transform
+                        GFX.select(transform)
                         clickedTransform = transform
                     }
                     1 -> {// right click
@@ -195,18 +206,20 @@ class TreeView(var root: Transform, style: Style):
                         fun add(action: (Transform) -> Transform): (Int, Boolean) -> Boolean {
                             return { b, l ->
                                 if(b == 0){
-                                    clickedTransform?.apply { GFX.selectedTransform = action(this) }
+                                    clickedTransform?.apply { GFX.select(action(this)) }
                                     true
                                 } else false
                             }
                         }
-                        GFX.openMenu(mouseX, mouseY, "Add Component",
+                        GFX.openMenu(mouseX, mouseY, "Add Child",
                             listOf(
-                                "Video" to add { Video(File(""), it) },
                                 "Folder" to add { Transform(it) },
+                                "Text" to add { Text("", it) },
+                                "Image" to add { Image(File(""), it) },
+                                "Video/GIF" to add { Video(File(""), it) },
                                 "Circle" to add { Circle(it) },
                                 "Polygon" to add { Polygon(it) },
-                                "Image" to add { Image(File(""), it) }
+                                "Camera" to add { Camera(it) }
                             )
                         )
                     }
@@ -243,13 +256,18 @@ class TreeView(var root: Transform, style: Style):
                 val transform = transformByIndex[index]
                 val parent = transform.parent
                 if(parent != null){
-                    GFX.selectedTransform = parent
+                    GFX.select(parent)
                     parent.removeChild(transform)
                 }
             }
 
             override fun onBackKey(x: Float, y: Float) = onDeleteKey(x,y)
             override fun getCursor() = Cursor.drag
+
+            override fun getTooltipText(x: Float, y: Float): String? {
+                val transform = transformByIndex[index]
+                return if(transform is Camera) "Shift-Click to set current!" else null
+            }
 
         }
         transformByIndex += transform0
@@ -269,7 +287,7 @@ class TreeView(var root: Transform, style: Style):
     }
 
     override fun onMouseUp(x: Float, y: Float, button: Int) {
-        println("mouse went up")
+        // println("mouse went up")
         super.onMouseUp(x, y, button)
     }
 

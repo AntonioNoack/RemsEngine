@@ -26,7 +26,7 @@ class OptionBar(style: Style): PanelListX(null, style.getChild("options")) {
         }
 
         override fun onMouseClicked(x: Float, y: Float, button: Int, long: Boolean) {
-            GFX.openMenu(this.x, this.y + this.h, name, actions.values.map {  minor ->
+            GFX.openMenu(this.x, this.y + this.h, "", actions.values.map {  minor ->
                 minor.name to { b: Int, l: Boolean ->
                     if(b == 0) minor.action()
                     true

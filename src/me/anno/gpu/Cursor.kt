@@ -26,8 +26,6 @@ object Cursor {
         lastCursor = this
     }
 
-
-
     fun destroy(){
         // crashes
         /*0L.useCursor()

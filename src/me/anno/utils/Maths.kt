@@ -1,6 +1,10 @@
 package me.anno.utils
 
+import me.anno.config.DefaultStyle.black
 import org.joml.Vector2f
+import org.joml.Vector3f
+import org.joml.Vector4f
+import kotlin.math.roundToInt
 import kotlin.math.sqrt
 
 
@@ -30,16 +34,16 @@ fun Vector2f.getSideSign(b: Vector2f, c: Vector2f): Float {
 
 fun Vector2f.isInsideTriangle(a: Vector2f, b: Vector2f, c: Vector2f): Boolean {
 
-    val as_x = x - a.x
-    val as_y = y - a.y
+    val asX = x - a.x
+    val asY = y - a.y
 
-    val s_ab = (b.x - a.x) * as_y - (b.y - a.y) * as_x > 0
+    val sAb = (b.x - a.x) * asY - (b.y - a.y) * asX > 0
 
-    if ((c.x - a.x) * as_y - (c.y - a.y) * as_x > 0 == s_ab) return false
+    if ((c.x - a.x) * asY - (c.y - a.y) * asX > 0 == sAb) return false
 
-    return if ((c.x - b.x) * (y - b.y) - (c.y - b.y) * (x - b.x) > 0 != s_ab) false else true
+    return (c.x - b.x) * (y - b.y) - (c.y - b.y) * (x - b.x) > 0 == sAb
 
-    var sum = 0
+    /*var sum = 0
 
     if(getSideSign(a,b) > 0f) sum++
     if(getSideSign(b,c) > 0f) sum++
@@ -52,7 +56,7 @@ fun Vector2f.isInsideTriangle(a: Vector2f, b: Vector2f, c: Vector2f): Boolean {
 
     // left or right of all lines
     return sum == 0 || sum == 3
-
+*/
 }
 
 fun Vector2f.isInsideTriangle2(a: Vector2f, b: Vector2f, c: Vector2f): Boolean {
@@ -67,3 +71,22 @@ fun Vector2f.isInsideTriangle2(a: Vector2f, b: Vector2f, c: Vector2f): Boolean {
     return sum == 0
 
 }
+
+fun mix(a: Int, b: Int, f: Float): Int {
+    return (a * (1f-f) + b*f).roundToInt()
+}
+
+fun mix(a: Int, b: Int, shift: Int, f: Float): Int {
+    return mix((a shr shift) and 0xff, (b shr shift) and 0xff, f) shl shift
+}
+
+fun mixARGB(a: Int, b: Int, f: Float): Int {
+    return mix(a, b, 24, f) or mix(a, b, 16, f) or mix(a, b, 8, f) or mix(a, b, 0, f)
+}
+
+fun Vector3f.print() = "($x $y $z)"
+
+fun Vector4f.toVec3f() = Vector3f(x/w, y/w, z/w)
+operator fun Vector3f.minus(s: Vector3f) = Vector3f(x-s.x, y-s.y, z-s.z)
+operator fun Vector3f.plus(s: Vector3f) = Vector3f(x+s.x, y+s.y, z+s.z)
+operator fun Vector3f.times(s: Float) = Vector3f(x*s, y*s, z*s)

@@ -1,9 +1,10 @@
 package me.anno.input
 
-import me.anno.RemsStudio
+import me.anno.studio.RemsStudio
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX.addEvent
 import me.anno.gpu.GFX.getClickedPanel
+import me.anno.gpu.GFX.getClickedPanelAndWindow
 import me.anno.gpu.GFX.inFocus
 import me.anno.gpu.GFX.window
 import me.anno.gpu.GFX.openMenu
@@ -38,6 +39,8 @@ object Input {
     fun save() {
         // todo save the scene
     }
+
+    val keysDown = HashSet<Int>()
 
     var mouseX = 0f
     var mouseY = 0f
@@ -110,7 +113,13 @@ object Input {
                         // find the clicked element
                         mouseDownX = mouseX
                         mouseDownY = mouseY
-                        inFocus = getClickedPanel(mouseX, mouseY)
+                        val panelWindow = getClickedPanelAndWindow(mouseX, mouseY)
+                        if(panelWindow != null){
+                            while(panelWindow.second != windowStack.peek()){
+                                windowStack.pop()
+                            }
+                        }
+                        inFocus = panelWindow?.first
                         inFocus?.onMouseDown(mouseX, mouseY, button)
                         mouseStart = System.nanoTime()
                         mouseKeysDown.add(button)
@@ -204,10 +213,14 @@ object Input {
                 // todo handle the keys in our action manager :)
                 when (action) {
                     GLFW.GLFW_PRESS -> {
+                        keysDown += key
                         inFocus?.onKeyDown(mouseX, mouseY, key) // 264
                         keyTyped(key)
                     }
-                    GLFW.GLFW_RELEASE -> inFocus?.onKeyUp(mouseX, mouseY, key) // 265
+                    GLFW.GLFW_RELEASE -> {
+                        inFocus?.onKeyUp(mouseX, mouseY, key)
+                        keysDown -= key
+                    } // 265
                     GLFW.GLFW_REPEAT -> keyTyped(key)
                 }
                 println("event $key $scancode $action $mods")

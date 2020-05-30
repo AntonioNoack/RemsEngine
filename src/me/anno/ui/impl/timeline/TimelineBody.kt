@@ -20,6 +20,10 @@ import org.lwjgl.glfw.GLFW.*
 import kotlin.math.*
 import me.anno.input.Input.isControlDown as isControlDown
 
+
+// todo select multiple keyframes
+// todo copy keyframes
+// todo paste keyframes
 class TimelineBody(style: Style): Panel(style.getChild("deep")){
 
     val accentColor = style.getColor("accentColor", black)
@@ -184,7 +188,7 @@ class TimelineBody(style: Style): Panel(style.getChild("deep")){
             red, green, blue, white
         )
 
-        when(property.type){
+        when(type){
             AnimatedProperty.Type.FLOAT -> {
                 valueColors[0] = blueish
             }
@@ -200,7 +204,7 @@ class TimelineBody(style: Style): Panel(style.getChild("deep")){
 
         fun drawDot(x: Int, value: Float, color: Int){
             val y = getYAt(value).roundToInt()
-            GFX.drawTexture(x-halfSize, y-halfSize,
+            GFX.drawTexture(x-halfSize, clamp(y-halfSize, y0-1, y1),
                 dotSize, dotSize,
                 GFX.whiteTexture, color)
         }

@@ -2,7 +2,8 @@ package me.anno.io.base
 
 import me.anno.io.Saveable
 import me.anno.io.utils.StringMap
-import me.anno.objects.SimpleText
+import me.anno.objects.Image
+import me.anno.objects.Text
 import me.anno.objects.Transform
 import me.anno.objects.Video
 import me.anno.objects.animation.AnimatedProperty
@@ -21,10 +22,11 @@ abstract class BaseReader {
         return when(clazz){
             "SMap" -> StringMap()
             "Transform" -> Transform(null)
+            "Text" -> Text("", null)
             "Circle" -> Circle(null)
             "Polygon" -> Polygon(null)
+            "Image" -> Image(File(""), null)
             "Video" -> Video(File(""), null)
-            "SimpleText" -> SimpleText("", null)
             "AnimatedProperty<float>" -> AnimatedProperty.float()
             "AnimatedProperty<pos>" -> AnimatedProperty.pos()
             "AnimatedProperty<scale>" -> AnimatedProperty.scale()
