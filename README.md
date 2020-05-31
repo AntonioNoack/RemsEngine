@@ -1,4 +1,4 @@
-# Rems Studio
+# Rem's Studio <!-- 's is correct, because it's owned; I thought it may be only for abbreviations of is -->
 
 This studio is intended for starters in the Video industry, or YouTubers,
 and was inspired by the channel [YDS](https://www.youtube.com/user/YutsuraidanceStudios). I wanted to be able to make those transitions and motions easily myself. Without needing to buy some expensive software.
@@ -12,3 +12,6 @@ The name is from Rem, an Anime character, I like; inspired by YDS, too, because 
 The project is developed with Kotlin,JVM, so plugins should be possible, and are a goal at some point.
 It is additionally developed with Java, so it works with Windows and Linux.
 
+## Download
+
+I will provide a download, when the alpha stage is reached (basic features working, automatic setup).
