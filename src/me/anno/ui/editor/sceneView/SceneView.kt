@@ -36,6 +36,8 @@ import kotlin.math.max
 // todo tags for elements
 // todo search properties
 
+// todo control click -> fullscreen view of this element?
+
 class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
 
     init {

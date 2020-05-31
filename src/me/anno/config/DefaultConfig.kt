@@ -31,7 +31,7 @@ object DefaultConfig: StringMap() {
         this["import.mapping.*"] = "Text"
 
         val newConfig = ConfigBasics.loadConfig("main.config", this, true)
-        if(newConfig != this){
+        if(newConfig !== this){
             putAll(newConfig)
         }
 

@@ -40,6 +40,8 @@ import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.math.*
 
 
+// todo f11 -> fullscreen
+
 object GFX: GFXBase() {
 
     val nullCamera = Camera(null)

@@ -33,7 +33,6 @@ class Text(var text: String, parent: Transform?): GFXTransform(parent){
         if(text.isNotBlank()){
             if(buffer == null || lastText != text || lastFont != font || lastBold != isBold || lastItalic != isItalic){
                 buffer?.buffer?.destroy()
-                // todo get italic + boldness correctly from font manager
                 val awtFont = FontManager.getFont(font, 20f, isBold, isItalic)
                 buffer = FontMesh((awtFont as AWTFont).font, text)
                 lastText = text
@@ -129,7 +128,6 @@ class Text(var text: String, parent: Transform?): GFXTransform(parent){
                     lastUsedFonts[i] = lastUsedFonts[i+1]
                 }
                 lastUsedFonts[lastUsedFonts.lastIndex] = font
-                println("updated last used fonts: ${lastUsedFonts.joinToString()}")
             }
         }
     }

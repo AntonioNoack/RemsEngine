@@ -136,7 +136,6 @@ class TreeView(style: Style):
         val type0 = DefaultConfig["import.mapping.$ending"]
         val type1 = DefaultConfig["import.mapping.${ending.toLowerCase()}"]
         val type2 = DefaultConfig["import.mapping.*"] ?: "Text"
-        println("Type of $ending: $type0 -> $type1 -> $type2")
         when((type0 ?: type1 ?: type2).toString()){
             "Image" -> Image(file, parent).name = name
             "Video" -> Video(file, parent).name = name

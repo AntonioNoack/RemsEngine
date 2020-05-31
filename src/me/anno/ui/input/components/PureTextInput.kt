@@ -33,8 +33,6 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
         changeListener(text)
     }
 
-    // todo start cursor, back cursor
-
     var cursor1 = 0
     var cursor2 = 0
 
@@ -57,8 +55,8 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
     val wasJustChanged get() = abs(GFX.lastTime-lastMove) < 200_000_000
 
     fun calculateOffset(required: Int, cursor: Int){
-        // todo center the cursor, 1/3 of the width, if possible;
-        // todo clamp left/right
+        // center the cursor, 1/3 of the width, if possible;
+        // clamp left/right
         drawingOffset = -clamp(cursor - w / 3, 0, max(0, required - w))
     }
 
@@ -198,7 +196,7 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
     }
 
     override fun onMouseClicked(x: Float, y: Float, button: Int, long: Boolean) {
-        // todo set cursor to correct position
+        // todo find the correct location for the cursor
         lastMove = GFX.lastTime
         if(isControlDown){
             cursor1 = 0
@@ -210,7 +208,6 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
         super.onMouseClicked(x, y, button, long)
     }
 
-    // todo double click event
     override fun onDoubleClick(x: Float, y: Float, button: Int) {
         cursor1 = 0
         cursor2 = characters.size

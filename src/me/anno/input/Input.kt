@@ -2,6 +2,7 @@ package me.anno.input
 
 import me.anno.studio.RemsStudio
 import me.anno.config.DefaultConfig
+import me.anno.gpu.GFX
 import me.anno.gpu.GFX.addEvent
 import me.anno.gpu.GFX.getClickedPanel
 import me.anno.gpu.GFX.getClickedPanelAndWindow
@@ -188,6 +189,7 @@ object Input {
                                 window1.panel.printLayout(1)
                             }
                         }
+                        GLFW.GLFW_KEY_F11 -> addEvent { GFX.toggleFullscreen() }
                         else -> {
 
                             if (isControlDown) {

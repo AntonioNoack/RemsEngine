@@ -13,35 +13,35 @@ import kotlin.math.round
 
 object FontManager {
 
-    val fontList = ArrayList<String>()
+    private val awtFontList = ArrayList<String>()
+    private val awtFonts = HashMap<String, Font>()
 
-    // todo get real font list
+    private val fonts = HashMap<String, XFont>()
+
     fun requestFontList(callback: (List<String>) -> Unit){
-        if(fontList.isNotEmpty()) callback(fontList)
+        if(awtFontList.isNotEmpty()) callback(awtFontList)
         else {
             thread {
                 val t0 = System.nanoTime()
                 val ge = GraphicsEnvironment.getLocalGraphicsEnvironment()
                 val fontNames = ge.availableFontFamilyNames
-                synchronized(fontList){
-                    fontList.clear()
-                    fontList += fontNames
+                synchronized(awtFontList){
+                    awtFontList.clear()
+                    awtFontList += fontNames
                 }
                 val t1 = System.nanoTime()
-                println("used ${(t1-t0)*1e-9f} to get font list")
-                callback(fontList)
+                // 0.17s on Win 10, R5 2600, a few extra fonts
+                // this lag would not be acceptable :)
+                // worst-case-scenario: list too long, and no fonts are returned
+                // (because of that, the already used one is added)
+                println("Used ${(t1-t0)*1e-9f} to get font list")
+                callback(awtFontList)
             }
         }
     }
 
-    init {
-        // todo this is a bottleneck with 0.245s
-        // todo therefore this should be parallized with other stuff...
-
-    }
-
-    fun getFontSizeIndex(fontSize: Float): Int = round(100.0 * ln(fontSize)).toInt()
-    fun getAvgFontSize(fontSizeIndex: Int): Float = exp(fontSizeIndex * 0.01f)
+    private fun getFontSizeIndex(fontSize: Float): Int = round(100.0 * ln(fontSize)).toInt()
+    private fun getAvgFontSize(fontSizeIndex: Int): Float = exp(fontSizeIndex * 0.01f)
 
     fun getString(fontName: String, fontSize: Float, text: String, bold: Boolean, italic: Boolean): Texture2D? {
         if(text.isBlank()) return null
@@ -56,8 +56,6 @@ object FontManager {
         return cache?.texture
     }
 
-    val fonts = HashMap<String, XFont>()
-
     fun getFont(name: String, fontSize: Float, bold: Boolean, italic: Boolean): XFont {
         val fontSizeIndex = getFontSizeIndex(fontSize)
         val averageFontSize = getAvgFontSize(fontSizeIndex)
@@ -69,19 +67,17 @@ object FontManager {
         if(font != null) return font
         val boldItalicStyle = (if(italic) Font.ITALIC else 0) or (if(bold) Font.BOLD else 0)
         val awtName = "$name:$fontSizeIndex:$boldItalicStyle"
-        val font2 = AWTFont(fontMap[awtName] ?: getDefaultFont(name)?.deriveFont(boldItalicStyle, fontSize) ?: throw RuntimeException("Font $name was not found"))
+        val font2 = AWTFont(awtFonts[awtName] ?: getDefaultFont(name)?.deriveFont(boldItalicStyle, fontSize) ?: throw RuntimeException("Font $name was not found"))
         fonts[awtName] = font2
         return font2
     }
 
     private fun getDefaultFont(name: String): Font? {
-        val cached = fontMap[name]
+        val cached = awtFonts[name]
         if(cached != null) return cached
         val font = Font.decode(name) ?: return null
-        fontMap[name] = font
+        awtFonts[name] = font
         return font
     }
-
-    val fontMap = HashMap<String, Font>()
 
 }
