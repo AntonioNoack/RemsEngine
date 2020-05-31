@@ -21,6 +21,8 @@ object DefaultConfig: StringMap() {
         this["ffmpegPath"] = "C:\\Users\\Antonio\\Downloads\\lib\\ffmpeg\\bin\\ffmpeg.exe"
         this["tooltip.reactionTime"] = 300
         this["lastUsed.fonts.count"] = 5
+        this["default.video.nearest"] = false
+        this["default.image.nearest"] = false
 
         addImportMappings("Image", "png", "jpg", "jpeg", "tiff", "webp")
         addImportMappings("Video", "mp4", "gif", "mpeg", "avi")

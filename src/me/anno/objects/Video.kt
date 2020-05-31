@@ -1,5 +1,6 @@
 package me.anno.objects
 
+import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.io.base.BaseWriter
 import me.anno.objects.animation.AnimatedProperty
@@ -8,6 +9,7 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.input.BooleanInput
 import me.anno.ui.input.FileInput
 import me.anno.ui.input.FloatInput
+import me.anno.ui.input.TextInput
 import me.anno.ui.style.Style
 import me.anno.video.FFMPEGStream
 import org.joml.Matrix4fStack
@@ -32,6 +34,7 @@ class Video(var file: File, parent: Transform?): GFXTransform(parent){
     var duration = 0f
 
     var isLooping = true
+    var nearestFiltering = DefaultConfig["default.video.nearest"].toString().toBoolean()
 
     // val fps get() = videoCache.fps
     var fps = -1f
@@ -79,7 +82,7 @@ class Video(var file: File, parent: Transform?): GFXTransform(parent){
 
                     val frame = Cache.getVideoFrame(file, frameIndex, frameCount, isLooping)
                     if(frame != null){
-                        GFX.draw3D(stack, frame, color, isBillboard.getValueAt(time))
+                        GFX.draw3D(stack, frame, color, isBillboard.getValueAt(time), nearestFiltering)
                         wasDrawn = true
                     }
 
@@ -94,14 +97,16 @@ class Video(var file: File, parent: Transform?): GFXTransform(parent){
         }
 
         if(!wasDrawn){
-            GFX.draw3D(stack, GFX.flat01, GFX.colorShowTexture, 16, 9, Vector4f(0.5f, 0.5f, 0.5f, 1f).mul(color), isBillboard.getValueAt(time))
+            GFX.draw3D(stack, GFX.flat01, GFX.colorShowTexture, 16, 9,
+                Vector4f(0.5f, 0.5f, 0.5f, 1f).mul(color), isBillboard.getValueAt(time),
+                true)
         }
 
     }
 
     override fun createInspector(list: PanelListY, style: Style) {
         super.createInspector(list, style)
-        list += FileInput("Path", style)
+        list += FileInput("File Location", style)
             .setText(file.toString())
             .setChangeListener { text -> file = File(text) }
             .setIsSelectedListener { GFX.selectedProperty = null }
@@ -116,6 +121,9 @@ class Video(var file: File, parent: Transform?): GFXTransform(parent){
         list += BooleanInput("Looping?", isLooping, style)
             .setChangeListener { isLooping = it }
             .setIsSelectedListener { GFX.selectedProperty = null }
+        list += BooleanInput("Nearest Filtering", nearestFiltering, style)
+            .setChangeListener { nearestFiltering = it }
+            .setIsSelectedListener { show(null) }
     }
 
     override fun getClassName(): String = "Video"
@@ -125,6 +133,7 @@ class Video(var file: File, parent: Transform?): GFXTransform(parent){
         writer.writeString("path", file.toString())
         writer.writeFloat("startTime", startTime)
         writer.writeFloat("endTime", endTime)
+        writer.writeBool("nearestFiltering", nearestFiltering)
     }
 
     override fun readString(name: String, value: String) {
@@ -139,6 +148,13 @@ class Video(var file: File, parent: Transform?): GFXTransform(parent){
             "startTime" -> startTime = value
             "endTime" -> endTime = value
             else -> super.readFloat(name, value)
+        }
+    }
+
+    override fun readBool(name: String, value: Boolean) {
+        when(name){
+            "nearestFiltering" -> nearestFiltering = value
+            else -> super.readBool(name, value)
         }
     }
 

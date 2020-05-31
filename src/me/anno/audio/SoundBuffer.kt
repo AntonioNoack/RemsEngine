@@ -1,29 +1,44 @@
 package me.anno.audio
 
+import me.anno.objects.cache.CacheData
 import org.lwjgl.openal.AL10.*
 import org.lwjgl.stb.STBVorbis.*
 import org.lwjgl.stb.STBVorbisInfo
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryUtil
 import org.lwjgl.system.MemoryUtil.NULL
+import org.newdawn.slick.openal.WaveData
 import java.io.File
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.ShortBuffer
 
 
-class SoundBuffer(file: File){
+class SoundBuffer(file: File): CacheData {
+
+    init { Audio.check() }
 
     var buffer = alGenBuffers()
     var pcm: ShortBuffer? = null
 
     init {
-        STBVorbisInfo.malloc().use {  info ->
-            Audio.check()
-            val pcm = readVorbis(file, info)
-            val format = if(info.channels() == 1) AL_FORMAT_MONO16 else AL_FORMAT_STEREO16
-            alBufferData(buffer, format, pcm, info.sample_rate())
-            Audio.check()
+        val name = file.name
+        when(val ending = name.split('.').last().toLowerCase()){
+            "ogg" -> {
+                STBVorbisInfo.malloc().use {  info ->
+                    val pcm = readVorbis(file, info)
+                    val format = if(info.channels() == 1) AL_FORMAT_MONO16 else AL_FORMAT_STEREO16
+                    alBufferData(buffer, format, pcm, info.sample_rate())
+                    Audio.check()
+                }
+            }
+            "wav" -> {
+                val wav = WaveData.create(file.absolutePath)
+                alBufferData(buffer, wav.format, wav.data, wav.samplerate)
+                wav.dispose()
+                Audio.check()
+            }
+            else -> throw RuntimeException("Unknown audio format $ending!")
         }
     }
 
@@ -59,7 +74,7 @@ class SoundBuffer(file: File){
     }
 
 
-    fun destroy(){
+    override fun destroy(){
         alDeleteBuffers(buffer)
         if(pcm != null){
             MemoryUtil.memFree(pcm)

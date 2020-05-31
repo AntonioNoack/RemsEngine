@@ -106,9 +106,26 @@ class Shader(val vertex: String, val varying: String, val fragment: String){
         if(loc > -1) glUniform2f(loc, x, y)
     }
 
+    fun v3(name: String, color: Int){
+        val loc = getUniformLocation(name)
+        if(loc > -1) glUniform3f(loc,
+            (color.shr(16) and 255)/255f,
+            (color.shr(8) and 255)/255f,
+            color.and(255)/255f)
+    }
+
     fun v3(name: String, x: Float, y: Float, z: Float){
         val loc = getUniformLocation(name)
         if(loc > -1) glUniform3f(loc, x, y, z)
+    }
+
+    fun v4(name: String, color: Int){
+        val loc = getUniformLocation(name)
+        if(loc > -1) glUniform4f(loc,
+            (color.shr(16) and 255)/255f,
+            (color.shr(8) and 255)/255f,
+            color.and(255)/255f,
+            (color.shr(24) and 255)/255f)
     }
 
     fun v4(name: String, x: Float, y: Float, z: Float, w: Float){

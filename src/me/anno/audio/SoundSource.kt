@@ -13,6 +13,13 @@ class SoundSource(val loop: Boolean, val relative: Boolean){
         if(relative) alSourcei(source, AL_SOURCE_RELATIVE, AL_TRUE)
     }
 
+    fun setDistanceModel(){
+        // max distance = stopped attenuation???
+        alSourcef(source, AL_ROLLOFF_FACTOR, 1f)
+        alSourcef(source, AL_REFERENCE_DISTANCE, 1f)
+        alSourcef(source, AL_MAX_DISTANCE, 1e3f)
+    }
+
     fun setBuffer(buffer: Int){
         stop()
         alSourcei(source, AL_BUFFER, buffer)

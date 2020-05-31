@@ -24,7 +24,7 @@ typealias Action = String
 // todo bloom
 
 // todo select textures
-// todo enum input type with scrollbar
+// done enum input type with scrollbar
 
 
 // medium priority

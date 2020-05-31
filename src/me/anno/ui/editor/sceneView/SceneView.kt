@@ -159,7 +159,7 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
         GFX.clip(x+dx,y+dy,rw,rh)
 
-        framebuffer.bindTextures()
+        framebuffer.bindTextures(true)
 
         sqrtDisplayShader.use()
         flat01.draw(sqrtDisplayShader)

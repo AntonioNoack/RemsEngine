@@ -19,11 +19,9 @@ import me.anno.ui.base.SpacePanel
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.WrapAlign
-import me.anno.ui.base.groups.PanelFrame
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.base.groups.PanelListY
 import me.anno.utils.minus
-import me.anno.utils.toVec3f
 import me.anno.video.Frame
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
@@ -49,6 +47,8 @@ object GFX: GFXBase() {
     init {
         nullCamera.name = "Inspector Camera"
         nullCamera.onlyShowTarget = false
+        // higher far value to allow other far values to be seen
+        nullCamera.farZ.addKeyframe(0f, 5000f, 1f)
     }
 
     var root = Transform()
@@ -109,6 +109,8 @@ object GFX: GFXBase() {
     lateinit var shader3DARGB: Shader
     lateinit var shader3DBGRA: Shader
     lateinit var shader3DCircle: Shader
+    lateinit var lineShader3D: Shader
+
     val whiteTexture = Texture2D(1, 1)
     val stripeTexture = Texture2D(5, 1)
     val colorShowTexture = Texture2D(2,2)
@@ -225,7 +227,7 @@ object GFX: GFXBase() {
         val w = texture.w
         val h = texture.h
         if(text.isNotBlank()){
-            texture.bind()
+            texture.bind(true)
             check()
             subpixelCorrectTextShader.use()
             check()
@@ -248,7 +250,7 @@ object GFX: GFXBase() {
         shader.v2("pos", (x-windowX).toFloat()/windowWidth, 1f-(y-windowY).toFloat()/windowHeight)
         shader.v2("size", w.toFloat()/windowWidth, -h.toFloat()/windowHeight)
         shader.v4("color", color.r()/255f, color.g()/255f, color.b()/255f, color.a()/255f)
-        texture.bind(0)
+        texture.bind(0, texture.isFilteredNearest)
         flat01.draw(shader)
         check()
     }
@@ -265,7 +267,7 @@ object GFX: GFXBase() {
         val lookAt = cameraTransform.transformProject(Vector3f(0f, 0f, -1f))
         stack
             .perspective(
-                Math.toRadians(camera.fovDegrees.getValueAt(time).toDouble()).toFloat(),
+                Math.toRadians(camera.fovYDegrees.getValueAt(time).toDouble()).toFloat(),
                 windowWidth*1f/windowHeight,
                 camera.nearZ.getValueAt(time),
                 camera.farZ.getValueAt(time))
@@ -315,38 +317,38 @@ object GFX: GFXBase() {
         check()
     }
 
-    fun draw3D(stack: Matrix4fStack, buffer: StaticFloatBuffer, texture: Texture2D, w: Int, h:Int, color: Vector4f, isBillboard: Float){
+    fun draw3D(stack: Matrix4fStack, buffer: StaticFloatBuffer, texture: Texture2D, w: Int, h:Int, color: Vector4f, isBillboard: Float, nearestFiltering: Boolean){
         val shader = shader3D
         shader3DUniforms(shader, stack, w, h, color, isBillboard)
-        texture.bind(0)
+        texture.bind(0, nearestFiltering)
         buffer.draw(shader)
         check()
     }
 
-    fun draw3D(stack: Matrix4fStack, buffer: StaticFloatBuffer, texture: Texture2D, color: Vector4f, isBillboard: Float){
-        draw3D(stack, buffer, texture, texture.w, texture.h, color, isBillboard)
+    fun draw3D(stack: Matrix4fStack, buffer: StaticFloatBuffer, texture: Texture2D, color: Vector4f, isBillboard: Float, nearestFiltering: Boolean){
+        draw3D(stack, buffer, texture, texture.w, texture.h, color, isBillboard, nearestFiltering)
     }
 
     fun draw3DPolygon(stack: Matrix4fStack, buffer: StaticFloatBuffer,
                       texture: Texture2D, color: Vector4f,
                       inset: Float,
-                      isBillboard: Float){
+                      isBillboard: Float, nearestFiltering: Boolean){
         val shader = shader3DPolygon
         shader3DUniforms(shader, stack, texture.w, texture.h, color, isBillboard)
         shader.v1("inset", inset)
-        texture.bind(0)
+        texture.bind(0, nearestFiltering)
         buffer.draw(shader)
         check()
     }
 
-    fun draw3D(stack: Matrix4fStack, texture: Texture2D, color: Vector4f, isBillboard: Float){
-        return draw3D(stack, flat01, texture, color, isBillboard)
+    fun draw3D(stack: Matrix4fStack, texture: Texture2D, color: Vector4f, isBillboard: Float, nearestFiltering: Boolean){
+        return draw3D(stack, flat01, texture, color, isBillboard, nearestFiltering)
     }
 
-    fun draw3D(stack: Matrix4fStack, texture: Frame, color: Vector4f, isBillboard: Float){
+    fun draw3D(stack: Matrix4fStack, texture: Frame, color: Vector4f, isBillboard: Float, nearestFiltering: Boolean){
         val shader = texture.get3DShader()
         shader3DUniforms(shader, stack, texture.w, texture.h, color, isBillboard)
-        texture.bind(0)
+        texture.bind(0, nearestFiltering)
         flat01.draw(shader)
         check()
     }
@@ -538,6 +540,15 @@ object GFX: GFXBase() {
                 "   gl_FragColor.rgb *= gl_FragColor.rgb;\n" +
                 "}", listOf("tex"))
 
+        lineShader3D = Shader("in vec3 attr0;\n" +
+                "uniform mat4 transform;\n" +
+                "void main(){" +
+                "   gl_Position = transform * vec4(attr0, 1.0);\n" +
+                "}", "", "" +
+                "uniform vec4 color;\n" +
+                "void main(){" +
+                "   gl_FragColor = color;\n" +
+                "}")
     }
 
     fun createCustomShader(v3D: String, y3D: String, fragmentShader: String, textures: List<String>): Shader {
@@ -619,7 +630,9 @@ object GFX: GFXBase() {
     fun openMenu(x: Int, y: Int, title: String, options: List<Pair<String, (button: Int, isLong: Boolean) -> Boolean>>){
         val style = DefaultConfig.style.getChild("menu")
         val list = PanelListY(style)
+        list += WrapAlign.LeftTop
         val container = ScrollPanel(list, Padding(1), style, WrapAlign.AxisAlignment.MIN)
+        container += WrapAlign.LeftTop
         val window = Window(container, x, y)
         fun close(){
             windowStack.remove(window)
@@ -650,7 +663,6 @@ object GFX: GFXBase() {
                 list += buttonView
             }
         }
-        list += WrapAlign.LeftTop
         windowStack.add(window)
     }
 

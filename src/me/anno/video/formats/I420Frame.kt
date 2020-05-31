@@ -32,10 +32,10 @@ class I420Frame(w: Int, h: Int): Frame(w,h){
 
     override fun get3DShader(): Shader = GFX.shader3DYUV
 
-    override fun bind(offset: Int){
-        u.bind(offset+1)
-        v.bind(offset+2)
-        y.bind(offset)
+    override fun bind(offset: Int, nearestFiltering: Boolean){
+        u.bind(offset+1, nearestFiltering)
+        v.bind(offset+2, nearestFiltering)
+        y.bind(offset, nearestFiltering)
     }
 
     override fun destroy(){

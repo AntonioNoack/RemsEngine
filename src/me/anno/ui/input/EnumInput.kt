@@ -6,7 +6,7 @@ import me.anno.ui.base.TextPanel
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.style.Style
 
-class EnumInput(title: String, startValue: String, val options: List<String>, style: Style): PanelListX(style){
+class EnumInput(val title: String, startValue: String, val options: List<String>, style: Style): PanelListX(style){
 
     val titlePanel = TextPanel("$title:", style)
     val inputPanel = TextPanel(startValue, style.getChild("italic"))
@@ -36,7 +36,7 @@ class EnumInput(title: String, startValue: String, val options: List<String>, st
     }
 
     override fun onMouseClicked(x: Float, y: Float, button: Int, long: Boolean) {
-        GFX.openMenu(this.x, this.y, "Select the Font", options.map { fontName ->
+        GFX.openMenu(this.x, this.y, "Select the $title", options.map { fontName ->
             fontName to { b: Int, l: Boolean ->
                 inputPanel.text = fontName
                 changeListener(fontName)

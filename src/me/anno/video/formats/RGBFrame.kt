@@ -31,8 +31,8 @@ class RGBFrame(w: Int, h: Int): Frame(w,h){
 
     override fun get3DShader(): Shader = GFX.shader3D
 
-    override fun bind(offset: Int){
-        rgb.bind(offset)
+    override fun bind(offset: Int, nearestFiltering: Boolean){
+        rgb.bind(offset, nearestFiltering)
     }
 
     override fun destroy(){

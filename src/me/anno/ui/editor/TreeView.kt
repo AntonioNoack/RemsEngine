@@ -32,6 +32,8 @@ import kotlin.math.roundToInt
 // todo a panel for linear video editing
 // todo maybe control the cameras there...
 
+// todo select multiple elements, filter for common properties, and apply them all together :)
+
 class TreeView(style: Style):
     ScrollPanel(style.getChild("treeView"), Padding(1), WrapAlign.AxisAlignment.MIN) {
 

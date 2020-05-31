@@ -19,6 +19,7 @@ class Texture2D(val w: Int, val h: Int){
     }
 
     var pointer = -1
+    var isFilteredNearest = false
 
     fun ensurePointer(){
         if(pointer < 0) pointer = glGenTextures()
@@ -26,19 +27,19 @@ class Texture2D(val w: Int, val h: Int){
 
     fun create(){
         ensurePointer()
-        bind()
+        bind(isFilteredNearest)
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL11.GL_RGBA, GL_UNSIGNED_BYTE, null as ByteBuffer?)
     }
 
     fun createFP32(){
         ensurePointer()
-        bind()
+        bind(isFilteredNearest)
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, w, h, 0, GL_RGBA, GL_FLOAT, null as ByteBuffer?)
     }
 
     fun create(img: BufferedImage){
         ensurePointer()
-        bind()
+        bind(isFilteredNearest)
         val intData = img.getRGB(0, 0, w, h, null, 0, img.width)
         GFX.check()
         if(ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN){
@@ -65,7 +66,7 @@ class Texture2D(val w: Int, val h: Int){
     fun createMonochrome(data: ByteArray){
         if(w*h != data.size) throw RuntimeException("incorrect size!")
         ensurePointer()
-        bind()
+        bind(isFilteredNearest)
         GFX.check()
         val byteBuffer = ByteBuffer
             .allocateDirect(data.size)
@@ -80,7 +81,7 @@ class Texture2D(val w: Int, val h: Int){
     fun create(data: ByteArray){
         if(w*h*4 != data.size) throw RuntimeException("incorrect size!")
         ensurePointer()
-        bind()
+        bind(isFilteredNearest)
         GFX.check()
         val byteBuffer = ByteBuffer
             .allocateDirect(data.size)
@@ -95,7 +96,7 @@ class Texture2D(val w: Int, val h: Int){
     fun createRGB(data: ByteArray){
         if(w*h*3 != data.size) throw RuntimeException("incorrect size!")
         ensurePointer()
-        bind()
+        bind(isFilteredNearest)
         GFX.check()
         val byteBuffer = ByteBuffer
             .allocateDirect(data.size)
@@ -107,19 +108,26 @@ class Texture2D(val w: Int, val h: Int){
         GFX.check()
     }
 
+    fun ensureFiltering(nearest: Boolean){
+        if(nearest != isFilteredNearest) filtering(nearest)
+    }
+
     fun filtering(nearest: Boolean){
         val type = if(nearest) GL_NEAREST else GL_LINEAR
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, type)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, type)
+        isFilteredNearest = nearest
     }
 
-    fun bind(){
+    fun bind(nearest: Boolean){
         glBindTexture(GL_TEXTURE_2D, pointer)
+        ensureFiltering(nearest)
     }
 
-    fun bind(index: Int){
+    fun bind(index: Int, nearest: Boolean){
         glActiveTexture(GL_TEXTURE0 + index)
         glBindTexture(GL_TEXTURE_2D, pointer)
+        ensureFiltering(nearest)
     }
 
     fun destroy(){

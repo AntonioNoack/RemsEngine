@@ -16,7 +16,7 @@ class BlendMode(
     var funcAlpha = BlendFunc.ADD
 
     init {
-        modes[id] = this
+        blendModes[id] = this
     }
 
     fun set(src: Int, dst: Int) = set(src, dst, srcAlpha, dstAlpha)
@@ -67,14 +67,14 @@ class BlendMode(
         SUBTRACT("Subtract", 2, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         */
 
-        val UNSPECIFIED = BlendMode("Parent", "")
-        val DEFAULT = BlendMode("Default", "def")
-        val ADD = BlendMode("Add", "add")
+        val UNSPECIFIED = BlendMode("Parent", "*Inherit")
+        val DEFAULT = BlendMode("Default", "*Blend")
+        val ADD = BlendMode("Add", "Add")
             .set(GL_SRC_ALPHA, GL_ONE)
-        val SUB = ADD.copy("Sub", "sub")
+        val SUB = ADD.copy("Sub", "Subtract")
             .set(BlendFunc.REV_SUB)
 
-        operator fun get(code: String) = modes[code] ?: UNSPECIFIED
+        operator fun get(code: String) = blendModes[code] ?: UNSPECIFIED
     }
 
 }

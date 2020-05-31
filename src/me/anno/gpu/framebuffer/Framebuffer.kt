@@ -49,10 +49,10 @@ class Framebuffer(val w: Int, val h: Int, val targetCount: Int, val fpTargets: B
         }
     }
 
-    fun bindTextures(){
+    fun bindTextures(nearest: Boolean){
         textures.forEachIndexed { index, texture ->
             GL13.glActiveTexture(GL13.GL_TEXTURE0 + index)
-            texture.bind()
+            texture.bind(nearest)
         }
     }
 

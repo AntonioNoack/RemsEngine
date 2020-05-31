@@ -43,7 +43,7 @@ class Text(var text: String, parent: Transform?): GFXTransform(parent){
 
             val buffer = buffer!!
 
-            GFX.draw3D(stack, buffer.buffer, GFX.whiteTexture, color, isBillboard[time])
+            GFX.draw3D(stack, buffer.buffer, GFX.whiteTexture, color, isBillboard[time], true)
 
         }
 

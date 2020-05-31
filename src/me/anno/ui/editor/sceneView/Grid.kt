@@ -53,7 +53,7 @@ object Grid {
             color.shr(16).and(255) / 255f,
             color.shr(8).and(255) / 255f,
             color.and(255) / 255f, alpha)
-        GFX.whiteTexture.bind(0)
+        GFX.whiteTexture.bind(0, true)
         lineBuffer.draw(shader, GL_LINES)
 
     }
@@ -116,7 +116,7 @@ object Grid {
         shader.v2("size", 2f, 2f)
         shader.v1("isBillboard", 0f)
         shader.v4("tint", 1f, 1f, 1f, alpha)
-        GFX.whiteTexture.bind(0)
+        GFX.whiteTexture.bind(0, true)
         gridBuffer.draw(shader, GL_LINES)
 
     }

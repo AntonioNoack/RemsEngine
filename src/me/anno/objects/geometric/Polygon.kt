@@ -36,7 +36,8 @@ class Polygon(parent: Transform?): GFXTransform(parent){
         if(inset == 1f) return// invisible
         // todo correct the texture somehow... very awkward
         val count = vertexCount[time].roundToInt()
-        GFX.draw3DPolygon(stack, getBuffer(count), GFX.whiteTexture, color, inset, isBillboard[time])
+        GFX.draw3DPolygon(stack, getBuffer(count), GFX.whiteTexture, color,
+            inset, isBillboard[time], true)
         return
     }
 

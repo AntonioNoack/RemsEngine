@@ -23,8 +23,8 @@ class BGRAFrame(w: Int, h: Int): Frame(w,h){
 
     override fun get3DShader(): Shader = GFX.shader3DBGRA
 
-    override fun bind(offset: Int){
-        bgra.bind(offset)
+    override fun bind(offset: Int, nearestFiltering: Boolean){
+        bgra.bind(offset, nearestFiltering)
     }
 
     override fun destroy(){

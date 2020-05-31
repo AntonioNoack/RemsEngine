@@ -9,6 +9,7 @@ import me.anno.io.text.TextWriter
 import me.anno.utils.clamp
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.blending.BlendMode
+import me.anno.objects.blending.blendModes
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.input.*
 import me.anno.ui.style.Style
@@ -113,7 +114,7 @@ open class Transform(var parent: Transform? = null): Saveable(){
         list += FloatInput(style, "Advanced Time", timeAnimated[lastLocalTime])
             .setChangeListener {  x -> putValue(timeAnimated, x) }
             .setIsSelectedListener { show(timeAnimated) }
-        list += TextInput("Blend Mode", style, blendMode.id)
+        list += EnumInput("Blend Mode", blendMode.id, blendModes.keys.toList().sorted(), style)
             .setChangeListener { blendMode = BlendMode[it] }
             .setIsSelectedListener { GFX.selectedProperty = null }
 

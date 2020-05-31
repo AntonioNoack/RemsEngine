@@ -34,7 +34,7 @@ open class ScrollPanel(child: Panel, padding: Padding,
         child.applyConstraints()
 
         minW = child.minW + padding.width
-        minH = 100
+        minH = child.minH + padding.height
 
         // if(h > GFX.height) throw RuntimeException()
 

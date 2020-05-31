@@ -23,8 +23,8 @@ class ARGBFrame(w: Int, h: Int): Frame(w,h){
 
     override fun get3DShader(): Shader = GFX.shader3DARGB
 
-    override fun bind(offset: Int){
-        argb.bind(offset)
+    override fun bind(offset: Int, nearestFiltering: Boolean) {
+        argb.bind(offset, nearestFiltering)
     }
 
     override fun destroy(){
