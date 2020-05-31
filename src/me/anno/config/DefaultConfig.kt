@@ -20,6 +20,7 @@ object DefaultConfig: StringMap() {
         this["style"] = "dark"
         this["ffmpegPath"] = "C:\\Users\\Antonio\\Downloads\\lib\\ffmpeg\\bin\\ffmpeg.exe"
         this["tooltip.reactionTime"] = 300
+        this["lastUsed.fonts.count"] = 5
 
         addImportMappings("Image", "png", "jpg", "jpeg", "tiff", "webp")
         addImportMappings("Video", "mp4", "gif", "mpeg", "avi")
@@ -31,7 +32,6 @@ object DefaultConfig: StringMap() {
 
         val newConfig = ConfigBasics.loadConfig("main.config", this, true)
         if(newConfig != this){
-            clear()
             putAll(newConfig)
         }
 

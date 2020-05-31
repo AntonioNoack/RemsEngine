@@ -57,14 +57,14 @@ object Triangulator {
                 if(p0 === a || p0 === b) continue
                 val cut = getStrictLineIntersection(a, b, p0, p1)
                 if(cut != null){
-                    println("cut of line (${a.print(input)}-${b.print(input)}):" +
+                    /*println("cut of line (${a.print(input)}-${b.print(input)}):" +
                             " at ${cut.print()} with ${p0.print(input)}-${p1.print(input)}")
                     println(a.print())
                     println(b.print())
                     println(cut.print())
                     println(p0.print())
-                    println(p1.print())
-                    throw RuntimeException()
+                    println(p1.print())*/
+                    // throw RuntimeException()
                     return true
                 }
             }
@@ -105,12 +105,15 @@ object Triangulator {
                 val c = shrinkingRing[ci]
 
                 // check if b can be removed
-                if(b.getSideSign(a, c) < 0){
+                val sideSign = b.getSideSign(a, c)
+                if(sideSign < 0f){
                     // correct order :)
                     // now check, if we don't cross other lines
                     // this is fulfilled most times, if we contain no foreign point
                     if(!containsSomething(a, b, c)){
-                        //if(!cutsSomething(a, c)){// can this even happen??? I believe it happened and caused issues...
+                        if(!cutsSomething(a, c)){// can this even happen??? I believe it happened and caused issues...
+
+                            // println("+ ${a.print(input)} ${b.print(input)} ${c.print(input)} ")
 
                             triangulation.add(a)
                             triangulation.add(b)
@@ -118,7 +121,16 @@ object Triangulator {
                             shrinkingRing.removeAt(bi)
                             wasChanged = true
 
-                        //}
+                        }
+                    }
+                } else if(sideSign == 0f){
+                    if(!cutsSomething(a, c)){// can this even happen??? I believe it happened and caused issues...
+
+                        // println("* ${a.print(input)} ${b.print(input)} ${c.print(input)} ")
+
+                        shrinkingRing.removeAt(bi)
+                        wasChanged = true
+
                     }
                 }
 
@@ -130,7 +142,10 @@ object Triangulator {
 
         if(shrinkingRing.size == 3){
             triangulation.addAll(shrinkingRing)
-        } else warn("Polygon could not be triangulated!, ${shrinkingRing.size}, ${pts.joinToString { it.print() }} -> ${triangulation.joinToString()}")
+        } else warn("Polygon could not be triangulated!, ${pts.size} -> ${shrinkingRing.size},\n" +
+                "    ${input.joinToString { it.print() }}\n" +
+                " -> ${triangulation.joinToString {it.print()}},\n" +
+                "    ${shrinkingRing.joinToString { it.print(input) }}")
 
         return triangulation
 

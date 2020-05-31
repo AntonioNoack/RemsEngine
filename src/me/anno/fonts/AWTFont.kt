@@ -9,6 +9,7 @@ import java.awt.font.TextLayout
 import java.awt.image.BufferedImage
 import java.lang.StrictMath.round
 import java.text.AttributedString
+import kotlin.math.max
 import kotlin.math.roundToInt
 import kotlin.streams.toList
 
@@ -41,7 +42,7 @@ class AWTFont(val font: Font): XFont {
         if(text.isBlank()) return null
         if(containsSpecialChar(text)) return generateTexture2(text, fontSize)
 
-        val width = fontMetrics.stringWidth(text)
+        val width = fontMetrics.stringWidth(text) + (if(font.isItalic) max(2, (fontSize / 5f).roundToInt()) else 1)
         val lineCount = text.countLines()
         val spaceBetweenLines = (0.5f * fontSize).roundToInt()
         val fontHeight = fontMetrics.height

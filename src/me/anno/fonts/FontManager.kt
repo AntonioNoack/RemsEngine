@@ -6,29 +6,38 @@ import me.anno.objects.cache.TextureCache
 import java.awt.Font
 import java.awt.GraphicsEnvironment
 import java.lang.RuntimeException
+import kotlin.concurrent.thread
 import kotlin.math.exp
 import kotlin.math.ln
 import kotlin.math.round
 
 object FontManager {
 
+    val fontList = ArrayList<String>()
+
     // todo get real font list
     fun requestFontList(callback: (List<String>) -> Unit){
-        callback(listOf("Verdana", "Serif", "Arial", "Times New Roman"))
+        if(fontList.isNotEmpty()) callback(fontList)
+        else {
+            thread {
+                val t0 = System.nanoTime()
+                val ge = GraphicsEnvironment.getLocalGraphicsEnvironment()
+                val fontNames = ge.availableFontFamilyNames
+                synchronized(fontList){
+                    fontList.clear()
+                    fontList += fontNames
+                }
+                val t1 = System.nanoTime()
+                println("used ${(t1-t0)*1e-9f} to get font list")
+                callback(fontList)
+            }
+        }
     }
 
     init {
         // todo this is a bottleneck with 0.245s
         // todo therefore this should be parallized with other stuff...
-        /*val t0 = System.nanoTime()
-        val ge = GraphicsEnvironment.getLocalGraphicsEnvironment()
-        val fontNames = ge.availableFontFamilyNames
-        val t1 = System.nanoTime()
-        for(fontName in fontNames){
-            fontMap[fontName] = Font.decode(fontName)
-        }
-        val t2 = System.nanoTime()
-        println("used ${(t1-t0)*1e-9f}+${(t2-t1)*1e-9f}s to get font list")*/
+
     }
 
     fun getFontSizeIndex(fontSize: Float): Int = round(100.0 * ln(fontSize)).toInt()

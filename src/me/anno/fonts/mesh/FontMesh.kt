@@ -5,7 +5,6 @@ import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.buffer.StaticFloatBuffer
 import me.anno.ui.base.DefaultRenderingHints
 import me.anno.utils.*
-import org.joml.Intersectionf
 import org.joml.Vector2f
 import java.awt.Color
 import java.awt.Font
@@ -20,10 +19,16 @@ import java.lang.RuntimeException
 import javax.imageio.ImageIO
 import kotlin.math.*
 
-// our triangulator can't handle holes
-// -> this class creates the meshes, even with holes
+class FontMesh(val font: Font, val text: String, val debugPieces: Boolean = false){
 
-class FontMesh(val font: Font, val text: String){
+    val pt0 = Vector2f(4.8f, -4f)
+    val pt7 = Vector2f(3.609375f, -7.734375f)
+    val pt = pt0
+
+    val debugImageSize = 1000
+
+    fun ix(v: Vector2f) = (debugImageSize/2 + (v.x - pt.x) * 80).toInt()
+    fun iy(v: Vector2f) = (debugImageSize/2 + (v.y - pt.y) * 80).toInt()
 
     var minX = Float.POSITIVE_INFINITY
     var minY = Float.POSITIVE_INFINITY
@@ -59,11 +64,9 @@ class FontMesh(val font: Font, val text: String){
         if(false) testTriangulator()
         if(false) testInside()
 
-        val debugPieces = false
-
         // was 30 before it had O(x²) complexity ;)
-        val quadAccuracy = 1f
-        val cubicAccuracy = 1f
+        val quadAccuracy = 5f
+        val cubicAccuracy = 5f
 
         val fragments = ArrayList<Fragment>()
 
@@ -115,7 +118,7 @@ class FontMesh(val font: Font, val text: String){
                         currentShape.add(quadAt(i*1f/steps))
                     }
 
-                    if(debugPieces) println("quad to $x0 $y0 $x1 $y1")
+                    // if(debugPieces) println("quad to $x0 $y0 $x1 $y1")
 
                     x = x1
                     y = y1
@@ -135,7 +138,7 @@ class FontMesh(val font: Font, val text: String){
                         )
                     }
 
-                    if(debugPieces) println("cubic to $x0 $y0 $x1 $y1 $x2 $y2")
+                    // if(debugPieces) println("cubic to $x0 $y0 $x1 $y1 $x2 $y2")
 
                     val length = length(x,y,x0,y0) + length(x0,y0,x1,y1) + length(x1,y1,x2,y2)
                     val steps = max(3, (cubicAccuracy * length).roundToInt())
@@ -150,7 +153,7 @@ class FontMesh(val font: Font, val text: String){
                 }
                 PathIterator.SEG_LINETO -> {
 
-                    if(debugPieces) println("line $x $y to $x0 $y0")
+                    // if(debugPieces) println("line $x $y to $x0 $y0")
 
                     currentShape.add(Vector2f(x, y))
 
@@ -162,7 +165,7 @@ class FontMesh(val font: Font, val text: String){
 
                     if(currentShape.isNotEmpty()) throw RuntimeException("move to is only allowed after close or at the start...")
 
-                    if(debugPieces) println("move to $x0 $y0")
+                    // if(debugPieces) println("move to $x0 $y0")
 
                     x = x0
                     y = y0
@@ -170,9 +173,11 @@ class FontMesh(val font: Font, val text: String){
                 }
                 PathIterator.SEG_CLOSE -> {
 
-                    if(debugPieces) println("close")
+                    // if(debugPieces) println("close")
 
-                    fragments.add(Fragment(currentShape))
+                    if(currentShape.size > 2){
+                        fragments.add(Fragment(currentShape))
+                    }// else crazy...
                     currentShape = ArrayList()
 
                 }
@@ -188,7 +193,7 @@ class FontMesh(val font: Font, val text: String){
         //  - large areas are outside
         //  - if there is overlap, the smaller one is inside, the larger outside
 
-        val img = if(debugPieces) BufferedImage(1100,480,1) else null
+        val img = if(debugPieces) BufferedImage(debugImageSize, debugImageSize,1) else null
         val gfx = img?.graphics as? Graphics2D
         gfx?.setRenderingHints(DefaultRenderingHints.hints)
 
@@ -197,8 +202,8 @@ class FontMesh(val font: Font, val text: String){
             fragments.forEach {
                 it.apply {
                     color = Color.RED
-                    drawTriangles(gfx, 1, triangles)
-                    color = Color.BLUE
+                    drawTriangles(gfx, 0, triangles)
+                    color = Color.WHITE
                     drawOutline(gfx, ring)
                 }
             }
@@ -235,25 +240,31 @@ class FontMesh(val font: Font, val text: String){
 
         if(img != null) ImageIO.write(img, "png", File("C:/Users/Antonio/Desktop/text1.png"))
 
+        var wasChanged = false
         outerFragments.forEach { outer ->
             outer.apply {
-                needingRemoval.forEach { inner ->
-                    mergeRings(ring, inner.ring)
-                }
-                needingRemoval.clear()
-                triangles = Triangulator.ringToTriangles(ring)
-                gfx?.apply {
-                    gfx.color = Color.GRAY
-                    drawTriangles(gfx, 1, triangles)
-                    gfx.color = Color.YELLOW
-                    drawOutline(gfx, ring)
+                if(needingRemoval.isNotEmpty()){
+                    needingRemoval.sortedByDescending { it.size }.forEach { inner ->
+                        mergeRings(ring, inner.ring)
+                    }
+                    needingRemoval.clear()
+                    triangles = Triangulator.ringToTriangles(ring)
+                    gfx?.apply {
+                        gfx.color = Color.GRAY
+                        drawTriangles(gfx, 0, triangles)
+                        gfx.color = Color.YELLOW
+                        drawOutline(gfx, ring)
+                    }
+                    wasChanged = true
                 }
             }
         }
 
-        gfx?.apply {
-            gfx.dispose()
-            ImageIO.write(img, "png", File("C:/Users/Antonio/Desktop/text2.png"))
+        if(wasChanged){
+            gfx?.apply {
+                gfx.dispose()
+                ImageIO.write(img, "png", File("C:/Users/Antonio/Desktop/text2.png"))
+            }
         }
 
         val triangles = ArrayList<Vector2f>(outerFragments.sumBy { it.triangles.size })
@@ -290,30 +301,25 @@ class FontMesh(val font: Font, val text: String){
 
         // find the closest pair
         var bestDistance = Float.POSITIVE_INFINITY
-        var bestO = 0
-        var bestI = 0
-        outer.forEachIndexed { oi, o ->
-            inner.forEachIndexed { ii, i ->
+        var bestOuterIndex = 0
+        var bestInnerIndex = 0
+
+        outer.forEachIndexed { outerIndex, o ->
+            inner.forEachIndexed { innerIndex, i ->
                 val distance = o.distanceSquared(i)
                 if(distance < bestDistance){
-                    bestO = oi
-                    bestI = ii
+                    bestOuterIndex = outerIndex
+                    bestInnerIndex = innerIndex
                     bestDistance = distance
                 }
             }
         }
 
         // merge them at the merging points
-        val mergingPoint = outer[bestO]
-        val sign = Triangulator.getGuessArea(inner) * Triangulator.getGuessArea(outer)
-        if(sign < 0){// is this correct??
-            outer.addAll(bestO, inner.subList(0, bestI+1))
-            outer.addAll(bestO, inner.subList(bestI, inner.size))
-        } else {
-            outer.addAll(bestO, inner.subList(0, bestI+1).reversed())
-            outer.addAll(bestO, inner.subList(bestI, inner.size).reversed())
-        }
-        outer.add(bestO, mergingPoint)
+        val mergingPoint = outer[bestOuterIndex]
+        outer.addAll(bestOuterIndex, inner.subList(0, bestInnerIndex+1))
+        outer.addAll(bestOuterIndex, inner.subList(bestInnerIndex, inner.size))
+        outer.add(bestOuterIndex, mergingPoint)
 
     }
 
@@ -327,9 +333,6 @@ class FontMesh(val font: Font, val text: String){
             iterator(c, a)
         }
     }
-
-    fun ix(v: Vector2f) = (10 + v.x * 50).toInt()
-    fun iy(v: Vector2f) = ((v.y + 9) * 50).toInt()
 
     fun drawOutline(gfx: Graphics2D, pts: List<Vector2f>){
         for(i in pts.indices){
@@ -408,5 +411,7 @@ class FontMesh(val font: Font, val text: String){
 
 
 fun main(){
-    FontMesh(Font.decode("Verdana"), "sHa")
+    // todo italic, bold serif, 😉 has an issue
+    FontMesh(Font.decode("Serif"), "\uD83D\uDE09", true)
+    // FontMesh(Font.decode("Serif"), "Hi! \uD83D\uDE09")
 }

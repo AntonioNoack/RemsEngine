@@ -53,6 +53,8 @@ object DefaultStyle {
         set("deep.edit.background", deepDark)
         set("textPadding", 2)
         set("deep.propertyInspector.background", deepDark)
+        set("italic.propertyInspector.textItalic", true)
+        set("italic.propertyInspector.textColor", fontGray and 0xafffffff.toInt())
         set("accentColor", black or 0xffba50)
 
         for((key, value) in loadStyle("style.config")){

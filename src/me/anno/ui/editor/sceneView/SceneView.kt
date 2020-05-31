@@ -229,7 +229,6 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
             val (cameraTransform, cameraTime) = camera.getGlobalTransform(editorTime)
             val oldRotation = camera.rotationYXZ[cameraTime]
             camera.putValue(camera.rotationYXZ, oldRotation + Vector3f(dy0 * scaleFactor, dx0 * scaleFactor, 0f))
-            println("rotating")
         }
     }
 

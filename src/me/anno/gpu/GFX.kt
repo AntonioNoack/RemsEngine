@@ -14,8 +14,10 @@ import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.blending.BlendMode
 import me.anno.ui.base.Panel
+import me.anno.ui.base.ScrollPanel
 import me.anno.ui.base.SpacePanel
 import me.anno.ui.base.TextPanel
+import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelFrame
 import me.anno.ui.base.groups.PanelGroup
@@ -125,6 +127,8 @@ object GFX: GFXBase() {
 
     var smoothSin = 0f
     var smoothCos = 0f
+
+    val menuSeparator = "-----"
 
     var inFocus: Panel? = null
     fun requestFocus(panel: Panel){
@@ -609,10 +613,12 @@ object GFX: GFXBase() {
 
     }
 
+    // todo scroll to specific element to help the user
     fun openMenu(x: Int, y: Int, title: String, options: List<Pair<String, (button: Int, isLong: Boolean) -> Boolean>>){
         val style = DefaultConfig.style.getChild("menu")
         val list = PanelListY(style)
-        val window = Window(list, x, y)
+        val container = ScrollPanel(list, Padding(1), style, WrapAlign.AxisAlignment.MIN)
+        val window = Window(container, x, y)
         fun close(){
             windowStack.remove(window)
         }
@@ -624,20 +630,28 @@ object GFX: GFXBase() {
             list += titlePanel
             list += SpacePanel(0, 1, style)
         }
-        for((name, action) in options){
-            val buttonView = TextPanel(name, style)
-            buttonView.setOnClickListener { x, y, button, long ->
-                if(action(button, long)){
-                    close()
+        for((index, element) in options.withIndex()){
+            val (name, action) = element
+            if(name == menuSeparator){
+                if(index != 0){
+                    list += SpacePanel(0, 1, style)
                 }
+            } else {
+                val buttonView = TextPanel(name, style)
+                buttonView.setOnClickListener { x, y, button, long ->
+                    if(action(button, long)){
+                        close()
+                    }
+                }
+                buttonView.padding.left = padding
+                buttonView.padding.right = padding
+                list += buttonView
             }
-            buttonView.padding.left = padding
-            buttonView.padding.right = padding
-            list += buttonView
         }
         list += WrapAlign.LeftTop
         windowStack.add(window)
     }
+
     fun openMenu(x: Float, y: Float, title: String, options: List<Pair<String, (button: Int, isLong: Boolean) -> Boolean>>, delta: Int = 10){
         openMenu(x.roundToInt() - delta, y.roundToInt() - delta, title, options)
     }

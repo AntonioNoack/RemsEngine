@@ -23,6 +23,7 @@ import org.joml.Vector4f
 import java.io.File
 import java.lang.Exception
 import kotlin.concurrent.thread
+import kotlin.math.min
 import kotlin.math.roundToInt
 
 // todo support for multiple cameras? -> just use scenes?
@@ -135,10 +136,15 @@ class TreeView(style: Style):
         val type0 = DefaultConfig["import.mapping.$ending"]
         val type1 = DefaultConfig["import.mapping.${ending.toLowerCase()}"]
         val type2 = DefaultConfig["import.mapping.*"] ?: "Text"
+        println("Type of $ending: $type0 -> $type1 -> $type2")
         when((type0 ?: type1 ?: type2).toString()){
             "Image" -> Image(file, parent).name = name
             "Video" -> Video(file, parent).name = name
-            "Text" -> Text(file.readText(), parent).name = name
+            "Text" -> {
+                var all = file.readText()
+                if(all.length > 500) all = all.substring(0, 500)
+                Text(all, parent).name = name
+            }
             "Markdown" -> {
                 // todo parse, and create constructs?
                 println("Markdown is not yet implemented!")
