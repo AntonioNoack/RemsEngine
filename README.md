@@ -1,4 +1,4 @@
-# Rem's Studio
+# Rems Studio
 
 This studio is intended for starters in the Video industry, or YouTubers,
 and was inspired by the channel [YDS](https://www.youtube.com/user/YutsuraidanceStudios). I wanted to be able to make those transitions and motions easily myself. Without needing to buy some expensive software.
