@@ -9,9 +9,9 @@ import me.anno.ui.style.Style
 import org.newdawn.slick.util.pathfinding.navmesh.Space
 
 // checkbox with title
-class BooleanInput(title: String, style: Style, startValue: Boolean): PanelListX(style){
+class BooleanInput(title: String, startValue: Boolean, style: Style): PanelListX(style){
 
-    val checkView = Checkbox(style.getSize("fontSize",10), style, startValue)
+    val checkView = Checkbox(startValue, style.getSize("fontSize",10), style)
     val titleView = TextPanel(title, style)
 
     init {

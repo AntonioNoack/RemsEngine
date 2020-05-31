@@ -113,7 +113,7 @@ class Video(var file: File, parent: Transform?): GFXTransform(parent){
             .setIsSelectedListener { GFX.selectedProperty = null }
         // todo a third mode, where the video is reversed after playing?
         // KISS principle? just allow modules to be created :)
-        list += BooleanInput("Looping?", style, isLooping)
+        list += BooleanInput("Looping?", isLooping, style)
             .setChangeListener { isLooping = it }
             .setIsSelectedListener { GFX.selectedProperty = null }
     }

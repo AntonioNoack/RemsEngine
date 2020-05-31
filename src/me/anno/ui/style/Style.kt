@@ -33,6 +33,27 @@ class Style(val prefix: String?, val suffix: String?){
         }
     }
 
+    private fun getValue(name: String, defaultValue: String) = getValue(name, name, defaultValue)
+    private fun getValue(fullName: String, name: String, defaultValue: String): String {
+        val value = values[name]
+        return if(value != null) value.toString()
+        else {
+
+            warn("Missing config/style/$name")
+
+            val index = name.indexOf('.')
+            val index2 = name.indexOf('.', index+1)
+            if(index2 > -1){
+                val lessSpecificName = name.substring(index+1)
+                getValue(fullName, lessSpecificName, defaultValue)
+            } else {
+                values[name] = defaultValue
+                defaultValue
+            }
+
+        }
+    }
+
     private fun Int.int4ToInt8(): Int {
         val a = shr(12).and(15)
         val r = shr(8).and(15)
@@ -44,6 +65,7 @@ class Style(val prefix: String?, val suffix: String?){
     private fun getMaybe(fullName: String, value: Any, defaultValue: Int): Int {
         return when(value){
             is Int -> value
+            is Boolean -> if(value) 1 else 0
             is Float -> value.toInt()
             is String -> {
                 val hex = value.toIntOrNull(16)
@@ -72,8 +94,10 @@ class Style(val prefix: String?, val suffix: String?){
         }
     }
 
+    fun getBoolean(name: String, defaultValue: Boolean) = getValue(getFullName(name), if(defaultValue) 1 else 0) != 0
     fun getSize(name: String, defaultValue: Int): Int = getValue(getFullName(name), defaultValue)
     fun getColor(name: String, defaultValue: Int): Int = getValue(getFullName(name), defaultValue)
+    fun getString(name: String, defaultValue: String): String = getValue(getFullName(name), defaultValue)
 
     fun getFullName(name: String): String {
         return append(prefix, name, suffix)

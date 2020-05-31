@@ -93,7 +93,7 @@ object GFX: GFXBase() {
     var windowHeight = 0
 
     val flat01 = SimpleBuffer.flat01
-    val defaultFont = DefaultConfig["font"]?.toString() ?: "Verdana"
+    // val defaultFont = DefaultConfig["font"]?.toString() ?: "Verdana"
     val matrixBuffer = BufferUtils.createFloatBuffer(16)
 
     lateinit var flatShader: Shader
@@ -203,11 +203,18 @@ object GFX: GFXBase() {
     }
 
     // todo the background color is important for correct subpixel rendering, because we can't blend per channel
-    fun drawText(x: Int, y: Int, fontSize: Int, text: String, color: Int, backgroundColor: Int) = writeText(x, y, defaultFont, fontSize, text, color, backgroundColor)
-    fun drawText(x: Int, y: Int, font: String, fontSize: Int, text: String, color: Int, backgroundColor: Int) = writeText(x, y, font, fontSize, text, color, backgroundColor)
-    fun writeText(x: Int, y: Int, font: String, fontSize: Int, text: String, color: Int, backgroundColor: Int): Pair<Int, Int> {
+    //fun drawText(x: Int, y: Int, fontSize: Int, bold: Boolean, italic: Boolean, text: String, color: Int, backgroundColor: Int) =
+    //    writeText(x, y, defaultFont, fontSize, bold, italic, text, color, backgroundColor)
+    fun drawText(x: Int, y: Int, font: String, fontSize: Int, bold: Boolean, italic: Boolean, text: String, color: Int, backgroundColor: Int) =
+        writeText(x, y, font, fontSize, bold, italic, text, color, backgroundColor)
+    fun writeText(x: Int, y: Int,
+                  font: String, fontSize: Int,
+                  bold: Boolean, italic: Boolean,
+                  text: String,
+                  color: Int, backgroundColor: Int): Pair<Int, Int> {
+
         check()
-        val texture = FontManager.getString(font, fontSize.toFloat(), text) ?: return 0 to fontSize
+        val texture = FontManager.getString(font, fontSize.toFloat(), text, italic, bold) ?: return 0 to fontSize
         check()
         val w = texture.w
         val h = texture.h
@@ -352,12 +359,12 @@ object GFX: GFXBase() {
         return spaceCount
     }
 
-    fun getTextSize(fontSize: Int, text: String) = getTextSize(defaultFont, fontSize, text)
-    fun getTextSize(font: String = "Verdana", fontSize: Int, text: String): Pair<Int, Int> {
+    // fun getTextSize(fontSize: Int, bold: Boolean, italic: Boolean, text: String) = getTextSize(defaultFont, fontSize, bold, italic, text)
+    fun getTextSize(font: String, fontSize: Int, bold: Boolean, italic: Boolean, text: String): Pair<Int, Int> {
         // count how many spaces there are at the end
         // todo get accurate space and tab widths
         val spaceWidth = text.endSpaceCount() * fontSize / 4
-        val texture = FontManager.getString(font, fontSize.toFloat(), text) ?: return spaceWidth to fontSize
+        val texture = FontManager.getString(font, fontSize.toFloat(), text, bold = bold, italic = italic) ?: return spaceWidth to fontSize
         return (texture.w + spaceWidth) to texture.h
     }
 

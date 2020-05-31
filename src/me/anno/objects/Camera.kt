@@ -37,10 +37,10 @@ class Camera(parent: Transform?): Transform(parent){
         list += FloatInput(style, "FOV", fovDegrees, lastLocalTime)
             .setChangeListener { putValue(fovDegrees, it) }
             .setIsSelectedListener { show(fovDegrees) }
-        list += BooleanInput("Only Show Target", style, onlyShowTarget)
+        list += BooleanInput("Only Show Target", onlyShowTarget, style)
             .setChangeListener { onlyShowTarget = it }
             .setIsSelectedListener { show(null) }
-        list += BooleanInput("Use Depth", style, useDepth)
+        list += BooleanInput("Use Depth", useDepth, style)
             .setChangeListener { useDepth = it }
             .setIsSelectedListener { show(null) }
     }

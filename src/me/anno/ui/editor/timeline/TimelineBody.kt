@@ -1,5 +1,6 @@
 package me.anno.ui.editor.timeline
 
+import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.black
 import me.anno.config.DefaultStyle.fontGray
 import me.anno.config.DefaultStyle.white
@@ -44,6 +45,9 @@ class TimelineBody(style: Style): Panel(style.getChild("deep")){
     var dotSize = style.getSize("dotSize", 8)
     val tinyFontSize = style.getSize("tinyTextSize", 10)
     val fontColor = style.getColor("textColor", fontGray)
+    val fontName = style.getString("textFont", DefaultConfig.defaultFont)
+    val isBold = style.getBoolean("textBold", false)
+    val isItalic = style.getBoolean("textItalic", false)
 
     fun normValue01(value: Float) = 0.5f - (value-centralValue)/dvHalfHeight * 0.5f
     fun normTime01(time: Float) = (time-centralTime)/dtHalfLength * 0.5f + 0.5f
@@ -123,10 +127,11 @@ class TimelineBody(style: Style): Panel(style.getChild("deep")){
             val x = getXAt(time).roundToInt()
             if(x > x0+1 && x+2 < x1){
                 val text = getTimeString(time, timeStep)
-                val size = GFX.getTextSize(tinyFontSize, text)
+                val size = GFX.getTextSize(fontName, tinyFontSize, isBold, isItalic, text)
                 val w = size.first
                 GFX.drawRect(x, y0 + 2 + size.second, 1, y1-y0-4-size.second, fontColor and 0x3fffffff)
-                GFX.drawText(x - w/2, y0, tinyFontSize, text, fontColor, backgroundColor)
+                GFX.drawText(x - w/2, y0, fontName, tinyFontSize, isBold, isItalic,
+                    text, fontColor, backgroundColor)
             }
         }
 
@@ -150,10 +155,11 @@ class TimelineBody(style: Style): Panel(style.getChild("deep")){
             val y = getYAt(value).roundToInt()
             if(y > y0+1 && y+2 < y1){
                 val text = getValueString(value, valueStep)
-                val size = GFX.getTextSize(tinyFontSize, text)
+                val size = GFX.getTextSize(fontName, tinyFontSize, isBold, isItalic, text)
                 val h = size.second
                 GFX.drawRect(x0 + size.first + 2, y, x1-x0-size.first, 1, fontColor and 0x3fffffff)
-                GFX.drawText(x0 + 2, y - h/2, tinyFontSize, text, fontColor, backgroundColor)
+                GFX.drawText(x0 + 2, y - h/2, fontName, tinyFontSize, isBold, isItalic,
+                    text, fontColor, backgroundColor)
             }
         }
 

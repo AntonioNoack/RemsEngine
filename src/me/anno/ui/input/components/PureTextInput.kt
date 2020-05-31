@@ -69,17 +69,18 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
         val y = y + padding.top
         val usePlaceholder = text.isEmpty()
         val drawnText = if(usePlaceholder) placeholder else text
-        val wh = GFX.drawText(x+drawingOffset, y, fontSize, drawnText,
+        val wh = drawText(drawingOffset, 0, drawnText, if(usePlaceholder) placeholderColor else if(isInFocus) focusTextColor else textColor)
+        /*GFX.drawText(x+drawingOffset, y, fontSize, drawnText,
             if(usePlaceholder) placeholderColor else if(isInFocus) focusTextColor else textColor,
-            backgroundColor)
+            backgroundColor)*/
         val blinkVisible = ((System.nanoTime() / 500_000_000L) % 2L == 0L)
         val showBars = blinkVisible || wasJustChanged
         if(isInFocus && (showBars || cursor1 != cursor2)){
             ensureCursorBounds()
             val padding = fontSize/4
-            val cursorX1 = if(cursor1 == 0) -1 else GFX.getTextSize(fontSize, text.substring(0, cursor1)).first
+            val cursorX1 = if(cursor1 == 0) -1 else GFX.getTextSize(fontName, fontSize, isBold, isItalic, text.substring(0, cursor1)).first
             if(cursor1 != cursor2){
-                val cursorX2 = if(cursor2 == 0) -1 else GFX.getTextSize(fontSize, text.substring(0, cursor2)).first
+                val cursorX2 = if(cursor2 == 0) -1 else GFX.getTextSize(fontName, fontSize, isBold, isItalic, text.substring(0, cursor2)).first
                 val min = min(cursorX1, cursorX2)
                 val max = max(cursorX1, cursorX2)
                 GFX.drawRect(x+min+drawingOffset, y+padding, max-min, h-2*padding, textColor and 0x3fffffff) // marker
