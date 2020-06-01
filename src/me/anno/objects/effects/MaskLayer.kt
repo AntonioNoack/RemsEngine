@@ -34,18 +34,22 @@ class MaskLayer(parent: Transform?): GFXTransform(parent){
 
     override fun onDraw(stack: Matrix4fStack, time: Float, color: Vector4f) {
 
-        BlendMode.DEFAULT.apply()
+        if(children.size >= 2){// else invisible
 
-        drawMask(stack, time, color)
+            BlendMode.DEFAULT.apply()
 
-        BlendMode.DEFAULT.apply()
+            drawMask(stack, time, color)
 
-        drawMasked(stack, time, color)
+            BlendMode.DEFAULT.apply()
 
-        val effectiveBlendMode = getParentBlendMode(BlendMode.DEFAULT)
-        effectiveBlendMode.apply()
+            drawMasked(stack, time, color)
 
-        drawOnScreen(stack, time, color)
+            val effectiveBlendMode = getParentBlendMode(BlendMode.DEFAULT)
+            effectiveBlendMode.apply()
+
+            drawOnScreen(stack, time, color)
+
+        }
 
         if(showMask) drawChild(stack, time, color, children.getOrNull(0))
         if(showMasked) drawChild(stack, time, color, children.getOrNull(1))
@@ -107,11 +111,19 @@ class MaskLayer(parent: Transform?): GFXTransform(parent){
 
         mask.bindTemporary(GFX.windowWidth, GFX.windowHeight)
 
-        glClearColor(0f, 0f, 0f, 0f)
-        glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
-
         val child = children.getOrNull(0)
-        if(child != null) drawChild(stack, time, color, child)
+        if(child?.getClassName() == "Transform" && child.children.isEmpty()){
+
+            glClearColor(1f, 1f, 1f, 1f)
+            glClear(GL_COLOR_BUFFER_BIT)
+
+        } else {
+
+            glClearColor(0f, 0f, 0f, 0f)
+            glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
+            drawChild(stack, time, color, child)
+
+        }
 
     }
 
@@ -122,8 +134,7 @@ class MaskLayer(parent: Transform?): GFXTransform(parent){
         glClearColor(0f, 0f, 0f, 0f)
         glClear(GL_DEPTH_BUFFER_BIT or GL_COLOR_BUFFER_BIT)
 
-        val child = children.getOrNull(1)
-        if(child != null) drawChild(stack, time, color, child)
+        drawChild(stack, time, color, children.getOrNull(1))
 
         masked.unbind()
 

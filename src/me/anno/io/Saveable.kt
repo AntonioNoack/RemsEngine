@@ -5,6 +5,7 @@ import me.anno.io.text.TextWriter
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
+import java.lang.RuntimeException
 
 abstract class Saveable: ISaveable {
 
@@ -16,7 +17,10 @@ abstract class Saveable: ISaveable {
     override fun onReadingStarted(){}
     override fun onReadingEnded(){}
 
-    fun warnMissingParam(name: String) = println("Unknown param ${getClassName()}.$name")
+    fun warnMissingParam(name: String){
+        if(name == "*ptr") throw RuntimeException()
+        println("Unknown param ${getClassName()}.$name")
+    }
 
     override fun readBool(name: String, value: Boolean) = readSomething(name, value)
     override fun readByte(name: String, value: Byte) = readSomething(name, value)

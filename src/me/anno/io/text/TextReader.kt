@@ -2,7 +2,6 @@ package me.anno.io.text
 
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseReader
-import me.anno.io.base.MissingListElement
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -115,17 +114,17 @@ class TextReader(val data: String): BaseReader(){
     }
 
     fun readObject(): ISaveable {
-        assertChar(skipSpace(), '"')
+        assert(skipSpace(), '"')
         val firstProperty = readString()
         assert(firstProperty == "class", "Expected first property to be 'class', was $firstProperty")
-        assertChar(skipSpace(), ':')
-        assertChar(skipSpace(), '"')
+        assert(skipSpace(), ':')
+        assert(skipSpace(), '"')
         val clazz = readString()
-        assertChar(skipSpace(), ',')
-        assertChar(skipSpace(), '"')
+        assert(skipSpace(), ',')
+        assert(skipSpace(), '"')
         val secondProperty = readString()
         assert(secondProperty == "i:*ptr", "Expected second property to be '*ptr', was $secondProperty")
-        assertChar(skipSpace(), ':')
+        assert(skipSpace(), ':')
         val ptr = readNumber().toIntOrNull() ?: throw RuntimeException("Expected second property to be ptr")
         var obj = getNewClassInstance(clazz)
         obj = propertyLoop(obj)
@@ -138,7 +137,7 @@ class TextReader(val data: String): BaseReader(){
     }
 
     fun readAllInList(){
-        assertChar(skipSpace(), '[')
+        assert(skipSpace(), '[')
         while(true){
             when(val next = skipSpace()){
                 ',' -> {} // nothing to do#
@@ -161,11 +160,11 @@ class TextReader(val data: String): BaseReader(){
     }
 
     fun readProperty(obj: ISaveable): ISaveable {
-        assertChar(skipSpace(), '"')
+        assert(skipSpace(), '"')
         val typeName = readString()
-        assertChar(skipSpace(), ':')
+        assert(skipSpace(), ':')
         if(typeName == "class"){
-            assertChar(skipSpace(), '"')
+            assert(skipSpace(), '"')
             val clazz = readString()
             // could be different in lists
             return if(clazz == obj.getClassName()) obj
@@ -178,16 +177,16 @@ class TextReader(val data: String): BaseReader(){
                     '0' -> false
                     '1' -> true
                     't', 'T' -> {
-                        assertChar(next(), 'r')
-                        assertChar(next(), 'u')
-                        assertChar(next(), 'e')
+                        assert(next(), 'r')
+                        assert(next(), 'u')
+                        assert(next(), 'e')
                         true
                     }
                     'f', 'F' -> {
-                        assertChar(next(), 'a')
-                        assertChar(next(), 'l')
-                        assertChar(next(), 's')
-                        assertChar(next(), 'e')
+                        assert(next(), 'a')
+                        assert(next(), 'l')
+                        assert(next(), 's')
+                        assert(next(), 'e')
                         false
                     }
                     else -> throw java.lang.RuntimeException("Unknown boolean value starting with $c0")
@@ -219,7 +218,7 @@ class TextReader(val data: String): BaseReader(){
                 obj.readDouble(name, raw.toDoubleOrNull() ?: error("invalid double $raw"))
             }
             "i[]" -> {
-                assertChar(skipSpace(), '[')
+                assert(skipSpace(), '[')
                 val rawLength = readNumber()
                 val length = rawLength.toIntOrNull() ?: error("invalid i[] length $rawLength")
                 if(length < (data.length - index)/2){
@@ -244,24 +243,24 @@ class TextReader(val data: String): BaseReader(){
                 } else error("broken file :/, i[].length > data.length")
             }
             "v2" -> {
-                assertChar(skipSpace(), '[')
+                assert(skipSpace(), '[')
                 val rawX = readNumber()
-                assertChar(skipSpace(), ',')
+                assert(skipSpace(), ',')
                 val rawY = readNumber()
-                assertChar(skipSpace(), ']')
+                assert(skipSpace(), ']')
                 obj.readVector2(name, Vector2f(
                     rawX.toFloatOrNull() ?: error("invalid number $rawX"),
                     rawY.toFloatOrNull() ?: error("invalid number $rawY")
                 ))
             }
             "v3" -> {
-                assertChar(skipSpace(), '[')
+                assert(skipSpace(), '[')
                 val rawX = readNumber()
-                assertChar(skipSpace(), ',')
+                assert(skipSpace(), ',')
                 val rawY = readNumber()
-                assertChar(skipSpace(), ',')
+                assert(skipSpace(), ',')
                 val rawZ = readNumber()
-                assertChar(skipSpace(), ']')
+                assert(skipSpace(), ']')
                 obj.readVector3(name, Vector3f(
                     rawX.toFloatOrNull() ?: error("invalid number $rawX"),
                     rawY.toFloatOrNull() ?: error("invalid number $rawY"),
@@ -269,15 +268,15 @@ class TextReader(val data: String): BaseReader(){
                 ))
             }
             "v4" -> {
-                assertChar(skipSpace(), '[')
+                assert(skipSpace(), '[')
                 val rawX = readNumber()
-                assertChar(skipSpace(), ',')
+                assert(skipSpace(), ',')
                 val rawY = readNumber()
-                assertChar(skipSpace(), ',')
+                assert(skipSpace(), ',')
                 val rawZ = readNumber()
-                assertChar(skipSpace(), ',')
+                assert(skipSpace(), ',')
                 val rawW = readNumber()
-                assertChar(skipSpace(), ']')
+                assert(skipSpace(), ']')
                 obj.readVector4(name, Vector4f(
                     rawX.toFloatOrNull() ?: error("invalid number $rawX"),
                     rawY.toFloatOrNull() ?: error("invalid number $rawY"),
@@ -286,90 +285,59 @@ class TextReader(val data: String): BaseReader(){
                 ))
             }
             "S" -> {
-                assertChar(skipSpace(), '"')
+                assert(skipSpace(), '"')
                 obj.readString(name, readString())
             }
             else -> {
-                if(type.endsWith("[]")){
-
-                    val realType = type.substring(0, type.length-2)
-                    assertChar(skipSpace(), '[')
-                    // todo read all values
-                    val list = ArrayList<ISaveable?>()
-                    list@ while(true){
-                        when(val next = skipSpace()){
-                            ',' -> continue@list
-                            ']' -> break@list
-                            'n' -> {
-                                assertChar(next(), 'u')
-                                assertChar(next(), 'l')
-                                assertChar(next(), 'l')
-                                list.add(null)
-                            }
-                            '{' -> {
-                                var child = getNewClassInstance(realType)
-                                val n = skipSpace()
-                                if(n != '}'){
-                                    assertChar(n, '"')
-                                    tmpChar = '"'
-                                    child = readProperty(child)
-                                    child = propertyLoop(child)
-                                } // else nothing to do
-                                list.add(child)
-                            }
-                            in '0' .. '9' -> {
-                                tmpChar = next
-                                val rawPtr = readNumber()
-                                val ptr = rawPtr.toIntOrNull() ?: error("Invalid pointer: $rawPtr")
-                                if(ptr > 0){
-                                    val child = content[ptr]
-                                    if(child == null){
-                                        addMissingReference(MissingListElement(list, list.size), name, ptr)
-                                        list.add(null)
-                                    } else {
-                                        list.add(child)
-                                    }
-                                }
-                            }
-                            else -> error("Missing { or ptr or null after starting object of class $type")
-                        }
+                when(val next = skipSpace()){
+                    'n' -> {
+                        assert(next(), 'u')
+                        assert(next(), 'l')
+                        assert(next(), 'l')
+                        obj.readObject(name, null)
                     }
-                    obj.readObjectList(name, list)
-
-                } else {
-                    when(val next = skipSpace()){
-                        'n' -> {
-                            assertChar(next(), 'u')
-                            assertChar(next(), 'l')
-                            assertChar(next(), 'l')
-                            obj.readObject(name, null)
+                    '{' -> {
+                        var child = getNewClassInstance(type)
+                        assert(skipSpace(), '"')
+                        var property0 = readString()
+                        if(property0 == "class"){
+                            assert(skipSpace(), ':')
+                            assert(skipSpace(), '"')
+                            assert(readString() == type)
+                            assert(skipSpace(), ',')
+                            assert(skipSpace(), '"')
+                            property0 = readString()
                         }
-                        '{' -> {
-                            var child = getNewClassInstance(type)
-                            val n = skipSpace()
+                        assert(property0 == "*ptr")
+                        assert(skipSpace(), ':')
+                        val ptr = readNumber().toIntOrNull() ?: throw RuntimeException("Invalid pointer")
+                        var n = skipSpace()
+                        if(n != '}'){
+                            if(n == ',') n = skipSpace()
                             if(n != '}'){
-                                assertChar(n, '"')
+                                assert(n, '"')
                                 tmpChar = '"'
                                 child = readProperty(child)
                                 child = propertyLoop(child)
-                            } // else nothing to do
-                            obj.readObject(name, child)
-                        }
-                        in '0' .. '9' -> {
-                            tmpChar = next
-                            val rawPtr = readNumber()
-                            val ptr = rawPtr.toIntOrNull() ?: error("invalid pointer: $rawPtr")
-                            if(ptr > 0){
-                                val child = content[ptr]
-                                if(child == null){
-                                    addMissingReference(obj, name, ptr)
-                                } else {
-                                    obj.readObject(name, child)
-                                }
+                            }
+                        } // else nothing to do
+                        register(child, ptr)
+                        obj.readObject(name, child)
+                    }
+                    in '0' .. '9' -> {
+                        tmpChar = next
+                        val rawPtr = readNumber()
+                        val ptr = rawPtr.toIntOrNull() ?: error("invalid pointer: $rawPtr")
+                        if(ptr > 0){
+                            val child = content[ptr]
+                            if(child == null){
+                                addMissingReference(obj, name, ptr)
+                            } else {
+                                obj.readObject(name, child)
                             }
                         }
-                        else -> error("Missing { or ptr or null after starting object of class $type")
                     }
+                    else -> error("Missing { or ptr or null after starting object of class $type")
                 }
             }
         }

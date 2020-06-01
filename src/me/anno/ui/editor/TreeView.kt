@@ -20,11 +20,11 @@ import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.style.Style
 import me.anno.utils.mixARGB
+import org.joml.Vector3f
 import org.joml.Vector4f
 import java.io.File
 import java.lang.Exception
 import kotlin.concurrent.thread
-import kotlin.math.min
 import kotlin.math.roundToInt
 
 // todo support for multiple cameras? -> just use scenes?
@@ -34,6 +34,8 @@ import kotlin.math.roundToInt
 // todo maybe control the cameras there...
 
 // todo select multiple elements, filter for common properties, and apply them all together :)
+
+// todo collapse elements
 
 class TreeView(style: Style):
     ScrollPanel(style.getChild("treeView"), Padding(1), WrapAlign.AxisAlignment.MIN) {
@@ -220,7 +222,7 @@ class TreeView(style: Style):
                             }
                         }
                         GFX.openMenu(mouseX, mouseY, "Add Child",
-                            listOf(
+                            listOf(// todo make these options customizable :)
                                 "Folder" to add { Transform(it) },
                                 "Text" to add { Text("", it) },
                                 "Image" to add { Image(File(""), it) },
@@ -230,8 +232,21 @@ class TreeView(style: Style):
                                 "Camera" to add { Camera(it) },
                                 "Mask" to add {
                                     val layer = MaskLayer(it)
-                                    Transform(layer).name = "Mask"
-                                    Transform(layer).name = "Masked"
+                                    val mask = Transform(layer)
+                                    mask.name = "Mask"
+                                    val maskElement = Circle(mask)
+                                    val circleScale = 0.75f
+                                    maskElement.scale.addKeyframe(0f,
+                                        Vector3f(circleScale, circleScale, circleScale),
+                                        0.1f)
+                                    maskElement.innerRadius.addKeyframe(0f, 0.25f, 0.1f)
+                                    maskElement.name = "Mask-Defining Circle"
+                                    val masked = Transform(layer)
+                                    masked.name = "Masked"
+                                    val maskedElement = Polygon(masked)
+                                    maskedElement.name = "Shaped Star"
+                                    maskedElement.vertexCount.addKeyframe(0f, 10f, 0.1f)
+                                    maskedElement.inset.addKeyframe(0f, 0.6f, 0.1f)
                                     layer
                                 }
                             )

@@ -72,7 +72,7 @@ abstract class BaseReader {
         if(!b) throw RuntimeException(msg)
     }
 
-    fun assertChar(isValue: Char, shallValue: Char){
+    fun assert(isValue: Char, shallValue: Char){
         if(isValue != shallValue) throw RuntimeException("Expected $shallValue but got $isValue")
     }
 

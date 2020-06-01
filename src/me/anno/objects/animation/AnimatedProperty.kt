@@ -156,7 +156,7 @@ class AnimatedProperty<V>(val type: Type): Saveable(){
                     if(value is Keyframe<*>){
                         if(type.accepts(value.value)){
                             addKeyframe(value.time, value.value!!, 1e-5f)
-                        } else println("Dropped keyframe!, incompatible type ${value.getClassName()}")
+                        } else println("Dropped keyframe!, incompatible type ${value.value} for $type")
                     } else println("Got keyframe, that is no keyframe: ${value?.getClassName()}")
                 }
             }
@@ -170,7 +170,7 @@ class AnimatedProperty<V>(val type: Type): Saveable(){
                 if(value is Keyframe<*>){
                     if(type.accepts(value.value)){
                         addKeyframe(value.time, value.value!!, 1e-5f)
-                    } else println("Dropped keyframe!, incompatible type ${value.getClassName()}")
+                    } else println("Dropped keyframe!, incompatible type ${value.value} for $type")
                 } else println("Got keyframe, that is no keyframe: ${value?.getClassName()}")
             }
             else -> super.readObject(name, value)
