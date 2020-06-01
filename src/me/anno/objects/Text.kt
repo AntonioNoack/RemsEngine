@@ -118,7 +118,7 @@ class Text(var text: String, parent: Transform?): GFXTransform(parent){
     companion object {
         // todo save the last used fonts? yes :)
         // todo per project? idk
-        val lastUsedFonts = arrayOfNulls<String>(max(0, DefaultConfig["lastUsed.fonts.count"]?.toString()?.toInt() ?: 5))
+        val lastUsedFonts = arrayOfNulls<String>(max(0, DefaultConfig["lastUsed.fonts.count", 5]))
         fun putLastUsedFont(font: String){
             if(lastUsedFonts.isNotEmpty()){
                 for(i in lastUsedFonts.indices){

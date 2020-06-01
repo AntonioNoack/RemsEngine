@@ -1,5 +1,6 @@
 package me.anno.ui.editor.sceneView
 
+import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.toRadians
 import me.anno.gpu.buffer.Attribute
@@ -8,18 +9,23 @@ import me.anno.objects.Transform.Companion.xAxis
 import me.anno.objects.Transform.Companion.yAxis
 import me.anno.objects.Transform.Companion.zAxis
 import me.anno.objects.blending.BlendMode
+import me.anno.objects.meshes.svg.SVGStyle.Companion.parseColor
 import me.anno.utils.pow
-import me.anno.utils.sq
 import me.anno.utils.toVec3f
 import org.joml.Matrix4f
 import org.joml.Matrix4fStack
 import org.joml.Vector4f
-import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL20.*
 import kotlin.math.floor
 import kotlin.math.log10
 
+// todo gizmo element with arrows in the axis directions :)
+
 object Grid {
+
+    private val xAxisColor = parseColor(DefaultConfig["grid.axis.x.color", "#ff7777"]) ?: 0
+    private val yAxisColor = parseColor(DefaultConfig["grid.axis.y.color", "#77ff77"]) ?: 0
+    private val zAxisColor = parseColor(DefaultConfig["grid.axis.z.color", "#7777ff"]) ?: 0
 
     private val gridBuffer = StaticFloatBuffer(listOf(Attribute("attr0", 2)), 201 * 8)
     private val lineBuffer = StaticFloatBuffer(listOf(Attribute("attr0", 2)), 4)
@@ -58,8 +64,6 @@ object Grid {
 
     }
 
-    fun blendFactor(x: Float, x0: Float) = 1f - sq(x-x0)
-
     fun draw(stack: Matrix4fStack, cameraTransform: Matrix4f){
 
         BlendMode.ADD.apply()
@@ -87,19 +91,13 @@ object Grid {
 
         drawGrid(stack, gridAlpha * f)
 
-        drawLine(stack, 0xff7777, 0.15f) // x
+        drawLine(stack, xAxisColor, 0.15f) // x
 
         stack.rotate(toRadians(90f), yAxis)
-
-        drawLine(stack, 0x77ff77, 0.15f) // y
+        drawLine(stack, yAxisColor, 0.15f) // y
 
         stack.rotate(toRadians(90f), zAxis)
-
-        drawLine(stack, 0x7777ff, 0.15f) // z
-
-        BlendMode.DEFAULT.apply()
-        glEnable(GL_DEPTH_TEST)
-        glDepthMask(true)
+        drawLine(stack, zAxisColor, 0.15f) // z
 
     }
 

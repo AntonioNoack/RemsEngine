@@ -28,6 +28,7 @@ import me.anno.utils.plus
 import me.anno.utils.times
 import org.joml.Matrix4fStack
 import org.joml.Vector3f
+import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL30.*
 import kotlin.math.max
 
@@ -38,9 +39,12 @@ import kotlin.math.max
 
 // todo control click -> fullscreen view of this element?
 
+// todo show the current mode with the cursor
+
 class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
 
     init {
+
         weight = 1f
         backgroundColor = 0
 
@@ -149,6 +153,9 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
         } else {
             glDisable(GL_DEPTH_TEST)
         }
+
+        BlendMode.DEFAULT.apply()
+        glDepthMask(true)
 
         stack.pushMatrix()
         // root.draw(stack, editorHoverTime, Vector4f(1f,1f,1f,1f))

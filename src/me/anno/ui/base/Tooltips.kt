@@ -30,7 +30,7 @@ object Tooltips {
         style
     )
 
-    val tooltipReactionTime = DefaultConfig["tooltip.reactionTime"].toString().toIntOrNull() ?: 300
+    val tooltipReactionTime = DefaultConfig["tooltip.reactionTime", 300]
 
     init {
         container += WrapAlign.LeftTop

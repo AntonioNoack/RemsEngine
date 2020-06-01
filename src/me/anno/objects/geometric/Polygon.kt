@@ -78,7 +78,7 @@ class Polygon(parent: Transform?): GFXTransform(parent){
     companion object {
 
         val minEdges = 3
-        val maxEdges = DefaultConfig["polygon.maxEdges"] as? Int ?: 1000
+        val maxEdges = DefaultConfig["polygon.maxEdges", 1000]
 
         fun getBuffer(n: Int): StaticFloatBuffer {
             if(n < minEdges) return getBuffer(minEdges)

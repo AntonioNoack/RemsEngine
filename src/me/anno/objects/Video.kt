@@ -34,7 +34,7 @@ class Video(var file: File, parent: Transform?): GFXTransform(parent){
     var duration = 0f
 
     var isLooping = true
-    var nearestFiltering = DefaultConfig["default.video.nearest"].toString().toBoolean()
+    var nearestFiltering = DefaultConfig["default.video.nearest", false]
 
     // val fps get() = videoCache.fps
     var fps = -1f

@@ -24,6 +24,11 @@ object DefaultConfig: StringMap() {
         this["default.video.nearest"] = false
         this["default.image.nearest"] = false
 
+        this["grid.axis.x.color"] = "#ff7777"
+        this["grid.axis.y.color"] = "#77ff77"
+        this["grid.axis.z.color"] = "#7777ff"
+        this["format.svg.stepsPerDegree"] = 0.1f
+
         addImportMappings("Image", "png", "jpg", "jpeg", "tiff", "webp", "svg")
         addImportMappings("Video", "mp4", "gif", "mpeg", "avi")
         addImportMappings("Text", "txt")

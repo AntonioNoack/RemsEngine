@@ -1,5 +1,6 @@
 package me.anno.objects.meshes.svg
 
+import me.anno.config.DefaultConfig
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticFloatBuffer
 import me.anno.io.xml.XMLElement
@@ -24,7 +25,7 @@ class SVGMesh {
     // read svg
     // creates mesh with colors
 
-    val stepsPerDegree = 0.1f
+    val stepsPerDegree = DefaultConfig["format.svg.stepsPerDegree", 0.1f]
 
     var z = 0f
     val deltaZ = 0.001f

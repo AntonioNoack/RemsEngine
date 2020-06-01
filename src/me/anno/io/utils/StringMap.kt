@@ -59,4 +59,54 @@ open class StringMap(
     override fun putAll(from: Map<out String, Any?>) = map.putAll(from)
     override fun remove(key: String): Any? = map.remove(key)
 
+    operator fun get(key: String, default: String): String {
+        return when(val value = this[key]){
+            is String -> value
+            null -> default
+            else -> value.toString()
+        }
+    }
+
+    operator fun get(key: String, default: Float): Float {
+        return when(val value = this[key]){
+            is Float -> value
+            is Double -> value.toFloat()
+            is Int -> value.toFloat()
+            is Long -> value.toFloat()
+            is String -> value.toFloatOrNull() ?: default
+            null -> default
+            else -> value.toString().toFloatOrNull() ?: default
+        }
+    }
+
+    operator fun get(key: String, default: Int): Int {
+        return when(val value = this[key]){
+            is Int -> value
+            is Long -> value.toInt()
+            is Float -> value.toInt()
+            is Double -> value.toInt()
+            is String -> value.toIntOrNull() ?: default
+            null -> default
+            else -> value.toString().toIntOrNull() ?: default
+        }
+    }
+
+    operator fun get(key: String, default: Boolean): Boolean {
+        return when(val value = this[key]){
+            is Int -> value != 0
+            is Long -> value != 0L
+            is Float -> !value.isNaN() && value != 0f
+            is Double -> !value.isNaN() && value != 0.0
+            is String -> {
+                when(value.toLowerCase()){
+                    "true", "t" -> true
+                    "false", "f" -> false
+                    else -> default
+                }
+            }
+            null -> default
+            else -> value.toString().toBoolean()
+        }
+    }
+
 }

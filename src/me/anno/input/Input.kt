@@ -128,7 +128,7 @@ object Input {
                     GLFW.GLFW_RELEASE -> {
 
                         inFocus?.onMouseUp(mouseX, mouseY, button)
-                        val longClickMillis = DefaultConfig["longClick"] as? Int ?: 300
+                        val longClickMillis = DefaultConfig["longClick", 300]
                         val currentNanos = System.nanoTime()
                         val isDoubleClick = abs(lastClickTime - currentNanos) / 1_000_000 < longClickMillis && length(mouseX - lastClickX, mouseY - lastClickY) < 5f
                         val mouseDuration = currentNanos - mouseStart

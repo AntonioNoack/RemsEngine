@@ -19,7 +19,7 @@ import java.io.File
 
 class Image(var file: File, parent: Transform?): GFXTransform(parent){
 
-    var nearestFiltering = DefaultConfig["default.image.nearest"].toString().toBoolean()
+    var nearestFiltering = DefaultConfig["default.image.nearest", true]
 
     override fun onDraw(stack: Matrix4fStack, time: Float, color: Vector4f) {
         val name = file.name
