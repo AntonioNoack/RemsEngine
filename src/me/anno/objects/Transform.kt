@@ -105,13 +105,13 @@ open class Transform(var parent: Transform? = null): Saveable(){
         list += ColorInput(style, "Color", color[lastLocalTime], AnimatedProperty.Type.COLOR, color)
             .setChangeListener { x, y, z, w -> putValue(color, Vector4f(max(0f, x), max(0f, y), max(0f, z), clamp(w, 0f, 1f))) }
             .setIsSelectedListener { show(color) }
-        list += FloatInput(style, "Start Time", timeOffset)
+        list += FloatInput("Start Time", timeOffset, style)
             .setChangeListener { timeOffset = it }
             .setIsSelectedListener { GFX.selectedProperty = null }
-        list += FloatInput(style, "Time Multiplier", timeDilation)
+        list += FloatInput("Time Multiplier", timeDilation, style)
             .setChangeListener { timeDilation = it }
             .setIsSelectedListener { GFX.selectedProperty = null }
-        list += FloatInput(style, "Advanced Time", timeAnimated[lastLocalTime])
+        list += FloatInput("Advanced Time", timeAnimated, lastLocalTime, style)
             .setChangeListener {  x -> putValue(timeAnimated, x) }
             .setIsSelectedListener { show(timeAnimated) }
         list += EnumInput("Blend Mode", blendMode.id, blendModes.keys.toList().sorted(), style)
@@ -154,7 +154,7 @@ open class Transform(var parent: Transform? = null): Saveable(){
             if(rotationQuat != null) transform.rotate(rotationQuat[time])
         }
 
-        if(scale.x != 0f || scale.y != 0f || scale.z != 0f) transform.scale(scale)
+        if(scale.x != 1f || scale.y != 1f || scale.z != 1f) transform.scale(scale)
 
         if(skew.x != 0f || skew.y != 0f) transform.mul3x3(// works
             1f, skew.y, 0f,
@@ -175,24 +175,30 @@ open class Transform(var parent: Transform? = null): Saveable(){
         lastLocalTime = time
         val color = getLocalColor(parentColor, time)
 
-        if(color.w > 0.00025f){ // 12 bit = 4k
-            blendMode.apply()
+        if(true || color.w > 0.00025f){ // 12 bit = 4k
             applyTransformLT(stack, time)
             onDraw(stack, time, color)
-            drawChildren(stack, time, color)
+            if(drawChildrenAutomatically()){
+                drawChildren(stack, time, color)
+            }
         }
 
     }
 
+    open fun drawChildrenAutomatically() = true
+
     fun drawChildren(stack: Matrix4fStack, time: Float, color: Vector4f){
         children.forEach { child ->
+            drawChild(stack, time, color, child)
+        }
+    }
 
-            blendMode.apply()
-
+    fun drawChild(stack: Matrix4fStack, time: Float, color: Vector4f, child: Transform?){
+        if(child != null){
+            child.getParentBlendMode(BlendMode.DEFAULT).apply()
             stack.pushMatrix()
             child.draw(stack, time, color)
             stack.popMatrix()
-
         }
     }
 
@@ -301,13 +307,7 @@ open class Transform(var parent: Transform? = null): Saveable(){
         children.remove(child)
     }
 
-    fun clearIds(){
-        uuid = 0L
-        for(child in children) child.clearIds()
-    }
-
     fun stringify(): String {
-        clearIds()
         val myParent = parent
         parent = null
         val data = TextWriter.toText(this, false)
@@ -330,6 +330,11 @@ open class Transform(var parent: Transform? = null): Saveable(){
     fun removeFromParent(){
         parent?.removeChild(this)
     }
+
+    fun getParentBlendMode(default: BlendMode): BlendMode =
+        if(blendMode == BlendMode.UNSPECIFIED) parent?.getParentBlendMode(default) ?: default else blendMode
+
+    override fun isDefaultValue() = false
 
     companion object {
         val xAxis = Vector3f(1f,0f,0f)

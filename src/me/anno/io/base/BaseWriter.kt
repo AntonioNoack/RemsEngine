@@ -12,9 +12,8 @@ abstract class BaseWriter {
 
     // in city project: writes all objects from the city into a file
 
-    var nextUUID = 1L
-
-    val listed = HashSet<Long>()
+    val listed = HashSet<ISaveable>()
+    val pointers = HashMap<ISaveable, Int>()
     val todo = ArrayList<ISaveable>(256)
 
     // the type is important to notice incompatibilities by changes
@@ -31,30 +30,38 @@ abstract class BaseWriter {
     abstract fun writeVector3(name: String, value: Vector3f, force: Boolean = false)
     abstract fun writeVector4(name: String, value: Vector4f, force: Boolean = false)
 
+    fun getOrCreatePtr(value: ISaveable): Int {
+        var ptr = pointers[value]
+        if(ptr != null) return ptr
+        ptr = pointers.size + 1
+        pointers[value] = ptr
+        return ptr
+    }
+
     fun writeObject(self: ISaveable?, name: String?, value: ISaveable?, force: Boolean = false){
-        if(!force && value == null) return
+        if(!force && (value == null || value.isDefaultValue())) return
         if(value == null){
             writeNull(name)
         } else {
 
-            if(value.uuid == 0L){
-                value.uuid = nextUUID++
-            }
+            val ptr = getOrCreatePtr(value)
 
-            val uuid = value.uuid
-            if(uuid in listed){
+            if(value in listed){
 
-                writePointer(name, value.getClassName(), uuid)
+                // println("child ${value.getClassName()} is on the list")
+                writePointer(name, value.getClassName(), ptr)
 
             } else {
 
-                listed += uuid
+                listed += value
                 val canInclude = self == null || self.getApproxSize() > value.getApproxSize()
                 if(canInclude){
+                    // println("child ${value.getClassName()} can be included")
                     writeObjectImpl(name, value)
                 } else {
+                    // println("child ${value.getClassName()} can not be included")
                     todo += value
-                    writePointer(name, value.getClassName(), uuid)
+                    writePointer(name, value.getClassName(), ptr)
                 }
 
             }
@@ -63,7 +70,7 @@ abstract class BaseWriter {
     }
 
     abstract fun writeNull(name: String?)
-    abstract fun writePointer(name: String?, className: String, uuid: Long)
+    abstract fun writePointer(name: String?, className: String, ptr: Int)
     abstract fun writeObjectImpl(name: String?, value: ISaveable)
 
     abstract fun <V: Saveable> writeList(self: ISaveable?, name: String, elements: List<V>?, force: Boolean = false)
@@ -72,11 +79,9 @@ abstract class BaseWriter {
     abstract fun writeListV4(name: String, elements: List<Vector4f>?, force: Boolean = false)
 
     fun add(obj: ISaveable){
-        if(obj.uuid == 0L){
-            obj.uuid = nextUUID++
-        }
-        if(obj.uuid !in listed){
-            listed += obj.uuid
+        if(obj !in listed){
+            getOrCreatePtr(obj)
+            listed += obj
             todo += obj
         }
     }
@@ -88,9 +93,7 @@ abstract class BaseWriter {
     fun writeAllInList(){
         writeListStart()
         while(todo.isNotEmpty()){
-            val element = todo.removeAt(0)
-            if(element.uuid == 0L) throw RuntimeException("element in todo must have uuid")
-            writeObjectImpl(null, element)
+            writeObjectImpl(null, todo.removeAt(0))
             if(todo.isNotEmpty()) writeListSeparator()
         }
         writeListEnd()

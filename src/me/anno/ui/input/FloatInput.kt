@@ -19,11 +19,15 @@ class FloatInput(
     val owningProperty: AnimatedProperty<*>? = null
 ): PanelListY(style) {
 
-    constructor(style: Style, title: String, owningProperty: AnimatedProperty<*>, time: Float): this(style, title, owningProperty.type, owningProperty){
+    constructor(title: String, owningProperty: AnimatedProperty<*>, time: Float, style: Style): this(style, title, owningProperty.type, owningProperty){
         setValue(owningProperty[time] as Float)
     }
 
-    constructor(style: Style, title: String, value0: Float, type: AnimatedProperty.Type = AnimatedProperty.Type.FLOAT): this(style, title, type){
+    constructor(title: String, value0: Float, type: AnimatedProperty.Type, style: Style): this(style, title, type){
+        setValue(value0)
+    }
+
+    constructor(title: String, value0: Float, style: Style): this(style, title, AnimatedProperty.Type.FLOAT){
         setValue(value0)
     }
 

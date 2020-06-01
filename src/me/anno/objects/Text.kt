@@ -53,8 +53,8 @@ class Text(var text: String, parent: Transform?): GFXTransform(parent){
         super.save(writer)
         writer.writeString("text", text)
         writer.writeString("font", font)
-        writer.writeBool("isItalic", isItalic)
-        writer.writeBool("isBold", isBold)
+        writer.writeBool("isItalic", isItalic, true)
+        writer.writeBool("isBold", isBold, true)
     }
 
     override fun readString(name: String, value: String) {

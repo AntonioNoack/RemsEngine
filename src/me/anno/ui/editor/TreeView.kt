@@ -10,6 +10,7 @@ import me.anno.input.Input.mouseX
 import me.anno.input.Input.mouseY
 import me.anno.io.text.TextReader
 import me.anno.objects.*
+import me.anno.objects.effects.MaskLayer
 import me.anno.utils.clamp
 import me.anno.objects.geometric.Circle
 import me.anno.objects.geometric.Polygon
@@ -226,7 +227,13 @@ class TreeView(style: Style):
                                 "Video/GIF" to add { Video(File(""), it) },
                                 "Circle" to add { Circle(it) },
                                 "Polygon" to add { Polygon(it) },
-                                "Camera" to add { Camera(it) }
+                                "Camera" to add { Camera(it) },
+                                "Mask" to add {
+                                    val layer = MaskLayer(it)
+                                    Transform(layer).name = "Mask"
+                                    Transform(layer).name = "Masked"
+                                    layer
+                                }
                             )
                         )
                     }

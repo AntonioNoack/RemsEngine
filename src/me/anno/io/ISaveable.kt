@@ -7,9 +7,6 @@ import org.joml.Vector4f
 
 interface ISaveable {
 
-    // for references from object to objects
-    var uuid: Long
-
     fun getClassName(): String
 
     /**
@@ -48,6 +45,8 @@ interface ISaveable {
      * reader must wait for onReadingEnded()
      * */
     fun readObjectList(name: String, values: List<ISaveable?>)
+
+    fun isDefaultValue(): Boolean
 
     companion object {
 

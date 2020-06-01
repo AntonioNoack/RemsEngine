@@ -121,9 +121,15 @@ class TextReader(val data: String): BaseReader(){
         assertChar(skipSpace(), ':')
         assertChar(skipSpace(), '"')
         val clazz = readString()
+        assertChar(skipSpace(), ',')
+        assertChar(skipSpace(), '"')
+        val secondProperty = readString()
+        assert(secondProperty == "i:*ptr", "Expected second property to be '*ptr', was $secondProperty")
+        assertChar(skipSpace(), ':')
+        val ptr = readNumber().toIntOrNull() ?: throw RuntimeException("Expected second property to be ptr")
         var obj = getNewClassInstance(clazz)
         obj = propertyLoop(obj)
-        register(obj)
+        register(obj, ptr)
         return obj
     }
 
@@ -314,7 +320,7 @@ class TextReader(val data: String): BaseReader(){
                             in '0' .. '9' -> {
                                 tmpChar = next
                                 val rawPtr = readNumber()
-                                val ptr = rawPtr.toLongOrNull() ?: error("Invalid pointer: $rawPtr")
+                                val ptr = rawPtr.toIntOrNull() ?: error("Invalid pointer: $rawPtr")
                                 if(ptr > 0){
                                     val child = content[ptr]
                                     if(child == null){
@@ -352,7 +358,7 @@ class TextReader(val data: String): BaseReader(){
                         in '0' .. '9' -> {
                             tmpChar = next
                             val rawPtr = readNumber()
-                            val ptr = rawPtr.toLongOrNull() ?: error("invalid pointer: $rawPtr")
+                            val ptr = rawPtr.toIntOrNull() ?: error("invalid pointer: $rawPtr")
                             if(ptr > 0){
                                 val child = content[ptr]
                                 if(child == null){
@@ -382,7 +388,8 @@ class TextReader(val data: String): BaseReader(){
         fun fromText(data: String): List<ISaveable> {
             val reader = TextReader(data)
             reader.readAllInList()
-            return reader.content.values.toList()
+            // sorting is very important
+            return reader.content.entries.sortedBy { it.key }.map { it.value }.toList()
         }
     }
 

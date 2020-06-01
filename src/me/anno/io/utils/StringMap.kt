@@ -109,4 +109,6 @@ open class StringMap(
         }
     }
 
+    override fun isDefaultValue() = false
+
 }

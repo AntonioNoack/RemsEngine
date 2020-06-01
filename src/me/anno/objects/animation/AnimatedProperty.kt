@@ -7,6 +7,8 @@ import org.joml.*
 import java.lang.RuntimeException
 import kotlin.math.abs
 
+// todo copying an element, and then serializing its parent says that the animated properties are equal :(
+
 class AnimatedProperty<V>(val type: Type): Saveable(){
 
     enum class Type(
@@ -151,9 +153,11 @@ class AnimatedProperty<V>(val type: Type): Saveable(){
                 // so they should be serialized directly, so we don't have to worry
                 // about values which are loaded later
                 values.forEach { value ->
-                    if(value is Keyframe<*> && type.accepts(value.value)){
-                        addKeyframe(value.time, value.value!!, 1e-5f)
-                    } else println("dropped keyframe!, incompatible type $value")
+                    if(value is Keyframe<*>){
+                        if(type.accepts(value.value)){
+                            addKeyframe(value.time, value.value!!, 1e-5f)
+                        } else println("Dropped keyframe!, incompatible type ${value.getClassName()}")
+                    } else println("Got keyframe, that is no keyframe: ${value?.getClassName()}")
                 }
             }
             else -> super.readObjectList(name, values)
@@ -163,12 +167,16 @@ class AnimatedProperty<V>(val type: Type): Saveable(){
     override fun readObject(name: String, value: ISaveable?) {
         when(name){
             "keyframes" -> {
-                if(value is Keyframe<*> && type.accepts(value.value)){
-                    addKeyframe(value.time, value.value!!, 0f)
-                } else println("dropped keyframe!, incompatible type $value")
+                if(value is Keyframe<*>){
+                    if(type.accepts(value.value)){
+                        addKeyframe(value.time, value.value!!, 1e-5f)
+                    } else println("Dropped keyframe!, incompatible type ${value.getClassName()}")
+                } else println("Got keyframe, that is no keyframe: ${value?.getClassName()}")
             }
             else -> super.readObject(name, value)
         }
     }
+
+    override fun isDefaultValue() = keyframes.isEmpty()
 
 }

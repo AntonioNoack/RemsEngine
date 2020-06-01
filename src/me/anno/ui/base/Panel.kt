@@ -35,6 +35,7 @@ open class Panel(val style: Style): Saveable(){
         return x + w > x0 && y + h > y0 && x < x0+w0 && y < y0+h0
     }
 
+    var tooltip: String? = null
     val isVisible get() = visibility == Visibility.VISIBLE && canBeSeen
 
     fun requestFocus() = GFX.requestFocus(this)
@@ -134,10 +135,17 @@ open class Panel(val style: Style): Saveable(){
 
     open fun getCursor(): Long? = parent?.getCursor() ?: 0L
 
-    open fun getTooltipText(x: Float, y: Float): String? = parent?.getTooltipText(x, y)
+    open fun getTooltipText(x: Float, y: Float): String? = tooltip ?: parent?.getTooltipText(x, y)
+
+    fun setTooltip(tooltipText: String?): Panel {
+        tooltip = tooltipText
+        return this
+    }
 
     open fun printLayout(depth: Int){
         println("${Tabs.spaces(depth*2)}${javaClass.simpleName}($weight) $x $y += $w $h ($minW $minH)")
     }
+
+    override fun isDefaultValue() = false
 
 }

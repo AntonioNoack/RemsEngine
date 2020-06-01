@@ -43,10 +43,10 @@ class Polygon(parent: Transform?): GFXTransform(parent){
 
     override fun createInspector(list: PanelListY, style: Style) {
         super.createInspector(list, style)
-        list += FloatInput(list.style, "Vertex Count", vertexCount[lastLocalTime])
+        list += FloatInput("Vertex Count", vertexCount, lastLocalTime, style)
             .setChangeListener { putValue(vertexCount, it) }
             .setIsSelectedListener { show(vertexCount) }
-        list += FloatInput(list.style, "Star-ness", inset[lastLocalTime])
+        list += FloatInput("Star-ness", inset, lastLocalTime, style)
             .setChangeListener { putValue(inset, clamp(it, 0f, 1f)) }
             .setIsSelectedListener { show(inset) }
     }

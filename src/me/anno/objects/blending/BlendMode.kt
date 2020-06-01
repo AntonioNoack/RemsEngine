@@ -1,5 +1,6 @@
 package me.anno.objects.blending
 
+import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL30.*
 
 // todo custom blend modes? -> maybe... could be customizable...
@@ -71,6 +72,15 @@ class BlendMode(
         val DEFAULT = BlendMode("Default", "*Blend")
         val ADD = BlendMode("Add", "Add")
             .set(GL_SRC_ALPHA, GL_ONE)
+        /*val ADD_MASK = BlendMode("Sub Mask", "Sub Mask")
+            .set(GL_ONE, GL_ONE)
+            .set(BlendFunc.SUB)*/
+        // doesn't work
+        // todo a way to remove alpha from an image
+        val SUB_ALPHA = BlendMode("Override Masking", "Override Masking")
+            .set(GL_ONE, GL_ZERO, GL_SRC_ALPHA, GL_ZERO)
+            .set(BlendFunc.ADD)
+
         val SUB = ADD.copy("Sub", "Subtract")
             .set(BlendFunc.REV_SUB)
 

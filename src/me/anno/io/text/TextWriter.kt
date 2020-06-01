@@ -228,22 +228,8 @@ class TextWriter(val beautify: Boolean): BaseWriter() {
     }
 
     override fun <V : Saveable> writeList(self: ISaveable?, name: String, elements: List<V>?, force: Boolean) {
-        // todo a real list...
-        if(elements != null && elements.isNotEmpty()){
-            val type = elements.first().getClassName()
-            val isSameType = elements.firstOrNull { it.getClassName() != type } == null
-            if(isSameType){
-                writeAttributeStart("$type[]", name)
-                open(true)
-                elements.forEach {
-                    writeObject(self, null, it, force)
-                }
-                close(true)
-            } else {
-                elements.forEach {
-                    writeObject(self, name, it, force)
-                }
-            }
+        elements?.forEach {
+            writeObject(self, name, it, force)
         }
     }
 
@@ -309,13 +295,14 @@ class TextWriter(val beautify: Boolean): BaseWriter() {
             writeString(value.getClassName())
             hasObject = true
         }
+        writeInt("*ptr", pointers[value]!!)
         value.save(this)
         close(false)
     }
 
-    override fun writePointer(name: String?, className: String, uuid: Long) {
+    override fun writePointer(name: String?, className: String, ptr: Int) {
         writeAttributeStart(className, name)
-        data += uuid.toString()
+        data += ptr.toString()
     }
 
     override fun toString(): String = data.toString()

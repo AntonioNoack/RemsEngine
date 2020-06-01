@@ -90,6 +90,8 @@ class Keyframe<V>(var time: Float, var value: V): Saveable(), Comparable<Keyfram
         }
     }
 
+    override fun isDefaultValue() = false
+
     companion object {
         fun BaseWriter.writeValue(name: String, v: Any?){
             when(v){

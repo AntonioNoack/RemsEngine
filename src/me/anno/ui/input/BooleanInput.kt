@@ -35,4 +35,6 @@ class BooleanInput(title: String, startValue: Boolean, style: Style): PanelListX
         return this
     }
 
+    override fun onCopyRequested(x: Float, y: Float) = checkView.isChecked.toString()
+
 }

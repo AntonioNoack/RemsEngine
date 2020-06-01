@@ -60,7 +60,7 @@ class Image(var file: File, parent: Transform?): GFXTransform(parent){
     override fun save(writer: BaseWriter) {
         super.save(writer)
         writer.writeString("file", file.toString())
-        writer.writeBool("nearestFiltering", nearestFiltering)
+        writer.writeBool("nearestFiltering", nearestFiltering, true)
     }
 
     override fun readString(name: String, value: String) {

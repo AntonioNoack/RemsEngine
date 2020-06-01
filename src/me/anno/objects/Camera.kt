@@ -34,13 +34,13 @@ class Camera(parent: Transform?): Transform(parent){
 
     override fun createInspector(list: PanelListY, style: Style) {
         super.createInspector(list, style)
-        list += FloatInput(style, "Near Z", nearZ, lastLocalTime)
+        list += FloatInput("Near Z", nearZ, lastLocalTime, style)
             .setChangeListener { putValue(nearZ, it) }
             .setIsSelectedListener { show(nearZ) }
-        list += FloatInput(style, "Far Z", farZ, lastLocalTime)
+        list += FloatInput("Far Z", farZ, lastLocalTime, style)
             .setChangeListener { putValue(farZ, it) }
             .setIsSelectedListener { show(farZ) }
-        list += FloatInput(style, "FOV", fovYDegrees, lastLocalTime)
+        list += FloatInput("FOV", fovYDegrees, lastLocalTime, style)
             .setChangeListener { putValue(fovYDegrees, it) }
             .setIsSelectedListener { show(fovYDegrees) }
         list += BooleanInput("Only Show Target", onlyShowTarget, style)

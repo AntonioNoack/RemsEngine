@@ -25,13 +25,13 @@ class Circle(parent: Transform?): GFXTransform(parent){
 
     override fun createInspector(list: PanelListY, style: Style) {
         super.createInspector(list, style)
-        list += FloatInput(style, "Inner Radius", innerRadius[lastLocalTime], AnimatedProperty.Type.FLOAT)
+        list += FloatInput("Inner Radius", innerRadius[lastLocalTime], style)
             .setChangeListener { putValue(innerRadius, it) }
             .setIsSelectedListener { show(innerRadius) }
-        list += FloatInput(style, "Start Degrees", startDegrees[lastLocalTime], AnimatedProperty.Type.FLOAT)
+        list += FloatInput("Start Degrees", startDegrees[lastLocalTime], style)
             .setChangeListener { putValue(startDegrees, it) }
             .setIsSelectedListener { show(startDegrees) }
-        list += FloatInput(style, "End Degrees", endDegrees[lastLocalTime], AnimatedProperty.Type.FLOAT)
+        list += FloatInput("End Degrees", endDegrees[lastLocalTime], style)
             .setChangeListener { putValue(endDegrees, it) }
             .setIsSelectedListener { show(endDegrees) }
     }

@@ -2,12 +2,10 @@ package me.anno.io.base
 
 import me.anno.io.ISaveable
 import me.anno.io.utils.StringMap
-import me.anno.objects.Image
-import me.anno.objects.Text
-import me.anno.objects.Transform
-import me.anno.objects.Video
+import me.anno.objects.*
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.animation.Keyframe
+import me.anno.objects.effects.MaskLayer
 import me.anno.objects.geometric.Circle
 import me.anno.objects.geometric.Polygon
 import java.io.File
@@ -15,8 +13,8 @@ import java.lang.RuntimeException
 
 abstract class BaseReader {
 
-    val content = HashMap<Long, ISaveable>()
-    val missingReferences = HashMap<Long, ArrayList<Pair<Any, String>>>()
+    val content = HashMap<Int, ISaveable>()
+    val missingReferences = HashMap<Int, ArrayList<Pair<Any, String>>>()
 
     fun getNewClassInstance(clazz: String): ISaveable {
         return when(clazz){
@@ -35,17 +33,18 @@ abstract class BaseReader {
             "AnimatedProperty<color>" -> AnimatedProperty.color()
             "AnimatedProperty<quaternion>" -> AnimatedProperty.quat()
             "Keyframe" -> Keyframe<Any>(0f, 0f)
+            "MaskLayer" -> MaskLayer(null)
+            "Camera" -> Camera(null)
             else -> {
                 ISaveable.objectTypeRegistry[clazz]?.invoke() ?: throw RuntimeException("Unknown class $clazz")
             }
         }
     }
 
-    fun register(value: ISaveable){
-        val uuid = value.uuid
-        if(uuid != 0L){
-            content[uuid] = value
-            missingReferences[uuid]?.forEach { (obj, name) ->
+    fun register(value: ISaveable, ptr: Int){
+        if(ptr != 0){
+            content[ptr] = value
+            missingReferences[ptr]?.forEach { (obj, name) ->
                 when(obj){
                     is ISaveable -> {
                         obj.readObject(name, value)
@@ -59,7 +58,7 @@ abstract class BaseReader {
         } else println("Got object with uuid 0: $value, it will be ignored")
     }
 
-    fun addMissingReference(owner: Any, name: String, childPtr: Long){
+    fun addMissingReference(owner: Any, name: String, childPtr: Int){
         val list = missingReferences[childPtr]
         val entry = owner to name
         if(list != null){

@@ -53,19 +53,17 @@ object Layout {
 
         ui += options
 
-        GFX.root = Transform(null)
-        GFX.root.name = "Root"
+        root = Transform(null)
+        root.name = "Root"
         // val a = Transform(Vector3f(10f, 50f, 0f), Vector3f(1f,1f,1f), Quaternionf(1f,0f,0f,0f), root)
         // for(i in 0 until 3) Transform(null, null, null, a)
         // val b = Transform(null, null, null, root)
         // for(i in 0 until 2) Transform(null, null, null, b)
 
-        Camera(GFX.root)
-        Video(File("C:\\Users\\Antonio\\Videos\\Captures\\Cities_ Skylines 2020-01-06 19-32-23.mp4"), GFX.root)
-        val simpleText = Text("Hi! \uD83D\uDE09", GFX.root)
-        simpleText.color = AnimatedProperty.color().set(Vector4f(1f, 0.3f, 0.3f, 1f))
-
-        Image(File("C:/Users/Antonio/Downloads/tiger.svg"), root).position.addKeyframe(0f, Vector3f(0f, 0f, 0.01f), 0.1f)
+        Camera(root)
+        // Video(File("C:\\Users\\Antonio\\Videos\\Captures\\Cities_ Skylines 2020-01-06 19-32-23.mp4"), GFX.root)
+        // Text("Hi! \uD83D\uDE09", GFX.root)
+        // Image(File("C:/Users/Antonio/Downloads/tiger.svg"), root).position.addKeyframe(0f, Vector3f(0f, 0f, 0.01f), 0.1f)
 
         val animationWindow = CustomListX(style)
         customUI.add(animationWindow, 200f)

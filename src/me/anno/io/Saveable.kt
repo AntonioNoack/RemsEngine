@@ -8,15 +8,10 @@ import org.joml.Vector4f
 
 abstract class Saveable: ISaveable {
 
-    // for references from object to objects
-    override var uuid = 0L
-
     // abstract fun getClassName(): String
     // abstract fun getApproxSize(): Int
 
-    override fun save(writer: BaseWriter){
-        writer.writeLong("uuid", uuid)
-    }
+    override fun save(writer: BaseWriter){}
 
     override fun onReadingStarted(){}
     override fun onReadingEnded(){}
@@ -29,12 +24,7 @@ abstract class Saveable: ISaveable {
     override fun readInt(name: String, value: Int) = readSomething(name, value)
     override fun readFloat(name: String, value: Float) = readSomething(name, value)
     override fun readDouble(name: String, value: Double) = readSomething(name, value)
-    override fun readLong(name: String, value: Long){
-        when(name){
-            "uuid" -> uuid = value
-            else -> readSomething(name, value)
-        }
-    }
+    override fun readLong(name: String, value: Long) = readSomething(name, value)
     override fun readIntArray(name: String, value: IntArray) = readSomething(name, value)
     override fun readString(name: String, value: String) = readSomething(name, value)
     override fun readArray(name: String, value: List<ISaveable>) = readSomething(name, value)

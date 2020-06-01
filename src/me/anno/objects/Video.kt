@@ -110,10 +110,10 @@ class Video(var file: File, parent: Transform?): GFXTransform(parent){
             .setText(file.toString())
             .setChangeListener { text -> file = File(text) }
             .setIsSelectedListener { GFX.selectedProperty = null }
-        list += FloatInput(style, "Video Start", startTime, AnimatedProperty.Type.FLOAT)
+        list += FloatInput("Video Start", startTime, style)
             .setChangeListener { startTime = it }
             .setIsSelectedListener { GFX.selectedProperty = null }
-        list += FloatInput(style, "Video End", endTime, AnimatedProperty.Type.FLOAT)
+        list += FloatInput("Video End", endTime, style)
             .setChangeListener { endTime = it }
             .setIsSelectedListener { GFX.selectedProperty = null }
         // todo a third mode, where the video is reversed after playing?
@@ -133,7 +133,7 @@ class Video(var file: File, parent: Transform?): GFXTransform(parent){
         writer.writeString("path", file.toString())
         writer.writeFloat("startTime", startTime)
         writer.writeFloat("endTime", endTime)
-        writer.writeBool("nearestFiltering", nearestFiltering)
+        writer.writeBool("nearestFiltering", nearestFiltering, true)
     }
 
     override fun readString(name: String, value: String) {

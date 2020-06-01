@@ -1,13 +1,16 @@
 package me.anno.gpu.framebuffer
 
+import me.anno.gpu.GFX
 import me.anno.gpu.texture.Texture2D
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL13
 import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL30.*
+import java.awt.Frame
 import java.lang.RuntimeException
+import java.util.*
 
-class Framebuffer(val w: Int, val h: Int, val targetCount: Int, val fpTargets: Boolean, val createDepthBuffer: Boolean){
+class Framebuffer(var w: Int, var h: Int, val targetCount: Int, val fpTargets: Boolean, val createDepthBuffer: Boolean){
 
     var pointer = -1
     var depthRenderBuffer = -1
@@ -16,8 +19,19 @@ class Framebuffer(val w: Int, val h: Int, val targetCount: Int, val fpTargets: B
 
     fun bind(){
         if(pointer < 0) create()
+        currentFramebuffer = this
         glBindFramebuffer(GL_FRAMEBUFFER, pointer)
         glViewport(0,0, w, h)
+    }
+
+    fun bind(newWidth: Int, newHeight: Int){
+        if(newWidth != w || newHeight != h){
+            w = newWidth
+            h = newHeight
+            destroy()
+            create()
+        }
+        bind()
     }
 
     fun create(){
@@ -68,5 +82,35 @@ class Framebuffer(val w: Int, val h: Int, val targetCount: Int, val fpTargets: B
         }
     }
 
+    companion object {
+        private var currentFramebuffer: Framebuffer? = null
+        val stack = Stack<Framebuffer>()
+        fun bindNull(){
+            currentFramebuffer = null
+        }
+        fun bindNullTemporary(){
+            stack.push(currentFramebuffer)
+            bindNull()
+        }
+        fun unbindNull(){
+            if(stack.isEmpty()) throw RuntimeException("No framebuffer was found!")
+            stack.pop().bind()
+        }
+    }
+
+    fun bindTemporary(newWidth: Int, newHeight: Int){
+        stack.push(currentFramebuffer)
+        bind(newWidth, newHeight)
+    }
+
+    fun bindTemporary(){
+        stack.push(currentFramebuffer)
+        bind()
+    }
+
+    fun unbind(){
+        if(stack.isEmpty()) throw RuntimeException("No framebuffer was found!")
+        stack.pop().bind()
+    }
 
 }
