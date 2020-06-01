@@ -16,7 +16,7 @@ import java.lang.RuntimeException
 abstract class BaseReader {
 
     val content = HashMap<Long, ISaveable>()
-    val missingReferences = HashMap<Long, ArrayList<Pair<ISaveable, String>>>()
+    val missingReferences = HashMap<Long, ArrayList<Pair<Any, String>>>()
 
     fun getNewClassInstance(clazz: String): ISaveable {
         return when(clazz){
@@ -46,12 +46,20 @@ abstract class BaseReader {
         if(uuid != 0L){
             content[uuid] = value
             missingReferences[uuid]?.forEach { (obj, name) ->
-                obj.readObject(name, value)
+                when(obj){
+                    is ISaveable -> {
+                        obj.readObject(name, value)
+                    }
+                    is MissingListElement -> {
+                        obj.target[obj.targetIndex] = value
+                    }
+                    else -> throw RuntimeException("Unknown missing reference type")
+                }
             }
-        } else println("got object with uuid 0: $value, it will be ignored")
+        } else println("Got object with uuid 0: $value, it will be ignored")
     }
 
-    fun addMissingReference(owner: ISaveable, name: String, childPtr: Long){
+    fun addMissingReference(owner: Any, name: String, childPtr: Long){
         val list = missingReferences[childPtr]
         val entry = owner to name
         if(list != null){

@@ -43,6 +43,12 @@ interface ISaveable {
     fun readVector3(name: String, value: Vector3f)
     fun readVector4(name: String, value: Vector4f)
 
+    /**
+     * is not guaranteed to contain no nulls, even if is in file like that;
+     * reader must wait for onReadingEnded()
+     * */
+    fun readObjectList(name: String, values: List<ISaveable?>)
+
     companion object {
 
         val objectTypeRegistry = HashMap<String, () -> ISaveable>()

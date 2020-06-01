@@ -77,8 +77,8 @@ class Polygon(parent: Transform?): GFXTransform(parent){
 
     companion object {
 
-        val minEdges = 3
-        val maxEdges = DefaultConfig["polygon.maxEdges", 1000]
+        private const val minEdges = 3
+        private val maxEdges = DefaultConfig["polygon.maxEdges", 1000]
 
         fun getBuffer(n: Int): StaticFloatBuffer {
             if(n < minEdges) return getBuffer(minEdges)
@@ -89,7 +89,7 @@ class Polygon(parent: Transform?): GFXTransform(parent){
             return cached.buffer
         }
 
-        fun createBuffer(n: Int): StaticFloatBuffer {
+        private fun createBuffer(n: Int): StaticFloatBuffer {
             val buffer = StaticFloatBuffer(listOf(Attribute("attr0", 2), Attribute("attr1", 2)), n * 3 * 4)
             val angles = FloatArray(n+1){ i -> (i*Math.PI*2.0/n).toFloat() }
             val sin = angles.map { sin(it)*.5f+.5f }

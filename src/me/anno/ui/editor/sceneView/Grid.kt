@@ -23,9 +23,9 @@ import kotlin.math.log10
 
 object Grid {
 
-    private val xAxisColor = parseColor(DefaultConfig["grid.axis.x.color", "#ff7777"]) ?: 0
-    private val yAxisColor = parseColor(DefaultConfig["grid.axis.y.color", "#77ff77"]) ?: 0
-    private val zAxisColor = parseColor(DefaultConfig["grid.axis.z.color", "#7777ff"]) ?: 0
+    private val xAxisColor = parseColor(DefaultConfig["grid.axis.x.color", "#ff7777"]) ?: 0xff7777
+    private val yAxisColor = parseColor(DefaultConfig["grid.axis.y.color", "#77ff77"]) ?: 0x77ff77
+    private val zAxisColor = parseColor(DefaultConfig["grid.axis.z.color", "#7777ff"]) ?: 0x7777ff
 
     private val gridBuffer = StaticFloatBuffer(listOf(Attribute("attr0", 2)), 201 * 8)
     private val lineBuffer = StaticFloatBuffer(listOf(Attribute("attr0", 2)), 4)

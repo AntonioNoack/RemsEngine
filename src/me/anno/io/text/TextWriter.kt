@@ -40,12 +40,49 @@ class TextWriter(val beautify: Boolean): BaseWriter() {
     }
 
     fun writeEscaped(value: String){
-        // todo escape the string further
-        data += value
-            .replace("\\", "\\\\")
-            .replace("\r", "\\r")
-            .replace("\n", "\\n")
-            .replace("\t", "\\t")
+        var i = 0
+        var lastI = 0
+        fun put(){
+            if(i > lastI){
+                data += value.substring(lastI, i)
+            }
+            lastI = i+1
+        }
+        while(i < value.length){
+            when(value[i]){
+                '\\' -> {
+                    put()
+                    data += "\\\\"
+                }
+                '\t' -> {
+                    put()
+                    data += "\\t"
+                }
+                '\r' -> {
+                    put()
+                    data += "\\r"
+                }
+                '\n' -> {
+                    put()
+                    data += "\\n"
+                }
+                '"' -> {
+                    put()
+                    data += "\\\""
+                }
+                '\b' -> {
+                    put()
+                    data += "\\b"
+                }
+                12.toChar() -> {
+                    put()
+                    data += "\\f"
+                }
+                else -> {} // nothing
+            }
+            i++
+        }
+        put()
     }
 
     fun writeString(value: String){
@@ -54,18 +91,22 @@ class TextWriter(val beautify: Boolean): BaseWriter() {
         data += '"'
     }
 
-    fun writeTypeNameString(type: String, name: String){
-        data += '"'
-        writeEscaped(type)
-        data += ':'
-        writeEscaped(name)
-        data += '"'
+    fun writeTypeNameString(type: String, name: String?){
+        if(name != null){
+            data += '"'
+            writeEscaped(type)
+            data += ':'
+            writeEscaped(name)
+            data += '"'
+        }
     }
 
-    fun writeAttributeStart(type: String, name: String){
-        next()
-        writeTypeNameString(type, name)
-        data += ':'
+    fun writeAttributeStart(type: String, name: String?){
+        if(name != null){
+            next()
+            writeTypeNameString(type, name)
+            data += ':'
+        }
     }
 
     override fun writeBool(name: String, value: Boolean, force: Boolean) {
@@ -168,7 +209,8 @@ class TextWriter(val beautify: Boolean): BaseWriter() {
         }
     }
 
-    override fun writeNull(name: String) {
+    override fun writeNull(name: String?) {
+        writeAttributeStart("?", name)
         data += "null"
     }
 
@@ -187,8 +229,21 @@ class TextWriter(val beautify: Boolean): BaseWriter() {
 
     override fun <V : Saveable> writeList(self: ISaveable?, name: String, elements: List<V>?, force: Boolean) {
         // todo a real list...
-        elements?.forEach {
-            writeObject(self, name, it, force)
+        if(elements != null && elements.isNotEmpty()){
+            val type = elements.first().getClassName()
+            val isSameType = elements.firstOrNull { it.getClassName() != type } == null
+            if(isSameType){
+                writeAttributeStart("$type[]", name)
+                open(true)
+                elements.forEach {
+                    writeObject(self, null, it, force)
+                }
+                close(true)
+            } else {
+                elements.forEach {
+                    writeObject(self, name, it, force)
+                }
+            }
         }
     }
 
@@ -258,7 +313,7 @@ class TextWriter(val beautify: Boolean): BaseWriter() {
         close(false)
     }
 
-    override fun writePointer(name: String, className: String, uuid: Long) {
+    override fun writePointer(name: String?, className: String, uuid: Long) {
         writeAttributeStart(className, name)
         data += uuid.toString()
     }

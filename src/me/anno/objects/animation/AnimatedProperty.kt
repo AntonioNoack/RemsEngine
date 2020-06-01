@@ -145,6 +145,21 @@ class AnimatedProperty<V>(val type: Type): Saveable(){
         keyframes.sort()
     }
 
+    override fun readObjectList(name: String, values: List<ISaveable?>) {
+        when(name){
+            "keyframes" -> {// keyframes have a smaller size than ourselves,
+                // so they should be serialized directly, so we don't have to worry
+                // about values which are loaded later
+                values.forEach { value ->
+                    if(value is Keyframe<*> && type.accepts(value.value)){
+                        addKeyframe(value.time, value.value!!, 1e-5f)
+                    } else println("dropped keyframe!, incompatible type $value")
+                }
+            }
+            else -> super.readObjectList(name, values)
+        }
+    }
+
     override fun readObject(name: String, value: ISaveable?) {
         when(name){
             "keyframes" -> {

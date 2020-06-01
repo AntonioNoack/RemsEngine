@@ -31,7 +31,7 @@ abstract class BaseWriter {
     abstract fun writeVector3(name: String, value: Vector3f, force: Boolean = false)
     abstract fun writeVector4(name: String, value: Vector4f, force: Boolean = false)
 
-    fun writeObject(self: ISaveable?, name: String, value: ISaveable?, force: Boolean = false){
+    fun writeObject(self: ISaveable?, name: String?, value: ISaveable?, force: Boolean = false){
         if(!force && value == null) return
         if(value == null){
             writeNull(name)
@@ -62,8 +62,8 @@ abstract class BaseWriter {
         }
     }
 
-    abstract fun writeNull(name: String)
-    abstract fun writePointer(name: String, className: String, uuid: Long)
+    abstract fun writeNull(name: String?)
+    abstract fun writePointer(name: String?, className: String, uuid: Long)
     abstract fun writeObjectImpl(name: String?, value: ISaveable)
 
     abstract fun <V: Saveable> writeList(self: ISaveable?, name: String, elements: List<V>?, force: Boolean = false)
