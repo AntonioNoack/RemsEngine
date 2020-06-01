@@ -79,7 +79,7 @@ object Input {
 
         GLFW.glfwSetCharCallback(window) { _, codepoint ->
             addEvent {
-                println("char event $codepoint")
+                // println("char event $codepoint")
             }
         }
 
@@ -87,7 +87,7 @@ object Input {
             addEvent {
                 inFocus?.onCharTyped(mouseX, mouseY, codepoint)
                 keyModState = mods
-                println("char mods event $codepoint $mods")
+                // println("char mods event $codepoint $mods")
             }
         }
         GLFW.glfwSetCursorPosCallback(window) { _, xpos, ypos ->
@@ -225,7 +225,7 @@ object Input {
                     } // 265
                     GLFW.GLFW_REPEAT -> keyTyped(key)
                 }
-                println("event $key $scancode $action $mods")
+                // println("event $key $scancode $action $mods")
                 keyModState = mods
             }
         }

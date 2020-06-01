@@ -21,10 +21,10 @@ fun getStrictLineIntersection(
     val innerDistance = d1+d2+d3+d4
     val totalDistance = v1.distance(v2) + v3.distance(v4)
     val isInside = innerDistance < 1.00001f * totalDistance
-    val margin = totalDistance * 0.00001f
+    val margin = totalDistance * 0.0001f
     val isVeryClose = d1 <= margin || d2 <= margin || d3 <= margin || d4 <= margin
     return if(isInside && !isVeryClose){
-        println("$margin, all larger: $d1 $d2 $d3 $d4, $innerDistance < $totalDistance")
+        // println("$margin, all larger: $d1 $d2 $d3 $d4, $innerDistance < $totalDistance")
         result
     } else null
 }

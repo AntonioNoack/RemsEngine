@@ -1,6 +1,7 @@
-package me.anno.io.xml
+package me.anno.objects.meshes.svg
 
-import me.anno.objects.meshes.svg.SVG
+import me.anno.io.xml.XMLElement
+import me.anno.io.xml.XMLReader
 import java.io.ByteArrayInputStream
 import java.io.File
 
@@ -23,7 +24,7 @@ fun main(){
 }
 
 fun testSVG(text: String){
-    SVG().parse(XMLReader.parse(ByteArrayInputStream(text.toByteArray())) as XMLElement)
+    SVGMesh().parse(XMLReader.parse(ByteArrayInputStream(text.toByteArray())) as XMLElement)
 }
 
 fun testXML(text: String){

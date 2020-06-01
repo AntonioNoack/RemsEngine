@@ -48,13 +48,60 @@ object XMLReader {
         }
     }
 
+    fun InputStream.readUntil(end: String){
+        val size = end.length
+        val reversed = end.reversed()
+        val buffer = CharArray(size)
+        search@ while(true){
+            for(i in 1 until size){
+                buffer[i] = buffer[i-1]
+            }
+            val here = read()
+            if(here == -1) throw EOFException()
+            buffer[0] = here.toChar()
+            for((i, target) in reversed.withIndex()){
+                if(buffer[i] != target) continue@search
+            }
+            break
+        }
+    }
+
     fun parse(input: InputStream) = parse(null, input)
     fun parse(firstChar: Int?, input: InputStream): Any? {
 
         when(val first = firstChar ?: input.skipSpaces()){
             '<'.toInt() -> {
                 val (name, end) = input.readTypeUntilSpaceOrEnd()
-                if(name.startsWith("/")) return endElement
+                // println(name)
+                when {
+                    name.startsWith("?xml", true) -> {
+                        // <?xml version="1.0" encoding="utf-8"?>
+                        // I don't really care about it
+                        // read until ?>
+                        input.readUntil("?>")
+                        return parse(null, input)
+                    }
+                    name.startsWith("!--") -> {
+                        // search until -->
+                        input.readUntil("-->")
+                        return parse(null, input)
+                    }
+                    name.startsWith("!doctype", true) -> {
+                        var ctr = 1
+                        while(ctr > 0){
+                            when(input.read()){
+                                '<'.toInt() -> ctr++
+                                '>'.toInt() -> ctr--
+                            }
+                        }
+                        return parse(null, input)
+                    }
+                    name.startsWith("![CDATA[", true) -> {
+                        input.readUntil("]]>")
+                        return parse(null, input)
+                    }
+                    name.startsWith('/') -> return endElement
+                }
                 val xmlElement = XMLElement(name)
                 // / is the end of an element
                 var end2 = end
@@ -63,7 +110,9 @@ object XMLReader {
                     // read the properties
                     propertySearch@ while(true){
                         // name="value"
+                        if(next < 0) next = input.skipSpaces()
                         val (propName, propEnd) = input.readTypeUntilSpaceOrEnd()
+                        // println("  '${if(next < 0) "" else next.toChar().toString()}$propName' '${propEnd.toChar()}'")
                         assert(propEnd, '=')
                         assert(input.read(), '"')
                         val value = input.readString()

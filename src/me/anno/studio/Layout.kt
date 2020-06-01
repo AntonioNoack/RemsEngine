@@ -2,12 +2,10 @@ package me.anno.studio
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.root
 import me.anno.gpu.Window
 import me.anno.input.Input
-import me.anno.objects.Camera
-import me.anno.objects.Text
-import me.anno.objects.Transform
-import me.anno.objects.Video
+import me.anno.objects.*
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.studio.RemsStudio.console
 import me.anno.studio.RemsStudio.inspector
@@ -22,6 +20,7 @@ import me.anno.ui.custom.CustomListY
 import me.anno.ui.editor.*
 import me.anno.ui.editor.sceneView.SceneView
 import me.anno.ui.editor.timeline.Timeline
+import org.joml.Vector3f
 import org.joml.Vector4f
 import java.io.File
 import java.io.OutputStream
@@ -65,6 +64,8 @@ object Layout {
         Video(File("C:\\Users\\Antonio\\Videos\\Captures\\Cities_ Skylines 2020-01-06 19-32-23.mp4"), GFX.root)
         val simpleText = Text("Hi! \uD83D\uDE09", GFX.root)
         simpleText.color = AnimatedProperty.color().set(Vector4f(1f, 0.3f, 0.3f, 1f))
+
+        Image(File("C:/Users/Antonio/Downloads/tiger.svg"), root).position.addKeyframe(0f, Vector3f(0f, 0f, 0.01f), 0.1f)
 
         val animationWindow = CustomListX(style)
         customUI.add(animationWindow, 200f)

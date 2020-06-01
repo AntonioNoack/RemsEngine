@@ -18,7 +18,7 @@ class Style(val prefix: String?, val suffix: String?){
         return if(value != null) getMaybe(fullName, value, defaultValue)
         else {
 
-            warn("Missing config/style/$name")
+            // warn("Missing config/style/$name")
 
             val index = name.indexOf('.')
             val index2 = name.indexOf('.', index+1)
@@ -39,7 +39,7 @@ class Style(val prefix: String?, val suffix: String?){
         return if(value != null) value.toString()
         else {
 
-            warn("Missing config/style/$name")
+            // warn("Missing config/style/$name")
 
             val index = name.indexOf('.')
             val index2 = name.indexOf('.', index+1)

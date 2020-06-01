@@ -16,19 +16,19 @@ class CustomListX(style: Style): PanelListX(style), CustomList {
         spacing = style.getSize("custom.drag.size", 2)
     }
 
-    val minSize = 10f
+    val minSize get() = 10f / w
 
     val weights = HashMap<Panel, Float>()
 
     fun change(p: Panel, delta: Float){
-        weights[p] = clamp((weights[p] ?: 0f) + delta, minSize, w.toFloat())
+        weights[p] = clamp((weights[p] ?: 0f) + delta, minSize, 1f)
     }
 
     override fun move(index: Int, delta: Float) {
         val c1 = children[index-1]
         val c2 = children[index+1]
-        change(c1, +delta)
-        change(c2, -delta)
+        change(c1, +delta/w.toFloat())
+        change(c2, -delta/w.toFloat())
         // println(children.filter { it !is CustomizingBar }.joinToString { weights[it].toString() })
     }
 
@@ -37,14 +37,21 @@ class CustomListX(style: Style): PanelListX(style), CustomList {
         if(index > 0){
             super.add(CustomizingBar(index, spacing, 0, style))
         }
-        weights[child] = 100f
+        weights[child] = 1f
         return super.add(child)
     }
 
     fun add(child: Panel, weight: Float): PanelList {
         add(child)
-        weights[child] = weight
+        weights[child] = weight/100f
         return this
+    }
+
+    override fun calculateSize(w: Int, h: Int) {
+        this.w = w
+        this.h = h
+        minW = 10
+        minH = 10
     }
 
     override fun placeInParent(x: Int, y: Int) {
@@ -64,7 +71,7 @@ class CustomListX(style: Style): PanelListX(style), CustomList {
 
             val available = w - (children.size/2) * spacing
             val sumWeight = weights.values.sum()
-            val weightScale = w / sumWeight
+            val weightScale = 1f / sumWeight
 
             var childX = this.x
             for(child in children.filter { it.visibility != Visibility.GONE }){

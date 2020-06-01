@@ -1,24 +1,50 @@
 package me.anno.objects.meshes.svg
 
+import me.anno.gpu.buffer.Attribute
+import me.anno.gpu.buffer.StaticFloatBuffer
 import me.anno.io.xml.XMLElement
+import me.anno.utils.clamp
 import org.joml.Vector2f
+import java.awt.Color
+import java.awt.Graphics2D
+import java.awt.image.BufferedImage
+import java.io.File
+import java.lang.Exception
 import java.lang.RuntimeException
+import javax.imageio.ImageIO
 import kotlin.math.*
 
-class SVG {
+// todo animated svg
+// todo transforms
+// todo gradients
+// todo don't use depth, use booleans on triangles to remove flickering
 
-    // todo read svg
-    // todo create mesh with colors and gradients from svg
+class SVGMesh {
 
-    val stepsPerDegree = 1f
+    // read svg
+    // creates mesh with colors
+
+    val stepsPerDegree = 0.1f
 
     var z = 0f
     val deltaZ = 0.001f
 
     fun parse(svg: XMLElement){
-        svg.children.forEach {
+        parseChildren(svg.children, null)
+        val viewBox = (svg["viewBox"] ?: "0 0 100 100").split(' ').map { it.toFloat() }
+        createMesh(viewBox[0], viewBox[1], viewBox[2], viewBox[3])
+    }
+
+    fun parseChildren(children: List<Any>, parentGroup: XMLElement?){
+        children.forEach {
             (it as? XMLElement)?.apply {
                 convertStyle(this)
+                parentGroup?.properties?.forEach { key, value ->
+                    // todo apply transforms differently
+                    if(key !in this.properties){
+                        this[key] = value
+                    }
+                }
                 val style = SVGStyle(this)
                 when(type.toLowerCase()){
                     "circle" -> {
@@ -48,10 +74,69 @@ class SVG {
                         if(style.isFill) addPath(this, style, true)
                         if(style.isStroke) addPath(this, style, false)
                     }
+                    "g" -> {
+                        parseChildren(this.children, this)
+                    }
+                    "switch", "foreignobject", "i:pgfref", "i:pgf" -> {
+                        parseChildren(this.children, parentGroup)
+                    }
                     else -> throw RuntimeException("Unknown svg element $type")
                 }
             }
         }
+    }
+
+    var buffer: StaticFloatBuffer? = null
+
+    fun debugMesh(x: Float, y: Float, w: Float, h: Float){
+        val x0 = x+w/2
+        val y0 = y+h/2
+        val debugImageSize = 1000
+        val scale = debugImageSize/h
+        val img = BufferedImage(debugImageSize, debugImageSize, 1)
+        val gfx = img.graphics as Graphics2D
+        fun ix(v: Vector2f) = debugImageSize/2 + ((v.x-x0)*scale).roundToInt()
+        fun iy(v: Vector2f) = debugImageSize/2 + ((v.y-y0)*scale).roundToInt()
+        curves.forEach {
+            val color = it.color or 0x333333
+            val triangles = it.triangles
+            gfx.color = Color(color, false)
+            for(i in triangles.indices step 3){
+                val a = triangles[i]
+                val b = triangles[i+1]
+                val c = triangles[i+2]
+                gfx.drawLine(ix(a), iy(a), ix(b), iy(b))
+                gfx.drawLine(ix(b), iy(b), ix(c), iy(c))
+                gfx.drawLine(ix(c), iy(c), ix(a), iy(a))
+            }
+        }
+        ImageIO.write(img, "png", File("C:/Users/Antonio/Desktop/svg/tiger.png"))
+    }
+
+    fun createMesh(x0: Float, y0: Float, w: Float, h: Float){
+        val scale = 1f/h
+        val totalPointCount = curves.sumBy { it.triangles.size }
+        val totalFloatCount = totalPointCount * 7 // xyz, rgba
+        if(totalPointCount > 0){
+            val buffer = StaticFloatBuffer(listOf(
+                Attribute("attr0",3), Attribute("attr1", 4)
+            ), totalFloatCount)
+            this.buffer = buffer
+            curves.forEach {
+                val color = it.color
+                val r = color.shr(16).and(255)/255f
+                val g = color.shr(8).and(255)/255f
+                val b = color.and(255)/255f
+                val a = color.shr(24).and(255)/255f
+                it.triangles.forEach { v ->
+                    buffer.put((v.x-x0)*scale, (v.y-y0)*scale, it.depth)
+                    //buffer.put(Math.random().toFloat(), Math.random().toFloat(), Math.random().toFloat(), Math.random().toFloat())
+                    //println(Vector3f((v.x-x0)*scale, (v.y-y0)*scale, it.depth).print())
+                    buffer.put(r, g, b, a)
+                }
+            }
+        }
+        // println("created buffer $x $y $scale of curves with size $totalPointCount")
     }
 
     fun convertStyle(xml: XMLElement){
@@ -105,7 +190,7 @@ class SVG {
             var j = i
             spaces@while(true){
                 when(data[j]){
-                    ' ', '\t', '\r', '\n' -> j++
+                    ' ', '\t', '\r', '\n', ',' -> j++
                     else -> break@spaces
                 }
             }
@@ -165,32 +250,37 @@ class SVG {
 
         var lastAction = ' '
         fun parseAction(symbol: Char): Boolean {
-            when(symbol){
-                ' ', '\t', '\r', '\n' -> return false
-                'M' -> moveTo(read(), read())
-                'm' -> moveTo(x + read(), y + read())
-                'L' -> lineTo(read(), read())
-                'l' -> lineTo(x + read(), y + read())
-                'H' -> lineTo(read(), y)
-                'h' -> lineTo(x + read(), y)
-                'V' -> lineTo(x, read())
-                'v' -> lineTo(x, y + read())
-                'C' -> cubicTo(read(), read(), read(), read(), read(), read())
-                'c' -> cubicTo(x + read(), y + read(), x + read(), y + read(), x + read(), y + read())
-                'S' -> cubicTo(reflectedX, reflectedY, read(), read(), read(), read())
-                's' -> cubicTo(reflectedX, reflectedY, x + read(), y + read(), x + read(), y + read())
-                'Q' -> quadraticTo(read(), read(), read(), read())
-                'q' -> quadraticTo(x + read(), y + read(), x + read(), y + read())
-                'T' -> quadraticTo(reflectedX, reflectedY, read(), read())
-                't' -> quadraticTo(reflectedX, reflectedY, x + read(), y + read())
-                'A' -> arcTo(read(), read(), read(), read(), read(), read(), read())
-                'a' -> arcTo(read(), read(), read(), read(), read(), x + read(), y + read())
-                'Z', 'z' -> close()
-                else -> {
-                    i--
-                    parseAction(lastAction)
-                    return false
+            try {
+                when(symbol){
+                    ' ', '\t', '\r', '\n' -> return false
+                    'M' -> moveTo(read(), read())
+                    'm' -> moveTo(x + read(), y + read())
+                    'L' -> lineTo(read(), read())
+                    'l' -> lineTo(x + read(), y + read())
+                    'H' -> lineTo(read(), y)
+                    'h' -> lineTo(x + read(), y)
+                    'V' -> lineTo(x, read())
+                    'v' -> lineTo(x, y + read())
+                    'C' -> cubicTo(read(), read(), read(), read(), read(), read())
+                    'c' -> cubicTo(x + read(), y + read(), x + read(), y + read(), x + read(), y + read())
+                    'S' -> cubicTo(reflectedX, reflectedY, read(), read(), read(), read())
+                    's' -> cubicTo(reflectedX, reflectedY, x + read(), y + read(), x + read(), y + read())
+                    'Q' -> quadraticTo(read(), read(), read(), read())
+                    'q' -> quadraticTo(x + read(), y + read(), x + read(), y + read())
+                    'T' -> quadraticTo(reflectedX, reflectedY, read(), read())
+                    't' -> quadraticTo(reflectedX, reflectedY, x + read(), y + read())
+                    'A' -> arcTo(read(), read(), read(), read(), read(), read(), read())
+                    'a' -> arcTo(read(), read(), read(), read(), read(), x + read(), y + read())
+                    'Z', 'z' -> close()
+                    else -> {
+                        i--
+                        parseAction(lastAction)
+                        return false
+                    }
                 }
+            } catch (e: Exception){
+                println(data)
+                throw e
             }
             return true
         }
@@ -233,7 +323,7 @@ class SVG {
     }
 
     fun addSimpleEllipse(cx: Float, cy: Float, rx: Float, ry: Float){
-        val steps = 360
+        val steps = max(7, (360 * stepsPerDegree).roundToInt())
         moveTo(cx + rx, cy)
         for(i in 1 until steps){
             val f = (PI*2*i/steps).toFloat()
@@ -250,8 +340,8 @@ class SVG {
         val ry = max(xml["ry"]?.toFloatOrNull() ?: 0f, 0f)
         val x = xml["x"]!!.toFloat()
         val y = xml["y"]!!.toFloat()
-        val w = xml["w"]!!.toFloat()
-        val h = xml["h"]!!.toFloat()
+        val w = xml["width"]!!.toFloat()
+        val h = xml["height"]!!.toFloat()
 
         if(rx > 0f || ry > 0f){
 
@@ -295,7 +385,7 @@ class SVG {
     fun angleDegrees(dx1: Float, dy1: Float, dx2: Float, dy2: Float): Float {
         val div = (dx1*dx1+dy1*dy1) * (dx2*dx2+dy2*dy2)
         if(div == 0f) return 57f
-        return 57.2957795f * (acos((dx1*dx2 + dy1*dy2) / sqrt(div)))
+        return 57.2957795f * (acos(clamp((dx1*dx2 + dy1*dy2) / sqrt(div), -1f, 1f)))
     }
 
     fun steps(dx1: Float, dy1: Float, dx2: Float, dy2: Float) =

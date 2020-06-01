@@ -144,6 +144,12 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
         Grid.draw(stack, cameraTransform)
         stack.popMatrix()
 
+        if(camera.useDepth){
+            glEnable(GL_DEPTH_TEST)
+        } else {
+            glDisable(GL_DEPTH_TEST)
+        }
+
         stack.pushMatrix()
         // root.draw(stack, editorHoverTime, Vector4f(1f,1f,1f,1f))
         nullCamera.draw(stack, editorTime, white)

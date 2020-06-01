@@ -109,6 +109,7 @@ object GFX: GFXBase() {
     lateinit var shader3DARGB: Shader
     lateinit var shader3DBGRA: Shader
     lateinit var shader3DCircle: Shader
+    lateinit var shader3DSVG: Shader
     lateinit var lineShader3D: Shader
 
     val whiteTexture = Texture2D(1, 1)
@@ -353,6 +354,14 @@ object GFX: GFXBase() {
         check()
     }
 
+    fun draw3DSVG(stack: Matrix4fStack, buffer: StaticFloatBuffer, texture: Texture2D, color: Vector4f, isBillboard: Float, nearestFiltering: Boolean){
+        val shader = shader3DSVG
+        shader3DUniforms(shader, stack, 1,1 , color, isBillboard)
+        texture.bind(0, nearestFiltering)
+        buffer.draw(shader)
+        check()
+    }
+
     fun String.endSpaceCount(): Int {
         var spaceCount = 0
         var index = lastIndex
@@ -432,56 +441,87 @@ object GFX: GFXBase() {
         subpixelCorrectTextShader.use()
         GL20.glUniform1i(subpixelCorrectTextShader["tex"], 0)
 
-        // todo test this shader...
-        // with texture
+        val positionPostProcessing = "" +
+                ""
+
+        val colorPostProcessing = "" +
+                "   gl_FragColor.rgb *= gl_FragColor.rgb;\n"
 
         val v3DBase = "" +
-                "a2 $flat01Name;\n" +
                 "u2 pos, size, billboardSize;\n" +
                 "uniform mat4 transform;\n" +
                 "uniform float isBillboard;\n" +
                 "" +
-                "vec4 billboardTransform(vec2 betterUV){" +
+                "vec4 billboardTransform(vec2 betterUV, float z){" +
                 "   vec4 pos0 = transform * vec4(0.0,0.0,0.0,1.0);\n" +
                 "   pos0.xy += betterUV * billboardSize;\n" +
+                "   pos0.z += z;\n" +
                 "   return pos0;\n" +
                 "}" +
                 "" +
-                "vec4 transform3D(vec2 betterUV){" +
+                "vec4 transform3D(vec2 betterUV){\n" +
                 "   return transform * vec4(betterUV, 0.0, 1.0);\n" +
-                "}"
+                "}\n"
 
 
         val v3D = v3DBase +
+                "a2 attr0;\n" +
                 "void main(){\n" +
-                "   vec2 betterUV = (pos + $flat01Name * size);\n" +
-                "   vec4 billboard = billboardTransform(betterUV);\n" +
+                "   vec2 betterUV = (pos + attr0 * size);\n" +
+                "   vec4 billboard = billboardTransform(betterUV, 0.0);\n" +
                 "   vec4 in3D = transform3D(betterUV);\n" +
                 "   gl_Position = mix(in3D, billboard, isBillboard);\n" +
-                "   uv = $flat01Name;\n" +
+                positionPostProcessing +
+                "   uv = attr0;\n" +
                 "}"
 
         val v3DPolygon = v3DBase +
+                "a2 attr0;\n" +
                 "in vec2 attr1;\n" +
                 "uniform float inset;\n" +
                 "void main(){\n" +
-                "   vec2 betterUV = (pos + $flat01Name * size);\n" +
+                "   vec2 betterUV = (pos + attr0 * size);\n" +
                 "   betterUV *= mix(1.0, attr1.r, inset);\n" +
-                "   vec4 billboard = billboardTransform(betterUV);\n" +
+                "   vec4 billboard = billboardTransform(betterUV, 0.0);\n" +
                 "   vec4 in3D = transform3D(betterUV);\n" +
                 "   gl_Position = mix(in3D, billboard, isBillboard);\n" +
+                positionPostProcessing +
                 "   uv = attr1.yx;\n" +
+                "}"
+
+        val v3DSVG = v3DBase +
+                "a3 attr0;\n" +
+                "a4 attr1;\n" +
+                "void main(){\n" +
+                "   vec2 betterUV = (pos + attr0.xy * size);\n" +
+                "   vec4 billboard = billboardTransform(betterUV, attr0.z);\n" +
+                "   vec4 in3D = transform * vec4(betterUV, attr0.z, 1.0);\n" +
+                "   gl_Position = mix(in3D, billboard, isBillboard);\n" +
+                positionPostProcessing +
+                "   uv = attr0.xy;\n" +
+                "   color = attr1;\n" +
                 "}"
 
         val y3D = "" +
                 "varying v2 uv;\n"
+
+        val y3DSVG = y3D +
+                "varying v4 color;\n"
 
         val f3D = "" +
                 "uniform vec4 tint;" +
                 "uniform sampler2D tex;\n" +
                 "void main(){\n" +
                 "   gl_FragColor = tint * texture(tex, uv);\n" +
-                "   gl_FragColor.rgb *= gl_FragColor.rgb;\n" +
+                colorPostProcessing +
+                "}"
+
+        val f3DSVG = "" +
+                "uniform vec4 tint;" +
+                "uniform sampler2D tex;\n" +
+                "void main(){\n" +
+                "   gl_FragColor = tint * color * texture(tex, uv);\n" +
+                colorPostProcessing +
                 "}"
 
         // todo anti-aliasing... -> taa?
@@ -490,7 +530,7 @@ object GFX: GFXBase() {
                 "u3 circleParams;\n" + // r², start, end
                 "void main(){\n" +
                 "   gl_FragColor = tint;\n" +
-                "   gl_FragColor.rgb *= gl_FragColor.rgb;\n" +
+                colorPostProcessing +
                 "   vec2 d0 = uv*2.-1.;\n" +
                 "   float dst = dot(d0,d0);\n" +
                 "   if(dst > 1.0 || dst < circleParams.r) discard;\n" +
@@ -504,7 +544,6 @@ object GFX: GFXBase() {
                 "   }" +
                 "}"
 
-
         val f3DYUV = "" +
                 "uniform vec4 tint;" +
                 "uniform sampler2D texY, texU, texV;\n" +
@@ -516,12 +555,14 @@ object GFX: GFXBase() {
                 "       dot(yuv, vec3( 1.164, -0.392, -0.813))," +
                 "       dot(yuv, vec3( 1.164,  2.017,  0.000)));\n" +
                 "   gl_FragColor = vec4(tint.rgb * rgb, tint.a);\n" +
-                "   gl_FragColor.rgb *= gl_FragColor.rgb;\n" +
+                colorPostProcessing +
                 "}"
 
         shader3D = createCustomShader(v3D, y3D, f3D, listOf("tex"))
         shader3DPolygon = createCustomShader(v3DPolygon, y3D, f3D, listOf("tex"))
         shader3DCircle = Shader(v3D, y3D, f3DCircle)
+
+        shader3DSVG = createCustomShader(v3DSVG, y3DSVG, f3DSVG, listOf("tex"))
 
         shader3DYUV = createCustomShader(v3D, y3D, f3DYUV, listOf("texY", "texU", "texV"))
 
@@ -530,24 +571,26 @@ object GFX: GFXBase() {
                 "uniform sampler2D tex;\n" +
                 "void main(){\n" +
                 "   gl_FragColor = tint * texture(tex, uv).gbar;\n" +
-                "   gl_FragColor.rgb *= gl_FragColor.rgb;\n" +
+                colorPostProcessing +
                 "}", listOf("tex"))
         shader3DBGRA = createCustomShader(v3D, y3D, "" +
                 "uniform vec4 tint;" +
                 "uniform sampler2D tex;\n" +
                 "void main(){\n" +
                 "   gl_FragColor = tint * texture(tex, uv).bgra;\n" +
-                "   gl_FragColor.rgb *= gl_FragColor.rgb;\n" +
+                colorPostProcessing +
                 "}", listOf("tex"))
 
         lineShader3D = Shader("in vec3 attr0;\n" +
                 "uniform mat4 transform;\n" +
                 "void main(){" +
                 "   gl_Position = transform * vec4(attr0, 1.0);\n" +
+                positionPostProcessing +
                 "}", "", "" +
                 "uniform vec4 color;\n" +
                 "void main(){" +
                 "   gl_FragColor = color;\n" +
+                colorPostProcessing +
                 "}")
     }
 

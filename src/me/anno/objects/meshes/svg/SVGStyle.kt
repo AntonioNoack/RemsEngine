@@ -6,12 +6,12 @@ import java.lang.RuntimeException
 
 class SVGStyle(data: XMLElement){
 
-    val fill = parseColor(data["fill"] ?: "none")
     val stroke = parseColor(data["stroke"] ?: "none")
+    val isStroke = stroke != null
+    val fill = parseColor(data["fill"] ?: if(isStroke) "none" else "black")
+    val isFill = fill != null
     val strokeWidth = data["stroke-width"]?.toFloatOrNull() ?: 1f
 
-    val isFill = fill != null
-    val isStroke = stroke != null
 
     // https://www.december.com/html/spec/colorsvg.html +
     // https://stackoverflow.com/questions/5999209/how-to-get-the-background-color-code-of-an-element-in-hex =

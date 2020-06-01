@@ -14,6 +14,13 @@ open class StaticFloatBuffer(attributes: List<Attribute>, val floatCount: Int): 
         put(v.x, v.y, v.z)
     }
 
+    fun put(x: Float, y: Float, z: Float, w: Float){
+        put(x)
+        put(y)
+        put(z)
+        put(w)
+    }
+
     fun put(x: Float, y: Float, z: Float){
         put(x)
         put(y)

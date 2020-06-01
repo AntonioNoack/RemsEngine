@@ -24,7 +24,7 @@ object DefaultConfig: StringMap() {
         this["default.video.nearest"] = false
         this["default.image.nearest"] = false
 
-        addImportMappings("Image", "png", "jpg", "jpeg", "tiff", "webp")
+        addImportMappings("Image", "png", "jpg", "jpeg", "tiff", "webp", "svg")
         addImportMappings("Video", "mp4", "gif", "mpeg", "avi")
         addImportMappings("Text", "txt")
         addImportMappings("Markdown", "md")
