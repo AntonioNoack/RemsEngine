@@ -2,21 +2,16 @@ package me.anno.ui.editor.sceneView
 
 import me.anno.config.DefaultStyle.black
 import me.anno.config.DefaultStyle.deepDark
+import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.deltaTime
-import me.anno.gpu.GFX.flat01
 import me.anno.gpu.GFX.editorTime
-import me.anno.gpu.GFX.nullCamera
-import me.anno.gpu.GFX.root
-import me.anno.gpu.GFX.targetHeight
-import me.anno.gpu.GFX.targetWidth
-import me.anno.gpu.Shader
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.input.Input
 import me.anno.input.Input.keysDown
 import me.anno.input.Input.mouseKeysDown
 import me.anno.objects.Camera
-import me.anno.objects.blending.BlendMode
+import me.anno.studio.Scene
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelFrame
@@ -26,10 +21,7 @@ import me.anno.ui.style.Style
 import me.anno.utils.clamp
 import me.anno.utils.plus
 import me.anno.utils.times
-import org.joml.Matrix4fStack
 import org.joml.Vector3f
-import org.lwjgl.opengl.GL20
-import org.lwjgl.opengl.GL30.*
 import kotlin.math.max
 
 // todo search elements
@@ -60,31 +52,12 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
     // then we use a shader to draw sqrt(sq(color))
     // this should give correct color mixing <3
 
-    var isInited = false
     var framebuffer = Framebuffer(1, 1,1,true, true)
-
-    lateinit var sqrtDisplayShader: Shader
-
-    fun init(){
-        sqrtDisplayShader = Shader("" +
-                "in vec2 attr0;\n" +
-                "void main(){" +
-                "   gl_Position = vec4(attr0*2.0-1.0,0.0,1.0);\n" +
-                "   uv = attr0;\n" +
-                "}", "" +
-                "varying vec2 uv;\n", "" +
-                "uniform sampler2D tex;\n" +
-                "void main(){" +
-                "   gl_FragColor = sqrt(texture(tex, uv));\n" +
-                "}")
-        isInited = true
-    }
+    var mode = TransformMode.MOVE
 
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
 
         GFX.check()
-
-        if(!isInited) init()
 
         parseKeyInput()
 
@@ -99,84 +72,19 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
         var rw = w
         var rh = h
 
-        val camera = GFX.selectedCamera
-        val (cameraTransform, cameraTime) = camera.getGlobalTransform(editorTime)
 
+        val camera = GFX.selectedCamera
         if(camera.onlyShowTarget){
-            if(w*targetHeight > targetWidth*h){
-                rw = h * targetWidth/targetHeight
+            if(w* GFX.targetHeight > GFX.targetWidth *h){
+                rw = h * GFX.targetWidth / GFX.targetHeight
                 dx = (w-rw)/2
             } else {
-                rh = w * targetHeight/targetWidth
+                rh = w * GFX.targetHeight / GFX.targetWidth
                 dy = (h-rh)/2
             }
         }
 
-        GFX.clip(x+dx,y+dy,rw,rh)
-
-        if(framebuffer.w != rw || framebuffer.h != rh){
-            framebuffer.destroy()
-            framebuffer = Framebuffer(rw, rh, 1, fpTargets = true, createDepthBuffer = true)
-        }
-
-        framebuffer.bind()
-
-        GFX.check()
-        GFX.drawRect(x+dx,y+dy,rw,rh, black)
-
-        if(camera.useDepth){
-            glEnable(GL_DEPTH_TEST)
-            glClearDepth(1.0)
-            glDepthRange(-1.0, 1.0)
-            glDepthFunc(GL_LEQUAL)
-            glClear(GL_DEPTH_BUFFER_BIT)
-        } else {
-            glDisable(GL_DEPTH_TEST)
-        }
-
-        // draw the 3D stuff
-
-        // todo 3D grids and gizmos for orientation
-
-        val stack = Matrix4fStack(256)
-
-        GFX.applyCameraTransform(camera, cameraTime, cameraTransform, stack)
-
-        val white = camera.color[cameraTime]
-
-        stack.pushMatrix()
-        Grid.draw(stack, cameraTransform)
-        stack.popMatrix()
-
-        if(camera.useDepth){
-            glEnable(GL_DEPTH_TEST)
-        } else {
-            glDisable(GL_DEPTH_TEST)
-        }
-
-        BlendMode.DEFAULT.apply()
-        glDepthMask(true)
-
-        stack.pushMatrix()
-        // root.draw(stack, editorHoverTime, Vector4f(1f,1f,1f,1f))
-        nullCamera.draw(stack, editorTime, white)
-        stack.popMatrix()
-        stack.pushMatrix()
-        root.draw(stack, editorTime, white)
-        stack.popMatrix()
-
-        BlendMode.DEFAULT.apply()
-
-        glDisable(GL_DEPTH_TEST)
-
-        glBindFramebuffer(GL_FRAMEBUFFER, 0)
-        GFX.clip(x+dx,y+dy,rw,rh)
-
-        framebuffer.bindTextures(true)
-
-        sqrtDisplayShader.use()
-        flat01.draw(sqrtDisplayShader)
-        GFX.check()
+        Scene.draw(null, framebuffer, x+dx,y+dy,rw,rh, GFX.editorTime, false)
 
         GFX.clip(x0, y0, x1, y1)
 
@@ -187,6 +95,9 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
             GFX.drawRect(x+dx,y+dy+rh-2,2,2, redStarColor)
             GFX.drawRect(x+dx+rw-2,y+dy+rh-2,2,2, redStarColor)
         }
+
+        GFX.drawText(x+2, y+2, "Verdana", 12,
+            false, false, mode.displayName, -1, 0)
 
         super.draw(x0, y0, x1, y1)
 
@@ -236,9 +147,43 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
         // todo drag objects vs move the camera
         if(0 in mouseKeysDown){
             // todo move the object
+            val selected = GFX.selectedTransform
+            if(selected != null){
+
+                val (localTransform, localTime) = selected.getGlobalTransform(editorTime)
+                val (cameraTransform, _) = GFX.selectedCamera.getGlobalTransform(editorTime)
+                // transforms: global to local
+                // ->
+                // camera local to global, then global to local
+                //      obj   cam
+                // v' = G2L * L2G * v
+                val transform = cameraTransform.mul(localTransform.invert())
+
+                when(mode){
+                    TransformMode.MOVE -> {
+                        // todo find the correct speed...
+                        // todo depends on FOV, camera and object transform
+                        val oldPosition = selected.position[localTime]
+                        val localDelta = transform.transformDirection(
+                            if(Input.isControlDown) Vector3f(0f, 0f, -delta)
+                            else Vector3f(dx0, -dy0, 0f)
+                        )
+                        selected.position.addKeyframe(localTime, oldPosition + localDelta)
+                    }
+                    TransformMode.SCALE -> {
+                        val oldScale = selected.scale[localTime]
+                        val localDelta = transform.transformDirection(
+                            if(Input.isControlDown) Vector3f(0f, 0f, -delta)
+                            else Vector3f(dx0, -dy0, 0f)
+                        )
+                        selected.scale.addKeyframe(localTime, oldScale + localDelta)
+                    }
+                }
+            }
         }
         if(1 in mouseKeysDown){
             // todo move the camera
+            // todo only do, if not locked
             val scaleFactor = 10f
             val camera = GFX.selectedCamera
             val (cameraTransform, cameraTime) = camera.getGlobalTransform(editorTime)
@@ -247,11 +192,26 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
         }
     }
 
+    // todo undo, redo by serialization of the scene
+    // todo switch animatedproperty when selecting another object
+
     override fun onCharTyped(x: Float, y: Float, key: Int) {
-        if(key.toChar() == ' '){
-            GFX.pauseOrUnpause()
-        } else {
-            super.onCharTyped(x, y, key)
+        when(key.toChar().toLowerCase()){
+            // todo global actions
+            ' ' -> GFX.pauseOrUnpause()
+            'r' -> mode = TransformMode.MOVE
+            't' -> mode = TransformMode.SCALE
+            'z', 'y' -> mode = TransformMode.ROTATE
+            else -> super.onCharTyped(x, y, key)
+        }
+    }
+
+    override fun onGotAction(x: Float, y: Float, action: String) {
+        when(action){
+            "setMode(move)" -> mode = TransformMode.MOVE
+            "setMode(scale)" -> mode = TransformMode.SCALE
+            "setMode(rotate)" -> mode = TransformMode.ROTATE
+            else -> super.onGotAction(x, y, action)
         }
     }
 
@@ -264,5 +224,12 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
             super.onMouseClicked(x, y, button, long)
         }
     }
+
+    /*override fun getCursor() = when(mode){
+        TransformMode.MOVE -> Cursor.drag
+        TransformMode.SCALE -> if(Input.isShiftDown) Cursor.vResize else Cursor.hResize
+        TransformMode.ROTATE -> Cursor.crossHair
+        else -> null
+    }*/
 
 }

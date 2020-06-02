@@ -32,7 +32,7 @@ object XMLReader {
         }
     }
 
-    fun InputStream.readString(): String {
+    fun InputStream.readString(startSymbol: Int): String {
         val str = StringBuilder(20)
         while(true){
             when(val char = read()){
@@ -41,7 +41,7 @@ object XMLReader {
                         else -> throw RuntimeException("Special character \\${second.toChar()} not yet implemented")
                     }
                 }
-                '"'.toInt() -> return str.toString()
+                startSymbol -> return str.toString()
                 -1 -> throw EOFException()
                 else -> str.append(char.toChar())
             }
@@ -114,8 +114,9 @@ object XMLReader {
                         val (propName, propEnd) = input.readTypeUntilSpaceOrEnd()
                         // println("  '${if(next < 0) "" else next.toChar().toString()}$propName' '${propEnd.toChar()}'")
                         assert(propEnd, '=')
-                        assert(input.read(), '"')
-                        val value = input.readString()
+                        val start = input.skipSpaces()
+                        assert(start, '"', '\'')
+                        val value = input.readString(start)
                         xmlElement[if(next < 0) propName else "${next.toChar()}$propName"] = value
                         next = input.skipSpaces()
                         when(next){
@@ -174,6 +175,11 @@ object XMLReader {
 
     fun assert(a: Int, b: Char){
         if(a.toChar() != b) throw RuntimeException("Expected $b, but got ${a.toChar()}")
+    }
+
+    fun assert(a: Int, b: Char, c: Char){
+        val ac = a.toChar()
+        if(ac != b && ac != c) throw RuntimeException("Expected $b, but got ${a.toChar()}")
     }
 
     fun assert(a: Int, b: Int){

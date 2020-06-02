@@ -8,7 +8,6 @@ import me.anno.video.Frame
 import java.io.File
 import java.io.FileNotFoundException
 import java.lang.Exception
-import java.lang.RuntimeException
 import kotlin.math.abs
 
 object Cache {
@@ -22,9 +21,9 @@ object Cache {
         return cache?.texture ?: GFX.whiteTexture
     }
 
-    fun getEntry(file: File, allowDirectories: Boolean, index: Int, generator: () -> CacheData): CacheData? {
+    fun getEntry(file: File, allowDirectories: Boolean, key: Any, generator: () -> CacheData): CacheData? {
         if(!file.exists() || (!allowDirectories && file.isDirectory)) return null
-        return getEntry(file to index, generator)
+        return getEntry(file to key, generator)
     }
 
     fun getEntry(major: String, minor: String, sub: Int, generator: () -> CacheData): CacheData? {
@@ -51,30 +50,25 @@ object Cache {
         }
     }
 
-    fun getVideoMeta(file: File){
-        val videoBuffer = getVideoFrames(file, 0)
-
-    }
-
     // todo specify fps for our needs...
-    fun getVideoFrame(file: File, index: Int, maxIndex: Int, isLooping: Boolean = false): Frame? {
+    fun getVideoFrame(file: File, index: Int, maxIndex: Int, fps: Float, isLooping: Boolean = false): Frame? {
         if(index < 0) return null
         val bufferIndex = index/framesPerContainer
-        val videoData = getVideoFrames(file, bufferIndex) ?: return null
+        val videoData = getVideoFrames(file, bufferIndex, fps) ?: return null
         if(videoData.time0 != GFX.lastTime){
             if(GFX.editorTimeDilation > 0.01f){
                 if((bufferIndex+1)*framesPerContainer <= maxIndex){
-                    getVideoFrames(file, bufferIndex+1)
+                    getVideoFrames(file, bufferIndex+1, fps)
                 } else if(isLooping){
-                    getVideoFrames(file, 0)
+                    getVideoFrames(file, 0, fps)
                 }
             } else if(GFX.editorTimeDilation < -0.01f){
                 if(bufferIndex > 0){
-                    getVideoFrames(file, bufferIndex-1)
+                    getVideoFrames(file, bufferIndex-1, fps)
                 } else {
                     val maybeIndex = FFMPEGStream.frameCountByFile[file]
                     if(maybeIndex != null){// 1/16 probability, that this won't work ...
-                        getVideoFrames(file, (maybeIndex-1)/framesPerContainer)
+                        getVideoFrames(file, (maybeIndex-1)/framesPerContainer, fps)
                     }
                 }
             }
@@ -82,8 +76,8 @@ object Cache {
         return videoData.frames.getOrNull(index % framesPerContainer)
     }
 
-    fun getVideoFrames(file: File, index: Int) = getEntry(file, false, index){
-        VideoData(file, index)
+    fun getVideoFrames(file: File, index: Int, fps: Float) = getEntry(file, false, index to fps){
+        VideoData(file, index, fps)
     } as? VideoData
 
     fun getImage(file: File) = (getEntry(file, false, 0){

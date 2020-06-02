@@ -10,8 +10,14 @@ import me.anno.gpu.GFX.inFocus
 import me.anno.gpu.GFX.window
 import me.anno.gpu.GFX.openMenu
 import me.anno.gpu.GFX.requestExit
+import me.anno.gpu.GFX.targetFPS
+import me.anno.gpu.GFX.targetHeight
+import me.anno.gpu.GFX.targetWidth
 import me.anno.gpu.GFX.windowStack
+import me.anno.objects.Video
 import me.anno.utils.length
+import me.anno.video.VideoBackgroundTask
+import me.anno.video.VideoCreator
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWDropCallback
 import java.awt.Toolkit
@@ -190,6 +196,31 @@ object Input {
                             }
                         }
                         GLFW.GLFW_KEY_F11 -> addEvent { GFX.toggleFullscreen() }
+                        GLFW.GLFW_KEY_F12 -> addEvent {
+                            openMenu(mouseX, mouseY, "Quality?", listOf(
+                                "Full" to { _, _ ->
+                                    VideoBackgroundTask(
+                                        VideoCreator(targetWidth, targetHeight, targetFPS,
+                                            File("C:/Users/Antonio/Desktop/out.mp4"))
+                                    ).start()
+                                    true
+                                },
+                                "Half" to { _, _ ->
+                                    VideoBackgroundTask(
+                                        VideoCreator(targetWidth/2, targetHeight/2, targetFPS,
+                                            File("C:/Users/Antonio/Desktop/out.mp4"))
+                                    ).start()
+                                    true
+                                },
+                                "Quarter" to { _, _ ->
+                                    VideoBackgroundTask(
+                                        VideoCreator(targetWidth/4, targetHeight/4, targetFPS,
+                                            File("C:/Users/Antonio/Desktop/out.mp4"))
+                                    ).start()
+                                    true
+                                }
+                            ))
+                        }
                         else -> {
 
                             if (isControlDown) {

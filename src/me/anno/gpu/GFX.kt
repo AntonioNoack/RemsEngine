@@ -38,8 +38,17 @@ import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.math.*
 
+// todo split the rendering in two parts:
+// todo - without blending (no alpha, video or polygons)
+// todo - with blending
+// todo enqueue all objects for rendering
+// todo sort blended objects by depth, if rendering with depth
 
 object GFX: GFXBase() {
+
+    // for final rendering we need to use the GPU anyways;
+    // so just use a static variable
+    var isFinalRendering = false
 
     val nullCamera = Camera(null)
 
@@ -95,6 +104,7 @@ object GFX: GFXBase() {
     var windowY = 0
     var windowWidth = 0
     var windowHeight = 0
+    val windowSize get() = me.anno.gpu.size.WindowSize(windowX, windowY, windowWidth, windowHeight)
 
     val flat01 = SimpleBuffer.flat01
     // val defaultFont = DefaultConfig["font"]?.toString() ?: "Verdana"
@@ -122,9 +132,9 @@ object GFX: GFXBase() {
     var rawDeltaTime = 0f
     var deltaTime = 0f
 
-    var fps = 60f
+    var editorVideoFPS = 60f
 
-    var lastTime = System.nanoTime() - (fps * 1e9).toLong() // to prevent wrong fps ;)
+    var lastTime = System.nanoTime() - (editorVideoFPS * 1e9).toLong() // to prevent wrong fps ;)
 
     var panelCtr = 0
 
@@ -153,6 +163,8 @@ object GFX: GFXBase() {
         windowWidth = w
         windowHeight = h
     }
+
+    fun clip(size: me.anno.gpu.size.WindowSize) = clip(size.x, size.y, size.w, size.h)
 
     fun clip2(x1: Int, y1: Int, x2: Int, y2: Int) = clip(x1,y1,x2-x1,y2-y1)
 
@@ -556,6 +568,7 @@ object GFX: GFXBase() {
                 "   vec2 uv2 = uv.xy/uv.z * 0.5 + 0.5;\n" +
                 "   vec4 mask = texture(mask, uv2);\n" +
                 "   vec4 maskColor = vec4(mix(vec3(1.0), mask.rgb, useMaskColor), mask.a);\n" +
+                "   if(maskColor.a <= 0.0) discard;\n " +
                 "   vec4 color = texture(tex, uv2);\n" +
                 colorProcessing +
                 "   gl_FragColor = offsetColor + tint * color * maskColor;\n" +
@@ -704,7 +717,7 @@ object GFX: GFXBase() {
         val thisTime = System.nanoTime()
         rawDeltaTime = (thisTime - lastTime) * 1e-9f
         deltaTime = min(rawDeltaTime, 0.1f)
-        fps += (1f / rawDeltaTime - fps) * 0.1f
+        editorVideoFPS += (1f / rawDeltaTime - editorVideoFPS) * 0.1f
         lastTime = thisTime
 
         editorTime = max(editorTime + deltaTime * editorTimeDilation, 0f)

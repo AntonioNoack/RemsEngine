@@ -95,7 +95,7 @@ open class Panel(val style: Style): Saveable(){
         parent?.remove(this)
     }
 
-    private var onClickListener: ((Float, Float, Int, Boolean) -> Unit)? = null
+    var onClickListener: ((Float, Float, Int, Boolean) -> Unit)? = null
 
     fun setOnClickListener(onClickListener: ((x: Float, y: Float, button: Int, long: Boolean) -> Unit)): Panel {
         this.onClickListener = onClickListener

@@ -66,6 +66,8 @@ object Grid {
 
     fun draw(stack: Matrix4fStack, cameraTransform: Matrix4f){
 
+        if(GFX.isFinalRendering) return
+
         BlendMode.ADD.apply()
         glDisable(GL_DEPTH_TEST)
         glDepthMask(false)

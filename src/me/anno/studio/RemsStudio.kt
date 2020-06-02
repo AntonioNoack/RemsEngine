@@ -57,6 +57,8 @@ object RemsStudio {
             hoveredPanel = hovered?.first
             hoveredWindow = hovered?.second
 
+            // todo the cursor is only updating when moving the mouse???
+            // bug in the api maybe, how to fix that?
             hoveredPanel?.getCursor()?.useCursor()
 
             windowStack.forEach { window ->

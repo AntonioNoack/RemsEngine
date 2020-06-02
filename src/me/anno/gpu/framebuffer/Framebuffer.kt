@@ -73,12 +73,14 @@ class Framebuffer(var w: Int, var h: Int, val targetCount: Int, val fpTargets: B
     fun destroy(){
         if(pointer > -1){
             glDeleteFramebuffers(pointer)
+            pointer = -1
             textures.forEach {
                 it.destroy()
             }
         }
         if(depthRenderBuffer > -1){
             glDeleteRenderbuffers(depthRenderBuffer)
+            depthRenderBuffer = -1
         }
     }
 

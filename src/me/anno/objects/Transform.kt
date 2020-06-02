@@ -45,8 +45,10 @@ open class Transform(var parent: Transform? = null): Saveable(){
     // todo make this animatable, calculate the integral to get a mapping
     var timeAnimated = AnimatedProperty.float()
 
-    var name = if(getClassName() == "Transform") "Folder" else getClassName()
+    var name = getDefaultDisplayName()
     var comment = ""
+
+    open fun getDefaultDisplayName() = if(getClassName() == "Transform") "Folder" else getClassName()
 
     val rightPointingTriangle = "▶"
     val bottomPointingTriangle = "▼"
@@ -175,7 +177,7 @@ open class Transform(var parent: Transform? = null): Saveable(){
         lastLocalTime = time
         val color = getLocalColor(parentColor, time)
 
-        if(true || color.w > 0.00025f){ // 12 bit = 4k
+        if(color.w > 0.00025f){ // 12 bit = 4k
             applyTransformLT(stack, time)
             onDraw(stack, time, color)
             if(drawChildrenAutomatically()){
@@ -284,7 +286,7 @@ open class Transform(var parent: Transform? = null): Saveable(){
 
     fun contains(t: Transform): Boolean {
         if(t === this) return true
-        if(children != null){
+        if(children != null){// can be null on init
             for(child in children){
                 if(child === t || child.contains(t)) return true
             }

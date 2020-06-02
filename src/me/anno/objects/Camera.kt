@@ -5,6 +5,8 @@ import me.anno.gpu.GFX.toRadians
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticFloatBuffer
 import me.anno.objects.animation.AnimatedProperty
+import me.anno.ui.base.ButtonPanel
+import me.anno.ui.base.TextPanel
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.input.BooleanInput
 import me.anno.ui.input.FloatInput
@@ -49,10 +51,18 @@ class Camera(parent: Transform?): Transform(parent){
         list += BooleanInput("Use Depth", useDepth, style)
             .setChangeListener { useDepth = it }
             .setIsSelectedListener { show(null) }
+        list += ButtonPanel("Reset Transform", style)
+            .setOnClickListener { x, y, button, long ->
+                putValue(position, Vector3f(0f, 0f, 1f))
+                putValue(scale, Vector3f(1f, 1f, 1f))
+                putValue(skew, Vector2f(0f, 0f))
+                putValue(rotationYXZ, Vector3f())
+            }
     }
 
     override fun onDraw(stack: Matrix4fStack, time: Float, color: Vector4f) {
 
+        if(GFX.isFinalRendering) return
         if(this === GFX.selectedCamera) return
         if(this !== GFX.selectedTransform) return
 

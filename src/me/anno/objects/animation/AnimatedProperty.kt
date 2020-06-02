@@ -57,6 +57,9 @@ class AnimatedProperty<V>(val type: Type): Saveable(){
         return this
     }
 
+    fun addKeyframe(time: Float, value: Any) =
+        addKeyframe(time, value, 0.001f)
+
     fun addKeyframe(time: Float, value: Any, equalityDt: Float){
         if(type.accepts(value)){
             addKeyframeInternal(time, value as V, equalityDt)

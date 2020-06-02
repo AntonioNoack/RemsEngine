@@ -32,9 +32,26 @@ class MaskLayer(parent: Transform?): GFXTransform(parent){
 
     var isFullscreen = false
 
+    override fun getDefaultDisplayName() = "Mask Layer"
+
     override fun onDraw(stack: Matrix4fStack, time: Float, color: Vector4f) {
 
         if(children.size >= 2){// else invisible
+
+            /* (low priority)
+            // to do calculate the size on screen to limit overhead
+            // to do this additionally requires us to recalculate the transform
+            if(!isFullscreen){
+                val screenSize = GFX.windowSize
+                val screenPositions = listOf(
+                    Vector4f(-1f, -1f, 0f, 1f),
+                    Vector4f(+1f, -1f, 0f, 1f),
+                    Vector4f(-1f, +1f, 0f, 1f),
+                    Vector4f(+1f, +1f, 0f, 1f)
+                ).map {
+                    stack.transformProject(it)
+                }
+            }*/
 
             BlendMode.DEFAULT.apply()
 
@@ -43,6 +60,8 @@ class MaskLayer(parent: Transform?): GFXTransform(parent){
             BlendMode.DEFAULT.apply()
 
             drawMasked(stack, time, color)
+
+
 
             val effectiveBlendMode = getParentBlendMode(BlendMode.DEFAULT)
             effectiveBlendMode.apply()

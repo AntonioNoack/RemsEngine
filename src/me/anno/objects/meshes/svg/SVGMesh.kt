@@ -169,6 +169,9 @@ class SVGMesh {
         end(false)
         currentStyle = style
         currentFill = fill
+        // each new element is relative to its parent
+        x = 0f
+        y = 0f
     }
 
     fun endElement(){
@@ -204,7 +207,7 @@ class SVGMesh {
                     // println("starts with .")
                     j++
                     int@while(true){
-                        when(data[j]){
+                        when(data.getOrNull(j)){
                             in '0' .. '9' -> j++
                             else -> break@int
                         }
@@ -212,15 +215,15 @@ class SVGMesh {
                 }
                 else -> {
                     int@while(true){
-                        when(data[j]){
+                        when(data.getOrNull(j)){
                             in '0' .. '9' -> j++
                             else -> break@int
                         }
                     }
-                    if(data[j] == '.'){
+                    if(data.getOrNull(j) == '.'){
                         j++
                         int@while(true){
-                            when(data[j]){
+                            when(data.getOrNull(j)){
                                 in '0' .. '9' -> j++
                                 else -> break@int
                             }
@@ -229,14 +232,14 @@ class SVGMesh {
                 }
             }
 
-            when(data[j]){
+            when(data.getOrNull(j)){
                 'e', 'E' -> {
                     j++
-                    when(data[j]){
+                    when(data.getOrNull(j)){
                         '+', '-' -> j++
                     }
                     int@while(true){
-                        when(data[j]){
+                        when(data.getOrNull(j)){
                             in '0' .. '9' -> j++
                             else -> break@int
                         }

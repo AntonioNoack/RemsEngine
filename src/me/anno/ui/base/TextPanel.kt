@@ -2,6 +2,7 @@ package me.anno.ui.base
 
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.iconGray
+import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
 import me.anno.ui.base.components.Padding
 import me.anno.ui.style.Style
@@ -40,5 +41,7 @@ open class TextPanel(open var text: String, style: Style): Panel(style){
         if(disableCopy) return super.onCopyRequested(x, y)
         else return text
     }
+
+    override fun getCursor(): Long? = if(onClickListener == null) super.getCursor() else Cursor.drag
 
 }

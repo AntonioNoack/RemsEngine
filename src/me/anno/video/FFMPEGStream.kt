@@ -16,7 +16,7 @@ import kotlin.math.roundToInt
 class FFMPEGStream(val file: File?, val frame0: Int, arguments: List<String>, waitToFinish: Boolean, interpretMeta: Boolean){
 
     var lastUsedTime = System.nanoTime()
-    var sourceFPS = 24f
+    var sourceFPS = -1f
     var sourceLength = 0f
 
     companion object {

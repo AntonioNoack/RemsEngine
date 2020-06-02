@@ -33,7 +33,7 @@ class Image(var file: File, parent: Transform?): GFXTransform(parent){
                 GFX.draw3DSVG(stack, bufferData.buffer, whiteTexture, color, isBillboard[time], true)
             }
             name.endsWith("webp", true) -> {
-                val texture = Cache.getVideoFrame(file, 0, 0)
+                val texture = Cache.getVideoFrame(file, 0, 0, 1f)
                 texture?.apply {
                     GFX.draw3D(stack, texture, color, isBillboard[time], nearestFiltering)
                 }

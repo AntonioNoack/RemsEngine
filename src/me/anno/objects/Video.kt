@@ -3,20 +3,20 @@ package me.anno.objects
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.io.base.BaseWriter
-import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.cache.Cache
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.input.BooleanInput
 import me.anno.ui.input.FileInput
 import me.anno.ui.input.FloatInput
-import me.anno.ui.input.TextInput
 import me.anno.ui.style.Style
 import me.anno.video.FFMPEGStream
+import me.anno.video.MissingFrameException
 import org.joml.Matrix4fStack
 import org.joml.Vector4f
 import java.io.File
 import kotlin.concurrent.thread
 import kotlin.math.max
+import kotlin.math.min
 
 // idea: hovering needs to be used to predict when the user steps forward in time
 // -> no, that's too taxing; we'd need to pre-render a smaller version
@@ -37,9 +37,9 @@ class Video(var file: File, parent: Transform?): GFXTransform(parent){
     var nearestFiltering = DefaultConfig["default.video.nearest", false]
 
     // val fps get() = videoCache.fps
-    var fps = -1f
+    var sourceFPS = -1f
 
-    val frameCount get() =  max(1, FFMPEGStream.frameCountByFile[file] ?: (duration * fps).toInt())
+    val frameCount get() =  max(1, FFMPEGStream.frameCountByFile[file] ?: (duration * sourceFPS).toInt())
 
     // val duration get() = videoCache.duration
 
@@ -47,18 +47,18 @@ class Video(var file: File, parent: Transform?): GFXTransform(parent){
 
         if(lastFile != file){
             lastFile = file
-            fps = -1f
+            sourceFPS = -1f
             duration = -1f
             if(file.exists()){
                 // request the metadata :)
                 thread {
                     val file = file
                     loop@ while(this.file == file){
-                        val frames = Cache.getVideoFrames(file, 0)
+                        val frames = Cache.getVideoFrames(file, 0, 1f)
                         if(frames != null){
-                            fps = frames.fps
+                            sourceFPS = frames.stream.sourceFPS
                             duration = frames.stream.sourceLength
-                            if(fps > 0f && duration > 0f) break@loop
+                            if(sourceFPS > 0f && duration > 0f) break@loop
                         } else Thread.sleep(1)
                     }
                 }
@@ -67,23 +67,35 @@ class Video(var file: File, parent: Transform?): GFXTransform(parent){
 
         var wasDrawn = false
 
+        if((duration <= 0f || sourceFPS <= 0f) && GFX.isFinalRendering) throw MissingFrameException(file)
         if(file.exists() && duration > 0f){
+
+            // todo when the video is loaded the first time using rendering, it won't recognise missing frames
 
             if(startTime >= duration) startTime = duration
             if(endTime >= duration) endTime = duration
 
-            if(fps > 0f){
+            if(sourceFPS > 0f){
                 if(time + startTime >= 0f && (isLooping || time < endTime)){
+
+                    // use full fps when rendering to correctly render at max fps with time dilation
+                    // issues arise, when multiple frames should be interpolated together into one
+                    // at this time, we chose the center frame only.
+                    val videoFPS = if(GFX.isFinalRendering) sourceFPS else min(sourceFPS, GFX.editorVideoFPS)
 
                     // draw the current texture
                     val duration = endTime - startTime
                     val localTime = startTime + (time % duration)
-                    val frameIndex = (localTime*fps).toInt() % frameCount
+                    val frameIndex = (localTime*videoFPS).toInt() % frameCount
 
-                    val frame = Cache.getVideoFrame(file, frameIndex, frameCount, isLooping)
-                    if(frame != null){
+                    val frame = Cache.getVideoFrame(file, frameIndex, frameCount, videoFPS, isLooping)
+                    if(frame != null && frame.isLoaded){
                         GFX.draw3D(stack, frame, color, isBillboard.getValueAt(time), nearestFiltering)
                         wasDrawn = true
+                    } else {
+                        if(GFX.isFinalRendering){
+                            throw MissingFrameException(file)
+                        }
                     }
 
                     // stack.scale(0.1f)
@@ -92,7 +104,6 @@ class Video(var file: File, parent: Transform?): GFXTransform(parent){
 
                 } else wasDrawn = true
             }
-
 
         }
 
