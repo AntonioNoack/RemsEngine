@@ -51,6 +51,7 @@ class Camera(parent: Transform?): Transform(parent){
         list += BooleanInput("Use Depth", useDepth, style)
             .setChangeListener { useDepth = it }
             .setIsSelectedListener { show(null) }
+            .setTooltip("Causes Z-Fighting, but allows 3D")
         list += ButtonPanel("Reset Transform", style)
             .setOnClickListener { x, y, button, long ->
                 putValue(position, Vector3f(0f, 0f, 1f))
@@ -58,6 +59,7 @@ class Camera(parent: Transform?): Transform(parent){
                 putValue(skew, Vector2f(0f, 0f))
                 putValue(rotationYXZ, Vector3f())
             }
+            .setTooltip("If accidentally moved")
     }
 
     override fun onDraw(stack: Matrix4fStack, time: Float, color: Vector4f) {

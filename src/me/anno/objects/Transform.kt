@@ -204,7 +204,17 @@ open class Transform(var parent: Transform? = null): Saveable(){
         }
     }
 
-    open fun onDraw(stack: Matrix4fStack, time: Float, color: Vector4f){}
+    open fun onDraw(stack: Matrix4fStack, time: Float, color: Vector4f){
+
+        // draw small symbol to indicate pivot here
+        if(!GFX.isFinalRendering){
+            stack.pushMatrix()
+            stack.scale(0.02f)
+            GFX.draw3DCircle(stack, 0.7f, 0f, 360f, color, 1f)
+            stack.popMatrix()
+        }
+
+    }
 
     override fun save(writer: BaseWriter) {
         super.save(writer)

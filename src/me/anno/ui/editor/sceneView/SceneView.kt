@@ -184,7 +184,7 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
         if(1 in mouseKeysDown){
             // todo move the camera
             // todo only do, if not locked
-            val scaleFactor = 10f
+            val scaleFactor = -10f
             val camera = GFX.selectedCamera
             val (cameraTransform, cameraTime) = camera.getGlobalTransform(editorTime)
             val oldRotation = camera.rotationYXZ[cameraTime]

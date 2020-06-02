@@ -303,7 +303,8 @@ object GFX: GFXBase() {
         val sx2 = windowWidth / avgSize2
         val sy2 = windowHeight / avgSize2
         shader.v2("pos", -sx, sy)
-        shader.v2("billboardSize", sy2, sx2)
+        val scale = stack.transformDirection(Vector3f(1f, 1f, 1f)).length()
+        shader.v2("billboardSize", sy2 * scale, sx2 * scale)
         shader.v2("size", 2f * sx, -2f * sy)
         shader.v4("tint", color.x, color.y, color.z, color.w)
         shader.v1("isBillboard", isBillboard)
