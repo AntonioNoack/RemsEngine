@@ -6,23 +6,17 @@ import me.anno.gpu.GFX.root
 import me.anno.gpu.Window
 import me.anno.input.Input
 import me.anno.objects.*
-import me.anno.objects.animation.AnimatedProperty
 import me.anno.studio.RemsStudio.console
-import me.anno.studio.RemsStudio.inspector
 import me.anno.studio.RemsStudio.originalOutput
 import me.anno.studio.RemsStudio.windowStack
 import me.anno.ui.base.SpacePanel
 import me.anno.ui.base.TextPanel
-import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.custom.CustomListX
 import me.anno.ui.custom.CustomListY
 import me.anno.ui.editor.*
 import me.anno.ui.editor.sceneView.SceneView
-import me.anno.ui.editor.timeline.Timeline
-import org.joml.Vector3f
-import org.joml.Vector4f
-import java.io.File
+import me.anno.ui.editor.graphs.GraphEditor
 import java.io.OutputStream
 import java.io.PrintStream
 
@@ -68,19 +62,16 @@ object Layout {
         val animationWindow = CustomListX(style)
         customUI.add(animationWindow, 200f)
 
-        inspector = PropertyInspector(style, Padding(3,3,3,3))
-
-        RemsStudio.sceneView = SceneView(style)
         animationWindow.add(CustomContainer(TreeView(style), style), 50f)
-        animationWindow.add(CustomContainer(RemsStudio.sceneView, style), 200f)
-        animationWindow.add(CustomContainer(inspector, style), 50f)
+        animationWindow.add(CustomContainer(SceneView(style), style), 200f)
+        animationWindow.add(CustomContainer(PropertyInspector(style), style), 50f)
         animationWindow.setWeight(1f)
 
-        val timeline = Timeline(style)
-        customUI.add(timeline, 50f)
+        val timeline = GraphEditor(style)
+        customUI.add(CustomContainer(timeline, style), 50f)
 
         val explorer = FileExplorer(style)
-        customUI.add(explorer, 50f)
+        customUI.add(CustomContainer(explorer, style), 50f)
 
         ui += SpacePanel(0, 1, style)
         ui += customUI
@@ -112,6 +103,13 @@ object Layout {
         windowStack.clear()
         windowStack += Window(ui, 0, 0)
 
+    }
+
+    fun printLayout(){
+        println("Layout:")
+        for (window1 in GFX.windowStack) {
+            window1.panel.printLayout(1)
+        }
     }
 
 }

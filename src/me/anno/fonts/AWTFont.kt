@@ -1,5 +1,6 @@
 package me.anno.fonts
 
+import me.anno.config.DefaultConfig
 import me.anno.gpu.texture.Texture2D
 import me.anno.ui.base.DefaultRenderingHints
 import java.awt.Font
@@ -9,6 +10,7 @@ import java.awt.font.TextLayout
 import java.awt.image.BufferedImage
 import java.lang.StrictMath.round
 import java.text.AttributedString
+import kotlin.concurrent.thread
 import kotlin.math.max
 import kotlin.math.roundToInt
 import kotlin.streams.toList
@@ -50,32 +52,30 @@ class AWTFont(val font: Font): XFont {
 
         if(width < 1 || height < 1) return null
 
-        val image = BufferedImage(width, height, 1)
-        val gfx = image.graphics as Graphics2D
-        prepareGraphics(gfx)
+        val texture = Texture2D(width, height)
+        texture.create {
 
-        val x = 0
-        val y = fontMetrics.ascent
+            val image = BufferedImage(width, height, 1)
+            val gfx = image.graphics as Graphics2D
+            prepareGraphics(gfx)
 
-        if(lineCount == 1){
-            gfx.drawString(text, x, y)
-        } else {
-            val lines = text.split('\n')
-            lines.forEachIndexed { index, line ->
-                gfx.drawString(line, x, y + index * (fontHeight + spaceBetweenLines))
+            val x = 0
+            val y = fontMetrics.ascent
+
+            if(lineCount == 1){
+                gfx.drawString(text, x, y)
+            } else {
+                val lines = text.split('\n')
+                lines.forEachIndexed { index, line ->
+                    gfx.drawString(line, x, y + index * (fontHeight + spaceBetweenLines))
+                }
             }
+            gfx.dispose()
+            image
+
         }
 
-        gfx.dispose()
-
-        // val dataBuffer = GLFWImage.Buffer(GFX.loadImage("icon.png"))
-        val texture = Texture2D(image.width, image.height)
-        texture.create(image)
-
-        // println("uploaded texture of size $width x $height for $text in ${font.name}:${font.size}")
-
         return texture
-        // ImageIO.write(image, "png", File("C:/Users/Antonio/Desktop/text${text.hashCode()}.png"))
 
     }
 
@@ -88,24 +88,20 @@ class AWTFont(val font: Font): XFont {
         val width = ceil(bounds.width)
         val height = ceil(layout.ascent + layout.descent)
 
-        // println("$height for ${layout.ascent} + ${layout.descent}")
+        val texture = Texture2D(width, height)
+        texture.create {
+            val image = BufferedImage(width, height, 1)
+            val gfx = image.graphics as Graphics2D
+            prepareGraphics(gfx)
 
-        val image = BufferedImage(width, height, 1)
-        val gfx = image.graphics as Graphics2D
-        prepareGraphics(gfx)
+            val x = (image.width - width) * 0.5f
+            val y = (image.height - height) * 0.5f + layout.ascent
 
-        val x = (image.width - width) * 0.5f
-        val y = (image.height - height) * 0.5f + layout.ascent
+            gfx.drawString(withIcons.iterator, x, y)
 
-        gfx.drawString(withIcons.iterator, x, y)
-
-        gfx.dispose()
-
-        // val dataBuffer = GLFWImage.Buffer(GFX.loadImage("icon.png"))
-        val texture = Texture2D(image.width, image.height)
-        texture.create(image)
-
-        // println("uploaded texture of size $width x $height for $text in ${font.name}:${font.size}")
+            gfx.dispose()
+            image
+        }
 
         return texture
 
@@ -145,6 +141,7 @@ class AWTFont(val font: Font): XFont {
     }
 
     companion object {
+
         val staticGfx = BufferedImage(1,1, BufferedImage.TYPE_INT_ARGB).graphics as Graphics2D
         val staticMetrics = staticGfx.fontMetrics
         val staticFontRenderCTX = staticGfx.fontRenderContext

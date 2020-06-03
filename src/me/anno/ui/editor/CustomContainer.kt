@@ -7,6 +7,7 @@ import me.anno.ui.base.Panel
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.editor.sceneView.SceneView
+import me.anno.ui.editor.graphs.GraphEditor
 import me.anno.ui.style.Style
 
 class CustomContainer(default: Panel, style: Style): PanelContainer(default, Padding(0), style){
@@ -41,9 +42,11 @@ class CustomContainer(default: Panel, style: Style): PanelContainer(default, Pad
             child.parent = this
             true
         }
-        GFX.openMenu(x, y, "", listOf(
+        GFX.openMenu(x+w-16, y, "", listOf(
             "Scene View" to action { SceneView(style) },
             "Tree View" to action { TreeView(style) },
+            "Inspector" to action { PropertyInspector(style) },
+            "Graph Editor" to action { GraphEditor(style) },
             "Files" to action { FileExplorer(style) }
         ))
     }

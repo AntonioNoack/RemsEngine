@@ -198,7 +198,6 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
     override fun onCharTyped(x: Float, y: Float, key: Int) {
         when(key.toChar().toLowerCase()){
             // todo global actions
-            ' ' -> GFX.pauseOrUnpause()
             'r' -> mode = TransformMode.MOVE
             't' -> mode = TransformMode.SCALE
             'z', 'y' -> mode = TransformMode.ROTATE
@@ -206,13 +205,14 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
         }
     }
 
-    override fun onGotAction(x: Float, y: Float, action: String) {
+    override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
         when(action){
             "setMode(move)" -> mode = TransformMode.MOVE
             "setMode(scale)" -> mode = TransformMode.SCALE
             "setMode(rotate)" -> mode = TransformMode.ROTATE
-            else -> super.onGotAction(x, y, action)
+            else -> return super.onGotAction(x, y, dx, dy, action, isContinuous)
         }
+        return true
     }
 
     override fun onKeyDown(x: Float, y: Float, key: Int) {

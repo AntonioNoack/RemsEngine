@@ -29,8 +29,6 @@ object RemsStudio {
 
     val windowStack = Stack<Window>()
 
-    lateinit var inspector: PropertyInspector
-
     fun run(){
 
         // val src = File("C:\\Users\\Antonio\\Videos\\Captures", "Cities_ Skylines 2020-01-06 19-32-23.mp4")
@@ -45,13 +43,6 @@ object RemsStudio {
         }
         GFX.gameLoop = { w, h ->
             check()
-
-            if(GFX.previousSelectedTransform != GFX.selectedTransform){
-                inspector.list.clear()
-                GFX.previousSelectedTransform = GFX.selectedTransform
-                val list = inspector.list
-                GFX.selectedTransform?.createInspector(list, list.style)
-            }
 
             val hovered = getClickedPanelAndWindow(Input.mouseX, Input.mouseY)
             hoveredPanel = hovered?.first
@@ -71,7 +62,7 @@ object RemsStudio {
                 val t2 = System.nanoTime()
                 val dt1 = (t1-t0)*1e-9f
                 val dt2 = (t2-t1)*1e-9f
-                if(dt1 > 0.1f) println("Warn: Used ${dt1}s + ${dt2}s for layout")
+                if(dt1 > 0.01f) println("[WARN] Used ${dt1}s + ${dt2}s for layout")
                 panel.draw(window.x,window.y,window.x+panel.w,window.y+panel.h)
             }
 
@@ -92,8 +83,8 @@ object RemsStudio {
 
             check()
 
-            if(frameCtr == 0){
-                println("Used ${(System.nanoTime()- startTime)*1e-9f}s from start to finishing the first frame")
+            if(frameCtr == 0L){
+                println("[INFO] Used ${(System.nanoTime()- startTime)*1e-9f}s from start to finishing the first frame")
             }
             frameCtr++
 
@@ -109,7 +100,8 @@ object RemsStudio {
         GFX.run()
     }
 
-    var frameCtr = 0
+    // would overflow as 32 bit after 2.5 months on a 300 fps display ;D
+    var frameCtr = 0L
 
     lateinit var startMenu: Panel
     lateinit var ui: Panel
@@ -118,8 +110,6 @@ object RemsStudio {
 
 
     fun check() = GFX.check()
-
-    lateinit var sceneView: SceneView
 
 
 }

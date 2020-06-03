@@ -22,6 +22,7 @@ import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.base.groups.PanelListY
+import me.anno.utils.clamp
 import me.anno.utils.minus
 import me.anno.video.Frame
 import org.apache.logging.log4j.LogManager
@@ -44,7 +45,7 @@ import kotlin.math.*
 // todo enqueue all objects for rendering
 // todo sort blended objects by depth, if rendering with depth
 
-object GFX: GFXBase() {
+object GFX: GFXBase1() {
 
     // for final rendering we need to use the GPU anyways;
     // so just use a static variable
@@ -123,6 +124,7 @@ object GFX: GFXBase() {
     lateinit var lineShader3D: Shader
     lateinit var shader3DMasked: Shader
 
+    val invisibleTexture = Texture2D(1, 1)
     val whiteTexture = Texture2D(1, 1)
     val stripeTexture = Texture2D(5, 1)
     val colorShowTexture = Texture2D(2,2)
@@ -132,7 +134,8 @@ object GFX: GFXBase() {
     var rawDeltaTime = 0f
     var deltaTime = 0f
 
-    var editorVideoFPS = 60f
+    var editorVideoFPS = 10f
+    var currentEditorFPS = 60f
 
     var lastTime = System.nanoTime() - (editorVideoFPS * 1e9).toLong() // to prevent wrong fps ;)
 
@@ -670,6 +673,7 @@ object GFX: GFXBase() {
     }
 
     override fun renderStep0() {
+        invisibleTexture.create(ByteArray(4) { 0.toByte() })
         whiteTexture.create(
             byteArrayOf(255.toByte(), 255.toByte(), 255.toByte(), 255.toByte()))
         whiteTexture.filtering(true)
@@ -685,19 +689,25 @@ object GFX: GFXBase() {
         setIcon()
     }
 
-    var previousSelectedTransform: Transform? = null
     override fun renderStep(){
 
         var workDone = 0
+        val workTime0 = System.nanoTime()
         while(workDone < 100){
             val nextTask = workerTasks.poll() ?: break
             workDone += nextTask()
+            val workTime1 = System.nanoTime()
+            val workTime = abs(workTime1 - workTime0) * 1e-9f
+            if(workTime * editorVideoFPS > 1f){// work is too slow
+                break
+            }
         }
 
         while(eventTasks.isNotEmpty()){
             eventTasks.poll()!!.invoke()
         }
 
+        Texture2D.textureBudgetUsed = 0
 
         Framebuffer.bindNull()
         glViewport(0, 0, width, height)
@@ -718,7 +728,7 @@ object GFX: GFXBase() {
         val thisTime = System.nanoTime()
         rawDeltaTime = (thisTime - lastTime) * 1e-9f
         deltaTime = min(rawDeltaTime, 0.1f)
-        editorVideoFPS += (1f / rawDeltaTime - editorVideoFPS) * 0.1f
+        currentEditorFPS += (1f / rawDeltaTime - currentEditorFPS) * 0.1f
         lastTime = thisTime
 
         editorTime = max(editorTime + deltaTime * editorTimeDilation, 0f)
@@ -742,7 +752,7 @@ object GFX: GFXBase() {
         list += WrapAlign.LeftTop
         val container = ScrollPanel(list, Padding(1), style, WrapAlign.AxisAlignment.MIN)
         container += WrapAlign.LeftTop
-        val window = Window(container, x, y)
+        lateinit var window: Window
         fun close(){
             windowStack.remove(window)
         }
@@ -762,7 +772,7 @@ object GFX: GFXBase() {
                 }
             } else {
                 val buttonView = TextPanel(name, style)
-                buttonView.setOnClickListener { x, y, button, long ->
+                buttonView.setOnClickListener { _, _, button, long ->
                     if(action(button, long)){
                         close()
                     }
@@ -772,6 +782,13 @@ object GFX: GFXBase() {
                 list += buttonView
             }
         }
+        val maxWidth = max(300, GFX.width)
+        val maxHeight = max(300, GFX.height)
+        container.calculateSize(maxWidth, maxHeight)
+        container.applyConstraints()
+        val wx = clamp(x, 0, GFX.width - container.w)
+        val wy = clamp(y, 0, GFX.height- container.h)
+        window = Window(container, wx, wy)
         windowStack.add(window)
     }
 
@@ -779,11 +796,11 @@ object GFX: GFXBase() {
         openMenu(x.roundToInt() - delta, y.roundToInt() - delta, title, options)
     }
 
-    fun pauseOrUnpause(){
+    /*fun pauseOrUnpause(){
         editorTimeDilation = if(abs(editorTimeDilation) < 1e-3f || isShiftDown || isControlDown){
             (if(isControlDown) -1f else 1f) * (if(isShiftDown) 0.2f else 1f)
         } else 0f
-    }
+    }*/
 
     fun check(){
         val error = glGetError()

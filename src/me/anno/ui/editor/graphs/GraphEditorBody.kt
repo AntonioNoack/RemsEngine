@@ -1,4 +1,4 @@
-package me.anno.ui.editor.timeline
+package me.anno.ui.editor.graphs
 
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.black
@@ -25,7 +25,7 @@ import me.anno.input.Input.isControlDown as isControlDown
 // todo select multiple keyframes
 // todo copy keyframes
 // todo paste keyframes
-class TimelineBody(style: Style): Panel(style.getChild("deep")){
+class GraphEditorBody(style: Style): Panel(style.getChild("deep")){
 
     val accentColor = style.getColor("accentColor", black)
 
@@ -317,7 +317,6 @@ class TimelineBody(style: Style): Panel(style.getChild("deep")){
 
     override fun onKeyTyped(x: Float, y: Float, key: Int) {
         when(key){
-            GLFW_KEY_SPACE -> GFX.pauseOrUnpause()
             GLFW_KEY_LEFT -> {
                 val delta = - dtHalfLength * 10 / w
                 GFX.editorTime += delta

@@ -46,5 +46,6 @@ class EnumInput(val title: String, startValue: String, val options: List<String>
     }
 
     override fun getCursor(): Long = Cursor.drag
+    override fun getClassName() = "EnumInput"
     
 }

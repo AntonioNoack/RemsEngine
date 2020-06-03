@@ -57,4 +57,6 @@ class Checkbox(startValue: Boolean, val size: Int, style: Style): Panel(style.ge
         change()
     }
 
+    override fun getClassName() = "CheckBox"
+
 }

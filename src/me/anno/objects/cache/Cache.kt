@@ -8,6 +8,7 @@ import me.anno.video.Frame
 import java.io.File
 import java.io.FileNotFoundException
 import java.lang.Exception
+import kotlin.concurrent.thread
 import kotlin.math.abs
 
 object Cache {
@@ -16,7 +17,14 @@ object Cache {
 
     fun getIcon(name: String): Texture2D {
         val cache = getEntry("Icon", name, 0){
-            TextureCache(Texture2D(GFX.loadBImage(name)))
+            val cache = TextureCache(null)
+            thread {
+                val img = GFX.loadBImage(name)
+                val tex = Texture2D(img.width, img.height)
+                tex.create(img, false)
+                cache.texture = tex
+            }
+            cache
         } as? TextureCache
         return cache?.texture ?: GFX.whiteTexture
     }

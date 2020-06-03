@@ -1,20 +1,21 @@
 package me.anno.gpu.texture
 
+import me.anno.config.DefaultConfig
+import me.anno.fonts.AWTFont
 import me.anno.gpu.GFX
-import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL11
-import org.lwjgl.opengl.GL13
 import org.lwjgl.opengl.GL13.GL_TEXTURE0
 import org.lwjgl.opengl.GL30.*
 import java.awt.image.BufferedImage
 import java.lang.RuntimeException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import kotlin.concurrent.thread
 
 class Texture2D(val w: Int, val h: Int){
 
     constructor(img: BufferedImage): this(img.width, img.height){
-        create(img)
+        create(img, true)
         filtering(true)
     }
 
@@ -37,11 +38,18 @@ class Texture2D(val w: Int, val h: Int){
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, w, h, 0, GL_RGBA, GL_FLOAT, null as ByteBuffer?)
     }
 
-    fun create(img: BufferedImage){
-        ensurePointer()
-        bind(isFilteredNearest)
+    fun create(createImage: () -> BufferedImage){
+        val requiredBudget = textureBudgetUsed + w * h
+        if(requiredBudget > textureBudgetTotal){
+            thread { create(createImage(), false) }
+        } else {
+            textureBudgetUsed = requiredBudget
+            create(createImage(), true)
+        }
+    }
+
+    fun create(img: BufferedImage, sync: Boolean){
         val intData = img.getRGB(0, 0, w, h, null, 0, img.width)
-        GFX.check()
         if(ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN){
             for(i in intData.indices){// argb -> abgr
                 val argb = intData[i]
@@ -57,6 +65,17 @@ class Texture2D(val w: Int, val h: Int){
                 intData[i] = rgb or a
             }
         }
+        if(sync) uploadData(intData)
+        else GFX.addTask {
+            uploadData(intData)
+            1
+        }
+    }
+
+    fun uploadData(intData: IntArray){
+        GFX.check()
+        ensurePointer()
+        bind(isFilteredNearest)
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, intData)
         GFX.check()
         filtering(true)
@@ -120,18 +139,24 @@ class Texture2D(val w: Int, val h: Int){
     }
 
     fun bind(nearest: Boolean){
-        glBindTexture(GL_TEXTURE_2D, pointer)
-        ensureFiltering(nearest)
+        if(pointer > -1){
+            glBindTexture(GL_TEXTURE_2D, pointer)
+            ensureFiltering(nearest)
+        } else GFX.invisibleTexture.bind(true)
     }
 
     fun bind(index: Int, nearest: Boolean){
         glActiveTexture(GL_TEXTURE0 + index)
-        glBindTexture(GL_TEXTURE_2D, pointer)
-        ensureFiltering(nearest)
+        bind(nearest)
     }
 
     fun destroy(){
         if(pointer > -1) glDeleteTextures(pointer)
+    }
+
+    companion object {
+        val textureBudgetTotal = DefaultConfig["gpu.textureBudget", 1_000_000]
+        var textureBudgetUsed = 0
     }
 
 }

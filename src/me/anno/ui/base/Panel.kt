@@ -124,7 +124,8 @@ open class Panel(val style: Style): Saveable(){
 
     open fun onSelectAll(x: Float, y: Float){ parent?.onSelectAll(x,y) }
 
-    open fun onGotAction(x: Float, y: Float, action: String){ parent?.onGotAction(x, y, action) }
+    open fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean =
+        parent?.onGotAction(x, y, dx, dy, action, isContinuous) ?: false
 
     open fun onBackKey(x: Float, y: Float){ parent?.onBackKey(x,y) }
     open fun onEnterKey(x: Float, y: Float){ parent?.onEnterKey(x,y) }
@@ -147,5 +148,13 @@ open class Panel(val style: Style): Saveable(){
     }
 
     override fun isDefaultValue() = false
+    open fun isKeyInput() = false
+
+    val listOfAll: Sequence<Panel> get() = sequence {
+        yield(this@Panel)
+        (this@Panel as? PanelGroup)?.children?.forEach { child ->
+            yieldAll(child.listOfAll)
+        }
+    }
 
 }

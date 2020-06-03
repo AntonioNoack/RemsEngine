@@ -1,8 +1,8 @@
 package me.anno.input
 
-typealias Action = String
 
-// todo render stuff to video
+// done render stuff to video
+// todo a menu for rendering stuff; render settings
 // todo audio
 // todo action manager working & integrated
 // todo move stuff in the scene view
@@ -12,8 +12,8 @@ typealias Action = String
 
 
 
-// todo animated masks for everything...
-// todo e.g. invert multiple polygons with it
+// done animated masks for everything...
+// done e.g. invert multiple polygons with it
 
 
 // todo filters:
@@ -29,11 +29,12 @@ typealias Action = String
 
 // medium priority
 // todo load all webp images correctly - are there webp animations?
-// todo smileys in text und as meshes
-// todo load svg files as meshes
-
+// todo smileys in text and as meshes
+// done load svg files as meshes
 
 // low priority
 // todo load plugins
 // todo complete logging support
+// todo support most svg files as meshes
+// todo load svg animations?
 

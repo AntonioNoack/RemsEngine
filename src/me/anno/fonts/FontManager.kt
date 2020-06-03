@@ -34,7 +34,7 @@ object FontManager {
                 // this lag would not be acceptable :)
                 // worst-case-scenario: list too long, and no fonts are returned
                 // (because of that, the already used one is added)
-                println("Used ${(t1-t0)*1e-9f} to get font list")
+                println("[INFO] Used ${(t1-t0)*1e-9f} to get font list")
                 callback(awtFontList)
             }
         }

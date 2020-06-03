@@ -1,6 +1,7 @@
 package me.anno.config
 
 import me.anno.config.DefaultStyle.baseTheme
+import me.anno.input.ActionManager
 import me.anno.io.config.ConfigBasics
 import me.anno.io.utils.StringMap
 import me.anno.ui.style.Style
@@ -45,8 +46,10 @@ object DefaultConfig: StringMap() {
         val stylePath = newConfig["style"]?.toString() ?: "dark"
         style = baseTheme.getStyle(stylePath)
 
+        ActionManager.init()
+
         val t1 = System.nanoTime()
-        println("used ${(t1-t0)*1e-9f} to read the config")
+        println("[INFO] Used ${(t1-t0)*1e-9f} to read the config")
 
     }
 

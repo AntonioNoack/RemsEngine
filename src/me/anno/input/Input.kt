@@ -1,6 +1,5 @@
 package me.anno.input
 
-import me.anno.studio.RemsStudio
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.addEvent
@@ -14,7 +13,7 @@ import me.anno.gpu.GFX.targetFPS
 import me.anno.gpu.GFX.targetHeight
 import me.anno.gpu.GFX.targetWidth
 import me.anno.gpu.GFX.windowStack
-import me.anno.objects.Video
+import me.anno.ui.editor.sceneView.SceneView
 import me.anno.utils.length
 import me.anno.video.VideoBackgroundTask
 import me.anno.video.VideoCreator
@@ -25,6 +24,7 @@ import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.StringSelection
 import java.io.File
 import java.util.HashSet
+import javax.swing.Action
 import kotlin.math.abs
 
 object Input {
@@ -47,7 +47,7 @@ object Input {
         // todo save the scene
     }
 
-    val keysDown = HashSet<Int>()
+    val keysDown = HashMap<Int, Long>()
 
     var mouseX = 0f
     var mouseY = 0f
@@ -109,6 +109,7 @@ object Input {
                 mouseY = newY
 
                 inFocus?.onMouseMoved(mouseX, mouseY, dx, dy)
+                ActionManager.onMouseMoved(dx, dy)
 
             }
         }
@@ -128,12 +129,17 @@ object Input {
                         }
                         inFocus = panelWindow?.first
                         inFocus?.onMouseDown(mouseX, mouseY, button)
+                        ActionManager.onKeyDown(button)
                         mouseStart = System.nanoTime()
                         mouseKeysDown.add(button)
                     }
                     GLFW.GLFW_RELEASE -> {
 
                         inFocus?.onMouseUp(mouseX, mouseY, button)
+
+                        ActionManager.onKeyUp(button)
+                        ActionManager.onKeyTyped(button)
+
                         val longClickMillis = DefaultConfig["longClick", 300]
                         val currentNanos = System.nanoTime()
                         val isDoubleClick = abs(lastClickTime - currentNanos) / 1_000_000 < longClickMillis && length(mouseX - lastClickX, mouseY - lastClickY) < 5f
@@ -165,6 +171,9 @@ object Input {
         GLFW.glfwSetKeyCallback(window) { window, key, scancode, action, mods ->
             addEvent {
                 fun keyTyped(key: Int) {
+
+                    ActionManager.onKeyTyped(key)
+
                     when (key) {
                         GLFW.GLFW_KEY_ENTER -> {
                             if(isShiftDown || isControlDown){
@@ -176,7 +185,7 @@ object Input {
                         GLFW.GLFW_KEY_DELETE -> inFocus?.onDeleteKey(mouseX, mouseY)
                         GLFW.GLFW_KEY_BACKSPACE -> inFocus?.onBackKey(mouseX, mouseY)
                         GLFW.GLFW_KEY_ESCAPE -> {
-                            if (inFocus == RemsStudio.sceneView) {
+                            if (inFocus is SceneView) {
                                 if (windowStack.size < 2) {
                                     openMenu(mouseX, mouseY, "Exit?",
                                         listOf(
@@ -186,16 +195,13 @@ object Input {
                                         ))
                                 } else windowStack.pop()
                             } else {
-                                inFocus = RemsStudio.sceneView
+                                inFocus = windowStack.mapNotNull {
+                                    it.panel.listOfAll.firstOrNull { panel -> panel is SceneView }
+                                }.firstOrNull()
                             }
                         }
-                        GLFW.GLFW_KEY_PRINT_SCREEN -> {
-                            println("Layout:")
-                            for (window1 in windowStack) {
-                                window1.panel.printLayout(1)
-                            }
-                        }
-                        GLFW.GLFW_KEY_F11 -> addEvent { GFX.toggleFullscreen() }
+                        // GLFW.GLFW_KEY_PRINT_SCREEN -> { Layout.printLayout() }
+                        // GLFW.GLFW_KEY_F11 -> addEvent { GFX.toggleFullscreen() }
                         GLFW.GLFW_KEY_F12 -> addEvent {
                             openMenu(mouseX, mouseY, "Quality?", listOf(
                                 "Full" to { _, _ ->
@@ -246,13 +252,15 @@ object Input {
                 // todo handle the keys in our action manager :)
                 when (action) {
                     GLFW.GLFW_PRESS -> {
-                        keysDown += key
+                        keysDown[key] = GFX.lastTime
                         inFocus?.onKeyDown(mouseX, mouseY, key) // 264
+                        ActionManager.onKeyDown(key)
                         keyTyped(key)
                     }
                     GLFW.GLFW_RELEASE -> {
                         inFocus?.onKeyUp(mouseX, mouseY, key)
-                        keysDown -= key
+                        ActionManager.onKeyUp(key)
+                        keysDown.remove(key)
                     } // 265
                     GLFW.GLFW_REPEAT -> keyTyped(key)
                 }

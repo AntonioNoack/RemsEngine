@@ -223,5 +223,7 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
     }
 
     override fun getCursor() = Cursor.editText
+    override fun isKeyInput() = true
+    override fun getClassName() = "PureTextInput"
 
 }

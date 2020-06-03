@@ -206,7 +206,7 @@ open class Transform(var parent: Transform? = null): Saveable(){
 
     open fun onDraw(stack: Matrix4fStack, time: Float, color: Vector4f){
 
-        // draw small symbol to indicate pivot here
+        // draw a small symbol to indicate pivot
         if(!GFX.isFinalRendering){
             stack.pushMatrix()
             stack.scale(0.02f)

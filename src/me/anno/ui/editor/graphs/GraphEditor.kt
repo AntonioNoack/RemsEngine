@@ -1,13 +1,13 @@
-package me.anno.ui.editor.timeline
+package me.anno.ui.editor.graphs
 
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.style.Style
 
-class Timeline(style: Style): PanelListY(style) {
+class GraphEditor(style: Style): PanelListY(style) {
 
     val title = TextPanel("Timeline", style)
-    val body = TimelineBody(style)
+    val body = GraphEditorBody(style)
 
     init {
         this += title

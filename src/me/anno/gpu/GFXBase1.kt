@@ -13,7 +13,7 @@ import java.nio.ByteBuffer
 import javax.imageio.ImageIO
 
 
-open class GFXBase: GFXBase0() {
+open class GFXBase1: GFXBase0() {
 
     fun setIcon(){
 
