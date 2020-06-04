@@ -15,6 +15,7 @@ import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.input.components.PureTextInput
 import me.anno.ui.style.Style
+import me.anno.utils.warn
 import org.joml.Quaternionf
 import org.joml.Vector2f
 import org.joml.Vector3f
@@ -96,6 +97,8 @@ class VectorInput(
     }.setWeight(1f)
 
     init {
+
+        if(type == AnimatedProperty.Type.COLOR) warn("VectorInput should be replaced with ColorInput for type color!")
 
         // titleList += WrapAlign.Top
         valueList += WrapAlign.Top

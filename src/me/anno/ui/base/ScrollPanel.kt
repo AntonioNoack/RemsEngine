@@ -23,7 +23,7 @@ open class ScrollPanel(child: Panel, padding: Padding,
     var scrollPosition = 0f
     val maxLength = 100_000
 
-    val maxScrollPosition get() = max(0, child.minH - h)
+    val maxScrollPosition get() = max(0, child.minH + padding.height - h)
 
     override fun calculateSize(w: Int, h: Int) {
         super.calculateSize(w, h)
@@ -50,13 +50,22 @@ open class ScrollPanel(child: Panel, padding: Padding,
 
     }
 
-    override fun getClassName(): String = "ScrollPanel"
+    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+        clampScrollPosition()
+        super.draw(x0, y0, x1, y1)
+    }
 
     override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float) {
         val delta = dx-dy
         val scale = 20f
-        scrollPosition =
-            clamp(scrollPosition + scale * delta, 0f, maxScrollPosition.toFloat())
+        scrollPosition += scale * delta
+        clampScrollPosition()
     }
+
+    fun clampScrollPosition(){
+        scrollPosition = clamp(scrollPosition, 0f, maxScrollPosition.toFloat())
+    }
+
+    override fun getClassName(): String = "ScrollPanel"
 
 }

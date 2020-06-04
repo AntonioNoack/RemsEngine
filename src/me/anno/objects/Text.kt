@@ -96,7 +96,7 @@ class Text(var text: String, parent: Transform?): GFXTransform(parent){
             }
         }
 
-        list += EnumInput("Font", font, fontList, style)
+        list += EnumInput("Font", true, font, fontList, style)
             .setChangeListener {
                 putLastUsedFont(it)
                 sortFavourites()

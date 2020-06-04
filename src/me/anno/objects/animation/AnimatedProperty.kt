@@ -38,6 +38,7 @@ class AnimatedProperty<V>(val type: Type): Saveable(){
         fun skew() = AnimatedProperty<Vector2f>(Type.SKEW_2D)
     }
 
+    var isAnimated = false
     val keyframes = ArrayList<Keyframe<V>>()
     var interpolation = Interpolation.LINEAR_BOUNDED
 
@@ -144,10 +145,18 @@ class AnimatedProperty<V>(val type: Type): Saveable(){
         super.save(writer)
         sort()
         writer.writeList(this, "keyframes", keyframes)
+        writer.writeBool("isAnimated", isAnimated, true)
     }
 
     fun sort(){
         keyframes.sort()
+    }
+
+    override fun readBool(name: String, value: Boolean) {
+        when(name){
+            "isAnimated" -> isAnimated = value
+            else -> super.readBool(name, value)
+        }
     }
 
     override fun readObject(name: String, value: ISaveable?) {

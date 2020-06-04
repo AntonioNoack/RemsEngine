@@ -62,7 +62,7 @@ object RemsStudio {
                 val t2 = System.nanoTime()
                 val dt1 = (t1-t0)*1e-9f
                 val dt2 = (t2-t1)*1e-9f
-                if(dt1 > 0.01f) println("[WARN] Used ${dt1}s + ${dt2}s for layout")
+                if(dt1 > 0.01f && frameCtr > 0) println("[WARN] Used ${dt1}s + ${dt2}s for layout")
                 panel.draw(window.x,window.y,window.x+panel.w,window.y+panel.h)
             }
 

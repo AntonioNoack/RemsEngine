@@ -7,7 +7,7 @@ import org.joml.Vector3f
 // todo cursor at selected position
 open class HSVBox(
     val chooser: ColorChooser,
-    val d0: Vector3f,
+    val v0: Vector3f,
     val du: Vector3f,
     val dv: Vector3f,
     val dh: Float,
@@ -20,7 +20,7 @@ open class HSVBox(
     }
 
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        chooser.drawColorBox(d0, du, dv, dh)
+        chooser.drawColorBox(v0, du, dv, dh)
     }
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {

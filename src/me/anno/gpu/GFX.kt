@@ -39,6 +39,8 @@ import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.math.*
 
+// todo the alpha range is not continuous at 0
+
 // todo split the rendering in two parts:
 // todo - without blending (no alpha, video or polygons)
 // todo - with blending
@@ -338,11 +340,13 @@ object GFX: GFXBase1() {
     }
 
     fun draw3DMasked(stack: Matrix4f, texture: Texture2D, mask: Texture2D, color: Vector4f,
-                     isBillboard: Float, nearestFiltering: Boolean, useMaskColor: Float, offsetColor: Vector4f){
+                     isBillboard: Float, nearestFiltering: Boolean, useMaskColor: Float, offsetColor: Vector4f,
+                     isInverted: Float){
         val shader = shader3DMasked
         shader3DUniforms(shader, stack, 1, 1, color, isBillboard)
         shader.v4("offsetColor", offsetColor.x, offsetColor.y, offsetColor.z, offsetColor.w)
         shader.v1("useMaskColor", useMaskColor)
+        shader.v1("invertMask", isInverted)
         mask.bind(1, nearestFiltering)
         texture.bind(0, nearestFiltering)
         flat01.draw(shader)
@@ -437,10 +441,10 @@ object GFX: GFXBase1() {
                 "   gl_Position = vec4((pos + attr0 * size)*2.-1., 0.0, 1.0);\n" +
                 "   uv = attr0;\n" +
                 "}", "varying vec2 uv;\n", "" +
-                "uniform vec3 d0, du, dv;\n" +
+                "uniform vec3 v0, du, dv;\n" +
                 HSLuv.GLSL +
                 "void main(){\n" +
-                "   vec3 hsl = d0 + du * uv.x + dv * uv.y;\n" +
+                "   vec3 hsl = v0 + du * uv.x + dv * uv.y;\n" +
                 "   vec3 rgb = hsluvToRgb(hsl*vec3(360.0, 100.0, 100.0));\n" +
                 "   gl_FragColor = vec4(rgb, 1.0);\n" +
                 "}", disableShorts = true)
@@ -454,9 +458,9 @@ object GFX: GFXBase1() {
                 "   gl_Position = vec4((pos + attr0 * size)*2.-1., 0.0, 1.0);\n" +
                 "   uv = attr0;\n" +
                 "}", "varying vec2 uv;\n", "" +
-                "uniform vec3 d0, du, dv;\n" +
+                "uniform vec3 v0, du, dv;\n" +
                 "void main(){\n" +
-                "   vec3 hsv = d0 + du * uv.x + dv * uv.y;\n" +
+                "   vec3 hsv = v0 + du * uv.x + dv * uv.y;\n" +
                 "   float h = hsv.x;\n" +
                 "   float c = $v * $s\n;" +
                 "   float x = c * (1.0 - abs(mod(h*${(360.0/60.0)}, 2.0) - 1.0));\n" +
@@ -609,10 +613,11 @@ object GFX: GFXBase1() {
                 "uniform sampler2D tex, mask;\n" +
                 "uniform vec4 offsetColor;\n" +
                 "uniform float useMaskColor;\n" +
+                "uniform float invertMask;\n" +
                 "void main(){\n" +
                 "   vec2 uv2 = uv.xy/uv.z * 0.5 + 0.5;\n" +
                 "   vec4 mask = texture(mask, uv2);\n" +
-                "   vec4 maskColor = vec4(mix(vec3(1.0), mask.rgb, useMaskColor), mask.a);\n" +
+                "   vec4 maskColor = vec4(mix(vec3(1.0), mask.rgb, useMaskColor), mix(mask.a, 1.0-mask.a, invertMask));\n" +
                 "   if(maskColor.a <= 0.0) discard;\n " +
                 "   vec4 color = texture(tex, uv2);\n" +
                 colorProcessing +

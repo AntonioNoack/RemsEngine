@@ -25,11 +25,11 @@ abstract class PanelGroup(style: Style): Panel(style){
                 if(x12 > x02 && y12 > y02){
                     GFX.clip2(x02, y02, x12, y12)
                     child.draw(x02, y02, x12, y12)
-                    val color = black or 0x777777
+                    /*val color = black or 0x777777
                     GFX.drawRect(x02, y02, 1, 1, color)
                     GFX.drawRect(x02, y12-1, 1, 1, color)
                     GFX.drawRect(x12-1, y02, 1, 1, color)
-                    GFX.drawRect(x12-1, y12-1, 1, 1, color)
+                    GFX.drawRect(x12-1, y12-1, 1, 1, color)*/
                     hadVisibleChild = true
                 }
             }

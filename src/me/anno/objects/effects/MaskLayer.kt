@@ -1,5 +1,6 @@
 package me.anno.objects.effects
 
+import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.io.ISaveable
@@ -8,6 +9,7 @@ import me.anno.objects.GFXTransform
 import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.blending.BlendMode
+import me.anno.ui.base.SpacePanel
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.input.BooleanInput
 import me.anno.ui.input.FloatInput
@@ -25,14 +27,16 @@ class MaskLayer(parent: Transform?): GFXTransform(parent){
 
     var useMaskColor = AnimatedProperty.float()
 
-    var showMask = false
-    var showMasked = false
+    // not animated, because it's not meant to be transitioned, but instead to be a little helper
+    var isInverted = false
 
-    var showFrame = true
-
+    // ignore the bounds of this objects xy-plane?
     var isFullscreen = false
 
-    override fun getDefaultDisplayName() = "Mask Layer"
+    // for user-debugging
+    var showMask = false
+    var showMasked = false
+    var showFrame = true
 
     override fun onDraw(stack: Matrix4fStack, time: Float, color: Vector4f) {
 
@@ -81,6 +85,7 @@ class MaskLayer(parent: Transform?): GFXTransform(parent){
         writer.writeBool("showMasked", showMasked, true)
         writer.writeBool("showFrame", showFrame, true)
         writer.writeBool("isFullscreen", isFullscreen, true)
+        writer.writeBool("isInverted", isInverted, true)
         writer.writeObject(this, "useMaskColor", useMaskColor)
     }
 
@@ -90,6 +95,7 @@ class MaskLayer(parent: Transform?): GFXTransform(parent){
             "showMasked" -> showMasked = value
             "showFrame" -> showFrame = value
             "isFullscreen" -> isFullscreen = value
+            "isInverted" -> isInverted = value
             else -> super.readBool(name, value)
         }
     }
@@ -105,6 +111,17 @@ class MaskLayer(parent: Transform?): GFXTransform(parent){
 
     override fun createInspector(list: PanelListY, style: Style) {
         super.createInspector(list, style)
+        list += BooleanInput("Invert Mask", isInverted, style)
+            .setChangeListener { isInverted = it }
+            .setIsSelectedListener { show(null) }
+        list += FloatInput("Use Mask Color", useMaskColor, lastLocalTime, style)
+            .setChangeListener { putValue(useMaskColor, it) }
+            .setIsSelectedListener { show(useMaskColor) }
+        list += BooleanInput("Fullscreen", isFullscreen, style)
+            .setChangeListener { isFullscreen = it }
+            .setIsSelectedListener { show(null) }
+        list += SpacePanel(0, 1, style)
+            .setColor(style.getChild("deep").getColor("background", black))
         list += BooleanInput("Show Mask", showMask, style)
             .setChangeListener { showMask = it }
             .setIsSelectedListener { show(null) }
@@ -113,12 +130,6 @@ class MaskLayer(parent: Transform?): GFXTransform(parent){
             .setIsSelectedListener { show(null) }
         list += BooleanInput("Show Frame", showFrame, style)
             .setChangeListener { showFrame = it }
-            .setIsSelectedListener { show(null) }
-        list += FloatInput("Use Mask Color", useMaskColor, lastLocalTime, style)
-            .setChangeListener { putValue(useMaskColor, it) }
-            .setIsSelectedListener { show(useMaskColor) }
-        list += BooleanInput("Fullscreen", isFullscreen, style)
-            .setChangeListener { isFullscreen = it }
             .setIsSelectedListener { show(null) }
             .setTooltip("Only works correctly without camera depth") // todo make it so the plane is used as depth
     }
@@ -168,11 +179,14 @@ class MaskLayer(parent: Transform?): GFXTransform(parent){
 
         // todo don't show offset while rendering
         val offsetColor = if(showFrame) frameColor else invisible
+
         GFX.draw3DMasked(localTransform, masked.textures[0], mask.textures[0], color,
-            isBillboard[time], true, useMaskColor[time], offsetColor)
+            isBillboard[time], true, useMaskColor[time], offsetColor,
+            if(isInverted) 1f else 0f)
 
     }
 
+    override fun getDefaultDisplayName() = "Mask Layer"
     override fun getClassName(): String = "MaskLayer"
 
     companion object {

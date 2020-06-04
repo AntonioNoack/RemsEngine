@@ -117,7 +117,7 @@ open class Transform(var parent: Transform? = null): Saveable(){
         list += FloatInput("Advanced Time", timeAnimated, lastLocalTime, style)
             .setChangeListener {  x -> putValue(timeAnimated, x) }
             .setIsSelectedListener { show(timeAnimated) }
-        list += EnumInput("Blend Mode", blendMode.id, blendModes.keys.toList().sorted(), style)
+        list += EnumInput("Blend Mode", true, blendMode.id, blendModes.keys.toList().sorted(), style)
             .setChangeListener { blendMode = BlendMode[it] }
             .setIsSelectedListener { GFX.selectedProperty = null }
 
