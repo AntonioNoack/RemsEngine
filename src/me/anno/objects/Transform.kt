@@ -61,7 +61,7 @@ open class Transform(var parent: Transform? = null): Saveable(){
     var lastLocalTime = 0f
 
     fun putValue(list: AnimatedProperty<*>, value: Any){
-        list.addKeyframe(lastLocalTime, value, 0.1f)
+        list.addKeyframe(if(list.isAnimated) lastLocalTime else 0f, value, 0.1f)
     }
 
     val usesEuler get() = rotationQuaternion == null
@@ -83,16 +83,16 @@ open class Transform(var parent: Transform? = null): Saveable(){
 
         list += VectorInput(style, "Position", position[lastLocalTime],
             AnimatedProperty.Type.POSITION, position)
-            .setChangeListener { x, y, z, w -> putValue(position, Vector3f(x,y,z)) }
+            .setChangeListener { x, y, z, _ -> putValue(position, Vector3f(x,y,z)) }
             .setIsSelectedListener { show(position) }
 
         list += VectorInput(style, "Scale", scale[lastLocalTime], AnimatedProperty.Type.SCALE, scale)
-            .setChangeListener { x, y, z, w -> putValue(scale, Vector3f(x,y,z)) }
+            .setChangeListener { x, y, z, _ -> putValue(scale, Vector3f(x,y,z)) }
             .setIsSelectedListener { show(scale) }
 
         if(usesEuler){
             list += VectorInput(style, "Rotation (YXZ)", rotationYXZ[lastLocalTime], AnimatedProperty.Type.ROT_YXZ, rotationYXZ)
-                .setChangeListener { x, y, z, w -> putValue(rotationYXZ, Vector3f(x,y,z)) }
+                .setChangeListener { x, y, z, _ -> putValue(rotationYXZ, Vector3f(x,y,z)) }
                 .setIsSelectedListener { show(rotationYXZ) }
         } else {
             list += VectorInput(style, "Rotation (Quaternion)", rotationQuaternion?.get(lastLocalTime) ?: Quaternionf())
@@ -103,7 +103,7 @@ open class Transform(var parent: Transform? = null): Saveable(){
         }
 
         list += VectorInput(style, "Skew", skew[lastLocalTime], AnimatedProperty.Type.SKEW_2D, skew)
-            .setChangeListener { x, y, z, w -> putValue(skew, Vector2f(x,y)) }
+            .setChangeListener { x, y, _, _ -> putValue(skew, Vector2f(x,y)) }
             .setIsSelectedListener { show(skew) }
         list += ColorInput(style, "Color", color[lastLocalTime], color)
             .setChangeListener { x, y, z, w -> putValue(color, Vector4f(max(0f, x), max(0f, y), max(0f, z), clamp(w, 0f, 1f))) }

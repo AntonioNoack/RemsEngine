@@ -5,6 +5,7 @@ import me.anno.input.ActionManager
 import me.anno.io.config.ConfigBasics
 import me.anno.io.utils.StringMap
 import me.anno.ui.style.Style
+import me.anno.utils.f3
 
 object DefaultConfig: StringMap() {
 
@@ -49,7 +50,7 @@ object DefaultConfig: StringMap() {
         ActionManager.init()
 
         val t1 = System.nanoTime()
-        println("[INFO] Used ${(t1-t0)*1e-9f} to read the config")
+        println("[INFO] Used ${((t1-t0)*1e-9f).f3()}s to read the config")
 
     }
 

@@ -1,6 +1,7 @@
 package me.anno.ui.base
 
 import me.anno.gpu.GFX
+import me.anno.input.Input
 import me.anno.io.Saveable
 import me.anno.ui.base.constraints.Margin
 import me.anno.ui.base.groups.PanelGroup
@@ -31,6 +32,7 @@ open class Panel(val style: Style): Saveable(){
     val isInFocus get() = GFX.inFocus === this
     val canBeSeen get() = canBeSeen(0,0,GFX.width,GFX.height)
     val canBeSeenCurrently get() = canBeSeen(GFX.windowX, GFX.windowY, GFX.windowWidth, GFX.windowHeight)
+    val isHovered get() = Input.mouseX.toInt()-x in 0 until w && Input.mouseY.toInt()-y in 0 until h
     fun canBeSeen(x0: Int, y0: Int, w0: Int, h0: Int): Boolean {
         return x + w > x0 && y + h > y0 && x < x0+w0 && y < y0+h0
     }

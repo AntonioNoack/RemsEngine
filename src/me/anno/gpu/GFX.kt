@@ -5,7 +5,7 @@ import me.anno.config.DefaultStyle.black
 import me.anno.fonts.FontManager
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.buffer.StaticFloatBuffer
-import me.anno.gpu.color.HSLuv
+import me.anno.ui.editor.color.HSLuvGLSL
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.texture.Texture2D
 import me.anno.input.Input
@@ -23,6 +23,7 @@ import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.base.groups.PanelListY
 import me.anno.utils.clamp
+import me.anno.utils.f1
 import me.anno.utils.minus
 import me.anno.video.Frame
 import org.apache.logging.log4j.LogManager
@@ -125,8 +126,6 @@ object GFX: GFXBase1() {
     lateinit var shader3DSVG: Shader
     lateinit var lineShader3D: Shader
     lateinit var shader3DMasked: Shader
-    lateinit var hsluvShader: Shader
-    lateinit var hslShader: Shader
 
     val invisibleTexture = Texture2D(1, 1)
     val whiteTexture = Texture2D(1, 1)
@@ -223,8 +222,7 @@ object GFX: GFXBase1() {
         check()
         val shader = flatShader
         shader.use()
-        shader.v2("pos", (x-windowX).toFloat()/windowWidth, 1f-(y-windowY).toFloat()/windowHeight)
-        shader.v2("size", w.toFloat()/windowWidth, -h.toFloat()/windowHeight)
+        posSize(shader, x, y, w, h)
         shader.v4("color", color.r()/255f, color.g()/255f, color.b()/255f, color.a()/255f)
         flat01.draw(shader)
         check()
@@ -268,12 +266,16 @@ object GFX: GFXBase1() {
         check()
         val shader = flatShaderTexture
         shader.use()
-        shader.v2("pos", (x-windowX).toFloat()/windowWidth, 1f-(y-windowY).toFloat()/windowHeight)
-        shader.v2("size", w.toFloat()/windowWidth, -h.toFloat()/windowHeight)
+        posSize(shader, x, y, w, h)
         shader.v4("color", color.r()/255f, color.g()/255f, color.b()/255f, color.a()/255f)
         texture.bind(0, texture.isFilteredNearest)
         flat01.draw(shader)
         check()
+    }
+
+    fun posSize(shader: Shader, x: Int, y: Int, w: Int, h: Int){
+        shader.v2("pos", (x-windowX).toFloat()/windowWidth, 1f-(y-windowY).toFloat()/windowHeight)
+        shader.v2("size", w.toFloat()/windowWidth, -h.toFloat()/windowHeight)
     }
 
     // todo use sqrt, sq for all our colors to ensure correct mixing
@@ -434,7 +436,7 @@ object GFX: GFXBase1() {
                 "   gl_FragColor = color;\n" +
                 "}")
 
-        hsluvShader = Shader("" +
+        /*hsluvShader = Shader("" +
                 "in vec2 attr0;\n" +
                 "uniform vec2 pos, size;\n" +
                 "void main(){\n" +
@@ -442,7 +444,7 @@ object GFX: GFXBase1() {
                 "   uv = attr0;\n" +
                 "}", "varying vec2 uv;\n", "" +
                 "uniform vec3 v0, du, dv;\n" +
-                HSLuv.GLSL +
+                HSLuvGLSL.GLSL +
                 "void main(){\n" +
                 "   vec3 hsl = v0 + du * uv.x + dv * uv.y;\n" +
                 "   vec3 rgb = hsluvToRgb(hsl*vec3(360.0, 100.0, 100.0));\n" +
@@ -471,7 +473,7 @@ object GFX: GFXBase1() {
                 "       h < ${4.0/6.0} ? vec3(0.0,x,c) : h < ${5.0/6.0} ? vec3(x,0.0,c) : vec3(c,0.0,x)\n" +
                 "   );\n" +
                 "   gl_FragColor = vec4(m + rgb, 1.0);\n" +
-                "}", disableShorts = true)
+                "}", disableShorts = true)*/
 
         flatShaderTexture = Shader("" +
                 "a2 $flat01Name;\n" +
@@ -854,6 +856,11 @@ object GFX: GFXBase1() {
             1282 -> "invalid operation"
             else -> "$error"
         }}")
+    }
+
+    fun showFPS(){
+        clip(0, 0, width, height)
+        drawText(1, 1, "SansSerif", 12, false, false, currentEditorFPS.f1(), -1, 0)
     }
 
 }

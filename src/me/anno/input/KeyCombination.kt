@@ -32,7 +32,9 @@ class KeyCombination(val key: Int, val modifiers: Int, val type: Type){
         operator fun get(key: Int) = keyMapping.reverse[key]
 
         val keyMapping = BiMap<String, Int>(200)
-        fun put(key: Int, vararg buttons: String){ buttons.forEach { keyMapping[it] = key } }
+        fun put(key: Int, vararg buttons: String){
+            buttons.forEach { keyMapping[it] = key; keyMapping[it.toLowerCase()] = key }
+        }
         init {
             for(c in 'a' .. 'z') keyMapping["$c"] = GLFW_KEY_A + (c.toInt() - 'a'.toInt())
             for(c in '0' .. '9') keyMapping["$c"] = GLFW_KEY_0 + (c.toInt() - '0'.toInt())
@@ -48,12 +50,12 @@ class KeyCombination(val key: Int, val modifiers: Int, val type: Type){
             put(GLFW_KEY_TAB, "\t", "tab")
             put(GLFW_KEY_INSERT, "insert")
             put(GLFW_KEY_DELETE, "delete")
-            put(GLFW_KEY_LEFT, "<-", "arrowleft")
-            put(GLFW_KEY_RIGHT, "->", "arrowright")
-            put(GLFW_KEY_UP, "arrowup")
-            put(GLFW_KEY_DOWN, "arrowdown")
-            put(GLFW_KEY_PAGE_UP, "pageup")
-            put(GLFW_KEY_PAGE_DOWN, "pagedown")
+            put(GLFW_KEY_LEFT, "<-", "leftArrow", "arrowLeft")
+            put(GLFW_KEY_RIGHT, "->", "rightArrow", "arrowRight")
+            put(GLFW_KEY_UP, "topArrow", "arrowUp")
+            put(GLFW_KEY_DOWN, "bottomArrow", "arrowDown")
+            put(GLFW_KEY_PAGE_UP, "pageUp")
+            put(GLFW_KEY_PAGE_DOWN, "pageDown")
             for(i in 1 .. 25) put(GLFW_KEY_F1 - 1 + i, "f$i")
             put(GLFW_MOUSE_BUTTON_LEFT, "left")
             put(GLFW_MOUSE_BUTTON_RIGHT, "right")

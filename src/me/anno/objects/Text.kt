@@ -13,9 +13,15 @@ import me.anno.ui.input.EnumInput
 import me.anno.ui.style.Style
 import org.joml.Matrix4fStack
 import org.joml.Vector4f
+import java.util.*
+import kotlin.collections.ArrayList
 import kotlin.math.max
 
 class Text(var text: String, parent: Transform?): GFXTransform(parent){
+
+    // todo text shadow
+    // todo multiple lines
+    // how we apply sampling probably depends on our AA solution...
 
     var font = "Verdana"
     var buffer: FontMesh? = null
@@ -42,8 +48,18 @@ class Text(var text: String, parent: Transform?): GFXTransform(parent){
             }
 
             val buffer = buffer!!
-
             GFX.draw3D(stack, buffer.buffer, GFX.whiteTexture, color, isBillboard[time], true)
+
+            // bad solution for blurred shadows
+            /*color.w *= 0.001f
+            val random = Random()
+            for(i in 0 until 1000){
+                stack.pushMatrix()
+                val radius = 0.01f
+                stack.translate(radius * random.nextGaussian().toFloat(), radius * random.nextGaussian().toFloat(), 0f)
+                GFX.draw3D(stack, buffer.buffer, GFX.whiteTexture, color, isBillboard[time], true)
+                stack.popMatrix()
+            }*/
 
         }
 

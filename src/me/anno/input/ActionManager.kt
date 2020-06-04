@@ -10,6 +10,7 @@ import me.anno.ui.base.Panel
 import org.lwjgl.glfw.GLFW.*
 import kotlin.math.abs
 
+// todo double click action
 object ActionManager {
 
     val keyDragDelay = DefaultConfig["keyDragDelay", 0.5f]
@@ -48,6 +49,9 @@ object ActionManager {
         defaultValue["SceneView.left.press"] = "MoveObject"
         defaultValue["SceneView.left.press.${Modifiers[false, true]}"] = "MoveObjectAlternate"
 
+        defaultValue["PureTextInput.leftArrow.down"] = "MoveLeft"
+        defaultValue["PureTextInput.rightArrow.down"] = "MoveRight"
+
         parseConfig(defaultValue)
 
     }
@@ -72,18 +76,6 @@ object ActionManager {
         }
 
     }
-
-    /*fun press(keyComb: KeyCombination, inFocus: Panel?){
-        if(inFocus != null){
-            val local = localActions[inFocus.getClassName() to keyComb] ?: return press(keyComb)
-            executeLocally(inFocus, local)
-        } else press(keyComb)
-    }
-
-    fun press(keyComb: KeyCombination){
-        val global = globalActions[keyComb] ?: return
-        executeGlobally(global)
-    }*/
 
     fun onKeyTyped(key: Int){
         onEvent(0f, 0f, KeyCombination(key, Input.keyModState, KeyCombination.Type.TYPED), false)
@@ -116,10 +108,9 @@ object ActionManager {
         val x = Input.mouseX
         val y = Input.mouseY
         var panel = inFocus
-        // println("(${x.toInt()} ${y.toInt()}) += (${dx.toInt()} ${dy.toInt()}) $combination $isContinuous")
         targetSearch@ while(panel != null){
             val clazz = panel.getClassName()
-            val actions = localActions[clazz to combination]
+            val actions = localActions[clazz to combination] ?: localActions["*" to combination]
             if(actions != null){
                 for(action in actions){
                     if(panel.onGotAction(x, y, dx, dy, action, isContinuous)){

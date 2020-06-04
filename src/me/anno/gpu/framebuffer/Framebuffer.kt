@@ -36,6 +36,7 @@ class Framebuffer(var w: Int, var h: Int, val targetCount: Int, val fpTargets: B
 
     fun create(){
         pointer = glGenFramebuffers()
+        if(pointer < 0) throw RuntimeException()
         glBindFramebuffer(GL_FRAMEBUFFER, pointer)
         textures = Array(targetCount){
             val texture = Texture2D(w, h)
@@ -50,10 +51,12 @@ class Framebuffer(var w: Int, var h: Int, val targetCount: Int, val fpTargets: B
         GL20.glDrawBuffers(textures.indices.map { it + GL_COLOR_ATTACHMENT0 }.toIntArray())
         if(createDepthBuffer){
             depthRenderBuffer = glGenRenderbuffers()
+            if(depthRenderBuffer < 0) throw RuntimeException()
             glBindRenderbuffer(GL_RENDERBUFFER, depthRenderBuffer)
             glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, w, h)
             glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthRenderBuffer)
         }
+        check()
     }
 
     fun check(){

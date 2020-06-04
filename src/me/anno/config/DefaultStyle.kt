@@ -3,6 +3,7 @@ package me.anno.config
 import me.anno.io.config.ConfigBasics
 import me.anno.io.utils.StringMap
 import me.anno.ui.style.Style
+import me.anno.utils.mixARGB
 
 object DefaultStyle {
 
@@ -51,6 +52,7 @@ object DefaultStyle {
         set("options.textColor", fontGray)
         set("deep.background", deepDark)
         set("deep.edit.background", deepDark)
+        set("background.hover", mixARGB(iconGray, flatDark, 0.5f))
         set("textPadding", 2)
         set("deep.propertyInspector.background", deepDark)
         set("italic.propertyInspector.textItalic", true)

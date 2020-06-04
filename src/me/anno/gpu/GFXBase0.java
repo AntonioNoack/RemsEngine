@@ -13,6 +13,7 @@ import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.system.MemoryUtil.*;
 import java.nio.*;
+import java.util.Locale;
 
 /**
  * Showcases how you can use multithreading in a GLFW application in order to
@@ -36,6 +37,7 @@ public class GFXBase0 {
 
     public void run() {
         try {
+
             init();
             winProcLoop();
 
@@ -54,9 +56,16 @@ public class GFXBase0 {
     }
 
     void init() {
+
+
+        long t0 = System.nanoTime();
         glfwSetErrorCallback(errorCallback = GLFWErrorCallback.createPrint(System.err));
+        long t1 = System.nanoTime();
         if (!glfwInit())
             throw new IllegalStateException("Unable to initialize GLFW");
+
+        long t2 = System.nanoTime();
+        System.out.println(String.format(Locale.ENGLISH, "[INFO] Used %.3fs for error callback + %.3fs for glfwInit", ((t1-t0)*1e-9f), ((t2-t1)*1e-9f)));
 
         glfwDefaultWindowHints();
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
@@ -76,8 +85,10 @@ public class GFXBase0 {
             width = framebufferSize.get(0);
             height = framebufferSize.get(1);
         }
+
         glfwSetWindowTitle(window, "Rem's Studio");
         glfwShowWindow(window);
+
     }
 
     public void addCallbacks(){

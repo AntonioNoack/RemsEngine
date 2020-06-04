@@ -4,6 +4,7 @@ import me.anno.gpu.buffer.Attribute
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL15
 import org.lwjgl.opengl.GL20.*
+import java.lang.RuntimeException
 import java.nio.ByteBuffer
 
 abstract class Buffer(val attributes: List<Attribute>, val stride: Int, val usage: Int = GL15.GL_STATIC_DRAW){
@@ -28,6 +29,7 @@ abstract class Buffer(val attributes: List<Attribute>, val stride: Int, val usag
     fun upload(){
         if(!isUpToDate){
             if(buffer < 0) buffer = glGenBuffers()
+            if(buffer < 0) throw RuntimeException()
             GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, buffer)
             if(nioBuffer == null){
                 createNioBuffer()

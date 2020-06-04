@@ -2,51 +2,75 @@ package me.anno.ui.input.components
 
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
-import me.anno.input.Input.isControlDown
-import me.anno.input.Input.isShiftDown
-import me.anno.utils.clamp
-import me.anno.ui.base.TextPanel
+import me.anno.input.Input
+import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.style.Style
-import org.lwjgl.glfw.GLFW.*
+import me.anno.utils.clamp
 import kotlin.math.abs
-import kotlin.math.max
-import kotlin.math.min
 import kotlin.streams.toList
 
-open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
+class PureMultilineInput(style: Style): PanelListY(style){
 
-    val characters = ArrayList<Int>()
+    class CursorPosition(val x: Int, val y: Int): Comparable<CursorPosition> {
+        override fun hashCode(): Int = x+y*65536
+        override fun compareTo(other: CursorPosition): Int = hashCode().compareTo(other.hashCode())
+        override fun equals(other: Any?): Boolean {
+            return other is CursorPosition && other.x == x && other.y == y
+        }
+    }
+
+    fun <V: Comparable<V>> min(a: V, b: V): V = if(a < b) a else b
+    fun <V: Comparable<V>> max(a: V, b: V): V = if(a > b) a else b
+
+    var cursor1 = CursorPosition(0,0)
+    var cursor2 = CursorPosition(0,0)
+
+    val cursorEnd get() = CursorPosition(lines.size-1, lines.last().size)
+
+    val lines: ArrayList<MutableList<Int>> = arrayListOf(mutableListOf())
 
     fun setCursorToEnd(){
-        cursor1 = characters.size
+        cursor1 = cursorEnd
         cursor2 = cursor1
     }
 
-    fun updateChars(){
-        characters.clear()
-        characters.addAll(text.codePoints().toList())
+    private var text = ""
+    fun setText(text: String){
+        if(text == this.text) return
+        this.text = text
+        val textLines = text.split('\n')
+        for(i in lines.lastIndex downTo textLines.size-1){
+            lines.removeAt(i)
+        }
+        textLines.forEachIndexed { lineIndex, line ->
+            if(lines.size <= lineIndex) lines += line.codePoints().toList().toMutableList()
+            else {
+                val lineList = lines[lineIndex]
+                lineList.clear()
+                lineList.addAll(line.codePoints().toList())
+            }
+        }
         changeListener(text)
+    }
+
+    val jointText get() = lines.joinToString("\n"){
+        list -> list.joinToString(""){ String(Character.toChars(it)) }
     }
 
     fun updateText(){
-        text = characters.joinToString(""){ String(Character.toChars(it)) }
+        text = jointText
         changeListener(text)
     }
-
-    var cursor1 = 0
-    var cursor2 = 0
-
-    var placeholderColor = style.getColor("placeholderColor", textColor and 0x7fffffff)
-    var placeholder = ""
 
     fun deleteSelection(): Boolean {
         val min = min(cursor1, cursor2)
         val max = max(cursor1, cursor2)
-        for(i in max-1 downTo min){
+        TODO()
+        /*for(i in max-1 downTo min){
             characters.removeAt(i)
         }
         updateText()
-        return max > min
+        return max > min*/
     }
 
     var drawingOffset = 0
@@ -58,37 +82,6 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
         // center the cursor, 1/3 of the width, if possible;
         // clamp left/right
         drawingOffset = -clamp(cursor - w / 3, 0, max(0, required - w))
-    }
-
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        super.draw(x0, y0, x1, y1)
-        drawBackground()
-        val x = x + padding.left
-        val y = y + padding.top
-        val usePlaceholder = text.isEmpty()
-        val drawnText = if(usePlaceholder) placeholder else text
-        val wh = drawText(drawingOffset, 0, drawnText, if(usePlaceholder) placeholderColor else if(isInFocus) focusTextColor else textColor)
-        /*GFX.drawText(x+drawingOffset, y, fontSize, drawnText,
-            if(usePlaceholder) placeholderColor else if(isInFocus) focusTextColor else textColor,
-            backgroundColor)*/
-        val blinkVisible = ((System.nanoTime() / 500_000_000L) % 2L == 0L)
-        val showBars = blinkVisible || wasJustChanged
-        if(isInFocus && (showBars || cursor1 != cursor2)){
-            ensureCursorBounds()
-            val padding = fontSize/4
-            val cursorX1 = if(cursor1 == 0) -1 else GFX.getTextSize(fontName, fontSize, isBold, isItalic, text.substring(0, cursor1)).first
-            if(cursor1 != cursor2){
-                val cursorX2 = if(cursor2 == 0) -1 else GFX.getTextSize(fontName, fontSize, isBold, isItalic, text.substring(0, cursor2)).first
-                val min = min(cursorX1, cursorX2)
-                val max = max(cursorX1, cursorX2)
-                GFX.drawRect(x+min+drawingOffset, y+padding, max-min, h-2*padding, textColor and 0x3fffffff) // marker
-                if(showBars) GFX.drawRect(x+cursorX2+drawingOffset, y+padding, 2, h-2*padding, textColor) // cursor 1
-                calculateOffset(wh.first, cursorX2)
-            } else {
-                calculateOffset(wh.first, cursorX1)
-            }
-            if(showBars) GFX.drawRect(x+cursorX1+drawingOffset, y+padding, 2, h-2*padding, textColor) // cursor 2
-        }
     }
 
     fun addKey(codePoint: Int) = insert(codePoint)
@@ -103,7 +96,8 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
     fun insert(insertion: Int){
         lastMove = GFX.lastTime
         deleteSelection()
-        if(cursor1 < characters.size){
+        TODO()
+        /*if(cursor1 < characters.size){
             characters.add(cursor1, insertion)
         } else {
             characters.add(insertion)
@@ -111,32 +105,35 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
         updateText()
         cursor1++
         cursor2++
-        ensureCursorBounds()
+        ensureCursorBounds()*/
     }
 
     fun deleteBefore(){
-        lastMove = GFX.lastTime
+        TODO()
+        /*lastMove = GFX.lastTime
         if(!deleteSelection() && cursor1 > 0){
             characters.removeAt(cursor1-1)
             updateText()
             cursor1--
             cursor2--
         }
-        ensureCursorBounds()
+        ensureCursorBounds()*/
     }
 
     fun deleteAfter(){
-        lastMove = GFX.lastTime
+        TODO()
+        /*lastMove = GFX.lastTime
         if(!deleteSelection() && cursor1 < characters.size){
             characters.removeAt(cursor1)
             updateText()
         }
-        ensureCursorBounds()
+        ensureCursorBounds()*/
     }
 
     fun ensureCursorBounds(){
-        cursor1 = clamp(cursor1, 0, characters.size)
-        cursor2 = clamp(cursor2, 0, characters.size)
+        TODO()
+        // cursor1 = clamp(cursor1, 0, characters.size)
+        // cursor2 = clamp(cursor2, 0, characters.size)
     }
 
     override fun onCharTyped(x: Float, y: Float, key: Int) {
@@ -145,8 +142,9 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
     }
 
     fun moveRight(){
-        lastMove = GFX.lastTime
-        if(isShiftDown){
+        TODO()
+        /*lastMove = GFX.lastTime
+        if(Input.isShiftDown){
             cursor2++
         } else {
             if(cursor2 != cursor1){
@@ -156,18 +154,27 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
                 cursor2 = cursor1
             }
         }
-        ensureCursorBounds()
+        ensureCursorBounds()*/
     }
 
     fun moveLeft(){
-        lastMove = GFX.lastTime
-        if(isShiftDown){
+        TODO()
+        /*lastMove = GFX.lastTime
+        if(Input.isShiftDown){
             cursor2--
         } else {
             cursor1--
             cursor2 = cursor1
         }
-        ensureCursorBounds()
+        ensureCursorBounds()*/
+    }
+
+    fun moveUp(){
+        TODO()
+    }
+
+    fun moveDown(){
+        TODO()
     }
 
     override fun onBackKey(x: Float, y: Float) {
@@ -179,7 +186,8 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
     }
 
     override fun onCopyRequested(x: Float, y: Float): String? {
-        return characters.subList(min(cursor1, cursor2), max(cursor1, cursor2)).joinToString(""){ String(Character.toChars(it)) }
+        TODO()
+        //return characters.subList(min(cursor1, cursor2), max(cursor1, cursor2)).joinToString(""){ String(Character.toChars(it)) }
     }
 
     override fun onPaste(x: Float, y: Float, pasted: String) {
@@ -193,36 +201,35 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
     override fun onMouseClicked(x: Float, y: Float, button: Int, long: Boolean) {
         // todo find the correct location for the cursor
         lastMove = GFX.lastTime
-        if(isControlDown){
-            cursor1 = 0
-            cursor2 = characters.size
+        if(Input.isControlDown){
+            cursor1 = CursorPosition(0,0)
+            cursor2 = cursorEnd
         } else {
-            cursor1 = characters.size
-            cursor2 = characters.size
+            cursor1 = cursorEnd
+            cursor2 = cursor1
         }
         super.onMouseClicked(x, y, button, long)
     }
 
     override fun onDoubleClick(x: Float, y: Float, button: Int) {
-        cursor1 = 0
-        cursor2 = characters.size
+        selectAll()
     }
 
     override fun onSelectAll(x: Float, y: Float) {
-        cursor1 = 0
-        cursor2 = characters.size
+        selectAll()
+    }
+
+    fun selectAll(){
+        cursor1 = CursorPosition(0,0)
+        cursor2 = cursorEnd
     }
 
     override fun onEmpty(x: Float, y: Float) {
         deleteSelection()
     }
 
-    fun clear(){
-        lastMove = GFX.lastTime
-        text = ""
-        characters.clear()
-        cursor1 = 0
-        cursor2 = 0
+    fun clearText(){
+        setText("")
     }
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
@@ -232,7 +239,7 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
             "DeleteSelection" -> deleteSelection()
             "MoveLeft" -> moveLeft()
             "MoveRight" -> moveRight()
-            "Clear" -> clear()
+            "Clear" -> clearText()
             else -> return super.onGotAction(x, y, dx, dy, action, isContinuous)
         }
         return true

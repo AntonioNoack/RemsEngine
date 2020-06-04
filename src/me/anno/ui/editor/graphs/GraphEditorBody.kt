@@ -60,7 +60,7 @@ class GraphEditorBody(style: Style): Panel(style.getChild("deep")){
 
     override fun calculateSize(w: Int, h: Int) {
         super.calculateSize(w, h)
-        val size = 100
+        val size = 5
         minW = size
         minH = size
     }

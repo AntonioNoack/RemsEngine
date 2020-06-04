@@ -75,6 +75,7 @@ class Camera(parent: Transform?): Transform(parent){
         val shader = GFX.lineShader3D
 
         // todo show the standard level only on user request, or when DOF is enabled
+        // todo render the intersections instead
         shader.use()
         stack.get(GFX.matrixBuffer)
         glUniformMatrix4fv(shader["transform"], false, GFX.matrixBuffer)

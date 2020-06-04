@@ -5,7 +5,21 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
-object HSVColorConverter {
+object HSVColorSpace {
+
+    val GLSL = "" +
+            "vec3 spaceToRGB(vec3 hsv){" +
+            "   float h = hsv.x;\n" +
+            "   float c = hsv.z * hsv.y\n;" +
+            "   float x = c * (1.0 - abs(mod(h*${(360.0/60.0)}, 2.0) - 1.0));\n" +
+            "   float m = hsv.z - c;\n" +
+            "   vec3 rgb = h < 0.5 ? (\n" +
+            "       h < ${1.0/6.0} ? vec3(c,x,0.0) : h < ${2.0/6.0} ? vec3(x,c,0.0) : vec3(0.0,c,x) \n" +
+            "   ) : (\n" +
+            "       h < ${4.0/6.0} ? vec3(0.0,x,c) : h < ${5.0/6.0} ? vec3(x,0.0,c) : vec3(c,0.0,x)\n" +
+            "   );\n" +
+            "   return m + rgb;\n" +
+            "}"
 
     fun rgbToHSV(r: Float, g: Float, b: Float, dst: Vector3f = Vector3f()): Vector3f {
         val value = max(r, max(g, b))

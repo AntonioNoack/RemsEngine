@@ -32,7 +32,7 @@ open class TextInput(title:String, style: Style): PanelContainer(
         return this
     }
 
-    fun deleteKeys() = base.deleteKeys()
+    fun deleteKeys() = base.deleteSelection()
     fun addKey(codePoint: Int) = base.addKey(codePoint)
     fun insert(insertion: String) = base.insert(insertion)
     fun insert(insertion: Int) = base.insert(insertion)

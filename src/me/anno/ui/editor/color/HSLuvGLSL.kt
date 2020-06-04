@@ -1,8 +1,6 @@
-package me.anno.gpu.color
+package me.anno.ui.editor.color
 
-import org.joml.Vector3f
-
-object HSLuv {
+object HSLuvGLSL {
 
     val GLSL =
             "vec3 hsluv_intersectLineLine(vec3 line1x, vec3 line1y, vec3 line2x, vec3 line2y) {\n" +

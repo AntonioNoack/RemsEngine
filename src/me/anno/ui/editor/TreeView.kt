@@ -224,7 +224,7 @@ class TreeView(style: Style):
                         GFX.openMenu(mouseX, mouseY, "Add Child",
                             listOf(// todo make these options customizable :)
                                 "Folder" to add { Transform(it) },
-                                "Text" to add { Text("", it) },
+                                "Text" to add { Text("Sample Text", it) },
                                 "Image" to add { Image(File(""), it) },
                                 "Video/GIF" to add { Video(File(""), it) },
                                 "Circle" to add { Circle(it) },

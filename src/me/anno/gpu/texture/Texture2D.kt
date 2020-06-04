@@ -24,6 +24,7 @@ class Texture2D(val w: Int, val h: Int){
 
     fun ensurePointer(){
         if(pointer < 0) pointer = glGenTextures()
+        if(pointer < 0) throw RuntimeException()
     }
 
     fun create(){

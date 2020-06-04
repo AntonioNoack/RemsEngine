@@ -7,6 +7,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFX.getClickedPanelAndWindow
 import me.anno.gpu.GFX.hoveredPanel
 import me.anno.gpu.GFX.hoveredWindow
+import me.anno.gpu.GFX.showFPS
 import me.anno.gpu.Window
 import me.anno.input.Input
 import me.anno.objects.cache.Cache
@@ -15,6 +16,7 @@ import me.anno.ui.base.TextPanel
 import me.anno.ui.base.Tooltips
 import me.anno.ui.editor.*
 import me.anno.ui.editor.sceneView.SceneView
+import me.anno.utils.f3
 import java.util.*
 
 // todo open full log when clicking on the bottom;
@@ -68,6 +70,8 @@ object RemsStudio {
 
             Tooltips.draw()
 
+            showFPS()
+
             /* dragging can be a nice way to work, but dragging values to change them,
             // and copying by ctrl+c/v is probably better :)
             val dragged = GFX.draggedObject
@@ -84,7 +88,7 @@ object RemsStudio {
             check()
 
             if(frameCtr == 0L){
-                println("[INFO] Used ${(System.nanoTime()- startTime)*1e-9f}s from start to finishing the first frame")
+                println("[INFO] Used ${((System.nanoTime()-startTime)*1e-9f).f3()}s from start to finishing the first frame")
             }
             frameCtr++
 

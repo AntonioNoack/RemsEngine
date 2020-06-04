@@ -3,7 +3,7 @@ package org.hsluv;
 import java.util.ArrayList;
 import java.util.List;
 
-public class HSLuvColorConverter {
+public class HSLuvColorSpace {
 
     private static double[][] m = new double[][]
             {
