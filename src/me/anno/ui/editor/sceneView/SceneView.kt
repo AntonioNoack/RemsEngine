@@ -2,10 +2,10 @@ package me.anno.ui.editor.sceneView
 
 import me.anno.config.DefaultStyle.black
 import me.anno.config.DefaultStyle.deepDark
-import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.deltaTime
 import me.anno.gpu.GFX.editorTime
+import me.anno.gpu.GFX.flat01
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.input.Input
 import me.anno.input.Input.keysDown
@@ -144,9 +144,8 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
         val dx0 = dx*size
         val dy0 = dy*size
         val delta = dx0-dy0
-        // todo drag objects vs move the camera
         if(0 in mouseKeysDown){
-            // todo move the object
+            // move the object
             val selected = GFX.selectedTransform
             if(selected != null){
 
@@ -171,6 +170,15 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
                         selected.position.addKeyframe(localTime, oldPosition + localDelta)
                     }
                     TransformMode.SCALE -> {
+                        val oldScale = selected.scale[localTime]
+                        val localDelta = transform.transformDirection(
+                            if(Input.isControlDown) Vector3f(0f, 0f, -delta)
+                            else Vector3f(dx0, -dy0, 0f)
+                        )
+                        selected.scale.addKeyframe(localTime, oldScale + localDelta)
+                    }
+                    TransformMode.ROTATE -> {
+                        // todo transform rotation??? quaternions...
                         val oldScale = selected.scale[localTime]
                         val localDelta = transform.transformDirection(
                             if(Input.isControlDown) Vector3f(0f, 0f, -delta)

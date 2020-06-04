@@ -41,6 +41,9 @@ object ActionManager {
         defaultValue["SceneView.a.press"] = "CamLeft"
         defaultValue["SceneView.d.press"] = "CamRight"
 
+        defaultValue["HSVBox.left.down"] = "selectColor"
+        defaultValue["HSVBox.left.press-unsafe"] = "selectColor"
+
         defaultValue["SceneView.right.press"] = "Turn"
         defaultValue["SceneView.left.press"] = "MoveObject"
         defaultValue["SceneView.left.press.${Modifiers[false, true]}"] = "MoveObjectAlternate"
@@ -83,26 +86,27 @@ object ActionManager {
     }*/
 
     fun onKeyTyped(key: Int){
-        onEvent(0f, 0f, KeyCombination(key, Input.keyModState, KeyCombination.Type.ON_TYPED), false)
+        onEvent(0f, 0f, KeyCombination(key, Input.keyModState, KeyCombination.Type.TYPED), false)
     }
 
     fun onKeyUp(key: Int){
-        onEvent(0f, 0f, KeyCombination(key, Input.keyModState, KeyCombination.Type.ON_UP), false)
+        onEvent(0f, 0f, KeyCombination(key, Input.keyModState, KeyCombination.Type.UP), false)
     }
 
     fun onKeyDown(key: Int){
-        onEvent(0f, 0f, KeyCombination(key, Input.keyModState, KeyCombination.Type.ON_DOWN), false)
+        onEvent(0f, 0f, KeyCombination(key, Input.keyModState, KeyCombination.Type.DOWN), false)
     }
 
-    fun onKeyHoldDown(dx: Float, dy: Float, key: Int){
-        onEvent(dx, dy, KeyCombination(key, Input.keyModState, KeyCombination.Type.WHILE_DOWN), true)
+    fun onKeyHoldDown(dx: Float, dy: Float, key: Int, save: Boolean){
+        onEvent(dx, dy, KeyCombination(key, Input.keyModState, if(save) KeyCombination.Type.PRESS else KeyCombination.Type.PRESS_UNSAFE), true)
     }
 
     fun onMouseMoved(dx: Float, dy: Float){
         Input.keysDown.forEach { (key, downTime) ->
+            onKeyHoldDown(dx, dy, key, false)
             val deltaTime = abs(downTime - GFX.lastTime) * 1e-9f
             if(deltaTime >= keyDragDelay){
-                onKeyHoldDown(dx, dy, key)
+                onKeyHoldDown(dx, dy, key, true)
             }
         }
     }
@@ -112,6 +116,7 @@ object ActionManager {
         val x = Input.mouseX
         val y = Input.mouseY
         var panel = inFocus
+        // println("(${x.toInt()} ${y.toInt()}) += (${dx.toInt()} ${dy.toInt()}) $combination $isContinuous")
         targetSearch@ while(panel != null){
             val clazz = panel.getClassName()
             val actions = localActions[clazz to combination]

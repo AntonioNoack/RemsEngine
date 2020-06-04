@@ -5,6 +5,7 @@ import me.anno.gpu.GFX.toRadians
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
+import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.utils.clamp
 import me.anno.objects.animation.AnimatedProperty
@@ -104,7 +105,7 @@ open class Transform(var parent: Transform? = null): Saveable(){
         list += VectorInput(style, "Skew", skew[lastLocalTime], AnimatedProperty.Type.SKEW_2D, skew)
             .setChangeListener { x, y, z, w -> putValue(skew, Vector2f(x,y)) }
             .setIsSelectedListener { show(skew) }
-        list += ColorInput(style, "Color", color[lastLocalTime], AnimatedProperty.Type.COLOR, color)
+        list += ColorInput(style, "Color", color[lastLocalTime], color)
             .setChangeListener { x, y, z, w -> putValue(color, Vector4f(max(0f, x), max(0f, y), max(0f, z), clamp(w, 0f, 1f))) }
             .setIsSelectedListener { show(color) }
         list += FloatInput("Start Time", timeOffset, style)
@@ -347,6 +348,8 @@ open class Transform(var parent: Transform? = null): Saveable(){
         if(blendMode == BlendMode.UNSPECIFIED) parent?.getParentBlendMode(default) ?: default else blendMode
 
     override fun isDefaultValue() = false
+
+    fun clone() = TextReader.fromText(TextWriter.toText(this, false)).first() as Transform
 
     companion object {
         val xAxis = Vector3f(1f,0f,0f)

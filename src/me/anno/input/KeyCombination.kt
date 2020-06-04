@@ -8,10 +8,11 @@ class KeyCombination(val key: Int, val modifiers: Int, val type: Type){
     val hash = key.shl(8) + modifiers * 3 + type.hash
 
     enum class Type(val hash: Int){
-        ON_DOWN(0),
-        WHILE_DOWN(1),
-        ON_UP(2),
-        ON_TYPED(3)
+        DOWN(0),
+        PRESS(1),
+        PRESS_UNSAFE(2),
+        UP(3),
+        TYPED(4),
     }
 
     override fun hashCode() = hash
@@ -22,6 +23,8 @@ class KeyCombination(val key: Int, val modifiers: Int, val type: Type){
                 other.modifiers == modifiers &&
                 other.type == type
     }
+
+    override fun toString() = "$key:$modifiers:$type"
 
     companion object {
 
@@ -51,7 +54,10 @@ class KeyCombination(val key: Int, val modifiers: Int, val type: Type){
             put(GLFW_KEY_DOWN, "arrowdown")
             put(GLFW_KEY_PAGE_UP, "pageup")
             put(GLFW_KEY_PAGE_DOWN, "pagedown")
-            for(i in 1 .. 25) put(GLFW_KEY_F1 + i, "f$i")
+            for(i in 1 .. 25) put(GLFW_KEY_F1 - 1 + i, "f$i")
+            put(GLFW_MOUSE_BUTTON_LEFT, "left")
+            put(GLFW_MOUSE_BUTTON_RIGHT, "right")
+            put(GLFW_MOUSE_BUTTON_MIDDLE, "middle")
         }
 
         fun getButton(button: String): Int {
@@ -78,7 +84,10 @@ class KeyCombination(val key: Int, val modifiers: Int, val type: Type){
                 "kp+" -> GLFW_KEY_KP_ADD
                 "kpenter", "kp\n" -> GLFW_KEY_KP_ENTER
                 "kp=" -> GLFW_KEY_KP_EQUAL
-                else -> -1
+                else -> {
+                    println("Button unknown: $button")
+                    -1
+                }
             }
         }
 
@@ -86,10 +95,11 @@ class KeyCombination(val key: Int, val modifiers: Int, val type: Type){
             val key = getButton(button)
             if(key < 0) return null
             val type = when(event.toLowerCase()){
-                "down" -> Type.ON_DOWN
-                "press" -> Type.WHILE_DOWN
-                "typed" -> Type.ON_TYPED
-                "up" -> Type.ON_UP
+                "down" -> Type.DOWN
+                "press" -> Type.PRESS
+                "typed" -> Type.TYPED
+                "up" -> Type.UP
+                "press-unsafe" -> Type.PRESS_UNSAFE
                 else -> return null
             }
             var mods = 0

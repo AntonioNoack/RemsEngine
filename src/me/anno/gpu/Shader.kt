@@ -1,9 +1,13 @@
 package me.anno.gpu
 
 import org.apache.logging.log4j.LogManager
+import org.joml.Vector2f
+import org.joml.Vector3f
+import org.joml.Vector4f
 import org.lwjgl.opengl.GL20.*
 
-class Shader(val vertex: String, val varying: String, val fragment: String){
+class Shader(vertex: String, varying: String, fragment: String,
+             private val disableShorts: Boolean = false){
 
     companion object {
         val LOGGER = LogManager.getLogger()
@@ -17,13 +21,13 @@ class Shader(val vertex: String, val varying: String, val fragment: String){
             "${varying.replace("varying", "out")} $vertex").replaceShortCuts())
     val fragmentShader = compile(GL_FRAGMENT_SHADER, ("" +
             "#version 130\n" +
-            "precision mediump float; ${varying.replace("varying", "in")} $fragment").replaceShortCuts())
+            "precision highp float; ${varying.replace("varying", "in")} $fragment").replaceShortCuts())
 
     init {
         glLinkProgram(program)
     }
 
-    fun String.replaceShortCuts() = this
+    fun String.replaceShortCuts() = if(disableShorts) this else this
         .replace("\n", " \n ")
         .replace(";", " ; ")
         .replace(" u1 ", " uniform float ")
@@ -96,15 +100,8 @@ class Shader(val vertex: String, val varying: String, val fragment: String){
         }
     }
 
-    fun v1(name: String, x: Float){
-        val loc = getUniformLocation(name)
-        if(loc > -1) glUniform1f(loc, x)
-    }
 
-    fun v2(name: String, x: Float, y: Float){
-        val loc = getUniformLocation(name)
-        if(loc > -1) glUniform2f(loc, x, y)
-    }
+
 
     fun v3(name: String, color: Int){
         val loc = getUniformLocation(name)
@@ -114,10 +111,7 @@ class Shader(val vertex: String, val varying: String, val fragment: String){
             color.and(255)/255f)
     }
 
-    fun v3(name: String, x: Float, y: Float, z: Float){
-        val loc = getUniformLocation(name)
-        if(loc > -1) glUniform3f(loc, x, y, z)
-    }
+
 
     fun v4(name: String, color: Int){
         val loc = getUniformLocation(name)
@@ -128,10 +122,30 @@ class Shader(val vertex: String, val varying: String, val fragment: String){
             (color.shr(24) and 255)/255f)
     }
 
+
+    fun v1(name: String, x: Float){
+        val loc = getUniformLocation(name)
+        if(loc > -1) glUniform1f(loc, x)
+    }
+
+    fun v2(name: String, x: Float, y: Float){
+        val loc = getUniformLocation(name)
+        if(loc > -1) glUniform2f(loc, x, y)
+    }
+
+    fun v3(name: String, x: Float, y: Float, z: Float){
+        val loc = getUniformLocation(name)
+        if(loc > -1) glUniform3f(loc, x, y, z)
+    }
+
     fun v4(name: String, x: Float, y: Float, z: Float, w: Float){
         val loc = getUniformLocation(name)
         if(loc > -1) glUniform4f(loc, x, y, z, w)
     }
+
+    fun v2(name: String, v: Vector2f) = v2(name, v.x, v.y)
+    fun v3(name: String, v: Vector3f) = v3(name, v.x, v.y, v.z)
+    fun v4(name: String, v: Vector4f) = v4(name, v.x, v.y, v.z, v.w)
 
     fun check() = GFX.check()
 

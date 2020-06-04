@@ -138,7 +138,17 @@ class TextWriter(val beautify: Boolean): BaseWriter() {
     }
 
     override fun writeIntArray(name: String, value: IntArray, force: Boolean) {
-        TODO("Not yet implemented")
+        if(force || value.isNotEmpty()){
+            writeAttributeStart("i[]", name)
+            open(true)
+            data += value.size.toString()
+            val lastIndex = value.indexOfLast { it != 0 }
+            for(i in 0 until lastIndex){
+                data += ','
+                data += value[i].toString()
+            }
+            close(true)
+        }
     }
 
     override fun writeFloat(name: String, value: Float, force: Boolean) {
@@ -227,7 +237,7 @@ class TextWriter(val beautify: Boolean): BaseWriter() {
         close(true)
     }
 
-    override fun <V : Saveable> writeList(self: ISaveable?, name: String, elements: List<V>?, force: Boolean) {
+    override fun <V : ISaveable> writeList(self: ISaveable?, name: String, elements: List<V>?, force: Boolean) {
         elements?.forEach {
             writeObject(self, name, it, force)
         }

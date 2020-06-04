@@ -6,12 +6,13 @@ import me.anno.ui.base.TextPanel
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.style.Style
 
-class EnumInput(val title: String, startValue: String, val options: List<String>, style: Style): PanelListX(style){
+class EnumInput(private val title: String, startValue: String,
+                private val options: List<String>, style: Style): PanelListX(style){
 
-    val titlePanel = TextPanel("$title:", style)
-    val inputPanel = TextPanel(startValue, style.getChild("italic"))
+    private val titlePanel = TextPanel("$title:", style)
+    private val inputPanel = TextPanel(startValue, style.getChild("italic"))
 
-    var changeListener = { value: String -> }
+    private var changeListener = { _: String -> }
 
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
         val focused = titlePanel.isInFocus || inputPanel.isInFocus

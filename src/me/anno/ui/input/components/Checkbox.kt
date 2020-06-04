@@ -36,8 +36,9 @@ class Checkbox(startValue: Boolean, val size: Int, style: Style): Panel(style.ge
 
     private var onCheckedChanged: ((Boolean) -> Unit)? = null
 
-    fun setChangeListener(listener: (Boolean) -> Unit){
+    fun setChangeListener(listener: (Boolean) -> Unit): Checkbox {
         onCheckedChanged = listener
+        return this
     }
 
     fun change(){

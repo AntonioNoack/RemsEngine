@@ -73,7 +73,7 @@ abstract class BaseWriter {
     abstract fun writePointer(name: String?, className: String, ptr: Int)
     abstract fun writeObjectImpl(name: String?, value: ISaveable)
 
-    abstract fun <V: Saveable> writeList(self: ISaveable?, name: String, elements: List<V>?, force: Boolean = false)
+    abstract fun <V: ISaveable> writeList(self: ISaveable?, name: String, elements: List<V>?, force: Boolean = false)
     abstract fun writeListV2(name: String, elements: List<Vector2f>?, force: Boolean = false)
     abstract fun writeListV3(name: String, elements: List<Vector3f>?, force: Boolean = false)
     abstract fun writeListV4(name: String, elements: List<Vector4f>?, force: Boolean = false)

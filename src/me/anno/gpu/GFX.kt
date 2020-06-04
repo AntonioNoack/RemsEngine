@@ -5,10 +5,10 @@ import me.anno.config.DefaultStyle.black
 import me.anno.fonts.FontManager
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.buffer.StaticFloatBuffer
+import me.anno.gpu.color.HSLuv
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.texture.Texture2D
 import me.anno.input.Input
-import me.anno.input.Input.isControlDown
 import me.anno.input.Input.isShiftDown
 import me.anno.objects.Camera
 import me.anno.objects.Transform
@@ -69,7 +69,7 @@ object GFX: GFXBase1() {
     var hoveredPanel: Panel? = null
     var hoveredWindow: Window? = null
 
-    fun select(transform: Transform){
+    fun select(transform: Transform?){
         selectedTransform = transform
         if(isShiftDown && transform is Camera){
             selectedCamera = transform
@@ -123,6 +123,8 @@ object GFX: GFXBase1() {
     lateinit var shader3DSVG: Shader
     lateinit var lineShader3D: Shader
     lateinit var shader3DMasked: Shader
+    lateinit var hsluvShader: Shader
+    lateinit var hslShader: Shader
 
     val invisibleTexture = Texture2D(1, 1)
     val whiteTexture = Texture2D(1, 1)
@@ -418,15 +420,54 @@ object GFX: GFXBase1() {
 
         // color only
         flatShader = Shader("" +
-                "a2 $flat01Name;\n" +
+                "a2 attr0;\n" +
                 "u2 pos, size;\n" +
                 "void main(){\n" +
-                "   gl_Position = vec4((pos + $flat01Name * size)*2.-1., 0.0, 1.0);\n" +
+                "   gl_Position = vec4((pos + attr0 * size)*2.-1., 0.0, 1.0);\n" +
                 "}", "", "" +
                 "u4 color;\n" +
                 "void main(){\n" +
                 "   gl_FragColor = color;\n" +
                 "}")
+
+        hsluvShader = Shader("" +
+                "in vec2 attr0;\n" +
+                "uniform vec2 pos, size;\n" +
+                "void main(){\n" +
+                "   gl_Position = vec4((pos + attr0 * size)*2.-1., 0.0, 1.0);\n" +
+                "   uv = attr0;\n" +
+                "}", "varying vec2 uv;\n", "" +
+                "uniform vec3 d0, du, dv;\n" +
+                HSLuv.GLSL +
+                "void main(){\n" +
+                "   vec3 hsl = d0 + du * uv.x + dv * uv.y;\n" +
+                "   vec3 rgb = hsluvToRgb(hsl*vec3(360.0, 100.0, 100.0));\n" +
+                "   gl_FragColor = vec4(rgb, 1.0);\n" +
+                "}", disableShorts = true)
+
+        val s = "hsv.y"
+        val v = "hsv.z"
+        hslShader = Shader("" +
+                "in vec2 attr0;\n" +
+                "uniform vec2 pos, size;\n" +
+                "void main(){\n" +
+                "   gl_Position = vec4((pos + attr0 * size)*2.-1., 0.0, 1.0);\n" +
+                "   uv = attr0;\n" +
+                "}", "varying vec2 uv;\n", "" +
+                "uniform vec3 d0, du, dv;\n" +
+                "void main(){\n" +
+                "   vec3 hsv = d0 + du * uv.x + dv * uv.y;\n" +
+                "   float h = hsv.x;\n" +
+                "   float c = $v * $s\n;" +
+                "   float x = c * (1.0 - abs(mod(h*${(360.0/60.0)}, 2.0) - 1.0));\n" +
+                "   float m = $v - c;\n" +
+                "   vec3 rgb = h < 0.5 ? (\n" +
+                "       h < ${1.0/6.0} ? vec3(c,x,0.0) : h < ${2.0/6.0} ? vec3(x,c,0.0) : vec3(0.0,c,x) \n" +
+                "   ) : (\n" +
+                "       h < ${4.0/6.0} ? vec3(0.0,x,c) : h < ${5.0/6.0} ? vec3(x,0.0,c) : vec3(c,0.0,x)\n" +
+                "   );\n" +
+                "   gl_FragColor = vec4(m + rgb, 1.0);\n" +
+                "}", disableShorts = true)
 
         flatShaderTexture = Shader("" +
                 "a2 $flat01Name;\n" +

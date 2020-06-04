@@ -58,8 +58,7 @@ object Scene {
         }
 
         // draw the 3D stuff
-
-        // todo 3D grids and gizmos for orientation
+        // todo gizmos for orientation
 
         val stack = Matrix4fStack(256)
 

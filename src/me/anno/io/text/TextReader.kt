@@ -132,10 +132,6 @@ class TextReader(val data: String): BaseReader(){
         return obj
     }
 
-    fun readList(): List<ISaveable> {
-        TODO("read the list")
-    }
-
     fun readAllInList(){
         assert(skipSpace(), '[')
         while(true){

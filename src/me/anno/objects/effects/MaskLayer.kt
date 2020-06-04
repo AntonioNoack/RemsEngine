@@ -36,7 +36,8 @@ class MaskLayer(parent: Transform?): GFXTransform(parent){
 
     override fun onDraw(stack: Matrix4fStack, time: Float, color: Vector4f) {
 
-        if(children.size >= 2){// else invisible
+        val showResult = GFX.isFinalRendering || (!showMask && !showMasked)
+        if(children.size >= 2 && showResult){// else invisible
 
             /* (low priority)
             // to do calculate the size on screen to limit overhead
@@ -60,8 +61,6 @@ class MaskLayer(parent: Transform?): GFXTransform(parent){
             BlendMode.DEFAULT.apply()
 
             drawMasked(stack, time, color)
-
-
 
             val effectiveBlendMode = getParentBlendMode(BlendMode.DEFAULT)
             effectiveBlendMode.apply()

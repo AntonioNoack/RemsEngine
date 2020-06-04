@@ -17,6 +17,9 @@ import me.anno.ui.custom.CustomListY
 import me.anno.ui.editor.*
 import me.anno.ui.editor.sceneView.SceneView
 import me.anno.ui.editor.graphs.GraphEditor
+import me.anno.video.VideoBackgroundTask
+import me.anno.video.VideoCreator
+import java.io.File
 import java.io.OutputStream
 import java.io.PrintStream
 
@@ -32,6 +35,9 @@ object Layout {
 
         RemsStudio.ui = ui
 
+        // todo show the project name in the title
+        // todo projects
+
         // todo show the file location up there, too?
         // todo fully customizable content
         val options = OptionBar(style)
@@ -44,6 +50,21 @@ object Layout {
         options.addAction("File", "Save"){ Input.save() }
         options.addAction("File", "Load"){  }
 
+        options.addAction("Render", "Full"){
+            VideoBackgroundTask(VideoCreator(GFX.targetWidth, GFX.targetHeight,
+                GFX.targetFPS, File("C:/Users/Antonio/Desktop/out.mp4"))
+            ).start()
+        }
+        options.addAction("Render", "Half"){
+            VideoBackgroundTask(VideoCreator(GFX.targetWidth / 2, GFX.targetHeight / 2,
+                GFX.targetFPS, File("C:/Users/Antonio/Desktop/out.mp4"))
+            ).start()
+        }
+        options.addAction("Render", "Quarter"){
+            VideoBackgroundTask(VideoCreator(GFX.targetWidth / 4, GFX.targetHeight / 4,
+                GFX.targetFPS, File("C:/Users/Antonio/Desktop/out.mp4"))
+            ).start()
+        }
 
         ui += options
 

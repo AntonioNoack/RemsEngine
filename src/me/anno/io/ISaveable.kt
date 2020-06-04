@@ -41,11 +41,8 @@ interface ISaveable {
     fun readVector4(name: String, value: Vector4f)
 
     /**
-     * is not guaranteed to contain no nulls, even if is in file like that;
-     * reader must wait for onReadingEnded()
+     * can saving be ignored?, because this is default anyways?
      * */
-    fun readObjectList(name: String, values: List<ISaveable?>)
-
     fun isDefaultValue(): Boolean
 
     companion object {

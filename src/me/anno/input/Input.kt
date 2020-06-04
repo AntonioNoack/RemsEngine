@@ -132,6 +132,7 @@ object Input {
                         ActionManager.onKeyDown(button)
                         mouseStart = System.nanoTime()
                         mouseKeysDown.add(button)
+                        keysDown[button] = GFX.lastTime
                     }
                     GLFW.GLFW_RELEASE -> {
 
@@ -156,6 +157,7 @@ object Input {
                         lastClickY = mouseY
                         lastClickTime = currentNanos
                         mouseKeysDown.remove(button)
+                        keysDown.remove(button)
 
                     }
                 }
@@ -202,31 +204,7 @@ object Input {
                         }
                         // GLFW.GLFW_KEY_PRINT_SCREEN -> { Layout.printLayout() }
                         // GLFW.GLFW_KEY_F11 -> addEvent { GFX.toggleFullscreen() }
-                        GLFW.GLFW_KEY_F12 -> addEvent {
-                            openMenu(mouseX, mouseY, "Quality?", listOf(
-                                "Full" to { _, _ ->
-                                    VideoBackgroundTask(
-                                        VideoCreator(targetWidth, targetHeight, targetFPS,
-                                            File("C:/Users/Antonio/Desktop/out.mp4"))
-                                    ).start()
-                                    true
-                                },
-                                "Half" to { _, _ ->
-                                    VideoBackgroundTask(
-                                        VideoCreator(targetWidth/2, targetHeight/2, targetFPS,
-                                            File("C:/Users/Antonio/Desktop/out.mp4"))
-                                    ).start()
-                                    true
-                                },
-                                "Quarter" to { _, _ ->
-                                    VideoBackgroundTask(
-                                        VideoCreator(targetWidth/4, targetHeight/4, targetFPS,
-                                            File("C:/Users/Antonio/Desktop/out.mp4"))
-                                    ).start()
-                                    true
-                                }
-                            ))
-                        }
+                        // GLFW.GLFW_KEY_F12 -> addEvent {}
                         else -> {
 
                             if (isControlDown) {
@@ -249,7 +227,6 @@ object Input {
                         }
                     }
                 }
-                // todo handle the keys in our action manager :)
                 when (action) {
                     GLFW.GLFW_PRESS -> {
                         keysDown[key] = GFX.lastTime
