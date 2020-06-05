@@ -37,6 +37,7 @@ open class Transform(var parent: Transform? = null): Saveable(){
     var rotationQuaternion: AnimatedProperty<Quaternionf>? = null
     var skew = AnimatedProperty.skew()
     var color = AnimatedProperty.color()
+    var colorMultiplier = AnimatedProperty.float().set(1f)
 
     var blendMode = BlendMode.UNSPECIFIED
 
@@ -108,6 +109,9 @@ open class Transform(var parent: Transform? = null): Saveable(){
         list += ColorInput(style, "Color", color[lastLocalTime], color)
             .setChangeListener { x, y, z, w -> putValue(color, Vector4f(max(0f, x), max(0f, y), max(0f, z), clamp(w, 0f, 1f))) }
             .setIsSelectedListener { show(color) }
+        list += FloatInput("Color Multiplier", colorMultiplier[lastLocalTime], style)
+            .setChangeListener { putValue(colorMultiplier, it) }
+            .setIsSelectedListener { show(colorMultiplier) }
         list += FloatInput("Start Time", timeOffset, style)
             .setChangeListener { timeOffset = it }
             .setIsSelectedListener { GFX.selectedProperty = null }
@@ -133,7 +137,7 @@ open class Transform(var parent: Transform? = null): Saveable(){
     fun getLocalColor(): Vector4f = getLocalColor(parent?.getLocalColor() ?: Vector4f(1f,1f,1f,1f), lastLocalTime)
     fun getLocalColor(parentColor: Vector4f, time: Float): Vector4f {
         val col = color.getValueAt(time)
-        return Vector4f(col).mul(parentColor)
+        return Vector4f(col).mul(parentColor).mul(colorMultiplier[time])
     }
 
     fun applyTransformLT(transform: Matrix4f, time: Float){
@@ -175,7 +179,6 @@ open class Transform(var parent: Transform? = null): Saveable(){
     fun draw(stack: Matrix4fStack, parentTime: Float, parentColor: Vector4f){
 
         val time = getLocalTime(parentTime)
-        lastLocalTime = time
         val color = getLocalColor(parentColor, time)
 
         if(color.w > 0.00025f){ // 12 bit = 4k
@@ -352,6 +355,9 @@ open class Transform(var parent: Transform? = null): Saveable(){
     fun clone() = TextReader.fromText(TextWriter.toText(this, false)).first() as Transform
 
     companion object {
+        // these values MUST NOT be changed
+        // they are universal constants, and are used
+        // within shaders, too
         val xAxis = Vector3f(1f,0f,0f)
         val yAxis = Vector3f(0f,1f,0f)
         val zAxis = Vector3f(0f, 0f, 1f)

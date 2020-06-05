@@ -22,6 +22,7 @@ import me.anno.utils.clamp
 import me.anno.utils.plus
 import me.anno.utils.times
 import org.joml.Vector3f
+import java.awt.Frame
 import kotlin.math.max
 
 // todo search elements
@@ -52,7 +53,8 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
     // then we use a shader to draw sqrt(sq(color))
     // this should give correct color mixing <3
 
-    var framebuffer = Framebuffer(1, 1,1,true, true)
+    // we need the depth for post processing effects like dof
+    var framebuffer = Framebuffer(1, 1,1,true, Framebuffer.DepthBufferType.TEXTURE)
     var mode = TransformMode.MOVE
 
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
@@ -215,9 +217,10 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
         when(action){
-            "setMode(move)" -> mode = TransformMode.MOVE
-            "setMode(scale)" -> mode = TransformMode.SCALE
-            "setMode(rotate)" -> mode = TransformMode.ROTATE
+            "SetMode(MOVE)" -> mode = TransformMode.MOVE
+            "SetMode(SCALE)" -> mode = TransformMode.SCALE
+            "SetMode(ROTATE)" -> mode = TransformMode.ROTATE
+            "ResetCamera" -> { GFX.selectedCamera.resetTransform() }
             else -> return super.onGotAction(x, y, dx, dy, action, isContinuous)
         }
         return true

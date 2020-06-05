@@ -1,19 +1,24 @@
 package me.anno.gpu.framebuffer
 
-import me.anno.gpu.GFX
 import me.anno.gpu.texture.Texture2D
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL13
 import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL30.*
-import java.awt.Frame
 import java.lang.RuntimeException
 import java.util.*
 
-class Framebuffer(var w: Int, var h: Int, val targetCount: Int, val fpTargets: Boolean, val createDepthBuffer: Boolean){
+class Framebuffer(var w: Int, var h: Int, val targetCount: Int, val fpTargets: Boolean, val createDepthBuffer: DepthBufferType){
+
+    enum class DepthBufferType {
+        NONE,
+        INTERNAL,
+        TEXTURE
+    }
 
     var pointer = -1
     var depthRenderBuffer = -1
+    var depthTexture: Texture2D? = null
 
     lateinit var textures: Array<Texture2D>
 
@@ -43,18 +48,27 @@ class Framebuffer(var w: Int, var h: Int, val targetCount: Int, val fpTargets: B
             if(fpTargets) texture.createFP32()
             else texture.create()
             texture.filtering(true)
+            texture.clamping(false)
             texture
         }
         textures.forEachIndexed { index, texture ->
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + index, GL11.GL_TEXTURE_2D, texture.pointer, 0)
         }
         GL20.glDrawBuffers(textures.indices.map { it + GL_COLOR_ATTACHMENT0 }.toIntArray())
-        if(createDepthBuffer){
-            depthRenderBuffer = glGenRenderbuffers()
-            if(depthRenderBuffer < 0) throw RuntimeException()
-            glBindRenderbuffer(GL_RENDERBUFFER, depthRenderBuffer)
-            glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, w, h)
-            glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthRenderBuffer)
+        when(createDepthBuffer){
+            DepthBufferType.NONE -> {}
+            DepthBufferType.INTERNAL -> {
+                depthRenderBuffer = glGenRenderbuffers()
+                if(depthRenderBuffer < 0) throw RuntimeException()
+                glBindRenderbuffer(GL_RENDERBUFFER, depthRenderBuffer)
+                glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, w, h)
+                glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthRenderBuffer)
+            }
+            DepthBufferType.TEXTURE -> {
+                val depthTexture = Texture2D(w, h)
+                depthTexture.createDepth()
+                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthTexture.pointer, 0)
+            }
         }
         check()
     }
@@ -66,9 +80,14 @@ class Framebuffer(var w: Int, var h: Int, val targetCount: Int, val fpTargets: B
         }
     }
 
-    fun bindTextures(nearest: Boolean){
+    fun bindTexture0(offset: Int = 0, nearest: Boolean){
+        GL13.glActiveTexture(GL13.GL_TEXTURE0 + offset)
+        textures[0].bind(nearest)
+    }
+
+    fun bindTextures(offset: Int = 0, nearest: Boolean){
         textures.forEachIndexed { index, texture ->
-            GL13.glActiveTexture(GL13.GL_TEXTURE0 + index)
+            GL13.glActiveTexture(GL13.GL_TEXTURE0 + offset + index)
             texture.bind(nearest)
         }
     }

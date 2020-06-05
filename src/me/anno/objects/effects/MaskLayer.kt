@@ -22,8 +22,8 @@ import org.lwjgl.opengl.GL11.*
 class MaskLayer(parent: Transform?): GFXTransform(parent){
 
     // just a little expensive...
-    val mask = Framebuffer(1, 1, 1, false, false)
-    val masked = Framebuffer(1, 1, 1, true, true)
+    val mask = Framebuffer(1, 1, 1, false, Framebuffer.DepthBufferType.NONE)
+    val masked = Framebuffer(1, 1, 1, true, Framebuffer.DepthBufferType.INTERNAL)
 
     var useMaskColor = AnimatedProperty.float()
 

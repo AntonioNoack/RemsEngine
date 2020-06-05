@@ -53,12 +53,7 @@ class Camera(parent: Transform?): Transform(parent){
             .setIsSelectedListener { show(null) }
             .setTooltip("Causes Z-Fighting, but allows 3D")
         list += ButtonPanel("Reset Transform", style)
-            .setOnClickListener { x, y, button, long ->
-                putValue(position, Vector3f(0f, 0f, 1f))
-                putValue(scale, Vector3f(1f, 1f, 1f))
-                putValue(skew, Vector2f(0f, 0f))
-                putValue(rotationYXZ, Vector3f())
-            }
+            .setOnClickListener { x, y, button, long -> resetTransform() }
             .setTooltip("If accidentally moved")
     }
 
@@ -94,6 +89,12 @@ class Camera(parent: Transform?): Transform(parent){
 
     }
 
+    fun resetTransform(){
+        putValue(position, Vector3f(0f, 0f, 1f))
+        putValue(scale, Vector3f(1f, 1f, 1f))
+        putValue(skew, Vector2f(0f, 0f))
+        putValue(rotationYXZ, Vector3f())
+    }
 
     companion object {
         val cameraModel = StaticFloatBuffer(listOf(Attribute("attr0", 3)), 2 * 3 * 8)

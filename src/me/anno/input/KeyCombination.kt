@@ -60,25 +60,14 @@ class KeyCombination(val key: Int, val modifiers: Int, val type: Type){
             put(GLFW_MOUSE_BUTTON_LEFT, "left")
             put(GLFW_MOUSE_BUTTON_RIGHT, "right")
             put(GLFW_MOUSE_BUTTON_MIDDLE, "middle")
+            for(i in 0 .. 9) put(GLFW_KEY_KP_0 + i, "kp$i", "num$i", "numpad$i", "numblock$i")
         }
 
         fun getButton(button: String): Int {
-            val asInt = button.toIntOrNull()
-            if(asInt != null) return asInt
             val asKey = keyMapping[button] ?: keyMapping[button.toLowerCase()]
             if(asKey != null) return asKey
             return when(button.toLowerCase()){
                 // kp = key pad = num pad probably
-                "kp0" -> GLFW_KEY_KP_0
-                "kp1" -> GLFW_KEY_KP_1
-                "kp2" -> GLFW_KEY_KP_2
-                "kp3" -> GLFW_KEY_KP_3
-                "kp4" -> GLFW_KEY_KP_4
-                "kp5" -> GLFW_KEY_KP_5
-                "kp6" -> GLFW_KEY_KP_6
-                "kp7" -> GLFW_KEY_KP_7
-                "kp8" -> GLFW_KEY_KP_8
-                "kp9" -> GLFW_KEY_KP_9
                 "kp," -> GLFW_KEY_KP_DECIMAL
                 "kp/" -> GLFW_KEY_KP_DIVIDE
                 "kp*" -> GLFW_KEY_KP_MULTIPLY
@@ -87,6 +76,8 @@ class KeyCombination(val key: Int, val modifiers: Int, val type: Type){
                 "kpenter", "kp\n" -> GLFW_KEY_KP_ENTER
                 "kp=" -> GLFW_KEY_KP_EQUAL
                 else -> {
+                    val asInt = button.toIntOrNull()
+                    if(asInt != null) return asInt
                     println("Button unknown: $button")
                     -1
                 }

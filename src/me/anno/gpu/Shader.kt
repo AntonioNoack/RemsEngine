@@ -5,6 +5,7 @@ import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
 import org.lwjgl.opengl.GL20.*
+import java.lang.RuntimeException
 
 class Shader(vertex: String, varying: String, fragment: String,
              private val disableShorts: Boolean = false){
@@ -21,7 +22,7 @@ class Shader(vertex: String, varying: String, fragment: String,
             "${varying.replace("varying", "out")} $vertex").replaceShortCuts())
     val fragmentShader = compile(GL_FRAGMENT_SHADER, ("" +
             "#version 130\n" +
-            "precision highp float; ${varying.replace("varying", "in")} $fragment").replaceShortCuts())
+            "precision mediump float; ${varying.replace("varying", "in")} $fragment").replaceShortCuts())
 
     init {
         glLinkProgram(program)
@@ -67,6 +68,7 @@ class Shader(vertex: String, varying: String, fragment: String,
                 .mapIndexed { index, line -> 
                     "${"%1\$3s".format(index+1)}: $line"
                 }.joinToString("\n")}")
+            throw RuntimeException()
         }
     }
 

@@ -5,8 +5,10 @@ import me.anno.gpu.GFX
 import me.anno.gpu.Shader
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.objects.blending.BlendMode
+import me.anno.objects.effects.BokehBlur
 import me.anno.ui.editor.sceneView.Grid
 import org.joml.Matrix4fStack
+import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL30
 
 object Scene {
@@ -89,7 +91,12 @@ object Scene {
 
         BlendMode.DEFAULT.apply()
 
-        GL30.glDisable(GL30.GL_DEPTH_TEST)
+        glDisable(GL_DEPTH_TEST)
+
+        val enableCircularDOF = true
+        val outputTexture = if(enableCircularDOF){
+            BokehBlur.draw(w, h, 0.02f, framebuffer.textures[0])
+        } else framebuffer.textures[0]
 
         if(target == null){
             GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, 0)
@@ -98,12 +105,14 @@ object Scene {
             target.bind()
         }
 
-        framebuffer.bindTextures(true)
+        outputTexture.bind(0, true)
 
         sqrtDisplayShader.use()
         sqrtDisplayShader.v1("ySign", if(flipY) -1f else 1f)
         GFX.flat01.draw(sqrtDisplayShader)
         GFX.check()
+
+        glEnable(GL_BLEND)
 
     }
 

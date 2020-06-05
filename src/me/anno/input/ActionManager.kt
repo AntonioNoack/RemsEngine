@@ -7,6 +7,7 @@ import me.anno.io.utils.StringMap
 import me.anno.studio.Layout
 import me.anno.studio.RemsStudio
 import me.anno.ui.base.Panel
+import me.anno.ui.base.groups.PanelGroup
 import org.lwjgl.glfw.GLFW.*
 import kotlin.math.abs
 
@@ -36,6 +37,7 @@ object ActionManager {
         defaultValue["global.space.down.${Modifiers[true, true]}"] = "PlayReversedSlow|Pause"
         defaultValue["global.f11.down"] = "ToggleFullscreen"
         defaultValue["global.${GLFW_KEY_PRINT_SCREEN}.down"] = "PrintLayout"
+        defaultValue["global.numpad0.down"] = "ResetCamera"
 
         defaultValue["SceneView.w.press"] = "CamForward"
         defaultValue["SceneView.s.press"] = "CamBackward"

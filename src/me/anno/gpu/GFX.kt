@@ -5,7 +5,6 @@ import me.anno.config.DefaultStyle.black
 import me.anno.fonts.FontManager
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.buffer.StaticFloatBuffer
-import me.anno.ui.editor.color.HSLuvGLSL
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.texture.Texture2D
 import me.anno.input.Input
@@ -26,7 +25,6 @@ import me.anno.utils.clamp
 import me.anno.utils.f1
 import me.anno.utils.minus
 import me.anno.video.Frame
-import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
 import org.joml.Matrix4fStack
 import org.joml.Vector3f
@@ -95,10 +93,7 @@ object GFX: GFXBase1() {
         eventTasks += event
     }
 
-    var isTestingRawFPS = false
     var editorTimeDilation = 0f
-
-    val LOGGER = LogManager.getLogger()
 
     lateinit var gameInit: () -> Unit
     lateinit var gameLoop: (w: Int, h: Int) -> Boolean
@@ -436,45 +431,6 @@ object GFX: GFXBase1() {
                 "   gl_FragColor = color;\n" +
                 "}")
 
-        /*hsluvShader = Shader("" +
-                "in vec2 attr0;\n" +
-                "uniform vec2 pos, size;\n" +
-                "void main(){\n" +
-                "   gl_Position = vec4((pos + attr0 * size)*2.-1., 0.0, 1.0);\n" +
-                "   uv = attr0;\n" +
-                "}", "varying vec2 uv;\n", "" +
-                "uniform vec3 v0, du, dv;\n" +
-                HSLuvGLSL.GLSL +
-                "void main(){\n" +
-                "   vec3 hsl = v0 + du * uv.x + dv * uv.y;\n" +
-                "   vec3 rgb = hsluvToRgb(hsl*vec3(360.0, 100.0, 100.0));\n" +
-                "   gl_FragColor = vec4(rgb, 1.0);\n" +
-                "}", disableShorts = true)
-
-        val s = "hsv.y"
-        val v = "hsv.z"
-        hslShader = Shader("" +
-                "in vec2 attr0;\n" +
-                "uniform vec2 pos, size;\n" +
-                "void main(){\n" +
-                "   gl_Position = vec4((pos + attr0 * size)*2.-1., 0.0, 1.0);\n" +
-                "   uv = attr0;\n" +
-                "}", "varying vec2 uv;\n", "" +
-                "uniform vec3 v0, du, dv;\n" +
-                "void main(){\n" +
-                "   vec3 hsv = v0 + du * uv.x + dv * uv.y;\n" +
-                "   float h = hsv.x;\n" +
-                "   float c = $v * $s\n;" +
-                "   float x = c * (1.0 - abs(mod(h*${(360.0/60.0)}, 2.0) - 1.0));\n" +
-                "   float m = $v - c;\n" +
-                "   vec3 rgb = h < 0.5 ? (\n" +
-                "       h < ${1.0/6.0} ? vec3(c,x,0.0) : h < ${2.0/6.0} ? vec3(x,c,0.0) : vec3(0.0,c,x) \n" +
-                "   ) : (\n" +
-                "       h < ${4.0/6.0} ? vec3(0.0,x,c) : h < ${5.0/6.0} ? vec3(x,0.0,c) : vec3(c,0.0,x)\n" +
-                "   );\n" +
-                "   gl_FragColor = vec4(m + rgb, 1.0);\n" +
-                "}", disableShorts = true)*/
-
         flatShaderTexture = Shader("" +
                 "a2 $flat01Name;\n" +
                 "u2 pos, size;\n" +
@@ -711,6 +667,15 @@ object GFX: GFXBase1() {
                 "}")
     }
 
+    fun createCustomShader2(v3D: String, y3D: String, fragmentShader: String, textures: List<String>): Shader {
+        val shader = Shader(v3D, y3D, fragmentShader, true)
+        shader.use()
+        textures.forEachIndexed { index, name ->
+            GL20.glUniform1i(shader[name], index)
+        }
+        return shader
+    }
+
     fun createCustomShader(v3D: String, y3D: String, fragmentShader: String, textures: List<String>): Shader {
         val shader = Shader(v3D, y3D, fragmentShader)
         shader.use()
@@ -739,6 +704,8 @@ object GFX: GFXBase1() {
 
     override fun renderStep(){
 
+        // async work section
+
         var workDone = 0
         val workTime0 = System.nanoTime()
         while(workDone < 100){
@@ -751,6 +718,13 @@ object GFX: GFXBase1() {
             }
         }
 
+        // rendering and editor section
+
+        updateTime()
+        // updating the local times must be done before the events, because
+        // the worker thread might have invalidated those
+        updateLastLocalTime(root, editorTime)
+
         while(eventTasks.isNotEmpty()){
             eventTasks.poll()!!.invoke()
         }
@@ -760,9 +734,7 @@ object GFX: GFXBase1() {
         Framebuffer.bindNull()
         glViewport(0, 0, width, height)
 
-
         check()
-
 
         glDisable(GL11.GL_DEPTH_TEST)
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
@@ -772,6 +744,22 @@ object GFX: GFXBase1() {
         glDisable(GL_ALPHA_TEST)
 
         check()
+
+        gameLoop(width, height)
+
+        check()
+
+    }
+
+    fun updateLastLocalTime(parent: Transform, time: Float){
+        val localTime = parent.getLocalTime(time)
+        parent.lastLocalTime = localTime
+        parent.children.forEach { child ->
+            updateLastLocalTime(child, localTime)
+        }
+    }
+
+    fun updateTime(){
 
         val thisTime = System.nanoTime()
         rawDeltaTime = (thisTime - lastTime) * 1e-9f
@@ -786,10 +774,6 @@ object GFX: GFXBase1() {
 
         smoothSin = sin(editorTime)
         smoothCos = cos(editorTime)
-
-        gameLoop(width, height)
-
-        check()
 
     }
 
@@ -843,12 +827,6 @@ object GFX: GFXBase1() {
     fun openMenu(x: Float, y: Float, title: String, options: List<Pair<String, (button: Int, isLong: Boolean) -> Boolean>>, delta: Int = 10){
         openMenu(x.roundToInt() - delta, y.roundToInt() - delta, title, options)
     }
-
-    /*fun pauseOrUnpause(){
-        editorTimeDilation = if(abs(editorTimeDilation) < 1e-3f || isShiftDown || isControlDown){
-            (if(isControlDown) -1f else 1f) * (if(isShiftDown) 0.2f else 1f)
-        } else 0f
-    }*/
 
     fun check(){
         val error = glGetError()

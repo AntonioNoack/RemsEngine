@@ -1,7 +1,6 @@
 package me.anno.gpu.texture
 
 import me.anno.config.DefaultConfig
-import me.anno.fonts.AWTFont
 import me.anno.gpu.GFX
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL13.GL_TEXTURE0
@@ -98,6 +97,23 @@ class Texture2D(val w: Int, val h: Int){
         GFX.check()
     }
 
+    fun create(data: FloatArray){
+        if(w*h*4 != data.size) throw RuntimeException("incorrect size!")
+        ensurePointer()
+        bind(isFilteredNearest)
+        GFX.check()
+        val byteBuffer = ByteBuffer
+            .allocateDirect(data.size * 4)
+            .order(ByteOrder.nativeOrder())
+            .position(0)
+        val floatBuffer = byteBuffer.asFloatBuffer()
+            .put(data)
+            .position(0)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_FLOAT, floatBuffer)
+        filtering(true)
+        GFX.check()
+    }
+
     fun create(data: ByteArray){
         if(w*h*4 != data.size) throw RuntimeException("incorrect size!")
         ensurePointer()
@@ -139,6 +155,12 @@ class Texture2D(val w: Int, val h: Int){
         isFilteredNearest = nearest
     }
 
+    fun clamping(repeat: Boolean){
+        val type = if(repeat) GL_REPEAT else GL_CLAMP_TO_EDGE
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, type)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, type)
+    }
+
     fun bind(nearest: Boolean){
         if(pointer > -1){
             glBindTexture(GL_TEXTURE_2D, pointer)
@@ -153,6 +175,13 @@ class Texture2D(val w: Int, val h: Int){
 
     fun destroy(){
         if(pointer > -1) glDeleteTextures(pointer)
+    }
+
+    fun createDepth(){
+        ensurePointer()
+        bind(true)
+        clamping(false)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, w, h, 0, GL_DEPTH_COMPONENT,	GL_FLOAT, 0)
     }
 
     companion object {

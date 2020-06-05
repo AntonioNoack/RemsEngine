@@ -8,8 +8,8 @@ class VideoBackgroundTask(val video: VideoCreator){
 
     // todo show the progress somehow
 
-    val framebuffer = Framebuffer(video.w, video.h, 1, false, false)
-    val sqFramebuffer = Framebuffer(video.w, video.h, 1, true, true)
+    val framebuffer = Framebuffer(video.w, video.h, 1, false, Framebuffer.DepthBufferType.TEXTURE)
+    val sqFramebuffer = Framebuffer(video.w, video.h, 1, true, Framebuffer.DepthBufferType.NONE)
 
     var frameIndex = 0
     val totalFrameCount = 200
