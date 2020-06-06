@@ -30,7 +30,7 @@ class GraphEditor(style: Style): PanelListY(style) {
 
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
         val canBeActivated = GFX.selectedProperty?.isAnimated == false
-        activateButtonContainer.visibility = if(canBeActivated) Visibility.VISIBLE else Visibility.GONE
+        activateButtonContainer.visibility = Visibility[canBeActivated]
         super.draw(x0, y0, x1, y1)
     }
 

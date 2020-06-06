@@ -20,7 +20,7 @@ open class HSVBox(
     }
 
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        chooser.drawColorBox(this, v0, du, dv, dh)
+        chooser.drawColorBox(this, v0, du, dv, dh, false)
     }
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {

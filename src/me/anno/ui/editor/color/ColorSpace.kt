@@ -2,9 +2,12 @@ package me.anno.ui.editor.color
 
 import me.anno.gpu.GFX
 import me.anno.gpu.Shader
+import me.anno.ui.editor.color.ColorChooser.Companion.CircleBarRatio
 import me.anno.utils.toVec3
 import org.hsluv.HSLuvColorSpace
 import org.joml.Vector3f
+import java.lang.RuntimeException
+import kotlin.math.PI
 
 // could be used to replace the two color spaces with more
 abstract class ColorSpace(
@@ -22,11 +25,10 @@ abstract class ColorSpace(
         values[name.toLowerCase()] = this
     }
 
-    var ringShader: Shader? = null
-    var boxShader: Shader? = null
+    private val shaders = HashMap<ColorVisualisation, Shader>()
 
-    fun getShader(ring: Boolean): Shader {
-        val oldShader = if(ring) ringShader else boxShader
+    fun getShader(type: ColorVisualisation): Shader {
+        val oldShader = shaders[type]
         if(oldShader != null) return oldShader
         val vertexShader = "" +
                 "in vec2 attr0;\n" +
@@ -36,42 +38,74 @@ abstract class ColorSpace(
                 "   uv = attr0;\n" +
                 "}"
         val varyingShader = "varying vec2 uv;\n"
-        val fragmentShader = if(ring){
-            "" +
-                    "uniform vec2 v1;\n" +
-                    "uniform vec3 v0, du, dv;\n" +
-                    glsl +
-                    "void main(){\n" +
-                    "   vec2 nuv = uv*2.0-1.0;\n" +
-                    "   float dst = dot(nuv,nuv);\n" +
-                    "   float hue = atan(nuv.y, nuv.x) * ${(0.5/Math.PI)} + 0.5;\n" +
-                    "   vec3 hsl = vec3(hue, v1);\n" +
-                    "   float alpha = dst > 0.95 ? 1.0 + (0.95-dst)*15.0 : 1.0;\n" +
-                    "   float isSquare = clamp((0.62-dst)*20.0, 0.0, 1.0);\n" +
-                    "   vec2 uv2 = clamp((uv-0.5)*1.8+0.5, 0.0, 1.0);\n" +
-                    "   float dst2 = max(abs(uv2.x-0.5), abs(uv2.y-0.5));\n" +
-                    "   alpha *= mix(1.0, clamp((0.5-dst2)*50.0, 0.0, 1.0), isSquare);\n" +
-                    "   if(alpha <= 0.0) discard;\n" +
-                    "   vec3 squareColor = spaceToRGB(v0 + du * uv2.x + dv * uv2.y);\n" +
-                    "   vec3 rgb = mix(spaceToRGB(hsl), squareColor, isSquare);\n" +
-                    "   gl_FragColor = vec4(rgb, alpha);\n" +
-                    "}"
-        } else {
-            "" +
-                    "uniform vec3 v0, du, dv;\n" +
-                    glsl +
-                    "void main(){\n" +
-                    "   vec3 hsl = v0 + du * uv.x + dv * uv.y;\n" +
-                    "   vec3 rgb = spaceToRGB(hsl);\n" +
-                    "   gl_FragColor = vec4(rgb, 1.0);\n" +
-                    "}"
+        val fragmentShader = when(type){
+            ColorVisualisation.WHEEL -> {
+                "" +
+                        "uniform vec2 ringSL;\n" +
+                        "uniform vec3 v0, du, dv;\n" +
+                        glsl +
+                        "void main(){\n" +
+                        "   vec2 nuv = uv*2.0-1.0;\n" + // normalized uv
+                        "   float dst = dot(nuv,nuv);\n" +
+                        "   float hue = atan(nuv.y, nuv.x) * ${(0.5/PI)} + 0.5;\n" +
+                        "   vec3 hsl = vec3(hue, ringSL);\n" +
+                        "   float alpha = dst > 0.95 ? 1.0 + (0.95-dst)*15.0 : 1.0;\n" +
+                        "   float isSquare = clamp((0.62-dst)*20.0, 0.0, 1.0);\n" +
+                        "   vec2 uv2 = clamp((uv-0.5)*1.8+0.5, 0.0, 1.0);\n" +
+                        "   float dst2 = max(abs(uv2.x-0.5), abs(uv2.y-0.5));\n" +
+                        "   alpha *= mix(1.0, clamp((0.5-dst2)*50.0, 0.0, 1.0), isSquare);\n" +
+                        "   if(alpha <= 0.0) discard;\n" +
+                        "   vec3 squareColor = spaceToRGB(v0 + du * uv2.x + dv * uv2.y);\n" +
+                        "   vec3 rgb = mix(spaceToRGB(hsl), squareColor, isSquare);\n" +
+                        "   gl_FragColor = vec4(rgb, alpha);\n" +
+                        "}"
+            }
+            ColorVisualisation.CIRCLE -> {
+                "" +
+                        "uniform vec3 v0, du, dv;\n" +
+                        "uniform float lightness;\n" +
+                        glsl +
+                        "void main(){\n" +
+                        "   vec3 rgb;\n" +
+                        "   float alpha = 1.0;\n" +
+                        "   vec2 nuv = vec2(uv.x * ${1f+CircleBarRatio}, uv.y) - 0.5;\n" + // normalized + bar
+                        "   if(nuv.x > 0.5){\n" +
+                        "       // a simple brightness bar \n" +
+                        "       rgb = vec3(uv.y);\n" +
+                        "       alpha = clamp(min(" +
+                        "           min(" +
+                        "               (nuv.x-0.515)*90.0," +
+                        "               (${0.5f+CircleBarRatio}-nuv.x)*90.0" +
+                        "           ), min(" +
+                        "               (nuv.y+0.5)*90.0," +
+                        "               (0.5-nuv.y)*90.0" +
+                        "           )" +
+                        "       ), 0.0, 1.0);\n" +
+                        "   } else {\n" +
+                        "       // a circle \n" +
+                        "       float radius = 2.0 * length(nuv);\n" +
+                        "       float dst = radius*radius;\n" +
+                        "       float hue = atan(nuv.y, nuv.x) * ${0.5/PI} + 0.5;\n" +
+                        "       alpha = dst > 0.95 ? 1.0 + (0.95-dst)*15.0 : 1.0;\n" +
+                        "       vec3 hsl = vec3(hue, radius, lightness);\n" +
+                        "       rgb = spaceToRGB(hsl);\n" +
+                        "   }\n" +
+                        "   gl_FragColor = vec4(rgb, alpha);\n" +
+                        "}"
+            }
+            ColorVisualisation.BOX -> {
+                "" +
+                        "uniform vec3 v0, du, dv;\n" +
+                        glsl +
+                        "void main(){\n" +
+                        "   vec3 hsl = v0 + du * uv.x + dv * uv.y;\n" +
+                        "   vec3 rgb = spaceToRGB(hsl);\n" +
+                        "   gl_FragColor = vec4(rgb, 1.0);\n" +
+                        "}"
+            }
         }
         val newShader = Shader(vertexShader, varyingShader, fragmentShader, disableShorts = true)
-        if(ring){
-            ringShader = newShader
-        } else {
-            boxShader = newShader
-        }
+        shaders[type] = newShader
         return newShader
     }
 

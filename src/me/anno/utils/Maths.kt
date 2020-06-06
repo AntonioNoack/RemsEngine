@@ -6,6 +6,8 @@ import org.joml.Vector4f
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
 
+val GoldenRatio = (1f + sqrt(5f))*0.5f
+
 fun sq(x: Float) = x*x
 
 fun clamp(x: Int, min: Int, max: Int) = if(x < min) min else if(x < max) x else max

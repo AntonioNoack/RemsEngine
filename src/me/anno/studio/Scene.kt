@@ -93,7 +93,7 @@ object Scene {
 
         glDisable(GL_DEPTH_TEST)
 
-        val enableCircularDOF = true
+        val enableCircularDOF = false
         val outputTexture = if(enableCircularDOF){
             BokehBlur.draw(w, h, 0.02f, framebuffer.textures[0])
         } else framebuffer.textures[0]
