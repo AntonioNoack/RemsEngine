@@ -76,13 +76,14 @@ class Polygon(parent: Transform?): GFXTransform(parent){
 
     companion object {
 
+        val meshTimeout = 1000L
         private const val minEdges = 3
         private val maxEdges = DefaultConfig["polygon.maxEdges", 1000]
 
         fun getBuffer(n: Int): StaticFloatBuffer {
             if(n < minEdges) return getBuffer(minEdges)
             if(n > maxEdges) return getBuffer(maxEdges)
-            val cached = Cache.getEntry("Mesh", "Polygon", n){
+            val cached = Cache.getEntry("Mesh", "Polygon", n, meshTimeout){
                 SFBufferData(createBuffer(n))
             } as SFBufferData
             return cached.buffer

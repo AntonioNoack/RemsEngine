@@ -27,7 +27,7 @@ class Image(var file: File, parent: Transform?): GFXTransform(parent){
         val name = file.name
         when {
             name.endsWith("svg", true) -> {
-                val bufferData = Cache.getEntry(file.absolutePath, "svg", 0){
+                val bufferData = Cache.getEntry(file.absolutePath, "svg", 0, imageTimeout){
                     val svg = SVGMesh()
                     svg.parse(XMLReader.parse(file.inputStream().buffered()) as XMLElement)
                     SFBufferData(svg.buffer!!)
@@ -35,13 +35,13 @@ class Image(var file: File, parent: Transform?): GFXTransform(parent){
                 GFX.draw3DSVG(stack, bufferData.buffer, whiteTexture, color, isBillboard[time], true)
             }
             name.endsWith("webp", true) -> {
-                val texture = Cache.getVideoFrame(file, 0, 0, 1f)
+                val texture = Cache.getVideoFrame(file, 0, 0, 1f, imageTimeout)
                 texture?.apply {
                     GFX.draw3D(stack, texture, color, isBillboard[time], nearestFiltering)
                 }
             }
             else -> {
-                val texture = Cache.getImage(file)
+                val texture = Cache.getImage(file, imageTimeout)
                 texture?.apply {
                     GFX.draw3D(stack, texture, color, isBillboard[time], nearestFiltering)
                 }
@@ -80,5 +80,9 @@ class Image(var file: File, parent: Transform?): GFXTransform(parent){
     }
 
     override fun getClassName(): String = "Image"
+
+    companion object {
+        val imageTimeout = 5000L
+    }
 
 }

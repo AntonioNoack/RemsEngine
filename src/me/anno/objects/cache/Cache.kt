@@ -11,13 +11,14 @@ import java.io.FileNotFoundException
 import java.lang.Exception
 import kotlin.concurrent.thread
 import kotlin.math.abs
+import kotlin.math.max
 
 object Cache {
 
     private val cache = HashMap<Any, CacheEntry>()
 
-    fun getIcon(name: String): Texture2D {
-        val cache = getEntry("Icon", name, 0){
+    fun getIcon(name: String, timeout: Long = 5000): Texture2D {
+        val cache = getEntry("Icon", name, 0, timeout){
             val cache = TextureCache(null)
             thread {
                 val img = GFX.loadBImage(name)
@@ -30,16 +31,16 @@ object Cache {
         return cache?.texture ?: GFX.whiteTexture
     }
 
-    fun getEntry(file: File, allowDirectories: Boolean, key: Any, generator: () -> CacheData): CacheData? {
+    fun getEntry(file: File, allowDirectories: Boolean, key: Any, timeout: Long, generator: () -> CacheData): CacheData? {
         if(!file.exists() || (!allowDirectories && file.isDirectory)) return null
-        return getEntry(file to key, generator)
+        return getEntry(file to key, timeout, generator)
     }
 
-    fun getEntry(major: String, minor: String, sub: Int, generator: () -> CacheData): CacheData? {
-        return getEntry(Triple(major, minor, sub), generator)
+    fun getEntry(major: String, minor: String, sub: Int, timeout: Long, generator: () -> CacheData): CacheData? {
+        return getEntry(Triple(major, minor, sub), timeout, generator)
     }
 
-    fun getEntry(key: Any, generator: () -> CacheData): CacheData? {
+    fun getEntry(key: Any, timeout: Long, generator: () -> CacheData): CacheData? {
         synchronized(cache){
             val cached = cache[key]
             if(cached != null){
@@ -54,31 +55,31 @@ object Cache {
             } catch (e: Exception){
                 e.printStackTrace()
             }
-            cache[key] = CacheEntry(data, GFX.lastTime)
+            cache[key] = CacheEntry(data, timeout, GFX.lastTime)
             return data
         }
     }
 
     // todo specify fps for our needs...
     // todo specify size for our needs
-    fun getVideoFrame(file: File, index: Int, maxIndex: Int, fps: Float, isLooping: Boolean = false): Frame? {
+    fun getVideoFrame(file: File, index: Int, maxIndex: Int, fps: Float, timeout: Long, isLooping: Boolean = false): Frame? {
         if(index < 0) return null
         val bufferIndex = index/framesPerContainer
-        val videoData = getVideoFrames(file, bufferIndex, fps) ?: return null
+        val videoData = getVideoFrames(file, bufferIndex, fps, timeout) ?: return null
         if(videoData.time0 != GFX.lastTime){
             if(editorTimeDilation > 0.01f){
                 if((bufferIndex+1)*framesPerContainer <= maxIndex){
-                    getVideoFrames(file, bufferIndex+1, fps)
+                    getVideoFrames(file, bufferIndex+1, fps, timeout)
                 } else if(isLooping){
-                    getVideoFrames(file, 0, fps)
+                    getVideoFrames(file, 0, fps, timeout)
                 }
             } else if(editorTimeDilation < -0.01f){
                 if(bufferIndex > 0){
-                    getVideoFrames(file, bufferIndex-1, fps)
+                    getVideoFrames(file, bufferIndex-1, fps, timeout)
                 } else {
                     val maybeIndex = FFMPEGStream.frameCountByFile[file]
                     if(maybeIndex != null){// 1/16 probability, that this won't work ...
-                        getVideoFrames(file, (maybeIndex-1)/framesPerContainer, fps)
+                        getVideoFrames(file, (maybeIndex-1)/framesPerContainer, fps, timeout)
                     }
                 }
             }
@@ -86,19 +87,19 @@ object Cache {
         return videoData.frames.getOrNull(index % framesPerContainer)
     }
 
-    fun getVideoFrames(file: File, index: Int, fps: Float) = getEntry(file, false, index to fps){
+    fun getVideoFrames(file: File, index: Int, fps: Float, timeout: Long) = getEntry(file, false, index to fps, timeout){
         VideoData(file, index, fps)
     } as? VideoData
 
-    fun getImage(file: File) = (getEntry(file, false, 0){
+    fun getImage(file: File, timeout: Long) = (getEntry(file, false, timeout, 0){
         ImageData(file)
     } as? ImageData)?.texture
 
     fun update(){
-        val timeout = 1_500_000_000L
+        val minTimeout = 300L
         val time = GFX.lastTime
         synchronized(cache){
-            val toRemove = cache.filter { (_, it) -> abs(it.lastUsed - time) > timeout }
+            val toRemove = cache.filter { (_, entry) -> abs(entry.lastUsed - time) > max(entry.timeout, minTimeout) * 1_000_000 }
             toRemove.forEach {
                 cache.remove(it.key)
                 it.value.destroy()

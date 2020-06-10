@@ -45,7 +45,7 @@ class Text(var text: String, parent: Transform?): GFXTransform(parent){
                 fmKey = FontMeshKey(font, isBold, isItalic, text)
             }
 
-            val fontMesh = Cache.getEntry(fmKey){
+            val fontMesh = Cache.getEntry(fmKey, fontMeshTimeout){
                 val awtFont = FontManager.getFont(font, 20f, isBold, isItalic)
                 val buffer = FontMesh((awtFont as AWTFont).font, text)
                 buffer
@@ -138,6 +138,7 @@ class Text(var text: String, parent: Transform?): GFXTransform(parent){
     companion object {
         // todo save the last used fonts? yes :)
         // todo per project? idk
+        val fontMeshTimeout = 5000L
         val lastUsedFonts = arrayOfNulls<String>(max(0, DefaultConfig["lastUsed.fonts.count", 5]))
         fun putLastUsedFont(font: String){
             if(lastUsedFonts.isNotEmpty()){

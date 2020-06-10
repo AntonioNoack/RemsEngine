@@ -49,20 +49,23 @@ class Video(var file: File, parent: Transform?): GFXTransform(parent){
     override fun onDraw(stack: Matrix4fStack, time: Float, color: Vector4f) {
 
         if(lastFile != file){
+            val file = file
             lastFile = file
-            sourceFPS = -1f
-            duration = -1f
-            if(file.exists()){
+            sourceFPS = sourceFPSCache[file] ?: -1f
+            duration = durationCache[file] ?: -1f
+            if(file.exists() && (sourceFPS <= 0f || duration <= 0f)){
                 // request the metadata :)
                 thread {
-                    val file = file
                     loop@ while(this.file == file){
-                        val frames = Cache.getVideoFrames(file, 0, 1f)
+                        val frames = Cache.getVideoFrames(file, 0, 1f, videoMetaTimeout)
                         if(frames != null){
                             sourceFPS = frames.stream.sourceFPS
                             duration = frames.stream.sourceLength
-                            println("src,dur: $sourceFPS, $duration")
-                            if(sourceFPS > 0f && duration > 0f) break@loop
+                            if(sourceFPS > 0f && duration > 0f){
+                                sourceFPSCache[file] = sourceFPS
+                                durationCache[file] = duration
+                                break@loop
+                            }
                         } else Thread.sleep(1)
                     }
                 }
@@ -92,14 +95,14 @@ class Video(var file: File, parent: Transform?): GFXTransform(parent){
                     val localTime = startTime + (time % duration)
                     val frameIndex = (localTime*videoFPS).toInt() % frameCount
 
-                    val frame = Cache.getVideoFrame(file, frameIndex, frameCount, videoFPS, isLooping)
+                    val frame = Cache.getVideoFrame(file, frameIndex, frameCount, videoFPS, videoFrameTimeout, isLooping)
                     if(frame != null && frame.isLoaded){
                         GFX.draw3D(stack, frame, color, isBillboard.getValueAt(time), nearestFiltering)
                         wasDrawn = true
                     } else {
                         if(GFX.isFinalRendering){
                             throw MissingFrameException(file)
-                        } else println("mmmh...")
+                        }
                     }
 
                     // stack.scale(0.1f)
@@ -107,9 +110,8 @@ class Video(var file: File, parent: Transform?): GFXTransform(parent){
                     // stack.scale(10f)
 
                 } else wasDrawn = true
-            } else println("source fps < 0")
-
-        } else println("file missing or dur < 0")
+            }
+        }
 
         if(!wasDrawn){
             GFX.draw3D(stack, GFX.flat01, GFX.colorShowTexture, 16, 9,
@@ -170,6 +172,20 @@ class Video(var file: File, parent: Transform?): GFXTransform(parent){
         when(name){
             "nearestFiltering" -> nearestFiltering = value
             else -> super.readBool(name, value)
+        }
+    }
+
+    companion object {
+
+        val sourceFPSCache = HashMap<File, Float>()
+        val durationCache = HashMap<File, Float>()
+
+        val videoMetaTimeout = 100L
+        val videoFrameTimeout = 500L
+
+        fun clearCache(){
+            sourceFPSCache.clear()
+            durationCache.clear()
         }
     }
 

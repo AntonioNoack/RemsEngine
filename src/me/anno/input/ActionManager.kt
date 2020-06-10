@@ -4,6 +4,7 @@ import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.inFocus
 import me.anno.io.utils.StringMap
+import me.anno.objects.Video
 import me.anno.studio.Layout
 import me.anno.studio.RemsStudio
 import me.anno.studio.Studio
@@ -41,7 +42,7 @@ object ActionManager {
         defaultValue["global.f11.down"] = "ToggleFullscreen"
         defaultValue["global.print.down"] = "PrintLayout"
         defaultValue["global.left.up"] = "DragEnd"
-        defaultValue["global.t.down"] = "TestOpenGLBug"
+        defaultValue["global.f5.down.${Modifiers[true, false]}"] = "ClearCache"
 
         defaultValue["SceneView.w.press"] = "CamForward"
         defaultValue["SceneView.s.press"] = "CamBackward"
@@ -179,11 +180,8 @@ object ActionManager {
                             true
                         } else false
                     }
-                    "TestOpenGLBug" -> {
-                        GFX.addTask {
-                            OpenGLCrash.test()
-                            10
-                        }
+                    "ClearCache" -> {
+                        Video.clearCache()
                         true
                     }
                     else -> false
