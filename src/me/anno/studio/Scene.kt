@@ -4,12 +4,15 @@ import me.anno.config.DefaultStyle
 import me.anno.gpu.GFX
 import me.anno.gpu.Shader
 import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.input.Input.keysDown
 import me.anno.objects.blending.BlendMode
 import me.anno.objects.effects.BokehBlur
 import me.anno.ui.editor.sceneView.Grid
 import org.joml.Matrix4fStack
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL30
+import kotlin.math.cos
+import kotlin.math.sin
 
 object Scene {
 
@@ -17,6 +20,14 @@ object Scene {
 
     var isInited = false
     fun init(){
+
+        // add randomness against banding
+        // todo this required that we know the bit count of the display
+        val noiseFunc = "" +
+                "float random(vec2 co){\n" +
+                "    return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);\n" +
+                "}\n"
+
         sqrtDisplayShader = Shader("" +
                 "in vec2 attr0;\n" +
                 "uniform float ySign;\n" +
@@ -27,8 +38,10 @@ object Scene {
                 "}", "" +
                 "varying vec2 uv;\n", "" +
                 "uniform sampler2D tex;\n" +
-                "void main(){" +
-                "   gl_FragColor = sqrt(texture(tex, uv));\n" +
+                "uniform float minValue;\n" +
+                noiseFunc +
+                "void main(){" + // todo the noise somehow is obvious at small values :/
+                "   gl_FragColor = sqrt(texture(tex, uv)) + random(uv) * minValue;\n" +
                 "}")
         isInited = true
     }
@@ -109,6 +122,7 @@ object Scene {
 
         sqrtDisplayShader.use()
         sqrtDisplayShader.v1("ySign", if(flipY) -1f else 1f)
+        sqrtDisplayShader.v1("minValue", 1f/255f)
         GFX.flat01.draw(sqrtDisplayShader)
         GFX.check()
 

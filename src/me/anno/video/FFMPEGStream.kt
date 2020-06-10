@@ -13,20 +13,26 @@ import java.lang.RuntimeException
 import kotlin.concurrent.thread
 import kotlin.math.roundToInt
 
-class FFMPEGStream(val file: File?, val frame0: Int, arguments: List<String>, waitToFinish: Boolean, interpretMeta: Boolean){
+class FFMPEGStream(val file: File?, val frame0: Int, arguments: List<String>, waitToFinish: Type, interpretMeta: Boolean){
 
     var lastUsedTime = System.nanoTime()
     var sourceFPS = -1f
     var sourceLength = 0f
 
+    enum class Type {
+        META,
+        VIDEO_DATA,
+        AUDIO_DATA
+    }
+
     companion object {
         val frameCountByFile = HashMap<File, Int>()
         fun getInfo(input: File) = FFMPEGStream(null, 0, listOf(
             "-i", input.absolutePath
-        ), waitToFinish = true, interpretMeta = false).stringData
+        ), Type.META, interpretMeta = false).stringData
         fun getSupportedFormats() = FFMPEGStream(null, 0, listOf(
             "-formats"
-        ), waitToFinish = true, interpretMeta = false).stringData
+        ), Type.META, interpretMeta = false).stringData
         fun getImageSequence(input: File, startFrame: Int, frameCount: Int, fps: Float = 10f) =
             getImageSequence(input, startFrame / fps, frameCount, fps)
         fun getImageSequence(input: File, startTime: Float, frameCount: Int, fps: Float = 10f) = FFMPEGStream(
@@ -39,7 +45,19 @@ class FFMPEGStream(val file: File?, val frame0: Int, arguments: List<String>, wa
             "-movflags", "faststart", // has no effect :(
             "-f", "rawvideo", "-"// format
             // "pipe:1" // 1 = stdout, 2 = stdout
-        ), waitToFinish = false, interpretMeta = true)
+        ), Type.VIDEO_DATA, interpretMeta = true)
+        fun getAudioSequence(input: File, startTime: Float, frameCount: Int, fps: Float) = FFMPEGStream(
+            input, (startTime * fps).roundToInt(),
+            listOf(
+                "-i", input.absolutePath,
+                "-ss", "$startTime",
+                "-r", "$fps",
+                "-vframes", "$frameCount",
+                "-movflags", "faststart", // has no effect :(
+                "-vn", // no audio
+                "-f", "rawvideo", "-"// format
+                // "pipe:1" // 1 = stdout, 2 = stdout
+            ), Type.VIDEO_DATA, interpretMeta = true)
     }
 
     fun destroy(){
@@ -54,18 +72,20 @@ class FFMPEGStream(val file: File?, val frame0: Int, arguments: List<String>, wa
     var stringData = ""
 
     init {
-        if(waitToFinish){
-            run(arguments, interpretMeta).waitFor()
-        } else {
-            thread {
+        when(waitToFinish){
+            Type.META -> run(arguments, interpretMeta).waitFor()
+            Type.VIDEO_DATA -> thread {
                 run(arguments, interpretMeta)
+            }
+            Type.AUDIO_DATA -> {
+                // todo...
             }
         }
     }
 
     private fun run(arguments: List<String>, interpretMeta: Boolean): Process {
         // val time0 = System.nanoTime()
-        // println(arguments)
+        println(arguments)
         val ffmpeg = File(DefaultConfig["ffmpegPath", "lib/ffmpeg/ffmpeg.exe"])
         if(!ffmpeg.exists()) throw RuntimeException("FFmpeg not found! (path: $ffmpeg), can't use videos, nor webp!")
         val args = ArrayList<String>(arguments.size+2)
@@ -111,11 +131,12 @@ class FFMPEGStream(val file: File?, val frame0: Int, arguments: List<String>, wa
 
     val frames = ArrayList<Frame>()
 
+    var isFinished = false
     fun readFrame(input: InputStream){
         while(w == 0 || h == 0 || codec.isEmpty()){
             Thread.sleep(0,100_000)
         }
-        if(!isDestroyed){
+        if(!isDestroyed && !isFinished){
             synchronized(frames){
                 try {
                     when(codec){
@@ -145,9 +166,11 @@ class FFMPEGStream(val file: File?, val frame0: Int, arguments: List<String>, wa
                     }
                 } catch (e: LastFrame){
                     frameCountByFile[file!!] = frames.size + frame0
+                    isFinished = true
                 } catch (e: Exception){
                     e.printStackTrace()
                     frameCountByFile[file!!] = frames.size + frame0
+                    isFinished = true
                 }
             }
         }

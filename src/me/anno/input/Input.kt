@@ -2,21 +2,16 @@ package me.anno.input
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
-import me.anno.gpu.GFX.addEvent
 import me.anno.gpu.GFX.getClickedPanel
 import me.anno.gpu.GFX.getClickedPanelAndWindow
 import me.anno.gpu.GFX.inFocus
 import me.anno.gpu.GFX.window
 import me.anno.gpu.GFX.openMenu
 import me.anno.gpu.GFX.requestExit
-import me.anno.gpu.GFX.targetFPS
-import me.anno.gpu.GFX.targetHeight
-import me.anno.gpu.GFX.targetWidth
 import me.anno.gpu.GFX.windowStack
+import me.anno.studio.Studio.addEvent
 import me.anno.ui.editor.sceneView.SceneView
 import me.anno.utils.length
-import me.anno.video.VideoBackgroundTask
-import me.anno.video.VideoCreator
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWDropCallback
 import java.awt.Toolkit
@@ -24,7 +19,6 @@ import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.StringSelection
 import java.io.File
 import java.util.HashSet
-import javax.swing.Action
 import kotlin.math.abs
 
 object Input {
@@ -40,7 +34,7 @@ object Input {
     fun paste() {
         val data =
             Toolkit.getDefaultToolkit().systemClipboard.getData(DataFlavor.stringFlavor) as? String
-        if (data != null) inFocus?.onPaste(mouseX, mouseY, data)
+        if (data != null) inFocus?.onPaste(mouseX, mouseY, data, "")
     }
 
     fun save() {

@@ -19,7 +19,7 @@ class SoundBuffer(file: File): CacheData {
     init { Audio.check() }
 
     var buffer = alGenBuffers()
-    var pcm: ShortBuffer? = null
+    var pcm: ShortBuffer? = null // pcm = amplitudes by time
 
     init {
         val name = file.name

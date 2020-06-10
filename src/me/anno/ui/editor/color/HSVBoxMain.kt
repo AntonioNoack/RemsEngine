@@ -14,29 +14,26 @@ import kotlin.math.*
 class HSVBoxMain(chooser: ColorChooser, v0: Vector3f, du: Vector3f, dv: Vector3f, style: Style):
     HSVBox(chooser, v0, du, dv, 1f, style, 5f, { x, y ->
         chooser.apply {
-            when(spaceStyle){
+            when(visualisation){
                 ColorVisualisation.WHEEL -> {
                     val s2 = x*2-1
                     val l2 = y*2-1
-                    val dst = s2*s2+l2*l2
-                    if(dst < 1.0){
-                        if(isDownInRing){
-                            val hue = (atan2(l2, s2) * (0.5/Math.PI) + 0.5).toFloat()
-                            setHSL(hue, this.saturation, this.lightness, opacity, colorSpace)
-                        } else {
-                            // "   vec2 uv2 = clamp((uv-0.5)*1.8+0.5, 0.0, 1.0);\n" +
-                            var s3 = (x-0.5f)*1.8f
-                            var l3 = (y-0.5f)*1.8f
-                            val length = 2 * max(abs(s3), abs(l3))
-                            if(length > 1f){
-                                s3 /= length
-                                l3 /= length
-                            }
-                            s3 += 0.5f
-                            l3 += 0.5f
-                            if(s3 in 0f .. 1f && l3 in 0f .. 1f){
-                                setHSL(hue, s3, l3, opacity, colorSpace)
-                            }
+                    if(isDownInRing){
+                        val hue = (atan2(l2, s2) * (0.5/Math.PI) + 0.5).toFloat()
+                        setHSL(hue, this.saturation, this.lightness, opacity, colorSpace)
+                    } else {
+                        // "   vec2 uv2 = clamp((uv-0.5)*1.8+0.5, 0.0, 1.0);\n" +
+                        var s3 = (x-0.5f)*1.8f
+                        var l3 = (y-0.5f)*1.8f
+                        val length = 2 * max(abs(s3), abs(l3))
+                        if(length > 1f){
+                            s3 /= length
+                            l3 /= length
+                        }
+                        s3 += 0.5f
+                        l3 += 0.5f
+                        if(s3 in 0f .. 1f && l3 in 0f .. 1f){
+                            setHSL(hue, s3, l3, opacity, colorSpace)
                         }
                     }
                 }
@@ -66,7 +63,7 @@ class HSVBoxMain(chooser: ColorChooser, v0: Vector3f, du: Vector3f, dv: Vector3f
         super.calculateSize(w, h)
         val size = min(w, h)
         minW = size
-        minH = (size * chooser.spaceStyle.ratio).roundToInt()
+        minH = (size * chooser.visualisation.ratio).roundToInt()
     }
 
     fun drawCrossHair(x: Int, y: Int){
@@ -78,7 +75,7 @@ class HSVBoxMain(chooser: ColorChooser, v0: Vector3f, du: Vector3f, dv: Vector3f
     override fun onMouseDown(x: Float, y: Float, button: Int) {
         val rx = (x - this.x)/this.w
         val ry = (y - this.y)/this.h
-        when(chooser.spaceStyle){
+        when(chooser.visualisation){
             ColorVisualisation.BOX -> {}
             ColorVisualisation.WHEEL -> {
                 val s2 = rx*2-1
@@ -95,7 +92,7 @@ class HSVBoxMain(chooser: ColorChooser, v0: Vector3f, du: Vector3f, dv: Vector3f
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
         chooser.drawColorBox(this, v0, du, dv, dh, true)
         // show the user, where he is
-        when(val style = chooser.spaceStyle){
+        when(val style = chooser.visualisation){
             ColorVisualisation.WHEEL -> {
                 // "   vec2 uv2 = clamp((uv-0.5)*1.8+0.5, 0.0, 1.0);\n" +
                 val cx = x+w/2
@@ -110,14 +107,14 @@ class HSVBoxMain(chooser: ColorChooser, v0: Vector3f, du: Vector3f, dv: Vector3f
                 val angle = ((chooser.hue - 0.5) * (2 * Math.PI)).toFloat()
                 val sin = sin(angle)
                 val cos = cos(angle)
-                val outerRadius = 0.50f * max(dx, dy)
-                val innerRadius = outerRadius * 0.77f
+                val outerRadius = 0.5f * 0.975f * max(dx, dy)
+                val innerRadius = outerRadius * 0.79f / 0.975f
                 var i = innerRadius
                 while(i < outerRadius){
                     val x2 = (cx + cos * i).roundToInt()
                     val y2 = (cy - sin * i).roundToInt()
-                    GFX.drawRect(x2, y2, 1, 1, 0x33000000)
-                    i += 0.3f
+                    GFX.drawRect(x2, y2, 1, 1, 0x11000000)
+                    i += 0.1f
                 }
             }
             ColorVisualisation.BOX -> {
@@ -139,7 +136,8 @@ class HSVBoxMain(chooser: ColorChooser, v0: Vector3f, du: Vector3f, dv: Vector3f
                 val y = (cy - sin * radius).roundToInt()
                 drawCrossHair(x, y)
                 val w3 = w - w2
-                GFX.drawRect(this.x + w2.toInt() + 3, this.y + (dy * (1f - chooser.lightness)).toInt(), w3.toInt()-3, 1, black)
+                // 0.515
+                GFX.drawRect(this.x + (w2 * 0.510f/0.5f).toInt(), this.y + (dy * (1f - chooser.lightness)).toInt(), (w3 * 0.5f/0.515f).toInt(), 1, black)
             }
         }
     }
@@ -148,7 +146,7 @@ class HSVBoxMain(chooser: ColorChooser, v0: Vector3f, du: Vector3f, dv: Vector3f
         // enforce the aspect ratio
         this += object: Constraint(25){
             override fun apply(panel: Panel) {
-                val targetAspectRatio = chooser.spaceStyle.ratio
+                val targetAspectRatio = chooser.visualisation.ratio
                 if(panel.w * targetAspectRatio > panel.h){
                     // zu breit -> weniger breit
                     panel.w = min(panel.w, (panel.h / targetAspectRatio).roundToInt())

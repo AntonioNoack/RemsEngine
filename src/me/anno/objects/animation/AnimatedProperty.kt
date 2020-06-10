@@ -9,7 +9,9 @@ import kotlin.math.abs
 
 // todo copying an element, and then serializing its parent says that the animated properties are equal :(
 
-class AnimatedProperty<V>(val type: Type): Saveable(){
+class AnimatedProperty<V>(val type: Type, val minValue: V?, val maxValue: V?): Saveable(){
+
+    constructor(type: Type): this(type, null, null)
 
     enum class Type(
         val code: String,
@@ -18,6 +20,8 @@ class AnimatedProperty<V>(val type: Type): Saveable(){
         val unitScale: Float,
         val accepts: (Any?) -> Boolean){
         FLOAT("float", 0f, 1, 1f, { it is Float }),
+        FLOAT_01("float01", 0f, 1, 1f, { it is Float }),
+        FLOAT_PLUS("float+", 0f, 1, 1f, { it is Float }),
         POSITION("pos", Vector3f(), 3, 1f, { it is Vector3f }),
         SCALE("scale", Vector3f(1f, 1f, 1f), 3, 1f, { it is Vector3f }),
         ROT_YXZ("rotYXZ", Vector3f(), 3, 360f, { it is Vector3f }),
@@ -30,6 +34,8 @@ class AnimatedProperty<V>(val type: Type): Saveable(){
     companion object {
         val types = HashMap<String, Type>()
         fun float() = AnimatedProperty<Float>(Type.FLOAT)
+        fun floatPlus() = AnimatedProperty(Type.FLOAT, 0f, null)
+        fun float01() = AnimatedProperty(Type.FLOAT, 0f, 1f)
         fun pos() = AnimatedProperty<Vector3f>(Type.POSITION)
         fun rotYXZ() = AnimatedProperty<Vector3f>(Type.ROT_YXZ)
         fun scale() = AnimatedProperty<Vector3f>(Type.SCALE)
@@ -47,13 +53,22 @@ class AnimatedProperty<V>(val type: Type): Saveable(){
         return v as V
     }
 
+    fun clamp(value: V): V {
+        if(minValue != null || maxValue != null){
+            value as Comparable<V>
+            if(minValue != null && value < minValue) return minValue
+            if(maxValue != null && value >= maxValue) return maxValue
+        }
+        return value
+    }
+
     fun set(value: V): AnimatedProperty<V> {
         keyframes.clear()
         return add(0f, value)
     }
 
     fun add(time: Float, value: V): AnimatedProperty<V> {
-        keyframes.add(Keyframe(time, value))
+        keyframes.add(Keyframe(time, clamp(value)))
         keyframes.sort()
         return this
     }
@@ -63,7 +78,7 @@ class AnimatedProperty<V>(val type: Type): Saveable(){
 
     fun addKeyframe(time: Float, value: Any, equalityDt: Float){
         if(type.accepts(value)){
-            addKeyframeInternal(time, value as V, equalityDt)
+            addKeyframeInternal(time, clamp(value as V), equalityDt)
         }
     }
 
@@ -120,7 +135,9 @@ class AnimatedProperty<V>(val type: Type): Saveable(){
     fun lerp(a: V, b: V, f: Float): V {
         val g = 1f-f
         return when(type){
-            Type.FLOAT -> (a as Float)*g+f*(b as Float)
+            Type.FLOAT,
+            Type.FLOAT_01,
+            Type.FLOAT_PLUS -> (a as Float)*g+f*(b as Float)
             // Type.DOUBLE -> (a as Double)*g+f*(b as Double)
             Type.SKEW_2D -> (a as Vector2f).lerp(b as Vector2f, f, Vector2f())
             Type.POSITION,
@@ -164,7 +181,7 @@ class AnimatedProperty<V>(val type: Type): Saveable(){
             "keyframes" -> {
                 if(value is Keyframe<*>){
                     if(type.accepts(value.value)){
-                        addKeyframe(value.time, value.value!!, 1e-5f)
+                        addKeyframe(value.time, clamp(value.value as V) as Any, 1e-5f) // do clamp?
                     } else println("Dropped keyframe!, incompatible type ${value.value} for $type")
                 } else println("Got keyframe, that is no keyframe: ${value?.getClassName()}")
             }

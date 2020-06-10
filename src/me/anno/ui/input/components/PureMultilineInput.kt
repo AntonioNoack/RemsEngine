@@ -190,8 +190,8 @@ class PureMultilineInput(style: Style): PanelListY(style){
         //return characters.subList(min(cursor1, cursor2), max(cursor1, cursor2)).joinToString(""){ String(Character.toChars(it)) }
     }
 
-    override fun onPaste(x: Float, y: Float, pasted: String) {
-        insert(pasted)
+    override fun onPaste(x: Float, y: Float, data: String, type: String) {
+        insert(data)
     }
 
     var changeListener: (text: String) -> Unit = {

@@ -5,7 +5,6 @@ import me.anno.gpu.GFX
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticFloatBuffer
 import me.anno.io.ISaveable
-import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.GFXTransform
 import me.anno.objects.Transform
@@ -28,11 +27,11 @@ class Polygon(parent: Transform?): GFXTransform(parent){
     // todo inner radius??? -> by texture possible? we need masking!
     // todo round edges?
 
-    var vertexCount = AnimatedProperty.float().set(5f)
-    var inset = AnimatedProperty.float()
+    var vertexCount = AnimatedProperty.floatPlus().set(5f)
+    var starNess = AnimatedProperty.float01()
 
     override fun onDraw(stack: Matrix4fStack, time: Float, color: Vector4f){
-        val inset = clamp(inset[time], 0f, 1f)
+        val inset = clamp(starNess[time], 0f, 1f)
         if(inset == 1f) return// invisible
         // todo correct the texture somehow... very awkward
         val count = vertexCount[time].roundToInt()
@@ -46,9 +45,9 @@ class Polygon(parent: Transform?): GFXTransform(parent){
         list += FloatInput("Vertex Count", vertexCount, lastLocalTime, style)
             .setChangeListener { putValue(vertexCount, it) }
             .setIsSelectedListener { show(vertexCount) }
-        list += FloatInput("Star-ness", inset, lastLocalTime, style)
-            .setChangeListener { putValue(inset, clamp(it, 0f, 1f)) }
-            .setIsSelectedListener { show(inset) }
+        list += FloatInput("Star-ness", starNess, lastLocalTime, style)
+            .setChangeListener { putValue(starNess, clamp(it, 0f, 1f)) }
+            .setIsSelectedListener { show(starNess) }
     }
 
     override fun getClassName(): String = "Polygon"
@@ -56,7 +55,7 @@ class Polygon(parent: Transform?): GFXTransform(parent){
     override fun save(writer: BaseWriter) {
         super.save(writer)
         writer.writeObject(this, "vertexCount", vertexCount)
-        writer.writeObject(this, "inset", inset)
+        writer.writeObject(this, "inset", starNess)
     }
 
     override fun readObject(name: String, value: ISaveable?) {
@@ -68,7 +67,7 @@ class Polygon(parent: Transform?): GFXTransform(parent){
             }
             "inset" -> {
                 if(value is AnimatedProperty<*> && value.type == AnimatedProperty.Type.FLOAT){
-                    inset = value as AnimatedProperty<Float>
+                    starNess = value as AnimatedProperty<Float>
                 }
             }
             else -> super.readObject(name, value)

@@ -22,6 +22,9 @@ import kotlin.math.min
 // -> no, that's too taxing; we'd need to pre-render a smaller version
 // todo pre-render small version for scrubbing
 
+// todo get information about full and relative frames, so we get optimal scrubbing performance :)
+
+
 class Video(var file: File, parent: Transform?): GFXTransform(parent){
 
     private var lastFile: Any? = null
@@ -58,6 +61,7 @@ class Video(var file: File, parent: Transform?): GFXTransform(parent){
                         if(frames != null){
                             sourceFPS = frames.stream.sourceFPS
                             duration = frames.stream.sourceLength
+                            println("src,dur: $sourceFPS, $duration")
                             if(sourceFPS > 0f && duration > 0f) break@loop
                         } else Thread.sleep(1)
                     }
@@ -95,7 +99,7 @@ class Video(var file: File, parent: Transform?): GFXTransform(parent){
                     } else {
                         if(GFX.isFinalRendering){
                             throw MissingFrameException(file)
-                        }
+                        } else println("mmmh...")
                     }
 
                     // stack.scale(0.1f)
@@ -103,9 +107,9 @@ class Video(var file: File, parent: Transform?): GFXTransform(parent){
                     // stack.scale(10f)
 
                 } else wasDrawn = true
-            }
+            } else println("source fps < 0")
 
-        }
+        } else println("file missing or dur < 0")
 
         if(!wasDrawn){
             GFX.draw3D(stack, GFX.flat01, GFX.colorShowTexture, 16, 9,

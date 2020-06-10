@@ -15,7 +15,8 @@ fun main(){
             "  <ellipse cx=\"240\" cy=\"50\" rx=\"220\" ry=\"30\" style=\"fill:yellow\" />\n" +
             "  <ellipse cx=\"220\" cy=\"50\" rx=\"190\" ry=\"20\" style=\"fill:white\" />\n" +
             "  <polyline points=\"20,20 40,25 60,40 80,120 120,140 200,180\" style=\"fill:none;stroke:black;stroke-width:3\" />" +
-            "  Sorry, your browser does not support inline SVG.  \n" +
+            "  <path d=\"M159 112 A 126 47 17 1 0 292 108z\"/>" +
+            "   Sorry, your browser does not support inline SVG.  \n" +
             "</svg> "
 
     testSVG(text)

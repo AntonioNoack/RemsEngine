@@ -1,6 +1,6 @@
 package me.anno.ui.editor
 
-import me.anno.ui.base.ScrollPanel
+import me.anno.ui.base.ScrollPanelY
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.WrapAlign
@@ -37,7 +37,7 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
         this += topBar
         topBar += TextPanel("Xplorer", style)
         topBar += searchBar
-        this += ScrollPanel(content, Padding(1), style, WrapAlign.AxisAlignment.MIN)
+        this += ScrollPanelY(content, Padding(1), style, WrapAlign.AxisAlignment.MIN)
     }
 
     fun createResults(){

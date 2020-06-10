@@ -74,8 +74,8 @@ class VectorInput(
         override fun onMouseUp(x: Float, y: Float, button: Int) { this@VectorInput.onMouseUp(x,y,button) }
         override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) { this@VectorInput.onMouseMoved(x,y,dx,dy) }
         override fun onCopyRequested(x: Float, y: Float): String? = "[${compX.lastValue}, ${compY.lastValue}, ${compZ?.lastValue ?: 0f}, ${compW?.lastValue ?: 0f}]"
-        override fun onPaste(x: Float, y: Float, pasted: String) {
-            val allComponents = pasted.toDoubleOrNull()
+        override fun onPaste(x: Float, y: Float, data: String, type: String) {
+            val allComponents = data.toDoubleOrNull()
             if(allComponents != null){
                 compX.setValue(allComponents)
                 compY.setValue(allComponents)
@@ -83,8 +83,8 @@ class VectorInput(
                 compW?.setValue(allComponents)
             } else {
                 // parse vector
-                if(pasted.startsWith("[") && pasted.endsWith("]")){
-                    val values = pasted.substring(1, pasted.lastIndex).split(',').map { it.trim().toDoubleOrNull() }
+                if(data.startsWith("[") && data.endsWith("]")){
+                    val values = data.substring(1, data.lastIndex).split(',').map { it.trim().toDoubleOrNull() }
                     if(values.size in 3 .. 4){
                         values[0]?.apply { compX.setValue(this) }
                         values[1]?.apply { compY.setValue(this) }

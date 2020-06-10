@@ -2,6 +2,13 @@ package me.anno.objects.effects
 
 import kotlin.math.abs
 
+// todo near blurred with coc is single image at largest coc:
+// todo blurring there is wanted
+
+// todo in focus has no blurring
+
+// todo far buffers, maybe multiples, rendered without the front objects to avoid bleeding
+
 object DepthOfField {
 
     fun circleOfConfusion(aperture: Float, focalLength: Float, objectDistance: Float,

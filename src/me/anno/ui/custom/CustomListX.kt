@@ -8,6 +8,7 @@ import me.anno.ui.editor.CustomizingBar
 import me.anno.ui.style.Style
 import me.anno.utils.clamp
 import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.roundToInt
 
 class CustomListX(style: Style): PanelListX(style), CustomList {
@@ -54,6 +55,8 @@ class CustomListX(style: Style): PanelListX(style), CustomList {
         minH = 10
     }
 
+    // todo find the fix point instead of this
+
     override fun placeInParent(x: Int, y: Int) {
         this.x = x
         this.y = y
@@ -86,7 +89,7 @@ class CustomListX(style: Style): PanelListX(style), CustomList {
                 child.calculateSize(childW, h)
                 child.applyConstraints()
                 child.placeInParent(childX, y)
-                childX += childW
+                childX += min(childW, child.w)
             }
 
         }

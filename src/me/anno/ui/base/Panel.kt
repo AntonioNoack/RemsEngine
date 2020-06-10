@@ -120,7 +120,7 @@ open class Panel(val style: Style): Saveable(){
     open fun onCharTyped(x: Float, y: Float, key: Int){ parent?.onCharTyped(x,y,key) }
 
     open fun onEmpty(x: Float, y: Float) { parent?.onEmpty(x,y) }
-    open fun onPaste(x: Float, y: Float, pasted: String){ parent?.onPaste(x,y,pasted) }
+    open fun onPaste(x: Float, y: Float, data: String, type: String){ parent?.onPaste(x,y,data,type) }
     open fun onPasteFiles(x: Float, y: Float, files: List<File>){ parent?.onPasteFiles(x,y,files) ?: println("Paste Ignored! $files") }
     open fun onCopyRequested(x: Float, y: Float): String? = parent?.onCopyRequested(x,y)
 

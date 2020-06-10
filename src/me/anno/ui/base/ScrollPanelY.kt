@@ -1,18 +1,20 @@
 package me.anno.ui.base
 
-import me.anno.gpu.GFX
+import me.anno.input.Input
 import me.anno.utils.clamp
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.style.Style
-import java.lang.RuntimeException
 import kotlin.math.max
 
-open class ScrollPanel(child: Panel, padding: Padding,
-                       style: Style,
-                       alignX: WrapAlign.AxisAlignment): PanelContainer(child, padding, style){
+// todo scrollbar
+// todo scroll the scrollbar by dragging;
+// todo scrollbar only visible, if mouse at bottom
+open class ScrollPanelY(child: Panel, padding: Padding,
+                        style: Style,
+                        alignX: WrapAlign.AxisAlignment): PanelContainer(child, padding, style){
 
     constructor(style: Style, padding: Padding, align: WrapAlign.AxisAlignment): this(PanelListY(style), padding, style, align)
 
@@ -56,16 +58,18 @@ open class ScrollPanel(child: Panel, padding: Padding,
     }
 
     override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float) {
-        val delta = dx-dy
-        val scale = 20f
-        scrollPosition += scale * delta
-        clampScrollPosition()
+        if(!Input.isShiftDown){
+            val delta = dx-dy
+            val scale = 20f
+            scrollPosition += scale * delta
+            clampScrollPosition()
+        } else super.onMouseWheel(x, y, dx, dy)
     }
 
     fun clampScrollPosition(){
         scrollPosition = clamp(scrollPosition, 0f, maxScrollPosition.toFloat())
     }
 
-    override fun getClassName(): String = "ScrollPanel"
+    override fun getClassName(): String = "ScrollPanelY"
 
 }

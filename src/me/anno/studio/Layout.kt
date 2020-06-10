@@ -9,6 +9,9 @@ import me.anno.objects.*
 import me.anno.studio.RemsStudio.console
 import me.anno.studio.RemsStudio.originalOutput
 import me.anno.studio.RemsStudio.windowStack
+import me.anno.studio.Studio.targetFPS
+import me.anno.studio.Studio.targetHeight
+import me.anno.studio.Studio.targetWidth
 import me.anno.ui.base.SpacePanel
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.groups.PanelListY
@@ -17,6 +20,7 @@ import me.anno.ui.custom.CustomListY
 import me.anno.ui.editor.*
 import me.anno.ui.editor.sceneView.SceneView
 import me.anno.ui.editor.graphs.GraphEditor
+import me.anno.ui.editor.treeView.TreeView
 import me.anno.video.VideoBackgroundTask
 import me.anno.video.VideoCreator
 import java.io.File
@@ -51,18 +55,18 @@ object Layout {
         options.addAction("File", "Load"){  }
 
         options.addAction("Render", "Full"){
-            VideoBackgroundTask(VideoCreator(GFX.targetWidth, GFX.targetHeight,
-                GFX.targetFPS, File("C:/Users/Antonio/Desktop/out.mp4"))
+            VideoBackgroundTask(VideoCreator(targetWidth, targetHeight,
+                targetFPS, File("C:/Users/Antonio/Desktop/out.mp4"))
             ).start()
         }
         options.addAction("Render", "Half"){
-            VideoBackgroundTask(VideoCreator(GFX.targetWidth / 2, GFX.targetHeight / 2,
-                GFX.targetFPS, File("C:/Users/Antonio/Desktop/out.mp4"))
+            VideoBackgroundTask(VideoCreator(targetWidth / 2, targetHeight / 2,
+                targetFPS, File("C:/Users/Antonio/Desktop/out.mp4"))
             ).start()
         }
         options.addAction("Render", "Quarter"){
-            VideoBackgroundTask(VideoCreator(GFX.targetWidth / 4, GFX.targetHeight / 4,
-                GFX.targetFPS, File("C:/Users/Antonio/Desktop/out.mp4"))
+            VideoBackgroundTask(VideoCreator(targetWidth / 4, targetHeight / 4,
+                targetFPS, File("C:/Users/Antonio/Desktop/out.mp4"))
             ).start()
         }
 

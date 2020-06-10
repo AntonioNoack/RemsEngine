@@ -138,6 +138,7 @@ class FFMPEGMetaParser(): StringMap(){
             2 -> {
                 if(level0Type == "Output" && data[0] == "Stream"){
                     val videoTypeIndex = data.indexOf("rawvideo")
+                    println(data)
                     if(videoTypeIndex > -1 && videoTypeIndex+2 < data.size && data[videoTypeIndex+1] == "("){
                         stream.codec = data[videoTypeIndex+2]
                     }

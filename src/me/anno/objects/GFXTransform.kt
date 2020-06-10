@@ -12,6 +12,10 @@ abstract class GFXTransform(parent: Transform?): Transform(parent){
 
     var isBillboard = AnimatedProperty<Float>(AnimatedProperty.Type.FLOAT)
 
+    init {
+        isVisibleInTimeline = true
+    }
+
     override fun createInspector(list: PanelListY, style: Style) {
         super.createInspector(list, style)
         list += FloatInput(list.style, "Alignment with Camera", AnimatedProperty.Type.FLOAT)

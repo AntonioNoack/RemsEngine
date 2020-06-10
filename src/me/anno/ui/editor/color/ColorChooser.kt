@@ -24,9 +24,8 @@ class ColorChooser(style: Style, withAlpha: Boolean): PanelListY(style){
     // check box for hsl/hsluv
     // field(?) to enter rgb codes
 
-    var spaceStyle = ColorVisualisation.CIRCLE
-
-    var colorSpace = ColorSpace[DefaultConfig["color.defaultColorSpace", "HSLuv"]] ?: ColorSpace.HSLuv
+    var visualisation = lastVisualisation ?: ColorVisualisation.WHEEL
+    var colorSpace = lastColorSpace ?: ColorSpace[DefaultConfig["color.defaultColorSpace", "HSLuv"]] ?: ColorSpace.HSLuv
 
     var isDownInRing = false
     val hslBox = HSVBoxMain(this, Vector3f(), Vector3f(0f, 1f, 0f), Vector3f(0f, 0f, 1f), style)
@@ -59,6 +58,7 @@ class ColorChooser(style: Style, withAlpha: Boolean): PanelListY(style){
         ColorSpace.values.values.toSet().map { it.name }, style)
         .setChangeListener {
             val newColorSpace = ColorSpace[it]
+            lastColorSpace = newColorSpace
             if(newColorSpace != null && newColorSpace != colorSpace){
                 val rgb = colorSpace.toRGB(Vector3f(hue, saturation, lightness))
                 val newHSL = newColorSpace.fromRGB(rgb)
@@ -67,14 +67,17 @@ class ColorChooser(style: Style, withAlpha: Boolean): PanelListY(style){
         }
         .setTooltip("Ring/Box")
 
-    val isRingCheckbox = EnumInput("Style", false, spaceStyle.displayName, ColorVisualisation.values().map { it.displayName }, style)
-        .setChangeListener { spaceStyle = ColorVisualisation.values().firstOrNull { v -> v.displayName == it } ?: spaceStyle }
+    val styleInput = EnumInput("Style", false, visualisation.displayName, ColorVisualisation.values().map { it.displayName }, style)
+        .setChangeListener {
+            visualisation = ColorVisualisation.values().firstOrNull { v -> v.displayName == it } ?: visualisation
+            lastVisualisation = visualisation
+        }
 
     init {
         val spaceBox = PanelListX(style)
         this += spaceBox
         spaceBox += colorSpaceInput.setWeight(1f)
-        spaceBox += isRingCheckbox
+        spaceBox += styleInput
         this += SpacePanel(0, 2, style)
         this += hslBox
         this += hueChooserSpace
@@ -86,7 +89,7 @@ class ColorChooser(style: Style, withAlpha: Boolean): PanelListY(style){
     }
 
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        val needsHueChooser = Visibility[spaceStyle.needsHueChooser]
+        val needsHueChooser = Visibility[visualisation.needsHueChooser]
         hueChooser.visibility = needsHueChooser
         hueChooserSpace.visibility = needsHueChooser
         super.draw(x0, y0, x1, y1)
@@ -122,10 +125,11 @@ class ColorChooser(style: Style, withAlpha: Boolean): PanelListY(style){
     }
 
     fun drawColorBox(element: Panel, d0: Vector3f, du: Vector3f, dv: Vector3f, dh: Float, mainBox: Boolean){
-        val spaceStyle = if(mainBox) spaceStyle else ColorVisualisation.BOX
+        val spaceStyle = if(mainBox) visualisation else ColorVisualisation.BOX
         val shader = colorSpace.getShader(spaceStyle)
         shader.use()
         GFX.posSize(shader, element.x, element.y + element.h, element.w, - element.h)
+        val sharpness = max(w, h) * 0.25f + 1f
         when(spaceStyle){
             ColorVisualisation.WHEEL -> {
                 shader.v3("v0", d0.x + hue * dh, d0.y, d0.z)
@@ -133,19 +137,19 @@ class ColorChooser(style: Style, withAlpha: Boolean): PanelListY(style){
                 shader.v3("dv", dv)
                 val hue0 = colorSpace.hue0
                 shader.v2("ringSL", hue0.y, hue0.z)
+                shader.v1("sharpness", sharpness)
                 GFX.flat01.draw(shader)
             }
             ColorVisualisation.CIRCLE -> {
-                shader.v3("v0", d0.x + hue * dh, d0.y, d0.z)
-                shader.v3("du", du)
-                shader.v3("dv", dv)
                 shader.v1("lightness", lightness)
+                shader.v1("sharpness", sharpness)
                 GFX.flat01.draw(shader)
             }
             ColorVisualisation.BOX -> {
                 shader.v3("v0", d0.x + hue * dh, d0.y, d0.z)
                 shader.v3("du", du)
                 shader.v3("dv", dv)
+                // shader.v1("sharpness", sharpness)
                 GFX.flat01.draw(shader)
             }
         }
@@ -163,15 +167,16 @@ class ColorChooser(style: Style, withAlpha: Boolean): PanelListY(style){
     // todo copy whole timelines?
     override fun onCopyRequested(x: Float, y: Float) = "${colorSpace.serializationName}(${hue.f3()},${saturation.f3()},${lightness.f3()},${opacity.f3()})"
 
-    override fun onPaste(x: Float, y: Float, pasted: String) {
+    override fun onPaste(x: Float, y: Float, data: String, type: String) {
         // todo better parsing function returning a rgba-vector
-        setARGB(parseColor(pasted) ?: return)
+        setARGB(parseColor(data) ?: return)
         // todo check for HSVuv(h,s,v,a), HSV(h,s,v,a), or #... or RGB(r,g,b,a) or [1,1,0,1]
     }
 
     companion object {
-
         val CircleBarRatio = 0.2f
+        var lastVisualisation: ColorVisualisation? = null
+        var lastColorSpace: ColorSpace? = null
     }
 
 }

@@ -3,14 +3,14 @@ package me.anno.ui.editor
 import me.anno.gpu.GFX
 import me.anno.objects.Transform
 import me.anno.ui.base.Panel
-import me.anno.ui.base.ScrollPanel
+import me.anno.ui.base.ScrollPanelY
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.style.Style
 
 class PropertyInspector(style: Style):
-    ScrollPanel(style.getChild("propertyInspector"), Padding(3), WrapAlign.AxisAlignment.MIN){
+    ScrollPanelY(style.getChild("propertyInspector"), Padding(3), WrapAlign.AxisAlignment.MIN){
 
     val list = child as PanelListY
     var lastSelected: Transform? = null

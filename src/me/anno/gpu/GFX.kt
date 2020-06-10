@@ -6,6 +6,7 @@ import me.anno.fonts.FontManager
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.buffer.StaticFloatBuffer
 import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.size.WindowSize
 import me.anno.gpu.texture.Texture2D
 import me.anno.input.Input
 import me.anno.input.Input.isShiftDown
@@ -13,8 +14,12 @@ import me.anno.objects.Camera
 import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.blending.BlendMode
+import me.anno.studio.Studio.editorTimeDilation
+import me.anno.studio.Studio.eventTasks
+import me.anno.studio.Studio.targetHeight
+import me.anno.studio.Studio.targetWidth
 import me.anno.ui.base.Panel
-import me.anno.ui.base.ScrollPanel
+import me.anno.ui.base.ScrollPanelY
 import me.anno.ui.base.SpacePanel
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.components.Padding
@@ -31,6 +36,8 @@ import org.joml.Vector3f
 import org.joml.Vector4f
 import org.lwjgl.BufferUtils
 import org.lwjgl.glfw.GLFW.*
+import org.lwjgl.opengl.EXTTextureFilterAnisotropic
+import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL30.*
@@ -51,6 +58,8 @@ object GFX: GFXBase1() {
     // for final rendering we need to use the GPU anyways;
     // so just use a static variable
     var isFinalRendering = false
+    var supportsAnisotropicFiltering = false
+    var anisotropy = 1f
 
     val nullCamera = Camera(null)
 
@@ -77,23 +86,11 @@ object GFX: GFXBase1() {
         }
     }
 
-    var targetFPS = 30f
-
-    var targetWidth = 1920
-    var targetHeight = 1080
-
     val workerTasks = ConcurrentLinkedQueue<() -> Int>()
-    val eventTasks = ConcurrentLinkedQueue<() -> Unit>()
 
     fun addTask(task: () -> Int){
         workerTasks += task
     }
-
-    fun addEvent(event: () -> Unit){
-        eventTasks += event
-    }
-
-    var editorTimeDilation = 0f
 
     lateinit var gameInit: () -> Unit
     lateinit var gameLoop: (w: Int, h: Int) -> Boolean
@@ -103,7 +100,7 @@ object GFX: GFXBase1() {
     var windowY = 0
     var windowWidth = 0
     var windowHeight = 0
-    val windowSize get() = me.anno.gpu.size.WindowSize(windowX, windowY, windowWidth, windowHeight)
+    val windowSize get() = WindowSize(windowX, windowY, windowWidth, windowHeight)
 
     val flat01 = SimpleBuffer.flat01
     // val defaultFont = DefaultConfig["font"]?.toString() ?: "Verdana"
@@ -126,8 +123,6 @@ object GFX: GFXBase1() {
     val whiteTexture = Texture2D(1, 1)
     val stripeTexture = Texture2D(5, 1)
     val colorShowTexture = Texture2D(2,2)
-
-    val flat01Name = flat01.getName()
 
     var rawDeltaTime = 0f
     var deltaTime = 0f
@@ -432,11 +427,11 @@ object GFX: GFXBase1() {
                 "}")
 
         flatShaderTexture = Shader("" +
-                "a2 $flat01Name;\n" +
+                "a2 attr0;\n" +
                 "u2 pos, size;\n" +
                 "void main(){\n" +
-                "   gl_Position = vec4((pos + $flat01Name * size)*2.-1., 0.0, 1.0);\n" +
-                "   uv = $flat01Name;\n" +
+                "   gl_Position = vec4((pos + attr0 * size)*2.-1., 0.0, 1.0);\n" +
+                "   uv = attr0;\n" +
                 "}", "" +
                 "varying vec2 uv;\n", "" +
                 "uniform sampler2D tex;\n" +
@@ -447,11 +442,11 @@ object GFX: GFXBase1() {
 
         // with texture
         subpixelCorrectTextShader = Shader("" +
-                "a2 $flat01Name;\n" +
+                "a2 attr0;\n" +
                 "u2 pos, size;\n" +
                 "void main(){\n" +
-                "   gl_Position = vec4((pos + $flat01Name * size)*2.-1., 0.0, 1.0);\n" +
-                "   uv = $flat01Name;\n" +
+                "   gl_Position = vec4((pos + attr0 * size)*2.-1., 0.0, 1.0);\n" +
+                "   uv = attr0;\n" +
                 "}", "" +
                 "varying v2 uv;\n", "" +
                 "uniform vec4 textColor;" +
@@ -686,6 +681,13 @@ object GFX: GFXBase1() {
     }
 
     override fun renderStep0() {
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1) // opengl is evil ;), for optimizations, we might set it back
+        supportsAnisotropicFiltering = GL.getCapabilities().GL_EXT_texture_filter_anisotropic
+        println("[INFO] OpenGL supports Anisotropic Filtering? $supportsAnisotropicFiltering")
+        if(supportsAnisotropicFiltering){
+            val max = glGetFloat(EXTTextureFilterAnisotropic.GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT)
+            anisotropy = min(max, DefaultConfig["gpu.filtering.anisotropic.max", 16f])
+        }
         invisibleTexture.create(ByteArray(4) { 0.toByte() })
         whiteTexture.create(
             byteArrayOf(255.toByte(), 255.toByte(), 255.toByte(), 255.toByte()))
@@ -782,7 +784,7 @@ object GFX: GFXBase1() {
         val style = DefaultConfig.style.getChild("menu")
         val list = PanelListY(style)
         list += WrapAlign.LeftTop
-        val container = ScrollPanel(list, Padding(1), style, WrapAlign.AxisAlignment.MIN)
+        val container = ScrollPanelY(list, Padding(1), style, WrapAlign.AxisAlignment.MIN)
         container += WrapAlign.LeftTop
         lateinit var window: Window
         fun close(){
@@ -831,6 +833,7 @@ object GFX: GFXBase1() {
     fun check(){
         val error = glGetError()
         if(error != 0) throw RuntimeException("GLException: ${when(error){
+            1281 -> "invalid value"
             1282 -> "invalid operation"
             else -> "$error"
         }}")

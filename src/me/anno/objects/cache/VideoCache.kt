@@ -54,7 +54,7 @@ class VideoCache(val file: File){
         val minFrame = index * framesPerContainer
         // val maxFrame = minFrame + framesPerContainer
         val startTime = minFrame / fps
-        val stream = FFMPEGStream.getImageSequence(file, startTime, framesPerContainer, fps)
+        val stream = FFMPEGStream.getImageSequence(file, startTime, if(file.name.endsWith(".webp", true)) 1 else framesPerContainer, fps)
         frameContainers[index] = stream
         return stream
     }

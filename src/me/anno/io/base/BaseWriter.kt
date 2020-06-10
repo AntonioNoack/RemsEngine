@@ -17,7 +17,7 @@ abstract class BaseWriter {
     val todo = ArrayList<ISaveable>(256)
 
     // the type is important to notice incompatibilities by changes
-    abstract fun writeBool(name: String, value: Boolean, force: Boolean = false)
+    abstract fun writeBool(name: String, value: Boolean, force: Boolean = true)
     abstract fun writeByte(name: String, value: Byte, force: Boolean = false)
     abstract fun writeShort(name: String, value: Short, force: Boolean = false)
     abstract fun writeInt(name: String, value: Int, force: Boolean = false)

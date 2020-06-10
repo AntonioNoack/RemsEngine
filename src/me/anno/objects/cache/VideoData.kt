@@ -8,7 +8,9 @@ class VideoData(file: File, index: Int, val fps: Float): CacheData {
 
     val time0 = GFX.lastTime
 
-    val stream = FFMPEGStream.getImageSequence(file, index * framesPerContainer, framesPerContainer, fps)
+    val stream = FFMPEGStream.getImageSequence(file, index * framesPerContainer,
+        if(file.name.endsWith(".webp", true)) 1 else framesPerContainer,
+        fps)
     val frames = stream.frames
 
     override fun destroy() {

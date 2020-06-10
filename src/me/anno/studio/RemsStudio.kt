@@ -1,6 +1,7 @@
 package me.anno.studio
 
 import me.anno.audio.AudioManager
+import me.anno.config.DefaultConfig.style
 import me.anno.gpu.Cursor
 import me.anno.gpu.Cursor.useCursor
 import me.anno.gpu.GFX
@@ -10,14 +11,20 @@ import me.anno.gpu.GFX.hoveredWindow
 import me.anno.gpu.GFX.showFPS
 import me.anno.gpu.Window
 import me.anno.input.Input
+import me.anno.input.Input.mouseX
+import me.anno.input.Input.mouseY
 import me.anno.objects.cache.Cache
+import me.anno.studio.Studio.dragged
 import me.anno.ui.base.Panel
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.Tooltips
 import me.anno.ui.editor.*
 import me.anno.ui.editor.sceneView.SceneView
+import me.anno.utils.clamp
 import me.anno.utils.f3
 import java.util.*
+import kotlin.math.min
+import kotlin.math.roundToInt
 
 // todo open full log when clicking on the bottom;
 // todo or get more details?
@@ -26,16 +33,9 @@ object RemsStudio {
 
     val originalOutput = System.out
 
-    var lastWidth = 0
-    var lastHeight = 0
-
     val windowStack = Stack<Window>()
 
     fun run(){
-
-        // val src = File("C:\\Users\\Antonio\\Videos\\Captures", "Cities_ Skylines 2020-01-06 19-32-23.mp4")
-        // FFMPEGStream.getImageSequence(src)
-
 
         Layout.createUI()
         GFX.windowStack = windowStack
@@ -50,8 +50,6 @@ object RemsStudio {
             hoveredPanel = hovered?.first
             hoveredWindow = hovered?.second
 
-            // todo the cursor is only updating when moving the mouse???
-            // bug in the api maybe, how to fix that?
             hoveredPanel?.getCursor()?.useCursor()
 
             windowStack.forEach { window ->
@@ -72,18 +70,20 @@ object RemsStudio {
 
             showFPS()
 
-            /* dragging can be a nice way to work, but dragging values to change them,
-            // and copying by ctrl+c/v is probably better :)
-            val dragged = GFX.draggedObject
-            if(dragged != null && dragged.isNotBlank()){
-                val maxSize = 10
-                var displayed = dragged.trim()
-                if(displayed.length > maxSize) displayed = displayed.substring(0, maxSize - 3) + "..."
-                GFX.drawText(GFX.mx.roundToInt() - 5, GFX.my.roundToInt() - 5,
-                    style.getSize("dragging.textSize", 10), displayed,
-                    style.getColor("dragging.textColor", -1),
-                    style.getColor("dragging.background", 0))
-            }*/
+            // dragging can be a nice way to work, but dragging values to change them,
+            // and copying by ctrl+c/v is probably better -> no, we need both
+            // dragging files for example
+            val dragged = dragged
+            if(dragged != null){
+                val (rw, rh) = dragged.getSize(GFX.width/5, GFX.height/5)
+                var x = mouseX.roundToInt()
+                var y = mouseY.roundToInt()
+                x = min(x, GFX.width-rw)
+                y = min(y, GFX.height-rh)
+                GFX.clip(x, y, ui.w, ui.h)
+                println("d $x $y")
+                dragged.draw(x, y)
+            }
 
             check()
 
@@ -100,18 +100,15 @@ object RemsStudio {
             AudioManager.destroy()
             Cursor.destroy()
         }
-        // GFX.init()
         GFX.run()
     }
 
     // would overflow as 32 bit after 2.5 months on a 300 fps display ;D
-    var frameCtr = 0L
+    private var frameCtr = 0L
 
     lateinit var startMenu: Panel
     lateinit var ui: Panel
     lateinit var console: TextPanel
-
-
 
     fun check() = GFX.check()
 

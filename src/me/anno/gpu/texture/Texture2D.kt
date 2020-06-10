@@ -2,6 +2,7 @@ package me.anno.gpu.texture
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
+import org.lwjgl.opengl.EXTTextureFilterAnisotropic
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL13.GL_TEXTURE0
 import org.lwjgl.opengl.GL30.*
@@ -10,6 +11,7 @@ import java.lang.RuntimeException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import kotlin.concurrent.thread
+import kotlin.math.min
 
 class Texture2D(val w: Int, val h: Int){
 
@@ -19,23 +21,28 @@ class Texture2D(val w: Int, val h: Int){
     }
 
     var pointer = -1
+    var isCreated = false
     var isFilteredNearest = false
 
     fun ensurePointer(){
         if(pointer < 0) pointer = glGenTextures()
-        if(pointer < 0) throw RuntimeException()
+        if(pointer <= 0) throw RuntimeException()
     }
 
     fun create(){
         ensurePointer()
-        bind(isFilteredNearest)
+        forceBind()
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL11.GL_RGBA, GL_UNSIGNED_BYTE, null as ByteBuffer?)
+        filtering(isFilteredNearest)
+        isCreated = true
     }
 
     fun createFP32(){
         ensurePointer()
-        bind(isFilteredNearest)
+        forceBind()
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, w, h, 0, GL_RGBA, GL_FLOAT, null as ByteBuffer?)
+        filtering(isFilteredNearest)
+        isCreated = true
     }
 
     fun create(createImage: () -> BufferedImage){
@@ -75,17 +82,18 @@ class Texture2D(val w: Int, val h: Int){
     fun uploadData(intData: IntArray){
         GFX.check()
         ensurePointer()
-        bind(isFilteredNearest)
+        forceBind()
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, intData)
+        isCreated = true
         GFX.check()
-        filtering(true)
+        filtering(isFilteredNearest)
         GFX.check()
     }
 
     fun createMonochrome(data: ByteArray){
         if(w*h != data.size) throw RuntimeException("incorrect size!")
         ensurePointer()
-        bind(isFilteredNearest)
+        forceBind()
         GFX.check()
         val byteBuffer = ByteBuffer
             .allocateDirect(data.size)
@@ -93,14 +101,15 @@ class Texture2D(val w: Int, val h: Int){
             .put(data)
             .position(0)
         glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, w, h, 0, GL11.GL_RED, GL_UNSIGNED_BYTE, byteBuffer)
-        filtering(false)
+        isCreated = true
+        filtering(isFilteredNearest)
         GFX.check()
     }
 
     fun create(data: FloatArray){
         if(w*h*4 != data.size) throw RuntimeException("incorrect size!")
         ensurePointer()
-        bind(isFilteredNearest)
+        forceBind()
         GFX.check()
         val byteBuffer = ByteBuffer
             .allocateDirect(data.size * 4)
@@ -110,14 +119,15 @@ class Texture2D(val w: Int, val h: Int){
             .put(data)
             .position(0)
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_FLOAT, floatBuffer)
-        filtering(true)
+        isCreated = true
+        filtering(isFilteredNearest)
         GFX.check()
     }
 
     fun create(data: ByteArray){
         if(w*h*4 != data.size) throw RuntimeException("incorrect size!")
         ensurePointer()
-        bind(isFilteredNearest)
+        forceBind()
         GFX.check()
         val byteBuffer = ByteBuffer
             .allocateDirect(data.size)
@@ -125,22 +135,8 @@ class Texture2D(val w: Int, val h: Int){
             .put(data)
             .position(0)
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, byteBuffer)
-        filtering(false)
-        GFX.check()
-    }
-
-    fun createRGB(data: ByteArray){
-        if(w*h*3 != data.size) throw RuntimeException("incorrect size!")
-        ensurePointer()
-        bind(isFilteredNearest)
-        GFX.check()
-        val byteBuffer = ByteBuffer
-            .allocateDirect(data.size)
-            .position(0)
-            .put(data)
-            .position(0)
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, byteBuffer)
-        filtering(false)
+        isCreated = true
+        filtering(isFilteredNearest)
         GFX.check()
     }
 
@@ -149,11 +145,27 @@ class Texture2D(val w: Int, val h: Int){
     }
 
     fun filtering(nearest: Boolean){
-        val type = if(nearest) GL_NEAREST else GL_LINEAR
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, type)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, type)
+        if(nearest){
+            val type = GL_NEAREST
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, type)
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, type)
+        } else {
+            if(!hasMipmap){
+                glGenerateMipmap(GL_TEXTURE_2D)
+                hasMipmap = true
+                if(GFX.supportsAnisotropicFiltering){
+                    val anisotropy = GFX.anisotropy
+                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_LOD_BIAS, 0)
+                    glTexParameterf(GL_TEXTURE_2D, EXTTextureFilterAnisotropic.GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropy)
+                }
+            }
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
+        }
         isFilteredNearest = nearest
     }
+
+    var hasMipmap = false
 
     fun clamping(repeat: Boolean){
         val type = if(repeat) GL_REPEAT else GL_CLAMP_TO_EDGE
@@ -161,8 +173,13 @@ class Texture2D(val w: Int, val h: Int){
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, type)
     }
 
+    fun forceBind(){
+        if(pointer == -1) throw RuntimeException()
+        glBindTexture(GL_TEXTURE_2D, pointer)
+    }
+
     fun bind(nearest: Boolean){
-        if(pointer > -1){
+        if(pointer > -1 && isCreated){
             glBindTexture(GL_TEXTURE_2D, pointer)
             ensureFiltering(nearest)
         } else GFX.invisibleTexture.bind(true)
@@ -179,9 +196,11 @@ class Texture2D(val w: Int, val h: Int){
 
     fun createDepth(){
         ensurePointer()
-        bind(true)
-        clamping(false)
+        forceBind()
         glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, w, h, 0, GL_DEPTH_COMPONENT,	GL_FLOAT, 0)
+        filtering(isFilteredNearest)
+        clamping(false)
+        GFX.check()
     }
 
     companion object {

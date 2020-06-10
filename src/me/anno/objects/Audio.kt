@@ -1,5 +1,7 @@
 package me.anno.objects
 
+import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.input.AudioInput
 import me.anno.ui.style.Style
 import org.joml.Matrix4fStack
 import org.joml.Vector4f
@@ -19,5 +21,12 @@ class Audio(var file: File, parent: Transform?): GFXTransform(parent){
     override fun onDraw(stack: Matrix4fStack, time: Float, color: Vector4f) {
 
     }
+
+    override fun createInspector(list: PanelListY, style: Style) {
+        super.createInspector(list, style)
+        list += AudioInput(file, style)
+    }
+
+    override fun getClassName() = "Audio"
 
 }

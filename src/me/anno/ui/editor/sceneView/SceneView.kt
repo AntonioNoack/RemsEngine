@@ -12,6 +12,8 @@ import me.anno.input.Input.keysDown
 import me.anno.input.Input.mouseKeysDown
 import me.anno.objects.Camera
 import me.anno.studio.Scene
+import me.anno.studio.Studio.targetHeight
+import me.anno.studio.Studio.targetWidth
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelFrame
@@ -77,11 +79,11 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
 
         val camera = GFX.selectedCamera
         if(camera.onlyShowTarget){
-            if(w* GFX.targetHeight > GFX.targetWidth *h){
-                rw = h * GFX.targetWidth / GFX.targetHeight
+            if(w * targetHeight > targetWidth *h){
+                rw = h * targetWidth / targetHeight
                 dx = (w-rw)/2
             } else {
-                rh = w * GFX.targetHeight / GFX.targetWidth
+                rh = w * targetHeight / targetWidth
                 dy = (h-rh)/2
             }
         }

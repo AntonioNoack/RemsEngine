@@ -13,7 +13,7 @@ open class TextPanel(open var text: String, style: Style): Panel(style){
     var isBold = style.getBoolean("textBold", false)
     var isItalic = style.getBoolean("textItalic", false)
     var fontName = style.getString("textFont", DefaultConfig.defaultFont)
-    var fontSize = style.getSize("textSize", 12)
+    var textSize = style.getSize("textSize", 12)
     var textColor = style.getColor("textColor", iconGray)
     var focusTextColor = style.getColor("textColorFocused", -1)
 
@@ -21,13 +21,13 @@ open class TextPanel(open var text: String, style: Style): Panel(style){
     var disableCopy = false
 
     fun drawText(x: Int, y: Int, text: String, color: Int): Pair<Int, Int> {
-        return GFX.drawText(this.x + x + padding.left, this.y + y + padding.top, fontName, fontSize, isBold, isItalic,
+        return GFX.drawText(this.x + x + padding.left, this.y + y + padding.top, fontName, textSize, isBold, isItalic,
             text, color, backgroundColor)
     }
 
     override fun calculateSize(w: Int, h: Int) {
         super.calculateSize(w, h)
-        val (w2, h2) = GFX.getTextSize(fontName, fontSize, isBold, isItalic, if(text.isBlank()) "x" else text)
+        val (w2, h2) = GFX.getTextSize(fontName, textSize, isBold, isItalic, if(text.isBlank()) "x" else text)
         minW = w2 + padding.width
         minH = h2 + padding.height
     }

@@ -9,6 +9,7 @@ import me.anno.input.Input.isShiftDown
 import me.anno.input.Input.mouseKeysDown
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.animation.Keyframe
+import me.anno.studio.Studio.targetFPS
 import me.anno.utils.clamp
 import me.anno.utils.pow
 import me.anno.ui.base.Panel
@@ -73,7 +74,7 @@ class GraphEditorBody(style: Style): Panel(style.getChild("deep")){
         val s = time.toInt()
         val m = s / 60
         val h = m / 60
-        val subTime = ((time % 1) * GFX.targetFPS).roundToInt()
+        val subTime = ((time % 1) * targetFPS).roundToInt()
         return if(h < 1) "${get0XString(m % 60)}:${get0XString(s % 60)}${if(step < 1f) "/${get0XString(subTime)}" else ""}"
         else "${get0XString(h)}:${get0XString(m % 60)}:${get0XString(s % 60)}${if(step < 1f) "/${get0XString(subTime)}" else ""}"
     }
@@ -267,6 +268,8 @@ class GraphEditorBody(style: Style): Panel(style.getChild("deep")){
         GFX.editorTime = getTimeAt(x)
     }
 
+    fun Int.isChannelActive() = (this and activeChannels) != 0
+
     fun getKeyframeAt(x: Float, y: Float): Pair<Keyframe<*>, Int>? {
         val property = GFX.selectedProperty ?: return null
         var bestDragged: Keyframe<*>? = null
@@ -277,13 +280,15 @@ class GraphEditorBody(style: Style): Panel(style.getChild("deep")){
             val dx = x - getXAt(keyframe.time)
             if(abs(dx) < maxMargin){// todo get best distance instead of this? yes :)
                 for(channel in 0 until property.type.components){
-                    val dy = y - getYAt(keyframe.getValue(channel))
-                    if(abs(dy) < maxMargin){
-                        val distance = length(dx, dy)
-                        if(distance < bestDistance){
-                            bestDragged = keyframe
-                            bestChannel = channel
-                            bestDistance = distance
+                    if(channel.isChannelActive()){
+                        val dy = y - getYAt(keyframe.getValue(channel))
+                        if(abs(dy) < maxMargin){
+                            val distance = length(dx, dy)
+                            if(distance < bestDistance){
+                                bestDragged = keyframe
+                                bestChannel = channel
+                                bestDistance = distance
+                            }
                         }
                     }
                 }
@@ -292,20 +297,67 @@ class GraphEditorBody(style: Style): Panel(style.getChild("deep")){
         return bestDragged?.to(bestChannel)
     }
 
+    // todo add/remove keyframes from the selection
+    val selectedKeyframes = HashSet<Keyframe<*>>()
+
+    var isSelecting = false
+    val select0 = Vector2f()
+
+    var activeChannels = -1
+
     override fun onMouseDown(x: Float, y: Float, button: Int) {
         // find the dragged element
         draggedKeyframe = null
         if(button == 0){
-            val keyframe = getKeyframeAt(x, y)
-            if(keyframe != null){
-                draggedKeyframe = keyframe.first
-                draggedChannel = keyframe.second
+            isSelecting = isShiftDown
+            val keyframeChannel = getKeyframeAt(x, y)
+            if(keyframeChannel != null){
+                val (keyframe, channel) = keyframeChannel
+                // todo only work on one channel, vs working on all?
+                // todo this would allow us to copy only z for example
+                draggedKeyframe = keyframe
+                draggedChannel = channel
+                if(isSelecting){
+                    if(!selectedKeyframes.remove(keyframe)){
+                        selectedKeyframes.add(keyframe) // was not found -> add it
+                    }
+                }
+            } else {
+                select0.x = x
+                select0.y = y
             }
         }
     }
 
+    // todo scale a group of selected keyframes
+    // todo move a group of selected keyframes
+    // todo select full keyframes, or partial keyframes?
+    fun getAllKeyframes(minX: Float, maxX: Float, minY: Float, maxY: Float): List<Keyframe<*>> {
+        if(minX > maxX || minY > maxY) return getAllKeyframes(min(minX, maxX), max(minX, maxX), min(minY, maxY), max(minY, maxY))
+        val property = GFX.selectedProperty ?: return emptyList()
+        val keyframes = ArrayList<Keyframe<*>>()
+        keyframes@for(keyframe in property.keyframes){
+            if(getXAt(keyframe.time) in minX .. maxX){
+                for(channel in 0 until property.type.components){
+                    if(channel.isChannelActive()){
+                        if(getYAt(keyframe.getValue(channel)) in minY .. maxY){
+                            keyframes += keyframe
+                            continue@keyframes
+                        }
+                    }
+                }
+            }
+        }
+        return keyframes
+    }
+
+    // todo always show the other properties, too???
     override fun onMouseUp(x: Float, y: Float, button: Int) {
         draggedKeyframe = null
+        if(isSelecting){
+            // add all keyframes in that area
+            selectedKeyframes += getAllKeyframes(select0.x, x, select0.y, y)
+        }
     }
 
     override fun onDeleteKey(x: Float, y: Float) {
@@ -317,30 +369,38 @@ class GraphEditorBody(style: Style): Panel(style.getChild("deep")){
 
     override fun onKeyTyped(x: Float, y: Float, key: Int) {
         when(key){
-            GLFW_KEY_LEFT -> {
-                val delta = - dtHalfLength * 10 / w
-                GFX.editorTime += delta
-                centralTime += delta
-                clampTime()
-            }
-            GLFW_KEY_RIGHT -> {
-                val delta = dtHalfLength * 10 / w
-                GFX.editorTime += delta
-                centralTime += delta
-                clampTime()
-            }
-            GLFW_KEY_UP -> {
-                val delta = - dvHalfHeight * 10 / w
-                centralValue += delta
-                clampTime()
-            }
-            GLFW_KEY_DOWN -> {
-                val delta = dvHalfHeight * 10 / w
-                centralValue += delta
-                clampTime()
-            }
+            GLFW_KEY_LEFT -> moveRight(-1f)
+            GLFW_KEY_RIGHT -> moveRight(1f)
+            GLFW_KEY_UP -> moveUp(1f)
+            GLFW_KEY_DOWN -> moveUp(-1f)
             else -> super.onKeyTyped(x, y, key)
         }
+    }
+
+    val movementSpeed get() = 0.05f * sqrt(w*h.toFloat())
+
+    fun moveRight(sign: Float){
+        val delta = sign * dtHalfLength * movementSpeed / w
+        GFX.editorTime += delta
+        centralTime += delta
+        clampTime()
+    }
+
+    fun moveUp(sign: Float){
+        val delta = sign * dvHalfHeight * movementSpeed / h
+        centralValue += delta
+        clampTime()
+    }
+
+    override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
+        when(action){
+            "MoveLeft" -> moveRight(-1f)
+            "MoveRight" -> moveRight(1f)
+            "MoveUp" -> moveUp(1f)
+            "MoveDown" -> moveUp(-1f)
+            else -> return super.onGotAction(x, y, dx, dy, action, isContinuous)
+        }
+        return true
     }
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
@@ -374,7 +434,7 @@ class GraphEditorBody(style: Style): Panel(style.getChild("deep")){
     }
 
     fun clampTime(){
-        dtHalfLength = clamp(dtHalfLength, 2f/GFX.targetFPS, timeFractions.last())
+        dtHalfLength = clamp(dtHalfLength, 2f / targetFPS, timeFractions.last())
         centralTime = max(centralTime, dtHalfLength)
     }
 
@@ -409,5 +469,7 @@ class GraphEditorBody(style: Style): Panel(style.getChild("deep")){
             clampTime()
         }
     }
+
+    override fun getClassName() = "GraphEditorBody"
 
 }

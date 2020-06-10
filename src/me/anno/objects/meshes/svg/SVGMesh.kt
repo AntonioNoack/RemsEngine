@@ -1,10 +1,12 @@
 package me.anno.objects.meshes.svg
 
 import me.anno.config.DefaultConfig
+import me.anno.gpu.GFX.toRadians
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticFloatBuffer
 import me.anno.io.xml.XMLElement
 import me.anno.utils.clamp
+import me.anno.utils.length
 import org.joml.Vector2f
 import java.awt.Color
 import java.awt.Graphics2D
@@ -302,21 +304,176 @@ class SVGMesh {
         endElement()
     }
 
-    fun arcTo(rx: Float, ry: Float,
-              xAxisRotation: Float,
+    fun arcTo(rx: Float, ry: Float, xAxisRotation: Float,
               largeArcFlag: Float, sweepFlag: Float,
-              x: Float, y: Float){
+              x2: Float, y2: Float){
+        // println("$rx $ry $xAxisRotation $largeArcFlag $sweepFlag $x2 $y2")
+        arcTo(rx, ry, xAxisRotation,
+            largeArcFlag.toInt() != 0,
+            sweepFlag.toInt() != 0,
+            x2, y2)
+    }
 
-        // todo arc to...
+    // http://xahlee.info/REC-SVG11-20110816/implnote.html#ArcImplementationNotes
+    fun arcTo(rx: Float, ry: Float, xAxisRotation: Float,
+              largeArcFlag: Boolean, sweepFlag: Boolean,
+              x2: Float, y2: Float){
 
-        lineTo(x, y)
+        if(rx == 0f && ry == 0f) return lineTo(x2, y2)
 
+        if(rx < 0f || ry < 0f) return arcTo(abs(rx), abs(ry), xAxisRotation, largeArcFlag, sweepFlag, x2, y2)
+
+        val x1 = this.x
+        val y1 = this.y
+
+        val angle = toRadians(xAxisRotation)
+        val cos = cos(angle)
+        val sin = sin(angle)
+
+        val idxh = (x1-x2)/2
+        val idyh = (y1-y2)/2
+
+        val x12 = cos * idxh + sin * idyh
+        val y12 =-sin * idxh + cos * idyh
+
+        val scaleCorrection = length(x12/rx, y12/ry)
+        if(scaleCorrection > 1f){
+            return arcTo(rx*scaleCorrection, ry*scaleCorrection, xAxisRotation, largeArcFlag, sweepFlag, x2, y2)
+        }
+
+        val sign = if(largeArcFlag != sweepFlag) 1f else -1f
+        val tx = rx*rx*y12*y12
+        val ty = ry*ry*x12*x12
+        val c2Length = sign * sqrt((rx*rx*ry*ry - (tx + ty))/(tx + ty))
+        val cx2 = c2Length * rx*y12/ry
+        val cy2 = c2Length * -ry*x12/rx
+
+        val avgX = (x1+x2)/2
+        val avgY = (y1+y2)/2
+        val cx = cos * cx2 - sin * cy2 + avgX
+        val cy = sin * cx2 + cos * cy2 + avgY
+
+        val qx = (x12-cx2)/rx
+        val qy = (y12-cy2)/ry
+
+        val twoPi = (2*PI).toFloat()
+
+        val theta0 = angle(1f, 0f, qx, qy)
+        var deltaTheta = angle(qx, qy, -(x12+cx2)/rx, -(y12+cy2)/ry)// % twoPi
+
+        if(sweepFlag){
+            if(deltaTheta <= 0f) deltaTheta += twoPi
+        } else {
+            if(deltaTheta >= 0f) deltaTheta -= twoPi
+        }
+
+        val angleDegrees = deltaTheta * 180 / PI
+
+        val steps = max(3, (abs(angleDegrees) * stepsPerDegree).roundToInt())
+        for(i in 1 until steps){
+            val theta = theta0 + deltaTheta*i/steps
+            val localX = rx * cos(theta)
+            val localY = ry * sin(theta)
+            val rotX = cos * localX - sin * localY
+            val rotY = sin * localX + cos * localY
+            lineTo(cx + rotX, cy + rotY)
+        }
+
+        lineTo(x2, y2)
+
+    }
+
+    fun angle(ux: Float, uy: Float, vx: Float, vy: Float): Float {
+        val sign = if(ux*vy - uy*vx > 0f) 1f else -1f
+        val dotTerm = (ux*vx+uy*vy) / sqrt((ux*ux+uy*uy) * (vx*vx+vy*vy))
+        return sign * acos(clamp(dotTerm, -1f, 1f))
     }
 
     fun addPolyline(xml: XMLElement, style: SVGStyle, fill: Boolean){
         init(style, fill)
         val data = xml["points"]!!
-        // todo parse the points; same format as path; just only straight lines
+
+        var i = 0
+        fun read(): Float {
+            var j = i
+            spaces@while(true){
+                when(data[j]){
+                    ' ', '\t', '\r', '\n', ',' -> j++
+                    else -> break@spaces
+                }
+            }
+            i = j
+            when(data[j]){
+                '+', '-' -> j++
+            }
+            when(data[j]){
+                '.' -> {
+                    // println("starts with .")
+                    j++
+                    int@while(true){
+                        when(data.getOrNull(j)){
+                            in '0' .. '9' -> j++
+                            else -> break@int
+                        }
+                    }
+                }
+                else -> {
+                    int@while(true){
+                        when(data.getOrNull(j)){
+                            in '0' .. '9' -> j++
+                            else -> break@int
+                        }
+                    }
+                    if(data.getOrNull(j) == '.'){
+                        j++
+                        int@while(true){
+                            when(data.getOrNull(j)){
+                                in '0' .. '9' -> j++
+                                else -> break@int
+                            }
+                        }
+                    }
+                }
+            }
+
+            when(data.getOrNull(j)){
+                'e', 'E' -> {
+                    j++
+                    when(data.getOrNull(j)){
+                        '+', '-' -> j++
+                    }
+                    int@while(true){
+                        when(data.getOrNull(j)){
+                            in '0' .. '9' -> j++
+                            else -> break@int
+                        }
+                    }
+                }
+            }
+            // println("'${data.substring(i, j)}' + ${data.substring(j, j+10)}")
+            val value = data.substring(i, j).toFloat()
+            i = j
+            return value
+        }
+
+        var isFirst = false
+        while(i < data.length){
+            when(data[i++]){
+                ' ', '\t', '\r', '\n' -> {}
+                else -> {
+                    i--
+                    val x = read()
+                    val y = read()
+                    if(isFirst){
+                        moveTo(x,y)
+                        isFirst = false
+                    } else {
+                        lineTo(x,y)
+                    }
+                }
+            }
+        }
+
         endElement()
     }
 

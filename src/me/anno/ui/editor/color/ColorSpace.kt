@@ -1,12 +1,10 @@
 package me.anno.ui.editor.color
 
-import me.anno.gpu.GFX
 import me.anno.gpu.Shader
 import me.anno.ui.editor.color.ColorChooser.Companion.CircleBarRatio
 import me.anno.utils.toVec3
 import org.hsluv.HSLuvColorSpace
 import org.joml.Vector3f
-import java.lang.RuntimeException
 import kotlin.math.PI
 
 // could be used to replace the two color spaces with more
@@ -43,17 +41,19 @@ abstract class ColorSpace(
                 "" +
                         "uniform vec2 ringSL;\n" +
                         "uniform vec3 v0, du, dv;\n" +
+                        "uniform float sharpness;\n" +
                         glsl +
                         "void main(){\n" +
                         "   vec2 nuv = uv*2.0-1.0;\n" + // normalized uv
                         "   float dst = dot(nuv,nuv);\n" +
+                        "   float radius = sqrt(dst);\n" +
                         "   float hue = atan(nuv.y, nuv.x) * ${(0.5/PI)} + 0.5;\n" +
                         "   vec3 hsl = vec3(hue, ringSL);\n" +
-                        "   float alpha = dst > 0.95 ? 1.0 + (0.95-dst)*15.0 : 1.0;\n" +
-                        "   float isSquare = clamp((0.62-dst)*20.0, 0.0, 1.0);\n" +
+                        "   float alpha = radius > 0.975 ? 1.0 + (0.975-radius)*sharpness : 1.0;\n" +
+                        "   float isSquare = clamp((0.787-radius)*sharpness, 0.0, 1.0);\n" +
                         "   vec2 uv2 = clamp((uv-0.5)*1.8+0.5, 0.0, 1.0);\n" +
                         "   float dst2 = max(abs(uv2.x-0.5), abs(uv2.y-0.5));\n" +
-                        "   alpha *= mix(1.0, clamp((0.5-dst2)*50.0, 0.0, 1.0), isSquare);\n" +
+                        "   alpha *= mix(1.0, clamp((0.5-dst2)*sharpness, 0.0, 1.0), isSquare);\n" +
                         "   if(alpha <= 0.0) discard;\n" +
                         "   vec3 squareColor = spaceToRGB(v0 + du * uv2.x + dv * uv2.y);\n" +
                         "   vec3 rgb = mix(spaceToRGB(hsl), squareColor, isSquare);\n" +
@@ -62,8 +62,7 @@ abstract class ColorSpace(
             }
             ColorVisualisation.CIRCLE -> {
                 "" +
-                        "uniform vec3 v0, du, dv;\n" +
-                        "uniform float lightness;\n" +
+                        "uniform float lightness, sharpness;\n" +
                         glsl +
                         "void main(){\n" +
                         "   vec3 rgb;\n" +
@@ -74,19 +73,19 @@ abstract class ColorSpace(
                         "       rgb = vec3(uv.y);\n" +
                         "       alpha = clamp(min(" +
                         "           min(" +
-                        "               (nuv.x-0.515)*90.0," +
-                        "               (${0.5f+CircleBarRatio}-nuv.x)*90.0" +
+                        "               nuv.x-0.515," +
+                        "               ${0.5f+CircleBarRatio}-nuv.x" +
                         "           ), min(" +
-                        "               (nuv.y+0.5)*90.0," +
-                        "               (0.5-nuv.y)*90.0" +
+                        "               nuv.y+0.5," +
+                        "               0.5-nuv.y" +
                         "           )" +
-                        "       ), 0.0, 1.0);\n" +
+                        "       ) * sharpness, 0.0, 1.0);\n" +
                         "   } else {\n" +
                         "       // a circle \n" +
                         "       float radius = 2.0 * length(nuv);\n" +
                         "       float dst = radius*radius;\n" +
                         "       float hue = atan(nuv.y, nuv.x) * ${0.5/PI} + 0.5;\n" +
-                        "       alpha = dst > 0.95 ? 1.0 + (0.95-dst)*15.0 : 1.0;\n" +
+                        "       alpha = radius > 0.975 ? 1.0 + (0.975-radius)*sharpness : 1.0;\n" +
                         "       vec3 hsl = vec3(hue, radius, lightness);\n" +
                         "       rgb = spaceToRGB(hsl);\n" +
                         "   }\n" +
@@ -138,5 +137,6 @@ abstract class ColorSpace(
                 return HSVColorSpace.hsvToRGB(input.x, input.y, input.z)
             }
         }
+        // todo hsi color space?
     }
 }

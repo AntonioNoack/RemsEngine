@@ -9,11 +9,18 @@ import java.io.InputStream
 import java.lang.RuntimeException
 
 
-class I420Frame(w: Int, h: Int): Frame(w,h){
+class I420Frame(iw: Int, ih: Int): Frame(iw,ih){
+
+    init {
+        // this.w -= 1
+        // this makes no sense
+        // this.w -= 4
+    }
 
     val y = Texture2D(w,h)
     val u = Texture2D(w/2,h/2)
     val v = Texture2D(w/2,h/2)
+    var loadingCounter = 0
 
     fun load(input: InputStream){
         val s0 = w*h
@@ -21,20 +28,30 @@ class I420Frame(w: Int, h: Int): Frame(w,h){
         val yData = input.readNBytes(s0)
         if(yData.isEmpty()) throw LastFrame()
         if(yData.size < s0) throw RuntimeException("not enough data, only ${yData.size} of $s0")
-        GFX.addTask { y.createMonochrome(yData); 10 }
+        GFX.addTask {
+            y.createMonochrome(yData)
+            10
+        }
         val uData = input.readNBytes(s1)
         if(uData.size < s1) throw RuntimeException("not enough data, only ${uData.size} of $s1")
-        GFX.addTask { u.createMonochrome(uData); 10 }
+        GFX.addTask {
+            u.createMonochrome(uData)
+            10
+        }
         val vData = input.readNBytes(s1)
         if(vData.size < s1) throw RuntimeException("not enough data, only ${vData.size} of $s1")
-        GFX.addTask { v.createMonochrome(vData); isLoaded = true; 10 }
+        GFX.addTask {
+            v.createMonochrome(vData)
+            isLoaded = true
+            10
+        }
     }
 
     override fun get3DShader(): Shader = GFX.shader3DYUV
 
     override fun bind(offset: Int, nearestFiltering: Boolean){
-        u.bind(offset+1, nearestFiltering)
         v.bind(offset+2, nearestFiltering)
+        u.bind(offset+1, nearestFiltering)
         y.bind(offset, nearestFiltering)
     }
 

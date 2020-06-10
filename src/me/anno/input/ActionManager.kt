@@ -6,8 +6,11 @@ import me.anno.gpu.GFX.inFocus
 import me.anno.io.utils.StringMap
 import me.anno.studio.Layout
 import me.anno.studio.RemsStudio
+import me.anno.studio.Studio
+import me.anno.studio.Studio.dragged
+import me.anno.studio.Studio.editorTimeDilation
 import me.anno.ui.base.Panel
-import me.anno.ui.base.groups.PanelGroup
+import me.anno.utils.test.OpenGLCrash
 import org.lwjgl.glfw.GLFW.*
 import kotlin.math.abs
 
@@ -36,13 +39,16 @@ object ActionManager {
         defaultValue["global.space.down.${Modifiers[true, false]}"] = "PlayReversed|Pause"
         defaultValue["global.space.down.${Modifiers[true, true]}"] = "PlayReversedSlow|Pause"
         defaultValue["global.f11.down"] = "ToggleFullscreen"
-        defaultValue["global.${GLFW_KEY_PRINT_SCREEN}.down"] = "PrintLayout"
-        defaultValue["global.numpad0.down"] = "ResetCamera"
+        defaultValue["global.print.down"] = "PrintLayout"
+        defaultValue["global.left.up"] = "DragEnd"
+        defaultValue["global.t.down"] = "TestOpenGLBug"
 
         defaultValue["SceneView.w.press"] = "CamForward"
         defaultValue["SceneView.s.press"] = "CamBackward"
         defaultValue["SceneView.a.press"] = "CamLeft"
         defaultValue["SceneView.d.press"] = "CamRight"
+
+        defaultValue["TreeViewPanel.left.press"] = "DragStart"
 
         defaultValue["HSVBox.left.down"] = "selectColor"
         defaultValue["HSVBox.left.press-unsafe"] = "selectColor"
@@ -50,6 +56,11 @@ object ActionManager {
         defaultValue["SceneView.right.press"] = "Turn"
         defaultValue["SceneView.left.press"] = "MoveObject"
         defaultValue["SceneView.left.press.${Modifiers[false, true]}"] = "MoveObjectAlternate"
+        defaultValue["SceneView.numpad0.down"] = "ResetCamera"
+
+        // todo somehow not working
+        defaultValue["GraphEditorBody.arrowLeft.press"] = "MoveLeft"
+        defaultValue["GraphEditorBody.arrowRight.press"] = "MoveRight"
 
         defaultValue["PureTextInput.leftArrow.down"] = "MoveLeft"
         defaultValue["PureTextInput.rightArrow.down"] = "MoveRight"
@@ -140,9 +151,9 @@ object ActionManager {
         // execute globally
         for(action in actions){
             fun setEditorTimeDilation(dilation: Float): Boolean {
-                return if(dilation == GFX.editorTimeDilation || inFocus?.isKeyInput() == true) false
+                return if(dilation == editorTimeDilation || inFocus?.isKeyInput() == true) false
                 else {
-                    GFX.editorTimeDilation = dilation
+                    editorTimeDilation = dilation
                     true
                 }
             }
@@ -154,6 +165,27 @@ object ActionManager {
                     "PlayReversedSlow" -> setEditorTimeDilation(-0.2f)
                     "ToggleFullscreen" -> { GFX.toggleFullscreen(); true }
                     "PrintLayout" -> { Layout.printLayout();true }
+                    "DragEnd" -> {
+                        val dragged = dragged
+                        if(dragged != null){
+
+                            val data = dragged.getContent()
+                            val type = dragged.getContentType()
+
+                            inFocus?.onPaste(Input.mouseX, Input.mouseY, data, type)
+
+                            Studio.dragged = null
+
+                            true
+                        } else false
+                    }
+                    "TestOpenGLBug" -> {
+                        GFX.addTask {
+                            OpenGLCrash.test()
+                            10
+                        }
+                        true
+                    }
                     else -> false
                 }) return
         }

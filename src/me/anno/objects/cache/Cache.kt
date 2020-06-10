@@ -3,6 +3,7 @@ package me.anno.objects.cache
 import me.anno.gpu.GFX
 import me.anno.gpu.texture.Texture2D
 import me.anno.objects.cache.VideoData.Companion.framesPerContainer
+import me.anno.studio.Studio.editorTimeDilation
 import me.anno.video.FFMPEGStream
 import me.anno.video.Frame
 import java.io.File
@@ -59,18 +60,19 @@ object Cache {
     }
 
     // todo specify fps for our needs...
+    // todo specify size for our needs
     fun getVideoFrame(file: File, index: Int, maxIndex: Int, fps: Float, isLooping: Boolean = false): Frame? {
         if(index < 0) return null
         val bufferIndex = index/framesPerContainer
         val videoData = getVideoFrames(file, bufferIndex, fps) ?: return null
         if(videoData.time0 != GFX.lastTime){
-            if(GFX.editorTimeDilation > 0.01f){
+            if(editorTimeDilation > 0.01f){
                 if((bufferIndex+1)*framesPerContainer <= maxIndex){
                     getVideoFrames(file, bufferIndex+1, fps)
                 } else if(isLooping){
                     getVideoFrames(file, 0, fps)
                 }
-            } else if(GFX.editorTimeDilation < -0.01f){
+            } else if(editorTimeDilation < -0.01f){
                 if(bufferIndex > 0){
                     getVideoFrames(file, bufferIndex-1, fps)
                 } else {

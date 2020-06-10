@@ -31,13 +31,15 @@ open class Transform(var parent: Transform? = null): Saveable(){
         parent?.addChild(this)
     }
 
+    var isVisibleInTimeline = false
+
     var position = AnimatedProperty.pos()
     var scale = AnimatedProperty.scale()
     var rotationYXZ = AnimatedProperty.rotYXZ()
     var rotationQuaternion: AnimatedProperty<Quaternionf>? = null
     var skew = AnimatedProperty.skew()
     var color = AnimatedProperty.color()
-    var colorMultiplier = AnimatedProperty.float().set(1f)
+    var colorMultiplier = AnimatedProperty.floatPlus().set(1f)
 
     var blendMode = BlendMode.UNSPECIFIED
 
@@ -125,6 +127,10 @@ open class Transform(var parent: Transform? = null): Saveable(){
             .setChangeListener { blendMode = BlendMode[it] }
             .setIsSelectedListener { GFX.selectedProperty = null }
 
+        list += BooleanInput("Visible In Timeline?", isVisibleInTimeline, style)
+            .setChangeListener { isVisibleInTimeline = it }
+            .setIsSelectedListener { show(null) }
+
 
     }
 
@@ -137,7 +143,8 @@ open class Transform(var parent: Transform? = null): Saveable(){
     fun getLocalColor(): Vector4f = getLocalColor(parent?.getLocalColor() ?: Vector4f(1f,1f,1f,1f), lastLocalTime)
     fun getLocalColor(parentColor: Vector4f, time: Float): Vector4f {
         val col = color.getValueAt(time)
-        return Vector4f(col).mul(parentColor).mul(colorMultiplier[time])
+        val mul = colorMultiplier[time]
+        return Vector4f(col).mul(parentColor).mul(mul, mul, mul, 1f)
     }
 
     fun applyTransformLT(transform: Matrix4f, time: Float){
@@ -228,12 +235,21 @@ open class Transform(var parent: Transform? = null): Saveable(){
         writer.writeObject(this, "scale", scale)
         writer.writeObject(this, "rotationYXZ", rotationYXZ)
         writer.writeObject(this, "rotationQuat", rotationQuaternion)
+        writer.writeObject(this, "skew", skew)
         writer.writeFloat("timeOffset", timeOffset)
         writer.writeFloat("timeDilation", timeDilation)
         writer.writeObject(this, "timeAnimated", timeAnimated)
         writer.writeObject(this, "color", color)
         writer.writeString("blendMode", blendMode.id)
         writer.writeList(this, "children", children)
+        writer.writeBool("isVisibleInTimeline", isVisibleInTimeline, true)
+    }
+
+    override fun readBool(name: String, value: Boolean) {
+        when(name){
+            "isVisibleInTimeline" -> isVisibleInTimeline = value
+            else -> super.readBool(name, value)
+        }
     }
 
     override fun readObject(name: String, value: ISaveable?) {
@@ -266,6 +282,11 @@ open class Transform(var parent: Transform? = null): Saveable(){
             "rotationQuat" -> {
                 if(value is AnimatedProperty<*> && value.type == AnimatedProperty.Type.QUATERNION){
                     rotationQuaternion = value as AnimatedProperty<Quaternionf>
+                }
+            }
+            "skew" -> {
+                if(value is AnimatedProperty<*> && value.type == AnimatedProperty.Type.SKEW_2D){
+                    skew = value as AnimatedProperty<Vector2f>
                 }
             }
             "timeAnimated" -> {

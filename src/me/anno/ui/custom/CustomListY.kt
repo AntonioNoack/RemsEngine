@@ -8,6 +8,7 @@ import me.anno.ui.editor.CustomizingBar
 import me.anno.ui.style.Style
 import me.anno.utils.clamp
 import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.roundToInt
 
 class CustomListY(style: Style): PanelListY(style), CustomList {
@@ -87,7 +88,7 @@ class CustomListY(style: Style): PanelListY(style), CustomList {
                 child.calculateSize(w, childH)
                 child.applyConstraints()
                 child.placeInParent(x, childY)
-                childY += childH
+                childY += min(childH, child.h)
             }
 
         }

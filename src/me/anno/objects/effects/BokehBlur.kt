@@ -16,6 +16,8 @@ import org.lwjgl.opengl.GL11.*
 /**
  * shader by Kleber Garcia, 'Kecho', 2017, MIT license (https://github.com/kecho/CircularDofFilterGenerator)
  * the shader was modified to work without ShaderToy, and the filter texture was uploaded directly
+ *
+ * // todo use the generator for larger kernels (more expensive, larger results without artifacts)
  * */
 object BokehBlur {
 

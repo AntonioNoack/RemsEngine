@@ -6,6 +6,7 @@ import me.anno.fonts.FontManager
 import me.anno.fonts.mesh.FontMesh
 import me.anno.gpu.GFX
 import me.anno.io.base.BaseWriter
+import me.anno.objects.cache.Cache
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.input.BooleanInput
 import me.anno.ui.input.TextInput
@@ -13,7 +14,6 @@ import me.anno.ui.input.EnumInput
 import me.anno.ui.style.Style
 import org.joml.Matrix4fStack
 import org.joml.Vector4f
-import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.math.max
 
@@ -24,32 +24,36 @@ class Text(var text: String, parent: Transform?): GFXTransform(parent){
     // how we apply sampling probably depends on our AA solution...
 
     var font = "Verdana"
-    var buffer: FontMesh? = null
 
     var isBold = false
     var isItalic = false
 
-    var lastText = text
-    var lastFont = font
-    var lastBold = isBold
-    var lastItalic = isItalic
+    var fmKey = FontMeshKey(font, isBold, isItalic, text)
+
+    data class FontMeshKey(
+        val fontName: String, val isBold: Boolean, val isItalic: Boolean,
+        val text: String){
+        fun equals(fontName: String, isBold: Boolean, isItalic: Boolean, text: String) =
+            fontName == this.fontName && isBold == this.isBold && isItalic == this.isItalic && text == this.text
+    }
 
     override fun onDraw(stack: Matrix4fStack, time: Float, color: Vector4f){
 
         if(text.isNotBlank()){
-            if(buffer == null || lastText != text || lastFont != font || lastBold != isBold || lastItalic != isItalic){
-                buffer?.buffer?.destroy()
-                val awtFont = FontManager.getFont(font, 20f, isBold, isItalic)
-                buffer = FontMesh((awtFont as AWTFont).font, text)
-                lastText = text
-                lastFont = font
-                lastItalic = isItalic
-                lastBold = isBold
+
+            if(!fmKey.equals(font, isBold, isItalic, text)){
+                fmKey = FontMeshKey(font, isBold, isItalic, text)
             }
 
-            val buffer = buffer!!
-            GFX.draw3D(stack, buffer.buffer, GFX.whiteTexture, color, isBillboard[time], true)
+            val fontMesh = Cache.getEntry(fmKey){
+                val awtFont = FontManager.getFont(font, 20f, isBold, isItalic)
+                val buffer = FontMesh((awtFont as AWTFont).font, text)
+                buffer
+            } as FontMesh
 
+            GFX.draw3D(stack, fontMesh.buffer, GFX.whiteTexture, color, isBillboard[time], true)
+
+            // todo calculate (signed) distance fields for different kinds of shadows from the mesh
             // bad solution for blurred shadows
             /*color.w *= 0.001f
             val random = Random()

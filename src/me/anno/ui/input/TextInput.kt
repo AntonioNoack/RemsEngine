@@ -7,7 +7,7 @@ import me.anno.ui.input.components.PureTextInput
 import me.anno.ui.style.Style
 import java.io.File
 
-open class TextInput(title:String, style: Style): PanelContainer(
+open class TextInput(title: String, style: Style): PanelContainer(
     PureTextInput(
         style
     ), Padding(0), style) {

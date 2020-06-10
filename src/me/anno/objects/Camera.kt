@@ -5,6 +5,8 @@ import me.anno.gpu.GFX.toRadians
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticFloatBuffer
 import me.anno.objects.animation.AnimatedProperty
+import me.anno.studio.Studio.targetHeight
+import me.anno.studio.Studio.targetWidth
 import me.anno.ui.base.ButtonPanel
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.groups.PanelListY
@@ -21,8 +23,8 @@ class Camera(parent: Transform?): Transform(parent){
     // todo allow cameras to be merged
     // todo allow cameras to film camera (post processing) -> todo create a stack of cameras/scenes?
 
-    var nearZ = AnimatedProperty.float().set(0.001f)
-    var farZ = AnimatedProperty.float().set(1000f)
+    var nearZ = AnimatedProperty.floatPlus().set(0.001f)
+    var farZ = AnimatedProperty.floatPlus().set(1000f)
     var fovYDegrees = AnimatedProperty.float().set(90f)
 
     var onlyShowTarget = true
@@ -65,7 +67,7 @@ class Camera(parent: Transform?): Transform(parent){
 
         val scaleZ = 1f
         val scaleY = scaleZ * tan(toRadians(fovYDegrees[time])/2f)
-        val scaleX = scaleY * GFX.targetWidth / GFX.targetHeight
+        val scaleX = scaleY * targetWidth / targetHeight
         stack.scale(scaleX, scaleY, scaleZ)
         val shader = GFX.lineShader3D
 

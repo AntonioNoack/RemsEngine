@@ -3,6 +3,7 @@ package me.anno.fonts.mesh
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.buffer.StaticFloatBuffer
+import me.anno.objects.cache.CacheData
 import me.anno.ui.base.DefaultRenderingHints
 import me.anno.utils.*
 import org.joml.Vector2f
@@ -19,11 +20,11 @@ import java.lang.RuntimeException
 import javax.imageio.ImageIO
 import kotlin.math.*
 
-class FontMesh(val font: Font, val text: String, val debugPieces: Boolean = false){
+class FontMesh(val font: Font, val text: String, debugPieces: Boolean = false): CacheData {
 
-    val pt0 = Vector2f(4.8f, -4f)
-    val pt7 = Vector2f(3.609375f, -7.734375f)
-    val pt = pt0
+    private val pt0 = Vector2f(4.8f, -4f)
+    private val pt7 = Vector2f(3.609375f, -7.734375f)
+    private val pt = pt0
 
     val debugImageSize = 1000
 
@@ -405,6 +406,10 @@ class FontMesh(val font: Font, val text: String, val debugPieces: Boolean = fals
 
     fun assert(b: Boolean){
         if(!b) throw RuntimeException()
+    }
+
+    override fun destroy() {
+        buffer.destroy()
     }
 
 }

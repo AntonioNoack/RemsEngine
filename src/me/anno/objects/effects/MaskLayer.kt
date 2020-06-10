@@ -25,6 +25,7 @@ class MaskLayer(parent: Transform?): GFXTransform(parent){
     val mask = Framebuffer(1, 1, 1, false, Framebuffer.DepthBufferType.NONE)
     val masked = Framebuffer(1, 1, 1, true, Framebuffer.DepthBufferType.INTERNAL)
 
+    // limit to 01?
     var useMaskColor = AnimatedProperty.float()
 
     // not animated, because it's not meant to be transitioned, but instead to be a little helper

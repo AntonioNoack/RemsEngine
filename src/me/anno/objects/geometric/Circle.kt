@@ -15,7 +15,7 @@ import kotlin.math.min
 
 class Circle(parent: Transform?): GFXTransform(parent){
 
-    var innerRadius = AnimatedProperty.float()
+    var innerRadius = AnimatedProperty.float01()
     var startDegrees = AnimatedProperty.float()
     var endDegrees = AnimatedProperty.float().set(360f)
 

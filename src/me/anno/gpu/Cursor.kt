@@ -22,6 +22,9 @@ object Cursor {
     }
 
     fun Long.useCursor(){
+        // the cursor is only updating when moving the mouse???
+        // bug in the api maybe, how to fix that? -> we can't really fix that
+        // -> don't use it as an important feature
         if(this == lastCursor) return
         glfwSetCursor(GFX.window, this)
         lastCursor = this

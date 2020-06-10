@@ -7,7 +7,6 @@ import me.anno.input.Input.isShiftDown
 import me.anno.utils.clamp
 import me.anno.ui.base.TextPanel
 import me.anno.ui.style.Style
-import org.lwjgl.glfw.GLFW.*
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -75,10 +74,10 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
         val showBars = blinkVisible || wasJustChanged
         if(isInFocus && (showBars || cursor1 != cursor2)){
             ensureCursorBounds()
-            val padding = fontSize/4
-            val cursorX1 = if(cursor1 == 0) -1 else GFX.getTextSize(fontName, fontSize, isBold, isItalic, text.substring(0, cursor1)).first
+            val padding = textSize/4
+            val cursorX1 = if(cursor1 == 0) -1 else GFX.getTextSize(fontName, textSize, isBold, isItalic, text.substring(0, cursor1)).first
             if(cursor1 != cursor2){
-                val cursorX2 = if(cursor2 == 0) -1 else GFX.getTextSize(fontName, fontSize, isBold, isItalic, text.substring(0, cursor2)).first
+                val cursorX2 = if(cursor2 == 0) -1 else GFX.getTextSize(fontName, textSize, isBold, isItalic, text.substring(0, cursor2)).first
                 val min = min(cursorX1, cursorX2)
                 val max = max(cursorX1, cursorX2)
                 GFX.drawRect(x+min+drawingOffset, y+padding, max-min, h-2*padding, textColor and 0x3fffffff) // marker
@@ -182,8 +181,8 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
         return characters.subList(min(cursor1, cursor2), max(cursor1, cursor2)).joinToString(""){ String(Character.toChars(it)) }
     }
 
-    override fun onPaste(x: Float, y: Float, pasted: String) {
-        insert(pasted)
+    override fun onPaste(x: Float, y: Float, data: String, type: String) {
+        insert(data)
     }
 
     var changeListener: (text: String) -> Unit = {
