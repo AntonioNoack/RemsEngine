@@ -2,6 +2,7 @@ package me.anno.io.utils
 
 import me.anno.io.base.BaseWriter
 import me.anno.io.config.ConfigEntry
+import org.joml.Vector3f
 
 /**
  * can be used for config easily :D
@@ -91,6 +92,13 @@ open class StringMap(
         }
     }
 
+    operator fun get(key: String, default: Vector3f): Vector3f {
+        return when(val value = this[key]){
+            is Vector3f -> value
+            else -> default
+        }
+    }
+
     operator fun get(key: String, default: Boolean): Boolean {
         return when(val value = this[key]){
             is Int -> value != 0
@@ -107,6 +115,11 @@ open class StringMap(
             null -> default
             else -> value.toString().toBoolean()
         }
+    }
+
+    fun addAll(map: Map<String, Any>): StringMap {
+        putAll(map)
+        return this
     }
 
     override fun isDefaultValue() = false

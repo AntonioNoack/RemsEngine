@@ -3,14 +3,19 @@ package me.anno.objects
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.io.base.BaseWriter
+import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.cache.Cache
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.input.BooleanInput
 import me.anno.ui.input.FileInput
 import me.anno.ui.input.FloatInput
+import me.anno.ui.input.VectorInput
 import me.anno.ui.style.Style
+import me.anno.utils.print
+import me.anno.utils.toVec3f
 import me.anno.video.FFMPEGStream
 import me.anno.video.MissingFrameException
+import org.joml.Matrix4f
 import org.joml.Matrix4fStack
 import org.joml.Vector4f
 import java.io.File
@@ -31,6 +36,8 @@ class Video(var file: File, parent: Transform?): GFXTransform(parent){
 
     // todo add audio component...
 
+    var tiling = AnimatedProperty.tiling()
+
     var startTime = 0f
     var endTime = 100f
 
@@ -46,7 +53,55 @@ class Video(var file: File, parent: Transform?): GFXTransform(parent){
 
     // val duration get() = videoCache.duration
 
+    fun calculateSize(matrix: Matrix4f): Int? {
+
+        // todo we need to apply the full transform before we can do this check correctly
+        return 1
+
+        // one edge, knapp: (0.40317687 0.83566207 1.0016097) (0.38428885 -0.73683864 1.0015345) (-1.6112523 -1.5214 0.99689794) (-1.7798866 1.7449334 0.9965732)
+        val v00 = matrix.transform(Vector4f(-1f, -1f, 0f, 1f)).toVec3f()
+        val v01 = matrix.transform(Vector4f(-1f, +1f, 0f, 1f)).toVec3f()
+        val v10 = matrix.transform(Vector4f(+1f, -1f, 0f, 1f)).toVec3f()
+        val v11 = matrix.transform(Vector4f(+1f, +1f, 0f, 1f)).toVec3f()
+        val minZ = -1f
+        val maxZ = 1f
+        // is this check good enough?
+        if(v00.z < minZ && v01.z < minZ && v10.z < minZ && v11.z < minZ) return null
+        if(v00.z > maxZ && v01.z > maxZ && v10.z > maxZ && v11.z > maxZ) return null
+
+        // check the visibility
+        // todo a better check:
+        // visible if:
+        // - contained or
+        // - cuts one of the edges
+
+        val fullWidth = GFX.windowWidth
+        val fullHeight = GFX.windowHeight
+
+        val minX = min(min(v00.x, v01.x), min(v10.x, v11.x))
+        if(minX > 1f) return null
+
+        val maxX = max(max(v00.x, v01.x), max(v10.x, v11.x))
+        if(maxX < -1f) return null
+
+        val minY = min(min(v00.y, v01.y), min(v10.y, v11.y))
+        if(minY > 1f) return null
+
+        val maxY = max(max(v00.y, v01.y), max(v10.y, v11.y))
+        if(maxY < -1f) return null
+
+        // we should transform the values with one axis, by scaling the quad down to match the window (more return null cases; e.g. below left corner)
+        // although out of bounds values cannot be seen, they indicate required scale
+        val width = (maxX - minX) * fullWidth * 0.5f
+        val height = (maxY - minY) * fullHeight * 0.5f
+
+        return max(width, height).toInt()
+
+    }
+
     override fun onDraw(stack: Matrix4fStack, time: Float, color: Vector4f) {
+
+        val size = calculateSize(stack) ?: return
 
         if(lastFile != file){
             val file = file
@@ -97,7 +152,7 @@ class Video(var file: File, parent: Transform?): GFXTransform(parent){
 
                     val frame = Cache.getVideoFrame(file, frameIndex, frameCount, videoFPS, videoFrameTimeout, isLooping)
                     if(frame != null && frame.isLoaded){
-                        GFX.draw3D(stack, frame, color, isBillboard.getValueAt(time), nearestFiltering)
+                        GFX.draw3D(stack, frame, color, isBillboard.getValueAt(time), nearestFiltering, tiling[time])
                         wasDrawn = true
                     } else {
                         if(GFX.isFinalRendering){
@@ -116,7 +171,8 @@ class Video(var file: File, parent: Transform?): GFXTransform(parent){
         if(!wasDrawn){
             GFX.draw3D(stack, GFX.flat01, GFX.colorShowTexture, 16, 9,
                 Vector4f(0.5f, 0.5f, 0.5f, 1f).mul(color), isBillboard.getValueAt(time),
-                true)
+                true, tiling16x9
+            )
         }
 
     }
@@ -126,13 +182,16 @@ class Video(var file: File, parent: Transform?): GFXTransform(parent){
         list += FileInput("File Location", style)
             .setText(file.toString())
             .setChangeListener { text -> file = File(text) }
-            .setIsSelectedListener { GFX.selectedProperty = null }
+            .setIsSelectedListener { show(null) }
+        list += VectorInput(style, "Tiling", tiling[lastLocalTime], AnimatedProperty.Type.TILING)
+            .setChangeListener { x, y, z, w -> putValue(tiling, Vector4f(x,y,z,w)) }
+            .setIsSelectedListener { show(tiling) }
         list += FloatInput("Video Start", startTime, style)
             .setChangeListener { startTime = it }
             .setIsSelectedListener { GFX.selectedProperty = null }
         list += FloatInput("Video End", endTime, style)
             .setChangeListener { endTime = it }
-            .setIsSelectedListener { GFX.selectedProperty = null }
+            .setIsSelectedListener { show(null) }
         // todo a third mode, where the video is reversed after playing?
         // KISS principle? just allow modules to be created :)
         list += BooleanInput("Looping?", isLooping, style)
@@ -182,6 +241,8 @@ class Video(var file: File, parent: Transform?): GFXTransform(parent){
 
         val videoMetaTimeout = 100L
         val videoFrameTimeout = 500L
+
+        val tiling16x9 = Vector4f(8f, 4.5f, 0f, 0f)
 
         fun clearCache(){
             sourceFPSCache.clear()

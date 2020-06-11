@@ -209,7 +209,7 @@ class VectorInput(
                         setValue(Vector3f(vx * scale, vy * scale, vz * scale))
                     }
                 }
-                AnimatedProperty.Type.COLOR -> {// todo change the design
+                AnimatedProperty.Type.COLOR -> {
                     val scaleFactor = 1.10f
                     val scale = pow(scaleFactor, delta)
                     if(isControlDown){
@@ -226,9 +226,6 @@ class VectorInput(
                     }
                 }
             }
-            // todo show the keys for tutorials
-            // todo apply change to all coordinates?
-            // todo no, only to x and y... if 3d, otherwise all
             // setValue(lastValue * pow(1.01f, delta))
         }
     }

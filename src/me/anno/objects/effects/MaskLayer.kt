@@ -173,7 +173,7 @@ class MaskLayer(parent: Transform?): GFXTransform(parent){
     fun drawOnScreen(stack: Matrix4fStack, time: Float, color: Vector4f){
 
         val localTransform = if(isFullscreen){
-            Matrix4f()
+            Matrix4fStack()
         } else {
             stack
         }

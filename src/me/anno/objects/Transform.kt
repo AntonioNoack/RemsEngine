@@ -11,6 +11,7 @@ import me.anno.utils.clamp
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.blending.BlendMode
 import me.anno.objects.blending.blendModes
+import me.anno.objects.particles.ParticleSystem
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.input.*
 import me.anno.ui.style.Style
@@ -63,6 +64,8 @@ open class Transform(var parent: Transform? = null): Saveable(){
 
     var lastLocalTime = 0f
 
+    var weight = 1f
+
     fun putValue(list: AnimatedProperty<*>, value: Any){
         list.addKeyframe(if(list.isAnimated) lastLocalTime else 0f, value, 0.1f)
     }
@@ -111,7 +114,7 @@ open class Transform(var parent: Transform? = null): Saveable(){
         list += ColorInput(style, "Color", color[lastLocalTime], color)
             .setChangeListener { x, y, z, w -> putValue(color, Vector4f(max(0f, x), max(0f, y), max(0f, z), clamp(w, 0f, 1f))) }
             .setIsSelectedListener { show(color) }
-        list += FloatInput("Color Multiplier", colorMultiplier[lastLocalTime], style)
+        list += FloatInput("Color Multiplier", colorMultiplier, lastLocalTime, style)
             .setChangeListener { putValue(colorMultiplier, it) }
             .setIsSelectedListener { show(colorMultiplier) }
         list += FloatInput("Start Time", timeOffset, style)
@@ -127,6 +130,16 @@ open class Transform(var parent: Transform? = null): Saveable(){
             .setChangeListener { blendMode = BlendMode[it] }
             .setIsSelectedListener { GFX.selectedProperty = null }
 
+        if(parent?.acceptsWeight() == true){
+            list += FloatInput("Weight", weight, AnimatedProperty.Type.FLOAT_PLUS, style)
+                .setChangeListener {
+                    weight = it
+                    (parent as? ParticleSystem)?.apply {
+                        if(children.size > 1) clearCache()
+                    }
+                }
+                .setIsSelectedListener { show(null) }
+        }
         list += BooleanInput("Visible In Timeline?", isVisibleInTimeline, style)
             .setChangeListener { isVisibleInTimeline = it }
             .setIsSelectedListener { show(null) }
@@ -373,7 +386,8 @@ open class Transform(var parent: Transform? = null): Saveable(){
 
     override fun isDefaultValue() = false
 
-    fun clone() = TextReader.fromText(TextWriter.toText(this, false)).first() as Transform
+    fun clone() = TextWriter.toText(this, false).toTransform()
+    open fun acceptsWeight() = false
 
     companion object {
         // these values MUST NOT be changed
@@ -382,6 +396,7 @@ open class Transform(var parent: Transform? = null): Saveable(){
         val xAxis = Vector3f(1f,0f,0f)
         val yAxis = Vector3f(0f,1f,0f)
         val zAxis = Vector3f(0f, 0f, 1f)
+        fun String.toTransform() = TextReader.fromText(this).first() as Transform
     }
 
 

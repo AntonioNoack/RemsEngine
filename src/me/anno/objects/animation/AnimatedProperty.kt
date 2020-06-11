@@ -7,8 +7,6 @@ import org.joml.*
 import java.lang.RuntimeException
 import kotlin.math.abs
 
-// todo copying an element, and then serializing its parent says that the animated properties are equal :(
-
 class AnimatedProperty<V>(val type: Type, val minValue: V?, val maxValue: V?): Saveable(){
 
     constructor(type: Type): this(type, null, null)
@@ -18,30 +16,34 @@ class AnimatedProperty<V>(val type: Type, val minValue: V?, val maxValue: V?): S
         val defaultValue: Any,
         val components: Int,
         val unitScale: Float,
+        val hasLinear: Boolean,
+        val hasExponential: Boolean,
         val accepts: (Any?) -> Boolean){
-        FLOAT("float", 0f, 1, 1f, { it is Float }),
-        FLOAT_01("float01", 0f, 1, 1f, { it is Float }),
-        FLOAT_PLUS("float+", 0f, 1, 1f, { it is Float }),
-        POSITION("pos", Vector3f(), 3, 1f, { it is Vector3f }),
-        SCALE("scale", Vector3f(1f, 1f, 1f), 3, 1f, { it is Vector3f }),
-        ROT_YXZ("rotYXZ", Vector3f(), 3, 360f, { it is Vector3f }),
-        SKEW_2D("skew2D", Vector2f(), 2, 1f, { it is Vector2f }),
-        QUATERNION("quaternion", Quaternionf(), 4, 1f, { it is Quaternionf }),
-        COLOR("color", Vector4f(1f,1f,1f,1f), 4, 1f, { it is Vector4f });
+        FLOAT("float", 0f, 1, 1f, true, true, { it is Float }),
+        FLOAT_01("float01", 0f, 1, 1f, true, true, { it is Float }),
+        FLOAT_PLUS("float+", 0f, 1, 1f, false, true, { it is Float }),
+        POSITION("pos", Vector3f(), 3, 1f, true, true, { it is Vector3f }),
+        SCALE("scale", Vector3f(1f, 1f, 1f), 3, 1f, true, true, { it is Vector3f }),
+        ROT_YXZ("rotYXZ", Vector3f(), 3, 360f, true, true, { it is Vector3f }),
+        SKEW_2D("skew2D", Vector2f(), 2, 1f, true, true, { it is Vector2f }),
+        QUATERNION("quaternion", Quaternionf(), 4, 1f, true, true, { it is Quaternionf }),
+        COLOR("color", Vector4f(1f,1f,1f,1f), 4, 1f, true, true, { it is Vector4f }),
+        TILING("tiling", Vector4f(1f, 1f, 0f, 0f), 4, 1f, true, true, { it is Vector4f });
         init { types[code] = this }
     }
 
     companion object {
         val types = HashMap<String, Type>()
         fun float() = AnimatedProperty<Float>(Type.FLOAT)
-        fun floatPlus() = AnimatedProperty(Type.FLOAT, 0f, null)
-        fun float01() = AnimatedProperty(Type.FLOAT, 0f, 1f)
+        fun floatPlus() = AnimatedProperty(Type.FLOAT_PLUS, 0f, null)
+        fun float01() = AnimatedProperty(Type.FLOAT_01, 0f, 1f)
         fun pos() = AnimatedProperty<Vector3f>(Type.POSITION)
         fun rotYXZ() = AnimatedProperty<Vector3f>(Type.ROT_YXZ)
         fun scale() = AnimatedProperty<Vector3f>(Type.SCALE)
         fun color() = AnimatedProperty<Vector4f>(Type.COLOR)
         fun quat() = AnimatedProperty<Quaternionf>(Type.QUATERNION)
         fun skew() = AnimatedProperty<Vector2f>(Type.SKEW_2D)
+        fun tiling() = AnimatedProperty<Vector4f>(Type.TILING)
     }
 
     var isAnimated = false
@@ -143,7 +145,7 @@ class AnimatedProperty<V>(val type: Type, val minValue: V?, val maxValue: V?): S
             Type.POSITION,
             Type.ROT_YXZ,
             Type.SCALE -> (a as Vector3f).lerp(b as Vector3f, f, Vector3f())
-            Type.COLOR -> (a as Vector4f).lerp(b as Vector4f, f, Vector4f())
+            Type.COLOR, Type.TILING -> (a as Vector4f).lerp(b as Vector4f, f, Vector4f())
             Type.QUATERNION -> (a as Quaternionf).slerp(b as Quaternionf, f)
             else -> throw RuntimeException("don't know how to lerp $a and $b")
         } as V

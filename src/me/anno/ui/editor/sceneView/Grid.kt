@@ -27,8 +27,8 @@ object Grid {
     private val yAxisColor = parseColor(DefaultConfig["grid.axis.y.color", "#77ff77"]) ?: 0x77ff77
     private val zAxisColor = parseColor(DefaultConfig["grid.axis.z.color", "#7777ff"]) ?: 0x7777ff
 
-    private val gridBuffer = StaticFloatBuffer(listOf(Attribute("attr0", 2)), 201 * 8)
-    private val lineBuffer = StaticFloatBuffer(listOf(Attribute("attr0", 2)), 4)
+    private val gridBuffer = StaticFloatBuffer(listOf(Attribute("attr0", 2)), 201 * 4)
+    private val lineBuffer = StaticFloatBuffer(listOf(Attribute("attr0", 2)), 2)
 
     init {
 
@@ -51,9 +51,7 @@ object Grid {
         shader.use()
         stack.get(GFX.matrixBuffer)
         glUniformMatrix4fv(shader["transform"], false, GFX.matrixBuffer)
-        shader.v2("pos", -1f, -1f)
         shader.v2("billboardSize", 1f, 1f)
-        shader.v2("size", 2f, 2f)
         shader.v1("isBillboard", 0f)
         shader.v4("tint",
             color.shr(16).and(255) / 255f,
@@ -111,9 +109,7 @@ object Grid {
         shader.use()
         stack.get(GFX.matrixBuffer)
         glUniformMatrix4fv(shader["transform"], false, GFX.matrixBuffer)
-        shader.v2("pos", -1f, -1f)
         shader.v2("billboardSize", 1f, 1f)
-        shader.v2("size", 2f, 2f)
         shader.v1("isBillboard", 0f)
         shader.v4("tint", 1f, 1f, 1f, alpha)
         GFX.whiteTexture.bind(0, true)

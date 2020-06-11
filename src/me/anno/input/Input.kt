@@ -17,6 +17,7 @@ import org.lwjgl.glfw.GLFWDropCallback
 import java.awt.Toolkit
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.StringSelection
+import java.awt.datatransfer.UnsupportedFlavorException
 import java.io.File
 import java.util.HashSet
 import kotlin.math.abs
@@ -32,9 +33,18 @@ object Input {
     }
 
     fun paste() {
-        val data =
-            Toolkit.getDefaultToolkit().systemClipboard.getData(DataFlavor.stringFlavor) as? String
-        if (data != null) inFocus?.onPaste(mouseX, mouseY, data, "")
+        val clipboard = Toolkit.getDefaultToolkit().systemClipboard
+        try {
+            val data = clipboard.getData(DataFlavor.stringFlavor) as? String
+            if (data != null) inFocus?.onPaste(mouseX, mouseY, data, "")
+            return
+        } catch (e: UnsupportedFlavorException){ }
+        try {
+            val data = clipboard.getData(DataFlavor.javaFileListFlavor) as? List<File>
+            if (data != null) inFocus?.onPasteFiles(mouseX, mouseY, data)
+            return
+        } catch (e: UnsupportedFlavorException){ }
+        println("Unsupported Data Flavor")
     }
 
     fun save() {

@@ -4,7 +4,7 @@ import org.joml.Vector3f
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
-open class StaticFloatBuffer(attributes: List<Attribute>, val floatCount: Int): GPUFloatBuffer(attributes){
+open class StaticFloatBuffer(attributes: List<Attribute>, val vertexCount: Int): GPUFloatBuffer(attributes){
 
     init {
         createNioBuffer()
@@ -12,6 +12,14 @@ open class StaticFloatBuffer(attributes: List<Attribute>, val floatCount: Int): 
 
     fun put(v: Vector3f){
         put(v.x, v.y, v.z)
+    }
+
+    fun put(x: Float, y: Float, z: Float, w: Float, a: Float){
+        put(x)
+        put(y)
+        put(z)
+        put(w)
+        put(a)
     }
 
     fun put(x: Float, y: Float, z: Float, w: Float){
@@ -38,6 +46,7 @@ open class StaticFloatBuffer(attributes: List<Attribute>, val floatCount: Int): 
     }
 
     final override fun createNioBuffer() {
+        val floatCount = vertexCount * attributes.sumBy { it.components }
         val nio = ByteBuffer.allocateDirect(floatCount * 4).order(ByteOrder.nativeOrder())
         nioBuffer = nio
         floatBuffer = nio.asFloatBuffer()

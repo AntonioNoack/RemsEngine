@@ -65,6 +65,4 @@ class VideoBackgroundTask(val video: VideoCreator){
 
     }
 
-    // todo fix flickering while rendering -> todo caused by render state? clear it...
-
 }

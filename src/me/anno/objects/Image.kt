@@ -6,12 +6,14 @@ import me.anno.gpu.GFX.whiteTexture
 import me.anno.io.base.BaseWriter
 import me.anno.io.xml.XMLElement
 import me.anno.io.xml.XMLReader
+import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.cache.Cache
 import me.anno.objects.cache.SFBufferData
 import me.anno.objects.meshes.svg.SVGMesh
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.input.BooleanInput
 import me.anno.ui.input.TextInput
+import me.anno.ui.input.VectorInput
 import me.anno.ui.style.Style
 import org.joml.Matrix4fStack
 import org.joml.Vector4f
@@ -22,6 +24,7 @@ import java.io.File
 class Image(var file: File, parent: Transform?): GFXTransform(parent){
 
     var nearestFiltering = DefaultConfig["default.image.nearest", true]
+    var tiling = AnimatedProperty.tiling()
 
     override fun onDraw(stack: Matrix4fStack, time: Float, color: Vector4f) {
         val name = file.name
@@ -35,15 +38,17 @@ class Image(var file: File, parent: Transform?): GFXTransform(parent){
                 GFX.draw3DSVG(stack, bufferData.buffer, whiteTexture, color, isBillboard[time], true)
             }
             name.endsWith("webp", true) -> {
+                val tiling = tiling[time]
                 val texture = Cache.getVideoFrame(file, 0, 0, 1f, imageTimeout)
                 texture?.apply {
-                    GFX.draw3D(stack, texture, color, isBillboard[time], nearestFiltering)
+                    GFX.draw3D(stack, texture, color, isBillboard[time], nearestFiltering, tiling)
                 }
             }
             else -> {
+                val tiling = tiling[time]
                 val texture = Cache.getImage(file, imageTimeout)
                 texture?.apply {
-                    GFX.draw3D(stack, texture, color, isBillboard[time], nearestFiltering)
+                    GFX.draw3D(stack, texture, color, isBillboard[time], nearestFiltering, tiling)
                 }
             }
         }
@@ -54,6 +59,9 @@ class Image(var file: File, parent: Transform?): GFXTransform(parent){
         list += TextInput("File Location", style, file.toString())
             .setChangeListener { file = File(it) }
             .setIsSelectedListener { show(null) }
+        list += VectorInput(style, "Tiling", tiling[lastLocalTime], AnimatedProperty.Type.TILING)
+            .setChangeListener { x, y, z, w -> putValue(tiling, Vector4f(x,y,z,w)) }
+            .setIsSelectedListener { show(tiling) }
         list += BooleanInput("Nearest Filtering", nearestFiltering, style)
             .setChangeListener { nearestFiltering = it }
             .setIsSelectedListener { show(null) }

@@ -13,7 +13,7 @@ import java.nio.ByteOrder
 import kotlin.concurrent.thread
 import kotlin.math.min
 
-class Texture2D(val w: Int, val h: Int){
+class Texture2D(var w: Int, var h: Int){
 
     constructor(img: BufferedImage): this(img.width, img.height){
         create(img, true)
@@ -56,6 +56,8 @@ class Texture2D(val w: Int, val h: Int){
     }
 
     fun create(img: BufferedImage, sync: Boolean){
+        w = img.width
+        h = img.height
         val intData = img.getRGB(0, 0, w, h, null, 0, img.width)
         if(ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN){
             for(i in intData.indices){// argb -> abgr
@@ -118,7 +120,8 @@ class Texture2D(val w: Int, val h: Int){
         val floatBuffer = byteBuffer.asFloatBuffer()
             .put(data)
             .position(0)
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_FLOAT, floatBuffer)
+        // rgba32f as internal format is extremely important... otherwise the value is cropped
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, w, h, 0, GL_RGBA, GL_FLOAT, floatBuffer)
         isCreated = true
         filtering(isFilteredNearest)
         GFX.check()

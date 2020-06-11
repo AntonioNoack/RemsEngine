@@ -85,7 +85,7 @@ class FFMPEGStream(val file: File?, val frame0: Int, arguments: List<String>, wa
 
     private fun run(arguments: List<String>, interpretMeta: Boolean): Process {
         // val time0 = System.nanoTime()
-        println(arguments)
+        // println(arguments)
         val ffmpeg = File(DefaultConfig["ffmpegPath", "lib/ffmpeg/ffmpeg.exe"])
         if(!ffmpeg.exists()) throw RuntimeException("FFmpeg not found! (path: $ffmpeg), can't use videos, nor webp!")
         val args = ArrayList<String>(arguments.size+2)
@@ -127,6 +127,10 @@ class FFMPEGStream(val file: File?, val frame0: Int, arguments: List<String>, wa
 
     var w = 0
     var h = 0
+
+    var srcW = 0
+    var srcH = 0
+
     var codec = ""
 
     val frames = ArrayList<Frame>()

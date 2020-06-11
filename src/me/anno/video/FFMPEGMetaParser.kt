@@ -138,7 +138,7 @@ class FFMPEGMetaParser(): StringMap(){
             2 -> {
                 if(level0Type == "Output" && data[0] == "Stream"){
                     val videoTypeIndex = data.indexOf("rawvideo")
-                    println(data)
+                    if(debug) println(data)
                     if(videoTypeIndex > -1 && videoTypeIndex+2 < data.size && data[videoTypeIndex+1] == "("){
                         stream.codec = data[videoTypeIndex+2]
                     }
@@ -176,6 +176,22 @@ class FFMPEGMetaParser(): StringMap(){
                         }
                     } catch (e: Exception){
                         e.printStackTrace()
+                    }
+                    removeBrackets(data)
+                    val wh = data.mapNotNull {
+                        try {
+                            val widthHeight = it.split('x').map { dim -> dim.toIntOrNull() }
+                            val width = widthHeight[0] as Int
+                            val height = widthHeight[1] as Int
+                            width to height
+                        } catch (e: Exception){
+                            null
+                        }
+                    }.firstOrNull()
+                    if(wh != null){
+                        // we got our info <3
+                        stream.srcW = wh.first
+                        stream.srcH = wh.second
                     }
                 }
             }

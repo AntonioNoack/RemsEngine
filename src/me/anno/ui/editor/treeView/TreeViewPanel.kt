@@ -1,14 +1,18 @@
 package me.anno.ui.editor.treeView
 
+import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
 import me.anno.input.Input
 import me.anno.io.text.TextReader
+import me.anno.io.utils.StringMap
 import me.anno.objects.*
+import me.anno.objects.Transform.Companion.toTransform
 import me.anno.objects.effects.MaskLayer
 import me.anno.objects.geometric.Circle
 import me.anno.objects.geometric.Polygon
+import me.anno.objects.particles.ParticleSystem
 import me.anno.studio.Studio
 import me.anno.ui.base.TextPanel
 import me.anno.ui.dragging.Draggable
@@ -55,7 +59,20 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style): TextPanel(""
                     }
                 }
 
-                GFX.openMenu(
+                val options = DefaultConfig["createNewInstancesList"] as? StringMap
+                if(options != null){
+                    GFX.openMenu(
+                        Input.mouseX, Input.mouseY, "Add Child",
+                        options.entries.map { (key, value) ->
+                            key to add {
+                                val newT = if(value is Transform) value.clone() else value.toString().toTransform()
+                                it.addChild(newT)
+                                newT
+                            }
+                        }
+                    )
+                } else println("Reset the config, to enable this menu!")
+                /*GFX.openMenu(
                     Input.mouseX, Input.mouseY, "Add Child",
                     listOf(// todo make these options customizable :)
                         "Folder" to add { Transform(it) },
@@ -66,6 +83,7 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style): TextPanel(""
                         "Circle" to add { Circle(it) },
                         "Polygon" to add { Polygon(it) },
                         "Camera" to add { Camera(it) },
+                        "Particle System" to add { ParticleSystem(it) },
                         "Mask" to add {
                             val layer = MaskLayer(it)
                             val mask = Transform(layer)
@@ -86,7 +104,7 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style): TextPanel(""
                             layer
                         }
                     )
-                )
+                )*/
             }
         }
     }

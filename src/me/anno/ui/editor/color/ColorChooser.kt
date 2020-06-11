@@ -65,7 +65,6 @@ class ColorChooser(style: Style, withAlpha: Boolean): PanelListY(style){
                 setHSL(newHSL.x, newHSL.y, newHSL.z, opacity, newColorSpace)
             }
         }
-        .setTooltip("Ring/Box")
 
     val styleInput = EnumInput("Style", false, visualisation.displayName, ColorVisualisation.values().map { it.displayName }, style)
         .setChangeListener {

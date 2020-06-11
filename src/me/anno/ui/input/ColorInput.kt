@@ -14,7 +14,7 @@ import me.anno.utils.pow
 import org.joml.Vector4f
 import kotlin.math.max
 
-// todo implement a filmic shader?
+// todo implement a filmic shader? #tone mapping
 
 class ColorInput(style: Style, title: String,
                  oldValue: Vector4f,

@@ -99,7 +99,7 @@ class Camera(parent: Transform?): Transform(parent){
     }
 
     companion object {
-        val cameraModel = StaticFloatBuffer(listOf(Attribute("attr0", 3)), 2 * 3 * 8)
+        val cameraModel = StaticFloatBuffer(listOf(Attribute("attr0", 3)), 2 * 8)
         init {
 
             // points

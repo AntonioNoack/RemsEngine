@@ -4,7 +4,7 @@ import org.joml.Vector2f
 
 class SimpleBuffer(val vertices: Array<Vector2f>, name: String): StaticFloatBuffer(listOf(
     Attribute(name, 2)
-), vertices.size * 2){
+), vertices.size){
 
     init {
         vertices.forEach {

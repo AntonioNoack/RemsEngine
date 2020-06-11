@@ -11,20 +11,19 @@ import java.lang.RuntimeException
 
 class I420Frame(iw: Int, ih: Int): Frame(iw,ih){
 
-    init {
-        // this.w -= 1
-        // this makes no sense
-        // this.w -= 4
-    }
+    // todo corrected uv coordinates for odd width/height
 
-    val y = Texture2D(w,h)
-    val u = Texture2D(w/2,h/2)
-    val v = Texture2D(w/2,h/2)
-    var loadingCounter = 0
+    // this is correct, confirmed by example
+    val w2 = (w+1)/2
+    val h2 = (h+1)/2
+
+    val y = Texture2D(w, h)
+    val u = Texture2D(w2, h2)
+    val v = Texture2D(w2, h2)
 
     fun load(input: InputStream){
-        val s0 = w*h
-        val s1 = (w/2)*(h/2)
+        val s0 = w * h
+        val s1 = w2 * h2
         val yData = input.readNBytes(s0)
         if(yData.isEmpty()) throw LastFrame()
         if(yData.size < s0) throw RuntimeException("not enough data, only ${yData.size} of $s0")

@@ -8,6 +8,7 @@ import me.anno.objects.animation.Keyframe
 import me.anno.objects.effects.MaskLayer
 import me.anno.objects.geometric.Circle
 import me.anno.objects.geometric.Polygon
+import me.anno.objects.particles.ParticleSystem
 import java.io.File
 import java.lang.RuntimeException
 
@@ -34,6 +35,8 @@ abstract class BaseReader {
             "AnimatedProperty<quaternion>" -> AnimatedProperty.quat()
             "Keyframe" -> Keyframe<Any>(0f, 0f)
             "MaskLayer" -> MaskLayer(null)
+            "ParticleSystem" -> ParticleSystem(null)
+            "Cubemap" -> Cubemap(File(""), null)
             "Camera" -> Camera(null)
             else -> {
                 ISaveable.objectTypeRegistry[clazz]?.invoke() ?: throw RuntimeException("Unknown class $clazz")

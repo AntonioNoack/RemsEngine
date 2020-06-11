@@ -9,6 +9,7 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.size.WindowSize
 import me.anno.gpu.texture.Texture2D
 import me.anno.input.Input
+import me.anno.input.Input.isAltDown
 import me.anno.input.Input.isShiftDown
 import me.anno.objects.Camera
 import me.anno.objects.Transform
@@ -116,6 +117,8 @@ object GFX: GFXBase1() {
     lateinit var shader3DBGRA: Shader
     lateinit var shader3DCircle: Shader
     lateinit var shader3DSVG: Shader
+    lateinit var shader3DXYZUV: Shader
+    lateinit var shader3DSpherical: Shader
     lateinit var lineShader3D: Shader
     lateinit var shader3DMasked: Shader
 
@@ -289,23 +292,27 @@ object GFX: GFXBase1() {
 
     // todo generate text as mesh?
 
-    fun shader3DUniforms(shader: Shader, stack: Matrix4f, w: Int, h: Int, color: Vector4f, isBillboard: Float){
+    fun shader3DUniforms(shader: Shader, stack: Matrix4fStack, w: Int, h: Int, color: Vector4f, isBillboard: Float, tiling: Vector4f?){
         check()
+
+        stack.pushMatrix()
         shader.use()
-        stack.get(matrixBuffer)
-        GL20.glUniformMatrix4fv(shader["transform"], false, matrixBuffer)
+
         val avgSize = if(w * targetHeight > h * targetWidth) w.toFloat() * targetHeight / targetWidth  else h.toFloat()
         // val avgSize = sqrt(w * h.toFloat())
         val sx = w / avgSize
         val sy = h / avgSize
-        val avgSize2 = sqrt(windowWidth * windowHeight.toFloat())
-        val sx2 = windowWidth / avgSize2
-        val sy2 = windowHeight / avgSize2
-        shader.v2("pos", -sx, sy)
+        stack.scale(sx, -sy, 1f)
+
+        stack.get(matrixBuffer)
+        GL20.glUniformMatrix4fv(shader["transform"], false, matrixBuffer)
+        stack.popMatrix()
+
         val scale = stack.transformDirection(Vector3f(1f, 1f, 1f)).length()
-        shader.v2("billboardSize", sy2 * scale, sx2 * scale)
-        shader.v2("size", 2f * sx, -2f * sy)
+        shader.v2("billboardSize", scale * windowHeight/windowWidth * w/h, -scale)
         shader.v4("tint", color.x, color.y, color.z, color.w)
+        if(tiling != null) shader.v4("tiling", tiling)
+        else shader.v4("tiling", 1f, 1f, 0f, 0f)
         shader.v1("isBillboard", isBillboard)
     }
 
@@ -321,9 +328,9 @@ object GFX: GFXBase1() {
         else f
     }
 
-    fun draw3DCircle(stack: Matrix4f, innerRadius: Float, startDegrees: Float, endDegrees: Float, color: Vector4f, isBillboard: Float){
+    fun draw3DCircle(stack: Matrix4fStack, innerRadius: Float, startDegrees: Float, endDegrees: Float, color: Vector4f, isBillboard: Float){
         val shader = shader3DCircle
-        shader3DUniforms(shader, stack, 1, 1, color, isBillboard)
+        shader3DUniforms(shader, stack, 1, 1, color, isBillboard, null)
         val angle1 = toRadians(positiveFract(startDegrees+180f, 360f)-180f)
         val angle2 = toRadians(positiveFract(endDegrees+180f, 360f)-180f)
         shader.v3("circleParams", innerRadius * innerRadius, angle1, angle2)
@@ -331,11 +338,11 @@ object GFX: GFXBase1() {
         check()
     }
 
-    fun draw3DMasked(stack: Matrix4f, texture: Texture2D, mask: Texture2D, color: Vector4f,
+    fun draw3DMasked(stack: Matrix4fStack, texture: Texture2D, mask: Texture2D, color: Vector4f,
                      isBillboard: Float, nearestFiltering: Boolean, useMaskColor: Float, offsetColor: Vector4f,
                      isInverted: Float){
         val shader = shader3DMasked
-        shader3DUniforms(shader, stack, 1, 1, color, isBillboard)
+        shader3DUniforms(shader, stack, 1, 1, color, isBillboard, null)
         shader.v4("offsetColor", offsetColor.x, offsetColor.y, offsetColor.z, offsetColor.w)
         shader.v1("useMaskColor", useMaskColor)
         shader.v1("invertMask", isInverted)
@@ -345,45 +352,68 @@ object GFX: GFXBase1() {
         check()
     }
 
-    fun draw3D(stack: Matrix4f, buffer: StaticFloatBuffer, texture: Texture2D, w: Int, h:Int, color: Vector4f, isBillboard: Float, nearestFiltering: Boolean){
+    fun draw3D(stack: Matrix4fStack, buffer: StaticFloatBuffer, texture: Texture2D, w: Int, h:Int, color: Vector4f,
+               isBillboard: Float, nearestFiltering: Boolean, tiling: Vector4f?){
         val shader = shader3D
-        shader3DUniforms(shader, stack, w, h, color, isBillboard)
+        shader3DUniforms(shader, stack, w, h, color, isBillboard, tiling)
         texture.bind(0, nearestFiltering)
         buffer.draw(shader)
         check()
     }
 
-    fun draw3D(stack: Matrix4f, buffer: StaticFloatBuffer, texture: Texture2D, color: Vector4f, isBillboard: Float, nearestFiltering: Boolean){
-        draw3D(stack, buffer, texture, texture.w, texture.h, color, isBillboard, nearestFiltering)
+    fun draw3D(stack: Matrix4fStack, buffer: StaticFloatBuffer, texture: Texture2D, color: Vector4f,
+               isBillboard: Float, nearestFiltering: Boolean, tiling: Vector4f?){
+        draw3D(stack, buffer, texture, texture.w, texture.h, color, isBillboard, nearestFiltering, tiling)
     }
 
-    fun draw3DPolygon(stack: Matrix4f, buffer: StaticFloatBuffer,
+    fun draw3DPolygon(stack: Matrix4fStack, buffer: StaticFloatBuffer,
                       texture: Texture2D, color: Vector4f,
                       inset: Float,
                       isBillboard: Float, nearestFiltering: Boolean){
         val shader = shader3DPolygon
-        shader3DUniforms(shader, stack, texture.w, texture.h, color, isBillboard)
+        shader3DUniforms(shader, stack, 1, 1, color, isBillboard, null)
         shader.v1("inset", inset)
         texture.bind(0, nearestFiltering)
         buffer.draw(shader)
         check()
     }
 
-    fun draw3D(stack: Matrix4f, texture: Texture2D, color: Vector4f, isBillboard: Float, nearestFiltering: Boolean){
-        return draw3D(stack, flat01, texture, color, isBillboard, nearestFiltering)
+    fun draw3D(stack: Matrix4fStack, texture: Texture2D, color: Vector4f,
+               isBillboard: Float, nearestFiltering: Boolean, tiling: Vector4f?){
+        return draw3D(stack, flat01, texture, color, isBillboard, nearestFiltering, tiling)
     }
 
-    fun draw3D(stack: Matrix4f, texture: Frame, color: Vector4f, isBillboard: Float, nearestFiltering: Boolean){
+    fun draw3D(stack: Matrix4fStack, texture: Frame, color: Vector4f,
+               isBillboard: Float, nearestFiltering: Boolean, tiling: Vector4f?){
         val shader = texture.get3DShader()
-        shader3DUniforms(shader, stack, texture.w, texture.h, color, isBillboard)
+        shader3DUniforms(shader, stack, texture.w, texture.h, color, isBillboard, tiling)
         texture.bind(0, nearestFiltering)
         flat01.draw(shader)
         check()
     }
 
-    fun draw3DSVG(stack: Matrix4f, buffer: StaticFloatBuffer, texture: Texture2D, color: Vector4f, isBillboard: Float, nearestFiltering: Boolean){
+    fun drawXYZUV(stack: Matrix4fStack, buffer: StaticFloatBuffer, texture: Texture2D, color: Vector4f,
+                  isBillboard: Float, nearestFiltering: Boolean, mode: Int = GL11.GL_TRIANGLES){
+        val shader = shader3DXYZUV
+        shader3DUniforms(shader, stack, 1,1 , color, isBillboard, null)
+        texture.bind(0, nearestFiltering)
+        buffer.draw(shader, mode)
+        check()
+    }
+
+    fun drawSpherical(stack: Matrix4fStack, buffer: StaticFloatBuffer, texture: Texture2D, color: Vector4f,
+                  isBillboard: Float, nearestFiltering: Boolean, mode: Int = GL11.GL_TRIANGLES){
+        val shader = shader3DSpherical
+        shader3DUniforms(shader, stack, 1,1 , color, isBillboard, null)
+        texture.bind(0, nearestFiltering)
+        buffer.draw(shader, mode)
+        check()
+    }
+
+    fun draw3DSVG(stack: Matrix4fStack, buffer: StaticFloatBuffer, texture: Texture2D, color: Vector4f,
+                  isBillboard: Float, nearestFiltering: Boolean){
         val shader = shader3DSVG
-        shader3DUniforms(shader, stack, 1,1 , color, isBillboard)
+        shader3DUniforms(shader, stack, 1,1 , color, isBillboard, null)
         texture.bind(0, nearestFiltering)
         buffer.draw(shader)
         check()
@@ -478,7 +508,7 @@ object GFX: GFXBase1() {
                 "   if(color.a <= 0.0) discard;\n"
 
         val v3DBase = "" +
-                "u2 pos, size, billboardSize;\n" +
+                "u2 billboardSize;\n" +
                 "uniform mat4 transform;\n" +
                 "uniform float isBillboard;\n" +
                 "" +
@@ -493,22 +523,26 @@ object GFX: GFXBase1() {
                 "   return transform * vec4(betterUV, 0.0, 1.0);\n" +
                 "}\n"
 
+        val uv3D = "" +
+                "" +
+                "   vec2 betterUV = attr0*2.-1.;\n" +
+                "   uv = (attr0-0.5) * tiling.xy + 0.5 + tiling.zw;\n"
 
         val v3D = v3DBase +
                 "a2 attr0;\n" +
+                "u4 tiling;\n" +
                 "void main(){\n" +
-                "   vec2 betterUV = (pos + attr0 * size);\n" +
+                uv3D +
                 "   vec4 billboard = billboardTransform(betterUV, 0.0);\n" +
                 "   vec4 in3D = transform3D(betterUV);\n" +
                 "   gl_Position = mix(in3D, billboard, isBillboard);\n" +
                 positionPostProcessing +
-                "   uv = attr0;\n" +
                 "}"
 
         val v3DMasked = v3DBase +
                 "a2 attr0;\n" +
                 "void main(){\n" +
-                "   vec2 betterUV = (pos + attr0 * size);\n" +
+                "   vec2 betterUV = attr0*2.-1.;\n" +
                 "   vec4 billboard = billboardTransform(betterUV, 0.0);\n" +
                 "   vec4 in3D = transform3D(betterUV);\n" +
                 "   gl_Position = mix(in3D, billboard, isBillboard);\n" +
@@ -517,24 +551,62 @@ object GFX: GFXBase1() {
                 "}"
 
         val v3DPolygon = v3DBase +
-                "a2 attr0;\n" +
+                "a3 attr0;\n" +
                 "in vec2 attr1;\n" +
                 "uniform float inset;\n" +
                 "void main(){\n" +
-                "   vec2 betterUV = (pos + attr0 * size);\n" +
+                "   vec2 betterUV = attr0.xy*2.-1.;\n" +
                 "   betterUV *= mix(1.0, attr1.r, inset);\n" +
-                "   vec4 billboard = billboardTransform(betterUV, 0.0);\n" +
-                "   vec4 in3D = transform3D(betterUV);\n" +
+                "   vec4 billboard = billboardTransform(betterUV, attr0.z);\n" +
+                "   vec4 in3D = transform * vec4(betterUV, attr0.z, 1.0);\n" +
                 "   gl_Position = mix(in3D, billboard, isBillboard);\n" +
                 positionPostProcessing +
                 "   uv = attr1.yx;\n" +
+                "}"
+
+        val v3DXYZUV = v3DBase +
+                "a3 attr0;\n" +
+                "a2 attr1;\n" +
+                "void main(){\n" +
+                "   vec4 billboard = billboardTransform(attr0.xy, attr0.z);\n" +
+                "   vec4 in3D = transform * vec4(attr0, 1.0);\n" +
+                "   gl_Position = mix(in3D, billboard, isBillboard);\n" +
+                positionPostProcessing +
+                "   uv = attr1;\n" +
+                "}"
+
+
+        val v3DSpherical = v3DBase +
+                "a3 attr0;\n" +
+                "a2 attr1;\n" +
+                "void main(){\n" +
+                "   vec4 billboard = billboardTransform(attr0.xy, attr0.z);\n" +
+                "   vec4 in3D = transform * vec4(attr0, 1.0);\n" +
+                "   gl_Position = mix(in3D, billboard, isBillboard);\n" +
+                positionPostProcessing +
+                "   uvw = attr0;\n" +
+                "}"
+
+        val y3DSpherical = "varying vec3 uvw;\n"
+
+        val f3DSpherical = "" +
+                "uniform vec4 tint;\n" +
+                "precision highp float;\n" +
+                "uniform sampler2D tex;\n" +
+                "void main(){\n" +
+                "   float u = atan(uvw.z, uvw.x)*${0.5/PI}+0.5;\n " +
+                "   float v = atan(uvw.y, length(uvw.xz))*${1/PI}+0.5;\n" +
+                "   vec4 color = texture(tex, vec2(u,v));\n" +
+                colorProcessing +
+                "   gl_FragColor = tint * color;\n" +
+                colorPostProcessing +
                 "}"
 
         val v3DSVG = v3DBase +
                 "a3 attr0;\n" +
                 "a4 attr1;\n" +
                 "void main(){\n" +
-                "   vec2 betterUV = (pos + attr0.xy * size);\n" +
+                "   vec2 betterUV = attr0.xy*2.-1.;\n" +
                 "   vec4 billboard = billboardTransform(betterUV, attr0.z);\n" +
                 "   vec4 in3D = transform * vec4(betterUV, attr0.z, 1.0);\n" +
                 "   gl_Position = mix(in3D, billboard, isBillboard);\n" +
@@ -627,6 +699,8 @@ object GFX: GFXBase1() {
         shader3DMasked = createCustomShader(v3DMasked, y3DMasked, f3DMasked, listOf("tex", "mask"))
 
         shader3DSVG = createCustomShader(v3DSVG, y3DSVG, f3DSVG, listOf("tex"))
+        shader3DXYZUV = createCustomShader(v3DXYZUV, y3D, f3D, listOf("tex"))
+        shader3DSpherical = createCustomShader(v3DSpherical, y3DSpherical, f3DSpherical, listOf("tex"))
 
         shader3DYUV = createCustomShader(v3D, y3D, f3DYUV, listOf("texY", "texU", "texV"))
 
@@ -735,10 +809,12 @@ object GFX: GFXBase1() {
 
         Framebuffer.bindNull()
         glViewport(0, 0, width, height)
+        glBindFramebuffer(GL_FRAMEBUFFER, 0)
+        glBindTexture(GL_TEXTURE_2D, 0)
 
         check()
 
-        glDisable(GL11.GL_DEPTH_TEST)
+        glDisable(GL_DEPTH_TEST)
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
         glEnable(GL_BLEND)
         BlendMode.DEFAULT.apply()
@@ -779,7 +855,6 @@ object GFX: GFXBase1() {
 
     }
 
-    // todo scroll to specific element to help the user
     fun openMenu(x: Int, y: Int, title: String, options: List<Pair<String, (button: Int, isLong: Boolean) -> Boolean>>){
         val style = DefaultConfig.style.getChild("menu")
         val list = PanelListY(style)

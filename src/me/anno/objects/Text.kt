@@ -51,7 +51,7 @@ class Text(var text: String, parent: Transform?): GFXTransform(parent){
                 buffer
             } as FontMesh
 
-            GFX.draw3D(stack, fontMesh.buffer, GFX.whiteTexture, color, isBillboard[time], true)
+            GFX.draw3D(stack, fontMesh.buffer, GFX.whiteTexture, color, isBillboard[time], true, null)
 
             // todo calculate (signed) distance fields for different kinds of shadows from the mesh
             // bad solution for blurred shadows

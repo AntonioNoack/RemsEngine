@@ -82,7 +82,7 @@ class Shader(vertex: String, varying: String, fragment: String,
         val loc = glGetUniformLocation(program, name)
         check()
         uniformCache[name] = loc
-        if(loc < 0) println("uniform location $name not found!")
+        if(loc < 0) println("[INFO] Uniform Location $name not found!")
         return loc
     }
 

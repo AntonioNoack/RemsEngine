@@ -153,33 +153,43 @@ class TreeView(style: Style):
 
     companion object {
 
-        fun addChildFromFile(parent: Transform, file: File){
-            val ending = file.name.split('.').last()
-            val name = file.name
-            val type0 = DefaultConfig["import.mapping.$ending"]
-            val type1 = DefaultConfig["import.mapping.${ending.toLowerCase()}"]
-            val type2 = DefaultConfig["import.mapping.*"] ?: "Text"
-            when((type0 ?: type1 ?: type2).toString()){
-                "Image" -> Image(file, parent).name = name
-                "Video" -> Video(file, parent).name = name
-                "Text" -> {
-                    try {
-                        var all = file.readText()
-                        if(all.length > 500) all = all.substring(0, 500)
-                        Text(all, parent).name = name
-                    } catch (e: Exception){
-                        e.printStackTrace()
-                        return
+        fun addChildFromFile(parent: Transform, file: File, depth: Int = 0){
+            if(file.isDirectory){
+                val directory = Transform(parent)
+                directory.name = file.name
+                if(depth < DefaultConfig["import.depth.max", 3]){
+                    file.listFiles()?.filter { !it.name.startsWith(".") }?.forEach {
+                        addChildFromFile(directory, it, depth+1)
                     }
                 }
-                "Markdown" -> {
-                    // todo parse, and create constructs?
-                    println("Markdown is not yet implemented!")
+            } else {
+                val ending = file.name.split('.').last()
+                val name = file.name
+                val type0 = DefaultConfig["import.mapping.$ending"]
+                val type1 = DefaultConfig["import.mapping.${ending.toLowerCase()}"]
+                val type2 = DefaultConfig["import.mapping.*"] ?: "Text"
+                when((type0 ?: type1 ?: type2).toString()){
+                    "Image" -> Image(file, parent).name = name
+                    "Cubemap" -> Cubemap(file, parent).name = name
+                    "Video" -> Video(file, parent).name = name
+                    "Text" -> {
+                        try {
+                            var all = file.readText()
+                            if(all.length > 500) all = all.substring(0, 500)
+                            Text(all, parent).name = name
+                        } catch (e: Exception){
+                            e.printStackTrace()
+                            return
+                        }
+                    }
+                    "Markdown" -> {
+                        // todo parse, and create constructs?
+                        println("Markdown is not yet implemented!")
+                    }
+                    "Audio" -> Audio(file, parent).name = name
+                    else -> println("Unknown file type: $ending")
                 }
-                "Audio" -> Audio(file, parent).name = name
-                else -> println("Unknown file type: $ending")
             }
-
         }
     }
 

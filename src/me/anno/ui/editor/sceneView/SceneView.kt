@@ -5,7 +5,6 @@ import me.anno.config.DefaultStyle.deepDark
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.deltaTime
 import me.anno.gpu.GFX.editorTime
-import me.anno.gpu.GFX.flat01
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.input.Input
 import me.anno.input.Input.keysDown
@@ -20,11 +19,11 @@ import me.anno.ui.base.groups.PanelFrame
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.editor.CustomContainer
 import me.anno.ui.style.Style
-import me.anno.utils.clamp
-import me.anno.utils.plus
-import me.anno.utils.times
+import me.anno.utils.*
+import org.joml.Matrix4f
+import org.joml.Matrix4fStack
 import org.joml.Vector3f
-import java.awt.Frame
+import org.joml.Vector4f
 import kotlin.math.max
 
 // todo search elements
@@ -145,6 +144,8 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
         val size = (if(Input.isShiftDown) 4f else 20f) * (if(GFX.selectedTransform is Camera) -1f else 1f) / max(GFX.width,GFX.height)
+        val oldX = x-dx
+        val oldY = y-dy
         val dx0 = dx*size
         val dy0 = dy*size
         val delta = dx0-dy0
@@ -153,29 +154,47 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
             val selected = GFX.selectedTransform
             if(selected != null){
 
-                val (localTransform, localTime) = selected.getGlobalTransform(editorTime)
-                val (cameraTransform, _) = GFX.selectedCamera.getGlobalTransform(editorTime)
+                val (target2global, localTime) = selected.getGlobalTransform(editorTime)
+
+                val camera = GFX.selectedCamera
+                val (camera2global, cameraTime) = camera.getGlobalTransform(editorTime)
+
+                val global2normUI = Matrix4fStack(3)
+                GFX.applyCameraTransform(camera, cameraTime, camera2global, global2normUI)
+
+                val inverse = Matrix4f(global2normUI).invert()
+
                 // transforms: global to local
                 // ->
                 // camera local to global, then global to local
                 //      obj   cam
                 // v' = G2L * L2G * v
-                val transform = cameraTransform.mul(localTransform.invert())
+                val global2ui = camera2global.mul(target2global.invert())
+
+                fun xTo01(x: Float) = ((x-this.x)/this.w)*2-1
+                fun yTo01(y: Float) = ((y-this.y)/this.h)*2-1
 
                 when(mode){
                     TransformMode.MOVE -> {
+
                         // todo find the correct speed...
+                        val uiZ = global2ui.transformProject(Vector4f(0f, 0f, 0f, 1f)).toVec3f().z
+                        val oldGlobal = inverse.transformProject(Vector4f(xTo01(oldX), yTo01(oldY), uiZ, 1f)).toVec3f()
+                        val newGlobal = inverse.transformProject(Vector4f(xTo01(x), yTo01(y), uiZ, 1f)).toVec3f()
+
+                        println("${oldGlobal.print()} -> ${newGlobal.print()}")
+
                         // todo depends on FOV, camera and object transform
                         val oldPosition = selected.position[localTime]
-                        val localDelta = transform.transformDirection(
+                        val localDelta = global2ui.transformDirection(
                             if(Input.isControlDown) Vector3f(0f, 0f, -delta)
                             else Vector3f(dx0, -dy0, 0f)
                         )
                         selected.position.addKeyframe(localTime, oldPosition + localDelta)
                     }
-                    TransformMode.SCALE -> {
+                    /*TransformMode.SCALE -> {
                         val oldScale = selected.scale[localTime]
-                        val localDelta = transform.transformDirection(
+                        val localDelta = global2ui.transformDirection(
                             if(Input.isControlDown) Vector3f(0f, 0f, -delta)
                             else Vector3f(dx0, -dy0, 0f)
                         )
@@ -184,12 +203,12 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
                     TransformMode.ROTATE -> {
                         // todo transform rotation??? quaternions...
                         val oldScale = selected.scale[localTime]
-                        val localDelta = transform.transformDirection(
+                        val localDelta = global2ui.transformDirection(
                             if(Input.isControlDown) Vector3f(0f, 0f, -delta)
                             else Vector3f(dx0, -dy0, 0f)
                         )
                         selected.scale.addKeyframe(localTime, oldScale + localDelta)
-                    }
+                    }*/
                 }
             }
         }
