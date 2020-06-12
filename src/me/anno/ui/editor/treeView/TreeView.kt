@@ -15,6 +15,7 @@ import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.input.components.Checkbox
 import me.anno.ui.style.Style
+import org.joml.Vector3f
 import java.io.File
 import java.lang.Exception
 
@@ -170,7 +171,11 @@ class TreeView(style: Style):
                 val type2 = DefaultConfig["import.mapping.*"] ?: "Text"
                 when((type0 ?: type1 ?: type2).toString()){
                     "Image" -> Image(file, parent).name = name
-                    "Cubemap" -> Cubemap(file, parent).name = name
+                    "Cubemap" -> {
+                        val cube = Cubemap(file, parent)
+                        cube.scale.set(Vector3f(1000f, 1000f, 1000f))
+                        cube.name = name
+                    }
                     "Video" -> Video(file, parent).name = name
                     "Text" -> {
                         try {

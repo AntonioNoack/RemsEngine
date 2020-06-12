@@ -1,6 +1,7 @@
 package me.anno.studio
 
 import me.anno.audio.AudioManager
+import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.Cursor
 import me.anno.gpu.Cursor.useCursor
@@ -13,6 +14,7 @@ import me.anno.gpu.Window
 import me.anno.input.Input
 import me.anno.input.Input.mouseX
 import me.anno.input.Input.mouseY
+import me.anno.input.ShowKeys
 import me.anno.objects.cache.Cache
 import me.anno.studio.Studio.dragged
 import me.anno.ui.base.Panel
@@ -34,6 +36,9 @@ object RemsStudio {
     val originalOutput = System.out
 
     val windowStack = Stack<Window>()
+
+    var showTutorialKeys = DefaultConfig["tutorial.keys.show", true]
+    var showFPS = DefaultConfig["debug.fps.show", true]
 
     fun run(){
 
@@ -68,7 +73,8 @@ object RemsStudio {
 
             Tooltips.draw()
 
-            showFPS()
+            if(showFPS) showFPS()
+            if(showTutorialKeys) ShowKeys.draw(0, 0, GFX.width, GFX.height)
 
             // dragging can be a nice way to work, but dragging values to change them,
             // and copying by ctrl+c/v is probably better -> no, we need both

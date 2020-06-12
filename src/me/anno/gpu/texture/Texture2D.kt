@@ -10,6 +10,7 @@ import java.awt.image.BufferedImage
 import java.lang.RuntimeException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import java.nio.FloatBuffer
 import kotlin.concurrent.thread
 import kotlin.math.min
 
@@ -23,6 +24,11 @@ class Texture2D(var w: Int, var h: Int){
     var pointer = -1
     var isCreated = false
     var isFilteredNearest = false
+
+    fun setSize(width: Int, height: Int){
+        w = width
+        h = height
+    }
 
     fun ensurePointer(){
         if(pointer < 0) pointer = glGenTextures()
@@ -110,9 +116,6 @@ class Texture2D(var w: Int, var h: Int){
 
     fun create(data: FloatArray){
         if(w*h*4 != data.size) throw RuntimeException("incorrect size!")
-        ensurePointer()
-        forceBind()
-        GFX.check()
         val byteBuffer = ByteBuffer
             .allocateDirect(data.size * 4)
             .order(ByteOrder.nativeOrder())
@@ -120,6 +123,13 @@ class Texture2D(var w: Int, var h: Int){
         val floatBuffer = byteBuffer.asFloatBuffer()
             .put(data)
             .position(0)
+        create(floatBuffer)
+    }
+
+    fun create(floatBuffer: FloatBuffer){
+        ensurePointer()
+        forceBind()
+        GFX.check()
         // rgba32f as internal format is extremely important... otherwise the value is cropped
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, w, h, 0, GL_RGBA, GL_FLOAT, floatBuffer)
         isCreated = true

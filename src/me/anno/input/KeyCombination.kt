@@ -13,6 +13,7 @@ class KeyCombination(val key: Int, val modifiers: Int, val type: Type){
         PRESS_UNSAFE(2),
         UP(3),
         TYPED(4),
+        DOUBLE(5)
     }
 
     override fun hashCode() = hash
@@ -33,7 +34,7 @@ class KeyCombination(val key: Int, val modifiers: Int, val type: Type){
 
         val keyMapping = BiMap<String, Int>(200)
         fun put(key: Int, vararg buttons: String){
-            buttons.forEach { keyMapping[it] = key; keyMapping[it.toLowerCase()] = key }
+            buttons.forEach { keyMapping[it] = key; keyMapping[it.toLowerCase()] = key; keyMapping[it.toUpperCase()] = key }
         }
         init {
             for(c in 'a' .. 'z') keyMapping["$c"] = GLFW_KEY_A + (c.toInt() - 'a'.toInt())
@@ -62,6 +63,15 @@ class KeyCombination(val key: Int, val modifiers: Int, val type: Type){
             put(GLFW_MOUSE_BUTTON_MIDDLE, "middle")
             for(i in 0 .. 9) put(GLFW_KEY_KP_0 + i, "kp$i", "num$i", "numpad$i", "numblock$i")
             put(GLFW_KEY_PRINT_SCREEN, "print", "printScreen")
+            put(GLFW_KEY_MENU, "menu", "printMenu")
+            put(GLFW_KEY_LEFT_CONTROL, "control", "ctrl")
+            put(GLFW_KEY_RIGHT_CONTROL, "r-control", "r-ctrl")
+            put(GLFW_KEY_LEFT_SHIFT, "shift")
+            put(GLFW_KEY_RIGHT_SHIFT, "r-shift")
+            put(GLFW_KEY_LEFT_SUPER, "super")
+            put(GLFW_KEY_RIGHT_SUPER, "r-shift")
+            put(GLFW_KEY_LEFT_ALT, "alt")
+            put(GLFW_KEY_RIGHT_ALT, "r-alt")
         }
 
         fun getButton(button: String): Int {
@@ -94,6 +104,7 @@ class KeyCombination(val key: Int, val modifiers: Int, val type: Type){
                 "typed" -> Type.TYPED
                 "up" -> Type.UP
                 "press-unsafe" -> Type.PRESS_UNSAFE
+                "double", "double-click" -> Type.DOUBLE
                 else -> return null
             }
             var mods = 0

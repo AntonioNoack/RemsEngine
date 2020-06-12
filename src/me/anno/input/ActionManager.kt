@@ -15,7 +15,6 @@ import me.anno.utils.test.OpenGLCrash
 import org.lwjgl.glfw.GLFW.*
 import kotlin.math.abs
 
-// todo double click action
 object ActionManager {
 
     val keyDragDelay = DefaultConfig["keyDragDelay", 0.5f]
@@ -101,6 +100,10 @@ object ActionManager {
 
     fun onKeyDown(key: Int){
         onEvent(0f, 0f, KeyCombination(key, Input.keyModState, KeyCombination.Type.DOWN), false)
+    }
+
+    fun onKeyDoubleClick(key: Int){
+        onEvent(0f, 0f, KeyCombination(key, Input.keyModState, KeyCombination.Type.DOUBLE), false)
     }
 
     fun onKeyHoldDown(dx: Float, dy: Float, key: Int, save: Boolean){

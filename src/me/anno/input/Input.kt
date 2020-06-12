@@ -48,7 +48,7 @@ object Input {
     }
 
     fun save() {
-        // todo save the scene
+        // todo save the project
     }
 
     val keysDown = HashMap<Int, Long>()
@@ -152,6 +152,7 @@ object Input {
                         val isLongClick = mouseDuration / 1_000_000 < longClickMillis
 
                         if(isDoubleClick){
+                            ActionManager.onKeyDoubleClick(button)
                             inFocus?.onDoubleClick(mouseX, mouseY, button)
                         } else {
                             inFocus?.onMouseClicked(mouseX, mouseY, button, isLongClick)

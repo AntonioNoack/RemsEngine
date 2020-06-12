@@ -15,15 +15,14 @@ class ImageData(file: File): CacheData {
     init {
         if(file.name.endsWith(".hdr", true)){
             thread {
-                val img = HDRImage(file)
+                val img = HDRImage(file, true)
                 val w = img.width
                 val h = img.height
-                val pixels = img.pixelArray
+                val pixels = img.pixelBuffer
                 GFX.addTask {
-                    texture.w = w
-                    texture.h = h
+                    texture.setSize(w, h)
                     texture.create(pixels)
-                    10
+                    35
                 }
             }
         } else {

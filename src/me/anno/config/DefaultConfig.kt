@@ -56,7 +56,11 @@ object DefaultConfig: StringMap() {
                 "Folder" to Transform(),
                 "Mask" to MaskLayer(null),
                 "Text" to Text("Text", null),
-                "Cubemap" to Cubemap(File(""), null),
+                "Cubemap" to {
+                    val cube = Cubemap(File(""), null)
+                    cube.scale.set(Vector3f(1000f, 1000f, 1000f))
+                    cube
+                }(),
                 "Cube" to {
                     val cube = Polygon(null)
                     cube.name = "Cube"

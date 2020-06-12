@@ -46,8 +46,6 @@ import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.math.*
 
-// todo the alpha range is not continuous at 0
-
 // todo split the rendering in two parts:
 // todo - without blending (no alpha, video or polygons)
 // todo - with blending
@@ -222,9 +220,7 @@ object GFX: GFXBase1() {
         // println("was drawing window ...")
     }
 
-    // todo the background color is important for correct subpixel rendering, because we can't blend per channel
-    //fun drawText(x: Int, y: Int, fontSize: Int, bold: Boolean, italic: Boolean, text: String, color: Int, backgroundColor: Int) =
-    //    writeText(x, y, defaultFont, fontSize, bold, italic, text, color, backgroundColor)
+    // the background color is important for correct subpixel rendering, because we can't blend per channel
     fun drawText(x: Int, y: Int, font: String, fontSize: Int, bold: Boolean, italic: Boolean, text: String, color: Int, backgroundColor: Int) =
         writeText(x, y, font, fontSize, bold, italic, text, color, backgroundColor)
     fun writeText(x: Int, y: Int,
@@ -271,12 +267,6 @@ object GFX: GFXBase1() {
         shader.v2("size", w.toFloat()/windowWidth, -h.toFloat()/windowHeight)
     }
 
-    // todo use sqrt, sq for all our colors to ensure correct mixing
-    // todo use float buffer as intermediate target
-    fun drawColorHSBRect(hue: Float){
-
-    }
-
     fun applyCameraTransform(camera: Camera, time: Float, cameraTransform: Matrix4f, stack: Matrix4fStack){
         val position = cameraTransform.transformProject(Vector3f(0f, 0f, 0f))
         val up = cameraTransform.transformProject(Vector3f(0f, 1f, 0f)) - position
@@ -289,8 +279,6 @@ object GFX: GFXBase1() {
                 camera.farZ.getValueAt(time))
             .lookAt(position, lookAt, up.normalize())
     }
-
-    // todo generate text as mesh?
 
     fun shader3DUniforms(shader: Shader, stack: Matrix4fStack, w: Int, h: Int, color: Vector4f, isBillboard: Float, tiling: Vector4f?){
         check()
@@ -315,10 +303,6 @@ object GFX: GFXBase1() {
         else shader.v4("tiling", 1f, 1f, 0f, 0f)
         shader.v1("isBillboard", isBillboard)
     }
-
-    // todo masks for everything?
-    // todo allow manipulation of uv coordinates?
-    // todo tiling? -> array structure? copying the first element x*y*z times :D
 
     fun toRadians(f: Float) = Math.toRadians(f.toDouble()).toFloat()
 
