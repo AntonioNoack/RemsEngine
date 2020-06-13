@@ -2,6 +2,7 @@ package me.anno.objects.cache
 
 import me.anno.gpu.GFX
 import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.texture.Texture3D
 import me.anno.objects.cache.VideoData.Companion.framesPerContainer
 import me.anno.studio.Studio.editorTimeDilation
 import me.anno.video.FFMPEGStream
@@ -9,13 +10,45 @@ import me.anno.video.Frame
 import java.io.File
 import java.io.FileNotFoundException
 import java.lang.Exception
+import javax.imageio.ImageIO
 import kotlin.concurrent.thread
 import kotlin.math.abs
 import kotlin.math.max
+import kotlin.math.sqrt
 
 object Cache {
 
     private val cache = HashMap<Any, CacheEntry>()
+
+    fun getLUT(file: File, timeout: Long = 5000): Texture3D? {
+        val cache = getEntry("LUT", file.toString(), 0, timeout){
+            val cache = Texture3DCache(null)
+            thread {
+                val img = ImageIO.read(file)
+                val sqrt = sqrt(img.width+0.5f).toInt()
+                val tex = Texture3D(sqrt, img.height, sqrt)
+                tex.create(img, false)
+                cache.texture = tex
+            }
+            cache
+        } as? Texture3DCache
+        return cache?.texture
+    }
+
+    fun getLUT(name: String, timeout: Long = 5000): Texture3D? {
+        val cache = getEntry("LUT", name, 0, timeout){
+            val cache = Texture3DCache(null)
+            thread {
+                val img = GFX.loadBImage(name)
+                val sqrt = sqrt(img.width+0.5f).toInt()
+                val tex = Texture3D(sqrt, img.height, sqrt)
+                tex.create(img, false)
+                cache.texture = tex
+            }
+            cache
+        } as? Texture3DCache
+        return cache?.texture
+    }
 
     fun getIcon(name: String, timeout: Long = 5000): Texture2D {
         val cache = getEntry("Icon", name, 0, timeout){

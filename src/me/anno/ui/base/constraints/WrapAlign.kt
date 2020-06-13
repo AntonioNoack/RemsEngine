@@ -6,17 +6,6 @@ import kotlin.math.min
 
 class WrapAlign(val alignX: AxisAlignment?, val alignY: AxisAlignment?): Constraint(10){
     
-    enum class AxisAlignment {
-        MIN {
-            override fun getValue(parentW: Int, minW: Int): Int = 0
-        }, CENTER {
-            override fun getValue(parentW: Int, minW: Int): Int = (parentW - minW) / 2
-        }, MAX {
-            override fun getValue(parentW: Int, minW: Int): Int = parentW - minW
-        };
-        abstract fun getValue(parentW: Int, minW: Int): Int
-    }
-    
     override fun apply(panel: Panel) {
         alignX?.apply {
             val delta = getValue(panel.w, panel.minW)

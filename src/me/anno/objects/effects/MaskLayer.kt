@@ -103,9 +103,7 @@ class MaskLayer(parent: Transform?): GFXTransform(parent){
 
     override fun readObject(name: String, value: ISaveable?) {
         when(name){
-            "useMaskColor" -> if(value is AnimatedProperty<*> && value.type == AnimatedProperty.Type.FLOAT){
-                useMaskColor = value as AnimatedProperty<Float>
-            }
+            "useMaskColor" -> useMaskColor.copyFrom(value)
             else -> super.readObject(name, value)
         }
     }

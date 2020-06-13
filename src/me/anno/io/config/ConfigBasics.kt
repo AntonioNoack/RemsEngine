@@ -24,30 +24,36 @@ object ConfigBasics {
 
     fun save(localFileName: String, data: String) = save(getConfigFile(localFileName), data)
 
-    fun load(localFileName: String, saveIfMissing: Boolean, getDefault: () -> String): String {
-        val file = getConfigFile(localFileName)
+    fun load(file: File, saveIfMissing: Boolean, getDefault: () -> String): String {
         return if(file.exists()){
             file.readText(Charset.forName("UTF-8"))
         } else {
             val default = getDefault()
-            if(saveIfMissing) save(localFileName, default)
+            if(saveIfMissing) save(file, default)
             default
         }
     }
 
-    fun loadConfig(localFileName: String, defaultValue: StringMap, saveIfMissing: Boolean): StringMap {
-        val read = load(localFileName, saveIfMissing){
-            println("didn't find ${getConfigFile(localFileName)}, using default values")
+    fun load(localFileName: String, saveIfMissing: Boolean, getDefault: () -> String) =
+        load(getConfigFile(localFileName), saveIfMissing, getDefault)
+
+
+    fun loadConfig(file: File, defaultValue: StringMap, saveIfMissing: Boolean): StringMap {
+        val read = load(file, saveIfMissing){
+            println("[INFO] Didn't find $file, using default values")
             TextWriter.toText(defaultValue, beautify)
         }
         val readData = TextReader.fromText(read)
         val map = readData.firstOrNull { it is StringMap } as? StringMap
         return if(map == null){
-            println("config was corrupted, didn't find a config, in ${getConfigFile(localFileName)}, got $readData")
-            save(localFileName, TextWriter.toText(defaultValue, beautify))
+            println("[INFO] Config was corrupted, didn't find a config, in $file, got $readData")
+            save(file, TextWriter.toText(defaultValue, beautify))
             defaultValue
         } else map
     }
+
+    fun loadConfig(localFileName: String, defaultValue: StringMap, saveIfMissing: Boolean) =
+        loadConfig(getConfigFile(localFileName), defaultValue, saveIfMissing)
 
     fun loadJsonArray(localFileName: String, defaultValue: List<ConfigEntry>, saveIfMissing: Boolean): List<ConfigEntry> {
 

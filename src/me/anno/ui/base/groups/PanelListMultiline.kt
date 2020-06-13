@@ -2,11 +2,12 @@ package me.anno.ui.base.groups
 
 import me.anno.ui.base.Panel
 import me.anno.ui.style.Style
-import me.anno.utils.warn
 import kotlin.math.max
 
 
 class PanelListMultiline(sorter: Comparator<Panel>?, style: Style): PanelList(sorter, style){
+
+    constructor(style: Style): this(null, style)
 
     var scaleChildren = true
     var childWidth: Int

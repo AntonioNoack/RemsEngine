@@ -15,6 +15,7 @@ import org.joml.Vector3f
 import org.joml.Vector4f
 import java.io.File
 import kotlin.math.abs
+import kotlin.math.roundToInt
 
 // todo spawn from object, so the spawn point can be animated without influence on the particles;
 // while still keeping the animation local
@@ -37,7 +38,7 @@ class ParticleSystem(parent: Transform?): Transform(parent){
 
 
     var showChildren = false
-    var calculatedTime = 0f
+    var nextIndex = 0
     var missingChildren = 0f
     var timeStep = 0.1f
 
@@ -49,10 +50,10 @@ class ParticleSystem(parent: Transform?): Transform(parent){
     var fadingIn = 0.5f
     var fadingOut = 0.5f
 
-    fun step(particles: ArrayList<ParticleInfo>, time: Float, dt: Float){
+    fun step(particles: ArrayList<ParticleInfo>, time: Float, timeIndex: Int, dt: Float){
         missingChildren += spawnRate[time] * dt
         while(missingChildren > 1f){
-            particles += createParticle(time)
+            particles += createParticle(timeIndex)
             missingChildren -= 1f
         }
         // todo collect global forces
@@ -65,7 +66,8 @@ class ParticleSystem(parent: Transform?): Transform(parent){
                 val force = globalForce + localForce
                 val ddPosition = force / mass
                 val dPosition = oldState.dPosition + ddPosition * dt
-
+                val newState = ParticleState()
+                it.states.add(newState)
             }
         }
 
@@ -75,7 +77,7 @@ class ParticleSystem(parent: Transform?): Transform(parent){
 
     // todo visualize forces
 
-    fun createParticle(time: Float): ParticleInfo {
+    fun createParticle(timeIndex: Int): ParticleInfo {
         var randomIndex = random.nextFloat() * sumWeight
         var type = children.first()
         for(child in children){
@@ -86,7 +88,7 @@ class ParticleSystem(parent: Transform?): Transform(parent){
                 break
             }
         }
-        val particle = ParticleInfo(type, time, lifeTime[time], 1f)
+        val particle = ParticleInfo(type, timeIndex, (lifeTime[timeIndex*timeStep]/timeStep).roundToInt(), 1f)
         particle.states.add(ParticleState())
         return particle
     }
@@ -96,9 +98,9 @@ class ParticleSystem(parent: Transform?): Transform(parent){
         val maxTime = 30_000_000L
         val time0 = GFX.lastTime
         synchronized(this){
-            while(calculatedTime < time + timeStep){
-                step(particles, (calculatedTime+timeStep/2), timeStep)
-                calculatedTime += timeStep
+            while((nextIndex - 2) * timeStep < time){
+                step(particles, nextIndex*timeStep, nextIndex, timeStep)
+                nextIndex++
                 val time1 = System.nanoTime()
                 if(abs(time1-time0) > maxTime){
                     return false
@@ -110,7 +112,7 @@ class ParticleSystem(parent: Transform?): Transform(parent){
 
     fun clearCache(){
         synchronized(this){
-            calculatedTime = 0f
+            nextIndex = 0
             particles.clear()
             random = Random(seed)
         }
@@ -131,10 +133,10 @@ class ParticleSystem(parent: Transform?): Transform(parent){
         particles.forEach {
             it.apply {
 
-                val opacity = it.getLifeOpacity(time, fadingIn, fadingOut)
+                val opacity = it.getLifeOpacity(time, timeStep, fadingIn, fadingOut)
                 if(opacity > 0f){// else not visible
                     stack.pushMatrix()
-                    val index = (time - it.birthday) / timeStep
+                    val index = time / timeStep - it.birthIndex
                     val index0 = index.toInt()
                     val indexF = index-index0
 
@@ -150,7 +152,7 @@ class ParticleSystem(parent: Transform?): Transform(parent){
                     // todo is scale animated? should probably not be directly animated...
                     // todo normalize time?
                     val particleColor = Vector4f(color.x, color.y, color.z, color.w * opacity)
-                    type.draw(stack, time - it.birthday, particleColor)
+                    type.draw(stack, time - it.birthIndex, particleColor)
 
                     stack.popMatrix()
                 }

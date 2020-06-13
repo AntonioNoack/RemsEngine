@@ -158,4 +158,7 @@ open class Panel(val style: Style): Saveable(){
         }
     }
 
+    fun contains(x: Int, y: Int, margin: Int = 0) = (x-this.x) in -margin until w+margin && (y-this.y) in -margin until h+margin
+    fun contains(x: Float, y: Float, margin: Int = 0) = contains(x.toInt(), y.toInt(), margin)
+
 }

@@ -58,6 +58,7 @@ object DefaultStyle {
         set("italic.propertyInspector.textItalic", true)
         set("italic.propertyInspector.textColor", fontGray and 0xafffffff.toInt())
         set("accentColor", black or 0xffba50)
+        set("fileExplorer.textSize", 12)
 
         for((key, value) in loadStyle("style.config")){
             baseTheme.values[key] = value

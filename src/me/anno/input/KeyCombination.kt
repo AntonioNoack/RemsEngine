@@ -61,6 +61,8 @@ class KeyCombination(val key: Int, val modifiers: Int, val type: Type){
             put(GLFW_MOUSE_BUTTON_LEFT, "left")
             put(GLFW_MOUSE_BUTTON_RIGHT, "right")
             put(GLFW_MOUSE_BUTTON_MIDDLE, "middle")
+            put(GLFW_MOUSE_BUTTON_5, "mouseForward")
+            put(GLFW_MOUSE_BUTTON_4, "mouseBackward")
             for(i in 0 .. 9) put(GLFW_KEY_KP_0 + i, "kp$i", "num$i", "numpad$i", "numblock$i")
             put(GLFW_KEY_PRINT_SCREEN, "print", "printScreen")
             put(GLFW_KEY_MENU, "menu", "printMenu")

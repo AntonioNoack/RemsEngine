@@ -64,7 +64,7 @@ open class TextInput(title: String, style: Style): PanelContainer(
     }
 
     override fun onPasteFiles(x: Float, y: Float, files: List<File>) {
-        val keyFile = files.first()
+        val keyFile = files.firstOrNull() ?: return
         setText(keyFile.toString())
     }
 

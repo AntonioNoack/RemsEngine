@@ -191,6 +191,18 @@ class AnimatedProperty<V>(val type: Type, val minValue: V?, val maxValue: V?): S
         }
     }
 
+    // todo this may result in an issue, where we can't copy this object 1:1...
+    // todo do we want this anyways?
+    fun copyFrom(obj: Any?, force: Boolean = false){
+        if(obj === this && !force) throw RuntimeException("Probably a typo!")
+        if(obj is AnimatedProperty<*> && obj.type == type){
+            isAnimated = obj.isAnimated
+            keyframes.clear()
+            keyframes.addAll(obj.keyframes as List<Keyframe<V>>)
+            interpolation = obj.interpolation
+        }
+    }
+
     override fun isDefaultValue() = keyframes.isEmpty()
 
 }

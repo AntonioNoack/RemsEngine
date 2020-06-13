@@ -138,9 +138,10 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style): TextPanel(""
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
         when(action){
             "DragStart" -> {
-                // todo somehow check if this was not already activated...
-                val transform = getElement()
-                Studio.dragged = Draggable(transform.stringify(), "Transform", TextPanel(transform.name, style))
+                if(isContinuous){
+                    val transform = getElement()
+                    Studio.dragged = Draggable(transform.stringify(), "Transform", TextPanel(transform.name, style))
+                } else println("DragStart should be continuous!")
             }
             else -> return super.onGotAction(x, y, dx, dy, action, isContinuous)
         }

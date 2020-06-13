@@ -4,11 +4,12 @@
  */
 package me.anno.gpu;
 
+import me.anno.studio.Studio;
+import me.anno.studio.project.Project;
 import org.lwjgl.glfw.*;
 import org.lwjgl.opengl.*;
 import org.lwjgl.system.*;
 
-import static me.anno.gpu.GFX.flatShader;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.system.MemoryUtil.*;
@@ -89,6 +90,11 @@ public class GFXBase0 {
         glfwSetWindowTitle(window, "Rem's Studio");
         glfwShowWindow(window);
 
+    }
+
+    public void updateTitle(){
+        Project project = Studio.INSTANCE.getProject();
+        glfwSetWindowTitle(window, project == null ? "Rem's Studio" : "Rem's Studio: "+project.getFile().getName());
     }
 
     public void addCallbacks(){

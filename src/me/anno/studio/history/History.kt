@@ -9,7 +9,7 @@ import kotlin.math.max
 
 object History: Saveable(){
 
-    // todo history states instead of history entries (changes)
+    // history states instead of history entries
 
     // todo history with branches, commits, etc?
     // logarithmic history? -> no, just make it long enough?

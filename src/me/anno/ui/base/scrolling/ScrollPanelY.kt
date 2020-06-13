@@ -1,8 +1,10 @@
-package me.anno.ui.base
+package me.anno.ui.base.scrolling
 
 import me.anno.input.Input
+import me.anno.ui.base.Panel
 import me.anno.utils.clamp
 import me.anno.ui.base.components.Padding
+import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.groups.PanelListY
@@ -14,18 +16,25 @@ import kotlin.math.max
 // todo scrollbar only visible, if mouse at bottom
 open class ScrollPanelY(child: Panel, padding: Padding,
                         style: Style,
-                        alignX: WrapAlign.AxisAlignment): PanelContainer(child, padding, style){
+                        alignX: AxisAlignment): PanelContainer(child, padding, style){
 
-    constructor(style: Style, padding: Padding, align: WrapAlign.AxisAlignment): this(PanelListY(style), padding, style, align)
+    constructor(style: Style, padding: Padding, align: AxisAlignment): this(PanelListY(style), padding, style, align)
 
     init {
-        child += WrapAlign(alignX, WrapAlign.AxisAlignment.MIN)
+        child += WrapAlign(alignX, AxisAlignment.MIN)
+        weight = 0.0001f
     }
 
     var scrollPosition = 0f
     val maxLength = 100_000
 
     val maxScrollPosition get() = max(0, child.minH + padding.height - h)
+    val scrollbar = ScrollbarY(this, style)
+    val scrollbarWidth = style.getSize("scrollbar.width", 8)
+    val scrollbarPadding = style.getSize("scrollbar.padding", 1)
+    init {
+        padding.right += scrollbarWidth
+    }
 
     override fun calculateSize(w: Int, h: Int) {
         super.calculateSize(w, h)
@@ -55,6 +64,13 @@ open class ScrollPanelY(child: Panel, padding: Padding,
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
         clampScrollPosition()
         super.draw(x0, y0, x1, y1)
+        if(maxScrollPosition > 0f){
+            scrollbar.x = x1 - scrollbarWidth - scrollbarPadding
+            scrollbar.y = y + scrollbarPadding
+            scrollbar.w = scrollbarWidth
+            scrollbar.h = h - 2 * scrollbarPadding
+            drawChild(scrollbar, x0, y0, x1, y1)
+        }
     }
 
     override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float) {
@@ -68,6 +84,13 @@ open class ScrollPanelY(child: Panel, padding: Padding,
 
     fun clampScrollPosition(){
         scrollPosition = clamp(scrollPosition, 0f, maxScrollPosition.toFloat())
+    }
+
+    override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
+        if(scrollbar.contains(x,y,scrollbarPadding*2)){
+            scrollbar.onMouseMoved(x, y, dx, dy)
+            clampScrollPosition()
+        }
     }
 
     override fun getClassName(): String = "ScrollPanelY"

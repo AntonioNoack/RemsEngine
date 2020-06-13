@@ -46,18 +46,19 @@ class FFMPEGStream(val file: File?, val frame0: Int, arguments: List<String>, wa
             "-f", "rawvideo", "-"// format
             // "pipe:1" // 1 = stdout, 2 = stdout
         ), Type.VIDEO_DATA, interpretMeta = true)
-        fun getAudioSequence(input: File, startTime: Float, frameCount: Int, fps: Float) = FFMPEGStream(
-            input, (startTime * fps).roundToInt(),
+        fun getAudioSequence(input: File, startTime: Float, duration: Float, frequency: Float) = FFMPEGStream(
+            input, (startTime * frequency).roundToInt(),
             listOf(
                 "-i", input.absolutePath,
                 "-ss", "$startTime",
-                "-r", "$fps",
-                "-vframes", "$frameCount",
-                "-movflags", "faststart", // has no effect :(
-                "-vn", // no audio
-                "-f", "rawvideo", "-"// format
+                "-t", "$duration", // duration
+                "-ar", "$frequency",
+                // -aq quality, codec specific
+                "-f", "wav",
+                // "-c:a", "pcm_s16le", "-ac", "2",
+                "-"
                 // "pipe:1" // 1 = stdout, 2 = stdout
-            ), Type.VIDEO_DATA, interpretMeta = true)
+            ), Type.AUDIO_DATA, interpretMeta = true)
     }
 
     fun destroy(){
@@ -73,17 +74,13 @@ class FFMPEGStream(val file: File?, val frame0: Int, arguments: List<String>, wa
 
     init {
         when(waitToFinish){
-            Type.META -> run(arguments, interpretMeta).waitFor()
-            Type.VIDEO_DATA -> thread {
-                run(arguments, interpretMeta)
-            }
-            Type.AUDIO_DATA -> {
-                // todo...
-            }
+            Type.META -> extractVideo(arguments, interpretMeta).waitFor()
+            Type.VIDEO_DATA -> thread { extractVideo(arguments, interpretMeta) }
+            Type.AUDIO_DATA -> thread { extractAudio(arguments, interpretMeta) }
         }
     }
 
-    private fun run(arguments: List<String>, interpretMeta: Boolean): Process {
+    private fun extractVideo(arguments: List<String>, interpretMeta: Boolean): Process {
         // val time0 = System.nanoTime()
         // println(arguments)
         val ffmpeg = File(DefaultConfig["ffmpegPath", "lib/ffmpeg/ffmpeg.exe"])
@@ -116,6 +113,45 @@ class FFMPEGStream(val file: File?, val frame0: Int, arguments: List<String>, wa
                 for(i in 1 until frameCount){
                     readFrame(input)
                 }
+                input.close()
+            }
+        } else {
+            getOutput("error", process.errorStream)
+            getOutput("input", process.inputStream)
+        }
+        return process
+    }
+
+
+    private fun extractAudio(arguments: List<String>, interpretMeta: Boolean): Process {
+        // val time0 = System.nanoTime()
+        // println(arguments)
+        val ffmpeg = File(DefaultConfig["ffmpegPath", "lib/ffmpeg/ffmpeg.exe"])
+        if(!ffmpeg.exists()) throw RuntimeException("FFmpeg not found! (path: $ffmpeg), can't use videos, nor webp!")
+        val args = ArrayList<String>(arguments.size+2)
+        args += ffmpeg.absolutePath
+        if(arguments.isNotEmpty()) args += "-hide_banner"
+        args += arguments
+        val process = ProcessBuilder(args).start()
+        if(interpretMeta){
+            thread {
+                if(interpretMeta){
+                    val out = process.errorStream.bufferedReader()
+                    val parser = FFMPEGMetaParser()
+                    while(true){
+                        val line = out.readLine() ?: break
+                        parser.parseLine(line, this)
+                    }
+                } else {
+                    val data = String(process.errorStream.readAllBytes())
+                    stringData += "err[${data.length}]: $data \n"
+                }
+            }
+            thread {
+                val input = process.inputStream
+                val out = File("C:\\Users\\Antonio\\Desktop\\test.wav").outputStream()
+                out.write(input.readAllBytes())
+                out.close()
                 input.close()
             }
         } else {

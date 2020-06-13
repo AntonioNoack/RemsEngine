@@ -2,12 +2,17 @@ package me.anno.ui.dragging
 
 import me.anno.gpu.GFX
 import me.anno.ui.base.Panel
+import me.anno.ui.base.constraints.WrapAlign
 
 class Draggable(
     private val content: String,
     private val contentType: String,
     val ui: Panel
 ): IDraggable {
+
+    init {
+        ui += WrapAlign.LeftTop
+    }
 
     override fun draw(x: Int, y: Int) {
         ui.placeInParent(x, y)

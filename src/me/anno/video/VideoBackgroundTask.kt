@@ -9,7 +9,6 @@ class VideoBackgroundTask(val video: VideoCreator){
     // todo show the progress somehow
 
     val framebuffer = Framebuffer(video.w, video.h, 1, false, Framebuffer.DepthBufferType.TEXTURE)
-    val sqFramebuffer = Framebuffer(video.w, video.h, 1, true, Framebuffer.DepthBufferType.NONE)
 
     var frameIndex = 0
     val totalFrameCount = 200
@@ -51,7 +50,7 @@ class VideoBackgroundTask(val video: VideoCreator){
         GFX.isFinalRendering = true
 
         try {
-            Scene.draw(framebuffer, sqFramebuffer, 0, 0, video.w, video.h, time, flipY = true)
+            Scene.draw(framebuffer, 0, 0, video.w, video.h, time, flipY = true)
         } catch (e: MissingFrameException){
             GFX.isFinalRendering = false
             return false

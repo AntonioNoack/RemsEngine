@@ -87,7 +87,7 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
             }
         }
 
-        Scene.draw(null, framebuffer, x+dx,y+dy,rw,rh, GFX.editorTime, false)
+        Scene.draw(null, x+dx,y+dy,rw,rh, GFX.editorTime, false)
 
         GFX.clip(x0, y0, x1, y1)
 

@@ -6,8 +6,8 @@ import org.joml.Vector3f
 
 class ParticleInfo(
     var type: Transform,
-    var birthday: Float,
-    var lifetime: Float,
+    var birthIndex: Int,
+    var lifeIndices: Int,
     val mass: Float){
 
     val states = ArrayList<ParticleState>()
@@ -30,16 +30,17 @@ class ParticleInfo(
         return state0.scale.lerp(state1.scale, indexF)
     }
 
-    fun getLifeOpacity(time: Float, fadingIn: Float, fadingOut: Float): Float {
-        if(lifetime <= 0f) return 0f
-        val localTime = time - birthday
-        if(localTime < 0f || localTime > lifetime) return 0f
+    fun getLifeOpacity(time: Float, timeStep: Float, fadingIn: Float, fadingOut: Float): Float {
+        if(lifeIndices < 1) return 0f
+        val lifeTime = lifeIndices * timeStep
+        val localTime = time - birthIndex * timeStep
+        if(localTime < 0f || localTime > lifeTime) return 0f
         val fading = fadingIn + fadingOut
-        if(fading > lifetime){
-            return getLifeOpacity(time, lifetime * fadingIn/fading, lifetime * fadingOut/fading)
+        if(fading > lifeTime){
+            return getLifeOpacity(time, timeStep, lifeTime * fadingIn/fading, lifeTime * fadingOut/fading)
         }
         if(localTime < fadingIn) return localTime/fadingIn
-        if(localTime > lifetime - fadingOut) return (lifetime-localTime)/fadingOut
+        if(localTime > lifeTime - fadingOut) return (lifeTime-localTime)/fadingOut
         return 1f
     }
 

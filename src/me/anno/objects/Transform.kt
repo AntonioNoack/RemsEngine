@@ -80,7 +80,7 @@ open class Transform(var parent: Transform? = null): Saveable(){
 
         // todo update by time :)
 
-        list += TextInput("Name", style, name)
+        list += TextInput("Name (${getClassName()})", style, name)
             .setChangeListener { name = if(it.isEmpty()) "-" else it }
             .setIsSelectedListener { GFX.selectedProperty = null }
         list += TextInput("Comment", style, comment)
@@ -277,41 +277,19 @@ open class Transform(var parent: Transform? = null): Saveable(){
                     addChild(value)
                 }
             }
-            "position" -> {
-                if(value is AnimatedProperty<*> && value.type == AnimatedProperty.Type.POSITION){
-                    position = value as AnimatedProperty<Vector3f>
-                }
-            }
-            "scale" -> {
-                if(value is AnimatedProperty<*> && value.type == AnimatedProperty.Type.SCALE){
-                    scale = value as AnimatedProperty<Vector3f>
-                }
-            }
-            "rotationYXZ" -> {
-                if(value is AnimatedProperty<*> && value.type == AnimatedProperty.Type.ROT_YXZ){
-                    rotationYXZ = value as AnimatedProperty<Vector3f>
-                }
-            }
+            "position" -> position.copyFrom(value)
+            "scale" -> scale.copyFrom(value)
+            "rotationYXZ" -> rotationYXZ.copyFrom(value)
             "rotationQuat" -> {
-                if(value is AnimatedProperty<*> && value.type == AnimatedProperty.Type.QUATERNION){
-                    rotationQuaternion = value as AnimatedProperty<Quaternionf>
-                }
+                rotationQuaternion?.copyFrom(value) ?: {
+                    if(value is AnimatedProperty<*> && value.type == AnimatedProperty.Type.QUATERNION){
+                        rotationQuaternion = value as AnimatedProperty<Quaternionf>
+                    }
+                }()
             }
-            "skew" -> {
-                if(value is AnimatedProperty<*> && value.type == AnimatedProperty.Type.SKEW_2D){
-                    skew = value as AnimatedProperty<Vector2f>
-                }
-            }
-            "timeAnimated" -> {
-                if(value is AnimatedProperty<*> && value.type == AnimatedProperty.Type.FLOAT){
-                    timeAnimated = value as AnimatedProperty<Float>
-                }
-            }
-            "color" -> {
-                if(value is AnimatedProperty<*> && value.type == AnimatedProperty.Type.COLOR){
-                    color = value as AnimatedProperty<Vector4f>
-                }
-            }
+            "skew" -> skew.copyFrom(value)
+            "timeAnimated" -> timeAnimated.copyFrom(value)
+            "color" -> color.copyFrom(value)
             else -> super.readObject(name, value)
         }
     }

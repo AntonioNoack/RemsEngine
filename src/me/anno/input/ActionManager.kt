@@ -2,17 +2,17 @@ package me.anno.input
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.hoveredPanel
 import me.anno.gpu.GFX.inFocus
 import me.anno.io.utils.StringMap
 import me.anno.objects.Video
-import me.anno.studio.Layout
+import me.anno.studio.UILayouts
 import me.anno.studio.RemsStudio
 import me.anno.studio.Studio
 import me.anno.studio.Studio.dragged
 import me.anno.studio.Studio.editorTimeDilation
 import me.anno.ui.base.Panel
-import me.anno.utils.test.OpenGLCrash
-import org.lwjgl.glfw.GLFW.*
+import java.io.File
 import kotlin.math.abs
 
 object ActionManager {
@@ -48,6 +48,10 @@ object ActionManager {
         defaultValue["SceneView.a.press"] = "CamLeft"
         defaultValue["SceneView.d.press"] = "CamRight"
 
+        // press instead of down for the delay
+        defaultValue["FileEntry.left.press"] = "DragStart"
+        defaultValue["FileEntry.left.double"] = "Enter|Open"
+        defaultValue["FileExplorer.right.down"] = "Back"
         defaultValue["TreeViewPanel.left.press"] = "DragStart"
 
         defaultValue["HSVBox.left.down"] = "selectColor"
@@ -168,7 +172,7 @@ object ActionManager {
                     "PlayReversed" -> setEditorTimeDilation(-1f)
                     "PlayReversedSlow" -> setEditorTimeDilation(-0.2f)
                     "ToggleFullscreen" -> { GFX.toggleFullscreen(); true }
-                    "PrintLayout" -> { Layout.printLayout();true }
+                    "PrintLayout" -> { UILayouts.printLayout();true }
                     "DragEnd" -> {
                         val dragged = dragged
                         if(dragged != null){
@@ -176,7 +180,14 @@ object ActionManager {
                             val data = dragged.getContent()
                             val type = dragged.getContentType()
 
-                            inFocus?.onPaste(Input.mouseX, Input.mouseY, data, type)
+                            when(type){
+                                "File" -> {
+                                    hoveredPanel?.onPasteFiles(Input.mouseX, Input.mouseY, listOf(File(data)))
+                                }
+                                else -> {
+                                    hoveredPanel?.onPaste(Input.mouseX, Input.mouseY, data, type)
+                                }
+                            }
 
                             Studio.dragged = null
 

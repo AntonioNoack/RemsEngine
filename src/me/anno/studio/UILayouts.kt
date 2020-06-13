@@ -18,6 +18,7 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.custom.CustomListX
 import me.anno.ui.custom.CustomListY
 import me.anno.ui.editor.*
+import me.anno.ui.editor.explorer.FileExplorer
 import me.anno.ui.editor.sceneView.SceneView
 import me.anno.ui.editor.graphs.GraphEditor
 import me.anno.ui.editor.treeView.TreeView
@@ -27,9 +28,21 @@ import java.io.File
 import java.io.OutputStream
 import java.io.PrintStream
 
-object Layout {
+object UILayouts {
 
-    fun createUI(){
+    fun createLoadingUI(){
+
+        val style = DefaultConfig.style
+
+        val ui = PanelListY(style)
+        val customUI = CustomListY(style)
+        customUI.setWeight(10f)
+
+        RemsStudio.ui = ui
+
+    }
+
+    fun createEditorUI(){
 
         val style = DefaultConfig.style
 

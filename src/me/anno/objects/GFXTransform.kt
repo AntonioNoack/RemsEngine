@@ -26,15 +26,19 @@ abstract class GFXTransform(parent: Transform?): Transform(parent){
     override fun save(writer: BaseWriter) {
         super.save(writer)
         writer.writeObject(this, "isBillboard", isBillboard)
+        writer.writeBool("isVisibleInTimeline", isVisibleInTimeline, true)
+    }
+
+    override fun readBool(name: String, value: Boolean) {
+        when(name){
+            "isVisibleInTimeline" -> isVisibleInTimeline = value
+            else -> super.readBool(name, value)
+        }
     }
 
     override fun readObject(name: String, value: ISaveable?) {
         when(name){
-            "isBillboard" -> {
-                if(value is AnimatedProperty<*>){
-                    isBillboard = value as AnimatedProperty<Float>
-                }
-            }
+            "isBillboard" -> isBillboard.copyFrom(value)
             else -> super.readObject(name, value)
         }
     }

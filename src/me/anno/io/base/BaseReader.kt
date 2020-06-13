@@ -27,6 +27,8 @@ abstract class BaseReader {
             "Image" -> Image(File(""), null)
             "Video" -> Video(File(""), null)
             "AnimatedProperty<float>" -> AnimatedProperty.float()
+            "AnimatedProperty<float+>" -> AnimatedProperty.floatPlus()
+            "AnimatedProperty<float01>" -> AnimatedProperty.float01()
             "AnimatedProperty<pos>" -> AnimatedProperty.pos()
             "AnimatedProperty<scale>" -> AnimatedProperty.scale()
             "AnimatedProperty<rotYXZ>" -> AnimatedProperty.rotYXZ()

@@ -170,6 +170,12 @@ class Framebuffer(var w: Int, var h: Int, val targetCount: Int, val fpTargets: B
             if(stack.isEmpty()) throw RuntimeException("No framebuffer was found!")
             stack.pop().bind()
         }
+        fun Framebuffer?.bind(w: Int, h: Int){
+            if(this == null){
+                bindNull()
+                glBindFramebuffer(GL_FRAMEBUFFER, 0)
+            } else bind(w, h)
+        }
     }
 
     fun bindTemporary(newWidth: Int, newHeight: Int){
@@ -186,5 +192,7 @@ class Framebuffer(var w: Int, var h: Int, val targetCount: Int, val fpTargets: B
         if(stack.isEmpty()) throw RuntimeException("No framebuffer was found!")
         stack.pop().bind()
     }
+
+
 
 }

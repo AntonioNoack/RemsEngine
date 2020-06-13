@@ -39,7 +39,7 @@ object BokehBlur {
 
     val result = fbPair()
 
-    fun draw(w: Int, h: Int, sizeRY: Float, input: Texture2D): Texture2D {
+    fun draw(buffer: Framebuffer, w: Int, h: Int, sizeRY: Float){
 
         if(compositionShader == null) init()
 
@@ -53,8 +53,7 @@ object BokehBlur {
 
         val filterRadius = sizeRY * h / KERNEL_COUNT
 
-        filterTexture.bind(0, true)
-        input.bind(1, false)
+        filterTexture.bind(1, true)
 
         var shader = perChannelShader!!
         shader.use()
@@ -70,14 +69,15 @@ object BokehBlur {
         shader.v2("stepVal", 1f/w, 1f/h)
         shader.v1("filterRadius", filterRadius)
 
-        result.bind(w, h)
+        buffer.bind()
+        //bind(w, h)
         // filter texture is bound correctly
         r.bindTexture0(1, false)
         g.bindTexture0(2, false)
         b.bindTexture0(3, false)
         flat01.draw(shader)
 
-        return result.textures[0]
+        // return result.textures[0]
 
     }
 
@@ -119,7 +119,7 @@ object BokehBlur {
                 "        val += imageTexelR * c0_c1;\n" +
                 "    }\n" +
                 "    gl_FragColor = val;\n" +
-                "}", listOf("filterTexture", "image"))
+                "}", listOf("image", "filterTexture"))
 
         val kernel0 = floatArrayOf(
             0.014096f, -0.022658f, 0.055991f, 0.004413f,

@@ -38,6 +38,9 @@ object DefaultConfig: StringMap() {
         this["grid.axis.z.color"] = "#7777ff"
         this["format.svg.stepsPerDegree"] = 0.1f
 
+        this["display.colorDepth"] = 8
+
+        addImportMappings("Transform", "json")
         addImportMappings("Image", "png", "jpg", "jpeg", "tiff", "webp", "svg")
         addImportMappings("Cubemap", "hdr")
         addImportMappings("Video", "mp4", "gif", "mpeg", "avi")
@@ -69,11 +72,16 @@ object DefaultConfig: StringMap() {
                     cube.vertexCount.set(4f)
                     cube
                 }(),
-                "Particle System" to ParticleSystem(null)
+                "Particle System" to {
+                    val ps = ParticleSystem(null)
+                    ps.name = "PSystem"
+                    Circle(ps)
+                    ps.timeOffset = -5f
+                    ps
+                }()
             ))
 
         val newConfig = ConfigBasics.loadConfig("main.config", this, true)
-        println(this)
         if(newConfig !== this){
             putAll(newConfig)
         }
@@ -84,6 +92,7 @@ object DefaultConfig: StringMap() {
         ActionManager.init()
 
         val t1 = System.nanoTime()
+        // not completely true; is loading some classes, too
         println("[INFO] Used ${((t1-t0)*1e-9f).f3()}s to read the config")
 
     }

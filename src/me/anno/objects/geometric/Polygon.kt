@@ -99,16 +99,8 @@ class Polygon(parent: Transform?): GFXTransform(parent){
 
     override fun readObject(name: String, value: ISaveable?) {
         when(name){
-            "vertexCount" -> {
-                if(value is AnimatedProperty<*> && value.type == AnimatedProperty.Type.FLOAT){
-                    vertexCount = value as AnimatedProperty<Float>
-                }
-            }
-            "inset" -> {
-                if(value is AnimatedProperty<*> && value.type == AnimatedProperty.Type.FLOAT){
-                    starNess = value as AnimatedProperty<Float>
-                }
-            }
+            "vertexCount" -> vertexCount.copyFrom(value)
+            "inset" -> starNess.copyFrom(value)
             else -> super.readObject(name, value)
         }
     }

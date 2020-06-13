@@ -1,6 +1,7 @@
 package me.anno.objects.geometric
 
 import me.anno.gpu.GFX
+import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.GFXTransform
 import me.anno.objects.Transform
@@ -10,8 +11,6 @@ import me.anno.ui.input.FloatInput
 import me.anno.ui.style.Style
 import org.joml.Matrix4fStack
 import org.joml.Vector4f
-import kotlin.math.max
-import kotlin.math.min
 
 class Circle(parent: Transform?): GFXTransform(parent){
 
@@ -43,6 +42,15 @@ class Circle(parent: Transform?): GFXTransform(parent){
         writer.writeObject(this, "innerRadius", innerRadius)
         writer.writeObject(this, "startDegrees", startDegrees)
         writer.writeObject(this, "endDegrees", endDegrees)
+    }
+
+    override fun readObject(name: String, value: ISaveable?) {
+        when(name){
+            "innerRadius" -> innerRadius.copyFrom(value)
+            "startDegrees" -> startDegrees.copyFrom(value)
+            "endDegrees" -> endDegrees.copyFrom(value)
+            else -> super.readObject(name, value)
+        }
     }
 
 }

@@ -9,7 +9,6 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.size.WindowSize
 import me.anno.gpu.texture.Texture2D
 import me.anno.input.Input
-import me.anno.input.Input.isAltDown
 import me.anno.input.Input.isShiftDown
 import me.anno.objects.Camera
 import me.anno.objects.Transform
@@ -20,10 +19,11 @@ import me.anno.studio.Studio.eventTasks
 import me.anno.studio.Studio.targetHeight
 import me.anno.studio.Studio.targetWidth
 import me.anno.ui.base.Panel
-import me.anno.ui.base.ScrollPanelY
+import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.base.SpacePanel
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.components.Padding
+import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.base.groups.PanelListY
@@ -217,7 +217,6 @@ object GFX: GFXBase1() {
         shader.v4("color", color.r()/255f, color.g()/255f, color.b()/255f, color.a()/255f)
         flat01.draw(shader)
         check()
-        // println("was drawing window ...")
     }
 
     // the background color is important for correct subpixel rendering, because we can't blend per channel
@@ -843,7 +842,8 @@ object GFX: GFXBase1() {
         val style = DefaultConfig.style.getChild("menu")
         val list = PanelListY(style)
         list += WrapAlign.LeftTop
-        val container = ScrollPanelY(list, Padding(1), style, WrapAlign.AxisAlignment.MIN)
+        val container =
+            ScrollPanelY(list, Padding(1), style, AxisAlignment.MIN)
         container += WrapAlign.LeftTop
         lateinit var window: Window
         fun close(){

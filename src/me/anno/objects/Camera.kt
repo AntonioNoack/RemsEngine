@@ -11,11 +11,13 @@ import me.anno.ui.base.ButtonPanel
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.input.BooleanInput
+import me.anno.ui.input.FileInput
 import me.anno.ui.input.FloatInput
 import me.anno.ui.style.Style
 import org.joml.*
 import org.lwjgl.opengl.GL11.GL_LINES
 import org.lwjgl.opengl.GL20.glUniformMatrix4fv
+import java.io.File
 import kotlin.math.tan
 
 class Camera(parent: Transform?): Transform(parent){
@@ -23,6 +25,7 @@ class Camera(parent: Transform?): Transform(parent){
     // todo allow cameras to be merged
     // todo allow cameras to film camera (post processing) -> todo create a stack of cameras/scenes?
 
+    var lut = File("")
     var nearZ = AnimatedProperty.floatPlus().set(0.001f)
     var farZ = AnimatedProperty.floatPlus().set(1000f)
     var fovYDegrees = AnimatedProperty.float().set(90f)
@@ -47,6 +50,10 @@ class Camera(parent: Transform?): Transform(parent){
         list += FloatInput("FOV", fovYDegrees, lastLocalTime, style)
             .setChangeListener { putValue(fovYDegrees, it) }
             .setIsSelectedListener { show(fovYDegrees) }
+        list += FileInput("LUT", style, lut.toString())
+            .setChangeListener { lut = File(it) }
+            .setIsSelectedListener { show(null) }
+            .setTooltip("Look Up Table for colors")
         list += BooleanInput("Only Show Target", onlyShowTarget, style)
             .setChangeListener { onlyShowTarget = it }
             .setIsSelectedListener { show(null) }

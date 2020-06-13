@@ -14,7 +14,8 @@ import kotlin.math.max
 /**
  * intended for SMALL calculations
  * doesn't care about helpful errors much or top performance
- * todo assignments
+ * no assignments, because it shall be small;
+ * no intention for global variables (because it's for artists; it must be good enough via other means)
  * */
 object SimpleExpressionParser {
 

@@ -7,17 +7,19 @@ import me.anno.gpu.GFX.root
 import me.anno.input.Input.mouseX
 import me.anno.input.Input.mouseY
 import me.anno.objects.*
+import me.anno.objects.Transform.Companion.toTransform
 import me.anno.ui.base.*
 import me.anno.ui.base.components.Padding
-import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.groups.PanelListX
+import me.anno.ui.base.scrolling.ScrollPanelXY
 import me.anno.ui.input.components.Checkbox
 import me.anno.ui.style.Style
 import org.joml.Vector3f
 import java.io.File
 import java.lang.Exception
+import kotlin.concurrent.thread
 
 // todo support for multiple cameras? -> just use scenes?
 // todo switch back and forth? how -> multiple cameras... how?
@@ -170,6 +172,7 @@ class TreeView(style: Style):
                 val type1 = DefaultConfig["import.mapping.${ending.toLowerCase()}"]
                 val type2 = DefaultConfig["import.mapping.*"] ?: "Text"
                 when((type0 ?: type1 ?: type2).toString()){
+                    "Transform" -> thread { parent.addChild(file.readText().toTransform()) }
                     "Image" -> Image(file, parent).name = name
                     "Cubemap" -> {
                         val cube = Cubemap(file, parent)

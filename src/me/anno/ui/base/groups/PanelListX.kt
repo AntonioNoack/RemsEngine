@@ -52,14 +52,14 @@ open class PanelListX(sorter: Comparator<Panel>?, style: Style): PanelList(sorte
         super.placeInParent(x, y)
 
         var perWeight = 0f
-        var perConst = 1f
+        val perConst = 1f
 
         if(w > sumConst){
             val extraAvailable = max(0, w - sumConst)
             perWeight = extraAvailable / max(sumWeight, 1e-9f)
-        } else {
+        }/* else {
             perConst = w.toFloat() / sumConst
-        }
+        }*/
 
         // warn("panel list x $x $y $w $h ($minW $minH): $sumConst + $sumWeight -> per const: $perConst, per weight: $perWeight")
 
