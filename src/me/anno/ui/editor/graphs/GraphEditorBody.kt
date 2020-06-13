@@ -393,6 +393,7 @@ class GraphEditorBody(style: Style): Panel(style.getChild("deep")){
     }
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
+        println(action)
         when(action){
             "MoveLeft" -> moveRight(-1f)
             "MoveRight" -> moveRight(1f)

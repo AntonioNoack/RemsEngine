@@ -4,6 +4,7 @@ import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.hoveredPanel
 import me.anno.gpu.GFX.inFocus
+import me.anno.gpu.GFX.inFocus0
 import me.anno.io.utils.StringMap
 import me.anno.objects.Video
 import me.anno.studio.UILayouts
@@ -43,11 +44,6 @@ object ActionManager {
         defaultValue["global.left.up"] = "DragEnd"
         defaultValue["global.f5.down.${Modifiers[true, false]}"] = "ClearCache"
 
-        defaultValue["SceneView.w.press"] = "CamForward"
-        defaultValue["SceneView.s.press"] = "CamBackward"
-        defaultValue["SceneView.a.press"] = "CamLeft"
-        defaultValue["SceneView.d.press"] = "CamRight"
-
         // press instead of down for the delay
         defaultValue["FileEntry.left.press"] = "DragStart"
         defaultValue["FileEntry.left.double"] = "Enter|Open"
@@ -57,10 +53,16 @@ object ActionManager {
         defaultValue["HSVBox.left.down"] = "selectColor"
         defaultValue["HSVBox.left.press-unsafe"] = "selectColor"
 
-        defaultValue["SceneView.right.press"] = "Turn"
-        defaultValue["SceneView.left.press"] = "MoveObject"
-        defaultValue["SceneView.left.press.${Modifiers[false, true]}"] = "MoveObjectAlternate"
+        defaultValue["SceneView.right.p"] = "Turn"
+        defaultValue["SceneView.left.p"] = "MoveObject"
+        defaultValue["SceneView.left.p.${Modifiers[false, true]}"] = "MoveObjectAlternate"
         defaultValue["SceneView.numpad0.down"] = "ResetCamera"
+        defaultValue["SceneView.w.p"] = "MoveForward"
+        defaultValue["SceneView.a.p"] = "MoveLeft"
+        defaultValue["SceneView.s.p"] = "MoveBackward"
+        defaultValue["SceneView.d.p"] = "MoveRight"
+        defaultValue["SceneView.q.p"] = "MoveDown"
+        defaultValue["SceneView.e.p"] = "MoveUp"
 
         // todo somehow not working
         defaultValue["GraphEditorBody.arrowLeft.press"] = "MoveLeft"
@@ -87,6 +89,7 @@ object ActionManager {
                 if(namespace.equals("global", true)){
                     globalActions[keyComb] = values
                 } else {
+                    println("$namespace,$keyComb=$values")
                     localActions[namespace to keyComb] = values
                 }
             }
@@ -114,6 +117,8 @@ object ActionManager {
         onEvent(dx, dy, KeyCombination(key, Input.keyModState, if(save) KeyCombination.Type.PRESS else KeyCombination.Type.PRESS_UNSAFE), true)
     }
 
+    fun onMouseIdle() = onMouseMoved(0f, 0f)
+
     fun onMouseMoved(dx: Float, dy: Float){
         Input.keysDown.forEach { (key, downTime) ->
             onKeyHoldDown(dx, dy, key, false)
@@ -128,7 +133,7 @@ object ActionManager {
         executeGlobally(0f, 0f, false, globalActions[combination])
         val x = Input.mouseX
         val y = Input.mouseY
-        var panel = inFocus
+        var panel = inFocus.firstOrNull()
         targetSearch@ while(panel != null){
             val clazz = panel.getClassName()
             val actions = localActions[clazz to combination] ?: localActions["*" to combination]
@@ -159,7 +164,7 @@ object ActionManager {
         // execute globally
         for(action in actions){
             fun setEditorTimeDilation(dilation: Float): Boolean {
-                return if(dilation == editorTimeDilation || inFocus?.isKeyInput() == true) false
+                return if(dilation == editorTimeDilation || inFocus0?.isKeyInput() == true) false
                 else {
                     editorTimeDilation = dilation
                     true

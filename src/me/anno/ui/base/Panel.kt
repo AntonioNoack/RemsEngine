@@ -29,7 +29,7 @@ open class Panel(val style: Style): Saveable(){
     var x = 0
     var y = 0
 
-    val isInFocus get() = GFX.inFocus === this
+    val isInFocus get() = this in GFX.inFocus
     val canBeSeen get() = canBeSeen(0,0,GFX.width,GFX.height)
     val canBeSeenCurrently get() = canBeSeen(GFX.windowX, GFX.windowY, GFX.windowWidth, GFX.windowHeight)
     val isHovered get() = Input.mouseX.toInt()-x in 0 until w && Input.mouseY.toInt()-y in 0 until h
@@ -40,7 +40,7 @@ open class Panel(val style: Style): Saveable(){
     var tooltip: String? = null
     val isVisible get() = visibility == Visibility.VISIBLE && canBeSeen
 
-    fun requestFocus() = GFX.requestFocus(this)
+    fun requestFocus() = GFX.requestFocus(this, true)
 
     fun drawBackground(){
         GFX.drawRect(x,y,w,h,backgroundColor)
@@ -160,5 +160,8 @@ open class Panel(val style: Style): Saveable(){
 
     fun contains(x: Int, y: Int, margin: Int = 0) = (x-this.x) in -margin until w+margin && (y-this.y) in -margin until h+margin
     fun contains(x: Float, y: Float, margin: Int = 0) = contains(x.toInt(), y.toInt(), margin)
+    open fun getMultiSelectableParent(): Panel? = parent?.getMultiSelectableParent()
+
+    fun indexInParent() = parent?.children?.indexOf(this) ?: -1
 
 }

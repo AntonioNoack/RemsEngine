@@ -143,9 +143,12 @@ object GFX: GFXBase1() {
 
     val menuSeparator = "-----"
 
-    var inFocus: Panel? = null
-    fun requestFocus(panel: Panel){
-        inFocus = panel
+    val inFocus = HashSet<Panel>()
+    val inFocus0 get() = inFocus.firstOrNull()
+
+    fun requestFocus(panel: Panel?, exclusive: Boolean){
+        if(exclusive) inFocus.clear()
+        if(panel != null) inFocus += panel
     }
 
     fun clip(x: Int, y: Int, w: Int, h: Int){
@@ -167,29 +170,29 @@ object GFX: GFXBase1() {
 
     lateinit var windowStack: Stack<Window>
 
-    fun getClickedPanelAndWindow(x: Float, y: Float) = getClickedPanelAndWindow(x.toInt(), y.toInt())
-    fun getClickedPanelAndWindow(x: Int, y: Int): Pair<Panel, Window>? {
+    fun getPanelAndWindowAt(x: Float, y: Float) = getPanelAndWindowAt(x.toInt(), y.toInt())
+    fun getPanelAndWindowAt(x: Int, y: Int): Pair<Panel, Window>? {
         for(root in windowStack.reversed()){
-            val panel = getClickedPanel(root.panel, x, y)
+            val panel = getPanelAt(root.panel, x, y)
             if(panel != null) return panel to root
         }
         return null
     }
 
-    fun getClickedPanel(x: Float, y: Float) = getClickedPanel(x.toInt(), y.toInt())
-    fun getClickedPanel(x: Int, y: Int): Panel? {
+    fun getPanelAt(x: Float, y: Float) = getPanelAt(x.toInt(), y.toInt())
+    fun getPanelAt(x: Int, y: Int): Panel? {
         for(root in windowStack.reversed()){
-            val panel = getClickedPanel(root.panel, x, y)
+            val panel = getPanelAt(root.panel, x, y)
             if(panel != null) return panel
         }
         return null
     }
 
-    fun getClickedPanel(panel: Panel, x: Int, y: Int): Panel? {
+    fun getPanelAt(panel: Panel, x: Int, y: Int): Panel? {
         return if(panel.isVisible && (x - panel.x) in 0 until panel.w && (y - panel.y) in 0 until panel.h){
             if(panel is PanelGroup){
                 for(child in panel.children.reversed()){
-                    val clickedByChild = getClickedPanel(child,x,y)
+                    val clickedByChild = getPanelAt(child,x,y)
                     if(clickedByChild != null){
                         return clickedByChild
                     }

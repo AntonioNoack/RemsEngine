@@ -14,6 +14,7 @@ import me.anno.objects.geometric.Circle
 import me.anno.objects.geometric.Polygon
 import me.anno.objects.particles.ParticleSystem
 import me.anno.studio.Studio
+import me.anno.ui.base.Panel
 import me.anno.ui.base.TextPanel
 import me.anno.ui.dragging.Draggable
 import me.anno.ui.editor.treeView.TreeView.Companion.addChildFromFile
@@ -171,6 +172,9 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style): TextPanel(""
                 clamp((z * scale).toInt(), 0, 255) or
                 clamp((w * 255).toInt(), 0, 255).shl(24)
     }
+
+    // multiple values can be selected
+    override fun getMultiSelectableParent() = this
 
     override fun getClassName() = "TreeViewPanel"
 

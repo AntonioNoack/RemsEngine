@@ -108,22 +108,19 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
 
     var velocity = Vector3f()
 
+    var dx = 0
+    var dy = 0
+    var dz = 0
+
     fun parseKeyInput(){
 
         val dt = clamp(deltaTime, 0f, 0.1f)
 
-        val acceleration = Vector3f()
-
-        if(isInFocus){
-
-            if('W'.toInt() in keysDown) acceleration.z--
-            if('S'.toInt() in keysDown) acceleration.z++
-            if('A'.toInt() in keysDown) acceleration.x--
-            if('D'.toInt() in keysDown) acceleration.x++
-            if('Q'.toInt() in keysDown) acceleration.y--
-            if('E'.toInt() in keysDown) acceleration.y++
-
-        }
+        // clamped just in case we get multiple mouse movement events in one frame
+        val acceleration = Vector3f(
+            clamp(dx, -1, 1).toFloat(),
+            clamp(dy, -1, 1).toFloat(),
+            clamp(dz, -1, 1).toFloat())
 
         velocity.mul(1f - dt)
         velocity.mulAdd(dt, acceleration)
@@ -139,6 +136,9 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
             camera.position.addKeyframe(cameraTime, newPosition, 0.01f)
         }
 
+        dx = 0
+        dy = 0
+        dz = 0
 
     }
 
@@ -149,6 +149,7 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
         val dx0 = dx*size
         val dy0 = dy*size
         val delta = dx0-dy0
+        // todo fix this code, then move it to the action manager
         if(0 in mouseKeysDown){
             // move the object
             val selected = GFX.selectedTransform
@@ -212,20 +213,23 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
                 }
             }
         }
-        if(1 in mouseKeysDown){
-            // todo move the camera
-            // todo only do, if not locked
-            val scaleFactor = -10f
-            val camera = GFX.selectedCamera
-            val (cameraTransform, cameraTime) = camera.getGlobalTransform(editorTime)
-            val oldRotation = camera.rotationYXZ[cameraTime]
-            camera.putValue(camera.rotationYXZ, oldRotation + Vector3f(dy0 * scaleFactor, dx0 * scaleFactor, 0f))
-        }
+    }
+
+    fun turn(dx: Float, dy: Float){
+        // todo move the camera
+        // todo only do, if not locked
+        val size = (if(Input.isShiftDown) 4f else 20f) * (if(GFX.selectedTransform is Camera) -1f else 1f) / max(GFX.width,GFX.height)
+        val dx0 = dx*size
+        val dy0 = dy*size
+        val scaleFactor = -10f
+        val camera = GFX.selectedCamera
+        val (cameraTransform, cameraTime) = camera.getGlobalTransform(editorTime)
+        val oldRotation = camera.rotationYXZ[cameraTime]
+        camera.putValue(camera.rotationYXZ, oldRotation + Vector3f(dy0 * scaleFactor, dx0 * scaleFactor, 0f))
     }
 
     // todo undo, redo by serialization of the scene
     // todo switch animatedproperty when selecting another object
-
     override fun onCharTyped(x: Float, y: Float, key: Int) {
         when(key.toChar().toLowerCase()){
             // todo global actions
@@ -242,6 +246,17 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
             "SetMode(SCALE)" -> mode = TransformMode.SCALE
             "SetMode(ROTATE)" -> mode = TransformMode.ROTATE
             "ResetCamera" -> { GFX.selectedCamera.resetTransform() }
+            "MoveLeft" -> this.dx--
+            "MoveRight" -> this.dx++
+            "MoveUp" -> this.dy++
+            "MoveDown" -> this.dy--
+            "MoveForward" -> this.dz--
+            "MoveBackward", "MoveBack" -> this.dz++
+            "Turn" -> turn(dx, dy)
+            "TurnLeft" -> turn(-1f, 0f)
+            "TurnRight" -> turn(1f, 0f)
+            "TurnUp" -> turn(0f, -1f)
+            "TurnDown" -> turn(0f, 1f)
             else -> return super.onGotAction(x, y, dx, dy, action, isContinuous)
         }
         return true
@@ -263,5 +278,7 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
         TransformMode.ROTATE -> Cursor.crossHair
         else -> null
     }*/
+
+    override fun getClassName() = "SceneView"
 
 }

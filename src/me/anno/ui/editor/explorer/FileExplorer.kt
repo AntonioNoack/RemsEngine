@@ -4,6 +4,7 @@ import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.objects.Transform.Companion.toTransform
 import me.anno.studio.Studio.project
+import me.anno.ui.base.Panel
 import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.components.Padding
@@ -133,6 +134,9 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
     // todo search results below
     // todo search in text files
     // todo search in meta data for audio and video
+
+    // multiple elements can be selected
+    override fun getMultiSelectableParent() = this
 
     override fun getClassName() = "FileExplorer"
 

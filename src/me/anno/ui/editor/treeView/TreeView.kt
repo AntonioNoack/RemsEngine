@@ -4,6 +4,7 @@ import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.nullCamera
 import me.anno.gpu.GFX.root
+import me.anno.gpu.GFX.select
 import me.anno.input.Input.mouseX
 import me.anno.input.Input.mouseY
 import me.anno.objects.*
@@ -51,8 +52,9 @@ class TreeView(style: Style):
         while(todo.isNotEmpty()){
             val (transform, depth) = todo.removeAt(todo.lastIndex)
             val panel = getOrCreateChild(index++, transform)
-            (panel.parent!!.children[0] as SpacePanel).minW = inset * depth + panel.padding.right
+            //(panel.parent!!.children[0] as SpacePanel).minW = inset * depth + panel.padding.right
             panel.text = transform.name
+            panel.padding.left = inset * depth + panel.padding.right
             if(!transform.isCollapsed){
                 todo.addAll(transform.children.map { it to (depth+1) }.reversed())
             }
@@ -119,24 +121,23 @@ class TreeView(style: Style):
     fun getOrCreateChild(index: Int, transform0: Transform): TextPanel {
         if(index < list.children.size){
             transformByIndex[index] = transform0
-            val list2 = list.children[index] as PanelGroup
-            val panel = list2.children[2] as TextPanel
-            list2.visibility = Visibility.VISIBLE
+            val panel = list.children[index] as TextPanel
+            panel.visibility = Visibility.VISIBLE
             return panel
         }
         transformByIndex += transform0
-        val list2 = PanelListX(style)
-        list2 += SpacePanel(1, 1, style)
+        // val list2 = PanelListX(style)
+        // list2 += SpacePanel(1, 1, style)
         val child = TreeViewPanel({ transformByIndex[index] }, style)
         child.padding.left = 4
         // todo checkbox with custom icons
-        list2 += Checkbox(transform0.isCollapsed, child.textSize, style)
+        /*list2 += Checkbox(transform0.isCollapsed, child.textSize, style)
             .setChangeListener {
                 transformByIndex[index].isCollapsed = it
                 updateTree()
-            }
-        list2 += child
-        list += list2
+            }*/
+        //list2 += child
+        list += child// += list2
         return child
     }
 
@@ -172,29 +173,53 @@ class TreeView(style: Style):
                 val type1 = DefaultConfig["import.mapping.${ending.toLowerCase()}"]
                 val type2 = DefaultConfig["import.mapping.*"] ?: "Text"
                 when((type0 ?: type1 ?: type2).toString()){
-                    "Transform" -> thread { parent.addChild(file.readText().toTransform()) }
-                    "Image" -> Image(file, parent).name = name
+                    "Transform" -> thread {
+                        val transform = file.readText().toTransform()
+                        parent.addChild(transform)
+                        select(transform)
+                    }
+                    "Image" -> {
+                        val image = Image(file, parent)
+                        image.name = name
+                        select(image)
+                    }
                     "Cubemap" -> {
                         val cube = Cubemap(file, parent)
                         cube.scale.set(Vector3f(1000f, 1000f, 1000f))
                         cube.name = name
+                        select(cube)
                     }
-                    "Video" -> Video(file, parent).name = name
+                    "Video" -> {
+                        val video = Video(file, parent)
+                        video.name = name
+                        select(video)
+                    }
                     "Text" -> {
                         try {
                             var all = file.readText()
                             if(all.length > 500) all = all.substring(0, 500)
-                            Text(all, parent).name = name
+                            val text = Text(all, parent)
+                            text.name = name
+                            select(text)
                         } catch (e: Exception){
                             e.printStackTrace()
                             return
                         }
                     }
-                    "Markdown" -> {
-                        // todo parse, and create constructs?
-                        println("Markdown is not yet implemented!")
+                    "HTML" -> {
+                        // parse html? maybe, but html and css are complicated
+                        // rather use screenshots or svg...
+                        // integrated browser?
                     }
-                    "Audio" -> Audio(file, parent).name = name
+                    "Markdeep", "Markdown" -> {
+                        // execute markdeep script or interpret markdown to convert it to html? no
+                        // I see few use-cases
+                    }
+                    "Audio" -> {
+                        val audio = Audio(file, parent)
+                        audio.name = name
+                        select(audio)
+                    }
                     else -> println("Unknown file type: $ending")
                 }
             }

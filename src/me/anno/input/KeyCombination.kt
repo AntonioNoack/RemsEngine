@@ -105,7 +105,7 @@ class KeyCombination(val key: Int, val modifiers: Int, val type: Type){
                 "press" -> Type.PRESS
                 "typed" -> Type.TYPED
                 "up" -> Type.UP
-                "press-unsafe" -> Type.PRESS_UNSAFE
+                "press-unsafe", "p" -> Type.PRESS_UNSAFE
                 "double", "double-click" -> Type.DOUBLE
                 else -> return null
             }

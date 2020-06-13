@@ -2,12 +2,14 @@ package me.anno.input
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
-import me.anno.gpu.GFX.getClickedPanel
-import me.anno.gpu.GFX.getClickedPanelAndWindow
+import me.anno.gpu.GFX.getPanelAt
+import me.anno.gpu.GFX.getPanelAndWindowAt
 import me.anno.gpu.GFX.inFocus
+import me.anno.gpu.GFX.inFocus0
 import me.anno.gpu.GFX.window
 import me.anno.gpu.GFX.openMenu
 import me.anno.gpu.GFX.requestExit
+import me.anno.gpu.GFX.requestFocus
 import me.anno.gpu.GFX.windowStack
 import me.anno.studio.Studio.addEvent
 import me.anno.ui.editor.sceneView.SceneView
@@ -21,37 +23,10 @@ import java.awt.datatransfer.UnsupportedFlavorException
 import java.io.File
 import java.util.HashSet
 import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.min
 
 object Input {
-
-    fun copy() {
-        val copied = inFocus?.onCopyRequested(mouseX, mouseY)
-        if (copied != null) {
-            val selection = StringSelection(copied)
-            Toolkit.getDefaultToolkit().systemClipboard.setContents(selection, selection)
-        }
-    }
-
-    fun paste() {
-        val clipboard = Toolkit.getDefaultToolkit().systemClipboard
-        try {
-            val data = clipboard.getData(DataFlavor.stringFlavor) as? String
-            if (data != null) inFocus?.onPaste(mouseX, mouseY, data, "")
-            return
-        } catch (e: UnsupportedFlavorException){ }
-        try {
-            val data = clipboard.getData(DataFlavor.javaFileListFlavor) as? List<File>
-            if (data != null) inFocus?.onPasteFiles(mouseX, mouseY, data)
-            return
-        } catch (e: UnsupportedFlavorException){ }
-        println("Unsupported Data Flavor")
-    }
-
-    fun save() {
-        // todo save the project
-    }
-
-    val keysDown = HashMap<Int, Long>()
 
     var mouseX = 0f
     var mouseY = 0f
@@ -59,11 +34,15 @@ object Input {
     var mouseDownX = 0f
     var mouseDownY = 0f
     var mouseKeysDown = HashSet<Int>()
+
+    val keysDown = HashMap<Int, Long>()
     
     var lastClickX = 0f
     var lastClickY = 0f
     var lastClickTime = 0L
     var keyModState = 0
+
+    var mouseMovementSinceMouseDown = 0f
 
     val isControlDown get() = (keyModState and GLFW.GLFW_MOD_CONTROL) != 0
     val isShiftDown get() = (keyModState and GLFW.GLFW_MOD_SHIFT) != 0
@@ -71,12 +50,18 @@ object Input {
     val isAltDown get() = (keyModState and GLFW.GLFW_MOD_ALT) != 0
     val isSuperDown get() = (keyModState and GLFW.GLFW_MOD_SUPER) != 0
 
+    var framesSinceLastInteraction = 0
+    val layoutFrameCount = 5
+
+    fun needsLayoutUpdate() = framesSinceLastInteraction < layoutFrameCount
+
     fun initForGLFW(){
 
         GLFW.glfwSetDropCallback(window){ _: Long, count: Int, names: Long ->
             if(count > 0) addEvent {
-                inFocus = getClickedPanel(mouseX, mouseY)
-                inFocus?.apply {
+                framesSinceLastInteraction = 0
+                requestFocus(getPanelAt(mouseX, mouseY), true)
+                inFocus0?.apply {
                     val files = Array(count){ nameIndex ->
                         try {
                             File(GLFWDropCallback.getName(names, nameIndex))
@@ -95,7 +80,8 @@ object Input {
 
         GLFW.glfwSetCharModsCallback(window) { _, codepoint, mods ->
             addEvent {
-                inFocus?.onCharTyped(mouseX, mouseY, codepoint)
+                framesSinceLastInteraction = 0
+                inFocus0?.onCharTyped(mouseX, mouseY, codepoint)
                 keyModState = mods
                 // println("char mods event $codepoint $mods")
             }
@@ -103,16 +89,20 @@ object Input {
         GLFW.glfwSetCursorPosCallback(window) { _, xpos, ypos ->
             addEvent {
 
+                if(keysDown.isNotEmpty()) framesSinceLastInteraction = 0
+
                 val newX = xpos.toFloat()
                 val newY = ypos.toFloat()
 
                 val dx = newX - mouseX
                 val dy = newY - mouseY
 
+                mouseMovementSinceMouseDown += length(dx, dy)
+
                 mouseX = newX
                 mouseY = newY
 
-                inFocus?.onMouseMoved(mouseX, mouseY, dx, dy)
+                inFocus0?.onMouseMoved(mouseX, mouseY, dx, dy)
                 ActionManager.onMouseMoved(dx, dy)
 
             }
@@ -120,19 +110,51 @@ object Input {
         var mouseStart = 0L
         GLFW.glfwSetMouseButtonCallback(window) { _, button, action, mods ->
             addEvent {
+                framesSinceLastInteraction = 0
                 when (action) {
                     GLFW.GLFW_PRESS -> {
+
                         // find the clicked element
                         mouseDownX = mouseX
                         mouseDownY = mouseY
-                        val panelWindow = getClickedPanelAndWindow(mouseX, mouseY)
+                        mouseMovementSinceMouseDown = 0f
+
+                        val panelWindow = getPanelAndWindowAt(mouseX, mouseY)
                         if(panelWindow != null){
                             while(panelWindow.second != windowStack.peek()){
                                 windowStack.pop()
                             }
                         }
-                        inFocus = panelWindow?.first
-                        inFocus?.onMouseDown(mouseX, mouseY, button)
+
+                        val singleSelect = isControlDown
+                        val multiSelect = isShiftDown
+
+                        val mouseTarget = getPanelAt(mouseX, mouseY)
+                        val selectionTarget = mouseTarget?.getMultiSelectableParent()
+                        val inFocusTarget = inFocus0?.getMultiSelectableParent()
+                        val joinedParent = inFocusTarget?.parent
+
+                        if((singleSelect || multiSelect) && selectionTarget != null && joinedParent == selectionTarget.parent){
+                            if(inFocus0 != inFocusTarget) requestFocus(inFocusTarget, true)
+                            if(singleSelect){
+                                if(selectionTarget in inFocus) inFocus -= selectionTarget
+                                else inFocus += selectionTarget
+                            } else {
+                                val index0 = inFocusTarget!!.indexInParent()
+                                val index1 = selectionTarget.indexInParent()
+                                // todo we should use the last selected as reference point...
+                                val minIndex = min(index0, index1)
+                                val maxIndex = max(index0, index1)
+                                for(index in minIndex .. maxIndex){
+                                    inFocus += joinedParent!!.children[index]
+                                }
+                            }
+                            println(inFocus)
+                        } else {
+                            requestFocus(panelWindow?.first, true)
+                        }
+
+                        inFocus0?.onMouseDown(mouseX, mouseY, button)
                         ActionManager.onKeyDown(button)
                         mouseStart = System.nanoTime()
                         mouseKeysDown.add(button)
@@ -140,27 +162,39 @@ object Input {
                     }
                     GLFW.GLFW_RELEASE -> {
 
-                        inFocus?.onMouseUp(mouseX, mouseY, button)
+                        inFocus0?.onMouseUp(mouseX, mouseY, button)
 
                         ActionManager.onKeyUp(button)
                         ActionManager.onKeyTyped(button)
 
                         val longClickMillis = DefaultConfig["longClick", 300]
                         val currentNanos = System.nanoTime()
-                        val isDoubleClick = abs(lastClickTime - currentNanos) / 1_000_000 < longClickMillis && length(mouseX - lastClickX, mouseY - lastClickY) < 5f
-                        val mouseDuration = currentNanos - mouseStart
-                        val isLongClick = mouseDuration / 1_000_000 < longClickMillis
+                        val maxClickDistance = 5f
+                        val isClick = mouseMovementSinceMouseDown < maxClickDistance
 
-                        if(isDoubleClick){
-                            ActionManager.onKeyDoubleClick(button)
-                            inFocus?.onDoubleClick(mouseX, mouseY, button)
-                        } else {
-                            inFocus?.onMouseClicked(mouseX, mouseY, button, isLongClick)
+                        if(isClick){
+
+                            val isDoubleClick = abs(lastClickTime - currentNanos) / 1_000_000 < longClickMillis &&
+                                    length(mouseX - lastClickX, mouseY - lastClickY) < maxClickDistance
+
+                            if(isDoubleClick){
+
+                                ActionManager.onKeyDoubleClick(button)
+                                inFocus0?.onDoubleClick(mouseX, mouseY, button)
+
+                            } else {
+
+                                val mouseDuration = currentNanos - mouseStart
+                                val isLongClick = mouseDuration / 1_000_000 < longClickMillis
+                                inFocus0?.onMouseClicked(mouseX, mouseY, button, isLongClick)
+                            }
+
+                            lastClickX = mouseX
+                            lastClickY = mouseY
+                            lastClickTime = currentNanos
+
                         }
 
-                        lastClickX = mouseX
-                        lastClickY = mouseY
-                        lastClickTime = currentNanos
                         mouseKeysDown.remove(button)
                         keysDown.remove(button)
 
@@ -171,12 +205,14 @@ object Input {
         }
         GLFW.glfwSetScrollCallback(window) { window, xoffset, yoffset ->
             addEvent {
-                val clicked = getClickedPanel(mouseX, mouseY)
+                framesSinceLastInteraction = 0
+                val clicked = getPanelAt(mouseX, mouseY)
                 clicked?.onMouseWheel(mouseX, mouseY, xoffset.toFloat(), yoffset.toFloat())
             }
         }
         GLFW.glfwSetKeyCallback(window) { window, key, scancode, action, mods ->
             addEvent {
+                framesSinceLastInteraction = 0
                 fun keyTyped(key: Int) {
 
                     ActionManager.onKeyTyped(key)
@@ -184,14 +220,15 @@ object Input {
                     when (key) {
                         GLFW.GLFW_KEY_ENTER -> {
                             if(isShiftDown || isControlDown){
-                                inFocus?.onCharTyped(mouseX, mouseY, '\n'.toInt())
+                                inFocus0?.onCharTyped(mouseX, mouseY, '\n'.toInt())
                             } else {
-                                inFocus?.onEnterKey(mouseX, mouseY)
+                                inFocus0?.onEnterKey(mouseX, mouseY)
                             }
                         }
-                        GLFW.GLFW_KEY_DELETE -> inFocus?.onDeleteKey(mouseX, mouseY)
-                        GLFW.GLFW_KEY_BACKSPACE -> inFocus?.onBackKey(mouseX, mouseY)
+                        GLFW.GLFW_KEY_DELETE -> inFocus0?.onDeleteKey(mouseX, mouseY)
+                        GLFW.GLFW_KEY_BACKSPACE -> inFocus0?.onBackKey(mouseX, mouseY)
                         GLFW.GLFW_KEY_ESCAPE -> {
+                            val inFocus = inFocus.firstOrNull()
                             if (inFocus is SceneView) {
                                 if (windowStack.size < 2) {
                                     openMenu(mouseX, mouseY, "Exit?",
@@ -202,9 +239,9 @@ object Input {
                                         ))
                                 } else windowStack.pop()
                             } else {
-                                inFocus = windowStack.mapNotNull {
+                                requestFocus(windowStack.mapNotNull {
                                     it.panel.listOfAll.firstOrNull { panel -> panel is SceneView }
-                                }.firstOrNull()
+                                }.firstOrNull(), true)
                             }
                         }
                         // GLFW.GLFW_KEY_PRINT_SCREEN -> { Layout.printLayout() }
@@ -220,14 +257,14 @@ object Input {
                                         GLFW.GLFW_KEY_C -> copy()
                                         GLFW.GLFW_KEY_X -> {
                                             copy()
-                                            inFocus?.onEmpty(mouseX, mouseY)
+                                            inFocus0?.onEmpty(mouseX, mouseY)
                                         }
-                                        GLFW.GLFW_KEY_A -> inFocus?.onSelectAll(mouseX, mouseY)
+                                        GLFW.GLFW_KEY_A -> inFocus0?.onSelectAll(mouseX, mouseY)
                                     }
                                 }
                             }
                             // println("typed by $action")
-                            inFocus?.onKeyTyped(mouseX, mouseY, key)
+                            inFocus0?.onKeyTyped(mouseX, mouseY, key)
                             // inFocus?.onCharTyped(mx,my,key)
                         }
                     }
@@ -235,12 +272,12 @@ object Input {
                 when (action) {
                     GLFW.GLFW_PRESS -> {
                         keysDown[key] = GFX.lastTime
-                        inFocus?.onKeyDown(mouseX, mouseY, key) // 264
+                        inFocus0?.onKeyDown(mouseX, mouseY, key) // 264
                         ActionManager.onKeyDown(key)
                         keyTyped(key)
                     }
                     GLFW.GLFW_RELEASE -> {
-                        inFocus?.onKeyUp(mouseX, mouseY, key)
+                        inFocus0?.onKeyUp(mouseX, mouseY, key)
                         ActionManager.onKeyUp(key)
                         keysDown.remove(key)
                     } // 265
@@ -253,6 +290,35 @@ object Input {
 
 
     }
+
+    fun copy() {
+        // todo combine them into an array?
+        val copied = inFocus0?.onCopyRequested(mouseX, mouseY)
+        if (copied != null) {
+            val selection = StringSelection(copied)
+            Toolkit.getDefaultToolkit().systemClipboard.setContents(selection, selection)
+        }
+    }
+
+    fun paste() {
+        val clipboard = Toolkit.getDefaultToolkit().systemClipboard
+        try {
+            val data = clipboard.getData(DataFlavor.stringFlavor) as? String
+            if (data != null) inFocus0?.onPaste(mouseX, mouseY, data, "")
+            return
+        } catch (e: UnsupportedFlavorException){ }
+        try {
+            val data = clipboard.getData(DataFlavor.javaFileListFlavor) as? List<File>
+            if (data != null) inFocus0?.onPasteFiles(mouseX, mouseY, data)
+            return
+        } catch (e: UnsupportedFlavorException){ }
+        println("Unsupported Data Flavor")
+    }
+
+    fun save() {
+        // todo save the project
+    }
+
 
 
 }

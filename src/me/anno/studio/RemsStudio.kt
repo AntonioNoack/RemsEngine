@@ -5,12 +5,14 @@ import me.anno.config.DefaultConfig
 import me.anno.gpu.Cursor
 import me.anno.gpu.Cursor.useCursor
 import me.anno.gpu.GFX
-import me.anno.gpu.GFX.getClickedPanelAndWindow
+import me.anno.gpu.GFX.getPanelAndWindowAt
 import me.anno.gpu.GFX.hoveredPanel
 import me.anno.gpu.GFX.hoveredWindow
 import me.anno.gpu.GFX.showFPS
 import me.anno.gpu.GFX.updateTitle
 import me.anno.gpu.Window
+import me.anno.input.ActionManager
+import me.anno.input.Input
 import me.anno.input.Input.mouseX
 import me.anno.input.Input.mouseY
 import me.anno.input.ShowKeys
@@ -56,6 +58,9 @@ object RemsStudio {
 
     fun run(){
 
+        var lmx = mouseX
+        var lmy = mouseY
+
         UILayouts.createLoadingUI()
 
         GFX.windowStack = windowStack
@@ -72,23 +77,34 @@ object RemsStudio {
         GFX.gameLoop = { w, h ->
             check()
 
-            val hovered = getClickedPanelAndWindow(mouseX, mouseY)
+            val hovered = getPanelAndWindowAt(mouseX, mouseY)
             hoveredPanel = hovered?.first
             hoveredWindow = hovered?.second
+
+            if(lmx == mouseX && lmy == mouseY){
+                ActionManager.onMouseIdle()
+            } else {
+                lmx = mouseX
+                lmy = mouseY
+            }
 
             hoveredPanel?.getCursor()?.useCursor()
 
             windowStack.forEach { window ->
                 val panel = window.panel
-                val t0 = System.nanoTime()
-                panel.calculateSize(w-window.x,h-window.y)
-                panel.applyConstraints()
-                val t1 = System.nanoTime()
-                panel.placeInParent(window.x, window.y)
-                val t2 = System.nanoTime()
-                val dt1 = (t1-t0)*1e-9f
-                val dt2 = (t2-t1)*1e-9f
-                if(dt1 > 0.01f && frameCtr > 0) println("[WARN] Used ${dt1}s + ${dt2}s for layout")
+                // optimization is worth 0.5% of 3.4GHz * 12 ~ 200 MHz ST (13.06.2020)
+                if(Input.needsLayoutUpdate()){
+                    val t0 = System.nanoTime()
+                    panel.calculateSize(w-window.x,h-window.y)
+                    panel.applyConstraints()
+                    val t1 = System.nanoTime()
+                    panel.placeInParent(window.x, window.y)
+                    val t2 = System.nanoTime()
+                    val dt1 = (t1-t0)*1e-9f
+                    val dt2 = (t2-t1)*1e-9f
+                    if(dt1 > 0.01f && frameCtr > 0) println("[WARN] Used ${dt1}s + ${dt2}s for layout")
+                    Input.framesSinceLastInteraction++
+                }
                 panel.draw(window.x,window.y,window.x+panel.w,window.y+panel.h)
             }
 
