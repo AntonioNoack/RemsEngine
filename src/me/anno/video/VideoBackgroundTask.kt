@@ -50,7 +50,7 @@ class VideoBackgroundTask(val video: VideoCreator){
         GFX.isFinalRendering = true
 
         try {
-            Scene.draw(framebuffer, 0, 0, video.w, video.h, time, flipY = true)
+            Scene.draw(framebuffer, GFX.selectedCamera, 0, 0, video.w, video.h, time, flipY = true)
         } catch (e: MissingFrameException){
             GFX.isFinalRendering = false
             return false

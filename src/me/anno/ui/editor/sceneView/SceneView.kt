@@ -11,6 +11,7 @@ import me.anno.input.Input.keysDown
 import me.anno.input.Input.mouseKeysDown
 import me.anno.objects.Camera
 import me.anno.studio.Scene
+import me.anno.studio.Studio.dragged
 import me.anno.studio.Studio.targetHeight
 import me.anno.studio.Studio.targetWidth
 import me.anno.ui.base.TextPanel
@@ -50,6 +51,8 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
 
     }
 
+    var camera = GFX.nullCamera
+
     // use a framebuffer, where we draw sq(color)
     // then we use a shader to draw sqrt(sq(color))
     // this should give correct color mixing <3
@@ -76,7 +79,7 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
         var rh = h
 
 
-        val camera = GFX.selectedCamera
+        val camera = camera
         if(camera.onlyShowTarget){
             if(w * targetHeight > targetWidth *h){
                 rw = h * targetWidth / targetHeight
@@ -87,7 +90,7 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
             }
         }
 
-        Scene.draw(null, x+dx,y+dy,rw,rh, GFX.editorTime, false)
+        Scene.draw(null, camera, x+dx,y+dy,rw,rh, GFX.editorTime, false)
 
         GFX.clip(x0, y0, x1, y1)
 
@@ -126,7 +129,7 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
         velocity.mulAdd(dt, acceleration)
 
         if(velocity.x != 0f || velocity.y != 0f || velocity.z != 0f){
-            val camera = GFX.selectedCamera
+            val camera = camera
             val (cameraTransform, cameraTime) = camera.getGlobalTransform(editorTime)
             val oldPosition = camera.position[cameraTime]
             val step = (velocity * dt)
@@ -157,7 +160,7 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
 
                 val (target2global, localTime) = selected.getGlobalTransform(editorTime)
 
-                val camera = GFX.selectedCamera
+                val camera = camera
                 val (camera2global, cameraTime) = camera.getGlobalTransform(editorTime)
 
                 val global2normUI = Matrix4fStack(3)
@@ -222,7 +225,7 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
         val dx0 = dx*size
         val dy0 = dy*size
         val scaleFactor = -10f
-        val camera = GFX.selectedCamera
+        val camera = camera
         val (cameraTransform, cameraTime) = camera.getGlobalTransform(editorTime)
         val oldRotation = camera.rotationYXZ[cameraTime]
         camera.putValue(camera.rotationYXZ, oldRotation + Vector3f(dy0 * scaleFactor, dx0 * scaleFactor, 0f))
@@ -278,6 +281,18 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
         TransformMode.ROTATE -> Cursor.crossHair
         else -> null
     }*/
+
+    override fun onPaste(x: Float, y: Float, data: String, type: String) {
+        when(type){
+            "Transform" -> {
+                val original = dragged?.getOriginal() ?: return
+                if(original is Camera){
+                    camera = original
+                }// else focus?
+            }
+            else -> super.onPaste(x, y, data, type)
+        }
+    }
 
     override fun getClassName() = "SceneView"
 

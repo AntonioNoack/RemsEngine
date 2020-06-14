@@ -20,6 +20,7 @@ import org.joml.Quaternionf
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
+import java.lang.RuntimeException
 import kotlin.math.max
 
 class VectorInput(
@@ -27,6 +28,18 @@ class VectorInput(
     val type: AnimatedProperty.Type,
     val owningProperty: AnimatedProperty<*>? = null
 ): PanelListY(style){
+
+    constructor(title: String, property: AnimatedProperty<*>, time: Float, style: Style):
+            this(style, title, property.type, property){
+        when(val value = property[time]){
+            is Float -> setValue(value)
+            is Vector2f -> setValue(value)
+            is Vector3f -> setValue(value)
+            is Vector4f -> setValue(value)
+            is Quaternionf -> setValue(value)
+            else -> throw RuntimeException("Type $value not yet supported!")
+        }
+    }
 
     constructor(style: Style, title: String, value: Vector2f, type: AnimatedProperty.Type,
                 owningProperty: AnimatedProperty<*>? = null): this(style, title, type, owningProperty){
@@ -131,6 +144,10 @@ class VectorInput(
     val vy get() = compY.lastValue.toFloat()
     val vz get() = compZ!!.lastValue.toFloat()
     val vw get() = compW!!.lastValue.toFloat()
+
+    fun setValue(v: Float){
+        compX.setValue(v)
+    }
 
     fun setValue(v: Vector2f){
         compX.setValue(v.x)

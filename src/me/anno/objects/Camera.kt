@@ -5,14 +5,15 @@ import me.anno.gpu.GFX.toRadians
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticFloatBuffer
 import me.anno.objects.animation.AnimatedProperty
+import me.anno.objects.effects.ToneMappers
 import me.anno.studio.Studio.targetHeight
 import me.anno.studio.Studio.targetWidth
 import me.anno.ui.base.ButtonPanel
-import me.anno.ui.base.TextPanel
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.input.BooleanInput
+import me.anno.ui.input.EnumInput
 import me.anno.ui.input.FileInput
-import me.anno.ui.input.FloatInput
+import me.anno.ui.input.VectorInput
 import me.anno.ui.style.Style
 import org.joml.*
 import org.lwjgl.opengl.GL11.GL_LINES
@@ -29,6 +30,10 @@ class Camera(parent: Transform?): Transform(parent){
     var nearZ = AnimatedProperty.floatPlus().set(0.001f)
     var farZ = AnimatedProperty.floatPlus().set(1000f)
     var fovYDegrees = AnimatedProperty.float().set(90f)
+    var chromaticAberration = AnimatedProperty.float()
+    var chromaticOffset = AnimatedProperty.vec2()
+    var distortion = AnimatedProperty.vec3()
+    var toneMapping = ToneMappers.RAW
 
     var onlyShowTarget = true
     var useDepth = true
@@ -41,15 +46,15 @@ class Camera(parent: Transform?): Transform(parent){
 
     override fun createInspector(list: PanelListY, style: Style) {
         super.createInspector(list, style)
-        list += FloatInput("Near Z", nearZ, lastLocalTime, style)
-            .setChangeListener { putValue(nearZ, it) }
-            .setIsSelectedListener { show(nearZ) }
-        list += FloatInput("Far Z", farZ, lastLocalTime, style)
-            .setChangeListener { putValue(farZ, it) }
-            .setIsSelectedListener { show(farZ) }
-        list += FloatInput("FOV", fovYDegrees, lastLocalTime, style)
-            .setChangeListener { putValue(fovYDegrees, it) }
-            .setIsSelectedListener { show(fovYDegrees) }
+        list += VI("Near Z", "Closest Visible Distance", nearZ, lastLocalTime, style)
+        list += VI("Far Z", "Farthest Visible Distance", farZ, lastLocalTime, style)
+        list += VI("FOV", "Field Of View, in degrees, vertical", fovYDegrees, lastLocalTime, style)
+        list += VI("Chromatic Aberration", "Effect occurring in cheap lenses", chromaticAberration, lastLocalTime, style)
+        list += VI("Chromatic Offset", "Offset for chromatic aberration", chromaticOffset, lastLocalTime, style)
+        list += VI("Distortion", "Params: R², R⁴, Scale", distortion, lastLocalTime, style)
+        list += EnumInput("Tone Mapping", true, toneMapping.displayName, ToneMappers.values().map { it.displayName }, style)
+            .setChangeListener { toneMapping = getToneMapper(it) }
+            .setIsSelectedListener { show(null) }
         list += FileInput("LUT", style, lut.toString())
             .setChangeListener { lut = File(it) }
             .setIsSelectedListener { show(null) }
@@ -64,13 +69,19 @@ class Camera(parent: Transform?): Transform(parent){
         list += ButtonPanel("Reset Transform", style)
             .setOnClickListener { x, y, button, long -> resetTransform() }
             .setTooltip("If accidentally moved")
+
     }
+
+    fun getToneMapper(name: String) =
+        ToneMappers.values().firstOrNull { it.displayName == name || it.code == name } ?:
+        ToneMappers.RAW
 
     override fun onDraw(stack: Matrix4fStack, time: Float, color: Vector4f) {
 
         if(GFX.isFinalRendering) return
-        if(this === GFX.selectedCamera) return
-        if(this !== GFX.selectedTransform) return
+        if(this === GFX.usedCamera) return
+        // idk...
+        // if(this !== GFX.selectedTransform) return
 
         val scaleZ = 1f
         val scaleY = scaleZ * tan(toRadians(fovYDegrees[time])/2f)

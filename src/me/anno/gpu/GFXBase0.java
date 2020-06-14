@@ -4,6 +4,9 @@
  */
 package me.anno.gpu;
 
+import kotlin.Unit;
+import kotlin.jvm.functions.Function0;
+import me.anno.input.Input;
 import me.anno.studio.Studio;
 import me.anno.studio.project.Project;
 import org.lwjgl.glfw.*;
@@ -106,9 +109,13 @@ public class GFXBase0 {
         });
         glfwSetFramebufferSizeCallback(window, fsCallback = new GLFWFramebufferSizeCallback() {
             public void invoke(long window, int w, int h) {
-                if (w > 0 && h > 0) {
-                    width = w;
-                    height = h;
+                if (w > 0 && h > 0 && (w != width || h != height)) {
+                    Studio.INSTANCE.addEvent(() -> {
+                        width = w;
+                        height = h;
+                        Input.INSTANCE.setFramesSinceLastInteraction(0);
+                        return Unit.INSTANCE;
+                    });
                 }
             }
         });

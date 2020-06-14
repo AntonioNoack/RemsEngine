@@ -139,6 +139,7 @@ class Framebuffer(var w: Int, var h: Int, val targetCount: Int, val fpTargets: B
         textures.forEachIndexed { index, texture ->
             GL13.glActiveTexture(GL13.GL_TEXTURE0 + offset + index)
             texture.bind(nearest)
+            texture.clamping(false)
         }
     }
 

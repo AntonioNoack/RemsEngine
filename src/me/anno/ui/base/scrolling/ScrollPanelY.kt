@@ -11,9 +11,6 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.style.Style
 import kotlin.math.max
 
-// todo scrollbar
-// todo scroll the scrollbar by dragging;
-// todo scrollbar only visible, if mouse at bottom
 open class ScrollPanelY(child: Panel, padding: Padding,
                         style: Style,
                         alignX: AxisAlignment): PanelContainer(child, padding, style){

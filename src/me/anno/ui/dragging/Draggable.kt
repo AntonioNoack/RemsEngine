@@ -1,12 +1,12 @@
 package me.anno.ui.dragging
 
-import me.anno.gpu.GFX
 import me.anno.ui.base.Panel
 import me.anno.ui.base.constraints.WrapAlign
 
 class Draggable(
     private val content: String,
     private val contentType: String,
+    private val original: Any,
     val ui: Panel
 ): IDraggable {
 
@@ -27,5 +27,6 @@ class Draggable(
 
     override fun getContent(): String = content
     override fun getContentType(): String = contentType
+    override fun getOriginal(): Any = original
 
 }

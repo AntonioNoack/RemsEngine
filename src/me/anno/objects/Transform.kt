@@ -12,6 +12,7 @@ import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.blending.BlendMode
 import me.anno.objects.blending.blendModes
 import me.anno.objects.particles.ParticleSystem
+import me.anno.ui.base.Panel
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.input.*
 import me.anno.ui.style.Style
@@ -87,14 +88,8 @@ open class Transform(var parent: Transform? = null): Saveable(){
             .setChangeListener { comment = it }
             .setIsSelectedListener { GFX.selectedProperty = null }
 
-        list += VectorInput(style, "Position", position[lastLocalTime],
-            AnimatedProperty.Type.POSITION, position)
-            .setChangeListener { x, y, z, _ -> putValue(position, Vector3f(x,y,z)) }
-            .setIsSelectedListener { show(position) }
-
-        list += VectorInput(style, "Scale", scale[lastLocalTime], AnimatedProperty.Type.SCALE, scale)
-            .setChangeListener { x, y, z, _ -> putValue(scale, Vector3f(x,y,z)) }
-            .setIsSelectedListener { show(scale) }
+        list += VI("Position", "Location of this object", position, lastLocalTime, style)
+        list += VI("Scale", "Makes it bigger/smaller", scale, lastLocalTime, style)
 
         if(usesEuler){
             list += VectorInput(style, "Rotation (YXZ)", rotationYXZ[lastLocalTime], AnimatedProperty.Type.ROT_YXZ, rotationYXZ)
@@ -366,6 +361,32 @@ open class Transform(var parent: Transform? = null): Saveable(){
 
     fun clone() = TextWriter.toText(this, false).toTransform()
     open fun acceptsWeight() = false
+
+    fun VI(title: String, ttt: String, values: AnimatedProperty<*>, time: Float, style: Style): Panel {
+        return when(val value = values[time]){
+            is Float -> FloatInput(title, values, time, style)
+                .setChangeListener { putValue(values, it) }
+                .setIsSelectedListener { show(values) }
+                .setTooltip(ttt)
+            is Vector2f -> VectorInput(title, values, time, style)
+                .setChangeListener { x, y, z, w -> putValue(values, Vector2f(x, y)) }
+                .setIsSelectedListener { show(values) }
+                .setTooltip(ttt)
+            is Vector3f -> VectorInput(title, values, time, style)
+                .setChangeListener { x, y, z, w -> putValue(values, Vector3f(x, y, z)) }
+                .setIsSelectedListener { show(values) }
+                .setTooltip(ttt)
+            is Vector4f -> VectorInput(title, values, time, style)
+                .setChangeListener { x, y, z, w -> putValue(values, Vector4f(x, y, z, w)) }
+                .setIsSelectedListener { show(values) }
+                .setTooltip(ttt)
+            is Quaternionf -> VectorInput(title, values, time, style)
+                .setChangeListener { x, y, z, w -> putValue(values, Quaternionf(x, y, z, w)) }
+                .setIsSelectedListener { show(values) }
+                .setTooltip(ttt)
+            else -> throw RuntimeException("Type $value not yet implemented!")
+        }
+    }
 
     companion object {
         // these values MUST NOT be changed

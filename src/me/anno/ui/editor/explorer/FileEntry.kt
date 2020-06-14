@@ -37,7 +37,7 @@ class FileEntry(val explorer: FileExplorer, val file: File, style: Style): Panel
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
         when(action){
             "DragStart" -> {
-                Studio.dragged = Draggable(file.toString(), "File", TextPanel(file.nameWithoutExtension, style))
+                Studio.dragged = Draggable(file.toString(), "File", file, TextPanel(file.nameWithoutExtension, style))
             }
             "Enter" -> {
                 if(file.isDirectory){

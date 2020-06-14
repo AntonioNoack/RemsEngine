@@ -22,6 +22,8 @@ class AnimatedProperty<V>(val type: Type, val minValue: V?, val maxValue: V?): S
         FLOAT("float", 0f, 1, 1f, true, true, { it is Float }),
         FLOAT_01("float01", 0f, 1, 1f, true, true, { it is Float }),
         FLOAT_PLUS("float+", 0f, 1, 1f, false, true, { it is Float }),
+        VEC2("vec2", Vector2f(), 2, 1f, true, true, { it is Vector2f }),
+        VEC3("vec3", Vector3f(), 3, 1f, true, true, { it is Vector3f }),
         POSITION("pos", Vector3f(), 3, 1f, true, true, { it is Vector3f }),
         SCALE("scale", Vector3f(1f, 1f, 1f), 3, 1f, true, true, { it is Vector3f }),
         ROT_YXZ("rotYXZ", Vector3f(), 3, 360f, true, true, { it is Vector3f }),
@@ -35,6 +37,8 @@ class AnimatedProperty<V>(val type: Type, val minValue: V?, val maxValue: V?): S
     companion object {
         val types = HashMap<String, Type>()
         fun float() = AnimatedProperty<Float>(Type.FLOAT)
+        fun vec2() = AnimatedProperty<Vector2f>(Type.VEC2)
+        fun vec3() = AnimatedProperty<Vector3f>(Type.VEC3)
         fun floatPlus() = AnimatedProperty(Type.FLOAT_PLUS, 0f, null)
         fun float01() = AnimatedProperty(Type.FLOAT_01, 0f, 1f)
         fun pos() = AnimatedProperty<Vector3f>(Type.POSITION)

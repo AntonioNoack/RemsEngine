@@ -89,7 +89,6 @@ object ActionManager {
                 if(namespace.equals("global", true)){
                     globalActions[keyComb] = values
                 } else {
-                    println("$namespace,$keyComb=$values")
                     localActions[namespace to keyComb] = values
                 }
             }

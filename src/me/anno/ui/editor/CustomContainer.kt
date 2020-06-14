@@ -6,6 +6,7 @@ import me.anno.objects.cache.Cache
 import me.anno.ui.base.Panel
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer
+import me.anno.ui.editor.cutting.CuttingView
 import me.anno.ui.editor.explorer.FileExplorer
 import me.anno.ui.editor.sceneView.SceneView
 import me.anno.ui.editor.graphs.GraphEditor
@@ -40,17 +41,44 @@ class CustomContainer(default: Panel, style: Style): PanelContainer(default, Pad
 
     fun changeType(){
         fun action(action: () -> Panel) = { b: Int, l: Boolean ->
-            child = action()
-            child.parent = this
+            changeTo(action())
             true
         }
-        GFX.openMenu(x+w-16, y, "", listOf(
+        val options = listOf(
             "Scene View" to action { SceneView(style) },
             "Tree View" to action { TreeView(style) },
             "Inspector" to action { PropertyInspector(style) },
+            "Cutting Panel" to action { CuttingView(style) },
             "Graph Editor" to action { GraphEditor(style) },
             "Files" to action { FileExplorer(style) }
-        ))
+        ).toMutableList()
+        val hasSiblings = (parent?.children?.size ?: 1) > 1
+        if(hasSiblings){ options += "Remove This Element" to { i, l -> true } }
+        else options += "Remove This Group" to { i, l -> true }
+        if(hasSiblings){
+            options += "Add Panel Before" to { i, l -> true }
+            options += "Add Panel After" to { i, l -> true }
+        } else {
+            options += "Add Panel Before" to { i, l -> true }
+            options += "Add Panel After" to { i, l -> true }
+            options += "Add Panel Above" to { i, l -> true }
+            options += "Add Panel Below" to { i, l -> true }
+        }
+        GFX.openMenu(x+w-16, y, "", options)
+    }
+
+    fun changeTo(panel: Panel){
+        child = panel
+        child.parent = this
+    }
+
+    override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
+        when(action){
+            "ChangeType" -> changeType()
+            "ChangeType(SceneView)" -> changeTo(SceneView(style))
+            else -> return super.onGotAction(x, y, dx, dy, action, isContinuous)
+        }
+        return true
     }
 
     override fun onMouseClicked(x: Float, y: Float, button: Int, long: Boolean) {

@@ -72,6 +72,8 @@ object GFX: GFXBase1() {
 
     var root = Transform()
     var selectedCamera = nullCamera
+    var usedCamera = nullCamera
+
     var selectedTransform: Transform? = null
     var selectedProperty: AnimatedProperty<*>? = null
 
