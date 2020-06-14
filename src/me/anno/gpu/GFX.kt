@@ -255,12 +255,14 @@ object GFX: GFXBase1() {
         return w to h
     }
 
-    fun drawTexture(x: Int, y: Int, w: Int, h: Int, texture: Texture2D, color: Int){
+    fun drawTexture(x: Int, y: Int, w: Int, h: Int, texture: Texture2D, color: Int, tiling: Vector4f?){
         check()
         val shader = flatShaderTexture
         shader.use()
         posSize(shader, x, y, w, h)
         shader.v4("color", color.r()/255f, color.g()/255f, color.b()/255f, color.a()/255f)
+        if(tiling != null) shader.v4("tiling", tiling)
+        else shader.v4("tiling", 1f, 1f, 0f, 0f)
         texture.bind(0, texture.isFilteredNearest)
         flat01.draw(shader)
         check()
@@ -376,6 +378,11 @@ object GFX: GFXBase1() {
         val shader = texture.get3DShader()
         shader3DUniforms(shader, stack, texture.w, texture.h, color, isBillboard, tiling)
         texture.bind(0, nearestFiltering)
+        if(shader == shader3DYUV){
+            val w = texture.w
+            val h = texture.h
+            shader.v2("uvCorrection", w.toFloat()/((w+1)/2*2), h.toFloat()/((h+1)/2*2))
+        }
         flat01.draw(shader)
         check()
     }
@@ -447,9 +454,10 @@ object GFX: GFXBase1() {
         flatShaderTexture = Shader("" +
                 "a2 attr0;\n" +
                 "u2 pos, size;\n" +
+                "u4 tiling;\n" +
                 "void main(){\n" +
                 "   gl_Position = vec4((pos + attr0 * size)*2.-1., 0.0, 1.0);\n" +
-                "   uv = attr0;\n" +
+                "   uv = (attr0-0.5) * tiling.xy + 0.5 + tiling.zw;\n" +
                 "}", "" +
                 "varying vec2 uv;\n", "" +
                 "uniform sampler2D tex;\n" +
@@ -667,20 +675,6 @@ object GFX: GFXBase1() {
                 "   }" +
                 "}"
 
-        val f3DYUV = "" +
-                "uniform vec4 tint;" +
-                "uniform sampler2D texY, texU, texV;\n" +
-                "void main(){\n" +
-                "   vec3 yuv = vec3(texture(texY, uv).r, texture(texU, uv).r, texture(texV, uv).r);\n" +
-                "   yuv -= vec3(${16f/255f}, 0.5, 0.5);\n" +
-                "   vec3 rgb = vec3(" +
-                "       dot(yuv, vec3( 1.164,  0.000,  1.596))," +
-                "       dot(yuv, vec3( 1.164, -0.392, -0.813))," +
-                "       dot(yuv, vec3( 1.164,  2.017,  0.000)));\n" +
-                "   gl_FragColor = vec4(tint.rgb * rgb, tint.a);\n" +
-                colorPostProcessing +
-                "}"
-
         shader3D = createCustomShader(v3D, y3D, f3D, listOf("tex"))
         shader3DPolygon = createCustomShader(v3DPolygon, y3D, f3D, listOf("tex"))
         shader3DCircle = Shader(v3D, y3D, f3DCircle)
@@ -690,7 +684,24 @@ object GFX: GFXBase1() {
         shader3DXYZUV = createCustomShader(v3DXYZUV, y3D, f3D, listOf("tex"))
         shader3DSpherical = createCustomShader(v3DSpherical, y3DSpherical, f3DSpherical, listOf("tex"))
 
-        shader3DYUV = createCustomShader(v3D, y3D, f3DYUV, listOf("texY", "texU", "texV"))
+        shader3DYUV = createCustomShader(v3D, y3D, "" +
+                "uniform vec4 tint;" +
+                "uniform sampler2D texY, texU, texV;\n" +
+                "uniform vec2 uvCorrection;\n" +
+                "void main(){\n" +
+                "   vec2 correctedUV = uv*uvCorrection;\n" +
+                "   vec3 yuv = vec3(" +
+                "       texture(texY, uv).r, " +
+                "       texture(texU, correctedUV).r, " +
+                "       texture(texV, correctedUV).r);\n" +
+                "   yuv -= vec3(${16f/255f}, 0.5, 0.5);\n" +
+                "   vec3 rgb = vec3(" +
+                "       dot(yuv, vec3( 1.164,  0.000,  1.596))," +
+                "       dot(yuv, vec3( 1.164, -0.392, -0.813))," +
+                "       dot(yuv, vec3( 1.164,  2.017,  0.000)));\n" +
+                "   gl_FragColor = vec4(tint.rgb * rgb, tint.a);\n" +
+                colorPostProcessing +
+                "}", listOf("texY", "texU", "texV"))
 
         shader3DARGB = createCustomShader(v3D, y3D, "" +
                 "uniform vec4 tint;" +

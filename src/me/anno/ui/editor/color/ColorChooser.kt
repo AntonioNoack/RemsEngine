@@ -14,6 +14,7 @@ import me.anno.ui.style.Style
 import me.anno.utils.f3
 import org.hsluv.HSLuvColorSpace
 import org.joml.Vector3f
+import org.joml.Vector4f
 import kotlin.math.*
 
 class ColorChooser(style: Style, withAlpha: Boolean): PanelListY(style){
@@ -42,13 +43,15 @@ class ColorChooser(style: Style, withAlpha: Boolean): PanelListY(style){
     }
 
     val alphaBar = if(withAlpha){
-        // todo with transparency indicator like our color show texture
         object: HSVBox(this, Vector3f(0f,0f, 0f), Vector3f(0f, 0f, 1f), Vector3f(0f, 0f, 0f), 0f, style, 1f, { opacity, _ ->
             setHSL(hue, saturation, lightness, opacity, colorSpace)
         }){
             override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
-                super.draw(x0, y0, x1, y1)
+                // super.draw(x0, y0, x1, y1)
                 val x = x0 + ((x1-x0) * opacity).roundToInt()
+                // lerp transparency for the alpha bar
+                for(dx in 0 until w){ GFX.drawRect(this.x+dx, y, 1, h, 0xffffff or (dx*255/w).shl(24)) }
+                GFX.drawTexture(this.x, y, w, h, GFX.colorShowTexture, -1, Vector4f(w.toFloat()/h, 1f, 0f, 0f))
                 GFX.drawRect(x, y0, 1, y1-y0, black)
             }
         }

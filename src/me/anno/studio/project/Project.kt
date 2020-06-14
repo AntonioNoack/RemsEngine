@@ -22,7 +22,7 @@ class Project(val file: File): Saveable(){
     val scenes = File(file, "scenes")
     init { scenes.mkdirs() }
 
-    // todo do we need multiple targets per project?
+    // do we need multiple targets per project? maybe... todo overlays!
     // do we need a target at all? -> yes
     // todo include the scene? or do we store it in different files?
     // todo a project always is a folder

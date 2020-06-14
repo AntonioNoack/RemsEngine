@@ -52,9 +52,6 @@ object UILayouts {
 
         RemsStudio.ui = ui
 
-        // todo show the project name in the title
-        // todo projects
-
         // todo show the file location up there, too?
         // todo fully customizable content
         val options = OptionBar(style)
@@ -114,9 +111,13 @@ object UILayouts {
         ui += SpacePanel(0, 1, style)
         ui += customUI
         ui += SpacePanel(0, 1, style)
-
-
+        
         console = TextPanel("Welcome to Rem's Studio!", style.getChild("small"))
+        console.setOnClickListener { _, _, button, _ ->
+                if(button == 0){
+                    // todo open console in large with scrollbar
+                }
+            }
         ui += console
 
         System.setOut(PrintStream(object: OutputStream(){

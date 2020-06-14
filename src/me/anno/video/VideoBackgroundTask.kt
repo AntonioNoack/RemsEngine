@@ -7,6 +7,7 @@ import me.anno.studio.Scene
 class VideoBackgroundTask(val video: VideoCreator){
 
     // todo show the progress somehow
+    // (percent, time used, expected time remaining)
 
     val framebuffer = Framebuffer(video.w, video.h, 1, false, Framebuffer.DepthBufferType.TEXTURE)
 

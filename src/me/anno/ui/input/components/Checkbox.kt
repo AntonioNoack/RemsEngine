@@ -29,7 +29,7 @@ class Checkbox(startValue: Boolean, val size: Int, style: Style): Panel(style.ge
         val size = min(w, h)
         if(size > 0){
             // draw the icon on/off
-            GFX.drawTexture(x0+(w-size)/2, y0+(h-size)/2, size, size, getImage(isChecked), -1)
+            GFX.drawTexture(x0+(w-size)/2, y0+(h-size)/2, size, size, getImage(isChecked), -1, null)
         }
 
     }

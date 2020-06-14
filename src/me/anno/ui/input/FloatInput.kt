@@ -138,7 +138,7 @@ class FloatInput(
             val dx0 = dx*size
             val dy0 = dy*size
             val delta = dx0-dy0
-            // todo chose between exponential and linear curve, depending on the use-case
+            // chose between exponential and linear curve, depending on the use-case
             var value = lastValue
             if(type.hasLinear) value += delta * 0.1f
             if(type.hasExponential) value *= pow(if(lastValue < 0) 1f / 1.03f else 1.03f, delta * if(type.hasLinear) 1f else 3f)

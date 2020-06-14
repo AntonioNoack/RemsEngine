@@ -55,8 +55,6 @@ class CustomListX(style: Style): PanelListX(style), CustomList {
         minH = 10
     }
 
-    // todo find the fix point instead of this
-
     override fun placeInParent(x: Int, y: Int) {
         this.x = x
         this.y = y

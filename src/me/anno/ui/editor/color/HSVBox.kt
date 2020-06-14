@@ -4,7 +4,6 @@ import me.anno.ui.base.Panel
 import me.anno.ui.style.Style
 import org.joml.Vector3f
 
-// todo cursor at selected position
 open class HSVBox(
     val chooser: ColorChooser,
     val v0: Vector3f,

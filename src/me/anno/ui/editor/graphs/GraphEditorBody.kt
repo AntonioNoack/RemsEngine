@@ -213,7 +213,7 @@ class GraphEditorBody(style: Style): Panel(style.getChild("deep")){
             val y = getYAt(value).roundToInt()
             GFX.drawTexture(x-halfSize, clamp(y-halfSize, y0-1, y1),
                 dotSize, dotSize,
-                GFX.whiteTexture, color)
+                GFX.whiteTexture, color, null)
         }
 
         property.keyframes.forEach {

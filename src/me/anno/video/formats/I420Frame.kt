@@ -11,8 +11,6 @@ import java.lang.RuntimeException
 
 class I420Frame(iw: Int, ih: Int): Frame(iw,ih){
 
-    // todo corrected uv coordinates for odd width/height
-
     // this is correct, confirmed by example
     val w2 = (w+1)/2
     val h2 = (h+1)/2

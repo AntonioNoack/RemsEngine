@@ -31,9 +31,6 @@ import java.util.*
 import kotlin.concurrent.thread
 import kotlin.math.roundToInt
 
-// todo open full log when clicking on the bottom;
-// todo or get more details?
-
 object RemsStudio {
 
     val originalOutput = System.out

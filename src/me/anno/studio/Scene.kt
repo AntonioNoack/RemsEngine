@@ -307,8 +307,8 @@ object Scene {
 
         // todo render at higher resolution for distortion?
         // msaa should help, too
-        // todo apply tonemapping
         // add camera pseudo effects (red-blue-shift)
+        // then apply tonemapping
         sqrtToneMappingShader.use()
         sqrtToneMappingShader.v1("ySign", if(flipY) -1f else 1f)
         val colorDepth = DefaultConfig["display.colorDepth", 8]
