@@ -20,9 +20,6 @@ class AudioLinePanel(style: Style): Panel(style){
 
     val textSize = style.getSize("textSize", 10)
 
-    // todo zoom
-    // todo scale
-
     val buffer = SoundBuffer(File("C:\\Users\\Antonio\\Music\\test.ogg")).pcm!!
 
     var isStereo = true

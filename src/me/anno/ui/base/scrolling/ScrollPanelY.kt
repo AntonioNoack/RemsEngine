@@ -24,6 +24,7 @@ open class ScrollPanelY(child: Panel, padding: Padding,
 
     var scrollPosition = 0f
     val maxLength = 100_000
+    var isDownOnScrollbar = false
 
     val maxScrollPosition get() = max(0, child.minH + padding.height - h)
     val scrollbar = ScrollbarY(this, style)
@@ -83,11 +84,21 @@ open class ScrollPanelY(child: Panel, padding: Padding,
         scrollPosition = clamp(scrollPosition, 0f, maxScrollPosition.toFloat())
     }
 
+    override fun onMouseDown(x: Float, y: Float, button: Int) {
+        isDownOnScrollbar = scrollbar.contains(x,y,scrollbarPadding*2)
+        if(!isDownOnScrollbar) super.onMouseDown(x, y, button)
+    }
+
+    override fun onMouseUp(x: Float, y: Float, button: Int) {
+        isDownOnScrollbar = false
+        super.onMouseUp(x, y, button)
+    }
+
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
-        if(scrollbar.contains(x,y,scrollbarPadding*2)){
+        if(isDownOnScrollbar){
             scrollbar.onMouseMoved(x, y, dx, dy)
             clampScrollPosition()
-        }
+        } else super.onMouseMoved(x, y, dx, dy)
     }
 
     override fun getClassName(): String = "ScrollPanelY"

@@ -33,6 +33,8 @@ class Camera(parent: Transform?): Transform(parent){
     var chromaticAberration = AnimatedProperty.float()
     var chromaticOffset = AnimatedProperty.vec2()
     var distortion = AnimatedProperty.vec3()
+    var distortionOffset = AnimatedProperty.vec2()
+
     var toneMapping = ToneMappers.RAW
 
     var onlyShowTarget = true
@@ -52,6 +54,7 @@ class Camera(parent: Transform?): Transform(parent){
         list += VI("Chromatic Aberration", "Effect occurring in cheap lenses", chromaticAberration, lastLocalTime, style)
         list += VI("Chromatic Offset", "Offset for chromatic aberration", chromaticOffset, lastLocalTime, style)
         list += VI("Distortion", "Params: R², R⁴, Scale", distortion, lastLocalTime, style)
+        list += VI("Distortion Offset", "Moves the center of the distortion", distortionOffset, lastLocalTime, style)
         list += EnumInput("Tone Mapping", true, toneMapping.displayName, ToneMappers.values().map { it.displayName }, style)
             .setChangeListener { toneMapping = getToneMapper(it) }
             .setIsSelectedListener { show(null) }

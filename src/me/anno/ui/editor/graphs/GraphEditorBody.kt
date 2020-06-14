@@ -278,7 +278,7 @@ class GraphEditorBody(style: Style): Panel(style.getChild("deep")){
         var bestDistance = maxMargin
         property.keyframes.forEach { keyframe ->
             val dx = x - getXAt(keyframe.time)
-            if(abs(dx) < maxMargin){// todo get best distance instead of this? yes :)
+            if(abs(dx) < maxMargin){
                 for(channel in 0 until property.type.components){
                     if(channel.isChannelActive()){
                         val dy = y - getYAt(keyframe.getValue(channel))

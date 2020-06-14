@@ -82,6 +82,7 @@ class VectorInput(
 
     // val titleList = PanelListX(style)
     val valueList = PanelListX(style)
+    init { valueList.visibility = Visibility.GONE }
     val titleView = object: TextPanel(title, style){
         override fun onMouseDown(x: Float, y: Float, button: Int) { this@VectorInput.onMouseDown(x,y,button) }
         override fun onMouseUp(x: Float, y: Float, button: Int) { this@VectorInput.onMouseUp(x,y,button) }

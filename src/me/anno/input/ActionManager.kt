@@ -68,8 +68,14 @@ object ActionManager {
         defaultValue["GraphEditorBody.arrowLeft.press"] = "MoveLeft"
         defaultValue["GraphEditorBody.arrowRight.press"] = "MoveRight"
 
-        defaultValue["PureTextInput.leftArrow.down"] = "MoveLeft"
-        defaultValue["PureTextInput.rightArrow.down"] = "MoveRight"
+        defaultValue["PureTextInputML.delete.typed"] = "DeleteAfter"
+        defaultValue["PureTextInputML.backspace.typed"] = "DeleteBefore"
+        defaultValue["PureTextInputML.leftArrow.typed"] = "MoveLeft"
+        defaultValue["PureTextInputML.rightArrow.typed"] = "MoveRight"
+        defaultValue["PureTextInputML.upArrow.typed"] = "MoveUp"
+        defaultValue["PureTextInputML.downArrow.typed"] = "MoveDown"
+        defaultValue["PureTextInput.leftArrow.typed"] = "MoveLeft"
+        defaultValue["PureTextInput.rightArrow.typed"] = "MoveRight"
 
         parseConfig(defaultValue)
 
@@ -77,11 +83,19 @@ object ActionManager {
 
     fun parseConfig(config: StringMap){
 
-        config.entries.forEach { (key, value) ->
+        for((key, value) in config.entries){
             val keys = key.split('.')
             val namespace = keys[0]
-            val button = keys[1]
-            val buttonEvent = keys[2]
+            val button = keys.getOrNull(1)
+            if(button == null){
+                println("[WARN] KeyCombination $key needs button!")
+                continue
+            }
+            val buttonEvent = keys.getOrNull(2)
+            if(buttonEvent == null){
+                println("[WARN] KeyCombination $key needs type!")
+                continue
+            }
             val modifiers = keys.getOrElse(3){ "" }
             val keyComb = KeyCombination.parse(button, buttonEvent, modifiers)
             if(keyComb != null){

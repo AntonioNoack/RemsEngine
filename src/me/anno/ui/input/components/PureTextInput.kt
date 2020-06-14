@@ -7,6 +7,7 @@ import me.anno.input.Input.isShiftDown
 import me.anno.utils.clamp
 import me.anno.ui.base.TextPanel
 import me.anno.ui.style.Style
+import me.anno.utils.BinarySearch
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -60,7 +61,7 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
     }
 
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        super.draw(x0, y0, x1, y1)
+        // super.draw(x0, y0, x1, y1)
         drawBackground()
         val x = x + padding.left
         val y = y + padding.top
@@ -75,9 +76,9 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
         if(isInFocus && (showBars || cursor1 != cursor2)){
             ensureCursorBounds()
             val padding = textSize/4
-            val cursorX1 = if(cursor1 == 0) -1 else GFX.getTextSize(fontName, textSize, isBold, isItalic, text.substring(0, cursor1)).first
+            val cursorX1 = if(cursor1 == 0) -1 else GFX.getTextSize(fontName, textSize, isBold, isItalic, text.substring(0, cursor1)).first-1
             if(cursor1 != cursor2){
-                val cursorX2 = if(cursor2 == 0) -1 else GFX.getTextSize(fontName, textSize, isBold, isItalic, text.substring(0, cursor2)).first
+                val cursorX2 = if(cursor2 == 0) -1 else GFX.getTextSize(fontName, textSize, isBold, isItalic, text.substring(0, cursor2)).first-1
                 val min = min(cursorX1, cursorX2)
                 val max = max(cursorX1, cursorX2)
                 GFX.drawRect(x+min+drawingOffset, y+padding, max-min, h-2*padding, textColor and 0x3fffffff) // marker
@@ -102,11 +103,7 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
     fun insert(insertion: Int){
         lastMove = GFX.lastTime
         deleteSelection()
-        if(cursor1 < characters.size){
-            characters.add(cursor1, insertion)
-        } else {
-            characters.add(insertion)
-        }
+        characters.add(cursor1, insertion)
         updateText()
         cursor1++
         cursor2++
@@ -190,14 +187,26 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
     }
 
     override fun onMouseClicked(x: Float, y: Float, button: Int, long: Boolean) {
-        // todo find the correct location for the cursor
         lastMove = GFX.lastTime
         if(isControlDown){
             cursor1 = 0
             cursor2 = characters.size
         } else {
-            cursor1 = characters.size
-            cursor2 = characters.size
+            // find the correct location for the cursor
+            val localX = x - (this.x + padding.left + drawingOffset)
+            // char positions are expensive to calculate, so we use binary search and sparse evaluation
+            val list = BinarySearch.ExpensiveList(characters.size+1){
+                if(it == 0) 0f
+                else { GFX.getTextSize(fontName, textSize, isBold, isItalic, text.substring(0, it)).first.toFloat() }
+            }
+            var index = list.binarySearch { it.compareTo(localX) }
+            if(index < 0) index = -1 - index
+            // find the closer neighbor
+            if(index > 0 && index < characters.size && abs(list[index-1]-x) < abs(list[index]-x)){
+                index--
+            }
+            cursor1 = index
+            cursor2 = index
         }
         super.onMouseClicked(x, y, button, long)
     }

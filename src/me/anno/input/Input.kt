@@ -51,7 +51,7 @@ object Input {
     val isSuperDown get() = (keyModState and GLFW.GLFW_MOD_SUPER) != 0
 
     var framesSinceLastInteraction = 0
-    val layoutFrameCount = 5
+    val layoutFrameCount = 10
 
     fun needsLayoutUpdate() = framesSinceLastInteraction < layoutFrameCount
 
@@ -218,7 +218,7 @@ object Input {
                     ActionManager.onKeyTyped(key)
 
                     when (key) {
-                        GLFW.GLFW_KEY_ENTER -> {
+                        GLFW.GLFW_KEY_ENTER, GLFW.GLFW_KEY_KP_ENTER -> {
                             if(isShiftDown || isControlDown){
                                 inFocus0?.onCharTyped(mouseX, mouseY, '\n'.toInt())
                             } else {

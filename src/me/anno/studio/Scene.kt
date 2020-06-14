@@ -115,7 +115,7 @@ object Scene {
                 "uniform vec3 fxScale;\n" +
                 "uniform float chromaticAberration;" +
                 "uniform vec2 chromaticOffset;\n" +
-                "uniform vec2 distortion;\n" +
+                "uniform vec2 distortion, distortionOffset;\n" +
                 "uniform float minValue;\n" +
                 "uniform float toneMapper;\n" +
                 noiseFunc +
@@ -125,7 +125,7 @@ object Scene {
                 "vec2 distort(vec2 uv, vec2 nuv, vec2 duv){" +
                 "   vec2 nuv2 = nuv + duv;\n" +
                 "   float r2 = dot(nuv2,nuv2), r4 = r2*r2;\n" +
-                "   vec2 uv2 = uv + duv + (nuv2 * dot(distortion, vec2(r2, r4)))/fxScale.xy;\n" +
+                "   vec2 uv2 = uv + duv + ((nuv2 - distortionOffset) * dot(distortion, vec2(r2, r4)))/fxScale.xy;\n" +
                 "   return uv2;\n" +
                 "}" +
                 "vec4 getColor(vec2 uv){" +
@@ -327,10 +327,12 @@ object Scene {
         // middle gray = 0.18?
 
         val dst = camera.distortion[cameraTime]
+        val dstOffset = camera.distortionOffset[cameraTime]
         sqrtToneMappingShader.v3("fxScale", fxScaleX, fxScaleY, 1f+dst.z)
         sqrtToneMappingShader.v2("distortion", dst.x, dst.y)
+        sqrtToneMappingShader.v2("distortionOffset", dstOffset)
         sqrtToneMappingShader.v1("minValue", minValue)
-        sqrtToneMappingShader.v1("toneMapper ", when(camera.toneMapping){
+        sqrtToneMappingShader.v1("toneMapper", when(camera.toneMapping){
             ToneMappers.RAW -> 0f
             ToneMappers.REINHARD -> 1f
             ToneMappers.ACES -> 2f

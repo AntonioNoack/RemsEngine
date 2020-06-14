@@ -52,7 +52,7 @@ open class Transform(var parent: Transform? = null): Saveable(){
     var timeAnimated = AnimatedProperty.float()
 
     var name = getDefaultDisplayName()
-    var comment = ""
+    var comment = "this is a comment\n    with indent and multiple lines"
 
     open fun getDefaultDisplayName() = if(getClassName() == "Transform") "Folder" else getClassName()
 
@@ -84,7 +84,7 @@ open class Transform(var parent: Transform? = null): Saveable(){
         list += TextInput("Name (${getClassName()})", style, name)
             .setChangeListener { name = if(it.isEmpty()) "-" else it }
             .setIsSelectedListener { GFX.selectedProperty = null }
-        list += TextInput("Comment", style, comment)
+        list += TextInputML("Comment", style, comment)
             .setChangeListener { comment = it }
             .setIsSelectedListener { GFX.selectedProperty = null }
 

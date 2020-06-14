@@ -24,15 +24,9 @@ class Circle(parent: Transform?): GFXTransform(parent){
 
     override fun createInspector(list: PanelListY, style: Style) {
         super.createInspector(list, style)
-        list += FloatInput("Inner Radius", innerRadius[lastLocalTime], style)
-            .setChangeListener { putValue(innerRadius, it) }
-            .setIsSelectedListener { show(innerRadius) }
-        list += FloatInput("Start Degrees", startDegrees[lastLocalTime], style)
-            .setChangeListener { putValue(startDegrees, it) }
-            .setIsSelectedListener { show(startDegrees) }
-        list += FloatInput("End Degrees", endDegrees[lastLocalTime], style)
-            .setChangeListener { putValue(endDegrees, it) }
-            .setIsSelectedListener { show(endDegrees) }
+        list += VI("Inner Radius", "Relative size of hole in the middle", innerRadius, lastLocalTime, style)
+        list += VI("Start Degrees", "To cut a piece out of the circle", startDegrees, lastLocalTime, style)
+        list += VI("End Degrees", "To cut a piece out of the circle", endDegrees, lastLocalTime, style)
     }
 
     override fun getClassName(): String = "Circle"

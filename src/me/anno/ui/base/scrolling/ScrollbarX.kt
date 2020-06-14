@@ -14,7 +14,6 @@ class ScrollbarX(val scrollbar: ScrollPanelX, style: Style): Scrollbar(style){
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.draw(x0, y0, x1, y1)
 
-        val relativeSize = scrollbar.w.toFloat() / scrollbar.child.minW
         val relativePosition = scrollbar.scrollPosition / scrollbar.maxScrollPosition
         val barW = relativeSize * w
         val barX = x + relativePosition * w * (1f - relativeSize)
@@ -23,10 +22,12 @@ class ScrollbarX(val scrollbar: ScrollPanelX, style: Style): Scrollbar(style){
 
     }
 
+    val relativeSize get() = scrollbar.w.toFloat() / scrollbar.child.minW
+
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
         if(0 in Input.mouseKeysDown){
-            scrollbar.scrollPosition += dx
-        }
+            scrollbar.scrollPosition += dx / relativeSize
+        } else super.onMouseMoved(x, y, dx, dy)
     }
 
     override fun getClassName() = "ScrollbarX"
