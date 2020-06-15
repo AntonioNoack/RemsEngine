@@ -4,10 +4,13 @@ import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
 import me.anno.input.Input.isControlDown
 import me.anno.input.Input.isShiftDown
+import me.anno.input.Input.mouseKeysDown
 import me.anno.utils.clamp
 import me.anno.ui.base.TextPanel
 import me.anno.ui.style.Style
 import me.anno.utils.BinarySearch
+import me.anno.utils.getIndexFromText
+import me.anno.utils.joinChars
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -29,7 +32,7 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
     }
 
     fun updateText(){
-        text = characters.joinToString(""){ String(Character.toChars(it)) }
+        text = characters.joinChars()
         changeListener(text)
     }
 
@@ -175,7 +178,8 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
     }
 
     override fun onCopyRequested(x: Float, y: Float): String? {
-        return characters.subList(min(cursor1, cursor2), max(cursor1, cursor2)).joinToString(""){ String(Character.toChars(it)) }
+        if(cursor1 == cursor2) return text
+        return characters.subList(min(cursor1, cursor2), max(cursor1, cursor2)).joinChars()
     }
 
     override fun onPaste(x: Float, y: Float, data: String, type: String) {
@@ -186,7 +190,7 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
             _ ->
     }
 
-    override fun onMouseClicked(x: Float, y: Float, button: Int, long: Boolean) {
+    override fun onMouseDown(x: Float, y: Float, button: Int) {
         lastMove = GFX.lastTime
         if(isControlDown){
             cursor1 = 0
@@ -194,21 +198,19 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
         } else {
             // find the correct location for the cursor
             val localX = x - (this.x + padding.left + drawingOffset)
-            // char positions are expensive to calculate, so we use binary search and sparse evaluation
-            val list = BinarySearch.ExpensiveList(characters.size+1){
-                if(it == 0) 0f
-                else { GFX.getTextSize(fontName, textSize, isBold, isItalic, text.substring(0, it)).first.toFloat() }
-            }
-            var index = list.binarySearch { it.compareTo(localX) }
-            if(index < 0) index = -1 - index
-            // find the closer neighbor
-            if(index > 0 && index < characters.size && abs(list[index-1]-x) < abs(list[index]-x)){
-                index--
-            }
+            val index = getIndexFromText(characters, localX, fontName, textSize, isBold, isItalic)
             cursor1 = index
             cursor2 = index
         }
-        super.onMouseClicked(x, y, button, long)
+    }
+
+    override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
+        if(!isControlDown){
+            if(0 in mouseKeysDown){
+                val localX = x - (this.x + padding.left + drawingOffset)
+                cursor2 = getIndexFromText(characters, localX, fontName, textSize, isBold, isItalic)
+            }
+        }
     }
 
     override fun onDoubleClick(x: Float, y: Float, button: Int) {

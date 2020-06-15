@@ -5,10 +5,13 @@ import me.anno.gpu.GFX
 import me.anno.input.Input
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.components.Padding
+import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelXY
 import me.anno.ui.style.Style
 import me.anno.utils.clamp
+import me.anno.utils.getIndexFromText
+import me.anno.utils.joinChars
 import kotlin.math.abs
 import kotlin.streams.toList
 
@@ -22,22 +25,27 @@ class PureTextInputML(style: Style): ScrollPanelXY(Padding(0), style){
         }
     }
 
+    val actualChildren = (content as PanelListY).children
+
     fun updateLines(){
-        val children = (content as PanelListY).children
+        val children = actualChildren
         if(lines.isEmpty()){
             lines.add(mutableListOf())
         }
         while(lines.size < children.size){
             children.removeAt(children.lastIndex)
         }
+        val content = content as PanelList
         while(lines.size > children.size){
             val panel = object: TextPanel("", style){
                 // override fun onBackKey(x: Float, y: Float) = this@PureTextInputML.onBackKey(x, y)
                 // override fun onCharTyped(x: Float, y: Float, key: Int) = this@PureTextInputML.onCharTyped(x, y, key)
                 // override fun onEnterKey(x: Float, y: Float) = this@PureTextInputML.onEnterKey(x, y)
                 override fun isKeyInput() = true
+                override fun onMouseDown(x: Float, y: Float, button: Int) = this@PureTextInputML.onMouseDown(x, indexInParent(), button)
+                override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) = this@PureTextInputML.onMouseMoved(x, y, dx, dy)
                 override fun onCopyRequested(x: Float, y: Float): String? {
-                    return this@PureTextInputML.text
+                    return this@PureTextInputML.onCopyRequested(x, y)
                 }
             }
             children.add(panel)
@@ -45,7 +53,7 @@ class PureTextInputML(style: Style): ScrollPanelXY(Padding(0), style){
         }
         lines.forEachIndexed { index, chars ->
             val panel = children[index] as TextPanel
-            panel.text = chars.joinToString(""){ String(Character.toChars(it)) }
+            panel.text = chars.joinChars()
         }
     }
 
@@ -53,7 +61,7 @@ class PureTextInputML(style: Style): ScrollPanelXY(Padding(0), style){
         super.draw(x0, y0, x1, y1)
         val blinkVisible = ((System.nanoTime() / 500_000_000L) % 2L == 0L)
         val showBars = blinkVisible || wasJustChanged
-        val children = (content as PanelListY).children
+        val children = actualChildren
         val examplePanel = children.firstOrNull() as? TextPanel ?: return
         val fontName = examplePanel.fontName
         val textSize = examplePanel.textSize
@@ -66,22 +74,45 @@ class PureTextInputML(style: Style): ScrollPanelXY(Padding(0), style){
             val padding = textSize/4
             val panel1 = children[cursor1.y]
             val line1 = lines[cursor1.y]
-            val cursor1Text = line1.subList(0, cursor1.x).joinToString(""){ String(Character.toChars(it)) }
+            val cursor1Text = line1.subList(0, cursor1.x).joinChars()
             val cursorX1 = if(cursor1.x == 0) -1 else GFX.getTextSize(fontName, textSize, isBold, isItalic, cursor1Text).first-1
             if(cursor1 != cursor2){
                 val panel2 = children[cursor2.y]
                 val line2 = lines[cursor2.y]
-                val cursor2Text = line2.subList(0, cursor2.x).joinToString(""){ String(Character.toChars(it)) }
+                val cursor2Text = line2.subList(0, cursor2.x).joinChars()
                 val cursorX2 = if(cursor2.x == 0) -1 else GFX.getTextSize(fontName, textSize, isBold, isItalic, cursor2Text).first-1
-                val min = kotlin.math.min(cursorX1, cursorX2)
-                val max = kotlin.math.max(cursorX1, cursorX2)
-                GFX.drawRect(x+min+drawingOffset, y+padding, max-min, h-2*padding, textColor and 0x3fffffff) // marker
-                if(showBars) GFX.drawRect(panel2.x+cursorX2+drawingOffset, panel2.y+padding, 2, panel2.h-2*padding, textColor) // cursor 1
+                val minCursor = min(cursor1, cursor2)
+                val maxCursor = max(cursor1, cursor2)
+                val minPanel = children[minCursor.y] as TextPanel
+                val maxPanel = children[maxCursor.y] as TextPanel
+                val minCursorX = kotlin.math.min(cursorX1, cursorX2)
+                val maxCursorX = kotlin.math.max(cursorX1, cursorX2)
+                if(minCursor.y == maxCursor.y){
+                    // draw box in same line
+                    GFX.drawRect(panel2.x+minCursorX, panel2.y+padding, maxCursorX-minCursorX, panel2.h-2*padding, textColor and 0x3fffffff) // marker
+                } else {
+
+                    // todo not working when covered???
+
+                    // draw end of first line
+                    GFX.drawRect(minPanel.x+minCursorX, minPanel.y+padding, (w-padding*2)-minCursorX,minPanel.h-padding, textColor and 0x3fffffff)
+
+                    if(minCursor.y+1 < maxCursor.y){
+                        // todo draw in between lines
+                        GFX.drawRect(x, minPanel.y+minPanel.h, w, maxPanel.y-minPanel.y-2*minPanel.h, textColor and 0x3fffffff)
+                    }
+
+                    // draw start of last line
+                    val endX = maxPanel.x+maxCursorX
+                    GFX.drawRect(x, maxPanel.y, endX-x,maxPanel.h-padding, textColor and 0x3fffffff)
+
+                }
+                if(showBars) GFX.drawRect(panel2.x+cursorX2, panel2.y+padding, 2, panel2.h-2*padding, textColor) // cursor 1
                 //calculateOffset(wh.first, cursorX2)
             } else {
                 //calculateOffset(wh.first, cursorX1)
             }
-            if(showBars) GFX.drawRect(panel1.x+cursorX1+drawingOffset, panel1.y+padding, 2, panel1.h-2*padding, textColor) // cursor 2
+            if(showBars) GFX.drawRect(panel1.x+cursorX1, panel1.y+padding, 2, panel1.h-2*padding, textColor) // cursor 2
         }
     }
 
@@ -122,7 +153,7 @@ class PureTextInputML(style: Style): ScrollPanelXY(Padding(0), style){
     }
 
     val jointText get() = lines.joinToString("\n"){
-        list -> list.joinToString(""){ String(Character.toChars(it)) }
+        list -> list.joinChars()
     }
 
     fun updateText(){
@@ -151,7 +182,6 @@ class PureTextInputML(style: Style): ScrollPanelXY(Padding(0), style){
         return true
     }
 
-    var drawingOffset = 0
     var lastMove = 0L
 
     val wasJustChanged get() = abs(GFX.lastTime-lastMove) < 200_000_000
@@ -195,10 +225,11 @@ class PureTextInputML(style: Style): ScrollPanelXY(Padding(0), style){
                 val line0 = lines[cursor1.y]
                 val line1 = line0.subList(cursor1.x, line0.size)
                 lines[cursor1.y] = line0.subList(0, cursor1.x)
-                lines.add(cursor1.y+1, (findStartingWhitespace(line0) + line1).toMutableList())
+                lines.add(cursor1.y+1,
+                    (findStartingWhitespace(line0) // help with spaces at the start
+                            + line1).toMutableList())
                 cursor1 = CursorPosition(0, cursor1.y+1)
                 cursor2 = cursor1
-                // todo help with tabs and spaces? :D
             }
             '\r'.toInt() -> {} // ignore, because it's useless ^^
             else -> {
@@ -336,8 +367,9 @@ class PureTextInputML(style: Style): ScrollPanelXY(Padding(0), style){
     }
 
     override fun onCopyRequested(x: Float, y: Float): String? {
+        if(cursor1 == cursor2) return text
         TODO()
-        //return characters.subList(min(cursor1, cursor2), max(cursor1, cursor2)).joinToString(""){ String(Character.toChars(it)) }
+        //return characters.subList(min(cursor1, cursor2), max(cursor1, cursor2)).joinChars()
     }
 
     override fun onPaste(x: Float, y: Float, data: String, type: String) {
@@ -348,17 +380,50 @@ class PureTextInputML(style: Style): ScrollPanelXY(Padding(0), style){
             _ ->
     }
 
-    override fun onMouseClicked(x: Float, y: Float, button: Int, long: Boolean) {
-        // todo find the correct location for the cursor
-        lastMove = GFX.lastTime
+    fun getLineIndex(y: Float): Int {
+        // find the correct line index
+        val yInt = y.toInt()
+        var index = actualChildren.binarySearch { it.y.compareTo(yInt) }
+        if(index < 0) index = -2-index
+        return clamp(index, 0, lines.lastIndex)
+    }
+
+    fun onMouseMoved(x: Float, indexY: Int){
+        if(!Input.isControlDown){
+            if(0 in Input.mouseKeysDown){
+                val localX = x - (this.x + padding.left)
+                val line = lines[indexY]
+                val sample = actualChildren[0] as TextPanel
+                val indexX = getIndexFromText(line, localX, sample.fontName, sample.textSize, sample.isBold, sample.isItalic)
+                cursor2 = CursorPosition(indexX, indexY)
+                ensureCursorBounds()
+            }
+        }
+    }
+
+    override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
+        onMouseMoved(x, getLineIndex(y))
+    }
+
+    fun onMouseDown(x: Float, indexY: Int, button: Int){
         if(Input.isControlDown){
             cursor1 = CursorPosition(0,0)
             cursor2 = cursorEnd
         } else {
-            cursor1 = cursorEnd
+            // find the correct location for the cursor
+            val line = lines[indexY]
+            val sample = actualChildren[0] as TextPanel
+            val indexX = getIndexFromText(line, x-this.x-padding.left, sample.fontName,
+                sample.textSize, sample.isBold, sample.isItalic)
+            lastMove = GFX.lastTime
+            cursor1 = CursorPosition(indexX, indexY)
             cursor2 = cursor1
+            ensureCursorBounds()
         }
-        super.onMouseClicked(x, y, button, long)
+    }
+
+    override fun onMouseDown(x: Float, y: Float, button: Int) {
+        onMouseDown(x, getLineIndex(y), button)
     }
 
     override fun onDoubleClick(x: Float, y: Float, button: Int) {

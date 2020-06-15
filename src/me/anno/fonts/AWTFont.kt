@@ -1,6 +1,8 @@
 package me.anno.fonts
 
 import me.anno.config.DefaultConfig
+import me.anno.gpu.texture.FakeWhiteTexture
+import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.ui.base.DefaultRenderingHints
 import java.awt.Font
@@ -39,9 +41,9 @@ class AWTFont(val font: Font): XFont {
 
     fun String.countLines() = count { it == '\n' } + 1
 
-    override fun generateTexture(text: String, fontSize: Float): Texture2D? {// todo center left/center/right for multiline
+    override fun generateTexture(text: String, fontSize: Float): ITexture2D? {// todo center left/center/right for multiline
 
-        if(text.isBlank()) return null
+        if(text.isEmpty()) return null
         if(containsSpecialChar(text)) return generateTexture2(text, fontSize)
 
         val width = fontMetrics.stringWidth(text) + (if(font.isItalic) max(2, (fontSize / 5f).roundToInt()) else 1)
@@ -51,6 +53,13 @@ class AWTFont(val font: Font): XFont {
         val height = fontHeight * lineCount + (lineCount - 1) * spaceBetweenLines
 
         if(width < 1 || height < 1) return null
+        if(text.isBlank()){
+            // we need some kind of wrapper around texture2D
+            // and return an empty/blank texture
+            // that the correct size is returned is required by text input fields
+            // (with whitespace at the start or end)
+            return FakeWhiteTexture(width, height)
+        }
 
         val texture = Texture2D(width, height)
         texture.create {

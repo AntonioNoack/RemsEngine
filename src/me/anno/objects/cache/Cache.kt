@@ -61,7 +61,7 @@ object Cache {
             }
             cache
         } as? TextureCache
-        return cache?.texture ?: GFX.whiteTexture
+        return cache?.texture as? Texture2D ?: GFX.whiteTexture
     }
 
     fun getEntry(file: File, allowDirectories: Boolean, key: Any, timeout: Long, generator: () -> CacheData): CacheData? {

@@ -1,5 +1,6 @@
 package me.anno.fonts
 
+import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.objects.cache.Cache
 import me.anno.objects.cache.TextureCache
@@ -43,8 +44,8 @@ object FontManager {
     private fun getFontSizeIndex(fontSize: Float): Int = round(100.0 * ln(fontSize)).toInt()
     private fun getAvgFontSize(fontSizeIndex: Int): Float = exp(fontSizeIndex * 0.01f)
 
-    fun getString(fontName: String, fontSize: Float, text: String, bold: Boolean, italic: Boolean): Texture2D? {
-        if(text.isBlank()) return null
+    fun getString(fontName: String, fontSize: Float, text: String, bold: Boolean, italic: Boolean): ITexture2D? {
+        if(text.isEmpty()) return null
         val fontSizeIndex = getFontSizeIndex(fontSize)
         val sub = fontSizeIndex * 4 + (if(bold) 1 else 0) + (if(italic) 2 else 0)
         val cache = Cache.getEntry(fontName, text, sub, fontTimeout){

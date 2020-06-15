@@ -14,7 +14,7 @@ import java.nio.FloatBuffer
 import kotlin.concurrent.thread
 import kotlin.math.min
 
-class Texture2D(var w: Int, var h: Int){
+class Texture2D(override var w: Int, override var h: Int): ITexture2D {
 
     constructor(img: BufferedImage): this(img.width, img.height){
         create(img, true)
@@ -24,6 +24,7 @@ class Texture2D(var w: Int, var h: Int){
     var pointer = -1
     var isCreated = false
     var isFilteredNearest = false
+    var isVirtual = false
 
     fun setSize(width: Int, height: Int){
         w = width
@@ -191,19 +192,19 @@ class Texture2D(var w: Int, var h: Int){
         glBindTexture(GL_TEXTURE_2D, pointer)
     }
 
-    fun bind(nearest: Boolean){
+    override fun bind(nearest: Boolean){
         if(pointer > -1 && isCreated){
             glBindTexture(GL_TEXTURE_2D, pointer)
             ensureFiltering(nearest)
         } else GFX.invisibleTexture.bind(true)
     }
 
-    fun bind(index: Int, nearest: Boolean){
+    override fun bind(index: Int, nearest: Boolean){
         glActiveTexture(GL_TEXTURE0 + index)
         bind(nearest)
     }
 
-    fun destroy(){
+    override fun destroy(){
         if(pointer > -1) glDeleteTextures(pointer)
     }
 
