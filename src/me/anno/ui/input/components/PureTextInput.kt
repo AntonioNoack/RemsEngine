@@ -8,7 +8,6 @@ import me.anno.input.Input.mouseKeysDown
 import me.anno.utils.clamp
 import me.anno.ui.base.TextPanel
 import me.anno.ui.style.Style
-import me.anno.utils.BinarySearch
 import me.anno.utils.getIndexFromText
 import me.anno.utils.joinChars
 import kotlin.math.abs
@@ -28,7 +27,6 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
     fun updateChars(){
         characters.clear()
         characters.addAll(text.codePoints().toList())
-        changeListener(text)
     }
 
     fun updateText(){
@@ -186,8 +184,10 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
         insert(data)
     }
 
-    var changeListener: (text: String) -> Unit = {
-            _ ->
+    private var changeListener: (text: String) -> Unit = { _ -> }
+    fun setChangeListener(listener: (String) -> Unit): PureTextInput {
+        changeListener = listener
+        return this
     }
 
     override fun onMouseDown(x: Float, y: Float, button: Int) {

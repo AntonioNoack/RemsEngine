@@ -82,8 +82,7 @@ class FloatInput(
 
     init {
         this += titlePanel
-        this += inputPanel
-        inputPanel.changeListener = {
+        this += inputPanel.setChangeListener {
             val newValue = isValid(it)
             if(newValue != null){
                 lastValue = newValue

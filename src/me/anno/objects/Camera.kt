@@ -10,6 +10,7 @@ import me.anno.studio.Studio.targetHeight
 import me.anno.studio.Studio.targetWidth
 import me.anno.ui.base.ButtonPanel
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.editor.frames.FrameSizeInput
 import me.anno.ui.input.BooleanInput
 import me.anno.ui.input.EnumInput
 import me.anno.ui.input.FileInput
@@ -72,6 +73,10 @@ class Camera(parent: Transform?): Transform(parent){
         list += ButtonPanel("Reset Transform", style)
             .setOnClickListener { x, y, button, long -> resetTransform() }
             .setTooltip("If accidentally moved")
+
+        // for testing
+        list += FrameSizeInput("Frame Size", "5x5", style)
+
 
     }
 

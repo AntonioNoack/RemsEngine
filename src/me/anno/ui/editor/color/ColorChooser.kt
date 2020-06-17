@@ -157,10 +157,7 @@ class ColorChooser(style: Style, withAlpha: Boolean): PanelListY(style){
         }
     }
 
-    var changeRGBListener: (x: Float, y: Float, z: Float, w: Float) -> Unit = {
-            _,_,_,_ ->
-    }
-
+    var changeRGBListener: (x: Float, y: Float, z: Float, w: Float) -> Unit = { _,_,_,_ -> }
     fun setChangeRGBListener(listener: (x: Float, y: Float, z: Float, w: Float) -> Unit): ColorChooser {
         changeRGBListener = listener
         return this

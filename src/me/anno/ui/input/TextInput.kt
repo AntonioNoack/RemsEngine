@@ -40,7 +40,7 @@ open class TextInput(title: String, style: Style): PanelContainer(
     fun deleteAfter() = base.deleteAfter()
     fun ensureCursorBounds() = base.ensureCursorBounds()
     fun setChangeListener(listener: (text: String) -> Unit): TextInput {
-        base.changeListener = listener
+        base.setChangeListener(listener)
         return this
     }
 
