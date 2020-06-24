@@ -155,6 +155,37 @@ class TextReader(val data: String): BaseReader(){
         }
     }
 
+    fun <V, VI> readTypedArray(
+        typeName: String,
+        createArray: (Int) -> V,
+        readValue: () -> VI?,
+        putValue: (V, Int, VI) -> Unit): V {
+
+        assert(skipSpace(), '[')
+        val rawLength = readNumber()
+        val length = rawLength.toIntOrNull() ?: error("invalid $typeName[] length $rawLength")
+        if(length < (data.length - index)/2){
+            var i = 0
+            val values = createArray(length)
+            content@while(true){
+                when(val next = skipSpace()){
+                    ',' -> {
+                        val raw = readValue()
+                        if(i < length){
+                            putValue(values, i++, raw ?: error("invalid $typeName $raw at $typeName[$i]"))
+                        }// else skip
+                    }
+                    ']' -> {
+                        break@content
+                    }
+                    else -> error("unknown character $next in $typeName[]")
+                }
+            }
+            if(i > length) println("$typeName[] contained too many elements!")
+            return values
+        } else error("broken file :/, $typeName[].length > data.length")
+    }
+
     fun readProperty(obj: ISaveable): ISaveable {
         assert(skipSpace(), '"')
         val typeName = readString()
@@ -214,29 +245,25 @@ class TextReader(val data: String): BaseReader(){
                 obj.readDouble(name, raw.toDoubleOrNull() ?: error("invalid double $raw"))
             }
             "i[]" -> {
-                assert(skipSpace(), '[')
-                val rawLength = readNumber()
-                val length = rawLength.toIntOrNull() ?: error("invalid i[] length $rawLength")
-                if(length < (data.length - index)/2){
-                    var i = 0
-                    val values = IntArray(length)
-                    content@while(true){
-                        when(val next = skipSpace()){
-                            ',' -> {
-                                val raw = readNumber()
-                                if(i < length){
-                                    values[i++] = raw.toIntOrNull() ?: error("invalid int $raw at i[$i]")
-                                }// else skip
-                            }
-                            ']' -> {
-                                break@content
-                            }
-                            else -> error("unknown character $next in i[]")
-                        }
-                    }
-                    if(i > length) println("i[] contained too many elements!")
-                    obj.readIntArray(name, values)
-                } else error("broken file :/, i[].length > data.length")
+                obj.readIntArray(name,
+                    readTypedArray("int",
+                        { IntArray(it) },
+                        { readNumber().toInt() },
+                        { array, index, value -> array[index] = value }))
+            }
+            "f[]" -> {
+                obj.readFloatArray(name,
+                    readTypedArray("float",
+                        { FloatArray(it) },
+                        { readNumber().toFloat() },
+                        { array, index, value -> array[index] = value }))
+            }
+            "d[]" -> {
+                obj.readDoubleArray(name,
+                    readTypedArray("double",
+                        { DoubleArray(it) },
+                        { readNumber().toDouble() },
+                        { array, index, value -> array[index] = value }))
             }
             "v2" -> {
                 assert(skipSpace(), '[')

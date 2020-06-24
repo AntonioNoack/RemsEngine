@@ -185,7 +185,7 @@ object Input {
                             } else {
 
                                 val mouseDuration = currentNanos - mouseStart
-                                val isLongClick = mouseDuration / 1_000_000 < longClickMillis
+                                val isLongClick = mouseDuration / 1_000_000 >= longClickMillis
                                 inFocus0?.onMouseClicked(mouseX, mouseY, button, isLongClick)
                             }
 

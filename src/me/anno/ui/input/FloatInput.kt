@@ -5,6 +5,7 @@ import me.anno.gpu.GFX
 import me.anno.input.Input.isShiftDown
 import me.anno.utils.pow
 import me.anno.objects.animation.AnimatedProperty
+import me.anno.objects.animation.drivers.AnimationDriver
 import me.anno.parser.SimpleExpressionParser
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.Visibility
@@ -16,18 +17,19 @@ import kotlin.math.max
 class FloatInput(
     style: Style, title: String,
     val type: AnimatedProperty.Type = AnimatedProperty.Type.FLOAT,
-    val owningProperty: AnimatedProperty<*>? = null
+    val owningProperty: AnimatedProperty<*>?,
+    val indexInProperty: Int
 ): PanelListY(style) {
 
-    constructor(title: String, owningProperty: AnimatedProperty<*>, time: Float, style: Style): this(style, title, owningProperty.type, owningProperty){
+    constructor(title: String, owningProperty: AnimatedProperty<*>, indexInProperty: Int, time: Float, style: Style): this(style, title, owningProperty.type, owningProperty, indexInProperty){
         setValue(owningProperty[time] as Float)
     }
 
-    constructor(title: String, value0: Float, type: AnimatedProperty.Type, style: Style): this(style, title, type){
+    constructor(title: String, value0: Float, type: AnimatedProperty.Type, style: Style): this(style, title, type, null, 0){
         setValue(value0)
     }
 
-    constructor(title: String, value0: Float, style: Style): this(style, title, AnimatedProperty.Type.FLOAT){
+    constructor(title: String, value0: Float, style: Style): this(style, title, AnimatedProperty.Type.FLOAT, null, 0){
         setValue(value0)
     }
 
@@ -38,9 +40,37 @@ class FloatInput(
     }
 
     val inputPanel = object: PureTextInput(style.getChild("deep")){
-        override fun onMouseDown(x: Float, y: Float, button: Int) { this@FloatInput.onMouseDown(x,y,button) }
-        override fun onMouseUp(x: Float, y: Float, button: Int) { this@FloatInput.onMouseUp(x,y,button) }
-        override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) { this@FloatInput.onMouseMoved(x,y,dx,dy) }
+        val driver get() = owningProperty?.drivers?.get(indexInProperty)
+        val hasDriver get() = driver != null
+        override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+            val driver = driver
+            val driverName = driver?.getDisplayName()
+            if(driver != null && text != driverName){
+                text = driverName!!
+                updateChars()
+            }
+            super.draw(x0, y0, x1, y1)
+        }
+        override fun onMouseDown(x: Float, y: Float, button: Int) {
+            if(!hasDriver) this@FloatInput.onMouseDown(x,y,button)
+        }
+        override fun onMouseUp(x: Float, y: Float, button: Int) {
+            if(!hasDriver) this@FloatInput.onMouseUp(x,y,button)
+        }
+        override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
+            if(!hasDriver) this@FloatInput.onMouseMoved(x,y,dx,dy)
+        }
+        override fun onMouseClicked(x: Float, y: Float, button: Int, long: Boolean) {
+            if(owningProperty != null){
+                val oldDriver = owningProperty.drivers[indexInProperty]
+                AnimationDriver.openDriverSelectionMenu(x.toInt(), y.toInt(), oldDriver){
+                    owningProperty.drivers[indexInProperty] = it
+                    if(it != null) GFX.selectedInspectable = it
+                }
+                return
+            }
+            super.onMouseClicked(x, y, button, long)
+        }
     }
 
     var lastValue = 0.0

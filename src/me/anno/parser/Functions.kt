@@ -222,8 +222,9 @@ object Functions {
         functions2["pow"] = { base, exponent -> StrictMath.pow(base, exponent) }
         functions2["power"] = functions2["pow"]!!
 
-        functions1["ceil"] = { ceil(it) }
         functions1["floor"] = { floor(it) }
+        functions1["round"] = { round(it) }
+        functions1["ceil"] = { ceil(it) }
 
     }
 

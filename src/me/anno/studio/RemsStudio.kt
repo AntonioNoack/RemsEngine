@@ -31,6 +31,8 @@ import java.util.*
 import kotlin.concurrent.thread
 import kotlin.math.roundToInt
 
+// todo operation to cut an image, video, or similar?
+
 object RemsStudio {
 
     val originalOutput = System.out

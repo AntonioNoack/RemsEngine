@@ -21,8 +21,15 @@ import kotlin.math.roundToInt
 // while still keeping the animation local
 class ParticleSystem(parent: Transform?): Transform(parent){
 
+    enum class SpawnType(val hasRotation: Boolean){
+        CUBE(true), PLANE(true), CYLINDER(true),
+        SPHERE(false)
+    }
+
     // todo ranges...
     // todo special spawning spaces like cylinders, spheres, ...?
+    // todo -> calculate the volume of a mesh, sample from that distribution
+    // todo use 3D mesh as spawning space
     var gdPosition = AnimatedProperty.pos()
     var gddPosition = AnimatedProperty.pos().set(Vector3f(0f, -9.81f, 0f))
 
@@ -36,6 +43,7 @@ class ParticleSystem(parent: Transform?): Transform(parent){
     // todo this is a complex object type
     // todo dock force fields?
 
+    var childrenScale = 0.1f
 
     var showChildren = false
     var nextIndex = 0
@@ -66,7 +74,10 @@ class ParticleSystem(parent: Transform?): Transform(parent){
                 val force = globalForce + localForce
                 val ddPosition = force / mass
                 val dPosition = oldState.dPosition + ddPosition * dt
+                val position = oldState.position + dPosition * dt
                 val newState = ParticleState()
+                newState.position = position
+                newState.dPosition = dPosition
                 it.states.add(newState)
             }
         }
@@ -129,6 +140,7 @@ class ParticleSystem(parent: Transform?): Transform(parent){
             return
         } // we need more time for the calculation
 
+
         // todo draw all particles at this point in time
         particles.forEach {
             it.apply {
@@ -142,11 +154,10 @@ class ParticleSystem(parent: Transform?): Transform(parent){
 
                     val position = getPosition(index0, indexF)
                     val rotation = getRotation(index0, indexF)
-                    val scale = getScale(index0, indexF)
 
                     stack.translate(position)
                     stack.rotate(rotation)
-                    stack.scale(scale)
+                    stack.scale(childrenScale)
 
                     // todo interpolate position, rotation, and scale...
                     // todo is scale animated? should probably not be directly animated...

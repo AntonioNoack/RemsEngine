@@ -10,6 +10,7 @@ import me.anno.gpu.Shader
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.input.Input.keysDown
+import me.anno.io.json.testModelRendering
 import me.anno.objects.Camera
 import me.anno.objects.blending.BlendMode
 import me.anno.objects.cache.Cache
@@ -234,6 +235,8 @@ object Scene {
 
         BlendMode.DEFAULT.apply()
         GL30.glDepthMask(true)
+
+        testModelRendering()
 
         stack.pushMatrix()
         // root.draw(stack, editorHoverTime, Vector4f(1f,1f,1f,1f))

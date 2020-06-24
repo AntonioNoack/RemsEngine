@@ -113,9 +113,7 @@ class MaskLayer(parent: Transform?): GFXTransform(parent){
         list += BooleanInput("Invert Mask", isInverted, style)
             .setChangeListener { isInverted = it }
             .setIsSelectedListener { show(null) }
-        list += FloatInput("Use Mask Color", useMaskColor, lastLocalTime, style)
-            .setChangeListener { putValue(useMaskColor, it) }
-            .setIsSelectedListener { show(useMaskColor) }
+        list += VI("Use Mask Color", "Should the color influence the masked?", useMaskColor, style)
         list += BooleanInput("Fullscreen", isFullscreen, style)
             .setChangeListener { isFullscreen = it }
             .setIsSelectedListener { show(null) }

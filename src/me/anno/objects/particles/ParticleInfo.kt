@@ -24,12 +24,6 @@ class ParticleInfo(
         return state0.rotation.slerp(state1.rotation, indexF)
     }
 
-    fun getScale(index0: Int, indexF: Float): Vector3f {
-        val state0 = states[index0]
-        val state1 = states[index0+1]
-        return state0.scale.lerp(state1.scale, indexF)
-    }
-
     fun getLifeOpacity(time: Float, timeStep: Float, fadingIn: Float, fadingOut: Float): Float {
         if(lifeIndices < 1) return 0f
         val lifeTime = lifeIndices * timeStep

@@ -56,11 +56,16 @@ class GFXArray(parent: Transform?): GFXTransform(parent) {
                     init {
                         val clone = TextReader.fromText(base).first { it is Transform } as Transform
                         children.add(clone)
-
                     }
                 })
             }
         }
+    }
+
+    override fun onDraw(stack: Matrix4fStack, time: Float, color: Vector4f) {
+        super.onDraw(stack, time, color)
+        // todo replace 1:1 every time? how? drivers??? (text)
+
     }
 
     override fun drawChildrenAutomatically() = false

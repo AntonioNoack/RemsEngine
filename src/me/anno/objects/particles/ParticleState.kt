@@ -5,12 +5,10 @@ import org.joml.Vector3f
 
 class ParticleState(){
 
-    val position = Vector3f()
-    val dPosition = Vector3f()
+    var position = Vector3f()
+    var dPosition = Vector3f()
 
-    val rotation = Quaternionf()
-    val dRotation = Vector3f()
-
-    val scale = Vector3f()
+    var rotation = Quaternionf()
+    var dRotation = Vector3f()
 
 }

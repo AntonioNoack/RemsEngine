@@ -49,13 +49,13 @@ class Camera(parent: Transform?): Transform(parent){
 
     override fun createInspector(list: PanelListY, style: Style) {
         super.createInspector(list, style)
-        list += VI("Near Z", "Closest Visible Distance", nearZ, lastLocalTime, style)
-        list += VI("Far Z", "Farthest Visible Distance", farZ, lastLocalTime, style)
-        list += VI("FOV", "Field Of View, in degrees, vertical", fovYDegrees, lastLocalTime, style)
-        list += VI("Chromatic Aberration", "Effect occurring in cheap lenses", chromaticAberration, lastLocalTime, style)
-        list += VI("Chromatic Offset", "Offset for chromatic aberration", chromaticOffset, lastLocalTime, style)
-        list += VI("Distortion", "Params: R², R⁴, Scale", distortion, lastLocalTime, style)
-        list += VI("Distortion Offset", "Moves the center of the distortion", distortionOffset, lastLocalTime, style)
+        list += VI("Near Z", "Closest Visible Distance", nearZ, style)
+        list += VI("Far Z", "Farthest Visible Distance", farZ, style)
+        list += VI("FOV", "Field Of View, in degrees, vertical", fovYDegrees, style)
+        list += VI("Chromatic Aberration", "Effect occurring in cheap lenses", chromaticAberration, style)
+        list += VI("Chromatic Offset", "Offset for chromatic aberration", chromaticOffset, style)
+        list += VI("Distortion", "Params: R², R⁴, Scale", distortion, style)
+        list += VI("Distortion Offset", "Moves the center of the distortion", distortionOffset, style)
         list += EnumInput("Tone Mapping", true, toneMapping.displayName, ToneMappers.values().map { it.displayName }, style)
             .setChangeListener { toneMapping = getToneMapper(it) }
             .setIsSelectedListener { show(null) }

@@ -158,6 +158,20 @@ class TextWriter(val beautify: Boolean): BaseWriter() {
         }
     }
 
+    override fun writeFloatArray(name: String, value: FloatArray, force: Boolean) {
+        if(force || value.isNotEmpty()){
+            writeAttributeStart("f[]", name)
+            open(true)
+            data += value.size.toString()
+            val lastIndex = value.indexOfLast { it != 0f }
+            for(i in 0 until lastIndex){
+                data += ','
+                data += value[i].toString()
+            }
+            close(true)
+        }
+    }
+
     override fun writeDouble(name: String, value: Double, force: Boolean) {
         if(force || value != 0.0){
             writeAttributeStart("d", name)

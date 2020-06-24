@@ -28,10 +28,11 @@ interface ISaveable {
     fun readDouble(name: String, value: Double)
     fun readLong(name: String, value: Long)
 
-    fun readIntArray(name: String, value: IntArray)
     fun readString(name: String, value: String)
     fun readArray(name: String, value: List<ISaveable>)
+    fun readIntArray(name: String, value: IntArray)
     fun readFloatArray(name: String, value: FloatArray)
+    fun readDoubleArray(name: String, value: DoubleArray)
     fun readFloatArray2D(name: String, value: Array<FloatArray>)
 
     fun readObject(name: String, value: ISaveable?)

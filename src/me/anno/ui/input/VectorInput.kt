@@ -65,7 +65,7 @@ class VectorInput(
     val valueFields = ArrayList<PureTextInput>(components)
 
     fun addComponent(i: Int, title: String): FloatInput {
-        val pseudo = FloatInput(style, title, type, owningProperty)
+        val pseudo = FloatInput(style, title, type, owningProperty, i)
             .setChangeListener {
                 changeListener(
                     compX.lastValue.toFloat(),

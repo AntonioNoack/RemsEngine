@@ -85,13 +85,14 @@ class FrameSizeInput(title: String, value0: String, style: Style): PanelListY(st
             return Resolution(w, h)
         }
 
-        var defaultResolution = DefaultConfig["target.resolution.default", ""].parseResolution() ?: Resolution(1920, 1080)
+        const val configNamespace = "target.resolutions"
+        var defaultResolution = DefaultConfig["$configNamespace.default", ""].parseResolution() ?: Resolution(1920, 1080)
         val defaultResolutions =
-            DefaultConfig["target.resolutions.defaults", "1920x1080,1920x1200,720x480,2560x1440,3840x2160"]
+            DefaultConfig["$configNamespace.defaultValues", ""]
                 .split(',').mapNotNull { it.parseResolution() }.toMutableList()
 
         init {
-            val sortResolutions = DefaultConfig["target.resolutions.sort", 1]
+            val sortResolutions = DefaultConfig["$configNamespace.sort", 1]
             if(sortResolutions > 0){
                 defaultResolutions.sort()
             } else if(sortResolutions < 0){

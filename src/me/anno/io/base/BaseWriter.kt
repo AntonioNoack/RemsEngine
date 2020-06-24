@@ -24,6 +24,7 @@ abstract class BaseWriter {
     abstract fun writeInt(name: String, value: Int, force: Boolean = false)
     abstract fun writeIntArray(name: String, value: IntArray, force: Boolean = false)
     abstract fun writeFloat(name: String, value: Float, force: Boolean = false)
+    abstract fun writeFloatArray(name: String, value: FloatArray, force: Boolean = false)
     abstract fun writeDouble(name: String, value: Double, force: Boolean = false)
     abstract fun writeString(name: String, value: String?, force: Boolean = false)
     abstract fun writeLong(name: String, value: Long, force: Boolean = false)

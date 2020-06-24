@@ -27,7 +27,7 @@ import kotlin.math.max
 // todo load 3D meshes :D
 // todo gradients?
 
-open class Transform(var parent: Transform? = null): Saveable(){
+open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
 
     init {
         parent?.addChild(this)
@@ -77,7 +77,7 @@ open class Transform(var parent: Transform? = null): Saveable(){
         GFX.selectedProperty = anim
     }
 
-    open fun createInspector(list: PanelListY, style: Style){
+    override fun createInspector(list: PanelListY, style: Style){
 
         // todo update by time :)
 
@@ -88,13 +88,11 @@ open class Transform(var parent: Transform? = null): Saveable(){
             .setChangeListener { comment = it }
             .setIsSelectedListener { GFX.selectedProperty = null }
 
-        list += VI("Position", "Location of this object", position, lastLocalTime, style)
-        list += VI("Scale", "Makes it bigger/smaller", scale, lastLocalTime, style)
+        list += VI("Position", "Location of this object", position, style)
+        list += VI("Scale", "Makes it bigger/smaller", scale, style)
 
         if(usesEuler){
-            list += VectorInput(style, "Rotation (YXZ)", rotationYXZ[lastLocalTime], AnimatedProperty.Type.ROT_YXZ, rotationYXZ)
-                .setChangeListener { x, y, z, _ -> putValue(rotationYXZ, Vector3f(x,y,z)) }
-                .setIsSelectedListener { show(rotationYXZ) }
+            list += VI("Rotation (YXZ)", "", rotationYXZ, style)
         } else {
             list += VectorInput(style, "Rotation (Quaternion)", rotationQuaternion?.get(lastLocalTime) ?: Quaternionf())
                 .setChangeListener { x, y, z, w ->
@@ -103,24 +101,18 @@ open class Transform(var parent: Transform? = null): Saveable(){
                 .setIsSelectedListener { show(rotationQuaternion) }
         }
 
-        list += VectorInput(style, "Skew", skew[lastLocalTime], AnimatedProperty.Type.SKEW_2D, skew)
-            .setChangeListener { x, y, _, _ -> putValue(skew, Vector2f(x,y)) }
-            .setIsSelectedListener { show(skew) }
+        list += VI("Skew", "Transform it similar to a shear", skew, style)
         list += ColorInput(style, "Color", color[lastLocalTime], color)
             .setChangeListener { x, y, z, w -> putValue(color, Vector4f(max(0f, x), max(0f, y), max(0f, z), clamp(w, 0f, 1f))) }
             .setIsSelectedListener { show(color) }
-        list += FloatInput("Color Multiplier", colorMultiplier, lastLocalTime, style)
-            .setChangeListener { putValue(colorMultiplier, it) }
-            .setIsSelectedListener { show(colorMultiplier) }
+        list += VI("Color Multiplier", "To make things brighter than usually possible", colorMultiplier, style)
         list += FloatInput("Start Time", timeOffset, style)
             .setChangeListener { timeOffset = it }
             .setIsSelectedListener { GFX.selectedProperty = null }
         list += FloatInput("Time Multiplier", timeDilation, style)
             .setChangeListener { timeDilation = it }
             .setIsSelectedListener { GFX.selectedProperty = null }
-        list += FloatInput("Advanced Time", timeAnimated, lastLocalTime, style)
-            .setChangeListener {  x -> putValue(timeAnimated, x) }
-            .setIsSelectedListener { show(timeAnimated) }
+        list += VI("Advanced Time", "Add acceleration/deceleration to your elements", timeAnimated, style)
         list += EnumInput("Blend Mode", true, blendMode.id, blendModes.keys.toList().sorted(), style)
             .setChangeListener { blendMode = BlendMode[it] }
             .setIsSelectedListener { GFX.selectedProperty = null }
@@ -362,9 +354,10 @@ open class Transform(var parent: Transform? = null): Saveable(){
     fun clone() = TextWriter.toText(this, false).toTransform()
     open fun acceptsWeight() = false
 
-    fun VI(title: String, ttt: String, values: AnimatedProperty<*>, time: Float, style: Style): Panel {
+    fun VI(title: String, ttt: String, values: AnimatedProperty<*>, style: Style): Panel {
+        val time = lastLocalTime
         return when(val value = values[time]){
-            is Float -> FloatInput(title, values, time, style)
+            is Float -> FloatInput(title, values, 0, time, style)
                 .setChangeListener { putValue(values, it) }
                 .setIsSelectedListener { show(values) }
                 .setTooltip(ttt)

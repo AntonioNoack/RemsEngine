@@ -38,6 +38,10 @@ object DefaultConfig: StringMap() {
         this["grid.axis.z.color"] = "#7777ff"
         this["format.svg.stepsPerDegree"] = 0.1f
 
+        this["target.resolutions.default"] = "1920x1080"
+        this["target.resolutions.defaultValues"] = "1920x1080,1920x1200,720x480,2560x1440,3840x2160"
+        this["target.resolutions.sort"] = 1 // 1 = ascending order, -1 = descending order, 0 = don't sort
+
         this["display.colorDepth"] = 8
 
         addImportMappings("Transform", "json")

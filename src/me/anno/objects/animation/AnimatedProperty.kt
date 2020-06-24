@@ -3,6 +3,8 @@ package me.anno.objects.animation
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
+import me.anno.objects.animation.drivers.AnimationDriver
+import me.anno.utils.WrongClassType
 import org.joml.*
 import java.lang.RuntimeException
 import kotlin.math.abs
@@ -49,6 +51,9 @@ class AnimatedProperty<V>(val type: Type, val minValue: V?, val maxValue: V?): S
         fun skew() = AnimatedProperty<Vector2f>(Type.SKEW_2D)
         fun tiling() = AnimatedProperty<Vector4f>(Type.TILING)
     }
+
+    val drivers
+            = arrayOfNulls<AnimationDriver>(type.components)
 
     var isAnimated = false
     val keyframes = ArrayList<Keyframe<V>>()
@@ -105,7 +110,8 @@ class AnimatedProperty<V>(val type: Type, val minValue: V?, val maxValue: V?): S
     }
 
     operator fun get(time: Float) = getValueAt(time)
-    fun getValueAt(time: Float): V {
+
+    fun getAnimatedValue(time: Float): V {
         return when(keyframes.size){
             0 -> type.defaultValue as V
             1 -> keyframes[0].value
@@ -134,6 +140,41 @@ class AnimatedProperty<V>(val type: Type, val minValue: V?, val maxValue: V?): S
                 }
             }
         }
+    }
+
+    fun getValueAt(time: Float): V {
+        val animatedValue = if(drivers.all { it != null })
+            type.defaultValue
+        else getAnimatedValue(time)
+        return if(drivers.all { it == null}) animatedValue
+        else {
+            // replace the components, which have drivers, with the driver values
+            when(animatedValue){
+                is Float -> drivers[0]?.getValue(time) ?: animatedValue
+                is Vector2f -> Vector2f(
+                    drivers[0]?.getValue(time) ?: animatedValue.x,
+                    drivers[1]?.getValue(time) ?: animatedValue.y
+                )
+                is Vector3f -> Vector3f(
+                    drivers[0]?.getValue(time) ?: animatedValue.x,
+                    drivers[1]?.getValue(time) ?: animatedValue.y,
+                    drivers[2]?.getValue(time) ?: animatedValue.z
+                )
+                is Vector4f -> Vector4f(
+                    drivers[0]?.getValue(time) ?: animatedValue.x,
+                    drivers[1]?.getValue(time) ?: animatedValue.y,
+                    drivers[2]?.getValue(time) ?: animatedValue.z,
+                    drivers[3]?.getValue(time) ?: animatedValue.w
+                )
+                is Quaternionf -> Quaternionf(
+                    drivers[0]?.getValue(time) ?: animatedValue.x,
+                    drivers[1]?.getValue(time) ?: animatedValue.y,
+                    drivers[2]?.getValue(time) ?: animatedValue.z,
+                    drivers[3]?.getValue(time) ?: animatedValue.w
+                )
+                else -> throw RuntimeException("Replacing components with drivers in $animatedValue is not yet supported!")
+            }
+        } as V
     }
 
     fun lerp(a: Float, b: Float, f: Float, g: Float) = a*g+b*f
@@ -169,6 +210,9 @@ class AnimatedProperty<V>(val type: Type, val minValue: V?, val maxValue: V?): S
         sort()
         writer.writeList(this, "keyframes", keyframes)
         writer.writeBool("isAnimated", isAnimated, true)
+        for(i in 0 until 4){
+            writer.writeObject(this, "driver$i", drivers[i])
+        }
     }
 
     fun sort(){
@@ -189,10 +233,21 @@ class AnimatedProperty<V>(val type: Type, val minValue: V?, val maxValue: V?): S
                     if(type.accepts(value.value)){
                         addKeyframe(value.time, clamp(value.value as V) as Any, 1e-5f) // do clamp?
                     } else println("Dropped keyframe!, incompatible type ${value.value} for $type")
-                } else println("Got keyframe, that is no keyframe: ${value?.getClassName()}")
+                } else WrongClassType.warn("keyframe", value)
             }
+            "driver0" -> setDriver(0, value)
+            "driver1" -> setDriver(1, value)
+            "driver2" -> setDriver(2, value)
+            "driver3" -> setDriver(3, value)
             else -> super.readObject(name, value)
         }
+    }
+
+    fun setDriver(index: Int, value: ISaveable?){
+        if(index >= drivers.size) return
+        if(value is AnimationDriver){
+            drivers[index] = value
+        } else WrongClassType.warn("driver", value)
     }
 
     // todo this may result in an issue, where we can't copy this object 1:1...

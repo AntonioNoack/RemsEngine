@@ -60,8 +60,8 @@ class Polygon(parent: Transform?): GFXTransform(parent){
 
     override fun createInspector(list: PanelListY, style: Style) {
         super.createInspector(list, style)
-        list += VI("Vertex Count", "Quads, Triangles, all possible", vertexCount, lastLocalTime, style)
-        list += VI("Star-ness", "Works best with even vertex count", starNess, lastLocalTime, style)
+        list += VI("Vertex Count", "Quads, Triangles, all possible", vertexCount, style)
+        list += VI("Star-ness", "Works best with even vertex count", starNess, style)
         list += FileInput("Texture", style, texture.toString())
             .setChangeListener { texture = File(it) }
             .setIsSelectedListener { show(null) }

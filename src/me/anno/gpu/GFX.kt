@@ -11,6 +11,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.input.Input
 import me.anno.input.Input.isShiftDown
 import me.anno.objects.Camera
+import me.anno.objects.Inspectable
 import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.blending.BlendMode
@@ -76,11 +77,13 @@ object GFX: GFXBase1() {
 
     var selectedTransform: Transform? = null
     var selectedProperty: AnimatedProperty<*>? = null
+    var selectedInspectable: Inspectable? = null
 
     var hoveredPanel: Panel? = null
     var hoveredWindow: Window? = null
 
     fun select(transform: Transform?){
+        selectedInspectable = transform
         selectedTransform = transform
         if(isShiftDown && transform is Camera){
             selectedCamera = transform
