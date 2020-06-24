@@ -29,14 +29,17 @@ open class PanelListX(sorter: Comparator<Panel>?, style: Style): PanelList(sorte
         var sumW = 0
         var maxH = 0
         var weight = 0f
+        val dc = disableConstantSpaceForWeightedChildren
         for(child in children.filter { it.visibility != Visibility.GONE }){
             child.calculateSize(sumW, maxH) // calculate w,h,minw,minh
             child.applyConstraints()
-            sumW += child.minW
             maxH = max(maxH, child.minH)
-            if(child.weight >= 0f){
-                // has weight
+            val hasWeight = child.weight >= 0f
+            if(hasWeight){
                 weight += child.weight
+            }
+            if(!(hasWeight && dc)){
+                sumW += child.minW
             }
         }
         val spaceCount = children.size - 1
@@ -64,14 +67,17 @@ open class PanelListX(sorter: Comparator<Panel>?, style: Style): PanelList(sorte
         // warn("panel list x $x $y $w $h ($minW $minH): $sumConst + $sumWeight -> per const: $perConst, per weight: $perWeight")
 
         // println("extra available: $extraAvailable = $w - $sumConst, per weight: $perWeight = $extraAvailable / $sumWeight")
-        var x = this.x
+        var posX = this.x
+        val dc = disableConstantSpaceForWeightedChildren
         for(child in children.filter { it.visibility != Visibility.GONE }){
-            val childW = (child.minW * perConst + perWeight * max(0f, child.weight)).roundToInt()
+            val hasWeight = child.weight >= 0f
+            val childConstW = if(!hasWeight || !disableConstantSpaceForWeightedChildren) child.minW * perConst else 0f
+            val childW = (childConstW + perWeight * max(0f, child.weight)).roundToInt()
             child.calculateSize(childW, h)
             child.applyConstraints()
-            child.placeInParent(x, y)
+            child.placeInParent(posX, y)
             // println("laying out child to $x $y += $childWidth $h")
-            x += childW + spacing
+            posX += childW + spacing
         }
 
     }

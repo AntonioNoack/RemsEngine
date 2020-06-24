@@ -1,5 +1,6 @@
 package me.anno.ui.input.components
 
+import me.anno.config.DefaultStyle.black
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
 import me.anno.input.Input
@@ -19,11 +20,16 @@ import kotlin.streams.toList
 
 class PureTextInputML(style: Style): ScrollPanelXY(Padding(0), style){
 
+    // todo hide space for scroll panel, if not used/not in focus?
 
     var cursor1 = CursorPosition(0,0)
     var cursor2 = CursorPosition(0,0)
 
     var placeholder = ""
+        set(value) {
+            field = value
+            if(text.isEmpty()) update()
+        }
 
     private var text = ""
     private val lines: ArrayList<MutableList<Int>> = arrayListOf(mutableListOf())
@@ -45,6 +51,7 @@ class PureTextInputML(style: Style): ScrollPanelXY(Padding(0), style){
     }
 
     fun updateLines(){
+        val needsPlaceholder = text.isEmpty()
         val children = actualChildren
         if(lines.isEmpty()){
             lines.add(mutableListOf())
@@ -70,13 +77,14 @@ class PureTextInputML(style: Style): ScrollPanelXY(Padding(0), style){
         }
         lines.forEachIndexed { index, chars ->
             val panel = children[index] as TextPanel
-            panel.text = chars.joinChars()
+            panel.text = if(needsPlaceholder) placeholder else chars.joinChars()
+            panel.textColor = (panel.textColor and 0xffffff) or (if(needsPlaceholder) 70 else 255).shl(24)
+            panel.focusTextColor = panel.textColor
         }
     }
 
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.draw(x0, y0, x1, y1)
-        // todo draw the placeholder
         val blinkVisible = ((System.nanoTime() / 500_000_000L) % 2L == 0L)
         val showBars = blinkVisible || wasJustChanged
         val children = actualChildren
@@ -85,7 +93,7 @@ class PureTextInputML(style: Style): ScrollPanelXY(Padding(0), style){
         val textSize = examplePanel.textSize
         val isBold = examplePanel.isBold
         val isItalic = examplePanel.isItalic
-        val textColor = examplePanel.textColor
+        val textColor = examplePanel.textColor or black
         val isReallyInFocus = isInFocus || children.count { it.isInFocus } > 0
         if(isReallyInFocus && (showBars || cursor1 != cursor2)){
             ensureCursorBounds()
@@ -138,6 +146,9 @@ class PureTextInputML(style: Style): ScrollPanelXY(Padding(0), style){
         cursor1 = lastValidCursor
         cursor2 = cursor1
     }
+
+    fun String.toLines() = split('\n')
+            .map { line -> line.codePoints().toList().toMutableList() }
 
     fun setText(text: String){
         if(text == this.text) return
@@ -194,8 +205,8 @@ class PureTextInputML(style: Style): ScrollPanelXY(Padding(0), style){
     }
 
     fun update(){
-        updateLines()
         updateText()
+        updateLines()
     }
 
     fun findStartingWhitespace(line: List<Int>): List<Int> {

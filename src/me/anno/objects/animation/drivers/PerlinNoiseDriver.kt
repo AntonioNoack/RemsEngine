@@ -5,6 +5,7 @@ import me.anno.io.base.BaseWriter
 import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.ui.base.Panel
+import me.anno.ui.input.FloatInput
 import me.anno.ui.input.IntInput
 import me.anno.ui.input.LongInput
 import me.anno.ui.style.Style
@@ -22,6 +23,7 @@ class PerlinNoiseDriver: AnimationDriver(){
 
     var baseValue = AnimatedProperty.float()
     var amplitude = AnimatedProperty.float().set(1f)
+    var frequency = 1f
 
     private var noiseInstance = OpenSimplexNoise(seed)
     fun getNoise(): OpenSimplexNoise {
@@ -32,7 +34,7 @@ class PerlinNoiseDriver: AnimationDriver(){
     override fun getValue(time: Float): Float {
         val falloff = falloff[time]
         val octaves = clamp(octaves, 0, 16)
-        val relativeValue = getValue(time.toDouble(), getNoise(), falloff.toDouble(), octaves).toFloat() / getMaxValue(falloff, min(octaves, 10))
+        val relativeValue = getValue((time * frequency).toDouble(), getNoise(), falloff.toDouble(), octaves).toFloat() / getMaxValue(falloff, min(octaves, 10))
         return baseValue[time] + max(amplitude[time], 0f) * relativeValue
     }
 
@@ -59,6 +61,9 @@ class PerlinNoiseDriver: AnimationDriver(){
         components += transform.VI("Falloff", "Changes high-frequency weight", falloff, style)
         components += transform.VI("Value", "The base value", baseValue, style)
         components += transform.VI("Amplitude", "The scale of this effect", amplitude, style)
+        components += FloatInput("Frequency", frequency, style)
+            .setIsSelectedListener { show(null) }
+            .setChangeListener { frequency = it }
         return components
     }
 

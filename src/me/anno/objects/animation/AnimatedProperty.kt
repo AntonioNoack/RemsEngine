@@ -210,7 +210,7 @@ class AnimatedProperty<V>(val type: Type, val minValue: V?, val maxValue: V?): S
         sort()
         writer.writeList(this, "keyframes", keyframes)
         writer.writeBool("isAnimated", isAnimated, true)
-        for(i in 0 until 4){
+        for(i in drivers.indices){
             writer.writeObject(this, "driver$i", drivers[i])
         }
     }

@@ -52,7 +52,10 @@ class FloatInput(
             super.draw(x0, y0, x1, y1)
         }
         override fun onMouseDown(x: Float, y: Float, button: Int) {
-            if(!hasDriver) this@FloatInput.onMouseDown(x,y,button)
+            if(!hasDriver){
+                super.onMouseDown(x, y, button)
+                this@FloatInput.onMouseDown(x,y,button)
+            }
         }
         override fun onMouseUp(x: Float, y: Float, button: Int) {
             if(!hasDriver) this@FloatInput.onMouseUp(x,y,button)
@@ -61,7 +64,7 @@ class FloatInput(
             if(!hasDriver) this@FloatInput.onMouseMoved(x,y,dx,dy)
         }
         override fun onMouseClicked(x: Float, y: Float, button: Int, long: Boolean) {
-            if(owningProperty != null){
+            if(owningProperty != null && (button != 0 || long)){
                 val oldDriver = owningProperty.drivers[indexInProperty]
                 AnimationDriver.openDriverSelectionMenu(x.toInt(), y.toInt(), oldDriver){
                     owningProperty.drivers[indexInProperty] = it

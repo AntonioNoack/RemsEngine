@@ -52,7 +52,7 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
     var timeAnimated = AnimatedProperty.float()
 
     var name = getDefaultDisplayName()
-    var comment = "this is a comment\n    with indent and multiple lines"
+    var comment = ""
 
     open fun getDefaultDisplayName() = if(getClassName() == "Transform") "Folder" else getClassName()
 
