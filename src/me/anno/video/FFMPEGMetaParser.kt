@@ -40,9 +40,6 @@ class FFMPEGMetaParser(): StringMap(){
         parse(data)
     }
 
-    // var inputs = ArrayList<Input>()
-    // lateinit var input: Input
-
     fun getDepth(line: String): Int {
         for(i in line.indices){
             if(line[i] != ' ') return i/2
@@ -158,15 +155,6 @@ class FFMPEGMetaParser(): StringMap(){
                         stream.w = wh.first
                         stream.h = wh.second
                     }
-                    /*try {
-                        val fpsIndex = data.indexOf("fps")-1
-                        if(fpsIndex > -1){
-                            stream.sourceFPS = data[fpsIndex].toFloat()
-                            println("Got FPS: ${stream.sourceFPS}")
-                        }
-                    } catch (e: Exception){
-                        e.printStackTrace()
-                    }*/
                 }
                 if(level0Type == "Input" && data[0] == "Stream"){
                     try {

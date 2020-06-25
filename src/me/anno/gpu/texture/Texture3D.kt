@@ -1,12 +1,9 @@
 package me.anno.gpu.texture
 
-import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.texture.Texture2D.Companion.textureBudgetTotal
 import me.anno.gpu.texture.Texture2D.Companion.textureBudgetUsed
-import org.lwjgl.opengl.EXTTextureFilterAnisotropic
 import org.lwjgl.opengl.GL11
-import org.lwjgl.opengl.GL12
 import org.lwjgl.opengl.GL13.GL_TEXTURE0
 import org.lwjgl.opengl.GL30.*
 import java.awt.image.BufferedImage
@@ -15,7 +12,6 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
 import kotlin.concurrent.thread
-import kotlin.math.min
 
 class Texture3D(val w: Int, val h: Int, val d: Int){
 
@@ -79,7 +75,7 @@ class Texture3D(val w: Int, val h: Int, val d: Int){
             }
         }
         if(sync) uploadData(intData)
-        else GFX.addTask {
+        else GFX.addGPUTask {
             uploadData(intData)
             1
         }

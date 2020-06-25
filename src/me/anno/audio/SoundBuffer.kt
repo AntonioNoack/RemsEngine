@@ -14,30 +14,41 @@ import java.nio.ByteOrder
 import java.nio.ShortBuffer
 
 
-class SoundBuffer(file: File): CacheData {
+class SoundBuffer(): CacheData {
 
     init { Audio.check() }
 
     var buffer = alGenBuffers()
     var pcm: ShortBuffer? = null // pcm = amplitudes by time
 
-    init {
+    constructor(file: File): this(){
+        load(file)
+    }
+
+    constructor(waveData: WaveData): this(){
+        load(waveData)
+    }
+
+    fun load(waveData: WaveData){
+        alBufferData(buffer, waveData.format, waveData.data, waveData.samplerate)
+        waveData.dispose()
+        Audio.check()
+    }
+
+    fun loadOGG(file: File){
+        STBVorbisInfo.malloc().use { info ->
+            val pcm = readVorbis(file, info)
+            val format = if(info.channels() == 1) AL_FORMAT_MONO16 else AL_FORMAT_STEREO16
+            alBufferData(buffer, format, pcm, info.sample_rate())
+            Audio.check()
+        }
+    }
+
+    fun load(file: File){
         val name = file.name
         when(val ending = name.split('.').last().toLowerCase()){
-            "ogg" -> {
-                STBVorbisInfo.malloc().use {  info ->
-                    val pcm = readVorbis(file, info)
-                    val format = if(info.channels() == 1) AL_FORMAT_MONO16 else AL_FORMAT_STEREO16
-                    alBufferData(buffer, format, pcm, info.sample_rate())
-                    Audio.check()
-                }
-            }
-            "wav" -> {
-                val wav = WaveData.create(file.absolutePath)
-                alBufferData(buffer, wav.format, wav.data, wav.samplerate)
-                wav.dispose()
-                Audio.check()
-            }
+            "ogg" -> loadOGG(file)
+            "wav" -> load(WaveData.create(file.inputStream()))
             else -> throw RuntimeException("Unknown audio format $ending!")
         }
     }

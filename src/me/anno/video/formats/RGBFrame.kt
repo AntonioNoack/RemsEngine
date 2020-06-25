@@ -7,14 +7,13 @@ import me.anno.video.Frame
 import me.anno.video.LastFrame
 import java.io.EOFException
 import java.io.InputStream
-import java.lang.RuntimeException
 
 
 class RGBFrame(w: Int, h: Int): Frame(w,h){
 
-    val rgb = Texture2D(w,h)
+    val rgb = Texture2D(w, h, 1)
 
-    fun load(input: InputStream){
+    override fun load(input: InputStream){
         val s0 = w*h
         val data = ByteArray(s0 * 4)
         var j = 0
@@ -26,7 +25,7 @@ class RGBFrame(w: Int, h: Int): Frame(w,h){
             data[j++] = input.read().toByte()
             data[j++] = 255.toByte()
         }
-        GFX.addTask { rgb.create(data); 15 }
+        GFX.addGPUTask { rgb.create(data); 15 }
     }
 
     override fun get3DShader(): Shader = GFX.shader3D

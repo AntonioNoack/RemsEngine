@@ -6,20 +6,25 @@ import org.lwjgl.opengl.EXTTextureFilterAnisotropic
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL13.GL_TEXTURE0
 import org.lwjgl.opengl.GL30.*
+import org.lwjgl.opengl.GL32.GL_TEXTURE_2D_MULTISAMPLE
+import org.lwjgl.opengl.GL32.glTexImage2DMultisample
 import java.awt.image.BufferedImage
 import java.lang.RuntimeException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
 import kotlin.concurrent.thread
-import kotlin.math.min
 
-class Texture2D(override var w: Int, override var h: Int): ITexture2D {
+class Texture2D(override var w: Int, override var h: Int, val samples: Int): ITexture2D {
 
-    constructor(img: BufferedImage): this(img.width, img.height){
+    constructor(img: BufferedImage): this(img.width, img.height, 1){
         create(img, true)
         filtering(true)
     }
+
+    val withMultisampling get() = samples > 1
+
+    val tex2D = if(withMultisampling) GL_TEXTURE_2D_MULTISAMPLE else GL_TEXTURE_2D
 
     var pointer = -1
     var isCreated = false
@@ -39,17 +44,30 @@ class Texture2D(override var w: Int, override var h: Int): ITexture2D {
     fun create(){
         ensurePointer()
         forceBind()
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL11.GL_RGBA, GL_UNSIGNED_BYTE, null as ByteBuffer?)
+        if(withMultisampling){
+            glTexImage2DMultisample(tex2D, samples, GL_RGBA8, w, h, false)
+        } else {
+            glTexImage2D(tex2D, 0, GL_RGBA8, w, h, 0, GL11.GL_RGBA, GL_UNSIGNED_BYTE, null as ByteBuffer?)
+        }
         filtering(isFilteredNearest)
         isCreated = true
     }
 
     fun createFP32(){
+        GFX.check()
         ensurePointer()
         forceBind()
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, w, h, 0, GL_RGBA, GL_FLOAT, null as ByteBuffer?)
+        GFX.check()
+        if(withMultisampling){
+            glTexImage2DMultisample(tex2D, samples, GL_RGBA32F, w, h, false)
+        } else {
+            glTexImage2D(tex2D, 0, GL_RGBA32F, w, h, 0, GL_RGBA, GL_FLOAT, null as ByteBuffer?)
+        }
+        println("$w $h $samples")
+        GFX.check()
         filtering(isFilteredNearest)
         isCreated = true
+        GFX.check()
     }
 
     fun create(createImage: () -> BufferedImage){
@@ -82,7 +100,7 @@ class Texture2D(override var w: Int, override var h: Int): ITexture2D {
             }
         }
         if(sync) uploadData(intData)
-        else GFX.addTask {
+        else GFX.addGPUTask {
             uploadData(intData)
             1
         }
@@ -92,7 +110,7 @@ class Texture2D(override var w: Int, override var h: Int): ITexture2D {
         GFX.check()
         ensurePointer()
         forceBind()
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, intData)
+        glTexImage2D(tex2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, intData)
         isCreated = true
         GFX.check()
         filtering(isFilteredNearest)
@@ -109,7 +127,7 @@ class Texture2D(override var w: Int, override var h: Int): ITexture2D {
             .position(0)
             .put(data)
             .position(0)
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, w, h, 0, GL11.GL_RED, GL_UNSIGNED_BYTE, byteBuffer)
+        glTexImage2D(tex2D, 0, GL_R8, w, h, 0, GL11.GL_RED, GL_UNSIGNED_BYTE, byteBuffer)
         isCreated = true
         filtering(isFilteredNearest)
         GFX.check()
@@ -132,7 +150,7 @@ class Texture2D(override var w: Int, override var h: Int): ITexture2D {
         forceBind()
         GFX.check()
         // rgba32f as internal format is extremely important... otherwise the value is cropped
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, w, h, 0, GL_RGBA, GL_FLOAT, floatBuffer)
+        glTexImage2D(tex2D, 0, GL_RGBA32F, w, h, 0, GL_RGBA, GL_FLOAT, floatBuffer)
         isCreated = true
         filtering(isFilteredNearest)
         GFX.check()
@@ -148,7 +166,7 @@ class Texture2D(override var w: Int, override var h: Int): ITexture2D {
             .position(0)
             .put(data)
             .position(0)
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, byteBuffer)
+        glTexImage2D(tex2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, byteBuffer)
         isCreated = true
         filtering(isFilteredNearest)
         GFX.check()
@@ -159,22 +177,28 @@ class Texture2D(override var w: Int, override var h: Int): ITexture2D {
     }
 
     fun filtering(nearest: Boolean){
+        if(withMultisampling){
+            isFilteredNearest = true
+            // multisample textures only support nearest filtering;
+            // they don't accept the command to be what they are either
+            return
+        }
         if(nearest){
             val type = GL_NEAREST
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, type)
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, type)
+            glTexParameteri(tex2D, GL_TEXTURE_MAG_FILTER, type)
+            glTexParameteri(tex2D, GL_TEXTURE_MIN_FILTER, type)
         } else {
             if(!hasMipmap){
-                glGenerateMipmap(GL_TEXTURE_2D)
+                glGenerateMipmap(tex2D)
                 hasMipmap = true
                 if(GFX.supportsAnisotropicFiltering){
                     val anisotropy = GFX.anisotropy
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_LOD_BIAS, 0)
-                    glTexParameterf(GL_TEXTURE_2D, EXTTextureFilterAnisotropic.GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropy)
+                    glTexParameteri(tex2D, GL_TEXTURE_LOD_BIAS, 0)
+                    glTexParameterf(tex2D, EXTTextureFilterAnisotropic.GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropy)
                 }
             }
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
+            glTexParameteri(tex2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+            glTexParameteri(tex2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
         }
         isFilteredNearest = nearest
     }
@@ -182,19 +206,21 @@ class Texture2D(override var w: Int, override var h: Int): ITexture2D {
     var hasMipmap = false
 
     fun clamping(repeat: Boolean){
-        val type = if(repeat) GL_REPEAT else GL_CLAMP_TO_EDGE
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, type)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, type)
+        if(!withMultisampling){
+            val type = if(repeat) GL_REPEAT else GL_CLAMP_TO_EDGE
+            glTexParameteri(tex2D, GL_TEXTURE_WRAP_S, type)
+            glTexParameteri(tex2D, GL_TEXTURE_WRAP_T, type)
+        }
     }
 
     fun forceBind(){
         if(pointer == -1) throw RuntimeException()
-        glBindTexture(GL_TEXTURE_2D, pointer)
+        glBindTexture(tex2D, pointer)
     }
 
     override fun bind(nearest: Boolean){
         if(pointer > -1 && isCreated){
-            glBindTexture(GL_TEXTURE_2D, pointer)
+            glBindTexture(tex2D, pointer)
             ensureFiltering(nearest)
         } else GFX.invisibleTexture.bind(true)
     }
@@ -211,7 +237,11 @@ class Texture2D(override var w: Int, override var h: Int): ITexture2D {
     fun createDepth(){
         ensurePointer()
         forceBind()
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, w, h, 0, GL_DEPTH_COMPONENT,	GL_FLOAT, 0)
+        if(withMultisampling){
+            glTexImage2DMultisample(tex2D, samples, GL_DEPTH_COMPONENT32, w, h, false)
+        } else {
+            glTexImage2D(tex2D, 0, GL_DEPTH_COMPONENT32, w, h, 0, GL_DEPTH_COMPONENT,	GL_FLOAT, 0)
+        }
         filtering(isFilteredNearest)
         clamping(false)
         GFX.check()

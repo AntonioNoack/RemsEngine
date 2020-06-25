@@ -10,7 +10,7 @@ import kotlin.concurrent.thread
 
 class ImageData(file: File): CacheData {
 
-    val texture = Texture2D(1024,1024)
+    val texture = Texture2D(1024,1024,1)
 
     init {
         if(file.name.endsWith(".hdr", true)){
@@ -19,7 +19,7 @@ class ImageData(file: File): CacheData {
                 val w = img.width
                 val h = img.height
                 val pixels = img.pixelBuffer
-                GFX.addTask {
+                GFX.addGPUTask {
                     texture.setSize(w, h)
                     texture.create(pixels)
                     35

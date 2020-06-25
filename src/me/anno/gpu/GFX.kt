@@ -90,10 +90,15 @@ object GFX: GFXBase1() {
         }
     }
 
-    val workerTasks = ConcurrentLinkedQueue<() -> Int>()
+    val gpuTasks = ConcurrentLinkedQueue<() -> Int>()
+    val audioTasks = ConcurrentLinkedQueue<() -> Int>()
 
-    fun addTask(task: () -> Int){
-        workerTasks += task
+    fun addAudioTask(task: () -> Int){
+        audioTasks += task
+    }
+
+    fun addGPUTask(task: () -> Int){
+        gpuTasks += task
     }
 
     lateinit var gameInit: () -> Unit
@@ -125,10 +130,10 @@ object GFX: GFXBase1() {
     lateinit var lineShader3D: Shader
     lateinit var shader3DMasked: Shader
 
-    val invisibleTexture = Texture2D(1, 1)
-    val whiteTexture = Texture2D(1, 1)
-    val stripeTexture = Texture2D(5, 1)
-    val colorShowTexture = Texture2D(2,2)
+    val invisibleTexture = Texture2D(1, 1, 1)
+    val whiteTexture = Texture2D(1, 1, 1)
+    val stripeTexture = Texture2D(5, 1, 1)
+    val colorShowTexture = Texture2D(2, 2, 1)
 
     var rawDeltaTime = 0f
     var deltaTime = 0f
@@ -780,14 +785,13 @@ object GFX: GFXBase1() {
         setIcon()
     }
 
-    override fun renderStep(){
-
+    fun workQueue(queue: ConcurrentLinkedQueue<() -> Int>){
         // async work section
 
         var workDone = 0
         val workTime0 = System.nanoTime()
         while(workDone < 100){
-            val nextTask = workerTasks.poll() ?: break
+            val nextTask = queue.poll() ?: break
             workDone += nextTask()
             val workTime1 = System.nanoTime()
             val workTime = abs(workTime1 - workTime0) * 1e-9f
@@ -795,6 +799,11 @@ object GFX: GFXBase1() {
                 break
             }
         }
+    }
+
+    override fun renderStep(){
+
+        workQueue(gpuTasks)
 
         // rendering and editor section
 
@@ -911,8 +920,12 @@ object GFX: GFXBase1() {
     fun check(){
         val error = glGetError()
         if(error != 0) throw RuntimeException("GLException: ${when(error){
+            1280 -> "invalid enum"
             1281 -> "invalid value"
             1282 -> "invalid operation"
+            1283 -> "stack overflow"
+            1284 -> "stack underflow"
+            1285 -> "out of memory"
             else -> "$error"
         }}")
     }

@@ -17,7 +17,6 @@ import me.anno.objects.cache.Cache
 import me.anno.objects.effects.BokehBlur
 import me.anno.objects.effects.ToneMappers
 import me.anno.ui.editor.sceneView.Grid
-import me.anno.utils.length
 import me.anno.utils.times
 import me.anno.video.MissingFrameException
 import org.joml.Matrix4fStack
@@ -25,7 +24,6 @@ import org.joml.Vector4f
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL30
 import java.io.File
-import kotlin.math.min
 import kotlin.math.sqrt
 
 object Scene {
@@ -177,14 +175,16 @@ object Scene {
         isInited = true
     }
 
-    fun switch(buffer: Framebuffer, offset: Int, nearest: Boolean): Framebuffer {
-        val next = FBStack[buffer.w, buffer.h]
+    fun switch(buffer: Framebuffer, offset: Int, nearest: Boolean, withMultisampling: Boolean?): Framebuffer {
+        val next = FBStack[buffer.w, buffer.h, withMultisampling ?: buffer.withMultisampling]
         next.bind()
         buffer.bindTextures(offset, nearest)
         return next
     }
 
     fun draw(target: Framebuffer?, camera: Camera, x0: Int, y0: Int, w: Int, h: Int, time: Float, flipY: Boolean){
+
+        val enableMultisampling = false
 
         GFX.check()
 
@@ -196,7 +196,7 @@ object Scene {
 
         GFX.clip(x0, y0, w, h)
 
-        var buffer = FBStack[w, h]
+        var buffer = FBStack[w, h, enableMultisampling]
         buffer.bind()
         //framebuffer.bind(w, h)
 
@@ -276,7 +276,7 @@ object Scene {
 
         val enableCircularDOF = 'K'.toInt() in keysDown
         if(enableCircularDOF){
-            buffer = switch(buffer, 0, true)
+            buffer = switch(buffer, 0, true, withMultisampling = false)
             BokehBlur.draw(buffer, w, h, 0.02f)
         }
 
@@ -296,7 +296,7 @@ object Scene {
 
         val useLUT = lut != null
         if(useLUT){
-            buffer = switch(buffer, 0, false)
+            buffer = switch(buffer, 0, false, withMultisampling = false)
         } else {
             bindTarget()
             buffer.bindTextures(0, false)
@@ -359,7 +359,8 @@ object Scene {
             GFX.check()
         }
 
-        FBStack.clear(w, h)
+        FBStack.clear(w, h, true)
+        FBStack.clear(w, h, false)
 
         glEnable(GL_BLEND)
 

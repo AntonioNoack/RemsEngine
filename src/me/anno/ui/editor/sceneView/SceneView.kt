@@ -58,7 +58,6 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
     // this should give correct color mixing <3
 
     // we need the depth for post processing effects like dof
-    var framebuffer = Framebuffer(1, 1,1,true, Framebuffer.DepthBufferType.TEXTURE)
     var mode = TransformMode.MOVE
 
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
@@ -90,6 +89,7 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
             }
         }
 
+        // for(i in 0 until 1000)
         Scene.draw(null, camera, x+dx,y+dy,rw,rh, GFX.editorTime, false)
 
         GFX.clip(x0, y0, x1, y1)
@@ -181,19 +181,17 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
                 when(mode){
                     TransformMode.MOVE -> {
 
-                        // todo find the correct speed...
-                        val uiZ = global2ui.transformProject(Vector4f(0f, 0f, 0f, 1f)).toVec3f().z
-                        val oldGlobal = inverse.transformProject(Vector4f(xTo01(oldX), yTo01(oldY), uiZ, 1f)).toVec3f()
-                        val newGlobal = inverse.transformProject(Vector4f(xTo01(x), yTo01(y), uiZ, 1f)).toVec3f()
-
-                        println("${oldGlobal.print()} -> ${newGlobal.print()}")
-
+                        // todo find the (truly) correct speed...
                         // todo depends on FOV, camera and object transform
+
+                        val uiZ = camera2global.transformPosition(Vector3f()).distance(target2global.transformPosition(Vector3f()))
+                        println(uiZ)
+
                         val oldPosition = selected.position[localTime]
                         val localDelta = global2ui.transformDirection(
                             if(Input.isControlDown) Vector3f(0f, 0f, -delta)
                             else Vector3f(dx0, -dy0, 0f)
-                        )
+                        ) * (uiZ/4)
                         selected.position.addKeyframe(localTime, oldPosition + localDelta)
                     }
                     /*TransformMode.SCALE -> {

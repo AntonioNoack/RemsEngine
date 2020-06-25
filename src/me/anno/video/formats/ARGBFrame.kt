@@ -11,14 +11,14 @@ import java.lang.RuntimeException
 
 class ARGBFrame(w: Int, h: Int): Frame(w,h){
 
-    val argb = Texture2D(w,h)
+    val argb = Texture2D(w, h, 1)
 
-    fun load(input: InputStream){
+    override fun load(input: InputStream){
         val s0 = w*h*4
         val data = input.readNBytes(s0)
         if(data.isEmpty()) throw LastFrame()
         if(data.size < s0) throw RuntimeException("not enough data, only ${data.size} of $s0")
-        GFX.addTask { argb.create(data); 15 }
+        GFX.addGPUTask { argb.create(data); 15 }
     }
 
     override fun get3DShader(): Shader = GFX.shader3DARGB

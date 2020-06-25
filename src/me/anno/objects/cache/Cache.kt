@@ -55,7 +55,7 @@ object Cache {
             val cache = TextureCache(null)
             thread {
                 val img = GFX.loadBImage(name)
-                val tex = Texture2D(img.width, img.height)
+                val tex = Texture2D(img.width, img.height, 1)
                 tex.create(img, false)
                 cache.texture = tex
             }

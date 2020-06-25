@@ -61,7 +61,7 @@ class AWTFont(val font: Font): XFont {
             return FakeWhiteTexture(width, height)
         }
 
-        val texture = Texture2D(width, height)
+        val texture = Texture2D(width, height, 1)
         texture.create {
 
             val image = BufferedImage(width, height, 1)
@@ -97,7 +97,7 @@ class AWTFont(val font: Font): XFont {
         val width = ceil(bounds.width)
         val height = ceil(layout.ascent + layout.descent)
 
-        val texture = Texture2D(width, height)
+        val texture = Texture2D(width, height, 1)
         texture.create {
             val image = BufferedImage(width, height, 1)
             val gfx = image.graphics as Graphics2D

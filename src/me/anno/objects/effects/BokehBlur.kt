@@ -28,14 +28,14 @@ object BokehBlur {
     var perChannelShader: Shader? = null
 
     // do I need f32 pairs?
-    fun fb() = Framebuffer(1, 1, 1, true, Framebuffer.DepthBufferType.NONE)
+    fun fb() = Framebuffer(1, 1, 1, 1, true, Framebuffer.DepthBufferType.NONE)
     fun fbPair() = fb() to fb()
 
     val red = fbPair()
     val green = fbPair()
     val blue = fbPair()
 
-    val filterTexture = Texture2D(KERNEL_COUNT, 1)
+    val filterTexture = Texture2D(KERNEL_COUNT, 1, 1)
 
     val result = fbPair()
 

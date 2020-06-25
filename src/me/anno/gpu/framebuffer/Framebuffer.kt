@@ -4,12 +4,11 @@ import me.anno.gpu.GFX
 import me.anno.gpu.texture.Texture2D
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL13
-import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL30.*
 import java.lang.RuntimeException
 import java.util.*
 
-class Framebuffer(var w: Int, var h: Int, val targetCount: Int, val fpTargets: Boolean, val createDepthBuffer: DepthBufferType){
+class Framebuffer(var w: Int, var h: Int, val samples: Int, val targetCount: Int, val fpTargets: Boolean, val createDepthBuffer: DepthBufferType){
 
     // multiple targets, layout=x require shader version 330+
     // use glBindFragDataLocation instead
@@ -20,8 +19,9 @@ class Framebuffer(var w: Int, var h: Int, val targetCount: Int, val fpTargets: B
         TEXTURE
     }
 
-    var samples = 4
-    val isMultisampled get() = samples > 1
+    val withMultisampling get() = samples > 1
+    var msBuffer = if(withMultisampling)
+        Framebuffer(w, h, 1, targetCount, fpTargets, createDepthBuffer) else null
 
     var pointer = -1
     var depthRenderBuffer = -1
@@ -35,6 +35,11 @@ class Framebuffer(var w: Int, var h: Int, val targetCount: Int, val fpTargets: B
         currentFramebuffer = this
         glBindFramebuffer(GL_FRAMEBUFFER, pointer)
         glViewport(0,0, w, h)
+        if(withMultisampling){
+            GL11.glEnable(GL13.GL_MULTISAMPLE)
+        } else {
+            GL11.glDisable(GL13.GL_MULTISAMPLE)
+        }
     }
 
     fun bind(newWidth: Int, newHeight: Int){
@@ -59,11 +64,13 @@ class Framebuffer(var w: Int, var h: Int, val targetCount: Int, val fpTargets: B
         glBindFramebuffer(GL_FRAMEBUFFER, pointer)
         GFX.check()
         textures = Array(targetCount){
-            val texture = Texture2D(w, h)
+            val texture = Texture2D(w, h, samples)
             if(fpTargets) texture.createFP32()
             else texture.create()
+            println("$w $h $samples $fpTargets")
             GFX.check()
             texture.filtering(true)
+            GFX.check()
             texture.clamping(false)
             GFX.check()
             texture
@@ -81,7 +88,7 @@ class Framebuffer(var w: Int, var h: Int, val targetCount: Int, val fpTargets: B
             DepthBufferType.NONE -> {}
             DepthBufferType.INTERNAL -> createDepthBuffer()
             DepthBufferType.TEXTURE -> {
-                val depthTexture = Texture2D(w, h)
+                val depthTexture = Texture2D(w, h, samples) // xD
                 depthTexture.createDepth()
                 glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthTexture.pointer, 0)
             }
@@ -91,7 +98,7 @@ class Framebuffer(var w: Int, var h: Int, val targetCount: Int, val fpTargets: B
     }
 
     fun createColorBuffer(){
-        if(!isMultisampled) throw RuntimeException()
+        if(!withMultisampling) throw RuntimeException()
         val renderBuffer = glGenRenderbuffers()
         colorRenderBuffer = renderBuffer
         if(renderBuffer < 0) throw RuntimeException()
@@ -105,7 +112,7 @@ class Framebuffer(var w: Int, var h: Int, val targetCount: Int, val fpTargets: B
         depthRenderBuffer = renderBuffer
         if(renderBuffer < 0) throw RuntimeException()
         glBindRenderbuffer(GL_RENDERBUFFER, renderBuffer)
-        if(isMultisampled){
+        if(withMultisampling){
             glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, GL_DEPTH_COMPONENT, w, h)
         } else glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, w, h)
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, renderBuffer)
@@ -113,6 +120,7 @@ class Framebuffer(var w: Int, var h: Int, val targetCount: Int, val fpTargets: B
 
     fun resolveTo(target: Framebuffer?){
         if(pointer < 0) throw RuntimeException()
+        target?.bind() // ensure that it exists
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, target?.pointer ?: 0)
         glBindFramebuffer(GL_READ_FRAMEBUFFER, pointer)
         // if(target == null) glDrawBuffer(GL_BACK)?
@@ -131,11 +139,21 @@ class Framebuffer(var w: Int, var h: Int, val targetCount: Int, val fpTargets: B
     }
 
     fun bindTexture0(offset: Int = 0, nearest: Boolean){
+        if(withMultisampling){
+            resolveTo(msBuffer!!)
+            msBuffer!!.bindTexture0(offset, nearest)
+            return
+        }
         GL13.glActiveTexture(GL13.GL_TEXTURE0 + offset)
         textures[0].bind(nearest)
     }
 
     fun bindTextures(offset: Int = 0, nearest: Boolean){
+        if(withMultisampling){
+            resolveTo(msBuffer!!)
+            msBuffer!!.bindTextures(offset, nearest)
+            return
+        }
         textures.forEachIndexed { index, texture ->
             GL13.glActiveTexture(GL13.GL_TEXTURE0 + offset + index)
             texture.bind(nearest)

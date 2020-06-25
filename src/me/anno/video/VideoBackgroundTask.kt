@@ -9,7 +9,7 @@ class VideoBackgroundTask(val video: VideoCreator){
     // todo show the progress somehow
     // (percent, time used, expected time remaining)
 
-    val framebuffer = Framebuffer(video.w, video.h, 1, false, Framebuffer.DepthBufferType.TEXTURE)
+    val framebuffer = Framebuffer(video.w, video.h, 1, 1, false, Framebuffer.DepthBufferType.TEXTURE)
 
     var frameIndex = 0
     val totalFrameCount = 200
@@ -25,7 +25,7 @@ class VideoBackgroundTask(val video: VideoCreator){
 
         if(frameIndex < totalFrameCount){
 
-            GFX.addTask {
+            GFX.addGPUTask {
 
                 if(renderFrame(frameIndex / video.fps)){
                     video.writeFrame(framebuffer){

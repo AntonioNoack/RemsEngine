@@ -152,7 +152,7 @@ object RemsStudio {
         val project0File = File(workspace, lastProject)
         if(lastProject == newProjectName) clear(project0File)
         project = Project(project0File)
-        GFX.addTask { updateTitle(); 1 }
+        GFX.addGPUTask { updateTitle(); 1 }
     }
 
     // would overflow as 32 bit after 2.5 months on a 300 fps display ;D

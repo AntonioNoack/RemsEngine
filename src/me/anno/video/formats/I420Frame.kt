@@ -15,29 +15,29 @@ class I420Frame(iw: Int, ih: Int): Frame(iw,ih){
     val w2 = (w+1)/2
     val h2 = (h+1)/2
 
-    val y = Texture2D(w, h)
-    val u = Texture2D(w2, h2)
-    val v = Texture2D(w2, h2)
+    val y = Texture2D(w, h, 1)
+    val u = Texture2D(w2, h2, 1)
+    val v = Texture2D(w2, h2, 1)
 
-    fun load(input: InputStream){
+    override fun load(input: InputStream){
         val s0 = w * h
         val s1 = w2 * h2
         val yData = input.readNBytes(s0)
         if(yData.isEmpty()) throw LastFrame()
         if(yData.size < s0) throw RuntimeException("not enough data, only ${yData.size} of $s0")
-        GFX.addTask {
+        GFX.addGPUTask {
             y.createMonochrome(yData)
             10
         }
         val uData = input.readNBytes(s1)
         if(uData.size < s1) throw RuntimeException("not enough data, only ${uData.size} of $s1")
-        GFX.addTask {
+        GFX.addGPUTask {
             u.createMonochrome(uData)
             10
         }
         val vData = input.readNBytes(s1)
         if(vData.size < s1) throw RuntimeException("not enough data, only ${vData.size} of $s1")
-        GFX.addTask {
+        GFX.addGPUTask {
             v.createMonochrome(vData)
             isLoaded = true
             10

@@ -2,6 +2,7 @@ package me.anno.objects.cache
 
 import me.anno.gpu.GFX
 import me.anno.video.FFMPEGStream
+import me.anno.video.FFMPEGVideo
 import me.anno.video.Frame
 import java.io.File
 import kotlin.math.abs
@@ -18,7 +19,7 @@ class VideoCache(val file: File){
     val duration get() = endTime - startTime
 
     val framesPerContainer = 16
-    val frameContainers = HashMap<Int, FFMPEGStream>()
+    val frameContainers = HashMap<Int, FFMPEGVideo>()
 
     val bufferTimeout = 1_500_000_000 // 1.5s
 
@@ -50,7 +51,7 @@ class VideoCache(val file: File){
                 getFrame(time, frameIndex-1, false)
     }
 
-    fun requestContainer(index: Int): FFMPEGStream {
+    fun requestContainer(index: Int): FFMPEGVideo {
         val minFrame = index * framesPerContainer
         // val maxFrame = minFrame + framesPerContainer
         val startTime = minFrame / fps
