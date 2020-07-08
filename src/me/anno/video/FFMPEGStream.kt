@@ -1,6 +1,5 @@
 package me.anno.video
 
-import me.anno.audio.SoundBuffer
 import me.anno.config.DefaultConfig
 import java.io.File
 import java.io.InputStream
@@ -34,12 +33,12 @@ abstract class FFMPEGStream(val file: File?){
             "-f", "rawvideo", "-"// format
             // "pipe:1" // 1 = stdout, 2 = stdout
         )) as FFMPEGVideo
-        fun getAudioSequence(input: File, startTime: Float, duration: Float, frequency: Float) = FFMPEGAudio(
-            input, (startTime * frequency).roundToInt()).run(listOf(
+        fun getAudioSequence(input: File, startTime: Float, duration: Float, sampleRate: Int) = FFMPEGAudio(
+            input, sampleRate, duration, (startTime * sampleRate).roundToInt()).run(listOf(
             "-i", input.absolutePath,
             "-ss", "$startTime",
             "-t", "$duration", // duration
-            "-ar", "$frequency",
+            "-ar", "$sampleRate",
             // -aq quality, codec specific
             "-f", "wav",
             // wav is exported with length -1, which slick does not support

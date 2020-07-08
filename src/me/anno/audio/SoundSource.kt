@@ -6,58 +6,58 @@ import org.lwjgl.openal.AL10.*
 class SoundSource(val loop: Boolean, val relative: Boolean){
 
 
-    var source = alGenSources()
+    var sourcePtr = alGenSources()
 
     init {
-        if(loop) alSourcei(source, AL_LOOPING, AL_TRUE)
-        if(relative) alSourcei(source, AL_SOURCE_RELATIVE, AL_TRUE)
+        if(loop) alSourcei(sourcePtr, AL_LOOPING, AL_TRUE)
+        if(relative) alSourcei(sourcePtr, AL_SOURCE_RELATIVE, AL_TRUE)
     }
 
     fun setDistanceModel(){
         // max distance = stopped attenuation???
-        alSourcef(source, AL_ROLLOFF_FACTOR, 1f)
-        alSourcef(source, AL_REFERENCE_DISTANCE, 1f)
-        alSourcef(source, AL_MAX_DISTANCE, 1e3f)
+        alSourcef(sourcePtr, AL_ROLLOFF_FACTOR, 1f)
+        alSourcef(sourcePtr, AL_REFERENCE_DISTANCE, 1f)
+        alSourcef(sourcePtr, AL_MAX_DISTANCE, 1e3f)
     }
 
     fun setBuffer(buffer: Int){
         stop()
-        alSourcei(source, AL_BUFFER, buffer)
+        alSourcei(sourcePtr, AL_BUFFER, buffer)
     }
 
     fun setPosition(position: Vector3f){
-        alSource3f(source, AL_POSITION, position.x, position.y, position.z)
+        alSource3f(sourcePtr, AL_POSITION, position.x, position.y, position.z)
     }
 
     fun setVelocity(speed: Vector3f){
-        alSource3f(source, AL_VELOCITY, speed.x, speed.y, speed.z)
+        alSource3f(sourcePtr, AL_VELOCITY, speed.x, speed.y, speed.z)
     }
 
     fun setGain(gain: Float){
-        alSourcef(source, AL_GAIN, gain)
+        alSourcef(sourcePtr, AL_GAIN, gain)
     }
 
     fun setProperty(param: Int, value: Float){
-        alSourcef(source, param, value)
+        alSourcef(sourcePtr, param, value)
     }
 
     fun play(){
-        alSourcePlay(source)
+        alSourcePlay(sourcePtr)
     }
 
     fun pause(){
-        alSourcePause(source)
+        alSourcePause(sourcePtr)
     }
 
     fun stop(){
-        alSourceStop(source)
+        alSourceStop(sourcePtr)
     }
 
-    val isPlaying get() = alGetSourcei(source, AL_SOURCE_STATE) == AL_PLAYING
+    val isPlaying get() = alGetSourcei(sourcePtr, AL_SOURCE_STATE) == AL_PLAYING
 
     fun destroy(){
         stop()
-        alDeleteSources(source)
+        alDeleteSources(sourcePtr)
     }
 
 }

@@ -1,5 +1,6 @@
 package me.anno.gpu
 
+import me.anno.audio.ALBase
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.black
 import me.anno.fonts.FontManager
@@ -15,8 +16,13 @@ import me.anno.objects.Inspectable
 import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.blending.BlendMode
+import me.anno.studio.Studio.editorTime
 import me.anno.studio.Studio.editorTimeDilation
 import me.anno.studio.Studio.eventTasks
+import me.anno.studio.Studio.root
+import me.anno.studio.Studio.selectedCamera
+import me.anno.studio.Studio.selectedInspectable
+import me.anno.studio.Studio.selectedTransform
 import me.anno.studio.Studio.targetHeight
 import me.anno.studio.Studio.targetWidth
 import me.anno.ui.base.Panel
@@ -61,24 +67,6 @@ object GFX: GFXBase1() {
     var supportsAnisotropicFiltering = false
     var anisotropy = 1f
 
-    val nullCamera = Camera(null)
-
-    init {
-        nullCamera.name = "Inspector Camera"
-        nullCamera.onlyShowTarget = false
-        // higher far value to allow other far values to be seen
-        nullCamera.farZ.addKeyframe(0f, 5000f, 1f)
-        nullCamera.timeDilation = 0f // the camera has no time, so no motion can be recorded
-    }
-
-    var root = Transform()
-    var selectedCamera = nullCamera
-    var usedCamera = nullCamera
-
-    var selectedTransform: Transform? = null
-    var selectedProperty: AnimatedProperty<*>? = null
-    var selectedInspectable: Inspectable? = null
-
     var hoveredPanel: Panel? = null
     var hoveredWindow: Window? = null
 
@@ -94,6 +82,7 @@ object GFX: GFXBase1() {
     val audioTasks = ConcurrentLinkedQueue<() -> Int>()
 
     fun addAudioTask(task: () -> Int){
+        // could be optimized for release...
         audioTasks += task
     }
 
@@ -145,7 +134,6 @@ object GFX: GFXBase1() {
 
     var panelCtr = 0
 
-    var editorTime = 0f
     var editorHoverTime = 0f
 
     var smoothSin = 0f
@@ -447,7 +435,10 @@ object GFX: GFXBase1() {
 
     fun initShaders(){
 
-        // color only
+        // make this customizable?
+
+        // color only for a rectangle
+        // (can work on more complex shapes)
         flatShader = Shader("" +
                 "a2 attr0;\n" +
                 "u2 pos, size;\n" +

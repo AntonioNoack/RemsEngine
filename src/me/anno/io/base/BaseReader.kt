@@ -81,7 +81,7 @@ abstract class BaseReader {
         if(isValue != shallValue) throw RuntimeException("Expected $shallValue but got $isValue")
     }
 
-    fun error(msg: String): Nothing = throw RuntimeException(msg)
+    fun error(msg: String): Nothing = throw RuntimeException("[BaseReader] $msg")
 
 
 }

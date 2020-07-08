@@ -81,7 +81,7 @@ object Log {
 
 
     fun av_log(clazz: Any?, level: Int, format: String, vararg any: Any) {
-        println("$clazz: $level, ${format.format(any)}")
+        println("[FFMPEG] $clazz: $level, ${format.format(any)}")
     }
 
 

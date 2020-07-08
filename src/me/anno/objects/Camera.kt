@@ -8,6 +8,7 @@ import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.effects.ToneMappers
 import me.anno.studio.Studio.targetHeight
 import me.anno.studio.Studio.targetWidth
+import me.anno.studio.Studio.usedCamera
 import me.anno.ui.base.ButtonPanel
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.frames.FrameSizeInput
@@ -87,7 +88,7 @@ class Camera(parent: Transform?): Transform(parent){
     override fun onDraw(stack: Matrix4fStack, time: Float, color: Vector4f) {
 
         if(GFX.isFinalRendering) return
-        if(this === GFX.usedCamera) return
+        if(this === usedCamera) return
         // idk...
         // if(this !== GFX.selectedTransform) return
 

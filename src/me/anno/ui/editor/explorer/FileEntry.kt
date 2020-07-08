@@ -54,9 +54,9 @@ class FileEntry(val explorer: FileExplorer, val file: File, style: Style): Panel
         return true
     }
 
-    override fun printLayout(depth: Int) {
-        super.printLayout(depth)
-        println("${Tabs.spaces(depth*2+2)} ${file.name}")
+    override fun printLayout(tabDepth: Int) {
+        super.printLayout(tabDepth)
+        println("${Tabs.spaces(tabDepth*2+2)} ${file.name}")
     }
 
     override fun getClassName() = "FileEntry"

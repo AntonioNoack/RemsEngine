@@ -17,6 +17,10 @@ open class Panel(val style: Style): Saveable(){
 
     var visibility = Visibility.VISIBLE
 
+    /**
+     * this weight is used inside some layouts
+     * it allows layout by percentages and such
+     * */
     var weight = 0f
 
     var backgroundColor = style.getColor("background", -1)
@@ -43,18 +47,31 @@ open class Panel(val style: Style): Saveable(){
     fun requestFocus() = GFX.requestFocus(this, true)
 
     fun drawBackground(){
+        // todo make more beautiful by adding shadows on the top and bottom, maybe the sides; for input panels mainly
         GFX.drawRect(x,y,w,h,backgroundColor)
     }
 
+    /**
+     * draw the panel inside the rectangle (x0 until x1, y0 until y1)
+     * more does not need to be drawn;
+     * the area is already clipped with glViewport(x0,y0,x1-x0,y1-y0)
+     * */
     open fun draw(x0: Int, y0: Int, x1: Int, y1: Int){
         drawBackground()
     }
 
+    /**
+     * weight used in layouts, that work with weights
+     * */
     fun setWeight(w: Float): Panel {
         weight = w
         return this
     }
 
+    /**
+     * add a layout constraint
+     * may not be fulfilled by container
+     * */
     operator fun plusAssign(c: Constraint){
         layoutConstraints += c
         layoutConstraints.sortBy { it.order }
@@ -97,8 +114,12 @@ open class Panel(val style: Style): Saveable(){
         parent?.remove(this)
     }
 
-    var onClickListener: ((Float, Float, Int, Boolean) -> Unit)? = null
+    /**
+     * event listeners;
+     * as functions to be able to cancel parent listeners
+     * */
 
+    var onClickListener: ((Float, Float, Int, Boolean) -> Unit)? = null
     fun setOnClickListener(onClickListener: ((x: Float, y: Float, button: Int, long: Boolean) -> Unit)): Panel {
         this.onClickListener = onClickListener
         return this
@@ -132,6 +153,10 @@ open class Panel(val style: Style): Saveable(){
     open fun onEnterKey(x: Float, y: Float){ parent?.onEnterKey(x,y) }
     open fun onDeleteKey(x: Float, y: Float){ parent?.onDeleteKey(x,y) }
 
+    /**
+     * for serialization and easier runtime debugging
+     * (print key -> prints layout with Panel.printLayout())
+     * */
     override fun getClassName(): String = "Panel"
     override fun getApproxSize(): Int = 1
 
@@ -144,11 +169,19 @@ open class Panel(val style: Style): Saveable(){
         return this
     }
 
-    open fun printLayout(depth: Int){
-        println("${Tabs.spaces(depth*2)}${javaClass.simpleName}($weight) $x $y += $w $h ($minW $minH)")
+    open fun printLayout(tabDepth: Int){
+        println("${Tabs.spaces(tabDepth*2)}${javaClass.simpleName}($weight) $x $y += $w $h ($minW $minH)")
     }
 
+    /**
+     * part of serialization; isn't used currently
+     * */
     override fun isDefaultValue() = false
+
+    /**
+     * if this element is in focus,
+     * low-priority global events wont be fired (e.g. space for start/stop vs typing a space)
+     * */
     open fun isKeyInput() = false
 
     val listOfAll: Sequence<Panel> get() = sequence {
@@ -158,10 +191,33 @@ open class Panel(val style: Style): Saveable(){
         }
     }
 
+    /**
+     * does this panel contain the coordinate (x,y)?
+     * does not consider overlap
+     * */
     fun contains(x: Int, y: Int, margin: Int = 0) = (x-this.x) in -margin until w+margin && (y-this.y) in -margin until h+margin
+
+    /**
+     * does this panel contain the coordinate (x,y)?
+     * does not consider overlap
+     *
+     * panels are aligned on full coordinates, so there is no advantange in calling this function
+     * */
     fun contains(x: Float, y: Float, margin: Int = 0) = contains(x.toInt(), y.toInt(), margin)
+
+    /**
+     * when shift/ctrl clicking on items to select multiples...
+     * which parent is the common parent?
+     *
+     * isn't really meant to be concatenated as a function
+     * (multiselect inside multiselect)
+     * */
     open fun getMultiSelectableParent(): Panel? = parent?.getMultiSelectableParent()
 
-    fun indexInParent() = parent?.children?.indexOf(this) ?: -1
+    /**
+     * get the index in our parent; or -1, if we have no parent (are the root element)
+     * */
+    val indexInParent get() = parent?.children?.indexOf(this) ?: -1
+    val isRootElement get() = parent == null
 
 }

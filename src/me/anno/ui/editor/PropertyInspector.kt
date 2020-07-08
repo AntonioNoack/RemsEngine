@@ -1,8 +1,7 @@
 package me.anno.ui.editor
 
-import me.anno.gpu.GFX
 import me.anno.objects.Inspectable
-import me.anno.objects.Transform
+import me.anno.studio.Studio
 import me.anno.ui.base.Panel
 import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.base.components.Padding
@@ -19,7 +18,7 @@ class PropertyInspector(style: Style):
     // init { padding.top += 6 }
 
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        val selected = GFX.selectedInspectable
+        val selected = Studio.selectedInspectable
         if(selected != lastSelected){
             lastSelected = selected
             list.clear()

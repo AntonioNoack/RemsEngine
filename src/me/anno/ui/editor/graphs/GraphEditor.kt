@@ -1,6 +1,7 @@
 package me.anno.ui.editor.graphs
 
 import me.anno.gpu.GFX
+import me.anno.studio.Studio
 import me.anno.ui.base.ButtonPanel
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.Visibility
@@ -14,7 +15,7 @@ class GraphEditor(style: Style): PanelListY(style) {
     val body = GraphEditorBody(style)
     val activateButtonContainer = PanelListY(style)
     val activateButton = ButtonPanel("Enable Animations", style)
-        .setOnClickListener { _, _, _, _ -> GFX.selectedProperty?.isAnimated = true }
+        .setOnClickListener { _, _, _, _ -> Studio.selectedProperty?.isAnimated = true }
 
     init {
         activateButtonContainer += activateButton
@@ -29,7 +30,7 @@ class GraphEditor(style: Style): PanelListY(style) {
     }
 
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        val canBeActivated = GFX.selectedProperty?.isAnimated == false
+        val canBeActivated = Studio.selectedProperty?.isAnimated == false
         activateButtonContainer.visibility = Visibility[canBeActivated]
         super.draw(x0, y0, x1, y1)
     }

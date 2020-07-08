@@ -32,6 +32,7 @@ class Project(val file: File): Saveable(){
     var targetWidth = config["target.width", 1920]
     var targetHeight = config["target.height", 1080]
     var targetFPS = config["target.fps", 30f]
+    var targetOutputFile = config["target.file", File(file, "output.mp4")]
 
     override fun getClassName() = "Project"
     override fun getApproxSize() = 1000

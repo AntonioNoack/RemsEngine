@@ -4,14 +4,18 @@ import me.anno.config.DefaultStyle.black
 import me.anno.config.DefaultStyle.deepDark
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.deltaTime
-import me.anno.gpu.GFX.editorTime
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.input.Input
 import me.anno.input.Input.keysDown
 import me.anno.input.Input.mouseKeysDown
 import me.anno.objects.Camera
 import me.anno.studio.Scene
+import me.anno.studio.Studio
 import me.anno.studio.Studio.dragged
+import me.anno.studio.Studio.editorTime
+import me.anno.studio.Studio.nullCamera
+import me.anno.studio.Studio.selectedCamera
+import me.anno.studio.Studio.selectedTransform
 import me.anno.studio.Studio.targetHeight
 import me.anno.studio.Studio.targetWidth
 import me.anno.ui.base.TextPanel
@@ -51,13 +55,11 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
 
     }
 
-    var camera = GFX.nullCamera
-
-    // use a framebuffer, where we draw sq(color)
-    // then we use a shader to draw sqrt(sq(color))
-    // this should give correct color mixing <3
+    var camera = nullCamera
 
     // we need the depth for post processing effects like dof
+
+
     var mode = TransformMode.MOVE
 
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
@@ -90,7 +92,7 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
         }
 
         // for(i in 0 until 1000)
-        Scene.draw(null, camera, x+dx,y+dy,rw,rh, GFX.editorTime, false)
+        Scene.draw(null, camera, x+dx,y+dy,rw,rh, editorTime, false)
 
         GFX.clip(x0, y0, x1, y1)
 
@@ -146,7 +148,8 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
     }
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
-        val size = (if(Input.isShiftDown) 4f else 20f) * (if(GFX.selectedTransform is Camera) -1f else 1f) / max(GFX.width,GFX.height)
+        // fov is relative to height -> modified to depend on height
+        val size = (if(Input.isShiftDown) 4f else 20f) * (if(Studio.selectedTransform is Camera) -1f else 1f) / GFX.height
         val oldX = x-dx
         val oldY = y-dy
         val dx0 = dx*size
@@ -155,7 +158,7 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
         // todo fix this code, then move it to the action manager
         if(0 in mouseKeysDown){
             // move the object
-            val selected = GFX.selectedTransform
+            val selected = Studio.selectedTransform
             if(selected != null){
 
                 val (target2global, localTime) = selected.getGlobalTransform(editorTime)
@@ -182,16 +185,15 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
                     TransformMode.MOVE -> {
 
                         // todo find the (truly) correct speed...
-                        // todo depends on FOV, camera and object transform
+                        // depends on FOV, camera and object transform
 
                         val uiZ = camera2global.transformPosition(Vector3f()).distance(target2global.transformPosition(Vector3f()))
-                        println(uiZ)
 
                         val oldPosition = selected.position[localTime]
                         val localDelta = global2ui.transformDirection(
                             if(Input.isControlDown) Vector3f(0f, 0f, -delta)
                             else Vector3f(dx0, -dy0, 0f)
-                        ) * (uiZ/4)
+                        ) * (uiZ/6) // why ever 1/6...
                         selected.position.addKeyframe(localTime, oldPosition + localDelta)
                     }
                     /*TransformMode.SCALE -> {
@@ -219,7 +221,7 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
     fun turn(dx: Float, dy: Float){
         // todo move the camera
         // todo only do, if not locked
-        val size = (if(Input.isShiftDown) 4f else 20f) * (if(GFX.selectedTransform is Camera) -1f else 1f) / max(GFX.width,GFX.height)
+        val size = (if(Input.isShiftDown) 4f else 20f) * (if(selectedTransform is Camera) -1f else 1f) / max(GFX.width,GFX.height)
         val dx0 = dx*size
         val dy0 = dy*size
         val scaleFactor = -10f
@@ -246,7 +248,7 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
             "SetMode(MOVE)" -> mode = TransformMode.MOVE
             "SetMode(SCALE)" -> mode = TransformMode.SCALE
             "SetMode(ROTATE)" -> mode = TransformMode.ROTATE
-            "ResetCamera" -> { GFX.selectedCamera.resetTransform() }
+            "ResetCamera" -> { selectedCamera.resetTransform() }
             "MoveLeft" -> this.dx--
             "MoveRight" -> this.dx++
             "MoveUp" -> this.dy++
@@ -273,6 +275,7 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
         }
     }
 
+    // sadly doesn't work well; glfw/windows cursor is only changed when moved
     /*override fun getCursor() = when(mode){
         TransformMode.MOVE -> Cursor.drag
         TransformMode.SCALE -> if(Input.isShiftDown) Cursor.vResize else Cursor.hResize
@@ -288,6 +291,8 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
                     camera = original
                 }// else focus?
             }
+            // file -> paste object from file?
+            // paste that object 1m in front of the camera?
             else -> super.onPaste(x, y, data, type)
         }
     }

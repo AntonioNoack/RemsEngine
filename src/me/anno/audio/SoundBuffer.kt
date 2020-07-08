@@ -16,7 +16,7 @@ import java.nio.ShortBuffer
 
 class SoundBuffer(): CacheData {
 
-    init { Audio.check() }
+    init { ALBase.check() }
 
     var buffer = alGenBuffers()
     var pcm: ShortBuffer? = null // pcm = amplitudes by time
@@ -29,10 +29,16 @@ class SoundBuffer(): CacheData {
         load(waveData)
     }
 
+    fun loadRawStereo16(data: ShortBuffer, sampleRate: Int){
+        pcm = data
+        alBufferData(buffer, AL_FORMAT_STEREO16, data, sampleRate)
+    }
+
     fun load(waveData: WaveData){
+        pcm = waveData.data.asShortBuffer()
         alBufferData(buffer, waveData.format, waveData.data, waveData.samplerate)
         waveData.dispose()
-        Audio.check()
+        ALBase.check()
     }
 
     fun loadOGG(file: File){
@@ -40,7 +46,7 @@ class SoundBuffer(): CacheData {
             val pcm = readVorbis(file, info)
             val format = if(info.channels() == 1) AL_FORMAT_MONO16 else AL_FORMAT_STEREO16
             alBufferData(buffer, format, pcm, info.sample_rate())
-            Audio.check()
+            ALBase.check()
         }
     }
 
@@ -58,7 +64,7 @@ class SoundBuffer(): CacheData {
             val vorbis = ioResourceToByteBuffer(file)
             val error = stack.mallocInt(1)
             val decoder: Long = stb_vorbis_open_memory(vorbis, error, null)
-            Audio.check()
+            ALBase.check()
             if (decoder == NULL) {
                 throw RuntimeException("Failed to open Ogg Vorbis file. Error: " + error[0])
             }

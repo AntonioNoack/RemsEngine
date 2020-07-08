@@ -1,12 +1,13 @@
 package me.anno.video
 
+import me.anno.audio.ALBase
 import me.anno.audio.SoundBuffer
 import me.anno.gpu.GFX
 import org.newdawn.slick.openal.WaveData
 import java.io.File
 import kotlin.concurrent.thread
 
-class FFMPEGAudio(file: File?, val frame0: Int):
+class FFMPEGAudio(file: File?, val sampleRate: Int, val length: Float, val frame0: Int):
     FFMPEGStream(file){
 
     override fun process(process: Process, arguments: List<String>) {
@@ -20,10 +21,12 @@ class FFMPEGAudio(file: File?, val frame0: Int):
         }
         thread {
             val input = process.inputStream.buffered()
-            val wav = WaveData.create(input, 48000 * 10)
+            val frameCount = (sampleRate * length).toInt()
+            val wav = WaveData.create(input, frameCount)
             GFX.addAudioTask {
                 val buffer = SoundBuffer(wav)
                 soundBuffer = buffer
+                ALBase.check()
                 10
             }
             input.close()

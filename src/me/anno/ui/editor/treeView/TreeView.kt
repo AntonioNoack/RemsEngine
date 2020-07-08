@@ -2,13 +2,13 @@ package me.anno.ui.editor.treeView
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
-import me.anno.gpu.GFX.nullCamera
-import me.anno.gpu.GFX.root
 import me.anno.gpu.GFX.select
 import me.anno.input.Input.mouseX
 import me.anno.input.Input.mouseY
 import me.anno.objects.*
 import me.anno.objects.Transform.Companion.toTransform
+import me.anno.studio.Studio.nullCamera
+import me.anno.studio.Studio.root
 import me.anno.ui.base.*
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelGroup

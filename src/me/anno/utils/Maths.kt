@@ -75,6 +75,10 @@ fun Vector2f.isInsideTriangle2(a: Vector2f, b: Vector2f, c: Vector2f): Boolean {
 
 }
 
+fun mix(a: Short, b: Short, f: Float): Float {
+    return a * (1f-f) + b*f
+}
+
 fun mix(a: Float, b: Float, f: Float): Float {
     return a * (1f-f) + b*f
 }

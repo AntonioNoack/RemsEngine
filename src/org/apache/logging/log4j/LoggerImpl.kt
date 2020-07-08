@@ -1,14 +1,22 @@
 package org.apache.logging.log4j
 
-class LoggerImpl: Logger {
+class LoggerImpl(prefix: String?): Logger {
 
     fun interleave(msg: String, args: Array<Object>): String {
         val parts = msg.split("{}")
         return parts.take(parts.size-1).mapIndexed { index, s -> "$s${args.getOrNull(index)}" }.joinToString("") + parts.last()
     }
 
+    val suffix = if(prefix == null) "" else ":$prefix"
+
+    fun print(prefix: String, msg: String){
+        msg.split('\n').forEach { line ->
+            println("[$prefix$suffix] $line")
+        }
+    }
+
     override fun info(msg: String) {
-        println("[INFO] $msg")
+        print("INFO", msg)
     }
 
     override fun info(msg: String, obj: Array<Object>) {
@@ -25,7 +33,7 @@ class LoggerImpl: Logger {
     }
 
     override fun error(msg: String) {
-        println("[ERR] $msg")
+        print("ERR", msg)
     }
 
     override fun error(msg: String, obj: Array<Object>) {
@@ -37,8 +45,21 @@ class LoggerImpl: Logger {
         thrown.printStackTrace()
     }
 
+    override fun severe(msg: String) {
+        print("SEVERE", msg)
+    }
+
+    override fun severe(msg: String, obj: Array<Object>) {
+        error(interleave(msg, obj))
+    }
+
+    override fun severe(msg: String, thrown: Throwable) {
+        error(msg)
+        thrown.printStackTrace()
+    }
+
     override fun fatal(msg: String) {
-        println("[FATAL] $msg")
+        print("FATAL", msg)
     }
 
     override fun fatal(msg: String, obj: Array<Object>) {
@@ -51,7 +72,7 @@ class LoggerImpl: Logger {
     }
 
     override fun warn(msg: String) {
-        println("[WARN] $msg")
+        print("WARN", msg)
     }
 
     override fun warn(msg: String, obj: Array<Object>) {

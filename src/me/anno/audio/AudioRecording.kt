@@ -16,11 +16,11 @@ class AudioRecording {
 
     init {
 
-        Audio.check()
+        ALBase.check()
 
         val device = alcCaptureOpenDevice(null as ByteBuffer?, sampleRate, AL_FORMAT_STEREO16, sampleSize)
 
-        Audio.check()
+        ALBase.check()
 
         alcCaptureStart(device)
 

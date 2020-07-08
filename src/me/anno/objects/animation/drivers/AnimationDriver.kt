@@ -5,6 +5,7 @@ import me.anno.io.Saveable
 import me.anno.objects.Inspectable
 import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
+import me.anno.studio.Studio
 import me.anno.ui.base.Panel
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.groups.PanelListY
@@ -19,7 +20,7 @@ abstract class AnimationDriver: Saveable(), Inspectable {
     override fun isDefaultValue() = false
     abstract fun createInspector(transform: Transform, style: Style): List<Panel>
     fun show(toShow: AnimatedProperty<*>?){
-        GFX.selectedProperty = toShow
+        Studio.selectedProperty = toShow
     }
 
     abstract fun getDisplayName(): String
@@ -27,7 +28,7 @@ abstract class AnimationDriver: Saveable(), Inspectable {
     // requires, that an object is selected
     override fun createInspector(list: PanelListY, style: Style) {
         list += TextPanel("Driver Inspector", style)
-        for(child in createInspector(GFX.selectedTransform!!, style)){
+        for(child in createInspector(Studio.selectedTransform!!, style)){
             list += child
         }
     }
@@ -47,7 +48,7 @@ abstract class AnimationDriver: Saveable(), Inspectable {
             )
             if(oldDriver != null){
                 options.add(0, "Customize" to { button, isLong ->
-                    GFX.selectedInspectable = oldDriver
+                    Studio.selectedInspectable = oldDriver
                     true
                 })
                 options += "Remove Driver" to { button, isLong ->

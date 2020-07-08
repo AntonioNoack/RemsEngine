@@ -181,7 +181,7 @@ class TextReader(val data: String): BaseReader(){
                     else -> error("unknown character $next in $typeName[]")
                 }
             }
-            if(i > length) println("$typeName[] contained too many elements!")
+            if(i > length) println("[TextReader] $typeName[] contained too many elements!")
             return values
         } else error("broken file :/, $typeName[].length > data.length")
     }

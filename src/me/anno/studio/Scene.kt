@@ -28,11 +28,17 @@ import kotlin.math.sqrt
 
 object Scene {
 
+    // use a framebuffer, where we draw sq(color)
+    // then we use a shader to draw sqrt(sq(color))
+    // this should give correct color mixing <3
+    // (color gamma correction, 2.2 is close to 2.0; shouldn't matter in my opinion)
+    // can't remove the heart after this talk: https://www.youtube.com/watch?v=SzoquBerhUc ;)
+
     lateinit var sqrtToneMappingShader: Shader
     lateinit var lutShader: Shader
 
-    var isInited = false
-    fun init(){
+    private var isInited = false
+    private fun init(){
 
         // add randomness against banding
         val noiseFunc = "" +
@@ -190,7 +196,7 @@ object Scene {
 
         if(!isInited) init()
 
-        GFX.usedCamera = camera
+        Studio.usedCamera = camera
 
         val (cameraTransform, cameraTime) = camera.getGlobalTransform(time)
 
@@ -240,10 +246,10 @@ object Scene {
 
         stack.pushMatrix()
         // root.draw(stack, editorHoverTime, Vector4f(1f,1f,1f,1f))
-        GFX.nullCamera.draw(stack, time, white)
+        Studio.nullCamera.draw(stack, time, white)
         stack.popMatrix()
         stack.pushMatrix()
-        GFX.root.draw(stack, time, white)
+        Studio.root.draw(stack, time, white)
         stack.popMatrix()
 
         // todo gizmos for orientation

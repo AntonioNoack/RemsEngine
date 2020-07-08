@@ -7,6 +7,7 @@ import me.anno.utils.pow
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.animation.drivers.AnimationDriver
 import me.anno.parser.SimpleExpressionParser
+import me.anno.studio.Studio
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.groups.PanelListY
@@ -68,7 +69,7 @@ class FloatInput(
                 val oldDriver = owningProperty.drivers[indexInProperty]
                 AnimationDriver.openDriverSelectionMenu(x.toInt(), y.toInt(), oldDriver){
                     owningProperty.drivers[indexInProperty] = it
-                    if(it != null) GFX.selectedInspectable = it
+                    if(it != null) Studio.selectedInspectable = it
                 }
                 return
             }
@@ -85,7 +86,7 @@ class FloatInput(
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
         val focused1 = titlePanel.isInFocus || inputPanel.isInFocus
         if(focused1) isSelectedListener?.invoke()
-        val focused2 = focused1 || (owningProperty != null && owningProperty == GFX.selectedProperty)
+        val focused2 = focused1 || (owningProperty != null && owningProperty == Studio.selectedProperty)
         inputPanel.visibility = if(focused2) Visibility.VISIBLE else Visibility.GONE
         super.draw(x0, y0, x1, y1)
         updateValueMaybe()

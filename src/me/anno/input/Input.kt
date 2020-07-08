@@ -140,8 +140,8 @@ object Input {
                                 if(selectionTarget in inFocus) inFocus -= selectionTarget
                                 else inFocus += selectionTarget
                             } else {
-                                val index0 = inFocusTarget!!.indexInParent()
-                                val index1 = selectionTarget.indexInParent()
+                                val index0 = inFocusTarget!!.indexInParent
+                                val index1 = selectionTarget.indexInParent
                                 // todo we should use the last selected as reference point...
                                 val minIndex = min(index0, index1)
                                 val maxIndex = max(index0, index1)
@@ -312,7 +312,7 @@ object Input {
             if (data != null) inFocus0?.onPasteFiles(mouseX, mouseY, data)
             return
         } catch (e: UnsupportedFlavorException){ }
-        println("Unsupported Data Flavor")
+        println("[WARN] Unsupported Data Flavor")
     }
 
     fun save() {

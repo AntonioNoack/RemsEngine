@@ -8,6 +8,7 @@ import me.anno.objects.Camera
 import me.anno.utils.clamp
 import me.anno.utils.pow
 import me.anno.objects.animation.AnimatedProperty
+import me.anno.studio.Studio
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.constraints.WrapAlign
@@ -130,7 +131,7 @@ class VectorInput(
         super.draw(x0, y0, x1, y1)
         val focused1 = titleView.isInFocus || valueList.children.count { it.isInFocus } > 0
         if(focused1) isSelectedListener?.invoke()
-        val focused2 = focused1 || owningProperty == GFX.selectedProperty
+        val focused2 = focused1 || owningProperty == Studio.selectedProperty
         valueList.visibility = if(focused2) Visibility.VISIBLE else Visibility.GONE
         super.draw(x0, y0, x1, y1)
         compX.updateValueMaybe()
@@ -202,7 +203,7 @@ class VectorInput(
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
         super.onMouseMoved(x, y, dx, dy)
         if(mouseIsDown){
-            val size = (if(isShiftDown) 4f else 20f) * (if(GFX.selectedTransform is Camera) -1f else 1f) / max(GFX.width,GFX.height)
+            val size = (if(isShiftDown) 4f else 20f) * (if(Studio.selectedTransform is Camera) -1f else 1f) / max(GFX.width,GFX.height)
             val dx0 = dx*size
             val dy0 = dy*size
             val delta = dx0-dy0

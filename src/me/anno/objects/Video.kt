@@ -30,7 +30,7 @@ import kotlin.math.min
 // todo get information about full and relative frames, so we get optimal scrubbing performance :)
 
 
-class Video(var file: File, parent: Transform?): GFXTransform(parent){
+class Video(file: File, parent: Transform?): Audio(file, parent){
 
     private var lastFile: Any? = null
 
@@ -188,7 +188,7 @@ class Video(var file: File, parent: Transform?): GFXTransform(parent){
             .setIsSelectedListener { show(tiling) }
         list += FloatInput("Video Start", startTime, style)
             .setChangeListener { startTime = it }
-            .setIsSelectedListener { GFX.selectedProperty = null }
+            .setIsSelectedListener { show(null) }
         list += FloatInput("Video End", endTime, style)
             .setChangeListener { endTime = it }
             .setIsSelectedListener { show(null) }
@@ -196,7 +196,7 @@ class Video(var file: File, parent: Transform?): GFXTransform(parent){
         // KISS principle? just allow modules to be created :)
         list += BooleanInput("Looping?", isLooping, style)
             .setChangeListener { isLooping = it }
-            .setIsSelectedListener { GFX.selectedProperty = null }
+            .setIsSelectedListener { show(null) }
         list += BooleanInput("Nearest Filtering", nearestFiltering, style)
             .setChangeListener { nearestFiltering = it }
             .setIsSelectedListener { show(null) }

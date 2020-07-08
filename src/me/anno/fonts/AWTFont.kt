@@ -135,7 +135,7 @@ class AWTFont(val font: Font): XFont {
             val inQuestion = codePoints[i]
             val curFallback = !mainFont.canDisplay(inQuestion)
             if(curFallback){
-                println("${String(Character.toChars(inQuestion))}, $inQuestion needs fallback, supported? ${fallbackFont.canDisplay(inQuestion)}")
+                println("[AWTFont] ${String(Character.toChars(inQuestion))}, $inQuestion needs fallback, supported? ${fallbackFont.canDisplay(inQuestion)}")
             }
             if (curFallback != fallback) {
                 fallback = curFallback

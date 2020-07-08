@@ -3,6 +3,7 @@ package me.anno.video
 import me.anno.gpu.GFX
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.studio.Scene
+import me.anno.studio.Studio
 
 class VideoBackgroundTask(val video: VideoCreator){
 
@@ -51,7 +52,7 @@ class VideoBackgroundTask(val video: VideoCreator){
         GFX.isFinalRendering = true
 
         try {
-            Scene.draw(framebuffer, GFX.selectedCamera, 0, 0, video.w, video.h, time, flipY = true)
+            Scene.draw(framebuffer, Studio.selectedCamera, 0, 0, video.w, video.h, time, flipY = true)
         } catch (e: MissingFrameException){
             GFX.isFinalRendering = false
             return false

@@ -4,6 +4,11 @@ import java.lang.RuntimeException
 
 object BinarySearch {
 
+    /**
+     * create a list, where evaluations are cached, because they are expensive
+     * this is used to find the cursor location in text, where characters have different widths;
+     * without access to the char-by-char computation
+     * */
     class ExpensiveList<V: Comparable<V>>(val length: Int, val generator: (Int) -> V): List<V> {
 
         val cache = arrayOfNulls<Any>(length)
@@ -22,7 +27,7 @@ object BinarySearch {
             return v as V
         }
 
-        // it's expensive; no time for that
+        // it's expensive; no time for that; will implement it on request/need
         override fun iterator() = throw RuntimeException()
         override fun listIterator(index: Int) = throw RuntimeException()
         override fun indexOf(element: V) = throw RuntimeException()

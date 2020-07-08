@@ -2,14 +2,15 @@ package me.anno.studio
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
-import me.anno.gpu.GFX.root
 import me.anno.gpu.Window
 import me.anno.input.Input
 import me.anno.objects.*
 import me.anno.studio.RemsStudio.console
 import me.anno.studio.RemsStudio.originalOutput
 import me.anno.studio.RemsStudio.windowStack
+import me.anno.studio.Studio.root
 import me.anno.studio.Studio.targetFPS
+import me.anno.studio.Studio.targetOutputFile
 import me.anno.studio.Studio.targetHeight
 import me.anno.studio.Studio.targetWidth
 import me.anno.ui.base.SpacePanel
@@ -66,18 +67,15 @@ object UILayouts {
 
         options.addAction("Render", "Full"){
             VideoBackgroundTask(VideoCreator(targetWidth, targetHeight,
-                targetFPS, File("C:/Users/Antonio/Desktop/out.mp4"))
-            ).start()
+                targetFPS, targetOutputFile)).start()
         }
         options.addAction("Render", "Half"){
             VideoBackgroundTask(VideoCreator(targetWidth / 2, targetHeight / 2,
-                targetFPS, File("C:/Users/Antonio/Desktop/out.mp4"))
-            ).start()
+                targetFPS, targetOutputFile)).start()
         }
         options.addAction("Render", "Quarter"){
             VideoBackgroundTask(VideoCreator(targetWidth / 4, targetHeight / 4,
-                targetFPS, File("C:/Users/Antonio/Desktop/out.mp4"))
-            ).start()
+                targetFPS, targetOutputFile)).start()
         }
 
         ui += options

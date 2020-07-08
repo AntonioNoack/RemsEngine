@@ -148,6 +148,9 @@ class JsonReader(val data: InputStream) {
         }
     }
 
+    // Java/Kotlin's defaults assert only works with arguments
+    // we want ours to always work
+    // we can't really put it elsewhere without prefix, because Kotlin will use the wrong import...
     fun assert(i: Char, c1: Char, c2: Char){
         if(i != c1 && i != c2) throw RuntimeException("Expected $c1 or $c2, but got $i")
     }

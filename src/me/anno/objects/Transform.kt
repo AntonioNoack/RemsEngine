@@ -12,6 +12,7 @@ import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.blending.BlendMode
 import me.anno.objects.blending.blendModes
 import me.anno.objects.particles.ParticleSystem
+import me.anno.studio.Studio
 import me.anno.ui.base.Panel
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.input.*
@@ -74,7 +75,7 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
     val usesEuler get() = rotationQuaternion == null
 
     fun show(anim: AnimatedProperty<*>?){
-        GFX.selectedProperty = anim
+        Studio.selectedProperty = anim
     }
 
     override fun createInspector(list: PanelListY, style: Style){
@@ -83,10 +84,10 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
 
         list += TextInput("Name (${getClassName()})", style, name)
             .setChangeListener { name = if(it.isEmpty()) "-" else it }
-            .setIsSelectedListener { GFX.selectedProperty = null }
+            .setIsSelectedListener { show(null) }
         list += TextInputML("Comment", style, comment)
             .setChangeListener { comment = it }
-            .setIsSelectedListener { GFX.selectedProperty = null }
+            .setIsSelectedListener { show(null) }
 
         list += VI("Position", "Location of this object", position, style)
         list += VI("Scale", "Makes it bigger/smaller", scale, style)
@@ -108,14 +109,14 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
         list += VI("Color Multiplier", "To make things brighter than usually possible", colorMultiplier, style)
         list += FloatInput("Start Time", timeOffset, style)
             .setChangeListener { timeOffset = it }
-            .setIsSelectedListener { GFX.selectedProperty = null }
+            .setIsSelectedListener { show(null) }
         list += FloatInput("Time Multiplier", timeDilation, style)
             .setChangeListener { timeDilation = it }
-            .setIsSelectedListener { GFX.selectedProperty = null }
+            .setIsSelectedListener { show(null) }
         list += VI("Advanced Time", "Add acceleration/deceleration to your elements", timeAnimated, style)
         list += EnumInput("Blend Mode", true, blendMode.id, blendModes.keys.toList().sorted(), style)
             .setChangeListener { blendMode = BlendMode[it] }
-            .setIsSelectedListener { GFX.selectedProperty = null }
+            .setIsSelectedListener { show(null) }
 
         if(parent?.acceptsWeight() == true){
             list += FloatInput("Weight", weight, AnimatedProperty.Type.FLOAT_PLUS, style)

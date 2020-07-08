@@ -52,7 +52,7 @@ object OpenGLCrash {
             val w = 1590//(Math.random()*3000+10).toInt()
             val h = 2246//(Math.random()*3000+10).toInt()
 
-            println("$w x $h")
+            println("[GLCrashTest] $w x $h")
 
             val texture = glGenTextures()
             glBindTexture(GL_TEXTURE_2D, texture)

@@ -2,7 +2,10 @@ package me.anno.io.utils
 
 import me.anno.io.base.BaseWriter
 import me.anno.io.config.ConfigEntry
+import me.anno.ui.editor.explorer.toAllowedFilename
+import me.anno.utils.OS
 import org.joml.Vector3f
+import java.io.File
 
 /**
  * can be used for config easily :D
@@ -65,6 +68,25 @@ open class StringMap(
             is String -> value
             null -> default
             else -> value.toString()
+        }
+    }
+
+    fun parseFile(str0: String): File {
+        var str = str0
+        if(str.startsWith("~") && OS.isWindows){
+            str = "%HOMEPATH%/${str.substring(1)}"
+        }
+        // make this file valid; no matter what
+        str = toAllowedFilename(str) ?: "tmp"
+        return File(str)
+    }
+
+    operator fun get(key: String, default: File): File {
+        return when(val value = this[key]){
+            is File -> value
+            is String -> parseFile(value)
+            null -> default
+            else -> parseFile(value.toString())
         }
     }
 

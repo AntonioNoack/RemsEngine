@@ -7,6 +7,7 @@ import me.anno.fonts.mesh.FontMesh
 import me.anno.gpu.GFX
 import me.anno.io.base.BaseWriter
 import me.anno.objects.cache.Cache
+import me.anno.studio.Studio.selectedProperty
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.input.BooleanInput
 import me.anno.ui.input.TextInput
@@ -97,7 +98,7 @@ class Text(var text: String, parent: Transform?): GFXTransform(parent){
         super.createInspector(list, style)
         list += TextInput("Text", style, text)
             .setChangeListener { text = it }
-            .setIsSelectedListener { GFX.selectedProperty = null }
+            .setIsSelectedListener { selectedProperty = null }
 
         val fontList = ArrayList<String>()
         fontList += font

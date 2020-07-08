@@ -9,6 +9,7 @@ import me.anno.input.Input.isShiftDown
 import me.anno.input.Input.mouseKeysDown
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.animation.Keyframe
+import me.anno.studio.Studio
 import me.anno.studio.Studio.targetFPS
 import me.anno.utils.clamp
 import me.anno.utils.pow
@@ -136,7 +137,7 @@ class GraphEditorBody(style: Style): Panel(style.getChild("deep")){
             }
         }
 
-        GFX.drawRect(getXAt(GFX.editorTime).roundToInt(), y0 + 2, 1, y1-y0-4, accentColor)
+        GFX.drawRect(getXAt(Studio.editorTime).roundToInt(), y0 + 2, 1, y1-y0-4, accentColor)
 
     }
 
@@ -169,7 +170,7 @@ class GraphEditorBody(style: Style): Panel(style.getChild("deep")){
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.draw(x0, y0, x1, y1)
 
-        val targetUnitScale = GFX.selectedProperty?.type?.unitScale ?: lastUnitScale
+        val targetUnitScale = Studio.selectedProperty?.type?.unitScale ?: lastUnitScale
         if(lastUnitScale != targetUnitScale){
             val scale = targetUnitScale / lastUnitScale
             centralValue *= scale
@@ -181,7 +182,7 @@ class GraphEditorBody(style: Style): Panel(style.getChild("deep")){
         drawValueAxis(x0, y0, x1, y1)
         drawTimeAxis(x0, y0, x1, y1)
 
-        val property = GFX.selectedProperty ?: return
+        val property = Studio.selectedProperty ?: return
 
         val type = property.type
         val halfSize = dotSize/2
@@ -265,13 +266,14 @@ class GraphEditorBody(style: Style): Panel(style.getChild("deep")){
     }
 
     fun jumpToX(x: Float){
-        GFX.editorTime = getTimeAt(x)
+        Studio.editorTime = getTimeAt(x)
+        Studio.updateAudio()
     }
 
     fun Int.isChannelActive() = (this and activeChannels) != 0
 
     fun getKeyframeAt(x: Float, y: Float): Pair<Keyframe<*>, Int>? {
-        val property = GFX.selectedProperty ?: return null
+        val property = Studio.selectedProperty ?: return null
         var bestDragged: Keyframe<*>? = null
         var bestChannel = 0
         val maxMargin = dotSize*2f/3f + 1f
@@ -334,7 +336,7 @@ class GraphEditorBody(style: Style): Panel(style.getChild("deep")){
     // todo select full keyframes, or partial keyframes?
     fun getAllKeyframes(minX: Float, maxX: Float, minY: Float, maxY: Float): List<Keyframe<*>> {
         if(minX > maxX || minY > maxY) return getAllKeyframes(min(minX, maxX), max(minX, maxX), min(minY, maxY), max(minY, maxY))
-        val property = GFX.selectedProperty ?: return emptyList()
+        val property = Studio.selectedProperty ?: return emptyList()
         val keyframes = ArrayList<Keyframe<*>>()
         keyframes@for(keyframe in property.keyframes){
             if(getXAt(keyframe.time) in minX .. maxX){
@@ -363,7 +365,7 @@ class GraphEditorBody(style: Style): Panel(style.getChild("deep")){
     override fun onDeleteKey(x: Float, y: Float) {
         val kf = getKeyframeAt(x, y)
         kf?.apply {
-            GFX.selectedProperty?.remove(kf.first)
+            Studio.selectedProperty?.remove(kf.first)
         }
     }
 
@@ -381,7 +383,10 @@ class GraphEditorBody(style: Style): Panel(style.getChild("deep")){
 
     fun moveRight(sign: Float){
         val delta = sign * dtHalfLength * movementSpeed / w
-        GFX.editorTime += delta
+        Studio.editorTime += delta
+        Studio.updateAudio()
+        // todo may be very expensive...
+        // todo update when stopped scrolling maybe, or every 0.2s?
         centralTime += delta
         clampTime()
     }
@@ -409,9 +414,10 @@ class GraphEditorBody(style: Style): Panel(style.getChild("deep")){
         if(draggedKeyframe != null){
             val time = getTimeAt(x)
             draggedKeyframe.time = time
-            GFX.editorTime = time
+            Studio.editorTime = time
+            Studio.updateAudio()
             draggedKeyframe.setValue(draggedChannel, getValueAt(y))
-            GFX.selectedProperty?.sort()
+            Studio.selectedProperty?.sort()
         } else {
             if(mouseKeysDown.isNotEmpty()){
                 centralTime -= dx * dtHalfLength / (w/2)
@@ -423,7 +429,7 @@ class GraphEditorBody(style: Style): Panel(style.getChild("deep")){
     }
 
     override fun onDoubleClick(x: Float, y: Float, button: Int) {
-        val property = GFX.selectedProperty
+        val property = Studio.selectedProperty
         property?.apply {
             property.addKeyframe(getTimeAt(x), property.type.defaultValue, 0.01f)
         } ?: println("Please select a property first!")

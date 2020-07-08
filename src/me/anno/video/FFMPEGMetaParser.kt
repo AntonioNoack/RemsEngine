@@ -98,7 +98,7 @@ class FFMPEGMetaParser(): StringMap(){
         // if(debug) println(line)
         val depth = getDepth(line)
         val data = line.trim().specialSplit()
-        if(debug) println("$depth $data")
+        if(debug) println("[DEBUG:FFMPEG-Meta-Parser] $depth $data")
         when(depth){
             0 -> {
                 level0Type = data[0]

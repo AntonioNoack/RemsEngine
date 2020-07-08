@@ -36,8 +36,8 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style): TextPanel(""
         super.draw(x0, y0, x1, y1)
         val transform = getElement()
         textColor = DefaultStyle.black or (transform.getLocalColor().toRGB(180))
-        backgroundColor = if(transform === GFX.selectedCamera) cameraBackground else defaultBackground
-        val isInFocus = isInFocus || GFX.selectedTransform == transform
+        backgroundColor = if(transform === Studio.selectedCamera) cameraBackground else defaultBackground
+        val isInFocus = isInFocus || Studio.selectedTransform == transform
         if(isInFocus) textColor = accentColor
         drawText(x, y, text, textColor)
     }

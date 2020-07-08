@@ -66,7 +66,7 @@ class PureTextInputML(style: Style): ScrollPanelXY(Padding(0), style){
                 // override fun onCharTyped(x: Float, y: Float, key: Int) = this@PureTextInputML.onCharTyped(x, y, key)
                 // override fun onEnterKey(x: Float, y: Float) = this@PureTextInputML.onEnterKey(x, y)
                 override fun isKeyInput() = true
-                override fun onMouseDown(x: Float, y: Float, button: Int) = this@PureTextInputML.onMouseDown(x, indexInParent(), button)
+                override fun onMouseDown(x: Float, y: Float, button: Int) = this@PureTextInputML.onMouseDown(x, indexInParent, button)
                 override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) = this@PureTextInputML.onMouseMoved(x, y, dx, dy)
                 override fun onCopyRequested(x: Float, y: Float): String? {
                     return this@PureTextInputML.onCopyRequested(x, y)

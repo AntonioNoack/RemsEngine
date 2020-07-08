@@ -4,6 +4,9 @@ import me.anno.gpu.GFX
 import me.anno.gpu.texture.Texture2D
 import me.anno.ui.style.Style
 
+/**
+ * Panel that draws a gpu.Texture2D, e.g. for icons, showing images, ...
+ * */
 abstract class ImagePanel(style: Style): Panel(style){
 
     abstract fun getTexture(): Texture2D?

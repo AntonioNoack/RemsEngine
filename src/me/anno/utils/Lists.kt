@@ -17,3 +17,10 @@ fun <V> List<V>.sumByFloat(func: (V) -> Float): Float {
     }
     return sum
 }
+
+fun <V> MutableList<V>.pop(): V? {
+    if(isEmpty()) return null
+    val last = last()
+    removeAt(lastIndex)
+    return last
+}
