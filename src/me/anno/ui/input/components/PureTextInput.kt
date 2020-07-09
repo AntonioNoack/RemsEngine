@@ -27,6 +27,7 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
     fun updateChars(){
         characters.clear()
         characters.addAll(text.codePoints().toList())
+        changeListener(text)
     }
 
     fun updateText(){
@@ -97,15 +98,16 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
     fun insert(insertion: String){
         lastMove = GFX.lastTime
         insertion.codePoints().forEach {
-            insert(it)
+            insert(it, false)
         }
+        updateText()
     }
 
-    fun insert(insertion: Int){
+    fun insert(insertion: Int, updateText: Boolean = true){
         lastMove = GFX.lastTime
         deleteSelection()
         characters.add(cursor1, insertion)
-        updateText()
+        if(updateText) updateText()
         cursor1++
         cursor2++
         ensureCursorBounds()

@@ -31,6 +31,8 @@ class Text(var text: String = "", parent: Transform? = null): GFXTransform(paren
 
     // todo blurry, colorful text shadow
     // todo multiple line alignment
+
+
     // how we apply sampling probably depends on our AA solution...
 
     // parameters
@@ -91,6 +93,7 @@ class Text(var text: String = "", parent: Transform? = null): GFXTransform(paren
                 minX = Float.POSITIVE_INFINITY
                 maxX = Float.NEGATIVE_INFINITY
                 keys.forEach { fontMeshKey ->
+                    // todo async font mesh calculation...
                     if(fontMeshKey.text.isNotEmpty()){
                         val fontMesh = Cache.getEntry(fontMeshKey, fontMeshTimeout){
                             val awtFont = FontManager.getFont(font, 20f, isBold, isItalic)

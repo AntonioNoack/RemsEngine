@@ -297,7 +297,10 @@ object Scene {
 
         val lutFile = camera.lut
         val needsLUT = lutFile.exists() && !lutFile.isDirectory
-        val lut = if(needsLUT) Cache.getLUT(lutFile, 100_000) else null
+        val lut = if(needsLUT) Cache.getLUT(lutFile, 20_000) else null
+
+        // println("lut: $lutFile $lut")
+
         if(lut == null && needsLUT && isFinalRendering) throw MissingFrameException(File(""))
 
         val useLUT = lut != null

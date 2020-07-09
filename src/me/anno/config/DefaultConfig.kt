@@ -49,7 +49,8 @@ object DefaultConfig: StringMap() {
         addImportMappings("Cubemap", "hdr")
         addImportMappings("Video", "mp4", "gif", "mpeg", "avi", "flv", "wmv")
         addImportMappings("Text", "txt")
-        addImportMappings("Markdown", "md")
+        // not yet supported
+        // addImportMappings("Markdown", "md")
         addImportMappings("Audio", "mp3", "wav", "ogg", "m4a")
 
         this["import.mapping.*"] = "Text"

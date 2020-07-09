@@ -30,6 +30,11 @@ class ImageData(file: File): CacheData {
                 }
             }
             // todo gifs are somehow broken :/
+            "png", "jpg", "jpeg" -> {
+                texture.create {
+                    ImageIO.read(file) ?: throw IOException("Format of $file is not supported.")
+                }
+            }
             else -> {
                 texture.create {
                     Imaging.getBufferedImage(file) ?: throw IOException("Format of $file is not supported.")
