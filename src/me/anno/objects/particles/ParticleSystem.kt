@@ -19,7 +19,7 @@ import kotlin.math.roundToInt
 
 // todo spawn from object, so the spawn point can be animated without influence on the particles;
 // while still keeping the animation local
-class ParticleSystem(parent: Transform?): Transform(parent){
+class ParticleSystem(parent: Transform? = null): Transform(parent){
 
     enum class SpawnType(val hasRotation: Boolean){
         CUBE(true), PLANE(true), CYLINDER(true),

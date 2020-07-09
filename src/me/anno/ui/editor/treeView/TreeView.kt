@@ -11,11 +11,8 @@ import me.anno.studio.Studio.nullCamera
 import me.anno.studio.Studio.root
 import me.anno.ui.base.*
 import me.anno.ui.base.components.Padding
-import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.base.groups.PanelList
-import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.scrolling.ScrollPanelXY
-import me.anno.ui.input.components.Checkbox
 import me.anno.ui.style.Style
 import org.joml.Vector3f
 import java.io.File
@@ -157,6 +154,27 @@ class TreeView(style: Style):
 
     companion object {
 
+        fun addText(name: String, parent: Transform, text: String){
+            if(text.length > 500){
+                GFX.addGPUTask {
+                    GFX.openMenu(mouseX, mouseY, "Text has ${text.codePoints().count()} characters, import?", listOf(
+                        "yes" to { b, l ->
+                            val textNode = Text(text, parent)
+                            textNode.name = name
+                            select(textNode)
+                            true
+                        },
+                        "no" to { b, l -> true }
+                    ))
+                    1
+                }
+                return
+            }
+            val textNode = Text(text, parent)
+            textNode.name = name
+            select(textNode)
+        }
+
         fun addChildFromFile(parent: Transform, file: File, depth: Int = 0){
             if(file.isDirectory){
                 val directory = Transform(parent)
@@ -174,9 +192,16 @@ class TreeView(style: Style):
                 val type2 = DefaultConfig["import.mapping.*"] ?: "Text"
                 when((type0 ?: type1 ?: type2).toString()){
                     "Transform" -> thread {
-                        val transform = file.readText().toTransform()
-                        parent.addChild(transform)
-                        select(transform)
+                        val text = file.readText()
+                        try {
+                            val transform = text.toTransform()
+                            parent.addChild(transform)
+                            select(transform)
+                        } catch (e: Exception){
+                            e.printStackTrace()
+                            println("Didn't understand json! ${e.message}")
+                            addText(name, parent, text)
+                        }
                     }
                     "Image" -> {
                         val image = Image(file, parent)
@@ -196,11 +221,7 @@ class TreeView(style: Style):
                     }
                     "Text" -> {
                         try {
-                            var all = file.readText()
-                            if(all.length > 500) all = all.substring(0, 500)
-                            val text = Text(all, parent)
-                            text.name = name
-                            select(text)
+                            addText(name, parent, file.readText())
                         } catch (e: Exception){
                             e.printStackTrace()
                             return

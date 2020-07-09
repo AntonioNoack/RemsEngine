@@ -30,11 +30,9 @@ import kotlin.math.min
 // todo get information about full and relative frames, so we get optimal scrubbing performance :)
 
 
-class Video(file: File, parent: Transform?): Audio(file, parent){
+class Video(file: File = File(""), parent: Transform? = null): Audio(file, parent){
 
     private var lastFile: Any? = null
-
-    // todo add audio component...
 
     var tiling = AnimatedProperty.tiling()
 

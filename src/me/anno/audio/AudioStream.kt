@@ -78,6 +78,7 @@ class AudioStream(val file: File){
         isPlaying = false
         alSource.stop()
         alSource.destroy()
+        ALBase.check()
         // ALBase.check()
         // somehow crashes..., buffers can't be reused either (without error)
         // buffers.toSet().forEach { it.destroy() }
@@ -244,7 +245,7 @@ class AudioStream(val file: File){
                 soundBuffer.loadRawStereo16(stereoBuffer, sampleRate)
                 buffers.add(soundBuffer)
                 ALBase.check()
-                println("Invalid Name? alSourceQueueBuffers(${alSource.sourcePtr}, ${soundBuffer.buffer})")
+                // println("Invalid Name? alSourceQueueBuffers(${alSource.sourcePtr}, ${soundBuffer.buffer})")
                 alSourceQueueBuffers(alSource.sourcePtr, soundBuffer.buffer)
                 ALBase.check()
                 if(queued == 0){

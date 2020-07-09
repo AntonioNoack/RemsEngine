@@ -12,7 +12,7 @@ import me.anno.ui.style.Style
 import org.joml.Matrix4fStack
 import org.joml.Vector4f
 
-class Circle(parent: Transform?): GFXTransform(parent){
+class Circle(parent: Transform? = null): GFXTransform(parent){
 
     var innerRadius = AnimatedProperty.float01()
     var startDegrees = AnimatedProperty.float()

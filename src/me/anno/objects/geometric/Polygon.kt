@@ -27,7 +27,7 @@ import kotlin.math.roundToInt
 import kotlin.math.sin
 import kotlin.math.sqrt
 
-class Polygon(parent: Transform?): GFXTransform(parent){
+class Polygon(parent: Transform? = null): GFXTransform(parent){
 
     // todo round edges?
     // todo auto align?

@@ -45,12 +45,12 @@ object DefaultConfig: StringMap() {
         this["display.colorDepth"] = 8
 
         addImportMappings("Transform", "json")
-        addImportMappings("Image", "png", "jpg", "jpeg", "tiff", "webp", "svg")
+        addImportMappings("Image", "png", "jpg", "jpeg", "tiff", "webp", "svg", "ico")
         addImportMappings("Cubemap", "hdr")
-        addImportMappings("Video", "mp4", "gif", "mpeg", "avi")
+        addImportMappings("Video", "mp4", "gif", "mpeg", "avi", "flv", "wmv")
         addImportMappings("Text", "txt")
         addImportMappings("Markdown", "md")
-        addImportMappings("Audio", "mp3", "wav", "ogg")
+        addImportMappings("Audio", "mp3", "wav", "ogg", "m4a")
 
         this["import.mapping.*"] = "Text"
 

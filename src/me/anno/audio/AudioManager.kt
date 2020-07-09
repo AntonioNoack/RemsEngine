@@ -27,6 +27,7 @@ object AudioManager {
     private var device = 0L
     private var context = 0L
 
+    var shallStop = false
     var needsUpdate = false
     var lastUpdate = 0L
     var ctr = 0
@@ -34,7 +35,7 @@ object AudioManager {
     fun startRunning(){
         runningThread = thread {
             init()
-            while(true){
+            while(!shallStop){
                 ALBase.check()
                 val time = System.nanoTime()
                 try {
@@ -54,6 +55,7 @@ object AudioManager {
                 ALBase.check()
                 Thread.sleep(1)
             }
+            destroy()
         }
     }
 
@@ -102,10 +104,13 @@ object AudioManager {
     }
 
     fun destroy(){
-        runningThread?.stop()
         ALBase.check()
         alcCloseDevice(device)
         device = 0L
+    }
+
+    fun requestDestruction(){
+        shallStop = true
     }
 
 }

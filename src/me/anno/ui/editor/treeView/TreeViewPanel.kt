@@ -149,12 +149,17 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style): TextPanel(""
         return true
     }
 
+    override fun onEmpty(x: Float, y: Float) {
+        onDeleteKey(x, y)
+    }
+
     override fun onDeleteKey(x: Float, y: Float) {
         val transform = getElement()
         val parent = transform.parent
         if(parent != null){
             GFX.select(parent)
-            parent.removeChild(transform)
+            transform.removeFromParent()
+            transform.onDestroy()
         }
     }
 

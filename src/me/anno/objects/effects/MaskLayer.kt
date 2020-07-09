@@ -19,7 +19,7 @@ import org.joml.Matrix4fStack
 import org.joml.Vector4f
 import org.lwjgl.opengl.GL11.*
 
-class MaskLayer(parent: Transform?): GFXTransform(parent){
+class MaskLayer(parent: Transform? = null): GFXTransform(parent){
 
     // just a little expensive...
     val mask = Framebuffer(1, 1, 1, 1, false, Framebuffer.DepthBufferType.NONE)

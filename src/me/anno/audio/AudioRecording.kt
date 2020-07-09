@@ -42,6 +42,9 @@ class AudioRecording {
         alcCaptureStop(device)
         alcCaptureCloseDevice(device)
 
+        ALBase.check()
+
+
     }
 
 }

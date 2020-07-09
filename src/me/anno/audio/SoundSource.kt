@@ -11,6 +11,7 @@ class SoundSource(val loop: Boolean, val relative: Boolean){
     init {
         if(loop) alSourcei(sourcePtr, AL_LOOPING, AL_TRUE)
         if(relative) alSourcei(sourcePtr, AL_SOURCE_RELATIVE, AL_TRUE)
+        ALBase.check()
     }
 
     fun setDistanceModel(){

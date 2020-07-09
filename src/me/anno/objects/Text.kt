@@ -4,32 +4,49 @@ import me.anno.config.DefaultConfig
 import me.anno.fonts.AWTFont
 import me.anno.fonts.FontManager
 import me.anno.fonts.mesh.FontMesh
+import me.anno.fonts.mesh.FontMesh.Companion.DEFAULT_LINE_HEIGHT
 import me.anno.gpu.GFX
+import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
+import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.cache.Cache
 import me.anno.studio.Studio.selectedProperty
+import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.input.BooleanInput
-import me.anno.ui.input.TextInput
 import me.anno.ui.input.EnumInput
+import me.anno.ui.input.TextInputML
 import me.anno.ui.style.Style
+import me.anno.utils.BiMap
+import me.anno.utils.f3
 import org.joml.Matrix4fStack
 import org.joml.Vector4f
 import kotlin.collections.ArrayList
 import kotlin.math.max
+import kotlin.math.min
 
-class Text(var text: String, parent: Transform?): GFXTransform(parent){
+class Text(var text: String = "", parent: Transform? = null): GFXTransform(parent){
 
-    // todo text shadow
-    // todo multiple lines
+    // todo automatic line break after length x
+
+    // todo blurry, colorful text shadow
+    // todo multiple line alignment
     // how we apply sampling probably depends on our AA solution...
 
+    // parameters
     var font = "Verdana"
 
     var isBold = false
     var isItalic = false
 
-    var fmKey = FontMeshKey(font, isBold, isItalic, text)
+    var textAlignment = AxisAlignment.MIN
+
+    val relativeLineSpacing = AnimatedProperty.float().set(1f)
+
+    // caching
+    var lastText = text
+    var lines = text.split('\n')
+    var keys = lines.map { FontMeshKey(font, isBold, isItalic, it) }
 
     data class FontMeshKey(
         val fontName: String, val isBold: Boolean, val isItalic: Boolean,
@@ -38,21 +55,84 @@ class Text(var text: String, parent: Transform?): GFXTransform(parent){
             fontName == this.fontName && isBold == this.isBold && isItalic == this.isItalic && text == this.text
     }
 
+    var minX = 0f
+    var maxX = 0f
+
     override fun onDraw(stack: Matrix4fStack, time: Float, color: Vector4f){
+
+        val text = text
+        val isBold = isBold
+        val isItalic = isItalic
+        val font = font
 
         if(text.isNotBlank()){
 
-            if(!fmKey.equals(font, isBold, isItalic, text)){
-                fmKey = FontMeshKey(font, isBold, isItalic, text)
+            var wasChanged = false
+            if(text != lastText){
+                wasChanged = true
+                lastText = text
+                lines = text.split('\n')
+                keys = lines.map { FontMeshKey(font, isBold, isItalic, it) }
+            } else {
+                // !none = at least one?, is not equal, so needs update
+                if(!keys.withIndex().none { (index, fontMeshKey) ->
+                        !fontMeshKey.equals(font, isBold, isItalic, lines[index])
+                    }){
+                    wasChanged = true
+                    keys = lines.map { FontMeshKey(font, isBold, isItalic, it) }
+                }
             }
 
-            val fontMesh = Cache.getEntry(fmKey, fontMeshTimeout){
-                val awtFont = FontManager.getFont(font, 20f, isBold, isItalic)
-                val buffer = FontMesh((awtFont as AWTFont).font, text)
-                buffer
-            } as FontMesh
+            val lineOffset = - DEFAULT_LINE_HEIGHT * relativeLineSpacing[time]
+            val alignment = textAlignment
 
-            GFX.draw3D(stack, fontMesh.buffer, GFX.whiteTexture, color, isBillboard[time], true, null)
+            // min and max x are cached for long texts with thousands of lines (not really relevant)
+            if(alignment != AxisAlignment.CENTER && (wasChanged || minX >= maxX)){
+                minX = Float.POSITIVE_INFINITY
+                maxX = Float.NEGATIVE_INFINITY
+                keys.forEach { fontMeshKey ->
+                    if(fontMeshKey.text.isNotEmpty()){
+                        val fontMesh = Cache.getEntry(fontMeshKey, fontMeshTimeout){
+                            val awtFont = FontManager.getFont(font, 20f, isBold, isItalic)
+                            val buffer = FontMesh((awtFont as AWTFont).font, fontMeshKey.text)
+                            buffer
+                        } as FontMesh
+                        minX = min(minX, fontMesh.minX)
+                        maxX = max(maxX, fontMesh.maxX)
+                    }
+                }
+            }
+
+            keys.forEach { fontMeshKey ->
+
+                if(fontMeshKey.text.isNotEmpty()){
+
+                    val fontMesh = Cache.getEntry(fontMeshKey, fontMeshTimeout){
+                        val awtFont = FontManager.getFont(font, 20f, isBold, isItalic)
+                        val buffer = FontMesh((awtFont as AWTFont).font, fontMeshKey.text)
+                        buffer
+                    } as FontMesh
+
+                    val offset = when(alignment){
+                        AxisAlignment.MIN -> 2 * (minX - fontMesh.minX)
+                        AxisAlignment.CENTER -> 0f
+                        AxisAlignment.MAX -> 2 * (maxX - fontMesh.maxX)
+                    }
+
+                    if(offset != 0f) stack.translate(+offset, 0f, 0f)
+
+                    GFX.draw3D(stack, fontMesh.buffer, GFX.whiteTexture, color, isBillboard[time], true, null)
+
+                    if(offset != 0f) stack.translate(-offset, 0f, 0f)
+
+                }
+
+                stack.translate(0f, lineOffset, 0f)
+
+            }
+
+            // todo alignment
+            // todo left/right alignment xD
 
             // todo calculate (signed) distance fields for different kinds of shadows from the mesh
             // bad solution for blurred shadows
@@ -76,6 +156,26 @@ class Text(var text: String, parent: Transform?): GFXTransform(parent){
         writer.writeString("font", font)
         writer.writeBool("isItalic", isItalic, true)
         writer.writeBool("isBold", isBold, true)
+        writer.writeObject(this, "relativeLineSpacing", relativeLineSpacing)
+        writer.writeInt("textAlignment", when(textAlignment){
+            AxisAlignment.MIN -> -1
+            AxisAlignment.CENTER -> 0
+            AxisAlignment.MAX -> +1
+        })
+    }
+
+    override fun readInt(name: String, value: Int) {
+        when(name){
+            "textAlignment" -> {
+                textAlignment = when(value){
+                    -1 -> AxisAlignment.MIN
+                     0 -> AxisAlignment.CENTER
+                    +1 -> AxisAlignment.MAX
+                    else -> textAlignment
+                }
+            }
+            else -> super.readInt(name, value)
+        }
     }
 
     override fun readString(name: String, value: String) {
@@ -94,9 +194,16 @@ class Text(var text: String, parent: Transform?): GFXTransform(parent){
         }
     }
 
+    override fun readObject(name: String, value: ISaveable?) {
+        when(name){
+            "relativeLineSpacing" -> relativeLineSpacing.copyFrom(value)
+            else -> super.readObject(name, value)
+        }
+    }
+
     override fun createInspector(list: PanelListY, style: Style) {
         super.createInspector(list, style)
-        list += TextInput("Text", style, text)
+        list += TextInputML("Text", style, text)
             .setChangeListener { text = it }
             .setIsSelectedListener { selectedProperty = null }
 
@@ -132,11 +239,27 @@ class Text(var text: String, parent: Transform?): GFXTransform(parent){
             .setChangeListener { isBold = it }
             .setIsSelectedListener { show(null) }
 
+        list += EnumInput("Text Alignment", true,
+            textAlignmentNames.reverse[textAlignment]!!,
+            textAlignmentNames.entries.sortedBy { it.value.ordinal }.map { it.key }, style)
+            .setIsSelectedListener { show(null) }
+            .setChangeListener { textAlignment = textAlignmentNames[it] ?: textAlignment }
+
+        list += VI("Line Spacing", "How much lines are apart from each other", relativeLineSpacing, style)
+
     }
 
     override fun getClassName(): String = "Text"
 
     companion object {
+
+        val textAlignmentNames = BiMap<String, AxisAlignment>(3)
+        init {
+            textAlignmentNames["Left"] = AxisAlignment.MIN
+            textAlignmentNames["Center"] = AxisAlignment.CENTER
+            textAlignmentNames["Right"] = AxisAlignment.MAX
+        }
+
         // todo save the last used fonts? yes :)
         // todo per project? idk
         val fontMeshTimeout = 5000L

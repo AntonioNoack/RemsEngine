@@ -382,6 +382,8 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
         }
     }
 
+    open fun onDestroy(){}
+
     companion object {
         // these values MUST NOT be changed
         // they are universal constants, and are used

@@ -16,7 +16,7 @@ import org.joml.Vector4f
 import org.lwjgl.opengl.GL11
 import java.io.File
 
-class Cubemap(var file: File, parent: Transform?): GFXTransform(parent){
+class Cubemap(var file: File = File(""), parent: Transform? = null): GFXTransform(parent){
 
     var nearestFiltering = true
     var otherFormat = false

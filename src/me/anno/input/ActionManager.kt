@@ -7,14 +7,19 @@ import me.anno.gpu.GFX.inFocus
 import me.anno.gpu.GFX.inFocus0
 import me.anno.io.utils.StringMap
 import me.anno.objects.Video
+import me.anno.objects.cache.Cache
 import me.anno.studio.UILayouts
 import me.anno.studio.RemsStudio
 import me.anno.studio.Studio
 import me.anno.studio.Studio.dragged
+import me.anno.studio.Studio.editorTime
 import me.anno.studio.Studio.editorTimeDilation
+import me.anno.studio.Studio.targetFPS
+import me.anno.studio.Studio.updateAudio
 import me.anno.ui.base.Panel
 import java.io.File
 import kotlin.math.abs
+import kotlin.math.round
 
 object ActionManager {
 
@@ -43,6 +48,8 @@ object ActionManager {
         defaultValue["global.print.down"] = "PrintLayout"
         defaultValue["global.left.up"] = "DragEnd"
         defaultValue["global.f5.down.${Modifiers[true, false]}"] = "ClearCache"
+        defaultValue["global.comma.down"] = "PreviousFrame"
+        defaultValue["global.dot.down"] = "NextFrame"
 
         // press instead of down for the delay
         defaultValue["FileEntry.left.press"] = "DragStart"
@@ -174,7 +181,6 @@ object ActionManager {
     fun executeGlobally(dx: Float, dy: Float, isContinuous: Boolean,
                         actions: List<String>?){
         if(actions == null) return
-        // execute globally
         for(action in actions){
             fun setEditorTimeDilation(dilation: Float): Boolean {
                 return if(dilation == editorTimeDilation || inFocus0?.isKeyInput() == true) false
@@ -191,6 +197,16 @@ object ActionManager {
                     "PlayReversedSlow" -> setEditorTimeDilation(-0.2f)
                     "ToggleFullscreen" -> { GFX.toggleFullscreen(); true }
                     "PrintLayout" -> { UILayouts.printLayout();true }
+                    "NextFrame" -> {
+                        editorTime = (round(editorTime*targetFPS) + 1) / targetFPS
+                        updateAudio()
+                        true
+                    }
+                    "PreviousFrame" -> {
+                        editorTime = (round(editorTime*targetFPS) - 1) / targetFPS
+                        updateAudio()
+                        true
+                    }
                     "DragEnd" -> {
                         val dragged = dragged
                         if(dragged != null){

@@ -42,7 +42,7 @@ fun main(){
         // buffer.destroy()
 
     } finally {
-        AudioManager.destroy()
+        AudioManager.requestDestruction()
     }
 
 }

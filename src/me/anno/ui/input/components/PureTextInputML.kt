@@ -125,7 +125,7 @@ class PureTextInputML(style: Style): ScrollPanelXY(Padding(0), style){
 
                     // draw in between lines
                     if(minCursor.y+1 < maxCursor.y){
-                        GFX.drawRect(x, minPanel.y+minPanel.h, w, maxPanel.y-minPanel.y-2*minPanel.h, textColor and 0x3fffffff)
+                        GFX.drawRect(x, minPanel.y+minPanel.h, w, maxPanel.y-minPanel.y-minPanel.h, textColor and 0x3fffffff)
                     }
 
                     // draw start of last line

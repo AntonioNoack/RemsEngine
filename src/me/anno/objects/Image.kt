@@ -21,7 +21,7 @@ import java.io.File
 
 // todo allow images and video to be tiled
 
-class Image(var file: File, parent: Transform?): GFXTransform(parent){
+class Image(var file: File = File(""), parent: Transform? = null): GFXTransform(parent){
 
     var nearestFiltering = DefaultConfig["default.image.nearest", true]
     var tiling = AnimatedProperty.tiling()

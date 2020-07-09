@@ -138,7 +138,7 @@ object RemsStudio {
             false
         }
         GFX.shutdown = {
-            AudioManager.destroy()
+            AudioManager.requestDestruction()
             Cursor.destroy()
         }
 

@@ -23,7 +23,7 @@ import org.lwjgl.opengl.GL20.glUniformMatrix4fv
 import java.io.File
 import kotlin.math.tan
 
-class Camera(parent: Transform?): Transform(parent){
+class Camera(parent: Transform? = null): Transform(parent){
 
     // todo allow cameras to be merged
     // todo allow cameras to film camera (post processing) -> todo create a stack of cameras/scenes?

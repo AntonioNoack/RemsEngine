@@ -20,7 +20,7 @@ import java.io.File
 // todo use the align-with-camera param for that? :)
 // respect scale? nah, rather not xD
 // (it becomes pretty complicated, I think)
-open class Audio(var file: File, parent: Transform?): GFXTransform(parent){
+open class Audio(var file: File = File(""), parent: Transform? = null): GFXTransform(parent){
 
     val amplitude = AnimatedProperty.floatPlus().set(1f)
 
@@ -47,6 +47,11 @@ open class Audio(var file: File, parent: Transform?): GFXTransform(parent){
     fun stop(){
         component?.stop()
         component = null // for garbage collection
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        GFX.addAudioTask { stop(); 1 }
     }
 
     // we need a flag, whether we draw in editor mode or not -> GFX.isFinalRendering

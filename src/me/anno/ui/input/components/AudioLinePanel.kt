@@ -20,7 +20,7 @@ class AudioLinePanel(style: Style): Panel(style){
 
     val textSize = style.getSize("textSize", 10)
 
-    val buffer = SoundBuffer(File("C:\\Users\\Antonio\\Music\\test.ogg")).pcm!!
+    val buffer = ShortBuffer.allocate(0)//SoundBuffer(File("C:\\Users\\Antonio\\Music\\test.ogg")).pcm!!
 
     var isStereo = true
     var frequency = 44100f

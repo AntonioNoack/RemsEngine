@@ -288,13 +288,21 @@ class FontMesh(val font: Font, val text: String, debugPieces: Boolean = false): 
         // todo center the text, ignore the characters themselves
         val difY = 0f//layout.ascent / 2
 
-        val baseScale = 0.2f/(layout.ascent + layout.descent)
+        val baseScale = DEFAULT_LINE_HEIGHT/(layout.ascent + layout.descent)
 
         triangles.forEach {
             buffer.put((it.x - deltaX) * baseScale * 0.5f + 0.5f)
             buffer.put((it.y + difY) * baseScale * 0.5f + 0.5f)
         }
 
+        minX -= deltaX
+        maxX -= deltaX
+
+        minX *= baseScale * 0.5f
+        maxX *= baseScale * 0.5f
+
+        minX += 0.5f
+        maxX += 0.5f
 
     }
 
@@ -389,6 +397,9 @@ class FontMesh(val font: Font, val text: String, debugPieces: Boolean = false): 
     }
 
     companion object {
+
+        val DEFAULT_LINE_HEIGHT = 0.2f
+
         fun triangleSize(triangles: List<Vector2f>): Float {
             var areaSum = 0f
             for(i in triangles.indices step 3){

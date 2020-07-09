@@ -127,12 +127,10 @@ object GFX: GFXBase1() {
     var rawDeltaTime = 0f
     var deltaTime = 0f
 
-    var editorVideoFPS = 10f
+    val editorVideoFPS get() = if(editorTimeDilation == 0f) 10f else 10f / (max(0.333f, abs(editorTimeDilation)))
     var currentEditorFPS = 60f
 
     var lastTime = System.nanoTime() - (editorVideoFPS * 1e9).toLong() // to prevent wrong fps ;)
-
-    var panelCtr = 0
 
     var editorHoverTime = 0f
 
