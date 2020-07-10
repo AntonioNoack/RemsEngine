@@ -4,6 +4,7 @@ import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.objects.cache.Cache
 import me.anno.objects.cache.TextureCache
+import org.apache.logging.log4j.LogManager
 import java.awt.Font
 import java.awt.GraphicsEnvironment
 import java.lang.RuntimeException
@@ -13,6 +14,8 @@ import kotlin.math.ln
 import kotlin.math.round
 
 object FontManager {
+
+    val LOGGER = LogManager.getLogger(FontManager::class)
 
     private val awtFontList = ArrayList<String>()
     private val awtFonts = HashMap<String, Font>()
@@ -35,7 +38,7 @@ object FontManager {
                 // this lag would not be acceptable :)
                 // worst-case-scenario: list too long, and no fonts are returned
                 // (because of that, the already used one is added)
-                println("[INFO] Used ${(t1-t0)*1e-9f} to get font list")
+                LOGGER.info("Used ${(t1-t0)*1e-9f} to get font list")
                 callback(awtFontList)
             }
         }

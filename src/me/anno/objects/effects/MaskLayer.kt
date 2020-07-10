@@ -12,10 +12,8 @@ import me.anno.objects.blending.BlendMode
 import me.anno.ui.base.SpacePanel
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.input.BooleanInput
-import me.anno.ui.input.FloatInput
 import me.anno.ui.style.Style
-import org.joml.Matrix4f
-import org.joml.Matrix4fStack
+import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
 import org.lwjgl.opengl.GL11.*
 
@@ -39,7 +37,7 @@ class MaskLayer(parent: Transform? = null): GFXTransform(parent){
     var showMasked = false
     var showFrame = true
 
-    override fun onDraw(stack: Matrix4fStack, time: Float, color: Vector4f) {
+    override fun onDraw(stack: Matrix4fArrayList, time: Float, color: Vector4f) {
 
         val showResult = GFX.isFinalRendering || (!showMask && !showMasked)
         if(children.size >= 2 && showResult){// else invisible
@@ -133,7 +131,7 @@ class MaskLayer(parent: Transform? = null): GFXTransform(parent){
 
     override fun drawChildrenAutomatically() = false
 
-    fun drawMask(stack: Matrix4fStack, time: Float, color: Vector4f){
+    fun drawMask(stack: Matrix4fArrayList, time: Float, color: Vector4f){
 
         mask.bindTemporary(GFX.windowWidth, GFX.windowHeight)
 
@@ -153,7 +151,7 @@ class MaskLayer(parent: Transform? = null): GFXTransform(parent){
 
     }
 
-    fun drawMasked(stack: Matrix4fStack, time: Float, color: Vector4f){
+    fun drawMasked(stack: Matrix4fArrayList, time: Float, color: Vector4f){
 
         masked.bind(GFX.windowWidth, GFX.windowHeight)
 
@@ -166,10 +164,10 @@ class MaskLayer(parent: Transform? = null): GFXTransform(parent){
 
     }
 
-    fun drawOnScreen(stack: Matrix4fStack, time: Float, color: Vector4f){
+    fun drawOnScreen(stack: Matrix4fArrayList, time: Float, color: Vector4f){
 
         val localTransform = if(isFullscreen){
-            Matrix4fStack()
+            Matrix4fArrayList()
         } else {
             stack
         }

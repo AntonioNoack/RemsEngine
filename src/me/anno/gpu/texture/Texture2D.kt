@@ -2,6 +2,7 @@ package me.anno.gpu.texture
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
+import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL13.GL_TEXTURE0
@@ -63,7 +64,7 @@ class Texture2D(override var w: Int, override var h: Int, val samples: Int): ITe
         } else {
             glTexImage2D(tex2D, 0, GL_RGBA32F, w, h, 0, GL_RGBA, GL_FLOAT, null as ByteBuffer?)
         }
-        println("[Tex2D-FP32] $w $h $samples")
+        LOGGER.info("FP32 $w $h $samples")
         GFX.check()
         filtering(isFilteredNearest)
         isCreated = true
@@ -248,6 +249,7 @@ class Texture2D(override var w: Int, override var h: Int, val samples: Int): ITe
     }
 
     companion object {
+        val LOGGER = LogManager.getLogger(Texture2D::class)
         val textureBudgetTotal = DefaultConfig["gpu.textureBudget", 1_000_000]
         var textureBudgetUsed = 0
     }

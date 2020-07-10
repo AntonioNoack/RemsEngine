@@ -4,9 +4,7 @@ import me.anno.config.DefaultStyle.black
 import me.anno.config.DefaultStyle.deepDark
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.deltaTime
-import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.input.Input
-import me.anno.input.Input.keysDown
 import me.anno.input.Input.mouseKeysDown
 import me.anno.objects.Camera
 import me.anno.studio.Scene
@@ -26,9 +24,8 @@ import me.anno.ui.editor.CustomContainer
 import me.anno.ui.style.Style
 import me.anno.utils.*
 import org.joml.Matrix4f
-import org.joml.Matrix4fStack
+import org.joml.Matrix4fArrayList
 import org.joml.Vector3f
-import org.joml.Vector4f
 import kotlin.math.max
 
 // todo search elements
@@ -166,7 +163,7 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
                 val camera = camera
                 val (camera2global, cameraTime) = camera.getGlobalTransform(editorTime)
 
-                val global2normUI = Matrix4fStack(3)
+                val global2normUI = Matrix4fArrayList()
                 GFX.applyCameraTransform(camera, cameraTime, camera2global, global2normUI)
 
                 val inverse = Matrix4f(global2normUI).invert()

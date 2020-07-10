@@ -3,7 +3,7 @@ package me.anno.objects.meshes
 import me.anno.objects.GFXTransform
 import me.anno.objects.Transform
 import me.anno.objects.cache.Cache
-import org.joml.Matrix4fStack
+import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
 import java.io.File
 import java.lang.RuntimeException
@@ -13,7 +13,7 @@ class Mesh(var file: File, parent: Transform?): GFXTransform(parent){
     var data: MeshData? = null
     var lastFile: File? = null
 
-    override fun onDraw(stack: Matrix4fStack, time: Float, color: Vector4f) {
+    override fun onDraw(stack: Matrix4fArrayList, time: Float, color: Vector4f) {
 
         val file = file
         if(lastFile != file || data == null){

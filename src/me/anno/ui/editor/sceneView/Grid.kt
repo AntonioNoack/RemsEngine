@@ -13,7 +13,7 @@ import me.anno.objects.meshes.svg.SVGStyle.Companion.parseColor
 import me.anno.utils.pow
 import me.anno.utils.toVec3f
 import org.joml.Matrix4f
-import org.joml.Matrix4fStack
+import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
 import org.lwjgl.opengl.GL20.*
 import kotlin.math.floor
@@ -45,7 +45,7 @@ object Grid {
 
     }
 
-    fun drawLine(stack: Matrix4fStack, color: Int, alpha: Float){
+    fun drawLine(stack: Matrix4fArrayList, color: Int, alpha: Float){
 
         val shader = GFX.shader3D
         shader.use()
@@ -62,7 +62,7 @@ object Grid {
 
     }
 
-    fun draw(stack: Matrix4fStack, cameraTransform: Matrix4f){
+    fun draw(stack: Matrix4fArrayList, cameraTransform: Matrix4f){
 
         if(GFX.isFinalRendering) return
 
@@ -101,7 +101,7 @@ object Grid {
 
     }
 
-    fun drawGrid(stack: Matrix4fStack, alpha: Float){
+    fun drawGrid(stack: Matrix4fArrayList, alpha: Float){
 
         if(alpha <= 0f) return
 

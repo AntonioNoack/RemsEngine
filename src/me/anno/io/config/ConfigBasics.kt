@@ -3,10 +3,13 @@ package me.anno.io.config
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.io.utils.StringMap
+import org.apache.logging.log4j.LogManager
 import java.io.File
 import java.nio.charset.Charset
 
 object ConfigBasics {
+
+    val LOGGER = LogManager.getLogger(ConfigBasics::class)!!
 
     val configFolder = File(System.getProperty("user.home")+"/.config/RemsStudio")
 
@@ -40,13 +43,13 @@ object ConfigBasics {
 
     fun loadConfig(file: File, defaultValue: StringMap, saveIfMissing: Boolean): StringMap {
         val read = load(file, saveIfMissing){
-            println("[INFO] Didn't find $file, using default values")
+            LOGGER.info("Didn't find $file, using default values")
             TextWriter.toText(defaultValue, beautify)
         }
         val readData = TextReader.fromText(read)
         val map = readData.firstOrNull { it is StringMap } as? StringMap
         return if(map == null){
-            println("[INFO] Config was corrupted, didn't find a config, in $file, got $readData")
+            LOGGER.info("Config was corrupted, didn't find a config, in $file, got $readData")
             save(file, TextWriter.toText(defaultValue, beautify))
             defaultValue
         } else map

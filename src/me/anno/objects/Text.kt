@@ -18,14 +18,18 @@ import me.anno.ui.input.EnumInput
 import me.anno.ui.input.TextInputML
 import me.anno.ui.style.Style
 import me.anno.utils.BiMap
-import me.anno.utils.f3
-import org.joml.Matrix4fStack
+import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
 import kotlin.collections.ArrayList
 import kotlin.math.max
 import kotlin.math.min
 
-class Text(var text: String = "", parent: Transform? = null): GFXTransform(parent){
+class Text(text: String = "", parent: Transform? = null): GFXTransform(parent){
+
+    var text = text.replace("\r", "")
+        set(value) {
+            field = value.replace("\r", "")
+        }
 
     // todo automatic line break after length x
 
@@ -60,7 +64,7 @@ class Text(var text: String = "", parent: Transform? = null): GFXTransform(paren
     var minX = 0f
     var maxX = 0f
 
-    override fun onDraw(stack: Matrix4fStack, time: Float, color: Vector4f){
+    override fun onDraw(stack: Matrix4fArrayList, time: Float, color: Vector4f){
 
         val text = text
         val isBold = isBold
@@ -227,6 +231,8 @@ class Text(var text: String = "", parent: Transform? = null): GFXTransform(paren
             }
         }
 
+        // todo general favourites for all enum types?
+        // todo at least a generalized form to make it simpler?
         list += EnumInput("Font", true, font, fontList, style)
             .setChangeListener {
                 putLastUsedFont(it)

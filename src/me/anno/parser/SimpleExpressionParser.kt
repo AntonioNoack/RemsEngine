@@ -320,7 +320,7 @@ object SimpleExpressionParser {
                 0 -> null
                 1 -> parts[0] as? Double
                 else -> {
-                    println("Couldn't understand $parts")
+                    println("[WARN] Couldn't understand $parts")
                     null
                 }
             }

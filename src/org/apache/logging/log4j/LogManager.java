@@ -1,5 +1,7 @@
 package org.apache.logging.log4j;
 
+import kotlin.reflect.KClass;
+
 import java.util.HashMap;
 
 public class LogManager {
@@ -9,6 +11,14 @@ public class LogManager {
 
     public static Logger getLogger(){
         return logger;
+    }
+
+    public static Logger getLogger(Class<?> clazz){
+        return getLogger(clazz.getSimpleName());
+    }
+
+    public static Logger getLogger(KClass<?> clazz){
+        return getLogger(clazz.getSimpleName());
     }
 
     public static Logger getLogger(String name){

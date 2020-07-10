@@ -7,9 +7,8 @@ import me.anno.objects.GFXTransform
 import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.ui.base.groups.PanelListY
-import me.anno.ui.input.FloatInput
 import me.anno.ui.style.Style
-import org.joml.Matrix4fStack
+import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
 
 class Circle(parent: Transform? = null): GFXTransform(parent){
@@ -18,7 +17,7 @@ class Circle(parent: Transform? = null): GFXTransform(parent){
     var startDegrees = AnimatedProperty.float()
     var endDegrees = AnimatedProperty.float().set(360f)
 
-    override fun onDraw(stack: Matrix4fStack, time: Float, color: Vector4f) {
+    override fun onDraw(stack: Matrix4fArrayList, time: Float, color: Vector4f) {
         GFX.draw3DCircle(stack, innerRadius[time], startDegrees[time], endDegrees[time], color, isBillboard[time])
     }
 

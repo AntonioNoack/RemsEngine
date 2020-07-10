@@ -6,7 +6,7 @@ import me.anno.objects.animation.AnimatedProperty
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.style.Style
 import me.anno.utils.clamp
-import org.joml.Matrix4fStack
+import org.joml.Matrix4fArrayList
 import org.joml.Vector3f
 import org.joml.Vector4f
 
@@ -62,7 +62,7 @@ class GFXArray(parent: Transform?): GFXTransform(parent) {
         }
     }
 
-    override fun onDraw(stack: Matrix4fStack, time: Float, color: Vector4f) {
+    override fun onDraw(stack: Matrix4fArrayList, time: Float, color: Vector4f) {
         super.onDraw(stack, time, color)
         // todo replace 1:1 every time? how? drivers??? (text)
 

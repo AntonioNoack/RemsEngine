@@ -26,6 +26,7 @@ import me.anno.ui.base.TextPanel
 import me.anno.ui.base.Tooltips
 import me.anno.utils.clamp
 import me.anno.utils.f3
+import org.apache.logging.log4j.LogManager
 import java.io.File
 import java.util.*
 import kotlin.concurrent.thread
@@ -34,6 +35,8 @@ import kotlin.math.roundToInt
 // todo operation to cut an image, video, or similar?
 
 object RemsStudio {
+
+    val LOGGER = LogManager.getLogger(RemsStudio::class)
 
     val originalOutput = System.out
 
@@ -101,7 +104,7 @@ object RemsStudio {
                     val t2 = System.nanoTime()
                     val dt1 = (t1-t0)*1e-9f
                     val dt2 = (t2-t1)*1e-9f
-                    if(dt1 > 0.01f && frameCtr > 0) println("[WARN] Used ${dt1.f3()}s + ${dt2.f3()}s for layout")
+                    if(dt1 > 0.01f && frameCtr > 0) LOGGER.warn("Used ${dt1.f3()}s + ${dt2.f3()}s for layout")
                     Input.framesSinceLastInteraction++
                 }
                 panel.draw(window.x,window.y,window.x+panel.w,window.y+panel.h)
@@ -129,7 +132,7 @@ object RemsStudio {
             check()
 
             if(frameCtr == 0L){
-                println("[INFO] Used ${((System.nanoTime()-startTime)*1e-9f).f3()}s from start to finishing the first frame")
+                LOGGER.info("Used ${((System.nanoTime()-startTime)*1e-9f).f3()}s from start to finishing the first frame")
             }
             frameCtr++
 

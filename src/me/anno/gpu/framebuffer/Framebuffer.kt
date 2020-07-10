@@ -2,6 +2,7 @@ package me.anno.gpu.framebuffer
 
 import me.anno.gpu.GFX
 import me.anno.gpu.texture.Texture2D
+import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL13
 import org.lwjgl.opengl.GL30.*
@@ -67,7 +68,7 @@ class Framebuffer(var w: Int, var h: Int, val samples: Int, val targetCount: Int
             val texture = Texture2D(w, h, samples)
             if(fpTargets) texture.createFP32()
             else texture.create()
-            println("[FB-TA] $w $h $samples $fpTargets")
+            LOGGER.info("create/textures-array $w $h $samples $fpTargets")
             GFX.check()
             texture.filtering(true)
             GFX.check()
@@ -175,28 +176,6 @@ class Framebuffer(var w: Int, var h: Int, val samples: Int, val targetCount: Int
         }
     }
 
-    companion object {
-        private var currentFramebuffer: Framebuffer? = null
-        val stack = Stack<Framebuffer>()
-        fun bindNull(){
-            currentFramebuffer = null
-        }
-        fun bindNullTemporary(){
-            stack.push(currentFramebuffer)
-            bindNull()
-        }
-        fun unbindNull(){
-            if(stack.isEmpty()) throw RuntimeException("No framebuffer was found!")
-            stack.pop().bind()
-        }
-        fun Framebuffer?.bind(w: Int, h: Int){
-            if(this == null){
-                bindNull()
-                glBindFramebuffer(GL_FRAMEBUFFER, 0)
-            } else bind(w, h)
-        }
-    }
-
     fun bindTemporary(newWidth: Int, newHeight: Int){
         stack.push(currentFramebuffer)
         bind(newWidth, newHeight)
@@ -213,5 +192,30 @@ class Framebuffer(var w: Int, var h: Int, val samples: Int, val targetCount: Int
     }
 
 
+
+    companion object {
+
+        val LOGGER = LogManager.getLogger(Framebuffer::class)
+
+        private var currentFramebuffer: Framebuffer? = null
+        val stack = Stack<Framebuffer>()
+        fun bindNull(){
+            currentFramebuffer = null
+            glBindFramebuffer(GL_FRAMEBUFFER, 0)
+        }
+        fun bindNullTemporary(){
+            stack.push(currentFramebuffer)
+            bindNull()
+        }
+        fun unbindNull(){
+            if(stack.isEmpty()) throw RuntimeException("No framebuffer was found!")
+            stack.pop().bind()
+        }
+        fun Framebuffer?.bind(w: Int, h: Int){
+            if(this == null){
+                bindNull()
+            } else bind(w, h)
+        }
+    }
 
 }

@@ -1,10 +1,13 @@
 package me.anno.fonts.mesh
 
 import me.anno.utils.*
+import org.apache.logging.log4j.LogManager
 import org.joml.Vector2f
 import java.lang.RuntimeException
 
 object Triangulator {
+
+    val LOGGER = LogManager.getLogger(Triangulator::class)
 
     //fun ringToTriangles(pts: List<Vector2f>) =
     //    ringToTriangleIndices(pts).map { pts[it] }.toMutableList()
@@ -142,7 +145,7 @@ object Triangulator {
 
         if(shrinkingRing.size == 3){
             triangulation.addAll(shrinkingRing)
-        } else warn("Polygon could not be triangulated!, ${pts.size} -> ${shrinkingRing.size},\n" +
+        } else LOGGER.warn("Polygon could not be triangulated!, ${pts.size} -> ${shrinkingRing.size},\n" +
                 "    ${input.joinToString { it.print() }}\n" +
                 " -> ${triangulation.joinToString {it.print()}},\n" +
                 "    ${shrinkingRing.joinToString { it.print(input) }}")

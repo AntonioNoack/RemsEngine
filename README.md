@@ -12,6 +12,17 @@ The name is from Rem, an Anime character, I like; inspired by YDS, too, because 
 The project is developed with Kotlin,JVM, so plugins should be possible, and are a goal at some point.
 It is additionally developed with Java, so it works with Windows and Linux.
 
+## Currently used libraries
+
+* LWJGL (OpenGL + GLFW + OpenAL + Slick)
+* JOML (Matrix calculations and transforms for rendering)
+* FFMpeg (Video/Image/Audio Import & Export)
+* HSLuv (HSL alternative with constant brightness)
+* OpenSimplexNoise (Noise Generator)
+* Apache Imaging (More supported image formats, like .ico)
+
 ## Download
 
 I will provide a download, when the alpha stage is reached (basic features working, automatic setup).
+
+

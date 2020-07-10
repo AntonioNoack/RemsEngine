@@ -15,10 +15,9 @@ import me.anno.objects.cache.SFBufferData
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.input.BooleanInput
 import me.anno.ui.input.FileInput
-import me.anno.ui.input.FloatInput
 import me.anno.ui.style.Style
 import me.anno.utils.clamp
-import org.joml.Matrix4fStack
+import org.joml.Matrix4fArrayList
 import org.joml.Vector3f
 import org.joml.Vector4f
 import java.io.File
@@ -43,7 +42,7 @@ class Polygon(parent: Transform? = null): GFXTransform(parent){
     var vertexCount = AnimatedProperty.floatPlus().set(5f)
     var starNess = AnimatedProperty.float01()
 
-    override fun onDraw(stack: Matrix4fStack, time: Float, color: Vector4f){
+    override fun onDraw(stack: Matrix4fArrayList, time: Float, color: Vector4f){
         val inset = clamp(starNess[time], 0f, 1f)
         if(inset == 1f) return// invisible
         val texture = Cache.getImage(texture, 5000) ?: GFX.whiteTexture

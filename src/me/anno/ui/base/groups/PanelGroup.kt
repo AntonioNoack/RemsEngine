@@ -4,6 +4,7 @@ import me.anno.gpu.GFX
 import me.anno.ui.base.Panel
 import me.anno.ui.base.Visibility
 import me.anno.ui.style.Style
+import java.lang.Exception
 import kotlin.math.max
 import kotlin.math.min
 
@@ -17,7 +18,11 @@ abstract class PanelGroup(style: Style): Panel(style){
         var hadVisibleChild = false
         children@ for(child in children){
             if(child.visibility == Visibility.VISIBLE){
-                hadVisibleChild = drawChild(child, x0, y0, x1, y1) or hadVisibleChild
+                try {
+                    hadVisibleChild = drawChild(child, x0, y0, x1, y1) or hadVisibleChild
+                } catch (e: Exception){
+                    e.printStackTrace()
+                }
             }
         }
         if(hadVisibleChild){

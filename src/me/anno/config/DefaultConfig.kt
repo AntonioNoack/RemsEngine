@@ -11,10 +11,13 @@ import me.anno.objects.geometric.Polygon
 import me.anno.objects.particles.ParticleSystem
 import me.anno.ui.style.Style
 import me.anno.utils.f3
+import org.apache.logging.log4j.LogManager
 import org.joml.Vector3f
 import java.io.File
 
 object DefaultConfig: StringMap() {
+
+    val LOGGER = LogManager.getLogger(DefaultConfig::class)
 
     init {
         init()
@@ -98,7 +101,7 @@ object DefaultConfig: StringMap() {
 
         val t1 = System.nanoTime()
         // not completely true; is loading some classes, too
-        println("[INFO] Used ${((t1-t0)*1e-9f).f3()}s to read the config")
+        LOGGER.info("Used ${((t1-t0)*1e-9f).f3()}s to read the config")
 
     }
 

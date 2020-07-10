@@ -184,7 +184,7 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
     /**
      * stack with camera already included
      * */
-    fun draw(stack: Matrix4fStack, parentTime: Float, parentColor: Vector4f){
+    fun draw(stack: Matrix4fArrayList, parentTime: Float, parentColor: Vector4f){
 
         val time = getLocalTime(parentTime)
         val color = getLocalColor(parentColor, time)
@@ -201,13 +201,13 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
 
     open fun drawChildrenAutomatically() = true
 
-    fun drawChildren(stack: Matrix4fStack, time: Float, color: Vector4f){
+    fun drawChildren(stack: Matrix4fArrayList, time: Float, color: Vector4f){
         children.forEach { child ->
             drawChild(stack, time, color, child)
         }
     }
 
-    fun drawChild(stack: Matrix4fStack, time: Float, color: Vector4f, child: Transform?){
+    fun drawChild(stack: Matrix4fArrayList, time: Float, color: Vector4f, child: Transform?){
         if(child != null){
             child.getParentBlendMode(BlendMode.DEFAULT).apply()
             stack.pushMatrix()
@@ -216,7 +216,7 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
         }
     }
 
-    open fun onDraw(stack: Matrix4fStack, time: Float, color: Vector4f){
+    open fun onDraw(stack: Matrix4fArrayList, time: Float, color: Vector4f){
 
         // draw a small symbol to indicate pivot
         if(!GFX.isFinalRendering){

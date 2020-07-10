@@ -16,6 +16,7 @@ import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.input.components.PureTextInput
 import me.anno.ui.style.Style
+import me.anno.utils.get
 import me.anno.utils.warn
 import org.joml.Quaternionf
 import org.joml.Vector2f
@@ -255,6 +256,14 @@ class VectorInput(
     override fun onMouseUp(x: Float, y: Float, button: Int) {
         super.onMouseUp(x, y, button)
         mouseIsDown = false
+    }
+
+    override fun onEmpty(x: Float, y: Float) {
+        val defaultValue = type.defaultValue
+        valueFields.forEachIndexed { index, pureTextInput ->
+            pureTextInput.text = defaultValue[index].toString()
+        }
+        changeListener(defaultValue[0], defaultValue[1], defaultValue[2], defaultValue[3])
     }
 
     override fun getCursor(): Long = Cursor.drag

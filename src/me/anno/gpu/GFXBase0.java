@@ -9,6 +9,8 @@ import kotlin.jvm.functions.Function0;
 import me.anno.input.Input;
 import me.anno.studio.Studio;
 import me.anno.studio.project.Project;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.lwjgl.glfw.*;
 import org.lwjgl.opengl.*;
 import org.lwjgl.system.*;
@@ -26,6 +28,8 @@ import java.util.Locale;
  * @author Kai Burjack
  */
 public class GFXBase0 {
+
+    static Logger LOGGER = LogManager.getLogger(GFXBase0.class);
 
     GLFWErrorCallback errorCallback;
     GLFWKeyCallback keyCallback;
@@ -69,7 +73,7 @@ public class GFXBase0 {
             throw new IllegalStateException("Unable to initialize GLFW");
 
         long t2 = System.nanoTime();
-        System.out.println(String.format(Locale.ENGLISH, "[INFO] Used %.3fs for error callback + %.3fs for glfwInit", ((t1-t0)*1e-9f), ((t2-t1)*1e-9f)));
+        LOGGER.info(String.format(Locale.ENGLISH, "Used %.3fs for error callback + %.3fs for glfwInit", ((t1-t0)*1e-9f), ((t2-t1)*1e-9f)));
 
         glfwDefaultWindowHints();
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);

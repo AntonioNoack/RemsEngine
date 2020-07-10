@@ -1,6 +1,5 @@
 package me.anno.gpu
 
-import me.anno.audio.ALBase
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.black
 import me.anno.fonts.FontManager
@@ -12,9 +11,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.input.Input
 import me.anno.input.Input.isShiftDown
 import me.anno.objects.Camera
-import me.anno.objects.Inspectable
 import me.anno.objects.Transform
-import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.blending.BlendMode
 import me.anno.studio.Studio.editorTime
 import me.anno.studio.Studio.editorTimeDilation
@@ -38,8 +35,9 @@ import me.anno.utils.clamp
 import me.anno.utils.f1
 import me.anno.utils.minus
 import me.anno.video.Frame
+import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
-import org.joml.Matrix4fStack
+import org.joml.Matrix4fArrayList
 import org.joml.Vector3f
 import org.joml.Vector4f
 import org.lwjgl.BufferUtils
@@ -60,6 +58,8 @@ import kotlin.math.*
 // todo sort blended objects by depth, if rendering with depth
 
 object GFX: GFXBase1() {
+
+    val LOGGER = LogManager.getLogger(GFX::class)
 
     // for final rendering we need to use the GPU anyways;
     // so just use a static variable
@@ -267,7 +267,7 @@ object GFX: GFXBase1() {
         shader.v2("size", w.toFloat()/windowWidth, -h.toFloat()/windowHeight)
     }
 
-    fun applyCameraTransform(camera: Camera, time: Float, cameraTransform: Matrix4f, stack: Matrix4fStack){
+    fun applyCameraTransform(camera: Camera, time: Float, cameraTransform: Matrix4f, stack: Matrix4fArrayList){
         val position = cameraTransform.transformProject(Vector3f(0f, 0f, 0f))
         val up = cameraTransform.transformProject(Vector3f(0f, 1f, 0f)) - position
         val lookAt = cameraTransform.transformProject(Vector3f(0f, 0f, -1f))
@@ -280,7 +280,7 @@ object GFX: GFXBase1() {
             .lookAt(position, lookAt, up.normalize())
     }
 
-    fun shader3DUniforms(shader: Shader, stack: Matrix4fStack, w: Int, h: Int, color: Vector4f, isBillboard: Float, tiling: Vector4f?){
+    fun shader3DUniforms(shader: Shader, stack: Matrix4fArrayList, w: Int, h: Int, color: Vector4f, isBillboard: Float, tiling: Vector4f?){
         check()
 
         stack.pushMatrix()
@@ -312,7 +312,7 @@ object GFX: GFXBase1() {
         else f
     }
 
-    fun draw3DCircle(stack: Matrix4fStack, innerRadius: Float, startDegrees: Float, endDegrees: Float, color: Vector4f, isBillboard: Float){
+    fun draw3DCircle(stack: Matrix4fArrayList, innerRadius: Float, startDegrees: Float, endDegrees: Float, color: Vector4f, isBillboard: Float){
         val shader = shader3DCircle
         shader3DUniforms(shader, stack, 1, 1, color, isBillboard, null)
         val angle1 = toRadians(positiveFract(startDegrees+180f, 360f)-180f)
@@ -322,7 +322,7 @@ object GFX: GFXBase1() {
         check()
     }
 
-    fun draw3DMasked(stack: Matrix4fStack, texture: Texture2D, mask: Texture2D, color: Vector4f,
+    fun draw3DMasked(stack: Matrix4fArrayList, texture: Texture2D, mask: Texture2D, color: Vector4f,
                      isBillboard: Float, nearestFiltering: Boolean, useMaskColor: Float, offsetColor: Vector4f,
                      isInverted: Float){
         val shader = shader3DMasked
@@ -336,7 +336,7 @@ object GFX: GFXBase1() {
         check()
     }
 
-    fun draw3D(stack: Matrix4fStack, buffer: StaticFloatBuffer, texture: Texture2D, w: Int, h:Int, color: Vector4f,
+    fun draw3D(stack: Matrix4fArrayList, buffer: StaticFloatBuffer, texture: Texture2D, w: Int, h:Int, color: Vector4f,
                isBillboard: Float, nearestFiltering: Boolean, tiling: Vector4f?){
         val shader = shader3D
         shader3DUniforms(shader, stack, w, h, color, isBillboard, tiling)
@@ -345,12 +345,12 @@ object GFX: GFXBase1() {
         check()
     }
 
-    fun draw3D(stack: Matrix4fStack, buffer: StaticFloatBuffer, texture: Texture2D, color: Vector4f,
+    fun draw3D(stack: Matrix4fArrayList, buffer: StaticFloatBuffer, texture: Texture2D, color: Vector4f,
                isBillboard: Float, nearestFiltering: Boolean, tiling: Vector4f?){
         draw3D(stack, buffer, texture, texture.w, texture.h, color, isBillboard, nearestFiltering, tiling)
     }
 
-    fun draw3DPolygon(stack: Matrix4fStack, buffer: StaticFloatBuffer,
+    fun draw3DPolygon(stack: Matrix4fArrayList, buffer: StaticFloatBuffer,
                       texture: Texture2D, color: Vector4f,
                       inset: Float,
                       isBillboard: Float, nearestFiltering: Boolean){
@@ -362,12 +362,12 @@ object GFX: GFXBase1() {
         check()
     }
 
-    fun draw3D(stack: Matrix4fStack, texture: Texture2D, color: Vector4f,
+    fun draw3D(stack: Matrix4fArrayList, texture: Texture2D, color: Vector4f,
                isBillboard: Float, nearestFiltering: Boolean, tiling: Vector4f?){
         return draw3D(stack, flat01, texture, color, isBillboard, nearestFiltering, tiling)
     }
 
-    fun draw3D(stack: Matrix4fStack, texture: Frame, color: Vector4f,
+    fun draw3D(stack: Matrix4fArrayList, texture: Frame, color: Vector4f,
                isBillboard: Float, nearestFiltering: Boolean, tiling: Vector4f?){
         val shader = texture.get3DShader()
         shader3DUniforms(shader, stack, texture.w, texture.h, color, isBillboard, tiling)
@@ -381,7 +381,7 @@ object GFX: GFXBase1() {
         check()
     }
 
-    fun drawXYZUV(stack: Matrix4fStack, buffer: StaticFloatBuffer, texture: Texture2D, color: Vector4f,
+    fun drawXYZUV(stack: Matrix4fArrayList, buffer: StaticFloatBuffer, texture: Texture2D, color: Vector4f,
                   isBillboard: Float, nearestFiltering: Boolean, mode: Int = GL11.GL_TRIANGLES){
         val shader = shader3DXYZUV
         shader3DUniforms(shader, stack, 1,1 , color, isBillboard, null)
@@ -390,8 +390,8 @@ object GFX: GFXBase1() {
         check()
     }
 
-    fun drawSpherical(stack: Matrix4fStack, buffer: StaticFloatBuffer, texture: Texture2D, color: Vector4f,
-                  isBillboard: Float, nearestFiltering: Boolean, mode: Int = GL11.GL_TRIANGLES){
+    fun drawSpherical(stack: Matrix4fArrayList, buffer: StaticFloatBuffer, texture: Texture2D, color: Vector4f,
+                      isBillboard: Float, nearestFiltering: Boolean, mode: Int = GL11.GL_TRIANGLES){
         val shader = shader3DSpherical
         shader3DUniforms(shader, stack, 1,1 , color, isBillboard, null)
         texture.bind(0, nearestFiltering)
@@ -399,7 +399,7 @@ object GFX: GFXBase1() {
         check()
     }
 
-    fun draw3DSVG(stack: Matrix4fStack, buffer: StaticFloatBuffer, texture: Texture2D, color: Vector4f,
+    fun draw3DSVG(stack: Matrix4fArrayList, buffer: StaticFloatBuffer, texture: Texture2D, color: Vector4f,
                   isBillboard: Float, nearestFiltering: Boolean){
         val shader = shader3DSVG
         shader3DUniforms(shader, stack, 1,1 , color, isBillboard, null)
@@ -753,7 +753,7 @@ object GFX: GFXBase1() {
     override fun renderStep0() {
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1) // opengl is evil ;), for optimizations, we might set it back
         supportsAnisotropicFiltering = GL.getCapabilities().GL_EXT_texture_filter_anisotropic
-        println("[INFO] OpenGL supports Anisotropic Filtering? $supportsAnisotropicFiltering")
+        LOGGER.info("OpenGL supports Anisotropic Filtering? $supportsAnisotropicFiltering")
         if(supportsAnisotropicFiltering){
             val max = glGetFloat(EXTTextureFilterAnisotropic.GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT)
             anisotropy = min(max, DefaultConfig["gpu.filtering.anisotropic.max", 16f])

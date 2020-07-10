@@ -15,7 +15,6 @@ import me.anno.ui.editor.frames.FrameSizeInput
 import me.anno.ui.input.BooleanInput
 import me.anno.ui.input.EnumInput
 import me.anno.ui.input.FileInput
-import me.anno.ui.input.VectorInput
 import me.anno.ui.style.Style
 import org.joml.*
 import org.lwjgl.opengl.GL11.GL_LINES
@@ -85,7 +84,7 @@ class Camera(parent: Transform? = null): Transform(parent){
         ToneMappers.values().firstOrNull { it.displayName == name || it.code == name } ?:
         ToneMappers.RAW
 
-    override fun onDraw(stack: Matrix4fStack, time: Float, color: Vector4f) {
+    override fun onDraw(stack: Matrix4fArrayList, time: Float, color: Vector4f) {
 
         if(GFX.isFinalRendering) return
         if(this === usedCamera) return

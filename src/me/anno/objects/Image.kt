@@ -15,7 +15,7 @@ import me.anno.ui.input.BooleanInput
 import me.anno.ui.input.TextInput
 import me.anno.ui.input.VectorInput
 import me.anno.ui.style.Style
-import org.joml.Matrix4fStack
+import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
 import java.io.File
 
@@ -26,7 +26,7 @@ class Image(var file: File = File(""), parent: Transform? = null): GFXTransform(
     var nearestFiltering = DefaultConfig["default.image.nearest", true]
     var tiling = AnimatedProperty.tiling()
 
-    override fun onDraw(stack: Matrix4fStack, time: Float, color: Vector4f) {
+    override fun onDraw(stack: Matrix4fArrayList, time: Float, color: Vector4f) {
         val name = file.name
         when {
             name.endsWith("svg", true) -> {

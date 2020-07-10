@@ -39,7 +39,10 @@ object BokehBlur {
 
     val result = fbPair()
 
-    fun draw(buffer: Framebuffer, w: Int, h: Int, sizeRY: Float){
+    fun draw(buffer: Framebuffer, sizeRY: Float){
+
+        val w = buffer.w
+        val h = buffer.h
 
         if(compositionShader == null) init()
 

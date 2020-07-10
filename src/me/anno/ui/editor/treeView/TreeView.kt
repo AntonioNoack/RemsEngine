@@ -155,6 +155,8 @@ class TreeView(style: Style):
     companion object {
 
         fun addText(name: String, parent: Transform, text: String){
+            // important ;)
+            // should maybe be done sometimes in object as well ;)
             if(text.length > 500){
                 GFX.addGPUTask {
                     GFX.openMenu(mouseX, mouseY, "Text has ${text.codePoints().count()} characters, import?", listOf(

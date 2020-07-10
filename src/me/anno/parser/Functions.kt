@@ -30,10 +30,10 @@ object Functions {
             if(this[i-0] != ')') continue
             val name = this[i-3] as? String ?: continue
             val x = this[i-1] as? Double ?: continue
-            val function = functions1[name] ?: functions1[name.toLowerCase()] ?: throw UnknownFunction(
-                name,
-                "x"
-            )
+            val function =
+                functions1[name] ?:
+                functions1[name.toLowerCase()] ?:
+                throw UnknownFunction(name, "x")
             for(j in 0 until 3) removeAt(i - j)
             this[i-3] = function(x)
             applyFunc1()
@@ -50,10 +50,10 @@ object Functions {
             val name = this[i-5] as? String ?: continue
             val x = this[i-3] as? Double ?: continue
             val y = this[i-1] as? Double ?: continue
-            val function = functions2[name] ?: functions2[name.toLowerCase()] ?: throw UnknownFunction(
-                name,
-                "x,y"
-            )
+            val function =
+                functions2[name] ?:
+                functions2[name.toLowerCase()] ?:
+                throw UnknownFunction(name, "x,y")
             for(j in 0 until 5) removeAt(i - j)
             this[i-5] = function(x,y)
             applyFunc2()
@@ -72,10 +72,10 @@ object Functions {
             val x = this[i-5] as? Double ?: continue
             val y = this[i-3] as? Double ?: continue
             val z = this[i-1] as? Double ?: continue
-            val function = functions3[name] ?: functions3[name.toLowerCase()] ?: throw UnknownFunction(
-                name,
-                "x,y,z"
-            )
+            val function =
+                functions3[name] ?:
+                functions3[name.toLowerCase()] ?:
+                throw UnknownFunction(name, "x,y,z")
             for(j in 0 until 7) removeAt(i - j)
             this[i-7] = function(x,y,z)
             applyFunc3()
@@ -96,10 +96,10 @@ object Functions {
             val y = this[i-5] as? Double ?: continue
             val z = this[i-3] as? Double ?: continue
             val w = this[i-1] as? Double ?: continue
-            val function = functions4[name] ?: functions4[name.toLowerCase()] ?: throw UnknownFunction(
-                name,
-                "x,y,z,w"
-            )
+            val function =
+                functions4[name] ?:
+                functions4[name.toLowerCase()] ?:
+                throw UnknownFunction(name, "x,y,z,w")
             for(j in 0 until 9) removeAt(i - j)
             this[i-9] = function(x,y,z,w)
             applyFunc4()
@@ -108,6 +108,12 @@ object Functions {
         return false
     }
 
+    /**
+     * apply functions with five arguments
+     * longer functions than that could be used, but the longer a function is,
+     * the more complex remembering their order gets ;)
+     * our simple expression language is meant for simple stuff only anyways
+     * */
     fun MutableList<Any>.applyFunc5(): Boolean {
         for(i in 11 until size){
             if(this[i-10] != '(') continue
@@ -122,10 +128,10 @@ object Functions {
             val c = this[i-5] as? Double ?: continue
             val d = this[i-3] as? Double ?: continue
             val e = this[i-1] as? Double ?: continue
-            val function = functions5[name] ?: functions5[name.toLowerCase()] ?: throw UnknownFunction(
-                name,
-                "a,b,c,d,e"
-            )
+            val function =
+                functions5[name] ?:
+                functions5[name.toLowerCase()] ?:
+                throw UnknownFunction(name, "a,b,c,d,e")
             for(j in 0 until 11) removeAt(i - j)
             this[i-11] = function(a,b,c,d,e)
             applyFunc5()
@@ -158,6 +164,8 @@ object Functions {
         functions2["max"] = { a, b -> max(a, b) }
         functions3["min"] = { a, b, c -> min(a, min(b, c)) }
         functions3["max"] = { a, b, c -> max(a, max(b, c)) }
+        functions4["min"] = { a, b, c, d -> min(min(a, d), min(b, c)) }
+        functions4["max"] = { a, b, c, d -> max(max(a, d), max(b, c)) }
         functions3["clamp"] = { x, min, max -> clamp(x, min, max) }
 
         // special powers, and root

@@ -9,7 +9,7 @@ import me.anno.ui.style.Style
 import me.anno.utils.plus
 import me.anno.utils.times
 import me.anno.video.MissingFrameException
-import org.joml.Matrix4fStack
+import org.joml.Matrix4fArrayList
 import org.joml.Random
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -129,7 +129,7 @@ class ParticleSystem(parent: Transform? = null): Transform(parent){
         }
     }
 
-    override fun onDraw(stack: Matrix4fStack, time: Float, color: Vector4f) {
+    override fun onDraw(stack: Matrix4fArrayList, time: Float, color: Vector4f) {
 
         sumWeight = children.sumByDouble { it.weight.toDouble() }.toFloat()
         if(time < 0f || children.isEmpty() || sumWeight <= 0.0) return

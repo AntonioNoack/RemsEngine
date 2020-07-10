@@ -18,8 +18,9 @@ import me.anno.objects.effects.BokehBlur
 import me.anno.objects.effects.ToneMappers
 import me.anno.ui.editor.sceneView.Grid
 import me.anno.utils.times
+import me.anno.utils.warn
 import me.anno.video.MissingFrameException
-import org.joml.Matrix4fStack
+import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL30
@@ -188,7 +189,18 @@ object Scene {
         return next
     }
 
+    // rendering must be done in sync with the rendering thread (OpenGL limitation) anyways, so one object is enough
+    val stack = Matrix4fArrayList()
     fun draw(target: Framebuffer?, camera: Camera, x0: Int, y0: Int, w: Int, h: Int, time: Float, flipY: Boolean){
+
+        // we must have crashed before;
+        // somewhere in this function
+        if(stack.currentIndex > 0){
+            warn("Must have crashed inside Scene.draw() :/")
+            // cleanup is done with stack.clear()
+        }
+
+        stack.clear()
 
         val enableMultisampling = false
 
@@ -221,7 +233,8 @@ object Scene {
 
         // draw the 3D stuff
 
-        val stack = Matrix4fStack(256)
+        // I have no ideas how many we need ;)
+        // todo make a matrix stack, which is expandable infinitely
 
         GFX.applyCameraTransform(camera, cameraTime, cameraTransform, stack)
 
@@ -282,13 +295,15 @@ object Scene {
 
         val enableCircularDOF = 'K'.toInt() in keysDown
         if(enableCircularDOF){
+            // todo render dof instead of bokeh blur only
+            // make bokeh blur an additional camera effect?
             buffer = switch(buffer, 0, true, withMultisampling = false)
-            BokehBlur.draw(buffer, w, h, 0.02f)
+            BokehBlur.draw(buffer, 0.02f)
         }
 
         fun bindTarget(){
             if(target == null){
-                GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, 0)
+                Framebuffer.bindNull()
                 GFX.clip(x0, y0, w, h)
             } else {
                 target.bind()
@@ -305,10 +320,10 @@ object Scene {
 
         val useLUT = lut != null
         if(useLUT){
-            buffer = switch(buffer, 0, false, withMultisampling = false)
+            buffer = switch(buffer, 0, nearest = false, withMultisampling = false)
         } else {
             bindTarget()
-            buffer.bindTextures(0, false)
+            buffer.bindTextures(0, nearest = false)
         }
 
         /**
@@ -371,7 +386,15 @@ object Scene {
         FBStack.clear(w, h, true)
         FBStack.clear(w, h, false)
 
+        // todo somehow with multisampling this buffer isn't bound... why?
+        bindTarget()
+
         glEnable(GL_BLEND)
+
+        if(stack.currentIndex != 0){
+            warn("Some function isn't correctly pushing/popping the stack!")
+            // further analysis by testing each object individually?
+        }
 
     }
 

@@ -10,7 +10,7 @@ import me.anno.ui.style.Style
 import me.anno.utils.plus
 import me.anno.utils.times
 import me.anno.video.MissingFrameException
-import org.joml.Matrix4fStack
+import org.joml.Matrix4fArrayList
 import org.joml.Vector3f
 import org.joml.Vector4f
 import org.lwjgl.opengl.GL11
@@ -22,7 +22,7 @@ class Cubemap(var file: File = File(""), parent: Transform? = null): GFXTransfor
     var otherFormat = false
 
     // todo create a cubemap on the gpu instead to support best-ram-usage mipmapping and linear filtering?
-    override fun onDraw(stack: Matrix4fStack, time: Float, color: Vector4f) {
+    override fun onDraw(stack: Matrix4fArrayList, time: Float, color: Vector4f) {
 
         val texture = Cache.getImage(file, 1000) ?:
             if(GFX.isFinalRendering) throw MissingFrameException(file)

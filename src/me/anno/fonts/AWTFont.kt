@@ -5,6 +5,8 @@ import me.anno.gpu.texture.FakeWhiteTexture
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.ui.base.DefaultRenderingHints
+import org.apache.logging.log4j.LogManager
+import org.apache.logging.log4j.Logger
 import java.awt.Font
 import java.awt.Graphics2D
 import java.awt.font.TextAttribute
@@ -135,7 +137,7 @@ class AWTFont(val font: Font): XFont {
             val inQuestion = codePoints[i]
             val curFallback = !mainFont.canDisplay(inQuestion)
             if(curFallback){
-                println("[AWTFont] ${String(Character.toChars(inQuestion))}, $inQuestion needs fallback, supported? ${fallbackFont.canDisplay(inQuestion)}")
+                LOGGER.info("[AWTFont] ${String(Character.toChars(inQuestion))}, $inQuestion needs fallback, supported? ${fallbackFont.canDisplay(inQuestion)}")
             }
             if (curFallback != fallback) {
                 fallback = curFallback
@@ -150,6 +152,8 @@ class AWTFont(val font: Font): XFont {
     }
 
     companion object {
+
+        val LOGGER = LogManager.getLogger(AWTFont::class)
 
         val staticGfx = BufferedImage(1,1, BufferedImage.TYPE_INT_ARGB).graphics as Graphics2D
         val staticMetrics = staticGfx.fontMetrics
