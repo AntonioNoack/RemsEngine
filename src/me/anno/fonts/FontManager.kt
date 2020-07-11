@@ -14,6 +14,8 @@ import kotlin.math.exp
 import kotlin.math.ln
 import kotlin.math.round
 
+// todo spell check xD
+// todo grammar check lol
 object FontManager {
 
     val LOGGER = LogManager.getLogger(FontManager::class)!!
@@ -52,7 +54,7 @@ object FontManager {
         if(text.isEmpty()) return null
         val fontSizeIndex = getFontSizeIndex(fontSize)
         val sub = fontSizeIndex * 4 + (if(bold) 1 else 0) + (if(italic) 2 else 0)
-        val cache = Cache.getEntry(fontName, text, sub, fontTimeout, !GFX.loadTexturesSync){
+        val cache = Cache.getEntry(fontName, text, sub, fontTimeout, asyncGenerator = !GFX.loadTexturesSync){
             // println("Created texture for $text")
             val font = getFont(fontName, fontSize, fontSizeIndex, italic, bold)
             val averageFontSize = getAvgFontSize(fontSizeIndex)

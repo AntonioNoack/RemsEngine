@@ -48,6 +48,8 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
             characters.removeAt(i)
         }
         updateText()
+        cursor1 = min
+        cursor2 = min
         return max > min
     }
 
@@ -62,7 +64,17 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
         drawingOffset = -clamp(cursor - w / 3, 0, max(0, required - w))
     }
 
+    override fun calculateSize(w: Int, h: Int) {
+        val sync = GFX.loadTexturesSync
+        GFX.loadTexturesSync = true
+        super.calculateSize(w, h)
+        GFX.loadTexturesSync = sync
+    }
+
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+        val sync = GFX.loadTexturesSync
+        GFX.loadTexturesSync = true
+        // todo the textures seem to be loaded async... (unstable ui when typing)
         // super.draw(x0, y0, x1, y1)
         drawBackground()
         val x = x + padding.left
@@ -91,6 +103,7 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
             }
             if(showBars) GFX.drawRect(x+cursorX1+drawingOffset, y+padding, 2, h-2*padding, textColor) // cursor 2
         }
+        GFX.loadTexturesSync = sync
     }
 
     fun addKey(codePoint: Int) = insert(codePoint)

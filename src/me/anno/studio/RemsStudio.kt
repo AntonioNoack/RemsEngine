@@ -93,6 +93,7 @@ object RemsStudio {
             hoveredPanel?.getCursor()?.useCursor()
 
             windowStack.forEach { window ->
+                GFX.loadTexturesSync = false
                 val panel = window.panel
                 // optimization is worth 0.5% of 3.4GHz * 12 ~ 200 MHz ST (13.06.2020)
                 if(Input.needsLayoutUpdate()){

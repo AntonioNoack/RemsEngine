@@ -6,7 +6,6 @@ import me.anno.utils.mix
 import me.anno.video.FFMPEGStream
 import org.lwjgl.openal.AL10.*
 import java.io.File
-import java.lang.RuntimeException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.util.concurrent.atomic.AtomicBoolean
@@ -17,8 +16,6 @@ import kotlin.math.min
 
 // only play once, then destroy; it makes things easier
 // (on user input and when finally rendering only)
-
-// todo when playing the first time, the first buffer is played twice... why?
 
 class AudioStream(val file: File, val startTime: Float){
 
@@ -33,7 +30,7 @@ class AudioStream(val file: File, val startTime: Float){
 
     // should be as short as possible for fast calculation
     // should be at least as long as the ffmpeg response time (0.3s for the start of a FHD video)
-    val openALSliceDuration = 2f
+    val openALSliceDuration = 1f
 
     // map the real time to the correct time xD
     // to do allow skipping and such -> no, too much cleanup ;)
@@ -136,7 +133,7 @@ class AudioStream(val file: File, val startTime: Float){
         return data[arrayIndex0] to data[arrayIndex0+1]
     }
 
-    fun requestNextBuffer(time: Float, index: Int){
+    fun requestNextBuffer(startTime: Float, bufferIndex: Int){
 
         isWaitingForBuffer.set(true)
         thread {// load all data async
@@ -158,8 +155,8 @@ class AudioStream(val file: File, val startTime: Float){
 
             val dtx = openALSliceDuration / sampleCount
 
-            var global0 = time
-            var local0 = globalToLocalTime(global0)
+            val global0 = startTime
+            val local0 = globalToLocalTime(global0)
             var index0 = sampleRate * local0
 
             val byteBuffer = ByteBuffer.allocateDirect(sampleCount * 2 * 2)
@@ -168,7 +165,7 @@ class AudioStream(val file: File, val startTime: Float){
 
             for(sampleIndex in 0 until sampleCount){
 
-                val global1 = time + (sampleIndex + 1) * dtx
+                val global1 = startTime + (sampleIndex + 1) * dtx
                 val local1 = globalToLocalTime(global1)
 
                 val index1 = sampleRate * local1
@@ -223,17 +220,15 @@ class AudioStream(val file: File, val startTime: Float){
                 stereoBuffer.put(a0.toShort())
                 stereoBuffer.put(a1.toShort())
 
-                // write the
-                global0 = global1
-                local0 = local1
+                // global0 = global1
+                // local0 = local1
                 index0 = index1
 
             }
 
             stereoBuffer.position(0)
 
-
-            // todo does getting an entry block the cache? looks like that... we need a better way xD
+            // 1:1 playback
             /*val soundBuffer = Cache.getEntry(AudioSliceKey(file, (time/dt).roundToInt()), 1000){
                 val sequence = FFMPEGStream.getAudioSequence(file, time, dt, sampleRate)
                 var buffer: SoundBuffer?
@@ -247,7 +242,7 @@ class AudioStream(val file: File, val startTime: Float){
             } as SoundBuffer*/
 
             GFX.addAudioTask {
-                val isFirstBuffer = index == 0
+                val isFirstBuffer = bufferIndex == 0
                 ALBase.check()
                 val soundBuffer = SoundBuffer()
                 ALBase.check()

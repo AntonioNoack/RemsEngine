@@ -1,6 +1,7 @@
 package me.anno.ui.input
 
 import me.anno.gpu.Cursor
+import me.anno.gpu.GFX
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.input.components.PureTextInput

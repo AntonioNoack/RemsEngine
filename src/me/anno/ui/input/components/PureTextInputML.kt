@@ -50,6 +50,13 @@ class PureTextInputML(style: Style): ScrollPanelXY(Padding(0), style){
         }
     }
 
+    override fun calculateSize(w: Int, h: Int) {
+        val sync = GFX.loadTexturesSync
+        GFX.loadTexturesSync = true
+        super.calculateSize(w, h)
+        GFX.loadTexturesSync = sync
+    }
+
     fun updateLines(){
         val needsPlaceholder = text.isEmpty()
         val children = actualChildren
@@ -84,6 +91,8 @@ class PureTextInputML(style: Style): ScrollPanelXY(Padding(0), style){
     }
 
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+        val sync = GFX.loadTexturesSync
+        GFX.loadTexturesSync = true
         super.draw(x0, y0, x1, y1)
         val blinkVisible = ((System.nanoTime() / 500_000_000L) % 2L == 0L)
         val showBars = blinkVisible || wasJustChanged
@@ -137,6 +146,7 @@ class PureTextInputML(style: Style): ScrollPanelXY(Padding(0), style){
             }
             if(showBars) GFX.drawRect(panel1.x+cursorX1, panel1.y+padding, 2, panel1.h-2*padding, textColor) // cursor 2
         }
+        GFX.loadTexturesSync = sync
     }
 
     fun <V: Comparable<V>> min(a: V, b: V): V = if(a < b) a else b
@@ -191,6 +201,8 @@ class PureTextInputML(style: Style): ScrollPanelXY(Padding(0), style){
             val line = lines[min.y]
             lines[min.y] = (line.subList(0, min.x) + line.subList(max.x, line.size)).toMutableList()
         }
+        cursor1 = min
+        cursor2 = min
         return true
     }
 
