@@ -24,7 +24,7 @@ class Cubemap(var file: File = File(""), parent: Transform? = null): GFXTransfor
     // todo create a cubemap on the gpu instead to support best-ram-usage mipmapping and linear filtering?
     override fun onDraw(stack: Matrix4fArrayList, time: Float, color: Vector4f) {
 
-        val texture = Cache.getImage(file, 1000) ?:
+        val texture = Cache.getImage(file, 1000, true) ?:
             if(GFX.isFinalRendering) throw MissingFrameException(file)
             else GFX.whiteTexture
 

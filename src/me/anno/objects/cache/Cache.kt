@@ -1,6 +1,8 @@
 package me.anno.objects.cache
 
+import me.anno.audio.ALBase
 import me.anno.gpu.GFX
+import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture3D
 import me.anno.objects.cache.VideoData.Companion.framesPerContainer
@@ -10,6 +12,7 @@ import me.anno.video.Frame
 import java.io.File
 import java.io.FileNotFoundException
 import java.lang.Exception
+import java.lang.RuntimeException
 import javax.imageio.ImageIO
 import kotlin.concurrent.thread
 import kotlin.math.abs
@@ -19,9 +22,10 @@ import kotlin.math.sqrt
 object Cache {
 
     private val cache = HashMap<Any, CacheEntry>()
+    private val lockedKeys = HashSet<Any>(2048)
 
-    fun getLUT(file: File, timeout: Long = 5000): Texture3D? {
-        val cache = getEntry("LUT", file.toString(), 0, timeout){
+    fun getLUT(file: File, asyncGenerator: Boolean, timeout: Long = 5000): Texture3D? {
+        val cache = getEntry("LUT", file.toString(), 0, timeout, asyncGenerator){
             val cache = Texture3DCache(null)
             thread {
                 val img = ImageIO.read(file)
@@ -35,8 +39,8 @@ object Cache {
         return cache?.texture
     }
 
-    fun getLUT(name: String, timeout: Long = 5000): Texture3D? {
-        val cache = getEntry("LUT", name, 0, timeout){
+    fun getLUT(name: String, asyncGenerator: Boolean, timeout: Long = 5000): Texture3D? {
+        val cache = getEntry("LUT", name, 0, timeout, asyncGenerator){
             val cache = Texture3DCache(null)
             thread {
                 val img = GFX.loadBImage(name)
@@ -50,8 +54,8 @@ object Cache {
         return cache?.texture
     }
 
-    fun getIcon(name: String, timeout: Long = 5000): Texture2D {
-        val cache = getEntry("Icon", name, 0, timeout){
+    fun getIcon(name: String, asyncGenerator: Boolean, timeout: Long = 5000): Texture2D {
+        val cache = getEntry("Icon", name, 0, timeout, asyncGenerator){
             val cache = TextureCache(null)
             thread {
                 val img = GFX.loadBImage(name)
@@ -64,22 +68,89 @@ object Cache {
         return cache?.texture as? Texture2D ?: GFX.whiteTexture
     }
 
-    fun getEntry(file: File, allowDirectories: Boolean, key: Any, timeout: Long, generator: () -> CacheData): CacheData? {
+    fun getEntry(file: File, allowDirectories: Boolean, key: Any, timeout: Long, asyncGenerator: Boolean, generator: () -> CacheData): CacheData? {
         if(!file.exists() || (!allowDirectories && file.isDirectory)) return null
-        return getEntry(file to key, timeout, generator)
+        return getEntry(file to key, timeout, asyncGenerator, generator)
     }
 
-    fun getEntry(major: String, minor: String, sub: Int, timeout: Long, generator: () -> CacheData): CacheData? {
-        return getEntry(Triple(major, minor, sub), timeout, generator)
+    fun getEntry(major: String, minor: String, sub: Int, timeout: Long, asyncGenerator: Boolean, generator: () -> CacheData): CacheData? {
+        return getEntry(Triple(major, minor, sub), timeout, asyncGenerator, generator)
     }
 
-    fun getEntry(key: Any, timeout: Long, generator: () -> CacheData): CacheData? {
-        synchronized(cache){
-            val cached = cache[key]
-            if(cached != null){
-                cached.lastUsed = GFX.lastTime
-                return cached.data
+    fun getEntry(key: Any, timeout: Long, asyncGenerator: Boolean, generator: () -> CacheData): CacheData? {
+
+        // old, sync cache
+        /*if(false){// key is FBStack.FBKey -> all textures are missing... why ever...
+            synchronized(cache){
+                val cached = cache[key]
+                if(cached != null){
+                    cached.lastUsed = GFX.lastTime
+                    return cached.data
+                }
+                var data: CacheData? = null
+                try {
+                    data = generator()
+                } catch (e: FileNotFoundException){
+                    println(e.message)
+                } catch (e: Exception){
+                    e.printStackTrace()
+                }
+                synchronized(cache){
+                    cache[key] = CacheEntry(data, timeout, GFX.lastTime)
+                }
+                return data
             }
+        }*/
+
+        // new, async cache
+        // only the key needs to be locked, not the whole cache
+
+        if(asyncGenerator){
+            synchronized(lockedKeys){
+                if(key !in lockedKeys){
+                    lockedKeys += key
+                } else {
+                    return null
+                } // somebody else is using the cache ;p
+            }
+        } else {
+            var hasKey = false
+            while(!hasKey){
+                synchronized(lockedKeys){
+                    if(key !in lockedKeys){
+                        lockedKeys += key
+                        hasKey = true
+                    }
+                }
+                if(hasKey) break
+                Thread.sleep(1)
+            }
+        }
+
+
+        val cached: CacheEntry?
+        synchronized(cache){ cached = cache[key] }
+        if(cached != null){
+            cached.lastUsed = GFX.lastTime
+            synchronized(lockedKeys){ lockedKeys.remove(key) }
+            return cached.data
+        }
+
+        return if(asyncGenerator){
+            thread {
+                var data: CacheData? = null
+                try {
+                    data = generator()
+                } catch (e: FileNotFoundException){
+                    println(e.message)
+                } catch (e: Exception){
+                    e.printStackTrace()
+                }
+                synchronized(cache){ cache[key] = CacheEntry(data, timeout, GFX.lastTime) }
+                synchronized(lockedKeys){ lockedKeys.remove(key) }
+            }
+            null
+        } else {
             var data: CacheData? = null
             try {
                 data = generator()
@@ -88,12 +159,13 @@ object Cache {
             } catch (e: Exception){
                 e.printStackTrace()
             }
-            cache[key] = CacheEntry(data, timeout, GFX.lastTime)
-            return data
+            synchronized(cache){ cache[key] = CacheEntry(data, timeout, GFX.lastTime) }
+            synchronized(lockedKeys){ lockedKeys.remove(key) }
+            data
         }
+
     }
 
-    // todo specify fps for our needs...
     // todo specify size for our needs
     fun getVideoFrame(file: File, index: Int, maxIndex: Int, fps: Float, timeout: Long, isLooping: Boolean = false): Frame? {
         if(index < 0) return null
@@ -120,13 +192,15 @@ object Cache {
         return videoData.frames.getOrNull(index % framesPerContainer)
     }
 
-    fun getVideoFrames(file: File, index: Int, fps: Float, timeout: Long) = getEntry(file, false, index to fps, timeout){
+    fun getVideoFrames(file: File, index: Int, fps: Float, timeout: Long) = getEntry(file, false, index to fps, timeout, true){
         VideoData(file, index, fps)
     } as? VideoData
 
-    fun getImage(file: File, timeout: Long) = (getEntry(file, false, timeout, 0){
-        ImageData(file)
-    } as? ImageData)?.texture
+    fun getImage(file: File, timeout: Long, asyncGenerator: Boolean) =
+        if(file.isDirectory) null
+        else (getEntry(file as Any, timeout, asyncGenerator){
+            ImageData(file)
+        } as? ImageData)?.texture
 
     fun update(){
         val minTimeout = 300L

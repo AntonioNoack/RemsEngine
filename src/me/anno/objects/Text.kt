@@ -99,7 +99,7 @@ class Text(text: String = "", parent: Transform? = null): GFXTransform(parent){
                 keys.forEach { fontMeshKey ->
                     // todo async font mesh calculation...
                     if(fontMeshKey.text.isNotEmpty()){
-                        val fontMesh = Cache.getEntry(fontMeshKey, fontMeshTimeout){
+                        val fontMesh = Cache.getEntry(fontMeshKey, fontMeshTimeout, false){
                             val awtFont = FontManager.getFont(font, 20f, isBold, isItalic)
                             val buffer = FontMesh((awtFont as AWTFont).font, fontMeshKey.text)
                             buffer
@@ -114,7 +114,7 @@ class Text(text: String = "", parent: Transform? = null): GFXTransform(parent){
 
                 if(fontMeshKey.text.isNotEmpty()){
 
-                    val fontMesh = Cache.getEntry(fontMeshKey, fontMeshTimeout){
+                    val fontMesh = Cache.getEntry(fontMeshKey, fontMeshTimeout, false){
                         val awtFont = FontManager.getFont(font, 20f, isBold, isItalic)
                         val buffer = FontMesh((awtFont as AWTFont).font, fontMeshKey.text)
                         buffer

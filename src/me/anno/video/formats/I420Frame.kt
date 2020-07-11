@@ -7,6 +7,7 @@ import me.anno.video.Frame
 import me.anno.video.LastFrame
 import java.io.InputStream
 import java.lang.RuntimeException
+import java.util.concurrent.atomic.AtomicInteger
 
 
 class I420Frame(iw: Int, ih: Int): Frame(iw,ih){
@@ -27,20 +28,22 @@ class I420Frame(iw: Int, ih: Int): Frame(iw,ih){
         if(yData.size < s0) throw RuntimeException("not enough data, only ${yData.size} of $s0")
         GFX.addGPUTask {
             y.createMonochrome(yData)
-            10
+            1
         }
         val uData = input.readNBytes(s1)
         if(uData.size < s1) throw RuntimeException("not enough data, only ${uData.size} of $s1")
         GFX.addGPUTask {
             u.createMonochrome(uData)
-            10
+            1
         }
         val vData = input.readNBytes(s1)
         if(vData.size < s1) throw RuntimeException("not enough data, only ${vData.size} of $s1")
         GFX.addGPUTask {
             v.createMonochrome(vData)
+            // tasks are executed in order, so this is true
+            // (if no exception happened)
             isLoaded = true
-            10
+            1
         }
     }
 

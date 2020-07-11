@@ -13,7 +13,7 @@ import kotlin.math.min
 class Checkbox(startValue: Boolean, val size: Int, style: Style): Panel(style.getChild("checkbox")){
 
     companion object {
-        fun getImage(checked: Boolean): Texture2D = Cache.getIcon(if(checked) "checked.png" else "unchecked.png")
+        fun getImage(checked: Boolean): Texture2D = Cache.getIcon(if(checked) "checked.png" else "unchecked.png", true)
     }
 
     var isChecked = startValue

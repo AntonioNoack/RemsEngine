@@ -14,6 +14,7 @@ import me.anno.objects.blending.blendModes
 import me.anno.objects.particles.ParticleSystem
 import me.anno.studio.Studio
 import me.anno.ui.base.Panel
+import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.input.*
 import me.anno.ui.style.Style
@@ -27,6 +28,8 @@ import kotlin.math.max
 
 // todo load 3D meshes :D
 // todo gradients?
+// todo outline, if something is selected
+// todo select by clicking
 
 open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
 
@@ -383,6 +386,13 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
     }
 
     open fun onDestroy(){}
+
+    val listOfAll: Sequence<Transform> get() = sequence {
+        yield(this@Transform)
+        children.forEach { child ->
+            yieldAll(child.listOfAll)
+        }
+    }
 
     companion object {
         // these values MUST NOT be changed

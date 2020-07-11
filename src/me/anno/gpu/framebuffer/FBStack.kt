@@ -16,7 +16,7 @@ object FBStack {
     data class FBKey(val w: Int, val h: Int, val withMultisampling: Boolean)
 
     fun getValue(w: Int, h: Int, withMultisampling: Boolean): FBStackData {
-        return Cache.getEntry(FBKey(w, h, withMultisampling), 1000){
+        return Cache.getEntry(FBKey(w, h, withMultisampling), 1000, false){
             FBStackData()
         } as FBStackData
     }

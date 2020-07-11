@@ -225,8 +225,15 @@ object Input {
                                 inFocus0?.onEnterKey(mouseX, mouseY)
                             }
                         }
-                        GLFW.GLFW_KEY_DELETE -> inFocus0?.onDeleteKey(mouseX, mouseY)
-                        GLFW.GLFW_KEY_BACKSPACE -> inFocus0?.onBackKey(mouseX, mouseY)
+                        GLFW.GLFW_KEY_DELETE -> {
+                            // todo when we delete elements from the treeview,
+                            // after that, the infocus elements should be removed
+                            // (they will partially stay visible, because they are reused)
+                            inFocus.forEach { it.onDeleteKey(mouseX, mouseY) }
+                        }
+                        GLFW.GLFW_KEY_BACKSPACE -> {
+                            inFocus0?.onBackKey(mouseX, mouseY)
+                        }
                         GLFW.GLFW_KEY_ESCAPE -> {
                             val inFocus = inFocus.firstOrNull()
                             if (inFocus is SceneView) {

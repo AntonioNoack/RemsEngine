@@ -2,6 +2,7 @@ package me.anno.objects
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.GFX.whiteTexture
 import me.anno.io.base.BaseWriter
 import me.anno.io.xml.XMLElement
@@ -15,6 +16,7 @@ import me.anno.ui.input.BooleanInput
 import me.anno.ui.input.TextInput
 import me.anno.ui.input.VectorInput
 import me.anno.ui.style.Style
+import me.anno.video.MissingFrameException
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
 import java.io.File
@@ -30,23 +32,26 @@ class Image(var file: File = File(""), parent: Transform? = null): GFXTransform(
         val name = file.name
         when {
             name.endsWith("svg", true) -> {
-                val bufferData = Cache.getEntry(file.absolutePath, "svg", 0, imageTimeout){
+                val bufferData = Cache.getEntry(file.absolutePath, "svg", 0, imageTimeout, true){
                     val svg = SVGMesh()
                     svg.parse(XMLReader.parse(file.inputStream().buffered()) as XMLElement)
                     SFBufferData(svg.buffer!!)
-                } as? SFBufferData ?: return
-                GFX.draw3DSVG(stack, bufferData.buffer, whiteTexture, color, isBillboard[time], true)
+                } as? SFBufferData
+                if(bufferData == null && isFinalRendering) throw MissingFrameException(file)
+                if(bufferData != null){
+                    GFX.draw3DSVG(stack, bufferData.buffer, whiteTexture, color, isBillboard[time], true)
+                }
             }
             name.endsWith("webp", true) -> {
                 val tiling = tiling[time]
                 val texture = Cache.getVideoFrame(file, 0, 0, 1f, imageTimeout)
-                texture?.apply {
-                    GFX.draw3D(stack, texture, color, isBillboard[time], nearestFiltering, tiling)
-                }
+                if((texture == null || !texture.isLoaded) && isFinalRendering) throw MissingFrameException(file)
+                if(texture?.isLoaded == true) GFX.draw3D(stack, texture, color, isBillboard[time], nearestFiltering, tiling)
             }
             else -> {
                 val tiling = tiling[time]
-                val texture = Cache.getImage(file, imageTimeout)
+                val texture = Cache.getImage(file, imageTimeout, true)
+                if(texture == null && isFinalRendering) throw MissingFrameException(file)
                 texture?.apply {
                     GFX.draw3D(stack, texture, color, isBillboard[time], nearestFiltering, tiling)
                 }

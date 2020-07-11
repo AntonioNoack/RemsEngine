@@ -6,8 +6,11 @@ import me.anno.utils.mix
 import me.anno.video.FFMPEGStream
 import org.lwjgl.openal.AL10.*
 import java.io.File
+import java.lang.RuntimeException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.concurrent.thread
 import kotlin.math.max
 import kotlin.math.min
@@ -15,7 +18,9 @@ import kotlin.math.min
 // only play once, then destroy; it makes things easier
 // (on user input and when finally rendering only)
 
-class AudioStream(val file: File){
+// todo when playing the first time, the first buffer is played twice... why?
+
+class AudioStream(val file: File, val startTime: Float){
 
     val minPerceptibleAmplitude = 1f/32500f
 
@@ -26,17 +31,20 @@ class AudioStream(val file: File){
     val ffmpegSliceSampleDuration = 10f // seconds, 10s of music
     val ffmpegSliceSampleCount = (sampleRate * ffmpegSliceSampleDuration).toInt()
 
-    val openALSliceDuration = 1f
+    // should be as short as possible for fast calculation
+    // should be at least as long as the ffmpeg response time (0.3s for the start of a FHD video)
+    val openALSliceDuration = 2f
 
     // map the real time to the correct time xD
     // to do allow skipping and such -> no, too much cleanup ;)
 
+    var startTimeNanos = 0L
     val alSource = SoundSource(false, true)
-    var time = 0f
+    // var time = 0f
 
-    var queued = 0
+    var queued = AtomicInteger()
     var processed = 0
-    var isWaitingForBuffer = false
+    var isWaitingForBuffer = AtomicBoolean(false)
 
     var isPlaying = false
 
@@ -51,13 +59,13 @@ class AudioStream(val file: File){
         ALBase.check()
     }
 
-    // var pauseTime = 0f
-    var runningIndex = 0
-    fun start(startingTime: Float){
-        seekTo(startingTime)
-        if(!isPlaying){
-            isPlaying = true
-            waitForRequiredBuffers(++runningIndex)
+    fun start(){
+        synchronized(this){
+            if(!isPlaying){
+                isPlaying = true
+                startTimeNanos = System.nanoTime()
+                waitForRequiredBuffers()
+            }
         }
     }
 
@@ -86,9 +94,9 @@ class AudioStream(val file: File){
     }
 
     // must be only triggered on start()
-    private fun seekTo(time: Float){
+    /*private fun seekTo(time: Float){
         this.time = time
-    }
+    }*/
 
     data class AudioSliceKey(val file: File, val slice: Int)
 
@@ -113,7 +121,7 @@ class AudioStream(val file: File){
         val localIndex = index % ffmpegSliceSampleCount
         val arrayIndex0 = localIndex * 2 // for stereo
         val sliceTime = sliceIndex * ffmpegSliceSampleDuration
-        val soundBuffer = Cache.getEntry(AudioSliceKey(file, sliceIndex), (ffmpegSliceSampleDuration * 2 * 1000).toLong()){
+        val soundBuffer = Cache.getEntry(AudioSliceKey(file, sliceIndex), (ffmpegSliceSampleDuration * 2 * 1000).toLong(), false){
             val sequence = FFMPEGStream.getAudioSequence(file, sliceTime, ffmpegSliceSampleDuration, sampleRate)
             var buffer: SoundBuffer?
             while(true){
@@ -128,9 +136,9 @@ class AudioStream(val file: File){
         return data[arrayIndex0] to data[arrayIndex0+1]
     }
 
-    fun requestNextBuffer(){
+    fun requestNextBuffer(time: Float, index: Int){
 
-        isWaitingForBuffer = true
+        isWaitingForBuffer.set(true)
         thread {// load all data async
 
             // println("[INFO:AudioStream] Working on buffer $queued")
@@ -239,22 +247,36 @@ class AudioStream(val file: File){
             } as SoundBuffer*/
 
             GFX.addAudioTask {
+                val isFirstBuffer = index == 0
                 ALBase.check()
                 val soundBuffer = SoundBuffer()
                 ALBase.check()
+                if(isFirstBuffer){
+                    val dt = max(0f, (System.nanoTime() - startTimeNanos) * 1e-9f)
+                    // println("skipping first $dt")
+                    // 10s slices -> 2.6s
+                    // 1s slices -> 0.55s
+                    val samples = dt * sampleRate
+                    val currentIndex = samples.toInt() * 2
+                    // what if index > sampleCount? add empty buffer???...
+                    val minPlayedSamples = 32 // not correct, but who cares ;) (our users care ssshhh)
+                    val skipIndex = min(currentIndex, stereoBuffer.capacity() - 2 * minPlayedSamples)
+                    if(skipIndex > 0){
+                        stereoBuffer.position(skipIndex)
+                    }
+                }
                 soundBuffer.loadRawStereo16(stereoBuffer, sampleRate)
                 buffers.add(soundBuffer)
                 ALBase.check()
                 // println("Invalid Name? alSourceQueueBuffers(${alSource.sourcePtr}, ${soundBuffer.buffer})")
                 alSourceQueueBuffers(alSource.sourcePtr, soundBuffer.buffer)
                 ALBase.check()
-                if(queued == 0){
+                if(isFirstBuffer){
                     alSource.play()
                     ALBase.check()
                 }
-                queued++
-                time += openALSliceDuration
-                isWaitingForBuffer = false
+                // time += openALSliceDuration
+                isWaitingForBuffer.set(false)
                 ALBase.check()
                 1
             }
@@ -263,19 +285,21 @@ class AudioStream(val file: File){
 
     }
 
-    fun waitForRequiredBuffers(runningIndex: Int) {
-        if(this.runningIndex != runningIndex || !isPlaying) return
-        if(!isWaitingForBuffer && queued > 0) checkProcessed()
+    fun waitForRequiredBuffers() {
+        if(!isPlaying) return
+        val queued = queued.get()
+        if(!isWaitingForBuffer.get() && queued > 0) checkProcessed()
         // keep 2 on reserve
-        while(queued < processed+5 && !isWaitingForBuffer){
+        if(queued < processed+5 && !isWaitingForBuffer.get()){
             // request a buffer
             // only one at a time
-            requestNextBuffer()
+            val index = this.queued.getAndIncrement()
+            requestNextBuffer(startTime + openALSliceDuration * index, index)
         }
         thread {
             Thread.sleep(10)
             GFX.addAudioTask {
-                waitForRequiredBuffers(runningIndex)
+                waitForRequiredBuffers()
                 ALBase.check()
                 1
             }

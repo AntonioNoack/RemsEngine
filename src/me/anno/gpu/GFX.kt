@@ -13,6 +13,7 @@ import me.anno.input.Input.isShiftDown
 import me.anno.objects.Camera
 import me.anno.objects.Transform
 import me.anno.objects.blending.BlendMode
+import me.anno.studio.Build.isDebug
 import me.anno.studio.Studio.editorTime
 import me.anno.studio.Studio.editorTimeDilation
 import me.anno.studio.Studio.eventTasks
@@ -57,9 +58,14 @@ import kotlin.math.*
 // todo enqueue all objects for rendering
 // todo sort blended objects by depth, if rendering with depth
 
+// todo show frame times for better inspecting of fps xD
+
+// todo ffmpeg requires 100MB RAM per instance -> do we really need multiple instances, or does one work fine?
+// todo or keep only a certain amount of ffmpeg instances running?
+
 object GFX: GFXBase1() {
 
-    val LOGGER = LogManager.getLogger(GFX::class)
+    private val LOGGER = LogManager.getLogger(GFX::class)!!
 
     // for final rendering we need to use the GPU anyways;
     // so just use a static variable
@@ -93,6 +99,8 @@ object GFX: GFXBase1() {
     lateinit var gameInit: () -> Unit
     lateinit var gameLoop: (w: Int, h: Int) -> Boolean
     lateinit var shutdown: () -> Unit
+
+    var loadTexturesSync = false
 
     var windowX = 0
     var windowY = 0
@@ -369,6 +377,7 @@ object GFX: GFXBase1() {
 
     fun draw3D(stack: Matrix4fArrayList, texture: Frame, color: Vector4f,
                isBillboard: Float, nearestFiltering: Boolean, tiling: Vector4f?){
+        if(!texture.isLoaded) throw RuntimeException("Frame must be loaded to be rendered!")
         val shader = texture.get3DShader()
         shader3DUniforms(shader, stack, texture.w, texture.h, color, isBillboard, tiling)
         texture.bind(0, nearestFiltering)
@@ -842,7 +851,8 @@ object GFX: GFXBase1() {
         val thisTime = System.nanoTime()
         rawDeltaTime = (thisTime - lastTime) * 1e-9f
         deltaTime = min(rawDeltaTime, 0.1f)
-        currentEditorFPS += (1f / rawDeltaTime - currentEditorFPS) * 0.1f
+        val newFPS = 1f/rawDeltaTime
+        currentEditorFPS = min(currentEditorFPS + (newFPS - currentEditorFPS) * 0.05f, newFPS)
         lastTime = thisTime
 
         editorTime = max(editorTime + deltaTime * editorTimeDilation, 0f)
@@ -906,22 +916,37 @@ object GFX: GFXBase1() {
         openMenu(x.roundToInt() - delta, y.roundToInt() - delta, title, options)
     }
 
+    var glThread: Thread? = null
     fun check(){
-        val error = glGetError()
-        if(error != 0) throw RuntimeException("GLException: ${when(error){
-            1280 -> "invalid enum"
-            1281 -> "invalid value"
-            1282 -> "invalid operation"
-            1283 -> "stack overflow"
-            1284 -> "stack underflow"
-            1285 -> "out of memory"
-            else -> "$error"
-        }}")
+        if(isDebug){
+            val currentThread = Thread.currentThread()
+            if(currentThread != glThread){
+                if(glThread == null) {
+                    glThread = currentThread
+                    currentThread.name = "OpenGL"
+                } else {
+                    throw RuntimeException("GFX.check() called from wrong thread! Always use GFX.addGPUTask { ... }")
+                }
+            }
+            val error = glGetError()
+            if(error != 0) throw RuntimeException("GLException: ${when(error){
+                1280 -> "invalid enum"
+                1281 -> "invalid value"
+                1282 -> "invalid operation"
+                1283 -> "stack overflow"
+                1284 -> "stack underflow"
+                1285 -> "out of memory"
+                else -> "$error"
+            }}")
+        }
     }
 
     fun showFPS(){
+        val last = loadTexturesSync
+        loadTexturesSync = true
         clip(0, 0, width, height)
         drawText(1, 1, "SansSerif", 12, false, false, currentEditorFPS.f1(), -1, 0)
+        loadTexturesSync = last
     }
 
 }

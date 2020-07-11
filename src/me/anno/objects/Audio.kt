@@ -32,16 +32,18 @@ open class Audio(var file: File = File(""), parent: Transform? = null): GFXTrans
      * is synchronized with the audio thread
      * */
     fun start(globalTime: Float, speed: Float){
+        println("Starting $globalTime $speed $this")
+        needsUpdate = false
         component?.stop()
-        val component = AudioStream(file)
+        val component = AudioStream(file, 0f)
         this.component = component
         component.globalToLocalTime = { time ->
-            getGlobalTransform((time - globalTime) * speed + globalTime).second
+            getGlobalTransform(time * speed + globalTime).second
         }
         component.localAmplitude = { time ->
             amplitude[time]
         }
-        component.start(globalTime)
+        component.start()
     }
 
     fun stop(){

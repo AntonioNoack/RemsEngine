@@ -45,7 +45,8 @@ class Polygon(parent: Transform? = null): GFXTransform(parent){
     override fun onDraw(stack: Matrix4fArrayList, time: Float, color: Vector4f){
         val inset = clamp(starNess[time], 0f, 1f)
         if(inset == 1f) return// invisible
-        val texture = Cache.getImage(texture, 5000) ?: GFX.whiteTexture
+        // todo check if the texture is valid for final rendering..., then load async
+        val texture = Cache.getImage(texture, 5000, false) ?: GFX.whiteTexture
         val count = vertexCount[time].roundToInt()
         val selfDepth = scale[time].z
         if(autoAlign && count == 4){
@@ -118,7 +119,8 @@ class Polygon(parent: Transform? = null): GFXTransform(parent){
         fun getBuffer(n: Int, hasDepth: Boolean): StaticFloatBuffer {
             if(n < minEdges) return getBuffer(minEdges, hasDepth)
             if(n > maxEdges) return getBuffer(maxEdges, hasDepth)
-            val cached = Cache.getEntry("Mesh", "Polygon", n * 2 + (if(hasDepth) 1 else 0), meshTimeout){
+            val cached = Cache.getEntry("Mesh", "Polygon", n * 2 + (if(hasDepth) 1 else 0),
+                meshTimeout, false){
                 SFBufferData(createBuffer(n, hasDepth))
             } as SFBufferData
             return cached.buffer

@@ -7,7 +7,7 @@ import java.lang.RuntimeException
 
 object Triangulator {
 
-    val LOGGER = LogManager.getLogger(Triangulator::class)
+    val LOGGER = LogManager.getLogger(Triangulator::class)!!
 
     //fun ringToTriangles(pts: List<Vector2f>) =
     //    ringToTriangleIndices(pts).map { pts[it] }.toMutableList()

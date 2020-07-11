@@ -1,12 +1,10 @@
 package me.anno.fonts
 
-import me.anno.config.DefaultConfig
 import me.anno.gpu.texture.FakeWhiteTexture
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.ui.base.DefaultRenderingHints
 import org.apache.logging.log4j.LogManager
-import org.apache.logging.log4j.Logger
 import java.awt.Font
 import java.awt.Graphics2D
 import java.awt.font.TextAttribute
@@ -14,7 +12,6 @@ import java.awt.font.TextLayout
 import java.awt.image.BufferedImage
 import java.lang.StrictMath.round
 import java.text.AttributedString
-import kotlin.concurrent.thread
 import kotlin.math.max
 import kotlin.math.roundToInt
 import kotlin.streams.toList
@@ -153,11 +150,11 @@ class AWTFont(val font: Font): XFont {
 
     companion object {
 
-        val LOGGER = LogManager.getLogger(AWTFont::class)
+        val LOGGER = LogManager.getLogger(AWTFont::class)!!
 
-        val staticGfx = BufferedImage(1,1, BufferedImage.TYPE_INT_ARGB).graphics as Graphics2D
-        val staticMetrics = staticGfx.fontMetrics
-        val staticFontRenderCTX = staticGfx.fontRenderContext
+        // val staticGfx = BufferedImage(1,1, BufferedImage.TYPE_INT_ARGB).graphics as Graphics2D
+        // val staticMetrics = staticGfx.fontMetrics
+        // val staticFontRenderCTX = staticGfx.fontRenderContext
 
         var fallbackFont0 = Font("Segoe UI Emoji", Font.PLAIN, 25)
         val fallbackFonts = HashMap<Float, Font>()

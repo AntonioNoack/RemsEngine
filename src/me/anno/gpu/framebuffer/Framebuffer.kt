@@ -195,7 +195,7 @@ class Framebuffer(var w: Int, var h: Int, val samples: Int, val targetCount: Int
 
     companion object {
 
-        val LOGGER = LogManager.getLogger(Framebuffer::class)
+        val LOGGER = LogManager.getLogger(Framebuffer::class)!!
 
         private var currentFramebuffer: Framebuffer? = null
         val stack = Stack<Framebuffer>()

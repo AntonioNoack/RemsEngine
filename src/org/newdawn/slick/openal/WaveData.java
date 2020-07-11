@@ -16,9 +16,15 @@ import java.nio.ShortBuffer;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.lwjgl.LWJGLUtil;
 
 public class WaveData {
+
+    private final static Logger LOGGER = LogManager.getLogger(WaveData.class);
+
     public final ByteBuffer data;
     public final int format;
     public final int samplerate;
@@ -51,9 +57,9 @@ public class WaveData {
     public static WaveData create(InputStream is, int frameCount) {
         try {
             return create(AudioSystem.getAudioInputStream(is), frameCount);
-        } catch (Exception var2) {
-            LWJGLUtil.log("Unable to create from inputstream");
-            var2.printStackTrace();
+        } catch (Exception e) {
+            LOGGER.warn("Unable to create from inputstream", e);
+            e.printStackTrace();
             return null;
         }
     }
@@ -61,9 +67,9 @@ public class WaveData {
     public static WaveData create(InputStream is) {
         try {
             return create(AudioSystem.getAudioInputStream(is), -1);
-        } catch (Exception var2) {
-            LWJGLUtil.log("Unable to create from inputstream");
-            var2.printStackTrace();
+        } catch (Exception e) {
+            LOGGER.warn("Unable to create from inputstream", e);
+            e.printStackTrace();
             return null;
         }
     }
@@ -71,8 +77,9 @@ public class WaveData {
     public static WaveData create(byte[] buffer) {
         try {
             return create(AudioSystem.getAudioInputStream(new BufferedInputStream(new ByteArrayInputStream(buffer))));
-        } catch (Exception var2) {
-            var2.printStackTrace();
+        } catch (Exception e) {
+            LOGGER.warn("Unable to create from byte[]", e);
+            e.printStackTrace();
             return null;
         }
     }

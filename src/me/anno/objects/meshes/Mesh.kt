@@ -18,7 +18,7 @@ class Mesh(var file: File, parent: Transform?): GFXTransform(parent){
         val file = file
         if(lastFile != file || data == null){
             // todo load the 3D model
-            data = Cache.getEntry(file, false, "", 1000){
+            data = Cache.getEntry(file, false, "", 1000, false){
                 // todo load the model...
                 throw RuntimeException()
             } as MeshData

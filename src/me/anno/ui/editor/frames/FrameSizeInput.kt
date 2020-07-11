@@ -54,10 +54,14 @@ class FrameSizeInput(title: String, value0: String, style: Style): PanelListY(st
     fun update(ws: String, hs: String){
         val w = ws.toIntOrNull() ?: return
         val h = hs.toIntOrNull() ?: return
-        customX.text = ws
-        customY.text = hs
-        customX.updateChars()
-        customY.updateChars()
+        if(ws != customX.text){
+            customX.text = ws
+            customX.updateChars()
+        }
+        if(hs != customY.text){
+            customY.text = hs
+            customY.updateChars()
+        }
         changeListener(w, h)
         defaultResolution = Resolution(w, h)
     }

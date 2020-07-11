@@ -15,6 +15,7 @@ import me.anno.studio.Studio.targetHeight
 import me.anno.studio.Studio.targetWidth
 import me.anno.ui.base.SpacePanel
 import me.anno.ui.base.TextPanel
+import me.anno.ui.base.Visibility
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.custom.CustomListX
 import me.anno.ui.custom.CustomListY
@@ -111,6 +112,7 @@ object UILayouts {
         ui += SpacePanel(0, 1, style)
         
         console = TextPanel("Welcome to Rem's Studio!", style.getChild("small"))
+        console.visibility = Visibility.GONE
         console.setOnClickListener { _, _, button, _ ->
                 if(button == 0){
                     // todo open console in large with scrollbar

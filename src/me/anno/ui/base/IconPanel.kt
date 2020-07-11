@@ -5,6 +5,6 @@ import me.anno.ui.style.Style
 
 open class IconPanel(var name: String, style: Style): ImagePanel(style){
 
-    override fun getTexture() = Cache.getIcon(name)
+    override fun getTexture() = Cache.getIcon(name, true)
 
 }

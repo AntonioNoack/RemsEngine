@@ -2,6 +2,7 @@ package me.anno.gpu.texture
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
+import me.anno.input.Input.keysDown
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
 import org.lwjgl.opengl.GL11
@@ -38,7 +39,11 @@ class Texture2D(override var w: Int, override var h: Int, val samples: Int): ITe
     }
 
     fun ensurePointer(){
-        if(pointer < 0) pointer = glGenTextures()
+        if(pointer < 0) {
+            pointer = glGenTextures()
+            // many textures can be created by the console log and the fps viewer constantly xD
+            // maybe we should use allocation free versions there xD
+        }
         if(pointer <= 0) throw RuntimeException()
     }
 
@@ -73,7 +78,7 @@ class Texture2D(override var w: Int, override var h: Int, val samples: Int): ITe
 
     fun create(createImage: () -> BufferedImage){
         val requiredBudget = textureBudgetUsed + w * h
-        if(requiredBudget > textureBudgetTotal){
+        if(requiredBudget > textureBudgetTotal || Thread.currentThread() != GFX.glThread){
             thread { create(createImage(), false) }
         } else {
             textureBudgetUsed = requiredBudget
@@ -120,6 +125,7 @@ class Texture2D(override var w: Int, override var h: Int, val samples: Int): ITe
 
     fun createMonochrome(data: ByteArray){
         if(w*h != data.size) throw RuntimeException("incorrect size!")
+        GFX.check()
         ensurePointer()
         forceBind()
         GFX.check()

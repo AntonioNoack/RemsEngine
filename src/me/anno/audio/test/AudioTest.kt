@@ -50,7 +50,7 @@ fun main(){
 val file = File("C:\\Users\\Antonio\\Videos\\Captures\\cool cops\\Watch_Dogs 2 2019-10-14 15-26-49.mp4")
 
 fun testStream(){
-    AudioStream(file).start(0f)
+    AudioStream(file, 0f).start()
 }
 
 fun testSingleBuffer(){

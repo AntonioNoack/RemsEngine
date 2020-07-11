@@ -1,5 +1,6 @@
 package me.anno.fonts
 
+import me.anno.gpu.GFX
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.objects.cache.Cache
@@ -15,7 +16,7 @@ import kotlin.math.round
 
 object FontManager {
 
-    val LOGGER = LogManager.getLogger(FontManager::class)
+    val LOGGER = LogManager.getLogger(FontManager::class)!!
 
     private val awtFontList = ArrayList<String>()
     private val awtFonts = HashMap<String, Font>()
@@ -51,7 +52,8 @@ object FontManager {
         if(text.isEmpty()) return null
         val fontSizeIndex = getFontSizeIndex(fontSize)
         val sub = fontSizeIndex * 4 + (if(bold) 1 else 0) + (if(italic) 2 else 0)
-        val cache = Cache.getEntry(fontName, text, sub, fontTimeout){
+        val cache = Cache.getEntry(fontName, text, sub, fontTimeout, !GFX.loadTexturesSync){
+            // println("Created texture for $text")
             val font = getFont(fontName, fontSize, fontSizeIndex, italic, bold)
             val averageFontSize = getAvgFontSize(fontSizeIndex)
             val texture = font.generateTexture(text, averageFontSize)
@@ -84,6 +86,6 @@ object FontManager {
         return font
     }
 
-    val fontTimeout = 250L
+    val fontTimeout = 1000L
 
 }

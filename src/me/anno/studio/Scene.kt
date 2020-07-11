@@ -312,7 +312,7 @@ object Scene {
 
         val lutFile = camera.lut
         val needsLUT = lutFile.exists() && !lutFile.isDirectory
-        val lut = if(needsLUT) Cache.getLUT(lutFile, 20_000) else null
+        val lut = if(needsLUT) Cache.getLUT(lutFile, true, 20_000) else null
 
         // println("lut: $lutFile $lut")
 
