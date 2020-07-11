@@ -18,7 +18,10 @@ class BGRAFrame(w: Int, h: Int): Frame(w,h){
         val data = input.readNBytes(s0)
         if(data.isEmpty()) throw LastFrame()
         if(data.size < s0) throw RuntimeException("not enough data, only ${data.size} of $s0")
-        GFX.addGPUTask { bgra.create(data); 15 }
+        GFX.addGPUTask {
+            bgra.create(data)
+            isLoaded = true
+            15 }
     }
 
     override fun get3DShader(): Shader = GFX.shader3DBGRA

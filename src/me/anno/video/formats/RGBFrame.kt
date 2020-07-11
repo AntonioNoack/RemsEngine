@@ -25,7 +25,11 @@ class RGBFrame(w: Int, h: Int): Frame(w,h){
             data[j++] = input.read().toByte()
             data[j++] = 255.toByte()
         }
-        GFX.addGPUTask { rgb.create(data); 15 }
+        GFX.addGPUTask {
+            rgb.create(data)
+            isLoaded = true
+            15
+        }
     }
 
     override fun get3DShader(): Shader = GFX.shader3D

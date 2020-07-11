@@ -292,7 +292,8 @@ class AudioStream(val file: File, val startTime: Float){
             requestNextBuffer(startTime + openALSliceDuration * index, index)
         }
         thread {
-            Thread.sleep(10)
+            // a bit less than 1x slice duration
+            Thread.sleep((950 * openALSliceDuration).toLong())
             GFX.addAudioTask {
                 waitForRequiredBuffers()
                 ALBase.check()
