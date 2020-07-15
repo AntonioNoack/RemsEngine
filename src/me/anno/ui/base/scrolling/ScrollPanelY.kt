@@ -75,8 +75,13 @@ open class ScrollPanelY(child: Panel, padding: Padding,
         if(!Input.isShiftDown){
             val delta = dx-dy
             val scale = 20f
-            scrollPosition += scale * delta
-            clampScrollPosition()
+            if((delta > 0f && scrollPosition >= maxScrollPosition) ||
+                (delta < 0f && scrollPosition <= 0f)){// if done scrolling go up the hierarchy one
+                super.onMouseWheel(x, y, dx, dy)
+            } else {
+                scrollPosition += scale * delta
+                clampScrollPosition()
+            }
         } else super.onMouseWheel(x, y, dx, dy)
     }
 

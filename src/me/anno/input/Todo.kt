@@ -3,9 +3,9 @@ package me.anno.input
 
 // done render stuff to video
 // todo a menu for rendering stuff; render settings
-// todo audio
-// todo action manager working & integrated
-// todo move stuff in the scene view
+// done audio
+// done action manager working & integrated
+// done move stuff in the scene view
 // todo load/save everything
 // todo load/save components
 // todo gfx arrays with customizable properties/replace
@@ -28,7 +28,7 @@ package me.anno.input
 
 
 // medium priority
-// todo load all webp images correctly - are there webp animations?
+// done load all webp images correctly - are there webp animations?
 // todo smileys in text and as meshes
 // done load svg files as meshes
 

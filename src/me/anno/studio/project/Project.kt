@@ -4,6 +4,7 @@ import me.anno.io.Saveable
 import me.anno.io.config.ConfigBasics
 import me.anno.io.utils.StringMap
 import me.anno.studio.Studio
+import me.anno.studio.Studio.root
 import java.io.File
 
 class Project(val file: File): Saveable(){
@@ -47,6 +48,8 @@ class Project(val file: File): Saveable(){
 
     fun saveScenes(){
         // todo save the scene(s)
+        File(file, "root.json")
+            .writeText(root.toString())
     }
 
     fun save(){

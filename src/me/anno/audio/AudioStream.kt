@@ -225,9 +225,6 @@ class AudioStream(val file: File, val repeat: Boolean, val startTime: Double, va
                     }
                 }
 
-                // todo audio stops, even if we add it... why???
-                // (32000 * (Math.random()*2-1)).toFloat()//
-
                 // write the data
                 stereoBuffer.put(a0.toShort())
                 stereoBuffer.put(a1.toShort())

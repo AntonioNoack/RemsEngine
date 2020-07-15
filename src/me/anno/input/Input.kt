@@ -12,6 +12,7 @@ import me.anno.gpu.GFX.requestExit
 import me.anno.gpu.GFX.requestFocus
 import me.anno.gpu.GFX.windowStack
 import me.anno.studio.Studio.addEvent
+import me.anno.studio.Studio.project
 import me.anno.ui.editor.sceneView.SceneView
 import me.anno.utils.length
 import org.lwjgl.glfw.GLFW
@@ -227,7 +228,7 @@ object Input {
                         }
                         GLFW.GLFW_KEY_DELETE -> {
                             // todo when we delete elements from the treeview,
-                            // after that, the infocus elements should be removed
+                            // after that, the in-focus elements should be removed
                             // (they will partially stay visible, because they are reused)
                             inFocus.forEach { it.onDeleteKey(mouseX, mouseY) }
                         }
@@ -323,7 +324,8 @@ object Input {
     }
 
     fun save() {
-        // todo save the project
+        // save the project
+        project?.save()
     }
 
 

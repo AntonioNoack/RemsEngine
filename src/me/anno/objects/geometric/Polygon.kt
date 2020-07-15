@@ -44,15 +44,14 @@ class Polygon(parent: Transform? = null): GFXTransform(parent){
     var vertexCount = AnimatedProperty.floatPlus().set(5f)
     var starNess = AnimatedProperty.float01()
 
-    // todo vertex count is broken...
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f){
         val inset = clamp(starNess[time], 0f, 1f)
-        if(inset == 1f) return// invisible
         val image = Cache.getImage(texture, 5000, true)
         // todo check if an exception really need to be thrown (empty = default, white)
         if(image == null && GFX.isFinalRendering) throw MissingFrameException(texture)
         val texture = image ?: GFX.whiteTexture
         val count = vertexCount[time].roundToInt()
+        if(inset == 1f && count % 2 == 0) return// invisible
         val selfDepth = scale[time].z
         if(autoAlign && count == 4){
             stack.rotate(toRadians(45f), zAxis)

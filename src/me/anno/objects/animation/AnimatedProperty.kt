@@ -95,7 +95,7 @@ class AnimatedProperty<V>(val type: Type, val minValue: V?, val maxValue: V?): S
     fun addKeyframe(time: Double, value: Any, equalityDt: Double){
         if(type.accepts(value)){
             addKeyframeInternal(time, clamp(value as V), equalityDt)
-        }
+        } else println("value is not accepted!")
     }
 
     private fun addKeyframeInternal(time: Double, value: V, equalityDt: Double){
@@ -257,12 +257,18 @@ class AnimatedProperty<V>(val type: Type, val minValue: V?, val maxValue: V?): S
     }
 
     // todo this may result in an issue, where we can't copy this object 1:1...
-    // todo do we want this anyways?
+    // todo do we want 1:1 copies anyways? maybe with right click, or key combos..
     fun copyFrom(obj: Any?, force: Boolean = false){
         if(obj === this && !force) throw RuntimeException("Probably a typo!")
-        if(obj is AnimatedProperty<*> && obj.type == type){
+        if(obj is AnimatedProperty<*> && type.accepts(obj.type.defaultValue)){
             isAnimated = obj.isAnimated
             keyframes.clear()
+            obj.keyframes.forEach {
+                it.setValueUnsafe(clamp(it.value as V))
+            }
+            obj.drivers.forEachIndexed { index, animationDriver ->
+                drivers[index] = animationDriver
+            }
             keyframes.addAll(obj.keyframes as List<Keyframe<V>>)
             interpolation = obj.interpolation
         }

@@ -422,7 +422,7 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
         val time = lastLocalTime
         return when(val value = values[time]){
             is Float -> FloatInput(title, values, 0, time, style)
-                .setChangeListener { putValue(values, it) }
+                .setChangeListener { putValue(values, it.toFloat()) }
                 .setIsSelectedListener { show(values) }
                 .setTooltip(ttt)
             is Double -> FloatInput(title, values, 0, time, style)

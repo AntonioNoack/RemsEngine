@@ -16,8 +16,6 @@ import java.io.File
 
 // todo openal to ffmpeg?
 
-// todo get audio length for looping
-
 // todo flat playback vs 3D playback
 // todo use the align-with-camera param for that? :)
 // respect scale? nah, rather not xD

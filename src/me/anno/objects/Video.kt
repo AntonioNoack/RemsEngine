@@ -25,26 +25,19 @@ import kotlin.math.*
 
 // idea: hovering needs to be used to predict when the user steps forward in time
 // -> no, that's too taxing; we'd need to pre-render a smaller version
-// todo pre-render small version for scrubbing
+// todo pre-render small version for scrubbing? can we playback a small version using ffmpeg with no storage overhead?
 
 // todo get information about full and relative frames, so we get optimal scrubbing performance :)
 
 
 class Video(file: File = File(""), parent: Transform? = null): Audio(file, parent){
 
-    private var lastFile: Any? = null
-
     var tiling = AnimatedProperty.tiling()
 
     var startTime = 0.0
     var endTime = 100.0
 
-    var duration = 0.0
-
     var nearestFiltering = DefaultConfig["default.video.nearest", false]
-
-    var sourceFPS = -1.0
-    var sourceSize = 0 to 0
 
     var videoScale = 1
 
@@ -149,56 +142,28 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
         }
     }
 
-    var w = 16
-    var h = 9
-
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
 
         val meta = getMeta(file, true)
 
-        // calculate reasonable zoom level from canvas size
-        val alignWithCamera = isBillboard[time]
-        val rawZoomLevel = calculateSize(stack, alignWithCamera, w, h) ?: return
-        val zoomLevel =
+        val zoomLevel = if(meta != null){
+            // calculate reasonable zoom level from canvas size
+            val alignWithCamera = isBillboard[time]
+            val rawZoomLevel = calculateSize(stack, alignWithCamera, meta.videoWidth, meta.videoHeight) ?: return
             if(videoScale < 1) getCacheableZoomLevel(rawZoomLevel)
             else videoScale
-
-        /*if(lastFile !== file){
-            val file = file
-            lastFile = file
-            sourceFPS = sourceFPSCache[file] ?: -1.0
-            duration = durationCache[file] ?: -1.0
-            if(file.exists() && (sourceFPS <= 0f || duration <= 0f)){
-                // request the metadata :)
-                thread {
-                    loop@ while(this.file == file){
-                        val frames = Cache.getVideoFrames(file, -1, 0, 1.0, videoMetaTimeout)
-                        if(frames != null){
-                            sourceFPS = frames.stream.sourceFPS
-                            duration = frames.stream.sourceLength
-                            if(sourceFPS > 0f && duration > 0f){
-                                sourceFPSCache[file] = sourceFPS
-                                durationCache[file] = duration
-                                break@loop
-                            }
-                        } else Thread.sleep(1)
-                    }
-                    // println("$file: $sourceFPS fps * frame count = $duration s")
-                }
-            }
-        }*/
+        } else 1
 
         var wasDrawn = false
 
         if(meta == null && GFX.isFinalRendering) throw MissingFrameException(file)
-        // if((duration <= 0f || sourceFPS <= 0f) && GFX.isFinalRendering) throw MissingFrameException(file)
         if(meta != null){
 
             val sourceFPS = meta.videoFPS
-            val duration = meta.videoDuration
+            val sourceDuration = meta.videoDuration
 
-            if(startTime >= duration) startTime = duration
-            if(endTime >= duration) endTime = duration
+            if(startTime >= sourceDuration) startTime = sourceDuration
+            if(endTime >= sourceDuration) endTime = sourceDuration
 
             if(sourceFPS > 0f){
                 if(time + startTime >= 0f && (isLooping || time < endTime)){
@@ -208,7 +173,7 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
                     // at this time, we chose the center frame only.
                     val videoFPS = if(GFX.isFinalRendering) sourceFPS else min(sourceFPS, GFX.editorVideoFPS)
 
-                    val frameCount = (duration * videoFPS).roundToInt()
+                    val frameCount = (sourceDuration * videoFPS).roundToInt()
 
                     // draw the current texture
                     val duration = endTime - startTime
@@ -217,8 +182,6 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
 
                     val frame = Cache.getVideoFrame(file, zoomLevel, frameIndex, frameCount, videoFPS, videoFrameTimeout, isLooping)
                     if(frame != null && frame.isLoaded){
-                        w = frame.w
-                        h = frame.h
                         GFX.draw3D(stack, frame, color, isBillboard.getValueAt(time), nearestFiltering, tiling[time])
                         wasDrawn = true
                     } else {
@@ -319,10 +282,7 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
             videoScaleNames["1/16"] = 16
         }
 
-        // todo remove those, and replace them with proper metadata
-
         val videoFrameTimeout = 500L
-
         val tiling16x9 = Vector4f(8f, 4.5f, 0f, 0f)
 
     }

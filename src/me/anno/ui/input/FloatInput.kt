@@ -143,11 +143,9 @@ class FloatInput(
         if(v != lastValue){
             lastValue = v
             changeListener(v)
-        } else {
-            lastValue = v
+            inputPanel.text = stringify(v)
+            inputPanel.updateChars()
         }
-        inputPanel.text = stringify(v)
-        inputPanel.updateChars()
     }
 
     fun stringify(v: Double): String {

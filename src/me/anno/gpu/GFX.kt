@@ -447,7 +447,8 @@ object GFX: GFXBase1() {
     // fun getTextSize(fontSize: Int, bold: Boolean, italic: Boolean, text: String) = getTextSize(defaultFont, fontSize, bold, italic, text)
     fun getTextSize(font: String, fontSize: Int, bold: Boolean, italic: Boolean, text: String): Pair<Int, Int> {
         // count how many spaces there are at the end
-        // todo get accurate space and tab widths
+        // get accurate space and tab widths
+        // todo tabs for text panels
         val spaceWidth = 0//text.endSpaceCount() * fontSize / 4
         val texture = FontManager.getString(font, fontSize.toFloat(), text, bold = bold, italic = italic) ?: return spaceWidth to fontSize
         return (texture.w + spaceWidth) to texture.h

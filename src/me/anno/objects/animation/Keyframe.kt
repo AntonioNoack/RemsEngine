@@ -34,6 +34,10 @@ class Keyframe<V>(var time: Double, var value: V): Saveable(), Comparable<Keyfra
         }
     }
 
+    fun setValueUnsafe(value: Any?){
+        this.value = value as V
+    }
+
     fun setValue(index: Int, v: Float){
         value = when(val value = value){
             is Float -> v as Any

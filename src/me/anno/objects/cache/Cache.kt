@@ -168,7 +168,6 @@ object Cache {
 
     }
 
-    // todo specify size for our needs
     fun getVideoFrame(file: File, scale: Int, index: Int, frameLength: Int, fps: Double, timeout: Long, isLooping: Boolean = false): Frame? {
         if(index < 0) return null
         val bufferIndex = index/framesPerContainer

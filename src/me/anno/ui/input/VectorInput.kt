@@ -4,11 +4,13 @@ import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
 import me.anno.input.Input.isControlDown
 import me.anno.input.Input.isShiftDown
+import me.anno.io.text.TextReader
 import me.anno.objects.Camera
 import me.anno.utils.clamp
 import me.anno.utils.pow
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.studio.Studio
+import me.anno.studio.Studio.editorTime
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.constraints.WrapAlign
@@ -22,6 +24,7 @@ import org.joml.Quaternionf
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
+import java.lang.Exception
 import java.lang.RuntimeException
 import kotlin.math.max
 
@@ -89,10 +92,14 @@ class VectorInput(
         valueList.disableConstantSpaceForWeightedChildren = true
     }
     val titleView = object: TextPanel(title, style){
+
         override fun onMouseDown(x: Float, y: Float, button: Int) { this@VectorInput.onMouseDown(x,y,button) }
         override fun onMouseUp(x: Float, y: Float, button: Int) { this@VectorInput.onMouseUp(x,y,button) }
         override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) { this@VectorInput.onMouseMoved(x,y,dx,dy) }
-        override fun onCopyRequested(x: Float, y: Float): String? = "[${compX.lastValue}, ${compY.lastValue}, ${compZ?.lastValue ?: 0f}, ${compW?.lastValue ?: 0f}]"
+        override fun onCopyRequested(x: Float, y: Float): String? =
+            owningProperty?.toString() ?:
+            "[${compX.lastValue}, ${compY.lastValue}, ${compZ?.lastValue ?: 0f}, ${compW?.lastValue ?: 0f}]"
+
         override fun onPaste(x: Float, y: Float, data: String, type: String) {
             val allComponents = data.toDoubleOrNull()
             if(allComponents != null){
@@ -102,13 +109,40 @@ class VectorInput(
                 compW?.setValue(allComponents)
             } else {
                 // parse vector
-                if(data.startsWith("[") && data.endsWith("]")){
+                if(data.startsWith("[") && data.endsWith("]") && data.indexOf('{') < 0){
                     val values = data.substring(1, data.lastIndex).split(',').map { it.trim().toDoubleOrNull() }
-                    if(values.size in 3 .. 4){
+                    if(values.size in 1 .. 4){
                         values[0]?.apply { compX.setValue(this) }
                         values[1]?.apply { compY.setValue(this) }
                         values.getOrNull(2)?.apply { compZ?.setValue(this) }
                         values.getOrNull(3)?.apply { compW?.setValue(this) }
+                    }
+                } else {
+                    try {
+                        val animProperty = TextReader.fromText(data).firstOrNull() as? AnimatedProperty<*>
+                        if(animProperty != null){
+                            if(owningProperty != null){
+                                owningProperty.copyFrom(animProperty)
+                                when(val value = owningProperty[editorTime]){
+                                    is Float -> setValue(value)
+                                    is Vector2f -> setValue(value)
+                                    is Vector3f -> setValue(value)
+                                    is Vector4f -> setValue(value)
+                                    is Quaternionf -> setValue(value)
+                                    else -> warn("Unknown pasted data type $value")
+                                }
+                            } else {
+                                // get the default value? no, the current value? yes.
+                                setValue(Vector4f(
+                                    animProperty[editorTime]!![0, vx],
+                                    animProperty[editorTime]!![1, vy],
+                                    animProperty[editorTime]!![2, vz],
+                                    animProperty[editorTime]!![3, vw])
+                                )
+                            }
+                        }
+                    } catch (e: Exception){
+                        e.printStackTrace()
                     }
                 }
             }

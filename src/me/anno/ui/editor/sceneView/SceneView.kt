@@ -66,6 +66,12 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
 
     var mode = TransformMode.MOVE
 
+    var velocity = Vector3f()
+
+    var dx = 0
+    var dy = 0
+    var dz = 0
+
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
 
         GFX.check()
@@ -94,8 +100,6 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
             }
         }
 
-        if(wasClicked) resolveClick(dx, dy, rw, rh)
-
         // for(i in 0 until 1000)
         Scene.draw(null, camera, x+dx,y+dy,rw,rh, editorTime, flipY = false, useFakeColors = false)
 
@@ -116,7 +120,8 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
 
     }
 
-    fun resolveClick(dx: Int, dy: Int, rw: Int, rh: Int){
+    fun resolveClick(clickX: Float, clickY: Float, rw: Int, rh: Int){
+        val camera = camera
         // todo get z buffer and prefer closer objects
         // (picking a line (camera) in front of a cubemap/image is difficult, needs perfect click)
         GFX.check()
@@ -126,12 +131,12 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
         val height = fb?.h ?: GFX.height
         GFX.clip(0, 0, width, height)
         // draw only the clicked area?
-        Scene.draw(fb, camera, x+dx, y+dy, rw, rh, editorTime, flipY = false, useFakeColors = true)
+        Scene.draw(fb, camera, 0, 0, rw, rh, editorTime, flipY = false, useFakeColors = true)
         GFX.check()
         fb?.bind() ?: glBindFramebuffer(GL_FRAMEBUFFER, 0)
-        val localX = (if(fb == null) clickX else clickX-(this.x+dx)).roundToInt()
+        val localX = (clickX - this.x).roundToInt()
         val localH = fb?.h ?: GFX.height
-        val localY = localH - 1 - (if(fb == null) clickY else clickY-(this.y+dy)).roundToInt()
+        val localY = localH - 1 - (clickY - this.y).roundToInt()
         glFlush(); glFinish() // wait for everything to be drawn
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
         val radius = 2
@@ -160,19 +165,12 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
         // find the transform with the id to select it
         if(bestResult > 0){
             val transform = (root.listOfAll + nullCamera).firstOrNull { it.clickId == bestResult }
-            GFX.select(transform)
+            select(transform)
             // println("clicked color ${bestResult.toUInt().toString(16)}, transform: $transform")
             // println((root.listOfAll + nullCamera).map { it.clickId })
-        } else GFX.select(null)
-        wasClicked = false
+        } else select(null)
         GFX.check()
     }
-
-    var velocity = Vector3f()
-
-    var dx = 0
-    var dy = 0
-    var dz = 0
 
     fun parseKeyInput(){
 
@@ -326,20 +324,28 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
         super.onKeyDown(x, y, key)
     }
 
-    var wasClicked = false
-    var clickButton = 0
-    var clickLong = false
-    var clickX = 0f
-    var clickY = 0f
-
     override fun onMouseClicked(x: Float, y: Float, button: Int, long: Boolean) {
         if((parent as? CustomContainer)?.clicked(x,y) != true){
 
-            wasClicked = true
-            clickButton = button
-            clickLong = long
-            clickX = x
-            clickY = y
+            var rw = w
+            var rh = h
+            var dx = 0
+            var dy = 0
+
+            GFX.addGPUTask {
+                val camera = camera
+                if(camera.onlyShowTarget){
+                    if(w * targetHeight > targetWidth *h){
+                        rw = h * targetWidth / targetHeight
+                        dx = (w-rw)/2
+                    } else {
+                        rh = w * targetHeight / targetWidth
+                        dy = (h-rh)/2
+                    }
+                }
+                resolveClick(x, y, rw, rh)
+                35
+            }
 
             // todo bbx vs drawing and testing? pixel-perfectness...
             // todo we need a correct function...
