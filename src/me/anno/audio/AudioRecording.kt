@@ -27,15 +27,15 @@ class AudioRecording {
         val infoBuffer = BufferUtils.createIntBuffer(1)
         while(true){
 
-            // todo parallely somehow play the audio...
-            // todo this is kind of awkward...
+            // parallely somehow play the audio...
+            // this is kind of awkward...
 
             ALC10.alcGetIntegerv(device, ALC_CAPTURE_SAMPLES, infoBuffer)
             alcCaptureSamples(device, buffer, infoBuffer[0])
 
-            // todo save the samples
-            // todo alias save them to a file
-            // todo or just send them to ffmpeg when rendering
+            // save the samples
+            // alias save them to a file
+            // or just send them to ffmpeg when rendering
 
         }
 

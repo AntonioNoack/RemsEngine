@@ -61,10 +61,10 @@ class HarmonicDriver: AnimationDriver(){
         // writer.writeFloatArray("harmonics", harmonics)
     }
 
-    override fun getValue(time: Float): Float {
-        val w0 = (time * baseFrequency[time] * 2.0 * PI).toFloat()
+    override fun getValue(time: Double): Double {
+        val w0 = time * baseFrequency[time] * 2.0 * PI
         return amplitude[time] *
-                harmonics.withIndex().sumByFloat { (index, it) -> it * sin((index + 1f) * w0) }
+                harmonics.withIndex().sumByDouble { (index, it) -> it * sin((index + 1f) * w0) }
     }
 
     override fun getClassName() = "HarmonicDriver"

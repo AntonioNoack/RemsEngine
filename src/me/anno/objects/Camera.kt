@@ -42,7 +42,7 @@ class Camera(parent: Transform? = null): Transform(parent){
     var useDepth = true
 
     init {
-        position.add(0f, Vector3f(0f, 0f, 1f))
+        position.add(0.0, Vector3f(0f, 0f, 1f))
     }
 
     override fun getClassName() = "Camera"
@@ -59,17 +59,9 @@ class Camera(parent: Transform? = null): Transform(parent){
         list += EnumInput("Tone Mapping", true, toneMapping.displayName, ToneMappers.values().map { it.displayName }, style)
             .setChangeListener { toneMapping = getToneMapper(it) }
             .setIsSelectedListener { show(null) }
-        list += FileInput("LUT", style, lut.toString())
-            .setChangeListener { lut = File(it) }
-            .setIsSelectedListener { show(null) }
-            .setTooltip("Look Up Table for colors")
-        list += BooleanInput("Only Show Target", onlyShowTarget, style)
-            .setChangeListener { onlyShowTarget = it }
-            .setIsSelectedListener { show(null) }
-        list += BooleanInput("Use Depth", useDepth, style)
-            .setChangeListener { useDepth = it }
-            .setIsSelectedListener { show(null) }
-            .setTooltip("Causes Z-Fighting, but allows 3D")
+        list += VI("LUT", "Look Up Table for colors, formatted like in UE4", null, lut, style){ lut = it }
+        list += VI("Only Show Target", "Forces the viewport to have the correct aspect ratio", null, onlyShowTarget, style){ onlyShowTarget = it }
+        list += VI("Use Depth", "Causes Z-Fighting, but allows 3D", null, useDepth, style){ useDepth = it }
         list += ButtonPanel("Reset Transform", style)
             .setOnClickListener { x, y, button, long -> resetTransform() }
             .setTooltip("If accidentally moved")
@@ -84,7 +76,7 @@ class Camera(parent: Transform? = null): Transform(parent){
         ToneMappers.values().firstOrNull { it.displayName == name || it.code == name } ?:
         ToneMappers.RAW
 
-    override fun onDraw(stack: Matrix4fArrayList, time: Float, color: Vector4f) {
+    override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
 
         if(GFX.isFinalRendering) return
         if(this === usedCamera) return
@@ -102,7 +94,7 @@ class Camera(parent: Transform? = null): Transform(parent){
         shader.use()
         stack.get(GFX.matrixBuffer)
         glUniformMatrix4fv(shader["transform"], false, GFX.matrixBuffer)
-        shader.v4("color", color.x, color.y, color.z, color.w)
+        GFX.shaderColor(shader, "color", color)
         cameraModel.draw(shader, GL_LINES)
 
         stack.scale(nearZ[time])

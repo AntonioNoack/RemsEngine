@@ -15,7 +15,7 @@ import me.anno.ui.style.Style
 
 abstract class AnimationDriver: Saveable(), Inspectable {
 
-    abstract fun getValue(time: Float): Float
+    abstract fun getValue(time: Double): Double
     override fun getApproxSize() = 10
     override fun isDefaultValue() = false
     abstract fun createInspector(transform: Transform, style: Style): List<Panel>

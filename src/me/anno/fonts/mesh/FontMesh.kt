@@ -112,7 +112,7 @@ class FontMesh(val font: Font, val text: String, debugPieces: Boolean = false): 
                         )
                     }
 
-                    val length = length(x,y,x0,y0) + length(x0,y0,x1,y1)
+                    val length = distance(x,y,x0,y0) + distance(x0,y0,x1,y1)
                     val steps = max(2, (quadAccuracy * length).roundToInt())
 
                     for(i in 0 until steps){
@@ -141,7 +141,7 @@ class FontMesh(val font: Font, val text: String, debugPieces: Boolean = false): 
 
                     // if(debugPieces) println("cubic to $x0 $y0 $x1 $y1 $x2 $y2")
 
-                    val length = length(x,y,x0,y0) + length(x0,y0,x1,y1) + length(x1,y1,x2,y2)
+                    val length = distance(x,y,x0,y0) + distance(x0,y0,x1,y1) + distance(x1,y1,x2,y2)
                     val steps = max(3, (cubicAccuracy * length).roundToInt())
 
                     for(i in 0 until steps){

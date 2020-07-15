@@ -19,6 +19,10 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
 
     val characters = ArrayList<Int>()
 
+    init {
+        instantTextLoading = true
+    }
+
     fun setCursorToEnd(){
         cursor1 = characters.size
         cursor2 = cursor1
@@ -64,13 +68,6 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
         drawingOffset = -clamp(cursor - w / 3, 0, max(0, required - w))
     }
 
-    override fun calculateSize(w: Int, h: Int) {
-        val sync = GFX.loadTexturesSync
-        GFX.loadTexturesSync = true
-        super.calculateSize(w, h)
-        GFX.loadTexturesSync = sync
-    }
-
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
         val sync = GFX.loadTexturesSync
         GFX.loadTexturesSync = true
@@ -80,8 +77,9 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
         val x = x + padding.left
         val y = y + padding.top
         val usePlaceholder = text.isEmpty()
+        val textColor = if(usePlaceholder) placeholderColor else effectiveTextColor
         val drawnText = if(usePlaceholder) placeholder else text
-        val wh = drawText(drawingOffset, 0, drawnText, if(usePlaceholder) placeholderColor else if(isInFocus) focusTextColor else textColor)
+        val wh = drawText(drawingOffset, 0, drawnText, textColor)
         /*GFX.drawText(x+drawingOffset, y, fontSize, drawnText,
             if(usePlaceholder) placeholderColor else if(isInFocus) focusTextColor else textColor,
             backgroundColor)*/
@@ -262,6 +260,9 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
         }
         return true
     }
+
+    override val enableHoverColor: Boolean
+        get() = text.isNotEmpty()
 
     override fun getCursor() = Cursor.editText
     override fun isKeyInput() = true

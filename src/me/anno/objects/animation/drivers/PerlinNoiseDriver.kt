@@ -23,7 +23,7 @@ class PerlinNoiseDriver: AnimationDriver(){
 
     var baseValue = AnimatedProperty.float()
     var amplitude = AnimatedProperty.float().set(1f)
-    var frequency = 1f
+    var frequency = 1.0 // unit of time -> double
 
     private var noiseInstance = OpenSimplexNoise(seed)
     fun getNoise(): OpenSimplexNoise {
@@ -31,10 +31,10 @@ class PerlinNoiseDriver: AnimationDriver(){
         return noiseInstance
     }
 
-    override fun getValue(time: Float): Float {
+    override fun getValue(time: Double): Double {
         val falloff = falloff[time]
         val octaves = clamp(octaves, 0, 16)
-        val relativeValue = getValue((time * frequency).toDouble(), getNoise(), falloff.toDouble(), octaves).toFloat() / getMaxValue(falloff, min(octaves, 10))
+        val relativeValue = getValue((time * frequency), getNoise(), falloff.toDouble(), octaves) / getMaxValue(falloff, min(octaves, 10))
         return baseValue[time] + max(amplitude[time], 0f) * relativeValue
     }
 
@@ -74,6 +74,7 @@ class PerlinNoiseDriver: AnimationDriver(){
         writer.writeObject(this,"falloff", falloff)
         writer.writeObject(this, "minValue", baseValue)
         writer.writeObject(this, "maxValue", amplitude)
+        writer.writeDouble("frequency", frequency)
     }
 
     override fun readInt(name: String, value: Int) {
@@ -87,6 +88,13 @@ class PerlinNoiseDriver: AnimationDriver(){
         when(name){
             "seed" -> seed = value
             else -> super.readLong(name, value)
+        }
+    }
+
+    override fun readDouble(name: String, value: Double) {
+        when(name){
+            "frequency" -> frequency = value
+            else -> super.readDouble(name, value)
         }
     }
 

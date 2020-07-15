@@ -84,7 +84,7 @@ object DefaultConfig: StringMap() {
                     val ps = ParticleSystem(null)
                     ps.name = "PSystem"
                     Circle(ps)
-                    ps.timeOffset = -5f
+                    ps.timeOffset = -5.0
                     ps
                 }()
             ))

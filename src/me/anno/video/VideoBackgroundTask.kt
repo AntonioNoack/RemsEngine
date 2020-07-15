@@ -45,14 +45,14 @@ class VideoBackgroundTask(val video: VideoCreator){
 
     }
 
-    fun renderFrame(time: Float): Boolean {
+    fun renderFrame(time: Double): Boolean {
 
         GFX.check()
 
         GFX.isFinalRendering = true
 
         try {
-            Scene.draw(framebuffer, Studio.selectedCamera, 0, 0, video.w, video.h, time, flipY = true)
+            Scene.draw(framebuffer, Studio.selectedCamera, 0, 0, video.w, video.h, time, flipY = true, useFakeColors = false)
         } catch (e: MissingFrameException){
             GFX.isFinalRendering = false
             return false

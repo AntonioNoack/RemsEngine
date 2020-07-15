@@ -1,7 +1,7 @@
 package me.anno.gpu
 
 import me.anno.gpu.buffer.Attribute
-import org.lwjgl.opengl.GL11
+import me.anno.gpu.shader.Shader
 import org.lwjgl.opengl.GL15
 import org.lwjgl.opengl.GL20.*
 import java.lang.RuntimeException

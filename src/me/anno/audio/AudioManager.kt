@@ -68,11 +68,11 @@ object AudioManager {
         }
     }
 
-    fun requestTimeUpdate(){
+    fun requestUpdate(){
         needsUpdate = true
     }
 
-    fun updateTime(time: Float, dilation: Float, transform: Transform){
+    fun updateTime(time: Double, dilation: Double, transform: Transform){
         // if(transform == root) println("$time += t * $dilation")
         if(transform is Audio){
             transform.start(time, dilation)

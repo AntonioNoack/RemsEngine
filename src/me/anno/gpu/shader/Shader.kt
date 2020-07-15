@@ -1,5 +1,6 @@
-package me.anno.gpu
+package me.anno.gpu.shader
 
+import me.anno.gpu.GFX
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector2f
 import org.joml.Vector3f

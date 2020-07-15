@@ -32,7 +32,7 @@ class GraphEditorBody(style: Style): Panel(style.getChild("deep")){
     val accentColor = style.getColor("accentColor", black)
 
     // time
-    var dtHalfLength = 30f
+    var dtHalfLength = 30.0
     var centralTime = dtHalfLength
 
     var centralValue = 0f
@@ -52,11 +52,13 @@ class GraphEditorBody(style: Style): Panel(style.getChild("deep")){
     val isItalic = style.getBoolean("textItalic", false)
 
     fun normValue01(value: Float) = 0.5f - (value-centralValue)/dvHalfHeight * 0.5f
+    fun normTime01(time: Double) = (time-centralTime)/dtHalfLength * 0.5f + 0.5f
     fun normTime01(time: Float) = (time-centralTime)/dtHalfLength * 0.5f + 0.5f
     fun normAxis11(lx: Float, x0: Int, size: Int) = (lx-x0)/size * 2f - 1f
 
     fun getValueAt(my: Float) = centralValue - dvHalfHeight * normAxis11(my, y, h)
     fun getTimeAt(mx: Float) = centralTime + dtHalfLength * normAxis11(mx, x, w)
+    fun getXAt(time: Double) = x + w * normTime01(time)
     fun getXAt(time: Float) = x + w * normTime01(time)
     fun getYAt(value: Float) = y + h * normValue01(value)
 
@@ -70,7 +72,7 @@ class GraphEditorBody(style: Style): Panel(style.getChild("deep")){
     fun get0XString(time: Int) = if(time < 10) "0$time" else "$time"
     fun get00XString(time: Int) = if(time < 100) "00$time" else if(time < 10) "0$time" else "$time"
 
-    fun getTimeString(time: Float, step: Float): String {
+    fun getTimeString(time: Double, step: Double): String {
         if(time < 0) return "-${getTimeString(-time, step)}"
         val s = time.toInt()
         val m = s / 60
@@ -91,8 +93,8 @@ class GraphEditorBody(style: Style): Panel(style.getChild("deep")){
         return "$sign$int.${get00XString((float*1000).roundToInt())}"
     }
 
-    fun getTimeStep(time: Float): Float {
-        return timeFractions.minBy { abs(it - time) }!!
+    fun getTimeStep(time: Double): Double {
+        return timeFractions.minBy { abs(it - time) }!!.toDouble()
     }
 
     fun getValueStep(value: Float): Float {
@@ -285,7 +287,7 @@ class GraphEditorBody(style: Style): Panel(style.getChild("deep")){
                     if(channel.isChannelActive()){
                         val dy = y - getYAt(keyframe.getValue(channel))
                         if(abs(dy) < maxMargin){
-                            val distance = length(dx, dy)
+                            val distance = length(dx.toFloat(), dy)
                             if(distance < bestDistance){
                                 bestDragged = keyframe
                                 bestChannel = channel
@@ -431,7 +433,7 @@ class GraphEditorBody(style: Style): Panel(style.getChild("deep")){
     override fun onDoubleClick(x: Float, y: Float, button: Int) {
         val property = Studio.selectedProperty
         property?.apply {
-            property.addKeyframe(getTimeAt(x), property.type.defaultValue, 0.01f)
+            property.addKeyframe(getTimeAt(x), property.type.defaultValue, 0.01)
         } ?: println("Please select a property first!")
     }
 
@@ -440,7 +442,7 @@ class GraphEditorBody(style: Style): Panel(style.getChild("deep")){
     }
 
     fun clampTime(){
-        dtHalfLength = clamp(dtHalfLength, 2f / targetFPS, timeFractions.last())
+        dtHalfLength = clamp(dtHalfLength, 2.0 / targetFPS, timeFractions.last().toDouble())
         centralTime = max(centralTime, dtHalfLength)
     }
 

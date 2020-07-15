@@ -1,6 +1,6 @@
 package me.anno.ui.editor.color
 
-import me.anno.gpu.Shader
+import me.anno.gpu.shader.Shader
 import me.anno.ui.editor.color.ColorChooser.Companion.CircleBarRatio
 import me.anno.utils.toVec3
 import org.hsluv.HSLuvColorSpace
@@ -103,7 +103,12 @@ abstract class ColorSpace(
                         "}"
             }
         }
-        val newShader = Shader(vertexShader, varyingShader, fragmentShader, disableShorts = true)
+        val newShader = Shader(
+            vertexShader,
+            varyingShader,
+            fragmentShader,
+            disableShorts = true
+        )
         shaders[type] = newShader
         return newShader
     }

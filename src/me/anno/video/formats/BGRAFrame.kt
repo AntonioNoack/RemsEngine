@@ -1,7 +1,6 @@
 package me.anno.video.formats
 
 import me.anno.gpu.GFX
-import me.anno.gpu.Shader
 import me.anno.gpu.texture.Texture2D
 import me.anno.video.Frame
 import me.anno.video.LastFrame
@@ -24,7 +23,7 @@ class BGRAFrame(w: Int, h: Int): Frame(w,h){
             15 }
     }
 
-    override fun get3DShader(): Shader = GFX.shader3DBGRA
+    override fun get3DShader() = GFX.shader3DBGRA
 
     override fun bind(offset: Int, nearestFiltering: Boolean){
         bgra.bind(offset, nearestFiltering)

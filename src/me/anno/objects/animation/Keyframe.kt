@@ -8,7 +8,7 @@ import org.joml.Vector3f
 import org.joml.Vector4f
 import java.lang.RuntimeException
 
-class Keyframe<V>(var time: Float, var value: V): Saveable(), Comparable<Keyframe<V>> {
+class Keyframe<V>(var time: Double, var value: V): Saveable(), Comparable<Keyframe<V>> {
     override fun compareTo(other: Keyframe<V>): Int = time.compareTo(other.time)
 
     override fun getClassName(): String = "Keyframe"
@@ -16,14 +16,14 @@ class Keyframe<V>(var time: Float, var value: V): Saveable(), Comparable<Keyfram
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
-        writer.writeFloat("time", time)
+        writer.writeDouble("time", time)
         writer.writeValue("value", value)
     }
 
-    override fun readFloat(name: String, value: Float) {
+    override fun readDouble(name: String, value: Double) {
         when(name){
             "time" -> time = value
-            else -> super.readFloat(name, value)
+            else -> super.readDouble(name, value)
         }
     }
 

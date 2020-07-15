@@ -23,7 +23,9 @@ class MaskLayer(parent: Transform? = null): GFXTransform(parent){
     val mask = Framebuffer(1, 1, 1, 1, false, Framebuffer.DepthBufferType.NONE)
     val masked = Framebuffer(1, 1, 1, 1, true, Framebuffer.DepthBufferType.INTERNAL)
 
-    // limit to 01?
+    // limit to [0,1]?
+    // nice effects can be created with values outside of [0,1], so while [0,1] is the valid range,
+    // numbers outside [0,1] give artists more control
     var useMaskColor = AnimatedProperty.float()
 
     // not animated, because it's not meant to be transitioned, but instead to be a little helper
@@ -37,7 +39,7 @@ class MaskLayer(parent: Transform? = null): GFXTransform(parent){
     var showMasked = false
     var showFrame = true
 
-    override fun onDraw(stack: Matrix4fArrayList, time: Float, color: Vector4f) {
+    override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
 
         val showResult = GFX.isFinalRendering || (!showMask && !showMasked)
         if(children.size >= 2 && showResult){// else invisible
@@ -108,30 +110,22 @@ class MaskLayer(parent: Transform? = null): GFXTransform(parent){
 
     override fun createInspector(list: PanelListY, style: Style) {
         super.createInspector(list, style)
-        list += BooleanInput("Invert Mask", isInverted, style)
-            .setChangeListener { isInverted = it }
-            .setIsSelectedListener { show(null) }
+        list += VI("Invert Mask", "Changes transparency with opacity", null, isInverted, style){ isInverted = it }
         list += VI("Use Mask Color", "Should the color influence the masked?", useMaskColor, style)
-        list += BooleanInput("Fullscreen", isFullscreen, style)
-            .setChangeListener { isFullscreen = it }
-            .setIsSelectedListener { show(null) }
+        // todo expand plane to infinity if fullscreen -> depth works then, idk...
+        // infinite bounds doesn't mean that it's actually filling the whole screen
+        // (infinite horizon isn't covering both roof and floor)
+        list += VI("Fullscreen", "if not, the borders are clipped by the quad shape", null, isFullscreen, style){ isFullscreen = it }
         list += SpacePanel(0, 1, style)
             .setColor(style.getChild("deep").getColor("background", black))
-        list += BooleanInput("Show Mask", showMask, style)
-            .setChangeListener { showMask = it }
-            .setIsSelectedListener { show(null) }
-        list += BooleanInput("Show Masked", showMasked, style)
-            .setChangeListener { showMasked = it }
-            .setIsSelectedListener { show(null) }
-        list += BooleanInput("Show Frame", showFrame, style)
-            .setChangeListener { showFrame = it }
-            .setIsSelectedListener { show(null) }
-            .setTooltip("Only works correctly without camera depth") // todo make it so the plane is used as depth
+        list += VI("Show Mask", "for debugging purposes; shows the stencil", null, showMask, style){ showMask = it }
+        list += VI("Show Masked", "for debugging purposes", null, showMasked, style){ showMasked = it }
+        list += VI("Show Frame", "Only works correctly without camera depth", null, showFrame, style){ showFrame = it }
     }
 
     override fun drawChildrenAutomatically() = false
 
-    fun drawMask(stack: Matrix4fArrayList, time: Float, color: Vector4f){
+    fun drawMask(stack: Matrix4fArrayList, time: Double, color: Vector4f){
 
         mask.bindTemporary(GFX.windowWidth, GFX.windowHeight)
 
@@ -151,12 +145,12 @@ class MaskLayer(parent: Transform? = null): GFXTransform(parent){
 
     }
 
-    fun drawMasked(stack: Matrix4fArrayList, time: Float, color: Vector4f){
+    fun drawMasked(stack: Matrix4fArrayList, time: Double, color: Vector4f){
 
         masked.bind(GFX.windowWidth, GFX.windowHeight)
 
         glClearColor(0f, 0f, 0f, 0f)
-        glClear(GL_DEPTH_BUFFER_BIT or GL_COLOR_BUFFER_BIT)
+        glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
         drawChild(stack, time, color, children.getOrNull(1))
 
@@ -164,7 +158,7 @@ class MaskLayer(parent: Transform? = null): GFXTransform(parent){
 
     }
 
-    fun drawOnScreen(stack: Matrix4fArrayList, time: Float, color: Vector4f){
+    fun drawOnScreen(stack: Matrix4fArrayList, time: Double, color: Vector4f){
 
         val localTransform = if(isFullscreen){
             Matrix4fArrayList()

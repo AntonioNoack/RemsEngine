@@ -112,7 +112,8 @@ object UILayouts {
         ui += SpacePanel(0, 1, style)
         
         console = TextPanel("Welcome to Rem's Studio!", style.getChild("small"))
-        console.visibility = Visibility.GONE
+        console.instantTextLoading = true
+        // console.visibility = Visibility.GONE
         console.setOnClickListener { _, _, button, _ ->
                 if(button == 0){
                     // todo open console in large with scrollbar

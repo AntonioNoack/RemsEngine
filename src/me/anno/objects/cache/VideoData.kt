@@ -4,7 +4,7 @@ import me.anno.gpu.GFX
 import me.anno.video.FFMPEGStream
 import java.io.File
 
-class VideoData(file: File, index: Int, val fps: Float): CacheData {
+class VideoData(file: File, scale: Int, index: Int, val fps: Double): CacheData {
 
     val time0 = GFX.lastTime
 

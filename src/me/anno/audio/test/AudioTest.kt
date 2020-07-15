@@ -2,6 +2,7 @@ package me.anno.audio.test
 
 import me.anno.audio.*
 import me.anno.gpu.GFX
+import me.anno.video.FFMPEGMetadata
 import me.anno.video.FFMPEGStream
 import org.joml.Vector3f
 import java.io.File
@@ -50,11 +51,11 @@ fun main(){
 val file = File("C:\\Users\\Antonio\\Videos\\Captures\\cool cops\\Watch_Dogs 2 2019-10-14 15-26-49.mp4")
 
 fun testStream(){
-    AudioStream(file, 0f).start()
+    AudioStream(file, false, 0.0, FFMPEGMetadata(file)).start()
 }
 
 fun testSingleBuffer(){
-    val buffer2 = FFMPEGStream.getAudioSequence(file, 0f, 10f, 48000)
+    val buffer2 = FFMPEGStream.getAudioSequence(file, 0.0, 10.0, 48000)
     var buffer2a: SoundBuffer?
     while(true){
         buffer2a = buffer2.soundBuffer

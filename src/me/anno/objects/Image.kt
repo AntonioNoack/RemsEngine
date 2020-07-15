@@ -28,7 +28,7 @@ class Image(var file: File = File(""), parent: Transform? = null): GFXTransform(
     var nearestFiltering = DefaultConfig["default.image.nearest", true]
     var tiling = AnimatedProperty.tiling()
 
-    override fun onDraw(stack: Matrix4fArrayList, time: Float, color: Vector4f) {
+    override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
         val name = file.name
         when {
             name.endsWith("svg", true) -> {
@@ -39,12 +39,14 @@ class Image(var file: File = File(""), parent: Transform? = null): GFXTransform(
                 } as? SFBufferData
                 if(bufferData == null && isFinalRendering) throw MissingFrameException(file)
                 if(bufferData != null){
+                    // todo apply tiling...
                     GFX.draw3DSVG(stack, bufferData.buffer, whiteTexture, color, isBillboard[time], true)
                 }
             }
             name.endsWith("webp", true) -> {
                 val tiling = tiling[time]
-                val texture = Cache.getVideoFrame(file, 0, 0, 1f, imageTimeout)
+                // calculate required scale? no, without animation, we don't need to scale it down ;)
+                val texture = Cache.getVideoFrame(file, 1, 0, 0, 1.0, imageTimeout)
                 if((texture == null || !texture.isLoaded) && isFinalRendering) throw MissingFrameException(file)
                 if(texture?.isLoaded == true) GFX.draw3D(stack, texture, color, isBillboard[time], nearestFiltering, tiling)
             }
@@ -61,15 +63,9 @@ class Image(var file: File = File(""), parent: Transform? = null): GFXTransform(
 
     override fun createInspector(list: PanelListY, style: Style) {
         super.createInspector(list, style)
-        list += TextInput("File Location", style, file.toString())
-            .setChangeListener { file = File(it) }
-            .setIsSelectedListener { show(null) }
-        list += VectorInput(style, "Tiling", tiling[lastLocalTime], AnimatedProperty.Type.TILING)
-            .setChangeListener { x, y, z, w -> putValue(tiling, Vector4f(x,y,z,w)) }
-            .setIsSelectedListener { show(tiling) }
-        list += BooleanInput("Nearest Filtering", nearestFiltering, style)
-            .setChangeListener { nearestFiltering = it }
-            .setIsSelectedListener { show(null) }
+        list += VI("File Location", "Texture file location", null, file, style){ file = it }
+        list += VI("Tiling", "(tile count x, tile count y, offset x, offset y)", tiling, style)
+        list += VI("Nearest Filtering", "Pixelated look; linear interpolation otherwise", null, nearestFiltering, style){ nearestFiltering = it }
     }
 
     override fun save(writer: BaseWriter) {

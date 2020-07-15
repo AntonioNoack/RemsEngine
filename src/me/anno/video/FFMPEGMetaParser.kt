@@ -116,10 +116,10 @@ class FFMPEGMetaParser(): StringMap(){
                                     throw RuntimeException("Invalid ffmpeg-duration? $data")
                                 }
                                 val duration = when(durParts.size){
-                                    1 -> durParts[0].toFloatOrNull() ?: 0.01f
-                                    3 -> durParts[0].toFloat() * 60 + durParts[2].toFloat()
-                                    5 -> durParts[0].toFloat() * 3600 + durParts[2].toFloat() * 60 + durParts[4].toFloat()
-                                    7 -> durParts[0].toFloat() * 3600 * 24 + durParts[2].toFloat() * 3600 + durParts[4].toFloat() * 60 + durParts[6].toFloat()
+                                    1 -> durParts[0].toDoubleOrNull() ?: 0.01
+                                    3 -> durParts[0].toDouble() * 60 + durParts[2].toDouble()
+                                    5 -> durParts[0].toDouble() * 3600 + durParts[2].toDouble() * 60 + durParts[4].toDouble()
+                                    7 -> durParts[0].toDouble() * 3600 * 24 + durParts[2].toDouble() * 3600 + durParts[4].toDouble() * 60 + durParts[6].toDouble()
                                     else -> throw RuntimeException("Invalid ffmpeg-duration? $data")
                                 }
                                 stream.sourceLength = duration
@@ -160,7 +160,7 @@ class FFMPEGMetaParser(): StringMap(){
                     try {
                         val fpsIndex = data.indexOf("fps")-1
                         if(fpsIndex > -1){
-                            stream.sourceFPS = data[fpsIndex].toFloat()
+                            stream.sourceFPS = data[fpsIndex].toDouble()
                         }
                     } catch (e: Exception){
                         e.printStackTrace()

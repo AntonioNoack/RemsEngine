@@ -65,7 +65,7 @@ class ColorInput(style: Style, title: String,
         super.draw(x0, y0, x1, y1)
     }
 
-    fun setChangeListener(listener: (x: Float, y: Float, z: Float, w: Float) -> Unit): ColorInput {
+    fun setChangeListener(listener: (r: Float, g: Float, b: Float, a: Float) -> Unit): ColorInput {
         contentView.setChangeRGBListener(listener)
         return this
     }

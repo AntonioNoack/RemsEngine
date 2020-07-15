@@ -16,7 +16,8 @@ fun clamp(x: Double, min: Double, max: Double) = if(x < min) min else if(x < max
 fun pow(base: Float, power: Float) = StrictMath.pow(base.toDouble(), power.toDouble()).toFloat()
 
 fun length(dx: Float, dy: Float) = sqrt(dx*dx+dy*dy)
-fun length(x0: Float, y0: Float, x1: Float, y1: Float) = length(x1-x0, y1-y0)
+fun length(dx: Float, dy: Float, dz: Float) = sqrt(dx*dx+dy*dy+dz*dz)
+fun distance(x0: Float, y0: Float, x1: Float, y1: Float) = length(x1-x0, y1-y0)
 
 operator fun Vector2f.minus(s: Vector2f) = Vector2f(x-s.x, y-s.y)
 operator fun Vector2f.plus(s: Vector2f) = Vector2f(x+s.x, y+s.y)
@@ -75,6 +76,10 @@ fun Vector2f.isInsideTriangle2(a: Vector2f, b: Vector2f, c: Vector2f): Boolean {
 
 }
 
+fun mix(a: Short, b: Short, f: Double): Double {
+    return a * (1f-f) + b*f
+}
+
 fun mix(a: Short, b: Short, f: Float): Float {
     return a * (1f-f) + b*f
 }
@@ -96,8 +101,12 @@ fun mixARGB(a: Int, b: Int, f: Float): Int {
 }
 
 fun Vector3f.print() = "($x $y $z)"
+fun Vector4f.print() = "($x $y $z $w)"
 
 fun Vector4f.toVec3f() = Vector3f(x/w, y/w, z/w)
 operator fun Vector3f.minus(s: Vector3f) = Vector3f(x-s.x, y-s.y, z-s.z)
 operator fun Vector3f.plus(s: Vector3f) = Vector3f(x+s.x, y+s.y, z+s.z)
 operator fun Vector3f.times(s: Float) = Vector3f(x*s, y*s, z*s)
+
+operator fun Vector4f.minus(s: Vector4f) = Vector4f(x-s.x, y-s.y, z-s.z, w-s.w)
+operator fun Vector4f.plus(s: Vector4f) = Vector4f(x+s.x, y+s.y, z+s.z, w+s.w)

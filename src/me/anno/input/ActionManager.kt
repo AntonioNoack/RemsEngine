@@ -182,7 +182,7 @@ object ActionManager {
                         actions: List<String>?){
         if(actions == null) return
         for(action in actions){
-            fun setEditorTimeDilation(dilation: Float): Boolean {
+            fun setEditorTimeDilation(dilation: Double): Boolean {
                 return if(dilation == editorTimeDilation || inFocus0?.isKeyInput() == true) false
                 else {
                     editorTimeDilation = dilation
@@ -190,11 +190,11 @@ object ActionManager {
                 }
             }
             if(when(action){
-                    "Play" -> setEditorTimeDilation(1f)
-                    "Pause" -> setEditorTimeDilation(0f)
-                    "PlaySlow" -> setEditorTimeDilation(0.2f)
-                    "PlayReversed" -> setEditorTimeDilation(-1f)
-                    "PlayReversedSlow" -> setEditorTimeDilation(-0.2f)
+                    "Play" -> setEditorTimeDilation(1.0)
+                    "Pause" -> setEditorTimeDilation(0.0)
+                    "PlaySlow" -> setEditorTimeDilation(0.2)
+                    "PlayReversed" -> setEditorTimeDilation(-1.0)
+                    "PlayReversedSlow" -> setEditorTimeDilation(-0.2)
                     "ToggleFullscreen" -> { GFX.toggleFullscreen(); true }
                     "PrintLayout" -> { UILayouts.printLayout();true }
                     "NextFrame" -> {
@@ -229,7 +229,8 @@ object ActionManager {
                         } else false
                     }
                     "ClearCache" -> {
-                        Video.clearCache()
+                        Cache.clear()
+                        // Video.clearCache()
                         true
                     }
                     else -> false

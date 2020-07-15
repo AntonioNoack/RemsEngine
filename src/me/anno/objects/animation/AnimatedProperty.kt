@@ -24,6 +24,7 @@ class AnimatedProperty<V>(val type: Type, val minValue: V?, val maxValue: V?): S
         FLOAT("float", 0f, 1, 1f, true, true, { it is Float }),
         FLOAT_01("float01", 0f, 1, 1f, true, true, { it is Float }),
         FLOAT_PLUS("float+", 0f, 1, 1f, false, true, { it is Float }),
+        DOUBLE("double", 0.0, 1, 1f, true, true, { it is Double }),
         VEC2("vec2", Vector2f(), 2, 1f, true, true, { it is Vector2f }),
         VEC3("vec3", Vector3f(), 3, 1f, true, true, { it is Vector3f }),
         POSITION("pos", Vector3f(), 3, 1f, true, true, { it is Vector3f }),
@@ -39,10 +40,11 @@ class AnimatedProperty<V>(val type: Type, val minValue: V?, val maxValue: V?): S
     companion object {
         val types = HashMap<String, Type>()
         fun float() = AnimatedProperty<Float>(Type.FLOAT)
-        fun vec2() = AnimatedProperty<Vector2f>(Type.VEC2)
-        fun vec3() = AnimatedProperty<Vector3f>(Type.VEC3)
         fun floatPlus() = AnimatedProperty(Type.FLOAT_PLUS, 0f, null)
         fun float01() = AnimatedProperty(Type.FLOAT_01, 0f, 1f)
+        fun double() = AnimatedProperty<Double>(Type.DOUBLE)
+        fun vec2() = AnimatedProperty<Vector2f>(Type.VEC2)
+        fun vec3() = AnimatedProperty<Vector3f>(Type.VEC3)
         fun pos() = AnimatedProperty<Vector3f>(Type.POSITION)
         fun rotYXZ() = AnimatedProperty<Vector3f>(Type.ROT_YXZ)
         fun scale() = AnimatedProperty<Vector3f>(Type.SCALE)
@@ -51,6 +53,9 @@ class AnimatedProperty<V>(val type: Type, val minValue: V?, val maxValue: V?): S
         fun skew() = AnimatedProperty<Vector2f>(Type.SKEW_2D)
         fun tiling() = AnimatedProperty<Vector4f>(Type.TILING)
     }
+
+    // todo cache the last values left+right and timestamps left+right for faster access
+    // because audio can make literally 48k calls per second
 
     val drivers
             = arrayOfNulls<AnimationDriver>(type.components)
@@ -75,25 +80,25 @@ class AnimatedProperty<V>(val type: Type, val minValue: V?, val maxValue: V?): S
 
     fun set(value: V): AnimatedProperty<V> {
         keyframes.clear()
-        return add(0f, value)
+        return add(0.0, value)
     }
 
-    fun add(time: Float, value: V): AnimatedProperty<V> {
+    fun add(time: Double, value: V): AnimatedProperty<V> {
         keyframes.add(Keyframe(time, clamp(value)))
         keyframes.sort()
         return this
     }
 
-    fun addKeyframe(time: Float, value: Any) =
-        addKeyframe(time, value, 0.001f)
+    fun addKeyframe(time: Double, value: Any) =
+        addKeyframe(time, value, 0.001)
 
-    fun addKeyframe(time: Float, value: Any, equalityDt: Float){
+    fun addKeyframe(time: Double, value: Any, equalityDt: Double){
         if(type.accepts(value)){
             addKeyframeInternal(time, clamp(value as V), equalityDt)
         }
     }
 
-    private fun addKeyframeInternal(time: Float, value: V, equalityDt: Float){
+    private fun addKeyframeInternal(time: Double, value: V, equalityDt: Double){
         ensureCorrectType(value)
         keyframes.forEachIndexed { index, it ->
             if(abs(it.time - time) < equalityDt){
@@ -109,9 +114,9 @@ class AnimatedProperty<V>(val type: Type, val minValue: V?, val maxValue: V?): S
         keyframes.remove(keyframe)
     }
 
-    operator fun get(time: Float) = getValueAt(time)
+    operator fun get(time: Double) = getValueAt(time)
 
-    fun getAnimatedValue(time: Float): V {
+    fun getAnimatedValue(time: Double): V {
         return when(keyframes.size){
             0 -> type.defaultValue as V
             1 -> keyframes[0].value
@@ -142,7 +147,7 @@ class AnimatedProperty<V>(val type: Type, val minValue: V?, val maxValue: V?): S
         }
     }
 
-    fun getValueAt(time: Float): V {
+    fun getValueAt(time: Double): V {
         val animatedValue = if(drivers.all { it != null })
             type.defaultValue
         else getAnimatedValue(time)
@@ -150,27 +155,28 @@ class AnimatedProperty<V>(val type: Type, val minValue: V?, val maxValue: V?): S
         else {
             // replace the components, which have drivers, with the driver values
             when(animatedValue){
-                is Float -> drivers[0]?.getValue(time) ?: animatedValue
+                is Float -> drivers[0]?.getValue(time)?.toFloat() ?: animatedValue
+                is Double -> drivers[0]?.getValue(time) ?: animatedValue
                 is Vector2f -> Vector2f(
-                    drivers[0]?.getValue(time) ?: animatedValue.x,
-                    drivers[1]?.getValue(time) ?: animatedValue.y
+                    drivers[0]?.getValue(time)?.toFloat() ?: animatedValue.x,
+                    drivers[1]?.getValue(time)?.toFloat() ?: animatedValue.y
                 )
                 is Vector3f -> Vector3f(
-                    drivers[0]?.getValue(time) ?: animatedValue.x,
-                    drivers[1]?.getValue(time) ?: animatedValue.y,
-                    drivers[2]?.getValue(time) ?: animatedValue.z
+                    drivers[0]?.getValue(time)?.toFloat() ?: animatedValue.x,
+                    drivers[1]?.getValue(time)?.toFloat() ?: animatedValue.y,
+                    drivers[2]?.getValue(time)?.toFloat() ?: animatedValue.z
                 )
                 is Vector4f -> Vector4f(
-                    drivers[0]?.getValue(time) ?: animatedValue.x,
-                    drivers[1]?.getValue(time) ?: animatedValue.y,
-                    drivers[2]?.getValue(time) ?: animatedValue.z,
-                    drivers[3]?.getValue(time) ?: animatedValue.w
+                    drivers[0]?.getValue(time)?.toFloat() ?: animatedValue.x,
+                    drivers[1]?.getValue(time)?.toFloat() ?: animatedValue.y,
+                    drivers[2]?.getValue(time)?.toFloat() ?: animatedValue.z,
+                    drivers[3]?.getValue(time)?.toFloat() ?: animatedValue.w
                 )
                 is Quaternionf -> Quaternionf(
-                    drivers[0]?.getValue(time) ?: animatedValue.x,
-                    drivers[1]?.getValue(time) ?: animatedValue.y,
-                    drivers[2]?.getValue(time) ?: animatedValue.z,
-                    drivers[3]?.getValue(time) ?: animatedValue.w
+                    drivers[0]?.getValue(time)?.toFloat() ?: animatedValue.x,
+                    drivers[1]?.getValue(time)?.toFloat() ?: animatedValue.y,
+                    drivers[2]?.getValue(time)?.toFloat() ?: animatedValue.z,
+                    drivers[3]?.getValue(time)?.toFloat() ?: animatedValue.w
                 )
                 else -> throw RuntimeException("Replacing components with drivers in $animatedValue is not yet supported!")
             }
@@ -179,24 +185,24 @@ class AnimatedProperty<V>(val type: Type, val minValue: V?, val maxValue: V?): S
 
     fun lerp(a: Float, b: Float, f: Float, g: Float) = a*g+b*f
 
-    fun lerp(a: V, b: V, f: Float): V {
+    fun lerp(a: V, b: V, f: Double): V {
         val g = 1f-f
         return when(type){
             Type.FLOAT,
             Type.FLOAT_01,
-            Type.FLOAT_PLUS -> (a as Float)*g+f*(b as Float)
-            // Type.DOUBLE -> (a as Double)*g+f*(b as Double)
-            Type.SKEW_2D -> (a as Vector2f).lerp(b as Vector2f, f, Vector2f())
+            Type.FLOAT_PLUS -> ((a as Float)*g+f*(b as Float)).toFloat()
+            Type.DOUBLE -> (a as Double)*g+f*(b as Double)
+            Type.SKEW_2D -> (a as Vector2f).lerp(b as Vector2f, f.toFloat(), Vector2f())
             Type.POSITION,
             Type.ROT_YXZ,
-            Type.SCALE -> (a as Vector3f).lerp(b as Vector3f, f, Vector3f())
-            Type.COLOR, Type.TILING -> (a as Vector4f).lerp(b as Vector4f, f, Vector4f())
-            Type.QUATERNION -> (a as Quaternionf).slerp(b as Quaternionf, f)
+            Type.SCALE -> (a as Vector3f).lerp(b as Vector3f, f.toFloat(), Vector3f())
+            Type.COLOR, Type.TILING -> (a as Vector4f).lerp(b as Vector4f, f.toFloat(), Vector4f())
+            Type.QUATERNION -> (a as Quaternionf).slerp(b as Quaternionf, f.toFloat())
             else -> throw RuntimeException("don't know how to lerp $a and $b")
         } as V
     }
 
-    fun getIndexBefore(time: Float): Int {
+    fun getIndexBefore(time: Double): Int {
         // get the index of the time
         val rawIndex = keyframes.binarySearch { it.time.compareTo(time) }
         return (if(rawIndex < 0) -rawIndex-1 else rawIndex) - 1
@@ -231,7 +237,7 @@ class AnimatedProperty<V>(val type: Type, val minValue: V?, val maxValue: V?): S
             "keyframes" -> {
                 if(value is Keyframe<*>){
                     if(type.accepts(value.value)){
-                        addKeyframe(value.time, clamp(value.value as V) as Any, 1e-5f) // do clamp?
+                        addKeyframe(value.time, clamp(value.value as V) as Any, 1e-5) // do clamp?
                     } else println("Dropped keyframe!, incompatible type ${value.value} for $type")
                 } else WrongClassType.warn("keyframe", value)
             }

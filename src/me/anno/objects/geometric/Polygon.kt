@@ -7,6 +7,7 @@ import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticFloatBuffer
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
+import me.anno.io.base.MissingListElement
 import me.anno.objects.GFXTransform
 import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
@@ -17,6 +18,7 @@ import me.anno.ui.input.BooleanInput
 import me.anno.ui.input.FileInput
 import me.anno.ui.style.Style
 import me.anno.utils.clamp
+import me.anno.video.MissingFrameException
 import org.joml.Matrix4fArrayList
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -42,11 +44,14 @@ class Polygon(parent: Transform? = null): GFXTransform(parent){
     var vertexCount = AnimatedProperty.floatPlus().set(5f)
     var starNess = AnimatedProperty.float01()
 
-    override fun onDraw(stack: Matrix4fArrayList, time: Float, color: Vector4f){
+    // todo vertex count is broken...
+    override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f){
         val inset = clamp(starNess[time], 0f, 1f)
         if(inset == 1f) return// invisible
-        // todo check if the texture is valid for final rendering..., then load async
-        val texture = Cache.getImage(texture, 5000, false) ?: GFX.whiteTexture
+        val image = Cache.getImage(texture, 5000, true)
+        // todo check if an exception really need to be thrown (empty = default, white)
+        if(image == null && GFX.isFinalRendering) throw MissingFrameException(texture)
+        val texture = image ?: GFX.whiteTexture
         val count = vertexCount[time].roundToInt()
         val selfDepth = scale[time].z
         if(autoAlign && count == 4){
@@ -62,17 +67,9 @@ class Polygon(parent: Transform? = null): GFXTransform(parent){
         super.createInspector(list, style)
         list += VI("Vertex Count", "Quads, Triangles, all possible", vertexCount, style)
         list += VI("Star-ness", "Works best with even vertex count", starNess, style)
-        list += FileInput("Texture", style, texture.toString())
-            .setChangeListener { texture = File(it) }
-            .setIsSelectedListener { show(null) }
-        list += BooleanInput("Nearest Filtering", nearestFiltering, style)
-            .setChangeListener { nearestFiltering = it }
-            .setIsSelectedListener { show(null) }
-            .setTooltip("Pixelated Style for the texture")
-        list += BooleanInput("Auto-Align", autoAlign, style)
-            .setChangeListener { autoAlign = it }
-            .setIsSelectedListener { show(null) }
-            .setTooltip("for quads")
+        list += VI("Pattern Texture", "For patterns like gradients radially; use a mask layer for images with polygon shape", null, texture, style){ texture = it }
+        list += VI("Nearest Filtering", "Pixelated look; linear interpolation otherwise", null, nearestFiltering, style){ nearestFiltering = it }
+        list += VI("Auto-Align", "for quads", null, autoAlign, style){ autoAlign = it }
     }
 
     override fun getClassName(): String = "Polygon"

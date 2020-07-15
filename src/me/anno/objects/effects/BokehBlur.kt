@@ -3,7 +3,7 @@ package me.anno.objects.effects
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.createCustomShader2
 import me.anno.gpu.GFX.flat01
-import me.anno.gpu.Shader
+import me.anno.gpu.shader.Shader
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.texture.Texture2D
 import me.anno.objects.Transform.Companion.xAxis

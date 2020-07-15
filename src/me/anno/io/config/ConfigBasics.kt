@@ -7,9 +7,14 @@ import org.apache.logging.log4j.LogManager
 import java.io.File
 import java.nio.charset.Charset
 
+/**
+ * max file size: 2GB, because of Javas internal String and array limitations
+ * 2GB for a config file would be just insane
+ * */
 object ConfigBasics {
 
     val LOGGER = LogManager.getLogger(ConfigBasics::class)!!
+    val utf8Charset = Charset.forName("UTF-8")
 
     val configFolder = File(System.getProperty("user.home")+"/.config/RemsStudio")
 
@@ -22,14 +27,14 @@ object ConfigBasics {
     fun save(file: File, data: String){
         val parentFile = file.parentFile
         if(!parentFile.exists()) parentFile.mkdirs()
-        file.writeText(data)
+        file.writeText(data, utf8Charset)
     }
 
     fun save(localFileName: String, data: String) = save(getConfigFile(localFileName), data)
 
     fun load(file: File, saveIfMissing: Boolean, getDefault: () -> String): String {
         return if(file.exists()){
-            file.readText(Charset.forName("UTF-8"))
+            file.readText(utf8Charset)
         } else {
             val default = getDefault()
             if(saveIfMissing) save(file, default)

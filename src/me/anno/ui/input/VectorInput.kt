@@ -31,7 +31,7 @@ class VectorInput(
     val owningProperty: AnimatedProperty<*>? = null
 ): PanelListY(style){
 
-    constructor(title: String, property: AnimatedProperty<*>, time: Float, style: Style):
+    constructor(title: String, property: AnimatedProperty<*>, time: Double, style: Style):
             this(style, title, property.type, property){
         when(val value = property[time]){
             is Float -> setValue(value)

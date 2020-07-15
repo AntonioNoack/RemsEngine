@@ -4,6 +4,8 @@ import me.anno.config.DefaultStyle.black
 import me.anno.config.DefaultStyle.deepDark
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.deltaTime
+import me.anno.gpu.GFX.select
+import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.input.Input
 import me.anno.input.Input.mouseKeysDown
 import me.anno.objects.Camera
@@ -12,6 +14,7 @@ import me.anno.studio.Studio
 import me.anno.studio.Studio.dragged
 import me.anno.studio.Studio.editorTime
 import me.anno.studio.Studio.nullCamera
+import me.anno.studio.Studio.root
 import me.anno.studio.Studio.selectedCamera
 import me.anno.studio.Studio.selectedTransform
 import me.anno.studio.Studio.targetHeight
@@ -23,10 +26,14 @@ import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.editor.CustomContainer
 import me.anno.ui.style.Style
 import me.anno.utils.*
-import org.joml.Matrix4f
 import org.joml.Matrix4fArrayList
 import org.joml.Vector3f
+import org.lwjgl.opengl.ARBFramebufferObject.GL_FRAMEBUFFER
+import org.lwjgl.opengl.ARBFramebufferObject.glBindFramebuffer
+import org.lwjgl.opengl.GL11.*
 import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.roundToInt
 
 // todo search elements
 // todo search with tags
@@ -76,7 +83,6 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
         var rw = w
         var rh = h
 
-
         val camera = camera
         if(camera.onlyShowTarget){
             if(w * targetHeight > targetWidth *h){
@@ -88,8 +94,10 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
             }
         }
 
+        if(wasClicked) resolveClick(dx, dy, rw, rh)
+
         // for(i in 0 until 1000)
-        Scene.draw(null, camera, x+dx,y+dy,rw,rh, editorTime, false)
+        Scene.draw(null, camera, x+dx,y+dy,rw,rh, editorTime, flipY = false, useFakeColors = false)
 
         GFX.clip(x0, y0, x1, y1)
 
@@ -106,6 +114,58 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
 
         super.draw(x0, y0, x1, y1)
 
+    }
+
+    fun resolveClick(dx: Int, dy: Int, rw: Int, rh: Int){
+        // todo get z buffer and prefer closer objects
+        // (picking a line (camera) in front of a cubemap/image is difficult, needs perfect click)
+        GFX.check()
+        // get the color at the clicked position
+        val fb: Framebuffer? = null//FBStack[rw, rh, false]
+        val width = fb?.w ?: GFX.width
+        val height = fb?.h ?: GFX.height
+        GFX.clip(0, 0, width, height)
+        // draw only the clicked area?
+        Scene.draw(fb, camera, x+dx, y+dy, rw, rh, editorTime, flipY = false, useFakeColors = true)
+        GFX.check()
+        fb?.bind() ?: glBindFramebuffer(GL_FRAMEBUFFER, 0)
+        val localX = (if(fb == null) clickX else clickX-(this.x+dx)).roundToInt()
+        val localH = fb?.h ?: GFX.height
+        val localY = localH - 1 - (if(fb == null) clickY else clickY-(this.y+dy)).roundToInt()
+        glFlush(); glFinish() // wait for everything to be drawn
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
+        val radius = 2
+        val diameter = radius * 2 + 1
+        val buffer = IntArray(diameter * diameter)
+        glReadPixels(
+            max(localX-radius, 0),
+            max(localY-radius, 0),
+            min(diameter, width),
+            min(diameter, height),
+            GL_RGBA, GL_UNSIGNED_BYTE, buffer)
+        var bestDistance = diameter * diameter
+        var bestResult = 0
+        // convert that color to an id
+        buffer.forEachIndexed { index, value ->
+            val result = value.and(0xffffff)
+            val x = (index % diameter) - radius
+            val y = (index / diameter) - radius
+            val distance = x*x+y*y
+            val isValid = result > 0
+            if(isValid && distance <= bestDistance){
+                bestDistance = distance
+                bestResult = result
+            }
+        }
+        // find the transform with the id to select it
+        if(bestResult > 0){
+            val transform = (root.listOfAll + nullCamera).firstOrNull { it.clickId == bestResult }
+            GFX.select(transform)
+            // println("clicked color ${bestResult.toUInt().toString(16)}, transform: $transform")
+            // println((root.listOfAll + nullCamera).map { it.clickId })
+        } else GFX.select(null)
+        wasClicked = false
+        GFX.check()
     }
 
     var velocity = Vector3f()
@@ -135,7 +195,7 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
             val step2 = cameraTransform.transformDirection(step)
             // todo transform into the correct space: from that camera to this camera
             val newPosition = oldPosition + step2
-            camera.position.addKeyframe(cameraTime, newPosition, 0.01f)
+            camera.position.addKeyframe(cameraTime, newPosition, 0.01)
         }
 
         dx = 0
@@ -166,7 +226,7 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
                 val global2normUI = Matrix4fArrayList()
                 GFX.applyCameraTransform(camera, cameraTime, camera2global, global2normUI)
 
-                val inverse = Matrix4f(global2normUI).invert()
+                // val inverse = Matrix4f(global2normUI).invert()
 
                 // transforms: global to local
                 // ->
@@ -266,9 +326,24 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
         super.onKeyDown(x, y, key)
     }
 
+    var wasClicked = false
+    var clickButton = 0
+    var clickLong = false
+    var clickX = 0f
+    var clickY = 0f
+
     override fun onMouseClicked(x: Float, y: Float, button: Int, long: Boolean) {
         if((parent as? CustomContainer)?.clicked(x,y) != true){
-            super.onMouseClicked(x, y, button, long)
+
+            wasClicked = true
+            clickButton = button
+            clickLong = long
+            clickX = x
+            clickY = y
+
+            // todo bbx vs drawing and testing? pixel-perfectness...
+            // todo we need a correct function...
+
         }
     }
 
@@ -292,6 +367,20 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
             // paste that object 1m in front of the camera?
             else -> super.onPaste(x, y, data, type)
         }
+    }
+
+    override fun onEmpty(x: Float, y: Float) {
+        deleteSelectedTransform()
+    }
+
+    override fun onDeleteKey(x: Float, y: Float) {
+        deleteSelectedTransform()
+    }
+
+    fun deleteSelectedTransform(){
+        selectedTransform?.removeFromParent()
+        selectedTransform?.onDestroy()
+        select(null)
     }
 
     override fun getClassName() = "SceneView"

@@ -62,7 +62,7 @@ class GFXArray(parent: Transform?): GFXTransform(parent) {
         }
     }
 
-    override fun onDraw(stack: Matrix4fArrayList, time: Float, color: Vector4f) {
+    override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
         super.onDraw(stack, time, color)
         // todo replace 1:1 every time? how? drivers??? (text)
 

@@ -54,6 +54,9 @@ class Text(text: String = "", parent: Transform? = null): GFXTransform(parent){
     var lines = text.split('\n')
     var keys = lines.map { FontMeshKey(font, isBold, isItalic, it) }
 
+    var minX = 0f
+    var maxX = 0f
+
     data class FontMeshKey(
         val fontName: String, val isBold: Boolean, val isItalic: Boolean,
         val text: String){
@@ -61,10 +64,7 @@ class Text(text: String = "", parent: Transform? = null): GFXTransform(parent){
             fontName == this.fontName && isBold == this.isBold && isItalic == this.isItalic && text == this.text
     }
 
-    var minX = 0f
-    var maxX = 0f
-
-    override fun onDraw(stack: Matrix4fArrayList, time: Float, color: Vector4f){
+    override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f){
 
         val text = text
         val isBold = isBold

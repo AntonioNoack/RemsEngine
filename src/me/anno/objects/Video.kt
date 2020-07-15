@@ -5,22 +5,23 @@ import me.anno.gpu.GFX
 import me.anno.io.base.BaseWriter
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.cache.Cache
+import me.anno.studio.Scene
+import me.anno.studio.Studio
 import me.anno.ui.base.groups.PanelListY
-import me.anno.ui.input.BooleanInput
-import me.anno.ui.input.FileInput
-import me.anno.ui.input.FloatInput
-import me.anno.ui.input.VectorInput
+import me.anno.ui.input.*
 import me.anno.ui.style.Style
-import me.anno.utils.toVec3f
-import me.anno.video.FFMPEGStream
+import me.anno.utils.BiMap
+import me.anno.utils.Clipping
+import me.anno.utils.plus
+import me.anno.utils.pow
+import me.anno.video.FFMPEGMetadata.Companion.getMeta
 import me.anno.video.MissingFrameException
 import org.joml.Matrix4f
 import org.joml.Matrix4fArrayList
+import org.joml.Vector3f
 import org.joml.Vector4f
 import java.io.File
-import kotlin.concurrent.thread
-import kotlin.math.max
-import kotlin.math.min
+import kotlin.math.*
 
 // idea: hovering needs to be used to predict when the user steps forward in time
 // -> no, that's too taxing; we'd need to pre-render a smaller version
@@ -35,81 +36,143 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
 
     var tiling = AnimatedProperty.tiling()
 
-    var startTime = 0f
-    var endTime = 100f
+    var startTime = 0.0
+    var endTime = 100.0
 
-    var duration = 0f
+    var duration = 0.0
 
-    var isLooping = true
     var nearestFiltering = DefaultConfig["default.video.nearest", false]
 
-    // val fps get() = videoCache.fps
-    var sourceFPS = -1f
+    var sourceFPS = -1.0
+    var sourceSize = 0 to 0
 
-    val frameCount get() =  max(1, FFMPEGStream.frameCountByFile[file] ?: (duration * sourceFPS).toInt())
+    var videoScale = 1
 
-    // val duration get() = videoCache.duration
+    fun calculateSize(matrix: Matrix4f, isBillboard: Float, w: Int, h: Int): Int? {
 
-    fun calculateSize(matrix: Matrix4f): Int? {
 
-        // todo we need to apply the full transform before we can do this check correctly
-        return 1
 
-        // one edge, knapp: (0.40317687 0.83566207 1.0016097) (0.38428885 -0.73683864 1.0015345) (-1.6112523 -1.5214 0.99689794) (-1.7798866 1.7449334 0.9965732)
-        val v00 = matrix.transform(Vector4f(-1f, -1f, 0f, 1f)).toVec3f()
-        val v01 = matrix.transform(Vector4f(-1f, +1f, 0f, 1f)).toVec3f()
-        val v10 = matrix.transform(Vector4f(+1f, -1f, 0f, 1f)).toVec3f()
-        val v11 = matrix.transform(Vector4f(+1f, +1f, 0f, 1f)).toVec3f()
-        val minZ = -1f
-        val maxZ = 1f
-        // is this check good enough?
-        if(v00.z < minZ && v01.z < minZ && v10.z < minZ && v11.z < minZ) return null
-        if(v00.z > maxZ && v01.z > maxZ && v10.z > maxZ && v11.z > maxZ) return null
+        // todo we would need to apply align-with-camera, too
 
-        // check the visibility
-        // todo a better check:
-        // visible if:
-        // - contained or
-        // - cuts one of the edges
+        /**
+            vec4 billboardTransform(vec2 betterUV, float z){
+                vec4 pos0 = transform * vec4(0.0,0.0,0.0,1.0);
+                pos0.xy += betterUV * billboardSize;
+                pos0.z += z;
+                return pos0;
+            }
+            vec4 transform3D(vec2 betterUV){
+                return transform * vec4(betterUV, 0.0, 1.0);
+            }
+            vec4 billboard = billboardTransform(betterUV, 0.0);
+            vec4 in3D = transform3D(betterUV);
+            gl_Position = mix(in3D, billboard, isBillboard);
+         * */
 
-        val fullWidth = GFX.windowWidth
-        val fullHeight = GFX.windowHeight
+        // clamp points to edges of screens, if outside, clamp on the z edges
+        // -> just generally clamp the polygon...
+        // the most extreme cases should be on a quad always, because it's linear
+        // -> clamp all axis separately
 
-        val minX = min(min(v00.x, v01.x), min(v10.x, v11.x))
-        if(minX > 1f) return null
+        val avgSize = if(w * Studio.targetHeight > h * Studio.targetWidth) w.toFloat() * Studio.targetHeight / Studio.targetWidth else h.toFloat()
+        val sx = w / avgSize
+        val sy = h / avgSize
 
-        val maxX = max(max(v00.x, v01.x), max(v10.x, v11.x))
-        if(maxX < -1f) return null
+        // we need the w value for the billboard size :)
+        val billboardCenter = if(isBillboard > 0f) matrix.transform(Vector4f(0f, 0f, 0f, 1f)) else null
+        val billboardW = billboardCenter?.w ?: 1f
+        billboardCenter?.mul(1f/billboardW)
 
-        val minY = min(min(v00.y, v01.y), min(v10.y, v11.y))
-        if(minY > 1f) return null
+        // billboard size
+        val scale = matrix.transformDirection(Vector3f(1f, 1f, 1f)).length()
+        val bbx = scale * GFX.windowHeight / GFX.windowWidth * w/h / billboardW
+        val bby = scale / billboardW
 
-        val maxY = max(max(v00.y, v01.y), max(v10.y, v11.y))
-        if(maxY < -1f) return null
+        fun getPoint(x: Float, y: Float): Vector4f {
+            val billboardPoint = if(isBillboard > 0f) billboardCenter!! + Vector4f(x*bbx, y*bby, 0f, 0f) else null
+            val v00 = if(isBillboard < 1f) matrix.transformProject(Vector4f(x*sx, y*sy, 0f, 1f)) else null
+            if(isBillboard <= 0f) return v00!!
+            if(isBillboard >= 1f) return billboardPoint!!
+            return v00!!.lerp(billboardPoint!!, isBillboard)
+        }
 
-        // we should transform the values with one axis, by scaling the quad down to match the window (more return null cases; e.g. below left corner)
-        // although out of bounds values cannot be seen, they indicate required scale
-        val width = (maxX - minX) * fullWidth * 0.5f
-        val height = (maxY - minY) * fullHeight * 0.5f
+        val v00 = getPoint(-1f, -1f)
+        val v01 = getPoint(-1f, +1f)
+        val v10 = getPoint(+1f, -1f)
+        val v11 = getPoint(+1f, +1f)
 
-        return max(width, height).toInt()
+        // check these points by drawing them on the screen
+        // they were correct as of 12th July 2020, 9:18 am
+        /*glDisable(GL_DEPTH_TEST)
+        glDisable(GL_BLEND)
+
+        for(pt in listOf(v00, v01, v10, v11)){
+            val x = GFX.windowX + (+pt.x * 0.5f + 0.5f) * GFX.windowWidth
+            val y = GFX.windowY + (-pt.y * 0.5f + 0.5f) * GFX.windowHeight
+            GFX.drawRect(x.toInt()-2, y.toInt()-2, 5, 5, 0xff0000 or black)
+        }
+
+        glEnable(GL_DEPTH_TEST)
+        glEnable(GL_BLEND)*/
+
+        val zRange = Clipping.getZ(v00, v01, v10, v11) ?: return null
+
+        // calculate the depth based on the z value
+        fun unmapZ(z: Float): Float {
+            val n = Scene.nearZ
+            val f = Scene.farZ
+            val top = 2 * f * n
+            val bottom = (z * (f-n) - (f+n))
+            return - top / bottom // the usual z is negative -> invert it :)
+        }
+
+        val closestDistance = min(unmapZ(zRange.first), unmapZ(zRange.second))
+
+        // calculate the zoom level based on the distance
+        val pixelZoom = GFX.windowHeight * 1f / (closestDistance * h) // e.g. 0.1 for a window far away
+        val availableRedundancy = 1f / pixelZoom // 0.1 zoom means that we only need every 10th pixel
+
+        return max(1, availableRedundancy.toInt())
 
     }
 
-    override fun onDraw(stack: Matrix4fArrayList, time: Float, color: Vector4f) {
+    fun getCacheableZoomLevel(level: Int): Int {
+        return when {
+            level < 1 -> 1
+            level <= 6 || level == 8 || level == 12 || level == 16 -> level
+            else -> {
+                val stepsIn2 = 3
+                val log = log2(level.toFloat())
+                val roundedLog = round(stepsIn2 * log) / stepsIn2
+                pow(2f, roundedLog).toInt()
+            }
+        }
+    }
 
-        val size = calculateSize(stack) ?: return
+    var w = 16
+    var h = 9
 
-        if(lastFile != file){
+    override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
+
+        val meta = getMeta(file, true)
+
+        // calculate reasonable zoom level from canvas size
+        val alignWithCamera = isBillboard[time]
+        val rawZoomLevel = calculateSize(stack, alignWithCamera, w, h) ?: return
+        val zoomLevel =
+            if(videoScale < 1) getCacheableZoomLevel(rawZoomLevel)
+            else videoScale
+
+        /*if(lastFile !== file){
             val file = file
             lastFile = file
-            sourceFPS = sourceFPSCache[file] ?: -1f
-            duration = durationCache[file] ?: -1f
+            sourceFPS = sourceFPSCache[file] ?: -1.0
+            duration = durationCache[file] ?: -1.0
             if(file.exists() && (sourceFPS <= 0f || duration <= 0f)){
                 // request the metadata :)
                 thread {
                     loop@ while(this.file == file){
-                        val frames = Cache.getVideoFrames(file, 0, 1f, videoMetaTimeout)
+                        val frames = Cache.getVideoFrames(file, -1, 0, 1.0, videoMetaTimeout)
                         if(frames != null){
                             sourceFPS = frames.stream.sourceFPS
                             duration = frames.stream.sourceLength
@@ -120,16 +183,19 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
                             }
                         } else Thread.sleep(1)
                     }
+                    // println("$file: $sourceFPS fps * frame count = $duration s")
                 }
             }
-        }
+        }*/
 
         var wasDrawn = false
 
-        if((duration <= 0f || sourceFPS <= 0f) && GFX.isFinalRendering) throw MissingFrameException(file)
-        if(file.exists() && duration > 0f){
+        if(meta == null && GFX.isFinalRendering) throw MissingFrameException(file)
+        // if((duration <= 0f || sourceFPS <= 0f) && GFX.isFinalRendering) throw MissingFrameException(file)
+        if(meta != null){
 
-            // todo when the video is loaded the first time using rendering, it won't recognise missing frames
+            val sourceFPS = meta.videoFPS
+            val duration = meta.videoDuration
 
             if(startTime >= duration) startTime = duration
             if(endTime >= duration) endTime = duration
@@ -142,13 +208,17 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
                     // at this time, we chose the center frame only.
                     val videoFPS = if(GFX.isFinalRendering) sourceFPS else min(sourceFPS, GFX.editorVideoFPS)
 
+                    val frameCount = (duration * videoFPS).roundToInt()
+
                     // draw the current texture
                     val duration = endTime - startTime
                     val localTime = startTime + (time % duration)
                     val frameIndex = (localTime*videoFPS).toInt() % frameCount
 
-                    val frame = Cache.getVideoFrame(file, frameIndex, frameCount, videoFPS, videoFrameTimeout, isLooping)
+                    val frame = Cache.getVideoFrame(file, zoomLevel, frameIndex, frameCount, videoFPS, videoFrameTimeout, isLooping)
                     if(frame != null && frame.isLoaded){
+                        w = frame.w
+                        h = frame.h
                         GFX.draw3D(stack, frame, color, isBillboard.getValueAt(time), nearestFiltering, tiling[time])
                         wasDrawn = true
                     } else {
@@ -176,27 +246,21 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
 
     override fun createInspector(list: PanelListY, style: Style) {
         super.createInspector(list, style)
-        list += FileInput("File Location", style)
-            .setText(file.toString())
-            .setChangeListener { text -> file = File(text) }
-            .setIsSelectedListener { show(null) }
-        list += VectorInput(style, "Tiling", tiling[lastLocalTime], AnimatedProperty.Type.TILING)
-            .setChangeListener { x, y, z, w -> putValue(tiling, Vector4f(x,y,z,w)) }
-            .setIsSelectedListener { show(tiling) }
-        list += FloatInput("Video Start", startTime, style)
-            .setChangeListener { startTime = it }
-            .setIsSelectedListener { show(null) }
-        list += FloatInput("Video End", endTime, style)
-            .setChangeListener { endTime = it }
-            .setIsSelectedListener { show(null) }
+        list += VI("File Location", "Source file of this video", null, file, style){ file = it }
+        list += VI("Tiling", "(tile count x, tile count y, offset x, offset y)", tiling, style)
+        list += VI("Video Start", "Timestamp in seconds of the first frames drawn", null, startTime, style){ startTime = it }
+        list += VI("Video End", "Timestamp in seconds of the last frames drawn", null, endTime, style) { endTime = it }
         // todo a third mode, where the video is reversed after playing?
         // KISS principle? just allow modules to be created :)
-        list += BooleanInput("Looping?", isLooping, style)
-            .setChangeListener { isLooping = it }
+        list += VI("Looping?", "Should the video start after it ended? (useful for Gifs)", null, isLooping, style){ isLooping = it }
+        // todo more interpolation modes? (cubic?)
+        list += VI("Nearest Filtering", "Pixelated look; linear interpolation otherwise", null, nearestFiltering, style){ nearestFiltering = it }
+        list += EnumInput("Video Scale", true,
+            videoScaleNames.reverse[videoScale] ?: "Auto",
+            videoScaleNames.entries.sortedBy { it.value }.map { it.key }, style)
+            .setChangeListener { videoScale = videoScaleNames[it]!! }
             .setIsSelectedListener { show(null) }
-        list += BooleanInput("Nearest Filtering", nearestFiltering, style)
-            .setChangeListener { nearestFiltering = it }
-            .setIsSelectedListener { show(null) }
+            .setTooltip("Full resolution isn't always required. Define it yourself, or set it to automatic.")
     }
 
     override fun getClassName(): String = "Video"
@@ -204,9 +268,17 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
     override fun save(writer: BaseWriter) {
         super.save(writer)
         writer.writeString("path", file.toString())
-        writer.writeFloat("startTime", startTime)
-        writer.writeFloat("endTime", endTime)
+        writer.writeDouble("startTime", startTime)
+        writer.writeDouble("endTime", endTime)
         writer.writeBool("nearestFiltering", nearestFiltering, true)
+        writer.writeInt("videoScale", videoScale)
+    }
+
+    override fun readInt(name: String, value: Int) {
+        when(name){
+            "videoScale" -> videoScale = value
+            else -> super.readInt(name, value)
+        }
     }
 
     override fun readString(name: String, value: String) {
@@ -216,11 +288,11 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
         }
     }
 
-    override fun readFloat(name: String, value: Float) {
+    override fun readDouble(name: String, value: Double) {
         when(name){
             "startTime" -> startTime = value
             "endTime" -> endTime = value
-            else -> super.readFloat(name, value)
+            else -> super.readDouble(name, value)
         }
     }
 
@@ -233,18 +305,26 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
 
     companion object {
 
-        val sourceFPSCache = HashMap<File, Float>()
-        val durationCache = HashMap<File, Float>()
 
-        val videoMetaTimeout = 100L
+        val videoScaleNames = BiMap<String, Int>(10)
+        init {
+            videoScaleNames["Auto"] = 0
+            videoScaleNames["Original"] = 1
+            videoScaleNames["1/2"] = 2
+            videoScaleNames["1/3"] = 3
+            videoScaleNames["1/4"] = 4
+            videoScaleNames["1/6"] = 6
+            videoScaleNames["1/8"] = 8
+            videoScaleNames["1/12"] = 12
+            videoScaleNames["1/16"] = 16
+        }
+
+        // todo remove those, and replace them with proper metadata
+
         val videoFrameTimeout = 500L
 
         val tiling16x9 = Vector4f(8f, 4.5f, 0f, 0f)
 
-        fun clearCache(){
-            sourceFPSCache.clear()
-            durationCache.clear()
-        }
     }
 
 }

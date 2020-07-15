@@ -22,6 +22,7 @@
       <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/slick.jar!/" />
       <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/joml-1.9.24.jar!/" />
       <root url="jar://$USER_HOME$/Downloads/lib/java/apache imaging/commons-imaging-1.0-alpha1.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/apache maths/commons-math3-3.6.1.jar!/" />
     </CLASSES>
     <JAVADOC>
       <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-assimp-javadoc.jar!/" />
@@ -31,6 +32,7 @@
       <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-opengl-javadoc.jar!/" />
       <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-stb-javadoc.jar!/" />
       <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/joml-1.9.24-javadoc.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/apache maths/commons-math3-3.6.1-javadoc.jar!/" />
     </JAVADOC>
     <SOURCES>
       <root url="jar://$KOTLIN_BUNDLED$/lib/kotlin-stdlib-sources.jar!/" />
@@ -46,6 +48,7 @@
       <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-stb-sources.jar!/" />
       <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjglx-debug-1.0.0-sources.jar!/" />
       <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/joml-1.9.24-sources.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/apache maths/commons-math3-3.6.1-sources.jar!/" />
     </SOURCES>
   </library>
 </component>

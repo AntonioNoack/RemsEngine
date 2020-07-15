@@ -24,18 +24,18 @@ class ParticleInfo(
         return state0.rotation.slerp(state1.rotation, indexF)
     }
 
-    fun getLifeOpacity(time: Float, timeStep: Float, fadingIn: Float, fadingOut: Float): Float {
-        if(lifeIndices < 1) return 0f
+    fun getLifeOpacity(time: Double, timeStep: Double, fadingIn: Double, fadingOut: Double): Double {
+        if(lifeIndices < 1) return 0.0
         val lifeTime = lifeIndices * timeStep
         val localTime = time - birthIndex * timeStep
-        if(localTime < 0f || localTime > lifeTime) return 0f
+        if(localTime < 0f || localTime > lifeTime) return 0.0
         val fading = fadingIn + fadingOut
         if(fading > lifeTime){
             return getLifeOpacity(time, timeStep, lifeTime * fadingIn/fading, lifeTime * fadingOut/fading)
         }
         if(localTime < fadingIn) return localTime/fadingIn
         if(localTime > lifeTime - fadingOut) return (lifeTime-localTime)/fadingOut
-        return 1f
+        return 1.0
     }
 
 }

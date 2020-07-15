@@ -6,6 +6,8 @@ import me.anno.fonts.FontManager
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.buffer.StaticFloatBuffer
 import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.ShaderPair
 import me.anno.gpu.size.WindowSize
 import me.anno.gpu.texture.Texture2D
 import me.anno.input.Input
@@ -70,6 +72,7 @@ object GFX: GFXBase1() {
     // for final rendering we need to use the GPU anyways;
     // so just use a static variable
     var isFinalRendering = false
+    var isFakeColorRendering = false
     var supportsAnisotropicFiltering = false
     var anisotropy = 1f
 
@@ -115,17 +118,17 @@ object GFX: GFXBase1() {
     lateinit var flatShader: Shader
     lateinit var flatShaderTexture: Shader
     lateinit var subpixelCorrectTextShader: Shader
-    lateinit var shader3D: Shader
-    lateinit var shader3DPolygon: Shader
-    lateinit var shader3DYUV: Shader
-    lateinit var shader3DARGB: Shader
-    lateinit var shader3DBGRA: Shader
+    lateinit var shader3D: ShaderPair
+    lateinit var shader3DPolygon: ShaderPair
+    lateinit var shader3DYUV: ShaderPair
+    lateinit var shader3DARGB: ShaderPair
+    lateinit var shader3DBGRA: ShaderPair
     lateinit var shader3DCircle: Shader
-    lateinit var shader3DSVG: Shader
-    lateinit var shader3DXYZUV: Shader
-    lateinit var shader3DSpherical: Shader
+    lateinit var shader3DSVG: ShaderPair
+    lateinit var shader3DXYZUV: ShaderPair
+    lateinit var shader3DSpherical: ShaderPair
     lateinit var lineShader3D: Shader
-    lateinit var shader3DMasked: Shader
+    lateinit var shader3DMasked: ShaderPair
 
     val invisibleTexture = Texture2D(1, 1, 1)
     val whiteTexture = Texture2D(1, 1, 1)
@@ -135,15 +138,17 @@ object GFX: GFXBase1() {
     var rawDeltaTime = 0f
     var deltaTime = 0f
 
-    val editorVideoFPS get() = if(editorTimeDilation == 0f) 10f else 10f / (max(0.333f, abs(editorTimeDilation)))
+    val editorVideoFPS get() = if(editorTimeDilation == 0.0) 10.0 else 10.0 / (max(0.333, abs(editorTimeDilation)))
     var currentEditorFPS = 60f
 
     var lastTime = System.nanoTime() - (editorVideoFPS * 1e9).toLong() // to prevent wrong fps ;)
 
-    var editorHoverTime = 0f
+    var editorHoverTime = 0.0
 
-    var smoothSin = 0f
-    var smoothCos = 0f
+    var smoothSin = 0.0
+    var smoothCos = 0.0
+
+    var drawnTransform: Transform? = null
 
     val menuSeparator = "-----"
 
@@ -275,16 +280,15 @@ object GFX: GFXBase1() {
         shader.v2("size", w.toFloat()/windowWidth, -h.toFloat()/windowHeight)
     }
 
-    fun applyCameraTransform(camera: Camera, time: Float, cameraTransform: Matrix4f, stack: Matrix4fArrayList){
+    fun applyCameraTransform(camera: Camera, time: Double, cameraTransform: Matrix4f, stack: Matrix4fArrayList){
         val position = cameraTransform.transformProject(Vector3f(0f, 0f, 0f))
         val up = cameraTransform.transformProject(Vector3f(0f, 1f, 0f)) - position
         val lookAt = cameraTransform.transformProject(Vector3f(0f, 0f, -1f))
         stack
             .perspective(
-                Math.toRadians(camera.fovYDegrees.getValueAt(time).toDouble()).toFloat(),
+                Math.toRadians(camera.fovYDegrees[time].toDouble()).toFloat(),
                 windowWidth*1f/windowHeight,
-                camera.nearZ.getValueAt(time),
-                camera.farZ.getValueAt(time))
+                camera.nearZ[time], camera.farZ[time])
             .lookAt(position, lookAt, up.normalize())
     }
 
@@ -306,10 +310,19 @@ object GFX: GFXBase1() {
 
         val scale = stack.transformDirection(Vector3f(1f, 1f, 1f)).length()
         shader.v2("billboardSize", scale * windowHeight/windowWidth * w/h, -scale)
-        shader.v4("tint", color.x, color.y, color.z, color.w)
+        shaderColor(shader, "tint", color)
         if(tiling != null) shader.v4("tiling", tiling)
         else shader.v4("tiling", 1f, 1f, 0f, 0f)
         shader.v1("isBillboard", isBillboard)
+    }
+
+    fun shaderColor(shader: Shader, name: String, color: Vector4f){
+        if(isFakeColorRendering){
+            val id = drawnTransform!!.clickId
+            shader.v4(name, id.b()/255f, id.g()/255f, id.r()/255f, 1f)
+        } else {
+            shader.v4(name, color.x, color.y, color.z, color.w)
+        }
     }
 
     fun toRadians(f: Float) = Math.toRadians(f.toDouble()).toFloat()
@@ -333,7 +346,7 @@ object GFX: GFXBase1() {
     fun draw3DMasked(stack: Matrix4fArrayList, texture: Texture2D, mask: Texture2D, color: Vector4f,
                      isBillboard: Float, nearestFiltering: Boolean, useMaskColor: Float, offsetColor: Vector4f,
                      isInverted: Float){
-        val shader = shader3DMasked
+        val shader = shader3DMasked.shader
         shader3DUniforms(shader, stack, 1, 1, color, isBillboard, null)
         shader.v4("offsetColor", offsetColor.x, offsetColor.y, offsetColor.z, offsetColor.w)
         shader.v1("useMaskColor", useMaskColor)
@@ -346,7 +359,7 @@ object GFX: GFXBase1() {
 
     fun draw3D(stack: Matrix4fArrayList, buffer: StaticFloatBuffer, texture: Texture2D, w: Int, h:Int, color: Vector4f,
                isBillboard: Float, nearestFiltering: Boolean, tiling: Vector4f?){
-        val shader = shader3D
+        val shader = shader3D.shader
         shader3DUniforms(shader, stack, w, h, color, isBillboard, tiling)
         texture.bind(0, nearestFiltering)
         buffer.draw(shader)
@@ -362,7 +375,7 @@ object GFX: GFXBase1() {
                       texture: Texture2D, color: Vector4f,
                       inset: Float,
                       isBillboard: Float, nearestFiltering: Boolean){
-        val shader = shader3DPolygon
+        val shader = shader3DPolygon.shader
         shader3DUniforms(shader, stack, 1, 1, color, isBillboard, null)
         shader.v1("inset", inset)
         texture.bind(0, nearestFiltering)
@@ -378,10 +391,10 @@ object GFX: GFXBase1() {
     fun draw3D(stack: Matrix4fArrayList, texture: Frame, color: Vector4f,
                isBillboard: Float, nearestFiltering: Boolean, tiling: Vector4f?){
         if(!texture.isLoaded) throw RuntimeException("Frame must be loaded to be rendered!")
-        val shader = texture.get3DShader()
+        val shader = texture.get3DShader().shader
         shader3DUniforms(shader, stack, texture.w, texture.h, color, isBillboard, tiling)
         texture.bind(0, nearestFiltering)
-        if(shader == shader3DYUV){
+        if(shader == shader3DYUV.shader){
             val w = texture.w
             val h = texture.h
             shader.v2("uvCorrection", w.toFloat()/((w+1)/2*2), h.toFloat()/((h+1)/2*2))
@@ -392,7 +405,7 @@ object GFX: GFXBase1() {
 
     fun drawXYZUV(stack: Matrix4fArrayList, buffer: StaticFloatBuffer, texture: Texture2D, color: Vector4f,
                   isBillboard: Float, nearestFiltering: Boolean, mode: Int = GL11.GL_TRIANGLES){
-        val shader = shader3DXYZUV
+        val shader = shader3DXYZUV.shader
         shader3DUniforms(shader, stack, 1,1 , color, isBillboard, null)
         texture.bind(0, nearestFiltering)
         buffer.draw(shader, mode)
@@ -401,7 +414,7 @@ object GFX: GFXBase1() {
 
     fun drawSpherical(stack: Matrix4fArrayList, buffer: StaticFloatBuffer, texture: Texture2D, color: Vector4f,
                       isBillboard: Float, nearestFiltering: Boolean, mode: Int = GL11.GL_TRIANGLES){
-        val shader = shader3DSpherical
+        val shader = shader3DSpherical.shader
         shader3DUniforms(shader, stack, 1,1 , color, isBillboard, null)
         texture.bind(0, nearestFiltering)
         buffer.draw(shader, mode)
@@ -410,7 +423,7 @@ object GFX: GFXBase1() {
 
     fun draw3DSVG(stack: Matrix4fArrayList, buffer: StaticFloatBuffer, texture: Texture2D, color: Vector4f,
                   isBillboard: Float, nearestFiltering: Boolean){
-        val shader = shader3DSVG
+        val shader = shader3DSVG.shader
         shader3DUniforms(shader, stack, 1,1 , color, isBillboard, null)
         texture.bind(0, nearestFiltering)
         buffer.draw(shader)
@@ -446,56 +459,62 @@ object GFX: GFXBase1() {
 
         // color only for a rectangle
         // (can work on more complex shapes)
-        flatShader = Shader("" +
-                "a2 attr0;\n" +
-                "u2 pos, size;\n" +
-                "void main(){\n" +
-                "   gl_Position = vec4((pos + attr0 * size)*2.-1., 0.0, 1.0);\n" +
-                "}", "", "" +
-                "u4 color;\n" +
-                "void main(){\n" +
-                "   gl_FragColor = color;\n" +
-                "}")
+        flatShader = Shader(
+            "" +
+                    "a2 attr0;\n" +
+                    "u2 pos, size;\n" +
+                    "void main(){\n" +
+                    "   gl_Position = vec4((pos + attr0 * size)*2.-1., 0.0, 1.0);\n" +
+                    "}", "", "" +
+                    "u4 color;\n" +
+                    "void main(){\n" +
+                    "   gl_FragColor = color;\n" +
+                    "}"
+        )
 
-        flatShaderTexture = Shader("" +
-                "a2 attr0;\n" +
-                "u2 pos, size;\n" +
-                "u4 tiling;\n" +
-                "void main(){\n" +
-                "   gl_Position = vec4((pos + attr0 * size)*2.-1., 0.0, 1.0);\n" +
-                "   uv = (attr0-0.5) * tiling.xy + 0.5 + tiling.zw;\n" +
-                "}", "" +
-                "varying vec2 uv;\n", "" +
-                "uniform sampler2D tex;\n" +
-                "u4 color;\n" +
-                "void main(){\n" +
-                "   gl_FragColor = color * texture(tex, uv);\n" +
-                "}")
+        flatShaderTexture = Shader(
+            "" +
+                    "a2 attr0;\n" +
+                    "u2 pos, size;\n" +
+                    "u4 tiling;\n" +
+                    "void main(){\n" +
+                    "   gl_Position = vec4((pos + attr0 * size)*2.-1., 0.0, 1.0);\n" +
+                    "   uv = (attr0-0.5) * tiling.xy + 0.5 + tiling.zw;\n" +
+                    "}", "" +
+                    "varying vec2 uv;\n", "" +
+                    "uniform sampler2D tex;\n" +
+                    "u4 color;\n" +
+                    "void main(){\n" +
+                    "   gl_FragColor = color * texture(tex, uv);\n" +
+                    "}"
+        )
 
         // with texture
-        subpixelCorrectTextShader = Shader("" +
-                "a2 attr0;\n" +
-                "u2 pos, size;\n" +
-                "void main(){\n" +
-                "   gl_Position = vec4((pos + attr0 * size)*2.-1., 0.0, 1.0);\n" +
-                "   uv = attr0;\n" +
-                "}", "" +
-                "varying v2 uv;\n", "" +
-                "uniform vec4 textColor;" +
-                "uniform vec3 backgroundColor;\n" +
-                "uniform sampler2D tex;\n" +
-                "float brightness(vec3 color){" +
-                "   return dot(color, vec3(1.));\n" +
-                "}" +
-                "void main(){\n" +
-                "   vec3 textMask = texture(tex, uv).rgb;\n" +
-                "   vec3 mixing = brightness(textColor.rgb) > brightness(backgroundColor) ? textMask.rgb : textMask.bgr;\n" +
-                "   vec3 color = vec3(\n" +
-                "       mix(backgroundColor.r, textColor.r, mixing.r),\n" +
-                "       mix(backgroundColor.g, textColor.g, mixing.g),\n" +
-                "       mix(backgroundColor.b, textColor.b, mixing.b));\n" +
-                "   gl_FragColor = vec4(color, textColor.a);\n" +
-                "}")
+        subpixelCorrectTextShader = Shader(
+            "" +
+                    "a2 attr0;\n" +
+                    "u2 pos, size;\n" +
+                    "void main(){\n" +
+                    "   gl_Position = vec4((pos + attr0 * size)*2.-1., 0.0, 1.0);\n" +
+                    "   uv = attr0;\n" +
+                    "}", "" +
+                    "varying v2 uv;\n", "" +
+                    "uniform vec4 textColor;" +
+                    "uniform vec3 backgroundColor;\n" +
+                    "uniform sampler2D tex;\n" +
+                    "float brightness(vec3 color){" +
+                    "   return dot(color, vec3(1.));\n" +
+                    "}" +
+                    "void main(){\n" +
+                    "   vec3 textMask = texture(tex, uv).rgb;\n" +
+                    "   vec3 mixing = brightness(textColor.rgb) > brightness(backgroundColor) ? textMask.rgb : textMask.bgr;\n" +
+                    "   vec3 color = vec3(\n" +
+                    "       mix(backgroundColor.r, textColor.r, mixing.r),\n" +
+                    "       mix(backgroundColor.g, textColor.g, mixing.g),\n" +
+                    "       mix(backgroundColor.b, textColor.b, mixing.b));\n" +
+                    "   gl_FragColor = vec4(color, textColor.a);\n" +
+                    "}"
+        )
 
         subpixelCorrectTextShader.use()
         GL20.glUniform1i(subpixelCorrectTextShader["tex"], 0)
@@ -728,17 +747,19 @@ object GFX: GFXBase1() {
                 colorPostProcessing +
                 "}", listOf("tex"))
 
-        lineShader3D = Shader("in vec3 attr0;\n" +
-                "uniform mat4 transform;\n" +
-                "void main(){" +
-                "   gl_Position = transform * vec4(attr0, 1.0);\n" +
-                positionPostProcessing +
-                "}", "", "" +
-                "uniform vec4 color;\n" +
-                "void main(){" +
-                "   gl_FragColor = color;\n" +
-                colorPostProcessing +
-                "}")
+        lineShader3D = Shader(
+            "in vec3 attr0;\n" +
+                    "uniform mat4 transform;\n" +
+                    "void main(){" +
+                    "   gl_Position = transform * vec4(attr0, 1.0);\n" +
+                    positionPostProcessing +
+                    "}", "", "" +
+                    "uniform vec4 color;\n" +
+                    "void main(){" +
+                    "   gl_FragColor = color;\n" +
+                    colorPostProcessing +
+                    "}"
+        )
     }
 
     fun createCustomShader2(v3D: String, y3D: String, fragmentShader: String, textures: List<String>): Shader {
@@ -750,7 +771,18 @@ object GFX: GFXBase1() {
         return shader
     }
 
-    fun createCustomShader(v3D: String, y3D: String, fragmentShader: String, textures: List<String>): Shader {
+    fun createCustomShader(v3D: String, y3D: String, fragmentShader: String, textures: List<String>): ShaderPair {
+        val shader = ShaderPair(v3D, y3D, fragmentShader)
+        for(shader2 in listOf(shader.correctShader, shader.monoShader)){
+            shader2.use()
+            textures.forEachIndexed { index, name ->
+                GL20.glUniform1i(shader2[name], index)
+            }
+        }
+        return shader
+    }
+
+    fun createCustomShader3(v3D: String, y3D: String, fragmentShader: String, textures: List<String>): Shader {
         val shader = Shader(v3D, y3D, fragmentShader)
         shader.use()
         textures.forEachIndexed { index, name ->
@@ -838,7 +870,7 @@ object GFX: GFXBase1() {
 
     }
 
-    fun updateLastLocalTime(parent: Transform, time: Float){
+    fun updateLastLocalTime(parent: Transform, time: Double){
         val localTime = parent.getLocalTime(time)
         parent.lastLocalTime = localTime
         parent.children.forEach { child ->
@@ -855,9 +887,9 @@ object GFX: GFXBase1() {
         currentEditorFPS = min(currentEditorFPS + (newFPS - currentEditorFPS) * 0.05f, newFPS)
         lastTime = thisTime
 
-        editorTime = max(editorTime + deltaTime * editorTimeDilation, 0f)
-        if(editorTime == 0f && editorTimeDilation < 0f){
-            editorTimeDilation = 0f
+        editorTime = max(editorTime + deltaTime * editorTimeDilation, 0.0)
+        if(editorTime == 0.0 && editorTimeDilation < 0.0){
+            editorTimeDilation = 0.0
         }
 
         smoothSin = sin(editorTime)

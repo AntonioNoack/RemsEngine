@@ -3,10 +3,11 @@ package me.anno.studio
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle
 import me.anno.gpu.GFX
-import me.anno.gpu.GFX.createCustomShader
+import me.anno.gpu.GFX.createCustomShader3
 import me.anno.gpu.GFX.flat01
+import me.anno.gpu.GFX.isFakeColorRendering
 import me.anno.gpu.GFX.isFinalRendering
-import me.anno.gpu.Shader
+import me.anno.gpu.shader.Shader
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.input.Input.keysDown
@@ -20,6 +21,7 @@ import me.anno.ui.editor.sceneView.Grid
 import me.anno.utils.times
 import me.anno.utils.warn
 import me.anno.video.MissingFrameException
+import org.joml.Matrix4f
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
 import org.lwjgl.opengl.GL11.*
@@ -28,6 +30,9 @@ import java.io.File
 import kotlin.math.sqrt
 
 object Scene {
+
+    var nearZ = 0.001f
+    var farZ = 1000f
 
     // use a framebuffer, where we draw sq(color)
     // then we use a shader to draw sqrt(sq(color))
@@ -108,60 +113,62 @@ object Scene {
                 "   return clamp((x * (a * x + b)) / (x * (c * x + d) + e), 0.0, 1.0);\n" +
                 "}"
 
-        sqrtToneMappingShader = Shader("" +
-                "in vec2 attr0;\n" +
-                "uniform float ySign;\n" +
-                "void main(){" +
-                "   vec2 coords = attr0*2.0-1.0;\n" +
-                "   gl_Position = vec4(coords.x, coords.y * ySign, 0.0, 1.0);\n" +
-                "   uv = attr0;\n" +
-                "}", "" +
-                "varying vec2 uv;\n", "" +
-                "uniform sampler2D tex;\n" +
-                "uniform vec3 fxScale;\n" +
-                "uniform float chromaticAberration;" +
-                "uniform vec2 chromaticOffset;\n" +
-                "uniform vec2 distortion, distortionOffset;\n" +
-                "uniform float minValue;\n" +
-                "uniform float toneMapper;\n" +
-                noiseFunc +
-                reinhardToneMapping +
-                acesToneMapping +
-                uchimuraToneMapping +
-                "vec2 distort(vec2 uv, vec2 nuv, vec2 duv){" +
-                "   vec2 nuv2 = nuv + duv;\n" +
-                "   float r2 = dot(nuv2,nuv2), r4 = r2*r2;\n" +
-                "   vec2 uv2 = uv + duv + ((nuv2 - distortionOffset) * dot(distortion, vec2(r2, r4)))/fxScale.xy;\n" +
-                "   return uv2;\n" +
-                "}" +
-                "vec4 getColor(vec2 uv){" +
-                "   float zero = min(min(uv.x, 1.0-uv.x), min(uv.y, 1.0-uv.y))*1000.0;\n" +
-                "   vec4 color = texture(tex, uv);\n" +
-                "   return vec4(color.rgb, color.a * clamp(zero, 0.0, 1.0));\n" +
-                "}" +
-                "void main(){" +
-                "   vec2 uv2 = (uv-0.5)*fxScale.z+0.5;\n" +
-                "   vec2 nuv = (uv2-0.5)*fxScale.xy;\n" +
-                "   vec2 duv = (chromaticAberration * nuv + chromaticOffset)/fxScale.xy;\n" +
-                "   vec2 uvR = distort(uv2, nuv, duv), uvG = distort(uv2, nuv, vec2(0.0)), uvB = distort(uv2, nuv, -duv);\n" +
-                "   vec2 ra = getColor(uvR).ra;\n" +
-                "   vec2 ga = getColor(uvG).ga;\n" +
-                "   vec2 ba = getColor(uvB).ba;\n" +
-                "   vec4 raw = vec4(ra.x, ga.x, ba.x, ga.y);\n" +
-                // "   float tm5 = 1.0 - dot(toneMappers, vec4(1.0));\n" +
-                "   vec3 toneMapped = " +
-                "       toneMapper < 0.5 ?" +
-                "           raw.rgb : " +
-                "       toneMapper < 1.5 ?" +
-                "           reinhard(raw.rgb) :" +
-                "       toneMapper < 2.5 ?" +
-                "           aces(raw.rgb) :" +
-                "           uchimura(raw.rgb);\n" +
-                "   vec4 color = vec4(sqrt(toneMapped), raw.a);\n" +
-                "   gl_FragColor = color + random(uv) * minValue;\n" +
-                "}")
+        sqrtToneMappingShader = Shader(
+            "" +
+                    "in vec2 attr0;\n" +
+                    "uniform float ySign;\n" +
+                    "void main(){" +
+                    "   vec2 coords = attr0*2.0-1.0;\n" +
+                    "   gl_Position = vec4(coords.x, coords.y * ySign, 0.0, 1.0);\n" +
+                    "   uv = attr0;\n" +
+                    "}", "" +
+                    "varying vec2 uv;\n", "" +
+                    "uniform sampler2D tex;\n" +
+                    "uniform vec3 fxScale;\n" +
+                    "uniform float chromaticAberration;" +
+                    "uniform vec2 chromaticOffset;\n" +
+                    "uniform vec2 distortion, distortionOffset;\n" +
+                    "uniform float minValue;\n" +
+                    "uniform float toneMapper;\n" +
+                    noiseFunc +
+                    reinhardToneMapping +
+                    acesToneMapping +
+                    uchimuraToneMapping +
+                    "vec2 distort(vec2 uv, vec2 nuv, vec2 duv){" +
+                    "   vec2 nuv2 = nuv + duv;\n" +
+                    "   float r2 = dot(nuv2,nuv2), r4 = r2*r2;\n" +
+                    "   vec2 uv2 = uv + duv + ((nuv2 - distortionOffset) * dot(distortion, vec2(r2, r4)))/fxScale.xy;\n" +
+                    "   return uv2;\n" +
+                    "}" +
+                    "vec4 getColor(vec2 uv){" +
+                    "   float zero = min(min(uv.x, 1.0-uv.x), min(uv.y, 1.0-uv.y))*1000.0;\n" +
+                    "   vec4 color = texture(tex, uv);\n" +
+                    "   return vec4(color.rgb, color.a * clamp(zero, 0.0, 1.0));\n" +
+                    "}" +
+                    "void main(){" +
+                    "   vec2 uv2 = (uv-0.5)*fxScale.z+0.5;\n" +
+                    "   vec2 nuv = (uv2-0.5)*fxScale.xy;\n" +
+                    "   vec2 duv = (chromaticAberration * nuv + chromaticOffset)/fxScale.xy;\n" +
+                    "   vec2 uvR = distort(uv2, nuv, duv), uvG = distort(uv2, nuv, vec2(0.0)), uvB = distort(uv2, nuv, -duv);\n" +
+                    "   vec2 ra = getColor(uvR).ra;\n" +
+                    "   vec2 ga = getColor(uvG).ga;\n" +
+                    "   vec2 ba = getColor(uvB).ba;\n" +
+                    "   vec4 raw = vec4(ra.x, ga.x, ba.x, ga.y);\n" +
+                    // "   float tm5 = 1.0 - dot(toneMappers, vec4(1.0));\n" +
+                    "   vec3 toneMapped = " +
+                    "       toneMapper < 0.5 ?" +
+                    "           raw.rgb : " +
+                    "       toneMapper < 1.5 ?" +
+                    "           reinhard(raw.rgb) :" +
+                    "       toneMapper < 2.5 ?" +
+                    "           aces(raw.rgb) :" +
+                    "           uchimura(raw.rgb);\n" +
+                    "   vec4 color = vec4(sqrt(toneMapped), raw.a);\n" +
+                    "   gl_FragColor = color + random(uv) * minValue;\n" +
+                    "}"
+        )
 
-        lutShader = createCustomShader("" +
+        lutShader = createCustomShader3("" +
                 "in vec2 attr0;\n" +
                 "uniform float ySign;\n" +
                 "void main(){" +
@@ -189,9 +196,13 @@ object Scene {
         return next
     }
 
+    var lastCameraTransform = Matrix4f()
+
     // rendering must be done in sync with the rendering thread (OpenGL limitation) anyways, so one object is enough
     val stack = Matrix4fArrayList()
-    fun draw(target: Framebuffer?, camera: Camera, x0: Int, y0: Int, w: Int, h: Int, time: Float, flipY: Boolean){
+    fun draw(target: Framebuffer?, camera: Camera, x0: Int, y0: Int, w: Int, h: Int, time: Double, flipY: Boolean, useFakeColors: Boolean){
+
+        GFX.isFakeColorRendering = useFakeColors
 
         // we must have crashed before;
         // somewhere in this function
@@ -236,15 +247,23 @@ object Scene {
         // I have no ideas how many we need ;)
         // todo make a matrix stack, which is expandable infinitely
 
+        nearZ = camera.nearZ[cameraTime]
+        farZ = camera.farZ[cameraTime]
+
         GFX.applyCameraTransform(camera, cameraTime, cameraTransform, stack)
 
         val white = Vector4f(1f, 1f, 1f, 1f)
         // camera.color[cameraTime]
         // use different settings for white balance etc...
 
-        stack.pushMatrix()
-        Grid.draw(stack, cameraTransform)
-        stack.popMatrix()
+        // remember the transform for later use
+        lastCameraTransform.set(stack)
+
+        if(!useFakeColors){
+            stack.pushMatrix()
+            Grid.draw(stack, cameraTransform)
+            stack.popMatrix()
+        }
 
         if(camera.useDepth){
             GL30.glEnable(GL30.GL_DEPTH_TEST)
@@ -252,7 +271,9 @@ object Scene {
             GL30.glDisable(GL30.GL_DEPTH_TEST)
         }
 
-        BlendMode.DEFAULT.apply()
+        if(!useFakeColors) BlendMode.DEFAULT.apply()
+        else glDisable(GL_BLEND)
+
         GL30.glDepthMask(true)
 
         testModelRendering()
@@ -287,11 +308,6 @@ object Scene {
         stack.popMatrix()*/
         // todo display a 3D gizmo?
 
-        BlendMode.DEFAULT.apply()
-
-        glDisable(GL_DEPTH_TEST)
-
-
 
         val enableCircularDOF = 'K'.toInt() in keysDown
         if(enableCircularDOF){
@@ -300,6 +316,9 @@ object Scene {
             buffer = switch(buffer, 0, true, withMultisampling = false)
             BokehBlur.draw(buffer, 0.02f)
         }
+
+        glDisable(GL_DEPTH_TEST)
+        glDisable(GL_BLEND)
 
         fun bindTarget(){
             if(target == null){
@@ -311,7 +330,7 @@ object Scene {
         }
 
         val lutFile = camera.lut
-        val needsLUT = lutFile.exists() && !lutFile.isDirectory
+        val needsLUT = !useFakeColors && lutFile.exists() && !lutFile.isDirectory
         val lut = if(needsLUT) Cache.getLUT(lutFile, true, 20_000) else null
 
         // println("lut: $lutFile $lut")
@@ -339,7 +358,7 @@ object Scene {
         sqrtToneMappingShader.use()
         sqrtToneMappingShader.v1("ySign", if(flipY) -1f else 1f)
         val colorDepth = DefaultConfig["display.colorDepth", 8]
-        val minValue = 1f/(1 shl colorDepth)
+        val minValue = if(isFakeColorRendering) 0f else 1f/(1 shl colorDepth)
         val rel = sqrt(w*h.toFloat())
         // artistic scale
         val caScale = 0.01f
@@ -359,7 +378,7 @@ object Scene {
         sqrtToneMappingShader.v2("distortion", dst.x, dst.y)
         sqrtToneMappingShader.v2("distortionOffset", dstOffset)
         sqrtToneMappingShader.v1("minValue", minValue)
-        sqrtToneMappingShader.v1("toneMapper", when(camera.toneMapping){
+        sqrtToneMappingShader.v1("toneMapper", when(if(useFakeColors) ToneMappers.RAW else camera.toneMapping){
             ToneMappers.RAW -> 0f
             ToneMappers.REINHARD -> 1f
             ToneMappers.ACES -> 2f
@@ -395,6 +414,8 @@ object Scene {
             warn("Some function isn't correctly pushing/popping the stack!")
             // further analysis by testing each object individually?
         }
+
+        GFX.isFakeColorRendering = false
 
     }
 

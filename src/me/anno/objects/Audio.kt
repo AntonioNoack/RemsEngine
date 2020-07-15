@@ -1,5 +1,6 @@
 package me.anno.objects
 
+import me.anno.audio.AudioManager
 import me.anno.audio.AudioStream
 import me.anno.gpu.GFX
 import me.anno.io.ISaveable
@@ -8,6 +9,7 @@ import me.anno.objects.animation.AnimatedProperty
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.input.AudioInput
 import me.anno.ui.style.Style
+import me.anno.video.FFMPEGMetadata.Companion.getMeta
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
 import java.io.File
@@ -25,17 +27,17 @@ open class Audio(var file: File = File(""), parent: Transform? = null): GFXTrans
     val amplitude = AnimatedProperty.floatPlus().set(1f)
 
     var needsUpdate = true
+    var isLooping = false
 
     var component: AudioStream? = null
 
     /**
      * is synchronized with the audio thread
      * */
-    fun start(globalTime: Float, speed: Float){
-        println("Starting $globalTime $speed $this")
+    fun start(globalTime: Double, speed: Double){
         needsUpdate = false
         component?.stop()
-        val component = AudioStream(file, 0f)
+        val component = AudioStream(file, isLooping, 0.0, getMeta(file, false)!!)
         this.component = component
         component.globalToLocalTime = { time ->
             getGlobalTransform(time * speed + globalTime).second
@@ -60,11 +62,13 @@ open class Audio(var file: File = File(""), parent: Transform? = null): GFXTrans
     // to do a separate mode, where resource availability is enforced? -> yes, we have that
     // Transforms, which load resources, should load async, and throw an error, if they don't block, while final-rendering
 
-    override fun onDraw(stack: Matrix4fArrayList, time: Float, color: Vector4f) {
+    override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
 
         // to do ensure, that the correct buffer is being generated -> done
         // to do we need to invalidate buffers, if we touch the custom timeline mode, or accelerate/decelerate audio... -> half done
         // todo how should we generate left/right audio? -> we need to somehow do this in software, too, for rendering
+
+        getMeta(file, true) // just in case we need it ;)
 
     }
 
@@ -72,12 +76,24 @@ open class Audio(var file: File = File(""), parent: Transform? = null): GFXTrans
         super.createInspector(list, style)
         list += AudioInput(file, style)
         list += VI("Amplitude", "How loud it is", amplitude, style)
+        list += VI("Is Looping", "Whether to repeat the song/video", null, isLooping, style){
+            AudioManager.requestUpdate()
+            isLooping = it
+        }
     }
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
         writer.writeFile("src", file)
         writer.writeObject(this, "amplitude", amplitude)
+        writer.writeBool("isLooping", isLooping, true)
+    }
+
+    override fun readBool(name: String, value: Boolean) {
+        when(name){
+            "isLooping" -> isLooping = value
+            else -> super.readBool(name, value)
+        }
     }
 
     override fun readObject(name: String, value: ISaveable?) {

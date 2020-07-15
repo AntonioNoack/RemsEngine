@@ -17,7 +17,7 @@ class Circle(parent: Transform? = null): GFXTransform(parent){
     var startDegrees = AnimatedProperty.float()
     var endDegrees = AnimatedProperty.float().set(360f)
 
-    override fun onDraw(stack: Matrix4fArrayList, time: Float, color: Vector4f) {
+    override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
         GFX.draw3DCircle(stack, innerRadius[time], startDegrees[time], endDegrees[time], color, isBillboard[time])
     }
 

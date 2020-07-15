@@ -1,13 +1,11 @@
 package me.anno.video.formats
 
 import me.anno.gpu.GFX
-import me.anno.gpu.Shader
 import me.anno.gpu.texture.Texture2D
 import me.anno.video.Frame
 import me.anno.video.LastFrame
 import java.io.InputStream
 import java.lang.RuntimeException
-import java.util.concurrent.atomic.AtomicInteger
 
 
 class I420Frame(iw: Int, ih: Int): Frame(iw,ih){
@@ -47,7 +45,7 @@ class I420Frame(iw: Int, ih: Int): Frame(iw,ih){
         }
     }
 
-    override fun get3DShader(): Shader = GFX.shader3DYUV
+    override fun get3DShader() = GFX.shader3DYUV
 
     override fun bind(offset: Int, nearestFiltering: Boolean){
         v.bind(offset+2, nearestFiltering)

@@ -43,12 +43,11 @@ class CustomDriver: AnimationDriver(){
         writer.writeString("formula", formula)
     }
 
-    override fun getValue(time: Float): Float {
-        val t = time.toDouble()
+    override fun getValue(time: Double): Double {
         return amplitude[time] * (parseDouble(
             ArrayList(formulaParts), mapOf(
-            "t" to t, "time" to t
-        ))?.toFloat() ?: 0f)
+            "t" to time, "time" to time
+        )) ?: 0.0)
     }
 
     override fun getClassName() = "CustomDriver"

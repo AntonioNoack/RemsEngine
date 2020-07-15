@@ -7,36 +7,39 @@ import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
-import me.anno.utils.clamp
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.blending.BlendMode
 import me.anno.objects.blending.blendModes
 import me.anno.objects.particles.ParticleSystem
 import me.anno.studio.Studio
 import me.anno.ui.base.Panel
-import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.input.*
 import me.anno.ui.style.Style
 import org.joml.*
+import java.io.File
 import java.lang.RuntimeException
-import kotlin.math.max
+import java.util.concurrent.atomic.AtomicInteger
 
 // pivot? nah, always use the center to make things easy;
 // or should we do it?... idk for sure...
 // just make the tree work perfectly <3
 
 // todo load 3D meshes :D
-// todo gradients?
+// gradients? -> can be done using the mask layer
 // todo outline, if something is selected
 // todo select by clicking
 
 open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
 
+    // todo generally "play" the animation of a single transform for testing purposes?
+    // useful for audio, video, particle systems, generally animations
+
     init {
         parent?.addChild(this)
     }
 
+    val clickId = nextClickId.incrementAndGet()
     var isVisibleInTimeline = false
 
     var position = AnimatedProperty.pos()
@@ -49,11 +52,11 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
 
     var blendMode = BlendMode.UNSPECIFIED
 
-    var timeOffset = 0f
-    var timeDilation = 1f
+    var timeOffset = 0.0
+    var timeDilation = 1.0
 
     // todo make this animatable, calculate the integral to get a mapping
-    var timeAnimated = AnimatedProperty.float()
+    var timeAnimated = AnimatedProperty.double()
 
     var name = getDefaultDisplayName()
     var comment = ""
@@ -67,12 +70,12 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
     val children = ArrayList<Transform>()
     var isCollapsed = false
 
-    var lastLocalTime = 0f
+    var lastLocalTime = 0.0
 
     var weight = 1f
 
     fun putValue(list: AnimatedProperty<*>, value: Any){
-        list.addKeyframe(if(list.isAnimated) lastLocalTime else 0f, value, 0.1f)
+        list.addKeyframe(if(list.isAnimated) lastLocalTime else 0.0, value, 0.1)
     }
 
     val usesEuler get() = rotationQuaternion == null
@@ -106,16 +109,10 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
         }
 
         list += VI("Skew", "Transform it similar to a shear", skew, style)
-        list += ColorInput(style, "Color", color[lastLocalTime], color)
-            .setChangeListener { x, y, z, w -> putValue(color, Vector4f(max(0f, x), max(0f, y), max(0f, z), clamp(w, 0f, 1f))) }
-            .setIsSelectedListener { show(color) }
+        list += VI("Color", "Tint, applied to this & children", color, style)
         list += VI("Color Multiplier", "To make things brighter than usually possible", colorMultiplier, style)
-        list += FloatInput("Start Time", timeOffset, style)
-            .setChangeListener { timeOffset = it }
-            .setIsSelectedListener { show(null) }
-        list += FloatInput("Time Multiplier", timeDilation, style)
-            .setChangeListener { timeDilation = it }
-            .setIsSelectedListener { show(null) }
+        list += VI("Start Time", "Delay the animation", null, timeOffset, style){ timeOffset = it }
+        list += VI("Time Multiplier", "Speed up the animation", null, timeDilation, style){ timeDilation = it }
         list += VI("Advanced Time", "Add acceleration/deceleration to your elements", timeAnimated, style)
         list += EnumInput("Blend Mode", true, blendMode.id, blendModes.keys.toList().sorted(), style)
             .setChangeListener { blendMode = BlendMode[it] }
@@ -124,7 +121,7 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
         if(parent?.acceptsWeight() == true){
             list += FloatInput("Weight", weight, AnimatedProperty.Type.FLOAT_PLUS, style)
                 .setChangeListener {
-                    weight = it
+                    weight = it.toFloat()
                     (parent as? ParticleSystem)?.apply {
                         if(children.size > 1) clearCache()
                     }
@@ -138,20 +135,20 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
 
     }
 
-    fun getLocalTime(parentTime: Float): Float {
+    fun getLocalTime(parentTime: Double): Double {
         var localTime0 = (parentTime - timeOffset) * timeDilation
         localTime0 += timeAnimated[localTime0]
         return localTime0
     }
 
     fun getLocalColor(): Vector4f = getLocalColor(parent?.getLocalColor() ?: Vector4f(1f,1f,1f,1f), lastLocalTime)
-    fun getLocalColor(parentColor: Vector4f, time: Float): Vector4f {
+    fun getLocalColor(parentColor: Vector4f, time: Double): Vector4f {
         val col = color.getValueAt(time)
         val mul = colorMultiplier[time]
         return Vector4f(col).mul(parentColor).mul(mul, mul, mul, 1f)
     }
 
-    fun applyTransformLT(transform: Matrix4f, time: Float){
+    fun applyTransformLT(transform: Matrix4f, time: Double){
 
         val position = position[time]
         val scale = scale[time]
@@ -182,18 +179,19 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
 
     }
 
-    fun applyTransformPT(transform: Matrix4f, parentTime: Float) = applyTransformLT(transform, getLocalTime(parentTime))
+    fun applyTransformPT(transform: Matrix4f, parentTime: Double) = applyTransformLT(transform, getLocalTime(parentTime))
 
     /**
      * stack with camera already included
      * */
-    fun draw(stack: Matrix4fArrayList, parentTime: Float, parentColor: Vector4f){
+    fun draw(stack: Matrix4fArrayList, parentTime: Double, parentColor: Vector4f){
 
         val time = getLocalTime(parentTime)
         val color = getLocalColor(parentColor, time)
 
         if(color.w > 0.00025f){ // 12 bit = 4k
             applyTransformLT(stack, time)
+            GFX.drawnTransform = this
             onDraw(stack, time, color)
             if(drawChildrenAutomatically()){
                 drawChildren(stack, time, color)
@@ -204,13 +202,13 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
 
     open fun drawChildrenAutomatically() = true
 
-    fun drawChildren(stack: Matrix4fArrayList, time: Float, color: Vector4f){
+    fun drawChildren(stack: Matrix4fArrayList, time: Double, color: Vector4f){
         children.forEach { child ->
             drawChild(stack, time, color, child)
         }
     }
 
-    fun drawChild(stack: Matrix4fArrayList, time: Float, color: Vector4f, child: Transform?){
+    fun drawChild(stack: Matrix4fArrayList, time: Double, color: Vector4f, child: Transform?){
         if(child != null){
             child.getParentBlendMode(BlendMode.DEFAULT).apply()
             stack.pushMatrix()
@@ -219,7 +217,7 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
         }
     }
 
-    open fun onDraw(stack: Matrix4fArrayList, time: Float, color: Vector4f){
+    open fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f){
 
         // draw a small symbol to indicate pivot
         if(!GFX.isFinalRendering){
@@ -240,8 +238,8 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
         writer.writeObject(this, "rotationYXZ", rotationYXZ)
         writer.writeObject(this, "rotationQuat", rotationQuaternion)
         writer.writeObject(this, "skew", skew)
-        writer.writeFloat("timeOffset", timeOffset)
-        writer.writeFloat("timeDilation", timeDilation)
+        writer.writeDouble("timeOffset", timeOffset)
+        writer.writeDouble("timeDilation", timeDilation)
         writer.writeObject(this, "timeAnimated", timeAnimated)
         writer.writeObject(this, "color", color)
         writer.writeString("blendMode", blendMode.id)
@@ -285,11 +283,11 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
         }
     }
 
-    override fun readFloat(name: String, value: Float) {
+    override fun readDouble(name: String, value: Double) {
         when(name){
             "timeDilation" -> timeDilation = value
             "timeOffset" -> timeOffset = value
-            else -> super.readFloat(name, value)
+            else -> super.readDouble(name, value)
         }
     }
 
@@ -339,7 +337,7 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
         return this
     }
 
-    fun getGlobalTransform(time: Float): Pair<Matrix4f, Float> {
+    fun getGlobalTransform(time: Double): Pair<Matrix4f, Double> {
         val (parentTransform, parentTime) = parent?.getGlobalTransform(time) ?: Matrix4f() to time
         val localTime = getLocalTime(parentTime)
         applyTransformLT(parentTransform, localTime)
@@ -358,10 +356,76 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
     fun clone() = TextWriter.toText(this, false).toTransform()
     open fun acceptsWeight() = false
 
+    /**
+     * creates a panel with the correct input for the type, and sets the default values:
+     * title, tool tip text, type, start value
+     * callback is used to adjust the value
+     * */
+    @Suppress("UNCHECKED_CAST") // all casts are checked in all known use-cases ;)
+    fun <V> VI(title: String, ttt: String, type: AnimatedProperty.Type?, value: V, style: Style, setValue: (V) -> Unit): Panel {
+        return when(value){
+            is Boolean -> BooleanInput(title, value, style)
+                .setChangeListener { setValue(it as V) }
+                .setIsSelectedListener { show(null) }
+                .setTooltip(ttt)
+            is Float -> FloatInput(title, value, type ?: AnimatedProperty.Type.FLOAT, style)
+                .setChangeListener { setValue(it.toFloat() as V) }
+                .setIsSelectedListener { show(null) }
+                .setTooltip(ttt)
+            is Double -> FloatInput(title, value, type ?: AnimatedProperty.Type.DOUBLE, style)
+                .setChangeListener { setValue(it as V) }
+                .setIsSelectedListener { show(null) }
+                .setTooltip(ttt)
+            is Vector2f -> VectorInput(style, title, value, type ?: AnimatedProperty.Type.VEC2)
+                .setChangeListener { x, y, z, w -> setValue(Vector2f(x,y) as V) }
+                .setIsSelectedListener { show(null) }
+                .setTooltip(ttt)
+            is Vector3f -> VectorInput(style, title, value, type ?: AnimatedProperty.Type.VEC3)
+                .setChangeListener { x, y, z, w -> setValue(Vector3f(x,y,z) as V) }
+                .setIsSelectedListener { show(null) }
+                .setTooltip(ttt)
+            is Vector4f -> {
+                if(type == null || type == AnimatedProperty.Type.COLOR){
+                    ColorInput(style, title, value, null)
+                        .setChangeListener { r, g, b, a -> setValue(Vector4f(r,g,b,a) as V) }
+                        .setIsSelectedListener { show(null) }
+                        .setTooltip(ttt)
+                } else {
+                    VectorInput(style, title, value, type)
+                        .setChangeListener { x, y, z, w -> setValue(Vector4f(x,y,z,w) as V) }
+                        .setIsSelectedListener { show(null) }
+                        .setTooltip(ttt)
+                }
+            }
+            is Quaternionf -> VectorInput(style, title, value, type ?: AnimatedProperty.Type.QUATERNION)
+                .setChangeListener { x, y, z, w -> setValue(Quaternionf(x,y,z,w) as V) }
+                .setIsSelectedListener { show(null) }
+                .setTooltip(ttt)
+            is String -> TextInput(title, style, value)
+                .setChangeListener { setValue(it as V) }
+                .setIsSelectedListener { show(null) }
+                .setTooltip(ttt)
+            is File -> FileInput(title, style, value.toString())
+                .setChangeListener { setValue(File(it) as V) }
+                .setIsSelectedListener { show(null) }
+                .setTooltip(ttt)
+            else -> throw RuntimeException("Type $value not yet implemented!")
+        }
+    }
+
+    /**
+     * creates a panel with the correct input for the type, and sets the default values:
+     * title, tool tip text, type, start value
+     * modifies the AnimatedProperty-Object, so no callback is needed
+     * */
     fun VI(title: String, ttt: String, values: AnimatedProperty<*>, style: Style): Panel {
         val time = lastLocalTime
         return when(val value = values[time]){
             is Float -> FloatInput(title, values, 0, time, style)
+                .setChangeListener { putValue(values, it) }
+                .setIsSelectedListener { show(values) }
+                .setTooltip(ttt)
+            is Double -> FloatInput(title, values, 0, time, style)
                 .setChangeListener { putValue(values, it) }
                 .setIsSelectedListener { show(values) }
                 .setTooltip(ttt)
@@ -373,10 +437,19 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
                 .setChangeListener { x, y, z, w -> putValue(values, Vector3f(x, y, z)) }
                 .setIsSelectedListener { show(values) }
                 .setTooltip(ttt)
-            is Vector4f -> VectorInput(title, values, time, style)
-                .setChangeListener { x, y, z, w -> putValue(values, Vector4f(x, y, z, w)) }
-                .setIsSelectedListener { show(values) }
-                .setTooltip(ttt)
+            is Vector4f -> {
+                if(values.type == AnimatedProperty.Type.COLOR){
+                    ColorInput(style, title, value)
+                        .setChangeListener { r, g, b, a -> putValue(values, Vector4f(r, g, b, a)) }
+                        .setIsSelectedListener { show(values) }
+                        .setTooltip(ttt)
+                } else {
+                    VectorInput(title, values, time, style)
+                        .setChangeListener { x, y, z, w -> putValue(values, Vector4f(x, y, z, w)) }
+                        .setIsSelectedListener { show(values) }
+                        .setTooltip(ttt)
+                }
+            }
             is Quaternionf -> VectorInput(title, values, time, style)
                 .setChangeListener { x, y, z, w -> putValue(values, Quaternionf(x, y, z, w)) }
                 .setIsSelectedListener { show(values) }
@@ -398,9 +471,10 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
         // these values MUST NOT be changed
         // they are universal constants, and are used
         // within shaders, too
+        var nextClickId = AtomicInteger()
         val xAxis = Vector3f(1f,0f,0f)
         val yAxis = Vector3f(0f,1f,0f)
-        val zAxis = Vector3f(0f, 0f, 1f)
+        val zAxis = Vector3f(0f,0f,1f)
         fun String.toTransform() = TextReader.fromText(this).first() as Transform
     }
 

@@ -16,7 +16,6 @@ class JsonObject: JsonNode(){
 
     fun getValue(key: String) = map[key]
 
-    override fun isValueNode() = false
     override fun toString() = map.toString()
 
 }

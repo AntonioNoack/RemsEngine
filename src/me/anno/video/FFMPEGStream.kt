@@ -10,8 +10,8 @@ import kotlin.math.roundToInt
 abstract class FFMPEGStream(val file: File?){
 
     var lastUsedTime = System.nanoTime()
-    var sourceFPS = -1f
-    var sourceLength = 0f
+    var sourceFPS = -1.0
+    var sourceLength = 0.0
 
     companion object {
         val frameCountByFile = HashMap<File, Int>()
@@ -21,9 +21,9 @@ abstract class FFMPEGStream(val file: File?){
         fun getSupportedFormats() = (FFMPEGMeta(null).run(listOf(
             "-formats"
         )) as FFMPEGMeta).stringData
-        fun getImageSequence(input: File, startFrame: Int, frameCount: Int, fps: Float = 10f) =
+        fun getImageSequence(input: File, startFrame: Int, frameCount: Int, fps: Double = 10.0) =
             getImageSequence(input, startFrame / fps, frameCount, fps)
-        fun getImageSequence(input: File, startTime: Float, frameCount: Int, fps: Float = 10f) = FFMPEGVideo(
+        fun getImageSequence(input: File, startTime: Double, frameCount: Int, fps: Double = 10.0) = FFMPEGVideo(
             input, (startTime * fps).roundToInt()).run(listOf(
             "-i", input.absolutePath,
             "-ss", "$startTime",
@@ -33,7 +33,7 @@ abstract class FFMPEGStream(val file: File?){
             "-f", "rawvideo", "-"// format
             // "pipe:1" // 1 = stdout, 2 = stdout
         )) as FFMPEGVideo
-        fun getAudioSequence(input: File, startTime: Float, duration: Float, sampleRate: Int) = FFMPEGAudio(
+        fun getAudioSequence(input: File, startTime: Double, duration: Double, sampleRate: Int) = FFMPEGAudio(
             input, sampleRate, duration, (startTime * sampleRate).roundToInt()).run(listOf(
             "-i", input.absolutePath,
             "-ss", "$startTime",

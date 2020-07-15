@@ -22,15 +22,25 @@ class FloatInput(
     val indexInProperty: Int
 ): PanelListY(style) {
 
-    constructor(title: String, owningProperty: AnimatedProperty<*>, indexInProperty: Int, time: Float, style: Style): this(style, title, owningProperty.type, owningProperty, indexInProperty){
-        setValue(owningProperty[time] as Float)
+    constructor(title: String, owningProperty: AnimatedProperty<*>, indexInProperty: Int, time: Double, style: Style): this(style, title, owningProperty.type, owningProperty, indexInProperty){
+        val value = owningProperty[time]
+        if(value is Double) setValue(value)
+        else setValue(value as Float)
     }
 
     constructor(title: String, value0: Float, type: AnimatedProperty.Type, style: Style): this(style, title, type, null, 0){
         setValue(value0)
     }
 
+    constructor(title: String, value0: Double, type: AnimatedProperty.Type, style: Style): this(style, title, type, null, 0){
+        setValue(value0)
+    }
+
     constructor(title: String, value0: Float, style: Style): this(style, title, AnimatedProperty.Type.FLOAT, null, 0){
+        setValue(value0)
+    }
+
+    constructor(title: String, value0: Double, style: Style): this(style, title, AnimatedProperty.Type.DOUBLE, null, 0){
         setValue(value0)
     }
 
@@ -81,7 +91,7 @@ class FloatInput(
     var allowInfinity = false
     var wasInFocus = false
 
-    var changeListener = { value: Float -> }
+    var changeListener = { value: Double -> }
 
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
         val focused1 = titlePanel.isInFocus || inputPanel.isInFocus
@@ -120,7 +130,7 @@ class FloatInput(
             val newValue = isValid(it)
             if(newValue != null){
                 lastValue = newValue
-                changeListener(newValue.toFloat())
+                changeListener(newValue)
             }
         }
         setValue(0f)
@@ -132,7 +142,7 @@ class FloatInput(
     fun setValue(v: Double){
         if(v != lastValue){
             lastValue = v
-            changeListener(v.toFloat())
+            changeListener(v)
         } else {
             lastValue = v
         }
@@ -146,7 +156,7 @@ class FloatInput(
         else "${v.toFloat()}"
     }
 
-    fun setChangeListener(listener: (value: Float) -> Unit): FloatInput {
+    fun setChangeListener(listener: (value: Double) -> Unit): FloatInput {
         changeListener = listener
         return this
     }

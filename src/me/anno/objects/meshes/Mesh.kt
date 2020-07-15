@@ -13,7 +13,7 @@ class Mesh(var file: File, parent: Transform?): GFXTransform(parent){
     var data: MeshData? = null
     var lastFile: File? = null
 
-    override fun onDraw(stack: Matrix4fArrayList, time: Float, color: Vector4f) {
+    override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
 
         val file = file
         if(lastFile != file || data == null){

@@ -102,6 +102,17 @@ open class StringMap(
         }
     }
 
+    operator fun get(key: String, default: Double): Double {
+        return when(val value = this[key]){
+            is Float -> value.toDouble()
+            is Double -> value
+            is Number -> value.toDouble()
+            is String -> value.toDoubleOrNull() ?: default
+            null -> default
+            else -> value.toString().toDoubleOrNull() ?: default
+        }
+    }
+
     operator fun get(key: String, default: Int): Int {
         return when(val value = this[key]){
             is Int -> value

@@ -17,16 +17,16 @@ object Studio {
 
     var dragged: IDraggable? = null
 
-    var editorTime = 0f
+    var editorTime = 0.0
 
-    var editorTimeDilation = 0f
+    var editorTimeDilation = 0.0
         set(value) {
             if(value != field) updateAudio()
             field = value
         }
 
-    val isPaused get() = editorTimeDilation == 0f
-    val isPlaying get() = editorTimeDilation != 0f
+    val isPaused get() = editorTimeDilation == 0.0
+    val isPlaying get() = editorTimeDilation != 0.0
 
     val targetFPS get() = project!!.targetFPS
     val targetWidth get() = project!!.targetWidth
@@ -39,8 +39,8 @@ object Studio {
         nullCamera.name = "Inspector Camera"
         nullCamera.onlyShowTarget = false
         // higher far value to allow other far values to be seen
-        nullCamera.farZ.addKeyframe(0f, 5000f, 1f)
-        nullCamera.timeDilation = 0f // the camera has no time, so no motion can be recorded
+        nullCamera.farZ.addKeyframe(0.0, 5000f, 1.0)
+        nullCamera.timeDilation = 0.0 // the camera has no time, so no motion can be recorded
     }
 
     var root = Transform()
@@ -55,7 +55,7 @@ object Studio {
         GFX.addAudioTask {
             // update the audio player...
             if(isPlaying){
-                AudioManager.requestTimeUpdate()
+                AudioManager.requestUpdate()
             } else {
                 AudioManager.stop()
             }

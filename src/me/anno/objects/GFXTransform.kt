@@ -10,7 +10,7 @@ import me.anno.utils.clamp
 
 abstract class GFXTransform(parent: Transform?): Transform(parent){
 
-    var isBillboard = AnimatedProperty<Float>(AnimatedProperty.Type.FLOAT)
+    var isBillboard = AnimatedProperty.float01()
 
     init {
         isVisibleInTimeline = true
@@ -18,13 +18,15 @@ abstract class GFXTransform(parent: Transform?): Transform(parent){
 
     override fun createInspector(list: PanelListY, style: Style) {
         super.createInspector(list, style)
-        list += VI("Alignment with Camera", "", isBillboard, style)
+        // todo change the transform instead? :)
+        // that should be easier :)
+        // look to the current camera, or the primary camera?
+        list += VI("Alignment with Camera", "0 = in 3D, 1 = looking towards the camera; billboards", isBillboard, style)
     }
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
         writer.writeObject(this, "isBillboard", isBillboard)
-        writer.writeBool("isVisibleInTimeline", isVisibleInTimeline, true)
     }
 
     override fun readBool(name: String, value: Boolean) {

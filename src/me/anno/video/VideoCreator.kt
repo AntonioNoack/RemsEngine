@@ -12,7 +12,7 @@ import java.nio.channels.Channel
 import kotlin.concurrent.thread
 import kotlin.math.sin
 
-class VideoCreator(val w: Int, val h: Int, val fps: Float, val output: File){
+class VideoCreator(val w: Int, val h: Int, val fps: Double, val output: File){
 
     val videoQualities = arrayListOf(
         "ultrafast", "superfast", "veryfast", "faster",

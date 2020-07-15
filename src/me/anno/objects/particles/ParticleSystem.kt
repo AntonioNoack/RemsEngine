@@ -47,18 +47,18 @@ class ParticleSystem(parent: Transform? = null): Transform(parent){
 
     var showChildren = false
     var nextIndex = 0
-    var missingChildren = 0f
-    var timeStep = 0.1f
+    var missingChildren = 0.0
+    var timeStep = 0.1
 
     val particles = ArrayList<ParticleInfo>()
     var seed = 0L
     var random = Random(seed)
     var sumWeight = 0f
 
-    var fadingIn = 0.5f
-    var fadingOut = 0.5f
+    var fadingIn = 0.5
+    var fadingOut = 0.5
 
-    fun step(particles: ArrayList<ParticleInfo>, time: Float, timeIndex: Int, dt: Float){
+    fun step(particles: ArrayList<ParticleInfo>, time: Double, timeIndex: Int, dt: Double){
         missingChildren += spawnRate[time] * dt
         while(missingChildren > 1f){
             particles += createParticle(timeIndex)
@@ -73,8 +73,9 @@ class ParticleSystem(parent: Transform? = null): Transform(parent){
                 val localForce = Vector3f()
                 val force = globalForce + localForce
                 val ddPosition = force / mass
-                val dPosition = oldState.dPosition + ddPosition * dt
-                val position = oldState.position + dPosition * dt
+                val dt2 = dt.toFloat()
+                val dPosition = oldState.dPosition + ddPosition * dt2
+                val position = oldState.position + dPosition * dt2
                 val newState = ParticleState()
                 newState.position = position
                 newState.dPosition = dPosition
@@ -104,7 +105,7 @@ class ParticleSystem(parent: Transform? = null): Transform(parent){
         return particle
     }
 
-    fun calculateMissingSteps(time: Float): Boolean {
+    fun calculateMissingSteps(time: Double): Boolean {
         // cancel after 30ms = 30fps
         val maxTime = 30_000_000L
         val time0 = GFX.lastTime
@@ -129,7 +130,7 @@ class ParticleSystem(parent: Transform? = null): Transform(parent){
         }
     }
 
-    override fun onDraw(stack: Matrix4fArrayList, time: Float, color: Vector4f) {
+    override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
 
         sumWeight = children.sumByDouble { it.weight.toDouble() }.toFloat()
         if(time < 0f || children.isEmpty() || sumWeight <= 0.0) return
@@ -145,12 +146,12 @@ class ParticleSystem(parent: Transform? = null): Transform(parent){
         particles.forEach {
             it.apply {
 
-                val opacity = it.getLifeOpacity(time, timeStep, fadingIn, fadingOut)
+                val opacity = it.getLifeOpacity(time, timeStep, fadingIn, fadingOut).toFloat()
                 if(opacity > 0f){// else not visible
                     stack.pushMatrix()
                     val index = time / timeStep - it.birthIndex
                     val index0 = index.toInt()
-                    val indexF = index-index0
+                    val indexF = (index-index0).toFloat()
 
                     val position = getPosition(index0, indexF)
                     val rotation = getRotation(index0, indexF)

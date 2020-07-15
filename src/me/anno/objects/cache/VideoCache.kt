@@ -14,7 +14,7 @@ class VideoCache(val file: File){
     var startTime = 0f
     var endTime = 1e9f
 
-    var fps = 24f
+    var fps = 24.0
 
     val duration get() = endTime - startTime
 

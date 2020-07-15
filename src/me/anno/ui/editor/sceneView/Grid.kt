@@ -47,7 +47,7 @@ object Grid {
 
     fun drawLine(stack: Matrix4fArrayList, color: Int, alpha: Float){
 
-        val shader = GFX.shader3D
+        val shader = GFX.shader3D.shader
         shader.use()
         stack.get(GFX.matrixBuffer)
         glUniformMatrix4fv(shader["transform"], false, GFX.matrixBuffer)
@@ -105,7 +105,7 @@ object Grid {
 
         if(alpha <= 0f) return
 
-        val shader = GFX.shader3D
+        val shader = GFX.shader3D.shader
         shader.use()
         stack.get(GFX.matrixBuffer)
         glUniformMatrix4fv(shader["transform"], false, GFX.matrixBuffer)
