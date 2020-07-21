@@ -15,7 +15,7 @@ class SceneHState: HistoryState<Transform>(){
     }
 
     override fun writeState(writer: BaseWriter, name: String, v: Transform) {
-        writer.writeObject(this, name, state)
+        writer.writeObject(this, name, v)
     }
 
     override fun getClassName() = "SceneHState"

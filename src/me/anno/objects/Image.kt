@@ -21,8 +21,6 @@ import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
 import java.io.File
 
-// todo allow images and video to be tiled
-
 class Image(var file: File = File(""), parent: Transform? = null): GFXTransform(parent){
 
     var nearestFiltering = DefaultConfig["default.image.nearest", true]

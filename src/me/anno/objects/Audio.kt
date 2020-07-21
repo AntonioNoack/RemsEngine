@@ -25,7 +25,7 @@ open class Audio(var file: File = File(""), parent: Transform? = null): GFXTrans
     val amplitude = AnimatedProperty.floatPlus().set(1f)
 
     var needsUpdate = true
-    var isLooping = false
+    var isLooping = file.extension.equals("gif", true)
 
     var component: AudioStream? = null
 
@@ -35,15 +35,18 @@ open class Audio(var file: File = File(""), parent: Transform? = null): GFXTrans
     fun start(globalTime: Double, speed: Double){
         needsUpdate = false
         component?.stop()
-        val component = AudioStream(file, isLooping, 0.0, getMeta(file, false)!!)
-        this.component = component
-        component.globalToLocalTime = { time ->
-            getGlobalTransform(time * speed + globalTime).second
-        }
-        component.localAmplitude = { time ->
-            amplitude[time]
-        }
-        component.start()
+        val meta = getMeta(file, false)!!
+        if(meta.hasAudio){
+            val component = AudioStream(file, isLooping, 0.0, meta)
+            this.component = component
+            component.globalToLocalTime = { time ->
+                getGlobalTransform(time * speed + globalTime).second
+            }
+            component.localAmplitude = { time ->
+                amplitude[time]
+            }
+            component.start()
+        } else component = null
     }
 
     fun stop(){

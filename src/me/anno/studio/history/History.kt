@@ -12,6 +12,7 @@ object History: Saveable(){
     // history states instead of history entries
 
     // todo history with branches, commits, etc?
+    // todo hierarchic history, so ending of editing a field only saves the final state??
     // logarithmic history? -> no, just make it long enough?
 
     // limit the size of elements? -> nah, disk space is cheap ^^

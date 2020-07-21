@@ -202,7 +202,7 @@ object Scene {
     val stack = Matrix4fArrayList()
     fun draw(target: Framebuffer?, camera: Camera, x0: Int, y0: Int, w: Int, h: Int, time: Double, flipY: Boolean, useFakeColors: Boolean){
 
-        GFX.isFakeColorRendering = useFakeColors
+        isFakeColorRendering = useFakeColors
 
         // we must have crashed before;
         // somewhere in this function
@@ -276,8 +276,6 @@ object Scene {
 
         GL30.glDepthMask(true)
 
-        testModelRendering()
-
         stack.pushMatrix()
         // root.draw(stack, editorHoverTime, Vector4f(1f,1f,1f,1f))
         Studio.nullCamera.draw(stack, time, white)
@@ -307,6 +305,24 @@ object Scene {
         drawCircle(z2.x, z2.y)
         stack.popMatrix()*/
         // todo display a 3D gizmo?
+
+        /**
+         * draw the selection ring for selected objects
+         * draw it after everything else and without depth
+         * */
+        if(!isFinalRendering && !isFakeColorRendering){
+            Studio.selectedTransform?.apply {
+                glDisable(GL_DEPTH_TEST)
+                val (transform, _) = getGlobalTransform(time)
+                stack.pushMatrix()
+                stack.mul(transform)
+                stack.scale(0.02f)
+                drawUICircle(stack, 1f, 0.7f, Vector4f(1f, 0.9f, 0.5f, 1f))
+                stack.scale(1.2f)
+                drawUICircle(stack, 1f, 0.833f, Vector4f(0f, 0f, 0f, 1f))
+                stack.popMatrix()
+            }
+        }
 
 
         val enableCircularDOF = 'K'.toInt() in keysDown
@@ -407,6 +423,8 @@ object Scene {
 
         // todo somehow with multisampling this buffer isn't bound... why?
         bindTarget()
+
+        testModelRendering()
 
         glEnable(GL_BLEND)
 

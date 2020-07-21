@@ -73,39 +73,6 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style): TextPanel(""
                         }
                     )
                 } else println("Reset the config, to enable this menu!")
-                /*GFX.openMenu(
-                    Input.mouseX, Input.mouseY, "Add Child",
-                    listOf(// todo make these options customizable :)
-                        "Folder" to add { Transform(it) },
-                        "Text" to add { Text("Sample Text", it) },
-                        "Image" to add { Image(File(""), it) },
-                        "Video/GIF" to add { Video(File(""), it) },
-                        "Audio" to add { Audio(File(""), it) },
-                        "Circle" to add { Circle(it) },
-                        "Polygon" to add { Polygon(it) },
-                        "Camera" to add { Camera(it) },
-                        "Particle System" to add { ParticleSystem(it) },
-                        "Mask" to add {
-                            val layer = MaskLayer(it)
-                            val mask = Transform(layer)
-                            mask.name = "Mask"
-                            val maskElement = Circle(mask)
-                            val circleScale = 0.75f
-                            maskElement.scale.addKeyframe(0f,
-                                Vector3f(circleScale, circleScale, circleScale),
-                                0.1f)
-                            maskElement.innerRadius.addKeyframe(0f, 0.25f, 0.1f)
-                            maskElement.name = "Mask-Defining Circle"
-                            val masked = Transform(layer)
-                            masked.name = "Masked"
-                            val maskedElement = Polygon(masked)
-                            maskedElement.name = "Shaped Star"
-                            maskedElement.vertexCount.addKeyframe(0f, 10f, 0.1f)
-                            maskedElement.starNess.addKeyframe(0f, 0.6f, 0.1f)
-                            layer
-                        }
-                    )
-                )*/
             }
         }
     }

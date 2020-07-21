@@ -16,7 +16,6 @@ import kotlin.math.max
  * doesn't care about helpful errors much or top performance
  * no assignments, because it shall be small;
  * no intention for global variables (because it's for artists; it must be good enough via other means)
- * todo array, just in case :D
  * todo ... means repeat last element, whereas otherwise 0?
  * */
 object SimpleExpressionParser {
@@ -224,7 +223,6 @@ object SimpleExpressionParser {
         else -> false
     }
 
-    // todo multi dimensional arrays?
     // todo pairs? true vectors? (x,y,z)
     private fun MutableList<Any>.findVectors(): Boolean {
         var wasChanged = false

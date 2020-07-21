@@ -47,7 +47,7 @@ class Project(val file: File): Saveable(){
     }
 
     fun saveScenes(){
-        // todo save the scene(s)
+        // save the scene(s)
         File(file, "root.json")
             .writeText(root.toString())
     }

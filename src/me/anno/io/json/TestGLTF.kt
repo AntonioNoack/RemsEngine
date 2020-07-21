@@ -27,6 +27,8 @@ fun main(){
     // todo gltf requests that we implement pbr...
     // todo should we redesign our whole pipeline; implement it partially, or ignore it?
 
+    testModelRendering()
+
     // are the renderABLE models called renderED models??
     // RenderedGltfModel
 

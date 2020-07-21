@@ -184,6 +184,7 @@ class PureTextInputML(style: Style): ScrollPanelXY(Padding(0), style){
     }
 
     fun deleteSelection(): Boolean {
+        ensureCursorBounds()
         val min = min(cursor1, cursor2)
         val max = max(cursor1, cursor2)
         if(min == max) return false

@@ -458,7 +458,7 @@ val pbrFrag = "" +
         "        break;\n" +
         "      case 5:\n" +
         "        outColor.rgb = specContrib;\n" +
-        "        break;        \n" +
+        "        break;\n" +
         "    }\n" +
         "  }\n" +
         

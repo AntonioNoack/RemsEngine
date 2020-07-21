@@ -34,7 +34,9 @@ class Text(text: String = "", parent: Transform? = null): GFXTransform(parent){
     // todo automatic line break after length x
 
     // todo blurry, colorful text shadow
-    // todo multiple line alignment
+    // done multiple line alignment
+    // todo working tabs
+
 
 
     // how we apply sampling probably depends on our AA solution...
@@ -137,9 +139,6 @@ class Text(text: String = "", parent: Transform? = null): GFXTransform(parent){
                 stack.translate(0f, lineOffset, 0f)
 
             }
-
-            // todo alignment
-            // todo left/right alignment xD
 
             // todo calculate (signed) distance fields for different kinds of shadows from the mesh
             // bad solution for blurred shadows

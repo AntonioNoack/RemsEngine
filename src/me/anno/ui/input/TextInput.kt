@@ -45,6 +45,8 @@ open class TextInput(title: String, style: Style): PanelContainer(
         return this
     }
 
+    val text get() = base.text
+
     fun setText(text: String): TextInput {
         base.text = text
         updateChars()

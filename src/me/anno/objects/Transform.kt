@@ -12,11 +12,13 @@ import me.anno.objects.blending.BlendMode
 import me.anno.objects.blending.blendModes
 import me.anno.objects.particles.ParticleSystem
 import me.anno.studio.Studio
+import me.anno.studio.Studio.selectedTransform
 import me.anno.ui.base.Panel
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.input.*
 import me.anno.ui.style.Style
 import org.joml.*
+import org.lwjgl.opengl.GL11.*
 import java.io.File
 import java.lang.RuntimeException
 import java.util.concurrent.atomic.AtomicInteger
@@ -28,12 +30,15 @@ import java.util.concurrent.atomic.AtomicInteger
 // todo load 3D meshes :D
 // gradients? -> can be done using the mask layer
 // todo outline, if something is selected
-// todo select by clicking
+// done select by clicking
+
+// todo lock camera rotation?
 
 open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
 
     // todo generally "play" the animation of a single transform for testing purposes?
     // useful for audio, video, particle systems, generally animations
+    // only available if the rest is stopped? yes.
 
     init {
         parent?.addChild(this)
@@ -217,15 +222,23 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
         }
     }
 
-    open fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f){
-
+    fun drawUICircle(stack: Matrix4fArrayList, scale: Float, inner: Float, color: Vector4f){
         // draw a small symbol to indicate pivot
         if(!GFX.isFinalRendering){
-            stack.pushMatrix()
-            stack.scale(0.02f)
-            GFX.draw3DCircle(stack, 0.7f, 0f, 360f, color, 1f)
-            stack.popMatrix()
+            if(scale != 1f){
+                stack.pushMatrix()
+                stack.scale(scale)
+            }
+            GFX.draw3DCircle(stack, inner, 0f, 360f, color, 1f)
+            if(scale != 1f){
+                stack.popMatrix()
+            }
         }
+    }
+
+    open fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f){
+
+        drawUICircle(stack, 0.02f, 0.7f, color)
 
     }
 
