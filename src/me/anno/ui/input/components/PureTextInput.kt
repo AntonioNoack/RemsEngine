@@ -237,7 +237,11 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
     }
 
     override fun onEmpty(x: Float, y: Float) {
-        deleteSelection()
+        if(cursor1 == cursor2){
+            text = ""
+            updateChars()
+            ensureCursorBounds()
+        } else deleteSelection()
     }
 
     fun clear(){

@@ -72,7 +72,8 @@ class VectorInput(
     fun addComponent(i: Int, title: String): FloatInput {
         val pseudo = object: FloatInput(style, title, type, owningProperty, i){
             override fun onEmpty(x: Float, y: Float) {
-                this@VectorInput.onEmpty(x,y)
+                val defaultValue = type.defaultValue
+                this.setValue(defaultValue[i])
             }
         }.setChangeListener {
             changeListener(

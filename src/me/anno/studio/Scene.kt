@@ -367,7 +367,7 @@ object Scene {
 
         // outputTexture.bind(0, true)
 
-        // todo render at higher resolution for distortion?
+        // todo render at higher resolution for extreme distortion?
         // msaa should help, too
         // add camera pseudo effects (red-blue-shift)
         // then apply tonemapping
