@@ -13,6 +13,7 @@ import me.anno.ui.base.Visibility
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.input.components.PureTextInput
 import me.anno.ui.style.Style
+import me.anno.utils.get
 import kotlin.math.max
 
 class FloatInput(
@@ -190,6 +191,12 @@ class FloatInput(
     override fun onMouseUp(x: Float, y: Float, button: Int) {
         super.onMouseUp(x, y, button)
         mouseIsDown = false
+    }
+
+    override fun onEmpty(x: Float, y: Float) {
+        val defaultValue = type.defaultValue
+        val defaultDouble = if(defaultValue is Double) defaultValue else (defaultValue as Float).toDouble()
+        setValue(defaultDouble)
     }
 
     override fun getCursor(): Long = Cursor.drag

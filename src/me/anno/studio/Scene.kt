@@ -378,10 +378,15 @@ object Scene {
         val rel = sqrt(w*h.toFloat())
         // artistic scale
         val caScale = 0.01f
-        val ca = camera.chromaticAberration[cameraTime] * caScale
-        val cao = camera.chromaticOffset[cameraTime] * caScale
-        sqrtToneMappingShader.v1("chromaticAberration", ca)
-        sqrtToneMappingShader.v2("chromaticOffset", cao)
+        if(useFakeColors){// colors must be preserved for ids
+            sqrtToneMappingShader.v1("chromaticAberration", 0f)
+            sqrtToneMappingShader.v2("chromaticOffset", 0f, 0f)
+        } else {
+            val ca = camera.chromaticAberration[cameraTime] * caScale
+            val cao = camera.chromaticOffset[cameraTime] * caScale
+            sqrtToneMappingShader.v1("chromaticAberration", ca)
+            sqrtToneMappingShader.v2("chromaticOffset", cao)
+        }
         val fxScaleX = 1f*w/rel
         val fxScaleY = 1f*h/rel
 

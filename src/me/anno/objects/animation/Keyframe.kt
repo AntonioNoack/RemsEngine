@@ -99,8 +99,10 @@ class Keyframe<V>(var time: Double, var value: V): Saveable(), Comparable<Keyfra
     companion object {
         fun BaseWriter.writeValue(name: String, v: Any?){
             when(v){
+                is Boolean -> writeBool(name, v)
                 is Float -> writeFloat(name, v)
                 is Double -> writeDouble(name, v)
+                is Vector2f -> writeVector2(name, v)
                 is Vector3f -> writeVector3(name, v)
                 is Vector4f -> writeVector4(name, v)
                 else -> throw RuntimeException("todo implement")
