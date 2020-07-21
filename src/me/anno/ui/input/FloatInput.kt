@@ -16,7 +16,7 @@ import me.anno.ui.style.Style
 import me.anno.utils.get
 import kotlin.math.max
 
-class FloatInput(
+open class FloatInput(
     style: Style, title: String,
     val type: AnimatedProperty.Type = AnimatedProperty.Type.FLOAT,
     val owningProperty: AnimatedProperty<*>?,
@@ -85,6 +85,10 @@ class FloatInput(
                 return
             }
             super.onMouseClicked(x, y, button, long)
+        }
+
+        override fun onEmpty(x: Float, y: Float) {
+            this@FloatInput.onEmpty(x,y)
         }
     }
 

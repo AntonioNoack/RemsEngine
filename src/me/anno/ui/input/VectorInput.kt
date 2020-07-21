@@ -70,14 +70,17 @@ class VectorInput(
     val valueFields = ArrayList<PureTextInput>(components)
 
     fun addComponent(i: Int, title: String): FloatInput {
-        val pseudo = FloatInput(style, title, type, owningProperty, i)
-            .setChangeListener {
-                changeListener(
-                    compX.lastValue.toFloat(),
-                    compY.lastValue.toFloat(),
-                    compZ?.lastValue?.toFloat() ?: 0f,
-                    compW?.lastValue?.toFloat() ?: 0f)
+        val pseudo = object: FloatInput(style, title, type, owningProperty, i){
+            override fun onEmpty(x: Float, y: Float) {
+                this@VectorInput.onEmpty(x,y)
             }
+        }.setChangeListener {
+            changeListener(
+                compX.lastValue.toFloat(),
+                compY.lastValue.toFloat(),
+                compZ?.lastValue?.toFloat() ?: 0f,
+                compW?.lastValue?.toFloat() ?: 0f)
+        }
         // titleList += pseudo.titlePanel.setWeight(1f)
         val input = pseudo.inputPanel
         valueList += input.setWeight(1f)
