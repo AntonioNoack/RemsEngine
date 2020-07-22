@@ -46,15 +46,17 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
     var placeholder = ""
 
     fun deleteSelection(): Boolean {
-        val min = min(cursor1, cursor2)
-        val max = max(cursor1, cursor2)
-        for(i in max-1 downTo min){
-            characters.removeAt(i)
+        synchronized(this){
+            val min = min(cursor1, cursor2)
+            val max = max(cursor1, cursor2)
+            for(i in max-1 downTo min){
+                characters.removeAt(i)
+            }
+            updateText()
+            cursor1 = min
+            cursor2 = min
+            return max > min
         }
-        updateText()
-        cursor1 = min
-        cursor2 = min
-        return max > min
     }
 
     var drawingOffset = 0

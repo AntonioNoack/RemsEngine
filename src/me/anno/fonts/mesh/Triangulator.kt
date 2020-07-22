@@ -2,21 +2,20 @@ package me.anno.fonts.mesh
 
 import me.anno.utils.*
 import org.apache.logging.log4j.LogManager
-import org.joml.Vector2f
-import java.lang.RuntimeException
+import org.joml.Vector2d
 
 object Triangulator {
 
     val LOGGER = LogManager.getLogger(Triangulator::class)!!
 
-    //fun ringToTriangles(pts: List<Vector2f>) =
+    //fun ringToTriangles(pts: List<Vector2d>) =
     //    ringToTriangleIndices(pts).map { pts[it] }.toMutableList()
 
-    // operator fun Vector2f.minus(s: Vector2f) = Vector2f(x-s.x, y-s.y)
+    // operator fun Vector2d.minus(s: Vector2d) = Vector2d(x-s.x, y-s.y)
 
-    fun getGuessArea(pts: List<Vector2f>): Float {
+    fun getGuessArea(pts: List<Vector2d>): Double {
         val n = pts.size
-        var area = 0f
+        var area = 0.0
         var p = n-1
         var q = 0
         while(q < n){
@@ -25,10 +24,10 @@ object Triangulator {
             area += pv.x * qv.y - qv.x * pv.y // cross product
             p = q++
         }
-        return area * 0.5f
+        return area * 0.5
     }
 
-    fun ringToTriangles(input: List<Vector2f>): List<Vector2f> {
+    fun ringToTriangles(input: List<Vector2d>): List<Vector2d> {
 
         val n = input.size
         if(n < 3) return emptyList()
@@ -39,7 +38,7 @@ object Triangulator {
             input.reversed()
         } else input
 
-        fun containsSomething(a: Vector2f, b: Vector2f, c: Vector2f): Boolean {
+        fun containsSomething(a: Vector2d, b: Vector2d, c: Vector2d): Boolean {
 
             for(p in pts){
                 if(p === a || p === b || p === c) continue
@@ -52,7 +51,7 @@ object Triangulator {
 
         }
 
-        fun cutsSomething(a: Vector2f, b: Vector2f): Boolean {
+        fun cutsSomething(a: Vector2d, b: Vector2d): Boolean {
 
             for((i, p1) in pts.withIndex()){
                 if(p1 === a || p1 === b) continue
@@ -88,7 +87,7 @@ object Triangulator {
         // lists with many points
 
         val maxTriangleCount = pts.size - 2
-        val triangulation = ArrayList<Vector2f>(maxTriangleCount * 3)
+        val triangulation = ArrayList<Vector2d>(maxTriangleCount * 3)
         val shrinkingRing = ArrayList(pts)
         search@ while(shrinkingRing.size > 3){
 
@@ -126,7 +125,7 @@ object Triangulator {
 
                         }
                     }
-                } else if(sideSign == 0f){
+                } else if(sideSign == 0.0){
                     if(!cutsSomething(a, c)){// can this even happen??? I believe it happened and caused issues...
 
                         // println("* ${a.print(input)} ${b.print(input)} ${c.print(input)} ")

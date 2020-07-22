@@ -15,6 +15,7 @@ import me.anno.input.Input.isShiftDown
 import me.anno.objects.Camera
 import me.anno.objects.Transform
 import me.anno.objects.blending.BlendMode
+import me.anno.objects.geometric.Circle
 import me.anno.studio.Build.isDebug
 import me.anno.studio.Studio.editorTime
 import me.anno.studio.Studio.editorTimeDilation
@@ -326,20 +327,15 @@ object GFX: GFXBase1() {
     }
 
     fun toRadians(f: Float) = Math.toRadians(f.toDouble()).toFloat()
-
-    fun positiveFract(a: Float, b: Float): Float {
-        val f = a % b
-        return if(f < 0f) b + f
-        else f
-    }
+    fun toRadians(f: Double) = Math.toRadians(f)
 
     fun draw3DCircle(stack: Matrix4fArrayList, innerRadius: Float, startDegrees: Float, endDegrees: Float, color: Vector4f, isBillboard: Float){
         val shader = shader3DCircle
         shader3DUniforms(shader, stack, 1, 1, color, isBillboard, null)
-        val angle1 = toRadians(positiveFract(startDegrees+180f, 360f)-180f)
-        val angle2 = toRadians(positiveFract(endDegrees+180f, 360f)-180f)
-        shader.v3("circleParams", innerRadius * innerRadius, angle1, angle2)
-        flat01.draw(shader)
+        val angle1 = toRadians(startDegrees)
+        val angle2 = toRadians(endDegrees)
+        shader.v3("circleParams", 1f - innerRadius, angle1, angle2)
+        Circle.drawBuffer(shader)
         check()
     }
 
@@ -681,14 +677,26 @@ object GFX: GFXBase1() {
                 colorPostProcessing +
                 "}"
 
+
+        val v3DCircle = v3DBase +
+                "a2 attr0;\n" + // angle, inner/outer
+                "u3 circleParams;\n" + // 1 - inner r, start, end
+                "void main(){\n" +
+                "   float angle = mix(circleParams.y, circleParams.z, attr0.x);\n" +
+                "   vec2 betterUV = vec2(cos(angle), -sin(angle)) * (1.0 - circleParams.x * attr0.y);\n" +
+                "   vec4 billboard = billboardTransform(betterUV, 0.0);\n" +
+                "   vec4 in3D = transform * vec4(betterUV, 0.0, 1.0);\n" +
+                "   gl_Position = mix(in3D, billboard, isBillboard);\n" +
+                positionPostProcessing +
+                "}"
+
         // todo anti-aliasing... -> taa?
         val f3DCircle = "" +
                 "u4 tint;\n" + // rgba
-                "u3 circleParams;\n" + // r², start, end
                 "void main(){\n" +
                 "   gl_FragColor = tint;\n" +
                 colorPostProcessing +
-                "   vec2 d0 = uv*2.-1.;\n" +
+                /*"   vec2 d0 = uv*2.-1.;\n" +
                 "   float dst = dot(d0,d0);\n" +
                 "   if(dst > 1.0 || dst < circleParams.r) discard;\n" +
                 "   else {" +
@@ -698,12 +706,12 @@ object GFX: GFXBase1() {
                 "       } else {" +
                 "           if(angle > circleParams.b && angle < circleParams.g) discard;" +
                 "       }" +
-                "   }" +
+                "   }" +*/
                 "}"
 
         shader3D = createCustomShader(v3D, y3D, f3D, listOf("tex"))
         shader3DPolygon = createCustomShader(v3DPolygon, y3D, f3D, listOf("tex"))
-        shader3DCircle = Shader(v3D, y3D, f3DCircle)
+        shader3DCircle = Shader(v3DCircle, y3D, f3DCircle)
         shader3DMasked = createCustomShader(v3DMasked, y3DMasked, f3DMasked, listOf("tex", "mask"))
 
         shader3DSVG = createCustomShader(v3DSVG, y3DSVG, f3DSVG, listOf("tex"))

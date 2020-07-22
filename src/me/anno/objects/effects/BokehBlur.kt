@@ -1,15 +1,14 @@
 package me.anno.objects.effects
 
-import me.anno.gpu.GFX
 import me.anno.gpu.GFX.createCustomShader2
 import me.anno.gpu.GFX.flat01
+import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.texture.Texture2D
 import me.anno.objects.Transform.Companion.xAxis
 import me.anno.objects.Transform.Companion.yAxis
 import me.anno.objects.Transform.Companion.zAxis
-import me.anno.utils.get
 import org.joml.Vector3f
 import org.lwjgl.opengl.GL11.*
 
@@ -28,31 +27,29 @@ object BokehBlur {
     var perChannelShader: Shader? = null
 
     // do I need f32 pairs?
-    fun fb() = Framebuffer(1, 1, 1, 1, true, Framebuffer.DepthBufferType.NONE)
-    fun fbPair() = fb() to fb()
-
-    val red = fbPair()
-    val green = fbPair()
-    val blue = fbPair()
+    // fun fb() = Framebuffer(1, 1, 1, 1, true, Framebuffer.DepthBufferType.NONE)
+    // fun fbPair() = fb() to fb()
 
     val filterTexture = Texture2D(KERNEL_COUNT, 1, 1)
 
-    val result = fbPair()
+    /**
+     * result is written to parameter buffer
+     * */
+    fun draw(src: Texture2D, dst: Framebuffer, sizeRY: Float){
 
-    fun draw(buffer: Framebuffer, sizeRY: Float){
-
-        val w = buffer.w
-        val h = buffer.h
+        val w = src.w
+        val h = src.h
 
         if(compositionShader == null) init()
+
+        src.bind(false)
 
         glDisable(GL_DEPTH_TEST)
         glDisable(GL_BLEND)
 
-        val r = red[GFX.isFinalRendering]
-        val g = green[GFX.isFinalRendering]
-        val b = blue[GFX.isFinalRendering]
-        val result = result[GFX.isFinalRendering]
+        val r = FBStack[w, h, false]
+        val g = FBStack[w, h, false]
+        val b = FBStack[w, h, false]
 
         val filterRadius = sizeRY * h / KERNEL_COUNT
 
@@ -72,15 +69,13 @@ object BokehBlur {
         shader.v2("stepVal", 1f/w, 1f/h)
         shader.v1("filterRadius", filterRadius)
 
-        buffer.bind()
-        //bind(w, h)
+        dst.bind()
+
         // filter texture is bound correctly
         r.bindTexture0(1, false)
         g.bindTexture0(2, false)
         b.bindTexture0(3, false)
         flat01.draw(shader)
-
-        // return result.textures[0]
 
     }
 

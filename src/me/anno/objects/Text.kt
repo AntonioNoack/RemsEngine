@@ -56,8 +56,8 @@ class Text(text: String = "", parent: Transform? = null): GFXTransform(parent){
     var lines = text.split('\n')
     var keys = lines.map { FontMeshKey(font, isBold, isItalic, it) }
 
-    var minX = 0f
-    var maxX = 0f
+    var minX = 0.0
+    var maxX = 0.0
 
     data class FontMeshKey(
         val fontName: String, val isBold: Boolean, val isItalic: Boolean,
@@ -96,8 +96,8 @@ class Text(text: String = "", parent: Transform? = null): GFXTransform(parent){
 
             // min and max x are cached for long texts with thousands of lines (not really relevant)
             if(alignment != AxisAlignment.CENTER && (wasChanged || minX >= maxX)){
-                minX = Float.POSITIVE_INFINITY
-                maxX = Float.NEGATIVE_INFINITY
+                minX = Double.POSITIVE_INFINITY
+                maxX = Double.NEGATIVE_INFINITY
                 keys.forEach { fontMeshKey ->
                     // todo async font mesh calculation...
                     if(fontMeshKey.text.isNotEmpty()){
@@ -123,9 +123,9 @@ class Text(text: String = "", parent: Transform? = null): GFXTransform(parent){
                     } as FontMesh
 
                     val offset = when(alignment){
-                        AxisAlignment.MIN -> 2 * (minX - fontMesh.minX)
+                        AxisAlignment.MIN -> 2 * (minX - fontMesh.minX).toFloat()
                         AxisAlignment.CENTER -> 0f
-                        AxisAlignment.MAX -> 2 * (maxX - fontMesh.maxX)
+                        AxisAlignment.MAX -> 2 * (maxX - fontMesh.maxX).toFloat()
                     }
 
                     if(offset != 0f) stack.translate(+offset, 0f, 0f)

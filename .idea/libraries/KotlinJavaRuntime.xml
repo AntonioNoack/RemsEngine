@@ -22,7 +22,6 @@
       <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/slick.jar!/" />
       <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/joml-1.9.24.jar!/" />
       <root url="jar://$USER_HOME$/Downloads/lib/java/apache imaging/commons-imaging-1.0-alpha1.jar!/" />
-      <root url="jar://$USER_HOME$/Downloads/lib/java/apache maths/commons-math3-3.6.1.jar!/" />
     </CLASSES>
     <JAVADOC>
       <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-assimp-javadoc.jar!/" />

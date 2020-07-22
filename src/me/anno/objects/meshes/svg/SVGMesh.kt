@@ -7,7 +7,7 @@ import me.anno.gpu.buffer.StaticFloatBuffer
 import me.anno.io.xml.XMLElement
 import me.anno.utils.clamp
 import me.anno.utils.length
-import org.joml.Vector2f
+import org.joml.Vector2d
 import java.awt.Color
 import java.awt.Graphics2D
 import java.awt.image.BufferedImage
@@ -29,12 +29,12 @@ class SVGMesh {
 
     val stepsPerDegree = DefaultConfig["format.svg.stepsPerDegree", 0.1f]
 
-    var z = 0f
-    val deltaZ = 0.001f
+    var z = 0.0
+    val deltaZ = 0.001
 
     fun parse(svg: XMLElement){
         parseChildren(svg.children, null)
-        val viewBox = (svg["viewBox"] ?: "0 0 100 100").split(' ').map { it.toFloat() }
+        val viewBox = (svg["viewBox"] ?: "0 0 100 100").split(' ').map { it.toDouble() }
         createMesh(viewBox[0], viewBox[1], viewBox[2], viewBox[3])
     }
 
@@ -91,15 +91,15 @@ class SVGMesh {
 
     var buffer: StaticFloatBuffer? = null
 
-    fun debugMesh(x: Float, y: Float, w: Float, h: Float){
+    fun debugMesh(x: Double, y: Double, w: Double, h: Double){
         val x0 = x+w/2
         val y0 = y+h/2
         val debugImageSize = 1000
         val scale = debugImageSize/h
         val img = BufferedImage(debugImageSize, debugImageSize, 1)
         val gfx = img.graphics as Graphics2D
-        fun ix(v: Vector2f) = debugImageSize/2 + ((v.x-x0)*scale).roundToInt()
-        fun iy(v: Vector2f) = debugImageSize/2 + ((v.y-y0)*scale).roundToInt()
+        fun ix(v: Vector2d) = debugImageSize/2 + ((v.x-x0)*scale).roundToInt()
+        fun iy(v: Vector2d) = debugImageSize/2 + ((v.y-y0)*scale).roundToInt()
         curves.forEach {
             val color = it.color or 0x333333
             val triangles = it.triangles
@@ -116,14 +116,14 @@ class SVGMesh {
         ImageIO.write(img, "png", File("C:/Users/Antonio/Desktop/svg/tiger.png"))
     }
 
-    fun createMesh(x0: Float, y0: Float, w: Float, h: Float){
+    fun createMesh(x0: Double, y0: Double, w: Double, h: Double){
         val scale = 1f/h
         val totalPointCount = curves.sumBy { it.triangles.size }
-        val totalFloatCount = totalPointCount * 7 // xyz, rgba
+        val totalDoubleCount = totalPointCount * 7 // xyz, rgba
         if(totalPointCount > 0){
             val buffer = StaticFloatBuffer(listOf(
                 Attribute("attr0",3), Attribute("attr1", 4)
-            ), totalFloatCount)
+            ), totalDoubleCount)
             this.buffer = buffer
             curves.forEach {
                 val color = it.color
@@ -131,9 +131,10 @@ class SVGMesh {
                 val g = color.shr(8).and(255)/255f
                 val b = color.and(255)/255f
                 val a = color.shr(24).and(255)/255f
+                val depth = it.depth.toFloat()
                 it.triangles.forEach { v ->
-                    buffer.put((v.x-x0)*scale, (v.y-y0)*scale, it.depth)
-                    //buffer.put(Math.random().toFloat(), Math.random().toFloat(), Math.random().toFloat(), Math.random().toFloat())
+                    buffer.put(((v.x-x0)*scale).toFloat(), ((v.y-y0)*scale).toFloat(), depth)
+                    //buffer.put(Math.random().toDouble(), Math.random().toDouble(), Math.random().toDouble(), Math.random().toDouble())
                     //println(Vector3f((v.x-x0)*scale, (v.y-y0)*scale, it.depth).print())
                     buffer.put(r, g, b, a)
                 }
@@ -155,14 +156,14 @@ class SVGMesh {
         }
     }
 
-    val currentCurve = ArrayList<Vector2f>(128)
+    val currentCurve = ArrayList<Vector2d>(128)
     val curves = ArrayList<SVGCurve>()
 
-    var x = 0f
-    var y = 0f
+    var x = 0.0
+    var y = 0.0
 
-    var reflectedX = 0f
-    var reflectedY = 0f
+    var reflectedX = 0.0
+    var reflectedY = 0.0
 
     lateinit var currentStyle: SVGStyle
     var currentFill = false
@@ -172,8 +173,8 @@ class SVGMesh {
         currentStyle = style
         currentFill = fill
         // each new element is relative to its parent
-        x = 0f
-        y = 0f
+        x = 0.0
+        y = 0.0
     }
 
     fun endElement(){
@@ -183,8 +184,8 @@ class SVGMesh {
 
     fun addLine(xml: XMLElement, style: SVGStyle, fill: Boolean){
         init(style, fill)
-        moveTo(xml["x1"]!!.toFloat(), xml["y1"]!!.toFloat())
-        lineTo(xml["x2"]!!.toFloat(), xml["y2"]!!.toFloat())
+        moveTo(xml["x1"]!!.toDouble(), xml["y1"]!!.toDouble())
+        lineTo(xml["x2"]!!.toDouble(), xml["y2"]!!.toDouble())
         endElement()
     }
 
@@ -192,7 +193,7 @@ class SVGMesh {
         init(style, fill)
         val data = xml["d"] ?: return
         var i = 0
-        fun read(): Float {
+        fun read(): Double {
             var j = i
             spaces@while(true){
                 when(data[j]){
@@ -249,7 +250,7 @@ class SVGMesh {
                 }
             }
             // println("'${data.substring(i, j)}' + ${data.substring(j, j+10)}")
-            val value = data.substring(i, j).toFloat()
+            val value = data.substring(i, j).toDouble()
             i = j
             return value
         }
@@ -304,9 +305,9 @@ class SVGMesh {
         endElement()
     }
 
-    fun arcTo(rx: Float, ry: Float, xAxisRotation: Float,
-              largeArcFlag: Float, sweepFlag: Float,
-              x2: Float, y2: Float){
+    fun arcTo(rx: Double, ry: Double, xAxisRotation: Double,
+              largeArcFlag: Double, sweepFlag: Double,
+              x2: Double, y2: Double){
         // println("$rx $ry $xAxisRotation $largeArcFlag $sweepFlag $x2 $y2")
         arcTo(rx, ry, xAxisRotation,
             largeArcFlag.toInt() != 0,
@@ -315,11 +316,11 @@ class SVGMesh {
     }
 
     // http://xahlee.info/REC-SVG11-20110816/implnote.html#ArcImplementationNotes
-    fun arcTo(rx: Float, ry: Float, xAxisRotation: Float,
+    fun arcTo(rx: Double, ry: Double, xAxisRotation: Double,
               largeArcFlag: Boolean, sweepFlag: Boolean,
-              x2: Float, y2: Float){
+              x2: Double, y2: Double){
 
-        if(rx == 0f && ry == 0f) return lineTo(x2, y2)
+        if(rx == 0.0 && ry == 0.0) return lineTo(x2, y2)
 
         if(rx < 0f || ry < 0f) return arcTo(abs(rx), abs(ry), xAxisRotation, largeArcFlag, sweepFlag, x2, y2)
 
@@ -356,9 +357,9 @@ class SVGMesh {
         val qx = (x12-cx2)/rx
         val qy = (y12-cy2)/ry
 
-        val twoPi = (2*PI).toFloat()
+        val twoPi = (2*PI).toDouble()
 
-        val theta0 = angle(1f, 0f, qx, qy)
+        val theta0 = angle(1.0, 0.0, qx, qy)
         var deltaTheta = angle(qx, qy, -(x12+cx2)/rx, -(y12+cy2)/ry)// % twoPi
 
         if(sweepFlag){
@@ -383,10 +384,10 @@ class SVGMesh {
 
     }
 
-    fun angle(ux: Float, uy: Float, vx: Float, vy: Float): Float {
+    fun angle(ux: Double, uy: Double, vx: Double, vy: Double): Double {
         val sign = if(ux*vy - uy*vx > 0f) 1f else -1f
         val dotTerm = (ux*vx+uy*vy) / sqrt((ux*ux+uy*uy) * (vx*vx+vy*vy))
-        return sign * acos(clamp(dotTerm, -1f, 1f))
+        return sign * acos(clamp(dotTerm, -1.0, 1.0))
     }
 
     fun addPolyline(xml: XMLElement, style: SVGStyle, fill: Boolean){
@@ -394,7 +395,7 @@ class SVGMesh {
         val data = xml["points"]!!
 
         var i = 0
-        fun read(): Float {
+        fun read(): Double {
             var j = i
             spaces@while(true){
                 when(data[j]){
@@ -451,7 +452,7 @@ class SVGMesh {
                 }
             }
             // println("'${data.substring(i, j)}' + ${data.substring(j, j+10)}")
-            val value = data.substring(i, j).toFloat()
+            val value = data.substring(i, j).toDouble()
             i = j
             return value
         }
@@ -479,15 +480,15 @@ class SVGMesh {
 
     fun addEllipse(xml: XMLElement, style: SVGStyle, fill: Boolean){
         init(style, fill)
-        addSimpleEllipse(xml["cx"]!!.toFloat(), xml["cy"]!!.toFloat(), xml["rx"]!!.toFloat(), xml["ry"]!!.toFloat())
+        addSimpleEllipse(xml["cx"]!!.toDouble(), xml["cy"]!!.toDouble(), xml["rx"]!!.toDouble(), xml["ry"]!!.toDouble())
         endElement()
     }
 
-    fun addSimpleEllipse(cx: Float, cy: Float, rx: Float, ry: Float){
+    fun addSimpleEllipse(cx: Double, cy: Double, rx: Double, ry: Double){
         val steps = max(7, (360 * stepsPerDegree).roundToInt())
         moveTo(cx + rx, cy)
         for(i in 1 until steps){
-            val f = (PI*2*i/steps).toFloat()
+            val f = (PI*2*i/steps).toDouble()
             val s = sin(f)
             val c = cos(f)
             lineTo(cx + c * rx, cy + s * ry)
@@ -497,12 +498,12 @@ class SVGMesh {
 
     fun addRectangle(xml: XMLElement, style: SVGStyle, fill: Boolean){
         init(style, fill)
-        val rx = max(xml["rx"]?.toFloatOrNull() ?: 0f, 0f)
-        val ry = max(xml["ry"]?.toFloatOrNull() ?: 0f, 0f)
-        val x = xml["x"]!!.toFloat()
-        val y = xml["y"]!!.toFloat()
-        val w = xml["width"]!!.toFloat()
-        val h = xml["height"]!!.toFloat()
+        val rx = max(xml["rx"]?.toDoubleOrNull() ?: 0.0, 0.0)
+        val ry = max(xml["ry"]?.toDoubleOrNull() ?: 0.0, 0.0)
+        val x = xml["x"]!!.toDouble()
+        val y = xml["y"]!!.toDouble()
+        val w = xml["width"]!!.toDouble()
+        val h = xml["height"]!!.toDouble()
 
         if(rx > 0f || ry > 0f){
 
@@ -531,9 +532,9 @@ class SVGMesh {
 
     fun addCircle(xml: XMLElement, style: SVGStyle, fill: Boolean){
         init(style, fill)
-        val r = xml["r"]!!.toFloat()
-        val cx = xml["cx"]!!.toFloat()
-        val cy = xml["cy"]!!.toFloat()
+        val r = xml["r"]!!.toDouble()
+        val cx = xml["cx"]!!.toDouble()
+        val cy = xml["cy"]!!.toDouble()
         addSimpleEllipse(cx, cy, r, r)
         endElement()
     }
@@ -543,16 +544,16 @@ class SVGMesh {
         endElement()
     }
 
-    fun angleDegrees(dx1: Float, dy1: Float, dx2: Float, dy2: Float): Float {
+    fun angleDegrees(dx1: Double, dy1: Double, dx2: Double, dy2: Double): Double {
         val div = (dx1*dx1+dy1*dy1) * (dx2*dx2+dy2*dy2)
-        if(div == 0f) return 57f
-        return 57.2957795f * (acos(clamp((dx1*dx2 + dy1*dy2) / sqrt(div), -1f, 1f)))
+        if(div == 0.0) return 57.29577951308232
+        return 57.29577951308232 * (acos(clamp((dx1*dx2 + dy1*dy2) / sqrt(div), -1.0, 1.0)))
     }
 
-    fun steps(dx1: Float, dy1: Float, dx2: Float, dy2: Float) =
+    fun steps(dx1: Double, dy1: Double, dx2: Double, dy2: Double) =
         max((angleDegrees(dx1, dy1, dx2, dy2) * stepsPerDegree).roundToInt(), 2)
 
-    fun cubicTo(x1: Float, y1: Float, x2: Float, y2: Float, x: Float, y: Float){
+    fun cubicTo(x1: Double, y1: Double, x2: Double, y2: Double, x: Double, y: Double){
 
         val steps = steps(x1 - this.x, y1 - this.y, x - x2, y - y2)
         for(i in 1 until steps){
@@ -562,7 +563,7 @@ class SVGMesh {
             val b = 3*g*g*f
             val c = 3*g*f*f
             val d = f*f*f
-            currentCurve += Vector2f(
+            currentCurve += Vector2d(
                 this.x * a + x1 * b + x2 * c + x * d,
                 this.y * a + y1 * b + y2 * c + y * d
             )
@@ -575,7 +576,7 @@ class SVGMesh {
 
     }
 
-    fun quadraticTo(x1: Float, y1: Float, x: Float, y: Float){
+    fun quadraticTo(x1: Double, y1: Double, x: Double, y: Double){
 
         val steps = steps(x1 - this.x, y1 - this.y, x - x1, y - y1)
         for(i in 1 until steps){
@@ -584,7 +585,7 @@ class SVGMesh {
             val a = g*g
             val b = 2*g*f
             val c = f*f
-            currentCurve += Vector2f(
+            currentCurve += Vector2d(
                 this.x * a + x1 * b + x * c,
                 this.y * a + y1 * b + y * c
             )
@@ -597,20 +598,20 @@ class SVGMesh {
 
     }
 
-    fun lineTo(x: Float, y: Float){
+    fun lineTo(x: Double, y: Double){
 
-        currentCurve += Vector2f(x, y)
+        currentCurve += Vector2d(x, y)
 
         this.x = x
         this.y = y
 
     }
 
-    fun moveTo(x: Float, y: Float){
+    fun moveTo(x: Double, y: Double){
 
         end(false)
 
-        currentCurve += Vector2f(x, y)
+        currentCurve += Vector2d(x, y)
 
         this.x = x
         this.y = y
@@ -622,7 +623,7 @@ class SVGMesh {
         if(currentCurve.isNotEmpty()){
             curves += SVGCurve(ArrayList(currentCurve), closed, z,
                 if(currentFill) currentStyle.fill!! else currentStyle.stroke!!,
-                if(currentFill) 0f else currentStyle.strokeWidth)
+                if(currentFill) 0.0 else currentStyle.strokeWidth)
             currentCurve.clear()
         }
 

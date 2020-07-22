@@ -22,8 +22,11 @@ object Cache {
     private val lockedKeys = HashSet<Any>(2048)
 
     fun clear(){
-        cache.clear()
-        lockedKeys.clear() // mmh...
+        synchronized(this){
+            cache.values.forEach { it.destroy() }
+            cache.clear()
+            lockedKeys.clear() // mmh...
+        }
     }
 
     fun getLUT(file: File, asyncGenerator: Boolean, timeout: Long = 5000): Texture3D? {

@@ -2,7 +2,7 @@ package me.anno.objects.meshes.svg
 
 import me.anno.fonts.mesh.Triangulator
 import me.anno.utils.plus
-import org.joml.Vector2f
+import org.joml.Vector2d
 import java.awt.Color
 import java.awt.Graphics2D
 import java.awt.image.BufferedImage
@@ -12,23 +12,23 @@ import javax.imageio.ImageIO
 import kotlin.math.max
 import kotlin.math.roundToInt
 
-class SVGCurve(points: MutableList<Vector2f>, closed: Boolean, val depth: Float, val color: Int, width: Float){
+class SVGCurve(points: MutableList<Vector2d>, closed: Boolean, val depth: Double, val color: Int, width: Double){
 
-    val triangles: List<Vector2f>
+    val triangles: List<Vector2d>
 
-    fun createRing(points: List<Vector2f>, offset: Float, closed: Boolean): MutableList<Vector2f> {
+    fun createRing(points: List<Vector2d>, offset: Double, closed: Boolean): MutableList<Vector2d> {
         return if(closed) createRing(points, offset, points.last(), points.first())
         else createRing(points, offset, points.first(), points.last())
     }
 
-    fun createRing(points: List<Vector2f>, offset: Float, start: Vector2f, end: Vector2f): MutableList<Vector2f> {
-        val result = ArrayList<Vector2f>(points.size)
+    fun createRing(points: List<Vector2d>, offset: Double, start: Vector2d, end: Vector2d): MutableList<Vector2d> {
+        val result = ArrayList<Vector2d>(points.size)
         val size = points.size
         for(i in 0 until size){
             val a = if(i == 0) start else points[i-1]
             val b = points[i]
             val c = if(i == size-1) end else points[i+1]
-            val dir = Vector2f(a.y - c.y, c.x - a.x)
+            val dir = Vector2d(a.y - c.y, c.x - a.x)
             dir.normalize(offset)
             result.add(b + dir)
         }
@@ -37,7 +37,7 @@ class SVGCurve(points: MutableList<Vector2f>, closed: Boolean, val depth: Float,
 
     init {
 
-        val fill = width == 0f
+        val fill = width == 0.0
 
         if(fill){
 
@@ -64,7 +64,7 @@ class SVGCurve(points: MutableList<Vector2f>, closed: Boolean, val depth: Float,
 
     }
 
-    fun showDebug(points: List<Vector2f>, closed: Boolean){
+    fun showDebug(points: List<Vector2d>, closed: Boolean){
 
         val img = BufferedImage(debugImageSize, debugImageSize, 1)
         val gfx = img.graphics as Graphics2D
@@ -81,17 +81,17 @@ class SVGCurve(points: MutableList<Vector2f>, closed: Boolean, val depth: Float,
         val avgY = (maxY+minY)/2
         var scale = 1f/(max(maxX-minX, maxY-minY))
 
-        fun ix(v: Vector2f) = debugImageSize/2 + (debugImageSize*0.8f * (v.x-avgX)*scale).roundToInt()
-        fun iy(v: Vector2f) = debugImageSize/2 + (debugImageSize*0.8f * (v.y-avgY)*scale).roundToInt()
+        fun ix(v: Vector2d) = debugImageSize/2 + (debugImageSize*0.8f * (v.x-avgX)*scale).roundToInt()
+        fun iy(v: Vector2d) = debugImageSize/2 + (debugImageSize*0.8f * (v.y-avgY)*scale).roundToInt()
 
         val first = points.first()
         var last = first
-        points.forEachIndexed { index, vector2f ->
-            gfx.drawString("$index", ix(vector2f) + 4, iy(vector2f) + 4)
+        points.forEachIndexed { index, Vector2d ->
+            gfx.drawString("$index", ix(Vector2d) + 4, iy(Vector2d) + 4)
             if(index > 0){
-                gfx.drawLine(ix(last), iy(last), ix(vector2f), iy(vector2f))
+                gfx.drawLine(ix(last), iy(last), ix(Vector2d), iy(Vector2d))
             }
-            last = vector2f
+            last = Vector2d
         }
 
         if(closed){

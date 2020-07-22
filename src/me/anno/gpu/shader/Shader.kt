@@ -1,6 +1,7 @@
 package me.anno.gpu.shader
 
 import me.anno.gpu.GFX
+import me.anno.objects.cache.CacheData
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector2f
 import org.joml.Vector3f
@@ -9,7 +10,7 @@ import org.lwjgl.opengl.GL20.*
 import java.lang.RuntimeException
 
 class Shader(vertex: String, varying: String, fragment: String,
-             private val disableShorts: Boolean = false){
+             private val disableShorts: Boolean = false): CacheData {
 
     companion object {
         val LOGGER = LogManager.getLogger()
@@ -17,16 +18,19 @@ class Shader(vertex: String, varying: String, fragment: String,
         var lastProgram = -1
     }
 
-    val program = glCreateProgram()
-    val vertexShader = compile(GL_VERTEX_SHADER, ("" +
-            "#version 130\n " +
-            "${varying.replace("varying", "out")} $vertex").replaceShortCuts())
-    val fragmentShader = compile(GL_FRAGMENT_SHADER, ("" +
-            "#version 130\n" +
-            "precision mediump float; ${varying.replace("varying", "in")} $fragment").replaceShortCuts())
+    private val program = glCreateProgram()
 
     init {
+        // the shaders are like a C compilation process, .o-files: after linking, they can be removed
+        val vertexShader = compile(GL_VERTEX_SHADER, ("" +
+                "#version 130\n " +
+                "${varying.replace("varying", "out")} $vertex").replaceShortCuts())
+        val fragmentShader = compile(GL_FRAGMENT_SHADER, ("" +
+                "#version 130\n" +
+                "precision mediump float; ${varying.replace("varying", "in")} $fragment").replaceShortCuts())
         glLinkProgram(program)
+        glDeleteShader(vertexShader)
+        glDeleteShader(fragmentShader)
     }
 
     fun String.replaceShortCuts() = if(disableShorts) this else this
@@ -103,9 +107,6 @@ class Shader(vertex: String, varying: String, fragment: String,
         }
     }
 
-
-
-
     fun v3(name: String, color: Int){
         val loc = getUniformLocation(name)
         if(loc > -1) glUniform3f(loc,
@@ -113,8 +114,6 @@ class Shader(vertex: String, varying: String, fragment: String,
             (color.shr(8) and 255)/255f,
             color.and(255)/255f)
     }
-
-
 
     fun v4(name: String, color: Int){
         val loc = getUniformLocation(name)
@@ -154,7 +153,8 @@ class Shader(vertex: String, varying: String, fragment: String,
 
     operator fun get(name: String) = getUniformLocation(name)
 
-
-
+    override fun destroy() {
+        glDeleteProgram(program)
+    }
 
 }

@@ -10,7 +10,7 @@ class SVGStyle(data: XMLElement){
     val isStroke = stroke != null
     val fill = parseColor(data["fill"] ?: if(isStroke) "none" else "black")
     val isFill = fill != null
-    val strokeWidth = data["stroke-width"]?.toFloatOrNull() ?: 1f
+    val strokeWidth = data["stroke-width"]?.toDoubleOrNull() ?: 1.0
 
 
     // https://www.december.com/html/spec/colorsvg.html +

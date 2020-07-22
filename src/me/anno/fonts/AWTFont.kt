@@ -40,7 +40,7 @@ class AWTFont(val font: Font): XFont {
 
     fun String.countLines() = count { it == '\n' } + 1
 
-    override fun generateTexture(text: String, fontSize: Float): ITexture2D? {// todo center left/center/right for multiline
+    override fun generateTexture(text: String, fontSize: Float): ITexture2D? {
 
         if(text.isEmpty()) return null
         if(containsSpecialChar(text)) return generateTexture2(text, fontSize)

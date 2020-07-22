@@ -1,6 +1,9 @@
 package me.anno.objects.geometric
 
 import me.anno.gpu.GFX
+import me.anno.gpu.buffer.Attribute
+import me.anno.gpu.buffer.StaticFloatBuffer
+import me.anno.gpu.shader.Shader
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.GFXTransform
@@ -10,6 +13,9 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.style.Style
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
+import kotlin.math.PI
+import kotlin.math.cos
+import kotlin.math.sin
 
 class Circle(parent: Transform? = null): GFXTransform(parent){
 
@@ -44,6 +50,39 @@ class Circle(parent: Transform? = null): GFXTransform(parent){
             "endDegrees" -> endDegrees.copyFrom(value)
             else -> super.readObject(name, value)
         }
+    }
+
+    companion object {
+
+        var isInited = false
+        lateinit var buffer: StaticFloatBuffer
+
+        fun drawBuffer(shader: Shader){
+            if(!isInited){
+                createBuffer()
+                isInited = true
+            }
+            buffer.draw(shader)
+        }
+
+        fun createBuffer(){
+            val n = 512
+            // angle, scaling
+            buffer = StaticFloatBuffer(listOf(Attribute("attr0", 2)), 3 * 2 * n)
+            fun put(index: Int, scaling: Float){
+                buffer.put(index.toFloat()/n, scaling)
+            }
+            for(i in 0 until n){
+                val j = i+1
+                put(i, 0f)
+                put(i, 1f)
+                put(j, 1f)
+                put(i, 0f)
+                put(j, 1f)
+                put(j, 0f)
+            }
+        }
+
     }
 
 }

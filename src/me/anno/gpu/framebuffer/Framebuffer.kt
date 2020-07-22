@@ -141,8 +141,9 @@ class Framebuffer(var w: Int, var h: Int, val samples: Int, val targetCount: Int
 
     fun bindTexture0(offset: Int = 0, nearest: Boolean){
         if(withMultisampling){
-            resolveTo(msBuffer!!)
-            msBuffer!!.bindTexture0(offset, nearest)
+            val msBuffer = msBuffer!!
+            resolveTo(msBuffer)
+            msBuffer.bindTexture0(offset, nearest)
             return
         }
         GL13.glActiveTexture(GL13.GL_TEXTURE0 + offset)
@@ -151,8 +152,9 @@ class Framebuffer(var w: Int, var h: Int, val samples: Int, val targetCount: Int
 
     fun bindTextures(offset: Int = 0, nearest: Boolean){
         if(withMultisampling){
-            resolveTo(msBuffer!!)
-            msBuffer!!.bindTextures(offset, nearest)
+            val msBuffer = msBuffer!!
+            resolveTo(msBuffer)
+            msBuffer.bindTextures(offset, nearest)
             return
         }
         textures.forEachIndexed { index, texture ->
