@@ -20,6 +20,7 @@ import me.anno.ui.dragging.Draggable
 import me.anno.ui.editor.treeView.TreeView.Companion.addChildFromFile
 import me.anno.ui.style.Style
 import me.anno.utils.clamp
+import me.anno.utils.colorDifference
 import me.anno.utils.mixARGB
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -28,17 +29,24 @@ import java.lang.Exception
 
 class TreeViewPanel(val getElement: () -> Transform, style: Style): TextPanel("", style){
 
+    // todo text shadow, if text color and background color are close
+
     val accentColor = style.getColor("accentColor", DefaultStyle.black or 0xff0000)
     val defaultBackground = backgroundColor
-    val cameraBackground = mixARGB(accentColor, defaultBackground, 0.9f)
+    //val cameraBackground = mixARGB(accentColor, defaultBackground, 0.9f)
 
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.draw(x0, y0, x1, y1)
         val transform = getElement()
         textColor = DefaultStyle.black or (transform.getLocalColor().toRGB(180))
-        backgroundColor = if(transform === Studio.selectedCamera) cameraBackground else defaultBackground
+        backgroundColor = /*if(transform === Studio.selectedCamera) cameraBackground else */defaultBackground
         val isInFocus = isInFocus || Studio.selectedTransform == transform
         if(isInFocus) textColor = accentColor
+        /*val colorDifference = colorDifference(textColor, backgroundColor)
+        val shadowness = clamp(1f - colorDifference/30f, 0f, 1f)
+        if(shadowness > 0f){
+            drawText(x, y, text, accentColor)
+        }*/
         drawText(x, y, text, textColor)
     }
 
@@ -135,7 +143,7 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style): TextPanel(""
 
     override fun getTooltipText(x: Float, y: Float): String? {
         val transform = getElement()
-        return if(transform is Camera) "Shift-Click to set current" else null
+        return if(transform is Camera) "Drag Onto Scene to Use" else null
     }
 
     fun Vector4f.toRGB(scale: Int = 255): Int {

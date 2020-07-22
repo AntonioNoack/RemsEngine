@@ -15,7 +15,7 @@ import me.anno.studio.Studio.dragged
 import me.anno.studio.Studio.editorTime
 import me.anno.studio.Studio.nullCamera
 import me.anno.studio.Studio.root
-import me.anno.studio.Studio.selectedCamera
+// import me.anno.studio.Studio.selectedCamera
 import me.anno.studio.Studio.selectedTransform
 import me.anno.studio.Studio.targetHeight
 import me.anno.studio.Studio.targetWidth
@@ -303,7 +303,7 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
             "SetMode(MOVE)" -> mode = TransformMode.MOVE
             "SetMode(SCALE)" -> mode = TransformMode.SCALE
             "SetMode(ROTATE)" -> mode = TransformMode.ROTATE
-            "ResetCamera" -> { selectedCamera.resetTransform() }
+            "ResetCamera" -> { camera.resetTransform() }
             "MoveLeft" -> this.dx--
             "MoveRight" -> this.dx++
             "MoveUp" -> this.dy++
@@ -343,12 +343,9 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
                         dy = (h-rh)/2
                     }
                 }
-                resolveClick(x, y, rw, rh)
+                resolveClick(x-dx, y-dy, rw, rh)
                 35
             }
-
-            // todo bbx vs drawing and testing? pixel-perfectness...
-            // todo we need a correct function...
 
         }
     }

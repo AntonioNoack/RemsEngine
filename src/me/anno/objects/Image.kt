@@ -44,7 +44,7 @@ class Image(var file: File = File(""), parent: Transform? = null): GFXTransform(
             name.endsWith("webp", true) -> {
                 val tiling = tiling[time]
                 // calculate required scale? no, without animation, we don't need to scale it down ;)
-                val texture = Cache.getVideoFrame(file, 1, 0, 0, 1.0, imageTimeout)
+                val texture = Cache.getVideoFrame(file, 1, 0, 0, 1.0, imageTimeout, LoopingState.PLAY_ONCE)
                 if((texture == null || !texture.isLoaded) && isFinalRendering) throw MissingFrameException(file)
                 if(texture?.isLoaded == true) GFX.draw3D(stack, texture, color, isBillboard[time], nearestFiltering, tiling)
             }

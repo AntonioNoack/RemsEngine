@@ -226,7 +226,11 @@ object Scene {
 
         stack.clear()
 
-        val withMultisampling = true && !useFakeColors
+        val mayUseMSAA = if(isFinalRendering)
+            DefaultConfig["rendering.useMSAA", true]
+        else
+            DefaultConfig["editor.useMSAA", true]
+        val withMultisampling = mayUseMSAA && !useFakeColors
 
         GFX.check()
 

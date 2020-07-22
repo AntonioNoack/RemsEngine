@@ -166,7 +166,7 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
             if(endTime >= sourceDuration) endTime = sourceDuration
 
             if(sourceFPS > 0f){
-                if(time + startTime >= 0f && (isLooping || time < endTime)){
+                if(time + startTime >= 0f && (isLooping != LoopingState.PLAY_ONCE || time < endTime)){
 
                     // use full fps when rendering to correctly render at max fps with time dilation
                     // issues arise, when multiple frames should be interpolated together into one
@@ -177,7 +177,7 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
 
                     // draw the current texture
                     val duration = endTime - startTime
-                    val localTime = startTime + (time % duration)
+                    val localTime = startTime + isLooping[time, duration]
                     val frameIndex = (localTime*videoFPS).toInt() % frameCount
 
                     val frame = Cache.getVideoFrame(file, zoomLevel, frameIndex, frameCount, videoFPS, videoFrameTimeout, isLooping)
@@ -215,7 +215,7 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
         list += VI("Video End", "Timestamp in seconds of the last frames drawn", null, endTime, style) { endTime = it }
         // todo a third mode, where the video is reversed after playing?
         // KISS principle? just allow modules to be created :)
-        list += VI("Looping?", "Should the video start after it ended? (useful for Gifs)", null, isLooping, style){ isLooping = it }
+        // list += VI("Looping?", "Should the video start after it ended? (useful for Gifs)", null, isLooping, style){ isLooping = it }
         // todo more interpolation modes? (cubic?)
         list += VI("Nearest Filtering", "Pixelated look; linear interpolation otherwise", null, nearestFiltering, style){ nearestFiltering = it }
         list += EnumInput("Video Scale", true,

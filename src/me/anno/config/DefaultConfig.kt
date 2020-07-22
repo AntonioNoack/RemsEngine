@@ -47,6 +47,9 @@ object DefaultConfig: StringMap() {
 
         this["display.colorDepth"] = 8
 
+        this["rendering.useMSAA"] = true // should not be deactivated, unless... idk...
+        this["editor.useMSAA"] = true // can be deactivated for really weak GPUs
+
         addImportMappings("Transform", "json")
         addImportMappings("Image", "png", "jpg", "jpeg", "tiff", "webp", "svg", "ico")
         addImportMappings("Cubemap", "hdr")

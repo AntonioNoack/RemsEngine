@@ -68,7 +68,7 @@ class Framebuffer(var w: Int, var h: Int, val samples: Int, val targetCount: Int
             val texture = Texture2D(w, h, samples)
             if(fpTargets) texture.createFP32()
             else texture.create()
-            LOGGER.info("create/textures-array $w $h $samples $fpTargets")
+            // LOGGER.info("create/textures-array $w $h $samples $fpTargets")
             GFX.check()
             texture.filtering(true)
             GFX.check()

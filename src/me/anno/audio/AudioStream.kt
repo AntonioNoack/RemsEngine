@@ -1,6 +1,7 @@
 package me.anno.audio
 
 import me.anno.gpu.GFX
+import me.anno.objects.LoopingState
 import me.anno.objects.cache.Cache
 import me.anno.utils.mix
 import me.anno.video.FFMPEGMetadata
@@ -19,7 +20,7 @@ import kotlin.math.min
 // only play once, then destroy; it makes things easier
 // (on user input and when finally rendering only)
 
-class AudioStream(val file: File, val repeat: Boolean, val startTime: Double, val meta: FFMPEGMetadata){
+class AudioStream(val file: File, val repeat: LoopingState, val startTime: Double, val meta: FFMPEGMetadata){
 
     val minPerceptibleAmplitude = 1f/32500f
 
@@ -118,8 +119,9 @@ class AudioStream(val file: File, val repeat: Boolean, val startTime: Double, va
 
 
     fun getMaxAmplitudesSync(index: Long): Pair<Short, Short> {
-        if(index < 0 || (!repeat && index >= maxSampleIndex)) return 0.toShort() to 0.toShort()
-        val index = if(repeat) index % maxSampleIndex else index
+        if(index < 0 || (repeat == LoopingState.PLAY_ONCE && index >= maxSampleIndex)) return 0.toShort() to 0.toShort()
+        val index = repeat[index, maxSampleIndex]
+        // val index = if(repeat) index % maxSampleIndex else index
         val sliceIndex = index / ffmpegSliceSampleCount
         val localIndex = (index % ffmpegSliceSampleCount).toInt()
         val arrayIndex0 = localIndex * 2 // for stereo

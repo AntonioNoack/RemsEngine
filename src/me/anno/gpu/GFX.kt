@@ -21,7 +21,7 @@ import me.anno.studio.Studio.editorTime
 import me.anno.studio.Studio.editorTimeDilation
 import me.anno.studio.Studio.eventTasks
 import me.anno.studio.Studio.root
-import me.anno.studio.Studio.selectedCamera
+// import me.anno.studio.Studio.selectedCamera
 import me.anno.studio.Studio.selectedInspectable
 import me.anno.studio.Studio.selectedTransform
 import me.anno.studio.Studio.targetHeight
@@ -83,9 +83,9 @@ object GFX: GFXBase1() {
     fun select(transform: Transform?){
         selectedInspectable = transform
         selectedTransform = transform
-        if(isShiftDown && transform is Camera){
+        /*if(isShiftDown && transform is Camera){
             selectedCamera = transform
-        }
+        }*/
     }
 
     val gpuTasks = ConcurrentLinkedQueue<() -> Int>()
@@ -699,7 +699,6 @@ object GFX: GFXBase1() {
                 positionPostProcessing +
                 "}"
 
-        // todo anti-aliasing... -> taa?
         val f3DCircle = "" +
                 "u4 tint;\n" + // rgba
                 "void main(){\n" +

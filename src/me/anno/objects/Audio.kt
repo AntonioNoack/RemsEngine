@@ -25,7 +25,9 @@ open class Audio(var file: File = File(""), parent: Transform? = null): GFXTrans
     val amplitude = AnimatedProperty.floatPlus().set(1f)
 
     var needsUpdate = true
-    var isLooping = file.extension.equals("gif", true)
+    var isLooping =
+        if(file.extension.equals("gif", true)) LoopingState.PLAY_LOOP
+        else LoopingState.PLAY_ONCE
 
     var component: AudioStream? = null
 
@@ -77,7 +79,7 @@ open class Audio(var file: File = File(""), parent: Transform? = null): GFXTrans
         super.createInspector(list, style)
         list += AudioInput(file, style)
         list += VI("Amplitude", "How loud it is", amplitude, style)
-        list += VI("Is Looping", "Whether to repeat the song/video", null, isLooping, style){
+        list += VI("Looping Type", "Whether to repeat the song/video", null, isLooping, style){
             AudioManager.requestUpdate()
             isLooping = it
         }
@@ -87,13 +89,13 @@ open class Audio(var file: File = File(""), parent: Transform? = null): GFXTrans
         super.save(writer)
         writer.writeFile("src", file)
         writer.writeObject(this, "amplitude", amplitude)
-        writer.writeBool("isLooping", isLooping, true)
+        writer.writeInt("isLooping", isLooping.id, true)
     }
 
-    override fun readBool(name: String, value: Boolean) {
+    override fun readInt(name: String, value: Int) {
         when(name){
-            "isLooping" -> isLooping = value
-            else -> super.readBool(name, value)
+            "isLooping" -> isLooping = LoopingState.getState(value)
+            else -> super.readInt(name, value)
         }
     }
 

@@ -83,7 +83,7 @@ class FFMPEGMetadata(file: File): CacheData {
 
     companion object {
         fun getMeta(file: File, async: Boolean): FFMPEGMetadata? {
-            if(file.isDirectory) return null
+            if(file.isDirectory || !file.exists()) return null
             return Cache.getEntry("metadata" to file, 10_000, async){
                 FFMPEGMetadata(file)
             } as? FFMPEGMetadata

@@ -29,7 +29,6 @@ import java.util.concurrent.atomic.AtomicInteger
 
 // todo load 3D meshes :D
 // gradients? -> can be done using the mask layer
-// todo outline, if something is selected
 // done select by clicking
 
 // todo lock camera rotation?
@@ -422,6 +421,24 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
                 .setChangeListener { setValue(File(it) as V) }
                 .setIsSelectedListener { show(null) }
                 .setTooltip(ttt)
+            is Enum<*> -> {
+                val values = when(value){
+                    is LoopingState -> LoopingState.values()
+                    else -> throw RuntimeException("Missing enum .values() implementation for UI in Transform.kt")
+                }
+                val valueNames = values.map {
+                    it to when(it){
+                        LoopingState.PLAY_ONCE -> "Once"
+                        LoopingState.PLAY_LOOP -> "Looping"
+                        LoopingState.PLAY_REVERSING_LOOP -> "Reversing"
+                        else -> it.name
+                    }
+                }
+                EnumInput(title, true, valueNames.first { it.first == value }.second, valueNames.map { it.second }, style)
+                    .setChangeListener { str -> setValue((valueNames.first { it.second == str }!!.first) as V) }
+                    .setIsSelectedListener { show(null) }
+                    .setTooltip(ttt)
+            }
             else -> throw RuntimeException("Type $value not yet implemented!")
         }
     }

@@ -3,6 +3,7 @@ package me.anno.objects.cache
 import me.anno.gpu.GFX
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture3D
+import me.anno.objects.LoopingState
 import me.anno.objects.cache.VideoData.Companion.framesPerContainer
 import me.anno.studio.Studio.editorTimeDilation
 import me.anno.video.FFMPEGStream
@@ -171,7 +172,7 @@ object Cache {
 
     }
 
-    fun getVideoFrame(file: File, scale: Int, index: Int, frameLength: Int, fps: Double, timeout: Long, isLooping: Boolean = false): Frame? {
+    fun getVideoFrame(file: File, scale: Int, index: Int, frameLength: Int, fps: Double, timeout: Long, isLooping: LoopingState): Frame? {
         if(index < 0) return null
         val bufferIndex = index/framesPerContainer
         val videoData = getVideoFrames(file, scale, bufferIndex, fps, timeout) ?: return null
@@ -179,7 +180,7 @@ object Cache {
             if(editorTimeDilation > 0.01f){
                 if((bufferIndex+1)*framesPerContainer <= frameLength){
                     getVideoFrames(file, scale, bufferIndex+1, fps, timeout)
-                } else if(isLooping){
+                } else if(isLooping == LoopingState.PLAY_LOOP){// otherwise nearby containers will be loaded ;)
                     getVideoFrames(file, scale, 0, fps, timeout)
                 }
             } else if(editorTimeDilation < -0.01f){

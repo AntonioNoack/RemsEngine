@@ -13,8 +13,8 @@ class Shader(vertex: String, varying: String, fragment: String,
              private val disableShorts: Boolean = false): CacheData {
 
     companion object {
-        val LOGGER = LogManager.getLogger()
-        val attributeName = "in"
+        private val LOGGER = LogManager.getLogger()
+        const val attributeName = "in"
         var lastProgram = -1
     }
 

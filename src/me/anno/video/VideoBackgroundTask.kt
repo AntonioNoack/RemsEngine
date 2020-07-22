@@ -2,10 +2,15 @@ package me.anno.video
 
 import me.anno.gpu.GFX
 import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.objects.Camera
 import me.anno.studio.Scene
 import me.anno.studio.Studio
+import me.anno.studio.Studio.nullCamera
+import me.anno.studio.Studio.root
 
 class VideoBackgroundTask(val video: VideoCreator){
+
+    val cameras = root.listOfAll.filter { it is Camera }.toList() as List<Camera>
 
     // todo show the progress somehow
     // (percent, time used, expected time remaining)
@@ -51,8 +56,10 @@ class VideoBackgroundTask(val video: VideoCreator){
 
         GFX.isFinalRendering = true
 
+        val camera = cameras.firstOrNull() ?: nullCamera
+
         try {
-            Scene.draw(framebuffer, Studio.selectedCamera, 0, 0, video.w, video.h, time, flipY = true, useFakeColors = false)
+            Scene.draw(framebuffer, camera, 0, 0, video.w, video.h, time, flipY = true, useFakeColors = false)
         } catch (e: MissingFrameException){
             GFX.isFinalRendering = false
             return false

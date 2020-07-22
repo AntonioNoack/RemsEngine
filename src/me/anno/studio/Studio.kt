@@ -44,7 +44,7 @@ object Studio {
     }
 
     var root = Transform()
-    var selectedCamera = nullCamera
+    // var selectedCamera = nullCamera
     var usedCamera = nullCamera
 
     var selectedTransform: Transform? = null

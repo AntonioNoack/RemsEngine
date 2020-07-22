@@ -268,7 +268,7 @@ class Text(text: String = "", parent: Transform? = null): GFXTransform(parent){
             textAlignmentNames["Right"] = AxisAlignment.MAX
         }
 
-        // todo save the last used fonts? yes :)
+        // save the last used fonts? yes :)
         // todo per project? idk
         val fontMeshTimeout = 5000L
         val lastUsedFonts = arrayOfNulls<String>(max(0, DefaultConfig["lastUsed.fonts.count", 5]))

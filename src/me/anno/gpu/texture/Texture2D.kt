@@ -69,7 +69,7 @@ class Texture2D(override var w: Int, override var h: Int, val samples: Int): ITe
         } else {
             glTexImage2D(tex2D, 0, GL_RGBA32F, w, h, 0, GL_RGBA, GL_FLOAT, null as ByteBuffer?)
         }
-        LOGGER.info("FP32 $w $h $samples")
+        // LOGGER.info("FP32 $w $h $samples")
         GFX.check()
         filtering(isFilteredNearest)
         isCreated = true
