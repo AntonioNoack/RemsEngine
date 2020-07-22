@@ -332,9 +332,18 @@ object GFX: GFXBase1() {
     fun draw3DCircle(stack: Matrix4fArrayList, innerRadius: Float, startDegrees: Float, endDegrees: Float, color: Vector4f, isBillboard: Float){
         val shader = shader3DCircle
         shader3DUniforms(shader, stack, 1, 1, color, isBillboard, null)
-        val angle1 = toRadians(startDegrees)
-        val angle2 = toRadians(endDegrees)
-        shader.v3("circleParams", 1f - innerRadius, angle1, angle2)
+        var a0 = startDegrees
+        var a1 = endDegrees
+        // if the two arrows switch sides, flip the circle
+        // todo do this for angle difference > 360°...
+        if(a0 > a1){// first start for checker pattern
+            val tmp = a0
+            a0 = a1
+            a1= tmp - 360f
+        }
+        val angle0 = toRadians(a0)
+        val angle1 = toRadians(a1)
+        shader.v3("circleParams", 1f - innerRadius, angle0, angle1)
         Circle.drawBuffer(shader)
         check()
     }

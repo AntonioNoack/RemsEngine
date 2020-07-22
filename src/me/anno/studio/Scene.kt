@@ -344,9 +344,11 @@ object Scene {
             buffer = switch(buffer, 0, true, withMultisampling = false)
             BokehBlur.draw(src, buffer, 0.02f)
         } else if(withMultisampling){
+            // todo skip this step, and just use the correct buffer...
+            // this is just a computationally not that expensive workaround
             val msBuffer = buffer.msBuffer!!
             msBuffer.bind()
-            buffer = switch(buffer, 0, true, withMultisampling = false)
+            buffer = switch(buffer, 0, true, withMultisampling = false) // this is somehow not enough (why??)
             buffer = switch(buffer, 0, true, withMultisampling = false)
             val shader = copyShader
             msBuffer.textures[0].bind(0, false)
@@ -443,9 +445,6 @@ object Scene {
 
         FBStack.clear(w, h, true)
         FBStack.clear(w, h, false)
-
-        // todo somehow with multisampling this buffer isn't bound... why?
-        // bindTarget()
 
         // testModelRendering()
 
