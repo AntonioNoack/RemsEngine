@@ -3,23 +3,23 @@ package me.anno.video
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.framebuffer.Framebuffer
+import org.apache.logging.log4j.LogManager
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL11.*
 import java.io.File
 import java.io.OutputStream
 import java.lang.RuntimeException
-import java.nio.channels.Channel
 import kotlin.concurrent.thread
 import kotlin.math.sin
 
-class VideoCreator(val w: Int, val h: Int, val fps: Double, val output: File){
+class VideoCreator(val w: Int, val h: Int, val fps: Double, val totalFrameCount: Int, val output: File){
 
     val videoQualities = arrayListOf(
         "ultrafast", "superfast", "veryfast", "faster",
         "fast", "medium", "slow", "slower", "**veryslow**", "placebo"
     )
 
-    val out: OutputStream
+    val videoOut: OutputStream
 
     init {
 
@@ -28,7 +28,13 @@ class VideoCreator(val w: Int, val h: Int, val fps: Double, val output: File){
             output.parentFile?.mkdirs()
         }
 
-        val arguments = arrayListOf(
+        /**
+         * first create the video,
+         * then add audio later;
+         * because I don't know how to send audio and video data to ffmpeg
+         * at the same time with only one output stream
+         * */
+        val videoEncodingArguments = arrayListOf(
             "-f", "rawvideo",
             "-s", "${w}x$h",
             "-r", "$fps",
@@ -46,10 +52,10 @@ class VideoCreator(val w: Int, val h: Int, val fps: Double, val output: File){
 
         val ffmpeg = File(DefaultConfig["ffmpegPath", "lib/ffmpeg/ffmpeg.exe"])
         if(!ffmpeg.exists()) throw RuntimeException("FFmpeg not found! (path: $ffmpeg), can't use videos, nor webp!")
-        val args = ArrayList<String>(arguments.size+2)
+        val args = ArrayList<String>(videoEncodingArguments.size+2)
         args += ffmpeg.absolutePath
-        if(arguments.isNotEmpty()) args += "-hide_banner"
-        args += arguments
+        if(videoEncodingArguments.isNotEmpty()) args += "-hide_banner"
+        args += videoEncodingArguments
         val process = ProcessBuilder(args).start()
         thread {
             val out = process.errorStream.bufferedReader()
@@ -59,7 +65,7 @@ class VideoCreator(val w: Int, val h: Int, val fps: Double, val output: File){
             }
         }
 
-        out = process.outputStream.buffered()
+        videoOut = process.outputStream.buffered()
 
     }
 
@@ -68,13 +74,13 @@ class VideoCreator(val w: Int, val h: Int, val fps: Double, val output: File){
         for(f in 0 until frameCount){
             val pixelCount = w * h * 3
             val color = (sin(f * 0.1f)*127 + 127).toInt()
-            for(i in 0 until pixelCount) out.write(color)
+            for(i in 0 until pixelCount) videoOut.write(color)
             // val pixelCountYUV = pixelCount / 4
             // for(i in 0 until pixelCountYUV * 2) out.write(127)
         }
 
-        out.flush()
-        out.close()
+        videoOut.flush()
+        videoOut.close()
     }
 
     val buffer = BufferUtils.createByteBuffer(w * h * 3)
@@ -97,7 +103,7 @@ class VideoCreator(val w: Int, val h: Int, val fps: Double, val output: File){
             // use a buffer instead for better performance?
             val pixelCount = w * h * 3
             for(i in 0 until pixelCount){
-                out.write(buffer.get().toInt())
+                videoOut.write(buffer.get().toInt())
             }
             callback()
         }
@@ -105,13 +111,13 @@ class VideoCreator(val w: Int, val h: Int, val fps: Double, val output: File){
     }
 
     fun close(){
-        out.flush()
-        out.close()
-        println("[INFO] Saved file to $output")
+        videoOut.flush()
+        videoOut.close()
+        LOGGER.info("Saved video without audio to $output")
     }
 
-}
+    companion object {
+        private val LOGGER = LogManager.getLogger(VideoCreator::class)
+    }
 
-fun main(){
-    // VideoCreator()
 }

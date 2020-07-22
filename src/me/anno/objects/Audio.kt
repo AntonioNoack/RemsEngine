@@ -1,7 +1,7 @@
 package me.anno.objects
 
 import me.anno.audio.AudioManager
-import me.anno.audio.AudioStream
+import me.anno.audio.AudioStreamOpenAL
 import me.anno.gpu.GFX
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
@@ -23,13 +23,15 @@ import java.io.File
 open class Audio(var file: File = File(""), parent: Transform? = null): GFXTransform(parent){
 
     val amplitude = AnimatedProperty.floatPlus().set(1f)
+    val forcedMeta get() = getMeta(file, false)!!
+    val meta get() = getMeta(file, true)
 
     var needsUpdate = true
     var isLooping =
         if(file.extension.equals("gif", true)) LoopingState.PLAY_LOOP
         else LoopingState.PLAY_ONCE
 
-    var component: AudioStream? = null
+    var component: AudioStreamOpenAL? = null
 
     /**
      * is synchronized with the audio thread
@@ -37,16 +39,10 @@ open class Audio(var file: File = File(""), parent: Transform? = null): GFXTrans
     fun start(globalTime: Double, speed: Double){
         needsUpdate = false
         component?.stop()
-        val meta = getMeta(file, false)!!
+        val meta = forcedMeta
         if(meta.hasAudio){
-            val component = AudioStream(file, isLooping, 0.0, meta)
+            val component = AudioStreamOpenAL(this, speed, globalTime)
             this.component = component
-            component.globalToLocalTime = { time ->
-                getGlobalTransform(time * speed + globalTime).second
-            }
-            component.localAmplitude = { time ->
-                amplitude[time]
-            }
             component.start()
         } else component = null
     }

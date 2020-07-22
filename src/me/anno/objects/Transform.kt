@@ -501,10 +501,10 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
         // these values MUST NOT be changed
         // they are universal constants, and are used
         // within shaders, too
-        var nextClickId = AtomicInteger()
         val xAxis = Vector3f(1f,0f,0f)
         val yAxis = Vector3f(0f,1f,0f)
         val zAxis = Vector3f(0f,0f,1f)
+        var nextClickId = AtomicInteger()
         fun String.toTransform() = TextReader.fromText(this).first() as Transform
     }
 

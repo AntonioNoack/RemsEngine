@@ -1,18 +1,17 @@
 package me.anno.audio
 
-import me.anno.gpu.GFX
+import me.anno.objects.Audio
 import me.anno.objects.LoopingState
 import me.anno.objects.cache.Cache
 import me.anno.utils.mix
 import me.anno.video.FFMPEGMetadata
 import me.anno.video.FFMPEGMetadata.Companion.getMeta
 import me.anno.video.FFMPEGStream
-import org.lwjgl.openal.AL10.*
 import java.io.File
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import java.nio.ShortBuffer
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicInteger
 import kotlin.concurrent.thread
 import kotlin.math.max
 import kotlin.math.min
@@ -20,12 +19,22 @@ import kotlin.math.min
 // only play once, then destroy; it makes things easier
 // (on user input and when finally rendering only)
 
-class AudioStream(val file: File, val repeat: LoopingState, val startTime: Double, val meta: FFMPEGMetadata){
+abstract class AudioStream(val file: File, val repeat: LoopingState, val startTime: Double, val meta: FFMPEGMetadata, val playbackSampleRate: Int = 48000){
+
+    constructor(audio: Audio, speed: Double, globalTime: Double, playbackSampleRate: Int):
+            this(audio.file, audio.isLooping, 0.0, getMeta(audio.file, false)!!, playbackSampleRate){
+        configure(audio, speed, globalTime)
+    }
+
+    fun configure(audio: Audio, speed: Double, globalTime: Double){
+        globalToLocalTime = { time -> audio.getGlobalTransform(time * speed + globalTime).second }
+        val amplitude = audio.amplitude
+        localAmplitude = { time -> amplitude[time] }
+    }
 
     val minPerceptibleAmplitude = 1f/32500f
 
     val ffmpegSampleRate = meta.audioSampleRate
-    val playbackSampleRate = 48000
 
     val maxSampleIndex = meta.audioSampleCount
 
@@ -34,17 +43,15 @@ class AudioStream(val file: File, val repeat: LoopingState, val startTime: Doubl
 
     // should be as short as possible for fast calculation
     // should be at least as long as the ffmpeg response time (0.3s for the start of a FHD video)
-    val openALSliceDuration = 1.0
+    companion object {
+        val playbackSliceDuration = 1.0
+    }
 
     // map the real time to the correct time xD
     // to do allow skipping and such -> no, too much cleanup ;)
 
-    var startTimeNanos = 0L
-    val alSource = SoundSource(false, true)
     // var time = 0f
 
-    var queued = AtomicInteger()
-    var processed = 0
     var isWaitingForBuffer = AtomicBoolean(false)
 
     var isPlaying = false
@@ -53,51 +60,6 @@ class AudioStream(val file: File, val repeat: LoopingState, val startTime: Doubl
     var localAmplitude = { localtime: Double -> 1f }
 
     val buffers = ArrayList<SoundBuffer>()
-    //val availableBuffers = ArrayList<SoundBuffer>()
-
-    fun checkProcessed(){
-        processed = alGetSourcei(alSource.sourcePtr, AL_BUFFERS_PROCESSED)
-        ALBase.check()
-    }
-
-    fun start(){
-        synchronized(this){
-            if(!isPlaying){
-                isPlaying = true
-                startTimeNanos = System.nanoTime()
-                waitForRequiredBuffers()
-            }
-        }
-    }
-
-    // not supported ;)
-    /*fun unpause(){
-        start(pauseTime)
-    }
-
-    fun pause(){
-        if(!isPlaying) return
-        pauseTime = (System.nanoTime() - startTime)*1e-9f
-        isPlaying = false
-        alSource.pause()
-    }*/
-
-    fun stop(){
-        if(!isPlaying) return
-        isPlaying = false
-        alSource.stop()
-        alSource.destroy()
-        ALBase.check()
-        // ALBase.check()
-        // somehow crashes..., buffers can't be reused either (without error)
-        // buffers.toSet().forEach { it.destroy() }
-        // ALBase.check()
-    }
-
-    // must be only triggered on start()
-    /*private fun seekTo(time: Double){
-        this.time = time
-    }*/
 
     data class AudioSliceKey(val file: File, val slice: Long)
 
@@ -115,8 +77,6 @@ class AudioStream(val file: File, val repeat: LoopingState, val startTime: Doubl
         return mix(data0.first, data1.first, f) * localAmplitude to
                 mix(data0.second, data1.second, f) * localAmplitude
     }
-
-
 
     fun getMaxAmplitudesSync(index: Long): Pair<Short, Short> {
         if(index < 0 || (repeat == LoopingState.PLAY_ONCE && index >= maxSampleIndex)) return 0.toShort() to 0.toShort()
@@ -141,7 +101,7 @@ class AudioStream(val file: File, val repeat: LoopingState, val startTime: Doubl
         return data[arrayIndex0] to data[arrayIndex0+1]
     }
 
-    fun requestNextBuffer(startTime: Double, bufferIndex: Int){
+    fun requestNextBuffer(startTime: Double, bufferIndex: Long){
 
         isWaitingForBuffer.set(true)
         thread {// load all data async
@@ -153,7 +113,7 @@ class AudioStream(val file: File, val repeat: LoopingState, val startTime: Doubl
             // (superfluous calculations)
 
             // time += dt
-            val sampleCount = (playbackSampleRate * openALSliceDuration).toInt()
+            val sampleCount = (playbackSampleRate * playbackSliceDuration).toInt()
 
             // todo get higher/lower quality, if it's sped up/slowed down?
             // rare use-case...
@@ -161,7 +121,7 @@ class AudioStream(val file: File, val repeat: LoopingState, val startTime: Doubl
             // sound recorded at 0.01x speed is really rare, and at the edge (10Hz -> 10.000Hz)
             // slower frequencies can't be that easily recorded (besides the song/noise of wind (alias air pressure zones changing))
 
-            val dtx = openALSliceDuration / sampleCount
+            val dtx = playbackSliceDuration / sampleCount
             val ffmpegSampleRate = ffmpegSampleRate
             val globalToLocalTime = globalToLocalTime
             val localAmplitude = localAmplitude
@@ -252,67 +212,12 @@ class AudioStream(val file: File, val repeat: LoopingState, val startTime: Doubl
                 buffer!!
             } as SoundBuffer*/
 
-            GFX.addAudioTask {
-                val isFirstBuffer = bufferIndex == 0
-                ALBase.check()
-                val soundBuffer = SoundBuffer()
-                ALBase.check()
-                if(isFirstBuffer){
-                    val dt = max(0f, (System.nanoTime() - startTimeNanos) * 1e-9f)
-                    // println("skipping first $dt")
-                    // 10s slices -> 2.6s
-                    // 1s slices -> 0.55s
-                    val samples = dt * playbackSampleRate
-                    val currentIndex = samples.toInt() * 2
-                    // what if index > sampleCount? add empty buffer???...
-                    val minPlayedSamples = 32 // not correct, but who cares ;) (our users care ssshhh)
-                    val skipIndex = min(currentIndex, stereoBuffer.capacity() - 2 * minPlayedSamples)
-                    if(skipIndex > 0){
-                        // println("skipping $skipIndex")
-                        stereoBuffer.position(skipIndex)
-                    }
-                }
-                soundBuffer.loadRawStereo16(stereoBuffer, playbackSampleRate)
-                buffers.add(soundBuffer)
-                ALBase.check()
-                // println("Invalid Name? alSourceQueueBuffers(${alSource.sourcePtr}, ${soundBuffer.buffer})")
-                // println("putting buffer ${soundBuffer.pcm?.capacity()}")
-                alSourceQueueBuffers(alSource.sourcePtr, soundBuffer.buffer)
-                ALBase.check()
-                if(isFirstBuffer){
-                    alSource.play()
-                    ALBase.check()
-                }
-                // time += openALSliceDuration
-                isWaitingForBuffer.set(false)
-                ALBase.check()
-                1
-            }
+            onBufferFilled(stereoBuffer, bufferIndex)
 
         }
 
     }
 
-    fun waitForRequiredBuffers() {
-        if(!isPlaying) return
-        val queued = queued.get()
-        if(!isWaitingForBuffer.get() && queued > 0) checkProcessed()
-        // keep 2 on reserve
-        if(queued < processed+5 && !isWaitingForBuffer.get()){
-            // request a buffer
-            // only one at a time
-            val index = this.queued.getAndIncrement()
-            // println("loading $index...")
-            requestNextBuffer(startTime + openALSliceDuration * index, index)
-        }
-        thread {
-            Thread.sleep(10)
-            GFX.addAudioTask {
-                waitForRequiredBuffers()
-                ALBase.check()
-                1
-            }
-        }
-    }
+    abstract fun onBufferFilled(stereoBuffer: ShortBuffer, bufferIndex: Long)
 
 }

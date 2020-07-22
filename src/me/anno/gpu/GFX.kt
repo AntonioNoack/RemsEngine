@@ -11,7 +11,6 @@ import me.anno.gpu.shader.ShaderPair
 import me.anno.gpu.size.WindowSize
 import me.anno.gpu.texture.Texture2D
 import me.anno.input.Input
-import me.anno.input.Input.isShiftDown
 import me.anno.objects.Camera
 import me.anno.objects.Transform
 import me.anno.objects.blending.BlendMode
@@ -21,7 +20,6 @@ import me.anno.studio.Studio.editorTime
 import me.anno.studio.Studio.editorTimeDilation
 import me.anno.studio.Studio.eventTasks
 import me.anno.studio.Studio.root
-// import me.anno.studio.Studio.selectedCamera
 import me.anno.studio.Studio.selectedInspectable
 import me.anno.studio.Studio.selectedTransform
 import me.anno.studio.Studio.targetHeight

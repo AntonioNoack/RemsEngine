@@ -52,7 +52,7 @@ fun main(){
 val file = File("C:\\Users\\Antonio\\Videos\\Captures\\cool cops\\Watch_Dogs 2 2019-10-14 15-26-49.mp4")
 
 fun testStream(){
-    AudioStream(file, LoopingState.PLAY_LOOP, 0.0, FFMPEGMetadata(file)).start()
+    AudioStreamOpenAL(file, LoopingState.PLAY_LOOP, 0.0, FFMPEGMetadata(file)).start()
 }
 
 fun testSingleBuffer(){

@@ -9,13 +9,13 @@ import me.anno.studio.RemsStudio.console
 import me.anno.studio.RemsStudio.originalOutput
 import me.anno.studio.RemsStudio.windowStack
 import me.anno.studio.Studio.root
+import me.anno.studio.Studio.targetDuration
 import me.anno.studio.Studio.targetFPS
 import me.anno.studio.Studio.targetOutputFile
 import me.anno.studio.Studio.targetHeight
 import me.anno.studio.Studio.targetWidth
 import me.anno.ui.base.SpacePanel
 import me.anno.ui.base.TextPanel
-import me.anno.ui.base.Visibility
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.custom.CustomListX
 import me.anno.ui.custom.CustomListY
@@ -24,7 +24,7 @@ import me.anno.ui.editor.explorer.FileExplorer
 import me.anno.ui.editor.sceneView.SceneView
 import me.anno.ui.editor.graphs.GraphEditor
 import me.anno.ui.editor.treeView.TreeView
-import me.anno.video.VideoBackgroundTask
+import me.anno.video.VideoAudioCreator
 import me.anno.video.VideoCreator
 import java.io.File
 import java.io.OutputStream
@@ -42,6 +42,15 @@ object UILayouts {
 
         RemsStudio.ui = ui
 
+    }
+
+    fun renderPart(size: Int){
+        val tmpFile = File(targetOutputFile.parentFile, targetOutputFile.nameWithoutExtension+".tmp."+targetOutputFile.extension)
+        val fps = targetFPS
+        val totalFrameCount = (fps * targetDuration).toInt()
+        val sampleRate = 48000
+        VideoAudioCreator(VideoCreator(targetWidth/size, targetHeight/size,
+            targetFPS, totalFrameCount, tmpFile), sampleRate, targetOutputFile).start()
     }
 
     fun createEditorUI(){
@@ -66,18 +75,9 @@ object UILayouts {
         options.addAction("File", "Save"){ Input.save() }
         options.addAction("File", "Load"){  }
 
-        options.addAction("Render", "Full"){
-            VideoBackgroundTask(VideoCreator(targetWidth, targetHeight,
-                targetFPS, targetOutputFile)).start()
-        }
-        options.addAction("Render", "Half"){
-            VideoBackgroundTask(VideoCreator(targetWidth / 2, targetHeight / 2,
-                targetFPS, targetOutputFile)).start()
-        }
-        options.addAction("Render", "Quarter"){
-            VideoBackgroundTask(VideoCreator(targetWidth / 4, targetHeight / 4,
-                targetFPS, targetOutputFile)).start()
-        }
+        options.addAction("Render", "Full"){ renderPart(1) }
+        options.addAction("Render", "Half"){ renderPart(2) }
+        options.addAction("Render", "Quarter"){ renderPart(4) }
 
         ui += options
 

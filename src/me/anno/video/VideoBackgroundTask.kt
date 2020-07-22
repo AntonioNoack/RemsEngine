@@ -4,7 +4,6 @@ import me.anno.gpu.GFX
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.objects.Camera
 import me.anno.studio.Scene
-import me.anno.studio.Studio
 import me.anno.studio.Studio.nullCamera
 import me.anno.studio.Studio.root
 
@@ -18,7 +17,9 @@ class VideoBackgroundTask(val video: VideoCreator){
     val framebuffer = Framebuffer(video.w, video.h, 1, 1, false, Framebuffer.DepthBufferType.TEXTURE)
 
     var frameIndex = 0
-    val totalFrameCount = 200
+    val totalFrameCount = video.totalFrameCount
+
+    var isDone = false
 
     fun start(){
 
@@ -46,7 +47,10 @@ class VideoBackgroundTask(val video: VideoCreator){
                 5 // 5 tokens for this frame ;)
             }
 
-        } else video.close()
+        } else {
+            video.close()
+            isDone = true
+        }
 
     }
 

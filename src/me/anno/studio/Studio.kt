@@ -28,6 +28,7 @@ object Studio {
     val isPaused get() = editorTimeDilation == 0.0
     val isPlaying get() = editorTimeDilation != 0.0
 
+    val targetDuration get() = project!!.targetDuration
     val targetFPS get() = project!!.targetFPS
     val targetWidth get() = project!!.targetWidth
     val targetHeight get() = project!!.targetHeight

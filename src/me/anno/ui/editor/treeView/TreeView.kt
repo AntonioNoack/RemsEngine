@@ -7,6 +7,7 @@ import me.anno.input.Input.mouseX
 import me.anno.input.Input.mouseY
 import me.anno.objects.*
 import me.anno.objects.Transform.Companion.toTransform
+import me.anno.objects.rendering.RenderSettings
 import me.anno.studio.Studio.nullCamera
 import me.anno.studio.Studio.root
 import me.anno.ui.base.*
@@ -45,6 +46,7 @@ class TreeView(style: Style):
         val todo = ArrayList<Pair<Transform, Int>>()
         todo.add(root to 0)
         todo.add(nullCamera to 0)
+        todo.add(RenderSettings to 0)
         index = 0
         while(todo.isNotEmpty()){
             val (transform, depth) = todo.removeAt(todo.lastIndex)
