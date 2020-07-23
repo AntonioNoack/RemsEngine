@@ -68,7 +68,7 @@ class Camera(parent: Transform? = null): Transform(parent){
         list += VI("Distortion", "Params: R², R⁴, Scale", distortion, style)
         list += VI("Distortion Offset", "Moves the center of the distortion", distortionOffset, style)
         list += VI("Tone Mapping", "Maps large ranges of brightnesses (e.g. HDR) to monitor color space", null, toneMapping, style){ toneMapping = it }
-        list += VI("LUT", "Look Up Table for colors, formatted like in UE4", null, lut, style){ lut = it }
+        list += VI("Look Up Table", "LUT, Look Up Table for colors, formatted like in UE4", null, lut, style){ lut = it }
         list += VI("Only Show Target", "Forces the viewport to have the correct aspect ratio", null, onlyShowTarget, style){ onlyShowTarget = it }
         list += VI("Use Depth", "Causes Z-Fighting, but allows 3D", null, useDepth, style){ useDepth = it }
         list += ButtonPanel("Reset Transform", style)

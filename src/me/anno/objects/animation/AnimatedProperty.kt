@@ -9,9 +9,7 @@ import org.joml.*
 import java.lang.RuntimeException
 import kotlin.math.abs
 
-class AnimatedProperty<V>(val type: Type, val minValue: V?, val maxValue: V?): Saveable(){
-
-    constructor(type: Type): this(type, null, null)
+class AnimatedProperty<V>(val type: Type): Saveable(){
 
     enum class Type(
         val code: String,
@@ -20,30 +18,42 @@ class AnimatedProperty<V>(val type: Type, val minValue: V?, val maxValue: V?): S
         val unitScale: Float,
         val hasLinear: Boolean,
         val hasExponential: Boolean,
+        val minValue: Any?, val maxValue: Any?,
         val accepts: (Any?) -> Boolean){
-        FLOAT("float", 0f, 1, 1f, true, true, { it is Float }),
-        FLOAT_01("float01", 0f, 1, 1f, true, true, { it is Float }),
-        FLOAT_PLUS("float+", 0f, 1, 1f, false, true, { it is Float }),
-        FLOAT_PERCENT("float%", 100f, 1, 100f, true, true, { it is Float }),
-        DOUBLE("double", 0.0, 1, 1f, true, true, { it is Double }),
-        VEC2("vec2", Vector2f(), 2, 1f, true, true, { it is Vector2f }),
-        VEC3("vec3", Vector3f(), 3, 1f, true, true, { it is Vector3f }),
-        POSITION("pos", Vector3f(), 3, 1f, true, true, { it is Vector3f }),
-        SCALE("scale", Vector3f(1f, 1f, 1f), 3, 1f, true, true, { it is Vector3f }),
-        ROT_YXZ("rotYXZ", Vector3f(), 3, 360f, true, true, { it is Vector3f }),
-        SKEW_2D("skew2D", Vector2f(), 2, 1f, true, true, { it is Vector2f }),
-        QUATERNION("quaternion", Quaternionf(), 4, 1f, true, true, { it is Quaternionf }),
-        COLOR("color", Vector4f(1f,1f,1f,1f), 4, 1f, true, true, { it is Vector4f }),
-        TILING("tiling", Vector4f(1f, 1f, 0f, 0f), 4, 1f, true, true, { it is Vector4f });
+        FLOAT("float", 0f, 1, 1f, true, true, null, null, { it is Float }),
+        FLOAT_01("float01", 0f, 1, 1f, true, true, 0f, 1f, { it is Float }),
+        FLOAT_PLUS("float+", 0f, 1, 1f, false, true, 0f, null, { it is Float }),
+        FLOAT_PERCENT("float%", 100f, 1, 100f, true, false, 0f, 100f, { it is Float }),
+        DOUBLE("double", 0.0, 1, 1f, true, true, null, null, { it is Double }),
+        VEC2("vec2", Vector2f(), 2, 1f, true, true, null, null, { it is Vector2f }),
+        VEC3("vec3", Vector3f(), 3, 1f, true, true, null, null, { it is Vector3f }),
+        POSITION("pos", Vector3f(), 3, 1f, true, true, null, null, { it is Vector3f }),
+        SCALE("scale", Vector3f(1f, 1f, 1f), 3, 1f, true, true, null, null, { it is Vector3f }),
+        ROT_YXZ("rotYXZ", Vector3f(), 3, 90f, true, true, null, null, { it is Vector3f }),
+        SKEW_2D("skew2D", Vector2f(), 2, 1f, true, true, null, null, { it is Vector2f }),
+        QUATERNION("quaternion", Quaternionf(), 4, 1f, true, true, null, null, { it is Quaternionf }),
+        COLOR("color", Vector4f(1f,1f,1f,1f), 4, 1f, true, true, null, null, { it is Vector4f }),
+        TILING("tiling", Vector4f(1f, 1f, 0f, 0f), 4, 1f, true, true, null, null, { it is Vector4f });
         init { types[code] = this }
+
+        fun <V> clamp(value: V): V {
+            if(minValue != null || maxValue != null){
+                value as Comparable<V>
+                if(minValue != null && value < minValue as V) return minValue
+                if(maxValue != null && value >= maxValue as V) return maxValue
+            }
+            return value
+        }
+
     }
 
     companion object {
+
         val types = HashMap<String, Type>()
         fun float() = AnimatedProperty<Float>(Type.FLOAT)
-        fun floatPlus() = AnimatedProperty(Type.FLOAT_PLUS, 0f, null)
-        fun float01() = AnimatedProperty(Type.FLOAT_01, 0f, 1f)
-        fun floatPercent() = AnimatedProperty(Type.FLOAT_PERCENT, 0f, 100f)
+        fun floatPlus() = AnimatedProperty<Float>(Type.FLOAT_PLUS)
+        fun float01() = AnimatedProperty<Float>(Type.FLOAT_01)
+        fun floatPercent() = AnimatedProperty<Float>(Type.FLOAT_PERCENT)
         fun double() = AnimatedProperty<Double>(Type.DOUBLE)
         fun vec2() = AnimatedProperty<Vector2f>(Type.VEC2)
         fun vec3() = AnimatedProperty<Vector3f>(Type.VEC3)
@@ -54,6 +64,7 @@ class AnimatedProperty<V>(val type: Type, val minValue: V?, val maxValue: V?): S
         fun quat() = AnimatedProperty<Quaternionf>(Type.QUATERNION)
         fun skew() = AnimatedProperty<Vector2f>(Type.SKEW_2D)
         fun tiling() = AnimatedProperty<Vector4f>(Type.TILING)
+
     }
 
     // todo cache the last values left+right and timestamps left+right for faster access
@@ -71,7 +82,10 @@ class AnimatedProperty<V>(val type: Type, val minValue: V?, val maxValue: V?): S
         return v as V
     }
 
+    fun clampAny(value: Any) = clamp(value as V)
     fun clamp(value: V): V {
+        val minValue = type.minValue as? V
+        val maxValue = type.maxValue as? V
         if(minValue != null || maxValue != null){
             value as Comparable<V>
             if(minValue != null && value < minValue) return minValue

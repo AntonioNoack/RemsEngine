@@ -26,7 +26,7 @@ object RenderSettings : Transform(){
             project.targetDuration = it
             save()
         }
-        list += VI("Relative Frame Size", "For rendering tests, e.g. 50% = 0.5", AnimatedProperty.Type.FLOAT_PERCENT, project.targetSizePercentage, style){
+        list += VI("Relative Frame Size (%)", "For rendering tests, in percent", AnimatedProperty.Type.FLOAT_PERCENT, project.targetSizePercentage, style){
             project.targetSizePercentage = it
             save()
         }

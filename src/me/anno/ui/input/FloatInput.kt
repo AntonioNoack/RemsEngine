@@ -186,9 +186,12 @@ open class FloatInput(
             val delta = dx0-dy0
             // chose between exponential and linear curve, depending on the use-case
             var value = lastValue
-            if(type.hasLinear) value += delta * 0.1f
+            if(type.hasLinear) value += delta * 0.1f * type.unitScale
             if(type.hasExponential) value *= pow(if(lastValue < 0) 1f / 1.03f else 1.03f, delta * if(type.hasLinear) 1f else 3f)
-            setValue(value)
+            when(val clamped = type.clamp(if(type.defaultValue is Float) value.toFloat() else value)){
+                is Float -> setValue(clamped)
+                is Double -> setValue(clamped)
+            }
         }
     }
 
