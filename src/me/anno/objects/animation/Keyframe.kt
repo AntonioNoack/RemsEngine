@@ -100,6 +100,8 @@ class Keyframe<V>(var time: Double, var value: V): Saveable(), Comparable<Keyfra
         fun BaseWriter.writeValue(name: String, v: Any?){
             when(v){
                 is Boolean -> writeBool(name, v)
+                is Int -> writeInt(name, v)
+                is Long -> writeLong(name, v)
                 is Float -> writeFloat(name, v)
                 is Double -> writeDouble(name, v)
                 is Vector2f -> writeVector2(name, v)

@@ -20,6 +20,9 @@ class AnimatedProperty<V>(val type: Type): Saveable(){
         val hasExponential: Boolean,
         val minValue: Any?, val maxValue: Any?,
         val accepts: (Any?) -> Boolean){
+        INT("int", 0, 1, 1f, true, true, null, null, { it is Int }),
+        INT_PLUS("int+", 0, 1, 1f, true, true, 0, null, { it is Int }),
+        LONG("long", 0L, 1, 1f, true, true, null, null, { it is Long }),
         FLOAT("float", 0f, 1, 1f, true, true, null, null, { it is Float }),
         FLOAT_01("float01", 0f, 1, 1f, true, true, 0f, 1f, { it is Float }),
         FLOAT_PLUS("float+", 0f, 1, 1f, false, true, 0f, null, { it is Float }),
@@ -34,6 +37,8 @@ class AnimatedProperty<V>(val type: Type): Saveable(){
         QUATERNION("quaternion", Quaternionf(), 4, 1f, true, true, null, null, { it is Quaternionf }),
         COLOR("color", Vector4f(1f,1f,1f,1f), 4, 1f, true, true, null, null, { it is Vector4f }),
         TILING("tiling", Vector4f(1f, 1f, 0f, 0f), 4, 1f, true, true, null, null, { it is Vector4f });
+
+        // register inverse mapping for loading
         init { types[code] = this }
 
         fun <V> clamp(value: V): V {
@@ -50,6 +55,9 @@ class AnimatedProperty<V>(val type: Type): Saveable(){
     companion object {
 
         val types = HashMap<String, Type>()
+        fun int() = AnimatedProperty<Int>(Type.INT)
+        fun intPlus() = AnimatedProperty<Int>(Type.INT_PLUS)
+        fun long() = AnimatedProperty<Int>(Type.LONG)
         fun float() = AnimatedProperty<Float>(Type.FLOAT)
         fun floatPlus() = AnimatedProperty<Float>(Type.FLOAT_PLUS)
         fun float01() = AnimatedProperty<Float>(Type.FLOAT_01)
@@ -272,8 +280,8 @@ class AnimatedProperty<V>(val type: Type): Saveable(){
         } else WrongClassType.warn("driver", value)
     }
 
-    // todo this may result in an issue, where we can't copy this object 1:1...
-    // todo do we want 1:1 copies anyways? maybe with right click, or key combos..
+    // todo this may result in an issue, where we can't copy this object by reference...
+    // todo do we want copies by reference anyways? maybe with right click, or key combos..
     fun copyFrom(obj: Any?, force: Boolean = false){
         if(obj === this && !force) throw RuntimeException("Probably a typo!")
         if(obj is AnimatedProperty<*> && type.accepts(obj.type.defaultValue)){

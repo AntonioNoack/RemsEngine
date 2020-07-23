@@ -24,6 +24,8 @@ import org.lwjgl.opengl.GL11.*
 import java.io.File
 import java.lang.RuntimeException
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.math.roundToInt
+import kotlin.math.roundToLong
 
 // pivot? nah, always use the center to make things easy;
 // or should we do it?... idk for sure...
@@ -382,6 +384,14 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
                 .setChangeListener { setValue(it as V) }
                 .setIsSelectedListener { show(null) }
                 .setTooltip(ttt)
+            is Int -> IntInput(title, value, type ?: AnimatedProperty.Type.INT, style)
+                .setChangeListener { setValue(it.toInt() as V) }
+                .setIsSelectedListener { show(null) }
+                .setTooltip(ttt)
+            is Long -> IntInput(title, value, type ?: AnimatedProperty.Type.LONG, style)
+                .setChangeListener { setValue(it as V) }
+                .setIsSelectedListener { show(null) }
+                .setTooltip(ttt)
             is Float -> FloatInput(title, value, type ?: AnimatedProperty.Type.FLOAT, style)
                 .setChangeListener { setValue(it.toFloat() as V) }
                 .setIsSelectedListener { show(null) }
@@ -455,6 +465,14 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
     fun VI(title: String, ttt: String, values: AnimatedProperty<*>, style: Style): Panel {
         val time = lastLocalTime
         return when(val value = values[time]){
+            is Int -> IntInput(title, values, 0, time, style)
+                .setChangeListener { putValue(values, it.toInt()) }
+                .setIsSelectedListener { show(values) }
+                .setTooltip(ttt)
+            is Long -> IntInput(title, values, 0, time, style)
+                .setChangeListener { putValue(values, it) }
+                .setIsSelectedListener { show(values) }
+                .setTooltip(ttt)
             is Float -> FloatInput(title, values, 0, time, style)
                 .setChangeListener { putValue(values, it.toFloat()) }
                 .setIsSelectedListener { show(values) }

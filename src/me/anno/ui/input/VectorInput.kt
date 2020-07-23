@@ -75,7 +75,8 @@ class VectorInput(
                 val defaultValue = type.defaultValue
                 this.setValue(defaultValue[i])
             }
-        }.setChangeListener {
+        }
+        pseudo.setChangeListener {
             changeListener(
                 compX.lastValue.toFloat(),
                 compY.lastValue.toFloat(),

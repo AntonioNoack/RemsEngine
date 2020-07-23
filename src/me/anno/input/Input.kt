@@ -15,6 +15,7 @@ import me.anno.studio.Studio.addEvent
 import me.anno.studio.Studio.project
 import me.anno.ui.editor.sceneView.SceneView
 import me.anno.utils.length
+import org.apache.logging.log4j.LogManager
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWDropCallback
 import java.awt.Toolkit
@@ -28,6 +29,8 @@ import kotlin.math.max
 import kotlin.math.min
 
 object Input {
+
+    private val LOGGER = LogManager.getLogger(Input::class)
 
     var mouseX = 0f
     var mouseY = 0f
@@ -75,7 +78,7 @@ object Input {
 
         GLFW.glfwSetCharCallback(window) { _, codepoint ->
             addEvent {
-                // println("char event $codepoint")
+                // LOGGER.info("char event $codepoint")
             }
         }
 
@@ -84,7 +87,7 @@ object Input {
                 framesSinceLastInteraction = 0
                 inFocus0?.onCharTyped(mouseX, mouseY, codepoint)
                 keyModState = mods
-                // println("char mods event $codepoint $mods")
+                // LOGGER.info("char mods event $codepoint $mods")
             }
         }
         GLFW.glfwSetCursorPosCallback(window) { _, xpos, ypos ->
@@ -150,7 +153,7 @@ object Input {
                                     inFocus += joinedParent!!.children[index]
                                 }
                             }
-                            println(inFocus)
+                            // LOGGER.info(inFocus)
                         } else {
                             requestFocus(panelWindow?.first, true)
                         }
@@ -271,7 +274,7 @@ object Input {
                                     }
                                 }
                             }
-                            // println("typed by $action")
+                            // LOGGER.info("typed by $action")
                             inFocus0?.onKeyTyped(mouseX, mouseY, key)
                             // inFocus?.onCharTyped(mx,my,key)
                         }
@@ -291,7 +294,7 @@ object Input {
                     } // 265
                     GLFW.GLFW_REPEAT -> keyTyped(key)
                 }
-                // println("event $key $scancode $action $mods")
+                // LOGGER.info("event $key $scancode $action $mods")
                 keyModState = mods
             }
         }
@@ -320,7 +323,7 @@ object Input {
             if (data != null) inFocus0?.onPasteFiles(mouseX, mouseY, data)
             return
         } catch (e: UnsupportedFlavorException){ }
-        println("[WARN] Unsupported Data Flavor")
+        LOGGER.warn("Unsupported Data Flavor")
     }
 
     fun save() {

@@ -20,6 +20,7 @@ import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
 import org.lwjgl.glfw.GLFW.*
+import java.lang.RuntimeException
 import kotlin.math.*
 import me.anno.input.Input.isControlDown as isControlDown
 
@@ -226,7 +227,13 @@ class GraphEditorBody(style: Style): Panel(style.getChild("deep")){
             // todo represent colors differently? yes.
             when(channelCount){
                 1 -> {
-                    values[0] = keyValue as Float
+                    values[0] = when(keyValue){
+                        is Float -> keyValue
+                        is Double -> keyValue.toFloat()
+                        is Int -> keyValue.toFloat()
+                        is Long -> keyValue.toFloat()
+                        else -> throw RuntimeException("Unknown type $keyValue in GraphEditorBody")
+                    }
                 }
                 2 -> {
                     val v = keyValue as Vector2f

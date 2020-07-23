@@ -17,11 +17,14 @@ import me.anno.studio.Studio.editorTimeDilation
 import me.anno.studio.Studio.targetFPS
 import me.anno.studio.Studio.updateAudio
 import me.anno.ui.base.Panel
+import org.apache.logging.log4j.LogManager
 import java.io.File
 import kotlin.math.abs
 import kotlin.math.round
 
 object ActionManager {
+
+    private val LOGGER = LogManager.getLogger(ActionManager::class)
 
     val keyDragDelay = DefaultConfig["keyDragDelay", 0.5f]
 
@@ -100,12 +103,12 @@ object ActionManager {
             val namespace = keys[0]
             val button = keys.getOrNull(1)
             if(button == null){
-                println("[WARN] KeyCombination $key needs button!")
+                LOGGER.warn("KeyCombination $key needs button!")
                 continue
             }
             val buttonEvent = keys.getOrNull(2)
             if(buttonEvent == null){
-                println("[WARN] KeyCombination $key needs type!")
+                LOGGER.warn("[WARN] KeyCombination $key needs type!")
                 continue
             }
             val modifiers = keys.getOrElse(3){ "" }

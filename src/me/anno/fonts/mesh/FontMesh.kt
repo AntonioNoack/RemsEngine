@@ -6,6 +6,7 @@ import me.anno.gpu.buffer.StaticFloatBuffer
 import me.anno.objects.cache.CacheData
 import me.anno.ui.base.DefaultRenderingHints
 import me.anno.utils.*
+import org.apache.logging.log4j.LogManager
 import org.joml.Vector2d
 import org.joml.Vector2f
 import java.awt.Color
@@ -59,8 +60,8 @@ class FontMesh(val font: Font, val text: String, debugPieces: Boolean = false): 
         for(i in 0 until 5000){
             val p = Vector2d(Math.random()*2-1, Math.random()*2-1).normalize()
             if(!p.isInsideTriangle(Vector2d(-1.5, -1.5), Vector2d(2.0, -0.5), Vector2d(-0.5, 2.5))){
-                println(p.print())
-                println(i)
+                LOGGER.info(p.print())
+                LOGGER.info(i.toString())
                 assert(false)
             }
         }
@@ -412,6 +413,8 @@ class FontMesh(val font: Font, val text: String, debugPieces: Boolean = false): 
     }
 
     companion object {
+
+        private val LOGGER = LogManager.getLogger(FontMesh::class)
 
         val DEFAULT_LINE_HEIGHT = 0.2f
 

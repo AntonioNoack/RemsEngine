@@ -8,6 +8,7 @@ import me.anno.objects.cache.VideoData.Companion.framesPerContainer
 import me.anno.studio.Studio.editorTimeDilation
 import me.anno.video.FFMPEGStream
 import me.anno.video.Frame
+import org.apache.logging.log4j.LogManager
 import java.io.File
 import java.io.FileNotFoundException
 import java.lang.Exception
@@ -18,6 +19,8 @@ import kotlin.math.max
 import kotlin.math.sqrt
 
 object Cache {
+
+    private val LOGGER = LogManager.getLogger(Cache::class)
 
     private val cache = HashMap<Any, CacheEntry>()
     private val lockedKeys = HashSet<Any>(2048)
@@ -97,7 +100,7 @@ object Cache {
                 try {
                     data = generator()
                 } catch (e: FileNotFoundException){
-                    println(e.message)
+                    LOGGER.info(e.message ?: "")
                 } catch (e: Exception){
                     e.printStackTrace()
                 }
@@ -148,7 +151,7 @@ object Cache {
                 try {
                     data = generator()
                 } catch (e: FileNotFoundException){
-                    println(e.message)
+                    LOGGER.info(e.message ?: "")
                 } catch (e: Exception){
                     e.printStackTrace()
                 }
@@ -161,7 +164,7 @@ object Cache {
             try {
                 data = generator()
             } catch (e: FileNotFoundException){
-                println(e.message)
+                LOGGER.info(e.message ?: "")
             } catch (e: Exception){
                 e.printStackTrace()
             }

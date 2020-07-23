@@ -7,6 +7,7 @@ import me.anno.gpu.buffer.StaticFloatBuffer
 import me.anno.io.xml.XMLElement
 import me.anno.utils.clamp
 import me.anno.utils.length
+import org.apache.logging.log4j.LogManager
 import org.joml.Vector2d
 import java.awt.Color
 import java.awt.Graphics2D
@@ -135,12 +136,12 @@ class SVGMesh {
                 it.triangles.forEach { v ->
                     buffer.put(((v.x-x0)*scale).toFloat(), ((v.y-y0)*scale).toFloat(), depth)
                     //buffer.put(Math.random().toDouble(), Math.random().toDouble(), Math.random().toDouble(), Math.random().toDouble())
-                    //println(Vector3f((v.x-x0)*scale, (v.y-y0)*scale, it.depth).print())
+                    // LOGGER.info(Vector3d((v.x-x0)*scale, (v.y-y0)*scale, it.depth).print())
                     buffer.put(r, g, b, a)
                 }
             }
         }
-        // println("created buffer $x $y $scale of curves with size $totalPointCount")
+        // LOGGER.info("created buffer $x $y $scale of curves with size $totalPointCount")
     }
 
     fun convertStyle(xml: XMLElement){
@@ -207,7 +208,7 @@ class SVGMesh {
             }
             when(data[j]){
                 '.' -> {
-                    // println("starts with .")
+                    // LOGGER.info("starts with .")
                     j++
                     int@while(true){
                         when(data.getOrNull(j)){
@@ -249,7 +250,7 @@ class SVGMesh {
                     }
                 }
             }
-            // println("'${data.substring(i, j)}' + ${data.substring(j, j+10)}")
+            // LOGGER.info("'${data.substring(i, j)}' + ${data.substring(j, j+10)}")
             val value = data.substring(i, j).toDouble()
             i = j
             return value
@@ -286,7 +287,7 @@ class SVGMesh {
                     }
                 }
             } catch (e: Exception){
-                println(data)
+                LOGGER.info(data)
                 throw e
             }
             return true
@@ -308,7 +309,7 @@ class SVGMesh {
     fun arcTo(rx: Double, ry: Double, xAxisRotation: Double,
               largeArcFlag: Double, sweepFlag: Double,
               x2: Double, y2: Double){
-        // println("$rx $ry $xAxisRotation $largeArcFlag $sweepFlag $x2 $y2")
+        // LOGGER.info("$rx $ry $xAxisRotation $largeArcFlag $sweepFlag $x2 $y2")
         arcTo(rx, ry, xAxisRotation,
             largeArcFlag.toInt() != 0,
             sweepFlag.toInt() != 0,
@@ -409,7 +410,7 @@ class SVGMesh {
             }
             when(data[j]){
                 '.' -> {
-                    // println("starts with .")
+                    // LOGGER.info("starts with .")
                     j++
                     int@while(true){
                         when(data.getOrNull(j)){
@@ -451,7 +452,7 @@ class SVGMesh {
                     }
                 }
             }
-            // println("'${data.substring(i, j)}' + ${data.substring(j, j+10)}")
+            // LOGGER.info("'${data.substring(i, j)}' + ${data.substring(j, j+10)}")
             val value = data.substring(i, j).toDouble()
             i = j
             return value
@@ -630,5 +631,9 @@ class SVGMesh {
     }
 
     fun close() = end(true)
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(SVGMesh::class)
+    }
 
 }

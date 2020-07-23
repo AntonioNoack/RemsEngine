@@ -30,6 +30,7 @@ import me.anno.video.VideoCreator
 import java.io.File
 import java.io.OutputStream
 import java.io.PrintStream
+import java.lang.RuntimeException
 import kotlin.math.max
 import kotlin.math.roundToInt
 
@@ -141,6 +142,10 @@ object UILayouts {
                         line = ""
                     }
                     line.length < 100 -> {
+                        // enable for
+                        /*if(line.isEmpty() && b != '['.toInt()){
+                            throw RuntimeException("Please use the LogManager.getLogger(YourClass)!")
+                        }*/
                         line += b.toChar()
                     }
                     line.length == 100 -> {

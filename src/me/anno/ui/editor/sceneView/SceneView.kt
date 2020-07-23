@@ -199,6 +199,8 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
         GFX.check()
     }
 
+    // todo camera movement in orthographic view is a bit broken
+
     fun parseKeyInput(){
 
         val dt = clamp(deltaTime, 0f, 0.1f)

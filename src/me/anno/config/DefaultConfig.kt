@@ -80,7 +80,7 @@ object DefaultConfig: StringMap() {
                     cube.name = "Cube"
                     cube.autoAlign = true
                     cube.scale.set(Vector3f(1f, 1f, 1f))
-                    cube.vertexCount.set(4f)
+                    cube.vertexCount.set(4)
                     cube
                 }(),
                 "Particle System" to {

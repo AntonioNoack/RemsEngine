@@ -2,6 +2,7 @@ package me.anno.io
 
 import me.anno.io.base.BaseWriter
 import me.anno.io.text.TextWriter
+import org.apache.logging.log4j.LogManager
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -19,7 +20,7 @@ abstract class Saveable: ISaveable {
 
     fun warnMissingParam(name: String){
         if(name == "*ptr") throw RuntimeException()
-        println("Unknown param ${getClassName()}.$name")
+        LogManager.getLogger(Saveable::class).warn("Unknown param ${getClassName()}.$name")
     }
 
     override fun readBool(name: String, value: Boolean) = readSomething(name, value)
@@ -46,5 +47,9 @@ abstract class Saveable: ISaveable {
     open fun readSomething(name: String, value: Any?) = warnMissingParam(name)
 
     override fun toString(): String = TextWriter.toText(this, true)
+
+    /*companion object {
+        private val LOGGER = LogManager.getLogger(Saveable::class)
+    }*/
 
 }

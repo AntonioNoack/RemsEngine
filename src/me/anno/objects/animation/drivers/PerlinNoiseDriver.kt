@@ -7,7 +7,6 @@ import me.anno.objects.animation.AnimatedProperty
 import me.anno.ui.base.Panel
 import me.anno.ui.input.FloatInput
 import me.anno.ui.input.IntInput
-import me.anno.ui.input.LongInput
 import me.anno.ui.style.Style
 import me.anno.utils.clamp
 import org.kdotjpg.OpenSimplexNoise
@@ -52,18 +51,12 @@ class PerlinNoiseDriver: AnimationDriver(){
 
     override fun createInspector(transform: Transform, style: Style): List<Panel> {
         val components = ArrayList<Panel>()
-        components += IntInput("Octaves", octaves.toFloat(), style)
-            .setChangeListener { octaves = it.toInt() }
-            .setIsSelectedListener { show(null) }
-        components += LongInput("Seed", seed.toFloat(), style)
-            .setChangeListener { octaves = it.toInt() }
-            .setIsSelectedListener { show(null) }
+        components += transform.VI("Octaves", "Levels of Detail", AnimatedProperty.Type.INT_PLUS, octaves, style){ octaves = it }
+        components += transform.VI("Seed", "", AnimatedProperty.Type.LONG, seed, style){ seed = it }
         components += transform.VI("Falloff", "Changes high-frequency weight", falloff, style)
         components += transform.VI("Value", "The base value", baseValue, style)
         components += transform.VI("Amplitude", "The scale of this effect", amplitude, style)
-        components += FloatInput("Frequency", frequency, style)
-            .setIsSelectedListener { show(null) }
-            .setChangeListener { frequency = it }
+        components += transform.VI("Frequency", "How fast it's changing", AnimatedProperty.Type.FLOAT_PLUS, frequency, style){ frequency = it }
         return components
     }
 

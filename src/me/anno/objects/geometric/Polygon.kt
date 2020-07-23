@@ -41,7 +41,7 @@ class Polygon(parent: Transform? = null): GFXTransform(parent){
     var autoAlign = false
     var nearestFiltering = false
 
-    var vertexCount = AnimatedProperty.floatPlus().set(5f)
+    var vertexCount = AnimatedProperty.intPlus().set(5)
     var starNess = AnimatedProperty.float01()
 
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f){
@@ -50,7 +50,7 @@ class Polygon(parent: Transform? = null): GFXTransform(parent){
         // todo check if an exception really need to be thrown (empty = default, white)
         if(image == null && GFX.isFinalRendering) throw MissingFrameException(texture)
         val texture = image ?: GFX.whiteTexture
-        val count = vertexCount[time].roundToInt()
+        val count = vertexCount[time]//.roundToInt()
         if(inset == 1f && count % 2 == 0) return// invisible
         val selfDepth = scale[time].z
         if(autoAlign && count == 4){
