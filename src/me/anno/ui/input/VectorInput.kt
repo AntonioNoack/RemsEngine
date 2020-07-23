@@ -218,6 +218,13 @@ class VectorInput(
         compW?.setValue(v.w)
     }
 
+    fun setValue(vi: VectorInput){
+        compX.setValue(vi.vx)
+        compY.setValue(vi.vy)
+        compZ?.setValue(vi.vz)
+        compW?.setValue(vi.vw)
+    }
+
     var changeListener: (x: Float, y: Float, z: Float, w: Float) -> Unit = {
         _,_,_,_ ->
     }

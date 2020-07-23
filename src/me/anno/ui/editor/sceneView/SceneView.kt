@@ -6,6 +6,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFX.deltaTime
 import me.anno.gpu.GFX.select
 import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.shader.ShaderPair
 import me.anno.input.Input
 import me.anno.input.Input.mouseKeysDown
 import me.anno.objects.Camera
@@ -53,13 +54,19 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
 
         // todo add the top controls
 
-        val topControls = PanelListX(style)
+        // todo ui with transparent background... only icons...
+        /*val topControls = PanelListX(style)
         topControls += WrapAlign.Top
-        topControls += TextPanel("hi", style)
+        val tp = TextPanel("hi", style)
+        tp += WrapAlign.LeftTop
+        topControls += tp
+        add(topControls)*/
+
 
     }
 
     var camera = nullCamera
+    var isLocked2D = false
 
     // we need the depth for post processing effects like dof
 
@@ -101,7 +108,7 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
         }
 
         // for(i in 0 until 1000)
-        Scene.draw(null, camera, x+dx,y+dy,rw,rh, editorTime, flipY = false, useFakeColors = false)
+        Scene.draw(null, camera, x+dx,y+dy,rw,rh, editorTime, flipY = false, drawMode = ShaderPair.DrawMode.COLOR)
 
         GFX.clip(x0, y0, x1, y1)
 
@@ -116,46 +123,66 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
         GFX.drawText(x+2, y+2, "Verdana", 12,
             false, false, mode.displayName, -1, 0)
 
+        GFX.drawText(x+16, y+2, "Verdana", 12,
+            false, false, if(isLocked2D) "2D" else "3D", -1, 0)
+
         super.draw(x0, y0, x1, y1)
 
     }
 
     fun resolveClick(clickX: Float, clickY: Float, rw: Int, rh: Int){
+
         val camera = camera
-        // todo get z buffer and prefer closer objects
-        // (picking a line (camera) in front of a cubemap/image is difficult, needs perfect click)
         GFX.check()
-        // get the color at the clicked position
+
         val fb: Framebuffer? = null//FBStack[rw, rh, false]
         val width = fb?.w ?: GFX.width
         val height = fb?.h ?: GFX.height
         GFX.clip(0, 0, width, height)
-        // draw only the clicked area?
-        Scene.draw(fb, camera, 0, 0, rw, rh, editorTime, flipY = false, useFakeColors = true)
-        GFX.check()
-        fb?.bind() ?: glBindFramebuffer(GL_FRAMEBUFFER, 0)
-        val localX = (clickX - this.x).roundToInt()
-        val localH = fb?.h ?: GFX.height
-        val localY = localH - 1 - (clickY - this.y).roundToInt()
-        glFlush(); glFinish() // wait for everything to be drawn
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
+
+
         val radius = 2
         val diameter = radius * 2 + 1
-        val buffer = IntArray(diameter * diameter)
-        glReadPixels(
-            max(localX-radius, 0),
-            max(localY-radius, 0),
-            min(diameter, width),
-            min(diameter, height),
-            GL_RGBA, GL_UNSIGNED_BYTE, buffer)
-        var bestDistance = diameter * diameter
+        fun getPixels(mode: ShaderPair.DrawMode): IntArray {
+            // draw only the clicked area?
+            Scene.draw(fb, camera, 0, 0, rw, rh, editorTime, false, mode)
+            GFX.check()
+            fb?.bind() ?: glBindFramebuffer(GL_FRAMEBUFFER, 0)
+            val localX = (clickX - this.x).roundToInt()
+            val localH = fb?.h ?: GFX.height
+            val localY = localH - 1 - (clickY - this.y).roundToInt()
+            glFlush(); glFinish() // wait for everything to be drawn
+            glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
+            val buffer = IntArray(diameter * diameter)
+            glReadPixels(
+                max(localX-radius, 0),
+                max(localY-radius, 0),
+                min(diameter, width),
+                min(diameter, height),
+                GL_RGBA, GL_UNSIGNED_BYTE, buffer)
+            return buffer
+        }
+
+        val idBuffer = getPixels(ShaderPair.DrawMode.ID)
+        val depthBuffer = getPixels(ShaderPair.DrawMode.DEPTH)
+
+        val depthImportance = 10
+        var bestDistance = 256 * depthImportance + diameter * diameter
         var bestResult = 0
+
+        // sometimes the depth buffer seems to contain copies of the idBuffer -.-
+        // still, in my few tests, it seemed to have worked :)
+        // (clicking on the camera line in front of a cubemap)
+        // println(idBuffer.joinToString { it.toUInt().toString(16) })
+        // println(depthBuffer.joinToString { it.toUInt().toString(16) })
+
         // convert that color to an id
-        buffer.forEachIndexed { index, value ->
+        idBuffer.forEachIndexed { index, value ->
+            val depth = depthBuffer[index] and 255
             val result = value.and(0xffffff)
             val x = (index % diameter) - radius
             val y = (index / diameter) - radius
-            val distance = x*x+y*y
+            val distance = depth * depthImportance + x*x+y*y
             val isValid = result > 0
             if(isValid && distance <= bestDistance){
                 bestDistance = distance
@@ -194,6 +221,7 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
             // todo transform into the correct space: from that camera to this camera
             val newPosition = oldPosition + step2
             camera.position.addKeyframe(cameraTime, newPosition, 0.01)
+            showChanges()
         }
 
         dx = 0
@@ -204,7 +232,7 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
         // fov is relative to height -> modified to depend on height
-        val size = (if(Input.isShiftDown) 4f else 20f) * (if(Studio.selectedTransform is Camera) -1f else 1f) / GFX.height
+        val size = (if(Input.isShiftDown) 4f else 20f) * (if(selectedTransform is Camera) -1f else 1f) / GFX.height
         val oldX = x-dx
         val oldY = y-dy
         val dx0 = dx*size
@@ -213,7 +241,7 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
         // todo fix this code, then move it to the action manager
         if(0 in mouseKeysDown){
             // move the object
-            val selected = Studio.selectedTransform
+            val selected = selectedTransform
             if(selected != null){
 
                 val (target2global, localTime) = selected.getGlobalTransform(editorTime)
@@ -269,34 +297,33 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
                         selected.scale.addKeyframe(localTime, oldScale + localDelta)
                     }*/
                 }
+
+                showChanges()
             }
         }
     }
 
     fun turn(dx: Float, dy: Float){
-        // todo move the camera
+        if(isLocked2D) return
+        // move the camera
         // todo only do, if not locked
         val size = (if(Input.isShiftDown) 4f else 20f) * (if(selectedTransform is Camera) -1f else 1f) / max(GFX.width,GFX.height)
         val dx0 = dx*size
         val dy0 = dy*size
         val scaleFactor = -10f
         val camera = camera
-        val (cameraTransform, cameraTime) = camera.getGlobalTransform(editorTime)
+        val (_, cameraTime) = camera.getGlobalTransform(editorTime)
         val oldRotation = camera.rotationYXZ[cameraTime]
         camera.putValue(camera.rotationYXZ, oldRotation + Vector3f(dy0 * scaleFactor, dx0 * scaleFactor, 0f))
+        if(camera == selectedTransform) showChanges()
+    }
+
+    fun showChanges(){
+        Studio.updateInspector()
     }
 
     // todo undo, redo by serialization of the scene
     // todo switch animatedproperty when selecting another object
-    override fun onCharTyped(x: Float, y: Float, key: Int) {
-        when(key.toChar().toLowerCase()){
-            // todo global actions
-            'r' -> mode = TransformMode.MOVE
-            't' -> mode = TransformMode.SCALE
-            'z', 'y' -> mode = TransformMode.ROTATE
-            else -> super.onCharTyped(x, y, key)
-        }
-    }
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
         when(action){

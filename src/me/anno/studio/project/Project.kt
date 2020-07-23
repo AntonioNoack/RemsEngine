@@ -30,7 +30,8 @@ class Project(val file: File): Saveable(){
     // zip this folder all the time to not waste SSD life time? -> no, we don't have that many files
     // -> we need to be able to show contents of zip files then
 
-    var targetDuration = 5.0
+    var targetDuration = config["target.duration", 5.0]
+    var targetSizePercentage = config["target.sizePercentage", 100f]
     var targetWidth = config["target.width", 1920]
     var targetHeight = config["target.height", 1080]
     var targetFPS = config["target.fps", 30.0]
@@ -41,6 +42,8 @@ class Project(val file: File): Saveable(){
     override fun isDefaultValue() = false
 
     fun saveConfig(){
+        config["target.duration"] = targetDuration
+        config["target.sizePercentage"] = targetSizePercentage
         config["target.width"] = targetWidth
         config["target.height"] = targetHeight
         config["target.fps"] = targetFPS

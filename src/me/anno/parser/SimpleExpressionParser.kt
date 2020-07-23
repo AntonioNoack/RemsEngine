@@ -6,6 +6,7 @@ import me.anno.parser.Functions.applyFunc3
 import me.anno.parser.Functions.applyFunc4
 import me.anno.parser.Functions.applyFunc5
 import me.anno.parser.Functions.constants
+import org.apache.logging.log4j.LogManager
 import java.lang.Exception
 import java.lang.RuntimeException
 import java.lang.StrictMath.pow
@@ -19,6 +20,8 @@ import kotlin.math.max
  * todo ... means repeat last element, whereas otherwise 0?
  * */
 object SimpleExpressionParser {
+
+    private val LOGGER = LogManager.getLogger(SimpleExpressionParser::class)
 
     fun preparse(str: String) = str.splitInternally()
 
@@ -278,7 +281,7 @@ object SimpleExpressionParser {
         return try {
             parseDouble(expr.splitInternally(), additionalConstants)
         } catch (e: Exception){
-            println(e.message)
+            LOGGER.warn(e.message ?: "")
             // e.printStackTrace()
             null
         }
@@ -318,7 +321,7 @@ object SimpleExpressionParser {
                 0 -> null
                 1 -> parts[0] as? Double
                 else -> {
-                    println("[WARN] Couldn't understand $parts")
+                    LOGGER.warn("Couldn't understand $parts")
                     null
                 }
             }
@@ -327,7 +330,7 @@ object SimpleExpressionParser {
             val msg = e.message
             if(msg != null && msg !in knownMessages){
                 knownMessages.add(msg)
-                println(e.message)
+                LOGGER.warn(e.message ?: "")
             }
             // e.printStackTrace()
             return null

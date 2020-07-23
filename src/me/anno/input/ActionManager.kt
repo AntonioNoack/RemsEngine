@@ -70,6 +70,11 @@ object ActionManager {
         defaultValue["SceneView.d.p"] = "MoveRight"
         defaultValue["SceneView.q.p"] = "MoveDown"
         defaultValue["SceneView.e.p"] = "MoveUp"
+        defaultValue["SceneView.r.p"] = "SetMode(MOVE)"
+        defaultValue["SceneView.t.p"] = "SetMode(SCALE)"
+        defaultValue["SceneView.z.p"] = "SetMode(ROTATE)"
+        defaultValue["SceneView.y.p"] = "SetMode(ROTATE)"
+
 
         // todo somehow not working
         defaultValue["GraphEditorBody.arrowLeft.press"] = "MoveLeft"

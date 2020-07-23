@@ -7,8 +7,10 @@ import me.anno.objects.Camera
 import me.anno.objects.Inspectable
 import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
+import me.anno.studio.RemsStudio.windowStack
 import me.anno.studio.project.Project
 import me.anno.ui.dragging.IDraggable
+import me.anno.ui.editor.PropertyInspector
 import java.util.concurrent.ConcurrentLinkedQueue
 
 object Studio {
@@ -51,6 +53,16 @@ object Studio {
     var selectedTransform: Transform? = null
     var selectedProperty: AnimatedProperty<*>? = null
     var selectedInspectable: Inspectable? = null
+
+    fun updateInspector(){
+        windowStack.forEach { window ->
+            window.panel.listOfAll.forEach {
+                (it as? PropertyInspector)?.apply {
+                    needsUpdate = true
+                }
+            }
+        }
+    }
 
     fun updateAudio(){
         GFX.addAudioTask {

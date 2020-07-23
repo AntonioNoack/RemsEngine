@@ -8,6 +8,7 @@ import me.anno.objects.*
 import me.anno.studio.RemsStudio.console
 import me.anno.studio.RemsStudio.originalOutput
 import me.anno.studio.RemsStudio.windowStack
+import me.anno.studio.Studio.project
 import me.anno.studio.Studio.root
 import me.anno.studio.Studio.targetDuration
 import me.anno.studio.Studio.targetFPS
@@ -29,6 +30,8 @@ import me.anno.video.VideoCreator
 import java.io.File
 import java.io.OutputStream
 import java.io.PrintStream
+import kotlin.math.max
+import kotlin.math.roundToInt
 
 object UILayouts {
 
@@ -45,11 +48,15 @@ object UILayouts {
     }
 
     fun renderPart(size: Int){
+        render(targetWidth/size, targetHeight/size)
+    }
+
+    fun render(width: Int, height: Int){
         val tmpFile = File(targetOutputFile.parentFile, targetOutputFile.nameWithoutExtension+".tmp."+targetOutputFile.extension)
         val fps = targetFPS
         val totalFrameCount = (fps * targetDuration).toInt()
         val sampleRate = 48000
-        VideoAudioCreator(VideoCreator(targetWidth/size, targetHeight/size,
+        VideoAudioCreator(VideoCreator(width, height,
             targetFPS, totalFrameCount, tmpFile), sampleRate, targetOutputFile).start()
     }
 
@@ -75,6 +82,10 @@ object UILayouts {
         options.addAction("File", "Save"){ Input.save() }
         options.addAction("File", "Load"){  }
 
+        options.addAction("Render", "Set%"){
+            render(
+                max(1, (project!!.targetWidth * project!!.targetSizePercentage / 100).roundToInt()),
+                max(1, (project!!.targetHeight * project!!.targetSizePercentage / 100).roundToInt())) }
         options.addAction("Render", "Full"){ renderPart(1) }
         options.addAction("Render", "Half"){ renderPart(2) }
         options.addAction("Render", "Quarter"){ renderPart(4) }

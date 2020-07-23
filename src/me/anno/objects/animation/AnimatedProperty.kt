@@ -24,6 +24,7 @@ class AnimatedProperty<V>(val type: Type, val minValue: V?, val maxValue: V?): S
         FLOAT("float", 0f, 1, 1f, true, true, { it is Float }),
         FLOAT_01("float01", 0f, 1, 1f, true, true, { it is Float }),
         FLOAT_PLUS("float+", 0f, 1, 1f, false, true, { it is Float }),
+        FLOAT_PERCENT("float%", 100f, 1, 100f, true, true, { it is Float }),
         DOUBLE("double", 0.0, 1, 1f, true, true, { it is Double }),
         VEC2("vec2", Vector2f(), 2, 1f, true, true, { it is Vector2f }),
         VEC3("vec3", Vector3f(), 3, 1f, true, true, { it is Vector3f }),
@@ -42,6 +43,7 @@ class AnimatedProperty<V>(val type: Type, val minValue: V?, val maxValue: V?): S
         fun float() = AnimatedProperty<Float>(Type.FLOAT)
         fun floatPlus() = AnimatedProperty(Type.FLOAT_PLUS, 0f, null)
         fun float01() = AnimatedProperty(Type.FLOAT_01, 0f, 1f)
+        fun floatPercent() = AnimatedProperty(Type.FLOAT_PERCENT, 0f, 100f)
         fun double() = AnimatedProperty<Double>(Type.DOUBLE)
         fun vec2() = AnimatedProperty<Vector2f>(Type.VEC2)
         fun vec3() = AnimatedProperty<Vector3f>(Type.VEC3)

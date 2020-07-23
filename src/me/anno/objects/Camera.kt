@@ -11,11 +11,8 @@ import me.anno.studio.Studio.targetWidth
 import me.anno.studio.Studio.usedCamera
 import me.anno.ui.base.ButtonPanel
 import me.anno.ui.base.groups.PanelListY
-import me.anno.ui.editor.frames.FrameSizeInput
-import me.anno.ui.input.BooleanInput
-import me.anno.ui.input.EnumInput
-import me.anno.ui.input.FileInput
 import me.anno.ui.style.Style
+import me.anno.utils.pow
 import org.joml.*
 import org.lwjgl.opengl.GL11.GL_LINES
 import org.lwjgl.opengl.GL20.glUniformMatrix4fv
@@ -27,6 +24,8 @@ class Camera(parent: Transform? = null): Transform(parent){
     // todo allow cameras to be merged
     // todo allow cameras to film camera (post processing) -> todo create a stack of cameras/scenes?
 
+    // todo orthographic-ness by setting the camera back some amount, and narrowing the view
+
     var lut = File("")
     var nearZ = AnimatedProperty.floatPlus().set(0.001f)
     var farZ = AnimatedProperty.floatPlus().set(1000f)
@@ -35,6 +34,7 @@ class Camera(parent: Transform? = null): Transform(parent){
     var chromaticOffset = AnimatedProperty.vec2()
     var distortion = AnimatedProperty.vec3()
     var distortionOffset = AnimatedProperty.vec2()
+    var orthographicness = AnimatedProperty.float01()
 
     var toneMapping = ToneMappers.RAW
 
@@ -45,6 +45,16 @@ class Camera(parent: Transform? = null): Transform(parent){
         position.add(0.0, Vector3f(0f, 0f, 1f))
     }
 
+
+    fun getEffectiveOffset(localTime: Double) = orthoDistance(orthographicness[localTime])
+    fun getEffectiveNear(localTime: Double, offset: Float = getEffectiveOffset(localTime)) = nearZ[localTime]
+    fun getEffectiveFar(localTime: Double, offset: Float = getEffectiveOffset(localTime)) = farZ[localTime] + offset
+    fun getEffectiveFOV(localTime: Double, offset: Float = getEffectiveOffset(localTime)) = orthoFOV(fovYDegrees[localTime], offset)
+
+    fun orthoDistance(ortho: Float) = pow(200f, ortho) - 1f
+    fun orthoFOV(fov: Float, offset: Float) = fov / (1f + offset)
+
+
     override fun getClassName() = "Camera"
 
     override fun createInspector(list: PanelListY, style: Style) {
@@ -52,29 +62,19 @@ class Camera(parent: Transform? = null): Transform(parent){
         list += VI("Near Z", "Closest Visible Distance", nearZ, style)
         list += VI("Far Z", "Farthest Visible Distance", farZ, style)
         list += VI("FOV", "Field Of View, in degrees, vertical", fovYDegrees, style)
+        list += VI("Perspective - Orthographic", "Sets back the camera", orthographicness, style)
         list += VI("Chromatic Aberration", "Effect occurring in cheap lenses", chromaticAberration, style)
         list += VI("Chromatic Offset", "Offset for chromatic aberration", chromaticOffset, style)
         list += VI("Distortion", "Params: R², R⁴, Scale", distortion, style)
         list += VI("Distortion Offset", "Moves the center of the distortion", distortionOffset, style)
-        list += EnumInput("Tone Mapping", true, toneMapping.displayName, ToneMappers.values().map { it.displayName }, style)
-            .setChangeListener { toneMapping = getToneMapper(it) }
-            .setIsSelectedListener { show(null) }
+        list += VI("Tone Mapping", "Maps large ranges of brightnesses (e.g. HDR) to monitor color space", null, toneMapping, style){ toneMapping = it }
         list += VI("LUT", "Look Up Table for colors, formatted like in UE4", null, lut, style){ lut = it }
         list += VI("Only Show Target", "Forces the viewport to have the correct aspect ratio", null, onlyShowTarget, style){ onlyShowTarget = it }
         list += VI("Use Depth", "Causes Z-Fighting, but allows 3D", null, useDepth, style){ useDepth = it }
         list += ButtonPanel("Reset Transform", style)
             .setOnClickListener { x, y, button, long -> resetTransform() }
             .setTooltip("If accidentally moved")
-
-        // for testing
-        list += FrameSizeInput("Frame Size", "5x5", style)
-
-
     }
-
-    fun getToneMapper(name: String) =
-        ToneMappers.values().firstOrNull { it.displayName == name || it.code == name } ?:
-        ToneMappers.RAW
 
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
 
@@ -83,8 +83,15 @@ class Camera(parent: Transform? = null): Transform(parent){
         // idk...
         // if(this !== GFX.selectedTransform) return
 
+        val offset = getEffectiveOffset(time)
+        val fov = getEffectiveFOV(time, offset)
+        val near = getEffectiveNear(time, offset)
+        val far = getEffectiveFar(time, offset)
+
+        stack.translate(0f, 0f, offset)
+
         val scaleZ = 1f
-        val scaleY = scaleZ * tan(toRadians(fovYDegrees[time])/2f)
+        val scaleY = scaleZ * tan(toRadians(fov)/2f)
         val scaleX = scaleY * targetWidth / targetHeight
         stack.scale(scaleX, scaleY, scaleZ)
         val shader = GFX.lineShader3D
@@ -97,12 +104,12 @@ class Camera(parent: Transform? = null): Transform(parent){
         GFX.shaderColor(shader, "color", color)
         cameraModel.draw(shader, GL_LINES)
 
-        stack.scale(nearZ[time])
+        stack.scale(near)
         stack.get(GFX.matrixBuffer)
         glUniformMatrix4fv(shader["transform"], false, GFX.matrixBuffer)
         cameraModel.draw(shader, GL_LINES)
 
-        stack.scale(farZ[time]/nearZ[time])
+        stack.scale(far/near)
         stack.get(GFX.matrixBuffer)
         glUniformMatrix4fv(shader["transform"], false, GFX.matrixBuffer)
         cameraModel.draw(shader, GL_LINES)

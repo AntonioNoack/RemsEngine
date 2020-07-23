@@ -5,20 +5,19 @@ import me.anno.config.DefaultStyle
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.createCustomShader3
 import me.anno.gpu.GFX.flat01
-import me.anno.gpu.GFX.flatShader
 import me.anno.gpu.GFX.isFakeColorRendering
 import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
-import me.anno.input.Input.copy
+import me.anno.gpu.shader.ShaderPair
 import me.anno.input.Input.keysDown
-import me.anno.io.json.testModelRendering
 import me.anno.objects.Camera
 import me.anno.objects.blending.BlendMode
 import me.anno.objects.cache.Cache
 import me.anno.objects.effects.BokehBlur
 import me.anno.objects.effects.ToneMappers
+import me.anno.studio.Studio.selectedTransform
 import me.anno.ui.editor.sceneView.Grid
 import me.anno.utils.times
 import me.anno.utils.warn
@@ -213,9 +212,10 @@ object Scene {
 
     // rendering must be done in sync with the rendering thread (OpenGL limitation) anyways, so one object is enough
     val stack = Matrix4fArrayList()
-    fun draw(target: Framebuffer?, camera: Camera, x0: Int, y0: Int, w: Int, h: Int, time: Double, flipY: Boolean, useFakeColors: Boolean){
+    fun draw(target: Framebuffer?, camera: Camera, x0: Int, y0: Int, w: Int, h: Int, time: Double, flipY: Boolean, drawMode: ShaderPair.DrawMode){
 
-        isFakeColorRendering = useFakeColors
+        GFX.drawMode = drawMode
+        val isFakeColorRendering = isFakeColorRendering
 
         // we must have crashed before;
         // somewhere in this function
@@ -230,7 +230,7 @@ object Scene {
             DefaultConfig["rendering.useMSAA", true]
         else
             DefaultConfig["editor.useMSAA", true]
-        val withMultisampling = mayUseMSAA && !useFakeColors
+        val withMultisampling = mayUseMSAA && !isFakeColorRendering
 
         GFX.check()
 
@@ -272,7 +272,7 @@ object Scene {
         // remember the transform for later use
         lastCameraTransform.set(stack)
 
-        if(!useFakeColors){
+        if(!isFakeColorRendering){
             stack.pushMatrix()
             Grid.draw(stack, cameraTransform)
             stack.popMatrix()
@@ -284,7 +284,7 @@ object Scene {
             GL30.glDisable(GL30.GL_DEPTH_TEST)
         }
 
-        if(!useFakeColors) BlendMode.DEFAULT.apply()
+        if(!isFakeColorRendering) BlendMode.DEFAULT.apply()
         else glDisable(GL_BLEND)
 
         GL30.glDepthMask(true)
@@ -323,8 +323,8 @@ object Scene {
          * draw the selection ring for selected objects
          * draw it after everything else and without depth
          * */
-        if(!isFinalRendering && !isFakeColorRendering){
-            Studio.selectedTransform?.apply {
+        if(!isFinalRendering && !isFakeColorRendering && selectedTransform != camera){ // seeing the own camera is irritating xD
+            selectedTransform?.apply {
                 glDisable(GL_DEPTH_TEST)
                 val (transform, _) = getGlobalTransform(time)
                 stack.pushMatrix()
@@ -370,7 +370,7 @@ object Scene {
         }
 
         val lutFile = camera.lut
-        val needsLUT = !useFakeColors && lutFile.exists() && !lutFile.isDirectory
+        val needsLUT = !isFakeColorRendering && lutFile.exists() && !lutFile.isDirectory
         val lut = if(needsLUT) Cache.getLUT(lutFile, true, 20_000) else null
 
         // println("lut: $lutFile $lut")
@@ -402,7 +402,7 @@ object Scene {
         val rel = sqrt(w*h.toFloat())
         // artistic scale
         val caScale = 0.01f
-        if(useFakeColors){// colors must be preserved for ids
+        if(isFakeColorRendering){// colors must be preserved for ids
             sqrtToneMappingShader.v1("chromaticAberration", 0f)
             sqrtToneMappingShader.v2("chromaticOffset", 0f, 0f)
         } else {
@@ -423,7 +423,7 @@ object Scene {
         sqrtToneMappingShader.v2("distortion", dst.x, dst.y)
         sqrtToneMappingShader.v2("distortionOffset", dstOffset)
         sqrtToneMappingShader.v1("minValue", minValue)
-        sqrtToneMappingShader.v1("toneMapper", when(if(useFakeColors) ToneMappers.RAW else camera.toneMapping){
+        sqrtToneMappingShader.v1("toneMapper", when(if(isFakeColorRendering) ToneMappers.RAW else camera.toneMapping){
             ToneMappers.RAW -> 0f
             ToneMappers.REINHARD -> 1f
             ToneMappers.ACES -> 2f
@@ -459,7 +459,7 @@ object Scene {
             // further analysis by testing each object individually?
         }
 
-        isFakeColorRendering = false
+        GFX.drawMode = ShaderPair.DrawMode.COLOR
 
     }
 

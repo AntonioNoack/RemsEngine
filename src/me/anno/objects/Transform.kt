@@ -1,6 +1,7 @@
 package me.anno.objects
 
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.isFakeColorRendering
 import me.anno.gpu.GFX.toRadians
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
@@ -10,6 +11,7 @@ import me.anno.io.text.TextWriter
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.blending.BlendMode
 import me.anno.objects.blending.blendModes
+import me.anno.objects.effects.ToneMappers
 import me.anno.objects.particles.ParticleSystem
 import me.anno.studio.Studio
 import me.anno.studio.Studio.selectedTransform
@@ -424,6 +426,7 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
             is Enum<*> -> {
                 val values = when(value){
                     is LoopingState -> LoopingState.values()
+                    is ToneMappers -> ToneMappers.values()
                     else -> throw RuntimeException("Missing enum .values() implementation for UI in Transform.kt")
                 }
                 val valueNames = values.map {
@@ -431,11 +434,12 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
                         LoopingState.PLAY_ONCE -> "Once"
                         LoopingState.PLAY_LOOP -> "Looping"
                         LoopingState.PLAY_REVERSING_LOOP -> "Reversing"
+                        is ToneMappers -> it.displayName
                         else -> it.name
                     }
                 }
                 EnumInput(title, true, valueNames.first { it.first == value }.second, valueNames.map { it.second }, style)
-                    .setChangeListener { str -> setValue((valueNames.first { it.second == str }!!.first) as V) }
+                    .setChangeListener { str -> setValue((valueNames.first { it.second == str }.first) as V) }
                     .setIsSelectedListener { show(null) }
                     .setTooltip(ttt)
             }

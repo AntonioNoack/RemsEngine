@@ -13,7 +13,7 @@ class Shader(vertex: String, varying: String, fragment: String,
              private val disableShorts: Boolean = false): CacheData {
 
     companion object {
-        private val LOGGER = LogManager.getLogger()
+        private val LOGGER = LogManager.getLogger(Shader::class)
         const val attributeName = "in"
         var lastProgram = -1
     }
@@ -87,7 +87,7 @@ class Shader(vertex: String, varying: String, fragment: String,
         val loc = glGetUniformLocation(program, name)
         check()
         uniformCache[name] = loc
-        if(loc < 0) println("[INFO] Uniform Location $name not found!")
+        if(loc < 0) LOGGER.info("Uniform Location $name not found!")
         return loc
     }
 
@@ -96,7 +96,7 @@ class Shader(vertex: String, varying: String, fragment: String,
         if(old != null) return old
         val loc = glGetAttribLocation(program, name)
         attributeCache[name] = loc
-        if(loc < 0) println("attribute location $name not found!")
+        if(loc < 0) LOGGER.info("Attribute location $name not found!")
         return loc
     }
 
@@ -128,6 +128,11 @@ class Shader(vertex: String, varying: String, fragment: String,
     fun v1(name: String, x: Float){
         val loc = getUniformLocation(name)
         if(loc > -1) glUniform1f(loc, x)
+    }
+
+    fun v1(name: String, x: Int){
+        val loc = getUniformLocation(name)
+        if(loc > -1) glUniform1i(loc, x)
     }
 
     fun v2(name: String, x: Float, y: Float){

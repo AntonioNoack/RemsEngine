@@ -2,6 +2,7 @@ package me.anno.video
 
 import me.anno.gpu.GFX
 import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.shader.ShaderPair
 import me.anno.objects.Camera
 import me.anno.studio.Scene
 import me.anno.studio.Studio.nullCamera
@@ -63,7 +64,7 @@ class VideoBackgroundTask(val video: VideoCreator){
         val camera = cameras.firstOrNull() ?: nullCamera
 
         try {
-            Scene.draw(framebuffer, camera, 0, 0, video.w, video.h, time, flipY = true, useFakeColors = false)
+            Scene.draw(framebuffer, camera, 0, 0, video.w, video.h, time, flipY = true, drawMode = ShaderPair.DrawMode.COLOR)
         } catch (e: MissingFrameException){
             GFX.isFinalRendering = false
             return false

@@ -71,7 +71,8 @@ object GFX: GFXBase1() {
     // for final rendering we need to use the GPU anyways;
     // so just use a static variable
     var isFinalRendering = false
-    var isFakeColorRendering = false
+    var drawMode = ShaderPair.DrawMode.COLOR
+    val isFakeColorRendering get() = drawMode != ShaderPair.DrawMode.COLOR
     var supportsAnisotropicFiltering = false
     var anisotropy = 1f
 
@@ -280,14 +281,20 @@ object GFX: GFXBase1() {
     }
 
     fun applyCameraTransform(camera: Camera, time: Double, cameraTransform: Matrix4f, stack: Matrix4fArrayList){
-        val position = cameraTransform.transformProject(Vector3f(0f, 0f, 0f))
-        val up = cameraTransform.transformProject(Vector3f(0f, 1f, 0f)) - position
-        val lookAt = cameraTransform.transformProject(Vector3f(0f, 0f, -1f))
+        val offset = camera.getEffectiveOffset(time)
+        val cameraTransform2 = if(offset != 0f){
+            Matrix4f(cameraTransform).translate(0f, 0f, offset)
+        } else cameraTransform
+        val fov = camera.getEffectiveFOV(time, offset)
+        val near = camera.getEffectiveNear(time, offset)
+        val far = camera.getEffectiveFar(time, offset)
+        val position = cameraTransform2.transformProject(Vector3f(0f, 0f, 0f))
+        val up = cameraTransform2.transformProject(Vector3f(0f, 1f, 0f)) - position
+        val lookAt = cameraTransform2.transformProject(Vector3f(0f, 0f, -1f))
         stack
             .perspective(
-                Math.toRadians(camera.fovYDegrees[time].toDouble()).toFloat(),
-                windowWidth*1f/windowHeight,
-                camera.nearZ[time], camera.farZ[time])
+                Math.toRadians(fov.toDouble()).toFloat(),
+                windowWidth*1f/windowHeight, near, far)
             .lookAt(position, lookAt, up.normalize())
     }
 
@@ -313,6 +320,7 @@ object GFX: GFXBase1() {
         if(tiling != null) shader.v4("tiling", tiling)
         else shader.v4("tiling", 1f, 1f, 0f, 0f)
         shader.v1("isBillboard", isBillboard)
+        shader.v1("drawMode", drawMode.id)
     }
 
     fun shaderColor(shader: Shader, name: String, color: Vector4f){
@@ -524,7 +532,7 @@ object GFX: GFXBase1() {
         GL20.glUniform1i(subpixelCorrectTextShader["tex"], 0)
 
         val positionPostProcessing = "" +
-                ""
+                "zDistance = gl_Position.w;\n"
 
         val colorPostProcessing = "" +
                 "   gl_FragColor.rgb *= gl_FragColor.rgb;\n"
@@ -612,7 +620,9 @@ object GFX: GFXBase1() {
                 "   uvw = attr0;\n" +
                 "}"
 
-        val y3DSpherical = "varying vec3 uvw;\n"
+        val y3DSpherical = "" +
+                "varying vec3 uvw;\n" +
+                "varying float zDistance;\n"
 
         val f3DSpherical = "" +
                 "uniform vec4 tint;\n" +
@@ -641,7 +651,8 @@ object GFX: GFXBase1() {
                 "}"
 
         val y3D = "" +
-                "varying v2 uv;\n"
+                "varying v2 uv;\n" +
+                "varying float zDistance;\n"
 
         val y3DSVG = y3D +
                 "varying v4 color;\n"
@@ -656,7 +667,9 @@ object GFX: GFXBase1() {
                 colorPostProcessing +
                 "}"
 
-        val y3DMasked = "varying v3 uv;\n"
+        val y3DMasked = "" +
+                "varying v3 uv;\n" +
+                "varying float zDistance;\n"
 
         val f3DMasked = "" +
                 "uniform vec4 tint;" +
@@ -768,7 +781,8 @@ object GFX: GFXBase1() {
                     "void main(){" +
                     "   gl_Position = transform * vec4(attr0, 1.0);\n" +
                     positionPostProcessing +
-                    "}", "", "" +
+                    "}", "" +
+                    "varying float zDistance;\n", "" +
                     "uniform vec4 color;\n" +
                     "void main(){" +
                     "   gl_FragColor = color;\n" +
@@ -788,7 +802,7 @@ object GFX: GFXBase1() {
 
     fun createCustomShader(v3D: String, y3D: String, fragmentShader: String, textures: List<String>): ShaderPair {
         val shader = ShaderPair(v3D, y3D, fragmentShader)
-        for(shader2 in listOf(shader.correctShader, shader.monoShader)){
+        for(shader2 in listOf(shader.shader)){
             shader2.use()
             textures.forEachIndexed { index, name ->
                 GL20.glUniform1i(shader2[name], index)
