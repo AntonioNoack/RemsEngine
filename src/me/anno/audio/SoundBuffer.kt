@@ -12,6 +12,7 @@ import java.io.File
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.ShortBuffer
+import kotlin.concurrent.thread
 
 
 class SoundBuffer(): CacheData {
@@ -94,7 +95,10 @@ class SoundBuffer(): CacheData {
     override fun destroy(){
         alDeleteBuffers(buffer)
         if(pcm != null){
-            MemoryUtil.memFree(pcm)
+            val toFree = pcm
+            pcm = null
+            // crashes Java 8, even with 15s delay
+            // MemoryUtil.memFree(toFree)
         }
     }
 

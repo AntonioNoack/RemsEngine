@@ -16,10 +16,12 @@ import java.nio.ShortBuffer;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.UnsupportedAudioFileException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.LWJGLUtil;
+import me.anno.audio.format.WaveReader;
 
 public class WaveData {
 
@@ -54,9 +56,19 @@ public class WaveData {
         return create(WaveData.class.getClassLoader().getResource(path));
     }
 
+    private static AudioInputStream getAudioInputStream(InputStream is) throws IOException, UnsupportedAudioFileException {
+        /*try {
+            return new WaveFloatFileReader().getAudioInputStream(is);// we know the format
+        } catch (UnsupportedAudioFileException e){
+            return AudioSystem.getAudioInputStream(is);
+        }*/
+        return AudioSystem.getAudioInputStream(is);
+    }
+
     public static WaveData create(InputStream is, int frameCount) {
         try {
-            return create(AudioSystem.getAudioInputStream(is), frameCount);
+            new WaveReader(is, frameCount);
+            return create(getAudioInputStream(is), frameCount);
         } catch (Exception e) {
             LOGGER.warn("Unable to create from inputstream", e);
             e.printStackTrace();
@@ -66,7 +78,7 @@ public class WaveData {
 
     public static WaveData create(InputStream is) {
         try {
-            return create(AudioSystem.getAudioInputStream(is), -1);
+            return create(getAudioInputStream(is), -1);
         } catch (Exception e) {
             LOGGER.warn("Unable to create from inputstream", e);
             e.printStackTrace();

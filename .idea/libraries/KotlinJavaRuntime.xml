@@ -26,6 +26,31 @@
       <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-natives-linux.jar!/" />
       <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-natives-macos.jar!/" />
       <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-natives-windows-x86.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-assimp-natives-linux-arm32.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-assimp-natives-linux-arm64.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-assimp-natives-linux.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-assimp-natives-macos.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-assimp-natives-windows-x86.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-glfw-natives-linux-arm32.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-glfw-natives-linux-arm64.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-glfw-natives-linux.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-glfw-natives-macos.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-glfw-natives-windows-x86.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-openal-natives-linux-arm32.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-openal-natives-linux-arm64.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-openal-natives-linux.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-openal-natives-macos.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-openal-natives-windows-x86.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-opengl-natives-linux-arm32.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-opengl-natives-linux-arm64.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-opengl-natives-linux.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-opengl-natives-macos.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-opengl-natives-windows-x86.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-stb-natives-linux-arm32.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-stb-natives-linux-arm64.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-stb-natives-linux.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-stb-natives-macos.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-stb-natives-windows-x86.jar!/" />
     </CLASSES>
     <JAVADOC>
       <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-assimp-javadoc.jar!/" />

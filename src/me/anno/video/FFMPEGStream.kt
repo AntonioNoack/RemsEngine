@@ -1,9 +1,7 @@
 package me.anno.video
 
-import me.anno.config.DefaultConfig
 import java.io.File
 import java.io.InputStream
-import java.lang.RuntimeException
 import kotlin.concurrent.thread
 import kotlin.math.roundToInt
 
@@ -41,6 +39,7 @@ abstract class FFMPEGStream(val file: File?){
             "-ar", "$sampleRate",
             // -aq quality, codec specific
             "-f", "wav",
+            "-bitexact", // don't add an additional LIST-INFO chunk; we don't care
             // wav is exported with length -1, which slick does not support
             // ogg reports "error 34", and ffmpeg is slow
             // "-c:a", "pcm_s16le", "-ac", "2",
@@ -52,8 +51,7 @@ abstract class FFMPEGStream(val file: File?){
     abstract fun destroy()
 
     fun run(arguments: List<String>): FFMPEGStream {
-        val ffmpeg = File(DefaultConfig["ffmpegPath", "lib/ffmpeg/ffmpeg.exe"])
-        if(!ffmpeg.exists()) throw RuntimeException("FFmpeg not found! (path: $ffmpeg), can't use videos, nor webp!")
+        val ffmpeg = FFMPEG.ffmpeg
         val args = ArrayList<String>(arguments.size+2)
         args += ffmpeg.absolutePath
         if(arguments.isNotEmpty()) args += "-hide_banner"

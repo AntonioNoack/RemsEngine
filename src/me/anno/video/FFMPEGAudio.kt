@@ -3,10 +3,8 @@ package me.anno.video
 import me.anno.audio.ALBase
 import me.anno.audio.SoundBuffer
 import me.anno.gpu.GFX
-import org.newdawn.slick.openal.WaveData
+import me.anno.audio.format.WaveReader
 import java.io.File
-import java.lang.Exception
-import java.nio.ShortBuffer
 import kotlin.concurrent.thread
 
 class FFMPEGAudio(file: File?, val sampleRate: Int, val length: Double, val frame0: Int):
@@ -31,7 +29,21 @@ class FFMPEGAudio(file: File?, val sampleRate: Int, val length: Double, val fram
                 return@thread
             }
             input.reset()
-            val wav = WaveData.create(input, frameCount)
+            val wav = WaveReader(input, frameCount)
+            GFX.addAudioTask {
+                val buffer = SoundBuffer()
+                buffer.loadRawStereo16(wav.stereoPCM, sampleRate)
+                soundBuffer = buffer
+                ALBase.check()
+                10
+            }
+            /*thread {
+                // keep a reference to wav.stereoPCM, because we need it
+                // it crashes the JVM in Java 8
+                Thread.sleep(30_000)
+                println(wav.stereoPCM.get(0))
+            }*/
+            /*val wav = WaveData.create(input, frameCount)
             if(wav != null){
                 GFX.addAudioTask {
                     val buffer = SoundBuffer(wav)
@@ -39,7 +51,7 @@ class FFMPEGAudio(file: File?, val sampleRate: Int, val length: Double, val fram
                     ALBase.check()
                     10
                 }
-            }
+            }*/
             input.close()
         }
     }

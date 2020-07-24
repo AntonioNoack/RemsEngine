@@ -1,7 +1,6 @@
 package me.anno.video
 
 import me.anno.audio.AudioStream
-import me.anno.config.DefaultConfig
 import me.anno.objects.Audio
 import me.anno.studio.Studio.root
 import me.anno.utils.clamp
@@ -9,7 +8,6 @@ import org.apache.logging.log4j.LogManager
 import java.io.DataOutputStream
 import java.io.File
 import java.io.IOException
-import java.lang.RuntimeException
 import java.nio.ShortBuffer
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.concurrent.thread
@@ -58,8 +56,7 @@ class VideoAudioCreator(val videoCreator: VideoCreator, val sampleRate: Int, val
             output.absolutePath
         )
 
-        val ffmpeg = File(DefaultConfig["ffmpegPath", "lib/ffmpeg/ffmpeg.exe"])
-        if(!ffmpeg.exists()) throw RuntimeException("FFmpeg not found! (path: $ffmpeg), can't use videos, nor webp!")
+        val ffmpeg = FFMPEG.ffmpeg
         val args = ArrayList<String>(audioEncodingArguments.size+2)
         args += ffmpeg.absolutePath
         if(audioEncodingArguments.isNotEmpty()) args += "-hide_banner"

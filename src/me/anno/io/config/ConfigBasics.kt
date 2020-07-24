@@ -3,6 +3,7 @@ package me.anno.io.config
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.io.utils.StringMap
+import me.anno.utils.OS
 import org.apache.logging.log4j.LogManager
 import java.io.File
 import java.nio.charset.Charset
@@ -16,7 +17,7 @@ object ConfigBasics {
     val LOGGER = LogManager.getLogger(ConfigBasics::class)!!
     val utf8Charset = Charset.forName("UTF-8")
 
-    val configFolder = File(System.getProperty("user.home")+"/.config/RemsStudio")
+    val configFolder = File(OS.home, ".config/RemsStudio")
 
     val beautify = true
 

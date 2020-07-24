@@ -1,6 +1,5 @@
 package me.anno.video
 
-import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.framebuffer.Framebuffer
 import org.apache.logging.log4j.LogManager
@@ -50,8 +49,7 @@ class VideoCreator(val w: Int, val h: Int, val fps: Double, val totalFrameCount:
             output.absolutePath
         )
 
-        val ffmpeg = File(DefaultConfig["ffmpegPath", "lib/ffmpeg/ffmpeg.exe"])
-        if(!ffmpeg.exists()) throw RuntimeException("FFmpeg not found! (path: $ffmpeg), can't use videos, nor webp!")
+        val ffmpeg = FFMPEG.ffmpeg
         val args = ArrayList<String>(videoEncodingArguments.size+2)
         args += ffmpeg.absolutePath
         if(videoEncodingArguments.isNotEmpty()) args += "-hide_banner"

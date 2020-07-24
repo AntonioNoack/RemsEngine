@@ -2,6 +2,7 @@ package me.anno.objects.effects
 
 import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
@@ -167,8 +168,7 @@ class MaskLayer(parent: Transform? = null): GFXTransform(parent){
             stack
         }
 
-        // todo don't show offset while rendering
-        val offsetColor = if(showFrame) frameColor else invisible
+        val offsetColor = if(showFrame && !isFinalRendering) frameColor else invisible
 
         GFX.draw3DMasked(localTransform, masked.textures[0], mask.textures[0], color,
             isBillboard[time], true, useMaskColor[time], offsetColor,

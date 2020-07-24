@@ -24,6 +24,7 @@ import me.anno.studio.project.Project
 import me.anno.ui.base.Panel
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.Tooltips
+import me.anno.utils.OS
 import me.anno.utils.clamp
 import me.anno.utils.f3
 import org.apache.logging.log4j.LogManager
@@ -47,7 +48,7 @@ object RemsStudio {
     var showTutorialKeys = DefaultConfig["tutorial.keys.show", true]
     var showFPS = DefaultConfig["debug.fps.show", true]
 
-    var workspace = File(DefaultConfig["workspace.dir", "${System.getProperty("user.home")}/Documents/RemsStudio"])
+    var workspace = DefaultConfig["workspace.dir", File(OS.home, "Documents/RemsStudio")]
     // todo load last project, vs create new one?
     // todo just create a new one?
 

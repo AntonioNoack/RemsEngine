@@ -14,6 +14,7 @@ import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.input.TextInput
 import me.anno.ui.style.Style
+import me.anno.utils.OS
 import java.io.File
 
 class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
@@ -21,7 +22,7 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
     // todo a stack or history to know where we were...
     // todo left list of relevant places? todo drag stuff in there
 
-    var folder = project?.file ?: File(System.getProperty("user.home")+"/Documents")
+    var folder = project?.file ?: File(OS.home, "Documents")
 
     val searchBar = TextInput("Search Term", style)
         .setChangeListener {

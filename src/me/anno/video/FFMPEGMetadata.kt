@@ -1,13 +1,11 @@
 package me.anno.video
 
-import me.anno.config.DefaultConfig
 import me.anno.io.json.JsonArray
 import me.anno.io.json.JsonObject
 import me.anno.io.json.JsonReader
 import me.anno.objects.cache.Cache
 import me.anno.objects.cache.CacheData
 import java.io.File
-import java.lang.RuntimeException
 
 class FFMPEGMetadata(file: File): CacheData {
 
@@ -30,9 +28,7 @@ class FFMPEGMetadata(file: File): CacheData {
 
     init {
 
-        val ffmpeg = File(DefaultConfig["ffmpegPath", "lib/ffmpeg/ffmpeg.exe"])
-        val ffmpegProbe = DefaultConfig["ffprobePath", File(ffmpeg.parentFile, "ffprobe.exe")]
-        if(!ffmpegProbe.exists()) throw RuntimeException("FFmpeg-Probe not found! (path: $ffmpegProbe), can't use videos, nor webp!")
+        val ffmpegProbe = FFMPEG.ffprobe
         val args = listOf(
             ffmpegProbe.absolutePath,
             "-v", "quiet",

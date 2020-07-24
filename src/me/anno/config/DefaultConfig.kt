@@ -10,6 +10,7 @@ import me.anno.objects.geometric.Circle
 import me.anno.objects.geometric.Polygon
 import me.anno.objects.particles.ParticleSystem
 import me.anno.ui.style.Style
+import me.anno.utils.OS
 import me.anno.utils.f3
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3f
@@ -30,7 +31,7 @@ object DefaultConfig: StringMap() {
         val t0 = System.nanoTime()
 
         this["style"] = "dark"
-        this["ffmpegPath"] = "C:\\Users\\Antonio\\Downloads\\lib\\ffmpeg\\bin\\ffmpeg.exe"
+        this["ffmpeg.path"] = File(OS.home, "Downloads\\lib\\ffmpeg\\bin\\ffmpeg.exe")
         this["tooltip.reactionTime"] = 300
         this["lastUsed.fonts.count"] = 5
         this["default.video.nearest"] = false
