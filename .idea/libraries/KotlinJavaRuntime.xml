@@ -18,10 +18,14 @@
       <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-stb-natives-windows.jar!/" />
       <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-stb.jar!/" />
       <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl.jar!/" />
-      <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjglx-debug-1.0.0.jar!/" />
       <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/slick.jar!/" />
       <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/joml-1.9.24.jar!/" />
       <root url="jar://$USER_HOME$/Downloads/lib/java/apache imaging/commons-imaging-1.0-alpha1.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-natives-linux-arm32.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-natives-linux-arm64.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-natives-linux.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-natives-macos.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-natives-windows-x86.jar!/" />
     </CLASSES>
     <JAVADOC>
       <root url="jar://$USER_HOME$/Downloads/lib/java/lwjgl/lwjgl-assimp-javadoc.jar!/" />

@@ -1,7 +1,5 @@
 package me.anno.studio
 
-val startTime = System.nanoTime()
-
 // todo currently most important topics:
 // todo file manager
 // todo move entries in tree

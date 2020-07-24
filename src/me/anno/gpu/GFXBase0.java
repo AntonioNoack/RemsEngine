@@ -11,6 +11,8 @@ import me.anno.studio.Studio;
 import me.anno.studio.project.Project;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.lwjgl.LWJGLUtil;
+import org.lwjgl.Version;
 import org.lwjgl.glfw.*;
 import org.lwjgl.opengl.*;
 import org.lwjgl.system.*;
@@ -26,6 +28,9 @@ import java.util.Locale;
  * separate the (blocking) winproc handling from the render loop.
  * 
  * @author Kai Burjack
+ *
+ * modified by Antonio Noack
+ * including all os natives has luckily only very few overhead :) (&lt; 1 MiB)
  */
 public class GFXBase0 {
 
@@ -65,6 +70,7 @@ public class GFXBase0 {
 
     void init() {
 
+        LOGGER.info("Using LWJGL Version " + Version.getVersion());
 
         long t0 = System.nanoTime();
         glfwSetErrorCallback(errorCallback = GLFWErrorCallback.createPrint(System.err));

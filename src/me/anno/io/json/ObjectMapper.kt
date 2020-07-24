@@ -43,13 +43,12 @@ object ObjectMapper {
     }
 
     fun getValue(type: Type, value: JsonNode): Any {
-        if(type.arrayDimension > 0){
+        return if(type.arrayDimension > 0){
             value as JsonArray
-
             when(type.arrayDimension){
                 1 -> {
                     when(val clazzName = type.name){
-                        "float" -> return FloatArray(value.content.size){
+                        "float" -> FloatArray(value.content.size){
                             value.content[it].toString().toFloat()
                         }
                         else -> {
@@ -59,7 +58,7 @@ object ObjectMapper {
                             value.content.forEachIndexed { index, any ->
                                 array[index] = getValue(childType, any.toJsonNode())
                             }
-                            return array
+                            array
                         }
                     }
                 }
@@ -70,11 +69,11 @@ object ObjectMapper {
                     value.content.forEachIndexed { index, any ->
                         array[index] = getValue(childType, any.toJsonNode())
                     }
-                    return array
+                    array
                 }
             }
         } else {
-            return when(type.name) {
+            when(type.name) {
                 "java.lang.Integer" -> value.asText().toInt()
                 "java.lang.Long" -> value.asText().toLong()
                 "java.lang.Float" -> value.asText().toFloat()

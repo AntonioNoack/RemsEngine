@@ -36,7 +36,9 @@ import kotlin.math.roundToInt
 
 object RemsStudio {
 
-    val LOGGER = LogManager.getLogger(RemsStudio::class)
+    val startTime = System.nanoTime()
+
+    private val LOGGER = LogManager.getLogger(RemsStudio::class)
 
     val originalOutput = System.out
 
