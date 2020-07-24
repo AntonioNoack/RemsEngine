@@ -9,7 +9,7 @@ import org.lwjgl.opengl.GL30.*
 import java.lang.RuntimeException
 import java.util.*
 
-class Framebuffer(var w: Int, var h: Int, val samples: Int, val targetCount: Int, val fpTargets: Boolean, val createDepthBuffer: DepthBufferType){
+class Framebuffer(var w: Int, var h: Int, val samples: Int, val targetCount: Int, val fpTargets: Boolean, val depthBufferType: DepthBufferType){
 
     // multiple targets, layout=x require shader version 330+
     // use glBindFragDataLocation instead
@@ -22,7 +22,7 @@ class Framebuffer(var w: Int, var h: Int, val samples: Int, val targetCount: Int
 
     val withMultisampling get() = samples > 1
     var msBuffer = if(withMultisampling)
-        Framebuffer(w, h, 1, targetCount, fpTargets, createDepthBuffer) else null
+        Framebuffer(w, h, 1, targetCount, fpTargets, depthBufferType) else null
 
     var pointer = -1
     var depthRenderBuffer = -1
@@ -85,13 +85,14 @@ class Framebuffer(var w: Int, var h: Int, val samples: Int, val targetCount: Int
             glDrawBuffers(textures.indices.map { it + GL_COLOR_ATTACHMENT0 }.toIntArray())
         } else glDrawBuffer(GL_COLOR_ATTACHMENT0)
         GFX.check()
-        when(createDepthBuffer){
+        when(depthBufferType){
             DepthBufferType.NONE -> {}
             DepthBufferType.INTERNAL -> createDepthBuffer()
             DepthBufferType.TEXTURE -> {
                 val depthTexture = Texture2D(w, h, samples) // xD
                 depthTexture.createDepth()
                 glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthTexture.pointer, 0)
+                this.depthTexture = depthTexture
             }
         }
         GFX.check()
@@ -128,7 +129,7 @@ class Framebuffer(var w: Int, var h: Int, val samples: Int, val targetCount: Int
         glBlitFramebuffer(
             0, 0, w, h,
             0, 0, target?.w ?: GFX.width, target?.h ?: GFX.height,
-            if(target == null) GL_COLOR_BUFFER_BIT else GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT,
+            GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT,
             GL11.GL_NEAREST)
     }
 

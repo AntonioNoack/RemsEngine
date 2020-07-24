@@ -17,7 +17,7 @@ import java.io.File
 
 object DefaultConfig: StringMap() {
 
-    val LOGGER = LogManager.getLogger(DefaultConfig::class)
+    private val LOGGER = LogManager.getLogger(DefaultConfig::class)
 
     init {
         init()
@@ -61,36 +61,44 @@ object DefaultConfig: StringMap() {
 
         this["import.mapping.*"] = "Text"
 
-        this["createNewInstancesList"] = StringMap(16, false, saveDefaultValues = true)
-            .addAll(mapOf(
-                "Video" to Video(File(""), null),
-                "Image" to Image(File(""), null),
-                "Polygon" to Polygon(null),
-                "Circle" to Circle(null),
-                "Folder" to Transform(),
-                "Mask" to MaskLayer(null),
-                "Text" to Text("Text", null),
-                "Cubemap" to {
-                    val cube = Cubemap(File(""), null)
-                    cube.scale.set(Vector3f(1000f, 1000f, 1000f))
-                    cube
-                }(),
-                "Cube" to {
-                    val cube = Polygon(null)
-                    cube.name = "Cube"
-                    cube.autoAlign = true
-                    cube.scale.set(Vector3f(1f, 1f, 1f))
-                    cube.vertexCount.set(4)
-                    cube
-                }(),
-                "Particle System" to {
-                    val ps = ParticleSystem(null)
-                    ps.name = "PSystem"
-                    Circle(ps)
-                    ps.timeOffset = -5.0
-                    ps
-                }()
-            ))
+        val newInstances: Map<String, Transform> = mapOf(
+            "Video" to Video(File(""), null),
+            "Image" to Image(File(""), null),
+            "Polygon" to Polygon(null),
+            "Circle" to Circle(null),
+            "Folder" to Transform(),
+            "Mask" to {
+                val mask = MaskLayer(null)
+                Circle(mask).innerRadius.set(0.5f)
+                Polygon(mask)
+                mask
+            }(),
+            "Text" to Text("Text", null),
+            "Cubemap" to {
+                val cube = Cubemap(File(""), null)
+                cube.scale.set(Vector3f(1000f, 1000f, 1000f))
+                cube
+            }(),
+            "Cube" to {
+                val cube = Polygon(null)
+                cube.name = "Cube"
+                cube.autoAlign = true
+                cube.scale.set(Vector3f(1f, 1f, 1f))
+                cube.vertexCount.set(4)
+                cube
+            }(),
+            "Particle System" to {
+                val ps = ParticleSystem(null)
+                ps.name = "PSystem"
+                Circle(ps)
+                ps.timeOffset = -5.0
+                ps
+            }()
+        )
+
+        this["createNewInstancesList"] =
+            StringMap(16, false, saveDefaultValues = true)
+                .addAll(newInstances)
 
         val newConfig = ConfigBasics.loadConfig("main.config", this, true)
         if(newConfig !== this){

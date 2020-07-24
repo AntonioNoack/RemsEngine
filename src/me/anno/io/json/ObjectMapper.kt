@@ -3,6 +3,7 @@ package me.anno.io.json
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
+import java.lang.Exception
 
 object ObjectMapper {
 
@@ -22,7 +23,12 @@ object ObjectMapper {
     fun <V> convertValue(values: JsonNode, clazz: Class<V>): V {
         val instance = clazz.getConstructor().newInstance()
         clazz.declaredFields.forEach { field ->
-            if(!field.isAccessible){ field.trySetAccessible() }
+            if(!field.isAccessible){
+                try {
+                    field.isAccessible = true
+                } catch (e: Exception){ e.printStackTrace() }
+                // field.trySetAccessible()
+            }
             val value = values.get(field.name)
             if(value == null){
                 field.set(instance, null)

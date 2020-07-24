@@ -98,11 +98,10 @@ class Texture3D(val w: Int, val h: Int, val d: Int){
         ensurePointer()
         forceBind()
         GFX.check()
-        val byteBuffer = ByteBuffer
-            .allocateDirect(data.size)
-            .position(0)
-            .put(data)
-            .position(0)
+        val byteBuffer = ByteBuffer.allocateDirect(data.size)
+        byteBuffer.position(0)
+        byteBuffer.put(data)
+        byteBuffer.position(0)
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
         glTexImage3D(GL_TEXTURE_3D, 0, GL_R8, w, h, d, 0, GL11.GL_RED, GL_UNSIGNED_BYTE, byteBuffer)
         isCreated = true
@@ -112,13 +111,12 @@ class Texture3D(val w: Int, val h: Int, val d: Int){
 
     fun create(data: FloatArray){
         if(w*h*d*4 != data.size) throw RuntimeException("incorrect size!")
-        val byteBuffer = ByteBuffer
-            .allocateDirect(data.size * 4)
-            .order(ByteOrder.nativeOrder())
-            .position(0)
+        val byteBuffer = ByteBuffer.allocateDirect(data.size * 4)
+        byteBuffer.order(ByteOrder.nativeOrder())
+        byteBuffer.position(0)
         val floatBuffer = byteBuffer.asFloatBuffer()
-            .put(data)
-            .position(0)
+        floatBuffer.put(data)
+        floatBuffer.position(0)
         create(floatBuffer)
     }
 
@@ -139,11 +137,10 @@ class Texture3D(val w: Int, val h: Int, val d: Int){
         ensurePointer()
         forceBind()
         GFX.check()
-        val byteBuffer = ByteBuffer
-            .allocateDirect(data.size)
-            .position(0)
-            .put(data)
-            .position(0)
+        val byteBuffer = ByteBuffer.allocateDirect(data.size)
+        byteBuffer.position(0)
+        byteBuffer.put(data)
+        byteBuffer.position(0)
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
         glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, w, h, d, 0, GL_RGBA, GL_UNSIGNED_BYTE, byteBuffer)
         isCreated = true

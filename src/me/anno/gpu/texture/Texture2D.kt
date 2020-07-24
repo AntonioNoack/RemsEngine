@@ -129,11 +129,10 @@ class Texture2D(override var w: Int, override var h: Int, val samples: Int): ITe
         ensurePointer()
         forceBind()
         GFX.check()
-        val byteBuffer = ByteBuffer
-            .allocateDirect(data.size)
-            .position(0)
-            .put(data)
-            .position(0)
+        val byteBuffer = ByteBuffer.allocateDirect(data.size)
+        byteBuffer.position(0)
+        byteBuffer.put(data)
+        byteBuffer.position(0)
         glTexImage2D(tex2D, 0, GL_R8, w, h, 0, GL11.GL_RED, GL_UNSIGNED_BYTE, byteBuffer)
         isCreated = true
         filtering(isFilteredNearest)
@@ -145,10 +144,10 @@ class Texture2D(override var w: Int, override var h: Int, val samples: Int): ITe
         val byteBuffer = ByteBuffer
             .allocateDirect(data.size * 4)
             .order(ByteOrder.nativeOrder())
-            .position(0)
+        byteBuffer.position(0)
         val floatBuffer = byteBuffer.asFloatBuffer()
-            .put(data)
-            .position(0)
+        floatBuffer.put(data)
+        floatBuffer.position(0)
         create(floatBuffer)
     }
 
@@ -168,11 +167,10 @@ class Texture2D(override var w: Int, override var h: Int, val samples: Int): ITe
         ensurePointer()
         forceBind()
         GFX.check()
-        val byteBuffer = ByteBuffer
-            .allocateDirect(data.size)
-            .position(0)
-            .put(data)
-            .position(0)
+        val byteBuffer = ByteBuffer.allocateDirect(data.size)
+        byteBuffer.position(0)
+        byteBuffer.put(data)
+        byteBuffer.position(0)
         glTexImage2D(tex2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, byteBuffer)
         isCreated = true
         filtering(isFilteredNearest)

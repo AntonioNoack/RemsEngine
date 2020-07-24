@@ -2,11 +2,11 @@ package me.anno.video.formats
 
 import me.anno.gpu.GFX
 import me.anno.gpu.texture.Texture2D
+import me.anno.utils.readNBytes
 import me.anno.video.Frame
 import me.anno.video.LastFrame
 import java.io.InputStream
 import java.lang.RuntimeException
-
 
 class ARGBFrame(w: Int, h: Int): Frame(w,h){
 

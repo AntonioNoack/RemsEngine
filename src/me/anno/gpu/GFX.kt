@@ -997,6 +997,7 @@ object GFX: GFXBase1() {
                 1283 -> "stack overflow"
                 1284 -> "stack underflow"
                 1285 -> "out of memory"
+                1286 -> "invalid framebuffer operation"
                 else -> "$error"
             }}")
         }

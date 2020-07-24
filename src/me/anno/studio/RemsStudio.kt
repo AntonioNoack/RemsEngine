@@ -168,5 +168,9 @@ object RemsStudio {
 
     fun check() = GFX.check()
 
+    @JvmStatic
+    fun main(args: Array<String>){
+        run()
+    }
 
 }

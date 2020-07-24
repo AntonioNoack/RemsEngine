@@ -7,7 +7,6 @@ import me.anno.video.LastFrame
 import java.io.EOFException
 import java.io.InputStream
 
-
 class RGBFrame(w: Int, h: Int): Frame(w,h){
 
     val rgb = Texture2D(w, h, 1)

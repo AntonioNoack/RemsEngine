@@ -61,9 +61,8 @@ object OpenGLCrash {
             // val w = 1590
             // val h = 2246
 
-            val byteBuffer = ByteBuffer
-                .allocateDirect(w*h + 2*h)
-                .position(0)
+            val byteBuffer = ByteBuffer.allocateDirect(w*h + 2*h)
+            byteBuffer.position(0)
 
             glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, w, h, 0, GL_RED, GL_UNSIGNED_BYTE, byteBuffer)
 

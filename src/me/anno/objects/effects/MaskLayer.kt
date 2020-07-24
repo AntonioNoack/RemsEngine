@@ -20,6 +20,7 @@ import org.lwjgl.opengl.GL11.*
 class MaskLayer(parent: Transform? = null): GFXTransform(parent){
 
     // just a little expensive...
+    // todo enable multisampling
     val mask = Framebuffer(1, 1, 1, 1, false, Framebuffer.DepthBufferType.NONE)
     val masked = Framebuffer(1, 1, 1, 1, true, Framebuffer.DepthBufferType.INTERNAL)
 
