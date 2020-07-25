@@ -5,15 +5,10 @@ import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFW.glfwSetWindowIcon
 import org.lwjgl.glfw.GLFWImage
 import org.lwjgl.system.MemoryUtil
-import org.newdawn.slick.opengl.ImageIOImageData
 import java.awt.image.BufferedImage
-import java.io.File
-import java.io.FileInputStream
 import java.io.FileNotFoundException
 import java.lang.Exception
-import java.nio.ByteBuffer
 import javax.imageio.ImageIO
-
 
 open class GFXBase1: GFXBase0() {
 

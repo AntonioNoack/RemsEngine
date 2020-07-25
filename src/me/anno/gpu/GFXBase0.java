@@ -20,6 +20,10 @@ import org.lwjgl.system.*;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.system.MemoryUtil.*;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.nio.*;
 import java.util.Locale;
 
@@ -138,7 +142,74 @@ public class GFXBase0 {
 
         GL.createCapabilities();
 
-        debugProc = GLUtil.setupDebugMessageCallback();
+        debugProc = GLUtil.setupDebugMessageCallback(
+                new PrintStream(new OutputStream() {
+                    // todo parse the message instead
+                    // [LWJGL] OpenGL debug message
+                    // ID: 0x1
+                    // Source: compiler
+                    // Type: other
+                    // Severity: notification
+                    // Message: ...
+                    private final Logger LOGGER = LogManager.getLogger("LWJGL");
+                    private String id, source, type, severity;
+                    private StringBuilder line = new StringBuilder();
+                    @Override public void write(int i) {
+                        switch (i){
+                            case '\r':break;// idc
+                            case '\n':
+                                String info = line.toString().trim();
+                                if(info.startsWith("[LWJGL]")){
+                                    // idc...
+                                } else {
+                                    int index = info.indexOf(':');
+                                    if(index > 0){
+                                        String key = info.substring(0, index).trim().toLowerCase();
+                                        String value = info.substring(index+1).trim();
+                                        switch (key){
+                                            case "id": id = value;break;
+                                            case "source": source = value;break;
+                                            case "type": type = value;break;
+                                            case "severity": severity = value;break;
+                                            case "message":
+                                                String printedMessage = value + " ID: "+id+" Source: "+source;
+                                                if(!"NOTIFICATION".equals(severity)) printedMessage += " Severity: "+severity;
+                                                switch(type == null ? "" : type.toLowerCase()){
+                                                    case "error":
+                                                        LOGGER.error(printedMessage);
+                                                        break;
+                                                    case "other":
+                                                        LOGGER.info(printedMessage);
+                                                        break;
+                                                    default:
+                                                        printedMessage += " Type: "+type;
+                                                        LOGGER.info(printedMessage);
+                                                }
+                                                id = null;
+                                                source = null;
+                                                type = null;
+                                                severity = null;
+                                                break;
+                                        }
+                                    } else if(!info.isEmpty()){
+                                        // awkward...
+                                        LOGGER.info(info);
+                                    }
+                                }
+                                // LOGGER.info(line.toString());
+                                line = new StringBuilder();
+                                break;
+                            default:
+                                final int maxLength = 500 - 3;
+                                final int length = line.length();
+                                if(length < maxLength){
+                                    line.append((char) i);
+                                } else if(length == maxLength){
+                                    line.append("...");
+                                }// else too many chars, we don't care ;)
+                        }
+                    }
+                }));
 
         GFX.gameInit.invoke();
         renderStep0();

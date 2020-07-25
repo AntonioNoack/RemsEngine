@@ -33,7 +33,7 @@ class LoggerImpl(prefix: String?): Logger {
     }
 
     override fun error(msg: String) {
-        print("ERR", msg)
+        print("ERR!", msg)
     }
 
     override fun error(msg: String, obj: Array<Object>) {

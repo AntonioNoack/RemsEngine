@@ -6,6 +6,7 @@ import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL13
 import org.lwjgl.opengl.GL30.*
+import org.lwjgl.opengl.GL32
 import java.lang.RuntimeException
 import java.util.*
 
@@ -59,7 +60,9 @@ class Framebuffer(var w: Int, var h: Int, val samples: Int, val targetCount: Int
     }
 
     fun create(){
+        // LOGGER.info("w: $w, h: $h, samples: $samples, targets: $targetCount x fp32? $fpTargets")
         GFX.check()
+        val tex2D = if(withMultisampling) GL32.GL_TEXTURE_2D_MULTISAMPLE else GL_TEXTURE_2D
         pointer = glGenFramebuffers()
         if(pointer < 0) throw RuntimeException()
         glBindFramebuffer(GL_FRAMEBUFFER, pointer)
@@ -78,7 +81,7 @@ class Framebuffer(var w: Int, var h: Int, val samples: Int, val targetCount: Int
         }
         GFX.check()
         textures.forEachIndexed { index, texture ->
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + index, GL11.GL_TEXTURE_2D, texture.pointer, 0)
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + index, tex2D, texture.pointer, 0)
         }
         GFX.check()
         if(targetCount > 1){// skip array alloc otherwise
@@ -91,7 +94,7 @@ class Framebuffer(var w: Int, var h: Int, val samples: Int, val targetCount: Int
             DepthBufferType.TEXTURE -> {
                 val depthTexture = Texture2D(w, h, samples) // xD
                 depthTexture.createDepth()
-                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthTexture.pointer, 0)
+                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, tex2D, depthTexture.pointer, 0)
                 this.depthTexture = depthTexture
             }
         }
