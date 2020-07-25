@@ -7,15 +7,12 @@ import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticFloatBuffer
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
-import me.anno.io.base.MissingListElement
 import me.anno.objects.GFXTransform
 import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.cache.Cache
-import me.anno.objects.cache.SFBufferData
+import me.anno.objects.cache.StaticFloatBufferData
 import me.anno.ui.base.groups.PanelListY
-import me.anno.ui.input.BooleanInput
-import me.anno.ui.input.FileInput
 import me.anno.ui.style.Style
 import me.anno.utils.clamp
 import me.anno.video.MissingFrameException
@@ -24,7 +21,6 @@ import org.joml.Vector3f
 import org.joml.Vector4f
 import java.io.File
 import kotlin.math.cos
-import kotlin.math.roundToInt
 import kotlin.math.sin
 import kotlin.math.sqrt
 
@@ -117,8 +113,8 @@ class Polygon(parent: Transform? = null): GFXTransform(parent){
             if(n > maxEdges) return getBuffer(maxEdges, hasDepth)
             val cached = Cache.getEntry("Mesh", "Polygon", n * 2 + (if(hasDepth) 1 else 0),
                 meshTimeout, false){
-                SFBufferData(createBuffer(n, hasDepth))
-            } as SFBufferData
+                StaticFloatBufferData(createBuffer(n, hasDepth))
+            } as StaticFloatBufferData
             return cached.buffer
         }
 

@@ -14,7 +14,7 @@ It is additionally developed with Java, so it works with Windows and Linux.
 
 ## Currently used libraries
 
-* LWJGL (OpenGL + GLFW + OpenAL + Slick)
+* LWJGL (OpenGL + GLFW + OpenAL + stb)
 * JOML (Matrix calculations and transforms for rendering)
 * FFMpeg (Video/Image/Audio Import & Export)
 * HSLuv (HSL alternative with constant brightness)

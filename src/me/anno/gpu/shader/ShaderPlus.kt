@@ -6,7 +6,7 @@ import java.lang.RuntimeException
  * a pair of a shader that is rendered normally,
  * and a shader, which renders a pure color for object click detection
  * */
-class ShaderPair(vertex: String, varying: String, fragment: String){
+class ShaderPlus(vertex: String, varying: String, fragment: String){
 
     // val correctShader = Shader(vertex, varying, fragment)
     // val monoShader = Shader(vertex, varying, makeMono(fragment))

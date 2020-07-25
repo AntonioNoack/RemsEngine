@@ -8,6 +8,7 @@ import me.anno.objects.animation.Keyframe
 import me.anno.objects.effects.MaskLayer
 import me.anno.objects.geometric.Circle
 import me.anno.objects.geometric.Polygon
+import me.anno.objects.meshes.Mesh
 import me.anno.objects.particles.ParticleSystem
 import java.io.File
 import java.lang.RuntimeException
@@ -45,6 +46,7 @@ abstract class BaseReader {
             "ParticleSystem" -> ParticleSystem()
             "Cubemap" -> Cubemap()
             "Camera" -> Camera()
+            "Mesh" -> Mesh()
             else -> {
                 ISaveable.objectTypeRegistry[clazz]?.invoke() ?: throw RuntimeException("Unknown class $clazz")
             }

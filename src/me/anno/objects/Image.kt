@@ -9,12 +9,9 @@ import me.anno.io.xml.XMLElement
 import me.anno.io.xml.XMLReader
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.cache.Cache
-import me.anno.objects.cache.SFBufferData
+import me.anno.objects.cache.StaticFloatBufferData
 import me.anno.objects.meshes.svg.SVGMesh
 import me.anno.ui.base.groups.PanelListY
-import me.anno.ui.input.BooleanInput
-import me.anno.ui.input.TextInput
-import me.anno.ui.input.VectorInput
 import me.anno.ui.style.Style
 import me.anno.video.MissingFrameException
 import org.joml.Matrix4fArrayList
@@ -33,8 +30,8 @@ class Image(var file: File = File(""), parent: Transform? = null): GFXTransform(
                 val bufferData = Cache.getEntry(file.absolutePath, "svg", 0, imageTimeout, true){
                     val svg = SVGMesh()
                     svg.parse(XMLReader.parse(file.inputStream().buffered()) as XMLElement)
-                    SFBufferData(svg.buffer!!)
-                } as? SFBufferData
+                    StaticFloatBufferData(svg.buffer!!)
+                } as? StaticFloatBufferData
                 if(bufferData == null && isFinalRendering) throw MissingFrameException(file)
                 if(bufferData != null){
                     // todo apply tiling...

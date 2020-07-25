@@ -114,6 +114,7 @@ abstract class BaseWriter {
             is Float -> writeFloat(name, value, force)
             is Double -> writeDouble(name, value, force)
             is String -> writeString(name, value, force)
+            is File -> writeString(name, value.toString(), force)
             is Vector2f -> writeVector2(name, value, force)
             is Vector3f -> writeVector3(name, value, force)
             null -> writeObject(self, name, value, force)

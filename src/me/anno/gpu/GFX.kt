@@ -7,7 +7,7 @@ import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.buffer.StaticFloatBuffer
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.Shader
-import me.anno.gpu.shader.ShaderPair
+import me.anno.gpu.shader.ShaderPlus
 import me.anno.gpu.size.WindowSize
 import me.anno.gpu.texture.Texture2D
 import me.anno.input.Input
@@ -71,8 +71,8 @@ object GFX: GFXBase1() {
     // for final rendering we need to use the GPU anyways;
     // so just use a static variable
     var isFinalRendering = false
-    var drawMode = ShaderPair.DrawMode.COLOR
-    val isFakeColorRendering get() = drawMode != ShaderPair.DrawMode.COLOR
+    var drawMode = ShaderPlus.DrawMode.COLOR
+    val isFakeColorRendering get() = drawMode != ShaderPlus.DrawMode.COLOR
     var supportsAnisotropicFiltering = false
     var anisotropy = 1f
 
@@ -118,17 +118,18 @@ object GFX: GFXBase1() {
     lateinit var flatShader: Shader
     lateinit var flatShaderTexture: Shader
     lateinit var subpixelCorrectTextShader: Shader
-    lateinit var shader3D: ShaderPair
-    lateinit var shader3DPolygon: ShaderPair
-    lateinit var shader3DYUV: ShaderPair
-    lateinit var shader3DARGB: ShaderPair
-    lateinit var shader3DBGRA: ShaderPair
+    lateinit var shader3D: ShaderPlus
+    lateinit var shader3DPolygon: ShaderPlus
+    lateinit var shader3DYUV: ShaderPlus
+    lateinit var shader3DARGB: ShaderPlus
+    lateinit var shader3DBGRA: ShaderPlus
     lateinit var shader3DCircle: Shader
-    lateinit var shader3DSVG: ShaderPair
-    lateinit var shader3DXYZUV: ShaderPair
-    lateinit var shader3DSpherical: ShaderPair
+    lateinit var shader3DSVG: ShaderPlus
+    lateinit var shader3DXYZUV: ShaderPlus
+    lateinit var shader3DSpherical: ShaderPlus
     lateinit var lineShader3D: Shader
-    lateinit var shader3DMasked: ShaderPair
+    lateinit var shader3DMasked: ShaderPlus
+    lateinit var shaderObjMtl: ShaderPlus
 
     val invisibleTexture = Texture2D(1, 1, 1)
     val whiteTexture = Texture2D(1, 1, 1)
@@ -730,6 +731,29 @@ object GFX: GFXBase1() {
 
         shader3D = createCustomShader(v3D, y3D, f3D, listOf("tex"))
         shader3DPolygon = createCustomShader(v3DPolygon, y3D, f3D, listOf("tex"))
+
+        // create the obj+mtl shader
+        shaderObjMtl = createCustomShader(v3DBase +
+                "a3 coords;\n" +
+                "a2 uvs;\n" +
+                "a3 normals;\n" +
+                "void main(){\n" +
+                "   gl_Position = transform * vec4(coords, 1.0);\n" +
+                "   uv = uvs;\n" +
+                "   normal = normals;\n" +
+                positionPostProcessing +
+                "}", y3D + "" +
+                "varying vec3 normal;\n", "" +
+                "uniform vec4 tint;" +
+                "uniform sampler2D tex;\n" +
+                "void main(){\n" +
+                "   vec4 color = texture(tex, uv);\n" +
+                "   color.rgb *= 0.5 + 0.5 * dot(vec3(1.0, 0.0, 0.0), normal);\n" +
+                colorProcessing +
+                "   gl_FragColor = tint * color;\n" +
+                colorPostProcessing +
+                "}", listOf())
+
         shader3DCircle = Shader(v3DCircle, y3D, f3DCircle)
         shader3DMasked = createCustomShader(v3DMasked, y3DMasked, f3DMasked, listOf("tex", "mask"))
 
@@ -800,8 +824,8 @@ object GFX: GFXBase1() {
         return shader
     }
 
-    fun createCustomShader(v3D: String, y3D: String, fragmentShader: String, textures: List<String>): ShaderPair {
-        val shader = ShaderPair(v3D, y3D, fragmentShader)
+    fun createCustomShader(v3D: String, y3D: String, fragmentShader: String, textures: List<String>): ShaderPlus {
+        val shader = ShaderPlus(v3D, y3D, fragmentShader)
         for(shader2 in listOf(shader.shader)){
             shader2.use()
             textures.forEachIndexed { index, name ->

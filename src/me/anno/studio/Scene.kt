@@ -10,7 +10,7 @@ import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
-import me.anno.gpu.shader.ShaderPair
+import me.anno.gpu.shader.ShaderPlus
 import me.anno.input.Input.keysDown
 import me.anno.objects.Camera
 import me.anno.objects.blending.BlendMode
@@ -19,7 +19,6 @@ import me.anno.objects.effects.BokehBlur
 import me.anno.objects.effects.ToneMappers
 import me.anno.studio.Studio.selectedTransform
 import me.anno.ui.editor.sceneView.Grid
-import me.anno.utils.OS
 import me.anno.utils.times
 import me.anno.utils.warn
 import me.anno.video.MissingFrameException
@@ -213,7 +212,7 @@ object Scene {
 
     // rendering must be done in sync with the rendering thread (OpenGL limitation) anyways, so one object is enough
     val stack = Matrix4fArrayList()
-    fun draw(target: Framebuffer?, camera: Camera, x0: Int, y0: Int, w: Int, h: Int, time: Double, flipY: Boolean, drawMode: ShaderPair.DrawMode){
+    fun draw(target: Framebuffer?, camera: Camera, x0: Int, y0: Int, w: Int, h: Int, time: Double, flipY: Boolean, drawMode: ShaderPlus.DrawMode){
 
         GFX.drawMode = drawMode
         val isFakeColorRendering = isFakeColorRendering
@@ -460,7 +459,7 @@ object Scene {
             // further analysis by testing each object individually?
         }
 
-        GFX.drawMode = ShaderPair.DrawMode.COLOR
+        GFX.drawMode = ShaderPlus.DrawMode.COLOR
 
     }
 

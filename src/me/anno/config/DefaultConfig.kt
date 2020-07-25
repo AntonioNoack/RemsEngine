@@ -8,6 +8,7 @@ import me.anno.objects.*
 import me.anno.objects.effects.MaskLayer
 import me.anno.objects.geometric.Circle
 import me.anno.objects.geometric.Polygon
+import me.anno.objects.meshes.Mesh
 import me.anno.objects.particles.ParticleSystem
 import me.anno.ui.style.Style
 import me.anno.utils.OS
@@ -63,6 +64,7 @@ object DefaultConfig: StringMap() {
         this["import.mapping.*"] = "Text"
 
         val newInstances: Map<String, Transform> = mapOf(
+            "Mesh" to Mesh(File(OS.documents, "plane.obj"), null),
             "Video" to Video(File(""), null),
             "Image" to Image(File(""), null),
             "Polygon" to Polygon(null),

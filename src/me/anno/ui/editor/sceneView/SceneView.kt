@@ -6,7 +6,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFX.deltaTime
 import me.anno.gpu.GFX.select
 import me.anno.gpu.framebuffer.Framebuffer
-import me.anno.gpu.shader.ShaderPair
+import me.anno.gpu.shader.ShaderPlus
 import me.anno.input.Input
 import me.anno.input.Input.mouseKeysDown
 import me.anno.objects.Camera
@@ -20,10 +20,7 @@ import me.anno.studio.Studio.root
 import me.anno.studio.Studio.selectedTransform
 import me.anno.studio.Studio.targetHeight
 import me.anno.studio.Studio.targetWidth
-import me.anno.ui.base.TextPanel
-import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelFrame
-import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.editor.CustomContainer
 import me.anno.ui.style.Style
 import me.anno.utils.*
@@ -108,7 +105,7 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
         }
 
         // for(i in 0 until 1000)
-        Scene.draw(null, camera, x+dx,y+dy,rw,rh, editorTime, flipY = false, drawMode = ShaderPair.DrawMode.COLOR)
+        Scene.draw(null, camera, x+dx,y+dy,rw,rh, editorTime, flipY = false, drawMode = ShaderPlus.DrawMode.COLOR)
 
         GFX.clip(x0, y0, x1, y1)
 
@@ -143,7 +140,7 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
 
         val radius = 2
         val diameter = radius * 2 + 1
-        fun getPixels(mode: ShaderPair.DrawMode): IntArray {
+        fun getPixels(mode: ShaderPlus.DrawMode): IntArray {
             // draw only the clicked area?
             Scene.draw(fb, camera, 0, 0, rw, rh, editorTime, false, mode)
             GFX.check()
@@ -163,8 +160,8 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
             return buffer
         }
 
-        val idBuffer = getPixels(ShaderPair.DrawMode.ID)
-        val depthBuffer = getPixels(ShaderPair.DrawMode.DEPTH)
+        val idBuffer = getPixels(ShaderPlus.DrawMode.ID)
+        val depthBuffer = getPixels(ShaderPlus.DrawMode.DEPTH)
 
         val depthImportance = 10
         var bestDistance = 256 * depthImportance + diameter * diameter

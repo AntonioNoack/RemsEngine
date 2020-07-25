@@ -12,7 +12,7 @@ class MTLReader(val file: File): OBJMTLReader(file.inputStream().buffered()){
 
     val materials = HashMap<String, Material>()
     init {
-        // todo load all the materials
+        // load all materials
         // the full spec ofc is again very complex...
         try {
             lateinit var material: Material
@@ -34,6 +34,8 @@ class MTLReader(val file: File): OBJMTLReader(file.inputStream().buffered()){
                         }
                         "Ka" -> material.ambientColor = readVector3f()
                         "map_Ka" -> material.ambientTexture = readFile(file)
+                        "Kd" -> material.diffuseColor = readVector3f()
+                        "map_Kd" -> material.diffuseTexture = readFile(file)
                         "Ks" -> material.specularColor = readVector3f()
                         "map_Ks" -> material.specularTexture = readFile(file)
                         "Ns" -> material.specularExponent = readValue()

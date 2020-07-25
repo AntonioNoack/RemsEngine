@@ -5,22 +5,23 @@ import org.joml.Vector2f
 import org.joml.Vector3f
 import java.io.EOFException
 import java.io.File
+import java.io.IOException
 
 class OBJReader(val file: File): OBJMTLReader(file.inputStream().buffered()){
 
     companion object {
         private val LOGGER = LogManager.getLogger(OBJReader::class)
-        private val defaultSize = 256
     }
-
-    val materials = HashMap<String, Material>()
 
     /**
      * x,y,z,u,v,nx,ny,nz
      * */
-    val pointsByMaterial = HashMap<Material?, ArrayList<Float>>()
+    val pointsByMaterial = HashMap<Material, ArrayList<Float>>()
 
     init {
+        // inside the function, because not used materials aren't relevant to us
+        val materials = HashMap<String, Material>()
+        val defaultSize = 256
         try {
             lateinit var trianglePoints: ArrayList<Float>
             val vertices = ArrayList<Vector3f>(defaultSize)
@@ -47,9 +48,11 @@ class OBJReader(val file: File): OBJMTLReader(file.inputStream().buffered()){
                         "usemtl" -> {
                             skipSpaces()
                             val materialName = readUntilSpace()
-                            val material = materials[materialName]
+                            var material = materials[materialName]
                             if(material == null){
-                                LOGGER.warn("Material $materialName was not found!")
+                                material = Material()
+                                materials[materialName] = material
+                                LOGGER.warn("Unknown material $materialName")
                             }
                             var points = pointsByMaterial[material]
                             if(points == null){
@@ -82,7 +85,7 @@ class OBJReader(val file: File): OBJMTLReader(file.inputStream().buffered()){
                             fun putPoint(point: Point){
                                 val (coordinates, uv, normal) = point
                                 trianglePoints.add(coordinates.x)
-                                trianglePoints.add(coordinates.y)
+                                trianglePoints.add(-coordinates.y) // y is flipped
                                 trianglePoints.add(coordinates.z)
                                 trianglePoints.add(uv.x)
                                 trianglePoints.add(uv.y)
@@ -104,9 +107,11 @@ class OBJReader(val file: File): OBJMTLReader(file.inputStream().buffered()){
                                 }
                                 else -> {
                                     // todo triangulate the points correctly
+                                    // is this possible in 3D?
+                                    // do we need to project/rotate them into 2D first?
                                     for(i in 2 until points.size){
                                         putPoint(0)
-                                        putPoint(1)
+                                        putPoint(i-1)
                                         putPoint(i)
                                     }
                                 }
@@ -115,7 +120,11 @@ class OBJReader(val file: File): OBJMTLReader(file.inputStream().buffered()){
                         "mtllib" -> {
                             val file2 = readFile(file)
                             if(file2.exists() && !file2.isDirectory){
-                                materials.putAll(MTLReader(file2).materials)
+                                try {
+                                    materials.putAll(MTLReader(file2).materials)
+                                } catch (e: IOException){
+                                    e.printStackTrace()
+                                }
                             }
                         }
                         else -> {
