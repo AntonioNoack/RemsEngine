@@ -19,7 +19,7 @@ import java.nio.ShortBuffer
 // audio crashes at 25s for no reason -.-
 // -> MemoryUtil.memFree(toFree) was the cause
 // reason, probably: GC frees buffer, even tho it's required...
-// file : C:\Users\Antonio\Pictures\Video Projects\UE4 AI Bottleneck.mp4
+// file : File(OS.home, Pictures\Video Projects\UE4 AI Bottleneck.mp4)
 // only in Java 8 (100%, 3x), not in Java 12 (0%, 2x)
 class WaveReader(val input: InputStream, frameCount: Int) {
     

@@ -48,26 +48,11 @@ object Cache {
         return cache?.texture
     }
 
-    fun getLUT(name: String, asyncGenerator: Boolean, timeout: Long = 5000): Texture3D? {
-        val cache = getEntry("LUT", name, 0, timeout, asyncGenerator){
-            val cache = Texture3DCache(null)
-            thread {
-                val img = GFX.loadBImage(name)
-                val sqrt = sqrt(img.width+0.5f).toInt()
-                val tex = Texture3D(sqrt, img.height, sqrt)
-                tex.create(img, false)
-                cache.texture = tex
-            }
-            cache
-        } as? Texture3DCache
-        return cache?.texture
-    }
-
     fun getIcon(name: String, asyncGenerator: Boolean, timeout: Long = 5000): Texture2D {
         val cache = getEntry("Icon", name, 0, timeout, asyncGenerator){
             val cache = TextureCache(null)
             thread {
-                val img = GFX.loadBImage(name)
+                val img = GFX.loadAssetsImage(name)
                 val tex = Texture2D(img.width, img.height, 1)
                 tex.create(img, false)
                 cache.texture = tex

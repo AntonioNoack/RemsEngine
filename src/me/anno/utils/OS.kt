@@ -6,4 +6,7 @@ object OS {// the os is important for some things, e.g. the allowed file names, 
     val data = System.getProperty("os.name")
     val isWindows = data.contains("windows", true)
     val home = File(System.getProperty("user.home"))
+    val downloads = File(home, "Downloads")
+    val desktop = File(home, "Desktop")
+    val documents = File(home, "Documents")
 }

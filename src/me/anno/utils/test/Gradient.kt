@@ -1,5 +1,6 @@
 package me.anno.utils.test
 
+import me.anno.utils.OS
 import java.awt.image.BufferedImage
 import java.io.File
 import javax.imageio.ImageIO
@@ -12,5 +13,5 @@ fun main(){
             img.setRGB(x, y, color)
         }
     }
-    ImageIO.write(img, "png", File("C:/Users/Antonio/Desktop/gradient.png"))
+    ImageIO.write(img, "png", File(OS.desktop, "gradient.png"))
 }

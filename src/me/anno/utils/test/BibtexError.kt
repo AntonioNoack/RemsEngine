@@ -1,5 +1,6 @@
 package me.anno.utils.test
 
+import me.anno.utils.OS
 import java.io.File
 import java.lang.RuntimeException
 
@@ -9,7 +10,7 @@ fun main(){
     // the error was missing(?) \url tags... in bibtex
     // why ever you have to set them in JabRef... I've the feeling it should be done automatically
  
-    val file = File("C:/Users/Antonio/Desktop/test.txt")
+    val file = File(OS.desktop, "test.txt")
     val str = file.readText()
 
     var i = 0

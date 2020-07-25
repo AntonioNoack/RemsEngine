@@ -101,9 +101,9 @@ object UILayouts {
         // for(i in 0 until 2) Transform(null, null, null, b)
 
         Camera(root)
-        // Video(File("C:\\Users\\Antonio\\Videos\\Captures\\Cities_ Skylines 2020-01-06 19-32-23.mp4"), GFX.root)
+        // Video(File(OS.home, "Videos\\Captures\\Cities_ Skylines 2020-01-06 19-32-23.mp4"), GFX.root)
         // Text("Hi! \uD83D\uDE09", GFX.root)
-        // Image(File("C:/Users/Antonio/Downloads/tiger.svg"), root).position.addKeyframe(0f, Vector3f(0f, 0f, 0.01f), 0.1f)
+        // Image(File(OS.downloads, "tiger.svg"), root).position.addKeyframe(0f, Vector3f(0f, 0f, 0.01f), 0.1f)
 
         val animationWindow = CustomListX(style)
         customUI.add(animationWindow, 200f)

@@ -256,7 +256,7 @@ class FontMesh(val font: Font, val text: String, debugPieces: Boolean = false): 
         val outerFragments = fragments.filter { !it.isInside }
         // println("found ${outerFragments.size} outer rings")
 
-        if(img != null) ImageIO.write(img, "png", File("C:/Users/Antonio/Desktop/text1.png"))
+        if(img != null) ImageIO.write(img, "png", File(OS.desktop, "text1.png"))
 
         var wasChanged = false
         outerFragments.forEach { outer ->
@@ -281,7 +281,7 @@ class FontMesh(val font: Font, val text: String, debugPieces: Boolean = false): 
         if(wasChanged){
             gfx?.apply {
                 gfx.dispose()
-                ImageIO.write(img, "png", File("C:/Users/Antonio/Desktop/text2.png"))
+                ImageIO.write(img, "png", File(OS.desktop, "text2.png"))
             }
         }
 

@@ -2,6 +2,7 @@ package me.anno.objects.meshes.svg
 
 import me.anno.io.xml.XMLElement
 import me.anno.io.xml.XMLReader
+import me.anno.utils.OS
 import java.io.ByteArrayInputStream
 import java.io.File
 
@@ -20,7 +21,7 @@ fun main(){
             "</svg> "
 
     testSVG(text)
-    testSVG(File("C:/Users/Antonio/Downloads/tiger.svg").readText())
+    testSVG(File(OS.downloads, "tiger.svg").readText())
 
 }
 

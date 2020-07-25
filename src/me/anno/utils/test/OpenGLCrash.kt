@@ -1,10 +1,7 @@
 package me.anno.utils.test
 
-import me.anno.gpu.GFX
 import org.lwjgl.Version
-import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL11.*
-import org.lwjgl.opengl.GL30
 import org.lwjgl.opengl.GL30.GL_R8
 import java.nio.ByteBuffer
 
@@ -29,7 +26,7 @@ object OpenGLCrash {
 # No core dump will be written. Minidumps are not enabled by default on client versions of Windows
 #
 # An error report file with more information is saved as:
-# C:\Users\Antonio\Documents\IdeaProjects\VideoStudio\hs_err_pid2100.log
+# ../hs_err_pid2100.log
 #
 # If you would like to submit a bug report, please visit:
 #   http://bugreport.java.com/bugreport/crash.jsp

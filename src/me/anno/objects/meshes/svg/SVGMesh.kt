@@ -5,6 +5,7 @@ import me.anno.gpu.GFX.toRadians
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticFloatBuffer
 import me.anno.io.xml.XMLElement
+import me.anno.utils.OS
 import me.anno.utils.clamp
 import me.anno.utils.length
 import org.apache.logging.log4j.LogManager
@@ -114,7 +115,7 @@ class SVGMesh {
                 gfx.drawLine(ix(c), iy(c), ix(a), iy(a))
             }
         }
-        ImageIO.write(img, "png", File("C:/Users/Antonio/Desktop/svg/tiger.png"))
+        ImageIO.write(img, "png", File(OS.desktop, "svg/tiger.png"))
     }
 
     fun createMesh(x0: Double, y0: Double, w: Double, h: Double){
