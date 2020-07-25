@@ -64,6 +64,12 @@ class OBJReader(val file: File): OBJMTLReader(file.inputStream().buffered()){
                         "v" -> vertices.add(readVector3f())
                         "vt" -> uvs.add(readVector2f())
                         "vn" -> normals.add(readVector3f())
+                        "s" -> {
+                            // smoothness -> ignore?
+                            // at least Blender sets smoothness by normals
+                            // what would it be otherwise???...
+                            skipLine()
+                        }
                         "f" -> {
                             val points = ArrayList<Point>()
                             pts@while(true){

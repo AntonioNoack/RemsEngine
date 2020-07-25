@@ -33,16 +33,18 @@ class MTLReader(val file: File): OBJMTLReader(file.inputStream().buffered()){
                             materials[materialName] = material
                         }
                         "Ka" -> material.ambientColor = readVector3f()
-                        "map_Ka" -> material.ambientTexture = readFile(file)
                         "Kd" -> material.diffuseColor = readVector3f()
-                        "map_Kd" -> material.diffuseTexture = readFile(file)
+                        "Ke" -> material.emissiveColor = readVector3f()
                         "Ks" -> material.specularColor = readVector3f()
-                        "map_Ks" -> material.specularTexture = readFile(file)
                         "Ns" -> material.specularExponent = readValue()
-                        "map_Ns" -> material.specularTexture = readFile(file)
-                        "Ni" -> material.refractionIndex = readValue()
                         "d" -> material.opacity = readValue()
+                        "map_Ka" -> material.ambientTexture = readFile(file)
+                        "map_Kd" -> material.diffuseTexture = readFile(file)
+                        "map_Ke" -> material.emissiveTexture = readFile(file)
+                        "map_Ks" -> material.specularTexture = readFile(file)
+                        "map_Ns" -> material.specularTexture = readFile(file)
                         "map_d" -> material.opacityTexture = readFile(file)
+                        "Ni" -> material.refractionIndex = readValue()
                         "Tr" -> material.opacity = 1f - readValue()
                         "illum" -> {
                             skipSpaces()

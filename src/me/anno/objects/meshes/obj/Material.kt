@@ -11,6 +11,8 @@ class Material: Saveable(){
     var ambientTexture: File? = null
     var diffuseColor: Vector3f? = null // Kd
     var diffuseTexture: File? = null
+    var emissiveColor: Vector3f? = null
+    var emissiveTexture: File? = null
     var specularColor: Vector3f? = null // Ks
     var specularTexture: File? = null
     var specularExponent = 0f // [0, 1000], Ns
@@ -25,6 +27,8 @@ class Material: Saveable(){
         super.save(writer)
         ambientColor?.apply { writer.writeVector3("ambient", this) }
         ambientTexture?.apply { writer.writeFile("ambient", this) }
+        emissiveColor?.apply { writer.writeVector3("emissive", this) }
+        emissiveTexture?.apply { writer.writeFile("emissive", this) }
         diffuseColor?.apply { writer.writeVector3("diffuse", this) }
         diffuseTexture?.apply { writer.writeFile("diffuse", this) }
         specularColor?.apply { writer.writeVector3("specular", this) }

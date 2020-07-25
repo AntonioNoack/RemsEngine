@@ -64,7 +64,7 @@ object DefaultConfig: StringMap() {
         this["import.mapping.*"] = "Text"
 
         val newInstances: Map<String, Transform> = mapOf(
-            "Mesh" to Mesh(File(OS.documents, "plane.obj"), null),
+            "Mesh" to Mesh(File(OS.documents, "monkey.obj"), null),
             "Video" to Video(File(""), null),
             "Image" to Image(File(""), null),
             "Polygon" to Polygon(null),
