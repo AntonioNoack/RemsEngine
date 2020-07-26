@@ -36,12 +36,12 @@ open class Audio(var file: File = File(""), parent: Transform? = null): GFXTrans
     /**
      * is synchronized with the audio thread
      * */
-    fun start(globalTime: Double, speed: Double){
+    fun start(globalTime: Double, speed: Double, camera: Camera){
         needsUpdate = false
         component?.stop()
         val meta = forcedMeta
         if(meta.hasAudio){
-            val component = AudioStreamOpenAL(this, speed, globalTime)
+            val component = AudioStreamOpenAL(this, speed, globalTime, camera)
             this.component = component
             component.start()
         } else component = null

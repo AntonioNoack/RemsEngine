@@ -7,9 +7,11 @@ import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelContainer
+import me.anno.ui.base.groups.PanelListMultiline
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.style.Style
 import kotlin.math.max
+import kotlin.math.min
 
 open class ScrollPanelY(child: Panel, padding: Padding,
                         style: Style,
@@ -44,6 +46,10 @@ open class ScrollPanelY(child: Panel, padding: Padding,
 
         minW = child.minW + padding.width
         minH = child.minH + padding.height
+
+        /*if(child is PanelListMultiline){
+            println("${child.minW} ${child.minH} -> $minW $minH inside $w $h, makes $maxScrollPosition")
+        }*/
 
         // if(h > GFX.height) throw RuntimeException()
 

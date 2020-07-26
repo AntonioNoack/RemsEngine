@@ -10,6 +10,7 @@ import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.style.Style
 import kotlin.math.max
+import kotlin.math.min
 
 open class ScrollPanelX(child: Panel, padding: Padding,
                         style: Style,

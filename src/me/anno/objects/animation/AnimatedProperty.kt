@@ -25,6 +25,7 @@ class AnimatedProperty<V>(val type: Type): Saveable(){
         LONG("long", 0L, 1, 1f, true, true, null, null, { it is Long }),
         FLOAT("float", 0f, 1, 1f, true, true, null, null, { it is Float }),
         FLOAT_01("float01", 0f, 1, 1f, true, true, 0f, 1f, { it is Float }),
+        FLOAT_01_EXP("float01exp", 0f, 1, 1f, false, true, 0f, 1f, { it is Float }),
         FLOAT_PLUS("float+", 0f, 1, 1f, false, true, 0f, null, { it is Float }),
         FLOAT_PERCENT("float%", 100f, 1, 100f, true, false, 0f, 100f, { it is Float }),
         DOUBLE("double", 0.0, 1, 1f, true, true, null, null, { it is Double }),
@@ -61,6 +62,7 @@ class AnimatedProperty<V>(val type: Type): Saveable(){
         fun float() = AnimatedProperty<Float>(Type.FLOAT)
         fun floatPlus() = AnimatedProperty<Float>(Type.FLOAT_PLUS)
         fun float01() = AnimatedProperty<Float>(Type.FLOAT_01)
+        fun float01exp() = AnimatedProperty<Float>(Type.FLOAT_01)
         fun floatPercent() = AnimatedProperty<Float>(Type.FLOAT_PERCENT)
         fun double() = AnimatedProperty<Double>(Type.DOUBLE)
         fun vec2() = AnimatedProperty<Vector2f>(Type.VEC2)

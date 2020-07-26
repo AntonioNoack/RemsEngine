@@ -11,6 +11,7 @@ package me.anno.maybe
 // todo tut multiple videos
 // todo tut multiple videos blending
 // todo tut video fade-in, fade-out
+// todo tut pixelating a face or car sign
 
 // todo effects, that clip onto everything/start/end, and manipulate the animations???
 // (fade-in, fade-out effect)

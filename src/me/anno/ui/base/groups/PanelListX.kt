@@ -26,6 +26,7 @@ open class PanelListX(sorter: Comparator<Panel>?, style: Style): PanelList(sorte
 
     override fun calculateSize(w: Int, h: Int) {
         super.calculateSize(w, h)
+
         var sumW = 0
         var maxH = 0
         var weight = 0f

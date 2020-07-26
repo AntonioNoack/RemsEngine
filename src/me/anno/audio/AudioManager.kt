@@ -6,6 +6,7 @@ import me.anno.objects.Transform
 import me.anno.studio.Studio
 import me.anno.studio.Studio.editorTime
 import me.anno.studio.Studio.editorTimeDilation
+import me.anno.studio.Studio.nullCamera
 import me.anno.studio.Studio.root
 import org.joml.Matrix4f
 import org.lwjgl.openal.AL
@@ -72,10 +73,11 @@ object AudioManager {
         needsUpdate = true
     }
 
+    val camera = nullCamera
     fun updateTime(time: Double, dilation: Double, transform: Transform){
         // if(transform == root) println("$time += t * $dilation")
         if(transform is Audio){
-            transform.start(time, dilation)
+            transform.start(time, dilation, camera)
         }
         transform.children.forEach {
             updateTime(time, dilation, it)
@@ -85,7 +87,7 @@ object AudioManager {
     fun checkTree(transform: Transform){
         if(transform is Audio && transform.needsUpdate){
             transform.needsUpdate = false
-            transform.start(editorTime, editorTimeDilation)
+            transform.start(editorTime, editorTimeDilation, camera)
         }
         transform.children.forEach {
             checkTree(it)

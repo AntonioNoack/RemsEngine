@@ -13,7 +13,7 @@ import kotlin.math.min
 class Checkbox(startValue: Boolean, val size: Int, style: Style): Panel(style.getChild("checkbox")){
 
     companion object {
-        fun getImage(checked: Boolean): Texture2D = Cache.getIcon(if(checked) "checked.png" else "unchecked.png", true)
+        fun getImage(checked: Boolean): Texture2D? = Cache.getIcon(if(checked) "checked.png" else "unchecked.png", true)
     }
 
     var isChecked = startValue
@@ -29,7 +29,7 @@ class Checkbox(startValue: Boolean, val size: Int, style: Style): Panel(style.ge
         val size = min(w, h)
         if(size > 0){
             // draw the icon on/off
-            GFX.drawTexture(x0+(w-size)/2, y0+(h-size)/2, size, size, getImage(isChecked), -1, null)
+            GFX.drawTexture(x0+(w-size)/2, y0+(h-size)/2, size, size, getImage(isChecked) ?: GFX.whiteTexture, -1, null)
         }
 
     }

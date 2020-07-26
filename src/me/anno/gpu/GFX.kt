@@ -14,6 +14,7 @@ import me.anno.input.Input
 import me.anno.objects.Camera
 import me.anno.objects.Transform
 import me.anno.objects.blending.BlendMode
+import me.anno.objects.effects.MaskType
 import me.anno.objects.geometric.Circle
 import me.anno.studio.Build.isDebug
 import me.anno.studio.Studio.editorTime
@@ -324,6 +325,19 @@ object GFX: GFXBase1() {
         shader.v1("drawMode", drawMode.id)
     }
 
+
+    fun shader3DUniforms(shader: Shader, stack: Matrix4f, color: Vector4f){
+        check()
+        shader.use()
+        stack.get(matrixBuffer)
+        GL20.glUniformMatrix4fv(shader["transform"], false, matrixBuffer)
+        shader.v2("billboardSize", 1f, 1f)
+        shaderColor(shader, "tint", color)
+        shader.v4("tiling", 1f, 1f, 0f, 0f)
+        shader.v1("isBillboard", 0f)
+        shader.v1("drawMode", drawMode.id)
+    }
+
     fun shaderColor(shader: Shader, name: String, color: Vector4f){
         if(isFakeColorRendering){
             val id = drawnTransform!!.clickId
@@ -356,13 +370,18 @@ object GFX: GFXBase1() {
     }
 
     fun draw3DMasked(stack: Matrix4fArrayList, texture: Texture2D, mask: Texture2D, color: Vector4f,
-                     isBillboard: Float, nearestFiltering: Boolean, useMaskColor: Float, offsetColor: Vector4f,
+                     isBillboard: Float, nearestFiltering: Boolean,
+                     maskType: MaskType,
+                     useMaskColor: Float, offsetColor: Vector4f,
+                     pixelSize: Float,
                      isInverted: Float){
         val shader = shader3DMasked.shader
         shader3DUniforms(shader, stack, 1, 1, color, isBillboard, null)
         shader.v4("offsetColor", offsetColor.x, offsetColor.y, offsetColor.z, offsetColor.w)
         shader.v1("useMaskColor", useMaskColor)
         shader.v1("invertMask", isInverted)
+        shader.v1("maskType", maskType.id)
+        shader.v2("pixelating", pixelSize * windowHeight / windowWidth, pixelSize)
         mask.bind(1, nearestFiltering)
         texture.bind(0, nearestFiltering)
         flat01.draw(shader)
@@ -678,15 +697,34 @@ object GFX: GFXBase1() {
                 "uniform vec4 offsetColor;\n" +
                 "uniform float useMaskColor;\n" +
                 "uniform float invertMask;\n" +
+                "uniform vec2 pixelating;\n" +
+                "uniform int maskType;\n" +
                 "void main(){\n" +
                 "   vec2 uv2 = uv.xy/uv.z * 0.5 + 0.5;\n" +
                 "   vec4 mask = texture(mask, uv2);\n" +
-                "   vec4 maskColor = vec4(mix(vec3(1.0), mask.rgb, useMaskColor), mix(mask.a, 1.0-mask.a, invertMask));\n" +
-                "   if(maskColor.a <= 0.0) discard;\n " +
-                "   vec4 color = texture(tex, uv2);\n" +
+                "   vec4 color;\n" +
+                "   switch(maskType){\n" +
+                "       case ${MaskType.MASKING.id}:\n" +
+                "           vec4 maskColor = vec4(" +
+                "               mix(vec3(1.0), mask.rgb, useMaskColor)," +
+                "               mix(mask.a, 1.0-mask.a, invertMask));\n" +
+                "           color = texture(tex, uv2);\n" +
+                "           gl_FragColor = offsetColor + tint * color * maskColor;\n" +
+                "           break;\n" +
+                "       case ${MaskType.PIXELATING.id}:\n" +
+                // use the average instead for more stable results?
+                "           float maskColor2 = mix(mask.a, dot(vec3(0.3), mask.rgb), useMaskColor);\n" +
+                "           maskColor2 = mix(maskColor2, 1.0 - maskColor2, invertMask);\n" +
+                "           color = mix(" +
+                "               texture(tex, uv2), " +
+                "               texture(tex, round(uv2 / pixelating) * pixelating)," +
+                "               maskColor2);\n" +
+                "           gl_FragColor = offsetColor + tint * color;\n" +
+                "           break;\n" +
+                "   }\n" +
                 colorProcessing +
-                "   gl_FragColor = offsetColor + tint * color * maskColor;\n" +
-                "   gl_FragColor.a = clamp(gl_FragColor.a, 0.0, 1.0);\n" +
+                "   if(gl_FragColor.a <= 0.0) discard;\n" +
+                "   gl_FragColor.a = min(gl_FragColor.a, 1.0);\n" +
                 // no postprocessing, because it was already applied
                 "}"
 

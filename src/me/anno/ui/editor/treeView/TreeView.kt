@@ -15,6 +15,7 @@ import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.scrolling.ScrollPanelXY
 import me.anno.ui.style.Style
+import me.anno.utils.getImportType
 import org.joml.Vector3f
 import java.io.File
 import java.lang.Exception
@@ -191,10 +192,7 @@ class TreeView(style: Style):
             } else {
                 val ending = file.name.split('.').last()
                 val name = file.name
-                val type0 = DefaultConfig["import.mapping.$ending"]
-                val type1 = DefaultConfig["import.mapping.${ending.toLowerCase()}"]
-                val type2 = DefaultConfig["import.mapping.*"] ?: "Text"
-                when((type0 ?: type1 ?: type2).toString()){
+                when(file.extension.getImportType()){
                     "Transform" -> thread {
                         val text = file.readText()
                         try {
@@ -250,5 +248,6 @@ class TreeView(style: Style):
             }
         }
     }
+
 
 }

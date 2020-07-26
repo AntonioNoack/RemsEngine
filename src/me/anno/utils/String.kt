@@ -1,5 +1,6 @@
 package me.anno.utils
 
+import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.ui.base.TextPanel
 import kotlin.math.abs
@@ -31,3 +32,9 @@ fun getIndexFromText(characters: List<Int>, localX: Float, fontName: String, tex
     }
     return index
 }
+
+
+fun String.getImportType(): String =
+    DefaultConfig["import.mapping.$this"]?.toString() ?:
+    DefaultConfig["import.mapping.${toLowerCase()}"]?.toString() ?:
+    DefaultConfig["import.mapping.*"]?.toString() ?: "Text"

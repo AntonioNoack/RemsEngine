@@ -58,6 +58,7 @@ object ActionManager {
         defaultValue["FileEntry.left.press"] = "DragStart"
         defaultValue["FileEntry.left.double"] = "Enter|Open"
         defaultValue["FileExplorer.right.down"] = "Back"
+        defaultValue["FileExplorer.mousebackward.down"] = "Back"
         defaultValue["TreeViewPanel.left.press"] = "DragStart"
 
         defaultValue["HSVBox.left.down"] = "selectColor"

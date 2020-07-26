@@ -1,7 +1,9 @@
 package me.anno.ui.base.groups
 
 import me.anno.ui.base.Panel
+import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.style.Style
+import java.lang.RuntimeException
 import kotlin.math.max
 
 
@@ -14,7 +16,7 @@ class PanelListMultiline(sorter: Comparator<Panel>?, style: Style): PanelList(so
     var childHeight: Int
 
     init {
-        val defaultSize = style.getSize("textSize", 12) * 10
+        val defaultSize = 100//style.getSize("textSize", 12) * 10
         childWidth = style.getSize("childWidth", defaultSize)
         childHeight = style.getSize("childHeight", defaultSize)
     }
@@ -25,6 +27,12 @@ class PanelListMultiline(sorter: Comparator<Panel>?, style: Style): PanelList(so
     var calcChildHeight = 0
 
     override fun calculateSize(w: Int, h: Int) {
+
+        // not enough space
+        if(w < childWidth || h < childHeight){
+            return
+        }
+
         super.calculateSize(w, h)
 
         columns = max(1, (w+spacing)/(childWidth+spacing))
@@ -37,15 +45,14 @@ class PanelListMultiline(sorter: Comparator<Panel>?, style: Style): PanelList(so
 
         for(child in children){
             child.calculateSize(calcChildWidth, calcChildHeight)
-            child.applyConstraints()
+            // child.applyConstraints()
         }
 
         minW = (calcChildWidth + spacing) * columns - spacing
         minH = (calcChildHeight + spacing) * rows - spacing
 
-        this.h = minH
+        // applyConstraints()
 
-        // warn("multiline ${children.size} in $w ($minW) x $h ($minH) -> $rows x $columns")
     }
 
     override fun placeInParent(x: Int, y: Int) {

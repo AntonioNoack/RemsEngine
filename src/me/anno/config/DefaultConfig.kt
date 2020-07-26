@@ -71,10 +71,14 @@ object DefaultConfig: StringMap() {
             "Circle" to Circle(null),
             "Folder" to Transform(),
             "Mask" to {
-                val mask = MaskLayer(null)
+                val maskLayer = MaskLayer(null)
+                val mask = Transform(maskLayer)
+                mask.name = "Mask Folder"
                 Circle(mask).innerRadius.set(0.5f)
-                Polygon(mask)
-                mask
+                val masked = Transform(maskLayer)
+                masked.name = "Masked Folder"
+                Polygon(masked)
+                maskLayer
             }(),
             "Text" to Text("Text", null),
             "Cubemap" to {

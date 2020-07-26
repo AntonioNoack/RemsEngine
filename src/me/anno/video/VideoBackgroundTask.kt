@@ -12,6 +12,8 @@ class VideoBackgroundTask(val video: VideoCreator){
 
     val cameras = root.listOfAll.filter { it is Camera }.toList() as List<Camera>
 
+    val camera = cameras.firstOrNull() ?: nullCamera
+
     // todo show the progress somehow
     // (percent, time used, expected time remaining)
 
@@ -60,8 +62,6 @@ class VideoBackgroundTask(val video: VideoCreator){
         GFX.check()
 
         GFX.isFinalRendering = true
-
-        val camera = cameras.firstOrNull() ?: nullCamera
 
         try {
             Scene.draw(framebuffer, camera, 0, 0, video.w, video.h, time, flipY = true, drawMode = ShaderPlus.DrawMode.COLOR)

@@ -11,11 +11,13 @@
       <w>gizmos</w>
       <w>hsluv</w>
       <w>msaa</w>
+      <w>mtllib</w>
       <w>ness</w>
       <w>numpad</w>
       <w>perlin</w>
       <w>shaders</w>
       <w>uchimura</w>
+      <w>usemtl</w>
     </words>
   </dictionary>
 </component>

@@ -1,6 +1,7 @@
 package me.anno.audio
 
 import me.anno.objects.Audio
+import me.anno.objects.Camera
 import me.anno.objects.LoopingState
 import me.anno.objects.cache.Cache
 import me.anno.utils.mix
@@ -19,10 +20,23 @@ import kotlin.math.min
 // only play once, then destroy; it makes things easier
 // (on user input and when finally rendering only)
 
-abstract class AudioStream(val file: File, val repeat: LoopingState, val startTime: Double, val meta: FFMPEGMetadata, val playbackSampleRate: Int = 48000){
+/**
+ * todo audio effects:
+ * todo echoing
+ * todo velocity frequency change
+ * todo pitch
+ * todo losing high frequencies in the distance
+ * todo audio becoming quiet in the distance
+ * todo -> we need some kind of fourier transform, but how such that it doesn't change the tone???
+ * */
+abstract class AudioStream(
+    val file: File, val repeat: LoopingState,
+    val startTime: Double, val meta: FFMPEGMetadata,
+    val listener: Camera,
+    val playbackSampleRate: Int = 48000){
 
-    constructor(audio: Audio, speed: Double, globalTime: Double, playbackSampleRate: Int):
-            this(audio.file, audio.isLooping, 0.0, getMeta(audio.file, false)!!, playbackSampleRate){
+    constructor(audio: Audio, speed: Double, globalTime: Double, playbackSampleRate: Int, listener: Camera):
+            this(audio.file, audio.isLooping, 0.0, getMeta(audio.file, false)!!, listener, playbackSampleRate){
         configure(audio, speed, globalTime)
     }
 

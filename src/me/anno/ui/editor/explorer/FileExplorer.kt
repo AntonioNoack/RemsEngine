@@ -16,13 +16,16 @@ import me.anno.ui.input.TextInput
 import me.anno.ui.style.Style
 import me.anno.utils.OS
 import java.io.File
+import kotlin.concurrent.thread
 
 class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
+
+    // todo somehow gets assigned a huge height... -.-
 
     // todo a stack or history to know where we were...
     // todo left list of relevant places? todo drag stuff in there
 
-    var folder = project?.file ?: File(OS.home, "Documents")
+    var folder: File? = project?.file ?: File(OS.home, "Documents")
 
     val searchBar = TextInput("Search Term", style)
         .setChangeListener {
@@ -40,6 +43,7 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
 
     val uContent = PanelListX(style)
     val content = PanelListMultiline(style)
+    var lastFiles = ""
     val favourites = PanelListY(style)
 
     val title = TextPanel("Xplorer", style)
@@ -65,18 +69,23 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
     }
 
     fun createResults(){
-        content.clear()
-        val parent = folder.parentFile
-        if(parent != null){
-            content += FileEntry(this, folder.parentFile, style)
-        }
-        folder.listFiles()?.forEach { file ->
-            val name = file.name
-            if(!name.startsWith(".")){
-                // todo check if this file is valid, part of the search results
-                // todo do this async for large folders
-                // todo only display the first ... entries maybe...
-                content += FileEntry(this, file, style)
+        val children = folder?.listFiles() ?: File.listRoots()
+        val newFiles = children?.joinToString { it.name } ?: ""
+        if(lastFiles != newFiles){
+            lastFiles = newFiles
+            content.clear()
+            val parent = folder?.parentFile
+            if(parent != null){
+                content += FileEntry(this, true, parent, style)
+            }
+            children?.sortedBy { !it.isDirectory }?.forEach { file ->
+                val name = file.name
+                if(!name.startsWith(".")){
+                    // todo check if this file is valid, part of the search results
+                    // todo do this async for large folders
+                    // todo only display the first ... entries maybe...
+                    content += FileEntry(this, false, file, style)
+                }
             }
         }
     }
@@ -85,7 +94,7 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
         super.draw(x0, y0, x1, y1)
         if(isValid <= 0f){
             isValid = 5f // depending on amount of files?
-            title.text = folder.toString()
+            title.text = folder?.toString() ?: "This Computer"
             createResults()
         } else isValid -= GFX.deltaTime
     }
@@ -117,7 +126,7 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
         when(action){
             "Back" -> {
-                folder = folder.parentFile ?: folder
+                folder = folder?.parentFile
                 invalidate()
             }
             else -> return super.onGotAction(x, y, dx, dy, action, isContinuous)

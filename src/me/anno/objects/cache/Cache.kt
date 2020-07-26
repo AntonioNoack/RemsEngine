@@ -3,6 +3,7 @@ package me.anno.objects.cache
 import me.anno.gpu.GFX
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture3D
+import me.anno.objects.Image
 import me.anno.objects.LoopingState
 import me.anno.objects.cache.VideoData.Companion.framesPerContainer
 import me.anno.studio.Studio.editorTimeDilation
@@ -48,7 +49,7 @@ object Cache {
         return cache?.texture
     }
 
-    fun getIcon(name: String, asyncGenerator: Boolean, timeout: Long = 5000): Texture2D {
+    fun getIcon(name: String, asyncGenerator: Boolean, timeout: Long = 5000): Texture2D? {
         val cache = getEntry("Icon", name, 0, timeout, asyncGenerator){
             val cache = TextureCache(null)
             thread {
@@ -59,7 +60,7 @@ object Cache {
             }
             cache
         } as? TextureCache
-        return cache?.texture as? Texture2D ?: GFX.whiteTexture
+        return cache?.texture as? Texture2D
     }
 
     fun getEntry(file: File, allowDirectories: Boolean, key: Any, timeout: Long, asyncGenerator: Boolean, generator: () -> CacheData): CacheData? {

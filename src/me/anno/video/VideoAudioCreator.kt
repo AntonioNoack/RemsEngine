@@ -2,6 +2,7 @@ package me.anno.video
 
 import me.anno.audio.AudioStream
 import me.anno.objects.Audio
+import me.anno.objects.Camera
 import me.anno.studio.Studio.root
 import me.anno.utils.clamp
 import org.apache.logging.log4j.LogManager
@@ -14,9 +15,11 @@ import kotlin.concurrent.thread
 import kotlin.math.ceil
 import kotlin.math.roundToInt
 
-class VideoAudioCreator(val videoCreator: VideoCreator, val sampleRate: Int, val output: File){
+class VideoAudioCreator(
+    val videoCreator: VideoCreator, val sampleRate: Int, val output: File){
 
     val audioSources = root.listOfAll.filter { it is Audio && it.forcedMeta.hasAudio }.toList() as List<Audio>
+    lateinit var camera: Camera
 
     fun start(){
         thread { run() }
@@ -24,6 +27,7 @@ class VideoAudioCreator(val videoCreator: VideoCreator, val sampleRate: Int, val
 
     fun run(){
         val vbt = VideoBackgroundTask(videoCreator)
+        camera = vbt.camera
         vbt.start()
         // wait for the task to finish
         while(!vbt.isDone){ Thread.sleep(1) }
@@ -79,7 +83,9 @@ class VideoAudioCreator(val videoCreator: VideoCreator, val sampleRate: Int, val
 
     }
 
-    class BufferStream(val audio: Audio, sampleRate: Int, val buffer: ShortBuffer, val notifier: AtomicInteger): AudioStream(audio, 1.0, 0.0, sampleRate){
+    class BufferStream(val audio: Audio, sampleRate: Int, val buffer: ShortBuffer,
+                       listener: Camera, val notifier: AtomicInteger):
+        AudioStream(audio, 1.0, 0.0, sampleRate, listener){
         override fun onBufferFilled(stereoBuffer: ShortBuffer, bufferIndex: Long) {
             synchronized(buffer){
                 buffer.position(0)
@@ -115,7 +121,7 @@ class VideoAudioCreator(val videoCreator: VideoCreator, val sampleRate: Int, val
 
             val streamFillCounter = AtomicInteger()
             val streams = audioSources.map {
-                BufferStream(it, sampleRate, buffer, streamFillCounter)
+                BufferStream(it, sampleRate, buffer, camera, streamFillCounter)
             }
 
             for(bufferIndex in 0 until bufferCount){

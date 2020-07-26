@@ -11,6 +11,7 @@ import me.anno.io.text.TextWriter
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.blending.BlendMode
 import me.anno.objects.blending.blendModes
+import me.anno.objects.effects.MaskType
 import me.anno.objects.effects.ToneMappers
 import me.anno.objects.particles.ParticleSystem
 import me.anno.studio.Studio
@@ -437,6 +438,7 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
                 val values = when(value){
                     is LoopingState -> LoopingState.values()
                     is ToneMappers -> ToneMappers.values()
+                    is MaskType -> MaskType.values()
                     else -> throw RuntimeException("Missing enum .values() implementation for UI in Transform.kt")
                 }
                 val valueNames = values.map {
@@ -445,6 +447,7 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
                         LoopingState.PLAY_LOOP -> "Looping"
                         LoopingState.PLAY_REVERSING_LOOP -> "Reversing"
                         is ToneMappers -> it.displayName
+                        is MaskType -> it.displayName
                         else -> it.name
                     }
                 }
