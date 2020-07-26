@@ -11,6 +11,7 @@ import org.joml.Quaternionf
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
+import org.lwjgl.system.CallbackI
 import java.lang.RuntimeException
 import kotlin.math.max
 import kotlin.math.roundToInt
@@ -52,11 +53,11 @@ open class FloatInput(
     fun setValue(v: Long) = setValue(v.toDouble())
     fun setValue(v: Float) = setValue(v.toDouble())
 
-    override fun stringify(v: Double): String {
+    override fun stringify(v: Double): String = if(type.defaultValue is Double) v.toString() else v.toFloat().toString()/*{
         val vInt = v.toInt()
         return if(vInt.toDouble() == v) "$vInt"
         else "${v.toFloat()}"
-    }
+    }*/
 
     override fun changeValue(dx: Float, dy: Float) {
         val scale = 1f
@@ -78,6 +79,10 @@ open class FloatInput(
                 is Double -> value
                 is Int -> value.roundToInt()
                 is Long -> value.roundToLong()
+                is Vector2f -> value[indexInProperty]
+                is Vector3f -> value[indexInProperty]
+                is Vector4f -> value[indexInProperty]
+                is Quaternionf -> value[indexInProperty]
                 else -> throw RuntimeException("Unknown type ${type.defaultValue}")
             }
         )){

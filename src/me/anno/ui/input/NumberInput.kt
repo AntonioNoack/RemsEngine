@@ -17,6 +17,7 @@ abstract class NumberInput<Type>(
     val indexInProperty: Int
 ): PanelListY(style) {
 
+    var hasValue = false
     var lastValue: Type = getValue(type.defaultValue)
     var changeListener = { value: Type -> }
 
@@ -109,7 +110,8 @@ abstract class NumberInput<Type>(
     }
 
     fun setValue(v: Type){
-        if(v != lastValue){
+        if(v != lastValue || !hasValue){
+            hasValue = true
             lastValue = v
             changeListener(v)
             inputPanel.text = stringify(v)

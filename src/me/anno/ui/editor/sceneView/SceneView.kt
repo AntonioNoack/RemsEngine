@@ -1,6 +1,5 @@
 package me.anno.ui.editor.sceneView
 
-import me.anno.config.DefaultStyle.black
 import me.anno.config.DefaultStyle.deepDark
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.deltaTime
@@ -10,6 +9,7 @@ import me.anno.gpu.shader.ShaderPlus
 import me.anno.input.Input
 import me.anno.input.Input.mouseKeysDown
 import me.anno.objects.Camera
+import me.anno.objects.blending.BlendMode
 import me.anno.studio.Scene
 import me.anno.studio.Studio
 import me.anno.studio.Studio.dragged
@@ -109,13 +109,15 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
 
         GFX.clip(x0, y0, x1, y1)
 
-        if(isInFocus){
+        BlendMode.DEFAULT.apply()
+
+        /*if(isInFocus){
             val redStarColor = black or 0xff0000
             GFX.drawRect(x+dx,y+dy,2,2, redStarColor)
             GFX.drawRect(x+dx+rw-2,y+dy,2,2, redStarColor)
             GFX.drawRect(x+dx,y+dy+rh-2,2,2, redStarColor)
             GFX.drawRect(x+dx+rw-2,y+dy+rh-2,2,2, redStarColor)
-        }
+        }*/
 
         GFX.drawText(x+2, y+2, "Verdana", 12,
             false, false, mode.displayName, -1, 0)
