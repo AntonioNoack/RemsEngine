@@ -11,6 +11,8 @@ import me.anno.gpu.shader.ShaderPlus
 import me.anno.gpu.size.WindowSize
 import me.anno.gpu.texture.Texture2D
 import me.anno.input.Input
+import me.anno.input.Input.mouseX
+import me.anno.input.Input.mouseY
 import me.anno.objects.Camera
 import me.anno.objects.Transform
 import me.anno.objects.blending.BlendMode
@@ -50,6 +52,7 @@ import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL30.*
+import java.lang.Exception
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.math.*
@@ -934,7 +937,11 @@ object GFX: GFXBase1() {
         updateLastLocalTime(root, editorTime)
 
         while(eventTasks.isNotEmpty()){
-            eventTasks.poll()!!.invoke()
+            try {
+                eventTasks.poll()!!.invoke()
+            } catch (e: Exception){
+                e.printStackTrace()
+            }
         }
 
         Texture2D.textureBudgetUsed = 0
@@ -1039,6 +1046,12 @@ object GFX: GFXBase1() {
         openMenu(x.roundToInt() - delta, y.roundToInt() - delta, title, options)
     }
 
+    fun openMenu2(x: Float, y: Float, title: String, options: List<Pair<String, () -> Any>>, delta: Int = 10){
+        openMenu(x.roundToInt() - delta, y.roundToInt() - delta, title, options.map { (key, value) ->
+            Pair(key, { b: Int, _: Boolean -> if(b == 0){value(); true } else false })
+        })
+    }
+
     var glThread: Thread? = null
     fun check(){
         if(isDebug){
@@ -1063,6 +1076,13 @@ object GFX: GFXBase1() {
                 else -> "$error"
             }}")
         }
+    }
+
+    fun ask(question: String, onYes: () -> Unit, onNo: () -> Unit){
+        openMenu(mouseX, mouseY, question, listOf(
+            "Yes" to { b, l -> if(b == 0){ onYes(); true} else false },
+            "No"  to { b, l -> if(b == 0){ onNo(); true } else false }
+        ))
     }
 
     fun showFPS(){

@@ -51,9 +51,8 @@ abstract class FFMPEGStream(val file: File?){
     abstract fun destroy()
 
     fun run(arguments: List<String>): FFMPEGStream {
-        val ffmpeg = FFMPEG.ffmpeg
         val args = ArrayList<String>(arguments.size+2)
-        args += ffmpeg.absolutePath
+        args += FFMPEG.ffmpegPathString
         if(arguments.isNotEmpty()) args += "-hide_banner"
         args += arguments
         val process = ProcessBuilder(args).start()

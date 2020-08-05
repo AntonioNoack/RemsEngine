@@ -2,6 +2,7 @@ package me.anno.ui.style
 
 import me.anno.config.DefaultStyle.black
 import me.anno.io.utils.StringMap
+import me.anno.ui.base.components.Padding
 import me.anno.utils.warn
 
 class Style(val prefix: String?, val suffix: String?){
@@ -98,6 +99,7 @@ class Style(val prefix: String?, val suffix: String?){
     fun getSize(name: String, defaultValue: Int): Int = getValue(getFullName(name), defaultValue)
     fun getColor(name: String, defaultValue: Int): Int = getValue(getFullName(name), defaultValue)
     fun getString(name: String, defaultValue: String): String = getValue(getFullName(name), defaultValue)
+    fun getPadding(name: String, defaultSize: Int) = Padding(getSize(name, defaultSize)) // todo allow asymmetric paddings
 
     fun getFullName(name: String): String {
         return append(prefix, name, suffix)

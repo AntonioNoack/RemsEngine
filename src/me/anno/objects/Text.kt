@@ -24,6 +24,7 @@ import kotlin.collections.ArrayList
 import kotlin.math.max
 import kotlin.math.min
 
+// todo background "color" in the shape of a plane?
 class Text(text: String = "", parent: Transform? = null): GFXTransform(parent){
 
     var text = text.replace("\r", "")

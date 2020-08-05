@@ -7,6 +7,9 @@ import me.anno.objects.Camera
 import me.anno.studio.Scene
 import me.anno.studio.Studio.nullCamera
 import me.anno.studio.Studio.root
+import java.util.concurrent.atomic.AtomicInteger
+import kotlin.concurrent.thread
+import kotlin.math.min
 
 class VideoBackgroundTask(val video: VideoCreator){
 
@@ -19,35 +22,56 @@ class VideoBackgroundTask(val video: VideoCreator){
 
     val framebuffer = Framebuffer(video.w, video.h, 1, 1, false, Framebuffer.DepthBufferType.TEXTURE)
 
-    var frameIndex = 0
+    val renderingIndex = AtomicInteger(0)
+    val savingIndex = AtomicInteger(0)
+
     val totalFrameCount = video.totalFrameCount
 
     var isDone = false
 
     fun start(){
 
-        if(frameIndex < totalFrameCount) addNextTask()
+        if(renderingIndex.get() < totalFrameCount) addNextTask()
         else video.close()
 
     }
 
     fun addNextTask(){
 
-        if(frameIndex < totalFrameCount){
+        if(min(renderingIndex.get(), savingIndex.get()) < totalFrameCount){// not done yet
 
-            GFX.addGPUTask {
+            /**
+             * runs on GPU thread
+             * */
+            if(renderingIndex.get() < savingIndex.get()+2){
+                GFX.addGPUTask {
 
-                if(renderFrame(frameIndex / video.fps)){
-                    video.writeFrame(framebuffer){
-                        frameIndex++
+                    val frameIndex = renderingIndex.get()
+                    if(renderFrame(frameIndex / video.fps)){
+                        video.writeFrame(framebuffer, frameIndex){
+                            // it was saved -> everything works well :)
+                            savingIndex.incrementAndGet()
+                        }
+                        renderingIndex.incrementAndGet()
                         addNextTask()
+                    } else {
+                        println("waiting for frame (data missing)")
+                        // waiting
+                        thread {
+                            Thread.sleep(1)
+                            addNextTask()
+                        }
                     }
-                } else {
-                    // waiting
+
+                    5 // 5 tokens for this frame ;)
+                }
+            } else {
+                println("waiting for frame (writing is slow)")
+                // waiting for saving to ffmpeg
+                thread {
+                    Thread.sleep(100)
                     addNextTask()
                 }
-
-                5 // 5 tokens for this frame ;)
             }
 
         } else {

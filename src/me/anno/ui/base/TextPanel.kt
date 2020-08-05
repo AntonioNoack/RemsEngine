@@ -11,7 +11,7 @@ import me.anno.utils.mixARGB
 open class TextPanel(open var text: String, style: Style): Panel(style){
 
     var instantTextLoading = false
-    var padding = Padding(style.getSize("textPadding", 2))
+    var padding = style.getPadding("textPadding", 2)
     var isBold = style.getBoolean("textBold", false)
     var isItalic = style.getBoolean("textItalic", false)
     var fontName = style.getString("textFont", DefaultConfig.defaultFont)

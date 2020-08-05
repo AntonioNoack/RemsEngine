@@ -27,6 +27,7 @@ import me.anno.ui.editor.graphs.GraphEditor
 import me.anno.ui.editor.treeView.TreeView
 import me.anno.video.VideoAudioCreator
 import me.anno.video.VideoCreator
+import org.apache.logging.log4j.LogManager
 import java.io.File
 import java.io.OutputStream
 import java.io.PrintStream
@@ -35,6 +36,8 @@ import kotlin.math.max
 import kotlin.math.roundToInt
 
 object UILayouts {
+
+    private val LOGGER = LogManager.getLogger(UILayouts::class)
 
     fun createLoadingUI(){
 
@@ -53,6 +56,8 @@ object UILayouts {
     }
 
     fun render(width: Int, height: Int){
+        if(width % 2 != 0 || height % 2 != 0) return render(width/2*2, height/2*2)
+        LOGGER.info("rendering video at $width x $height")
         val tmpFile = File(targetOutputFile.parentFile, targetOutputFile.nameWithoutExtension+".tmp."+targetOutputFile.extension)
         val fps = targetFPS
         val totalFrameCount = (fps * targetDuration).toInt()
@@ -85,8 +90,8 @@ object UILayouts {
 
         options.addAction("Render", "Set%"){
             render(
-                max(1, (project!!.targetWidth * project!!.targetSizePercentage / 100).roundToInt()),
-                max(1, (project!!.targetHeight * project!!.targetSizePercentage / 100).roundToInt())) }
+                max(2, (project!!.targetWidth * project!!.targetSizePercentage / 100).roundToInt()),
+                max(2, (project!!.targetHeight * project!!.targetSizePercentage / 100).roundToInt())) }
         options.addAction("Render", "Full"){ renderPart(1) }
         options.addAction("Render", "Half"){ renderPart(2) }
         options.addAction("Render", "Quarter"){ renderPart(4) }

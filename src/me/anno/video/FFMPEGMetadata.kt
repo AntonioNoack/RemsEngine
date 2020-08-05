@@ -28,9 +28,8 @@ class FFMPEGMetadata(file: File): CacheData {
 
     init {
 
-        val ffmpegProbe = FFMPEG.ffprobe
         val args = listOf(
-            ffmpegProbe.absolutePath,
+            FFMPEG.ffprobePathString,
             "-v", "quiet",
             "-print_format", "json",
             "-show_format",

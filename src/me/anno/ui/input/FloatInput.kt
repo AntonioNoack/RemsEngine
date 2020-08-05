@@ -73,6 +73,9 @@ open class FloatInput(
     }
 
     fun setValueClamped(value: Double){
+        if(type.minValue == null && type.maxValue == null){
+            setValue(value)
+        } else
         when(val clamped = type.clamp(
             when(type.defaultValue){
                 is Float -> value.toFloat()

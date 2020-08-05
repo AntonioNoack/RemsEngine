@@ -9,7 +9,10 @@ import me.anno.ui.base.TextPanel
 import me.anno.ui.dragging.Draggable
 import me.anno.ui.style.Style
 import me.anno.utils.Tabs
+import me.anno.utils.formatFileSize
 import me.anno.utils.getImportType
+import me.anno.utils.mixARGB
+import org.lwjgl.glfw.GLFW
 import java.io.File
 import kotlin.math.max
 import kotlin.math.roundToInt
@@ -35,6 +38,10 @@ class FileEntry(val explorer: FileExplorer, val isParent: Boolean, val file: Fil
     val title = TextPanel(if(isParent) ".." else if(file.name.isEmpty()) file.toString() else file.name, style)
     init { title.backgroundColor = black }
 
+    var wasInFocus = false
+    val originalBackgroundColor = backgroundColor
+    val darkerBackgroundColor = mixARGB(0, originalBackgroundColor, 0.7f)
+
     override fun calculateSize(w: Int, h: Int) {
         super.calculateSize(w, h)
         minW = size
@@ -44,6 +51,9 @@ class FileEntry(val explorer: FileExplorer, val isParent: Boolean, val file: Fil
     }
 
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+        wasInFocus = isInFocus
+        backgroundColor = if(isInFocus) darkerBackgroundColor else originalBackgroundColor
+        drawBackground()
         val originalIcon = if(file.length() < 10e6){
             when(importType){
                 // todo preview for video
@@ -85,6 +95,66 @@ class FileEntry(val explorer: FileExplorer, val isParent: Boolean, val file: Fil
         }
         return true
     }
+
+    override fun onMouseClicked(x: Float, y: Float, button: Int, long: Boolean) {
+        when(button){
+            GLFW.GLFW_MOUSE_BUTTON_RIGHT -> {
+                // todo get all meta data you ever need
+                // todo or get more options? probably better... delete, new folder, new file,
+                // todo rename, open in explorer, open in editor, ...
+            }
+            else -> super.onMouseClicked(x, y, button, long)
+        }
+    }
+
+    override fun onDoubleClick(x: Float, y: Float, button: Int) {
+        when(button){
+            GLFW.GLFW_MOUSE_BUTTON_LEFT -> {
+                // todo open the file in the editor, or add it to the scene?
+                // todo or open it using windows?
+            }
+            else -> super.onDoubleClick(x, y, button)
+        }
+    }
+
+    override fun onDeleteKey(x: Float, y: Float) {
+        if(GFX.inFocus.size == 1){
+            // ask, then delete (or cancel)
+            GFX.openMenu2(x, y, "Delete this file? (${file.length().formatFileSize()})", listOf(
+                "Yes" to {
+                    // todo put history state...
+                    file.deleteRecursively()
+                    explorer.invalidate()
+                },
+                "No" to {},
+                "Yes, permanently" to {
+                    file.deleteRecursively()
+                    explorer.invalidate()
+                }
+            ))
+        } else if(GFX.inFocus.firstOrNull() == this){
+            // ask, then delete all (or cancel)
+            GFX.openMenu2(x, y, "Delete these files? (${GFX.inFocus.size}x, ${
+                GFX.inFocus
+                    .sumByDouble { (it as? FileEntry)?.file?.length()?.toDouble() ?: 0.0 }
+                    .toLong()
+                    .formatFileSize()
+            })", listOf(
+                "Yes" to {
+                    // todo put history state...
+                    GFX.inFocus.forEach { (it as? FileEntry)?.file?.deleteRecursively() }
+                    explorer.invalidate()
+                },
+                "No" to {},
+                "Yes, permanently" to {
+                    GFX.inFocus.forEach { (it as? FileEntry)?.file?.deleteRecursively() }
+                    explorer.invalidate()
+                }
+            ))
+        }
+    }
+
+    override fun getMultiSelectablePanel() = this
 
     override fun printLayout(tabDepth: Int) {
         super.printLayout(tabDepth)

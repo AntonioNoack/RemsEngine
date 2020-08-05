@@ -30,7 +30,7 @@ public class WaveData {
     public final ByteBuffer data;
     public final int format;
     public final int samplerate;
-    // public -> can't change it
+    // public -> can't change the naming
 
     private WaveData(ByteBuffer data, int format, int sampleRate) {
         this.data = data;

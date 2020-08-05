@@ -20,8 +20,12 @@ import me.anno.studio.Studio.root
 import me.anno.studio.Studio.selectedTransform
 import me.anno.studio.Studio.targetHeight
 import me.anno.studio.Studio.targetWidth
+import me.anno.ui.base.IconPanel
+import me.anno.ui.base.ImagePanel
+import me.anno.ui.base.TextPanel
 import me.anno.ui.base.groups.PanelFrame
 import me.anno.ui.editor.CustomContainer
+import me.anno.ui.simple.SimplePanel
 import me.anno.ui.style.Style
 import me.anno.utils.*
 import org.joml.Matrix4fArrayList
@@ -65,8 +69,29 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
     var camera = nullCamera
     var isLocked2D = false
 
+    val controls = ArrayList<SimplePanel>()
+
+    val iconSize = 32
+    val iconBorder = 2
+
     // we need the depth for post processing effects like dof
 
+    init {
+        controls += SimplePanel(
+            IconPanel("checked.png", style),
+            true, true,
+            3, 3,
+            iconSize
+        ).setOnClickListener {
+
+        }
+        controls += SimplePanel(
+            TextPanel("H", style),
+            true, true,
+            3 + iconSize + iconBorder, 3,
+            iconSize
+        )
+    }
 
     var mode = TransformMode.MOVE
 
@@ -124,6 +149,10 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
 
         GFX.drawText(x+16, y+2, "Verdana", 12,
             false, false, if(isLocked2D) "2D" else "3D", -1, 0)
+
+        controls.forEach {
+            it.draw(x, y, w, h, x0, y0, x1, y1)
+        }
 
         super.draw(x0, y0, x1, y1)
 
@@ -355,24 +384,36 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
     override fun onMouseClicked(x: Float, y: Float, button: Int, long: Boolean) {
         if((parent as? CustomContainer)?.clicked(x,y) != true){
 
-            var rw = w
-            var rh = h
-            var dx = 0
-            var dy = 0
-
-            GFX.addGPUTask {
-                val camera = camera
-                if(camera.onlyShowTarget){
-                    if(w * targetHeight > targetWidth *h){
-                        rw = h * targetWidth / targetHeight
-                        dx = (w-rw)/2
-                    } else {
-                        rh = w * targetHeight / targetWidth
-                        dy = (h-rh)/2
-                    }
+            var isProcessed = false
+            val xi = x.toInt()
+            val yi = y.toInt()
+            controls.forEach {
+                if(it.contains(xi, yi)){
+                    it.drawable.onMouseClicked(x, y, button, long)
+                    isProcessed = true
                 }
-                resolveClick(x-dx, y-dy, rw, rh)
-                35
+            }
+
+            if(!isProcessed){
+                var rw = w
+                var rh = h
+                var dx = 0
+                var dy = 0
+
+                GFX.addGPUTask {
+                    val camera = camera
+                    if(camera.onlyShowTarget){
+                        if(w * targetHeight > targetWidth *h){
+                            rw = h * targetWidth / targetHeight
+                            dx = (w-rw)/2
+                        } else {
+                            rh = w * targetHeight / targetWidth
+                            dy = (h-rh)/2
+                        }
+                    }
+                    resolveClick(x-dx, y-dy, rw, rh)
+                    35
+                }
             }
 
         }

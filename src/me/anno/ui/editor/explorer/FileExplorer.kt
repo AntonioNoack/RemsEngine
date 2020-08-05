@@ -146,7 +146,7 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
     // todo search in meta data for audio and video
 
     // multiple elements can be selected
-    override fun getMultiSelectableParent() = this
+    override fun getMultiSelectablePanel() = this
 
     override fun getClassName() = "FileExplorer"
 

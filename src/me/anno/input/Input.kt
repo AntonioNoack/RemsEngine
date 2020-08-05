@@ -62,16 +62,19 @@ object Input {
     fun initForGLFW(){
 
         GLFW.glfwSetDropCallback(window){ _: Long, count: Int, names: Long ->
-            if(count > 0) addEvent {
-                framesSinceLastInteraction = 0
-                requestFocus(getPanelAt(mouseX, mouseY), true)
-                inFocus0?.apply {
-                    val files = Array(count){ nameIndex ->
-                        try {
-                            File(GLFWDropCallback.getName(names, nameIndex))
-                        } catch (e: Exception){ null }
+            if(count > 0) {
+                // it's important to be executed here, because the strings may be GCed otherwise
+                val files = Array(count){ nameIndex ->
+                    try {
+                        File(GLFWDropCallback.getName(names, nameIndex))
+                    } catch (e: Exception){ null }
+                }
+                addEvent {
+                    framesSinceLastInteraction = 0
+                    requestFocus(getPanelAt(mouseX, mouseY), true)
+                    inFocus0?.apply {
+                        onPasteFiles(mouseX, mouseY, files.toList().filterNotNull())
                     }
-                    onPasteFiles(mouseX, mouseY, files.toList().filterNotNull())
                 }
             }
         }
@@ -134,8 +137,8 @@ object Input {
                         val multiSelect = isShiftDown
 
                         val mouseTarget = getPanelAt(mouseX, mouseY)
-                        val selectionTarget = mouseTarget?.getMultiSelectableParent()
-                        val inFocusTarget = inFocus0?.getMultiSelectableParent()
+                        val selectionTarget = mouseTarget?.getMultiSelectablePanel()
+                        val inFocusTarget = inFocus0?.getMultiSelectablePanel()
                         val joinedParent = inFocusTarget?.parent
 
                         if((singleSelect || multiSelect) && selectionTarget != null && joinedParent == selectionTarget.parent){
@@ -191,6 +194,7 @@ object Input {
                                 val mouseDuration = currentNanos - mouseStart
                                 val isLongClick = mouseDuration / 1_000_000 >= longClickMillis
                                 inFocus0?.onMouseClicked(mouseX, mouseY, button, isLongClick)
+
                             }
 
                             lastClickX = mouseX

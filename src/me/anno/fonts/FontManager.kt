@@ -20,29 +20,31 @@ object FontManager {
 
     val LOGGER = LogManager.getLogger(FontManager::class)!!
 
+    private var hasFonts = false
     private val awtFontList = ArrayList<String>()
     private val awtFonts = HashMap<String, Font>()
 
     private val fonts = HashMap<String, XFont>()
 
     fun requestFontList(callback: (List<String>) -> Unit){
-        if(awtFontList.isNotEmpty()) callback(awtFontList)
+        if(hasFonts) callback(awtFontList)
         else {
             thread {
-                val t0 = System.nanoTime()
-                val ge = GraphicsEnvironment.getLocalGraphicsEnvironment()
-                val fontNames = ge.availableFontFamilyNames
                 synchronized(awtFontList){
+                    hasFonts = true
+                    val t0 = System.nanoTime()
+                    val ge = GraphicsEnvironment.getLocalGraphicsEnvironment()
+                    val fontNames = ge.availableFontFamilyNames
                     awtFontList.clear()
                     awtFontList += fontNames
+                    val t1 = System.nanoTime()
+                    // 0.17s on Win 10, R5 2600, a few extra fonts
+                    // this lag would not be acceptable :)
+                    // worst-case-scenario: list too long, and no fonts are returned
+                    // (because of that, the already used one is added)
+                    LOGGER.info("Used ${(t1-t0)*1e-9f} to get font list")
+                    callback(awtFontList)
                 }
-                val t1 = System.nanoTime()
-                // 0.17s on Win 10, R5 2600, a few extra fonts
-                // this lag would not be acceptable :)
-                // worst-case-scenario: list too long, and no fonts are returned
-                // (because of that, the already used one is added)
-                LOGGER.info("Used ${(t1-t0)*1e-9f} to get font list")
-                callback(awtFontList)
             }
         }
     }

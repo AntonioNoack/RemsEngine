@@ -212,7 +212,7 @@ open class Panel(val style: Style): Saveable(){
      * isn't really meant to be concatenated as a function
      * (multiselect inside multiselect)
      * */
-    open fun getMultiSelectableParent(): Panel? = parent?.getMultiSelectableParent()
+    open fun getMultiSelectablePanel(): Panel? = parent?.getMultiSelectablePanel()
 
     /**
      * get the index in our parent; or -1, if we have no parent (are the root element)

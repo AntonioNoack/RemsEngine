@@ -16,6 +16,9 @@ object FFMPEG {
     var ffmpegPath = if(isInstalled) File("ffmpeg") else File(DefaultConfig["ffmpeg.path", "lib/ffmpeg/ffmpeg.exe"])
     var ffprobePath = if(isInstalled) File("ffprobe") else DefaultConfig["ffmpeg.probe.path", File(ffmpegPath.parentFile, "ffprobe.exe")]
 
+    var ffmpegPathString = if(isInstalled) "ffmpeg" else File(DefaultConfig["ffmpeg.path", "lib/ffmpeg/ffmpeg.exe"]).absolutePath
+    var ffprobePathString = if(isInstalled) "ffprobe" else DefaultConfig["ffmpeg.probe.path", File(ffmpegPath.parentFile, "ffprobe.exe")].absolutePath
+
     init {
         if(OS.isWindows && !isInstalled){
             // todo download the ffmpeg files, if missing

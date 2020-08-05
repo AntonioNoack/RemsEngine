@@ -11,7 +11,15 @@ import java.lang.RuntimeException
 import kotlin.concurrent.thread
 import kotlin.math.sin
 
+/**
+ * todo write at the same time as rendering (does it work?)
+ * todo why are we limited to 11 fps?
+ * */
 class VideoCreator(val w: Int, val h: Int, val fps: Double, val totalFrameCount: Int, val output: File){
+
+    init {
+        if(w % 2 != 0 || h % 2 != 0) throw RuntimeException("width and height must be divisible by 2")
+    }
 
     val videoQualities = arrayListOf(
         "ultrafast", "superfast", "veryfast", "faster",
@@ -49,9 +57,8 @@ class VideoCreator(val w: Int, val h: Int, val fps: Double, val totalFrameCount:
             output.absolutePath
         )
 
-        val ffmpeg = FFMPEG.ffmpeg
         val args = ArrayList<String>(videoEncodingArguments.size+2)
-        args += ffmpeg.absolutePath
+        args += FFMPEG.ffmpegPathString
         if(videoEncodingArguments.isNotEmpty()) args += "-hide_banner"
         args += videoEncodingArguments
         val process = ProcessBuilder(args).start()
@@ -67,28 +74,17 @@ class VideoCreator(val w: Int, val h: Int, val fps: Double, val totalFrameCount:
 
     }
 
-    fun debugWrite(){
-        val frameCount = 200
-        for(f in 0 until frameCount){
-            val pixelCount = w * h * 3
-            val color = (sin(f * 0.1f)*127 + 127).toInt()
-            for(i in 0 until pixelCount) videoOut.write(color)
-            // val pixelCountYUV = pixelCount / 4
-            // for(i in 0 until pixelCountYUV * 2) out.write(127)
-        }
+    private val buffer1 = BufferUtils.createByteBuffer(w * h * 3)
+    private val buffer2 = BufferUtils.createByteBuffer(w * h * 3)
 
-        videoOut.flush()
-        videoOut.close()
-    }
-
-    val buffer = BufferUtils.createByteBuffer(w * h * 3)
-
-    fun writeFrame(frame: Framebuffer, callback: () -> Unit){
+    fun writeFrame(frame: Framebuffer, frameIndex: Int, callback: () -> Unit){
 
         GFX.check()
 
         if(frame.w != w || frame.h != h) throw RuntimeException("Resolution does not match!")
         frame.bind()
+
+        val buffer = if(frameIndex % 2 == 0) buffer1 else buffer2
 
         buffer.position(0)
         glReadPixels(0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, buffer)
@@ -97,13 +93,15 @@ class VideoCreator(val w: Int, val h: Int, val fps: Double, val totalFrameCount:
         GFX.check()
 
         thread {
-            // buffer.get(byteBuffer)
-            // use a buffer instead for better performance?
-            val pixelCount = w * h * 3
-            for(i in 0 until pixelCount){
-                videoOut.write(buffer.get().toInt())
+            synchronized(videoOut){
+                // buffer.get(byteBuffer)
+                // use a buffer instead for better performance?
+                val pixelCount = w * h * 3
+                for(i in 0 until pixelCount){
+                    videoOut.write(buffer.get().toInt())
+                }
+                callback()
             }
-            callback()
         }
 
     }

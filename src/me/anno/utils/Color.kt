@@ -1,6 +1,9 @@
 package me.anno.utils
 
+import org.joml.Vector4f
 import kotlin.math.abs
+
+typealias Color = Vector4f
 
 fun Int.r() = shr(16) and 255
 fun Int.g() = shr(8) and 255

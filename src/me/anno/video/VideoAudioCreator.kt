@@ -18,7 +18,9 @@ import kotlin.math.roundToInt
 class VideoAudioCreator(
     val videoCreator: VideoCreator, val sampleRate: Int, val output: File){
 
+    @Suppress("UNCHECKED_CAST") // the cast is checked
     val audioSources = root.listOfAll.filter { it is Audio && it.forcedMeta.hasAudio }.toList() as List<Audio>
+
     lateinit var camera: Camera
 
     fun start(){
@@ -60,9 +62,8 @@ class VideoAudioCreator(
             output.absolutePath
         )
 
-        val ffmpeg = FFMPEG.ffmpeg
         val args = ArrayList<String>(audioEncodingArguments.size+2)
-        args += ffmpeg.absolutePath
+        args += FFMPEG.ffmpegPathString
         if(audioEncodingArguments.isNotEmpty()) args += "-hide_banner"
         args += audioEncodingArguments
         val process = ProcessBuilder(args).start()

@@ -5,6 +5,7 @@ import me.anno.ui.base.Panel
 import me.anno.ui.base.Visibility
 import me.anno.ui.style.Style
 import java.lang.Exception
+import java.lang.RuntimeException
 import kotlin.math.max
 import kotlin.math.min
 
@@ -31,6 +32,8 @@ abstract class PanelGroup(style: Style): Panel(style){
     }
 
     fun drawChild(child: Panel, x0: Int, y0: Int, x1: Int, y1: Int): Boolean {
+        // stolen child lol
+        // if(child.parent !== this && child.parent != null) throw RuntimeException()
         val x02 = max(child.x, x0)
         val y02 = max(child.y, y0)
         val x12 = min(child.x + child.w, x1)
