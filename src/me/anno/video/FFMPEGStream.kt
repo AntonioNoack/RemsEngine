@@ -39,8 +39,8 @@ abstract class FFMPEGStream(val file: File?){
             "-ar", "$sampleRate",
             // -aq quality, codec specific
             "-f", "wav",
-            // todo this tag doesn't exist on my Linux ffmpeg :(, and ffmpeg just still adds the info block
-            // todo -> we need to remove it
+            // the -bitexact tag doesn't exist on my Linux ffmpeg :(, and ffmpeg just still adds the info block
+            // -> we need to remove it
             // "-bitexact", // don't add an additional LIST-INFO chunk; we don't care
             // wav is exported with length -1, which slick does not support
             // ogg reports "error 34", and ffmpeg is slow

@@ -117,7 +117,7 @@ abstract class AudioStream(
 
     fun requestNextBuffer(startTime: Double, bufferIndex: Long){
 
-        println("requesting audio buffer $startTime")
+        // println("requesting audio buffer $startTime")
 
         isWaitingForBuffer.set(true)
         thread {// load all data async

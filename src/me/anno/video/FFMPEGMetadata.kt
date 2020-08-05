@@ -5,6 +5,7 @@ import me.anno.io.json.JsonObject
 import me.anno.io.json.JsonReader
 import me.anno.objects.cache.Cache
 import me.anno.objects.cache.CacheData
+import me.anno.utils.OS
 import java.io.File
 
 class FFMPEGMetadata(file: File): CacheData {
@@ -45,8 +46,7 @@ class FFMPEGMetadata(file: File): CacheData {
         val streams = data["streams"] as JsonArray
         val format = data["format"] as JsonObject
 
-        println(data)
-
+        // critical, not working 001.gif file data from ffprobe:
         // {streams=[
         //      {
         //          pix_fmt=bgra,
