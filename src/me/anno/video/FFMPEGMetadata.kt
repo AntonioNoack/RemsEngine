@@ -9,7 +9,7 @@ import java.io.File
 
 class FFMPEGMetadata(file: File): CacheData {
 
-    val duration: Float
+    val duration: Double
 
     val hasAudio: Boolean
     val hasVideo: Boolean
@@ -45,10 +45,48 @@ class FFMPEGMetadata(file: File): CacheData {
         val streams = data["streams"] as JsonArray
         val format = data["format"] as JsonObject
 
+        println(data)
+
+        // {streams=[
+        //      {
+        //          pix_fmt=bgra,
+        //          time_base=1/100,
+        //          coded_height=270,
+        //          level=-99,
+        //          r_frame_rate=12000/1001,
+        //          index=0,
+        //          codec_name=gif,
+        //          sample_aspect_ratio=0:1,
+        //          disposition=
+        //              {dub=0, karaoke=0, default=0, original=0, visual_impaired=0, forced=0, attached_pic=0, timed_thumbnails=0, comment=0, hearing_impaired=0, lyrics=0, clean_effects=0 },
+        //          codec_tag=0x0000,
+        //          has_b_frames=0,
+        //          refs=1,
+        //          codec_time_base=1/12,
+        //          width=480,
+        //          display_aspect_ratio=0:1,
+        //          codec_tag_string=[0][0][0][0],
+        //          coded_width=480,
+        //          avg_frame_rate=12/1,
+        //          codec_type=video,
+        //          codec_long_name=GIF (Graphics Interchange Format),
+        //          height=270
+        //      }
+        //  ],
+        //  format={
+        //      filename=/home/antonio/Pictures/Anime/001.gif,
+        //      size=3414192,
+        //      probe_score=100,
+        //      nb_programs=0,
+        //      format_long_name=CompuServe Graphics Interchange Format (GIF),
+        //      nb_streams=1,
+        //      format_name=gif
+        //  }}
+
         val video = streams.firstOrNull { (it as JsonObject)["codec_type"]?.asText().equals("video", true) } as? JsonObject
         val audio = streams.firstOrNull { (it as JsonObject)["codec_type"]?.asText().equals("audio", true) } as? JsonObject
 
-        duration = format["duration"].toString().toFloat()
+        duration = format["duration"]?.toString()?.toDouble() ?: getDurationIfMissing(file)
 
         hasAudio = audio != null
         audioStartTime = audio?.get("start_time")?.asText()?.toDouble() ?: 0.0
@@ -64,6 +102,35 @@ class FFMPEGMetadata(file: File): CacheData {
         videoHeight = video?.get("height")?.asText()?.toInt() ?: 0
         videoFPS = video?.get("r_frame_rate")?.asText()?.parseFraction() ?: 30.0
 
+    }
+
+    // not working for the problematic file 001.gif
+    fun getDurationIfMissing(file: File): Double {
+
+        val args = listOf(
+            // ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 input.mp4
+            FFMPEG.ffmpegPathString, "-i", file.absolutePath, "-f", "null", "-"
+        )
+
+        val process = ProcessBuilder(args).start()
+
+        // get and parse the data :)
+        val data = String(process.inputStream.readBytes())
+        println(data)
+        val time = data.split("time=")[1].split(" ")[0]
+        // frame=206723 fps=1390 q=-0.0 Lsize=N/A time=00:57:28.87 bitrate=N/A speed=23.2x
+        return time.parseTime()
+
+    }
+
+    // 00:57:28.87 -> 57 * 60 + 28.87
+    fun String.parseTime(): Double {
+        val parts = split(":").reversed()
+        var seconds = parts[0].toDouble()
+        if(parts.size > 1) seconds += 60 * parts[1].toInt()
+        if(parts.size > 2) seconds += 3600 * parts[2].toInt()
+        if(parts.size > 3) seconds += 24 * 3600 * parts[3].toInt()
+        return seconds
     }
 
     fun String.parseFraction(): Double {

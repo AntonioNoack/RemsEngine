@@ -53,10 +53,16 @@ object Cache {
         val cache = getEntry("Icon", name, 0, timeout, asyncGenerator){
             val cache = TextureCache(null)
             thread {
-                val img = GFX.loadAssetsImage(name)
-                val tex = Texture2D(img.width, img.height, 1)
-                tex.create(img, false)
-                cache.texture = tex
+                try {
+                    val img = GFX.loadAssetsImage(name)
+                    val tex = Texture2D(img.width, img.height, 1)
+                    tex.create(img, false)
+                    cache.texture = tex
+                } catch (e: FileNotFoundException){
+                    LOGGER.warn("Icon $name not found!")
+                } catch (e: Exception){
+                    e.printStackTrace()
+                }
             }
             cache
         } as? TextureCache

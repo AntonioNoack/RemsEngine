@@ -7,15 +7,18 @@ import me.anno.audio.format.WaveReader
 import java.io.File
 import kotlin.concurrent.thread
 
-class FFMPEGAudio(file: File?, val sampleRate: Int, val length: Double, val frame0: Int):
+class FFMPEGAudio(file: File?, val sampleRate: Int, val length: Double):
     FFMPEGStream(file){
 
     override fun process(process: Process, arguments: List<String>) {
+        println("starting process for audio $sampleRate x $length")
+        println(arguments)
         thread {
             val out = process.errorStream.bufferedReader()
             val parser = FFMPEGMetaParser()
             while(true){
                 val line = out.readLine() ?: break
+                println("meta $line")
                 parser.parseLine(line, this)
             }
         }
@@ -31,6 +34,7 @@ class FFMPEGAudio(file: File?, val sampleRate: Int, val length: Double, val fram
             input.reset()
             val wav = WaveReader(input, frameCount)
             GFX.addAudioTask {
+                println("got reader and is loading now...")
                 val buffer = SoundBuffer()
                 buffer.loadRawStereo16(wav.stereoPCM, sampleRate)
                 soundBuffer = buffer

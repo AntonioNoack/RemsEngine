@@ -32,14 +32,16 @@ abstract class FFMPEGStream(val file: File?){
             // "pipe:1" // 1 = stdout, 2 = stdout
         )) as FFMPEGVideo
         fun getAudioSequence(input: File, startTime: Double, duration: Double, sampleRate: Int) = FFMPEGAudio(
-            input, sampleRate, duration, (startTime * sampleRate).roundToInt()).run(listOf(
+            input, sampleRate, duration).run(listOf(
             "-i", input.absolutePath,
             "-ss", "$startTime",
             "-t", "$duration", // duration
             "-ar", "$sampleRate",
             // -aq quality, codec specific
             "-f", "wav",
-            "-bitexact", // don't add an additional LIST-INFO chunk; we don't care
+            // todo this tag doesn't exist on my Linux ffmpeg :(, and ffmpeg just still adds the info block
+            // todo -> we need to remove it
+            // "-bitexact", // don't add an additional LIST-INFO chunk; we don't care
             // wav is exported with length -1, which slick does not support
             // ogg reports "error 34", and ffmpeg is slow
             // "-c:a", "pcm_s16le", "-ac", "2",

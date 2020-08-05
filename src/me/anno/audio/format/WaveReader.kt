@@ -34,16 +34,16 @@ class WaveReader(val input: InputStream, frameCount: Int) {
 
         if(debug) LOGGER.info("size: $frameCount")
 
-        val tag = String(readNBytes(4))
+        val tag = readTag()
         if(tag != "RIFF") throw RuntimeException()
 
         val fileSize = readInt()
         if(debug) LOGGER.info("size: $fileSize")
 
-        val fileType = String(readNBytes(4))
+        val fileType = readTag()
         if(fileType != "WAVE") throw RuntimeException()
 
-        val formatTag = String(readNBytes(4))
+        val formatTag = readTag()
         if(formatTag != "fmt ") throw RuntimeException()
 
         val bitsPerSampleEncoded = readInt()
@@ -67,8 +67,26 @@ class WaveReader(val input: InputStream, frameCount: Int) {
         val bitsPerSample2 = readShort()
         if(debug) LOGGER.info("$bitsPerSample2 bits/sample raw")
 
-        val dataTag = String(readNBytes(4))
-        if(dataTag != "data") throw RuntimeException()
+        var dataTag = readTag()
+        while(dataTag != "data"){
+            when(dataTag){
+                "LIST" -> {
+                    val length = readInt()
+                    when(val type = readTag()){
+                        "INFO" -> {// we don't really care...
+                            // val data = readNBytes(length - 4)
+                            // println(data.joinToString { it.toUByte().toString(16) })
+                            // println(String(data))
+                            // throw RuntimeException()
+                            input.skip(length - 4L)
+                        }
+                        else -> throw RuntimeException("Unknown wav chunk: LIST.$type")
+                    }
+                }
+                else -> throw RuntimeException("Unknown wav chunk: $dataTag")
+            }
+            dataTag = readTag()
+        }
 
         val dataSize = readInt()
         if(debug) LOGGER.info("size of the data $dataSize")
@@ -100,6 +118,8 @@ class WaveReader(val input: InputStream, frameCount: Int) {
         stereoPCM.position(0)
 
     }
+
+    fun readTag() = String(readNBytes(4))
 
     fun readNBytes(n: Int) = input.readNBytes(n)
 

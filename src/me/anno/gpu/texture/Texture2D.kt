@@ -188,24 +188,27 @@ class Texture2D(override var w: Int, override var h: Int, val samples: Int): ITe
             // they don't accept the command to be what they are either
             return
         }
-        if(nearest){
-            val type = GL_NEAREST
-            glTexParameteri(tex2D, GL_TEXTURE_MAG_FILTER, type)
-            glTexParameteri(tex2D, GL_TEXTURE_MIN_FILTER, type)
-        } else {
-            if(!hasMipmap){
-                glGenerateMipmap(tex2D)
-                hasMipmap = true
-                if(GFX.supportsAnisotropicFiltering){
-                    val anisotropy = GFX.anisotropy
-                    glTexParameteri(tex2D, GL_TEXTURE_LOD_BIAS, 0)
-                    glTexParameterf(tex2D, EXTTextureFilterAnisotropic.GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropy)
+        synchronized(this){
+            // todo switching back from nearest to linear doesn't work for textures
+            if(nearest){
+                val type = GL_NEAREST
+                glTexParameteri(tex2D, GL_TEXTURE_MAG_FILTER, type)
+                glTexParameteri(tex2D, GL_TEXTURE_MIN_FILTER, type)
+            } else {
+                if(!hasMipmap){
+                    glGenerateMipmap(tex2D)
+                    hasMipmap = true
+                    if(GFX.supportsAnisotropicFiltering){
+                        val anisotropy = GFX.anisotropy
+                        glTexParameteri(tex2D, GL_TEXTURE_LOD_BIAS, 0)
+                        glTexParameterf(tex2D, EXTTextureFilterAnisotropic.GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropy)
+                    }
                 }
+                glTexParameteri(tex2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+                glTexParameteri(tex2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
             }
-            glTexParameteri(tex2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
-            glTexParameteri(tex2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
+            isFilteredNearest = nearest
         }
-        isFilteredNearest = nearest
     }
 
     var hasMipmap = false
