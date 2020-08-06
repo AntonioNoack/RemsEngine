@@ -7,7 +7,7 @@ import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.ui.base.groups.PanelListY
-import me.anno.ui.input.AudioInput
+import me.anno.ui.input.components.AudioLinePanel
 import me.anno.ui.style.Style
 import me.anno.video.FFMPEGMetadata.Companion.getMeta
 import org.joml.Matrix4fArrayList
@@ -73,7 +73,11 @@ open class Audio(var file: File = File(""), parent: Transform? = null): GFXTrans
 
     override fun createInspector(list: PanelListY, style: Style) {
         super.createInspector(list, style)
-        list += AudioInput(file, style)
+        list += VI("File Location", "Source file of this video", null, file, style){ file = it }
+        val meta = forcedMeta
+        if(meta.hasAudio){
+            list += AudioLinePanel(forcedMeta, this, style)
+        }
         list += VI("Amplitude", "How loud it is", amplitude, style)
         list += VI("Looping Type", "Whether to repeat the song/video", null, isLooping, style){
             AudioManager.requestUpdate()

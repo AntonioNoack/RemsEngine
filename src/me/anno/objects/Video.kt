@@ -209,7 +209,6 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
 
     override fun createInspector(list: PanelListY, style: Style) {
         super.createInspector(list, style)
-        list += VI("File Location", "Source file of this video", null, file, style){ file = it }
         list += VI("Tiling", "(tile count x, tile count y, offset x, offset y)", tiling, style)
         list += VI("Video Start", "Timestamp in seconds of the first frames drawn", null, startTime, style){ startTime = it }
         list += VI("Video End", "Timestamp in seconds of the last frames drawn", null, endTime, style) { endTime = it }
