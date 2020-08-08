@@ -36,8 +36,8 @@ class ParticleSystem(parent: Transform? = null): Transform(parent){
     var gdRotation = AnimatedProperty.rotYXZ()
     var gddRotation = AnimatedProperty.rotYXZ()
 
-    var spawnRate = AnimatedProperty.float().set(10f) // per second
-    var lifeTime = AnimatedProperty.float().set(10f)
+    var spawnRate = AnimatedProperty.float(10f) // per second
+    var lifeTime = AnimatedProperty.float(10f)
 
     // todo manipulate colors, position, forces, and more...
     // todo this is a complex object type

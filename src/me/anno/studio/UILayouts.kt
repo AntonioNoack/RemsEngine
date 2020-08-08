@@ -1,11 +1,16 @@
 package me.anno.studio
 
+import com.sun.media.jfxmedia.logging.Logger
 import me.anno.config.DefaultConfig
+import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.inFocus
 import me.anno.gpu.Window
 import me.anno.input.Input
 import me.anno.objects.*
 import me.anno.studio.RemsStudio.console
+import me.anno.studio.RemsStudio.lastConsoleLineCount
+import me.anno.studio.RemsStudio.lastConsoleLines
 import me.anno.studio.RemsStudio.originalOutput
 import me.anno.studio.RemsStudio.windowStack
 import me.anno.studio.Studio.project
@@ -15,9 +20,14 @@ import me.anno.studio.Studio.targetFPS
 import me.anno.studio.Studio.targetOutputFile
 import me.anno.studio.Studio.targetHeight
 import me.anno.studio.Studio.targetWidth
+import me.anno.ui.base.Panel
 import me.anno.ui.base.SpacePanel
 import me.anno.ui.base.TextPanel
+import me.anno.ui.base.components.Padding
+import me.anno.ui.base.constraints.AxisAlignment
+import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.custom.CustomListX
 import me.anno.ui.custom.CustomListY
 import me.anno.ui.editor.*
@@ -25,6 +35,7 @@ import me.anno.ui.editor.explorer.FileExplorer
 import me.anno.ui.editor.sceneView.SceneView
 import me.anno.ui.editor.graphs.GraphEditor
 import me.anno.ui.editor.treeView.TreeView
+import me.anno.utils.mixARGB
 import me.anno.video.VideoAudioCreator
 import me.anno.video.VideoCreator
 import org.apache.logging.log4j.LogManager
@@ -32,7 +43,9 @@ import java.io.File
 import java.io.OutputStream
 import java.io.PrintStream
 import java.lang.RuntimeException
+import java.util.logging.Level
 import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.roundToInt
 
 object UILayouts {
@@ -127,39 +140,54 @@ object UILayouts {
         ui += SpacePanel(0, 1, style)
         ui += customUI
         ui += SpacePanel(0, 1, style)
-        
-        console = TextPanel("Welcome to Rem's Studio!", style.getChild("small"))
+
+        val console = object: TextPanel("", style.getChild("small")){
+            override val effectiveTextColor: Int get() = textColor
+            override fun onDoubleClick(x: Float, y: Float, button: Int) {
+                if(button == 0){
+                    // open console in large with scrollbar
+                    val listPanel = object: ScrollPanelY(style, Padding(5), AxisAlignment.CENTER){
+                        override fun onBackSpaceKey(x: Float, y: Float) { windowStack.pop() }
+                    }
+                    // todo update, if there are new messages incoming
+                    // todo select the text color based on the type of message
+                    val list = listPanel.child as PanelList
+                    lastConsoleLines.reversed().forEach {
+                        val level = if(it.startsWith('[')){
+                            when(it.substring(0, min(4, it.length))){
+                                "[INF" -> Level.INFO
+                                "[WAR" -> Level.WARNING
+                                "[ERR" -> Level.SEVERE
+                                "[DEB", "[FIN" -> Level.FINE
+                                else -> Level.INFO
+                            }
+                        } else Level.INFO
+                        val color = when(level){
+                            Level.FINE -> 0x77ff77
+                            Level.SEVERE -> 0xff0000
+                            Level.WARNING -> 0xff7777
+                            Level.INFO -> 0xffffff
+                            else -> -1
+                        } or black
+                        val panel = object: TextPanel(it, style){
+                            // multiselect to copy multiple lines -> use a single text editor instead xD
+                            // todo copy from multiple elements...
+                            override fun getMultiSelectablePanel(): Panel? = this
+                        }
+                        panel.textColor = mixARGB(panel.textColor, color, 0.5f)
+                        list += panel
+                    }
+                    windowStack.add(Window(listPanel, 0, 0))
+                }
+            }
+        }
+        // console.fontName = "Consolas"
+        RemsStudio.console = console
+        console.setTooltip("Double-click to open history")
         console.instantTextLoading = true
         // console.visibility = Visibility.GONE
-        console.setOnClickListener { _, _, button, _ ->
-                if(button == 0){
-                    // todo open console in large with scrollbar
-                }
-            }
-        ui += console
 
-        System.setOut(PrintStream(object: OutputStream(){
-            var line = ""
-            override fun write(b: Int) {
-                when {
-                    b == '\n'.toInt() -> {
-                        console.text = line
-                        line = ""
-                    }
-                    line.length < 100 -> {
-                        // enable for
-                        /*if(line.isEmpty() && b != '['.toInt()){
-                            throw RuntimeException("Please use the LogManager.getLogger(YourClass)!")
-                        }*/
-                        line += b.toChar()
-                    }
-                    line.length == 100 -> {
-                        line += "..."
-                    }
-                }
-                originalOutput.write(b)
-            }
-        }))
+        ui += console
 
         windowStack.clear()
         windowStack += Window(ui, 0, 0)

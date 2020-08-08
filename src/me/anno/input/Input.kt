@@ -13,7 +13,6 @@ import me.anno.gpu.GFX.requestFocus
 import me.anno.gpu.GFX.windowStack
 import me.anno.studio.Studio.addEvent
 import me.anno.studio.Studio.project
-import me.anno.ui.editor.sceneView.SceneView
 import me.anno.utils.length
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.glfw.GLFW
@@ -240,11 +239,19 @@ object Input {
                             inFocus.forEach { it.onDeleteKey(mouseX, mouseY) }
                         }
                         GLFW.GLFW_KEY_BACKSPACE -> {
-                            inFocus0?.onBackKey(mouseX, mouseY)
+                            inFocus0?.onBackSpaceKey(mouseX, mouseY)
                         }
                         GLFW.GLFW_KEY_ESCAPE -> {
-                            val inFocus = inFocus.firstOrNull()
-                            if (inFocus is SceneView) {
+                            // val inFocus = inFocus.firstOrNull()
+                            if (windowStack.size < 2) {
+                                openMenu(mouseX, mouseY, "Exit?",
+                                    listOf(
+                                        "Save" to { b, l -> true },
+                                        "Save & Exit" to { b, l -> true },
+                                        "Exit" to { _, _ -> requestExit(); true }
+                                    ))
+                            } else windowStack.pop()
+                            /*if (true || inFocus is SceneView) {
                                 if (windowStack.size < 2) {
                                     openMenu(mouseX, mouseY, "Exit?",
                                         listOf(
@@ -257,7 +264,7 @@ object Input {
                                 requestFocus(windowStack.mapNotNull {
                                     it.panel.listOfAll.firstOrNull { panel -> panel is SceneView }
                                 }.firstOrNull(), true)
-                            }
+                            }*/
                         }
                         // GLFW.GLFW_KEY_PRINT_SCREEN -> { Layout.printLayout() }
                         // GLFW.GLFW_KEY_F11 -> addEvent { GFX.toggleFullscreen() }

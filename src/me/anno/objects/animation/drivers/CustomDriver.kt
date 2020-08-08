@@ -14,7 +14,7 @@ import kotlin.math.sin
 
 class CustomDriver: AnimationDriver(){
 
-    var amplitude = AnimatedProperty.float().set(1f)
+    var amplitude = AnimatedProperty.float(1f)
 
     // make them animated? no xD
     var formula = "sin(time*360)"

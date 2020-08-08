@@ -66,6 +66,8 @@ public class GFXBase0 {
                 debugProc.free();
             keyCallback.free();
             fsCallback.free();
+        } catch (Exception e){
+            e.printStackTrace();
         } finally {
             glfwTerminate();
             errorCallback.free();

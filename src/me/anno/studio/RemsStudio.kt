@@ -29,6 +29,8 @@ import me.anno.utils.clamp
 import me.anno.utils.f3
 import org.apache.logging.log4j.LogManager
 import java.io.File
+import java.io.OutputStream
+import java.io.PrintStream
 import java.util.*
 import kotlin.concurrent.thread
 import kotlin.math.roundToInt
@@ -61,7 +63,38 @@ object RemsStudio {
         } else file.delete()
     }
 
+    fun setupLogging(){
+        System.setOut(PrintStream(object: OutputStream(){
+            var line = ""
+            override fun write(b: Int) {
+                when {
+                    b == '\n'.toInt() -> {
+                        // only accept non-empty lines?
+                        val lines = lastConsoleLines
+                        if(lines.size > lastConsoleLineCount) lines.removeFirst()
+                        lines.push(line)
+                        console?.text = line
+                        line = ""
+                    }
+                    line.length < 100 -> {
+                        // enable for
+                        /*if(line.isEmpty() && b != '['.toInt()){
+                            throw RuntimeException("Please use the LogManager.getLogger(YourClass)!")
+                        }*/
+                        line += b.toChar()
+                    }
+                    line.length == 100 -> {
+                        line += "..."
+                    }
+                }
+                originalOutput.write(b)
+            }
+        }))
+    }
+
     fun run(){
+
+        setupLogging()
 
         var lmx = mouseX
         var lmy = mouseY
@@ -168,7 +201,10 @@ object RemsStudio {
 
     lateinit var startMenu: Panel
     lateinit var ui: Panel
-    lateinit var console: TextPanel
+    var console: TextPanel? = null
+
+    val lastConsoleLines = LinkedList<String>()
+    var lastConsoleLineCount = 500
 
     fun check() = GFX.check()
 

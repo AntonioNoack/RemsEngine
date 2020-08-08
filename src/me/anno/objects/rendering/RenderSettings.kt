@@ -8,6 +8,7 @@ import me.anno.studio.Studio.targetDuration
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.frames.FrameSizeInput
+import me.anno.ui.input.EnumInput
 import me.anno.ui.style.Style
 import kotlin.concurrent.thread
 import kotlin.math.abs
@@ -37,6 +38,13 @@ object RenderSettings : Transform(){
                 save()
             }
             .setTooltip("Size of resulting video")
+        list += EnumInput("Framerate", true, project.targetFPS.toString(), setOf(
+            project.targetFPS, 30.0, 24.0, 60.0, 120.0, 144.0, 240.0).sorted().toList().map { it.toString() }, style)
+            .setChangeListener { value ->
+                project.targetFPS = value.toDouble()
+                save()
+            }
+            .setTooltip("The fps of the video, or how many frame are shown per second")
     }
 
     var lastSavePoint = 0L

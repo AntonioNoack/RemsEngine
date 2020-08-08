@@ -1,4 +1,4 @@
-package me.anno.ui.input.components
+package me.anno.ui.editor
 
 import me.anno.audio.AudioStream
 import me.anno.audio.SoundBuffer

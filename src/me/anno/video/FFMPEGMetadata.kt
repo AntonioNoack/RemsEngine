@@ -6,6 +6,7 @@ import me.anno.io.json.JsonReader
 import me.anno.objects.cache.Cache
 import me.anno.objects.cache.CacheData
 import me.anno.utils.OS
+import me.anno.utils.parseTime
 import java.io.File
 
 class FFMPEGMetadata(file: File): CacheData {
@@ -124,16 +125,6 @@ class FFMPEGMetadata(file: File): CacheData {
         // frame=206723 fps=1390 q=-0.0 Lsize=N/A time=00:57:28.87 bitrate=N/A speed=23.2x
         return time.parseTime()
 
-    }
-
-    // 00:57:28.87 -> 57 * 60 + 28.87
-    fun String.parseTime(): Double {
-        val parts = split(":").reversed()
-        var seconds = parts[0].toDouble()
-        if(parts.size > 1) seconds += 60 * parts[1].toInt()
-        if(parts.size > 2) seconds += 3600 * parts[2].toInt()
-        if(parts.size > 3) seconds += 24 * 3600 * parts[3].toInt()
-        return seconds
     }
 
     fun String.parseFraction(): Double {

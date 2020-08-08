@@ -20,9 +20,9 @@ class HarmonicDriver: AnimationDriver(){
     // maybe in debug mode
 
     // dangerous when animated?
-    var baseFrequency = AnimatedProperty.float().set(1f)
+    var baseFrequency = AnimatedProperty.float(1f)
 
-    var amplitude = AnimatedProperty.float().set(1f)
+    var amplitude = AnimatedProperty.float(1f)
 
     // make them animated? no xD
     var harmonicsFormula = "1/n"

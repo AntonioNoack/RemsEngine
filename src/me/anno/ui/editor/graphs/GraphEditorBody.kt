@@ -11,16 +11,11 @@ import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.animation.Keyframe
 import me.anno.studio.Studio
 import me.anno.studio.Studio.targetFPS
-import me.anno.utils.clamp
-import me.anno.utils.pow
 import me.anno.ui.base.Panel
 import me.anno.ui.style.Style
-import me.anno.utils.length
+import me.anno.utils.*
 import org.joml.Vector2f
-import org.joml.Vector3f
-import org.joml.Vector4f
 import org.lwjgl.glfw.GLFW.*
-import java.lang.RuntimeException
 import kotlin.math.*
 import me.anno.input.Input.isControlDown as isControlDown
 
@@ -118,25 +113,57 @@ class GraphEditorBody(style: Style): Panel(style.getChild("deep")){
 
     fun drawTimeAxis(x0: Int, y0: Int, x1: Int, y1: Int){
 
+        // make the step amount dependent on width and font size
+        val deltaFrame = 500 * dtHalfLength * tinyFontSize / w
+
+        val timeStep = getTimeStep(deltaFrame * 0.2)
+
+        val strongLineColor = fontColor and 0x4fffffff
+        val fineLineColor = fontColor and 0x1fffffff
+        val veryFineLineColor = fontColor and 0x10ffffff
+
+        // very fine lines, 20x as many
+        drawTimeAxis(timeStep * 0.05, x0, y0, x1, y1, veryFineLineColor, false)
+
+        // fine lines, 5x as many
+        drawTimeAxis(timeStep * 0.2, x0, y0, x1, y1, fineLineColor, true)
+
+        // strong lines
+        drawTimeAxis(timeStep, x0, y0, x1, y1, strongLineColor, true)
+
+    }
+
+    fun drawTimeAxis(timeStep: Double, x0: Int, y0: Int, x1: Int, y1: Int,
+        lineColor: Int, drawText: Boolean){
+
         val minFrame = centralTime - dtHalfLength
         val maxFrame = centralTime + dtHalfLength
 
-        val deltaFrame = 2 * dtHalfLength
-        val timeStep = getTimeStep(deltaFrame * 0.2f)
+        val minStepIndex = (minFrame / timeStep).toLong() - 1
+        val maxStepIndex = (maxFrame / timeStep).toLong() + 1
 
-        val minStepIndex = (minFrame / timeStep).toInt() - 1
-        val maxStepIndex = (maxFrame / timeStep).toInt() + 1
+        val fontSize = tinyFontSize
+        val fontName = fontName
+        val isBold = isBold
+        val isItalic = isItalic
+        val fontColor = fontColor
+        val backgroundColor = backgroundColor
+
+        val lineY = y0 + 2 + fontSize
+        val lineH = y1-y0-4-fontSize
 
         for(stepIndex in maxStepIndex downTo minStepIndex){
             val time = stepIndex * timeStep
             val x = getXAt(time).roundToInt()
             if(x > x0+1 && x+2 < x1){
                 val text = getTimeString(time, timeStep)
-                val size = GFX.getTextSize(fontName, tinyFontSize, isBold, isItalic, text)
-                val w = size.first
-                GFX.drawRect(x, y0 + 2 + size.second, 1, y1-y0-4-size.second, fontColor and 0x3fffffff)
-                GFX.drawText(x - w/2, y0, fontName, tinyFontSize, isBold, isItalic,
-                    text, fontColor, backgroundColor)
+                GFX.drawRect(x, lineY, 1, lineH, lineColor)
+                if(drawText){
+                    val size = GFX.getTextSize(fontName, fontSize, isBold, isItalic, text)
+                    val w = size.first
+                    GFX.drawText(x - w/2, y0, fontName, fontSize, isBold, isItalic,
+                        text, fontColor, backgroundColor)
+                }
             }
         }
 
@@ -170,6 +197,17 @@ class GraphEditorBody(style: Style): Panel(style.getChild("deep")){
 
     }
 
+    fun drawCurrentTime(){
+        val instantLoading = GFX.loadTexturesSync
+        GFX.loadTexturesSync = true
+        val timeFontSize = 20
+        val text = getTimeString(Studio.editorTime, 0.0)
+        val (tw, th) = GFX.getTextSize(fontName, timeFontSize, isBold, isItalic, text)
+        val color = mixARGB(fontColor, backgroundColor, 0.8f)
+        GFX.drawText(x+(w-tw)/2, y+(h-th)/2, fontName, timeFontSize, isBold, isItalic, text, color, backgroundColor)
+        GFX.loadTexturesSync = instantLoading
+    }
+
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.draw(x0, y0, x1, y1)
 
@@ -182,10 +220,14 @@ class GraphEditorBody(style: Style): Panel(style.getChild("deep")){
             clampValues()
         }
 
-        drawValueAxis(x0, y0, x1, y1)
+        drawCurrentTime()
+
         drawTimeAxis(x0, y0, x1, y1)
 
         val property = Studio.selectedProperty ?: return
+
+        // only required, if there are values
+        drawValueAxis(x0, y0, x1, y1)
 
         val type = property.type
         val halfSize = dotSize/2
@@ -224,42 +266,12 @@ class GraphEditorBody(style: Style): Panel(style.getChild("deep")){
             val keyTime = it.time
             val keyValue = it.value
             val x = getXAt(keyTime).roundToInt()
-            // todo represent colors differently? yes.
-            when(channelCount){
-                1 -> {
-                    values[0] = when(keyValue){
-                        is Float -> keyValue
-                        is Double -> keyValue.toFloat()
-                        is Int -> keyValue.toFloat()
-                        is Long -> keyValue.toFloat()
-                        else -> throw RuntimeException("Unknown type $keyValue in GraphEditorBody")
-                    }
-                }
-                2 -> {
-                    val v = keyValue as Vector2f
-                    values[0] = v.x
-                    values[1] = v.y
-                }
-                3 -> {
-                    val v = keyValue as Vector3f
-                    values[0] = v.x
-                    values[1] = v.y
-                    values[2] = v.z
-                }
-                4 -> {
-                    val v = keyValue as Vector4f
-                    values[0] = v.x
-                    values[1] = v.y
-                    values[2] = v.z
-                    values[3] = v.w
-                }
-                else -> {}
+            for(i in 0 until channelCount){
+                values[i] = keyValue!![i]
             }
-
             for(i in 0 until channelCount){
                 drawDot(x, values[i], valueColors[i])
             }
-
             // GFX.drawRect(x.toInt()-1, y+h/2, 2,2, black or 0xff0000)
         }
 
@@ -440,7 +452,7 @@ class GraphEditorBody(style: Style): Panel(style.getChild("deep")){
     override fun onDoubleClick(x: Float, y: Float, button: Int) {
         val property = Studio.selectedProperty
         property?.apply {
-            property.addKeyframe(getTimeAt(x), property.type.defaultValue, 0.01)
+            property.addKeyframe(getTimeAt(x), property.defaultValue!!, 0.01)
         } ?: println("Please select a property first!")
     }
 

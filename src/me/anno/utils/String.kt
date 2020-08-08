@@ -38,3 +38,22 @@ fun String.getImportType(): String =
     DefaultConfig["import.mapping.$this"]?.toString() ?:
     DefaultConfig["import.mapping.${toLowerCase()}"]?.toString() ?:
     DefaultConfig["import.mapping.*"]?.toString() ?: "Text"
+
+
+
+// 00:57:28.87 -> 57 * 60 + 28.87
+fun String.parseTime(): Double {
+    val parts = split(":").reversed()
+    var seconds = parts[0].toDouble()
+    if(parts.size > 1) seconds += 60 * parts[1].toInt()
+    if(parts.size > 2) seconds += 3600 * parts[2].toInt()
+    if(parts.size > 3) seconds += 24 * 3600 * parts[3].toInt()
+    return seconds
+}
+
+fun Double.formatTime(): String {
+    val seconds = toLong()
+    if(seconds < 60) return "${seconds}s"
+    if(seconds < 3600) return "${seconds/60}m ${seconds%60}s"
+    return "${seconds/3600}h ${(seconds/60)%60}m ${seconds%60}s"
+}

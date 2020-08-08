@@ -305,7 +305,7 @@ class VectorInput(
     }
 
     override fun onEmpty(x: Float, y: Float) {
-        val defaultValue = type.defaultValue
+        val defaultValue = owningProperty?.defaultValue ?: type.defaultValue
         valueFields.forEachIndexed { index, pureTextInput ->
             pureTextInput.text = defaultValue[index].toString()
         }

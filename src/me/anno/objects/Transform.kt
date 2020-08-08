@@ -57,7 +57,7 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
     var rotationQuaternion: AnimatedProperty<Quaternionf>? = null
     var skew = AnimatedProperty.skew()
     var color = AnimatedProperty.color()
-    var colorMultiplier = AnimatedProperty.floatPlus().set(1f)
+    var colorMultiplier = AnimatedProperty.floatPlus(1f)
 
     var blendMode = BlendMode.UNSPECIFIED
 

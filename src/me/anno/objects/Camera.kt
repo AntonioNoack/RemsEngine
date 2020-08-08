@@ -27,9 +27,9 @@ class Camera(parent: Transform? = null): Transform(parent){
     // todo orthographic-ness by setting the camera back some amount, and narrowing the view
 
     var lut = File("")
-    var nearZ = AnimatedProperty.floatPlus().set(0.001f)
-    var farZ = AnimatedProperty.floatPlus().set(1000f)
-    var fovYDegrees = AnimatedProperty.float().set(90f)
+    var nearZ = AnimatedProperty.floatPlus(0.001f)
+    var farZ = AnimatedProperty.floatPlus(1000f)
+    var fovYDegrees = AnimatedProperty.float(90f)
     var chromaticAberration = AnimatedProperty.float()
     var chromaticOffset = AnimatedProperty.vec2()
     var distortion = AnimatedProperty.vec3()

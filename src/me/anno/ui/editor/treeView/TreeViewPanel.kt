@@ -138,7 +138,7 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style): TextPanel(""
         }
     }
 
-    override fun onBackKey(x: Float, y: Float) = onDeleteKey(x,y)
+    override fun onBackSpaceKey(x: Float, y: Float) = onDeleteKey(x,y)
     override fun getCursor() = Cursor.drag
 
     override fun getTooltipText(x: Float, y: Float): String? {

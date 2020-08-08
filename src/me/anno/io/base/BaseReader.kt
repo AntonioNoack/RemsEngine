@@ -34,7 +34,7 @@ abstract class BaseReader {
             "AnimatedProperty<int+>" -> AnimatedProperty.intPlus()
             "AnimatedProperty<long>" -> AnimatedProperty.long()
             "AnimatedProperty<float01>" -> AnimatedProperty.float01()
-            "AnimatedProperty<float01exp>" -> AnimatedProperty.float01exp()
+            "AnimatedProperty<float01exp>" -> AnimatedProperty.float01exp(1f)
             "AnimatedProperty<double>" -> AnimatedProperty.double()
             "AnimatedProperty<pos>" -> AnimatedProperty.pos()
             "AnimatedProperty<scale>" -> AnimatedProperty.scale()

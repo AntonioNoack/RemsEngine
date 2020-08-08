@@ -182,7 +182,7 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
         ensureCursorBounds()
     }
 
-    override fun onBackKey(x: Float, y: Float) {
+    override fun onBackSpaceKey(x: Float, y: Float) {
         deleteBefore()
     }
 

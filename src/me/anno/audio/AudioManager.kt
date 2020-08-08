@@ -42,6 +42,7 @@ object AudioManager {
                 try {
                     GFX.workQueue(GFX.audioTasks)
                 } catch (e: Exception){
+                    if(e.message != "ALException: Invalid Name") // why does the error happen???
                     e.printStackTrace()
                 }
                 ALBase.check()

@@ -53,11 +53,9 @@ open class FloatInput(
     fun setValue(v: Long) = setValue(v.toDouble())
     fun setValue(v: Float) = setValue(v.toDouble())
 
-    override fun stringify(v: Double): String = if(type.defaultValue is Double) v.toString() else v.toFloat().toString()/*{
-        val vInt = v.toInt()
-        return if(vInt.toDouble() == v) "$vInt"
-        else "${v.toFloat()}"
-    }*/
+    override fun stringify(v: Double): String =
+        if(type.defaultValue is Double) v.toString()
+        else v.toFloat().toString()
 
     override fun changeValue(dx: Float, dy: Float) {
         val scale = 1f

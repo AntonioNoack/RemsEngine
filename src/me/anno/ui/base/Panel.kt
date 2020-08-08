@@ -149,9 +149,17 @@ open class Panel(val style: Style): Saveable(){
 
     open fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean = false
 
-    open fun onBackKey(x: Float, y: Float){ parent?.onBackKey(x,y) }
+    open fun onBackSpaceKey(x: Float, y: Float){ parent?.onBackSpaceKey(x,y) }
     open fun onEnterKey(x: Float, y: Float){ parent?.onEnterKey(x,y) }
     open fun onDeleteKey(x: Float, y: Float){ parent?.onDeleteKey(x,y) }
+
+    /**
+     * must not be used for important actions, because not all mice have these
+     * not all users know about the keys -> default reroute?
+     * I like these keys ;)
+     * */
+    open fun onMouseForwardKey(x: Float, y: Float){ parent?.onMouseForwardKey(x,y) }
+    open fun onMouseBackKey(x: Float, y: Float){ parent?.onMouseBackKey(x,y) }
 
     /**
      * for serialization and easier runtime debugging

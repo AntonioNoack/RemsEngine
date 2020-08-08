@@ -15,13 +15,13 @@ import kotlin.math.min
 
 class PerlinNoiseDriver: AnimationDriver(){
 
-    var falloff = AnimatedProperty.float01().set(0.5f)
+    var falloff = AnimatedProperty.float01(0.5f)
     var octaves = 5
 
     var seed = 0L
 
     var baseValue = AnimatedProperty.float()
-    var amplitude = AnimatedProperty.float().set(1f)
+    var amplitude = AnimatedProperty.float(1f)
     var frequency = 1.0 // unit of time -> double
 
     private var noiseInstance = OpenSimplexNoise(seed)

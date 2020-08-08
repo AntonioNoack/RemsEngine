@@ -9,7 +9,9 @@ import org.joml.*
 import java.lang.RuntimeException
 import kotlin.math.abs
 
-class AnimatedProperty<V>(val type: Type): Saveable(){
+class AnimatedProperty<V>(val type: Type, val defaultValue: V): Saveable(){
+
+    constructor(type: Type): this(type, type.defaultValue as V)
 
     enum class Type(
         val code: String,
@@ -58,11 +60,15 @@ class AnimatedProperty<V>(val type: Type): Saveable(){
         val types = HashMap<String, Type>()
         fun int() = AnimatedProperty<Int>(Type.INT)
         fun intPlus() = AnimatedProperty<Int>(Type.INT_PLUS)
+        fun intPlus(defaultValue: Int) = AnimatedProperty(Type.INT_PLUS, defaultValue)
         fun long() = AnimatedProperty<Int>(Type.LONG)
         fun float() = AnimatedProperty<Float>(Type.FLOAT)
+        fun float(defaultValue: Float) = AnimatedProperty(Type.FLOAT, defaultValue)
         fun floatPlus() = AnimatedProperty<Float>(Type.FLOAT_PLUS)
+        fun floatPlus(defaultValue: Float) = AnimatedProperty(Type.FLOAT_PLUS, defaultValue)
         fun float01() = AnimatedProperty<Float>(Type.FLOAT_01)
-        fun float01exp() = AnimatedProperty<Float>(Type.FLOAT_01_EXP)
+        fun float01(defaultValue: Float) = AnimatedProperty(Type.FLOAT_01, defaultValue)
+        fun float01exp(defaultValue: Float) = AnimatedProperty(Type.FLOAT_01_EXP, defaultValue)
         fun floatPercent() = AnimatedProperty<Float>(Type.FLOAT_PERCENT)
         fun double() = AnimatedProperty<Double>(Type.DOUBLE)
         fun vec2() = AnimatedProperty<Vector2f>(Type.VEC2)
@@ -144,7 +150,7 @@ class AnimatedProperty<V>(val type: Type): Saveable(){
 
     fun getAnimatedValue(time: Double): V {
         return when(keyframes.size){
-            0 -> type.defaultValue as V
+            0 -> defaultValue
             1 -> keyframes[0].value
             else -> {
                 val index = getIndexBefore(time)

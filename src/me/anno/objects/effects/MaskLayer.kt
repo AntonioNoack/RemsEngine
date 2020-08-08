@@ -13,7 +13,7 @@ import org.joml.Vector4f
 class MaskLayer(parent: Transform? = null): MaskedLayer(parent){
 
     var type = MaskType.MASKING
-    val pixelSize = AnimatedProperty.float01exp().set(0.01f)
+    val pixelSize = AnimatedProperty.float01exp(0.01f)
 
     override fun drawOnScreen(localTransform: Matrix4fArrayList, time: Double, color: Vector4f, offsetColor: Vector4f) {
         GFX.draw3DMasked(localTransform, masked.textures[0], mask.textures[0], color,

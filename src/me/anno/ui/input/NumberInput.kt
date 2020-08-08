@@ -155,7 +155,7 @@ abstract class NumberInput<Type>(
     abstract fun getValue(value: Any): Type
 
     override fun onEmpty(x: Float, y: Float) {
-        setValue(getValue(type.defaultValue))
+        setValue(getValue(owningProperty?.defaultValue ?: type.defaultValue))
     }
 
     override fun getCursor(): Long = Cursor.drag

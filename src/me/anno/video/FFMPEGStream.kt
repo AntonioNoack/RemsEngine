@@ -19,12 +19,13 @@ abstract class FFMPEGStream(val file: File?){
         fun getSupportedFormats() = (FFMPEGMeta(null).run(listOf(
             "-formats"
         )) as FFMPEGMeta).stringData
-        fun getImageSequence(input: File, startFrame: Int, frameCount: Int, fps: Double = 10.0) =
-            getImageSequence(input, startFrame / fps, frameCount, fps)
-        fun getImageSequence(input: File, startTime: Double, frameCount: Int, fps: Double = 10.0) = FFMPEGVideo(
+        fun getImageSequence(input: File, w: Int, h: Int, startFrame: Int, frameCount: Int, fps: Double = 10.0) =
+            getImageSequence(input, w, h, startFrame / fps, frameCount, fps)
+        fun getImageSequence(input: File, w: Int, h: Int, startTime: Double, frameCount: Int, fps: Double = 10.0) = FFMPEGVideo(
             input, (startTime * fps).roundToInt()).run(listOf(
             "-i", input.absolutePath,
             "-ss", "$startTime",
+            "-vf", "scale=$w:$h",
             "-r", "$fps",
             "-vframes", "$frameCount",
             "-movflags", "faststart", // has no effect :(

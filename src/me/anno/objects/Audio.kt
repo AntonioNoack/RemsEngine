@@ -7,14 +7,12 @@ import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.ui.base.groups.PanelListY
-import me.anno.ui.input.components.AudioLinePanel
+import me.anno.ui.editor.AudioLinePanel
 import me.anno.ui.style.Style
 import me.anno.video.FFMPEGMetadata.Companion.getMeta
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
 import java.io.File
-
-// todo openal to ffmpeg?
 
 // todo flat playback vs 3D playback
 // todo use the align-with-camera param for that? :)
@@ -22,7 +20,7 @@ import java.io.File
 // (it becomes pretty complicated, I think)
 open class Audio(var file: File = File(""), parent: Transform? = null): GFXTransform(parent){
 
-    val amplitude = AnimatedProperty.floatPlus().set(1f)
+    val amplitude = AnimatedProperty.floatPlus(1f)
     val forcedMeta get() = getMeta(file, false)!!
     val meta get() = getMeta(file, true)
 

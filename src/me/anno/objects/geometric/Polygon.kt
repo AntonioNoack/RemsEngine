@@ -37,7 +37,7 @@ class Polygon(parent: Transform? = null): GFXTransform(parent){
     var autoAlign = false
     var nearestFiltering = false
 
-    var vertexCount = AnimatedProperty.intPlus().set(5)
+    var vertexCount = AnimatedProperty.intPlus(5)
     var starNess = AnimatedProperty.float01()
 
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f){

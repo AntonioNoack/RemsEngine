@@ -18,14 +18,17 @@ import me.anno.ui.input.EnumInput
 import me.anno.ui.input.TextInputML
 import me.anno.ui.style.Style
 import me.anno.utils.BiMap
+import me.anno.video.MissingFrameException
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
 import kotlin.collections.ArrayList
 import kotlin.math.max
 import kotlin.math.min
 
-// todo background "color" in the shape of a plane?
+// todo background "color" in the shape of a plane? for selections and such
 class Text(text: String = "", parent: Transform? = null): GFXTransform(parent){
+
+    val backgroundColor = AnimatedProperty.color()
 
     var text = text.replace("\r", "")
         set(value) {
@@ -49,16 +52,38 @@ class Text(text: String = "", parent: Transform? = null): GFXTransform(parent){
     var isItalic = false
 
     var textAlignment = AxisAlignment.MIN
+    var blockAlignmentX = AxisAlignment.MIN
+    var blockAlignmentY = AxisAlignment.MIN
 
-    val relativeLineSpacing = AnimatedProperty.float().set(1f)
+    enum class TextMode {
+        RAW,
+        HTML,
+        MARKDOWN
+    }
+
+    var textMode = TextMode.RAW
+
+    val relativeLineSpacing = AnimatedProperty.float(1f)
 
     // caching
     var lastText = text
-    var lines = text.split('\n')
-    var keys = lines.map { FontMeshKey(font, isBold, isItalic, it) }
+    // todo allow style by HTML/.md? :D
+    var lineSegmentsWithStyle = text.split('\n')
+    var keys = lineSegmentsWithStyle.map { FontMeshKey(font, isBold, isItalic, it) }
 
     var minX = 0.0
     var maxX = 0.0
+
+    var hasMeasured = false
+
+    // todo tabsegment??
+    class TextSegment(){
+
+    }
+
+    fun splitSegments(){
+
+    }
 
     data class FontMeshKey(
         val fontName: String, val isBold: Boolean, val isItalic: Boolean,
@@ -79,49 +104,74 @@ class Text(text: String = "", parent: Transform? = null): GFXTransform(parent){
             var wasChanged = false
             if(text != lastText){
                 wasChanged = true
+                hasMeasured = false
                 lastText = text
-                lines = text.split('\n')
-                keys = lines.map { FontMeshKey(font, isBold, isItalic, it) }
+                lineSegmentsWithStyle = text.split('\n')
+                keys = lineSegmentsWithStyle.map { FontMeshKey(font, isBold, isItalic, it) }
             } else {
                 // !none = at least one?, is not equal, so needs update
                 if(!keys.withIndex().none { (index, fontMeshKey) ->
-                        !fontMeshKey.equals(font, isBold, isItalic, lines[index])
+                        !fontMeshKey.equals(font, isBold, isItalic, lineSegmentsWithStyle[index])
                     }){
                     wasChanged = true
-                    keys = lines.map { FontMeshKey(font, isBold, isItalic, it) }
+                    hasMeasured = false
+                    keys = lineSegmentsWithStyle.map { FontMeshKey(font, isBold, isItalic, it) }
                 }
             }
 
             val lineOffset = - DEFAULT_LINE_HEIGHT * relativeLineSpacing[time]
             val alignment = textAlignment
 
+            val awtFont = FontManager.getFont(font, 20f, isBold, isItalic)
+
             // min and max x are cached for long texts with thousands of lines (not really relevant)
-            if(alignment != AxisAlignment.CENTER && (wasChanged || minX >= maxX)){
+            if((wasChanged || minX >= maxX || !hasMeasured)){
                 minX = Double.POSITIVE_INFINITY
                 maxX = Double.NEGATIVE_INFINITY
+                hasMeasured = true
                 keys.forEach { fontMeshKey ->
-                    // todo async font mesh calculation...
-                    if(fontMeshKey.text.isNotEmpty()){
-                        val fontMesh = Cache.getEntry(fontMeshKey, fontMeshTimeout, false){
-                            val awtFont = FontManager.getFont(font, 20f, isBold, isItalic)
+                    if(fontMeshKey.text.isNotBlank()){
+                        val fontMesh = Cache.getEntry(fontMeshKey, fontMeshTimeout, true){
                             val buffer = FontMesh((awtFont as AWTFont).font, fontMeshKey.text)
                             buffer
-                        } as FontMesh
-                        minX = min(minX, fontMesh.minX)
-                        maxX = max(maxX, fontMesh.maxX)
+                        } as? FontMesh
+                        if(fontMesh == null){
+                            hasMeasured = false
+                            if(GFX.isFinalRendering) throw MissingFrameException(null)
+                        } else {
+                            if(fontMesh.minX.isFinite() && fontMesh.maxX.isFinite()){
+                                minX = min(minX, fontMesh.minX)
+                                maxX = max(maxX, fontMesh.maxX)
+                            }// else empty?
+                        }
                     }
                 }
             }
 
-            keys.forEach { fontMeshKey ->
+            // todo actual text height vs baseline? for height
 
-                if(fontMeshKey.text.isNotEmpty()){
+            val totalHeight = lineOffset * lineSegmentsWithStyle.size
 
-                    val fontMesh = Cache.getEntry(fontMeshKey, fontMeshTimeout, false){
-                        val awtFont = FontManager.getFont(font, 20f, isBold, isItalic)
+            stack.translate(
+                when(blockAlignmentX){
+                    AxisAlignment.MIN -> + (maxX - minX).toFloat()
+                    AxisAlignment.CENTER -> 0f
+                    AxisAlignment.MAX -> - (maxX - minX).toFloat()
+                }, when(blockAlignmentY){
+                    AxisAlignment.MIN -> 0f
+                    AxisAlignment.CENTER -> - totalHeight * 0.5f
+                    AxisAlignment.MAX -> - totalHeight
+                } + lineOffset/2, 0f
+            )
+
+            for(fontMeshKey in keys){
+
+                if(fontMeshKey.text.isNotBlank()){
+
+                    val fontMesh = Cache.getEntry(fontMeshKey, fontMeshTimeout, true){
                         val buffer = FontMesh((awtFont as AWTFont).font, fontMeshKey.text)
                         buffer
-                    } as FontMesh
+                    } as? FontMesh ?: continue
 
                     val offset = when(alignment){
                         AxisAlignment.MIN -> 2 * (minX - fontMesh.minX).toFloat()
@@ -164,23 +214,16 @@ class Text(text: String = "", parent: Transform? = null): GFXTransform(parent){
         writer.writeBool("isItalic", isItalic, true)
         writer.writeBool("isBold", isBold, true)
         writer.writeObject(this, "relativeLineSpacing", relativeLineSpacing)
-        writer.writeInt("textAlignment", when(textAlignment){
-            AxisAlignment.MIN -> -1
-            AxisAlignment.CENTER -> 0
-            AxisAlignment.MAX -> +1
-        })
+        writer.writeInt("textAlignment", textAlignment.id)
+        writer.writeInt("blockAlignmentX", blockAlignmentX.id)
+        writer.writeInt("blockAlignmentY", blockAlignmentY.id)
     }
 
     override fun readInt(name: String, value: Int) {
         when(name){
-            "textAlignment" -> {
-                textAlignment = when(value){
-                    -1 -> AxisAlignment.MIN
-                     0 -> AxisAlignment.CENTER
-                    +1 -> AxisAlignment.MAX
-                    else -> textAlignment
-                }
-            }
+            "textAlignment"   -> textAlignment   = AxisAlignment.values().firstOrNull { it.id == value } ?: textAlignment
+            "blockAlignmentX" -> blockAlignmentX = AxisAlignment.values().firstOrNull { it.id == value } ?: blockAlignmentX
+            "blockAlignmentY" -> blockAlignmentY = AxisAlignment.values().firstOrNull { it.id == value } ?: blockAlignmentY
             else -> super.readInt(name, value)
         }
     }
@@ -248,11 +291,25 @@ class Text(text: String = "", parent: Transform? = null): GFXTransform(parent){
             .setChangeListener { isBold = it }
             .setIsSelectedListener { show(null) }
 
+        val alignmentValues = alignmentNamesX.entries.sortedBy { it.value.ordinal }.map { it.key }
+
         list += EnumInput("Text Alignment", true,
-            textAlignmentNames.reverse[textAlignment]!!,
-            textAlignmentNames.entries.sortedBy { it.value.ordinal }.map { it.key }, style)
+            alignmentNamesX.reverse[textAlignment]!!,
+            alignmentValues, style)
             .setIsSelectedListener { show(null) }
-            .setChangeListener { textAlignment = textAlignmentNames[it] ?: textAlignment }
+            .setChangeListener { textAlignment = alignmentNamesX[it]!! }
+
+        list += EnumInput("Block Alignment X", true,
+            alignmentNamesX.reverse[blockAlignmentX]!!,
+            alignmentValues, style)
+            .setIsSelectedListener { show(null) }
+            .setChangeListener { blockAlignmentX = alignmentNamesX[it]!! }
+
+        list += EnumInput("Block Alignment Y", true,
+            alignmentNamesX.reverse[blockAlignmentY]!!,
+            alignmentValues, style)
+            .setIsSelectedListener { show(null) }
+            .setChangeListener { blockAlignmentY = alignmentNamesX[it]!! }
 
         list += VI("Line Spacing", "How much lines are apart from each other", relativeLineSpacing, style)
 
@@ -262,11 +319,11 @@ class Text(text: String = "", parent: Transform? = null): GFXTransform(parent){
 
     companion object {
 
-        val textAlignmentNames = BiMap<String, AxisAlignment>(3)
+        val alignmentNamesX = BiMap<String, AxisAlignment>(3)
         init {
-            textAlignmentNames["Left"] = AxisAlignment.MIN
-            textAlignmentNames["Center"] = AxisAlignment.CENTER
-            textAlignmentNames["Right"] = AxisAlignment.MAX
+            alignmentNamesX["Left"] = AxisAlignment.MIN
+            alignmentNamesX["Center"] = AxisAlignment.CENTER
+            alignmentNamesX["Right"] = AxisAlignment.MAX
         }
 
         // save the last used fonts? yes :)

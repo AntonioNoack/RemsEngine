@@ -7,6 +7,7 @@ import me.anno.objects.Image
 import me.anno.objects.LoopingState
 import me.anno.objects.cache.VideoData.Companion.framesPerContainer
 import me.anno.studio.Studio.editorTimeDilation
+import me.anno.video.FFMPEGMetadata
 import me.anno.video.FFMPEGStream
 import me.anno.video.Frame
 import org.apache.logging.log4j.LogManager
@@ -193,7 +194,8 @@ object Cache {
     }
 
     fun getVideoFrames(file: File, scale: Int, index: Int, fps: Double, timeout: Long) = getEntry(file, false, Triple(index, fps, scale), timeout, true){
-        VideoData(file, scale, index, fps)
+        val meta = FFMPEGMetadata.getMeta(file, false)!!
+        VideoData(file, meta.videoWidth/scale, meta.videoHeight/scale, index, fps)
     } as? VideoData
 
     fun getImage(file: File, timeout: Long, asyncGenerator: Boolean) =
