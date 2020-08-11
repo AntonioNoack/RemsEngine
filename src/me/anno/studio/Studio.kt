@@ -11,9 +11,12 @@ import me.anno.studio.RemsStudio.windowStack
 import me.anno.studio.project.Project
 import me.anno.ui.dragging.IDraggable
 import me.anno.ui.editor.PropertyInspector
+import org.apache.logging.log4j.LogManager
 import java.util.concurrent.ConcurrentLinkedQueue
 
 object Studio {
+
+    private val LOGGER = LogManager.getLogger(Studio::class)
 
     var project: Project? = null
 
@@ -79,6 +82,10 @@ object Studio {
 
     fun addEvent(event: () -> Unit){
         eventTasks += event
+    }
+
+    fun warn(msg: String){
+        LOGGER.warn(msg)
     }
 
     val eventTasks = ConcurrentLinkedQueue<() -> Unit>()

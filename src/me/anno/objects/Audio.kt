@@ -1,7 +1,6 @@
 package me.anno.objects
 
 import me.anno.audio.AudioManager
-import me.anno.audio.AudioManager.updateTime
 import me.anno.audio.AudioStreamOpenAL
 import me.anno.gpu.GFX
 import me.anno.io.ISaveable
@@ -18,7 +17,6 @@ import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
 import java.io.File
 import java.lang.IllegalArgumentException
-import java.lang.RuntimeException
 
 // todo flat playback vs 3D playback
 // todo use the align-with-camera param for that? :)
@@ -89,18 +87,22 @@ open class Audio(var file: File = File(""), parent: Transform? = null): GFXTrans
             AudioManager.requestUpdate()
             isLooping = it
         }
-        list += ButtonPanel("Test Playback", style)
+        val playbackTitles = "Text Playback" to "Stop Playback"
+        fun getPlaybackTitle(invert: Boolean) = if((component == null) != invert) playbackTitles.first else playbackTitles.second
+        val playbackButton = ButtonPanel(getPlaybackTitle(false), style)
+        list += playbackButton
             .setSimpleClickListener {
                 if(Studio.isPaused){
-                    GFX.addAudioTask {
-                        val audio = Audio(file, null)
-                        audio.start(0.0, 1.0, nullCamera)
-                        component = audio.component
-                        1
-                    }
-                } else {
-                    // todo issue a warning that separated playback is only available with paused editor (because it's otherwise useless; I guess at least)
-                }
+                    playbackButton.text = getPlaybackTitle(true)
+                    if(component == null){
+                        GFX.addAudioTask {
+                            val audio = Audio(file, null)
+                            audio.start(0.0, 1.0, nullCamera)
+                            component = audio.component
+                            1
+                        }
+                    } else GFX.addAudioTask { stop(); 1 }
+                } else Studio.warn("Separated playback is only available with paused editor")
             }
             .setTooltip("Listen to the audio separated from the rest")
     }

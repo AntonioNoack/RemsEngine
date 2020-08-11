@@ -19,8 +19,10 @@ class ColorInput(style: Style, title: String,
                  oldValue: Vector4f,
                  private val owningProperty: AnimatedProperty<*>? = null): PanelListY(style){
 
+    private val contentView = ColorChooser(style, true, owningProperty)
+
     private val titleView = object: TextPanel(title, style){
-        override fun onCopyRequested(x: Float, y: Float) = parent?.onCopyRequested(x,y)
+        override fun onCopyRequested(x: Float, y: Float) = contentView.onCopyRequested(x,y)
         override fun onMouseDown(x: Float, y: Float, button: Int) {
             super.onMouseDown(x, y, button)
             mouseIsDown = true
@@ -48,8 +50,13 @@ class ColorInput(style: Style, title: String,
             super.onMouseUp(x, y, button)
             mouseIsDown = false
         }
+        override fun onPaste(x: Float, y: Float, data: String, type: String) {
+            contentView.onPaste(x, y, data, type)
+        }
+        override fun onEmpty(x: Float, y: Float) {
+            contentView.onEmpty(x, y)
+        }
     }
-    private val contentView = ColorChooser(style, true)
 
     init {
         this += titleView

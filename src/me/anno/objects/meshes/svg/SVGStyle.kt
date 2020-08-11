@@ -2,6 +2,9 @@ package me.anno.objects.meshes.svg
 
 import me.anno.config.DefaultStyle.black
 import me.anno.io.xml.XMLElement
+import me.anno.ui.editor.color.ColorSpace
+import org.joml.Vector3f
+import org.joml.Vector4f
 import java.lang.RuntimeException
 
 class SVGStyle(data: XMLElement){
@@ -29,6 +32,33 @@ class SVGStyle(data: XMLElement){
     * */
 
     companion object {
+
+        fun parseFloats(data: String) = data.split(Regex("[,()\\[\\]]")).mapNotNull { it.toFloatOrNull() }
+
+        fun parseColorComplex(name: String): Any? {
+            // check for HSVuv(h,s,v,a), HSV(h,s,v,a), or #... or RGB(r,g,b,a) or [1,1,0,1]
+            fun List<Float>.toVec() = Vector3f(this[0], this[1], this[2])
+            when {
+                name.startsWith("hsluv", true) -> ColorSpace.HSLuv
+                name.startsWith("hsl", true) -> ColorSpace.HSV
+                name.startsWith("rgb", true) ||
+                        name.startsWith("rgba", true) ||
+                        name.startsWith("(") || name.startsWith("[") -> {
+                    val rgb = parseFloats(name)
+                    val l = rgb[0]
+                    return Vector4f(l,
+                        rgb.getOrElse(1){ l },
+                        rgb.getOrElse(2){ l },
+                        rgb.getOrNull(3) ?: 1f)
+                }
+                else -> null
+            }?.apply {
+                val floats = parseFloats(name)
+                val rgb = toRGB(floats.toVec())
+                return Vector4f(rgb.x, rgb.y, rgb.z, floats.getOrElse(3){ 1f })
+            }
+            return parseColor(name)
+        }
 
         fun parseColor(name: String): Int? {
             if(name.startsWith("#")){

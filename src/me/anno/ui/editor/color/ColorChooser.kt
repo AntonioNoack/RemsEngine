@@ -3,7 +3,8 @@ package me.anno.ui.editor.color
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
-import me.anno.objects.meshes.svg.SVGStyle.Companion.parseColor
+import me.anno.objects.animation.AnimatedProperty
+import me.anno.objects.meshes.svg.SVGStyle.Companion.parseColorComplex
 import me.anno.ui.base.Panel
 import me.anno.ui.base.SpacePanel
 import me.anno.ui.base.Visibility
@@ -11,13 +12,16 @@ import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.input.EnumInput
 import me.anno.ui.style.Style
+import me.anno.utils.clamp
 import me.anno.utils.f3
+import me.anno.utils.get
 import org.hsluv.HSLuvColorSpace
 import org.joml.Vector3f
 import org.joml.Vector4f
+import java.lang.RuntimeException
 import kotlin.math.*
 
-class ColorChooser(style: Style, withAlpha: Boolean): PanelListY(style){
+class ColorChooser(style: Style, withAlpha: Boolean, val owningProperty: AnimatedProperty<*>?): PanelListY(style){
 
     // color section
     // bottom section:
@@ -44,7 +48,7 @@ class ColorChooser(style: Style, withAlpha: Boolean): PanelListY(style){
 
     val alphaBar = if(withAlpha){
         object: HSVBox(this, Vector3f(0f,0f, 0f), Vector3f(0f, 0f, 1f), Vector3f(0f, 0f, 0f), 0f, style, 1f, { opacity, _ ->
-            setHSL(hue, saturation, lightness, opacity, colorSpace)
+            setHSL(hue, saturation, lightness, clamp(opacity, 0f, 1f), colorSpace)
         }){
             override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
                 // super.draw(x0, y0, x1, y1)
@@ -113,14 +117,14 @@ class ColorChooser(style: Style, withAlpha: Boolean): PanelListY(style){
         val hsluv = HSLuvColorSpace.rgbToHsluv(doubleArrayOf(
             r.toDouble(), g.toDouble(), b.toDouble()
         ))
-        setHSL(hsluv[0].toFloat() / 360f, hsluv[1].toFloat() / 100f, hsluv[2].toFloat() / 100f, a, colorSpace)
+        setHSL(hsluv[0].toFloat() / 360f, hsluv[1].toFloat() / 100f, hsluv[2].toFloat() / 100f, clamp(a, 0f, 1f), colorSpace)
     }
 
     fun setHSL(h: Float, s: Float, l: Float, a: Float, newColorSpace: ColorSpace){
         hue = h
         saturation = s
         lightness = l
-        opacity = a
+        opacity = clamp(a, 0f, 1f)
         this.colorSpace = newColorSpace
         val rgb = colorSpace.toRGB(Vector3f(hue, saturation, lightness))
         changeRGBListener(rgb.x, rgb.y, rgb.z, opacity)
@@ -167,9 +171,17 @@ class ColorChooser(style: Style, withAlpha: Boolean): PanelListY(style){
     override fun onCopyRequested(x: Float, y: Float) = "${colorSpace.serializationName}(${hue.f3()},${saturation.f3()},${lightness.f3()},${opacity.f3()})"
 
     override fun onPaste(x: Float, y: Float, data: String, type: String) {
-        // todo better parsing function returning a rgba-vector
-        setARGB(parseColor(data) ?: return)
-        // todo check for HSVuv(h,s,v,a), HSV(h,s,v,a), or #... or RGB(r,g,b,a) or [1,1,0,1]
+        when(val color = parseColorComplex(data)){
+            is Int -> setARGB(color)
+            is Vector4f -> setRGBA(color.x, color.y, color.z, color.w)
+            null -> println("Didn't understand color $data")
+            else -> throw RuntimeException("Color type $data -> $color isn't yet supported for ColorChooser")
+        }
+    }
+
+    override fun onEmpty(x: Float, y: Float) {
+        val default = owningProperty?.defaultValue ?: Vector4f(0f)
+        setRGBA(default[0], default[1], default[2], default[3])
     }
 
     companion object {

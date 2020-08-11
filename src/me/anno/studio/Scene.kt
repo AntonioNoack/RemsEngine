@@ -27,6 +27,7 @@ import me.anno.ui.editor.sceneView.Grid.drawLine
 import me.anno.utils.times
 import me.anno.utils.warn
 import me.anno.video.MissingFrameException
+import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
 import org.joml.Matrix4fArrayList
 import org.joml.Vector3f
@@ -37,6 +38,8 @@ import java.io.File
 import kotlin.math.sqrt
 
 object Scene {
+
+    private val LOGGER = LogManager.getLogger(Scene::class)
 
     var nearZ = 0.001f
     var farZ = 1000f

@@ -492,7 +492,7 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
                 .setTooltip(ttt)
             is Vector4f -> {
                 if(values.type == AnimatedProperty.Type.COLOR){
-                    ColorInput(style, title, value)
+                    ColorInput(style, title, value, values)
                         .setChangeListener { r, g, b, a -> putValue(values, Vector4f(r, g, b, a)) }
                         .setIsSelectedListener { show(values) }
                         .setTooltip(ttt)
