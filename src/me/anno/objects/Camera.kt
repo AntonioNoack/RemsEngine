@@ -72,7 +72,7 @@ class Camera(parent: Transform? = null): Transform(parent){
         list += VI("Only Show Target", "Forces the viewport to have the correct aspect ratio", null, onlyShowTarget, style){ onlyShowTarget = it }
         list += VI("Use Depth", "Causes Z-Fighting, but allows 3D", null, useDepth, style){ useDepth = it }
         list += ButtonPanel("Reset Transform", style)
-            .setOnClickListener { x, y, button, long -> resetTransform() }
+            .setSimpleClickListener { resetTransform() }
             .setTooltip("If accidentally moved")
     }
 

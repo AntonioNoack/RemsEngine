@@ -1,11 +1,15 @@
 package me.anno.objects
 
 import me.anno.audio.AudioManager
+import me.anno.audio.AudioManager.updateTime
 import me.anno.audio.AudioStreamOpenAL
 import me.anno.gpu.GFX
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.animation.AnimatedProperty
+import me.anno.studio.Studio
+import me.anno.studio.Studio.nullCamera
+import me.anno.ui.base.ButtonPanel
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.AudioLinePanel
 import me.anno.ui.style.Style
@@ -13,6 +17,8 @@ import me.anno.video.FFMPEGMetadata.Companion.getMeta
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
 import java.io.File
+import java.lang.IllegalArgumentException
+import java.lang.RuntimeException
 
 // todo flat playback vs 3D playback
 // todo use the align-with-camera param for that? :)
@@ -35,6 +41,8 @@ open class Audio(var file: File = File(""), parent: Transform? = null): GFXTrans
      * is synchronized with the audio thread
      * */
     fun start(globalTime: Double, speed: Double, camera: Camera){
+        // why an exception? because I happended to run into this issue
+        if(speed == 0.0) throw IllegalArgumentException("Audio speed must not be 0.0, because that's inaudible")
         needsUpdate = false
         component?.stop()
         val meta = forcedMeta
@@ -81,6 +89,20 @@ open class Audio(var file: File = File(""), parent: Transform? = null): GFXTrans
             AudioManager.requestUpdate()
             isLooping = it
         }
+        list += ButtonPanel("Test Playback", style)
+            .setSimpleClickListener {
+                if(Studio.isPaused){
+                    GFX.addAudioTask {
+                        val audio = Audio(file, null)
+                        audio.start(0.0, 1.0, nullCamera)
+                        component = audio.component
+                        1
+                    }
+                } else {
+                    // todo issue a warning that separated playback is only available with paused editor (because it's otherwise useless; I guess at least)
+                }
+            }
+            .setTooltip("Listen to the audio separated from the rest")
     }
 
     override fun save(writer: BaseWriter) {

@@ -54,6 +54,7 @@ class FileEntry(val explorer: FileExplorer, val isParent: Boolean, val file: Fil
         wasInFocus = isInFocus
         backgroundColor = if(isInFocus) darkerBackgroundColor else originalBackgroundColor
         drawBackground()
+        // todo tiles on background to show transparency? ofc only in the area of the image
         val originalIcon = if(file.length() < 10e6){
             when(importType){
                 // todo preview for video

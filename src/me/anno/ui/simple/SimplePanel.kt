@@ -27,9 +27,7 @@ class SimplePanel(
     }
 
     fun setOnClickListener(listener: () -> Unit): SimplePanel {
-        drawable.setOnClickListener { _, _, button, long ->
-            if(button == 0) listener()
-        }
+        drawable.setSimpleClickListener { listener() }
         return this
     }
 

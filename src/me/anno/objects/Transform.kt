@@ -32,15 +32,13 @@ import kotlin.math.roundToLong
 // or should we do it?... idk for sure...
 // just make the tree work perfectly <3
 
-// todo load 3D meshes :D
 // gradients? -> can be done using the mask layer
 // done select by clicking
-
-// todo lock camera rotation?
 
 open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
 
     // todo generally "play" the animation of a single transform for testing purposes?
+    // todo maybe only for video or audio? for audio it would be simple :)
     // useful for audio, video, particle systems, generally animations
     // only available if the rest is stopped? yes.
 

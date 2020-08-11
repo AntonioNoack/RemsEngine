@@ -7,7 +7,6 @@ import kotlin.math.roundToInt
 
 abstract class FFMPEGStream(val file: File?){
 
-    var lastUsedTime = System.nanoTime()
     var sourceFPS = -1.0
     var sourceLength = 0.0
 

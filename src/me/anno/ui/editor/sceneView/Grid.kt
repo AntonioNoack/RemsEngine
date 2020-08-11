@@ -10,12 +10,16 @@ import me.anno.objects.Transform.Companion.yAxis
 import me.anno.objects.Transform.Companion.zAxis
 import me.anno.objects.blending.BlendMode
 import me.anno.objects.meshes.svg.SVGStyle.Companion.parseColor
+import me.anno.utils.distance
+import me.anno.utils.length
 import me.anno.utils.pow
 import me.anno.utils.toVec3f
 import org.joml.Matrix4f
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
 import org.lwjgl.opengl.GL20.*
+import kotlin.math.atan
+import kotlin.math.atan2
 import kotlin.math.floor
 import kotlin.math.log10
 
@@ -43,6 +47,34 @@ object Grid {
             gridBuffer.put(0f, v)
         }
 
+    }
+
+    fun drawLine(x0: Float, y0: Float, x1: Float, y1: Float,
+                 color: Int, alpha: Float){
+
+        drawLine2((x0+x1)/2, (y0+y1)/2, x1, y1, color, alpha)
+
+    }
+
+    fun drawLine2(x0: Float, y0: Float, x1: Float, y1: Float,
+                  color: Int, alpha: Float){
+        val shader = GFX.shader3D.shader
+        shader.use()
+        val stack = Matrix4f()
+        stack.translate(x0, y0, 0f)
+        val angle = atan2(y1-y0, x1-x0)
+        stack.rotate(angle, zAxis)
+        stack.scale(distance(x0, y0, x1, y1))
+        stack.get(GFX.matrixBuffer)
+        glUniformMatrix4fv(shader["transform"], false, GFX.matrixBuffer)
+        shader.v2("billboardSize", 1f, 1f)
+        shader.v1("isBillboard", 0f)
+        shader.v4("tint",
+            color.shr(16).and(255) / 255f,
+            color.shr(8).and(255) / 255f,
+            color.and(255) / 255f, alpha)
+        GFX.whiteTexture.bind(0, true)
+        lineBuffer.draw(shader, GL_LINES)
     }
 
     fun drawLine(stack: Matrix4fArrayList, color: Int, alpha: Float){

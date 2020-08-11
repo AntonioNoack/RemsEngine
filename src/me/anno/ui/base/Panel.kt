@@ -125,6 +125,13 @@ open class Panel(val style: Style): Saveable(){
         return this
     }
 
+    fun setSimpleClickListener(onClick: () -> Unit): Panel {
+        onClickListener = { _, _, b, l ->
+            if(b == 0) onClick()
+        }
+        return this
+    }
+
     open fun onMouseDown(x: Float, y: Float, button: Int){ parent?.onMouseDown(x,y,button) }
     open fun onMouseUp(x: Float, y: Float, button: Int){ parent?.onMouseUp(x,y,button) }
     open fun onMouseClicked(x: Float, y: Float, button: Int, long: Boolean){

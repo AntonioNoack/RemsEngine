@@ -146,7 +146,7 @@ public class GFXBase0 {
 
         debugProc = GLUtil.setupDebugMessageCallback(
                 new PrintStream(new OutputStream() {
-                    // todo parse the message instead
+                    // parse the message instead
                     // [LWJGL] OpenGL debug message
                     // ID: 0x1
                     // Source: compiler

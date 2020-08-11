@@ -15,7 +15,7 @@ class GraphEditor(style: Style): PanelListY(style) {
     val body = GraphEditorBody(style)
     val activateButtonContainer = PanelListY(style)
     val activateButton = ButtonPanel("Enable Animations", style)
-        .setOnClickListener { _, _, _, _ -> Studio.selectedProperty?.isAnimated = true }
+        .setSimpleClickListener { Studio.selectedProperty?.isAnimated = true }
 
     init {
         activateButtonContainer += activateButton

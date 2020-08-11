@@ -2,6 +2,7 @@ package me.anno.studio
 
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle
+import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.createCustomShader3
 import me.anno.gpu.GFX.flat01
@@ -13,17 +14,22 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.ShaderPlus
 import me.anno.input.Input.keysDown
 import me.anno.objects.Camera
+import me.anno.objects.Transform.Companion.xAxis
+import me.anno.objects.Transform.Companion.yAxis
+import me.anno.objects.Transform.Companion.zAxis
 import me.anno.objects.blending.BlendMode
 import me.anno.objects.cache.Cache
 import me.anno.objects.effects.BokehBlur
 import me.anno.objects.effects.ToneMappers
 import me.anno.studio.Studio.selectedTransform
 import me.anno.ui.editor.sceneView.Grid
+import me.anno.ui.editor.sceneView.Grid.drawLine
 import me.anno.utils.times
 import me.anno.utils.warn
 import me.anno.video.MissingFrameException
 import org.joml.Matrix4f
 import org.joml.Matrix4fArrayList
+import org.joml.Vector3f
 import org.joml.Vector4f
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL30
@@ -297,27 +303,38 @@ object Scene {
         Studio.root.draw(stack, time, white)
         stack.popMatrix()
 
-        // todo gizmos for orientation
-
-        // this is manipulation the grid transform somehow -.-
-        /*stack.pushMatrix()
-        val x2 = stack.transformDirection(xAxis)
-        val y2 = stack.transformDirection(yAxis)
-        val z2 = stack.transformDirection(zAxis)
+        /**
+         * display a 3D gizmo
+         * todo beautify a little, take inspiration from Blender maybe ;)
+         * */
+        val x2 = cameraTransform.transformDirection(xAxis, Vector3f(1f, 0f, 0f))
+        val y2 = cameraTransform.transformDirection(yAxis, Vector3f(0f, 1f, 0f))
+        val z2 = cameraTransform.transformDirection(zAxis, Vector3f(0f, 0f, 1f))
         val gizmoSize = 50f
         val gizmoPadding = 10f
         val gx = x0 + w - gizmoSize - gizmoPadding
         val gy = y0 + gizmoSize + gizmoPadding
-        fun drawCircle(x: Float, y: Float){
+        fun drawCircle(x: Float, y: Float, color: Int){
+            /*for(i in 0 until gizmoSize.toInt()){
+                GFX.drawRect(
+                    (gx + gizmoSize * x * i / gizmoSize).toInt(),
+                    (gy - gizmoSize * y * i / gizmoSize).toInt(),
+                    1, 1, color or black)
+            }*/
+            drawLine(
+                (gx-x0)/w*2-1,
+                1-(gy-y0)/h*2,
+                (gx + gizmoSize * x-x0)/w*2-1,
+                1-(gy - gizmoSize * y-y0)/h*2, color, 1f)
             GFX.drawRect(
                 (gx + gizmoSize * x - 5).toInt(),
-                (gy + gizmoSize * y - 5).toInt(), 10, 10, -1)
+                (gy - gizmoSize * y - 5).toInt(),
+                10, 10, color or black)
         }
-        drawCircle(x2.x, x2.y)
-        drawCircle(y2.x, y2.y)
-        drawCircle(z2.x, z2.y)
-        stack.popMatrix()*/
-        // todo display a 3D gizmo?
+        drawCircle(x2.x, x2.y, 0xff7777)
+        drawCircle(y2.x, y2.y, 0x77ff77)
+        drawCircle(z2.x, z2.y, 0x7777ff)
+
 
         /**
          * draw the selection ring for selected objects

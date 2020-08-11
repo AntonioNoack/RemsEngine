@@ -554,6 +554,28 @@ object GFX: GFXBase1() {
         subpixelCorrectTextShader.use()
         GL20.glUniform1i(subpixelCorrectTextShader["tex"], 0)
 
+        // todo test and use
+        val bicubicInterpolation = "" +
+                "vec4 cubicInterpolation(texture2D tex, vec2 uv, float du, float x){\n" +
+                "   return cubicInterpolation(" +
+                "       texture(tex, vec2(uv.u - du, uv.v)),\n" +
+                "       texture(tex, vec2(uv.u     , uv.v)),\n" +
+                "       texture(tex, vec2(uv.u + du, uv.v)),\n" +
+                "       texture(tex, vec2(uv.u+2*du, uv.v)), x);\n" +
+                "}\n" +
+                // https://www.paulinternet.nl/?page=bicubic
+                "vec4 cubicInterpolation(vec4 p0, vec4 p1, vec4 p2, vec4 p3, float x){\n" +
+                "   return p1 + 0.5 * x*(p2 - p0 + x*(2.0*p0 - 5.0*p1 + 4.0*p2 - p3 + x*(3.0*(p1 - p2) + p3 - p0)));\n" +
+                "}\n" +
+                "vec4 bicubicInterpolation(sampler2D tex, vec2 uv, vec duv){\n" +
+                "   vec2 xy = fract(uv, duv);\n" +
+                "   vec4 p0 = cubicInterpolation(tex, vec2(uv.x, uv.y - duv.y), duv.x, xy.x);\n" +
+                "   vec4 p1 = cubicInterpolation(tex, vec2(uv.x, uv.y        ), duv.x, xy.x);\n" +
+                "   vec4 p2 = cubicInterpolation(tex, vec2(uv.x, uv.y + duv.y), duv.x, xy.x);\n" +
+                "   vec4 p3 = cubicInterpolation(tex, vec2(uv.x, uv.y+2*duv.y), duv.x, xy.x);\n" +
+                "   return cubicInterpolation(p0, p1, p2, p3, xy.y);\n" +
+                "}\n"
+
         val positionPostProcessing = "" +
                 "zDistance = gl_Position.w;\n"
 

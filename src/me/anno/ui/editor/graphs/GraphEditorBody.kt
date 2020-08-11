@@ -20,6 +20,8 @@ import kotlin.math.*
 import me.anno.input.Input.isControlDown as isControlDown
 
 
+// todo make music x times calmer, if another audio line (voice) is on as an optional feature
+
 // todo select multiple keyframes
 // todo copy keyframes
 // todo paste keyframes
