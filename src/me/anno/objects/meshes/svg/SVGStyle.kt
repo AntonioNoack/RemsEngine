@@ -33,7 +33,8 @@ class SVGStyle(data: XMLElement){
 
     companion object {
 
-        fun parseFloats(data: String) = data.split(Regex("[,()\\[\\]]")).mapNotNull { it.toFloatOrNull() }
+        private val separationRegex = Regex("[,()\\[\\]]")
+        private fun parseFloats(data: String) = data.split(separationRegex).mapNotNull { it.trim().toFloatOrNull() }
 
         fun parseColorComplex(name: String): Any? {
             // check for HSVuv(h,s,v,a), HSV(h,s,v,a), or #... or RGB(r,g,b,a) or [1,1,0,1]
@@ -70,7 +71,7 @@ class SVGStyle(data: XMLElement){
                     else -> throw RuntimeException("Unknown color $name")
                 }
             }
-            return when(name){
+            return when(name.toLowerCase()){
                 "none" -> null
                 "aliceblue" -> 0xfff0f8ff.toInt()
                 "antiquewhite" -> 0xfffaebd7.toInt()
@@ -223,12 +224,12 @@ class SVGStyle(data: XMLElement){
             }
         }
 
-        val hex = IntArray('f'.toInt() + 1)
+        private val hex = IntArray('f'.toInt() + 1)
         init {
             for(i in 0 until 10){
                 hex[i+'0'.toInt()] = i
             }
-            "abcdef".forEachIndexed { index, it ->
+            for((index, it) in "abcdef".withIndex()){
                 hex[it.toInt()] = index + 10
                 hex[it.toUpperCase().toInt()] = index + 10
             }
