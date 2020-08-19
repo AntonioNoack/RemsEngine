@@ -2,6 +2,7 @@ package me.anno.utils
 
 import org.joml.Vector3f
 import org.joml.Vector4f
+import kotlin.math.floor
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
 
@@ -42,3 +43,6 @@ fun mix(a: Int, b: Int, shift: Int, f: Float): Int {
 fun mixARGB(a: Int, b: Int, f: Float): Int {
     return mix(a, b, 24, f) or mix(a, b, 16, f) or mix(a, b, 8, f) or mix(a, b, 0, f)
 }
+
+fun fract(f: Float) = f - floor(f)
+fun fract(d: Double) = d - floor(d)

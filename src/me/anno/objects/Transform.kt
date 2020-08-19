@@ -35,6 +35,8 @@ import kotlin.math.roundToLong
 // gradients? -> can be done using the mask layer
 // done select by clicking
 
+// todo option to copy css compliant rgba colors?
+
 open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
 
     // todo generally "play" the animation of a single transform for testing purposes?
@@ -200,8 +202,10 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
             applyTransformLT(stack, time)
             GFX.drawnTransform = this
             onDraw(stack, time, color)
+            val passesOnColor = passesOnColor()
+            val childColor = if(passesOnColor) color else parentColor
             if(drawChildrenAutomatically()){
-                drawChildren(stack, time, color)
+                drawChildren(stack, time, childColor)
             }
         }
 
@@ -370,6 +374,7 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
 
     fun clone() = TextWriter.toText(this, false).toTransform()
     open fun acceptsWeight() = false
+    open fun passesOnColor() = true
 
     /**
      * creates a panel with the correct input for the type, and sets the default values:

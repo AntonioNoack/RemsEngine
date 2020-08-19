@@ -5,11 +5,11 @@ import java.lang.StringBuilder
 object Tabs {
 
     fun spaces(ctr: Int): String {
-        val builder = StringBuilder(ctr)
-        for(i in 0 until ctr){
-            builder.append(' ')
-        }
-        return builder.toString()
+        return String(CharArray(ctr){ ' ' })
+    }
+
+    fun tabs(ctr: Int): String {
+        return String(CharArray(ctr){ '\t' })
     }
 
 }

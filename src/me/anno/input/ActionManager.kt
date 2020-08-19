@@ -189,6 +189,7 @@ object ActionManager {
 
     fun executeGlobally(dx: Float, dy: Float, isContinuous: Boolean,
                         actions: List<String>?){
+        // todo filter action keys, if they are typing keys and a typing field is in focus
         if(actions == null) return
         for(action in actions){
             fun setEditorTimeDilation(dilation: Double): Boolean {

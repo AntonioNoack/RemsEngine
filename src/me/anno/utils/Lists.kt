@@ -24,3 +24,13 @@ fun <V> MutableList<V>.pop(): V? {
     removeAt(lastIndex)
     return last
 }
+
+fun List<Double>.accumulate(): List<Double> {
+    val accumulator = ArrayList<Double>()
+    var sum = 0.0
+    for(value in this){
+        sum += value
+        accumulator += sum
+    }
+    return accumulator
+}

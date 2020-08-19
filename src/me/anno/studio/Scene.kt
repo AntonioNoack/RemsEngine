@@ -306,37 +306,7 @@ object Scene {
         Studio.root.draw(stack, time, white)
         stack.popMatrix()
 
-        /**
-         * display a 3D gizmo
-         * todo beautify a little, take inspiration from Blender maybe ;)
-         * */
-        val x2 = cameraTransform.transformDirection(xAxis, Vector3f(1f, 0f, 0f))
-        val y2 = cameraTransform.transformDirection(yAxis, Vector3f(0f, 1f, 0f))
-        val z2 = cameraTransform.transformDirection(zAxis, Vector3f(0f, 0f, 1f))
-        val gizmoSize = 50f
-        val gizmoPadding = 10f
-        val gx = x0 + w - gizmoSize - gizmoPadding
-        val gy = y0 + gizmoSize + gizmoPadding
-        fun drawCircle(x: Float, y: Float, color: Int){
-            /*for(i in 0 until gizmoSize.toInt()){
-                GFX.drawRect(
-                    (gx + gizmoSize * x * i / gizmoSize).toInt(),
-                    (gy - gizmoSize * y * i / gizmoSize).toInt(),
-                    1, 1, color or black)
-            }*/
-            drawLine(
-                (gx-x0)/w*2-1,
-                1-(gy-y0)/h*2,
-                (gx + gizmoSize * x-x0)/w*2-1,
-                1-(gy - gizmoSize * y-y0)/h*2, color, 1f)
-            GFX.drawRect(
-                (gx + gizmoSize * x - 5).toInt(),
-                (gy - gizmoSize * y - 5).toInt(),
-                10, 10, color or black)
-        }
-        drawCircle(x2.x, x2.y, 0xff7777)
-        drawCircle(y2.x, y2.y, 0x77ff77)
-        drawCircle(z2.x, z2.y, 0x7777ff)
+        displayGizmo(cameraTransform, x0, y0, w, h)
 
 
         /**
@@ -482,5 +452,59 @@ object Scene {
         GFX.drawMode = ShaderPlus.DrawMode.COLOR
 
     }
+
+    fun displayGizmo(cameraTransform: Matrix4f, x0: Int, y0: Int, w: Int, h: Int){
+
+        /**
+         * display a 3D gizmo
+         * todo beautify a little, take inspiration from Blender maybe ;)
+         * */
+
+        val vx = cameraTransform.transformDirection(xAxis, Vector3f())
+        val vy = cameraTransform.transformDirection(yAxis, Vector3f())
+        val vz = cameraTransform.transformDirection(zAxis, Vector3f())
+
+        val gizmoSize = 50f
+        val gizmoPadding = 10f
+        val gx = x0 + w - gizmoSize - gizmoPadding
+        val gy = y0 + gizmoSize + gizmoPadding
+
+        fun drawCircle(x: Float, y: Float, z: Float, color: Int){
+            /*for(i in 0 until gizmoSize.toInt()){
+                GFX.drawRect(
+                    (gx + gizmoSize * x * i / gizmoSize).toInt(),
+                    (gy - gizmoSize * y * i / gizmoSize).toInt(),
+                    1, 1, color or black)
+            }*/
+            drawLine(
+                (gx-x0)/w*2-1,
+                1-(gy-y0)/h*2,
+                (gx + gizmoSize * x-x0)/w*2-1,
+                1-(gy - gizmoSize * y-y0)/h*2, color, 1f)
+            val rectSize = 7f - z * 3f
+            GFX.drawRect(
+                (gx + gizmoSize * x - rectSize * 0.5f),
+                (gy - gizmoSize * y - rectSize * 0.5f),
+                rectSize, rectSize, color or black)
+        }
+
+        tmpDistances[0] = vx.z
+        tmpDistances[1] = vy.z
+        tmpDistances[2] = vz.z
+
+        tmpDistances.sortDescending()
+
+        for(d in tmpDistances){
+            if(d == vx.z) drawCircle(vx.x, vx.y, vx.z, 0xff7777)
+            if(d == vy.z) drawCircle(vy.x, vy.y, vy.z, 0x77ff77)
+            if(d == vz.z) drawCircle(vz.x, vz.y, vz.z, 0x7777ff)
+        }
+
+
+
+    }
+
+    // avoid unnecessary allocations ;)
+    private val tmpDistances = FloatArray(3)
 
 }

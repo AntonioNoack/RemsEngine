@@ -4,6 +4,7 @@ import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.ui.base.TextPanel
 import kotlin.math.abs
+import kotlin.math.ceil
 import kotlin.math.min
 
 
@@ -56,4 +57,14 @@ fun Double.formatTime(): String {
     if(seconds < 60) return "${seconds}s"
     if(seconds < 3600) return "${seconds/60}m ${seconds%60}s"
     return "${seconds/3600}h ${(seconds/60)%60}m ${seconds%60}s"
+}
+
+fun incrementTab(x0: Float, tabSize: Float, relativeTabSize: Float): Float {
+    var x = x0
+    val r = x / tabSize
+    x = ceil(r) * tabSize
+    if((1f - fract(r)) * relativeTabSize < 1f){// smaller than a space? -> add a tab
+        x += tabSize
+    }
+    return x
 }

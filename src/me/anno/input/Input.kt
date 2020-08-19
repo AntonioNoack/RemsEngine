@@ -241,6 +241,10 @@ object Input {
                         GLFW.GLFW_KEY_BACKSPACE -> {
                             inFocus0?.onBackSpaceKey(mouseX, mouseY)
                         }
+                        GLFW.GLFW_KEY_TAB -> {
+                            // todo switch between input elements :)
+                            inFocus0?.onCharTyped(mouseX, mouseY, '\t'.toInt())
+                        }
                         GLFW.GLFW_KEY_ESCAPE -> {
                             // val inFocus = inFocus.firstOrNull()
                             if (windowStack.size < 2) {

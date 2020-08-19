@@ -236,6 +236,16 @@ object GFX: GFXBase1() {
         check()
     }
 
+    fun drawRect(x: Float, y: Float, w: Float, h: Float, color: Int){
+        check()
+        val shader = flatShader
+        shader.use()
+        posSize(shader, x, y, w, h)
+        shader.v4("color", color.r()/255f, color.g()/255f, color.b()/255f, color.a()/255f)
+        flat01.draw(shader)
+        check()
+    }
+
     // the background color is important for correct subpixel rendering, because we can't blend per channel
     fun drawText(x: Int, y: Int, font: String, fontSize: Int, bold: Boolean, italic: Boolean, text: String, color: Int, backgroundColor: Int) =
         writeText(x, y, font, fontSize, bold, italic, text, color, backgroundColor)
@@ -283,6 +293,11 @@ object GFX: GFXBase1() {
     fun posSize(shader: Shader, x: Int, y: Int, w: Int, h: Int){
         shader.v2("pos", (x-windowX).toFloat()/windowWidth, 1f-(y-windowY).toFloat()/windowHeight)
         shader.v2("size", w.toFloat()/windowWidth, -h.toFloat()/windowHeight)
+    }
+
+    fun posSize(shader: Shader, x: Float, y: Float, w: Float, h: Float){
+        shader.v2("pos", (x-windowX)/windowWidth, 1f-(y-windowY)/windowHeight)
+        shader.v2("size", w/windowWidth, -h/windowHeight)
     }
 
     fun applyCameraTransform(camera: Camera, time: Double, cameraTransform: Matrix4f, stack: Matrix4fArrayList){

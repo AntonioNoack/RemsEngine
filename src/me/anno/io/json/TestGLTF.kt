@@ -23,8 +23,7 @@ fun testModelRendering(){
     viewer.renderGltfModels()
 }
 
-fun main(){
-
+fun testGLTF(){
     // todo gltf requests that we implement pbr...
     // todo should we redesign our whole pipeline; implement it partially, or ignore it?
 
@@ -37,5 +36,27 @@ fun main(){
 
     val model = GltfModelReader().read(File(OS.documents, "redMonkey.glb").toURI())
     model.sceneModels[0].nodeModels[0].meshModels[0].meshPrimitiveModels[0].indices
+}
+
+fun testObjectMapperJson(){
+
+    class TestClass {
+        // val intValue = 15
+        // val maybeInt: Int? = null
+        val intArray = intArrayOf(15, 17)
+        val genericArray = arrayOf(intArray, 12, 3)
+        // val mapExample = mapOf("key" to intValue)
+    }
+
+    // todo intArray inside genericArray isn't saved correctly
+    val output = System.out
+    ObjectMapper.writeValue(output, TestClass())
+    println()
+
+}
+
+fun main(){
+
+    testObjectMapperJson()
 
 }

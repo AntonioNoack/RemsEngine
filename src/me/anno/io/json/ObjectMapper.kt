@@ -1,15 +1,153 @@
 package me.anno.io.json
 
+import me.anno.io.json.ObjectMapper.write
+import me.anno.utils.JavaUtils
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import java.lang.Exception
+import java.lang.reflect.Modifier
 
 object ObjectMapper {
 
+    fun writeJsonString(output: OutputStream, str: String){
+        output.write(
+            str
+                .replace("\"", "\\\"")
+                .toByteArray()
+        )
+    }
+
+    fun OutputStream.write(c: Char){
+        write(c.toInt())
+    }
+
+    fun OutputStream.write(str: String){
+        write(str.toByteArray())
+    }
+
+    fun OutputStream.writeStr(v: Any){
+        write(v.toString().toByteArray())
+    }
+
     @Throws(IOException::class)
-    fun <V> writeValue(output: OutputStream, value: V){
-        TODO("Implement writing a json file from Java for copying")
+    fun <V> writeValue(output: OutputStream, instance: V){
+        // writing a json file from Java for copying
+        val clazz = JavaUtils.getClass(instance)
+        when(clazz.typeName){
+            "int[]" -> output.write((instance as? IntArray)
+                ?.joinToString(",", "[", "]") ?: "null")
+            "long[]" -> output.write((instance as? LongArray)
+                ?.joinToString(",", "[", "]") ?: "null")
+            "float[]" -> output.write((instance as? FloatArray)
+                ?.joinToString(",", "[", "]") ?: "null")
+            "double[]" -> output.write((instance as? DoubleArray)
+                ?.joinToString(",", "[", "]") ?: "null")
+            "boolean[]" -> output.write((instance as? BooleanArray)
+                ?.joinToString(",", "[", "]") ?: "null")
+            "java.lang.Integer" -> output.writeStr((instance as Int?) ?: "null")
+            "java.lang.Long" ->    output.writeStr((instance as Long?) ?: "null")
+            "java.lang.Float" ->   output.writeStr((instance as Float?) ?: "null")
+            "java.lang.Double" ->  output.writeStr((instance as Double?) ?: "null")
+            else -> {
+                output.write('{'.toInt())
+                var isFirstProperty = true
+                clazz.declaredFields.forEach { field ->
+                    if(!Modifier.isStatic(field.modifiers)){
+                        if(!field.isAccessible){
+                            try {
+                                field.isAccessible = true
+                            } catch (e: Exception){ e.printStackTrace() }
+                            // field.trySetAccessible()
+                        }
+                        if(!isFirstProperty){ output.write(','.toInt()) }
+                        output.write('"')
+                        writeJsonString(output, field.name)
+                        output.write('"')
+                        output.write(':')
+                        when(field.genericType.typeName){
+                            // native types
+                            "int" -> output.writeStr(field.getInt(instance))
+                            "long" -> output.writeStr(field.getLong(instance))
+                            "float" -> output.writeStr(field.getFloat(instance))
+                            "double" -> output.writeStr(field.getDouble(instance))
+                            "boolean" -> output.writeStr(field.getBoolean(instance))
+                            "java.lang.Integer" -> output.writeStr((field.get(instance) as Int?) ?: "null")
+                            "java.lang.Long" -> output.writeStr((field.get(instance) as Long?) ?: "null")
+                            "java.lang.Float" -> output.writeStr((field.get(instance) as Float?) ?: "null")
+                            "java.lang.Double" -> output.writeStr((field.get(instance) as Double?) ?: "null")
+                            "int[]" -> output.write((field.get(instance) as? IntArray)
+                                ?.joinToString(",", "[", "]") ?: "null")
+                            "long[]" -> output.write((field.get(instance) as? LongArray)
+                                ?.joinToString(",", "[", "]") ?: "null")
+                            "float[]" -> output.write((field.get(instance) as? FloatArray)
+                                ?.joinToString(",", "[", "]") ?: "null")
+                            "double[]" -> output.write((field.get(instance) as? DoubleArray)
+                                ?.joinToString(",", "[", "]") ?: "null")
+                            "boolean[]" -> output.write((field.get(instance) as? BooleanArray)
+                                ?.joinToString(",", "[", "]") ?: "null")
+                            // other types, inluding lists, arrays and maps
+                            else -> {
+                                when(val value = field.get(instance)){
+                                    null -> output.write("null".toByteArray())
+                                    is String -> {
+                                        output.write('"')
+                                        writeJsonString(output, value)
+                                        output.write('"')
+                                    }
+                                    is Array<*> -> writeArray(output, value)
+                                    is List<*> -> {
+                                        output.write('[')
+                                        for(i in 0 until value.size){
+                                            if(i != 0) output.write(',')
+                                            val vi = value[i]
+                                            if(vi != null) {
+                                                writeValue(output, vi)
+                                            } else output.write("null")
+                                        }
+                                        output.write(']')
+                                    }
+                                    is Map<*, *> -> {
+                                        output.write('{')
+                                        var isFirst = true
+                                        for((key, vi) in value){
+                                            if(!isFirst) output.write(',')
+                                            output.write('"')
+                                            output.write(key.toString())
+                                            output.write('"')
+                                            output.write(':')
+                                            if(vi != null) {
+                                                writeValue(output, vi)
+                                            } else output.write("null")
+                                            isFirst = false
+                                        }
+                                        output.write('}')
+                                    }
+                                    else -> {
+                                        writeValue(output, value)
+                                    }
+                                }
+                            }
+                        }
+                        isFirstProperty = false
+                    }
+                }
+                output.write('}'.toInt())
+            }
+        }
+    }
+
+    fun writeArray(output: OutputStream, value: Array<*>){
+        output.write('['.toInt())
+        for(i in value.indices){
+            if(i != 0) output.write(',')
+            when(val vi = value[i]){
+                null -> output.write("null")
+                is Array<*> -> writeArray(output, vi)
+                else -> writeValue(output, vi)
+            }
+        }
+        output.write(']')
     }
 
     fun <V> readValue(value: ByteArray, clazz: Class<V>): V {
@@ -23,20 +161,22 @@ object ObjectMapper {
     fun <V> convertValue(values: JsonNode, clazz: Class<V>): V {
         val instance = clazz.getConstructor().newInstance()
         clazz.declaredFields.forEach { field ->
-            if(!field.isAccessible){
-                try {
-                    field.isAccessible = true
-                } catch (e: Exception){ e.printStackTrace() }
-                // field.trySetAccessible()
-            }
-            val value = values.get(field.name)
-            if(value == null){
-                field.set(instance, null)
-            } else {
-                // println("${field.name}, ${field.genericType}, ${field.genericType.typeName}")
-                val type = field.genericType.typeName
-                val theValue = getValue(parseType(type), value)
-                field.set(instance, theValue)
+            if(!Modifier.isStatic(field.modifiers)){
+                if(!field.isAccessible){
+                    try {
+                        field.isAccessible = true
+                    } catch (e: Exception){ e.printStackTrace() }
+                    // field.trySetAccessible()
+                }
+                val value = values.get(field.name)
+                if(value == null){
+                    field.set(instance, null)
+                } else {
+                    // println("${field.name}, ${field.genericType}, ${field.genericType.typeName}")
+                    val type = field.genericType.typeName
+                    val theValue = getValue(parseType(type), value)
+                    field.set(instance, theValue)
+                }
             }
         }
         return instance

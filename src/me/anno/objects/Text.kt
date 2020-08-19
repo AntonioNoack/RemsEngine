@@ -3,16 +3,20 @@ package me.anno.objects
 import me.anno.config.DefaultConfig
 import me.anno.fonts.AWTFont
 import me.anno.fonts.FontManager
+import me.anno.fonts.PartResult
 import me.anno.fonts.mesh.FontMesh
 import me.anno.fonts.mesh.FontMesh.Companion.DEFAULT_LINE_HEIGHT
+import me.anno.fonts.mesh.FontMeshBase
 import me.anno.gpu.GFX
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.cache.Cache
 import me.anno.studio.Studio.selectedProperty
+import me.anno.ui.base.ButtonPanel
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.editor.color.ColorSpace.Companion.HSLuv
 import me.anno.ui.input.BooleanInput
 import me.anno.ui.input.EnumInput
 import me.anno.ui.input.TextInputML
@@ -20,7 +24,9 @@ import me.anno.ui.style.Style
 import me.anno.utils.BiMap
 import me.anno.video.MissingFrameException
 import org.joml.Matrix4fArrayList
+import org.joml.Vector3f
 import org.joml.Vector4f
+import java.awt.Font
 import kotlin.collections.ArrayList
 import kotlin.math.max
 import kotlin.math.min
@@ -38,6 +44,10 @@ class Text(text: String = "", parent: Transform? = null): GFXTransform(parent){
     // todo automatic line break after length x
 
     // todo blurry, colorful text shadow
+    // todo by calculated distance fields:
+    // todo just project the points outwards xD
+    // todo and create the shadow on a (linked?) child element
+
     // done multiple line alignment
     // todo working tabs
 
@@ -47,6 +57,7 @@ class Text(text: String = "", parent: Transform? = null): GFXTransform(parent){
 
     // parameters
     var font = "Verdana"
+    var lastFont = font
 
     var isBold = false
     var isItalic = false
@@ -63,36 +74,40 @@ class Text(text: String = "", parent: Transform? = null): GFXTransform(parent){
 
     var textMode = TextMode.RAW
 
-    val relativeLineSpacing = AnimatedProperty.float(1f)
+    var relativeLineSpacing = AnimatedProperty.float(1f)
+
+    var relativeTabSize = 4f
 
     // caching
     var lastText = text
+
     // todo allow style by HTML/.md? :D
-    var lineSegmentsWithStyle = text.split('\n')
-    var keys = lineSegmentsWithStyle.map { FontMeshKey(font, isBold, isItalic, it) }
+    var lineSegmentsWithStyle = splitSegments(text)
+    var keys = createKeys()
 
     var minX = 0.0
     var maxX = 0.0
 
     var hasMeasured = false
 
-    // todo tabsegment??
-    class TextSegment(){
+    fun createKeys() = lineSegmentsWithStyle.parts.map { FontMeshKey(it.font, isBold, isItalic, it.text) }
 
-    }
-
-    fun splitSegments(){
-
+    fun splitSegments(text: String): PartResult {
+        val fontSize0 = 20f
+        val awtFont = FontManager.getFont(font, fontSize0, isBold, isItalic) as AWTFont
+        return awtFont.splitParts(text, fontSize0)
     }
 
     data class FontMeshKey(
-        val fontName: String, val isBold: Boolean, val isItalic: Boolean,
+        val font: Font, val isBold: Boolean, val isItalic: Boolean,
         val text: String){
-        fun equals(fontName: String, isBold: Boolean, isItalic: Boolean, text: String) =
-            fontName == this.fontName && isBold == this.isBold && isItalic == this.isItalic && text == this.text
+        fun equals(isBold: Boolean, isItalic: Boolean, text: String) =
+            isBold == this.isBold && isItalic == this.isItalic && text == this.text
     }
 
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f){
+
+        stack.pushMatrix()
 
         val text = text
         val isBold = isBold
@@ -106,23 +121,35 @@ class Text(text: String = "", parent: Transform? = null): GFXTransform(parent){
                 wasChanged = true
                 hasMeasured = false
                 lastText = text
-                lineSegmentsWithStyle = text.split('\n')
-                keys = lineSegmentsWithStyle.map { FontMeshKey(font, isBold, isItalic, it) }
+                lastFont = font
+                lineSegmentsWithStyle = splitSegments(text)
+                keys = createKeys()
             } else {
                 // !none = at least one?, is not equal, so needs update
-                if(!keys.withIndex().none { (index, fontMeshKey) ->
-                        !fontMeshKey.equals(font, isBold, isItalic, lineSegmentsWithStyle[index])
+                if(font != lastFont || !keys.withIndex().none { (index, fontMeshKey) ->
+                        !fontMeshKey.equals(isBold, isItalic, lineSegmentsWithStyle.parts[index].text)
                     }){
                     wasChanged = true
                     hasMeasured = false
-                    keys = lineSegmentsWithStyle.map { FontMeshKey(font, isBold, isItalic, it) }
+                    lastFont = font
+                    keys = createKeys()
                 }
             }
+
+            val exampleLayout = lineSegmentsWithStyle.exampleLayout
+            val scaleX = DEFAULT_LINE_HEIGHT / (exampleLayout.ascent + exampleLayout.descent)
+            val scaleY = 1f / (exampleLayout.ascent + exampleLayout.descent)
+            val width = lineSegmentsWithStyle.width * scaleX
+            val height = lineSegmentsWithStyle.height * scaleY // todo why is this incorrect
 
             val lineOffset = - DEFAULT_LINE_HEIGHT * relativeLineSpacing[time]
             val alignment = textAlignment
 
-            val awtFont = FontManager.getFont(font, 20f, isBold, isItalic)
+            fun getFontMesh(fontMeshKey: FontMeshKey): FontMeshBase? {
+                return Cache.getEntry(fontMeshKey, fontMeshTimeout, true){
+                    FontMesh(fontMeshKey.font, fontMeshKey.text)
+                } as? FontMeshBase
+            }
 
             // min and max x are cached for long texts with thousands of lines (not really relevant)
             if((wasChanged || minX >= maxX || !hasMeasured)){
@@ -131,10 +158,7 @@ class Text(text: String = "", parent: Transform? = null): GFXTransform(parent){
                 hasMeasured = true
                 keys.forEach { fontMeshKey ->
                     if(fontMeshKey.text.isNotBlank()){
-                        val fontMesh = Cache.getEntry(fontMeshKey, fontMeshTimeout, true){
-                            val buffer = FontMesh((awtFont as AWTFont).font, fontMeshKey.text)
-                            buffer
-                        } as? FontMesh
+                        val fontMesh = getFontMesh(fontMeshKey)
                         if(fontMesh == null){
                             hasMeasured = false
                             if(GFX.isFinalRendering) throw MissingFrameException(null)
@@ -148,9 +172,12 @@ class Text(text: String = "", parent: Transform? = null): GFXTransform(parent){
                 }
             }
 
+            // minX = 0.0
+            // maxX = lineSegmentsWithStyle.width.toDouble()
+
             // todo actual text height vs baseline? for height
 
-            val totalHeight = lineOffset * lineSegmentsWithStyle.size
+            val totalHeight = lineOffset * height
 
             stack.translate(
                 when(blockAlignmentX){
@@ -164,30 +191,28 @@ class Text(text: String = "", parent: Transform? = null): GFXTransform(parent){
                 } + lineOffset/2, 0f
             )
 
-            for(fontMeshKey in keys){
+            for((index, value) in lineSegmentsWithStyle.parts.withIndex()){
 
-                if(fontMeshKey.text.isNotBlank()){
+                val fontMeshKey = keys[index]
 
-                    val fontMesh = Cache.getEntry(fontMeshKey, fontMeshTimeout, true){
-                        val buffer = FontMesh((awtFont as AWTFont).font, fontMeshKey.text)
-                        buffer
-                    } as? FontMesh ?: continue
+                val fontMesh = getFontMesh(fontMeshKey) ?: continue
 
-                    val offset = when(alignment){
-                        AxisAlignment.MIN -> 2 * (minX - fontMesh.minX).toFloat()
-                        AxisAlignment.CENTER -> 0f
-                        AxisAlignment.MAX -> 2 * (maxX - fontMesh.maxX).toFloat()
-                    }
-
-                    if(offset != 0f) stack.translate(+offset, 0f, 0f)
-
-                    GFX.draw3D(stack, fontMesh.buffer, GFX.whiteTexture, color, isBillboard[time], true, null)
-
-                    if(offset != 0f) stack.translate(-offset, 0f, 0f)
-
+                val offsetX = when(alignment){
+                    AxisAlignment.MIN -> 2 * (minX - fontMesh.minX).toFloat()
+                    AxisAlignment.CENTER -> 0f
+                    AxisAlignment.MAX -> 2 * (maxX - fontMesh.maxX).toFloat()
                 }
 
-                stack.translate(0f, lineOffset, 0f)
+                stack.pushMatrix()
+
+                stack.translate(value.xPos * scaleX + offsetX, value.yPos * scaleY * lineOffset, 0f)
+
+                // GFX.draw3D(stack, fontMesh.buffer, GFX.whiteTexture, color, isBillboard[time], true, null)
+                fontMesh.draw(stack){ buffer ->
+                    GFX.draw3D(stack, buffer, GFX.whiteTexture, color, isBillboard[time], true, null)
+                }
+
+                stack.popMatrix()
 
             }
 
@@ -205,6 +230,8 @@ class Text(text: String = "", parent: Transform? = null): GFXTransform(parent){
 
         }
 
+        stack.popMatrix()
+
     }
 
     override fun save(writer: BaseWriter) {
@@ -214,9 +241,10 @@ class Text(text: String = "", parent: Transform? = null): GFXTransform(parent){
         writer.writeBool("isItalic", isItalic, true)
         writer.writeBool("isBold", isBold, true)
         writer.writeObject(this, "relativeLineSpacing", relativeLineSpacing)
-        writer.writeInt("textAlignment", textAlignment.id)
-        writer.writeInt("blockAlignmentX", blockAlignmentX.id)
-        writer.writeInt("blockAlignmentY", blockAlignmentY.id)
+        writer.writeInt("textAlignment", textAlignment.id, true)
+        writer.writeInt("blockAlignmentX", blockAlignmentX.id, true)
+        writer.writeInt("blockAlignmentY", blockAlignmentY.id, true)
+        writer.writeFloat("relativeTabSize", relativeTabSize, true)
     }
 
     override fun readInt(name: String, value: Int) {
@@ -225,6 +253,13 @@ class Text(text: String = "", parent: Transform? = null): GFXTransform(parent){
             "blockAlignmentX" -> blockAlignmentX = AxisAlignment.values().firstOrNull { it.id == value } ?: blockAlignmentX
             "blockAlignmentY" -> blockAlignmentY = AxisAlignment.values().firstOrNull { it.id == value } ?: blockAlignmentY
             else -> super.readInt(name, value)
+        }
+    }
+
+    override fun readFloat(name: String, value: Float) {
+        when(name){
+            "relativeTabSize" -> relativeTabSize = value
+            else -> super.readFloat(name, value)
         }
     }
 
@@ -254,9 +289,8 @@ class Text(text: String = "", parent: Transform? = null): GFXTransform(parent){
     override fun createInspector(list: PanelListY, style: Style) {
         super.createInspector(list, style)
         list += TextInputML("Text", style, text)
-            .setChangeListener { text = it }
+            .setChangeListener { getSelfWithShadows().forEach { c -> c.text = it } }
             .setIsSelectedListener { selectedProperty = null }
-
         val fontList = ArrayList<String>()
         fontList += font
         fontList += GFX.menuSeparator
@@ -280,15 +314,15 @@ class Text(text: String = "", parent: Transform? = null): GFXTransform(parent){
             .setChangeListener {
                 putLastUsedFont(it)
                 sortFavourites()
-                font = it }
+                getSelfWithShadows().forEach { c -> c.font = it } }
             .setIsSelectedListener { show(null) }
 
         list += BooleanInput("Italic", isItalic, style)
-            .setChangeListener { isItalic = it }
+            .setChangeListener { getSelfWithShadows().forEach { c -> c.isItalic = it } }
             .setIsSelectedListener { show(null) }
 
         list += BooleanInput("Bold", isBold, style)
-            .setChangeListener { isBold = it }
+            .setChangeListener { getSelfWithShadows().forEach { c -> c.isBold = it } }
             .setIsSelectedListener { show(null) }
 
         val alignmentValues = alignmentNamesX.entries.sortedBy { it.value.ordinal }.map { it.key }
@@ -297,25 +331,60 @@ class Text(text: String = "", parent: Transform? = null): GFXTransform(parent){
             alignmentNamesX.reverse[textAlignment]!!,
             alignmentValues, style)
             .setIsSelectedListener { show(null) }
-            .setChangeListener { textAlignment = alignmentNamesX[it]!! }
+            .setChangeListener { name ->
+                val alignment = alignmentNamesX[name]!!
+                getSelfWithShadows().forEach { it.textAlignment = alignment }
+            }
 
         list += EnumInput("Block Alignment X", true,
             alignmentNamesX.reverse[blockAlignmentX]!!,
             alignmentValues, style)
             .setIsSelectedListener { show(null) }
-            .setChangeListener { blockAlignmentX = alignmentNamesX[it]!! }
+            .setChangeListener { name ->
+                val alignment = alignmentNamesX[name]!!
+                getSelfWithShadows().forEach { it.blockAlignmentX = alignment }
+            }
 
         list += EnumInput("Block Alignment Y", true,
             alignmentNamesX.reverse[blockAlignmentY]!!,
             alignmentValues, style)
             .setIsSelectedListener { show(null) }
-            .setChangeListener { blockAlignmentY = alignmentNamesX[it]!! }
+            .setChangeListener { name ->
+                val alignment = alignmentNamesX[name]!!
+                getSelfWithShadows().forEach { it.blockAlignmentY = alignment }
+            }
 
+        // make this element separable from the parent???
         list += VI("Line Spacing", "How much lines are apart from each other", relativeLineSpacing, style)
+        list += VI("Tab Size", "Relative tab size, in widths of o's", AnimatedProperty.Type.FLOAT_PLUS, relativeTabSize, style){
+            relativeTabSize = it
+            lastText = "" // to invalidate
+        }
+
+        list += ButtonPanel("Create Shadow", style)
+            .setSimpleClickListener {
+                // such a mess is the result of copying colors from the editor ;)
+                val signalColor = Vector4f(HSLuv.toRGB(Vector3f(0.000f,0.934f,0.591f)), 1f)
+                val shadow = clone() as Text
+                shadow.name = "Shadow"
+                shadow.comment = "Keep \"shadow\" in the name for automatic property inheritance"
+                // this avoids user reports, from people, who can't see their shadow
+                // making something black should be simple
+                shadow.color.set(signalColor)
+                shadow.position.set(Vector3f(0.01f, -0.01f, -0.001f))
+                shadow.relativeLineSpacing = relativeLineSpacing // evil ;)
+                addChild(shadow)
+                GFX.select(shadow)
+            }
 
     }
 
+    fun getSelfWithShadows() = getShadows() + this
+    fun getShadows() = children.filter { it.name.contains("shadow", true) && it is Text } as List<Text>
+    override fun passesOnColor() = false // otherwise white shadows of black text wont work
+
     override fun getClassName(): String = "Text"
+
 
     companion object {
 

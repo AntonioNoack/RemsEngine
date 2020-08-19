@@ -71,7 +71,7 @@ class SVGStyle(data: XMLElement){
                     else -> throw RuntimeException("Unknown color $name")
                 }
             }
-            return when(name.toLowerCase()){
+            return when(name.trim().toLowerCase()){
                 "none" -> null
                 "aliceblue" -> 0xfff0f8ff.toInt()
                 "antiquewhite" -> 0xfffaebd7.toInt()

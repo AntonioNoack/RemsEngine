@@ -4,14 +4,15 @@ import me.anno.gpu.texture.FakeWhiteTexture
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.ui.base.DefaultRenderingHints
+import me.anno.utils.incrementTab
+import me.anno.utils.joinChars
 import org.apache.logging.log4j.LogManager
 import java.awt.Font
 import java.awt.Graphics2D
-import java.awt.font.TextAttribute
+import java.awt.font.FontRenderContext
 import java.awt.font.TextLayout
 import java.awt.image.BufferedImage
 import java.lang.StrictMath.round
-import java.text.AttributedString
 import kotlin.math.max
 import kotlin.math.roundToInt
 import kotlin.streams.toList
@@ -33,7 +34,7 @@ class AWTFont(val font: Font): XFont {
 
     fun containsSpecialChar(text: String): Boolean {
         for(cp in text.codePoints()){
-            if(cp > 127) return true
+            if(cp > 127 || cp == '\t'.toInt()) return true
         }
         return false
     }
@@ -43,7 +44,7 @@ class AWTFont(val font: Font): XFont {
     override fun generateTexture(text: String, fontSize: Float): ITexture2D? {
 
         if(text.isEmpty()) return null
-        if(containsSpecialChar(text)) return generateTexture2(text, fontSize)
+        if(containsSpecialChar(text)) return generateTextureV3(text, fontSize)
 
         val width = fontMetrics.stringWidth(text) + (if(font.isItalic) max(2, (fontSize / 5f).roundToInt()) else 1)
         val lineCount = text.countLines()
@@ -87,7 +88,102 @@ class AWTFont(val font: Font): XFont {
 
     }
 
-    fun generateTexture2(text: String, fontSize: Float): Texture2D? {
+    fun splitParts(text: String, fontSize: Float): PartResult {
+
+        val fonts = listOf(font, getFallback(fontSize))
+
+        fun getSupportLevel(char: Int, lastSupportLevel: Int): Int {
+            fonts.forEachIndexed { index, font ->
+                if(font.canDisplay(char)) return index
+            }
+            return lastSupportLevel
+        }
+
+        val lines = text.split('\n')
+        val result = ArrayList<StringPart>(lines.size * 2)
+        val ctx = FontRenderContext(null, true, true)
+        val exampleLayout = TextLayout("o", font, ctx)
+        val tabSize = exampleLayout.bounds.maxX.toFloat()
+        var widthF = 0f
+        var currentY = 0f
+        val fontHeight = exampleLayout.ascent + exampleLayout.descent
+        lines.forEach { line ->
+            val cp = line.codePoints().toList()
+            var startIndex = 0
+            var index = 0
+            var lastSupportLevel = 0
+            var currentX = 1f
+            fun display(){
+                if(index > startIndex){
+                    val substring = cp.subList(startIndex, index).joinChars()
+                    val font = fonts[lastSupportLevel]
+                    val layout = TextLayout(substring, font, ctx)
+                    // val bounds = layout.bounds
+                    result += StringPart(currentX, currentY, substring, font)
+                    currentX += layout.advance
+                    widthF = max(widthF, currentX)
+                    startIndex = index
+                }
+            }
+            while(index < cp.size){
+                val char = cp[index]
+                if(char == '\t'.toInt()){
+                    display()
+                    startIndex++ // skip \t too
+                    currentX = incrementTab(currentX, tabSize, 4f)
+                } else {
+                    val supportLevel = getSupportLevel(char, lastSupportLevel)
+                    if(supportLevel != lastSupportLevel){
+                        display()
+                        lastSupportLevel = supportLevel
+                    }
+                }
+                index++
+            }
+            display()
+            currentY += fontHeight
+        }
+
+        return PartResult(result, widthF, currentY, exampleLayout)
+
+    }
+
+    fun generateTextureV3(text: String, fontSize: Float): Texture2D? {
+
+        val parts = splitParts(text, fontSize)
+        val result = parts.parts
+        val exampleLayout = parts.exampleLayout
+
+        val width = ceil(parts.width)
+        val height = ceil(parts.height)
+
+        println("$width for ${result.size} parts")
+
+        val texture = Texture2D(width, height, 1)
+        texture.create {
+            val image = BufferedImage(width, height, 1)
+            if(result.isNotEmpty()){
+                val gfx = image.graphics as Graphics2D
+                prepareGraphics(gfx)
+
+                val x = (image.width - width) * 0.5f
+                val y = (image.height - height) * 0.5f + exampleLayout.ascent
+
+                result.forEach {
+                    gfx.font = it.font
+                    gfx.drawString(it.text, it.xPos + x, it.yPos + y)
+                }
+
+                gfx.dispose()
+            }
+            image
+        }
+
+        return texture
+
+    }
+
+    /*fun generateTexture2(text: String, fontSize: Float): Texture2D? {
 
         val withIcons = createFallbackString(text, font, getFallback(fontSize))
         val layout = TextLayout(withIcons.iterator, unused.fontRenderContext)
@@ -114,9 +210,6 @@ class AWTFont(val font: Font): XFont {
         return texture
 
     }
-
-    fun ceil(f: Float) = round(f + 0.5f)
-    fun ceil(f: Double) = round(f + 0.5).toInt()
 
     private fun createFallbackString(
         text: String,
@@ -146,7 +239,10 @@ class AWTFont(val font: Font): XFont {
             }
         }
         return result
-    }
+    }*/
+
+    fun ceil(f: Float) = round(f + 0.5f)
+    fun ceil(f: Double) = round(f + 0.5).toInt()
 
     companion object {
 
