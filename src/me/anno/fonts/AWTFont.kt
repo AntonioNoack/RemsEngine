@@ -88,7 +88,7 @@ class AWTFont(val font: Font): XFont {
 
     }
 
-    fun splitParts(text: String, fontSize: Float): PartResult {
+    fun splitParts(text: String, fontSize: Float, relativeTabSize: Float): PartResult {
 
         val fonts = listOf(font, getFallback(fontSize))
 
@@ -103,10 +103,11 @@ class AWTFont(val font: Font): XFont {
         val result = ArrayList<StringPart>(lines.size * 2)
         val ctx = FontRenderContext(null, true, true)
         val exampleLayout = TextLayout("o", font, ctx)
-        val tabSize = exampleLayout.bounds.maxX.toFloat()
+        val tabSize = exampleLayout.advance * relativeTabSize
         var widthF = 0f
         var currentY = 0f
         val fontHeight = exampleLayout.ascent + exampleLayout.descent
+        var startResultIndex = 0
         lines.forEach { line ->
             val cp = line.codePoints().toList()
             var startIndex = 0
@@ -119,7 +120,7 @@ class AWTFont(val font: Font): XFont {
                     val font = fonts[lastSupportLevel]
                     val layout = TextLayout(substring, font, ctx)
                     // val bounds = layout.bounds
-                    result += StringPart(currentX, currentY, substring, font)
+                    result += StringPart(currentX, currentY, substring, font, 0f)
                     currentX += layout.advance
                     widthF = max(widthF, currentX)
                     startIndex = index
@@ -130,7 +131,7 @@ class AWTFont(val font: Font): XFont {
                 if(char == '\t'.toInt()){
                     display()
                     startIndex++ // skip \t too
-                    currentX = incrementTab(currentX, tabSize, 4f)
+                    currentX = incrementTab(currentX, tabSize, relativeTabSize)
                 } else {
                     val supportLevel = getSupportLevel(char, lastSupportLevel)
                     if(supportLevel != lastSupportLevel){
@@ -141,6 +142,10 @@ class AWTFont(val font: Font): XFont {
                 index++
             }
             display()
+            for(i in startResultIndex until result.size){
+                result[i].lineWidth = currentX
+            }
+            startResultIndex = result.size
             currentY += fontHeight
         }
 
@@ -150,7 +155,7 @@ class AWTFont(val font: Font): XFont {
 
     fun generateTextureV3(text: String, fontSize: Float): Texture2D? {
 
-        val parts = splitParts(text, fontSize)
+        val parts = splitParts(text, fontSize, 4f)
         val result = parts.parts
         val exampleLayout = parts.exampleLayout
 

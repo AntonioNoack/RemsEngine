@@ -5,6 +5,7 @@ import me.anno.gpu.GFX
 import me.anno.ui.base.TextPanel
 import kotlin.math.abs
 import kotlin.math.ceil
+import kotlin.math.floor
 import kotlin.math.min
 
 
@@ -62,7 +63,7 @@ fun Double.formatTime(): String {
 fun incrementTab(x0: Float, tabSize: Float, relativeTabSize: Float): Float {
     var x = x0
     val r = x / tabSize
-    x = ceil(r) * tabSize
+    x = (floor(r) + 1f) * tabSize
     if((1f - fract(r)) * relativeTabSize < 1f){// smaller than a space? -> add a tab
         x += tabSize
     }

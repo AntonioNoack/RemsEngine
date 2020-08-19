@@ -63,7 +63,7 @@ class Text(text: String = "", parent: Transform? = null): GFXTransform(parent){
     var isItalic = false
 
     var textAlignment = AxisAlignment.MIN
-    var blockAlignmentX = AxisAlignment.MIN
+    var blockAlignmentX = AxisAlignment.MAX
     var blockAlignmentY = AxisAlignment.MIN
 
     enum class TextMode {
@@ -95,7 +95,7 @@ class Text(text: String = "", parent: Transform? = null): GFXTransform(parent){
     fun splitSegments(text: String): PartResult {
         val fontSize0 = 20f
         val awtFont = FontManager.getFont(font, fontSize0, isBold, isItalic) as AWTFont
-        return awtFont.splitParts(text, fontSize0)
+        return awtFont.splitParts(text, fontSize0, relativeTabSize)
     }
 
     data class FontMeshKey(
@@ -143,7 +143,7 @@ class Text(text: String = "", parent: Transform? = null): GFXTransform(parent){
             val height = lineSegmentsWithStyle.height * scaleY // todo why is this incorrect
 
             val lineOffset = - DEFAULT_LINE_HEIGHT * relativeLineSpacing[time]
-            val alignment = textAlignment
+            val textAlignment = textAlignment
 
             fun getFontMesh(fontMeshKey: FontMeshKey): FontMeshBase? {
                 return Cache.getEntry(fontMeshKey, fontMeshTimeout, true){
@@ -172,8 +172,9 @@ class Text(text: String = "", parent: Transform? = null): GFXTransform(parent){
                 }
             }
 
-            // minX = 0.0
-            // maxX = lineSegmentsWithStyle.width.toDouble()
+            // todo set correct min and max...
+            minX = 0.0
+            maxX = width.toDouble() / 2 // why???
 
             // todo actual text height vs baseline? for height
 
@@ -181,9 +182,9 @@ class Text(text: String = "", parent: Transform? = null): GFXTransform(parent){
 
             stack.translate(
                 when(blockAlignmentX){
-                    AxisAlignment.MIN -> + (maxX - minX).toFloat()
-                    AxisAlignment.CENTER -> 0f
-                    AxisAlignment.MAX -> - (maxX - minX).toFloat()
+                    AxisAlignment.MIN -> -width
+                    AxisAlignment.CENTER -> - width/2
+                    AxisAlignment.MAX -> 0f
                 }, when(blockAlignmentY){
                     AxisAlignment.MIN -> 0f
                     AxisAlignment.CENTER -> - totalHeight * 0.5f
@@ -197,17 +198,16 @@ class Text(text: String = "", parent: Transform? = null): GFXTransform(parent){
 
                 val fontMesh = getFontMesh(fontMeshKey) ?: continue
 
-                val offsetX = when(alignment){
-                    AxisAlignment.MIN -> 2 * (minX - fontMesh.minX).toFloat()
-                    AxisAlignment.CENTER -> 0f
-                    AxisAlignment.MAX -> 2 * (maxX - fontMesh.maxX).toFloat()
-                }
+                val offsetX = when(textAlignment){
+                    AxisAlignment.MIN -> 0f
+                    AxisAlignment.CENTER -> (width - value.lineWidth * scaleX) / 2f
+                    AxisAlignment.MAX -> (width - value.lineWidth * scaleX)
+                }// - 2 * fontMesh.minX.toFloat()
 
                 stack.pushMatrix()
 
                 stack.translate(value.xPos * scaleX + offsetX, value.yPos * scaleY * lineOffset, 0f)
 
-                // GFX.draw3D(stack, fontMesh.buffer, GFX.whiteTexture, color, isBillboard[time], true, null)
                 fontMesh.draw(stack){ buffer ->
                     GFX.draw3D(stack, buffer, GFX.whiteTexture, color, isBillboard[time], true, null)
                 }
@@ -217,16 +217,6 @@ class Text(text: String = "", parent: Transform? = null): GFXTransform(parent){
             }
 
             // todo calculate (signed) distance fields for different kinds of shadows from the mesh
-            // bad solution for blurred shadows
-            /*color.w *= 0.001f
-            val random = Random()
-            for(i in 0 until 1000){
-                stack.pushMatrix()
-                val radius = 0.01f
-                stack.translate(radius * random.nextGaussian().toFloat(), radius * random.nextGaussian().toFloat(), 0f)
-                GFX.draw3D(stack, buffer.buffer, GFX.whiteTexture, color, isBillboard[time], true)
-                stack.popMatrix()
-            }*/
 
         }
 

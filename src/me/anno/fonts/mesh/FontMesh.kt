@@ -302,7 +302,7 @@ class FontMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
         if (minX.isNaN() || minY.isNaN() || maxX.isNaN() || maxY.isNaN()) throw RuntimeException()
 
         // center the text, ignore the characters themselves
-        val deltaX = (maxX - minX) / 2
+        val deltaX = 0f // (maxX - minX) / 2
 
         val baseScale = DEFAULT_LINE_HEIGHT / (layout.ascent + layout.descent)
 
