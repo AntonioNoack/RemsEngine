@@ -32,8 +32,12 @@ fun mix(a: Float, b: Float, f: Float): Float {
     return a * (1f-f) + b*f
 }
 
+fun mix(a: Double, b: Double, f: Double): Double {
+    return a * (1f-f) + b*f
+}
+
 fun mix(a: Int, b: Int, f: Float): Int {
-    return (a * (1f-f) + b*f).roundToInt()
+    return (a * (1.0-f) + b*f).roundToInt()
 }
 
 fun mix(a: Int, b: Int, shift: Int, f: Float): Int {

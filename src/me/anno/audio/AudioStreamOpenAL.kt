@@ -4,6 +4,7 @@ import me.anno.gpu.GFX
 import me.anno.objects.Audio
 import me.anno.objects.Camera
 import me.anno.objects.LoopingState
+import me.anno.objects.Transform
 import me.anno.video.FFMPEGMetadata
 import org.lwjgl.openal.AL10.*
 import java.io.File
@@ -18,11 +19,11 @@ import kotlin.math.min
 // only play once, then destroy; it makes things easier
 // (on user input and when finally rendering only)
 
-class AudioStreamOpenAL(file: File, repeat: LoopingState, startTime: Double, meta: FFMPEGMetadata, listener: Camera):
-    AudioStream(file, repeat, startTime, meta, listener){
+class AudioStreamOpenAL(file: File, repeat: LoopingState, startTime: Double, meta: FFMPEGMetadata, sender: Audio, listener: Camera):
+    AudioStream(file, repeat, startTime, meta, sender, listener){
 
     constructor(audio: Audio, speed: Double, globalTime: Double, listener: Camera):
-            this(audio.file, audio.isLooping, 0.0, FFMPEGMetadata.getMeta(audio.file, false)!!, listener){
+            this(audio.file, audio.isLooping, 0.0, FFMPEGMetadata.getMeta(audio.file, false)!!, audio, listener){
         configure(audio, speed, globalTime)
     }
 

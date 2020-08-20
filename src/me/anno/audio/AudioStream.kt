@@ -4,10 +4,13 @@ import me.anno.objects.Audio
 import me.anno.objects.Camera
 import me.anno.objects.LoopingState
 import me.anno.objects.cache.Cache
+import me.anno.utils.f2
+import me.anno.utils.minus
 import me.anno.utils.mix
 import me.anno.video.FFMPEGMetadata
 import me.anno.video.FFMPEGMetadata.Companion.getMeta
 import me.anno.video.FFMPEGStream
+import org.joml.Vector3f
 import java.io.File
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -32,11 +35,12 @@ import kotlin.math.min
 abstract class AudioStream(
     val file: File, val repeat: LoopingState,
     val startTime: Double, val meta: FFMPEGMetadata,
+    val sender: Audio,
     val listener: Camera,
     val playbackSampleRate: Int = 48000){
 
     constructor(audio: Audio, speed: Double, globalTime: Double, playbackSampleRate: Int, listener: Camera):
-            this(audio.file, audio.isLooping, 0.0, getMeta(audio.file, false)!!, listener, playbackSampleRate){
+            this(audio.file, audio.isLooping, 0.0, getMeta(audio.file, false)!!, audio, listener, playbackSampleRate){
         configure(audio, speed, globalTime)
     }
 
@@ -115,6 +119,49 @@ abstract class AudioStream(
         return data[arrayIndex0] to data[arrayIndex0+1]
     }
 
+    val copyTransfer = object: AudioTransfer(1.0, 1.0, 0.0, 0.0){
+        override fun l2l(f: Double, s: AudioTransfer) = 1.0
+        override fun r2r(f: Double, s: AudioTransfer) = 1.0
+        override fun l2r(f: Double, s: AudioTransfer) = 0.0
+        override fun r2l(f: Double, s: AudioTransfer) = 0.0
+        override fun getLeft(left: Double, right: Double, f: Double, s: AudioTransfer) = left
+        override fun getRight(left: Double, right: Double, f: Double, s: AudioTransfer) = right
+    }
+
+    open class AudioTransfer(val l2l: Double, val r2r: Double, val l2r: Double, val rl2: Double){
+        open fun l2l(f: Double, s: AudioTransfer) = mix(l2l, s.l2l, f)
+        open fun r2r(f: Double, s: AudioTransfer) = mix(r2r, s.r2r, f)
+        open fun l2r(f: Double, s: AudioTransfer) = mix(l2r, s.l2r, f)
+        open fun r2l(f: Double, s: AudioTransfer) = mix(rl2, s.rl2, f)
+        open fun getLeft(left: Double, right: Double, f: Double, s: AudioTransfer) =
+            left * l2l(f, s) + right * r2l(f, s)
+        open fun getRight(left: Double, right: Double, f: Double, s: AudioTransfer) =
+            left * l2r(f, s) + right * r2r(f, s)
+        override fun toString() = "[${l2l.f2()} ${r2r.f2()} ${l2r.f2()} ${rl2.f2()}]"
+    }
+
+    fun calculateLoudness(global1: Double): AudioTransfer {
+
+        // todo decide on loudness depending on speaker orientation and size (e.g. Nierencharcteristik)
+        // todo mix left and right channel depending on orientation and speaker size
+        // todo top/bottom (tested from behind) sounds different: because I could hear it
+        // todo timing differences seam to matter, so we need to include them (aww)
+
+        val (camLocal2Global, _) = listener.getGlobalTransform(global1)
+        val (srcLocal2Global, _) = sender.getGlobalTransform(global1)
+        val camGlobalPos = camLocal2Global.transformPosition(Vector3f())
+        val srcGlobalPos = srcLocal2Global.transformPosition(Vector3f())
+        val dirGlobal = (camGlobalPos - srcGlobalPos).normalize() // in global space
+        val leftDirGlobal = camLocal2Global.transformDirection(Vector3f(+1f,0f,-0.1f)).normalize()
+        val rightDirGlobal = camLocal2Global.transformDirection(Vector3f(-1f,0f,-0.1f)).normalize()
+        val distance = camGlobalPos.distance(srcGlobalPos)
+
+        val left1 = leftDirGlobal.dot(dirGlobal) * 0.48 + 0.52
+        val right1 = rightDirGlobal.dot(dirGlobal) * 0.48 + 0.52
+        return AudioTransfer(left1, right1, 0.0, 0.0)
+
+    }
+
     fun requestNextBuffer(startTime: Double, bufferIndex: Long){
 
         // println("requesting audio buffer $startTime")
@@ -150,7 +197,26 @@ abstract class AudioStream(
                 .order(ByteOrder.nativeOrder())
             val stereoBuffer = byteBuffer.asShortBuffer()
 
+            var transfer0 = if(sender.is3D) calculateLoudness(startTime) else copyTransfer
+            var transfer1 = transfer0
+
+            val updatePositionEveryNFrames = 100
+
             for(sampleIndex in 0 until sampleCount){
+
+                if(sampleIndex % updatePositionEveryNFrames == 0){
+
+                    // load loudness from camera
+
+                    if(sender.is3D) {
+
+                        transfer0 = transfer1
+                        val global1 = startTime + (sampleIndex + updatePositionEveryNFrames) * dtx
+                        transfer1 = calculateLoudness(global1)
+
+                    }
+
+                }
 
                 val global1 = startTime + (sampleIndex + 1) * dtx
                 val local1 = globalToLocalTime(global1)
@@ -203,9 +269,11 @@ abstract class AudioStream(
                     }
                 }
 
+                val approxFraction = (sampleIndex % updatePositionEveryNFrames) * 1.0 / updatePositionEveryNFrames
+
                 // write the data
-                stereoBuffer.put(a0.toShort())
-                stereoBuffer.put(a1.toShort())
+                stereoBuffer.put(transfer0.getLeft(a0, a1, approxFraction, transfer1).toShort())
+                stereoBuffer.put(transfer0.getRight(a0, a1, approxFraction, transfer1).toShort())
 
                 // global0 = global1
                 // local0 = local1

@@ -9,11 +9,11 @@ import me.anno.utils.fract
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
 import java.util.*
+import kotlin.math.floor
 
 class Timer(parent: Transform? = null): Text("", parent) {
 
-    // todo start value
-    // todo date input?
+    // todo extra start value in a date format?
 
     var format = "hh:mm:ss.s2"
 
@@ -44,14 +44,26 @@ class Timer(parent: Transform? = null): Text("", parent) {
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
 
         val fract = fract(time)
-        var s = time.toLong()
+        var s = floor(time).toLong()
         var m = s / 60
         var h = m / 60
-        val d = h / 24
+        var d = h / 24
 
         s %= 60
+        if(s < 0){
+            s += 60
+            m--
+        }
         m %= 60
+        if(m < 0){
+            m += 60
+            h--
+        }
         h %= 24
+        if(h < 0){
+            h += 24
+            d--
+        }
 
         text = format
             .replace("s0", "")
@@ -74,9 +86,7 @@ class Timer(parent: Transform? = null): Text("", parent) {
     override fun createInspector(list: PanelListY, style: Style) {
         super.createInspector(list, style)
         list.children.removeIf { it is TextInputML && it.base.placeholder == "Text" }
-        list += TextInput("Format", style)
-            .setChangeListener { format = it }
-            .setIsSelectedListener { show(null) }
+        list += VI("Format", "ss=sec, mm=min, hh=hours, dd=days, s3=millis", null, format, style){ format = it }
     }
 
     override fun getClassName() = "Timer"

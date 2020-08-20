@@ -22,11 +22,17 @@ import java.lang.IllegalArgumentException
 // todo use the align-with-camera param for that? :)
 // respect scale? nah, rather not xD
 // (it becomes pretty complicated, I think)
+
+// todo speaker distance
+// todo speaker symbols (if meta is not null, and audio is available)
+
 open class Audio(var file: File = File(""), parent: Transform? = null): GFXTransform(parent){
 
     val amplitude = AnimatedProperty.floatPlus(1f)
     val forcedMeta get() = getMeta(file, false)
     val meta get() = getMeta(file, true)
+
+    var is3D = false
 
     var needsUpdate = true
     var isLooping =
@@ -84,8 +90,12 @@ open class Audio(var file: File = File(""), parent: Transform? = null): GFXTrans
         }
         list += VI("Amplitude", "How loud it is", amplitude, style)
         list += VI("Looping Type", "Whether to repeat the song/video", null, isLooping, style){
-            AudioManager.requestUpdate()
             isLooping = it
+            AudioManager.requestUpdate()
+        }
+        list += VI("Is 3D Sound", "Sound becomes directional", null, is3D, style){
+            is3D = it
+            AudioManager.requestUpdate()
         }
         val playbackTitles = "Text Playback" to "Stop Playback"
         fun getPlaybackTitle(invert: Boolean) = if((component == null) != invert) playbackTitles.first else playbackTitles.second

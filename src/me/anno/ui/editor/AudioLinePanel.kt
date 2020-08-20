@@ -16,6 +16,7 @@ import me.anno.video.FFMPEGStream
 import java.lang.IndexOutOfBoundsException
 import java.lang.RuntimeException
 import kotlin.concurrent.thread
+import kotlin.math.abs
 import kotlin.math.max
 
 // todo show current audio level in real time?
@@ -162,14 +163,19 @@ class AudioLinePanel(var meta: FFMPEGMetadata, val audio: Audio, style: Style): 
                     val t1 = getTimeAt(x)
                     val i1 = getBufferIndex(t1)
 
-                    var minValue = getMaxAmplitudesSync(i0).first.toInt()
-                    var maxValue = minValue
+                    val v0 = getMaxAmplitudesSync(i0)
+                    var minValue = abs(v0.second.toInt())
+                    var maxValue = abs(v0.first.toInt())
 
-                    for(i in i0 .. i1){
-                        val value = getMaxAmplitudesSync(i).first.toInt()
-                        if(value < minValue) minValue = value
-                        else if(value > maxValue) maxValue = value
+                    for(i in i0 until i1){
+                        val v = getMaxAmplitudesSync(i)
+                        val l = abs(v.second.toInt())
+                        val r = abs(v.first.toInt())
+                        minValue = max(minValue, l)
+                        maxValue = max(maxValue, r)
                     }
+
+                    minValue = -minValue
 
                     min[x-x0] = getY(maxValue)
                     max[x-x0] = getY(minValue)
@@ -192,7 +198,7 @@ class AudioLinePanel(var meta: FFMPEGMetadata, val audio: Audio, style: Style): 
         if(Input.isControlDown){
             val fraction = (x-this.x)/w
             time0 += dt * fraction
-            dt *= pow(5f, delta)
+            dt *= pow(20f, delta)
             clampDt()
             time0 -= dt * fraction
         } else {

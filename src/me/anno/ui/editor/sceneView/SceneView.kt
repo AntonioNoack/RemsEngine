@@ -1,5 +1,6 @@
 package me.anno.ui.editor.sceneView
 
+import me.anno.audio.AudioManager
 import me.anno.config.DefaultStyle.deepDark
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.deltaTime
@@ -102,6 +103,8 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
     var dz = 0
 
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+
+        // todo switch between manual control and autopilot for time :)
 
         GFX.check()
 
@@ -350,6 +353,7 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
 
     fun showChanges(){
         Studio.updateInspector()
+        // AudioManager.requestUpdate()
     }
 
     // todo undo, redo by serialization of the scene
