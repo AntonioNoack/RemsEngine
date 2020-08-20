@@ -29,7 +29,7 @@ package me.anno.input
 
 // medium priority
 // done load all webp images correctly - are there webp animations?
-// todo smileys in text and as meshes
+// done smileys in text and as meshes
 // done load svg files as meshes
 
 // low priority

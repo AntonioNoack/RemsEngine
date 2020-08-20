@@ -25,7 +25,7 @@ import java.lang.IllegalArgumentException
 open class Audio(var file: File = File(""), parent: Transform? = null): GFXTransform(parent){
 
     val amplitude = AnimatedProperty.floatPlus(1f)
-    val forcedMeta get() = getMeta(file, false)!!
+    val forcedMeta get() = getMeta(file, false)
     val meta get() = getMeta(file, true)
 
     var needsUpdate = true
@@ -44,7 +44,7 @@ open class Audio(var file: File = File(""), parent: Transform? = null): GFXTrans
         needsUpdate = false
         component?.stop()
         val meta = forcedMeta
-        if(meta.hasAudio){
+        if(meta?.hasAudio == true){
             val component = AudioStreamOpenAL(this, speed, globalTime, camera)
             this.component = component
             component.start()
@@ -79,8 +79,8 @@ open class Audio(var file: File = File(""), parent: Transform? = null): GFXTrans
         super.createInspector(list, style)
         list += VI("File Location", "Source file of this video", null, file, style){ file = it }
         val meta = forcedMeta
-        if(meta.hasAudio){
-            list += AudioLinePanel(forcedMeta, this, style)
+        if(meta?.hasAudio == true){
+            list += AudioLinePanel(meta, this, style)
         }
         list += VI("Amplitude", "How loud it is", amplitude, style)
         list += VI("Looping Type", "Whether to repeat the song/video", null, isLooping, style){

@@ -32,6 +32,10 @@ class Framebuffer(var w: Int, var h: Int, val samples: Int, val targetCount: Int
 
     lateinit var textures: Array<Texture2D>
 
+    fun ensure(){
+        if(pointer < 0) create()
+    }
+
     fun bind(){
         if(pointer < 0) create()
         currentFramebuffer = this

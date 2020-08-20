@@ -30,7 +30,7 @@ class CuttingView(style: Style): PanelListY(style){
         // todo separate audio and video layers?
         // todo split them in half?
         // todo display video, audio, title, both, all?
-        return TextPanel("this will be a layer...", style)
+        return LayerView(style)
     }
 
     fun addLayerTop(){

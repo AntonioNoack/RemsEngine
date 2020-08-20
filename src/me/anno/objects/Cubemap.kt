@@ -5,7 +5,6 @@ import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticFloatBuffer
 import me.anno.objects.cache.Cache
 import me.anno.ui.base.groups.PanelListY
-import me.anno.ui.input.FileInput
 import me.anno.ui.style.Style
 import me.anno.utils.plus
 import me.anno.utils.times
@@ -31,9 +30,9 @@ class Cubemap(var file: File = File(""), parent: Transform? = null): GFXTransfor
         val sphericalProjection = file.name.endsWith(".hdr", true) != otherFormat
 
         if(sphericalProjection){
-            GFX.drawSpherical(stack, buffer, texture, color, isBillboard[time], nearestFiltering, GL11.GL_QUADS)
+            GFX.drawSpherical(stack, buffer, texture, color, nearestFiltering, GL11.GL_QUADS)
         } else {
-            GFX.drawXYZUV(stack, buffer, texture, color, isBillboard[time], nearestFiltering, GL11.GL_QUADS)
+            GFX.drawXYZUV(stack, buffer, texture, color, nearestFiltering, GL11.GL_QUADS)
         }
 
     }

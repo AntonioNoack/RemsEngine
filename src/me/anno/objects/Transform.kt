@@ -1,7 +1,6 @@
 package me.anno.objects
 
 import me.anno.gpu.GFX
-import me.anno.gpu.GFX.isFakeColorRendering
 import me.anno.gpu.GFX.toRadians
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
@@ -14,19 +13,16 @@ import me.anno.objects.blending.blendModes
 import me.anno.objects.effects.MaskType
 import me.anno.objects.effects.ToneMappers
 import me.anno.objects.particles.ParticleSystem
+import me.anno.studio.Scene
 import me.anno.studio.Studio
-import me.anno.studio.Studio.selectedTransform
 import me.anno.ui.base.Panel
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.input.*
 import me.anno.ui.style.Style
 import org.joml.*
-import org.lwjgl.opengl.GL11.*
 import java.io.File
 import java.lang.RuntimeException
 import java.util.concurrent.atomic.AtomicInteger
-import kotlin.math.roundToInt
-import kotlin.math.roundToLong
 
 // pivot? nah, always use the center to make things easy;
 // or should we do it?... idk for sure...
@@ -49,13 +45,14 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
     }
 
     val clickId = nextClickId.incrementAndGet()
-    var isVisibleInTimeline = false
+    var timelineSlot = 0
 
     var position = AnimatedProperty.pos()
     var scale = AnimatedProperty.scale()
     var rotationYXZ = AnimatedProperty.rotYXZ()
     var rotationQuaternion: AnimatedProperty<Quaternionf>? = null
     var skew = AnimatedProperty.skew()
+    var alignWithCamera = AnimatedProperty.float01()
     var color = AnimatedProperty.color()
     var colorMultiplier = AnimatedProperty.floatPlus(1f)
 
@@ -123,24 +120,19 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
         list += VI("Start Time", "Delay the animation", null, timeOffset, style){ timeOffset = it }
         list += VI("Time Multiplier", "Speed up the animation", null, timeDilation, style){ timeDilation = it }
         list += VI("Advanced Time", "Add acceleration/deceleration to your elements", timeAnimated, style)
-        list += EnumInput("Blend Mode", true, blendMode.id, blendModes.keys.toList().sorted(), style)
-            .setChangeListener { blendMode = BlendMode[it] }
-            .setIsSelectedListener { show(null) }
+        list += VI("Blend Mode", "", null, blendMode, style){ blendMode = it }
 
         if(parent?.acceptsWeight() == true){
-            list += FloatInput("Weight", weight, AnimatedProperty.Type.FLOAT_PLUS, style)
-                .setChangeListener {
-                    weight = it.toFloat()
-                    (parent as? ParticleSystem)?.apply {
-                        if(children.size > 1) clearCache()
-                    }
+            list += VI("Weight", "", AnimatedProperty.Type.FLOAT_PLUS, weight, style){
+                weight = it
+                (parent as? ParticleSystem)?.apply {
+                    if(children.size > 1) clearCache()
                 }
-                .setIsSelectedListener { show(null) }
+            }
         }
-        list += BooleanInput("Visible In Timeline?", isVisibleInTimeline, style)
-            .setChangeListener { isVisibleInTimeline = it }
-            .setIsSelectedListener { show(null) }
 
+        list += VI("Timeline Slot", "< 1 means invisible", AnimatedProperty.Type.INT_PLUS, timelineSlot, style){ timelineSlot = it }
+        list += VI("Alignment with Camera", "0 = in 3D, 1 = looking towards the camera; billboards", alignWithCamera, style)
 
     }
 
@@ -165,6 +157,7 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
         val rotationQuat = rotationQuaternion
         val usesEuler = usesEuler
         val skew = skew[time]
+        val alignWithCamera = alignWithCamera[time]
 
         if(position.x != 0f || position.y != 0f || position.z != 0f){
             transform.translate(position)
@@ -186,6 +179,27 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
             0f, 0f, 1f
         )
 
+        if(alignWithCamera != 0f){
+            transform.alignWithCamera(alignWithCamera)
+        }
+
+
+
+
+    }
+
+    fun Matrix4f.alignWithCamera(alignWithCamera: Float){
+        // lerp rotation instead of full transform?
+        if(alignWithCamera != 0f){
+            val local = Scene.lGCTInverted
+            val up = local.transformDirection(Vector3f(0f, 1f, 0f))
+            val forward = local.transformDirection(Vector3f(0f, 0f, -1f))
+            if(alignWithCamera == 1f){
+                lookAlong(forward, up)
+            } else {
+                lerp(Matrix4f(this).lookAlong(forward, up), alignWithCamera)
+            }
+        }
     }
 
     fun applyTransformPT(transform: Matrix4f, parentTime: Double) = applyTransformLT(transform, getLocalTime(parentTime))
@@ -231,14 +245,11 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
     fun drawUICircle(stack: Matrix4fArrayList, scale: Float, inner: Float, color: Vector4f){
         // draw a small symbol to indicate pivot
         if(!GFX.isFinalRendering){
-            if(scale != 1f){
-                stack.pushMatrix()
-                stack.scale(scale)
-            }
-            GFX.draw3DCircle(stack, inner, 0f, 360f, color, 1f)
-            if(scale != 1f){
-                stack.popMatrix()
-            }
+            stack.pushMatrix()
+            if(scale != 1f) stack.scale(scale)
+            stack.alignWithCamera(1f)
+            GFX.draw3DCircle(stack, inner, 0f, 360f, color)
+            stack.popMatrix()
         }
     }
 
@@ -257,19 +268,20 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
         writer.writeObject(this, "rotationYXZ", rotationYXZ)
         writer.writeObject(this, "rotationQuat", rotationQuaternion)
         writer.writeObject(this, "skew", skew)
+        writer.writeObject(this, "alignWithCamera", alignWithCamera)
         writer.writeDouble("timeOffset", timeOffset)
         writer.writeDouble("timeDilation", timeDilation)
         writer.writeObject(this, "timeAnimated", timeAnimated)
         writer.writeObject(this, "color", color)
         writer.writeString("blendMode", blendMode.id)
         writer.writeList(this, "children", children)
-        writer.writeBool("isVisibleInTimeline", isVisibleInTimeline, true)
+        writer.writeInt("timelineSlot", timelineSlot, true)
     }
 
-    override fun readBool(name: String, value: Boolean) {
+    override fun readInt(name: String, value: Int) {
         when(name){
-            "isVisibleInTimeline" -> isVisibleInTimeline = value
-            else -> super.readBool(name, value)
+            "timelineSlot" -> timelineSlot = value
+            else -> super.readInt(name, value)
         }
     }
 
@@ -296,6 +308,7 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
                 }()
             }
             "skew" -> skew.copyFrom(value)
+            "alignWithCamera" -> alignWithCamera.copyFrom(value)
             "timeAnimated" -> timeAnimated.copyFrom(value)
             "color" -> color.copyFrom(value)
             else -> super.readObject(name, value)
@@ -330,6 +343,20 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
 
     override fun getClassName(): String = "Transform"
     override fun getApproxSize(): Int = 50
+
+    fun addBefore(child: Transform){
+        val p = parent!!
+        val index = p.children.indexOf(this)
+        p.children.add(index, child)
+        child.parent = p
+    }
+
+    fun addAfter(child: Transform){
+        val p = parent!!
+        val index = p.children.indexOf(this)
+        p.children.add(index+1, child)
+        child.parent = p
+    }
 
     fun addChild(child: Transform){
         if(child.contains(this)) throw RuntimeException("this cannot contain its parent!")
@@ -437,6 +464,14 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
                 .setChangeListener { setValue(File(it) as V) }
                 .setIsSelectedListener { show(null) }
                 .setTooltip(ttt)
+            is BlendMode -> {
+                val values = blendModes.values
+                val valueNames = values.map { it to it.displayName }
+                EnumInput(title, true, valueNames.first { it.first == value }.second, valueNames.map { it.second }, style)
+                    .setChangeListener { str -> setValue((valueNames.first { it.second == str }.first) as V) }
+                    .setIsSelectedListener { show(null) }
+                    .setTooltip(ttt)
+            }
             is Enum<*> -> {
                 val values = when(value){
                     is LoopingState -> LoopingState.values()

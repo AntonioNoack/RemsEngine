@@ -2,30 +2,28 @@ package me.anno.ui.editor.treeView
 
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle
+import me.anno.config.DefaultStyle.black
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
 import me.anno.input.Input
+import me.anno.input.Input.mouseY
 import me.anno.io.text.TextReader
 import me.anno.io.utils.StringMap
 import me.anno.objects.*
 import me.anno.objects.Transform.Companion.toTransform
-import me.anno.objects.effects.MaskLayer
-import me.anno.objects.geometric.Circle
-import me.anno.objects.geometric.Polygon
-import me.anno.objects.particles.ParticleSystem
 import me.anno.studio.Studio
-import me.anno.ui.base.Panel
+import me.anno.studio.Studio.dragged
 import me.anno.ui.base.TextPanel
 import me.anno.ui.dragging.Draggable
 import me.anno.ui.editor.treeView.TreeView.Companion.addChildFromFile
 import me.anno.ui.style.Style
 import me.anno.utils.clamp
-import me.anno.utils.colorDifference
 import me.anno.utils.mixARGB
-import org.joml.Vector3f
 import org.joml.Vector4f
 import java.io.File
 import java.lang.Exception
+
+// todo colorgrading with asc cdl standard???
 
 class TreeViewPanel(val getElement: () -> Transform, style: Style): TextPanel("", style){
 
@@ -37,9 +35,17 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style): TextPanel(""
 
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.draw(x0, y0, x1, y1)
+
+        // show visually, where the element would land, with colors
+        val dragged = dragged
+        val colorIndex = if(mouseY.toInt() in y0 .. y1 && dragged is Draggable && dragged.getOriginal() is Transform){
+            clamp(((mouseY - this.y) / this.h * 3).toInt(), 0, 2)
+        } else null
+
+        val tint = if(colorIndex == null) null else intArrayOf(0xffff77, 0xff77ff, 0x77ffff)[colorIndex] or black
         val transform = getElement()
-        textColor = DefaultStyle.black or (transform.getLocalColor().toRGB(180))
-        backgroundColor = /*if(transform === Studio.selectedCamera) cameraBackground else */defaultBackground
+        textColor = black or (transform.getLocalColor().toRGB(180))
+        backgroundColor = if(tint == null) defaultBackground else mixARGB(defaultBackground, tint, 0.5f)
         val isInFocus = isInFocus || Studio.selectedTransform == transform
         if(isInFocus) textColor = accentColor
         /*val colorDifference = colorDifference(textColor, backgroundColor)
@@ -92,7 +98,31 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style): TextPanel(""
     override fun onPaste(x: Float, y: Float, data: String, type: String) {
         try {
             val child = TextReader.fromText(data).firstOrNull { it is Transform } as? Transform ?: return super.onPaste(x, y, data, type)
-            getElement().addChild(child)
+            val original = (Studio.dragged as? Draggable)?.getOriginal() as? Transform
+            val relativeY = (y - this.y) / this.h
+            val e = getElement()
+            if(relativeY < 0.33f){
+                // paste on top
+                if(e.parent != null){
+                    e.addBefore(child)
+                } else {
+                    e.addChild(child)
+                }
+            } else if(relativeY < 0.67f){
+                // paste as child
+                e.addChild(child)
+            } else {
+                // paste below
+                if(e.parent != null){
+                    e.addAfter(child)
+                } else {
+                    e.addChild(child)
+                }
+            }
+            // we can't remove the element, if it's the parent
+            if(original !in child.listOfAll){
+                original?.removeFromParent()
+            }
         } catch (e: Exception){
             e.printStackTrace()
             super.onPaste(x, y, data, type)

@@ -17,9 +17,6 @@ class VideoBackgroundTask(val video: VideoCreator){
 
     val camera = cameras.firstOrNull() ?: nullCamera
 
-    // todo show the progress somehow
-    // (percent, time used, expected time remaining)
-
     val framebuffer = Framebuffer(video.w, video.h, 1, 1, false, Framebuffer.DepthBufferType.TEXTURE)
 
     val renderingIndex = AtomicInteger(0)

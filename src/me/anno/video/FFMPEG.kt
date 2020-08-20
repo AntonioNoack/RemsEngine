@@ -5,9 +5,6 @@ import me.anno.utils.OS
 import java.io.File
 import java.lang.RuntimeException
 
-// todo check video and webp on Linux
-// (works on windows, however Linux will have the installed version instead of the shipped exe)
-
 object FFMPEG {
 
     // Linux needs ffmpeg to be installed; on Windows just use and call the exe files

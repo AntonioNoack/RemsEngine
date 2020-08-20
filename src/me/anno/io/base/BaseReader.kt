@@ -48,6 +48,7 @@ abstract class BaseReader {
             "Cubemap" -> Cubemap()
             "Camera" -> Camera()
             "Mesh" -> Mesh()
+            "Timer" -> Timer()
             else -> {
                 ISaveable.objectTypeRegistry[clazz]?.invoke() ?: throw RuntimeException("Unknown class $clazz")
             }

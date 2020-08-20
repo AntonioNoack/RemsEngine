@@ -34,8 +34,8 @@ class Image(var file: File = File(""), parent: Transform? = null): GFXTransform(
                 } as? StaticFloatBufferData
                 if(bufferData == null && isFinalRendering) throw MissingFrameException(file)
                 if(bufferData != null){
-                    // todo apply tiling...
-                    GFX.draw3DSVG(stack, bufferData.buffer, whiteTexture, color, isBillboard[time], true)
+                    // todo apply tiling for svgs...
+                    GFX.draw3DSVG(stack, bufferData.buffer, whiteTexture, color, true)
                 }
             }
             name.endsWith("webp", true) -> {
@@ -43,14 +43,14 @@ class Image(var file: File = File(""), parent: Transform? = null): GFXTransform(
                 // calculate required scale? no, without animation, we don't need to scale it down ;)
                 val texture = Cache.getVideoFrame(file, 1, 0, 0, 1.0, imageTimeout, LoopingState.PLAY_ONCE)
                 if((texture == null || !texture.isLoaded) && isFinalRendering) throw MissingFrameException(file)
-                if(texture?.isLoaded == true) GFX.draw3D(stack, texture, color, isBillboard[time], nearestFiltering, tiling)
+                if(texture?.isLoaded == true) GFX.draw3D(stack, texture, color, nearestFiltering, tiling)
             }
             else -> {
                 val tiling = tiling[time]
                 val texture = Cache.getImage(file, imageTimeout, true)
                 if(texture == null && isFinalRendering) throw MissingFrameException(file)
                 texture?.apply {
-                    GFX.draw3D(stack, texture, color, isBillboard[time], nearestFiltering, tiling)
+                    GFX.draw3D(stack, texture, color, nearestFiltering, tiling)
                 }
             }
         }

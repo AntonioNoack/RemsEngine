@@ -81,6 +81,7 @@ object DefaultConfig: StringMap() {
                 maskLayer
             }(),
             "Text" to Text("Text", null),
+            "Timer" to Timer(null),
             "Cubemap" to {
                 val cube = Cubemap(File(""), null)
                 cube.scale.set(Vector3f(1000f, 1000f, 1000f))

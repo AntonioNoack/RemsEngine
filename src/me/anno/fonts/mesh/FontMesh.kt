@@ -35,6 +35,8 @@ class FontMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
     private val pt = pt0
 
     val debugImageSize = 1000
+    val randomDiameter = 1e-3
+    val randomRadius = randomDiameter / 2
 
     fun ix(v: Vector2d) = (debugImageSize / 2 + (v.x - pt.x) * 80).toInt()
     fun iy(v: Vector2d) = (debugImageSize / 2 + (v.y - pt.y) * 80).toInt()
@@ -159,7 +161,7 @@ class FontMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
 
                     // if(debugPieces) println("line $x $y to $x0 $y0")
 
-                    currentShape.add(Vector2d(x.toDouble(), y.toDouble()))
+                    currentShape.add(Vector2d(x, y))
 
                     x = x0
                     y = y0
@@ -184,8 +186,6 @@ class FontMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
                         // which can't be solved by our currently used triangulator
                         val random = Random()
                         // works <3
-                        val randomDiameter = 1e-7
-                        val randomRadius = randomDiameter / 2
                         currentShape.forEach { pt ->
                             pt.x += random.nextDouble() * randomDiameter - randomRadius
                             pt.y += random.nextDouble() * randomDiameter - randomRadius
@@ -302,17 +302,13 @@ class FontMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
         if (minX.isNaN() || minY.isNaN() || maxX.isNaN() || maxY.isNaN()) throw RuntimeException()
 
         // center the text, ignore the characters themselves
-        val deltaX = 0f // (maxX - minX) / 2
 
         val baseScale = DEFAULT_LINE_HEIGHT / (layout.ascent + layout.descent)
 
         triangles.forEach {
-            buffer.put(((it.x - deltaX).toFloat() * baseScale) * 0.5f + 0.5f)
+            buffer.put((it.x.toFloat() * baseScale) * 0.5f + 0.5f)
             buffer.put(it.y.toFloat() * baseScale * 0.5f + 0.5f)
         }
-
-        minX -= deltaX
-        maxX -= deltaX
 
         minX *= baseScale * 0.5f
         maxX *= baseScale * 0.5f

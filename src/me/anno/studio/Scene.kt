@@ -218,6 +218,8 @@ object Scene {
     }
 
     var lastCameraTransform = Matrix4f()
+    var lastGlobalCameraTransform = Matrix4f()
+    var lGCTInverted = Matrix4f()
 
     // rendering must be done in sync with the rendering thread (OpenGL limitation) anyways, so one object is enough
     val stack = Matrix4fArrayList()
@@ -248,6 +250,9 @@ object Scene {
         Studio.usedCamera = camera
 
         val (cameraTransform, cameraTime) = camera.getGlobalTransform(time)
+        lastGlobalCameraTransform.set(cameraTransform)
+        lGCTInverted.set(cameraTransform)
+        lGCTInverted.invert()
 
         GFX.clip(x0, y0, w, h)
 
@@ -334,7 +339,9 @@ object Scene {
         if(enableCircularDOF){
             // todo render dof instead of bokeh blur only
             // make bokeh blur an additional camera effect?
-            val src = (buffer.msBuffer ?: buffer).textures[0]
+            val srcBuffer = buffer.msBuffer ?: buffer
+            srcBuffer.ensure()
+            val src = srcBuffer.textures[0]
             buffer = switch(buffer, 0, true, withMultisampling = false)
             BokehBlur.draw(src, buffer, 0.02f)
         } else if(withMultisampling){

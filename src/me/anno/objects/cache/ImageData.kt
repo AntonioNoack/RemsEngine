@@ -70,7 +70,7 @@ class ImageData(file: File): CacheData {
                     GFX.check()
                     10
                 }
-                // if(texture?.isLoaded == true) GFX.draw3D(stack, texture, color, isBillboard[time], nearestFiltering, tiling)
+                // if(texture?.isLoaded == true) GFX.draw3D(stack, texture, color, nearestFiltering, tiling)
             }
             else -> {
                 texture.create {

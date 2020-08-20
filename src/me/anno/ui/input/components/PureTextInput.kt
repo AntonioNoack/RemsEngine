@@ -73,7 +73,6 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
         val sync = GFX.loadTexturesSync
         GFX.loadTexturesSync = true
-        // todo the textures seem to be loaded async... (unstable ui when typing)
         // super.draw(x0, y0, x1, y1)
         drawBackground()
         val x = x + padding.left

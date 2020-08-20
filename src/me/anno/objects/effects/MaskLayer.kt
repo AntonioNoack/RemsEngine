@@ -17,7 +17,7 @@ class MaskLayer(parent: Transform? = null): MaskedLayer(parent){
 
     override fun drawOnScreen(localTransform: Matrix4fArrayList, time: Double, color: Vector4f, offsetColor: Vector4f) {
         GFX.draw3DMasked(localTransform, masked.textures[0], mask.textures[0], color,
-            isBillboard[time], true, type, useMaskColor[time], offsetColor,
+            true, type, useMaskColor[time], offsetColor,
             pixelSize[time],
             if(isInverted) 1f else 0f)
     }

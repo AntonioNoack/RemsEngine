@@ -13,9 +13,6 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.style.Style
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
-import kotlin.math.PI
-import kotlin.math.cos
-import kotlin.math.sin
 
 class Circle(parent: Transform? = null): GFXTransform(parent){
 
@@ -24,7 +21,7 @@ class Circle(parent: Transform? = null): GFXTransform(parent){
     var endDegrees = AnimatedProperty.float(360f)
 
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
-        GFX.draw3DCircle(stack, innerRadius[time], startDegrees[time], endDegrees[time], color, isBillboard[time])
+        GFX.draw3DCircle(stack, innerRadius[time], startDegrees[time], endDegrees[time], color)
     }
 
     override fun createInspector(list: PanelListY, style: Style) {

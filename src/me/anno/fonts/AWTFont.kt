@@ -17,7 +17,7 @@ import kotlin.math.max
 import kotlin.math.roundToInt
 import kotlin.streams.toList
 
-
+// todo triangulation challenge: 😬
 class AWTFont(val font: Font): XFont {
 
     fun prepareGraphics(g2d: Graphics2D){
@@ -162,7 +162,7 @@ class AWTFont(val font: Font): XFont {
         val width = ceil(parts.width)
         val height = ceil(parts.height)
 
-        println("$width for ${result.size} parts")
+        // println("$width for ${result.size} parts")
 
         val texture = Texture2D(width, height, 1)
         texture.create {

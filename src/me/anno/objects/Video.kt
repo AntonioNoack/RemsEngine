@@ -41,25 +41,10 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
 
     var videoScale = 1
 
-    fun calculateSize(matrix: Matrix4f, isBillboard: Float, w: Int, h: Int): Int? {
-
-
-
-        // todo we would need to apply align-with-camera, too
+    fun calculateSize(matrix: Matrix4f, w: Int, h: Int): Int? {
 
         /**
-            vec4 billboardTransform(vec2 betterUV, float z){
-                vec4 pos0 = transform * vec4(0.0,0.0,0.0,1.0);
-                pos0.xy += betterUV * billboardSize;
-                pos0.z += z;
-                return pos0;
-            }
-            vec4 transform3D(vec2 betterUV){
-                return transform * vec4(betterUV, 0.0, 1.0);
-            }
-            vec4 billboard = billboardTransform(betterUV, 0.0);
-            vec4 in3D = transform3D(betterUV);
-            gl_Position = mix(in3D, billboard, isBillboard);
+            gl_Position = transform * vec4(betterUV, 0.0, 1.0);
          * */
 
         // clamp points to edges of screens, if outside, clamp on the z edges
@@ -71,22 +56,8 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
         val sx = w / avgSize
         val sy = h / avgSize
 
-        // we need the w value for the billboard size :)
-        val billboardCenter = if(isBillboard > 0f) matrix.transform(Vector4f(0f, 0f, 0f, 1f)) else null
-        val billboardW = billboardCenter?.w ?: 1f
-        billboardCenter?.mul(1f/billboardW)
-
-        // billboard size
-        val scale = matrix.transformDirection(Vector3f(1f, 1f, 1f)).length()
-        val bbx = scale * GFX.windowHeight / GFX.windowWidth * w/h / billboardW
-        val bby = scale / billboardW
-
         fun getPoint(x: Float, y: Float): Vector4f {
-            val billboardPoint = if(isBillboard > 0f) billboardCenter!! + Vector4f(x*bbx, y*bby, 0f, 0f) else null
-            val v00 = if(isBillboard < 1f) matrix.transformProject(Vector4f(x*sx, y*sy, 0f, 1f)) else null
-            if(isBillboard <= 0f) return v00!!
-            if(isBillboard >= 1f) return billboardPoint!!
-            return v00!!.lerp(billboardPoint!!, isBillboard)
+            return matrix.transformProject(Vector4f(x*sx, y*sy, 0f, 1f))
         }
 
         val v00 = getPoint(-1f, -1f)
@@ -148,8 +119,7 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
 
         val zoomLevel = if(meta != null){
             // calculate reasonable zoom level from canvas size
-            val alignWithCamera = isBillboard[time]
-            val rawZoomLevel = calculateSize(stack, alignWithCamera, meta.videoWidth, meta.videoHeight) ?: return
+            val rawZoomLevel = calculateSize(stack, meta.videoWidth, meta.videoHeight) ?: return
             if(videoScale < 1) getCacheableZoomLevel(rawZoomLevel)
             else videoScale
         } else 1
@@ -182,7 +152,7 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
 
                     val frame = Cache.getVideoFrame(file, zoomLevel, frameIndex, frameCount, videoFPS, videoFrameTimeout, isLooping)
                     if(frame != null && frame.isLoaded){
-                        GFX.draw3D(stack, frame, color, isBillboard.getValueAt(time), nearestFiltering, tiling[time])
+                        GFX.draw3D(stack, frame, color, nearestFiltering, tiling[time])
                         wasDrawn = true
                     } else {
                         if(GFX.isFinalRendering){
@@ -200,7 +170,7 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
 
         if(!wasDrawn){
             GFX.draw3D(stack, GFX.flat01, GFX.colorShowTexture, 16, 9,
-                Vector4f(0.5f, 0.5f, 0.5f, 1f).mul(color), isBillboard.getValueAt(time),
+                Vector4f(0.5f, 0.5f, 0.5f, 1f).mul(color),
                 true, tiling16x9
             )
         }
@@ -212,7 +182,6 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
         list += VI("Tiling", "(tile count x, tile count y, offset x, offset y)", tiling, style)
         list += VI("Video Start", "Timestamp in seconds of the first frames drawn", null, startTime, style){ startTime = it }
         list += VI("Video End", "Timestamp in seconds of the last frames drawn", null, endTime, style) { endTime = it }
-        // todo a third mode, where the video is reversed after playing?
         // KISS principle? just allow modules to be created :)
         // list += VI("Looping?", "Should the video start after it ended? (useful for Gifs)", null, isLooping, style){ isLooping = it }
         // todo more interpolation modes? (cubic?)

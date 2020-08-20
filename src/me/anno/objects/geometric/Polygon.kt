@@ -54,7 +54,7 @@ class Polygon(parent: Transform? = null): GFXTransform(parent){
             stack.scale(sqrt2, sqrt2, 1f)
         }
         GFX.draw3DPolygon(stack, getBuffer(count, selfDepth > 0f), texture, color,
-            inset, isBillboard[time], if(texture == GFX.whiteTexture) true else nearestFiltering)
+            inset, if(texture == GFX.whiteTexture) true else nearestFiltering)
         return
     }
 
