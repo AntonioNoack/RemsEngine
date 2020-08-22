@@ -13,6 +13,7 @@ import me.anno.ui.dragging.IDraggable
 import me.anno.ui.editor.PropertyInspector
 import org.apache.logging.log4j.LogManager
 import java.util.concurrent.ConcurrentLinkedQueue
+import kotlin.math.max
 
 object Studio {
 
@@ -26,8 +27,9 @@ object Studio {
 
     var editorTimeDilation = 0.0
         set(value) {
-            if(value != field) updateAudio()
-            field = value
+            val v2 = max(value, 0.0)
+            if(v2 != field) updateAudio()
+            field = v2
         }
 
     val isPaused get() = editorTimeDilation == 0.0

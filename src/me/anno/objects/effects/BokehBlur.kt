@@ -1,6 +1,6 @@
 package me.anno.objects.effects
 
-import me.anno.gpu.GFX.createCustomShader2
+import me.anno.gpu.GFX.createShaderNoShorts
 import me.anno.gpu.GFX.flat01
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.shader.Shader
@@ -35,21 +35,22 @@ object BokehBlur {
     /**
      * result is written to parameter buffer
      * */
-    fun draw(src: Texture2D, dst: Framebuffer, sizeRY: Float){
+    fun draw(srcTexture: Texture2D, sizeRY: Float){
 
-        val w = src.w
-        val h = src.h
+        val w = srcTexture.w
+        val h = srcTexture.h
 
         if(compositionShader == null) init()
 
-        src.bind(false)
+        srcTexture.bind(0, false)
 
         glDisable(GL_DEPTH_TEST)
         glDisable(GL_BLEND)
 
-        val r = FBStack[w, h, false]
-        val g = FBStack[w, h, false]
-        val b = FBStack[w, h, false]
+        val target = Framebuffer.stack.peek()!!
+        val r = FBStack["bokeh-r", w, h, false]
+        val g = FBStack["bokeh-g", w, h, false]
+        val b = FBStack["bokeh-b", w, h, false]
 
         val filterRadius = sizeRY * h / KERNEL_COUNT
 
@@ -69,7 +70,9 @@ object BokehBlur {
         shader.v2("stepVal", 1f/w, 1f/h)
         shader.v1("filterRadius", filterRadius)
 
-        dst.bind()
+        // dst.bind()
+        while(Framebuffer.stack.pop() != target){}
+        target.bind()
 
         // filter texture is bound correctly
         r.bindTexture0(1, false)
@@ -83,6 +86,7 @@ object BokehBlur {
         target.bind(w, h)
         shader.v3("channelSelection", channel)
         flat01.draw(shader)
+        target.unbind()
     }
 
     fun init(){
@@ -96,7 +100,7 @@ object BokehBlur {
 
         val varyingShader = "varying vec2 uv;\n"
 
-        perChannelShader = createCustomShader2(vertexShader, varyingShader, "" +
+        perChannelShader = createShaderNoShorts(vertexShader, varyingShader, "" +
 
                 "uniform float filterRadius;\n" +
                 "uniform vec2 stepVal;\n" + // 1/resolution
@@ -168,7 +172,7 @@ object BokehBlur {
 
         filterTexture.create(kernelTexture)
 
-        compositionShader = createCustomShader2(vertexShader, varyingShader, "" +
+        compositionShader = createShaderNoShorts(vertexShader, varyingShader, "" +
 
                 "uniform float filterRadius;\n" +
                 "uniform vec2 stepVal;\n" + // 1/resolution

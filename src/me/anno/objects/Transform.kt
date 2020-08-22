@@ -216,13 +216,17 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
             applyTransformLT(stack, time)
             GFX.drawnTransform = this
             onDraw(stack, time, color)
-            val passesOnColor = passesOnColor()
-            val childColor = if(passesOnColor) color else parentColor
-            if(drawChildrenAutomatically()){
-                drawChildren(stack, time, childColor)
-            }
+            drawChildren(stack, time, color, parentColor)
         }
 
+    }
+
+    fun drawChildren(stack: Matrix4fArrayList, time: Double, color: Vector4f, parentColor: Vector4f){
+        val passesOnColor = passesOnColor()
+        val childColor = if(passesOnColor) color else parentColor
+        if(drawChildrenAutomatically()){
+            drawChildren(stack, time, childColor)
+        }
     }
 
     open fun drawChildrenAutomatically() = true

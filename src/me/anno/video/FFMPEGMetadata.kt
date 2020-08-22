@@ -121,6 +121,7 @@ class FFMPEGMetadata(file: File): CacheData {
         // get and parse the data :)
         val data = String(process.inputStream.readBytes())
         println(data)
+        if(data.isEmpty()) return 0.0
         val time = data.split("time=")[1].split(" ")[0]
         // frame=206723 fps=1390 q=-0.0 Lsize=N/A time=00:57:28.87 bitrate=N/A speed=23.2x
         return time.parseTime()

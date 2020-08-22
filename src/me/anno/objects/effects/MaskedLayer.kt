@@ -19,13 +19,16 @@ import org.joml.Matrix4fArrayList
 import org.joml.Matrix4fStack
 import org.joml.Vector4f
 import org.lwjgl.opengl.GL11.*
+import java.lang.RuntimeException
 
 abstract class MaskedLayer(parent: Transform? = null): GFXTransform(parent){
 
     // just a little expensive...
     // todo enable multisampling
-    val mask = Framebuffer(1, 1, 1, 1, false, Framebuffer.DepthBufferType.NONE)
-    val masked = Framebuffer(1, 1, 1, 1, true, Framebuffer.DepthBufferType.INTERNAL)
+    val samples = 1
+    val mask = Framebuffer("ML-mask", 1, 1, samples, 1, true, Framebuffer.DepthBufferType.NONE)
+    val masked = Framebuffer("ML-masked", 1, 1, samples, 1, true, Framebuffer.DepthBufferType.TEXTURE)
+    val temp = Framebuffer("ML-temp", 1, 1, samples, 1, true, Framebuffer.DepthBufferType.NONE)
 
     // limit to [0,1]?
     // nice effects can be created with values outside of [0,1], so while [0,1] is the valid range,
@@ -45,7 +48,7 @@ abstract class MaskedLayer(parent: Transform? = null): GFXTransform(parent){
 
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
 
-        val showResult = GFX.isFinalRendering || (!showMask && !showMasked)
+        val showResult = isFinalRendering || (!showMask && !showMasked)
         if(children.size >= 2 && showResult){// else invisible
 
             /* (low priority)
@@ -63,6 +66,8 @@ abstract class MaskedLayer(parent: Transform? = null): GFXTransform(parent){
                 }
             }*/
 
+            val top = Framebuffer.stack.peek()
+
             BlendMode.DEFAULT.apply()
 
             drawMask(stack, time, color)
@@ -75,6 +80,9 @@ abstract class MaskedLayer(parent: Transform? = null): GFXTransform(parent){
             effectiveBlendMode.apply()
 
             drawOnScreen(stack, time, color)
+
+            val top2 = Framebuffer.stack.peek()
+            if(top !== top2) throw RuntimeException()
 
         }
 
@@ -131,13 +139,13 @@ abstract class MaskedLayer(parent: Transform? = null): GFXTransform(parent){
 
     fun drawMask(stack: Matrix4fArrayList, time: Double, color: Vector4f){
 
-        mask.bindTemporary(GFX.windowWidth, GFX.windowHeight)
+        mask.bind(GFX.windowWidth, GFX.windowHeight)
 
         val child = children.getOrNull(0)
         if(child?.getClassName() == "Transform" && child.children.isEmpty()){
 
             glClearColor(1f, 1f, 1f, 1f)
-            glClear(GL_COLOR_BUFFER_BIT)
+            glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
         } else {
 
@@ -146,6 +154,8 @@ abstract class MaskedLayer(parent: Transform? = null): GFXTransform(parent){
             drawChild(stack, time, color, child)
 
         }
+
+        mask.unbind()
 
     }
 

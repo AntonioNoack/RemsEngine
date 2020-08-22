@@ -79,10 +79,8 @@ object ActionManager {
         defaultValue["SceneView.z.p"] = "SetMode(ROTATE)"
         defaultValue["SceneView.y.p"] = "SetMode(ROTATE)"
 
-
-        // todo somehow not working
-        defaultValue["GraphEditorBody.arrowLeft.press"] = "MoveLeft"
-        defaultValue["GraphEditorBody.arrowRight.press"] = "MoveRight"
+        defaultValue["GraphEditorBody.arrowLeft.typed"] = "MoveLeft"
+        defaultValue["GraphEditorBody.arrowRight.typed"] = "MoveRight"
 
         defaultValue["PureTextInputML.delete.typed"] = "DeleteAfter"
         defaultValue["PureTextInputML.backspace.typed"] = "DeleteBefore"
@@ -159,10 +157,14 @@ object ActionManager {
     }
 
     fun onEvent(dx: Float, dy: Float, combination: KeyCombination, isContinuous: Boolean){
-        executeGlobally(0f, 0f, false, globalActions[combination])
+        var panel = inFocus.firstOrNull()
+        // filter action keys, if they are typing keys and a typing field is in focus
+        val isWriting = combination.isWritingKey && (panel?.isKeyInput() == true)
+        if(!isWriting){
+            executeGlobally(0f, 0f, false, globalActions[combination])
+        }
         val x = Input.mouseX
         val y = Input.mouseY
-        var panel = inFocus.firstOrNull()
         targetSearch@ while(panel != null){
             val clazz = panel.getClassName()
             val actions = localActions[clazz to combination] ?: localActions["*" to combination]
@@ -187,9 +189,7 @@ object ActionManager {
         }
     }
 
-    fun executeGlobally(dx: Float, dy: Float, isContinuous: Boolean,
-                        actions: List<String>?){
-        // todo filter action keys, if they are typing keys and a typing field is in focus
+    fun executeGlobally(dx: Float, dy: Float, isContinuous: Boolean, actions: List<String>?){
         if(actions == null) return
         for(action in actions){
             fun setEditorTimeDilation(dilation: Double): Boolean {

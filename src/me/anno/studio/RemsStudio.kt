@@ -28,6 +28,7 @@ import me.anno.utils.OS
 import me.anno.utils.clamp
 import me.anno.utils.f3
 import org.apache.logging.log4j.LogManager
+import org.lwjgl.system.Library
 import java.io.File
 import java.io.OutputStream
 import java.io.PrintStream
@@ -94,6 +95,8 @@ object RemsStudio {
 
     fun run(){
 
+        // Library.JNI_LIBRARY_NAME.toLowerCase()
+
         setupLogging()
 
         var lmx = mouseX
@@ -113,6 +116,7 @@ object RemsStudio {
             }
         }
         GFX.gameLoop = { w, h ->
+
             check()
 
             val hovered = getPanelAndWindowAt(mouseX, mouseY)
@@ -145,7 +149,9 @@ object RemsStudio {
                     if(dt1 > 0.01f && frameCtr > 0) LOGGER.warn("Used ${dt1.f3()}s + ${dt2.f3()}s for layout")
                     Input.framesSinceLastInteraction++
                 }
+                GFX.ensureEmptyStack()
                 panel.draw(window.x,window.y,window.x+panel.w,window.y+panel.h)
+                GFX.ensureEmptyStack()
             }
 
             Tooltips.draw()

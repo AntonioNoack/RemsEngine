@@ -31,8 +31,6 @@ import me.anno.ui.style.Style
 import me.anno.utils.*
 import org.joml.Matrix4fArrayList
 import org.joml.Vector3f
-import org.lwjgl.opengl.ARBFramebufferObject.GL_FRAMEBUFFER
-import org.lwjgl.opengl.ARBFramebufferObject.glBindFramebuffer
 import org.lwjgl.opengl.GL11.*
 import kotlin.math.max
 import kotlin.math.min
@@ -104,6 +102,8 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
 
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
 
+        GFX.ensureEmptyStack()
+
         // todo switch between manual control and autopilot for time :)
 
         GFX.check()
@@ -132,8 +132,12 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
             }
         }
 
+        GFX.ensureEmptyStack()
+
         // for(i in 0 until 1000)
         Scene.draw(null, camera, x+dx,y+dy,rw,rh, editorTime, flipY = false, drawMode = ShaderPlus.DrawMode.COLOR)
+
+        GFX.ensureEmptyStack()
 
         GFX.clip(x0, y0, x1, y1)
 
@@ -157,7 +161,11 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
             it.draw(x, y, w, h, x0, y0, x1, y1)
         }
 
+        GFX.ensureEmptyStack()
+
         super.draw(x0, y0, x1, y1)
+
+        GFX.ensureEmptyStack()
 
     }
 
@@ -178,7 +186,7 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
             // draw only the clicked area?
             Scene.draw(fb, camera, 0, 0, rw, rh, editorTime, false, mode)
             GFX.check()
-            fb?.bind() ?: glBindFramebuffer(GL_FRAMEBUFFER, 0)
+            fb?.bind() ?: Framebuffer.bindNull()
             val localX = (clickX - this.x).roundToInt()
             val localH = fb?.h ?: GFX.height
             val localY = localH - 1 - (clickY - this.y).roundToInt()
@@ -191,6 +199,7 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
                 min(diameter, width),
                 min(diameter, height),
                 GL_RGBA, GL_UNSIGNED_BYTE, buffer)
+            Framebuffer.unbind()
             return buffer
         }
 

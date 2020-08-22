@@ -47,7 +47,6 @@ open class Panel(val style: Style): Saveable(){
     fun requestFocus() = GFX.requestFocus(this, true)
 
     fun drawBackground(){
-        // todo make more beautiful by adding shadows on the top and bottom, maybe the sides; for input panels mainly
         GFX.drawRect(x,y,w,h,backgroundColor)
     }
 

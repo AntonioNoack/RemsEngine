@@ -54,7 +54,7 @@ class ImageData(file: File): CacheData {
                 GFX.addGPUTask {
                     val fw = frame.w
                     val fh = frame.h
-                    val framebuffer = Framebuffer(fw, fh, 1, 1, false, Framebuffer.DepthBufferType.NONE)
+                    val framebuffer = Framebuffer("webp-temp", fw, fh, 1, 1, false, Framebuffer.DepthBufferType.NONE)
                     this.framebuffer = framebuffer
                     framebuffer.bind()
                     texture = framebuffer.textures[0]
@@ -67,6 +67,8 @@ class ImageData(file: File): CacheData {
                         shader.v2("uvCorrection", w.toFloat()/((w+1)/2*2), h.toFloat()/((h+1)/2*2))
                     }
                     GFX.flat01.draw(shader)
+                    GFX.check()
+                    framebuffer.unbind()
                     GFX.check()
                     10
                 }

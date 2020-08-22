@@ -5,7 +5,13 @@ import org.lwjgl.glfw.GLFW.*
 
 class KeyCombination(val key: Int, val modifiers: Int, val type: Type){
 
-    val hash = key.shl(8) + modifiers * 3 + type.hash
+    val hash = key.shl(8) + modifiers * 6 + type.hash
+
+    val isControl = (modifiers and GLFW_MOD_CONTROL) != 0
+    val isShift = (modifiers and GLFW_MOD_SHIFT) != 0
+    val isAlt = (modifiers and GLFW_MOD_ALT) != 0
+
+    val isWritingKey = !isControl && !isAlt && !(key == GLFW_KEY_SPACE && isShift)
 
     enum class Type(val hash: Int){
         DOWN(0),

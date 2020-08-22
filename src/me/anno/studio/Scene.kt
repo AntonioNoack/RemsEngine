@@ -4,7 +4,7 @@ import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle
 import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
-import me.anno.gpu.GFX.createCustomShader3
+import me.anno.gpu.GFX.createShader
 import me.anno.gpu.GFX.flat01
 import me.anno.gpu.GFX.isFakeColorRendering
 import me.anno.gpu.GFX.isFinalRendering
@@ -179,7 +179,7 @@ object Scene {
                     "}"
         )
 
-        lutShader = createCustomShader3("" +
+        lutShader = createShader("" +
                 "in vec2 attr0;\n" +
                 "uniform float ySign;\n" +
                 "void main(){" +
@@ -197,7 +197,7 @@ object Scene {
                 "   gl_FragColor = vec4(texture(lut, color.rbg).rgb, c0.a);\n" +
                 "}", listOf("tex", "lut"))
 
-        copyShader = createCustomShader3("in vec2 attr0;\n" +
+        copyShader = createShader("in vec2 attr0;\n" +
                 "void main(){\n" +
                 "   gl_Position = vec4(attr0*2.0-1.0, 0.5, 1.0);\n" +
                 "   uv = attr0;\n" +
@@ -210,8 +210,8 @@ object Scene {
         isInited = true
     }
 
-    fun switch(buffer: Framebuffer, offset: Int, nearest: Boolean, withMultisampling: Boolean?): Framebuffer {
-        val next = FBStack[buffer.w, buffer.h, withMultisampling ?: buffer.withMultisampling]
+    fun getNextBuffer(name: String, buffer: Framebuffer, offset: Int, nearest: Boolean, withMultisampling: Boolean?): Framebuffer {
+        val next = FBStack[name, buffer.w, buffer.h, withMultisampling ?: buffer.withMultisampling]
         next.bind()
         buffer.bindTextures(offset, nearest)
         return next
@@ -224,6 +224,8 @@ object Scene {
     // rendering must be done in sync with the rendering thread (OpenGL limitation) anyways, so one object is enough
     val stack = Matrix4fArrayList()
     fun draw(target: Framebuffer?, camera: Camera, x0: Int, y0: Int, w: Int, h: Int, time: Double, flipY: Boolean, drawMode: ShaderPlus.DrawMode){
+
+        GFX.ensureEmptyStack()
 
         GFX.drawMode = drawMode
         val isFakeColorRendering = isFakeColorRendering
@@ -256,12 +258,12 @@ object Scene {
 
         GFX.clip(x0, y0, w, h)
 
-        var buffer = FBStack[w, h, withMultisampling]
+        var buffer = FBStack["Scene-Main", w, h, withMultisampling]
         buffer.bind()
         //framebuffer.bind(w, h)
 
         GFX.check()
-        GFX.drawRect(x0, y0, w, h, DefaultStyle.black)
+        GFX.drawRect(x0, y0, w, h, black)
 
         if(camera.useDepth){
             GL30.glEnable(GL30.GL_DEPTH_TEST)
@@ -342,17 +344,17 @@ object Scene {
             val srcBuffer = buffer.msBuffer ?: buffer
             srcBuffer.ensure()
             val src = srcBuffer.textures[0]
-            buffer = switch(buffer, 0, true, withMultisampling = false)
-            BokehBlur.draw(src, buffer, 0.02f)
+            buffer = getNextBuffer("Scene-Bokeh", buffer, 0, true, withMultisampling = false)
+            BokehBlur.draw(src, 0.02f)
         } else if(withMultisampling){
             // todo skip this step, and just use the correct buffer...
             // this is just a computationally not that expensive workaround
             val msBuffer = buffer.msBuffer!!
             msBuffer.bind()
-            buffer = switch(buffer, 0, true, withMultisampling = false) // this is somehow not enough (why??)
-            buffer = switch(buffer, 0, true, withMultisampling = false)
+            buffer = getNextBuffer("Scene-tmp0", buffer, 0, true, withMultisampling = false) // this is somehow not enough (why??)
+            buffer = getNextBuffer("Scene-tmp1", buffer, 0, true, withMultisampling = false)
             val shader = copyShader
-            msBuffer.textures[0].bind(0, false)
+            msBuffer.bindTextures(0, false)
             shader.use()
             flat01.draw(shader)
         }
@@ -376,7 +378,7 @@ object Scene {
 
         val useLUT = lut != null
         if(useLUT){
-            buffer = switch(buffer, 0, nearest = false, withMultisampling = false)
+            buffer = getNextBuffer("Scene-LT", buffer, 0, nearest = false, withMultisampling = false)
         } else {
             bindTarget()
             buffer.bindTextures(0, nearest = false)
@@ -458,6 +460,9 @@ object Scene {
 
         GFX.drawMode = ShaderPlus.DrawMode.COLOR
 
+        // todo could be moved to ensure empty stack...
+        GFX.clearStack()
+
     }
 
     fun displayGizmo(cameraTransform: Matrix4f, x0: Int, y0: Int, w: Int, h: Int){
@@ -506,8 +511,6 @@ object Scene {
             if(d == vy.z) drawCircle(vy.x, vy.y, vy.z, 0x77ff77)
             if(d == vz.z) drawCircle(vz.x, vz.y, vz.z, 0x7777ff)
         }
-
-
 
     }
 

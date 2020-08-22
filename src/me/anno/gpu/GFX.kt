@@ -41,10 +41,7 @@ import me.anno.utils.f1
 import me.anno.utils.minus
 import me.anno.video.Frame
 import org.apache.logging.log4j.LogManager
-import org.joml.Matrix4f
-import org.joml.Matrix4fArrayList
-import org.joml.Vector3f
-import org.joml.Vector4f
+import org.joml.*
 import org.lwjgl.BufferUtils
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
@@ -53,6 +50,7 @@ import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL30.*
 import java.lang.Exception
+import java.lang.Math
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.math.*
@@ -382,12 +380,11 @@ object GFX: GFXBase1() {
         check()
     }
 
-    fun draw3DMasked(stack: Matrix4fArrayList, texture: Texture2D, mask: Texture2D, color: Vector4f,
-                     nearestFiltering: Boolean,
+    fun draw3DMasked(stack: Matrix4fArrayList, color: Vector4f,
                      maskType: MaskType,
                      useMaskColor: Float, offsetColor: Vector4f,
                      pixelSize: Float,
-                     isInverted: Float){
+                     isInverted: Float, blurDeltaUV: Vector2f){
         val shader = shader3DMasked.shader
         shader3DUniforms(shader, stack, 1, 1, color, null)
         shader.v4("offsetColor", offsetColor.x, offsetColor.y, offsetColor.z, offsetColor.w)
@@ -395,8 +392,30 @@ object GFX: GFXBase1() {
         shader.v1("invertMask", isInverted)
         shader.v1("maskType", maskType.id)
         shader.v2("pixelating", pixelSize * windowHeight / windowWidth, pixelSize)
+        shader.v2("blurDeltaUV", blurDeltaUV)
+        shader.v1("maxSteps", pixelSize * windowHeight)
+        flat01.draw(shader)
+        check()
+    }
+
+    fun draw3DMasked(stack: Matrix4fArrayList, masked: Texture2D, mask: Texture2D, color: Vector4f,
+                     nearestFiltering: Boolean,
+                     maskType: MaskType,
+                     useMaskColor: Float, offsetColor: Vector4f,
+                     pixelSize: Float,
+                     isInverted: Float,
+                     blurDeltaUV: Vector2f){
+        val shader = shader3DMasked.shader
+        shader3DUniforms(shader, stack, 1, 1, color, null)
+        shader.v4("offsetColor", offsetColor.x, offsetColor.y, offsetColor.z, offsetColor.w)
+        shader.v1("useMaskColor", useMaskColor)
+        shader.v1("invertMask", isInverted)
+        shader.v1("maskType", maskType.id)
+        shader.v2("pixelating", pixelSize * windowHeight / windowWidth, pixelSize)
+        shader.v2("blurDeltaUV", blurDeltaUV)
+        shader.v1("maxSteps", pixelSize * windowHeight)
         mask.bind(1, nearestFiltering)
-        texture.bind(0, nearestFiltering)
+        masked.bind(0, nearestFiltering)
         flat01.draw(shader)
         check()
     }
@@ -712,11 +731,14 @@ object GFX: GFXBase1() {
                 "uniform float useMaskColor;\n" +
                 "uniform float invertMask;\n" +
                 "uniform vec2 pixelating;\n" +
+                "uniform vec2 blurDeltaUV;\n" +
                 "uniform int maskType;\n" +
+                "uniform float maxSteps;\n" +
                 "void main(){\n" +
                 "   vec2 uv2 = uv.xy/uv.z * 0.5 + 0.5;\n" +
                 "   vec4 mask = texture(mask, uv2);\n" +
                 "   vec4 color;\n" +
+                "   float effect, sum;\n" +
                 "   switch(maskType){\n" +
                 "       case ${MaskType.MASKING.id}:\n" +
                 "           vec4 maskColor = vec4(" +
@@ -727,12 +749,33 @@ object GFX: GFXBase1() {
                 "           break;\n" +
                 "       case ${MaskType.PIXELATING.id}:\n" +
                 // use the average instead for more stable results?
-                "           float maskColor2 = mix(mask.a, dot(vec3(0.3), mask.rgb), useMaskColor);\n" +
-                "           maskColor2 = mix(maskColor2, 1.0 - maskColor2, invertMask);\n" +
+                "           effect = mix(mask.a, dot(vec3(0.3), mask.rgb), useMaskColor);\n" +
+                "           effect = mix(effect, 1.0 - effect, invertMask);\n" +
                 "           color = mix(" +
                 "               texture(tex, uv2), " +
                 "               texture(tex, round(uv2 / pixelating) * pixelating)," +
-                "               maskColor2);\n" +
+                "               effect);\n" +
+                "           gl_FragColor = offsetColor + tint * color;\n" +
+                "           break;\n" +
+                "       case ${MaskType.GAUSSIAN_BLUR.id}:\n" +
+                "           effect = mix(mask.a, dot(vec3(0.3), mask.rgb), useMaskColor);\n" +
+                "           effect = mix(effect, 1.0 - effect, invertMask);\n" +
+                "           sum = 0.0;\n" +
+                // test all steps for -pixelating*2 .. pixelating*2, then average
+                "           float steps = effect * maxSteps;\n" +
+                "           int pixelSize = max(0, int(2.7 * steps));\n" +
+                "           if(pixelSize == 0){\n" +
+                "               color = texture(tex, uv2);\n" +
+                "           } else {\n" +
+                "               color = vec4(0.0);\n" +
+                "               for(int i=-pixelSize;i<=pixelSize;i++){\n" +
+                "                   float relativeX = float(i)/steps;\n" +
+                "                   float weight = i == 0 ? 1.0 : exp(-relativeX*relativeX);\n" +
+                "                   sum += weight;\n" +
+                "                   color += texture(tex, uv2 + relativeX * blurDeltaUV) * weight;\n" +
+                "               }\n" +
+                "               color /= sum;\n" +
+                "           }\n" +
                 "           gl_FragColor = offsetColor + tint * color;\n" +
                 "           break;\n" +
                 "   }\n" +
@@ -779,11 +822,11 @@ object GFX: GFXBase1() {
                 "   }" +*/
                 "}"
 
-        shader3D = createCustomShader(v3D, y3D, f3D, listOf("tex"))
-        shader3DPolygon = createCustomShader(v3DPolygon, y3D, f3D, listOf("tex"))
+        shader3D = createShaderPlus(v3D, y3D, f3D, listOf("tex"))
+        shader3DPolygon = createShaderPlus(v3DPolygon, y3D, f3D, listOf("tex"))
 
         // create the obj+mtl shader
-        shaderObjMtl = createCustomShader(v3DBase +
+        shaderObjMtl = createShaderPlus(v3DBase +
                 "a3 coords;\n" +
                 "a2 uvs;\n" +
                 "a3 normals;\n" +
@@ -805,13 +848,13 @@ object GFX: GFXBase1() {
                 "}", listOf())
 
         shader3DCircle = Shader(v3DCircle, y3D, f3DCircle)
-        shader3DMasked = createCustomShader(v3DMasked, y3DMasked, f3DMasked, listOf("tex", "mask"))
+        shader3DMasked = createShaderPlus(v3DMasked, y3DMasked, f3DMasked, listOf("mask", "tex"))
 
-        shader3DSVG = createCustomShader(v3DSVG, y3DSVG, f3DSVG, listOf("tex"))
-        shader3DXYZUV = createCustomShader(v3DXYZUV, y3D, f3D, listOf("tex"))
-        shader3DSpherical = createCustomShader(v3DSpherical, y3DSpherical, f3DSpherical, listOf("tex"))
+        shader3DSVG = createShaderPlus(v3DSVG, y3DSVG, f3DSVG, listOf("tex"))
+        shader3DXYZUV = createShaderPlus(v3DXYZUV, y3D, f3D, listOf("tex"))
+        shader3DSpherical = createShaderPlus(v3DSpherical, y3DSpherical, f3DSpherical, listOf("tex"))
 
-        shader3DYUV = createCustomShader(v3D, y3D, "" +
+        shader3DYUV = createShaderPlus(v3D, y3D, "" +
                 "uniform vec4 tint;" +
                 "uniform sampler2D texY, texU, texV;\n" +
                 "uniform vec2 uvCorrection;\n" +
@@ -830,7 +873,7 @@ object GFX: GFXBase1() {
                 colorPostProcessing +
                 "}", listOf("texY", "texU", "texV"))
 
-        shader3DARGB = createCustomShader(v3D, y3D, "" +
+        shader3DARGB = createShaderPlus(v3D, y3D, "" +
                 "uniform vec4 tint;" +
                 "uniform sampler2D tex;\n" +
                 "void main(){\n" +
@@ -839,7 +882,8 @@ object GFX: GFXBase1() {
                 "   gl_FragColor = tint * color;\n" +
                 colorPostProcessing +
                 "}", listOf("tex"))
-        shader3DBGRA = createCustomShader(v3D, y3D, "" +
+
+        shader3DBGRA = createShaderPlus(v3D, y3D, "" +
                 "uniform vec4 tint;" +
                 "uniform sampler2D tex;\n" +
                 "void main(){\n" +
@@ -862,10 +906,11 @@ object GFX: GFXBase1() {
                     "   gl_FragColor = color;\n" +
                     colorPostProcessing +
                     "}"
+
         )
     }
 
-    fun createCustomShader2(v3D: String, y3D: String, fragmentShader: String, textures: List<String>): Shader {
+    fun createShaderNoShorts(v3D: String, y3D: String, fragmentShader: String, textures: List<String>): Shader {
         val shader = Shader(v3D, y3D, fragmentShader, true)
         shader.use()
         textures.forEachIndexed { index, name ->
@@ -874,7 +919,7 @@ object GFX: GFXBase1() {
         return shader
     }
 
-    fun createCustomShader(v3D: String, y3D: String, fragmentShader: String, textures: List<String>): ShaderPlus {
+    fun createShaderPlus(v3D: String, y3D: String, fragmentShader: String, textures: List<String>): ShaderPlus {
         val shader = ShaderPlus(v3D, y3D, fragmentShader)
         for(shader2 in listOf(shader.shader)){
             shader2.use()
@@ -885,7 +930,7 @@ object GFX: GFXBase1() {
         return shader
     }
 
-    fun createCustomShader3(v3D: String, y3D: String, fragmentShader: String, textures: List<String>): Shader {
+    fun createShader(v3D: String, y3D: String, fragmentShader: String, textures: List<String>): Shader {
         val shader = Shader(v3D, y3D, fragmentShader)
         shader.use()
         textures.forEachIndexed { index, name ->
@@ -934,9 +979,32 @@ object GFX: GFXBase1() {
         }
     }
 
+    fun clearStack(){
+        Framebuffer.stack.clear()
+    }
+
+    fun ensureEmptyStack(){
+        if(Framebuffer.stack.size > 0){
+            /*Framebuffer.stack.forEach {
+                println(it)
+            }
+            throw RuntimeException("Catched ${Framebuffer.stack.size} items on the Framebuffer.stack")
+            exitProcess(1)*/
+        }
+        Framebuffer.stack.clear()
+    }
+
     override fun renderStep(){
 
+        ensureEmptyStack()
+
+        // Framebuffer.bindNull()
+
         workQueue(gpuTasks)
+
+        // Framebuffer.stack.pop()
+
+        ensureEmptyStack()
 
         // rendering and editor section
 
@@ -955,9 +1023,9 @@ object GFX: GFXBase1() {
 
         Texture2D.textureBudgetUsed = 0
 
-        Framebuffer.bindNull()
+        /*Framebuffer.bindNull()
         glViewport(0, 0, width, height)
-        glBindFramebuffer(GL_FRAMEBUFFER, 0)
+        Framebuffer.bindNull()*/
         glBindTexture(GL_TEXTURE_2D, 0)
 
         check()
@@ -971,7 +1039,11 @@ object GFX: GFXBase1() {
 
         check()
 
+        ensureEmptyStack()
+
         gameLoop(width, height)
+
+        ensureEmptyStack()
 
         check()
 
@@ -1074,16 +1146,21 @@ object GFX: GFXBase1() {
                 }
             }
             val error = glGetError()
-            if(error != 0) throw RuntimeException("GLException: ${when(error){
-                1280 -> "invalid enum"
-                1281 -> "invalid value"
-                1282 -> "invalid operation"
-                1283 -> "stack overflow"
-                1284 -> "stack underflow"
-                1285 -> "out of memory"
-                1286 -> "invalid framebuffer operation"
-                else -> "$error"
-            }}")
+            if(error != 0){
+                Framebuffer.stack.forEach {
+                    println(it)
+                }
+                throw RuntimeException("GLException: ${when(error){
+                    1280 -> "invalid enum"
+                    1281 -> "invalid value"
+                    1282 -> "invalid operation"
+                    1283 -> "stack overflow"
+                    1284 -> "stack underflow"
+                    1285 -> "out of memory"
+                    1286 -> "invalid framebuffer operation"
+                    else -> "$error"
+                }}")
+            }
         }
     }
 

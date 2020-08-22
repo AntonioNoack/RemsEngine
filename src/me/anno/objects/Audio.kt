@@ -18,8 +18,7 @@ import org.joml.Vector4f
 import java.io.File
 import java.lang.IllegalArgumentException
 
-// todo flat playback vs 3D playback
-// todo use the align-with-camera param for that? :)
+// flat playback vs 3D playback
 // respect scale? nah, rather not xD
 // (it becomes pretty complicated, I think)
 
@@ -75,7 +74,7 @@ open class Audio(var file: File = File(""), parent: Transform? = null): GFXTrans
 
         // to do ensure, that the correct buffer is being generated -> done
         // to do we need to invalidate buffers, if we touch the custom timeline mode, or accelerate/decelerate audio... -> half done
-        // todo how should we generate left/right audio? -> we need to somehow do this in software, too, for rendering
+        // how should we generate left/right audio? -> we need to somehow do this in software, too, for rendering -> started
 
         getMeta(file, true) // just in case we need it ;)
 

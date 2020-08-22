@@ -17,7 +17,7 @@ package me.anno.input
 
 
 // todo filters:
-// todo gaussian blur
+// done gaussian blur
 // todo depth of field
 // todo motion blur?
 // todo bokeh blur

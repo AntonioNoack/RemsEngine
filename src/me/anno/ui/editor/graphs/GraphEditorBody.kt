@@ -392,7 +392,7 @@ class GraphEditorBody(style: Style): Panel(style.getChild("deep")){
         }
     }
 
-    override fun onKeyTyped(x: Float, y: Float, key: Int) {
+    /*override fun onKeyTyped(x: Float, y: Float, key: Int) {
         when(key){
             GLFW_KEY_LEFT -> moveRight(-1f)
             GLFW_KEY_RIGHT -> moveRight(1f)
@@ -400,7 +400,7 @@ class GraphEditorBody(style: Style): Panel(style.getChild("deep")){
             GLFW_KEY_DOWN -> moveUp(-1f)
             else -> super.onKeyTyped(x, y, key)
         }
-    }
+    }*/
 
     val movementSpeed get() = 0.05f * sqrt(w*h.toFloat())
 

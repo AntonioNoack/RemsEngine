@@ -7,10 +7,12 @@ import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL13
 import org.lwjgl.opengl.GL30.*
 import org.lwjgl.opengl.GL32
+import java.lang.Exception
 import java.lang.RuntimeException
 import java.util.*
+import kotlin.system.exitProcess
 
-class Framebuffer(var w: Int, var h: Int, val samples: Int, val targetCount: Int, val fpTargets: Boolean, val depthBufferType: DepthBufferType){
+class Framebuffer(var name: String, var w: Int, var h: Int, val samples: Int, val targetCount: Int, val fpTargets: Boolean, val depthBufferType: DepthBufferType){
 
     // multiple targets, layout=x require shader version 330+
     // use glBindFragDataLocation instead
@@ -23,7 +25,7 @@ class Framebuffer(var w: Int, var h: Int, val samples: Int, val targetCount: Int
 
     val withMultisampling get() = samples > 1
     var msBuffer = if(withMultisampling)
-        Framebuffer(w, h, 1, targetCount, fpTargets, depthBufferType) else null
+        Framebuffer("$name.ms", w, h, 1, targetCount, fpTargets, depthBufferType) else null
 
     var pointer = -1
     var depthRenderBuffer = -1
@@ -38,9 +40,9 @@ class Framebuffer(var w: Int, var h: Int, val samples: Int, val targetCount: Int
 
     fun bind(){
         if(pointer < 0) create()
-        currentFramebuffer = this
         glBindFramebuffer(GL_FRAMEBUFFER, pointer)
         glViewport(0,0, w, h)
+        stack.push(this)
         if(withMultisampling){
             GL11.glEnable(GL13.GL_MULTISAMPLE)
         } else {
@@ -57,10 +59,11 @@ class Framebuffer(var w: Int, var h: Int, val samples: Int, val targetCount: Int
             GFX.check()
             create()
             GFX.check()
+        } else {
+            GFX.check()
+            bind()
+            GFX.check()
         }
-        GFX.check()
-        bind()
-        GFX.check()
     }
 
     fun create(){
@@ -70,6 +73,7 @@ class Framebuffer(var w: Int, var h: Int, val samples: Int, val targetCount: Int
         pointer = glGenFramebuffers()
         if(pointer < 0) throw RuntimeException()
         glBindFramebuffer(GL_FRAMEBUFFER, pointer)
+        stack.push(this)
         GFX.check()
         textures = Array(targetCount){
             val texture = Texture2D(w, h, samples)
@@ -128,16 +132,29 @@ class Framebuffer(var w: Int, var h: Int, val samples: Int, val targetCount: Int
     }
 
     fun resolveTo(target: Framebuffer?){
-        if(pointer < 0) throw RuntimeException()
-        target?.bind() // ensure that it exists
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, target?.pointer ?: 0)
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, pointer)
-        // if(target == null) glDrawBuffer(GL_BACK)?
-        glBlitFramebuffer(
-            0, 0, w, h,
-            0, 0, target?.w ?: GFX.width, target?.h ?: GFX.height,
-            GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT,
-            GL11.GL_NEAREST)
+        try {
+            GFX.check()
+            if(target != null){
+                // ensure that it exists
+                target.bind(w, h)
+                target.unbind()
+            }
+            GFX.check()
+            glBindFramebuffer(GL_DRAW_FRAMEBUFFER, target?.pointer ?: 0)
+            glBindFramebuffer(GL_READ_FRAMEBUFFER, pointer)
+            // if(target == null) glDrawBuffer(GL_BACK)?
+            GFX.check()
+            // LOGGER.info("Blit $w $h into target $target")
+            glBlitFramebuffer(
+                0, 0, w, h,
+                0, 0, target?.w ?: GFX.width, target?.h ?: GFX.height,
+                GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT,
+                GL11.GL_NEAREST)
+            GFX.check()
+        } catch (e: Exception){
+            e.printStackTrace()
+            exitProcess(1)
+        }
     }
 
     fun check(){
@@ -161,15 +178,20 @@ class Framebuffer(var w: Int, var h: Int, val samples: Int, val targetCount: Int
     fun bindTextures(offset: Int = 0, nearest: Boolean){
         if(withMultisampling){
             val msBuffer = msBuffer!!
+            GFX.check()
             resolveTo(msBuffer)
+            GFX.check()
             msBuffer.bindTextures(offset, nearest)
+            GFX.check()
             return
         }
+        GFX.check()
         textures.forEachIndexed { index, texture ->
             GL13.glActiveTexture(GL13.GL_TEXTURE0 + offset + index)
             texture.bind(nearest)
             texture.clamping(false)
         }
+        GFX.check()
     }
 
     fun destroy(){
@@ -186,46 +208,42 @@ class Framebuffer(var w: Int, var h: Int, val samples: Int, val targetCount: Int
         }
     }
 
-    fun bindTemporary(newWidth: Int, newHeight: Int){
-        stack.push(currentFramebuffer)
-        bind(newWidth, newHeight)
-    }
-
-    fun bindTemporary(){
-        stack.push(currentFramebuffer)
-        bind()
+    fun unbindUntil(){
+        var popped = stack.pop()
+        while(popped !== this) popped = stack.pop()!!
+        stack.pop()!!.bind()
     }
 
     fun unbind(){
-        if(stack.isEmpty()) throw RuntimeException("No framebuffer was found!")
-        stack.pop().bind()
+        val popped = stack.pop()
+        if(popped !== this) {
+            stack.forEach {
+                println(it)
+            }
+            throw RuntimeException("Unbind is incorrect... why? am $this, got $popped")
+        }
+        stack.pop()!!.bind()
     }
-
-
 
     companion object {
 
         val LOGGER = LogManager.getLogger(Framebuffer::class)!!
 
-        private var currentFramebuffer: Framebuffer? = null
-        val stack = Stack<Framebuffer>()
+        val stack = Stack<Framebuffer?>()
+
         fun bindNull(){
-            currentFramebuffer = null
             glBindFramebuffer(GL_FRAMEBUFFER, 0)
+            stack.push(null)
         }
-        fun bindNullTemporary(){
-            stack.push(currentFramebuffer)
-            bindNull()
+
+        fun unbind(){
+            stack.pop()
+            if(stack.isNotEmpty())
+            stack.pop()!!.bind()
         }
-        fun unbindNull(){
-            if(stack.isEmpty()) throw RuntimeException("No framebuffer was found!")
-            stack.pop().bind()
-        }
-        fun Framebuffer?.bind(w: Int, h: Int){
-            if(this == null){
-                bindNull()
-            } else bind(w, h)
-        }
+
     }
+
+    override fun toString(): String = "FB[n=$name, i=$pointer, w=$w h=$h s=$samples fp=$fpTargets t=$targetCount d=$depthBufferType]"
 
 }

@@ -17,7 +17,7 @@ class VideoBackgroundTask(val video: VideoCreator){
 
     val camera = cameras.firstOrNull() ?: nullCamera
 
-    val framebuffer = Framebuffer(video.w, video.h, 1, 1, false, Framebuffer.DepthBufferType.TEXTURE)
+    val framebuffer = Framebuffer("VideoBackgroundTask", video.w, video.h, 1, 1, false, Framebuffer.DepthBufferType.TEXTURE)
 
     val renderingIndex = AtomicInteger(0)
     val savingIndex = AtomicInteger(0)

@@ -146,7 +146,7 @@ open class Text(text: String = "", parent: Transform? = null): GFXTransform(pare
             }
 
             // min and max x are cached for long texts with thousands of lines (not really relevant)
-            // todo actual text height vs baseline? for height
+            // actual text height vs baseline? for height
 
             val totalHeight = lineOffset * height
 
@@ -156,10 +156,10 @@ open class Text(text: String = "", parent: Transform? = null): GFXTransform(pare
                     AxisAlignment.CENTER -> - width/2
                     AxisAlignment.MAX -> 0f
                 }, when(blockAlignmentY){
-                    AxisAlignment.MIN -> 0f
-                    AxisAlignment.CENTER -> - totalHeight * 0.5f
-                    AxisAlignment.MAX -> - totalHeight
-                } + lineOffset/2, 0f
+                    AxisAlignment.MIN -> 0f + lineOffset * 0.57f // text touches top
+                    AxisAlignment.CENTER -> - totalHeight * 0.5f + lineOffset * 0.75f // center line, height of horizontal in e
+                    AxisAlignment.MAX -> - totalHeight + lineOffset // exactly baseline
+                }, 0f
             )
 
             for((index, value) in lineSegmentsWithStyle.parts.withIndex()){

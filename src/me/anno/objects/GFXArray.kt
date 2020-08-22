@@ -3,6 +3,7 @@ package me.anno.objects
 import me.anno.config.DefaultConfig
 import me.anno.io.text.TextReader
 import me.anno.objects.animation.AnimatedProperty
+import me.anno.ui.base.ButtonPanel
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.style.Style
 import me.anno.utils.clamp
@@ -64,6 +65,7 @@ class GFXArray(parent: Transform?): GFXTransform(parent) {
 
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
         super.onDraw(stack, time, color)
+
         // todo replace 1:1 every time? how? drivers??? (text)
 
     }
@@ -72,9 +74,19 @@ class GFXArray(parent: Transform?): GFXTransform(parent) {
 
     override fun createInspector(list: PanelListY, style: Style) {
         super.createInspector(list, style)
+
         // todo create apply button?
         // todo we need to be able to insert properties...
         // todo replace? :D, # String Array
+
+        list += ButtonPanel("Apply Array", style)
+            .setSimpleClickListener { applyArray() }
+            .setTooltip("Makes it less configurable; however you can change all aspects individually then")
+
+    }
+
+    fun applyArray(){
+        // todo create save point
     }
 
 

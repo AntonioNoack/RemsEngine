@@ -21,22 +21,52 @@ object FBStack {
         } as FBStackData
     }
 
-    operator fun get(w: Int, h: Int, withMultisampling: Boolean): Framebuffer {
+    operator fun get(name: String, w: Int, h: Int, withMultisampling: Boolean): Framebuffer {
         val value = getValue(w, h, withMultisampling)
         synchronized(value){
             value.apply {
                 return if(nextIndex >= data.size){
-                    data.add(Framebuffer(w, h,
+                    val framebuffer = Framebuffer(
+                        name, w, h,
                         if(withMultisampling) 8 else 1, 1, true,
-                        Framebuffer.DepthBufferType.TEXTURE))
+                        Framebuffer.DepthBufferType.TEXTURE
+                    )
+                    // if(!bind) framebuffer.unbind()
+                    data.add(framebuffer)
                     nextIndex = data.size
                     data.last()
                 } else {
-                    data[nextIndex++]
+                    val framebuffer = data[nextIndex++]
+                    // if(bind) framebuffer.bind()
+                    framebuffer.name = name
+                    framebuffer
                 }
             }
         }
     }
+
+    /*operator fun get(name: String, w: Int, h: Int, withMultisampling: Boolean): Framebuffer {
+        val value = getValue(w, h, withMultisampling)
+        synchronized(value){
+            value.apply {
+                return if(nextIndex >= data.size){
+                    val framebuffer = Framebuffer(
+                        name, w, h,
+                        if(withMultisampling) 8 else 1, 1, true,
+                        Framebuffer.DepthBufferType.TEXTURE
+                    )
+                    data.add(framebuffer)
+                    nextIndex = data.size
+                    data.last()
+                } else {
+                    val framebuffer = data[nextIndex++]
+                    framebuffer.bind(w, h)
+                    framebuffer.name = name
+                    framebuffer
+                }
+            }
+        }
+    }*/
 
     fun clear(w: Int, h: Int, withMultisampling: Boolean){
         getValue(w, h, withMultisampling).nextIndex = 0
