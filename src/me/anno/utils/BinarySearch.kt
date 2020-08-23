@@ -1,7 +1,5 @@
 package me.anno.utils
 
-import java.lang.RuntimeException
-
 object BinarySearch {
 
     /**

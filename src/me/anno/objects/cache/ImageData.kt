@@ -9,7 +9,6 @@ import me.anno.objects.LoopingState
 import me.anno.video.Frame
 import org.apache.commons.imaging.Imaging
 import org.joml.Matrix4f
-import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
 import java.io.File
 import java.io.IOException

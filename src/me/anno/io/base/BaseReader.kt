@@ -10,8 +10,6 @@ import me.anno.objects.geometric.Circle
 import me.anno.objects.geometric.Polygon
 import me.anno.objects.meshes.Mesh
 import me.anno.objects.particles.ParticleSystem
-import java.io.File
-import java.lang.RuntimeException
 
 abstract class BaseReader {
 

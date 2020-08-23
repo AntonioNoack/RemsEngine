@@ -28,7 +28,6 @@ import me.anno.utils.OS
 import me.anno.utils.clamp
 import me.anno.utils.f3
 import org.apache.logging.log4j.LogManager
-import org.lwjgl.system.Library
 import java.io.File
 import java.io.OutputStream
 import java.io.PrintStream

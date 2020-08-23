@@ -6,9 +6,7 @@ import me.anno.gpu.GFX.hoveredPanel
 import me.anno.gpu.GFX.inFocus
 import me.anno.gpu.GFX.inFocus0
 import me.anno.io.utils.StringMap
-import me.anno.objects.Video
 import me.anno.objects.cache.Cache
-import me.anno.studio.UILayouts
 import me.anno.studio.RemsStudio
 import me.anno.studio.Studio
 import me.anno.studio.Studio.dragged
@@ -16,6 +14,7 @@ import me.anno.studio.Studio.editorTime
 import me.anno.studio.Studio.editorTimeDilation
 import me.anno.studio.Studio.targetFPS
 import me.anno.studio.Studio.updateAudio
+import me.anno.studio.UILayouts
 import me.anno.ui.base.Panel
 import org.apache.logging.log4j.LogManager
 import java.io.File

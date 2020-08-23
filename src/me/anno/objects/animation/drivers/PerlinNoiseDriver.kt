@@ -5,8 +5,6 @@ import me.anno.io.base.BaseWriter
 import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.ui.base.Panel
-import me.anno.ui.input.FloatInput
-import me.anno.ui.input.IntInput
 import me.anno.ui.style.Style
 import me.anno.utils.clamp
 import org.kdotjpg.OpenSimplexNoise

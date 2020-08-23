@@ -3,7 +3,6 @@ package me.anno.objects.cache
 import me.anno.gpu.GFX
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture3D
-import me.anno.objects.Image
 import me.anno.objects.LoopingState
 import me.anno.objects.cache.VideoData.Companion.framesPerContainer
 import me.anno.studio.Studio.editorTimeDilation
@@ -13,7 +12,6 @@ import me.anno.video.Frame
 import org.apache.logging.log4j.LogManager
 import java.io.File
 import java.io.FileNotFoundException
-import java.lang.Exception
 import javax.imageio.ImageIO
 import kotlin.concurrent.thread
 import kotlin.math.abs

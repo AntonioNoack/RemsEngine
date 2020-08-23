@@ -1,8 +1,6 @@
 package me.anno.parser
 
 import me.anno.parser.SimpleExpressionParser.parseDouble
-import java.lang.RuntimeException
-import java.lang.StringBuilder
 
 fun main(){
 

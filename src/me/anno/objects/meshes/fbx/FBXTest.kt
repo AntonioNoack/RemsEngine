@@ -1,8 +1,6 @@
 package me.anno.objects.meshes.fbx
 
 import me.anno.utils.OS
-import me.anno.utils.f2
-import me.anno.utils.f3
 import java.io.File
 
 fun notenRechnerFuerJasmin(){

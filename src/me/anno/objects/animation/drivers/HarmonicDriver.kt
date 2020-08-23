@@ -8,9 +8,7 @@ import me.anno.parser.SimpleExpressionParser.parseDouble
 import me.anno.parser.SimpleExpressionParser.preparse
 import me.anno.ui.base.Panel
 import me.anno.ui.input.TextInput
-import me.anno.ui.input.TextInputML
 import me.anno.ui.style.Style
-import me.anno.utils.sumByFloat
 import kotlin.math.PI
 import kotlin.math.sin
 

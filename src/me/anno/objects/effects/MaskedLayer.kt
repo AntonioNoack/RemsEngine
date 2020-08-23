@@ -12,14 +12,10 @@ import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.blending.BlendMode
 import me.anno.ui.base.SpacePanel
 import me.anno.ui.base.groups.PanelListY
-import me.anno.ui.input.BooleanInput
 import me.anno.ui.style.Style
-import org.joml.Matrix4f
 import org.joml.Matrix4fArrayList
-import org.joml.Matrix4fStack
 import org.joml.Vector4f
 import org.lwjgl.opengl.GL11.*
-import java.lang.RuntimeException
 
 abstract class MaskedLayer(parent: Transform? = null): GFXTransform(parent){
 

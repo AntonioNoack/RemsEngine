@@ -1,7 +1,6 @@
 package me.anno.objects.effects
 
 import me.anno.gpu.GFX
-import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.Transform

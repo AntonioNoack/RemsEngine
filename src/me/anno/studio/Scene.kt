@@ -1,16 +1,15 @@
 package me.anno.studio
 
 import me.anno.config.DefaultConfig
-import me.anno.config.DefaultStyle
 import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.createShader
 import me.anno.gpu.GFX.flat01
 import me.anno.gpu.GFX.isFakeColorRendering
 import me.anno.gpu.GFX.isFinalRendering
-import me.anno.gpu.shader.Shader
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderPlus
 import me.anno.input.Input.keysDown
 import me.anno.objects.Camera

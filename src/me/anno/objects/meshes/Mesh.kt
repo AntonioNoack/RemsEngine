@@ -7,16 +7,13 @@ import me.anno.io.base.BaseWriter
 import me.anno.objects.GFXTransform
 import me.anno.objects.Transform
 import me.anno.objects.cache.Cache
-import me.anno.objects.meshes.obj.Material
 import me.anno.objects.meshes.obj.OBJReader
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.style.Style
 import me.anno.video.MissingFrameException
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
-import org.w3c.dom.Attr
 import java.io.File
-import java.lang.RuntimeException
 
 class Mesh(var file: File, parent: Transform?): GFXTransform(parent){
 

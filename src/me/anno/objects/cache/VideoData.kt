@@ -1,7 +1,6 @@
 package me.anno.objects.cache
 
 import me.anno.gpu.GFX
-import me.anno.video.FFMPEG
 import me.anno.video.FFMPEGStream
 import java.io.File
 

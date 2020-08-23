@@ -1,12 +1,10 @@
 package me.anno.io.base
 
 import me.anno.io.ISaveable
-import me.anno.io.Saveable
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
 import java.io.File
-import java.lang.RuntimeException
 import java.util.*
 
 abstract class BaseWriter {

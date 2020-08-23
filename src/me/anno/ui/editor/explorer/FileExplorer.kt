@@ -4,20 +4,21 @@ import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.objects.Transform.Companion.toTransform
 import me.anno.studio.Studio.project
-import me.anno.ui.base.Panel
-import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelListMultiline
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.input.TextInput
 import me.anno.ui.style.Style
 import me.anno.utils.OS
 import java.io.File
-import kotlin.concurrent.thread
 
+// todo the text size is quite small on my x360 -> get the font size for the ui from the OS :)
+// todo double click is not working in touch mode?
+// todo make file path clickable to quickly move to a grandparent folder :)
 class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
 
     // todo somehow gets assigned a huge height... -.-

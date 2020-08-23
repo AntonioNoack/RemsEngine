@@ -1,6 +1,5 @@
 package me.anno.ui.editor.sceneView
 
-import me.anno.audio.AudioManager
 import me.anno.config.DefaultStyle.deepDark
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.deltaTime
@@ -17,18 +16,18 @@ import me.anno.studio.Studio.dragged
 import me.anno.studio.Studio.editorTime
 import me.anno.studio.Studio.nullCamera
 import me.anno.studio.Studio.root
-// import me.anno.studio.Studio.selectedCamera
 import me.anno.studio.Studio.selectedTransform
 import me.anno.studio.Studio.targetHeight
 import me.anno.studio.Studio.targetWidth
 import me.anno.ui.base.IconPanel
-import me.anno.ui.base.ImagePanel
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.groups.PanelFrame
 import me.anno.ui.editor.CustomContainer
 import me.anno.ui.simple.SimplePanel
 import me.anno.ui.style.Style
-import me.anno.utils.*
+import me.anno.utils.clamp
+import me.anno.utils.plus
+import me.anno.utils.times
 import org.joml.Matrix4fArrayList
 import org.joml.Vector3f
 import org.lwjgl.opengl.GL11.*
@@ -44,6 +43,10 @@ import kotlin.math.roundToInt
 // todo control click -> fullscreen view of this element?
 
 // todo show the current mode with the cursor
+
+// todo move forward with pinch (zoom) on a touch screen?
+
+// todo right click on input to get context menu, e.g. to reset
 
 class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
 
@@ -179,7 +182,6 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
         val height = fb?.h ?: GFX.height
         GFX.clip(0, 0, width, height)
 
-
         val radius = 2
         val diameter = radius * 2 + 1
         fun getPixels(mode: ShaderPlus.DrawMode): IntArray {
@@ -274,7 +276,7 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
         // fov is relative to height -> modified to depend on height
-        val size = (if(Input.isShiftDown) 4f else 20f) * (if(selectedTransform is Camera) -1f else 1f) / GFX.height
+        val size = (if(Input.isShiftDown) 4f else 20f) * (if(selectedTransform === camera) -1f else 1f) / GFX.height
         val oldX = x-dx
         val oldY = y-dy
         val dx0 = dx*size
