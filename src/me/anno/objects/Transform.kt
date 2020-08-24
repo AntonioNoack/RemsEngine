@@ -2,6 +2,7 @@ package me.anno.objects
 
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.toRadians
+import me.anno.gpu.texture.FilteringMode
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
@@ -481,7 +482,8 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
                     is LoopingState -> LoopingState.values()
                     is ToneMappers -> ToneMappers.values()
                     is MaskType -> MaskType.values()
-                    else -> throw RuntimeException("Missing enum .values() implementation for UI in Transform.kt")
+                    is FilteringMode -> FilteringMode.values()
+                    else -> throw RuntimeException("Missing enum .values() implementation for UI in Transform.kt for $value")
                 }
                 val valueNames = values.map {
                     it to when(it){
@@ -490,6 +492,7 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
                         LoopingState.PLAY_REVERSING_LOOP -> "Reversing"
                         is ToneMappers -> it.displayName
                         is MaskType -> it.displayName
+                        is FilteringMode -> it.displayName
                         else -> it.name
                     }
                 }

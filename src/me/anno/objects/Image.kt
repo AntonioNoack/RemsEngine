@@ -4,6 +4,7 @@ import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.GFX.whiteTexture
+import me.anno.gpu.texture.FilteringMode
 import me.anno.io.base.BaseWriter
 import me.anno.io.xml.XMLElement
 import me.anno.io.xml.XMLReader
@@ -20,7 +21,7 @@ import java.io.File
 
 class Image(var file: File = File(""), parent: Transform? = null): GFXTransform(parent){
 
-    var nearestFiltering = DefaultConfig["default.image.nearest", true]
+    var filtering = DefaultConfig["default.image.nearest", FilteringMode.LINEAR]
     var tiling = AnimatedProperty.tiling()
 
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
@@ -35,7 +36,7 @@ class Image(var file: File = File(""), parent: Transform? = null): GFXTransform(
                 if(bufferData == null && isFinalRendering) throw MissingFrameException(file)
                 if(bufferData != null){
                     // todo apply tiling for svgs...
-                    GFX.draw3DSVG(stack, bufferData.buffer, whiteTexture, color, true)
+                    GFX.draw3DSVG(stack, bufferData.buffer, whiteTexture, color, FilteringMode.NEAREST)
                 }
             }
             name.endsWith("webp", true) -> {
@@ -43,14 +44,14 @@ class Image(var file: File = File(""), parent: Transform? = null): GFXTransform(
                 // calculate required scale? no, without animation, we don't need to scale it down ;)
                 val texture = Cache.getVideoFrame(file, 1, 0, 0, 1.0, imageTimeout, LoopingState.PLAY_ONCE)
                 if((texture == null || !texture.isLoaded) && isFinalRendering) throw MissingFrameException(file)
-                if(texture?.isLoaded == true) GFX.draw3D(stack, texture, color, nearestFiltering, tiling)
+                if(texture?.isLoaded == true) GFX.draw3D(stack, texture, color, filtering, tiling)
             }
             else -> {
                 val tiling = tiling[time]
                 val texture = Cache.getImage(file, imageTimeout, true)
                 if(texture == null && isFinalRendering) throw MissingFrameException(file)
                 texture?.apply {
-                    GFX.draw3D(stack, texture, color, nearestFiltering, tiling)
+                    GFX.draw3D(stack, texture, color, filtering, tiling)
                 }
             }
         }
@@ -60,13 +61,13 @@ class Image(var file: File = File(""), parent: Transform? = null): GFXTransform(
         super.createInspector(list, style)
         list += VI("File Location", "Texture file location", null, file, style){ file = it }
         list += VI("Tiling", "(tile count x, tile count y, offset x, offset y)", tiling, style)
-        list += VI("Nearest Filtering", "Pixelated look; linear interpolation otherwise", null, nearestFiltering, style){ nearestFiltering = it }
+        list += VI("Filtering", "Pixelated or soft look of pixels?", null, filtering, style){ filtering = it }
     }
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
         writer.writeString("file", file.toString())
-        writer.writeBool("nearestFiltering", nearestFiltering, true)
+        writer.writeInt("filtering", filtering.id, true)
     }
 
     override fun readString(name: String, value: String) {
@@ -76,10 +77,10 @@ class Image(var file: File = File(""), parent: Transform? = null): GFXTransform(
         }
     }
 
-    override fun readBool(name: String, value: Boolean) {
+    override fun readInt(name: String, value: Int) {
         when(name){
-            "nearestFiltering" -> nearestFiltering = value
-            else -> super.readBool(name, value)
+            "filtering" -> filtering = filtering.find(value)
+            else -> super.readInt(name, value)
         }
     }
 

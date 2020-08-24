@@ -3,6 +3,7 @@ package me.anno.objects
 import me.anno.gpu.GFX
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticFloatBuffer
+import me.anno.gpu.texture.FilteringMode
 import me.anno.objects.cache.Cache
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.style.Style
@@ -17,7 +18,7 @@ import java.io.File
 
 class Cubemap(var file: File = File(""), parent: Transform? = null): GFXTransform(parent){
 
-    var nearestFiltering = true
+    var filtering = FilteringMode.LINEAR
     var otherFormat = false
 
     // create a cubemap on the gpu instead to support best-ram-usage mipmapping and linear filtering?
@@ -30,9 +31,9 @@ class Cubemap(var file: File = File(""), parent: Transform? = null): GFXTransfor
         val sphericalProjection = file.name.endsWith(".hdr", true) != otherFormat
 
         if(sphericalProjection){
-            GFX.drawSpherical(stack, buffer, texture, color, nearestFiltering, GL11.GL_QUADS)
+            GFX.drawSpherical(stack, buffer, texture, color, filtering, GL11.GL_QUADS)
         } else {
-            GFX.drawXYZUV(stack, buffer, texture, color, nearestFiltering, GL11.GL_QUADS)
+            GFX.drawXYZUV(stack, buffer, texture, color, filtering, GL11.GL_QUADS)
         }
 
     }

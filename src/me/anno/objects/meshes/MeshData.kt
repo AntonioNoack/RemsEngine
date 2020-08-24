@@ -3,6 +3,7 @@ package me.anno.objects.meshes
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.buffer.StaticFloatBuffer
+import me.anno.gpu.texture.FilteringMode
 import me.anno.gpu.texture.Texture2D
 import me.anno.objects.cache.Cache
 import me.anno.objects.cache.CacheData
@@ -26,7 +27,7 @@ class MeshData: CacheData {
     fun draw(stack: Matrix4fArrayList, time: Double, color: Vector4f){
         for((material, buffer) in toDraw){
             val shader = GFX.shaderObjMtl.shader
-            GFX.shader3DUniforms(shader, stack, 1, 1, color, null)
+            GFX.shader3DUniforms(shader, stack, 1, 1, color, null, FilteringMode.NEAREST)
             getTexture(material.diffuseTexture, GFX.whiteTexture).bind(0, false)
             buffer.draw(shader)
             GFX.check()

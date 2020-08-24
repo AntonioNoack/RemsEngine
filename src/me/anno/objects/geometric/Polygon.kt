@@ -5,6 +5,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFX.toRadians
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticFloatBuffer
+import me.anno.gpu.texture.FilteringMode
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.GFXTransform
@@ -35,7 +36,7 @@ class Polygon(parent: Transform? = null): GFXTransform(parent){
 
     var texture = File("")
     var autoAlign = false
-    var nearestFiltering = false
+    var filtering = FilteringMode.LINEAR
 
     var vertexCount = AnimatedProperty.intPlus(5)
     var starNess = AnimatedProperty.float01()
@@ -54,7 +55,7 @@ class Polygon(parent: Transform? = null): GFXTransform(parent){
             stack.scale(sqrt2, sqrt2, 1f)
         }
         GFX.draw3DPolygon(stack, getBuffer(count, selfDepth > 0f), texture, color,
-            inset, if(texture == GFX.whiteTexture) true else nearestFiltering)
+            inset, filtering)
         return
     }
 
@@ -63,7 +64,7 @@ class Polygon(parent: Transform? = null): GFXTransform(parent){
         list += VI("Vertex Count", "Quads, Triangles, all possible", vertexCount, style)
         list += VI("Star-ness", "Works best with even vertex count", starNess, style)
         list += VI("Pattern Texture", "For patterns like gradients radially; use a mask layer for images with polygon shape", null, texture, style){ texture = it }
-        list += VI("Nearest Filtering", "Pixelated look; linear interpolation otherwise", null, nearestFiltering, style){ nearestFiltering = it }
+        list += VI("Filtering", "Pixelated or soft look of pixels?", null, filtering, style){ filtering = it }
         list += VI("Auto-Align", "for quads", null, autoAlign, style){ autoAlign = it }
     }
 
@@ -74,7 +75,7 @@ class Polygon(parent: Transform? = null): GFXTransform(parent){
         writer.writeObject(this, "vertexCount", vertexCount)
         writer.writeObject(this, "inset", starNess)
         writer.writeBool("autoAlign", autoAlign, true)
-        writer.writeBool("nearestFiltering", nearestFiltering, true)
+        writer.writeInt("filtering", filtering.id, true)
         writer.writeFile("texture", texture)
     }
 
@@ -93,10 +94,16 @@ class Polygon(parent: Transform? = null): GFXTransform(parent){
         }
     }
 
+    override fun readInt(name: String, value: Int) {
+        when(name){
+            "filtering" -> filtering = filtering.find(value)
+            else -> super.readInt(name, value)
+        }
+    }
+
     override fun readBool(name: String, value: Boolean) {
         when(name){
             "autoAlign" -> autoAlign = value
-            "nearestFiltering" -> nearestFiltering = value
             else -> super.readBool(name, value)
         }
     }

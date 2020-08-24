@@ -9,6 +9,7 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderPlus
 import me.anno.gpu.size.WindowSize
+import me.anno.gpu.texture.FilteringMode
 import me.anno.gpu.texture.Texture2D
 import me.anno.input.Input
 import me.anno.input.Input.mouseX
@@ -316,11 +317,14 @@ object GFX: GFXBase1() {
             .lookAt(position, lookAt, up.normalize())
     }
 
-    fun shader3DUniforms(shader: Shader, stack: Matrix4fArrayList, w: Int, h: Int, color: Vector4f, tiling: Vector4f?){
+    fun shader3DUniforms(shader: Shader, stack: Matrix4fArrayList, w: Int, h: Int, color: Vector4f, tiling: Vector4f?, filtering: FilteringMode){
         check()
 
         stack.pushMatrix()
         shader.use()
+
+        shader.v1("filtering", filtering.id)
+        shader.v2("textureDeltaUV", 1f/w, 1f/h)
 
         val avgSize = if(w * targetHeight > h * targetWidth) w.toFloat() * targetHeight / targetWidth  else h.toFloat()
         // val avgSize = sqrt(w * h.toFloat())
@@ -363,7 +367,7 @@ object GFX: GFXBase1() {
 
     fun draw3DCircle(stack: Matrix4fArrayList, innerRadius: Float, startDegrees: Float, endDegrees: Float, color: Vector4f){
         val shader = shader3DCircle
-        shader3DUniforms(shader, stack, 1, 1, color, null)
+        shader3DUniforms(shader, stack, 1, 1, color, null, FilteringMode.NEAREST)
         var a0 = startDegrees
         var a1 = endDegrees
         // if the two arrows switch sides, flip the circle
@@ -386,7 +390,7 @@ object GFX: GFXBase1() {
                      pixelSize: Float,
                      isInverted: Float, blurDeltaUV: Vector2f){
         val shader = shader3DMasked.shader
-        shader3DUniforms(shader, stack, 1, 1, color, null)
+        shader3DUniforms(shader, stack, 1, 1, color, null, FilteringMode.NEAREST)
         shader.v4("offsetColor", offsetColor.x, offsetColor.y, offsetColor.z, offsetColor.w)
         shader.v1("useMaskColor", useMaskColor)
         shader.v1("invertMask", isInverted)
@@ -399,14 +403,14 @@ object GFX: GFXBase1() {
     }
 
     fun draw3DMasked(stack: Matrix4fArrayList, masked: Texture2D, mask: Texture2D, color: Vector4f,
-                     nearestFiltering: Boolean,
+                     filtering: FilteringMode,
                      maskType: MaskType,
                      useMaskColor: Float, offsetColor: Vector4f,
                      pixelSize: Float,
                      isInverted: Float,
                      blurDeltaUV: Vector2f){
         val shader = shader3DMasked.shader
-        shader3DUniforms(shader, stack, 1, 1, color, null)
+        shader3DUniforms(shader, stack, 1, 1, color, null, filtering)
         shader.v4("offsetColor", offsetColor.x, offsetColor.y, offsetColor.z, offsetColor.w)
         shader.v1("useMaskColor", useMaskColor)
         shader.v1("invertMask", isInverted)
@@ -414,49 +418,49 @@ object GFX: GFXBase1() {
         shader.v2("pixelating", pixelSize * windowHeight / windowWidth, pixelSize)
         shader.v2("blurDeltaUV", blurDeltaUV)
         shader.v1("maxSteps", pixelSize * windowHeight)
-        mask.bind(1, nearestFiltering)
-        masked.bind(0, nearestFiltering)
+        mask.bind(1, filtering)
+        masked.bind(0, filtering)
         flat01.draw(shader)
         check()
     }
 
     fun draw3D(stack: Matrix4fArrayList, buffer: StaticFloatBuffer, texture: Texture2D, w: Int, h:Int, color: Vector4f,
-               nearestFiltering: Boolean, tiling: Vector4f?){
+               filtering: FilteringMode, tiling: Vector4f?){
         val shader = shader3D.shader
-        shader3DUniforms(shader, stack, w, h, color, tiling)
-        texture.bind(0, nearestFiltering)
+        shader3DUniforms(shader, stack, w, h, color, tiling, filtering)
+        texture.bind(0, filtering)
         buffer.draw(shader)
         check()
     }
 
     fun draw3D(stack: Matrix4fArrayList, buffer: StaticFloatBuffer, texture: Texture2D, color: Vector4f,
-               nearestFiltering: Boolean, tiling: Vector4f?){
-        draw3D(stack, buffer, texture, texture.w, texture.h, color, nearestFiltering, tiling)
+               filtering: FilteringMode, tiling: Vector4f?){
+        draw3D(stack, buffer, texture, texture.w, texture.h, color, filtering, tiling)
     }
 
     fun draw3DPolygon(stack: Matrix4fArrayList, buffer: StaticFloatBuffer,
                       texture: Texture2D, color: Vector4f,
                       inset: Float,
-                      nearestFiltering: Boolean){
+                      filtering: FilteringMode){
         val shader = shader3DPolygon.shader
-        shader3DUniforms(shader, stack, 1, 1, color, null)
+        shader3DUniforms(shader, stack, 1, 1, color, null, filtering)
         shader.v1("inset", inset)
-        texture.bind(0, nearestFiltering)
+        texture.bind(0, filtering)
         buffer.draw(shader)
         check()
     }
 
     fun draw3D(stack: Matrix4fArrayList, texture: Texture2D, color: Vector4f,
-               nearestFiltering: Boolean, tiling: Vector4f?){
-        return draw3D(stack, flat01, texture, color, nearestFiltering, tiling)
+               filtering: FilteringMode, tiling: Vector4f?){
+        return draw3D(stack, flat01, texture, color, filtering, tiling)
     }
 
     fun draw3D(stack: Matrix4fArrayList, texture: Frame, color: Vector4f,
-               nearestFiltering: Boolean, tiling: Vector4f?){
+               filtering: FilteringMode, tiling: Vector4f?){
         if(!texture.isLoaded) throw RuntimeException("Frame must be loaded to be rendered!")
         val shader = texture.get3DShader().shader
-        shader3DUniforms(shader, stack, texture.w, texture.h, color, tiling)
-        texture.bind(0, nearestFiltering)
+        shader3DUniforms(shader, stack, texture.w, texture.h, color, tiling, filtering)
+        texture.bind(0, filtering)
         if(shader == shader3DYUV.shader){
             val w = texture.w
             val h = texture.h
@@ -467,28 +471,28 @@ object GFX: GFXBase1() {
     }
 
     fun drawXYZUV(stack: Matrix4fArrayList, buffer: StaticFloatBuffer, texture: Texture2D, color: Vector4f,
-                  nearestFiltering: Boolean, mode: Int = GL11.GL_TRIANGLES){
+                  filtering: FilteringMode, mode: Int = GL11.GL_TRIANGLES){
         val shader = shader3DXYZUV.shader
-        shader3DUniforms(shader, stack, 1, 1, color, null)
-        texture.bind(0, nearestFiltering)
+        shader3DUniforms(shader, stack, 1, 1, color, null, filtering)
+        texture.bind(0, filtering)
         buffer.draw(shader, mode)
         check()
     }
 
     fun drawSpherical(stack: Matrix4fArrayList, buffer: StaticFloatBuffer, texture: Texture2D, color: Vector4f,
-                      nearestFiltering: Boolean, mode: Int = GL11.GL_TRIANGLES){
+                      filtering: FilteringMode, mode: Int = GL11.GL_TRIANGLES){
         val shader = shader3DSpherical.shader
-        shader3DUniforms(shader, stack, 1, 1, color, null)
-        texture.bind(0, nearestFiltering)
+        shader3DUniforms(shader, stack, 1, 1, color, null, filtering)
+        texture.bind(0, filtering)
         buffer.draw(shader, mode)
         check()
     }
 
     fun draw3DSVG(stack: Matrix4fArrayList, buffer: StaticFloatBuffer, texture: Texture2D, color: Vector4f,
-                  nearestFiltering: Boolean){
+                  filtering: FilteringMode){
         val shader = shader3DSVG.shader
-        shader3DUniforms(shader, stack, 1, 1, color, null)
-        texture.bind(0, nearestFiltering)
+        shader3DUniforms(shader, stack, 1, 1, color, null, filtering)
+        texture.bind(0, filtering)
         buffer.draw(shader)
         check()
     }
@@ -583,27 +587,41 @@ object GFX: GFXBase1() {
         subpixelCorrectTextShader.use()
         GL20.glUniform1i(subpixelCorrectTextShader["tex"], 0)
 
-        // todo test and use
         val bicubicInterpolation = "" +
-                "vec4 cubicInterpolation(texture2D tex, vec2 uv, float du, float x){\n" +
-                "   return cubicInterpolation(" +
-                "       texture(tex, vec2(uv.u - du, uv.v)),\n" +
-                "       texture(tex, vec2(uv.u     , uv.v)),\n" +
-                "       texture(tex, vec2(uv.u + du, uv.v)),\n" +
-                "       texture(tex, vec2(uv.u+2*du, uv.v)), x);\n" +
-                "}\n" +
                 // https://www.paulinternet.nl/?page=bicubic
                 "vec4 cubicInterpolation(vec4 p0, vec4 p1, vec4 p2, vec4 p3, float x){\n" +
                 "   return p1 + 0.5 * x*(p2 - p0 + x*(2.0*p0 - 5.0*p1 + 4.0*p2 - p3 + x*(3.0*(p1 - p2) + p3 - p0)));\n" +
                 "}\n" +
-                "vec4 bicubicInterpolation(sampler2D tex, vec2 uv, vec duv){\n" +
-                "   vec2 xy = fract(uv, duv);\n" +
+                "vec4 cubicInterpolation(sampler2D tex, vec2 uv, float du, float x){\n" +
+                "   vec4 p0 = texture(tex, vec2(uv.x - du, uv.y));\n" +
+                "   vec4 p1 = texture(tex, vec2(uv.x     , uv.y));\n" +
+                "   vec4 p2 = texture(tex, vec2(uv.x + du, uv.y));\n" +
+                "   vec4 p3 = texture(tex, vec2(uv.x+2*du, uv.y));\n" +
+                "   return cubicInterpolation(p0, p1, p2, p3, x);\n" +
+                "}\n" +
+                "vec4 bicubicInterpolation(sampler2D tex, vec2 uv, vec2 duv){\n" +
+                "   uv -= 0.5*duv;\n" +
+                "   vec2 xy = fract(uv / duv);\n" +
                 "   vec4 p0 = cubicInterpolation(tex, vec2(uv.x, uv.y - duv.y), duv.x, xy.x);\n" +
                 "   vec4 p1 = cubicInterpolation(tex, vec2(uv.x, uv.y        ), duv.x, xy.x);\n" +
                 "   vec4 p2 = cubicInterpolation(tex, vec2(uv.x, uv.y + duv.y), duv.x, xy.x);\n" +
                 "   vec4 p3 = cubicInterpolation(tex, vec2(uv.x, uv.y+2*duv.y), duv.x, xy.x);\n" +
                 "   return cubicInterpolation(p0, p1, p2, p3, xy.y);\n" +
                 "}\n"
+
+        val getTextureLib = "" +
+                bicubicInterpolation +
+                "uniform vec2 textureDeltaUV;\n" +
+                "uniform int filtering;\n" +
+                "vec4 getTexture(sampler2D tex, vec2 uv){" +
+                "   switch(filtering){" +
+                "       case ${FilteringMode.NEAREST.id}:\n" +
+                "       case ${FilteringMode.LINEAR.id}:\n" +
+                "           return texture(tex, uv);\n" +
+                "       case ${FilteringMode.CUBIC.id}:\n" +
+                "           return bicubicInterpolation(tex, uv, textureDeltaUV);\n" +
+                "   }" +
+                "}"
 
         val positionPostProcessing = "" +
                 "zDistance = gl_Position.w;\n"
@@ -683,10 +701,11 @@ object GFX: GFXBase1() {
                 "uniform vec4 tint;\n" +
                 "precision highp float;\n" +
                 "uniform sampler2D tex;\n" +
+                getTextureLib +
                 "void main(){\n" +
                 "   float u = atan(uvw.z, uvw.x)*${0.5/PI}+0.5;\n " +
                 "   float v = atan(uvw.y, length(uvw.xz))*${1/PI}+0.5;\n" +
-                "   vec4 color = texture(tex, vec2(u,v));\n" +
+                "   vec4 color = getTexture(tex, vec2(u,v));\n" +
                 colorProcessing +
                 "   gl_FragColor = tint * color;\n" +
                 colorPostProcessing +
@@ -713,8 +732,9 @@ object GFX: GFXBase1() {
         val f3D = "" +
                 "uniform vec4 tint;" +
                 "uniform sampler2D tex;\n" +
+                getTextureLib +
                 "void main(){\n" +
-                "   vec4 color = texture(tex, uv);\n" +
+                "   vec4 color = getTexture(tex, uv);\n" +
                 colorProcessing +
                 "   gl_FragColor = tint * color;\n" +
                 colorPostProcessing +
@@ -788,8 +808,9 @@ object GFX: GFXBase1() {
         val f3DSVG = "" +
                 "uniform vec4 tint;" +
                 "uniform sampler2D tex;\n" +
+                getTextureLib +
                 "void main(){\n" +
-                "   gl_FragColor = tint * color * texture(tex, uv);\n" +
+                "   gl_FragColor = tint * color * getTexture(tex, uv);\n" +
                 colorPostProcessing +
                 "}"
 
@@ -839,8 +860,9 @@ object GFX: GFXBase1() {
                 "varying vec3 normal;\n", "" +
                 "uniform vec4 tint;" +
                 "uniform sampler2D tex;\n" +
+                getTextureLib +
                 "void main(){\n" +
-                "   vec4 color = texture(tex, uv);\n" +
+                "   vec4 color = getTexture(tex, uv);\n" +
                 "   color.rgb *= 0.5 + 0.5 * dot(vec3(1.0, 0.0, 0.0), normal);\n" +
                 colorProcessing +
                 "   gl_FragColor = tint * color;\n" +
@@ -858,12 +880,13 @@ object GFX: GFXBase1() {
                 "uniform vec4 tint;" +
                 "uniform sampler2D texY, texU, texV;\n" +
                 "uniform vec2 uvCorrection;\n" +
+                getTextureLib +
                 "void main(){\n" +
                 "   vec2 correctedUV = uv*uvCorrection;\n" +
                 "   vec3 yuv = vec3(" +
-                "       texture(texY, uv).r, " +
-                "       texture(texU, correctedUV).r, " +
-                "       texture(texV, correctedUV).r);\n" +
+                "       getTexture(texY, uv).r, " +
+                "       getTexture(texU, correctedUV).r, " +
+                "       getTexture(texV, correctedUV).r);\n" +
                 "   yuv -= vec3(${16f/255f}, 0.5, 0.5);\n" +
                 "   vec3 rgb = vec3(" +
                 "       dot(yuv, vec3( 1.164,  0.000,  1.596))," +
@@ -876,8 +899,9 @@ object GFX: GFXBase1() {
         shader3DARGB = createShaderPlus(v3D, y3D, "" +
                 "uniform vec4 tint;" +
                 "uniform sampler2D tex;\n" +
+                getTextureLib +
                 "void main(){\n" +
-                "   vec4 color = texture(tex, uv).gbar;\n" +
+                "   vec4 color = getTexture(tex, uv).gbar;\n" +
                 colorProcessing +
                 "   gl_FragColor = tint * color;\n" +
                 colorPostProcessing +
@@ -886,8 +910,9 @@ object GFX: GFXBase1() {
         shader3DBGRA = createShaderPlus(v3D, y3D, "" +
                 "uniform vec4 tint;" +
                 "uniform sampler2D tex;\n" +
+                getTextureLib +
                 "void main(){\n" +
-                "   vec4 color = texture(tex, uv).bgra;\n" +
+                "   vec4 color = getTexture(tex, uv).bgra;\n" +
                 colorProcessing +
                 "   gl_FragColor = tint * color;\n" +
                 colorPostProcessing +

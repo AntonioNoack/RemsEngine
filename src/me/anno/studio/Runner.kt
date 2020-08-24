@@ -1,5 +1,7 @@
 package me.anno.studio
 
+import me.anno.installer.Installer
+
 // todo currently most important topics:
 // todo file manager
 // todo move entries in tree
@@ -10,5 +12,6 @@ package me.anno.studio
 // todo particle systems
 
 fun main(){
+    Installer.checkInstall()
     RemsStudio.run()
 }

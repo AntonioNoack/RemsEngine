@@ -16,7 +16,7 @@ object FFMPEG {
     var ffmpegPathString = if(isInstalled) "ffmpeg" else File(DefaultConfig["ffmpeg.path", "lib/ffmpeg/ffmpeg.exe"]).absolutePath
     var ffprobePathString = if(isInstalled) "ffprobe" else DefaultConfig["ffmpeg.probe.path", File(ffmpegPath.parentFile, "ffprobe.exe")].absolutePath
 
-    init {
+    /*init {
         if(OS.isWindows && !isInstalled){
             // todo download the ffmpeg files, if missing
             if(!ffmpegPath.exists() && !ffmpegPath.isDirectory){
@@ -26,7 +26,7 @@ object FFMPEG {
 
             }
         }
-    }
+    }*/
 
     val ffmpeg get() = if(isInstalled) ffmpegPath else makeSureExists(ffmpegPath) ?: throw RuntimeException("FFmpeg not found! (path: $ffmpegPath), can't use videos, nor webp!")
     val ffprobe get() = if(isInstalled) ffprobePath else makeSureExists(ffprobePath) ?: throw RuntimeException("FFprobe not found! (path: $ffprobePath), can't use videos, nor webp!")

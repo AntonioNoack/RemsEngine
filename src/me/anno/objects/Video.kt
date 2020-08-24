@@ -2,6 +2,7 @@ package me.anno.objects
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
+import me.anno.gpu.texture.FilteringMode
 import me.anno.io.base.BaseWriter
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.cache.Cache
@@ -12,13 +13,11 @@ import me.anno.ui.input.*
 import me.anno.ui.style.Style
 import me.anno.utils.BiMap
 import me.anno.utils.Clipping
-import me.anno.utils.plus
 import me.anno.utils.pow
 import me.anno.video.FFMPEGMetadata.Companion.getMeta
 import me.anno.video.MissingFrameException
 import org.joml.Matrix4f
 import org.joml.Matrix4fArrayList
-import org.joml.Vector3f
 import org.joml.Vector4f
 import java.io.File
 import kotlin.math.*
@@ -37,7 +36,7 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
     var startTime = 0.0
     var endTime = 100.0
 
-    var nearestFiltering = DefaultConfig["default.video.nearest", false]
+    var filtering = DefaultConfig["default.video.nearest", FilteringMode.LINEAR]
 
     var videoScale = 1
 
@@ -119,9 +118,10 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
 
         val zoomLevel = if(meta != null){
             // calculate reasonable zoom level from canvas size
-            val rawZoomLevel = calculateSize(stack, meta.videoWidth, meta.videoHeight) ?: return
-            if(videoScale < 1) getCacheableZoomLevel(rawZoomLevel)
-            else videoScale
+            if(videoScale < 1) {
+                val rawZoomLevel = calculateSize(stack, meta.videoWidth, meta.videoHeight) ?: return
+                getCacheableZoomLevel(rawZoomLevel)
+            } else videoScale
         } else 1
 
         var wasDrawn = false
@@ -143,16 +143,16 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
                     // at this time, we chose the center frame only.
                     val videoFPS = if(GFX.isFinalRendering) sourceFPS else min(sourceFPS, GFX.editorVideoFPS)
 
-                    val frameCount = (sourceDuration * videoFPS).roundToInt()
+                    val frameCount = max(1, (sourceDuration * videoFPS).roundToInt())
 
                     // draw the current texture
                     val duration = endTime - startTime
                     val localTime = startTime + isLooping[time, duration]
-                    val frameIndex = (localTime*videoFPS).toInt() % frameCount
+                    val frameIndex = (localTime * videoFPS).toInt() % frameCount
 
                     val frame = Cache.getVideoFrame(file, zoomLevel, frameIndex, frameCount, videoFPS, videoFrameTimeout, isLooping)
                     if(frame != null && frame.isLoaded){
-                        GFX.draw3D(stack, frame, color, nearestFiltering, tiling[time])
+                        GFX.draw3D(stack, frame, color, filtering, tiling[time])
                         wasDrawn = true
                     } else {
                         if(GFX.isFinalRendering){
@@ -171,7 +171,7 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
         if(!wasDrawn){
             GFX.draw3D(stack, GFX.flat01, GFX.colorShowTexture, 16, 9,
                 Vector4f(0.5f, 0.5f, 0.5f, 1f).mul(color),
-                true, tiling16x9
+                FilteringMode.NEAREST, tiling16x9
             )
         }
 
@@ -185,7 +185,7 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
         // KISS principle? just allow modules to be created :)
         // list += VI("Looping?", "Should the video start after it ended? (useful for Gifs)", null, isLooping, style){ isLooping = it }
         // todo more interpolation modes? (cubic?)
-        list += VI("Nearest Filtering", "Pixelated look; linear interpolation otherwise", null, nearestFiltering, style){ nearestFiltering = it }
+        list += VI("Nearest Filtering", "Pixelated look; linear interpolation otherwise", null, filtering, style){ filtering = it }
         list += EnumInput("Video Scale", true,
             videoScaleNames.reverse[videoScale] ?: "Auto",
             videoScaleNames.entries.sortedBy { it.value }.map { it.key }, style)
@@ -201,13 +201,14 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
         writer.writeString("path", file.toString())
         writer.writeDouble("startTime", startTime)
         writer.writeDouble("endTime", endTime)
-        writer.writeBool("nearestFiltering", nearestFiltering, true)
+        writer.writeInt("filtering", filtering.id, true)
         writer.writeInt("videoScale", videoScale)
     }
 
     override fun readInt(name: String, value: Int) {
         when(name){
             "videoScale" -> videoScale = value
+            "filtering" -> filtering = filtering.find(value)
             else -> super.readInt(name, value)
         }
     }
@@ -224,13 +225,6 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
             "startTime" -> startTime = value
             "endTime" -> endTime = value
             else -> super.readDouble(name, value)
-        }
-    }
-
-    override fun readBool(name: String, value: Boolean) {
-        when(name){
-            "nearestFiltering" -> nearestFiltering = value
-            else -> super.readBool(name, value)
         }
     }
 

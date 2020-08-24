@@ -1,5 +1,6 @@
 package me.anno.io.utils
 
+import me.anno.gpu.texture.FilteringMode
 import me.anno.io.base.BaseWriter
 import me.anno.io.config.ConfigEntry
 import me.anno.ui.editor.explorer.toAllowedFilename
@@ -134,6 +135,7 @@ open class StringMap(
 
     operator fun get(key: String, default: Boolean): Boolean {
         return when(val value = this[key]){
+            is Boolean -> value
             is Int -> value != 0
             is Long -> value != 0L
             is Float -> !value.isNaN() && value != 0f
@@ -147,6 +149,22 @@ open class StringMap(
             }
             null -> default
             else -> value.toString().toBoolean()
+        }
+    }
+
+    operator fun get(key: String, default: FilteringMode): FilteringMode {
+        return when(val value = this[key]){
+            is Boolean -> if(value) FilteringMode.NEAREST else FilteringMode.LINEAR
+            is Int -> default.find(value)
+            is String -> {
+                when(value.toLowerCase()){
+                    "true", "t", "nearest" -> FilteringMode.NEAREST
+                    "false", "f", "linear" -> FilteringMode.LINEAR
+                    "cubic", "bicubic" -> FilteringMode.CUBIC
+                    else -> default
+                }
+            }
+            else -> default
         }
     }
 

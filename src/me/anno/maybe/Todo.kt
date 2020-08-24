@@ -17,6 +17,6 @@ package me.anno.maybe
 // (fade-in, fade-out effect)
 
 // todo wrapper for video/audio/image? to join them... (would be video, contains animated image and audio)
-
+// then just hide elements, which are for audio/video, if they cannot be used
 
 

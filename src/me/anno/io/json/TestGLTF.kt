@@ -24,8 +24,10 @@ fun testModelRendering(){
 }
 
 fun testGLTF(){
-    // todo gltf requests that we implement pbr...
-    // todo should we redesign our whole pipeline; implement it partially, or ignore it?
+
+    // todo GLTF?
+    // gltf requests that we implement pbr...
+    // should we redesign our whole pipeline; implement it partially, or ignore it?
 
     testModelRendering()
 
@@ -48,7 +50,6 @@ fun testObjectMapperJson(){
         // val mapExample = mapOf("key" to intValue)
     }
 
-    // todo intArray inside genericArray isn't saved correctly
     val output = System.out
     ObjectMapper.writeValue(output, TestClass())
     println()
