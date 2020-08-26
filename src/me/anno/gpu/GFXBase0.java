@@ -4,32 +4,31 @@
  */
 package me.anno.gpu;
 
-import jwinpointer.JWinPointerReader;
 import kotlin.Unit;
-import kotlin.jvm.functions.Function0;
-import me.anno.config.DefaultConfig;
 import me.anno.input.Input;
-import me.anno.input.touch.JWinTouch;
 import me.anno.studio.Studio;
 import me.anno.studio.project.Project;
-import me.anno.utils.OS;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.lwjgl.LWJGLUtil;
 import org.lwjgl.Version;
-import org.lwjgl.glfw.*;
-import org.lwjgl.opengl.*;
-import org.lwjgl.system.*;
+import org.lwjgl.glfw.GLFWErrorCallback;
+import org.lwjgl.glfw.GLFWFramebufferSizeCallback;
+import org.lwjgl.glfw.GLFWKeyCallback;
+import org.lwjgl.glfw.GLFWVidMode;
+import org.lwjgl.opengl.GL;
+import org.lwjgl.opengl.GLUtil;
+import org.lwjgl.system.Callback;
+import org.lwjgl.system.MemoryStack;
+
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.nio.IntBuffer;
+import java.util.Locale;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.system.MemoryUtil.*;
-
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintStream;
-import java.nio.*;
-import java.util.Locale;
+import static org.lwjgl.system.MemoryUtil.NULL;
+import static org.lwjgl.system.MemoryUtil.memAddress;
 
 /**
  * Showcases how you can use multithreading in a GLFW application in order to
@@ -112,10 +111,6 @@ public class GFXBase0 {
         }
 
         glfwSetWindowTitle(window, title);
-
-        if(OS.INSTANCE.isWindows() && DefaultConfig.INSTANCE.get("touch.isEnabled", true)){
-            JWinTouch.INSTANCE.init(title);
-        }
 
         glfwShowWindow(window);
 

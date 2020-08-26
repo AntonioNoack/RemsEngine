@@ -218,6 +218,10 @@ object Input {
             }
         }
         GLFW.glfwSetKeyCallback(window) { window, key, scancode, action, mods ->
+            if(window != GFX.window){
+                val touchId = window - GFX.window - 1
+                println("Touch Event $touchId $key $scancode $action $mods")
+            } else
             addEvent {
                 framesSinceLastInteraction = 0
                 fun keyTyped(key: Int) {
