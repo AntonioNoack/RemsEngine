@@ -1,6 +1,7 @@
 package me.anno.video.formats
 
 import me.anno.gpu.GFX
+import me.anno.gpu.ShaderLib.shader3DARGB
 import me.anno.gpu.texture.Texture2D
 import me.anno.utils.readNBytes
 import me.anno.video.Frame
@@ -24,7 +25,7 @@ class ARGBFrame(w: Int, h: Int): Frame(w,h){
         }
     }
 
-    override fun get3DShader() = GFX.shader3DARGB
+    override fun get3DShader() = shader3DARGB
 
     override fun bind(offset: Int, nearestFiltering: Boolean) {
         argb.bind(offset, nearestFiltering)

@@ -2,6 +2,7 @@ package me.anno.objects
 
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.toRadians
+import me.anno.gpu.ShaderLib.lineShader3D
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticFloatBuffer
 import me.anno.objects.animation.AnimatedProperty
@@ -94,7 +95,7 @@ class Camera(parent: Transform? = null): Transform(parent){
         val scaleY = scaleZ * tan(toRadians(fov)/2f)
         val scaleX = scaleY * targetWidth / targetHeight
         stack.scale(scaleX, scaleY, scaleZ)
-        val shader = GFX.lineShader3D
+        val shader = lineShader3D
 
         // todo show the standard level only on user request, or when DOF is enabled
         // todo render the intersections instead

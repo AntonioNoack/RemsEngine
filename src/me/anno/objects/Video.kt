@@ -2,6 +2,7 @@ package me.anno.objects
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
+import me.anno.gpu.TextureLib.colorShowTexture
 import me.anno.gpu.texture.FilteringMode
 import me.anno.io.base.BaseWriter
 import me.anno.objects.animation.AnimatedProperty
@@ -169,7 +170,7 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
         }
 
         if(!wasDrawn){
-            GFX.draw3D(stack, GFX.flat01, GFX.colorShowTexture, 16, 9,
+            GFX.draw3D(stack, GFX.flat01, colorShowTexture, 16, 9,
                 Vector4f(0.5f, 0.5f, 0.5f, 1f).mul(color),
                 FilteringMode.NEAREST, tiling16x9
             )

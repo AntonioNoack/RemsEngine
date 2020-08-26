@@ -3,6 +3,7 @@ package me.anno.objects.geometric
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.toRadians
+import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticFloatBuffer
 import me.anno.gpu.texture.FilteringMode
@@ -46,7 +47,7 @@ class Polygon(parent: Transform? = null): GFXTransform(parent){
         val image = Cache.getImage(texture, 5000, true)
         // todo check if an exception really need to be thrown (empty = default, white)
         if(image == null && GFX.isFinalRendering) throw MissingFrameException(texture)
-        val texture = image ?: GFX.whiteTexture
+        val texture = image ?: whiteTexture
         val count = vertexCount[time]//.roundToInt()
         if(inset == 1f && count % 2 == 0) return// invisible
         val selfDepth = scale[time].z

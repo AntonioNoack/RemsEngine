@@ -3,6 +3,7 @@ package me.anno.ui.editor.color
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
+import me.anno.gpu.TextureLib.colorShowTexture
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.meshes.svg.SVGStyle.Companion.parseColorComplex
 import me.anno.ui.base.Panel
@@ -55,7 +56,7 @@ class ColorChooser(style: Style, withAlpha: Boolean, val owningProperty: Animate
                 val x = x0 + ((x1-x0) * opacity).roundToInt()
                 // lerp transparency for the alpha bar
                 for(dx in 0 until w){ GFX.drawRect(this.x+dx, y, 1, h, 0xffffff or (dx*255/w).shl(24)) }
-                GFX.drawTexture(this.x, y, w, h, GFX.colorShowTexture, -1, Vector4f(w.toFloat()/h, 1f, 0f, 0f))
+                GFX.drawTexture(this.x, y, w, h, colorShowTexture, -1, Vector4f(w.toFloat()/h, 1f, 0f, 0f))
                 GFX.drawRect(x, y0, 1, y1-y0, black)
             }
         }

@@ -2,6 +2,7 @@ package me.anno.ui.editor.explorer
 
 import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
+import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.objects.cache.Cache
 import me.anno.studio.Studio
 import me.anno.ui.base.Panel
@@ -62,7 +63,7 @@ class FileEntry(val explorer: FileExplorer, val isParent: Boolean, val file: Fil
                 else -> null
             }
         } else null
-        val image = originalIcon ?: Cache.getIcon(iconPath, true) ?: GFX.whiteTexture
+        val image = originalIcon ?: Cache.getIcon(iconPath, true) ?: whiteTexture
         var iw = image.w
         var ih = image.h
         val scale = (size-20)/max(iw, ih).toFloat()

@@ -5,6 +5,7 @@ import me.anno.config.DefaultStyle.black
 import me.anno.config.DefaultStyle.fontGray
 import me.anno.config.DefaultStyle.white
 import me.anno.gpu.GFX
+import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.input.Input.isShiftDown
 import me.anno.input.Input.mouseKeysDown
 import me.anno.objects.animation.AnimatedProperty
@@ -261,7 +262,7 @@ class GraphEditorBody(style: Style): Panel(style.getChild("deep")){
             val y = getYAt(value).roundToInt()
             GFX.drawTexture(x-halfSize, clamp(y-halfSize, y0-1, y1),
                 dotSize, dotSize,
-                GFX.whiteTexture, color, null)
+                whiteTexture, color, null)
         }
 
         property.keyframes.forEach {

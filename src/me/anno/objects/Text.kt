@@ -8,6 +8,7 @@ import me.anno.fonts.mesh.FontMesh
 import me.anno.fonts.mesh.FontMesh.Companion.DEFAULT_LINE_HEIGHT
 import me.anno.fonts.mesh.FontMeshBase
 import me.anno.gpu.GFX
+import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.gpu.texture.FilteringMode
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
@@ -180,7 +181,7 @@ open class Text(text: String = "", parent: Transform? = null): GFXTransform(pare
                 stack.translate(value.xPos * scaleX + offsetX, value.yPos * scaleY * lineOffset, 0f)
 
                 fontMesh.draw(stack){ buffer ->
-                    GFX.draw3D(stack, buffer, GFX.whiteTexture, color, FilteringMode.NEAREST, null)
+                    GFX.draw3D(stack, buffer, whiteTexture, color, FilteringMode.NEAREST, null)
                 }
 
                 stack.popMatrix()

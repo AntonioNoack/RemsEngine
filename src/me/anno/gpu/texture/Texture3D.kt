@@ -1,6 +1,7 @@
 package me.anno.gpu.texture
 
 import me.anno.gpu.GFX
+import me.anno.gpu.TextureLib.invisibleTexture
 import me.anno.gpu.texture.Texture2D.Companion.textureBudgetTotal
 import me.anno.gpu.texture.Texture2D.Companion.textureBudgetUsed
 import org.lwjgl.opengl.GL11
@@ -180,7 +181,7 @@ class Texture3D(val w: Int, val h: Int, val d: Int){
         if(pointer > -1 && isCreated){
             glBindTexture(GL_TEXTURE_3D, pointer)
             ensureFiltering(nearest)
-        } else GFX.invisibleTexture.bind(true)
+        } else invisibleTexture.bind(true)
     }
 
     fun bind(index: Int, nearest: Boolean){

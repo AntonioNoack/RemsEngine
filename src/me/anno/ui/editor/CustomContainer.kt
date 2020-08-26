@@ -2,6 +2,7 @@ package me.anno.ui.editor
 
 import me.anno.config.DefaultStyle.white
 import me.anno.gpu.GFX
+import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.objects.cache.Cache
 import me.anno.ui.base.Panel
 import me.anno.ui.base.components.Padding
@@ -35,7 +36,7 @@ class CustomContainer(default: Panel, style: Style): PanelContainer(default, Pad
 
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.draw(x0, y0, x1, y1)
-        val icon = Cache.getIcon("cross.png", true) ?: GFX.whiteTexture
+        val icon = Cache.getIcon("cross.png", true) ?: whiteTexture
         GFX.drawTexture(x+w-14, y+2, 12, 12, icon, white, null)
     }
 

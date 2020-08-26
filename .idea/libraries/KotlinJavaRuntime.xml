@@ -43,6 +43,7 @@
       <root url="jar://$PROJECT_DIR$/lib/lwjgl-stb-natives-macos.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/lwjgl-stb-natives-windows-x86.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/commons-imaging-1.0-alpha1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/JWinPointer.jar!/" />
     </CLASSES>
     <JAVADOC>
       <root url="jar://$PROJECT_DIR$/lib/lwjgl-glfw-javadoc.jar!/" />

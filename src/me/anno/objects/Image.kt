@@ -3,7 +3,7 @@ package me.anno.objects
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.isFinalRendering
-import me.anno.gpu.GFX.whiteTexture
+import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.gpu.texture.FilteringMode
 import me.anno.io.base.BaseWriter
 import me.anno.io.xml.XMLElement

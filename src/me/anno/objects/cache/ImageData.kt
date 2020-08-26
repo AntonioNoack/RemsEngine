@@ -1,6 +1,7 @@
 package me.anno.objects.cache
 
 import me.anno.gpu.GFX
+import me.anno.gpu.ShaderLib.shader3DYUV
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.HDRImage
@@ -60,7 +61,7 @@ class ImageData(file: File): CacheData {
                     val shader = frame.get3DShader().shader
                     GFX.shader3DUniforms(shader, Matrix4f(), Vector4f(1f, 1f, 1f, 1f))
                     frame.bind(0, true)
-                    if(shader == GFX.shader3DYUV.shader){
+                    if(shader == shader3DYUV.shader){
                         val w = frame.w
                         val h = frame.h
                         shader.v2("uvCorrection", w.toFloat()/((w+1)/2*2), h.toFloat()/((h+1)/2*2))

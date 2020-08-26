@@ -32,7 +32,7 @@ object DefaultConfig: StringMap() {
         val t0 = System.nanoTime()
 
         this["style"] = "dark"
-        this["ffmpeg.path"] = File(OS.home, "Downloads\\lib\\ffmpeg\\bin\\ffmpeg.exe")
+        this["ffmpeg.path"] = File(OS.downloads, "lib\\ffmpeg\\bin\\ffmpeg.exe") // I'm not sure about that one ;)
         this["tooltip.reactionTime"] = 300
         this["lastUsed.fonts.count"] = 5
         this["default.video.nearest"] = false

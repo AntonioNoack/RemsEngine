@@ -2,6 +2,7 @@ package me.anno.gpu.texture
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
+import me.anno.gpu.TextureLib.invisibleTexture
 import me.anno.input.Input.keysDown
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
@@ -230,7 +231,7 @@ class Texture2D(override var w: Int, override var h: Int, val samples: Int): ITe
         if(pointer > -1 && isCreated){
             glBindTexture(tex2D, pointer)
             ensureFiltering(nearest)
-        } else GFX.invisibleTexture.bind(true)
+        } else invisibleTexture.bind(true)
     }
 
     override fun bind(index: Int, nearest: Boolean){

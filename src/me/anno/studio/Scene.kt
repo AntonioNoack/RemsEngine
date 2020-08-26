@@ -3,7 +3,7 @@ package me.anno.studio
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
-import me.anno.gpu.GFX.createShader
+import me.anno.gpu.ShaderLib.createShader
 import me.anno.gpu.GFX.flat01
 import me.anno.gpu.GFX.isFakeColorRendering
 import me.anno.gpu.GFX.isFinalRendering

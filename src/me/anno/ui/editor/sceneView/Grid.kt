@@ -3,6 +3,8 @@ package me.anno.ui.editor.sceneView
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.toRadians
+import me.anno.gpu.ShaderLib.shader3D
+import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticFloatBuffer
 import me.anno.objects.Transform.Companion.xAxis
@@ -58,7 +60,7 @@ object Grid {
 
     fun drawLine2(x0: Float, y0: Float, x1: Float, y1: Float,
                   color: Int, alpha: Float){
-        val shader = GFX.shader3D.shader
+        val shader = shader3D.shader
         shader.use()
         val stack = Matrix4f()
         stack.translate(x0, y0, 0f)
@@ -71,13 +73,13 @@ object Grid {
             color.shr(16).and(255) / 255f,
             color.shr(8).and(255) / 255f,
             color.and(255) / 255f, alpha)
-        GFX.whiteTexture.bind(0, true)
+        whiteTexture.bind(0, true)
         lineBuffer.draw(shader, GL_LINES)
     }
 
     fun drawLine(stack: Matrix4fArrayList, color: Int, alpha: Float){
 
-        val shader = GFX.shader3D.shader
+        val shader = shader3D.shader
         shader.use()
         stack.get(GFX.matrixBuffer)
         glUniformMatrix4fv(shader["transform"], false, GFX.matrixBuffer)
@@ -85,7 +87,7 @@ object Grid {
             color.shr(16).and(255) / 255f,
             color.shr(8).and(255) / 255f,
             color.and(255) / 255f, alpha)
-        GFX.whiteTexture.bind(0, true)
+        whiteTexture.bind(0, true)
         lineBuffer.draw(shader, GL_LINES)
 
     }
@@ -133,12 +135,12 @@ object Grid {
 
         if(alpha <= 0f) return
 
-        val shader = GFX.shader3D.shader
+        val shader = shader3D.shader
         shader.use()
         stack.get(GFX.matrixBuffer)
         glUniformMatrix4fv(shader["transform"], false, GFX.matrixBuffer)
         shader.v4("tint", 1f, 1f, 1f, alpha)
-        GFX.whiteTexture.bind(0, true)
+        whiteTexture.bind(0, true)
         gridBuffer.draw(shader, GL_LINES)
 
     }

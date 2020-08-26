@@ -1,6 +1,7 @@
 package me.anno.objects
 
 import me.anno.gpu.GFX
+import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticFloatBuffer
 import me.anno.gpu.texture.FilteringMode
@@ -26,7 +27,7 @@ class Cubemap(var file: File = File(""), parent: Transform? = null): GFXTransfor
 
         val texture = Cache.getImage(file, 1000, true) ?:
             if(GFX.isFinalRendering) throw MissingFrameException(file)
-            else GFX.whiteTexture
+            else whiteTexture
 
         val sphericalProjection = file.name.endsWith(".hdr", true) != otherFormat
 

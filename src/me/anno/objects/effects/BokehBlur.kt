@@ -1,7 +1,7 @@
 package me.anno.objects.effects
 
-import me.anno.gpu.GFX.createShaderNoShorts
 import me.anno.gpu.GFX.flat01
+import me.anno.gpu.ShaderLib.createShaderNoShorts
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.framebuffer.Framebuffer

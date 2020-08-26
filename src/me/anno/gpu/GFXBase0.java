@@ -4,11 +4,15 @@
  */
 package me.anno.gpu;
 
+import jwinpointer.JWinPointerReader;
 import kotlin.Unit;
 import kotlin.jvm.functions.Function0;
+import me.anno.config.DefaultConfig;
 import me.anno.input.Input;
+import me.anno.input.touch.JWinTouch;
 import me.anno.studio.Studio;
 import me.anno.studio.project.Project;
+import me.anno.utils.OS;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.LWJGLUtil;
@@ -44,6 +48,7 @@ public class GFXBase0 {
     GLFWKeyCallback keyCallback;
     GLFWFramebufferSizeCallback fsCallback;
     Callback debugProc;
+    String title = "Rem's Studio";
 
     public long window;
     public int width = 800;
@@ -106,7 +111,12 @@ public class GFXBase0 {
             height = framebufferSize.get(1);
         }
 
-        glfwSetWindowTitle(window, "Rem's Studio");
+        glfwSetWindowTitle(window, title);
+
+        if(OS.INSTANCE.isWindows() && DefaultConfig.INSTANCE.get("touch.isEnabled", true)){
+            JWinTouch.INSTANCE.init(title);
+        }
+
         glfwShowWindow(window);
 
     }

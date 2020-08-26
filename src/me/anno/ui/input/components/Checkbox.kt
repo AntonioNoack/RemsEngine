@@ -1,6 +1,7 @@
 package me.anno.ui.input.components
 
 import me.anno.gpu.GFX
+import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.gpu.texture.Texture2D
 import me.anno.objects.Text
 import me.anno.objects.cache.Cache
@@ -29,7 +30,7 @@ class Checkbox(startValue: Boolean, val size: Int, style: Style): Panel(style.ge
         val size = min(w, h)
         if(size > 0){
             // draw the icon on/off
-            GFX.drawTexture(x0+(w-size)/2, y0+(h-size)/2, size, size, getImage(isChecked) ?: GFX.whiteTexture, -1, null)
+            GFX.drawTexture(x0+(w-size)/2, y0+(h-size)/2, size, size, getImage(isChecked) ?: whiteTexture, -1, null)
         }
 
     }
