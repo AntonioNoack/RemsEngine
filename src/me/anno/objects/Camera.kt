@@ -43,7 +43,7 @@ class Camera(parent: Transform? = null): Transform(parent){
     var useDepth = true
 
     init {
-        position.add(0.0, Vector3f(0f, 0f, 1f))
+        position.addKeyframe(0.0, Vector3f(0f, 0f, 1f))
     }
 
 

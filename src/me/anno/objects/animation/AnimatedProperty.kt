@@ -112,11 +112,7 @@ class AnimatedProperty<V>(val type: Type, val defaultValue: V): Saveable(){
 
     fun set(value: V): AnimatedProperty<V> {
         keyframes.clear()
-        return add(0.0, value)
-    }
-
-    fun add(time: Double, value: V): AnimatedProperty<V> {
-        keyframes.add(Keyframe(time, clamp(value)))
+        keyframes.add(Keyframe(0.0, clamp(value)))
         keyframes.sort()
         return this
     }

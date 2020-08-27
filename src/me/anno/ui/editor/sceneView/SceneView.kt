@@ -295,7 +295,8 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
                     val dy = touches.sumByFloat { it.y - it.lastY } * size * 0.5f
                     val (_, time) = camera.getGlobalTransform(editorTime)
                     val old = camera.rotationYXZ[time]
-                    camera.rotationYXZ.add(time, old + Vector3f(dy, dx, 0f))
+                    val rotationSpeed = -10f
+                    camera.rotationYXZ.addKeyframe(time, old + Vector3f(dy * rotationSpeed, dx * rotationSpeed, 0f))
                     touches.forEach { it.update() }
                     showChanges()
                 }
@@ -383,7 +384,7 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
         val dx0 = dx*size
         val dy0 = dy*size
         // move stuff, if mouse is down and no touch is down
-        if(0 in mouseKeysDown && touches.isEmpty()){
+        if(0 in mouseKeysDown && touches.size < 2){
             // move the object
             val selected = selectedTransform
             if(selected != null){
