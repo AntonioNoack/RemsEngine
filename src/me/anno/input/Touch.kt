@@ -58,8 +58,7 @@ class Touch(val touchId: Int, var x: Float, var y: Float): Comparable<Touch> {
             if(index < 0) return
             val touch = touches[index]
             // move the last element forward
-            touches[index] = touches[touches.lastIndex]
-            touches.sort()
+            touches.removeAt(index)
             touch.update(x, y)
             onTouchUp(touch)
         }

@@ -297,6 +297,7 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
                     val old = camera.rotationYXZ[time]
                     camera.rotationYXZ.add(time, old + Vector3f(dy, dx, 0f))
                     touches.forEach { it.update() }
+                    showChanges()
                 }
             }
             3 -> {
@@ -307,6 +308,7 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
                     val dy = touches.sumByFloat { it.y - it.lastY } * size * 0.333f
                     move(camera, dx, dy)
                     touches.forEach { it.update() }
+                    showChanges()
                 }
             }
         }
@@ -380,8 +382,8 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
         val oldY = y-dy
         val dx0 = dx*size
         val dy0 = dy*size
-        // todo fix this code, then move it to the action manager
-        if(0 in mouseKeysDown){
+        // move stuff, if mouse is down and no touch is down
+        if(0 in mouseKeysDown && touches.isEmpty()){
             // move the object
             val selected = selectedTransform
             if(selected != null){
