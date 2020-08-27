@@ -219,8 +219,23 @@ object Input {
         }
         GLFW.glfwSetKeyCallback(window) { window, key, scancode, action, mods ->
             if(window != GFX.window){
-                val touchId = window - GFX.window - 1
-                println("Touch Event $touchId $key $scancode $action $mods")
+                val pressure = max(1, mods)
+                val x = scancode * 0.01f
+                val y = action * 0.01f
+                val GLFW_MOVE = 17
+                val touchId = key
+                when(mods){
+                    -1 -> {
+                        // press
+                    }
+                    -2 -> {
+                        // release
+                    }
+                    else -> {
+                        // move
+                    }
+                }
+                println("Touch Event $touchId $x $y $mods")
             } else
             addEvent {
                 framesSinceLastInteraction = 0
