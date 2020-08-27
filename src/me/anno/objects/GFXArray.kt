@@ -16,7 +16,7 @@ class GFXArray(parent: Transform? = null): GFXTransform(parent) {
     val perChildRotation = AnimatedProperty.rotYXZ()
     val perChildScale = AnimatedProperty.scale()
     val perChildSkew = AnimatedProperty.skew()
-    var perChildDelay = 0.1
+    var perChildDelay = AnimatedProperty.double()
 
     // val perChildTimeDilation = FloatArray(MAX_ARRAY_DIMENSION) // useful?, power vs linear
 
@@ -31,7 +31,7 @@ class GFXArray(parent: Transform? = null): GFXTransform(parent) {
         writer.writeObject(this, "perChildRotation", perChildRotation)
         writer.writeObject(this, "perChildScale", perChildScale)
         writer.writeObject(this, "perChildSkew", perChildSkew)
-        writer.writeDouble("perChildDelay", perChildDelay)
+        writer.writeObject(this, "perChildDelay", perChildDelay)
     }
 
     override fun readObject(name: String, value: ISaveable?) {
@@ -41,14 +41,8 @@ class GFXArray(parent: Transform? = null): GFXTransform(parent) {
             "perChildRotation" -> perChildRotation.copyFrom(value)
             "perChildScale" -> perChildScale.copyFrom(value)
             "perChildSkew" -> perChildSkew.copyFrom(value)
+            "perChildDelay" -> perChildDelay.copyFrom(value)
             else -> super.readObject(name, value)
-        }
-    }
-
-    override fun readDouble(name: String, value: Double) {
-        when(name){
-            "perChildDelay" -> perChildDelay = value
-            else -> super.readDouble(name, value)
         }
     }
 
@@ -58,13 +52,12 @@ class GFXArray(parent: Transform? = null): GFXTransform(parent) {
         // todo make text replacement simpler???
         val instanceCount = instanceCount[time]
         if(instanceCount > 0 && children.isNotEmpty()){
-            drawArrayChild(stack, time, color, 0, instanceCount)
+            drawArrayChild(stack, time, perChildDelay[time], color, 0, instanceCount)
         }
 
     }
 
-    fun drawArrayChild(transform: Matrix4fArrayList, time: Double, color: Vector4f, index: Int, instanceCount: Int){
-
+    fun drawArrayChild(transform: Matrix4fArrayList, time: Double, perChildDelay: Double, color: Vector4f, index: Int, instanceCount: Int){
 
         drawChild(transform, time, color, children[index % children.size])
 
@@ -88,7 +81,7 @@ class GFXArray(parent: Transform? = null): GFXTransform(parent) {
                 0f, 0f, 1f
             )
 
-            drawArrayChild(transform, time+perChildDelay, color, index+1, instanceCount)
+            drawArrayChild(transform, time+perChildDelay, perChildDelay, color, index+1, instanceCount)
 
         }
     }
@@ -105,7 +98,7 @@ class GFXArray(parent: Transform? = null): GFXTransform(parent) {
         list += VI("Offset/Child", "", perChildTranslation, style)
         list += VI("Rotation/Child", "", perChildRotation, style)
         list += VI("Scale/Child", "", perChildScale, style)
-        list += VI("Delay/Child", "", AnimatedProperty.Type.FLOAT, perChildDelay, style){ perChildDelay = it }
+        list += VI("Delay/Child", "", perChildDelay, style)
         list += VI("Instances", "", instanceCount, style)
 
         list += ButtonPanel("Apply Array", style)

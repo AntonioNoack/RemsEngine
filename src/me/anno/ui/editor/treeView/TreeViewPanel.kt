@@ -5,6 +5,7 @@ import me.anno.config.DefaultStyle
 import me.anno.config.DefaultStyle.black
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.select
 import me.anno.input.Input
 import me.anno.input.Input.mouseY
 import me.anno.io.text.TextReader
@@ -13,6 +14,7 @@ import me.anno.objects.*
 import me.anno.objects.Transform.Companion.toTransform
 import me.anno.studio.Studio
 import me.anno.studio.Studio.dragged
+import me.anno.studio.Studio.selectedTransform
 import me.anno.ui.base.TextPanel
 import me.anno.ui.dragging.Draggable
 import me.anno.ui.editor.treeView.TreeView.Companion.addChildFromFile
@@ -98,7 +100,7 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style): TextPanel(""
     override fun onPaste(x: Float, y: Float, data: String, type: String) {
         try {
             val child = TextReader.fromText(data).firstOrNull { it is Transform } as? Transform ?: return super.onPaste(x, y, data, type)
-            val original = (Studio.dragged as? Draggable)?.getOriginal() as? Transform
+            val original = (dragged as? Draggable)?.getOriginal() as? Transform
             val relativeY = (y - this.y) / this.h
             val e = getElement()
             if(relativeY < 0.33f){
@@ -123,6 +125,7 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style): TextPanel(""
             if(original !in child.listOfAll){
                 original?.removeFromParent()
             }
+            select(child)
         } catch (e: Exception){
             e.printStackTrace()
             super.onPaste(x, y, data, type)

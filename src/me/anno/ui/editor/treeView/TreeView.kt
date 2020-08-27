@@ -190,7 +190,6 @@ class TreeView(style: Style):
                     }
                 }
             } else {
-                val ending = file.name.split('.').last()
                 val name = file.name
                 when(file.extension.getImportType()){
                     "Transform" -> thread {
@@ -243,7 +242,7 @@ class TreeView(style: Style):
                         audio.name = name
                         select(audio)
                     }
-                    else -> println("Unknown file type: $ending")
+                    else -> println("Unknown file type: ${file.extension}")
                 }
             }
         }

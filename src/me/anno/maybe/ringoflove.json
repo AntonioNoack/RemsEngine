@@ -2,7 +2,7 @@
   {
     "class": "GFXArray",
     "i:*ptr": 1,
-    "S:name": "GFXArray",
+    "S:name": "Ring Of Love",
     "AnimatedProperty<pos>:position": {
       "i:*ptr": 2,
       "Keyframe:keyframes": {
@@ -74,14 +74,13 @@
         ]
       },
       "b:isAnimated": false
-    },
-    "d:perChildDelay": 0.1
+    }
   },
   {
     "class": "Transform",
     "i:*ptr": 8,
     "GFXArray:parent": 1,
-    "S:name": "Folder",
+    "S:name": "Text Container",
     "d:timeDilation": 1.0,
     "S:blendMode": "*Inherit",
     "Text:children": 15,
@@ -93,7 +92,7 @@
     "class": "Text",
     "i:*ptr": 15,
     "Transform:parent": 8,
-    "S:name": "Text",
+    "S:name": "Text: I",
     "d:timeDilation": 1.0,
     "S:blendMode": "*Inherit",
     "i:timelineSlot": 1,
@@ -110,7 +109,7 @@
     "class": "Text",
     "i:*ptr": 16,
     "Transform:parent": 8,
-    "S:name": "Text",
+    "S:name": "Text: Love",
     "AnimatedProperty<pos>:position": {
       "i:*ptr": 18,
       "Keyframe:keyframes": {
@@ -164,7 +163,7 @@
     "class": "Text",
     "i:*ptr": 17,
     "Transform:parent": 8,
-    "S:name": "Text",
+    "S:name": "Text: You",
     "AnimatedProperty<pos>:position": {
       "i:*ptr": 24,
       "Keyframe:keyframes": {
@@ -178,9 +177,22 @@
       "b:isAnimated": false
     },
     "d:timeDilation": 1.0,
+    "AnimatedProperty<color>:color": {
+      "i:*ptr": 26,
+      "Keyframe:keyframes": {
+        "i:*ptr": 27,
+        "v4:value": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "b:isAnimated": false
+    },
     "S:blendMode": "*Inherit",
     "i:timelineSlot": 1,
-    "S:text": "u",
+    "S:text": "U",
     "S:font": "Verdana",
     "b:isItalic": false,
     "b:isBold": false,
