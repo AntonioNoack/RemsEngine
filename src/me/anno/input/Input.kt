@@ -11,6 +11,9 @@ import me.anno.gpu.GFX.openMenu
 import me.anno.gpu.GFX.requestExit
 import me.anno.gpu.GFX.requestFocus
 import me.anno.gpu.GFX.windowStack
+import me.anno.input.Touch.Companion.onTouchDown
+import me.anno.input.Touch.Companion.onTouchMove
+import me.anno.input.Touch.Companion.onTouchUp
 import me.anno.studio.Studio.addEvent
 import me.anno.studio.Studio.project
 import me.anno.utils.length
@@ -57,6 +60,8 @@ object Input {
     val layoutFrameCount = 10
 
     fun needsLayoutUpdate() = framesSinceLastInteraction < layoutFrameCount
+
+
 
     fun initForGLFW(){
 
@@ -222,20 +227,13 @@ object Input {
                 val pressure = max(1, mods)
                 val x = scancode * 0.01f
                 val y = action * 0.01f
-                val GLFW_MOVE = 17
-                val touchId = key
-                when(mods){
-                    -1 -> {
-                        // press
-                    }
-                    -2 -> {
-                        // release
-                    }
-                    else -> {
-                        // move
+                addEvent {
+                    when(mods){
+                        -1 -> onTouchDown(key, x, y)
+                        -2 -> onTouchUp(key, x, y)
+                        else -> onTouchMove(key, x, y)
                     }
                 }
-                println("Touch Event $touchId $x $y $mods")
             } else
             addEvent {
                 framesSinceLastInteraction = 0

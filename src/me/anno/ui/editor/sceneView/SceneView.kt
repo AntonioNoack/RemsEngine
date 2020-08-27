@@ -8,7 +8,9 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.ShaderPlus
 import me.anno.input.Input
 import me.anno.input.Input.mouseKeysDown
+import me.anno.input.Touch.Companion.touches
 import me.anno.objects.Camera
+import me.anno.objects.Transform
 import me.anno.objects.blending.BlendMode
 import me.anno.studio.Scene
 import me.anno.studio.Studio
@@ -27,6 +29,7 @@ import me.anno.ui.simple.SimplePanel
 import me.anno.ui.style.Style
 import me.anno.utils.clamp
 import me.anno.utils.plus
+import me.anno.utils.sumByFloat
 import me.anno.utils.times
 import org.joml.Matrix4fArrayList
 import org.joml.Vector3f
@@ -112,6 +115,7 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
         GFX.check()
 
         parseKeyInput()
+        parseTouchInput()
 
         // calculate the correct size, such that we miss nothing
         // todo ideally we could zoom in the image etc...
@@ -274,6 +278,101 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
 
     }
 
+    var lastTouchZoom = 0f
+    fun parseTouchInput(){
+        val size = - (if(Input.isShiftDown) 4f else 20f) / GFX.height
+        when(touches.size){
+            2 -> {
+                val first = touches.first()
+                if(contains(first.x, first.y)){
+                    // this gesture started on this view -> this is our gesture
+                    // rotating is the hardest on a touchpad, because we need to click right
+                    // -> rotation
+                    // axes: angle, zoom,
+                    // todo rotate
+                    // todo zoom
+                    val dx = touches.sumByFloat { it.x - it.lastX } * size * 0.5f
+                    val dy = touches.sumByFloat { it.y - it.lastY } * size * 0.5f
+                    val (_, time) = camera.getGlobalTransform(editorTime)
+                    val old = camera.rotationYXZ[time]
+                    camera.rotationYXZ.add(time, old + Vector3f(dy, dx, 0f))
+                    touches.forEach { it.update() }
+                }
+            }
+            3 -> {
+                // todo move the camera around? :)
+                val first = touches.first()
+                if(contains(first.x, first.y)){
+                    val dx = touches.sumByFloat { it.x - it.lastX } * size * 0.333f
+                    val dy = touches.sumByFloat { it.y - it.lastY } * size * 0.333f
+                    move(camera, dx, dy)
+                    touches.forEach { it.update() }
+                }
+            }
+        }
+    }
+
+    fun move(selected: Transform, dx0: Float, dy0: Float){
+
+        val delta = dx0-dy0
+
+        val (target2global, localTime) = selected.getGlobalTransform(editorTime)
+
+        val camera = camera
+        val (camera2global, cameraTime) = camera.getGlobalTransform(editorTime)
+
+        val global2normUI = Matrix4fArrayList()
+        GFX.applyCameraTransform(camera, cameraTime, camera2global, global2normUI)
+
+        // val inverse = Matrix4f(global2normUI).invert()
+
+        // transforms: global to local
+        // ->
+        // camera local to global, then global to local
+        //      obj   cam
+        // v' = G2L * L2G * v
+        val global2ui = camera2global.mul(target2global.invert())
+
+        fun xTo01(x: Float) = ((x-this.x)/this.w)*2-1
+        fun yTo01(y: Float) = ((y-this.y)/this.h)*2-1
+
+        when(mode){
+            TransformMode.MOVE -> {
+
+                // todo find the (truly) correct speed...
+                // depends on FOV, camera and object transform
+
+                val uiZ = camera2global.transformPosition(Vector3f()).distance(target2global.transformPosition(Vector3f()))
+
+                val oldPosition = selected.position[localTime]
+                val localDelta = global2ui.transformDirection(
+                    if(Input.isControlDown) Vector3f(0f, 0f, -delta)
+                    else Vector3f(dx0, -dy0, 0f)
+                ) * (uiZ/6) // why ever 1/6...
+                selected.position.addKeyframe(localTime, oldPosition + localDelta)
+            }
+            /*TransformMode.SCALE -> {
+                val oldScale = selected.scale[localTime]
+                val localDelta = global2ui.transformDirection(
+                    if(Input.isControlDown) Vector3f(0f, 0f, -delta)
+                    else Vector3f(dx0, -dy0, 0f)
+                )
+                selected.scale.addKeyframe(localTime, oldScale + localDelta)
+            }
+            TransformMode.ROTATE -> {
+                // todo transform rotation??? quaternions...
+                val oldScale = selected.scale[localTime]
+                val localDelta = global2ui.transformDirection(
+                    if(Input.isControlDown) Vector3f(0f, 0f, -delta)
+                    else Vector3f(dx0, -dy0, 0f)
+                )
+                selected.scale.addKeyframe(localTime, oldScale + localDelta)
+            }*/
+        }
+
+        showChanges()
+    }
+
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
         // fov is relative to height -> modified to depend on height
         val size = (if(Input.isShiftDown) 4f else 20f) * (if(selectedTransform === camera) -1f else 1f) / GFX.height
@@ -281,68 +380,12 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
         val oldY = y-dy
         val dx0 = dx*size
         val dy0 = dy*size
-        val delta = dx0-dy0
         // todo fix this code, then move it to the action manager
         if(0 in mouseKeysDown){
             // move the object
             val selected = selectedTransform
             if(selected != null){
-
-                val (target2global, localTime) = selected.getGlobalTransform(editorTime)
-
-                val camera = camera
-                val (camera2global, cameraTime) = camera.getGlobalTransform(editorTime)
-
-                val global2normUI = Matrix4fArrayList()
-                GFX.applyCameraTransform(camera, cameraTime, camera2global, global2normUI)
-
-                // val inverse = Matrix4f(global2normUI).invert()
-
-                // transforms: global to local
-                // ->
-                // camera local to global, then global to local
-                //      obj   cam
-                // v' = G2L * L2G * v
-                val global2ui = camera2global.mul(target2global.invert())
-
-                fun xTo01(x: Float) = ((x-this.x)/this.w)*2-1
-                fun yTo01(y: Float) = ((y-this.y)/this.h)*2-1
-
-                when(mode){
-                    TransformMode.MOVE -> {
-
-                        // todo find the (truly) correct speed...
-                        // depends on FOV, camera and object transform
-
-                        val uiZ = camera2global.transformPosition(Vector3f()).distance(target2global.transformPosition(Vector3f()))
-
-                        val oldPosition = selected.position[localTime]
-                        val localDelta = global2ui.transformDirection(
-                            if(Input.isControlDown) Vector3f(0f, 0f, -delta)
-                            else Vector3f(dx0, -dy0, 0f)
-                        ) * (uiZ/6) // why ever 1/6...
-                        selected.position.addKeyframe(localTime, oldPosition + localDelta)
-                    }
-                    /*TransformMode.SCALE -> {
-                        val oldScale = selected.scale[localTime]
-                        val localDelta = global2ui.transformDirection(
-                            if(Input.isControlDown) Vector3f(0f, 0f, -delta)
-                            else Vector3f(dx0, -dy0, 0f)
-                        )
-                        selected.scale.addKeyframe(localTime, oldScale + localDelta)
-                    }
-                    TransformMode.ROTATE -> {
-                        // todo transform rotation??? quaternions...
-                        val oldScale = selected.scale[localTime]
-                        val localDelta = global2ui.transformDirection(
-                            if(Input.isControlDown) Vector3f(0f, 0f, -delta)
-                            else Vector3f(dx0, -dy0, 0f)
-                        )
-                        selected.scale.addKeyframe(localTime, oldScale + localDelta)
-                    }*/
-                }
-
-                showChanges()
+                move(selected, dx0, dy0)
             }
         }
     }
