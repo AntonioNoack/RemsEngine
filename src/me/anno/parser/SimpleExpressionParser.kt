@@ -96,7 +96,7 @@ object SimpleExpressionParser {
             if(!number.isValue()) continue
             if(i == 1 || when(this[i-2]){
                     is Double, is Vector -> false
-                    '*', '/', '^' -> true
+                    '*', '/', '^', ',' -> true
                     else -> false
                 }){
                 when(this[i-1]){
@@ -173,6 +173,7 @@ object SimpleExpressionParser {
                 '*', "dot" -> 0
                 "x", "cross" -> 1 // mmmh...
                 '/', "div" -> 2
+                '%', "%" -> 3
                 else -> continue@loop
             }
             val a = this[i-2]
@@ -183,7 +184,8 @@ object SimpleExpressionParser {
             this[i-2] = when(isMultiplication){
                 0 -> mulAny(a, b)
                 1 -> crossAny(a, b)
-                else -> divAny(a, b)
+                2 -> divAny(a, b)
+                else -> modAny(a, b)
             }
             return true
         }
@@ -309,7 +311,7 @@ object SimpleExpressionParser {
                     if(parts.applyBrackets()) continue
                 }
                 if('^' in parts && parts.applyPower()) continue
-                if(('*' in parts || '/' in parts) && parts.applyMultiplication()) continue
+                if(('*' in parts || '/' in parts || '%' in parts) && parts.applyMultiplication()) continue
                 if(('+' in parts || '-' in parts)){
                     if(parts.applyAdditions()) continue
                     if(parts.joinSigns()) continue

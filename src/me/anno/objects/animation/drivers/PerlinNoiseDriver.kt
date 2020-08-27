@@ -18,21 +18,16 @@ class PerlinNoiseDriver: AnimationDriver(){
 
     var seed = 0L
 
-    var baseValue = AnimatedProperty.float()
-    var amplitude = AnimatedProperty.float(1f)
-    var frequency = 1.0 // unit of time -> double
-
     private var noiseInstance = OpenSimplexNoise(seed)
     fun getNoise(): OpenSimplexNoise {
         if(noiseInstance.seed != seed) noiseInstance = OpenSimplexNoise(seed)
         return noiseInstance
     }
 
-    override fun getValue(time: Double): Double {
+    override fun getValue0(time: Double): Double {
         val falloff = falloff[time]
         val octaves = clamp(octaves, 0, 16)
-        val relativeValue = getValue((time * frequency), getNoise(), falloff.toDouble(), octaves) / getMaxValue(falloff, min(octaves, 10))
-        return baseValue[time] + max(amplitude[time], 0f) * relativeValue
+        return getValue(time, getNoise(), falloff.toDouble(), octaves) / getMaxValue(falloff, min(octaves, 10))
     }
 
     // recursion isn't the best... but whatever...
@@ -47,15 +42,11 @@ class PerlinNoiseDriver: AnimationDriver(){
     override fun getClassName() = "PerlinNoiseDriver"
     override fun getDisplayName() = "Noise"
 
-    override fun createInspector(transform: Transform, style: Style): List<Panel> {
-        val components = ArrayList<Panel>()
-        components += transform.VI("Octaves", "Levels of Detail", AnimatedProperty.Type.INT_PLUS, octaves, style){ octaves = it }
-        components += transform.VI("Seed", "", AnimatedProperty.Type.LONG, seed, style){ seed = it }
-        components += transform.VI("Falloff", "Changes high-frequency weight", falloff, style)
-        components += transform.VI("Value", "The base value", baseValue, style)
-        components += transform.VI("Amplitude", "The scale of this effect", amplitude, style)
-        components += transform.VI("Frequency", "How fast it's changing", AnimatedProperty.Type.FLOAT_PLUS, frequency, style){ frequency = it }
-        return components
+    override fun createInspector(list: MutableList<Panel>, transform: Transform, style: Style) {
+        super.createInspector(list, transform, style)
+        list += transform.VI("Octaves", "Levels of Detail", AnimatedProperty.Type.INT_PLUS, octaves, style){ octaves = it }
+        list += transform.VI("Seed", "", AnimatedProperty.Type.LONG, seed, style){ seed = it }
+        list += transform.VI("Falloff", "Changes high-frequency weight", falloff, style)
     }
 
     override fun save(writer: BaseWriter) {
@@ -63,9 +54,6 @@ class PerlinNoiseDriver: AnimationDriver(){
         writer.writeLong("seed", seed, true)
         writer.writeInt("octaves", octaves, true)
         writer.writeObject(this,"falloff", falloff)
-        writer.writeObject(this, "minValue", baseValue)
-        writer.writeObject(this, "maxValue", amplitude)
-        writer.writeDouble("frequency", frequency)
     }
 
     override fun readInt(name: String, value: Int) {
@@ -82,18 +70,9 @@ class PerlinNoiseDriver: AnimationDriver(){
         }
     }
 
-    override fun readDouble(name: String, value: Double) {
-        when(name){
-            "frequency" -> frequency = value
-            else -> super.readDouble(name, value)
-        }
-    }
-
     override fun readObject(name: String, value: ISaveable?) {
         when(name){
             "falloff" -> falloff.copyFrom(value)
-            "minValue" -> this.baseValue.copyFrom(value)
-            "maxValue" -> amplitude.copyFrom(value)
             else -> super.readObject(name, value)
         }
     }

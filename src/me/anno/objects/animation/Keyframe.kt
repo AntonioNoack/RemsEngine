@@ -69,6 +69,7 @@ class Keyframe<V>(var time: Double, var value: V): Saveable(), Comparable<Keyfra
     fun getValue(index: Int): Float {
         return when(val value = value){
             is Float -> value
+            is Double -> value.toFloat()
             is Vector2f -> when(index){
                 0 -> value.x
                 else -> value.y
@@ -107,6 +108,7 @@ class Keyframe<V>(var time: Double, var value: V): Saveable(), Comparable<Keyfra
                 is Vector2f -> writeVector2(name, v)
                 is Vector3f -> writeVector3(name, v)
                 is Vector4f -> writeVector4(name, v)
+                is String -> writeString(name, v)
                 else -> throw RuntimeException("todo implement")
             }
         }

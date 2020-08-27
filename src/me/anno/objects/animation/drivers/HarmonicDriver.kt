@@ -1,12 +1,14 @@
 package me.anno.objects.animation.drivers
 
 import me.anno.config.DefaultConfig
+import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.parser.SimpleExpressionParser.parseDouble
 import me.anno.parser.SimpleExpressionParser.preparse
 import me.anno.ui.base.Panel
+import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.input.TextInput
 import me.anno.ui.style.Style
 import kotlin.math.PI
@@ -17,27 +19,18 @@ class HarmonicDriver: AnimationDriver(){
     // use drivers to generate sound? rather not xD
     // maybe in debug mode
 
-    // dangerous when animated?
-    var baseFrequency = AnimatedProperty.float(1f)
-
-    var amplitude = AnimatedProperty.float(1f)
-
     // make them animated? no xD
     var harmonicsFormula = "1/n"
     val harmonics = FloatArray(maxHarmonics){
         1f/(it+1f)
     }
 
-    override fun createInspector(transform: Transform, style: Style): List<Panel> {
-        return listOf(
-            TextInput("Harmonics h(n)", style.getChild("deep"), harmonicsFormula)
-                .setChangeListener { harmonicsFormula = it; updateHarmonics() }
-                .setIsSelectedListener { show(null) }
-                .setTooltip("Default value is 1/n, try [2,0,1][n-1]"),
-            transform.VI("Amplitude", "Driver Strength", amplitude, style),
-            transform.VI("Base Frequency 1/s", "How fast it's oscillating", baseFrequency, style)
-            // FloatInput("", amplitude, lastLocalTime, style)
-        )
+    override fun createInspector(list: MutableList<Panel>, transform: Transform, style: Style) {
+        super.createInspector(list, transform, style)
+        list += TextInput("Harmonics h(n)", style.getChild("deep"), harmonicsFormula)
+            .setChangeListener { harmonicsFormula = it; updateHarmonics() }
+            .setIsSelectedListener { show(null) }
+            .setTooltip("Default value is 1/n, try [2,0,1][n-1]")
     }
 
     // update by time? would be possible... but still...
@@ -53,16 +46,22 @@ class HarmonicDriver: AnimationDriver(){
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
-        writer.writeObject(this, "amplitude", amplitude)
-        writer.writeObject(this, "frequency", baseFrequency)
         writer.writeString("harmonics", harmonicsFormula)
-        // writer.writeFloatArray("harmonics", harmonics)
     }
 
-    override fun getValue(time: Double): Double {
-        val w0 = time * baseFrequency[time] * 2.0 * PI
-        return amplitude[time] *
-                harmonics.withIndex().sumByDouble { (index, it) -> it * sin((index + 1f) * w0) }
+    override fun readString(name: String, value: String) {
+        when(name){
+            "harmonics" -> {
+                harmonicsFormula = value
+                updateHarmonics()
+            }
+            else -> super.readString(name, value)
+        }
+    }
+
+    override fun getValue0(time: Double): Double {
+        val w0 = time * 2.0 * PI
+        return harmonics.withIndex().sumByDouble { (index, it) -> it * sin((index + 1f) * w0) }
     }
 
     override fun getClassName() = "HarmonicDriver"

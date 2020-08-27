@@ -33,4 +33,6 @@ class Vector {
         isClosed = true
     }
 
+    override fun toString() = data.joinToString()
+
 }

@@ -14,7 +14,7 @@ fun mulAny(a: Any, b: Any): Any {
         return when(b){
             is Double -> a * b
             is Vector -> b.map { mulAny(a, it) }
-            else -> throw RuntimeException()
+            else -> throw RuntimeException("todo implement $a * $b")
         }
     }
     if(b is Double) return mulAny(b, a)
@@ -26,12 +26,30 @@ fun divAny(a: Any, b: Any): Any {
         return when(b){
             is Double -> a / b
             is Vector -> b.map { divAny(a, it) }
-            else -> throw RuntimeException()
+            else -> throw RuntimeException("todo implement $a / $b")
         }
     }
     if(b is Double) return mulAny(1.0/b, a)
     throw RuntimeException("todo implement $a / $b")
 }
+
+fun modAny(a: Any, b: Any): Any {
+    if(a is Double){
+        return when(b){
+            is Double -> a % b
+            is Vector -> b.map { modAny(a, it) }
+            else -> throw RuntimeException("todo implement $a % $b")
+        }
+    }
+    if(b is Double){
+        return when(a){
+            is Vector -> a.map { modAny(it, b) }
+            else -> throw RuntimeException("todo implement $a % $b")
+        }
+    }
+    throw RuntimeException("todo implement $a % $b")
+}
+
 
 fun crossAny(a: Any, b: Any): Any {
     throw RuntimeException("todo implement $a cross $b")

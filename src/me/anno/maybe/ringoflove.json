@@ -1,0 +1,192 @@
+[
+  {
+    "class": "GFXArray",
+    "i:*ptr": 1,
+    "S:name": "GFXArray",
+    "AnimatedProperty<pos>:position": {
+      "i:*ptr": 2,
+      "Keyframe:keyframes": {
+        "i:*ptr": 3,
+        "v3:value": [
+          -0.047919556,
+          -0.84868646,
+          0.0
+        ]
+      },
+      "b:isAnimated": false
+    },
+    "AnimatedProperty<scale>:scale": {
+      "i:*ptr": 4,
+      "Keyframe:keyframes": {
+        "i:*ptr": 5,
+        "v3:value": [
+          0.25792518,
+          0.25792518,
+          0.25792518
+        ]
+      },
+      "b:isAnimated": false
+    },
+    "AnimatedProperty<rotYXZ>:rotationYXZ": {
+      "i:*ptr": 6,
+      "Keyframe:keyframes": {
+        "i:*ptr": 7,
+        "v3:value": [
+          -0.20833334,
+          0.0,
+          1.5986336
+        ]
+      },
+      "b:isAnimated": false
+    },
+    "d:timeDilation": 1.0,
+    "S:blendMode": "*Inherit",
+    "Transform:children": 8,
+    "i:timelineSlot": 1,
+    "AnimatedProperty<int+>:instanceCount": {
+      "i:*ptr": 9,
+      "Keyframe:keyframes": {
+        "i:*ptr": 10,
+        "i:value": 36
+      },
+      "b:isAnimated": false
+    },
+    "AnimatedProperty<pos>:perChildTranslation": {
+      "i:*ptr": 11,
+      "Keyframe:keyframes": {
+        "i:*ptr": 12,
+        "v3:value": [
+          0.5748903,
+          0.0,
+          0.0
+        ]
+      },
+      "b:isAnimated": false
+    },
+    "AnimatedProperty<rotYXZ>:perChildRotation": {
+      "i:*ptr": 13,
+      "Keyframe:keyframes": {
+        "i:*ptr": 14,
+        "v3:value": [
+          0.0,
+          0.0,
+          10.0
+        ]
+      },
+      "b:isAnimated": false
+    },
+    "d:perChildDelay": 0.1
+  },
+  {
+    "class": "Transform",
+    "i:*ptr": 8,
+    "GFXArray:parent": 1,
+    "S:name": "Folder",
+    "d:timeDilation": 1.0,
+    "S:blendMode": "*Inherit",
+    "Text:children": 15,
+    "Text:children": 16,
+    "Text:children": 17,
+    "i:timelineSlot": 0
+  },
+  {
+    "class": "Text",
+    "i:*ptr": 15,
+    "Transform:parent": 8,
+    "S:name": "Text",
+    "d:timeDilation": 1.0,
+    "S:blendMode": "*Inherit",
+    "i:timelineSlot": 1,
+    "S:text": "I",
+    "S:font": "Verdana",
+    "b:isItalic": false,
+    "b:isBold": false,
+    "i:textAlignment": -1,
+    "i:blockAlignmentX": 1,
+    "i:blockAlignmentY": -1,
+    "f:relativeTabSize": 4.0
+  },
+  {
+    "class": "Text",
+    "i:*ptr": 16,
+    "Transform:parent": 8,
+    "S:name": "Text",
+    "AnimatedProperty<pos>:position": {
+      "i:*ptr": 18,
+      "Keyframe:keyframes": {
+        "i:*ptr": 19,
+        "v3:value": [
+          0.08404912,
+          -0.033333316,
+          0.0
+        ]
+      },
+      "b:isAnimated": false
+    },
+    "AnimatedProperty<scale>:scale": {
+      "i:*ptr": 20,
+      "Keyframe:keyframes": {
+        "i:*ptr": 21,
+        "v3:value": [
+          0.73929906,
+          0.73929906,
+          0.73929906
+        ]
+      },
+      "b:isAnimated": false
+    },
+    "d:timeDilation": 1.0,
+    "AnimatedProperty<color>:color": {
+      "i:*ptr": 22,
+      "Keyframe:keyframes": {
+        "i:*ptr": 23,
+        "v4:value": [
+          0.968169,
+          0.1187476,
+          0.05734597,
+          1.0
+        ]
+      },
+      "b:isAnimated": false
+    },
+    "S:blendMode": "*Inherit",
+    "i:timelineSlot": 1,
+    "S:text": "❤️",
+    "S:font": "Verdana",
+    "b:isItalic": false,
+    "b:isBold": false,
+    "i:textAlignment": -1,
+    "i:blockAlignmentX": 1,
+    "i:blockAlignmentY": -1,
+    "f:relativeTabSize": 4.0
+  },
+  {
+    "class": "Text",
+    "i:*ptr": 17,
+    "Transform:parent": 8,
+    "S:name": "Text",
+    "AnimatedProperty<pos>:position": {
+      "i:*ptr": 24,
+      "Keyframe:keyframes": {
+        "i:*ptr": 25,
+        "v3:value": [
+          0.32533085,
+          0.0,
+          0.0
+        ]
+      },
+      "b:isAnimated": false
+    },
+    "d:timeDilation": 1.0,
+    "S:blendMode": "*Inherit",
+    "i:timelineSlot": 1,
+    "S:text": "u",
+    "S:font": "Verdana",
+    "b:isItalic": false,
+    "b:isBold": false,
+    "i:textAlignment": -1,
+    "i:blockAlignmentX": 1,
+    "i:blockAlignmentY": -1,
+    "f:relativeTabSize": 4.0
+  }
+]

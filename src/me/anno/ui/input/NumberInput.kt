@@ -32,10 +32,12 @@ abstract class NumberInput<Type>(
         val hasDriver get() = driver != null
         override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
             val driver = driver
-            val driverName = driver?.getDisplayName()
-            if(driver != null && text != driverName){
-                text = driverName!!
-                updateChars()
+            if(driver != null){
+                val driverName = driver.getDisplayName()
+                if(text != driverName){
+                    text = driverName
+                    updateChars()
+                }
             }
             super.draw(x0, y0, x1, y1)
         }
@@ -57,6 +59,9 @@ abstract class NumberInput<Type>(
                 AnimationDriver.openDriverSelectionMenu(x.toInt(), y.toInt(), oldDriver){
                     owningProperty.drivers[indexInProperty] = it
                     if(it != null) Studio.selectedInspectable = it
+                    else {
+                        text = stringify(lastValue)
+                    }
                 }
                 return
             }
@@ -64,7 +69,10 @@ abstract class NumberInput<Type>(
         }
 
         override fun onEmpty(x: Float, y: Float) {
-            this@NumberInput.onEmpty(x,y)
+            if(hasDriver){
+                owningProperty?.drivers?.set(indexInProperty, null)
+                this@NumberInput.onEmpty(x,y)
+            } else this@NumberInput.onEmpty(x,y)
         }
     }
 

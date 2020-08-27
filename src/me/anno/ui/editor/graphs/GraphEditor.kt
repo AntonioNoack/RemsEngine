@@ -1,9 +1,7 @@
 package me.anno.ui.editor.graphs
 
-import me.anno.gpu.GFX
 import me.anno.studio.Studio
 import me.anno.ui.base.ButtonPanel
-import me.anno.ui.base.TextPanel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelListY

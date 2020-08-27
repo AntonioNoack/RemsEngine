@@ -7,6 +7,7 @@ import me.anno.objects.animation.drivers.AnimationDriver
 import me.anno.utils.WrongClassType
 import org.joml.*
 import java.lang.RuntimeException
+import kotlin.concurrent.thread
 import kotlin.math.abs
 
 class AnimatedProperty<V>(val type: Type, val defaultValue: V): Saveable(){
@@ -86,8 +87,7 @@ class AnimatedProperty<V>(val type: Type, val defaultValue: V): Saveable(){
     // todo cache the last values left+right and timestamps left+right for faster access
     // because audio can make literally 48k calls per second
 
-    val drivers
-            = arrayOfNulls<AnimationDriver>(type.components)
+    val drivers = arrayOfNulls<AnimationDriver>(type.components)
 
     var isAnimated = false
     val keyframes = ArrayList<Keyframe<V>>()
@@ -244,7 +244,7 @@ class AnimatedProperty<V>(val type: Type, val defaultValue: V): Saveable(){
         sort()
         writer.writeList(this, "keyframes", keyframes)
         writer.writeBool("isAnimated", isAnimated, true)
-        for(i in drivers.indices){
+        for(i in 0 until type.components){
             writer.writeObject(this, "driver$i", drivers[i])
         }
     }
@@ -288,20 +288,22 @@ class AnimatedProperty<V>(val type: Type, val defaultValue: V): Saveable(){
     // todo do we want copies by reference anyways? maybe with right click, or key combos..
     fun copyFrom(obj: Any?, force: Boolean = false){
         if(obj === this && !force) throw RuntimeException("Probably a typo!")
-        if(obj is AnimatedProperty<*> && type.accepts(obj.type.defaultValue)){
-            isAnimated = obj.isAnimated
-            keyframes.clear()
-            obj.keyframes.forEach {
-                it.setValueUnsafe(clamp(it.value as V))
-            }
-            obj.drivers.forEachIndexed { index, animationDriver ->
-                drivers[index] = animationDriver
-            }
-            keyframes.addAll(obj.keyframes as List<Keyframe<V>>)
-            interpolation = obj.interpolation
-        }
+        if(obj is AnimatedProperty<*>){
+            if(type.accepts(obj.type.defaultValue)){
+                isAnimated = obj.isAnimated
+                keyframes.clear()
+                obj.keyframes.forEach {
+                    it.setValueUnsafe(clamp(it.value as V))
+                }
+                obj.drivers.forEachIndexed { index, animationDriver ->
+                    this.drivers[index] = animationDriver
+                }
+                keyframes.addAll(obj.keyframes as List<Keyframe<V>>)
+                interpolation = obj.interpolation
+            } else println("$type does not accept type ${obj.type} with default value ${obj.type.defaultValue}")
+        } else println("copy-from-object $obj is not an AnimatedProperty!")
     }
 
-    override fun isDefaultValue() = keyframes.isEmpty()
+    override fun isDefaultValue() = false
 
 }

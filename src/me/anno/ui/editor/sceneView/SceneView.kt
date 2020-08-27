@@ -47,8 +47,6 @@ import kotlin.math.roundToInt
 
 // todo show the current mode with the cursor
 
-// todo move forward with pinch (zoom) on a touch screen?
-
 // todo right click on input to get context menu, e.g. to reset
 
 class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
@@ -57,17 +55,6 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
 
         weight = 1f
         backgroundColor = 0
-
-        // todo add the top controls
-
-        // todo ui with transparent background... only icons...
-        /*val topControls = PanelListX(style)
-        topControls += WrapAlign.Top
-        val tp = TextPanel("hi", style)
-        tp += WrapAlign.LeftTop
-        topControls += tp
-        add(topControls)*/
-
 
     }
 
@@ -82,20 +69,20 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
     // we need the depth for post processing effects like dof
 
     init {
-        controls += SimplePanel(
+        /*controls += SimplePanel(
             IconPanel("checked.png", style),
             true, true,
             3, 3,
             iconSize
         ).setOnClickListener {
 
-        }
-        controls += SimplePanel(
+        }*/
+        /*controls += SimplePanel(
             TextPanel("H", style),
             true, true,
             3 + iconSize + iconBorder, 3,
             iconSize
-        )
+        )*/
     }
 
     var mode = TransformMode.MOVE
@@ -280,6 +267,7 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
 
     var lastTouchZoom = 0f
     fun parseTouchInput(){
+        // todo rotate/move our camera or the selected object?
         val size = - (if(Input.isShiftDown) 4f else 20f) / GFX.height
         when(touches.size){
             2 -> {
@@ -289,7 +277,7 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
                     // rotating is the hardest on a touchpad, because we need to click right
                     // -> rotation
                     // axes: angle, zoom,
-                    // todo rotate
+                    // rotate
                     // todo zoom
                     val dx = touches.sumByFloat { it.x - it.lastX } * size * 0.5f
                     val dy = touches.sumByFloat { it.y - it.lastY } * size * 0.5f
@@ -336,16 +324,15 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
         // v' = G2L * L2G * v
         val global2ui = camera2global.mul(target2global.invert())
 
-        fun xTo01(x: Float) = ((x-this.x)/this.w)*2-1
-        fun yTo01(y: Float) = ((y-this.y)/this.h)*2-1
-
         when(mode){
             TransformMode.MOVE -> {
 
                 // todo find the (truly) correct speed...
                 // depends on FOV, camera and object transform
 
-                val uiZ = camera2global.transformPosition(Vector3f()).distance(target2global.transformPosition(Vector3f()))
+                val camPos = camera2global.transformPosition(Vector3f())
+                val targetPos = target2global.transformPosition(Vector3f())
+                val uiZ = camPos.distance(targetPos)
 
                 val oldPosition = selected.position[localTime]
                 val localDelta = global2ui.transformDirection(

@@ -1,0 +1,46 @@
+[
+  {
+    "class": "Circle",
+    "i:*ptr": 1,
+    "S:name": "Circle",
+    "AnimatedProperty<pos>:position": {
+      "i:*ptr": 2,
+      "Keyframe:keyframes": {
+        "i:*ptr": 3
+      },
+      "b:isAnimated": false,
+      "HarmonicDriver:driver1": 4
+    },
+    "AnimatedProperty<scale>:scale": {
+      "i:*ptr": 5,
+      "Keyframe:keyframes": {
+        "i:*ptr": 6,
+        "v3:value": [
+          0.14058204,
+          0.14058204,
+          0.14058204
+        ]
+      },
+      "b:isAnimated": false
+    },
+    "d:timeDilation": 1.0,
+    "S:blendMode": "*Inherit",
+    "i:timelineSlot": 1
+  },
+  {
+    "class": "HarmonicDriver",
+    "i:*ptr": 4,
+    "d:frequency": 1.0,
+    "AnimatedProperty<float>:amplitude": 7,
+    "S:harmonics": "1/n"
+  },
+  {
+    "class": "AnimatedProperty<float>",
+    "i:*ptr": 7,
+    "Keyframe:keyframes": {
+      "i:*ptr": 8,
+      "f:value": 1.0
+    },
+    "b:isAnimated": false
+  }
+]

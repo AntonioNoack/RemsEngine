@@ -1,0 +1,77 @@
+[
+  {
+    "class": "GFXArray",
+    "i:*ptr": 1,
+    "S:name": "GFXArray",
+    "AnimatedProperty<pos>:position": {
+      "i:*ptr": 2,
+      "Keyframe:keyframes": {
+        "i:*ptr": 3,
+        "v3:value": [
+          -1.7437513,
+          -0.02499995,
+          0.0
+        ]
+      },
+      "b:isAnimated": false
+    },
+    "AnimatedProperty<scale>:scale": {
+      "i:*ptr": 4,
+      "Keyframe:keyframes": {
+        "i:*ptr": 5,
+        "v3:value": [
+          0.07526807,
+          0.07526807,
+          0.07526807
+        ]
+      },
+      "b:isAnimated": false
+    },
+    "d:timeDilation": 1.0,
+    "S:blendMode": "*Inherit",
+    "Circle:children": 6,
+    "i:timelineSlot": 1,
+    "AnimatedProperty<int+>:instanceCount": {
+      "i:*ptr": 7,
+      "Keyframe:keyframes": {
+        "i:*ptr": 8,
+        "i:value": 600
+      },
+      "b:isAnimated": false
+    },
+    "AnimatedProperty<pos>:perChildTranslation": {
+      "i:*ptr": 9,
+      "Keyframe:keyframes": {
+        "i:*ptr": 10,
+        "v3:value": [
+          0.07721711,
+          0.0,
+          0.0
+        ]
+      },
+      "b:isAnimated": false
+    },
+    "d:perChildDelay": 0.1
+  },
+  {
+    "class": "Circle",
+    "i:*ptr": 6,
+    "GFXArray:parent": 1,
+    "S:name": "Circle",
+    "AnimatedProperty<scale>:scale": {
+      "i:*ptr": 11,
+      "Keyframe:keyframes": {
+        "i:*ptr": 12,
+        "v3:value": [
+          0.07671858,
+          0.07671858,
+          0.07671858
+        ]
+      },
+      "b:isAnimated": false
+    },
+    "d:timeDilation": 1.0,
+    "S:blendMode": "*Inherit",
+    "i:timelineSlot": 1
+  }
+]

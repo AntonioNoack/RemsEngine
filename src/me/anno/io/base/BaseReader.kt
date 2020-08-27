@@ -5,6 +5,9 @@ import me.anno.io.utils.StringMap
 import me.anno.objects.*
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.animation.Keyframe
+import me.anno.objects.animation.drivers.CustomDriver
+import me.anno.objects.animation.drivers.HarmonicDriver
+import me.anno.objects.animation.drivers.PerlinNoiseDriver
 import me.anno.objects.effects.MaskLayer
 import me.anno.objects.geometric.Circle
 import me.anno.objects.geometric.Polygon
@@ -26,6 +29,13 @@ abstract class BaseReader {
             "Image" -> Image()
             "Audio" -> Audio()
             "Video" -> Video()
+            "GFXArray" -> GFXArray()
+            "MaskLayer" -> MaskLayer()
+            "ParticleSystem" -> ParticleSystem()
+            "Cubemap" -> Cubemap()
+            "Camera" -> Camera()
+            "Mesh" -> Mesh()
+            "Timer" -> Timer()
             "AnimatedProperty<float>" -> AnimatedProperty.float()
             "AnimatedProperty<float+>" -> AnimatedProperty.floatPlus()
             "AnimatedProperty<int>" -> AnimatedProperty.int()
@@ -41,12 +51,9 @@ abstract class BaseReader {
             "AnimatedProperty<color>" -> AnimatedProperty.color()
             "AnimatedProperty<quaternion>" -> AnimatedProperty.quat()
             "Keyframe" -> Keyframe<Any>(0.0, 0f)
-            "MaskLayer" -> MaskLayer()
-            "ParticleSystem" -> ParticleSystem()
-            "Cubemap" -> Cubemap()
-            "Camera" -> Camera()
-            "Mesh" -> Mesh()
-            "Timer" -> Timer()
+            "HarmonicDriver" -> HarmonicDriver()
+            "PerlinNoiseDriver" -> PerlinNoiseDriver()
+            "CustomDriver" -> CustomDriver()
             else -> {
                 ISaveable.objectTypeRegistry[clazz]?.invoke() ?: throw RuntimeException("Unknown class $clazz")
             }
