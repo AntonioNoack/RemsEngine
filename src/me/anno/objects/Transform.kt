@@ -483,6 +483,7 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
                     is ToneMappers -> ToneMappers.values()
                     is MaskType -> MaskType.values()
                     is FilteringMode -> FilteringMode.values()
+                    is SelectionMode -> SelectionMode.values()
                     else -> throw RuntimeException("Missing enum .values() implementation for UI in Transform.kt for $value")
                 }
                 val valueNames = values.map {
@@ -493,6 +494,7 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
                         is ToneMappers -> it.displayName
                         is MaskType -> it.displayName
                         is FilteringMode -> it.displayName
+                        is SelectionMode -> it.displayName
                         else -> it.name
                     }
                 }

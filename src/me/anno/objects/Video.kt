@@ -183,10 +183,7 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
         list += VI("Tiling", "(tile count x, tile count y, offset x, offset y)", tiling, style)
         list += VI("Video Start", "Timestamp in seconds of the first frames drawn", null, startTime, style){ startTime = it }
         list += VI("Video End", "Timestamp in seconds of the last frames drawn", null, endTime, style) { endTime = it }
-        // KISS principle? just allow modules to be created :)
-        // list += VI("Looping?", "Should the video start after it ended? (useful for Gifs)", null, isLooping, style){ isLooping = it }
-        // todo more interpolation modes? (cubic?)
-        list += VI("Nearest Filtering", "Pixelated look; linear interpolation otherwise", null, filtering, style){ filtering = it }
+        list += VI("Filtering", "Pixelated look?", null, filtering, style){ filtering = it }
         list += EnumInput("Video Scale", true,
             videoScaleNames.reverse[videoScale] ?: "Auto",
             videoScaleNames.entries.sortedBy { it.value }.map { it.key }, style)

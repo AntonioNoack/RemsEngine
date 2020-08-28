@@ -145,7 +145,7 @@ object UILayouts {
                         override fun onBackSpaceKey(x: Float, y: Float) { windowStack.pop() }
                     }
                     // todo update, if there are new messages incoming
-                    // todo select the text color based on the type of message
+                    // done select the text color based on the type of message
                     val list = listPanel.child as PanelList
                     lastConsoleLines.reversed().forEach {
                         val level = if(it.startsWith('[')){

@@ -82,7 +82,7 @@ abstract class AnimationDriver: Saveable(), Inspectable {
                     true
                 })
                 options += "Remove Driver" to { button, isLong ->
-                    // confirm? no, todo make a save point
+                    // todo make a save point
                     whenSelected(null)
                     true
                 }

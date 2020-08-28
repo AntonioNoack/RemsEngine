@@ -409,8 +409,6 @@ class GraphEditorBody(style: Style): Panel(style.getChild("deep")){
         val delta = sign * dtHalfLength * movementSpeed / w
         Studio.editorTime += delta
         Studio.updateAudio()
-        // todo may be very expensive...
-        // todo update when stopped scrolling maybe, or every 0.2s?
         centralTime += delta
         clampTime()
     }

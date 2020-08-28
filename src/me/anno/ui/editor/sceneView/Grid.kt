@@ -25,8 +25,6 @@ import kotlin.math.atan2
 import kotlin.math.floor
 import kotlin.math.log10
 
-// todo gizmo element with arrows in the axis directions :)
-
 object Grid {
 
     private val xAxisColor = parseColor(DefaultConfig["grid.axis.x.color", "#ff7777"]) ?: 0xff7777

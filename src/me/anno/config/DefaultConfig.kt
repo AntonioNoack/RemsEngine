@@ -69,6 +69,13 @@ object DefaultConfig: StringMap() {
             "Video" to Video(File(""), null),
             "Image" to Image(File(""), null),
             "Polygon" to Polygon(null),
+            "Rectangle" to {
+                val quad = Polygon(null)
+                quad.name = "Rectangle"
+                quad.vertexCount.set(4)
+                quad.autoAlign = true
+                quad
+            }(),
             "Circle" to Circle(null),
             "Folder" to Transform(),
             "Mask" to {
@@ -92,7 +99,7 @@ object DefaultConfig: StringMap() {
                 val cube = Polygon(null)
                 cube.name = "Cube"
                 cube.autoAlign = true
-                cube.scale.set(Vector3f(1f, 1f, 1f))
+                cube.is3D = true
                 cube.vertexCount.set(4)
                 cube
             }(),

@@ -14,7 +14,7 @@ import kotlin.math.roundToInt
 class CustomListX(style: Style): PanelListX(style), CustomList {
 
     init {
-        spacing = style.getSize("custom.drag.size", 2)
+        spacing = style.getSize("custom.drag.size", 4)
     }
 
     val minSize get() = 10f / w

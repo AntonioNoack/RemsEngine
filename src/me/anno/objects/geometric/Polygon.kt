@@ -29,34 +29,34 @@ import kotlin.math.sqrt
 class Polygon(parent: Transform? = null): GFXTransform(parent){
 
     // todo round edges?
-    // todo auto align?
-
-    init {
-        scale.set(DefaultConfig["object.polygon.defaultScale", Vector3f(1f, 1f, 0f)])
-    }
 
     var texture = File("")
     var autoAlign = false
     var filtering = FilteringMode.LINEAR
 
+    var is3D = false
     var vertexCount = AnimatedProperty.intPlus(5)
     var starNess = AnimatedProperty.float01()
 
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f){
         val inset = clamp(starNess[time], 0f, 1f)
         val image = Cache.getImage(texture, 5000, true)
-        // todo check if an exception really need to be thrown (empty = default, white)
+        // todo check if an exception really needs to be thrown (empty = default, white)
         if(image == null && GFX.isFinalRendering) throw MissingFrameException(texture)
         val texture = image ?: whiteTexture
         val count = vertexCount[time]//.roundToInt()
         if(inset == 1f && count % 2 == 0) return// invisible
         val selfDepth = scale[time].z
-        if(autoAlign && count == 4){
-            stack.rotate(toRadians(45f), zAxis)
-            stack.scale(sqrt2, sqrt2, 1f)
+        stack.pushMatrix()
+        if(autoAlign){
+            stack.rotate(toRadians(if(count == 4) 45f else 90f), zAxis)
+            stack.scale(sqrt2, sqrt2, if(is3D) 1f else 0f)
+        } else if(!is3D){
+            stack.scale(1f, 1f, 0f)
         }
         GFX.draw3DPolygon(stack, getBuffer(count, selfDepth > 0f), texture, color,
             inset, filtering)
+        stack.popMatrix()
         return
     }
 
@@ -66,7 +66,8 @@ class Polygon(parent: Transform? = null): GFXTransform(parent){
         list += VI("Star-ness", "Works best with even vertex count", starNess, style)
         list += VI("Pattern Texture", "For patterns like gradients radially; use a mask layer for images with polygon shape", null, texture, style){ texture = it }
         list += VI("Filtering", "Pixelated or soft look of pixels?", null, filtering, style){ filtering = it }
-        list += VI("Auto-Align", "for quads", null, autoAlign, style){ autoAlign = it }
+        list += VI("Auto-Align", "Rotate 45°/90, and scale a bit; for rectangles", null, autoAlign, style){ autoAlign = it }
+        list += VI("Extrude", "Makes it 3D", null, is3D, style){ is3D = it }
     }
 
     override fun getClassName(): String = "Polygon"
@@ -75,7 +76,8 @@ class Polygon(parent: Transform? = null): GFXTransform(parent){
         super.save(writer)
         writer.writeObject(this, "vertexCount", vertexCount)
         writer.writeObject(this, "inset", starNess)
-        writer.writeBool("autoAlign", autoAlign, true)
+        writer.writeBool("autoAlign", autoAlign)
+        writer.writeBool("is3D", is3D)
         writer.writeInt("filtering", filtering.id, true)
         writer.writeFile("texture", texture)
     }
@@ -105,6 +107,7 @@ class Polygon(parent: Transform? = null): GFXTransform(parent){
     override fun readBool(name: String, value: Boolean) {
         when(name){
             "autoAlign" -> autoAlign = value
+            "is3D" -> is3D = value
             else -> super.readBool(name, value)
         }
     }

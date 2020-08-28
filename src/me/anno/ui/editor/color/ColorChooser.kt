@@ -4,6 +4,7 @@ import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
 import me.anno.gpu.TextureLib.colorShowTexture
+import me.anno.input.Input
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.meshes.svg.SVGStyle.Companion.parseColorComplex
 import me.anno.ui.base.Panel
@@ -169,7 +170,9 @@ class ColorChooser(style: Style, withAlpha: Boolean, val owningProperty: Animate
     }
 
     // todo copy whole timelines?
-    override fun onCopyRequested(x: Float, y: Float) = "${colorSpace.serializationName}(${hue.f3()},${saturation.f3()},${lightness.f3()},${opacity.f3()})"
+    override fun onCopyRequested(x: Float, y: Float) =
+        if(Input.isShiftDown && owningProperty != null) owningProperty.toString()
+        else "${colorSpace.serializationName}(${hue.f3()},${saturation.f3()},${lightness.f3()},${opacity.f3()})"
 
     override fun onPaste(x: Float, y: Float, data: String, type: String) {
         when(val color = parseColorComplex(data)){

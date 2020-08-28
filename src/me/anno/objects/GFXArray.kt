@@ -9,6 +9,7 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.style.Style
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
+import java.util.*
 
 class GFXArray(parent: Transform? = null): GFXTransform(parent) {
 
@@ -23,6 +24,10 @@ class GFXArray(parent: Transform? = null): GFXTransform(parent) {
     // per child skew?
 
     val instanceCount = AnimatedProperty.intPlus(10)
+    var selectionSeed = 1L
+    var selectionMode = SelectionMode.ROUND_ROBIN
+
+    override fun acceptsWeight(): Boolean = true
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
@@ -52,14 +57,16 @@ class GFXArray(parent: Transform? = null): GFXTransform(parent) {
         // todo make text replacement simpler???
         val instanceCount = instanceCount[time]
         if(instanceCount > 0 && children.isNotEmpty()){
-            drawArrayChild(stack, time, perChildDelay[time], color, 0, instanceCount)
+            drawArrayChild(stack, time, perChildDelay[time], color, 0, instanceCount, Random(selectionSeed))
         }
 
     }
 
-    fun drawArrayChild(transform: Matrix4fArrayList, time: Double, perChildDelay: Double, color: Vector4f, index: Int, instanceCount: Int){
+    fun drawArrayChild(transform: Matrix4fArrayList, time: Double, perChildDelay: Double, color: Vector4f,
+                       index: Int, instanceCount: Int, random: Random){
 
-        drawChild(transform, time, color, children[index % children.size])
+        val childIndex = selectionMode[index, children.size, random]
+        drawChild(transform, time, color, children[childIndex])
 
         if(index+1 < instanceCount){
 
@@ -81,7 +88,7 @@ class GFXArray(parent: Transform? = null): GFXTransform(parent) {
                 0f, 0f, 1f
             )
 
-            drawArrayChild(transform, time+perChildDelay, perChildDelay, color, index+1, instanceCount)
+            drawArrayChild(transform, time+perChildDelay, perChildDelay, color, index+1, instanceCount, random)
 
         }
     }
@@ -100,20 +107,9 @@ class GFXArray(parent: Transform? = null): GFXTransform(parent) {
         list += VI("Scale/Child", "", perChildScale, style)
         list += VI("Delay/Child", "", perChildDelay, style)
         list += VI("Instances", "", instanceCount, style)
+        list += VI("Selection Mode", "", null, selectionMode, style){ selectionMode = it }
+        list += VI("Selection Seed", "Only for randomized selection mode", AnimatedProperty.Type.LONG, selectionSeed, style){ selectionSeed = it }
 
-        list += ButtonPanel("Apply Array", style)
-            .setSimpleClickListener { applyArray() }
-            .setTooltip("Makes it less configurable; however you can change all aspects individually then")
-
-    }
-
-    fun applyArray(){
-        // todo create save point
-        val parent = parent ?: return
-        val folder = Transform()
-        parent.children.add(parent.children.indexOf(this), folder)
-
-        removeFromParent()
     }
 
     override fun getClassName() = "GFXArray"
