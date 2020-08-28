@@ -39,7 +39,7 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
 
     var filtering = DefaultConfig["default.video.nearest", FilteringMode.LINEAR]
 
-    var videoScale = 1
+    var videoScale = 0
 
     fun calculateSize(matrix: Matrix4f, w: Int, h: Int): Int? {
 

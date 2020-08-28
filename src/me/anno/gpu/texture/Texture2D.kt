@@ -8,6 +8,7 @@ import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL13.GL_TEXTURE0
+import org.lwjgl.opengl.GL30
 import org.lwjgl.opengl.GL30.*
 import org.lwjgl.opengl.GL32.GL_TEXTURE_2D_MULTISAMPLE
 import org.lwjgl.opengl.GL32.glTexImage2DMultisample
@@ -134,7 +135,7 @@ class Texture2D(override var w: Int, override var h: Int, val samples: Int): ITe
         byteBuffer.position(0)
         byteBuffer.put(data)
         byteBuffer.position(0)
-        glTexImage2D(tex2D, 0, GL_R8, w, h, 0, GL11.GL_RED, GL_UNSIGNED_BYTE, byteBuffer)
+        glTexImage2D(tex2D, 0, GL_RED, w, h, 0, GL_RED, GL_UNSIGNED_BYTE, byteBuffer)
         isCreated = true
         filtering(isFilteredNearest)
         GFX.check()
