@@ -35,13 +35,14 @@ class FontMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
     private val pt = pt0
 
     val debugImageSize = 1000
-    val randomDiameter = 1e-3
+    val randomDiameter = 0.01
     val randomRadius = randomDiameter / 2
 
     fun ix(v: Vector2d) = (debugImageSize / 2 + (v.x - pt.x) * 80).toInt()
     fun iy(v: Vector2d) = (debugImageSize / 2 + (v.y - pt.y) * 80).toInt()
 
     val buffer: StaticFloatBuffer
+    val random = Random()
 
     fun testTriangulator() {
         Triangulator.ringToTriangles(
@@ -64,6 +65,8 @@ class FontMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
             }
         }
     }
+
+    fun rand2d(x: Double, y: Double) = Vector2d(x + random.nextDouble() * randomDiameter - randomRadius, y +  + random.nextDouble() * randomDiameter - randomRadius)
 
     init {
 
@@ -161,7 +164,7 @@ class FontMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
 
                     // if(debugPieces) println("line $x $y to $x0 $y0")
 
-                    currentShape.add(Vector2d(x, y))
+                    currentShape.add(rand2d(x, y))
 
                     x = x0
                     y = y0
@@ -184,12 +187,7 @@ class FontMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
                     if (currentShape.size > 2) {
                         // randomize the shapes to break up linear parts,
                         // which can't be solved by our currently used triangulator
-                        val random = Random()
                         // works <3
-                        currentShape.forEach { pt ->
-                            pt.x += random.nextDouble() * randomDiameter - randomRadius
-                            pt.y += random.nextDouble() * randomDiameter - randomRadius
-                        }
                         fragments.add(Fragment(currentShape))
                     }// else crazy...
                     currentShape = ArrayList()

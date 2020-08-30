@@ -7,16 +7,28 @@ import me.anno.config.DefaultStyle.white
 import me.anno.gpu.GFX
 import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.input.Input.isShiftDown
+import me.anno.input.Input.mouseDownX
+import me.anno.input.Input.mouseDownY
 import me.anno.input.Input.mouseKeysDown
+import me.anno.input.Input.mouseX
+import me.anno.input.Input.mouseY
+import me.anno.io.json.JsonWriter
+import me.anno.io.text.TextReader
+import me.anno.io.text.TextWriter
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.animation.Keyframe
 import me.anno.studio.Studio
+import me.anno.studio.Studio.selectedProperty
 import me.anno.studio.Studio.targetFPS
 import me.anno.ui.base.Panel
 import me.anno.ui.style.Style
 import me.anno.utils.*
 import org.joml.Vector2f
+import org.joml.Vector4f
 import org.lwjgl.glfw.GLFW.*
+import java.lang.Exception
+import java.security.Key
+import java.security.KeyFactory
 import kotlin.math.*
 import me.anno.input.Input.isControlDown as isControlDown
 
@@ -49,6 +61,15 @@ class GraphEditorBody(style: Style): Panel(style.getChild("deep")){
     val fontName = style.getString("textFont", DefaultConfig.defaultFont)
     val isBold = style.getBoolean("textBold", false)
     val isItalic = style.getBoolean("textItalic", false)
+
+    // todo add/remove keyframes from the selection
+    val selectedKeyframes = HashSet<Keyframe<*>>()
+
+    var isSelecting = false
+    val select0 = Vector2f()
+
+    var activeChannels = -1
+
 
     fun normValue01(value: Float) = 0.5f - (value-centralValue)/dvHalfHeight * 0.5f
     fun normTime01(time: Double) = (time-centralTime)/dtHalfLength * 0.5f + 0.5f
@@ -256,27 +277,79 @@ class GraphEditorBody(style: Style): Panel(style.getChild("deep")){
         }
 
         val channelCount = property.type.components
-        val values = FloatArray(channelCount)
+        // val values = FloatArray(channelCount)
 
-        fun drawDot(x: Int, value: Float, color: Int){
-            val y = getYAt(value).roundToInt()
+        val minSelectX = min(mouseDownX, mouseX).toInt()
+        val maxSelectX = max(mouseDownX, mouseX).toInt()
+        val minSelectY = min(mouseDownY, mouseY).toInt()
+        val maxSelectY = max(mouseDownY, mouseY).toInt()
+        val selectX = minSelectX-halfSize .. maxSelectX+halfSize
+        val selectY = minSelectY-halfSize .. maxSelectY+halfSize
+
+        fun drawDot(x: Int, y: Int, color: Int, willBeSelected: Boolean){
+            if(willBeSelected){// draw outline, if point is selected
+                GFX.drawTexture(x-halfSize-1, clamp(y-halfSize-1, y0-1, y1),
+                    dotSize+2, dotSize+2,
+                    whiteTexture, -1, null)
+            }
             GFX.drawTexture(x-halfSize, clamp(y-halfSize, y0-1, y1),
                 dotSize, dotSize,
                 whiteTexture, color, null)
         }
 
-        property.keyframes.forEach {
-            val keyTime = it.time
-            val keyValue = it.value
+        // draw selection box
+        if(isSelecting){
+
+            // draw borders
+            GFX.drawTexture(minSelectX, minSelectY,
+                maxSelectX-minSelectX, 1,
+                whiteTexture, black, null)
+            GFX.drawTexture(minSelectX, minSelectY,
+                1, maxSelectY-minSelectY,
+                whiteTexture, black, null)
+            GFX.drawTexture(minSelectX, maxSelectY,
+                maxSelectX-minSelectX, 1,
+                whiteTexture, black, null)
+            GFX.drawTexture(maxSelectX, minSelectY,
+                1, maxSelectY-minSelectY,
+                whiteTexture, black, null)
+
+            // draw inner
+            if(minSelectX+1 < maxSelectX && minSelectY+1 < maxSelectY) GFX.drawTexture(minSelectX+1, minSelectY+1,
+                maxSelectX-minSelectX-2, maxSelectY-minSelectY-2,
+                whiteTexture, black and 0x77000000, null)
+
+        }
+
+        val yValues = IntArray(type.components)
+        property.keyframes.forEach { kf ->
+
+            val keyTime = kf.time
+            val keyValue = kf.value
             val x = getXAt(keyTime).roundToInt()
+
             for(i in 0 until channelCount){
-                values[i] = keyValue!![i]
+                val value = keyValue!![i]
+                yValues[i] = getYAt(value).roundToInt()
             }
+
+            var willBeSelected = kf in selectedKeyframes
+            if(!willBeSelected && isSelecting && x in selectX){
+                for(i in 0 until channelCount){
+                    if(yValues[i] in selectY && i.isChannelActive()){
+                        willBeSelected = true
+                        break
+                    }
+                }
+            }
+
             for(i in 0 until channelCount){
-                drawDot(x, values[i], valueColors[i])
+                drawDot(x, yValues[i], valueColors[i], willBeSelected && (draggedKeyframe !== kf || draggedChannel == i))
             }
+
             // GFX.drawRect(x.toInt()-1, y+h/2, 2,2, black or 0xff0000)
         }
+
 
         // todo draw all data points <3
         // todo controls:
@@ -294,7 +367,7 @@ class GraphEditorBody(style: Style): Panel(style.getChild("deep")){
         Studio.updateAudio()
     }
 
-    fun Int.isChannelActive() = (this and activeChannels) != 0
+    fun Int.isChannelActive() = ((1 shl this) and activeChannels) != 0
 
     fun getKeyframeAt(x: Float, y: Float): Pair<Keyframe<*>, Int>? {
         val property = Studio.selectedProperty ?: return null
@@ -323,50 +396,19 @@ class GraphEditorBody(style: Style): Panel(style.getChild("deep")){
         return bestDragged?.to(bestChannel)
     }
 
-    // todo add/remove keyframes from the selection
-    val selectedKeyframes = HashSet<Keyframe<*>>()
-
-    var isSelecting = false
-    val select0 = Vector2f()
-
-    var activeChannels = -1
-
-    override fun onMouseDown(x: Float, y: Float, button: Int) {
-        // find the dragged element
-        draggedKeyframe = null
-        if(button == 0){
-            isSelecting = isShiftDown
-            val keyframeChannel = getKeyframeAt(x, y)
-            if(keyframeChannel != null){
-                val (keyframe, channel) = keyframeChannel
-                // todo only work on one channel, vs working on all?
-                // todo this would allow us to copy only z for example
-                draggedKeyframe = keyframe
-                draggedChannel = channel
-                if(isSelecting){
-                    if(!selectedKeyframes.remove(keyframe)){
-                        selectedKeyframes.add(keyframe) // was not found -> add it
-                    }
-                }
-            } else {
-                select0.x = x
-                select0.y = y
-            }
-        }
-    }
-
     // todo scale a group of selected keyframes
     // todo move a group of selected keyframes
     // todo select full keyframes, or partial keyframes?
     fun getAllKeyframes(minX: Float, maxX: Float, minY: Float, maxY: Float): List<Keyframe<*>> {
         if(minX > maxX || minY > maxY) return getAllKeyframes(min(minX, maxX), max(minX, maxX), min(minY, maxY), max(minY, maxY))
+        val halfSize = dotSize/2
         val property = Studio.selectedProperty ?: return emptyList()
         val keyframes = ArrayList<Keyframe<*>>()
         keyframes@for(keyframe in property.keyframes){
-            if(getXAt(keyframe.time) in minX .. maxX){
+            if(getXAt(keyframe.time) in minX-halfSize .. maxX+halfSize){
                 for(channel in 0 until property.type.components){
                     if(channel.isChannelActive()){
-                        if(getYAt(keyframe.getValue(channel)) in minY .. maxY){
+                        if(getYAt(keyframe.getValue(channel)) in minY-halfSize .. maxY+halfSize){
                             keyframes += keyframe
                             continue@keyframes
                         }
@@ -377,31 +419,48 @@ class GraphEditorBody(style: Style): Panel(style.getChild("deep")){
         return keyframes
     }
 
+    // todo only work on one channel, vs working on all?
+    // todo this would allow us to copy only z for example
+
+    // todo if there are multiples selected, allow them to be moved (?)
+
+    override fun onMouseDown(x: Float, y: Float, button: Int) {
+        // find the dragged element
+        draggedKeyframe = null
+        if(button == 0){
+            isSelecting = isShiftDown
+            if(!isSelecting){ selectedKeyframes.clear() }
+            val keyframeChannel = getKeyframeAt(x, y)
+            if(keyframeChannel != null){
+                val (keyframe, channel) = keyframeChannel
+                draggedKeyframe = keyframe
+                draggedChannel = channel
+                selectedKeyframes.add(keyframe) // was not found -> add it
+            } else {
+                select0.x = x
+                select0.y = y
+            }
+        }
+    }
+
     // todo always show the other properties, too???
     override fun onMouseUp(x: Float, y: Float, button: Int) {
         draggedKeyframe = null
         if(isSelecting){
             // add all keyframes in that area
             selectedKeyframes += getAllKeyframes(select0.x, x, select0.y, y)
+            isSelecting = false
         }
     }
 
     override fun onDeleteKey(x: Float, y: Float) {
-        val kf = getKeyframeAt(x, y)
-        kf?.apply {
-            Studio.selectedProperty?.remove(kf.first)
+        selectedKeyframes.forEach {
+            selectedProperty?.remove(it)
+        }
+        if(selectedProperty == null){
+            selectedKeyframes.clear()
         }
     }
-
-    /*override fun onKeyTyped(x: Float, y: Float, key: Int) {
-        when(key){
-            GLFW_KEY_LEFT -> moveRight(-1f)
-            GLFW_KEY_RIGHT -> moveRight(1f)
-            GLFW_KEY_UP -> moveUp(1f)
-            GLFW_KEY_DOWN -> moveUp(-1f)
-            else -> super.onKeyTyped(x, y, key)
-        }
-    }*/
 
     val movementSpeed get() = 0.05f * sqrt(w*h.toFloat())
 
@@ -433,15 +492,18 @@ class GraphEditorBody(style: Style): Panel(style.getChild("deep")){
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
         GFX.editorHoverTime = getTimeAt(x)
         val draggedKeyframe = draggedKeyframe
-        if(draggedKeyframe != null){
+        if(isSelecting){
+            // select new elements, update the selected keyframes?
+        } else if(draggedKeyframe != null){
+            // dragging
             val time = getTimeAt(x)
             draggedKeyframe.time = time
             Studio.editorTime = time
             Studio.updateAudio()
             draggedKeyframe.setValue(draggedChannel, getValueAt(y))
-            Studio.selectedProperty?.sort()
-        } else {
-            if(mouseKeysDown.isNotEmpty()){
+            selectedProperty?.sort()
+        }else {
+            if(0 in mouseKeysDown){
                 centralTime -= dx * dtHalfLength / (w/2)
                 centralValue += dy * dvHalfHeight / (h/2)
                 clampTime()
@@ -468,6 +530,41 @@ class GraphEditorBody(style: Style): Panel(style.getChild("deep")){
 
     fun clampValues(){
         dvHalfHeight = clamp(dvHalfHeight, 0.001f * lastUnitScale, 1000f * lastUnitScale)
+    }
+
+    override fun onPaste(x: Float, y: Float, data: String, type: String) {
+        // todo paste keyframes
+        // todo convert the values, if required
+        // todo move them? :)
+        // todo paste float/vector values at the mouse position?
+        // todo local/global copy?
+        try {
+            val time0 = getTimeAt(x)
+            val target = selectedProperty ?: return super.onPaste(x, y, data, type)
+            val targetType = target.type
+            val parsedKeyframes = TextReader.fromText(data)
+            parsedKeyframes.forEach { sth ->
+                (sth as? Keyframe<*>)?.apply {
+                    if(targetType.accepts(value)){
+                        target.addKeyframe(time + time0, value!!)
+                    } else println("$targetType doesn't accept $value")
+                }
+            }
+        } catch (e: Exception){
+            e.printStackTrace()
+            super.onPaste(x, y, data, type)
+        }
+    }
+
+    // todo scale and move a selection of keyframes xD
+    override fun onCopyRequested(x: Float, y: Float): String? {
+        // copy keyframes
+        // left anker or center? left for now
+        val time0 = selectedKeyframes.minBy { it.time }?.time ?: 0.0
+        return TextWriter.toText(
+            selectedKeyframes
+            .map { Keyframe(it.time - time0, it.value) }
+            .toList(), false)
     }
 
     override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float) {

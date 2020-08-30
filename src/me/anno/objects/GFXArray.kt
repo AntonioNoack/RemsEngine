@@ -24,7 +24,7 @@ class GFXArray(parent: Transform? = null): GFXTransform(parent) {
     // per child skew?
 
     val instanceCount = AnimatedProperty.intPlus(10)
-    var selectionSeed = 1L
+    var selectionSeed = AnimatedProperty.long()
     var selectionMode = SelectionMode.ROUND_ROBIN
 
     override fun acceptsWeight(): Boolean = true
@@ -37,6 +37,7 @@ class GFXArray(parent: Transform? = null): GFXTransform(parent) {
         writer.writeObject(this, "perChildScale", perChildScale)
         writer.writeObject(this, "perChildSkew", perChildSkew)
         writer.writeObject(this, "perChildDelay", perChildDelay)
+        writer.writeObject(this, "selectionSeed", selectionSeed)
     }
 
     override fun readObject(name: String, value: ISaveable?) {
@@ -47,6 +48,7 @@ class GFXArray(parent: Transform? = null): GFXTransform(parent) {
             "perChildScale" -> perChildScale.copyFrom(value)
             "perChildSkew" -> perChildSkew.copyFrom(value)
             "perChildDelay" -> perChildDelay.copyFrom(value)
+            "selectionSeed" -> selectionSeed.copyFrom(value)
             else -> super.readObject(name, value)
         }
     }
@@ -57,7 +59,11 @@ class GFXArray(parent: Transform? = null): GFXTransform(parent) {
         // todo make text replacement simpler???
         val instanceCount = instanceCount[time]
         if(instanceCount > 0 && children.isNotEmpty()){
-            drawArrayChild(stack, time, perChildDelay[time], color, 0, instanceCount, Random(selectionSeed))
+            val seed = selectionSeed[time]
+            val random = Random(seed)
+            random.nextInt() // first one otherwise is always 1 (with two elements)
+            val perChildDelay = perChildDelay[time]
+            drawArrayChild(stack, time, perChildDelay, color, 0, instanceCount, random)
         }
 
     }
@@ -108,7 +114,7 @@ class GFXArray(parent: Transform? = null): GFXTransform(parent) {
         list += VI("Delay/Child", "", perChildDelay, style)
         list += VI("Instances", "", instanceCount, style)
         list += VI("Selection Mode", "", null, selectionMode, style){ selectionMode = it }
-        list += VI("Selection Seed", "Only for randomized selection mode", AnimatedProperty.Type.LONG, selectionSeed, style){ selectionSeed = it }
+        list += VI("Selection Seed", "Only for randomized selection mode", selectionSeed, style)
 
     }
 

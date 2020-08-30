@@ -6,7 +6,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.TextureLib.colorShowTexture
 import me.anno.input.Input
 import me.anno.objects.animation.AnimatedProperty
-import me.anno.objects.meshes.svg.SVGStyle.Companion.parseColorComplex
+import me.anno.image.svg.SVGStyle.Companion.parseColorComplex
 import me.anno.ui.base.Panel
 import me.anno.ui.base.SpacePanel
 import me.anno.ui.base.Visibility

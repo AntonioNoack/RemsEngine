@@ -1,4 +1,4 @@
-package me.anno.objects.meshes.svg
+package me.anno.image.svg
 
 import me.anno.fonts.mesh.Triangulator
 import me.anno.utils.OS
@@ -67,6 +67,7 @@ class SVGCurve(points: MutableList<Vector2d>, closed: Boolean, val depth: Double
 
     fun showDebug(points: List<Vector2d>, closed: Boolean){
 
+        val debugImageSize = 1000
         val img = BufferedImage(debugImageSize, debugImageSize, 1)
         val gfx = img.graphics as Graphics2D
 
@@ -113,10 +114,6 @@ class SVGCurve(points: MutableList<Vector2d>, closed: Boolean, val depth: Double
 
         ImageIO.write(img, "png", File(OS.desktop, "svg/${points.first().hashCode() xor points[1].hashCode()}.png"))
 
-    }
-
-    companion object {
-        val debugImageSize = 1000
     }
 
 }

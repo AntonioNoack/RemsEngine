@@ -11,7 +11,7 @@ import me.anno.io.xml.XMLReader
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.cache.Cache
 import me.anno.objects.cache.StaticFloatBufferData
-import me.anno.objects.meshes.svg.SVGMesh
+import me.anno.image.svg.SVGMesh
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.style.Style
 import me.anno.video.MissingFrameException

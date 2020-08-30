@@ -7,8 +7,8 @@ import me.anno.objects.animation.drivers.AnimationDriver
 import me.anno.utils.WrongClassType
 import org.joml.*
 import java.lang.RuntimeException
-import kotlin.concurrent.thread
 import kotlin.math.abs
+import kotlin.math.roundToInt
 
 class AnimatedProperty<V>(val type: Type, val defaultValue: V): Saveable(){
 
@@ -62,7 +62,7 @@ class AnimatedProperty<V>(val type: Type, val defaultValue: V): Saveable(){
         fun int() = AnimatedProperty<Int>(Type.INT)
         fun intPlus() = AnimatedProperty<Int>(Type.INT_PLUS)
         fun intPlus(defaultValue: Int) = AnimatedProperty(Type.INT_PLUS, defaultValue)
-        fun long() = AnimatedProperty<Int>(Type.LONG)
+        fun long() = AnimatedProperty<Long>(Type.LONG)
         fun float() = AnimatedProperty<Float>(Type.FLOAT)
         fun float(defaultValue: Float) = AnimatedProperty(Type.FLOAT, defaultValue)
         fun floatPlus() = AnimatedProperty<Float>(Type.FLOAT_PLUS)
@@ -184,6 +184,8 @@ class AnimatedProperty<V>(val type: Type, val defaultValue: V): Saveable(){
         else {
             // replace the components, which have drivers, with the driver values
             when(animatedValue){
+                is Int -> drivers[0]?.getValue(time)?.toInt() ?: animatedValue
+                is Long -> drivers[0]?.getValue(time)?.toLong() ?: animatedValue
                 is Float -> drivers[0]?.getValue(time)?.toFloat() ?: animatedValue
                 is Double -> drivers[0]?.getValue(time) ?: animatedValue
                 is Vector2f -> Vector2f(
@@ -215,10 +217,13 @@ class AnimatedProperty<V>(val type: Type, val defaultValue: V): Saveable(){
     fun lerp(a: Float, b: Float, f: Float, g: Float) = a*g+b*f
 
     fun lerp(a: V, b: V, f: Double): V {
-        val g = 1f-f
+        val g = 1.0 - f
         return when(type){
+            Type.INT,
+            Type.INT_PLUS -> ((a as Int)*g+f*(b as Int)).roundToInt()
+            Type.LONG -> ((a as Long)*g+f*(b as Long)).toLong()
             Type.FLOAT,
-            Type.FLOAT_01,
+            Type.FLOAT_01, Type.FLOAT_01_EXP,
             Type.FLOAT_PLUS -> ((a as Float)*g+f*(b as Float)).toFloat()
             Type.DOUBLE -> (a as Double)*g+f*(b as Double)
             Type.SKEW_2D -> (a as Vector2f).lerp(b as Vector2f, f.toFloat(), Vector2f())

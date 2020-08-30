@@ -29,6 +29,7 @@ import kotlin.math.*
 
 // todo get information about full and relative frames, so we get optimal scrubbing performance :)
 
+// todo ignore desktop.ini
 
 class Video(file: File = File(""), parent: Transform? = null): Audio(file, parent){
 
@@ -39,7 +40,7 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
 
     var filtering = DefaultConfig["default.video.nearest", FilteringMode.LINEAR]
 
-    var videoScale = 0
+    var videoScale = 6
 
     fun calculateSize(matrix: Matrix4f, w: Int, h: Int): Int? {
 

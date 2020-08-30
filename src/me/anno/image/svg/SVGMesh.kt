@@ -1,9 +1,11 @@
-package me.anno.objects.meshes.svg
+package me.anno.image.svg
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX.toRadians
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticFloatBuffer
+import me.anno.image.svg.gradient.LinearGradient
+import me.anno.image.svg.gradient.RadialGradient
 import me.anno.io.xml.XMLElement
 import me.anno.utils.OS
 import me.anno.utils.clamp
@@ -34,6 +36,8 @@ class SVGMesh {
     var z = 0.0
     val deltaZ = 0.001
 
+    val styles = HashMap<String, Any>()
+
     fun parse(svg: XMLElement){
         parseChildren(svg.children, null)
         val viewBox = (svg["viewBox"] ?: "0 0 100 100").split(' ').map { it.toDouble() }
@@ -50,7 +54,7 @@ class SVGMesh {
                         this[key] = value
                     }
                 }
-                val style = SVGStyle(this)
+                val style = SVGStyle(this@SVGMesh, this)
                 when(type.toLowerCase()){
                     "circle" -> {
                         if(style.isFill) addCircle(this, style, true)
@@ -84,6 +88,39 @@ class SVGMesh {
                     }
                     "switch", "foreignobject", "i:pgfref", "i:pgf" -> {
                         parseChildren(this.children, parentGroup)
+                    }
+                    "lineargradient" -> {
+                        val id = this["id"]
+                        if(id != null){
+                            /**
+                            Example:
+                            <linearGradient id="SVGID_1_" gradientUnits="userSpaceOnUse" x1="62.2648" y1="50.1708" x2="62.2648" y2="8.5885" gradientTransform="matrix(1 0 0 -1 0 128)">
+                                <stop  offset="0" style="stop-color:#00BFA5"/>
+                                <stop  offset="0.4701" style="stop-color:#00B29A"/>
+                                <stop  offset="1" style="stop-color:#009E89"/>
+                            </linearGradient>
+                            <path style="fill:url(#SVGID_1_);" d="M101.28,124.08c-4.33,0-40.46,0.04-45.29,0.04s-8.11-0.39-9.62-0.67
+                                c-7.08-1.29-14.76-2.53-20.62-6.58c-4.48-3.09-9.13-8.83-4.49-18.98c6.47-14.92,12.14-29.64,25.4-31.52
+                                c4.44-0.63,10.97-0.56,18.3-0.56s12.16,1.21,15.22,1.88c21.85,4.79,22.77,21.98,24.77,40.68
+                                C104.94,108.37,106.65,124.08,101.28,124.08z"/>
+                             * */
+                            styles[id] = LinearGradient(this.children)
+                            // todo use gradients as styles
+                            // used by fill:url(#id)
+                        }
+                    }
+                    "radialgradient" -> {
+                        val id = this["id"]
+                        if(id != null){
+                            /**
+                            Example:
+                            <radialGradient id="hairHighlights_1_" cx="61.0759" cy="94.7296" r="23.3126"
+                                gradientTransform="matrix(0.9867 -0.1624 -0.1833 -1.1132 16.8427 148.0534)" gradientUnits="userSpaceOnUse">
+                                <stop  offset="0.7945" style="stop-color:#6D4C41;stop-opacity:0"/>
+                                <stop  offset="1" style="stop-color:#6D4C41"/>
+                             * */
+                            styles[id] = RadialGradient(this.children)
+                        }
                     }
                     else -> throw RuntimeException("Unknown svg element $type")
                 }

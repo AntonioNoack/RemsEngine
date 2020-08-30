@@ -1,4 +1,4 @@
-package me.anno.objects.meshes.svg
+package me.anno.image.svg
 
 import me.anno.io.xml.XMLElement
 import me.anno.io.xml.XMLReader

@@ -1,0 +1,733 @@
+[
+  {
+    "class": "GFXArray",
+    "i:*ptr": 1,
+    "S:name": "Array",
+    "AnimatedProperty<pos>:position": {
+      "i:*ptr": 2,
+      "Keyframe:keyframes": {
+        "i:*ptr": 3,
+        "v3:value": [
+          -0.11988868,
+          -1.0041687,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 4,
+        "d:time": 12.460770952515304,
+        "v3:value": [
+          -0.22519423,
+          -1.0041684,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 5,
+        "d:time": 12.493765852414072,
+        "v3:value": [
+          -0.27784702,
+          -1.0041684,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 6,
+        "d:time": 12.544193652458489,
+        "v3:value": [
+          -0.27784702,
+          -0.9515156,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 7,
+        "d:time": 12.560900752432644,
+        "v3:value": [
+          -0.33049983,
+          -0.89886284,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 8,
+        "d:time": 12.578025852330029,
+        "v3:value": [
+          -0.3831526,
+          -0.84621006,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 9,
+        "d:time": 12.594318152405322,
+        "v3:value": [
+          -0.48845816,
+          -0.7935573,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 10,
+        "d:time": 12.610932451672852,
+        "v3:value": [
+          -0.7517221,
+          -0.5829462,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 11,
+        "d:time": 12.627704451791942,
+        "v3:value": [
+          -0.8043749,
+          -0.5302934,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 12,
+        "d:time": 12.644348951987922,
+        "v3:value": [
+          -0.85702765,
+          -0.47764063,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 13,
+        "d:time": 12.661021851934493,
+        "v3:value": [
+          -0.9096804,
+          -0.47764063,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 14,
+        "d:time": 12.694002150557935,
+        "v3:value": [
+          -0.9096804,
+          -0.42498785,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 15,
+        "d:time": 12.777844649739563,
+        "v3:value": [
+          -0.7517221,
+          -0.5302934,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 16,
+        "d:time": 12.79447095002979,
+        "v3:value": [
+          -0.64641654,
+          -0.635599,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 17,
+        "d:time": 12.811189250089228,
+        "v3:value": [
+          -0.48845822,
+          -0.79355735,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 18,
+        "d:time": 12.827948248945177,
+        "v3:value": [
+          -0.33049983,
+          -0.8988629,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 19,
+        "d:time": 12.844851548783481,
+        "v3:value": [
+          -0.17254147,
+          -1.0041685,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 20,
+        "d:time": 12.861084048636258,
+        "v3:value": [
+          -0.06723589,
+          -1.1094742,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 21,
+        "d:time": 12.877802747301757,
+        "v3:value": [
+          0.038069695,
+          -1.162127,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 22,
+        "d:time": 12.894592446275055,
+        "v3:value": [
+          0.09072249,
+          -1.162127,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 23,
+        "d:time": 12.911230846308172,
+        "v3:value": [
+          0.14337528,
+          -1.2147799,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 24,
+        "d:time": 12.927962745539844,
+        "v3:value": [
+          0.24868086,
+          -1.3200855,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 25,
+        "d:time": 12.944581345655024,
+        "v3:value": [
+          0.40663922,
+          -1.4780439,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 26,
+        "d:time": 12.961283945478499,
+        "v3:value": [
+          0.5119448,
+          -1.5833496,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 27,
+        "d:time": 13.094582143239677,
+        "v3:value": [
+          0.40663922,
+          -1.4253911,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 28,
+        "d:time": 13.111190843395889,
+        "v3:value": [
+          0.30133367,
+          -1.3727382,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 29,
+        "d:time": 13.12781164329499,
+        "v3:value": [
+          0.19602808,
+          -1.2674327,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 30,
+        "d:time": 13.144546943716705,
+        "v3:value": [
+          0.0907225,
+          -1.1621271,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 31,
+        "d:time": 13.161094042472541,
+        "v3:value": [
+          -0.014583081,
+          -1.0041687,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 32,
+        "d:time": 13.177750141359866,
+        "v3:value": [
+          -0.06723587,
+          -0.951516,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 33,
+        "d:time": 13.194772041402757,
+        "v3:value": [
+          -0.11988866,
+          -0.951516,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 34,
+        "d:time": 13.211507341824472,
+        "v3:value": [
+          -0.17254145,
+          -0.8988632,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 35,
+        "d:time": 13.22824524063617,
+        "v3:value": [
+          -0.22519425,
+          -0.8462104,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 36,
+        "d:time": 13.261518838815391,
+        "v3:value": [
+          -0.27784705,
+          -0.8462104,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 37,
+        "d:time": 13.294879137538373,
+        "v3:value": [
+          -0.33049983,
+          -0.8462104,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 38,
+        "d:time": 13.328218537382782,
+        "v3:value": [
+          -0.33049983,
+          -0.79355764,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 39,
+        "d:time": 13.444496336393058,
+        "v3:value": [
+          -0.27784705,
+          -0.951516,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 40,
+        "d:time": 13.46131353545934,
+        "v3:value": [
+          -0.22519426,
+          -1.0041687,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 41,
+        "d:time": 13.47816823516041,
+        "v3:value": [
+          -0.22519426,
+          -1.0568216,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 42,
+        "d:time": 13.49525033403188,
+        "v3:value": [
+          -0.17254147,
+          -1.0568216,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 43,
+        "d:time": 13.51168513391167,
+        "v3:value": [
+          -0.17254147,
+          -1.1094744,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 44,
+        "d:time": 13.728665829636157,
+        "v3:value": [
+          -0.17254147,
+          -1.0568216,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 45,
+        "d:time": 13.745218929834664,
+        "v3:value": [
+          -0.17254147,
+          -1.0041687,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 46,
+        "d:time": 13.761920229531825,
+        "v3:value": [
+          -0.17254147,
+          -0.951516,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 47,
+        "d:time": 13.77865552995354,
+        "v3:value": [
+          -0.17254147,
+          -0.8988632,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 48,
+        "d:time": 13.795313828624785,
+        "v3:value": [
+          -0.17254147,
+          -0.8462104,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 49,
+        "d:time": 13.84499232750386,
+        "v3:value": [
+          -0.17254147,
+          -0.79355764,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 50,
+        "d:time": 13.962069523520768,
+        "v3:value": [
+          -0.11988868,
+          -0.79355764,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 51,
+        "d:time": 14.01186962146312,
+        "v3:value": [
+          -0.06723589,
+          -0.79355764,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 52,
+        "d:time": 14.028658420778811,
+        "v3:value": [
+          -0.06723589,
+          -0.8462104,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 53,
+        "d:time": 14.0452333195135,
+        "v3:value": [
+          -0.014583096,
+          -0.8462104,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 54,
+        "d:time": 14.07857711892575,
+        "v3:value": [
+          -0.014583096,
+          -0.8988632,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 55,
+        "d:time": 14.11198931839317,
+        "v3:value": [
+          -0.014583096,
+          -0.951516,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 56,
+        "d:time": 14.145386918447912,
+        "v3:value": [
+          -0.014583096,
+          -1.0041687,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 57,
+        "d:time": 14.178640418685973,
+        "v3:value": [
+          -0.014583096,
+          -1.0568216,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 58,
+        "d:time": 14.395850413478911,
+        "v3:value": [
+          -0.06723589,
+          -1.0568216,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 59,
+        "d:time": 14.428760613314807,
+        "v3:value": [
+          -0.06723589,
+          -1.0041687,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 60,
+        "d:time": 14.445826512761414,
+        "v3:value": [
+          -0.06723589,
+          -0.951516,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 61,
+        "d:time": 14.462571111507714,
+        "v3:value": [
+          -0.11988868,
+          -0.951516,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 62,
+        "d:time": 14.796105700545013,
+        "v3:value": [
+          -0.11988868,
+          -1.0041687,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 63,
+        "d:time": 14.879627299495041,
+        "v3:value": [
+          -0.11988868,
+          -1.0568216,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 64,
+        "d:time": 14.94629189837724,
+        "v3:value": [
+          -0.11988868,
+          -1.1094744,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 65,
+        "d:time": 15.17979119066149,
+        "v3:value": [
+          -0.06723589,
+          -1.0568216,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 66,
+        "d:time": 15.21306439023465,
+        "v3:value": [
+          -0.014583096,
+          -0.951516,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 67,
+        "d:time": 15.22964598890394,
+        "v3:value": [
+          -0.014583096,
+          -0.8988632,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 68,
+        "d:time": 15.496754583902657,
+        "v3:value": [
+          -0.06723589,
+          -0.8988632,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 69,
+        "d:time": 15.530092083849013,
+        "v3:value": [
+          -0.11988868,
+          -0.951516,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 70,
+        "d:time": 15.563454481773078,
+        "v3:value": [
+          -0.11988868,
+          -1.0041687,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 71,
+        "d:time": 15.88038747292012,
+        "v3:value": [
+          -0.06723589,
+          -1.0041687,
+          0.0
+        ]
+      },
+      "Keyframe:keyframes": {
+        "i:*ptr": 72,
+        "d:time": 16.564299349673092,
+        "v3:value": [
+          -0.11988868,
+          -1.0041687,
+          0.0
+        ]
+      },
+      "b:isAnimated": false
+    },
+    "AnimatedProperty<scale>:scale": {
+      "i:*ptr": 73,
+      "Keyframe:keyframes": {
+        "i:*ptr": 74,
+        "v3:value": [
+          0.05567971,
+          0.05567971,
+          0.034336463
+        ]
+      },
+      "b:isAnimated": false
+    },
+    "d:timeDilation": 1.0,
+    "S:blendMode": "*Inherit",
+    "Video:children": 75,
+    "i:timelineSlot": 1,
+    "AnimatedProperty<int+>:instanceCount": {
+      "i:*ptr": 76,
+      "Keyframe:keyframes": {
+        "i:*ptr": 77,
+        "i:value": 30
+      },
+      "b:isAnimated": false
+    },
+    "AnimatedProperty<pos>:perChildTranslation": {
+      "i:*ptr": 78,
+      "Keyframe:keyframes": {
+        "i:*ptr": 79,
+        "v3:value": [
+          3.6761234,
+          0.0,
+          0.0
+        ]
+      },
+      "b:isAnimated": false
+    },
+    "AnimatedProperty<rotYXZ>:perChildRotation": {
+      "i:*ptr": 80,
+      "Keyframe:keyframes": {
+        "i:*ptr": 81,
+        "v3:value": [
+          0.0,
+          0.0,
+          12.0
+        ]
+      },
+      "b:isAnimated": false
+    },
+    "AnimatedProperty<double>:perChildDelay": {
+      "i:*ptr": 82,
+      "Keyframe:keyframes": {
+        "i:*ptr": 83,
+        "d:value": 1.0
+      },
+      "b:isAnimated": false
+    }
+  },
+  {
+    "class": "Video",
+    "i:*ptr": 75,
+    "GFXArray:parent": 1,
+    "S:name": "treemiddle.mp4",
+    "AnimatedProperty<pos>:position": {
+      "i:*ptr": 84,
+      "Keyframe:keyframes": {
+        "i:*ptr": 85,
+        "v3:value": [
+          -0.016894257,
+          0.006702847,
+          -3.0456838E-4
+        ]
+      },
+      "b:isAnimated": false
+    },
+    "AnimatedProperty<rotYXZ>:rotationYXZ": {
+      "i:*ptr": 86,
+      "Keyframe:keyframes": {
+        "i:*ptr": 87,
+        "v3:value": [
+          -67.06047,
+          16.273445,
+          -16.184792
+        ]
+      },
+      "b:isAnimated": false
+    },
+    "d:timeDilation": 1.0,
+    "S:blendMode": "*Inherit",
+    "i:timelineSlot": 1,
+    "i:isLooping": 1,
+    "d:endTime": 14.1333,
+    "i:filtering": 0,
+    "i:videoScale": 1
+  }
+]

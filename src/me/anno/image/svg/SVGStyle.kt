@@ -1,17 +1,18 @@
-package me.anno.objects.meshes.svg
+package me.anno.image.svg
 
 import me.anno.config.DefaultStyle.black
+import me.anno.image.svg.gradient.Gradient1D
 import me.anno.io.xml.XMLElement
 import me.anno.ui.editor.color.ColorSpace
 import org.joml.Vector3f
 import org.joml.Vector4f
 import java.lang.RuntimeException
 
-class SVGStyle(data: XMLElement){
+class SVGStyle(parent: SVGMesh?, data: XMLElement){
 
-    val stroke = parseColor(data["stroke"] ?: "none")
+    val stroke = parseColorEx(parent,data["stroke"] ?: "none")
     val isStroke = stroke != null
-    val fill = parseColor(data["fill"] ?: if(isStroke) "none" else "black")
+    val fill = parseColorEx(parent,data["fill"] ?: if(isStroke) "none" else "black")
     val isFill = fill != null
     val strokeWidth = data["stroke-width"]?.toDoubleOrNull() ?: 1.0
 
@@ -30,6 +31,20 @@ class SVGStyle(data: XMLElement){
             }
         }
     * */
+
+    fun parseColorEx(parent: SVGMesh?, name: String): Int? {
+        if(name.startsWith("url(")){
+            val link = name.substring(4, name.length-1)
+            if(link.startsWith("#")){
+                parent ?: throw RuntimeException("Links to styles need parent")
+                return when(val style = parent.styles[link.substring(1)]){
+                    is Gradient1D -> style.averageColor
+                    null -> throw RuntimeException("Unknown style $link")
+                    else -> throw RuntimeException("Unknown style type $style")
+                }
+            } else throw RuntimeException("Unknown link type $link")
+        } else return parseColor(name)
+    }
 
     companion object {
 

@@ -146,8 +146,9 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
     }
 
     fun ensureCursorBounds(){
-        cursor1 = clamp(cursor1, 0, characters.size)
-        cursor2 = clamp(cursor2, 0, characters.size)
+        val maxLength = min(characters.size, text.length) // text may not be updated???
+        cursor1 = clamp(cursor1, 0, maxLength)
+        cursor2 = clamp(cursor2, 0, maxLength)
     }
 
     override fun onCharTyped(x: Float, y: Float, key: Int) {
