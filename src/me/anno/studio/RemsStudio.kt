@@ -37,6 +37,8 @@ import kotlin.math.roundToInt
 
 // todo operation to cut an image, video, or similar?
 
+// todo scene screenshot/editor screenshot
+
 // todo draw frame by frame, only save x,y,radius?
 
 object RemsStudio {
