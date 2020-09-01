@@ -4,6 +4,7 @@ import me.anno.gpu.texture.FakeWhiteTexture
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.ui.base.DefaultRenderingHints
+import me.anno.utils.getLineWidth
 import me.anno.utils.incrementTab
 import me.anno.utils.joinChars
 import org.apache.logging.log4j.LogManager
@@ -88,7 +89,7 @@ class AWTFont(val font: Font): XFont {
 
     }
 
-    fun splitParts(text: String, fontSize: Float, relativeTabSize: Float): PartResult {
+    fun splitParts(text: String, fontSize: Float, relativeTabSize: Float, lineBreakWidth: Float): PartResult {
 
         val fonts = listOf(font, getFallback(fontSize))
 
@@ -99,12 +100,14 @@ class AWTFont(val font: Font): XFont {
             return lastSupportLevel
         }
 
+        val hasAutomaticLineBreak = lineBreakWidth >= 0f
         val lines = text.split('\n')
         val result = ArrayList<StringPart>(lines.size * 2)
         val ctx = FontRenderContext(null, true, true)
         val exampleLayout = TextLayout("o", font, ctx)
         val tabSize = exampleLayout.advance * relativeTabSize
         var widthF = 0f
+        var currentX = 0f
         var currentY = 0f
         val fontHeight = exampleLayout.ascent + exampleLayout.descent
         var startResultIndex = 0
@@ -113,7 +116,6 @@ class AWTFont(val font: Font): XFont {
             var startIndex = 0
             var index = 0
             var lastSupportLevel = 0
-            var currentX = 1f
             fun display(){
                 if(index > startIndex){
                     val substring = cp.subList(startIndex, index).joinChars()
@@ -126,27 +128,68 @@ class AWTFont(val font: Font): XFont {
                     startIndex = index
                 }
             }
+            fun nextLine(){
+                display()
+                for(i in startResultIndex until result.size){
+                    result[i].lineWidth = currentX
+                }
+                startResultIndex = result.size
+                currentY += fontHeight
+                currentX = 0f
+            }
+            fun isSpace(char: Int) = char == '\t'.toInt() || char == ' '.toInt()
+            var hadNonSpaceCharacter = false
             while(index < cp.size){
-                val char = cp[index]
-                if(char == '\t'.toInt()){
-                    display()
-                    startIndex++ // skip \t too
-                    currentX = incrementTab(currentX, tabSize, relativeTabSize)
-                } else {
-                    val supportLevel = getSupportLevel(char, lastSupportLevel)
-                    if(supportLevel != lastSupportLevel){
+                when(val char = cp[index]){
+                    '\t'.toInt() -> {
                         display()
-                        lastSupportLevel = supportLevel
+                        startIndex++ // skip \t too
+                        currentX = incrementTab(currentX, tabSize, relativeTabSize)
+                    }
+                    ' '.toInt() -> {
+                        // break line, if the next work doesn't fit in this line, and there already was a word
+                        // search for the next word
+                        if(hasAutomaticLineBreak && index+1 < cp.size && !isSpace(cp[index+1]) && hadNonSpaceCharacter){
+
+                            var endIndex = index+1
+                            while(endIndex < cp.size){
+                                if(!isSpace(cp[endIndex])) endIndex++
+                                else break
+                            }
+
+                            val previousWord = cp.subList(startIndex, index).joinChars()
+                            val currentX2 = currentX + if(previousWord.isEmpty()) 0f else TextLayout(previousWord, font, ctx).advance
+                            val nextWord = cp.subList(index+1, endIndex).joinChars()
+                            val layout = TextLayout(nextWord, font, ctx)
+                            val advance = layout.advance
+                            println("$nextWord $currentX + $advance (${currentX+advance}) > $lineBreakWidth?")
+                            if(currentX2 + advance > lineBreakWidth){
+                                // it doesn't fit -> line break
+                                hadNonSpaceCharacter = false
+                                nextLine()
+                                startIndex++
+                            }
+
+                        }
+                        // todo break very long words by force (on sense making syllables)
+                        val supportLevel = getSupportLevel(char, lastSupportLevel)
+                        if(supportLevel != lastSupportLevel){
+                            display()
+                            lastSupportLevel = supportLevel
+                        }
+                    }
+                    else -> {
+                        hadNonSpaceCharacter = true
+                        val supportLevel = getSupportLevel(char, lastSupportLevel)
+                        if(supportLevel != lastSupportLevel){
+                            display()
+                            lastSupportLevel = supportLevel
+                        }
                     }
                 }
                 index++
             }
-            display()
-            for(i in startResultIndex until result.size){
-                result[i].lineWidth = currentX
-            }
-            startResultIndex = result.size
-            currentY += fontHeight
+            nextLine()
         }
 
         return PartResult(result, widthF, currentY, exampleLayout)
@@ -155,7 +198,7 @@ class AWTFont(val font: Font): XFont {
 
     fun generateTextureV3(text: String, fontSize: Float): Texture2D? {
 
-        val parts = splitParts(text, fontSize, 4f)
+        val parts = splitParts(text, fontSize, 4f, -1f)
         val result = parts.parts
         val exampleLayout = parts.exampleLayout
 

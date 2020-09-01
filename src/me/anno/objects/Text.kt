@@ -28,6 +28,7 @@ import org.joml.Vector3f
 import org.joml.Vector4f
 import java.awt.Font
 import kotlin.collections.ArrayList
+import kotlin.math.abs
 import kotlin.math.max
 
 // todo background "color" in the shape of a plane? for selections and such
@@ -40,7 +41,6 @@ open class Text(text: String = "", parent: Transform? = null): GFXTransform(pare
             field = value.replace("\r", "")
         }
 
-    // todo automatic line break after length x
 
     // todo blurry, colorful text shadow
     // todo by calculated distance fields:
@@ -71,6 +71,9 @@ open class Text(text: String = "", parent: Transform? = null): GFXTransform(pare
         MARKDOWN
     }
 
+    // automatic line break after length x
+    var lineBreakWidth = -1f
+
     var textMode = TextMode.RAW
 
     var relativeLineSpacing = AnimatedProperty.float(1f)
@@ -90,7 +93,8 @@ open class Text(text: String = "", parent: Transform? = null): GFXTransform(pare
         if(text.isEmpty()) return null
         val fontSize0 = 20f
         val awtFont = FontManager.getFont(font, fontSize0, isBold, isItalic) as AWTFont
-        return awtFont.splitParts(text, fontSize0, relativeTabSize)
+        val absoluteLineBreakWidth = lineBreakWidth * fontSize0 * 2f / DEFAULT_LINE_HEIGHT
+        return awtFont.splitParts(text, fontSize0, relativeTabSize, absoluteLineBreakWidth)
     }
 
     data class FontMeshKey(
@@ -208,6 +212,7 @@ open class Text(text: String = "", parent: Transform? = null): GFXTransform(pare
         writer.writeInt("blockAlignmentX", blockAlignmentX.id, true)
         writer.writeInt("blockAlignmentY", blockAlignmentY.id, true)
         writer.writeFloat("relativeTabSize", relativeTabSize, true)
+        writer.writeFloat("lineBreakWidth", lineBreakWidth)
     }
 
     override fun readInt(name: String, value: Int) {
@@ -222,6 +227,7 @@ open class Text(text: String = "", parent: Transform? = null): GFXTransform(pare
     override fun readFloat(name: String, value: Float) {
         when(name){
             "relativeTabSize" -> relativeTabSize = value
+            "lineBreakWidth" -> lineBreakWidth = value
             else -> super.readFloat(name, value)
         }
     }
@@ -309,6 +315,10 @@ open class Text(text: String = "", parent: Transform? = null): GFXTransform(pare
         list += VI("Tab Size", "Relative tab size, in widths of o's", AnimatedProperty.Type.FLOAT_PLUS, relativeTabSize, style){
             relativeTabSize = it
             lastText = "" // to invalidate
+        }
+        list += VI("Line Break Width", "How broad the text shall be, at maximum; < 0 = no limit", AnimatedProperty.Type.FLOAT, lineBreakWidth, style){
+            lineBreakWidth = it
+            lastText = ""
         }
 
         list += ButtonPanel("Create Shadow", style)

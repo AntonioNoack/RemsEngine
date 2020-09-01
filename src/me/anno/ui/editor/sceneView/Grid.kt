@@ -11,16 +11,14 @@ import me.anno.objects.Transform.Companion.xAxis
 import me.anno.objects.Transform.Companion.yAxis
 import me.anno.objects.Transform.Companion.zAxis
 import me.anno.objects.blending.BlendMode
-import me.anno.objects.meshes.svg.SVGStyle.Companion.parseColor
+import me.anno.image.svg.SVGStyle.Companion.parseColor
 import me.anno.utils.distance
-import me.anno.utils.length
 import me.anno.utils.pow
 import me.anno.utils.toVec3f
 import org.joml.Matrix4f
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
 import org.lwjgl.opengl.GL20.*
-import kotlin.math.atan
 import kotlin.math.atan2
 import kotlin.math.floor
 import kotlin.math.log10

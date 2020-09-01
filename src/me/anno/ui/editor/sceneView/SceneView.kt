@@ -307,7 +307,7 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
 
         val delta = dx0-dy0
 
-        val (target2global, localTime) = selected.getGlobalTransform(editorTime)
+        val (target2global, localTime) = (selected.parent ?: selected).getGlobalTransform(editorTime)
 
         val camera = camera
         val (camera2global, cameraTime) = camera.getGlobalTransform(editorTime)
