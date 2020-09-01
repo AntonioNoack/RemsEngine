@@ -10,8 +10,6 @@ import me.anno.gpu.ShaderLib.shader3DCircle
 import me.anno.gpu.ShaderLib.shader3DMasked
 import me.anno.gpu.ShaderLib.shader3DPolygon
 import me.anno.gpu.ShaderLib.shader3DSVG
-import me.anno.gpu.ShaderLib.shader3DSpherical
-import me.anno.gpu.ShaderLib.shader3DXYZUV
 import me.anno.gpu.ShaderLib.shader3DYUV
 import me.anno.gpu.ShaderLib.subpixelCorrectTextShader
 import me.anno.gpu.buffer.SimpleBuffer
@@ -19,7 +17,6 @@ import me.anno.gpu.buffer.StaticFloatBuffer
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderPlus
-import me.anno.gpu.size.WindowSize
 import me.anno.gpu.texture.FilteringMode
 import me.anno.gpu.texture.Texture2D
 import me.anno.input.Input
@@ -30,6 +27,7 @@ import me.anno.objects.Transform
 import me.anno.objects.blending.BlendMode
 import me.anno.objects.effects.MaskType
 import me.anno.objects.geometric.Circle
+import me.anno.objects.modes.UVProjection
 import me.anno.studio.Build.isDebug
 import me.anno.studio.Studio.editorTime
 import me.anno.studio.Studio.editorTimeDilation
@@ -125,6 +123,8 @@ object GFX: GFXBase1() {
     // val windowSize get() = WindowSize(windowX, windowY, windowWidth, windowHeight)
 
     val flat01 = SimpleBuffer.flat01
+    // val flat01Cube = SimpleBuffer.flat01Cube
+
     // val defaultFont = DefaultConfig["font"]?.toString() ?: "Verdana"
     val matrixBuffer = BufferUtils.createFloatBuffer(16)
 
@@ -307,20 +307,29 @@ object GFX: GFXBase1() {
             .lookAt(position, lookAt, up.normalize())
     }
 
-    fun shader3DUniforms(shader: Shader, stack: Matrix4fArrayList, w: Int, h: Int, color: Vector4f, tiling: Vector4f?, filtering: FilteringMode){
+    fun shader3DUniforms(shader: Shader, stack: Matrix4fArrayList,
+                         w: Int, h: Int, color: Vector4f,
+                         tiling: Vector4f?, filtering: FilteringMode,
+                         uvProjection: UVProjection?){
         check()
 
-        stack.pushMatrix()
         shader.use()
+        stack.pushMatrix()
+
+        val doScale2 = (uvProjection?.doScale ?: true) && w != h
 
         shader.v1("filtering", filtering.id)
         shader.v2("textureDeltaUV", 1f/w, 1f/h)
 
-        val avgSize = if(w * targetHeight > h * targetWidth) w.toFloat() * targetHeight / targetWidth  else h.toFloat()
         // val avgSize = sqrt(w * h.toFloat())
-        val sx = w / avgSize
-        val sy = h / avgSize
-        stack.scale(sx, -sy, 1f)
+        if(doScale2){
+            val avgSize = if(w * targetHeight > h * targetWidth) w.toFloat() * targetHeight / targetWidth  else h.toFloat()
+            val sx = w / avgSize
+            val sy = h / avgSize
+            stack.scale(sx, -sy, 1f)
+        } else {
+            stack.scale(1f, -1f, 1f)
+        }
 
         stack.get(matrixBuffer)
         GL20.glUniformMatrix4fv(shader["transform"], false, matrixBuffer)
@@ -330,6 +339,8 @@ object GFX: GFXBase1() {
         if(tiling != null) shader.v4("tiling", tiling)
         else shader.v4("tiling", 1f, 1f, 0f, 0f)
         shader.v1("drawMode", drawMode.id)
+        shader.v1("uvProjection", uvProjection?.id ?: UVProjection.Planar.id)
+
     }
 
 
@@ -357,7 +368,7 @@ object GFX: GFXBase1() {
 
     fun draw3DCircle(stack: Matrix4fArrayList, innerRadius: Float, startDegrees: Float, endDegrees: Float, color: Vector4f){
         val shader = shader3DCircle
-        shader3DUniforms(shader, stack, 1, 1, color, null, FilteringMode.NEAREST)
+        shader3DUniforms(shader, stack, 1, 1, color, null, FilteringMode.NEAREST, null)
         var a0 = startDegrees
         var a1 = endDegrees
         // if the two arrows switch sides, flip the circle
@@ -380,7 +391,7 @@ object GFX: GFXBase1() {
                      pixelSize: Float,
                      isInverted: Float, blurDeltaUV: Vector2f){
         val shader = shader3DMasked.shader
-        shader3DUniforms(shader, stack, 1, 1, color, null, FilteringMode.NEAREST)
+        shader3DUniforms(shader, stack, 1, 1, color, null, FilteringMode.NEAREST, null)
         shader.v4("offsetColor", offsetColor.x, offsetColor.y, offsetColor.z, offsetColor.w)
         shader.v1("useMaskColor", useMaskColor)
         shader.v1("invertMask", isInverted)
@@ -395,7 +406,7 @@ object GFX: GFXBase1() {
     fun draw3D(stack: Matrix4fArrayList, buffer: StaticFloatBuffer, texture: Texture2D, w: Int, h:Int, color: Vector4f,
                filtering: FilteringMode, tiling: Vector4f?){
         val shader = shader3D.shader
-        shader3DUniforms(shader, stack, w, h, color, tiling, filtering)
+        shader3DUniforms(shader, stack, w, h, color, tiling, filtering, null)
         texture.bind(0, filtering)
         buffer.draw(shader)
         check()
@@ -411,55 +422,46 @@ object GFX: GFXBase1() {
                       inset: Float,
                       filtering: FilteringMode){
         val shader = shader3DPolygon.shader
-        shader3DUniforms(shader, stack, 1, 1, color, null, filtering)
+        shader3DUniforms(shader, stack, 1, 1, color, null, filtering, null)
         shader.v1("inset", inset)
         texture.bind(0, filtering)
         buffer.draw(shader)
         check()
     }
 
-    fun draw3D(stack: Matrix4fArrayList, texture: Texture2D, color: Vector4f,
-               filtering: FilteringMode, tiling: Vector4f?){
-        return draw3D(stack, flat01, texture, color, filtering, tiling)
-    }
-
     fun draw3D(stack: Matrix4fArrayList, texture: Frame, color: Vector4f,
-               filtering: FilteringMode, tiling: Vector4f?){
+               filtering: FilteringMode, tiling: Vector4f?, uvProjection: UVProjection){
         if(!texture.isLoaded) throw RuntimeException("Frame must be loaded to be rendered!")
         val shader = texture.get3DShader().shader
-        shader3DUniforms(shader, stack, texture.w, texture.h, color, tiling, filtering)
+        shader3DUniforms(shader, stack, texture.w, texture.h, color, tiling, filtering, uvProjection)
         texture.bind(0, filtering)
         if(shader == shader3DYUV.shader){
             val w = texture.w
             val h = texture.h
             shader.v2("uvCorrection", w.toFloat()/((w+1)/2*2), h.toFloat()/((h+1)/2*2))
         }
-        flat01.draw(shader)
+        uvProjection.getBuffer().draw(shader)
         check()
     }
 
-    fun drawXYZUV(stack: Matrix4fArrayList, buffer: StaticFloatBuffer, texture: Texture2D, color: Vector4f,
-                  filtering: FilteringMode, mode: Int = GL11.GL_TRIANGLES){
-        val shader = shader3DXYZUV.shader
-        shader3DUniforms(shader, stack, 1, 1, color, null, filtering)
-        texture.bind(0, filtering)
-        buffer.draw(shader, mode)
-        check()
+    fun draw3D(stack: Matrix4fArrayList, texture: Texture2D, color: Vector4f,
+               filtering: FilteringMode, tiling: Vector4f?, uvProjection: UVProjection){
+        draw3D(stack, texture, texture.w, texture.h, color, filtering, tiling, uvProjection)
     }
 
-    fun drawSpherical(stack: Matrix4fArrayList, buffer: StaticFloatBuffer, texture: Texture2D, color: Vector4f,
-                      filtering: FilteringMode, mode: Int = GL11.GL_TRIANGLES){
-        val shader = shader3DSpherical.shader
-        shader3DUniforms(shader, stack, 1, 1, color, null, filtering)
+    fun draw3D(stack: Matrix4fArrayList, texture: Texture2D, w: Int, h: Int, color: Vector4f,
+               filtering: FilteringMode, tiling: Vector4f?, uvProjection: UVProjection){
+        val shader = shader3D.shader
+        shader3DUniforms(shader, stack, w, h, color, tiling, filtering, uvProjection)
         texture.bind(0, filtering)
-        buffer.draw(shader, mode)
+        uvProjection.getBuffer().draw(shader)
         check()
     }
 
     fun draw3DSVG(stack: Matrix4fArrayList, buffer: StaticFloatBuffer, texture: Texture2D, color: Vector4f,
                   filtering: FilteringMode){
         val shader = shader3DSVG.shader
-        shader3DUniforms(shader, stack, 1, 1, color, null, filtering)
+        shader3DUniforms(shader, stack, 1, 1, color, null, filtering, null)
         texture.bind(0, filtering)
         buffer.draw(shader)
         check()

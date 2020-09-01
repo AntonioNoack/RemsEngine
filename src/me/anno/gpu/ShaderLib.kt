@@ -4,6 +4,7 @@ import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderPlus
 import me.anno.gpu.texture.FilteringMode
 import me.anno.objects.effects.MaskType
+import me.anno.objects.modes.UVProjection
 import org.lwjgl.opengl.GL20
 import kotlin.math.PI
 
@@ -19,8 +20,6 @@ object ShaderLib {
     lateinit var shader3DBGRA: ShaderPlus
     lateinit var shader3DCircle: Shader
     lateinit var shader3DSVG: ShaderPlus
-    lateinit var shader3DXYZUV: ShaderPlus
-    lateinit var shader3DSpherical: ShaderPlus
     lateinit var lineShader3D: Shader
     lateinit var shader3DMasked: ShaderPlus
     lateinit var shaderObjMtl: ShaderPlus
@@ -31,7 +30,7 @@ object ShaderLib {
 
         // color only for a rectangle
         // (can work on more complex shapes)
-        flatShader = Shader(
+        flatShader = Shader("flatShader",
             "" +
                     "a2 attr0;\n" +
                     "u2 pos, size;\n" +
@@ -44,7 +43,7 @@ object ShaderLib {
                     "}"
         )
 
-        flatShaderTexture = Shader(
+        flatShaderTexture = Shader("flatShaderTexture",
             "" +
                     "a2 attr0;\n" +
                     "u2 pos, size;\n" +
@@ -62,7 +61,7 @@ object ShaderLib {
         )
 
         // with texture
-        subpixelCorrectTextShader = Shader(
+        subpixelCorrectTextShader = Shader("subpixelCorrectTextShader",
             "" +
                     "a2 attr0;\n" +
                     "u2 pos, size;\n" +
@@ -116,7 +115,21 @@ object ShaderLib {
         val getTextureLib = "" +
                 bicubicInterpolation +
                 "uniform vec2 textureDeltaUV;\n" +
-                "uniform int filtering;\n" +
+                "uniform int filtering, uvProjection;\n" +
+                "vec2 getProjectedUVs(vec2 uv, vec3 uvw){\n" +
+                // the uvs correspond to the used mesh
+                // used meshes are flat01 and cubemapBuffer
+                "   switch(uvProjection){\n" +
+                "       case ${UVProjection.Equirectangular.id}:\n" +
+                "           float u = atan(uvw.z, uvw.x)*${0.5/ PI}+0.5;\n " +
+                "           float v = atan(uvw.y, length(uvw.xz))*${1.0/PI}+0.5;\n" +
+                "           return vec2(u, v);\n" +
+                "       case ${UVProjection.TiledCubemap.id}:\n" +
+                "           return uv;\n" + // correct???
+                "       default:\n" +
+                "           return uv;\n" +
+                "   }\n" +
+                "}\n" +
                 "vec4 getTexture(sampler2D tex, vec2 uv, vec2 duv){" +
                 "   switch(filtering){" +
                 "       case ${FilteringMode.NEAREST.id}:\n" +
@@ -152,18 +165,15 @@ object ShaderLib {
                 "   return transform * vec4(betterUV, 0.0, 1.0);\n" +
                 "}\n"
 
-        val uv3D = "" +
-                "" +
-                "   vec2 betterUV = attr0*2.-1.;\n" +
-                "   uv = (attr0-0.5) * tiling.xy + 0.5 + tiling.zw;\n"
-
         val v3D = v3DBase +
-                "a2 attr0;\n" +
+                "a3 attr0;\n" +
+                "a2 attr1;\n" +
                 "u4 tiling;\n" +
                 "void main(){\n" +
-                uv3D +
-                "   gl_Position = transform3D(betterUV);\n" +
+                "   gl_Position = transform * vec4(attr0, 1.0);\n" +
                 positionPostProcessing +
+                "   uv = (attr1-0.5) * tiling.xy + 0.5 + tiling.zw;\n" +
+                "   uvw = attr0;\n" +
                 "}"
 
         val v3DMasked = v3DBase +
@@ -187,43 +197,6 @@ object ShaderLib {
                 "   uv = attr1.yx;\n" +
                 "}"
 
-        val v3DXYZUV = v3DBase +
-                "a3 attr0;\n" +
-                "a2 attr1;\n" +
-                "void main(){\n" +
-                "   gl_Position = transform * vec4(attr0, 1.0);\n" +
-                positionPostProcessing +
-                "   uv = attr1;\n" +
-                "}"
-
-
-        val v3DSpherical = v3DBase +
-                "a3 attr0;\n" +
-                "a2 attr1;\n" +
-                "void main(){\n" +
-                "   gl_Position = transform * vec4(attr0, 1.0);\n" +
-                positionPostProcessing +
-                "   uvw = attr0;\n" +
-                "}"
-
-        val y3DSpherical = "" +
-                "varying vec3 uvw;\n" +
-                "varying float zDistance;\n"
-
-        val f3DSpherical = "" +
-                "uniform vec4 tint;\n" +
-                "precision highp float;\n" +
-                "uniform sampler2D tex;\n" +
-                getTextureLib +
-                "void main(){\n" +
-                "   float u = atan(uvw.z, uvw.x)*${0.5/ PI}+0.5;\n " +
-                "   float v = atan(uvw.y, length(uvw.xz))*${1/ PI}+0.5;\n" +
-                "   vec4 color = getTexture(tex, vec2(u,v));\n" +
-                colorProcessing +
-                "   gl_FragColor = tint * color;\n" +
-                colorPostProcessing +
-                "}"
-
         val v3DSVG = v3DBase +
                 "a3 attr0;\n" +
                 "a4 attr1;\n" +
@@ -237,6 +210,7 @@ object ShaderLib {
 
         val y3D = "" +
                 "varying v2 uv;\n" +
+                "varying v3 uvw;\n" +
                 "varying float zDistance;\n"
 
         val y3DSVG = y3D +
@@ -247,7 +221,7 @@ object ShaderLib {
                 "uniform sampler2D tex;\n" +
                 getTextureLib +
                 "void main(){\n" +
-                "   vec4 color = getTexture(tex, uv);\n" +
+                "   vec4 color = getTexture(tex, getProjectedUVs(uv, uvw));\n" +
                 colorProcessing +
                 "   gl_FragColor = tint * color;\n" +
                 colorPostProcessing +
@@ -356,11 +330,11 @@ object ShaderLib {
                 "   }" +*/
                 "}"
 
-        shader3D = createShaderPlus(v3D, y3D, f3D, listOf("tex"))
-        shader3DPolygon = createShaderPlus(v3DPolygon, y3D, f3D, listOf("tex"))
+        shader3D = createShaderPlus("3d", v3D, y3D, f3D, listOf("tex"))
+        shader3DPolygon = createShaderPlus("3d-polygon", v3DPolygon, y3D, f3D, listOf("tex"))
 
         // create the obj+mtl shader
-        shaderObjMtl = createShaderPlus(
+        shaderObjMtl = createShaderPlus("obj/mtl",
             v3DBase +
                     "a3 coords;\n" +
                     "a2 uvs;\n" +
@@ -384,24 +358,23 @@ object ShaderLib {
                     "}", listOf()
         )
 
-        shader3DCircle = Shader(v3DCircle, y3D, f3DCircle)
-        shader3DMasked = createShaderPlus(v3DMasked, y3DMasked, f3DMasked, listOf("mask", "tex"))
+        shader3DCircle = Shader("3dCircle", v3DCircle, y3D, f3DCircle)
+        shader3DMasked = createShaderPlus("3d-masked", v3DMasked, y3DMasked, f3DMasked, listOf("mask", "tex"))
 
-        shader3DSVG = createShaderPlus(v3DSVG, y3DSVG, f3DSVG, listOf("tex"))
-        shader3DXYZUV = createShaderPlus(v3DXYZUV, y3D, f3D, listOf("tex"))
-        shader3DSpherical = createShaderPlus(v3DSpherical, y3DSpherical, f3DSpherical, listOf("tex"))
+        shader3DSVG = createShaderPlus("3d-svg", v3DSVG, y3DSVG, f3DSVG, listOf("tex"))
 
-        shader3DYUV = createShaderPlus(
+        shader3DYUV = createShaderPlus("3d-yuv",
             v3D, y3D, "" +
                     "uniform vec4 tint;" +
                     "uniform sampler2D texY, texU, texV;\n" +
                     "uniform vec2 uvCorrection;\n" +
                     getTextureLib +
                     "void main(){\n" +
-                    "   vec2 correctedUV = uv*uvCorrection;\n" +
+                    "   vec2 uv2 = getProjectedUVs(uv, uvw);\n" +
+                    "   vec2 correctedUV = uv2*uvCorrection;\n" +
                     "   vec2 correctedDUV = textureDeltaUV*uvCorrection;\n" +
                     "   vec3 yuv = vec3(" +
-                    "       getTexture(texY, uv).r, " +
+                    "       getTexture(texY, uv2).r, " +
                     "       getTexture(texU, correctedUV, correctedDUV).r, " +
                     "       getTexture(texV, correctedUV, correctedDUV).r);\n" +
                     "   yuv -= vec3(${16f / 255f}, 0.5, 0.5);\n" +
@@ -414,33 +387,33 @@ object ShaderLib {
                     "}", listOf("texY", "texU", "texV")
         )
 
-        shader3DARGB = createShaderPlus(
+        shader3DARGB = createShaderPlus("3d-argb",
             v3D, y3D, "" +
                     "uniform vec4 tint;" +
                     "uniform sampler2D tex;\n" +
                     getTextureLib +
                     "void main(){\n" +
-                    "   vec4 color = getTexture(tex, uv).gbar;\n" +
+                    "   vec4 color = getTexture(tex, getProjectedUVs(uv, uvw)).gbar;\n" +
                     colorProcessing +
                     "   gl_FragColor = tint * color;\n" +
                     colorPostProcessing +
                     "}", listOf("tex")
         )
 
-        shader3DBGRA = createShaderPlus(
+        shader3DBGRA = createShaderPlus("3d-bgra",
             v3D, y3D, "" +
                     "uniform vec4 tint;" +
                     "uniform sampler2D tex;\n" +
                     getTextureLib +
                     "void main(){\n" +
-                    "   vec4 color = getTexture(tex, uv).bgra;\n" +
+                    "   vec4 color = getTexture(tex, getProjectedUVs(uv, uvw)).bgra;\n" +
                     colorProcessing +
                     "   gl_FragColor = tint * color;\n" +
                     colorPostProcessing +
                     "}", listOf("tex")
         )
 
-        lineShader3D = Shader(
+        lineShader3D = Shader("3d-lines",
             "in vec3 attr0;\n" +
                     "uniform mat4 transform;\n" +
                     "void main(){" +
@@ -459,8 +432,8 @@ object ShaderLib {
     }
 
 
-    fun createShaderNoShorts(v3D: String, y3D: String, fragmentShader: String, textures: List<String>): Shader {
-        val shader = Shader(v3D, y3D, fragmentShader, true)
+    fun createShaderNoShorts(shaderName: String, v3D: String, y3D: String, fragmentShader: String, textures: List<String>): Shader {
+        val shader = Shader(shaderName, v3D, y3D, fragmentShader, true)
         shader.use()
         textures.forEachIndexed { index, name ->
             GL20.glUniform1i(shader[name], index)
@@ -468,8 +441,8 @@ object ShaderLib {
         return shader
     }
 
-    fun createShaderPlus(v3D: String, y3D: String, fragmentShader: String, textures: List<String>): ShaderPlus {
-        val shader = ShaderPlus(v3D, y3D, fragmentShader)
+    fun createShaderPlus(shaderName: String, v3D: String, y3D: String, fragmentShader: String, textures: List<String>): ShaderPlus {
+        val shader = ShaderPlus(shaderName, v3D, y3D, fragmentShader)
         for(shader2 in listOf(shader.shader)){
             shader2.use()
             textures.forEachIndexed { index, name ->
@@ -479,8 +452,8 @@ object ShaderLib {
         return shader
     }
 
-    fun createShader(v3D: String, y3D: String, fragmentShader: String, textures: List<String>): Shader {
-        val shader = Shader(v3D, y3D, fragmentShader)
+    fun createShader(shaderName: String, v3D: String, y3D: String, fragmentShader: String, textures: List<String>): Shader {
+        val shader = Shader(shaderName, v3D, y3D, fragmentShader)
         shader.use()
         textures.forEachIndexed { index, name ->
             GL20.glUniform1i(shader[name], index)

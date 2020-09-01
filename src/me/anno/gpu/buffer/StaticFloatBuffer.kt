@@ -6,6 +6,14 @@ import java.nio.ByteOrder
 
 open class StaticFloatBuffer(attributes: List<Attribute>, val vertexCount: Int): GPUFloatBuffer(attributes){
 
+    constructor(points: List<List<Float>>, attributes: List<Attribute>, vertices: IntArray): this(attributes, vertices.size){
+        vertices.forEach {
+            points[it].forEach { v ->
+                put(v)
+            }
+        }
+    }
+
     init {
         createNioBuffer()
     }

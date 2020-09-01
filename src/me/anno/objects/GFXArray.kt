@@ -4,7 +4,7 @@ import me.anno.gpu.GFX
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.animation.AnimatedProperty
-import me.anno.ui.base.ButtonPanel
+import me.anno.objects.modes.ArraySelectionMode
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.style.Style
 import org.joml.Matrix4fArrayList
@@ -25,7 +25,7 @@ class GFXArray(parent: Transform? = null): GFXTransform(parent) {
 
     val instanceCount = AnimatedProperty.intPlus(10)
     var selectionSeed = AnimatedProperty.long()
-    var selectionMode = SelectionMode.ROUND_ROBIN
+    var selectionMode = ArraySelectionMode.ROUND_ROBIN
 
     override fun acceptsWeight(): Boolean = true
 

@@ -2,23 +2,31 @@ package me.anno.objects
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
+import me.anno.gpu.TextureLib
 import me.anno.gpu.TextureLib.colorShowTexture
+import me.anno.gpu.buffer.Attribute
+import me.anno.gpu.buffer.StaticFloatBuffer
 import me.anno.gpu.texture.FilteringMode
+import me.anno.image.svg.SVGMesh
 import me.anno.io.base.BaseWriter
+import me.anno.io.xml.XMLElement
+import me.anno.io.xml.XMLReader
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.cache.Cache
+import me.anno.objects.cache.StaticFloatBufferData
+import me.anno.objects.modes.LoopingState
+import me.anno.objects.modes.UVProjection
 import me.anno.studio.Scene
 import me.anno.studio.Studio
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.input.*
 import me.anno.ui.style.Style
-import me.anno.utils.BiMap
-import me.anno.utils.Clipping
-import me.anno.utils.pow
+import me.anno.utils.*
 import me.anno.video.FFMPEGMetadata.Companion.getMeta
 import me.anno.video.MissingFrameException
 import org.joml.Matrix4f
 import org.joml.Matrix4fArrayList
+import org.joml.Vector3f
 import org.joml.Vector4f
 import java.io.File
 import kotlin.math.*
@@ -29,11 +37,10 @@ import kotlin.math.*
 
 // todo get information about full and relative frames, so we get optimal scrubbing performance :)
 
-// todo ignore desktop.ini
-
 class Video(file: File = File(""), parent: Transform? = null): Audio(file, parent){
 
     var tiling = AnimatedProperty.tiling()
+    var uvProjection = UVProjection.Planar
 
     var startTime = 0.0
     var endTime = 100.0
@@ -41,6 +48,9 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
     var filtering = DefaultConfig["default.video.nearest", FilteringMode.LINEAR]
 
     var videoScale = 6
+
+    var lastFile: File? = null
+    var isImage = false
 
     fun calculateSize(matrix: Matrix4f, w: Int, h: Int): Int? {
 
@@ -114,15 +124,18 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
         }
     }
 
-    override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
+    fun drawVideoFrames(stack: Matrix4fArrayList, time: Double, color: Vector4f){
 
         val meta = getMeta(file, true)
 
+        // todo automatic spherical size estimation??
         val zoomLevel = if(meta != null){
             // calculate reasonable zoom level from canvas size
             if(videoScale < 1) {
-                val rawZoomLevel = calculateSize(stack, meta.videoWidth, meta.videoHeight) ?: return
-                getCacheableZoomLevel(rawZoomLevel)
+                if(uvProjection.doScale){
+                    val rawZoomLevel = calculateSize(stack, meta.videoWidth, meta.videoHeight) ?: return
+                    getCacheableZoomLevel(rawZoomLevel)
+                } else 1
             } else videoScale
         } else 1
 
@@ -154,7 +167,7 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
 
                     val frame = Cache.getVideoFrame(file, zoomLevel, frameIndex, frameCount, videoFPS, videoFrameTimeout, isLooping)
                     if(frame != null && frame.isLoaded){
-                        GFX.draw3D(stack, frame, color, filtering, tiling[time])
+                        GFX.draw3D(stack, frame, color, filtering, tiling[time], uvProjection)
                         wasDrawn = true
                     } else {
                         if(GFX.isFinalRendering){
@@ -171,10 +184,60 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
         }
 
         if(!wasDrawn){
-            GFX.draw3D(stack, GFX.flat01, colorShowTexture, 16, 9,
+            GFX.draw3D(stack, colorShowTexture, 16, 9,
                 Vector4f(0.5f, 0.5f, 0.5f, 1f).mul(color),
-                FilteringMode.NEAREST, tiling16x9
+                FilteringMode.NEAREST, tiling16x9, uvProjection
             )
+        }
+    }
+
+    fun drawImageFrames(stack: Matrix4fArrayList, time: Double, color: Vector4f){
+        val name = file.name
+        when {
+            name.endsWith("svg", true) -> {
+                val bufferData = Cache.getEntry(file.absolutePath, "svg", 0, imageTimeout, true){
+                    val svg = SVGMesh()
+                    svg.parse(XMLReader.parse(file.inputStream().buffered()) as XMLElement)
+                    StaticFloatBufferData(svg.buffer!!)
+                } as? StaticFloatBufferData
+                if(bufferData == null && GFX.isFinalRendering) throw MissingFrameException(file)
+                if(bufferData != null){
+                    // todo apply tiling for svgs...
+                    GFX.draw3DSVG(stack, bufferData.buffer, TextureLib.whiteTexture, color, FilteringMode.NEAREST)
+                }
+            }
+            name.endsWith("webp", true) -> {
+                val tiling = tiling[time]
+                // calculate required scale? no, without animation, we don't need to scale it down ;)
+                val texture = Cache.getVideoFrame(file, 1, 0, 0, 1.0, imageTimeout, LoopingState.PLAY_ONCE)
+                if((texture == null || !texture.isLoaded) && GFX.isFinalRendering) throw MissingFrameException(file)
+                if(texture?.isLoaded == true) GFX.draw3D(stack, texture, color, filtering, tiling, uvProjection)
+            }
+            else -> {
+                val tiling = tiling[time]
+                val texture = Cache.getImage(file, imageTimeout, true)
+                if(texture == null && GFX.isFinalRendering) throw MissingFrameException(file)
+                texture?.apply {
+                    GFX.draw3D(stack, texture, color, filtering, tiling, uvProjection)
+                }
+            }
+        }
+    }
+
+    override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
+
+        if(file !== lastFile){
+            lastFile = file
+            isImage = when(file.extension.getImportType()){
+                "Video" -> false
+                else -> true
+            }
+        }
+
+        if(isImage){
+            drawImageFrames(stack, time, color)
+        } else {
+            drawVideoFrames(stack, time, color)
         }
 
     }
@@ -191,6 +254,7 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
             .setChangeListener { videoScale = videoScaleNames[it]!! }
             .setIsSelectedListener { show(null) }
             .setTooltip("Full resolution isn't always required. Define it yourself, or set it to automatic.")
+        list += VI("UV-Projection", "Can be used for 360°-Videos", null, uvProjection, style){ uvProjection = it }
     }
 
     override fun getClassName(): String = "Video"
@@ -245,6 +309,38 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
 
         val videoFrameTimeout = 500L
         val tiling16x9 = Vector4f(8f, 4.5f, 0f, 0f)
+
+        val imageTimeout = 5000L
+
+        val cubemapBuffer = StaticFloatBuffer(listOf(Attribute("attr0", 3), Attribute("attr1", 2)), 4 * 6)
+        init {
+
+            fun put(v0: Vector3f, dx: Vector3f, dy: Vector3f, x: Float, y: Float, u: Int, v: Int){
+                val pos = v0 + dx*x + dy*y
+                cubemapBuffer.put(pos.x, pos.y, pos.z, u/4f, v/3f)
+            }
+
+            fun addFace(u: Int, v: Int, v0: Vector3f, dx: Vector3f, dy: Vector3f){
+                put(v0, dx, dy, -1f, -1f, u+1, v)
+                put(v0, dx, dy, -1f, +1f, u+1, v+1)
+                put(v0, dx, dy, +1f, +1f, u, v+1)
+                put(v0, dx, dy, +1f, -1f, u, v)
+            }
+
+            val mxAxis = Vector3f(-1f,0f,0f)
+            val myAxis = Vector3f(0f,-1f,0f)
+            val mzAxis = Vector3f(0f,0f,-1f)
+
+            addFace(1, 1, mzAxis, mxAxis, yAxis) // center, front
+            addFace(0, 1, mxAxis, zAxis, yAxis) // left, left
+            addFace(2, 1, xAxis, mzAxis, yAxis) // right, right
+            addFace(3, 1, zAxis, xAxis, yAxis) // 2x right, back
+            addFace(1, 0, myAxis, mxAxis, mzAxis) // top
+            addFace(1, 2, yAxis, mxAxis, zAxis) // bottom
+
+            cubemapBuffer.quads()
+
+        }
 
     }
 

@@ -123,7 +123,7 @@ object Scene {
                 "   return clamp((x * (a * x + b)) / (x * (c * x + d) + e), 0.0, 1.0);\n" +
                 "}"
 
-        sqrtToneMappingShader = Shader(
+        sqrtToneMappingShader = Shader("sqrt/tone-mapping",
             "" +
                     "in vec2 attr0;\n" +
                     "uniform float ySign;\n" +
@@ -178,7 +178,7 @@ object Scene {
                     "}"
         )
 
-        lutShader = createShader("" +
+        lutShader = createShader("lut","" +
                 "in vec2 attr0;\n" +
                 "uniform float ySign;\n" +
                 "void main(){" +
@@ -196,7 +196,7 @@ object Scene {
                 "   gl_FragColor = vec4(texture(lut, color.rbg).rgb, c0.a);\n" +
                 "}", listOf("tex", "lut"))
 
-        copyShader = createShader("in vec2 attr0;\n" +
+        copyShader = createShader("copy", "in vec2 attr0;\n" +
                 "void main(){\n" +
                 "   gl_Position = vec4(attr0*2.0-1.0, 0.5, 1.0);\n" +
                 "   uv = attr0;\n" +

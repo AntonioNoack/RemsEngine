@@ -9,10 +9,7 @@ import me.anno.ui.base.Panel
 import me.anno.ui.base.TextPanel
 import me.anno.ui.dragging.Draggable
 import me.anno.ui.style.Style
-import me.anno.utils.Tabs
-import me.anno.utils.formatFileSize
-import me.anno.utils.getImportType
-import me.anno.utils.mixARGB
+import me.anno.utils.*
 import org.lwjgl.glfw.GLFW
 import java.io.File
 import kotlin.math.max
@@ -23,7 +20,7 @@ class FileEntry(val explorer: FileExplorer, val isParent: Boolean, val file: Fil
     val size = 100
     val importType = file.extension.getImportType()
     var iconPath = if(file.isDirectory){
-        if(file.listFiles()?.isNotEmpty() == true)
+        if(file.listFiles2().isNotEmpty())
             "file/folder.png" else "file/empty_folder.png"
     } else {
         when(importType){

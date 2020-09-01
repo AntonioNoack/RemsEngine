@@ -9,7 +9,7 @@ import org.joml.Vector4f
 import org.lwjgl.opengl.GL20.*
 import java.lang.RuntimeException
 
-class Shader(vertex: String, varying: String, fragment: String,
+class Shader(val shaderName: String, vertex: String, varying: String, fragment: String,
              private val disableShorts: Boolean = false): CacheData {
 
     companion object {
@@ -87,7 +87,7 @@ class Shader(vertex: String, varying: String, fragment: String,
         val loc = glGetUniformLocation(program, name)
         check()
         uniformCache[name] = loc
-        if(loc < 0) LOGGER.warn("Uniform location \"$name\" not found")
+        if(loc < 0) LOGGER.warn("Uniform location \"$name\" not found in shader $shaderName")
         return loc
     }
 
@@ -96,7 +96,7 @@ class Shader(vertex: String, varying: String, fragment: String,
         if(old != null) return old
         val loc = glGetAttribLocation(program, name)
         attributeCache[name] = loc
-        if(loc < 0) LOGGER.warn("Attribute location \"$name\" not found")
+        if(loc < 0) LOGGER.warn("Attribute location \"$name\" not found in shader $shaderName")
         return loc
     }
 

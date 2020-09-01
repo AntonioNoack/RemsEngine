@@ -104,6 +104,7 @@ abstract class ColorSpace(
             }
         }
         val newShader = Shader(
+            "$name-${type.displayName}",
             vertexShader,
             varyingShader,
             fragmentShader,

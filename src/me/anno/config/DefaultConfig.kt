@@ -9,6 +9,7 @@ import me.anno.objects.effects.MaskLayer
 import me.anno.objects.geometric.Circle
 import me.anno.objects.geometric.Polygon
 import me.anno.objects.meshes.Mesh
+import me.anno.objects.modes.UVProjection
 import me.anno.objects.particles.ParticleSystem
 import me.anno.ui.style.Style
 import me.anno.utils.OS
@@ -16,6 +17,7 @@ import me.anno.utils.f3
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3f
 import java.io.File
+import java.lang.Exception
 
 object DefaultConfig: StringMap() {
 
@@ -54,7 +56,7 @@ object DefaultConfig: StringMap() {
 
         addImportMappings("Transform", "json")
         addImportMappings("Image", "png", "jpg", "jpeg", "tiff", "webp", "svg", "ico")
-        addImportMappings("Cubemap", "hdr")
+        addImportMappings("Cubemap-Equ", "hdr")
         addImportMappings("Video", "mp4", "gif", "mpeg", "avi", "flv", "wmv")
         addImportMappings("Text", "txt")
         // not yet supported
@@ -67,7 +69,7 @@ object DefaultConfig: StringMap() {
             "Mesh" to Mesh(File(OS.documents, "monkey.obj"), null),
             "Array" to GFXArray(),
             "Video" to Video(File(""), null),
-            "Image" to Image(File(""), null),
+            // "Image" to Video(File(""), null),
             "Polygon" to Polygon(null),
             "Rectangle" to {
                 val quad = Polygon(null)
@@ -91,7 +93,8 @@ object DefaultConfig: StringMap() {
             "Text" to Text("Text", null),
             "Timer" to Timer(null),
             "Cubemap" to {
-                val cube = Cubemap(File(""), null)
+                val cube = Video(File(""), null)
+                cube.uvProjection = UVProjection.TiledCubemap
                 cube.scale.set(Vector3f(1000f, 1000f, 1000f))
                 cube
             }(),
@@ -116,9 +119,12 @@ object DefaultConfig: StringMap() {
             StringMap(16, false, saveDefaultValues = true)
                 .addAll(newInstances)
 
-        val newConfig = ConfigBasics.loadConfig("main.config", this, true)
-        if(newConfig !== this){
+        var newConfig: StringMap = this
+        try {
+            newConfig = ConfigBasics.loadConfig("main.config", this, true)
             putAll(newConfig)
+        } catch (e: Exception){
+            e.printStackTrace()
         }
 
         val stylePath = newConfig["style"]?.toString() ?: "dark"

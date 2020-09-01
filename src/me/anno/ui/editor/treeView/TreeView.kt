@@ -7,6 +7,7 @@ import me.anno.input.Input.mouseX
 import me.anno.input.Input.mouseY
 import me.anno.objects.*
 import me.anno.objects.Transform.Companion.toTransform
+import me.anno.objects.modes.UVProjection
 import me.anno.objects.rendering.RenderSettings
 import me.anno.studio.Studio.nullCamera
 import me.anno.studio.Studio.root
@@ -204,21 +205,37 @@ class TreeView(style: Style):
                             addText(name, parent, text)
                         }
                     }
-                    "Image" -> {
-                        val image = Image(file, parent)
-                        image.name = name
-                        select(image)
-                    }
-                    "Cubemap" -> {
-                        val cube = Cubemap(file, parent)
+                    "Cubemap-Equ" -> {
+                        val cube = Video(file, parent)
                         cube.scale.set(Vector3f(1000f, 1000f, 1000f))
+                        cube.uvProjection = UVProjection.Equirectangular
                         cube.name = name
                         select(cube)
                     }
-                    "Video" -> {
-                        val video = Video(file, parent)
-                        video.name = name
-                        select(video)
+                    "Cubemap-Tiles" -> {
+                        val cube = Video(file, parent)
+                        cube.scale.set(Vector3f(1000f, 1000f, 1000f))
+                        cube.uvProjection = UVProjection.TiledCubemap
+                        cube.name = name
+                        select(cube)
+                    }
+                    "Video", "Image" -> {// the same, really ;)
+                        // rather use a list of keywords?
+                        if(DefaultConfig["import.decideCubemap", true]){
+                            val video = Video(file, parent)
+                            val fName = file.name
+                            if(fName.contains("cubemap", true) ||
+                                fName.contains("360", true)){
+                                video.scale.set(Vector3f(1000f, 1000f, 1000f))
+                                video.uvProjection = UVProjection.Equirectangular
+                            }
+                            video.name = fName
+                            select(video)
+                        } else {
+                            val video = Video(file, parent)
+                            video.name = name
+                            select(video)
+                        }
                     }
                     "Text" -> {
                         try {

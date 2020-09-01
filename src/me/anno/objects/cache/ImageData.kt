@@ -5,8 +5,8 @@ import me.anno.gpu.ShaderLib.shader3DYUV
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.HDRImage
-import me.anno.objects.Image
-import me.anno.objects.LoopingState
+import me.anno.objects.Video.Companion.imageTimeout
+import me.anno.objects.modes.LoopingState
 import me.anno.video.Frame
 import org.apache.commons.imaging.Imaging
 import org.joml.Matrix4f
@@ -46,7 +46,7 @@ class ImageData(file: File): CacheData {
                 // calculate required scale? no, without animation, we don't need to scale it down ;)
                 var frame: Frame?
                 while(true){
-                    frame = Cache.getVideoFrame(file, 1, 0, 0, 1.0, Image.imageTimeout, LoopingState.PLAY_ONCE)
+                    frame = Cache.getVideoFrame(file, 1, 0, 0, 1.0, imageTimeout, LoopingState.PLAY_ONCE)
                     if(frame != null && frame.isLoaded) break
                     Thread.sleep(1)
                 }

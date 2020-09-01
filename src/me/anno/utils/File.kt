@@ -1,6 +1,7 @@
 package me.anno.utils
 
 import me.anno.config.DefaultConfig
+import java.io.File
 import java.util.*
 
 fun Long.formatFileSize(): String {
@@ -23,3 +24,6 @@ fun Long.formatFileSize(): String {
     }
     return "$v ${endings.last()}B$suffix"
 }
+
+fun File.listFiles2(includeHiddenFiles: Boolean = OS.isWindows) = listFiles()?.filter {
+    !it.name.equals("desktop.ini", true) && (!name.startsWith('.') || !includeHiddenFiles) } ?: emptyList()

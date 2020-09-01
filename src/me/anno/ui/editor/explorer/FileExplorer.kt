@@ -14,6 +14,7 @@ import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.input.TextInput
 import me.anno.ui.style.Style
 import me.anno.utils.OS
+import me.anno.utils.listFiles2
 import java.io.File
 
 // todo the text size is quite small on my x360 -> get the font size for the ui from the OS :)
@@ -70,8 +71,8 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
     }
 
     fun createResults(){
-        val children = folder?.listFiles() ?: File.listRoots()
-        val newFiles = children?.joinToString { it.name } ?: ""
+        val children = folder?.listFiles2() ?: File.listRoots().toList()
+        val newFiles = children.joinToString { it.name } ?: ""
         if(lastFiles != newFiles){
             lastFiles = newFiles
             content.clear()
@@ -79,7 +80,7 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
             if(parent != null){
                 content += FileEntry(this, true, parent, style)
             }
-            children?.sortedBy { !it.isDirectory }?.forEach { file ->
+            children.sortedBy { !it.isDirectory }.forEach { file ->
                 val name = file.name
                 if(!name.startsWith(".")){
                     // todo check if this file is valid, part of the search results

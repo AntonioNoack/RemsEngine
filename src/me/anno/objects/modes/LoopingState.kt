@@ -1,6 +1,4 @@
-package me.anno.objects
-
-import java.time.Duration
+package me.anno.objects.modes
 
 enum class LoopingState(val id: Int){
     PLAY_ONCE(0),

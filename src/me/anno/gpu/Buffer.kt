@@ -1,7 +1,9 @@
 package me.anno.gpu
 
+import de.javagl.jgltf.model.GltfConstants
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.shader.Shader
+import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL15
 import org.lwjgl.opengl.GL20.*
 import java.lang.RuntimeException
@@ -19,13 +21,15 @@ abstract class Buffer(val attributes: List<Attribute>, val stride: Int, val usag
         }
     }
 
-    fun getName() = getName(0)
-    fun getName(index: Int) = attributes[index].name
-
+    var drawMode = GltfConstants.GL_TRIANGLES
     var nioBuffer: ByteBuffer? = null
 
     var buffer = -1
     var isUpToDate = false
+
+    fun getName() = getName(0)
+    fun getName(index: Int) = attributes[index].name
+
     fun upload(){
         if(!isUpToDate){
             if(buffer < 0) buffer = glGenBuffers()
@@ -44,7 +48,12 @@ abstract class Buffer(val attributes: List<Attribute>, val stride: Int, val usag
 
     abstract fun createNioBuffer()
 
-    open fun draw(shader: Shader) = draw(shader, GL_TRIANGLES)
+    fun quads(): Buffer {
+        drawMode = GL11.GL_QUADS
+        return this
+    }
+
+    open fun draw(shader: Shader) = draw(shader, drawMode)
     open fun draw(shader: Shader, mode: Int){
         if(!isUpToDate) upload()
         else glBindBuffer(GL15.GL_ARRAY_BUFFER, buffer)

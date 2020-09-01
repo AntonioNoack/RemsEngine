@@ -29,7 +29,7 @@ class MeshData: CacheData {
     fun draw(stack: Matrix4fArrayList, time: Double, color: Vector4f){
         for((material, buffer) in toDraw){
             val shader = shaderObjMtl.shader
-            GFX.shader3DUniforms(shader, stack, 1, 1, color, null, FilteringMode.NEAREST)
+            GFX.shader3DUniforms(shader, stack, 1, 1, color, null, FilteringMode.NEAREST, null)
             getTexture(material.diffuseTexture, whiteTexture).bind(0, false)
             buffer.draw(shader)
             GFX.check()

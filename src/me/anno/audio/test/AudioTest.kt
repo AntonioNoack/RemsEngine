@@ -2,15 +2,10 @@ package me.anno.audio.test
 
 import me.anno.audio.*
 import me.anno.gpu.GFX
-import me.anno.objects.Camera
-import me.anno.objects.LoopingState
 import me.anno.utils.OS
-import me.anno.video.FFMPEGMetadata
 import me.anno.video.FFMPEGStream
 import org.joml.Vector3f
 import java.io.File
-import kotlin.math.cos
-import kotlin.math.sin
 
 fun main(){
 

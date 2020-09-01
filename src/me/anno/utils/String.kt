@@ -39,7 +39,6 @@ fun getIndexFromText(characters: List<Int>, localX: Float, fontName: String, tex
     if(index > 0 && index < characters.size && abs(list[index-1]-localX) < abs(list[index]-localX)){
         index--
     }
-    println("$index for ${characters.joinChars()}, $list")
     return index
 }
 

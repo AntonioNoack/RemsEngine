@@ -1,8 +1,8 @@
-package me.anno.objects
+package me.anno.objects.modes
 
 import java.util.*
 
-enum class SelectionMode(val displayName: String){
+enum class ArraySelectionMode(val displayName: String){
     ROUND_ROBIN("Round-Robin"){
         override operator fun get(index: Int, length: Int, random: Random): Int {
             return index % length

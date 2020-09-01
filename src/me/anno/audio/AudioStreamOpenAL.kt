@@ -3,14 +3,12 @@ package me.anno.audio
 import me.anno.gpu.GFX
 import me.anno.objects.Audio
 import me.anno.objects.Camera
-import me.anno.objects.LoopingState
-import me.anno.objects.Transform
+import me.anno.objects.modes.LoopingState
 import me.anno.video.FFMPEGMetadata
 import org.lwjgl.openal.AL10.*
 import java.io.File
 import java.lang.RuntimeException
 import java.nio.ShortBuffer
-import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.concurrent.thread
 import kotlin.math.max

@@ -2,7 +2,7 @@ package me.anno.audio
 
 import me.anno.objects.Audio
 import me.anno.objects.Camera
-import me.anno.objects.LoopingState
+import me.anno.objects.modes.LoopingState
 import me.anno.objects.cache.Cache
 import me.anno.utils.f2
 import me.anno.utils.minus

@@ -46,6 +46,7 @@ class JsonReader(val data: InputStream) {
                         '\'' -> str.append('\'')
                         'f' -> str.append(12.toChar())
                         'b' -> str.append('\b')
+                        'u' -> str.append("${next()}${next()}${next()}${next()}".toInt(16).toChar())
                         else -> throw RuntimeException("Unknown escape sequence \\$next1")
                     }
                 }

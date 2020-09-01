@@ -6,6 +6,7 @@ import me.anno.gpu.GFX
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.animation.AnimatedProperty
+import me.anno.objects.modes.LoopingState
 import me.anno.studio.Studio
 import me.anno.studio.Studio.nullCamera
 import me.anno.ui.base.ButtonPanel

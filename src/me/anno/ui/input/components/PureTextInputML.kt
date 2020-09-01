@@ -443,7 +443,6 @@ class PureTextInputML(style: Style): ScrollPanelXY(Padding(0), style){
             // find the correct location for the cursor
             cursor1 = getCursor(x, indexY, true)
             cursor2 = cursor1
-            println("select $cursor1")
             ensureCursorBounds()
         }
     }

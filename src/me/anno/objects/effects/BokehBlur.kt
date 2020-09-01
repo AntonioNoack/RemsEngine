@@ -100,7 +100,7 @@ object BokehBlur {
 
         val varyingShader = "varying vec2 uv;\n"
 
-        perChannelShader = createShaderNoShorts(vertexShader, varyingShader, "" +
+        perChannelShader = createShaderNoShorts("bokeh-perChannel", vertexShader, varyingShader, "" +
 
                 "uniform float filterRadius;\n" +
                 "uniform vec2 stepVal;\n" + // 1/resolution
@@ -172,7 +172,7 @@ object BokehBlur {
 
         filterTexture.create(kernelTexture)
 
-        compositionShader = createShaderNoShorts(vertexShader, varyingShader, "" +
+        compositionShader = createShaderNoShorts("bokeh-composition", vertexShader, varyingShader, "" +
 
                 "uniform float filterRadius;\n" +
                 "uniform vec2 stepVal;\n" + // 1/resolution

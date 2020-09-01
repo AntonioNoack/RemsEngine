@@ -29,20 +29,22 @@ object Grid {
     private val yAxisColor = parseColor(DefaultConfig["grid.axis.y.color", "#77ff77"]) ?: 0x77ff77
     private val zAxisColor = parseColor(DefaultConfig["grid.axis.z.color", "#7777ff"]) ?: 0x7777ff
 
-    private val gridBuffer = StaticFloatBuffer(listOf(Attribute("attr0", 2)), 201 * 4)
-    private val lineBuffer = StaticFloatBuffer(listOf(Attribute("attr0", 2)), 2)
+    private val gridBuffer = StaticFloatBuffer(listOf(Attribute("attr0", 3), Attribute("attr1", 2)), 201 * 4)
+    private val lineBuffer = StaticFloatBuffer(listOf(Attribute("attr0", 3), Attribute("attr1", 2)), 2)
 
     init {
 
-        lineBuffer.put(1f, 0.5f)
-        lineBuffer.put(0f, 0.5f)
+        lineBuffer.put(1f, 0.5f, 0f)
+        lineBuffer.put(0f, 0f)
+        lineBuffer.put(0f, 0.5f, 0f)
+        lineBuffer.put(0f, 0f)
 
         for(i in -100 .. 100){
-            val v = 0.5f + 0.005f * i
-            gridBuffer.put(v, 1f)
-            gridBuffer.put(v, 0f)
-            gridBuffer.put(1f, v)
-            gridBuffer.put(0f, v)
+            val v = 0.01f * i
+            gridBuffer.put(v, 1f, 0f); gridBuffer.put(0f, 0f)
+            gridBuffer.put(v, -1f, 0f); gridBuffer.put(0f, 0f)
+            gridBuffer.put(1f, v, 0f); gridBuffer.put(0f, 0f)
+            gridBuffer.put(-1f, v, 0f); gridBuffer.put(0f, 0f)
         }
 
     }

@@ -28,6 +28,7 @@ import me.anno.ui.base.Tooltips
 import me.anno.utils.OS
 import me.anno.utils.clamp
 import me.anno.utils.f3
+import me.anno.utils.listFiles2
 import org.apache.logging.log4j.LogManager
 import java.io.File
 import java.io.OutputStream
@@ -61,7 +62,7 @@ object RemsStudio {
 
     fun clear(file: File){
         if(file.isDirectory){
-            for(file2 in file.listFiles() ?: return){
+            for(file2 in file.listFiles2()){
                 file2.delete()
             }
             file.delete()
