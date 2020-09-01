@@ -83,7 +83,7 @@ object Input {
             }
         }
 
-        GLFW.glfwSetCharCallback(window) { _, codepoint ->
+        GLFW.glfwSetCharCallback(window) { _, _ ->
             addEvent {
                 // LOGGER.info("char event $codepoint")
             }
@@ -215,7 +215,7 @@ object Input {
                 keyModState = mods
             }
         }
-        GLFW.glfwSetScrollCallback(window) { window, xoffset, yoffset ->
+        GLFW.glfwSetScrollCallback(window) { _, xoffset, yoffset ->
             addEvent {
                 framesSinceLastInteraction = 0
                 val clicked = getPanelAt(mouseX, mouseY)
@@ -224,7 +224,7 @@ object Input {
         }
         GLFW.glfwSetKeyCallback(window) { window, key, scancode, action, mods ->
             if(window != GFX.window){
-                val pressure = max(1, mods)
+                // val pressure = max(1, mods)
                 val x = scancode * 0.01f
                 val y = action * 0.01f
                 addEvent {

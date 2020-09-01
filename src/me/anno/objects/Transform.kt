@@ -437,11 +437,11 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
                 .setIsSelectedListener { show(null) }
                 .setTooltip(ttt)
             is Vector2f -> VectorInput(style, title, value, type ?: AnimatedProperty.Type.VEC2)
-                .setChangeListener { x, y, z, w -> setValue(Vector2f(x,y) as V) }
+                .setChangeListener { x, y, _, _ -> setValue(Vector2f(x,y) as V) }
                 .setIsSelectedListener { show(null) }
                 .setTooltip(ttt)
             is Vector3f -> VectorInput(style, title, value, type ?: AnimatedProperty.Type.VEC3)
-                .setChangeListener { x, y, z, w -> setValue(Vector3f(x,y,z) as V) }
+                .setChangeListener { x, y, z, _ -> setValue(Vector3f(x,y,z) as V) }
                 .setIsSelectedListener { show(null) }
                 .setTooltip(ttt)
             is Vector4f -> {
@@ -532,11 +532,11 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
                 .setIsSelectedListener { show(values) }
                 .setTooltip(ttt)
             is Vector2f -> VectorInput(title, values, time, style)
-                .setChangeListener { x, y, z, w -> putValue(values, Vector2f(x, y)) }
+                .setChangeListener { x, y, _, _ -> putValue(values, Vector2f(x, y)) }
                 .setIsSelectedListener { show(values) }
                 .setTooltip(ttt)
             is Vector3f -> VectorInput(title, values, time, style)
-                .setChangeListener { x, y, z, w -> putValue(values, Vector3f(x, y, z)) }
+                .setChangeListener { x, y, z, _ -> putValue(values, Vector3f(x, y, z)) }
                 .setIsSelectedListener { show(values) }
                 .setTooltip(ttt)
             is Vector4f -> {

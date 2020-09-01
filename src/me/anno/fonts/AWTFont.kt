@@ -157,12 +157,12 @@ class AWTFont(val font: Font): XFont {
                                 else break
                             }
 
+                            // not 100% accurate for text with smileys
                             val previousWord = cp.subList(startIndex, index).joinChars()
+                            val nextWord = cp.subList(index, endIndex).joinChars() // space needs to be included ;)
                             val currentX2 = currentX + if(previousWord.isEmpty()) 0f else TextLayout(previousWord, font, ctx).advance
-                            val nextWord = cp.subList(index+1, endIndex).joinChars()
                             val layout = TextLayout(nextWord, font, ctx)
                             val advance = layout.advance
-                            println("$nextWord $currentX + $advance (${currentX+advance}) > $lineBreakWidth?")
                             if(currentX2 + advance > lineBreakWidth){
                                 // it doesn't fit -> line break
                                 hadNonSpaceCharacter = false

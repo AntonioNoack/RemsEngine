@@ -95,7 +95,7 @@ class SoundBuffer(): CacheData {
     override fun destroy(){
         alDeleteBuffers(buffer)
         if(pcm != null){
-            val toFree = pcm
+            // val toFree = pcm
             pcm = null
             // crashes Java 8, even with 15s delay
             // MemoryUtil.memFree(toFree)

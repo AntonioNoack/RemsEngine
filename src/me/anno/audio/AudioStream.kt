@@ -96,9 +96,9 @@ abstract class AudioStream(
                 mix(data0.second, data1.second, f) * localAmplitude
     }
 
-    fun getMaxAmplitudesSync(index: Long): Pair<Short, Short> {
-        if(index < 0 || (repeat == LoopingState.PLAY_ONCE && index >= maxSampleIndex)) return 0.toShort() to 0.toShort()
-        val index = repeat[index, maxSampleIndex]
+    fun getMaxAmplitudesSync(index0: Long): Pair<Short, Short> {
+        if(index0 < 0 || (repeat == LoopingState.PLAY_ONCE && index0 >= maxSampleIndex)) return 0.toShort() to 0.toShort()
+        val index = repeat[index0, maxSampleIndex]
         // val index = if(repeat) index % maxSampleIndex else index
         val sliceIndex = index / ffmpegSliceSampleCount
         val localIndex = (index % ffmpegSliceSampleCount).toInt()
@@ -154,7 +154,7 @@ abstract class AudioStream(
         val dirGlobal = (camGlobalPos - srcGlobalPos).normalize() // in global space
         val leftDirGlobal = camLocal2Global.transformDirection(Vector3f(+1f,0f,-0.1f)).normalize()
         val rightDirGlobal = camLocal2Global.transformDirection(Vector3f(-1f,0f,-0.1f)).normalize()
-        val distance = camGlobalPos.distance(srcGlobalPos)
+        // val distance = camGlobalPos.distance(srcGlobalPos)
 
         val left1 = leftDirGlobal.dot(dirGlobal) * 0.48 + 0.52
         val right1 = rightDirGlobal.dot(dirGlobal) * 0.48 + 0.52

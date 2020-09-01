@@ -72,7 +72,7 @@ open class PanelListX(sorter: Comparator<Panel>?, style: Style): PanelList(sorte
         val dc = disableConstantSpaceForWeightedChildren
         for(child in children.filter { it.visibility != Visibility.GONE }){
             val hasWeight = child.weight >= 0f
-            val childConstW = if(!hasWeight || !disableConstantSpaceForWeightedChildren) child.minW * perConst else 0f
+            val childConstW = if(!hasWeight || !dc) child.minW * perConst else 0f
             val childW = (childConstW + perWeight * max(0f, child.weight)).roundToInt()
             child.calculateSize(childW, h)
             child.applyConstraints()

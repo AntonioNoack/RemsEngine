@@ -28,7 +28,7 @@ fun main(){
         }
         // testSingleBuffer()
 
-        val time0 = System.nanoTime()
+        /*val time0 = System.nanoTime()
         while(true){
             val dt = (System.nanoTime() - time0)*1e-9f
             if(dt > 30) break
@@ -39,7 +39,7 @@ fun main(){
             // source.setGain(sin(arc)*0.5f+0.5f)
 
             Thread.sleep(10)
-        }
+        }*/
 
         // source.destroy()
 

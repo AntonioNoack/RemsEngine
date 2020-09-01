@@ -40,7 +40,7 @@ class Keyframe<V>(var time: Double, var value: V): Saveable(), Comparable<Keyfra
 
     fun setValue(index: Int, v: Float){
         value = when(val value = value){
-            is Float -> v as Any
+            is Float -> v
             is Vector2f -> when(index){
                 0 -> Vector2f(v, value.y)
                 else -> Vector2f(value.x, v)

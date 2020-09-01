@@ -690,8 +690,8 @@ object GFX: GFXBase1() {
 
     fun ask(question: String, onYes: () -> Unit, onNo: () -> Unit){
         openMenu(mouseX, mouseY, question, listOf(
-            "Yes" to { b, l -> if(b == 0){ onYes(); true} else false },
-            "No"  to { b, l -> if(b == 0){ onNo(); true } else false }
+            "Yes" to { b, _ -> if(b == 0){ onYes(); true} else false },
+            "No"  to { b, _ -> if(b == 0){ onNo(); true } else false }
         ))
     }
 
