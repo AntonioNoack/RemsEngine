@@ -5,6 +5,7 @@ import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticFloatBuffer
 import me.anno.gpu.texture.FilteringMode
+import me.anno.io.base.BaseWriter
 import me.anno.objects.cache.Cache
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.style.Style
@@ -42,6 +43,36 @@ class Cubemap(var file: File = File(""), parent: Transform? = null): GFXTransfor
     override fun createInspector(list: PanelListY, style: Style) {
         super.createInspector(list, style)
         list += VI("Texture", "File location of the texture to use", null, file, style){ file = it }
+        list += VI("Other Format", "If it looks wrong ;)", null, otherFormat, style){ otherFormat = it }
+        list += VI("Filtering", "", null, filtering, style){ filtering = it }
+    }
+
+    override fun save(writer: BaseWriter) {
+        super.save(writer)
+        writer.writeFile("file", file)
+        writer.writeBool("otherFormat", otherFormat)
+        writer.writeInt("filtering", filtering.id)
+    }
+
+    override fun readBool(name: String, value: Boolean) {
+        when(name){
+            "otherFormat" -> otherFormat = value
+            else -> super.readBool(name, value)
+        }
+    }
+
+    override fun readInt(name: String, value: Int) {
+        when(name){
+            "filtering" -> filtering = filtering.find(value)
+            else -> super.readInt(name, value)
+        }
+    }
+
+    override fun readString(name: String, value: String) {
+        when(name){
+            "file" -> file = File(name)
+            else -> super.readString(name, value)
+        }
     }
 
     companion object {
