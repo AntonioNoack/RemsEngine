@@ -23,6 +23,34 @@ It is additionally developed with Java, so it works with Windows and Linux.
 
 ## Download
 
-I will provide a download, when the alpha stage is reached (basic features working, automatic setup).
+The version still is a pre-alpha.
 
+Missing, important features:
+- project management
+- redo/undo
+- linear video editor
+- bug-free input fields ;)
 
+### Linux
+
+FFmpeg needs to be installed.
+
+You can download the [universal build here](https://github.com/AntonioNoack/RemsStudio/raw/master/out/artifacts/Universal/VideoStudio.jar).
+Later, I'll probably create specific builds depending on your OS, so they are smaller.
+
+My FFmpeg install on Linux Mint 19 somehow misses features, that FFmpeg for Windows has. You might encounter issues as well.
+Observed missing features:
+- wav file can't be exported without extra INFO-header; I built a work-around for that
+- I have a gif file, which can't be played on Linux
+
+### Windows
+
+You probably have to copy the files for ffmpeg (the program will tell you in the console). This is because of a bug in Java 8 (but Java 8 is the default download for Win10), and a slight config issue on my webserver.
+
+You can download the [universal build here](https://github.com/AntonioNoack/RemsStudio/raw/master/out/artifacts/Universal/VideoStudio.jar).
+Later, I'll probably create specific builds depending on your OS, so they are smaller.
+
+### iOS
+
+I own no device to test Rem's Studio on iOS. I read that installing Java on iOS isn't that easy either.
+I am sure, you could make it work, if you are a developer. I have included the FFmpeg files for iOS in the [universal build, which you can download here](https://github.com/AntonioNoack/RemsStudio/raw/master/out/artifacts/Universal/VideoStudio.jar).
