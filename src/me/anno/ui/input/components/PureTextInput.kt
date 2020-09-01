@@ -2,6 +2,7 @@ package me.anno.ui.input.components
 
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.input.Input.isControlDown
 import me.anno.input.Input.isShiftDown
 import me.anno.input.Input.mouseKeysDown
@@ -71,8 +72,7 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
     }
 
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        val sync = GFX.loadTexturesSync
-        GFX.loadTexturesSync = true
+        loadTexturesSync.push(true)
         // super.draw(x0, y0, x1, y1)
         drawBackground()
         val x = x + padding.left
@@ -102,7 +102,7 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
             }
             if(showBars) GFX.drawRect(x+cursorX1+drawingOffset, y+padding, 2, h-2*padding, textColor) // cursor 2
         }
-        GFX.loadTexturesSync = sync
+        loadTexturesSync.pop()
     }
 
     fun addKey(codePoint: Int) = insert(codePoint)
@@ -208,15 +208,18 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
     override fun onMouseDown(x: Float, y: Float, button: Int) {
         lastMove = GFX.lastTime
         if(isControlDown){
-            cursor1 = 0
-            cursor2 = characters.size
+            selectAll()
         } else {
             // find the correct location for the cursor
             val localX = x - (this.x + padding.left + drawingOffset)
-            val index = getIndexFromText(characters, localX, fontName, textSize, isBold, isItalic)
-            cursor1 = index
-            cursor2 = index
+            cursor1 = getIndexFromText(characters, localX, fontName, textSize, isBold, isItalic)
+            cursor2 = cursor1
         }
+    }
+
+    fun selectAll(){
+        cursor1 = 0
+        cursor2 = characters.size
     }
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {

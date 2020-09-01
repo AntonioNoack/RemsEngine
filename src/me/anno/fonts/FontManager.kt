@@ -56,7 +56,7 @@ object FontManager {
         if(text.isEmpty()) return null
         val fontSizeIndex = getFontSizeIndex(fontSize)
         val sub = fontSizeIndex * 4 + (if(bold) 1 else 0) + (if(italic) 2 else 0)
-        val cache = Cache.getEntry(fontName, text, sub, fontTimeout, asyncGenerator = !GFX.loadTexturesSync){
+        val cache = Cache.getEntry(fontName, text, sub, fontTimeout, asyncGenerator = !GFX.loadTexturesSync.peek()){
             // println("Created texture for $text")
             val font = getFont(fontName, fontSize, fontSizeIndex, italic, bold)
             val averageFontSize = getAvgFontSize(fontSizeIndex)

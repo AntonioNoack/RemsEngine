@@ -4,6 +4,7 @@ import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.iconGray
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.ui.base.components.Padding
 import me.anno.ui.style.Style
 import me.anno.utils.mixARGB
@@ -31,22 +32,20 @@ open class TextPanel(open var text: String, style: Style): Panel(style){
 
     override fun calculateSize(w: Int, h: Int) {
         val inst = instantTextLoading
-        val sync = GFX.loadTexturesSync
-        if(inst) GFX.loadTexturesSync = true
+        if(inst) loadTexturesSync.push(true)
         super.calculateSize(w, h)
         val (w2, h2) = GFX.getTextSize(fontName, textSize, isBold, isItalic, if(text.isBlank()) "x" else text)
         minW = w2 + padding.width
         minH = h2 + padding.height
-        if(inst) GFX.loadTexturesSync = sync
+        if(inst) loadTexturesSync.pop()
     }
 
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
         val inst = instantTextLoading
-        val sync = GFX.loadTexturesSync
-        if(inst) GFX.loadTexturesSync = true
+        if(inst) loadTexturesSync.push(true)
         super.draw(x0, y0, x1, y1)
         drawText(0,0, text, effectiveTextColor)
-        if(inst) GFX.loadTexturesSync = sync
+        if(inst) loadTexturesSync.pop()
     }
 
     override fun onCopyRequested(x: Float, y: Float): String? {

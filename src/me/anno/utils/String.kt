@@ -2,6 +2,7 @@ package me.anno.utils
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.ui.base.TextPanel
 import java.io.File
 import kotlin.math.abs
@@ -16,7 +17,13 @@ fun getLineWidth(line: List<Int>, endIndex: Int, tp: TextPanel) =
 
 fun getLineWidth(line: List<Int>, endIndex: Int, fontName: String, textSize: Int, isBold: Boolean, isItalic: Boolean): Float {
     return if(endIndex == 0) 0f
-    else GFX.getTextSize(fontName, textSize, isBold, isItalic, line.subList(0, min(endIndex, line.size)).joinChars()).first.toFloat()
+    else {
+        loadTexturesSync.push(true)
+        val stringValue = line.subList(0, min(endIndex, line.size)).joinChars()
+        val measures = GFX.getTextSize(fontName, textSize, isBold, isItalic, stringValue)
+        loadTexturesSync.pop()
+        measures.first.toFloat()
+    }
 }
 
 fun getIndexFromText(characters: List<Int>, localX: Float, tp: TextPanel) =
@@ -32,6 +39,7 @@ fun getIndexFromText(characters: List<Int>, localX: Float, fontName: String, tex
     if(index > 0 && index < characters.size && abs(list[index-1]-localX) < abs(list[index]-localX)){
         index--
     }
+    println("$index for ${characters.joinChars()}, $list")
     return index
 }
 

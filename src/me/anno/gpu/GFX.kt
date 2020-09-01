@@ -115,7 +115,8 @@ object GFX: GFXBase1() {
     lateinit var gameLoop: (w: Int, h: Int) -> Boolean
     lateinit var shutdown: () -> Unit
 
-    var loadTexturesSync = false
+    val loadTexturesSync = Stack<Boolean>()
+    init { loadTexturesSync.push(false) }
 
     var windowX = 0
     var windowY = 0
@@ -468,7 +469,6 @@ object GFX: GFXBase1() {
     fun getTextSize(font: String, fontSize: Int, bold: Boolean, italic: Boolean, text: String): Pair<Int, Int> {
         // count how many spaces there are at the end
         // get accurate space and tab widths
-        // todo tabs for text panels
         val spaceWidth = 0//text.endSpaceCount() * fontSize / 4
         val texture = FontManager.getString(font, fontSize.toFloat(), text, bold = bold, italic = italic) ?: return spaceWidth to fontSize
         return (texture.w + spaceWidth) to texture.h
@@ -696,11 +696,10 @@ object GFX: GFXBase1() {
     }
 
     fun showFPS(){
-        val last = loadTexturesSync
-        loadTexturesSync = true
+        loadTexturesSync.push(true)
         clip(0, 0, width, height)
         drawText(1, 1, "SansSerif", 12, false, false, currentEditorFPS.f1(), -1, 0)
-        loadTexturesSync = last
+        loadTexturesSync.pop()
     }
 
 }

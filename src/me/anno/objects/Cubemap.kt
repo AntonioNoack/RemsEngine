@@ -33,9 +33,18 @@ class Cubemap(var file: File = File(""), parent: Transform? = null): GFXTransfor
         val sphericalProjection = file.name.endsWith(".hdr", true) != otherFormat
 
         if(sphericalProjection){
-            GFX.drawSpherical(stack, buffer, texture, color, filtering, GL11.GL_QUADS)
+            // lat/long- or angle-projection;
+            // typically used for hdrs
+            GFX.drawSpherical(stack, cubemapBuffer, texture, color, filtering, GL11.GL_QUADS)
         } else {
-            GFX.drawXYZUV(stack, buffer, texture, color, filtering, GL11.GL_QUADS)
+            // plane projection with
+            //  x     top    x    x
+            // left  front right back
+            //  x   bottom   x    x
+            // where the x's are empty
+            // and the other sides are the textures
+            // typically used for pngs
+            GFX.drawXYZUV(stack, cubemapBuffer, texture, color, filtering, GL11.GL_QUADS)
         }
 
     }
@@ -43,7 +52,7 @@ class Cubemap(var file: File = File(""), parent: Transform? = null): GFXTransfor
     override fun createInspector(list: PanelListY, style: Style) {
         super.createInspector(list, style)
         list += VI("Texture", "File location of the texture to use", null, file, style){ file = it }
-        list += VI("Other Format", "If it looks wrong ;)", null, otherFormat, style){ otherFormat = it }
+        list += VI("Other Format", "May look wrong: switch spherical/cube projection", null, otherFormat, style){ otherFormat = it }
         list += VI("Filtering", "", null, filtering, style){ filtering = it }
     }
 
@@ -77,12 +86,12 @@ class Cubemap(var file: File = File(""), parent: Transform? = null): GFXTransfor
 
     companion object {
 
-        val buffer = StaticFloatBuffer(listOf(Attribute("attr0", 3), Attribute("attr1", 2)), 4 * 6)
+        val cubemapBuffer = StaticFloatBuffer(listOf(Attribute("attr0", 3), Attribute("attr1", 2)), 4 * 6)
         init {
 
             fun put(v0: Vector3f, dx: Vector3f, dy: Vector3f, x: Float, y: Float, u: Int, v: Int){
                 val pos = v0 + dx*x + dy*y
-                buffer.put(pos.x, pos.y, pos.z, u/4f, v/3f)
+                cubemapBuffer.put(pos.x, pos.y, pos.z, u/4f, v/3f)
             }
 
             fun addFace(u: Int, v: Int, v0: Vector3f, dx: Vector3f, dy: Vector3f){

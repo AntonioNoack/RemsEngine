@@ -5,6 +5,7 @@ import me.anno.config.DefaultStyle.black
 import me.anno.config.DefaultStyle.fontGray
 import me.anno.config.DefaultStyle.white
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.input.Input.isShiftDown
 import me.anno.input.Input.mouseDownX
@@ -222,14 +223,13 @@ class GraphEditorBody(style: Style): Panel(style.getChild("deep")){
     }
 
     fun drawCurrentTime(){
-        val instantLoading = GFX.loadTexturesSync
-        GFX.loadTexturesSync = true
+        loadTexturesSync.push(true)
         val timeFontSize = 20
         val text = getTimeString(Studio.editorTime, 0.0)
         val (tw, th) = GFX.getTextSize(fontName, timeFontSize, isBold, isItalic, text)
         val color = mixARGB(fontColor, backgroundColor, 0.8f)
         GFX.drawText(x+(w-tw)/2, y+(h-th)/2, fontName, timeFontSize, isBold, isItalic, text, color, backgroundColor)
-        GFX.loadTexturesSync = instantLoading
+        loadTexturesSync.pop()
     }
 
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {

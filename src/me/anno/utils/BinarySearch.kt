@@ -35,6 +35,8 @@ object BinarySearch {
         override fun containsAll(elements: Collection<V>) = throw RuntimeException()
         // too lazy to implement that
         override fun subList(fromIndex: Int, toIndex: Int) = throw RuntimeException()
+
+        override fun toString() = List(length){ index -> this[index] }.toString()
     }
 
 }

@@ -8,6 +8,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFX.getPanelAndWindowAt
 import me.anno.gpu.GFX.hoveredPanel
 import me.anno.gpu.GFX.hoveredWindow
+import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.GFX.showFPS
 import me.anno.gpu.GFX.updateTitle
 import me.anno.gpu.Window
@@ -136,7 +137,8 @@ object RemsStudio {
             hoveredPanel?.getCursor()?.useCursor()
 
             windowStack.forEach { window ->
-                GFX.loadTexturesSync = false
+                loadTexturesSync.clear()
+                loadTexturesSync.push(false)
                 val panel = window.panel
                 // optimization is worth 0.5% of 3.4GHz * 12 ~ 200 MHz ST (13.06.2020)
                 if(Input.needsLayoutUpdate()){

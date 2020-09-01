@@ -3,6 +3,7 @@ package me.anno.ui.input.components
 import me.anno.config.DefaultStyle.black
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.input.Input
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.components.Padding
@@ -33,7 +34,7 @@ class PureTextInputML(style: Style): ScrollPanelXY(Padding(0), style){
 
     private var text = ""
     private val lines: ArrayList<MutableList<Int>> = arrayListOf(mutableListOf())
-    private val lastValidCursor get() = CursorPosition(lines.size-1, lines.last().size)
+    private val endCursor get() = CursorPosition(lines.size-1, lines.last().size)
     private val joinedText get() = lines.joinToString("\n"){ list -> list.joinChars() }
     private val styleSample get() = actualChildren[0] as TextPanel
     private val actualChildren = (content as PanelListY).children
@@ -48,13 +49,13 @@ class PureTextInputML(style: Style): ScrollPanelXY(Padding(0), style){
         override fun equals(other: Any?): Boolean {
             return other is CursorPosition && other.x == x && other.y == y
         }
+        override fun toString() = "$x $y"
     }
 
     override fun calculateSize(w: Int, h: Int) {
-        val sync = GFX.loadTexturesSync
-        GFX.loadTexturesSync = true
+        loadTexturesSync.push(true)
         super.calculateSize(w, h)
-        GFX.loadTexturesSync = sync
+        loadTexturesSync.pop()
     }
 
     fun updateLines(){
@@ -91,8 +92,7 @@ class PureTextInputML(style: Style): ScrollPanelXY(Padding(0), style){
     }
 
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        val sync = GFX.loadTexturesSync
-        GFX.loadTexturesSync = true
+        loadTexturesSync.push(true)
         super.draw(x0, y0, x1, y1)
         val blinkVisible = ((System.nanoTime() / 500_000_000L) % 2L == 0L)
         val showBars = blinkVisible || wasJustChanged
@@ -146,14 +146,14 @@ class PureTextInputML(style: Style): ScrollPanelXY(Padding(0), style){
             }
             if(showBars) GFX.drawRect(panel1.x+cursorX1, panel1.y+padding, 2, panel1.h-2*padding, textColor) // cursor 2
         }
-        GFX.loadTexturesSync = sync
+        loadTexturesSync.pop()
     }
 
     fun <V: Comparable<V>> min(a: V, b: V): V = if(a < b) a else b
     fun <V: Comparable<V>> max(a: V, b: V): V = if(a > b) a else b
 
     fun setCursorToEnd(){
-        cursor1 = lastValidCursor
+        cursor1 = endCursor
         cursor2 = cursor1
     }
 
@@ -438,12 +438,12 @@ class PureTextInputML(style: Style): ScrollPanelXY(Padding(0), style){
 
     fun onMouseDown(x: Float, indexY: Int, button: Int){
         if(Input.isControlDown){
-            cursor1 = CursorPosition(0,0)
-            cursor2 = lastValidCursor
+            selectAll()
         } else {
             // find the correct location for the cursor
             cursor1 = getCursor(x, indexY, true)
             cursor2 = cursor1
+            println("select $cursor1")
             ensureCursorBounds()
         }
     }
@@ -458,7 +458,7 @@ class PureTextInputML(style: Style): ScrollPanelXY(Padding(0), style){
 
     fun selectAll(){
         cursor1 = CursorPosition(0,0)
-        cursor2 = lastValidCursor
+        cursor2 = endCursor
     }
 
     override fun onEmpty(x: Float, y: Float) {
