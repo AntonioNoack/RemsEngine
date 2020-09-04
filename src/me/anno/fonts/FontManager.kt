@@ -52,11 +52,14 @@ object FontManager {
     private fun getFontSizeIndex(fontSize: Float): Int = round(100.0 * ln(fontSize)).toInt()
     private fun getAvgFontSize(fontSizeIndex: Int): Float = exp(fontSizeIndex * 0.01f)
 
-    fun getString(fontName: String, fontSize: Float, text: String, bold: Boolean, italic: Boolean): ITexture2D? {
+    data class TextCacheKey(val text: String, val fontName: String, val properties: Int, val widthLimit: Int)
+
+    fun getString(fontName: String, fontSize: Float, text: String, bold: Boolean, italic: Boolean, widthLimit: Int): ITexture2D? {
         if(text.isEmpty()) return null
         val fontSizeIndex = getFontSizeIndex(fontSize)
         val sub = fontSizeIndex * 4 + (if(bold) 1 else 0) + (if(italic) 2 else 0)
-        val cache = Cache.getEntry(fontName, text, sub, fontTimeout, asyncGenerator = !GFX.loadTexturesSync.peek()){
+        val key = TextCacheKey(text, fontName, sub, widthLimit)
+        val cache = Cache.getEntry(key, fontTimeout, asyncGenerator = !GFX.loadTexturesSync.peek()){
             // println("Created texture for $text")
             val font = getFont(fontName, fontSize, fontSizeIndex, italic, bold)
             val averageFontSize = getAvgFontSize(fontSizeIndex)

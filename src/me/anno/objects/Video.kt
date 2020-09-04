@@ -37,6 +37,9 @@ import kotlin.math.*
 
 // todo get information about full and relative frames, so we get optimal scrubbing performance :)
 
+/**
+ * Images, Cubemaps, Videos, Audios, joint into one
+ * */
 class Video(file: File = File(""), parent: Transform? = null): Audio(file, parent){
 
     var tiling = AnimatedProperty.tiling()
@@ -248,6 +251,7 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
         list += VI("Video Start", "Timestamp in seconds of the first frames drawn", null, startTime, style){ startTime = it }
         list += VI("Video End", "Timestamp in seconds of the last frames drawn", null, endTime, style) { endTime = it }
         list += VI("Filtering", "Pixelated look?", null, filtering, style){ filtering = it }
+        // todo hide elements, if they are not used
         list += EnumInput("Video Scale", true,
             videoScaleNames.reverse[videoScale] ?: "Auto",
             videoScaleNames.entries.sortedBy { it.value }.map { it.key }, style)

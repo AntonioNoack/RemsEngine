@@ -110,12 +110,12 @@ class PureTextInputML(style: Style): ScrollPanelXY(Padding(0), style){
             val panel1 = children[cursor1.y]
             val line1 = lines[cursor1.y]
             val cursor1Text = line1.subList(0, cursor1.x).joinChars()
-            val cursorX1 = if(cursor1.x == 0) -1 else GFX.getTextSize(fontName, textSize, isBold, isItalic, cursor1Text).first-1
+            val cursorX1 = if(cursor1.x == 0) -1 else GFX.getTextSize(fontName, textSize, isBold, isItalic, cursor1Text, -1).first-1
             if(cursor1 != cursor2){
                 val panel2 = children[cursor2.y]
                 val line2 = lines[cursor2.y]
                 val cursor2Text = line2.subList(0, cursor2.x).joinChars()
-                val cursorX2 = if(cursor2.x == 0) -1 else GFX.getTextSize(fontName, textSize, isBold, isItalic, cursor2Text).first-1
+                val cursorX2 = if(cursor2.x == 0) -1 else GFX.getTextSize(fontName, textSize, isBold, isItalic, cursor2Text, -1).first-1
                 val minCursor = min(cursor1, cursor2)
                 val maxCursor = max(cursor1, cursor2)
                 val minPanel = children[minCursor.y] as TextPanel

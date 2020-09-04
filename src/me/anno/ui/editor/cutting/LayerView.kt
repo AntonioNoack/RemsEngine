@@ -1,9 +1,9 @@
 package me.anno.ui.editor.cutting
 
-import me.anno.ui.base.Panel
+import me.anno.ui.editor.TimelinePanel
 import me.anno.ui.style.Style
 
-class LayerView(style: Style): Panel(style) {
+class LayerView(style: Style): TimelinePanel(style) {
 
 
 

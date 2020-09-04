@@ -235,25 +235,27 @@ object GFX: GFXBase1() {
     }
 
     // the background color is important for correct subpixel rendering, because we can't blend per channel
-    fun drawText(x: Int, y: Int, font: String, fontSize: Int, bold: Boolean, italic: Boolean, text: String, color: Int, backgroundColor: Int) =
-        writeText(x, y, font, fontSize, bold, italic, text, color, backgroundColor)
+    fun drawText(x: Int, y: Int, font: String, fontSize: Int, bold: Boolean, italic: Boolean, text: String, color: Int, backgroundColor: Int, widthLimit: Int) =
+        writeText(x, y, font, fontSize, bold, italic, text, color, backgroundColor, widthLimit)
+
     fun writeText(x: Int, y: Int,
                   font: String, fontSize: Int,
                   bold: Boolean, italic: Boolean,
                   text: String,
-                  color: Int, backgroundColor: Int): Pair<Int, Int> {
+                  color: Int,
+                  backgroundColor: Int,
+                  widthLimit: Int): Pair<Int, Int> {
 
         check()
-        val texture = FontManager.getString(font, fontSize.toFloat(), text, italic, bold) ?: return 0 to fontSize
-        check()
+        val texture = FontManager.getString(font, fontSize.toFloat(), text, italic, bold, widthLimit) ?: return 0 to fontSize
+        // check()
         val w = texture.w
         val h = texture.h
         if(text.isNotBlank()){
             texture.bind(true)
             val shader = subpixelCorrectTextShader
-            check()
+            // check()
             shader.use()
-            check()
             shader.v2("pos", (x-windowX).toFloat()/windowWidth, 1f-(y-windowY).toFloat()/windowHeight)
             shader.v2("size", w.toFloat()/windowWidth, -h.toFloat()/windowHeight)
             shader.v4("textColor", color.r()/255f, color.g()/255f, color.b()/255f, color.a()/255f)
@@ -422,7 +424,7 @@ object GFX: GFXBase1() {
                       inset: Float,
                       filtering: FilteringMode){
         val shader = shader3DPolygon.shader
-        shader3DUniforms(shader, stack, 1, 1, color, null, filtering, null)
+        shader3DUniforms(shader, stack, texture.w, texture.h, color, null, filtering, null)
         shader.v1("inset", inset)
         texture.bind(0, filtering)
         buffer.draw(shader)
@@ -461,18 +463,18 @@ object GFX: GFXBase1() {
     fun draw3DSVG(stack: Matrix4fArrayList, buffer: StaticFloatBuffer, texture: Texture2D, color: Vector4f,
                   filtering: FilteringMode){
         val shader = shader3DSVG.shader
-        shader3DUniforms(shader, stack, 1, 1, color, null, filtering, null)
+        shader3DUniforms(shader, stack, texture.w, texture.h, color, null, filtering, null)
         texture.bind(0, filtering)
         buffer.draw(shader)
         check()
     }
 
     // fun getTextSize(fontSize: Int, bold: Boolean, italic: Boolean, text: String) = getTextSize(defaultFont, fontSize, bold, italic, text)
-    fun getTextSize(font: String, fontSize: Int, bold: Boolean, italic: Boolean, text: String): Pair<Int, Int> {
+    fun getTextSize(font: String, fontSize: Int, bold: Boolean, italic: Boolean, text: String, widthLimit: Int): Pair<Int, Int> {
         // count how many spaces there are at the end
         // get accurate space and tab widths
         val spaceWidth = 0//text.endSpaceCount() * fontSize / 4
-        val texture = FontManager.getString(font, fontSize.toFloat(), text, bold = bold, italic = italic) ?: return spaceWidth to fontSize
+        val texture = FontManager.getString(font, fontSize.toFloat(), text, bold, italic, widthLimit) ?: return spaceWidth to fontSize
         return (texture.w + spaceWidth) to texture.h
     }
 
@@ -700,7 +702,7 @@ object GFX: GFXBase1() {
     fun showFPS(){
         loadTexturesSync.push(true)
         clip(0, 0, width, height)
-        drawText(1, 1, "SansSerif", 12, false, false, currentEditorFPS.f1(), -1, 0)
+        drawText(1, 1, "SansSerif", 12, false, false, currentEditorFPS.f1(), -1, 0, -1)
         loadTexturesSync.pop()
     }
 

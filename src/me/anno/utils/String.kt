@@ -20,7 +20,7 @@ fun getLineWidth(line: List<Int>, endIndex: Int, fontName: String, textSize: Int
     else {
         loadTexturesSync.push(true)
         val stringValue = line.subList(0, min(endIndex, line.size)).joinChars()
-        val measures = GFX.getTextSize(fontName, textSize, isBold, isItalic, stringValue)
+        val measures = GFX.getTextSize(fontName, textSize, isBold, isItalic, stringValue, -1)
         loadTexturesSync.pop()
         measures.first.toFloat()
     }

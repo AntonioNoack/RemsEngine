@@ -22,6 +22,7 @@ import me.anno.studio.Studio
 import me.anno.studio.Studio.selectedProperty
 import me.anno.studio.Studio.targetFPS
 import me.anno.ui.base.Panel
+import me.anno.ui.editor.TimelinePanel
 import me.anno.ui.style.Style
 import me.anno.utils.*
 import org.joml.Vector2f
@@ -39,13 +40,7 @@ import me.anno.input.Input.isControlDown as isControlDown
 // todo select multiple keyframes
 // todo copy keyframes
 // todo paste keyframes
-class GraphEditorBody(style: Style): Panel(style.getChild("deep")){
-
-    val accentColor = style.getColor("accentColor", black)
-
-    // time
-    var dtHalfLength = 30.0
-    var centralTime = dtHalfLength
+class GraphEditorBody(style: Style): TimelinePanel(style.getChild("deep")){
 
     var centralValue = 0f
     var dvHalfHeight = 1f
@@ -57,11 +52,6 @@ class GraphEditorBody(style: Style): Panel(style.getChild("deep")){
 
     // style
     var dotSize = style.getSize("dotSize", 8)
-    val tinyFontSize = style.getSize("tinyTextSize", 10)
-    val fontColor = style.getColor("textColor", fontGray)
-    val fontName = style.getString("textFont", DefaultConfig.defaultFont)
-    val isBold = style.getBoolean("textBold", false)
-    val isItalic = style.getBoolean("textItalic", false)
 
     // todo add/remove keyframes from the selection
     val selectedKeyframes = HashSet<Keyframe<*>>()
@@ -73,14 +63,8 @@ class GraphEditorBody(style: Style): Panel(style.getChild("deep")){
 
 
     fun normValue01(value: Float) = 0.5f - (value-centralValue)/dvHalfHeight * 0.5f
-    fun normTime01(time: Double) = (time-centralTime)/dtHalfLength * 0.5f + 0.5f
-    fun normTime01(time: Float) = (time-centralTime)/dtHalfLength * 0.5f + 0.5f
-    fun normAxis11(lx: Float, x0: Int, size: Int) = (lx-x0)/size * 2f - 1f
 
     fun getValueAt(my: Float) = centralValue - dvHalfHeight * normAxis11(my, y, h)
-    fun getTimeAt(mx: Float) = centralTime + dtHalfLength * normAxis11(mx, x, w)
-    fun getXAt(time: Double) = x + w * normTime01(time)
-    fun getXAt(time: Float) = x + w * normTime01(time)
     fun getYAt(value: Float) = y + h * normValue01(value)
 
     override fun calculateSize(w: Int, h: Int) {
@@ -88,19 +72,6 @@ class GraphEditorBody(style: Style): Panel(style.getChild("deep")){
         val size = 5
         minW = size
         minH = size
-    }
-
-    fun get0XString(time: Int) = if(time < 10) "0$time" else "$time"
-    fun get00XString(time: Int) = if(time < 100) "00$time" else if(time < 10) "0$time" else "$time"
-
-    fun getTimeString(time: Double, step: Double): String {
-        if(time < 0) return "-${getTimeString(-time, step)}"
-        val s = time.toInt()
-        val m = s / 60
-        val h = m / 60
-        val subTime = ((time % 1) * targetFPS).roundToInt()
-        return if(h < 1) "${get0XString(m % 60)}:${get0XString(s % 60)}${if(step < 1f) "/${get0XString(subTime)}" else ""}"
-        else "${get0XString(h)}:${get0XString(m % 60)}:${get0XString(s % 60)}${if(step < 1f) "/${get0XString(subTime)}" else ""}"
     }
 
     fun getValueString(value: Float, step: Float) = getValueString(abs(value), step, if(value < 0) '-' else '+')
@@ -114,21 +85,9 @@ class GraphEditorBody(style: Style): Panel(style.getChild("deep")){
         return "$sign$int.${get00XString((float*1000).roundToInt())}"
     }
 
-    fun getTimeStep(time: Double): Double {
-        return timeFractions.minBy { abs(it - time) }!!.toDouble()
-    }
-
     fun getValueStep(value: Float): Float {
         return valueFractions.minBy { abs(it - value) }!!
     }
-
-    val timeFractions = listOf(
-        0.2f, 0.5f,
-        1f, 2f, 5f, 10f, 20f, 30f, 60f,
-        120f, 300f, 600f, 1200f, 1800f, 3600f,
-        3600f * 1.5f, 3600f * 2f, 3600f * 5f,
-        3600f * 6f, 3600f * 12f, 3600f * 24f
-    )
 
     val valueFractions = listOf(
         0.1f, 0.2f, 0.5f, 1f,
@@ -136,65 +95,6 @@ class GraphEditorBody(style: Style): Panel(style.getChild("deep")){
         90f, 120f, 180f, 360f, 720f
     )
 
-    fun drawTimeAxis(x0: Int, y0: Int, x1: Int, y1: Int){
-
-        // make the step amount dependent on width and font size
-        val deltaFrame = 500 * dtHalfLength * tinyFontSize / w
-
-        val timeStep = getTimeStep(deltaFrame * 0.2)
-
-        val strongLineColor = fontColor and 0x4fffffff
-        val fineLineColor = fontColor and 0x1fffffff
-        val veryFineLineColor = fontColor and 0x10ffffff
-
-        // very fine lines, 20x as many
-        drawTimeAxis(timeStep * 0.05, x0, y0, x1, y1, veryFineLineColor, false)
-
-        // fine lines, 5x as many
-        drawTimeAxis(timeStep * 0.2, x0, y0, x1, y1, fineLineColor, true)
-
-        // strong lines
-        drawTimeAxis(timeStep, x0, y0, x1, y1, strongLineColor, true)
-
-    }
-
-    fun drawTimeAxis(timeStep: Double, x0: Int, y0: Int, x1: Int, y1: Int,
-        lineColor: Int, drawText: Boolean){
-
-        val minFrame = centralTime - dtHalfLength
-        val maxFrame = centralTime + dtHalfLength
-
-        val minStepIndex = (minFrame / timeStep).toLong() - 1
-        val maxStepIndex = (maxFrame / timeStep).toLong() + 1
-
-        val fontSize = tinyFontSize
-        val fontName = fontName
-        val isBold = isBold
-        val isItalic = isItalic
-        val fontColor = fontColor
-        val backgroundColor = backgroundColor
-
-        val lineY = y0 + 2 + fontSize
-        val lineH = y1-y0-4-fontSize
-
-        for(stepIndex in maxStepIndex downTo minStepIndex){
-            val time = stepIndex * timeStep
-            val x = getXAt(time).roundToInt()
-            if(x > x0+1 && x+2 < x1){
-                val text = getTimeString(time, timeStep)
-                GFX.drawRect(x, lineY, 1, lineH, lineColor)
-                if(drawText){
-                    val size = GFX.getTextSize(fontName, fontSize, isBold, isItalic, text)
-                    val w = size.first
-                    GFX.drawText(x - w/2, y0, fontName, fontSize, isBold, isItalic,
-                        text, fontColor, backgroundColor)
-                }
-            }
-        }
-
-        GFX.drawRect(getXAt(Studio.editorTime).roundToInt(), y0 + 2, 1, y1-y0-4, accentColor)
-
-    }
 
     fun drawValueAxis(x0: Int, y0: Int, x1: Int, y1: Int){
 
@@ -212,11 +112,11 @@ class GraphEditorBody(style: Style): Panel(style.getChild("deep")){
             val y = getYAt(value).roundToInt()
             if(y > y0+1 && y+2 < y1){
                 val text = getValueString(value, valueStep)
-                val size = GFX.getTextSize(fontName, tinyFontSize, isBold, isItalic, text)
+                val size = GFX.getTextSize(fontName, tinyFontSize, isBold, isItalic, text, -1)
                 val h = size.second
                 GFX.drawRect(x0 + size.first + 2, y, x1-x0-size.first, 1, fontColor and 0x3fffffff)
                 GFX.drawText(x0 + 2, y - h/2, fontName, tinyFontSize, isBold, isItalic,
-                    text, fontColor, backgroundColor)
+                    text, fontColor, backgroundColor, -1)
             }
         }
 
@@ -226,9 +126,9 @@ class GraphEditorBody(style: Style): Panel(style.getChild("deep")){
         loadTexturesSync.push(true)
         val timeFontSize = 20
         val text = getTimeString(Studio.editorTime, 0.0)
-        val (tw, th) = GFX.getTextSize(fontName, timeFontSize, isBold, isItalic, text)
+        val (tw, th) = GFX.getTextSize(fontName, timeFontSize, isBold, isItalic, text, -1)
         val color = mixARGB(fontColor, backgroundColor, 0.8f)
-        GFX.drawText(x+(w-tw)/2, y+(h-th)/2, fontName, timeFontSize, isBold, isItalic, text, color, backgroundColor)
+        GFX.drawText(x+(w-tw)/2, y+(h-th)/2, fontName, timeFontSize, isBold, isItalic, text, color, backgroundColor, -1)
         loadTexturesSync.pop()
     }
 
@@ -360,11 +260,6 @@ class GraphEditorBody(style: Style): Panel(style.getChild("deep")){
         // todo copy paste timeline pieces?
         // todo select multiple points by area -> via time?
 
-    }
-
-    fun jumpToX(x: Float){
-        Studio.editorTime = getTimeAt(x)
-        Studio.updateAudio()
     }
 
     fun Int.isChannelActive() = ((1 shl this) and activeChannels) != 0
@@ -502,7 +397,7 @@ class GraphEditorBody(style: Style): Panel(style.getChild("deep")){
             Studio.updateAudio()
             draggedKeyframe.setValue(draggedChannel, getValueAt(y))
             selectedProperty?.sort()
-        }else {
+        } else {
             if(0 in mouseKeysDown){
                 centralTime -= dx * dtHalfLength / (w/2)
                 centralValue += dy * dvHalfHeight / (h/2)
@@ -517,15 +412,6 @@ class GraphEditorBody(style: Style): Panel(style.getChild("deep")){
         property?.apply {
             property.addKeyframe(getTimeAt(x), property.defaultValue!!, 0.01)
         } ?: println("Please select a property first!")
-    }
-
-    override fun onMouseClicked(x: Float, y: Float, button: Int, long: Boolean) {
-        jumpToX(x)
-    }
-
-    fun clampTime(){
-        dtHalfLength = clamp(dtHalfLength, 2.0 / targetFPS, timeFractions.last().toDouble())
-        centralTime = max(centralTime, dtHalfLength)
     }
 
     fun clampValues(){
@@ -581,17 +467,8 @@ class GraphEditorBody(style: Style): Panel(style.getChild("deep")){
                 centralValue += dvHalfHeight * 20f * delta / h
             }
             clampValues()
-        } else {
-            if(isControlDown){ // zoom
-                // set the center to the cursor
-                // works great :D
-                val normalizedX = (x-w/2)/(w/2)
-                centralTime += normalizedX * dtHalfLength * (1f - scale)
-                dtHalfLength *= scale
-            } else { // move
-                centralTime += dtHalfLength * 20f * delta / w
-            }
-            clampTime()
+        } else {// time
+            super.onMouseWheel(x, y, dx, dy)
         }
     }
 

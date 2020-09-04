@@ -23,6 +23,7 @@ import me.anno.objects.effects.ToneMappers
 import me.anno.studio.Studio.selectedTransform
 import me.anno.ui.editor.sceneView.Grid
 import me.anno.ui.editor.sceneView.Grid.drawLine
+import me.anno.ui.editor.sceneView.Grid.drawLine01
 import me.anno.utils.times
 import me.anno.utils.warn
 import me.anno.video.MissingFrameException
@@ -481,21 +482,15 @@ object Scene {
         val gy = y0 + gizmoSize + gizmoPadding
 
         fun drawCircle(x: Float, y: Float, z: Float, color: Int){
-            /*for(i in 0 until gizmoSize.toInt()){
-                GFX.drawRect(
-                    (gx + gizmoSize * x * i / gizmoSize).toInt(),
-                    (gy - gizmoSize * y * i / gizmoSize).toInt(),
-                    1, 1, color or black)
-            }*/
-            drawLine(
-                (gx-x0)/w*2-1,
-                1-(gy-y0)/h*2,
-                (gx + gizmoSize * x-x0)/w*2-1,
-                1-(gy - gizmoSize * y-y0)/h*2, color, 1f)
+            val lx = gx-x0
+            val ly = gy-y0
+            drawLine01(
+                lx, ly, lx + gizmoSize * x, ly - gizmoSize * y,
+                w, h, color, 1f)
             val rectSize = 7f - z * 3f
             GFX.drawRect(
-                (gx + gizmoSize * x - rectSize * 0.5f),
-                (gy - gizmoSize * y - rectSize * 0.5f),
+                gx + gizmoSize * x - rectSize * 0.5f,
+                gy - gizmoSize * y - rectSize * 0.5f,
                 rectSize, rectSize, color or black)
         }
 

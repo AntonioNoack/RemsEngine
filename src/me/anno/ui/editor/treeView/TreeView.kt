@@ -224,10 +224,13 @@ class TreeView(style: Style):
                         if(DefaultConfig["import.decideCubemap", true]){
                             val video = Video(file, parent)
                             val fName = file.name
-                            if(fName.contains("cubemap", true) ||
-                                fName.contains("360", true)){
+                            if(fName.contains("360", true)){
                                 video.scale.set(Vector3f(1000f, 1000f, 1000f))
                                 video.uvProjection = UVProjection.Equirectangular
+                            } else
+                            if(fName.contains("cubemap", true)){
+                                video.scale.set(Vector3f(1000f, 1000f, 1000f))
+                                video.uvProjection = UVProjection.TiledCubemap
                             }
                             video.name = fName
                             select(video)

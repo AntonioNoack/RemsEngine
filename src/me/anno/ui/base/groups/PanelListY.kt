@@ -4,8 +4,6 @@ import me.anno.gpu.GFX
 import me.anno.ui.base.Panel
 import me.anno.ui.base.Visibility
 import me.anno.ui.style.Style
-import me.anno.utils.warn
-import java.lang.RuntimeException
 import kotlin.math.max
 import kotlin.math.roundToInt
 
@@ -19,8 +17,10 @@ open class PanelListY(sorter: Comparator<Panel>?, style: Style): PanelList(sorte
         super.draw(x0, y0, x1, y1)
         if(spacing > 0){
             for(i in 1 until children.size){
-                val y = children[i].y
-                GFX.drawRect(x,y-spacing,w,spacing,spaceColor)
+                val prev = children[i-1]
+                val i0 = prev.y + prev.h
+                val i1 = children[i].y
+                if(i1 > i0) GFX.drawRect(x,i0,w,i1-i0,spaceColor)
             }
         }
     }

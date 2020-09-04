@@ -63,7 +63,11 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style): TextPanel(""
         val transform = getElement()
         when(button){
             0 -> {
-                GFX.select(transform)
+                if(Input.isShiftDown){
+                    transform.isCollapsed = !transform.isCollapsed
+                } else {
+                    select(transform)
+                }
             }
             1 -> {// right click
 
@@ -165,7 +169,7 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style): TextPanel(""
         val transform = getElement()
         val parent = transform.parent
         if(parent != null){
-            GFX.select(parent)
+            select(parent)
             transform.removeFromParent()
             transform.onDestroy()
         }

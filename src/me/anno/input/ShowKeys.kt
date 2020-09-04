@@ -74,9 +74,9 @@ object ShowKeys {
         fun show(text: String, alpha: Float){
             val alphaMask = (alpha * 255).toInt().shl(24) or 0xffffff
             val color = -1 and alphaMask
-            val w0 = GFX.getTextSize(font, fontSize, false, false, text).first
+            val w0 = GFX.getTextSize(font, fontSize, false, false, text, -1).first
             GFX.drawRect(x0 + 5, h - y - 12 - fontSize, w0 + 10, fontSize + 8, black and alphaMask)
-            GFX.drawText(x0 + 10, h - y - 10 - fontSize, font, fontSize, false, false, text, color, 0)
+            GFX.drawText(x0 + 10, h - y - 10 - fontSize, font, fontSize, false, false, text, color, 0, -1)
             x0 += w0 + 16
         }
 

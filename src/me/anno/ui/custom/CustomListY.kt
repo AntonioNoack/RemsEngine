@@ -7,6 +7,7 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.CustomizingBar
 import me.anno.ui.style.Style
 import me.anno.utils.clamp
+import java.lang.Exception
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -23,6 +24,19 @@ class CustomListY(style: Style): PanelListY(style), CustomList {
 
     fun change(p: Panel, delta: Float){
         weights[p] = clamp((weights[p] ?: 0f) + delta, minSize, 1f)
+    }
+
+    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+        var hadVisibleChild = false
+        children@ for(child in children){
+            if(child.visibility == Visibility.VISIBLE){
+                try {
+                    hadVisibleChild = drawChild(child, x0, y0, x1, y1) or hadVisibleChild
+                } catch (e: Exception){
+                    e.printStackTrace()
+                }
+            }
+        }
     }
 
     override fun move(index: Int, delta: Float) {

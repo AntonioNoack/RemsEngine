@@ -18,8 +18,10 @@ open class PanelListX(sorter: Comparator<Panel>?, style: Style): PanelList(sorte
         super.draw(x0, y0, x1, y1)
         if(spacing > 0){
             for(i in 1 until children.size){
-                val x = children[i].x
-                GFX.drawRect(x-spacing,y,spacing,h,spaceColor)
+                val prev = children[i-1]
+                val i0 = prev.x + prev.w
+                val i1 = children[i].x
+                if(i1 > i0) GFX.drawRect(i0,y,i1-i0,h,spaceColor)
             }
         }
     }

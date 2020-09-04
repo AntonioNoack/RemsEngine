@@ -29,6 +29,7 @@ import me.anno.ui.custom.CustomListY
 import me.anno.ui.editor.CustomContainer
 import me.anno.ui.editor.OptionBar
 import me.anno.ui.editor.PropertyInspector
+import me.anno.ui.editor.cutting.CuttingView
 import me.anno.ui.editor.explorer.FileExplorer
 import me.anno.ui.editor.graphs.GraphEditor
 import me.anno.ui.editor.sceneView.SceneView
@@ -131,6 +132,9 @@ object UILayouts {
 
         val explorer = FileExplorer(style)
         customUI.add(CustomContainer(explorer, style), 50f)
+
+        val linear = CuttingView(style)
+        customUI.add(CustomContainer(linear, style), 50f)
 
         ui += SpacePanel(0, 1, style)
         ui += customUI

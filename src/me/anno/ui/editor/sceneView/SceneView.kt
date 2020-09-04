@@ -146,10 +146,10 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
         }*/
 
         GFX.drawText(x+2, y+2, "Verdana", 12,
-            false, false, mode.displayName, -1, 0)
+            false, false, mode.displayName, -1, 0, -1)
 
         GFX.drawText(x+16, y+2, "Verdana", 12,
-            false, false, if(isLocked2D) "2D" else "3D", -1, 0)
+            false, false, if(isLocked2D) "2D" else "3D", -1, 0, -1)
 
         controls.forEach {
             it.draw(x, y, w, h, x0, y0, x1, y1)
