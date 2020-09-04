@@ -53,6 +53,11 @@ abstract class Buffer(val attributes: List<Attribute>, val stride: Int, val usag
         return this
     }
 
+    fun lines(): Buffer {
+        drawMode = GL11.GL_LINES
+        return this
+    }
+
     open fun draw(shader: Shader) = draw(shader, drawMode)
     open fun draw(shader: Shader, mode: Int){
         if(!isUpToDate) upload()

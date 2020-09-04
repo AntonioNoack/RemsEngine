@@ -103,17 +103,17 @@ class Camera(parent: Transform? = null): Transform(parent){
         stack.get(GFX.matrixBuffer)
         glUniformMatrix4fv(shader["transform"], false, GFX.matrixBuffer)
         GFX.shaderColor(shader, "color", color)
-        cameraModel.draw(shader, GL_LINES)
+        cameraModel.draw(shader)
 
         stack.scale(near)
         stack.get(GFX.matrixBuffer)
         glUniformMatrix4fv(shader["transform"], false, GFX.matrixBuffer)
-        cameraModel.draw(shader, GL_LINES)
+        cameraModel.draw(shader)
 
         stack.scale(far/near)
         stack.get(GFX.matrixBuffer)
         glUniformMatrix4fv(shader["transform"], false, GFX.matrixBuffer)
-        cameraModel.draw(shader, GL_LINES)
+        cameraModel.draw(shader)
 
     }
 
@@ -160,6 +160,8 @@ class Camera(parent: Transform? = null): Transform(parent){
 
             cameraModel.put(p10)
             cameraModel.put(p00)
+
+            cameraModel.lines()
 
         }
     }

@@ -95,11 +95,15 @@ public class GFXBase0 {
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
         glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
+        long t3 = System.nanoTime();
+
         window = glfwCreateWindow(width, height, "Hello World!", NULL, NULL);
         if (window == NULL)
             throw new RuntimeException("Failed to create the GLFW window");
 
         addCallbacks();
+
+        long t4 = System.nanoTime();
 
         GLFWVidMode vidmode = glfwGetVideoMode(glfwGetPrimaryMonitor());
         glfwSetWindowPos(window, (vidmode.width() - width) / 2, (vidmode.height() - height) / 2);
@@ -110,9 +114,17 @@ public class GFXBase0 {
             height = framebufferSize.get(1);
         }
 
+        long t5 = System.nanoTime();
+
         glfwSetWindowTitle(window, title);
 
         glfwShowWindow(window);
+
+        long t6 = System.nanoTime();
+
+        LOGGER.info(String.format(Locale.ENGLISH, "Used %.3fs for window hints + %.3fs for callbacks + %.3fs for position + %.3fs for show",
+                (t3-t2)*1e-9f,
+                (t4-t3)*1e-9f, (t5-t4)*1e-9f, (t6-t5)*1e-9f));
 
     }
 

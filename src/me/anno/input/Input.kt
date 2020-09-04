@@ -83,20 +83,21 @@ object Input {
             }
         }
 
-        GLFW.glfwSetCharCallback(window) { _, _ ->
+        /* GLFW.glfwSetCharCallback(window) { _, _ ->
             addEvent {
                 // LOGGER.info("char event $codepoint")
             }
-        }
+        } */
 
-        GLFW.glfwSetCharModsCallback(window) { _, codepoint, mods ->
+        /*GLFW.glfwSetCharModsCallback(window) { _, codepoint, mods ->
             addEvent {
                 framesSinceLastInteraction = 0
                 inFocus0?.onCharTyped(mouseX, mouseY, codepoint)
                 keyModState = mods
                 // LOGGER.info("char mods event $codepoint $mods")
             }
-        }
+        }*/
+
         GLFW.glfwSetCursorPosCallback(window) { _, xpos, ypos ->
             addEvent {
 
@@ -118,6 +119,7 @@ object Input {
 
             }
         }
+
         var mouseStart = 0L
         GLFW.glfwSetMouseButtonCallback(window) { _, button, action, mods ->
             addEvent {
@@ -215,6 +217,7 @@ object Input {
                 keyModState = mods
             }
         }
+
         GLFW.glfwSetScrollCallback(window) { _, xoffset, yoffset ->
             addEvent {
                 framesSinceLastInteraction = 0
@@ -222,6 +225,7 @@ object Input {
                 clicked?.onMouseWheel(mouseX, mouseY, xoffset.toFloat(), yoffset.toFloat())
             }
         }
+
         GLFW.glfwSetKeyCallback(window) { window, key, scancode, action, mods ->
             if(window != GFX.window){
                 // val pressure = max(1, mods)

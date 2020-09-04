@@ -6,7 +6,6 @@ import org.joml.Vector2d
 object Triangulator {
 
     // todo convert non-convex shape into convex shapes?
-    // todo remove linear segments
 
     fun ringToTriangles(points: List<Vector2d>): List<Vector2d> {
         return makeConvex(points)
@@ -30,7 +29,7 @@ object Triangulator {
                 sign > 0.0 -> {
                     i++
                 }
-                else -> {
+                else -> { // remove linear segments
                     points.removeAt((i+1) % points.size)
                 }
             }

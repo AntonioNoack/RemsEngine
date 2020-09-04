@@ -9,7 +9,10 @@ import org.joml.Vector4f
 import org.lwjgl.opengl.GL20.*
 import java.lang.RuntimeException
 
-class Shader(val shaderName: String, vertex: String, varying: String, fragment: String,
+class Shader(val shaderName: String,
+             private val vertex: String,
+             private val varying: String,
+             private val fragment: String,
              private val disableShorts: Boolean = false): CacheData {
 
     companion object {
@@ -18,9 +21,12 @@ class Shader(val shaderName: String, vertex: String, varying: String, fragment: 
         var lastProgram = -1
     }
 
-    private val program = glCreateProgram()
+    private var program = -1
 
-    init {
+    // shader compile time doesn't really matter... -> move it to the start to preserve ram use?
+    // isn't that much either...
+    fun init(){
+        program = glCreateProgram()
         // the shaders are like a C compilation process, .o-files: after linking, they can be removed
         val vertexShader = compile(GL_VERTEX_SHADER, ("" +
                 "#version 130\n " +
@@ -55,7 +61,7 @@ class Shader(val shaderName: String, vertex: String, varying: String, fragment: 
         .replace(" m3 ", " mat3 ")
         .replace(" m4 ", " mat4 ")
 
-    fun compile(type: Int, source: String): Int {
+    private fun compile(type: Int, source: String): Int {
         val shader = glCreateShader(type)
         glShaderSource(shader, source)
         glCompileShader(shader)
@@ -64,7 +70,7 @@ class Shader(val shaderName: String, vertex: String, varying: String, fragment: 
         return shader
     }
 
-    fun postPossibleError(shader: Int, source: String){
+    private fun postPossibleError(shader: Int, source: String){
         val log = glGetShaderInfoLog(shader)
         if(log.isNotBlank()){
             LOGGER.warn("$log by\n\n${
@@ -101,6 +107,7 @@ class Shader(val shaderName: String, vertex: String, varying: String, fragment: 
     }
 
     fun use(){
+        if(program == -1) init()
         if(program != lastProgram){
             glUseProgram(program)
             lastProgram = program
@@ -159,7 +166,7 @@ class Shader(val shaderName: String, vertex: String, varying: String, fragment: 
     operator fun get(name: String) = getUniformLocation(name)
 
     override fun destroy() {
-        glDeleteProgram(program)
+        if(program > -1) glDeleteProgram(program)
     }
 
 }

@@ -98,20 +98,42 @@ object RemsStudio {
         }))
     }
 
+    var lastT = startTime
+    fun mt(name: String){
+        val t = System.nanoTime()
+        val dt = t - lastT
+        lastT = t
+        if(dt > 500_000){// 0.5 ms
+            LOGGER.info("${(dt*1e-9).f3()}s for $name")
+        }
+    }
+
     fun run(){
 
         // Library.JNI_LIBRARY_NAME.toLowerCase()
 
+        mt("run")
+
         setupLogging()
+
+        mt("logging")
 
         var lmx = mouseX
         var lmy = mouseY
 
         UILayouts.createLoadingUI()
 
+        mt("loading ui")
+
         GFX.windowStack = windowStack
         GFX.gameInit = {
+
+            mt("game init")
+
             AudioManager.startRunning()
+
+            mt("audio manager")
+
             Cursor.init()
             thread {
                 loadProject()
@@ -120,9 +142,12 @@ object RemsStudio {
                 }
             }
         }
+
         GFX.gameLoop = { w, h ->
 
             check()
+
+            if(frameCtr == 0L) mt("game loop")
 
             val hovered = getPanelAndWindowAt(mouseX, mouseY)
             hoveredPanel = hovered?.first
@@ -136,6 +161,8 @@ object RemsStudio {
             }
 
             hoveredPanel?.getCursor()?.useCursor()
+
+            if(frameCtr == 0L) mt("before window drawing")
 
             windowStack.forEach { window ->
                 loadTexturesSync.clear()
@@ -160,6 +187,8 @@ object RemsStudio {
                 GFX.ensureEmptyStack()
             }
 
+            if(frameCtr == 0L) mt("window drawing")
+
             Tooltips.draw()
 
             if(showFPS) showFPS()
@@ -181,6 +210,8 @@ object RemsStudio {
 
             check()
 
+            if(frameCtr == 0L) mt("first frame finished")
+
             if(frameCtr == 0L){
                 LOGGER.info("Used ${((System.nanoTime()-startTime)*1e-9f).f3()}s from start to finishing the first frame")
             }
@@ -190,6 +221,7 @@ object RemsStudio {
 
             false
         }
+
         GFX.shutdown = {
             AudioManager.requestDestruction()
             Cursor.destroy()

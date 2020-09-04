@@ -65,6 +65,31 @@ object DefaultConfig: StringMap() {
 
         this["import.mapping.*"] = "Text"
 
+        newInstances()
+
+        var newConfig: StringMap = this
+        try {
+            newConfig = ConfigBasics.loadConfig("main.config", this, true)
+            putAll(newConfig)
+        } catch (e: Exception){
+            e.printStackTrace()
+        }
+
+        val stylePath = newConfig["style"]?.toString() ?: "dark"
+        style = baseTheme.getStyle(stylePath)
+
+        ActionManager.init()
+
+        val t1 = System.nanoTime()
+        // not completely true; is loading some classes, too
+        LOGGER.info("Used ${((t1-t0)*1e-9f).f3()}s to read the config")
+
+    }
+
+    fun newInstances(){
+
+        val t0 = System.nanoTime()
+
         val newInstances: Map<String, Transform> = mapOf(
             "Mesh" to Mesh(File(OS.documents, "monkey.obj"), null),
             "Array" to GFXArray(),
@@ -119,22 +144,8 @@ object DefaultConfig: StringMap() {
             StringMap(16, false, saveDefaultValues = true)
                 .addAll(newInstances)
 
-        var newConfig: StringMap = this
-        try {
-            newConfig = ConfigBasics.loadConfig("main.config", this, true)
-            putAll(newConfig)
-        } catch (e: Exception){
-            e.printStackTrace()
-        }
-
-        val stylePath = newConfig["style"]?.toString() ?: "dark"
-        style = baseTheme.getStyle(stylePath)
-
-        ActionManager.init()
-
         val t1 = System.nanoTime()
-        // not completely true; is loading some classes, too
-        LOGGER.info("Used ${((t1-t0)*1e-9f).f3()}s to read the config")
+        LOGGER.info("Used ${((t1-t0)*1e-9).f3()}s for new instances list")
 
     }
 

@@ -38,7 +38,10 @@ class ColorChooser(style: Style, withAlpha: Boolean, val owningProperty: Animate
     val hslBox = HSVBoxMain(this, Vector3f(), Vector3f(0f, 1f, 0f), Vector3f(0f, 0f, 1f), style)
 
     val hueChooserSpace = SpacePanel(0, 2, style)
-    val hueChooser = object: HSVBox(this, Vector3f(), Vector3f(1f, 0f, 0f), Vector3f(0f,0f, 0f), 0f, style, 1f, { hue, _ ->
+    val hueChooser = object: HSVBox(this,
+        Vector3f(0f, 1f, 0.75f),
+        Vector3f(1f, 0f, 0f),
+        Vector3f(), 0f, style, 1f, { hue, _ ->
         setHSL(hue, saturation, lightness, opacity, colorSpace)
     } ) {
         override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
