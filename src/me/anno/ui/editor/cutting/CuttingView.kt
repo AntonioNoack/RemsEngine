@@ -8,7 +8,7 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.style.Style
 
-class CuttingView(style: Style): PanelListY(style){
+class CuttingView(style: Style): ScrollPanelY(style, Padding(0), AxisAlignment.MIN){
 
     // todo display all elements in their container
     // todo make a draggable version, so the tracks can be picked up and placed easily
@@ -16,11 +16,11 @@ class CuttingView(style: Style): PanelListY(style){
     val addLayerView = ButtonPanel("+", style)
         .setSimpleClickListener { addLayerTop() }
 
-    val content = ScrollPanelY(style, Padding(0), AxisAlignment.MIN)
+    val content = this//ScrollPanelY(style, Padding(0), AxisAlignment.MIN)
     val layers = content.child as PanelListY
     init {
         // this += TextPanel("Cutting Panel", style)
-        this += content
+        // this += content
         content.setWeight(1f)
         layers += addLayerView
         addLayerTop()

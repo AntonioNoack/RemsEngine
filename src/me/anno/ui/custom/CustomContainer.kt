@@ -1,5 +1,6 @@
 package me.anno.ui.custom
 
+import de.javagl.jgltf.impl.v1.Scene
 import me.anno.config.DefaultStyle.white
 import me.anno.gpu.GFX
 import me.anno.gpu.TextureLib.whiteTexture
@@ -52,17 +53,126 @@ class CustomContainer(default: Panel, style: Style): PanelContainer(default, Pad
             "Graph Editor" to action { GraphEditor(style) },
             "Files" to action { FileExplorer(style) }
         ).toMutableList()
-        val hasSiblings = (parent?.children?.size ?: 1) > 1
-        if(hasSiblings){ options += "Remove This Element" to {  } }
-        else options += "Remove This Group" to {  }
-        if(hasSiblings){
-            options += "Add Panel Before" to {  }
-            options += "Add Panel After" to {  }
-        } else {
-            options += "Add Panel Before" to {  }
-            options += "Add Panel After" to {  }
-            options += "Add Panel Above" to {  }
-            options += "Add Panel Below" to {  }
+        options += "Remove This Element" to {
+            (parent as? CustomList)?.apply {
+                remove(indexInParent)
+            }
+            Unit
+        }
+        options += "Add Panel Before" to {
+            val parent = parent!!
+            val index = indexInParent
+            if(parent is CustomListX){
+                val weights = parent.weights
+                val children = parent.children
+                val view = CustomContainer(SceneView(style), style)
+                val bar = CustomizingBar(0, 3, 0, style)
+                bar.parent = parent
+                view.parent = parent
+                children.add(index, view)
+                children.add(index+1, bar)
+                weights[view] = 1f
+                parent.update()
+            } else {
+                parent as CustomListY
+                val weights = parent.weights
+                val children = parent.children
+                val replaced = CustomListX(style)
+                replaced.parent = parent
+                children[index] = replaced
+                weights[replaced] = weights[this]!!
+                weights.remove(this)
+                replaced.add(CustomContainer(SceneView(style), style))
+                replaced.add(this)
+            }
+            Unit
+        }
+        options += "Add Panel After" to {
+            val parent = parent!!
+            val index = indexInParent
+            if(parent is CustomListX){
+                val weights = parent.weights
+                val children = parent.children
+                val view = CustomContainer(SceneView(style), style)
+                val bar = CustomizingBar(0, 3, 0, style)
+                bar.parent = parent
+                view.parent = parent
+                children.add(index+1, bar)
+                children.add(index+2, view)
+                weights[view] = 1f
+                parent.update()
+            } else {
+                parent as CustomListY
+                val weights = parent.weights
+                val children = parent.children
+                val replaced = CustomListX(style)
+                replaced.parent = parent
+                children[index] = replaced
+                weights[replaced] = weights[this]!!
+                weights.remove(this)
+                replaced.add(this)
+                replaced.add(CustomContainer(SceneView(style), style))
+                parent.update()
+            }
+            Unit
+        }
+        options += "Add Panel Above" to {
+            val parent = parent!!
+            val index = indexInParent
+            if(parent is CustomListY){
+                val weights = parent.weights
+                val children = parent.children
+                val view = CustomContainer(SceneView(style), style)
+                val bar = CustomizingBar(0, 0, 3, style)
+                bar.parent = parent
+                view.parent = parent
+                children.add(index, view)
+                children.add(index+1, bar)
+                weights[view] = 1f
+                parent.update()
+            } else {
+                parent as CustomListX
+                val weights = parent.weights
+                val children = parent.children
+                val replaced = CustomListY(style)
+                replaced.parent = parent
+                children[index] = replaced
+                weights[replaced] = weights[this]!!
+                weights.remove(this)
+                replaced.add(CustomContainer(SceneView(style), style))
+                replaced.add(this)
+                parent.update()
+            }
+            Unit
+        }
+        options += "Add Panel Below" to {
+            val parent = parent!!
+            val index = indexInParent
+            if(parent is CustomListY){
+                val weights = parent.weights
+                val children = parent.children
+                val view = CustomContainer(SceneView(style), style)
+                val bar = CustomizingBar(0, 0, 3, style)
+                bar.parent = parent
+                view.parent = parent
+                children.add(index+1, bar)
+                children.add(index+2, view)
+                weights[view] = 1f
+                parent.update()
+            } else {
+                parent as CustomListX
+                val weights = parent.weights
+                val children = parent.children
+                val replaced = CustomListY(style)
+                replaced.parent = parent
+                children[index] = replaced
+                weights[replaced] = weights[this]!!
+                weights.remove(this)
+                replaced.add(this)
+                replaced.add(CustomContainer(SceneView(style), style))
+                parent.update()
+            }
+            Unit
         }
         GFX.openMenu(x+w-16, y, "", options)
     }
@@ -86,14 +196,15 @@ class CustomContainer(default: Panel, style: Style): PanelContainer(default, Pad
     }
 
     fun clicked(x: Float, y: Float): Boolean {
-        return if(x-(this.x+w-16f) in 0f .. 16f && y-this.y in 0f .. 16f){
+        return if(isCross(x, y)){
             changeType()
             true
         } else false
     }
 
     companion object {
-
+        val customContainerCrossSize = 16f
+        fun Panel.isCross(x: Float, y: Float) = x-(this.x+w-16f) in 0f .. customContainerCrossSize && y-this.y in 0f .. customContainerCrossSize
     }
 
 }

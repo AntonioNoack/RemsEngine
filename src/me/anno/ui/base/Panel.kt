@@ -24,6 +24,7 @@ open class Panel(val style: Style): Saveable(){
     var weight = 0f
 
     var backgroundColor = style.getColor("background", -1)
+    val originalBGColor = backgroundColor
 
     var parent: PanelGroup? = null
     val layoutConstraints = ArrayList<Constraint>()

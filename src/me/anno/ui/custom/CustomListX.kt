@@ -17,12 +17,50 @@ class CustomListX(style: Style): PanelListX(style), CustomList {
         spacing = style.getSize("custom.drag.size", 4)
     }
 
+    companion object {
+        fun remove(vg: PanelList, index: Int){
+            vg.apply {
+                val old = children[index]
+                if(children.size > 1){
+                    if(index > 0){
+                        children.removeAt(index)
+                        children.removeAt(index-1)
+                    } else {
+                        children.removeAt(index+1)
+                        children.removeAt(index)
+                    }
+                    (vg as? CustomListX)?.apply {
+                        weights.remove(old)
+                        update()
+                    }
+                    (vg as? CustomListY)?.apply {
+                        weights.remove(old)
+                        update()
+                    }
+                } else {
+                    // todo remove the last child -> remove this from our parent
+                    (parent as? CustomList)?.remove(indexInParent)
+                }
+            }
+        }
+    }
+
     val minSize get() = 10f / w
 
     val weights = HashMap<Panel, Float>()
 
     fun change(p: Panel, delta: Float){
         weights[p] = clamp((weights[p] ?: 0f) + delta, minSize, 1f)
+    }
+
+    fun update(){
+        children.forEachIndexed { index, panel ->
+            (panel as? CustomizingBar)?.index = index
+        }
+    }
+
+    override fun remove(index: Int) {
+        remove(this, index)
     }
 
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {

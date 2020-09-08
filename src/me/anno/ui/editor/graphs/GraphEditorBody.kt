@@ -139,7 +139,7 @@ class GraphEditorBody(style: Style): TimelinePanel(style.getChild("deep")){
 
         drawCurrentTime()
 
-        drawTimeAxis(x0, y0, x1, y1)
+        drawTimeAxis(x0, y0, x1, y1, true)
 
         val property = selectedProperty ?: return
         if(!property.isAnimated) return
@@ -259,7 +259,7 @@ class GraphEditorBody(style: Style): TimelinePanel(style.getChild("deep")){
     fun Int.isChannelActive() = ((1 shl this) and activeChannels) != 0
 
     fun getKeyframeAt(x: Float, y: Float): Pair<Keyframe<*>, Int>? {
-        val property = Studio.selectedProperty ?: return null
+        val property = selectedProperty ?: return null
         var bestDragged: Keyframe<*>? = null
         var bestChannel = 0
         val maxMargin = dotSize*2f/3f + 1f
@@ -358,15 +358,7 @@ class GraphEditorBody(style: Style): TimelinePanel(style.getChild("deep")){
         }
     }
 
-    val movementSpeed get() = 0.05f * sqrt(w*h.toFloat())
 
-    fun moveRight(sign: Float){
-        val delta = sign * dtHalfLength * movementSpeed / w
-        Studio.editorTime += delta
-        Studio.updateAudio()
-        centralTime += delta
-        clampTime()
-    }
 
     fun moveUp(sign: Float){
         val delta = sign * dvHalfHeight * movementSpeed / h
@@ -376,8 +368,6 @@ class GraphEditorBody(style: Style): TimelinePanel(style.getChild("deep")){
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
         when(action){
-            "MoveLeft" -> moveRight(-1f)
-            "MoveRight" -> moveRight(1f)
             "MoveUp" -> moveUp(1f)
             "MoveDown" -> moveUp(-1f)
             else -> return super.onGotAction(x, y, dx, dy, action, isContinuous)

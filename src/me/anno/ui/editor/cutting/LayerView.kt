@@ -47,7 +47,7 @@ class LayerView(style: Style): TimelinePanel(style) {
 
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.draw(x0, y0, x1, y1)
-        drawTimeAxis(x0, y0, x1, y1)
+        drawTimeAxis(x0, y0, x1, y1, timelineSlot == 0)
         calculated = findElements()
         drawn = calculated.filter { it.timelineSlot == timelineSlot }.reversed()
         val draggedTransform = draggedTransform
@@ -211,7 +211,7 @@ class LayerView(style: Style): TimelinePanel(style) {
                     onLargeChange()
                 }
                 if(options.isNotEmpty()){
-                    GFX.openMenu(x, y, "Apply Operation", options)
+                    GFX.openMenu(x, y, "", options)
                 }
             } else super.onMouseClicked(x, y, button, long)
         } else super.onMouseClicked(x, y, button, long)

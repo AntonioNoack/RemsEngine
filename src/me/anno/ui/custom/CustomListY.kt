@@ -25,6 +25,16 @@ class CustomListY(style: Style): PanelListY(style), CustomList {
         weights[p] = clamp((weights[p] ?: 0f) + delta, minSize, 1f)
     }
 
+    override fun remove(index: Int) {
+        CustomListX.remove(this, index)
+    }
+
+    fun update(){
+        children.forEachIndexed { index, panel ->
+            (panel as? CustomizingBar)?.index = index
+        }
+    }
+
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
         var hadVisibleChild = false
         children@ for(child in children){

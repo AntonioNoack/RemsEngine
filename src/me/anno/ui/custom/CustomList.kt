@@ -4,4 +4,6 @@ interface CustomList {
 
     fun move(index: Int, delta: Float)
 
+    fun remove(index: Int)
+
 }

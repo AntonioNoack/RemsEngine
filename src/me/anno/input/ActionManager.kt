@@ -17,6 +17,7 @@ import me.anno.studio.Studio.updateAudio
 import me.anno.studio.UILayouts
 import me.anno.studio.history.History
 import me.anno.ui.base.Panel
+import me.anno.ui.editor.TimelinePanel.Companion.moveRight
 import org.apache.logging.log4j.LogManager
 import java.io.File
 import kotlin.math.abs
@@ -51,6 +52,10 @@ object ActionManager {
         keyMap["global.print.down"] = "PrintLayout"
         keyMap["global.left.up"] = "DragEnd"
         keyMap["global.f5.down.${Modifiers[true, false]}"] = "ClearCache"
+        keyMap["global.arrowLeft.down"] = "PreviousStep"
+        keyMap["global.arrowRight.down"] = "NextStep"
+        keyMap["global.arrowLeft.down.c"] = "Jump2Start"
+        keyMap["global.arrowRight.down.c"] = "Jump2End"
         keyMap["global.comma.down"] = "PreviousFrame"
         keyMap["global.dot.down"] = "NextFrame"
         keyMap["global.z.down.${Modifiers[true, false]}"] = "Undo"
@@ -218,6 +223,24 @@ object ActionManager {
                     }
                     "PreviousFrame" -> {
                         editorTime = (round(editorTime*targetFPS) - 1) / targetFPS
+                        updateAudio()
+                        true
+                    }
+                    "NextStep" -> {
+                        moveRight(1f)
+                        true
+                    }
+                    "PreviousStep" -> {
+                        moveRight(-1f)
+                        true
+                    }
+                    "Jump2Start" -> {
+                        editorTime = 0.0
+                        updateAudio()
+                        true
+                    }
+                    "Jump2End" -> {
+                        editorTime = Studio.project?.targetDuration ?: 10.0
                         updateAudio()
                         true
                     }

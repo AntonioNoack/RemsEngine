@@ -63,7 +63,7 @@ class Circle(parent: Transform? = null): GFXTransform(parent){
         }
 
         fun createBuffer(){
-            val n = 512
+            val n = 36 * 4
             // angle, scaling
             buffer = StaticFloatBuffer(listOf(Attribute("attr0", 2)), 3 * 2 * n)
             fun put(index: Int, scaling: Float){
