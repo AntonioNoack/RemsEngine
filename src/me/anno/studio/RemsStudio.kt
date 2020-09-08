@@ -21,6 +21,8 @@ import me.anno.objects.cache.Cache
 import me.anno.studio.Studio.addEvent
 import me.anno.studio.Studio.dragged
 import me.anno.studio.Studio.project
+import me.anno.studio.history.History
+import me.anno.studio.history.SceneState
 import me.anno.studio.project.Project
 import me.anno.ui.base.Panel
 import me.anno.ui.base.TextPanel
@@ -70,8 +72,9 @@ object RemsStudio {
     // todo load last project, vs create new one?
     // todo just create a new one?
 
-    fun onSmallChange(){
+    fun onSmallChange(cause: String){
         saveIsRequested = true
+        // println(cause)
     }
 
     fun onLargeChange(){
@@ -93,10 +96,13 @@ object RemsStudio {
     }
 
     fun saveState(){
+        // println("saving state")
         isSaving.set(true)
         thread {
             try {
-
+                val state = SceneState()
+                state.update()
+                History.put(state)
             } catch (e: Exception){
                 e.printStackTrace()
             }

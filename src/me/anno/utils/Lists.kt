@@ -34,3 +34,5 @@ fun List<Double>.accumulate(): List<Double> {
     }
     return accumulator
 }
+
+val <V> Sequence<V>.size get() = count { true }

@@ -5,6 +5,7 @@ import me.anno.input.MouseButton
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.animation.drivers.AnimationDriver
 import me.anno.studio.RemsStudio
+import me.anno.studio.RemsStudio.onSmallChange
 import me.anno.studio.Studio
 import me.anno.studio.history.History
 import me.anno.ui.base.TextPanel
@@ -77,6 +78,7 @@ abstract class NumberInput<Type>(
                     else {
                         text = stringify(lastValue)
                     }
+                    onSmallChange("number-set-driver")
                 }
                 return
             }
@@ -139,7 +141,6 @@ abstract class NumberInput<Type>(
             changeListener(v)
             inputPanel.text = stringify(v)
             inputPanel.updateChars()
-            RemsStudio.onSmallChange()
         }
     }
 
@@ -166,6 +167,7 @@ abstract class NumberInput<Type>(
         super.onMouseMoved(x, y, dx, dy)
         if (mouseIsDown) {
             changeValue(dx, dy)
+            onSmallChange("number-drag")
         }
     }
 
@@ -179,7 +181,11 @@ abstract class NumberInput<Type>(
     abstract fun getValue(value: Any): Type
 
     override fun onEmpty(x: Float, y: Float) {
-        setValue(getValue(owningProperty?.defaultValue ?: type.defaultValue))
+        val newValue = getValue(owningProperty?.defaultValue ?: type.defaultValue)
+        if(newValue != lastValue){
+            setValue(newValue)
+            onSmallChange("empty")
+        }
     }
 
     override fun getCursor(): Long = Cursor.drag

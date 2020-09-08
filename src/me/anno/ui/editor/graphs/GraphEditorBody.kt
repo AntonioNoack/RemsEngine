@@ -16,6 +16,7 @@ import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.animation.Keyframe
+import me.anno.studio.RemsStudio.onSmallChange
 import me.anno.studio.Studio
 import me.anno.studio.Studio.selectedProperty
 import me.anno.ui.editor.TimelinePanel
@@ -342,11 +343,18 @@ class GraphEditorBody(style: Style): TimelinePanel(style.getChild("deep")){
     }
 
     override fun onDeleteKey(x: Float, y: Float) {
+        var wasChanged = false
         selectedKeyframes.forEach {
-            selectedProperty?.remove(it)
+            if(selectedProperty?.remove(it) == true){
+                wasChanged = true
+            }
         }
         if(selectedProperty == null){
+            wasChanged = wasChanged || selectedKeyframes.isNotEmpty()
             selectedKeyframes.clear()
+        }
+        if(wasChanged){
+            onSmallChange("graph-delete")
         }
     }
 
@@ -390,6 +398,7 @@ class GraphEditorBody(style: Style): TimelinePanel(style.getChild("deep")){
             Studio.updateAudio()
             draggedKeyframe.setValue(draggedChannel, getValueAt(y))
             selectedProperty?.sort()
+            onSmallChange("graph-drag")
         } else {
             if(0 in mouseKeysDown){
                 centralTime -= dx * dtHalfLength / (w/2)
@@ -405,6 +414,7 @@ class GraphEditorBody(style: Style): TimelinePanel(style.getChild("deep")){
         property?.apply {
             val time = getTimeAt(x)
             property.addKeyframe(time, property[time]!!, 0.01)
+            onSmallChange("graph-add")
         } ?: println("Please select a property first!")
     }
 
@@ -430,6 +440,7 @@ class GraphEditorBody(style: Style): TimelinePanel(style.getChild("deep")){
                     } else println("$targetType doesn't accept $value")
                 }
             }
+            onSmallChange("graph-paste")
         } catch (e: Exception){
             e.printStackTrace()
             super.onPaste(x, y, data, type)

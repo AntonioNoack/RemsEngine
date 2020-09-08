@@ -8,6 +8,7 @@ import me.anno.input.Input.isShiftDown
 import me.anno.input.Input.mouseKeysDown
 import me.anno.input.MouseButton
 import me.anno.studio.RemsStudio
+import me.anno.studio.RemsStudio.onSmallChange
 import me.anno.utils.clamp
 import me.anno.ui.base.TextPanel
 import me.anno.ui.style.Style
@@ -35,13 +36,11 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
         characters.clear()
         characters.addAll(text.codePoints().toList())
         changeListener(text)
-        RemsStudio.onSmallChange()
     }
 
     fun updateText(){
         text = characters.joinChars()
         changeListener(text)
-        RemsStudio.onSmallChange()
     }
 
     var cursor1 = 0
@@ -60,6 +59,7 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
             updateText()
             cursor1 = min
             cursor2 = min
+            onSmallChange("text-delete-selection")
             return max > min
         }
     }
@@ -113,6 +113,7 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
             insert(it, false)
         }
         updateText()
+        onSmallChange("text-insert")
     }
 
     fun insert(insertion: Int, updateText: Boolean = true){
@@ -123,6 +124,7 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
         cursor1++
         cursor2++
         ensureCursorBounds()
+        onSmallChange("text-insert2")
     }
 
     fun deleteBefore(){
@@ -134,6 +136,7 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
             cursor2--
         }
         ensureCursorBounds()
+        onSmallChange("text-delete-before")
     }
 
     fun deleteAfter(){
@@ -143,6 +146,7 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
             updateText()
         }
         ensureCursorBounds()
+        onSmallChange("text-delete-after")
     }
 
     fun ensureCursorBounds(){
@@ -242,11 +246,11 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
     }
 
     override fun onEmpty(x: Float, y: Float) {
-        if(cursor1 == cursor2){
-            text = ""
-            updateChars()
-            ensureCursorBounds()
-        } else deleteSelection()
+        if(text != ""){
+            if(cursor1 == cursor2){
+                clear()
+            } else deleteSelection()
+        }
     }
 
     fun clear(){
@@ -255,6 +259,7 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
         characters.clear()
         cursor1 = 0
         cursor2 = 0
+        onSmallChange("text-clear")
     }
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {

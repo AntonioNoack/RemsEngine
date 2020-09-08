@@ -14,6 +14,7 @@ import me.anno.io.text.TextReader
 import me.anno.io.utils.StringMap
 import me.anno.objects.*
 import me.anno.objects.Transform.Companion.toTransform
+import me.anno.studio.RemsStudio.onLargeChange
 import me.anno.studio.Studio
 import me.anno.studio.Studio.dragged
 import me.anno.studio.Studio.selectedTransform
@@ -125,6 +126,7 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style): TextPanel(""
                 original?.removeFromParent()
             }
             select(child)
+            onLargeChange()
         } catch (e: Exception){
             e.printStackTrace()
             super.onPaste(x, y, data, type)
@@ -161,13 +163,7 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style): TextPanel(""
     }
 
     override fun onDeleteKey(x: Float, y: Float) {
-        val transform = getElement()
-        val parent = transform.parent
-        if(parent != null){
-            select(parent)
-            transform.removeFromParent()
-            transform.onDestroy()
-        }
+        getElement().destroy()
     }
 
     override fun onBackSpaceKey(x: Float, y: Float) = onDeleteKey(x,y)

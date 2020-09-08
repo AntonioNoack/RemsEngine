@@ -122,11 +122,13 @@ object UILayouts {
             name = "C1"
             color.addKeyframe(0.0, Vector4f(0f, 0f, 0f, 0f))
             color.addKeyframe(0.1, Vector4f(0.5f, 1f, 1f, 1f))
+            color.isAnimated = true
         }
         Circle(root).apply {
             name = "C2"
             color.addKeyframe(0.0, Vector4f(0f, 0f, 0f, 0f))
             color.addKeyframe(0.1, Vector4f(1f, 1f, 1f, 1f))
+            color.isAnimated = true
         }
         // Video(File(OS.home, "Videos\\Captures\\Cities_ Skylines 2020-01-06 19-32-23.mp4"), GFX.root)
         // Text("Hi! \uD83D\uDE09", GFX.root)

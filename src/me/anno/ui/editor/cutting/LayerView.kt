@@ -127,26 +127,29 @@ class LayerView(style: Style): TimelinePanel(style) {
     }
 
     override fun onDeleteKey(x: Float, y: Float) {
-        val selectedTransform = selectedTransform
-        if(selectedTransform != null){
-            selectedTransform.onDestroy()
-            selectedTransform.removeFromParent()
-            onLargeChange()
-        }
+        selectedTransform?.destroy()
     }
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
         draggedTransform?.apply {
             val thisSlot = this@LayerView.timelineSlot
             if(dx != 0f){
+                var dilation = 1.0
+                var parent = parent
+                while(parent != null){
+                    dilation *= parent.timeDilation
+                    parent = parent.parent
+                }
                 if(isControlDown){
+                    // todo scale around the time=0 point?
+                    // todo first find this point...
                     timeDilation *= clamp(1f - shiftSlowdown * dx / w, 0.01f, 100f)
                 } else {
-                    val dt = shiftSlowdown * dx * dtHalfLength * 2 / w
+                    val dt = shiftSlowdown * dilation * dx * dtHalfLength * 2 / w
                     timeOffset += dt
                 }
                 Studio.updateInspector()
-                onSmallChange()
+                onSmallChange("layer-dx")
             }
             var sumDY = (y - Input.mouseDownY) / height
             if(sumDY < 0) sumDY += 0.5f
@@ -155,7 +158,7 @@ class LayerView(style: Style): TimelinePanel(style) {
             if(newSlot != timelineSlot){
                 timelineSlot = newSlot
                 Studio.updateInspector()
-                onSmallChange()
+                onSmallChange("layer-slot")
             }
         }
     }

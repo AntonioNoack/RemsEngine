@@ -6,11 +6,9 @@ object HSLuvGLSL {
             "vec3 hsluv_intersectLineLine(vec3 line1x, vec3 line1y, vec3 line2x, vec3 line2y) {\n" +
             "    return (line1y - line2y) / (line2x - line1x);\n" +
             "}\n" +
-            "\n" +
             "vec3 hsluv_distanceFromPole(vec3 pointx,vec3 pointy) {\n" +
             "    return sqrt(pointx*pointx + pointy*pointy);\n" +
             "}\n" +
-            "\n" +
             "vec3 hsluv_lengthOfRayUntilIntersect(float theta, vec3 x, vec3 y) {\n" +
             "    vec3 len = y / (sin(theta) - x * cos(theta));\n" +
             "    if (len.r < 0.0) {len.r=1000.0;}\n" +
@@ -18,7 +16,6 @@ object HSLuvGLSL {
             "    if (len.b < 0.0) {len.b=1000.0;}\n" +
             "    return len;\n" +
             "}\n" +
-            "\n" +
             "float hsluv_maxSafeChromaForL(float L){\n" +
             "    mat3 m2 = mat3(\n" +
             "         3.2409699419045214  ,-0.96924363628087983 , 0.055630079696993609,\n" +
@@ -85,30 +82,24 @@ object HSLuvGLSL {
             "            min(lengths0.b,\n" +
             "                lengths1.b)))));\n" +
             "}\n" +
-            "\n" +
             "float hsluv_fromLinear(float c) {\n" +
             "    return c <= 0.0031308 ? 12.92 * c : 1.055 * pow(c, 1.0 / 2.4) - 0.055;\n" +
             "}\n" +
             "vec3 hsluv_fromLinear(vec3 c) {\n" +
             "    return vec3( hsluv_fromLinear(c.r), hsluv_fromLinear(c.g), hsluv_fromLinear(c.b) );\n" +
             "}\n" +
-            "\n" +
             "float hsluv_toLinear(float c) {\n" +
             "    return c > 0.04045 ? pow((c + 0.055) / (1.0 + 0.055), 2.4) : c / 12.92;\n" +
             "}\n" +
-            "\n" +
             "vec3 hsluv_toLinear(vec3 c) {\n" +
             "    return vec3( hsluv_toLinear(c.r), hsluv_toLinear(c.g), hsluv_toLinear(c.b) );\n" +
             "}\n" +
-            "\n" +
             "float hsluv_yToL(float Y){\n" +
             "    return Y <= 0.0088564516790356308 ? Y * 903.2962962962963 : 116.0 * pow(Y, 1.0 / 3.0) - 16.0;\n" +
             "}\n" +
-            "\n" +
             "float hsluv_lToY(float L) {\n" +
             "    return L <= 8.0 ? L / 903.2962962962963 : pow((L + 16.0) / 116.0, 3.0);\n" +
             "}\n" +
-            "\n" +
             "vec3 xyzToRgb(vec3 tuple) {\n" +
             "    const mat3 m = mat3(\n" +
             "        3.2409699419045214  ,-1.5373831775700935 ,-0.49861076029300328 ,\n" +
@@ -117,7 +108,6 @@ object HSLuvGLSL {
             "\n" +
             "    return hsluv_fromLinear(tuple*m);\n" +
             "}\n" +
-            "\n" +
             "vec3 rgbToXyz(vec3 tuple) {\n" +
             "    const mat3 m = mat3(\n" +
             "        0.41239079926595948 , 0.35758433938387796, 0.18048078840183429 ,\n" +
@@ -126,7 +116,6 @@ object HSLuvGLSL {
             "    );\n" +
             "    return hsluv_toLinear(tuple) * m;\n" +
             "}\n" +
-            "\n" +
             "vec3 xyzToLuv(vec3 tuple){\n" +
             "    float X = tuple.x;\n" +
             "    float Y = tuple.y;\n" +
@@ -142,8 +131,6 @@ object HSLuvGLSL {
             "        (117.* (Y*div) - 6.08816)\n" +
             "    ) * L;\n" +
             "}\n" +
-            "\n" +
-            "\n" +
             "vec3 luvToXyz(vec3 tuple) {\n" +
             "    float L = tuple.x;\n" +
             "\n" +
@@ -156,7 +143,6 @@ object HSLuvGLSL {
             "\n" +
             "    return vec3(X, Y, Z);\n" +
             "}\n" +
-            "\n" +
             "vec3 luvToLch(vec3 tuple) {\n" +
             "    float L = tuple.x;\n" +
             "    float U = tuple.y;\n" +
@@ -170,7 +156,6 @@ object HSLuvGLSL {
             "\n" +
             "    return vec3(L, C, H);\n" +
             "}\n" +
-            "\n" +
             "vec3 lchToLuv(vec3 tuple) {\n" +
             "    float hrad = radians(tuple.b);\n" +
             "    return vec3(\n" +
@@ -179,31 +164,25 @@ object HSLuvGLSL {
             "        sin(hrad) * tuple.g\n" +
             "    );\n" +
             "}\n" +
-            "\n" +
             "vec3 hsluvToLch(vec3 tuple) {\n" +
             "    tuple.g *= hsluv_maxChromaForLH(tuple.b, tuple.r) * .01;\n" +
             "    return tuple.bgr;\n" +
             "}\n" +
-            "\n" +
             "vec3 lchToHsluv(vec3 tuple) {\n" +
             "    tuple.g /= hsluv_maxChromaForLH(tuple.r, tuple.b) * .01;\n" +
             "    return tuple.bgr;\n" +
             "}\n" +
-            "\n" +
             "vec3 hpluvToLch(vec3 tuple) {\n" +
             "    tuple.g *= hsluv_maxSafeChromaForL(tuple.b) * .01;\n" +
             "    return tuple.bgr;\n" +
             "}\n" +
-            "\n" +
             "vec3 lchToHpluv(vec3 tuple) {\n" +
             "    tuple.g /= hsluv_maxSafeChromaForL(tuple.r) * .01;\n" +
             "    return tuple.bgr;\n" +
             "}\n" +
-            "\n" +
             "vec3 lchToRgb(vec3 tuple) {\n" +
             "    return xyzToRgb(luvToXyz(lchToLuv(tuple)));\n" +
             "}\n" +
-            "\n" +
             "vec3 rgbToLch(vec3 tuple) {\n" +
             "    return luvToLch(xyzToLuv(rgbToXyz(tuple)));\n" +
             "}\n" +
@@ -211,19 +190,15 @@ object HSLuvGLSL {
             "vec3 hsluvToRgb(vec3 tuple) {\n" +
             "    return lchToRgb(hsluvToLch(tuple));\n" +
             "}\n" +
-            "\n" +
             "vec3 rgbToHsluv(vec3 tuple) {\n" +
             "    return lchToHsluv(rgbToLch(tuple));\n" +
             "}\n" +
-            "\n" +
             "vec3 hpluvToRgb(vec3 tuple) {\n" +
             "    return lchToRgb(hpluvToLch(tuple));\n" +
             "}\n" +
-            "\n" +
             "vec3 rgbToHpluv(vec3 tuple) {\n" +
             "    return lchToHpluv(rgbToLch(tuple));\n" +
             "}\n" +
-            "\n" +
             "vec3 luvToRgb(vec3 tuple){\n" +
             "    return xyzToRgb(luvToXyz(tuple));\n" +
             "}\n"

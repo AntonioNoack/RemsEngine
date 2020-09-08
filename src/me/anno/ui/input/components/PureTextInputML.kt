@@ -7,6 +7,7 @@ import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.studio.RemsStudio
+import me.anno.studio.RemsStudio.onSmallChange
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelList
@@ -232,7 +233,6 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
     fun updateText() {
         text = joinedText
         changeListener(text)
-        RemsStudio.onSmallChange()
     }
 
     fun deleteSelection(): Boolean {
@@ -256,6 +256,7 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
         }
         cursor1 = min
         cursor2 = min
+        onSmallChange("text/ml-delete-selection")
         return true
     }
 
@@ -267,6 +268,7 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
             insert(it, false)
         }
         update()
+        onSmallChange("text/ml-insert-string")
     }
 
     fun update() {
@@ -314,7 +316,10 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
             }
         }
         ensureCursorBounds()
-        if (update) update()
+        if (update) {
+            update()
+            onSmallChange("text/ml-insert")
+        }
     }
 
     fun deleteBefore() {
@@ -341,6 +346,7 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
     fun deleteAfter() {
         moveRight()
         deleteBefore()
+        onSmallChange("delete-after")
     }
 
     fun ensureCursorBounds() {
@@ -528,10 +534,12 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
     override fun onEmpty(x: Float, y: Float) {
         deleteSelection()
         update()
+        onSmallChange("text/ml-empty")
     }
 
     fun clearText() {
         setText("")
+        onSmallChange("text/ml-clear")
     }
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {

@@ -8,6 +8,7 @@ import me.anno.input.Input
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.image.svg.SVGStyle.Companion.parseColorComplex
 import me.anno.studio.RemsStudio
+import me.anno.studio.RemsStudio.onSmallChange
 import me.anno.ui.base.Panel
 import me.anno.ui.base.SpacePanel
 import me.anno.ui.base.Visibility
@@ -25,7 +26,7 @@ import org.joml.Vector4f
 import java.lang.RuntimeException
 import kotlin.math.*
 
-class ColorChooser(style: Style, withAlpha: Boolean, val owningProperty: AnimatedProperty<*>?): PanelListY(style){
+class ColorChooser(style: Style, withAlpha: Boolean, val owningProperty: AnimatedProperty<*>?) : PanelListY(style) {
 
     // color section
     // bottom section:
@@ -40,51 +41,67 @@ class ColorChooser(style: Style, withAlpha: Boolean, val owningProperty: Animate
     val hslBox = HSVBoxMain(this, Vector3f(), Vector3f(0f, 1f, 0f), Vector3f(0f, 0f, 1f), style)
 
     val hueChooserSpace = SpacePanel(0, 2, style)
-    val hueChooser = object: HSVBox(this,
+    val hueChooser = object : HSVBox(this,
         Vector3f(0f, 1f, 0.75f),
         Vector3f(1f, 0f, 0f),
         Vector3f(), 0f, style, 1f, { hue, _ ->
-        setHSL(hue, saturation, lightness, opacity, colorSpace)
-    } ) {
+            setHSL(hue, saturation, lightness, opacity, colorSpace)
+            onSmallChange("color-hue")
+        }) {
         override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
             super.draw(x0, y0, x1, y1)
-            val x = x0 + ((x1-x0) * hue).roundToInt()
-            GFX.drawRect(x, y0, 1, y1-y0, black)
+            val x = x0 + ((x1 - x0) * hue).roundToInt()
+            GFX.drawRect(x, y0, 1, y1 - y0, black)
         }
     }
 
-    val alphaBar = if(withAlpha){
-        object: HSVBox(this, Vector3f(0f,0f, 0f), Vector3f(0f, 0f, 1f), Vector3f(0f, 0f, 0f), 0f, style, 1f, { opacity, _ ->
-            setHSL(hue, saturation, lightness, clamp(opacity, 0f, 1f), colorSpace)
-        }){
+    val alphaBar = if (withAlpha) {
+        object : HSVBox(
+            this,
+            Vector3f(0f, 0f, 0f),
+            Vector3f(0f, 0f, 1f),
+            Vector3f(0f, 0f, 0f),
+            0f,
+            style,
+            1f,
+            { opacity, _ ->
+                setHSL(hue, saturation, lightness, clamp(opacity, 0f, 1f), colorSpace)
+                onSmallChange("color-alpha")
+            }) {
             override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
                 // super.draw(x0, y0, x1, y1)
-                val x = x0 + ((x1-x0) * opacity).roundToInt()
+                val x = x0 + ((x1 - x0) * opacity).roundToInt()
                 // lerp transparency for the alpha bar
-                for(dx in 0 until w){ GFX.drawRect(this.x+dx, y, 1, h, 0xffffff or (dx*255/w).shl(24)) }
-                GFX.drawTexture(this.x, y, w, h, colorShowTexture, -1, Vector4f(w.toFloat()/h, 1f, 0f, 0f))
-                GFX.drawRect(x, y0, 1, y1-y0, black)
+                for (dx in 0 until w) {
+                    GFX.drawRect(this.x + dx, y, 1, h, 0xffffff or (dx * 255 / w).shl(24))
+                }
+                GFX.drawTexture(this.x, y, w, h, colorShowTexture, -1, Vector4f(w.toFloat() / h, 1f, 0f, 0f))
+                GFX.drawRect(x, y0, 1, y1 - y0, black)
             }
         }
     } else null
 
     val colorSpaceInput = EnumInput("Color Space", false, colorSpace.name,
-        ColorSpace.values.values.toSet().map { it.name }, style)
+        ColorSpace.values.values.toSet().map { it.name }, style
+    )
         .setChangeListener {
             val newColorSpace = ColorSpace[it]
             lastColorSpace = newColorSpace
-            if(newColorSpace != null && newColorSpace != colorSpace){
+            if (newColorSpace != null && newColorSpace != colorSpace) {
                 val rgb = colorSpace.toRGB(Vector3f(hue, saturation, lightness))
                 val newHSL = newColorSpace.fromRGB(rgb)
                 setHSL(newHSL.x, newHSL.y, newHSL.z, opacity, newColorSpace)
+                // onSmallChange("color-space")
             }
         }
 
-    val styleInput = EnumInput("Style", false, visualisation.displayName, ColorVisualisation.values().map { it.displayName }, style)
-        .setChangeListener {
-            visualisation = ColorVisualisation.values().firstOrNull { v -> v.displayName == it } ?: visualisation
-            lastVisualisation = visualisation
-        }
+    val styleInput =
+        EnumInput("Style", false, visualisation.displayName, ColorVisualisation.values().map { it.displayName }, style)
+            .setChangeListener {
+                visualisation = ColorVisualisation.values().firstOrNull { v -> v.displayName == it } ?: visualisation
+                lastVisualisation = visualisation
+                // onSmallChange("color-style")
+            }
 
     init {
         val spaceBox = PanelListX(style)
@@ -95,7 +112,7 @@ class ColorChooser(style: Style, withAlpha: Boolean, val owningProperty: Animate
         this += hslBox
         this += hueChooserSpace
         this += hueChooser
-        if(alphaBar != null){
+        if (alphaBar != null) {
             this += SpacePanel(0, 2, style)
             this += alphaBar
         }
@@ -113,21 +130,31 @@ class ColorChooser(style: Style, withAlpha: Boolean, val owningProperty: Animate
     var lightness = 0.5f
     var opacity = 1.0f
 
-    fun setARGB(argb: Int){
-        setRGBA((argb.shr(16) and 255)/255f,
-            (argb.shr(8) and 255)/255f,
-            (argb and 255)/255f,
-            (argb.shr(24) and 255)/255f)
+    fun setARGB(argb: Int) {
+        setRGBA(
+            (argb.shr(16) and 255) / 255f,
+            (argb.shr(8) and 255) / 255f,
+            (argb and 255) / 255f,
+            (argb.shr(24) and 255) / 255f
+        )
     }
 
-    fun setRGBA(r: Float, g: Float, b: Float, a: Float){
-        val hsluv = HSLuvColorSpace.rgbToHsluv(doubleArrayOf(
-            r.toDouble(), g.toDouble(), b.toDouble()
-        ))
-        setHSL(hsluv[0].toFloat() / 360f, hsluv[1].toFloat() / 100f, hsluv[2].toFloat() / 100f, clamp(a, 0f, 1f), colorSpace)
+    fun setRGBA(r: Float, g: Float, b: Float, a: Float) {
+        val hsluv = HSLuvColorSpace.rgbToHsluv(
+            doubleArrayOf(
+                r.toDouble(), g.toDouble(), b.toDouble()
+            )
+        )
+        setHSL(
+            hsluv[0].toFloat() / 360f,
+            hsluv[1].toFloat() / 100f,
+            hsluv[2].toFloat() / 100f,
+            clamp(a, 0f, 1f),
+            colorSpace
+        )
     }
 
-    fun setHSL(h: Float, s: Float, l: Float, a: Float, newColorSpace: ColorSpace){
+    fun setHSL(h: Float, s: Float, l: Float, a: Float, newColorSpace: ColorSpace) {
         hue = h
         saturation = s
         lightness = l
@@ -135,16 +162,15 @@ class ColorChooser(style: Style, withAlpha: Boolean, val owningProperty: Animate
         this.colorSpace = newColorSpace
         val rgb = colorSpace.toRGB(Vector3f(hue, saturation, lightness))
         changeRGBListener(rgb.x, rgb.y, rgb.z, opacity)
-        RemsStudio.onSmallChange()
     }
 
-    fun drawColorBox(element: Panel, d0: Vector3f, du: Vector3f, dv: Vector3f, dh: Float, mainBox: Boolean){
-        val spaceStyle = if(mainBox) visualisation else ColorVisualisation.BOX
+    fun drawColorBox(element: Panel, d0: Vector3f, du: Vector3f, dv: Vector3f, dh: Float, mainBox: Boolean) {
+        val spaceStyle = if (mainBox) visualisation else ColorVisualisation.BOX
         val shader = colorSpace.getShader(spaceStyle)
         shader.use()
-        GFX.posSize(shader, element.x, element.y + element.h, element.w, - element.h)
+        GFX.posSize(shader, element.x, element.y + element.h, element.w, -element.h)
         val sharpness = max(w, h) * 0.25f + 1f
-        when(spaceStyle){
+        when (spaceStyle) {
             ColorVisualisation.WHEEL -> {
                 shader.v3("v0", d0.x + hue * dh, d0.y, d0.z)
                 shader.v3("du", du)
@@ -169,7 +195,7 @@ class ColorChooser(style: Style, withAlpha: Boolean, val owningProperty: Animate
         }
     }
 
-    var changeRGBListener: (x: Float, y: Float, z: Float, w: Float) -> Unit = { _,_,_,_ -> }
+    var changeRGBListener: (x: Float, y: Float, z: Float, w: Float) -> Unit = { _, _, _, _ -> }
     fun setChangeRGBListener(listener: (x: Float, y: Float, z: Float, w: Float) -> Unit): ColorChooser {
         changeRGBListener = listener
         return this
@@ -178,14 +204,20 @@ class ColorChooser(style: Style, withAlpha: Boolean, val owningProperty: Animate
     // todo copy whole timelines?
     override fun onCopyRequested(x: Float, y: Float): String {
         println(colorSpace.toRGB(Vector3f(hue, saturation, lightness)).toHex())
-        return if(Input.isShiftDown && owningProperty != null) owningProperty.toString()
+        return if (Input.isShiftDown && owningProperty != null) owningProperty.toString()
         else "${colorSpace.serializationName}(${hue.f3()},${saturation.f3()},${lightness.f3()},${opacity.f3()})"
     }
 
     override fun onPaste(x: Float, y: Float, data: String, type: String) {
-        when(val color = parseColorComplex(data)){
-            is Int -> setARGB(color)
-            is Vector4f -> setRGBA(color.x, color.y, color.z, color.w)
+        when (val color = parseColorComplex(data)) {
+            is Int -> {
+                setARGB(color)
+                onSmallChange("color-paste-argb")
+            }
+            is Vector4f -> {
+                setRGBA(color.x, color.y, color.z, color.w)
+                onSmallChange("color-paste-vec4")
+            }
             null -> println("Didn't understand color $data")
             else -> throw RuntimeException("Color type $data -> $color isn't yet supported for ColorChooser")
         }
@@ -194,6 +226,7 @@ class ColorChooser(style: Style, withAlpha: Boolean, val owningProperty: Animate
     override fun onEmpty(x: Float, y: Float) {
         val default = owningProperty?.defaultValue ?: Vector4f(0f)
         setRGBA(default[0], default[1], default[2], default[3])
+        onSmallChange("color-empty")
     }
 
     companion object {

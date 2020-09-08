@@ -3,11 +3,13 @@ package me.anno.studio.history
 import me.anno.io.base.BaseWriter
 import me.anno.objects.Transform
 import me.anno.studio.Studio.root
+import me.anno.utils.size
 
-class SceneHState: HistoryState<Transform>(){
+class SceneState: HistoryState<Transform>(){
 
-    fun setState(){
+    fun update(){
         state = root.clone()
+        println(state!!.listOfAll.size)
     }
 
     override fun apply(state: Transform) {

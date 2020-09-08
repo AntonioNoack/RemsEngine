@@ -1,5 +1,6 @@
 package me.anno.ui.dragging
 
+import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.ui.base.Panel
 import me.anno.ui.base.constraints.WrapAlign
 
@@ -12,6 +13,10 @@ class Draggable(
 
     init {
         ui += WrapAlign.LeftTop
+        loadTexturesSync.push(true)
+        ui.calculateSize(300, 300)
+        ui.applyPlacement(300, 300)
+        loadTexturesSync.pop()
     }
 
     override fun draw(x: Int, y: Int) {
@@ -20,7 +25,6 @@ class Draggable(
     }
 
     override fun getSize(w: Int, h: Int): Pair<Int, Int> {
-        ui.calculateSize(w, h)
         // ui.applyConstraints()
         return ui.w to ui.h
     }

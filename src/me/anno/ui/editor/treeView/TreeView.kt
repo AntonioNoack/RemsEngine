@@ -9,6 +9,7 @@ import me.anno.objects.*
 import me.anno.objects.Transform.Companion.toTransform
 import me.anno.objects.modes.UVProjection
 import me.anno.objects.rendering.RenderSettings
+import me.anno.studio.RemsStudio.onLargeChange
 import me.anno.studio.Studio.nullCamera
 import me.anno.studio.Studio.root
 import me.anno.ui.base.*
@@ -195,6 +196,7 @@ class TreeView(style: Style):
                             val transform = text.toTransform()
                             parent.addChild(transform)
                             select(transform)
+                            onLargeChange()
                         } catch (e: Exception){
                             e.printStackTrace()
                             println("Didn't understand json! ${e.message}")
@@ -207,6 +209,7 @@ class TreeView(style: Style):
                         cube.uvProjection = UVProjection.Equirectangular
                         cube.name = name
                         select(cube)
+                        onLargeChange()
                     }
                     "Cubemap-Tiles" -> {
                         val cube = Video(file, parent)
@@ -214,6 +217,7 @@ class TreeView(style: Style):
                         cube.uvProjection = UVProjection.TiledCubemap
                         cube.name = name
                         select(cube)
+                        onLargeChange()
                     }
                     "Video", "Image" -> {// the same, really ;)
                         // rather use a list of keywords?
@@ -235,10 +239,12 @@ class TreeView(style: Style):
                             video.name = name
                             select(video)
                         }
+                        onLargeChange()
                     }
                     "Text" -> {
                         try {
                             addText(name, parent, file.readText())
+                            onLargeChange()
                         } catch (e: Exception){
                             e.printStackTrace()
                             return
@@ -257,6 +263,7 @@ class TreeView(style: Style):
                         val audio = Audio(file, parent)
                         audio.name = name
                         select(audio)
+                        onLargeChange()
                     }
                     else -> println("Unknown file type: ${file.extension}")
                 }

@@ -2,45 +2,28 @@
   {
     "class": "Circle",
     "i:*ptr": 1,
-    "S:name": "Circle",
-    "AnimatedProperty<pos>:position": {
+    "S:name": "C2",
+    "d:timeOffset": -1.506276150627615,
+    "d:timeDilation": 1.0,
+    "AnimatedProperty<color>:color": {
       "i:*ptr": 2,
       "Keyframe:keyframes": {
         "i:*ptr": 3
       },
-      "b:isAnimated": false,
-      "HarmonicDriver:driver1": 4
-    },
-    "AnimatedProperty<scale>:scale": {
-      "i:*ptr": 5,
       "Keyframe:keyframes": {
-        "i:*ptr": 6,
-        "v3:value": [
-          0.14058204,
-          0.14058204,
-          0.14058204
+        "i:*ptr": 4,
+        "d:time": 0.1,
+        "v4:value": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
         ]
       },
-      "b:isAnimated": false
+      "b:isAnimated": true
     },
-    "d:timeDilation": 1.0,
     "S:blendMode": "*Inherit",
-    "i:timelineSlot": 1
-  },
-  {
-    "class": "HarmonicDriver",
-    "i:*ptr": 4,
-    "d:frequency": 1.0,
-    "AnimatedProperty<float>:amplitude": 7,
-    "S:harmonics": "1/n"
-  },
-  {
-    "class": "AnimatedProperty<float>",
-    "i:*ptr": 7,
-    "Keyframe:keyframes": {
-      "i:*ptr": 8,
-      "f:value": 1.0
-    },
-    "b:isAnimated": false
+    "i:timelineSlot": 0,
+    "b:editorOnly": false
   }
 ]

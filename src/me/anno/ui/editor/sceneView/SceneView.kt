@@ -516,9 +516,7 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
     }
 
     fun deleteSelectedTransform(){
-        selectedTransform?.removeFromParent()
-        selectedTransform?.onDestroy()
-        select(null)
+        selectedTransform?.destroy()
     }
 
     override fun getClassName() = "SceneView"

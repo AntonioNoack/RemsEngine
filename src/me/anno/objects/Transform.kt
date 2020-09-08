@@ -18,8 +18,10 @@ import me.anno.objects.modes.LoopingState
 import me.anno.objects.modes.ArraySelectionMode
 import me.anno.objects.modes.UVProjection
 import me.anno.objects.particles.ParticleSystem
+import me.anno.studio.RemsStudio.onLargeChange
 import me.anno.studio.Scene
 import me.anno.studio.Studio
+import me.anno.studio.Studio.selectedTransform
 import me.anno.ui.base.Panel
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.input.*
@@ -411,6 +413,7 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
 
     fun removeFromParent(){
         parent?.removeChild(this)
+        parent = null
     }
 
     fun getParentBlendMode(default: BlendMode): BlendMode =
@@ -577,6 +580,14 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
     }
 
     open fun onDestroy(){}
+    open fun destroy(){
+        if(selectedTransform === this){
+            GFX.select(parent)
+        }
+        removeFromParent()
+        onDestroy()
+        onLargeChange()
+    }
 
     val listOfAll: Sequence<Transform> get() = sequence {
         yield(this@Transform)

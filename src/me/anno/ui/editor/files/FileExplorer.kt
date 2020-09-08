@@ -103,7 +103,16 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
 
     override fun onPasteFiles(x: Float, y: Float, files: List<File>) {
         // todo create links? or truly copy them?
-        super.onPasteFiles(x, y, files)
+        // todo or just switch?
+        if(files.size == 1){
+            folder = files.first()
+            if(!folder!!.isDirectory){
+                folder = folder!!.parentFile
+            }
+            invalidate()
+        } else {
+
+        }
     }
 
     override fun onPaste(x: Float, y: Float, data: String, type: String) {

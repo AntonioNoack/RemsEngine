@@ -20,8 +20,8 @@ object History: Saveable(){
     // nah, they are changed every step...
 
     private var maxHistoryElements = max(1, DefaultConfig["maxHistoryElements", 256])
-    private val elements = LinkedList<HistoryState<*>>()
-    private var nextInsertIndex = 0
+    val elements = ArrayList<HistoryState<*>>(maxHistoryElements)
+    var nextInsertIndex = 0
 
     override fun getClassName() = "History"
     override fun getApproxSize(): Int = 1_000_000
@@ -39,8 +39,7 @@ object History: Saveable(){
             // then there were only 1 entry,
             // so there would be nothing to undo
             if(nextInsertIndex > 1){
-                nextInsertIndex--
-                elements[nextInsertIndex-1].apply()
+                elements[nextInsertIndex-- - 2].apply()
             }
         }
     }
@@ -58,22 +57,19 @@ object History: Saveable(){
      * put the old state here, so it can be reversed
      * */
     fun put(element: HistoryState<*>){
-        synchronized(elements){
-            while(nextInsertIndex > elements.size && elements.isNotEmpty()){
-                elements.pop()
-            }
-            // todo don't push, if they are the same
-            elements.push(element)
-            nextInsertIndex = elements.size
-            popIfFull()
+        if(nextInsertIndex > 0 && element == elements[nextInsertIndex-1]){
+            // don't push, if they are the same
+            return
         }
-    }
-
-    fun popIfFull(){
         synchronized(elements){
-            while(elements.size > maxHistoryElements){
-                elements.pollFirst()
+            while(elements.size > nextInsertIndex && elements.isNotEmpty()){
+                elements.removeAt(elements.lastIndex)
             }
+            if(elements.size+1 > maxHistoryElements){
+                elements.removeAt(0)
+            }
+            elements.add(element)
+            nextInsertIndex = elements.size
         }
     }
 

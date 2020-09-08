@@ -139,8 +139,11 @@ class AnimatedProperty<V>(val type: Type, val defaultValue: V): Saveable(){
         sort()
     }
 
-    fun remove(keyframe: Keyframe<*>){
-        keyframes.remove(keyframe)
+    /**
+     * true, if found
+     * */
+    fun remove(keyframe: Keyframe<*>): Boolean {
+        return keyframes.remove(keyframe)
     }
 
     operator fun get(time: Double) = getValueAt(time)
