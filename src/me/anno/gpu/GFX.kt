@@ -672,10 +672,11 @@ object GFX: GFXBase1() {
         val maxWidth = max(300, GFX.width)
         val maxHeight = max(300, GFX.height)
         container.calculateSize(maxWidth, maxHeight)
-        // container.applyConstraints()
-        val wx = clamp(x, 0, GFX.width - container.w)
-        val wy = clamp(y, 0, GFX.height- container.h)
-        window = Window(container, wx, wy)
+        container.applyPlacement(min(container.minW, maxWidth), min(container.minH, maxHeight))
+        // println("size for window: ${container.w} ${container.h}")
+        val wx = clamp(x, 0, max(GFX.width - container.w, 0))
+        val wy = clamp(y, 0, max(GFX.height- container.h, 0))
+        window = Window(container, false, wx, wy)
         windowStack.add(window)
     }
 

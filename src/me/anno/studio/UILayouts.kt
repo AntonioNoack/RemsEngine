@@ -32,7 +32,7 @@ import me.anno.ui.editor.CustomContainer
 import me.anno.ui.editor.OptionBar
 import me.anno.ui.editor.PropertyInspector
 import me.anno.ui.editor.cutting.CuttingView
-import me.anno.ui.editor.explorer.FileExplorer
+import me.anno.ui.editor.files.FileExplorer
 import me.anno.ui.editor.graphs.GraphEditor
 import me.anno.ui.editor.sceneView.SceneView
 import me.anno.ui.editor.treeView.TreeView
@@ -189,7 +189,7 @@ object UILayouts {
                         panel.textColor = mixARGB(panel.textColor, color, 0.5f)
                         list += panel
                     }
-                    windowStack.add(Window(listPanel, 0, 0))
+                    windowStack.add(Window(listPanel, true, 0, 0))
                 }
             }
         }
@@ -202,7 +202,7 @@ object UILayouts {
         ui += console
 
         windowStack.clear()
-        windowStack += Window(ui, 0, 0)
+        windowStack += Window(ui, true, 0, 0)
 
     }
 

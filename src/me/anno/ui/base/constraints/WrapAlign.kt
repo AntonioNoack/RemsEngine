@@ -10,12 +10,12 @@ class WrapAlign(val alignX: AxisAlignment?, val alignY: AxisAlignment?): Constra
         alignX?.apply {
             val delta = getOffset(panel.w, panel.minW)
             panel.x = panel.x + delta
-            panel.w = panel.minW
+            panel.w = min(panel.minW, panel.w)
         }
         alignY?.apply {
             val delta = getOffset(panel.h, panel.minH)
             panel.y = panel.y + delta
-            panel.h = panel.minH
+            panel.h = min(panel.minH, panel.h)
         }
     }
 

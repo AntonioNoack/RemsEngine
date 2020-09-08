@@ -99,6 +99,7 @@ open class Panel(val style: Style): Saveable(){
         this.h = h
         for(c in layoutConstraints){
             c.apply(this)
+            if(this.w > w || this.h > h) throw RuntimeException("${c.javaClass} isn't working properly: $w -> ${this.w}, $h -> ${this.h}")
         }
     }
 

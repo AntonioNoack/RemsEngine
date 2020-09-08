@@ -1,4 +1,6 @@
-package me.anno.ui.editor.explorer
+package me.anno.ui.editor.files
+
+import java.io.File
 
 // https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file
 // could be disabled for Linux only users
@@ -21,3 +23,5 @@ fun toAllowedFilename(name: String): String? {
     if(name.isEmpty()) return null
     return name
 }
+
+fun File.hasValidName() = toString().isNotBlank()

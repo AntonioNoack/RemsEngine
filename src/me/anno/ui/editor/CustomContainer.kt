@@ -9,7 +9,7 @@ import me.anno.ui.base.Panel
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.editor.cutting.CuttingView
-import me.anno.ui.editor.explorer.FileExplorer
+import me.anno.ui.editor.files.FileExplorer
 import me.anno.ui.editor.sceneView.SceneView
 import me.anno.ui.editor.graphs.GraphEditor
 import me.anno.ui.editor.treeView.TreeView

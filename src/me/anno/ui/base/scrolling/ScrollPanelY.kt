@@ -43,7 +43,7 @@ open class ScrollPanelY(child: Panel, padding: Padding,
 
         // if(h > GFX.height) throw RuntimeException()
 
-        child.calculateSize(w-padding.width, maxLength)
+        child.calculateSize(w-padding.width, maxLength-padding.height)
         // child.applyConstraints()
 
         minW = child.minW + padding.width
@@ -58,6 +58,8 @@ open class ScrollPanelY(child: Panel, padding: Padding,
         // warn("scroll fini $x += $w ($minW), $y += $h ($minH) by ${child.h}, ${child.minH}")
 
     }
+
+
 
     override fun placeInParent(x: Int, y: Int) {
         super.placeInParent(x, y)

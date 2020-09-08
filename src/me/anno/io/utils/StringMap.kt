@@ -3,7 +3,7 @@ package me.anno.io.utils
 import me.anno.gpu.texture.FilteringMode
 import me.anno.io.base.BaseWriter
 import me.anno.io.config.ConfigEntry
-import me.anno.ui.editor.explorer.toAllowedFilename
+import me.anno.ui.editor.files.toAllowedFilename
 import me.anno.utils.OS
 import org.joml.Vector3f
 import java.io.File

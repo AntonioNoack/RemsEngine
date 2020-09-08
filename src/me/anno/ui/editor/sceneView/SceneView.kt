@@ -439,7 +439,7 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
         // GFX.toggleFullscreen()
         val root = rootPanel
         val view = SceneView(this)
-        val window = Window(view, 0, 0)
+        val window = Window(view, true, 0, 0)
         windowStack.push(window)
     }
 

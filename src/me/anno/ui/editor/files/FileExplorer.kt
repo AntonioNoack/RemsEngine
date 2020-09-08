@@ -1,4 +1,4 @@
-package me.anno.ui.editor.explorer
+package me.anno.ui.editor.files
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX

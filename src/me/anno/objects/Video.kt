@@ -19,6 +19,7 @@ import me.anno.objects.modes.UVProjection
 import me.anno.studio.Scene
 import me.anno.studio.Studio
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.editor.files.hasValidName
 import me.anno.ui.input.*
 import me.anno.ui.style.Style
 import me.anno.utils.*
@@ -239,22 +240,25 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
 
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
 
-        if(file !== lastFile){
-            lastFile = file
-            type = when(file.extension.getImportType()){
-                "Video" -> VideoType.VIDEO
-                "Audio" -> VideoType.AUDIO
-                else -> VideoType.IMAGE
+        val file = file
+        if(file.hasValidName()){
+            if(file !== lastFile){
+                lastFile = file
+                type = when(file.extension.getImportType()){
+                    "Video" -> VideoType.VIDEO
+                    "Audio" -> VideoType.AUDIO
+                    else -> VideoType.IMAGE
+                }
             }
-        }
 
-        when(type){
-            VideoType.VIDEO -> drawVideoFrames(stack, time, color)
-            VideoType.IMAGE -> drawImageFrames(stack, time, color)
-            else -> {
-                // todo draw speaker...
+            when(type){
+                VideoType.VIDEO -> drawVideoFrames(stack, time, color)
+                VideoType.IMAGE -> drawImageFrames(stack, time, color)
+                else -> {
+                    // todo draw speaker...
+                }
             }
-        }
+        } else super.onDraw(stack, time, color)
 
     }
 

@@ -34,10 +34,12 @@ import java.io.File
 import java.io.OutputStream
 import java.io.PrintStream
 import java.lang.Exception
+import java.lang.RuntimeException
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.concurrent.thread
 import kotlin.math.abs
+import kotlin.math.min
 import kotlin.math.roundToInt
 
 // todo operation to cut an image, video, or similar?
@@ -219,18 +221,16 @@ object RemsStudio {
                 if (Input.needsLayoutUpdate()) {
                     // println("layouting")
                     val t0 = System.nanoTime()
-                    panel.calculateSize(w - window.x, h - window.y)
-                    if(panel.w >= GFX.width && panel.h >= GFX.height){
-                        // println("is full: $index")
+                    panel.calculateSize(min(w - window.x, w), min(h - window.y, h))
+                    panel.applyPlacement(min(w - window.x, w), min(h - window.y, h))
+                    if(window.isFullscreen){
                         smallestIndexNeedingRendering = index
                     }
+                    if(panel.w > w || panel.h > h) throw RuntimeException("Panel is too large...")
                     // panel.applyConstraints()
                     val t1 = System.nanoTime()
                     panel.placeInParent(window.x, window.y)
                     panel.applyPlacement(w, h)
-                    if(index > 0) {
-                        panel.printLayout(0)
-                    }
                     val t2 = System.nanoTime()
                     val dt1 = (t1 - t0) * 1e-9f
                     val dt2 = (t2 - t1) * 1e-9f

@@ -1,4 +1,4 @@
-package me.anno.ui.editor.explorer
+package me.anno.ui.editor.files
 
 import java.io.File
 

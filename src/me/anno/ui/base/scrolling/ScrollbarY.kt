@@ -13,7 +13,6 @@ class ScrollbarY(val scrollbar: ScrollPanelY, style: Style): Scrollbar(style){
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.draw(x0, y0, x1, y1)
 
-
         val relativePosition = scrollbar.scrollPosition / scrollbar.maxScrollPosition
         val barHeight = relativeSize * h
         val barY = y + relativePosition * h * (1f - relativeSize)
