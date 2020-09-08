@@ -151,7 +151,7 @@ class TreeView(style: Style):
 
     override fun onPasteFiles(x: Float, y: Float, files: List<File>) {
         files.forEach {
-            addChildFromFile(root, it)
+            addChildFromFile(root, it, {})
         }
     }
 
@@ -159,7 +159,7 @@ class TreeView(style: Style):
 
     companion object {
 
-        fun addText(name: String, parent: Transform, text: String){
+        fun addText(name: String, parent: Transform, text: String, callback: (Transform) -> Unit){
             // important ;)
             // should maybe be done sometimes in object as well ;)
             if(text.length > 500){
@@ -168,6 +168,7 @@ class TreeView(style: Style):
                         val textNode = Text(text, parent)
                         textNode.name = name
                         select(textNode)
+                        callback(textNode)
                     }
                     1
                 }
@@ -176,15 +177,16 @@ class TreeView(style: Style):
             val textNode = Text(text, parent)
             textNode.name = name
             select(textNode)
+            callback(textNode)
         }
 
-        fun addChildFromFile(parent: Transform, file: File, depth: Int = 0){
+        fun addChildFromFile(parent: Transform, file: File, callback: (Transform) -> Unit, depth: Int = 0){
             if(file.isDirectory){
                 val directory = Transform(parent)
                 directory.name = file.name
                 if(depth < DefaultConfig["import.depth.max", 3]){
                     file.listFiles()?.filter { !it.name.startsWith(".") }?.forEach {
-                        addChildFromFile(directory, it, depth+1)
+                        addChildFromFile(directory, it, callback, depth+1)
                     }
                 }
             } else {
@@ -196,11 +198,12 @@ class TreeView(style: Style):
                             val transform = text.toTransform()
                             parent.addChild(transform)
                             select(transform)
+                            callback(transform)
                             onLargeChange()
                         } catch (e: Exception){
                             e.printStackTrace()
                             println("Didn't understand json! ${e.message}")
-                            addText(name, parent, text)
+                            addText(name, parent, text, callback)
                         }
                     }
                     "Cubemap-Equ" -> {
@@ -209,6 +212,7 @@ class TreeView(style: Style):
                         cube.uvProjection = UVProjection.Equirectangular
                         cube.name = name
                         select(cube)
+                        callback(cube)
                         onLargeChange()
                     }
                     "Cubemap-Tiles" -> {
@@ -217,33 +221,30 @@ class TreeView(style: Style):
                         cube.uvProjection = UVProjection.TiledCubemap
                         cube.name = name
                         select(cube)
+                        callback(cube)
                         onLargeChange()
                     }
                     "Video", "Image" -> {// the same, really ;)
                         // rather use a list of keywords?
+                        val video = Video(file, parent)
+                        val fName = file.name
+                        video.name = fName
                         if(DefaultConfig["import.decideCubemap", true]){
-                            val video = Video(file, parent)
-                            val fName = file.name
                             if(fName.contains("360", true)){
                                 video.scale.set(Vector3f(1000f, 1000f, 1000f))
                                 video.uvProjection = UVProjection.Equirectangular
-                            } else
-                            if(fName.contains("cubemap", true)){
+                            } else if(fName.contains("cubemap", true)){
                                 video.scale.set(Vector3f(1000f, 1000f, 1000f))
                                 video.uvProjection = UVProjection.TiledCubemap
                             }
-                            video.name = fName
-                            select(video)
-                        } else {
-                            val video = Video(file, parent)
-                            video.name = name
-                            select(video)
                         }
+                        select(video)
+                        callback(video)
                         onLargeChange()
                     }
                     "Text" -> {
                         try {
-                            addText(name, parent, file.readText())
+                            addText(name, parent, file.readText(), callback)
                             onLargeChange()
                         } catch (e: Exception){
                             e.printStackTrace()
@@ -263,6 +264,7 @@ class TreeView(style: Style):
                         val audio = Audio(file, parent)
                         audio.name = name
                         select(audio)
+                        callback(audio)
                         onLargeChange()
                     }
                     else -> println("Unknown file type: ${file.extension}")

@@ -135,13 +135,8 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style): TextPanel(""
 
     override fun onPasteFiles(x: Float, y: Float, files: List<File>) {
         val transform = getElement()
-        if(files.size == 1){
-            // todo check if it matches
-
-            // return // if it matches
-        }
         files.forEach {
-            addChildFromFile(transform, it)
+            addChildFromFile(transform, it, {})
         }
     }
 
@@ -149,8 +144,8 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style): TextPanel(""
         when(action){
             "DragStart" -> {
                 val transform = getElement()
-                if(Studio.dragged?.getOriginal() != transform){
-                    Studio.dragged = Draggable(transform.stringify(), "Transform", transform, TextPanel(transform.name, style))
+                if(dragged?.getOriginal() != transform){
+                    dragged = Draggable(transform.stringify(), "Transform", transform, TextPanel(transform.name, style))
                 }
             }
             else -> return super.onGotAction(x, y, dx, dy, action, isContinuous)

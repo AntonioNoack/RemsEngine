@@ -28,7 +28,7 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.custom.CustomListX
 import me.anno.ui.custom.CustomListY
-import me.anno.ui.editor.CustomContainer
+import me.anno.ui.custom.CustomContainer
 import me.anno.ui.editor.OptionBar
 import me.anno.ui.editor.PropertyInspector
 import me.anno.ui.editor.cutting.CuttingView

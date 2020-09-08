@@ -1,4 +1,4 @@
-package me.anno.ui.editor
+package me.anno.ui.custom
 
 import me.anno.gpu.Cursor
 import me.anno.input.Input

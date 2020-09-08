@@ -1,5 +1,6 @@
 package me.anno.ui.editor.cutting
 
+import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.input.Input
 import me.anno.input.Input.isControlDown
@@ -7,6 +8,8 @@ import me.anno.input.Input.mouseKeysDown
 import me.anno.input.Input.mouseX
 import me.anno.input.Input.mouseY
 import me.anno.input.MouseButton
+import me.anno.io.text.TextReader
+import me.anno.objects.Audio
 import me.anno.objects.Transform
 import me.anno.studio.RemsStudio.onLargeChange
 import me.anno.studio.RemsStudio.onSmallChange
@@ -14,13 +17,21 @@ import me.anno.studio.Studio
 import me.anno.studio.Studio.root
 import me.anno.studio.Studio.selectedTransform
 import me.anno.studio.Studio.shiftSlowdown
+import me.anno.ui.dragging.Draggable
 import me.anno.ui.editor.TimelinePanel
+import me.anno.ui.editor.treeView.TreeView
 import me.anno.ui.style.Style
 import me.anno.utils.clamp
+import me.anno.utils.incrementName
 import org.joml.Vector4f
+import java.io.File
+import java.lang.Exception
 import kotlin.math.roundToInt
 
 class LayerView(style: Style): TimelinePanel(style) {
+
+    // todo select multiple elements to move them around together
+    // todo they shouldn't be parent and children, because that would have awkward results...
 
     var timelineSlot = 0
 
@@ -171,10 +182,39 @@ class LayerView(style: Style): TimelinePanel(style) {
         if(button.isRight){
             val transform = getTransformAt(x, y)
             if(transform != null){
+                val localTime = transform.lastLocalTime
                 // todo get the options for this transform
-
-            }
-        }
+                val options = ArrayList<Pair<String, () -> Unit>>()
+                options += "Split Here" to {
+                    // todo ask user for split time?... todo rather add fadeout- / fadein-effects
+                    // todo 100% transparency on both in the middle??
+                    val fadingTime = 0.2
+                    val fadingHalf = fadingTime / 2
+                    transform.color.isAnimated = true
+                    val lTime = localTime - fadingHalf
+                    val rTime = localTime + fadingHalf
+                    val color = transform.color[localTime]
+                    val lColor = transform.color[lTime]
+                    val lTransparent = Vector4f(lColor.x, lColor.y, lColor.z, 0f)
+                    val rColor = transform.color[rTime]
+                    val rTransparent = Vector4f(rColor.x, rColor.y, rColor.z, 0f)
+                    val second = transform.clone()
+                    second.name = incrementName(transform.name)
+                    transform.addAfter(second)
+                    // transform.color.addKeyframe(localTime-fadingTime/2, color)
+                    transform.color.keyframes.removeIf { it.time >= localTime }
+                    transform.color.addKeyframe(localTime, color)
+                    transform.color.addKeyframe(rTime, rTransparent)
+                    second.color.keyframes.removeIf { it.time <= localTime }
+                    second.color.addKeyframe(lTime, lTransparent)
+                    second.color.addKeyframe(localTime, color)
+                    onLargeChange()
+                }
+                if(options.isNotEmpty()){
+                    GFX.openMenu(x, y, "Apply Operation", options)
+                }
+            } else super.onMouseClicked(x, y, button, long)
+        } else super.onMouseClicked(x, y, button, long)
     }
 
     fun findElements(): List<Transform> {
@@ -189,6 +229,46 @@ class LayerView(style: Style): TimelinePanel(style) {
         inspect(root)
         return list.reversed()
     }
+
+    override fun onPaste(x: Float, y: Float, data: String, type: String) {
+        if(!data.startsWith("[")) return super.onPaste(x, y, data, type)
+        try {
+            val child = TextReader.fromText(data).firstOrNull { it is Transform } as? Transform ?: return super.onPaste(x, y, data, type)
+            val original = (Studio.dragged as? Draggable)?.getOriginal() as? Transform
+            if(original != null){
+                original.timelineSlot = timelineSlot
+                onSmallChange("layer-paste")
+            } else {
+                root.addChild(child)
+                root.timelineSlot = timelineSlot
+                GFX.select(child)
+                onLargeChange()
+            }
+        } catch (e: Exception){
+            e.printStackTrace()
+            super.onPaste(x, y, data, type)
+        }
+    }
+
+    override fun onPasteFiles(x: Float, y: Float, files: List<File>) {
+        val time = getTimeAt(x)
+        files.forEach { file ->
+            TreeView.addChildFromFile(root, file, {
+                it.timeOffset = time
+                it.timelineSlot = timelineSlot
+                // fade-in? is better for stuff xD
+                if(DefaultConfig["import.files.fade", true]){
+                    val fadingTime = 0.2
+                    if(it.color.isDefaultValue()){
+                        it.color.isAnimated = true
+                        it.color.addKeyframe(0.0, Vector4f(1f, 1f, 1f, 0f))
+                        it.color.addKeyframe(fadingTime, Vector4f(1f, 1f, 1f, 1f))
+                    }
+                }
+            })
+        }
+    }
+
 
     override fun calculateSize(w: Int, h: Int) {
         super.calculateSize(w, h)

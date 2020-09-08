@@ -1,4 +1,4 @@
-package me.anno.ui.editor
+package me.anno.ui.custom
 
 import me.anno.config.DefaultStyle.white
 import me.anno.gpu.GFX
@@ -8,6 +8,7 @@ import me.anno.objects.cache.Cache
 import me.anno.ui.base.Panel
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer
+import me.anno.ui.editor.PropertyInspector
 import me.anno.ui.editor.cutting.CuttingView
 import me.anno.ui.editor.files.FileExplorer
 import me.anno.ui.editor.sceneView.SceneView
@@ -89,6 +90,10 @@ class CustomContainer(default: Panel, style: Style): PanelContainer(default, Pad
             changeType()
             true
         } else false
+    }
+
+    companion object {
+
     }
 
 }

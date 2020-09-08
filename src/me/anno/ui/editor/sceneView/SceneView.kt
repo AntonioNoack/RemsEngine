@@ -27,7 +27,7 @@ import me.anno.studio.Studio.shiftSlowdown
 import me.anno.studio.Studio.targetHeight
 import me.anno.studio.Studio.targetWidth
 import me.anno.ui.base.groups.PanelFrame
-import me.anno.ui.editor.CustomContainer
+import me.anno.ui.custom.CustomContainer
 import me.anno.ui.simple.SimplePanel
 import me.anno.ui.style.Style
 import me.anno.utils.clamp

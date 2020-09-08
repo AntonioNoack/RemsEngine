@@ -9,7 +9,7 @@ class SceneState: HistoryState<Transform>(){
 
     fun update(){
         state = root.clone()
-        println(state!!.listOfAll.size)
+        // println(state!!.listOfAll.size)
     }
 
     override fun apply(state: Transform) {

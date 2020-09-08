@@ -6,6 +6,7 @@
       <w>cubemap</w>
       <w>emissive</w>
       <w>equirectangular</w>
+      <w>fadein</w>
       <w>ffmpeg</w>
       <w>ffprobe</w>
       <w>fmpeg</w>
