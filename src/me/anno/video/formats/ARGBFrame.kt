@@ -19,9 +19,11 @@ class ARGBFrame(w: Int, h: Int): Frame(w,h){
         if(data.isEmpty()) throw LastFrame()
         if(data.size < s0) throw RuntimeException("not enough data, only ${data.size} of $s0")
         GFX.addGPUTask {
-            argb.create(data)
+            // the data actually still is argb and shuffling is needed
+            // to convert it into rgba (needs to be done in the shader (or by a small preprocessing step of the data))
+            argb.createRGBA(data)
             isLoaded = true
-            15
+            4
         }
     }
 

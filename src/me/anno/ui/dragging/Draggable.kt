@@ -21,7 +21,7 @@ class Draggable(
 
     override fun getSize(w: Int, h: Int): Pair<Int, Int> {
         ui.calculateSize(w, h)
-        ui.applyConstraints()
+        // ui.applyConstraints()
         return ui.w to ui.h
     }
 

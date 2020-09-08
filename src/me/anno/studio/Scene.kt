@@ -22,7 +22,6 @@ import me.anno.objects.effects.BokehBlur
 import me.anno.objects.effects.ToneMappers
 import me.anno.studio.Studio.selectedTransform
 import me.anno.ui.editor.sceneView.Grid
-import me.anno.ui.editor.sceneView.Grid.drawLine
 import me.anno.ui.editor.sceneView.Grid.drawLine01
 import me.anno.utils.times
 import me.anno.utils.warn

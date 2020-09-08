@@ -5,8 +5,10 @@ import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
 import me.anno.gpu.Window
 import me.anno.input.Input
+import me.anno.input.MouseButton
 import me.anno.objects.Camera
 import me.anno.objects.Transform
+import me.anno.objects.geometric.Circle
 import me.anno.studio.RemsStudio.lastConsoleLines
 import me.anno.studio.RemsStudio.windowStack
 import me.anno.studio.Studio.project
@@ -38,6 +40,7 @@ import me.anno.utils.mixARGB
 import me.anno.video.VideoAudioCreator
 import me.anno.video.VideoCreator
 import org.apache.logging.log4j.LogManager
+import org.joml.Vector4f
 import java.io.File
 import java.util.logging.Level
 import kotlin.math.max
@@ -115,6 +118,16 @@ object UILayouts {
         // for(i in 0 until 2) Transform(null, null, null, b)
 
         Camera(root)
+        Circle(root).apply {
+            name = "C1"
+            color.addKeyframe(0.0, Vector4f(0f, 0f, 0f, 0f))
+            color.addKeyframe(0.1, Vector4f(0.5f, 1f, 1f, 1f))
+        }
+        Circle(root).apply {
+            name = "C2"
+            color.addKeyframe(0.0, Vector4f(0f, 0f, 0f, 0f))
+            color.addKeyframe(0.1, Vector4f(1f, 1f, 1f, 1f))
+        }
         // Video(File(OS.home, "Videos\\Captures\\Cities_ Skylines 2020-01-06 19-32-23.mp4"), GFX.root)
         // Text("Hi! \uD83D\uDE09", GFX.root)
         // Image(File(OS.downloads, "tiger.svg"), root).position.addKeyframe(0f, Vector3f(0f, 0f, 0.01f), 0.1f)
@@ -142,8 +155,8 @@ object UILayouts {
 
         val console = object: TextPanel("", style.getChild("small")){
             override val effectiveTextColor: Int get() = textColor
-            override fun onDoubleClick(x: Float, y: Float, button: Int) {
-                if(button == 0){
+            override fun onDoubleClick(x: Float, y: Float, button: MouseButton) {
+                if(button.isLeft){
                     // open console in large with scrollbar
                     val listPanel = object: ScrollPanelY(style, Padding(5), AxisAlignment.CENTER){
                         override fun onBackSpaceKey(x: Float, y: Float) { windowStack.pop() }

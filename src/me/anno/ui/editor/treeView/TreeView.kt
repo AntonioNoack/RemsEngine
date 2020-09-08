@@ -33,7 +33,7 @@ import kotlin.concurrent.thread
 // todo collapse elements
 
 class TreeView(style: Style):
-    ScrollPanelXY(Padding(1), style.getChild("treeView")) {
+    ScrollPanelXY(Padding(5), style.getChild("treeView")) {
 
     val list = content as PanelList
 
@@ -163,15 +163,11 @@ class TreeView(style: Style):
             // should maybe be done sometimes in object as well ;)
             if(text.length > 500){
                 GFX.addGPUTask {
-                    GFX.openMenu(mouseX, mouseY, "Text has ${text.codePoints().count()} characters, import?", listOf(
-                        "yes" to { b, l ->
-                            val textNode = Text(text, parent)
-                            textNode.name = name
-                            select(textNode)
-                            true
-                        },
-                        "no" to { b, l -> true }
-                    ))
+                    GFX.ask("Text has ${text.codePoints().count()} characters, import?"){
+                        val textNode = Text(text, parent)
+                        textNode.name = name
+                        select(textNode)
+                    }
                     1
                 }
                 return

@@ -3,12 +3,11 @@ package me.anno.ui.input.components
 import me.anno.gpu.GFX
 import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.gpu.texture.Texture2D
-import me.anno.objects.Text
+import me.anno.input.MouseButton
 import me.anno.objects.cache.Cache
-import me.anno.objects.cache.TextureCache
+import me.anno.studio.RemsStudio
 import me.anno.ui.base.Panel
 import me.anno.ui.style.Style
-import org.joml.Vector4f
 import kotlin.math.min
 
 class Checkbox(startValue: Boolean, val size: Int, style: Style): Panel(style.getChild("checkbox")){
@@ -42,21 +41,22 @@ class Checkbox(startValue: Boolean, val size: Int, style: Style): Panel(style.ge
         return this
     }
 
-    fun change(){
+    fun toggle(){
         isChecked = !isChecked
         onCheckedChanged?.invoke(isChecked)
+        RemsStudio.onSmallChange()
     }
 
-    override fun onMouseClicked(x: Float, y: Float, button: Int, long: Boolean) {
-        change()
+    override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
+        toggle()
     }
 
-    override fun onDoubleClick(x: Float, y: Float, button: Int) {
-        change()
+    override fun onDoubleClick(x: Float, y: Float, button: MouseButton) {
+        toggle()
     }
 
     override fun onEnterKey(x: Float, y: Float) {
-        change()
+        toggle()
     }
 
     override fun getClassName() = "CheckBox"

@@ -97,7 +97,7 @@ open class Audio(var file: File = File(""), parent: Transform? = null): GFXTrans
             is3D = it
             AudioManager.requestUpdate()
         }
-        val playbackTitles = "Text Playback" to "Stop Playback"
+        val playbackTitles = "Test Playback" to "Stop Playback"
         fun getPlaybackTitle(invert: Boolean) = if((component == null) != invert) playbackTitles.first else playbackTitles.second
         val playbackButton = ButtonPanel(getPlaybackTitle(false), style)
         list += playbackButton

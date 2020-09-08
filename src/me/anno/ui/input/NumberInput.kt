@@ -1,9 +1,12 @@
 package me.anno.ui.input
 
 import me.anno.gpu.Cursor
+import me.anno.input.MouseButton
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.animation.drivers.AnimationDriver
+import me.anno.studio.RemsStudio
 import me.anno.studio.Studio
+import me.anno.studio.history.History
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.groups.PanelListY
@@ -15,50 +18,62 @@ abstract class NumberInput<Type>(
     val type: AnimatedProperty.Type = AnimatedProperty.Type.FLOAT,
     val owningProperty: AnimatedProperty<*>?,
     val indexInProperty: Int
-): PanelListY(style) {
+) : PanelListY(style) {
 
     var hasValue = false
     var lastValue: Type = getValue(type.defaultValue)
     var changeListener = { value: Type -> }
 
-    val titlePanel = object: TextPanel(title, style){
-        override fun onMouseDown(x: Float, y: Float, button: Int) { this@NumberInput.onMouseDown(x,y,button) }
-        override fun onMouseUp(x: Float, y: Float, button: Int) { this@NumberInput.onMouseUp(x,y,button) }
-        override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) { this@NumberInput.onMouseMoved(x,y,dx,dy) }
+    val titlePanel = object : TextPanel(title, style) {
+        override fun onMouseDown(x: Float, y: Float, button: MouseButton) {
+            this@NumberInput.onMouseDown(x, y, button)
+        }
+
+        override fun onMouseUp(x: Float, y: Float, button: MouseButton) {
+            this@NumberInput.onMouseUp(x, y, button)
+        }
+
+        override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
+            this@NumberInput.onMouseMoved(x, y, dx, dy)
+        }
     }
 
-    val inputPanel = object: PureTextInput(style.getChild("deep")){
+    val inputPanel = object : PureTextInput(style.getChild("deep")) {
         val driver get() = owningProperty?.drivers?.get(indexInProperty)
         val hasDriver get() = driver != null
         override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
             val driver = driver
-            if(driver != null){
+            if (driver != null) {
                 val driverName = driver.getDisplayName()
-                if(text != driverName){
+                if (text != driverName) {
                     text = driverName
                     updateChars()
                 }
             }
             super.draw(x0, y0, x1, y1)
         }
-        override fun onMouseDown(x: Float, y: Float, button: Int) {
-            if(!hasDriver){
+
+        override fun onMouseDown(x: Float, y: Float, button: MouseButton) {
+            if (!hasDriver) {
                 super.onMouseDown(x, y, button)
-                this@NumberInput.onMouseDown(x,y,button)
+                this@NumberInput.onMouseDown(x, y, button)
             }
         }
-        override fun onMouseUp(x: Float, y: Float, button: Int) {
-            if(!hasDriver) this@NumberInput.onMouseUp(x,y,button)
+
+        override fun onMouseUp(x: Float, y: Float, button: MouseButton) {
+            if (!hasDriver) this@NumberInput.onMouseUp(x, y, button)
         }
+
         override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
-            if(!hasDriver) this@NumberInput.onMouseMoved(x,y,dx,dy)
+            if (!hasDriver) this@NumberInput.onMouseMoved(x, y, dx, dy)
         }
-        override fun onMouseClicked(x: Float, y: Float, button: Int, long: Boolean) {
-            if(owningProperty != null && (button != 0 || long)){
+
+        override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
+            if (owningProperty != null && (!button.isLeft || long)) {
                 val oldDriver = owningProperty.drivers[indexInProperty]
-                AnimationDriver.openDriverSelectionMenu(x.toInt(), y.toInt(), oldDriver){
+                AnimationDriver.openDriverSelectionMenu(x.toInt(), y.toInt(), oldDriver) {
                     owningProperty.drivers[indexInProperty] = it
-                    if(it != null) Studio.selectedInspectable = it
+                    if (it != null) Studio.selectedInspectable = it
                     else {
                         text = stringify(lastValue)
                     }
@@ -69,10 +84,10 @@ abstract class NumberInput<Type>(
         }
 
         override fun onEmpty(x: Float, y: Float) {
-            if(hasDriver){
+            if (hasDriver) {
                 owningProperty?.drivers?.set(indexInProperty, null)
-                this@NumberInput.onEmpty(x,y)
-            } else this@NumberInput.onEmpty(x,y)
+                this@NumberInput.onEmpty(x, y)
+            } else this@NumberInput.onEmpty(x, y)
         }
     }
 
@@ -80,17 +95,17 @@ abstract class NumberInput<Type>(
 
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
         val focused1 = titlePanel.isInFocus || inputPanel.isInFocus
-        if(focused1) isSelectedListener?.invoke()
+        if (focused1) isSelectedListener?.invoke()
         val focused2 = focused1 || (owningProperty != null && owningProperty == Studio.selectedProperty)
-        inputPanel.visibility = if(focused2) Visibility.VISIBLE else Visibility.GONE
+        inputPanel.visibility = if (focused2) Visibility.VISIBLE else Visibility.GONE
         super.draw(x0, y0, x1, y1)
         updateValueMaybe()
     }
 
-    fun updateValueMaybe(){
-        if(inputPanel.isInFocus){
+    fun updateValueMaybe() {
+        if (inputPanel.isInFocus) {
             wasInFocus = true
-        } else if(wasInFocus){
+        } else if (wasInFocus) {
             // apply the value, or reset if invalid
             val value = parseValue(inputPanel.text) ?: lastValue
             setValue(value)
@@ -98,7 +113,7 @@ abstract class NumberInput<Type>(
         }
     }
 
-    fun setPlaceholder(placeholder: String){
+    fun setPlaceholder(placeholder: String) {
         inputPanel.placeholder = placeholder
     }
 
@@ -108,7 +123,7 @@ abstract class NumberInput<Type>(
         this += titlePanel
         this += inputPanel.setChangeListener {
             val newValue = parseValue(it)
-            if(newValue != null){
+            if (newValue != null) {
                 lastValue = newValue
                 changeListener(newValue)
             }
@@ -117,13 +132,14 @@ abstract class NumberInput<Type>(
         inputPanel.placeholder = title
     }
 
-    fun setValue(v: Type){
-        if(v != lastValue || !hasValue){
+    fun setValue(v: Type) {
+        if (v != lastValue || !hasValue) {
             hasValue = true
             lastValue = v
             changeListener(v)
             inputPanel.text = stringify(v)
             inputPanel.updateChars()
+            RemsStudio.onSmallChange()
         }
     }
 
@@ -140,7 +156,7 @@ abstract class NumberInput<Type>(
         return this
     }
 
-    override fun onMouseDown(x: Float, y: Float, button: Int) {
+    override fun onMouseDown(x: Float, y: Float, button: MouseButton) {
         super.onMouseDown(x, y, button)
         mouseIsDown = true
     }
@@ -148,14 +164,14 @@ abstract class NumberInput<Type>(
     var mouseIsDown = false
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
         super.onMouseMoved(x, y, dx, dy)
-        if(mouseIsDown){
+        if (mouseIsDown) {
             changeValue(dx, dy)
         }
     }
 
     abstract fun changeValue(dx: Float, dy: Float)
 
-    override fun onMouseUp(x: Float, y: Float, button: Int) {
+    override fun onMouseUp(x: Float, y: Float, button: MouseButton) {
         super.onMouseUp(x, y, button)
         mouseIsDown = false
     }

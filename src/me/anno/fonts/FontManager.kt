@@ -1,8 +1,7 @@
 package me.anno.fonts
 
-import me.anno.gpu.GFX
+import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.texture.ITexture2D
-import me.anno.gpu.texture.Texture2D
 import me.anno.objects.cache.Cache
 import me.anno.objects.cache.TextureCache
 import org.apache.logging.log4j.LogManager
@@ -12,6 +11,7 @@ import java.lang.RuntimeException
 import kotlin.concurrent.thread
 import kotlin.math.exp
 import kotlin.math.ln
+import kotlin.math.min
 import kotlin.math.round
 
 // todo spell check xD
@@ -22,9 +22,9 @@ object FontManager {
 
     private var hasFonts = false
     private val awtFontList = ArrayList<String>()
-    private val awtFonts = HashMap<String, Font>()
+    private val awtFonts = HashMap<FontKey, Font>()
 
-    private val fonts = HashMap<String, XFont>()
+    private val fonts = HashMap<FontKey, XFont>()
 
     fun requestFontList(callback: (List<String>) -> Unit){
         if(hasFonts) callback(awtFontList)
@@ -58,8 +58,15 @@ object FontManager {
         if(text.isEmpty()) return null
         val fontSizeIndex = getFontSizeIndex(fontSize)
         val sub = fontSizeIndex * 4 + (if(bold) 1 else 0) + (if(italic) 2 else 0)
-        val key = TextCacheKey(text, fontName, sub, widthLimit)
-        val cache = Cache.getEntry(key, fontTimeout, asyncGenerator = !GFX.loadTexturesSync.peek()){
+        val widthLimit2 = if(widthLimit < 0) -1 else {
+            loadTexturesSync.push(true)
+            val w = getString(fontName, fontSize, text, bold, italic, -1)!!.w
+            loadTexturesSync.pop()
+            val step = fontSize.toInt()
+            min(w, widthLimit/step*step)
+        }
+        val key = TextCacheKey(text, fontName, sub, widthLimit2)
+        val cache = Cache.getEntry(key, fontTimeout, asyncGenerator = !loadTexturesSync.peek()){
             // println("Created texture for $text")
             val font = getFont(fontName, fontSize, fontSizeIndex, italic, bold)
             val averageFontSize = getAvgFontSize(fontSizeIndex)
@@ -75,21 +82,24 @@ object FontManager {
         return getFont(name, averageFontSize, fontSizeIndex, bold, italic)
     }
 
+    data class FontKey(val name: String, val sizeIndex: Int, val bold: Boolean, val italic: Boolean)
+
     private fun getFont(name: String, fontSize: Float, fontSizeIndex: Int, bold: Boolean, italic: Boolean): XFont {
-        val font = fonts[name]
+        val key = FontKey(name, fontSizeIndex, bold, italic)//"$name:$fontSizeIndex:$boldItalicStyle"
+        val font = fonts[key]
         if(font != null) return font
         val boldItalicStyle = (if(italic) Font.ITALIC else 0) or (if(bold) Font.BOLD else 0)
-        val awtName = "$name:$fontSizeIndex:$boldItalicStyle"
-        val font2 = AWTFont(awtFonts[awtName] ?: getDefaultFont(name)?.deriveFont(boldItalicStyle, fontSize) ?: throw RuntimeException("Font $name was not found"))
-        fonts[awtName] = font2
+        val font2 = AWTFont(awtFonts[key] ?: getDefaultFont(name)?.deriveFont(boldItalicStyle, fontSize) ?: throw RuntimeException("Font $name was not found"))
+        fonts[key] = font2
         return font2
     }
 
     private fun getDefaultFont(name: String): Font? {
-        val cached = awtFonts[name]
+        val key = FontKey(name, Int.MIN_VALUE, false, false)
+        val cached = awtFonts[key]
         if(cached != null) return cached
         val font = Font.decode(name) ?: return null
-        awtFonts[name] = font
+        awtFonts[key] = font
         return font
     }
 

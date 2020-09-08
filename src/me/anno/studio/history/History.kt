@@ -33,6 +33,7 @@ object History: Saveable(){
     }
 
     fun undo(){
+        println("undo")
         synchronized(elements){
             // if the next insert index was 1,
             // then there were only 1 entry,
@@ -45,6 +46,7 @@ object History: Saveable(){
     }
 
     fun redo(){
+        println("redo")
         synchronized(elements){
             if(nextInsertIndex < elements.size){
                 elements[nextInsertIndex++].apply()
@@ -52,11 +54,15 @@ object History: Saveable(){
         }
     }
 
+    /**
+     * put the old state here, so it can be reversed
+     * */
     fun put(element: HistoryState<*>){
         synchronized(elements){
             while(nextInsertIndex > elements.size && elements.isNotEmpty()){
                 elements.pop()
             }
+            // todo don't push, if they are the same
             elements.push(element)
             nextInsertIndex = elements.size
             popIfFull()

@@ -15,6 +15,7 @@ import me.anno.studio.Studio.editorTimeDilation
 import me.anno.studio.Studio.targetFPS
 import me.anno.studio.Studio.updateAudio
 import me.anno.studio.UILayouts
+import me.anno.studio.history.History
 import me.anno.ui.base.Panel
 import org.apache.logging.log4j.LogManager
 import java.io.File
@@ -41,56 +42,60 @@ object ActionManager {
          * - up -> up
          * */
 
-        val defaultValue = StringMap()
-        defaultValue["global.space.down.${Modifiers[false, false]}"] = "Play|Pause"
-        defaultValue["global.space.down.${Modifiers[false, true]}"] = "PlaySlow|Pause"
-        defaultValue["global.space.down.${Modifiers[true, false]}"] = "PlayReversed|Pause"
-        defaultValue["global.space.down.${Modifiers[true, true]}"] = "PlayReversedSlow|Pause"
-        defaultValue["global.f11.down"] = "ToggleFullscreen"
-        defaultValue["global.print.down"] = "PrintLayout"
-        defaultValue["global.left.up"] = "DragEnd"
-        defaultValue["global.f5.down.${Modifiers[true, false]}"] = "ClearCache"
-        defaultValue["global.comma.down"] = "PreviousFrame"
-        defaultValue["global.dot.down"] = "NextFrame"
+        val keyMap = StringMap()
+        keyMap["global.space.down.${Modifiers[false, false]}"] = "Play|Pause"
+        keyMap["global.space.down.${Modifiers[false, true]}"] = "PlaySlow|Pause"
+        keyMap["global.space.down.${Modifiers[true, false]}"] = "PlayReversed|Pause"
+        keyMap["global.space.down.${Modifiers[true, true]}"] = "PlayReversedSlow|Pause"
+        keyMap["global.f11.down"] = "ToggleFullscreen"
+        keyMap["global.print.down"] = "PrintLayout"
+        keyMap["global.left.up"] = "DragEnd"
+        keyMap["global.f5.down.${Modifiers[true, false]}"] = "ClearCache"
+        keyMap["global.comma.down"] = "PreviousFrame"
+        keyMap["global.dot.down"] = "NextFrame"
+        keyMap["global.z.down.${Modifiers[true, false]}"] = "Undo"
+        keyMap["global.z.down.${Modifiers[true, true]}"] = "Redo"
+        keyMap["global.y.down.${Modifiers[true, false]}"] = "Undo"
+        keyMap["global.y.down.${Modifiers[true, true]}"] = "Redo"
 
         // press instead of down for the delay
-        defaultValue["FileEntry.left.press"] = "DragStart"
-        defaultValue["FileEntry.left.double"] = "Enter|Open"
-        defaultValue["FileExplorer.right.down"] = "Back"
-        defaultValue["FileExplorer.mousebackward.down"] = "Back"
-        defaultValue["TreeViewPanel.left.press"] = "DragStart"
+        keyMap["FileEntry.left.press"] = "DragStart"
+        keyMap["FileEntry.left.double"] = "Enter|Open"
+        keyMap["FileExplorer.right.down"] = "Back"
+        keyMap["FileExplorer.mousebackward.down"] = "Back"
+        keyMap["TreeViewPanel.left.press"] = "DragStart"
 
-        defaultValue["HSVBox.left.down"] = "selectColor"
-        defaultValue["HSVBox.left.press-unsafe"] = "selectColor"
+        keyMap["HSVBox.left.down"] = "selectColor"
+        keyMap["HSVBox.left.press-unsafe"] = "selectColor"
 
-        defaultValue["SceneView.right.p"] = "Turn"
-        defaultValue["SceneView.left.p"] = "MoveObject"
-        defaultValue["SceneView.left.p.${Modifiers[false, true]}"] = "MoveObjectAlternate"
-        defaultValue["SceneView.numpad0.down"] = "ResetCamera"
-        defaultValue["SceneView.w.p"] = "MoveForward"
-        defaultValue["SceneView.a.p"] = "MoveLeft"
-        defaultValue["SceneView.s.p"] = "MoveBackward"
-        defaultValue["SceneView.d.p"] = "MoveRight"
-        defaultValue["SceneView.q.p"] = "MoveDown"
-        defaultValue["SceneView.e.p"] = "MoveUp"
-        defaultValue["SceneView.r.p"] = "SetMode(MOVE)"
-        defaultValue["SceneView.t.p"] = "SetMode(SCALE)"
-        defaultValue["SceneView.z.p"] = "SetMode(ROTATE)"
-        defaultValue["SceneView.y.p"] = "SetMode(ROTATE)"
+        keyMap["SceneView.right.p"] = "Turn"
+        keyMap["SceneView.left.p"] = "MoveObject"
+        keyMap["SceneView.left.p.${Modifiers[false, true]}"] = "MoveObjectAlternate"
+        keyMap["SceneView.numpad0.down"] = "ResetCamera"
+        keyMap["SceneView.w.p"] = "MoveForward"
+        keyMap["SceneView.a.p"] = "MoveLeft"
+        keyMap["SceneView.s.p"] = "MoveBackward"
+        keyMap["SceneView.d.p"] = "MoveRight"
+        keyMap["SceneView.q.p"] = "MoveDown"
+        keyMap["SceneView.e.p"] = "MoveUp"
+        keyMap["SceneView.r.p"] = "SetMode(MOVE)"
+        keyMap["SceneView.t.p"] = "SetMode(SCALE)"
+        keyMap["SceneView.z.p"] = "SetMode(ROTATE)"
+        keyMap["SceneView.y.p"] = "SetMode(ROTATE)"
 
-        defaultValue["GraphEditorBody.arrowLeft.typed"] = "MoveLeft"
-        defaultValue["GraphEditorBody.arrowRight.typed"] = "MoveRight"
+        keyMap["GraphEditorBody.arrowLeft.typed"] = "MoveLeft"
+        keyMap["GraphEditorBody.arrowRight.typed"] = "MoveRight"
 
-        defaultValue["PureTextInputML.delete.typed"] = "DeleteAfter"
-        defaultValue["PureTextInputML.backspace.typed"] = "DeleteBefore"
-        defaultValue["PureTextInputML.leftArrow.typed"] = "MoveLeft"
-        defaultValue["PureTextInputML.rightArrow.typed"] = "MoveRight"
-        defaultValue["PureTextInputML.upArrow.typed"] = "MoveUp"
-        defaultValue["PureTextInputML.downArrow.typed"] = "MoveDown"
-        defaultValue["PureTextInput.leftArrow.typed"] = "MoveLeft"
-        defaultValue["PureTextInput.rightArrow.typed"] = "MoveRight"
+        keyMap["PureTextInputML.delete.typed"] = "DeleteAfter"
+        keyMap["PureTextInputML.backspace.typed"] = "DeleteBefore"
+        keyMap["PureTextInputML.leftArrow.typed"] = "MoveLeft"
+        keyMap["PureTextInputML.rightArrow.typed"] = "MoveRight"
+        keyMap["PureTextInputML.upArrow.typed"] = "MoveUp"
+        keyMap["PureTextInputML.downArrow.typed"] = "MoveDown"
+        keyMap["PureTextInput.leftArrow.typed"] = "MoveLeft"
+        keyMap["PureTextInput.rightArrow.typed"] = "MoveRight"
 
-        parseConfig(defaultValue)
+        parseConfig(keyMap)
 
     }
 
@@ -242,6 +247,12 @@ object ActionManager {
                         // Video.clearCache()
                         true
                     }
+                    "Redo" -> {
+                        History.redo()
+                        true }
+                    "Undo" -> {
+                        History.undo()
+                        true }
                     else -> false
                 }) return
         }

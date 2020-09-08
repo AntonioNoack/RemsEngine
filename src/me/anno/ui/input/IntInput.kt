@@ -4,6 +4,7 @@ import me.anno.gpu.GFX
 import me.anno.input.Input.isShiftDown
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.parser.SimpleExpressionParser
+import me.anno.studio.Studio.shiftSlowdown
 import me.anno.ui.style.Style
 import me.anno.utils.pow
 import java.lang.Exception
@@ -59,8 +60,8 @@ open class IntInput(
 
     var savedDelta = 0f
     override fun changeValue(dx: Float, dy: Float) {
-        val scale = 1f
-        val size = scale * (if(isShiftDown) 4f else 20f) / max(GFX.width,GFX.height)
+        val scale = 20f
+        val size = scale * shiftSlowdown / max(GFX.width,GFX.height)
         val dx0 = dx*size
         val dy0 = dy*size
         val delta = dx0-dy0

@@ -76,7 +76,11 @@ class ImageData(file: File): CacheData {
             }
             else -> {
                 texture.create {
-                    Imaging.getBufferedImage(file) ?: throw IOException("Format of $file is not supported.")
+                    try {
+                        Imaging.getBufferedImage(file) ?: throw IOException("Format of $file is not supported.")
+                    } catch (e: Exception){
+                        throw IOException("Format of $file is not supported: ${e.message}.")
+                    }
                 }
             }
         }

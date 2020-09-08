@@ -8,6 +8,7 @@ import me.anno.video.Frame
 import me.anno.video.LastFrame
 import java.io.InputStream
 import java.lang.RuntimeException
+import java.util.concurrent.atomic.AtomicInteger
 
 class I420Frame(iw: Int, ih: Int): Frame(iw,ih){
 
@@ -54,6 +55,15 @@ class I420Frame(iw: Int, ih: Int): Frame(iw,ih){
         y.bind(offset, nearestFiltering)
     }
 
+    // 319x yuv = 2,400 MB
+    // 7.5 MB / yuv
+    // 7.5 MB / 1.5 =
+    // 5 MB / full channel
+    // = 2.4x what is really needed...
+    // 305x RGBA uv = 7,000 MB
+    // 23 MB / RGBA uv
+    // 5.1 MB / full channel
+    // -> awkward....
     override fun destroy(){
         y.destroy()
         u.destroy()

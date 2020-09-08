@@ -79,9 +79,10 @@ class CustomListX(style: Style): PanelListX(style), CustomList {
 
             val child = children.first()
             child.placeInParent(x, y)
-            child.w = w
-            child.h = h
-            child.applyConstraints()
+            child.applyPlacement(w, h)
+            //child.applyConstraints()
+            /*child.w = w
+            child.h = h*/
 
         } else {
 
@@ -100,8 +101,9 @@ class CustomListX(style: Style): PanelListX(style), CustomList {
                     (betterWeight / sumWeight * available).roundToInt()
                 }
                 child.calculateSize(childW, h)
-                child.applyConstraints()
+                // child.applyConstraints()
                 child.placeInParent(childX, y)
+                child.applyPlacement(childW, h)
                 childX += min(childW, child.w)
             }
 

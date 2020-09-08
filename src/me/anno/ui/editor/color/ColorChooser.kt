@@ -7,6 +7,7 @@ import me.anno.gpu.TextureLib.colorShowTexture
 import me.anno.input.Input
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.image.svg.SVGStyle.Companion.parseColorComplex
+import me.anno.studio.RemsStudio
 import me.anno.ui.base.Panel
 import me.anno.ui.base.SpacePanel
 import me.anno.ui.base.Visibility
@@ -17,6 +18,7 @@ import me.anno.ui.style.Style
 import me.anno.utils.clamp
 import me.anno.utils.f3
 import me.anno.utils.get
+import me.anno.utils.toHex
 import org.hsluv.HSLuvColorSpace
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -133,6 +135,7 @@ class ColorChooser(style: Style, withAlpha: Boolean, val owningProperty: Animate
         this.colorSpace = newColorSpace
         val rgb = colorSpace.toRGB(Vector3f(hue, saturation, lightness))
         changeRGBListener(rgb.x, rgb.y, rgb.z, opacity)
+        RemsStudio.onSmallChange()
     }
 
     fun drawColorBox(element: Panel, d0: Vector3f, du: Vector3f, dv: Vector3f, dh: Float, mainBox: Boolean){
@@ -173,9 +176,11 @@ class ColorChooser(style: Style, withAlpha: Boolean, val owningProperty: Animate
     }
 
     // todo copy whole timelines?
-    override fun onCopyRequested(x: Float, y: Float) =
-        if(Input.isShiftDown && owningProperty != null) owningProperty.toString()
+    override fun onCopyRequested(x: Float, y: Float): String {
+        println(colorSpace.toRGB(Vector3f(hue, saturation, lightness)).toHex())
+        return if(Input.isShiftDown && owningProperty != null) owningProperty.toString()
         else "${colorSpace.serializationName}(${hue.f3()},${saturation.f3()},${lightness.f3()},${opacity.f3()})"
+    }
 
     override fun onPaste(x: Float, y: Float, data: String, type: String) {
         when(val color = parseColorComplex(data)){

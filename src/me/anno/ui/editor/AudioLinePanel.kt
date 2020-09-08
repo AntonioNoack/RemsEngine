@@ -7,6 +7,7 @@ import me.anno.gpu.GFX
 import me.anno.input.Input
 import me.anno.objects.Audio
 import me.anno.objects.cache.Cache
+import me.anno.studio.Studio.shiftSlowdown
 import me.anno.ui.base.Panel
 import me.anno.ui.style.Style
 import me.anno.utils.clamp
@@ -69,6 +70,7 @@ class AudioLinePanel(var meta: FFMPEGMetadata, val audio: Audio, style: Style): 
 
     fun getTimeAt(x: Int) = time0 + dt * (x-this.x) / w
     fun getY(amplitude: Int) = y + h/2 - h * amplitude / 65536
+    fun getRelY(amplitude: Int) = h/2 - h * amplitude / 65536
 
     override fun calculateSize(w: Int, h: Int) {
         super.calculateSize(w, h)
@@ -96,12 +98,13 @@ class AudioLinePanel(var meta: FFMPEGMetadata, val audio: Audio, style: Style): 
 
         if(!isValid || lastW != w) fillBuffer()
 
+        val y = y
         try {
             for(x in x0 until x1){
                 val index = x - x0
                 val minY = minValue[index]
                 val maxY = maxValue[index]
-                GFX.drawRect(x, minY, 1, maxY-minY+1, black)
+                GFX.drawRect(x, y+minY, 1, maxY-minY+1, black)
             }
         } catch (e: IndexOutOfBoundsException){
             // buffer was changed -> we don't really care;
@@ -177,8 +180,8 @@ class AudioLinePanel(var meta: FFMPEGMetadata, val audio: Audio, style: Style): 
 
                     minValue = -minValue
 
-                    min[x-x0] = getY(maxValue)
-                    max[x-x0] = getY(minValue)
+                    min[x-x0] = getRelY(maxValue)
+                    max[x-x0] = getRelY(minValue)
 
                     i0 = i1
 
@@ -188,8 +191,10 @@ class AudioLinePanel(var meta: FFMPEGMetadata, val audio: Audio, style: Style): 
     }
 
     override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float) {
+        return super.onMouseWheel(x, y, dx, dy) // annoying
         // requestBuffer() ?: return
-        val size = (if(Input.isShiftDown) 4f else 20f) / max(GFX.width, GFX.height)
+        val scale = 20f * shiftSlowdown
+        val size = scale / max(GFX.width, GFX.height)
         val dx0 = dx*size
         val dy0 = dy*size
         val delta = dx0-dy0

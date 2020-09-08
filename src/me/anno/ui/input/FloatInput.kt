@@ -5,13 +5,13 @@ import me.anno.input.Input.isShiftDown
 import me.anno.utils.pow
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.parser.SimpleExpressionParser
+import me.anno.studio.Studio.shiftSlowdown
 import me.anno.ui.style.Style
 import me.anno.utils.get
 import org.joml.Quaternionf
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
-import org.lwjgl.system.CallbackI
 import java.lang.RuntimeException
 import kotlin.math.max
 import kotlin.math.roundToInt
@@ -28,7 +28,7 @@ open class FloatInput(
         when(val value = owningProperty[time]){
             is Float -> setValue(value)
             is Double -> setValue(value)
-            else -> throw RuntimeException("Unknown type $value for ${getClassName()}")
+            else -> throw RuntimeException("Unknown type $value for ${javaClass.simpleName}")
         }
     }
 
@@ -58,8 +58,8 @@ open class FloatInput(
         else v.toFloat().toString()
 
     override fun changeValue(dx: Float, dy: Float) {
-        val scale = 1f
-        val size = scale * (if(isShiftDown) 4f else 20f) / max(GFX.width,GFX.height)
+        val scale = 20f * shiftSlowdown
+        val size = scale / max(GFX.width,GFX.height)
         val dx0 = dx*size
         val dy0 = dy*size
         val delta = dx0-dy0

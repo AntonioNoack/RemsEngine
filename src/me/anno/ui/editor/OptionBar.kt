@@ -1,6 +1,7 @@
 package me.anno.ui.editor
 
 import me.anno.gpu.GFX
+import me.anno.input.MouseButton
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.groups.PanelListX
@@ -25,12 +26,9 @@ class OptionBar(style: Style): PanelListX(null, style.getChild("options")) {
             actions[id] = minor
         }
 
-        override fun onMouseClicked(x: Float, y: Float, button: Int, long: Boolean) {
-            GFX.openMenu(this.x, this.y + this.h, "", actions.values.map {  minor ->
-                minor.name to { b: Int, l: Boolean ->
-                    if(b == 0) minor.action()
-                    true
-                }
+        override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
+            GFX.openMenu(this.x, this.y + this.h, "", actions.values.map { minor ->
+                minor.name to { minor.action() }
             })
         }
 

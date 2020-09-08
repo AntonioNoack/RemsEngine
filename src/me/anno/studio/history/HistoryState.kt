@@ -5,6 +5,8 @@ import me.anno.io.base.BaseWriter
 
 abstract class HistoryState<V>(): Saveable(){
 
+    val creationTime = System.nanoTime()
+
     var state: V? = null
 
     fun apply(){

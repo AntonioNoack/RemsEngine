@@ -2,6 +2,7 @@ package me.anno.ui.input
 
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
+import me.anno.input.MouseButton
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.style.Style
@@ -36,12 +37,11 @@ class EnumInput(private val title: String, withTitle: Boolean, startValue: Strin
         return this
     }
 
-    override fun onMouseClicked(x: Float, y: Float, button: Int, long: Boolean) {
+    override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
         GFX.openMenu(this.x, this.y, "Select the $title", options.map { fontName ->
-            fontName to { b: Int, l: Boolean ->
+            fontName to {
                 inputPanel.text = fontName
                 changeListener(fontName)
-                true
             }
         })
     }

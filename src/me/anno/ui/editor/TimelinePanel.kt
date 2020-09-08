@@ -4,6 +4,7 @@ import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle
 import me.anno.gpu.GFX
 import me.anno.input.Input
+import me.anno.input.MouseButton
 import me.anno.studio.Studio
 import me.anno.ui.base.Panel
 import me.anno.ui.style.Style
@@ -18,8 +19,10 @@ open class TimelinePanel(style: Style): Panel(style) {
     val accentColor = style.getColor("accentColor", DefaultStyle.black)
 
     // time
-    var dtHalfLength = 30.0
-    var centralTime = dtHalfLength
+    companion object {
+        var dtHalfLength = 30.0
+        var centralTime = dtHalfLength
+    }
 
     val tinyFontSize = style.getSize("tinyTextSize", 10)
     val fontColor = style.getColor("textColor", DefaultStyle.fontGray)
@@ -83,9 +86,7 @@ open class TimelinePanel(style: Style): Panel(style) {
                 val text = getTimeString(time, timeStep)
                 GFX.drawRect(x, lineY, 1, lineH, lineColor)
                 if(drawText){
-                    val size = GFX.getTextSize(fontName, fontSize, isBold, isItalic, text, -1)
-                    val w = size.first
-                    GFX.drawText(x - w/2, y0, fontName, fontSize, isBold, isItalic, text, fontColor, backgroundColor, -1)
+                    GFX.drawText(x, y0, fontName, fontSize, isBold, isItalic, text, fontColor, backgroundColor, -1, true)
                 }
             }
         }
@@ -119,7 +120,7 @@ open class TimelinePanel(style: Style): Panel(style) {
         return timeFractions.minBy { abs(it - time) }!!.toDouble()
     }
 
-    override fun onMouseClicked(x: Float, y: Float, button: Int, long: Boolean) {
+    override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
         jumpToX(x)
     }
 

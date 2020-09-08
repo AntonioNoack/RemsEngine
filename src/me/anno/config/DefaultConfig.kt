@@ -88,6 +88,8 @@ object DefaultConfig: StringMap() {
 
     fun newInstances(){
 
+        // removing this block makes the studio start 0.1s slower... wtf...
+
         val t0 = System.nanoTime()
 
         val newInstances: Map<String, Transform> = mapOf(

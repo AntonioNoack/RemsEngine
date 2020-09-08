@@ -1,13 +1,17 @@
 package me.anno.ui.editor.sceneView
 
+import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.deepDark
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.deltaTime
 import me.anno.gpu.GFX.select
+import me.anno.gpu.GFX.windowStack
+import me.anno.gpu.Window
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.ShaderPlus
 import me.anno.input.Input
 import me.anno.input.Input.mouseKeysDown
+import me.anno.input.MouseButton
 import me.anno.input.Touch.Companion.touches
 import me.anno.objects.Camera
 import me.anno.objects.Transform
@@ -19,10 +23,9 @@ import me.anno.studio.Studio.editorTime
 import me.anno.studio.Studio.nullCamera
 import me.anno.studio.Studio.root
 import me.anno.studio.Studio.selectedTransform
+import me.anno.studio.Studio.shiftSlowdown
 import me.anno.studio.Studio.targetHeight
 import me.anno.studio.Studio.targetWidth
-import me.anno.ui.base.IconPanel
-import me.anno.ui.base.TextPanel
 import me.anno.ui.base.groups.PanelFrame
 import me.anno.ui.editor.CustomContainer
 import me.anno.ui.simple.SimplePanel
@@ -50,6 +53,12 @@ import kotlin.math.roundToInt
 // todo right click on input to get context menu, e.g. to reset
 
 class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
+
+    constructor(sceneView: SceneView): this(DefaultConfig.style){
+        camera = sceneView.camera
+        isLocked2D = sceneView.isLocked2D
+        mode = sceneView.mode
+    }
 
     init {
 
@@ -268,7 +277,7 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
     var lastTouchZoom = 0f
     fun parseTouchInput(){
         // todo rotate/move our camera or the selected object?
-        val size = - (if(Input.isShiftDown) 4f else 20f) / GFX.height
+        val size = - 20f * shiftSlowdown / GFX.height
         when(touches.size){
             2 -> {
                 val first = touches.first()
@@ -365,7 +374,7 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
         // fov is relative to height -> modified to depend on height
-        val size = (if(Input.isShiftDown) 4f else 20f) * (if(selectedTransform === camera) -1f else 1f) / GFX.height
+        val size = 20f * shiftSlowdown * (if(selectedTransform === camera) -1f else 1f) / GFX.height
         val oldX = x-dx
         val oldY = y-dy
         val dx0 = dx*size
@@ -384,7 +393,7 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
         if(isLocked2D) return
         // move the camera
         // todo only do, if not locked
-        val size = (if(Input.isShiftDown) 4f else 20f) * (if(selectedTransform is Camera) -1f else 1f) / max(GFX.width,GFX.height)
+        val size = 20f * shiftSlowdown * (if(selectedTransform is Camera) -1f else 1f) / max(GFX.width,GFX.height)
         val dx0 = dx*size
         val dy0 = dy*size
         val scaleFactor = -10f
@@ -425,11 +434,20 @@ class SceneView(style: Style): PanelFrame(null, style.getChild("sceneView")){
         return true
     }
 
-    override fun onKeyDown(x: Float, y: Float, key: Int) {
-        super.onKeyDown(x, y, key)
+    fun goFullscreen(){
+        // todo check if it's already fullscreen...
+        // GFX.toggleFullscreen()
+        val root = rootPanel
+        val view = SceneView(this)
+        val window = Window(view, 0, 0)
+        windowStack.push(window)
     }
 
-    override fun onMouseClicked(x: Float, y: Float, button: Int, long: Boolean) {
+    override fun onDoubleClick(x: Float, y: Float, button: MouseButton) {
+        goFullscreen()
+    }
+
+    override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
         if((parent as? CustomContainer)?.clicked(x,y) != true){
 
             var isProcessed = false

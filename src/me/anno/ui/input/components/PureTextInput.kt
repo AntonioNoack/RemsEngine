@@ -6,6 +6,8 @@ import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.input.Input.isControlDown
 import me.anno.input.Input.isShiftDown
 import me.anno.input.Input.mouseKeysDown
+import me.anno.input.MouseButton
+import me.anno.studio.RemsStudio
 import me.anno.utils.clamp
 import me.anno.ui.base.TextPanel
 import me.anno.ui.style.Style
@@ -33,11 +35,13 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
         characters.clear()
         characters.addAll(text.codePoints().toList())
         changeListener(text)
+        RemsStudio.onSmallChange()
     }
 
     fun updateText(){
         text = characters.joinChars()
         changeListener(text)
+        RemsStudio.onSmallChange()
     }
 
     var cursor1 = 0
@@ -73,7 +77,6 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
 
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
         loadTexturesSync.push(true)
-        // super.draw(x0, y0, x1, y1)
         drawBackground()
         val x = x + padding.left
         val y = y + padding.top
@@ -81,9 +84,6 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
         val textColor = if(usePlaceholder) placeholderColor else effectiveTextColor
         val drawnText = if(usePlaceholder) placeholder else text
         val wh = drawText(drawingOffset, 0, drawnText, textColor)
-        /*GFX.drawText(x+drawingOffset, y, fontSize, drawnText,
-            if(usePlaceholder) placeholderColor else if(isInFocus) focusTextColor else textColor,
-            backgroundColor)*/
         val blinkVisible = ((System.nanoTime() / 500_000_000L) % 2L == 0L)
         val showBars = blinkVisible || wasJustChanged
         if(isInFocus && (showBars || cursor1 != cursor2)){
@@ -205,7 +205,7 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
         return this
     }
 
-    override fun onMouseDown(x: Float, y: Float, button: Int) {
+    override fun onMouseDown(x: Float, y: Float, button: MouseButton) {
         lastMove = GFX.lastTime
         if(isControlDown){
             selectAll()
@@ -231,7 +231,7 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
         }
     }
 
-    override fun onDoubleClick(x: Float, y: Float, button: Int) {
+    override fun onDoubleClick(x: Float, y: Float, button: MouseButton) {
         cursor1 = 0
         cursor2 = characters.size
     }

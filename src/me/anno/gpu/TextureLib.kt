@@ -10,13 +10,13 @@ object TextureLib {
     val colorShowTexture = Texture2D(2, 2, 1)
 
     fun init(){
-        invisibleTexture.create(ByteArray(4) { 0.toByte() })
-        whiteTexture.create(
+        invisibleTexture.createRGBA(ByteArray(4) { 0.toByte() })
+        whiteTexture.createRGBA(
             byteArrayOf(255.toByte(), 255.toByte(), 255.toByte(), 255.toByte()))
         whiteTexture.filtering(true)
         stripeTexture.createMonochrome(
             byteArrayOf(255.toByte(), 255.toByte(), 255.toByte(), 255.toByte(), 255.toByte()))
-        colorShowTexture.create(
+        colorShowTexture.createRGBA(
             intArrayOf(
                 255,255,255,127, 255,255,255,255,
                 255,255,255,255, 255,255,255,127

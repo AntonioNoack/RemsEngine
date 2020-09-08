@@ -1,6 +1,7 @@
 package me.anno.objects.animation.drivers
 
 import me.anno.gpu.GFX
+import me.anno.input.MouseButton
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
@@ -65,26 +66,19 @@ abstract class AnimationDriver: Saveable(), Inspectable {
 
     companion object {
         fun openDriverSelectionMenu(x: Int, y: Int, oldDriver: AnimationDriver?, whenSelected: (AnimationDriver?) -> Unit){
-            fun add(create: () -> AnimationDriver) = { button: Int, isLong: Boolean ->
-                if(true){
-                    whenSelected(create())
-                    true
-                } else false
-            }
+            fun add(create: () -> AnimationDriver): () -> Unit = { whenSelected(create()) }
             val options = arrayListOf(
                 "Harmonics" to add { HarmonicDriver() },
                 "Noise" to add { PerlinNoiseDriver() },
                 "Custom" to add { CustomDriver() }
             )
             if(oldDriver != null){
-                options.add(0, "Customize" to { button, isLong ->
+                options.add(0, "Customize" to {
                     Studio.selectedInspectable = oldDriver
-                    true
                 })
-                options += "Remove Driver" to { button, isLong ->
+                options += "Remove Driver" to {
                     // todo make a save point
                     whenSelected(null)
-                    true
                 }
             }
             GFX.openMenu(x, y, if(oldDriver == null) "Add Driver" else "Change Driver", options)

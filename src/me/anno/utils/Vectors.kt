@@ -129,6 +129,8 @@ fun Vector2d.isInsideTriangle2(a: Vector2d, b: Vector2d, c: Vector2d): Boolean {
 
 }
 
+fun Int.toHex16() = (256 or this).toString(16).substring(1)
+fun Vector3f.toHex() = "#${(x*255).toInt().toHex16()}${(y*255).toInt().toHex16()}${(z*255).toInt().toHex16()}"
 
 fun Vector3f.print() = "($x $y $z)"
 fun Vector4f.print() = "($x $y $z $w)"

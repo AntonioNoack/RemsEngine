@@ -55,20 +55,26 @@ object Tooltips {
 
         if(delta >= tooltipReactionTime){
 
+            val w = GFX.width
+            val h = GFX.height
+
             val tooltipText = hoveredPanel?.getTooltipText(mouseX, mouseY)
-            if(tooltipText != null){
+            if(tooltipText != null && tooltipText.isNotBlank()){
                 textPanel.text = tooltipText
-                container.calculateSize(GFX.width, GFX.height)
-                container.applyConstraints()
-                val x = min(mouseX.roundToInt() + 10, GFX.width - container.w)
-                val y = min(mouseY.roundToInt() - 20 , GFX.height - container.h)
+                container.calculateSize(w, h)
+                // container.applyConstraints()
+                val x = min(mouseX.roundToInt() + 10, w - container.minW)
+                val y = min(mouseY.roundToInt() - 20 , h - container.minH)
                 container.placeInParent(x, y)
-                GFX.clip(0, 0, GFX.width, GFX.height)
+                container.applyPlacement(container.minW, container.minH)
+                GFX.clip(0, 0, w, h)
                 container.draw(container.x, container.y, container.x + container.w, container.y + container.h)
             }
 
         }
 
     }
+
+    // todo "onto" isn't rendered correctly in ui
 
 }

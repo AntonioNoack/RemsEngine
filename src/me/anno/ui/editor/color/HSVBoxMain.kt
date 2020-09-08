@@ -3,6 +3,7 @@ package me.anno.ui.editor.color
 import me.anno.config.DefaultStyle
 import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
+import me.anno.input.MouseButton
 import me.anno.ui.base.Constraint
 import me.anno.ui.base.Panel
 import me.anno.ui.editor.color.ColorChooser.Companion.CircleBarRatio
@@ -68,11 +69,11 @@ class HSVBoxMain(chooser: ColorChooser, v0: Vector3f, du: Vector3f, dv: Vector3f
 
     fun drawCrossHair(x: Int, y: Int){
         // draw a circle around instead?
-        GFX.drawRect(x, y-1, 1, 3, DefaultStyle.black)
-        GFX.drawRect(x-1, y, 3, 1, DefaultStyle.black)
+        GFX.drawRect(x, y-1, 1, 3, black)
+        GFX.drawRect(x-1, y, 3, 1, black)
     }
 
-    override fun onMouseDown(x: Float, y: Float, button: Int) {
+    override fun onMouseDown(x: Float, y: Float, button: MouseButton) {
         val rx = (x - this.x)/this.w
         val ry = (y - this.y)/this.h
         when(chooser.visualisation){

@@ -4,6 +4,7 @@ import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
 import me.anno.input.Input.isControlDown
 import me.anno.input.Input.isShiftDown
+import me.anno.input.MouseButton
 import me.anno.io.text.TextReader
 import me.anno.objects.Camera
 import me.anno.utils.clamp
@@ -11,6 +12,8 @@ import me.anno.utils.pow
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.studio.Studio
 import me.anno.studio.Studio.editorTime
+import me.anno.studio.Studio.shiftSlowdown
+import me.anno.ui.base.SpacePanel
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.constraints.WrapAlign
@@ -98,8 +101,8 @@ class VectorInput(
     }
     val titleView = object: TextPanel(title, style){
 
-        override fun onMouseDown(x: Float, y: Float, button: Int) { this@VectorInput.onMouseDown(x,y,button) }
-        override fun onMouseUp(x: Float, y: Float, button: Int) { this@VectorInput.onMouseUp(x,y,button) }
+        override fun onMouseDown(x: Float, y: Float, button: MouseButton) { this@VectorInput.onMouseDown(x,y,button) }
+        override fun onMouseUp(x: Float, y: Float, button: MouseButton) { this@VectorInput.onMouseUp(x,y,button) }
         override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) { this@VectorInput.onMouseMoved(x,y,dx,dy) }
         override fun onCopyRequested(x: Float, y: Float): String? =
             owningProperty?.toString() ?:
@@ -241,7 +244,7 @@ class VectorInput(
         return this
     }
 
-    override fun onMouseDown(x: Float, y: Float, button: Int) {
+    override fun onMouseDown(x: Float, y: Float, button: MouseButton) {
         super.onMouseDown(x, y, button)
         mouseIsDown = true
     }
@@ -250,7 +253,7 @@ class VectorInput(
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
         super.onMouseMoved(x, y, dx, dy)
         if(mouseIsDown){
-            val size = (if(isShiftDown) 4f else 20f) * (if(Studio.selectedTransform is Camera) -1f else 1f) / max(GFX.width,GFX.height)
+            val size = 20f * shiftSlowdown * (if(Studio.selectedTransform is Camera) -1f else 1f) / max(GFX.width,GFX.height)
             val dx0 = dx*size
             val dy0 = dy*size
             val delta = dx0-dy0
@@ -299,7 +302,7 @@ class VectorInput(
         }
     }
 
-    override fun onMouseUp(x: Float, y: Float, button: Int) {
+    override fun onMouseUp(x: Float, y: Float, button: MouseButton) {
         super.onMouseUp(x, y, button)
         mouseIsDown = false
     }

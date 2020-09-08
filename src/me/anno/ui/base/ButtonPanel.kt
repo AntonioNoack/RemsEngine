@@ -2,6 +2,7 @@ package me.anno.ui.base
 
 import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
+import me.anno.input.MouseButton
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.style.Style
@@ -47,12 +48,12 @@ open class ButtonPanel(text: String, style: Style): TextPanel(text, style.getChi
         return alpha or ((if(mouseDown) alternative else base) and 0xffffff)
     }
 
-    override fun onMouseDown(x: Float, y: Float, button: Int) {
+    override fun onMouseDown(x: Float, y: Float, button: MouseButton) {
         super.onMouseDown(x, y, button)
         mouseDown = true
     }
 
-    override fun onMouseUp(x: Float, y: Float, button: Int) {
+    override fun onMouseUp(x: Float, y: Float, button: MouseButton) {
         super.onMouseUp(x, y, button)
         mouseDown = false
     }

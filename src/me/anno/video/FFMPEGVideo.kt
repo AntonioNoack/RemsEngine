@@ -1,6 +1,7 @@
 package me.anno.video
 
 import me.anno.gpu.GFX
+import me.anno.objects.cache.VideoData.Companion.framesPerContainer
 import me.anno.video.formats.ARGBFrame
 import me.anno.video.formats.BGRAFrame
 import me.anno.video.formats.I420Frame
@@ -34,12 +35,12 @@ class FFMPEGVideo(file: File?, val frame0: Int):
         }
     }
 
-    val frames = ArrayList<Frame>()
+    val frames = ArrayList<Frame>(framesPerContainer)
 
     var isFinished = false
     fun readFrame(input: InputStream){
         while(w == 0 || h == 0 || codec.isEmpty()){
-            Thread.sleep(0,100_000)
+            Thread.sleep(0, 100_000)
         }
         if(!isDestroyed && !isFinished){
             synchronized(frames){

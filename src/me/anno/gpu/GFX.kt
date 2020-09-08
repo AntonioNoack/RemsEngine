@@ -1,5 +1,6 @@
 package me.anno.gpu
 
+import com.sun.javafx.geom.Vec4f
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.black
 import me.anno.fonts.FontManager
@@ -22,6 +23,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.input.Input
 import me.anno.input.Input.mouseX
 import me.anno.input.Input.mouseY
+import me.anno.input.MouseButton
 import me.anno.objects.Camera
 import me.anno.objects.Transform
 import me.anno.objects.blending.BlendMode
@@ -213,6 +215,17 @@ object GFX: GFXBase1() {
         Input.initForGLFW()
     }
 
+    fun drawRect(x: Int, y: Int, w: Int, h: Int, color: Vector4f){
+        if(w == 0 || h == 0) return
+        check()
+        val shader = flatShader
+        shader.use()
+        posSize(shader, x, y, w, h)
+        shader.v4("color", color.x, color.y, color.z, color.w)
+        flat01.draw(shader)
+        check()
+    }
+
     fun drawRect(x: Int, y: Int, w: Int, h: Int, color: Int){
         if(w == 0 || h == 0) return
         check()
@@ -235,8 +248,9 @@ object GFX: GFXBase1() {
     }
 
     // the background color is important for correct subpixel rendering, because we can't blend per channel
-    fun drawText(x: Int, y: Int, font: String, fontSize: Int, bold: Boolean, italic: Boolean, text: String, color: Int, backgroundColor: Int, widthLimit: Int) =
-        writeText(x, y, font, fontSize, bold, italic, text, color, backgroundColor, widthLimit)
+    fun drawText(x: Int, y: Int, font: String, fontSize: Int, bold: Boolean, italic: Boolean, text: String,
+                 color: Int, backgroundColor: Int, widthLimit: Int, centerX: Boolean = false) =
+        writeText(x, y, font, fontSize, bold, italic, text, color, backgroundColor, widthLimit, centerX)
 
     fun writeText(x: Int, y: Int,
                   font: String, fontSize: Int,
@@ -244,7 +258,8 @@ object GFX: GFXBase1() {
                   text: String,
                   color: Int,
                   backgroundColor: Int,
-                  widthLimit: Int): Pair<Int, Int> {
+                  widthLimit: Int,
+                  centerX: Boolean = false): Pair<Int, Int> {
 
         check()
         val texture = FontManager.getString(font, fontSize.toFloat(), text, italic, bold, widthLimit) ?: return 0 to fontSize
@@ -256,7 +271,9 @@ object GFX: GFXBase1() {
             val shader = subpixelCorrectTextShader
             // check()
             shader.use()
-            shader.v2("pos", (x-windowX).toFloat()/windowWidth, 1f-(y-windowY).toFloat()/windowHeight)
+            var x2 = x
+            if(centerX) x2 -= w/2
+            shader.v2("pos", (x2-windowX).toFloat()/windowWidth, 1f-(y-windowY).toFloat()/windowHeight)
             shader.v2("size", w.toFloat()/windowWidth, -h.toFloat()/windowHeight)
             shader.v4("textColor", color.r()/255f, color.g()/255f, color.b()/255f, color.a()/255f)
             shader.v3("backgroundColor", backgroundColor.r()/255f, backgroundColor.g()/255f, backgroundColor.b()/255f)
@@ -266,6 +283,15 @@ object GFX: GFXBase1() {
             drawRect(x,y,w,h,backgroundColor or black)
         }
         return w to h
+    }
+
+    // fun getTextSize(fontSize: Int, bold: Boolean, italic: Boolean, text: String) = getTextSize(defaultFont, fontSize, bold, italic, text)
+    fun getTextSize(font: String, fontSize: Int, bold: Boolean, italic: Boolean, text: String, widthLimit: Int): Pair<Int, Int> {
+        // count how many spaces there are at the end
+        // get accurate space and tab widths
+        val spaceWidth = 0//text.endSpaceCount() * fontSize / 4
+        val texture = FontManager.getString(font, fontSize.toFloat(), text, bold, italic, widthLimit) ?: return spaceWidth to fontSize
+        return (texture.w + spaceWidth) to texture.h
     }
 
     fun drawTexture(x: Int, y: Int, w: Int, h: Int, texture: Texture2D, color: Int, tiling: Vector4f?){
@@ -279,6 +305,17 @@ object GFX: GFXBase1() {
         texture.bind(0, texture.isFilteredNearest)
         flat01.draw(shader)
         check()
+    }
+
+    fun drawTexture(x: Int, y: Int, w: Int, h: Int, texture: Frame, color: Int, tiling: Vector4f?){
+        // todo correct transform...
+        val matrix = Matrix4fArrayList()
+        matrix.translate((x-windowX).toFloat()/windowWidth, -(y-windowY).toFloat()/windowHeight, 0f)
+        val scale = h.toFloat()/windowHeight
+        // w.toFloat()/windowWidth
+        matrix.scale(scale)
+        val color2 = Vector4f(color.r()/255f, color.g()/255f, color.b()/255f, color.a()/255f)
+        draw3D(matrix, texture, color2, FilteringMode.LINEAR, tiling, UVProjection.Planar)
     }
 
     fun posSize(shader: Shader, x: Int, y: Int, w: Int, h: Int){
@@ -469,15 +506,6 @@ object GFX: GFXBase1() {
         check()
     }
 
-    // fun getTextSize(fontSize: Int, bold: Boolean, italic: Boolean, text: String) = getTextSize(defaultFont, fontSize, bold, italic, text)
-    fun getTextSize(font: String, fontSize: Int, bold: Boolean, italic: Boolean, text: String, widthLimit: Int): Pair<Int, Int> {
-        // count how many spaces there are at the end
-        // get accurate space and tab widths
-        val spaceWidth = 0//text.endSpaceCount() * fontSize / 4
-        val texture = FontManager.getString(font, fontSize.toFloat(), text, bold, italic, widthLimit) ?: return spaceWidth to fontSize
-        return (texture.w + spaceWidth) to texture.h
-    }
-
     override fun renderStep0() {
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1) // opengl is evil ;), for optimizations, we might set it back
         supportsAnisotropicFiltering = GL.getCapabilities().GL_EXT_texture_filter_anisotropic
@@ -604,7 +632,7 @@ object GFX: GFXBase1() {
 
     }
 
-    fun openMenu(x: Int, y: Int, title: String, options: List<Pair<String, (button: Int, isLong: Boolean) -> Boolean>>){
+    fun openMenuComplex(x: Int, y: Int, title: String, options: List<Pair<String, (button: MouseButton, isLong: Boolean) -> Boolean>>){
         val style = DefaultConfig.style.getChild("menu")
         val list = PanelListY(style)
         list += WrapAlign.LeftTop
@@ -644,20 +672,24 @@ object GFX: GFXBase1() {
         val maxWidth = max(300, GFX.width)
         val maxHeight = max(300, GFX.height)
         container.calculateSize(maxWidth, maxHeight)
-        container.applyConstraints()
+        // container.applyConstraints()
         val wx = clamp(x, 0, GFX.width - container.w)
         val wy = clamp(y, 0, GFX.height- container.h)
         window = Window(container, wx, wy)
         windowStack.add(window)
     }
 
-    fun openMenu(x: Float, y: Float, title: String, options: List<Pair<String, (button: Int, isLong: Boolean) -> Boolean>>, delta: Int = 10){
-        openMenu(x.roundToInt() - delta, y.roundToInt() - delta, title, options)
+    fun openMenuComplex(x: Float, y: Float, title: String, options: List<Pair<String, (button: MouseButton, isLong: Boolean) -> Boolean>>, delta: Int = 10){
+        openMenuComplex(x.roundToInt() - delta, y.roundToInt() - delta, title, options)
     }
 
-    fun openMenu2(x: Float, y: Float, title: String, options: List<Pair<String, () -> Any>>, delta: Int = 10){
-        openMenu(x.roundToInt() - delta, y.roundToInt() - delta, title, options.map { (key, value) ->
-            Pair(key, { b: Int, _: Boolean -> if(b == 0){value(); true } else false })
+    fun openMenu(x: Int, y: Int, title: String, options: List<Pair<String, () -> Any>>, delta: Int = 10){
+        return openMenu(x.toFloat(), y.toFloat(), title, options, delta)
+    }
+
+    fun openMenu(x: Float, y: Float, title: String, options: List<Pair<String, () -> Any>>, delta: Int = 10){
+        openMenuComplex(x.roundToInt() - delta, y.roundToInt() - delta, title, options.map { (key, value) ->
+            Pair(key, { b: MouseButton, _: Boolean -> if(b.isLeft){value(); true } else false })
         })
     }
 
@@ -692,10 +724,17 @@ object GFX: GFXBase1() {
         }
     }
 
+    fun ask(question: String, onYes: () -> Unit){
+        openMenu(mouseX, mouseY, question, listOf(
+            "Yes" to onYes,
+            "No"  to {}
+        ))
+    }
+
     fun ask(question: String, onYes: () -> Unit, onNo: () -> Unit){
         openMenu(mouseX, mouseY, question, listOf(
-            "Yes" to { b, _ -> if(b == 0){ onYes(); true} else false },
-            "No"  to { b, _ -> if(b == 0){ onNo(); true } else false }
+            "Yes" to onYes,
+            "No"  to onNo
         ))
     }
 

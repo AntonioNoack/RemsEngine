@@ -3,6 +3,7 @@ package me.anno.ui.editor
 import me.anno.config.DefaultStyle.white
 import me.anno.gpu.GFX
 import me.anno.gpu.TextureLib.whiteTexture
+import me.anno.input.MouseButton
 import me.anno.objects.cache.Cache
 import me.anno.ui.base.Panel
 import me.anno.ui.base.components.Padding
@@ -22,11 +23,11 @@ class CustomContainer(default: Panel, style: Style): PanelContainer(default, Pad
         minH = child.minH
     }
 
-    override fun applyConstraints() {
+    /*override fun applyConstraints() {
         child.applyConstraints()
         w = child.w
         h = child.h
-    }
+    }*/
 
     override fun placeInParent(x: Int, y: Int) {
         child.placeInParent(x, y)
@@ -41,10 +42,7 @@ class CustomContainer(default: Panel, style: Style): PanelContainer(default, Pad
     }
 
     fun changeType(){
-        fun action(action: () -> Panel) = { b: Int, l: Boolean ->
-            changeTo(action())
-            true
-        }
+        fun action(action: () -> Panel): () -> Unit = { changeTo(action()) }
         val options = listOf(
             "Scene View" to action { SceneView(style) },
             "Tree View" to action { TreeView(style) },
@@ -54,16 +52,16 @@ class CustomContainer(default: Panel, style: Style): PanelContainer(default, Pad
             "Files" to action { FileExplorer(style) }
         ).toMutableList()
         val hasSiblings = (parent?.children?.size ?: 1) > 1
-        if(hasSiblings){ options += "Remove This Element" to { i, l -> true } }
-        else options += "Remove This Group" to { i, l -> true }
+        if(hasSiblings){ options += "Remove This Element" to {  } }
+        else options += "Remove This Group" to {  }
         if(hasSiblings){
-            options += "Add Panel Before" to { i, l -> true }
-            options += "Add Panel After" to { i, l -> true }
+            options += "Add Panel Before" to {  }
+            options += "Add Panel After" to {  }
         } else {
-            options += "Add Panel Before" to { i, l -> true }
-            options += "Add Panel After" to { i, l -> true }
-            options += "Add Panel Above" to { i, l -> true }
-            options += "Add Panel Below" to { i, l -> true }
+            options += "Add Panel Before" to {  }
+            options += "Add Panel After" to {  }
+            options += "Add Panel Above" to {  }
+            options += "Add Panel Below" to {  }
         }
         GFX.openMenu(x+w-16, y, "", options)
     }
@@ -82,7 +80,7 @@ class CustomContainer(default: Panel, style: Style): PanelContainer(default, Pad
         return true
     }
 
-    override fun onMouseClicked(x: Float, y: Float, button: Int, long: Boolean) {
+    override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
         clicked(x, y)
     }
 

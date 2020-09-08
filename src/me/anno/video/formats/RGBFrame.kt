@@ -22,12 +22,12 @@ class RGBFrame(w: Int, h: Int): Frame(w,h){
             data[j++] = r0.toByte()
             data[j++] = input.read().toByte()
             data[j++] = input.read().toByte()
-            data[j++] = 255.toByte()
+            data[j++] = 255.toByte() // offset is required
         }
         GFX.addGPUTask {
-            rgb.create(data)
+            rgb.createRGBA(data)
             isLoaded = true
-            15
+            4
         }
     }
 

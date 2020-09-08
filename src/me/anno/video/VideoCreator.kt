@@ -2,10 +2,7 @@ package me.anno.video
 
 import me.anno.gpu.GFX
 import me.anno.gpu.framebuffer.Framebuffer
-import me.anno.utils.f1
-import me.anno.utils.f3
-import me.anno.utils.formatTime
-import me.anno.utils.parseTime
+import me.anno.utils.*
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL11.*
@@ -121,7 +118,7 @@ class VideoCreator(val w: Int, val h: Int, val fps: Double, val totalFrameCount:
                                 (1.0 - relativeProgress)
                     ).formatTime()
                     LOGGER.info(
-                        "Rendering-Progress: ${(relativeProgress * 100).toFloat().f1()}%, " +
+                        "Rendering-Progress: ${clamp((relativeProgress * 100).toFloat(), 0f, 100f).f1()}%, " +
                                 "fps: $fps, " +
                                 "elapsed: ${round(elapsedTime).formatTime()}, " +
                                 "remaining: $remainingTime"

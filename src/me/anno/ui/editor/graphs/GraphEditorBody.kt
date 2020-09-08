@@ -1,8 +1,6 @@
 package me.anno.ui.editor.graphs
 
-import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.black
-import me.anno.config.DefaultStyle.fontGray
 import me.anno.config.DefaultStyle.white
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.loadTexturesSync
@@ -13,24 +11,18 @@ import me.anno.input.Input.mouseDownY
 import me.anno.input.Input.mouseKeysDown
 import me.anno.input.Input.mouseX
 import me.anno.input.Input.mouseY
-import me.anno.io.json.JsonWriter
+import me.anno.input.MouseButton
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.animation.Keyframe
 import me.anno.studio.Studio
 import me.anno.studio.Studio.selectedProperty
-import me.anno.studio.Studio.targetFPS
-import me.anno.ui.base.Panel
 import me.anno.ui.editor.TimelinePanel
 import me.anno.ui.style.Style
 import me.anno.utils.*
 import org.joml.Vector2f
-import org.joml.Vector4f
-import org.lwjgl.glfw.GLFW.*
 import java.lang.Exception
-import java.security.Key
-import java.security.KeyFactory
 import kotlin.math.*
 import me.anno.input.Input.isControlDown as isControlDown
 
@@ -148,7 +140,8 @@ class GraphEditorBody(style: Style): TimelinePanel(style.getChild("deep")){
 
         drawTimeAxis(x0, y0, x1, y1)
 
-        val property = Studio.selectedProperty ?: return
+        val property = selectedProperty ?: return
+        if(!property.isAnimated) return
 
         // only required, if there are values
         drawValueAxis(x0, y0, x1, y1)
@@ -319,10 +312,10 @@ class GraphEditorBody(style: Style): TimelinePanel(style.getChild("deep")){
 
     // todo if there are multiples selected, allow them to be moved (?)
 
-    override fun onMouseDown(x: Float, y: Float, button: Int) {
+    override fun onMouseDown(x: Float, y: Float, button: MouseButton) {
         // find the dragged element
         draggedKeyframe = null
-        if(button == 0){
+        if(button.isLeft){
             isSelecting = isShiftDown
             if(!isSelecting){ selectedKeyframes.clear() }
             val keyframeChannel = getKeyframeAt(x, y)
@@ -339,7 +332,7 @@ class GraphEditorBody(style: Style): TimelinePanel(style.getChild("deep")){
     }
 
     // todo always show the other properties, too???
-    override fun onMouseUp(x: Float, y: Float, button: Int) {
+    override fun onMouseUp(x: Float, y: Float, button: MouseButton) {
         draggedKeyframe = null
         if(isSelecting){
             // add all keyframes in that area
@@ -407,10 +400,11 @@ class GraphEditorBody(style: Style): TimelinePanel(style.getChild("deep")){
         }
     }
 
-    override fun onDoubleClick(x: Float, y: Float, button: Int) {
-        val property = Studio.selectedProperty
+    override fun onDoubleClick(x: Float, y: Float, button: MouseButton) {
+        val property = selectedProperty
         property?.apply {
-            property.addKeyframe(getTimeAt(x), property.defaultValue!!, 0.01)
+            val time = getTimeAt(x)
+            property.addKeyframe(time, property[time]!!, 0.01)
         } ?: println("Please select a property first!")
     }
 

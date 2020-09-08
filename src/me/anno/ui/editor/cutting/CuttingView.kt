@@ -1,7 +1,6 @@
 package me.anno.ui.editor.cutting
 
 import me.anno.ui.base.ButtonPanel
-import me.anno.ui.base.Panel
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment
@@ -17,28 +16,31 @@ class CuttingView(style: Style): PanelListY(style){
     val addLayerView = ButtonPanel("+", style)
         .setSimpleClickListener { addLayerTop() }
 
-    val content = ScrollPanelY(style, Padding(1), AxisAlignment.MIN)
+    val content = ScrollPanelY(style, Padding(0), AxisAlignment.MIN)
     val layers = content.child as PanelListY
     init {
-        this += TextPanel("Cutting Panel", style)
+        // this += TextPanel("Cutting Panel", style)
         this += content
         content.setWeight(1f)
         layers += addLayerView
+        addLayerTop()
+        addLayerTop()
     }
 
-    fun createLayer(): Panel {
+    fun createLayer(): LayerView {
         // todo separate audio and video layers?
         // todo split them in half?
         // todo display video, audio, title, both, all?
         return LayerView(style)
     }
 
-    fun addLayerTop(){
-        layers.children.add(1, createLayer())
-    }
-
-    fun addLayerBottom(){
-        layers.children.add(createLayer())
+    fun addLayerTop(): LayerView {
+        val v = createLayer()
+        layers.children.add(1, v)
+        layers.children.forEachIndexed { index, it ->
+            (it as? LayerView)?.timelineSlot = index-1
+        }
+        return v
     }
 
 }

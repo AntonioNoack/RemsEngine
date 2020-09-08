@@ -1,6 +1,7 @@
 package me.anno.ui.base.scrolling
 
 import me.anno.input.Input
+import me.anno.input.MouseButton
 import me.anno.ui.base.Panel
 import me.anno.utils.clamp
 import me.anno.ui.base.components.Padding
@@ -32,6 +33,7 @@ open class ScrollPanelY(child: Panel, padding: Padding,
     val scrollbar = ScrollbarY(this, style)
     val scrollbarWidth = style.getSize("scrollbar.width", 8)
     val scrollbarPadding = style.getSize("scrollbar.padding", 1)
+
     init {
         padding.right += scrollbarWidth
     }
@@ -42,7 +44,7 @@ open class ScrollPanelY(child: Panel, padding: Padding,
         // if(h > GFX.height) throw RuntimeException()
 
         child.calculateSize(w-padding.width, maxLength)
-        child.applyConstraints()
+        // child.applyConstraints()
 
         minW = child.minW + padding.width
         minH = child.minH + padding.height
@@ -95,12 +97,12 @@ open class ScrollPanelY(child: Panel, padding: Padding,
         scrollPosition = clamp(scrollPosition, 0f, maxScrollPosition.toFloat())
     }
 
-    override fun onMouseDown(x: Float, y: Float, button: Int) {
+    override fun onMouseDown(x: Float, y: Float, button: MouseButton) {
         isDownOnScrollbar = scrollbar.contains(x,y,scrollbarPadding*2)
         if(!isDownOnScrollbar) super.onMouseDown(x, y, button)
     }
 
-    override fun onMouseUp(x: Float, y: Float, button: Int) {
+    override fun onMouseUp(x: Float, y: Float, button: MouseButton) {
         isDownOnScrollbar = false
         super.onMouseUp(x, y, button)
     }

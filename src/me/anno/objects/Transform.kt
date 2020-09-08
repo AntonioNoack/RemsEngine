@@ -1,6 +1,7 @@
 package me.anno.objects
 
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.GFX.toRadians
 import me.anno.gpu.texture.FilteringMode
 import me.anno.io.ISaveable
@@ -49,7 +50,8 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
     }
 
     val clickId = nextClickId.incrementAndGet()
-    var timelineSlot = 0
+    var timelineSlot = -1
+    var isEditorOnly = false
 
     var position = AnimatedProperty.pos()
     var scale = AnimatedProperty.scale()
@@ -72,6 +74,7 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
     var comment = ""
 
     open fun getDefaultDisplayName() = if(getClassName() == "Transform") "Folder" else getClassName()
+    open fun isVisible(localTime: Double) = true
 
     val rightPointingTriangle = "▶"
     val bottomPointingTriangle = "▼"
@@ -80,6 +83,7 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
     val children = ArrayList<Transform>()
     var isCollapsed = false
 
+    var lastLocalColor = Vector4f()
     var lastLocalTime = 0.0
 
     var weight = 1f
@@ -137,19 +141,20 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
 
         list += VI("Timeline Slot", "< 1 means invisible", AnimatedProperty.Type.INT_PLUS, timelineSlot, style){ timelineSlot = it }
         list += VI("Alignment with Camera", "0 = in 3D, 1 = looking towards the camera; billboards", alignWithCamera, style)
+        list += VI("Editor Only", "Just a guideline?", null, isEditorOnly, style){ isEditorOnly = it }
 
     }
 
-    fun getLocalTime(parentTime: Double): Double {
+    open fun getLocalTime(parentTime: Double): Double {
         var localTime0 = (parentTime - timeOffset) * timeDilation
         localTime0 += timeAnimated[localTime0]
         return localTime0
     }
 
     fun getLocalColor(): Vector4f = getLocalColor(parent?.getLocalColor() ?: Vector4f(1f,1f,1f,1f), lastLocalTime)
-    fun getLocalColor(parentColor: Vector4f, time: Double): Vector4f {
-        val col = color.getValueAt(time)
-        val mul = colorMultiplier[time]
+    fun getLocalColor(parentColor: Vector4f, localTime: Double): Vector4f {
+        val col = color.getValueAt(localTime)
+        val mul = colorMultiplier[localTime]
         return Vector4f(col).mul(parentColor).mul(mul, mul, mul, 1f)
     }
 
@@ -216,7 +221,7 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
         val time = getLocalTime(parentTime)
         val color = getLocalColor(parentColor, time)
 
-        if(color.w > 0.00025f){ // 12 bit = 4k
+        if(color.w > 0.00025f && !(isFinalRendering && isEditorOnly)){ // 12 bit = 4k
             applyTransformLT(stack, time)
             GFX.drawnTransform = this
             onDraw(stack, time, color)
@@ -262,9 +267,7 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
     }
 
     open fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f){
-
         drawUICircle(stack, 0.02f, 0.7f, color)
-
     }
 
     override fun save(writer: BaseWriter) {
@@ -284,6 +287,14 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
         writer.writeString("blendMode", blendMode.id)
         writer.writeList(this, "children", children)
         writer.writeInt("timelineSlot", timelineSlot, true)
+        writer.writeBool("editorOnly", isEditorOnly)
+    }
+
+    override fun readBool(name: String, value: Boolean) {
+        when(name){
+            "editorOnly" -> isEditorOnly = value
+            else -> super.readBool(name, value)
+        }
     }
 
     override fun readInt(name: String, value: Int) {

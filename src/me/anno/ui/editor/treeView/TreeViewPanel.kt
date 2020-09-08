@@ -7,7 +7,9 @@ import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.select
 import me.anno.input.Input
+import me.anno.input.Input.mouseX
 import me.anno.input.Input.mouseY
+import me.anno.input.MouseButton
 import me.anno.io.text.TextReader
 import me.anno.io.utils.StringMap
 import me.anno.objects.*
@@ -58,32 +60,24 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style): TextPanel(""
         drawText(x, y, text, textColor)
     }
 
-    override fun onMouseClicked(x: Float, y: Float, button: Int, long: Boolean) {
+    override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
 
         val transform = getElement()
         when(button){
-            0 -> {
+            MouseButton.LEFT -> {
                 if(Input.isShiftDown){
                     transform.isCollapsed = !transform.isCollapsed
                 } else {
                     select(transform)
                 }
             }
-            1 -> {// right click
+            MouseButton.RIGHT -> {
 
-                fun add(action: (Transform) -> Transform): (Int, Boolean) -> Boolean {
-                    return { b, l ->
-                        if(b == 0){
-                            transform.apply { GFX.select(action(this)) }
-                            true
-                        } else false
-                    }
-                }
-
+                fun add(action: (Transform) -> Transform): () -> Unit = { transform.apply { select(action(this)) } }
                 val options = DefaultConfig["createNewInstancesList"] as? StringMap
                 if(options != null){
                     GFX.openMenu(
-                        Input.mouseX, Input.mouseY, "Add Child",
+                        mouseX, mouseY, "Add Child",
                         options.entries.map { (key, value) ->
                             key to add {
                                 val newT = if(value is Transform) value.clone() else value.toString().toTransform()
@@ -102,6 +96,7 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style): TextPanel(""
     }
 
     override fun onPaste(x: Float, y: Float, data: String, type: String) {
+        if(!data.startsWith("[")) return super.onPaste(x, y, data, type)
         try {
             val child = TextReader.fromText(data).firstOrNull { it is Transform } as? Transform ?: return super.onPaste(x, y, data, type)
             val original = (dragged as? Draggable)?.getOriginal() as? Transform

@@ -61,7 +61,12 @@ object Input {
 
     fun needsLayoutUpdate() = framesSinceLastInteraction < layoutFrameCount
 
-
+    fun Int.toMouseButton() = when(this){
+        0 -> MouseButton.LEFT
+        1 -> MouseButton.RIGHT
+        2 -> MouseButton.MIDDLE
+        else -> MouseButton.UNKNOWN
+    }
 
     fun initForGLFW(){
 
@@ -83,20 +88,20 @@ object Input {
             }
         }
 
-        /* GLFW.glfwSetCharCallback(window) { _, _ ->
+        /*GLFW.glfwSetCharCallback(window) { _, _ ->
             addEvent {
                 // LOGGER.info("char event $codepoint")
             }
         } */
 
-        /*GLFW.glfwSetCharModsCallback(window) { _, codepoint, mods ->
+        // key typed callback
+        GLFW.glfwSetCharModsCallback(window) { _, codepoint, mods ->
             addEvent {
                 framesSinceLastInteraction = 0
                 inFocus0?.onCharTyped(mouseX, mouseY, codepoint)
                 keyModState = mods
-                // LOGGER.info("char mods event $codepoint $mods")
             }
-        }*/
+        }
 
         GLFW.glfwSetCursorPosCallback(window) { _, xpos, ypos ->
             addEvent {
@@ -167,7 +172,7 @@ object Input {
                             requestFocus(panelWindow?.first, true)
                         }
 
-                        inFocus0?.onMouseDown(mouseX, mouseY, button)
+                        inFocus0?.onMouseDown(mouseX, mouseY, button.toMouseButton())
                         ActionManager.onKeyDown(button)
                         mouseStart = System.nanoTime()
                         mouseKeysDown.add(button)
@@ -175,7 +180,7 @@ object Input {
                     }
                     GLFW.GLFW_RELEASE -> {
 
-                        inFocus0?.onMouseUp(mouseX, mouseY, button)
+                        inFocus0?.onMouseUp(mouseX, mouseY, button.toMouseButton())
 
                         ActionManager.onKeyUp(button)
                         ActionManager.onKeyTyped(button)
@@ -193,13 +198,13 @@ object Input {
                             if(isDoubleClick){
 
                                 ActionManager.onKeyDoubleClick(button)
-                                inFocus0?.onDoubleClick(mouseX, mouseY, button)
+                                inFocus0?.onDoubleClick(mouseX, mouseY, button.toMouseButton())
 
                             } else {
 
                                 val mouseDuration = currentNanos - mouseStart
                                 val isLongClick = mouseDuration / 1_000_000 >= longClickMillis
-                                inFocus0?.onMouseClicked(mouseX, mouseY, button, isLongClick)
+                                inFocus0?.onMouseClicked(mouseX, mouseY, button.toMouseButton(), isLongClick)
 
                             }
 
@@ -271,9 +276,9 @@ object Input {
                             if (windowStack.size < 2) {
                                 openMenu(mouseX, mouseY, "Exit?",
                                     listOf(
-                                        "Save" to { b, l -> true },
-                                        "Save & Exit" to { b, l -> true },
-                                        "Exit" to { _, _ -> requestExit(); true }
+                                        "Save" to {  },
+                                        "Save & Exit" to {  },
+                                        "Exit" to { requestExit() }
                                     ))
                             } else windowStack.pop()
                             /*if (true || inFocus is SceneView) {

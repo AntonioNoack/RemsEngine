@@ -6,13 +6,16 @@ import kotlin.math.max
 
 open class PanelFrame(sorter: Comparator<Panel>?, style: Style): PanelList(sorter, style){
 
+    constructor(style: Style): this(null, style)
+
     override fun calculateSize(w: Int, h: Int) {
         super.calculateSize(w, h)
         minW = 0
         minH = 0
         children.forEach {  child ->
             child.calculateSize(w,h)
-            child.applyConstraints()
+            child.applyPlacement(w, h)
+            // child.applyConstraints()
             minW = max(minW, child.minW)
             minH = max(minH, child.minH)
         }

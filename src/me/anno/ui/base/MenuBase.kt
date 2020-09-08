@@ -1,6 +1,7 @@
 package me.anno.ui.base
 
 import me.anno.gpu.GFX
+import me.anno.input.MouseButton
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelContainer
@@ -13,7 +14,7 @@ class MenuBase(child: Panel, style: Style): PanelContainer(child, Padding(0), st
         this += WrapAlign.LeftTop
     }
 
-    override fun onMouseClicked(x: Float, y: Float, button: Int, long: Boolean) {
+    override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
         GFX.windowStack.removeAll { it.panel == this }
     }
 

@@ -2,8 +2,8 @@ package me.anno.ui.base
 
 import me.anno.gpu.GFX
 import me.anno.input.Input
+import me.anno.input.MouseButton
 import me.anno.io.Saveable
-import me.anno.ui.base.constraints.Margin
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.style.Style
 import me.anno.utils.Tabs
@@ -37,6 +37,7 @@ open class Panel(val style: Style): Saveable(){
     val canBeSeen get() = canBeSeen(0,0,GFX.width,GFX.height)
     val canBeSeenCurrently get() = canBeSeen(GFX.windowX, GFX.windowY, GFX.windowWidth, GFX.windowHeight)
     val isHovered get() = Input.mouseX.toInt()-x in 0 until w && Input.mouseY.toInt()-y in 0 until h
+    val rootPanel: Panel get() = parent?.rootPanel ?: this
     fun canBeSeen(x0: Int, y0: Int, w0: Int, h0: Int): Boolean {
         return x + w > x0 && y + h > y0 && x < x0+w0 && y < y0+h0
     }
@@ -76,14 +77,6 @@ open class Panel(val style: Style): Saveable(){
         layoutConstraints.sortBy { it.order }
     }
 
-    fun addPadding(left: Int, top: Int, right: Int, bottom: Int){
-        layoutConstraints.add(Margin(left, top, right, bottom))
-        layoutConstraints.sortBy { it.order }
-    }
-
-    fun addPadding(x: Int, y: Int) = addPadding(x,y,x,y)
-    fun addPadding(p: Int) = addPadding(p,p,p,p)
-
     fun assert(b: Boolean, msg: String?){
         if(!b) throw RuntimeException(msg)
     }
@@ -93,7 +86,17 @@ open class Panel(val style: Style): Saveable(){
         this.y = y
     }
 
-    open fun applyConstraints(){
+    /*open fun applyConstraints(){
+        for(c in layoutConstraints){
+            c.apply(this)
+        }
+    }*/
+
+    fun applyPlacement(w: Int, h: Int){
+        //this.minW = w
+        //this.minH = h
+        this.w = w
+        this.h = h
         for(c in layoutConstraints){
             c.apply(this)
         }
@@ -118,26 +121,26 @@ open class Panel(val style: Style): Saveable(){
      * as functions to be able to cancel parent listeners
      * */
 
-    var onClickListener: ((Float, Float, Int, Boolean) -> Unit)? = null
-    fun setOnClickListener(onClickListener: ((x: Float, y: Float, button: Int, long: Boolean) -> Unit)): Panel {
+    var onClickListener: ((Float, Float, MouseButton, Boolean) -> Unit)? = null
+    fun setOnClickListener(onClickListener: ((x: Float, y: Float, button: MouseButton, long: Boolean) -> Unit)): Panel {
         this.onClickListener = onClickListener
         return this
     }
 
     fun setSimpleClickListener(onClick: () -> Unit): Panel {
-        onClickListener = { _, _, b, l ->
-            if(b == 0) onClick()
+        onClickListener = { _, _, b, _ ->
+            if(b.isLeft) onClick()
         }
         return this
     }
 
-    open fun onMouseDown(x: Float, y: Float, button: Int){ parent?.onMouseDown(x,y,button) }
-    open fun onMouseUp(x: Float, y: Float, button: Int){ parent?.onMouseUp(x,y,button) }
-    open fun onMouseClicked(x: Float, y: Float, button: Int, long: Boolean){
+    open fun onMouseDown(x: Float, y: Float, button: MouseButton){ parent?.onMouseDown(x,y,button) }
+    open fun onMouseUp(x: Float, y: Float, button: MouseButton){ parent?.onMouseUp(x,y,button) }
+    open fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean){
         onClickListener?.invoke(x,y,button,long) ?: parent?.onMouseClicked(x,y,button,long)
     }
 
-    open fun onDoubleClick(x: Float, y: Float, button: Int){ parent?.onDoubleClick(x,y,button)}
+    open fun onDoubleClick(x: Float, y: Float, button: MouseButton){ parent?.onDoubleClick(x,y,button)}
     open fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float){ parent?.onMouseMoved(x,y,dx,dy) }
     open fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float){ parent?.onMouseWheel(x,y,dx,dy) }
 

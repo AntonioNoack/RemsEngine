@@ -33,8 +33,11 @@ import org.apache.logging.log4j.LogManager
 import java.io.File
 import java.io.OutputStream
 import java.io.PrintStream
+import java.lang.Exception
 import java.util.*
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.concurrent.thread
+import kotlin.math.abs
 import kotlin.math.roundToInt
 
 // todo operation to cut an image, video, or similar?
@@ -47,9 +50,14 @@ object RemsStudio {
 
     val startTime = System.nanoTime()
 
+    val isSaving = AtomicBoolean(false)
+    var forceSave = false
+    var lastSave = System.nanoTime()
+    var saveIsRequested = true
+
     private val LOGGER = LogManager.getLogger(RemsStudio::class)
 
-    val originalOutput = System.out
+    val originalOutput = System.out!!
 
     val windowStack = Stack<Window>()
 
@@ -60,24 +68,58 @@ object RemsStudio {
     // todo load last project, vs create new one?
     // todo just create a new one?
 
-    fun clear(file: File){
-        if(file.isDirectory){
-            for(file2 in file.listFiles2()){
+    fun onSmallChange(){
+        saveIsRequested = true
+    }
+
+    fun onLargeChange(){
+        saveIsRequested = true
+        forceSave = true
+    }
+
+    fun saveStateMaybe(){
+        val historySaveDuration = 1e9
+        if(saveIsRequested && !isSaving.get()){
+            val current = System.nanoTime()
+            if(forceSave || abs(current - lastSave) > historySaveDuration){
+                lastSave = current
+                forceSave = false
+                saveIsRequested = false
+                saveState()
+            }
+        }
+    }
+
+    fun saveState(){
+        isSaving.set(true)
+        thread {
+            try {
+
+            } catch (e: Exception){
+                e.printStackTrace()
+            }
+            isSaving.set(false)
+        }
+    }
+
+    fun clear(file: File) {
+        if (file.isDirectory) {
+            for (file2 in file.listFiles2()) {
                 file2.delete()
             }
             file.delete()
         } else file.delete()
     }
 
-    fun setupLogging(){
-        System.setOut(PrintStream(object: OutputStream(){
+    fun setupLogging() {
+        System.setOut(PrintStream(object : OutputStream() {
             var line = ""
             override fun write(b: Int) {
                 when {
                     b == '\n'.toInt() -> {
                         // only accept non-empty lines?
                         val lines = lastConsoleLines
-                        if(lines.size > lastConsoleLineCount) lines.removeFirst()
+                        if (lines.size > lastConsoleLineCount) lines.removeFirst()
                         lines.push(line)
                         console?.text = line
                         line = ""
@@ -99,16 +141,18 @@ object RemsStudio {
     }
 
     var lastT = startTime
-    fun mt(name: String){
+    fun mt(name: String) {
         val t = System.nanoTime()
         val dt = t - lastT
         lastT = t
-        if(dt > 500_000){// 0.5 ms
-            LOGGER.info("${(dt*1e-9).f3()}s for $name")
+        if (dt > 500_000) {// 0.5 ms
+            LOGGER.info("Used ${(dt * 1e-9).f3()}s for $name")
         }
     }
 
-    fun run(){
+    var smallestIndexNeedingRendering = 0
+
+    fun run() {
 
         // Library.JNI_LIBRARY_NAME.toLowerCase()
 
@@ -147,13 +191,15 @@ object RemsStudio {
 
             check()
 
-            if(frameCtr == 0L) mt("game loop")
+            saveStateMaybe()
+
+            if (frameCtr == 0L) mt("game loop")
 
             val hovered = getPanelAndWindowAt(mouseX, mouseY)
             hoveredPanel = hovered?.first
             hoveredWindow = hovered?.second
 
-            if(lmx == mouseX && lmy == mouseY){
+            if (lmx == mouseX && lmy == mouseY) {
                 ActionManager.onMouseIdle()
             } else {
                 lmx = mouseX
@@ -162,58 +208,68 @@ object RemsStudio {
 
             hoveredPanel?.getCursor()?.useCursor()
 
-            if(frameCtr == 0L) mt("before window drawing")
+            if (frameCtr == 0L) mt("before window drawing")
 
-            windowStack.forEach { window ->
+            smallestIndexNeedingRendering = 0
+            windowStack.forEachIndexed { index, window ->
                 loadTexturesSync.clear()
                 loadTexturesSync.push(false)
                 val panel = window.panel
                 // optimization is worth 0.5% of 3.4GHz * 12 ~ 200 MHz ST (13.06.2020)
-                if(Input.needsLayoutUpdate()){
+                if (Input.needsLayoutUpdate()) {
                     // println("layouting")
                     val t0 = System.nanoTime()
-                    panel.calculateSize(w-window.x,h-window.y)
-                    panel.applyConstraints()
+                    panel.calculateSize(w - window.x, h - window.y)
+                    if(panel.w >= GFX.width && panel.h >= GFX.height){
+                        // println("is full: $index")
+                        smallestIndexNeedingRendering = index
+                    }
+                    // panel.applyConstraints()
                     val t1 = System.nanoTime()
                     panel.placeInParent(window.x, window.y)
+                    panel.applyPlacement(w, h)
+                    if(index > 0) {
+                        panel.printLayout(0)
+                    }
                     val t2 = System.nanoTime()
-                    val dt1 = (t1-t0)*1e-9f
-                    val dt2 = (t2-t1)*1e-9f
-                    if(dt1 > 0.01f && frameCtr > 0) LOGGER.warn("Used ${dt1.f3()}s + ${dt2.f3()}s for layout")
-                    Input.framesSinceLastInteraction++
+                    val dt1 = (t1 - t0) * 1e-9f
+                    val dt2 = (t2 - t1) * 1e-9f
+                    if (dt1 > 0.01f && frameCtr > 0) LOGGER.warn("Used ${dt1.f3()}s + ${dt2.f3()}s for layout")
                 }
                 GFX.ensureEmptyStack()
-                panel.draw(window.x,window.y,window.x+panel.w,window.y+panel.h)
+                panel.draw(window.x, window.y, window.x + panel.w, window.y + panel.h)
                 GFX.ensureEmptyStack()
             }
 
-            if(frameCtr == 0L) mt("window drawing")
+            Input.framesSinceLastInteraction++
+
+            if (frameCtr == 0L) mt("window drawing")
 
             Tooltips.draw()
 
-            if(showFPS) showFPS()
-            if(showTutorialKeys) ShowKeys.draw(0, 0, GFX.width, GFX.height)
+            if (showFPS) showFPS()
+            if (showTutorialKeys) ShowKeys.draw(0, 0, GFX.width, GFX.height)
 
             // dragging can be a nice way to work, but dragging values to change them,
             // and copying by ctrl+c/v is probably better -> no, we need both
             // dragging files for example
             val dragged = dragged
-            if(dragged != null){
-                val (rw, rh) = dragged.getSize(GFX.width/5, GFX.height/5)
-                var x = mouseX.roundToInt() - rw/2
-                var y = mouseY.roundToInt() - rh/2
-                x = clamp(x, 0, GFX.width-rw)
-                y = clamp(y, 0, GFX.height-rh)
+            if (dragged != null) {
+                val (rw, rh) = dragged.getSize(GFX.width / 5, GFX.height / 5)
+                var x = mouseX.roundToInt() - rw / 2
+                var y = mouseY.roundToInt() - rh / 2
+                x = clamp(x, 0, GFX.width - rw)
+                y = clamp(y, 0, GFX.height - rh)
                 GFX.clip(x, y, ui.w, ui.h)
                 dragged.draw(x, y)
             }
 
             check()
 
-            if(frameCtr == 0L) mt("first frame finished")
+            if (frameCtr == 0L) mt("first frame finished")
 
-            if(frameCtr == 0L){
-                LOGGER.info("Used ${((System.nanoTime()-startTime)*1e-9f).f3()}s from start to finishing the first frame")
+            if (frameCtr == 0L) {
+                LOGGER.info("Used ${((System.nanoTime() - startTime) * 1e-9f).f3()}s from start to finishing the first frame")
             }
             frameCtr++
 
@@ -231,11 +287,11 @@ object RemsStudio {
 
     }
 
-    fun loadProject(){
+    fun loadProject() {
         val newProjectName = "New Project"
         val lastProject = DefaultConfig["projects.last", newProjectName]
         val project0File = File(workspace, lastProject)
-        if(lastProject == newProjectName) clear(project0File)
+        if (lastProject == newProjectName) clear(project0File)
         project = Project(project0File)
         GFX.addGPUTask { updateTitle(); 1 }
     }

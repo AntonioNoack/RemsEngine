@@ -8,14 +8,14 @@ class WrapAlign(val alignX: AxisAlignment?, val alignY: AxisAlignment?): Constra
     
     override fun apply(panel: Panel) {
         alignX?.apply {
-            val delta = getValue(panel.w, panel.minW)
+            val delta = getOffset(panel.w, panel.minW)
             panel.x = panel.x + delta
-            panel.w = min(panel.w - delta, panel.minW)
+            panel.w = panel.minW
         }
         alignY?.apply {
-            val delta = getValue(panel.h, panel.minH)
+            val delta = getOffset(panel.h, panel.minH)
             panel.y = panel.y + delta
-            panel.h = min(panel.h - delta, panel.minH)
+            panel.h = panel.minH
         }
     }
 

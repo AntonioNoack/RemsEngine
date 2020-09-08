@@ -164,7 +164,7 @@ class Texture2D(override var w: Int, override var h: Int, val samples: Int): ITe
         GFX.check()
     }
 
-    fun create(data: ByteArray){
+    fun createRGBA(data: ByteArray){
         if(w*h*4 != data.size) throw RuntimeException("incorrect size!")
         ensurePointer()
         forceBind()

@@ -53,7 +53,11 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
     var videoScale = 6
 
     var lastFile: File? = null
-    var isImage = false
+    var type = VideoType.AUDIO
+
+    override fun isVisible(localTime: Double): Boolean {
+        return localTime + startTime >= 0.0 && (isLooping != LoopingState.PLAY_ONCE || localTime < endTime)
+    }
 
     fun calculateSize(matrix: Matrix4f, w: Int, h: Int): Int? {
 
@@ -153,8 +157,8 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
             if(startTime >= sourceDuration) startTime = sourceDuration
             if(endTime >= sourceDuration) endTime = sourceDuration
 
-            if(sourceFPS > 0f){
-                if(time + startTime >= 0f && (isLooping != LoopingState.PLAY_ONCE || time < endTime)){
+            if(sourceFPS > 0.0){
+                if(time + startTime >= 0.0 && (isLooping != LoopingState.PLAY_ONCE || time < endTime)){
 
                     // use full fps when rendering to correctly render at max fps with time dilation
                     // issues arise, when multiple frames should be interpolated together into one
@@ -227,20 +231,29 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
         }
     }
 
+    enum class VideoType {
+        IMAGE,
+        VIDEO,
+        AUDIO
+    }
+
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
 
         if(file !== lastFile){
             lastFile = file
-            isImage = when(file.extension.getImportType()){
-                "Video" -> false
-                else -> true
+            type = when(file.extension.getImportType()){
+                "Video" -> VideoType.VIDEO
+                "Audio" -> VideoType.AUDIO
+                else -> VideoType.IMAGE
             }
         }
 
-        if(isImage){
-            drawImageFrames(stack, time, color)
-        } else {
-            drawVideoFrames(stack, time, color)
+        when(type){
+            VideoType.VIDEO -> drawVideoFrames(stack, time, color)
+            VideoType.IMAGE -> drawImageFrames(stack, time, color)
+            else -> {
+                // todo draw speaker...
+            }
         }
 
     }
