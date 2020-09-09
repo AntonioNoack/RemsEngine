@@ -5,7 +5,7 @@ import me.anno.io.utils.StringMap
 import me.anno.objects.*
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.animation.Keyframe
-import me.anno.objects.animation.drivers.CustomDriver
+import me.anno.objects.animation.drivers.FunctionDriver
 import me.anno.objects.animation.drivers.HarmonicDriver
 import me.anno.objects.animation.drivers.PerlinNoiseDriver
 import me.anno.objects.effects.MaskLayer
@@ -51,7 +51,7 @@ abstract class BaseReader {
             "Keyframe" -> Keyframe<Any>(0.0, 0f)
             "HarmonicDriver" -> HarmonicDriver()
             "PerlinNoiseDriver" -> PerlinNoiseDriver()
-            "CustomDriver" -> CustomDriver()
+            "CustomDriver", "FunctionDriver" -> FunctionDriver()
             else -> {
                 ISaveable.objectTypeRegistry[clazz]?.invoke() ?: throw RuntimeException("Unknown class $clazz")
             }

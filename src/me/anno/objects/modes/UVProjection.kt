@@ -4,7 +4,6 @@ import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01Cube
 import me.anno.gpu.buffer.StaticFloatBuffer
 import me.anno.objects.Video.Companion.cubemapBuffer
 
-// todo make this applicable to all video and image types? (except svg)
 enum class UVProjection(val id: Int, val doScale: Boolean, val displayName: String, val description: String){
     Planar(0, true, "Planar", "Simple plane, e.g. for 2D video"){
         override fun getBuffer(): StaticFloatBuffer = flat01Cube

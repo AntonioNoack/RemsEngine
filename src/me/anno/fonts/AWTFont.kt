@@ -4,6 +4,7 @@ import me.anno.gpu.texture.FakeWhiteTexture
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.ui.base.DefaultRenderingHints
+import me.anno.utils.OS
 import me.anno.utils.getLineWidth
 import me.anno.utils.incrementTab
 import me.anno.utils.joinChars
@@ -13,7 +14,9 @@ import java.awt.Graphics2D
 import java.awt.font.FontRenderContext
 import java.awt.font.TextLayout
 import java.awt.image.BufferedImage
+import java.io.File
 import java.lang.StrictMath.round
+import javax.imageio.ImageIO
 import kotlin.math.max
 import kotlin.math.roundToInt
 import kotlin.streams.toList
@@ -63,7 +66,7 @@ class AWTFont(val font: Font): XFont {
         }
 
         val texture = Texture2D(width, height, 1)
-        texture.create {
+        texture.create({
 
             val image = BufferedImage(width, height, 1)
             val gfx = image.graphics as Graphics2D
@@ -81,12 +84,17 @@ class AWTFont(val font: Font): XFont {
                 }
             }
             gfx.dispose()
+            if(debugJVMResults) debug(image)
             image
 
-        }
+        }, needsSync)
 
         return texture
 
+    }
+
+    fun debug(image: BufferedImage){
+        ImageIO.write(image, "png", File(OS.desktop, "img/${ctr++}.png"))
     }
 
     fun splitParts(text: String, fontSize: Float, relativeTabSize: Float, lineBreakWidth: Float): PartResult {
@@ -208,7 +216,7 @@ class AWTFont(val font: Font): XFont {
         // println("$width for ${result.size} parts")
 
         val texture = Texture2D(width, height, 1)
-        texture.create {
+        texture.create({
             val image = BufferedImage(width, height, 1)
             if(result.isNotEmpty()){
                 val gfx = image.graphics as Graphics2D
@@ -223,9 +231,10 @@ class AWTFont(val font: Font): XFont {
                 }
 
                 gfx.dispose()
+                if(debugJVMResults) debug(image)
             }
             image
-        }
+        }, needsSync)
 
         return texture
 
@@ -293,6 +302,15 @@ class AWTFont(val font: Font): XFont {
     fun ceil(f: Double) = round(f + 0.5).toInt()
 
     companion object {
+
+        // I get pixel errors with running on multiple threads
+        // (java 1.8.0 build 112, windows 10, 64 bit)
+        // this should be investigated for other Java versions and on Linux...
+        val isJVMImplementationThreadSafe = false
+        val needsSync = !isJVMImplementationThreadSafe
+        val debugJVMResults = false
+
+        var ctr = 0
 
         val LOGGER = LogManager.getLogger(AWTFont::class)!!
 

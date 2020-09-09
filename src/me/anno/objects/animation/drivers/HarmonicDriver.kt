@@ -5,6 +5,7 @@ import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
+import me.anno.parser.CountingList
 import me.anno.parser.SimpleExpressionParser.parseDouble
 import me.anno.parser.SimpleExpressionParser.preparse
 import me.anno.ui.base.Panel
@@ -36,11 +37,14 @@ class HarmonicDriver: AnimationDriver(){
     // update by time? would be possible... but still...
     fun updateHarmonics(){
         val prepared = preparse(harmonicsFormula)
-        for(i in 0 until maxHarmonics){
-            val n = i + 1.0
-            harmonics[i] = parseDouble(ArrayList(prepared), mapOf(
-                "n" to n, "i" to n
-            ))?.toFloat() ?: harmonics[i]
+        if(prepared != null){
+            for(i in 0 until maxHarmonics){
+                val n = i + 1.0
+                harmonics[i] = parseDouble(
+                    CountingList(prepared), mapOf(
+                        "n" to n, "i" to n
+                    ))?.toFloat() ?: harmonics[i]
+            }
         }
     }
 

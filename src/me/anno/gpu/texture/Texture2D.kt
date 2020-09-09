@@ -78,12 +78,19 @@ class Texture2D(override var w: Int, override var h: Int, val samples: Int): ITe
         GFX.check()
     }
 
-    fun create(createImage: () -> BufferedImage){
+    fun create(createImage: () -> BufferedImage, forceSync: Boolean){
         val requiredBudget = textureBudgetUsed + w * h
         if(requiredBudget > textureBudgetTotal || Thread.currentThread() != GFX.glThread){
-            thread { create(createImage(), false) }
+            if(forceSync){
+                GFX.addGPUTask {
+                    create(createImage(), true)
+                    1
+                }
+            } else {
+                thread { create(createImage(), false) }
+            }
         } else {
-            textureBudgetUsed = requiredBudget
+            textureBudgetUsed += requiredBudget
             create(createImage(), true)
         }
     }

@@ -38,9 +38,9 @@ class ImageData(file: File): CacheData {
                 }
             }
             "png", "jpg", "jpeg" -> {
-                texture.create {
+                texture.create({
                     ImageIO.read(file) ?: throw IOException("Format of $file is not supported.")
-                }
+                }, false)
             }
             "webp" -> {
                 // calculate required scale? no, without animation, we don't need to scale it down ;)
@@ -75,13 +75,13 @@ class ImageData(file: File): CacheData {
                 // if(texture?.isLoaded == true) GFX.draw3D(stack, texture, color, nearestFiltering, tiling)
             }
             else -> {
-                texture.create {
+                texture.create({
                     try {
                         Imaging.getBufferedImage(file) ?: throw IOException("Format of $file is not supported.")
                     } catch (e: Exception){
                         throw IOException("Format of $file is not supported: ${e.message}.")
                     }
-                }
+                }, false)
             }
         }
         /*if(file.name.endsWith(".hdr", true)){

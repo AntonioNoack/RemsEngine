@@ -1,6 +1,5 @@
 package me.anno.gpu
 
-import com.sun.javafx.geom.Vec4f
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.black
 import me.anno.fonts.FontManager

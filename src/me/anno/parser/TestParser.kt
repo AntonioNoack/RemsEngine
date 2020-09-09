@@ -42,6 +42,7 @@ fun main(){
         println("$charsPerSecond chars/s for length $symbolCount")
     }*/
 
+    test("(17.15)", 17.15)
     test("1 + 3", 4.0)
     test("sin(90)", 1.0)
     test("sin(90.0e0)", 1.0)
@@ -50,6 +51,7 @@ fun main(){
     test("1 + 3 * 5", 16.0)
     test("3 * 5 + 1", 16.0)
     test("3 / 5 + 1", 1.6)
+    test("3 / 5 * 5 + 1", 4.0)
     test("[1,2,3][0]", 1.0)
     test("[1,2,3][0.5]", 1.5)
 

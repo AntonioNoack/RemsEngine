@@ -1,6 +1,5 @@
 package me.anno.gpu
 
-import de.javagl.jgltf.model.GltfConstants
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.shader.Shader
 import org.lwjgl.opengl.GL11
@@ -21,7 +20,7 @@ abstract class Buffer(val attributes: List<Attribute>, val stride: Int, val usag
         }
     }
 
-    var drawMode = GltfConstants.GL_TRIANGLES
+    var drawMode = GL_TRIANGLES
     var nioBuffer: ByteBuffer? = null
 
     var buffer = -1

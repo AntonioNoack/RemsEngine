@@ -17,6 +17,9 @@ open class Panel(val style: Style): Saveable(){
 
     var visibility = Visibility.VISIBLE
 
+    // todo make layout become valid/invalid, so we can save some comp. resources
+    var hasValidLayout = false
+
     /**
      * this weight is used inside some layouts
      * it allows layout by percentages and such
@@ -41,6 +44,13 @@ open class Panel(val style: Style): Saveable(){
     val rootPanel: Panel get() = parent?.rootPanel ?: this
     fun canBeSeen(x0: Int, y0: Int, w0: Int, h0: Int): Boolean {
         return x + w > x0 && y + h > y0 && x < x0+w0 && y < y0+h0
+    }
+
+    fun invalidateLayout(){
+        if(hasValidLayout){
+            hasValidLayout = false
+            parent?.invalidateLayout()
+        }
     }
 
     var tooltip: String? = null

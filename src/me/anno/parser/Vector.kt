@@ -7,6 +7,10 @@ class Vector {
     val data = ArrayList<Any>()
     var isClosed = false
 
+    operator fun plusAssign(value: Any){
+        data.add(value)
+    }
+
     operator fun get(index: Double): Any? {
         if(data.isEmpty()) return null
         if(index < -1) return null

@@ -1,7 +1,6 @@
 package me.anno.objects.animation.drivers
 
 import me.anno.gpu.GFX
-import me.anno.input.MouseButton
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
@@ -70,14 +69,13 @@ abstract class AnimationDriver: Saveable(), Inspectable {
             val options = arrayListOf(
                 "Harmonics" to add { HarmonicDriver() },
                 "Noise" to add { PerlinNoiseDriver() },
-                "Custom" to add { CustomDriver() }
+                "Custom" to add { FunctionDriver() }
             )
             if(oldDriver != null){
                 options.add(0, "Customize" to {
                     Studio.selectedInspectable = oldDriver
                 })
                 options += "Remove Driver" to {
-                    // todo make a save point
                     whenSelected(null)
                 }
             }

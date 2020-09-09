@@ -51,7 +51,7 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
 
     var filtering = DefaultConfig["default.video.nearest", FilteringMode.LINEAR]
 
-    var videoScale = 6
+    var videoScale = DefaultConfig["default.video.scale", 6]
 
     var lastFile: File? = null
     var type = VideoType.AUDIO

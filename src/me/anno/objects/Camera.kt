@@ -25,7 +25,7 @@ class Camera(parent: Transform? = null): Transform(parent){
     // todo allow cameras to be merged
     // todo allow cameras to film camera (post processing) -> todo create a stack of cameras/scenes?
 
-    // todo orthographic-ness by setting the camera back some amount, and narrowing the view
+    // orthographic-ness by setting the camera back some amount, and narrowing the view
 
     var lut = File("")
     var nearZ = AnimatedProperty.floatPlus(0.001f)

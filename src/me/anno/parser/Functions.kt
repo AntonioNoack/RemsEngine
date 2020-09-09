@@ -9,12 +9,14 @@ object Functions {
 
     fun UnknownFunction(name: String, paramString: String): Throwable {
         val lcName = name.toLowerCase()
+        val f0 = functions0[name] ?: functions0[lcName]
         val f1 = functions1[name] ?: functions1[lcName]
         val f2 = functions2[name] ?: functions2[lcName]
         val f3 = functions3[name] ?: functions3[lcName]
         val f4 = functions4[name] ?: functions4[lcName]
         val f5 = functions5[name] ?: functions5[lcName]
         return RuntimeException("Unknown function $name($paramString)" + when {
+            f0 != null -> ", did you mean $name()?"
             f1 != null -> ", did you mean $name(x)?"
             f2 != null -> ", did you mean $name(x,y)?"
             f3 != null -> ", did you mean $name(x,y,z)?"
@@ -22,6 +24,23 @@ object Functions {
             f5 != null -> ", did you mean $name(a,b,c,d,e)?"
             else -> ""
         })
+    }
+
+    fun MutableList<Any>.applyFunc0(): Boolean {
+        for(i in 2 until size){
+            if(this[i-1] != '(') continue
+            if(this[i-0] != ')') continue
+            val name = this[i-2] as? String ?: continue
+            val function =
+                functions0[name] ?:
+                functions0[name.toLowerCase()] ?:
+                throw UnknownFunction(name, "x")
+            for(j in 0 until 2) removeAt(i - j)
+            this[i-2] = function()
+            applyFunc0()
+            return true
+        }
+        return false
     }
     
     fun MutableList<Any>.applyFunc1(): Boolean {
@@ -140,6 +159,7 @@ object Functions {
         return false
     }
 
+    val functions0 = HashMap<String, () -> Double>()
     val functions1 = HashMap<String, (Double) -> Double>()
     val functions2 = HashMap<String, (Double, Double) -> Double>()
     val functions3 = HashMap<String, (Double, Double, Double) -> Double>()
@@ -156,6 +176,8 @@ object Functions {
         constants["pi"] = Math.PI
         constants["e"] = Math.E
         constants["°"] = Math.toDegrees(1.0)
+
+        functions0["rand"] = { Math.random() }
 
         // min/max
         functions1["min"] = { it }

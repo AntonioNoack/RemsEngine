@@ -5,17 +5,18 @@ import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
+import me.anno.parser.CountingList
 import me.anno.parser.SimpleExpressionParser.parseDouble
 import me.anno.parser.SimpleExpressionParser.preparse
 import me.anno.ui.base.Panel
 import me.anno.ui.input.TextInputML
 import me.anno.ui.style.Style
 
-class CustomDriver: AnimationDriver(){
+class FunctionDriver: AnimationDriver(){
 
     // make them animated? no xD
     var formula = "sin(time*360)"
-    var formulaParts: List<Any> = preparse(formula)
+    var formulaParts: CountingList? = preparse(formula)
 
     // todo a formula field to set all values, depending on index?
     override fun createInspector(list: MutableList<Panel>, transform: Transform, style: Style) {
@@ -47,14 +48,15 @@ class CustomDriver: AnimationDriver(){
     }
 
     override fun getValue0(time: Double): Double {
+        val formulaParts = formulaParts ?: return 0.0
         return parseDouble(
-            ArrayList(formulaParts), mapOf(
+            CountingList(formulaParts), mapOf(
             "t" to time, "time" to time
         )) ?: 0.0
     }
 
-    override fun getClassName() = "CustomDriver"
-    override fun getDisplayName() = if(formula.length <= maxFormulaDisplayLength) formula else "Custom"
+    override fun getClassName() = "FunctionDriver"
+    override fun getDisplayName() = if(formula.length <= maxFormulaDisplayLength) formula else "Function"
 
     companion object {
         // could support more, but is useless anyways xD

@@ -4,6 +4,13 @@ import java.lang.RuntimeException
 
 class CountingList(capacity: Int = 16): MutableList<Any> {
 
+    constructor(src: CountingList): this(src.size){
+        internal.addAll(src.internal)
+        for(i in counters.indices){
+            counters[i] = src.counters[i]
+        }
+    }
+
     val internal = ArrayList<Any>(capacity)
 
     val counters = IntArray(isCounted.size)
@@ -29,7 +36,7 @@ class CountingList(capacity: Int = 16): MutableList<Any> {
     override fun contains(element: Any): Boolean {
         if(element is Char){
             val ci = element.toInt() - minCounted
-            if(isCounted.getOrNull(ci) == true){
+            if(ci < isCounted.size && isCounted[ci]){
                 return counters[ci] > 0
             }
         }
@@ -79,10 +86,12 @@ class CountingList(capacity: Int = 16): MutableList<Any> {
     override fun toString() = internal.toString()
 
     companion object {
-        private const val countedCharacters = "+-/*^!()"
-        private val minCounted = countedCharacters.min()?.toInt() ?: 0
-        private val maxCounted = countedCharacters.max()?.toInt() ?: 1
+        private const val countedCharacters = "+-/*^!()[]"
+        private val minCounted = countedCharacters.min()!!.toInt()
+        private val maxCountedChar = countedCharacters.max()!!
+        private val maxCounted = countedCharacters.max()!!.toInt()
         private val isCounted = BooleanArray(maxCounted + 1 - minCounted)
+        fun Any.isCounted() = this is Char && this < maxCountedChar
         init {
             countedCharacters.forEach {
                 isCounted[it.toInt() - minCounted] = true
