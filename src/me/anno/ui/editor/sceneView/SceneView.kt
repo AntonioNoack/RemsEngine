@@ -21,6 +21,7 @@ import me.anno.studio.Scene
 import me.anno.studio.Studio
 import me.anno.studio.Studio.dragged
 import me.anno.studio.Studio.editorTime
+import me.anno.studio.Studio.editorTimeDilation
 import me.anno.studio.Studio.nullCamera
 import me.anno.studio.Studio.root
 import me.anno.studio.Studio.selectedTransform
@@ -95,7 +96,7 @@ class SceneView(style: Style) : PanelFrame(null, style.getChild("sceneView")) {
         )*/
     }
 
-    var mode = TransformMode.MOVE
+    var mode = SceneDragMode.MOVE
 
     var velocity = Vector3f()
 
@@ -141,16 +142,26 @@ class SceneView(style: Style) : PanelFrame(null, style.getChild("sceneView")) {
 
         GFX.ensureEmptyStack()
 
-        // for(i in 0 until 1000)
+        // preload resources :)
+        // e.g. for video playback
+        // we maybe could disable next frame fetching in Cache.kt...
+        // todo doesn't work for auto-scaled videos... other plan?...
+        val edt = editorTimeDilation
+        var dt = 0.5
+        while(dt < 5.0){
+            Scene.draw(
+                null, camera,
+                x + dx, y + dy, 1, 1,
+                editorTime + dt * if(edt == 0.0) 1.0 else edt,
+                flipY = false, drawMode = ShaderPlus.DrawMode.COLOR
+            ) // step size? may be expensive...
+            dt += 0.5
+        }
+
         Scene.draw(
-            null,
-            camera,
-            x + dx,
-            y + dy,
-            rw,
-            rh,
-            editorTime,
-            flipY = false,
+            null, camera,
+            x + dx, y + dy, rw, rh,
+            editorTime, flipY = false,
             drawMode = ShaderPlus.DrawMode.COLOR
         )
 
@@ -354,7 +365,7 @@ class SceneView(style: Style) : PanelFrame(null, style.getChild("sceneView")) {
         val global2ui = camera2global.mul(target2global.invert())
 
         when (mode) {
-            TransformMode.MOVE -> {
+            SceneDragMode.MOVE -> {
 
                 // todo find the (truly) correct speed...
                 // depends on FOV, camera and object transform
@@ -438,9 +449,9 @@ class SceneView(style: Style) : PanelFrame(null, style.getChild("sceneView")) {
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
         when (action) {
-            "SetMode(MOVE)" -> mode = TransformMode.MOVE
-            "SetMode(SCALE)" -> mode = TransformMode.SCALE
-            "SetMode(ROTATE)" -> mode = TransformMode.ROTATE
+            "SetMode(MOVE)" -> mode = SceneDragMode.MOVE
+            "SetMode(SCALE)" -> mode = SceneDragMode.SCALE
+            "SetMode(ROTATE)" -> mode = SceneDragMode.ROTATE
             "ResetCamera" -> {
                 camera.resetTransform()
             }

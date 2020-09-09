@@ -358,8 +358,6 @@ class GraphEditorBody(style: Style): TimelinePanel(style.getChild("deep")){
         }
     }
 
-
-
     fun moveUp(sign: Float){
         val delta = sign * dvHalfHeight * movementSpeed / h
         centralValue += delta
@@ -403,7 +401,7 @@ class GraphEditorBody(style: Style): TimelinePanel(style.getChild("deep")){
         val property = selectedProperty
         property?.apply {
             val time = getTimeAt(x)
-            property.addKeyframe(time, property[time]!!, 0.01)
+            property.addKeyframe(time, property[time]!!, propertyDt)
             onSmallChange("graph-add")
         } ?: println("Please select a property first!")
     }

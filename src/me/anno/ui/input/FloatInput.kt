@@ -26,18 +26,18 @@ open class FloatInput(
 
     constructor(title: String, owningProperty: AnimatedProperty<*>, indexInProperty: Int, time: Double, style: Style): this(style, title, owningProperty.type, owningProperty, indexInProperty){
         when(val value = owningProperty[time]){
-            is Float -> setValue(value)
-            is Double -> setValue(value)
+            is Float -> setValue(value, false)
+            is Double -> setValue(value, false)
             else -> throw RuntimeException("Unknown type $value for ${javaClass.simpleName}")
         }
     }
 
     constructor(title: String, value0: Float, type: AnimatedProperty.Type, style: Style): this(style, title, type, null, 0){
-        setValue(value0)
+        setValue(value0, false)
     }
 
     constructor(title: String, value0: Double, type: AnimatedProperty.Type, style: Style): this(style, title, type, null, 0){
-        setValue(value0)
+        setValue(value0, false)
     }
 
     var allowInfinity = false
@@ -49,9 +49,9 @@ open class FloatInput(
         return newValue
     }
 
-    fun setValue(v: Int) = setValue(v.toDouble())
-    fun setValue(v: Long) = setValue(v.toDouble())
-    fun setValue(v: Float) = setValue(v.toDouble())
+    fun setValue(v: Int, notify: Boolean) = setValue(v.toDouble(), notify)
+    fun setValue(v: Long, notify: Boolean) = setValue(v.toDouble(), notify)
+    fun setValue(v: Float, notify: Boolean) = setValue(v.toDouble(), notify)
 
     override fun stringify(v: Double): String =
         if(type.defaultValue is Double) v.toString()
@@ -67,12 +67,12 @@ open class FloatInput(
         var value = lastValue
         if(type.hasLinear) value += delta * 0.1f * type.unitScale
         if(type.hasExponential) value *= pow(if(lastValue < 0) 1f / 1.03f else 1.03f, delta * if(type.hasLinear) 1f else 3f)
-        setValueClamped(value)
+        setValueClamped(value, true)
     }
 
-    fun setValueClamped(value: Double){
+    fun setValueClamped(value: Double, notify: Boolean){
         if(type.minValue == null && type.maxValue == null){
-            setValue(value)
+            setValue(value, notify)
         } else
         when(val clamped = type.clamp(
             when(type.defaultValue){
@@ -87,10 +87,10 @@ open class FloatInput(
                 else -> throw RuntimeException("Unknown type ${type.defaultValue}")
             }
         )){
-            is Float -> setValue(clamped)
-            is Double -> setValue(clamped)
-            is Int -> setValue(clamped)
-            is Long -> setValue(clamped)
+            is Float -> setValue(clamped, notify)
+            is Double -> setValue(clamped, notify)
+            is Int -> setValue(clamped, notify)
+            is Long -> setValue(clamped, notify)
             else -> throw RuntimeException("Unknown type $clamped for ${getClassName()}")
         }
     }

@@ -7,6 +7,7 @@ import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.input.ColorInput
 import me.anno.ui.input.FloatInput
 import me.anno.ui.input.VectorInput
 import me.anno.ui.style.Style
@@ -29,7 +30,7 @@ class PropertyInspector(style: Style):
             list.clear()
             selected?.createInspector(list, style)
         } else if(needsUpdate){
-            lastSelected = selected
+            /*lastSelected = selected
             needsUpdate = false
             secondaryList.clear()
             selected?.createInspector(secondaryList, style)
@@ -42,19 +43,24 @@ class PropertyInspector(style: Style):
                 when(s){
                     is FloatInput -> {
                         (d as? FloatInput)?.apply {
-                            d.setValue(s.lastValue)
+                            d.setValue(s.lastValue, false)
                         }
                     }
                     is VectorInput -> {
                         (d as? VectorInput)?.apply {
-                            d.setValue(s)
+                            d.setValue(s, false)
+                        }
+                    }
+                    is ColorInput -> {
+                        (d as? ColorInput)?.apply {
+                            contentView.
                         }
                     }
                 }
             }
             if(src.hasNext() != dst.hasNext()){
                 // we (would?) need to update the structure...
-            }
+            }*/
         }
         super.draw(x0, y0, x1, y1)
     }

@@ -113,7 +113,6 @@ class FileEntry(val explorer: FileExplorer, val isParent: Boolean, val file: Fil
                                 // (maybe after half of the waiting time)
                                 val relativeTime = ((hoverPlaybackDelay+time)/hoverPlaybackDelay).toFloat()
                                 val r = 1f-sq(relativeTime*2-1)
-                                // todo anti-aliasing for this? the edges are pretty rough...
                                 GFX.drawCircle(x, y, iw, ih, 0f, relativeTime * 360f * 4 / 3, relativeTime * 360f * 2, Vector4f(1f, 1f, 1f, r * 0.2f))
                             }
                             false

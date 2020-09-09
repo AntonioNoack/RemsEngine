@@ -109,12 +109,12 @@ class KeyCombination(val key: Int, val modifiers: Int, val type: Type){
             val key = getButton(button)
             if(key < 0) return null
             val type = when(event.toLowerCase()){
-                "down" -> Type.DOWN
+                "down", "d" -> Type.DOWN
                 "press" -> Type.PRESS
-                "typed" -> Type.TYPED
-                "up" -> Type.UP
+                "typed", "t" -> Type.TYPED
+                "up", "u" -> Type.UP
                 "press-unsafe", "p" -> Type.PRESS_UNSAFE
-                "double", "double-click" -> Type.DOUBLE
+                "double", "double-click", "2" -> Type.DOUBLE
                 else -> return null
             }
             var mods = 0

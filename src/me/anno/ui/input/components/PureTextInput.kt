@@ -32,15 +32,15 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
         cursor2 = cursor1
     }
 
-    fun updateChars(){
+    fun updateChars(notify: Boolean){
         characters.clear()
         characters.addAll(text.codePoints().toList())
-        changeListener(text)
+        if(notify) changeListener(text)
     }
 
-    fun updateText(){
+    fun updateText(notify: Boolean){
         text = characters.joinChars()
-        changeListener(text)
+        if(notify) changeListener(text)
     }
 
     var cursor1 = 0
@@ -53,13 +53,15 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
         synchronized(this){
             val min = min(cursor1, cursor2)
             val max = max(cursor1, cursor2)
-            for(i in max-1 downTo min){
-                characters.removeAt(i)
+            if(max != min){
+                for(i in max-1 downTo min){
+                    characters.removeAt(i)
+                }
+                updateText(true)
+                cursor1 = min
+                cursor2 = min
+                onSmallChange("text-delete-selection")
             }
-            updateText()
-            cursor1 = min
-            cursor2 = min
-            onSmallChange("text-delete-selection")
             return max > min
         }
     }
@@ -108,19 +110,21 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
     fun addKey(codePoint: Int) = insert(codePoint)
 
     fun insert(insertion: String){
-        lastMove = GFX.lastTime
-        insertion.codePoints().forEach {
-            insert(it, false)
+        if(insertion.isNotEmpty()){
+            lastMove = GFX.lastTime
+            insertion.codePoints().forEach {
+                insert(it, false)
+            }
+            updateText(true)
+            onSmallChange("text-insert")
         }
-        updateText()
-        onSmallChange("text-insert")
     }
 
     fun insert(insertion: Int, updateText: Boolean = true){
         lastMove = GFX.lastTime
         deleteSelection()
         characters.add(cursor1, insertion)
-        if(updateText) updateText()
+        if(updateText) updateText(true)
         cursor1++
         cursor2++
         ensureCursorBounds()
@@ -131,7 +135,7 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
         lastMove = GFX.lastTime
         if(!deleteSelection() && cursor1 > 0){
             characters.removeAt(cursor1-1)
-            updateText()
+            updateText(true)
             cursor1--
             cursor2--
         }
@@ -143,7 +147,7 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
         lastMove = GFX.lastTime
         if(!deleteSelection() && cursor1 < characters.size){
             characters.removeAt(cursor1)
-            updateText()
+            updateText(true)
         }
         ensureCursorBounds()
         onSmallChange("text-delete-after")

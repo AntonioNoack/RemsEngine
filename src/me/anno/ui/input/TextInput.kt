@@ -14,7 +14,7 @@ open class TextInput(title: String, style: Style): PanelContainer(
     ), Padding(0), style) {
 
     constructor(title: String, style: Style, v0: String): this(title, style){
-        setText(v0)
+        setText(v0, false)
     }
 
     val base = child as PureTextInput
@@ -25,8 +25,8 @@ open class TextInput(title: String, style: Style): PanelContainer(
     }
 
     fun setCursorToEnd() = base.setCursorToEnd()
-    fun updateChars() = base.updateChars()
-    fun updateText() = base.updateText()
+    fun updateChars(notify: Boolean) = base.updateChars(notify)
+    fun updateText(notify: Boolean) = base.updateText(notify)
 
     fun setPlaceholder(text: String): TextInput {
         base.placeholder = text
@@ -47,9 +47,9 @@ open class TextInput(title: String, style: Style): PanelContainer(
 
     val text get() = base.text
 
-    fun setText(text: String): TextInput {
+    fun setText(text: String, notify: Boolean): TextInput {
         base.text = text
-        updateChars()
+        updateChars(notify)
         return this
     }
 
@@ -68,7 +68,7 @@ open class TextInput(title: String, style: Style): PanelContainer(
 
     override fun onPasteFiles(x: Float, y: Float, files: List<File>) {
         val keyFile = files.firstOrNull() ?: return
-        setText(keyFile.toString())
+        setText(keyFile.toString(), true)
     }
 
     override fun getCursor(): Long = Cursor.drag

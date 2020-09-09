@@ -2,6 +2,7 @@ package me.anno.ui.editor.files
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
+import me.anno.input.Input
 import me.anno.objects.Transform.Companion.toTransform
 import me.anno.studio.Studio.project
 import me.anno.ui.base.TextPanel
@@ -16,6 +17,8 @@ import me.anno.ui.style.Style
 import me.anno.utils.OS
 import me.anno.utils.listFiles2
 import java.io.File
+import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.concurrent.thread
 
 // todo the text size is quite small on my x360 -> get the font size for the ui from the OS :)
 // todo double click is not working in touch mode?
@@ -70,25 +73,50 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
         ).setWeight(3f)
     }
 
+    var isWorking = false
     fun createResults(){
-        val children = folder?.listFiles2() ?: File.listRoots().toList()
-        val newFiles = children.joinToString { it.name } ?: ""
-        if(lastFiles != newFiles){
-            lastFiles = newFiles
-            content.clear()
-            val parent = folder?.parentFile
-            if(parent != null){
-                content += FileEntry(this, true, parent, style)
-            }
-            children.sortedBy { !it.isDirectory }.forEach { file ->
-                val name = file.name
-                if(!name.startsWith(".")){
-                    // todo check if this file is valid, part of the search results
-                    // todo do this async for large folders
-                    // todo only display the first ... entries maybe...
-                    content += FileEntry(this, false, file, style)
+        if(isWorking) return
+        isWorking = true
+        thread {
+            val children = folder?.listFiles2() ?: File.listRoots().toList()
+            val newFiles = children.joinToString { it.name }
+            if(lastFiles != newFiles){
+                lastFiles = newFiles
+                val parent = folder?.parentFile
+                if(parent != null){
+                    val fe = FileEntry(this, true, parent, style)
+                    GFX.addGPUTask { content.clear(); content += fe; 0 }
+                } else {
+                    GFX.addGPUTask { content.clear(); 1 }
                 }
+                val tmpCount = 64
+                var tmpList = ArrayList<FileEntry>(tmpCount)
+                fun put(){
+                    if(tmpList.isNotEmpty()){
+                        val list = tmpList
+                        GFX.addGPUTask {
+                            list.forEach { content += it }
+                            // force layout update
+                            Input.framesSinceLastInteraction = 0
+                            0
+                        }
+                        tmpList = ArrayList(tmpCount)
+                    }
+                }
+                children.sortedBy { !it.isDirectory }.forEach { file ->
+                    val name = file.name
+                    if(!name.startsWith(".")){
+                        // todo check if this file is valid, part of the search results
+                        // do this async for large folders and slow drives...
+                        // todo only display the first ... entries maybe...
+                        val fe = FileEntry(this, false, file, style)
+                        tmpList.add(fe)
+                        if(tmpList.size >= tmpCount) put()
+                    }
+                }
+                put()
             }
+            isWorking = false
         }
     }
 

@@ -43,8 +43,8 @@ class FrameSizeInput(title: String, value0: String, style: Style): PanelListY(st
             }
         customX.text = val0.w.toString()
         customY.text = val0.h.toString()
-        customX.updateChars()
-        customY.updateChars()
+        customX.updateChars(false)
+        customY.updateChars(false)
         customInput += customX.setChangeListener { update(it, customY.text) }.setWeight(1f)
         customInput += customY.setChangeListener { update(customX.text, it) }.setWeight(1f)
         customInput.visibility = Visibility.GONE
@@ -56,11 +56,11 @@ class FrameSizeInput(title: String, value0: String, style: Style): PanelListY(st
         val h = hs.toIntOrNull() ?: return
         if(ws != customX.text){
             customX.text = ws
-            customX.updateChars()
+            customX.updateChars(false)
         }
         if(hs != customY.text){
             customY.text = hs
-            customY.updateChars()
+            customY.updateChars(false)
         }
         changeListener(w, h)
         defaultResolution = Resolution(w, h)

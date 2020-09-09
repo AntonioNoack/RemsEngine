@@ -5,14 +5,17 @@ import me.anno.input.MouseButton
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.animation.drivers.AnimationDriver
 import me.anno.studio.RemsStudio
+import me.anno.studio.RemsStudio.lastT
 import me.anno.studio.RemsStudio.onSmallChange
 import me.anno.studio.Studio
+import me.anno.studio.Studio.editorTime
 import me.anno.studio.history.History
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.input.components.PureTextInput
 import me.anno.ui.style.Style
+import me.anno.utils.get
 
 abstract class NumberInput<Type>(
     style: Style, title: String,
@@ -42,13 +45,18 @@ abstract class NumberInput<Type>(
     val inputPanel = object : PureTextInput(style.getChild("deep")) {
         val driver get() = owningProperty?.drivers?.get(indexInProperty)
         val hasDriver get() = driver != null
+        var lastTime = editorTime
         override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+            if(lastTime != editorTime && owningProperty != null && owningProperty.isAnimated){
+                lastTime = editorTime
+                setValue(owningProperty[editorTime]!![indexInProperty] as Type, false)
+            }
             val driver = driver
             if (driver != null) {
                 val driverName = driver.getDisplayName()
                 if (text != driverName) {
                     text = driverName
-                    updateChars()
+                    updateChars(false)
                 }
             }
             super.draw(x0, y0, x1, y1)
@@ -110,7 +118,7 @@ abstract class NumberInput<Type>(
         } else if (wasInFocus) {
             // apply the value, or reset if invalid
             val value = parseValue(inputPanel.text) ?: lastValue
-            setValue(value)
+            setValue(value, true)
             wasInFocus = false
         }
     }
@@ -134,13 +142,13 @@ abstract class NumberInput<Type>(
         inputPanel.placeholder = title
     }
 
-    fun setValue(v: Type) {
+    fun setValue(v: Type, notify: Boolean) {
         if (v != lastValue || !hasValue) {
             hasValue = true
             lastValue = v
-            changeListener(v)
+            if(notify) changeListener(v)
             inputPanel.text = stringify(v)
-            inputPanel.updateChars()
+            inputPanel.updateChars(false)
         }
     }
 
@@ -183,7 +191,7 @@ abstract class NumberInput<Type>(
     override fun onEmpty(x: Float, y: Float) {
         val newValue = getValue(owningProperty?.defaultValue ?: type.defaultValue)
         if(newValue != lastValue){
-            setValue(newValue)
+            setValue(newValue, true)
             onSmallChange("empty")
         }
     }

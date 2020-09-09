@@ -1,6 +1,5 @@
 package me.anno.ui.editor.color
 
-import me.anno.config.DefaultStyle
 import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
 import me.anno.input.MouseButton
@@ -21,7 +20,7 @@ class HSVBoxMain(chooser: ColorChooser, v0: Vector3f, du: Vector3f, dv: Vector3f
                     val l2 = y*2-1
                     if(isDownInRing){
                         val hue = (atan2(l2, s2) * (0.5/Math.PI) + 0.5).toFloat()
-                        setHSL(hue, this.saturation, this.lightness, opacity, colorSpace)
+                        setHSL(hue, this.saturation, this.lightness, opacity, colorSpace, true)
                     } else {
                         // "   vec2 uv2 = clamp((uv-0.5)*1.8+0.5, 0.0, 1.0);\n" +
                         var s3 = (x-0.5f)*1.8f
@@ -34,7 +33,7 @@ class HSVBoxMain(chooser: ColorChooser, v0: Vector3f, du: Vector3f, dv: Vector3f
                         s3 += 0.5f
                         l3 += 0.5f
                         if(s3 in 0f .. 1f && l3 in 0f .. 1f){
-                            setHSL(hue, s3, l3, opacity, colorSpace)
+                            setHSL(hue, s3, l3, opacity, colorSpace, true)
                         }
                     }
                 }
@@ -46,15 +45,15 @@ class HSVBoxMain(chooser: ColorChooser, v0: Vector3f, du: Vector3f, dv: Vector3f
                         val l2 = y*2-1
                         val hue = (atan2(l2, s2) * (0.5/Math.PI) + 0.5).toFloat()
                         val saturation = min(1f, length(s2, l2))
-                        setHSL(hue, saturation, lightness, opacity, colorSpace)
+                        setHSL(hue, saturation, lightness, opacity, colorSpace, true)
                     } else {
                         // the lightness
                         val lightness = y
-                        setHSL(hue, saturation, lightness, opacity, colorSpace)
+                        setHSL(hue, saturation, lightness, opacity, colorSpace, true)
                     }
                 }
                 ColorVisualisation.BOX -> {
-                    setHSL(hue, x, y, opacity, colorSpace)
+                    setHSL(hue, x, y, opacity, colorSpace, true)
                 }
             }
         }

@@ -21,7 +21,7 @@ class ColorInput(style: Style, title: String,
                  oldValue: Vector4f,
                  private val owningProperty: AnimatedProperty<*>? = null): PanelListY(style){
 
-    private val contentView = ColorChooser(style, true, owningProperty)
+    val contentView = ColorChooser(style, true, owningProperty)
 
     private val titleView = object: TextPanel(title, style){
         override fun onCopyRequested(x: Float, y: Float) = contentView.onCopyRequested(x,y)
@@ -42,9 +42,9 @@ class ColorInput(style: Style, title: String,
                 val scale = pow(scaleFactor, delta)
                 contentView.apply {
                     if(Input.isControlDown){
-                        setHSL(hue, saturation, lightness * scale, opacity, colorSpace)
+                        setHSL(hue, saturation, lightness * scale, opacity, colorSpace, true)
                     } else {
-                        setHSL(hue, saturation, lightness, clamp(opacity + delta, 0f, 1f), colorSpace)
+                        setHSL(hue, saturation, lightness, clamp(opacity + delta, 0f, 1f), colorSpace, true)
                     }
                 }
             }
@@ -64,7 +64,7 @@ class ColorInput(style: Style, title: String,
     init {
         this += titleView
         this += contentView
-        contentView.setRGBA(oldValue.x, oldValue.y, oldValue.z, oldValue.w)
+        contentView.setRGBA(oldValue.x, oldValue.y, oldValue.z, oldValue.w, true)
     }
 
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {

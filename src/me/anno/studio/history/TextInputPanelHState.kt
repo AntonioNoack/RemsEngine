@@ -10,7 +10,7 @@ class TextInputPanelHState(val panel: TextInput): HistoryState<String>(){
     }
 
     override fun apply(state: String) {
-        panel.setText(state)
+        panel.setText(state, false)
     }
 
     override fun writeState(writer: BaseWriter, name: String, v: String) {

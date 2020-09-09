@@ -25,6 +25,7 @@ import me.anno.studio.Studio
 import me.anno.studio.Studio.selectedTransform
 import me.anno.ui.base.Panel
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.editor.TimelinePanel
 import me.anno.ui.input.*
 import me.anno.ui.style.Style
 import org.joml.*
@@ -92,7 +93,7 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
     var weight = 1f
 
     fun putValue(list: AnimatedProperty<*>, value: Any){
-        list.addKeyframe(if(list.isAnimated) lastLocalTime else 0.0, value, 0.1)
+        list.addKeyframe(if(list.isAnimated) lastLocalTime else 0.0, value, TimelinePanel.propertyDt)
     }
 
     val usesEuler get() = rotationQuaternion == null

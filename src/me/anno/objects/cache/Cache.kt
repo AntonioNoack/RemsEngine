@@ -170,7 +170,7 @@ object Cache {
         if(index < 0) return null
         val bufferIndex = index/framesPerContainer
         val videoData = getVideoFrames(file, scale, bufferIndex, fps, timeout) ?: return null
-        if(videoData.time0 != GFX.lastTime){
+        /*if(videoData.time0 != GFX.lastTime){
             if(editorTimeDilation > 0.01f){
                 if((bufferIndex+1)*framesPerContainer <= frameLength){
                     getVideoFrames(file, scale, bufferIndex+1, fps, timeout)
@@ -187,7 +187,7 @@ object Cache {
                     }
                 }
             }
-        }
+        }*/
         return videoData.frames.getOrNull(index % framesPerContainer)
     }
 

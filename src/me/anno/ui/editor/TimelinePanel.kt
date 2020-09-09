@@ -43,6 +43,8 @@ open class TimelinePanel(style: Style) : Panel(style) {
 
         val movementSpeed get() = 0.05f * sqrt(GFX.width*GFX.height.toFloat())
 
+        val propertyDt get() = 10f * dtHalfLength / GFX.width
+
         fun moveRight(sign: Float){
             val delta = sign * dtHalfLength * 0.05f
             Studio.editorTime += delta
@@ -166,6 +168,7 @@ open class TimelinePanel(style: Style) : Panel(style) {
 
     fun jumpToX(x: Float) {
         Studio.editorTime = getTimeAt(x)
+        Studio.updateInspector()
         Studio.updateAudio()
     }
 

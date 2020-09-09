@@ -22,26 +22,26 @@ open class IntInput(
 
     constructor(title: String, owningProperty: AnimatedProperty<*>, indexInProperty: Int, time: Double, style: Style): this(style, title, owningProperty.type, owningProperty, indexInProperty){
         when(val value = owningProperty[time]){
-            is Int -> setValue(value)
-            is Long -> setValue(value)
+            is Int -> setValue(value, false)
+            is Long -> setValue(value, false)
             else -> throw RuntimeException("Unknown type $value for ${getClassName()}")
         }
     }
 
     constructor(title: String, value0: Int, type: AnimatedProperty.Type, style: Style): this(style, title, type, null, 0){
-        setValue(value0)
+        setValue(value0, false)
     }
 
     constructor(title: String, value0: Long, type: AnimatedProperty.Type, style: Style): this(style, title, type, null, 0){
-        setValue(value0)
+        setValue(value0, false)
     }
 
     constructor(title: String, value0: Int, style: Style): this(style, title, AnimatedProperty.Type.FLOAT, null, 0){
-        setValue(value0)
+        setValue(value0, false)
     }
 
     constructor(title: String, value0: Long, style: Style): this(style, title, AnimatedProperty.Type.DOUBLE, null, 0){
-        setValue(value0)
+        setValue(value0, false)
     }
 
     override fun parseValue(text: String): Long? {
@@ -54,7 +54,7 @@ open class IntInput(
         return 0L
     }
 
-    fun setValue(v: Int) = setValue(v.toLong())
+    fun setValue(v: Int, notify: Boolean) = setValue(v.toLong(), notify)
 
     override fun stringify(v: Long): String = v.toString()
 
@@ -73,13 +73,13 @@ open class IntInput(
         if(type.hasLinear) value += actualDelta.toLong()
         if(type.hasExponential) value = (value * pow(if(lastValue < 0) 1f / 1.03f else 1.03f, delta * if(type.hasLinear) 1f else 3f)).roundToLong()
         when(val clamped = type.clamp(if(type.defaultValue is Int) value.toInt() else value)){
-            is Int -> setValue(clamped)
-            is Long -> setValue(clamped)
+            is Int -> setValue(clamped, true)
+            is Long -> setValue(clamped, true)
             else -> throw RuntimeException("Unknown type $clamped for ${getClassName()}")
         }
     }
 
-    fun setValueClamped(value: Long){
+    fun setValueClamped(value: Long, notify: Boolean){
         when(val clamped = type.clamp(
             when(type.defaultValue){
                 is Float -> value.toFloat()
@@ -89,10 +89,10 @@ open class IntInput(
                 else -> throw RuntimeException("Unknown type ${type.defaultValue}")
             }
         )){
-            is Float -> setValue(clamped.roundToLong())
-            is Double -> setValue(clamped.roundToLong())
-            is Int -> setValue(clamped)
-            is Long -> setValue(clamped)
+            is Float -> setValue(clamped.roundToLong(), notify)
+            is Double -> setValue(clamped.roundToLong(), notify)
+            is Int -> setValue(clamped, notify)
+            is Long -> setValue(clamped, notify)
             else -> throw RuntimeException("Unknown type $clamped for ${getClassName()}")
         }
     }
@@ -107,8 +107,8 @@ open class IntInput(
 
     override fun onCharTyped(x: Float, y: Float, key: Int) {
         when(key){
-            '+'.toInt() -> setValueClamped(lastValue+1)
-            '-'.toInt() -> setValueClamped(lastValue-1)
+            '+'.toInt() -> setValueClamped(lastValue+1, true)
+            '-'.toInt() -> setValueClamped(lastValue-1, true)
             else -> super.onCharTyped(x, y, key)
         }
     }
