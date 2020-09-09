@@ -30,7 +30,7 @@ class PropertyInspector(style: Style):
             list.clear()
             selected?.createInspector(list, style)
         } else if(needsUpdate){
-            /*lastSelected = selected
+            lastSelected = selected
             needsUpdate = false
             secondaryList.clear()
             selected?.createInspector(secondaryList, style)
@@ -53,14 +53,14 @@ class PropertyInspector(style: Style):
                     }
                     is ColorInput -> {
                         (d as? ColorInput)?.apply {
-                            contentView.
+                            // contentView.
                         }
                     }
                 }
             }
             if(src.hasNext() != dst.hasNext()){
                 // we (would?) need to update the structure...
-            }*/
+            }
         }
         super.draw(x0, y0, x1, y1)
     }

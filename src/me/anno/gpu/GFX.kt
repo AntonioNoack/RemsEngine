@@ -698,9 +698,6 @@ object GFX : GFXBase1() {
         lastTime = thisTime
 
         editorTime = max(editorTime + deltaTime * editorTimeDilation, 0.0)
-        if(editorTimeDilation != 0.0){
-            Studio.updateInspector()
-        }
         if (editorTime == 0.0 && editorTimeDilation < 0.0) {
             editorTimeDilation = 0.0
         }
