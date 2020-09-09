@@ -17,6 +17,7 @@ import me.anno.gpu.buffer.StaticFloatBuffer
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderPlus
+import me.anno.gpu.texture.ClampMode
 import me.anno.gpu.texture.FilteringMode
 import me.anno.gpu.texture.Texture2D
 import me.anno.input.Input
@@ -266,7 +267,7 @@ object GFX: GFXBase1() {
         val w = texture.w
         val h = texture.h
         if(text.isNotBlank()){
-            texture.bind(true)
+            texture.bind(true, ClampMode.CLAMP)
             val shader = subpixelCorrectTextShader
             // check()
             shader.use()
@@ -301,20 +302,31 @@ object GFX: GFXBase1() {
         shader.v4("color", color.r()/255f, color.g()/255f, color.b()/255f, color.a()/255f)
         if(tiling != null) shader.v4("tiling", tiling)
         else shader.v4("tiling", 1f, 1f, 0f, 0f)
-        texture.bind(0, texture.isFilteredNearest)
+        texture.bind(0, texture.nearest, texture.clampMode)
         flat01.draw(shader)
         check()
     }
 
-    fun drawTexture(x: Int, y: Int, w: Int, h: Int, texture: Frame, color: Int, tiling: Vector4f?){
+    fun getFlatTransform(x: Int, y: Int, w: Int, h: Int): Matrix4fArrayList {
         // todo correct transform...
         val matrix = Matrix4fArrayList()
         matrix.translate((x-windowX).toFloat()/windowWidth, -(y-windowY).toFloat()/windowHeight, 0f)
         val scale = h.toFloat()/windowHeight
         // w.toFloat()/windowWidth
         matrix.scale(scale)
-        val color2 = Vector4f(color.r()/255f, color.g()/255f, color.b()/255f, color.a()/255f)
-        draw3D(matrix, texture, color2, FilteringMode.LINEAR, tiling, UVProjection.Planar)
+        return matrix
+    }
+
+    fun drawTexture(x: Int, y: Int, w: Int, h: Int, texture: Frame, color: Int, tiling: Vector4f?){
+        draw3D(getFlatTransform(x, y, w, h), texture, color.v4(), FilteringMode.LINEAR, ClampMode.CLAMP, tiling, UVProjection.Planar)
+    }
+
+    fun drawCircle(x: Int, y: Int, w: Int, h: Int, innerRadius: Float, startDegrees: Float, endDegrees: Float, color: Vector4f){
+        draw3DCircle(getFlatTransform(x, y, w , h), innerRadius, startDegrees, endDegrees, color)
+    }
+
+    fun drawCircle(x: Int, y: Int, w: Int, h: Int, innerRadius: Float, startDegrees: Float, endDegrees: Float, color: Int){
+        draw3DCircle(getFlatTransform(x, y, w , h), innerRadius, startDegrees, endDegrees, color.v4())
     }
 
     fun posSize(shader: Shader, x: Int, y: Int, w: Int, h: Int){
@@ -442,37 +454,37 @@ object GFX: GFXBase1() {
     }
 
     fun draw3D(stack: Matrix4fArrayList, buffer: StaticFloatBuffer, texture: Texture2D, w: Int, h:Int, color: Vector4f,
-               filtering: FilteringMode, tiling: Vector4f?){
+               filtering: FilteringMode, clampMode: ClampMode, tiling: Vector4f?){
         val shader = shader3D.shader
         shader3DUniforms(shader, stack, w, h, color, tiling, filtering, null)
-        texture.bind(0, filtering)
+        texture.bind(0, filtering, clampMode)
         buffer.draw(shader)
         check()
     }
 
     fun draw3D(stack: Matrix4fArrayList, buffer: StaticFloatBuffer, texture: Texture2D, color: Vector4f,
-               filtering: FilteringMode, tiling: Vector4f?){
-        draw3D(stack, buffer, texture, texture.w, texture.h, color, filtering, tiling)
+               filtering: FilteringMode, clampMode: ClampMode, tiling: Vector4f?){
+        draw3D(stack, buffer, texture, texture.w, texture.h, color, filtering, clampMode, tiling)
     }
 
     fun draw3DPolygon(stack: Matrix4fArrayList, buffer: StaticFloatBuffer,
                       texture: Texture2D, color: Vector4f,
                       inset: Float,
-                      filtering: FilteringMode){
+                      filtering: FilteringMode, clampMode: ClampMode){
         val shader = shader3DPolygon.shader
         shader3DUniforms(shader, stack, texture.w, texture.h, color, null, filtering, null)
         shader.v1("inset", inset)
-        texture.bind(0, filtering)
+        texture.bind(0, filtering, clampMode)
         buffer.draw(shader)
         check()
     }
 
     fun draw3D(stack: Matrix4fArrayList, texture: Frame, color: Vector4f,
-               filtering: FilteringMode, tiling: Vector4f?, uvProjection: UVProjection){
+               filtering: FilteringMode, clampMode: ClampMode, tiling: Vector4f?, uvProjection: UVProjection){
         if(!texture.isLoaded) throw RuntimeException("Frame must be loaded to be rendered!")
         val shader = texture.get3DShader().shader
         shader3DUniforms(shader, stack, texture.w, texture.h, color, tiling, filtering, uvProjection)
-        texture.bind(0, filtering)
+        texture.bind(0, filtering, clampMode)
         if(shader == shader3DYUV.shader){
             val w = texture.w
             val h = texture.h
@@ -483,24 +495,24 @@ object GFX: GFXBase1() {
     }
 
     fun draw3D(stack: Matrix4fArrayList, texture: Texture2D, color: Vector4f,
-               filtering: FilteringMode, tiling: Vector4f?, uvProjection: UVProjection){
-        draw3D(stack, texture, texture.w, texture.h, color, filtering, tiling, uvProjection)
+               filtering: FilteringMode, clampMode: ClampMode, tiling: Vector4f?, uvProjection: UVProjection){
+        draw3D(stack, texture, texture.w, texture.h, color, filtering, clampMode, tiling, uvProjection)
     }
 
     fun draw3D(stack: Matrix4fArrayList, texture: Texture2D, w: Int, h: Int, color: Vector4f,
-               filtering: FilteringMode, tiling: Vector4f?, uvProjection: UVProjection){
+               filtering: FilteringMode, clampMode: ClampMode, tiling: Vector4f?, uvProjection: UVProjection){
         val shader = shader3D.shader
         shader3DUniforms(shader, stack, w, h, color, tiling, filtering, uvProjection)
-        texture.bind(0, filtering)
+        texture.bind(0, filtering, clampMode)
         uvProjection.getBuffer().draw(shader)
         check()
     }
 
     fun draw3DSVG(stack: Matrix4fArrayList, buffer: StaticFloatBuffer, texture: Texture2D, color: Vector4f,
-                  filtering: FilteringMode){
+                  filtering: FilteringMode, clampMode: ClampMode){
         val shader = shader3DSVG.shader
         shader3DUniforms(shader, stack, texture.w, texture.h, color, null, filtering, null)
-        texture.bind(0, filtering)
+        texture.bind(0, filtering, clampMode)
         buffer.draw(shader)
         check()
     }
@@ -532,6 +544,7 @@ object GFX: GFXBase1() {
                 break
             }
         }
+
     }
 
     fun clearStack(){

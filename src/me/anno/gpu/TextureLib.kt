@@ -13,7 +13,6 @@ object TextureLib {
         invisibleTexture.createRGBA(ByteArray(4) { 0.toByte() })
         whiteTexture.createRGBA(
             byteArrayOf(255.toByte(), 255.toByte(), 255.toByte(), 255.toByte()))
-        whiteTexture.filtering(true)
         stripeTexture.createMonochrome(
             byteArrayOf(255.toByte(), 255.toByte(), 255.toByte(), 255.toByte(), 255.toByte()))
         colorShowTexture.createRGBA(
@@ -21,7 +20,6 @@ object TextureLib {
                 255,255,255,127, 255,255,255,255,
                 255,255,255,255, 255,255,255,127
             ).map { it.toByte() }.toByteArray())
-        colorShowTexture.filtering(true)
     }
 
 }

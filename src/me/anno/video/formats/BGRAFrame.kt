@@ -2,6 +2,7 @@ package me.anno.video.formats
 
 import me.anno.gpu.GFX
 import me.anno.gpu.ShaderLib.shader3DBGRA
+import me.anno.gpu.texture.ClampMode
 import me.anno.gpu.texture.Texture2D
 import me.anno.utils.readNBytes
 import me.anno.video.Frame
@@ -28,8 +29,8 @@ class BGRAFrame(w: Int, h: Int): Frame(w,h){
 
     override fun get3DShader() = shader3DBGRA
 
-    override fun bind(offset: Int, nearestFiltering: Boolean){
-        bgra.bind(offset, nearestFiltering)
+    override fun bind(offset: Int, nearestFiltering: Boolean, clampMode: ClampMode){
+        bgra.bind(offset, nearestFiltering, clampMode)
     }
 
     override fun destroy(){

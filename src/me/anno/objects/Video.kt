@@ -6,8 +6,10 @@ import me.anno.gpu.TextureLib
 import me.anno.gpu.TextureLib.colorShowTexture
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticFloatBuffer
+import me.anno.gpu.texture.ClampMode
 import me.anno.gpu.texture.FilteringMode
 import me.anno.image.svg.SVGMesh
+import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.xml.XMLElement
 import me.anno.io.xml.XMLReader
@@ -45,6 +47,7 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
 
     var tiling = AnimatedProperty.tiling()
     var uvProjection = UVProjection.Planar
+    var clampMode = ClampMode.MIRRORED_REPEAT
 
     var startTime = 0.0
     var endTime = 100.0
@@ -175,7 +178,7 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
 
                     val frame = Cache.getVideoFrame(file, zoomLevel, frameIndex, frameCount, videoFPS, videoFrameTimeout, isLooping)
                     if(frame != null && frame.isLoaded){
-                        GFX.draw3D(stack, frame, color, filtering, tiling[time], uvProjection)
+                        GFX.draw3D(stack, frame, color, this@Video.filtering, this@Video.clampMode, tiling[time], uvProjection)
                         wasDrawn = true
                     } else {
                         if(GFX.isFinalRendering){
@@ -194,7 +197,7 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
         if(!wasDrawn){
             GFX.draw3D(stack, colorShowTexture, 16, 9,
                 Vector4f(0.5f, 0.5f, 0.5f, 1f).mul(color),
-                FilteringMode.NEAREST, tiling16x9, uvProjection
+                FilteringMode.NEAREST, ClampMode.REPEAT, tiling16x9, uvProjection
             )
         }
     }
@@ -211,7 +214,7 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
                 if(bufferData == null && GFX.isFinalRendering) throw MissingFrameException(file)
                 if(bufferData != null){
                     // todo apply tiling for svgs...
-                    GFX.draw3DSVG(stack, bufferData.buffer, TextureLib.whiteTexture, color, FilteringMode.NEAREST)
+                    GFX.draw3DSVG(stack, bufferData.buffer, TextureLib.whiteTexture, color, FilteringMode.NEAREST, ClampMode.CLAMP)
                 }
             }
             name.endsWith("webp", true) -> {
@@ -219,14 +222,14 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
                 // calculate required scale? no, without animation, we don't need to scale it down ;)
                 val texture = Cache.getVideoFrame(file, 1, 0, 0, 1.0, imageTimeout, LoopingState.PLAY_ONCE)
                 if((texture == null || !texture.isLoaded) && GFX.isFinalRendering) throw MissingFrameException(file)
-                if(texture?.isLoaded == true) GFX.draw3D(stack, texture, color, filtering, tiling, uvProjection)
+                if(texture?.isLoaded == true) GFX.draw3D(stack, texture, color, this@Video.filtering, this@Video.clampMode, tiling, uvProjection)
             }
-            else -> {
+            else -> {// some image
                 val tiling = tiling[time]
                 val texture = Cache.getImage(file, imageTimeout, true)
                 if(texture == null && GFX.isFinalRendering) throw MissingFrameException(file)
                 texture?.apply {
-                    GFX.draw3D(stack, texture, color, filtering, tiling, uvProjection)
+                    GFX.draw3D(stack, texture, color, this@Video.filtering, this@Video.clampMode, tiling, uvProjection)
                 }
             }
         }
@@ -268,6 +271,7 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
         list += VI("Video Start", "Timestamp in seconds of the first frames drawn", null, startTime, style){ startTime = it }
         list += VI("Video End", "Timestamp in seconds of the last frames drawn", null, endTime, style) { endTime = it }
         list += VI("Filtering", "Pixelated look?", null, filtering, style){ filtering = it }
+        list += VI("Clamping", "For tiled images", null, clampMode, style){ clampMode = it }
         // todo hide elements, if they are not used
         list += EnumInput("Video Scale", true,
             videoScaleNames.reverse[videoScale] ?: "Auto",
@@ -285,14 +289,24 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
         writer.writeString("path", file.toString())
         writer.writeDouble("startTime", startTime)
         writer.writeDouble("endTime", endTime)
+        writer.writeObject(this, "tiling", tiling)
         writer.writeInt("filtering", filtering.id, true)
+        writer.writeInt("clamping", clampMode.id, true)
         writer.writeInt("videoScale", videoScale)
+    }
+
+    override fun readObject(name: String, value: ISaveable?) {
+        when(name){
+            "tiling" -> tiling.copyFrom(value)
+            else -> super.readObject(name, value)
+        }
     }
 
     override fun readInt(name: String, value: Int) {
         when(name){
             "videoScale" -> videoScale = value
             "filtering" -> filtering = filtering.find(value)
+            "clamping" -> clampMode = ClampMode.values().firstOrNull { it.id == value } ?: clampMode
             else -> super.readInt(name, value)
         }
     }

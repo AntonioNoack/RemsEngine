@@ -5,6 +5,7 @@ import me.anno.gpu.ShaderLib.createShaderNoShorts
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.texture.ClampMode
 import me.anno.gpu.texture.Texture2D
 import me.anno.objects.Transform.Companion.xAxis
 import me.anno.objects.Transform.Companion.yAxis
@@ -42,7 +43,7 @@ object BokehBlur {
 
         if(compositionShader == null) init()
 
-        srcTexture.bind(0, false)
+        srcTexture.bind(0, false, ClampMode.CLAMP)
 
         glDisable(GL_DEPTH_TEST)
         glDisable(GL_BLEND)
@@ -54,7 +55,7 @@ object BokehBlur {
 
         val filterRadius = sizeRY * h / KERNEL_COUNT
 
-        filterTexture.bind(1, true)
+        filterTexture.bind(1, true, ClampMode.CLAMP)
 
         var shader = perChannelShader!!
         shader.use()
@@ -75,9 +76,9 @@ object BokehBlur {
         target.bind()
 
         // filter texture is bound correctly
-        r.bindTexture0(1, false)
-        g.bindTexture0(2, false)
-        b.bindTexture0(3, false)
+        r.bindTexture0(1, false, ClampMode.CLAMP)
+        g.bindTexture0(2, false, ClampMode.CLAMP)
+        b.bindTexture0(3, false, ClampMode.CLAMP)
         flat01.draw(shader)
 
     }

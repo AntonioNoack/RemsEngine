@@ -3,6 +3,7 @@ package me.anno.objects
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.GFX.toRadians
+import me.anno.gpu.texture.ClampMode
 import me.anno.gpu.texture.FilteringMode
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
@@ -502,18 +503,18 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
                     is FilteringMode -> FilteringMode.values()
                     is ArraySelectionMode -> ArraySelectionMode.values()
                     is UVProjection -> UVProjection.values()
+                    is ClampMode -> ClampMode.values()
                     else -> throw RuntimeException("Missing enum .values() implementation for UI in Transform.kt for $value")
                 }
                 val valueNames = values.map {
                     it to when(it){
-                        LoopingState.PLAY_ONCE -> "Once"
-                        LoopingState.PLAY_LOOP -> "Looping"
-                        LoopingState.PLAY_REVERSING_LOOP -> "Reversing"
+                        is LoopingState -> it.displayName
                         is ToneMappers -> it.displayName
                         is MaskType -> it.displayName
                         is FilteringMode -> it.displayName
                         is ArraySelectionMode -> it.displayName
                         is UVProjection -> it.displayName
+                        is ClampMode -> it.displayName
                         else -> it.name
                     }
                 }

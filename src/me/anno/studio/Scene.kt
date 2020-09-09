@@ -11,6 +11,7 @@ import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderPlus
+import me.anno.gpu.texture.ClampMode
 import me.anno.input.Input.keysDown
 import me.anno.objects.Camera
 import me.anno.objects.Transform.Companion.xAxis
@@ -212,7 +213,7 @@ object Scene {
     fun getNextBuffer(name: String, buffer: Framebuffer, offset: Int, nearest: Boolean, withMultisampling: Boolean?): Framebuffer {
         val next = FBStack[name, buffer.w, buffer.h, withMultisampling ?: buffer.withMultisampling]
         next.bind()
-        buffer.bindTextures(offset, nearest)
+        buffer.bindTextures(offset, nearest, ClampMode.CLAMP)
         return next
     }
 
@@ -353,7 +354,7 @@ object Scene {
             buffer = getNextBuffer("Scene-tmp0", buffer, 0, true, withMultisampling = false) // this is somehow not enough (why??)
             buffer = getNextBuffer("Scene-tmp1", buffer, 0, true, withMultisampling = false)
             val shader = copyShader
-            msBuffer.bindTextures(0, false)
+            msBuffer.bindTextures(0, false, ClampMode.CLAMP)
             shader.use()
             flat01.draw(shader)
         }
@@ -380,7 +381,7 @@ object Scene {
             buffer = getNextBuffer("Scene-LT", buffer, 0, nearest = false, withMultisampling = false)
         } else {
             bindTarget()
-            buffer.bindTextures(0, nearest = false)
+            buffer.bindTextures(0, false, ClampMode.CLAMP)
         }
 
         /**
@@ -437,7 +438,7 @@ object Scene {
 
         if(useLUT){
             bindTarget()
-            buffer.bindTextures(0, true)
+            buffer.bindTextures(0, true, ClampMode.CLAMP)
             lutShader.use()
             lut!!.bind(1, false)
             lut.clamping(false)

@@ -1,9 +1,9 @@
 package me.anno.objects.modes
 
-enum class LoopingState(val id: Int){
-    PLAY_ONCE(0),
-    PLAY_LOOP(1),
-    PLAY_REVERSING_LOOP(2);
+enum class LoopingState(val id: Int, val displayName: String){
+    PLAY_ONCE(0, "Once"),
+    PLAY_LOOP(1, "Looping"),
+    PLAY_REVERSING_LOOP(2, "Reversing");
 
     operator fun get(time: Double, duration: Double) = when(this){
         PLAY_ONCE -> time

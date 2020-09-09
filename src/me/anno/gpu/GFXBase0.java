@@ -94,6 +94,8 @@ public class GFXBase0 {
         glfwDefaultWindowHints();
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
         glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+        // removes scaling options -> how could we replace them?
+        // glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
 
         long t3 = System.nanoTime();
 

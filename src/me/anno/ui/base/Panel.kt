@@ -10,6 +10,8 @@ import me.anno.utils.Tabs
 import java.io.File
 import java.lang.RuntimeException
 
+// todo select any group of elements similar to control+click by shift+drag
+
 open class Panel(val style: Style): Saveable(){
 
     var minW = 1

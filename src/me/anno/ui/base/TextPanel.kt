@@ -9,6 +9,9 @@ import me.anno.ui.base.components.Padding
 import me.anno.ui.style.Style
 import me.anno.utils.mixARGB
 
+// todo cache ui, as long as it's not changing?
+// would reduce gpu usage, but make things harder...
+
 open class TextPanel(open var text: String, style: Style): Panel(style){
 
     var instantTextLoading = false

@@ -7,6 +7,7 @@ import me.anno.gpu.ShaderLib.shader3D
 import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticFloatBuffer
+import me.anno.gpu.texture.ClampMode
 import me.anno.objects.Transform.Companion.xAxis
 import me.anno.objects.Transform.Companion.yAxis
 import me.anno.objects.Transform.Companion.zAxis
@@ -70,7 +71,7 @@ object Grid {
             color.shr(16).and(255) / 255f,
             color.shr(8).and(255) / 255f,
             color.and(255) / 255f, alpha)
-        whiteTexture.bind(0, true)
+        whiteTexture.bind(0, true, ClampMode.CLAMP)
         lineBuffer.draw(shader, GL_LINES)
     }
 
@@ -84,7 +85,7 @@ object Grid {
             color.shr(16).and(255) / 255f,
             color.shr(8).and(255) / 255f,
             color.and(255) / 255f, alpha)
-        whiteTexture.bind(0, true)
+        whiteTexture.bind(0, true, ClampMode.CLAMP)
         lineBuffer.draw(shader, GL_LINES)
 
     }
@@ -137,7 +138,7 @@ object Grid {
         stack.get(GFX.matrixBuffer)
         glUniformMatrix4fv(shader["transform"], false, GFX.matrixBuffer)
         shader.v4("tint", 1f, 1f, 1f, alpha)
-        whiteTexture.bind(0, true)
+        whiteTexture.bind(0, true, ClampMode.CLAMP)
         gridBuffer.draw(shader, GL_LINES)
 
     }

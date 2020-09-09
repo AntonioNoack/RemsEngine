@@ -48,6 +48,7 @@ abstract class BaseReader {
             "AnimatedProperty<skew2D>" -> AnimatedProperty.skew()
             "AnimatedProperty<color>" -> AnimatedProperty.color()
             "AnimatedProperty<quaternion>" -> AnimatedProperty.quat()
+            "AnimatedProperty<tiling>" -> AnimatedProperty.tiling()
             "Keyframe" -> Keyframe<Any>(0.0, 0f)
             "HarmonicDriver" -> HarmonicDriver()
             "PerlinNoiseDriver" -> PerlinNoiseDriver()

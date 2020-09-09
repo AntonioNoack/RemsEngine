@@ -85,9 +85,6 @@ class AnimatedProperty<V>(val type: Type, val defaultValue: V): Saveable(){
 
     }
 
-    // todo cache the last values left+right and timestamps left+right for faster access
-    // because audio can make literally 48k calls per second
-
     val drivers = arrayOfNulls<AnimationDriver>(type.components)
 
     var isAnimated = false

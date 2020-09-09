@@ -3,16 +3,21 @@ package me.anno.studio
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.select
 import me.anno.gpu.Window
 import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.objects.Camera
 import me.anno.objects.Transform
+import me.anno.objects.cache.Cache
 import me.anno.objects.geometric.Circle
+import me.anno.objects.rendering.RenderSettings
 import me.anno.studio.RemsStudio.lastConsoleLines
 import me.anno.studio.RemsStudio.windowStack
+import me.anno.studio.Studio.nullCamera
 import me.anno.studio.Studio.project
 import me.anno.studio.Studio.root
+import me.anno.studio.Studio.selectedTransform
 import me.anno.studio.Studio.targetDuration
 import me.anno.studio.Studio.targetFPS
 import me.anno.studio.Studio.targetHeight
@@ -91,14 +96,18 @@ object UILayouts {
         // todo show the file location up there, too?
         // todo fully customizable content
         val options = OptionBar(style)
-        options.addMajor("File")
-        options.addMajor("Edit")
-        options.addMajor("View")
-        options.addMajor("Navigate")
-        options.addMajor("Code")
+        // options.addMajor("File")
+        // options.addMajor("Edit")
+        // options.addMajor("View")
+        // options.addMajor("Navigate")
+        // options.addMajor("Code")
 
         options.addAction("File", "Save"){ Input.save() }
         options.addAction("File", "Load"){  }
+
+        options.addAction("Select", "Render Settings"){ select(RenderSettings) }
+        options.addAction("Select", "Inspector Camera"){ select(nullCamera) }
+        options.addAction("Debug", "Refresh (Ctrl+F5)"){ Cache.clear() }
 
         options.addAction("Render", "Set%"){
             render(

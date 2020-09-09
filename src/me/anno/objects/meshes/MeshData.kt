@@ -5,6 +5,7 @@ import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.ShaderLib.shaderObjMtl
 import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.gpu.buffer.StaticFloatBuffer
+import me.anno.gpu.texture.ClampMode
 import me.anno.gpu.texture.FilteringMode
 import me.anno.gpu.texture.Texture2D
 import me.anno.objects.cache.Cache
@@ -30,7 +31,7 @@ class MeshData: CacheData {
         for((material, buffer) in toDraw){
             val shader = shaderObjMtl.shader
             GFX.shader3DUniforms(shader, stack, 1, 1, color, null, FilteringMode.NEAREST, null)
-            getTexture(material.diffuseTexture, whiteTexture).bind(0, false)
+            getTexture(material.diffuseTexture, whiteTexture).bind(0, false, ClampMode.CLAMP)
             buffer.draw(shader)
             GFX.check()
         }

@@ -2,6 +2,7 @@ package me.anno.video.formats
 
 import me.anno.gpu.GFX
 import me.anno.gpu.ShaderLib.shader3D
+import me.anno.gpu.texture.ClampMode
 import me.anno.gpu.texture.Texture2D
 import me.anno.video.Frame
 import me.anno.video.LastFrame
@@ -33,8 +34,8 @@ class RGBFrame(w: Int, h: Int): Frame(w,h){
 
     override fun get3DShader() = shader3D
 
-    override fun bind(offset: Int, nearestFiltering: Boolean){
-        rgb.bind(offset, nearestFiltering)
+    override fun bind(offset: Int, nearestFiltering: Boolean, clampMode: ClampMode){
+        rgb.bind(offset, nearestFiltering, clampMode)
     }
 
     override fun destroy(){

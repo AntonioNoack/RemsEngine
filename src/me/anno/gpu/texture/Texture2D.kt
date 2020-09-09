@@ -3,12 +3,10 @@ package me.anno.gpu.texture
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.TextureLib.invisibleTexture
-import me.anno.input.Input.keysDown
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL13.GL_TEXTURE0
-import org.lwjgl.opengl.GL30
 import org.lwjgl.opengl.GL30.*
 import org.lwjgl.opengl.GL32.GL_TEXTURE_2D_MULTISAMPLE
 import org.lwjgl.opengl.GL32.glTexImage2DMultisample
@@ -32,8 +30,8 @@ class Texture2D(override var w: Int, override var h: Int, val samples: Int): ITe
 
     var pointer = -1
     var isCreated = false
-    var isFilteredNearest = false
-    var isVirtual = false
+    var nearest = false
+    var clampMode = ClampMode.CLAMP
 
     fun setSize(width: Int, height: Int){
         w = width
@@ -57,7 +55,8 @@ class Texture2D(override var w: Int, override var h: Int, val samples: Int): ITe
         } else {
             glTexImage2D(tex2D, 0, GL_RGBA8, w, h, 0, GL11.GL_RGBA, GL_UNSIGNED_BYTE, null as ByteBuffer?)
         }
-        filtering(isFilteredNearest)
+        filtering(nearest)
+        clamping(clampMode)
         isCreated = true
     }
 
@@ -73,7 +72,8 @@ class Texture2D(override var w: Int, override var h: Int, val samples: Int): ITe
         }
         // LOGGER.info("FP32 $w $h $samples")
         GFX.check()
-        filtering(isFilteredNearest)
+        filtering(nearest)
+        clamping(clampMode)
         isCreated = true
         GFX.check()
     }
@@ -128,7 +128,8 @@ class Texture2D(override var w: Int, override var h: Int, val samples: Int): ITe
         glTexImage2D(tex2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, intData)
         isCreated = true
         GFX.check()
-        filtering(isFilteredNearest)
+        filtering(nearest)
+        clamping(clampMode)
         GFX.check()
     }
 
@@ -144,7 +145,8 @@ class Texture2D(override var w: Int, override var h: Int, val samples: Int): ITe
         byteBuffer.position(0)
         glTexImage2D(tex2D, 0, GL_RED, w, h, 0, GL_RED, GL_UNSIGNED_BYTE, byteBuffer)
         isCreated = true
-        filtering(isFilteredNearest)
+        filtering(nearest)
+        clamping(clampMode)
         GFX.check()
     }
 
@@ -167,7 +169,7 @@ class Texture2D(override var w: Int, override var h: Int, val samples: Int): ITe
         // rgba32f as internal format is extremely important... otherwise the value is cropped
         glTexImage2D(tex2D, 0, GL_RGBA32F, w, h, 0, GL_RGBA, GL_FLOAT, floatBuffer)
         isCreated = true
-        filtering(isFilteredNearest)
+        filtering(nearest)
         GFX.check()
     }
 
@@ -182,23 +184,33 @@ class Texture2D(override var w: Int, override var h: Int, val samples: Int): ITe
         byteBuffer.position(0)
         glTexImage2D(tex2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, byteBuffer)
         isCreated = true
-        filtering(isFilteredNearest)
+        filtering(nearest)
+        clamping(clampMode)
         GFX.check()
     }
 
-    fun ensureFiltering(nearest: Boolean){
-        if(nearest != isFilteredNearest) filtering(nearest)
+    fun ensureFilterAndClamping(nearest: Boolean, clampMode: ClampMode){
+        if(nearest != this.nearest) filtering(nearest)
+        if(clampMode != this.clampMode) clamping(clampMode)
     }
 
-    fun filtering(nearest: Boolean){
+    private fun clamping(clampMode: ClampMode){
+        if(!withMultisampling){
+            this.clampMode = clampMode
+            val type = clampMode.mode
+            glTexParameteri(tex2D, GL_TEXTURE_WRAP_S, type)
+            glTexParameteri(tex2D, GL_TEXTURE_WRAP_T, type)
+        }
+    }
+
+    private fun filtering(nearest: Boolean){
         if(withMultisampling){
-            isFilteredNearest = true
+            this.nearest = true
             // multisample textures only support nearest filtering;
             // they don't accept the command to be what they are either
             return
         }
         synchronized(this){
-            // todo switching back from nearest to linear doesn't work for textures
             if(nearest){
                 val type = GL_NEAREST
                 glTexParameteri(tex2D, GL_TEXTURE_MAG_FILTER, type)
@@ -216,35 +228,27 @@ class Texture2D(override var w: Int, override var h: Int, val samples: Int): ITe
                 glTexParameteri(tex2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
                 glTexParameteri(tex2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
             }
-            isFilteredNearest = nearest
+            this.nearest = nearest
         }
     }
 
     var hasMipmap = false
-
-    fun clamping(repeat: Boolean){
-        if(!withMultisampling){
-            val type = if(repeat) GL_REPEAT else GL_CLAMP_TO_EDGE
-            glTexParameteri(tex2D, GL_TEXTURE_WRAP_S, type)
-            glTexParameteri(tex2D, GL_TEXTURE_WRAP_T, type)
-        }
-    }
 
     fun forceBind(){
         if(pointer == -1) throw RuntimeException()
         glBindTexture(tex2D, pointer)
     }
 
-    override fun bind(nearest: Boolean){
+    override fun bind(nearest: Boolean, clampMode: ClampMode){
         if(pointer > -1 && isCreated){
             glBindTexture(tex2D, pointer)
-            ensureFiltering(nearest)
-        } else invisibleTexture.bind(true)
+            ensureFilterAndClamping(nearest, clampMode)
+        } else invisibleTexture.bind(invisibleTexture.nearest, invisibleTexture.clampMode)
     }
 
-    override fun bind(index: Int, nearest: Boolean){
+    override fun bind(index: Int, nearest: Boolean, clampMode: ClampMode){
         glActiveTexture(GL_TEXTURE0 + index)
-        bind(nearest)
+        bind(nearest, clampMode)
     }
 
     override fun destroy(){
@@ -259,8 +263,8 @@ class Texture2D(override var w: Int, override var h: Int, val samples: Int): ITe
         } else {
             glTexImage2D(tex2D, 0, GL_DEPTH_COMPONENT32, w, h, 0, GL_DEPTH_COMPONENT,	GL_FLOAT, 0)
         }
-        filtering(isFilteredNearest)
-        clamping(false)
+        filtering(nearest)
+        clamping(ClampMode.CLAMP)
         GFX.check()
     }
 

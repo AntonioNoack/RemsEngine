@@ -6,6 +6,7 @@ import me.anno.gpu.GFX.toRadians
 import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticFloatBuffer
+import me.anno.gpu.texture.ClampMode
 import me.anno.gpu.texture.FilteringMode
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
@@ -55,7 +56,7 @@ class Polygon(parent: Transform? = null): GFXTransform(parent){
             stack.scale(1f, 1f, 0f)
         }
         GFX.draw3DPolygon(stack, getBuffer(count, selfDepth > 0f), texture, color,
-            inset, filtering)
+            inset, filtering, ClampMode.CLAMP)
         stack.popMatrix()
         return
     }

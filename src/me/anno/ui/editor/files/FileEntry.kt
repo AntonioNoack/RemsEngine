@@ -3,6 +3,7 @@ package me.anno.ui.editor.files
 import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
 import me.anno.gpu.TextureLib.whiteTexture
+import me.anno.gpu.texture.ClampMode
 import me.anno.input.MouseButton
 import me.anno.objects.cache.Cache
 import me.anno.objects.modes.LoopingState
@@ -12,8 +13,11 @@ import me.anno.ui.base.TextPanel
 import me.anno.ui.dragging.Draggable
 import me.anno.ui.style.Style
 import me.anno.utils.*
+import me.anno.video.FFMPEGMetadata
+import org.joml.Vector4f
 import java.io.File
 import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.roundToInt
 
 class FileEntry(val explorer: FileExplorer, val isParent: Boolean, val file: File, style: Style) :
@@ -54,6 +58,8 @@ class FileEntry(val explorer: FileExplorer, val isParent: Boolean, val file: Fil
         this.h = size
     }
 
+    var startTime = 0L
+
     override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
         wasInFocus = isInFocus
         backgroundColor = if (isInFocus) darkerBackgroundColor else originalBackgroundColor
@@ -62,21 +68,56 @@ class FileEntry(val explorer: FileExplorer, val isParent: Boolean, val file: Fil
         if (file.extension.equals("svg", true)) {
 
         } else {
+            val w = w
+            val h = h
             val needsDefault = when (importType) {
                 // todo audio preview???
                 "Video" -> {
                     // todo faster calculation of preview images
                     // todo maybe just cache them (statically, in files), once they were downloaded?
-                    val image = Cache.getVideoFrame(file, 16, 0, 1, 10.0, 1000, LoopingState.PLAY_LOOP)
-                    if(image != null && image.isLoaded){
-                        var iw = image.w
-                        var ih = image.h
-                        val scale = (size - 20) / max(iw, ih).toFloat()
-                        iw = (iw * scale).roundToInt()
-                        ih = (ih * scale).roundToInt()
-                        // image.ensureFiltering(false)
-                        GFX.drawTexture(x + (size - iw) / 2, y + (size - ih) / 2, iw, ih, image, -1, null)
-                        false
+                    val hoverPlaybackDelay = 0.5
+                    val meta = FFMPEGMetadata.getMeta(file, true)
+                    if(meta != null){
+                        val previewFPS = min(meta.videoFPS, 30.0)
+                        val maxFrameIndex = max(1, (previewFPS * meta.videoDuration).toInt())
+                        var time = 0.0
+                        val frameIndex = if(isHovered){
+                            if(startTime == 0L){
+                                startTime = System.nanoTime()
+                                0
+                            } else {
+                                time = (System.nanoTime() - startTime) * 1e-9 - hoverPlaybackDelay
+                                max(0, (time * previewFPS).toInt())
+                            }
+                        } else {
+                            startTime = 0
+                            0
+                        } % maxFrameIndex
+                        val scale = min(meta.videoWidth / w, meta.videoHeight / h)
+                        val image = Cache.getVideoFrame(file, scale, frameIndex, if(frameIndex == 0) 16 else 64, previewFPS, 1000, LoopingState.PLAY_LOOP)
+                        if(image != null && image.isLoaded){
+                            var iw = image.w
+                            var ih = image.h
+                            val scale2 = (size) / max(iw, ih).toFloat()
+                            iw = (iw * scale2).roundToInt()
+                            ih = (ih * scale2).roundToInt()
+                            // image.ensureFiltering(false)
+                            GFX.drawTexture(x + (size - iw) / 2, y + (size - ih) / 2, iw, ih, image, -1, null)
+                            if(time < 0.0){
+                                // countdown-circle, pseudo-loading
+                                // saves us some computations
+                                // todo when we have precomputed images, already here preload the video
+                                // load directly from windows? https://en.wikipedia.org/wiki/Windows_thumbnail_cache#:~:text=locality%20of%20Thumbs.-,db%20files.,thumbnails%20in%20each%20sized%20database.
+                                // https://stackoverflow.com/questions/1439719/c-sharp-get-thumbnail-from-file-via-windows-api?
+                                // how about Linux/Mac?
+                                // (maybe after half of the waiting time)
+                                val relativeTime = ((hoverPlaybackDelay+time)/hoverPlaybackDelay).toFloat()
+                                val r = 1f-sq(relativeTime*2-1)
+                                // todo anti-aliasing for this? the edges are pretty rough...
+                                GFX.drawCircle(x, y, iw, ih, 0f, relativeTime * 360f * 4 / 3, relativeTime * 360f * 2, Vector4f(1f, 1f, 1f, r * 0.2f))
+                            }
+                            false
+                        } else true
                     } else true
                 }
                 "Image" -> {
@@ -87,7 +128,7 @@ class FileEntry(val explorer: FileExplorer, val isParent: Boolean, val file: Fil
                         val scale = (size - 20) / max(iw, ih).toFloat()
                         iw = (iw * scale).roundToInt()
                         ih = (ih * scale).roundToInt()
-                        image.ensureFiltering(false)
+                        image.ensureFilterAndClamping(false, ClampMode.CLAMP)
                         GFX.drawTexture(x + (size - iw) / 2, y + (size - ih) / 2, iw, ih, image, -1, null)
                     }
                     image == null
@@ -101,7 +142,7 @@ class FileEntry(val explorer: FileExplorer, val isParent: Boolean, val file: Fil
                 val scale = (size - 20) / max(iw, ih).toFloat()
                 iw = (iw * scale).roundToInt()
                 ih = (ih * scale).roundToInt()
-                image.ensureFiltering(false)
+                image.ensureFilterAndClamping(false, ClampMode.CLAMP)
                 GFX.drawTexture(x + (size - iw) / 2, y + (size - ih) / 2, iw, ih, image, -1, null)
             }
 

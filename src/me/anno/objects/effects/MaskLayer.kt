@@ -1,6 +1,7 @@
 package me.anno.objects.effects
 
 import me.anno.gpu.GFX
+import me.anno.gpu.texture.ClampMode
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.Transform
@@ -26,9 +27,9 @@ class MaskLayer(parent: Transform? = null): MaskedLayer(parent){
                 // todo first blur everything, then mask?
                 // the artist could notice the fps going down, and act on his own (screenshot, rendering once, ...) ;)
                 GFX.check()
-                masked.bindTexture0(1, true)
+                masked.bindTexture0(1, true, ClampMode.CLAMP)
                 GFX.check()
-                mask.bindTexture0(0, true)
+                mask.bindTexture0(0, true, ClampMode.CLAMP)
                 GFX.check()
                 temp.bind(GFX.windowWidth, GFX.windowHeight)
                 glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
@@ -41,7 +42,7 @@ class MaskLayer(parent: Transform? = null): MaskedLayer(parent){
                 glEnable(GL_BLEND)
                 glEnable(GL_DEPTH_TEST) // todo only if camera wishes so
                 temp.unbind()
-                temp.bindTexture0(1, true) // becomes masked
+                temp.bindTexture0(1, true, ClampMode.CLAMP) // becomes masked
                 GFX.draw3DMasked(localTransform, color,
                     type, useMaskColor[time], offsetColor,
                     pixelSize, if(isInverted) 1f else 0f, Vector2f(pixelSize * GFX.windowHeight / GFX.windowWidth, 0f)
@@ -59,7 +60,7 @@ class MaskLayer(parent: Transform? = null): MaskedLayer(parent){
                 val srcBuffer = src0.msBuffer ?: src0
                 BokehBlur.draw(srcBuffer.textures[0], pixelSize)
                 temp.unbind()
-                temp.bindTexture0(1, true)
+                temp.bindTexture0(1, true, ClampMode.CLAMP)
                 glEnable(GL_BLEND)
                 glEnable(GL_DEPTH_TEST) // todo only if camera wishes so
                 GFX.draw3DMasked(localTransform, color,
@@ -69,9 +70,9 @@ class MaskLayer(parent: Transform? = null): MaskedLayer(parent){
             }
             else -> {
                 GFX.check()
-                masked.bindTextures(1, true)
+                masked.bindTextures(1, true, ClampMode.CLAMP)
                 GFX.check()
-                mask.bindTextures(0, true)
+                mask.bindTextures(0, true, ClampMode.CLAMP)
                 GFX.check()
                 GFX.draw3DMasked(localTransform, color,
                     type, useMaskColor[time], offsetColor,

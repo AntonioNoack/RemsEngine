@@ -2,6 +2,7 @@ package me.anno.video.formats
 
 import me.anno.gpu.GFX
 import me.anno.gpu.ShaderLib.shader3DYUV
+import me.anno.gpu.texture.ClampMode
 import me.anno.gpu.texture.Texture2D
 import me.anno.utils.readNBytes
 import me.anno.video.Frame
@@ -49,10 +50,10 @@ class I420Frame(iw: Int, ih: Int): Frame(iw,ih){
 
     override fun get3DShader() = shader3DYUV
 
-    override fun bind(offset: Int, nearestFiltering: Boolean){
-        v.bind(offset+2, nearestFiltering)
-        u.bind(offset+1, nearestFiltering)
-        y.bind(offset, nearestFiltering)
+    override fun bind(offset: Int, nearestFiltering: Boolean, clampMode: ClampMode){
+        v.bind(offset+2, nearestFiltering, clampMode)
+        u.bind(offset+1, nearestFiltering, clampMode)
+        y.bind(offset, nearestFiltering, clampMode)
     }
 
     // 319x yuv = 2,400 MB

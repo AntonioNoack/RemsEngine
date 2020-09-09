@@ -1,6 +1,5 @@
 package me.anno.ui.custom
 
-import de.javagl.jgltf.impl.v1.Scene
 import me.anno.config.DefaultStyle.white
 import me.anno.gpu.GFX
 import me.anno.gpu.TextureLib.whiteTexture
@@ -25,12 +24,6 @@ class CustomContainer(default: Panel, style: Style): PanelContainer(default, Pad
         minH = child.minH
     }
 
-    /*override fun applyConstraints() {
-        child.applyConstraints()
-        w = child.w
-        h = child.h
-    }*/
-
     override fun placeInParent(x: Int, y: Int) {
         child.placeInParent(x, y)
         this.x = x
@@ -50,7 +43,7 @@ class CustomContainer(default: Panel, style: Style): PanelContainer(default, Pad
             "Tree View" to action { TreeView(style) },
             "Inspector" to action { PropertyInspector(style) },
             "Cutting Panel" to action { CuttingView(style) },
-            "Graph Editor" to action { GraphEditor(style) },
+            "Timeline" to action { GraphEditor(style) },
             "Files" to action { FileExplorer(style) }
         ).toMutableList()
         options += "Remove This Element" to {

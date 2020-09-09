@@ -181,7 +181,7 @@ class Texture3D(val w: Int, val h: Int, val d: Int){
         if(pointer > -1 && isCreated){
             glBindTexture(GL_TEXTURE_3D, pointer)
             ensureFiltering(nearest)
-        } else invisibleTexture.bind(true)
+        } else invisibleTexture.bind(true, ClampMode.CLAMP)
     }
 
     fun bind(index: Int, nearest: Boolean){

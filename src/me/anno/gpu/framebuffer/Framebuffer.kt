@@ -1,6 +1,7 @@
 package me.anno.gpu.framebuffer
 
 import me.anno.gpu.GFX
+import me.anno.gpu.texture.ClampMode
 import me.anno.gpu.texture.Texture2D
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL11
@@ -81,10 +82,6 @@ class Framebuffer(var name: String, var w: Int, var h: Int, val samples: Int, va
             else texture.create()
             // LOGGER.info("create/textures-array $w $h $samples $fpTargets")
             GFX.check()
-            texture.filtering(true)
-            GFX.check()
-            texture.clamping(false)
-            GFX.check()
             texture
         }
         GFX.check()
@@ -164,32 +161,29 @@ class Framebuffer(var name: String, var w: Int, var h: Int, val samples: Int, va
         }
     }
 
-    fun bindTexture0(offset: Int = 0, nearest: Boolean){
+    fun bindTexture0(offset: Int = 0, nearest: Boolean, clampMode: ClampMode){
         if(withMultisampling){
             val msBuffer = msBuffer!!
             resolveTo(msBuffer)
-            msBuffer.bindTexture0(offset, nearest)
-            return
+            msBuffer.bindTexture0(offset, nearest, clampMode)
+        } else {
+            GL13.glActiveTexture(GL13.GL_TEXTURE0 + offset)
+            textures[0].bind(nearest, clampMode)
         }
-        GL13.glActiveTexture(GL13.GL_TEXTURE0 + offset)
-        textures[0].bind(nearest)
     }
 
-    fun bindTextures(offset: Int = 0, nearest: Boolean){
+    fun bindTextures(offset: Int = 0, nearest: Boolean, clampMode: ClampMode){
+        GFX.check()
         if(withMultisampling){
             val msBuffer = msBuffer!!
-            GFX.check()
             resolveTo(msBuffer)
             GFX.check()
-            msBuffer.bindTextures(offset, nearest)
-            GFX.check()
-            return
-        }
-        GFX.check()
-        textures.forEachIndexed { index, texture ->
-            GL13.glActiveTexture(GL13.GL_TEXTURE0 + offset + index)
-            texture.bind(nearest)
-            texture.clamping(false)
+            msBuffer.bindTextures(offset, nearest, clampMode)
+        } else {
+            textures.forEachIndexed { index, texture ->
+                GL13.glActiveTexture(GL13.GL_TEXTURE0 + offset + index)
+                texture.bind(nearest, clampMode)
+            }
         }
         GFX.check()
     }
