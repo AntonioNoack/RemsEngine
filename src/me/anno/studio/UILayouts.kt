@@ -8,6 +8,7 @@ import me.anno.gpu.Window
 import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.objects.Camera
+import me.anno.objects.Text
 import me.anno.objects.Transform
 import me.anno.objects.cache.Cache
 import me.anno.objects.geometric.Circle
@@ -127,7 +128,7 @@ object UILayouts {
         // for(i in 0 until 2) Transform(null, null, null, b)
 
         Camera(root)
-        Circle(root).apply {
+        /*Circle(root).apply {
             name = "C1"
             color.addKeyframe(0.0, Vector4f(0f, 0f, 0f, 0f))
             color.addKeyframe(0.1, Vector4f(0.5f, 1f, 1f, 1f))
@@ -138,7 +139,8 @@ object UILayouts {
             color.addKeyframe(0.0, Vector4f(0f, 0f, 0f, 0f))
             color.addKeyframe(0.1, Vector4f(1f, 1f, 1f, 1f))
             color.isAnimated = true
-        }
+        }*/
+        Text("Text", root)
         // Video(File(OS.home, "Videos\\Captures\\Cities_ Skylines 2020-01-06 19-32-23.mp4"), GFX.root)
         // Text("Hi! \uD83D\uDE09", GFX.root)
         // Image(File(OS.downloads, "tiger.svg"), root).position.addKeyframe(0f, Vector3f(0f, 0f, 0.01f), 0.1f)

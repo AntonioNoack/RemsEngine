@@ -32,7 +32,7 @@ import kotlin.collections.ArrayList
 import kotlin.math.abs
 import kotlin.math.max
 
-// todo fix: text has an awkward offset
+// todo animated text, like in RPGs, where text appears; or like typing
 
 // todo background "color" in the shape of a plane? for selections and such
 open class Text(text: String = "", parent: Transform? = null): GFXTransform(parent){

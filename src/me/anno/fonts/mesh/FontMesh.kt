@@ -304,8 +304,8 @@ class FontMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
         val baseScale = DEFAULT_LINE_HEIGHT / (layout.ascent + layout.descent)
 
         triangles.forEach {
-            buffer.put((it.x.toFloat() * baseScale) * 0.5f + 0.5f)
-            buffer.put(it.y.toFloat() * baseScale * 0.5f + 0.5f)
+            buffer.put(it.x.toFloat() * baseScale)
+            buffer.put(it.y.toFloat() * baseScale)
         }
 
         minX *= baseScale * 0.5f

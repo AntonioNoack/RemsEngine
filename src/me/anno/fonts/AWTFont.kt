@@ -200,6 +200,8 @@ class AWTFont(val font: Font): XFont {
             nextLine()
         }
 
+        println("$text: $widthF $currentY")
+
         return PartResult(result, widthF, currentY, exampleLayout)
 
     }

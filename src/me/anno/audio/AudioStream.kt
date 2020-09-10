@@ -26,7 +26,7 @@ import kotlin.math.min
 
 /**
  * todo audio effects:
- * todo echoing
+ * todo better echoing ;)
  * todo velocity frequency change
  * todo pitch
  * todo losing high frequencies in the distance
