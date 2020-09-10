@@ -90,7 +90,7 @@ class LayerView(style: Style) : TimelinePanel(style) {
                 gradients.forEach {
                     // val l = random.nextFloat()
                     // val v = Vector4f(l, l, l, 1f)
-                    GFX.drawRectGradient(it.x0, y0, it.w, h0, it.c0, it.c1)
+                    GFX.drawRectGradient(it.x0, y0, it.w, h0, it.c0, it.c2)
                     // GFX.drawRect(it.x0, y0, it.w, h0, v)
                 }
             }
@@ -178,7 +178,7 @@ class LayerView(style: Style) : TimelinePanel(style) {
                             } // else not worth it
                         } else {
                             val last = list.last()
-                            if (last.owner == tr && last.isLinear(x, stepSize, color) && last.x1 + stepSize >= x) {
+                            if (last.owner == tr && last.isLinear(x, stepSize, color) && last.x2 + stepSize >= x) {
                                 last.set(x, color)
                             } else {
                                 list += Gradient(tr, x - stepSize + 1, x, color, color)
