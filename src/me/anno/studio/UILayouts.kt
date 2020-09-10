@@ -146,16 +146,16 @@ object UILayouts {
         val animationWindow = CustomListX(style)
         customUI.add(animationWindow, 200f)
 
-        animationWindow.add(CustomContainer(TreeView(style), style), 50f)
+        val treeFiles = CustomListY(style)
+        treeFiles += CustomContainer(TreeView(style), style)
+        treeFiles += CustomContainer(FileExplorer(style), style)
+        animationWindow.add(CustomContainer(treeFiles, style), 50f)
         animationWindow.add(CustomContainer(SceneView(style), style), 200f)
         animationWindow.add(CustomContainer(PropertyInspector(style), style), 50f)
         animationWindow.setWeight(1f)
 
         val timeline = GraphEditor(style)
         customUI.add(CustomContainer(timeline, style), 50f)
-
-        val explorer = FileExplorer(style)
-        customUI.add(CustomContainer(explorer, style), 50f)
 
         val linear = CuttingView(style)
         customUI.add(CustomContainer(linear, style), 50f)

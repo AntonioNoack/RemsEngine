@@ -2,12 +2,13 @@ package me.anno.ui.base.scrolling
 
 import me.anno.gpu.GFX
 import me.anno.input.Input
+import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.style.Style
 
-class ScrollbarY(val scrollbar: ScrollPanelY, style: Style): Scrollbar(style){
+class ScrollbarY(val scrollbar: ScrollableY, style: Style): Scrollbar(style){
 
     init {
-        parent = scrollbar
+        parent = scrollbar as PanelGroup
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {

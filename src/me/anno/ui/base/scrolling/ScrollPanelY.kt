@@ -16,7 +16,7 @@ import kotlin.math.min
 
 open class ScrollPanelY(child: Panel, padding: Padding,
                         style: Style,
-                        alignX: AxisAlignment): PanelContainer(child, padding, style){
+                        alignX: AxisAlignment): PanelContainer(child, padding, style), ScrollableY {
 
     constructor(style: Style, padding: Padding, align: AxisAlignment): this(PanelListY(style), padding, style, align)
 
@@ -25,11 +25,11 @@ open class ScrollPanelY(child: Panel, padding: Padding,
         weight = 0.0001f
     }
 
-    var scrollPosition = 0f
+    override var scrollPosition = 0f
     val maxLength = 100_000
     var isDownOnScrollbar = false
 
-    val maxScrollPosition get() = max(0, child.minH + padding.height - h)
+    override val maxScrollPosition get() = max(0, child.minH + padding.height - h)
     val scrollbar = ScrollbarY(this, style)
     val scrollbarWidth = style.getSize("scrollbar.width", 8)
     val scrollbarPadding = style.getSize("scrollbar.padding", 1)

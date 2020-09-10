@@ -141,7 +141,7 @@ open class Panel(val style: Style) : Saveable() {
         }
     }*/
 
-    fun applyPlacement(w: Int, h: Int) {
+    open fun applyPlacement(w: Int, h: Int) {
         //this.minW = w
         //this.minH = h
         this.w = w

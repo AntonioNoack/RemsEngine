@@ -65,12 +65,7 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
             style,
             AxisAlignment.MIN
         ).setWeight(1f)
-        uContent += ScrollPanelY(
-            content,
-            Padding(1),
-            style,
-            AxisAlignment.MIN
-        ).setWeight(3f)
+        uContent += content.setWeight(100f)
     }
 
     var isWorking = false

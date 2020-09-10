@@ -6,6 +6,8 @@ import me.anno.gpu.GFX.openMenu
 import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.gpu.texture.ClampMode
 import me.anno.input.MouseButton
+import me.anno.objects.Audio
+import me.anno.objects.Camera
 import me.anno.objects.cache.Cache
 import me.anno.objects.modes.LoopingState
 import me.anno.studio.Studio
@@ -24,6 +26,10 @@ import kotlin.math.roundToInt
 
 class FileEntry(val explorer: FileExplorer, val isParent: Boolean, val file: File, style: Style) :
     Panel(style.getChild("fileEntry")) {
+
+    // todo don't select stuff with secondary mouse keys
+
+    var audio: Audio? = null
 
     val size = 100
     val importType = file.extension.getImportType()
@@ -62,6 +68,17 @@ class FileEntry(val explorer: FileExplorer, val isParent: Boolean, val file: Fil
 
     var startTime = 0L
 
+    fun drawDefaultIcon(){
+        val image = Cache.getIcon(iconPath, true) ?: whiteTexture
+        var iw = image.w
+        var ih = image.h
+        val scale = (size - 20) / max(iw, ih).toFloat()
+        iw = (iw * scale).roundToInt()
+        ih = (ih * scale).roundToInt()
+        image.ensureFilterAndClamping(false, ClampMode.CLAMP)
+        GFX.drawTexture(x + (size - iw) / 2, y + (size - ih) / 2, iw, ih, image, -1, null)
+    }
+
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         wasInFocus = isInFocus
         backgroundColor = if (isInFocus) darkerBackgroundColor else originalBackgroundColor
@@ -74,7 +91,7 @@ class FileEntry(val explorer: FileExplorer, val isParent: Boolean, val file: Fil
             val h = h
             val needsDefault = when (importType) {
                 // todo audio preview???
-                "Video" -> {
+                "Video", "Audio" -> {
                     // todo faster calculation of preview images
                     // todo maybe just cache them (statically, in files), once they were downloaded?
                     val hoverPlaybackDelay = 0.5
@@ -86,6 +103,10 @@ class FileEntry(val explorer: FileExplorer, val isParent: Boolean, val file: Fil
                         val frameIndex = if(isHovered){
                             if(startTime == 0L){
                                 startTime = System.nanoTime()
+                                val audio = Audio(file)
+                                this.audio = audio
+                                GFX.addAudioTask {
+                                    audio.start(-hoverPlaybackDelay, 1.0, Camera()); 1 }
                                 0
                             } else {
                                 time = (System.nanoTime() - startTime) * 1e-9 - hoverPlaybackDelay
@@ -93,18 +114,15 @@ class FileEntry(val explorer: FileExplorer, val isParent: Boolean, val file: Fil
                             }
                         } else {
                             startTime = 0
+                            val audio = audio
+                            if(audio != null && audio.component?.isPlaying == true) {
+                                this.audio = null
+                                GFX.addAudioTask { audio.stop(); 1 }
+                            }
                             0
                         } % maxFrameIndex
                         val scale = min(meta.videoWidth / w, meta.videoHeight / h)
-                        val image = Cache.getVideoFrame(file, scale, frameIndex, if(frameIndex == 0) 16 else 64, previewFPS, 1000, LoopingState.PLAY_LOOP)
-                        if(image != null && image.isLoaded){
-                            var iw = image.w
-                            var ih = image.h
-                            val scale2 = (size) / max(iw, ih).toFloat()
-                            iw = (iw * scale2).roundToInt()
-                            ih = (ih * scale2).roundToInt()
-                            // image.ensureFiltering(false)
-                            GFX.drawTexture(x + (size - iw) / 2, y + (size - ih) / 2, iw, ih, image, -1, null)
+                        fun drawCircle(){
                             if(time < 0.0){
                                 // countdown-circle, pseudo-loading
                                 // saves us some computations
@@ -115,10 +133,27 @@ class FileEntry(val explorer: FileExplorer, val isParent: Boolean, val file: Fil
                                 // (maybe after half of the waiting time)
                                 val relativeTime = ((hoverPlaybackDelay+time)/hoverPlaybackDelay).toFloat()
                                 val r = 1f-sq(relativeTime*2-1)
-                                GFX.drawCircle(x, y, iw, ih, 0f, relativeTime * 360f * 4 / 3, relativeTime * 360f * 2, Vector4f(1f, 1f, 1f, r * 0.2f))
+                                GFX.drawCircle(x, y, w, h, 0f, relativeTime * 360f * 4 / 3, relativeTime * 360f * 2, Vector4f(1f, 1f, 1f, r * 0.2f))
                             }
+                        }
+                        if(scale > 0){
+                            val image = Cache.getVideoFrame(file, scale, frameIndex, if(frameIndex == 0) 16 else 64, previewFPS, 1000, LoopingState.PLAY_LOOP)
+                            if(image != null && image.isLoaded){
+                                var iw = image.w
+                                var ih = image.h
+                                val scale2 = (size) / max(iw, ih).toFloat()
+                                iw = (iw * scale2).roundToInt()
+                                ih = (ih * scale2).roundToInt()
+                                // image.ensureFiltering(false)
+                                GFX.drawTexture(x + (size - iw) / 2, y + (size - ih) / 2, iw, ih, image, -1, null)
+                                drawCircle()
+                                false
+                            } else true
+                        } else {
+                            drawCircle()
+                            drawDefaultIcon()
                             false
-                        } else true
+                        }
                     } else true
                 }
                 "Image" -> {
@@ -136,17 +171,7 @@ class FileEntry(val explorer: FileExplorer, val isParent: Boolean, val file: Fil
                 }
                 else -> true
             }
-            if(needsDefault){
-                val image = Cache.getIcon(iconPath, true) ?: whiteTexture
-                var iw = image.w
-                var ih = image.h
-                val scale = (size - 20) / max(iw, ih).toFloat()
-                iw = (iw * scale).roundToInt()
-                ih = (ih * scale).roundToInt()
-                image.ensureFilterAndClamping(false, ClampMode.CLAMP)
-                GFX.drawTexture(x + (size - iw) / 2, y + (size - ih) / 2, iw, ih, image, -1, null)
-            }
-
+            if(needsDefault) drawDefaultIcon()
         }
         title.x = x
         title.y = y
@@ -201,21 +226,21 @@ class FileEntry(val explorer: FileExplorer, val isParent: Boolean, val file: Fil
 
     override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
         when (button) {
-            MouseButton.RIGHT -> {
+            /*MouseButton.RIGHT -> {
                 // todo get all meta data you ever need
                 // todo or get more options? probably better... delete, new folder, new file,
                 // todo rename, open in explorer, open in editor, ...
-            }
+            }*/
             else -> super.onMouseClicked(x, y, button, long)
         }
     }
 
     override fun onDoubleClick(x: Float, y: Float, button: MouseButton) {
         when (button) {
-            MouseButton.RIGHT -> {
+            /*MouseButton.RIGHT -> {
                 // todo open the file in the editor, or add it to the scene?
                 // todo or open it using windows?
-            }
+            }*/
             else -> super.onDoubleClick(x, y, button)
         }
     }
