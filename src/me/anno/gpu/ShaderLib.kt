@@ -11,6 +11,7 @@ import kotlin.math.PI
 object ShaderLib {
 
     lateinit var flatShader: Shader
+    lateinit var flatShaderGradient: Shader
     lateinit var flatShaderTexture: Shader
     lateinit var subpixelCorrectTextShader: Shader
     lateinit var shader3D: ShaderPlus
@@ -38,6 +39,21 @@ object ShaderLib {
                     "   gl_Position = vec4((pos + attr0 * size)*2.-1., 0.0, 1.0);\n" +
                     "}", "", "" +
                     "u4 color;\n" +
+                    "void main(){\n" +
+                    "   gl_FragColor = color;\n" +
+                    "}"
+        )
+
+        flatShaderGradient = Shader("flatShaderGradient",
+            "" +
+                    "a2 attr0;\n" +
+                    "u2 pos, size;\n" +
+                    "u4 lColor, rColor;\n" +
+                    "void main(){\n" +
+                    "   gl_Position = vec4((pos + attr0 * size)*2.-1., 0.0, 1.0);\n" +
+                    "   color = attr0.x < 0.5 ? lColor : rColor;\n" +
+                    "}", "" + // mixing is done by varying
+                    "varying vec4 color;\n", "" +
                     "void main(){\n" +
                     "   gl_FragColor = color;\n" +
                     "}"

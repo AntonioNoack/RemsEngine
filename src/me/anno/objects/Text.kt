@@ -32,6 +32,8 @@ import kotlin.collections.ArrayList
 import kotlin.math.abs
 import kotlin.math.max
 
+// todo fix: text has an awkward offset
+
 // todo background "color" in the shape of a plane? for selections and such
 open class Text(text: String = "", parent: Transform? = null): GFXTransform(parent){
 
@@ -62,9 +64,9 @@ open class Text(text: String = "", parent: Transform? = null): GFXTransform(pare
     var isBold = false
     var isItalic = false
 
-    var textAlignment = AxisAlignment.MIN
-    var blockAlignmentX = AxisAlignment.MAX
-    var blockAlignmentY = AxisAlignment.MIN
+    var textAlignment = AxisAlignment.CENTER
+    var blockAlignmentX = AxisAlignment.CENTER
+    var blockAlignmentY = AxisAlignment.CENTER
 
     enum class TextMode {
         RAW,
@@ -106,7 +108,6 @@ open class Text(text: String = "", parent: Transform? = null): GFXTransform(pare
     }
 
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f){
-
 
         val text = text
         val isBold = isBold

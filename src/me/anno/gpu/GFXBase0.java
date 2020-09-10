@@ -6,6 +6,7 @@ package me.anno.gpu;
 
 import kotlin.Unit;
 import me.anno.input.Input;
+import me.anno.studio.Build;
 import me.anno.studio.Studio;
 import me.anno.studio.project.Project;
 import org.apache.logging.log4j.LogManager;
@@ -40,6 +41,8 @@ import static org.lwjgl.system.MemoryUtil.memAddress;
  * including all os natives has luckily only very few overhead :) (&lt; 1 MiB)
  */
 public class GFXBase0 {
+
+    static boolean enableVsync = !Build.INSTANCE.isDebug();
 
     static Logger LOGGER = LogManager.getLogger(GFXBase0.class);
 
@@ -156,13 +159,35 @@ public class GFXBase0 {
         });
     }
 
-    void renderLoop() {
+    private void runRenderLoop() {
 
         glfwMakeContextCurrent(window);
-        glfwSwapInterval(1);
+        glfwSwapInterval(enableVsync ? 1 : 0);
 
         GL.createCapabilities();
 
+        setupDebugging();
+
+        GFX.gameInit.invoke();
+        renderStep0();
+
+        while (!destroyed) {
+            synchronized (lock2){
+                renderStep();
+
+                synchronized (lock) {
+                    if (!destroyed) {
+                        glfwSwapBuffers(window);
+                    }
+                }
+            }
+        }
+
+        GFX.shutdown.invoke();
+
+    }
+
+    private void setupDebugging(){
         debugProc = GLUtil.setupDebugMessageCallback(
                 new PrintStream(new OutputStream() {
                     // parse the message instead
@@ -231,24 +256,6 @@ public class GFXBase0 {
                         }
                     }
                 }));
-
-        GFX.gameInit.invoke();
-        renderStep0();
-
-        while (!destroyed) {
-            synchronized (lock2){
-                renderStep();
-
-                synchronized (lock) {
-                    if (!destroyed) {
-                        glfwSwapBuffers(window);
-                    }
-                }
-            }
-        }
-
-        GFX.shutdown.invoke();
-
     }
 
     public void renderStep0(){
@@ -284,7 +291,7 @@ public class GFXBase0 {
          */
         new Thread(new Runnable() {
             public void run() {
-                renderLoop();
+                runRenderLoop();
             }
         }).start();
 

@@ -53,10 +53,10 @@ open class TextPanel(open var text: String, style: Style): Panel(style){
         }
     }
 
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         val inst = instantTextLoading
         if(inst) loadTexturesSync.push(true)
-        super.draw(x0, y0, x1, y1)
+        super.onDraw(x0, y0, x1, y1)
         drawText(0,0, text, effectiveTextColor)
         if(inst) loadTexturesSync.pop()
     }

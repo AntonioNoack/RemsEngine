@@ -67,12 +67,12 @@ class ColorInput(style: Style, title: String,
         contentView.setRGBA(oldValue.x, oldValue.y, oldValue.z, oldValue.w, true)
     }
 
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         val focused1 = titleView.isInFocus || contentView.listOfAll.count { it.isInFocus } > 0
         if(focused1) isSelectedListener?.invoke()
         val focused2 = focused1 || (owningProperty == Studio.selectedProperty && owningProperty != null)
         contentView.visibility = if(focused2) Visibility.VISIBLE else Visibility.GONE
-        super.draw(x0, y0, x1, y1)
+        super.onDraw(x0, y0, x1, y1)
     }
 
     fun setChangeListener(listener: (r: Float, g: Float, b: Float, a: Float) -> Unit): ColorInput {

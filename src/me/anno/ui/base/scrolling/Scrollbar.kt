@@ -24,7 +24,7 @@ open class Scrollbar(style: Style): Panel(style.getChild("scrollbar")){
         return color.and(0xffffff) or clamp(alpha.toInt(), 0, 255).shl(24)
     }
 
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
 
         val isActive = Input.mouseX.toInt() in x0 .. x1 && Input.mouseY.toInt() in y0 .. y1
         wasActive = mix(wasActive, if(isActive) 1f else 0f, min(1f, 5f * deltaTime))

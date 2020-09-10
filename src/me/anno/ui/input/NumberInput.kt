@@ -46,7 +46,7 @@ abstract class NumberInput<Type>(
         val driver get() = owningProperty?.drivers?.get(indexInProperty)
         val hasDriver get() = driver != null
         var lastTime = editorTime
-        override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+        override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
             if(lastTime != editorTime && owningProperty != null && owningProperty.isAnimated){
                 lastTime = editorTime
                 setValue(owningProperty[editorTime]!![indexInProperty] as Type, false)
@@ -59,7 +59,7 @@ abstract class NumberInput<Type>(
                     updateChars(false)
                 }
             }
-            super.draw(x0, y0, x1, y1)
+            super.onDraw(x0, y0, x1, y1)
         }
 
         override fun onMouseDown(x: Float, y: Float, button: MouseButton) {
@@ -80,7 +80,7 @@ abstract class NumberInput<Type>(
         override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
             if (owningProperty != null && (!button.isLeft || long)) {
                 val oldDriver = owningProperty.drivers[indexInProperty]
-                AnimationDriver.openDriverSelectionMenu(x.toInt(), y.toInt(), oldDriver) {
+                AnimationDriver.openDriverSelectionMenu(oldDriver) {
                     owningProperty.drivers[indexInProperty] = it
                     if (it != null) Studio.selectedInspectable = it
                     else {
@@ -103,12 +103,12 @@ abstract class NumberInput<Type>(
 
     var wasInFocus = false
 
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         val focused1 = titlePanel.isInFocus || inputPanel.isInFocus
         if (focused1) isSelectedListener?.invoke()
         val focused2 = focused1 || (owningProperty != null && owningProperty == Studio.selectedProperty)
         inputPanel.visibility = if (focused2) Visibility.VISIBLE else Visibility.GONE
-        super.draw(x0, y0, x1, y1)
+        super.onDraw(x0, y0, x1, y1)
         updateValueMaybe()
     }
 

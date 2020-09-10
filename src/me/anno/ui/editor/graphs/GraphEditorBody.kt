@@ -125,8 +125,9 @@ class GraphEditorBody(style: Style): TimelinePanel(style.getChild("deep")){
         loadTexturesSync.pop()
     }
 
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        super.draw(x0, y0, x1, y1)
+    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+
+        drawBackground()
 
         val targetUnitScale = Studio.selectedProperty?.type?.unitScale ?: lastUnitScale
         if(lastUnitScale != targetUnitScale){
@@ -214,6 +215,7 @@ class GraphEditorBody(style: Style): TimelinePanel(style.getChild("deep")){
                 whiteTexture, black and 0x77000000, null)
 
         }
+
 
         val yValues = IntArray(type.components)
         property.keyframes.forEach { kf ->

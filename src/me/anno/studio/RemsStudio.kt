@@ -12,6 +12,7 @@ import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.GFX.showFPS
 import me.anno.gpu.GFX.updateTitle
 import me.anno.gpu.Window
+import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.input.ActionManager
 import me.anno.input.Input
 import me.anno.input.Input.mouseX
@@ -243,6 +244,7 @@ object RemsStudio {
                     if (dt1 > 0.01f && frameCtr > 0) LOGGER.warn("Used ${dt1.f3()}s + ${dt2.f3()}s for layout")
                 }
                 GFX.ensureEmptyStack()
+                Framebuffer.stack.push(null)
                 panel.draw(window.x, window.y, window.x + panel.w, window.y + panel.h)
                 GFX.ensureEmptyStack()
             }

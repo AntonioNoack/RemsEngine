@@ -107,7 +107,7 @@ class SceneView(style: Style) : PanelFrame(null, style.getChild("sceneView")) {
     // todo resize only, if the size was stable for a moment (e.g. 0.2s)
     // todo because resizing is expensive
 
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
 
         GFX.ensureEmptyStack()
 
@@ -195,7 +195,7 @@ class SceneView(style: Style) : PanelFrame(null, style.getChild("sceneView")) {
 
         GFX.ensureEmptyStack()
 
-        super.draw(x0, y0, x1, y1)
+        super.onDraw(x0, y0, x1, y1)
 
         GFX.ensureEmptyStack()
 
@@ -472,12 +472,12 @@ class SceneView(style: Style) : PanelFrame(null, style.getChild("sceneView")) {
     }
 
     fun goFullscreen() {
-        // todo check if it's already fullscreen...
-        // GFX.toggleFullscreen()
-        val root = rootPanel
-        val view = SceneView(this)
-        val window = Window(view, true, 0, 0)
-        windowStack.push(window)
+        // don't open, if it's already fullscreen
+        if(windowStack.peek()?.panel !is SceneView){
+            val view = SceneView(this)
+            val window = Window(view, true, 0, 0)
+            windowStack.push(window)
+        }
     }
 
     override fun onDoubleClick(x: Float, y: Float, button: MouseButton) {

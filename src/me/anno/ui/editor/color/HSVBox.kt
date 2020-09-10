@@ -18,7 +18,7 @@ open class HSVBox(
         minH = (size * style.getSize("textSize", 14)).toInt()
     }
 
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         chooser.drawColorBox(this, v0, du, dv, dh, false)
     }
 

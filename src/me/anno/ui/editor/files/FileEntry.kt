@@ -2,6 +2,7 @@ package me.anno.ui.editor.files
 
 import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.openMenu
 import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.gpu.texture.ClampMode
 import me.anno.input.MouseButton
@@ -13,6 +14,7 @@ import me.anno.ui.base.TextPanel
 import me.anno.ui.dragging.Draggable
 import me.anno.ui.style.Style
 import me.anno.utils.*
+import me.anno.utils.OS.startProcess
 import me.anno.video.FFMPEGMetadata
 import org.joml.Vector4f
 import java.io.File
@@ -60,7 +62,7 @@ class FileEntry(val explorer: FileExplorer, val isParent: Boolean, val file: Fil
 
     var startTime = 0L
 
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         wasInFocus = isInFocus
         backgroundColor = if (isInFocus) darkerBackgroundColor else originalBackgroundColor
         drawBackground()
@@ -169,6 +171,29 @@ class FileEntry(val explorer: FileExplorer, val isParent: Boolean, val file: Fil
                     return false
                 }
             }
+            "OpenOptions" -> {
+                openMenu(listOf(
+                    "Rename" to {
+                        // todo on F2
+                        // todo ask new name
+                        // todo change name
+                        // todo ok and cancel button
+                        // todo check if name is valid
+                        // todo rename the file...
+                    },
+                    "Open in Explorer" to {
+                        when {
+                            OS.isWindows -> {// https://stackoverflow.com/questions/2829501/implement-open-containing-folder-and-highlight-file
+                                startProcess("explorer.exe", "/select,", file.absolutePath)
+                            }
+                            OS.isLinux -> {// https://askubuntu.com/questions/31069/how-to-open-a-file-manager-of-the-current-directory-in-the-terminal
+                                startProcess("xdg-open", file.absolutePath)
+                            }
+                        }
+                    },
+                    "Delete" to { deleteFileMaybe() }
+                ))
+            }
             else -> return super.onGotAction(x, y, dx, dy, action, isContinuous)
         }
         return true
@@ -195,24 +220,28 @@ class FileEntry(val explorer: FileExplorer, val isParent: Boolean, val file: Fil
         }
     }
 
+    fun deleteFileMaybe(){
+        openMenu("Delete this file? (${file.length().formatFileSize()})", listOf(
+            "Yes" to {
+                // todo put history state...
+                file.deleteRecursively()
+                explorer.invalidate()
+            },
+            "No" to {},
+            "Yes, permanently" to {
+                file.deleteRecursively()
+                explorer.invalidate()
+            }
+        ))
+    }
+
     override fun onDeleteKey(x: Float, y: Float) {
         if (GFX.inFocus.size == 1) {
             // ask, then delete (or cancel)
-            GFX.openMenu(x, y, "Delete this file? (${file.length().formatFileSize()})", listOf(
-                "Yes" to {
-                    // todo put history state...
-                    file.deleteRecursively()
-                    explorer.invalidate()
-                },
-                "No" to {},
-                "Yes, permanently" to {
-                    file.deleteRecursively()
-                    explorer.invalidate()
-                }
-            ))
+            deleteFileMaybe()
         } else if (GFX.inFocus.firstOrNull() == this) {
             // ask, then delete all (or cancel)
-            GFX.openMenu(x, y, "Delete these files? (${GFX.inFocus.size}x, ${
+            openMenu("Delete these files? (${GFX.inFocus.size}x, ${
             GFX.inFocus
                 .sumByDouble { (it as? FileEntry)?.file?.length()?.toDouble() ?: 0.0 }
                 .toLong()

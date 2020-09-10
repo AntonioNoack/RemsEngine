@@ -1,9 +1,6 @@
 package me.anno.gpu
 
-import me.anno.gpu.GFX.a
-import me.anno.gpu.GFX.b
-import me.anno.gpu.GFX.g
-import me.anno.gpu.GFX.r
+import me.anno.studio.Build.isDebug
 import org.joml.Vector4f
 import org.lwjgl.BufferUtils
 import org.lwjgl.glfw.GLFW

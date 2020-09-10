@@ -51,8 +51,8 @@ open class TextInputML(title: String, style: Style): PanelContainer(
         return this
     }
 
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        super.draw(x0, y0, x1, y1)
+    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+        super.onDraw(x0, y0, x1, y1)
         if(base.isInFocus){
             isSelectedListener?.invoke()
         }

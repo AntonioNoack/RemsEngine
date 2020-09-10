@@ -12,6 +12,7 @@ import me.anno.studio.RemsStudio.windowStack
 import me.anno.studio.project.Project
 import me.anno.ui.dragging.IDraggable
 import me.anno.ui.editor.PropertyInspector
+import me.anno.utils.clamp
 import org.apache.logging.log4j.LogManager
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.math.max
@@ -25,6 +26,10 @@ object Studio {
     var dragged: IDraggable? = null
 
     var editorTime = 0.0
+        set(value) {// cannot be set < 0
+            // clamping to the right edge is annoying
+            field = max(value, 0.0)
+        }
 
     var editorTimeDilation = 0.0
         set(value) {
@@ -50,7 +55,7 @@ object Studio {
         nullCamera.name = "Inspector Camera"
         nullCamera.onlyShowTarget = false
         // higher far value to allow other far values to be seen
-        nullCamera.farZ.addKeyframe(0.0, 5000f, 1.0)
+        nullCamera.farZ.defaultValue = 5000f
         nullCamera.timeDilation = 0.0 // the camera has no time, so no motion can be recorded
     }
 

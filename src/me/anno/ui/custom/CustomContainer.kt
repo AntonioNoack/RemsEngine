@@ -1,5 +1,6 @@
 package me.anno.ui.custom
 
+import javafx.animation.Timeline
 import me.anno.config.DefaultStyle.white
 import me.anno.gpu.GFX
 import me.anno.gpu.TextureLib.whiteTexture
@@ -9,6 +10,7 @@ import me.anno.ui.base.Panel
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.editor.PropertyInspector
+import me.anno.ui.editor.TimelinePanel
 import me.anno.ui.editor.cutting.CuttingView
 import me.anno.ui.editor.files.FileExplorer
 import me.anno.ui.editor.sceneView.SceneView
@@ -30,8 +32,8 @@ class CustomContainer(default: Panel, style: Style): PanelContainer(default, Pad
         this.y = y
     }
 
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        super.draw(x0, y0, x1, y1)
+    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+        super.onDraw(x0, y0, x1, y1)
         val icon = Cache.getIcon("cross.png", true) ?: whiteTexture
         GFX.drawTexture(x+w-14, y+2, 12, 12, icon, white, null)
     }
@@ -43,7 +45,8 @@ class CustomContainer(default: Panel, style: Style): PanelContainer(default, Pad
             "Tree View" to action { TreeView(style) },
             "Inspector" to action { PropertyInspector(style) },
             "Cutting Panel" to action { CuttingView(style) },
-            "Timeline" to action { GraphEditor(style) },
+            "Timeline" to action { TimelinePanel(style) },
+            "Graph Editor" to action { GraphEditor(style) },
             "Files" to action { FileExplorer(style) }
         ).toMutableList()
         options += "Remove This Element" to {

@@ -15,8 +15,8 @@ class ScrollbarX(val scrollbar: ScrollPanelX, style: Style): Scrollbar(style){
         parent = scrollbar
     }
 
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        super.draw(x0, y0, x1, y1)
+    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+        super.onDraw(x0, y0, x1, y1)
 
         val relativePosition = scrollbar.scrollPosition / scrollbar.maxScrollPosition
         val barW = relativeSize * w

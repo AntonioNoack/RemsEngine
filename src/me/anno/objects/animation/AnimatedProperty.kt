@@ -10,7 +10,7 @@ import java.lang.RuntimeException
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
-class AnimatedProperty<V>(val type: Type, val defaultValue: V): Saveable(){
+class AnimatedProperty<V>(val type: Type, var defaultValue: V): Saveable(){
 
     constructor(type: Type): this(type, type.defaultValue as V)
 

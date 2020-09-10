@@ -12,7 +12,7 @@ class CustomizingBar(var index: Int, sizeX: Int, sizeY: Int, style: Style): Spac
 
     val hoverColor = mixARGB(0x77ffb783, originalBGColor, 0.8f)
 
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         backgroundColor = if(isHovered) hoverColor else originalBGColor
         drawBackground()
     }

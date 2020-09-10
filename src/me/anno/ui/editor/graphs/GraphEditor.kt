@@ -27,10 +27,10 @@ class GraphEditor(style: Style): PanelFrame(style) {
         this += activateButton
     }
 
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         val canBeActivated = Studio.selectedProperty?.isAnimated == false
         activateButton.visibility = Visibility[canBeActivated]
-        super.draw(x0, y0, x1, y1)
+        super.onDraw(x0, y0, x1, y1)
     }
 
 }

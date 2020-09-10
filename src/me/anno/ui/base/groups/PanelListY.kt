@@ -13,8 +13,8 @@ open class PanelListY(sorter: Comparator<Panel>?, style: Style) : PanelList(sort
     var sumConst = 0
     var sumWeight = 0f
 
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        super.draw(x0, y0, x1, y1)
+    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+        super.onDraw(x0, y0, x1, y1)
         if (spacing > 0) {
             for (i in 1 until children.size) {
                 val prev = children[i - 1]

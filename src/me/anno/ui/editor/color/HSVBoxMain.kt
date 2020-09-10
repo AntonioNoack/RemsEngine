@@ -89,7 +89,7 @@ class HSVBoxMain(chooser: ColorChooser, v0: Vector3f, du: Vector3f, dv: Vector3f
         }
     }
 
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         chooser.drawColorBox(this, v0, du, dv, dh, true)
         // show the user, where he is
         when(val style = chooser.visualisation){

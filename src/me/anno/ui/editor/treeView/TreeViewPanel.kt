@@ -38,8 +38,8 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style): TextPanel(""
     val defaultBackground = backgroundColor
     //val cameraBackground = mixARGB(accentColor, defaultBackground, 0.9f)
 
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        super.draw(x0, y0, x1, y1)
+    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+        super.onDraw(x0, y0, x1, y1)
 
         // show visually, where the element would land, with colors
         val dragged = dragged

@@ -168,13 +168,13 @@ class VectorInput(
 
     }
 
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        super.draw(x0, y0, x1, y1)
+    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+        super.onDraw(x0, y0, x1, y1)
         val focused1 = titleView.isInFocus || valueList.children.count { it.isInFocus } > 0
         if(focused1) isSelectedListener?.invoke()
         val focused2 = focused1 || owningProperty == Studio.selectedProperty
         valueList.visibility = if(focused2) Visibility.VISIBLE else Visibility.GONE
-        super.draw(x0, y0, x1, y1)
+        super.onDraw(x0, y0, x1, y1)
         compX.updateValueMaybe()
         compY.updateValueMaybe()
         compZ?.updateValueMaybe()

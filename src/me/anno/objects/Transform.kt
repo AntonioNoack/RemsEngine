@@ -22,6 +22,7 @@ import me.anno.objects.particles.ParticleSystem
 import me.anno.studio.RemsStudio.onLargeChange
 import me.anno.studio.Scene
 import me.anno.studio.Studio
+import me.anno.studio.Studio.editorTime
 import me.anno.studio.Studio.selectedTransform
 import me.anno.ui.base.Panel
 import me.anno.ui.base.groups.PanelListY
@@ -93,7 +94,7 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
     var weight = 1f
 
     fun putValue(list: AnimatedProperty<*>, value: Any){
-        list.addKeyframe(if(list.isAnimated) lastLocalTime else 0.0, value, TimelinePanel.propertyDt)
+        list.addKeyframe(if(list.isAnimated) editorTime else 0.0, value, TimelinePanel.propertyDt)
     }
 
     val usesEuler get() = rotationQuaternion == null

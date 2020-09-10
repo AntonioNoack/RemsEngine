@@ -120,8 +120,8 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
         }
     }
 
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        super.draw(x0, y0, x1, y1)
+    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+        super.onDraw(x0, y0, x1, y1)
         if(isValid <= 0f){
             isValid = 5f // depending on amount of files?
             title.text = folder?.toString() ?: "This Computer"

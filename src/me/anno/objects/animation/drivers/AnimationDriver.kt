@@ -64,7 +64,7 @@ abstract class AnimationDriver: Saveable(), Inspectable {
     }
 
     companion object {
-        fun openDriverSelectionMenu(x: Int, y: Int, oldDriver: AnimationDriver?, whenSelected: (AnimationDriver?) -> Unit){
+        fun openDriverSelectionMenu(oldDriver: AnimationDriver?, whenSelected: (AnimationDriver?) -> Unit){
             fun add(create: () -> AnimationDriver): () -> Unit = { whenSelected(create()) }
             val options = arrayListOf(
                 "Harmonics" to add { HarmonicDriver() },
@@ -79,7 +79,7 @@ abstract class AnimationDriver: Saveable(), Inspectable {
                     whenSelected(null)
                 }
             }
-            GFX.openMenu(x, y, if(oldDriver == null) "Add Driver" else "Change Driver", options)
+            GFX.openMenu(if(oldDriver == null) "Add Driver" else "Change Driver", options)
         }
     }
 

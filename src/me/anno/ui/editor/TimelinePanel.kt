@@ -3,14 +3,18 @@ package me.anno.ui.editor
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.openMenu
 import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.studio.Studio
+import me.anno.studio.Studio.editorTime
+import me.anno.studio.Studio.targetDuration
 import me.anno.ui.base.Panel
 import me.anno.ui.custom.CustomContainer.Companion.isCross
 import me.anno.ui.editor.graphs.GraphEditorBody
 import me.anno.ui.style.Style
 import me.anno.utils.clamp
+import me.anno.utils.mixARGB
 import me.anno.utils.pow
 import kotlin.math.abs
 import kotlin.math.max
@@ -20,6 +24,11 @@ import kotlin.math.sqrt
 open class TimelinePanel(style: Style) : Panel(style) {
 
     val accentColor = style.getColor("accentColor", DefaultStyle.black)
+
+    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+        drawBackground()
+        drawTimeAxis(x0, y0, x1, y1, true)
+    }
 
     // time
     companion object {
@@ -41,11 +50,11 @@ open class TimelinePanel(style: Style) : Panel(style) {
             centralTime = max(centralTime, dtHalfLength)
         }
 
-        val movementSpeed get() = 0.05f * sqrt(GFX.width*GFX.height.toFloat())
+        val movementSpeed get() = 0.05f * sqrt(GFX.width * GFX.height.toFloat())
 
         val propertyDt get() = 10f * dtHalfLength / GFX.width
 
-        fun moveRight(sign: Float){
+        fun moveRight(sign: Float) {
             val delta = sign * dtHalfLength * 0.05f
             Studio.editorTime += delta
             Studio.updateAudio()
@@ -53,6 +62,34 @@ open class TimelinePanel(style: Style) : Panel(style) {
             clampTime()
         }
 
+        data class TimestampKey(val time: Double, val step: Double)
+
+        val timestampCache = HashMap<TimestampKey, String>()
+
+
+        fun get0XString(time: Int) = if (time < 10) "0$time" else "$time"
+        fun get00XString(time: Int) = if (time < 100) "00$time" else if (time < 10) "0$time" else "$time"
+
+        fun getTimeString(time: Double, step: Double): String {
+            val key = TimestampKey(time, step)
+            val old = timestampCache[key]
+            if (old != null) return old
+            if (timestampCache.size > 500) timestampCache.clear()
+            val solution =
+                if (time < 0) "-${getTimeString(-time, step)}"
+                else {
+                    val s = time.toInt()
+                    val m = s / 60
+                    val h = m / 60
+                    val subTime = ((time % 1) * Studio.targetFPS).roundToInt()
+                    if (h < 1) "${get0XString(m % 60)}:${get0XString(s % 60)}${if (step < 1f) "/${get0XString(subTime)}" else ""}"
+                    else "${get0XString(h)}:${get0XString(m % 60)}:${get0XString(s % 60)}${if (step < 1f) "/${get0XString(
+                        subTime
+                    )}" else ""}"
+                }
+            timestampCache[key] = solution
+            return solution
+        }
     }
 
     val tinyFontSize = style.getSize("tinyTextSize", 10)
@@ -60,6 +97,7 @@ open class TimelinePanel(style: Style) : Panel(style) {
     val fontName = style.getString("textFont", DefaultConfig.defaultFont)
     val isBold = style.getBoolean("textBold", false)
     val isItalic = style.getBoolean("textItalic", false)
+    val endColor = style.getColor("endColor", mixARGB(fontColor, 0xffff0000.toInt(), 0.5f))
 
     fun normTime01(time: Double) = (time - centralTime) / dtHalfLength * 0.5f + 0.5f
     fun normTime01(time: Float) = (time - centralTime) / dtHalfLength * 0.5f + 0.5f
@@ -89,7 +127,10 @@ open class TimelinePanel(style: Style) : Panel(style) {
         drawTimeAxis(timeStep * 0.2, x0, y0, x1, y1, fineLineColor, drawText)
 
         // strong lines
-        drawTimeAxis(timeStep, x0, y0, x1, y1, strongLineColor, drawText)
+        drawTimeAxis(timeStep, x0, y0, x1, y1, strongLineColor, false)
+
+        drawLine(targetDuration, y0, y1, endColor)
+        drawLine(editorTime, y0, y1, accentColor)
 
     }
 
@@ -114,60 +155,69 @@ open class TimelinePanel(style: Style) : Panel(style) {
         val lineY = y0 + 2 + fontSize
         val lineH = y1 - y0 - 4 - fontSize
 
-        for (stepIndex in maxStepIndex downTo minStepIndex) {
-            val time = stepIndex * timeStep
-            val x = getXAt(time).roundToInt()
-            if (x > x0 + 1 && x + 2 < x1) {
-                val text = getTimeString(time, timeStep)
-                GFX.drawRect(x, lineY, 1, lineH, lineColor)
-                if (drawText) {
+        // splitting this results in 30% less time used
+        // probably because of program switching
+        // 8% more are gained by assigning the color only once
+        if(lineH > 0){
+            GFX.flatColor(lineColor)
+            for (stepIndex in maxStepIndex downTo minStepIndex) {
+                val time = stepIndex * timeStep
+                val x = getXAt(time).roundToInt()
+                if (x > x0 + 1 && x + 2 < x1) {
+                    GFX.drawRect(x, lineY, 1, lineH)
+                }
+            }
+        }
+
+        if (drawText) {
+            for (stepIndex in maxStepIndex downTo minStepIndex) {
+                val time = stepIndex * timeStep
+                val x = getXAt(time).roundToInt()
+                if (x > x0 + 1 && x + 2 < x1) {
+                    val text = getTimeString(time, timeStep)
                     GFX.drawText(
-                        x,
-                        y0,
-                        fontName,
-                        fontSize,
-                        isBold,
-                        isItalic,
-                        text,
-                        fontColor,
-                        backgroundColor,
-                        -1,
-                        true
+                        x, y0, fontName, fontSize, isBold, isItalic,
+                        text, fontColor, backgroundColor, -1, true
                     )
                 }
             }
         }
 
-        GFX.drawRect(getXAt(Studio.editorTime).roundToInt(), y0 + 2, 1, y1 - y0 - 4, accentColor)
-
     }
 
-
-    fun get0XString(time: Int) = if (time < 10) "0$time" else "$time"
-    fun get00XString(time: Int) = if (time < 100) "00$time" else if (time < 10) "0$time" else "$time"
-
-    fun getTimeString(time: Double, step: Double): String {
-        if (time < 0) return "-${getTimeString(-time, step)}"
-        val s = time.toInt()
-        val m = s / 60
-        val h = m / 60
-        val subTime = ((time % 1) * Studio.targetFPS).roundToInt()
-        return if (h < 1) "${get0XString(m % 60)}:${get0XString(s % 60)}${if (step < 1f) "/${get0XString(subTime)}" else ""}"
-        else "${get0XString(h)}:${get0XString(m % 60)}:${get0XString(s % 60)}${if (step < 1f) "/${get0XString(subTime)}" else ""}"
+    fun drawLine(time: Double, y0: Int, y1: Int, color: Int) {
+        GFX.drawRect(getXAt(time).roundToInt(), y0 + 2, 1, y1 - y0 - 4, color)
     }
+
 
     fun getTimeStep(time: Double): Double {
         return timeFractions.minBy { abs(it - time) }!!.toDouble()
     }
 
     override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
-        if(isCross(x, y) && this is GraphEditorBody){
+        if (isCross(x, y) && this is GraphEditorBody) {
             super.onMouseClicked(x, y, button, long)
-        } else jumpToX(x)
+        } else if (button.isLeft) {
+            jumpToX(x)
+        } else {
+            val options = listOf(
+                "Set End Here" to {
+                    Studio.project?.targetDuration = getTimeAt(x)
+                },
+                "Jump to Start" to {
+                    jumpToT(0.0)
+                },
+                "Jump to End" to {
+                    jumpToT(targetDuration)
+                }
+            )
+            openMenu(options)
+        }
     }
 
-    fun jumpToX(x: Float) {
-        Studio.editorTime = getTimeAt(x)
+    fun jumpToX(x: Float) = jumpToT(getTimeAt(x))
+    fun jumpToT(t: Double) {
+        editorTime = t
         Studio.updateInspector()
         Studio.updateAudio()
     }
@@ -196,8 +246,6 @@ open class TimelinePanel(style: Style) : Panel(style) {
         }
         clampTime()
     }
-
-
 
 
 }

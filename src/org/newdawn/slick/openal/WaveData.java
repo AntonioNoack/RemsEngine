@@ -1,8 +1,3 @@
-//
-// Source code recreated from a .class file by IntelliJ IDEA
-// (powered by Fernflower decompiler)
-//
-
 package org.newdawn.slick.openal;
 
 import java.io.BufferedInputStream;
@@ -23,6 +18,8 @@ import org.apache.logging.log4j.Logger;
 import org.lwjgl.LWJGLUtil;
 import me.anno.audio.format.WaveReader;
 
+// still used for loading wav files
+// (when not working with ffmpeg)
 public class WaveData {
 
     private final static Logger LOGGER = LogManager.getLogger(WaveData.class);

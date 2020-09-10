@@ -24,8 +24,8 @@ class Checkbox(startValue: Boolean, val size: Int, style: Style): Panel(style.ge
         minH = size + 2
     }
 
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        super.draw(x0, y0, x1, y1)
+    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+        super.onDraw(x0, y0, x1, y1)
 
         val size = min(w, h)
         if(size > 0){

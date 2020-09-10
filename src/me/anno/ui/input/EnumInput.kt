@@ -15,10 +15,10 @@ class EnumInput(private val title: String, withTitle: Boolean, startValue: Strin
 
     private var changeListener = { _: String -> }
 
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         val focused = titlePanel?.isInFocus == true || inputPanel.isInFocus
         if(focused) isSelectedListener?.invoke()
-        super.draw(x0, y0, x1, y1)
+        super.onDraw(x0, y0, x1, y1)
     }
 
     init {

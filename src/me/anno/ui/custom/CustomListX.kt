@@ -63,7 +63,7 @@ class CustomListX(style: Style): PanelListX(style), CustomList {
         remove(this, index)
     }
 
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         var hadVisibleChild = false
         children@ for(child in children){
             if(child.visibility == Visibility.VISIBLE){

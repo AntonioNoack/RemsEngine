@@ -3,8 +3,8 @@ package me.anno.gpu
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.black
 import me.anno.fonts.FontManager
-import me.anno.gpu.GFX.v4
 import me.anno.gpu.ShaderLib.flatShader
+import me.anno.gpu.ShaderLib.flatShaderGradient
 import me.anno.gpu.ShaderLib.flatShaderTexture
 import me.anno.gpu.ShaderLib.shader3D
 import me.anno.gpu.ShaderLib.shader3DCircle
@@ -32,7 +32,6 @@ import me.anno.objects.effects.MaskType
 import me.anno.objects.geometric.Circle
 import me.anno.objects.modes.UVProjection
 import me.anno.studio.Build.isDebug
-import me.anno.studio.Studio
 import me.anno.studio.Studio.editorTime
 import me.anno.studio.Studio.editorTimeDilation
 import me.anno.studio.Studio.eventTasks
@@ -175,7 +174,7 @@ object GFX : GFXBase1() {
 
     fun clip(size: me.anno.gpu.size.WindowSize) = clip(size.x, size.y, size.w, size.h)
 
-    fun clip2(x1: Int, y1: Int, x2: Int, y2: Int) = clip(x1, y1, x2 - x1, y2 - y1)
+    fun clip2(x0: Int, y0: Int, x1: Int, y1: Int) = clip(x0, y0, x1 - x0, y1 - y0)
 
     lateinit var windowStack: Stack<Window>
 
@@ -220,6 +219,18 @@ object GFX : GFXBase1() {
         Input.initForGLFW()
     }
 
+    fun drawRectGradient(x: Int, y: Int, w: Int, h: Int, lColor: Vector4f, rColor: Vector4f) {
+        if (w == 0 || h == 0) return
+        check()
+        val shader = flatShaderGradient
+        shader.use()
+        posSize(shader, x, y, w, h)
+        shader.v4("lColor", lColor)
+        shader.v4("rColor", rColor)
+        flat01.draw(shader)
+        check()
+    }
+
     fun drawRect(x: Int, y: Int, w: Int, h: Int, color: Vector4f) {
         if (w == 0 || h == 0) return
         check()
@@ -240,6 +251,20 @@ object GFX : GFXBase1() {
         shader.v4("color", color.r() / 255f, color.g() / 255f, color.b() / 255f, color.a() / 255f)
         flat01.draw(shader)
         check()
+    }
+
+    fun flatColor(color: Int){
+        val shader = flatShader
+        shader.use()
+        shader.v4("color", color.r() / 255f, color.g() / 255f, color.b() / 255f, color.a() / 255f)
+    }
+
+    fun drawRect(x: Int, y: Int, w: Int, h: Int) {
+        if (w == 0 || h == 0) return
+        val shader = flatShader
+        shader.use()
+        posSize(shader, x, y, w, h)
+        flat01.draw(shader)
     }
 
     fun drawRect(x: Float, y: Float, w: Float, h: Float, color: Int) {
@@ -713,17 +738,17 @@ object GFX : GFXBase1() {
         title: String,
         options: List<Pair<String, (button: MouseButton, isLong: Boolean) -> Boolean>>
     ) {
+        loadTexturesSync.push(true) // to calculate the correct size, which is needed for correct placement
+        if(options.isEmpty()) return
         val style = DefaultConfig.style.getChild("menu")
         val list = PanelListY(style)
         list += WrapAlign.LeftTop
-        val container =
-            ScrollPanelY(list, Padding(1), style, AxisAlignment.MIN)
+        val container = ScrollPanelY(list, Padding(1), style, AxisAlignment.MIN)
         container += WrapAlign.LeftTop
         lateinit var window: Window
         fun close() {
             windowStack.remove(window)
         }
-
         val padding = 4
         if (title.isNotEmpty()) {
             val titlePanel = TextPanel(title, style)
@@ -759,6 +784,7 @@ object GFX : GFXBase1() {
         val wy = clamp(y, 0, max(GFX.height - container.h, 0))
         window = Window(container, false, wx, wy)
         windowStack.add(window)
+        loadTexturesSync.pop()
     }
 
     fun openMenuComplex(
@@ -769,6 +795,14 @@ object GFX : GFXBase1() {
         delta: Int = 10
     ) {
         openMenuComplex(x.roundToInt() - delta, y.roundToInt() - delta, title, options)
+    }
+
+    fun openMenu(options: List<Pair<String, () -> Any>>){
+        openMenu(mouseX, mouseY, "", options)
+    }
+
+    fun openMenu(title: String, options: List<Pair<String, () -> Any>>){
+        openMenu(mouseX, mouseY, title, options)
     }
 
     fun openMenu(x: Int, y: Int, title: String, options: List<Pair<String, () -> Any>>, delta: Int = 10) {

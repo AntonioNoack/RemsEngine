@@ -1,18 +1,22 @@
 package me.anno.ui.base
 
 import me.anno.gpu.GFX
+import me.anno.gpu.TextureLib.whiteTexture
+import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.texture.Texture2D
 import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.io.Saveable
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.style.Style
 import me.anno.utils.Tabs
+import org.lwjgl.opengl.GL11.*
 import java.io.File
 import java.lang.RuntimeException
 
 // todo select any group of elements similar to control+click by shift+drag
 
-open class Panel(val style: Style): Saveable(){
+open class Panel(val style: Style) : Saveable() {
 
     var minW = 1
     var minH = 1
@@ -21,6 +25,10 @@ open class Panel(val style: Style): Saveable(){
 
     // todo make layout become valid/invalid, so we can save some comp. resources
     var hasValidLayout = false
+
+    var cachedVisuals = Framebuffer("panel", 1, 1, 1, 1, false,
+        Framebuffer.DepthBufferType.NONE)
+    var renderOnRequestOnly = false
 
     /**
      * this weight is used inside some layouts
@@ -40,16 +48,16 @@ open class Panel(val style: Style): Saveable(){
     var y = 0
 
     val isInFocus get() = this in GFX.inFocus
-    val canBeSeen get() = canBeSeen(0,0,GFX.width,GFX.height)
+    val canBeSeen get() = canBeSeen(0, 0, GFX.width, GFX.height)
     val canBeSeenCurrently get() = canBeSeen(GFX.windowX, GFX.windowY, GFX.windowWidth, GFX.windowHeight)
-    val isHovered get() = Input.mouseX.toInt()-x in 0 until w && Input.mouseY.toInt()-y in 0 until h
+    val isHovered get() = Input.mouseX.toInt() - x in 0 until w && Input.mouseY.toInt() - y in 0 until h
     val rootPanel: Panel get() = parent?.rootPanel ?: this
     fun canBeSeen(x0: Int, y0: Int, w0: Int, h0: Int): Boolean {
-        return x + w > x0 && y + h > y0 && x < x0+w0 && y < y0+h0
+        return x + w > x0 && y + h > y0 && x < x0 + w0 && y < y0 + h0
     }
 
-    fun invalidateLayout(){
-        if(hasValidLayout){
+    fun invalidateLayout() {
+        if (hasValidLayout) {
             hasValidLayout = false
             parent?.invalidateLayout()
         }
@@ -60,8 +68,8 @@ open class Panel(val style: Style): Saveable(){
 
     fun requestFocus() = GFX.requestFocus(this, true)
 
-    fun drawBackground(){
-        GFX.drawRect(x,y,w,h,backgroundColor)
+    fun drawBackground() {
+        GFX.drawRect(x, y, w, h, backgroundColor)
     }
 
     /**
@@ -69,7 +77,35 @@ open class Panel(val style: Style): Saveable(){
      * more does not need to be drawn;
      * the area is already clipped with glViewport(x0,y0,x1-x0,y1-y0)
      * */
-    open fun draw(x0: Int, y0: Int, x1: Int, y1: Int){
+    fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+        if (renderOnRequestOnly) {
+            // todo this somehow is not working :/
+            val w = w
+            val h = h
+            if (cachedVisuals.w != w || cachedVisuals.h != h || true) {
+                // update drawn stuff
+                cachedVisuals.bind(w, h)
+                val x = y
+                val y = y
+                this.x = 0
+                this.y = 0
+                GFX.clip(0, 0, w, h)
+                // glClearColor(Math.random().toFloat(), 0f, 0f, 1f)
+                // glClear(GL_COLOR_BUFFER_BIT)
+                onDraw(0, 0, w - 1, h - 1)
+                this.x = x
+                this.y = y
+                cachedVisuals.unbind()
+                GFX.clip2(x0, y0, x1, y1)
+            }
+            // draw cached result
+            GFX.drawTexture(x, y, w, h, cachedVisuals.textures[0], -1, null)
+        } else {
+            onDraw(x0, y0, x1, y1)
+        }
+    }
+
+    open fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         drawBackground()
     }
 
@@ -85,16 +121,16 @@ open class Panel(val style: Style): Saveable(){
      * add a layout constraint
      * may not be fulfilled by container
      * */
-    operator fun plusAssign(c: Constraint){
+    operator fun plusAssign(c: Constraint) {
         layoutConstraints += c
         layoutConstraints.sortBy { it.order }
     }
 
-    fun assert(b: Boolean, msg: String?){
-        if(!b) throw RuntimeException(msg)
+    fun assert(b: Boolean, msg: String?) {
+        if (!b) throw RuntimeException(msg)
     }
 
-    open fun placeInParent(x: Int, y: Int){
+    open fun placeInParent(x: Int, y: Int) {
         this.x = x
         this.y = y
     }
@@ -105,18 +141,18 @@ open class Panel(val style: Style): Saveable(){
         }
     }*/
 
-    fun applyPlacement(w: Int, h: Int){
+    fun applyPlacement(w: Int, h: Int) {
         //this.minW = w
         //this.minH = h
         this.w = w
         this.h = h
-        for(c in layoutConstraints){
+        for (c in layoutConstraints) {
             c.apply(this)
-            if(this.w > w || this.h > h) throw RuntimeException("${c.javaClass} isn't working properly: $w -> ${this.w}, $h -> ${this.h}")
+            if (this.w > w || this.h > h) throw RuntimeException("${c.javaClass} isn't working properly: $w -> ${this.w}, $h -> ${this.h}")
         }
     }
 
-    open fun calculateSize(w: Int, h: Int){
+    open fun calculateSize(w: Int, h: Int) {
         this.w = w
         this.h = h
     }
@@ -126,7 +162,7 @@ open class Panel(val style: Style): Saveable(){
         return this
     }
 
-    fun removeFromParent(){
+    fun removeFromParent() {
         parent?.remove(this)
     }
 
@@ -143,46 +179,96 @@ open class Panel(val style: Style): Saveable(){
 
     fun setSimpleClickListener(onClick: () -> Unit): Panel {
         onClickListener = { _, _, b, _ ->
-            if(b.isLeft) onClick()
+            if (b.isLeft) onClick()
         }
         return this
     }
 
-    open fun onMouseDown(x: Float, y: Float, button: MouseButton){ parent?.onMouseDown(x,y,button) }
-    open fun onMouseUp(x: Float, y: Float, button: MouseButton){ parent?.onMouseUp(x,y,button) }
-    open fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean){
-        onClickListener?.invoke(x,y,button,long) ?: parent?.onMouseClicked(x,y,button,long)
+    open fun onMouseDown(x: Float, y: Float, button: MouseButton) {
+        parent?.onMouseDown(x, y, button)
     }
 
-    open fun onDoubleClick(x: Float, y: Float, button: MouseButton){ parent?.onDoubleClick(x,y,button)}
-    open fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float){ parent?.onMouseMoved(x,y,dx,dy) }
-    open fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float){ parent?.onMouseWheel(x,y,dx,dy) }
+    open fun onMouseUp(x: Float, y: Float, button: MouseButton) {
+        parent?.onMouseUp(x, y, button)
+    }
 
-    open fun onKeyDown(x: Float, y: Float, key: Int){ parent?.onKeyDown(x,y,key) }
-    open fun onKeyUp(x: Float, y: Float, key: Int){ parent?.onKeyUp(x,y,key) }
-    open fun onKeyTyped(x: Float, y: Float, key: Int){ parent?.onKeyTyped(x,y,key) }
-    open fun onCharTyped(x: Float, y: Float, key: Int){ parent?.onCharTyped(x,y,key) }
+    open fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
+        onClickListener?.invoke(x, y, button, long) ?: parent?.onMouseClicked(x, y, button, long)
+    }
 
-    open fun onEmpty(x: Float, y: Float) { parent?.onEmpty(x,y) }
-    open fun onPaste(x: Float, y: Float, data: String, type: String){ parent?.onPaste(x,y,data,type) }
-    open fun onPasteFiles(x: Float, y: Float, files: List<File>){ parent?.onPasteFiles(x,y,files) ?: println("Paste Ignored! $files") }
-    open fun onCopyRequested(x: Float, y: Float): String? = parent?.onCopyRequested(x,y)
+    open fun onDoubleClick(x: Float, y: Float, button: MouseButton) {
+        parent?.onDoubleClick(x, y, button)
+    }
 
-    open fun onSelectAll(x: Float, y: Float){ parent?.onSelectAll(x,y) }
+    open fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
+        parent?.onMouseMoved(x, y, dx, dy)
+    }
 
-    open fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean = false
+    open fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float) {
+        parent?.onMouseWheel(x, y, dx, dy)
+    }
 
-    open fun onBackSpaceKey(x: Float, y: Float){ parent?.onBackSpaceKey(x,y) }
-    open fun onEnterKey(x: Float, y: Float){ parent?.onEnterKey(x,y) }
-    open fun onDeleteKey(x: Float, y: Float){ parent?.onDeleteKey(x,y) }
+    open fun onKeyDown(x: Float, y: Float, key: Int) {
+        parent?.onKeyDown(x, y, key)
+    }
+
+    open fun onKeyUp(x: Float, y: Float, key: Int) {
+        parent?.onKeyUp(x, y, key)
+    }
+
+    open fun onKeyTyped(x: Float, y: Float, key: Int) {
+        parent?.onKeyTyped(x, y, key)
+    }
+
+    open fun onCharTyped(x: Float, y: Float, key: Int) {
+        parent?.onCharTyped(x, y, key)
+    }
+
+    open fun onEmpty(x: Float, y: Float) {
+        parent?.onEmpty(x, y)
+    }
+
+    open fun onPaste(x: Float, y: Float, data: String, type: String) {
+        parent?.onPaste(x, y, data, type)
+    }
+
+    open fun onPasteFiles(x: Float, y: Float, files: List<File>) {
+        parent?.onPasteFiles(x, y, files) ?: println("Paste Ignored! $files")
+    }
+
+    open fun onCopyRequested(x: Float, y: Float): String? = parent?.onCopyRequested(x, y)
+
+    open fun onSelectAll(x: Float, y: Float) {
+        parent?.onSelectAll(x, y)
+    }
+
+    open fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean =
+        false
+
+    open fun onBackSpaceKey(x: Float, y: Float) {
+        parent?.onBackSpaceKey(x, y)
+    }
+
+    open fun onEnterKey(x: Float, y: Float) {
+        parent?.onEnterKey(x, y)
+    }
+
+    open fun onDeleteKey(x: Float, y: Float) {
+        parent?.onDeleteKey(x, y)
+    }
 
     /**
      * must not be used for important actions, because not all mice have these
      * not all users know about the keys -> default reroute?
      * I like these keys ;)
      * */
-    open fun onMouseForwardKey(x: Float, y: Float){ parent?.onMouseForwardKey(x,y) }
-    open fun onMouseBackKey(x: Float, y: Float){ parent?.onMouseBackKey(x,y) }
+    open fun onMouseForwardKey(x: Float, y: Float) {
+        parent?.onMouseForwardKey(x, y)
+    }
+
+    open fun onMouseBackKey(x: Float, y: Float) {
+        parent?.onMouseBackKey(x, y)
+    }
 
     /**
      * for serialization and easier runtime debugging
@@ -200,8 +286,8 @@ open class Panel(val style: Style): Saveable(){
         return this
     }
 
-    open fun printLayout(tabDepth: Int){
-        println("${Tabs.spaces(tabDepth*2)}${javaClass.simpleName}($weight) $x $y += $w $h ($minW $minH)")
+    open fun printLayout(tabDepth: Int) {
+        println("${Tabs.spaces(tabDepth * 2)}${javaClass.simpleName}($weight) $x $y += $w $h ($minW $minH)")
     }
 
     /**
@@ -215,18 +301,20 @@ open class Panel(val style: Style): Saveable(){
      * */
     open fun isKeyInput() = false
 
-    val listOfAll: Sequence<Panel> get() = sequence {
-        yield(this@Panel)
-        (this@Panel as? PanelGroup)?.children?.forEach { child ->
-            yieldAll(child.listOfAll)
+    val listOfAll: Sequence<Panel>
+        get() = sequence {
+            yield(this@Panel)
+            (this@Panel as? PanelGroup)?.children?.forEach { child ->
+                yieldAll(child.listOfAll)
+            }
         }
-    }
 
     /**
      * does this panel contain the coordinate (x,y)?
      * does not consider overlap
      * */
-    fun contains(x: Int, y: Int, margin: Int = 0) = (x-this.x) in -margin until w+margin && (y-this.y) in -margin until h+margin
+    fun contains(x: Int, y: Int, margin: Int = 0) =
+        (x - this.x) in -margin until w + margin && (y - this.y) in -margin until h + margin
 
     /**
      * does this panel contain the coordinate (x,y)?

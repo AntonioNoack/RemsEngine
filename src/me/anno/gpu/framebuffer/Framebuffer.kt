@@ -216,7 +216,15 @@ class Framebuffer(var name: String, var w: Int, var h: Int, val samples: Int, va
             }
             throw RuntimeException("Unbind is incorrect... why? am $this, got $popped")
         }
-        stack.pop()!!.bind()
+        if(stack.isNotEmpty()){
+            stack.pop()?.bind() ?: {
+                glBindFramebuffer(GL_FRAMEBUFFER, 0)
+                glViewport(0, 0, GFX.width, GFX.height)
+            }()
+        } else {
+            glBindFramebuffer(GL_FRAMEBUFFER, 0)
+            glViewport(0, 0, GFX.width, GFX.height)
+        }
     }
 
     companion object {
@@ -232,8 +240,15 @@ class Framebuffer(var name: String, var w: Int, var h: Int, val samples: Int, va
 
         fun unbind(){
             stack.pop()
-            if(stack.isNotEmpty())
-            stack.pop()!!.bind()
+            if(stack.isNotEmpty()){
+                stack.pop()?.bind() ?: {
+                    glBindFramebuffer(GL_FRAMEBUFFER, 0)
+                    glViewport(0, 0, GFX.width, GFX.height)
+                }()
+            } else {
+                glBindFramebuffer(GL_FRAMEBUFFER, 0)
+                glViewport(0, 0, GFX.width, GFX.height)
+            }
         }
 
     }

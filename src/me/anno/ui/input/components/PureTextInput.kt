@@ -77,7 +77,7 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
         drawingOffset = -clamp(cursor - w / 3, 0, max(0, required - w))
     }
 
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         loadTexturesSync.push(true)
         drawBackground()
         val x = x + padding.left

@@ -26,7 +26,7 @@ open class ButtonPanel(text: String, style: Style): TextPanel(text, style.getChi
     }
 
     var mouseDown = false
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
 
         val isHovered = isHovered
         val mouseDown = mouseDown

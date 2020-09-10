@@ -50,8 +50,8 @@ class ColorChooser(style: Style, withAlpha: Boolean, val owningProperty: Animate
             setHSL(hue, saturation, lightness, opacity, colorSpace, true)
             onSmallChange("color-hue")
         }) {
-        override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
-            super.draw(x0, y0, x1, y1)
+        override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+            super.onDraw(x0, y0, x1, y1)
             val x = x0 + ((x1 - x0) * hue).roundToInt()
             GFX.drawRect(x, y0, 1, y1 - y0, black)
         }
@@ -66,8 +66,8 @@ class ColorChooser(style: Style, withAlpha: Boolean, val owningProperty: Animate
                 setHSL(hue, saturation, lightness, clamp(opacity, 0f, 1f), colorSpace, true)
                 onSmallChange("color-alpha")
             }) {
-            override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
-                // super.draw(x0, y0, x1, y1)
+            override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+                // super.onDraw(x0, y0, x1, y1)
                 val x = x0 + ((x1 - x0) * opacity).roundToInt()
                 // lerp transparency for the alpha bar
                 for (dx in 0 until w) {
@@ -118,7 +118,7 @@ class ColorChooser(style: Style, withAlpha: Boolean, val owningProperty: Animate
     }
 
     var lastTime = editorTime
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         if (lastTime != editorTime && owningProperty != null) {
             lastTime = editorTime
             setRGBA(owningProperty[editorTime] as Vector4f, false)
@@ -126,7 +126,7 @@ class ColorChooser(style: Style, withAlpha: Boolean, val owningProperty: Animate
         val needsHueChooser = Visibility[visualisation.needsHueChooser]
         hueChooser.visibility = needsHueChooser
         hueChooserSpace.visibility = needsHueChooser
-        super.draw(x0, y0, x1, y1)
+        super.onDraw(x0, y0, x1, y1)
     }
 
     var hue = 0.5f

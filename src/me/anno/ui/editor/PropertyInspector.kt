@@ -22,7 +22,7 @@ class PropertyInspector(style: Style):
 
     // init { padding.top += 6 }
 
-    override fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         val selected = Studio.selectedInspectable
         if(selected != lastSelected){
             lastSelected = selected
@@ -62,7 +62,7 @@ class PropertyInspector(style: Style):
                 // we (would?) need to update the structure...
             }
         }
-        super.draw(x0, y0, x1, y1)
+        super.onDraw(x0, y0, x1, y1)
     }
 
     operator fun plusAssign(panel: Panel){
