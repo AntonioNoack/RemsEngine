@@ -17,6 +17,7 @@ import java.nio.ByteOrder
 import java.nio.ShortBuffer
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.concurrent.thread
+import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
@@ -230,8 +231,8 @@ abstract class AudioStream(
                 val mnI = mni.toLong()
                 val mxI = mxi.toLong()
 
-                val a0: Double
-                val a1: Double
+                var a0: Double
+                var a1: Double
 
                 when {
                     mni == mxi -> {
@@ -256,8 +257,8 @@ abstract class AudioStream(
                         var b0 = data0.first * f0 + data1.first * f1
                         var b1 = data0.second * f0 + data1.second * f1
                         for(index in mnI+1 until mxI){
-                            val time = index.toDouble() / ffmpegSampleRate
                             val data = getMaxAmplitudesSync(index)
+                            val time = index.toDouble() / ffmpegSampleRate
                             val amplitude = localAmplitude(time)
                             b0 += amplitude * data.first
                             b1 += amplitude * data.second
@@ -270,6 +271,36 @@ abstract class AudioStream(
                 }
 
                 val approxFraction = (sampleIndex % updatePositionEveryNFrames) * 1.0 / updatePositionEveryNFrames
+
+                // low quality echo
+                // because high quality may be expensive...
+                // it rather should be computed as a post-processing effect...
+                // todo irregular chaos component?? (different reflection directions)
+                val echoMultiplier = sender.echoMultiplier[global0]
+                if(echoMultiplier > 0f){
+                    val echoDelay = sender.echoDelay[global0]
+                    var sum = 1f
+                    if(abs(echoDelay) > 1e-5f){
+                        var global = global1 - echoDelay
+                        var multiplier = echoMultiplier
+                        for(i in 0 until 10){
+                            val local = globalToLocalTime(global)
+                            val index = (ffmpegSampleRate * local).toLong()
+                            val data = getMaxAmplitudesSync(index)
+                            val avg = data.first // echo mixes it anyways ;)
+                            val delta = avg * multiplier
+                            a0 += delta
+                            a1 += delta
+                            sum += multiplier
+                            global -= echoDelay
+                            multiplier *= echoMultiplier
+                            if(multiplier < 1e-5f) break
+                        }
+                    }
+                    // normalize the values
+                    a0 /= sum
+                    a1 /= sum
+                }
 
                 // write the data
                 stereoBuffer.put(transfer0.getLeft(a0, a1, approxFraction, transfer1).toShort())

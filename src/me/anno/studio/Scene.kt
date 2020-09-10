@@ -25,6 +25,7 @@ import me.anno.objects.effects.ToneMappers
 import me.anno.studio.Studio.selectedTransform
 import me.anno.ui.editor.sceneView.Grid
 import me.anno.ui.editor.sceneView.Grid.drawLine01
+import me.anno.ui.editor.sceneView.SceneView
 import me.anno.utils.clamp
 import me.anno.utils.times
 import me.anno.utils.warn
@@ -235,7 +236,8 @@ object Scene {
 
     // rendering must be done in sync with the rendering thread (OpenGL limitation) anyways, so one object is enough
     val stack = Matrix4fArrayList()
-    fun draw(target: Framebuffer?, camera: Camera, x0: Int, y0: Int, w: Int, h: Int, time: Double, flipY: Boolean, drawMode: ShaderPlus.DrawMode){
+    fun draw(target: Framebuffer?, camera: Camera, x0: Int, y0: Int, w: Int, h: Int, time: Double,
+             flipY: Boolean, drawMode: ShaderPlus.DrawMode, sceneView: SceneView?){
 
         GFX.ensureEmptyStack()
 
@@ -300,8 +302,11 @@ object Scene {
         // remember the transform for later use
         lastCameraTransform.set(stack)
 
-        if(!isFakeColorRendering){
+        if(!isFakeColorRendering && sceneView != null){
             stack.pushMatrix()
+            if(sceneView.isLocked2D){
+                stack.rotate(Math.PI.toFloat()/2, xAxis)
+            }
             Grid.draw(stack, cameraTransform)
             stack.popMatrix()
         }
@@ -326,7 +331,6 @@ object Scene {
         stack.popMatrix()
 
         displayGizmo(cameraTransform, x0, y0, w, h)
-
 
         /**
          * draw the selection ring for selected objects

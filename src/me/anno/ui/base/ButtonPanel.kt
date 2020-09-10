@@ -2,8 +2,7 @@ package me.anno.ui.base
 
 import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
-import me.anno.input.MouseButton
-import me.anno.ui.base.components.Padding
+import me.anno.input.Input
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.style.Style
 import me.anno.utils.mixARGB
@@ -25,11 +24,10 @@ open class ButtonPanel(text: String, style: Style): TextPanel(text, style.getChi
         this += WrapAlign.LeftTop
     }
 
-    var mouseDown = false
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
 
         val isHovered = isHovered
-        val mouseDown = mouseDown
+        val mouseDown = 0 in Input.mouseKeysDown
 
         backgroundColor = if(isHovered && !mouseDown) hoveredBackground else normalBackground
         drawBackground()
@@ -46,16 +44,6 @@ open class ButtonPanel(text: String, style: Style): TextPanel(text, style.getChi
     fun getColor(isHovered: Boolean, mouseDown: Boolean, base: Int, alternative: Int): Int {
         val alpha = if(isHovered && !mouseDown) 0xaa000000.toInt() else black
         return alpha or ((if(mouseDown) alternative else base) and 0xffffff)
-    }
-
-    override fun onMouseDown(x: Float, y: Float, button: MouseButton) {
-        super.onMouseDown(x, y, button)
-        mouseDown = true
-    }
-
-    override fun onMouseUp(x: Float, y: Float, button: MouseButton) {
-        super.onMouseUp(x, y, button)
-        mouseDown = false
     }
 
 }

@@ -29,6 +29,8 @@ import java.lang.IllegalArgumentException
 open class Audio(var file: File = File(""), parent: Transform? = null): GFXTransform(parent){
 
     val amplitude = AnimatedProperty.floatPlus(1f)
+    val echoDelay = AnimatedProperty.float01()
+    val echoMultiplier = AnimatedProperty.float01()
     val forcedMeta get() = getMeta(file, false)
     val meta get() = getMeta(file, true)
 
@@ -97,6 +99,8 @@ open class Audio(var file: File = File(""), parent: Transform? = null): GFXTrans
             is3D = it
             AudioManager.requestUpdate()
         }
+        list += VI("Echo Delay", "", echoDelay, style)
+        list += VI("Echo Multiplier", "", echoMultiplier, style)
         val playbackTitles = "Test Playback" to "Stop Playback"
         fun getPlaybackTitle(invert: Boolean) = if((component == null) != invert) playbackTitles.first else playbackTitles.second
         val playbackButton = ButtonPanel(getPlaybackTitle(false), style)

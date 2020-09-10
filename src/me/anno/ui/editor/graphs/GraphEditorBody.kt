@@ -30,9 +30,8 @@ import me.anno.input.Input.isControlDown as isControlDown
 
 // todo make music x times calmer, if another audio line (voice) is on as an optional feature
 
-// todo select multiple keyframes
-// todo copy keyframes
-// todo paste keyframes
+// todo a method to easily create curves? splines?...
+
 class GraphEditorBody(style: Style): TimelinePanel(style.getChild("deep")){
 
     var centralValue = 0f
@@ -46,7 +45,6 @@ class GraphEditorBody(style: Style): TimelinePanel(style.getChild("deep")){
     // style
     var dotSize = style.getSize("dotSize", 8)
 
-    // todo add/remove keyframes from the selection
     val selectedKeyframes = HashSet<Keyframe<*>>()
 
     var isSelecting = false

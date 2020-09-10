@@ -32,8 +32,6 @@ import kotlin.concurrent.thread
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
-// todo graph editor doesn't work correctly:
-// todo either decide to use it's local time, or the global time...
 class LayerView(style: Style) : TimelinePanel(style) {
 
     // todo select multiple elements to move them around together
@@ -55,13 +53,13 @@ class LayerView(style: Style) : TimelinePanel(style) {
         // renderOnRequestOnly = true
     }
 
-    // todo performance is very low... fix that...
-    // todo especially, if it's not changing
-    // todo two ideas:
-    // - render only every x frames + on request
-    // - calculation async -> atm we store stuff in the objects; will no longer be possible
+    // performance is very low... fix that...
+    // especially, if it's not changing
+    // two ideas:
+    //  kind of done - render only every x frames + on request
+    // actually done - calculation async
     // todo instanced arrays, because we have soo many stripes?
-    // we could optimize simple, not manipulated stripes...
+    // we could optimize simple, not manipulated stripes... -> we optimize with linear approximations
 
     companion object {
         val minAlpha = 1f / 255f
@@ -418,7 +416,6 @@ class LayerView(style: Style) : TimelinePanel(style) {
             })
         }
     }
-
 
     override fun calculateSize(w: Int, h: Int) {
         super.calculateSize(w, h)

@@ -90,6 +90,7 @@ object Grid {
 
     }
 
+    // allow more/full grid customization?
     fun draw(stack: Matrix4fArrayList, cameraTransform: Matrix4f){
 
         if(GFX.isFinalRendering) return

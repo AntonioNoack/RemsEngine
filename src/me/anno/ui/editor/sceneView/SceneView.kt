@@ -28,7 +28,8 @@ import me.anno.studio.Studio.selectedTransform
 import me.anno.studio.Studio.shiftSlowdown
 import me.anno.studio.Studio.targetHeight
 import me.anno.studio.Studio.targetWidth
-import me.anno.ui.base.groups.PanelFrame
+import me.anno.ui.base.ButtonPanel
+import me.anno.ui.base.groups.PanelList
 import me.anno.ui.custom.CustomContainer
 import me.anno.ui.simple.SimplePanel
 import me.anno.ui.style.Style
@@ -43,6 +44,13 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
+// todo scene tabs
+// todo scene selection
+// todo open/close scene tabs
+// todo render a scene
+// todo open subtree as scene?
+// todo include scenes in large scene...
+
 // todo search elements
 // todo search with tags
 // todo tags for elements
@@ -54,7 +62,7 @@ import kotlin.math.roundToInt
 
 // todo right click on input to get context menu, e.g. to reset
 
-class SceneView(style: Style) : PanelFrame(null, style.getChild("sceneView")) {
+class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")) {
 
     constructor(sceneView: SceneView) : this(DefaultConfig.style) {
         camera = sceneView.camera
@@ -80,20 +88,22 @@ class SceneView(style: Style) : PanelFrame(null, style.getChild("sceneView")) {
     // we need the depth for post processing effects like dof
 
     init {
-        /*controls += SimplePanel(
-            IconPanel("checked.png", style),
+        val is2DPanel = ButtonPanel("2D", style)
+        controls += SimplePanel(
+            is2DPanel,
             true, true,
             3, 3,
             iconSize
         ).setOnClickListener {
-
-        }*/
-        /*controls += SimplePanel(
-            TextPanel("H", style),
-            true, true,
-            3 + iconSize + iconBorder, 3,
-            iconSize
-        )*/
+            isLocked2D = !isLocked2D
+            // control can be used to avoid rotating the camera
+            if(isLocked2D && !Input.isControlDown){
+                val rot = camera.rotationYXZ
+                val rot0z = rot[camera.lastLocalTime].z
+                camera.putValue(rot, Vector3f(0f, 0f, rot0z))
+            }
+            is2DPanel.text = if(isLocked2D) "3D" else "2D"
+        }
     }
 
     var mode = SceneDragMode.MOVE
@@ -107,11 +117,13 @@ class SceneView(style: Style) : PanelFrame(null, style.getChild("sceneView")) {
     // todo resize only, if the size was stable for a moment (e.g. 0.2s)
     // todo because resizing is expensive
 
+    // switch between manual control and autopilot for time :)
+    // -> do this by disabling controls when playing, excepts when it's the inspector camera (?)
+    val mayControlCamera get() = camera === nullCamera || editorTimeDilation == 0.0
+
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
 
         GFX.ensureEmptyStack()
-
-        // todo switch between manual control and autopilot for time :)
 
         GFX.check()
 
@@ -153,7 +165,7 @@ class SceneView(style: Style) : PanelFrame(null, style.getChild("sceneView")) {
                 null, camera,
                 x + dx, y + dy, 1, 1,
                 editorTime + dt * if(edt == 0.0) 1.0 else edt,
-                flipY = false, drawMode = ShaderPlus.DrawMode.COLOR
+                false, ShaderPlus.DrawMode.COLOR, this
             ) // step size? may be expensive...
             dt += 0.5
         }
@@ -161,8 +173,8 @@ class SceneView(style: Style) : PanelFrame(null, style.getChild("sceneView")) {
         Scene.draw(
             null, camera,
             x + dx, y + dy, rw, rh,
-            editorTime, flipY = false,
-            drawMode = ShaderPlus.DrawMode.COLOR
+            editorTime, false,
+            ShaderPlus.DrawMode.COLOR, this
         )
 
         GFX.ensureEmptyStack()
@@ -215,7 +227,7 @@ class SceneView(style: Style) : PanelFrame(null, style.getChild("sceneView")) {
         val diameter = radius * 2 + 1
         fun getPixels(mode: ShaderPlus.DrawMode): IntArray {
             // draw only the clicked area?
-            Scene.draw(fb, camera, 0, 0, rw, rh, editorTime, false, mode)
+            Scene.draw(fb, camera, 0, 0, rw, rh, editorTime, false, mode, this)
             GFX.check()
             fb?.bind() ?: Framebuffer.bindNull()
             val localX = (clickX - this.x).roundToInt()
@@ -275,6 +287,8 @@ class SceneView(style: Style) : PanelFrame(null, style.getChild("sceneView")) {
 
     fun parseKeyInput() {
 
+        if(!mayControlCamera) return
+
         val dt = clamp(deltaTime, 0f, 0.1f)
 
         // clamped just in case we get multiple mouse movement events in one frame
@@ -307,6 +321,9 @@ class SceneView(style: Style) : PanelFrame(null, style.getChild("sceneView")) {
 
     var lastTouchZoom = 0f
     fun parseTouchInput() {
+
+        if(!mayControlCamera) return
+
         // todo rotate/move our camera or the selected object?
         val size = -20f * shiftSlowdown / GFX.height
         when (touches.size) {
@@ -344,6 +361,8 @@ class SceneView(style: Style) : PanelFrame(null, style.getChild("sceneView")) {
     }
 
     fun move(selected: Transform, dx0: Float, dy0: Float) {
+
+        if(!mayControlCamera) return
 
         val delta = dx0 - dy0
 
@@ -422,9 +441,9 @@ class SceneView(style: Style) : PanelFrame(null, style.getChild("sceneView")) {
     }
 
     fun turn(dx: Float, dy: Float) {
+        if(!mayControlCamera) return
         if (isLocked2D) return
         // move the camera
-        // todo only do, if not locked
         val size = 20f * shiftSlowdown * (if (selectedTransform is Camera) -1f else 1f) / max(GFX.width, GFX.height)
         val dx0 = dx * size
         val dy0 = dy * size
@@ -481,7 +500,17 @@ class SceneView(style: Style) : PanelFrame(null, style.getChild("sceneView")) {
     }
 
     override fun onDoubleClick(x: Float, y: Float, button: MouseButton) {
-        goFullscreen()
+        if(button.isLeft){
+            val xi = x.toInt()
+            val yi = y.toInt()
+            for(it in controls){
+                if (it.contains(xi, yi)) {
+                    it.drawable.onMouseClicked(x, y, button, false)
+                    return
+                }
+            }
+            goFullscreen()
+        }
     }
 
     override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
