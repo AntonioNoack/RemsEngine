@@ -5,6 +5,8 @@ import me.anno.gpu.GFX.toRadians
 import me.anno.gpu.ShaderLib.lineShader3D
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticFloatBuffer
+import me.anno.io.ISaveable
+import me.anno.io.base.BaseWriter
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.effects.ToneMappers
 import me.anno.studio.Studio.targetHeight
@@ -15,7 +17,6 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.style.Style
 import me.anno.utils.pow
 import org.joml.*
-import org.lwjgl.opengl.GL11.GL_LINES
 import org.lwjgl.opengl.GL20.glUniformMatrix4fv
 import java.io.File
 import kotlin.math.tan
@@ -28,14 +29,16 @@ class Camera(parent: Transform? = null): Transform(parent){
     // orthographic-ness by setting the camera back some amount, and narrowing the view
 
     var lut = File("")
-    var nearZ = AnimatedProperty.floatPlus(0.001f)
-    var farZ = AnimatedProperty.floatPlus(1000f)
-    var fovYDegrees = AnimatedProperty.float(90f)
-    var chromaticAberration = AnimatedProperty.float()
-    var chromaticOffset = AnimatedProperty.vec2()
-    var distortion = AnimatedProperty.vec3()
-    var distortionOffset = AnimatedProperty.vec2()
-    var orthographicness = AnimatedProperty.float01()
+    val nearZ = AnimatedProperty.floatPlus(0.001f)
+    val farZ = AnimatedProperty.floatPlus(1000f)
+    val fovYDegrees = AnimatedProperty.float(90f)
+    val chromaticAberration = AnimatedProperty.float()
+    val chromaticOffset = AnimatedProperty.vec2()
+    val distortion = AnimatedProperty.vec3()
+    val distortionOffset = AnimatedProperty.vec2()
+    val orthographicness = AnimatedProperty.float01()
+    val vignetteStrength = AnimatedProperty.floatPlus()
+    val vignetteColor = AnimatedProperty.color(Vector4f(0f, 0f, 0f, 1f))
 
     var toneMapping = ToneMappers.RAW
 
@@ -46,6 +49,61 @@ class Camera(parent: Transform? = null): Transform(parent){
         position.addKeyframe(0.0, Vector3f(0f, 0f, 1f))
     }
 
+    override fun save(writer: BaseWriter) {
+        super.save(writer)
+        writer.writeObject(this, "nearZ", nearZ)
+        writer.writeObject(this, "farZ", farZ)
+        writer.writeObject(this, "fovY", fovYDegrees)
+        writer.writeObject(this, "chromaticAberration", chromaticAberration)
+        writer.writeObject(this, "chromaticOffset", chromaticOffset)
+        writer.writeObject(this, "distortion", distortion)
+        writer.writeObject(this, "distortionOffset", distortionOffset)
+        writer.writeObject(this, "orthographicness", orthographicness)
+        writer.writeObject(this, "vignetteStrength", vignetteStrength)
+        writer.writeObject(this, "vignetteColor", vignetteColor)
+        writer.writeInt("toneMapping", toneMapping.id, true)
+        writer.writeBool("onlyShowTarget", onlyShowTarget)
+        writer.writeBool("useDepth", useDepth)
+        writer.writeFile("lut", lut)
+    }
+
+    override fun readBool(name: String, value: Boolean) {
+        when(name){
+            "onlyShowTarget" -> onlyShowTarget = value
+            "useDepth" -> useDepth = value
+            else -> super.readBool(name, value)
+        }
+    }
+
+    override fun readObject(name: String, value: ISaveable?) {
+        when(name){
+            "nearZ" -> nearZ.copyFrom(value)
+            "farZ" -> farZ.copyFrom(value)
+            "fovY" -> fovYDegrees.copyFrom(value)
+            "chromaticAberration" -> chromaticAberration.copyFrom(value)
+            "chromaticOffset" -> chromaticOffset.copyFrom(value)
+            "distortion" -> distortion.copyFrom(value)
+            "distortionOffset" -> distortionOffset.copyFrom(value)
+            "orthographicness" -> orthographicness.copyFrom(value)
+            "vignetteStrength" -> vignetteStrength.copyFrom(value)
+            "vignetteColor" -> vignetteColor.copyFrom(value)
+            else -> super.readObject(name, value)
+        }
+    }
+
+    override fun readString(name: String, value: String) {
+        when(name){
+            "lut" -> lut = File(value)
+            else -> super.readString(name, value)
+        }
+    }
+
+    override fun readInt(name: String, value: Int) {
+        when(name){
+            "toneMapping" -> toneMapping = ToneMappers.values().firstOrNull { it.id == value } ?: toneMapping
+            else -> super.readInt(name, value)
+        }
+    }
 
     fun getEffectiveOffset(localTime: Double) = orthoDistance(orthographicness[localTime])
     fun getEffectiveNear(localTime: Double, offset: Float = getEffectiveOffset(localTime)) = nearZ[localTime]
@@ -68,6 +126,8 @@ class Camera(parent: Transform? = null): Transform(parent){
         list += VI("Chromatic Offset", "Offset for chromatic aberration", chromaticOffset, style)
         list += VI("Distortion", "Params: R², R⁴, Scale", distortion, style)
         list += VI("Distortion Offset", "Moves the center of the distortion", distortionOffset, style)
+        list += VI("Vignette Color", "", vignetteColor, style)
+        list += VI("Vignette Strength", "", vignetteStrength, style)
         list += VI("Tone Mapping", "Maps large ranges of brightnesses (e.g. HDR) to monitor color space", null, toneMapping, style){ toneMapping = it }
         list += VI("Look Up Table", "LUT, Look Up Table for colors, formatted like in UE4", null, lut, style){ lut = it }
         list += VI("Only Show Target", "Forces the viewport to have the correct aspect ratio", null, onlyShowTarget, style){ onlyShowTarget = it }
@@ -126,6 +186,7 @@ class Camera(parent: Transform? = null): Transform(parent){
 
     companion object {
         val cameraModel = StaticFloatBuffer(listOf(Attribute("attr0", 3)), 2 * 8)
+        val DEFAULT_VIGNETTE_STRENGTH = 5f
         init {
 
             // points

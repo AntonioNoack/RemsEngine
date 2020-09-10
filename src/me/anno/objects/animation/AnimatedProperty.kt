@@ -29,7 +29,8 @@ class AnimatedProperty<V>(val type: Type, var defaultValue: V): Saveable(){
         FLOAT("float", 0f, 1, 1f, true, true, null, null, { it is Float }),
         FLOAT_01("float01", 0f, 1, 1f, true, true, 0f, 1f, { it is Float }),
         FLOAT_01_EXP("float01exp", 0f, 1, 1f, false, true, 0f, 1f, { it is Float }),
-        FLOAT_PLUS("float+", 0f, 1, 1f, false, true, 0f, null, { it is Float }),
+        FLOAT_PLUS("float+", 0f, 1, 1f, true, true, 0f, null, { it is Float }),
+        FLOAT_PLUS_EXP("float+exp", 0f, 1, 1f, false, true, 0f, null, { it is Float }),
         FLOAT_PERCENT("float%", 100f, 1, 100f, true, false, 0f, 100f, { it is Float }),
         DOUBLE("double", 0.0, 1, 1f, true, true, null, null, { it is Double }),
         VEC2("vec2", Vector2f(), 2, 1f, true, true, null, null, { it is Vector2f }),
@@ -67,6 +68,8 @@ class AnimatedProperty<V>(val type: Type, var defaultValue: V): Saveable(){
         fun float(defaultValue: Float) = AnimatedProperty(Type.FLOAT, defaultValue)
         fun floatPlus() = AnimatedProperty<Float>(Type.FLOAT_PLUS)
         fun floatPlus(defaultValue: Float) = AnimatedProperty(Type.FLOAT_PLUS, defaultValue)
+        fun floatPlusExp() = AnimatedProperty<Float>(Type.FLOAT_PLUS_EXP)
+        fun floatPlusExp(defaultValue: Float) = AnimatedProperty(Type.FLOAT_PLUS_EXP, defaultValue)
         fun float01() = AnimatedProperty<Float>(Type.FLOAT_01)
         fun float01(defaultValue: Float) = AnimatedProperty(Type.FLOAT_01, defaultValue)
         fun float01exp(defaultValue: Float) = AnimatedProperty(Type.FLOAT_01_EXP, defaultValue)
@@ -79,6 +82,7 @@ class AnimatedProperty<V>(val type: Type, var defaultValue: V): Saveable(){
         fun scale() = AnimatedProperty<Vector3f>(Type.SCALE)
         fun scale(defaultValue: Vector3f) = AnimatedProperty(Type.SCALE, defaultValue)
         fun color() = AnimatedProperty<Vector4f>(Type.COLOR)
+        fun color(defaultValue: Vector4f) = AnimatedProperty<Vector4f>(Type.COLOR, defaultValue)
         fun quat() = AnimatedProperty<Quaternionf>(Type.QUATERNION)
         fun skew() = AnimatedProperty<Vector2f>(Type.SKEW_2D)
         fun tiling() = AnimatedProperty<Vector4f>(Type.TILING)

@@ -14,6 +14,7 @@ import me.anno.gpu.shader.ShaderPlus
 import me.anno.gpu.texture.ClampMode
 import me.anno.input.Input.keysDown
 import me.anno.objects.Camera
+import me.anno.objects.Camera.Companion.DEFAULT_VIGNETTE_STRENGTH
 import me.anno.objects.Transform.Companion.xAxis
 import me.anno.objects.Transform.Companion.yAxis
 import me.anno.objects.Transform.Companion.zAxis
@@ -24,6 +25,7 @@ import me.anno.objects.effects.ToneMappers
 import me.anno.studio.Studio.selectedTransform
 import me.anno.ui.editor.sceneView.Grid
 import me.anno.ui.editor.sceneView.Grid.drawLine01
+import me.anno.utils.clamp
 import me.anno.utils.times
 import me.anno.utils.warn
 import me.anno.video.MissingFrameException
@@ -35,6 +37,7 @@ import org.joml.Vector4f
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL30
 import java.io.File
+import kotlin.math.max
 import kotlin.math.sqrt
 
 object Scene {
@@ -139,6 +142,8 @@ object Scene {
                     "uniform float chromaticAberration;" +
                     "uniform vec2 chromaticOffset;\n" +
                     "uniform vec2 distortion, distortionOffset;\n" +
+                    "uniform float vignetteStrength;\n" +
+                    "uniform vec4 vignetteColor;\n" +
                     "uniform float minValue;\n" +
                     "uniform float toneMapper;\n" +
                     noiseFunc +
@@ -155,7 +160,12 @@ object Scene {
                     "   float zero = min(min(uv.x, 1.0-uv.x), min(uv.y, 1.0-uv.y))*1000.0;\n" +
                     "   vec4 color = texture(tex, uv);\n" +
                     "   return vec4(color.rgb, color.a * clamp(zero, 0.0, 1.0));\n" +
+                    "}\n" +
+                    "float softMin(float a, float b, float k){\n" +
+                    "   return -(log(exp(k*-a)+exp(k*-b))/k);\n" +
                     "}" +
+                    // todo add vignette effect:
+                    // todo mix with second color, depending on radius
                     "void main(){" +
                     "   vec2 uv2 = (uv-0.5)*fxScale.z+0.5;\n" +
                     "   vec2 nuv = (uv2-0.5)*fxScale.xy;\n" +
@@ -175,6 +185,8 @@ object Scene {
                     "           aces(raw.rgb) :" +
                     "           uchimura(raw.rgb);\n" +
                     "   vec4 color = vec4(sqrt(toneMapped), raw.a);\n" +
+                    "   float rSq = dot(nuv,nuv);\n" + // nuv nuv 😂 (hedgehog sounds for German children)
+                    "   color = mix(vignetteColor, color, 1.0/(1.0 + vignetteStrength*rSq));\n" +
                     "   gl_FragColor = color + random(uv) * minValue;\n" +
                     "}"
         )
@@ -421,6 +433,9 @@ object Scene {
         sqrtToneMappingShader.v3("fxScale", fxScaleX, fxScaleY, 1f+dst.z)
         sqrtToneMappingShader.v2("distortion", dst.x, dst.y)
         sqrtToneMappingShader.v2("distortionOffset", dstOffset)
+        sqrtToneMappingShader.v4("vignetteColor", camera.vignetteColor[cameraTime])
+        val vignette = camera.vignetteStrength[cameraTime]
+        sqrtToneMappingShader.v1("vignetteStrength", DEFAULT_VIGNETTE_STRENGTH * vignette)
         sqrtToneMappingShader.v1("minValue", minValue)
         sqrtToneMappingShader.v1("toneMapper", when(if(isFakeColorRendering) ToneMappers.RAW else camera.toneMapping){
             ToneMappers.RAW -> 0f

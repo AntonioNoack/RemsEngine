@@ -65,7 +65,7 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
             style,
             AxisAlignment.MIN
         ).setWeight(1f)
-        uContent += content.setWeight(100f)
+        uContent += content.setWeight(3f)
     }
 
     var isWorking = false
