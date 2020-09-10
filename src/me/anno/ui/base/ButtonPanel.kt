@@ -27,7 +27,7 @@ open class ButtonPanel(text: String, style: Style): TextPanel(text, style.getChi
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
 
         val isHovered = isHovered
-        val mouseDown = 0 in Input.mouseKeysDown
+        val mouseDown = isHovered && 0 in Input.mouseKeysDown
 
         backgroundColor = if(isHovered && !mouseDown) hoveredBackground else normalBackground
         drawBackground()

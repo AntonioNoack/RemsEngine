@@ -59,7 +59,6 @@ open class Text(text: String = "", parent: Transform? = null): GFXTransform(pare
 
     // parameters
     var font = "Verdana"
-    var lastFont = font
 
     var isBold = false
     var isItalic = false
@@ -112,7 +111,6 @@ open class Text(text: String = "", parent: Transform? = null): GFXTransform(pare
         val text = text
         val isBold = isBold
         val isItalic = isItalic
-        val font = font
 
         val shallLoadAsync = true
 
@@ -120,9 +118,8 @@ open class Text(text: String = "", parent: Transform? = null): GFXTransform(pare
 
             stack.pushMatrix()
 
-            if(text != lastText || font != lastFont || keys == null){
+            if(text != lastText || keys == null){
                 lastText = text
-                lastFont = font
                 lineSegmentsWithStyle = splitSegments(text)
                 keys = createKeys()
             } else {
@@ -130,7 +127,6 @@ open class Text(text: String = "", parent: Transform? = null): GFXTransform(pare
                 if(!keys!!.withIndex().none { (index, fontMeshKey) ->
                         !fontMeshKey.equals(isBold, isItalic, lineSegmentsWithStyle!!.parts[index].text)
                     }){
-                    lastFont = font
                     keys = createKeys()
                 }
             }
@@ -234,12 +230,17 @@ open class Text(text: String = "", parent: Transform? = null): GFXTransform(pare
         }
     }
 
+    fun invalidate(){
+        lastText = if(text == "") "a" else ""
+    }
+
     override fun readString(name: String, value: String) {
         when(name){
             "text" -> text = value
             "font" -> font = value
             else -> super.readString(name, value)
         }
+        invalidate()
     }
 
     override fun readBool(name: String, value: Boolean) {
@@ -248,6 +249,7 @@ open class Text(text: String = "", parent: Transform? = null): GFXTransform(pare
             "isItalic" -> isItalic = value
             else -> super.readBool(name, value)
         }
+        invalidate()
     }
 
     override fun readObject(name: String, value: ISaveable?) {
@@ -283,17 +285,24 @@ open class Text(text: String = "", parent: Transform? = null): GFXTransform(pare
         // todo at least a generalized form to make it simpler?
         list += EnumInput("Font", true, font, fontList, style)
             .setChangeListener {
+                invalidate()
                 putLastUsedFont(it)
                 sortFavourites()
                 getSelfWithShadows().forEach { c -> c.font = it } }
             .setIsSelectedListener { show(null) }
 
         list += BooleanInput("Italic", isItalic, style)
-            .setChangeListener { getSelfWithShadows().forEach { c -> c.isItalic = it } }
+            .setChangeListener {
+                invalidate()
+                getSelfWithShadows().forEach { c -> c.isItalic = it }
+            }
             .setIsSelectedListener { show(null) }
 
         list += BooleanInput("Bold", isBold, style)
-            .setChangeListener { getSelfWithShadows().forEach { c -> c.isBold = it } }
+            .setChangeListener {
+                invalidate()
+                getSelfWithShadows().forEach { c -> c.isBold = it }
+            }
             .setIsSelectedListener { show(null) }
 
         fun align(title: String, value: AxisAlignment, x: Boolean, set: (self: Text, AxisAlignment) -> Unit){
@@ -316,11 +325,11 @@ open class Text(text: String = "", parent: Transform? = null): GFXTransform(pare
         list += VI("Line Spacing", "How much lines are apart from each other", relativeLineSpacing, style)
         list += VI("Tab Size", "Relative tab size, in widths of o's", AnimatedProperty.Type.FLOAT_PLUS, relativeTabSize, style){
             relativeTabSize = it
-            lastText = "" // to invalidate
+            invalidate()
         }
         list += VI("Line Break Width", "How broad the text shall be, at maximum; < 0 = no limit", AnimatedProperty.Type.FLOAT, lineBreakWidth, style){
             lineBreakWidth = it
-            lastText = ""
+            invalidate()
         }
 
         list += ButtonPanel("Create Shadow", style)
