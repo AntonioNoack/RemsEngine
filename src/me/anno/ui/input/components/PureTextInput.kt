@@ -91,9 +91,10 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
         if(isInFocus && (showBars || cursor1 != cursor2)){
             ensureCursorBounds()
             val padding = textSize/4
-            val cursorX1 = if(cursor1 == 0) -1 else GFX.getTextSize(fontName, textSize, isBold, isItalic, text.substring(0, cursor1), -1).first-1
+            // to do cache sizes... (low priority, because it has to be in focus for this calculation, so this calculation is rather rare)
+            val cursorX1 = if(cursor1 == 0) -1 else GFX.getTextSize(fontName, textSize, isBold, isItalic, characters.subList(0, cursor1).joinChars(), -1).first-1
             if(cursor1 != cursor2){
-                val cursorX2 = if(cursor2 == 0) -1 else GFX.getTextSize(fontName, textSize, isBold, isItalic, text.substring(0, cursor2), -1).first-1
+                val cursorX2 = if(cursor2 == 0) -1 else GFX.getTextSize(fontName, textSize, isBold, isItalic, characters.subList(0, cursor2).joinChars(), -1).first-1
                 val min = min(cursorX1, cursorX2)
                 val max = max(cursorX1, cursorX2)
                 GFX.drawRect(x+min+drawingOffset, y+padding, max-min, h-2*padding, textColor and 0x3fffffff) // marker
@@ -112,10 +113,13 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
     fun insert(insertion: String){
         if(insertion.isNotEmpty()){
             lastMove = GFX.lastTime
+            deleteSelection()
             insertion.codePoints().forEach {
-                insert(it, false)
+                characters.add(cursor1++, it)
             }
+            cursor2 = cursor1
             updateText(true)
+            ensureCursorBounds()
             onSmallChange("text-insert")
         }
     }
@@ -154,7 +158,7 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
     }
 
     fun ensureCursorBounds(){
-        val maxLength = min(characters.size, text.length) // text may not be updated???
+        val maxLength = characters.size
         cursor1 = clamp(cursor1, 0, maxLength)
         cursor2 = clamp(cursor2, 0, maxLength)
     }

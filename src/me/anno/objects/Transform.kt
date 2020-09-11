@@ -72,7 +72,6 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
     var timeOffset = 0.0
     var timeDilation = 1.0
 
-    // todo make this animatable, calculate the integral to get a mapping
     var timeAnimated = AnimatedProperty.double()
 
     var name = getDefaultDisplayName()
