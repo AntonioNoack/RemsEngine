@@ -33,9 +33,8 @@ object Studio {
 
     var editorTimeDilation = 0.0
         set(value) {
-            val v2 = max(value, 0.0)
-            if(v2 != field) updateAudio()
-            field = v2
+            if(value != field) updateAudio()
+            field = value
         }
 
     val isPaused get() = editorTimeDilation == 0.0

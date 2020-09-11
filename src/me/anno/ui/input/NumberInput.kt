@@ -43,9 +43,11 @@ abstract class NumberInput<Type>(
     }
 
     val inputPanel = object : PureTextInput(style.getChild("deep")) {
+
         val driver get() = owningProperty?.drivers?.get(indexInProperty)
         val hasDriver get() = driver != null
         var lastTime = editorTime
+
         override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
             if(lastTime != editorTime && owningProperty != null && owningProperty.isAnimated){
                 lastTime = editorTime
@@ -99,6 +101,14 @@ abstract class NumberInput<Type>(
                 this@NumberInput.onEmpty(x, y)
             } else this@NumberInput.onEmpty(x, y)
         }
+
+        override fun acceptsChar(char: Int): Boolean {
+            return when(char.toChar()){
+                '\t', '\n' -> false
+                else -> true
+            }
+        }
+
     }
 
     var wasInFocus = false
@@ -197,6 +207,5 @@ abstract class NumberInput<Type>(
     }
 
     override fun getCursor(): Long = Cursor.drag
-    override fun isKeyInput() = true
 
 }

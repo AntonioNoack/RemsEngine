@@ -169,6 +169,7 @@ class LayerView(style: Style) : TimelinePanel(style) {
 
                     if(alpha >= minAlpha){
 
+                        if(ctr >= maxStripes) break@trs
                         val list = stripes[ctr]
                         if (list.isEmpty()) {
                             if(alpha > minAlpha){

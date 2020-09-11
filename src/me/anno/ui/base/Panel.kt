@@ -300,6 +300,7 @@ open class Panel(val style: Style) : Saveable() {
      * low-priority global events wont be fired (e.g. space for start/stop vs typing a space)
      * */
     open fun isKeyInput() = false
+    open fun acceptsChar(char: Int) = true
 
     val listOfAll: Sequence<Panel>
         get() = sequence {

@@ -9,9 +9,12 @@ import me.anno.studio.RemsStudio
 import me.anno.studio.RemsStudio.onSmallChange
 import me.anno.ui.base.Panel
 import me.anno.ui.style.Style
+import org.lwjgl.glfw.GLFW
 import kotlin.math.min
 
 class Checkbox(startValue: Boolean, val size: Int, style: Style): Panel(style.getChild("checkbox")){
+
+    // todo hover/toggle/focus color change
 
     companion object {
         fun getImage(checked: Boolean): Texture2D? = Cache.getIcon(if(checked) "checked.png" else "unchecked.png", true)
@@ -60,6 +63,14 @@ class Checkbox(startValue: Boolean, val size: Int, style: Style): Panel(style.ge
         toggle()
     }
 
+    override fun onKeyTyped(x: Float, y: Float, key: Int) {
+        when(key){
+            GLFW.GLFW_KEY_DOWN, GLFW.GLFW_KEY_UP -> toggle()
+        }
+    }
+
+    override fun acceptsChar(char: Int) = false // ^^
+    override fun isKeyInput() = true
     override fun getClassName() = "CheckBox"
 
 }

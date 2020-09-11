@@ -283,6 +283,13 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
         return true
     }
 
+    override fun acceptsChar(char: Int): Boolean {
+        return when(char.toChar()){
+            '\n' -> false
+            else -> true
+        }
+    }
+
     override val enableHoverColor: Boolean
         get() = text.isNotEmpty()
 

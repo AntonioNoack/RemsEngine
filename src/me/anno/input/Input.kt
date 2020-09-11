@@ -260,9 +260,8 @@ object Input {
                             }
                         }
                         GLFW.GLFW_KEY_DELETE -> {
-                            // todo when we delete elements from the treeview,
-                            // after that, the in-focus elements should be removed
-                            // (they will partially stay visible, because they are reused)
+                            // tree view selections need to be removed, because they would be illogical to keep
+                            // (because the underlying Transform changes)
                             val inFocusTreeViews = inFocus.filterIsInstance<TreeViewPanel>()
                             inFocus.forEach { it.onDeleteKey(mouseX, mouseY) }
                             inFocus.removeAll(inFocusTreeViews)
@@ -271,8 +270,31 @@ object Input {
                             inFocus0?.onBackSpaceKey(mouseX, mouseY)
                         }
                         GLFW.GLFW_KEY_TAB -> {
-                            // todo switch between input elements :)
-                            inFocus0?.onCharTyped(mouseX, mouseY, '\t'.toInt())
+                            val inFocus0 = inFocus0
+                            if(inFocus0 != null){
+                                if(isShiftDown || isControlDown || !inFocus0.isKeyInput() || !inFocus0.acceptsChar('\t'.toInt())){
+                                    // switch between input elements
+                                    val root = inFocus0.rootPanel
+                                    val list = root.listOfAll.toList()
+                                    val index = list.indexOf(inFocus0)
+                                    if(index > -1){
+                                        var next = list
+                                            .subList(index+1, list.size)
+                                            .firstOrNull { it.isKeyInput() }
+                                        if(next == null){
+                                            println("no more text input found, starting from top")
+                                            // restart from top
+                                            next = list.firstOrNull { it.isKeyInput() }
+                                        } else println(next)
+                                        if(next != null){
+                                            inFocus.clear()
+                                            inFocus += next
+                                        }
+                                    }// else error, child missing
+                                } else {
+                                    inFocus0.onCharTyped(mouseX, mouseY, '\t'.toInt())
+                                }
+                            }
                         }
                         GLFW.GLFW_KEY_ESCAPE -> {
                             // val inFocus = inFocus.firstOrNull()
