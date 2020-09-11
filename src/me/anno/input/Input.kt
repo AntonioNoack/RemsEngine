@@ -16,6 +16,7 @@ import me.anno.input.Touch.Companion.onTouchMove
 import me.anno.input.Touch.Companion.onTouchUp
 import me.anno.studio.Studio.addEvent
 import me.anno.studio.Studio.project
+import me.anno.ui.editor.treeView.TreeViewPanel
 import me.anno.utils.length
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.glfw.GLFW
@@ -262,7 +263,9 @@ object Input {
                             // todo when we delete elements from the treeview,
                             // after that, the in-focus elements should be removed
                             // (they will partially stay visible, because they are reused)
+                            val inFocusTreeViews = inFocus.filterIsInstance<TreeViewPanel>()
                             inFocus.forEach { it.onDeleteKey(mouseX, mouseY) }
+                            inFocus.removeAll(inFocusTreeViews)
                         }
                         GLFW.GLFW_KEY_BACKSPACE -> {
                             inFocus0?.onBackSpaceKey(mouseX, mouseY)

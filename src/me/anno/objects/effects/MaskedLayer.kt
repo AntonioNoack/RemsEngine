@@ -78,7 +78,7 @@ abstract class MaskedLayer(parent: Transform? = null): GFXTransform(parent){
             drawOnScreen(stack, time, color)
 
             val top2 = Framebuffer.stack.peek()
-            if(top !== top2) throw RuntimeException()
+            // if(top !== top2) throw RuntimeException()
 
         }
 

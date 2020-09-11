@@ -1,6 +1,5 @@
 package me.anno.image.svg.gradient
 
-import me.anno.config.DefaultStyle.baseTheme
 import me.anno.config.DefaultStyle.black
 import me.anno.image.svg.SVGStyle.Companion.parseColor
 import me.anno.io.xml.XMLElement

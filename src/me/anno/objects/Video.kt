@@ -40,6 +40,8 @@ import kotlin.math.*
 
 // todo get information about full and relative frames, so we get optimal scrubbing performance :)
 
+// todo feature tracking on videos as anchors, e.g. for easy blurry signs, or text above heads (marker on head/eyes)
+
 /**
  * Images, Cubemaps, Videos, Audios, joint into one
  * */

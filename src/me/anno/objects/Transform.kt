@@ -262,7 +262,7 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
 
     fun drawUICircle(stack: Matrix4fArrayList, scale: Float, inner: Float, color: Vector4f){
         // draw a small symbol to indicate pivot
-        if(!GFX.isFinalRendering){
+        if(!isFinalRendering){
             stack.pushMatrix()
             if(scale != 1f) stack.scale(scale)
             stack.alignWithCamera(1f)
@@ -585,7 +585,7 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
     open fun onDestroy(){}
     open fun destroy(){
         if(selectedTransform === this){
-            GFX.select(parent)
+            GFX.select(null)
         }
         removeFromParent()
         onDestroy()

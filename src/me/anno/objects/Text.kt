@@ -6,6 +6,7 @@ import me.anno.fonts.FontManager
 import me.anno.fonts.PartResult
 import me.anno.fonts.mesh.FontMesh
 import me.anno.fonts.mesh.FontMesh.Companion.DEFAULT_LINE_HEIGHT
+import me.anno.fonts.mesh.FontMesh2
 import me.anno.fonts.mesh.FontMeshBase
 import me.anno.gpu.GFX
 import me.anno.gpu.TextureLib.whiteTexture
@@ -145,7 +146,7 @@ open class Text(text: String = "", parent: Transform? = null): GFXTransform(pare
 
             fun getFontMesh(fontMeshKey: FontMeshKey): FontMeshBase? {
                 return Cache.getEntry(fontMeshKey, fontMeshTimeout, shallLoadAsync){
-                    FontMesh(fontMeshKey.font, fontMeshKey.text)
+                    FontMesh2(fontMeshKey.font, fontMeshKey.text)
                 } as? FontMeshBase
             }
 

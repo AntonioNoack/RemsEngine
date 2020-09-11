@@ -4,6 +4,7 @@ import me.anno.gpu.texture.FakeWhiteTexture
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.ui.base.DefaultRenderingHints
+import me.anno.ui.base.DefaultRenderingHints.prepareGraphics
 import me.anno.utils.OS
 import me.anno.utils.getLineWidth
 import me.anno.utils.incrementTab
@@ -24,14 +25,9 @@ import kotlin.streams.toList
 // todo triangulation challenge: 😬
 class AWTFont(val font: Font): XFont {
 
-    fun prepareGraphics(g2d: Graphics2D){
-        g2d.font = font
-        g2d.setRenderingHints(DefaultRenderingHints.hints as Map<*,*>)
-    }
-
     val unused = BufferedImage(1,1,1).graphics as Graphics2D
     init {
-        prepareGraphics(unused)
+        unused.prepareGraphics(font)
     }
 
     val fontMetrics = unused.fontMetrics
@@ -70,7 +66,7 @@ class AWTFont(val font: Font): XFont {
 
             val image = BufferedImage(width, height, 1)
             val gfx = image.graphics as Graphics2D
-            prepareGraphics(gfx)
+            gfx.prepareGraphics(font)
 
             val x = 0
             val y = fontMetrics.ascent
@@ -220,7 +216,7 @@ class AWTFont(val font: Font): XFont {
             val image = BufferedImage(width, height, 1)
             if(result.isNotEmpty()){
                 val gfx = image.graphics as Graphics2D
-                prepareGraphics(gfx)
+                gfx.prepareGraphics(font)
 
                 val x = (image.width - width) * 0.5f
                 val y = (image.height - height) * 0.5f + exampleLayout.ascent

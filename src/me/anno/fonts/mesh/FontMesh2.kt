@@ -6,6 +6,7 @@ import org.joml.Matrix4fArrayList
 import java.awt.Font
 import java.awt.font.FontRenderContext
 import java.awt.font.TextLayout
+import java.lang.RuntimeException
 import kotlin.streams.toList
 
 /**
@@ -18,7 +19,6 @@ class FontMesh2(val font: Font, val text: String, debugPieces: Boolean = false) 
 
     val codepoints = text.codePoints().toList()
 
-
     val offsets = (codepoints.mapIndexed { index, secondCodePoint ->
         if (index > 0) {
             val firstCodePoint = codepoints[index - 1]
@@ -29,7 +29,8 @@ class FontMesh2(val font: Font, val text: String, debugPieces: Boolean = false) 
     val baseScale: Float
 
     init {
-        val layout = TextLayout("J", font, ctx)
+        if('\t' in text || '\n' in text) throw RuntimeException("\t and \n are not allowed in FontMesh2!")
+        val layout = TextLayout(".", font, ctx)
         baseScale = FontMesh.DEFAULT_LINE_HEIGHT / (layout.ascent + layout.descent)
         minX = 0.0
         maxX = 0.0
@@ -52,12 +53,12 @@ class FontMesh2(val font: Font, val text: String, debugPieces: Boolean = false) 
         synchronized(alignment) {
             var offset = map[key]
             if (offset != null) return offset
-            val aLength = getCharLength(previous)
+            // val aLength = getCharLength(previous)
             val bLength = getCharLength(current)
             val abLength = getLength(String(Character.toChars(previous) + Character.toChars(current)))
-            // todo this formula doesn't always work nicely :/
-            println("$abLength = $aLength + $bLength ? (${aLength + bLength})")
-            offset = (abLength - (bLength + aLength) * 0.5)
+            // println("$abLength = $aLength + $bLength ? (${aLength + bLength})")
+            offset = abLength - bLength
+            //(abLength - (bLength + aLength) * 0.5)
             // offset = (abLength - aLength)
             // offset = aLength
             map[key] = offset
@@ -79,10 +80,51 @@ class FontMesh2(val font: Font, val text: String, debugPieces: Boolean = false) 
         }
     }
 
+    var buffer: StaticFloatBuffer? = null
+
+    // better for the performance of long texts
+    fun createStaticBuffer(){
+        val characters = alignment.third
+        val b0 = characters[codepoints.first()]!!
+        var vertexCount = 0
+        codepoints.forEach { codepoint ->
+            vertexCount += characters[codepoint]!!.vertexCount
+        }
+        val buffer = StaticFloatBuffer(b0.attributes, vertexCount)
+        val components = b0.attributes.sumBy { it.components }
+        codepoints.forEachIndexed { index, codePoint ->
+            val offset = offsets[index] * baseScale
+            val subBuffer = characters[codePoint]!!
+            val fb = subBuffer.floatBuffer
+            var k = 0
+            for(i in 0 until subBuffer.vertexCount){
+                buffer.put((fb[k++] + offset).toFloat())
+                for(j in 1 until components){
+                    buffer.put(fb[k++])
+                }
+            }
+        }
+        this.buffer = buffer
+    }
+
+    // are draw-calls always expensive??
+    // or buffer creation?
+    // very long strings just are displayed char by char (you must be kidding me ;))
+    private val isSmallBuffer = codepoints.size < 5 || codepoints.size > 512
 
     // the performance could be improved
     // still its initialization time should be much faster than FontMesh
     override fun draw(matrix: Matrix4fArrayList, drawBuffer: (StaticFloatBuffer) -> Unit) {
+        if(codepoints.isEmpty()) return
+        if(isSmallBuffer){
+            drawSlowly(matrix, drawBuffer)
+        } else {
+            if(buffer == null) createStaticBuffer()
+            drawBuffer(buffer!!)
+        }
+    }
+
+    fun drawSlowly(matrix: Matrix4fArrayList, drawBuffer: (StaticFloatBuffer) -> Unit){
         val characters = alignment.third
         codepoints.forEachIndexed { index, codePoint ->
             val offset = offsets[index] * baseScale
@@ -94,7 +136,8 @@ class FontMesh2(val font: Font, val text: String, debugPieces: Boolean = false) 
     }
 
     override fun destroy() {
-
+        buffer?.destroy()
+        buffer = null
     }
 
     companion object {
@@ -108,13 +151,4 @@ class FontMesh2(val font: Font, val text: String, debugPieces: Boolean = false) 
         }
     }
 
-    /**
-     * todo letter spacing property
-     * -> https://stackoverflow.com/questions/13229725/java-awt-font-letter-spacing
-    Map<TextAttribute, Object> attributes = new HashMap<TextAttribute, Object>();
-    attributes.put(TextAttribute.TRACKING, 0.5);
-    Font font2 = font.deriveFont(attributes);
-    gr.setFont(font2);
-    gr.drawString("testing",0,20);
-     * */
 }

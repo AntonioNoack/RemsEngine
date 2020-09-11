@@ -4,6 +4,7 @@ import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.texture.ITexture2D
 import me.anno.objects.cache.Cache
 import me.anno.objects.cache.TextureCache
+import me.anno.utils.f3
 import org.apache.logging.log4j.LogManager
 import java.awt.Font
 import java.awt.GraphicsEnvironment
@@ -42,7 +43,7 @@ object FontManager {
                     // this lag would not be acceptable :)
                     // worst-case-scenario: list too long, and no fonts are returned
                     // (because of that, the already used one is added)
-                    LOGGER.info("Used ${(t1-t0)*1e-9f} to get font list")
+                    LOGGER.info("Used ${((t1-t0)*1e-9f).f3()} to get font list")
                     callback(awtFontList)
                 }
             }

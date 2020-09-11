@@ -52,7 +52,11 @@ You probably have to copy the files for ffmpeg (the program will tell you in the
 You can download the [universal build here](https://github.com/AntonioNoack/RemsStudio/raw/master/out/artifacts/Universal/VideoStudio.jar).
 Later, I'll probably create specific builds depending on your OS, so they are smaller.
 
-### iOS
+### Mac OS
 
-I own no device to test Rem's Studio on iOS. I read that installing Java on iOS isn't that easy either.
-I am sure, you could make it work, if you are a developer. I have included the FFmpeg files for iOS in the [universal build, which you can download here](https://github.com/AntonioNoack/RemsStudio/raw/master/out/artifacts/Universal/VideoStudio.jar).
+I own no device to test Rem's Studio on Mac OS. I read that installing Java on iOS isn't that easy either.
+I am sure, you could make it work, if you are a developer. I have included the FFmpeg files for Mac OS in the [universal build, which you can download here](https://github.com/AntonioNoack/RemsStudio/raw/master/out/artifacts/Universal/VideoStudio.jar).
+
+### Android / iOS
+
+I don't have currently good touch controls, and the ui isn't meant for mobile devices, soo...
