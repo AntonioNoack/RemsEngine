@@ -16,6 +16,7 @@ import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.cache.Cache
+import me.anno.objects.modes.TextMode
 import me.anno.studio.Studio.selectedProperty
 import me.anno.ui.base.ButtonPanel
 import me.anno.ui.base.constraints.AxisAlignment
@@ -67,12 +68,6 @@ open class Text(text: String = "", parent: Transform? = null): GFXTransform(pare
     var textAlignment = AxisAlignment.CENTER
     var blockAlignmentX = AxisAlignment.CENTER
     var blockAlignmentY = AxisAlignment.CENTER
-
-    enum class TextMode {
-        RAW,
-        HTML,
-        MARKDOWN
-    }
 
     // automatic line break after length x
     var lineBreakWidth = -1f

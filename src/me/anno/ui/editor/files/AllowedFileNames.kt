@@ -24,4 +24,4 @@ fun toAllowedFilename(name: String): String? {
     return name
 }
 
-fun File.hasValidName() = toString().isNotBlank()
+fun File?.hasValidName() = this != null && toString().isNotBlank()

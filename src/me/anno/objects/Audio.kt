@@ -26,7 +26,7 @@ import java.lang.IllegalArgumentException
 // todo speaker distance
 // todo speaker symbols (if meta is not null, and audio is available)
 
-open class Audio(var file: File = File(""), parent: Transform? = null): GFXTransform(parent){
+abstract class Audio(var file: File = File(""), parent: Transform? = null): GFXTransform(parent){
 
     val amplitude = AnimatedProperty.floatPlus(1f)
     val echoDelay = AnimatedProperty.float01()
@@ -46,7 +46,7 @@ open class Audio(var file: File = File(""), parent: Transform? = null): GFXTrans
     /**
      * is synchronized with the audio thread
      * */
-    fun start(globalTime: Double, speed: Double, camera: Camera){
+    fun startPlayback(globalTime: Double, speed: Double, camera: Camera){
         // why an exception? because I happended to run into this issue
         if(speed == 0.0) throw IllegalArgumentException("Audio speed must not be 0.0, because that's inaudible")
         needsUpdate = false
@@ -59,14 +59,14 @@ open class Audio(var file: File = File(""), parent: Transform? = null): GFXTrans
         } else component = null
     }
 
-    fun stop(){
+    fun stopPlayback(){
         component?.stop()
         component = null // for garbage collection
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        GFX.addAudioTask { stop(); 1 }
+        GFX.addAudioTask { stopPlayback(); 1 }
     }
 
     // we need a flag, whether we draw in editor mode or not -> GFX.isFinalRendering
@@ -110,12 +110,12 @@ open class Audio(var file: File = File(""), parent: Transform? = null): GFXTrans
                     playbackButton.text = getPlaybackTitle(true)
                     if(component == null){
                         GFX.addAudioTask {
-                            val audio = Audio(file, null)
-                            audio.start(0.0, 1.0, nullCamera)
+                            val audio = Video(file, null)
+                            audio.startPlayback(0.0, 1.0, nullCamera)
                             component = audio.component
                             1
                         }
-                    } else GFX.addAudioTask { stop(); 1 }
+                    } else GFX.addAudioTask { stopPlayback(); 1 }
                 } else Studio.warn("Separated playback is only available with paused editor")
             }
             .setTooltip("Listen to the audio separated from the rest")

@@ -261,7 +261,7 @@ class TreeView(style: Style):
                         // I see few use-cases
                     }
                     "Audio" -> {
-                        val audio = Audio(file, parent)
+                        val audio = Video(file, parent)
                         audio.name = name
                         select(audio)
                         callback(audio)

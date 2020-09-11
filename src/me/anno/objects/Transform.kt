@@ -104,8 +104,6 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
 
     override fun createInspector(list: PanelListY, style: Style){
 
-        // todo update by time :)
-
         list += TextInput("Name (${getClassName()})", style, name)
             .setChangeListener { name = if(it.isEmpty()) "-" else it }
             .setIsSelectedListener { show(null) }

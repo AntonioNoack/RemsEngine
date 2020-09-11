@@ -63,7 +63,7 @@ object AudioManager {
 
     fun stop(transform: Transform = root){
         if(transform is Audio){
-            transform.stop()
+            transform.stopPlayback()
         }
         transform.children.forEach {
             stop(it)
@@ -78,7 +78,7 @@ object AudioManager {
     fun updateTime(time: Double, dilation: Double, transform: Transform){
         // if(transform == root) println("$time += t * $dilation")
         if(transform is Audio){
-            transform.start(time, dilation, camera)
+            transform.startPlayback(time, dilation, camera)
         }
         transform.children.forEach {
             updateTime(time, dilation, it)
@@ -88,7 +88,7 @@ object AudioManager {
     fun checkTree(transform: Transform){
         if(transform is Audio && transform.needsUpdate){
             transform.needsUpdate = false
-            transform.start(editorTime, editorTimeDilation, camera)
+            transform.startPlayback(editorTime, editorTimeDilation, camera)
         }
         transform.children.forEach {
             checkTree(it)

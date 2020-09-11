@@ -40,17 +40,14 @@ open class TextPanel(open var text: String, style: Style): Panel(style){
     }
 
     override fun calculateSize(w: Int, h: Int) {
-        if(text.isBlank()){
-            super.calculateSize(w, h)
-        } else {
-            val inst = instantTextLoading
-            if(inst) loadTexturesSync.push(true)
-            super.calculateSize(w, h)
-            val (w2, h2) = GFX.getTextSize(fontName, textSize, isBold, isItalic, text, if(breaksIntoMultiline) w else -1)
-            minW = w2 + padding.width
-            minH = h2 + padding.height
-            if(inst) loadTexturesSync.pop()
-        }
+        val text = if(text.isBlank()) "." else text
+        val inst = instantTextLoading
+        if(inst) loadTexturesSync.push(true)
+        super.calculateSize(w, h)
+        val (w2, h2) = GFX.getTextSize(fontName, textSize, isBold, isItalic, text, if(breaksIntoMultiline) w else -1)
+        minW = w2 + padding.width
+        minH = h2 + padding.height
+        if(inst) loadTexturesSync.pop()
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {

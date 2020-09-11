@@ -130,6 +130,20 @@ object Grid {
 
     }
 
+    fun drawBuffer(stack: Matrix4fArrayList, color: Vector4f, buffer: StaticFloatBuffer){
+
+        if(color.w <= 0f) return
+
+        val shader = shader3D.shader
+        shader.use()
+        stack.get(GFX.matrixBuffer)
+        glUniformMatrix4fv(shader["transform"], false, GFX.matrixBuffer)
+        shader.v4("tint", color)
+        whiteTexture.bind(0, true, ClampMode.CLAMP)
+        buffer.draw(shader, GL_LINES)
+
+    }
+
     fun drawGrid(stack: Matrix4fArrayList, alpha: Float){
 
         if(alpha <= 0f) return

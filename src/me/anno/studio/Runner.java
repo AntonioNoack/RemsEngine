@@ -9,10 +9,12 @@ package me.anno.studio;
 // todo particle systems
 // done move entries in tree
 
+import me.anno.config.DefaultConfig;
 import me.anno.installer.Installer;
 
 public class Runner {
     public static void main(String[] args){
+        DefaultConfig.INSTANCE.getName();
         Installer.INSTANCE.checkInstall();
         RemsStudio.INSTANCE.run();
     }

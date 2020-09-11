@@ -8,6 +8,7 @@ import me.anno.gpu.texture.ClampMode
 import me.anno.input.MouseButton
 import me.anno.objects.Audio
 import me.anno.objects.Camera
+import me.anno.objects.Video
 import me.anno.objects.cache.Cache
 import me.anno.objects.modes.LoopingState
 import me.anno.studio.Studio
@@ -23,6 +24,8 @@ import java.io.File
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
+
+// todo special icons for music, documents, videos, ... like in Windows and any other OS
 
 class FileEntry(val explorer: FileExplorer, val isParent: Boolean, val file: File, style: Style) :
     Panel(style.getChild("fileEntry")) {
@@ -103,10 +106,10 @@ class FileEntry(val explorer: FileExplorer, val isParent: Boolean, val file: Fil
                         val frameIndex = if(isHovered){
                             if(startTime == 0L){
                                 startTime = System.nanoTime()
-                                val audio = Audio(file)
+                                val audio = Video(file)
                                 this.audio = audio
                                 GFX.addAudioTask {
-                                    audio.start(-hoverPlaybackDelay, 1.0, Camera()); 1 }
+                                    audio.startPlayback(-hoverPlaybackDelay, 1.0, Camera()); 1 }
                                 0
                             } else {
                                 time = (System.nanoTime() - startTime) * 1e-9 - hoverPlaybackDelay
@@ -117,7 +120,7 @@ class FileEntry(val explorer: FileExplorer, val isParent: Boolean, val file: Fil
                             val audio = audio
                             if(audio != null && audio.component?.isPlaying == true) {
                                 this.audio = null
-                                GFX.addAudioTask { audio.stop(); 1 }
+                                GFX.addAudioTask { audio.stopPlayback(); 1 }
                             }
                             0
                         } % maxFrameIndex
