@@ -5,7 +5,6 @@ import me.anno.gpu.GFX
 import me.anno.input.Input
 import me.anno.objects.Transform.Companion.toTransform
 import me.anno.studio.Studio.project
-import me.anno.ui.base.TextPanel
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelListMultiline
@@ -17,7 +16,6 @@ import me.anno.ui.style.Style
 import me.anno.utils.OS
 import me.anno.utils.listFiles2
 import java.io.File
-import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.concurrent.thread
 
 // todo the text size is quite small on my x360 -> get the font size for the ui from the OS :)
@@ -51,7 +49,7 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
     var lastFiles = ""
     val favourites = PanelListY(style)
 
-    val title = TextPanel("Xplorer", style)
+    val title = PathPanel(folder, style)
 
     init {
         val topBar = PanelListX(style)
@@ -59,6 +57,10 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
         topBar += title
         topBar += searchBar
         this += uContent
+        title.onChangeListener = {
+            folder = it
+            invalidate()
+        }
         uContent += ScrollPanelY(
             favourites,
             Padding(1),
@@ -119,7 +121,7 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
         super.onDraw(x0, y0, x1, y1)
         if(isValid <= 0f){
             isValid = 5f // depending on amount of files?
-            title.text = folder?.toString() ?: "This Computer"
+            title.file = folder// ?.toString() ?: "This Computer"
             createResults()
         } else isValid -= GFX.deltaTime
     }

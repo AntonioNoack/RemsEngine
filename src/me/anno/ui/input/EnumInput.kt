@@ -6,6 +6,8 @@ import me.anno.input.MouseButton
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.style.Style
+import me.anno.utils.isDownKey
+import me.anno.utils.isUpKey
 import org.lwjgl.glfw.GLFW
 
 class EnumInput(
@@ -15,20 +17,11 @@ class EnumInput(
 
     private val titlePanel = if (withTitle) TextPanel("$title:", style) else null
     private val inputPanel = object : TextPanel(startValue, style.getChild("italic")) {
-        override fun acceptsChar(char: Int): Boolean {
-            return when (char.toChar()) {
-                '\t', '\n' -> false
-                else -> true
-            }
-        }
-
+        override fun acceptsChar(char: Int) = char.isUpKey() || char.isDownKey()
         override fun onKeyTyped(x: Float, y: Float, key: Int) {
-            when (key) {
-                GLFW.GLFW_KEY_DOWN, GLFW.GLFW_KEY_ENTER -> moveDown(1)
-                GLFW.GLFW_KEY_UP -> moveDown(-1)
-            }
+            if(key.isDownKey()) moveDown(1)
+            else if(key.isUpKey()) moveDown(-1)
         }
-
         override fun isKeyInput() = true
     }
 

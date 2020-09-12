@@ -1,6 +1,5 @@
 package me.anno.ui.custom
 
-import javafx.animation.Timeline
 import me.anno.config.DefaultStyle.white
 import me.anno.gpu.GFX
 import me.anno.gpu.TextureLib.whiteTexture

@@ -5,9 +5,12 @@ import me.anno.config.DefaultStyle.iconGray
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.loadTexturesSync
+import me.anno.input.MouseButton
 import me.anno.ui.base.components.Padding
 import me.anno.ui.style.Style
+import me.anno.utils.isClickKey
 import me.anno.utils.mixARGB
+import org.lwjgl.glfw.GLFW
 
 // todo cache ui, as long as it's not changing?
 // would reduce gpu usage, but make things harder...
@@ -71,5 +74,11 @@ open class TextPanel(open var text: String, style: Style): Panel(style){
         else textColor
 
     override fun getCursor(): Long? = if(onClickListener == null) super.getCursor() else Cursor.drag
+
+    override fun isKeyInput() = onClickListener != null
+    override fun acceptsChar(char: Int) = when(char.toChar()){ '\t', '\n' -> false else -> true }
+    override fun onKeyDown(x: Float, y: Float, key: Int) {
+        if(key.isClickKey()) onClickListener?.invoke(x,y,MouseButton.LEFT,false)
+    }
 
 }

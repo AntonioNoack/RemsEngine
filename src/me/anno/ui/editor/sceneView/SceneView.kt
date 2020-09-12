@@ -1,6 +1,7 @@
 package me.anno.ui.editor.sceneView
 
 import me.anno.config.DefaultConfig
+import me.anno.config.DefaultStyle.black
 import me.anno.config.DefaultStyle.deepDark
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.deltaTime
@@ -120,6 +121,11 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")) {
     // switch between manual control and autopilot for time :)
     // -> do this by disabling controls when playing, excepts when it's the inspector camera (?)
     val mayControlCamera get() = camera === nullCamera || editorTimeDilation == 0.0
+    var lastW = 0
+    var lastH = 0
+    var lastCtr = 0
+    var goodW = 0
+    var goodH = 0
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
 
@@ -170,12 +176,40 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")) {
             dt += 0.5
         }
 
-        Scene.draw(
-            null, camera,
-            x + dx, y + dy, rw, rh,
-            editorTime, false,
-            ShaderPlus.DrawMode.COLOR, this
-        )
+        // check if the size stayed the same;
+        // because resizing all framebuffers is expensive (causes lag)
+        val matchesSize = lastW == rw && lastH == rh
+        val wasDrawn = matchesSize && lastCtr > 5
+        if(matchesSize){
+            if(lastCtr > 5){
+                Scene.draw(
+                    null, camera,
+                    x + dx, y + dy, rw, rh,
+                    editorTime, false,
+                    ShaderPlus.DrawMode.COLOR, this
+                )
+                goodW = rw
+                goodH = rh
+            } else lastCtr++
+        } else {
+            lastCtr = 0
+            lastW = rw
+            lastH = rh
+        }
+
+        if(!wasDrawn){
+            if(goodW == 0 || goodH == 0){
+                goodW = rw
+                goodH = rh
+            }
+            GFX.drawRect(x + dx, y + dy, rw, rh, black)
+            Scene.draw(
+                null, camera,
+                x + dx, y + dy, goodW, goodH,
+                editorTime, false,
+                ShaderPlus.DrawMode.COLOR, this
+            )
+        }
 
         GFX.ensureEmptyStack()
 

@@ -11,6 +11,7 @@
       <w>ffprobe</w>
       <w>fmpeg</w>
       <w>fprobe</w>
+      <w>framebuffers</w>
       <w>gizmos</w>
       <w>glfw</w>
       <w>hsluv</w>

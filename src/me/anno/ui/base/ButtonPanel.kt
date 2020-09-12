@@ -7,6 +7,7 @@ import me.anno.input.Input.keysDown
 import me.anno.input.MouseButton
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.style.Style
+import me.anno.utils.isClickKey
 import me.anno.utils.mixARGB
 import org.lwjgl.glfw.GLFW
 
@@ -32,9 +33,7 @@ open class ButtonPanel(text: String, style: Style): TextPanel(text, style.getChi
         val isInFocus = isInFocus
         val isHovered = isHovered
         val mouseDown = (isHovered && 0 in Input.mouseKeysDown) ||
-                GLFW.GLFW_KEY_DOWN in keysDown ||
-                GLFW.GLFW_KEY_UP in keysDown ||
-                GLFW.GLFW_KEY_ENTER in keysDown
+                keysDown.count { it.key.isClickKey() } > 0
 
         backgroundColor = if(isHovered && !mouseDown) hoveredBackground else normalBackground
 
@@ -58,17 +57,11 @@ open class ButtonPanel(text: String, style: Style): TextPanel(text, style.getChi
         onMouseClicked(x + w*0.5f, y + h*0.5f, MouseButton.LEFT, false)
     }
 
-    override fun onEnterKey(x: Float, y: Float) {
-        click()
-    }
-
     override fun onKeyTyped(x: Float, y: Float, key: Int) {
-        when(key){
-            GLFW.GLFW_KEY_DOWN, GLFW.GLFW_KEY_UP -> click()
-        }
+        if(key.isClickKey()) click()
     }
 
-    override fun acceptsChar(char: Int) = false // ^^
+    override fun acceptsChar(char: Int) = char.isClickKey()
     override fun isKeyInput() = true
 
 }
