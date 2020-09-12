@@ -8,6 +8,13 @@ class Padding(l: Int, t: Int, r: Int, b: Int): LTRB(l,t,r,b){
         val Zero = Padding()
     }
 
+    fun set(all: Int){
+        left = all
+        top = all
+        right = all
+        bottom = all
+    }
+
     operator fun plusAssign(s: Padding){
         left += s.left
         top += s.top

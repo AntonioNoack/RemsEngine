@@ -11,6 +11,7 @@ import org.apache.logging.log4j.LogManager
 import java.io.File
 
 // may there only be once instance? yes
+// todo hide bar, if not used?
 object SceneTabs : ScrollPanelX(DefaultConfig.style) {
 
     val LOGGER = LogManager.getLogger(SceneTabs::class)

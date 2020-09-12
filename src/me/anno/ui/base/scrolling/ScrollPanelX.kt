@@ -34,9 +34,6 @@ open class ScrollPanelX(child: Panel, padding: Padding,
     val scrollbar = ScrollbarX(this, style)
     val scrollbarHeight = style.getSize("scrollbar.height", 8)
     val scrollbarPadding = style.getSize("scrollbar.padding", 1)
-    init {
-        padding.bottom += scrollbarHeight
-    }
 
     override fun calculateSize(w: Int, h: Int) {
         super.calculateSize(w, h)
@@ -46,6 +43,7 @@ open class ScrollPanelX(child: Panel, padding: Padding,
 
         minW = child.minW + padding.width
         minH = child.minH + padding.height
+        if(maxScrollPosition > 0) minH += scrollbarHeight
 
     }
 
@@ -71,7 +69,7 @@ open class ScrollPanelX(child: Panel, padding: Padding,
     }
 
     override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float) {
-        if(Input.isShiftDown){
+        if(Input.isShiftDown || Input.isControlDown){
             val delta = dx-dy
             val scale = 20f
             if((delta > 0f && scrollPosition >= maxScrollPosition) ||

@@ -26,6 +26,8 @@ class SceneTab(var file: File?, var root: Transform) : TextPanel(file?.name ?: r
         }
 
     init {
+        padding.top --
+        padding.bottom --
         setOnClickListener { _, _, button, _ ->
             when {
                 button.isLeft -> {

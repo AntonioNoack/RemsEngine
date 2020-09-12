@@ -34,10 +34,6 @@ open class ScrollPanelY(child: Panel, padding: Padding,
     val scrollbarWidth = style.getSize("scrollbar.width", 8)
     val scrollbarPadding = style.getSize("scrollbar.padding", 1)
 
-    init {
-        padding.right += scrollbarWidth
-    }
-
     override fun calculateSize(w: Int, h: Int) {
         super.calculateSize(w, h)
 
@@ -48,6 +44,7 @@ open class ScrollPanelY(child: Panel, padding: Padding,
 
         minW = child.minW + padding.width
         minH = child.minH + padding.height
+        if(maxScrollPosition > 0) minW += scrollbarWidth
 
         /*if(child is PanelListMultiline){
             println("${child.minW} ${child.minH} -> $minW $minH inside $w $h, makes $maxScrollPosition")
