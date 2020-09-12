@@ -18,6 +18,8 @@ open class ScrollPanelX(child: Panel, padding: Padding,
                         alignY: AxisAlignment
 ): PanelContainer(child, padding, style){
 
+    constructor(style: Style): this(PanelListX(style), Padding(), style, AxisAlignment.MIN)
+
     init {
         child += WrapAlign(AxisAlignment.MIN, alignY)
         weight = 0.0001f

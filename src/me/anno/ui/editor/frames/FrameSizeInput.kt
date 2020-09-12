@@ -27,7 +27,7 @@ class FrameSizeInput(title: String, value0: String, style: Style): PanelListY(st
     init {
         this += typeInput
         typeInput
-            .setChangeListener {
+            .setChangeListener { it, _, _ ->
                 when(it){
                     "Custom" -> {
                         customInput.visibility = Visibility.VISIBLE

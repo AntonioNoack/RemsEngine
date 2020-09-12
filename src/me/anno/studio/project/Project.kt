@@ -4,12 +4,13 @@ import me.anno.io.Saveable
 import me.anno.io.config.ConfigBasics
 import me.anno.io.utils.StringMap
 import me.anno.studio.Studio
-import me.anno.studio.Studio.root
+import me.anno.ui.editor.sceneTabs.SceneTabs
 import java.io.File
+import kotlin.concurrent.thread
 
 class Project(val file: File): Saveable(){
 
-    val configFile = File(file, "config.txt")
+    val configFile = File(file, "config.json")
 
     val config: StringMap
     init {
@@ -41,28 +42,36 @@ class Project(val file: File): Saveable(){
     override fun getApproxSize() = 1000
     override fun isDefaultValue() = false
 
+    fun open(){
+        thread {
+            // todo open all recently opened files as tabs
+            // todo lazy loading??? it's just config anyways, so it shouldn't be THAT bad...
+            // todo if no project files are found, create a default file...
+            config["recent.files", ""].split('\n').forEach {
+                val name = it.trim()
+                if(name.isNotEmpty()){
+                    SceneTabs.open(File(name))
+                }
+            }
+        }
+    }
+
+    // todo even save not saved parts? :)
     fun saveConfig(){
         config["target.duration"] = targetDuration
         config["target.sizePercentage"] = targetSizePercentage
         config["target.width"] = targetWidth
         config["target.height"] = targetHeight
         config["target.fps"] = targetFPS
+        config["recent.files"] = SceneTabs.children3
+            .filter { it.file != null }
+            .joinToString("\n"){ it.file.toString() }
         ConfigBasics.save(configFile, config.toString())
-    }
-
-    fun saveScenes(){
-        // save the scene(s)
-        File(file, "root.json")
-            .writeText(root.toString())
     }
 
     fun save(){
         saveConfig()
-        saveScenes()
-    }
-
-    fun loadIntoUI(){
-        Studio.project = this
+        SceneTabs.currentTab?.save {}
     }
 
 }

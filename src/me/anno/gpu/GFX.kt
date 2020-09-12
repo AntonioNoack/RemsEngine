@@ -852,6 +852,10 @@ object GFX : GFXBase1() {
         }
     }
 
+    fun msg(title: String){
+        openMenu(listOf(title to {}))
+    }
+
     fun ask(question: String, onYes: () -> Unit) {
         openMenu(mouseX, mouseY, question, listOf(
             "Yes" to onYes,

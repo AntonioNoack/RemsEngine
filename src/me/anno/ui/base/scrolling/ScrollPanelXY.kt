@@ -13,7 +13,7 @@ open class ScrollPanelXY(child: Panel, padding: Padding,
     ScrollPanelX(
         ScrollPanelY(
             child,
-            Padding(0), style, alignY
+            Padding(), style, alignY
         ),
         padding, style, alignX){
 

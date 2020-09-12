@@ -143,7 +143,7 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
     override fun onPaste(x: Float, y: Float, data: String, type: String) {
         when(type){
             "Transform" -> {
-                var name = toAllowedFilename(data.toTransform().name)
+                var name = data.toTransform().name.toAllowedFilename()
                 if(name != null){
                     // make .json lowercase
                     if(name.endsWith(".json", true)){

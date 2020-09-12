@@ -4,11 +4,9 @@ import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
 import me.anno.gpu.TextureLib.colorShowTexture
+import me.anno.image.svg.SVGStyle.Companion.parseColorComplex
 import me.anno.input.Input
 import me.anno.objects.animation.AnimatedProperty
-import me.anno.image.svg.SVGStyle.Companion.parseColorComplex
-import me.anno.studio.RemsStudio
-import me.anno.studio.RemsStudio.lastT
 import me.anno.studio.RemsStudio.onSmallChange
 import me.anno.studio.Studio.editorTime
 import me.anno.ui.base.Panel
@@ -25,8 +23,8 @@ import me.anno.utils.toHex
 import org.hsluv.HSLuvColorSpace
 import org.joml.Vector3f
 import org.joml.Vector4f
-import java.lang.RuntimeException
-import kotlin.math.*
+import kotlin.math.max
+import kotlin.math.roundToInt
 
 class ColorChooser(style: Style, withAlpha: Boolean, val owningProperty: AnimatedProperty<*>?) : PanelListY(style) {
 
@@ -83,7 +81,7 @@ class ColorChooser(style: Style, withAlpha: Boolean, val owningProperty: Animate
         "Color Space", false, colorSpace.name,
         ColorSpace.values.values.toSet().map { it.name }, style
     )
-        .setChangeListener {
+        .setChangeListener { it, _, _ ->
             val newColorSpace = ColorSpace[it]
             lastColorSpace = newColorSpace
             if (newColorSpace != null && newColorSpace != colorSpace) {
@@ -96,7 +94,7 @@ class ColorChooser(style: Style, withAlpha: Boolean, val owningProperty: Animate
 
     val styleInput =
         EnumInput("Style", false, visualisation.displayName, ColorVisualisation.values().map { it.displayName }, style)
-            .setChangeListener {
+            .setChangeListener { it, _, _ ->
                 visualisation = ColorVisualisation.values().firstOrNull { v -> v.displayName == it } ?: visualisation
                 lastVisualisation = visualisation
                 // onSmallChange("color-style")

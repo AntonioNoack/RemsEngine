@@ -30,7 +30,7 @@ abstract class BaseWriter {
     abstract fun writeVector3(name: String, value: Vector3f, force: Boolean = false)
     abstract fun writeVector4(name: String, value: Vector4f, force: Boolean = false)
 
-    fun writeFile(name: String, file: File) = writeString(name, file.toString())
+    fun writeFile(name: String, file: File?) = writeString(name, file?.toString() ?: "")
 
     fun getOrCreatePtr(value: ISaveable): Int {
         var ptr = pointers[value]

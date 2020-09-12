@@ -217,14 +217,6 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")) {
 
         BlendMode.DEFAULT.apply()
 
-        /*if(isInFocus){
-            val redStarColor = black or 0xff0000
-            GFX.drawRect(x+dx,y+dy,2,2, redStarColor)
-            GFX.drawRect(x+dx+rw-2,y+dy,2,2, redStarColor)
-            GFX.drawRect(x+dx,y+dy+rh-2,2,2, redStarColor)
-            GFX.drawRect(x+dx+rw-2,y+dy+rh-2,2,2, redStarColor)
-        }*/
-
         GFX.drawText(
             x + 2, y + 2, "Verdana", 12,
             false, false, mode.displayName, -1, 0, -1
@@ -460,8 +452,6 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")) {
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
         // fov is relative to height -> modified to depend on height
         val size = 20f * shiftSlowdown * (if (selectedTransform === camera) -1f else 1f) / GFX.height
-        val oldX = x - dx
-        val oldY = y - dy
         val dx0 = dx * size
         val dy0 = dy * size
         // move stuff, if mouse is down and no touch is down

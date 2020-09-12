@@ -8,12 +8,13 @@ import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.style.Style
 import me.anno.utils.isDownKey
 import me.anno.utils.isUpKey
-import org.lwjgl.glfw.GLFW
 
 class EnumInput(
     private val title: String, withTitle: Boolean, startValue: String,
     private val options: List<String>, style: Style
 ) : PanelListX(style) {
+
+    var lastIndex = options.indexOf(startValue)
 
     private val titlePanel = if (withTitle) TextPanel("$title:", style) else null
     private val inputPanel = object : TextPanel(startValue, style.getChild("italic")) {
@@ -27,15 +28,16 @@ class EnumInput(
 
     fun moveDown(direction: Int) {
         val oldValue = inputPanel.text
-        val index = options.indexOf(oldValue) + direction
-        val newValue = options[(index + 2 * options.size) % options.size]
+        val index = lastIndex + direction
+        lastIndex = (index + 2 * options.size) % options.size
+        val newValue = options[lastIndex]
         if (oldValue != newValue) {
             inputPanel.text = newValue
-            changeListener(newValue)
+            changeListener(newValue, lastIndex, options)
         }
     }
 
-    private var changeListener = { _: String -> }
+    private var changeListener = { _: String, _: Int, _: List<String> -> }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         val focused = titlePanel?.isInFocus == true || inputPanel.isInFocus
@@ -48,7 +50,7 @@ class EnumInput(
         this += inputPanel
     }
 
-    fun setChangeListener(listener: (value: String) -> Unit): EnumInput {
+    fun setChangeListener(listener: (value: String, index: Int, values: List<String>) -> Unit): EnumInput {
         changeListener = listener
         return this
     }
@@ -60,10 +62,11 @@ class EnumInput(
     }
 
     override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
-        GFX.openMenu(this.x, this.y, "Select the $title", options.map { fontName ->
+        GFX.openMenu(this.x, this.y, "Select the $title", options.mapIndexed { index, fontName ->
             fontName to {
                 inputPanel.text = fontName
-                changeListener(fontName)
+                lastIndex = index
+                changeListener(fontName, index, options)
             }
         })
     }

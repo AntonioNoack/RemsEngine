@@ -303,10 +303,11 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
         list += VI("Filtering", "Pixelated look?", null, filtering, style){ filtering = it }
         list += VI("Clamping", "For tiled images", null, clampMode, style){ clampMode = it }
         // todo hide elements, if they are not used
+        val videoScales = videoScaleNames.entries.sortedBy { it.value }
         list += EnumInput("Video Scale", true,
             videoScaleNames.reverse[videoScale] ?: "Auto",
-            videoScaleNames.entries.sortedBy { it.value }.map { it.key }, style)
-            .setChangeListener { videoScale = videoScaleNames[it]!! }
+            videoScales.map { it.key }, style)
+            .setChangeListener { _, index, _ -> videoScale = videoScales[index].value }
             .setIsSelectedListener { show(null) }
             .setTooltip("Full resolution isn't always required. Define it yourself, or set it to automatic.")
         list += VI("UV-Projection", "Can be used for 360°-Videos", null, uvProjection, style){ uvProjection = it }

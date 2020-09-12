@@ -280,7 +280,7 @@ open class Text(text: String = "", parent: Transform? = null): GFXTransform(pare
         // todo general favourites for all enum types?
         // todo at least a generalized form to make it simpler?
         list += EnumInput("Font", true, font, fontList, style)
-            .setChangeListener {
+            .setChangeListener { it, _, _ ->
                 invalidate()
                 putLastUsedFont(it)
                 sortFavourites()
@@ -307,7 +307,7 @@ open class Text(text: String = "", parent: Transform? = null): GFXTransform(pare
                 value[x],
                 AxisAlignment.values().map { it[x] }, style)
                 .setIsSelectedListener { show(null) }
-                .setChangeListener { name ->
+                .setChangeListener { name, _, _ ->
                     val alignment = AxisAlignment.values().first { it[x] == name }
                     getSelfWithShadows().forEach { set(it, alignment) }
                 }

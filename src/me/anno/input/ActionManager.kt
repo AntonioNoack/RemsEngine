@@ -14,7 +14,7 @@ import me.anno.studio.Studio.editorTime
 import me.anno.studio.Studio.editorTimeDilation
 import me.anno.studio.Studio.targetFPS
 import me.anno.studio.Studio.updateAudio
-import me.anno.studio.UILayouts
+import me.anno.ui.editor.UILayouts
 import me.anno.studio.history.History
 import me.anno.ui.base.Panel
 import me.anno.ui.editor.TimelinePanel.Companion.moveRight

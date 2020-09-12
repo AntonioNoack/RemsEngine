@@ -20,7 +20,7 @@ import me.anno.studio.Studio.selectedTransform
 import me.anno.studio.Studio.shiftSlowdown
 import me.anno.ui.dragging.Draggable
 import me.anno.ui.editor.TimelinePanel
-import me.anno.ui.editor.treeView.TreeView
+import me.anno.ui.editor.files.addChildFromFile
 import me.anno.ui.style.Style
 import me.anno.utils.*
 import org.joml.Vector4f
@@ -402,7 +402,7 @@ class LayerView(style: Style) : TimelinePanel(style) {
     override fun onPasteFiles(x: Float, y: Float, files: List<File>) {
         val time = getTimeAt(x)
         files.forEach { file ->
-            TreeView.addChildFromFile(root, file, {
+            addChildFromFile(root, file, {
                 it.timeOffset = time
                 it.timelineSlot = timelineSlot
                 // fade-in? is better for stuff xD

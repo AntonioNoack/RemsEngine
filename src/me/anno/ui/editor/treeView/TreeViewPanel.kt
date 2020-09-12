@@ -17,10 +17,9 @@ import me.anno.objects.Transform.Companion.toTransform
 import me.anno.studio.RemsStudio.onLargeChange
 import me.anno.studio.Studio
 import me.anno.studio.Studio.dragged
-import me.anno.studio.Studio.selectedTransform
 import me.anno.ui.base.TextPanel
 import me.anno.ui.dragging.Draggable
-import me.anno.ui.editor.treeView.TreeView.Companion.addChildFromFile
+import me.anno.ui.editor.files.addChildFromFile
 import me.anno.ui.style.Style
 import me.anno.utils.clamp
 import me.anno.utils.mixARGB

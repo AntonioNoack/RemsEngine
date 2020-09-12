@@ -11,7 +11,7 @@ import java.io.File
 open class TextInput(title: String, style: Style): PanelContainer(
     PureTextInput(
         style
-    ), Padding(0), style) {
+    ), Padding(), style) {
 
     constructor(title: String, style: Style, v0: String): this(title, style){
         setText(v0, false)

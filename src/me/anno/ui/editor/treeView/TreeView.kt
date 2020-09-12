@@ -16,6 +16,7 @@ import me.anno.ui.base.*
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.scrolling.ScrollPanelXY
+import me.anno.ui.editor.files.addChildFromFile
 import me.anno.ui.style.Style
 import me.anno.utils.getImportType
 import org.joml.Vector3f
@@ -159,7 +160,7 @@ class TreeView(style: Style):
 
     companion object {
 
-        fun addText(name: String, parent: Transform, text: String, callback: (Transform) -> Unit){
+        fun addText(name: String, parent: Transform?, text: String, callback: (Transform) -> Unit){
             // important ;)
             // should maybe be done sometimes in object as well ;)
             if(text.length > 500){
@@ -180,97 +181,7 @@ class TreeView(style: Style):
             callback(textNode)
         }
 
-        fun addChildFromFile(parent: Transform, file: File, callback: (Transform) -> Unit, depth: Int = 0){
-            if(file.isDirectory){
-                val directory = Transform(parent)
-                directory.name = file.name
-                if(depth < DefaultConfig["import.depth.max", 3]){
-                    file.listFiles()?.filter { !it.name.startsWith(".") }?.forEach {
-                        addChildFromFile(directory, it, callback, depth+1)
-                    }
-                }
-            } else {
-                val name = file.name
-                when(file.extension.getImportType()){
-                    "Transform" -> thread {
-                        val text = file.readText()
-                        try {
-                            val transform = text.toTransform()
-                            parent.addChild(transform)
-                            select(transform)
-                            callback(transform)
-                            onLargeChange()
-                        } catch (e: Exception){
-                            e.printStackTrace()
-                            println("Didn't understand json! ${e.message}")
-                            addText(name, parent, text, callback)
-                        }
-                    }
-                    "Cubemap-Equ" -> {
-                        val cube = Video(file, parent)
-                        cube.scale.set(Vector3f(1000f, 1000f, 1000f))
-                        cube.uvProjection = UVProjection.Equirectangular
-                        cube.name = name
-                        select(cube)
-                        callback(cube)
-                        onLargeChange()
-                    }
-                    "Cubemap-Tiles" -> {
-                        val cube = Video(file, parent)
-                        cube.scale.set(Vector3f(1000f, 1000f, 1000f))
-                        cube.uvProjection = UVProjection.TiledCubemap
-                        cube.name = name
-                        select(cube)
-                        callback(cube)
-                        onLargeChange()
-                    }
-                    "Video", "Image" -> {// the same, really ;)
-                        // rather use a list of keywords?
-                        val video = Video(file, parent)
-                        val fName = file.name
-                        video.name = fName
-                        if(DefaultConfig["import.decideCubemap", true]){
-                            if(fName.contains("360", true)){
-                                video.scale.set(Vector3f(1000f, 1000f, 1000f))
-                                video.uvProjection = UVProjection.Equirectangular
-                            } else if(fName.contains("cubemap", true)){
-                                video.scale.set(Vector3f(1000f, 1000f, 1000f))
-                                video.uvProjection = UVProjection.TiledCubemap
-                            }
-                        }
-                        select(video)
-                        callback(video)
-                        onLargeChange()
-                    }
-                    "Text" -> {
-                        try {
-                            addText(name, parent, file.readText(), callback)
-                            onLargeChange()
-                        } catch (e: Exception){
-                            e.printStackTrace()
-                            return
-                        }
-                    }
-                    "HTML" -> {
-                        // parse html? maybe, but html and css are complicated
-                        // rather use screenshots or svg...
-                        // integrated browser?
-                    }
-                    "Markdeep", "Markdown" -> {
-                        // execute markdeep script or interpret markdown to convert it to html? no
-                        // I see few use-cases
-                    }
-                    "Audio" -> {
-                        val audio = Video(file, parent)
-                        audio.name = name
-                        select(audio)
-                        callback(audio)
-                        onLargeChange()
-                    }
-                    else -> println("Unknown file type: ${file.extension}")
-                }
-            }
-        }
+
     }
 
 

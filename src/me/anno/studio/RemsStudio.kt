@@ -28,6 +28,8 @@ import me.anno.studio.project.Project
 import me.anno.ui.base.Panel
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.Tooltips
+import me.anno.ui.editor.UILayouts
+import me.anno.ui.editor.sceneTabs.SceneTabs
 import me.anno.utils.OS
 import me.anno.utils.clamp
 import me.anno.utils.f3
@@ -75,12 +77,14 @@ object RemsStudio {
 
     fun onSmallChange(cause: String){
         saveIsRequested = true
+        SceneTabs.currentTab?.hasChanged = true
         // println(cause)
     }
 
     fun onLargeChange(){
         saveIsRequested = true
         forceSave = true
+        SceneTabs.currentTab?.hasChanged = true
     }
 
     fun saveStateMaybe(){
@@ -301,6 +305,7 @@ object RemsStudio {
         val project0File = File(workspace, lastProject)
         if (lastProject == newProjectName) clear(project0File)
         project = Project(project0File)
+        project!!.open()
         GFX.addGPUTask { updateTitle(); 1 }
     }
 

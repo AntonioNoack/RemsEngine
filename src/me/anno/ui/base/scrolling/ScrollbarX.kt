@@ -9,7 +9,7 @@ import me.anno.utils.clamp
 import me.anno.utils.mix
 import kotlin.math.min
 
-class ScrollbarX(val scrollbar: ScrollPanelX, style: Style): Scrollbar(style){
+open class ScrollbarX(val scrollbar: ScrollPanelX, style: Style): Scrollbar(style){
 
     init {
         parent = scrollbar

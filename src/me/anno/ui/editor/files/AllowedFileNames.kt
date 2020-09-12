@@ -4,8 +4,8 @@ import java.io.File
 
 // https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file
 // could be disabled for Linux only users
-fun toAllowedFilename(name: String): String? {
-    var name = name.filter { it !in FileExplorer.forbiddenCharacters }.trim()
+fun String.toAllowedFilename(): String? {
+    var name = filter { it !in FileExplorer.forbiddenCharacters }.trim()
     while(name.startsWith(".")){
         name = name.substring(1).trim()
     }

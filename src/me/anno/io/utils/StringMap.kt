@@ -78,7 +78,7 @@ open class StringMap(
             str = "%HOMEPATH%/${str.substring(1)}"
         }
         // make this file valid; no matter what
-        str = toAllowedFilename(str) ?: "tmp"
+        str = str.toAllowedFilename() ?: "tmp"
         return File(str)
     }
 

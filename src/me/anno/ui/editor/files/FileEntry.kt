@@ -15,6 +15,7 @@ import me.anno.studio.Studio
 import me.anno.ui.base.Panel
 import me.anno.ui.base.TextPanel
 import me.anno.ui.dragging.Draggable
+import me.anno.ui.editor.sceneTabs.SceneTabs
 import me.anno.ui.style.Style
 import me.anno.utils.*
 import me.anno.utils.OS.startProcess
@@ -227,24 +228,11 @@ class FileEntry(val explorer: FileExplorer, val isParent: Boolean, val file: Fil
         return true
     }
 
-    override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
-        when (button) {
-            /*MouseButton.RIGHT -> {
-                // todo get all meta data you ever need
-                // todo or get more options? probably better... delete, new folder, new file,
-                // todo rename, open in explorer, open in editor, ...
-            }*/
-            else -> super.onMouseClicked(x, y, button, long)
-        }
-    }
-
     override fun onDoubleClick(x: Float, y: Float, button: MouseButton) {
-        when (button) {
-            /*MouseButton.RIGHT -> {
-                // todo open the file in the editor, or add it to the scene?
-                // todo or open it using windows?
-            }*/
-            else -> super.onDoubleClick(x, y, button)
+        if(file.isDirectory){
+            super.onDoubleClick(x, y, button)
+        } else {
+            SceneTabs.open(file)
         }
     }
 

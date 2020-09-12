@@ -1,4 +1,4 @@
-package me.anno.studio
+package me.anno.ui.editor
 
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.black
@@ -11,14 +11,13 @@ import me.anno.objects.Camera
 import me.anno.objects.Text
 import me.anno.objects.Transform
 import me.anno.objects.cache.Cache
-import me.anno.objects.geometric.Circle
 import me.anno.objects.rendering.RenderSettings
+import me.anno.studio.RemsStudio
 import me.anno.studio.RemsStudio.lastConsoleLines
 import me.anno.studio.RemsStudio.windowStack
 import me.anno.studio.Studio.nullCamera
 import me.anno.studio.Studio.project
 import me.anno.studio.Studio.root
-import me.anno.studio.Studio.selectedTransform
 import me.anno.studio.Studio.targetDuration
 import me.anno.studio.Studio.targetFPS
 import me.anno.studio.Studio.targetHeight
@@ -35,18 +34,16 @@ import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.custom.CustomListX
 import me.anno.ui.custom.CustomListY
 import me.anno.ui.custom.CustomContainer
-import me.anno.ui.editor.OptionBar
-import me.anno.ui.editor.PropertyInspector
 import me.anno.ui.editor.cutting.CuttingView
 import me.anno.ui.editor.files.FileExplorer
 import me.anno.ui.editor.graphs.GraphEditor
+import me.anno.ui.editor.sceneTabs.SceneTabs
 import me.anno.ui.editor.sceneView.SceneView
 import me.anno.ui.editor.treeView.TreeView
 import me.anno.utils.mixARGB
 import me.anno.video.VideoAudioCreator
 import me.anno.video.VideoCreator
 import org.apache.logging.log4j.LogManager
-import org.joml.Vector4f
 import java.io.File
 import java.util.logging.Level
 import kotlin.math.max
@@ -70,11 +67,14 @@ object UILayouts {
     }
 
     fun renderPart(size: Int){
-        render(targetWidth/size, targetHeight/size)
+        render(targetWidth / size, targetHeight / size)
     }
 
     fun render(width: Int, height: Int){
-        if(width % 2 != 0 || height % 2 != 0) return render(width/2*2, height/2*2)
+        if(width % 2 != 0 || height % 2 != 0) return render(
+            width / 2 * 2,
+            height / 2 * 2
+        )
         LOGGER.info("rendering video at $width x $height")
         val tmpFile = File(targetOutputFile.parentFile, targetOutputFile.nameWithoutExtension+".tmp."+targetOutputFile.extension)
         val fps = targetFPS
@@ -113,15 +113,21 @@ object UILayouts {
         options.addAction("Render", "Set%"){
             render(
                 max(2, (project!!.targetWidth * project!!.targetSizePercentage / 100).roundToInt()),
-                max(2, (project!!.targetHeight * project!!.targetSizePercentage / 100).roundToInt())) }
+                max(2, (project!!.targetHeight * project!!.targetSizePercentage / 100).roundToInt())
+            )
+        }
         options.addAction("Render", "Full"){ renderPart(1) }
         options.addAction("Render", "Half"){ renderPart(2) }
         options.addAction("Render", "Quarter"){ renderPart(4) }
 
         ui += options
+        ui += SceneTabs
+
+        // todo load the last opened tabs from the previous project...
 
         root = Transform(null)
         root.name = "Root"
+
         // val a = Transform(Vector3f(10f, 50f, 0f), Vector3f(1f,1f,1f), Quaternionf(1f,0f,0f,0f), root)
         // for(i in 0 until 3) Transform(null, null, null, a)
         // val b = Transform(null, null, null, root)

@@ -490,7 +490,7 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
                 val values = blendModes.values
                 val valueNames = values.map { it to it.displayName }
                 EnumInput(title, true, valueNames.first { it.first == value }.second, valueNames.map { it.second }, style)
-                    .setChangeListener { str -> setValue((valueNames.first { it.second == str }.first) as V) }
+                    .setChangeListener { _, index, _ -> setValue(valueNames[index].first as V) }
                     .setIsSelectedListener { show(null) }
                     .setTooltip(ttt)
             }
@@ -518,7 +518,7 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
                     }
                 }
                 EnumInput(title, true, valueNames.first { it.first == value }.second, valueNames.map { it.second }, style)
-                    .setChangeListener { str -> setValue((valueNames.first { it.second == str }.first) as V) }
+                    .setChangeListener { _, index, _ -> setValue(values[index] as V) }
                     .setIsSelectedListener { show(null) }
                     .setTooltip(ttt)
             }
