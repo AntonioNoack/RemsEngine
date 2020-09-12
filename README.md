@@ -3,7 +3,7 @@
 This studio is intended for starters in the video industry, or YouTubers,
 and was inspired by the channel [YDS](https://www.youtube.com/user/YutsuraidanceStudios). I wanted to be able to make those transitions and motions easily myself. Without needing to buy some expensive software.
 
-![Screenshot of the program](https://github.com/AntonioNoack/RemsStudio/blob/master/assets/shots/01.09.2020.png?raw=true)
+![Screenshot of the program](https://phychi.com/remsstudio/shots/01.09.2020.png)
 
 That's why Rem's Studio will always be sold **low-priced** to individuals, and may stay free, if you build it yourself (proof of work, that you really can't afford it ;)).
 In the alpha times, you all are early testers, so you get it for **free** anyways <3 :D.
@@ -37,7 +37,7 @@ Missing, important features:
 
 FFmpeg needs to be installed.
 
-You can download the [universal build here](https://github.com/AntonioNoack/RemsStudio/raw/master/out/artifacts/Universal/VideoStudio.jar).
+You can download the [universal build here](https://phychi.com/remsstudio/VideoStudio.jar).
 Later, I'll probably create specific builds depending on your OS, so they are smaller.
 
 My FFmpeg install on Linux Mint 19 somehow misses features, that FFmpeg for Windows has. You might encounter issues as well.
@@ -49,13 +49,13 @@ Observed missing features:
 
 You probably have to copy the files for ffmpeg (the program will tell you in the console). This is because of a bug in Java 8 (but Java 8 is the default download for Win10), and a slight config issue on my webserver.
 
-You can download the [universal build here](https://github.com/AntonioNoack/RemsStudio/raw/master/out/artifacts/Universal/VideoStudio.jar).
+You can download the [universal build here](https://phychi.com/remsstudio/VideoStudio.jar).
 Later, I'll probably create specific builds depending on your OS, so they are smaller.
 
 ### Mac OS
 
 I own no device to test Rem's Studio on Mac OS. I read that installing Java on iOS isn't that easy either.
-I am sure, you could make it work, if you are a developer. I have included the FFmpeg files for Mac OS in the [universal build, which you can download here](https://github.com/AntonioNoack/RemsStudio/raw/master/out/artifacts/Universal/VideoStudio.jar).
+I am sure, you could make it work, if you are a developer. I have included the FFmpeg files for Mac OS in the [universal build, which you can download here](https://phychi.com/remsstudio/VideoStudio.jar).
 
 ### Android / iOS
 
