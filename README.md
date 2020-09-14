@@ -16,12 +16,13 @@ It is additionally developed with Java, so it works with Windows and Linux.
 
 ## Currently used libraries
 
-* LWJGL (OpenGL + GLFW + OpenAL + stb)
-* JOML (Matrix calculations and transforms for rendering)
-* FFMpeg (Video/Image/Audio Import & Export)
-* HSLuv (HSL alternative with constant brightness)
-* OpenSimplexNoise (Noise Generator)
-* Apache Imaging (More supported image formats, like .ico)
+* [LWJGL](https://www.lwjgl.org/) (OpenGL + GLFW + OpenAL + stb)
+* [JOML](https://github.com/JOML-CI/JOML) (Matrix calculations and transforms for rendering)
+* [FFMpeg](https://ffmpeg.org/) (Video/Image/Audio Import & Export)
+* [HSLuv](https://github.com/hsluv/hsluv-java) (HSL alternative with constant brightness)
+* [OpenSimplexNoise](https://gist.github.com/KdotJPG/b1270127455a94ac5d19) (Noise Generator)
+* [Apache Imaging](https://commons.apache.org/proper/commons-imaging/) (More supported image formats, like .ico)
+* [Metadata Extractor](https://github.com/drewnoakes/metadata-extractor) (Detecting rotated JPEG files)
 
 ## Download
 
