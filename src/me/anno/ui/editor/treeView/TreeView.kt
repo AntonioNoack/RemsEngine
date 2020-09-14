@@ -164,14 +164,13 @@ class TreeView(style: Style):
             // important ;)
             // should maybe be done sometimes in object as well ;)
             if(text.length > 500){
-                GFX.addGPUTask {
+                GFX.addGPUTask(text.length * 15, 30){
                     GFX.ask("Text has ${text.codePoints().count()} characters, import?"){
                         val textNode = Text(text, parent)
                         textNode.name = name
                         select(textNode)
                         callback(textNode)
                     }
-                    1
                 }
                 return
             }

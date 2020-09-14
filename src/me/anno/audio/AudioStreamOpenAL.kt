@@ -84,10 +84,9 @@ class AudioStreamOpenAL(file: File, repeat: LoopingState, startTime: Double, met
         thread {
             Thread.sleep(10)
             if(isPlaying){
-                GFX.addAudioTask {
+                GFX.addAudioTask(1){
                     waitForRequiredBuffers()
                     ALBase.check()
-                    1
                 }
             }
         }
@@ -95,7 +94,7 @@ class AudioStreamOpenAL(file: File, repeat: LoopingState, startTime: Double, met
 
     override fun onBufferFilled(stereoBuffer: ShortBuffer, bufferIndex: Long) {
         if(!isPlaying) return
-        GFX.addAudioTask {
+        GFX.addAudioTask(10){
             if(isPlaying) {
                 val isFirstBuffer = bufferIndex == 0L
                 ALBase.check()
@@ -131,7 +130,6 @@ class AudioStreamOpenAL(file: File, repeat: LoopingState, startTime: Double, met
                 isWaitingForBuffer.set(false)
                 ALBase.check()
             }
-            1
         }
     }
 

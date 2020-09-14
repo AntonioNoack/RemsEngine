@@ -26,7 +26,6 @@ import me.anno.studio.Studio.selectedTransform
 import me.anno.ui.editor.sceneView.Grid
 import me.anno.ui.editor.sceneView.Grid.drawLine01
 import me.anno.ui.editor.sceneView.SceneView
-import me.anno.utils.clamp
 import me.anno.utils.times
 import me.anno.utils.warn
 import me.anno.video.MissingFrameException
@@ -38,7 +37,6 @@ import org.joml.Vector4f
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL30
 import java.io.File
-import kotlin.math.max
 import kotlin.math.sqrt
 
 object Scene {
@@ -477,7 +475,7 @@ object Scene {
             // further analysis by testing each object individually?
         }
 
-        GFX.drawMode = ShaderPlus.DrawMode.COLOR
+        GFX.drawMode = ShaderPlus.DrawMode.COLOR_SQUARED
 
         // todo could be moved to ensure empty stack...
         GFX.clearStack()

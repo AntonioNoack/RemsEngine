@@ -41,7 +41,7 @@ class VideoBackgroundTask(val video: VideoCreator){
              * runs on GPU thread
              * */
             if(renderingIndex.get() < savingIndex.get()+2){
-                GFX.addGPUTask {
+                GFX.addGPUTask(1000, 1000){
 
                     val frameIndex = renderingIndex.get()
                     if(renderFrame(frameIndex / video.fps)){
@@ -60,7 +60,6 @@ class VideoBackgroundTask(val video: VideoCreator){
                         }
                     }
 
-                    5 // 5 tokens for this frame ;)
                 }
             } else {
                 // println("waiting for frame (writing is slow)")
@@ -85,7 +84,7 @@ class VideoBackgroundTask(val video: VideoCreator){
         GFX.isFinalRendering = true
 
         try {
-            Scene.draw(framebuffer, camera, 0, 0, video.w, video.h, time, true, ShaderPlus.DrawMode.COLOR, null)
+            Scene.draw(framebuffer, camera, 0, 0, video.w, video.h, time, true, ShaderPlus.DrawMode.COLOR_SQUARED, null)
         } catch (e: MissingFrameException){
             GFX.isFinalRendering = false
             return false

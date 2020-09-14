@@ -77,7 +77,7 @@ object Studio {
     }
 
     fun updateAudio(){
-        GFX.addAudioTask {
+        GFX.addAudioTask(100){
             // update the audio player...
             if(isPlaying){
                 AudioManager.requestUpdate()
@@ -85,7 +85,6 @@ object Studio {
                 AudioManager.stop()
             }
             ALBase.check()
-            100
         }
     }
 

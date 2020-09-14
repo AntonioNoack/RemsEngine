@@ -131,6 +131,8 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")) {
 
         GFX.ensureEmptyStack()
 
+        GFX.drawMode = ShaderPlus.DrawMode.COLOR_SQUARED
+
         GFX.check()
 
         parseKeyInput()
@@ -164,17 +166,6 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")) {
         // e.g. for video playback
         // we maybe could disable next frame fetching in Cache.kt...
         // todo doesn't work for auto-scaled videos... other plan?...
-        val edt = editorTimeDilation
-        var dt = 0.5
-        while(dt < 5.0){
-            Scene.draw(
-                null, camera,
-                x + dx, y + dy, 1, 1,
-                editorTime + dt * if(edt == 0.0) 1.0 else edt,
-                false, ShaderPlus.DrawMode.COLOR, this
-            ) // step size? may be expensive...
-            dt += 0.5
-        }
 
         // check if the size stayed the same;
         // because resizing all framebuffers is expensive (causes lag)
@@ -186,7 +177,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")) {
                     null, camera,
                     x + dx, y + dy, rw, rh,
                     editorTime, false,
-                    ShaderPlus.DrawMode.COLOR, this
+                    ShaderPlus.DrawMode.COLOR_SQUARED, this
                 )
                 goodW = rw
                 goodH = rh
@@ -207,8 +198,15 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")) {
                 null, camera,
                 x + dx, y + dy, goodW, goodH,
                 editorTime, false,
-                ShaderPlus.DrawMode.COLOR, this
+                ShaderPlus.DrawMode.COLOR_SQUARED, this
             )
+        }
+
+        val edt = editorTimeDilation
+        var dt = 0.5
+        while(dt < 5.0){
+            root.claimResources(editorTime + dt * if(edt == 0.0) 1.0 else edt, 1f)
+            dt += 0.5
         }
 
         GFX.ensureEmptyStack()
@@ -556,7 +554,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")) {
                 var dx = 0
                 var dy = 0
 
-                GFX.addGPUTask {
+                GFX.addGPUTask(w, h){
                     val camera = camera
                     if (camera.onlyShowTarget) {
                         if (w * targetHeight > targetWidth * h) {
@@ -568,7 +566,6 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")) {
                         }
                     }
                     resolveClick(x - dx, y - dy, rw, rh)
-                    35
                 }
             }
 

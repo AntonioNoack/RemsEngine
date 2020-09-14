@@ -102,6 +102,22 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
         Studio.selectedProperty = anim
     }
 
+    open fun claimResources(parentTime: Double, alpha: Float){
+        val localTime = getLocalTime(parentTime)
+        val localAlpha = getLocalColor(Vector4f(0f, 0f, 0f, alpha), localTime).w
+        if(localAlpha > minAlpha){
+            claimLocalResources(localTime)
+            children.forEach {
+                it.claimResources(localTime, localAlpha)
+            }
+        }
+    }
+
+    open fun claimLocalResources(localTime: Double){
+        // here is nothing to claim
+        // only for things using video textures
+    }
+
     override fun createInspector(list: PanelListY, style: Style){
 
         list += TextInput("Name (${getClassName()})", style, name)
@@ -223,7 +239,7 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
         val time = getLocalTime(parentTime)
         val color = getLocalColor(parentColor, time)
 
-        if(color.w > 0.00025f && !(isFinalRendering && isEditorOnly)){ // 12 bit = 4k
+        if(color.w > minAlpha && !(isFinalRendering && isEditorOnly)){ // 12 bit = 4k
             applyTransformLT(stack, time)
             GFX.drawnTransform = this
             onDraw(stack, time, color)
@@ -605,6 +621,7 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
         val zAxis = Vector3f(0f,0f,1f)
         var nextClickId = AtomicInteger()
         fun String.toTransform() = TextReader.fromText(this).first() as Transform
+        const val minAlpha = 0.00025f
     }
 
 

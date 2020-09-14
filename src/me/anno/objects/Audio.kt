@@ -66,7 +66,7 @@ abstract class Audio(var file: File = File(""), parent: Transform? = null): GFXT
 
     override fun onDestroy() {
         super.onDestroy()
-        GFX.addAudioTask { stopPlayback(); 1 }
+        GFX.addAudioTask(1){ stopPlayback() }
     }
 
     // we need a flag, whether we draw in editor mode or not -> GFX.isFinalRendering
@@ -109,13 +109,12 @@ abstract class Audio(var file: File = File(""), parent: Transform? = null): GFXT
                 if(Studio.isPaused){
                     playbackButton.text = getPlaybackTitle(true)
                     if(component == null){
-                        GFX.addAudioTask {
+                        GFX.addAudioTask(5){
                             val audio = Video(file, null)
                             audio.startPlayback(0.0, 1.0, nullCamera)
                             component = audio.component
-                            1
                         }
-                    } else GFX.addAudioTask { stopPlayback(); 1 }
+                    } else GFX.addAudioTask(1){ stopPlayback() }
                 } else Studio.warn("Separated playback is only available with paused editor")
             }
             .setTooltip("Listen to the audio separated from the rest")

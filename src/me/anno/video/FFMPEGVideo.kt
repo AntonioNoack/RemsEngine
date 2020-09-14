@@ -70,7 +70,7 @@ class FFMPEGVideo(file: File?, val frame0: Int):
     var isDestroyed = false
     override fun destroy() {
         synchronized(frames){
-            frames.forEach { GFX.addGPUTask { it.destroy(); 3 } }
+            frames.forEach { GFX.addGPUTask(5){ it.destroy() } }
             frames.clear()
             isDestroyed = true
         }

@@ -28,6 +28,7 @@ import me.anno.studio.project.Project
 import me.anno.ui.base.Panel
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.Tooltips
+import me.anno.ui.debug.FrameTimes
 import me.anno.ui.editor.UILayouts
 import me.anno.ui.editor.sceneTabs.SceneTabs
 import me.anno.utils.OS
@@ -35,6 +36,7 @@ import me.anno.utils.clamp
 import me.anno.utils.f3
 import me.anno.utils.listFiles2
 import org.apache.logging.log4j.LogManager
+import org.omg.CORBA.FREE_MEM
 import java.io.File
 import java.io.OutputStream
 import java.io.PrintStream
@@ -259,7 +261,13 @@ object RemsStudio {
 
             Tooltips.draw()
 
-            if (showFPS) showFPS()
+            if (showFPS) {
+                FrameTimes.placeInParent(0, 0)
+                FrameTimes.applyPlacement(FrameTimes.width, FrameTimes.height)
+                FrameTimes.draw()
+                showFPS()
+            }
+
             if (showTutorialKeys) ShowKeys.draw(0, 0, GFX.width, GFX.height)
 
             // dragging can be a nice way to work, but dragging values to change them,
@@ -306,7 +314,7 @@ object RemsStudio {
         if (lastProject == newProjectName) clear(project0File)
         project = Project(project0File)
         project!!.open()
-        GFX.addGPUTask { updateTitle(); 1 }
+        GFX.addGPUTask(1){ updateTitle() }
     }
 
     // would overflow as 32 bit after 2.5 months on a 300 fps display ;D

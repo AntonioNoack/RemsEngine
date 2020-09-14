@@ -76,9 +76,8 @@ class Texture3D(val w: Int, val h: Int, val d: Int){
             }
         }
         if(sync) uploadData(intData)
-        else GFX.addGPUTask {
+        else GFX.addGPUTask(img.width, img.height){
             uploadData(intData)
-            1
         }
     }
 

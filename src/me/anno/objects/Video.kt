@@ -139,6 +139,8 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
         }
     }
 
+    var zoomLevel = 0
+
     fun drawVideoFrames(stack: Matrix4fArrayList, time: Double, color: Vector4f){
 
         val meta = getMeta(file, true)
@@ -153,6 +155,7 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
                 } else 1
             } else videoScale
         } else 1
+        this.zoomLevel = zoomLevel
 
         var wasDrawn = false
 
@@ -233,6 +236,7 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
                 val texture = Cache.getImage(file, imageTimeout, true)
                 if(texture == null && GFX.isFinalRendering) throw MissingFrameException(file)
                 texture?.apply {
+                    rotation?.apply(stack)
                     GFX.draw3D(stack, texture, color, this@Video.filtering, this@Video.clampMode, tiling, uvProjection)
                 }
             }
@@ -262,10 +266,52 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
         AUDIO
     }
 
+    override fun claimLocalResources(localTime: Double) {
+        when(val type = type){
+            VideoType.VIDEO -> {
+                // load the video
+                val meta = getMeta(file, true)
+                if(meta != null){
+
+                    val sourceFPS = meta.videoFPS
+                    val sourceDuration = meta.videoDuration
+
+                    if(startTime >= sourceDuration) startTime = sourceDuration
+                    if(endTime >= sourceDuration) endTime = sourceDuration
+
+                    if(sourceFPS > 0.0){
+                        if(localTime + startTime >= 0.0 && (isLooping != LoopingState.PLAY_ONCE || localTime < endTime)){
+
+                            // use full fps when rendering to correctly render at max fps with time dilation
+                            // issues arise, when multiple frames should be interpolated together into one
+                            // at this time, we chose the center frame only.
+                            val videoFPS = if(GFX.isFinalRendering) sourceFPS else min(sourceFPS, GFX.editorVideoFPS)
+
+                            val frameCount = max(1, (sourceDuration * videoFPS).roundToInt())
+
+                            // draw the current texture
+                            val duration = endTime - startTime
+                            val localTime2 = startTime + isLooping[localTime, duration]
+                            val frameIndex = (localTime2 * videoFPS).toInt() % frameCount
+
+                            Cache.getVideoFrame(file, zoomLevel, frameIndex, frameCount, videoFPS, videoFrameTimeout, isLooping)
+
+                        }
+                    }
+                }
+            }
+            // nothing to do for image and audio
+            VideoType.IMAGE -> {}
+            VideoType.AUDIO -> {}
+            else -> throw RuntimeException("todo implement resource loading for $type")
+        }
+    }
+
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
 
         val file = file
         if(file.hasValidName()){
+
             if(file !== lastFile){
                 lastFile = file
                 type = when(file.extension.getImportType()){

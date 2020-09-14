@@ -3,6 +3,7 @@ package me.anno.gpu.texture
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.TextureLib.invisibleTexture
+import me.anno.objects.modes.RotateJPEG
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
 import org.lwjgl.opengl.GL11
@@ -32,6 +33,9 @@ class Texture2D(override var w: Int, override var h: Int, val samples: Int): ITe
     var isCreated = false
     var nearest = false
     var clampMode = ClampMode.CLAMP
+
+    // only used for images with exif rotation tag...
+    var rotation: RotateJPEG? = null
 
     fun setSize(width: Int, height: Int){
         w = width
@@ -82,9 +86,8 @@ class Texture2D(override var w: Int, override var h: Int, val samples: Int): ITe
         val requiredBudget = textureBudgetUsed + w * h
         if(requiredBudget > textureBudgetTotal || Thread.currentThread() != GFX.glThread){
             if(forceSync){
-                GFX.addGPUTask {
+                GFX.addGPUTask(1000){
                     create(createImage(), true)
-                    1
                 }
             } else {
                 thread { create(createImage(), false) }
@@ -115,9 +118,8 @@ class Texture2D(override var w: Int, override var h: Int, val samples: Int): ITe
             }
         }
         if(sync) uploadData(intData)
-        else GFX.addGPUTask {
+        else GFX.addGPUTask(500){
             uploadData(intData)
-            1
         }
     }
 
@@ -211,23 +213,17 @@ class Texture2D(override var w: Int, override var h: Int, val samples: Int): ITe
             return
         }
         synchronized(this){
-            if(nearest){
-                val type = GL_NEAREST
-                glTexParameteri(tex2D, GL_TEXTURE_MAG_FILTER, type)
-                glTexParameteri(tex2D, GL_TEXTURE_MIN_FILTER, type)
-            } else {
-                if(!hasMipmap){
-                    glGenerateMipmap(tex2D)
-                    hasMipmap = true
-                    if(GFX.supportsAnisotropicFiltering){
-                        val anisotropy = GFX.anisotropy
-                        glTexParameteri(tex2D, GL_TEXTURE_LOD_BIAS, 0)
-                        glTexParameterf(tex2D, EXTTextureFilterAnisotropic.GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropy)
-                    }
+            if(!hasMipmap){
+                glGenerateMipmap(tex2D)
+                hasMipmap = true
+                if(GFX.supportsAnisotropicFiltering){
+                    val anisotropy = GFX.anisotropy
+                    glTexParameteri(tex2D, GL_TEXTURE_LOD_BIAS, 0)
+                    glTexParameterf(tex2D, EXTTextureFilterAnisotropic.GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropy)
                 }
-                glTexParameteri(tex2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
                 glTexParameteri(tex2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
             }
+            glTexParameteri(tex2D, GL_TEXTURE_MAG_FILTER, if(nearest) GL_NEAREST else GL_LINEAR)
             this.nearest = nearest
         }
     }

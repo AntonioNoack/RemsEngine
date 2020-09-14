@@ -25,10 +25,9 @@ class RGBFrame(w: Int, h: Int): Frame(w,h){
             data[j++] = input.read().toByte()
             data[j++] = 255.toByte() // offset is required
         }
-        GFX.addGPUTask {
+        GFX.addGPUTask(w, h){
             rgb.createRGBA(data)
             isLoaded = true
-            4
         }
     }
 

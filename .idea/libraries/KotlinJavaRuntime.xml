@@ -43,6 +43,7 @@
       <root url="jar://$PROJECT_DIR$/lib/lwjgl-stb-natives-macos.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/lwjgl-stb-natives-windows-x86.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/commons-imaging-1.0-alpha1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/MetadataExtractor.jar!/" />
     </CLASSES>
     <JAVADOC>
       <root url="jar://$PROJECT_DIR$/lib/lwjgl-glfw-javadoc.jar!/" />
@@ -64,7 +65,6 @@
       <root url="jar://$PROJECT_DIR$/lib/lwjgl-opengl-sources.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/lwjgl-sources.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/lwjgl-stb-sources.jar!/" />
-      <root url="jar://$PROJECT_DIR$/lib/lwjglx-debug-1.0.0-sources.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/joml-1.9.24-sources.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/commons-math3-3.6.1-sources.jar!/" />
     </SOURCES>

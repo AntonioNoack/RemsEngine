@@ -69,7 +69,12 @@ open class Panel(val style: Style) : Saveable() {
     fun requestFocus() = GFX.requestFocus(this, true)
 
     fun drawBackground() {
+        // if the children are overlapping, this is incorrect
+        // this however, should rarely happen...
         GFX.drawRect(x, y, w, h, backgroundColor)
+        /*if(parent?.backgroundColor != backgroundColor){
+            GFX.drawRect(x, y, w, h, backgroundColor)
+        }*/
     }
 
     /**
@@ -233,7 +238,7 @@ open class Panel(val style: Style) : Saveable() {
     }
 
     open fun onPasteFiles(x: Float, y: Float, files: List<File>) {
-        parent?.onPasteFiles(x, y, files) ?: println("Paste Ignored! $files")
+        parent?.onPasteFiles(x, y, files) ?: println("Paste Ignored! $files, ${getClassName()}")
     }
 
     open fun onCopyRequested(x: Float, y: Float): String? = parent?.onCopyRequested(x, y)

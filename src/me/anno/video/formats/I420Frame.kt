@@ -27,24 +27,21 @@ class I420Frame(iw: Int, ih: Int): Frame(iw,ih){
         val yData = input.readNBytes(s0)
         if(yData.isEmpty()) throw LastFrame()
         if(yData.size < s0) throw RuntimeException("not enough data, only ${yData.size} of $s0")
-        GFX.addGPUTask {
+        GFX.addGPUTask(w, h){
             y.createMonochrome(yData)
-            1
         }
         val uData = input.readNBytes(s1)
         if(uData.size < s1) throw RuntimeException("not enough data, only ${uData.size} of $s1")
-        GFX.addGPUTask {
+        GFX.addGPUTask(w2, h2){
             u.createMonochrome(uData)
-            1
         }
         val vData = input.readNBytes(s1)
         if(vData.size < s1) throw RuntimeException("not enough data, only ${vData.size} of $s1")
-        GFX.addGPUTask {
+        GFX.addGPUTask(w2, h2){
             v.createMonochrome(vData)
             // tasks are executed in order, so this is true
             // (if no exception happened)
             isLoaded = true
-            1
         }
     }
 

@@ -20,10 +20,9 @@ class BGRAFrame(w: Int, h: Int): Frame(w,h){
         val data = input.readNBytes(s0)
         if(data.isEmpty()) throw LastFrame()
         if(data.size < s0) throw RuntimeException("not enough data, only ${data.size} of $s0")
-        GFX.addGPUTask {
+        GFX.addGPUTask(w, h){
             bgra.createRGBA(data)
             isLoaded = true
-            4
         }
     }
 

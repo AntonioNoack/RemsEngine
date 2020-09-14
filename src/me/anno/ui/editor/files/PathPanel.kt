@@ -25,9 +25,9 @@ class PathPanel(file: File?, style: Style) : PanelListX(style) {
 
     // todo update visibility depending on size? (show more/less on the left side)
     fun update() {
-        children.clear()
+        clear()
         if (file == null) {
-            children.add(TextPanel("This Computer", style))
+            this += TextPanel("This Computer", style)
         } else {
             val paddingLeft = -paddingOffset/2
             val paddingRight = -(paddingOffset+1)/2
@@ -46,7 +46,7 @@ class PathPanel(file: File?, style: Style) : PanelListX(style) {
                 }
                 panel.padding.left = paddingLeft
                 panel.padding.right = paddingRight
-                children += panel
+                this += panel
                 parent = file.parentFile
                 if (children.size >= partLimit) {
                     break
@@ -54,7 +54,7 @@ class PathPanel(file: File?, style: Style) : PanelListX(style) {
             }
             if (children.size < partLimit && OS.isWindows) {
                 // we need a this-computer-tab
-                children += TextPanel("This Computer$separatorChar", style)
+                this += TextPanel("This Computer$separatorChar", style)
                     .setSimpleClickListener {
                         onChangeListener?.invoke(null)
                     }
@@ -62,5 +62,7 @@ class PathPanel(file: File?, style: Style) : PanelListX(style) {
             children.reverse()
         }
     }
+
+    override fun getClassName() = "PathPanel"
 
 }

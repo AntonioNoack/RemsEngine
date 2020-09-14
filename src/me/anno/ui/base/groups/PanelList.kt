@@ -34,6 +34,8 @@ abstract class PanelList(val sorter: Comparator<Panel>?, style: Style): PanelGro
         super.calculateSize(w, h)
     }
 
+    override fun getClassName() = "PanelList"
+
 
 
 }

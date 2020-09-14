@@ -168,8 +168,7 @@ object ShaderLib {
         val positionPostProcessing = "" +
                 "zDistance = gl_Position.w;\n"
 
-        val colorPostProcessing = "" +
-                "   gl_FragColor.rgb *= gl_FragColor.rgb;\n"
+        val colorPostProcessing = ""
 
         val colorProcessing = "" +
                 "   if(color.a <= 0.0) discard;\n"
@@ -268,7 +267,6 @@ object ShaderLib {
                 "               mix(vec3(1.0), mask.rgb, useMaskColor)," +
                 "               mix(mask.a, 1.0-mask.a, invertMask));\n" +
                 "           color = texture(tex, uv2);\n" +
-                "           gl_FragColor = offsetColor + tint * color * maskColor;\n" +
                 "           break;\n" +
                 "       case ${MaskType.PIXELATING.id}:\n" +
                 // use the average instead for more stable results?
@@ -278,7 +276,6 @@ object ShaderLib {
                 "               texture(tex, uv2), " +
                 "               texture(tex, round(uv2 / pixelating) * pixelating)," +
                 "               effect);\n" +
-                "           gl_FragColor = offsetColor + tint * color;\n" +
                 "           break;\n" +
                 "       case ${MaskType.GAUSSIAN_BLUR.id}:\n" +
                 "           effect = mix(mask.a, dot(vec3(0.3), mask.rgb), useMaskColor);\n" +
@@ -299,9 +296,9 @@ object ShaderLib {
                 "               }\n" +
                 "               color /= sum;\n" +
                 "           }\n" +
-                "           gl_FragColor = offsetColor + tint * color;\n" +
                 "           break;\n" +
                 "   }\n" +
+                "   color = offsetColor + tint * color * maskColor;\n" +
                 colorProcessing +
                 "   if(gl_FragColor.a <= 0.0) discard;\n" +
                 "   gl_FragColor.a = min(gl_FragColor.a, 1.0);\n" +
@@ -333,17 +330,6 @@ object ShaderLib {
                 "void main(){\n" +
                 "   gl_FragColor = tint;\n" +
                 colorPostProcessing +
-                /*"   vec2 d0 = uv*2.-1.;\n" +
-                "   float dst = dot(d0,d0);\n" +
-                "   if(dst > 1.0 || dst < circleParams.r) discard;\n" +
-                "   else {" +
-                "       float angle = atan(d0.y,d0.x);\n" +
-                "       if(circleParams.g < circleParams.b){" +
-                "           if(angle < circleParams.g || angle > circleParams.b) discard;" +
-                "       } else {" +
-                "           if(angle > circleParams.b && angle < circleParams.g) discard;" +
-                "       }" +
-                "   }" +*/
                 "}"
 
         shader3D = createShaderPlus("3d", v3D, y3D, f3D, listOf("tex"))
@@ -394,11 +380,11 @@ object ShaderLib {
                     "       getTexture(texU, correctedUV, correctedDUV).r, " +
                     "       getTexture(texV, correctedUV, correctedDUV).r);\n" +
                     "   yuv -= vec3(${16f / 255f}, 0.5, 0.5);\n" +
-                    "   vec3 rgb = vec3(" +
+                    "   vec4 color = vec4(" +
                     "       dot(yuv, vec3( 1.164,  0.000,  1.596))," +
                     "       dot(yuv, vec3( 1.164, -0.392, -0.813))," +
-                    "       dot(yuv, vec3( 1.164,  2.017,  0.000)));\n" +
-                    "   gl_FragColor = vec4(tint.rgb * rgb, tint.a);\n" +
+                    "       dot(yuv, vec3( 1.164,  2.017,  0.000)), 1.0);\n" +
+                    "   gl_FragColor = tint * color;\n" +
                     colorPostProcessing +
                     "}", listOf("texY", "texU", "texV")
         )

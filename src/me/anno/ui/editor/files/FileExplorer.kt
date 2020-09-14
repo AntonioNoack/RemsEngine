@@ -82,20 +82,19 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
                 val parent = folder?.parentFile
                 if(parent != null){
                     val fe = FileEntry(this, true, parent, style)
-                    GFX.addGPUTask { content.clear(); content += fe; 0 }
+                    GFX.addGPUTask(1){ content.clear(); content += fe }
                 } else {
-                    GFX.addGPUTask { content.clear(); 1 }
+                    GFX.addGPUTask(1){ content.clear() }
                 }
                 val tmpCount = 64
                 var tmpList = ArrayList<FileEntry>(tmpCount)
                 fun put(){
                     if(tmpList.isNotEmpty()){
                         val list = tmpList
-                        GFX.addGPUTask {
+                        GFX.addGPUTask(1){
                             list.forEach { content += it }
                             // force layout update
                             Input.framesSinceLastInteraction = 0
-                            0
                         }
                         tmpList = ArrayList(tmpCount)
                     }
@@ -129,15 +128,11 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
     override fun onPasteFiles(x: Float, y: Float, files: List<File>) {
         // todo create links? or truly copy them?
         // todo or just switch?
-        if(files.size == 1){
-            folder = files.first()
-            if(!folder!!.isDirectory){
-                folder = folder!!.parentFile
-            }
-            invalidate()
-        } else {
-
+        folder = files.first()
+        if(!folder!!.isDirectory){
+            folder = folder!!.parentFile
         }
+        invalidate()
     }
 
     override fun onPaste(x: Float, y: Float, data: String, type: String) {

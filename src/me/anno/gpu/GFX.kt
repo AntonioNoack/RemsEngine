@@ -49,6 +49,7 @@ import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.debug.FrameTimes
 import me.anno.utils.clamp
 import me.anno.utils.f1
 import me.anno.utils.minus
@@ -74,8 +75,6 @@ import kotlin.math.*
 // todo enqueue all objects for rendering
 // todo sort blended objects by depth, if rendering with depth
 
-// todo show frame times for better inspecting of fps xD
-
 // todo ffmpeg requires 100MB RAM per instance -> do we really need multiple instances, or does one work fine?
 // todo or keep only a certain amount of ffmpeg instances running?
 
@@ -87,8 +86,8 @@ object GFX : GFXBase1() {
     // for final rendering we need to use the GPU anyways;
     // so just use a static variable
     var isFinalRendering = false
-    var drawMode = ShaderPlus.DrawMode.COLOR
-    val isFakeColorRendering get() = drawMode != ShaderPlus.DrawMode.COLOR
+    var drawMode = ShaderPlus.DrawMode.COLOR_SQUARED
+    val isFakeColorRendering get() = drawMode != ShaderPlus.DrawMode.COLOR_SQUARED
     var supportsAnisotropicFiltering = false
     var anisotropy = 1f
 
@@ -100,16 +99,20 @@ object GFX : GFXBase1() {
         selectedTransform = transform
     }
 
-    val gpuTasks = ConcurrentLinkedQueue<() -> Int>()
-    val audioTasks = ConcurrentLinkedQueue<() -> Int>()
+    val gpuTasks = ConcurrentLinkedQueue<Task>()
+    val audioTasks = ConcurrentLinkedQueue<Task>()
 
-    fun addAudioTask(task: () -> Int) {
+    fun addAudioTask(weight: Int, task: () -> Unit) {
         // could be optimized for release...
-        audioTasks += task
+        audioTasks += weight to task
     }
 
-    fun addGPUTask(task: () -> Int) {
-        gpuTasks += task
+    fun addGPUTask(w: Int, h: Int, task: () -> Unit) {
+        gpuTasks += (w * h / 1e5).toInt() to task
+    }
+
+    fun addGPUTask(weight: Int, task: () -> Unit) {
+        gpuTasks += weight to task
     }
 
     lateinit var gameInit: () -> Unit
@@ -355,37 +358,38 @@ object GFX : GFXBase1() {
         check()
     }
 
-    fun getFlatTransform(x: Float, y: Float, w: Int, h: Int): Matrix4fArrayList {
-        // todo correct transform...
-        val matrix = Matrix4fArrayList()
-        matrix.translate((x - windowX).toFloat() / windowWidth, -(y - windowY).toFloat() / windowHeight, 0f)
-        val scale = h.toFloat() / windowHeight
-        // w.toFloat()/windowWidth
-        matrix.scale(scale)
-        return matrix
+    fun drawTexture(matrix: Matrix4fArrayList, w: Int, h: Int, texture: Texture2D, color: Int, tiling: Vector4f?) {
+        matrix.scale(w.toFloat()/windowWidth, h.toFloat()/windowHeight, 1f)
+        drawMode = ShaderPlus.DrawMode.COLOR
+        draw3D(
+            matrix, texture, color.v4(),
+            FilteringMode.LINEAR, ClampMode.CLAMP, tiling, UVProjection.Planar
+        )
     }
 
-    fun drawTexture(x: Int, y: Int, w: Int, h: Int, texture: Frame, color: Int, tiling: Vector4f?) {
+    fun drawTexture(w: Int, h: Int, texture: Frame, color: Int, tiling: Vector4f?) {
+        val matrix = Matrix4fArrayList()
+        matrix.scale(w.toFloat()/windowWidth, h.toFloat()/windowHeight, 1f)
+        drawMode = ShaderPlus.DrawMode.COLOR
         draw3D(
-            getFlatTransform(x.toFloat(), y.toFloat(), w, h),
-            texture, color.v4(),
+            matrix, texture, color.v4(),
             FilteringMode.LINEAR, ClampMode.CLAMP, tiling, UVProjection.Planar
         )
     }
 
     fun drawCircle(
-        x: Int, y: Int, w: Int, h: Int, innerRadius: Float, startDegrees: Float, endDegrees: Float, color: Vector4f
+        w: Int, h: Int, innerRadius: Float, startDegrees: Float, endDegrees: Float, color: Vector4f
     ) {
         // not perfect, but pretty good
         // anti-aliasing for the rough edges
         // not very economical, could be improved
+        val matrix = Matrix4fArrayList()
+        matrix.scale(w.toFloat()/windowWidth, h.toFloat()/windowHeight, 1f)
+        drawMode = ShaderPlus.DrawMode.COLOR
         color.w /= 25f
         for (dx in 0 until 5) {
             for (dy in 0 until 5) {
-                draw3DCircle(
-                    getFlatTransform(x + dx / 3f - 1.63f, y + dy / 3f - 1.63f, w, h),
-                    innerRadius, startDegrees, endDegrees, color
-                )
+                draw3DCircle(matrix, innerRadius, startDegrees, endDegrees, color)
             }
         }
     }
@@ -617,19 +621,22 @@ object GFX : GFXBase1() {
         setIcon()
     }
 
-    fun workQueue(queue: ConcurrentLinkedQueue<() -> Int>) {
+    fun workQueue(queue: ConcurrentLinkedQueue<Task>) {
         // async work section
 
+        // work 1/5th of the tasks by weight...
+
+        val workTodo = max(1000, queue.sumBy { it.first } / 5)
         var workDone = 0
         val workTime0 = System.nanoTime()
-        while (workDone < 100) {
+        while(true) {
             val nextTask = queue.poll() ?: break
-            workDone += nextTask()
+            nextTask.second()
+            workDone += nextTask.first
+            if(workDone >= workTodo) break
             val workTime1 = System.nanoTime()
             val workTime = abs(workTime1 - workTime0) * 1e-9f
-            if (workTime * editorVideoFPS > 1f) {// work is too slow
-                break
-            }
+            if (workTime * 60f > 1f) break // too much work
         }
 
     }
@@ -718,6 +725,8 @@ object GFX : GFXBase1() {
         val thisTime = System.nanoTime()
         rawDeltaTime = (thisTime - lastTime) * 1e-9f
         deltaTime = min(rawDeltaTime, 0.1f)
+        FrameTimes.putValue(deltaTime)
+
         val newFPS = 1f / rawDeltaTime
         currentEditorFPS = min(currentEditorFPS + (newFPS - currentEditorFPS) * 0.05f, newFPS)
         lastTime = thisTime

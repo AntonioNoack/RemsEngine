@@ -33,13 +33,12 @@ class FFMPEGAudio(file: File?, val sampleRate: Int, val length: Double):
             }
             input.reset()
             val wav = WaveReader(input, frameCount)
-            GFX.addAudioTask {
+            GFX.addAudioTask(10){
                 // println("got reader and is loading now...")
                 val buffer = SoundBuffer()
                 buffer.loadRawStereo16(wav.stereoPCM, sampleRate)
                 soundBuffer = buffer
                 ALBase.check()
-                10
             }
             /*thread {
                 // keep a reference to wav.stereoPCM, because we need it
