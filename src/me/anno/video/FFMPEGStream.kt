@@ -21,7 +21,7 @@ abstract class FFMPEGStream(val file: File?){
         fun getImageSequence(input: File, w: Int, h: Int, startFrame: Int, frameCount: Int, fps: Double = 10.0) =
             getImageSequence(input, w, h, startFrame / fps, frameCount, fps)
         fun getImageSequence(input: File, w: Int, h: Int, startTime: Double, frameCount: Int, fps: Double = 10.0) = FFMPEGVideo(
-            input, (startTime * fps).roundToInt()).run(listOf(
+            input, (startTime * fps).roundToInt(), frameCount).run(listOf(
             "-i", input.absolutePath,
             "-ss", "$startTime",
             "-vf", "scale=$w:$h",

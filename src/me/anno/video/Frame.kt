@@ -12,4 +12,10 @@ abstract class Frame(var w: Int, var h: Int){
     fun bind(offset: Int, filtering: FilteringMode, clampMode: ClampMode) = bind(offset, filtering.baseIsNearest, clampMode)
     abstract fun destroy()
     abstract fun load(input: InputStream)
+    fun waitToLoad(){
+        while (true) {
+            if (isLoaded) break
+            Thread.sleep(1)
+        }
+    }
 }

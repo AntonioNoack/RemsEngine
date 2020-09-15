@@ -13,7 +13,7 @@ class WindowsThumbDBStream(val src: InputStream) : InputStream() {
         return read
     }
 
-    fun setFilePtr(target: Int): Int {
+    fun jumpTo(target: Int): Int {
         // println("jump $ctr -> $target")
         if (target < ctr) {
             if(target < marked) throw RuntimeException()

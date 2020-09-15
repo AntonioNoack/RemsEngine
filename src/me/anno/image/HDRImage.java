@@ -1,5 +1,7 @@
 package me.anno.image;
 
+import java.awt.image.BufferedImage;
+import java.awt.image.DataBuffer;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInput;
@@ -43,6 +45,54 @@ public class HDRImage {
         try (InputStream in = new BufferedInputStream(new FileInputStream(file));) {
             read(in, useNioBuffer);
         }
+    }
+
+    public BufferedImage createBufferedImage() {
+        return createBufferedImage(width, height);
+    }
+
+    private static int rgb(int r, int g, int b){
+        return 0xff000000 | (r << 16) | (g << 8) | b;
+    }
+
+    public BufferedImage createBufferedImage(int w, int h) {
+        BufferedImage img = new BufferedImage(w, h, 1);
+        DataBuffer buffer = img.getRaster().getDataBuffer();
+        if(width == w && height == h){
+            for(int y=0,index=0;y<h;y++){
+                for(int x=0;x<w;x++,index++){
+                    int i0 = index*4;
+                    float r = pixels[i0++];
+                    float g = pixels[i0++];
+                    float b = pixels[i0];
+                    // reinhard tonemapping
+                    r = r / (r + 1f) * 255f;
+                    g = g / (g + 1f) * 255f;
+                    b = b / (b + 1f) * 255f;
+                    int value = rgb((int) r, (int) g, (int) b);
+                    buffer.setElem(index, value);
+                }
+            }
+        } else {
+            for(int y=0,index=0;y<h;y++){
+                int iy = y*height/h;
+                int iyw = iy * w;
+                for(int x=0;x<w;x++,index++){
+                    int ix = x*width/w;
+                    int i0 = (ix + iyw) * 4;
+                    float r = pixels[i0++];
+                    float g = pixels[i0++];
+                    float b = pixels[i0];
+                    // reinhard tonemapping
+                    r = r / (r + 1f) * 255f;
+                    g = g / (g + 1f) * 255f;
+                    b = b / (b + 1f) * 255f;
+                    int value = rgb((int) r, (int) g, (int) b);
+                    buffer.setElem(index, value);
+                }
+            }
+        }
+        return img;
     }
 
     //Construction method if the input is a InputStream.

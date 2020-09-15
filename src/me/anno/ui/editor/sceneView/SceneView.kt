@@ -242,13 +242,14 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")) {
         val camera = camera
         GFX.check()
 
-        val fb: Framebuffer? = null//FBStack[rw, rh, false]
+        val fb: Framebuffer? = null // FBStack[rw, rh, false]
         val width = fb?.w ?: GFX.width
         val height = fb?.h ?: GFX.height
         GFX.clip(0, 0, width, height)
 
         val radius = 2
         val diameter = radius * 2 + 1
+
         fun getPixels(mode: ShaderPlus.DrawMode): IntArray {
             // draw only the clicked area?
             Scene.draw(fb, camera, 0, 0, rw, rh, editorTime, false, mode, this)
@@ -297,6 +298,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")) {
                 bestResult = result
             }
         }
+
         // find the transform with the id to select it
         if (bestResult > 0) {
             val transform = (root.listOfAll + nullCamera).firstOrNull { it.clickId == bestResult }
@@ -305,6 +307,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")) {
             // println((root.listOfAll + nullCamera).map { it.clickId })
         } else select(null)
         GFX.check()
+
     }
 
     // todo camera movement in orthographic view is a bit broken

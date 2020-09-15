@@ -1,5 +1,12 @@
 package me.anno.ui.editor.files.thumbs
 
+import me.anno.ui.editor.files.thumbs.WindowsThumbDBVersions.vista
+import me.anno.ui.editor.files.thumbs.WindowsThumbDBVersions.win10
+import me.anno.ui.editor.files.thumbs.WindowsThumbDBVersions.win7
+import me.anno.ui.editor.files.thumbs.WindowsThumbDBVersions.win8
+import me.anno.ui.editor.files.thumbs.WindowsThumbDBVersions.win8_1
+import me.anno.ui.editor.files.thumbs.WindowsThumbDBVersions.win8v2
+import me.anno.ui.editor.files.thumbs.WindowsThumbDBVersions.win8v3
 import me.anno.utils.readNBytes
 import java.io.EOFException
 import java.io.File
@@ -64,7 +71,7 @@ object WindowsThumbnails {
                 lastKey = lastKey.shr(8) + input.read().shl(24)
                 if (lastKey == dbMagic) {
                     // found next entry point <3
-                    input.setFilePtr(input.ctr - 4)
+                    input.jumpTo(input.ctr - 4)
                     return true
                 }
                 if (input.ctr and 31 == 0) {
@@ -80,7 +87,7 @@ object WindowsThumbnails {
                 index++
 
                 // Set the file pointer to the end of the last cache entry.
-                currentPosition = input.setFilePtr(currentPosition)
+                currentPosition = input.jumpTo(currentPosition)
                 if (currentPosition < 0) break // eof reached
                 input.mark(entrySizeMax)
 
@@ -89,7 +96,7 @@ object WindowsThumbnails {
                     win7 -> {
                         entry = DatabaseCacheEntry7(input)
                         if (entry.magicIdentifier != dbMagic) {
-                            input.setFilePtr(currentPosition)
+                            input.jumpTo(currentPosition)
                             if (scanMemory(input)) {// valid entry was found
                                 currentPosition = input.ctr
                                 index--
@@ -101,7 +108,7 @@ object WindowsThumbnails {
                     vista -> {
                         entry = DatabaseCacheEntryVista(input)
                         if (entry.magicIdentifier != dbMagic) {
-                            input.setFilePtr(currentPosition)
+                            input.jumpTo(currentPosition)
                             if (scanMemory(input)) {// valid entry was found
                                 currentPosition = input.ctr
                                 index--
@@ -113,7 +120,7 @@ object WindowsThumbnails {
                     win8, win8v2, win8v3, win8_1, win10 -> {
                         entry = DatabaseCacheEntry8(input)
                         if (entry.magicIdentifier != dbMagic) {
-                            input.setFilePtr(currentPosition)
+                            input.jumpTo(currentPosition)
                             if (scanMemory(input)) {// valid entry was found
                                 currentPosition = input.ctr
                                 index--
@@ -141,9 +148,10 @@ object WindowsThumbnails {
                 // UTF-16 filename. Allocate the filename length
                 // plus 6 for the unicode extension and null character (we don't need that in Java)
                 var fileName = input.readNBytes(entry.filenameLength).toCharArray()
-                // println(fileName)
+                // entryHash = fileName
+                // println("$fileName, ${entry.dataChecksum.toULong().toString(16)}, ${entry.entryHash.toULong().toString(16)}")
 
-                if (isInterestedInFile(entry.dataChecksum)) {
+                if (isInterestedInFile(entry.entryHash)) {
 
                     // println("padding: ${entry.paddingSize}")
                     input.skip(entry.paddingSize.toLong())

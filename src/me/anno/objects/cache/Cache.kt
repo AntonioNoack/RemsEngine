@@ -1,13 +1,10 @@
 package me.anno.objects.cache
 
+import com.sun.org.apache.xpath.internal.operations.Bool
 import me.anno.gpu.GFX
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture3D
-import me.anno.objects.modes.LoopingState
-import me.anno.objects.cache.VideoData.Companion.framesPerContainer
-import me.anno.studio.Studio.editorTimeDilation
 import me.anno.video.FFMPEGMetadata
-import me.anno.video.FFMPEGStream
 import me.anno.video.Frame
 import org.apache.logging.log4j.LogManager
 import java.io.File
@@ -25,8 +22,8 @@ object Cache {
     private val cache = HashMap<Any, CacheEntry>()
     private val lockedKeys = HashSet<Any>(2048)
 
-    fun clear(){
-        synchronized(this){
+    fun clear() {
+        synchronized(this) {
             cache.values.forEach { it.destroy() }
             cache.clear()
             lockedKeys.clear() // mmh...
@@ -34,11 +31,11 @@ object Cache {
     }
 
     fun getLUT(file: File, asyncGenerator: Boolean, timeout: Long = 5000): Texture3D? {
-        val cache = getEntry("LUT", file.toString(), 0, timeout, asyncGenerator){
+        val cache = getEntry("LUT", file.toString(), 0, timeout, asyncGenerator) {
             val cache = Texture3DCache(null)
             thread {
                 val img = ImageIO.read(file)
-                val sqrt = sqrt(img.width+0.5f).toInt()
+                val sqrt = sqrt(img.width + 0.5f).toInt()
                 val tex = Texture3D(sqrt, img.height, sqrt)
                 tex.create(img, false)
                 cache.texture = tex
@@ -49,7 +46,7 @@ object Cache {
     }
 
     fun getIcon(name: String, asyncGenerator: Boolean, timeout: Long = 5000): Texture2D? {
-        val cache = getEntry("Icon", name, 0, timeout, asyncGenerator){
+        val cache = getEntry("Icon", name, 0, timeout, asyncGenerator) {
             val cache = TextureCache(null)
             thread {
                 try {
@@ -57,9 +54,9 @@ object Cache {
                     val tex = Texture2D(img.width, img.height, 1)
                     tex.create(img, false)
                     cache.texture = tex
-                } catch (e: FileNotFoundException){
+                } catch (e: FileNotFoundException) {
                     LOGGER.warn("Icon $name not found!")
-                } catch (e: Exception){
+                } catch (e: Exception) {
                     e.printStackTrace()
                 }
             }
@@ -68,12 +65,26 @@ object Cache {
         return cache?.texture as? Texture2D
     }
 
-    fun getEntry(file: File, allowDirectories: Boolean, key: Any, timeout: Long, asyncGenerator: Boolean, generator: () -> CacheData): CacheData? {
-        if(!file.exists() || (!allowDirectories && file.isDirectory)) return null
+    fun getEntry(
+        file: File,
+        allowDirectories: Boolean,
+        key: Any,
+        timeout: Long,
+        asyncGenerator: Boolean,
+        generator: () -> CacheData
+    ): CacheData? {
+        if (!file.exists() || (!allowDirectories && file.isDirectory)) return null
         return getEntry(file to key, timeout, asyncGenerator, generator)
     }
 
-    fun getEntry(major: String, minor: String, sub: Int, timeout: Long, asyncGenerator: Boolean, generator: () -> CacheData): CacheData? {
+    fun getEntry(
+        major: String,
+        minor: String,
+        sub: Int,
+        timeout: Long,
+        asyncGenerator: Boolean,
+        generator: () -> CacheData
+    ): CacheData? {
         return getEntry(Triple(major, minor, sub), timeout, asyncGenerator, generator)
     }
 
@@ -105,9 +116,9 @@ object Cache {
         // new, async cache
         // only the key needs to be locked, not the whole cache
 
-        if(asyncGenerator){
-            synchronized(lockedKeys){
-                if(key !in lockedKeys){
+        if (asyncGenerator) {
+            synchronized(lockedKeys) {
+                if (key !in lockedKeys) {
                     lockedKeys += key
                 } else {
                     return null
@@ -115,98 +126,86 @@ object Cache {
             }
         } else {
             var hasKey = false
-            while(!hasKey){
-                synchronized(lockedKeys){
-                    if(key !in lockedKeys){
+            while (!hasKey) {
+                synchronized(lockedKeys) {
+                    if (key !in lockedKeys) {
                         lockedKeys += key
                         hasKey = true
                     }
                 }
-                if(hasKey) break
+                if (hasKey) break
                 Thread.sleep(1)
             }
         }
 
 
         val cached: CacheEntry?
-        synchronized(cache){ cached = cache[key] }
-        if(cached != null){
+        synchronized(cache) { cached = cache[key] }
+        if (cached != null) {
             cached.lastUsed = GFX.lastTime
-            synchronized(lockedKeys){ lockedKeys.remove(key) }
+            synchronized(lockedKeys) { lockedKeys.remove(key) }
             return cached.data
         }
 
-        return if(asyncGenerator){
+        return if (asyncGenerator) {
             thread {
                 var data: CacheData? = null
                 try {
                     data = generator()
-                } catch (e: FileNotFoundException){
+                } catch (e: FileNotFoundException) {
                     LOGGER.info(e.message ?: "")
-                } catch (e: Exception){
+                } catch (e: Exception) {
                     e.printStackTrace()
                 }
-                synchronized(cache){ cache[key] = CacheEntry(data, timeout, GFX.lastTime) }
-                synchronized(lockedKeys){ lockedKeys.remove(key) }
+                synchronized(cache) { cache[key] = CacheEntry(data, timeout, GFX.lastTime) }
+                synchronized(lockedKeys) { lockedKeys.remove(key) }
             }
             null
         } else {
             var data: CacheData? = null
             try {
                 data = generator()
-            } catch (e: FileNotFoundException){
+            } catch (e: FileNotFoundException) {
                 LOGGER.info(e.message ?: "")
-            } catch (e: Exception){
+            } catch (e: Exception) {
                 e.printStackTrace()
             }
-            synchronized(cache){ cache[key] = CacheEntry(data, timeout, GFX.lastTime) }
-            synchronized(lockedKeys){ lockedKeys.remove(key) }
+            synchronized(cache) { cache[key] = CacheEntry(data, timeout, GFX.lastTime) }
+            synchronized(lockedKeys) { lockedKeys.remove(key) }
             data
         }
 
     }
 
-    fun getVideoFrame(file: File, scale: Int, index: Int, frameLength: Int, fps: Double, timeout: Long, isLooping: LoopingState): Frame? {
-        if(index < 0) return null
-        val bufferIndex = index/framesPerContainer
-        val videoData = getVideoFrames(file, scale, bufferIndex, fps, timeout) ?: return null
-        /*if(videoData.time0 != GFX.lastTime){
-            if(editorTimeDilation > 0.01f){
-                if((bufferIndex+1)*framesPerContainer <= frameLength){
-                    getVideoFrames(file, scale, bufferIndex+1, fps, timeout)
-                } else if(isLooping == LoopingState.PLAY_LOOP){// otherwise nearby containers will be loaded ;)
-                    getVideoFrames(file, scale, 0, fps, timeout)
-                }
-            } else if(editorTimeDilation < -0.01f){
-                if(bufferIndex > 0){
-                    getVideoFrames(file, scale, bufferIndex-1, fps, timeout)
-                } else {
-                    val maybeIndex = FFMPEGStream.frameCountByFile[file]
-                    if(maybeIndex != null){// 1/16 probability, that this won't work ...
-                        getVideoFrames(file, scale, (maybeIndex-1)/framesPerContainer, fps, timeout)
-                    }
-                }
-            }
-        }*/
-        return videoData.frames.getOrNull(index % framesPerContainer)
+    fun getVideoFrame(file: File, scale: Int, index: Int, bufferLength0: Int, fps: Double, timeout: Long, async: Boolean): Frame? {
+        if(file.isDirectory || !file.exists()) return null
+        if (index < 0) return null
+        val bufferLength = max(1, bufferLength0)
+        val bufferIndex = index / bufferLength
+        val videoData = getVideoFrames(file, scale, bufferIndex, bufferLength, fps, timeout, async) ?: return null
+        return videoData.frames.getOrNull(index % bufferLength)
     }
 
-    fun getVideoFrames(file: File, scale: Int, index: Int, fps: Double, timeout: Long) = getEntry(file, false, Triple(index, fps, scale), timeout, true){
-        val meta = FFMPEGMetadata.getMeta(file, false)!!
-        VideoData(file, meta.videoWidth/scale, meta.videoHeight/scale, index, fps)
-    } as? VideoData
+    data class VideoFramesKey(val file: File, val bufferIndex: Int, val frameLength: Int, val fps: Double)
+
+    fun getVideoFrames(file: File, scale: Int, bufferIndex: Int, bufferLength: Int, fps: Double, timeout: Long, async: Boolean) =
+        getEntry(VideoFramesKey(file, bufferIndex, bufferLength, fps), timeout, async) {
+            val meta = FFMPEGMetadata.getMeta(file, false)!!
+            VideoData(file, meta.videoWidth / scale, meta.videoHeight / scale, bufferIndex, bufferLength, fps)
+        } as? VideoData
 
     fun getImage(file: File, timeout: Long, asyncGenerator: Boolean) =
-        if(file.isDirectory || !file.exists()) null
-        else (getEntry(file as Any, timeout, asyncGenerator){
+        if (file.isDirectory || !file.exists()) null
+        else (getEntry(file as Any, timeout, asyncGenerator) {
             ImageData(file)
         } as? ImageData)?.texture
 
-    fun update(){
+    fun update() {
         val minTimeout = 300L
         val time = GFX.lastTime
-        synchronized(cache){
-            val toRemove = cache.filter { (_, entry) -> abs(entry.lastUsed - time) > max(entry.timeout, minTimeout) * 1_000_000 }
+        synchronized(cache) {
+            val toRemove =
+                cache.filter { (_, entry) -> abs(entry.lastUsed - time) > max(entry.timeout, minTimeout) * 1_000_000 }
             toRemove.forEach {
                 cache.remove(it.key)
                 it.value.destroy()

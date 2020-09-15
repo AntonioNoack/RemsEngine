@@ -9,7 +9,6 @@ import me.anno.gpu.texture.ClampMode
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.HDRImage
 import me.anno.objects.Video.Companion.imageTimeout
-import me.anno.objects.modes.LoopingState
 import me.anno.objects.modes.RotateJPEG
 import me.anno.video.Frame
 import org.apache.commons.imaging.Imaging
@@ -26,23 +25,51 @@ class ImageData(file: File) : CacheData {
     var texture = Texture2D(1024, 1024, 1)
     var framebuffer: Framebuffer? = null
 
+    companion object {
+        fun getRotation(file: File): RotateJPEG? {
+            val metadata = ImageMetadataReader.readMetadata(file)
+            var rotation: RotateJPEG? = null
+            for(dir in metadata.getDirectoriesOfType(ExifIFD0Directory::class.java)){
+                val desc = dir.getDescription(ExifIFD0Directory.TAG_ORIENTATION)?.toLowerCase() ?: continue
+                val mirror = "mirror" in desc
+                val mirrorHorizontal = mirror && "hori" in desc
+                val mirrorVertical = mirror && !mirrorHorizontal
+                val rotationDegrees = if("9" in desc) 90 else if("18" in desc) 180 else if("27" in desc) 270 else 0
+                if(mirrorHorizontal || mirrorVertical || rotationDegrees != 0) {
+                    rotation = RotateJPEG(mirrorHorizontal, mirrorVertical, rotationDegrees)
+                }
+            }
+            return rotation
+        }
+
+        fun frameToFramebuffer(frame: Frame, w: Int, h: Int, id: ImageData?): Framebuffer {
+            val framebuffer = Framebuffer("webp-temp", w, h, 1, 1, false, Framebuffer.DepthBufferType.NONE)
+            id?.framebuffer = framebuffer
+            framebuffer.bind()
+            id?.texture = framebuffer.textures[0]
+            val shader = frame.get3DShader().shader
+            GFX.shader3DUniforms(shader, Matrix4f(), Vector4f(1f, 1f, 1f, 1f))
+            frame.bind(0, true, ClampMode.CLAMP)
+            if (shader == shader3DYUV.shader) {
+                val w2 = frame.w
+                val h2 = frame.h
+                shader.v2("uvCorrection", w2.toFloat() / ((w2 + 1) / 2 * 2), h2.toFloat() / ((h2 + 1) / 2 * 2))
+            }
+            GFX.flat01.draw(shader)
+            GFX.check()
+            framebuffer.unbind()
+            GFX.check()
+            return framebuffer
+        }
+
+    }
+
     init {
         val fileExtension = file.extension
         // find jpeg rotation by checking exif tags...
         // they may appear on other images as well, so we don't filter for tags
         // this surely could be improved for improved performance...
-        val metadata = ImageMetadataReader.readMetadata(file)
-        var rotation: RotateJPEG? = null
-        for(dir in metadata.getDirectoriesOfType(ExifIFD0Directory::class.java)){
-            val desc = dir.getDescription(ExifIFD0Directory.TAG_ORIENTATION)?.toLowerCase() ?: continue
-            val mirror = "mirror" in desc
-            val mirrorHorizontal = mirror && "hori" in desc
-            val mirrorVertical = mirror && !mirrorHorizontal
-            val rotationDegrees = if("9" in desc) 90 else if("18" in desc) 180 else if("27" in desc) 270 else 0
-            if(mirrorHorizontal || mirrorVertical || rotationDegrees != 0) {
-                rotation = RotateJPEG(mirrorHorizontal, mirrorVertical, rotationDegrees)
-            }
-        }
+        val rotation = getRotation(file)
         // get all tags:
         /*for (directory in metadata.directories) {
             for (tag in directory.tags) {
@@ -73,32 +100,10 @@ class ImageData(file: File) : CacheData {
             }
             "webp" -> {
                 // calculate required scale? no, without animation, we don't need to scale it down ;)
-                var frame: Frame?
-                while (true) {
-                    frame = Cache.getVideoFrame(file, 1, 0, 0, 1.0, imageTimeout, LoopingState.PLAY_ONCE)
-                    if (frame != null && frame.isLoaded) break
-                    Thread.sleep(1)
-                }
-                frame!!
+                val frame = Cache.getVideoFrame(file, 1, 0, 0, 1.0, imageTimeout, false)!!
+                frame.waitToLoad()
                 GFX.addGPUTask(frame.w, frame.h) {
-                    val fw = frame.w
-                    val fh = frame.h
-                    val framebuffer = Framebuffer("webp-temp", fw, fh, 1, 1, false, Framebuffer.DepthBufferType.NONE)
-                    this.framebuffer = framebuffer
-                    framebuffer.bind()
-                    texture = framebuffer.textures[0]
-                    val shader = frame.get3DShader().shader
-                    GFX.shader3DUniforms(shader, Matrix4f(), Vector4f(1f, 1f, 1f, 1f))
-                    frame.bind(0, true, ClampMode.CLAMP)
-                    if (shader == shader3DYUV.shader) {
-                        val w = frame.w
-                        val h = frame.h
-                        shader.v2("uvCorrection", w.toFloat() / ((w + 1) / 2 * 2), h.toFloat() / ((h + 1) / 2 * 2))
-                    }
-                    GFX.flat01.draw(shader)
-                    GFX.check()
-                    framebuffer.unbind()
-                    GFX.check()
+                    frameToFramebuffer(frame, frame.w, frame.h, this)
                 }
                 // if(texture?.isLoaded == true) GFX.draw3D(stack, texture, color, nearestFiltering, tiling)
             }

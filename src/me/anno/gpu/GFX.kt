@@ -53,6 +53,7 @@ import me.anno.ui.debug.FrameTimes
 import me.anno.utils.clamp
 import me.anno.utils.f1
 import me.anno.utils.minus
+import me.anno.utils.print
 import me.anno.video.Frame
 import org.apache.logging.log4j.LogManager
 import org.joml.*
@@ -87,7 +88,7 @@ object GFX : GFXBase1() {
     // so just use a static variable
     var isFinalRendering = false
     var drawMode = ShaderPlus.DrawMode.COLOR_SQUARED
-    val isFakeColorRendering get() = drawMode != ShaderPlus.DrawMode.COLOR_SQUARED
+    val isFakeColorRendering get() = drawMode != ShaderPlus.DrawMode.COLOR_SQUARED && drawMode != ShaderPlus.DrawMode.COLOR
     var supportsAnisotropicFiltering = false
     var anisotropy = 1f
 
@@ -474,7 +475,7 @@ object GFX : GFXBase1() {
     }
 
     fun shaderColor(shader: Shader, name: String, color: Vector4f) {
-        if (isFakeColorRendering) {
+        if (drawMode == ShaderPlus.DrawMode.ID) {
             val id = drawnTransform!!.clickId
             shader.v4(name, id.b() / 255f, id.g() / 255f, id.r() / 255f, 1f)
         } else {
@@ -492,7 +493,7 @@ object GFX : GFXBase1() {
         endDegrees: Float,
         color: Vector4f
     ) {
-        val shader = shader3DCircle
+        val shader = shader3DCircle.shader
         shader3DUniforms(shader, stack, 1, 1, color, null, FilteringMode.NEAREST, null)
         var a0 = startDegrees
         var a1 = endDegrees
@@ -579,6 +580,35 @@ object GFX : GFXBase1() {
         check()
     }
 
+    fun draw2D(texture: Frame) {
+
+        if (!texture.isLoaded) throw RuntimeException("Frame must be loaded to be rendered!")
+        val shader = texture.get3DShader().shader
+
+        check()
+
+        shader.use()
+        shader.v1("filtering", FilteringMode.LINEAR.id)
+        shader.v2("textureDeltaUV", 1f / texture.w, 1f / texture.h)
+        Matrix4f().get(matrixBuffer)
+        GL20.glUniformMatrix4fv(shader["transform"], false, matrixBuffer)
+        shader.v4("tint", 1f, 1f, 1f, 1f)
+        shader.v4("tiling", 1f, 1f, 0f, 0f)
+        shader.v1("drawMode", ShaderPlus.DrawMode.COLOR.id)
+        shader.v1("uvProjection", UVProjection.Planar.id)
+
+        texture.bind(0, FilteringMode.LINEAR, ClampMode.CLAMP)
+        if (shader == shader3DYUV.shader) {
+            val w = texture.w
+            val h = texture.h
+            shader.v2("uvCorrection", w.toFloat() / ((w + 1) / 2 * 2), h.toFloat() / ((h + 1) / 2 * 2))
+        }
+
+        UVProjection.Planar.getBuffer().draw(shader)
+        check()
+
+    }
+
     fun draw3D(
         stack: Matrix4fArrayList, texture: Texture2D, color: Vector4f,
         filtering: FilteringMode, clampMode: ClampMode, tiling: Vector4f?, uvProjection: UVProjection
@@ -626,7 +656,10 @@ object GFX : GFXBase1() {
 
         // work 1/5th of the tasks by weight...
 
-        val workTodo = max(1000, queue.sumBy { it.first } / 5)
+        // changing to 10 doesn't make the frame rate smoother :/
+        val framesForWork = 5
+
+        val workTodo = max(1000, queue.sumBy { it.first } / framesForWork)
         var workDone = 0
         val workTime0 = System.nanoTime()
         while(true) {

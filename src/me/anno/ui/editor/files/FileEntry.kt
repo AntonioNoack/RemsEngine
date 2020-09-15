@@ -15,6 +15,7 @@ import me.anno.studio.Studio
 import me.anno.ui.base.Panel
 import me.anno.ui.base.TextPanel
 import me.anno.ui.dragging.Draggable
+import me.anno.ui.editor.files.thumbs.Thumbs
 import me.anno.ui.editor.sceneTabs.SceneTabs
 import me.anno.ui.style.Style
 import me.anno.utils.*
@@ -89,6 +90,29 @@ class FileEntry(val explorer: FileExplorer, val isParent: Boolean, val file: Fil
         backgroundColor = if (isInFocus) darkerBackgroundColor else originalBackgroundColor
         drawBackground()
         // todo tiles on background to show transparency? ofc only in the area of the image
+
+        fun drawImage(): Boolean {
+            val image = Thumbs.getThumbnail(file, w)
+            // val image = if (file.length() < 10e6) Cache.getImage(file, 1000, true) else null
+            return if(image != null){
+                var iw = image.w
+                var ih = image.h
+                val rot = image.rotation
+                image.ensureFilterAndClamping(false, ClampMode.CLAMP)
+                if(rot == null){
+                    val scale = (size - 20) / max(iw, ih).toFloat()
+                    iw = (iw * scale).roundToInt()
+                    ih = (ih * scale).roundToInt()
+                    GFX.drawTexture(x + (size - iw) / 2, y + (size - ih) / 2, iw, ih, image, -1, null)
+                } else {
+                    val m = Matrix4fArrayList()
+                    rot.apply(m)
+                    GFX.drawTexture(m, w, h, image, -1, null)
+                }
+                false
+            } else true
+        }
+
         if (file.extension.equals("svg", true)) {
 
         } else {
@@ -125,7 +149,7 @@ class FileEntry(val explorer: FileExplorer, val isParent: Boolean, val file: Fil
                             }
                             0
                         } % maxFrameIndex
-                        val scale = min(meta.videoWidth / w, meta.videoHeight / h)
+                        val scale = max(min(meta.videoWidth / w, meta.videoHeight / h), 1)
                         fun drawCircle(){
                             if(time < 0.0){
                                 // countdown-circle, pseudo-loading
@@ -141,13 +165,23 @@ class FileEntry(val explorer: FileExplorer, val isParent: Boolean, val file: Fil
                                     Vector4f(1f, 1f, 1f, r * 0.2f))
                             }
                         }
-                        if(scale > 0){
-                            val image = Cache.getVideoFrame(file, scale, frameIndex, if(frameIndex == 0) 16 else 64, previewFPS, 1000, LoopingState.PLAY_LOOP)
-                            if(image != null && image.isLoaded){
-                                GFX.drawTexture(w, h, image, -1, null)
-                                drawCircle()
-                                false
-                            } else true
+                        if(meta.videoWidth > 0){
+                            fun drawVideo(): Boolean {
+                                val bufferLength = 64
+                                val image = Cache.getVideoFrame(file, scale, frameIndex, bufferLength, previewFPS, 1000, true)
+                                if(frameIndex > 0) Cache.getVideoFrame(file, scale, frameIndex + bufferLength, bufferLength, previewFPS, 1000, true)
+                                return if(image != null && image.isLoaded){
+                                    GFX.drawTexture(w, h, image, -1, null)
+                                    drawCircle()
+                                    false
+                                } else true
+                            }
+                            if(time == 0.0){
+                                // not playing
+                                drawImage()// && drawVideo()
+                            } else {
+                                drawVideo()
+                            }
                         } else {
                             drawCircle()
                             drawDefaultIcon()
@@ -156,24 +190,7 @@ class FileEntry(val explorer: FileExplorer, val isParent: Boolean, val file: Fil
                     } else true
                 }
                 "Image" -> {
-                    val image = if (file.length() < 10e6) Cache.getImage(file, 1000, true) else null
-                    if(image != null){
-                        var iw = image.w
-                        var ih = image.h
-                        val rot = image.rotation
-                        image.ensureFilterAndClamping(false, ClampMode.CLAMP)
-                        if(rot == null){
-                            val scale = (size - 20) / max(iw, ih).toFloat()
-                            iw = (iw * scale).roundToInt()
-                            ih = (ih * scale).roundToInt()
-                            GFX.drawTexture(x + (size - iw) / 2, y + (size - ih) / 2, iw, ih, image, -1, null)
-                        } else {
-                            val m = Matrix4fArrayList()
-                            rot.apply(m)
-                            GFX.drawTexture(m, w, h, image, -1, null)
-                        }
-                    }
-                    image == null
+                    drawImage()
                 }
                 else -> true
             }

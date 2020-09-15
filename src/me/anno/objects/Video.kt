@@ -16,6 +16,7 @@ import me.anno.io.xml.XMLReader
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.cache.Cache
 import me.anno.objects.cache.StaticFloatBufferData
+import me.anno.objects.cache.VideoData.Companion.framesPerContainer
 import me.anno.objects.modes.LoopingState
 import me.anno.objects.modes.UVProjection
 import me.anno.studio.Scene
@@ -183,7 +184,7 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
                     val localTime = startTime + isLooping[time, duration]
                     val frameIndex = (localTime * videoFPS).toInt() % frameCount
 
-                    val frame = Cache.getVideoFrame(file, zoomLevel, frameIndex, frameCount, videoFPS, videoFrameTimeout, isLooping)
+                    val frame = Cache.getVideoFrame(file, zoomLevel, frameIndex, framesPerContainer, videoFPS, videoFrameTimeout, true)
                     if(frame != null && frame.isLoaded){
                         GFX.draw3D(stack, frame, color, this@Video.filtering, this@Video.clampMode, tiling[time], uvProjection)
                         wasDrawn = true
@@ -227,7 +228,7 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
             name.endsWith("webp", true) -> {
                 val tiling = tiling[time]
                 // calculate required scale? no, without animation, we don't need to scale it down ;)
-                val texture = Cache.getVideoFrame(file, 1, 0, 0, 1.0, imageTimeout, LoopingState.PLAY_ONCE)
+                val texture = Cache.getVideoFrame(file, 1, 0, 1, 1.0, imageTimeout, true)
                 if((texture == null || !texture.isLoaded) && GFX.isFinalRendering) throw MissingFrameException(file)
                 if(texture?.isLoaded == true) GFX.draw3D(stack, texture, color, this@Video.filtering, this@Video.clampMode, tiling, uvProjection)
             }
@@ -294,7 +295,7 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
                             val localTime2 = startTime + isLooping[localTime, duration]
                             val frameIndex = (localTime2 * videoFPS).toInt() % frameCount
 
-                            Cache.getVideoFrame(file, zoomLevel, frameIndex, frameCount, videoFPS, videoFrameTimeout, isLooping)
+                            Cache.getVideoFrame(file, zoomLevel, frameIndex, frameCount, videoFPS, videoFrameTimeout, true)
 
                         }
                     }

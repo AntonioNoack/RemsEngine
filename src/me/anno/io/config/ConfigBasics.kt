@@ -18,6 +18,7 @@ object ConfigBasics {
     val utf8Charset = Charset.forName("UTF-8")
 
     val configFolder = File(OS.home, ".config/RemsStudio")
+    val cacheFolder = File(OS.home, ".cache/RemsStudio")
 
     val beautify = true
 

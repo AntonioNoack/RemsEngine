@@ -19,7 +19,7 @@ object ShaderLib {
     lateinit var shader3DYUV: ShaderPlus
     lateinit var shader3DARGB: ShaderPlus
     lateinit var shader3DBGRA: ShaderPlus
-    lateinit var shader3DCircle: Shader
+    lateinit var shader3DCircle: ShaderPlus
     lateinit var shader3DSVG: ShaderPlus
     lateinit var lineShader3D: Shader
     lateinit var shader3DMasked: ShaderPlus
@@ -168,8 +168,6 @@ object ShaderLib {
         val positionPostProcessing = "" +
                 "zDistance = gl_Position.w;\n"
 
-        val colorPostProcessing = ""
-
         val colorProcessing = "" +
                 "   if(color.a <= 0.0) discard;\n"
 
@@ -239,7 +237,6 @@ object ShaderLib {
                 "   vec4 color = getTexture(tex, getProjectedUVs(uv, uvw));\n" +
                 colorProcessing +
                 "   gl_FragColor = tint * color;\n" +
-                colorPostProcessing +
                 "}"
 
         val y3DMasked = "" +
@@ -311,7 +308,6 @@ object ShaderLib {
                 getTextureLib +
                 "void main(){\n" +
                 "   gl_FragColor = tint * color * getTexture(tex, uv);\n" +
-                colorPostProcessing +
                 "}"
 
 
@@ -328,8 +324,8 @@ object ShaderLib {
         val f3DCircle = "" +
                 "u4 tint;\n" + // rgba
                 "void main(){\n" +
+                "   vec4 color = vec4(1.0);\n" +
                 "   gl_FragColor = tint;\n" +
-                colorPostProcessing +
                 "}"
 
         shader3D = createShaderPlus("3d", v3D, y3D, f3D, listOf("tex"))
@@ -356,11 +352,10 @@ object ShaderLib {
                     "   color.rgb *= 0.5 + 0.5 * dot(vec3(1.0, 0.0, 0.0), normal);\n" +
                     colorProcessing +
                     "   gl_FragColor = tint * color;\n" +
-                    colorPostProcessing +
                     "}", listOf()
         )
 
-        shader3DCircle = Shader("3dCircle", v3DCircle, y3D, f3DCircle)
+        shader3DCircle = createShaderPlus("3dCircle", v3DCircle, y3D, f3DCircle, listOf())
         shader3DMasked = createShaderPlus("3d-masked", v3DMasked, y3DMasked, f3DMasked, listOf("mask", "tex"))
 
         shader3DSVG = createShaderPlus("3d-svg", v3DSVG, y3DSVG, f3DSVG, listOf("tex"))
@@ -385,7 +380,6 @@ object ShaderLib {
                     "       dot(yuv, vec3( 1.164, -0.392, -0.813))," +
                     "       dot(yuv, vec3( 1.164,  2.017,  0.000)), 1.0);\n" +
                     "   gl_FragColor = tint * color;\n" +
-                    colorPostProcessing +
                     "}", listOf("texY", "texU", "texV")
         )
 
@@ -398,7 +392,6 @@ object ShaderLib {
                     "   vec4 color = getTexture(tex, getProjectedUVs(uv, uvw)).gbar;\n" +
                     colorProcessing +
                     "   gl_FragColor = tint * color;\n" +
-                    colorPostProcessing +
                     "}", listOf("tex")
         )
 
@@ -411,7 +404,6 @@ object ShaderLib {
                     "   vec4 color = getTexture(tex, getProjectedUVs(uv, uvw)).bgra;\n" +
                     colorProcessing +
                     "   gl_FragColor = tint * color;\n" +
-                    colorPostProcessing +
                     "}", listOf("tex")
         )
 
@@ -426,7 +418,6 @@ object ShaderLib {
                     "uniform vec4 color;\n" +
                     "void main(){" +
                     "   gl_FragColor = color;\n" +
-                    colorPostProcessing +
                     "}"
 
         )
