@@ -94,13 +94,13 @@ class FFMPEGMetadata(file: File): CacheData {
 
         hasAudio = audio != null
         audioStartTime = audio?.get("start_time")?.asText()?.toDouble() ?: 0.0
-        audioDuration = audio?.get("duration")?.asText()?.toDouble() ?: 0.0
+        audioDuration = audio?.get("duration")?.asText()?.toDouble() ?: duration
         audioSampleRate = audio?.get("sample_rate")?.asText()?.toInt() ?: 20
         audioSampleCount = audio?.get("duration_ts")?.asText()?.toLong() ?: (audioSampleRate * audioDuration).toLong()
 
         hasVideo = video != null
         videoStartTime = video?.get("start_time")?.asText()?.toDouble() ?: 0.0
-        videoDuration = video?.get("duration")?.asText()?.toDouble() ?: 0.0
+        videoDuration = video?.get("duration")?.asText()?.toDouble() ?: duration
         videoFrameCount = video?.get("nb_frames")?.asText()?.toInt() ?: 0
         videoWidth = video?.get("width")?.asText()?.toInt() ?: 0
         videoHeight = video?.get("height")?.asText()?.toInt() ?: 0

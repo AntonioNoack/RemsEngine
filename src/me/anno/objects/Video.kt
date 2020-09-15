@@ -27,6 +27,7 @@ import me.anno.ui.editor.sceneView.Grid
 import me.anno.ui.input.*
 import me.anno.ui.style.Style
 import me.anno.utils.*
+import me.anno.video.FFMPEGMetadata
 import me.anno.video.FFMPEGMetadata.Companion.getMeta
 import me.anno.video.MissingFrameException
 import org.joml.Matrix4f
@@ -142,64 +143,56 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
 
     var zoomLevel = 0
 
-    fun drawVideoFrames(stack: Matrix4fArrayList, time: Double, color: Vector4f){
-
-        val meta = getMeta(file, true)
+    fun drawVideoFrames(meta: FFMPEGMetadata, stack: Matrix4fArrayList, time: Double, color: Vector4f){
 
         // todo automatic spherical size estimation??
-        val zoomLevel = if(meta != null){
+        val zoomLevel = if(videoScale < 1) {
             // calculate reasonable zoom level from canvas size
-            if(videoScale < 1) {
-                if(uvProjection.doScale){
-                    val rawZoomLevel = calculateSize(stack, meta.videoWidth, meta.videoHeight) ?: return
-                    getCacheableZoomLevel(rawZoomLevel)
-                } else 1
-            } else videoScale
-        } else 1
+            if(uvProjection.doScale){
+                val rawZoomLevel = calculateSize(stack, meta.videoWidth, meta.videoHeight) ?: return
+                getCacheableZoomLevel(rawZoomLevel)
+            } else 1
+        } else videoScale
         this.zoomLevel = zoomLevel
 
         var wasDrawn = false
 
-        if(meta == null && GFX.isFinalRendering) throw MissingFrameException(file)
-        if(meta != null){
+        val sourceFPS = meta.videoFPS
+        val sourceDuration = meta.videoDuration
 
-            val sourceFPS = meta.videoFPS
-            val sourceDuration = meta.videoDuration
+        if(startTime >= sourceDuration) startTime = sourceDuration
+        if(endTime >= sourceDuration) endTime = sourceDuration
 
-            if(startTime >= sourceDuration) startTime = sourceDuration
-            if(endTime >= sourceDuration) endTime = sourceDuration
+        if(sourceFPS > 0.0){
+            if(time + startTime >= 0.0 && (isLooping != LoopingState.PLAY_ONCE || time <= endTime)){
 
-            if(sourceFPS > 0.0){
-                if(time + startTime >= 0.0 && (isLooping != LoopingState.PLAY_ONCE || time < endTime)){
+                // use full fps when rendering to correctly render at max fps with time dilation
+                // issues arise, when multiple frames should be interpolated together into one
+                // at this time, we chose the center frame only.
+                val videoFPS = if(GFX.isFinalRendering) sourceFPS else min(sourceFPS, GFX.editorVideoFPS)
 
-                    // use full fps when rendering to correctly render at max fps with time dilation
-                    // issues arise, when multiple frames should be interpolated together into one
-                    // at this time, we chose the center frame only.
-                    val videoFPS = if(GFX.isFinalRendering) sourceFPS else min(sourceFPS, GFX.editorVideoFPS)
+                val frameCount = max(1, (sourceDuration * videoFPS).roundToInt())
 
-                    val frameCount = max(1, (sourceDuration * videoFPS).roundToInt())
+                // draw the current texture
+                val duration = endTime - startTime
+                val localTime = startTime + isLooping[time, duration]
+                val frameIndex = (localTime * videoFPS).toInt() % frameCount
 
-                    // draw the current texture
-                    val duration = endTime - startTime
-                    val localTime = startTime + isLooping[time, duration]
-                    val frameIndex = (localTime * videoFPS).toInt() % frameCount
-
-                    val frame = Cache.getVideoFrame(file, zoomLevel, frameIndex, framesPerContainer, videoFPS, videoFrameTimeout, true)
-                    if(frame != null && frame.isLoaded){
-                        GFX.draw3D(stack, frame, color, this@Video.filtering, this@Video.clampMode, tiling[time], uvProjection)
-                        wasDrawn = true
-                    } else {
-                        if(GFX.isFinalRendering){
-                            throw MissingFrameException(file)
-                        }
+                val frame = Cache.getVideoFrame(file, zoomLevel, frameIndex, framesPerContainer, videoFPS, videoFrameTimeout, true)
+                if(frame != null && frame.isLoaded){
+                    GFX.draw3D(stack, frame, color, this@Video.filtering, this@Video.clampMode, tiling[time], uvProjection)
+                    wasDrawn = true
+                } else {
+                    if(GFX.isFinalRendering){
+                        throw MissingFrameException(file)
                     }
+                }
 
-                    // stack.scale(0.1f)
-                    // GFX.draw3D(stack, FontManager.getString("Verdana",15f, "$frameIndex/$fps/$duration/$frameCount")!!, Vector4f(1f,1f,1f,1f), 0f)
-                    // stack.scale(10f)
+                // stack.scale(0.1f)
+                // GFX.draw3D(stack, FontManager.getString("Verdana",15f, "$frameIndex/$fps/$duration/$frameCount")!!, Vector4f(1f,1f,1f,1f), 0f)
+                // stack.scale(10f)
 
-                } else wasDrawn = true
-            }
+            } else wasDrawn = true
         }
 
         if(!wasDrawn){
@@ -326,12 +319,12 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
             when(type){
                 VideoType.VIDEO -> {
                     if(meta?.hasVideo == true){
-                        drawVideoFrames(stack, time, color)
+                        drawVideoFrames(meta, stack, time, color)
                     }
-                    if(meta?.hasAudio == true){
-                        // very intrusive :/
-                        // drawSpeakers(stack, time, color)
-                    }
+                    // very intrusive :/
+                    /*if(meta?.hasAudio == true){
+                        drawSpeakers(stack, time, color)
+                    }*/
                 }
                 VideoType.IMAGE -> drawImageFrames(stack, time, color)
                 VideoType.AUDIO -> drawSpeakers(stack, time, color)

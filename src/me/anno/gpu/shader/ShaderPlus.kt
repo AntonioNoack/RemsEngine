@@ -26,7 +26,6 @@ class ShaderPlus(name: String, vertex: String, varying: String, fragment: String
                 "           gl_FragColor.rgb *= gl_FragColor.rgb;\n" +
                 "           break;\n" +
                 "       case ${DrawMode.COLOR.id}:\n" +
-                // somehow the tint is broken...
                 "           break;\n" +
                 "       case ${DrawMode.ID.id}:\n" +
                 "           if(gl_FragColor.a < 0.01) discard;\n" +
