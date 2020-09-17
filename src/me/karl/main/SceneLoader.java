@@ -21,18 +21,13 @@ public class SceneLoader {
     public static Scene loadScene(URI resFolder) {
         return loadScene(
                 new URI(resFolder, GeneralSettings.MODEL_FILE),
-                new URI(resFolder, GeneralSettings.DIFFUSE_FILE),
                 new URI(resFolder, GeneralSettings.ANIM_FILE)
         );
     }
 
-	public static Scene loadScene(URI model, URI texture) {
-		return loadScene(model, texture, model);
-	}
-
-    public static Scene loadScene(URI model, URI texture, URI anim) {
+    public static Scene loadScene(URI model, URI anim) {
         ICamera camera = new Camera();
-        AnimatedModel entity = AnimatedModelLoader.loadEntity(model, texture);
+        AnimatedModel entity = AnimatedModelLoader.loadEntity(model);
         Animation animation = AnimationLoader.loadAnimation(anim);
         entity.doAnimation(animation);
         Scene scene = new Scene(entity, camera);

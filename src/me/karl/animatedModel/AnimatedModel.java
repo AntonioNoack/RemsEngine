@@ -88,9 +88,9 @@ public class AnimatedModel {
 	 * Deletes the OpenGL objects associated with this entity, namely the model
 	 * (VAO) and texture.
 	 */
-	public void delete() {
-		model.delete();
-		texture.delete();
+	public void destroy() {
+		model.destroy();
+		texture.destroy();
 	}
 
 	/**

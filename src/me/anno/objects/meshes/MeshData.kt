@@ -26,8 +26,8 @@ import java.io.File
 
 class MeshData : CacheData {
 
-    lateinit var toDraw: Map<Material, StaticFloatBuffer>
-    lateinit var fbxGeometry: FBXGeometry
+    var objData: Map<Material, StaticFloatBuffer>? = null
+    var fbxGeometry: FBXGeometry? = null
     var daeScene: Scene? = null
 
     fun getTexture(file: File?, defaultTexture: Texture2D): Texture2D {
@@ -38,7 +38,7 @@ class MeshData : CacheData {
     }
 
     fun drawObj(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
-        for ((material, buffer) in toDraw) {
+        for ((material, buffer) in objData!!) {
             val shader = shaderObjMtl.shader
             GFX.shader3DUniforms(shader, stack, 1, 1, color, null, FilteringMode.NEAREST, null)
             getTexture(material.diffuseTexture, whiteTexture).bind(0, false, ClampMode.CLAMP)
@@ -59,15 +59,14 @@ class MeshData : CacheData {
     }
 
     // doesn't work :/
-    // todo maybe just try the collada code from ThinMatrix
     fun drawFBX(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
-        for ((material, buffer) in toDraw) {
+        for ((material, buffer) in objData!!) {
 
             val shader = shaderFBX.shader
             shader.use()
 
             // todo calculate all bone transforms, and upload them to the shader...
-            val geo = fbxGeometry
+            val geo = fbxGeometry!!
             // todo is weight 0 automatically set, and 1-sum???
             // todo root motion might be saved in object...
 
@@ -128,9 +127,11 @@ class MeshData : CacheData {
     }
 
     override fun destroy() {
-        toDraw.entries.forEach {
+        objData?.entries?.forEach {
             it.value.destroy()
         }
+        // fbxGeometry?.destroy()
+        daeScene?.animatedModel?.destroy()
     }
 
 }

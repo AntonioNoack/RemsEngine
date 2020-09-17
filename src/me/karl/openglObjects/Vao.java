@@ -69,7 +69,7 @@ public class Vao {
 		dataVbos.add(dataVbo);
 	}
 	
-	public void delete() {
+	public void destroy() {
 		GL30.glDeleteVertexArrays(id);
 		for(Vbo vbo : dataVbos){
 			vbo.delete();

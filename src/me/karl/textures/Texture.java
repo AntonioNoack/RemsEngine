@@ -28,7 +28,7 @@ public class Texture {
 		GL11.glBindTexture(type, textureId);
 	}
 
-	public void delete() {
+	public void destroy() {
 		GL11.glDeleteTextures(textureId);
 	}
 

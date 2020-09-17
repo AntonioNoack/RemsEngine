@@ -27,7 +27,7 @@ public class AnimatedModelShader extends ShaderProgram {
 			"out vec3 pass_normal;\n" +
 
 			"uniform mat4 jointTransforms[MAX_JOINTS];\n" +
-			"uniform mat4 projectionViewMatrix;\n" +
+			"uniform mat4 transform;\n" +
 
 			"void main(void){\n" +
 
@@ -43,7 +43,7 @@ public class AnimatedModelShader extends ShaderProgram {
 			"		totalNormal += worldNormal * in_weights[i];\n" +
 			"	}\n" +
 
-			"	gl_Position = projectionViewMatrix * totalLocalPos;\n" +
+			"	gl_Position = transform * totalLocalPos;\n" +
 			"	pass_normal = totalNormal.xyz;\n" +
 			"	pass_textureCoords = in_textureCoords;\n" +
 
@@ -69,7 +69,7 @@ public class AnimatedModelShader extends ShaderProgram {
 			"	out_colour = diffuseColour * diffuseLight;\n" +
 			"}";
 
-	protected UniformMatrix projectionViewMatrix = new UniformMatrix("projectionViewMatrix");
+	protected UniformMatrix projectionViewMatrix = new UniformMatrix("transform");
 	protected UniformVec3 lightDirection = new UniformVec3("lightDirection");
 	protected UniformMat4Array jointTransforms = new UniformMat4Array("jointTransforms", MAX_JOINTS);
 	private final UniformSampler diffuseMap = new UniformSampler("diffuseMap");

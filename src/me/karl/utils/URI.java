@@ -1,6 +1,7 @@
 package me.karl.utils;
 
 import me.anno.utils.OS;
+import org.lwjgl.system.CallbackI;
 
 import java.io.*;
 
@@ -14,7 +15,7 @@ public class URI {
 
     private static final String FILE_SEPARATOR = "/";
 
-    private String path;
+    private CharSequence path;
     private String name;
     private File file;
 
@@ -29,11 +30,13 @@ public class URI {
     }
 
     public URI(String... paths) {
-        this.path = "";
+        StringBuilder path2 = new StringBuilder(2 * paths.length);
+        this.path = path2;
         for (String part : paths) {
-            this.path += (FILE_SEPARATOR + part);
+            path2.append(FILE_SEPARATOR);
+            path2.append(part);
         }
-        String[] dirs = path.split(FILE_SEPARATOR);
+        String[] dirs = paths[paths.length-1].split(FILE_SEPARATOR);
         this.name = dirs[dirs.length - 1];
     }
 
@@ -43,27 +46,39 @@ public class URI {
     }
 
     public URI(URI file, String... subFiles) {
-        this.path = file.path;
+        StringBuilder path = new StringBuilder(subFiles.length * 2 + 1);
+        path.append(file.path.toString());
         for (String part : subFiles) {
-            this.path += (FILE_SEPARATOR + part);
+            path.append(FILE_SEPARATOR);
+            path.append(part);
         }
-        String[] dirs = path.split(FILE_SEPARATOR);
+        this.path = path;
+        String[] dirs = subFiles[subFiles.length-1].split(FILE_SEPARATOR);
         this.name = dirs[dirs.length - 1];
     }
 
-    public String getPath() {
+    public URI getParent(){
+        if(file != null) return new URI(file.getParentFile());
+        int si = path.toString().lastIndexOf(FILE_SEPARATOR);
+        return new URI(path.toString().substring(0, si));
+    }
+
+    public URI getChild(String name){
+        if(file != null) return new URI(new File(file, name));
+        return new URI(this, name);
+    }
+
+    public CharSequence getPath() {
         return path;
     }
 
     @Override
     public String toString() {
-        return getPath();
+        return file == null ? getPath().toString() : file.toString();
     }
 
     public InputStream getInputStream() throws FileNotFoundException {
-        return new FileInputStream(file == null ?
-				new File(new File(OS.INSTANCE.getDocuments(), "IdeaProjects\\TestDae\\src"), path.substring(1)) :
-				file);
+        return new FileInputStream(file == null ? new File(new File(OS.INSTANCE.getDocuments(), "IdeaProjects\\VideoStudio\\src\\me\\karl"), path.toString().substring(1)) : file);
         // return Class.class.getResourceAsStream(path);
     }
 

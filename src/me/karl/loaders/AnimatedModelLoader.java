@@ -21,10 +21,10 @@ public class AnimatedModelLoader {
 	 *
 	 * @return The animated entity (no animation applied though)
 	 */
-	public static AnimatedModel loadEntity(URI modelFile, URI textureFile) {
+	public static AnimatedModel loadEntity(URI modelFile) {
 		AnimatedModelData entityData = ColladaLoader.loadColladaModel(modelFile, GeneralSettings.MAX_WEIGHTS);
 		Vao model = createVao(entityData.getMeshData());
-		Texture texture = loadTexture(textureFile);
+		Texture texture = loadTexture(modelFile.getParent().getChild(entityData.getTextureData().textures.get(0)));
 		SkeletonData skeletonData = entityData.getJointsData();
 		Joint headJoint = createJoints(skeletonData.headJoint);
 		return new AnimatedModel(model, texture, headJoint, skeletonData.jointCount);

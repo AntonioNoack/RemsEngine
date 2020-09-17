@@ -9,7 +9,7 @@ import org.joml.Vector4f
 import org.lwjgl.opengl.GL20.*
 import java.lang.RuntimeException
 
-class Shader(val shaderName: String,
+open class Shader(val shaderName: String,
              private val vertex: String,
              private val varying: String,
              private val fragment: String,
@@ -23,16 +23,18 @@ class Shader(val shaderName: String,
 
     private var program = -1
 
+    val pointer get() = program
+
     // shader compile time doesn't really matter... -> move it to the start to preserve ram use?
     // isn't that much either...
     fun init(){
         program = glCreateProgram()
         // the shaders are like a C compilation process, .o-files: after linking, they can be removed
         val vertexShader = compile(GL_VERTEX_SHADER, ("" +
-                "#version 130\n " +
+                "#version 150\n " +
                 "${varying.replace("varying", "out")} $vertex").replaceShortCuts())
         val fragmentShader = compile(GL_FRAGMENT_SHADER, ("" +
-                "#version 130\n" +
+                "#version 150\n" +
                 "precision mediump float; ${varying.replace("varying", "in")} $fragment").replaceShortCuts())
         glLinkProgram(program)
         glDeleteShader(vertexShader)
@@ -62,6 +64,7 @@ class Shader(val shaderName: String,
         .replace(" m4 ", " mat4 ")
 
     private fun compile(type: Int, source: String): Int {
+        // println("$shaderName/$type: $source")
         val shader = glCreateShader(type)
         glShaderSource(shader, source)
         glCompileShader(shader)

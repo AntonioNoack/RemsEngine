@@ -20,6 +20,7 @@ import me.karl.main.GeneralSettings
 import me.karl.main.SceneLoader
 import me.karl.renderEngine.RenderEngine
 import me.karl.renderer.AnimatedModelRenderer
+import me.karl.utils.URI
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
 import java.io.File
@@ -27,7 +28,7 @@ import java.io.File
 class Mesh(var file: File, parent: Transform?): GFXTransform(parent){
 
     companion object {
-        var daeEngine: RenderEngine? = null
+        // var daeEngine: RenderEngine? = null
         var daeRenderer: AnimatedModelRenderer? = null
     }
 
@@ -56,8 +57,7 @@ class Mesh(var file: File, parent: Transform?): GFXTransform(parent){
                 "dae" -> {
 
                     GFX.check()
-                    if(daeEngine == null){
-                        daeEngine = RenderEngine.init()
+                    if(daeRenderer == null){
                         daeRenderer = AnimatedModelRenderer()
                     }
                     GFX.check()
@@ -68,7 +68,7 @@ class Mesh(var file: File, parent: Transform?): GFXTransform(parent){
                         val meshData = MeshData()
                         GFX.addGPUTask(10){
                             GFX.check()
-                            meshData.daeScene = SceneLoader.loadScene(GeneralSettings.RES_FOLDER)
+                            meshData.daeScene = SceneLoader.loadScene(URI(file),URI(file))
                             GFX.check()
                         }
                         Thread.sleep(100) // wait for the texture to load
@@ -86,7 +86,7 @@ class Mesh(var file: File, parent: Transform?): GFXTransform(parent){
                     val data = Cache.getEntry(file, false, "Mesh", 1000, true){
                         val fbxGeometry = FBXReader(file.inputStream().buffered()).fbxObjects.filterIsInstance<FBXGeometry>().first()
                         val meshData = MeshData()
-                        meshData.toDraw = mapOf(Material() to fbxGeometry.generateMesh())
+                        meshData.objData = mapOf(Material() to fbxGeometry.generateMesh())
                         meshData.fbxGeometry = fbxGeometry
                         meshData
                     } as? MeshData
@@ -109,7 +109,7 @@ class Mesh(var file: File, parent: Transform?): GFXTransform(parent){
                         val obj = OBJReader(file)
                         // generate mesh data from this obj somehow...
                         val meshData = MeshData()
-                        meshData.toDraw = obj.pointsByMaterial.mapValues {
+                        meshData.objData = obj.pointsByMaterial.mapValues {
                             val buffer = StaticFloatBuffer(attributes, it.value.size)
                             it.value.forEach { v -> buffer.put(v) }
                             buffer

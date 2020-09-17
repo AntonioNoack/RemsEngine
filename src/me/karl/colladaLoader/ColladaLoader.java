@@ -1,10 +1,6 @@
 package me.karl.colladaLoader;
 
-import me.karl.dataStructures.AnimatedModelData;
-import me.karl.dataStructures.AnimationData;
-import me.karl.dataStructures.MeshData;
-import me.karl.dataStructures.SkeletonData;
-import me.karl.dataStructures.SkinningData;
+import me.karl.dataStructures.*;
 import me.karl.utils.URI;
 import me.karl.xmlParser.XmlNode;
 import me.karl.xmlParser.XmlParser;
@@ -23,7 +19,10 @@ public class ColladaLoader {
 		GeometryLoader g = new GeometryLoader(node.getChild("library_geometries"), skinningData.verticesSkinData);
 		MeshData meshData = g.extractModelData();
 
-		return new AnimatedModelData(meshData, jointsData);
+		TextureLoader l = new TextureLoader(node.getChild("library_images"));
+		TextureData textureData = l.extractTextureData();
+
+		return new AnimatedModelData(meshData, jointsData, textureData);
 	}
 
 	public static AnimationData loadColladaAnimation(URI colladaFile) {
