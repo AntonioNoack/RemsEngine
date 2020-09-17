@@ -59,6 +59,7 @@ object DefaultConfig: StringMap() {
         addImportMappings("Cubemap-Equ", "hdr")
         addImportMappings("Video", "mp4", "gif", "mpeg", "avi", "flv", "wmv")
         addImportMappings("Text", "txt")
+        addImportMappings("Mesh", "obj", "fbx", "dae")
         // not yet supported
         // addImportMappings("Markdown", "md")
         addImportMappings("Audio", "mp3", "wav", "ogg", "m4a")

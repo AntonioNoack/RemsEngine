@@ -123,7 +123,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")) {
     val mayControlCamera get() = camera === nullCamera || editorTimeDilation == 0.0
     var lastW = 0
     var lastH = 0
-    var lastCtr = 0
+    var lastSizeUpdate = GFX.lastTime
     var goodW = 0
     var goodH = 0
 
@@ -170,9 +170,10 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")) {
         // check if the size stayed the same;
         // because resizing all framebuffers is expensive (causes lag)
         val matchesSize = lastW == rw && lastH == rh
-        val wasDrawn = matchesSize && lastCtr > 5
+        val wasNotRecentlyUpdated = lastSizeUpdate + 1e8 < GFX.lastTime
+        val wasDrawn = matchesSize && wasNotRecentlyUpdated
         if(matchesSize){
-            if(lastCtr > 5){
+            if(wasNotRecentlyUpdated){
                 Scene.draw(
                     null, camera,
                     x + dx, y + dy, rw, rh,
@@ -181,9 +182,9 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")) {
                 )
                 goodW = rw
                 goodH = rh
-            } else lastCtr++
+            }
         } else {
-            lastCtr = 0
+            lastSizeUpdate = GFX.lastTime
             lastW = rw
             lastH = rh
         }

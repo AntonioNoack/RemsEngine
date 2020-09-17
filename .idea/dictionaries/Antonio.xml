@@ -3,7 +3,9 @@
     <words>
       <w>bokeh</w>
       <w>codepoint</w>
+      <w>collada</w>
       <w>cubemap</w>
+      <w>deformer</w>
       <w>emissive</w>
       <w>equirectangular</w>
       <w>fadein</w>
@@ -23,8 +25,10 @@
       <w>perlin</w>
       <w>premultiplied</w>
       <w>shaders</w>
+      <w>skybox</w>
       <w>uchimura</w>
       <w>usemtl</w>
+      <w>vertice</w>
     </words>
   </dictionary>
 </component>

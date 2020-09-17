@@ -30,6 +30,7 @@ import me.anno.objects.Transform
 import me.anno.objects.blending.BlendMode
 import me.anno.objects.effects.MaskType
 import me.anno.objects.geometric.Circle
+import me.anno.objects.meshes.fbx.model.FBXGeometry
 import me.anno.objects.modes.UVProjection
 import me.anno.studio.Build.isDebug
 import me.anno.studio.Studio.editorTime
@@ -137,6 +138,7 @@ object GFX : GFXBase1() {
 
     // val defaultFont = DefaultConfig["font"]?.toString() ?: "Verdana"
     val matrixBuffer = BufferUtils.createFloatBuffer(16)
+    val matrixBufferFBX = BufferUtils.createFloatBuffer(16 * FBXGeometry.maxBones)
 
     var rawDeltaTime = 0f
     var deltaTime = 0f

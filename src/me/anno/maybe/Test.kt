@@ -1,9 +1,5 @@
 package me.anno.maybe
 
-import java.lang.RuntimeException
-import java.net.URL
-import kotlin.math.exp
-
 fun main(){
     // 15.06.
     // *.phychi.com is down it seems :/

@@ -54,8 +54,8 @@ open class StaticFloatBuffer(attributes: List<Attribute>, val vertexCount: Int):
     }
 
     final override fun createNioBuffer() {
-        val floatCount = vertexCount * attributes.sumBy { it.components }
-        val nio = ByteBuffer.allocateDirect(floatCount * 4).order(ByteOrder.nativeOrder())
+        val byteSize = vertexCount * attributes.sumBy { it.components * it.byteSize }
+        val nio = ByteBuffer.allocateDirect(byteSize).order(ByteOrder.nativeOrder())
         nioBuffer = nio
         floatBuffer = nio.asFloatBuffer()
         floatBuffer.position(0)

@@ -1,5 +1,6 @@
 package me.anno.objects.meshes
 
+import me.anno.gpu.GFX
 import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticFloatBuffer
@@ -7,15 +8,28 @@ import me.anno.io.base.BaseWriter
 import me.anno.objects.GFXTransform
 import me.anno.objects.Transform
 import me.anno.objects.cache.Cache
+import me.anno.objects.meshes.fbx.model.FBXGeometry
+import me.anno.objects.meshes.fbx.structure.FBXReader
+import me.anno.objects.meshes.obj.Material
 import me.anno.objects.meshes.obj.OBJReader
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.editor.files.hasValidName
 import me.anno.ui.style.Style
 import me.anno.video.MissingFrameException
+import me.karl.main.GeneralSettings
+import me.karl.main.SceneLoader
+import me.karl.renderEngine.RenderEngine
+import me.karl.renderer.AnimatedModelRenderer
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
 import java.io.File
 
 class Mesh(var file: File, parent: Transform?): GFXTransform(parent){
+
+    companion object {
+        var daeEngine: RenderEngine? = null
+        var daeRenderer: AnimatedModelRenderer? = null
+    }
 
     // todo types of lights
     // todo shadows, ...
@@ -25,32 +39,91 @@ class Mesh(var file: File, parent: Transform?): GFXTransform(parent){
 
     constructor(): this(File(""), null)
 
+    var lastFile: File? = null
+    var extension = ""
+
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
 
         val file = file
+        if(file.hasValidName()){
 
-        // load the 3D model
-        val data = Cache.getEntry(file, false, "Mesh", 1000, false){
-            val attributes = listOf(
-                Attribute("coords", 3),
-                Attribute("uvs", 2),
-                Attribute("normals", 3)
-            )
-            // load the model...
-            // assume it's obj first...
-            val obj = OBJReader(file)
-            // generate mesh data from this obj somehow...
-            val meshData = MeshData()
-            meshData.toDraw = obj.pointsByMaterial.mapValues {
-                val buffer = StaticFloatBuffer(attributes, it.value.size)
-                it.value.forEach { v -> buffer.put(v) }
-                buffer
+            if(file !== lastFile){
+                extension = file.extension.toLowerCase()
+                lastFile = file
             }
-            meshData
-        } as? MeshData
-        if(isFinalRendering && data == null) throw MissingFrameException(file)
 
-        data?.draw(stack, time, color) ?: super.onDraw(stack, time, color)
+            when(extension){// todo decide on file magic instead
+                "dae" -> {
+
+                    GFX.check()
+                    if(daeEngine == null){
+                        daeEngine = RenderEngine.init()
+                        daeRenderer = AnimatedModelRenderer()
+                    }
+                    GFX.check()
+
+                    // load the 3D model
+                    val data = Cache.getEntry(file, false, "Mesh", 1000, true){
+
+                        val meshData = MeshData()
+                        GFX.addGPUTask(10){
+                            GFX.check()
+                            meshData.daeScene = SceneLoader.loadScene(GeneralSettings.RES_FOLDER)
+                            GFX.check()
+                        }
+                        Thread.sleep(100) // wait for the texture to load
+                        meshData
+                    } as? MeshData
+
+                    if(isFinalRendering && data == null) throw MissingFrameException(file)
+
+                    // stack.scale(0.01f, -0.01f, 0.01f)
+                    if(data?.daeScene != null) data.drawDae(stack, time, color) ?: super.onDraw(stack, time, color)
+
+                }
+                "fbx" -> {
+                    // load the 3D model
+                    val data = Cache.getEntry(file, false, "Mesh", 1000, true){
+                        val fbxGeometry = FBXReader(file.inputStream().buffered()).fbxObjects.filterIsInstance<FBXGeometry>().first()
+                        val meshData = MeshData()
+                        meshData.toDraw = mapOf(Material() to fbxGeometry.generateMesh())
+                        meshData.fbxGeometry = fbxGeometry
+                        meshData
+                    } as? MeshData
+
+                    if(isFinalRendering && data == null) throw MissingFrameException(file)
+
+                    stack.scale(0.01f, -0.01f, 0.01f)
+                    data?.drawFBX(stack, time, color) ?: super.onDraw(stack, time, color)
+                }
+                "obj" -> {
+                    // load the 3D model
+                    val data = Cache.getEntry(file, false, "Mesh", 1000, true){
+                        val attributes = listOf(
+                            Attribute("coords", 3),
+                            Attribute("uvs", 2),
+                            Attribute("normals", 3)
+                        )
+                        // load the model...
+                        // assume it's obj first...
+                        val obj = OBJReader(file)
+                        // generate mesh data from this obj somehow...
+                        val meshData = MeshData()
+                        meshData.toDraw = obj.pointsByMaterial.mapValues {
+                            val buffer = StaticFloatBuffer(attributes, it.value.size)
+                            it.value.forEach { v -> buffer.put(v) }
+                            buffer
+                        }
+                        meshData
+                    } as? MeshData
+
+                    if(isFinalRendering && data == null) throw MissingFrameException(file)
+
+                    data?.drawObj(stack, time, color) ?: super.onDraw(stack, time, color)
+                }
+            }
+
+        } else super.onDraw(stack, time, color)
 
     }
 

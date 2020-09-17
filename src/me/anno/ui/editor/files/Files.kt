@@ -5,6 +5,7 @@ import me.anno.gpu.GFX
 import me.anno.objects.Transform
 import me.anno.objects.Transform.Companion.toTransform
 import me.anno.objects.Video
+import me.anno.objects.meshes.Mesh
 import me.anno.objects.modes.UVProjection
 import me.anno.studio.RemsStudio
 import me.anno.ui.editor.treeView.TreeView
@@ -83,6 +84,14 @@ fun addChildFromFile(parent: Transform?, file: File, callback: (Transform) -> Un
                     e.printStackTrace()
                     return
                 }
+            }
+            "Mesh" -> {
+                val mesh = Mesh(file, parent)
+                mesh.file = file
+                mesh.name = name
+                GFX.select(mesh)
+                callback(mesh)
+                RemsStudio.onLargeChange()
             }
             "HTML" -> {
                 // parse html? maybe, but html and css are complicated

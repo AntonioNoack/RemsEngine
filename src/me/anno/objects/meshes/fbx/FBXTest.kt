@@ -1,9 +1,10 @@
 package me.anno.objects.meshes.fbx
 
+import me.anno.objects.meshes.fbx.structure.FBXReader
 import me.anno.utils.OS
 import java.io.File
 
-fun notenRechnerFuerJasmin(){
+/*fun notenRechnerFuerJasmin(){
 
     val notenZahlen = 15 .. 19
 
@@ -57,7 +58,7 @@ fun notenRechnerFuerJasmin(){
         }
         println()
     }
-}
+}*/
 
 fun Int.p() = if(this == 0) " " else ","
 
@@ -79,11 +80,14 @@ fun invertLong(l: ULong): ULong {
 
 fun main(){
 
-    notenRechnerFuerJasmin()
-    return
-
-    val root = FBXReader(File(OS.downloads, "GamerGirl.fbx").inputStream())
-    val objects = root["Objects"].first()
+    /*val root = */
+    FBXReader(
+        File(
+            OS.downloads,
+            "Warrior with animation.fbx"
+        ).inputStream()
+    )
+    /*val objects = root["Objects"].first()
     val nodeAttributes = objects["NodeAttribute"]
     val models = objects["Model"]
     val poses = objects["Pose"]
@@ -99,17 +103,13 @@ fun main(){
         val vertices = geometry["Vertices"].first().properties[0] as DoubleArray
         val vertexIndices = geometry["PolygonVertexIndex"].first().properties[0] as IntArray
         println("geometry with ${vertices.size} vertices, and ${vertexIndices.size} indices")
-        val materialIndices = geometry["LayerElementMaterial"][0]["Materials"][0].properties[0] as IntArray
+        val materialIndices = geometry["LayerElementMaterial"].firstOrNull()?.get("Materials")?.get(0)?.properties?.get(0) as? IntArray
         // crazy numbers...
-        println("materials: ${materialIndices.joinToString()}")
-        val colors = geometry["LayerElementColor"][0]["Colors"][0].properties[0] as DoubleArray // crazy values as well :/
-        println("colors: ${colors.joinToString()}")
-        for(i in 0 until 200) {
-            val v = vertices[i]
-            val l = v.toRawBits()
-            println("$v")
-        }
+        println("materials: ${materialIndices?.joinToString()}")
+        val colors = geometry["LayerElementColor"].firstOrNull()?.get("Colors")?.get(0)?.properties?.get(0) as? DoubleArray // crazy values as well :/
+        println("colors: ${colors?.joinToString()}")
+
     }
     println(objects.children.size)
-    println(nodeAttributes.size)
+    println(nodeAttributes.size)*/
 }

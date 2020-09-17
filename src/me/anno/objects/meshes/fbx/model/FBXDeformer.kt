@@ -1,0 +1,31 @@
+package me.anno.objects.meshes.fbx.model
+
+import me.anno.objects.meshes.fbx.structure.FBXNode
+import org.joml.Matrix4f
+
+class FBXDeformer(data: FBXNode): FBXObject(data){
+
+    // appears once and has spelling mistake (wtf xD)
+    // version 101 instead of 100
+    // val linkDeformAccuracy = data["Link_DeformAccuracy"]
+
+    var parent: FBXDeformer? = null
+    var index = 0
+    val depth: Int get() = (parent?.depth ?: -1) + 1
+
+    val mode = data.getProperty("Mode") as? String // Total1 or
+    val transform = data.getM4x4("Transform")
+    val transformLink = data.getM4x4("TransformLink")
+
+    val indices = data.getIntArray("Indexes")
+    val weights = data.getDoubleArray("Weights")
+
+    var localJointMatrix = Matrix4f()
+
+    var dx = 0f
+    var dy = 0f
+    var dz = 0f
+
+    // override fun toString(depth: Int) = Tabs.spaces(depth*2) + "$depth ${javaClass.simpleName.substring(3)}:$name:$subType [${children.size}]\n"
+
+}

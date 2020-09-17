@@ -328,7 +328,9 @@ object Scene {
         Studio.root.draw(stack, time, white)
         stack.popMatrix()
 
+        GFX.check()
         displayGizmo(cameraTransform, x0, y0, w, h)
+        GFX.check()
 
         /**
          * draw the selection ring for selected objects

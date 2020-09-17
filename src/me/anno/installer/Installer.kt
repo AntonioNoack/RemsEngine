@@ -88,6 +88,7 @@ object Installer {
 
         // todo ask if ffmpeg shall be deleted, if it's not in the default install directory
         // todo put config into that default install directory???
+        Uninstaller.uninstall()
 
     }
 

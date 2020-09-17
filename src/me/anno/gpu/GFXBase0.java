@@ -42,7 +42,7 @@ import static org.lwjgl.system.MemoryUtil.memAddress;
  */
 public class GFXBase0 {
 
-    static boolean enableVsync = !Build.INSTANCE.isDebug();
+    static boolean enableVsync = true ||!Build.INSTANCE.isDebug();
 
     static Logger LOGGER = LogManager.getLogger(GFXBase0.class);
 
@@ -50,7 +50,8 @@ public class GFXBase0 {
     GLFWKeyCallback keyCallback;
     GLFWFramebufferSizeCallback fsCallback;
     Callback debugProc;
-    String title = "Rem's Studio";
+    
+    public String title = "Rem's Studio";
 
     public long window;
     public int width = 800;
@@ -159,7 +160,7 @@ public class GFXBase0 {
         });
     }
 
-    private void runRenderLoop() {
+    public void runRenderLoop() {
 
         glfwMakeContextCurrent(window);
         glfwSwapInterval(enableVsync ? 1 : 0);
@@ -289,11 +290,7 @@ public class GFXBase0 {
          * Start new thread to have the OpenGL context current in and which does
          * the rendering.
          */
-        new Thread(new Runnable() {
-            public void run() {
-                runRenderLoop();
-            }
-        }).start();
+        new Thread(this::runRenderLoop).start();
 
         while (!glfwWindowShouldClose(window)) {
             glfwWaitEvents();

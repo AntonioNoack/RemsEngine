@@ -4,6 +4,7 @@ import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderPlus
 import me.anno.gpu.texture.FilteringMode
 import me.anno.objects.effects.MaskType
+import me.anno.objects.meshes.fbx.model.FBXGeometry
 import me.anno.objects.modes.UVProjection
 import org.lwjgl.opengl.GL20
 import kotlin.math.PI
@@ -24,6 +25,7 @@ object ShaderLib {
     lateinit var lineShader3D: Shader
     lateinit var shader3DMasked: ShaderPlus
     lateinit var shaderObjMtl: ShaderPlus
+    lateinit var shaderFBX: ShaderPlus
 
     fun init(){
 
@@ -354,6 +356,9 @@ object ShaderLib {
                     "   gl_FragColor = tint * color;\n" +
                     "}", listOf()
         )
+
+        // create the fbx shader
+        shaderFBX = FBXGeometry.getShader(v3DBase, positionPostProcessing, y3D, getTextureLib, colorProcessing)
 
         shader3DCircle = createShaderPlus("3dCircle", v3DCircle, y3D, f3DCircle, listOf())
         shader3DMasked = createShaderPlus("3d-masked", v3DMasked, y3DMasked, f3DMasked, listOf("mask", "tex"))

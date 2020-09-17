@@ -55,6 +55,9 @@ import kotlin.math.roundToInt
 
 // todo draw frame by frame, only save x,y,radius?
 
+// todo somehow reenable scrubbing
+// todo small preview?
+
 object RemsStudio {
 
     val startTime = System.nanoTime()
