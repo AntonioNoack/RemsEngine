@@ -4,7 +4,9 @@ import me.karl.animation.Animation;
 import me.karl.animation.Animator;
 import me.karl.openglObjects.Vao;
 import org.joml.Matrix4f;
-import me.karl.textures.Texture;
+
+import java.io.File;
+import java.util.List;
 
 /**
  * 
@@ -22,7 +24,7 @@ public class AnimatedModel {
 
 	// skin
 	private final Vao model;
-	private final Texture texture;
+	private final List<File> textures;
 
 	// skeleton
 	private final Joint rootJoint;
@@ -42,7 +44,7 @@ public class AnimatedModel {
 	 *            includes vertex positions, normals, texture coords, IDs of
 	 *            joints that affect each vertex, and their corresponding
 	 *            weights.
-	 * @param texture
+	 * @param textures
 	 *            - the diffuse texture for the entity.
 	 * @param rootJoint
 	 *            - the root joint of the joint hierarchy which makes up the
@@ -52,9 +54,9 @@ public class AnimatedModel {
 	 *            this entity.
 	 * 
 	 */
-	public AnimatedModel(Vao model, Texture texture, Joint rootJoint, int jointCount) {
+	public AnimatedModel(Vao model, List<File> textures, Joint rootJoint, int jointCount) {
 		this.model = model;
-		this.texture = texture;
+		this.textures = textures;
 		this.rootJoint = rootJoint;
 		this.jointCount = jointCount;
 		this.animator = new Animator(this);
@@ -71,8 +73,8 @@ public class AnimatedModel {
 	/**
 	 * @return The diffuse texture for this entity.
 	 */
-	public Texture getTexture() {
-		return texture;
+	public List<File> getTextures() {
+		return textures;
 	}
 
 	/**
@@ -90,7 +92,7 @@ public class AnimatedModel {
 	 */
 	public void destroy() {
 		model.destroy();
-		texture.destroy();
+		// textures.destroy();
 	}
 
 	/**

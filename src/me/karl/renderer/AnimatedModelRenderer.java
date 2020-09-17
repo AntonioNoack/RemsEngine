@@ -1,11 +1,19 @@
 package me.karl.renderer;
 
+import me.anno.gpu.GFX;
+import me.anno.gpu.TextureLib;
+import me.anno.gpu.texture.ClampMode;
+import me.anno.gpu.texture.Texture2D;
+import me.anno.objects.cache.Cache;
 import org.joml.Vector3f;
 import org.lwjgl.opengl.GL11;
 
 import me.karl.animatedModel.AnimatedModel;
 import me.karl.scene.ICamera;
 import me.karl.utils.OpenGlUtils;
+
+import java.io.File;
+import java.util.List;
 
 /**
  * 
@@ -42,7 +50,15 @@ public class AnimatedModelRenderer {
 	 */
 	public void render(AnimatedModel entity, ICamera camera, Vector3f lightDir) {
 		prepare(camera, lightDir);
-		entity.getTexture().bindToUnit(0);
+		List<File> tex = entity.getTextures();
+		Texture2D texture = null;
+		if(!tex.isEmpty()){
+			texture = Cache.INSTANCE.getImage(tex.get(0), 1000L, true);
+		}
+		if(texture == null){
+			texture = TextureLib.INSTANCE.getWhiteTexture();
+		}
+		texture.bind(0, false, ClampMode.REPEAT);
 		entity.getModel().bind(0, 1, 2, 3, 4);
 		shader.jointTransforms.loadMatrixArray(entity.getJointTransforms());
 		GL11.glDrawElements(GL11.GL_TRIANGLES, entity.getModel().getIndexCount(), GL11.GL_UNSIGNED_INT, 0);

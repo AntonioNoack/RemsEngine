@@ -12,6 +12,9 @@ import me.karl.dataStructures.JointTransformData;
 import me.karl.dataStructures.KeyFrameData;
 import me.karl.xmlParser.XmlNode;
 
+// todo warrior animation doesn't play
+// todo rendering needs to be changed to ShaderPlus
+
 public class AnimationLoader {
 	
 	private static final Matrix4f CORRECTION = new Matrix4f().rotate((float) Math.toRadians(-90), new Vector3f(1, 0, 0));

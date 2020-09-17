@@ -12,22 +12,30 @@ import me.karl.openglObjects.Vao;
 import me.karl.textures.Texture;
 import me.karl.utils.URI;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
 public class AnimatedModelLoader {
 
 	/**
 	 * Creates an AnimatedEntity from the data in an entity file. It loads up
 	 * the collada model data, stores the extracted data in a VAO, sets up the
-	 * joint heirarchy, and loads up the entity's texture.
+	 * joint hierarchy, and loads up the entity's texture.
 	 *
 	 * @return The animated entity (no animation applied though)
 	 */
 	public static AnimatedModel loadEntity(URI modelFile) {
 		AnimatedModelData entityData = ColladaLoader.loadColladaModel(modelFile, GeneralSettings.MAX_WEIGHTS);
 		Vao model = createVao(entityData.getMeshData());
-		Texture texture = loadTexture(modelFile.getParent().getChild(entityData.getTextureData().textures.get(0)));
+		List<String> tex = entityData.getTextureData().textures;
+		ArrayList<File> textures = new ArrayList<>();
+		for(String name : tex){
+			textures.add(modelFile.getParent().getChild(name).file);
+		}
 		SkeletonData skeletonData = entityData.getJointsData();
 		Joint headJoint = createJoints(skeletonData.headJoint);
-		return new AnimatedModel(model, texture, headJoint, skeletonData.jointCount);
+		return new AnimatedModel(model, textures, headJoint, skeletonData.jointCount);
 	}
 
 	/**

@@ -17,7 +17,7 @@ public class URI {
 
     private CharSequence path;
     private String name;
-    private File file;
+    public File file;
 
     public URI(File file) {
         this.file = file;
