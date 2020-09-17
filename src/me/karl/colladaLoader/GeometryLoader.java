@@ -13,6 +13,8 @@ import me.karl.dataStructures.VertexSkinData;
 import org.joml.Vector4f;
 import me.karl.xmlParser.XmlNode;
 
+import static java.lang.Integer.max;
+
 /**
  * Loads the mesh data for a model from a collada XML file.
  * @author Karl
@@ -74,8 +76,14 @@ public class GeometryLoader {
 		}
 	}
 
+	private XmlNode getPolyList(){
+		XmlNode n1 = meshData.getChild("polylist");
+		if(n1 != null) return n1;
+		return meshData.getChild("triangles");
+	}
+
 	private void readNormals() {
-		String normalsId = meshData.getChild("polylist").getChildWithAttribute("input", "semantic", "NORMAL")
+		String normalsId = getPolyList().getChildWithAttribute("input", "semantic", "NORMAL")
 				.getAttribute("source").substring(1);
 		XmlNode normalsData = meshData.getChildWithAttribute("source", "id", normalsId).getChild("float_array");
 		int count = Integer.parseInt(normalsData.getAttribute("count"));
@@ -91,7 +99,7 @@ public class GeometryLoader {
 	}
 
 	private void readTextureCoords() {
-		String texCoordsId = meshData.getChild("polylist").getChildWithAttribute("input", "semantic", "TEXCOORD")
+		String texCoordsId = getPolyList().getChildWithAttribute("input", "semantic", "TEXCOORD")
 				.getAttribute("source").substring(1);
 		XmlNode texCoordsData = meshData.getChildWithAttribute("source", "id", texCoordsId).getChild("float_array");
 		int count = Integer.parseInt(texCoordsData.getAttribute("count"));
@@ -104,8 +112,13 @@ public class GeometryLoader {
 	}
 	
 	private void assembleVertices(){
-		XmlNode poly = meshData.getChild("polylist");
-		int typeCount = poly.getChildren("input").size();
+		XmlNode poly = getPolyList();
+		int typeCount = 0;
+		// indices can be shared
+		for(XmlNode input: poly.getChildren("input")){
+			typeCount = max(typeCount, Integer.parseInt(input.getAttribute("offset")));
+		}
+		typeCount++;
 		String[] indexData = poly.getChild("p").getData().split(" ");
 		for(int i=0;i<indexData.length/typeCount;i++){
 			int positionIndex = Integer.parseInt(indexData[i * typeCount]);
@@ -116,33 +129,27 @@ public class GeometryLoader {
 	}
 	
 
-	private Vertex processVertex(int posIndex, int normIndex, int texIndex) {
+	private void processVertex(int posIndex, int normIndex, int texIndex) {
 		Vertex currentVertex = vertices.get(posIndex);
 		if (!currentVertex.isSet()) {
 			currentVertex.setTextureIndex(texIndex);
 			currentVertex.setNormalIndex(normIndex);
 			indices.add(posIndex);
-			return currentVertex;
 		} else {
-			return dealWithAlreadyProcessedVertex(currentVertex, texIndex, normIndex);
+			dealWithAlreadyProcessedVertex(currentVertex, texIndex, normIndex);
 		}
 	}
 
-	private int[] convertIndicesListToArray() {
+	private void convertIndicesListToArray() {
 		this.indicesArray = new int[indices.size()];
 		for (int i = 0; i < indicesArray.length; i++) {
 			indicesArray[i] = indices.get(i);
 		}
-		return indicesArray;
 	}
 
-	private float convertDataToArrays() {
-		float furthestPoint = 0;
+	private void convertDataToArrays() {
 		for (int i = 0; i < vertices.size(); i++) {
 			Vertex currentVertex = vertices.get(i);
-			if (currentVertex.getLength() > furthestPoint) {
-				furthestPoint = currentVertex.getLength();
-			}
 			Vector3f position = currentVertex.getPosition();
 			Vector2f textureCoord = textures.get(currentVertex.getTextureIndex());
 			Vector3f normalVector = normals.get(currentVertex.getNormalIndex());
@@ -161,9 +168,7 @@ public class GeometryLoader {
 			weightsArray[i * 3] = weights.weights.get(0);
 			weightsArray[i * 3 + 1] = weights.weights.get(1);
 			weightsArray[i * 3 + 2] = weights.weights.get(2);
-
 		}
-		return furthestPoint;
 	}
 
 	private Vertex dealWithAlreadyProcessedVertex(Vertex previousVertex, int newTextureIndex, int newNormalIndex) {

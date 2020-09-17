@@ -9,7 +9,7 @@ public class TextureBuilder {
 	private boolean anisotropic = true;
 	private boolean nearest = false;
 	
-	private URI file;
+	private final URI file;
 	
 	protected TextureBuilder(URI textureFile){
 		this.file = textureFile;
