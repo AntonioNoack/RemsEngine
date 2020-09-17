@@ -8,13 +8,13 @@ import me.karl.shaders.UniformVec3;
 
 public class AnimatedModelShader extends ShaderProgram {
 
-	private static final int MAX_JOINTS = 50;// max number of joints in a skeleton
+	private static final int MAX_JOINTS = 120;// max number of joints in a skeleton
 	private static final int DIFFUSE_TEX_UNIT = 0;
 
 	private static final String VERTEX_SHADER = "" +
 			"#version 150\n" +
 
-			"const int MAX_JOINTS = 50;// max joints allowed in a skeleton\n" +
+			"const int MAX_JOINTS = "+MAX_JOINTS+";// max joints allowed in a skeleton\n" +
 			"const int MAX_WEIGHTS = 3;// max number of joints that can affect a vertex\n" +
 
 			"in vec3 in_position;\n" +

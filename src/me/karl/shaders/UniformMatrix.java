@@ -15,8 +15,15 @@ public class UniformMatrix extends Uniform{
 	}
 	
 	public void loadMatrix(Matrix4f matrix){
-		for(int i=0;i<16;i++){
-			matrixBuffer.put(matrix.get(i/4, i&3));
+		if(matrix == null){
+			// no data available...
+			for(int i=0;i<16;i++){
+				matrixBuffer.put(i % 5 == 0 ? 1f : 0f);
+			}
+		} else {
+			for(int i=0;i<16;i++){
+				matrixBuffer.put(matrix.get(i/4, i&3));
+			}
 		}
 		matrixBuffer.flip();
 		GL20.glUniformMatrix4fv(super.getLocation(), false, matrixBuffer);

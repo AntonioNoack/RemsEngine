@@ -162,6 +162,9 @@ public class Animator {
 	 */
 	private void applyPoseToJoints(Map<String, Matrix4f> currentPose, Joint joint, Matrix4f parentTransform) {
 		Matrix4f currentLocalTransform = currentPose.get(joint.name);
+		if(currentLocalTransform == null){// no animation was found; happens to toes...
+			currentLocalTransform = new Matrix4f();
+		}
 		Matrix4f currentTransform = new Matrix4f(parentTransform).mul(currentLocalTransform);
 		for (Joint childJoint : joint.children) {
 			applyPoseToJoints(currentPose, childJoint, currentTransform);

@@ -16,10 +16,14 @@ public class AnimationLoader {
 	
 	private static final Matrix4f CORRECTION = new Matrix4f().rotate((float) Math.toRadians(-90), new Vector3f(1, 0, 0));
 	
-	private XmlNode animationData;
-	private XmlNode jointHierarchy;
+	private final XmlNode animationData;
+	private final XmlNode jointHierarchy;
 	
 	public AnimationLoader(XmlNode animationData, XmlNode jointHierarchy){
+		// Blender has a double stack...
+		if(animationData.getChild("animation").getChild("animation") != null){
+			animationData = animationData.getChild("animation");
+		}
 		this.animationData = animationData;
 		this.jointHierarchy = jointHierarchy;
 	}

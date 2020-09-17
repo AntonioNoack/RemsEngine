@@ -148,7 +148,9 @@ public class AnimatedModel {
 	 *            - the array of joint transforms that is being filled.
 	 */
 	private void addJointsToArray(Joint headJoint, Matrix4f[] jointMatrices) {
-		jointMatrices[headJoint.index] = headJoint.getAnimatedTransform();
+		if(headJoint.index > -1){// otherwise was not found...
+			jointMatrices[headJoint.index] = headJoint.getAnimatedTransform();
+		}
 		for (Joint childJoint : headJoint.children) {
 			addJointsToArray(childJoint, jointMatrices);
 		}
