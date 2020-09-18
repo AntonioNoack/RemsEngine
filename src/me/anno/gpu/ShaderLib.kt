@@ -286,8 +286,8 @@ object ShaderLib {
                 "           effect = mix(mask.a, dot(vec3(0.3), mask.rgb), useMaskColor);\n" +
                 "           effect = mix(effect, 1.0 - effect, invertMask);\n" +
                 "           color = mix(\n" +
-                "               texture(tex2, uv2),\n" +
                 "               texture(tex, uv2),\n" +
+                "               texture(tex2, uv2),\n" +
                 "               effect);\n" +
                 "           break;\n" +
                 "   }\n" +

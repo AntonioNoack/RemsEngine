@@ -18,8 +18,9 @@ import kotlin.math.roundToInt
 class VideoAudioCreator(
     val videoCreator: VideoCreator, val sampleRate: Int, val output: File){
 
-    @Suppress("UNCHECKED_CAST") // the cast is checked
-    val audioSources = root.listOfAll.filter { it is Audio && it.forcedMeta?.hasAudio == true }.toList() as List<Audio>
+    val audioSources = root.listOfAll
+        .filterIsInstance<Audio>()
+        .filter { it.forcedMeta?.hasAudio == true }.toList()
 
     lateinit var camera: Camera
 
