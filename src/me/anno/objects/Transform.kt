@@ -508,7 +508,7 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
                 .setChangeListener { setValue(it as V) }
                 .setIsSelectedListener { show(null) }
                 .setTooltip(ttt)
-            is File -> FileInput(title, style, value.toString())
+            is File -> FileInput(title, style, value)
                 .setChangeListener { setValue(File(it) as V) }
                 .setIsSelectedListener { show(null) }
                 .setTooltip(ttt)

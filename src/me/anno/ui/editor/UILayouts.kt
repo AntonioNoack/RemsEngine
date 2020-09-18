@@ -1,7 +1,9 @@
 package me.anno.ui.editor
 
 import me.anno.config.DefaultConfig
+import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.openMenu
 import me.anno.gpu.GFX.select
 import me.anno.gpu.Window
 import me.anno.input.Input
@@ -12,6 +14,7 @@ import me.anno.objects.cache.Cache
 import me.anno.objects.rendering.RenderSettings
 import me.anno.studio.RemsStudio
 import me.anno.studio.RemsStudio.windowStack
+import me.anno.studio.RemsStudio.workspace
 import me.anno.studio.Studio
 import me.anno.studio.Studio.nullCamera
 import me.anno.studio.Studio.project
@@ -36,11 +39,13 @@ import me.anno.ui.custom.CustomListY
 import me.anno.ui.debug.ConsoleOutputPanel
 import me.anno.ui.editor.cutting.CuttingView
 import me.anno.ui.editor.files.FileExplorer
+import me.anno.ui.editor.files.toAllowedFilename
 import me.anno.ui.editor.graphs.GraphEditor
 import me.anno.ui.editor.sceneTabs.SceneTabs
 import me.anno.ui.editor.sceneView.ScenePreview
 import me.anno.ui.editor.sceneView.SceneView
 import me.anno.ui.editor.treeView.TreeView
+import me.anno.ui.input.FileInput
 import me.anno.ui.input.TextInput
 import me.anno.video.VideoAudioCreator
 import me.anno.video.VideoCreator
@@ -93,6 +98,7 @@ object UILayouts {
 
     fun createWelcomeUI() {
 
+        val dir = "directory" // vs folder ^^
         val style = DefaultConfig.style
         val welcome = PanelListY(style)
         val title = TextPanel("Rem's Studio", style)
@@ -114,23 +120,103 @@ object UILayouts {
 
         welcome += SpacePanel(0, 1, style)
 
-        val title2 = TextInput("Title", style)
-        title2.setText("New Project", true)
-        welcome += title2
+        val nameInput = TextInput("Title", style, "New Project")
+        var lastName = nameInput.text
 
-        fun loadNewProject(){
-            thread {
-                RemsStudio.loadProject()
-                Studio.addEvent {
-                    nullCamera.farZ.set(5000f)
-                    windowStack.clear()
-                    createEditorUI()
+        val fileInput = FileInput("Project Location", style, File(workspace, nameInput.text))
+
+        var usableFile: File? = null
+
+        fun updateFileInputColor() {
+            fun rootIsOk(file: File): Boolean {
+                if (file.exists()) return true
+                return rootIsOk(file.parentFile ?: return false)
+            }
+            var invalidName = ""
+            fun fileNameIsOk(file: File): Boolean {
+                if(file.name.isEmpty() && file.parentFile == null) return true // root drive
+                if(file.name.toAllowedFilename() != file.name){
+                    invalidName = file.name
+                    return false
                 }
+                return fileNameIsOk(file.parentFile ?: return true)
+            }
+
+            // todo check if all file name parts are valid...
+            // todo check if we have write and read access
+            val file = File(fileInput.text)
+            var state = 0
+            var msg = ""
+            when {
+                !rootIsOk(file) -> {
+                    state = -2
+                    msg = "Root $dir does not exist!"
+                }
+                !file.parentFile.exists() -> {
+                    state = -1
+                    msg = "Parent $dir does not exist!"
+                }
+                !fileNameIsOk(file) -> {
+                    state = -2
+                    msg = "Invalid file name \"$invalidName\""
+                }
+                file.exists() && file.list()?.isNotEmpty() == true -> {
+                    state = -1
+                    msg = "Folder is not empty!"
+                }
+            }
+            fileInput.tooltip = msg
+            val base = fileInput.base
+            base.textColor = when (state) {
+                -1 -> 0xffff00
+                -2 -> 0xff0000
+                else -> 0x00ff00
+            } or black
+            usableFile = if(state == -2){
+                null
+            } else file
+            base.focusTextColor = base.textColor
+        }
+
+        updateFileInputColor()
+
+        nameInput.setChangeListener {
+            val newName = if(it.isBlank()) "-" else it.trim()
+            if (lastName == fileInput.file.name) {
+                fileInput.setText(File(fileInput.file.parentFile, newName).toString(), false)
+                updateFileInputColor()
+            }
+            lastName = newName
+        }
+        welcome += nameInput
+
+        fileInput.setChangeListener {
+            updateFileInputColor()
+        }
+        welcome += fileInput
+
+        fun loadNewProject() {
+            val file = usableFile
+            if(file != null){
+                thread {
+                    RemsStudio.loadProject(nameInput.text.trim(), file)
+                    Studio.addEvent {
+                        nullCamera.farZ.set(5000f)
+                        windowStack.clear()
+                        createEditorUI()
+                    }
+                }
+            } else {
+                openMenu("Please choose a $dir!", listOf(
+                    "Ok" to {}
+                ))
             }
         }
 
         val button = ButtonPanel("Create Project", style)
-        button.setSimpleClickListener { loadNewProject() }
+        button.setSimpleClickListener {
+            loadNewProject()
+        }
         welcome += button
 
         val scroll = ScrollPanelY(welcome, Padding(5), style)
@@ -145,9 +231,9 @@ object UILayouts {
         windowStack.push(Window(background2, false, 0, 0))
         val mainWindow = Window(scroll, false, 0, 0)
         mainWindow.acceptsClickAway = {
-            if(it.isLeft){
+            if (it.isLeft) {
                 loadNewProject()
-                true
+                usableFile != null
             } else false
         }
         windowStack.push(mainWindow)

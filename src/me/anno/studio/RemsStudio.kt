@@ -308,12 +308,8 @@ object RemsStudio {
 
     }
 
-    fun loadProject() {
-        val newProjectName = "New Project"
-        val lastProject = DefaultConfig["projects.last", newProjectName]
-        val project0File = File(workspace, lastProject)
-        if (lastProject == newProjectName) clear(project0File)
-        project = Project(project0File)
+    fun loadProject(name: String, folder: File) {
+        project = Project(name.trim(), folder)
         project!!.open()
         GFX.addGPUTask(1){ updateTitle() }
     }

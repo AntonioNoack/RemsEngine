@@ -229,17 +229,8 @@ class FileEntry(val explorer: FileExplorer, val isParent: Boolean, val file: Fil
                         // todo check if name is valid
                         // todo rename the file...
                     },
-                    "Open in Explorer" to {
-                        when {
-                            OS.isWindows -> {// https://stackoverflow.com/questions/2829501/implement-open-containing-folder-and-highlight-file
-                                startProcess("explorer.exe", "/select,", file.absolutePath)
-                            }
-                            OS.isLinux -> {// https://askubuntu.com/questions/31069/how-to-open-a-file-manager-of-the-current-directory-in-the-terminal
-                                startProcess("xdg-open", file.absolutePath)
-                            }
-                        }
-                    },
-                    "Delete" to { deleteFileMaybe() }
+                    "Open in Explorer" to file::openInExplorer,
+                    "Delete" to this::deleteFileMaybe
                 ))
             }
             else -> return super.onGotAction(x, y, dx, dy, action, isContinuous)

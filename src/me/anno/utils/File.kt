@@ -27,3 +27,18 @@ fun Long.formatFileSize(): String {
 
 fun File.listFiles2(includeHiddenFiles: Boolean = OS.isWindows) = listFiles()?.filter {
     !it.name.equals("desktop.ini", true) && (!name.startsWith('.') || !includeHiddenFiles) } ?: emptyList()
+
+fun File.openInExplorer(){
+    if(!exists()){
+        parentFile?.openInExplorer() ?: LOGGER.warn("Cannot open file $this, as it does not exist!")
+    } else {
+        when {
+            OS.isWindows -> {// https://stackoverflow.com/questions/2829501/implement-open-containing-folder-and-highlight-file
+                OS.startProcess("explorer.exe", "/select,", absolutePath)
+            }
+            OS.isLinux -> {// https://askubuntu.com/questions/31069/how-to-open-a-file-manager-of-the-current-directory-in-the-terminal
+                OS.startProcess("xdg-open", absolutePath)
+            }
+        }
+    }
+}

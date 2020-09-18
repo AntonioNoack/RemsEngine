@@ -8,13 +8,14 @@ import me.anno.ui.editor.sceneTabs.SceneTabs
 import java.io.File
 import kotlin.concurrent.thread
 
-class Project(val file: File): Saveable(){
+class Project(var name: String, val file: File): Saveable(){
 
     val configFile = File(file, "config.json")
 
     val config: StringMap
     init {
         val defaultConfig = StringMap()
+        defaultConfig["general.name"] = name
         defaultConfig["target.width"] = 1920
         defaultConfig["target.height"] = 1080
         defaultConfig["target.fps"] = 30f
@@ -58,6 +59,7 @@ class Project(val file: File): Saveable(){
 
     // todo even save not saved parts? :)
     fun saveConfig(){
+        config["general.name"] = name
         config["target.duration"] = targetDuration
         config["target.sizePercentage"] = targetSizePercentage
         config["target.width"] = targetWidth
