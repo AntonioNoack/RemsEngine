@@ -1,5 +1,7 @@
 package me.karl.skybox;
 
+import me.anno.gpu.blending.BlendDepth;
+import me.anno.gpu.blending.BlendMode;
 import org.lwjgl.opengl.GL11;
 
 import me.karl.openglObjects.Vao;
@@ -50,10 +52,12 @@ public class SkyboxRenderer {
 	private void prepare(ICamera camera) {
 		shader.start();
 		shader.projectionViewMatrix.loadMatrix(camera.getProjectionViewMatrix());
-		OpenGlUtils.disableBlending();
-		OpenGlUtils.enableDepthTesting(true);
-		OpenGlUtils.cullBackFaces(true);
-		OpenGlUtils.antialias(false);
+		// BlendDepth bd = new BlendDepth(null, true, true);
+		// bd.bind();
+		// OpenGlUtils.disableBlending();
+		// OpenGlUtils.enableDepthTesting(true);
+		// OpenGlUtils.cullBackFaces(true);
+		// OpenGlUtils.antialias(false);
 	}
 
 }

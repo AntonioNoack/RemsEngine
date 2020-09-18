@@ -2,6 +2,7 @@ package me.anno.objects.effects
 
 import me.anno.gpu.GFX.flat01
 import me.anno.gpu.ShaderLib.createShaderNoShorts
+import me.anno.gpu.blending.BlendDepth
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.framebuffer.Framebuffer
@@ -11,7 +12,6 @@ import me.anno.objects.Transform.Companion.xAxis
 import me.anno.objects.Transform.Companion.yAxis
 import me.anno.objects.Transform.Companion.zAxis
 import org.joml.Vector3f
-import org.lwjgl.opengl.GL11.*
 
 /**
  * shader by Kleber Garcia, 'Kecho', 2017, MIT license (https://github.com/kecho/CircularDofFilterGenerator)
@@ -33,9 +33,6 @@ object BokehBlur {
 
     val filterTexture = Texture2D(KERNEL_COUNT, 1, 1)
 
-    /**
-     * result is written to parameter buffer
-     * */
     fun draw(srcTexture: Texture2D, sizeRY: Float){
 
         val w = srcTexture.w
@@ -45,8 +42,8 @@ object BokehBlur {
 
         srcTexture.bind(0, false, ClampMode.CLAMP)
 
-        glDisable(GL_DEPTH_TEST)
-        glDisable(GL_BLEND)
+        val bd = BlendDepth(null, false)
+        bd.bind()
 
         val target = Framebuffer.stack.peek()!!
         val r = FBStack["bokeh-r", w, h, false]
@@ -80,6 +77,8 @@ object BokehBlur {
         g.bindTexture0(2, false, ClampMode.CLAMP)
         b.bindTexture0(3, false, ClampMode.CLAMP)
         flat01.draw(shader)
+
+        bd.unbind()
 
     }
 

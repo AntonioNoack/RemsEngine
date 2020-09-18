@@ -94,9 +94,9 @@ public class AnimatedModelRenderer {
 		shader.start();
 		shader.projectionViewMatrix.loadMatrix(camera.getProjectionViewMatrix());
 		shader.lightDirection.loadVec3(lightDir);
-		OpenGlUtils.antialias(true);
-		OpenGlUtils.disableBlending();
-		OpenGlUtils.enableDepthTesting(true);
+		// OpenGlUtils.antialias(true);
+		// OpenGlUtils.disableBlending();
+		// OpenGlUtils.enableDepthTesting(true);
 	}
 
 	/**

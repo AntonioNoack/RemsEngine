@@ -7,6 +7,7 @@ import me.anno.gpu.ShaderLib.createShader
 import me.anno.gpu.GFX.flat01
 import me.anno.gpu.GFX.isFakeColorRendering
 import me.anno.gpu.GFX.isFinalRendering
+import me.anno.gpu.blending.BlendDepth
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.Shader
@@ -18,7 +19,7 @@ import me.anno.objects.Camera.Companion.DEFAULT_VIGNETTE_STRENGTH
 import me.anno.objects.Transform.Companion.xAxis
 import me.anno.objects.Transform.Companion.yAxis
 import me.anno.objects.Transform.Companion.zAxis
-import me.anno.objects.blending.BlendMode
+import me.anno.gpu.blending.BlendMode
 import me.anno.objects.cache.Cache
 import me.anno.objects.effects.BokehBlur
 import me.anno.objects.effects.ToneMappers
@@ -34,7 +35,6 @@ import org.joml.Matrix4f
 import org.joml.Matrix4fArrayList
 import org.joml.Vector3f
 import org.joml.Vector4f
-import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL30
 import java.io.File
 import kotlin.math.sqrt
@@ -309,14 +309,8 @@ object Scene {
             stack.popMatrix()
         }
 
-        if(camera.useDepth){
-            GL30.glEnable(GL30.GL_DEPTH_TEST)
-        } else {
-            GL30.glDisable(GL30.GL_DEPTH_TEST)
-        }
-
-        if(!isFakeColorRendering) BlendMode.DEFAULT.apply()
-        else glDisable(GL_BLEND)
+        var bd = BlendDepth(if(isFakeColorRendering) null else BlendMode.DEFAULT, camera.useDepth)
+        bd.bind()
 
         GL30.glDepthMask(true)
 
@@ -338,7 +332,8 @@ object Scene {
          * */
         if(!isFinalRendering && !isFakeColorRendering && selectedTransform != camera){ // seeing the own camera is irritating xD
             selectedTransform?.apply {
-                glDisable(GL_DEPTH_TEST)
+                val bd2 = BlendDepth(BlendMode.DEFAULT, false)
+                bd2.bind()
                 val (transform, _) = getGlobalTransform(time)
                 stack.pushMatrix()
                 stack.mul(transform)
@@ -347,13 +342,15 @@ object Scene {
                 stack.scale(1.2f)
                 drawUICircle(stack, 1f, 0.833f, Vector4f(0f, 0f, 0f, 1f))
                 stack.popMatrix()
+                bd2.unbind()
             }
         }
 
-        glDisable(GL_DEPTH_TEST)
-        glDisable(GL_BLEND)
+        bd.unbind()
+        bd = BlendDepth(null, false)
+        bd.bind()
 
-        val enableCircularDOF = 'K'.toInt() in keysDown
+        val enableCircularDOF = 'O'.toInt() in keysDown && 'F'.toInt() in keysDown
         if(enableCircularDOF){
             // todo render dof instead of bokeh blur only
             // make bokeh blur an additional camera effect?
@@ -470,7 +467,7 @@ object Scene {
 
         // testModelRendering()
 
-        glEnable(GL_BLEND)
+        bd.unbind()
 
         if(stack.currentIndex != 0){
             warn("Some function isn't correctly pushing/popping the stack!")

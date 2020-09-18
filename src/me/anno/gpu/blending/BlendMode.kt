@@ -1,6 +1,7 @@
-package me.anno.objects.blending
+package me.anno.gpu.blending
 
 import org.lwjgl.opengl.GL30.*
+import java.lang.RuntimeException
 
 // todo custom blend modes? -> maybe... could be customizable...
 class BlendMode(
@@ -45,7 +46,7 @@ class BlendMode(
                 glBlendFuncSeparate(src, dst, srcAlpha, dstAlpha)
                 lastMode = this
             }
-        }
+        } else throw RuntimeException("UNSPECIFIED can't be applied!")
     }
 
     fun copy(displayName: String, id: String): BlendMode {

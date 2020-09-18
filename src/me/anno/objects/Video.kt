@@ -95,17 +95,13 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
 
         // check these points by drawing them on the screen
         // they were correct as of 12th July 2020, 9:18 am
-        /*glDisable(GL_DEPTH_TEST)
-        glDisable(GL_BLEND)
-
+        /*
         for(pt in listOf(v00, v01, v10, v11)){
             val x = GFX.windowX + (+pt.x * 0.5f + 0.5f) * GFX.windowWidth
             val y = GFX.windowY + (-pt.y * 0.5f + 0.5f) * GFX.windowHeight
             GFX.drawRect(x.toInt()-2, y.toInt()-2, 5, 5, 0xff0000 or black)
         }
-
-        glEnable(GL_DEPTH_TEST)
-        glEnable(GL_BLEND)*/
+        */
 
         val zRange = Clipping.getZ(v00, v01, v10, v11) ?: return null
 

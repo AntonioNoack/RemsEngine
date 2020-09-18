@@ -3,6 +3,7 @@ package me.anno.objects.effects
 import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.isFinalRendering
+import me.anno.gpu.blending.BlendDepth
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.ShaderPlus
 import me.anno.io.ISaveable
@@ -10,7 +11,7 @@ import me.anno.io.base.BaseWriter
 import me.anno.objects.GFXTransform
 import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
-import me.anno.objects.blending.BlendMode
+import me.anno.gpu.blending.BlendMode
 import me.anno.ui.base.SpacePanel
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.style.Style
@@ -49,22 +50,14 @@ abstract class MaskLayerBase(parent: Transform? = null): GFXTransform(parent){
         val showResult = isFinalRendering || (!showMask && !showMasked)
         if(children.size >= 2 && showResult){// else invisible
 
-            /* (low priority)
+            val bd = BlendDepth(null, false)
+            bd.bind()
+
+            // (low priority)
             // to do calculate the size on screen to limit overhead
             // to do this additionally requires us to recalculate the transform
-            if(!isFullscreen){
-                val screenSize = GFX.windowSize
-                val screenPositions = listOf(
-                    Vector4f(-1f, -1f, 0f, 1f),
-                    Vector4f(+1f, -1f, 0f, 1f),
-                    Vector4f(-1f, +1f, 0f, 1f),
-                    Vector4f(+1f, +1f, 0f, 1f)
-                ).map {
-                    stack.transformProject(it)
-                }
-            }*/
 
-            val top = Framebuffer.stack.peek()
+            // val top = Framebuffer.stack.peek()
 
             BlendMode.DEFAULT.apply()
 
@@ -74,12 +67,11 @@ abstract class MaskLayerBase(parent: Transform? = null): GFXTransform(parent){
 
             drawMasked(stack, time, color)
 
-            val effectiveBlendMode = getParentBlendMode(BlendMode.DEFAULT)
-            effectiveBlendMode.apply()
+            bd.unbind()
 
             drawOnScreen(stack, time, color)
 
-            val top2 = Framebuffer.stack.peek()
+            // val top2 = Framebuffer.stack.peek()
             // if(top !== top2) throw RuntimeException()
 
         }

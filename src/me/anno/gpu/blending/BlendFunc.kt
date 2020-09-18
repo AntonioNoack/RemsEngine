@@ -1,4 +1,4 @@
-package me.anno.objects.blending
+package me.anno.gpu.blending
 
 import org.lwjgl.opengl.GL14.*
 

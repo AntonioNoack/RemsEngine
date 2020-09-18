@@ -14,6 +14,7 @@ import me.anno.gpu.ShaderLib.shader3DPolygon
 import me.anno.gpu.ShaderLib.shader3DSVG
 import me.anno.gpu.ShaderLib.shader3DYUV
 import me.anno.gpu.ShaderLib.subpixelCorrectTextShader
+import me.anno.gpu.blending.BlendDepth
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.buffer.StaticFloatBuffer
 import me.anno.gpu.framebuffer.Framebuffer
@@ -28,7 +29,7 @@ import me.anno.input.Input.mouseY
 import me.anno.input.MouseButton
 import me.anno.objects.Camera
 import me.anno.objects.Transform
-import me.anno.objects.blending.BlendMode
+import me.anno.gpu.blending.BlendMode
 import me.anno.objects.effects.MaskType
 import me.anno.objects.geometric.Circle
 import me.anno.objects.meshes.fbx.model.FBXGeometry
@@ -37,6 +38,7 @@ import me.anno.studio.Build.isDebug
 import me.anno.studio.Studio.editorTime
 import me.anno.studio.Studio.editorTimeDilation
 import me.anno.studio.Studio.eventTasks
+import me.anno.studio.Studio.nullCamera
 import me.anno.studio.Studio.root
 import me.anno.studio.Studio.selectedInspectable
 import me.anno.studio.Studio.selectedTransform
@@ -55,7 +57,6 @@ import me.anno.ui.debug.FrameTimes
 import me.anno.utils.clamp
 import me.anno.utils.f1
 import me.anno.utils.minus
-import me.anno.utils.print
 import me.anno.video.Frame
 import org.apache.logging.log4j.LogManager
 import org.joml.*
@@ -93,6 +94,8 @@ object GFX : GFXBase1() {
     val isFakeColorRendering get() = drawMode != ShaderPlus.DrawMode.COLOR_SQUARED && drawMode != ShaderPlus.DrawMode.COLOR
     var supportsAnisotropicFiltering = false
     var anisotropy = 1f
+
+    var currentCamera = nullCamera
 
     var hoveredPanel: Panel? = null
     var hoveredWindow: Window? = null
@@ -746,10 +749,11 @@ object GFX : GFXBase1() {
 
         check()
 
-        glDisable(GL_DEPTH_TEST)
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
-        glEnable(GL_BLEND)
-        BlendMode.DEFAULT.apply()
+
+        BlendDepth.reset()
+        BlendDepth(BlendMode.DEFAULT, false).bind()
+
         glDisable(GL_CULL_FACE)
         glDisable(GL_ALPHA_TEST)
 

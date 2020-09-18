@@ -16,7 +16,7 @@ import me.anno.input.MouseButton
 import me.anno.input.Touch.Companion.touches
 import me.anno.objects.Camera
 import me.anno.objects.Transform
-import me.anno.objects.blending.BlendMode
+import me.anno.gpu.blending.BlendMode
 import me.anno.studio.RemsStudio.onSmallChange
 import me.anno.studio.Scene
 import me.anno.studio.Studio

@@ -5,13 +5,14 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFX.toRadians
 import me.anno.gpu.ShaderLib.shader3D
 import me.anno.gpu.TextureLib.whiteTexture
+import me.anno.gpu.blending.BlendDepth
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticFloatBuffer
 import me.anno.gpu.texture.ClampMode
 import me.anno.objects.Transform.Companion.xAxis
 import me.anno.objects.Transform.Companion.yAxis
 import me.anno.objects.Transform.Companion.zAxis
-import me.anno.objects.blending.BlendMode
+import me.anno.gpu.blending.BlendMode
 import me.anno.image.svg.SVGStyle.Companion.parseColor
 import me.anno.utils.distance
 import me.anno.utils.pow
@@ -19,6 +20,7 @@ import me.anno.utils.toVec3f
 import org.joml.Matrix4f
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
+import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL20.*
 import kotlin.math.atan2
 import kotlin.math.floor
@@ -95,9 +97,8 @@ object Grid {
 
         if(GFX.isFinalRendering) return
 
-        BlendMode.ADD.apply()
-        glDisable(GL_DEPTH_TEST)
-        glDepthMask(false)
+        val bd = BlendDepth(BlendMode.ADD, false)
+        bd.bind()
 
         val distance = cameraTransform.transformProject(Vector4f(0f, 0f, 0f, 1f)).toVec3f().length()
         val log = log10(distance)
@@ -127,6 +128,8 @@ object Grid {
 
         stack.rotate(toRadians(90f), zAxis)
         drawLine(stack, zAxisColor, 0.15f) // z
+
+        bd.unbind()
 
     }
 

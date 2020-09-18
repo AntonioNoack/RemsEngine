@@ -3,6 +3,7 @@ package me.anno.objects
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.GFX.toRadians
+import me.anno.gpu.blending.BlendDepth
 import me.anno.gpu.texture.ClampMode
 import me.anno.gpu.texture.FilteringMode
 import me.anno.io.ISaveable
@@ -11,8 +12,8 @@ import me.anno.io.base.BaseWriter
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.objects.animation.AnimatedProperty
-import me.anno.objects.blending.BlendMode
-import me.anno.objects.blending.blendModes
+import me.anno.gpu.blending.BlendMode
+import me.anno.gpu.blending.blendModes
 import me.anno.objects.effects.MaskType
 import me.anno.objects.effects.ToneMappers
 import me.anno.objects.modes.LoopingState
@@ -242,8 +243,11 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
         if(color.w > minAlpha && !(isFinalRendering && isEditorOnly)){ // 12 bit = 4k
             applyTransformLT(stack, time)
             GFX.drawnTransform = this
+            val bd = BlendDepth(blendMode, GFX.currentCamera.useDepth)
+            bd.bind()
             onDraw(stack, time, color)
             drawChildren(stack, time, color, parentColor)
+            bd.unbind()
         }
 
     }
@@ -266,7 +270,6 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
 
     fun drawChild(stack: Matrix4fArrayList, time: Double, color: Vector4f, child: Transform?){
         if(child != null){
-            child.getParentBlendMode(BlendMode.DEFAULT).apply()
             stack.pushMatrix()
             child.draw(stack, time, color)
             stack.popMatrix()
@@ -431,9 +434,6 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
         parent?.removeChild(this)
         parent = null
     }
-
-    fun getParentBlendMode(default: BlendMode): BlendMode =
-        if(blendMode == BlendMode.UNSPECIFIED) parent?.getParentBlendMode(default) ?: default else blendMode
 
     override fun isDefaultValue() = false
 

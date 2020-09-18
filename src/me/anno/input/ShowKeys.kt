@@ -3,11 +3,10 @@ package me.anno.input
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
-import me.anno.objects.blending.BlendMode
+import me.anno.gpu.blending.BlendDepth
+import me.anno.gpu.blending.BlendMode
 import me.anno.utils.mix
 import org.lwjgl.glfw.GLFW
-import org.lwjgl.opengl.GL11.GL_BLEND
-import org.lwjgl.opengl.GL11.glEnable
 
 object ShowKeys {
 
@@ -66,8 +65,8 @@ object ShowKeys {
 
         activeKeys.sortBy { !it.isSuperKey }
 
-        glEnable(GL_BLEND)
-        BlendMode.DEFAULT.apply()
+        val bp = BlendDepth(BlendMode.DEFAULT, false)
+        bp.bind()
 
         var x0 = x
 
@@ -85,6 +84,8 @@ object ShowKeys {
             val text = KeyCombination.keyMapping.reverse[key.keyCode] ?: key.keyCode.toString()
             show(text, alpha)
         }
+
+        bp.unbind()
 
     }
 

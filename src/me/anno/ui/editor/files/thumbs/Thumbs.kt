@@ -1,7 +1,7 @@
 package me.anno.ui.editor.files.thumbs
 
-import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
+import me.anno.gpu.blending.BlendDepth
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.HDRImage
@@ -192,8 +192,8 @@ object Thumbs {
 
                     GFX.clip(0, 0, w, h)
 
-                    glDisable(GL_DEPTH_TEST)
-                    glDisable(GL_BLEND)
+                    val bd = BlendDepth(null, false)
+                    bd.bind()
 
                     // some thumbnails are broken, probably by overlapping time frames... but how? everything is synced...
                     // fixed by clearing the screen???
@@ -213,13 +213,14 @@ object Thumbs {
                     )
                     Framebuffer.unbind()
 
+                    bd.unbind()
+
                     thread {
-                        val black = black
                         val dst = BufferedImage(w, h, 1)
                         val buffer2 = dst.raster.dataBuffer
                         for(i in 0 until w * h){
                             val col = buffer[i]
-                            // swizzle colors, because rgba vs argb
+                            // swizzle colors, because rgba != argb
                             buffer2.setElem(i, rgba(col.b(), col.g(), col.r(), 255))
                         }
                         saveNUpload(dst)

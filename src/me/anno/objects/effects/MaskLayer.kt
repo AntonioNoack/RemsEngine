@@ -1,6 +1,7 @@
 package me.anno.objects.effects
 
 import me.anno.gpu.GFX
+import me.anno.gpu.blending.BlendDepth
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.ShaderPlus
 import me.anno.gpu.texture.ClampMode
@@ -54,14 +55,13 @@ class MaskLayer(parent: Transform? = null) : MaskLayerBase(parent) {
                 val oldDrawMode = GFX.drawMode
                 if (oldDrawMode == ShaderPlus.DrawMode.COLOR_SQUARED) GFX.drawMode = ShaderPlus.DrawMode.COLOR
 
-                glDisable(GL_BLEND)
-                glDisable(GL_DEPTH_TEST)
+                val bd = BlendDepth(null, false)
+                bd.bind()
 
                 drawBlur(temp, 0, true)
                 drawBlur(temp2, 2, false)
 
-                glEnable(GL_DEPTH_TEST) // todo only if camera wishes so
-                glEnable(GL_BLEND)
+                bd.unbind()
 
                 GFX.drawMode = oldDrawMode
 
@@ -81,20 +81,24 @@ class MaskLayer(parent: Transform? = null) : MaskLayerBase(parent) {
                 temp.bind(GFX.windowWidth, GFX.windowHeight)
                 // masked.bindTexture0(0, true)
                 glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
-                glDisable(GL_BLEND)
-                glDisable(GL_DEPTH_TEST)
+
+                val bd = BlendDepth(null, false)
+                bd.bind()
+
                 val src0 = masked
                 val srcBuffer = src0.msBuffer ?: src0
                 BokehBlur.draw(srcBuffer.textures[0], pixelSize)
                 temp.unbind()
                 temp.bindTexture0(1, true, ClampMode.CLAMP)
-                glEnable(GL_BLEND)
-                glEnable(GL_DEPTH_TEST) // todo only if camera wishes so
+
+                bd.unbind()
+
                 GFX.draw3DMasked(
                     localTransform, color,
                     MaskType.GAUSSIAN_BLUR, useMaskColor[time], offsetColor,
                     0f, isInverted
                 )
+
             }
             else -> {
                 GFX.check()
