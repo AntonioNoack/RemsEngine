@@ -10,6 +10,7 @@ import me.anno.io.Saveable
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.style.Style
 import me.anno.utils.Tabs
+import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL11.*
 import java.io.File
 import java.lang.RuntimeException
@@ -135,22 +136,24 @@ open class Panel(val style: Style) : Saveable() {
         if (!b) throw RuntimeException(msg)
     }
 
+    fun place(x: Int, y: Int, w: Int, h: Int){
+        placeInParent(x, y)
+        applyPlacement(w, h)
+        placeInParent(this.x, this.y)
+    }
+
     open fun placeInParent(x: Int, y: Int) {
         this.x = x
         this.y = y
     }
-
-    /*open fun applyConstraints(){
-        for(c in layoutConstraints){
-            c.apply(this)
-        }
-    }*/
 
     open fun applyPlacement(w: Int, h: Int) {
         //this.minW = w
         //this.minH = h
         this.w = w
         this.h = h
+        val x = x
+        val y = y
         for (c in layoutConstraints) {
             c.apply(this)
             if (this.w > w || this.h > h) throw RuntimeException("${c.javaClass} isn't working properly: $w -> ${this.w}, $h -> ${this.h}")
@@ -344,5 +347,9 @@ open class Panel(val style: Style) : Saveable() {
      * */
     val indexInParent get() = parent?.children?.indexOf(this) ?: -1
     val isRootElement get() = parent == null
+
+    /*companion object {
+        private val LOGGER = LogManager.getLogger(Panel::class)
+    }*/
 
 }

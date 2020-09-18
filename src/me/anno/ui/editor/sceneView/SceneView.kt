@@ -8,6 +8,7 @@ import me.anno.gpu.GFX.deltaTime
 import me.anno.gpu.GFX.select
 import me.anno.gpu.GFX.windowStack
 import me.anno.gpu.Window
+import me.anno.gpu.blending.BlendDepth
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.ShaderPlus
 import me.anno.input.Input
@@ -69,7 +70,7 @@ import kotlin.math.roundToInt
 // then say the number + change axis
 // then press enter to apply the change
 
-class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")) {
+class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), ISceneView {
 
     constructor(sceneView: SceneView) : this(DefaultConfig.style) {
         camera = sceneView.camera
@@ -85,7 +86,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")) {
     }
 
     var camera = nullCamera
-    var isLocked2D = false
+    override var isLocked2D = false
 
     val controls = ArrayList<SimplePanel>()
 
@@ -120,9 +121,6 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")) {
     var dx = 0
     var dy = 0
     var dz = 0
-
-    // todo resize only, if the size was stable for a moment (e.g. 0.2s)
-    // todo because resizing is expensive
 
     // switch between manual control and autopilot for time :)
     // -> do this by disabling controls when playing, excepts when it's the inspector camera (?)
@@ -220,7 +218,8 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")) {
 
         GFX.clip(x0, y0, x1, y1)
 
-        BlendMode.DEFAULT.apply()
+        val bd = BlendDepth(BlendMode.DEFAULT, false)
+        bd.bind()
 
         GFX.drawText(
             x + 2, y + 2, "Verdana", 12,
@@ -237,6 +236,8 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")) {
         }
 
         GFX.ensureEmptyStack()
+
+        bd.unbind()
 
         super.onDraw(x0, y0, x1, y1)
 

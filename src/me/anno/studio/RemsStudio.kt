@@ -25,12 +25,14 @@ import me.anno.studio.Studio.project
 import me.anno.studio.history.History
 import me.anno.studio.history.SceneState
 import me.anno.studio.project.Project
-import me.anno.ui.base.Panel
-import me.anno.ui.base.TextPanel
-import me.anno.ui.base.Tooltips
+import me.anno.ui.base.*
+import me.anno.ui.base.components.Padding
+import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.debug.FrameTimes
 import me.anno.ui.editor.UILayouts
 import me.anno.ui.editor.sceneTabs.SceneTabs
+import me.anno.ui.input.TextInput
 import me.anno.utils.OS
 import me.anno.utils.clamp
 import me.anno.utils.f3
@@ -106,7 +108,7 @@ object RemsStudio {
     }
 
     fun saveState(){
-        // ("saving state")
+        // saving state
         isSaving.set(true)
         thread {
             try {
@@ -197,12 +199,9 @@ object RemsStudio {
             mt("audio manager")
 
             Cursor.init()
-            thread {
-                loadProject()
-                addEvent {
-                    UILayouts.createEditorUI()
-                }
-            }
+
+            UILayouts.createWelcomeUI()
+
         }
 
         GFX.gameLoop = { w, h ->
@@ -238,15 +237,14 @@ object RemsStudio {
                     // ("layouting")
                     val t0 = System.nanoTime()
                     panel.calculateSize(min(w - window.x, w), min(h - window.y, h))
-                    panel.applyPlacement(min(w - window.x, w), min(h - window.y, h))
+                    // panel.applyPlacement(min(w - window.x, w), min(h - window.y, h))
                     if(window.isFullscreen){
                         smallestIndexNeedingRendering = index
                     }
                     if(panel.w > w || panel.h > h) throw RuntimeException("Panel is too large...")
                     // panel.applyConstraints()
                     val t1 = System.nanoTime()
-                    panel.placeInParent(window.x, window.y)
-                    panel.applyPlacement(w, h)
+                    panel.place(window.x, window.y, w, h)
                     val t2 = System.nanoTime()
                     val dt1 = (t1 - t0) * 1e-9f
                     val dt2 = (t2 - t1) * 1e-9f
@@ -254,7 +252,7 @@ object RemsStudio {
                 }
                 GFX.ensureEmptyStack()
                 Framebuffer.stack.push(null)
-                panel.draw(window.x, window.y, window.x + panel.w, window.y + panel.h)
+                panel.draw(panel.x, panel.y, panel.x + panel.w, panel.y + panel.h)
                 GFX.ensureEmptyStack()
             }
 

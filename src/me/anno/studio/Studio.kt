@@ -3,6 +3,8 @@ package me.anno.studio
 import me.anno.audio.ALBase
 import me.anno.audio.AudioManager
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.windowHeight
+import me.anno.gpu.GFX.windowWidth
 import me.anno.input.Input.isAltDown
 import me.anno.input.Input.isShiftDown
 import me.anno.objects.Camera
@@ -43,8 +45,8 @@ object Studio {
 
     val targetDuration get() = project!!.targetDuration
     val targetFPS get() = project!!.targetFPS
-    val targetWidth get() = project!!.targetWidth
-    val targetHeight get() = project!!.targetHeight
+    val targetWidth get() = project?.targetWidth ?: windowWidth
+    val targetHeight get() = project?.targetHeight ?: windowHeight
     val targetOutputFile get() = project!!.targetOutputFile
 
     val shiftSlowdown get() = if(isAltDown) 5f else if(isShiftDown) 0.2f else 1f

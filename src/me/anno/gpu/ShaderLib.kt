@@ -195,15 +195,6 @@ object ShaderLib {
                 "   uvw = attr0;\n" +
                 "}"
 
-        val v3DMasked = v3DBase +
-                "a2 attr0;\n" +
-                "void main(){\n" +
-                "   vec2 betterUV = attr0*2.-1.;\n" +
-                "   gl_Position = transform3D(betterUV);\n" +
-                positionPostProcessing +
-                "   uv = gl_Position.xyw;\n" +
-                "}"
-
         val v3DSVG = v3DBase +
                 "a3 attr0;\n" +
                 "a4 attr1;\n" +
@@ -247,11 +238,21 @@ object ShaderLib {
                 "}"
         shader3DPolygon = createShaderPlus("3d-polygon", v3DPolygon, y3D, f3D, listOf("tex"))
 
+        val v3DMasked = v3DBase +
+                "a2 attr0;\n" +
+                "void main(){\n" +
+                "   vec2 betterUV = attr0*2.-1.;\n" +
+                "   gl_Position = transform3D(betterUV);\n" +
+                "   uv = gl_Position.xyw;\n" +
+                positionPostProcessing +
+                "}"
+
         val y3DMasked = "" +
                 "varying v3 uv;\n" +
                 "varying float zDistance;\n"
 
         val f3DMasked = "" +
+                "precision highp float;\n" +
                 "uniform vec4 tint;" +
                 "uniform sampler2D mask, tex, tex2;\n" +
                 "uniform vec4 offsetColor;\n" +
@@ -292,7 +293,6 @@ object ShaderLib {
                 "           break;\n" +
                 "   }\n" +
                 "   gl_FragColor = tint * color;\n" +
-                "   if(gl_FragColor.a <= 0.0) discard;\n" +
                 "   gl_FragColor.a = min(gl_FragColor.a, 1.0);\n" +
                 "}"
         shader3DMasked = createShaderPlus("3d-masked", v3DMasked, y3DMasked, f3DMasked, listOf("mask", "tex", "tex2"))

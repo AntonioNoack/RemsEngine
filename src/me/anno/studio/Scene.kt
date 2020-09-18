@@ -26,6 +26,7 @@ import me.anno.objects.effects.ToneMappers
 import me.anno.studio.Studio.selectedTransform
 import me.anno.ui.editor.sceneView.Grid
 import me.anno.ui.editor.sceneView.Grid.drawLine01
+import me.anno.ui.editor.sceneView.ISceneView
 import me.anno.ui.editor.sceneView.SceneView
 import me.anno.utils.times
 import me.anno.utils.warn
@@ -235,7 +236,7 @@ object Scene {
     // rendering must be done in sync with the rendering thread (OpenGL limitation) anyways, so one object is enough
     val stack = Matrix4fArrayList()
     fun draw(target: Framebuffer?, camera: Camera, x0: Int, y0: Int, w: Int, h: Int, time: Double,
-             flipY: Boolean, drawMode: ShaderPlus.DrawMode, sceneView: SceneView?){
+             flipY: Boolean, drawMode: ShaderPlus.DrawMode, sceneView: ISceneView?){
 
         GFX.ensureEmptyStack()
 

@@ -14,6 +14,7 @@ import me.anno.io.text.TextWriter
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.blending.blendModes
+import me.anno.gpu.shader.ShaderPlus
 import me.anno.objects.effects.MaskType
 import me.anno.objects.effects.ToneMappers
 import me.anno.objects.modes.LoopingState
@@ -243,11 +244,20 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
         if(color.w > minAlpha && !(isFinalRendering && isEditorOnly)){ // 12 bit = 4k
             applyTransformLT(stack, time)
             GFX.drawnTransform = this
-            val bd = BlendDepth(blendMode, GFX.currentCamera.useDepth)
-            bd.bind()
-            onDraw(stack, time, color)
-            drawChildren(stack, time, color, parentColor)
-            bd.unbind()
+            val doBlending = when(GFX.drawMode){
+                ShaderPlus.DrawMode.COLOR_SQUARED, ShaderPlus.DrawMode.COLOR -> true
+                else -> false
+            }
+            if(doBlending){
+                val bd = BlendDepth(blendMode, GFX.currentCamera.useDepth)
+                bd.bind()
+                onDraw(stack, time, color)
+                drawChildren(stack, time, color, parentColor)
+                bd.unbind()
+            } else {
+                onDraw(stack, time, color)
+                drawChildren(stack, time, color, parentColor)
+            }
         }
 
     }

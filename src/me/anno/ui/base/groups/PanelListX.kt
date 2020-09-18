@@ -78,10 +78,7 @@ open class PanelListX(sorter: Comparator<Panel>?, style: Style): PanelList(sorte
             val childConstW = if(!hasWeight || !dc) child.minW * perConst else 0f
             val childW = (childConstW + perWeight * max(0f, child.weight)).roundToInt()
             child.calculateSize(childW, h)
-            child.placeInParent(posX, y)
-            child.applyPlacement(childW, h)
-            // child.applyConstraints()
-            // ("laying out child to $x $y += $childWidth $h")
+            child.place(posX, y, childW, h)
             posX += childW + spacing
         }
 

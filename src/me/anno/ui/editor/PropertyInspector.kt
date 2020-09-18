@@ -13,7 +13,7 @@ import me.anno.ui.input.VectorInput
 import me.anno.ui.style.Style
 
 class PropertyInspector(style: Style):
-    ScrollPanelY(style.getChild("propertyInspector"), Padding(3), AxisAlignment.MIN){
+    ScrollPanelY(Padding(3), AxisAlignment.MIN, style.getChild("propertyInspector")){
 
     val list = child as PanelListY
     val secondaryList = PanelListY(style)

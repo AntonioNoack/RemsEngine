@@ -1,20 +1,18 @@
 package me.anno.ui.editor
 
 import me.anno.config.DefaultConfig
-import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.select
 import me.anno.gpu.Window
 import me.anno.input.Input
-import me.anno.input.MouseButton
 import me.anno.objects.Camera
 import me.anno.objects.Text
 import me.anno.objects.Transform
 import me.anno.objects.cache.Cache
 import me.anno.objects.rendering.RenderSettings
 import me.anno.studio.RemsStudio
-import me.anno.studio.RemsStudio.lastConsoleLines
 import me.anno.studio.RemsStudio.windowStack
+import me.anno.studio.Studio
 import me.anno.studio.Studio.nullCamera
 import me.anno.studio.Studio.project
 import me.anno.studio.Studio.root
@@ -23,38 +21,40 @@ import me.anno.studio.Studio.targetFPS
 import me.anno.studio.Studio.targetHeight
 import me.anno.studio.Studio.targetOutputFile
 import me.anno.studio.Studio.targetWidth
-import me.anno.ui.base.Panel
+import me.anno.ui.base.ButtonPanel
 import me.anno.ui.base.SpacePanel
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment
-import me.anno.ui.base.groups.PanelList
+import me.anno.ui.base.constraints.WrapAlign
+import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelY
+import me.anno.ui.custom.CustomContainer
 import me.anno.ui.custom.CustomListX
 import me.anno.ui.custom.CustomListY
-import me.anno.ui.custom.CustomContainer
+import me.anno.ui.debug.ConsoleOutputPanel
 import me.anno.ui.editor.cutting.CuttingView
 import me.anno.ui.editor.files.FileExplorer
 import me.anno.ui.editor.graphs.GraphEditor
 import me.anno.ui.editor.sceneTabs.SceneTabs
+import me.anno.ui.editor.sceneView.ScenePreview
 import me.anno.ui.editor.sceneView.SceneView
 import me.anno.ui.editor.treeView.TreeView
-import me.anno.utils.mixARGB
+import me.anno.ui.input.TextInput
 import me.anno.video.VideoAudioCreator
 import me.anno.video.VideoCreator
 import org.apache.logging.log4j.LogManager
 import java.io.File
-import java.util.logging.Level
+import kotlin.concurrent.thread
 import kotlin.math.max
-import kotlin.math.min
 import kotlin.math.roundToInt
 
 object UILayouts {
 
     private val LOGGER = LogManager.getLogger(UILayouts::class)
 
-    fun createLoadingUI(){
+    fun createLoadingUI() {
 
         val style = DefaultConfig.style
 
@@ -66,25 +66,103 @@ object UILayouts {
 
     }
 
-    fun renderPart(size: Int){
+    fun renderPart(size: Int) {
         render(targetWidth / size, targetHeight / size)
     }
 
-    fun render(width: Int, height: Int){
-        if(width % 2 != 0 || height % 2 != 0) return render(
+    fun render(width: Int, height: Int) {
+        if (width % 2 != 0 || height % 2 != 0) return render(
             width / 2 * 2,
             height / 2 * 2
         )
         LOGGER.info("rendering video at $width x $height")
-        val tmpFile = File(targetOutputFile.parentFile, targetOutputFile.nameWithoutExtension+".tmp."+targetOutputFile.extension)
+        val tmpFile = File(
+            targetOutputFile.parentFile,
+            targetOutputFile.nameWithoutExtension + ".tmp." + targetOutputFile.extension
+        )
         val fps = targetFPS
         val totalFrameCount = (fps * targetDuration).toInt()
         val sampleRate = 48000
-        VideoAudioCreator(VideoCreator(width, height,
-            targetFPS, totalFrameCount, tmpFile), sampleRate, targetOutputFile).start()
+        VideoAudioCreator(
+            VideoCreator(
+                width, height,
+                targetFPS, totalFrameCount, tmpFile
+            ), sampleRate, targetOutputFile
+        ).start()
     }
 
-    fun createEditorUI(){
+    fun createWelcomeUI() {
+
+        val style = DefaultConfig.style
+        val welcome = PanelListY(style)
+        val title = TextPanel("Rem's Studio", style)
+        title.textSize *= 3
+        welcome += title
+
+        welcome += SpacePanel(0, 1, style)
+
+        val recentProjects = PanelListY(style)
+        welcome += recentProjects
+        for (i in 0 until 5) {
+            val tp = object : TextPanel("Project $i", style) {
+                override val enableHoverColor = true
+            }
+            tp.padding.top--
+            tp.padding.bottom--
+            welcome += tp
+        }
+
+        welcome += SpacePanel(0, 1, style)
+
+        val title2 = TextInput("Title", style)
+        title2.setText("New Project", true)
+        welcome += title2
+
+        fun loadNewProject(){
+            thread {
+                RemsStudio.loadProject()
+                Studio.addEvent {
+                    nullCamera.farZ.set(5000f)
+                    windowStack.clear()
+                    createEditorUI()
+                }
+            }
+        }
+
+        val button = ButtonPanel("Create Project", style)
+        button.setSimpleClickListener { loadNewProject() }
+        welcome += button
+
+        val scroll = ScrollPanelY(welcome, Padding(5), style)
+        scroll += WrapAlign.Center
+
+        val background = ScenePreview(style)
+
+        val background2 = PanelListX(style)
+        background2.backgroundColor = 0x77777777
+
+        windowStack.push(Window(background, true, 0, 0))
+        windowStack.push(Window(background2, false, 0, 0))
+        val mainWindow = Window(scroll, false, 0, 0)
+        mainWindow.acceptsClickAway = {
+            if(it.isLeft){
+                loadNewProject()
+                true
+            } else false
+        }
+        windowStack.push(mainWindow)
+
+        Text("Rem's Studio", root).apply {
+            blockAlignmentX = AxisAlignment.CENTER
+            blockAlignmentY = AxisAlignment.CENTER
+            textAlignment = AxisAlignment.CENTER
+        }
+
+        nullCamera.farZ.set(100f)
+
+    }
+
+    fun createEditorUI() {
 
         val style = DefaultConfig.style
 
@@ -103,22 +181,22 @@ object UILayouts {
         // options.addMajor("Navigate")
         // options.addMajor("Code")
 
-        options.addAction("File", "Save"){ Input.save() }
-        options.addAction("File", "Load"){  }
+        options.addAction("File", "Save") { Input.save() }
+        options.addAction("File", "Load") { }
 
-        options.addAction("Select", "Render Settings"){ select(RenderSettings) }
-        options.addAction("Select", "Inspector Camera"){ select(nullCamera) }
-        options.addAction("Debug", "Refresh (Ctrl+F5)"){ Cache.clear() }
+        options.addAction("Select", "Render Settings") { select(RenderSettings) }
+        options.addAction("Select", "Inspector Camera") { select(nullCamera) }
+        options.addAction("Debug", "Refresh (Ctrl+F5)") { Cache.clear() }
 
-        options.addAction("Render", "Set%"){
+        options.addAction("Render", "Set%") {
             render(
                 max(2, (project!!.targetWidth * project!!.targetSizePercentage / 100).roundToInt()),
                 max(2, (project!!.targetHeight * project!!.targetSizePercentage / 100).roundToInt())
             )
         }
-        options.addAction("Render", "Full"){ renderPart(1) }
-        options.addAction("Render", "Half"){ renderPart(2) }
-        options.addAction("Render", "Quarter"){ renderPart(4) }
+        options.addAction("Render", "Full") { renderPart(1) }
+        options.addAction("Render", "Half") { renderPart(2) }
+        options.addAction("Render", "Quarter") { renderPart(4) }
 
         ui += options
         ui += SceneTabs
@@ -172,47 +250,9 @@ object UILayouts {
         ui += customUI
         ui += SpacePanel(0, 1, style)
 
-        val console = object: TextPanel("", style.getChild("small")){
-            override val effectiveTextColor: Int get() = textColor
-            override fun onDoubleClick(x: Float, y: Float, button: MouseButton) {
-                if(button.isLeft){
-                    // open console in large with scrollbar
-                    val listPanel = object: ScrollPanelY(style, Padding(5), AxisAlignment.CENTER){
-                        override fun onBackSpaceKey(x: Float, y: Float) { windowStack.pop() }
-                    }
-                    // todo update, if there are new messages incoming
-                    // done select the text color based on the type of message
-                    val list = listPanel.child as PanelList
-                    lastConsoleLines.reversed().forEach {
-                        val level = if(it.startsWith('[')){
-                            when(it.substring(0, min(4, it.length))){
-                                "[INF" -> Level.INFO
-                                "[WAR" -> Level.WARNING
-                                "[ERR" -> Level.SEVERE
-                                "[DEB", "[FIN" -> Level.FINE
-                                else -> Level.INFO
-                            }
-                        } else Level.INFO
-                        val color = when(level){
-                            Level.FINE -> 0x77ff77
-                            Level.SEVERE -> 0xff0000
-                            Level.WARNING -> 0xff7777
-                            Level.INFO -> 0xffffff
-                            else -> -1
-                        } or black
-                        val panel = object: TextPanel(it, style){
-                            // multiselect to copy multiple lines -> use a single text editor instead xD
-                            // todo copy from multiple elements...
-                            override fun getMultiSelectablePanel(): Panel? = this
-                        }
-                        panel.textColor = mixARGB(panel.textColor, color, 0.5f)
-                        list += panel
-                    }
-                    windowStack.add(Window(listPanel, true, 0, 0))
-                }
-            }
-        }
+        val console = ConsoleOutputPanel(style.getChild("small"))
         // console.fontName = "Consolas"
+
         RemsStudio.console = console
         console.setTooltip("Double-click to open history")
         console.instantTextLoading = true
@@ -225,7 +265,7 @@ object UILayouts {
 
     }
 
-    fun printLayout(){
+    fun printLayout() {
         println("Layout:")
         for (window1 in GFX.windowStack) {
             window1.panel.printLayout(1)

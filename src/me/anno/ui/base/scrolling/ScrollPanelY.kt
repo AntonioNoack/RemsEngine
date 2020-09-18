@@ -18,7 +18,9 @@ open class ScrollPanelY(child: Panel, padding: Padding,
                         style: Style,
                         alignX: AxisAlignment): PanelContainer(child, padding, style), ScrollableY {
 
-    constructor(style: Style, padding: Padding, align: AxisAlignment): this(PanelListY(style), padding, style, align)
+    constructor(child: Panel, style: Style): this(child, Padding(), style, AxisAlignment.MIN)
+    constructor(child: Panel, padding: Padding, style: Style): this(child, padding, style, AxisAlignment.MIN)
+    constructor(padding: Padding, align: AxisAlignment, style: Style): this(PanelListY(style), padding, style, align)
 
     init {
         child += WrapAlign(alignX, AxisAlignment.MIN)
@@ -37,26 +39,12 @@ open class ScrollPanelY(child: Panel, padding: Padding,
     override fun calculateSize(w: Int, h: Int) {
         super.calculateSize(w, h)
 
-        // if(h > GFX.height) throw RuntimeException()
-
         child.calculateSize(w-padding.width, maxLength-padding.height)
-        // child.applyConstraints()
 
         minW = child.minW + padding.width
         minH = child.minH + padding.height
         if(maxScrollPosition > 0) minW += scrollbarWidth
-
-        /*if(child is PanelListMultiline){
-            println("${child.minW} ${child.minH} -> $minW $minH inside $w $h, makes $maxScrollPosition")
-        }*/
-
-        // if(h > GFX.height) throw RuntimeException()
-
-        // warn("scroll fini $x += $w ($minW), $y += $h ($minH) by ${child.h}, ${child.minH}")
-
     }
-
-
 
     override fun placeInParent(x: Int, y: Int) {
         super.placeInParent(x, y)
