@@ -60,7 +60,7 @@ open class PanelListY(sorter: Comparator<Panel>?, style: Style) : PanelList(sort
 
         // warn("panel list y $x $y $w $h ($minW $minH): $sumConst + $sumWeight -> per const: $perConst, per weight: $perWeight")
 
-        // println("extra available: $extraAvailable = $h - $sumConst, per weight: $perWeight = $extraAvailable / $sumWeight")
+        // ("extra available: $extraAvailable = $h - $sumConst, per weight: $perWeight = $extraAvailable / $sumWeight")
         var yCtr = y
         for (child in children.filter { it.visibility != Visibility.GONE }) {
             val childH = (perConst * child.minH + perWeight * max(0f, child.weight)).roundToInt()
@@ -68,7 +68,7 @@ open class PanelListY(sorter: Comparator<Panel>?, style: Style) : PanelList(sort
             // child.applyConstraints()
             child.placeInParent(x, yCtr)
             child.applyPlacement(w, childH)
-            // println("laying out child to $x $y += $childWidth $h")
+            // ("laying out child to $x $y += $childWidth $h")
             yCtr += childH + spacing
         }
 

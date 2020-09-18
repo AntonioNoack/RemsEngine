@@ -30,6 +30,7 @@ import me.anno.input.MouseButton
 import me.anno.objects.Camera
 import me.anno.objects.Transform
 import me.anno.gpu.blending.BlendMode
+import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.effects.MaskType
 import me.anno.objects.geometric.Circle
 import me.anno.objects.meshes.fbx.model.FBXGeometry
@@ -845,7 +846,7 @@ object GFX : GFXBase1() {
         val maxHeight = max(300, GFX.height)
         container.calculateSize(maxWidth, maxHeight)
         container.applyPlacement(min(container.minW, maxWidth), min(container.minH, maxHeight))
-        // println("size for window: ${container.w} ${container.h}")
+        // ("size for window: ${container.w} ${container.h}")
         val wx = clamp(x, 0, max(GFX.width - container.w, 0))
         val wy = clamp(y, 0, max(GFX.height - container.h, 0))
         window = Window(container, false, wx, wy)
@@ -900,7 +901,7 @@ object GFX : GFXBase1() {
             val error = glGetError()
             if (error != 0) {
                 Framebuffer.stack.forEach {
-                    println(it)
+                    LOGGER.info(it.toString())
                 }
                 throw RuntimeException(
                     "GLException: ${when (error) {

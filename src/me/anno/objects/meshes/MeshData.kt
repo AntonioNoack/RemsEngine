@@ -105,7 +105,7 @@ class MeshData : CacheData {
                 val mat = Matrix4f(jointMat)
                 mat.mul(invJointMatrix) // invJointMatrix
 
-                // println(mat)
+                // (mat)
 
                 for (i in 0 until 16) {
                     matrixBufferFBX.put(mat.get(i / 4, i and 3))

@@ -7,6 +7,7 @@ import me.anno.objects.cache.Cache
 import me.anno.objects.cache.CacheData
 import me.anno.utils.OS
 import me.anno.utils.parseTime
+import org.apache.logging.log4j.LogManager
 import java.io.File
 
 class FFMPEGMetadata(file: File): CacheData {
@@ -120,7 +121,7 @@ class FFMPEGMetadata(file: File): CacheData {
 
         // get and parse the data :)
         val data = String(process.inputStream.readBytes())
-        println(data)
+        LOGGER.info(data)
         if(data.isEmpty()) return 0.0
         val time = data.split("time=")[1].split(" ")[0]
         // frame=206723 fps=1390 q=-0.0 Lsize=N/A time=00:57:28.87 bitrate=N/A speed=23.2x
@@ -139,6 +140,7 @@ class FFMPEGMetadata(file: File): CacheData {
     override fun destroy() {}
 
     companion object {
+        private val LOGGER = LogManager.getLogger(FFMPEGMetadata::class)
         fun getMeta(file: File, async: Boolean): FFMPEGMetadata? {
             if(file.isDirectory || !file.exists()) return null
             return Cache.getEntry("metadata" to file, 10_000, async){

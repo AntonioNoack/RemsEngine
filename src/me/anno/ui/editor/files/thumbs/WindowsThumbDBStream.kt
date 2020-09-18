@@ -14,7 +14,7 @@ class WindowsThumbDBStream(val src: InputStream) : InputStream() {
     }
 
     fun jumpTo(target: Int): Int {
-        // println("jump $ctr -> $target")
+        // ("jump $ctr -> $target")
         if (target < ctr) {
             if(target < marked) throw RuntimeException()
             reset()

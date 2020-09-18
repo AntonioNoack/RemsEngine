@@ -78,7 +78,7 @@ class AudioStreamOpenAL(file: File, repeat: LoopingState, startTime: Double, met
             // request a buffer
             // only one at a time
             val index = this.queued.getAndIncrement()
-            // println("loading $index...")
+            // loading $index...
             requestNextBuffer(startTime + playbackSliceDuration * index, index)
         }
         thread {
@@ -102,7 +102,7 @@ class AudioStreamOpenAL(file: File, repeat: LoopingState, startTime: Double, met
                 ALBase.check()
                 if(isFirstBuffer){
                     val dt = max(0f, (System.nanoTime() - startTimeNanos) * 1e-9f)
-                    // println("skipping first $dt")
+                    // "skipping first $dt"
                     // 10s slices -> 2.6s
                     // 1s slices -> 0.55s
                     val samples = dt * playbackSampleRate
@@ -111,15 +111,15 @@ class AudioStreamOpenAL(file: File, repeat: LoopingState, startTime: Double, met
                     val minPlayedSamples = 32 // not correct, but who cares ;) (our users care ssshhh)
                     val skipIndex = min(currentIndex, stereoBuffer.capacity() - 2 * minPlayedSamples)
                     if(skipIndex > 0){
-                        // println("skipping $skipIndex")
+                        // "skipping $skipIndex"
                         stereoBuffer.position(skipIndex)
                     }
                 }
                 soundBuffer.loadRawStereo16(stereoBuffer, playbackSampleRate)
                 buffers.add(soundBuffer)
                 ALBase.check()
-                // println("Invalid Name? alSourceQueueBuffers(${alSource.sourcePtr}, ${soundBuffer.buffer})")
-                // println("putting buffer ${soundBuffer.pcm?.capacity()}")
+                // ("Invalid Name? alSourceQueueBuffers(${alSource.sourcePtr}, ${soundBuffer.buffer})")
+                // ("putting buffer ${soundBuffer.pcm?.capacity()}")
                 alSourceQueueBuffers(alSource.sourcePtr, soundBuffer.buffer)
                 ALBase.check()
                 if(isFirstBuffer){

@@ -3,6 +3,7 @@ package me.anno.studio
 import me.anno.audio.ALBase
 import me.anno.audio.AudioManager
 import me.anno.gpu.GFX
+import me.anno.input.Input.isAltDown
 import me.anno.input.Input.isShiftDown
 import me.anno.objects.Camera
 import me.anno.objects.Inspectable
@@ -46,7 +47,7 @@ object Studio {
     val targetHeight get() = project!!.targetHeight
     val targetOutputFile get() = project!!.targetOutputFile
 
-    val shiftSlowdown get() = if(isShiftDown) 0.2f else 1f
+    val shiftSlowdown get() = if(isAltDown) 5f else if(isShiftDown) 0.2f else 1f
 
     val nullCamera = Camera(null)
 

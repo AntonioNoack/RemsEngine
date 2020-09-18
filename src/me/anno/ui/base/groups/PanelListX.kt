@@ -70,7 +70,7 @@ open class PanelListX(sorter: Comparator<Panel>?, style: Style): PanelList(sorte
 
         // warn("panel list x $x $y $w $h ($minW $minH): $sumConst + $sumWeight -> per const: $perConst, per weight: $perWeight")
 
-        // println("extra available: $extraAvailable = $w - $sumConst, per weight: $perWeight = $extraAvailable / $sumWeight")
+        // ("extra available: $extraAvailable = $w - $sumConst, per weight: $perWeight = $extraAvailable / $sumWeight")
         var posX = this.x
         val dc = disableConstantSpaceForWeightedChildren
         for(child in children.filter { it.visibility != Visibility.GONE }){
@@ -81,7 +81,7 @@ open class PanelListX(sorter: Comparator<Panel>?, style: Style): PanelList(sorte
             child.placeInParent(posX, y)
             child.applyPlacement(childW, h)
             // child.applyConstraints()
-            // println("laying out child to $x $y += $childWidth $h")
+            // ("laying out child to $x $y += $childWidth $h")
             posX += childW + spacing
         }
 

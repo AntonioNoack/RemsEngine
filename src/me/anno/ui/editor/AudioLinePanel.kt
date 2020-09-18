@@ -82,10 +82,10 @@ class AudioLinePanel(var meta: FFMPEGMetadata, val audio: Audio, style: Style): 
         super.onDraw(x0, y0, x1, y1)
 
         if(audio.file !== file){
-            // println("file change noticed")
+            // ("file change noticed")
             // forcedMeta would put the UI to sleep
             meta = audio.meta ?: return
-            // println("file was changed")
+            // ("file was changed")
             lengthSeconds  = meta.duration
             frequency = meta.audioSampleRate.toDouble()
             file = audio.file

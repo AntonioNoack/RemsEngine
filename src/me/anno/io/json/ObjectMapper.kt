@@ -170,7 +170,7 @@ object ObjectMapper {
                 if(value == null){
                     field.set(instance, null)
                 } else {
-                    // println("${field.name}, ${field.genericType}, ${field.genericType.typeName}")
+                    // ("${field.name}, ${field.genericType}, ${field.genericType.typeName}")
                     val type = field.genericType.typeName
                     val theValue = getValue(parseType(type), value)
                     field.set(instance, theValue)
@@ -238,7 +238,7 @@ object ObjectMapper {
                     val2
                 }
                 else -> {
-                    // println(type)
+                    // (type)
                     val clazz = getClass(type.name)
                     convertValue(value.toJsonNode(), clazz)
                 }

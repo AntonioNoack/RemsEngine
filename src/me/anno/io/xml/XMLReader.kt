@@ -72,7 +72,7 @@ object XMLReader {
         when(val first = firstChar ?: input.skipSpaces()){
             '<'.toInt() -> {
                 val (name, end) = input.readTypeUntilSpaceOrEnd()
-                // println(name)
+                // (name)
                 when {
                     name.startsWith("?xml", true) -> {
                         // <?xml version="1.0" encoding="utf-8"?>
@@ -112,7 +112,7 @@ object XMLReader {
                         // name="value"
                         if(next < 0) next = input.skipSpaces()
                         val (propName, propEnd) = input.readTypeUntilSpaceOrEnd()
-                        // println("  '${if(next < 0) "" else next.toChar().toString()}$propName' '${propEnd.toChar()}'")
+                        // ("  '${if(next < 0) "" else next.toChar().toString()}$propName' '${propEnd.toChar()}'")
                         assert(propEnd, '=')
                         val start = input.skipSpaces()
                         assert(start, '"', '\'')

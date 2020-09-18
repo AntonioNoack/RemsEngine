@@ -64,7 +64,7 @@ open class Shader(val shaderName: String,
         .replace(" m4 ", " mat4 ")
 
     private fun compile(type: Int, source: String): Int {
-        // println("$shaderName/$type: $source")
+        // ("$shaderName/$type: $source")
         val shader = glCreateShader(type)
         glShaderSource(shader, source)
         glCompileShader(shader)

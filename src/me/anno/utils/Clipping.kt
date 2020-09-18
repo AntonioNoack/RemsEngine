@@ -30,7 +30,7 @@ object Clipping {
         val d1 = abs(val0 - cuttingPoint)
         val d2 = abs(val1 - cuttingPoint)
         return Vector4f(v0).lerp(v1, d1/(d1+d2))
-        // println("${v0.print()} ${v1.print()} -> ${result.print()} ($val0 $val1 -> ${getValue(result)})")
+        // ("${v0.print()} ${v1.print()} -> ${result.print()} ($val0 $val1 -> ${getValue(result)})")
     }
 
     fun getZ(p00: Vector4f, p01: Vector4f, p10: Vector4f, p11: Vector4f): Pair<Float, Float>? {

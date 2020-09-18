@@ -76,7 +76,6 @@ object AudioManager {
 
     val camera = nullCamera
     fun updateTime(time: Double, dilation: Double, transform: Transform){
-        // if(transform == root) println("$time += t * $dilation")
         if(transform is Audio){
             transform.startPlayback(time, dilation, camera)
         }

@@ -1,5 +1,6 @@
 package me.anno.video
 
+import org.apache.logging.log4j.LogManager
 import java.io.File
 import java.io.InputStream
 import kotlin.concurrent.thread
@@ -11,6 +12,7 @@ abstract class FFMPEGStream(val file: File?){
     var sourceLength = 0.0
 
     companion object {
+        private val LOGGER = LogManager.getLogger(FFMPEGStream::class)
         val frameCountByFile = HashMap<File, Int>()
         fun getInfo(input: File) = (FFMPEGMeta(null).run(listOf(
             "-i", input.absolutePath
@@ -77,7 +79,7 @@ abstract class FFMPEGStream(val file: File?){
         thread {
             while(true){
                 val line = reader.readLine() ?: break
-                println("[$prefix] $line")
+                LOGGER.info("[$prefix] $line")
             }
         }
     }

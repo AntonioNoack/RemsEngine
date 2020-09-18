@@ -194,7 +194,7 @@ class LayerView(style: Style) : TimelinePanel(style) {
             }
             // val t3 = System.nanoTime()
             // the calculation is 3x slower, but still, it's now async, so it doesn't matter much
-            // println("${((t2 - t1) * 1e-6).f3()}+${((t3 - t2) * 1e-6).f3()}")
+            // ("${((t2 - t1) * 1e-6).f3()}+${((t3 - t2) * 1e-6).f3()}")
         }
         stripes.forEach { list ->
             list.removeIf { !it.needsDrawn() }
@@ -236,7 +236,7 @@ class LayerView(style: Style) : TimelinePanel(style) {
             // 11µs for two sections x 2
             // 300µs for the sections with stripes;
             // hardware accelerated stripes? -> we'd have to add a flag/flag color
-            // println("${((t1-t0)*1e-6).f3()}+${((t2-t1)*1e-6).f3()}")
+            // ("${((t1-t0)*1e-6).f3()}+${((t2-t1)*1e-6).f3()}")
             return
         }
 

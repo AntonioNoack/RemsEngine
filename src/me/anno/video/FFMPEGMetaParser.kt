@@ -2,6 +2,7 @@ package me.anno.video
 
 import me.anno.io.utils.StringMap
 import me.anno.utils.warn
+import org.apache.logging.log4j.LogManager
 import java.lang.Exception
 import java.lang.RuntimeException
 import java.util.logging.Level.parse
@@ -9,6 +10,10 @@ import java.util.logging.Level.parse
 class FFMPEGMetaParser(): StringMap(){
 
     var debug = false
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(FFMPEGMetaParser::class)
+    }
 
     /**
      * video (mp4):
@@ -95,10 +100,10 @@ class FFMPEGMetaParser(): StringMap(){
 
     fun parseLine(line: String, stream: FFMPEGStream){
         if(line.isBlank()) return
-        // if(debug) println(line)
+        // if(debug) LOGGER.debug(line)
         val depth = getDepth(line)
         val data = line.trim().specialSplit()
-        if(debug) println("[DEBUG:FFMPEG-Meta-Parser] $depth $data")
+        if(debug) LOGGER.debug("$depth $data")
         when(depth){
             0 -> {
                 level0Type = data[0]
@@ -123,7 +128,7 @@ class FFMPEGMetaParser(): StringMap(){
                                     else -> throw RuntimeException("Invalid ffmpeg-duration? $data")
                                 }
                                 stream.sourceLength = duration
-                                // println("duration: $duration")
+                                // ("duration: $duration")
                             } catch (e: Exception){
                                 e.message?.apply { warn(this) }
                                 e.printStackTrace()
@@ -135,7 +140,7 @@ class FFMPEGMetaParser(): StringMap(){
             2 -> {
                 if(level0Type == "Output" && data[0] == "Stream"){
                     val videoTypeIndex = data.indexOf("rawvideo")
-                    if(debug) println(data)
+                    if(debug) LOGGER.debug(data.toString())
                     if(videoTypeIndex > -1 && videoTypeIndex+2 < data.size && data[videoTypeIndex+1] == "("){
                         stream.codec = data[videoTypeIndex+2]
                     }

@@ -30,7 +30,7 @@ object WindowsThumbnails {
 
         // val winVersion = version[header.version] ?: throw RuntimeException("Unknown windows version: ${header.version}")
         // val size = sizesMap.getValue(header.version)[header.type] ?: "Unknown"
-        // println("$winVersion, $size")
+        // ("$winVersion, $size")
 
         /*var firstCacheEntry = 0
         var availableCacheEntry = 0
@@ -149,11 +149,11 @@ object WindowsThumbnails {
                 // plus 6 for the unicode extension and null character (we don't need that in Java)
                 var fileName = input.readNBytes(entry.filenameLength).toCharArray()
                 // entryHash = fileName
-                // println("$fileName, ${entry.dataChecksum.toULong().toString(16)}, ${entry.entryHash.toULong().toString(16)}")
+                // ("$fileName, ${entry.dataChecksum.toULong().toString(16)}, ${entry.entryHash.toULong().toString(16)}")
 
                 if (isInterestedInFile(entry.entryHash)) {
 
-                    // println("padding: ${entry.paddingSize}")
+                    // ("padding: ${entry.paddingSize}")
                     input.skip(entry.paddingSize.toLong())
 
                     val data = input.readNBytes(entry.dataSize)

@@ -53,7 +53,7 @@ class CustomListY(style: Style): PanelListY(style), CustomList {
         val c2 = children[index+1]
         change(c1, +delta/h)
         change(c2, -delta/h)
-        // println(children.filter { it !is CustomizingBar }.joinToString { weights[it].toString() })
+        // (children.filter { it !is CustomizingBar }.joinToString { weights[it].toString() })
     }
 
     override fun add(child: Panel): PanelList {

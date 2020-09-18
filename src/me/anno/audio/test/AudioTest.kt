@@ -68,7 +68,5 @@ fun testSingleBuffer(){
     source.setVelocity(Vector3f(0f, 0f, 0f))
     source.setBuffer(buffer.buffer)
 
-    println("start")
-
     source.play()
 }

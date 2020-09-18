@@ -5,6 +5,7 @@ import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.animation.drivers.AnimationDriver
 import me.anno.utils.WrongClassType
+import org.apache.logging.log4j.LogManager
 import org.joml.*
 import java.lang.RuntimeException
 import kotlin.math.abs
@@ -58,6 +59,8 @@ class AnimatedProperty<V>(val type: Type, var defaultValue: V): Saveable(){
     }
 
     companion object {
+
+        private val LOGGER = LogManager.getLogger(AnimatedProperty::class)
 
         val types = HashMap<String, Type>()
         fun int() = AnimatedProperty<Int>(Type.INT)
@@ -125,7 +128,7 @@ class AnimatedProperty<V>(val type: Type, var defaultValue: V): Saveable(){
     fun addKeyframe(time: Double, value: Any, equalityDt: Double){
         if(type.accepts(value)){
             addKeyframeInternal(time, clamp(value as V), equalityDt)
-        } else println("value is not accepted!")
+        } else LOGGER.warn("value is not accepted!")
     }
 
     private fun addKeyframeInternal(time: Double, value: V, equalityDt: Double){
@@ -276,7 +279,7 @@ class AnimatedProperty<V>(val type: Type, var defaultValue: V): Saveable(){
                 if(value is Keyframe<*>){
                     if(type.accepts(value.value)){
                         addKeyframe(value.time, clamp(value.value as V) as Any, 1e-5) // do clamp?
-                    } else println("Dropped keyframe!, incompatible type ${value.value} for $type")
+                    } else LOGGER.warn("Dropped keyframe!, incompatible type ${value.value} for $type")
                 } else WrongClassType.warn("keyframe", value)
             }
             "driver0" -> setDriver(0, value)

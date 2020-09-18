@@ -209,7 +209,7 @@ class AWTFont(val font: Font): XFont {
         val width = ceil(parts.width)
         val height = ceil(parts.height)
 
-        // println("$width for ${result.size} parts")
+        // ("$width for ${result.size} parts")
 
         val texture = Texture2D(width, height, 1)
         texture.create({

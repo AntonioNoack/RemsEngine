@@ -75,9 +75,6 @@ class WaveReader(val input: InputStream, frameCount: Int) {
                     when(val type = readTag()){
                         "INFO" -> {// we don't really care...
                             // val data = readNBytes(length - 4)
-                            // println(data.joinToString { it.toUByte().toString(16) })
-                            // println(String(data))
-                            // throw RuntimeException()
                             input.skip(length - 4L)
                         }
                         else -> throw RuntimeException("Unknown wav chunk: LIST.$type")
@@ -91,7 +88,7 @@ class WaveReader(val input: InputStream, frameCount: Int) {
         val dataSize = readInt()
         if(debug) LOGGER.info("size of the data $dataSize")
 
-        // println("allocating $frameCount * 4 bytes")
+        // allocating $frameCount * 4 bytes
 
         val byteBuffer = ByteBuffer.allocateDirect(frameCount * 4)
             .order(ByteOrder.nativeOrder())

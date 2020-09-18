@@ -1,5 +1,7 @@
 package ffmpeg.libavutil
 
+import org.apache.logging.log4j.LogManager
+
 // everything in C would kind of be like an object in Kotlin...
 object Log {
 
@@ -81,8 +83,10 @@ object Log {
 
 
     fun av_log(clazz: Any?, level: Int, format: String, vararg any: Any) {
-        println("[FFMPEG] $clazz: $level, ${format.format(any)}")
+        LOGGER.info("$clazz: $level, ${format.format(any)}")
     }
+
+    private val LOGGER = LogManager.getLogger("FFMPEG")
 
 
 }

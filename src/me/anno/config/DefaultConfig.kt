@@ -134,6 +134,7 @@ object DefaultConfig: StringMap() {
                 cube.vertexCount.set(4)
                 cube
             }(),
+            "Camera" to Camera(),
             "Particle System" to {
                 val ps = ParticleSystem(null)
                 ps.name = "PSystem"

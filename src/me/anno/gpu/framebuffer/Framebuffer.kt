@@ -3,6 +3,7 @@ package me.anno.gpu.framebuffer
 import me.anno.gpu.GFX
 import me.anno.gpu.texture.ClampMode
 import me.anno.gpu.texture.Texture2D
+import me.anno.objects.animation.AnimatedProperty
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL13
@@ -212,7 +213,7 @@ class Framebuffer(var name: String, var w: Int, var h: Int, val samples: Int, va
         val popped = stack.pop()
         if(popped !== this) {
             stack.forEach {
-                println(it)
+                LOGGER.warn(it.toString())
             }
             throw RuntimeException("Unbind is incorrect... why? am $this, got $popped")
         }

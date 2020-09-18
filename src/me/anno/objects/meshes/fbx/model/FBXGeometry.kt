@@ -91,7 +91,7 @@ class FBXGeometry(node: FBXNode) : FBXObject(node) {
         }
 
         val buffer = StaticFloatBuffer(attributes, faceCount * 3)
-        // println("faces: $faceCount, x3 = ${3*faceCount}, face-indices: ${faces.size}")
+        // ("faces: $faceCount, x3 = ${3*faceCount}, face-indices: ${faces.size}")
 
         var a = 0
         var b = 0

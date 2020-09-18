@@ -86,7 +86,7 @@ class FBXNode(val nameOrType: String, val properties: Array<Any>) : FBXNodeBase 
                             // deflate/zip
                             val bytes = input.readNBytes(compressedLength)
                             // val allBytes = InflaterInputStream(bytes.inputStream()).readBytes()
-                            // println("${bytes.size} zip = ${allBytes.size} raw, for ${type.toChar()} * $arrayLength")
+                            // ("${bytes.size} zip = ${allBytes.size} raw, for ${type.toChar()} * $arrayLength")
                             val decoder = LittleEndianDataInputStream(InflaterInputStream(bytes.inputStream()))
                             when (type) {
                                 'f'.toInt() -> FloatArray(arrayLength) { Float.fromBits(decoder.readInt()) }

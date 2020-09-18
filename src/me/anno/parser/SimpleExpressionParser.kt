@@ -45,7 +45,7 @@ object SimpleExpressionParser {
         fun putRemaining() {
             if (i > i0) {
                 list += substring(i0, i)
-                // println("put remaining ${list.last()} at char ${this[i]}")
+                // ("put remaining ${list.last()} at char ${this[i]}")
             }// else println("put nothing at ${this.getOrNull(i)}")
             i0 = i + 1
         }
@@ -507,7 +507,7 @@ object SimpleExpressionParser {
 
     fun simplify2(parts: CountingList): CountingList {
 
-        println(parts)
+        LOGGER.info(parts.toString())
 
         replacing@ while (true) {
             ops@ for (op in operations) {

@@ -71,7 +71,7 @@ class VideoAudioCreator(
             val out = process.errorStream.bufferedReader()
             while(true){
                 val line = out.readLine() ?: break
-                println("[FFMPEG-Debug]: $line")
+                LOGGER.info("[FFMPEG-Debug]: $line")
             }
         }
 

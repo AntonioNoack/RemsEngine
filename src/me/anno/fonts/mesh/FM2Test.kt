@@ -31,9 +31,9 @@ fun main(){
 
     fun width(str: String) = TextLayout(str, font, ctx).advance
 
-    println(width(te))
-    println(width(t))
-    println(width(e))
+    /*(width(te))
+    (width(t))
+    (width(e))*/
 
     gfx.translate(3, 3)
 

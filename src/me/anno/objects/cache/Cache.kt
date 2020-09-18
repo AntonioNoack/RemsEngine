@@ -1,6 +1,5 @@
 package me.anno.objects.cache
 
-import com.sun.org.apache.xpath.internal.operations.Bool
 import me.anno.gpu.GFX
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture3D
@@ -177,19 +176,20 @@ object Cache {
 
     }
 
-    fun getVideoFrame(file: File, scale: Int, index: Int, bufferLength0: Int, fps: Double, timeout: Long, async: Boolean): Frame? {
+    fun getVideoFrame(file: File, scale0: Int, index: Int, bufferLength0: Int, fps: Double, timeout: Long, async: Boolean): Frame? {
         if(file.isDirectory || !file.exists()) return null
         if (index < 0) return null
+        val scale = max(1, scale0)
         val bufferLength = max(1, bufferLength0)
         val bufferIndex = index / bufferLength
         val videoData = getVideoFrames(file, scale, bufferIndex, bufferLength, fps, timeout, async) ?: return null
         return videoData.frames.getOrNull(index % bufferLength)
     }
 
-    data class VideoFramesKey(val file: File, val bufferIndex: Int, val frameLength: Int, val fps: Double)
+    data class VideoFramesKey(val file: File, val scale: Int, val bufferIndex: Int, val frameLength: Int, val fps: Double)
 
     fun getVideoFrames(file: File, scale: Int, bufferIndex: Int, bufferLength: Int, fps: Double, timeout: Long, async: Boolean) =
-        getEntry(VideoFramesKey(file, bufferIndex, bufferLength, fps), timeout, async) {
+        getEntry(VideoFramesKey(file, scale, bufferIndex, bufferLength, fps), timeout, async) {
             val meta = FFMPEGMetadata.getMeta(file, false)!!
             VideoData(file, meta.videoWidth / scale, meta.videoHeight / scale, bufferIndex, bufferLength, fps)
         } as? VideoData

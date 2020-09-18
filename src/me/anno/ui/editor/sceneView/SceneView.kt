@@ -289,8 +289,8 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")) {
         // sometimes the depth buffer seems to contain copies of the idBuffer -.-
         // still, in my few tests, it seemed to have worked :)
         // (clicking on the camera line in front of a cubemap)
-        // println(idBuffer.joinToString { it.toUInt().toString(16) })
-        // println(depthBuffer.joinToString { it.toUInt().toString(16) })
+        // (idBuffer.joinToString { it.toUInt().toString(16) })
+        // (depthBuffer.joinToString { it.toUInt().toString(16) })
 
         // convert that color to an id
         idBuffer.forEachIndexed { index, value ->
@@ -310,8 +310,8 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")) {
         if (bestResult > 0) {
             val transform = (root.listOfAll + nullCamera).firstOrNull { it.clickId == bestResult }
             select(transform)
-            // println("clicked color ${bestResult.toUInt().toString(16)}, transform: $transform")
-            // println((root.listOfAll + nullCamera).map { it.clickId })
+            // ("clicked color ${bestResult.toUInt().toString(16)}, transform: $transform")
+            // ((root.listOfAll + nullCamera).map { it.clickId })
         } else select(null)
         GFX.check()
 

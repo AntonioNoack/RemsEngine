@@ -56,7 +56,7 @@ class FontMesh2(val font: Font, val text: String, debugPieces: Boolean = false) 
             // val aLength = getCharLength(previous)
             val bLength = getCharLength(current)
             val abLength = getLength(String(Character.toChars(previous) + Character.toChars(current)))
-            // println("$abLength = $aLength + $bLength ? (${aLength + bLength})")
+            // ("$abLength = $aLength + $bLength ? (${aLength + bLength})")
             offset = abLength - bLength
             //(abLength - (bLength + aLength) * 0.5)
             // offset = (abLength - aLength)

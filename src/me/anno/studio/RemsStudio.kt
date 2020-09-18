@@ -83,7 +83,7 @@ object RemsStudio {
     fun onSmallChange(cause: String){
         saveIsRequested = true
         SceneTabs.currentTab?.hasChanged = true
-        // println(cause)
+        // (cause)
     }
 
     fun onLargeChange(){
@@ -106,7 +106,7 @@ object RemsStudio {
     }
 
     fun saveState(){
-        // println("saving state")
+        // ("saving state")
         isSaving.set(true)
         thread {
             try {
@@ -235,7 +235,7 @@ object RemsStudio {
                 val panel = window.panel
                 // optimization is worth 0.5% of 3.4GHz * 12 ~ 200 MHz ST (13.06.2020)
                 if (Input.needsLayoutUpdate()) {
-                    // println("layouting")
+                    // ("layouting")
                     val t0 = System.nanoTime()
                     panel.calculateSize(min(w - window.x, w), min(h - window.y, h))
                     panel.applyPlacement(min(w - window.x, w), min(h - window.y, h))

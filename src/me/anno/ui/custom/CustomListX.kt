@@ -81,7 +81,7 @@ class CustomListX(style: Style): PanelListX(style), CustomList {
         val c2 = children[index+1]
         change(c1, +delta/w.toFloat())
         change(c2, -delta/w.toFloat())
-        // println(children.filter { it !is CustomizingBar }.joinToString { weights[it].toString() })
+        // (children.filter { it !is CustomizingBar }.joinToString { weights[it].toString() })
     }
 
     override fun add(child: Panel): PanelList {

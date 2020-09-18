@@ -15,12 +15,17 @@ import java.io.File
 import kotlin.concurrent.thread
 
 fun addChildFromFile(parent: Transform?, file: File, callback: (Transform) -> Unit, depth: Int = 0) {
+    GFX.check()
     if (file.isDirectory) {
-        val directory = Transform(parent)
-        directory.name = file.name
-        if (depth < DefaultConfig["import.depth.max", 3]) {
-            file.listFiles()?.filter { !it.name.startsWith(".") }?.forEach {
-                addChildFromFile(directory, it, callback, depth + 1)
+        thread {
+            val directory = Transform(parent)
+            directory.name = file.name
+            if (depth < DefaultConfig["import.depth.max", 3]) {
+                file.listFiles()?.filter { !it.name.startsWith(".") }?.forEach {
+                    GFX.addGPUTask(5){
+                        addChildFromFile(directory, it, callback, depth + 1)
+                    }
+                }
             }
         }
     } else {

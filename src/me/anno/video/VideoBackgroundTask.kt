@@ -52,7 +52,7 @@ class VideoBackgroundTask(val video: VideoCreator){
                         renderingIndex.incrementAndGet()
                         addNextTask()
                     } else {
-                        // println("waiting for frame (data missing)")
+                        // ("waiting for frame (data missing)")
                         // waiting
                         thread {
                             Thread.sleep(1)
@@ -62,7 +62,7 @@ class VideoBackgroundTask(val video: VideoCreator){
 
                 }
             } else {
-                // println("waiting for frame (writing is slow)")
+                // ("waiting for frame (writing is slow)")
                 // waiting for saving to ffmpeg
                 thread {
                     Thread.sleep(100)

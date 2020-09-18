@@ -165,12 +165,12 @@ abstract class AudioStream(
 
     fun requestNextBuffer(startTime: Double, bufferIndex: Long){
 
-        // println("requesting audio buffer $startTime")
+        // "requesting audio buffer $startTime"
 
         isWaitingForBuffer.set(true)
         thread {// load all data async
 
-            // println("[INFO:AudioStream] Working on buffer $queued")
+            // "[INFO:AudioStream] Working on buffer $queued"
 
             // todo speed up for 1:1 playback
             // todo cache sound buffer for 1:1 playback

@@ -3,11 +3,15 @@ package me.karl.shaders;
 import java.io.BufferedReader;
 
 import me.anno.gpu.shader.Shader;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
 import me.karl.utils.URI;
 
 public class ShaderProgram {
+
+	private static final Logger LOGGER = LogManager.getLogger(ShaderProgram.class);
 
 	private final int programID;
 
@@ -69,11 +73,11 @@ public class ShaderProgram {
 		GL20.glShaderSource(shaderID, shaderSource);
 		GL20.glCompileShader(shaderID);
 		if (GL20.glGetShaderi(shaderID, GL20.GL_COMPILE_STATUS) == GL11.GL_FALSE) {
-			System.out.println(GL20.glGetShaderInfoLog(shaderID, 500));
-			System.err.println(file == null ?
+			LOGGER.error(GL20.glGetShaderInfoLog(shaderID, 500));
+			LOGGER.error(file == null ?
 					"Could not compile shader\n"+shaderSource :
 					"Could not compile shader "+ file);
-			System.exit(-1);
+			throw new RuntimeException();
 		}
 		return shaderID;
 	}
@@ -88,9 +92,7 @@ public class ShaderProgram {
 			}
 			reader.close();
 		} catch (Exception e) {
-			System.err.println("Could not read file.");
-			e.printStackTrace();
-			System.exit(-1);
+			throw new RuntimeException("Could not read file "+file+".");
 		}
 		return loadShader(shaderSource, file, type);
 	}

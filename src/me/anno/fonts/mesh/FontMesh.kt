@@ -248,7 +248,7 @@ class FontMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
         }
 
         val outerFragments = fragments.filter { !it.isInside }
-        // println("found ${outerFragments.size} outer rings")
+        // "found ${outerFragments.size} outer rings"
 
         if (img != null) ImageIO.write(img, "png", File(OS.desktop, "text1.png"))
 

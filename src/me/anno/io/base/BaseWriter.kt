@@ -50,7 +50,7 @@ abstract class BaseWriter {
 
             if(value in listed){
 
-                // println("child ${value.getClassName()} is on the list")
+                // ("child ${value.getClassName()} is on the list")
                 writePointer(name, value.getClassName(), ptr)
 
             } else {
@@ -58,10 +58,10 @@ abstract class BaseWriter {
                 listed += value
                 val canInclude = self == null || self.getApproxSize() > value.getApproxSize()
                 if(canInclude){
-                    // println("child ${value.getClassName()} can be included")
+                    // ("child ${value.getClassName()} can be included")
                     writeObjectImpl(name, value)
                 } else {
-                    // println("child ${value.getClassName()} can not be included")
+                    // ("child ${value.getClassName()} can not be included")
                     todo += value
                     writePointer(name, value.getClassName(), ptr)
                 }
