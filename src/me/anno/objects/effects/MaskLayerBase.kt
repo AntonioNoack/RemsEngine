@@ -4,6 +4,7 @@ import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.shader.ShaderPlus
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.GFXTransform
@@ -17,7 +18,7 @@ import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
 import org.lwjgl.opengl.GL11.*
 
-abstract class MaskedLayer(parent: Transform? = null): GFXTransform(parent){
+abstract class MaskLayerBase(parent: Transform? = null): GFXTransform(parent){
 
     // just a little expensive...
     // todo enable multisampling
@@ -25,6 +26,7 @@ abstract class MaskedLayer(parent: Transform? = null): GFXTransform(parent){
     val mask = Framebuffer("ML-mask", 1, 1, samples, 1, true, Framebuffer.DepthBufferType.NONE)
     val masked = Framebuffer("ML-masked", 1, 1, samples, 1, true, Framebuffer.DepthBufferType.TEXTURE)
     val temp = Framebuffer("ML-temp", 1, 1, samples, 1, true, Framebuffer.DepthBufferType.NONE)
+    val temp2 = Framebuffer("ML-temp2", 1, 1, samples, 1, true, Framebuffer.DepthBufferType.NONE)
 
     // limit to [0,1]?
     // nice effects can be created with values outside of [0,1], so while [0,1] is the valid range,
@@ -147,7 +149,13 @@ abstract class MaskedLayer(parent: Transform? = null): GFXTransform(parent){
 
             glClearColor(0f, 0f, 0f, 0f)
             glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
+
+            val oldDrawMode = GFX.drawMode
+            if(oldDrawMode == ShaderPlus.DrawMode.COLOR_SQUARED) GFX.drawMode = ShaderPlus.DrawMode.COLOR
+
             drawChild(stack, time, color, child)
+
+            GFX.drawMode = oldDrawMode
 
         }
 
@@ -159,10 +167,15 @@ abstract class MaskedLayer(parent: Transform? = null): GFXTransform(parent){
 
         masked.bind(GFX.windowWidth, GFX.windowHeight)
 
+        val oldDrawMode = GFX.drawMode
+        if(oldDrawMode == ShaderPlus.DrawMode.COLOR_SQUARED) GFX.drawMode = ShaderPlus.DrawMode.COLOR
+
         glClearColor(0f, 0f, 0f, 0f)
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
         drawChild(stack, time, color, children.getOrNull(1))
+
+        GFX.drawMode = oldDrawMode
 
         masked.unbind()
 

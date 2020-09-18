@@ -15,7 +15,7 @@ class FBXGeometry(node: FBXNode) : FBXObject(node) {
         const val maxBones = 256
         fun getShader(
             v3DBase: String, positionPostProcessing: String,
-            y3D: String, getTextureLib: String, colorProcessing: String
+            y3D: String, getTextureLib: String
         ): ShaderPlus {
             return ShaderLib.createShaderPlus(
                 "fbx", v3DBase +
@@ -43,7 +43,6 @@ class FBXGeometry(node: FBXNode) : FBXObject(node) {
                         "void main(){\n" +
                         "   vec4 color = getTexture(tex, uv);\n" +
                         "   color.rgb *= 0.5 + 0.5 * dot(vec3(1.0, 0.0, 0.0), normal);\n" +
-                        colorProcessing +
                         "   gl_FragColor = tint * color;\n" +
                         "}", listOf()
             )

@@ -384,7 +384,7 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
 
     override fun readString(name: String, value: String) {
         when(name){
-            "path" -> file = File(value)
+            "path", "file" -> file = File(value)
             else -> super.readString(name, value)
         }
     }

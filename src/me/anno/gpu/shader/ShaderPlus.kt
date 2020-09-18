@@ -36,7 +36,8 @@ open class ShaderPlus(name: String, vertex: String, varying: String, fragment: S
                 "           float depth = 0.5 + 0.04 * log2(zDistance);\n" +
                 "           gl_FragColor.rgb = vec3(depth*depth);\n" +
                 "           break;\n" +
-                "   }" +
+                "   }\n" +
+                "   if(gl_FragColor.a < 0.001) discard;\n" +
                 "}"
 
     }

@@ -1,6 +1,8 @@
 package me.anno.objects.effects
 
 import me.anno.gpu.GFX
+import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.shader.ShaderPlus
 import me.anno.gpu.texture.ClampMode
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
@@ -13,7 +15,7 @@ import org.joml.Vector2f
 import org.joml.Vector4f
 import org.lwjgl.opengl.GL11.*
 
-class MaskLayer(parent: Transform? = null): MaskedLayer(parent){
+class MaskLayer(parent: Transform? = null) : MaskLayerBase(parent) {
 
     var type = MaskType.MASKING
     val pixelSize = AnimatedProperty.float01exp(0.01f)
@@ -21,31 +23,56 @@ class MaskLayer(parent: Transform? = null): MaskedLayer(parent){
     // mask = 0, tex = 1
     override fun drawOnScreen(localTransform: Matrix4fArrayList, time: Double, color: Vector4f, offsetColor: Vector4f) {
         val pixelSize = pixelSize[time]
-        when(type){
+        val isInverted = if (isInverted) 1f else 0f
+        when (type) {
             MaskType.GAUSSIAN_BLUR -> {
+
                 // todo sample down for large blur sizes?? (for performance reasons)
-                // todo first blur everything, then mask?
+                // done first blur everything, then mask
                 // the artist could notice the fps going down, and act on his own (screenshot, rendering once, ...) ;)
+
                 GFX.check()
-                masked.bindTexture0(1, true, ClampMode.CLAMP)
+                masked.bindTexture0(0, true, ClampMode.CLAMP)
                 GFX.check()
-                mask.bindTexture0(0, true, ClampMode.CLAMP)
-                GFX.check()
-                temp.bind(GFX.windowWidth, GFX.windowHeight)
-                glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
+
+                fun drawBlur(fb: Framebuffer, offset: Int, isFirst: Boolean) {
+                    // step1
+                    fb.bind(GFX.windowWidth, GFX.windowHeight)
+                    // clear to black?
+                    glClear(GL_DEPTH_BUFFER_BIT)
+                    GFX.draw3DBlur(
+                        localTransform, pixelSize,
+                        if (isFirst)
+                            Vector2f(0f, pixelSize)
+                        else
+                            Vector2f(pixelSize * GFX.windowHeight / GFX.windowWidth, 0f)
+                    )
+                    fb.unbind()
+                    fb.bindTexture0(offset, true, ClampMode.CLAMP)
+                }
+
+                val oldDrawMode = GFX.drawMode
+                if (oldDrawMode == ShaderPlus.DrawMode.COLOR_SQUARED) GFX.drawMode = ShaderPlus.DrawMode.COLOR
+
                 glDisable(GL_BLEND)
                 glDisable(GL_DEPTH_TEST)
-                GFX.draw3DMasked(localTransform, color,
-                    type, useMaskColor[time], offsetColor,
-                    pixelSize, if(isInverted) 1f else 0f, Vector2f(0f, pixelSize)
-                )
-                glEnable(GL_BLEND)
+
+                drawBlur(temp, 0, true)
+                drawBlur(temp2, 2, false)
+
                 glEnable(GL_DEPTH_TEST) // todo only if camera wishes so
-                temp.unbind()
-                temp.bindTexture0(1, true, ClampMode.CLAMP) // becomes masked
-                GFX.draw3DMasked(localTransform, color,
+                glEnable(GL_BLEND)
+
+                GFX.drawMode = oldDrawMode
+
+                masked.bindTexture0(1, true, ClampMode.CLAMP)
+                mask.bindTexture0(0, true, ClampMode.CLAMP)
+                GFX.check()
+
+                GFX.draw3DMasked(
+                    localTransform, color,
                     type, useMaskColor[time], offsetColor,
-                    pixelSize, if(isInverted) 1f else 0f, Vector2f(pixelSize * GFX.windowHeight / GFX.windowWidth, 0f)
+                    pixelSize, isInverted
                 )
             }
             MaskType.BOKEH_BLUR -> {
@@ -63,9 +90,10 @@ class MaskLayer(parent: Transform? = null): MaskedLayer(parent){
                 temp.bindTexture0(1, true, ClampMode.CLAMP)
                 glEnable(GL_BLEND)
                 glEnable(GL_DEPTH_TEST) // todo only if camera wishes so
-                GFX.draw3DMasked(localTransform, color,
+                GFX.draw3DMasked(
+                    localTransform, color,
                     MaskType.GAUSSIAN_BLUR, useMaskColor[time], offsetColor,
-                    0f, if(isInverted) 1f else 0f, Vector2f(0f, 0f)
+                    0f, isInverted
                 )
             }
             else -> {
@@ -74,9 +102,10 @@ class MaskLayer(parent: Transform? = null): MaskedLayer(parent){
                 GFX.check()
                 mask.bindTextures(0, true, ClampMode.CLAMP)
                 GFX.check()
-                GFX.draw3DMasked(localTransform, color,
+                GFX.draw3DMasked(
+                    localTransform, color,
                     type, useMaskColor[time], offsetColor,
-                    pixelSize, if(isInverted) 1f else 0f, Vector2f(0f, 0f)
+                    pixelSize, isInverted
                 )
             }
         }
@@ -84,8 +113,13 @@ class MaskLayer(parent: Transform? = null): MaskedLayer(parent){
 
     override fun createInspector(list: PanelListY, style: Style) {
         super.createInspector(list, style)
-        list += VI("Type", "Masks are multipurpose objects", null, type, style){ type = it }
-        list += VI("Pixel Size", "How large pixelated pixels should be, type = ${MaskType.PIXELATING.displayName}", pixelSize, style)
+        list += VI("Type", "Masks are multipurpose objects", null, type, style) { type = it }
+        list += VI(
+            "Pixel Size",
+            "How large pixelated pixels should be, type = ${MaskType.PIXELATING.displayName}",
+            pixelSize,
+            style
+        )
     }
 
     override fun save(writer: BaseWriter) {
@@ -95,14 +129,14 @@ class MaskLayer(parent: Transform? = null): MaskedLayer(parent){
     }
 
     override fun readInt(name: String, value: Int) {
-        when(name){
+        when (name) {
             "type" -> type = MaskType.values().firstOrNull { it.id == value } ?: type
             else -> super.readInt(name, value)
         }
     }
 
     override fun readObject(name: String, value: ISaveable?) {
-        when(name){
+        when (name) {
             "pixelSize" -> pixelSize.copyFrom(value)
             else -> super.readObject(name, value)
         }

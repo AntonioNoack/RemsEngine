@@ -63,6 +63,12 @@ import kotlin.math.roundToInt
 
 // todo right click on input to get context menu, e.g. to reset
 
+// todo key controls like in Blender:
+// start command with s/g/...
+// then specify axis if needed
+// then say the number + change axis
+// then press enter to apply the change
+
 class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")) {
 
     constructor(sceneView: SceneView) : this(DefaultConfig.style) {

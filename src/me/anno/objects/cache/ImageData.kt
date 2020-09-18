@@ -26,6 +26,7 @@ class ImageData(file: File) : CacheData {
     var framebuffer: Framebuffer? = null
 
     companion object {
+
         fun getRotation(file: File): RotateJPEG? {
             val metadata = ImageMetadataReader.readMetadata(file)
             var rotation: RotateJPEG? = null
@@ -65,6 +66,7 @@ class ImageData(file: File) : CacheData {
     }
 
     init {
+
         val fileExtension = file.extension
         // find jpeg rotation by checking exif tags...
         // they may appear on other images as well, so we don't filter for tags

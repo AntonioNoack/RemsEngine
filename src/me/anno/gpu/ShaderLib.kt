@@ -24,6 +24,7 @@ object ShaderLib {
     lateinit var shader3DSVG: ShaderPlus
     lateinit var lineShader3D: Shader
     lateinit var shader3DMasked: ShaderPlus
+    lateinit var shader3DBlur: Shader
     lateinit var shaderObjMtl: ShaderPlus
     lateinit var shaderFBX: ShaderPlus
 
@@ -170,9 +171,6 @@ object ShaderLib {
         val positionPostProcessing = "" +
                 "zDistance = gl_Position.w;\n"
 
-        val colorProcessing = "" +
-                "   if(color.a <= 0.0) discard;\n"
-
         val v3DBase = "" +
                 "uniform mat4 transform;\n" +
                 "" +
@@ -200,18 +198,6 @@ object ShaderLib {
                 "   uv = gl_Position.xyw;\n" +
                 "}"
 
-        val v3DPolygon = v3DBase +
-                "a3 attr0;\n" +
-                "in vec2 attr1;\n" +
-                "uniform float inset;\n" +
-                "void main(){\n" +
-                "   vec2 betterUV = attr0.xy*2.-1.;\n" +
-                "   betterUV *= mix(1.0, attr1.r, inset);\n" +
-                "   gl_Position = transform * vec4(betterUV, attr0.z, 1.0);\n" +
-                positionPostProcessing +
-                "   uv = attr1.yx;\n" +
-                "}"
-
         val v3DSVG = v3DBase +
                 "a3 attr0;\n" +
                 "a4 attr1;\n" +
@@ -237,9 +223,23 @@ object ShaderLib {
                 getTextureLib +
                 "void main(){\n" +
                 "   vec4 color = getTexture(tex, getProjectedUVs(uv, uvw));\n" +
-                colorProcessing +
                 "   gl_FragColor = tint * color;\n" +
                 "}"
+
+        shader3D = createShaderPlus("3d", v3D, y3D, f3D, listOf("tex"))
+
+        val v3DPolygon = v3DBase +
+                "a3 attr0;\n" +
+                "in vec2 attr1;\n" +
+                "uniform float inset;\n" +
+                "void main(){\n" +
+                "   vec2 betterUV = attr0.xy*2.-1.;\n" +
+                "   betterUV *= mix(1.0, attr1.r, inset);\n" +
+                "   gl_Position = transform * vec4(betterUV, attr0.z, 1.0);\n" +
+                positionPostProcessing +
+                "   uv = attr1.yx;\n" +
+                "}"
+        shader3DPolygon = createShaderPlus("3d-polygon", v3DPolygon, y3D, f3D, listOf("tex"))
 
         val y3DMasked = "" +
                 "varying v3 uv;\n" +
@@ -247,7 +247,7 @@ object ShaderLib {
 
         val f3DMasked = "" +
                 "uniform vec4 tint;" +
-                "uniform sampler2D tex, mask;\n" +
+                "uniform sampler2D mask, tex, tex2;\n" +
                 "uniform vec4 offsetColor;\n" +
                 "uniform float useMaskColor;\n" +
                 "uniform float invertMask;\n" +
@@ -259,7 +259,7 @@ object ShaderLib {
                 "   vec2 uv2 = uv.xy/uv.z * 0.5 + 0.5;\n" +
                 "   vec4 mask = texture(mask, uv2);\n" +
                 "   vec4 color;\n" +
-                "   float effect, sum;\n" +
+                "   float effect;\n" +
                 "   switch(maskType){\n" +
                 "       case ${MaskType.MASKING.id}:\n" +
                 "           vec4 maskColor = vec4(" +
@@ -271,38 +271,51 @@ object ShaderLib {
                 // use the average instead for more stable results?
                 "           effect = mix(mask.a, dot(vec3(0.3), mask.rgb), useMaskColor);\n" +
                 "           effect = mix(effect, 1.0 - effect, invertMask);\n" +
-                "           color = mix(" +
-                "               texture(tex, uv2), " +
-                "               texture(tex, round(uv2 / pixelating) * pixelating)," +
+                "           color = mix(\n" +
+                "               texture(tex, uv2),\n" +
+                "               texture(tex, round(uv2 / pixelating) * pixelating),\n" +
                 "               effect);\n" +
                 "           break;\n" +
                 "       case ${MaskType.GAUSSIAN_BLUR.id}:\n" +
                 "           effect = mix(mask.a, dot(vec3(0.3), mask.rgb), useMaskColor);\n" +
                 "           effect = mix(effect, 1.0 - effect, invertMask);\n" +
-                "           sum = 0.0;\n" +
-                // test all steps for -pixelating*2 .. pixelating*2, then average
-                "           float steps = effect * maxSteps;\n" +
-                "           int pixelSize = max(0, int(2.7 * steps));\n" +
-                "           if(pixelSize == 0){\n" +
-                "               color = texture(tex, uv2);\n" +
-                "           } else {\n" +
-                "               color = vec4(0.0);\n" +
-                "               for(int i=-pixelSize;i<=pixelSize;i++){\n" +
-                "                   float relativeX = float(i)/steps;\n" +
-                "                   float weight = i == 0 ? 1.0 : exp(-relativeX*relativeX);\n" +
-                "                   sum += weight;\n" +
-                "                   color += texture(tex, uv2 + relativeX * blurDeltaUV) * weight;\n" +
-                "               }\n" +
-                "               color /= sum;\n" +
-                "           }\n" +
+                "           color = mix(\n" +
+                "               texture(tex2, uv2),\n" +
+                "               texture(tex, uv2),\n" +
+                "               effect);\n" +
                 "           break;\n" +
                 "   }\n" +
-                "   color = offsetColor + tint * color * maskColor;\n" +
-                colorProcessing +
+                "   gl_FragColor = tint * color;\n" +
                 "   if(gl_FragColor.a <= 0.0) discard;\n" +
                 "   gl_FragColor.a = min(gl_FragColor.a, 1.0);\n" +
-                // no postprocessing, because it was already applied
                 "}"
+        shader3DMasked = createShaderPlus("3d-masked", v3DMasked, y3DMasked, f3DMasked, listOf("mask", "tex", "tex2"))
+
+        val f3DBlur = "" +
+                "uniform sampler2D tex;\n" +
+                "uniform vec2 blurDeltaUV;\n" +
+                "uniform float steps;\n" +
+                "void main(){\n" +
+                "   vec2 uv2 = uv.xy/uv.z * 0.5 + 0.5;\n" +
+                "   vec4 color;\n" +
+                "   float sum = 0.0;\n" +
+                // test all steps for -pixelating*2 .. pixelating*2, then average
+                "   int iSteps = max(0, int(2.7 * steps));\n" +
+                "   if(iSteps == 0){\n" +
+                "       color = texture(tex, uv2);\n" +
+                "   } else {\n" +
+                "       color = vec4(0.0);\n" +
+                "       for(int i=-iSteps;i<=iSteps;i++){\n" +
+                "           float relativeX = float(i)/steps;\n" +
+                "           float weight = i == 0 ? 1.0 : exp(-relativeX*relativeX);\n" +
+                "           sum += weight;\n" +
+                "           color += texture(tex, uv2 + relativeX * blurDeltaUV) * weight;\n" +
+                "       }\n" +
+                "       color /= sum;\n" +
+                "   }\n" +
+                "   gl_FragColor = color;\n" +
+                "}"
+        shader3DBlur = createShader("3d-blur", v3DMasked, y3DMasked, f3DBlur, listOf("tex"))
 
         val f3DSVG = "" +
                 "uniform vec4 tint;" +
@@ -330,8 +343,6 @@ object ShaderLib {
                 "   gl_FragColor = tint;\n" +
                 "}"
 
-        shader3D = createShaderPlus("3d", v3D, y3D, f3D, listOf("tex"))
-        shader3DPolygon = createShaderPlus("3d-polygon", v3DPolygon, y3D, f3D, listOf("tex"))
 
         // create the obj+mtl shader
         shaderObjMtl = createShaderPlus("obj/mtl",
@@ -352,16 +363,14 @@ object ShaderLib {
                     "void main(){\n" +
                     "   vec4 color = getTexture(tex, uv);\n" +
                     "   color.rgb *= 0.5 + 0.5 * dot(vec3(1.0, 0.0, 0.0), normal);\n" +
-                    colorProcessing +
                     "   gl_FragColor = tint * color;\n" +
                     "}", listOf()
         )
 
         // create the fbx shader
-        shaderFBX = FBXGeometry.getShader(v3DBase, positionPostProcessing, y3D, getTextureLib, colorProcessing)
+        shaderFBX = FBXGeometry.getShader(v3DBase, positionPostProcessing, y3D, getTextureLib)
 
         shader3DCircle = createShaderPlus("3dCircle", v3DCircle, y3D, f3DCircle, listOf())
-        shader3DMasked = createShaderPlus("3d-masked", v3DMasked, y3DMasked, f3DMasked, listOf("mask", "tex"))
 
         shader3DSVG = createShaderPlus("3d-svg", v3DSVG, y3DSVG, f3DSVG, listOf("tex"))
 
@@ -395,7 +404,6 @@ object ShaderLib {
                     getTextureLib +
                     "void main(){\n" +
                     "   vec4 color = getTexture(tex, getProjectedUVs(uv, uvw)).gbar;\n" +
-                    colorProcessing +
                     "   gl_FragColor = tint * color;\n" +
                     "}", listOf("tex")
         )
@@ -407,7 +415,6 @@ object ShaderLib {
                     getTextureLib +
                     "void main(){\n" +
                     "   vec4 color = getTexture(tex, getProjectedUVs(uv, uvw)).bgra;\n" +
-                    colorProcessing +
                     "   gl_FragColor = tint * color;\n" +
                     "}", listOf("tex")
         )

@@ -7,6 +7,7 @@ import me.anno.gpu.ShaderLib.flatShader
 import me.anno.gpu.ShaderLib.flatShaderGradient
 import me.anno.gpu.ShaderLib.flatShaderTexture
 import me.anno.gpu.ShaderLib.shader3D
+import me.anno.gpu.ShaderLib.shader3DBlur
 import me.anno.gpu.ShaderLib.shader3DCircle
 import me.anno.gpu.ShaderLib.shader3DMasked
 import me.anno.gpu.ShaderLib.shader3DPolygon
@@ -513,22 +514,35 @@ object GFX : GFXBase1() {
         check()
     }
 
+    fun draw3DBlur(
+        stack: Matrix4fArrayList,
+        pixelSize: Float, blurDeltaUV: Vector2f
+    ) {
+        val shader = shader3DBlur
+        shader3DUniforms(shader, stack, Vector4f(1f,1f,1f,1f))
+        // shader.v2("pixelating", pixelSize * windowHeight / windowWidth, pixelSize)
+        shader.v2("blurDeltaUV", blurDeltaUV)
+        shader.v1("steps", pixelSize * windowHeight)
+        flat01.draw(shader)
+        check()
+    }
+
     fun draw3DMasked(
         stack: Matrix4fArrayList, color: Vector4f,
         maskType: MaskType,
         useMaskColor: Float, offsetColor: Vector4f,
         pixelSize: Float,
-        isInverted: Float, blurDeltaUV: Vector2f
+        isInverted: Float
     ) {
         val shader = shader3DMasked.shader
-        shader3DUniforms(shader, stack, 1, 1, color, null, FilteringMode.NEAREST, null)
+        shader3DUniforms(shader, stack, color)
         shader.v4("offsetColor", offsetColor.x, offsetColor.y, offsetColor.z, offsetColor.w)
         shader.v1("useMaskColor", useMaskColor)
         shader.v1("invertMask", isInverted)
         shader.v1("maskType", maskType.id)
         shader.v2("pixelating", pixelSize * windowHeight / windowWidth, pixelSize)
-        shader.v2("blurDeltaUV", blurDeltaUV)
-        shader.v1("maxSteps", pixelSize * windowHeight)
+        // shader.v2("blurDeltaUV", blurDeltaUV)
+        // shader.v1("maxSteps", pixelSize * windowHeight)
         flat01.draw(shader)
         check()
     }
@@ -691,13 +705,17 @@ object GFX : GFXBase1() {
         Framebuffer.stack.clear()
     }
 
+    fun workGPUTasks(){
+        workQueue(gpuTasks)
+    }
+
     override fun renderStep() {
 
         ensureEmptyStack()
 
         // Framebuffer.bindNull()
 
-        workQueue(gpuTasks)
+        workGPUTasks()
 
         // Framebuffer.stack.pop()
 

@@ -6,6 +6,8 @@ package me.karl._anno;
 
 import me.anno.gpu.GFX;
 import me.anno.gpu.GFXBase0;
+import me.anno.gpu.TextureLib;
+import me.anno.objects.cache.Cache;
 import me.karl.main.GeneralSettings;
 import me.karl.main.SceneLoader;
 import me.karl.renderEngine.RenderEngine;
@@ -67,10 +69,14 @@ public class GFXBaseDae extends GFXBase0 {
     public void renderStep0() {
         engine = RenderEngine.init();
         scene = SceneLoader.loadScene(GeneralSettings.RES_FOLDER);
+        TextureLib.INSTANCE.init();
     }
 
     @Override
     public void renderStep() {
+        GFX.INSTANCE.workGPUTasks();
+        Cache.INSTANCE.update();
+        // somehow the texture isn't loading for the test... :/
         scene.getCamera().move();
         scene.getAnimatedModel().update(System.currentTimeMillis() * 1e-3);
         engine.renderScene(scene);

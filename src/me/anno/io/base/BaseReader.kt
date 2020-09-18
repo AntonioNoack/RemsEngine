@@ -26,7 +26,7 @@ abstract class BaseReader {
             "Text" -> Text()
             "Circle" -> Circle()
             "Polygon" -> Polygon()
-            "Video", "Audio" -> Video()
+            "Video", "Audio", "Image" -> Video()
             "GFXArray" -> GFXArray()
             "MaskLayer" -> MaskLayer()
             "ParticleSystem" -> ParticleSystem()

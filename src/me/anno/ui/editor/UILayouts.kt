@@ -146,7 +146,7 @@ object UILayouts {
             color.addKeyframe(0.1, Vector4f(1f, 1f, 1f, 1f))
             color.isAnimated = true
         }*/
-        Text("Text", root)
+        // Text("Text", root)
         // Video(File(OS.home, "Videos\\Captures\\Cities_ Skylines 2020-01-06 19-32-23.mp4"), GFX.root)
         // Text("Hi! \uD83D\uDE09", GFX.root)
         // Image(File(OS.downloads, "tiger.svg"), root).position.addKeyframe(0f, Vector3f(0f, 0f, 0.01f), 0.1f)

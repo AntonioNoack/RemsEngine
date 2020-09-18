@@ -5,6 +5,7 @@ import me.anno.gpu.TextureLib;
 import me.anno.gpu.texture.ClampMode;
 import me.anno.gpu.texture.Texture2D;
 import me.anno.objects.cache.Cache;
+import me.anno.video.MissingFrameException;
 import org.joml.Vector3f;
 import org.lwjgl.opengl.GL11;
 
@@ -14,6 +15,8 @@ import me.karl.utils.OpenGlUtils;
 
 import java.io.File;
 import java.util.List;
+
+import static me.anno.ui.editor.files.AllowedFileNamesKt.hasValidName;
 
 /**
  * 
@@ -52,8 +55,12 @@ public class AnimatedModelRenderer {
 		prepare(camera, lightDir);
 		List<File> tex = entity.getTextures();
 		Texture2D texture = null;
-		if(!tex.isEmpty()){
-			texture = Cache.INSTANCE.getImage(tex.get(0), 1000L, true);
+		File file0;
+		if(!tex.isEmpty() && (file0 = tex.get(0)) != null){
+			texture = Cache.INSTANCE.getImage(file0, 1000L, true);
+			if(texture == null && GFX.INSTANCE.isFinalRendering() && hasValidName(file0)){
+				throw new MissingFrameException(file0);
+			}
 		}
 		if(texture == null){
 			texture = TextureLib.INSTANCE.getWhiteTexture();
