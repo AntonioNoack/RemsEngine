@@ -96,6 +96,7 @@ class CustomListX(style: Style) : PanelListX(style), CustomList {
             super.add(CustomizingBar(index, spacing, 0, style))
         }
         if(child.weight <= 0f) child.weight = 1f
+        child.parent = this
         return super.add(child)
     }
 

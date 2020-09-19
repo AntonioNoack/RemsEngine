@@ -291,6 +291,10 @@ object ShaderLib {
                 "               texture(tex2, uv2),\n" +
                 "               effect);\n" +
                 "           break;\n" +
+                "       case ${MaskType.UV_OFFSET.id}:\n" +
+                "           vec2 offset = (mask.rg-mask.gb) * pixelating;\n" +
+                "           color = texture(tex, uv2 + offset);\n" +
+                "           break;\n" +
                 "   }\n" +
                 "   gl_FragColor = tint * color;\n" +
                 "   gl_FragColor.a = min(gl_FragColor.a, 1.0);\n" +

@@ -47,7 +47,7 @@ class Project(var name: String, val file: File) : Saveable() {
 
         fun uiDefault() {
             mainUI = createDefaultMainUI(DefaultConfig.style)
-            saveUI()
+            // saveUI()
         }
 
         fun tabsDefault() {

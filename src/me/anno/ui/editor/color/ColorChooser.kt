@@ -20,6 +20,7 @@ import me.anno.utils.clamp
 import me.anno.utils.f3
 import me.anno.utils.get
 import me.anno.utils.toHex
+import org.apache.logging.log4j.LogManager
 import org.hsluv.HSLuvColorSpace
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -205,13 +206,13 @@ class ColorChooser(style: Style, withAlpha: Boolean, val owningProperty: Animate
         return this
     }
 
-    // todo copy whole timelines?
     override fun onCopyRequested(x: Float, y: Float): String {
-        println(colorSpace.toRGB(Vector3f(hue, saturation, lightness)).toHex())
+        // LOGGER.info(colorSpace.toRGB(Vector3f(hue, saturation, lightness)).toHex())
         return if (Input.isShiftDown && owningProperty != null) owningProperty.toString()
         else "${colorSpace.serializationName}(${hue.f3()},${saturation.f3()},${lightness.f3()},${opacity.f3()})"
     }
 
+    // todo paste whole timeline
     override fun onPaste(x: Float, y: Float, data: String, type: String) {
         when (val color = parseColorComplex(data)) {
             is Int -> {
@@ -222,7 +223,7 @@ class ColorChooser(style: Style, withAlpha: Boolean, val owningProperty: Animate
                 setRGBA(color.x, color.y, color.z, color.w, true)
                 onSmallChange("color-paste-vec4")
             }
-            null -> println("Didn't understand color $data")
+            null -> LOGGER.warn("Didn't understand color $data")
             else -> throw RuntimeException("Color type $data -> $color isn't yet supported for ColorChooser")
         }
     }
@@ -234,6 +235,7 @@ class ColorChooser(style: Style, withAlpha: Boolean, val owningProperty: Animate
     }
 
     companion object {
+        private val LOGGER = LogManager.getLogger(ColorChooser::class)
         val CircleBarRatio = 0.2f
         var lastVisualisation: ColorVisualisation? = null
         var lastColorSpace: ColorSpace? = null

@@ -73,6 +73,8 @@ object ActionManager {
 
         keyMap["HSVBox.left.down"] = "selectColor"
         keyMap["HSVBox.left.press-unsafe"] = "selectColor"
+        keyMap["HSVBoxMain.left.down"] = "selectColor"
+        keyMap["HSVBoxMain.left.press-unsafe"] = "selectColor"
 
         keyMap["SceneView.right.p"] = "Turn"
         keyMap["SceneView.left.p"] = "MoveObject"

@@ -19,11 +19,11 @@ import org.lwjgl.opengl.GL11.*
 class MaskLayer(parent: Transform? = null) : MaskLayerBase(parent) {
 
     var type = MaskType.MASKING
-    val pixelSize = AnimatedProperty.float01exp(0.01f)
+    val effectSize = AnimatedProperty.float01exp(0.01f)
 
     // mask = 0, tex = 1
     override fun drawOnScreen(localTransform: Matrix4fArrayList, time: Double, color: Vector4f, offsetColor: Vector4f) {
-        val pixelSize = pixelSize[time]
+        val pixelSize = effectSize[time]
         val isInverted = if (isInverted) 1f else 0f
         when (type) {
             MaskType.GAUSSIAN_BLUR -> {
@@ -119,9 +119,9 @@ class MaskLayer(parent: Transform? = null) : MaskLayerBase(parent) {
         super.createInspector(list, style)
         list += VI("Type", "Masks are multipurpose objects", null, type, style) { type = it }
         list += VI(
-            "Pixel Size",
-            "How large pixelated pixels should be, type = ${MaskType.PIXELATING.displayName}",
-            pixelSize,
+            "Effect Size",
+            "How large pixelated pixels or blur should be",
+            effectSize,
             style
         )
     }
@@ -129,7 +129,7 @@ class MaskLayer(parent: Transform? = null) : MaskLayerBase(parent) {
     override fun save(writer: BaseWriter) {
         super.save(writer)
         writer.writeInt("type", type.id)
-        writer.writeObject(this, "pixelSize", pixelSize)
+        writer.writeObject(this, "pixelSize", effectSize)
     }
 
     override fun readInt(name: String, value: Int) {
@@ -141,7 +141,7 @@ class MaskLayer(parent: Transform? = null) : MaskLayerBase(parent) {
 
     override fun readObject(name: String, value: ISaveable?) {
         when (name) {
-            "pixelSize" -> pixelSize.copyFrom(value)
+            "pixelSize" -> effectSize.copyFrom(value)
             else -> super.readObject(name, value)
         }
     }
