@@ -33,6 +33,4 @@ open class Scrollbar(style: Style): Panel(style.getChild("scrollbar")){
 
     }
 
-    override fun getClassName() = "Scrollbar"
-
 }

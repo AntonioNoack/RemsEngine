@@ -25,6 +25,7 @@ import me.anno.studio.Studio.targetHeight
 import me.anno.studio.Studio.targetOutputFile
 import me.anno.studio.Studio.targetWidth
 import me.anno.ui.base.ButtonPanel
+import me.anno.ui.base.Panel
 import me.anno.ui.base.SpacePanel
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.components.Padding
@@ -47,6 +48,7 @@ import me.anno.ui.editor.sceneView.SceneView
 import me.anno.ui.editor.treeView.TreeView
 import me.anno.ui.input.FileInput
 import me.anno.ui.input.TextInput
+import me.anno.ui.style.Style
 import me.anno.video.VideoAudioCreator
 import me.anno.video.VideoCreator
 import org.apache.logging.log4j.LogManager
@@ -97,6 +99,14 @@ object UILayouts {
     }
 
     fun createWelcomeUI() {
+
+        // todo manage and load recent projects
+        // todo load recently opened parts / scenes / default scene
+        // todo save functionality...
+        // todo list of all known projects
+        // todo color them depending on existence
+
+        // todo find folder, which is doesn't already exist
 
         val dir = "directory" // vs folder ^^
         val style = DefaultConfig.style
@@ -227,6 +237,7 @@ object UILayouts {
         val background2 = PanelListX(style)
         background2.backgroundColor = 0x77777777
 
+        // todo some kind of colored border?
         windowStack.push(Window(background, true, 0, 0))
         windowStack.push(Window(background2, false, 0, 0))
         val mainWindow = Window(scroll, false, 0, 0)
@@ -253,8 +264,6 @@ object UILayouts {
         val style = DefaultConfig.style
 
         val ui = PanelListY(style)
-        val customUI = CustomListY(style)
-        customUI.setWeight(10f)
 
         RemsStudio.ui = ui
 
@@ -286,54 +295,15 @@ object UILayouts {
 
         ui += options
         ui += SceneTabs
+        ui += SpacePanel(0, 1, style)
 
         // todo load the last opened tabs from the previous project...
 
-        root = Transform(null)
-        root.name = "Root"
+        val project = project!!
+        project.loadUI()
 
-        // val a = Transform(Vector3f(10f, 50f, 0f), Vector3f(1f,1f,1f), Quaternionf(1f,0f,0f,0f), root)
-        // for(i in 0 until 3) Transform(null, null, null, a)
-        // val b = Transform(null, null, null, root)
-        // for(i in 0 until 2) Transform(null, null, null, b)
+        ui += project.mainUI as Panel
 
-        Camera(root)
-        /*Circle(root).apply {
-            name = "C1"
-            color.addKeyframe(0.0, Vector4f(0f, 0f, 0f, 0f))
-            color.addKeyframe(0.1, Vector4f(0.5f, 1f, 1f, 1f))
-            color.isAnimated = true
-        }
-        Circle(root).apply {
-            name = "C2"
-            color.addKeyframe(0.0, Vector4f(0f, 0f, 0f, 0f))
-            color.addKeyframe(0.1, Vector4f(1f, 1f, 1f, 1f))
-            color.isAnimated = true
-        }*/
-        // Text("Text", root)
-        // Video(File(OS.home, "Videos\\Captures\\Cities_ Skylines 2020-01-06 19-32-23.mp4"), GFX.root)
-        // Text("Hi! \uD83D\uDE09", GFX.root)
-        // Image(File(OS.downloads, "tiger.svg"), root).position.addKeyframe(0f, Vector3f(0f, 0f, 0.01f), 0.1f)
-
-        val animationWindow = CustomListX(style)
-        customUI.add(animationWindow, 200f)
-
-        val treeFiles = CustomListY(style)
-        treeFiles += CustomContainer(TreeView(style), style)
-        treeFiles += CustomContainer(FileExplorer(style), style)
-        animationWindow.add(CustomContainer(treeFiles, style), 50f)
-        animationWindow.add(CustomContainer(SceneView(style), style), 200f)
-        animationWindow.add(CustomContainer(PropertyInspector(style), style), 50f)
-        animationWindow.setWeight(1f)
-
-        val timeline = GraphEditor(style)
-        customUI.add(CustomContainer(timeline, style), 50f)
-
-        val linear = CuttingView(style)
-        customUI.add(CustomContainer(linear, style), 50f)
-
-        ui += SpacePanel(0, 1, style)
-        ui += customUI
         ui += SpacePanel(0, 1, style)
 
         val console = ConsoleOutputPanel(style.getChild("small"))
@@ -348,6 +318,32 @@ object UILayouts {
 
         windowStack.clear()
         windowStack += Window(ui, true, 0, 0)
+
+    }
+
+    fun createDefaultMainUI(style: Style): Panel {
+
+        val customUI = CustomListY(style)
+        customUI.setWeight(10f)
+
+        val animationWindow = CustomListX(style)
+        customUI.add(animationWindow, 2f)
+
+        val treeFiles = CustomListY(style)
+        treeFiles += CustomContainer(TreeView(style), style)
+        treeFiles += CustomContainer(FileExplorer(style), style)
+        animationWindow.add(CustomContainer(treeFiles, style), 0.5f)
+        animationWindow.add(CustomContainer(SceneView(style), style), 2f)
+        animationWindow.add(CustomContainer(PropertyInspector(style), style), 0.5f)
+        animationWindow.setWeight(1f)
+
+        val timeline = GraphEditor(style)
+        customUI.add(CustomContainer(timeline, style), 0.5f)
+
+        val linear = CuttingView(style)
+        customUI.add(CustomContainer(linear, style), 0.5f)
+
+        return customUI
 
     }
 

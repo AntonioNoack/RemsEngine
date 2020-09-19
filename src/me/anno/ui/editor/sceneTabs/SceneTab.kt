@@ -102,24 +102,4 @@ class SceneTab(var file: File?, var root: Transform) : TextPanel(file?.name ?: r
         }
     }
 
-    override fun save(writer: BaseWriter) {
-        super.save(writer)
-        writer.writeFile("file", file)
-        writer.writeObject(this, "root", root)
-    }
-
-    override fun readString(name: String, value: String) {
-        when(name){
-            "file" -> file = if(value.isEmpty()) null else File(value)
-            else -> super.readString(name, value)
-        }
-    }
-
-    override fun readObject(name: String, value: ISaveable?) {
-        when(name){
-            "root" -> root = value as? Transform ?: root
-            else -> super.readObject(name, value)
-        }
-    }
-
 }

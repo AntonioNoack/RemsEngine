@@ -178,6 +178,4 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style): TextPanel(""
     // multiple values can be selected
     override fun getMultiSelectablePanel() = this
 
-    override fun getClassName() = "TreeViewPanel"
-
 }

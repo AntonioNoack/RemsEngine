@@ -310,6 +310,5 @@ class VectorInput(
     }
 
     override fun getCursor(): Long = Cursor.drag
-    override fun getClassName() = "VectorInput"
 
 }

@@ -465,6 +465,4 @@ class GraphEditorBody(style: Style): TimelinePanel(style.getChild("deep")){
         }
     }
 
-    override fun getClassName() = "GraphEditorBody"
-
 }

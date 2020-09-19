@@ -63,6 +63,4 @@ class PathPanel(file: File?, style: Style) : PanelListX(style) {
         }
     }
 
-    override fun getClassName() = "PathPanel"
-
 }

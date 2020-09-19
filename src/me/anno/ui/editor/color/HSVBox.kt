@@ -30,6 +30,4 @@ open class HSVBox(
         return true
     }
 
-    override fun getClassName() = "HSVBox"
-
 }

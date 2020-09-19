@@ -50,8 +50,6 @@ abstract class PanelGroup(style: Style): Panel(style){
         } else false
     }
 
-    override fun getClassName(): String = "PanelGroup"
-
     override fun printLayout(tabDepth: Int) {
         super.printLayout(tabDepth)
         for(child in children){

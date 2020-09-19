@@ -71,6 +71,5 @@ class Checkbox(startValue: Boolean, val size: Int, style: Style): Panel(style.ge
 
     override fun acceptsChar(char: Int) = false // ^^
     override fun isKeyInput() = true
-    override fun getClassName() = "CheckBox"
 
 }

@@ -72,6 +72,5 @@ class EnumInput(
     }
 
     override fun getCursor(): Long = Cursor.drag
-    override fun getClassName() = "EnumInput"
 
 }

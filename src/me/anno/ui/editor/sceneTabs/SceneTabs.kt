@@ -1,11 +1,14 @@
 package me.anno.ui.editor.sceneTabs
 
 import me.anno.config.DefaultConfig
+import me.anno.io.ISaveable
+import me.anno.io.base.BaseWriter
 import me.anno.objects.Transform
 import me.anno.studio.Studio.root
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.scrolling.ScrollPanelX
 import me.anno.ui.editor.files.addChildFromFile
+import me.anno.ui.editor.sceneView.SceneTabData
 import me.anno.utils.getOrPrevious
 import org.apache.logging.log4j.LogManager
 import java.io.File
@@ -69,6 +72,12 @@ object SceneTabs : ScrollPanelX(DefaultConfig.style) {
 
     fun closeAll(){
         children2.clear()
+    }
+
+    fun save(writer: BaseWriter){
+        children3.forEach {
+            writer.add(SceneTabData(it))
+        }
     }
 
 }

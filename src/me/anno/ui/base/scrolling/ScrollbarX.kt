@@ -34,6 +34,4 @@ open class ScrollbarX(val scrollbar: ScrollPanelX, style: Style): Scrollbar(styl
         } else super.onMouseMoved(x, y, dx, dy)
     }
 
-    override fun getClassName() = "ScrollbarX"
-
 }

@@ -24,6 +24,4 @@ open class ScrollPanelXY(child: Panel, padding: Padding,
 
     val content = (this.child as ScrollPanelY).child
 
-    override fun getClassName(): String = "ScrollPanelXY"
-
 }

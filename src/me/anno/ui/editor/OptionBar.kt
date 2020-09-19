@@ -52,5 +52,4 @@ class OptionBar(style: Style): PanelListX(null, style.getChild("options")) {
 
     val majors = HashMap<String, Major>()
 
-
 }

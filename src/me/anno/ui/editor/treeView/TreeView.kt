@@ -156,8 +156,6 @@ class TreeView(style: Style):
         }
     }
 
-    override fun getClassName(): String = "TreeView"
-
     companion object {
 
         fun addText(name: String, parent: Transform?, text: String, callback: (Transform) -> Unit){

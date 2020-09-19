@@ -146,6 +146,4 @@ class ScenePreview(style: Style) : PanelList(null, style.getChild("sceneView")),
 
     }
 
-    override fun getClassName() = "ScenePreview"
-
 }

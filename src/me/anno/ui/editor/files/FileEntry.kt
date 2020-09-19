@@ -294,6 +294,4 @@ class FileEntry(val explorer: FileExplorer, val isParent: Boolean, val file: Fil
         println("${Tabs.spaces(tabDepth * 2 + 2)} ${file.name}")
     }
 
-    override fun getClassName() = "FileEntry"
-
 }

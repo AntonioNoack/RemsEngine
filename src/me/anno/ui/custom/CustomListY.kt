@@ -4,8 +4,11 @@ import me.anno.ui.base.Panel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.custom.data.CustomListData
+import me.anno.ui.custom.data.ICustomDataCreator
 import me.anno.ui.style.Style
 import me.anno.utils.clamp
+import me.anno.utils.sumByFloat
 import java.lang.Exception
 import kotlin.math.max
 import kotlin.math.min
@@ -15,14 +18,18 @@ class CustomListY(style: Style): PanelListY(style), CustomList {
 
     init {
         spacing = style.getSize("custom.drag.size", 4)
+        weight = 1f
     }
+
+    override val dataChildren
+        get() = children
+            .filter { it !is CustomizingBar }
+            .filterIsInstance<ICustomDataCreator>()
 
     val minSize get() = 10f / h
 
-    val weights = HashMap<Panel, Float>()
-
     fun change(p: Panel, delta: Float){
-        weights[p] = clamp((weights[p] ?: 0f) + delta, minSize, 1f)
+        p.weight = clamp(p.weight + delta, minSize, 1f)
     }
 
     override fun remove(index: Int) {
@@ -61,15 +68,21 @@ class CustomListY(style: Style): PanelListY(style), CustomList {
         if(index > 0){
             super.add(CustomizingBar(index, 0, spacing, style))
         }
-        weights[child] = 1f
+        child.weight = 1f
         return super.add(child)
     }
 
     fun add(child: Panel, weight: Float): PanelList {
         add(child)
-        weights[child] = weight/100f
+        child.weight = weight
         return this
     }
+
+    override fun addChild(panel: Panel) {
+        add(panel, panel.weight)
+    }
+
+    override fun toData() = CustomListData(this)
 
     override fun calculateSize(w: Int, h: Int) {
         this.w = w
@@ -95,24 +108,23 @@ class CustomListY(style: Style): PanelListY(style), CustomList {
 
         } else {
 
+            val minWeight = 0.0001f
             val available = h - (children.size/2) * spacing
-            val sumWeight = weights.values.sum()
+            val sumWeight = children.filter { it !is CustomizingBar }.sumByFloat { max(it.weight, minWeight) }
             val weightScale = 1f / sumWeight
 
             var childY = this.y
-            for(child in children.filter { it.visibility != Visibility.GONE }){
-                val weight = weights[child]
-                val childH = if(weight == null)
+            for(child in children){
+                val weight = max(minWeight, child.weight)
+                val childH = if(child is CustomizingBar)
                     child.minH
                 else {
                     val betterWeight = max(weight * weightScale, minSize)
-                    if(betterWeight != weight) weights[child] = betterWeight
+                    if(betterWeight != weight) child.weight = betterWeight
                     (betterWeight / sumWeight * available).roundToInt()
                 }
                 child.calculateSize(w, childH)
-                // child.applyConstraints()
-                child.placeInParent(x, childY)
-                child.applyPlacement(w, childH)
+                child.place(x, childY, w, childH)
                 childY += min(childH, child.h)
             }
 

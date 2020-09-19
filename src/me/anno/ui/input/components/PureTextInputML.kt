@@ -563,7 +563,6 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
 
     override fun getCursor() = Cursor.editText
     override fun isKeyInput() = true
-    override fun getClassName() = "PureTextInputML"
 
     init {
         update()

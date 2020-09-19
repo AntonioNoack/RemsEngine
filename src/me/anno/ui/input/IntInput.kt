@@ -24,7 +24,7 @@ open class IntInput(
         when(val value = owningProperty[time]){
             is Int -> setValue(value, false)
             is Long -> setValue(value, false)
-            else -> throw RuntimeException("Unknown type $value for ${getClassName()}")
+            else -> throw RuntimeException("Unknown type $value for ${javaClass.simpleName}")
         }
     }
 
@@ -75,7 +75,7 @@ open class IntInput(
         when(val clamped = type.clamp(if(type.defaultValue is Int) value.toInt() else value)){
             is Int -> setValue(clamped, true)
             is Long -> setValue(clamped, true)
-            else -> throw RuntimeException("Unknown type $clamped for ${getClassName()}")
+            else -> throw RuntimeException("Unknown type $clamped for ${javaClass.simpleName}")
         }
     }
 
@@ -93,7 +93,7 @@ open class IntInput(
             is Double -> setValue(clamped.roundToLong(), notify)
             is Int -> setValue(clamped, notify)
             is Long -> setValue(clamped, notify)
-            else -> throw RuntimeException("Unknown type $clamped for ${getClassName()}")
+            else -> throw RuntimeException("Unknown type $clamped for ${javaClass.simpleName}")
         }
     }
 
@@ -101,7 +101,7 @@ open class IntInput(
         return when(value){
             is Int -> value.toLong()
             is Long -> value
-            else -> throw RuntimeException("Unknown type $value for ${getClassName()}")
+            else -> throw RuntimeException("Unknown type $value for ${javaClass.simpleName}")
         }
     }
 
@@ -112,7 +112,5 @@ open class IntInput(
             else -> super.onCharTyped(x, y, key)
         }
     }
-
-    override fun getClassName() = "FloatInput"
 
 }

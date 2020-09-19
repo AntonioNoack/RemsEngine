@@ -17,7 +17,7 @@ import java.lang.RuntimeException
 
 // todo select any group of elements similar to control+click by shift+drag
 
-open class Panel(val style: Style) : Saveable() {
+open class Panel(val style: Style) {
 
     var minW = 1
     var minH = 1
@@ -241,7 +241,7 @@ open class Panel(val style: Style) : Saveable() {
     }
 
     open fun onPasteFiles(x: Float, y: Float, files: List<File>) {
-        parent?.onPasteFiles(x, y, files) ?: println("Paste Ignored! $files, ${getClassName()}")
+        parent?.onPasteFiles(x, y, files) ?: println("Paste Ignored! $files, ${javaClass.simpleName}")
     }
 
     open fun onCopyRequested(x: Float, y: Float): String? = parent?.onCopyRequested(x, y)
@@ -278,13 +278,6 @@ open class Panel(val style: Style) : Saveable() {
         parent?.onMouseBackKey(x, y)
     }
 
-    /**
-     * for serialization and easier runtime debugging
-     * (print key -> prints layout with Panel.printLayout())
-     * */
-    override fun getClassName(): String = "Panel"
-    override fun getApproxSize(): Int = 1
-
     open fun getCursor(): Long? = parent?.getCursor() ?: 0L
 
     open fun getTooltipText(x: Float, y: Float): String? = tooltip ?: parent?.getTooltipText(x, y)
@@ -297,11 +290,6 @@ open class Panel(val style: Style) : Saveable() {
     open fun printLayout(tabDepth: Int) {
         println("${Tabs.spaces(tabDepth * 2)}${javaClass.simpleName}($weight) $x $y += $w $h ($minW $minH)")
     }
-
-    /**
-     * part of serialization; isn't used currently
-     * */
-    override fun isDefaultValue() = false
 
     /**
      * if this element is in focus,

@@ -141,6 +141,4 @@ class PanelListMultiline(style: Style): PanelGroup(style), ScrollableY {
         } else super.onMouseMoved(x, y, dx, dy)
     }
 
-    override fun getClassName(): String = "PanelListMultiline"
-
 }

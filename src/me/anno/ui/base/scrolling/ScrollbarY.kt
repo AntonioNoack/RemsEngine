@@ -30,6 +30,4 @@ class ScrollbarY(val scrollbar: ScrollableY, style: Style): Scrollbar(style){
         }// else super.onMouseMoved(x, y, dx, dy)
     }
 
-    override fun getClassName() = "ScrollbarY"
-
 }

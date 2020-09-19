@@ -4,37 +4,45 @@ import me.anno.ui.base.Panel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.groups.PanelListX
+import me.anno.ui.custom.data.CustomData
+import me.anno.ui.custom.data.CustomListData
+import me.anno.ui.custom.data.ICustomDataCreator
 import me.anno.ui.style.Style
 import me.anno.utils.clamp
-import java.lang.Exception
+import me.anno.utils.sumByFloat
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
-class CustomListX(style: Style): PanelListX(style), CustomList {
+class CustomListX(style: Style) : PanelListX(style), CustomList {
 
     init {
         spacing = style.getSize("custom.drag.size", 4)
+        weight = 1f
     }
 
+    override val dataChildren
+        get() = children
+            .filter { it !is CustomizingBar } as List<ICustomDataCreator>
+
     companion object {
-        fun remove(vg: PanelList, index: Int){
+        fun remove(vg: PanelList, index: Int) {
             vg.apply {
                 val old = children[index]
-                if(children.size > 1){
-                    if(index > 0){
+                if (children.size > 1) {
+                    if (index > 0) {
                         children.removeAt(index)
-                        children.removeAt(index-1)
+                        children.removeAt(index - 1)
                     } else {
-                        children.removeAt(index+1)
+                        children.removeAt(index + 1)
                         children.removeAt(index)
                     }
                     (vg as? CustomListX)?.apply {
-                        weights.remove(old)
+                        // weights.remove(old)
                         update()
                     }
                     (vg as? CustomListY)?.apply {
-                        weights.remove(old)
+                        // weights.remove(old)
                         update()
                     }
                 } else {
@@ -47,13 +55,11 @@ class CustomListX(style: Style): PanelListX(style), CustomList {
 
     val minSize get() = 10f / w
 
-    val weights = HashMap<Panel, Float>()
-
-    fun change(p: Panel, delta: Float){
-        weights[p] = clamp((weights[p] ?: 0f) + delta, minSize, 1f)
+    fun change(p: Panel, delta: Float) {
+        p.weight = clamp(p.weight + delta, minSize, 1f)
     }
 
-    fun update(){
+    fun update() {
         children.forEachIndexed { index, panel ->
             (panel as? CustomizingBar)?.index = index
         }
@@ -65,11 +71,11 @@ class CustomListX(style: Style): PanelListX(style), CustomList {
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         var hadVisibleChild = false
-        children@ for(child in children){
-            if(child.visibility == Visibility.VISIBLE){
+        children@ for (child in children) {
+            if (child.visibility == Visibility.VISIBLE) {
                 try {
                     hadVisibleChild = drawChild(child, x0, y0, x1, y1) or hadVisibleChild
-                } catch (e: Exception){
+                } catch (e: Exception) {
                     e.printStackTrace()
                 }
             }
@@ -77,27 +83,33 @@ class CustomListX(style: Style): PanelListX(style), CustomList {
     }
 
     override fun move(index: Int, delta: Float) {
-        val c1 = children[index-1]
-        val c2 = children[index+1]
-        change(c1, +delta/w.toFloat())
-        change(c2, -delta/w.toFloat())
+        val c1 = children[index - 1]
+        val c2 = children[index + 1]
+        change(c1, +delta / w.toFloat())
+        change(c2, -delta / w.toFloat())
         // (children.filter { it !is CustomizingBar }.joinToString { weights[it].toString() })
     }
 
     override fun add(child: Panel): PanelList {
         val index = children.size
-        if(index > 0){
+        if (index > 0) {
             super.add(CustomizingBar(index, spacing, 0, style))
         }
-        weights[child] = 1f
+        if(child.weight <= 0f) child.weight = 1f
         return super.add(child)
     }
 
     fun add(child: Panel, weight: Float): PanelList {
         add(child)
-        weights[child] = weight/100f
+        child.weight = weight
         return this
     }
+
+    override fun addChild(panel: Panel) {
+        add(panel)
+    }
+
+    override fun toData() = CustomListData(this)
 
     override fun calculateSize(w: Int, h: Int) {
         this.w = w
@@ -110,8 +122,8 @@ class CustomListX(style: Style): PanelListX(style), CustomList {
         this.x = x
         this.y = y
 
-        if(children.isEmpty()) return
-        if(children.size == 1){
+        if (children.isEmpty()) return
+        if (children.size == 1) {
 
             val child = children.first()
             child.placeInParent(x, y)
@@ -122,31 +134,29 @@ class CustomListX(style: Style): PanelListX(style), CustomList {
 
         } else {
 
-            val available = w - (children.size/2) * spacing
-            val sumWeight = weights.values.sum()
+            val minWeight = 0.0001f
+            val available = w - (children.size / 2) * spacing
+            val sumWeight = children.filter { it !is CustomizingBar }.sumByFloat { max(minWeight, it.weight) }
             val weightScale = 1f / sumWeight
 
             var childX = this.x
-            for(child in children.filter { it.visibility != Visibility.GONE }){
-                val weight = weights[child]
-                val childW = if(weight == null)
+            for (child in children) {
+                val weight = max(minWeight, child.weight)
+                val childW = if (child is CustomizingBar)
                     child.minW
                 else {
                     val betterWeight = max(weight * weightScale, minSize)
-                    if(betterWeight != weight) weights[child] = betterWeight
+                    if (betterWeight != weight) child.weight = betterWeight
                     (betterWeight / sumWeight * available).roundToInt()
                 }
                 child.calculateSize(childW, h)
-                // child.applyConstraints()
-                child.placeInParent(childX, y)
-                child.applyPlacement(childW, h)
+                child.place(childX, y, childW, h)
                 childX += min(childW, child.w)
             }
 
         }
 
     }
-
 
 
 }

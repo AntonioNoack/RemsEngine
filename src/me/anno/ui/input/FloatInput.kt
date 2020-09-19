@@ -91,7 +91,7 @@ open class FloatInput(
             is Double -> setValue(clamped, notify)
             is Int -> setValue(clamped, notify)
             is Long -> setValue(clamped, notify)
-            else -> throw RuntimeException("Unknown type $clamped for ${getClassName()}")
+            else -> throw RuntimeException("Unknown type $clamped for ${javaClass.simpleName}")
         }
     }
 
@@ -103,10 +103,8 @@ open class FloatInput(
             is Long -> value.toDouble()
             is Vector2f, is Vector3f, is Vector4f,
             is Quaternionf -> value[indexInProperty].toDouble()
-            else -> throw RuntimeException("Unknown type $value for ${getClassName()}")
+            else -> throw RuntimeException("Unknown type $value for ${javaClass.simpleName}")
         }
     }
-
-    override fun getClassName() = "FloatInput"
 
 }

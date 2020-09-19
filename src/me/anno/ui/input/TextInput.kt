@@ -73,7 +73,6 @@ open class TextInput(title: String, style: Style): PanelContainer(
 
     override fun getCursor(): Long = Cursor.drag
     override fun isKeyInput() = true
-    override fun getClassName() = "TextInput"
 
 
 }

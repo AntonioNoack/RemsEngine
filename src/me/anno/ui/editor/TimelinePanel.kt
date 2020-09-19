@@ -195,23 +195,23 @@ open class TimelinePanel(style: Style) : Panel(style) {
     }
 
     override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
-        if (isCross(x, y) && this is GraphEditorBody) {
-            super.onMouseClicked(x, y, button, long)
-        } else if (button.isLeft) {
-            jumpToX(x)
-        } else {
-            val options = listOf(
-                "Set End Here" to {
-                    Studio.project?.targetDuration = getTimeAt(x)
-                },
-                "Jump to Start" to {
-                    jumpToT(0.0)
-                },
-                "Jump to End" to {
-                    jumpToT(targetDuration)
-                }
-            )
-            openMenu(options)
+        when {
+            isCross(x, y) -> super.onMouseClicked(x, y, button, long)
+            button.isLeft -> jumpToX(x)
+            else -> {
+                val options = listOf(
+                    "Set End Here" to {
+                        Studio.project?.targetDuration = getTimeAt(x)
+                    },
+                    "Jump to Start" to {
+                        jumpToT(0.0)
+                    },
+                    "Jump to End" to {
+                        jumpToT(targetDuration)
+                    }
+                )
+                openMenu(options)
+            }
         }
     }
 

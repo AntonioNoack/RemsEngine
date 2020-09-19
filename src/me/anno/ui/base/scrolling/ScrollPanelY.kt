@@ -101,6 +101,4 @@ open class ScrollPanelY(child: Panel, padding: Padding,
         } else super.onMouseMoved(x, y, dx, dy)
     }
 
-    override fun getClassName(): String = "ScrollPanelY"
-
 }

@@ -36,6 +36,4 @@ open class PanelContainer(onlyChild: Panel, val padding: Padding, style: Style):
         child.placeInParent(x + padding.left, y + padding.right)
     }
 
-    override fun getClassName(): String = "PanelContainer"
-
 }

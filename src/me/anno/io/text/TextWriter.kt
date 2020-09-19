@@ -7,11 +7,11 @@ import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
 
-class TextWriter(val beautify: Boolean): BaseWriter() {
+class TextWriter(beautify: Boolean): BaseWriter() {
 
-    val separator = if(beautify) ", " else ","
+    private val separator = if(beautify) ", " else ","
 
-    var data = StringBuilder()
+    var data = StringBuilder(512)
     var hasObject = false
 
     operator fun StringBuilder.plusAssign(char: Char){
