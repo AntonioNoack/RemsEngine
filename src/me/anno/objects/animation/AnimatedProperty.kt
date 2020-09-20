@@ -256,7 +256,7 @@ class AnimatedProperty<V>(val type: Type, var defaultValue: V): Saveable(){
         super.save(writer)
         sort()
         writer.writeList(this, "keyframes", keyframes)
-        writer.writeBool("isAnimated", isAnimated, true)
+        writer.writeBool("isAnimated", isAnimated)
         for(i in 0 until type.components){
             writer.writeObject(this, "driver$i", drivers[i])
         }

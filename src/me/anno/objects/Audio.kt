@@ -122,7 +122,7 @@ abstract class Audio(var file: File = File(""), parent: Transform? = null): GFXT
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
-        writer.writeFile("src", file)
+        writer.writeFile("file", file)
         writer.writeObject(this, "amplitude", amplitude)
         writer.writeInt("isLooping", isLooping.id, true)
     }

@@ -353,7 +353,6 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
-        writer.writeString("path", file.toString())
         writer.writeDouble("startTime", startTime)
         writer.writeDouble("endTime", endTime)
         writer.writeObject(this, "tiling", tiling)
