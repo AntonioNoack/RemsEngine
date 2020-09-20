@@ -291,7 +291,7 @@ class GraphEditorBody(style: Style): TimelinePanel(style.getChild("deep")){
     fun getAllKeyframes(minX: Float, maxX: Float, minY: Float, maxY: Float): List<Keyframe<*>> {
         if(minX > maxX || minY > maxY) return getAllKeyframes(min(minX, maxX), max(minX, maxX), min(minY, maxY), max(minY, maxY))
         val halfSize = dotSize/2
-        val property = Studio.selectedProperty ?: return emptyList()
+        val property = selectedProperty ?: return emptyList()
         val keyframes = ArrayList<Keyframe<*>>()
         keyframes@for(keyframe in property.keyframes){
             if(getXAt(keyframe.time) in minX-halfSize .. maxX+halfSize){
@@ -450,15 +450,7 @@ class GraphEditorBody(style: Style): TimelinePanel(style.getChild("deep")){
         val delta = dx-dy
         val scale = pow(1.05f, delta)
         if(isShiftDown){
-            if(isControlDown){ // zoom
-                // set the center to the cursor
-                // works great :D
-                val normalizedY = (h/2-y)/(h/2)
-                centralValue += normalizedY * dvHalfHeight * (1f - scale)
-                dvHalfHeight *= scale
-            } else { // move
-                centralValue += dvHalfHeight * 20f * delta / h
-            }
+            dvHalfHeight *= scale
             clampValues()
         } else {// time
             super.onMouseWheel(x, y, dx, dy)

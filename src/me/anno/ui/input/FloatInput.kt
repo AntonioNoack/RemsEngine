@@ -5,6 +5,7 @@ import me.anno.input.Input.isShiftDown
 import me.anno.utils.pow
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.parser.SimpleExpressionParser
+import me.anno.studio.RemsStudio
 import me.anno.studio.Studio.shiftSlowdown
 import me.anno.ui.style.Style
 import me.anno.utils.get
@@ -22,7 +23,20 @@ open class FloatInput(
     type: AnimatedProperty.Type = AnimatedProperty.Type.FLOAT,
     owningProperty: AnimatedProperty<*>?,
     indexInProperty: Int
-): NumberInput<Double>(style, title, type, owningProperty, indexInProperty) {
+): NumberInput(style, title, type, owningProperty, indexInProperty) {
+
+    var lastValue: Double = getValue(type.defaultValue)
+    var changeListener = { value: Double -> }
+
+    init {
+        inputPanel.setChangeListener {
+            val newValue = parseValue(it)
+            if (newValue != null) {
+                lastValue = newValue
+                changeListener(newValue)
+            }
+        }
+    }
 
     constructor(title: String, owningProperty: AnimatedProperty<*>, indexInProperty: Int, time: Double, style: Style): this(style, title, owningProperty.type, owningProperty, indexInProperty){
         when(val value = owningProperty[time]){
@@ -42,7 +56,7 @@ open class FloatInput(
 
     var allowInfinity = false
 
-    override fun parseValue(text: String): Double? {
+    fun parseValue(text: String): Double? {
         val trimmed = text.trim()
         val newValue = if(trimmed.isEmpty()) 0.0 else trimmed.toDoubleOrNull() ?: SimpleExpressionParser.parseDouble(trimmed)
         if(newValue == null || !((allowInfinity && !newValue.isNaN()) || newValue.isFinite())) return null
@@ -53,7 +67,7 @@ open class FloatInput(
     fun setValue(v: Long, notify: Boolean) = setValue(v.toDouble(), notify)
     fun setValue(v: Float, notify: Boolean) = setValue(v.toDouble(), notify)
 
-    override fun stringify(v: Double): String =
+    fun stringify(v: Double): String =
         if(type.defaultValue is Double) v.toString()
         else v.toFloat().toString()
 
@@ -64,9 +78,9 @@ open class FloatInput(
         val dy0 = dy*size
         val delta = dx0-dy0
         // chose between exponential and linear curve, depending on the use-case
-        var value = lastValue
-        if(type.hasLinear) value += delta * 0.1f * type.unitScale
-        if(type.hasExponential) value *= pow(if(lastValue < 0) 1f / 1.03f else 1.03f, delta * if(type.hasLinear) 1f else 3f)
+        var value = lastValue as Double
+        if(type.hasLinear || value == 0.0) value += delta * 0.1 * type.unitScale
+        if(type.hasExponential) value *= StrictMath.pow(if(lastValue < 0) 1.0 / 1.03 else 1.03, delta * if(type.hasLinear) 1.0 else 3.0)
         setValueClamped(value, true)
     }
 
@@ -87,15 +101,15 @@ open class FloatInput(
                 else -> throw RuntimeException("Unknown type ${type.defaultValue}")
             }
         )){
-            is Float -> setValue(clamped, notify)
+            is Float -> setValue(clamped.toDouble(), notify)
             is Double -> setValue(clamped, notify)
-            is Int -> setValue(clamped, notify)
-            is Long -> setValue(clamped, notify)
+            is Int -> setValue(clamped.toDouble(), notify)
+            is Long -> setValue(clamped.toDouble(), notify)
             else -> throw RuntimeException("Unknown type $clamped for ${javaClass.simpleName}")
         }
     }
 
-    override fun getValue(value: Any): Double {
+    fun getValue(value: Any): Double {
         return when(value){
             is Float -> value.toDouble()
             is Double -> value
@@ -104,6 +118,40 @@ open class FloatInput(
             is Vector2f, is Vector3f, is Vector4f,
             is Quaternionf -> value[indexInProperty].toDouble()
             else -> throw RuntimeException("Unknown type $value for ${javaClass.simpleName}")
+        }
+    }
+
+    fun setChangeListener(listener: (value: Double) -> Unit): NumberInput {
+        changeListener = listener
+        return this
+    }
+
+    override fun onEmpty(x: Float, y: Float) {
+        val newValue = getValue(owningProperty?.defaultValue ?: type.defaultValue)
+        if(newValue != lastValue){
+            setValue(newValue, true)
+            RemsStudio.onSmallChange("empty")
+        }
+    }
+
+    fun setValue(v: Double, notify: Boolean) {
+        if (v != lastValue || !hasValue) {
+            hasValue = true
+            lastValue = v
+            if(notify) changeListener(v)
+            inputPanel.text = stringify(v)
+            inputPanel.updateChars(false)
+        }
+    }
+
+    fun updateValueMaybe() {
+        if (inputPanel.isInFocus) {
+            wasInFocus = true
+        } else if (wasInFocus) {
+            // apply the value, or reset if invalid
+            val value = parseValue(inputPanel.text) ?: lastValue
+            setValue(value, true)
+            wasInFocus = false
         }
     }
 

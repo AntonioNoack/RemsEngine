@@ -17,7 +17,7 @@ import me.anno.ui.input.components.PureTextInput
 import me.anno.ui.style.Style
 import me.anno.utils.get
 
-abstract class NumberInput<Type>(
+abstract class NumberInput(
     style: Style, title: String,
     val type: AnimatedProperty.Type = AnimatedProperty.Type.FLOAT,
     val owningProperty: AnimatedProperty<*>?,
@@ -25,8 +25,6 @@ abstract class NumberInput<Type>(
 ) : PanelListY(style) {
 
     var hasValue = false
-    var lastValue: Type = getValue(type.defaultValue)
-    var changeListener = { value: Type -> }
 
     val titlePanel = object : TextPanel(title, style) {
         override fun onMouseDown(x: Float, y: Float, button: MouseButton) {
@@ -51,7 +49,12 @@ abstract class NumberInput<Type>(
         override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
             if(lastTime != editorTime && owningProperty != null && owningProperty.isAnimated){
                 lastTime = editorTime
-                setValue(owningProperty[editorTime]!![indexInProperty] as Type, false)
+                val value = owningProperty[editorTime]!![indexInProperty]
+                when(this@NumberInput){
+                    is IntInput -> setValue(value.toLong(), false)
+                    is FloatInput -> setValue(value.toDouble(), false)
+                    else -> throw RuntimeException()
+                }
             }
             val driver = driver
             if (driver != null) {
@@ -86,7 +89,11 @@ abstract class NumberInput<Type>(
                     owningProperty.drivers[indexInProperty] = it
                     if (it != null) Studio.selectedInspectable = it
                     else {
-                        text = stringify(lastValue)
+                        text = when(this@NumberInput){
+                            is IntInput -> stringify(lastValue)
+                            is FloatInput -> stringify(lastValue)
+                            else -> throw RuntimeException()
+                        }
                     }
                     onSmallChange("number-set-driver")
                 }
@@ -119,17 +126,10 @@ abstract class NumberInput<Type>(
         val focused2 = focused1 || (owningProperty != null && owningProperty == Studio.selectedProperty)
         inputPanel.visibility = if (focused2) Visibility.VISIBLE else Visibility.GONE
         super.onDraw(x0, y0, x1, y1)
-        updateValueMaybe()
-    }
-
-    fun updateValueMaybe() {
-        if (inputPanel.isInFocus) {
-            wasInFocus = true
-        } else if (wasInFocus) {
-            // apply the value, or reset if invalid
-            val value = parseValue(inputPanel.text) ?: lastValue
-            setValue(value, true)
-            wasInFocus = false
+        when(this){
+            is IntInput -> updateValueMaybe()
+            is FloatInput -> updateValueMaybe()
+            else -> throw RuntimeException()
         }
     }
 
@@ -137,40 +137,15 @@ abstract class NumberInput<Type>(
         inputPanel.placeholder = placeholder
     }
 
-    abstract fun parseValue(text: String): Type?
-
     init {
         this += titlePanel
-        this += inputPanel.setChangeListener {
-            val newValue = parseValue(it)
-            if (newValue != null) {
-                lastValue = newValue
-                changeListener(newValue)
-            }
-        }
+        this += inputPanel
         inputPanel.setCursorToEnd()
         inputPanel.placeholder = title
     }
 
-    fun setValue(v: Type, notify: Boolean) {
-        if (v != lastValue || !hasValue) {
-            hasValue = true
-            lastValue = v
-            if(notify) changeListener(v)
-            inputPanel.text = stringify(v)
-            inputPanel.updateChars(false)
-        }
-    }
-
-    abstract fun stringify(v: Type): String
-
-    fun setChangeListener(listener: (value: Type) -> Unit): NumberInput<Type> {
-        changeListener = listener
-        return this
-    }
-
     var isSelectedListener: (() -> Unit)? = null
-    fun setIsSelectedListener(listener: () -> Unit): NumberInput<Type> {
+    fun setIsSelectedListener(listener: () -> Unit): NumberInput {
         isSelectedListener = listener
         return this
     }
@@ -194,16 +169,6 @@ abstract class NumberInput<Type>(
     override fun onMouseUp(x: Float, y: Float, button: MouseButton) {
         super.onMouseUp(x, y, button)
         mouseIsDown = false
-    }
-
-    abstract fun getValue(value: Any): Type
-
-    override fun onEmpty(x: Float, y: Float) {
-        val newValue = getValue(owningProperty?.defaultValue ?: type.defaultValue)
-        if(newValue != lastValue){
-            setValue(newValue, true)
-            onSmallChange("empty")
-        }
     }
 
     override fun getCursor(): Long = Cursor.drag

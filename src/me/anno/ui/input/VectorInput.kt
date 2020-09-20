@@ -7,8 +7,6 @@ import me.anno.input.Input.isShiftDown
 import me.anno.input.MouseButton
 import me.anno.io.text.TextReader
 import me.anno.objects.Camera
-import me.anno.utils.clamp
-import me.anno.utils.pow
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.studio.Studio
 import me.anno.studio.Studio.editorTime
@@ -21,8 +19,7 @@ import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.input.components.PureTextInput
 import me.anno.ui.style.Style
-import me.anno.utils.get
-import me.anno.utils.warn
+import me.anno.utils.*
 import org.joml.Quaternionf
 import org.joml.Vector2f
 import org.joml.Vector3f
@@ -80,10 +77,10 @@ class VectorInput(
         }
         pseudo.setChangeListener {
             changeListener(
-                compX.lastValue.toFloat(),
-                compY.lastValue.toFloat(),
-                compZ?.lastValue?.toFloat() ?: 0f,
-                compW?.lastValue?.toFloat() ?: 0f)
+                compX.lastValue.anyToFloat(),
+                compY.lastValue.anyToFloat(),
+                compZ?.lastValue?.anyToFloat() ?: 0f,
+                compW?.lastValue?.anyToFloat() ?: 0f)
         }
         // titleList += pseudo.titlePanel.setWeight(1f)
         val input = pseudo.inputPanel
