@@ -102,7 +102,7 @@ class MaskLayer(parent: Transform? = null) : MaskLayerBase(parent) {
             }
             else -> {
                 GFX.check()
-                masked.bindTextures(1, true, ClampMode.CLAMP)
+                masked.bindTextures(1, true, ClampMode.MIRRORED_REPEAT)
                 GFX.check()
                 mask.bindTextures(0, true, ClampMode.CLAMP)
                 GFX.check()
