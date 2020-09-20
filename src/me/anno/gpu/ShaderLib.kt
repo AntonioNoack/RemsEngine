@@ -284,13 +284,15 @@ object ShaderLib {
                 "           break;\n" +
                 // just mix two images
                 "       case ${MaskType.GAUSSIAN_BLUR.id}:\n" +
+                "           effect = mix(mask.a, dot(vec3(0.3), mask.rgb), useMaskColor);\n" +
+                "           effect = mix(effect, 1.0 - effect, invertMask);\n" +
+                "           color = mix(texture(tex, uv2), texture(tex2, uv2), effect);\n" +
+                "           break;\n" +
                 "       case ${MaskType.BOKEH_BLUR.id}:\n" +
                 "           effect = mix(mask.a, dot(vec3(0.3), mask.rgb), useMaskColor);\n" +
                 "           effect = mix(effect, 1.0 - effect, invertMask);\n" +
-                "           color = mix(\n" +
-                "               texture(tex, uv2),\n" +
-                "               texture(tex2, uv2),\n" +
-                "               effect);\n" +
+                "           vec4 src = texture(tex, uv2);\n" +
+                "           color = vec4(mix(src.rgb, texture(tex2, uv2).rgb, effect), src.a);\n" +
                 "           break;\n" +
                 "       case ${MaskType.UV_OFFSET.id}:\n" +
                 "           vec2 offset = (mask.rg-mask.gb) * pixelating;\n" +
@@ -446,7 +448,6 @@ object ShaderLib {
         )
 
     }
-
 
     fun createShaderNoShorts(shaderName: String, v3D: String, y3D: String, fragmentShader: String, textures: List<String>): Shader {
         val shader = Shader(shaderName, v3D, y3D, fragmentShader, true)
