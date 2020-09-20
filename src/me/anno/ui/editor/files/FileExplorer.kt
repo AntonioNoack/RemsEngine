@@ -28,7 +28,7 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
     // todo a stack or history to know where we were...
     // todo left list of relevant places? todo drag stuff in there
 
-    var folder: File? = project?.file ?: File(OS.home, "Documents")
+    var folder: File? = project?.scenes ?: File(OS.home, "Documents")
 
     val searchBar = TextInput("Search Term", style)
         .setChangeListener {
@@ -138,7 +138,7 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
     override fun onPaste(x: Float, y: Float, data: String, type: String) {
         when(type){
             "Transform" -> {
-                var name = data.toTransform().name.toAllowedFilename()
+                var name = data.toTransform()!!.name.toAllowedFilename()
                 if(name != null){
                     // make .json lowercase
                     if(name.endsWith(".json", true)){

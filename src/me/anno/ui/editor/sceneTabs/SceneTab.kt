@@ -64,6 +64,7 @@ class SceneTab(var file: File?, var root: Transform) : TextPanel(file?.name ?: r
             thread {
                 try {
                     synchronized(root){
+                        dst.parentFile.mkdirs()
                         dst.writeText(TextWriter.toText(root, false))
                         file = dst
                         hasChanged = false

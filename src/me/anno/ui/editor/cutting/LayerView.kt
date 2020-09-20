@@ -346,9 +346,18 @@ class LayerView(style: Style) : TimelinePanel(style) {
                     val lTransparent = Vector4f(lColor.x, lColor.y, lColor.z, 0f)
                     val rColor = transform.color[rTime]
                     val rTransparent = Vector4f(rColor.x, rColor.y, rColor.z, 0f)
-                    val second = transform.clone()
+                    val second = transform.clone()!!
                     second.name = incrementName(transform.name)
-                    transform.addAfter(second)
+                    if(transform.parent != null) {
+                        transform.addAfter(second)
+                    } else {
+                        // can't split directly,
+                        // because we have no parent
+                        val newRoot = Transform()
+                        newRoot.addChild(transform)
+                        newRoot.addChild(second)
+                        root = newRoot
+                    }
                     // transform.color.addKeyframe(localTime-fadingTime/2, color)
                     transform.color.keyframes.removeIf { it.time >= cTime }
                     transform.color.addKeyframe(cTime, color)

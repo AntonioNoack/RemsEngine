@@ -35,7 +35,7 @@ class Project(var name: String, val file: File) : Saveable() {
         config = ConfigBasics.loadConfig(configFile, defaultConfig, true)
     }
 
-    val scenes = File(file, "scenes")
+    val scenes = File(file, "Scenes")
 
     init {
         scenes.mkdirs()
@@ -52,18 +52,21 @@ class Project(var name: String, val file: File) : Saveable() {
 
         fun tabsDefault() {
             SceneTabs.closeAll()
-            SceneTabs.open(SceneTab(null, Transform().run {
-                name = "Root"
-                Camera(this)
-                this
-            }))
+            val tab = SceneTab(File(scenes, "Root.json"),
+                Transform().run {
+                    name = "Root"
+                    Camera(this)
+                    this
+                })
+            tab.save {}
+            SceneTabs.open(tab)
             saveTabs()
         }
 
 
         // tabs
         try {
-            if(tabsFile.exists()){
+            if (tabsFile.exists()) {
                 val loadedUIData = TextReader
                     .fromText(tabsFile.readText())
                 val sceneTabs = loadedUIData
@@ -86,7 +89,7 @@ class Project(var name: String, val file: File) : Saveable() {
 
         // main ui
         try {
-            if(uiFile.exists()){
+            if (uiFile.exists()) {
                 val loadedUIData = TextReader
                     .fromText(uiFile.readText())
                 val data = loadedUIData
@@ -102,12 +105,11 @@ class Project(var name: String, val file: File) : Saveable() {
     }
 
     fun saveTabs() {
+        println("saving tabs: ${SceneTabs.children3.size}")
         val writer = TextWriter(false)
         SceneTabs.save(writer)
         writer.writeAllInList()
-        thread {
-            tabsFile.writeText(writer.data.toString())
-        }
+        tabsFile.writeText(writer.data.toString())
     }
 
     fun saveUI() {

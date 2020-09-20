@@ -9,6 +9,7 @@ import me.anno.objects.meshes.Mesh
 import me.anno.objects.modes.UVProjection
 import me.anno.studio.RemsStudio
 import me.anno.ui.editor.treeView.TreeView
+import me.anno.utils.LOGGER
 import me.anno.utils.getImportType
 import org.joml.Vector3f
 import java.io.File
@@ -35,13 +36,18 @@ fun addChildFromFile(parent: Transform?, file: File, callback: (Transform) -> Un
                 val text = file.readText()
                 try {
                     val transform = text.toTransform()
-                    parent?.addChild(transform)
-                    GFX.select(transform)
-                    callback(transform)
-                    RemsStudio.onLargeChange()
+                    if(transform == null){
+                        LOGGER.warn("JSON didn't contain Transform!")
+                        TreeView.addText(name, parent, text, callback)
+                    } else {
+                        parent?.addChild(transform)
+                        GFX.select(transform)
+                        callback(transform)
+                        RemsStudio.onLargeChange()
+                    }
                 } catch (e: Exception) {
                     e.printStackTrace()
-                    println("Didn't understand json! ${e.message}")
+                    LOGGER.warn("Didn't understand JSON! ${e.message}")
                     TreeView.addText(name, parent, text, callback)
                 }
             }

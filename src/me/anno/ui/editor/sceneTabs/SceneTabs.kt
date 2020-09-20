@@ -1,6 +1,7 @@
 package me.anno.ui.editor.sceneTabs
 
 import me.anno.config.DefaultConfig
+import me.anno.gpu.GFX
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.Transform
@@ -30,15 +31,17 @@ object SceneTabs : ScrollPanelX(DefaultConfig.style) {
         if (opened != null) {
             open(opened)
         } else {
-            addChildFromFile(null, file, { transform ->
-                var file2 = file
-                if(!file2.extension.equals("json", true)){
-                    file2 = File(file2.parentFile, file2.name+".json")
-                }
-                val tab = SceneTab(file2, transform)
-                content += tab
-                open(tab)
-            })
+            GFX.addGPUTask(1){
+                addChildFromFile(null, file, { transform ->
+                    var file2 = file
+                    if(!file2.extension.equals("json", true)){
+                        file2 = File(file2.parentFile, file2.name+".json")
+                    }
+                    val tab = SceneTab(file2, transform)
+                    content += tab
+                    open(tab)
+                })
+            }
         }
     }
 
@@ -56,6 +59,9 @@ object SceneTabs : ScrollPanelX(DefaultConfig.style) {
     fun open(sceneTab: SceneTab) {
         currentTab = sceneTab
         root = sceneTab.root
+        if(sceneTab !in children3){
+            content += sceneTab
+        }
     }
 
     fun close(sceneTab: SceneTab){

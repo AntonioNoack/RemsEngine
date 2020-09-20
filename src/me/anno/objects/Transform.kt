@@ -630,7 +630,7 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
         val yAxis = Vector3f(0f,1f,0f)
         val zAxis = Vector3f(0f,0f,1f)
         var nextClickId = AtomicInteger()
-        fun String.toTransform() = TextReader.fromText(this).first() as Transform
+        fun String.toTransform() = TextReader.fromText(this).first() as? Transform
         const val minAlpha = 0.00025f
     }
 

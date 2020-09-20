@@ -81,6 +81,7 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style): TextPanel(""
                         options.entries.map { (key, value) ->
                             key to add {
                                 val newT = if(value is Transform) value.clone() else value.toString().toTransform()
+                                newT!!
                                 it.addChild(newT)
                                 newT
                             }

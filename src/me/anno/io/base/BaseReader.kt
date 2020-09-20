@@ -21,6 +21,7 @@ import me.anno.ui.custom.CustomListX
 import me.anno.ui.custom.CustomListY
 import me.anno.ui.custom.data.CustomListData
 import me.anno.ui.custom.data.CustomPanelData
+import me.anno.ui.editor.sceneView.SceneTabData
 
 abstract class BaseReader {
 
@@ -65,6 +66,7 @@ abstract class BaseReader {
             "CustomDriver", "FunctionDriver" -> FunctionDriver()
             "CustomListData" -> CustomListData()
             "CustomPanelData" -> CustomPanelData()
+            "SceneTabData" -> SceneTabData()
             else -> {
                 ISaveable.objectTypeRegistry[clazz]?.invoke() ?: throw RuntimeException("Unknown class $clazz")
             }
