@@ -76,26 +76,21 @@ class MaskLayer(parent: Transform? = null) : MaskLayerBase(parent) {
                 )
             }
             MaskType.BOKEH_BLUR -> {
+
                 // todo not working correctly
                 // calculate and apply bokeh...
-                temp.bind(GFX.windowWidth, GFX.windowHeight)
-                // masked.bindTexture0(0, true)
-                glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
-
-                val bd = BlendDepth(null, false)
-                bd.bind()
 
                 val src0 = masked
                 val srcBuffer = src0.msBuffer ?: src0
-                BokehBlur.draw(srcBuffer.textures[0], pixelSize)
-                temp.unbind()
-                temp.bindTexture0(1, true, ClampMode.CLAMP)
+                BokehBlur.draw(srcBuffer.textures[0], temp, pixelSize)
 
-                bd.unbind()
+                temp.bindTexture0(2, true, ClampMode.CLAMP)
+                masked.bindTexture0(1, true, ClampMode.CLAMP)
+                mask.bindTexture0(0, true, ClampMode.CLAMP)
 
                 GFX.draw3DMasked(
                     localTransform, color,
-                    MaskType.GAUSSIAN_BLUR, useMaskColor[time], offsetColor,
+                    type, useMaskColor[time], offsetColor,
                     0f, isInverted
                 )
 

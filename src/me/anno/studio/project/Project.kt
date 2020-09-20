@@ -142,19 +142,7 @@ class Project(var name: String, val file: File) : Saveable() {
     override fun getApproxSize() = 1000
     override fun isDefaultValue() = false
 
-    fun open() {
-        thread {
-            // todo open all recently opened files as tabs
-            // todo lazy loading??? it's just config anyways, so it shouldn't be THAT bad...
-            // todo if no project files are found, create a default file...
-            config["recent.files", ""].split('\n').forEach {
-                val name = it.trim()
-                if (name.isNotEmpty()) {
-                    SceneTabs.open(File(name))
-                }
-            }
-        }
-    }
+    fun open() {}
 
     // todo even save not saved parts? :)
     fun saveConfig() {

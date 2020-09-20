@@ -272,10 +272,9 @@ object ShaderLib {
                 "           vec4 maskColor = vec4(" +
                 "               mix(vec3(1.0), mask.rgb, useMaskColor)," +
                 "               mix(mask.a, 1.0-mask.a, invertMask));\n" +
-                "           color = texture(tex, uv2);\n" +
+                "           color = texture(tex, uv2) * maskColor;\n" +
                 "           break;\n" +
                 "       case ${MaskType.PIXELATING.id}:\n" +
-                // use the average instead for more stable results?
                 "           effect = mix(mask.a, dot(vec3(0.3), mask.rgb), useMaskColor);\n" +
                 "           effect = mix(effect, 1.0 - effect, invertMask);\n" +
                 "           color = mix(\n" +
@@ -283,7 +282,9 @@ object ShaderLib {
                 "               texture(tex, round(uv2 / pixelating) * pixelating),\n" +
                 "               effect);\n" +
                 "           break;\n" +
+                // just mix two images
                 "       case ${MaskType.GAUSSIAN_BLUR.id}:\n" +
+                "       case ${MaskType.BOKEH_BLUR.id}:\n" +
                 "           effect = mix(mask.a, dot(vec3(0.3), mask.rgb), useMaskColor);\n" +
                 "           effect = mix(effect, 1.0 - effect, invertMask);\n" +
                 "           color = mix(\n" +

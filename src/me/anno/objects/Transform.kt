@@ -315,6 +315,7 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
         writer.writeDouble("timeDilation", timeDilation)
         writer.writeObject(this, "timeAnimated", timeAnimated)
         writer.writeObject(this, "color", color)
+        writer.writeObject(this, "colorMultiplier", colorMultiplier)
         writer.writeString("blendMode", blendMode.id)
         writer.writeList(this, "children", children)
         writer.writeInt("timelineSlot", timelineSlot, true)
@@ -361,6 +362,7 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
             "alignWithCamera" -> alignWithCamera.copyFrom(value)
             "timeAnimated" -> timeAnimated.copyFrom(value)
             "color" -> color.copyFrom(value)
+            "colorMultiplier" -> colorMultiplier.copyFrom(value)
             else -> super.readObject(name, value)
         }
     }

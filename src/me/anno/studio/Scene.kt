@@ -359,7 +359,7 @@ object Scene {
             srcBuffer.ensure()
             val src = srcBuffer.textures[0]
             buffer = getNextBuffer("Scene-Bokeh", buffer, 0, true, withMultisampling = false)
-            BokehBlur.draw(src, 0.02f)
+            BokehBlur.draw(src, Framebuffer.stack.peek()!!, 0.02f)
         } else if(withMultisampling){
             // todo skip this step, and just use the correct buffer...
             // this is just a computationally not that expensive workaround
