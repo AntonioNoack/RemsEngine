@@ -31,7 +31,7 @@ open class ScrollbarX(val scrollbar: ScrollPanelX, style: Style): Scrollbar(styl
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
         if(0 in Input.mouseKeysDown){
             scrollbar.scrollPosition += dx / relativeSize
-        } else super.onMouseMoved(x, y, dx, dy)
+        }// else super.onMouseMoved(x, y, dx, dy)
     }
 
 }

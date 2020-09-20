@@ -46,21 +46,25 @@ object SceneTabs : ScrollPanelX(DefaultConfig.style) {
     }
 
     fun open(transform: Transform) {
-        val opened = children3.firstOrNull { it.root === transform }
-        if (opened != null) {
-            open(opened)
-        } else {
-            val tab = SceneTab(null, transform)
-            content += tab
-            open(tab)
+        synchronized(this){
+            val opened = children3.firstOrNull { it.root === transform }
+            if (opened != null) {
+                open(opened)
+            } else {
+                val tab = SceneTab(null, transform)
+                content += tab
+                open(tab)
+            }
         }
     }
 
     fun open(sceneTab: SceneTab) {
-        currentTab = sceneTab
-        root = sceneTab.root
-        if(sceneTab !in children3){
-            content += sceneTab
+        synchronized(this){
+            currentTab = sceneTab
+            root = sceneTab.root
+            if(sceneTab !in children3){
+                content += sceneTab
+            }
         }
     }
 

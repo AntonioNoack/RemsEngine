@@ -21,6 +21,7 @@ import me.anno.studio.Studio.shiftSlowdown
 import me.anno.ui.dragging.Draggable
 import me.anno.ui.editor.TimelinePanel
 import me.anno.ui.editor.files.addChildFromFile
+import me.anno.ui.editor.sceneTabs.SceneTabs
 import me.anno.ui.style.Style
 import me.anno.utils.*
 import org.joml.Vector4f
@@ -357,6 +358,8 @@ class LayerView(style: Style) : TimelinePanel(style) {
                         newRoot.addChild(transform)
                         newRoot.addChild(second)
                         root = newRoot
+                        // needs to be updated
+                        SceneTabs.currentTab?.root = newRoot
                     }
                     // transform.color.addKeyframe(localTime-fadingTime/2, color)
                     transform.color.keyframes.removeIf { it.time >= cTime }

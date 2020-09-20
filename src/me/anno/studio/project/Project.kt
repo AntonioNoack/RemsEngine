@@ -1,6 +1,7 @@
 package me.anno.studio.project
 
 import me.anno.config.DefaultConfig
+import me.anno.gpu.GFX
 import me.anno.io.Saveable
 import me.anno.io.config.ConfigBasics
 import me.anno.io.text.TextReader
@@ -15,6 +16,7 @@ import me.anno.ui.editor.UILayouts.createDefaultMainUI
 import me.anno.ui.editor.sceneTabs.SceneTab
 import me.anno.ui.editor.sceneTabs.SceneTabs
 import me.anno.ui.editor.sceneView.SceneTabData
+import me.anno.utils.LOGGER
 import java.io.File
 import kotlin.concurrent.thread
 
@@ -51,7 +53,6 @@ class Project(var name: String, val file: File) : Saveable() {
         }
 
         fun tabsDefault() {
-            SceneTabs.closeAll()
             val tab = SceneTab(File(scenes, "Root.json"),
                 Transform().run {
                     name = "Root"
@@ -59,8 +60,11 @@ class Project(var name: String, val file: File) : Saveable() {
                     this
                 })
             tab.save {}
-            SceneTabs.open(tab)
-            saveTabs()
+            GFX.addGPUTask(1){
+                SceneTabs.closeAll()
+                SceneTabs.open(tab)
+                saveTabs()
+            }
         }
 
 
@@ -74,11 +78,13 @@ class Project(var name: String, val file: File) : Saveable() {
                 if (sceneTabs.isEmpty()) {
                     tabsDefault()
                 } else {
-                    SceneTabs.closeAll()
-                    sceneTabs.forEach { tabData ->
-                        val tab = SceneTab(null, Transform())
-                        tabData.apply(tab)
-                        SceneTabs.open(tab)
+                    GFX.addGPUTask(1){
+                        SceneTabs.closeAll()
+                        sceneTabs.forEach { tabData ->
+                            val tab = SceneTab(null, Transform())
+                            tabData.apply(tab)
+                            SceneTabs.open(tab)
+                        }
                     }
                 }
             } else tabsDefault()
@@ -105,7 +111,6 @@ class Project(var name: String, val file: File) : Saveable() {
     }
 
     fun saveTabs() {
-        println("saving tabs: ${SceneTabs.children3.size}")
         val writer = TextWriter(false)
         SceneTabs.save(writer)
         writer.writeAllInList()
@@ -116,9 +121,7 @@ class Project(var name: String, val file: File) : Saveable() {
         val writer = TextWriter(false)
         writer.add((mainUI as ICustomDataCreator).toData())
         writer.writeAllInList()
-        thread {
-            uiFile.writeText(writer.data.toString())
-        }
+        uiFile.writeText(writer.data.toString())
     }
 
     // do we need multiple targets per project? maybe... todo overlays!
