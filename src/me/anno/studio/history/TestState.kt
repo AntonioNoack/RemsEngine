@@ -1,6 +1,8 @@
 package me.anno.studio.history
 
 import me.anno.io.base.BaseWriter
+import me.anno.studio.Studio
+import me.anno.studio.Studio.history
 
 class TestState(name: String): HistoryState<String>(){
     init {
@@ -17,69 +19,71 @@ class TestState(name: String): HistoryState<String>(){
 
 fun main(){
 
+    val history = history
+
     fun check(title: String, action: () -> Unit){
-        println("\nGoal: $title, (from ${History.nextInsertIndex})")
+        println("\nGoal: $title, (from ${Studio.history.nextInsertIndex})")
         action()
-        println("Result: ${History.elements.map { (it as TestState).state }}, ${History.nextInsertIndex}")
+        println("Result: ${Studio.history.elements.map { (it as TestState).state }}, ${Studio.history.nextInsertIndex}")
     }
 
-    History.put(TestState("A"))
-    History.put(TestState("B"))
+    Studio.history.put(TestState("A"))
+    Studio.history.put(TestState("B"))
 
     check("A") {
-        History.undo()
+        history.undo()
     }
 
     check("B") {
-        History.redo()
+        history.redo()
     }
 
     check("A"){
-        History.undo()
+        history.undo()
     }
 
     check("C"){
-        History.put(TestState("C"))
+        history.put(TestState("C"))
     }
 
     check("A"){
-        History.undo()
+        history.undo()
     }
 
     check("nothing happens, still A"){
-        History.undo()
+        history.undo()
     }
 
     check("D"){
-        History.put(TestState("D"))
+        history.put(TestState("D"))
     }
 
     check("E"){
-        History.put(TestState("E"))
+        history.put(TestState("E"))
     }
 
     check("D"){
-        History.undo()
+        history.undo()
     }
 
     check("A"){
-        History.undo()
+        history.undo()
     }
 
     check("D"){
-        History.redo()
+        history.redo()
     }
 
     check("E"){
-        History.redo()
+        history.redo()
     }
 
     check("nothing, still E"){
-        History.redo()
+        history.redo()
     }
 
     check("D"){
-        History.undo()
+        history.undo()
     }
 
 }

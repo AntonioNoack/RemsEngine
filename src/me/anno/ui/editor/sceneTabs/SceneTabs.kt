@@ -6,6 +6,7 @@ import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.Transform
 import me.anno.studio.Studio.root
+import me.anno.studio.history.History
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.scrolling.ScrollPanelX
 import me.anno.ui.editor.files.addChildFromFile
@@ -37,7 +38,7 @@ object SceneTabs : ScrollPanelX(DefaultConfig.style) {
                     if(!file2.extension.equals("json", true)){
                         file2 = File(file2.parentFile, file2.name+".json")
                     }
-                    val tab = SceneTab(file2, transform)
+                    val tab = SceneTab(file2, transform, null)
                     content += tab
                     open(tab)
                 })
@@ -51,7 +52,7 @@ object SceneTabs : ScrollPanelX(DefaultConfig.style) {
             if (opened != null) {
                 open(opened)
             } else {
-                val tab = SceneTab(null, transform)
+                val tab = SceneTab(null, transform, null)
                 content += tab
                 open(tab)
             }

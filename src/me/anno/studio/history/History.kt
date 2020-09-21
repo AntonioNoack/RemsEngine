@@ -7,7 +7,7 @@ import me.anno.io.base.BaseWriter
 import java.util.*
 import kotlin.math.max
 
-object History: Saveable(){
+class History: Saveable(){
 
     // history states instead of history entries
 

@@ -46,8 +46,6 @@ class FileEntry(val explorer: FileExplorer, val isParent: Boolean, val file: Fil
         when (importType) {
             "Image", "Cubemap" -> "file/image.png"
             "Text" -> "file/text.png"
-            // todo dark/bright styled images
-            // todo dark image for video -> one of the first frames? :)
             "Audio", "Video" -> "file/music.png"
             else -> "file/document.png"
         }
@@ -121,8 +119,6 @@ class FileEntry(val explorer: FileExplorer, val isParent: Boolean, val file: Fil
             val needsDefault = when (importType) {
                 // todo audio preview???
                 "Video", "Audio" -> {
-                    // todo faster calculation of preview images
-                    // todo maybe just cache them (statically, in files), once they were downloaded?
                     val hoverPlaybackDelay = 0.5
                     val meta = FFMPEGMetadata.getMeta(file, true)
                     if(meta != null){
@@ -228,6 +224,7 @@ class FileEntry(val explorer: FileExplorer, val isParent: Boolean, val file: Fil
                         // todo ok and cancel button
                         // todo check if name is valid
                         // todo rename the file...
+                        LOGGER.warn("Renaming not yet implemented!")
                     },
                     "Open in Explorer" to file::openInExplorer,
                     "Delete" to this::deleteFileMaybe

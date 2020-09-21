@@ -95,9 +95,9 @@ object Thumbs {
 
         } else {
 
-            // todo generate the image,
-            // todo upload the result to the gpu
-            // todo save the file
+            // generate the image,
+            // upload the result to the gpu
+            // save the file
 
             fun upload(dst: BufferedImage){
                 val rotation = ImageData.getRotation(srcFile)

@@ -9,6 +9,7 @@ import me.anno.io.text.TextWriter
 import me.anno.io.utils.StringMap
 import me.anno.objects.Camera
 import me.anno.objects.Transform
+import me.anno.studio.history.History
 import me.anno.ui.base.Panel
 import me.anno.ui.custom.data.CustomData
 import me.anno.ui.custom.data.ICustomDataCreator
@@ -16,15 +17,15 @@ import me.anno.ui.editor.UILayouts.createDefaultMainUI
 import me.anno.ui.editor.sceneTabs.SceneTab
 import me.anno.ui.editor.sceneTabs.SceneTabs
 import me.anno.ui.editor.sceneView.SceneTabData
-import me.anno.utils.LOGGER
 import java.io.File
-import kotlin.concurrent.thread
 
+// todo history per tab
 class Project(var name: String, val file: File) : Saveable() {
 
     val configFile = File(file, "config.json")
     val uiFile = File(file, "ui.json")
     val tabsFile = File(file, "tabs.json")
+    val histFile = File(file, "history.json")
 
     val config: StringMap
 
@@ -53,14 +54,17 @@ class Project(var name: String, val file: File) : Saveable() {
         }
 
         fun tabsDefault() {
-            val tab = SceneTab(File(scenes, "Root.json"),
-                Transform().run {
-                    name = "Root"
-                    Camera(this)
-                    this
-                })
+            val tab =
+                SceneTab(
+                    File(scenes, "Root.json"),
+                    Transform().run {
+                        name = "Root"
+                        Camera(this)
+                        this
+                    }, History()
+                )
             tab.save {}
-            GFX.addGPUTask(1){
+            GFX.addGPUTask(1) {
                 SceneTabs.closeAll()
                 SceneTabs.open(tab)
                 saveTabs()
@@ -78,10 +82,10 @@ class Project(var name: String, val file: File) : Saveable() {
                 if (sceneTabs.isEmpty()) {
                     tabsDefault()
                 } else {
-                    GFX.addGPUTask(1){
+                    GFX.addGPUTask(1) {
                         SceneTabs.closeAll()
                         sceneTabs.forEach { tabData ->
-                            val tab = SceneTab(null, Transform())
+                            val tab = SceneTab(null, Transform(), null)
                             tabData.apply(tab)
                             SceneTabs.open(tab)
                         }

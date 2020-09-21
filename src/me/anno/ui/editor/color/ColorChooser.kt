@@ -207,12 +207,9 @@ class ColorChooser(style: Style, withAlpha: Boolean, val owningProperty: Animate
     }
 
     override fun onCopyRequested(x: Float, y: Float): String {
-        // LOGGER.info(colorSpace.toRGB(Vector3f(hue, saturation, lightness)).toHex())
-        return if (Input.isShiftDown && owningProperty != null) owningProperty.toString()
-        else "${colorSpace.serializationName}(${hue.f3()},${saturation.f3()},${lightness.f3()},${opacity.f3()})"
+        return "${colorSpace.serializationName}(${hue.f3()},${saturation.f3()},${lightness.f3()},${opacity.f3()})"
     }
 
-    // todo paste whole timeline
     override fun onPaste(x: Float, y: Float, data: String, type: String) {
         when (val color = parseColorComplex(data)) {
             is Int -> {

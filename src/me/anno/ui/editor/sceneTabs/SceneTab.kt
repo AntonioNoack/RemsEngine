@@ -4,9 +4,11 @@ import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
+import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.objects.Transform
 import me.anno.studio.Studio
+import me.anno.studio.history.History
 import me.anno.ui.base.TextPanel
 import me.anno.ui.editor.files.FileExplorer
 import me.anno.ui.editor.files.toAllowedFilename
@@ -16,7 +18,13 @@ import me.anno.utils.mixARGB
 import java.io.File
 import kotlin.concurrent.thread
 
-class SceneTab(var file: File?, var root: Transform) : TextPanel(file?.name ?: root.name, DefaultConfig.style) {
+class SceneTab(var file: File?, var root: Transform, history: History?) : TextPanel(file?.name ?: root.name, DefaultConfig.style) {
+
+    var history = history ?: try {
+        TextReader.fromText(file!!.readText()).filterIsInstance<History>().first()
+    } catch (e: java.lang.Exception){
+        History()
+    }
 
     var hasChanged = false
         set(value) {

@@ -19,26 +19,20 @@ import me.anno.input.Input.mouseX
 import me.anno.input.Input.mouseY
 import me.anno.input.ShowKeys
 import me.anno.objects.cache.Cache
-import me.anno.studio.Studio.addEvent
 import me.anno.studio.Studio.dragged
+import me.anno.studio.Studio.history
 import me.anno.studio.Studio.project
-import me.anno.studio.history.History
 import me.anno.studio.history.SceneState
 import me.anno.studio.project.Project
 import me.anno.ui.base.*
-import me.anno.ui.base.components.Padding
-import me.anno.ui.base.groups.PanelListY
-import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.debug.FrameTimes
 import me.anno.ui.editor.UILayouts
 import me.anno.ui.editor.sceneTabs.SceneTabs
-import me.anno.ui.input.TextInput
 import me.anno.utils.OS
 import me.anno.utils.clamp
 import me.anno.utils.f3
 import me.anno.utils.listFiles2
 import org.apache.logging.log4j.LogManager
-import org.omg.CORBA.FREE_MEM
 import java.io.File
 import java.io.OutputStream
 import java.io.PrintStream
@@ -114,7 +108,7 @@ object RemsStudio {
             try {
                 val state = SceneState()
                 state.update()
-                History.put(state)
+                history.put(state)
             } catch (e: Exception){
                 e.printStackTrace()
             }

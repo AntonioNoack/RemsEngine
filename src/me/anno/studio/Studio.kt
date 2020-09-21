@@ -15,6 +15,8 @@ import me.anno.studio.RemsStudio.windowStack
 import me.anno.studio.project.Project
 import me.anno.ui.dragging.IDraggable
 import me.anno.ui.editor.PropertyInspector
+import me.anno.ui.editor.sceneTabs.SceneTab
+import me.anno.ui.editor.sceneTabs.SceneTabs
 import me.anno.utils.clamp
 import org.apache.logging.log4j.LogManager
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -48,6 +50,7 @@ object Studio {
     val targetWidth get() = project?.targetWidth ?: windowWidth
     val targetHeight get() = project?.targetHeight ?: windowHeight
     val targetOutputFile get() = project!!.targetOutputFile
+    val history get() = SceneTabs.currentTab!!.history
 
     val shiftSlowdown get() = if(isAltDown) 5f else if(isShiftDown) 0.2f else 1f
 

@@ -59,7 +59,7 @@ class LayerView(style: Style) : TimelinePanel(style) {
     // two ideas:
     //  kind of done - render only every x frames + on request
     // actually done - calculation async
-    // todo instanced arrays, because we have soo many stripes?
+    // instanced arrays, because we have soo many stripes?
     // we could optimize simple, not manipulated stripes... -> we optimize with linear approximations
 
     companion object {
@@ -332,7 +332,7 @@ class LayerView(style: Style) : TimelinePanel(style) {
             val transform = getTransformAt(x, y)
             if (transform != null) {
                 val cTime = transform.lastLocalTime
-                // todo get the options for this transform
+                // get the options for this transform
                 val options = ArrayList<Pair<String, () -> Unit>>()
                 options += "Split Here" to {
                     // todo ask user for split time?... todo rather add fadeout- / fadein-effects

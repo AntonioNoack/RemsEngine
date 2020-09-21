@@ -12,10 +12,10 @@ import me.anno.studio.Studio
 import me.anno.studio.Studio.dragged
 import me.anno.studio.Studio.editorTime
 import me.anno.studio.Studio.editorTimeDilation
+import me.anno.studio.Studio.history
 import me.anno.studio.Studio.targetFPS
 import me.anno.studio.Studio.updateAudio
 import me.anno.ui.editor.UILayouts
-import me.anno.studio.history.History
 import me.anno.ui.base.Panel
 import me.anno.ui.editor.TimelinePanel.Companion.moveRight
 import org.apache.logging.log4j.LogManager
@@ -271,10 +271,10 @@ object ActionManager {
                         true
                     }
                     "Redo" -> {
-                        History.redo()
+                        history.redo()
                         true }
                     "Undo" -> {
-                        History.undo()
+                        history.undo()
                         true }
                     else -> false
                 }) return
