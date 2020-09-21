@@ -42,8 +42,6 @@ import kotlin.math.*
 // -> no, that's too taxing; we'd need to pre-render a smaller version
 // todo pre-render small version for scrubbing? can we playback a small version using ffmpeg with no storage overhead?
 
-// todo get information about full and relative frames, so we get optimal scrubbing performance :)
-
 // todo feature tracking on videos as anchors, e.g. for easy blurry signs, or text above heads (marker on head/eyes)
 
 /**

@@ -1,15 +1,11 @@
 package me.anno.ui.editor.treeView
 
-import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.select
 import me.anno.input.Input.mouseX
 import me.anno.input.Input.mouseY
 import me.anno.objects.*
-import me.anno.objects.Transform.Companion.toTransform
-import me.anno.objects.modes.UVProjection
 import me.anno.objects.rendering.RenderSettings
-import me.anno.studio.RemsStudio.onLargeChange
 import me.anno.studio.Studio.nullCamera
 import me.anno.studio.Studio.root
 import me.anno.ui.base.*
@@ -18,11 +14,7 @@ import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.scrolling.ScrollPanelXY
 import me.anno.ui.editor.files.addChildFromFile
 import me.anno.ui.style.Style
-import me.anno.utils.getImportType
-import org.joml.Vector3f
 import java.io.File
-import java.lang.Exception
-import kotlin.concurrent.thread
 
 // todo support for multiple cameras? -> just use scenes?
 // todo switch back and forth? how -> multiple cameras... how?
@@ -85,7 +77,7 @@ class TreeView(style: Style):
             val fractionalHTI = hoveredTransformIndex % 1f
             if(fractionalHTI in 0.25f .. 0.75f){
                 // on top
-                // todo add as child
+                // add as child
                 val targetY = my - 1 + h/2 - (fractionalHTI * h).toInt()
                 GFX.drawRect(this.x+2, targetY, 3, 1, -1)
                 /*addHereFunction = {
@@ -93,7 +85,7 @@ class TreeView(style: Style):
                 }*/
             } else {
                 // in between
-                // todo add in between elements
+                // add in between elements
                 val targetY = my - 1 + h/2 - (((hoveredTransformIndex + 0.5f) % 1f) * h).toInt()
                 GFX.drawRect(this.x+2, targetY, 3, 1, -1)
                 /*addHereFunction = {

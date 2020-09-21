@@ -10,9 +10,9 @@ import org.lwjgl.opengl.GL20.*
 import java.lang.RuntimeException
 
 open class Shader(val shaderName: String,
-             private val vertex: String,
-             private val varying: String,
-             private val fragment: String,
+             val vertex: String,
+             val varying: String,
+             val fragment: String,
              private val disableShorts: Boolean = false): CacheData {
 
     companion object {

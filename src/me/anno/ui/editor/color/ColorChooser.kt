@@ -4,8 +4,8 @@ import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
 import me.anno.gpu.TextureLib.colorShowTexture
+import me.anno.gpu.texture.ClampMode
 import me.anno.image.svg.SVGStyle.Companion.parseColorComplex
-import me.anno.input.Input
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.studio.RemsStudio.onSmallChange
 import me.anno.studio.Studio.editorTime
@@ -19,7 +19,6 @@ import me.anno.ui.style.Style
 import me.anno.utils.clamp
 import me.anno.utils.f3
 import me.anno.utils.get
-import me.anno.utils.toHex
 import org.apache.logging.log4j.LogManager
 import org.hsluv.HSLuvColorSpace
 import org.joml.Vector3f
@@ -61,19 +60,21 @@ class ColorChooser(style: Style, withAlpha: Boolean, val owningProperty: Animate
             Vector3f(0f, 0f, 0f),
             Vector3f(0f, 0f, 1f),
             Vector3f(0f, 0f, 0f), 0f, style, 1f,
-            { opacity, _ ->
+            { opacity, y ->
+                println("$opacity $y")
                 setHSL(hue, saturation, lightness, clamp(opacity, 0f, 1f), colorSpace, true)
                 onSmallChange("color-alpha")
             }) {
             override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
                 // super.onDraw(x0, y0, x1, y1)
-                val x = x0 + ((x1 - x0) * opacity).roundToInt()
+                val dragX = clamp(x0 + ((x1 - x0) * opacity).roundToInt(), x0, x1-1)
                 // lerp transparency for the alpha bar
-                for (dx in 0 until w) {
-                    GFX.drawRect(this.x + dx, y, 1, h, 0xffffff or (dx * 255 / w).shl(24))
+                for (xi in x0 until x1) {
+                    GFX.drawRect(xi, y, 1, h, 0xffffff or ((xi-this.x) * 255 / w).shl(24))
                 }
+                colorShowTexture.bind(0, true, ClampMode.REPEAT)
                 GFX.drawTexture(this.x, y, w, h, colorShowTexture, -1, Vector4f(w.toFloat() / h, 1f, 0f, 0f))
-                GFX.drawRect(x, y0, 1, y1 - y0, black)
+                GFX.drawRect(dragX, y0, 1, y1 - y0, black)
             }
         }
     } else null

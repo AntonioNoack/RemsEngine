@@ -218,6 +218,7 @@ class GraphEditorBody(style: Style): TimelinePanel(style.getChild("deep")){
         }
 
 
+        // draw all data points
         val yValues = IntArray(type.components)
         property.keyframes.forEach { kf ->
 
@@ -246,16 +247,6 @@ class GraphEditorBody(style: Style): TimelinePanel(style.getChild("deep")){
 
             // GFX.drawRect(x.toInt()-1, y+h/2, 2,2, black or 0xff0000)
         }
-
-
-        // todo draw all data points <3
-        // todo controls:
-        // mouse wheel -> left/right, +control = zoom
-        // todo double click = add point
-        // todo select points
-        // todo delete selected points
-        // todo copy paste timeline pieces?
-        // todo select multiple points by area -> via time?
 
     }
 
@@ -420,11 +411,10 @@ class GraphEditorBody(style: Style): TimelinePanel(style.getChild("deep")){
     }
 
     override fun onPaste(x: Float, y: Float, data: String, type: String) {
-        // todo paste keyframes
+        // paste keyframes
         // todo convert the values, if required
-        // todo move them? :)
-        // todo paste float/vector values at the mouse position?
-        // todo local/global copy?
+        // move them? :)
+        // paste float/vector values at the mouse position?
         try {
             val time0 = getTimeAt(x)
             val target = selectedProperty ?: return super.onPaste(x, y, data, type)

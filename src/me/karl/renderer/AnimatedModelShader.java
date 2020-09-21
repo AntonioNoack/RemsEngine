@@ -64,7 +64,9 @@ public class AnimatedModelShader extends ShaderProgram {
 			"	vec4 diffuseColour = texture(diffuseMap, pass_textureCoords);\n" +
 			"	vec3 unitNormal = normalize(pass_normal);\n" +
 			"	float diffuseLight = max(dot(-lightDirection, unitNormal), 0.0) * lightBias.x + lightBias.y;\n" +
-			"	gl_FragColor = vec4(diffuseColour.rgb * diffuseLight, diffuseColour.a);\n" +
+			"	vec4 color = vec4(diffuseColour.rgb * diffuseLight, diffuseColour.a), tint = vec4(1.0);\n" +
+			"	float zDistance = 1.0;\n" +
+			"	gl_FragColor = color;\n" +
 			"}";
 
 	protected UniformMatrix projectionViewMatrix = new UniformMatrix("transform");
@@ -79,7 +81,7 @@ public class AnimatedModelShader extends ShaderProgram {
 	 * the diffuse texture will be sampled from texture unit 0.
 	 */
 	public AnimatedModelShader() {
-		super(VERTEX_SHADER, FRAGMENT_SHADER, "in_position", "in_textureCoords", "in_normal", "in_jointIndices",
+		super("animated-model", VERTEX_SHADER, FRAGMENT_SHADER, "in_position", "in_textureCoords", "in_normal", "in_jointIndices",
 				"in_weights");
 		super.storeAllUniformLocations(projectionViewMatrix, diffuseMap, lightDirection, jointTransforms);
 		connectTextureUnits();

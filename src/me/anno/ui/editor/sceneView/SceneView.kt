@@ -48,11 +48,10 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
-// todo scene tabs
+// done scene tabs
 // todo scene selection
-// todo open/close scene tabs
+// done open/close scene tabs
 // todo render a scene
-// todo open subtree as scene?
 // todo include scenes in large scene...
 
 // todo search elements

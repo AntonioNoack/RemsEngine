@@ -73,8 +73,6 @@ object ActionManager {
 
         keyMap["HSVBox.left.down"] = "selectColor"
         keyMap["HSVBox.left.press-unsafe"] = "selectColor"
-        keyMap["HSVBoxMain.left.down"] = "selectColor"
-        keyMap["HSVBoxMain.left.press-unsafe"] = "selectColor"
 
         keyMap["SceneView.right.p"] = "Turn"
         keyMap["SceneView.left.p"] = "MoveObject"
@@ -175,7 +173,7 @@ object ActionManager {
         val x = Input.mouseX
         val y = Input.mouseY
         targetSearch@ while(panel != null){
-            val clazz = panel.javaClass.simpleName
+            val clazz = panel.getClassName()
             val actions = localActions[clazz to combination] ?: localActions["*" to combination]
             if(actions != null){
                 for(action in actions){

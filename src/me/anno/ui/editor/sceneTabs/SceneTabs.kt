@@ -19,7 +19,7 @@ import java.io.File
 // todo hide bar, if not used?
 object SceneTabs : ScrollPanelX(DefaultConfig.style) {
 
-    val LOGGER = LogManager.getLogger(SceneTabs::class)
+    private val LOGGER = LogManager.getLogger(SceneTabs::class)
 
     val content = child as PanelList
     val children2 = content.children

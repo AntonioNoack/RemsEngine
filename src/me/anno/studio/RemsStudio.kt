@@ -51,7 +51,6 @@ import kotlin.math.roundToInt
 
 // todo draw frame by frame, only save x,y,radius?
 
-// todo somehow reenable scrubbing
 // todo small preview?
 
 object RemsStudio {
@@ -73,8 +72,6 @@ object RemsStudio {
     var showFPS = DefaultConfig["debug.fps.show", false]
 
     var workspace = DefaultConfig["workspace.dir", File(OS.home, "Documents/RemsStudio")]
-    // todo load last project, vs create new one?
-    // todo just create a new one?
 
     fun onSmallChange(cause: String){
         saveIsRequested = true
@@ -103,6 +100,7 @@ object RemsStudio {
 
     fun saveState(){
         // saving state
+        if(project == null) return
         isSaving.set(true)
         thread {
             try {

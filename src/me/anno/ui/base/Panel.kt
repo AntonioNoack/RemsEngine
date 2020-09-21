@@ -337,6 +337,8 @@ open class Panel(val style: Style) {
     val indexInParent get() = parent?.children?.indexOf(this) ?: -1
     val isRootElement get() = parent == null
 
+    open fun getClassName() = javaClass.simpleName
+
     /*companion object {
         private val LOGGER = LogManager.getLogger(Panel::class)
     }*/

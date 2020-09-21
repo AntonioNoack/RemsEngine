@@ -45,7 +45,6 @@ open class TimelinePanel(style: Style) : Panel(style) {
             3600f * 6f, 3600f * 12f, 3600f * 24f
         )
 
-        // todo only allow times inside the rendered frames???...
         fun clampTime() {
             dtHalfLength = clamp(dtHalfLength, 2.0 / Studio.targetFPS, timeFractions.last().toDouble())
             centralTime = max(centralTime, dtHalfLength)

@@ -50,8 +50,7 @@ class FFMPEGMetadata(file: File): CacheData {
 
         // critical, not working 001.gif file data from ffprobe:
         // works in Windows, just not Linux
-        // todo transfer ffmpeg to Java?
-        // todo maybe ffmpeg is an older version on Linux?
+        // todo transfer ffmpeg to Java? maybe ffmpeg is an older version on Linux?
         // {streams=[
         //      {
         //          pix_fmt=bgra,

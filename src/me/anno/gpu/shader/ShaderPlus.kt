@@ -1,5 +1,6 @@
 package me.anno.gpu.shader
 
+import me.karl.shaders.ShaderProgram
 import java.lang.RuntimeException
 
 /**
@@ -14,6 +15,12 @@ open class ShaderPlus(name: String, vertex: String, varying: String, fragment: S
     // universal
     val shader = Shader(name, vertex, varying, makeUniversal(fragment))
 
+    init {
+        if(this is ShaderProgram){
+            println(shader.fragment)
+        }
+    }
+
     fun makeUniversal(shader: String): String {
 
         val raw = shader.trim()
@@ -25,8 +32,8 @@ open class ShaderPlus(name: String, vertex: String, varying: String, fragment: S
                 "       case ${DrawMode.COLOR_SQUARED.id}:\n" +
                 "           gl_FragColor.rgb *= gl_FragColor.rgb;\n" +
                 "           break;\n" +
-                "       case ${DrawMode.COLOR.id}:\n" +
-                "           break;\n" +
+                // "       case ${DrawMode.COLOR.id}:\n" +
+                // "           break;\n" + // nothing to do
                 "       case ${DrawMode.ID.id}:\n" +
                 "           if(gl_FragColor.a < 0.01) discard;\n" +
                 "           gl_FragColor.rgb = (tint*tint).rgb;\n" +

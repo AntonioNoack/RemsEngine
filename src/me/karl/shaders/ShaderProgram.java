@@ -1,33 +1,46 @@
 package me.karl.shaders;
 
-import java.io.BufferedReader;
-
 import me.anno.gpu.shader.Shader;
+import me.anno.gpu.shader.ShaderPlus;
+import me.karl.utils.URI;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
-import me.karl.utils.URI;
 
-public class ShaderProgram {
+public class ShaderProgram /*extends ShaderPlus*/ {
 
 	private static final Logger LOGGER = LogManager.getLogger(ShaderProgram.class);
 
 	private final int programID;
 
-	public ShaderProgram(String vertexFile, String fragmentFile, String... inVariables) {
+	// shader plus somehow doesn't work :/
+	/*public ShaderProgram(String name, String vertexFile, String fragmentFile, String... inVariables) {
+		super(name, vertexFile.replace("#version", "//#"), "",
+				fragmentFile.replace("#version", "//#"));
+		// int vertexShaderID = loadShader(vertexFile, null, GL20.GL_VERTEX_SHADER);
+		// int fragmentShaderID = loadShader(fragmentFile, null, GL20.GL_FRAGMENT_SHADER);
+		Shader shader = getShader();
+		shader.use();
+		programID = shader.getPointer();
+		// programID = GL20.glCreateProgram();
+		// init(vertexShaderID, fragmentShaderID, inVariables);
+		bindAttributes(inVariables);
+	}*/
+
+	public ShaderProgram(String name, String vertexFile, String fragmentFile, String... inVariables) {
 		int vertexShaderID = loadShader(vertexFile, null, GL20.GL_VERTEX_SHADER);
 		int fragmentShaderID = loadShader(fragmentFile, null, GL20.GL_FRAGMENT_SHADER);
 		programID = GL20.glCreateProgram();
 		init(vertexShaderID, fragmentShaderID, inVariables);
 	}
 
-	public ShaderProgram(URI vertexFile, URI fragmentFile, String... inVariables) {
+	/*public ShaderProgram(URI vertexFile, URI fragmentFile, String... inVariables) {
 		int vertexShaderID = loadShader(vertexFile, GL20.GL_VERTEX_SHADER);
 		int fragmentShaderID = loadShader(fragmentFile, GL20.GL_FRAGMENT_SHADER);
 		programID = GL20.glCreateProgram();
 		init(vertexShaderID, fragmentShaderID, inVariables);
-	}
+	}*/
 
 	private void init(int vertexShaderID, int fragmentShaderID, String... inVariables){
 		GL20.glAttachShader(programID, vertexShaderID);
@@ -82,7 +95,7 @@ public class ShaderProgram {
 		return shaderID;
 	}
 	
-	private int loadShader(URI file, int type) {
+	/*private int loadShader(URI file, int type) {
 		StringBuilder shaderSource = new StringBuilder();
 		try {
 			BufferedReader reader = file.getReader();
@@ -95,7 +108,7 @@ public class ShaderProgram {
 			throw new RuntimeException("Could not read file "+file+".");
 		}
 		return loadShader(shaderSource, file, type);
-	}
+	}*/
 
 
 }

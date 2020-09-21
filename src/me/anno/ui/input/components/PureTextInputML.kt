@@ -24,8 +24,6 @@ import kotlin.streams.toList
 
 class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
 
-    // todo hide space for scroll panel, if not used/not in focus?
-
     var cursor1 = CursorPosition(0, 0)
     var cursor2 = CursorPosition(0, 0)
 
