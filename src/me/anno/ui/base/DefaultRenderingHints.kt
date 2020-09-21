@@ -12,9 +12,7 @@ object DefaultRenderingHints {
     init {
         val hints = (
         Toolkit.getDefaultToolkit().getDesktopProperty("awt.font.desktophints") as? Map<*,*>
-            ?: mapOf(
-                RenderingHints.KEY_TEXT_ANTIALIASING to RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB
-            )
+            ?: mapOf(RenderingHints.KEY_TEXT_ANTIALIASING to RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB)
         ).toMutableMap()
         hints[RenderingHints.KEY_FRACTIONALMETRICS] = RenderingHints.VALUE_FRACTIONALMETRICS_ON
         DefaultRenderingHints.hints = hints
@@ -22,7 +20,7 @@ object DefaultRenderingHints {
 
     fun Graphics2D.prepareGraphics(font: Font){
         this.font = font
-        this.setRenderingHints(hints)
+        setRenderingHints(hints)
     }
 
 }

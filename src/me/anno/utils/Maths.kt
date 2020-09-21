@@ -9,6 +9,7 @@ import kotlin.math.sqrt
 val GoldenRatio = (1f + sqrt(5f))*0.5f
 
 fun sq(x: Float) = x*x
+fun sq(x: Double) = x*x
 
 fun clamp(x: Int, min: Int, max: Int) = if(x < min) min else if(x < max) x else max
 fun clamp(x: Float, min: Float, max: Float) = if(x < min) min else if(x < max) x else max

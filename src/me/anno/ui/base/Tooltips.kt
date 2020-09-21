@@ -76,5 +76,6 @@ object Tooltips {
     }
 
     // todo "onto" isn't rendered correctly in ui
+    // -> create our own rasterizer including subpixel support and contrast settings?...
 
 }

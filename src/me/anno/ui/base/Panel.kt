@@ -84,8 +84,9 @@ open class Panel(val style: Style) {
      * the area is already clipped with glViewport(x0,y0,x1-x0,y1-y0)
      * */
     fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        if (renderOnRequestOnly) {
-            // todo this somehow is not working :/
+        onDraw(x0, y0, x1, y1)
+        /*if (renderOnRequestOnly) {
+            // to do this somehow is not working :/
             val w = w
             val h = h
             if (cachedVisuals.w != w || cachedVisuals.h != h || true) {
@@ -107,8 +108,8 @@ open class Panel(val style: Style) {
             // draw cached result
             GFX.drawTexture(x, y, w, h, cachedVisuals.textures[0], -1, null)
         } else {
-            onDraw(x0, y0, x1, y1)
-        }
+
+        }*/
     }
 
     open fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {

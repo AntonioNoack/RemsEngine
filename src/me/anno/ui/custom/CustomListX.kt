@@ -28,7 +28,6 @@ class CustomListX(style: Style) : PanelListX(style), CustomList {
     companion object {
         fun remove(vg: PanelList, index: Int) {
             vg.apply {
-                val old = children[index]
                 if (children.size > 1) {
                     if (index > 0) {
                         children.removeAt(index)
@@ -37,14 +36,8 @@ class CustomListX(style: Style) : PanelListX(style), CustomList {
                         children.removeAt(index + 1)
                         children.removeAt(index)
                     }
-                    (vg as? CustomListX)?.apply {
-                        // weights.remove(old)
-                        update()
-                    }
-                    (vg as? CustomListY)?.apply {
-                        // weights.remove(old)
-                        update()
-                    }
+                    (vg as? CustomListX)?.update()
+                    (vg as? CustomListY)?.update()
                 } else {
                     // todo remove the last child -> remove this from our parent
                     (parent as? CustomList)?.remove(indexInParent)

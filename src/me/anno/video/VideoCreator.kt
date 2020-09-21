@@ -69,7 +69,7 @@ class VideoCreator(val w: Int, val h: Int, val fps: Double, val totalFrameCount:
             val out = process.errorStream.bufferedReader()
             while (true) {
                 val line = out.readLine() ?: break
-                // todo parse the line
+                // parse the line
                 if (line.indexOf('=') > 0) {
                     var frameIndex = 0
                     var fps = 0f

@@ -54,9 +54,14 @@ class SVGStyle(parent: SVGMesh?, data: XMLElement){
         fun parseColorComplex(name: String): Any? {
             // check for HSVuv(h,s,v,a), HSV(h,s,v,a), or #... or RGB(r,g,b,a) or [1,1,0,1]
             fun List<Float>.toVec() = Vector3f(this[0], this[1], this[2])
+            ColorSpace.list.forEach { space ->
+                if(name.startsWith(space.serializationName, true)){
+                    val floats = parseFloats(name)
+                    val rgb = space.toRGB(floats.toVec())
+                    return Vector4f(rgb.x, rgb.y, rgb.z, floats.getOrElse(3){ 1f })
+                }
+            }
             when {
-                name.startsWith("hsluv", true) -> ColorSpace.HSLuv
-                name.startsWith("hsl", true) -> ColorSpace.HSV
                 name.startsWith("rgb", true) ||
                         name.startsWith("rgba", true) ||
                         name.startsWith("(") || name.startsWith("[") -> {
@@ -67,11 +72,6 @@ class SVGStyle(parent: SVGMesh?, data: XMLElement){
                         rgb.getOrElse(2){ l },
                         rgb.getOrNull(3) ?: 1f)
                 }
-                else -> null
-            }?.apply {
-                val floats = parseFloats(name)
-                val rgb = toRGB(floats.toVec())
-                return Vector4f(rgb.x, rgb.y, rgb.z, floats.getOrElse(3){ 1f })
             }
             return parseColor(name)
         }

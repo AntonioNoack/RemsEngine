@@ -80,7 +80,7 @@ class ColorChooser(style: Style, withAlpha: Boolean, val owningProperty: Animate
 
     val colorSpaceInput = EnumInput(
         "Color Space", false, colorSpace.name,
-        ColorSpace.values.values.toSet().map { it.name }, style
+        ColorSpace.list.map { it.name }, style
     )
         .setChangeListener { it, _, _ ->
             val newColorSpace = ColorSpace[it]
