@@ -22,15 +22,15 @@ class FBXGeometry(node: FBXNode) : FBXObject(node) {
                         "a3 xyz;\n" +
                         "a2 uvs;\n" +
                         "a3 normals;\n" +
-                        // "a1 materialIndex;\n" +
-                        "in ivec3 weightIndices;\n" +
-                        "a3 weightValues;\n" +
+                        "a1 materialIndex;\n" +
+                        "in ivec4 weightIndices;\n" +
+                        "a4 weightValues;\n" +
                         "uniform mat4x4 transforms[$maxBones];\n" +
                         "void main(){\n" +
                         "   vec3 localPosition = (transforms[weightIndices.x] * vec4(xyz, 1.0)).xyz * weightValues.x;\n" + //  * weightValues.x
                         "   if(weightValues.y > 0.01) localPosition += (transforms[weightIndices.y] * vec4(xyz, 1.0)).xyz * weightValues.y;\n" +
                         "   if(weightValues.z > 0.01) localPosition += (transforms[weightIndices.z] * vec4(xyz, 1.0)).xyz * weightValues.z;\n" +
-                        // "   if(weightValues.w > 0.01) localPosition += (transforms[int(weightIndices.w)] * vec4(xyz, 1.0)).xyz * weightValues.w;\n" +
+                        "   if(weightValues.w > 0.01) localPosition += (transforms[int(weightIndices.w)] * vec4(xyz, 1.0)).xyz * weightValues.w;\n" +
                         "   gl_Position = transform * vec4(localPosition, 1.0);\n" + // already include second transform? yes, we should probably do that
                         "   uv = uvs;\n" +
                         "   normal = normals;\n" +
@@ -108,7 +108,7 @@ class FBXGeometry(node: FBXNode) : FBXObject(node) {
             // normals
             normals.put(vertIndex, totalVertIndex, faceIndex, buffer)
             // material index
-            materialIDs.put(vertIndex, totalVertIndex, faceIndex, buffer)
+            materialIDs?.put(vertIndex, totalVertIndex, faceIndex, buffer) ?: buffer.put(0f)
             // weights (yes, they are a bit more complicated, as they are not given directly)
             var weightBaseIndex = vertIndex * maxWeights * 2
             var weightSum = 0f
@@ -247,7 +247,9 @@ class FBXGeometry(node: FBXNode) : FBXObject(node) {
 
     val uvs = node["LayerElementUV"].map { LayerElementDA(it, 2) }
 
-    val materialIDs = LayerElementIA(node["LayerElementMaterial"].first(), 1)
+    val materialIDs = node["LayerElementMaterial"].firstOrNull()?.run {
+        LayerElementIA(this, 1)
+    }
 
     // there is information, which could swizzle uv and color values...
 

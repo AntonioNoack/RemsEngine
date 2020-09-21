@@ -259,13 +259,13 @@ class FileEntry(val explorer: FileExplorer, val isParent: Boolean, val file: Fil
     }
 
     override fun onDeleteKey(x: Float, y: Float) {
-        if (GFX.inFocus.size == 1) {
+        if (inFocus.size == 1) {
             // ask, then delete (or cancel)
             deleteFileMaybe()
-        } else if (GFX.inFocus.firstOrNull() == this) {
+        } else if (inFocus.firstOrNull() == this) {
             // ask, then delete all (or cancel)
             openMenu("Delete these files? (${GFX.inFocus.size}x, ${
-            GFX.inFocus
+            inFocus
                 .sumByDouble { (it as? FileEntry)?.file?.length()?.toDouble() ?: 0.0 }
                 .toLong()
                 .formatFileSize()

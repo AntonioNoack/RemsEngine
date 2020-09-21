@@ -34,7 +34,7 @@ object Thumbs {
         var hash = this.lastModified() xor (454781903L * this.length())
         if (!isDirectory) {
             val reader = inputStream().buffered()
-            val bytes = reader.readNBytes(hashReadLimit)
+            val bytes = reader.readNBytes2(hashReadLimit)
             reader.close()
             hash = hash xor CRC64.fromInputStream(bytes.inputStream()).value
         }

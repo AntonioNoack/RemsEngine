@@ -11,6 +11,7 @@ import me.anno.objects.geometric.Polygon
 import me.anno.objects.meshes.Mesh
 import me.anno.objects.modes.UVProjection
 import me.anno.objects.particles.ParticleSystem
+import me.anno.studio.project.Project
 import me.anno.ui.style.Style
 import me.anno.utils.OS
 import me.anno.utils.f3
@@ -18,6 +19,8 @@ import org.apache.logging.log4j.LogManager
 import org.joml.Vector3f
 import java.io.File
 import java.lang.Exception
+import kotlin.math.max
+import kotlin.math.min
 
 object DefaultConfig: StringMap() {
 
@@ -87,6 +90,10 @@ object DefaultConfig: StringMap() {
 
     }
 
+    fun save(){
+        ConfigBasics.save("main.config", this.toString())
+    }
+
     fun newInstances(){
 
         // removing this block makes the studio start 0.1s slower... wtf...
@@ -151,6 +158,43 @@ object DefaultConfig: StringMap() {
         val t1 = System.nanoTime()
         LOGGER.info("Used ${((t1-t0)*1e-9).f3()}s for new instances list")
 
+    }
+
+    class ProjectHeader(val name: String, val file: File)
+
+    private val recentProjectCount = 10
+    fun getRecentProjects(): ArrayList<ProjectHeader> {
+        val projects = ArrayList<ProjectHeader>()
+        val usedFiles = HashSet<File>()
+        for(i in 0 until recentProjectCount){
+            val name = this["recent.projects[$i].name"] as? String ?: continue
+            val file = File(this["recent.projects[$i].file"] as? String ?: continue)
+            if(file !in usedFiles){
+                projects += ProjectHeader(name, file)
+                usedFiles += file
+            }
+        }
+        return projects
+    }
+
+    fun addToRecentProjects(project: Project){
+        addToRecentProjects(ProjectHeader(project.name, project.file))
+    }
+
+    fun addToRecentProjects(project: ProjectHeader){
+        val recent = getRecentProjects()
+        recent.add(0, project)
+        val usedFiles = HashSet<File>()
+        var i = 0
+        for(projectI in recent){
+            if(projectI.file !in usedFiles){
+                this["recent.projects[$i].name"] = projectI.name
+                this["recent.projects[$i].file"] = projectI.file.absolutePath
+                usedFiles += projectI.file
+                if(++i > recentProjectCount) break
+            }
+        }
+        save()
     }
 
     fun addImportMappings(result: String, vararg extensions: String){

@@ -7,7 +7,7 @@ import me.anno.ui.editor.files.thumbs.WindowsThumbDBVersions.win8
 import me.anno.ui.editor.files.thumbs.WindowsThumbDBVersions.win8_1
 import me.anno.ui.editor.files.thumbs.WindowsThumbDBVersions.win8v2
 import me.anno.ui.editor.files.thumbs.WindowsThumbDBVersions.win8v3
-import me.anno.utils.readNBytes
+import me.anno.utils.readNBytes2
 import java.io.EOFException
 import java.io.File
 
@@ -147,7 +147,7 @@ object WindowsThumbnails {
 
                 // UTF-16 filename. Allocate the filename length
                 // plus 6 for the unicode extension and null character (we don't need that in Java)
-                var fileName = input.readNBytes(entry.filenameLength).toCharArray()
+                var fileName = input.readNBytes2(entry.filenameLength).toCharArray()
                 // entryHash = fileName
                 // ("$fileName, ${entry.dataChecksum.toULong().toString(16)}, ${entry.entryHash.toULong().toString(16)}")
 
@@ -156,7 +156,7 @@ object WindowsThumbnails {
                     // ("padding: ${entry.paddingSize}")
                     input.skip(entry.paddingSize.toLong())
 
-                    val data = input.readNBytes(entry.dataSize)
+                    val data = input.readNBytes2(entry.dataSize)
                     when {
                         data.startsWith(fileTypeBMP) -> {
                             fileName += ".bmp"

@@ -117,11 +117,51 @@ object UILayouts {
 
         welcome += SpacePanel(0, 1, style)
 
+        fun openProject(name: String, file: File){
+            thread {
+                RemsStudio.loadProject(name.trim(), file)
+                Studio.addEvent {
+                    nullCamera.farZ.set(5000f)
+                    windowStack.clear()
+                    createEditorUI()
+                }
+                DefaultConfig.addToRecentProjects(project!!)
+            }
+        }
+
         val recentProjects = PanelListY(style)
         welcome += recentProjects
-        for (i in 0 until 5) {
-            val tp = object : TextPanel("Project $i", style) {
+        for (project in DefaultConfig.getRecentProjects()) {
+            val tp = object : TextPanel(project.name, style) {
                 override val enableHoverColor = true
+            }
+            tp.setTooltip(project.file.absolutePath)
+            thread {// file search can use some time
+                if(!project.file.exists()){
+                    tp.textColor = 0xff0000 or black
+                    tp.setTooltip("${project.file.absolutePath}, not found!")
+                }
+            }
+            tp.setOnClickListener { _, _, button, _ ->
+                fun open(){// open zip?
+                    if(project.file.exists() && project.file.isDirectory){
+                        openProject(project.name, project.file)
+                    } else {
+                        openMenu(listOf(
+                            "File not found!" to {}
+                        ))
+                    }
+                }
+                when {
+                    button.isLeft -> open()
+                    button.isRight -> {
+                        openMenu(listOf(
+                            "Open" to { open() },
+                            "Hide" to {},
+                            "Delete" to {}
+                        ))
+                    }
+                }
             }
             tp.padding.top--
             tp.padding.bottom--
@@ -208,14 +248,7 @@ object UILayouts {
         fun loadNewProject() {
             val file = usableFile
             if(file != null){
-                thread {
-                    RemsStudio.loadProject(nameInput.text.trim(), file)
-                    Studio.addEvent {
-                        nullCamera.farZ.set(5000f)
-                        windowStack.clear()
-                        createEditorUI()
-                    }
-                }
+                openProject(nameInput.text, file)
             } else {
                 openMenu("Please choose a $dir!", listOf(
                     "Ok" to {}

@@ -2,7 +2,8 @@ package me.anno.utils
 
 import java.io.InputStream
 
-fun InputStream.readNBytes(n: Int): ByteArray {
+// defined with a 2, if already present (newer Java versions)
+fun InputStream.readNBytes2(n: Int): ByteArray {
     val bytes = ByteArray(n)
     var i = 0
     while(i < n){

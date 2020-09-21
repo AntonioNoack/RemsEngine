@@ -1,6 +1,6 @@
 package me.anno.audio.format
 
-import me.anno.utils.readNBytes
+import me.anno.utils.readNBytes2
 import org.apache.logging.log4j.LogManager
 import java.io.EOFException
 import java.io.InputStream
@@ -118,7 +118,7 @@ class WaveReader(val input: InputStream, frameCount: Int) {
 
     fun readTag() = String(readNBytes(4))
 
-    fun readNBytes(n: Int) = input.readNBytes(n)
+    fun readNBytes(n: Int) = input.readNBytes2(n)
 
     fun readShort(): Int {
         val a = input.read()

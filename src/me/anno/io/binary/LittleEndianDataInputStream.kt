@@ -1,6 +1,6 @@
 package me.anno.io.binary
 
-import me.anno.utils.readNBytes
+import me.anno.utils.readNBytes2
 import java.io.EOFException
 import java.io.InputStream
 import java.lang.RuntimeException
@@ -28,15 +28,15 @@ open class LittleEndianDataInputStream(val input: InputStream): InputStream(){
         return a + b.shl(32)
     }
 
-    fun readNBytes(n: Int): ByteArray {
-        val v = input.readNBytes(n)
+    fun readNBytes2(n: Int): ByteArray {
+        val v = input.readNBytes2(n)
         position += n
         return v
     }
 
     fun readLength8String(): String {
         val length = input.read()
-        val bytes = input.readNBytes(length)
+        val bytes = input.readNBytes2(length)
         position += length + 1
         return String(bytes)
     }

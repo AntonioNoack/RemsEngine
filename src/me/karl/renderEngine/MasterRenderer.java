@@ -25,8 +25,8 @@ public class MasterRenderer {
      */
     protected void renderScene(Scene scene) {
         prepare();
-        entityRenderer.render(scene.getAnimatedModel(), scene.getCamera(), scene.getLightDirection());
         skyRenderer.render(scene.getCamera());
+        entityRenderer.render(scene.getAnimatedModel(), scene.getCamera(), scene.getLightDirection());
     }
 
     /**

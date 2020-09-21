@@ -2,6 +2,8 @@ package me.anno.objects.meshes.fbx.structure
 
 import me.anno.io.binary.LittleEndianDataInputStream
 import me.anno.objects.meshes.fbx.model.*
+import me.anno.utils.OS
+import java.io.File
 import java.io.InputStream
 import java.lang.RuntimeException
 
@@ -28,12 +30,12 @@ class FBXReader(input: InputStream): LittleEndianDataInputStream(input.buffered(
             }
         } catch (e: EmptyNodeException){}
 
-        /*val out = File(OS.desktop, "fbx.json").outputStream().buffered()
+        val out = File(OS.desktop, "fbx.json").outputStream().buffered()
         for(node in children){
             out.write(node.toString().toByteArray())
             out.write('\n'.toInt())
         }
-        out.close()*/
+        out.close()
 
         fbxObjectMap[root.ptr] = root
 
@@ -101,7 +103,8 @@ class FBXReader(input: InputStream): LittleEndianDataInputStream(input.buffered(
         println(root)
 
         fbxObjects.filterIsInstance<FBXGeometry>().forEach {
-            it.findBoneWeights(root.children.filterIsInstance<FBXModel>()[1])
+            val realBone = root.children.filterIsInstance<FBXModel>().getOrNull(1)
+            if(realBone != null) it.findBoneWeights(realBone)
         }
 
     }

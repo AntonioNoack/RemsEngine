@@ -4,12 +4,11 @@ import me.anno.gpu.GFX
 import me.anno.gpu.ShaderLib.shader3DYUV
 import me.anno.gpu.texture.ClampMode
 import me.anno.gpu.texture.Texture2D
-import me.anno.utils.readNBytes
+import me.anno.utils.readNBytes2
 import me.anno.video.Frame
 import me.anno.video.LastFrame
 import java.io.InputStream
 import java.lang.RuntimeException
-import java.util.concurrent.atomic.AtomicInteger
 
 class I420Frame(iw: Int, ih: Int): Frame(iw,ih){
 
@@ -24,18 +23,18 @@ class I420Frame(iw: Int, ih: Int): Frame(iw,ih){
     override fun load(input: InputStream){
         val s0 = w * h
         val s1 = w2 * h2
-        val yData = input.readNBytes(s0)
+        val yData = input.readNBytes2(s0)
         if(yData.isEmpty()) throw LastFrame()
         if(yData.size < s0) throw RuntimeException("not enough data, only ${yData.size} of $s0")
         GFX.addGPUTask(w, h){
             y.createMonochrome(yData)
         }
-        val uData = input.readNBytes(s1)
+        val uData = input.readNBytes2(s1)
         if(uData.size < s1) throw RuntimeException("not enough data, only ${uData.size} of $s1")
         GFX.addGPUTask(w2, h2){
             u.createMonochrome(uData)
         }
-        val vData = input.readNBytes(s1)
+        val vData = input.readNBytes2(s1)
         if(vData.size < s1) throw RuntimeException("not enough data, only ${vData.size} of $s1")
         GFX.addGPUTask(w2, h2){
             v.createMonochrome(vData)
