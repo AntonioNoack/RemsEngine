@@ -181,9 +181,19 @@ object DefaultConfig: StringMap() {
         addToRecentProjects(ProjectHeader(project.name, project.file))
     }
 
+    fun removeFromRecentProjects(file: File){
+        val recent = getRecentProjects()
+        recent.removeIf { it.file == file }
+        updateRecentProjects(recent)
+    }
+
     fun addToRecentProjects(project: ProjectHeader){
         val recent = getRecentProjects()
         recent.add(0, project)
+        updateRecentProjects(recent)
+    }
+
+    fun updateRecentProjects(recent: List<ProjectHeader>){
         val usedFiles = HashSet<File>()
         var i = 0
         for(projectI in recent){
@@ -193,6 +203,10 @@ object DefaultConfig: StringMap() {
                 usedFiles += projectI.file
                 if(++i > recentProjectCount) break
             }
+        }
+        for(j in i until recentProjectCount){
+            remove("recent.projects[$i].name")
+            remove("recent.projects[$i].file")
         }
         save()
     }

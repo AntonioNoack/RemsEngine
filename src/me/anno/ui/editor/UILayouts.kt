@@ -3,6 +3,7 @@ package me.anno.ui.editor
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.ask
 import me.anno.gpu.GFX.openMenu
 import me.anno.gpu.GFX.select
 import me.anno.gpu.Window
@@ -24,10 +25,7 @@ import me.anno.studio.Studio.targetFPS
 import me.anno.studio.Studio.targetHeight
 import me.anno.studio.Studio.targetOutputFile
 import me.anno.studio.Studio.targetWidth
-import me.anno.ui.base.ButtonPanel
-import me.anno.ui.base.Panel
-import me.anno.ui.base.SpacePanel
-import me.anno.ui.base.TextPanel
+import me.anno.ui.base.*
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.constraints.WrapAlign
@@ -157,8 +155,17 @@ object UILayouts {
                     button.isRight -> {
                         openMenu(listOf(
                             "Open" to { open() },
-                            "Hide" to {},
-                            "Delete" to {}
+                            "Hide" to {
+                                DefaultConfig.removeFromRecentProjects(project.file)
+                                tp.visibility = Visibility.GONE
+                            },
+                            "Delete" to {
+                                ask("Are you sure?"){
+                                    DefaultConfig.removeFromRecentProjects(project.file)
+                                    project.file.deleteRecursively()
+                                    tp.visibility = Visibility.GONE
+                                }
+                            }
                         ))
                     }
                 }
