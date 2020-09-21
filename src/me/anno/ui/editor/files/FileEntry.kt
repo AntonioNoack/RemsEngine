@@ -2,15 +2,16 @@ package me.anno.ui.editor.files
 
 import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.inFocus
 import me.anno.gpu.GFX.openMenu
 import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.gpu.texture.ClampMode
+import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.objects.Audio
 import me.anno.objects.Camera
 import me.anno.objects.Video
 import me.anno.objects.cache.Cache
-import me.anno.objects.modes.LoopingState
 import me.anno.studio.Studio
 import me.anno.ui.base.Panel
 import me.anno.ui.base.TextPanel
@@ -19,7 +20,6 @@ import me.anno.ui.editor.files.thumbs.Thumbs
 import me.anno.ui.editor.sceneTabs.SceneTabs
 import me.anno.ui.style.Style
 import me.anno.utils.*
-import me.anno.utils.OS.startProcess
 import me.anno.video.FFMPEGMetadata
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
@@ -272,16 +272,23 @@ class FileEntry(val explorer: FileExplorer, val isParent: Boolean, val file: Fil
             })", listOf(
                 "Yes" to {
                     // todo put history state...
-                    GFX.inFocus.forEach { (it as? FileEntry)?.file?.deleteRecursively() }
+                    inFocus.forEach { (it as? FileEntry)?.file?.deleteRecursively() }
                     explorer.invalidate()
                 },
                 "No" to {},
                 "Yes, permanently" to {
-                    GFX.inFocus.forEach { (it as? FileEntry)?.file?.deleteRecursively() }
+                    inFocus.forEach { (it as? FileEntry)?.file?.deleteRecursively() }
                     explorer.invalidate()
                 }
             ))
         }
+    }
+
+    override fun onCopyRequested(x: Float, y: Float): String? {
+        if(this in inFocus){// multiple files maybe
+            Input.pasteFiles(inFocus.filterIsInstance<FileEntry>().map { it.file })
+        } else Input.pasteFiles(listOf(file))
+        return null
     }
 
     override fun getMultiSelectablePanel() = this

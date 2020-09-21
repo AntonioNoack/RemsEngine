@@ -2,14 +2,14 @@ package me.anno.input
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
-import me.anno.gpu.GFX.getPanelAt
 import me.anno.gpu.GFX.getPanelAndWindowAt
+import me.anno.gpu.GFX.getPanelAt
 import me.anno.gpu.GFX.inFocus
 import me.anno.gpu.GFX.inFocus0
-import me.anno.gpu.GFX.window
 import me.anno.gpu.GFX.openMenu
 import me.anno.gpu.GFX.requestExit
 import me.anno.gpu.GFX.requestFocus
+import me.anno.gpu.GFX.window
 import me.anno.gpu.GFX.windowStack
 import me.anno.input.Touch.Companion.onTouchDown
 import me.anno.input.Touch.Companion.onTouchMove
@@ -24,12 +24,28 @@ import org.lwjgl.glfw.GLFWDropCallback
 import java.awt.Toolkit
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.StringSelection
+import java.awt.datatransfer.Transferable
 import java.awt.datatransfer.UnsupportedFlavorException
 import java.io.File
-import java.util.HashSet
+import java.io.IOException
+import java.util.*
+import kotlin.collections.HashMap
+import kotlin.collections.List
+import kotlin.collections.MutableList
+import kotlin.collections.filterIsInstance
+import kotlin.collections.filterNotNull
+import kotlin.collections.firstOrNull
+import kotlin.collections.forEach
+import kotlin.collections.isNotEmpty
+import kotlin.collections.listOf
+import kotlin.collections.minusAssign
+import kotlin.collections.plusAssign
+import kotlin.collections.set
+import kotlin.collections.toList
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
+
 
 object Input {
 
@@ -393,6 +409,23 @@ object Input {
             return
         } catch (e: UnsupportedFlavorException){ }
         LOGGER.warn("Unsupported Data Flavor")
+    }
+
+    fun pasteFiles(files: List<File>){
+        val clipboard = Toolkit.getDefaultToolkit().systemClipboard
+        clipboard.setContents(object: Transferable {
+            override fun getTransferDataFlavors(): Array<DataFlavor?>? {
+                return arrayOf(DataFlavor.javaFileListFlavor)
+            }
+            override fun isDataFlavorSupported(flavor: DataFlavor?): Boolean {
+                return DataFlavor.javaFileListFlavor.equals(flavor)
+            }
+            @Throws(UnsupportedFlavorException::class, IOException::class)
+            override fun getTransferData(flavor: DataFlavor?): Any? {
+                if (isDataFlavorSupported(flavor)) return files
+                throw UnsupportedFlavorException(flavor)
+            }
+        }, null)
     }
 
     fun save() {
