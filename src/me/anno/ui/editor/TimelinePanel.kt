@@ -8,6 +8,7 @@ import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.studio.Studio
 import me.anno.studio.Studio.editorTime
+import me.anno.studio.Studio.editorTimeDilation
 import me.anno.studio.Studio.targetDuration
 import me.anno.ui.base.Panel
 import me.anno.ui.custom.CustomContainer.Companion.isCross
@@ -225,10 +226,15 @@ open class TimelinePanel(style: Style) : Panel(style) {
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
         GFX.editorHoverTime = getTimeAt(x)
         if (0 in Input.mouseKeysDown) {
-            centralTime -= dx * dtHalfLength / (w / 2)
-            // centralValue += dy * dvHalfHeight / (h/2)
-            clampTime()
-            // clampValues()
+            if((Input.isShiftDown || Input.isControlDown) && editorTimeDilation == 0.0){
+                // scrubbing
+                editorTime = getTimeAt(x)
+            } else {
+                // move left/right
+                val dt = dx * dtHalfLength / (w / 2)
+                centralTime -= dt
+                clampTime()
+            }
         }
     }
 

@@ -5,6 +5,7 @@ import me.anno.config.DefaultStyle.white
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.TextureLib.whiteTexture
+import me.anno.input.Input
 import me.anno.input.Input.isShiftDown
 import me.anno.input.Input.mouseDownX
 import me.anno.input.Input.mouseDownY
@@ -18,6 +19,8 @@ import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.animation.Keyframe
 import me.anno.studio.RemsStudio.onSmallChange
 import me.anno.studio.Studio
+import me.anno.studio.Studio.editorTime
+import me.anno.studio.Studio.editorTimeDilation
 import me.anno.studio.Studio.selectedProperty
 import me.anno.ui.editor.TimelinePanel
 import me.anno.ui.style.Style
@@ -389,10 +392,16 @@ class GraphEditorBody(style: Style): TimelinePanel(style.getChild("deep")){
             onSmallChange("graph-drag")
         } else {
             if(0 in mouseKeysDown){
-                centralTime -= dx * dtHalfLength / (w/2)
-                centralValue += dy * dvHalfHeight / (h/2)
-                clampTime()
-                clampValues()
+                if((isShiftDown || isControlDown) && editorTimeDilation == 0.0){
+                    // scrubbing
+                    editorTime = getTimeAt(x)
+                } else {
+                    // move left/right/up/down
+                    centralTime -= dx * dtHalfLength / (w/2)
+                    centralValue += dy * dvHalfHeight / (h/2)
+                    clampTime()
+                    clampValues()
+                }
             }
         }
     }
