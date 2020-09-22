@@ -28,6 +28,7 @@ import me.anno.ui.base.Panel
 import me.anno.ui.base.SpyPanel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.files.hasValidName
 import me.anno.ui.editor.sceneView.Grid
 import me.anno.ui.input.EnumInput
@@ -480,41 +481,50 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
 
     }
 
-    override fun createInspector(list: PanelListY, style: Style) {
-        super.createInspector(list, style)
+    override fun createInspector(list: PanelListY, style: Style, getGroup: (title: String, id: String) -> SettingCategory) {
+        super.createInspector(list, style, getGroup)
 
         // to hide elements, which are not usable / have no effect
         val videoPanels = ArrayList<Panel>()
         val imagePanels = ArrayList<Panel>()
         val audioPanels = ArrayList<Panel>()
 
-        fun vid(panel: Panel) {
-            list += panel
+        fun vid(panel: Panel): Panel {
             videoPanels += panel
+            return panel
         }
 
-        fun img(panel: Panel) {
-            list += panel
+        fun img(panel: Panel): Panel {
             imagePanels += panel
+            return panel
         }
 
-        fun aud(panel: Panel) {
-            list += panel
+        fun aud(panel: Panel): Panel {
             audioPanels += panel
+            return panel
         }
 
         list += VI("File Location", "Source file of this video", null, file, style) { file = it }
 
-        img(VI("Tiling", "(tile count x, tile count y, offset x, offset y)", tiling, style))
-        vid(VI("Video Start", "Timestamp in seconds of the first frames drawn", null, startTime, style) {
+        val uvMap = getGroup("Texture", "uvs")
+        uvMap += img(VI("Tiling", "(tile count x, tile count y, offset x, offset y)", tiling, style))
+        uvMap += img(VI("UV-Projection", "Can be used for 360°-Videos", null, uvProjection, style) { uvProjection = it })
+        uvMap += img(VI("Filtering", "Pixelated look?", null, filtering, style) { filtering = it })
+        uvMap += img(VI("Clamping", "For tiled images", null, clampMode, style) { clampMode = it })
+
+        val time = getGroup("Time", "time")
+        time += VI("Looping Type", "Whether to repeat the song/video", null, isLooping, style) {
+            isLooping = it
+            AudioManager.requestUpdate()
+        }
+        time += vid(VI("Video Start", "Timestamp in seconds of the first frames drawn", null, startTime, style) {
             startTime = it
         })
-        vid(VI("Video End", "Timestamp in seconds of the last frames drawn", null, endTime, style) { endTime = it })
-        img(VI("Filtering", "Pixelated look?", null, filtering, style) { filtering = it })
-        img(VI("Clamping", "For tiled images", null, clampMode, style) { clampMode = it })
+        time += vid(VI("Video End", "Timestamp in seconds of the last frames drawn", null, endTime, style) { endTime = it })
 
+        val quality = getGroup("Quality", "quality")
         val videoScales = videoScaleNames.entries.sortedBy { it.value }
-        vid(EnumInput(
+        quality += vid(EnumInput(
             "Video Scale", true,
             videoScaleNames.reverse[videoScale] ?: "Auto",
             videoScales.map { it.key }, style
@@ -522,33 +532,32 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
             .setChangeListener { _, index, _ -> videoScale = videoScales[index].value }
             .setIsSelectedListener { show(null) }
             .setTooltip("Full resolution isn't always required. Define it yourself, or set it to automatic."))
-        img(VI("UV-Projection", "Can be used for 360°-Videos", null, uvProjection, style) { uvProjection = it })
-        img(VI("Power", "Color Grading, ASC CDL", cgPower, style))
-        img(VI("Saturation", "Color Grading, 0 = gray scale, 1 = normal, -1 = inverted colors", cgSaturation, style))
-        img(VI("Slope", "Color Grading, Intensity", cgSlope, style))
-        img(VI("Offset", "Color Grading, ASC CDL", cgOffset, style))
 
+        val color = getGroup("Color", "color")
+        color += img(VI("Power", "Color Grading, ASC CDL", cgPower, style))
+        color += img(VI("Saturation", "Color Grading, 0 = gray scale, 1 = normal, -1 = inverted colors", cgSaturation, style))
+        color += img(VI("Slope", "Color Grading, Intensity", cgSlope, style))
+        color += img(VI("Offset", "Color Grading, ASC CDL", cgOffset, style))
 
+        val audio = getGroup("Audio", "audio")
         /*if(meta?.hasAudio == true){
             list += AudioLinePanel(meta, this, style)
         }*/
-        aud(VI("Amplitude", "How loud it is", amplitude, style))
-        VI("Looping Type", "Whether to repeat the song/video", null, isLooping, style) {
-            isLooping = it
-            AudioManager.requestUpdate()
-        }
-        aud(VI("Is 3D Sound", "Sound becomes directional", null, is3D, style) {
+        audio += aud(VI("Amplitude", "How loud it is", amplitude, style))
+        audio += aud(VI("Is 3D Sound", "Sound becomes directional", null, is3D, style) {
             is3D = it
             AudioManager.requestUpdate()
         })
-        aud(VI("Echo Delay", "", echoDelay, style))
-        aud(VI("Echo Multiplier", "", echoMultiplier, style))
+        val audioFX = getGroup("Audio Effects", "audio-fx")
+        audioFX += aud(VI("Echo Delay", "", echoDelay, style))
+        audioFX += aud(VI("Echo Multiplier", "", echoMultiplier, style))
+
         val playbackTitles = "Test Playback" to "Stop Playback"
         fun getPlaybackTitle(invert: Boolean) =
             if ((component == null) != invert) playbackTitles.first else playbackTitles.second
 
         val playbackButton = ButtonPanel(getPlaybackTitle(false), style)
-        aud(playbackButton
+        audio += aud(playbackButton
             .setSimpleClickListener {
                 if (Studio.isPaused) {
                     playbackButton.text = getPlaybackTitle(true)
@@ -568,8 +577,11 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
             override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
                 val isValid = file.hasValidName()
                 val hasAudio = isValid && meta?.hasAudio == true
-                val hasImage = isValid && type == VideoType.IMAGE
-                val hasVideo = isValid && type == VideoType.VIDEO && meta?.hasVideo == true
+                val hasImage = isValid && type != VideoType.AUDIO
+                val hasVideo = isValid && when(type){
+                    VideoType.IMAGE_SEQUENCE, VideoType.VIDEO -> true
+                    else -> false
+                } && meta?.hasVideo == true
                 val state = hasAudio.toInt(1) + hasImage.toInt(2) + hasVideo.toInt(4)
                 if (state != lastState) {
                     lastState = state

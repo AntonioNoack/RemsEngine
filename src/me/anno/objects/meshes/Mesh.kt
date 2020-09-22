@@ -13,12 +13,11 @@ import me.anno.objects.meshes.fbx.structure.FBXReader
 import me.anno.objects.meshes.obj.Material
 import me.anno.objects.meshes.obj.OBJReader
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.files.hasValidName
 import me.anno.ui.style.Style
 import me.anno.video.MissingFrameException
-import me.karl.main.GeneralSettings
 import me.karl.main.SceneLoader
-import me.karl.renderEngine.RenderEngine
 import me.karl.renderer.AnimatedModelRenderer
 import me.karl.utils.URI
 import org.joml.Matrix4fArrayList
@@ -127,8 +126,8 @@ class Mesh(var file: File, parent: Transform?): GFXTransform(parent){
 
     }
 
-    override fun createInspector(list: PanelListY, style: Style) {
-        super.createInspector(list, style)
+    override fun createInspector(list: PanelListY, style: Style, getGroup: (title: String, id: String) -> SettingCategory) {
+        super.createInspector(list, style, getGroup)
         list += VI("File", "", null, file, style){ file = it }
     }
 

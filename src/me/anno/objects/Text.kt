@@ -4,7 +4,6 @@ import me.anno.config.DefaultConfig
 import me.anno.fonts.AWTFont
 import me.anno.fonts.FontManager
 import me.anno.fonts.PartResult
-import me.anno.fonts.mesh.FontMesh
 import me.anno.fonts.mesh.FontMesh.Companion.DEFAULT_LINE_HEIGHT
 import me.anno.fonts.mesh.FontMesh2
 import me.anno.fonts.mesh.FontMeshBase
@@ -21,6 +20,7 @@ import me.anno.studio.Studio.selectedProperty
 import me.anno.ui.base.ButtonPanel
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.color.ColorSpace.Companion.HSLuv
 import me.anno.ui.input.BooleanInput
 import me.anno.ui.input.EnumInput
@@ -31,7 +31,6 @@ import org.joml.Vector3f
 import org.joml.Vector4f
 import java.awt.Font
 import kotlin.collections.ArrayList
-import kotlin.math.abs
 import kotlin.math.max
 
 // todo animated text, like in RPGs, where text appears; or like typing
@@ -255,8 +254,9 @@ open class Text(text: String = "", parent: Transform? = null): GFXTransform(pare
         }
     }
 
-    override fun createInspector(list: PanelListY, style: Style) {
-        super.createInspector(list, style)
+    override fun createInspector(list: PanelListY, style: Style, getGroup: (title: String, id: String) -> SettingCategory) {
+        super.createInspector(list, style, getGroup)
+
         list += TextInputML("Text", style, text)
             .setChangeListener { getSelfWithShadows().forEach { c -> c.text = it } }
             .setIsSelectedListener { selectedProperty = null }
@@ -279,31 +279,33 @@ open class Text(text: String = "", parent: Transform? = null): GFXTransform(pare
 
         // todo general favourites for all enum types?
         // todo at least a generalized form to make it simpler?
-        list += EnumInput("Font", true, font, fontList, style)
+
+        val fontGroup = getGroup("Font", "font")
+
+        fontGroup += EnumInput("Font Name", true, font, fontList, style)
             .setChangeListener { it, _, _ ->
                 invalidate()
                 putLastUsedFont(it)
                 sortFavourites()
                 getSelfWithShadows().forEach { c -> c.font = it } }
             .setIsSelectedListener { show(null) }
-
-        list += BooleanInput("Italic", isItalic, style)
+        fontGroup += BooleanInput("Italic", isItalic, style)
             .setChangeListener {
                 invalidate()
                 getSelfWithShadows().forEach { c -> c.isItalic = it }
             }
             .setIsSelectedListener { show(null) }
-
-        list += BooleanInput("Bold", isBold, style)
+        fontGroup += BooleanInput("Bold", isBold, style)
             .setChangeListener {
                 invalidate()
                 getSelfWithShadows().forEach { c -> c.isBold = it }
             }
             .setIsSelectedListener { show(null) }
 
+        val alignGroup = getGroup("Alignment", "alignment")
         fun align(title: String, value: AxisAlignment, x: Boolean, set: (self: Text, AxisAlignment) -> Unit){
             operator fun AxisAlignment.get(x: Boolean) = if(x) xName else yName
-            list += EnumInput(title, true,
+            alignGroup += EnumInput(title, true,
                 value[x],
                 AxisAlignment.values().map { it[x] }, style)
                 .setIsSelectedListener { show(null) }
@@ -317,18 +319,20 @@ open class Text(text: String = "", parent: Transform? = null): GFXTransform(pare
         align("Block Alignment X", blockAlignmentX, true){ self, it -> self.blockAlignmentX = it }
         align("Block Alignment Y", blockAlignmentY, false){ self, it -> self.blockAlignmentY = it }
 
+        val spaceGroup = getGroup("Spacing", "spacing")
         // make this element separable from the parent???
-        list += VI("Line Spacing", "How much lines are apart from each other", relativeLineSpacing, style)
-        list += VI("Tab Size", "Relative tab size, in widths of o's", AnimatedProperty.Type.FLOAT_PLUS, relativeTabSize, style){
+        spaceGroup += VI("Line Spacing", "How much lines are apart from each other", relativeLineSpacing, style)
+        spaceGroup += VI("Tab Size", "Relative tab size, in widths of o's", AnimatedProperty.Type.FLOAT_PLUS, relativeTabSize, style){
             relativeTabSize = it
             invalidate()
         }
-        list += VI("Line Break Width", "How broad the text shall be, at maximum; < 0 = no limit", AnimatedProperty.Type.FLOAT, lineBreakWidth, style){
+        spaceGroup += VI("Line Break Width", "How broad the text shall be, at maximum; < 0 = no limit", AnimatedProperty.Type.FLOAT, lineBreakWidth, style){
             lineBreakWidth = it
             invalidate()
         }
 
-        list += ButtonPanel("Create Shadow", style)
+        val ops = getGroup("Operations", "operations")
+        ops += ButtonPanel("Create Shadow", style)
             .setSimpleClickListener {
                 // such a mess is the result of copying colors from the editor ;)
                 val signalColor = Vector4f(HSLuv.toRGB(Vector3f(0.000f,0.934f,0.591f)), 1f)

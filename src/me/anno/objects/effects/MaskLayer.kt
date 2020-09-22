@@ -12,6 +12,7 @@ import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.geometric.Circle
 import me.anno.objects.geometric.Polygon
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
 import org.joml.Matrix4fArrayList
 import org.joml.Vector2f
@@ -129,15 +130,11 @@ class MaskLayer(parent: Transform? = null) : MaskLayerBase(parent) {
         }
     }
 
-    override fun createInspector(list: PanelListY, style: Style) {
-        super.createInspector(list, style)
-        list += VI("Type", "Masks are multipurpose objects", null, type, style) { type = it }
-        list += VI(
-            "Effect Size",
-            "How large pixelated pixels or blur should be",
-            effectSize,
-            style
-        )
+    override fun createInspector(list: PanelListY, style: Style, getGroup: (title: String, id: String) -> SettingCategory) {
+        super.createInspector(list, style, getGroup)
+        val effect = getGroup("Effect", "fx")
+        effect += VI("Type", "Masks are multipurpose objects", null, type, style) { type = it }
+        effect += VI("Size", "How large pixelated pixels or blur should be", effectSize, style)
     }
 
     override fun save(writer: BaseWriter) {

@@ -56,6 +56,7 @@ abstract class BaseReader {
             "AnimatedProperty<rotYXZ>" -> AnimatedProperty.rotYXZ()
             "AnimatedProperty<skew2D>" -> AnimatedProperty.skew()
             "AnimatedProperty<color>" -> AnimatedProperty.color()
+            "AnimatedProperty<color3>" -> AnimatedProperty.color3()
             "AnimatedProperty<quaternion>" -> AnimatedProperty.quat()
             "AnimatedProperty<tiling>" -> AnimatedProperty.tiling()
             "AnimatedProperty<vec2>" -> AnimatedProperty.vec2()

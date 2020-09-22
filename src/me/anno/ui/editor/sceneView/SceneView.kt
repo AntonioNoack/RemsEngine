@@ -35,6 +35,7 @@ import me.anno.ui.base.groups.PanelList
 import me.anno.ui.custom.CustomContainer
 import me.anno.ui.custom.data.CustomPanelData
 import me.anno.ui.custom.data.ICustomDataCreator
+import me.anno.ui.editor.files.addChildFromFile
 import me.anno.ui.simple.SimplePanel
 import me.anno.ui.style.Style
 import me.anno.utils.clamp
@@ -44,6 +45,7 @@ import me.anno.utils.times
 import org.joml.Matrix4fArrayList
 import org.joml.Vector3f
 import org.lwjgl.opengl.GL11.*
+import java.io.File
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -119,9 +121,9 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
 
     var velocity = Vector3f()
 
-    var dx = 0
-    var dy = 0
-    var dz = 0
+    var dx = 0f
+    var dy = 0f
+    var dz = 0f
 
     // switch between manual control and autopilot for time :)
     // -> do this by disabling controls when playing, excepts when it's the inspector camera (?)
@@ -325,11 +327,27 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
 
         val dt = clamp(deltaTime, 0f, 0.1f)
 
+        move(dt)
+
+    }
+
+    fun moveDirectly(dx: Float, dy: Float, dz: Float){
+        val defaultFPS = 60f
+        val dt = 0.2f
+        val scale = defaultFPS * dt
+        this.dx += dx * scale
+        this.dy += dy * scale
+        this.dz += dz * scale
+    }
+
+    fun move(dt: Float){
+
         // clamped just in case we get multiple mouse movement events in one frame
         val acceleration = Vector3f(
-            clamp(dx, -1, 1).toFloat(),
-            clamp(dy, -1, 1).toFloat(),
-            clamp(dz, -1, 1).toFloat()
+            dx,dy,dz
+            /*clamp(dx, -1f, 1f),
+            clamp(dy, -1f, 1f),
+            clamp(dz, -1f, 1f)*/
         )
 
         velocity.mul(1f - dt)
@@ -347,9 +365,11 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
             showChanges()
         }
 
-        dx = 0
-        dy = 0
-        dz = 0
+        // todo if camera.isOrthographic, then change fov instead of moving forward/backward
+
+        dx = 0f
+        dy = 0f
+        dz = 0f
 
     }
 
@@ -468,6 +488,8 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
             val selected = selectedTransform
             if (selected != null) {
                 move(selected, dx0, dy0)
+            } else {
+                moveDirectly(-dx0, +dy0, 0f)
             }
         }
     }
@@ -614,6 +636,16 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
 
     fun deleteSelectedTransform() {
         selectedTransform?.destroy()
+    }
+
+    override fun onPasteFiles(x: Float, y: Float, files: List<File>) {
+        files.forEach { file ->
+            addChildFromFile(root, file, { })
+        }
+    }
+
+    override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float) {
+        moveDirectly(0f, 0f, -dy)
     }
 
     override fun toData() = CustomPanelData(this)

@@ -145,7 +145,7 @@ object Scene {
                     "uniform vec2 chromaticOffset;\n" +
                     "uniform vec2 distortion, distortionOffset;\n" +
                     "uniform float vignetteStrength;\n" +
-                    "uniform vec4 vignetteColor;\n" +
+                    "uniform vec3 vignetteColor;\n" +
                     "uniform float minValue;\n" +
                     "uniform int toneMapper;\n" +
                     noiseFunc +
@@ -168,8 +168,6 @@ object Scene {
                     "float softMin(float a, float b, float k){\n" +
                     "   return -(log(exp(k*-a)+exp(k*-b))/k);\n" +
                     "}" +
-                    // todo add vignette effect:
-                    // todo mix with second color, depending on radius
                     "void main(){" +
                     "   vec2 uv2 = (uv-0.5)*fxScale.z+0.5;\n" +
                     "   vec2 nuv = (uv2-0.5)*fxScale.xy;\n" +
@@ -188,7 +186,7 @@ object Scene {
                     "   vec3 graded = colorGrading(toneMapped);\n" +
                     "   vec4 color = vec4(sqrt(graded), ga.y);\n" +
                     "   float rSq = dot(nuv,nuv);\n" + // nuv nuv 😂 (hedgehog sounds for German children)
-                    "   color = mix(vignetteColor, color, 1.0/(1.0 + vignetteStrength*rSq));\n" +
+                    "   color = mix(vec4(vignetteColor, 1.0), color, 1.0/(1.0 + vignetteStrength*rSq));\n" +
                     "   gl_FragColor = color + random(uv) * minValue;\n" +
                     "}"
         )
@@ -442,7 +440,7 @@ object Scene {
         // vignette
         val vignette = camera.vignetteStrength[cameraTime]
         shader.v1("vignetteStrength", DEFAULT_VIGNETTE_STRENGTH * vignette)
-        shader.v4("vignetteColor", camera.vignetteColor[cameraTime])
+        shader.v3("vignetteColor", camera.vignetteColor[cameraTime])
         // randomness against banding
         shader.v1("minValue", minValue)
         // tone mapping

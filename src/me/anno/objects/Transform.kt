@@ -28,6 +28,7 @@ import me.anno.studio.Studio.editorTime
 import me.anno.studio.Studio.selectedTransform
 import me.anno.ui.base.Panel
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.TimelinePanel
 import me.anno.ui.input.*
 import me.anno.ui.style.Style
@@ -130,7 +131,7 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
         // only for things using video textures
     }
 
-    override fun createInspector(list: PanelListY, style: Style){
+    override fun createInspector(list: PanelListY, style: Style, getGroup: (title: String, id: String) -> SettingCategory) {
 
         list += TextInput("Name (${getClassName()})", style, name)
             .setChangeListener { name = if(it.isEmpty()) "-" else it }
@@ -139,39 +140,53 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
             .setChangeListener { comment = it }
             .setIsSelectedListener { show(null) }
 
-        list += VI("Position", "Location of this object", position, style)
-        list += VI("Scale", "Makes it bigger/smaller", scale, style)
+        // transforms
+        val transform = getGroup("Transform", "transform")
+        transform += VI("Position", "Location of this object", position, style)
+        transform += VI("Scale", "Makes it bigger/smaller", scale, style)
 
         if(usesEuler){
-            list += VI("Rotation (YXZ)", "", rotationYXZ, style)
+            transform += VI("Rotation (YXZ)", "", rotationYXZ, style)
         } else {
-            list += VectorInput(style, "Rotation (Quaternion)", rotationQuaternion?.get(lastLocalTime) ?: Quaternionf())
+            transform += VectorInput(style, "Rotation (Quaternion)", rotationQuaternion?.get(lastLocalTime) ?: Quaternionf())
                 .setChangeListener { x, y, z, w ->
                     if(rotationQuaternion == null) rotationQuaternion = AnimatedProperty.quat()
                     putValue(rotationQuaternion!!, Quaternionf(x,y,z,w+1e-9f).normalize()) }
                 .setIsSelectedListener { show(rotationQuaternion) }
         }
 
-        list += VI("Skew", "Transform it similar to a shear", skew, style)
-        list += VI("Color", "Tint, applied to this & children", color, style)
-        list += VI("Color Multiplier", "To make things brighter than usually possible", colorMultiplier, style)
-        list += VI("Start Time", "Delay the animation", null, timeOffset, style){ timeOffset = it }
-        list += VI("Time Multiplier", "Speed up the animation", null, timeDilation, style){ timeDilation = it }
-        list += VI("Advanced Time", "Add acceleration/deceleration to your elements", timeAnimated, style)
-        list += VI("Blend Mode", "", null, blendMode, style){ blendMode = it }
+        transform += VI("Skew", "Transform it similar to a shear", skew, style)
+        transform += VI("Alignment with Camera", "0 = in 3D, 1 = looking towards the camera; billboards", alignWithCamera, style)
+
+        // color
+        val colorGroup = getGroup("Color", "color")
+        colorGroup += VI("Color", "Tint, applied to this & children", color, style)
+        colorGroup += VI("Color Multiplier", "To make things brighter than usually possible", colorMultiplier, style)
+
+        // kind of color...
+        colorGroup += VI("Blend Mode", "", null, blendMode, style){ blendMode = it }
+
+        // time
+        val timeGroup = getGroup("Time", "time")
+        timeGroup += VI("Start Time", "Delay the animation", null, timeOffset, style){ timeOffset = it }
+        timeGroup += VI("Time Multiplier", "Speed up the animation", null, timeDilation, style){ timeDilation = it }
+        timeGroup += VI("Advanced Time", "Add acceleration/deceleration to your elements", timeAnimated, style)
+
+
+        // todo automatically extend timeline panel or restrict moving it down
+
+        val editorGroup = getGroup("Editor", "editor")
+        editorGroup += VI("Timeline Slot", "< 1 means invisible", AnimatedProperty.Type.INT_PLUS, timelineSlot, style){ timelineSlot = it }
+        editorGroup += VI("Editor Only", "Just a guideline?", null, isEditorOnly, style){ isEditorOnly = it }
 
         if(parent?.acceptsWeight() == true){
-            list += VI("Weight", "", AnimatedProperty.Type.FLOAT_PLUS, weight, style){
+            list += VI("Weight", "For particle systems", AnimatedProperty.Type.FLOAT_PLUS, weight, style){
                 weight = it
                 (parent as? ParticleSystem)?.apply {
                     if(children.size > 1) clearCache()
                 }
             }
         }
-
-        list += VI("Timeline Slot", "< 1 means invisible", AnimatedProperty.Type.INT_PLUS, timelineSlot, style){ timelineSlot = it }
-        list += VI("Alignment with Camera", "0 = in 3D, 1 = looking towards the camera; billboards", alignWithCamera, style)
-        list += VI("Editor Only", "Just a guideline?", null, isEditorOnly, style){ isEditorOnly = it }
 
     }
 
@@ -495,13 +510,21 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
                 .setChangeListener { x, y, _, _ -> setValue(Vector2f(x,y) as V) }
                 .setIsSelectedListener { show(null) }
                 .setTooltip(ttt)
-            is Vector3f -> VectorInput(style, title, value, type ?: AnimatedProperty.Type.VEC3)
-                .setChangeListener { x, y, z, _ -> setValue(Vector3f(x,y,z) as V) }
-                .setIsSelectedListener { show(null) }
-                .setTooltip(ttt)
+            is Vector3f ->
+                if(type == AnimatedProperty.Type.COLOR3){
+                    ColorInput(style, title, Vector4f(value, 1f), false, null)
+                        .setChangeListener { r, g, b, _ -> setValue(Vector3f(r,g,b) as V) }
+                        .setIsSelectedListener { show(null) }
+                        .setTooltip(ttt)
+                } else {
+                    VectorInput(style, title, value, type ?: AnimatedProperty.Type.VEC3)
+                        .setChangeListener { x, y, z, _ -> setValue(Vector3f(x,y,z) as V) }
+                        .setIsSelectedListener { show(null) }
+                        .setTooltip(ttt)
+                }
             is Vector4f -> {
                 if(type == null || type == AnimatedProperty.Type.COLOR){
-                    ColorInput(style, title, value, null)
+                    ColorInput(style, title, value, true, null)
                         .setChangeListener { r, g, b, a -> setValue(Vector4f(r,g,b,a) as V) }
                         .setIsSelectedListener { show(null) }
                         .setTooltip(ttt)
@@ -592,13 +615,21 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
                 .setChangeListener { x, y, _, _ -> putValue(values, Vector2f(x, y)) }
                 .setIsSelectedListener { show(values) }
                 .setTooltip(ttt)
-            is Vector3f -> VectorInput(title, values, time, style)
-                .setChangeListener { x, y, z, _ -> putValue(values, Vector3f(x, y, z)) }
-                .setIsSelectedListener { show(values) }
-                .setTooltip(ttt)
+            is Vector3f ->
+                if(values.type == AnimatedProperty.Type.COLOR3){
+                    ColorInput(style, title, Vector4f(value, 1f), false, values)
+                        .setChangeListener { r, g, b, _ -> putValue(values, Vector3f(r, g, b)) }
+                        .setIsSelectedListener { show(values) }
+                        .setTooltip(ttt)
+                } else {
+                    VectorInput(title, values, time, style)
+                        .setChangeListener { x, y, z, _ -> putValue(values, Vector3f(x, y, z)) }
+                        .setIsSelectedListener { show(values) }
+                        .setTooltip(ttt)
+                }
             is Vector4f -> {
                 if(values.type == AnimatedProperty.Type.COLOR){
-                    ColorInput(style, title, value, values)
+                    ColorInput(style, title, value, true, values)
                         .setChangeListener { r, g, b, a -> putValue(values, Vector4f(r, g, b, a)) }
                         .setIsSelectedListener { show(values) }
                         .setTooltip(ttt)

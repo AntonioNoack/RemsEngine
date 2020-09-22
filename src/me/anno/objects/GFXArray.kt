@@ -6,6 +6,7 @@ import me.anno.io.base.BaseWriter
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.modes.ArraySelectionMode
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
@@ -101,20 +102,23 @@ class GFXArray(parent: Transform? = null): GFXTransform(parent) {
 
     override fun drawChildrenAutomatically() = false
 
-    override fun createInspector(list: PanelListY, style: Style) {
-        super.createInspector(list, style)
+    override fun createInspector(list: PanelListY, style: Style, getGroup: (title: String, id: String) -> SettingCategory) {
+        super.createInspector(list, style, getGroup)
 
         // todo create apply button?
         // todo we need to be able to insert properties...
         // todo replace? :D, # String Array
 
-        list += VI("Offset/Child", "", perChildTranslation, style)
-        list += VI("Rotation/Child", "", perChildRotation, style)
-        list += VI("Scale/Child", "", perChildScale, style)
-        list += VI("Delay/Child", "", perChildDelay, style)
-        list += VI("Instances", "", instanceCount, style)
-        list += VI("Selection Mode", "", null, selectionMode, style){ selectionMode = it }
-        list += VI("Selection Seed", "Only for randomized selection mode", selectionSeed, style)
+        val child = getGroup("Per-Child Transform", "per-child")
+        child += VI("Offset/Child", "", perChildTranslation, style)
+        child += VI("Rotation/Child", "", perChildRotation, style)
+        child += VI("Scale/Child", "", perChildScale, style)
+        child += VI("Delay/Child", "", perChildDelay, style)
+
+        val instances = getGroup("Instances", "children")
+        instances += VI("Instances", "", instanceCount, style)
+        instances += VI("Selection Mode", "", null, selectionMode, style){ selectionMode = it }
+        instances += VI("Selection Seed", "Only for randomized selection mode", selectionSeed, style)
 
     }
 

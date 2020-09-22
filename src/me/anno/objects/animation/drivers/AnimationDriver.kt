@@ -11,6 +11,7 @@ import me.anno.studio.Studio
 import me.anno.ui.base.Panel
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
 
 // todo convert a section of the driver to keyframes...
@@ -26,7 +27,7 @@ abstract class AnimationDriver: Saveable(), Inspectable {
     override fun getApproxSize() = 5
     override fun isDefaultValue() = false
 
-    open fun createInspector(list: MutableList<Panel>, transform: Transform, style: Style){
+    open fun createInspector(list: MutableList<Panel>, transform: Transform, style: Style, getGroup: (title: String, id: String) -> SettingCategory){
         list += transform.VI("Amplitude", "", amplitude, style)
         list += transform.VI("Frequency", "", AnimatedProperty.Type.DOUBLE, frequency, style){ frequency = it }
     }
@@ -58,9 +59,9 @@ abstract class AnimationDriver: Saveable(), Inspectable {
     abstract fun getDisplayName(): String
 
     // requires, that an object is selected
-    override fun createInspector(list: PanelListY, style: Style) {
+    override fun createInspector(list: PanelListY, style: Style, getGroup: (title: String, id: String) -> SettingCategory) {
         list += TextPanel("Driver Inspector", style)
-        createInspector(list.children, Studio.selectedTransform!!, style)
+        createInspector(list.children, Studio.selectedTransform!!, style, getGroup)
     }
 
     companion object {

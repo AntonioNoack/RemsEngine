@@ -1,10 +1,12 @@
 package me.anno.objects.meshes.fbx.model
 
+import me.anno.gpu.GFX
 import me.anno.gpu.ShaderLib
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticFloatBuffer
 import me.anno.gpu.shader.ShaderPlus
 import me.anno.objects.meshes.fbx.structure.FBXNode
+import me.anno.utils.clamp
 import kotlin.math.max
 import kotlin.math.min
 
@@ -12,11 +14,11 @@ class FBXGeometry(node: FBXNode) : FBXObject(node) {
 
     companion object {
         const val maxWeights = 4 // 1 .. 4
-        const val maxBones = 256
         fun getShader(
             v3DBase: String, positionPostProcessing: String,
             y3D: String, getTextureLib: String
         ): ShaderPlus {
+            val maxBones = clamp((GFX.maxVertexUniforms - (16 * 3)) / 16, 4, 256)
             return ShaderLib.createShaderPlus(
                 "fbx", v3DBase +
                         "a3 xyz;\n" +

@@ -4,6 +4,7 @@ import me.anno.gpu.GFX
 import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.editor.SettingCategory
 import me.anno.ui.input.BooleanInput
 import me.anno.ui.style.Style
 import me.anno.utils.plus
@@ -174,8 +175,8 @@ class ParticleSystem(parent: Transform? = null): Transform(parent){
 
     }
 
-    override fun createInspector(list: PanelListY, style: Style) {
-        super.createInspector(list, style)
+    override fun createInspector(list: PanelListY, style: Style, getGroup: (title: String, id: String) -> SettingCategory) {
+        super.createInspector(list, style, getGroup)
         list += BooleanInput("Show Children", showChildren, style)
             .setChangeListener { showChildren = it }
             .setIsSelectedListener { show(null) }

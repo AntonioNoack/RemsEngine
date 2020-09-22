@@ -2,8 +2,6 @@ package me.anno.ui.editor.sceneTabs
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
-import me.anno.io.ISaveable
-import me.anno.io.base.BaseWriter
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.objects.Transform
@@ -18,7 +16,11 @@ import me.anno.utils.mixARGB
 import java.io.File
 import kotlin.concurrent.thread
 
-class SceneTab(var file: File?, var root: Transform, history: History?) : TextPanel(file?.name ?: root.name, DefaultConfig.style) {
+class SceneTab(var file: File?, var root: Transform, history: History?) : TextPanel("", DefaultConfig.style) {
+
+    companion object {
+        val maxNameLength = 15
+    }
 
     var history = history ?: try {
         TextReader.fromText(file!!.readText()).filterIsInstance<History>().first()
@@ -26,10 +28,23 @@ class SceneTab(var file: File?, var root: Transform, history: History?) : TextPa
         History()
     }
 
+    val fullText get() = file?.name ?: root.name
+    val createText get() = fullText.run {
+        if(length > maxNameLength){
+            substring(0, maxNameLength-3) + "..."
+        } else this
+    }
+
+    init {
+        text = createText
+        tooltip = fullText
+    }
+
     var hasChanged = false
         set(value) {
-            val baseName = file?.name ?: root.name
+            val baseName = createText
             text = if (field) "$baseName*" else baseName
+            tooltip = fullText
             field = value
         }
 

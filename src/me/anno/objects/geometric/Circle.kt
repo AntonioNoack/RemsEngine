@@ -10,6 +10,7 @@ import me.anno.objects.GFXTransform
 import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
@@ -24,11 +25,12 @@ class Circle(parent: Transform? = null): GFXTransform(parent){
         GFX.draw3DCircle(stack, innerRadius[time], startDegrees[time], endDegrees[time], color)
     }
 
-    override fun createInspector(list: PanelListY, style: Style) {
-        super.createInspector(list, style)
-        list += VI("Inner Radius", "Relative size of hole in the middle", innerRadius, style)
-        list += VI("Start Degrees", "To cut a piece out of the circle", startDegrees, style)
-        list += VI("End Degrees", "To cut a piece out of the circle", endDegrees, style)
+    override fun createInspector(list: PanelListY, style: Style, getGroup: (title: String, id: String) -> SettingCategory) {
+        super.createInspector(list, style, getGroup)
+        val geo = getGroup("Geometry", "geometry")
+        geo += VI("Inner Radius", "Relative size of hole in the middle", innerRadius, style)
+        geo += VI("Start Degrees", "To cut a piece out of the circle", startDegrees, style)
+        geo += VI("End Degrees", "To cut a piece out of the circle", endDegrees, style)
     }
 
     override fun getClassName(): String = "Circle"

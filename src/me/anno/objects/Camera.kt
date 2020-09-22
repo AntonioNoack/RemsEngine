@@ -14,6 +14,7 @@ import me.anno.studio.Studio.targetWidth
 import me.anno.studio.Studio.usedCamera
 import me.anno.ui.base.ButtonPanel
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
 import me.anno.utils.pow
 import org.joml.*
@@ -44,7 +45,7 @@ class Camera(parent: Transform? = null): Transform(parent){
     val distortionOffset = AnimatedProperty.vec2()
     val orthographicness = AnimatedProperty.float01()
     val vignetteStrength = AnimatedProperty.floatPlus()
-    val vignetteColor = AnimatedProperty.color(Vector4f(0f, 0f, 0f, 1f))
+    val vignetteColor = AnimatedProperty.color3(Vector3f(0f, 0f, 0f))
 
     val cgOffset = AnimatedProperty.vec3()
     val cgSlope = AnimatedProperty.color(Vector4f(1f, 1f, 1f, 1f))
@@ -70,29 +71,38 @@ class Camera(parent: Transform? = null): Transform(parent){
 
     override fun getClassName() = "Camera"
 
-    override fun createInspector(list: PanelListY, style: Style) {
-        super.createInspector(list, style)
-        list += VI("Near Z", "Closest Visible Distance", nearZ, style)
-        list += VI("Far Z", "Farthest Visible Distance", farZ, style)
-        list += VI("FOV", "Field Of View, in degrees, vertical", fovYDegrees, style)
-        list += VI("Perspective - Orthographic", "Sets back the camera", orthographicness, style)
-        list += VI("Chromatic Aberration", "Effect occurring in cheap lenses", chromaticAberration, style)
-        list += VI("Chromatic Offset", "Offset for chromatic aberration", chromaticOffset, style)
-        list += VI("Distortion", "Params: R², R⁴, Scale", distortion, style)
-        list += VI("Distortion Offset", "Moves the center of the distortion", distortionOffset, style)
-        list += VI("Vignette Color", "Color of the border", vignetteColor, style)
-        list += VI("Vignette Strength", "Strength of the colored border", vignetteStrength, style)
-        list += VI("Tone Mapping", "Maps large ranges of brightnesses (e.g. HDR) to monitor color space", null, toneMapping, style){ toneMapping = it }
-        list += VI("Look Up Table", "LUT, Look Up Table for colors, formatted like in UE4", null, lut, style){ lut = it }
-        list += VI("Only Show Target", "Forces the viewport to have the correct aspect ratio", null, onlyShowTarget, style){ onlyShowTarget = it }
-        list += VI("Use Depth", "Causes Z-Fighting, but allows 3D", null, useDepth, style){ useDepth = it }
-        list += ButtonPanel("Reset Transform", style)
+    override fun createInspector(list: PanelListY, style: Style, getGroup: (title: String, id: String) -> SettingCategory) {
+        super.createInspector(list, style, getGroup)
+
+        val cam = getGroup("Projection", "projection")
+        cam += VI("FOV", "Field Of View, in degrees, vertical", fovYDegrees, style)
+        cam += VI("Perspective - Orthographic", "Sets back the camera", orthographicness, style)
+        val depth = getGroup("Depth", "depth")
+        depth += VI("Near Z", "Closest Visible Distance", nearZ, style)
+        depth += VI("Far Z", "Farthest Visible Distance", farZ, style)
+        depth += VI("Use Depth", "Causes Z-Fighting, but allows 3D", null, useDepth, style){ useDepth = it }
+        val chroma = getGroup("Chroma", "chroma")
+        chroma += VI("Chromatic Aberration", "Effect occurring in cheap lenses", chromaticAberration, style)
+        chroma += VI("Chromatic Offset", "Offset for chromatic aberration", chromaticOffset, style)
+        val dist = getGroup("Distortion", "distortion")
+        dist += VI("Distortion", "Params: R², R⁴, Scale", distortion, style)
+        dist += VI("Distortion Offset", "Moves the center of the distortion", distortionOffset, style)
+        val vignette = getGroup("Vignette", "vignette")
+        vignette += VI("Vignette Color", "Color of the border", vignetteColor, style)
+        vignette += VI("Vignette Strength", "Strength of the colored border", vignetteStrength, style)
+        val color = getGroup("Color", "color")
+        color += VI("Tone Mapping", "Maps large ranges of brightnesses (e.g. HDR) to monitor color space", null, toneMapping, style){ toneMapping = it }
+        color += VI("Look Up Table", "LUT, Look Up Table for colors, formatted like in UE4", null, lut, style){ lut = it }
+        val editor = getGroup("Editor", "editor")
+        editor += VI("Only Show Target", "Forces the viewport to have the correct aspect ratio", null, onlyShowTarget, style){ onlyShowTarget = it }
+        val ops = getGroup("Operations", "operations")
+        ops += ButtonPanel("Reset Transform", style)
             .setSimpleClickListener { resetTransform() }
             .setTooltip("If accidentally moved")
-        list += VI("Power", "Color Grading, ASC CDL", cgPower, style)
-        list += VI("Saturation", "Color Grading, 0 = gray scale, 1 = normal, -1 = inverted colors", cgSaturation, style)
-        list += VI("Slope", "Color Grading, Intensity", cgSlope, style)
-        list += VI("Offset", "Color Grading, ASC CDL", cgOffset, style)
+        color += VI("Power", "Color Grading, ASC CDL", cgPower, style)
+        color += VI("Saturation", "Color Grading, 0 = gray scale, 1 = normal, -1 = inverted colors", cgSaturation, style)
+        color += VI("Slope", "Color Grading, Intensity", cgSlope, style)
+        color += VI("Offset", "Color Grading, ASC CDL", cgOffset, style)
     }
 
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {

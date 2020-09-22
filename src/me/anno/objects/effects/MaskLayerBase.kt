@@ -1,8 +1,5 @@
 package me.anno.objects.effects
 
-import me.anno.config.DefaultStyle.black
-import me.anno.fonts.mesh.FontMesh2
-import me.anno.fonts.mesh.FontMeshBase
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.blending.BlendDepth
@@ -14,10 +11,8 @@ import me.anno.objects.GFXTransform
 import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.gpu.blending.BlendMode
-import me.anno.objects.Text
-import me.anno.objects.cache.Cache
-import me.anno.ui.base.SpacePanel
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
@@ -111,18 +106,20 @@ abstract class MaskLayerBase(parent: Transform? = null): GFXTransform(parent){
         }
     }
 
-    override fun createInspector(list: PanelListY, style: Style) {
-        super.createInspector(list, style)
-        list += VI("Invert Mask", "Changes transparency with opacity", null, isInverted, style){ isInverted = it }
-        list += VI("Use Mask Color", "Should the color influence the masked?", useMaskColor, style)
+    override fun createInspector(list: PanelListY, style: Style, getGroup: (title: String, id: String) -> SettingCategory) {
+        super.createInspector(list, style, getGroup)
+        val mask = getGroup("Mask Settings", "mask")
+        mask += VI("Invert Mask", "Changes transparency with opacity", null, isInverted, style){ isInverted = it }
+        mask += VI("Use Color / Transparency", "Should the color influence the masked?", useMaskColor, style)
         // todo expand plane to infinity if fullscreen -> depth works then, idk...
         // infinite bounds doesn't mean that it's actually filling the whole screen
         // (infinite horizon isn't covering both roof and floor)
-        list += VI("Fullscreen", "if not, the borders are clipped by the quad shape", null, isFullscreen, style){ isFullscreen = it }
-        list += SpacePanel(0, 1, style)
-            .setColor(style.getChild("deep").getColor("background", black))
-        list += VI("Show Mask", "for debugging purposes; shows the stencil", null, showMask, style){ showMask = it }
-        list += VI("Show Masked", "for debugging purposes", null, showMasked, style){ showMasked = it }
+        mask += VI("Fullscreen", "if not, the borders are clipped by the quad shape", null, isFullscreen, style){ isFullscreen = it }
+        /*list += SpacePanel(0, 1, style)
+            .setColor(style.getChild("deep").getColor("background", black))*/
+        val editor = getGroup("Editor", "editor")
+        editor += VI("Show Mask", "for debugging purposes; shows the stencil", null, showMask, style){ showMask = it }
+        editor += VI("Show Masked", "for debugging purposes", null, showMasked, style){ showMasked = it }
     }
 
     override fun drawChildrenAutomatically() = false

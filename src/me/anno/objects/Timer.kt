@@ -2,7 +2,7 @@ package me.anno.objects
 
 import me.anno.fonts.PartResult
 import me.anno.ui.base.groups.PanelListY
-import me.anno.ui.input.TextInput
+import me.anno.ui.editor.SettingCategory
 import me.anno.ui.input.TextInputML
 import me.anno.ui.style.Style
 import me.anno.utils.fract
@@ -90,8 +90,8 @@ class Timer(parent: Transform? = null): Text("", parent) {
 
     fun Long.f2() = if(this < 10) "0$this" else this.toString()
 
-    override fun createInspector(list: PanelListY, style: Style) {
-        super.createInspector(list, style)
+    override fun createInspector(list: PanelListY, style: Style, getGroup: (title: String, id: String) -> SettingCategory) {
+        super.createInspector(list, style, getGroup)
         list.children.removeIf { it is TextInputML && it.base.placeholder == "Text" }
         list += VI("Format", "ss=sec, mm=min, hh=hours, dd=days, s3=millis", null, format, style){ format = it }
     }

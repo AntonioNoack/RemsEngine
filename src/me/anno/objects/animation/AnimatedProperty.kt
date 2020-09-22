@@ -90,6 +90,8 @@ class AnimatedProperty<V>(val type: Type, var defaultValue: V): Saveable(){
         fun scale(defaultValue: Vector3f) = AnimatedProperty(Type.SCALE, defaultValue)
         fun color() = AnimatedProperty<Vector4f>(Type.COLOR)
         fun color(defaultValue: Vector4f) = AnimatedProperty(Type.COLOR, defaultValue)
+        fun color3() = AnimatedProperty<Vector3f>(Type.COLOR3)
+        fun color3(defaultValue: Vector3f) = AnimatedProperty(Type.COLOR3, defaultValue)
         fun quat() = AnimatedProperty<Quaternionf>(Type.QUATERNION)
         fun skew() = AnimatedProperty<Vector2f>(Type.SKEW_2D)
         fun tiling() = AnimatedProperty<Vector4f>(Type.TILING)

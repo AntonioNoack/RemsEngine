@@ -16,12 +16,12 @@ import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.cache.Cache
 import me.anno.objects.cache.StaticFloatBufferData
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.files.hasValidName
 import me.anno.ui.style.Style
 import me.anno.utils.clamp
 import me.anno.video.MissingFrameException
 import org.joml.Matrix4fArrayList
-import org.joml.Vector3f
 import org.joml.Vector4f
 import java.io.File
 import kotlin.math.cos
@@ -61,14 +61,16 @@ class Polygon(parent: Transform? = null): GFXTransform(parent){
         return
     }
 
-    override fun createInspector(list: PanelListY, style: Style) {
-        super.createInspector(list, style)
-        list += VI("Vertex Count", "Quads, Triangles, all possible", vertexCount, style)
-        list += VI("Star-ness", "Works best with even vertex count", starNess, style)
-        list += VI("Pattern Texture", "For patterns like gradients radially; use a mask layer for images with polygon shape", null, texture, style){ texture = it }
-        list += VI("Filtering", "Pixelated or soft look of pixels?", null, filtering, style){ filtering = it }
-        list += VI("Auto-Align", "Rotate 45°/90, and scale a bit; for rectangles", null, autoAlign, style){ autoAlign = it }
-        list += VI("Extrude", "Makes it 3D", null, is3D, style){ is3D = it }
+    override fun createInspector(list: PanelListY, style: Style, getGroup: (title: String, id: String) -> SettingCategory) {
+        super.createInspector(list, style, getGroup)
+        val geo = getGroup("Geometry", "geometry")
+        geo += VI("Vertex Count", "Quads, Triangles, all possible", vertexCount, style)
+        geo += VI("Star-ness", "Works best with even vertex count", starNess, style)
+        geo += VI("Auto-Align", "Rotate 45°/90, and scale a bit; for rectangles", null, autoAlign, style){ autoAlign = it }
+        geo += VI("Extrude", "Makes it 3D", null, is3D, style){ is3D = it }
+        val tex = getGroup("Pattern", "texture")
+        tex += VI("Pattern Texture", "For patterns like gradients radially; use a mask layer for images with polygon shape", null, texture, style){ texture = it }
+        tex += VI("Filtering", "Pixelated or soft look of pixels?", null, filtering, style){ filtering = it }
     }
 
     override fun getClassName(): String = "Polygon"

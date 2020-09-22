@@ -1,15 +1,13 @@
 package me.anno.objects.animation.drivers
 
 import me.anno.config.DefaultConfig
-import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.Transform
-import me.anno.objects.animation.AnimatedProperty
 import me.anno.parser.CountingList
 import me.anno.parser.SimpleExpressionParser.parseDouble
 import me.anno.parser.SimpleExpressionParser.preparse
 import me.anno.ui.base.Panel
-import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.editor.SettingCategory
 import me.anno.ui.input.TextInput
 import me.anno.ui.style.Style
 import kotlin.math.PI
@@ -26,8 +24,8 @@ class HarmonicDriver: AnimationDriver(){
         1f/(it+1f)
     }
 
-    override fun createInspector(list: MutableList<Panel>, transform: Transform, style: Style) {
-        super.createInspector(list, transform, style)
+    override fun createInspector(list: MutableList<Panel>, transform: Transform, style: Style, getGroup: (title: String, id: String) -> SettingCategory) {
+        super.createInspector(list, transform, style, getGroup)
         list += TextInput("Harmonics h(n)", style.getChild("deep"), harmonicsFormula)
             .setChangeListener { harmonicsFormula = it; updateHarmonics() }
             .setIsSelectedListener { show(null) }

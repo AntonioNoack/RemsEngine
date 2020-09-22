@@ -20,7 +20,16 @@ class PropertyInspector(style: Style):
     var lastSelected: Inspectable? = null
     var needsUpdate = false
 
-    // init { padding.top += 6 }
+    fun createInspector(ins: Inspectable, list: PanelListY){
+        val groups = HashMap<String, SettingCategory>()
+        ins.createInspector(list, style){ title, id ->
+            groups.getOrPut(id){
+                val group = SettingCategory(title, style)
+                list += group
+                group
+            }
+        }
+    }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         val selected = Studio.selectedInspectable
@@ -28,12 +37,16 @@ class PropertyInspector(style: Style):
             lastSelected = selected
             needsUpdate = false
             list.clear()
-            selected?.createInspector(list, style)
+            if(selected != null){
+                createInspector(selected, list)
+            }
         } else if(needsUpdate){
             lastSelected = selected
             needsUpdate = false
             secondaryList.clear()
-            selected?.createInspector(secondaryList, style)
+            if(selected != null){
+                createInspector(selected, secondaryList)
+            }
             // is matching required? not really
             val src = secondaryList.listOfAll.iterator()
             val dst = list.listOfAll.iterator()

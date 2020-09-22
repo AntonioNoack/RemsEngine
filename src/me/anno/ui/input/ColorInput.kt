@@ -19,9 +19,10 @@ import kotlin.math.max
 
 class ColorInput(style: Style, title: String,
                  oldValue: Vector4f,
+                 val withAlpha: Boolean,
                  private val owningProperty: AnimatedProperty<*>? = null): PanelListY(style){
 
-    val contentView = ColorChooser(style, true, owningProperty)
+    val contentView = ColorChooser(style, withAlpha, owningProperty)
 
     private val titleView = object: TextPanel(title, style){
         override fun onCopyRequested(x: Float, y: Float) = contentView.onCopyRequested(x,y)

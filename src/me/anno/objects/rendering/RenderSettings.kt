@@ -7,6 +7,7 @@ import me.anno.studio.Studio.project
 import me.anno.studio.Studio.targetDuration
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.frames.FrameSizeInput
 import me.anno.ui.input.EnumInput
 import me.anno.ui.style.Style
@@ -18,8 +19,9 @@ object RenderSettings : Transform(){
 
     override fun getDefaultDisplayName(): String = "Render Settings"
 
-    override fun createInspector(list: PanelListY, style: Style) {
-        super.createInspector(list, style)
+    override fun createInspector(list: PanelListY, style: Style, getGroup: (title: String, id: String) -> SettingCategory) {
+        super.createInspector(list, style, getGroup)
+
         val project = project!!
         list.clear()
         list += TextPanel(getDefaultDisplayName(), style)
@@ -45,6 +47,7 @@ object RenderSettings : Transform(){
                 save()
             }
             .setTooltip("The fps of the video, or how many frame are shown per second")
+
     }
 
     var lastSavePoint = 0L

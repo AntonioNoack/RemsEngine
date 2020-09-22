@@ -98,6 +98,9 @@ object GFX : GFXBase1() {
     var supportsAnisotropicFiltering = false
     var anisotropy = 1f
 
+    var maxFragmentUniforms = 0
+    var maxVertexUniforms = 0
+
     var currentCamera = nullCamera
 
     var hoveredPanel: Panel? = null
@@ -145,7 +148,7 @@ object GFX : GFXBase1() {
 
     // val defaultFont = DefaultConfig["font"]?.toString() ?: "Verdana"
     val matrixBuffer = BufferUtils.createFloatBuffer(16)
-    val matrixBufferFBX = BufferUtils.createFloatBuffer(16 * FBXGeometry.maxBones)
+    val matrixBufferFBX = BufferUtils.createFloatBuffer(16 * 256)
 
     var rawDeltaTime = 0f
     var deltaTime = 0f
@@ -709,6 +712,9 @@ object GFX : GFXBase1() {
             val max = glGetFloat(EXTTextureFilterAnisotropic.GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT)
             anisotropy = min(max, DefaultConfig["gpu.filtering.anisotropic.max", 16f])
         }
+        maxVertexUniforms = glGetInteger(GL_MAX_VERTEX_UNIFORM_COMPONENTS)
+        maxFragmentUniforms = glGetInteger(GL20.GL_MAX_FRAGMENT_UNIFORM_COMPONENTS)
+        LOGGER.info("Max Uniform Components: [Vertex: $maxVertexUniforms, Fragment: $maxFragmentUniforms]")
         TextureLib.init()
         ShaderLib.init()
         setIcon()
