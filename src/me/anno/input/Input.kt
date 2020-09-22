@@ -298,6 +298,8 @@ object Input {
                                 if(isShiftDown || isControlDown || !inFocus0.isKeyInput() || !inFocus0.acceptsChar('\t'.toInt())){
                                     // switch between input elements
                                     val root = inFocus0.rootPanel
+                                    // todo only choose effectively visible tabs...
+                                    // todo make groups, which are not empty, inputs?
                                     val list = root.listOfAll.toList()
                                     val index = list.indexOf(inFocus0)
                                     if(index > -1){
@@ -305,10 +307,10 @@ object Input {
                                             .subList(index+1, list.size)
                                             .firstOrNull { it.isKeyInput() }
                                         if(next == null){
-                                            println("no more text input found, starting from top")
+                                            // println("no more text input found, starting from top")
                                             // restart from top
                                             next = list.firstOrNull { it.isKeyInput() }
-                                        } else println(next)
+                                        }// else println(next)
                                         if(next != null){
                                             inFocus.clear()
                                             inFocus += next

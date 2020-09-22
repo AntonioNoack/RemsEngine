@@ -33,7 +33,7 @@ open class ButtonPanel(text: String, style: Style): TextPanel(text, style.getChi
         val isInFocus = isInFocus
         val isHovered = isHovered
         val mouseDown = (isHovered && 0 in Input.mouseKeysDown) ||
-                keysDown.count { it.key.isClickKey() } > 0
+                (isInFocus && keysDown.count { it.key.isClickKey() } > 0)
 
         backgroundColor = if(isHovered && !mouseDown) hoveredBackground else normalBackground
 

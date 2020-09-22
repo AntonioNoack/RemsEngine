@@ -53,8 +53,6 @@ import kotlin.math.roundToInt
 
 // todo small preview?
 
-// todo ask before closing window
-
 // todo input field title, no focus color
 
 object RemsStudio {

@@ -7,6 +7,7 @@ import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.style.Style
+import me.anno.utils.isClickKey
 import me.anno.utils.mixARGB
 import kotlin.math.max
 
@@ -23,12 +24,18 @@ class SettingCategory(titleText: String, style: Style) : PanelGroup(style) {
         title.focusTextColor = title.textColor
         content.parent = this
         content.visibility = Visibility.GONE
-        title.setSimpleClickListener {
-            content.visibility =
-                if (content.visibility == Visibility.VISIBLE) Visibility.GONE
-                else Visibility.VISIBLE
-        }
+        title.setSimpleClickListener { toggle() }
     }
+
+    fun toggle(){
+        content.visibility =
+            if (content.visibility == Visibility.VISIBLE) Visibility.GONE
+            else Visibility.VISIBLE
+    }
+
+    override fun onKeyTyped(x: Float, y: Float, key: Int) { if(key.isClickKey()) toggle() }
+    override fun acceptsChar(char: Int) = char.isClickKey()
+    override fun isKeyInput() = true
 
     override val children: List<Panel> = listOf(this.title, content)
     override fun remove(child: Panel) {

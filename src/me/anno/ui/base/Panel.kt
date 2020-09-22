@@ -302,8 +302,10 @@ open class Panel(val style: Style) {
     val listOfAll: Sequence<Panel>
         get() = sequence {
             yield(this@Panel)
-            (this@Panel as? PanelGroup)?.children?.forEach { child ->
-                yieldAll(child.listOfAll)
+            if(this@Panel is PanelGroup){
+                this@Panel.children.forEach { child ->
+                    yieldAll(child.listOfAll)
+                }
             }
         }
 
