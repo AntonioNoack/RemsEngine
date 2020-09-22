@@ -1,6 +1,7 @@
 package me.anno.ui.debug
 
 import me.anno.config.DefaultStyle
+import me.anno.gpu.GFX.inFocus
 import me.anno.gpu.Window
 import me.anno.input.MouseButton
 import me.anno.studio.RemsStudio
@@ -24,13 +25,20 @@ class ConsoleOutputPanel(style: Style): TextPanel("", style) {
                 override fun onBackSpaceKey(x: Float, y: Float) {
                     RemsStudio.windowStack.pop()
                 }
+                override fun onSelectAll(x: Float, y: Float) {
+                    inFocus.clear()
+                    inFocus.addAll((child as PanelList).children)
+                }
+                override fun onDoubleClick(x: Float, y: Float, button: MouseButton) {
+                    onSelectAll(x,y)
+                }
             }
             // todo update, if there are new messages incoming
             // done select the text color based on the type of message
             val list = listPanel.child as PanelList
-            RemsStudio.lastConsoleLines.reversed().forEach {
-                val level = if (it.startsWith('[')) {
-                    when (it.substring(0, min(4, it.length))) {
+            RemsStudio.lastConsoleLines.reversed().forEach { msg ->
+                val level = if (msg.startsWith('[')) {
+                    when (msg.substring(0, min(4, msg.length))) {
                         "[INF" -> Level.INFO
                         "[WAR" -> Level.WARNING
                         "[ERR" -> Level.SEVERE
@@ -41,15 +49,29 @@ class ConsoleOutputPanel(style: Style): TextPanel("", style) {
                 val color = when (level) {
                     Level.FINE -> 0x77ff77
                     Level.SEVERE -> 0xff0000
-                    Level.WARNING -> 0xff7777
+                    Level.WARNING -> 0xffff00
                     Level.INFO -> 0xffffff
                     else -> -1
                 } or DefaultStyle.black
-                val panel = object : TextPanel(it, style) {
-                    // multiselect to copy multiple lines -> use a single text editor instead xD
-                    // todo copy from multiple elements...
+                val panel = object : TextPanel(msg, style) {
                     override fun getMultiSelectablePanel(): Panel? = this
+                    override fun onCopyRequested(x: Float, y: Float): String? {
+                        val all = rootPanel.listOfAll.toList()
+                        return inFocus
+                            .filterIsInstance<TextPanel>()
+                            .map { it.text to all.indexOf(it) }
+                            .sortedBy { it.second }
+                            .joinToString("\n"){ it.first }
+                    }
+                    override fun onSelectAll(x: Float, y: Float) {
+                        inFocus.clear()
+                        inFocus.addAll(list.children)
+                    }
+                    override fun onDoubleClick(x: Float, y: Float, button: MouseButton) {
+                        onSelectAll(x,y)
+                    }
                 }
+                panel.focusTextColor = color
                 panel.textColor = mixARGB(panel.textColor, color, 0.5f)
                 list += panel
             }

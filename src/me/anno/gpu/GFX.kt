@@ -507,11 +507,16 @@ object GFX : GFXBase1() {
         var a0 = startDegrees
         var a1 = endDegrees
         // if the two arrows switch sides, flip the circle
-        // todo do this for angle difference > 360°...
         if (a0 > a1) {// first start for checker pattern
             val tmp = a0
             a0 = a1
             a1 = tmp - 360f
+        }
+        // fix edge resolution loss
+        if(a0 > a1 + 360){
+            a0 = a1 + 360
+        } else if(a1 > a0 + 360){
+            a1 = a0 + 360
         }
         val angle0 = toRadians(a0)
         val angle1 = toRadians(a1)
@@ -546,8 +551,6 @@ object GFX : GFXBase1() {
         shader.v1("invertMask", isInverted)
         shader.v1("maskType", maskType.id)
         shader.v2("pixelating", pixelSize * windowHeight / windowWidth, pixelSize)
-        // shader.v2("blurDeltaUV", blurDeltaUV)
-        // shader.v1("maxSteps", pixelSize * windowHeight)
         flat01.draw(shader)
         check()
     }

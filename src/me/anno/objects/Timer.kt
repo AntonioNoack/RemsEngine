@@ -44,7 +44,8 @@ class Timer(parent: Transform? = null): Text("", parent) {
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
 
         val fract = fract(time)
-        var s = floor(time).toLong()
+        val s0 = floor(time).toLong()
+        var s = s0
         var m = s / 60
         var h = m / 60
         var d = h / 24
@@ -73,12 +74,18 @@ class Timer(parent: Transform? = null): Text("", parent) {
             .replace("s3", "%.3f".format(Locale.ENGLISH, fract).substring(2))
             .replace("s2", "%.2f".format(Locale.ENGLISH, fract).substring(2))
             .replace("s1", "%.1f".format(Locale.ENGLISH, fract).substring(2))
+            .replace("ZB", s0.toString(2))
+            .replace("ZO", s0.toString(8))
+            .replace("ZD", s0.toString(10))
+            .replace("ZH", s0.toString(16))
+            .replace("Z", s0.toString())
             .replace("ss", s.f2())
             .replace("mm", m.f2())
             .replace("hh", h.f2())
             .replace("dd", d.f2())
 
         super.onDraw(stack, time, color)
+
     }
 
     fun Long.f2() = if(this < 10) "0$this" else this.toString()

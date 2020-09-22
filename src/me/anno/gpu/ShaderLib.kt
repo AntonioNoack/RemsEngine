@@ -29,15 +29,14 @@ object ShaderLib {
     lateinit var shaderObjMtl: ShaderPlus
     lateinit var shaderFBX: ShaderPlus
 
-    val brightness = "" +
+    const val brightness = "" +
             "float brightness(vec3 color){\n" +
             "   return sqrt(0.299*color.r*color.r + 0.587*color.g*color.g + 0.114*color.b*color.b);\n" +
             "}\n"
 
     // https://en.wikipedia.org/wiki/ASC_CDL
-    // color grading with asc cdl standard???
-    // todo color grading on a per-movie basis??
-    val ascColorDecisionList = "" +
+    // color grading with asc cdl standard
+    const val ascColorDecisionList = "" +
             "uniform vec3 cgSlope, cgOffset, cgPower;\n" +
             "uniform float cgSaturation;\n" +
             "vec3 colorGrading(vec3 raw){" +
@@ -273,7 +272,6 @@ object ShaderLib {
                 "precision highp float;\n" +
                 "uniform vec4 tint;" +
                 "uniform sampler2D mask, tex, tex2;\n" +
-                "uniform vec4 offsetColor;\n" +
                 "uniform float useMaskColor;\n" +
                 "uniform float invertMask;\n" +
                 "uniform vec2 pixelating;\n" +

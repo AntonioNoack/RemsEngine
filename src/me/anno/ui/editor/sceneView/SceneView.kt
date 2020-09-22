@@ -209,11 +209,9 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
         }
 
         val edt = editorTimeDilation
-        var dt = 0.5
-        while(dt < 5.0){
-            root.claimResources(editorTime + dt * if(edt == 0.0) 1.0 else edt, 1f)
-            dt += 0.5
-        }
+        val et = editorTime
+        // load the next five seconds of data
+        root.claimResources(et, et + 5.0 * if(edt == 0.0) 1.0 else edt, 1f, 1f)
 
         GFX.ensureEmptyStack()
 

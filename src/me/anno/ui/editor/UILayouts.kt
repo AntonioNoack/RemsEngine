@@ -52,6 +52,7 @@ import me.anno.video.VideoCreator
 import org.apache.logging.log4j.LogManager
 import java.io.File
 import kotlin.concurrent.thread
+import kotlin.contracts.contract
 import kotlin.math.max
 import kotlin.math.roundToInt
 
@@ -347,6 +348,7 @@ object UILayouts {
         RemsStudio.console = console
         console.setTooltip("Double-click to open history")
         console.instantTextLoading = true
+        console.text = RemsStudio.lastConsoleLines.lastOrNull() ?: ""
         // console.visibility = Visibility.GONE
 
         ui += console

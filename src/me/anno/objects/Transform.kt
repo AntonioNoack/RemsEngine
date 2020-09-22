@@ -112,18 +112,20 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
         Studio.selectedProperty = anim
     }
 
-    open fun claimResources(parentTime: Double, alpha: Float){
-        val localTime = getLocalTime(parentTime)
-        val localAlpha = getLocalColor(Vector4f(0f, 0f, 0f, alpha), localTime).w
-        if(localAlpha > minAlpha){
-            claimLocalResources(localTime)
+    open fun claimResources(pTime0: Double, pTime1: Double, pAlpha0: Float, pAlpha1: Float){
+        val lTime0 = getLocalTime(pTime0)
+        val lAlpha0 = getLocalColor(Vector4f(0f, 0f, 0f, pAlpha0), lTime0).w
+        val lTime1 = getLocalTime(pTime1)
+        val lAlpha1 = getLocalColor(Vector4f(0f, 0f, 0f, pAlpha1), lTime0).w
+        if(lAlpha0 > minAlpha || lAlpha1 > minAlpha){
+            claimLocalResources(lTime0, lTime1)
             children.forEach {
-                it.claimResources(localTime, localAlpha)
+                it.claimResources(lTime0, lTime1, lAlpha0, lAlpha1)
             }
         }
     }
 
-    open fun claimLocalResources(localTime: Double){
+    open fun claimLocalResources(lTime0: Double, lTime1: Double){
         // here is nothing to claim
         // only for things using video textures
     }

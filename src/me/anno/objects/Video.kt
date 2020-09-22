@@ -33,6 +33,7 @@ import me.anno.ui.editor.sceneView.Grid
 import me.anno.ui.input.EnumInput
 import me.anno.ui.style.Style
 import me.anno.utils.*
+import me.anno.utils.test.ImageSequenceMeta
 import me.anno.video.FFMPEGMetadata
 import me.anno.video.FFMPEGMetadata.Companion.getMeta
 import me.anno.video.MissingFrameException
@@ -48,6 +49,8 @@ import kotlin.math.*
 // todo pre-render small version for scrubbing? can we playback a small version using ffmpeg with no storage overhead?
 
 // todo feature tracking on videos as anchors, e.g. for easy blurry signs, or text above heads (marker on head/eyes)
+
+// todo image sequences using % in the name and number parsing...
 
 /**
  * Images, Cubemaps, Videos, Audios, joint into one
@@ -66,7 +69,10 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
     var videoScale = DefaultConfig["default.video.scale", 6]
 
     var lastFile: File? = null
+    var imageSequenceMeta: ImageSequenceMeta? = null
     var type = VideoType.AUDIO
+
+    var zoomLevel = 0
 
     val cgOffset = AnimatedProperty.vec3()
     val cgSlope = AnimatedProperty.color(Vector4f(1f, 1f, 1f, 1f))
@@ -146,7 +152,49 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
         }
     }
 
-    var zoomLevel = 0
+    fun drawImageSequence(meta: ImageSequenceMeta, stack: Matrix4fArrayList, time: Double, color: Vector4f) {
+
+        var wasDrawn = false
+
+        if (meta.isValid) {
+
+            val sourceDuration = meta.duration
+
+            if (startTime >= sourceDuration) startTime = sourceDuration
+            if (endTime >= sourceDuration) endTime = sourceDuration
+
+            if (time + startTime >= 0.0 && (isLooping != LoopingState.PLAY_ONCE || time <= endTime)) {
+
+                // draw the current texture
+                val duration = endTime - startTime
+                val localTime = startTime + isLooping[time, duration]
+
+                val frame = Cache.getImage(meta.getImage(localTime), 500L, true)
+                if (frame != null) {
+                    GFX.draw3DVideo(
+                        this, time,
+                        stack, frame, color, this@Video.filtering, this@Video.clampMode, tiling[time], uvProjection
+                    )
+                    wasDrawn = true
+                } else {
+                    if (GFX.isFinalRendering) {
+                        throw MissingFrameException(file)
+                    }
+                }
+
+            } else wasDrawn = true
+
+        }
+
+        if (!wasDrawn) {
+            GFX.draw3D(
+                stack, colorShowTexture, 16, 9,
+                Vector4f(0.5f, 0.5f, 0.5f, 1f).mul(color),
+                FilteringMode.NEAREST, ClampMode.REPEAT, tiling16x9, uvProjection
+            )
+        }
+
+    }
 
     fun drawVideoFrames(meta: FFMPEGMetadata, stack: Matrix4fArrayList, time: Double, color: Vector4f) {
 
@@ -184,14 +232,10 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                 val frameIndex = (localTime * videoFPS).toInt() % frameCount
 
                 val frame = Cache.getVideoFrame(
-                    file,
-                    zoomLevel,
-                    frameIndex,
-                    framesPerContainer,
-                    videoFPS,
-                    videoFrameTimeout,
-                    true
+                    file, zoomLevel, frameIndex,
+                    framesPerContainer, videoFPS, videoFrameTimeout, true
                 )
+
                 if (frame != null && frame.isLoaded) {
                     GFX.draw3DVideo(
                         this, time,
@@ -282,7 +326,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
     }
 
     fun drawSpeakers(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
-        if(GFX.isFinalRendering) return
+        if (GFX.isFinalRendering) return
         color.w = clamp(color.w * 0.5f * abs(amplitude[time]), 0f, 1f)
         if (is3D) {
             val r = 0.85f
@@ -302,24 +346,26 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
     enum class VideoType {
         IMAGE,
         VIDEO,
-        AUDIO
+        AUDIO,
+        IMAGE_SEQUENCE
     }
 
-    override fun claimLocalResources(localTime: Double) {
+    override fun claimLocalResources(lTime0: Double, lTime1: Double) {
+
+        val minT = min(lTime0, lTime1)
+        val maxT = max(lTime0, lTime1)
+
         when (val type = type) {
             VideoType.VIDEO -> {
-                // load the video
+
                 val meta = getMeta(file, true)
                 if (meta != null) {
 
                     val sourceFPS = meta.videoFPS
                     val sourceDuration = meta.videoDuration
 
-                    if (startTime >= sourceDuration) startTime = sourceDuration
-                    if (endTime >= sourceDuration) endTime = sourceDuration
-
                     if (sourceFPS > 0.0) {
-                        if (localTime + startTime >= 0.0 && (isLooping != LoopingState.PLAY_ONCE || localTime < endTime)) {
+                        if (maxT + startTime >= 0.0 && (isLooping != LoopingState.PLAY_ONCE || minT < endTime)) {
 
                             // use full fps when rendering to correctly render at max fps with time dilation
                             // issues arise, when multiple frames should be interpolated together into one
@@ -330,20 +376,51 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
 
                             // draw the current texture
                             val duration = endTime - startTime
-                            val localTime2 = startTime + isLooping[localTime, duration]
-                            val frameIndex = (localTime2 * videoFPS).toInt() % frameCount
+                            val localTime0 = startTime + isLooping[lTime0, duration]
+                            val localTime1 = startTime + isLooping[lTime1, duration]
+                            val frameIndex0 = (localTime0 * videoFPS).toInt() % frameCount
+                            val frameIndex1 = (localTime1 * videoFPS).toInt() % frameCount
 
-                            Cache.getVideoFrame(
-                                file,
-                                zoomLevel,
-                                frameIndex,
-                                frameCount,
-                                videoFPS,
-                                videoFrameTimeout,
-                                true
-                            )
-
+                            if (frameIndex1 >= frameIndex0) {
+                                for (frameIndex in frameIndex0..frameIndex1) {
+                                    Cache.getVideoFrame(
+                                        file, zoomLevel, frameIndex, frameCount,
+                                        videoFPS, videoFrameTimeout, true
+                                    )
+                                }
+                            }
                         }
+                    }
+                }
+            }
+            VideoType.IMAGE_SEQUENCE -> {
+
+                val meta = imageSequenceMeta ?: return
+                if (meta.isValid) {
+
+                    if (maxT + startTime >= 0.0 && (isLooping != LoopingState.PLAY_ONCE || minT <= endTime)) {
+
+                        // draw the current texture
+                        val duration = endTime - startTime
+                        val localTime0 = startTime + isLooping[minT, duration]
+                        val localTime1 = startTime + isLooping[maxT, duration]
+
+                        val index0 = meta.getIndex(localTime0)
+                        val index1 = meta.getIndex(localTime1)
+
+                        if (index1 >= index0) {
+                            for (i in index0..index1) {
+                                Cache.getImage(meta.getImage(i), 500L, true)
+                            }
+                        } else {
+                            for (i in index1 until meta.matches.size) {
+                                Cache.getImage(meta.getImage(i), 500L, true)
+                            }
+                            for (i in 0 until index0) {
+                                Cache.getImage(meta.getImage(i), 500L, true)
+                            }
+                        }
+
                     }
                 }
             }
@@ -363,10 +440,18 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
 
             if (file !== lastFile) {
                 lastFile = file
-                type = when (file.extension.getImportType()) {
-                    "Video" -> VideoType.VIDEO
-                    "Audio" -> VideoType.AUDIO
-                    else -> VideoType.IMAGE
+                type = if (file.name.contains(imageSequenceIdentifier)) {
+                    VideoType.IMAGE_SEQUENCE
+                } else {
+                    when (file.extension.getImportType()) {
+                        "Video" -> VideoType.VIDEO
+                        "Audio" -> VideoType.AUDIO
+                        else -> VideoType.IMAGE
+                    }
+                }
+                // async in the future?
+                if (type == VideoType.IMAGE_SEQUENCE) {
+                    imageSequenceMeta = ImageSequenceMeta(file)
                 }
             }
 
@@ -380,6 +465,10 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                     /*if(meta?.hasAudio == true){
                         drawSpeakers(stack, time, color)
                     }*/
+                }
+                VideoType.IMAGE_SEQUENCE -> {
+                    val meta = imageSequenceMeta!!
+                    drawImageSequence(meta, stack, time, color)
                 }
                 VideoType.IMAGE -> drawImageFrames(stack, time, color)
                 VideoType.AUDIO -> drawSpeakers(stack, time, color)
@@ -398,6 +487,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
         val videoPanels = ArrayList<Panel>()
         val imagePanels = ArrayList<Panel>()
         val audioPanels = ArrayList<Panel>()
+
         fun vid(panel: Panel) {
             list += panel
             videoPanels += panel
@@ -481,7 +571,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                 val hasImage = isValid && type == VideoType.IMAGE
                 val hasVideo = isValid && type == VideoType.VIDEO && meta?.hasVideo == true
                 val state = hasAudio.toInt(1) + hasImage.toInt(2) + hasVideo.toInt(4)
-                if(state != lastState){
+                if (state != lastState) {
                     lastState = state
                     audioPanels.forEach { it.visibility = if (hasAudio) Visibility.VISIBLE else Visibility.GONE }
                     videoPanels.forEach { it.visibility = if (hasVideo) Visibility.VISIBLE else Visibility.GONE }
@@ -546,6 +636,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
 
     companion object {
 
+        val imageSequenceIdentifier = DefaultConfig["video.imageSequence.identifier", "%"]
 
         val videoScaleNames = BiMap<String, Int>(10)
 
