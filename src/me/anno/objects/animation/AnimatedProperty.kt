@@ -36,12 +36,14 @@ class AnimatedProperty<V>(val type: Type, var defaultValue: V): Saveable(){
         DOUBLE("double", 0.0, 1, 1f, true, true, null, null, { it is Double }),
         VEC2("vec2", Vector2f(), 2, 1f, true, true, null, null, { it is Vector2f }),
         VEC3("vec3", Vector3f(), 3, 1f, true, true, null, null, { it is Vector3f }),
+        VEC4("vec4", Vector4f(), 4, 1f, true, true, null, null, { it is Vector4f }),
         POSITION("pos", Vector3f(), 3, 1f, true, true, null, null, { it is Vector3f }),
         SCALE("scale", Vector3f(1f, 1f, 1f), 3, 1f, true, true, null, null, { it is Vector3f }),
         ROT_YXZ("rotYXZ", Vector3f(), 3, 90f, true, true, null, null, { it is Vector3f }),
         SKEW_2D("skew2D", Vector2f(), 2, 1f, true, true, null, null, { it is Vector2f }),
         QUATERNION("quaternion", Quaternionf(), 4, 1f, true, true, null, null, { it is Quaternionf }),
         COLOR("color", Vector4f(1f,1f,1f,1f), 4, 1f, true, true, null, null, { it is Vector4f }),
+        COLOR3("color3", Vector3f(1f,1f,1f), 3, 1f, true, true, null, null, { it is Vector3f }),
         TILING("tiling", Vector4f(1f, 1f, 0f, 0f), 4, 1f, true, true, null, null, { it is Vector4f });
 
         // register inverse mapping for loading
@@ -80,12 +82,14 @@ class AnimatedProperty<V>(val type: Type, var defaultValue: V): Saveable(){
         fun double() = AnimatedProperty<Double>(Type.DOUBLE)
         fun vec2() = AnimatedProperty<Vector2f>(Type.VEC2)
         fun vec3() = AnimatedProperty<Vector3f>(Type.VEC3)
+        fun vec4() = AnimatedProperty<Vector3f>(Type.VEC4)
+        fun vec4(defaultValue: Vector4f) = AnimatedProperty(Type.VEC4, defaultValue)
         fun pos() = AnimatedProperty<Vector3f>(Type.POSITION)
         fun rotYXZ() = AnimatedProperty<Vector3f>(Type.ROT_YXZ)
         fun scale() = AnimatedProperty<Vector3f>(Type.SCALE)
         fun scale(defaultValue: Vector3f) = AnimatedProperty(Type.SCALE, defaultValue)
         fun color() = AnimatedProperty<Vector4f>(Type.COLOR)
-        fun color(defaultValue: Vector4f) = AnimatedProperty<Vector4f>(Type.COLOR, defaultValue)
+        fun color(defaultValue: Vector4f) = AnimatedProperty(Type.COLOR, defaultValue)
         fun quat() = AnimatedProperty<Quaternionf>(Type.QUATERNION)
         fun skew() = AnimatedProperty<Vector2f>(Type.SKEW_2D)
         fun tiling() = AnimatedProperty<Vector4f>(Type.TILING)

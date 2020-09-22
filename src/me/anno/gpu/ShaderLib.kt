@@ -15,8 +15,9 @@ object ShaderLib {
     lateinit var flatShaderGradient: Shader
     lateinit var flatShaderTexture: Shader
     lateinit var subpixelCorrectTextShader: Shader
-    lateinit var shader3D: ShaderPlus
     lateinit var shader3DPolygon: ShaderPlus
+    lateinit var shader3D: ShaderPlus
+    lateinit var shader3DRGBA: ShaderPlus
     lateinit var shader3DYUV: ShaderPlus
     lateinit var shader3DARGB: ShaderPlus
     lateinit var shader3DBGRA: ShaderPlus
@@ -27,6 +28,23 @@ object ShaderLib {
     lateinit var shader3DBlur: Shader
     lateinit var shaderObjMtl: ShaderPlus
     lateinit var shaderFBX: ShaderPlus
+
+    val brightness = "" +
+            "float brightness(vec3 color){\n" +
+            "   return sqrt(0.299*color.r*color.r + 0.587*color.g*color.g + 0.114*color.b*color.b);\n" +
+            "}\n"
+
+    // https://en.wikipedia.org/wiki/ASC_CDL
+    // color grading with asc cdl standard???
+    // todo color grading on a per-movie basis??
+    val ascColorDecisionList = "" +
+            "uniform vec3 cgSlope, cgOffset, cgPower;\n" +
+            "uniform float cgSaturation;\n" +
+            "vec3 colorGrading(vec3 raw){" +
+            "   vec3 color = pow(max(vec3(0), raw * cgSlope + cgOffset), cgPower);\n" +
+            "   float gray = brightness(color);\n" +
+            "   return mix(vec3(gray), color, cgSaturation);\n" +
+            "}\n"
 
     fun init(){
 
@@ -393,6 +411,8 @@ object ShaderLib {
                     "uniform sampler2D texY, texU, texV;\n" +
                     "uniform vec2 uvCorrection;\n" +
                     getTextureLib +
+                    brightness +
+                    ascColorDecisionList +
                     "void main(){\n" +
                     "   vec2 uv2 = getProjectedUVs(uv, uvw);\n" +
                     "   vec2 correctedUV = uv2*uvCorrection;\n" +
@@ -406,8 +426,23 @@ object ShaderLib {
                     "       dot(yuv, vec3( 1.164,  0.000,  1.596))," +
                     "       dot(yuv, vec3( 1.164, -0.392, -0.813))," +
                     "       dot(yuv, vec3( 1.164,  2.017,  0.000)), 1.0);\n" +
+                    "   color.rgb = colorGrading(color.rgb);\n" +
                     "   gl_FragColor = tint * color;\n" +
                     "}", listOf("texY", "texU", "texV")
+        )
+
+        shader3DRGBA = createShaderPlus("3d-rgba",
+            v3D, y3D, "" +
+                    "uniform vec4 tint;" +
+                    "uniform sampler2D tex;\n" +
+                    getTextureLib +
+                    brightness +
+                    ascColorDecisionList +
+                    "void main(){\n" +
+                    "   vec4 color = getTexture(tex, getProjectedUVs(uv, uvw));\n" +
+                    "   color.rgb = colorGrading(color.rgb);\n" +
+                    "   gl_FragColor = tint * color;\n" +
+                    "}", listOf("tex")
         )
 
         shader3DARGB = createShaderPlus("3d-argb",
@@ -415,8 +450,11 @@ object ShaderLib {
                     "uniform vec4 tint;" +
                     "uniform sampler2D tex;\n" +
                     getTextureLib +
+                    brightness +
+                    ascColorDecisionList +
                     "void main(){\n" +
                     "   vec4 color = getTexture(tex, getProjectedUVs(uv, uvw)).gbar;\n" +
+                    "   color.rgb = colorGrading(color.rgb);\n" +
                     "   gl_FragColor = tint * color;\n" +
                     "}", listOf("tex")
         )
@@ -426,8 +464,11 @@ object ShaderLib {
                     "uniform vec4 tint;" +
                     "uniform sampler2D tex;\n" +
                     getTextureLib +
+                    brightness +
+                    ascColorDecisionList +
                     "void main(){\n" +
                     "   vec4 color = getTexture(tex, getProjectedUVs(uv, uvw)).bgra;\n" +
+                    "   color.rgb = colorGrading(color.rgb);\n" +
                     "   gl_FragColor = tint * color;\n" +
                     "}", listOf("tex")
         )

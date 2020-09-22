@@ -76,13 +76,17 @@ class BlendMode(
             .set(GL_ONE, GL_ONE)
             .set(BlendFunc.SUB)*/
         // doesn't work
-        // todo a way to remove alpha from an image
         val SUB_ALPHA = BlendMode("Override Masking", "Override Masking")
             .set(GL_ONE, GL_ZERO, GL_SRC_ALPHA, GL_ZERO)
             .set(BlendFunc.ADD)
 
         val SUB = ADD.copy("Sub", "Subtract")
             .set(BlendFunc.REV_SUB)
+
+        // a way to remove alpha from an image
+        val NO_ALPHA = BlendMode("No Alpha", "No Alpha")
+            .set(GL_ONE, GL_ZERO, GL_ONE, GL_ZERO)
+            .set(BlendFunc.ADD)
 
         operator fun get(code: String) = blendModes[code] ?: UNSPECIFIED
     }

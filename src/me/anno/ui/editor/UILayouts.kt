@@ -98,13 +98,10 @@ object UILayouts {
 
     fun createWelcomeUI() {
 
-        // todo manage and load recent projects
-        // todo load recently opened parts / scenes / default scene
-        // todo save functionality...
-        // todo list of all known projects
-        // todo color them depending on existence
-
-        // todo find folder, which is doesn't already exist
+        // manage and load recent projects
+        // load recently opened parts / scenes / default scene
+        // list of all known projects
+        // color them depending on existence
 
         val dir = "directory" // vs folder ^^
         val style = DefaultConfig.style
@@ -336,8 +333,6 @@ object UILayouts {
         ui += options
         ui += SceneTabs
         ui += SpacePanel(0, 1, style)
-
-        // todo load the last opened tabs from the previous project...
 
         val project = project!!
         project.loadUI()

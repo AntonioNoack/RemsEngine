@@ -11,6 +11,7 @@ import me.anno.gpu.ShaderLib.shader3DBlur
 import me.anno.gpu.ShaderLib.shader3DCircle
 import me.anno.gpu.ShaderLib.shader3DMasked
 import me.anno.gpu.ShaderLib.shader3DPolygon
+import me.anno.gpu.ShaderLib.shader3DRGBA
 import me.anno.gpu.ShaderLib.shader3DSVG
 import me.anno.gpu.ShaderLib.shader3DYUV
 import me.anno.gpu.ShaderLib.subpixelCorrectTextShader
@@ -30,6 +31,7 @@ import me.anno.input.MouseButton
 import me.anno.objects.Camera
 import me.anno.objects.Transform
 import me.anno.gpu.blending.BlendMode
+import me.anno.objects.Video
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.effects.MaskType
 import me.anno.objects.geometric.Circle
@@ -569,6 +571,13 @@ object GFX : GFXBase1() {
         draw3D(stack, buffer, texture, texture.w, texture.h, color, filtering, clampMode, tiling)
     }
 
+    fun colorGradingUniforms(video: Video, time: Double, shader: Shader){
+        shader.v3("cgOffset", video.cgOffset[time])
+        shader.v3X("cgSlope", video.cgSlope[time])
+        shader.v3X("cgPower", video.cgPower[time])
+        shader.v1("cgSaturation", video.cgSaturation[time])
+    }
+
     fun draw3DPolygon(
         stack: Matrix4fArrayList, buffer: StaticFloatBuffer,
         texture: Texture2D, color: Vector4f,
@@ -590,6 +599,25 @@ object GFX : GFXBase1() {
         if (!texture.isLoaded) throw RuntimeException("Frame must be loaded to be rendered!")
         val shader = texture.get3DShader().shader
         shader3DUniforms(shader, stack, texture.w, texture.h, color, tiling, filtering, uvProjection)
+        texture.bind(0, filtering, clampMode)
+        if (shader == shader3DYUV.shader) {
+            val w = texture.w
+            val h = texture.h
+            shader.v2("uvCorrection", w.toFloat() / ((w + 1) / 2 * 2), h.toFloat() / ((h + 1) / 2 * 2))
+        }
+        uvProjection.getBuffer().draw(shader)
+        check()
+    }
+
+    fun draw3DVideo(
+        video: Video, time: Double,
+        stack: Matrix4fArrayList, texture: Frame, color: Vector4f,
+        filtering: FilteringMode, clampMode: ClampMode, tiling: Vector4f?, uvProjection: UVProjection
+    ) {
+        if (!texture.isLoaded) throw RuntimeException("Frame must be loaded to be rendered!")
+        val shader = texture.get3DShader().shader
+        shader3DUniforms(shader, stack, texture.w, texture.h, color, tiling, filtering, uvProjection)
+        colorGradingUniforms(video, time, shader)
         texture.bind(0, filtering, clampMode)
         if (shader == shader3DYUV.shader) {
             val w = texture.w
@@ -642,6 +670,19 @@ object GFX : GFXBase1() {
     ) {
         val shader = shader3D.shader
         shader3DUniforms(shader, stack, w, h, color, tiling, filtering, uvProjection)
+        texture.bind(0, filtering, clampMode)
+        uvProjection.getBuffer().draw(shader)
+        check()
+    }
+
+    fun draw3DVideo(
+        video: Video, time: Double,
+        stack: Matrix4fArrayList, texture: Texture2D, color: Vector4f,
+        filtering: FilteringMode, clampMode: ClampMode, tiling: Vector4f?, uvProjection: UVProjection
+    ) {
+        val shader = shader3DRGBA.shader
+        shader3DUniforms(shader, stack, texture.w, texture.h, color, tiling, filtering, uvProjection)
+        colorGradingUniforms(video, time, shader)
         texture.bind(0, filtering, clampMode)
         uvProjection.getBuffer().draw(shader)
         check()

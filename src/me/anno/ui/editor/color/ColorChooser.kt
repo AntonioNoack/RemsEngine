@@ -60,8 +60,7 @@ class ColorChooser(style: Style, withAlpha: Boolean, val owningProperty: Animate
             Vector3f(0f, 0f, 0f),
             Vector3f(0f, 0f, 1f),
             Vector3f(0f, 0f, 0f), 0f, style, 1f,
-            { opacity, y ->
-                println("$opacity $y")
+            { opacity, _ ->
                 setHSL(hue, saturation, lightness, clamp(opacity, 0f, 1f), colorSpace, true)
                 onSmallChange("color-alpha")
             }) {

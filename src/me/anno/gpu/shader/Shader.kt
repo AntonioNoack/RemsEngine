@@ -155,6 +155,11 @@ open class Shader(val shaderName: String,
         if(loc > -1) glUniform3f(loc, x, y, z)
     }
 
+    fun v3X(name: String, v: Vector4f){
+        val loc = getUniformLocation(name)
+        if(loc > -1) glUniform3f(loc, v.x/v.w, v.y/v.w, v.z/v.w)
+    }
+
     fun v4(name: String, x: Float, y: Float, z: Float, w: Float){
         val loc = getUniformLocation(name)
         if(loc > -1) glUniform4f(loc, x, y, z, w)

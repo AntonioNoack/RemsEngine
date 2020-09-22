@@ -16,6 +16,7 @@
       <w>framebuffers</w>
       <w>gizmos</w>
       <w>glfw</w>
+      <w>glsl</w>
       <w>hsluv</w>
       <w>msaa</w>
       <w>mtllib</w>

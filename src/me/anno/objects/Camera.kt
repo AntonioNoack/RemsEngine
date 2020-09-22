@@ -46,6 +46,11 @@ class Camera(parent: Transform? = null): Transform(parent){
     val vignetteStrength = AnimatedProperty.floatPlus()
     val vignetteColor = AnimatedProperty.color(Vector4f(0f, 0f, 0f, 1f))
 
+    val cgOffset = AnimatedProperty.vec3()
+    val cgSlope = AnimatedProperty.color(Vector4f(1f, 1f, 1f, 1f))
+    val cgPower = AnimatedProperty.color(Vector4f(1f, 1f, 1f, 1f))
+    val cgSaturation = AnimatedProperty.float(1f) // only allow +? only 01?
+
     var toneMapping = ToneMappers.RAW
 
     var onlyShowTarget = true
@@ -84,6 +89,10 @@ class Camera(parent: Transform? = null): Transform(parent){
         list += ButtonPanel("Reset Transform", style)
             .setSimpleClickListener { resetTransform() }
             .setTooltip("If accidentally moved")
+        list += VI("Power", "Color Grading, ASC CDL", cgPower, style)
+        list += VI("Saturation", "Color Grading, 0 = gray scale, 1 = normal, -1 = inverted colors", cgSaturation, style)
+        list += VI("Slope", "Color Grading, Intensity", cgSlope, style)
+        list += VI("Offset", "Color Grading, ASC CDL", cgOffset, style)
     }
 
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
@@ -149,6 +158,10 @@ class Camera(parent: Transform? = null): Transform(parent){
         writer.writeBool("onlyShowTarget", onlyShowTarget)
         writer.writeBool("useDepth", useDepth)
         writer.writeFile("lut", lut)
+        writer.writeObject(this, "cgSaturation", cgSaturation)
+        writer.writeObject(this, "cgOffset", cgOffset)
+        writer.writeObject(this, "cgSlope", cgSlope)
+        writer.writeObject(this, "cgPower", cgPower)
     }
 
     override fun readBool(name: String, value: Boolean) {
@@ -171,6 +184,10 @@ class Camera(parent: Transform? = null): Transform(parent){
             "orthographicness" -> orthographicness.copyFrom(value)
             "vignetteStrength" -> vignetteStrength.copyFrom(value)
             "vignetteColor" -> vignetteColor.copyFrom(value)
+            "cgSaturation" -> cgSaturation.copyFrom(value)
+            "cgOffset" -> cgOffset.copyFrom(value)
+            "cgSlope" -> cgSlope.copyFrom(value)
+            "cgPower" -> cgPower.copyFrom(value)
             else -> super.readObject(name, value)
         }
     }

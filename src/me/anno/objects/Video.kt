@@ -63,6 +63,11 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
     var lastFile: File? = null
     var type = VideoType.AUDIO
 
+    val cgOffset = AnimatedProperty.vec3()
+    val cgSlope = AnimatedProperty.color(Vector4f(1f, 1f, 1f, 1f))
+    val cgPower = AnimatedProperty.color(Vector4f(1f, 1f, 1f, 1f))
+    val cgSaturation = AnimatedProperty.float(1f) // only allow +? only 01?
+
     override fun isVisible(localTime: Double): Boolean {
         return localTime + startTime >= 0.0 && (isLooping != LoopingState.PLAY_ONCE || localTime < endTime)
     }
@@ -174,7 +179,8 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
 
                 val frame = Cache.getVideoFrame(file, zoomLevel, frameIndex, framesPerContainer, videoFPS, videoFrameTimeout, true)
                 if(frame != null && frame.isLoaded){
-                    GFX.draw3D(stack, frame, color, this@Video.filtering, this@Video.clampMode, tiling[time], uvProjection)
+                    GFX.draw3DVideo(this, time,
+                        stack, frame, color, this@Video.filtering, this@Video.clampMode, tiling[time], uvProjection)
                     wasDrawn = true
                 } else {
                     if(GFX.isFinalRendering){
@@ -217,7 +223,7 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
                 // calculate required scale? no, without animation, we don't need to scale it down ;)
                 val texture = Cache.getVideoFrame(file, 1, 0, 1, 1.0, imageTimeout, true)
                 if((texture == null || !texture.isLoaded) && GFX.isFinalRendering) throw MissingFrameException(file)
-                if(texture?.isLoaded == true) GFX.draw3D(stack, texture, color, this@Video.filtering, this@Video.clampMode, tiling, uvProjection)
+                if(texture?.isLoaded == true) GFX.draw3DVideo(this, time, stack, texture, color, this@Video.filtering, this@Video.clampMode, tiling, uvProjection)
             }
             else -> {// some image
                 val tiling = tiling[time]
@@ -225,7 +231,7 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
                 if(texture == null && GFX.isFinalRendering) throw MissingFrameException(file)
                 texture?.apply {
                     rotation?.apply(stack)
-                    GFX.draw3D(stack, texture, color, this@Video.filtering, this@Video.clampMode, tiling, uvProjection)
+                    GFX.draw3DVideo(this@Video, time, stack, texture, color, this@Video.filtering, this@Video.clampMode, tiling, uvProjection)
                 }
             }
         }
@@ -345,6 +351,10 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
             .setIsSelectedListener { show(null) }
             .setTooltip("Full resolution isn't always required. Define it yourself, or set it to automatic.")
         list += VI("UV-Projection", "Can be used for 360°-Videos", null, uvProjection, style){ uvProjection = it }
+        list += VI("Power", "Color Grading, ASC CDL", cgPower, style)
+        list += VI("Saturation", "Color Grading, 0 = gray scale, 1 = normal, -1 = inverted colors", cgSaturation, style)
+        list += VI("Slope", "Color Grading, Intensity", cgSlope, style)
+        list += VI("Offset", "Color Grading, ASC CDL", cgOffset, style)
     }
 
     override fun getClassName(): String = "Video"
@@ -357,11 +367,19 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
         writer.writeInt("filtering", filtering.id, true)
         writer.writeInt("clamping", clampMode.id, true)
         writer.writeInt("videoScale", videoScale)
+        writer.writeObject(this, "cgSaturation", cgSaturation)
+        writer.writeObject(this, "cgOffset", cgOffset)
+        writer.writeObject(this, "cgSlope", cgSlope)
+        writer.writeObject(this, "cgPower", cgPower)
     }
 
     override fun readObject(name: String, value: ISaveable?) {
         when(name){
             "tiling" -> tiling.copyFrom(value)
+            "cgSaturation" -> cgSaturation.copyFrom(value)
+            "cgOffset" -> cgOffset.copyFrom(value)
+            "cgSlope" -> cgSlope.copyFrom(value)
+            "cgPower" -> cgPower.copyFrom(value)
             else -> super.readObject(name, value)
         }
     }

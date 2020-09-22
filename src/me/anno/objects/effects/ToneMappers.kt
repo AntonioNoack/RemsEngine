@@ -1,7 +1,9 @@
 package me.anno.objects.effects
 
-enum class ToneMappers(val id: Int, val displayName: String, val code: String){
-    RAW(0,"None", "raw"),
+enum class ToneMappers(val id: Int,
+                       val displayName: String,
+                       val glslFuncName: String){
+    RAW(0,"None", ""),
     REINHARD(1,"Reinhard", "reinhard"),
     ACES(2,"ACES", "aces"),
     UCHIMURA(3,"Uchimura", "uchimura")

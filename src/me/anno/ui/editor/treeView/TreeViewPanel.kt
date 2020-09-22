@@ -27,8 +27,6 @@ import org.joml.Vector4f
 import java.io.File
 import java.lang.Exception
 
-// todo colorgrading with asc cdl standard???
-
 class TreeViewPanel(val getElement: () -> Transform, style: Style): TextPanel("", style){
 
     // todo text shadow, if text color and background color are close

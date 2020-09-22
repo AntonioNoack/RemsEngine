@@ -32,8 +32,8 @@ open class ShaderPlus(name: String, vertex: String, varying: String, fragment: S
                 "       case ${DrawMode.COLOR_SQUARED.id}:\n" +
                 "           gl_FragColor.rgb *= gl_FragColor.rgb;\n" +
                 "           break;\n" +
-                // "       case ${DrawMode.COLOR.id}:\n" +
-                // "           break;\n" + // nothing to do
+                "       case ${DrawMode.COLOR.id}:\n" +
+                "           break;\n" + // nothing to do
                 "       case ${DrawMode.ID.id}:\n" +
                 "           if(gl_FragColor.a < 0.01) discard;\n" +
                 "           gl_FragColor.rgb = (tint*tint).rgb;\n" +
@@ -44,7 +44,6 @@ open class ShaderPlus(name: String, vertex: String, varying: String, fragment: S
                 "           gl_FragColor.rgb = vec3(depth*depth);\n" +
                 "           break;\n" +
                 "   }\n" +
-                "   if(gl_FragColor.a < 0.001) discard;\n" +
                 "}"
 
     }
