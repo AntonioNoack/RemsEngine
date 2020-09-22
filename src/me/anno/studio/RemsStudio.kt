@@ -68,7 +68,8 @@ object RemsStudio {
 
     private val LOGGER = LogManager.getLogger(RemsStudio::class)
 
-    val originalOutput = System.out!!
+    val originalOut = System.out!!
+    val originalErr = System.err!!
 
     val windowStack = Stack<Window>()
 
@@ -151,7 +152,36 @@ object RemsStudio {
                         line += "..."
                     }
                 }
-                originalOutput.write(b)
+                originalOut.write(b)
+            }
+        }))
+        System.setErr(PrintStream(object : OutputStream() {
+            var line = ""
+            override fun write(b: Int) {
+                when {
+                    b == '\n'.toInt() -> {
+                        if(line.isNotBlank()){
+                            // only accept non-empty lines?
+                            val lines = lastConsoleLines
+                            if (lines.size > lastConsoleLineCount) lines.removeFirst()
+                            line = "[ERR] $line"
+                            lines.push(line)
+                            console?.text = line
+                        }
+                        line = ""
+                    }
+                    line.length < 100 -> {
+                        // enable for
+                        /*if(line.isEmpty() && b != '['.toInt()){
+                            throw RuntimeException("Please use the LogManager.getLogger(YourClass)!")
+                        }*/
+                        line += b.toChar()
+                    }
+                    line.length == 100 -> {
+                        line += "..."
+                    }
+                }
+                originalErr.write(b)
             }
         }))
     }
