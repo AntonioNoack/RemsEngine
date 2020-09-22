@@ -19,13 +19,11 @@ import me.anno.ui.editor.sceneTabs.SceneTabs
 import me.anno.ui.editor.sceneView.SceneTabData
 import java.io.File
 
-// todo history per tab
 class Project(var name: String, val file: File) : Saveable() {
 
     val configFile = File(file, "config.json")
     val uiFile = File(file, "ui.json")
     val tabsFile = File(file, "tabs.json")
-    val histFile = File(file, "history.json")
 
     val config: StringMap
 

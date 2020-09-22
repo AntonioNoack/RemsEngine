@@ -16,6 +16,7 @@ import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.cache.Cache
 import me.anno.objects.cache.StaticFloatBufferData
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.editor.files.hasValidName
 import me.anno.ui.style.Style
 import me.anno.utils.clamp
 import me.anno.video.MissingFrameException
@@ -42,8 +43,7 @@ class Polygon(parent: Transform? = null): GFXTransform(parent){
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f){
         val inset = clamp(starNess[time], 0f, 1f)
         val image = Cache.getImage(texture, 5000, true)
-        // todo check if an exception really needs to be thrown (empty = default, white)
-        if(image == null && GFX.isFinalRendering) throw MissingFrameException(texture)
+        if(image == null && texture.hasValidName() && GFX.isFinalRendering) throw MissingFrameException(texture)
         val texture = image ?: whiteTexture
         val count = vertexCount[time]//.roundToInt()
         if(inset == 1f && count % 2 == 0) return// invisible

@@ -152,7 +152,7 @@ public class GFXBase0 {
                     Studio.INSTANCE.addEvent(() -> {
                         width = w;
                         height = h;
-                        Input.INSTANCE.setFramesSinceLastInteraction(0);
+                        Input.INSTANCE.invalidateLayout();
                         return Unit.INSTANCE;
                     });
                 }

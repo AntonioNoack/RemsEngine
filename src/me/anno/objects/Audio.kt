@@ -39,7 +39,7 @@ abstract class Audio(var file: File = File(""), parent: Transform? = null): GFXT
      * is synchronized with the audio thread
      * */
     fun startPlayback(globalTime: Double, speed: Double, camera: Camera){
-        // why an exception? because I happended to run into this issue
+        // why an exception? because I happened to run into this issue
         if(speed == 0.0) throw IllegalArgumentException("Audio speed must not be 0.0, because that's inaudible")
         needsUpdate = false
         component?.stop()

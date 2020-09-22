@@ -2,13 +2,14 @@ package me.anno.input
 
 
 // done render stuff to video
-// todo a menu for rendering stuff; render settings
+// done a menu for rendering stuff; render settings
 // done audio
 // done action manager working & integrated
 // done move stuff in the scene view
-// todo load/save everything
-// todo load/save components
-// todo gfx arrays with customizable properties/replace
+// done load/save everything
+// done load/save components
+// done gfx arrays with customizable properties
+// todo gfx arrays with replace
 
 
 
@@ -20,10 +21,10 @@ package me.anno.input
 // done gaussian blur
 // todo depth of field
 // todo motion blur?
-// todo bokeh blur
+// done bokeh blur
 // todo bloom
 
-// todo select textures
+// todo open file explorer with chooser on file input
 // done enum input type with scrollbar
 
 

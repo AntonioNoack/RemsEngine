@@ -106,25 +106,10 @@ object DefaultConfig: StringMap() {
             "Video" to Video(File(""), null),
             // "Image" to Video(File(""), null),
             "Polygon" to Polygon(null),
-            "Rectangle" to {
-                val quad = Polygon(null)
-                quad.name = "Rectangle"
-                quad.vertexCount.set(4)
-                quad.autoAlign = true
-                quad
-            }(),
+            "Rectangle" to Rectangle.create(),
             "Circle" to Circle(null),
             "Folder" to Transform(),
-            "Mask" to {
-                val maskLayer = MaskLayer(null)
-                val mask = Transform(maskLayer)
-                mask.name = "Mask Folder"
-                Circle(mask).innerRadius.set(0.5f)
-                val masked = Transform(maskLayer)
-                masked.name = "Masked Folder"
-                Polygon(masked)
-                maskLayer
-            }(),
+            "Mask" to MaskLayer.create(null, null),
             "Text" to Text("Text", null),
             "Timer" to Timer(null),
             "Cubemap" to {

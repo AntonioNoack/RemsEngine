@@ -9,6 +9,8 @@ import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
+import me.anno.objects.geometric.Circle
+import me.anno.objects.geometric.Polygon
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.style.Style
 import org.joml.Matrix4fArrayList
@@ -21,8 +23,25 @@ class MaskLayer(parent: Transform? = null) : MaskLayerBase(parent) {
     var type = MaskType.MASKING
     val effectSize = AnimatedProperty.float01exp(0.01f)
 
+    companion object {
+        fun create(mask: List<Transform>?, masked: List<Transform>?): MaskLayer {
+            val maskLayer = MaskLayer(null)
+            val mask2 = Transform(maskLayer)
+            mask2.name = "Mask Folder"
+            if(mask == null){
+                Circle(mask2).innerRadius.set(0.5f)
+            } else mask.forEach { mask2.addChild(it) }
+            val masked2 = Transform(maskLayer)
+            masked2.name = "Masked Folder"
+            if(masked == null){
+                Polygon(masked2)
+            } else masked.forEach { masked2.addChild(it) }
+            return maskLayer
+        }
+    }
+
     // mask = 0, tex = 1
-    override fun drawOnScreen(localTransform: Matrix4fArrayList, time: Double, color: Vector4f, offsetColor: Vector4f) {
+    override fun drawOnScreen2(localTransform: Matrix4fArrayList, time: Double, color: Vector4f) {
         val pixelSize = effectSize[time]
         val isInverted = if (isInverted) 1f else 0f
         when (type) {
@@ -71,7 +90,7 @@ class MaskLayer(parent: Transform? = null) : MaskLayerBase(parent) {
 
                 GFX.draw3DMasked(
                     localTransform, color,
-                    type, useMaskColor[time], offsetColor,
+                    type, useMaskColor[time],
                     pixelSize, isInverted
                 )
             }
@@ -90,7 +109,7 @@ class MaskLayer(parent: Transform? = null) : MaskLayerBase(parent) {
 
                 GFX.draw3DMasked(
                     localTransform, color,
-                    type, useMaskColor[time], offsetColor,
+                    type, useMaskColor[time],
                     0f, isInverted
                 )
 
@@ -103,7 +122,7 @@ class MaskLayer(parent: Transform? = null) : MaskLayerBase(parent) {
                 GFX.check()
                 GFX.draw3DMasked(
                     localTransform, color,
-                    type, useMaskColor[time], offsetColor,
+                    type, useMaskColor[time],
                     pixelSize, isInverted
                 )
             }

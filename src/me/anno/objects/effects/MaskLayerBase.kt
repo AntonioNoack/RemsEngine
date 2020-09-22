@@ -1,6 +1,8 @@
 package me.anno.objects.effects
 
 import me.anno.config.DefaultStyle.black
+import me.anno.fonts.mesh.FontMesh2
+import me.anno.fonts.mesh.FontMeshBase
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.blending.BlendDepth
@@ -12,6 +14,8 @@ import me.anno.objects.GFXTransform
 import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.gpu.blending.BlendMode
+import me.anno.objects.Text
+import me.anno.objects.cache.Cache
 import me.anno.ui.base.SpacePanel
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.style.Style
@@ -43,7 +47,6 @@ abstract class MaskLayerBase(parent: Transform? = null): GFXTransform(parent){
     // for user-debugging
     var showMask = false
     var showMasked = false
-    var showFrame = true
 
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
 
@@ -86,7 +89,6 @@ abstract class MaskLayerBase(parent: Transform? = null): GFXTransform(parent){
         // forced, because the default value might be true instead of false
         writer.writeBool("showMask", showMask, true)
         writer.writeBool("showMasked", showMasked, true)
-        writer.writeBool("showFrame", showFrame, true)
         writer.writeBool("isFullscreen", isFullscreen, true)
         writer.writeBool("isInverted", isInverted, true)
         writer.writeObject(this, "useMaskColor", useMaskColor)
@@ -96,7 +98,6 @@ abstract class MaskLayerBase(parent: Transform? = null): GFXTransform(parent){
         when(name){
             "showMask" -> showMask = value
             "showMasked" -> showMasked = value
-            "showFrame" -> showFrame = value
             "isFullscreen" -> isFullscreen = value
             "isInverted" -> isInverted = value
             else -> super.readBool(name, value)
@@ -122,10 +123,10 @@ abstract class MaskLayerBase(parent: Transform? = null): GFXTransform(parent){
             .setColor(style.getChild("deep").getColor("background", black))
         list += VI("Show Mask", "for debugging purposes; shows the stencil", null, showMask, style){ showMask = it }
         list += VI("Show Masked", "for debugging purposes", null, showMasked, style){ showMasked = it }
-        list += VI("Show Frame", "Only works correctly without camera depth", null, showFrame, style){ showFrame = it }
     }
 
     override fun drawChildrenAutomatically() = false
+
 
     fun drawMask(stack: Matrix4fArrayList, time: Double, color: Vector4f){
 
@@ -181,18 +182,10 @@ abstract class MaskLayerBase(parent: Transform? = null): GFXTransform(parent){
             stack
         }
 
-        val offsetColor = if(showFrame && !isFinalRendering) frameColor else invisible
-
-        drawOnScreen(localTransform, time, color, offsetColor)
+        drawOnScreen2(localTransform, time, color)
 
     }
 
-    abstract fun drawOnScreen(localTransform: Matrix4fArrayList, time: Double, color: Vector4f, offsetColor: Vector4f)
-
-    companion object {
-        val frameColor = Vector4f(0.1f, 0.1f, 0.1f, 0.1f)
-        val invisible = Vector4f(0f, 0f, 0f, 0f)
-    }
-
+    abstract fun drawOnScreen2(localTransform: Matrix4fArrayList, time: Double, color: Vector4f)
 
 }

@@ -94,7 +94,7 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
                         GFX.addGPUTask(1){
                             list.forEach { content += it }
                             // force layout update
-                            Input.framesSinceLastInteraction = 0
+                            Input.invalidateLayout()
                         }
                         tmpList = ArrayList(tmpCount)
                     }

@@ -1,5 +1,7 @@
 package me.anno.input
 
+import me.anno.utils.toInt
+
 object Modifiers {
 
     private fun modifierString(ctrl: Boolean, shift: Boolean, alt: Boolean): String {
@@ -9,7 +11,7 @@ object Modifiers {
     private val modifiers = Array(8){ modifierString((it and 4) > 0, (it and 2) > 0, (it and 1) > 0) }
 
     operator fun get(ctrl: Boolean, shift: Boolean, alt: Boolean) =
-        modifiers[(if(ctrl) 4 else 0) + (if(shift) 2 else 0) + (if(alt) 1 else 0)]
+        modifiers[ctrl.toInt(4) + shift.toInt(2) + alt.toInt(1)]
     operator fun get(ctrl: Boolean, shift: Boolean) = get(ctrl, shift, false)
 
 }

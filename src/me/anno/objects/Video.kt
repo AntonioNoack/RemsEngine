@@ -10,6 +10,7 @@ import me.anno.gpu.buffer.StaticFloatBuffer
 import me.anno.gpu.texture.ClampMode
 import me.anno.gpu.texture.FilteringMode
 import me.anno.image.svg.SVGMesh
+import me.anno.input.Input
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.xml.XMLElement
@@ -281,6 +282,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
     }
 
     fun drawSpeakers(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
+        if(GFX.isFinalRendering) return
         color.w = clamp(color.w * 0.5f * abs(amplitude[time]), 0f, 1f)
         if (is3D) {
             val r = 0.85f
@@ -383,13 +385,16 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                 VideoType.AUDIO -> drawSpeakers(stack, time, color)
                 else -> throw RuntimeException("$type needs visualization")
             }
+
         } else drawSpeakers(stack, time, color)
-        super.onDraw(stack, time, color) // draw dot
+        // super.onDraw(stack, time, color) // draw dot
 
     }
 
     override fun createInspector(list: PanelListY, style: Style) {
         super.createInspector(list, style)
+
+        // to hide elements, which are not usable / have no effect
         val videoPanels = ArrayList<Panel>()
         val imagePanels = ArrayList<Panel>()
         val audioPanels = ArrayList<Panel>()
@@ -407,6 +412,9 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
             list += panel
             audioPanels += panel
         }
+
+        list += VI("File Location", "Source file of this video", null, file, style) { file = it }
+
         img(VI("Tiling", "(tile count x, tile count y, offset x, offset y)", tiling, style))
         vid(VI("Video Start", "Timestamp in seconds of the first frames drawn", null, startTime, style) {
             startTime = it
@@ -414,7 +422,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
         vid(VI("Video End", "Timestamp in seconds of the last frames drawn", null, endTime, style) { endTime = it })
         img(VI("Filtering", "Pixelated look?", null, filtering, style) { filtering = it })
         img(VI("Clamping", "For tiled images", null, clampMode, style) { clampMode = it })
-        // todo hide elements, if they are not used
+
         val videoScales = videoScaleNames.entries.sortedBy { it.value }
         vid(EnumInput(
             "Video Scale", true,
@@ -431,7 +439,6 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
         img(VI("Offset", "Color Grading, ASC CDL", cgOffset, style))
 
 
-        list += VI("File Location", "Source file of this video", null, file, style) { file = it }
         /*if(meta?.hasAudio == true){
             list += AudioLinePanel(meta, this, style)
         }*/
@@ -467,14 +474,20 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
             .setTooltip("Listen to the audio separated from the rest"))
 
         list += object : SpyPanel(style) {
+            var lastState = -1
             override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
                 val isValid = file.hasValidName()
                 val hasAudio = isValid && meta?.hasAudio == true
                 val hasImage = isValid && type == VideoType.IMAGE
                 val hasVideo = isValid && type == VideoType.VIDEO && meta?.hasVideo == true
-                audioPanels.forEach { it.visibility = if (hasAudio) Visibility.VISIBLE else Visibility.GONE }
-                videoPanels.forEach { it.visibility = if (hasVideo) Visibility.VISIBLE else Visibility.GONE }
-                imagePanels.forEach { it.visibility = if (hasImage) Visibility.VISIBLE else Visibility.GONE }
+                val state = hasAudio.toInt(1) + hasImage.toInt(2) + hasVideo.toInt(4)
+                if(state != lastState){
+                    lastState = state
+                    audioPanels.forEach { it.visibility = if (hasAudio) Visibility.VISIBLE else Visibility.GONE }
+                    videoPanels.forEach { it.visibility = if (hasVideo) Visibility.VISIBLE else Visibility.GONE }
+                    imagePanels.forEach { it.visibility = if (hasImage) Visibility.VISIBLE else Visibility.GONE }
+                    Input.invalidateLayout()
+                }
             }
         }
 

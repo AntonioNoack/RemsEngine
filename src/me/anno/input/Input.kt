@@ -78,6 +78,10 @@ object Input {
 
     fun needsLayoutUpdate() = framesSinceLastInteraction < layoutFrameCount
 
+    fun invalidateLayout(){
+        framesSinceLastInteraction = 0
+    }
+
     fun Int.toMouseButton() = when(this){
         0 -> MouseButton.LEFT
         1 -> MouseButton.RIGHT

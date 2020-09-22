@@ -14,6 +14,7 @@ import me.anno.io.text.TextReader
 import me.anno.io.utils.StringMap
 import me.anno.objects.*
 import me.anno.objects.Transform.Companion.toTransform
+import me.anno.objects.effects.MaskLayer
 import me.anno.studio.RemsStudio.onLargeChange
 import me.anno.studio.Studio
 import me.anno.studio.Studio.dragged
@@ -26,6 +27,7 @@ import me.anno.utils.mixARGB
 import org.joml.Vector4f
 import java.io.File
 import java.lang.Exception
+import java.lang.RuntimeException
 
 class TreeViewPanel(val getElement: () -> Transform, style: Style): TextPanel("", style){
 
@@ -74,6 +76,17 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style): TextPanel(""
                 fun add(action: (Transform) -> Transform): () -> Unit = { transform.apply { select(action(this)) } }
                 val options = DefaultConfig["createNewInstancesList"] as? StringMap
                 if(options != null){
+                    val extras = ArrayList<Pair<String, () -> Unit>>()
+                    if(transform.parent != null){
+                        extras += "Add Mask" to {
+                            val parent = transform.parent!!
+                            val i = parent.children.indexOf(transform)
+                            if(i < 0) throw RuntimeException()
+                            val mask = MaskLayer.create(listOf(Rectangle.create()), listOf(transform))
+                            mask.isFullscreen = true
+                            parent.setChildAt(mask, i)
+                        }
+                    }
                     GFX.openMenu(
                         mouseX, mouseY, "Add Child",
                         options.entries.map { (key, value) ->
@@ -83,7 +96,7 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style): TextPanel(""
                                 it.addChild(newT)
                                 newT
                             }
-                        }
+                        } + extras
                     )
                 } else println("Reset the config, to enable this menu!")
             }

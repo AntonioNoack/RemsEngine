@@ -98,6 +98,14 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
         list.addKeyframe(if(list.isAnimated) editorTime else 0.0, value, TimelinePanel.propertyDt)
     }
 
+    fun setChildAt(child: Transform, index: Int){
+        if(this in child.listOfAll) throw RuntimeException()
+        if(index >= children.size){
+            children.add(child)
+        } else children[index] = child
+        child.parent = this
+    }
+
     val usesEuler get() = rotationQuaternion == null
 
     fun show(anim: AnimatedProperty<*>?){

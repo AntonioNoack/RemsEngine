@@ -5,6 +5,7 @@ import me.anno.gpu.texture.ITexture2D
 import me.anno.objects.cache.Cache
 import me.anno.objects.cache.TextureCache
 import me.anno.utils.f3
+import me.anno.utils.toInt
 import org.apache.logging.log4j.LogManager
 import java.awt.Font
 import java.awt.GraphicsEnvironment
@@ -58,7 +59,7 @@ object FontManager {
     fun getString(fontName: String, fontSize: Float, text: String, bold: Boolean, italic: Boolean, widthLimit: Int): ITexture2D? {
         if(text.isEmpty()) return null
         val fontSizeIndex = getFontSizeIndex(fontSize)
-        val sub = fontSizeIndex * 4 + (if(bold) 1 else 0) + (if(italic) 2 else 0)
+        val sub = fontSizeIndex * 4 + bold.toInt(1) + italic.toInt(2)
         val widthLimit2 = if(widthLimit < 0) -1 else {
             loadTexturesSync.push(true)
             val w = getString(fontName, fontSize, text, bold, italic, -1)!!.w

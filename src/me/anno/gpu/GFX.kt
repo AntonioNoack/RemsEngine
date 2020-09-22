@@ -536,13 +536,12 @@ object GFX : GFXBase1() {
     fun draw3DMasked(
         stack: Matrix4fArrayList, color: Vector4f,
         maskType: MaskType,
-        useMaskColor: Float, offsetColor: Vector4f,
+        useMaskColor: Float,
         pixelSize: Float,
         isInverted: Float
     ) {
         val shader = shader3DMasked.shader
         shader3DUniforms(shader, stack, color)
-        shader.v4("offsetColor", offsetColor.x, offsetColor.y, offsetColor.z, offsetColor.w)
         shader.v1("useMaskColor", useMaskColor)
         shader.v1("invertMask", isInverted)
         shader.v1("maskType", maskType.id)
