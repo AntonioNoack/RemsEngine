@@ -1,18 +1,11 @@
 package me.anno.objects
 
-import me.anno.audio.AudioManager
 import me.anno.audio.AudioStreamOpenAL
 import me.anno.gpu.GFX
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.modes.LoopingState
-import me.anno.studio.Studio
-import me.anno.studio.Studio.nullCamera
-import me.anno.ui.base.ButtonPanel
-import me.anno.ui.base.groups.PanelListY
-import me.anno.ui.editor.AudioLinePanel
-import me.anno.ui.style.Style
 import me.anno.video.FFMPEGMetadata.Companion.getMeta
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
@@ -24,7 +17,6 @@ import java.lang.IllegalArgumentException
 // (it becomes pretty complicated, I think)
 
 // todo speaker distance
-// todo speaker symbols (if meta is not null, and audio is available)
 
 abstract class Audio(var file: File = File(""), parent: Transform? = null): GFXTransform(parent){
 
@@ -81,43 +73,6 @@ abstract class Audio(var file: File = File(""), parent: Transform? = null): GFXT
 
         getMeta(file, true) // just in case we need it ;)
 
-    }
-
-    override fun createInspector(list: PanelListY, style: Style) {
-        super.createInspector(list, style)
-        list += VI("File Location", "Source file of this video", null, file, style){ file = it }
-        val meta = forcedMeta
-        if(meta?.hasAudio == true){
-            list += AudioLinePanel(meta, this, style)
-        }
-        list += VI("Amplitude", "How loud it is", amplitude, style)
-        list += VI("Looping Type", "Whether to repeat the song/video", null, isLooping, style){
-            isLooping = it
-            AudioManager.requestUpdate()
-        }
-        list += VI("Is 3D Sound", "Sound becomes directional", null, is3D, style){
-            is3D = it
-            AudioManager.requestUpdate()
-        }
-        list += VI("Echo Delay", "", echoDelay, style)
-        list += VI("Echo Multiplier", "", echoMultiplier, style)
-        val playbackTitles = "Test Playback" to "Stop Playback"
-        fun getPlaybackTitle(invert: Boolean) = if((component == null) != invert) playbackTitles.first else playbackTitles.second
-        val playbackButton = ButtonPanel(getPlaybackTitle(false), style)
-        list += playbackButton
-            .setSimpleClickListener {
-                if(Studio.isPaused){
-                    playbackButton.text = getPlaybackTitle(true)
-                    if(component == null){
-                        GFX.addAudioTask(5){
-                            val audio = Video(file, null)
-                            audio.startPlayback(0.0, 1.0, nullCamera)
-                            component = audio.component
-                        }
-                    } else GFX.addAudioTask(1){ stopPlayback() }
-                } else Studio.warn("Separated playback is only available with paused editor")
-            }
-            .setTooltip("Listen to the audio separated from the rest")
     }
 
     override fun save(writer: BaseWriter) {

@@ -1,5 +1,6 @@
 package me.anno.objects
 
+import me.anno.audio.AudioManager
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.TextureLib
@@ -21,10 +22,14 @@ import me.anno.objects.modes.LoopingState
 import me.anno.objects.modes.UVProjection
 import me.anno.studio.Scene
 import me.anno.studio.Studio
+import me.anno.ui.base.ButtonPanel
+import me.anno.ui.base.Panel
+import me.anno.ui.base.SpyPanel
+import me.anno.ui.base.Visibility
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.files.hasValidName
 import me.anno.ui.editor.sceneView.Grid
-import me.anno.ui.input.*
+import me.anno.ui.input.EnumInput
 import me.anno.ui.style.Style
 import me.anno.utils.*
 import me.anno.video.FFMPEGMetadata
@@ -35,7 +40,6 @@ import org.joml.Matrix4fArrayList
 import org.joml.Vector3f
 import org.joml.Vector4f
 import java.io.File
-import java.lang.RuntimeException
 import kotlin.math.*
 
 // idea: hovering needs to be used to predict when the user steps forward in time
@@ -47,7 +51,7 @@ import kotlin.math.*
 /**
  * Images, Cubemaps, Videos, Audios, joint into one
  * */
-class Video(file: File = File(""), parent: Transform? = null): Audio(file, parent){
+class Video(file: File = File(""), parent: Transform? = null) : Audio(file, parent) {
 
     var tiling = AnimatedProperty.tiling()
     var uvProjection = UVProjection.Planar
@@ -75,7 +79,7 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
     fun calculateSize(matrix: Matrix4f, w: Int, h: Int): Int? {
 
         /**
-            gl_Position = transform * vec4(betterUV, 0.0, 1.0);
+        gl_Position = transform * vec4(betterUV, 0.0, 1.0);
          * */
 
         // clamp points to edges of screens, if outside, clamp on the z edges
@@ -83,12 +87,13 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
         // the most extreme cases should be on a quad always, because it's linear
         // -> clamp all axis separately
 
-        val avgSize = if(w * Studio.targetHeight > h * Studio.targetWidth) w.toFloat() * Studio.targetHeight / Studio.targetWidth else h.toFloat()
+        val avgSize =
+            if (w * Studio.targetHeight > h * Studio.targetWidth) w.toFloat() * Studio.targetHeight / Studio.targetWidth else h.toFloat()
         val sx = w / avgSize
         val sy = h / avgSize
 
         fun getPoint(x: Float, y: Float): Vector4f {
-            return matrix.transformProject(Vector4f(x*sx, y*sy, 0f, 1f))
+            return matrix.transformProject(Vector4f(x * sx, y * sy, 0f, 1f))
         }
 
         val v00 = getPoint(-1f, -1f)
@@ -113,8 +118,8 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
             val n = Scene.nearZ
             val f = Scene.farZ
             val top = 2 * f * n
-            val bottom = (z * (f-n) - (f+n))
-            return - top / bottom // the usual z is negative -> invert it :)
+            val bottom = (z * (f - n) - (f + n))
+            return -top / bottom // the usual z is negative -> invert it :)
         }
 
         val closestDistance = min(unmapZ(zRange.first), unmapZ(zRange.second))
@@ -142,12 +147,12 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
 
     var zoomLevel = 0
 
-    fun drawVideoFrames(meta: FFMPEGMetadata, stack: Matrix4fArrayList, time: Double, color: Vector4f){
+    fun drawVideoFrames(meta: FFMPEGMetadata, stack: Matrix4fArrayList, time: Double, color: Vector4f) {
 
         // todo automatic spherical size estimation??
-        val zoomLevel = if(videoScale < 1) {
+        val zoomLevel = if (videoScale < 1) {
             // calculate reasonable zoom level from canvas size
-            if(uvProjection.doScale){
+            if (uvProjection.doScale) {
                 val rawZoomLevel = calculateSize(stack, meta.videoWidth, meta.videoHeight) ?: return
                 getCacheableZoomLevel(rawZoomLevel)
             } else 1
@@ -159,16 +164,16 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
         val sourceFPS = meta.videoFPS
         val sourceDuration = meta.videoDuration
 
-        if(startTime >= sourceDuration) startTime = sourceDuration
-        if(endTime >= sourceDuration) endTime = sourceDuration
+        if (startTime >= sourceDuration) startTime = sourceDuration
+        if (endTime >= sourceDuration) endTime = sourceDuration
 
-        if(sourceFPS > 0.0){
-            if(time + startTime >= 0.0 && (isLooping != LoopingState.PLAY_ONCE || time <= endTime)){
+        if (sourceFPS > 0.0) {
+            if (time + startTime >= 0.0 && (isLooping != LoopingState.PLAY_ONCE || time <= endTime)) {
 
                 // use full fps when rendering to correctly render at max fps with time dilation
                 // issues arise, when multiple frames should be interpolated together into one
                 // at this time, we chose the center frame only.
-                val videoFPS = if(GFX.isFinalRendering) sourceFPS else min(sourceFPS, GFX.editorVideoFPS)
+                val videoFPS = if (GFX.isFinalRendering) sourceFPS else min(sourceFPS, GFX.editorVideoFPS)
 
                 val frameCount = max(1, (sourceDuration * videoFPS).roundToInt())
 
@@ -177,13 +182,23 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
                 val localTime = startTime + isLooping[time, duration]
                 val frameIndex = (localTime * videoFPS).toInt() % frameCount
 
-                val frame = Cache.getVideoFrame(file, zoomLevel, frameIndex, framesPerContainer, videoFPS, videoFrameTimeout, true)
-                if(frame != null && frame.isLoaded){
-                    GFX.draw3DVideo(this, time,
-                        stack, frame, color, this@Video.filtering, this@Video.clampMode, tiling[time], uvProjection)
+                val frame = Cache.getVideoFrame(
+                    file,
+                    zoomLevel,
+                    frameIndex,
+                    framesPerContainer,
+                    videoFPS,
+                    videoFrameTimeout,
+                    true
+                )
+                if (frame != null && frame.isLoaded) {
+                    GFX.draw3DVideo(
+                        this, time,
+                        stack, frame, color, this@Video.filtering, this@Video.clampMode, tiling[time], uvProjection
+                    )
                     wasDrawn = true
                 } else {
-                    if(GFX.isFinalRendering){
+                    if (GFX.isFinalRendering) {
                         throw MissingFrameException(file)
                     }
                 }
@@ -195,55 +210,83 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
             } else wasDrawn = true
         }
 
-        if(!wasDrawn){
-            GFX.draw3D(stack, colorShowTexture, 16, 9,
+        if (!wasDrawn) {
+            GFX.draw3D(
+                stack, colorShowTexture, 16, 9,
                 Vector4f(0.5f, 0.5f, 0.5f, 1f).mul(color),
                 FilteringMode.NEAREST, ClampMode.REPEAT, tiling16x9, uvProjection
             )
         }
     }
 
-    fun drawImageFrames(stack: Matrix4fArrayList, time: Double, color: Vector4f){
+    fun drawImageFrames(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
         val name = file.name
         when {
             name.endsWith("svg", true) -> {
-                val bufferData = Cache.getEntry(file.absolutePath, "svg", 0, imageTimeout, true){
+                val bufferData = Cache.getEntry(file.absolutePath, "svg", 0, imageTimeout, true) {
                     val svg = SVGMesh()
                     svg.parse(XMLReader.parse(file.inputStream().buffered()) as XMLElement)
                     StaticFloatBufferData(svg.buffer!!)
                 } as? StaticFloatBufferData
-                if(bufferData == null && GFX.isFinalRendering) throw MissingFrameException(file)
-                if(bufferData != null){
+                if (bufferData == null && GFX.isFinalRendering) throw MissingFrameException(file)
+                if (bufferData != null) {
                     // todo apply tiling for svgs...
-                    GFX.draw3DSVG(stack, bufferData.buffer, TextureLib.whiteTexture, color, FilteringMode.NEAREST, ClampMode.CLAMP)
+                    GFX.draw3DSVG(
+                        stack,
+                        bufferData.buffer,
+                        TextureLib.whiteTexture,
+                        color,
+                        FilteringMode.NEAREST,
+                        ClampMode.CLAMP
+                    )
                 }
             }
             name.endsWith("webp", true) -> {
                 val tiling = tiling[time]
                 // calculate required scale? no, without animation, we don't need to scale it down ;)
                 val texture = Cache.getVideoFrame(file, 1, 0, 1, 1.0, imageTimeout, true)
-                if((texture == null || !texture.isLoaded) && GFX.isFinalRendering) throw MissingFrameException(file)
-                if(texture?.isLoaded == true) GFX.draw3DVideo(this, time, stack, texture, color, this@Video.filtering, this@Video.clampMode, tiling, uvProjection)
+                if ((texture == null || !texture.isLoaded) && GFX.isFinalRendering) throw MissingFrameException(file)
+                if (texture?.isLoaded == true) GFX.draw3DVideo(
+                    this,
+                    time,
+                    stack,
+                    texture,
+                    color,
+                    this@Video.filtering,
+                    this@Video.clampMode,
+                    tiling,
+                    uvProjection
+                )
             }
             else -> {// some image
                 val tiling = tiling[time]
                 val texture = Cache.getImage(file, imageTimeout, true)
-                if(texture == null && GFX.isFinalRendering) throw MissingFrameException(file)
+                if (texture == null && GFX.isFinalRendering) throw MissingFrameException(file)
                 texture?.apply {
                     rotation?.apply(stack)
-                    GFX.draw3DVideo(this@Video, time, stack, texture, color, this@Video.filtering, this@Video.clampMode, tiling, uvProjection)
+                    GFX.draw3DVideo(
+                        this@Video,
+                        time,
+                        stack,
+                        texture,
+                        color,
+                        this@Video.filtering,
+                        this@Video.clampMode,
+                        tiling,
+                        uvProjection
+                    )
                 }
             }
         }
     }
 
-    fun drawSpeakers(stack: Matrix4fArrayList, time: Double, color: Vector4f){
+    fun drawSpeakers(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
         color.w = clamp(color.w * 0.5f * abs(amplitude[time]), 0f, 1f)
-        if(is3D){
+        if (is3D) {
             val r = 0.85f
             stack.translate(r, 0f, 0f)
             Grid.drawBuffer(stack, color, speakerModel)
-            stack.translate(-2*r, 0f, 0f)
+            stack.translate(-2 * r, 0f, 0f)
             Grid.drawBuffer(stack, color, speakerModel)
         } else {
             // mark the speaker with yellow,
@@ -261,25 +304,25 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
     }
 
     override fun claimLocalResources(localTime: Double) {
-        when(val type = type){
+        when (val type = type) {
             VideoType.VIDEO -> {
                 // load the video
                 val meta = getMeta(file, true)
-                if(meta != null){
+                if (meta != null) {
 
                     val sourceFPS = meta.videoFPS
                     val sourceDuration = meta.videoDuration
 
-                    if(startTime >= sourceDuration) startTime = sourceDuration
-                    if(endTime >= sourceDuration) endTime = sourceDuration
+                    if (startTime >= sourceDuration) startTime = sourceDuration
+                    if (endTime >= sourceDuration) endTime = sourceDuration
 
-                    if(sourceFPS > 0.0){
-                        if(localTime + startTime >= 0.0 && (isLooping != LoopingState.PLAY_ONCE || localTime < endTime)){
+                    if (sourceFPS > 0.0) {
+                        if (localTime + startTime >= 0.0 && (isLooping != LoopingState.PLAY_ONCE || localTime < endTime)) {
 
                             // use full fps when rendering to correctly render at max fps with time dilation
                             // issues arise, when multiple frames should be interpolated together into one
                             // at this time, we chose the center frame only.
-                            val videoFPS = if(GFX.isFinalRendering) sourceFPS else min(sourceFPS, GFX.editorVideoFPS)
+                            val videoFPS = if (GFX.isFinalRendering) sourceFPS else min(sourceFPS, GFX.editorVideoFPS)
 
                             val frameCount = max(1, (sourceDuration * videoFPS).roundToInt())
 
@@ -288,15 +331,25 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
                             val localTime2 = startTime + isLooping[localTime, duration]
                             val frameIndex = (localTime2 * videoFPS).toInt() % frameCount
 
-                            Cache.getVideoFrame(file, zoomLevel, frameIndex, frameCount, videoFPS, videoFrameTimeout, true)
+                            Cache.getVideoFrame(
+                                file,
+                                zoomLevel,
+                                frameIndex,
+                                frameCount,
+                                videoFPS,
+                                videoFrameTimeout,
+                                true
+                            )
 
                         }
                     }
                 }
             }
             // nothing to do for image and audio
-            VideoType.IMAGE -> {}
-            VideoType.AUDIO -> {}
+            VideoType.IMAGE -> {
+            }
+            VideoType.AUDIO -> {
+            }
             else -> throw RuntimeException("todo implement resource loading for $type")
         }
     }
@@ -304,21 +357,21 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
 
         val file = file
-        if(file.hasValidName()){
+        if (file.hasValidName()) {
 
-            if(file !== lastFile){
+            if (file !== lastFile) {
                 lastFile = file
-                type = when(file.extension.getImportType()){
+                type = when (file.extension.getImportType()) {
                     "Video" -> VideoType.VIDEO
                     "Audio" -> VideoType.AUDIO
                     else -> VideoType.IMAGE
                 }
             }
 
-            val meta = meta
-            when(type){
+            when (type) {
                 VideoType.VIDEO -> {
-                    if(meta?.hasVideo == true){
+                    val meta = meta
+                    if (meta?.hasVideo == true) {
                         drawVideoFrames(meta, stack, time, color)
                     }
                     // very intrusive :/
@@ -337,24 +390,94 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
 
     override fun createInspector(list: PanelListY, style: Style) {
         super.createInspector(list, style)
-        list += VI("Tiling", "(tile count x, tile count y, offset x, offset y)", tiling, style)
-        list += VI("Video Start", "Timestamp in seconds of the first frames drawn", null, startTime, style){ startTime = it }
-        list += VI("Video End", "Timestamp in seconds of the last frames drawn", null, endTime, style) { endTime = it }
-        list += VI("Filtering", "Pixelated look?", null, filtering, style){ filtering = it }
-        list += VI("Clamping", "For tiled images", null, clampMode, style){ clampMode = it }
+        val videoPanels = ArrayList<Panel>()
+        val imagePanels = ArrayList<Panel>()
+        val audioPanels = ArrayList<Panel>()
+        fun vid(panel: Panel) {
+            list += panel
+            videoPanels += panel
+        }
+
+        fun img(panel: Panel) {
+            list += panel
+            imagePanels += panel
+        }
+
+        fun aud(panel: Panel) {
+            list += panel
+            audioPanels += panel
+        }
+        img(VI("Tiling", "(tile count x, tile count y, offset x, offset y)", tiling, style))
+        vid(VI("Video Start", "Timestamp in seconds of the first frames drawn", null, startTime, style) {
+            startTime = it
+        })
+        vid(VI("Video End", "Timestamp in seconds of the last frames drawn", null, endTime, style) { endTime = it })
+        img(VI("Filtering", "Pixelated look?", null, filtering, style) { filtering = it })
+        img(VI("Clamping", "For tiled images", null, clampMode, style) { clampMode = it })
         // todo hide elements, if they are not used
         val videoScales = videoScaleNames.entries.sortedBy { it.value }
-        list += EnumInput("Video Scale", true,
+        vid(EnumInput(
+            "Video Scale", true,
             videoScaleNames.reverse[videoScale] ?: "Auto",
-            videoScales.map { it.key }, style)
+            videoScales.map { it.key }, style
+        )
             .setChangeListener { _, index, _ -> videoScale = videoScales[index].value }
             .setIsSelectedListener { show(null) }
-            .setTooltip("Full resolution isn't always required. Define it yourself, or set it to automatic.")
-        list += VI("UV-Projection", "Can be used for 360°-Videos", null, uvProjection, style){ uvProjection = it }
-        list += VI("Power", "Color Grading, ASC CDL", cgPower, style)
-        list += VI("Saturation", "Color Grading, 0 = gray scale, 1 = normal, -1 = inverted colors", cgSaturation, style)
-        list += VI("Slope", "Color Grading, Intensity", cgSlope, style)
-        list += VI("Offset", "Color Grading, ASC CDL", cgOffset, style)
+            .setTooltip("Full resolution isn't always required. Define it yourself, or set it to automatic."))
+        img(VI("UV-Projection", "Can be used for 360°-Videos", null, uvProjection, style) { uvProjection = it })
+        img(VI("Power", "Color Grading, ASC CDL", cgPower, style))
+        img(VI("Saturation", "Color Grading, 0 = gray scale, 1 = normal, -1 = inverted colors", cgSaturation, style))
+        img(VI("Slope", "Color Grading, Intensity", cgSlope, style))
+        img(VI("Offset", "Color Grading, ASC CDL", cgOffset, style))
+
+
+        list += VI("File Location", "Source file of this video", null, file, style) { file = it }
+        /*if(meta?.hasAudio == true){
+            list += AudioLinePanel(meta, this, style)
+        }*/
+        aud(VI("Amplitude", "How loud it is", amplitude, style))
+        VI("Looping Type", "Whether to repeat the song/video", null, isLooping, style) {
+            isLooping = it
+            AudioManager.requestUpdate()
+        }
+        aud(VI("Is 3D Sound", "Sound becomes directional", null, is3D, style) {
+            is3D = it
+            AudioManager.requestUpdate()
+        })
+        aud(VI("Echo Delay", "", echoDelay, style))
+        aud(VI("Echo Multiplier", "", echoMultiplier, style))
+        val playbackTitles = "Test Playback" to "Stop Playback"
+        fun getPlaybackTitle(invert: Boolean) =
+            if ((component == null) != invert) playbackTitles.first else playbackTitles.second
+
+        val playbackButton = ButtonPanel(getPlaybackTitle(false), style)
+        aud(playbackButton
+            .setSimpleClickListener {
+                if (Studio.isPaused) {
+                    playbackButton.text = getPlaybackTitle(true)
+                    if (component == null) {
+                        GFX.addAudioTask(5) {
+                            val audio = Video(file, null)
+                            audio.startPlayback(0.0, 1.0, Studio.nullCamera)
+                            component = audio.component
+                        }
+                    } else GFX.addAudioTask(1) { stopPlayback() }
+                } else Studio.warn("Separated playback is only available with paused editor")
+            }
+            .setTooltip("Listen to the audio separated from the rest"))
+
+        list += object : SpyPanel(style) {
+            override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+                val isValid = file.hasValidName()
+                val hasAudio = isValid && meta?.hasAudio == true
+                val hasImage = isValid && type == VideoType.IMAGE
+                val hasVideo = isValid && type == VideoType.VIDEO && meta?.hasVideo == true
+                audioPanels.forEach { it.visibility = if (hasAudio) Visibility.VISIBLE else Visibility.GONE }
+                videoPanels.forEach { it.visibility = if (hasVideo) Visibility.VISIBLE else Visibility.GONE }
+                imagePanels.forEach { it.visibility = if (hasImage) Visibility.VISIBLE else Visibility.GONE }
+            }
+        }
+
     }
 
     override fun getClassName(): String = "Video"
@@ -374,7 +497,7 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
     }
 
     override fun readObject(name: String, value: ISaveable?) {
-        when(name){
+        when (name) {
             "tiling" -> tiling.copyFrom(value)
             "cgSaturation" -> cgSaturation.copyFrom(value)
             "cgOffset" -> cgOffset.copyFrom(value)
@@ -385,7 +508,7 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
     }
 
     override fun readInt(name: String, value: Int) {
-        when(name){
+        when (name) {
             "videoScale" -> videoScale = value
             "filtering" -> filtering = filtering.find(value)
             "clamping" -> clampMode = ClampMode.values().firstOrNull { it.id == value } ?: clampMode
@@ -394,14 +517,14 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
     }
 
     override fun readString(name: String, value: String) {
-        when(name){
+        when (name) {
             "path", "file" -> file = File(value)
             else -> super.readString(name, value)
         }
     }
 
     override fun readDouble(name: String, value: Double) {
-        when(name){
+        when (name) {
             "startTime" -> startTime = value
             "endTime" -> endTime = value
             else -> super.readDouble(name, value)
@@ -412,6 +535,7 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
 
 
         val videoScaleNames = BiMap<String, Int>(10)
+
         init {
             videoScaleNames["Auto"] = 0
             videoScaleNames["Original"] = 1
@@ -431,23 +555,24 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
 
         val cubemapModel = StaticFloatBuffer(listOf(Attribute("attr0", 3), Attribute("attr1", 2)), 4 * 6)
         val speakerModel: StaticFloatBuffer
+
         init {
 
-            fun put(v0: Vector3f, dx: Vector3f, dy: Vector3f, x: Float, y: Float, u: Int, v: Int){
-                val pos = v0 + dx*x + dy*y
-                cubemapModel.put(pos.x, pos.y, pos.z, u/4f, v/3f)
+            fun put(v0: Vector3f, dx: Vector3f, dy: Vector3f, x: Float, y: Float, u: Int, v: Int) {
+                val pos = v0 + dx * x + dy * y
+                cubemapModel.put(pos.x, pos.y, pos.z, u / 4f, v / 3f)
             }
 
-            fun addFace(u: Int, v: Int, v0: Vector3f, dx: Vector3f, dy: Vector3f){
-                put(v0, dx, dy, -1f, -1f, u+1, v)
-                put(v0, dx, dy, -1f, +1f, u+1, v+1)
-                put(v0, dx, dy, +1f, +1f, u, v+1)
+            fun addFace(u: Int, v: Int, v0: Vector3f, dx: Vector3f, dy: Vector3f) {
+                put(v0, dx, dy, -1f, -1f, u + 1, v)
+                put(v0, dx, dy, -1f, +1f, u + 1, v + 1)
+                put(v0, dx, dy, +1f, +1f, u, v + 1)
                 put(v0, dx, dy, +1f, -1f, u, v)
             }
 
-            val mxAxis = Vector3f(-1f,0f,0f)
-            val myAxis = Vector3f(0f,-1f,0f)
-            val mzAxis = Vector3f(0f,0f,-1f)
+            val mxAxis = Vector3f(-1f, 0f, 0f)
+            val myAxis = Vector3f(0f, -1f, 0f)
+            val mzAxis = Vector3f(0f, 0f, -1f)
 
             addFace(1, 1, mzAxis, mxAxis, yAxis) // center, front
             addFace(0, 1, mxAxis, zAxis, yAxis) // left, left
@@ -459,24 +584,26 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
             cubemapModel.quads()
 
             val speakerEdges = 64
-            speakerModel = StaticFloatBuffer(listOf(
-                Attribute("attr0", 3),
-                Attribute("attr1", 2)
-            ), speakerEdges * 3 * 2 + 4 * 2 * 2)
+            speakerModel = StaticFloatBuffer(
+                listOf(
+                    Attribute("attr0", 3),
+                    Attribute("attr1", 2)
+                ), speakerEdges * 3 * 2 + 4 * 2 * 2
+            )
 
-            fun addLine(r0: Float, d0: Float, r1: Float, d1: Float, dx: Int, dy: Int){
-                speakerModel.put(r0*dx, r0*dy, d0, 0f, 0f)
-                speakerModel.put(r1*dx, r1*dy, d1, 0f, 0f)
+            fun addLine(r0: Float, d0: Float, r1: Float, d1: Float, dx: Int, dy: Int) {
+                speakerModel.put(r0 * dx, r0 * dy, d0, 0f, 0f)
+                speakerModel.put(r1 * dx, r1 * dy, d1, 0f, 0f)
             }
 
-            fun addRing(radius: Float, depth: Float, edges: Int){
+            fun addRing(radius: Float, depth: Float, edges: Int) {
                 val dr = (Math.PI * 2 / edges).toFloat()
-                fun putPoint(i: Int){
+                fun putPoint(i: Int) {
                     val angle1 = dr * i
-                    speakerModel.put(sin(angle1)*radius, cos(angle1)*radius, depth, 0f, 0f)
+                    speakerModel.put(sin(angle1) * radius, cos(angle1) * radius, depth, 0f, 0f)
                 }
                 putPoint(0)
-                for(i in 1 until edges){
+                for (i in 1 until edges) {
                     putPoint(i)
                     putPoint(i)
                 }
@@ -485,15 +612,15 @@ class Video(file: File = File(""), parent: Transform? = null): Audio(file, paren
 
             val scale = 0.5f
 
-            addRing(0.45f*scale, 0.02f*scale, speakerEdges)
-            addRing(0.50f*scale, 0.01f*scale, speakerEdges)
-            addRing(0.80f*scale, 0.30f*scale, speakerEdges)
+            addRing(0.45f * scale, 0.02f * scale, speakerEdges)
+            addRing(0.50f * scale, 0.01f * scale, speakerEdges)
+            addRing(0.80f * scale, 0.30f * scale, speakerEdges)
 
-            val dx = listOf(0,0,1,-1)
-            val dy = listOf(1,-1,0,0)
-            for(i in 0 until 4){
-                addLine(0.45f*scale, 0.02f*scale, 0.50f*scale, 0.01f*scale, dx[i], dy[i])
-                addLine(0.50f*scale, 0.01f*scale, 0.80f*scale, 0.30f*scale, dx[i], dy[i])
+            val dx = listOf(0, 0, 1, -1)
+            val dy = listOf(1, -1, 0, 0)
+            for (i in 0 until 4) {
+                addLine(0.45f * scale, 0.02f * scale, 0.50f * scale, 0.01f * scale, dx[i], dy[i])
+                addLine(0.50f * scale, 0.01f * scale, 0.80f * scale, 0.30f * scale, dx[i], dy[i])
             }
 
             speakerModel.lines()
