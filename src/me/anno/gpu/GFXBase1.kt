@@ -1,6 +1,5 @@
 package me.anno.gpu
 
-import me.anno.studio.Build.isDebug
 import org.joml.Vector4f
 import org.lwjgl.BufferUtils
 import org.lwjgl.glfw.GLFW

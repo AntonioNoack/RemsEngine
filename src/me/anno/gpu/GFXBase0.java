@@ -5,8 +5,10 @@
 package me.anno.gpu;
 
 import kotlin.Unit;
+import me.anno.config.DefaultConfig;
 import me.anno.input.Input;
 import me.anno.studio.Build;
+import me.anno.studio.RemsStudio;
 import me.anno.studio.Studio;
 import me.anno.studio.project.Project;
 import org.apache.logging.log4j.LogManager;
@@ -70,10 +72,12 @@ public class GFXBase0 {
                 destroyed = true;
                 glfwDestroyWindow(window);
             }
+
             if (debugProc != null)
                 debugProc.free();
             keyCallback.free();
             fsCallback.free();
+
         } catch (Exception e){
             e.printStackTrace();
         } finally {
@@ -285,6 +289,8 @@ public class GFXBase0 {
 
     }
 
+    boolean shouldClose = false;
+
     void winProcLoop() {
         /*
          * Start new thread to have the OpenGL context current in and which does
@@ -292,9 +298,27 @@ public class GFXBase0 {
          */
         new Thread(this::runRenderLoop).start();
 
-        while (!glfwWindowShouldClose(window)) {
-            glfwWaitEvents();
+        while(!shouldClose){
+            while (!glfwWindowShouldClose(window) && !shouldClose) {
+                glfwWaitEvents();
+            }
+            if(DefaultConfig.INSTANCE.get("window.close.directly", false)){
+                break;
+            } else {
+                glfwSetWindowShouldClose(window, false);
+                GFX.INSTANCE.addGPUTask(1, () -> {
+                    GFX.INSTANCE.ask("Close Rem's Studio?", () -> {
+                        shouldClose = true;
+                        glfwSetWindowShouldClose(window, true);
+                        return null;
+                    });
+                    Input.INSTANCE.invalidateLayout();
+                    RemsStudio.INSTANCE.getWindowStack().peek().setAcceptsClickAway(false);
+                    return null;
+                });
+            }
         }
+
     }
 
     public static void main(String[] args) {

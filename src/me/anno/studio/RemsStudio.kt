@@ -55,6 +55,8 @@ import kotlin.math.roundToInt
 
 // todo ask before closing window
 
+// todo input field title, no focus color
+
 object RemsStudio {
 
     val startTime = System.nanoTime()
