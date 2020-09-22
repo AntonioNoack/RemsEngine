@@ -14,9 +14,12 @@ import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.input.TextInput
 import me.anno.ui.style.Style
 import me.anno.utils.OS
+import me.anno.utils.clamp
 import me.anno.utils.listFiles2
+import me.anno.utils.pow
 import java.io.File
 import kotlin.concurrent.thread
+import kotlin.math.max
 
 // todo the text size is quite small on my x360 -> get the font size for the ui from the OS :)
 // todo double click is not working in touch mode?
@@ -39,6 +42,8 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
 
     var searchTerm = ""
     var isValid = 0f
+
+    var entrySize = 100f
 
     fun invalidate(){
         isValid = 0f
@@ -163,6 +168,15 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
             else -> return super.onGotAction(x, y, dx, dy, action, isContinuous)
         }
         return true
+    }
+
+    override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float) {
+        if(Input.isControlDown){
+            entrySize = clamp(entrySize * pow(1.05f, dy), 20f, max(w/2f, 20f))
+            val esi = entrySize.toInt()
+            content.childWidth = esi
+            content.childHeight = esi
+        } else super.onMouseWheel(x, y, dx, dy)
     }
 
     companion object {

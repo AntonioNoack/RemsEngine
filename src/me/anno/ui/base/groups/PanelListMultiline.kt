@@ -64,6 +64,7 @@ class PanelListMultiline(style: Style): PanelGroup(style), ScrollableY {
         calcChildHeight = if(scaleChildren) (childHeight * childScale).toInt() else childHeight
         minW = max(w, calcChildWidth)
         minH = max((calcChildHeight + spacing) * rows - spacing, h)
+        minH += childHeight / 2 /* Reserve, because somehow it's not enough... */
         minH2 = minH
     }
 
@@ -107,7 +108,7 @@ class PanelListMultiline(style: Style): PanelGroup(style), ScrollableY {
     }
 
     override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float) {
-        if(!Input.isShiftDown){
+        if(!Input.isShiftDown && !Input.isControlDown){
             val delta = dx-dy
             val scale = 20f
             if((delta > 0f && scrollPosition >= maxScrollPosition) ||

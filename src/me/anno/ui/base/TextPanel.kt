@@ -42,6 +42,9 @@ open class TextPanel(open var text: String, style: Style): Panel(style){
             text, color, backgroundColor, if(breaksIntoMultiline) this.w else -1)
     }
 
+    var minW2 = 0
+    var minH2 = 0
+
     override fun calculateSize(w: Int, h: Int) {
         val text = if(text.isBlank()) "." else text
         val inst = instantTextLoading
@@ -50,6 +53,8 @@ open class TextPanel(open var text: String, style: Style): Panel(style){
         val (w2, h2) = GFX.getTextSize(fontName, textSize, isBold, isItalic, text, if(breaksIntoMultiline) w else -1)
         minW = w2 + padding.width
         minH = h2 + padding.height
+        minW2 = minW
+        minH2 = minH
         if(inst) loadTexturesSync.pop()
     }
 

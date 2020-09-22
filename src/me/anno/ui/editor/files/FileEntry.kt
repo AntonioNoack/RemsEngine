@@ -37,7 +37,8 @@ class FileEntry(val explorer: FileExplorer, val isParent: Boolean, val file: Fil
 
     var audio: Audio? = null
 
-    val size = 100
+    val size get() = explorer.entrySize.toInt()
+
     val importType = file.extension.getImportType()
     var iconPath = if (file.isDirectory) {
         if (file.listFiles2().isNotEmpty())
@@ -64,6 +65,7 @@ class FileEntry(val explorer: FileExplorer, val isParent: Boolean, val file: Fil
 
     override fun calculateSize(w: Int, h: Int) {
         super.calculateSize(w, h)
+        val size = size
         minW = size
         minH = size
         this.w = size
@@ -73,6 +75,7 @@ class FileEntry(val explorer: FileExplorer, val isParent: Boolean, val file: Fil
     var startTime = 0L
 
     fun drawDefaultIcon(){
+        val size = size
         val image = Cache.getIcon(iconPath, true) ?: whiteTexture
         var iw = image.w
         var ih = image.h
@@ -84,9 +87,19 @@ class FileEntry(val explorer: FileExplorer, val isParent: Boolean, val file: Fil
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+
+        val size = size
+
+        // todo only show tooltip, if there is not enough space for the full name
+        // tooltip = if(x1-x0 > title.minW2) file.name else ""
+
         wasInFocus = isInFocus
         backgroundColor = if (isInFocus) darkerBackgroundColor else originalBackgroundColor
         drawBackground()
+
+        // todo extra start button for Isabell, and disabled auto-play
+        // todo settings xD
+
         // todo tiles on background to show transparency? ofc only in the area of the image
 
         fun drawImage(): Boolean {

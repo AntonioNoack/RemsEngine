@@ -53,6 +53,8 @@ import kotlin.math.roundToInt
 
 // todo small preview?
 
+// todo ask before closing window
+
 object RemsStudio {
 
     val startTime = System.nanoTime()
