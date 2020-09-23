@@ -67,6 +67,7 @@ import kotlin.math.roundToInt
 // todo show the current mode with the cursor
 
 // todo right click on input to get context menu, e.g. to reset
+// todo switch animatedproperty when selecting another object
 
 // todo key controls like in Blender:
 // start command with s/g/...
@@ -263,6 +264,8 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
         val height = fb?.h ?: GFX.height
         GFX.clip(0, 0, width, height)
 
+        // ("rc $clickX $clickY $width $height")
+
         val radius = 2
         val diameter = radius * 2 + 1
 
@@ -319,8 +322,8 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
         if (bestResult > 0) {
             val transform = (root.listOfAll + nullCamera).firstOrNull { it.clickId == bestResult }
             select(transform)
-            // ("clicked color ${bestResult.toUInt().toString(16)}, transform: $transform")
-            // ((root.listOfAll + nullCamera).map { it.clickId })
+            // println("clicked color ${bestResult.toUInt().toString(16)}, transform: $transform")
+            // println((root.listOfAll + nullCamera).map { it.clickId.toString(16) }.joinToString())
         } else select(null)
         GFX.check()
 
@@ -461,6 +464,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
                 ) * (uiZ / 6) // why ever 1/6...
                 selected.position.addKeyframe(localTime, oldPosition + localDelta)
                 if (selected != nullCamera) onSmallChange("SceneView-move")
+
             }
             /*TransformMode.SCALE -> {
                 val oldScale = selected.scale[localTime]
@@ -523,9 +527,6 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
         Studio.updateInspector()
         // AudioManager.requestUpdate()
     }
-
-    // todo undo, redo by serialization of the scene
-    // todo switch animatedproperty when selecting another object
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
         when (action) {

@@ -5,7 +5,6 @@ import me.anno.config.DefaultStyle.white
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.TextureLib.whiteTexture
-import me.anno.input.Input
 import me.anno.input.Input.isShiftDown
 import me.anno.input.Input.mouseDownX
 import me.anno.input.Input.mouseDownY
@@ -15,13 +14,16 @@ import me.anno.input.Input.mouseY
 import me.anno.input.MouseButton
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
+import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.animation.Keyframe
 import me.anno.studio.RemsStudio.onSmallChange
 import me.anno.studio.Studio
 import me.anno.studio.Studio.editorTime
 import me.anno.studio.Studio.editorTimeDilation
+import me.anno.studio.Studio.root
 import me.anno.studio.Studio.selectedProperty
+import me.anno.studio.Studio.selectedTransform
 import me.anno.ui.editor.TimelinePanel
 import me.anno.ui.style.Style
 import me.anno.utils.*
@@ -126,11 +128,16 @@ class GraphEditorBody(style: Style): TimelinePanel(style.getChild("deep")){
         loadTexturesSync.pop()
     }
 
+    var lastOwner: Transform = root
+
+    var time0 = 0.0
+    var time1 = 1.0
+
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
 
         drawBackground()
 
-        val targetUnitScale = Studio.selectedProperty?.type?.unitScale ?: lastUnitScale
+        val targetUnitScale = selectedProperty?.type?.unitScale ?: lastUnitScale
         if(lastUnitScale != targetUnitScale){
             val scale = targetUnitScale / lastUnitScale
             centralValue *= scale
@@ -143,6 +150,9 @@ class GraphEditorBody(style: Style): TimelinePanel(style.getChild("deep")){
 
         drawTimeAxis(x0, y0, x1, y1, true)
 
+        lastOwner = selectedTransform ?: lastOwner
+
+        val owner = lastOwner
         val property = selectedProperty ?: return
         if(!property.isAnimated) return
 
@@ -157,8 +167,10 @@ class GraphEditorBody(style: Style): TimelinePanel(style.getChild("deep")){
         val green = 0x00ff00
         val blue = 0x0000ff
 
+        val channelCount = property.type.components
         val valueColors = intArrayOf(
-            red, green, blue, white
+            if(channelCount == 1) white else red,
+            green, blue, white
         )
 
         when(type){
@@ -172,7 +184,19 @@ class GraphEditorBody(style: Style): TimelinePanel(style.getChild("deep")){
             valueColors[i] = (valueColors[i] or black) and 0x7fffffff
         }
 
-        val channelCount = property.type.components
+        val child2root = owner.listOfInheritance.toList()
+        val root2child = child2root.reversed()
+
+        // only simple time transforms are supported
+        time0 = 0.0
+        time1 = 1.0
+
+        root2child.forEach { t ->
+            // localTime0 = (parentTime - timeOffset) * timeDilation
+            time0 = (time0 - t.timeOffset) * t.timeDilation
+            time1 = (time1 - t.timeOffset) * t.timeDilation
+        }
+
         // val values = FloatArray(channelCount)
 
         val minSelectX = min(mouseDownX, mouseX).toInt()
@@ -222,7 +246,7 @@ class GraphEditorBody(style: Style): TimelinePanel(style.getChild("deep")){
         val yValues = IntArray(type.components)
         property.keyframes.forEach { kf ->
 
-            val keyTime = kf.time
+            val keyTime = mix(0.0, 1.0, (kf.time-time0)/(time1-time0))
             val keyValue = kf.value
             val x = getXAt(keyTime).roundToInt()
 
@@ -258,16 +282,17 @@ class GraphEditorBody(style: Style): TimelinePanel(style.getChild("deep")){
         var bestChannel = 0
         val maxMargin = dotSize*2f/3f + 1f
         var bestDistance = maxMargin
-        property.keyframes.forEach { keyframe ->
-            val dx = x - getXAt(keyframe.time)
+        property.keyframes.forEach { kf ->
+            val globalT = mix(0.0, 1.0, (kf.time-time0)/(time1-time0))
+            val dx = x - getXAt(globalT)
             if(abs(dx) < maxMargin){
                 for(channel in 0 until property.type.components){
                     if(channel.isChannelActive()){
-                        val dy = y - getYAt(keyframe.getValue(channel))
+                        val dy = y - getYAt(kf.getValue(channel))
                         if(abs(dy) < maxMargin){
                             val distance = length(dx.toFloat(), dy)
                             if(distance < bestDistance){
-                                bestDragged = keyframe
+                                bestDragged = kf
                                 bestChannel = channel
                                 bestDistance = distance
                             }
@@ -287,12 +312,13 @@ class GraphEditorBody(style: Style): TimelinePanel(style.getChild("deep")){
         val halfSize = dotSize/2
         val property = selectedProperty ?: return emptyList()
         val keyframes = ArrayList<Keyframe<*>>()
-        keyframes@for(keyframe in property.keyframes){
-            if(getXAt(keyframe.time) in minX-halfSize .. maxX+halfSize){
+        keyframes@for(kf in property.keyframes){
+            val globalT = mix(0.0, 1.0, (kf.time-time0)/(time1-time0))
+            if(getXAt(globalT) in minX-halfSize .. maxX+halfSize){
                 for(channel in 0 until property.type.components){
                     if(channel.isChannelActive()){
-                        if(getYAt(keyframe.getValue(channel)) in minY-halfSize .. maxY+halfSize){
-                            keyframes += keyframe
+                        if(getYAt(kf.getValue(channel)) in minY-halfSize .. maxY+halfSize){
+                            keyframes += kf
                             continue@keyframes
                         }
                     }
@@ -375,8 +401,8 @@ class GraphEditorBody(style: Style): TimelinePanel(style.getChild("deep")){
         } else if(draggedKeyframe != null){
             // dragging
             val time = getTimeAt(x)
-            draggedKeyframe.time = time
-            Studio.editorTime = time
+            draggedKeyframe.time = mix(time0, time1, time) // global -> local
+            editorTime = time
             Studio.updateAudio()
             draggedKeyframe.setValue(draggedChannel, getValueAt(y))
             selectedProperty?.sort()

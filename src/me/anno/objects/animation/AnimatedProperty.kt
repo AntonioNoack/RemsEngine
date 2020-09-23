@@ -9,6 +9,8 @@ import org.apache.logging.log4j.LogManager
 import org.joml.*
 import java.lang.RuntimeException
 import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.roundToInt
 
 class AnimatedProperty<V>(val type: Type, var defaultValue: V): Saveable(){
@@ -157,6 +159,13 @@ class AnimatedProperty<V>(val type: Type, var defaultValue: V): Saveable(){
     }
 
     operator fun get(time: Double) = getValueAt(time)
+
+    operator fun get(t0: Double, t1: Double): List<Keyframe<V>> {
+        val i0 = max(0, getIndexBefore(t0))
+        val i1 = min(getIndexBefore(t1)+1, keyframes.size)
+        return if(i1 > i0) keyframes.subList(i0, i1).filter { it.time in t0 .. t1 }
+        else emptyList()
+    }
 
     fun getAnimatedValue(time: Double): V {
         return when(keyframes.size){

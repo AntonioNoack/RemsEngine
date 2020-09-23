@@ -22,6 +22,7 @@ import me.anno.objects.cache.VideoData.Companion.framesPerContainer
 import me.anno.objects.modes.EditorFPS
 import me.anno.objects.modes.LoopingState
 import me.anno.objects.modes.UVProjection
+import me.anno.objects.modes.VideoType
 import me.anno.studio.Scene
 import me.anno.studio.Studio
 import me.anno.ui.base.ButtonPanel
@@ -59,18 +60,22 @@ import kotlin.math.*
  * */
 class Video(file: File = File(""), parent: Transform? = null) : Audio(file, parent) {
 
+    init {
+        color.isAnimated = true
+        color.addKeyframe(-0.01, Vector4f(1f,1f,1f,0f))
+        color.addKeyframe(+0.10, Vector4f(1f))
+    }
+
     var tiling = AnimatedProperty.tiling()
     var uvProjection = UVProjection.Planar
     var clampMode = ClampMode.MIRRORED_REPEAT
-
-    var startTime = 0.0
-    var endTime = 100.0
 
     var filtering = DefaultConfig["default.video.nearest", FilteringMode.LINEAR]
 
     var videoScale = DefaultConfig["default.video.scale", 6]
 
     var lastFile: File? = null
+    var lastDuration = 10.0
     var imageSequenceMeta: ImageSequenceMeta? = null
     var type = VideoType.AUDIO
 
@@ -84,7 +89,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
     val cgSaturation = AnimatedProperty.float(1f) // only allow +? only 01?
 
     override fun isVisible(localTime: Double): Boolean {
-        return localTime + startTime >= 0.0 && (isLooping != LoopingState.PLAY_ONCE || localTime < endTime)
+        return localTime >= 0.0 && (isLooping != LoopingState.PLAY_ONCE || localTime < lastDuration)
     }
 
     fun calculateSize(matrix: Matrix4f, w: Int, h: Int): Int? {
@@ -162,16 +167,13 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
 
         if (meta.isValid) {
 
-            val sourceDuration = meta.duration
+            val duration = meta.duration
+            lastDuration = duration
 
-            if (startTime >= sourceDuration) startTime = sourceDuration
-            if (endTime >= sourceDuration) endTime = sourceDuration
-
-            if (time + startTime >= 0.0 && (isLooping != LoopingState.PLAY_ONCE || time <= endTime)) {
+            if (time >= 0.0 && (isLooping != LoopingState.PLAY_ONCE || time <= duration)) {
 
                 // draw the current texture
-                val duration = endTime - startTime
-                val localTime = startTime + isLooping[time, duration]
+                val localTime = isLooping[time, duration]
 
                 val frame = Cache.getImage(meta.getImage(localTime), 500L, true)
                 if (frame != null) {
@@ -215,24 +217,21 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
         var wasDrawn = false
 
         val sourceFPS = meta.videoFPS
-        val sourceDuration = meta.videoDuration
-
-        if (startTime >= sourceDuration) startTime = sourceDuration
-        if (endTime >= sourceDuration) endTime = sourceDuration
+        val duration = meta.videoDuration
+        lastDuration = duration
 
         if (sourceFPS > 0.0) {
-            if (time + startTime >= 0.0 && (isLooping != LoopingState.PLAY_ONCE || time <= endTime)) {
+            if (time >= 0.0 && (isLooping != LoopingState.PLAY_ONCE || time <= duration)) {
 
                 // use full fps when rendering to correctly render at max fps with time dilation
                 // issues arise, when multiple frames should be interpolated together into one
                 // at this time, we chose the center frame only.
                 val videoFPS = if (GFX.isFinalRendering) sourceFPS else min(sourceFPS, editorVideoFPS.dValue)
 
-                val frameCount = max(1, (sourceDuration * videoFPS).roundToInt())
+                val frameCount = max(1, (duration * videoFPS).roundToInt())
 
                 // draw the current texture
-                val duration = endTime - startTime
-                val localTime = startTime + isLooping[time, duration]
+                val localTime = isLooping[time, duration]
                 val frameIndex = (localTime * videoFPS).toInt() % frameCount
 
                 val frame = Cache.getVideoFrame(
@@ -347,13 +346,6 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
         }
     }
 
-    enum class VideoType {
-        IMAGE,
-        VIDEO,
-        AUDIO,
-        IMAGE_SEQUENCE
-    }
-
     override fun claimLocalResources(lTime0: Double, lTime1: Double) {
 
         val minT = min(lTime0, lTime1)
@@ -366,22 +358,21 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                 if (meta != null) {
 
                     val sourceFPS = meta.videoFPS
-                    val sourceDuration = meta.videoDuration
+                    val duration = meta.videoDuration
 
                     if (sourceFPS > 0.0) {
-                        if (maxT + startTime >= 0.0 && (isLooping != LoopingState.PLAY_ONCE || minT < endTime)) {
+                        if (maxT >= 0.0 && (isLooping != LoopingState.PLAY_ONCE || minT < duration)) {
 
                             // use full fps when rendering to correctly render at max fps with time dilation
                             // issues arise, when multiple frames should be interpolated together into one
                             // at this time, we chose the center frame only.
                             val videoFPS = if (GFX.isFinalRendering) sourceFPS else min(sourceFPS, editorVideoFPS.dValue)
 
-                            val frameCount = max(1, (sourceDuration * videoFPS).roundToInt())
+                            val frameCount = max(1, (duration * videoFPS).roundToInt())
 
                             // draw the current texture
-                            val duration = endTime - startTime
-                            val localTime0 = startTime + isLooping[lTime0, duration]
-                            val localTime1 = startTime + isLooping[lTime1, duration]
+                            val localTime0 = isLooping[lTime0, duration]
+                            val localTime1 = isLooping[lTime1, duration]
                             val frameIndex0 = (localTime0 * videoFPS).toInt() % frameCount
                             val frameIndex1 = (localTime1 * videoFPS).toInt() % frameCount
 
@@ -402,12 +393,13 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                 val meta = imageSequenceMeta ?: return
                 if (meta.isValid) {
 
-                    if (maxT + startTime >= 0.0 && (isLooping != LoopingState.PLAY_ONCE || minT <= endTime)) {
+                    val duration = meta.duration
+
+                    if (maxT >= 0.0 && (isLooping != LoopingState.PLAY_ONCE || minT < duration)) {
 
                         // draw the current texture
-                        val duration = endTime - startTime
-                        val localTime0 = startTime + isLooping[minT, duration]
-                        val localTime1 = startTime + isLooping[maxT, duration]
+                        val localTime0 = isLooping[minT, duration]
+                        val localTime1 = isLooping[maxT, duration]
 
                         val index0 = meta.getIndex(localTime0)
                         val index1 = meta.getIndex(localTime1)
@@ -437,6 +429,23 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
         }
     }
 
+    var lastAddedEndKeyframesFile: File? = null
+    fun addEndKeyframesMaybe(duration: Double){
+        // if the start was not modified, change the end... more flexible?
+        val color = color
+        if(color.isAnimated && duration > 0.2){
+            val kf = color.keyframes
+            if(kf.size == 2 && // only exactly two keyframes
+                kf[0].time > kf[1].time - 1.0 && // is closely together
+                kf[1].time < duration - 0.2 && // far enough from the end
+                kf[0].value.w < 0.1 && kf[1].value.w > 0.1){ // is becoming visible
+                val col = color[duration]
+                color.addKeyframe(duration - 0.1, col)
+                color.addKeyframe(duration, Vector4f(col.x, col.y, col.z,0f))
+            }
+        }
+    }
+
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
 
         val file = file
@@ -455,7 +464,9 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                 }
                 // async in the future?
                 if (type == VideoType.IMAGE_SEQUENCE) {
-                    imageSequenceMeta = ImageSequenceMeta(file)
+                    val imageSequenceMeta = ImageSequenceMeta(file)
+                    this.imageSequenceMeta = imageSequenceMeta
+                    addEndKeyframesMaybe(imageSequenceMeta.duration)
                 }
             }
 
@@ -463,6 +474,10 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                 VideoType.VIDEO -> {
                     val meta = meta
                     if (meta?.hasVideo == true) {
+                        if(file != lastAddedEndKeyframesFile){
+                            lastAddedEndKeyframesFile = file
+                            addEndKeyframesMaybe(meta.duration)
+                        }
                         drawVideoFrames(meta, stack, time, color)
                     }
                     // very intrusive :/
@@ -526,12 +541,6 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
             isLooping = it
             AudioManager.requestUpdate()
         }
-        time += vid(VI("Video Start", "Timestamp in seconds of the first frames drawn", null, startTime, style) {
-            startTime = it
-        })
-        time += vid(VI("Video End", "Timestamp in seconds of the last frames drawn", null, endTime, style) {
-            endTime = it
-        })
 
         val quality = getGroup("Quality", "quality")
         val videoScales = videoScaleNames.entries.sortedBy { it.value }
@@ -627,8 +636,6 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
-        writer.writeDouble("startTime", startTime)
-        writer.writeDouble("endTime", endTime)
         writer.writeObject(this, "tiling", tiling)
         writer.writeInt("filtering", filtering.id, true)
         writer.writeInt("clamping", clampMode.id, true)
@@ -667,14 +674,6 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
         when (name) {
             "path", "file" -> file = File(value)
             else -> super.readString(name, value)
-        }
-    }
-
-    override fun readDouble(name: String, value: Double) {
-        when (name) {
-            "startTime" -> startTime = value
-            "endTime" -> endTime = value
-            else -> super.readDouble(name, value)
         }
     }
 

@@ -83,6 +83,7 @@ import kotlin.math.*
 // todo ffmpeg requires 100MB RAM per instance -> do we really need multiple instances, or does one work fine?
 // todo or keep only a certain amount of ffmpeg instances running?
 
+// todo gpu task priority? (low=destroy,rendering/medium=playback/high=ui)
 
 object GFX : GFXBase1() {
 
@@ -92,7 +93,6 @@ object GFX : GFXBase1() {
     // so just use a static variable
     var isFinalRendering = false
     var drawMode = ShaderPlus.DrawMode.COLOR_SQUARED
-    val isFakeColorRendering get() = drawMode != ShaderPlus.DrawMode.COLOR_SQUARED && drawMode != ShaderPlus.DrawMode.COLOR
     var supportsAnisotropicFiltering = false
     var anisotropy = 1f
 

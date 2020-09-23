@@ -5,7 +5,6 @@ import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
 import me.anno.gpu.ShaderLib.createShader
 import me.anno.gpu.GFX.flat01
-import me.anno.gpu.GFX.isFakeColorRendering
 import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.ShaderLib.ascColorDecisionList
 import me.anno.gpu.ShaderLib.brightness
@@ -176,23 +175,29 @@ object Scene {
                     "   vec2 uv2 = (uv-0.5)*fxScale.z+0.5;\n" +
                     "   vec2 nuv = (uv2-0.5)*fxScale.xy;\n" +
                     "   vec2 duv = (chromaticAberration * nuv + chromaticOffset)/fxScale.xy;\n" +
-                    "   vec2 uvR = distort(uv2, nuv, duv), uvG = distort(uv2, nuv, vec2(0.0)), uvB = distort(uv2, nuv, -duv);\n" +
-                    "   float r = getColor(uvR).r;\n" +
-                    "   vec2 ga = getColor(uvG).ga;\n" +
-                    "   float b = getColor(uvB).b;\n" +
-                    "   vec3 raw = vec3(r, ga.x, b);\n" +
-                    "   vec3 toneMapped;\n" +
-                    "   switch(toneMapper){\n" +
+                    "   vec2 uvG = distort(uv2, nuv, vec2(0.0));\n" +
+                    "   vec4 col0 = getColor(uvG);\n" +
+                    "   if(minValue < 0.0){" +
+                    "       gl_FragColor = col0;\n" +
+                    "   } else {" +
+                    "       vec2 uvR = distort(uv2, nuv, duv), uvB = distort(uv2, nuv, -duv);\n" +
+                    "       float r = getColor(uvR).r;\n" +
+                    "       vec2 ga = col0.ga;\n" +
+                    "       float b = getColor(uvB).b;\n" +
+                    "       vec3 raw = vec3(r, ga.x, b);\n" +
+                    "       vec3 toneMapped;\n" +
+                    "       switch(toneMapper){\n" +
                     ToneMappers.values().joinToString(""){ "" +
                             "       case ${it.id}: toneMapped = ${it.glslFuncName}(raw);break;\n"
                     } +
-                    "       default: toneMapped = vec3(1,0,1);\n" +
+                    "           default: toneMapped = vec3(1,0,1);\n" +
+                    "       }" +
+                    "       vec3 graded = colorGrading(toneMapped);\n" +
+                    "       vec4 color = vec4(toneMapper == ${ToneMappers.RAW8.id} ? graded : sqrt(graded), ga.y);\n" +
+                    "       float rSq = dot(nuv,nuv);\n" + // nuv nuv 😂 (hedgehog sounds for German children)
+                    "       color = mix(vec4(vignetteColor, 1.0), color, 1.0/(1.0 + vignetteStrength*rSq));\n" +
+                    "       gl_FragColor = color + random(uv) * minValue;\n" +
                     "   }" +
-                    "   vec3 graded = colorGrading(toneMapped);\n" +
-                    "   vec4 color = vec4(toneMapper == ${ToneMappers.RAW8.id} ? graded : sqrt(graded), ga.y);\n" +
-                    "   float rSq = dot(nuv,nuv);\n" + // nuv nuv 😂 (hedgehog sounds for German children)
-                    "   color = mix(vec4(vignetteColor, 1.0), color, 1.0/(1.0 + vignetteStrength*rSq));\n" +
-                    "   gl_FragColor = color + random(uv) * minValue;\n" +
                     "}"
         )
 
@@ -251,7 +256,10 @@ object Scene {
         GFX.drawMode = drawMode
         usesFPBuffers = sceneView?.usesFPBuffers ?: (camera.toneMapping != ToneMappers.RAW8)
 
-        val isFakeColorRendering = isFakeColorRendering
+        val isFakeColorRendering = when(drawMode){
+            ShaderPlus.DrawMode.COLOR, ShaderPlus.DrawMode.COLOR_SQUARED -> false
+            else -> true
+        }
 
         // we must have crashed before;
         // somewhere in this function
@@ -422,19 +430,20 @@ object Scene {
         shader.use()
         shader.v1("ySign", if(flipY) -1f else 1f)
         val colorDepth = DefaultConfig["display.colorDepth", 8]
-        val minValue = if(isFakeColorRendering) 0f else 1f/(1 shl colorDepth)
+
+        val minValue = if(isFakeColorRendering) -1f else 1f/(1 shl colorDepth)
+        shader.v1("minValue", minValue)
+
         val rel = sqrt(w*h.toFloat())
         // artistic scale
         val caScale = 0.01f
-        if(isFakeColorRendering){// colors must be preserved for ids
-            shader.v1("chromaticAberration", 0f)
-            shader.v2("chromaticOffset", 0f, 0f)
-        } else {
+        if(!isFakeColorRendering){
             val ca = camera.chromaticAberration[cameraTime] * caScale
             val cao = camera.chromaticOffset[cameraTime] * caScale
             shader.v1("chromaticAberration", ca)
             shader.v2("chromaticOffset", cao)
         }
+
         val fxScaleX = 1f*w/rel
         val fxScaleY = 1f*h/rel
 
@@ -447,19 +456,20 @@ object Scene {
         shader.v3("fxScale", fxScaleX, fxScaleY, 1f+dst.z)
         shader.v2("distortion", dst.x, dst.y)
         shader.v2("distortionOffset", dstOffset)
-        // vignette
-        val vignette = camera.vignetteStrength[cameraTime]
-        shader.v1("vignetteStrength", DEFAULT_VIGNETTE_STRENGTH * vignette)
-        shader.v3("vignetteColor", camera.vignetteColor[cameraTime])
-        // randomness against banding
-        shader.v1("minValue", minValue)
-        // tone mapping
-        shader.v1("toneMapper", (if(isFakeColorRendering) ToneMappers.RAW else camera.toneMapping).id)
-        // color grading
-        shader.v3("cgOffset", camera.cgOffset[cameraTime])
-        shader.v3X("cgSlope", camera.cgSlope[cameraTime])
-        shader.v3X("cgPower", camera.cgPower[cameraTime])
-        shader.v1("cgSaturation", camera.cgSaturation[cameraTime])
+        if(!isFakeColorRendering){
+            // vignette
+            val vignette = camera.vignetteStrength[cameraTime]
+            shader.v1("vignetteStrength", DEFAULT_VIGNETTE_STRENGTH * vignette)
+            shader.v3("vignetteColor", camera.vignetteColor[cameraTime])
+            // randomness against banding
+            // tone mapping
+            shader.v1("toneMapper", camera.toneMapping.id)
+            // color grading
+            shader.v3("cgOffset", camera.cgOffset[cameraTime])
+            shader.v3X("cgSlope", camera.cgSlope[cameraTime])
+            shader.v3X("cgPower", camera.cgPower[cameraTime])
+            shader.v1("cgSaturation", camera.cgSaturation[cameraTime])
+        }
         // draw it!
         flat01.draw(shader)
         GFX.check()

@@ -665,6 +665,14 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
         }
     }
 
+    val listOfInheritance: Sequence<Transform> get() = sequence {
+        yield(this@Transform)
+        val parent = parent
+        if(parent != null){
+            yieldAll(parent.listOfInheritance)
+        }
+    }
+
     companion object {
         // these values MUST NOT be changed
         // they are universal constants, and are used

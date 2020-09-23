@@ -1,7 +1,6 @@
 package me.anno.ui.editor.cutting
 
 import me.anno.ui.base.ButtonPanel
-import me.anno.ui.base.TextPanel
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelListY
@@ -23,8 +22,9 @@ class CuttingView(style: Style): ScrollPanelY(Padding(0), AxisAlignment.MIN, sty
         // this += content
         content.setWeight(1f)
         layers += addLayerView
-        addLayerTop()
-        addLayerTop()
+        for(i in 0 until LayerView.defaultLayerCount){
+            addLayerTop()
+        }
     }
 
     fun createLayer(): LayerView {
@@ -36,11 +36,15 @@ class CuttingView(style: Style): ScrollPanelY(Padding(0), AxisAlignment.MIN, sty
 
     fun addLayerTop(): LayerView {
         val v = createLayer()
-        layers.children.add(1, v)
+        v.parent = layers
+        v.cuttingView = this
+        layers.children.add(0, v)
         layers.children.forEachIndexed { index, it ->
-            (it as? LayerView)?.timelineSlot = index-1
+            (it as? LayerView)?.timelineSlot = index
         }
         return v
     }
+
+    val layerCount get() = layers.children.size - 1
 
 }

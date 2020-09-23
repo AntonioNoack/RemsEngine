@@ -4,6 +4,7 @@ import me.anno.objects.Audio
 import me.anno.objects.Camera
 import me.anno.objects.modes.LoopingState
 import me.anno.objects.cache.Cache
+import me.anno.utils.clamp
 import me.anno.utils.f2
 import me.anno.utils.minus
 import me.anno.utils.mix
@@ -48,7 +49,8 @@ abstract class AudioStream(
     fun configure(audio: Audio, speed: Double, globalTime: Double){
         globalToLocalTime = { time -> audio.getGlobalTransform(time * speed + globalTime).second }
         val amplitude = audio.amplitude
-        localAmplitude = { time -> amplitude[time] }
+        val color = audio.color
+        localAmplitude = { time -> amplitude[time] * clamp(color[time].w, 0f, 1f) }
     }
 
     val minPerceptibleAmplitude = 1f/32500f
