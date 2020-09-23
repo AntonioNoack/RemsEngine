@@ -2,6 +2,7 @@ package me.anno.studio
 
 import me.anno.audio.ALBase
 import me.anno.audio.AudioManager
+import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.windowHeight
 import me.anno.gpu.GFX.windowWidth
@@ -25,6 +26,12 @@ import kotlin.math.max
 object Studio {
 
     private val LOGGER = LogManager.getLogger(Studio::class)
+
+    var gfxSettings = DefaultConfig["editor.gfx", 0].run { GFXSettings.values().filter { it.id == this }.firstOrNull() ?: GFXSettings.LOW }
+        set(value) {
+            field = value
+            DefaultConfig["editor.gfx"] = value.id
+        }
 
     var project: Project? = null
 

@@ -13,6 +13,7 @@ import me.anno.objects.Text
 import me.anno.objects.Transform
 import me.anno.objects.cache.Cache
 import me.anno.objects.rendering.RenderSettings
+import me.anno.studio.GFXSettings
 import me.anno.studio.RemsStudio
 import me.anno.studio.RemsStudio.windowStack
 import me.anno.studio.RemsStudio.workspace
@@ -44,6 +45,7 @@ import me.anno.ui.editor.sceneTabs.SceneTabs
 import me.anno.ui.editor.sceneView.ScenePreview
 import me.anno.ui.editor.sceneView.SceneView
 import me.anno.ui.editor.treeView.TreeView
+import me.anno.ui.input.EnumInput
 import me.anno.ui.input.FileInput
 import me.anno.ui.input.TextInput
 import me.anno.ui.style.Style
@@ -51,6 +53,7 @@ import me.anno.video.VideoAudioCreator
 import me.anno.video.VideoCreator
 import org.apache.logging.log4j.LogManager
 import java.io.File
+import java.nio.file.attribute.GroupPrincipal
 import kotlin.concurrent.thread
 import kotlin.contracts.contract
 import kotlin.math.max
@@ -113,6 +116,10 @@ object UILayouts {
 
         welcome += SpacePanel(0, 1, style)
 
+        val recentProjects = SettingCategory("Recent Projects", style)
+        recentProjects.show()
+        welcome += recentProjects
+
         fun openProject(name: String, file: File){
             thread {
                 RemsStudio.loadProject(name.trim(), file)
@@ -125,8 +132,6 @@ object UILayouts {
             }
         }
 
-        val recentProjects = PanelListY(style)
-        welcome += recentProjects
         for (project in DefaultConfig.getRecentProjects()) {
             val tp = object : TextPanel(project.name, style) {
                 override val enableHoverColor = true
@@ -170,10 +175,14 @@ object UILayouts {
             }
             tp.padding.top--
             tp.padding.bottom--
-            welcome += tp
+            recentProjects += tp
         }
 
         welcome += SpacePanel(0, 1, style)
+
+        val newProject = SettingCategory("New Project", style)
+        newProject.show()
+        welcome += newProject
 
         val nameInput = TextInput("Title", style, "New Project")
         var lastName = nameInput.text
@@ -243,12 +252,12 @@ object UILayouts {
             }
             lastName = newName
         }
-        welcome += nameInput
+        newProject += nameInput
 
         fileInput.setChangeListener {
             updateFileInputColor()
         }
-        welcome += fileInput
+        newProject += fileInput
 
         fun loadNewProject() {
             val file = usableFile
@@ -265,7 +274,20 @@ object UILayouts {
         button.setSimpleClickListener {
             loadNewProject()
         }
-        welcome += button
+        newProject += button
+
+        welcome += SpacePanel(0, 1, style)
+
+        val quickSettings = SettingCategory("Quick Settings", style)
+        quickSettings.show()
+        welcome += quickSettings
+
+        quickSettings += EnumInput("GFX Quality", true,
+            Studio.gfxSettings.displayName, GFXSettings.values().map { it.displayName }, style)
+            .setChangeListener { _, index, _ ->
+                val value = GFXSettings.values()[index]
+                Studio.gfxSettings = value
+            }
 
         val scroll = ScrollPanelY(welcome, Padding(5), style)
         scroll += WrapAlign.Center

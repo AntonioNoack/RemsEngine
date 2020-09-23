@@ -25,6 +25,7 @@ import me.anno.gpu.blending.BlendMode
 import me.anno.objects.cache.Cache
 import me.anno.objects.effects.BokehBlur
 import me.anno.objects.effects.ToneMappers
+import me.anno.studio.Studio.gfxSettings
 import me.anno.studio.Studio.selectedTransform
 import me.anno.ui.editor.sceneView.Grid
 import me.anno.ui.editor.sceneView.Grid.drawLine01
@@ -222,8 +223,8 @@ object Scene {
         isInited = true
     }
 
-    fun getNextBuffer(name: String, buffer: Framebuffer, offset: Int, nearest: Boolean, withMultisampling: Boolean?): Framebuffer {
-        val next = FBStack[name, buffer.w, buffer.h, withMultisampling ?: buffer.withMultisampling]
+    fun getNextBuffer(name: String, buffer: Framebuffer, offset: Int, nearest: Boolean, samples: Int?): Framebuffer {
+        val next = FBStack[name, buffer.w, buffer.h, samples ?: buffer.samples, usesFPBuffers]
         next.bind()
         buffer.bindTextures(offset, nearest, ClampMode.CLAMP)
         return next
@@ -232,6 +233,7 @@ object Scene {
     var lastCameraTransform = Matrix4f()
     var lastGlobalCameraTransform = Matrix4f()
     var lGCTInverted = Matrix4f()
+    var usesFPBuffers = false
 
     // rendering must be done in sync with the rendering thread (OpenGL limitation) anyways, so one object is enough
     val stack = Matrix4fArrayList()
@@ -241,6 +243,8 @@ object Scene {
         GFX.ensureEmptyStack()
 
         GFX.drawMode = drawMode
+        usesFPBuffers = sceneView?.usesFPBuffers ?: (camera.toneMapping != ToneMappers.RAW8)
+
         val isFakeColorRendering = isFakeColorRendering
 
         // we must have crashed before;
@@ -255,8 +259,8 @@ object Scene {
         val mayUseMSAA = if(isFinalRendering)
             DefaultConfig["rendering.useMSAA", true]
         else
-            DefaultConfig["editor.useMSAA", true]
-        val withMultisampling = mayUseMSAA && !isFakeColorRendering
+            DefaultConfig["editor.useMSAA", gfxSettings["editor.useMSAA"]]
+        val samples = if(mayUseMSAA && !isFakeColorRendering) 8 else 1
 
         GFX.check()
 
@@ -271,7 +275,7 @@ object Scene {
 
         GFX.clip(x0, y0, w, h)
 
-        var buffer = FBStack["Scene-Main", w, h, withMultisampling]
+        var buffer = FBStack["Scene-Main", w, h, samples, usesFPBuffers]
         buffer.bind()
         //framebuffer.bind(w, h)
 
@@ -358,15 +362,15 @@ object Scene {
             val srcBuffer = buffer.msBuffer ?: buffer
             srcBuffer.ensure()
             val src = srcBuffer.textures[0]
-            buffer = getNextBuffer("Scene-Bokeh", buffer, 0, true, withMultisampling = false)
+            buffer = getNextBuffer("Scene-Bokeh", buffer, 0, true, samples = 1)
             BokehBlur.draw(src, Framebuffer.stack.peek()!!, 0.02f)
-        } else if(withMultisampling){
+        } else if(samples > 1){
             // todo skip this step, and just use the correct buffer...
             // this is just a computationally not that expensive workaround
             val msBuffer = buffer.msBuffer!!
             msBuffer.bind()
-            buffer = getNextBuffer("Scene-tmp0", buffer, 0, true, withMultisampling = false) // this is somehow not enough (why??)
-            buffer = getNextBuffer("Scene-tmp1", buffer, 0, true, withMultisampling = false)
+            buffer = getNextBuffer("Scene-tmp0", buffer, 0, true, samples = 1) // this is somehow not enough (why??)
+            buffer = getNextBuffer("Scene-tmp1", buffer, 0, true, samples = 1)
             val shader = copyShader
             msBuffer.bindTextures(0, false, ClampMode.CLAMP)
             shader.use()
@@ -392,7 +396,7 @@ object Scene {
 
         val useLUT = lut != null
         if(useLUT){
-            buffer = getNextBuffer("Scene-LT", buffer, 0, nearest = false, withMultisampling = false)
+            buffer = getNextBuffer("Scene-LT", buffer, 0, nearest = false, samples = 1)
         } else {
             bindTarget()
             buffer.bindTextures(0, false, ClampMode.CLAMP)
@@ -469,8 +473,8 @@ object Scene {
             GFX.check()
         }
 
-        FBStack.clear(w, h, true)
-        FBStack.clear(w, h, false)
+        FBStack.clear(w, h, samples)
+        FBStack.clear(w, h, 1)
 
         // testModelRendering()
 

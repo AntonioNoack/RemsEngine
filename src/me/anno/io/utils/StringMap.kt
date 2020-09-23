@@ -17,6 +17,10 @@ open class StringMap(
     val saveDefaultValues: Boolean = false
     ): ConfigEntry(), MutableMap<String, Any?> {
 
+    constructor(data: Map<String, Any?>): this(data.size + 16){
+        map.putAll(data)
+    }
+
     var wasChanged = false
     val map = HashMap<String, Any?>(capacity)
 

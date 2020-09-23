@@ -72,7 +72,7 @@ object RemsStudio {
     val windowStack = Stack<Window>()
 
     var showTutorialKeys = DefaultConfig["tutorial.keys.show", true]
-    var showFPS = DefaultConfig["debug.fps.show", false]
+    var showFPS = DefaultConfig["debug.fps.show", true]
 
     var workspace = DefaultConfig["workspace.dir", File(OS.home, "Documents/RemsStudio")]
 

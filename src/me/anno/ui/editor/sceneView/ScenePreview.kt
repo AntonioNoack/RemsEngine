@@ -32,6 +32,7 @@ class ScenePreview(style: Style) : PanelList(null, style.getChild("sceneView")),
         camera.farZ.set(10000f)
     }
 
+    override val usesFPBuffers: Boolean get() = false
     override val isLocked2D get() = (System.currentTimeMillis() % 30000) > 25000
 
     // switch between manual control and autopilot for time :)

@@ -18,6 +18,7 @@ import me.anno.input.Touch.Companion.touches
 import me.anno.objects.Camera
 import me.anno.objects.Transform
 import me.anno.gpu.blending.BlendMode
+import me.anno.objects.effects.ToneMappers
 import me.anno.studio.RemsStudio.onSmallChange
 import me.anno.studio.Scene
 import me.anno.studio.Studio
@@ -89,6 +90,8 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
     }
 
     var camera = nullCamera
+
+    override val usesFPBuffers: Boolean get() = camera.toneMapping != ToneMappers.RAW8
     override var isLocked2D = false
 
     val controls = ArrayList<SimplePanel>()

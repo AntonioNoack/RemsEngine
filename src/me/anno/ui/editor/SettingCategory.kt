@@ -27,6 +27,10 @@ class SettingCategory(titleText: String, style: Style) : PanelGroup(style) {
         title.setSimpleClickListener { toggle() }
     }
 
+    fun show(){
+        content.visibility = Visibility.VISIBLE
+    }
+
     fun toggle(){
         content.visibility =
             if (content.visibility == Visibility.VISIBLE) Visibility.GONE

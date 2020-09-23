@@ -66,7 +66,7 @@ public class GFXBase0 {
         try {
 
             init();
-            winProcLoop();
+            windowLoop();
 
             synchronized (lock) {
                 destroyed = true;
@@ -291,7 +291,7 @@ public class GFXBase0 {
 
     boolean shouldClose = false;
 
-    void winProcLoop() {
+    void windowLoop() {
         /*
          * Start new thread to have the OpenGL context current in and which does
          * the rendering.

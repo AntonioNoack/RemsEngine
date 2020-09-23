@@ -13,22 +13,22 @@ object FBStack {
         }
     }
 
-    data class FBKey(val w: Int, val h: Int, val withMultisampling: Boolean)
+    data class FBKey(val w: Int, val h: Int, val samples: Int, val usesFP: Boolean)
 
-    fun getValue(w: Int, h: Int, withMultisampling: Boolean): FBStackData {
-        return Cache.getEntry(FBKey(w, h, withMultisampling), 1000, false){
+    fun getValue(w: Int, h: Int, samples: Int, usesFP: Boolean): FBStackData {
+        return Cache.getEntry(FBKey(w, h, samples, usesFP), 1000, false){
             FBStackData()
         } as FBStackData
     }
 
-    operator fun get(name: String, w: Int, h: Int, withMultisampling: Boolean): Framebuffer {
-        val value = getValue(w, h, withMultisampling)
+    operator fun get(name: String, w: Int, h: Int, samples: Int, usesFP: Boolean): Framebuffer {
+        val value = getValue(w, h, samples, usesFP)
         synchronized(value){
             value.apply {
                 return if(nextIndex >= data.size){
                     val framebuffer = Framebuffer(
                         name, w, h,
-                        if(withMultisampling) 8 else 1, 1, true,
+                        samples, 1, usesFP,
                         Framebuffer.DepthBufferType.TEXTURE
                     )
                     // if(!bind) framebuffer.unbind()
@@ -45,31 +45,9 @@ object FBStack {
         }
     }
 
-    /*operator fun get(name: String, w: Int, h: Int, withMultisampling: Boolean): Framebuffer {
-        val value = getValue(w, h, withMultisampling)
-        synchronized(value){
-            value.apply {
-                return if(nextIndex >= data.size){
-                    val framebuffer = Framebuffer(
-                        name, w, h,
-                        if(withMultisampling) 8 else 1, 1, true,
-                        Framebuffer.DepthBufferType.TEXTURE
-                    )
-                    data.add(framebuffer)
-                    nextIndex = data.size
-                    data.last()
-                } else {
-                    val framebuffer = data[nextIndex++]
-                    framebuffer.bind(w, h)
-                    framebuffer.name = name
-                    framebuffer
-                }
-            }
-        }
-    }*/
-
-    fun clear(w: Int, h: Int, withMultisampling: Boolean){
-        getValue(w, h, withMultisampling).nextIndex = 0
+    fun clear(w: Int, h: Int, samples: Int){
+        getValue(w, h, samples, true).nextIndex = 0
+        getValue(w, h, samples, false).nextIndex = 0
     }
 
 }

@@ -52,7 +52,7 @@ class Camera(parent: Transform? = null): Transform(parent){
     val cgPower = AnimatedProperty.color(Vector4f(1f, 1f, 1f, 1f))
     val cgSaturation = AnimatedProperty.float(1f) // only allow +? only 01?
 
-    var toneMapping = ToneMappers.RAW
+    var toneMapping = ToneMappers.RAW8
 
     var onlyShowTarget = true
     var useDepth = true

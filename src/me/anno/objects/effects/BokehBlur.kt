@@ -11,6 +11,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.objects.Transform.Companion.xAxis
 import me.anno.objects.Transform.Companion.yAxis
 import me.anno.objects.Transform.Companion.zAxis
+import me.anno.studio.Scene
 import org.joml.Vector3f
 import org.lwjgl.opengl.GL11.*
 
@@ -44,9 +45,10 @@ object BokehBlur {
         val bd = BlendDepth(null, false)
         bd.bind()
 
-        val r = FBStack["bokeh-r", w, h, false]
-        val g = FBStack["bokeh-g", w, h, false]
-        val b = FBStack["bokeh-b", w, h, false]
+        val fp = Scene.usesFPBuffers
+        val r = FBStack["bokeh-r", w, h, 1, fp]
+        val g = FBStack["bokeh-g", w, h, 1, fp]
+        val b = FBStack["bokeh-b", w, h, 1, fp]
 
         val pixelRadius = relativeToH * h
         val normRadius = pixelRadius / KERNEL_RADIUS
