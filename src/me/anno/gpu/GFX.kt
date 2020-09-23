@@ -16,6 +16,7 @@ import me.anno.gpu.ShaderLib.shader3DSVG
 import me.anno.gpu.ShaderLib.shader3DYUV
 import me.anno.gpu.ShaderLib.subpixelCorrectTextShader
 import me.anno.gpu.blending.BlendDepth
+import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.buffer.StaticFloatBuffer
 import me.anno.gpu.framebuffer.Framebuffer
@@ -30,14 +31,12 @@ import me.anno.input.Input.mouseY
 import me.anno.input.MouseButton
 import me.anno.objects.Camera
 import me.anno.objects.Transform
-import me.anno.gpu.blending.BlendMode
 import me.anno.objects.Video
-import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.effects.MaskType
 import me.anno.objects.geometric.Circle
-import me.anno.objects.meshes.fbx.model.FBXGeometry
 import me.anno.objects.modes.UVProjection
 import me.anno.studio.Build.isDebug
+import me.anno.studio.Studio
 import me.anno.studio.Studio.editorTime
 import me.anno.studio.Studio.editorTimeDilation
 import me.anno.studio.Studio.eventTasks
@@ -48,7 +47,6 @@ import me.anno.studio.Studio.selectedTransform
 import me.anno.studio.Studio.targetHeight
 import me.anno.studio.Studio.targetWidth
 import me.anno.ui.base.Panel
-import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.base.SpacePanel
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.components.Padding
@@ -56,6 +54,7 @@ import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.debug.FrameTimes
 import me.anno.utils.clamp
 import me.anno.utils.f1
@@ -64,13 +63,12 @@ import me.anno.video.Frame
 import org.apache.logging.log4j.LogManager
 import org.joml.*
 import org.lwjgl.BufferUtils
-import org.lwjgl.glfw.GLFW.*
+import org.lwjgl.glfw.GLFW.glfwSetWindowShouldClose
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL30.*
-import java.lang.Exception
 import java.lang.Math
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -141,22 +139,18 @@ object GFX : GFXBase1() {
     var windowY = 0
     var windowWidth = 0
     var windowHeight = 0
-    // val windowSize get() = WindowSize(windowX, windowY, windowWidth, windowHeight)
 
     val flat01 = SimpleBuffer.flat01
-    // val flat01Cube = SimpleBuffer.flat01Cube
 
-    // val defaultFont = DefaultConfig["font"]?.toString() ?: "Verdana"
     val matrixBuffer = BufferUtils.createFloatBuffer(16)
     val matrixBufferFBX = BufferUtils.createFloatBuffer(16 * 256)
 
     var rawDeltaTime = 0f
     var deltaTime = 0f
 
-    val editorVideoFPS get() = if (editorTimeDilation == 0.0) 10.0 else 10.0 / (max(0.333, abs(editorTimeDilation)))
     var currentEditorFPS = 60f
 
-    var lastTime = System.nanoTime() - (editorVideoFPS * 1e9).toLong() // to prevent wrong fps ;)
+    var lastTime = System.nanoTime()
 
     var editorHoverTime = 0.0
 
@@ -269,7 +263,7 @@ object GFX : GFXBase1() {
         check()
     }
 
-    fun flatColor(color: Int){
+    fun flatColor(color: Int) {
         val shader = flatShader
         shader.use()
         shader.v4("color", color.r() / 255f, color.g() / 255f, color.b() / 255f, color.a() / 255f)
@@ -372,7 +366,7 @@ object GFX : GFXBase1() {
     }
 
     fun drawTexture(matrix: Matrix4fArrayList, w: Int, h: Int, texture: Texture2D, color: Int, tiling: Vector4f?) {
-        matrix.scale(w.toFloat()/windowWidth, h.toFloat()/windowHeight, 1f)
+        matrix.scale(w.toFloat() / windowWidth, h.toFloat() / windowHeight, 1f)
         drawMode = ShaderPlus.DrawMode.COLOR
         draw3D(
             matrix, texture, color.v4(),
@@ -382,7 +376,7 @@ object GFX : GFXBase1() {
 
     fun drawTexture(w: Int, h: Int, texture: Frame, color: Int, tiling: Vector4f?) {
         val matrix = Matrix4fArrayList()
-        matrix.scale(w.toFloat()/windowWidth, h.toFloat()/windowHeight, 1f)
+        matrix.scale(w.toFloat() / windowWidth, h.toFloat() / windowHeight, 1f)
         drawMode = ShaderPlus.DrawMode.COLOR
         draw3D(
             matrix, texture, color.v4(),
@@ -397,7 +391,7 @@ object GFX : GFXBase1() {
         // anti-aliasing for the rough edges
         // not very economical, could be improved
         val matrix = Matrix4fArrayList()
-        matrix.scale(w.toFloat()/windowWidth, h.toFloat()/windowHeight, 1f)
+        matrix.scale(w.toFloat() / windowWidth, h.toFloat() / windowHeight, 1f)
         drawMode = ShaderPlus.DrawMode.COLOR
         color.w /= 25f
         for (dx in 0 until 5) {
@@ -516,9 +510,9 @@ object GFX : GFXBase1() {
             a1 = tmp - 360f
         }
         // fix edge resolution loss
-        if(a0 > a1 + 360){
+        if (a0 > a1 + 360) {
             a0 = a1 + 360
-        } else if(a1 > a0 + 360){
+        } else if (a1 > a0 + 360) {
             a1 = a0 + 360
         }
         val angle0 = toRadians(a0)
@@ -533,7 +527,7 @@ object GFX : GFXBase1() {
         pixelSize: Float, blurDeltaUV: Vector2f
     ) {
         val shader = shader3DBlur
-        shader3DUniforms(shader, stack, Vector4f(1f,1f,1f,1f))
+        shader3DUniforms(shader, stack, Vector4f(1f, 1f, 1f, 1f))
         // shader.v2("pixelating", pixelSize * windowHeight / windowWidth, pixelSize)
         shader.v2("blurDeltaUV", blurDeltaUV)
         shader.v1("steps", pixelSize * windowHeight)
@@ -576,7 +570,7 @@ object GFX : GFXBase1() {
         draw3D(stack, buffer, texture, texture.w, texture.h, color, filtering, clampMode, tiling)
     }
 
-    fun colorGradingUniforms(video: Video, time: Double, shader: Shader){
+    fun colorGradingUniforms(video: Video, time: Double, shader: Shader) {
         shader.v3("cgOffset", video.cgOffset[time])
         shader.v3X("cgSlope", video.cgSlope[time])
         shader.v3X("cgPower", video.cgPower[time])
@@ -731,11 +725,11 @@ object GFX : GFXBase1() {
         val workTodo = max(1000, queue.sumBy { it.first } / framesForWork)
         var workDone = 0
         val workTime0 = System.nanoTime()
-        while(true) {
+        while (true) {
             val nextTask = queue.poll() ?: break
             nextTask.second()
             workDone += nextTask.first
-            if(workDone >= workTodo) break
+            if (workDone >= workTodo) break
             val workTime1 = System.nanoTime()
             val workTime = abs(workTime1 - workTime0) * 1e-9f
             if (workTime * 60f > 1f) break // too much work
@@ -758,7 +752,7 @@ object GFX : GFXBase1() {
         Framebuffer.stack.clear()
     }
 
-    fun workGPUTasks(){
+    fun workGPUTasks() {
         workQueue(gpuTasks)
     }
 
@@ -855,7 +849,7 @@ object GFX : GFXBase1() {
         options: List<Pair<String, (button: MouseButton, isLong: Boolean) -> Boolean>>
     ) {
         loadTexturesSync.push(true) // to calculate the correct size, which is needed for correct placement
-        if(options.isEmpty()) return
+        if (options.isEmpty()) return
         val style = DefaultConfig.style.getChild("menu")
         val list = PanelListY(style)
         list += WrapAlign.LeftTop
@@ -865,6 +859,7 @@ object GFX : GFXBase1() {
         fun close() {
             windowStack.remove(window)
         }
+
         val padding = 4
         if (title.isNotEmpty()) {
             val titlePanel = TextPanel(title, style)
@@ -913,11 +908,11 @@ object GFX : GFXBase1() {
         openMenuComplex(x.roundToInt() - delta, y.roundToInt() - delta, title, options)
     }
 
-    fun openMenu(options: List<Pair<String, () -> Any>>){
+    fun openMenu(options: List<Pair<String, () -> Any>>) {
         openMenu(mouseX, mouseY, "", options)
     }
 
-    fun openMenu(title: String, options: List<Pair<String, () -> Any>>){
+    fun openMenu(title: String, options: List<Pair<String, () -> Any>>) {
         openMenu(mouseX, mouseY, title, options)
     }
 
@@ -968,7 +963,7 @@ object GFX : GFXBase1() {
         }
     }
 
-    fun msg(title: String){
+    fun msg(title: String) {
         openMenu(listOf(title to {}))
     }
 
@@ -995,7 +990,7 @@ object GFX : GFXBase1() {
         FrameTimes.draw()
         loadTexturesSync.push(true)
         clip(0, 0, width, height)
-        drawText(x0+1, y0+1, "SansSerif", 12, false, false, currentEditorFPS.f1(), -1, 0, -1)
+        drawText(x0 + 1, y0 + 1, "SansSerif", 12, false, false, currentEditorFPS.f1(), -1, 0, -1)
         loadTexturesSync.pop()
     }
 

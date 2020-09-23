@@ -10,16 +10,20 @@ enum class GFXSettings(val id: Int, val displayName: String) {
     val data = StringMap()
 
     operator fun get(key: String) = data[key] as Boolean
+    fun getInt(key: String) = data[key] as Int
+    fun getFloat(key: String) = data[key] as Float
+    fun getDouble(key: String) = data[key] as Double
 
     companion object {
-        fun put(key: String, low: Boolean, medium: Boolean, high: Boolean){
+        fun <V> put(key: String, low: V, medium: V, high: V){
             LOW.data[key] = low
             MEDIUM.data[key] = medium
             HIGH.data[key] = high
         }
         init {
             put("editor.useMSAA", false, true, true)
-
+            put("editor.frames.perContainer", 32, 128, 512)
+            put("editor.frames.fps", 10.0, 20.0, 60.0)
         }
     }
 }

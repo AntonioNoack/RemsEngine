@@ -41,7 +41,7 @@ object RenderSettings : Transform(){
             }
             .setTooltip("Size of resulting video")
         list += EnumInput("Framerate", true, project.targetFPS.toString(), setOf(
-            project.targetFPS, 30.0, 24.0, 60.0, 120.0, 144.0, 240.0).sorted().toList().map { it.toString() }, style)
+            project.targetFPS, 24.0, 30.0, 60.0, 90.0, 120.0, 144.0, 240.0, 300.0, 360.0).sorted().toList().map { it.toString() }, style)
             .setChangeListener { value, _, _ ->
                 project.targetFPS = value.toDouble()
                 save()

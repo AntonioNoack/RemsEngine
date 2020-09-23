@@ -1,13 +1,10 @@
 package me.anno.objects.cache
 
-import me.anno.config.DefaultConfig
-import me.anno.gpu.GFX
+import me.anno.studio.Studio
 import me.anno.video.FFMPEGStream
 import java.io.File
 
 class VideoData(file: File, w: Int, h: Int, index: Int, bufferLength: Int, val fps: Double): CacheData {
-
-    val time0 = GFX.lastTime
 
     // what about video webp? I think it's pretty rare...
     val stream = FFMPEGStream.getImageSequence(file, w, h, index * bufferLength,
@@ -29,7 +26,7 @@ class VideoData(file: File, w: Int, h: Int, index: Int, bufferLength: Int, val f
         // * 128 = 200 MB
         // this is less efficient for large amounts of videos,
         // but it's better for fast loading of video, because the encoder is already loaded etc...
-        val framesPerContainer = DefaultConfig["frames.perContainer", 512]
+        val framesPerContainer get() = Studio.gfxSettings.getInt("editor.frames.perContainer")
     }
 
 }

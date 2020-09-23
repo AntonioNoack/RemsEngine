@@ -19,6 +19,7 @@ import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.cache.Cache
 import me.anno.objects.cache.StaticFloatBufferData
 import me.anno.objects.cache.VideoData.Companion.framesPerContainer
+import me.anno.objects.modes.EditorFPS
 import me.anno.objects.modes.LoopingState
 import me.anno.objects.modes.UVProjection
 import me.anno.studio.Scene
@@ -74,6 +75,8 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
     var type = VideoType.AUDIO
 
     var zoomLevel = 0
+
+    var editorVideoFPS = EditorFPS.F10
 
     val cgOffset = AnimatedProperty.vec3()
     val cgSlope = AnimatedProperty.color(Vector4f(1f, 1f, 1f, 1f))
@@ -223,7 +226,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                 // use full fps when rendering to correctly render at max fps with time dilation
                 // issues arise, when multiple frames should be interpolated together into one
                 // at this time, we chose the center frame only.
-                val videoFPS = if (GFX.isFinalRendering) sourceFPS else min(sourceFPS, GFX.editorVideoFPS)
+                val videoFPS = if (GFX.isFinalRendering) sourceFPS else min(sourceFPS, editorVideoFPS.dValue)
 
                 val frameCount = max(1, (sourceDuration * videoFPS).roundToInt())
 
@@ -371,7 +374,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                             // use full fps when rendering to correctly render at max fps with time dilation
                             // issues arise, when multiple frames should be interpolated together into one
                             // at this time, we chose the center frame only.
-                            val videoFPS = if (GFX.isFinalRendering) sourceFPS else min(sourceFPS, GFX.editorVideoFPS)
+                            val videoFPS = if (GFX.isFinalRendering) sourceFPS else min(sourceFPS, editorVideoFPS.dValue)
 
                             val frameCount = max(1, (sourceDuration * videoFPS).roundToInt())
 
@@ -481,7 +484,11 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
 
     }
 
-    override fun createInspector(list: PanelListY, style: Style, getGroup: (title: String, id: String) -> SettingCategory) {
+    override fun createInspector(
+        list: PanelListY,
+        style: Style,
+        getGroup: (title: String, id: String) -> SettingCategory
+    ) {
         super.createInspector(list, style, getGroup)
 
         // to hide elements, which are not usable / have no effect
@@ -508,7 +515,9 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
 
         val uvMap = getGroup("Texture", "uvs")
         uvMap += img(VI("Tiling", "(tile count x, tile count y, offset x, offset y)", tiling, style))
-        uvMap += img(VI("UV-Projection", "Can be used for 360°-Videos", null, uvProjection, style) { uvProjection = it })
+        uvMap += img(VI("UV-Projection", "Can be used for 360°-Videos", null, uvProjection, style) {
+            uvProjection = it
+        })
         uvMap += img(VI("Filtering", "Pixelated look?", null, filtering, style) { filtering = it })
         uvMap += img(VI("Clamping", "For tiled images", null, clampMode, style) { clampMode = it })
 
@@ -520,7 +529,9 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
         time += vid(VI("Video Start", "Timestamp in seconds of the first frames drawn", null, startTime, style) {
             startTime = it
         })
-        time += vid(VI("Video End", "Timestamp in seconds of the last frames drawn", null, endTime, style) { endTime = it })
+        time += vid(VI("Video End", "Timestamp in seconds of the last frames drawn", null, endTime, style) {
+            endTime = it
+        })
 
         val quality = getGroup("Quality", "quality")
         val videoScales = videoScaleNames.entries.sortedBy { it.value }
@@ -532,10 +543,27 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
             .setChangeListener { _, index, _ -> videoScale = videoScales[index].value }
             .setIsSelectedListener { show(null) }
             .setTooltip("Full resolution isn't always required. Define it yourself, or set it to automatic."))
+        quality += vid(EnumInput(
+            "Preview FPS", true, editorVideoFPS.displayName,
+            EditorFPS.values().map { it.displayName }, style
+        )
+            .setChangeListener { _, index, _ ->
+                editorVideoFPS = EditorFPS.values()[index]
+            }
+            .setIsSelectedListener { show(null) }
+            .setTooltip("Smoother preview, heavier calculation")
+        )
 
         val color = getGroup("Color", "color")
         color += img(VI("Power", "Color Grading, ASC CDL", cgPower, style))
-        color += img(VI("Saturation", "Color Grading, 0 = gray scale, 1 = normal, -1 = inverted colors", cgSaturation, style))
+        color += img(
+            VI(
+                "Saturation",
+                "Color Grading, 0 = gray scale, 1 = normal, -1 = inverted colors",
+                cgSaturation,
+                style
+            )
+        )
         color += img(VI("Slope", "Color Grading, Intensity", cgSlope, style))
         color += img(VI("Offset", "Color Grading, ASC CDL", cgOffset, style))
 
@@ -578,7 +606,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                 val isValid = file.hasValidName()
                 val hasAudio = isValid && meta?.hasAudio == true
                 val hasImage = isValid && type != VideoType.AUDIO
-                val hasVideo = isValid && when(type){
+                val hasVideo = isValid && when (type) {
                     VideoType.IMAGE_SEQUENCE, VideoType.VIDEO -> true
                     else -> false
                 } && meta?.hasVideo == true
@@ -610,6 +638,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
         writer.writeObject(this, "cgSlope", cgSlope)
         writer.writeObject(this, "cgPower", cgPower)
         writer.writeInt("uvProjection", uvProjection.id, true)
+        writer.writeInt("editorVideoFPS", editorVideoFPS.value, true)
     }
 
     override fun readObject(name: String, value: ISaveable?) {
@@ -629,6 +658,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
             "filtering" -> filtering = filtering.find(value)
             "clamping" -> clampMode = ClampMode.values().firstOrNull { it.id == value } ?: clampMode
             "uvProjection" -> uvProjection = UVProjection.values().firstOrNull { it.id == value } ?: uvProjection
+            "editorVideoFPS" -> editorVideoFPS = EditorFPS.values().firstOrNull { it.value == value } ?: editorVideoFPS
             else -> super.readInt(name, value)
         }
     }
