@@ -81,12 +81,20 @@ object UILayouts {
         render(targetWidth / size, targetHeight / size)
     }
 
+    var isRendering = false
     fun render(width: Int, height: Int) {
         if (width % 2 != 0 || height % 2 != 0) return render(
             width / 2 * 2,
             height / 2 * 2
         )
-        LOGGER.info("rendering video at $width x $height")
+        if(isRendering){
+            openMenu("Rendering already in progress!", listOf(
+                "Ok" to {}
+            ))
+            return
+        }
+        isRendering = true
+        LOGGER.info("Rendering video at $width x $height")
         val tmpFile = File(
             targetOutputFile.parentFile,
             targetOutputFile.nameWithoutExtension + ".tmp." + targetOutputFile.extension
@@ -94,12 +102,14 @@ object UILayouts {
         val fps = targetFPS
         val totalFrameCount = (fps * targetDuration).toInt()
         val sampleRate = 48000
-        VideoAudioCreator(
+        val creator = VideoAudioCreator(
             VideoCreator(
                 width, height,
                 targetFPS, totalFrameCount, tmpFile
             ), sampleRate, targetOutputFile
-        ).start()
+        )
+        creator.onFinished = { isRendering = false }
+        creator.start()
     }
 
     fun createWelcomeUI() {

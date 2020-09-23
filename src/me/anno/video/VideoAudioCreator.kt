@@ -22,6 +22,8 @@ class VideoAudioCreator(
         .filterIsInstance<Audio>()
         .filter { it.forcedMeta?.hasAudio == true }.toList()
 
+    var onFinished = {}
+
     lateinit var camera: Camera
 
     fun start(){
@@ -37,8 +39,10 @@ class VideoAudioCreator(
         if(audioSources.isEmpty()){
             videoCreator.output.renameTo(output)
             LOGGER.info("No audio found, saved result to $output.")
+            onFinished()
         } else {
             appendAudio()
+            onFinished()
         }
     }
 

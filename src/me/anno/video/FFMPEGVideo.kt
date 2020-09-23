@@ -70,7 +70,11 @@ class FFMPEGVideo(file: File?, val frame0: Int, bufferLength: Int):
     var isDestroyed = false
     override fun destroy() {
         synchronized(frames){
-            frames.forEach { GFX.addGPUTask(5){ it.destroy() } }
+            if(frames.isNotEmpty()){
+                val f0 = frames[0]
+                // delete them over time? it seems like it's really expensive on my Envy x360 xD
+                frames.forEach { GFX.addGPUTask(f0.w, f0.h){ it.destroy() } }
+            }
             frames.clear()
             isDestroyed = true
         }
