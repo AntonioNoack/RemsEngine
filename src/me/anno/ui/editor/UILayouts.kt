@@ -6,6 +6,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFX.ask
 import me.anno.gpu.GFX.openMenu
 import me.anno.gpu.GFX.select
+import me.anno.gpu.GFXBase0
 import me.anno.gpu.Window
 import me.anno.input.Input
 import me.anno.objects.Camera
@@ -45,6 +46,7 @@ import me.anno.ui.editor.sceneTabs.SceneTabs
 import me.anno.ui.editor.sceneView.ScenePreview
 import me.anno.ui.editor.sceneView.SceneView
 import me.anno.ui.editor.treeView.TreeView
+import me.anno.ui.input.BooleanInput
 import me.anno.ui.input.EnumInput
 import me.anno.ui.input.FileInput
 import me.anno.ui.input.TextInput
@@ -288,6 +290,19 @@ object UILayouts {
                 val value = GFXSettings.values()[index]
                 Studio.gfxSettings = value
             }
+            .setTooltip("Disables MSAA")
+        quickSettings += BooleanInput("Enable Vsync", GFXBase0.enableVsync, style)
+            .setChangeListener {
+                DefaultConfig["editor.vsync"] = it
+                GFXBase0.setVsyncEnabled(it)
+            }
+            .setTooltip("Recommended: true, false only for debugging")
+        quickSettings += BooleanInput("Show FPS", RemsStudio.showFPS, style)
+            .setChangeListener {
+                DefaultConfig["debug.fps.show"] = it
+                RemsStudio.showFPS = it
+            }
+            .setTooltip("For debugging / monitoring stutters")
 
         val scroll = ScrollPanelY(welcome, Padding(5), style)
         scroll += WrapAlign.Center

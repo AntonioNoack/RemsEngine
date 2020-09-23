@@ -609,6 +609,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
         writer.writeObject(this, "cgOffset", cgOffset)
         writer.writeObject(this, "cgSlope", cgSlope)
         writer.writeObject(this, "cgPower", cgPower)
+        writer.writeInt("uvProjection", uvProjection.id, true)
     }
 
     override fun readObject(name: String, value: ISaveable?) {
@@ -627,6 +628,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
             "videoScale" -> videoScale = value
             "filtering" -> filtering = filtering.find(value)
             "clamping" -> clampMode = ClampMode.values().firstOrNull { it.id == value } ?: clampMode
+            "uvProjection" -> uvProjection = UVProjection.values().firstOrNull { it.id == value } ?: uvProjection
             else -> super.readInt(name, value)
         }
     }

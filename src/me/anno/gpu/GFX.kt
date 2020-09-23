@@ -989,9 +989,13 @@ object GFX : GFXBase1() {
     }
 
     fun showFPS() {
+        val x0 = max(0, GFX.width - FrameTimes.width)
+        val y0 = max(0, GFX.height - FrameTimes.height)
+        FrameTimes.place(x0, y0, FrameTimes.width, FrameTimes.height)
+        FrameTimes.draw()
         loadTexturesSync.push(true)
         clip(0, 0, width, height)
-        drawText(1, 1, "SansSerif", 12, false, false, currentEditorFPS.f1(), -1, 0, -1)
+        drawText(x0+1, y0+1, "SansSerif", 12, false, false, currentEditorFPS.f1(), -1, 0, -1)
         loadTexturesSync.pop()
     }
 

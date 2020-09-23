@@ -31,6 +31,7 @@ object Studio {
         set(value) {
             field = value
             DefaultConfig["editor.gfx"] = value.id
+            DefaultConfig.putAll(value.data)
         }
 
     var project: Project? = null

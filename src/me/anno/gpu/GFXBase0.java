@@ -7,7 +7,9 @@ package me.anno.gpu;
 import kotlin.Unit;
 import me.anno.config.DefaultConfig;
 import me.anno.input.Input;
+import me.anno.objects.GFXArray;
 import me.anno.studio.Build;
+import me.anno.studio.GFXSettings;
 import me.anno.studio.RemsStudio;
 import me.anno.studio.Studio;
 import me.anno.studio.project.Project;
@@ -44,7 +46,12 @@ import static org.lwjgl.system.MemoryUtil.memAddress;
  */
 public class GFXBase0 {
 
-    static boolean enableVsync = true ||!Build.INSTANCE.isDebug();
+    public static boolean enableVsync = DefaultConfig.INSTANCE.get("editor.vsync", !Build.INSTANCE.isDebug());
+
+    public static void setVsyncEnabled(boolean enabled){
+        enableVsync = enabled;
+        glfwSwapInterval(enableVsync ? 1 : 0);
+    }
 
     static Logger LOGGER = LogManager.getLogger(GFXBase0.class);
 

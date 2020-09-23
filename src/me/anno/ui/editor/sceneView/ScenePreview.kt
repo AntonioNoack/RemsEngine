@@ -139,7 +139,8 @@ class ScenePreview(style: Style) : PanelList(null, style.getChild("sceneView")),
                 null, camera,
                 x + dx, y + dy, goodW, goodH,
                 editorTime, false,
-                ShaderPlus.DrawMode.COLOR_SQUARED, this
+                if(usesFPBuffers) ShaderPlus.DrawMode.COLOR_SQUARED else ShaderPlus.DrawMode.COLOR,
+                this
             )
         }
 

@@ -9,6 +9,7 @@ import me.anno.gpu.GFX.select
 import me.anno.gpu.GFX.windowStack
 import me.anno.gpu.Window
 import me.anno.gpu.blending.BlendDepth
+import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.ShaderPlus
 import me.anno.input.Input
@@ -17,7 +18,6 @@ import me.anno.input.MouseButton
 import me.anno.input.Touch.Companion.touches
 import me.anno.objects.Camera
 import me.anno.objects.Transform
-import me.anno.gpu.blending.BlendMode
 import me.anno.objects.effects.ToneMappers
 import me.anno.studio.RemsStudio.onSmallChange
 import me.anno.studio.Scene
@@ -111,12 +111,12 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
         ).setOnClickListener {
             isLocked2D = !isLocked2D
             // control can be used to avoid rotating the camera
-            if(isLocked2D && !Input.isControlDown){
+            if (isLocked2D && !Input.isControlDown) {
                 val rot = camera.rotationYXZ
                 val rot0z = rot[camera.lastLocalTime].z
                 camera.putValue(rot, Vector3f(0f, 0f, rot0z))
             }
-            is2DPanel.text = if(isLocked2D) "3D" else "2D"
+            is2DPanel.text = if (isLocked2D) "3D" else "2D"
         }
     }
 
@@ -141,7 +141,11 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
 
         GFX.ensureEmptyStack()
 
-        GFX.drawMode = ShaderPlus.DrawMode.COLOR_SQUARED
+        val mode =
+            if (camera.toneMapping == ToneMappers.RAW8) ShaderPlus.DrawMode.COLOR
+            else ShaderPlus.DrawMode.COLOR_SQUARED
+
+        GFX.drawMode = mode
 
         GFX.check()
 
@@ -182,13 +186,13 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
         val matchesSize = lastW == rw && lastH == rh
         val wasNotRecentlyUpdated = lastSizeUpdate + 1e8 < GFX.lastTime
         val wasDrawn = matchesSize && wasNotRecentlyUpdated
-        if(matchesSize){
-            if(wasNotRecentlyUpdated){
+        if (matchesSize) {
+            if (wasNotRecentlyUpdated) {
                 Scene.draw(
                     null, camera,
                     x + dx, y + dy, rw, rh,
                     editorTime, false,
-                    ShaderPlus.DrawMode.COLOR_SQUARED, this
+                    mode, this
                 )
                 goodW = rw
                 goodH = rh
@@ -199,8 +203,8 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
             lastH = rh
         }
 
-        if(!wasDrawn){
-            if(goodW == 0 || goodH == 0){
+        if (!wasDrawn) {
+            if (goodW == 0 || goodH == 0) {
                 goodW = rw
                 goodH = rh
             }
@@ -209,14 +213,14 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
                 null, camera,
                 x + dx, y + dy, goodW, goodH,
                 editorTime, false,
-                ShaderPlus.DrawMode.COLOR_SQUARED, this
+                mode, this
             )
         }
 
         val edt = editorTimeDilation
         val et = editorTime
         // load the next five seconds of data
-        root.claimResources(et, et + 5.0 * if(edt == 0.0) 1.0 else edt, 1f, 1f)
+        root.claimResources(et, et + 5.0 * if (edt == 0.0) 1.0 else edt, 1f, 1f)
 
         GFX.ensureEmptyStack()
 
@@ -227,7 +231,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
 
         GFX.drawText(
             x + 2, y + 2, "Verdana", 12,
-            false, false, mode.displayName, -1, 0, -1
+            false, false, this.mode.displayName, -1, 0, -1
         )
 
         GFX.drawText(
@@ -326,7 +330,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
 
     fun parseKeyInput() {
 
-        if(!mayControlCamera) return
+        if (!mayControlCamera) return
 
         val dt = clamp(deltaTime, 0f, 0.1f)
 
@@ -334,7 +338,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
 
     }
 
-    fun moveDirectly(dx: Float, dy: Float, dz: Float){
+    fun moveDirectly(dx: Float, dy: Float, dz: Float) {
         val defaultFPS = 60f
         val dt = 0.2f
         val scale = defaultFPS * dt
@@ -343,11 +347,11 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
         this.dz += dz * scale
     }
 
-    fun move(dt: Float){
+    fun move(dt: Float) {
 
         // clamped just in case we get multiple mouse movement events in one frame
         val acceleration = Vector3f(
-            dx,dy,dz
+            dx, dy, dz
             /*clamp(dx, -1f, 1f),
             clamp(dy, -1f, 1f),
             clamp(dz, -1f, 1f)*/
@@ -379,7 +383,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
     var lastTouchZoom = 0f
     fun parseTouchInput() {
 
-        if(!mayControlCamera) return
+        if (!mayControlCamera) return
 
         // todo rotate/move our camera or the selected object?
         val size = -20f * shiftSlowdown / GFX.height
@@ -419,7 +423,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
 
     fun move(selected: Transform, dx0: Float, dy0: Float) {
 
-        if(!mayControlCamera) return
+        if (!mayControlCamera) return
 
         val delta = dx0 - dy0
 
@@ -498,7 +502,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
     }
 
     fun turn(dx: Float, dy: Float) {
-        if(!mayControlCamera) return
+        if (!mayControlCamera) return
         if (isLocked2D) return
         // move the camera
         val size = 20f * shiftSlowdown * (if (selectedTransform is Camera) -1f else 1f) / max(GFX.width, GFX.height)
@@ -549,7 +553,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
 
     fun goFullscreen() {
         // don't open, if it's already fullscreen
-        if(windowStack.peek()?.panel !is SceneView){
+        if (windowStack.peek()?.panel !is SceneView) {
             val view = SceneView(this)
             val window = Window(view, true, 0, 0)
             windowStack.push(window)
@@ -557,10 +561,10 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
     }
 
     override fun onDoubleClick(x: Float, y: Float, button: MouseButton) {
-        if(button.isLeft){
+        if (button.isLeft) {
             val xi = x.toInt()
             val yi = y.toInt()
-            for(it in controls){
+            for (it in controls) {
                 if (it.contains(xi, yi)) {
                     it.drawable.onMouseClicked(x, y, button, false)
                     return
@@ -589,7 +593,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
                 var dx = 0
                 var dy = 0
 
-                GFX.addGPUTask(w, h){
+                GFX.addGPUTask(w, h) {
                     val camera = camera
                     if (camera.onlyShowTarget) {
                         if (w * targetHeight > targetWidth * h) {

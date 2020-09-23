@@ -63,6 +63,9 @@ object Scene {
     private var isInited = false
     private fun init(){
 
+        // todo allow scenetabs to be swapped
+        // todo allow multisampling to be disabled
+
         // add randomness against banding
         val noiseFunc = "" +
                 "float random(vec2 co){\n" +
@@ -181,16 +184,19 @@ object Scene {
                     "   vec3 toneMapped;\n" +
                     "   switch(toneMapper){\n" +
                     ToneMappers.values().joinToString(""){ "" +
-                            "       case ${it.id}: toneMapped = ${it.glslFuncName}(raw);\n"
+                            "       case ${it.id}: toneMapped = ${it.glslFuncName}(raw);break;\n"
                     } +
+                    "       default: toneMapped = vec3(1,0,1);\n" +
                     "   }" +
                     "   vec3 graded = colorGrading(toneMapped);\n" +
-                    "   vec4 color = vec4(sqrt(graded), ga.y);\n" +
+                    "   vec4 color = vec4(toneMapper == ${ToneMappers.RAW8.id} ? graded : sqrt(graded), ga.y);\n" +
                     "   float rSq = dot(nuv,nuv);\n" + // nuv nuv 😂 (hedgehog sounds for German children)
                     "   color = mix(vec4(vignetteColor, 1.0), color, 1.0/(1.0 + vignetteStrength*rSq));\n" +
                     "   gl_FragColor = color + random(uv) * minValue;\n" +
                     "}"
         )
+
+        // todo Tone Mapping on Video objects for performance improvements (doesn't need fp framebuffer)
 
         lutShader = createShader("lut","" +
                 "in vec2 attr0;\n" +

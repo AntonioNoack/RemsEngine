@@ -3,9 +3,9 @@ package me.anno.studio
 import me.anno.io.utils.StringMap
 
 enum class GFXSettings(val id: Int, val displayName: String) {
-    LOW(0, "Low"),
-    MEDIUM(1, "Medium"),
-    HIGH(2,"High");
+    LOW(1, "Low"),
+    MEDIUM(2, "Medium"),
+    HIGH(3,"High");
 
     val data = StringMap()
 

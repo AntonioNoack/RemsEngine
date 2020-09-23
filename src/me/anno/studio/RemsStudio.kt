@@ -72,7 +72,7 @@ object RemsStudio {
     val windowStack = Stack<Window>()
 
     var showTutorialKeys = DefaultConfig["tutorial.keys.show", true]
-    var showFPS = DefaultConfig["debug.fps.show", true]
+    var showFPS = DefaultConfig["debug.fps.show", Build.isDebug]
 
     var workspace = DefaultConfig["workspace.dir", File(OS.home, "Documents/RemsStudio")]
 
@@ -287,9 +287,6 @@ object RemsStudio {
             Tooltips.draw()
 
             if (showFPS) {
-                FrameTimes.placeInParent(0, 0)
-                FrameTimes.applyPlacement(FrameTimes.width, FrameTimes.height)
-                FrameTimes.draw()
                 showFPS()
             }
 

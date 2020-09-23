@@ -28,18 +28,20 @@ class ImageData(file: File) : CacheData {
     companion object {
 
         fun getRotation(file: File): RotateJPEG? {
-            val metadata = ImageMetadataReader.readMetadata(file)
             var rotation: RotateJPEG? = null
-            for(dir in metadata.getDirectoriesOfType(ExifIFD0Directory::class.java)){
-                val desc = dir.getDescription(ExifIFD0Directory.TAG_ORIENTATION)?.toLowerCase() ?: continue
-                val mirror = "mirror" in desc
-                val mirrorHorizontal = mirror && "hori" in desc
-                val mirrorVertical = mirror && !mirrorHorizontal
-                val rotationDegrees = if("9" in desc) 90 else if("18" in desc) 180 else if("27" in desc) 270 else 0
-                if(mirrorHorizontal || mirrorVertical || rotationDegrees != 0) {
-                    rotation = RotateJPEG(mirrorHorizontal, mirrorVertical, rotationDegrees)
+            try {
+                val metadata = ImageMetadataReader.readMetadata(file)
+                for(dir in metadata.getDirectoriesOfType(ExifIFD0Directory::class.java)){
+                    val desc = dir.getDescription(ExifIFD0Directory.TAG_ORIENTATION)?.toLowerCase() ?: continue
+                    val mirror = "mirror" in desc
+                    val mirrorHorizontal = mirror && "hori" in desc
+                    val mirrorVertical = mirror && !mirrorHorizontal
+                    val rotationDegrees = if("9" in desc) 90 else if("18" in desc) 180 else if("27" in desc) 270 else 0
+                    if(mirrorHorizontal || mirrorVertical || rotationDegrees != 0) {
+                        rotation = RotateJPEG(mirrorHorizontal, mirrorVertical, rotationDegrees)
+                    }
                 }
-            }
+            } catch (e: Exception){ }
             return rotation
         }
 
