@@ -4,7 +4,6 @@ import me.anno.ui.base.Panel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.groups.PanelListX
-import me.anno.ui.custom.data.CustomData
 import me.anno.ui.custom.data.CustomListData
 import me.anno.ui.custom.data.ICustomDataCreator
 import me.anno.ui.style.Style
@@ -91,6 +90,10 @@ class CustomListX(style: Style) : PanelListX(style), CustomList {
         if(child.weight <= 0f) child.weight = 1f
         child.parent = this
         return super.add(child)
+    }
+
+    override operator fun plusAssign(child: Panel){
+        add(child)
     }
 
     fun add(child: Panel, weight: Float): PanelList {

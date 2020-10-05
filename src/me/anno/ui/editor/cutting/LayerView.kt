@@ -369,7 +369,8 @@ class LayerView(style: Style) : TimelinePanel(style) {
                 var sumDY = (y - Input.mouseDownY) / height
                 if (sumDY < 0) sumDY += 0.5f
                 else sumDY -= 0.5f
-                val newSlot = clamp(thisSlot + sumDY.roundToInt(), -1, cuttingView.layerCount - 1)
+                // todo make sure the timeline slot doesn't have invalid values
+                val newSlot = thisSlot + sumDY.roundToInt()
                 if (newSlot != timelineSlot) {
                     timelineSlot = newSlot
                     Studio.updateInspector()

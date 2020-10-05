@@ -15,6 +15,7 @@ import me.anno.objects.animation.AnimatedProperty
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.blending.blendModes
 import me.anno.gpu.shader.ShaderPlus
+import me.anno.objects.effects.MaskLayer
 import me.anno.objects.effects.MaskType
 import me.anno.objects.effects.ToneMappers
 import me.anno.objects.modes.LoopingState
@@ -305,9 +306,11 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
 
     fun drawChild(stack: Matrix4fArrayList, time: Double, color: Vector4f, child: Transform?){
         if(child != null){
+            // if(child is MaskLayer) println("0 ${GFX.drawMode}")
             stack.pushMatrix()
             child.draw(stack, time, color)
             stack.popMatrix()
+            // if(child is MaskLayer) println("1 ${GFX.drawMode}")
         }
     }
 

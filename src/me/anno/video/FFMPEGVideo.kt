@@ -1,7 +1,6 @@
 package me.anno.video
 
 import me.anno.gpu.GFX
-import me.anno.objects.cache.VideoData.Companion.framesPerContainer
 import me.anno.video.formats.ARGBFrame
 import me.anno.video.formats.BGRAFrame
 import me.anno.video.formats.I420Frame
@@ -35,7 +34,7 @@ class FFMPEGVideo(file: File?, val frame0: Int, bufferLength: Int):
         }
     }
 
-    val frames = ArrayList<Frame>(bufferLength)
+    val frames = ArrayList<VFrame>(bufferLength)
 
     var isFinished = false
     fun readFrame(input: InputStream){

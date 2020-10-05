@@ -8,10 +8,7 @@ import kotlin.Unit;
 import me.anno.config.DefaultConfig;
 import me.anno.input.Input;
 import me.anno.objects.GFXArray;
-import me.anno.studio.Build;
-import me.anno.studio.GFXSettings;
-import me.anno.studio.RemsStudio;
-import me.anno.studio.Studio;
+import me.anno.studio.*;
 import me.anno.studio.project.Project;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -118,12 +115,14 @@ public class GFXBase0 {
         if (window == NULL)
             throw new RuntimeException("Failed to create the GLFW window");
 
+        long t3_2 = System.nanoTime();
+
         addCallbacks();
 
         long t4 = System.nanoTime();
 
-        GLFWVidMode vidmode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-        glfwSetWindowPos(window, (vidmode.width() - width) / 2, (vidmode.height() - height) / 2);
+        GLFWVidMode videoMode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+        if(videoMode != null) glfwSetWindowPos(window, (videoMode.width() - width) / 2, (videoMode.height() - height) / 2);
         try (MemoryStack frame = MemoryStack.stackPush()) {
             IntBuffer framebufferSize = frame.mallocInt(2);
             nglfwGetFramebufferSize(window, memAddress(framebufferSize), memAddress(framebufferSize) + 4);
@@ -139,9 +138,8 @@ public class GFXBase0 {
 
         long t6 = System.nanoTime();
 
-        LOGGER.info(String.format(Locale.ENGLISH, "Used %.3fs for window hints + %.3fs for callbacks + %.3fs for position + %.3fs for show",
-                (t3-t2)*1e-9f,
-                (t4-t3)*1e-9f, (t5-t4)*1e-9f, (t6-t5)*1e-9f));
+        LOGGER.info("Used %.3fs for window hints + %.3fs for window creation + %.3fs for callbacks + %.3fs for position + %.3fs for show",
+                (t3-t2)*1e-9f, (t3_2-t3)*1e-9f, (t4-t3_2)*1e-9f, (t5-t4)*1e-9f, (t6-t5)*1e-9f);
 
     }
 
@@ -276,7 +274,6 @@ public class GFXBase0 {
     public void renderStep(){
 
         glClear(GL_COLOR_BUFFER_BIT);
-        // glViewport(0, 0, width, height);
 
         float elapsed = 0.001667f;
 
@@ -320,7 +317,7 @@ public class GFXBase0 {
                         return null;
                     });
                     Input.INSTANCE.invalidateLayout();
-                    RemsStudio.INSTANCE.getWindowStack().peek().setAcceptsClickAway(false);
+                    StudioBase.instance.getWindowStack().peek().setAcceptsClickAway(false);
                     return null;
                 });
             }

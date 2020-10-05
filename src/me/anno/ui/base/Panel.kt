@@ -7,6 +7,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.io.Saveable
+import me.anno.studio.RemsStudio
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.style.Style
 import me.anno.utils.Tabs
@@ -15,8 +16,6 @@ import org.lwjgl.opengl.GL11.*
 import java.io.File
 import java.lang.RuntimeException
 
-// todo select any group of elements similar to control+click by shift+drag
-
 open class Panel(val style: Style) {
 
     var minW = 1
@@ -24,8 +23,28 @@ open class Panel(val style: Style) {
 
     var visibility = Visibility.VISIBLE
 
-    // todo make layout become valid/invalid, so we can save some comp. resources
-    var hasValidLayout = false
+    fun toggleVisibility(){ visibility = if(visibility == Visibility.VISIBLE) Visibility.GONE else Visibility.VISIBLE }
+    fun hide(){ visibility = Visibility.GONE }
+    fun show(){ visibility = Visibility.VISIBLE }
+
+    // todo make layout become valid/invalid, so we can save some cpu+gpu resources
+    open fun invalidateLayout(){
+        parent?.invalidateLayout() ?: {
+            RemsStudio.needsLayout += this
+        }()
+    }
+
+    open fun invalidateDrawing(){
+        RemsStudio.needsDrawing += this
+    }
+
+    // todo on leave call on hover again?
+    // todo at least give some kind of call...
+    open fun onHover(isInside: Boolean){
+        parent?.onHover(isInside)
+        // invalidateLayout()
+        // invalidateDrawing()
+    }
 
     var cachedVisuals = Framebuffer("panel", 1, 1, 1, 1, false,
         Framebuffer.DepthBufferType.NONE)
@@ -55,13 +74,6 @@ open class Panel(val style: Style) {
     val rootPanel: Panel get() = parent?.rootPanel ?: this
     fun canBeSeen(x0: Int, y0: Int, w0: Int, h0: Int): Boolean {
         return x + w > x0 && y + h > y0 && x < x0 + w0 && y < y0 + h0
-    }
-
-    fun invalidateLayout() {
-        if (hasValidLayout) {
-            hasValidLayout = false
-            parent?.invalidateLayout()
-        }
     }
 
     var tooltip: String? = null

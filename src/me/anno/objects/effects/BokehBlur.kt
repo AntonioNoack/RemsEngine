@@ -4,6 +4,7 @@ import me.anno.gpu.GFX.flat01
 import me.anno.gpu.ShaderLib.createShaderNoShorts
 import me.anno.gpu.blending.BlendDepth
 import me.anno.gpu.framebuffer.FBStack
+import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.ClampMode
@@ -62,8 +63,6 @@ object BokehBlur {
         drawX(normRadius, w, h, r, g, b)
         drawY(normRadius, w, h, r, g, b, target)
 
-        target.unbind()
-
         bd.unbind()
 
     }
@@ -87,30 +86,30 @@ object BokehBlur {
         target: Framebuffer
     ) {
 
-        val shader = compositionShader!!
-        shader.use()
-        shader.v2("stepVal", normRadius / w, normRadius / h)
+        Frame(w, h, target){
 
-        // dst.bind()
-        // while(Framebuffer.stack.pop() != target){}
-        target.bind(w, h)
+            val shader = compositionShader!!
+            shader.use()
+            shader.v2("stepVal", normRadius / w, normRadius / h)
 
-        glClearColor(0f, 0f, 0f, 0f)
-        glClear(GL_COLOR_BUFFER_BIT)
+            glClearColor(0f, 0f, 0f, 0f)
+            glClear(GL_COLOR_BUFFER_BIT)
 
-        // filter texture is bound correctly
-        r.bindTexture0(1, false, ClampMode.CLAMP)
-        g.bindTexture0(2, false, ClampMode.CLAMP)
-        b.bindTexture0(3, false, ClampMode.CLAMP)
-        flat01.draw(shader)
+            // filter texture is bound correctly
+            r.bindTexture0(1, false, ClampMode.CLAMP)
+            g.bindTexture0(2, false, ClampMode.CLAMP)
+            b.bindTexture0(3, false, ClampMode.CLAMP)
+            flat01.draw(shader)
+
+        }
 
     }
 
     fun drawChannel(shader: Shader, target: Framebuffer, w: Int, h: Int, channel: Vector3f) {
-        target.bind(w, h)
-        shader.v3("channelSelection", channel)
-        flat01.draw(shader)
-        target.unbind()
+        Frame(w, h, target){
+            shader.v3("channelSelection", channel)
+            flat01.draw(shader)
+        }
     }
 
     fun init() {

@@ -1,10 +1,11 @@
 package me.anno.objects.cache
 
 import me.anno.gpu.GFX
+import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture3D
 import me.anno.video.FFMPEGMetadata
-import me.anno.video.Frame
+import me.anno.video.VFrame
 import org.apache.logging.log4j.LogManager
 import java.io.File
 import java.io.FileNotFoundException
@@ -176,7 +177,7 @@ object Cache {
 
     }
 
-    fun getVideoFrame(file: File, scale0: Int, index: Int, bufferLength0: Int, fps: Double, timeout: Long, async: Boolean): Frame? {
+    fun getVideoFrame(file: File, scale0: Int, index: Int, bufferLength0: Int, fps: Double, timeout: Long, async: Boolean): VFrame? {
         if(file.isDirectory || !file.exists()) return null
         if (index < 0) return null
         val scale = max(1, scale0)
@@ -209,6 +210,16 @@ object Cache {
             toRemove.forEach {
                 cache.remove(it.key)
                 it.value.destroy()
+            }
+        }
+    }
+
+    fun resetFBStack(){
+        synchronized(this){
+            cache.values.forEach {
+                (it.data as? FBStack.FBStackData)?.apply {
+                    nextIndex = 0
+                }
             }
         }
     }

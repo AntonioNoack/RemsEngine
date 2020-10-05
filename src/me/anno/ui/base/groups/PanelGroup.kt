@@ -19,16 +19,12 @@ abstract class PanelGroup(style: Style): Panel(style){
         var hadVisibleChild = false
         children@ for(child in children){
             if(child.visibility == Visibility.VISIBLE){
-                try {
-                    hadVisibleChild = drawChild(child, x0, y0, x1, y1) or hadVisibleChild
-                } catch (e: Exception){
-                    e.printStackTrace()
-                }
+                drawChild(child, x0, y0, x1, y1)
             }
         }
-        if(hadVisibleChild){
+        /*if(hadVisibleChild){
             GFX.clip2(x0, y0, x1, y1)
-        }
+        }*/
     }
 
     fun drawChild(child: Panel, x0: Int, y0: Int, x1: Int, y1: Int): Boolean {
@@ -39,8 +35,11 @@ abstract class PanelGroup(style: Style): Panel(style){
         val x12 = min(child.x + child.w, x1)
         val y12 = min(child.y + child.h, y1)
         return if(x12 > x02 && y12 > y02){
-            GFX.clip2(x02, y02, x12, y12)
-            child.draw(x02, y02, x12, y12)
+            GFX.clip2(x02, y02, x12, y12){
+                try {
+                    child.draw(x02, y02, x12, y12)
+                } catch (e: Exception){}
+            }
             /*val color = black or 0x777777
             GFX.drawRect(x02, y02, 1, 1, color)
             GFX.drawRect(x02, y12-1, 1, 1, color)

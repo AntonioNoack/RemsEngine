@@ -8,6 +8,7 @@ import me.anno.input.MouseButton
 import me.anno.io.text.TextReader
 import me.anno.objects.Camera
 import me.anno.objects.animation.AnimatedProperty
+import me.anno.studio.RemsStudio
 import me.anno.studio.Studio
 import me.anno.studio.Studio.editorTime
 import me.anno.studio.Studio.shiftSlowdown
@@ -91,10 +92,8 @@ class VectorInput(
 
     // val titleList = PanelListX(style)
     val valueList = PanelListX(style)
-    init {
-        valueList.visibility = Visibility.GONE
-        valueList.disableConstantSpaceForWeightedChildren = true
-    }
+    init { valueList.disableConstantSpaceForWeightedChildren = true }
+
     val titleView = object: TextPanel(title, style){
 
         override fun onMouseDown(x: Float, y: Float, button: MouseButton) { this@VectorInput.onMouseDown(x,y,button) }
@@ -150,7 +149,7 @@ class VectorInput(
                 }
             }
         }
-    }.setWeight(1f)
+    }
 
     init {
 
@@ -160,17 +159,26 @@ class VectorInput(
         valueList += WrapAlign.Top
 
         this += titleView
-        // this += titleList
+        titleView.setWeight(1f)
+        titleView.focusTextColor = titleView.textColor
+        titleView.setSimpleClickListener {
+            valueList.toggleVisibility()
+            valueList.children.forEach { it.show() }
+        }
+
         this += valueList
+        valueList.hide()
 
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.onDraw(x0, y0, x1, y1)
-        val focused1 = titleView.isInFocus || valueList.children.count { it.isInFocus } > 0
+        val focused1 = titleView.isInFocus || valueList.children.one { it.isInFocus }
         if(focused1) isSelectedListener?.invoke()
-        val focused2 = focused1 || owningProperty == Studio.selectedProperty
-        valueList.visibility = if(focused2) Visibility.VISIBLE else Visibility.GONE
+        if(RemsStudio.hideUnusedProperties){
+            val focused2 = focused1 || owningProperty == Studio.selectedProperty
+            valueList.visibility = if(focused2) Visibility.VISIBLE else Visibility.GONE
+        }
         super.onDraw(x0, y0, x1, y1)
         compX.updateValueMaybe()
         compY.updateValueMaybe()

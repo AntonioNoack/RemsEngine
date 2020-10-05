@@ -1,6 +1,6 @@
 package me.anno.image.svg
 
-import me.anno.fonts.mesh.Triangulator
+import me.anno.fonts.mesh.Triangulation
 import me.anno.utils.OS
 import me.anno.utils.plus
 import org.joml.Vector2d
@@ -42,7 +42,7 @@ class SVGCurve(points: MutableList<Vector2d>, closed: Boolean, val depth: Double
 
         if(fill){
 
-            triangles = Triangulator.ringToTriangles(points)
+            triangles = Triangulation.ringToTriangles(points, "svg-fill")
 
         } else {
 
@@ -57,7 +57,7 @@ class SVGCurve(points: MutableList<Vector2d>, closed: Boolean, val depth: Double
 
             ring2.reverse()
 
-            triangles = Triangulator.ringToTriangles(ring1 + ring2)
+            triangles = Triangulation.ringToTriangles(ring1 + ring2, "svg-line")
 
         }
 

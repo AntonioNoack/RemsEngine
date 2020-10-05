@@ -322,7 +322,7 @@ object ShaderLib {
 
         val f3DBlur = "" +
                 "uniform sampler2D tex;\n" +
-                "uniform vec2 blurDeltaUV;\n" +
+                "uniform vec2 stepSize;\n" +
                 "uniform float steps;\n" +
                 "void main(){\n" +
                 "   vec2 uv2 = uv.xy/uv.z * 0.5 + 0.5;\n" +
@@ -335,10 +335,11 @@ object ShaderLib {
                 "   } else {\n" +
                 "       color = vec4(0.0);\n" +
                 "       for(int i=-iSteps;i<=iSteps;i++){\n" +
-                "           float relativeX = float(i)/steps;\n" +
+                "           float fi = float(i);\n" +
+                "           float relativeX = fi/steps;\n" +
                 "           float weight = i == 0 ? 1.0 : exp(-relativeX*relativeX);\n" +
                 "           sum += weight;\n" +
-                "           color += texture(tex, uv2 + relativeX * blurDeltaUV) * weight;\n" +
+                "           color += texture(tex, uv2 + fi * stepSize) * weight;\n" +
                 "       }\n" +
                 "       color /= sum;\n" +
                 "   }\n" +
@@ -488,8 +489,8 @@ object ShaderLib {
 
     }
 
-    fun createShaderNoShorts(shaderName: String, v3D: String, y3D: String, fragmentShader: String, textures: List<String>): Shader {
-        val shader = Shader(shaderName, v3D, y3D, fragmentShader, true)
+    fun createShaderNoShorts(shaderName: String, v3D: String, y3D: String, f3D: String, textures: List<String>): Shader {
+        val shader = Shader(shaderName, v3D, y3D, f3D, true)
         shader.use()
         textures.forEachIndexed { index, name ->
             GL20.glUniform1i(shader[name], index)
@@ -497,8 +498,8 @@ object ShaderLib {
         return shader
     }
 
-    fun createShaderPlus(shaderName: String, v3D: String, y3D: String, fragmentShader: String, textures: List<String>): ShaderPlus {
-        val shader = ShaderPlus(shaderName, v3D, y3D, fragmentShader)
+    fun createShaderPlus(shaderName: String, v3D: String, y3D: String, f3D: String, textures: List<String>): ShaderPlus {
+        val shader = ShaderPlus(shaderName, v3D, y3D, f3D)
         for(shader2 in listOf(shader.shader)){
             shader2.use()
             textures.forEachIndexed { index, name ->
@@ -508,8 +509,8 @@ object ShaderLib {
         return shader
     }
 
-    fun createShader(shaderName: String, v3D: String, y3D: String, fragmentShader: String, textures: List<String>): Shader {
-        val shader = Shader(shaderName, v3D, y3D, fragmentShader)
+    fun createShader(shaderName: String, v3D: String, y3D: String, f3D: String, textures: List<String>): Shader {
+        val shader = Shader(shaderName, v3D, y3D, f3D)
         shader.use()
         textures.forEachIndexed { index, name ->
             GL20.glUniform1i(shader[name], index)

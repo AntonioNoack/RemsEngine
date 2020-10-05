@@ -64,6 +64,7 @@ object ActionManager {
         keyMap["global.y.t.${Modifiers[true, true]}"] = "Redo"
 
         // press instead of down for the delay
+        keyMap["SceneTab.left.press"] = "DragStart"
         keyMap["FileEntry.left.press"] = "DragStart"
         keyMap["FileEntry.left.double"] = "Enter|Open"
         keyMap["FileEntry.right.down"] = "OpenOptions"

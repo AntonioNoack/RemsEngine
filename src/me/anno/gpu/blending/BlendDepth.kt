@@ -9,6 +9,12 @@ data class BlendDepth(val blendMode: BlendMode?, val depth: Boolean, val depthMa
     private var underThis: BlendDepth? = null
     private var actualBlendMode = blendMode
 
+    fun use(render: () -> Unit){
+        bind()
+        render()
+        unbind()
+    }
+
     fun bind(){
         underThis = if(stack.isEmpty()) null else stack.peek()
         actualBlendMode = if(blendMode == BlendMode.UNSPECIFIED) underThis?.actualBlendMode else blendMode

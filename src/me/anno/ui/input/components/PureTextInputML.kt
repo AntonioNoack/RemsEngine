@@ -14,10 +14,7 @@ import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelXY
 import me.anno.ui.style.Style
-import me.anno.utils.clamp
-import me.anno.utils.getIndexFromText
-import me.anno.utils.getLineWidth
-import me.anno.utils.joinChars
+import me.anno.utils.*
 import java.lang.StringBuilder
 import kotlin.math.abs
 import kotlin.streams.toList
@@ -109,7 +106,7 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
         val isBold = examplePanel.isBold
         val isItalic = examplePanel.isItalic
         val textColor = examplePanel.textColor or black
-        val isReallyInFocus = isInFocus || children.count { it.isInFocus } > 0
+        val isReallyInFocus = isInFocus || children.one { it.isInFocus }
         if (isReallyInFocus && (showBars || cursor1 != cursor2)) {
             ensureCursorBounds()
             val padding = textSize / 4

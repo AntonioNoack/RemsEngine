@@ -19,6 +19,7 @@ import me.anno.gpu.blending.BlendDepth
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.buffer.StaticFloatBuffer
+import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderPlus
@@ -36,7 +37,7 @@ import me.anno.objects.effects.MaskType
 import me.anno.objects.geometric.Circle
 import me.anno.objects.modes.UVProjection
 import me.anno.studio.Build.isDebug
-import me.anno.studio.Studio
+import me.anno.studio.Scene
 import me.anno.studio.Studio.editorTime
 import me.anno.studio.Studio.editorTimeDilation
 import me.anno.studio.Studio.eventTasks
@@ -59,14 +60,13 @@ import me.anno.ui.debug.FrameTimes
 import me.anno.utils.clamp
 import me.anno.utils.f1
 import me.anno.utils.minus
-import me.anno.video.Frame
+import me.anno.video.VFrame
 import org.apache.logging.log4j.LogManager
 import org.joml.*
 import org.lwjgl.BufferUtils
 import org.lwjgl.glfw.GLFW.glfwSetWindowShouldClose
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
 import org.lwjgl.opengl.GL
-import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL30.*
 import java.lang.Math
@@ -169,22 +169,19 @@ object GFX : GFXBase1() {
         if (panel != null) inFocus += panel
     }
 
-    fun clip(x: Int, y: Int, w: Int, h: Int) {
+    fun clip(x: Int, y: Int, w: Int, h: Int, render: () -> Unit) {
         // from the bottom to the top
         check()
         if (w < 1 || h < 1) throw java.lang.RuntimeException("w < 1 || h < 1 not allowed, got $w x $h")
-        GL11.glViewport(x, height - y - h, w, h)
-        check()
-        // default
-        windowX = x
-        windowY = y
-        windowWidth = w
-        windowHeight = h
+        val realY = height - (y + h)
+        Frame(x, realY, w, h){
+           render()
+        }
     }
 
-    fun clip(size: me.anno.gpu.size.WindowSize) = clip(size.x, size.y, size.w, size.h)
+    fun clip(size: me.anno.gpu.size.WindowSize, render: () -> Unit) = clip(size.x, size.y, size.w, size.h, render)
 
-    fun clip2(x0: Int, y0: Int, x1: Int, y1: Int) = clip(x0, y0, x1 - x0, y1 - y0)
+    fun clip2(x0: Int, y0: Int, x1: Int, y1: Int, render: () -> Unit) = clip(x0, y0, x1 - x0, y1 - y0, render)
 
     lateinit var windowStack: Stack<Window>
 
@@ -374,7 +371,7 @@ object GFX : GFXBase1() {
         )
     }
 
-    fun drawTexture(w: Int, h: Int, texture: Frame, color: Int, tiling: Vector4f?) {
+    fun drawTexture(w: Int, h: Int, texture: VFrame, color: Int, tiling: Vector4f?) {
         val matrix = Matrix4fArrayList()
         matrix.scale(w.toFloat() / windowWidth, h.toFloat() / windowHeight, 1f)
         drawMode = ShaderPlus.DrawMode.COLOR
@@ -480,6 +477,13 @@ object GFX : GFXBase1() {
         shader.v1("drawMode", drawMode.id)
     }
 
+    fun transformUniform(shader: Shader, stack: Matrix4f) {
+        check()
+        shader.use()
+        stack.get(matrixBuffer)
+        glUniformMatrix4fv(shader["transform"], false, matrixBuffer)
+    }
+
     fun shaderColor(shader: Shader, name: String, color: Vector4f) {
         if (drawMode == ShaderPlus.DrawMode.ID) {
             val id = drawnTransform!!.clickId
@@ -524,13 +528,20 @@ object GFX : GFXBase1() {
 
     fun draw3DBlur(
         stack: Matrix4fArrayList,
-        pixelSize: Float, blurDeltaUV: Vector2f
+        size: Float, w: Int, h: Int, isFirst: Boolean
     ) {
         val shader = shader3DBlur
-        shader3DUniforms(shader, stack, Vector4f(1f, 1f, 1f, 1f))
-        // shader.v2("pixelating", pixelSize * windowHeight / windowWidth, pixelSize)
-        shader.v2("blurDeltaUV", blurDeltaUV)
-        shader.v1("steps", pixelSize * windowHeight)
+        transformUniform(shader, stack)
+        if(isFirst) shader.v2("stepSize", 0f, 1f / h)
+        else shader.v2("stepSize", 1f / w, 0f)
+        shader.v1("steps", size * h)
+        flat01.draw(shader)
+        check()
+    }
+
+    fun copy(){
+        check()
+        val shader = Scene.copyShader
         flat01.draw(shader)
         check()
     }
@@ -592,7 +603,7 @@ object GFX : GFXBase1() {
     }
 
     fun draw3D(
-        stack: Matrix4fArrayList, texture: Frame, color: Vector4f,
+        stack: Matrix4fArrayList, texture: VFrame, color: Vector4f,
         filtering: FilteringMode, clampMode: ClampMode, tiling: Vector4f?, uvProjection: UVProjection
     ) {
         if (!texture.isLoaded) throw RuntimeException("Frame must be loaded to be rendered!")
@@ -610,7 +621,7 @@ object GFX : GFXBase1() {
 
     fun draw3DVideo(
         video: Video, time: Double,
-        stack: Matrix4fArrayList, texture: Frame, color: Vector4f,
+        stack: Matrix4fArrayList, texture: VFrame, color: Vector4f,
         filtering: FilteringMode, clampMode: ClampMode, tiling: Vector4f?, uvProjection: UVProjection
     ) {
         if (!texture.isLoaded) throw RuntimeException("Frame must be loaded to be rendered!")
@@ -627,7 +638,7 @@ object GFX : GFXBase1() {
         check()
     }
 
-    fun draw2D(texture: Frame) {
+    fun draw2D(texture: VFrame) {
 
         if (!texture.isLoaded) throw RuntimeException("Frame must be loaded to be rendered!")
         val shader = texture.get3DShader().shader
@@ -786,9 +797,6 @@ object GFX : GFXBase1() {
 
         Texture2D.textureBudgetUsed = 0
 
-        /*Framebuffer.bindNull()
-        glViewport(0, 0, width, height)
-        Framebuffer.bindNull()*/
         glBindTexture(GL_TEXTURE_2D, 0)
 
         check()
@@ -989,7 +997,6 @@ object GFX : GFXBase1() {
         FrameTimes.place(x0, y0, FrameTimes.width, FrameTimes.height)
         FrameTimes.draw()
         loadTexturesSync.push(true)
-        clip(0, 0, width, height)
         drawText(x0 + 1, y0 + 1, "SansSerif", 12, false, false, currentEditorFPS.f1(), -1, 0, -1)
         loadTexturesSync.pop()
     }

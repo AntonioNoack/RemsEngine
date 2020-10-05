@@ -1,6 +1,7 @@
 package me.anno.gpu.shader
 
 import me.anno.gpu.GFX
+import me.anno.gpu.framebuffer.Frame
 import me.anno.objects.cache.CacheData
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector2f
@@ -110,6 +111,7 @@ open class Shader(val shaderName: String,
     }
 
     fun use(){
+        Frame.currentFrame?.bind()
         if(program == -1) init()
         if(program != lastProgram){
             glUseProgram(program)

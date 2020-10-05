@@ -38,7 +38,8 @@ object Studio {
 
     var dragged: IDraggable? = null
 
-    var editorTime = 0.0
+    // todo save in project
+    var editorTime = 0.5
         set(value) {// cannot be set < 0
             // clamping to the right edge is annoying
             field = max(value, 0.0)

@@ -32,6 +32,14 @@ import java.lang.Exception
 import kotlin.math.*
 import me.anno.input.Input.isControlDown as isControlDown
 
+// todo optimized ui system:
+// todo invalidate layout -> recalc + redraw
+// todo invalidate drawing -> redraw
+// todo invalidate layout only until CustomContainer
+// todo invalidate draw only on self+children -> local -> create a set containing everything needing an update
+// todo tick function on hover, which checks for changes and issues layout/draw invalidation
+// todo one framebuffer per window (start screen has changing background + static foreground)
+
 
 // todo make music x times calmer, if another audio line (voice) is on as an optional feature
 
@@ -195,6 +203,12 @@ class GraphEditorBody(style: Style): TimelinePanel(style.getChild("deep")){
             // localTime0 = (parentTime - timeOffset) * timeDilation
             time0 = (time0 - t.timeOffset) * t.timeDilation
             time1 = (time1 - t.timeOffset) * t.timeDilation
+        }
+
+        // make sure the values are ok-ish
+        if(abs(time1-time0) !in 0.001 .. 1000.0){
+            time0 = 0.0
+            time1 = 1.0
         }
 
         // val values = FloatArray(channelCount)

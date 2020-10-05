@@ -9,6 +9,7 @@ import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.style.Style
 import me.anno.utils.isClickKey
 import me.anno.utils.mixARGB
+import me.anno.utils.one
 import org.lwjgl.glfw.GLFW
 
 open class ButtonPanel(text: String, style: Style): TextPanel(text, style.getChild("button")){
@@ -33,7 +34,7 @@ open class ButtonPanel(text: String, style: Style): TextPanel(text, style.getChi
         val isInFocus = isInFocus
         val isHovered = isHovered
         val mouseDown = (isHovered && 0 in Input.mouseKeysDown) ||
-                (isInFocus && keysDown.count { it.key.isClickKey() } > 0)
+                (isInFocus && keysDown.one { it.key.isClickKey() })
 
         backgroundColor = if(isHovered && !mouseDown) hoveredBackground else normalBackground
 

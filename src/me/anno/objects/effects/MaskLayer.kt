@@ -1,10 +1,15 @@
 package me.anno.objects.effects
 
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.windowHeight
+import me.anno.gpu.GFX.windowWidth
 import me.anno.gpu.blending.BlendDepth
+import me.anno.gpu.framebuffer.FBStack
+import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.ShaderPlus
 import me.anno.gpu.texture.ClampMode
+import me.anno.input.Input.keysDown
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.Transform
@@ -18,6 +23,7 @@ import org.joml.Matrix4fArrayList
 import org.joml.Vector2f
 import org.joml.Vector4f
 import org.lwjgl.opengl.GL11.*
+import kotlin.math.max
 
 class MaskLayer(parent: Transform? = null) : MaskLayerBase(parent) {
 
@@ -43,50 +49,80 @@ class MaskLayer(parent: Transform? = null) : MaskLayerBase(parent) {
 
     // mask = 0, tex = 1
     override fun drawOnScreen2(localTransform: Matrix4fArrayList, time: Double, color: Vector4f) {
+
         val pixelSize = effectSize[time]
         val isInverted = if (isInverted) 1f else 0f
+
+        val w = windowWidth
+        val h = windowHeight
+
         when (type) {
             MaskType.GAUSSIAN_BLUR -> {
 
-                // todo sample down for large blur sizes?? (for performance reasons)
+                var size = pixelSize
+
                 // done first blur everything, then mask
                 // the artist could notice the fps going down, and act on his own (screenshot, rendering once, ...) ;)
 
-                GFX.check()
-                masked.bindTexture0(0, true, ClampMode.CLAMP)
-                GFX.check()
-
-                fun drawBlur(fb: Framebuffer, offset: Int, isFirst: Boolean) {
+                fun drawBlur(target: Framebuffer, w: Int, h: Int, offset: Int, isFirst: Boolean) {
                     // step1
-                    fb.bind(GFX.windowWidth, GFX.windowHeight)
-                    // clear to black?
-                    glClear(GL_DEPTH_BUFFER_BIT)
-                    GFX.draw3DBlur(
-                        localTransform, pixelSize,
-                        if (isFirst)
-                            Vector2f(0f, pixelSize)
-                        else
-                            Vector2f(pixelSize * GFX.windowHeight / GFX.windowWidth, 0f)
-                    )
-                    fb.unbind()
-                    fb.bindTexture0(offset, true, ClampMode.CLAMP)
+                    Frame(w, h, target){
+                        glClear(GL_DEPTH_BUFFER_BIT)
+                        GFX.draw3DBlur(localTransform, size, w, h, isFirst)
+                    }
+                    target.bindTexture0(offset, true || isFirst || size == pixelSize, ClampMode.CLAMP)
                 }
 
                 val oldDrawMode = GFX.drawMode
                 if (oldDrawMode == ShaderPlus.DrawMode.COLOR_SQUARED) GFX.drawMode = ShaderPlus.DrawMode.COLOR
 
-                val bd = BlendDepth(null, false)
-                bd.bind()
+                GFX.check()
+                masked.bindTexture0(0, true, ClampMode.CLAMP)
+                GFX.check()
 
-                drawBlur(temp, 0, true)
-                drawBlur(temp2, 2, false)
+                BlendDepth(null, false).use {
 
-                bd.unbind()
+                    val steps = pixelSize * windowHeight
+                    val subSteps = (steps / 10f).toInt()
+
+                    var smallerW = w
+                    var smallerH = h
+
+                    val debug = false
+
+                    // sample down for large blur sizes for performance reasons
+                    if(debug && subSteps > 1){
+                        // smallerW /= 2
+                        // smallerH /= 2
+                        smallerW = max(10, w / subSteps)
+                        if(debug && 'J'.toInt() in keysDown) smallerH = max(10, h / subSteps)
+                        // smallerH /= 2
+                        // smallerH = max(10, h / subSteps)
+                        size = pixelSize * smallerW / w
+                        // draw image on smaller thing...
+                        val temp2 = FBStack["mask-gaussian-blur-2", smallerW, smallerH, 1, true]// temp[2]
+                        Frame(smallerW, smallerH, temp2){
+                            // glClearColor(0f, 0f, 0f, 0f)
+                            // glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
+                            // draw texture 0 (masked) onto temp2
+                            // todo sample multiple times...
+                            GFX.copy()
+                            temp2.bindTexture0(0, true, ClampMode.CLAMP)
+                        }
+                    }
+
+                    if(debug && 'I'.toInt() in keysDown) println("$w,$h -> $smallerW,$smallerH")
+
+                    drawBlur(FBStack["mask-gaussian-blur-0", smallerW, smallerH, 1, true], smallerW, smallerH, 0, true)
+                    drawBlur(FBStack["mask-gaussian-blur-1", smallerW, smallerH, 1, true], smallerW, smallerH, 2, false)
+
+                }
 
                 GFX.drawMode = oldDrawMode
 
                 masked.bindTexture0(1, true, ClampMode.CLAMP)
                 mask.bindTexture0(0, true, ClampMode.CLAMP)
+
                 GFX.check()
 
                 GFX.draw3DMasked(
@@ -97,7 +133,9 @@ class MaskLayer(parent: Transform? = null) : MaskLayerBase(parent) {
             }
             MaskType.BOKEH_BLUR -> {
 
-                // todo not working correctly
+                val temp = FBStack["mask-bokeh", w, h, 1, true]
+
+                // todo not working correctly for large sizes because of too small sample size
                 // calculate and apply bokeh...
 
                 val src0 = masked

@@ -2,16 +2,22 @@ package me.anno.ui.editor.sceneTabs
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
+import me.anno.input.ActionManager
+import me.anno.input.Input
+import me.anno.input.MouseButton
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.objects.Transform
 import me.anno.studio.Studio
+import me.anno.studio.Studio.dragged
 import me.anno.studio.history.History
 import me.anno.ui.base.TextPanel
+import me.anno.ui.dragging.Draggable
 import me.anno.ui.editor.files.FileExplorer
 import me.anno.ui.editor.files.toAllowedFilename
 import me.anno.ui.editor.sceneTabs.SceneTabs.currentTab
 import me.anno.ui.editor.sceneTabs.SceneTabs.open
+import me.anno.ui.editor.sceneView.SceneTabData
 import me.anno.utils.mixARGB
 import java.io.File
 import kotlin.concurrent.thread
@@ -124,6 +130,26 @@ class SceneTab(var file: File?, var root: Transform, history: History?) : TextPa
         } else {
             save(file!!)
         }
+    }
+
+    override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
+        when(action){
+            "DragStart" -> {
+                if (dragged?.getOriginal() != this) {
+                    dragged = Draggable(SceneTabData(this).toString(), "SceneTab", this, TextPanel(createText, style))
+                }
+            }
+            else -> return super.onGotAction(x, y, dx, dy, action, isContinuous)
+        }
+        return true
+    }
+
+    override fun onMouseUp(x: Float, y: Float, button: MouseButton) {
+        ActionManager.executeGlobally(0f, 0f, false, listOf("DragEnd"))
+    }
+
+    override fun onPaste(x: Float, y: Float, data: String, type: String) {
+        SceneTabs.onPaste(x, y, data, type)
     }
 
 }

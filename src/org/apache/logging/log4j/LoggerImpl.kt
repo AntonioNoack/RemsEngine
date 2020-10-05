@@ -1,10 +1,21 @@
 package org.apache.logging.log4j
 
+import java.lang.RuntimeException
+import java.util.*
+
 class LoggerImpl(prefix: String?): Logger {
 
-    fun interleave(msg: String, args: Array<Object>): String {
-        val parts = msg.split("{}")
-        return parts.take(parts.size-1).mapIndexed { index, s -> "$s${args.getOrNull(index)}" }.joinToString("") + parts.last()
+    fun interleave(msg: String, args: Array<out Object>): String {
+        if(args.isEmpty()) return msg
+        return if(msg.contains("{}")){
+            val parts = msg.split("{}")
+            parts.take(parts.size-1).mapIndexed { index, s -> "$s${args.getOrNull(index)}" }.joinToString("") + parts.last()
+        } else {
+            msg.format(Locale.ENGLISH, *args)
+            /*val funFormat = String::class.java.getMethod("format", Locale::class.java, Array<Object>(0){ throw RuntimeException() }::class.java)
+            return funFormat.invoke(msg, Locale.ENGLISH, args) as String
+            return msg.format(Locale.ENGLISH, args)*/
+        }
     }
 
     val suffix = if(prefix == null) "" else ":$prefix"
@@ -19,7 +30,7 @@ class LoggerImpl(prefix: String?): Logger {
         print("INFO", msg)
     }
 
-    override fun info(msg: String, obj: Array<Object>) {
+    override fun info(msg: String, vararg obj: java.lang.Object) {
         info(interleave(msg, obj))
     }
 
@@ -36,7 +47,7 @@ class LoggerImpl(prefix: String?): Logger {
         print("ERR!", msg)
     }
 
-    override fun error(msg: String, obj: Array<Object>) {
+    override fun error(msg: String, vararg obj: java.lang.Object) {
         error(interleave(msg, obj))
     }
 
@@ -49,7 +60,7 @@ class LoggerImpl(prefix: String?): Logger {
         print("SEVERE", msg)
     }
 
-    override fun severe(msg: String, obj: Array<Object>) {
+    override fun severe(msg: String, vararg obj: java.lang.Object) {
         error(interleave(msg, obj))
     }
 
@@ -62,7 +73,7 @@ class LoggerImpl(prefix: String?): Logger {
         print("FATAL", msg)
     }
 
-    override fun fatal(msg: String, obj: Array<Object>) {
+    override fun fatal(msg: String, vararg obj: java.lang.Object) {
         fatal(interleave(msg, obj))
     }
 
@@ -75,7 +86,7 @@ class LoggerImpl(prefix: String?): Logger {
         print("WARN", msg)
     }
 
-    override fun warn(msg: String, obj: Array<Object>) {
+    override fun warn(msg: String, vararg obj: java.lang.Object) {
         warn(interleave(msg, obj))
     }
 
@@ -84,7 +95,7 @@ class LoggerImpl(prefix: String?): Logger {
         thrown.printStackTrace()
     }
 
-    override fun warn(marker: Marker, msg: String, obj: Array<Object>) = warn(msg, obj)
+    // override fun warn(marker: Marker, msg: String, vararg obj: java.lang.Object): Unit = warn(msg, obj)
 
 
 }

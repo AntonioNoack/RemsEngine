@@ -4,13 +4,14 @@ import com.drew.imaging.ImageMetadataReader
 import com.drew.metadata.exif.ExifIFD0Directory
 import me.anno.gpu.GFX
 import me.anno.gpu.ShaderLib.shader3DYUV
+import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.texture.ClampMode
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.HDRImage
 import me.anno.objects.Video.Companion.imageTimeout
 import me.anno.objects.modes.RotateJPEG
-import me.anno.video.Frame
+import me.anno.video.VFrame
 import org.apache.commons.imaging.Imaging
 import org.joml.Matrix4f
 import org.joml.Vector4f
@@ -45,22 +46,22 @@ class ImageData(file: File) : CacheData {
             return rotation
         }
 
-        fun frameToFramebuffer(frame: Frame, w: Int, h: Int, id: ImageData?): Framebuffer {
+        fun frameToFramebuffer(frame: VFrame, w: Int, h: Int, id: ImageData?): Framebuffer {
             val framebuffer = Framebuffer("webp-temp", w, h, 1, 1, false, Framebuffer.DepthBufferType.NONE)
             id?.framebuffer = framebuffer
-            framebuffer.bind()
-            id?.texture = framebuffer.textures[0]
-            val shader = frame.get3DShader().shader
-            GFX.shader3DUniforms(shader, Matrix4f(), Vector4f(1f, 1f, 1f, 1f))
-            frame.bind(0, true, ClampMode.CLAMP)
-            if (shader == shader3DYUV.shader) {
-                val w2 = frame.w
-                val h2 = frame.h
-                shader.v2("uvCorrection", w2.toFloat() / ((w2 + 1) / 2 * 2), h2.toFloat() / ((h2 + 1) / 2 * 2))
+            Frame(framebuffer){
+                id?.texture = framebuffer.textures[0]
+                val shader = frame.get3DShader().shader
+                GFX.shader3DUniforms(shader, Matrix4f(), Vector4f(1f, 1f, 1f, 1f))
+                frame.bind(0, true, ClampMode.CLAMP)
+                if (shader == shader3DYUV.shader) {
+                    val w2 = frame.w
+                    val h2 = frame.h
+                    shader.v2("uvCorrection", w2.toFloat() / ((w2 + 1) / 2 * 2), h2.toFloat() / ((h2 + 1) / 2 * 2))
+                }
+                GFX.flat01.draw(shader)
+                GFX.check()
             }
-            GFX.flat01.draw(shader)
-            GFX.check()
-            framebuffer.unbind()
             GFX.check()
             return framebuffer
         }

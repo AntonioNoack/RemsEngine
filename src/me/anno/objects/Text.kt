@@ -24,6 +24,7 @@ import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.color.ColorSpace.Companion.HSLuv
 import me.anno.ui.input.BooleanInput
 import me.anno.ui.input.EnumInput
+import me.anno.ui.input.FloatInput
 import me.anno.ui.input.TextInputML
 import me.anno.ui.style.Style
 import org.joml.Matrix4fArrayList
@@ -75,30 +76,33 @@ open class Text(text: String = "", parent: Transform? = null): GFXTransform(pare
 
     var relativeLineSpacing = AnimatedProperty.float(1f)
 
+    var relativeCharSpacing = 0f
     var relativeTabSize = 4f
 
     // caching
-    var lastText = text
+    var lastText = ""
 
     // todo allow style by HTML/.md? :D
-    var lineSegmentsWithStyle = splitSegments(text)
-    var keys = createKeys()
+    var lineSegmentsWithStyle: PartResult? = null
+    var keys: List<FontMeshKey>? = null
 
-    fun createKeys() = lineSegmentsWithStyle?.parts?.map { FontMeshKey(it.font, isBold, isItalic, it.text) }
+    val fontSize0 = 20f
+    val charSpacing get() = fontSize0 * relativeCharSpacing
+
+    fun createKeys() = lineSegmentsWithStyle?.parts?.map { FontMeshKey(it.font, isBold, isItalic, it.text, charSpacing) }
 
     open fun splitSegments(text: String): PartResult? {
         if(text.isEmpty()) return null
-        val fontSize0 = 20f
         val awtFont = FontManager.getFont(font, fontSize0, isBold, isItalic) as AWTFont
         val absoluteLineBreakWidth = lineBreakWidth * fontSize0 * 2f / DEFAULT_LINE_HEIGHT
-        return awtFont.splitParts(text, fontSize0, relativeTabSize, absoluteLineBreakWidth)
+        return awtFont.splitParts(text, fontSize0, relativeTabSize, relativeCharSpacing, absoluteLineBreakWidth)
     }
 
     data class FontMeshKey(
         val font: Font, val isBold: Boolean, val isItalic: Boolean,
-        val text: String){
-        fun equals(isBold: Boolean, isItalic: Boolean, text: String) =
-            isBold == this.isBold && isItalic == this.isItalic && text == this.text
+        val text: String, val charSpacing: Float){
+        fun equals(isBold: Boolean, isItalic: Boolean, text: String, charSpacing: Float) =
+            isBold == this.isBold && isItalic == this.isItalic && text == this.text && charSpacing == this.charSpacing
     }
 
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f){
@@ -108,6 +112,8 @@ open class Text(text: String = "", parent: Transform? = null): GFXTransform(pare
         val isItalic = isItalic
 
         val shallLoadAsync = true
+
+        val charSpacing = charSpacing
 
         if(text.isNotBlank()){
 
@@ -120,7 +126,7 @@ open class Text(text: String = "", parent: Transform? = null): GFXTransform(pare
             } else {
                 // !none = at least one?, is not equal, so needs update
                 if(!keys!!.withIndex().none { (index, fontMeshKey) ->
-                        !fontMeshKey.equals(isBold, isItalic, lineSegmentsWithStyle!!.parts[index].text)
+                        !fontMeshKey.equals(isBold, isItalic, lineSegmentsWithStyle!!.parts[index].text, charSpacing)
                     }){
                     keys = createKeys()
                 }
@@ -140,7 +146,7 @@ open class Text(text: String = "", parent: Transform? = null): GFXTransform(pare
 
             fun getFontMesh(fontMeshKey: FontMeshKey): FontMeshBase? {
                 return Cache.getEntry(fontMeshKey, fontMeshTimeout, shallLoadAsync){
-                    FontMesh2(fontMeshKey.font, fontMeshKey.text)
+                    FontMesh2(fontMeshKey.font, fontMeshKey.text, charSpacing)
                 } as? FontMeshBase
             }
 
@@ -206,6 +212,7 @@ open class Text(text: String = "", parent: Transform? = null): GFXTransform(pare
         writer.writeInt("blockAlignmentY", blockAlignmentY.id, true)
         writer.writeFloat("relativeTabSize", relativeTabSize, true)
         writer.writeFloat("lineBreakWidth", lineBreakWidth)
+        writer.writeFloat("relativeCharSpacing", relativeCharSpacing)
     }
 
     override fun readInt(name: String, value: Int) {
@@ -220,6 +227,7 @@ open class Text(text: String = "", parent: Transform? = null): GFXTransform(pare
     override fun readFloat(name: String, value: Float) {
         when(name){
             "relativeTabSize" -> relativeTabSize = value
+            "relativeCharSpacing" -> relativeCharSpacing = value
             "lineBreakWidth" -> lineBreakWidth = value
             else -> super.readFloat(name, value)
         }
@@ -321,6 +329,10 @@ open class Text(text: String = "", parent: Transform? = null): GFXTransform(pare
 
         val spaceGroup = getGroup("Spacing", "spacing")
         // make this element separable from the parent???
+        spaceGroup += VI("Character Spacing", "Space between individual characters", null, relativeCharSpacing, style){
+            relativeCharSpacing = it
+            invalidate()
+        }
         spaceGroup += VI("Line Spacing", "How much lines are apart from each other", relativeLineSpacing, style)
         spaceGroup += VI("Tab Size", "Relative tab size, in widths of o's", AnimatedProperty.Type.FLOAT_PLUS, relativeTabSize, style){
             relativeTabSize = it

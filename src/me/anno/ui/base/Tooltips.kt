@@ -4,6 +4,7 @@ import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.deltaTime
 import me.anno.gpu.GFX.hoveredPanel
+import me.anno.gpu.framebuffer.Frame
 import me.anno.input.Input.mouseX
 import me.anno.input.Input.mouseY
 import me.anno.ui.base.components.Padding
@@ -67,7 +68,6 @@ object Tooltips {
                 val y = min(mouseY.roundToInt() - 20 , h - container.minH)
                 container.placeInParent(x, y)
                 container.applyPlacement(container.minW, container.minH)
-                GFX.clip(0, 0, w, h)
                 container.draw(container.x, container.y, container.x + container.w, container.y + container.h)
             }
 

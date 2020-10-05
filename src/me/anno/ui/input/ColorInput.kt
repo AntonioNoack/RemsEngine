@@ -5,6 +5,7 @@ import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.objects.Camera
 import me.anno.objects.animation.AnimatedProperty
+import me.anno.studio.RemsStudio
 import me.anno.studio.Studio
 import me.anno.studio.Studio.shiftSlowdown
 import me.anno.ui.base.TextPanel
@@ -13,13 +14,14 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.color.ColorChooser
 import me.anno.ui.style.Style
 import me.anno.utils.clamp
+import me.anno.utils.one
 import me.anno.utils.pow
 import org.joml.Vector4f
 import kotlin.math.max
 
 class ColorInput(style: Style, title: String,
                  oldValue: Vector4f,
-                 val withAlpha: Boolean,
+                 withAlpha: Boolean,
                  private val owningProperty: AnimatedProperty<*>? = null): PanelListY(style){
 
     val contentView = ColorChooser(style, withAlpha, owningProperty)
@@ -64,15 +66,20 @@ class ColorInput(style: Style, title: String,
 
     init {
         this += titleView
+        titleView.focusTextColor = titleView.textColor
+        titleView.setSimpleClickListener { contentView.toggleVisibility() }
         this += contentView
         contentView.setRGBA(oldValue.x, oldValue.y, oldValue.z, oldValue.w, true)
+        contentView.hide()
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        val focused1 = titleView.isInFocus || contentView.listOfAll.count { it.isInFocus } > 0
+        val focused1 = titleView.isInFocus || contentView.listOfAll.one { it.isInFocus }
         if(focused1) isSelectedListener?.invoke()
-        val focused2 = focused1 || (owningProperty == Studio.selectedProperty && owningProperty != null)
-        contentView.visibility = if(focused2) Visibility.VISIBLE else Visibility.GONE
+        if(RemsStudio.hideUnusedProperties){
+            val focused2 = focused1 || (owningProperty == Studio.selectedProperty && owningProperty != null)
+            contentView.visibility = if(focused2) Visibility.VISIBLE else Visibility.GONE
+        }
         super.onDraw(x0, y0, x1, y1)
     }
 

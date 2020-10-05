@@ -12,7 +12,7 @@ import kotlin.streams.toList
 /**
  * custom character-character alignment maps by font for faster calculation
  * */
-class FontMesh2(val font: Font, val text: String, debugPieces: Boolean = false) : FontMeshBase() {
+class FontMesh2(val font: Font, val text: String, val charSpacing: Float, debugPieces: Boolean = false) : FontMeshBase() {
 
     val alignment = getAlignments(font)
     val ctx = FontRenderContext(null, true, true)
@@ -22,7 +22,7 @@ class FontMesh2(val font: Font, val text: String, debugPieces: Boolean = false) 
     val offsets = (codepoints.mapIndexed { index, secondCodePoint ->
         if (index > 0) {
             val firstCodePoint = codepoints[index - 1]
-            getOffset(firstCodePoint, secondCodePoint)
+            charSpacing + getOffset(firstCodePoint, secondCodePoint)
         } else 0.0
     } + getOffset(codepoints.last(), 32)).accumulate() // space
 
@@ -32,8 +32,8 @@ class FontMesh2(val font: Font, val text: String, debugPieces: Boolean = false) 
         if('\t' in text || '\n' in text) throw RuntimeException("\t and \n are not allowed in FontMesh2!")
         val layout = TextLayout(".", font, ctx)
         baseScale = FontMesh.DEFAULT_LINE_HEIGHT / (layout.ascent + layout.descent)
-        minX = 0.0
-        maxX = 0.0
+        minX = 0f
+        maxX = 0f
     }
 
     fun getOffset(previous: Int, current: Int): Double {

@@ -5,10 +5,14 @@ import me.anno.config.DefaultStyle.deepDark
 import me.anno.gpu.GFX
 import me.anno.gpu.shader.ShaderPlus
 import me.anno.objects.Camera
+import me.anno.objects.Text
 import me.anno.studio.Scene
 import me.anno.studio.Studio.editorTime
+import me.anno.studio.Studio.nullCamera
+import me.anno.studio.Studio.root
 import me.anno.studio.Studio.targetHeight
 import me.anno.studio.Studio.targetWidth
+import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.style.Style
 import me.anno.utils.*
@@ -25,7 +29,7 @@ class ScenePreview(style: Style) : PanelList(null, style.getChild("sceneView")),
 
     }
 
-    val camera = Camera()
+    val camera = nullCamera
 
     init {
         camera.onlyShowTarget = false
@@ -115,7 +119,7 @@ class ScenePreview(style: Style) : PanelList(null, style.getChild("sceneView")),
         if (matchesSize) {
             if (wasNotRecentlyUpdated) {
                 Scene.draw(
-                    null, camera,
+                    camera,
                     x + dx, y + dy, rw, rh,
                     editorTime, false,
                     ShaderPlus.DrawMode.COLOR_SQUARED, this
@@ -136,7 +140,7 @@ class ScenePreview(style: Style) : PanelList(null, style.getChild("sceneView")),
             }
             GFX.drawRect(x + dx, y + dy, rw, rh, black)
             Scene.draw(
-                null, camera,
+                camera,
                 x + dx, y + dy, goodW, goodH,
                 editorTime, false,
                 if(usesFPBuffers) ShaderPlus.DrawMode.COLOR_SQUARED else ShaderPlus.DrawMode.COLOR,

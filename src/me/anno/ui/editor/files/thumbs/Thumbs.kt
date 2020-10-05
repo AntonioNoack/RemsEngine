@@ -2,7 +2,7 @@ package me.anno.ui.editor.files.thumbs
 
 import me.anno.gpu.GFX
 import me.anno.gpu.blending.BlendDepth
-import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.HDRImage
 import me.anno.io.config.ConfigBasics
@@ -11,13 +11,12 @@ import me.anno.objects.cache.ImageData
 import me.anno.objects.cache.TextureCache
 import me.anno.utils.*
 import me.anno.video.FFMPEGMetadata.Companion.getMeta
-import me.anno.video.Frame
+import me.anno.video.VFrame
 import net.boeckling.crc.CRC64
 import org.apache.commons.imaging.Imaging
 import org.lwjgl.opengl.GL11.*
 import java.awt.image.BufferedImage
 import java.io.File
-import java.lang.Exception
 import javax.imageio.ImageIO
 import kotlin.concurrent.thread
 import kotlin.math.floor
@@ -99,7 +98,7 @@ object Thumbs {
             // upload the result to the gpu
             // save the file
 
-            fun upload(dst: BufferedImage){
+            fun upload(dst: BufferedImage) {
                 val rotation = ImageData.getRotation(srcFile)
                 GFX.addGPUTask(dst.width, dst.height) {
                     val texture = Texture2D(dst)
@@ -108,7 +107,7 @@ object Thumbs {
                 }
             }
 
-            fun saveNUpload(dst: BufferedImage){
+            fun saveNUpload(dst: BufferedImage) {
                 dstFile.parentFile.mkdirs()
                 ImageIO.write(dst, "png", dstFile)
                 upload(dst)
@@ -129,7 +128,7 @@ object Thumbs {
                     w = w * size / h
                     h = size
                 }
-                if(w == sw && h == sh){
+                if (w == sw && h == sh) {
                     upload(src)
                 } else {
                     val dst = BufferedImage(
@@ -144,10 +143,10 @@ object Thumbs {
                 }
             }
 
-            fun generateVideoFrame(wantedTime: Double){
+            fun generateVideoFrame(wantedTime: Double) {
 
                 val meta = getMeta(srcFile, false)!!
-                if(max(meta.videoWidth, meta.videoHeight) < size) return generate(srcFile, size/2, callback)
+                if (max(meta.videoWidth, meta.videoHeight) < size) return generate(srcFile, size / 2, callback)
 
                 val scale = floor(max(meta.videoWidth, meta.videoHeight).toFloat() / size).toInt()
 
@@ -164,18 +163,18 @@ object Thumbs {
                     h = size
                 }
 
-                if(w > GFX.width || h > GFX.height){
+                if (w > GFX.width || h > GFX.height) {
                     // cannot use this large size...
                     // would cause issues
                     return generate(srcFile, size, callback)
                 }
 
                 val fps = min(5.0, meta.videoFPS)
-                val time = max(min(wantedTime, meta.videoDuration - 1/fps), 0.0)
+                val time = max(min(wantedTime, meta.videoDuration - 1 / fps), 0.0)
                 val index = (time * fps).roundToInt()
 
-                var src: Frame? = null
-                while(src == null){
+                var src: VFrame? = null
+                while (src == null) {
                     src = Cache.getVideoFrame(srcFile, scale, index, 1, fps, 1000L, false)
                     Thread.sleep(1)
                 }
@@ -184,41 +183,43 @@ object Thumbs {
 
                 // todo create an image from ffmpeg without using the gpu for downscaling
                 // create frame buffer as target, and then read from it...
-                GFX.addGPUTask(sw, sh){
+                GFX.addGPUTask(sw, sh) {
 
                     // framebuffer to buffered image
 
-                    val fb: Framebuffer? = null // FBStack[rw, rh, false]
-
-                    GFX.clip(0, 0, w, h)
-
-                    val bd = BlendDepth(null, false)
-                    bd.bind()
-
-                    // some thumbnails are broken, probably by overlapping time frames... but how? everything is synced...
-                    // fixed by clearing the screen???
-                    glClearColor(0f, 0f, 0f, 1f)
-                    glClear(GL_COLOR_BUFFER_BIT)
-
-                    GFX.draw2D(src)
-
-                    // draw only the clicked area?
-                    GFX.check()
-                    fb?.bind() ?: Framebuffer.bindNull()
-                    glFlush(); glFinish() // wait for everything to be drawn
-                    glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
                     val buffer = IntArray(w * h)
-                    glReadPixels(0, GFX.height - h, w, h,
-                        GL_RGBA, GL_UNSIGNED_BYTE, buffer
-                    )
-                    Framebuffer.unbind()
+                    val fb = FBStack["generateVideoFrame", w, h, 1, false]
+                    me.anno.gpu.framebuffer.Frame(fb) {
 
-                    bd.unbind()
+                        // GFX.clip(0, 0, w, h)
+
+                        val bd = BlendDepth(null, false)
+                        bd.bind()
+
+                        // some thumbnails are broken, probably by overlapping time frames... but how? everything is synced...
+                        // fixed by clearing the screen???
+                        glClearColor(0f, 0f, 0f, 1f)
+                        glClear(GL_COLOR_BUFFER_BIT)
+
+                        GFX.draw2D(src)
+
+                        // draw only the clicked area?
+                        GFX.check()
+
+                        glFlush(); glFinish() // wait for everything to be drawn
+                        glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
+                        glReadPixels(
+                            0, GFX.height - h, w, h,
+                            GL_RGBA, GL_UNSIGNED_BYTE, buffer
+                        )
+                        bd.unbind()
+
+                    }
 
                     thread {
                         val dst = BufferedImage(w, h, 1)
                         val buffer2 = dst.raster.dataBuffer
-                        for(i in 0 until w * h){
+                        for (i in 0 until w * h) {
                             val col = buffer[i]
                             // swizzle colors, because rgba != argb
                             buffer2.setElem(i, rgba(col.b(), col.g(), col.r(), 255))
@@ -261,7 +262,7 @@ object Thumbs {
                         }
                     }
                 }
-            } catch (e: Exception){
+            } catch (e: Exception) {
                 e.printStackTrace()
                 println(srcFile)
             }

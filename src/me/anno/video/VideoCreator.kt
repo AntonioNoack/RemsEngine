@@ -1,6 +1,7 @@
 package me.anno.video
 
 import me.anno.gpu.GFX
+import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.utils.*
 import org.apache.logging.log4j.LogManager
@@ -144,7 +145,8 @@ class VideoCreator(val w: Int, val h: Int, val fps: Double, val totalFrameCount:
         GFX.check()
 
         if (frame.w != w || frame.h != h) throw RuntimeException("Resolution does not match!")
-        frame.bind()
+        frame.bindDirectly(false)
+        Frame.invalidate()
 
         val buffer = if (frameIndex % 2 == 0) buffer1 else buffer2
 

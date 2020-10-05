@@ -1,16 +1,15 @@
 package me.anno.video.formats
 
 import me.anno.gpu.GFX
-import me.anno.gpu.ShaderLib.shader3D
 import me.anno.gpu.ShaderLib.shader3DRGBA
 import me.anno.gpu.texture.ClampMode
 import me.anno.gpu.texture.Texture2D
-import me.anno.video.Frame
+import me.anno.video.VFrame
 import me.anno.video.LastFrame
 import java.io.EOFException
 import java.io.InputStream
 
-class RGBFrame(w: Int, h: Int): Frame(w,h){
+class RGBFrame(w: Int, h: Int): VFrame(w,h){
 
     val rgb = Texture2D(w, h, 1)
 

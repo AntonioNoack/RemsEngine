@@ -136,3 +136,7 @@ fun Vector3f.print() = "($x $y $z)"
 fun Vector4f.print() = "($x $y $z $w)"
 
 fun Vector4f.toVec3f() = Vector3f(x/w, y/w, z/w)
+
+fun Vector3f.is000() = x == 0f && y == 0f && z == 0f
+fun Vector3f.is111() = x == 1f && y == 1f && z == 1f
+fun Vector4f.is1111() = x == 1f && y == 1f && z == 1f && w == 1f

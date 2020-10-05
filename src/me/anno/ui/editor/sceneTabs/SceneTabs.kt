@@ -2,11 +2,10 @@ package me.anno.ui.editor.sceneTabs
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
-import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.Transform
+import me.anno.studio.Studio.dragged
 import me.anno.studio.Studio.root
-import me.anno.studio.history.History
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.scrolling.ScrollPanelX
 import me.anno.ui.editor.files.addChildFromFile
@@ -16,7 +15,6 @@ import org.apache.logging.log4j.LogManager
 import java.io.File
 
 // may there only be once instance? yes
-// todo hide bar, if not used?
 object SceneTabs : ScrollPanelX(DefaultConfig.style) {
 
     private val LOGGER = LogManager.getLogger(SceneTabs::class)
@@ -59,7 +57,31 @@ object SceneTabs : ScrollPanelX(DefaultConfig.style) {
         }
     }
 
+    override fun onPaste(x: Float, y: Float, data: String, type: String) {
+        when(type){
+            "SceneTab" -> {
+                val tab = dragged!!.getOriginal() as SceneTab
+                if(!tab.contains(x,y)){
+                    val oldIndex = tab.indexInParent
+                    val newIndex = children2.map { it.x + it.w/2 }.count { it < x }
+                    // println("$oldIndex -> $newIndex, $x ${children2.map { it.x + it.w/2 }}")
+                    if(oldIndex < newIndex){
+                        children2.add(newIndex, tab)
+                        children2.removeAt(oldIndex)
+                    } else if(oldIndex > newIndex){
+                        children2.removeAt(oldIndex)
+                        children2.add(newIndex, tab)
+                    }
+                    invalidateLayout()
+                }// else done
+                dragged = null
+            }
+            else -> super.onPaste(x, y, data, type)
+        }
+    }
+
     fun open(sceneTab: SceneTab) {
+        if(currentTab == sceneTab) return
         synchronized(this){
             currentTab = sceneTab
             root = sceneTab.root

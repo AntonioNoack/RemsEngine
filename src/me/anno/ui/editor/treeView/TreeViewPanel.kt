@@ -42,7 +42,10 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style): TextPanel(""
 
         // show visually, where the element would land, with colors
         val dragged = dragged
-        val colorIndex = if(mouseY.toInt() in y0 .. y1 && dragged is Draggable && dragged.getOriginal() is Transform){
+        val colorIndex = if(
+            mouseX.toInt() in x0 .. x1 &&
+            mouseY.toInt() in y0 .. y1 &&
+            dragged is Draggable && dragged.getOriginal() is Transform){
             clamp(((mouseY - this.y) / this.h * 3).toInt(), 0, 2)
         } else null
 

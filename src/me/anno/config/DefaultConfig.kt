@@ -60,7 +60,7 @@ object DefaultConfig: StringMap() {
         addImportMappings("Transform", "json")
         addImportMappings("Image", "png", "jpg", "jpeg", "tiff", "webp", "svg", "ico")
         addImportMappings("Cubemap-Equ", "hdr")
-        addImportMappings("Video", "mp4", "gif", "mpeg", "avi", "flv", "wmv")
+        addImportMappings("Video", "mp4", "gif", "mpeg", "avi", "flv", "wmv", "mkv")
         addImportMappings("Text", "txt")
         addImportMappings("Mesh", "obj", "fbx", "dae")
         // not yet supported
@@ -95,8 +95,6 @@ object DefaultConfig: StringMap() {
     }
 
     fun newInstances(){
-
-        // removing this block makes the studio start 0.1s slower... wtf...
 
         val t0 = System.nanoTime()
 

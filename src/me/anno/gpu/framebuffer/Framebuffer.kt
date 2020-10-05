@@ -14,7 +14,11 @@ import java.lang.RuntimeException
 import java.util.*
 import kotlin.system.exitProcess
 
-class Framebuffer(var name: String, var w: Int, var h: Int, val samples: Int, val targetCount: Int, val fpTargets: Boolean, val depthBufferType: DepthBufferType){
+class Framebuffer(
+    var name: String, var w: Int, var h: Int, val samples: Int,
+    val targetCount: Int,
+    val fpTargets: Boolean,
+    val depthBufferType: DepthBufferType){
 
     // multiple targets, layout=x require shader version 330+
     // use glBindFragDataLocation instead
@@ -40,10 +44,13 @@ class Framebuffer(var name: String, var w: Int, var h: Int, val samples: Int, va
         if(pointer < 0) create()
     }
 
-    fun bind(){
+    fun bindDirectly(viewport: Boolean) = bind(viewport)
+    fun bindDirectly(w: Int, h: Int, viewport: Boolean) = bind(w, h, viewport)
+
+    private fun bind(viewport: Boolean){
         if(pointer < 0) create()
         glBindFramebuffer(GL_FRAMEBUFFER, pointer)
-        glViewport(0,0, w, h)
+        if(viewport) glViewport(0,0, w, h)
         stack.push(this)
         if(withMultisampling){
             GL11.glEnable(GL13.GL_MULTISAMPLE)
@@ -52,7 +59,7 @@ class Framebuffer(var name: String, var w: Int, var h: Int, val samples: Int, va
         }
     }
 
-    fun bind(newWidth: Int, newHeight: Int){
+    private fun bind(newWidth: Int, newHeight: Int, viewport: Boolean = true){
         if(newWidth != w || newHeight != h){
             w = newWidth
             h = newHeight
@@ -60,15 +67,20 @@ class Framebuffer(var name: String, var w: Int, var h: Int, val samples: Int, va
             destroy()
             GFX.check()
             create()
+            if(viewport){
+                // not done by create...
+                glViewport(0, 0, newWidth, newHeight)
+            }
             GFX.check()
         } else {
             GFX.check()
-            bind()
+            bind(viewport)
             GFX.check()
         }
     }
 
     fun create(){
+        Frame.invalidate()
         // LOGGER.info("w: $w, h: $h, samples: $samples, targets: $targetCount x fp32? $fpTargets")
         GFX.check()
         val tex2D = if(withMultisampling) GL32.GL_TEXTURE_2D_MULTISAMPLE else GL_TEXTURE_2D
@@ -203,13 +215,20 @@ class Framebuffer(var name: String, var w: Int, var h: Int, val samples: Int, va
         }
     }
 
-    fun unbindUntil(){
-        var popped = stack.pop()
-        while(popped !== this) popped = stack.pop()!!
-        stack.pop()!!.bind()
+    fun use(x: Int, y: Int, w: Int, h: Int, rendering: () -> Unit){
+        bind(w, h, false)
+        glViewport(x, y, w, h)
+        rendering()
+        unbind()
     }
 
-    fun unbind(){
+    private fun unbindUntil(){
+        var popped = stack.pop()
+        while(popped !== this) popped = stack.pop()!!
+        stack.pop()!!.bind(true)
+    }
+
+    private fun unbind(){
         val popped = stack.pop()
         if(popped !== this) {
             stack.forEach {
@@ -218,7 +237,7 @@ class Framebuffer(var name: String, var w: Int, var h: Int, val samples: Int, va
             throw RuntimeException("Unbind is incorrect... why? am $this, got $popped")
         }
         if(stack.isNotEmpty()){
-            stack.pop()?.bind() ?: {
+            stack.pop()?.bind(true) ?: {
                 glBindFramebuffer(GL_FRAMEBUFFER, 0)
                 glViewport(0, 0, GFX.width, GFX.height)
             }()
@@ -230,19 +249,23 @@ class Framebuffer(var name: String, var w: Int, var h: Int, val samples: Int, va
 
     companion object {
 
+        var currentBuffer: Framebuffer? = null
+
         val LOGGER = LogManager.getLogger(Framebuffer::class)!!
 
         val stack = Stack<Framebuffer?>()
 
-        fun bindNull(){
+        fun bindNullDirectly() = bindNull()
+
+        private fun bindNull(){
             glBindFramebuffer(GL_FRAMEBUFFER, 0)
             stack.push(null)
         }
 
-        fun unbind(){
+        private fun unbind(){
             stack.pop()
             if(stack.isNotEmpty()){
-                stack.pop()?.bind() ?: {
+                stack.pop()?.bind(true) ?: {
                     glBindFramebuffer(GL_FRAMEBUFFER, 0)
                     glViewport(0, 0, GFX.width, GFX.height)
                 }()

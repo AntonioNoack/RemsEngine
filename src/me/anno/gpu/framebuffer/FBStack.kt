@@ -50,4 +50,8 @@ object FBStack {
         getValue(w, h, samples, false).nextIndex = 0
     }
 
+    fun reset(){
+        Cache.resetFBStack()
+    }
+
 }

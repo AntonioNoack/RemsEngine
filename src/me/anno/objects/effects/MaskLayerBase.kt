@@ -11,6 +11,8 @@ import me.anno.objects.GFXTransform
 import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.gpu.blending.BlendMode
+import me.anno.gpu.framebuffer.FBStack
+import me.anno.gpu.framebuffer.Frame
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
@@ -23,10 +25,12 @@ abstract class MaskLayerBase(parent: Transform? = null): GFXTransform(parent){
     // just a little expensive...
     // todo enable multisampling
     val samples = 1
-    val mask = Framebuffer("ML-mask", 1, 1, samples, 1, true, Framebuffer.DepthBufferType.NONE)
+    /*val mask = Framebuffer("ML-mask", 1, 1, samples, 1, true, Framebuffer.DepthBufferType.NONE)
     val masked = Framebuffer("ML-masked", 1, 1, samples, 1, true, Framebuffer.DepthBufferType.TEXTURE)
-    val temp = Framebuffer("ML-temp", 1, 1, samples, 1, true, Framebuffer.DepthBufferType.NONE)
-    val temp2 = Framebuffer("ML-temp2", 1, 1, samples, 1, true, Framebuffer.DepthBufferType.NONE)
+    val temp = Array(3){ Framebuffer("ML-temp$it", 1, 1, samples, 1, true, Framebuffer.DepthBufferType.NONE) }*/
+
+    lateinit var mask: Framebuffer
+    lateinit var masked: Framebuffer
 
     // limit to [0,1]?
     // nice effects can be created with values outside of [0,1], so while [0,1] is the valid range,
@@ -48,14 +52,15 @@ abstract class MaskLayerBase(parent: Transform? = null): GFXTransform(parent){
         val showResult = isFinalRendering || (!showMask && !showMasked)
         if(children.size >= 2 && showResult){// else invisible
 
+            mask = FBStack["mask", GFX.windowWidth, GFX.windowHeight, samples, true]
+            masked = FBStack["masked", GFX.windowWidth, GFX.windowHeight, samples, true]
+
             val bd = BlendDepth(null, false)
             bd.bind()
 
             // (low priority)
             // to do calculate the size on screen to limit overhead
             // to do this additionally requires us to recalculate the transform
-
-            // val top = Framebuffer.stack.peek()
 
             BlendMode.DEFAULT.apply()
 
@@ -69,10 +74,7 @@ abstract class MaskLayerBase(parent: Transform? = null): GFXTransform(parent){
 
             drawOnScreen(stack, time, color)
 
-            // val top2 = Framebuffer.stack.peek()
-            // if(top !== top2) throw RuntimeException()
-
-        }
+        } else super.onDraw(stack, time, color)
 
         if(showMask) drawChild(stack, time, color, children.getOrNull(0))
         if(showMasked) drawChild(stack, time, color, children.getOrNull(1))
@@ -127,47 +129,50 @@ abstract class MaskLayerBase(parent: Transform? = null): GFXTransform(parent){
 
     fun drawMask(stack: Matrix4fArrayList, time: Double, color: Vector4f){
 
-        mask.bind(GFX.windowWidth, GFX.windowHeight)
+        Frame(GFX.windowWidth, GFX.windowHeight, mask){
 
-        val child = children.getOrNull(0)
-        if(child?.getClassName() == "Transform" && child.children.isEmpty()){
+            Frame.currentFrame!!.bind()
 
-            glClearColor(1f, 1f, 1f, 1f)
-            glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
+            val child = children.getOrNull(0)
+            if(child?.getClassName() == "Transform" && child.children.isEmpty()){
 
-        } else {
+                glClearColor(1f, 1f, 1f, 1f)
+                glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
-            glClearColor(0f, 0f, 0f, 0f)
-            glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
+            } else {
 
-            val oldDrawMode = GFX.drawMode
-            if(oldDrawMode == ShaderPlus.DrawMode.COLOR_SQUARED) GFX.drawMode = ShaderPlus.DrawMode.COLOR
+                glClearColor(0f, 0f, 0f, 0f)
+                glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
-            drawChild(stack, time, color, child)
+                val oldDrawMode = GFX.drawMode
+                if(oldDrawMode == ShaderPlus.DrawMode.COLOR_SQUARED) GFX.drawMode = ShaderPlus.DrawMode.COLOR
 
-            GFX.drawMode = oldDrawMode
+                drawChild(stack, time, color, child)
 
+                GFX.drawMode = oldDrawMode
+
+            }
         }
-
-        mask.unbind()
 
     }
 
     fun drawMasked(stack: Matrix4fArrayList, time: Double, color: Vector4f){
 
-        masked.bind(GFX.windowWidth, GFX.windowHeight)
+        Frame(GFX.windowWidth, GFX.windowHeight, masked){
 
-        val oldDrawMode = GFX.drawMode
-        if(oldDrawMode == ShaderPlus.DrawMode.COLOR_SQUARED) GFX.drawMode = ShaderPlus.DrawMode.COLOR
+            Frame.currentFrame!!.bind()
 
-        glClearColor(0f, 0f, 0f, 0f)
-        glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
+            val oldDrawMode = GFX.drawMode
+            if(oldDrawMode == ShaderPlus.DrawMode.COLOR_SQUARED) GFX.drawMode = ShaderPlus.DrawMode.COLOR
 
-        drawChild(stack, time, color, children.getOrNull(1))
+            glClearColor(0f, 0f, 0f, 0f)
+            glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
-        GFX.drawMode = oldDrawMode
+            drawChild(stack, time, color, children.getOrNull(1))
 
-        masked.unbind()
+            GFX.drawMode = oldDrawMode
+
+        }
 
     }
 

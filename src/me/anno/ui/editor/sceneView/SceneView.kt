@@ -10,6 +10,8 @@ import me.anno.gpu.GFX.windowStack
 import me.anno.gpu.Window
 import me.anno.gpu.blending.BlendDepth
 import me.anno.gpu.blending.BlendMode
+import me.anno.gpu.framebuffer.FBStack
+import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.ShaderPlus
 import me.anno.input.Input
@@ -98,7 +100,6 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
     val controls = ArrayList<SimplePanel>()
 
     val iconSize = 32
-    val iconBorder = 2
 
     // we need the depth for post processing effects like dof
 
@@ -190,7 +191,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
         if (matchesSize) {
             if (wasNotRecentlyUpdated) {
                 Scene.draw(
-                    null, camera,
+                    camera,
                     x + dx, y + dy, rw, rh,
                     editorTime, false,
                     mode, this
@@ -211,7 +212,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
             }
             GFX.drawRect(x + dx, y + dy, rw, rh, black)
             Scene.draw(
-                null, camera,
+                camera,
                 x + dx, y + dy, goodW, goodH,
                 editorTime, false,
                 mode, this
@@ -225,32 +226,36 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
 
         GFX.ensureEmptyStack()
 
-        GFX.clip(x0, y0, x1, y1)
+        GFX.clip(x0, y0, x1, y1){
 
-        val bd = BlendDepth(BlendMode.DEFAULT, false)
-        bd.bind()
+            val bd = BlendDepth(BlendMode.DEFAULT, false)
+            bd.bind()
 
-        GFX.drawText(
-            x + 2, y + 2, "Verdana", 12,
-            false, false, this.mode.displayName, -1, 0, -1
-        )
+            GFX.drawText(
+                x + 2, y + 2, "Verdana", 12,
+                false, false, this.mode.displayName, -1, 0, -1
+            )
 
-        GFX.drawText(
-            x + 16, y + 2, "Verdana", 12,
-            false, false, if (isLocked2D) "2D" else "3D", -1, 0, -1
-        )
+            GFX.drawText(
+                x + 16, y + 2, "Verdana", 12,
+                false, false, if (isLocked2D) "2D" else "3D", -1, 0, -1
+            )
 
-        controls.forEach {
-            it.draw(x, y, w, h, x0, y0, x1, y1)
+            controls.forEach {
+                it.draw(x, y, w, h, x0, y0, x1, y1)
+            }
+
+            GFX.ensureEmptyStack()
+
+            bd.unbind()
+
+            super.onDraw(x0, y0, x1, y1)
+
         }
 
         GFX.ensureEmptyStack()
 
-        bd.unbind()
 
-        super.onDraw(x0, y0, x1, y1)
-
-        GFX.ensureEmptyStack()
 
     }
 
@@ -259,35 +264,32 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
         val camera = camera
         GFX.check()
 
-        val fb: Framebuffer? = null // FBStack[rw, rh, false]
-        val width = fb?.w ?: GFX.width
-        val height = fb?.h ?: GFX.height
-        GFX.clip(0, 0, width, height)
-
-        // ("rc $clickX $clickY $width $height")
+        val fb: Framebuffer = FBStack["resolveClick", rw, rh, 1, false]
+        val width = fb.w
+        val height = fb.h
 
         val radius = 2
         val diameter = radius * 2 + 1
 
         fun getPixels(mode: ShaderPlus.DrawMode): IntArray {
             // draw only the clicked area?
-            Scene.draw(fb, camera, 0, 0, rw, rh, editorTime, false, mode, this)
-            GFX.check()
-            fb?.bind() ?: Framebuffer.bindNull()
-            val localX = (clickX - this.x).roundToInt()
-            val localH = fb?.h ?: GFX.height
-            val localY = localH - 1 - (clickY - this.y).roundToInt()
-            glFlush(); glFinish() // wait for everything to be drawn
-            glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
             val buffer = IntArray(diameter * diameter)
-            glReadPixels(
-                max(localX - radius, 0),
-                max(localY - radius, 0),
-                min(diameter, width),
-                min(diameter, height),
-                GL_RGBA, GL_UNSIGNED_BYTE, buffer
-            )
-            Framebuffer.unbind()
+            Frame(fb){
+                Scene.draw(camera, 0, 0, rw, rh, editorTime, false, mode, this)
+                GFX.check()
+                val localX = (clickX - this.x).roundToInt()
+                val localH = fb.h
+                val localY = localH - 1 - (clickY - this.y).roundToInt()
+                glFlush(); glFinish() // wait for everything to be drawn
+                glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
+                glReadPixels(
+                    max(localX - radius, 0),
+                    max(localY - radius, 0),
+                    min(diameter, width),
+                    min(diameter, height),
+                    GL_RGBA, GL_UNSIGNED_BYTE, buffer
+                )
+            }
             return buffer
         }
 
@@ -556,7 +558,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
         // don't open, if it's already fullscreen
         if (windowStack.peek()?.panel !is SceneView) {
             val view = SceneView(this)
-            val window = Window(view, true, 0, 0)
+            val window = Window(view)
             windowStack.push(window)
         }
     }

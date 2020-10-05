@@ -13,6 +13,7 @@ import me.anno.objects.Transform.Companion.xAxis
 import me.anno.objects.Transform.Companion.yAxis
 import me.anno.objects.Transform.Companion.zAxis
 import me.anno.gpu.blending.BlendMode
+import me.anno.gpu.shader.Shader
 import me.anno.image.svg.SVGStyle.Companion.parseColor
 import me.anno.utils.distance
 import me.anno.utils.pow
@@ -53,9 +54,21 @@ object Grid {
     fun drawLine01(x0: Float, y0: Float, x1: Float, y1: Float,
                    w: Int, h: Int, color: Int, alpha: Float){
 
-        // drawLine2((x0+x1)/w-1, 1-(y0+y1)/h, x1*2/w-1, 1-2*y1/h, color, alpha)
         drawLine2((x0+x1)/w-1, 1-(y0+y1)/h, x1*2/w-1, 1-2*y1/h, color, alpha)
 
+    }
+
+    fun defaultUniforms(shader: Shader, color: Vector4f){
+        shader.v4("tint", color)
+        shader.v1("drawMode", GFX.drawMode.id)
+    }
+
+    fun defaultUniforms(shader: Shader, color: Int, alpha: Float){
+        shader.v4("tint",
+            color.shr(16).and(255) / 255f,
+            color.shr(8).and(255) / 255f,
+            color.and(255) / 255f, alpha)
+        shader.v1("drawMode", GFX.drawMode.id)
     }
 
     fun drawLine2(x0: Float, y0: Float, x1: Float, y1: Float,
@@ -69,10 +82,7 @@ object Grid {
         stack.scale(distance(x0, y0, x1, y1))
         stack.get(GFX.matrixBuffer)
         glUniformMatrix4fv(shader["transform"], false, GFX.matrixBuffer)
-        shader.v4("tint",
-            color.shr(16).and(255) / 255f,
-            color.shr(8).and(255) / 255f,
-            color.and(255) / 255f, alpha)
+        defaultUniforms(shader, color, alpha)
         whiteTexture.bind(0, true, ClampMode.CLAMP)
         lineBuffer.draw(shader, GL_LINES)
     }
@@ -83,10 +93,7 @@ object Grid {
         shader.use()
         stack.get(GFX.matrixBuffer)
         glUniformMatrix4fv(shader["transform"], false, GFX.matrixBuffer)
-        shader.v4("tint",
-            color.shr(16).and(255) / 255f,
-            color.shr(8).and(255) / 255f,
-            color.and(255) / 255f, alpha)
+        defaultUniforms(shader, color, alpha)
         whiteTexture.bind(0, true, ClampMode.CLAMP)
         lineBuffer.draw(shader, GL_LINES)
 
@@ -141,7 +148,7 @@ object Grid {
         shader.use()
         stack.get(GFX.matrixBuffer)
         glUniformMatrix4fv(shader["transform"], false, GFX.matrixBuffer)
-        shader.v4("tint", color)
+        defaultUniforms(shader, color)
         whiteTexture.bind(0, true, ClampMode.CLAMP)
         buffer.draw(shader, GL_LINES)
 
@@ -155,7 +162,7 @@ object Grid {
         shader.use()
         stack.get(GFX.matrixBuffer)
         glUniformMatrix4fv(shader["transform"], false, GFX.matrixBuffer)
-        shader.v4("tint", 1f, 1f, 1f, alpha)
+        defaultUniforms(shader, -1, alpha)
         whiteTexture.bind(0, true, ClampMode.CLAMP)
         gridBuffer.draw(shader, GL_LINES)
 

@@ -22,7 +22,6 @@ import kotlin.math.max
 import kotlin.math.roundToInt
 import kotlin.streams.toList
 
-// todo triangulation challenge: 😬
 class AWTFont(val font: Font): XFont {
 
     val unused = BufferedImage(1,1,1).graphics as Graphics2D
@@ -93,7 +92,7 @@ class AWTFont(val font: Font): XFont {
         ImageIO.write(image, "png", File(OS.desktop, "img/${ctr++}.png"))
     }
 
-    fun splitParts(text: String, fontSize: Float, relativeTabSize: Float, lineBreakWidth: Float): PartResult {
+    fun splitParts(text: String, fontSize: Float, relativeTabSize: Float, relativeCharSpacing: Float, lineBreakWidth: Float): PartResult {
 
         val fonts = listOf(font, getFallback(fontSize))
 
@@ -110,6 +109,7 @@ class AWTFont(val font: Font): XFont {
         val ctx = FontRenderContext(null, true, true)
         val exampleLayout = TextLayout("o", font, ctx)
         val tabSize = exampleLayout.advance * relativeTabSize
+        val charSpacing = fontSize * relativeCharSpacing
         var widthF = 0f
         var currentX = 0f
         var currentY = 0f
@@ -127,7 +127,7 @@ class AWTFont(val font: Font): XFont {
                     val layout = TextLayout(substring, font, ctx)
                     // val bounds = layout.bounds
                     result += StringPart(currentX, currentY, substring, font, 0f)
-                    currentX += layout.advance
+                    currentX += layout.advance + (index - startIndex) * charSpacing
                     widthF = max(widthF, currentX)
                     startIndex = index
                 }
@@ -135,7 +135,7 @@ class AWTFont(val font: Font): XFont {
             fun nextLine(){
                 display()
                 for(i in startResultIndex until result.size){
-                    result[i].lineWidth = currentX
+                    result[i].lineWidth = max(0f, currentX - charSpacing)
                 }
                 startResultIndex = result.size
                 currentY += fontHeight
@@ -163,11 +163,11 @@ class AWTFont(val font: Font): XFont {
 
                             // not 100% accurate for text with smileys
                             val previousWord = cp.subList(startIndex, index).joinChars()
-                            val nextWord = cp.subList(index, endIndex).joinChars() // space needs to be included ;)
+                            val nextWord = cp.subList(index+1, endIndex).joinChars()
                             val currentX2 = currentX + if(previousWord.isEmpty()) 0f else TextLayout(previousWord, font, ctx).advance
                             val layout = TextLayout(nextWord, font, ctx)
                             val advance = layout.advance
-                            if(currentX2 + advance > lineBreakWidth){
+                            if(currentX2 + advance + (endIndex - startIndex) * charSpacing > lineBreakWidth){
                                 // it doesn't fit -> line break
                                 hadNonSpaceCharacter = false
                                 nextLine()
@@ -202,7 +202,7 @@ class AWTFont(val font: Font): XFont {
 
     fun generateTextureV3(text: String, fontSize: Float): Texture2D? {
 
-        val parts = splitParts(text, fontSize, 4f, -1f)
+        val parts = splitParts(text, fontSize, 4f, 0f, -1f)
         val result = parts.parts
         val exampleLayout = parts.exampleLayout
 

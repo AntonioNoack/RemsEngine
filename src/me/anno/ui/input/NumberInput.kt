@@ -5,11 +5,9 @@ import me.anno.input.MouseButton
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.animation.drivers.AnimationDriver
 import me.anno.studio.RemsStudio
-import me.anno.studio.RemsStudio.lastT
 import me.anno.studio.RemsStudio.onSmallChange
 import me.anno.studio.Studio
 import me.anno.studio.Studio.editorTime
-import me.anno.studio.history.History
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.groups.PanelListY
@@ -26,7 +24,7 @@ abstract class NumberInput(
 
     var hasValue = false
 
-    val titlePanel = object : TextPanel(title, style) {
+    val titleView = object : TextPanel(title, style) {
         override fun onMouseDown(x: Float, y: Float, button: MouseButton) {
             this@NumberInput.onMouseDown(x, y, button)
         }
@@ -121,10 +119,12 @@ abstract class NumberInput(
     var wasInFocus = false
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        val focused1 = titlePanel.isInFocus || inputPanel.isInFocus
+        val focused1 = titleView.isInFocus || inputPanel.isInFocus
         if (focused1) isSelectedListener?.invoke()
-        val focused2 = focused1 || (owningProperty != null && owningProperty == Studio.selectedProperty)
-        inputPanel.visibility = if (focused2) Visibility.VISIBLE else Visibility.GONE
+        if(RemsStudio.hideUnusedProperties){
+            val focused2 = focused1 || (owningProperty != null && owningProperty == Studio.selectedProperty)
+            inputPanel.visibility = if (focused2) Visibility.VISIBLE else Visibility.GONE
+        }
         super.onDraw(x0, y0, x1, y1)
         when(this){
             is IntInput -> updateValueMaybe()
@@ -138,10 +138,13 @@ abstract class NumberInput(
     }
 
     init {
-        this += titlePanel
+        this += titleView
+        titleView.focusTextColor = titleView.textColor
+        titleView.setSimpleClickListener { inputPanel.toggleVisibility() }
         this += inputPanel
         inputPanel.setCursorToEnd()
         inputPanel.placeholder = title
+        inputPanel.hide()
     }
 
     var isSelectedListener: (() -> Unit)? = null

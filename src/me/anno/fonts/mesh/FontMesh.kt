@@ -3,7 +3,6 @@ package me.anno.fonts.mesh
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.buffer.StaticFloatBuffer
-import me.anno.objects.cache.CacheData
 import me.anno.ui.base.DefaultRenderingHints
 import me.anno.utils.*
 import org.apache.logging.log4j.LogManager
@@ -25,37 +24,29 @@ import javax.imageio.ImageIO
 import kotlin.collections.ArrayList
 import kotlin.math.*
 
-/**
- * double precision is required to add a little noise for characters with three points on a line... (e.g. #)
- * */
 class FontMesh(val font: Font, val text: String, debugPieces: Boolean = false) : FontMeshBase() {
 
-    private val pt0 = Vector2d(4.8, -4.0)
-    // private val pt7 = Vector2d(3.609375, -7.734375)
-    private val pt = pt0
+    val name get() = "${font.name},${font.style}-$text"
 
-    val debugImageSize = 1000
-    val randomDiameter = 0.01
-    val randomRadius = randomDiameter / 2
-
-    fun ix(v: Vector2d) = (debugImageSize / 2 + (v.x - pt.x) * 80).toInt()
-    fun iy(v: Vector2d) = (debugImageSize / 2 + (v.y - pt.y) * 80).toInt()
+    private val debugImageSize = 1000
+    private fun ix(v: Vector2f) = (debugImageSize / 2 + (v.x - 4.8) * 80).toInt()
+    private fun iy(v: Vector2f) = (debugImageSize / 2 + (v.y + 4.0) * 80).toInt()
 
     val buffer: StaticFloatBuffer
     val random = Random()
 
-    fun testTriangulator() {
-        Triangulator.ringToTriangles(
+    private fun testTriangulator() {
+        Triangulation.ringToTriangles(
             listOf(
                 Vector2d(0.0, 0.0),
                 Vector2d(0.0, 1.0),
                 Vector2d(1.0, 1.0),
                 Vector2d(1.0, 0.0)
-            )
+            ), name
         )
     }
 
-    fun testInside() {
+    private fun testInside() {
         for (i in 0 until 5000) {
             val p = Vector2d(Math.random() * 2 - 1, Math.random() * 2 - 1).normalize()
             if (!p.isInsideTriangle(Vector2d(-1.5, -1.5), Vector2d(2.0, -0.5), Vector2d(-0.5, 2.5))) {
@@ -65,8 +56,6 @@ class FontMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
             }
         }
     }
-
-    fun rand2d(x: Double, y: Double) = Vector2d(x + random.nextDouble() * randomDiameter - randomRadius, y +  + random.nextDouble() * randomDiameter - randomRadius)
 
     init {
 
@@ -88,10 +77,10 @@ class FontMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
         shape.append(outline, true)
 
         val path = shape.getPathIterator(null)
-        var currentShape = ArrayList<Vector2d>()
-        var x = 0.0
-        var y = 0.0
-        val coordinates = DoubleArray(6)
+        var currentShape = ArrayList<Vector2f>()
+        var x = 0f
+        var y = 0f
+        val coordinates = FloatArray(6)
         while (!path.isDone) {
 
             val type = path.currentSegment(coordinates)
@@ -109,12 +98,12 @@ class FontMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
                 PathIterator.SEG_QUADTO -> {
 
                     // b(m,n) = Bernstein Coefficient, or Pascal's Triangle * t^(m-n) * (1-t)^n
-                    fun quadAt(t: Double): Vector2d {
+                    fun quadAt(t: Float): Vector2f {
                         val f = 1 - t
                         val b20 = f * f
                         val b21 = 2 * f * t
                         val b22 = t * t
-                        return Vector2d(
+                        return Vector2f(
                             x * b20 + x0 * b21 + x1 * b22,
                             y * b20 + y0 * b21 + y1 * b22
                         )
@@ -124,7 +113,7 @@ class FontMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
                     val steps = max(2, (quadAccuracy * length).roundToInt())
 
                     for (i in 0 until steps) {
-                        currentShape.add(quadAt(i * 1.0 / steps))
+                        currentShape.add(quadAt(i.toFloat() / steps))
                     }
 
                     // if(debugPieces) println("quad to $x0 $y0 $x1 $y1")
@@ -135,13 +124,13 @@ class FontMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
                 }
                 PathIterator.SEG_CUBICTO -> {
 
-                    fun cubicAt(t: Double): Vector2d {
+                    fun cubicAt(t: Float): Vector2f {
                         val f = 1 - t
                         val b30 = f * f * f
                         val b31 = 3 * f * f * t
                         val b32 = 3 * f * t * t
                         val b33 = t * t * t
-                        return Vector2d(
+                        return Vector2f(
                             x * b30 + x0 * b31 + x1 * b32 + x2 * b33,
                             y * b30 + y0 * b31 + y1 * b32 + y2 * b33
                         )
@@ -153,7 +142,7 @@ class FontMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
                     val steps = max(3, (cubicAccuracy * length).roundToInt())
 
                     for (i in 0 until steps) {
-                        currentShape.add(cubicAt(i * 1.0 / steps))
+                        currentShape.add(cubicAt(i.toFloat() / steps))
                     }
 
                     x = x2
@@ -164,7 +153,8 @@ class FontMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
 
                     // if(debugPieces) println("line $x $y to $x0 $y0")
 
-                    currentShape.add(rand2d(x, y))
+                    currentShape.add(Vector2f(x,y))
+                    // currentShape.add(rand2d(x, y))
 
                     x = x0
                     y = y0
@@ -188,7 +178,7 @@ class FontMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
                         // randomize the shapes to break up linear parts,
                         // which can't be solved by our currently used triangulator
                         // works <3
-                        fragments.add(Fragment(currentShape))
+                        fragments.add(Fragment(currentShape, name))
                     }// else crazy...
                     currentShape = ArrayList()
 
@@ -231,13 +221,15 @@ class FontMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
                     if (!maybeInside.isInside) {
                         if (fragment.boundsOverlap(maybeInside)) {
                             val insideTriangles = maybeInside.triangles
-                            val probe = avg(insideTriangles[0], insideTriangles[1], insideTriangles[2])
-                            if (fragment.boundsContain(probe)) {
-                                isInsideSearch@ for (j in tri.indices step 3) {
-                                    if (probe.isInsideTriangle(tri[j], tri[j + 1], tri[j + 2])) {
-                                        maybeInside.isInside = true
-                                        fragment.needingRemoval.add(maybeInside)
-                                        break@isInsideSearch
+                            if(insideTriangles.isNotEmpty()){
+                                val probe = avg(insideTriangles[0], insideTriangles[1], insideTriangles[2])
+                                if (fragment.boundsContain(probe)) {
+                                    isInsideSearch@ for (j in tri.indices step 3) {
+                                        if (probe.isInsideTriangle(tri[j], tri[j + 1], tri[j + 2])) {
+                                            maybeInside.isInside = true
+                                            fragment.needingRemoval.add(maybeInside)
+                                            break@isInsideSearch
+                                        }
                                     }
                                 }
                             }
@@ -260,7 +252,7 @@ class FontMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
                         mergeRings(ring, inner.ring)
                     }
                     needingRemoval.clear()
-                    triangles = Triangulator.ringToTriangles(ring)
+                    triangles = Triangulation.ringToTriangles2(ring, name)
                     gfx?.apply {
                         gfx.color = Color.GRAY
                         drawTriangles(gfx, 0, triangles)
@@ -279,7 +271,7 @@ class FontMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
             }
         }
 
-        val triangles = ArrayList<Vector2d>(outerFragments.sumBy { it.triangles.size })
+        val triangles = ArrayList<Vector2f>(outerFragments.sumBy { it.triangles.size })
         outerFragments.forEach {
             triangles += it.triangles
         }
@@ -316,10 +308,10 @@ class FontMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
 
     }
 
-    fun mergeRings(outer: MutableList<Vector2d>, inner: List<Vector2d>) {
+    fun mergeRings(outer: MutableList<Vector2f>, inner: List<Vector2f>) {
 
         // find the closest pair
-        var bestDistance = Double.POSITIVE_INFINITY
+        var bestDistance = Float.POSITIVE_INFINITY
         var bestOuterIndex = 0
         var bestInnerIndex = 0
 
@@ -353,7 +345,7 @@ class FontMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
         }
     }
 
-    fun drawOutline(gfx: Graphics2D, pts: List<Vector2d>) {
+    fun drawOutline(gfx: Graphics2D, pts: List<Vector2f>) {
         for (i in pts.indices) {
             val a = pts[i]
             val b = if (i == 0) pts.last() else pts[i - 1]
@@ -367,7 +359,7 @@ class FontMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
         }
     }
 
-    fun drawTriangles(gfx: Graphics2D, d: Int, triangles: List<Vector2d>) {
+    fun drawTriangles(gfx: Graphics2D, d: Int, triangles: List<Vector2f>) {
         for (i in triangles.indices step 3) {
             val a = triangles[i]
             val b = triangles[i + 1]
@@ -381,12 +373,12 @@ class FontMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
         }
     }
 
-    class Fragment(val ring: MutableList<Vector2d>) {
-        var triangles = Triangulator.ringToTriangles(ring)
-        val minX: Double
-        val minY: Double
-        val maxX: Double
-        val maxY: Double
+    class Fragment(val ring: MutableList<Vector2f>, name: String) {
+        var triangles = Triangulation.ringToTriangles2(ring, name)
+        val minX: Float
+        val minY: Float
+        val maxX: Float
+        val maxY: Float
 
         init {
             val x = ring.map { it.x }
@@ -406,7 +398,7 @@ class FontMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
             return overlapX && overlapY
         }
 
-        fun boundsContain(v: Vector2d) = v.x in minX..maxX && v.y in minY..maxY
+        fun boundsContain(v: Vector2f) = v.x in minX..maxX && v.y in minY..maxY
     }
 
     companion object {
@@ -415,8 +407,8 @@ class FontMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
 
         val DEFAULT_LINE_HEIGHT = 0.2f
 
-        fun triangleSize(triangles: List<Vector2d>): Double {
-            var areaSum = 0.0
+        fun triangleSize(triangles: List<Vector2f>): Float {
+            var areaSum = 0f
             for (i in triangles.indices step 3) {
                 val a = triangles[i]
                 val b = triangles[i + 1]
@@ -426,7 +418,7 @@ class FontMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
                 val area = (v1.x * v2.y) - (v1.y * v2.x)
                 areaSum += area
             }
-            return abs(areaSum * 0.5)
+            return abs(areaSum * 0.5f)
         }
     }
 

@@ -5,12 +5,12 @@ import me.anno.gpu.ShaderLib.shader3DARGB
 import me.anno.gpu.texture.ClampMode
 import me.anno.gpu.texture.Texture2D
 import me.anno.utils.readNBytes2
-import me.anno.video.Frame
+import me.anno.video.VFrame
 import me.anno.video.LastFrame
 import java.io.InputStream
 import java.lang.RuntimeException
 
-class ARGBFrame(w: Int, h: Int): Frame(w,h){
+class ARGBFrame(w: Int, h: Int): VFrame(w,h){
 
     val argb = Texture2D(w, h, 1)
 

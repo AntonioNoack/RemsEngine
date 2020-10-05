@@ -2,6 +2,7 @@ package me.anno.ui.debug
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
+import me.anno.gpu.framebuffer.Frame
 import me.anno.ui.base.Panel
 import kotlin.math.max
 
@@ -26,7 +27,6 @@ object FrameTimes : Panel(DefaultConfig.style) {
     }
 
     fun draw() {
-        GFX.clip(x, y, w, h)
         draw(x, y, x + w, y + h)
     }
 

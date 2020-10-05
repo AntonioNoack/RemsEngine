@@ -16,7 +16,7 @@ class EnumInput(
 
     var lastIndex = options.indexOf(startValue)
 
-    private val titlePanel = if (withTitle) TextPanel("$title:", style) else null
+    private val titleView = if (withTitle) TextPanel("$title:", style) else null
     private val inputPanel = object : TextPanel(startValue, style.getChild("italic")) {
         override fun acceptsChar(char: Int) = char.isUpKey() || char.isDownKey()
         override fun onKeyTyped(x: Float, y: Float, key: Int) {
@@ -40,13 +40,16 @@ class EnumInput(
     private var changeListener = { _: String, _: Int, _: List<String> -> }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        val focused = titlePanel?.isInFocus == true || inputPanel.isInFocus
+        val focused = titleView?.isInFocus == true || inputPanel.isInFocus
         if (focused) isSelectedListener?.invoke()
         super.onDraw(x0, y0, x1, y1)
     }
 
     init {
-        if (titlePanel != null) this += titlePanel
+        if (titleView != null){
+            this += titleView
+            titleView.focusTextColor = titleView.textColor
+        }
         this += inputPanel
     }
 

@@ -13,6 +13,7 @@ import me.anno.objects.Camera
 import me.anno.objects.Text
 import me.anno.objects.Transform
 import me.anno.objects.cache.Cache
+import me.anno.objects.geometric.Circle
 import me.anno.objects.rendering.RenderSettings
 import me.anno.studio.GFXSettings
 import me.anno.studio.RemsStudio
@@ -27,6 +28,7 @@ import me.anno.studio.Studio.targetFPS
 import me.anno.studio.Studio.targetHeight
 import me.anno.studio.Studio.targetOutputFile
 import me.anno.studio.Studio.targetWidth
+import me.anno.studio.StudioBase
 import me.anno.ui.base.*
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment
@@ -129,7 +131,7 @@ object UILayouts {
         welcome += SpacePanel(0, 1, style)
 
         val recentProjects = SettingCategory("Recent Projects", style)
-        recentProjects.show()
+        recentProjects.show2()
         welcome += recentProjects
 
         fun openProject(name: String, file: File){
@@ -193,7 +195,7 @@ object UILayouts {
         welcome += SpacePanel(0, 1, style)
 
         val newProject = SettingCategory("New Project", style)
-        newProject.show()
+        newProject.show2()
         welcome += newProject
 
         val nameInput = TextInput("Title", style, "New Project")
@@ -291,7 +293,7 @@ object UILayouts {
         welcome += SpacePanel(0, 1, style)
 
         val quickSettings = SettingCategory("Quick Settings", style)
-        quickSettings.show()
+        quickSettings.show2()
         welcome += quickSettings
 
         quickSettings += EnumInput("GFX Quality", true,
@@ -323,7 +325,7 @@ object UILayouts {
         background2.backgroundColor = 0x77777777
 
         // todo some kind of colored border?
-        windowStack.push(Window(background, true, 0, 0))
+        windowStack.push(Window(background))
         windowStack.push(Window(background2, false, 0, 0))
         val mainWindow = Window(scroll, false, 0, 0)
         mainWindow.acceptsClickAway = {
@@ -334,10 +336,13 @@ object UILayouts {
         }
         windowStack.push(mainWindow)
 
+        root.children.clear()
         Text("Rem's Studio", root).apply {
             blockAlignmentX = AxisAlignment.CENTER
             blockAlignmentY = AxisAlignment.CENTER
             textAlignment = AxisAlignment.CENTER
+            relativeCharSpacing = 0.12f
+            invalidate()
         }
 
         nullCamera.farZ.set(100f)
@@ -389,19 +394,13 @@ object UILayouts {
 
         ui += SpacePanel(0, 1, style)
 
-        val console = ConsoleOutputPanel(style.getChild("small"))
-        // console.fontName = "Consolas"
 
-        RemsStudio.console = console
-        console.setTooltip("Double-click to open history")
-        console.instantTextLoading = true
-        console.text = RemsStudio.lastConsoleLines.lastOrNull() ?: ""
         // console.visibility = Visibility.GONE
 
-        ui += console
+        ui += StudioBase.instance.createConsole()
 
         windowStack.clear()
-        windowStack += Window(ui, true, 0, 0)
+        windowStack += Window(ui)
 
     }
 
