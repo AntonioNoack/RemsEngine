@@ -14,6 +14,7 @@ import me.anno.objects.Transform.Companion.yAxis
 import me.anno.objects.Transform.Companion.zAxis
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.shader.Shader
+import me.anno.gpu.texture.NearestMode
 import me.anno.image.svg.SVGStyle.Companion.parseColor
 import me.anno.utils.distance
 import me.anno.utils.pow
@@ -83,7 +84,7 @@ object Grid {
         stack.get(GFX.matrixBuffer)
         glUniformMatrix4fv(shader["transform"], false, GFX.matrixBuffer)
         defaultUniforms(shader, color, alpha)
-        whiteTexture.bind(0, true, ClampMode.CLAMP)
+        bindWhite(0)
         lineBuffer.draw(shader, GL_LINES)
     }
 
@@ -94,7 +95,7 @@ object Grid {
         stack.get(GFX.matrixBuffer)
         glUniformMatrix4fv(shader["transform"], false, GFX.matrixBuffer)
         defaultUniforms(shader, color, alpha)
-        whiteTexture.bind(0, true, ClampMode.CLAMP)
+        bindWhite(0)
         lineBuffer.draw(shader, GL_LINES)
 
     }
@@ -149,7 +150,7 @@ object Grid {
         stack.get(GFX.matrixBuffer)
         glUniformMatrix4fv(shader["transform"], false, GFX.matrixBuffer)
         defaultUniforms(shader, color)
-        whiteTexture.bind(0, true, ClampMode.CLAMP)
+        bindWhite(0)
         buffer.draw(shader, GL_LINES)
 
     }
@@ -163,9 +164,13 @@ object Grid {
         stack.get(GFX.matrixBuffer)
         glUniformMatrix4fv(shader["transform"], false, GFX.matrixBuffer)
         defaultUniforms(shader, -1, alpha)
-        whiteTexture.bind(0, true, ClampMode.CLAMP)
+        bindWhite(0)
         gridBuffer.draw(shader, GL_LINES)
 
+    }
+
+    fun bindWhite(index: Int){
+        whiteTexture.bind(index, whiteTexture.nearest, whiteTexture.clampMode)
     }
 
 }

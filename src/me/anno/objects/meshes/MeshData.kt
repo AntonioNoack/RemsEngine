@@ -41,7 +41,7 @@ class MeshData : CacheData {
         for ((material, buffer) in objData!!) {
             val shader = shaderObjMtl.shader
             GFX.shader3DUniforms(shader, stack, 1, 1, color, null, FilteringMode.NEAREST, null)
-            getTexture(material.diffuseTexture, whiteTexture).bind(0, false, ClampMode.CLAMP)
+            getTexture(material.diffuseTexture, whiteTexture).bind(0, whiteTexture.nearest, whiteTexture.clampMode)
             buffer.draw(shader)
             GFX.check()
         }
@@ -119,7 +119,7 @@ class MeshData : CacheData {
             GFX.check()
 
             GFX.shader3DUniforms(shader, stack, 1, 1, color, null, FilteringMode.NEAREST, null)
-            getTexture(material.diffuseTexture, whiteTexture).bind(0, false, ClampMode.CLAMP)
+            getTexture(material.diffuseTexture, whiteTexture).bind(0, whiteTexture.nearest, whiteTexture.clampMode)
             buffer.draw(shader)
             GFX.check()
 

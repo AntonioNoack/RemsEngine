@@ -22,7 +22,7 @@ class Texture2D(override var w: Int, override var h: Int, val samples: Int): ITe
 
     constructor(img: BufferedImage): this(img.width, img.height, 1){
         create(img, true)
-        filtering(true)
+        filtering(NearestMode.NEAREST)
     }
 
     val withMultisampling get() = samples > 1
@@ -31,7 +31,7 @@ class Texture2D(override var w: Int, override var h: Int, val samples: Int): ITe
 
     var pointer = -1
     var isCreated = false
-    var nearest = false
+    var nearest = NearestMode.TRULY_NEAREST
     var clampMode = ClampMode.CLAMP
 
     // only used for images with exif rotation tag...
@@ -191,7 +191,7 @@ class Texture2D(override var w: Int, override var h: Int, val samples: Int): ITe
         GFX.check()
     }
 
-    fun ensureFilterAndClamping(nearest: Boolean, clampMode: ClampMode){
+    fun ensureFilterAndClamping(nearest: NearestMode, clampMode: ClampMode){
         if(nearest != this.nearest) filtering(nearest)
         if(clampMode != this.clampMode) clamping(clampMode)
     }
@@ -205,27 +205,26 @@ class Texture2D(override var w: Int, override var h: Int, val samples: Int): ITe
         }
     }
 
-    private fun filtering(nearest: Boolean){
+    private fun filtering(nearest: NearestMode){
         if(withMultisampling){
-            this.nearest = true
+            this.nearest = NearestMode.TRULY_NEAREST
             // multisample textures only support nearest filtering;
             // they don't accept the command to be what they are either
             return
         }
-        synchronized(this){
-            if(!hasMipmap){
-                glGenerateMipmap(tex2D)
-                hasMipmap = true
-                if(GFX.supportsAnisotropicFiltering){
-                    val anisotropy = GFX.anisotropy
-                    glTexParameteri(tex2D, GL_TEXTURE_LOD_BIAS, 0)
-                    glTexParameterf(tex2D, EXTTextureFilterAnisotropic.GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropy)
-                }
-                glTexParameteri(tex2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
+        if(!hasMipmap && nearest != NearestMode.TRULY_NEAREST){
+            glGenerateMipmap(tex2D)
+            hasMipmap = true
+            if(GFX.supportsAnisotropicFiltering){
+                val anisotropy = GFX.anisotropy
+                glTexParameteri(tex2D, GL_TEXTURE_LOD_BIAS, 0)
+                glTexParameterf(tex2D, EXTTextureFilterAnisotropic.GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropy)
             }
-            glTexParameteri(tex2D, GL_TEXTURE_MAG_FILTER, if(nearest) GL_NEAREST else GL_LINEAR)
-            this.nearest = nearest
+            glTexParameteri(tex2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
         }
+        glTexParameteri(tex2D, GL_TEXTURE_MIN_FILTER, nearest.min)
+        glTexParameteri(tex2D, GL_TEXTURE_MAG_FILTER, nearest.mag)
+        this.nearest = nearest
     }
 
     var hasMipmap = false
@@ -235,14 +234,14 @@ class Texture2D(override var w: Int, override var h: Int, val samples: Int): ITe
         glBindTexture(tex2D, pointer)
     }
 
-    override fun bind(nearest: Boolean, clampMode: ClampMode){
+    override fun bind(nearest: NearestMode, clampMode: ClampMode){
         if(pointer > -1 && isCreated){
             glBindTexture(tex2D, pointer)
             ensureFilterAndClamping(nearest, clampMode)
         } else invisibleTexture.bind(invisibleTexture.nearest, invisibleTexture.clampMode)
     }
 
-    override fun bind(index: Int, nearest: Boolean, clampMode: ClampMode){
+    override fun bind(index: Int, nearest: NearestMode, clampMode: ClampMode){
         glActiveTexture(GL_TEXTURE0 + index)
         bind(nearest, clampMode)
     }

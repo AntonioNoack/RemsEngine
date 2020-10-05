@@ -3,6 +3,7 @@ package me.karl.renderer;
 import me.anno.gpu.GFX;
 import me.anno.gpu.TextureLib;
 import me.anno.gpu.texture.ClampMode;
+import me.anno.gpu.texture.NearestMode;
 import me.anno.gpu.texture.Texture2D;
 import me.anno.objects.cache.Cache;
 import me.anno.video.MissingFrameException;
@@ -65,7 +66,7 @@ public class AnimatedModelRenderer {
 		if(texture == null){
 			texture = TextureLib.INSTANCE.getWhiteTexture();
 		}
-		texture.bind(0, false, ClampMode.REPEAT);
+		texture.bind(0, NearestMode.LINEAR, ClampMode.REPEAT);
 		entity.getModel().bind(0, 1, 2, 3, 4);
 		shader.jointTransforms.loadMatrixArray(entity.getJointTransforms());
 		GL11.glDrawElements(GL11.GL_TRIANGLES, entity.getModel().getIndexCount(), GL11.GL_UNSIGNED_INT, 0);

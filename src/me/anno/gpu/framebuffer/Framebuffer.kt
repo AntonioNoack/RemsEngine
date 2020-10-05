@@ -2,6 +2,7 @@ package me.anno.gpu.framebuffer
 
 import me.anno.gpu.GFX
 import me.anno.gpu.texture.ClampMode
+import me.anno.gpu.texture.NearestMode
 import me.anno.gpu.texture.Texture2D
 import me.anno.objects.animation.AnimatedProperty
 import org.apache.logging.log4j.LogManager
@@ -174,7 +175,7 @@ class Framebuffer(
         }
     }
 
-    fun bindTexture0(offset: Int = 0, nearest: Boolean, clampMode: ClampMode){
+    fun bindTexture0(offset: Int = 0, nearest: NearestMode, clampMode: ClampMode){
         if(withMultisampling){
             val msBuffer = msBuffer!!
             resolveTo(msBuffer)
@@ -185,7 +186,7 @@ class Framebuffer(
         }
     }
 
-    fun bindTextures(offset: Int = 0, nearest: Boolean, clampMode: ClampMode){
+    fun bindTextures(offset: Int = 0, nearest: NearestMode, clampMode: ClampMode){
         GFX.check()
         if(withMultisampling){
             val msBuffer = msBuffer!!

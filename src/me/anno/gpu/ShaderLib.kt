@@ -295,7 +295,7 @@ object ShaderLib {
                 "           effect = mix(effect, 1.0 - effect, invertMask);\n" +
                 "           color = mix(\n" +
                 "               texture(tex, uv2),\n" +
-                "               texture(tex, round(uv2 / pixelating) * pixelating),\n" +
+                "               texture(tex, round((uv2 - 0.5) / pixelating) * pixelating + 0.5),\n" +
                 "               effect);\n" +
                 "           break;\n" +
                 // just mix two images

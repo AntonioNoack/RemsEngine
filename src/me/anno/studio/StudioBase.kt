@@ -243,35 +243,38 @@ open class StudioBase {
             if (frameCtr == 0L) mt("before window drawing")
 
             smallestIndexNeedingRendering = 0
+            val lastFullscreenIndex = windowStack.indexOfLast { it.isFullscreen }
             windowStack.forEachIndexed { index, window ->
-                GFX.loadTexturesSync.clear()
-                GFX.loadTexturesSync.push(false)
-                val panel = window.panel
-                // optimization is worth 0.5% of 3.4GHz * 12 ~ 200 MHz ST (13.06.2020)
-                if (Input.needsLayoutUpdate()) {
-                    // ("layouting")
-                    val t0 = System.nanoTime()
-                    panel.calculateSize(min(w - window.x, w), min(h - window.y, h))
-                    // panel.applyPlacement(min(w - window.x, w), min(h - window.y, h))
-                    if(window.isFullscreen){
-                        smallestIndexNeedingRendering = index
+                if(index >= lastFullscreenIndex){
+                    GFX.loadTexturesSync.clear()
+                    GFX.loadTexturesSync.push(false)
+                    val panel = window.panel
+                    // optimization is worth 0.5% of 3.4GHz * 12 ~ 200 MHz ST (13.06.2020)
+                    if (Input.needsLayoutUpdate()) {
+                        // ("layouting")
+                        val t0 = System.nanoTime()
+                        panel.calculateSize(min(w - window.x, w), min(h - window.y, h))
+                        // panel.applyPlacement(min(w - window.x, w), min(h - window.y, h))
+                        if(window.isFullscreen){
+                            smallestIndexNeedingRendering = index
+                        }
+                        if(panel.w > w || panel.h > h) throw RuntimeException("Panel is too large...")
+                        // panel.applyConstraints()
+                        val t1 = System.nanoTime()
+                        panel.place(window.x, window.y, w, h)
+                        val t2 = System.nanoTime()
+                        val dt1 = (t1 - t0) * 1e-9f
+                        val dt2 = (t2 - t1) * 1e-9f
+                        if (dt1 > 0.01f && frameCtr > 0) LOGGER.warn("Used ${dt1.f3()}s + ${dt2.f3()}s for layout")
                     }
-                    if(panel.w > w || panel.h > h) throw RuntimeException("Panel is too large...")
-                    // panel.applyConstraints()
-                    val t1 = System.nanoTime()
-                    panel.place(window.x, window.y, w, h)
-                    val t2 = System.nanoTime()
-                    val dt1 = (t1 - t0) * 1e-9f
-                    val dt2 = (t2 - t1) * 1e-9f
-                    if (dt1 > 0.01f && frameCtr > 0) LOGGER.warn("Used ${dt1.f3()}s + ${dt2.f3()}s for layout")
+                    GFX.ensureEmptyStack()
+                    Framebuffer.stack.push(null)
+                    Frame.reset()
+                    Frame(panel.x, panel.y, panel.w, panel.h, null){
+                        panel.draw(panel.x, panel.y, panel.x + panel.w, panel.y + panel.h)
+                    }
+                    GFX.ensureEmptyStack()
                 }
-                GFX.ensureEmptyStack()
-                Framebuffer.stack.push(null)
-                Frame.reset()
-                Frame(panel.x, panel.y, panel.w, panel.h, null){
-                    panel.draw(panel.x, panel.y, panel.x + panel.w, panel.y + panel.h)
-                }
-                GFX.ensureEmptyStack()
             }
 
             Input.framesSinceLastInteraction++

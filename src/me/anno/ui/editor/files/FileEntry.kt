@@ -6,6 +6,7 @@ import me.anno.gpu.GFX.inFocus
 import me.anno.gpu.GFX.openMenu
 import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.gpu.texture.ClampMode
+import me.anno.gpu.texture.NearestMode
 import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.objects.Audio
@@ -82,7 +83,8 @@ class FileEntry(val explorer: FileExplorer, val isParent: Boolean, val file: Fil
         val scale = (size - 20) / max(iw, ih).toFloat()
         iw = (iw * scale).roundToInt()
         ih = (ih * scale).roundToInt()
-        image.ensureFilterAndClamping(false, ClampMode.CLAMP)
+        // makes them black, why ever...
+        // image.ensureFilterAndClamping(NearestMode.LINEAR, ClampMode.CLAMP)
         GFX.drawTexture(x + (size - iw) / 2, y + (size - ih) / 2, iw, ih, image, -1, null)
     }
 
@@ -109,7 +111,7 @@ class FileEntry(val explorer: FileExplorer, val isParent: Boolean, val file: Fil
                 var iw = image.w
                 var ih = image.h
                 val rot = image.rotation
-                image.ensureFilterAndClamping(false, ClampMode.CLAMP)
+                image.ensureFilterAndClamping(NearestMode.LINEAR, ClampMode.CLAMP)
                 if(rot == null){
                     val scale = (size - 20) / max(iw, ih).toFloat()
                     iw = (iw * scale).roundToInt()

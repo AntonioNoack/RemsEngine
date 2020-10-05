@@ -25,6 +25,8 @@ class VideoCreator(val w: Int, val h: Int, val fps: Double, val totalFrameCount:
         if (w % 2 != 0 || h % 2 != 0) throw RuntimeException("width and height must be divisible by 2")
     }
 
+    val t0 = GFX.lastTime
+
     val videoQualities = arrayListOf(
         "ultrafast", "superfast", "veryfast", "faster",
         "fast", "medium", "slow", "slower", "**veryslow**", "placebo"
@@ -76,7 +78,7 @@ class VideoCreator(val w: Int, val h: Int, val fps: Double, val totalFrameCount:
                     var fps = 0f
                     var quality = 0f
                     var size = 0
-                    var elapsedTime = 0.0
+                    val elapsedTime = (GFX.lastTime - t0) * 1e-9
                     var bitrate = 0
                     var speed = 0f
                     var remaining = line
@@ -94,7 +96,7 @@ class VideoCreator(val w: Int, val h: Int, val fps: Double, val totalFrameCount:
                                 "bitrate" -> {
                                     // todo parse bitrate? or just display it?
                                 }
-                                "time" -> elapsedTime = value.parseTime()
+                                // "time" -> elapsedTime = value.parseTime()
                                 "size", "lsize" -> {
                                 }
                                 "q" -> {

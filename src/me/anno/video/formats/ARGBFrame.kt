@@ -3,6 +3,7 @@ package me.anno.video.formats
 import me.anno.gpu.GFX
 import me.anno.gpu.ShaderLib.shader3DARGB
 import me.anno.gpu.texture.ClampMode
+import me.anno.gpu.texture.NearestMode
 import me.anno.gpu.texture.Texture2D
 import me.anno.utils.readNBytes2
 import me.anno.video.VFrame
@@ -29,7 +30,7 @@ class ARGBFrame(w: Int, h: Int): VFrame(w,h){
 
     override fun get3DShader() = shader3DARGB
 
-    override fun bind(offset: Int, nearestFiltering: Boolean, clampMode: ClampMode) {
+    override fun bind(offset: Int, nearestFiltering: NearestMode, clampMode: ClampMode) {
         argb.bind(offset, nearestFiltering, clampMode)
     }
 

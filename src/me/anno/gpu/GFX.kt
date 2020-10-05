@@ -25,6 +25,7 @@ import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderPlus
 import me.anno.gpu.texture.ClampMode
 import me.anno.gpu.texture.FilteringMode
+import me.anno.gpu.texture.NearestMode
 import me.anno.gpu.texture.Texture2D
 import me.anno.input.Input
 import me.anno.input.Input.mouseX
@@ -309,7 +310,7 @@ object GFX : GFXBase1() {
         val w = texture.w
         val h = texture.h
         if (text.isNotBlank()) {
-            texture.bind(true, ClampMode.CLAMP)
+            texture.bind(NearestMode.TRULY_NEAREST, ClampMode.CLAMP)
             val shader = subpixelCorrectTextShader
             // check()
             shader.use()

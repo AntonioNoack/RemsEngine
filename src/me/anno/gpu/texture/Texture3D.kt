@@ -18,12 +18,12 @@ class Texture3D(val w: Int, val h: Int, val d: Int){
 
     constructor(img: BufferedImage, depth: Int): this(img.width/depth, img.height, depth){
         create(img, true)
-        filtering(true)
+        filtering(isFilteredNearest)
     }
 
     var pointer = -1
     var isCreated = false
-    var isFilteredNearest = false
+    var isFilteredNearest = NearestMode.NEAREST
 
     fun ensurePointer(){
         if(pointer < 0) pointer = glGenTextures()
@@ -148,15 +148,14 @@ class Texture3D(val w: Int, val h: Int, val d: Int){
         GFX.check()
     }
 
-    fun ensureFiltering(nearest: Boolean){
+    fun ensureFiltering(nearest: NearestMode){
         if(nearest != isFilteredNearest) filtering(nearest)
     }
 
-    fun filtering(nearest: Boolean){
-        if(nearest){
-            val type = GL_NEAREST
-            glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, type)
-            glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, type)
+    fun filtering(nearest: NearestMode){
+        if(nearest != NearestMode.LINEAR){
+            glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
+            glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
         } else {
             glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
             glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
@@ -176,14 +175,16 @@ class Texture3D(val w: Int, val h: Int, val d: Int){
         glBindTexture(GL_TEXTURE_3D, pointer)
     }
 
-    fun bind(nearest: Boolean){
+    fun bind(nearest: NearestMode){
         if(pointer > -1 && isCreated){
             glBindTexture(GL_TEXTURE_3D, pointer)
             ensureFiltering(nearest)
-        } else invisibleTexture.bind(true, ClampMode.CLAMP)
+        } else {
+            invisibleTexture.bind(NearestMode.LINEAR, ClampMode.CLAMP)
+        }
     }
 
-    fun bind(index: Int, nearest: Boolean){
+    fun bind(index: Int, nearest: NearestMode){
         glActiveTexture(GL_TEXTURE0 + index)
         bind(nearest)
     }

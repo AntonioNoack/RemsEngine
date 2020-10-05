@@ -5,6 +5,7 @@ import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
 import me.anno.gpu.TextureLib.colorShowTexture
 import me.anno.gpu.texture.ClampMode
+import me.anno.gpu.texture.NearestMode
 import me.anno.image.svg.SVGStyle.Companion.parseColorComplex
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.studio.RemsStudio.onSmallChange
@@ -71,7 +72,7 @@ class ColorChooser(style: Style, withAlpha: Boolean, val owningProperty: Animate
                 for (xi in x0 until x1) {
                     GFX.drawRect(xi, y, 1, h, 0xffffff or ((xi-this.x) * 255 / w).shl(24))
                 }
-                colorShowTexture.bind(0, true, ClampMode.REPEAT)
+                colorShowTexture.bind(0, NearestMode.TRULY_NEAREST, ClampMode.REPEAT)
                 GFX.drawTexture(this.x, y, w, h, colorShowTexture, -1, Vector4f(w.toFloat() / h, 1f, 0f, 0f))
                 GFX.drawRect(dragX, y0, 1, y1 - y0, black)
             }

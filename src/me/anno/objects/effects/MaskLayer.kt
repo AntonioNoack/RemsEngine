@@ -9,6 +9,7 @@ import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.ShaderPlus
 import me.anno.gpu.texture.ClampMode
+import me.anno.gpu.texture.NearestMode
 import me.anno.input.Input.keysDown
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
@@ -70,14 +71,16 @@ class MaskLayer(parent: Transform? = null) : MaskLayerBase(parent) {
                         glClear(GL_DEPTH_BUFFER_BIT)
                         GFX.draw3DBlur(localTransform, size, w, h, isFirst)
                     }
-                    target.bindTexture0(offset, true || isFirst || size == pixelSize, ClampMode.CLAMP)
+                    target.bindTexture0(offset,
+                        if(true || isFirst || size == pixelSize) NearestMode.NEAREST
+                        else NearestMode.LINEAR, ClampMode.CLAMP)
                 }
 
                 val oldDrawMode = GFX.drawMode
                 if (oldDrawMode == ShaderPlus.DrawMode.COLOR_SQUARED) GFX.drawMode = ShaderPlus.DrawMode.COLOR
 
                 GFX.check()
-                masked.bindTexture0(0, true, ClampMode.CLAMP)
+                masked.bindTexture0(0, NearestMode.TRULY_NEAREST, ClampMode.CLAMP)
                 GFX.check()
 
                 BlendDepth(null, false).use {
@@ -107,7 +110,7 @@ class MaskLayer(parent: Transform? = null) : MaskLayerBase(parent) {
                             // draw texture 0 (masked) onto temp2
                             // todo sample multiple times...
                             GFX.copy()
-                            temp2.bindTexture0(0, true, ClampMode.CLAMP)
+                            temp2.bindTexture0(0, NearestMode.TRULY_NEAREST, ClampMode.CLAMP)
                         }
                     }
 
@@ -120,8 +123,8 @@ class MaskLayer(parent: Transform? = null) : MaskLayerBase(parent) {
 
                 GFX.drawMode = oldDrawMode
 
-                masked.bindTexture0(1, true, ClampMode.CLAMP)
-                mask.bindTexture0(0, true, ClampMode.CLAMP)
+                masked.bindTexture0(1, NearestMode.TRULY_NEAREST, ClampMode.CLAMP)
+                mask.bindTexture0(0, NearestMode.TRULY_NEAREST, ClampMode.CLAMP)
 
                 GFX.check()
 
@@ -142,9 +145,9 @@ class MaskLayer(parent: Transform? = null) : MaskLayerBase(parent) {
                 val srcBuffer = src0.msBuffer ?: src0
                 BokehBlur.draw(srcBuffer.textures[0], temp, pixelSize)
 
-                temp.bindTexture0(2, true, ClampMode.CLAMP)
-                masked.bindTexture0(1, true, ClampMode.CLAMP)
-                mask.bindTexture0(0, true, ClampMode.CLAMP)
+                temp.bindTexture0(2, NearestMode.TRULY_NEAREST, ClampMode.CLAMP)
+                masked.bindTexture0(1, NearestMode.TRULY_NEAREST, ClampMode.CLAMP)
+                mask.bindTexture0(0, NearestMode.TRULY_NEAREST, ClampMode.CLAMP)
 
                 GFX.draw3DMasked(
                     localTransform, color,
@@ -155,9 +158,9 @@ class MaskLayer(parent: Transform? = null) : MaskLayerBase(parent) {
             }
             else -> {
                 GFX.check()
-                masked.bindTextures(1, true, ClampMode.MIRRORED_REPEAT)
+                masked.bindTextures(1, NearestMode.TRULY_NEAREST, ClampMode.MIRRORED_REPEAT)
                 GFX.check()
-                mask.bindTextures(0, true, ClampMode.CLAMP)
+                mask.bindTextures(0, NearestMode.TRULY_NEAREST, ClampMode.CLAMP)
                 GFX.check()
                 GFX.draw3DMasked(
                     localTransform, color,

@@ -16,6 +16,7 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderPlus
 import me.anno.gpu.texture.ClampMode
+import me.anno.gpu.texture.NearestMode
 import me.anno.objects.Camera
 import me.anno.objects.Camera.Companion.DEFAULT_VIGNETTE_STRENGTH
 import me.anno.objects.Transform.Companion.xAxis
@@ -244,7 +245,7 @@ object Scene {
         isInited = true
     }
 
-    fun getNextBuffer(name: String, previous: Framebuffer, offset: Int, nearest: Boolean, samples: Int?): Framebuffer {
+    fun getNextBuffer(name: String, previous: Framebuffer, offset: Int, nearest: NearestMode, samples: Int?): Framebuffer {
         val next = FBStack[name, previous.w, previous.h, samples ?: previous.samples, usesFPBuffers]
         // next.bind()
         previous.bindTextures(offset, nearest, ClampMode.CLAMP)
@@ -512,7 +513,7 @@ object Scene {
             val useLUT = lut != null
             if (useLUT) {
 
-                buffer = getNextBuffer("Scene-LT", buffer, 0, nearest = false, samples = 1)
+                buffer = getNextBuffer("Scene-LUT", buffer, 0, nearest = NearestMode.LINEAR, samples = 1)
                 Frame(buffer) {
                     drawColors()
                 }
@@ -521,16 +522,16 @@ object Scene {
                  * apply the LUT for sepia looks, cold looks, general color correction, ...
                  * uses the Unreal Engine "format" of an 256x16 image (or 1024x32)
                  * */
-                buffer.bindTextures(0, true, ClampMode.CLAMP)
+                buffer.bindTextures(0, NearestMode.TRULY_NEAREST, ClampMode.CLAMP)
                 lutShader.use()
-                lut!!.bind(1, false)
+                lut!!.bind(1, NearestMode.LINEAR)
                 lut.clamping(false)
                 flat01.draw(lutShader)
                 GFX.check()
 
             } else {
 
-                buffer.bindTextures(0, false, ClampMode.CLAMP)
+                buffer.bindTextures(0, NearestMode.TRULY_NEAREST, ClampMode.CLAMP)
                 drawColors()
 
             }
