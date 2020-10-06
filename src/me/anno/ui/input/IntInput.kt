@@ -1,11 +1,10 @@
 package me.anno.ui.input
 
 import me.anno.gpu.GFX
-import me.anno.input.Input.isShiftDown
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.parser.SimpleExpressionParser
 import me.anno.studio.RemsStudio
-import me.anno.studio.Studio.shiftSlowdown
+import me.anno.studio.StudioBase.Companion.shiftSlowdown
 import me.anno.ui.style.Style
 import me.anno.utils.pow
 import java.lang.Exception

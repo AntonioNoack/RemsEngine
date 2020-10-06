@@ -13,7 +13,7 @@ import me.anno.objects.Audio
 import me.anno.objects.Camera
 import me.anno.objects.Video
 import me.anno.objects.cache.Cache
-import me.anno.studio.Studio
+import me.anno.studio.StudioBase
 import me.anno.ui.base.Panel
 import me.anno.ui.base.TextPanel
 import me.anno.ui.dragging.Draggable
@@ -217,8 +217,8 @@ class FileEntry(val explorer: FileExplorer, val isParent: Boolean, val file: Fil
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
         when (action) {
             "DragStart" -> {
-                if (Studio.dragged?.getOriginal() != file) {
-                    Studio.dragged =
+                if (StudioBase.dragged?.getOriginal() != file) {
+                    StudioBase.dragged =
                         Draggable(file.toString(), "File", file, TextPanel(file.nameWithoutExtension, style))
                 }
             }

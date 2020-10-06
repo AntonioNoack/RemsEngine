@@ -9,7 +9,7 @@ import me.anno.gpu.texture.NearestMode
 import me.anno.image.svg.SVGStyle.Companion.parseColorComplex
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.studio.RemsStudio.onSmallChange
-import me.anno.studio.Studio.editorTime
+import me.anno.studio.RemsStudio.editorTime
 import me.anno.ui.base.Panel
 import me.anno.ui.base.SpacePanel
 import me.anno.ui.base.Visibility

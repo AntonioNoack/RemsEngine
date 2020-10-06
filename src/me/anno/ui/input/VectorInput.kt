@@ -9,10 +9,10 @@ import me.anno.io.text.TextReader
 import me.anno.objects.Camera
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.studio.RemsStudio
-import me.anno.studio.Studio
-import me.anno.studio.Studio.editorTime
-import me.anno.studio.Studio.shiftSlowdown
-import me.anno.ui.base.SpacePanel
+import me.anno.studio.RemsStudio.editorTime
+import me.anno.studio.RemsStudio.selectedProperty
+import me.anno.studio.RemsStudio.selectedTransform
+import me.anno.studio.StudioBase.Companion.shiftSlowdown
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.constraints.WrapAlign
@@ -122,6 +122,7 @@ class VectorInput(
                     }
                 } else {
                     try {
+                        val editorTime = editorTime
                         val animProperty = TextReader.fromText(data).firstOrNull() as? AnimatedProperty<*>
                         if(animProperty != null){
                             if(owningProperty != null){
@@ -176,7 +177,7 @@ class VectorInput(
         val focused1 = titleView.isInFocus || valueList.children.one { it.isInFocus }
         if(focused1) isSelectedListener?.invoke()
         if(RemsStudio.hideUnusedProperties){
-            val focused2 = focused1 || owningProperty == Studio.selectedProperty
+            val focused2 = focused1 || owningProperty == selectedProperty
             valueList.visibility = if(focused2) Visibility.VISIBLE else Visibility.GONE
         }
         super.onDraw(x0, y0, x1, y1)
@@ -252,7 +253,7 @@ class VectorInput(
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
         super.onMouseMoved(x, y, dx, dy)
         if(mouseIsDown){
-            val size = 20f * shiftSlowdown * (if(Studio.selectedTransform is Camera) -1f else 1f) / max(GFX.width,GFX.height)
+            val size = 20f * shiftSlowdown * (if(selectedTransform is Camera) -1f else 1f) / max(GFX.width,GFX.height)
             val dx0 = dx*size
             val dy0 = dy*size
             val delta = dx0-dy0

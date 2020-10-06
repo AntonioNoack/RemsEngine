@@ -4,6 +4,7 @@ import me.anno.config.DefaultStyle
 import me.anno.gpu.GFX.inFocus
 import me.anno.gpu.Window
 import me.anno.input.MouseButton
+import me.anno.studio.Logging
 import me.anno.studio.RemsStudio
 import me.anno.ui.base.Panel
 import me.anno.ui.base.TextPanel
@@ -36,7 +37,7 @@ class ConsoleOutputPanel(style: Style): TextPanel("", style) {
             // todo update, if there are new messages incoming
             // done select the text color based on the type of message
             val list = listPanel.child as PanelList
-            RemsStudio.lastConsoleLines.reversed().forEach { msg ->
+            Logging.lastConsoleLines.reversed().forEach { msg ->
                 val level = if (msg.startsWith('[')) {
                     when (msg.substring(0, min(4, msg.length))) {
                         "[INF" -> Level.INFO

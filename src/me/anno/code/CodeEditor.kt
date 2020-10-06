@@ -1,8 +1,6 @@
 package me.anno.code
 
-import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style
-import me.anno.gpu.Cursor
 import me.anno.gpu.Window
 import me.anno.studio.StudioBase
 import me.anno.ui.base.components.Padding
@@ -22,20 +20,10 @@ import java.io.File
  * Intellij Ideas support for JS is bad, so I want to give it a try to use my video studio code,
  * slightly altered, as a code editor
  * */
-object CodeEditor : StudioBase() {
+object CodeEditor : StudioBase(false) {
 
     var projectFolder = File(OS.documents, "IdeaProjects\\JSTest\\src")
     var currentTab: CodeTab? = null
-
-    override fun gameInit(){
-
-        mt("game init")
-
-        Cursor.init()
-
-        createUI()
-
-    }
 
     lateinit var tabs: PanelList
 
@@ -47,7 +35,7 @@ object CodeEditor : StudioBase() {
 
     }
 
-    fun createUI(){
+    override fun createUI(){
 
         val style = style
         val main = PanelListY(style)

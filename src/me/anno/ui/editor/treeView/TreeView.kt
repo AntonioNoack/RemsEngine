@@ -6,8 +6,8 @@ import me.anno.input.Input.mouseX
 import me.anno.input.Input.mouseY
 import me.anno.objects.*
 import me.anno.objects.rendering.RenderSettings
-import me.anno.studio.Studio.nullCamera
-import me.anno.studio.Studio.root
+import me.anno.studio.RemsStudio.nullCamera
+import me.anno.studio.RemsStudio.root
 import me.anno.ui.base.*
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelList

@@ -2,9 +2,9 @@ package me.anno.objects.rendering
 
 import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
-import me.anno.studio.Studio.addEvent
-import me.anno.studio.Studio.project
-import me.anno.studio.Studio.targetDuration
+import me.anno.studio.RemsStudio.project
+import me.anno.studio.RemsStudio.targetDuration
+import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory

@@ -7,7 +7,9 @@ import me.anno.io.base.BaseWriter
 import me.anno.objects.Inspectable
 import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
-import me.anno.studio.Studio
+import me.anno.studio.RemsStudio.selectedInspectable
+import me.anno.studio.RemsStudio.selectedProperty
+import me.anno.studio.RemsStudio.selectedTransform
 import me.anno.ui.base.Panel
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.groups.PanelListY
@@ -33,7 +35,7 @@ abstract class AnimationDriver: Saveable(), Inspectable {
     }
 
     fun show(toShow: AnimatedProperty<*>?){
-        Studio.selectedProperty = toShow
+        selectedProperty = toShow
     }
 
     override fun save(writer: BaseWriter) {
@@ -61,7 +63,7 @@ abstract class AnimationDriver: Saveable(), Inspectable {
     // requires, that an object is selected
     override fun createInspector(list: PanelListY, style: Style, getGroup: (title: String, id: String) -> SettingCategory) {
         list += TextPanel("Driver Inspector", style)
-        createInspector(list.children, Studio.selectedTransform!!, style, getGroup)
+        createInspector(list.children, selectedTransform!!, style, getGroup)
     }
 
     companion object {
@@ -74,7 +76,7 @@ abstract class AnimationDriver: Saveable(), Inspectable {
             )
             if(oldDriver != null){
                 options.add(0, "Customize" to {
-                    Studio.selectedInspectable = oldDriver
+                    selectedInspectable = oldDriver
                 })
                 options += "Remove Driver" to {
                     whenSelected(null)

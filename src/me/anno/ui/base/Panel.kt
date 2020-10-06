@@ -1,18 +1,15 @@
 package me.anno.ui.base
 
 import me.anno.gpu.GFX
-import me.anno.gpu.TextureLib.whiteTexture
+import me.anno.gpu.Window
 import me.anno.gpu.framebuffer.Framebuffer
-import me.anno.gpu.texture.Texture2D
 import me.anno.input.Input
 import me.anno.input.MouseButton
-import me.anno.io.Saveable
 import me.anno.studio.RemsStudio
 import me.anno.ui.base.groups.PanelGroup
+import me.anno.ui.state.Rect
 import me.anno.ui.style.Style
 import me.anno.utils.Tabs
-import org.apache.logging.log4j.LogManager
-import org.lwjgl.opengl.GL11.*
 import java.io.File
 import java.lang.RuntimeException
 
@@ -22,6 +19,12 @@ open class Panel(val style: Style) {
     var minH = 1
 
     var visibility = Visibility.VISIBLE
+    var window: Window? = null
+        get() {
+            if(field != null) return field
+            field = parent?.window
+            return field
+        }
 
     fun toggleVisibility(){ visibility = if(visibility == Visibility.VISIBLE) Visibility.GONE else Visibility.VISIBLE }
     fun hide(){ visibility = Visibility.GONE }
@@ -30,20 +33,33 @@ open class Panel(val style: Style) {
     // todo make layout become valid/invalid, so we can save some cpu+gpu resources
     open fun invalidateLayout(){
         parent?.invalidateLayout() ?: {
-            RemsStudio.needsLayout += this
+            window!!.needsLayout += this
         }()
     }
 
     open fun invalidateDrawing(){
-        RemsStudio.needsDrawing += this
+        window!!.needsRedraw += this
     }
 
-    // todo on leave call on hover again?
-    // todo at least give some kind of call...
-    open fun onHover(isInside: Boolean){
-        parent?.onHover(isInside)
-        // invalidateLayout()
-        // invalidateDrawing()
+    open fun getLayoutState(): Any? = Rect(x,y,w,h)
+    open fun getVisualState(): Any? = isHovered
+
+    var oldLayoutState: Any? = null
+    var oldVisualState: Any? = null
+
+    fun tick(){
+        val newLayoutState = getLayoutState()
+        if(newLayoutState != oldLayoutState){
+            oldLayoutState = newLayoutState
+            oldVisualState = getVisualState()
+            invalidateLayout()
+        } else {
+            val newVisualState = getVisualState()
+            if(newVisualState != oldVisualState){
+                oldVisualState = newVisualState
+                invalidateDrawing()
+            }
+        }
     }
 
     var cachedVisuals = Framebuffer("panel", 1, 1, 1, 1, false,
@@ -68,13 +84,9 @@ open class Panel(val style: Style) {
     var y = 0
 
     val isInFocus get() = this in GFX.inFocus
-    val canBeSeen get() = canBeSeen(0, 0, GFX.width, GFX.height)
-    val canBeSeenCurrently get() = canBeSeen(GFX.windowX, GFX.windowY, GFX.windowWidth, GFX.windowHeight)
+    val canBeSeen get() = lx1 > lx0 && ly1 > ly0
     val isHovered get() = Input.mouseX.toInt() - x in 0 until w && Input.mouseY.toInt() - y in 0 until h
     val rootPanel: Panel get() = parent?.rootPanel ?: this
-    fun canBeSeen(x0: Int, y0: Int, w0: Int, h0: Int): Boolean {
-        return x + w > x0 && y + h > y0 && x < x0 + w0 && y < y0 + h0
-    }
 
     var tooltip: String? = null
     val isVisible get() = visibility == Visibility.VISIBLE && canBeSeen
@@ -90,38 +102,29 @@ open class Panel(val style: Style) {
         }*/
     }
 
+    var lx0 = 0
+    var ly0 = 0
+    var lx1 = 0
+    var ly1 = 0
+
+    /**
+     * draw the panel at its last location and size
+     * */
+    fun redraw() {
+        draw(lx0, ly0, lx1, ly1)
+    }
+
     /**
      * draw the panel inside the rectangle (x0 until x1, y0 until y1)
      * more does not need to be drawn;
      * the area is already clipped with glViewport(x0,y0,x1-x0,y1-y0)
      * */
     fun draw(x0: Int, y0: Int, x1: Int, y1: Int) {
+        lx0 = x0
+        ly0 = y0
+        lx1 = x1
+        ly1 = y1
         onDraw(x0, y0, x1, y1)
-        /*if (renderOnRequestOnly) {
-            // to do this somehow is not working :/
-            val w = w
-            val h = h
-            if (cachedVisuals.w != w || cachedVisuals.h != h || true) {
-                // update drawn stuff
-                cachedVisuals.bind(w, h)
-                val x = y
-                val y = y
-                this.x = 0
-                this.y = 0
-                GFX.clip(0, 0, w, h)
-                // glClearColor(Math.random().toFloat(), 0f, 0f, 1f)
-                // glClear(GL_COLOR_BUFFER_BIT)
-                onDraw(0, 0, w - 1, h - 1)
-                this.x = x
-                this.y = y
-                cachedVisuals.unbind()
-                GFX.clip2(x0, y0, x1, y1)
-            }
-            // draw cached result
-            GFX.drawTexture(x, y, w, h, cachedVisuals.textures[0], -1, null)
-        } else {
-
-        }*/
     }
 
     open fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {

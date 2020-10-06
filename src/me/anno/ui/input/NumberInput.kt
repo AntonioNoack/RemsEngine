@@ -5,9 +5,10 @@ import me.anno.input.MouseButton
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.animation.drivers.AnimationDriver
 import me.anno.studio.RemsStudio
+import me.anno.studio.RemsStudio.editorTime
 import me.anno.studio.RemsStudio.onSmallChange
-import me.anno.studio.Studio
-import me.anno.studio.Studio.editorTime
+import me.anno.studio.RemsStudio.selectedInspectable
+import me.anno.studio.RemsStudio.selectedProperty
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.groups.PanelListY
@@ -45,6 +46,7 @@ abstract class NumberInput(
         var lastTime = editorTime
 
         override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+            val editorTime = editorTime
             if(lastTime != editorTime && owningProperty != null && owningProperty.isAnimated){
                 lastTime = editorTime
                 val value = owningProperty[editorTime]!![indexInProperty]
@@ -85,7 +87,7 @@ abstract class NumberInput(
                 val oldDriver = owningProperty.drivers[indexInProperty]
                 AnimationDriver.openDriverSelectionMenu(oldDriver) {
                     owningProperty.drivers[indexInProperty] = it
-                    if (it != null) Studio.selectedInspectable = it
+                    if (it != null) selectedInspectable = it
                     else {
                         text = when(this@NumberInput){
                             is IntInput -> stringify(lastValue)
@@ -122,7 +124,7 @@ abstract class NumberInput(
         val focused1 = titleView.isInFocus || inputPanel.isInFocus
         if (focused1) isSelectedListener?.invoke()
         if(RemsStudio.hideUnusedProperties){
-            val focused2 = focused1 || (owningProperty != null && owningProperty == Studio.selectedProperty)
+            val focused2 = focused1 || (owningProperty != null && owningProperty == selectedProperty)
             inputPanel.visibility = if (focused2) Visibility.VISIBLE else Visibility.GONE
         }
         super.onDraw(x0, y0, x1, y1)

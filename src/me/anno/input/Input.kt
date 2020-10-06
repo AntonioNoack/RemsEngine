@@ -14,8 +14,8 @@ import me.anno.gpu.GFX.windowStack
 import me.anno.input.Touch.Companion.onTouchDown
 import me.anno.input.Touch.Companion.onTouchMove
 import me.anno.input.Touch.Companion.onTouchUp
-import me.anno.studio.Studio.addEvent
-import me.anno.studio.Studio.project
+import me.anno.studio.RemsStudio.project
+import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.ui.editor.treeView.TreeViewPanel
 import me.anno.utils.length
 import org.apache.logging.log4j.LogManager
@@ -31,7 +31,6 @@ import java.io.IOException
 import java.util.*
 import kotlin.collections.HashMap
 import kotlin.collections.List
-import kotlin.collections.MutableList
 import kotlin.collections.filterIsInstance
 import kotlin.collections.filterNotNull
 import kotlin.collections.firstOrNull
@@ -45,7 +44,6 @@ import kotlin.collections.toList
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
-
 
 object Input {
 

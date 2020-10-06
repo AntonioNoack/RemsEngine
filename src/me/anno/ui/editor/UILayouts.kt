@@ -9,26 +9,24 @@ import me.anno.gpu.GFX.select
 import me.anno.gpu.GFXBase0
 import me.anno.gpu.Window
 import me.anno.input.Input
-import me.anno.objects.Camera
 import me.anno.objects.Text
-import me.anno.objects.Transform
 import me.anno.objects.cache.Cache
-import me.anno.objects.geometric.Circle
 import me.anno.objects.rendering.RenderSettings
 import me.anno.studio.GFXSettings
 import me.anno.studio.RemsStudio
+import me.anno.studio.RemsStudio.gfxSettings
 import me.anno.studio.RemsStudio.windowStack
 import me.anno.studio.RemsStudio.workspace
-import me.anno.studio.Studio
-import me.anno.studio.Studio.nullCamera
-import me.anno.studio.Studio.project
-import me.anno.studio.Studio.root
-import me.anno.studio.Studio.targetDuration
-import me.anno.studio.Studio.targetFPS
-import me.anno.studio.Studio.targetHeight
-import me.anno.studio.Studio.targetOutputFile
-import me.anno.studio.Studio.targetWidth
+import me.anno.studio.RemsStudio.nullCamera
+import me.anno.studio.RemsStudio.project
+import me.anno.studio.RemsStudio.root
+import me.anno.studio.RemsStudio.targetDuration
+import me.anno.studio.RemsStudio.targetFPS
+import me.anno.studio.RemsStudio.targetHeight
+import me.anno.studio.RemsStudio.targetOutputFile
+import me.anno.studio.RemsStudio.targetWidth
 import me.anno.studio.StudioBase
+import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.ui.base.*
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment
@@ -137,7 +135,7 @@ object UILayouts {
         fun openProject(name: String, file: File){
             thread {
                 RemsStudio.loadProject(name.trim(), file)
-                Studio.addEvent {
+                addEvent {
                     nullCamera.farZ.set(5000f)
                     windowStack.clear()
                     createEditorUI()
@@ -297,10 +295,10 @@ object UILayouts {
         welcome += quickSettings
 
         quickSettings += EnumInput("GFX Quality", true,
-            Studio.gfxSettings.displayName, GFXSettings.values().map { it.displayName }, style)
+            gfxSettings.displayName, GFXSettings.values().map { it.displayName }, style)
             .setChangeListener { _, index, _ ->
                 val value = GFXSettings.values()[index]
-                Studio.gfxSettings = value
+                gfxSettings = value
             }
             .setTooltip("Disables MSAA")
         quickSettings += BooleanInput("Enable Vsync", GFXBase0.enableVsync, style)

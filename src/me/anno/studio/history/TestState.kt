@@ -1,8 +1,8 @@
 package me.anno.studio.history
 
 import me.anno.io.base.BaseWriter
-import me.anno.studio.Studio
-import me.anno.studio.Studio.history
+import me.anno.studio.RemsStudio
+import me.anno.studio.RemsStudio.history
 
 class TestState(name: String): HistoryState<String>(){
     init {
@@ -22,13 +22,13 @@ fun main(){
     val history = history
 
     fun check(title: String, action: () -> Unit){
-        println("\nGoal: $title, (from ${Studio.history.nextInsertIndex})")
+        println("\nGoal: $title, (from ${history.nextInsertIndex})")
         action()
-        println("Result: ${Studio.history.elements.map { (it as TestState).state }}, ${Studio.history.nextInsertIndex}")
+        println("Result: ${history.elements.map { (it as TestState).state }}, ${history.nextInsertIndex}")
     }
 
-    Studio.history.put(TestState("A"))
-    Studio.history.put(TestState("B"))
+    history.put(TestState("A"))
+    history.put(TestState("B"))
 
     check("A") {
         history.undo()

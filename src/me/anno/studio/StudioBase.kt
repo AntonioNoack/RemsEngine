@@ -1,5 +1,6 @@
 package me.anno.studio
 
+import me.anno.audio.ALBase
 import me.anno.audio.AudioManager
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style
@@ -17,9 +18,9 @@ import me.anno.objects.cache.Cache
 import me.anno.studio.history.SceneState
 import me.anno.studio.project.Project
 import me.anno.ui.base.Panel
-import me.anno.ui.base.TextPanel
 import me.anno.ui.base.Tooltips
 import me.anno.ui.debug.ConsoleOutputPanel
+import me.anno.ui.dragging.IDraggable
 import me.anno.ui.editor.UILayouts
 import me.anno.ui.editor.sceneTabs.SceneTabs
 import me.anno.utils.OS
@@ -28,18 +29,17 @@ import me.anno.utils.f3
 import me.anno.utils.listFiles2
 import org.apache.logging.log4j.LogManager
 import java.io.File
-import java.io.OutputStream
-import java.io.PrintStream
 import java.lang.Exception
-import java.lang.RuntimeException
 import java.util.*
+import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.concurrent.thread
 import kotlin.math.abs
-import kotlin.math.min
 import kotlin.math.roundToInt
 
-open class StudioBase {
+abstract class StudioBase(val needsAudio: Boolean){
+
+    abstract fun createUI()
 
     val startTime = System.nanoTime()
 
@@ -49,12 +49,6 @@ open class StudioBase {
     var saveIsRequested = true
 
     private val LOGGER = LogManager.getLogger(StudioBase::class)
-
-    val needsLayout = HashSet<Panel>()
-    val needsDrawing = HashSet<Panel>()
-
-    val originalOut = System.out!!
-    val originalErr = System.err!!
 
     val windowStack = Stack<Window>()
 
@@ -66,7 +60,6 @@ open class StudioBase {
     fun onSmallChange(cause: String){
         saveIsRequested = true
         SceneTabs.currentTab?.hasChanged = true
-        // (cause)
     }
 
     fun onLargeChange(){
@@ -90,13 +83,13 @@ open class StudioBase {
 
     fun saveState(){
         // saving state
-        if(Studio.project == null) return
+        if(RemsStudio.project == null) return
         isSaving.set(true)
         thread {
             try {
                 val state = SceneState()
                 state.update()
-                Studio.history.put(state)
+                RemsStudio.history.put(state)
             } catch (e: Exception){
                 e.printStackTrace()
             }
@@ -113,64 +106,6 @@ open class StudioBase {
         } else file.delete()
     }
 
-    fun setupLogging() {
-        System.setOut(PrintStream(object : OutputStream() {
-            var line = ""
-            override fun write(b: Int) {
-                when {
-                    b == '\n'.toInt() -> {
-                        // only accept non-empty lines?
-                        val lines = lastConsoleLines
-                        if (lines.size > lastConsoleLineCount) lines.removeFirst()
-                        lines.push(line)
-                        console?.text = line
-                        line = ""
-                    }
-                    line.length < 100 -> {
-                        // enable for
-                        /*if(line.isEmpty() && b != '['.toInt()){
-                            throw RuntimeException("Please use the LogManager.getLogger(YourClass)!")
-                        }*/
-                        line += b.toChar()
-                    }
-                    line.length == 100 -> {
-                        line += "..."
-                    }
-                }
-                originalOut.write(b)
-            }
-        }))
-        System.setErr(PrintStream(object : OutputStream() {
-            var line = ""
-            override fun write(b: Int) {
-                when {
-                    b == '\n'.toInt() -> {
-                        if(line.isNotBlank()){
-                            // only accept non-empty lines?
-                            val lines = lastConsoleLines
-                            if (lines.size > lastConsoleLineCount) lines.removeFirst()
-                            line = "[ERR] $line"
-                            lines.push(line)
-                            console?.text = line
-                        }
-                        line = ""
-                    }
-                    line.length < 100 -> {
-                        // enable for
-                        /*if(line.isEmpty() && b != '['.toInt()){
-                            throw RuntimeException("Please use the LogManager.getLogger(YourClass)!")
-                        }*/
-                        line += b.toChar()
-                    }
-                    line.length == 100 -> {
-                        line += "..."
-                    }
-                }
-                originalErr.write(b)
-            }
-        }))
-    }
-
     var lastT = startTime
     fun mt(name: String) {
         val t = System.nanoTime()
@@ -181,19 +116,18 @@ open class StudioBase {
         }
     }
 
-    var smallestIndexNeedingRendering = 0
-
     open fun gameInit(){
 
         mt("game init")
 
-        AudioManager.startRunning()
-
-        mt("audio manager")
+        if(needsAudio){
+            AudioManager.startRunning()
+            mt("audio manager")
+        }
 
         Cursor.init()
 
-        UILayouts.createWelcomeUI()
+        createUI()
 
     }
 
@@ -201,11 +135,9 @@ open class StudioBase {
 
         instance = this
 
-        // Library.JNI_LIBRARY_NAME.toLowerCase()
-
         mt("run")
 
-        setupLogging()
+        Logging.setup()
 
         mt("logging")
 
@@ -225,7 +157,7 @@ open class StudioBase {
 
             saveStateMaybe()
 
-            if (frameCtr == 0L) mt("game loop")
+            if (isFirstFrame) mt("game loop")
 
             val hovered = GFX.getPanelAndWindowAt(Input.mouseX, Input.mouseY)
             GFX.hoveredPanel = hovered?.first
@@ -240,33 +172,23 @@ open class StudioBase {
 
             GFX.hoveredPanel?.getCursor()?.useCursor()
 
-            if (frameCtr == 0L) mt("before window drawing")
+            if (isFirstFrame) mt("before window drawing")
 
-            smallestIndexNeedingRendering = 0
             val lastFullscreenIndex = windowStack.indexOfLast { it.isFullscreen }
             windowStack.forEachIndexed { index, window ->
                 if(index >= lastFullscreenIndex){
+
+                    // todo only draw what is needed
+                    val allPanels = window.panel.listOfAll.toList()
+                    val needsRedraw = window.needsRedraw
+
                     GFX.loadTexturesSync.clear()
                     GFX.loadTexturesSync.push(false)
                     val panel = window.panel
-                    // optimization is worth 0.5% of 3.4GHz * 12 ~ 200 MHz ST (13.06.2020)
                     if (Input.needsLayoutUpdate()) {
-                        // ("layouting")
-                        val t0 = System.nanoTime()
-                        panel.calculateSize(min(w - window.x, w), min(h - window.y, h))
-                        // panel.applyPlacement(min(w - window.x, w), min(h - window.y, h))
-                        if(window.isFullscreen){
-                            smallestIndexNeedingRendering = index
-                        }
-                        if(panel.w > w || panel.h > h) throw RuntimeException("Panel is too large...")
-                        // panel.applyConstraints()
-                        val t1 = System.nanoTime()
-                        panel.place(window.x, window.y, w, h)
-                        val t2 = System.nanoTime()
-                        val dt1 = (t1 - t0) * 1e-9f
-                        val dt2 = (t2 - t1) * 1e-9f
-                        if (dt1 > 0.01f && frameCtr > 0) LOGGER.warn("Used ${dt1.f3()}s + ${dt2.f3()}s for layout")
+                        window.calculateFullLayout(w, h, isFirstFrame)
                     }
+
                     GFX.ensureEmptyStack()
                     Framebuffer.stack.push(null)
                     Frame.reset()
@@ -279,7 +201,7 @@ open class StudioBase {
 
             Input.framesSinceLastInteraction++
 
-            if (frameCtr == 0L) mt("window drawing")
+            if (isFirstFrame) mt("window drawing")
 
             Frame(0, 0, GFX.width, GFX.height, null){
 
@@ -291,7 +213,7 @@ open class StudioBase {
                 // dragging can be a nice way to work, but dragging values to change them,
                 // and copying by ctrl+c/v is probably better -> no, we need both
                 // dragging files for example
-                val dragged = Studio.dragged
+                val dragged = dragged
                 if (dragged != null) {
                     val (rw, rh) = dragged.getSize(GFX.width / 5, GFX.height / 5)
                     var x = Input.mouseX.roundToInt() - rw / 2
@@ -309,12 +231,10 @@ open class StudioBase {
 
             check()
 
-            if (frameCtr == 0L) mt("first frame finished")
+            if (isFirstFrame) mt("first frame finished")
 
-            if (frameCtr == 0L) {
-                LOGGER.info("Used ${((System.nanoTime() - startTime) * 1e-9f).f3()}s from start to finishing the first frame")
-            }
-            frameCtr++
+            if (isFirstFrame) { LOGGER.info("Used ${((System.nanoTime() - startTime) * 1e-9f).f3()}s from start to finishing the first frame") }
+            isFirstFrame = false
 
             Cache.update()
 
@@ -331,20 +251,16 @@ open class StudioBase {
     }
 
     fun loadProject(name: String, folder: File) {
-        Studio.project = Project(name.trim(), folder)
-        Studio.project!!.open()
+        val project = Project(name.trim(), folder)
+        RemsStudio.project = project
+        project.open()
         GFX.addGPUTask(1){ GFX.updateTitle() }
     }
 
-    // would overflow as 32 bit after 2.5 months on a 300 fps display ;D
-    private var frameCtr = 0L
+    private var isFirstFrame = true
 
     lateinit var startMenu: Panel
     lateinit var ui: Panel
-    var console: TextPanel? = null
-
-    val lastConsoleLines = LinkedList<String>()
-    var lastConsoleLineCount = 500
 
     var hideUnusedProperties = false
 
@@ -353,15 +269,45 @@ open class StudioBase {
     fun createConsole(): ConsoleOutputPanel {
         val console = ConsoleOutputPanel(style.getChild("small"))
         // console.fontName = "Segoe UI"
-        instance.console = console
+        Logging.console = console
         console.setTooltip("Double-click to open history")
         console.instantTextLoading = true
-        console.text = RemsStudio.lastConsoleLines.lastOrNull() ?: ""
+        console.text = Logging.lastConsoleLines.lastOrNull() ?: ""
         return console
     }
 
     companion object {
+
         lateinit var instance: StudioBase
+
+        private val LOGGER = LogManager.getLogger(StudioBase::class.java)
+
+        var dragged: IDraggable? = null
+
+        fun updateAudio(){
+            GFX.addAudioTask(100){
+                // update the audio player...
+                if(RemsStudio.isPlaying){
+                    AudioManager.requestUpdate()
+                } else {
+                    AudioManager.stop()
+                }
+                ALBase.check()
+            }
+        }
+
+        fun addEvent(event: () -> Unit){
+            eventTasks += event
+        }
+
+        fun warn(msg: String){
+            LOGGER.warn(msg)
+        }
+
+        val eventTasks = ConcurrentLinkedQueue<() -> Unit>()
+
+        val shiftSlowdown get() = if(Input.isAltDown) 5f else if(Input.isShiftDown) 0.2f else 1f
+
     }
 
 }

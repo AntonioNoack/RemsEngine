@@ -16,8 +16,8 @@ import me.anno.objects.*
 import me.anno.objects.Transform.Companion.toTransform
 import me.anno.objects.effects.MaskLayer
 import me.anno.studio.RemsStudio.onLargeChange
-import me.anno.studio.Studio
-import me.anno.studio.Studio.dragged
+import me.anno.studio.RemsStudio.selectedTransform
+import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.ui.base.TextPanel
 import me.anno.ui.dragging.Draggable
 import me.anno.ui.editor.files.addChildFromFile
@@ -53,7 +53,7 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style): TextPanel(""
         val transform = getElement()
         textColor = black or (transform.getLocalColor().toRGB(180))
         backgroundColor = if(tint == null) defaultBackground else mixARGB(defaultBackground, tint, 0.5f)
-        val isInFocus = isInFocus || Studio.selectedTransform == transform
+        val isInFocus = isInFocus || selectedTransform == transform
         if(isInFocus) textColor = accentColor
         /*val colorDifference = colorDifference(textColor, backgroundColor)
         val shadowness = clamp(1f - colorDifference/30f, 0f, 1f)

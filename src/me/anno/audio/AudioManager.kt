@@ -3,11 +3,11 @@ package me.anno.audio
 import me.anno.gpu.GFX
 import me.anno.objects.Audio
 import me.anno.objects.Transform
-import me.anno.studio.Studio
-import me.anno.studio.Studio.editorTime
-import me.anno.studio.Studio.editorTimeDilation
-import me.anno.studio.Studio.nullCamera
-import me.anno.studio.Studio.root
+import me.anno.studio.RemsStudio
+import me.anno.studio.RemsStudio.editorTime
+import me.anno.studio.RemsStudio.editorTimeDilation
+import me.anno.studio.RemsStudio.nullCamera
+import me.anno.studio.RemsStudio.root
 import org.joml.Matrix4f
 import org.lwjgl.openal.AL
 import org.lwjgl.openal.ALC
@@ -46,8 +46,8 @@ object AudioManager {
                     e.printStackTrace()
                 }
                 ALBase.check()
-                if(Studio.isPlaying && ctr++ > 15){ ctr = 0; checkTree(root) }
-                if(Studio.isPlaying && needsUpdate && abs(time-lastUpdate) > 200 * 1_000_000){
+                if(RemsStudio.isPlaying && ctr++ > 15){ ctr = 0; checkTree(root) }
+                if(RemsStudio.isPlaying && needsUpdate && abs(time-lastUpdate) > 200 * 1_000_000){
                     // ensure 200 ms delay between changing the time / dilation
                     // for performance reasons
                     lastUpdate = time

@@ -23,16 +23,16 @@ import me.anno.objects.Transform
 import me.anno.objects.effects.ToneMappers
 import me.anno.studio.RemsStudio.onSmallChange
 import me.anno.studio.Scene
-import me.anno.studio.Studio
-import me.anno.studio.Studio.dragged
-import me.anno.studio.Studio.editorTime
-import me.anno.studio.Studio.editorTimeDilation
-import me.anno.studio.Studio.nullCamera
-import me.anno.studio.Studio.root
-import me.anno.studio.Studio.selectedTransform
-import me.anno.studio.Studio.shiftSlowdown
-import me.anno.studio.Studio.targetHeight
-import me.anno.studio.Studio.targetWidth
+import me.anno.studio.RemsStudio.editorTime
+import me.anno.studio.RemsStudio.editorTimeDilation
+import me.anno.studio.RemsStudio.nullCamera
+import me.anno.studio.RemsStudio.root
+import me.anno.studio.RemsStudio.selectedTransform
+import me.anno.studio.RemsStudio.targetHeight
+import me.anno.studio.RemsStudio.targetWidth
+import me.anno.studio.RemsStudio.updateInspector
+import me.anno.studio.StudioBase.Companion.dragged
+import me.anno.studio.StudioBase.Companion.shiftSlowdown
 import me.anno.ui.base.ButtonPanel
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.custom.CustomContainer
@@ -526,7 +526,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
     }
 
     fun showChanges() {
-        Studio.updateInspector()
+        updateInspector()
         // AudioManager.requestUpdate()
     }
 

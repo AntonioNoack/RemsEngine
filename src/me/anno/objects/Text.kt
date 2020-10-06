@@ -16,7 +16,7 @@ import me.anno.io.base.BaseWriter
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.cache.Cache
 import me.anno.objects.modes.TextMode
-import me.anno.studio.Studio.selectedProperty
+import me.anno.studio.RemsStudio.selectedProperty
 import me.anno.ui.base.ButtonPanel
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelListY
@@ -24,7 +24,6 @@ import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.color.ColorSpace.Companion.HSLuv
 import me.anno.ui.input.BooleanInput
 import me.anno.ui.input.EnumInput
-import me.anno.ui.input.FloatInput
 import me.anno.ui.input.TextInputML
 import me.anno.ui.style.Style
 import org.joml.Matrix4fArrayList

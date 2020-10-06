@@ -1,6 +1,6 @@
 package me.anno.objects.cache
 
-import me.anno.studio.Studio
+import me.anno.studio.RemsStudio.gfxSettings
 import me.anno.video.FFMPEGStream
 import java.io.File
 
@@ -26,7 +26,7 @@ class VideoData(file: File, w: Int, h: Int, index: Int, bufferLength: Int, val f
         // * 128 = 200 MB
         // this is less efficient for large amounts of videos,
         // but it's better for fast loading of video, because the encoder is already loaded etc...
-        val framesPerContainer get() = Studio.gfxSettings.getInt("editor.frames.perContainer")
+        val framesPerContainer get() = gfxSettings.getInt("editor.frames.perContainer")
     }
 
 }

@@ -20,15 +20,12 @@ import me.anno.gpu.texture.NearestMode
 import me.anno.objects.Camera
 import me.anno.objects.Camera.Companion.DEFAULT_VIGNETTE_STRENGTH
 import me.anno.objects.Transform.Companion.xAxis
-import me.anno.objects.Transform.Companion.yAxis
-import me.anno.objects.Transform.Companion.zAxis
 import me.anno.objects.cache.Cache
 import me.anno.objects.effects.ToneMappers
-import me.anno.studio.Studio.gfxSettings
-import me.anno.studio.Studio.selectedTransform
+import me.anno.studio.RemsStudio.gfxSettings
+import me.anno.studio.RemsStudio.selectedTransform
 import me.anno.ui.editor.sceneView.Gizmo.drawGizmo
 import me.anno.ui.editor.sceneView.Grid
-import me.anno.ui.editor.sceneView.Grid.drawLine01
 import me.anno.ui.editor.sceneView.ISceneView
 import me.anno.utils.is000
 import me.anno.utils.is1111
@@ -38,7 +35,6 @@ import me.anno.video.MissingFrameException
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
 import org.joml.Matrix4fArrayList
-import org.joml.Vector3f
 import org.joml.Vector4f
 import org.lwjgl.opengl.GL11.glClearColor
 import org.lwjgl.opengl.GL30
@@ -293,7 +289,7 @@ object Scene {
 
         if (!isInited) init()
 
-        Studio.usedCamera = camera
+        RemsStudio.usedCamera = camera
 
         val (cameraTransform, cameraTime) = camera.getGlobalTransform(time)
         lastGlobalCameraTransform.set(cameraTransform)
@@ -388,11 +384,14 @@ object Scene {
 
             GL30.glDepthMask(true)
 
+            if(!isFinalRendering){
+                stack.pushMatrix()
+                RemsStudio.nullCamera.draw(stack, time, white)
+                stack.popMatrix()
+            }
+
             stack.pushMatrix()
-            Studio.nullCamera.draw(stack, time, white)
-            stack.popMatrix()
-            stack.pushMatrix()
-            Studio.root.draw(stack, time, white)
+            RemsStudio.root.draw(stack, time, white)
             stack.popMatrix()
 
             GFX.check()

@@ -6,10 +6,13 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFX.openMenu
 import me.anno.input.Input
 import me.anno.input.MouseButton
-import me.anno.studio.Studio
-import me.anno.studio.Studio.editorTime
-import me.anno.studio.Studio.editorTimeDilation
-import me.anno.studio.Studio.targetDuration
+import me.anno.studio.RemsStudio.editorTime
+import me.anno.studio.RemsStudio.editorTimeDilation
+import me.anno.studio.RemsStudio.project
+import me.anno.studio.RemsStudio.targetDuration
+import me.anno.studio.RemsStudio.targetFPS
+import me.anno.studio.RemsStudio.updateInspector
+import me.anno.studio.StudioBase.Companion.updateAudio
 import me.anno.ui.base.Panel
 import me.anno.ui.custom.CustomContainer.Companion.isCross
 import me.anno.ui.editor.graphs.GraphEditorBody
@@ -46,7 +49,7 @@ open class TimelinePanel(style: Style) : Panel(style) {
         )
 
         fun clampTime() {
-            dtHalfLength = clamp(dtHalfLength, 2.0 / Studio.targetFPS, timeFractions.last().toDouble())
+            dtHalfLength = clamp(dtHalfLength, 2.0 / targetFPS, timeFractions.last().toDouble())
             centralTime = max(centralTime, dtHalfLength)
         }
 
@@ -56,8 +59,8 @@ open class TimelinePanel(style: Style) : Panel(style) {
 
         fun moveRight(sign: Float) {
             val delta = sign * dtHalfLength * 0.05f
-            Studio.editorTime += delta
-            Studio.updateAudio()
+            editorTime += delta
+            updateAudio()
             centralTime += delta
             clampTime()
         }
@@ -81,7 +84,7 @@ open class TimelinePanel(style: Style) : Panel(style) {
                     val s = time.toInt()
                     val m = s / 60
                     val h = m / 60
-                    val subTime = ((time % 1) * Studio.targetFPS).roundToInt()
+                    val subTime = ((time % 1) * targetFPS).roundToInt()
                     if (h < 1) "${get0XString(m % 60)}:${get0XString(s % 60)}${if (step < 1f) "/${get0XString(subTime)}" else ""}"
                     else "${get0XString(h)}:${get0XString(m % 60)}:${get0XString(s % 60)}${if (step < 1f) "/${get0XString(
                         subTime
@@ -201,7 +204,7 @@ open class TimelinePanel(style: Style) : Panel(style) {
             else -> {
                 val options = listOf(
                     "Set End Here" to {
-                        Studio.project?.targetDuration = getTimeAt(x)
+                        project?.targetDuration = getTimeAt(x)
                     },
                     "Jump to Start" to {
                         jumpToT(0.0)
@@ -218,8 +221,8 @@ open class TimelinePanel(style: Style) : Panel(style) {
     fun jumpToX(x: Float) = jumpToT(getTimeAt(x))
     fun jumpToT(t: Double) {
         editorTime = t
-        Studio.updateInspector()
-        Studio.updateAudio()
+        updateInspector()
+        updateAudio()
     }
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {

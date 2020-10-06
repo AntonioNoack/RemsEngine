@@ -8,8 +8,8 @@ import me.anno.input.MouseButton
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.objects.Transform
-import me.anno.studio.Studio
-import me.anno.studio.Studio.dragged
+import me.anno.studio.RemsStudio.project
+import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.studio.history.History
 import me.anno.ui.base.TextPanel
 import me.anno.ui.dragging.Draggable
@@ -111,7 +111,7 @@ class SceneTab(var file: File?, var root: Transform, history: History?) : TextPa
             // todo replace /,\?,..
             name = name.toAllowedFilename() ?: ""
             if (name.isEmpty()) {
-                val dst = File(Studio.project!!.scenes, name)
+                val dst = File(project!!.scenes, name)
                 if (dst.exists()) {
                     GFX.ask("Override ${dst.name}?") {
                         file = dst

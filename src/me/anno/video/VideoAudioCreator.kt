@@ -3,7 +3,7 @@ package me.anno.video
 import me.anno.audio.AudioStream
 import me.anno.objects.Audio
 import me.anno.objects.Camera
-import me.anno.studio.Studio.root
+import me.anno.studio.RemsStudio.root
 import me.anno.utils.clamp
 import org.apache.logging.log4j.LogManager
 import java.io.DataOutputStream

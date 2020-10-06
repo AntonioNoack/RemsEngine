@@ -8,13 +8,14 @@ import me.anno.gpu.GFX.inFocus0
 import me.anno.io.utils.StringMap
 import me.anno.objects.cache.Cache
 import me.anno.studio.RemsStudio
-import me.anno.studio.Studio
-import me.anno.studio.Studio.dragged
-import me.anno.studio.Studio.editorTime
-import me.anno.studio.Studio.editorTimeDilation
-import me.anno.studio.Studio.history
-import me.anno.studio.Studio.targetFPS
-import me.anno.studio.Studio.updateAudio
+import me.anno.studio.RemsStudio.editorTime
+import me.anno.studio.RemsStudio.editorTimeDilation
+import me.anno.studio.RemsStudio.history
+import me.anno.studio.RemsStudio.project
+import me.anno.studio.RemsStudio.targetFPS
+import me.anno.studio.StudioBase
+import me.anno.studio.StudioBase.Companion.dragged
+import me.anno.studio.StudioBase.Companion.updateAudio
 import me.anno.ui.editor.UILayouts
 import me.anno.ui.base.Panel
 import me.anno.ui.editor.TimelinePanel.Companion.moveRight
@@ -239,7 +240,7 @@ object ActionManager {
                         true
                     }
                     "Jump2End" -> {
-                        editorTime = Studio.project?.targetDuration ?: 10.0
+                        editorTime = project?.targetDuration ?: 10.0
                         updateAudio()
                         true
                     }
@@ -259,7 +260,7 @@ object ActionManager {
                                 }
                             }
 
-                            Studio.dragged = null
+                            StudioBase.dragged = null
 
                             true
                         } else false

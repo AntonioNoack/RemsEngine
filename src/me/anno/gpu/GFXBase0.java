@@ -144,7 +144,7 @@ public class GFXBase0 {
     }
 
     public void updateTitle(){
-        Project project = Studio.INSTANCE.getProject();
+        Project project = RemsStudio.INSTANCE.getProject();
         glfwSetWindowTitle(window, project == null ? "Rem's Studio" : "Rem's Studio: "+project.getName());
     }
 
@@ -158,7 +158,7 @@ public class GFXBase0 {
         glfwSetFramebufferSizeCallback(window, fsCallback = new GLFWFramebufferSizeCallback() {
             public void invoke(long window, int w, int h) {
                 if (w > 0 && h > 0 && (w != width || h != height)) {
-                    Studio.INSTANCE.addEvent(() -> {
+                    StudioBase.Companion.addEvent(() -> {
                         width = w;
                         height = h;
                         Input.INSTANCE.invalidateLayout();

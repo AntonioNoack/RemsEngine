@@ -15,11 +15,12 @@ import me.anno.objects.Transform
 import me.anno.objects.animation.Keyframe
 import me.anno.studio.RemsStudio.onLargeChange
 import me.anno.studio.RemsStudio.onSmallChange
-import me.anno.studio.Studio
-import me.anno.studio.Studio.root
-import me.anno.studio.Studio.selectedProperty
-import me.anno.studio.Studio.selectedTransform
-import me.anno.studio.Studio.shiftSlowdown
+import me.anno.studio.RemsStudio
+import me.anno.studio.RemsStudio.root
+import me.anno.studio.RemsStudio.selectedProperty
+import me.anno.studio.RemsStudio.selectedTransform
+import me.anno.studio.StudioBase
+import me.anno.studio.StudioBase.Companion.shiftSlowdown
 import me.anno.ui.dragging.Draggable
 import me.anno.ui.editor.TimelinePanel
 import me.anno.ui.editor.files.addChildFromFile
@@ -363,7 +364,7 @@ class LayerView(style: Style) : TimelinePanel(style) {
                         val dt = shiftSlowdown * dilation * dx * dtHalfLength * 2 / w
                         transform.timeOffset += dt
                     }
-                    Studio.updateInspector()
+                    RemsStudio.updateInspector()
                     onSmallChange("layer-dx")
                 }
                 var sumDY = (y - Input.mouseDownY) / height
@@ -373,7 +374,7 @@ class LayerView(style: Style) : TimelinePanel(style) {
                 val newSlot = thisSlot + sumDY.roundToInt()
                 if (newSlot != timelineSlot) {
                     timelineSlot = newSlot
-                    Studio.updateInspector()
+                    RemsStudio.updateInspector()
                     onSmallChange("layer-slot")
                 }
             }
@@ -456,7 +457,7 @@ class LayerView(style: Style) : TimelinePanel(style) {
         try {
             val childMaybe = TextReader.fromText(data).firstOrNull { it is Transform } as? Transform
             val child = childMaybe ?: return super.onPaste(x, y, data, type)
-            val original = (Studio.dragged as? Draggable)?.getOriginal() as? Transform
+            val original = (StudioBase.dragged as? Draggable)?.getOriginal() as? Transform
             if (original != null) {
                 original.timelineSlot = timelineSlot
                 onSmallChange("layer-paste")

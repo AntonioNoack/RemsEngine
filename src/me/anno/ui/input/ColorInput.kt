@@ -6,8 +6,9 @@ import me.anno.input.MouseButton
 import me.anno.objects.Camera
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.studio.RemsStudio
-import me.anno.studio.Studio
-import me.anno.studio.Studio.shiftSlowdown
+import me.anno.studio.RemsStudio.selectedProperty
+import me.anno.studio.RemsStudio.selectedTransform
+import me.anno.studio.StudioBase.Companion.shiftSlowdown
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.groups.PanelListY
@@ -37,7 +38,7 @@ class ColorInput(style: Style, title: String,
             super.onMouseMoved(x, y, dx, dy)
             if(mouseIsDown){
                 val scale2 = 20f * shiftSlowdown
-                val size = scale2 * (if(Studio.selectedTransform is Camera) -1f else 1f) / max(GFX.width,GFX.height)
+                val size = scale2 * (if(selectedTransform is Camera) -1f else 1f) / max(GFX.width,GFX.height)
                 val dx0 = dx*size
                 val dy0 = dy*size
                 val delta = dx0-dy0
@@ -77,7 +78,7 @@ class ColorInput(style: Style, title: String,
         val focused1 = titleView.isInFocus || contentView.listOfAll.one { it.isInFocus }
         if(focused1) isSelectedListener?.invoke()
         if(RemsStudio.hideUnusedProperties){
-            val focused2 = focused1 || (owningProperty == Studio.selectedProperty && owningProperty != null)
+            val focused2 = focused1 || (owningProperty == selectedProperty && owningProperty != null)
             contentView.visibility = if(focused2) Visibility.VISIBLE else Visibility.GONE
         }
         super.onDraw(x0, y0, x1, y1)

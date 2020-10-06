@@ -4,7 +4,7 @@ import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.input.Input
 import me.anno.objects.Transform.Companion.toTransform
-import me.anno.studio.Studio.project
+import me.anno.studio.RemsStudio.project
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelListMultiline

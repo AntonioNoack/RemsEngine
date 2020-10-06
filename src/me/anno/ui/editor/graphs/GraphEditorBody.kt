@@ -18,12 +18,12 @@ import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.animation.Keyframe
 import me.anno.studio.RemsStudio.onSmallChange
-import me.anno.studio.Studio
-import me.anno.studio.Studio.editorTime
-import me.anno.studio.Studio.editorTimeDilation
-import me.anno.studio.Studio.root
-import me.anno.studio.Studio.selectedProperty
-import me.anno.studio.Studio.selectedTransform
+import me.anno.studio.RemsStudio.editorTime
+import me.anno.studio.RemsStudio.editorTimeDilation
+import me.anno.studio.RemsStudio.root
+import me.anno.studio.RemsStudio.selectedProperty
+import me.anno.studio.RemsStudio.selectedTransform
+import me.anno.studio.StudioBase.Companion.updateAudio
 import me.anno.ui.editor.TimelinePanel
 import me.anno.ui.style.Style
 import me.anno.utils.*
@@ -129,7 +129,7 @@ class GraphEditorBody(style: Style): TimelinePanel(style.getChild("deep")){
     fun drawCurrentTime(){
         loadTexturesSync.push(true)
         val timeFontSize = 20
-        val text = getTimeString(Studio.editorTime, 0.0)
+        val text = getTimeString(editorTime, 0.0)
         val (tw, th) = GFX.getTextSize(fontName, timeFontSize, isBold, isItalic, text, -1)
         val color = mixARGB(fontColor, backgroundColor, 0.8f)
         GFX.drawText(x+(w-tw)/2, y+(h-th)/2, fontName, timeFontSize, isBold, isItalic, text, color, backgroundColor, -1)
@@ -417,7 +417,7 @@ class GraphEditorBody(style: Style): TimelinePanel(style.getChild("deep")){
             val time = getTimeAt(x)
             draggedKeyframe.time = mix(time0, time1, time) // global -> local
             editorTime = time
-            Studio.updateAudio()
+            updateAudio()
             draggedKeyframe.setValue(draggedChannel, getValueAt(y))
             selectedProperty?.sort()
             onSmallChange("graph-drag")

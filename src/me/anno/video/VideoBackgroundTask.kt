@@ -5,9 +5,9 @@ import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.ShaderPlus
 import me.anno.objects.Camera
+import me.anno.studio.RemsStudio.nullCamera
+import me.anno.studio.RemsStudio.root
 import me.anno.studio.Scene
-import me.anno.studio.Studio.nullCamera
-import me.anno.studio.Studio.root
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.concurrent.thread
 import kotlin.math.min

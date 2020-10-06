@@ -22,11 +22,11 @@ import me.anno.objects.modes.LoopingState
 import me.anno.objects.modes.ArraySelectionMode
 import me.anno.objects.modes.UVProjection
 import me.anno.objects.particles.ParticleSystem
+import me.anno.studio.RemsStudio.editorTime
 import me.anno.studio.RemsStudio.onLargeChange
+import me.anno.studio.RemsStudio.selectedProperty
+import me.anno.studio.RemsStudio.selectedTransform
 import me.anno.studio.Scene
-import me.anno.studio.Studio
-import me.anno.studio.Studio.editorTime
-import me.anno.studio.Studio.selectedTransform
 import me.anno.ui.base.Panel
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
@@ -111,7 +111,7 @@ open class Transform(var parent: Transform? = null): Saveable(), Inspectable {
     val usesEuler get() = rotationQuaternion == null
 
     fun show(anim: AnimatedProperty<*>?){
-        Studio.selectedProperty = anim
+        selectedProperty = anim
     }
 
     open fun claimResources(pTime0: Double, pTime1: Double, pAlpha0: Float, pAlpha1: Float){

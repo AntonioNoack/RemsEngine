@@ -10,7 +10,6 @@ import me.anno.gpu.buffer.StaticFloatBuffer
 import me.anno.gpu.texture.ClampMode
 import me.anno.gpu.texture.FilteringMode
 import me.anno.image.svg.SVGMesh
-import me.anno.input.Input
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.xml.XMLElement
@@ -23,8 +22,13 @@ import me.anno.objects.modes.EditorFPS
 import me.anno.objects.modes.LoopingState
 import me.anno.objects.modes.UVProjection
 import me.anno.objects.modes.VideoType
+import me.anno.studio.RemsStudio
+import me.anno.studio.RemsStudio.isPaused
+import me.anno.studio.RemsStudio.nullCamera
+import me.anno.studio.RemsStudio.targetHeight
+import me.anno.studio.RemsStudio.targetWidth
 import me.anno.studio.Scene
-import me.anno.studio.Studio
+import me.anno.studio.StudioBase
 import me.anno.ui.base.ButtonPanel
 import me.anno.ui.base.Panel
 import me.anno.ui.base.SpyPanel
@@ -104,7 +108,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
         // -> clamp all axis separately
 
         val avgSize =
-            if (w * Studio.targetHeight > h * Studio.targetWidth) w.toFloat() * Studio.targetHeight / Studio.targetWidth else h.toFloat()
+            if (w * targetHeight > h * targetWidth) w.toFloat() * targetHeight / targetWidth else h.toFloat()
         val sx = w / avgSize
         val sy = h / avgSize
 
@@ -596,16 +600,16 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
         val playbackButton = ButtonPanel(getPlaybackTitle(false), style)
         audio += aud(playbackButton
             .setSimpleClickListener {
-                if (Studio.isPaused) {
+                if (isPaused) {
                     playbackButton.text = getPlaybackTitle(true)
                     if (component == null) {
                         GFX.addAudioTask(5) {
                             val audio = Video(file, null)
-                            audio.startPlayback(0.0, 1.0, Studio.nullCamera)
+                            audio.startPlayback(0.0, 1.0, nullCamera)
                             component = audio.component
                         }
                     } else GFX.addAudioTask(1) { stopPlayback() }
-                } else Studio.warn("Separated playback is only available with paused editor")
+                } else StudioBase.warn("Separated playback is only available with paused editor")
             }
             .setTooltip("Listen to the audio separated from the rest"))
 
@@ -625,7 +629,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                     audioPanels.forEach { it.visibility = if (hasAudio) Visibility.VISIBLE else Visibility.GONE }
                     videoPanels.forEach { it.visibility = if (hasVideo) Visibility.VISIBLE else Visibility.GONE }
                     imagePanels.forEach { it.visibility = if (hasImage) Visibility.VISIBLE else Visibility.GONE }
-                    Input.invalidateLayout()
+                    list.invalidateLayout()
                 }
             }
         }

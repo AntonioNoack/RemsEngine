@@ -1,7 +1,7 @@
 package me.anno.ui.editor
 
 import me.anno.objects.Inspectable
-import me.anno.studio.Studio
+import me.anno.studio.RemsStudio.selectedInspectable
 import me.anno.ui.base.Panel
 import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.base.components.Padding
@@ -32,7 +32,7 @@ class PropertyInspector(style: Style):
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        val selected = Studio.selectedInspectable
+        val selected = selectedInspectable
         if(selected != lastSelected){
             lastSelected = selected
             needsUpdate = false
