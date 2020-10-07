@@ -59,10 +59,13 @@ class TreeView(style: Style):
         }
     }
 
+    override fun tickUpdate() {
+        super.tickUpdate()
+        updateTree()
+    }
+
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.onDraw(x0, y0, x1, y1)
-
-        updateTree()
 
         if(focused?.isInFocus != true){
             takenElement = null

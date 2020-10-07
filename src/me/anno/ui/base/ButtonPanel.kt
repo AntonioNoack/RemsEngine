@@ -31,10 +31,14 @@ open class ButtonPanel(text: String, style: Style): TextPanel(text, style.getChi
 
     var mouseDown = false
 
-    override fun getVisualState(): Any? {
+    override fun tickUpdate() {
+        super.tickUpdate()
         mouseDown = (isHovered && 0 in Input.mouseKeysDown) ||
                 (isInFocus && keysDown.one { it.key.isClickKey() })
         backgroundColor = if(isHovered && !mouseDown) hoveredBackground else normalBackground
+    }
+
+    override fun getVisualState(): Any? {
         return Triple(super.getVisualState(), mouseDown, isHovered)
     }
 

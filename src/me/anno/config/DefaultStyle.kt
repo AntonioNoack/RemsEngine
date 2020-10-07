@@ -9,6 +9,7 @@ object DefaultStyle {
 
     val black = 0xff000000.toInt()
     val deepDark = black or 0x2b2b2b
+    val reallyDark = mixARGB(black, deepDark, 0.5f)
     val flatDark = black or 0x3c3f41
     val scrollGray = black or 0x595b5d
     val iconGray = black or 0xafb1b3
@@ -23,30 +24,21 @@ object DefaultStyle {
 
     init {
         val textSize = 15
+        set("textFont", "Verdana")
         set("textSize", textSize)
         set("small.textSize", 12)
         set("small.textColor", fontGray and 0x7fffffff)
-        set(
-            "textColor",
-            black,
-            fontGray
-        )
-        set(
-            "background",
-            white,
-            flatDark
-        )
-        set("menu.background",
-            white and 0x7fffffff,
-            black and 0x7fffffff
-        )
+        set("textColor", black, fontGray)
+        set("background", white, flatDark)
+        set("menu.background", white, black)
         set("treeView.background", flatDark)
         set("propertyInspector.background", flatDark)
         set("sceneView.background", deepDark)
+        set("menu.background", reallyDark)
         set("spacer.background", deepDark)
-        set("menu.spacer.background", fontGray)
+        set("spacer.menu.background", fontGray)
         set("spacer.width", 0)
-        set("menu.spacer.width", 1)
+        set("spacer.menu.width", 1)
         set("treeView.inset", textSize/2)
         set("options.spacer.background", flatDark)
         set("options.textColor", fontGray)

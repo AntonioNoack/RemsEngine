@@ -16,6 +16,7 @@ import me.anno.io.base.BaseWriter
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.cache.Cache
 import me.anno.objects.modes.TextMode
+import me.anno.studio.RemsStudio
 import me.anno.studio.RemsStudio.selectedProperty
 import me.anno.ui.base.ButtonPanel
 import me.anno.ui.base.constraints.AxisAlignment
@@ -26,12 +27,17 @@ import me.anno.ui.input.BooleanInput
 import me.anno.ui.input.EnumInput
 import me.anno.ui.input.TextInputML
 import me.anno.ui.style.Style
+import me.anno.video.MissingFrameException
 import org.joml.Matrix4fArrayList
 import org.joml.Vector3f
 import org.joml.Vector4f
 import java.awt.Font
+import java.io.File
+import java.lang.RuntimeException
 import kotlin.collections.ArrayList
 import kotlin.math.max
+
+// todo when a new part is loaded, notify the ui
 
 // todo animated text, like in RPGs, where text appears; or like typing
 
@@ -89,6 +95,15 @@ open class Text(text: String = "", parent: Transform? = null): GFXTransform(pare
     val charSpacing get() = fontSize0 * relativeCharSpacing
 
     fun createKeys() = lineSegmentsWithStyle?.parts?.map { FontMeshKey(it.font, isBold, isItalic, it.text, charSpacing) }
+
+    var needsUpdate = false
+    override fun claimLocalResources(lTime0: Double, lTime1: Double) {
+        if(needsUpdate) {
+            RemsStudio.updateSceneViews()
+            needsUpdate = false
+        }
+
+    }
 
     open fun splitSegments(text: String): PartResult? {
         if(text.isEmpty()) return null
@@ -170,7 +185,12 @@ open class Text(text: String = "", parent: Transform? = null): GFXTransform(pare
 
                 val fontMeshKey = keys[index]
 
-                val fontMesh = getFontMesh(fontMeshKey) ?: continue
+                val fontMesh = getFontMesh(fontMeshKey)
+                if(fontMesh == null){
+                    if(GFX.isFinalRendering) throw MissingFrameException(File("Text"))
+                    needsUpdate = true
+                    continue
+                }
 
                 val offsetX = when(textAlignment){
                     AxisAlignment.MIN -> 0f

@@ -5,8 +5,6 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFX.inFocus
 import me.anno.gpu.GFX.openMenu
 import me.anno.gpu.TextureLib.whiteTexture
-import me.anno.gpu.blending.BlendDepth
-import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.texture.ClampMode
 import me.anno.gpu.texture.NearestMode
 import me.anno.input.Input

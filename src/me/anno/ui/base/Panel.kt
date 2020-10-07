@@ -312,6 +312,12 @@ open class Panel(val style: Style) {
         println("${Tabs.spaces(tabDepth * 2)}${javaClass.simpleName}($weight, ${if(visibility==Visibility.VISIBLE) "v" else "_"})) $x $y += $w $h ($minW $minH)")
     }
 
+    open fun drawsOverlaysOverChildren(lx0: Int, ly0: Int, lx1: Int, ly1: Int) = false
+    // first or null would be correct, however our overlays are all the same
+    // (the small cross, which should be part of the ui instead)
+    //, so we can use the last one
+    open fun getOverlayParent() = listOfHierarchy.lastOrNull { it.drawsOverlaysOverChildren(lx0, ly0, lx1, ly1) }
+
     /**
      * if this element is in focus,
      * low-priority global events wont be fired (e.g. space for start/stop vs typing a space)

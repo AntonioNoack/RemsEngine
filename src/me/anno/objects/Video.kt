@@ -187,9 +187,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                     )
                     wasDrawn = true
                 } else {
-                    if (GFX.isFinalRendering) {
-                        throw MissingFrameException(file)
-                    }
+                    onMissingImageOrFrame()
                 }
 
             } else wasDrawn = true
@@ -204,6 +202,12 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
             )
         }
 
+    }
+
+    // todo this is somehow not working, and idk why...
+    fun onMissingImageOrFrame(){
+        if(GFX.isFinalRendering) throw MissingFrameException(file)
+        else needsImageUpdate = true
     }
 
     fun drawVideoFrames(meta: FFMPEGMetadata, stack: Matrix4fArrayList, time: Double, color: Vector4f) {
@@ -250,9 +254,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                     )
                     wasDrawn = true
                 } else {
-                    if (GFX.isFinalRendering) {
-                        throw MissingFrameException(file)
-                    }
+                    onMissingImageOrFrame()
                 }
 
                 // stack.scale(0.1f)
@@ -280,8 +282,8 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                     svg.parse(XMLReader.parse(file.inputStream().buffered()) as XMLElement)
                     StaticFloatBufferData(svg.buffer!!)
                 } as? StaticFloatBufferData
-                if (bufferData == null && GFX.isFinalRendering) throw MissingFrameException(file)
-                if (bufferData != null) {
+                if (bufferData == null) onMissingImageOrFrame()
+                else {
                     // todo apply tiling for svgs...
                     GFX.draw3DSVG(
                         stack,
@@ -297,35 +299,18 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                 val tiling = tiling[time]
                 // calculate required scale? no, without animation, we don't need to scale it down ;)
                 val texture = Cache.getVideoFrame(file, 1, 0, 1, 1.0, imageTimeout, true)
-                if ((texture == null || !texture.isLoaded) && GFX.isFinalRendering) throw MissingFrameException(file)
-                if (texture?.isLoaded == true) GFX.draw3DVideo(
-                    this,
-                    time,
-                    stack,
-                    texture,
-                    color,
-                    this@Video.filtering,
-                    this@Video.clampMode,
-                    tiling,
-                    uvProjection
-                )
+                if (texture == null || !texture.isLoaded) onMissingImageOrFrame()
+                else { GFX.draw3DVideo(this, time, stack, texture, color, filtering, clampMode, tiling, uvProjection) }
             }
             else -> {// some image
                 val tiling = tiling[time]
                 val texture = Cache.getImage(file, imageTimeout, true)
-                if (texture == null && GFX.isFinalRendering) throw MissingFrameException(file)
-                texture?.apply {
-                    rotation?.apply(stack)
+                if (texture == null) onMissingImageOrFrame()
+                else {
+                    texture.rotation?.apply(stack)
                     GFX.draw3DVideo(
-                        this@Video,
-                        time,
-                        stack,
-                        texture,
-                        color,
-                        this@Video.filtering,
-                        this@Video.clampMode,
-                        tiling,
-                        uvProjection
+                        this, time, stack, texture, color, this.filtering, this.clampMode,
+                        tiling, uvProjection
                     )
                 }
             }
@@ -350,6 +335,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
         }
     }
 
+    var needsImageUpdate = false
     override fun claimLocalResources(lTime0: Double, lTime1: Double) {
 
         val minT = min(lTime0, lTime1)
@@ -431,6 +417,11 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
             }
             else -> throw RuntimeException("todo implement resource loading for $type")
         }
+
+        if(needsImageUpdate) {
+            RemsStudio.updateSceneViews()
+        }
+
     }
 
     var lastAddedEndKeyframesFile: File? = null
@@ -451,6 +442,8 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
     }
 
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
+
+        needsImageUpdate = false
 
         val file = file
         if (file.hasValidName()) {

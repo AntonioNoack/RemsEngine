@@ -3,7 +3,6 @@ package me.anno.ui.style
 import me.anno.config.DefaultStyle.black
 import me.anno.io.utils.StringMap
 import me.anno.ui.base.components.Padding
-import me.anno.utils.warn
 
 class Style(val prefix: String?, val suffix: String?){
 
@@ -34,8 +33,8 @@ class Style(val prefix: String?, val suffix: String?){
         }
     }
 
-    private fun getValue(name: String, defaultValue: String) = getValue(name, name, defaultValue)
-    private fun getValue(fullName: String, name: String, defaultValue: String): String {
+    private fun getValue(name: String, defaultValue: String) = getValue2(name, defaultValue)
+    private fun getValue2(name: String, defaultValue: String): String {
         val value = values[name]
         return if(value != null) value.toString()
         else {
@@ -46,7 +45,7 @@ class Style(val prefix: String?, val suffix: String?){
             val index2 = name.indexOf('.', index+1)
             if(index2 > -1){
                 val lessSpecificName = name.substring(index+1)
-                getValue(fullName, lessSpecificName, defaultValue)
+                getValue2(lessSpecificName, defaultValue)
             } else {
                 values[name] = defaultValue
                 defaultValue

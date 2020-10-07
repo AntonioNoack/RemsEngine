@@ -16,6 +16,8 @@ class Window (val panel: Panel, val isFullscreen: Boolean, val x: Int, val y: In
     val needsRedraw = HashSet<Panel>()
     val needsLayout = HashSet<Panel>()
 
+    lateinit var needsRedraw2: HashSet<Panel>
+
     var lastW = -1
     var lastH = -1
 

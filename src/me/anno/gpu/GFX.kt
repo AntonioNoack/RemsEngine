@@ -38,6 +38,7 @@ import me.anno.objects.effects.MaskType
 import me.anno.objects.geometric.Circle
 import me.anno.objects.modes.UVProjection
 import me.anno.studio.Build.isDebug
+import me.anno.studio.RemsStudio
 import me.anno.studio.Scene
 import me.anno.studio.RemsStudio.editorTime
 import me.anno.studio.RemsStudio.editorTimeDilation
@@ -106,8 +107,11 @@ object GFX : GFXBase1() {
     var hoveredWindow: Window? = null
 
     fun select(transform: Transform?) {
-        selectedInspectable = transform
-        selectedTransform = transform
+        if(selectedTransform != transform || selectedInspectable != transform){
+            selectedInspectable = transform
+            selectedTransform = transform
+            RemsStudio.updateSceneViews()
+        }
     }
 
     val gpuTasks = ConcurrentLinkedQueue<Task>()
@@ -901,6 +905,7 @@ object GFX : GFXBase1() {
                         close()
                     }
                 }
+                buttonView.enableHoverColor = true
                 buttonView.padding.left = padding
                 buttonView.padding.right = padding
                 list += buttonView
@@ -913,6 +918,9 @@ object GFX : GFXBase1() {
         // ("size for window: ${container.w} ${container.h}")
         val wx = clamp(x, 0, max(GFX.width - container.w, 0))
         val wy = clamp(y, 0, max(GFX.height - container.h, 0))
+
+        // LOGGER.debug(container.listOfAll.joinToString { "${it.style.prefix}/.../${it.style.suffix}" })
+
         window = Window(container, false, wx, wy)
         windowStack.add(window)
         loadTexturesSync.pop()

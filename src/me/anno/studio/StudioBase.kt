@@ -50,8 +50,11 @@ import kotlin.math.roundToInt
 
 abstract class StudioBase(val needsAudio: Boolean) {
 
+    // todo fix overlay views...
+
     abstract fun createUI()
 
+    var showRedraws = DefaultConfig["debug.ui.showRedraws", false]
     val startTime = System.nanoTime()
 
     val isSaving = AtomicBoolean(false)
@@ -219,10 +222,7 @@ abstract class StudioBase(val needsAudio: Boolean) {
                 if (index >= lastFullscreenIndex) {
 
                     val panel0 = window.panel
-
-                    val sparseRedraw = DefaultConfig["ui.sparseRedraw", true]
-
-                    val allPanels = window.panel.listOfVisible.toList()
+                    val allPanels = panel0.listOfVisible.toList()
                     // should be faster than a lot of HashSet-tests
                     val mx = lmx.toInt()
                     val my = lmy.toInt()
@@ -246,8 +246,10 @@ abstract class StudioBase(val needsAudio: Boolean) {
                     visiblePanels.forEach { it.tick() }
 
                     val needsRedraw = window.needsRedraw
-                    val needsLayout = window.needsLayout
+                        .map { it.getOverlayParent() ?: it }
+                        .toHashSet()
 
+                    val needsLayout = window.needsLayout
                     needsRedraw.retainAll(visiblePanels)
 
                     if (panel0 in needsLayout || window.lastW != w || window.lastH != h) {
@@ -263,11 +265,13 @@ abstract class StudioBase(val needsAudio: Boolean) {
                             panel.calculateSize(panel.lx1 - panel.lx0, panel.ly1 - panel.ly0)
                             panel.place(panel.lx0, panel.ly0, panel.lx1 - panel.lx0, panel.ly1 - panel.ly0)
                             needsLayout.removeAll(panel.listOfAll)
-                            needsRedraw.add(panel)
+                            needsRedraw.add(panel.getOverlayParent() ?: panel)
                         }
                     }
 
-                    if (panel0.w > 0 && panel0.h > 0) {
+                    if(panel0.w > 0 && panel0.h > 0){
+
+                        val sparseRedraw = DefaultConfig["ui.sparseRedraw", true]
 
                         // overlays get missing...
                         // this somehow needs to be circumvented...
@@ -297,13 +301,12 @@ abstract class StudioBase(val needsAudio: Boolean) {
                                         GFX.loadTexturesSync.push(true)
 
                                         Frame(panel0.x, panel0.y, panel0.w, panel0.h, true, buffer) {
+                                            Frame.currentFrame!!.bind()
                                             glClearColor(0f, 0f, 0f, 0f)
                                             glClear(GL_COLOR_BUFFER_BIT)
                                             panel0.canBeSeen = true
                                             panel0.draw(panel0.x, panel0.y, panel0.x + panel0.w, panel0.y + panel0.h)
                                         }
-
-                                        needsRedraw.clear()
 
                                     } else {
 
@@ -324,6 +327,8 @@ abstract class StudioBase(val needsAudio: Boolean) {
 
                                     }
 
+                                    window.needsRedraw.clear()
+
                                 }
 
                                 GFX.deltaX = 0
@@ -341,11 +346,11 @@ abstract class StudioBase(val needsAudio: Boolean) {
                                         window.buffer.bindTexture0(0, NearestMode.TRULY_NEAREST, ClampMode.CLAMP)
                                         GFX.copy()
 
-                                        /*wasRedrawn.forEach {
-                                            GFX.drawRect(it.lx0, it.ly0, it.lx1 - it.lx0, it.ly1 - it.ly0, 0x33ff0000)
+                                        if(showRedraws){
+                                            wasRedrawn.forEach {
+                                                GFX.drawRect(it.lx0, it.ly0, it.lx1 - it.lx0, it.ly1 - it.ly0, 0x33ff0000)
+                                            }
                                         }
-
-                                        GFX.drawBorder(panel0.x, panel0.y, panel0.w, panel0.h, -1, 1)*/
 
                                     }
 
@@ -377,6 +382,7 @@ abstract class StudioBase(val needsAudio: Boolean) {
                             }// else no buffer needs to be updated
                         }
                     }
+
                 }
             }
 
