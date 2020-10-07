@@ -180,14 +180,13 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                 val localTime = isLooping[time, duration]
 
                 val frame = Cache.getImage(meta.getImage(localTime), 500L, true)
-                if (frame != null) {
+                if(frame == null) onMissingImageOrFrame()
+                else {
                     GFX.draw3DVideo(
                         this, time,
                         stack, frame, color, this@Video.filtering, this@Video.clampMode, tiling[time], uvProjection
                     )
                     wasDrawn = true
-                } else {
-                    onMissingImageOrFrame()
                 }
 
             } else wasDrawn = true

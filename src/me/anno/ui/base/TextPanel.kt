@@ -6,6 +6,7 @@ import me.anno.fonts.FontManager
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.loadTexturesSync
+import me.anno.gpu.texture.Texture2D
 import me.anno.input.MouseButton
 import me.anno.ui.base.components.Padding
 import me.anno.ui.style.Style
@@ -46,7 +47,7 @@ open class TextPanel(open var text: String, style: Style): Panel(style){
             val widthLimit = if(breaksIntoMultiline) w else -1
             FontManager.getString(fontName, textSize.toFloat(), text, isItalic, isBold, widthLimit)
         } else null
-        return Triple(super.getVisualState(), texture, effectiveTextColor)
+        return Triple(super.getVisualState(), (texture as? Texture2D)?.pointer ?: -1, effectiveTextColor)
     }
 
     // breaks into multiline

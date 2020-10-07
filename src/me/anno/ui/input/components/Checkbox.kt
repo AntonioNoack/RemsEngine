@@ -28,7 +28,7 @@ class Checkbox(startValue: Boolean, val size: Int, style: Style): Panel(style.ge
     }
 
     override fun getVisualState(): Any? {
-        return Triple(super.getVisualState(), getImage(isChecked), isHovered)
+        return Triple(super.getVisualState(), getImage(isChecked)?.pointer, isHovered)
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
