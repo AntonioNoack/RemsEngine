@@ -1,8 +1,8 @@
 package me.anno.ui.editor.treeView
 
 import me.anno.config.DefaultConfig
-import me.anno.config.DefaultStyle
 import me.anno.config.DefaultStyle.black
+import me.anno.config.DefaultStyle.midGray
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.select
@@ -23,7 +23,6 @@ import me.anno.ui.dragging.Draggable
 import me.anno.ui.editor.files.addChildFromFile
 import me.anno.ui.style.Style
 import me.anno.utils.clamp
-import me.anno.utils.mixARGB
 import org.joml.Vector4f
 import java.io.File
 import java.lang.Exception
@@ -34,26 +33,43 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style): TextPanel(""
     // todo text shadow, if text color and background color are close
 
     private val accentColor = style.getColor("accentColor", black or 0xff0000)
-    private val defaultBackground = backgroundColor
 
     init { enableHoverColor = true }
+
+    var showAddIndex: Int? = null
+
+    override fun getVisualState(): Any? = Pair(super.getVisualState(), showAddIndex)
 
     override fun tickUpdate() {
         super.tickUpdate()
         val transform = getElement()
         val dragged = dragged
         textColor = black or (transform.getLocalColor().toRGB(180))
-        val colorIndex = if(
+        showAddIndex = if(
             mouseX.toInt() in lx0 .. lx1 &&
             mouseY.toInt() in ly0 .. ly1 &&
             dragged is Draggable && dragged.getOriginal() is Transform){
             clamp(((mouseY - this.y) / this.h * 3).toInt(), 0, 2)
         } else null
-        val tint = if(colorIndex == null) null else intArrayOf(0xffff77, 0xff77ff, 0x77ffff)[colorIndex] or black
-        backgroundColor = if(tint == null) defaultBackground else mixARGB(defaultBackground, tint, 0.5f)
         val isInFocus = isInFocus || selectedTransform == transform
         if(isHovered) textColor = hoverColor
         if(isInFocus) textColor = accentColor
+    }
+
+    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+        super.onDraw(x0, y0, x1, y1)
+        val showAddIndex = showAddIndex
+        if(showAddIndex != null){
+            val x = x + padding.left
+            val indent = textSize
+            val lineWidth = textSize * 7
+            val lineColor = midGray
+            when(showAddIndex){
+                0 -> GFX.drawRect(x, y, lineWidth, 1, lineColor)
+                1 -> GFX.drawRect(x+indent, y+h-1, lineWidth, 1, lineColor)
+                2 -> GFX.drawRect(x, y+h-1, lineWidth, 1, lineColor)
+            }
+        }
     }
 
     override val effectiveTextColor: Int get() = textColor
@@ -119,9 +135,19 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style): TextPanel(""
                 } else {
                     e.addChild(child)
                 }
+                // we can't remove the element, if it's the parent
+                if(original !in child.listOfAll){
+                    original?.removeFromParent()
+                }
             } else if(relativeY < 0.67f){
                 // paste as child
                 e.addChild(child)
+                if(e != original){
+                    // we can't remove the element, if it's the parent
+                    if(original !in child.listOfAll){
+                        original?.removeFromParent()
+                    }
+                }
             } else {
                 // paste below
                 if(e.parent != null){
@@ -129,10 +155,10 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style): TextPanel(""
                 } else {
                     e.addChild(child)
                 }
-            }
-            // we can't remove the element, if it's the parent
-            if(original !in child.listOfAll){
-                original?.removeFromParent()
+                // we can't remove the element, if it's the parent
+                if(original !in child.listOfAll){
+                    original?.removeFromParent()
+                }
             }
             select(child)
             onLargeChange()

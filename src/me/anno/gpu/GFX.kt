@@ -1,6 +1,7 @@
 package me.anno.gpu
 
 import me.anno.config.DefaultConfig
+import me.anno.config.DefaultConfig.style
 import me.anno.config.DefaultStyle.black
 import me.anno.fonts.FontManager
 import me.anno.gpu.ShaderLib.flatShader
@@ -1017,7 +1018,8 @@ object GFX : GFXBase1() {
         FrameTimes.place(x0, y0, FrameTimes.width, FrameTimes.height)
         FrameTimes.draw()
         loadTexturesSync.push(true)
-        drawText(x0 + 1, y0 + 1, "Consolas", 12, false, false, currentEditorFPS.f1(), -1, 0, -1)
+        drawText(x0 + 1, y0 + 1, "Consolas", 12, false, false, currentEditorFPS.f1(),
+            FrameTimes.textColor, FrameTimes.backgroundColor, -1)
         loadTexturesSync.pop()
     }
 

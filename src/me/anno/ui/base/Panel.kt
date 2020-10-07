@@ -1,5 +1,6 @@
 package me.anno.ui.base
 
+import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.Window
 import me.anno.gpu.framebuffer.Frame

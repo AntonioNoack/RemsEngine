@@ -5,6 +5,7 @@ import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
 import me.anno.gpu.blending.BlendDepth
 import me.anno.gpu.blending.BlendMode
+import me.anno.ui.base.TextPanel
 import me.anno.utils.mix
 import org.lwjgl.glfw.GLFW
 
@@ -15,6 +16,8 @@ object ShowKeys {
     val decaySpeed = 1f
     val fontSize = DefaultConfig.style.getSize("tutorial.fontSize", 12)
     val font = DefaultConfig.style.getString("tutorial.font", "Verdana")
+
+    val colors = TextPanel("", DefaultConfig.style)
 
     class Key(val keyCode: Int, val isSuperKey: Boolean, var time: Float)
 
@@ -72,12 +75,15 @@ object ShowKeys {
 
             var x0 = x
 
+            val bgColor = colors.backgroundColor
+            val textColor = colors.textColor
+
             fun show(text: String, alpha: Float) {
                 val alphaMask = (alpha * 255).toInt().shl(24) or 0xffffff
-                val color = -1 and alphaMask
+                val color = textColor and alphaMask
                 val w0 = GFX.getTextSize(font, fontSize, false, false, text, -1).first
-                GFX.drawRect(x0 + 5, h - y - 12 - fontSize, w0 + 10, fontSize + 8, black and alphaMask)
-                GFX.drawText(x0 + 10, h - y - 10 - fontSize, font, fontSize, false, false, text, color, 0, -1)
+                GFX.drawRect(x0 + 5, h - y - 12 - fontSize, w0 + 10, fontSize + 8, bgColor and alphaMask)
+                GFX.drawText(x0 + 10, h - y - 10 - fontSize, font, fontSize, false, false, text, color, bgColor, -1)
                 x0 += w0 + 16
             }
 

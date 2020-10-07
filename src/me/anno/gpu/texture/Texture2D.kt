@@ -28,6 +28,7 @@ class Texture2D(override var w: Int, override var h: Int, val samples: Int): ITe
     val withMultisampling get() = samples > 1
 
     val tex2D = if(withMultisampling) GL_TEXTURE_2D_MULTISAMPLE else GL_TEXTURE_2D
+    var state: Pair<Texture2D, Int>? = null
 
     var pointer = -1
     var isCreated = false
@@ -45,6 +46,7 @@ class Texture2D(override var w: Int, override var h: Int, val samples: Int): ITe
     fun ensurePointer(){
         if(pointer < 0) {
             pointer = glGenTextures()
+            state = this to pointer
             // many textures can be created by the console log and the fps viewer constantly xD
             // maybe we should use allocation free versions there xD
         }

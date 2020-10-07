@@ -114,7 +114,7 @@ object ShaderLib {
                     "}" +
                     "void main(){\n" +
                     "   vec3 textMask = texture(tex, uv).rgb;\n" +
-                    "   vec3 mixing = brightness(textColor.rgb) > brightness(backgroundColor) ? textMask.rgb : textMask.bgr;\n" +
+                    "   vec3 mixing = brightness(textColor.rgb) > brightness(backgroundColor) ? textMask.rgb : textMask.rgb;\n" +
                     "   mixing *= textColor.a;\n" +
                     "   vec3 color = vec3(\n" +
                     "       mix(backgroundColor.r, textColor.r, mixing.r),\n" +

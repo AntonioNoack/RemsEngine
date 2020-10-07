@@ -5,12 +5,16 @@ import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
 import me.anno.gpu.framebuffer.Frame
 import me.anno.ui.base.Panel
+import me.anno.ui.base.TextPanel
 import kotlin.math.max
 
-object FrameTimes : Panel(DefaultConfig.style) {
+object FrameTimes : Panel(DefaultConfig.style.getChild("fps")) {
 
     val width = 200
     val height = 50
+
+    val colors = TextPanel("", style)
+    val textColor = colors.textColor
 
     override fun calculateSize(w: Int, h: Int) {
         minW = width
@@ -40,7 +44,7 @@ object FrameTimes : Panel(DefaultConfig.style) {
             val i = x - this.x
             val v = values[(indexOffset + i) % width]
             val barHeight = (height * v / maxValue).toInt()
-            val barColor = -1
+            val barColor = textColor
             GFX.drawRect(x, y + height - barHeight, 1, barHeight, barColor)
         }
     }

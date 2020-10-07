@@ -7,6 +7,7 @@ import me.anno.gpu.GFX.openMenu
 import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.gpu.texture.ClampMode
 import me.anno.gpu.texture.NearestMode
+import me.anno.gpu.texture.Texture2D
 import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.objects.Audio
@@ -23,6 +24,7 @@ import me.anno.ui.editor.sceneTabs.SceneTabs
 import me.anno.ui.style.Style
 import me.anno.utils.*
 import me.anno.video.FFMPEGMetadata
+import me.anno.video.VFrame
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
 import java.io.File
@@ -60,7 +62,6 @@ class FileEntry(val explorer: FileExplorer, val isParent: Boolean, val file: Fil
     override fun remove(child: Panel) {}
 
     init {
-        title.backgroundColor = black
         title.breaksIntoMultiline = true
         title.parent = this
     }
@@ -82,8 +83,14 @@ class FileEntry(val explorer: FileExplorer, val isParent: Boolean, val file: Fil
     var startTime = 0L
 
     override fun getLayoutState(): Any? = Pair(super.getLayoutState(), title.getLayoutState())
-    override fun getVisualState(): Any? =
-        Quad(super.getVisualState(), title.getVisualState(), getTexture(), meta)
+    override fun getVisualState(): Any? {
+        val tex = when(val tex = getTexture()){
+            is VFrame -> if(tex.isLoaded) tex else null
+            is Texture2D -> tex.state
+            else -> tex
+        }
+        return Quad(super.getVisualState(), title.getVisualState(), tex, meta)
+    }
 
     override fun tickUpdate() {
         super.tickUpdate()

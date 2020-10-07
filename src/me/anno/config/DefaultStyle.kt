@@ -8,6 +8,9 @@ import me.anno.utils.mixARGB
 object DefaultStyle {
 
     val black = 0xff000000.toInt()
+    val nearWhite = black or 0xdddddd
+    val lightGray = black or 0xcccccc
+    val midGray = black or 0xaaaaaa
     val deepDark = black or 0x2b2b2b
     val reallyDark = mixARGB(black, deepDark, 0.5f)
     val flatDark = black or 0x3c3f41
@@ -17,40 +20,54 @@ object DefaultStyle {
     val fontGray = black or 0xbbbbbb
     val white = -1
 
+    val shinyBlue = black or 0x4986f5
+    val brightYellow = black or 0xffba50
+
     val baseTheme = Style(null, null)
-    val lightTheme = baseTheme.getStyle("light")
-    val darkTheme = baseTheme.getStyle("dark")
-    var defaultStyle = darkTheme
+    /*val lightTheme = baseTheme.getStyle("light")
+    val darkTheme = baseTheme.getStyle("dark")*/
 
     init {
+
         val textSize = 15
+        val smallTextSize = textSize * 12 / 15
+
         set("textFont", "Verdana")
         set("textSize", textSize)
-        set("small.textSize", 12)
-        set("small.textColor", fontGray and 0x7fffffff)
-        set("textColor", black, fontGray)
-        set("background", white, flatDark)
-        set("menu.background", white, black)
-        set("treeView.background", flatDark)
-        set("propertyInspector.background", flatDark)
-        set("sceneView.background", deepDark)
-        set("menu.background", reallyDark)
-        set("spacer.background", deepDark)
-        set("spacer.menu.background", fontGray)
+        set("small.textSize", smallTextSize)
+
+        // light / dark
+        set("small.textColor", fontGray, black)
+        set("textColor", fontGray, black)
+        set("options.textColor", fontGray, black)
+        set("italic.propertyInspector.textColor", fontGray, black)
+
+        set("textColorFocused", white, shinyBlue)
+
+        // dark / light
+        set("background", flatDark, white)
+        set("menu.background", black, white)
+        set("treeView.background", flatDark, midGray)
+        set("propertyInspector.background", flatDark, midGray)
+        set("sceneView.background", deepDark, lightGray)
+        set("menu.background", reallyDark, nearWhite)
+        set("spacer.background", deepDark, lightGray)
+        set("spacer.menu.background", fontGray, lightGray)
+        set("options.spacer.background", flatDark, midGray)
+        set("deep.background", deepDark, lightGray)
+        set("deep.edit.background", deepDark, lightGray)
+        set("deep.propertyInspector.background", deepDark, lightGray)
+
+        // special color
+        set("accentColor", brightYellow, shinyBlue)
+
         set("spacer.width", 0)
         set("spacer.menu.width", 1)
         set("treeView.inset", textSize/2)
-        set("options.spacer.background", flatDark)
-        set("options.textColor", fontGray)
-        set("deep.background", deepDark)
-        set("deep.edit.background", deepDark)
-        set("background.hover", mixARGB(iconGray, flatDark, 0.5f))
+
         set("textPadding", 2)
-        set("deep.propertyInspector.background", deepDark)
         set("italic.propertyInspector.textItalic", true)
-        set("italic.propertyInspector.textColor", fontGray and 0xafffffff.toInt())
-        set("accentColor", black or 0xffba50)
-        set("fileExplorer.textSize", 12)
+        set("fileExplorer.textSize", smallTextSize)
 
         for((key, value) in loadStyle("style.config")){
             baseTheme.values[key] = value
@@ -61,9 +78,9 @@ object DefaultStyle {
         set(key, both, both)
     }
 
-    operator fun set(key: String, light: Any, dark: Any){
-        baseTheme.values["$key.light"] = light
+    operator fun set(key: String, dark: Any, light: Any){
         baseTheme.values["$key.dark"] = dark
+        baseTheme.values["$key.light"] = light
     }
 
     fun loadStyle(path: String): StringMap {

@@ -27,9 +27,8 @@ open class TextPanel(open var text: String, style: Style): Panel(style){
     var fontName = style.getString("textFont", DefaultConfig.defaultFont)
     var textSize = style.getSize("textSize", 12)
     var textColor = style.getColor("textColor", iconGray)
-    val targetHoverColor = style.getColor("textTargetColor", -1)
-    val hoverColor get() = mixARGB(textColor, targetHoverColor, 0.5f)
     var focusTextColor = style.getColor("textColorFocused", -1)
+    val hoverColor get() = mixARGB(textColor, focusTextColor, 0.5f)
 
     override fun getLayoutState(): Any? {
         val texture = if(canBeSeen){
@@ -47,7 +46,7 @@ open class TextPanel(open var text: String, style: Style): Panel(style){
             val widthLimit = if(breaksIntoMultiline) w else -1
             FontManager.getString(fontName, textSize.toFloat(), text, isItalic, isBold, widthLimit)
         } else null
-        return Triple(super.getVisualState(), (texture as? Texture2D)?.pointer ?: -1, effectiveTextColor)
+        return Triple(super.getVisualState(), (texture as? Texture2D)?.state, effectiveTextColor)
     }
 
     // breaks into multiline

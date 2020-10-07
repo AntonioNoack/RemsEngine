@@ -46,8 +46,6 @@ import kotlin.math.sqrt
 
 object Scene {
 
-    private val LOGGER = LogManager.getLogger(Scene::class)
-
     var nearZ = 0.001f
     var farZ = 1000f
 
@@ -61,12 +59,8 @@ object Scene {
     lateinit var lutShader: Shader
     lateinit var copyShader: Shader
 
-
     private var isInited = false
     private fun init() {
-
-        // todo allow scenetabs to be swapped
-        // todo allow multisampling to be disabled
 
         // add randomness against banding
         val noiseFunc = "" +
@@ -196,8 +190,8 @@ object Scene {
                     } +
                     "           default: toneMapped = vec3(1,0,1);\n" +
                     "       }" +
-                    "       vec3 graded = colorGrading(toneMapped);\n" +
-                    "       vec4 color = vec4(toneMapper == ${ToneMappers.RAW8.id} ? graded : sqrt(graded), ga.y);\n" +
+                    "       vec3 colorGraded = colorGrading(toneMapped);\n" +
+                    "       vec4 color = vec4(sqrt(colorGraded), ga.y);\n" + // toneMapper == ${ToneMappers.RAW8.id} ? graded :
                     "       float rSq = dot(nuv,nuv);\n" + // nuv nuv 😂 (hedgehog sounds for German children)
                     "       color = mix(vec4(vignetteColor, 1.0), color, 1.0/(1.0 + vignetteStrength*rSq));\n" +
                     "       gl_FragColor = color + random(uv) * minValue;\n" +
@@ -370,8 +364,13 @@ object Scene {
 
             GFX.applyCameraTransform(camera, cameraTime, cameraTransform, stack)
 
-            val white = Vector4f(1f, 1f, 1f, 1f)
-            // camera.color[cameraTime]
+            // val white = Vector4f(1f, 1f, 1f, 1f)
+            val white = Vector4f(camera.color[cameraTime])
+            val whiteMultiplier = camera.colorMultiplier[cameraTime]
+            white.x *= whiteMultiplier
+            white.y *= whiteMultiplier
+            white.z *= whiteMultiplier
+
             // use different settings for white balance etc...
 
             // remember the transform for later use

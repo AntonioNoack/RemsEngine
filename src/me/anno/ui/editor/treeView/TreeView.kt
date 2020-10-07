@@ -83,24 +83,11 @@ class TreeView(style: Style):
                 // add as child
                 val targetY = my - 1 + h/2 - (fractionalHTI * h).toInt()
                 GFX.drawRect(this.x+2, targetY, 3, 1, -1)
-                /*addHereFunction = {
-                    transformByIndex.getOrNull(hoveredTransformIndex.toInt())?.addChild(it)
-                }*/
             } else {
                 // in between
                 // add in between elements
                 val targetY = my - 1 + h/2 - (((hoveredTransformIndex + 0.5f) % 1f) * h).toInt()
                 GFX.drawRect(this.x+2, targetY, 3, 1, -1)
-                /*addHereFunction = {
-                    val inQuestion = transformByIndex.getOrNull(hoveredTransformIndex.roundToInt()) ?: transformByIndex.last()
-                    val parent = inQuestion.parent
-                    if(parent != null){
-                        val index = parent.children.indexOf(inQuestion)
-                        parent.children.add(index, it)
-                        it.parent = parent
-                    }
-                    //?.addChild(it)
-                }*/
             }
             val x = focused.x
             val y = focused.y
@@ -124,18 +111,10 @@ class TreeView(style: Style):
             return panel
         }
         transformByIndex += transform0
-        // val list2 = PanelListX(style)
-        // list2 += SpacePanel(1, 1, style)
         val child = TreeViewPanel({ transformByIndex[index] }, style)
         child.padding.left = 4
         // todo checkbox with custom icons
-        /*list2 += Checkbox(transform0.isCollapsed, child.textSize, style)
-            .setChangeListener {
-                transformByIndex[index].isCollapsed = it
-                updateTree()
-            }*/
-        //list2 += child
-        list += child// += list2
+        list += child
         return child
     }
 

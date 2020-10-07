@@ -16,6 +16,7 @@ import me.anno.studio.StudioBase.Companion.updateAudio
 import me.anno.ui.base.Panel
 import me.anno.ui.custom.CustomContainer.Companion.isCross
 import me.anno.ui.style.Style
+import me.anno.utils.Quad
 import me.anno.utils.clamp
 import me.anno.utils.mixARGB
 import me.anno.utils.pow
@@ -26,7 +27,7 @@ import kotlin.math.sqrt
 
 open class TimelinePanel(style: Style) : Panel(style) {
 
-    override fun getVisualState(): Any? = Triple(dtHalfLength, centralTime, editorTime)
+    override fun getVisualState(): Any? = Quad(dtHalfLength, centralTime, editorTime, targetDuration)
 
     val accentColor = style.getColor("accentColor", DefaultStyle.black)
 
@@ -35,7 +36,6 @@ open class TimelinePanel(style: Style) : Panel(style) {
         drawTimeAxis(x0, y0, x1, y1, true)
     }
 
-    // time
     companion object {
 
         var dtHalfLength = 30.0

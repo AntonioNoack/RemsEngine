@@ -13,12 +13,9 @@ import me.anno.input.MouseButton
 import me.anno.io.text.TextReader
 import me.anno.objects.Transform
 import me.anno.objects.animation.Keyframe
+import me.anno.studio.RemsStudio.isPlaying
 import me.anno.studio.RemsStudio.onLargeChange
 import me.anno.studio.RemsStudio.onSmallChange
-import me.anno.studio.RemsStudio
-import me.anno.studio.RemsStudio.editorTime
-import me.anno.studio.RemsStudio.editorTimeDilation
-import me.anno.studio.RemsStudio.isPlaying
 import me.anno.studio.RemsStudio.root
 import me.anno.studio.RemsStudio.selectedProperty
 import me.anno.studio.RemsStudio.selectedTransform
@@ -196,9 +193,12 @@ class LayerView(style: Style) : TimelinePanel(style) {
 
     var visualStateCtr = 0
     override fun getVisualState(): Any? =
-        if((isHovered && mouseKeysDown.isNotEmpty()) || isPlaying) visualStateCtr++
-        else if(isHovered) Triple(editorTime, mouseX, mouseY)
-        else editorTime
+        Pair(
+            super.getVisualState(),
+            if ((isHovered && mouseKeysDown.isNotEmpty()) || isPlaying) visualStateCtr++
+            else if (isHovered) Pair(mouseX, mouseY)
+            else null
+        )
 
     var lastTime = GFX.lastTime
 
