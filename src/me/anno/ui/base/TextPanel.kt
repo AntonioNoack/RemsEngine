@@ -2,18 +2,20 @@ package me.anno.ui.base
 
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.iconGray
+import me.anno.fonts.FontManager
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.input.MouseButton
 import me.anno.ui.base.components.Padding
 import me.anno.ui.style.Style
+import me.anno.utils.Quad
+import me.anno.utils.Tabs
 import me.anno.utils.isClickKey
 import me.anno.utils.mixARGB
 import org.lwjgl.glfw.GLFW
-
-// todo cache ui, as long as it's not changing?
-// would reduce gpu usage, but make things harder...
+import kotlin.math.max
+import kotlin.math.min
 
 open class TextPanel(open var text: String, style: Style): Panel(style){
 
@@ -27,6 +29,25 @@ open class TextPanel(open var text: String, style: Style): Panel(style){
     val targetHoverColor = style.getColor("textTargetColor", -1)
     val hoverColor get() = mixARGB(textColor, targetHoverColor, 0.5f)
     var focusTextColor = style.getColor("textColorFocused", -1)
+
+    override fun getLayoutState(): Any? {
+        val texture = if(canBeSeen){
+            // keep the texture loaded, in case we need it
+            val widthLimit = if(breaksIntoMultiline) w else -1
+            FontManager.getString(fontName, textSize.toFloat(), text, isItalic, isBold, widthLimit)
+        } else null
+        val texWidth = texture?.w
+        return Pair(super.getLayoutState(), texWidth)
+    }
+
+    override fun getVisualState(): Any? {
+        val texture = if(canBeSeen){
+            // keep the texture loaded, in case we need it
+            val widthLimit = if(breaksIntoMultiline) w else -1
+            FontManager.getString(fontName, textSize.toFloat(), text, isItalic, isBold, widthLimit)
+        } else null
+        return Triple(super.getVisualState(), texture, effectiveTextColor)
+    }
 
     // breaks into multiline
     // todo use a guess instead???
@@ -51,8 +72,8 @@ open class TextPanel(open var text: String, style: Style): Panel(style){
         if(inst) loadTexturesSync.push(true)
         super.calculateSize(w, h)
         val (w2, h2) = GFX.getTextSize(fontName, textSize, isBold, isItalic, text, if(breaksIntoMultiline) w else -1)
-        minW = w2 + padding.width
-        minH = h2 + padding.height
+        minW = max(1, w2 + padding.width)
+        minH = max(1, h2 + padding.height)
         minW2 = minW
         minH2 = minH
         if(inst) loadTexturesSync.pop()
@@ -67,11 +88,10 @@ open class TextPanel(open var text: String, style: Style): Panel(style){
     }
 
     override fun onCopyRequested(x: Float, y: Float): String? {
-        if(disableCopy) return super.onCopyRequested(x, y)
-        else return text
+        return if(disableCopy) super.onCopyRequested(x, y) else text
     }
 
-    open val enableHoverColor get() = false
+    open var enableHoverColor = false
 
     open val effectiveTextColor get() =
         if(isHovered && enableHoverColor) hoverColor
@@ -79,6 +99,10 @@ open class TextPanel(open var text: String, style: Style): Panel(style){
         else textColor
 
     override fun getCursor(): Long? = if(onClickListener == null) super.getCursor() else Cursor.drag
+
+    override fun printLayout(tabDepth: Int) {
+        println("${Tabs.spaces(tabDepth * 2)}${javaClass.simpleName}($weight, ${if(visibility==Visibility.VISIBLE) "v" else "_"}) $x $y += $w $h ($minW $minH) ${text.substring(0, min(text.length, 20))}")
+    }
 
     override fun isKeyInput() = onClickListener != null
     override fun acceptsChar(char: Int) = when(char.toChar()){ '\t', '\n' -> false else -> true }

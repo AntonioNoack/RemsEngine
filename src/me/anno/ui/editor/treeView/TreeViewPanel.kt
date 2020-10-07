@@ -33,35 +33,30 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style): TextPanel(""
 
     // todo text shadow, if text color and background color are close
 
-    val accentColor = style.getColor("accentColor", DefaultStyle.black or 0xff0000)
-    val defaultBackground = backgroundColor
-    //val cameraBackground = mixARGB(accentColor, defaultBackground, 0.9f)
+    private val accentColor = style.getColor("accentColor", black or 0xff0000)
+    private val defaultBackground = backgroundColor
 
-    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        super.onDraw(x0, y0, x1, y1)
+    init { enableHoverColor = true }
 
-        // show visually, where the element would land, with colors
+    override fun tickUpdate() {
+        super.tickUpdate()
+        val transform = getElement()
         val dragged = dragged
+        textColor = black or (transform.getLocalColor().toRGB(180))
         val colorIndex = if(
-            mouseX.toInt() in x0 .. x1 &&
-            mouseY.toInt() in y0 .. y1 &&
+            mouseX.toInt() in lx0 .. lx1 &&
+            mouseY.toInt() in ly0 .. ly1 &&
             dragged is Draggable && dragged.getOriginal() is Transform){
             clamp(((mouseY - this.y) / this.h * 3).toInt(), 0, 2)
         } else null
-
         val tint = if(colorIndex == null) null else intArrayOf(0xffff77, 0xff77ff, 0x77ffff)[colorIndex] or black
-        val transform = getElement()
-        textColor = black or (transform.getLocalColor().toRGB(180))
         backgroundColor = if(tint == null) defaultBackground else mixARGB(defaultBackground, tint, 0.5f)
         val isInFocus = isInFocus || selectedTransform == transform
+        if(isHovered) textColor = hoverColor
         if(isInFocus) textColor = accentColor
-        /*val colorDifference = colorDifference(textColor, backgroundColor)
-        val shadowness = clamp(1f - colorDifference/30f, 0f, 1f)
-        if(shadowness > 0f){
-            drawText(x, y, text, accentColor)
-        }*/
-        drawText(x, y, text, textColor)
     }
+
+    override val effectiveTextColor: Int get() = textColor
 
     override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
 

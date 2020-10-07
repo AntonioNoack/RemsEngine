@@ -2,6 +2,7 @@ package me.anno.ui.editor.color
 
 import me.anno.ui.base.Panel
 import me.anno.ui.style.Style
+import me.anno.utils.Quad
 import org.joml.Vector3f
 
 open class HSVBox(

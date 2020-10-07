@@ -28,6 +28,10 @@ class CustomContainer(default: Panel, style: Style) : PanelContainer(default, Pa
         this.y = y
     }
 
+    override fun invalidateLayout() {
+        window!!.needsLayout += this
+    }
+
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.onDraw(x0, y0, x1, y1)
         val icon = Cache.getIcon("cross.png", true) ?: whiteTexture

@@ -115,11 +115,12 @@ object ShaderLib {
                     "void main(){\n" +
                     "   vec3 textMask = texture(tex, uv).rgb;\n" +
                     "   vec3 mixing = brightness(textColor.rgb) > brightness(backgroundColor) ? textMask.rgb : textMask.bgr;\n" +
+                    "   mixing *= textColor.a;\n" +
                     "   vec3 color = vec3(\n" +
                     "       mix(backgroundColor.r, textColor.r, mixing.r),\n" +
                     "       mix(backgroundColor.g, textColor.g, mixing.g),\n" +
                     "       mix(backgroundColor.b, textColor.b, mixing.b));\n" +
-                    "   gl_FragColor = vec4(color, textColor.a);\n" +
+                    "   gl_FragColor = vec4(color, 1.0);\n" +
                     "}"
         )
 

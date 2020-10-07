@@ -18,8 +18,10 @@ class BooleanInput(title: String, startValue: Boolean, style: Style): PanelListX
 
     init {
         this += titleView
+        titleView.enableHoverColor = true
         titleView.padding.right = 5
         titleView.focusTextColor = titleView.textColor
+        titleView.setSimpleClickListener { checkView.toggle() }
         this += checkView
         this += WrapAlign.LeftTop
     }

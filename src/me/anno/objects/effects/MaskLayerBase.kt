@@ -129,7 +129,7 @@ abstract class MaskLayerBase(parent: Transform? = null): GFXTransform(parent){
 
     fun drawMask(stack: Matrix4fArrayList, time: Double, color: Vector4f){
 
-        Frame(GFX.windowWidth, GFX.windowHeight, mask){
+        Frame(GFX.windowWidth, GFX.windowHeight, false, mask){
 
             Frame.currentFrame!!.bind()
 
@@ -158,7 +158,7 @@ abstract class MaskLayerBase(parent: Transform? = null): GFXTransform(parent){
 
     fun drawMasked(stack: Matrix4fArrayList, time: Double, color: Vector4f){
 
-        Frame(GFX.windowWidth, GFX.windowHeight, masked){
+        Frame(GFX.windowWidth, GFX.windowHeight, false, masked){
 
             Frame.currentFrame!!.bind()
 

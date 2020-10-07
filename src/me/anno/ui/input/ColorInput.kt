@@ -67,10 +67,11 @@ class ColorInput(style: Style, title: String,
 
     init {
         this += titleView
+        titleView.enableHoverColor = true
         titleView.focusTextColor = titleView.textColor
         titleView.setSimpleClickListener { contentView.toggleVisibility() }
         this += contentView
-        contentView.setRGBA(oldValue.x, oldValue.y, oldValue.z, oldValue.w, true)
+        contentView.setRGBA(oldValue.x, oldValue.y, oldValue.z, oldValue.w, false)
         contentView.hide()
     }
 

@@ -20,6 +20,7 @@ class SettingCategory(titleText: String, style: Style) : PanelGroup(style) {
 
     init {
         title.parent = this
+        // title.enableHoverColor = true
         title.textColor = mixARGB(title.textColor, title.textColor and 0xffffff, 0.5f)
         title.focusTextColor = title.textColor
         content.parent = this

@@ -24,7 +24,7 @@ class ConsoleOutputPanel(style: Style): TextPanel("", style) {
             // open console in large with scrollbar
             val listPanel = object : ScrollPanelY(Padding(5), AxisAlignment.CENTER, style) {
                 override fun onBackSpaceKey(x: Float, y: Float) {
-                    RemsStudio.windowStack.pop()
+                    RemsStudio.windowStack.pop().destroy()
                 }
                 override fun onSelectAll(x: Float, y: Float) {
                     inFocus.clear()

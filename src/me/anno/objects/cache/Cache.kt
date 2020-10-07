@@ -215,7 +215,7 @@ object Cache {
     }
 
     fun resetFBStack(){
-        synchronized(this){
+        synchronized(cache){
             cache.values.forEach {
                 (it.data as? FBStack.FBStackData)?.apply {
                     nextIndex = 0

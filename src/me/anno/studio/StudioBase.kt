@@ -7,29 +7,40 @@ import me.anno.config.DefaultConfig.style
 import me.anno.gpu.Cursor
 import me.anno.gpu.Cursor.useCursor
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.inFocus
 import me.anno.gpu.Window
+import me.anno.gpu.blending.BlendDepth
+import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.texture.ClampMode
+import me.anno.gpu.texture.NearestMode
 import me.anno.input.ActionManager
 import me.anno.input.Input
 import me.anno.input.ShowKeys
 import me.anno.objects.cache.Cache
+import me.anno.studio.RemsStudio.selectedTransform
 import me.anno.studio.history.SceneState
 import me.anno.studio.project.Project
 import me.anno.ui.base.Panel
 import me.anno.ui.base.Tooltips
+import me.anno.ui.base.Visibility
 import me.anno.ui.debug.ConsoleOutputPanel
 import me.anno.ui.dragging.IDraggable
+import me.anno.ui.editor.PropertyInspector
 import me.anno.ui.editor.UILayouts
+import me.anno.ui.editor.graphs.GraphEditorBody
 import me.anno.ui.editor.sceneTabs.SceneTabs
+import me.anno.ui.editor.sceneView.ISceneView
+import me.anno.ui.editor.treeView.TreeView
 import me.anno.utils.OS
 import me.anno.utils.clamp
 import me.anno.utils.f3
 import me.anno.utils.listFiles2
 import org.apache.logging.log4j.LogManager
+import org.lwjgl.opengl.GL11.*
 import java.io.File
-import java.lang.Exception
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicBoolean
@@ -37,7 +48,7 @@ import kotlin.concurrent.thread
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
-abstract class StudioBase(val needsAudio: Boolean){
+abstract class StudioBase(val needsAudio: Boolean) {
 
     abstract fun createUI()
 
@@ -57,22 +68,46 @@ abstract class StudioBase(val needsAudio: Boolean){
 
     var workspace = DefaultConfig["workspace.dir", File(OS.home, "Documents/RemsStudio")]
 
-    fun onSmallChange(cause: String){
+    fun onSmallChange(cause: String) {
         saveIsRequested = true
         SceneTabs.currentTab?.hasChanged = true
+        updateSceneViews()
+        // println(cause)
     }
 
-    fun onLargeChange(){
+    fun onLargeChange() {
         saveIsRequested = true
         forceSave = true
         SceneTabs.currentTab?.hasChanged = true
+        updateSceneViews()
     }
 
-    fun saveStateMaybe(){
+    fun updateSceneViews() {
+        windowStack.forEach { window ->
+            window.panel.listOfVisible
+                .forEach {
+                    when (it) {
+                        is TreeView, is ISceneView -> {
+                            it.invalidateDrawing()
+                        }
+                        is GraphEditorBody -> {
+                            if (selectedTransform != null) {
+                                it.invalidateDrawing()
+                            }
+                        }
+                        is PropertyInspector -> {
+                            it.needsUpdate = true
+                        }
+                    }
+                }
+        }
+    }
+
+    fun saveStateMaybe() {
         val historySaveDuration = 1e9
-        if(saveIsRequested && !isSaving.get()){
+        if (saveIsRequested && !isSaving.get()) {
             val current = System.nanoTime()
-            if(forceSave || abs(current - lastSave) > historySaveDuration){
+            if (forceSave || abs(current - lastSave) > historySaveDuration) {
                 lastSave = current
                 forceSave = false
                 saveIsRequested = false
@@ -81,16 +116,16 @@ abstract class StudioBase(val needsAudio: Boolean){
         }
     }
 
-    fun saveState(){
+    fun saveState() {
         // saving state
-        if(RemsStudio.project == null) return
+        if (RemsStudio.project == null) return
         isSaving.set(true)
         thread {
             try {
                 val state = SceneState()
                 state.update()
                 RemsStudio.history.put(state)
-            } catch (e: Exception){
+            } catch (e: Exception) {
                 e.printStackTrace()
             }
             isSaving.set(false)
@@ -116,11 +151,11 @@ abstract class StudioBase(val needsAudio: Boolean){
         }
     }
 
-    open fun gameInit(){
+    open fun gameInit() {
 
         mt("game init")
 
-        if(needsAudio){
+        if (needsAudio) {
             AudioManager.startRunning()
             mt("audio manager")
         }
@@ -130,6 +165,8 @@ abstract class StudioBase(val needsAudio: Boolean){
         createUI()
 
     }
+
+    var didNothingCounter = 0
 
     fun run() {
 
@@ -174,28 +211,172 @@ abstract class StudioBase(val needsAudio: Boolean){
 
             if (isFirstFrame) mt("before window drawing")
 
+            var didSomething = false
+            fun shallDraw() = didSomething || didNothingCounter < 3
+
             val lastFullscreenIndex = windowStack.indexOfLast { it.isFullscreen }
             windowStack.forEachIndexed { index, window ->
-                if(index >= lastFullscreenIndex){
+                if (index >= lastFullscreenIndex) {
 
-                    // todo only draw what is needed
-                    val allPanels = window.panel.listOfAll.toList()
+                    val panel0 = window.panel
+
+                    val sparseRedraw = DefaultConfig["ui.sparseRedraw", true]
+
+                    val allPanels = window.panel.listOfVisible.toList()
+                    // should be faster than a lot of HashSet-tests
+                    val mx = lmx.toInt()
+                    val my = lmy.toInt()
+                    allPanels.forEach {
+                        it.apply {
+                            isInFocus = false
+                            canBeSeen = (parent?.canBeSeen != false) &&
+                                    visibility == Visibility.VISIBLE &&
+                                    lx1 > lx0 && ly1 > ly0
+                            isHovered = mx in lx0 until lx1 && my in ly0 until ly1
+                        }
+                    }
+
+                    val visiblePanels = allPanels.filter { it.canBeSeen }
+
+                    inFocus.forEach {
+                        it.isInFocus = true
+                    }
+
+                    visiblePanels.forEach { it.tickUpdate() }
+                    visiblePanels.forEach { it.tick() }
+
                     val needsRedraw = window.needsRedraw
+                    val needsLayout = window.needsLayout
 
-                    GFX.loadTexturesSync.clear()
-                    GFX.loadTexturesSync.push(false)
-                    val panel = window.panel
-                    if (Input.needsLayoutUpdate()) {
+                    needsRedraw.retainAll(visiblePanels)
+
+                    if (panel0 in needsLayout || window.lastW != w || window.lastH != h) {
+                        window.lastW = w
+                        window.lastH = h
                         window.calculateFullLayout(w, h, isFirstFrame)
+                        needsRedraw.add(panel0)
+                        needsLayout.clear()
+                    } else {
+                        while (needsLayout.isNotEmpty()) {
+                            val panel = needsLayout.minBy { it.depth }!!
+                            // recalculate layout
+                            panel.calculateSize(panel.lx1 - panel.lx0, panel.ly1 - panel.ly0)
+                            panel.place(panel.lx0, panel.ly0, panel.lx1 - panel.lx0, panel.ly1 - panel.ly0)
+                            needsLayout.removeAll(panel.listOfAll)
+                            needsRedraw.add(panel)
+                        }
                     }
 
-                    GFX.ensureEmptyStack()
-                    Framebuffer.stack.push(null)
-                    Frame.reset()
-                    Frame(panel.x, panel.y, panel.w, panel.h, null){
-                        panel.draw(panel.x, panel.y, panel.x + panel.w, panel.y + panel.h)
+                    if (panel0.w > 0 && panel0.h > 0) {
+
+                        // overlays get missing...
+                        // this somehow needs to be circumvented...
+                        if (sparseRedraw) {
+
+                            val wasRedrawn = ArrayList<Panel>()
+
+                            if (needsRedraw.isNotEmpty()) {
+
+                                didSomething = true
+
+                                GFX.ensureEmptyStack()
+                                Framebuffer.stack.push(null)
+                                Frame.reset()
+
+                                GFX.deltaX = panel0.x
+                                GFX.deltaY = h - (panel0.y + panel0.h)
+
+                                BlendDepth(BlendMode.DEFAULT, false).use {
+
+                                    val buffer = window.buffer
+                                    if (panel0 in needsRedraw) {
+
+                                        wasRedrawn += panel0
+
+                                        GFX.loadTexturesSync.clear()
+                                        GFX.loadTexturesSync.push(true)
+
+                                        Frame(panel0.x, panel0.y, panel0.w, panel0.h, true, buffer) {
+                                            glClearColor(0f, 0f, 0f, 0f)
+                                            glClear(GL_COLOR_BUFFER_BIT)
+                                            panel0.canBeSeen = true
+                                            panel0.draw(panel0.x, panel0.y, panel0.x + panel0.w, panel0.y + panel0.h)
+                                        }
+
+                                        needsRedraw.clear()
+
+                                    } else {
+
+                                        while (needsRedraw.isNotEmpty()) {
+                                            val panel = needsRedraw.minBy { it.depth }!!
+                                            GFX.loadTexturesSync.clear()
+                                            GFX.loadTexturesSync.push(false)
+                                            if (panel.canBeSeen) {
+                                                val y = panel.ly0
+                                                val h2 = panel.ly1 - panel.ly0
+                                                Frame(panel.lx0, h - (y + h2), panel.lx1 - panel.lx0, h2, false, buffer) {
+                                                    panel.redraw()
+                                                }
+                                            }
+                                            wasRedrawn += panel
+                                            needsRedraw.removeAll(panel.listOfAll)
+                                        }
+
+                                    }
+
+                                }
+
+                                GFX.deltaX = 0
+                                GFX.deltaY = 0
+
+                            }
+
+                            if (shallDraw()) {
+
+                                // draw cached image
+                                Frame(panel0.x, h - (panel0.y + panel0.h), panel0.w, panel0.h, false, null) {
+
+                                    BlendDepth(BlendMode.DEFAULT, false).use {
+
+                                        window.buffer.bindTexture0(0, NearestMode.TRULY_NEAREST, ClampMode.CLAMP)
+                                        GFX.copy()
+
+                                        /*wasRedrawn.forEach {
+                                            GFX.drawRect(it.lx0, it.ly0, it.lx1 - it.lx0, it.ly1 - it.ly0, 0x33ff0000)
+                                        }
+
+                                        GFX.drawBorder(panel0.x, panel0.y, panel0.w, panel0.h, -1, 1)*/
+
+                                    }
+
+                                }
+
+                            }// else no buffer needs to be updated
+
+                        } else {
+
+                            if (shallDraw()) {
+
+                                needsRedraw.clear()
+
+                                GFX.ensureEmptyStack()
+                                Framebuffer.stack.push(null)
+                                Frame.reset()
+
+                                GFX.loadTexturesSync.clear()
+                                GFX.loadTexturesSync.push(false)
+                                if (Input.needsLayoutUpdate()) {
+                                    window.calculateFullLayout(w, h, isFirstFrame)
+                                }
+
+                                Frame(panel0.x, panel0.y, panel0.w, panel0.h, false, null) {
+                                    panel0.canBeSeen = true
+                                    panel0.draw(panel0.x, panel0.y, panel0.x + panel0.w, panel0.y + panel0.h)
+                                }
+
+                            }// else no buffer needs to be updated
+                        }
                     }
-                    GFX.ensureEmptyStack()
                 }
             }
 
@@ -203,12 +384,21 @@ abstract class StudioBase(val needsAudio: Boolean){
 
             if (isFirstFrame) mt("window drawing")
 
-            Frame(0, 0, GFX.width, GFX.height, null){
+            Frame(0, 0, GFX.width, GFX.height, false, null) {
 
-                Tooltips.draw()
+                if (Tooltips.draw()) {
+                    didSomething = true
+                }
 
-                if (showFPS) GFX.showFPS()
-                if (showTutorialKeys) ShowKeys.draw(0, 0, GFX.width, GFX.height)
+                if (showFPS) {
+                    GFX.showFPS()
+                }
+
+                if (showTutorialKeys) {
+                    if (ShowKeys.draw(0, 0, GFX.width, GFX.height)) {
+                        didSomething = true
+                    }
+                }
 
                 // dragging can be a nice way to work, but dragging values to change them,
                 // and copying by ctrl+c/v is probably better -> no, we need both
@@ -220,21 +410,29 @@ abstract class StudioBase(val needsAudio: Boolean){
                     var y = Input.mouseY.roundToInt() - rh / 2
                     x = clamp(x, 0, GFX.width - rw)
                     y = clamp(y, 0, GFX.height - rh)
-                    GFX.clip(x, y, ui.w, ui.h){
+                    GFX.clip(x, y, w, h) {
                         dragged.draw(x, y)
+                        didSomething = true
                     }
                 }
 
+            }
+
+            if (didSomething) {
+                didNothingCounter = 0
+            } else {
+                didNothingCounter++
             }
 
             FBStack.reset()
 
             check()
 
-            if (isFirstFrame) mt("first frame finished")
-
-            if (isFirstFrame) { LOGGER.info("Used ${((System.nanoTime() - startTime) * 1e-9f).f3()}s from start to finishing the first frame") }
-            isFirstFrame = false
+            if (isFirstFrame) {
+                mt("first frame finished")
+                LOGGER.info("Used ${((System.nanoTime() - startTime) * 1e-9f).f3()}s from start to finishing the first frame")
+                isFirstFrame = false
+            }
 
             Cache.update()
 
@@ -254,14 +452,10 @@ abstract class StudioBase(val needsAudio: Boolean){
         val project = Project(name.trim(), folder)
         RemsStudio.project = project
         project.open()
-        GFX.addGPUTask(1){ GFX.updateTitle() }
+        GFX.addGPUTask(1) { GFX.updateTitle() }
     }
 
     private var isFirstFrame = true
-
-    lateinit var startMenu: Panel
-    lateinit var ui: Panel
-
     var hideUnusedProperties = false
 
     fun check() = GFX.check()
@@ -284,10 +478,10 @@ abstract class StudioBase(val needsAudio: Boolean){
 
         var dragged: IDraggable? = null
 
-        fun updateAudio(){
-            GFX.addAudioTask(100){
+        fun updateAudio() {
+            GFX.addAudioTask(100) {
                 // update the audio player...
-                if(RemsStudio.isPlaying){
+                if (RemsStudio.isPlaying) {
                     AudioManager.requestUpdate()
                 } else {
                     AudioManager.stop()
@@ -296,17 +490,17 @@ abstract class StudioBase(val needsAudio: Boolean){
             }
         }
 
-        fun addEvent(event: () -> Unit){
+        fun addEvent(event: () -> Unit) {
             eventTasks += event
         }
 
-        fun warn(msg: String){
+        fun warn(msg: String) {
             LOGGER.warn(msg)
         }
 
         val eventTasks = ConcurrentLinkedQueue<() -> Unit>()
 
-        val shiftSlowdown get() = if(Input.isAltDown) 5f else if(Input.isShiftDown) 0.2f else 1f
+        val shiftSlowdown get() = if (Input.isAltDown) 5f else if (Input.isShiftDown) 0.2f else 1f
 
     }
 

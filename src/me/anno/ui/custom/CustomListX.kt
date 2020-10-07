@@ -20,6 +20,15 @@ class CustomListX(style: Style) : PanelListX(style), CustomList {
         weight = 1f
     }
 
+    override fun invalidateLayout() {
+        window!!.needsLayout += this
+    }
+
+    override fun getLayoutState(): Any? {
+        val weights = children.map { it.weight }
+        return Pair(super.getLayoutState(), weights)
+    }
+
     override val dataChildren
         get() = children
             .filter { it !is CustomizingBar } as List<ICustomDataCreator>
@@ -125,9 +134,6 @@ class CustomListX(style: Style) : PanelListX(style), CustomList {
             val child = children.first()
             child.placeInParent(x, y)
             child.applyPlacement(w, h)
-            //child.applyConstraints()
-            /*child.w = w
-            child.h = h*/
 
         } else {
 

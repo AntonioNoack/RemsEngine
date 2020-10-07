@@ -8,6 +8,7 @@ import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.scrolling.ScrollableY
 import me.anno.ui.base.scrolling.ScrollbarY
 import me.anno.ui.style.Style
+import me.anno.utils.Quad
 import me.anno.utils.clamp
 import kotlin.math.max
 
@@ -26,6 +27,17 @@ class PanelListMultiline(style: Style): PanelGroup(style), ScrollableY {
         childWidth = style.getSize("childWidth", defaultSize)
         childHeight = style.getSize("childHeight", defaultSize)
     }
+
+    override fun invalidateLayout() {
+        window!!.needsLayout += this
+    }
+
+    override fun getLayoutState() =
+        Triple(
+            super.getLayoutState(),
+            children.size,
+            Quad(childWidth, childHeight, scrollPosition, maxScrollPosition)
+        )
 
     var rows = 1
     var columns = 1

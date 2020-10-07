@@ -26,6 +26,11 @@ class EnumInput(
         override fun isKeyInput() = true
     }
 
+    init {
+        titleView?.enableHoverColor = true
+        inputPanel.enableHoverColor = true
+    }
+
     fun moveDown(direction: Int) {
         val oldValue = inputPanel.text
         val index = lastIndex + direction

@@ -73,8 +73,6 @@ object UILayouts {
         val customUI = CustomListY(style)
         customUI.setWeight(10f)
 
-        RemsStudio.ui = ui
-
     }
 
     fun renderPart(size: Int) {
@@ -145,9 +143,8 @@ object UILayouts {
         }
 
         for (project in DefaultConfig.getRecentProjects()) {
-            val tp = object : TextPanel(project.name, style) {
-                override val enableHoverColor = true
-            }
+            val tp = TextPanel(project.name, style)
+            tp.enableHoverColor = true
             tp.setTooltip(project.file.absolutePath)
             thread {// file search can use some time
                 if(!project.file.exists()){
@@ -352,8 +349,6 @@ object UILayouts {
         val style = DefaultConfig.style
 
         val ui = PanelListY(style)
-
-        RemsStudio.ui = ui
 
         // todo show the file location up there, too?
         // todo fully customizable content

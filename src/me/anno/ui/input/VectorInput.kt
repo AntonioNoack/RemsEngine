@@ -160,6 +160,7 @@ class VectorInput(
         valueList += WrapAlign.Top
 
         this += titleView
+        titleView.enableHoverColor = true
         titleView.setWeight(1f)
         titleView.focusTextColor = titleView.textColor
         titleView.setSimpleClickListener {

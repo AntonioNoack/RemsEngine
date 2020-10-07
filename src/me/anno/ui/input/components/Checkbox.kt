@@ -27,13 +27,18 @@ class Checkbox(startValue: Boolean, val size: Int, style: Style): Panel(style.ge
         minH = size + 2
     }
 
+    override fun getVisualState(): Any? {
+        return Triple(super.getVisualState(), getImage(isChecked), isHovered)
+    }
+
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.onDraw(x0, y0, x1, y1)
 
         val size = min(w, h)
         if(size > 0){
+            val color = if(isHovered) 0xccffffff.toInt() else -1
             // draw the icon on/off
-            GFX.drawTexture(x0+(w-size)/2, y0+(h-size)/2, size, size, getImage(isChecked) ?: whiteTexture, -1, null)
+            GFX.drawTexture(x0+(w-size)/2, y0+(h-size)/2, size, size, getImage(isChecked) ?: whiteTexture, color, null)
         }
 
     }

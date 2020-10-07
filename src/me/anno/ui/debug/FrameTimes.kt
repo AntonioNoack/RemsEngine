@@ -1,6 +1,7 @@
 package me.anno.ui.debug
 
 import me.anno.config.DefaultConfig
+import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
 import me.anno.gpu.framebuffer.Frame
 import me.anno.ui.base.Panel
@@ -27,11 +28,13 @@ object FrameTimes : Panel(DefaultConfig.style) {
     }
 
     fun draw() {
+        canBeSeen = true
         draw(x, y, x + w, y + h)
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        // drawBackground()
+        drawBackground()
+        // GFX.drawRect(x0, y0, x1-x0, y1-y0, black)
         val indexOffset = nextIndex - 1 + width
         for (x in x0 until x1) {
             val i = x - this.x

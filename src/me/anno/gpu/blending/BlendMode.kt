@@ -1,5 +1,6 @@
 package me.anno.gpu.blending
 
+import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL30.*
 import java.lang.RuntimeException
 
@@ -87,6 +88,10 @@ class BlendMode(
         val NO_ALPHA = BlendMode("No Alpha", "No Alpha")
             .set(GL_ONE, GL_ZERO, GL_ONE, GL_ZERO)
             .set(BlendFunc.ADD)
+
+        val SUB_COLOR = ADD.copy("Sub Color", "Subtract Color")
+            .set(GL11.GL_ONE, GL11.GL_ONE)
+            .set(BlendFunc.REV_SUB, BlendFunc.ADD)
 
         operator fun get(code: String) = blendModes[code] ?: UNSPECIFIED
     }

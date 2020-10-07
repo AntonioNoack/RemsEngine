@@ -35,9 +35,9 @@ object Tooltips {
         container += WrapAlign.LeftTop
     }
 
-    fun draw(){
+    fun draw(): Boolean {
 
-        if(tooltipReactionTime < 0) return
+        if(tooltipReactionTime < 0) return false
 
         val dx = oldX - mouseX
         val dy = oldY - mouseY
@@ -49,7 +49,7 @@ object Tooltips {
 
         if(length(dx, dy) > deltaTime){// 1px / s
             lastMovementTime = time
-            return
+            return false
         }
 
         val delta = abs(time - lastMovementTime) / 1_000_000
@@ -69,9 +69,12 @@ object Tooltips {
                 container.placeInParent(x, y)
                 container.applyPlacement(container.minW, container.minH)
                 container.draw(container.x, container.y, container.x + container.w, container.y + container.h)
+                return true
             }
 
         }
+
+        return false
 
     }
 

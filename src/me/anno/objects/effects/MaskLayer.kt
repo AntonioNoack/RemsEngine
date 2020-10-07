@@ -67,7 +67,7 @@ class MaskLayer(parent: Transform? = null) : MaskLayerBase(parent) {
 
                 fun drawBlur(target: Framebuffer, w: Int, h: Int, offset: Int, isFirst: Boolean) {
                     // step1
-                    Frame(w, h, target){
+                    Frame(w, h, true, target){
                         glClear(GL_DEPTH_BUFFER_BIT)
                         GFX.draw3DBlur(localTransform, size, w, h, isFirst)
                     }
@@ -104,7 +104,7 @@ class MaskLayer(parent: Transform? = null) : MaskLayerBase(parent) {
                         size = pixelSize * smallerW / w
                         // draw image on smaller thing...
                         val temp2 = FBStack["mask-gaussian-blur-2", smallerW, smallerH, 1, true]// temp[2]
-                        Frame(smallerW, smallerH, temp2){
+                        Frame(smallerW, smallerH, false, temp2){
                             // glClearColor(0f, 0f, 0f, 0f)
                             // glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
                             // draw texture 0 (masked) onto temp2

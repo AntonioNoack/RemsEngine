@@ -23,6 +23,7 @@ import me.anno.objects.Transform.Companion.xAxis
 import me.anno.objects.cache.Cache
 import me.anno.objects.effects.ToneMappers
 import me.anno.studio.RemsStudio.gfxSettings
+import me.anno.studio.RemsStudio.nullCamera
 import me.anno.studio.RemsStudio.selectedTransform
 import me.anno.ui.editor.sceneView.Gizmo.drawGizmo
 import me.anno.ui.editor.sceneView.Grid
@@ -241,7 +242,13 @@ object Scene {
         isInited = true
     }
 
-    fun getNextBuffer(name: String, previous: Framebuffer, offset: Int, nearest: NearestMode, samples: Int?): Framebuffer {
+    fun getNextBuffer(
+        name: String,
+        previous: Framebuffer,
+        offset: Int,
+        nearest: NearestMode,
+        samples: Int?
+    ): Framebuffer {
         val next = FBStack[name, previous.w, previous.h, samples ?: previous.samples, usesFPBuffers]
         // next.bind()
         previous.bindTextures(offset, nearest, ClampMode.CLAMP)
@@ -312,7 +319,8 @@ object Scene {
 
         var needsTemporaryBuffer = !isFakeColorRendering
         if (needsTemporaryBuffer) {
-            needsTemporaryBuffer = flipY ||
+            needsTemporaryBuffer = true || // ^^
+                    flipY ||
                     samples > 1 ||
                     !distortion.is000() ||
                     vignetteStrength > 0f ||
@@ -321,15 +329,14 @@ object Scene {
                     !cgOffset.is000() ||
                     !cgSlope.is1111() ||
                     !cgPower.is1111() ||
-                    cgSaturation != 1f ||
-                    true // ^^
+                    cgSaturation != 1f
         }
 
         var buffer: Framebuffer? =
             if (needsTemporaryBuffer) FBStack["Scene-Main", w, h, samples, usesFPBuffers]
             else Frame.currentFrame!!.buffer
 
-        Frame(0, 0, w, h, buffer) {
+        Frame(0, 0, w, h, false, buffer) {
 
             Frame.currentFrame!!.bind()
 
@@ -339,7 +346,7 @@ object Scene {
                 GL30.glDepthRange(-1.0, 1.0)
                 GL30.glDepthFunc(GL30.GL_LESS)
                 if (buffer != null) {
-                    glClearColor(0f, 0f, 0f, 0f)
+                    glClearColor(0f, 0f, 0f, 1f)
                     GL30.glClear(GL30.GL_DEPTH_BUFFER_BIT or GL30.GL_COLOR_BUFFER_BIT)
                 } else {
                     GL30.glClear(GL30.GL_DEPTH_BUFFER_BIT)
@@ -347,7 +354,7 @@ object Scene {
             } else {
                 GL30.glDisable(GL30.GL_DEPTH_TEST)
                 if (buffer != null) {
-                    glClearColor(0f, 0f, 0f, 0f)
+                    glClearColor(0f, 0f, 0f, 1f)
                     GL30.glClear(GL30.GL_COLOR_BUFFER_BIT)
                 }
             }
@@ -384,9 +391,9 @@ object Scene {
 
             GL30.glDepthMask(true)
 
-            if(!isFinalRendering){
+            if (!isFinalRendering && camera != nullCamera) {
                 stack.pushMatrix()
-                RemsStudio.nullCamera.draw(stack, time, white)
+                nullCamera.draw(stack, time, white)
                 stack.popMatrix()
             }
 
@@ -396,7 +403,7 @@ object Scene {
 
             GFX.check()
 
-            if(!isFinalRendering && !isFakeColorRendering){
+            if (!isFinalRendering && !isFakeColorRendering) {
                 drawGizmo(cameraTransform, x0, y0, w, h)
                 GFX.check()
             }

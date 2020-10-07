@@ -25,12 +25,12 @@ import me.anno.studio.RemsStudio.onSmallChange
 import me.anno.studio.Scene
 import me.anno.studio.RemsStudio.editorTime
 import me.anno.studio.RemsStudio.editorTimeDilation
+import me.anno.studio.RemsStudio.isPaused
 import me.anno.studio.RemsStudio.nullCamera
 import me.anno.studio.RemsStudio.root
 import me.anno.studio.RemsStudio.selectedTransform
 import me.anno.studio.RemsStudio.targetHeight
 import me.anno.studio.RemsStudio.targetWidth
-import me.anno.studio.RemsStudio.updateInspector
 import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.studio.StudioBase.Companion.shiftSlowdown
 import me.anno.ui.base.ButtonPanel
@@ -41,10 +41,7 @@ import me.anno.ui.custom.data.ICustomDataCreator
 import me.anno.ui.editor.files.addChildFromFile
 import me.anno.ui.simple.SimplePanel
 import me.anno.ui.style.Style
-import me.anno.utils.clamp
-import me.anno.utils.plus
-import me.anno.utils.sumByFloat
-import me.anno.utils.times
+import me.anno.utils.*
 import org.joml.Matrix4fArrayList
 import org.joml.Vector3f
 import org.lwjgl.opengl.GL11.*
@@ -122,22 +119,84 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
         }
     }
 
+    override fun getVisualState(): Any? = Quad(super.getVisualState(), editorTime, goodW, goodH)
+
+    override fun tickUpdate() {
+        super.tickUpdate()
+        parseKeyInput()
+        parseTouchInput()
+        claimResources()
+        updateSize()
+    }
+
     var mode = SceneDragMode.MOVE
 
     var velocity = Vector3f()
 
-    var dx = 0f
-    var dy = 0f
-    var dz = 0f
+    var inputDx = 0f
+    var inputDy = 0f
+    var inputDz = 0f
 
     // switch between manual control and autopilot for time :)
     // -> do this by disabling controls when playing, excepts when it's the inspector camera (?)
-    val mayControlCamera get() = camera === nullCamera || editorTimeDilation == 0.0
+    val mayControlCamera get() = camera === nullCamera || isPaused
     var lastW = 0
     var lastH = 0
     var lastSizeUpdate = GFX.lastTime
     var goodW = 0
     var goodH = 0
+
+    fun claimResources(){
+        // this is expensive, so do it only when the time changed
+        val edt = editorTimeDilation
+        val et = editorTime
+        // load the next five seconds of data
+        root.claimResources(et, et + 5.0 * if (edt == 0.0) 1.0 else edt, 1f, 1f)
+    }
+
+    var dx = 0
+    var dy = 0
+    var rw = 0
+    var rh = 0
+
+    fun updateSize(){
+
+        dx = 0
+        dy = 0
+        rw = w
+        rh = h
+
+        val camera = camera
+        if (camera.onlyShowTarget) {
+            if (w * targetHeight > targetWidth * h) {
+                rw = h * targetWidth / targetHeight
+                dx = (w - rw) / 2
+            } else {
+                rh = w * targetHeight / targetWidth
+                dy = (h - rh) / 2
+            }
+        }
+
+        // check if the size stayed the same;
+        // because resizing all framebuffers is expensive (causes lag)
+        val matchesSize = lastW == rw && lastH == rh
+        val wasNotRecentlyUpdated = lastSizeUpdate + 1e8 < GFX.lastTime
+        if (matchesSize) {
+            if (wasNotRecentlyUpdated) {
+                goodW = rw
+                goodH = rh
+            }
+        } else {
+            lastSizeUpdate = GFX.lastTime
+            lastW = rw
+            lastH = rh
+        }
+
+        if (goodW == 0 || goodH == 0) {
+            goodW = rw
+            goodH = rh
+        }
+    }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
 
@@ -151,30 +210,11 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
 
         GFX.check()
 
-        parseKeyInput()
-        parseTouchInput()
-
         // calculate the correct size, such that we miss nothing
         // todo ideally we could zoom in the image etc...
         // todo only do this, if we are appended to a camera :), not if we are building a 3D scene
 
         GFX.drawRect(x, y, w, h, deepDark)
-
-        var dx = 0
-        var dy = 0
-        var rw = w
-        var rh = h
-
-        val camera = camera
-        if (camera.onlyShowTarget) {
-            if (w * targetHeight > targetWidth * h) {
-                rw = h * targetWidth / targetHeight
-                dx = (w - rw) / 2
-            } else {
-                rh = w * targetHeight / targetWidth
-                dy = (h - rh) / 2
-            }
-        }
 
         GFX.ensureEmptyStack()
 
@@ -183,34 +223,8 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
         // we maybe could disable next frame fetching in Cache.kt...
         // todo doesn't work for auto-scaled videos... other plan?...
 
-        // check if the size stayed the same;
-        // because resizing all framebuffers is expensive (causes lag)
-        val matchesSize = lastW == rw && lastH == rh
-        val wasNotRecentlyUpdated = lastSizeUpdate + 1e8 < GFX.lastTime
-        val wasDrawn = matchesSize && wasNotRecentlyUpdated
-        if (matchesSize) {
-            if (wasNotRecentlyUpdated) {
-                Scene.draw(
-                    camera,
-                    x + dx, y + dy, rw, rh,
-                    editorTime, false,
-                    mode, this
-                )
-                goodW = rw
-                goodH = rh
-            }
-        } else {
-            lastSizeUpdate = GFX.lastTime
-            lastW = rw
-            lastH = rh
-        }
-
-        if (!wasDrawn) {
-            if (goodW == 0 || goodH == 0) {
-                goodW = rw
-                goodH = rh
-            }
-            GFX.drawRect(x + dx, y + dy, rw, rh, black)
+        GFX.drawRect(x + dx, y + dy, rw, rh, black)
+        if(goodW > 0 && goodH > 0){
             Scene.draw(
                 camera,
                 x + dx, y + dy, goodW, goodH,
@@ -219,11 +233,6 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
             )
         }
 
-        val edt = editorTimeDilation
-        val et = editorTime
-        // load the next five seconds of data
-        root.claimResources(et, et + 5.0 * if (edt == 0.0) 1.0 else edt, 1f, 1f)
-
         GFX.ensureEmptyStack()
 
         GFX.clip(x0, y0, x1, y1){
@@ -231,7 +240,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
             val bd = BlendDepth(BlendMode.DEFAULT, false)
             bd.bind()
 
-            GFX.drawText(
+            /*GFX.drawText(
                 x + 2, y + 2, "Verdana", 12,
                 false, false, this.mode.displayName, -1, 0, -1
             )
@@ -239,7 +248,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
             GFX.drawText(
                 x + 16, y + 2, "Verdana", 12,
                 false, false, if (isLocked2D) "2D" else "3D", -1, 0, -1
-            )
+            )*/
 
             controls.forEach {
                 it.draw(x, y, w, h, x0, y0, x1, y1)
@@ -329,6 +338,8 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
         } else select(null)
         GFX.check()
 
+        invalidateDrawing()
+
     }
 
     // todo camera movement in orthographic view is a bit broken
@@ -347,20 +358,14 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
         val defaultFPS = 60f
         val dt = 0.2f
         val scale = defaultFPS * dt
-        this.dx += dx * scale
-        this.dy += dy * scale
-        this.dz += dz * scale
+        this.inputDx += dx * scale
+        this.inputDy += dy * scale
+        this.inputDz += dz * scale
     }
 
     fun move(dt: Float) {
 
-        // clamped just in case we get multiple mouse movement events in one frame
-        val acceleration = Vector3f(
-            dx, dy, dz
-            /*clamp(dx, -1f, 1f),
-            clamp(dy, -1f, 1f),
-            clamp(dz, -1f, 1f)*/
-        )
+        val acceleration = Vector3f(inputDx, inputDy, inputDz)
 
         velocity.mul(1f - dt)
         velocity.mulAdd(dt, acceleration)
@@ -374,14 +379,15 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
             // todo transform into the correct space: from that camera to this camera
             val newPosition = oldPosition + step2
             camera.position.addKeyframe(cameraTime, newPosition, 0.01)
-            showChanges()
+            if(camera != nullCamera) onSmallChange("camera-move")
+            invalidateDrawing()
         }
 
         // todo if camera.isOrthographic, then change fov instead of moving forward/backward
 
-        dx = 0f
-        dy = 0f
-        dz = 0f
+        inputDx = 0f
+        inputDy = 0f
+        inputDz = 0f
 
     }
 
@@ -409,7 +415,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
                     val rotationSpeed = -10f
                     camera.rotationYXZ.addKeyframe(time, old + Vector3f(dy * rotationSpeed, dx * rotationSpeed, 0f))
                     touches.forEach { it.update() }
-                    showChanges()
+                    invalidateDrawing()
                 }
             }
             3 -> {
@@ -420,7 +426,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
                     val dy = touches.sumByFloat { it.y - it.lastY } * size * 0.333f
                     move(camera, dx, dy)
                     touches.forEach { it.update() }
-                    showChanges()
+                    invalidateDrawing()
                 }
             }
         }
@@ -465,7 +471,10 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
                     else Vector3f(dx0, -dy0, 0f)
                 ) * (uiZ / 6) // why ever 1/6...
                 selected.position.addKeyframe(localTime, oldPosition + localDelta)
-                if (selected != nullCamera) onSmallChange("SceneView-move")
+                if (selected != nullCamera) {
+                    onSmallChange("SceneView-move")
+                }
+                invalidateDrawing()
 
             }
             /*TransformMode.SCALE -> {
@@ -487,7 +496,6 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
             }*/
         }
 
-        showChanges()
     }
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
@@ -519,31 +527,34 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
         val (_, cameraTime) = camera.getGlobalTransform(editorTime)
         val oldRotation = camera.rotationYXZ[cameraTime]
         camera.putValue(camera.rotationYXZ, oldRotation + Vector3f(dy0 * scaleFactor, dx0 * scaleFactor, 0f))
-        if (camera == selectedTransform) {
-            if (nullCamera !== selectedTransform) onSmallChange("SceneView-turn")
-            showChanges()
-        }
-    }
-
-    fun showChanges() {
-        updateInspector()
-        // AudioManager.requestUpdate()
+        onSmallChange("SceneView-turn")
+        invalidateDrawing()
     }
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
         when (action) {
-            "SetMode(MOVE)" -> mode = SceneDragMode.MOVE
-            "SetMode(SCALE)" -> mode = SceneDragMode.SCALE
-            "SetMode(ROTATE)" -> mode = SceneDragMode.ROTATE
+            "SetMode(MOVE)" -> {
+                mode = SceneDragMode.MOVE
+                invalidateDrawing()
+            }
+            "SetMode(SCALE)" -> {
+                mode = SceneDragMode.SCALE
+                invalidateDrawing()
+            }
+            "SetMode(ROTATE)" -> {
+                mode = SceneDragMode.ROTATE
+                invalidateDrawing()
+            }
             "ResetCamera" -> {
                 camera.resetTransform()
+                invalidateDrawing()
             }
-            "MoveLeft" -> this.dx--
-            "MoveRight" -> this.dx++
-            "MoveUp" -> this.dy++
-            "MoveDown" -> this.dy--
-            "MoveForward" -> this.dz--
-            "MoveBackward", "MoveBack" -> this.dz++
+            "MoveLeft" -> this.inputDx--
+            "MoveRight" -> this.inputDx++
+            "MoveUp" -> this.inputDy++
+            "MoveDown" -> this.inputDy--
+            "MoveForward" -> this.inputDz--
+            "MoveBackward", "MoveBack" -> this.inputDz++
             "Turn" -> turn(dx, dy)
             "TurnLeft" -> turn(-1f, 0f)
             "TurnRight" -> turn(1f, 0f)
@@ -564,6 +575,9 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
     }
 
     override fun onDoubleClick(x: Float, y: Float, button: MouseButton) {
+
+        invalidateDrawing()
+
         if (button.isLeft) {
             val xi = x.toInt()
             val yi = y.toInt()
@@ -578,6 +592,9 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
     }
 
     override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
+
+        invalidateDrawing()
+
         if ((parent as? CustomContainer)?.clicked(x, y) != true) {
 
             var isProcessed = false
@@ -629,6 +646,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
                 if (original is Camera) {
                     camera = original
                 }// else focus?
+                invalidateDrawing()
             }
             // file -> paste object from file?
             // paste that object 1m in front of the camera?
@@ -652,6 +670,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
         files.forEach { file ->
             addChildFromFile(root, file, { })
         }
+        invalidateDrawing()
     }
 
     override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float) {

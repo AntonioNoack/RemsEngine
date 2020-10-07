@@ -25,6 +25,17 @@ open class ScrollPanelX(child: Panel, padding: Padding,
         weight = 0.0001f
     }
 
+    var lsp = -1f
+    var lmsp = -1
+    override fun tickUpdate() {
+        super.tickUpdate()
+        if(scrollPosition != lsp || maxScrollPosition != lmsp){
+            lsp = scrollPosition
+            lmsp = maxScrollPosition
+            window!!.needsLayout += this
+        }
+    }
+
     var scrollPosition = 0f
     val maxLength = 100_000
     var wasActive = 1f

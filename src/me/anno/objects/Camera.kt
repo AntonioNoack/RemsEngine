@@ -9,6 +9,8 @@ import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.effects.ToneMappers
+import me.anno.studio.RemsStudio.nullCamera
+import me.anno.studio.RemsStudio.onSmallChange
 import me.anno.studio.RemsStudio.targetHeight
 import me.anno.studio.RemsStudio.targetWidth
 import me.anno.studio.RemsStudio.usedCamera
@@ -152,6 +154,7 @@ class Camera(parent: Transform? = null): Transform(parent){
         putValue(scale, Vector3f(1f, 1f, 1f))
         putValue(skew, Vector2f(0f, 0f))
         putValue(rotationYXZ, Vector3f())
+        if(this != nullCamera) onSmallChange("camera-reset")
     }
 
     override fun save(writer: BaseWriter) {

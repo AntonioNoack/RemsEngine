@@ -18,7 +18,7 @@ object ShowKeys {
 
     class Key(val keyCode: Int, val isSuperKey: Boolean, var time: Float)
 
-    fun draw(x: Int, y: Int, w: Int, h: Int){
+    fun draw(x: Int, y: Int, w: Int, h: Int): Boolean {
 
         // draw the current keys for a tutorial...
         // fade out keys
@@ -27,21 +27,21 @@ object ShowKeys {
         // full strength at start is 1
         val lower = 0.8f // full strength while hold
 
-        fun addKey(keyCode: Int, isSuperKey: Boolean){
+        fun addKey(keyCode: Int, isSuperKey: Boolean) {
             var key = activeKeysMap[keyCode]
-            if(key == null){
+            if (key == null) {
                 key = Key(keyCode, isSuperKey, 2f)
                 activeKeys += key
                 activeKeysMap[keyCode] = key
             } else {
                 key.time =
-                    if(key.time < lower) lower
+                    if (key.time < lower) lower
                     else mix(key.time, lower, GFX.deltaTime * 5f)
             }
         }
 
         Input.keysDown.keys.forEach { keyCode ->
-            when(keyCode){
+            when (keyCode) {
                 GLFW.GLFW_KEY_LEFT_CONTROL,
                 GLFW.GLFW_KEY_RIGHT_CONTROL -> addKey(GLFW.GLFW_KEY_LEFT_CONTROL, true)
                 GLFW.GLFW_KEY_LEFT_SHIFT,
@@ -56,36 +56,44 @@ object ShowKeys {
 
         activeKeys.removeAll(
             activeKeys.filter { key ->
-                key.time = if(key.time > 1f) 1f else key.time - GFX.deltaTime * decaySpeed
+                key.time = if (key.time > 1f) 1f else key.time - GFX.deltaTime * decaySpeed
                 val becameOutdated = key.time < 0f
-                if(becameOutdated) activeKeysMap.remove(key.keyCode)
+                if (becameOutdated) activeKeysMap.remove(key.keyCode)
                 becameOutdated
             }
         )
 
         activeKeys.sortBy { !it.isSuperKey }
 
-        val bp = BlendDepth(BlendMode.DEFAULT, false)
-        bp.bind()
+        if (activeKeys.isNotEmpty()) {
 
-        var x0 = x
+            val bp = BlendDepth(BlendMode.DEFAULT, false)
+            bp.bind()
 
-        fun show(text: String, alpha: Float){
-            val alphaMask = (alpha * 255).toInt().shl(24) or 0xffffff
-            val color = -1 and alphaMask
-            val w0 = GFX.getTextSize(font, fontSize, false, false, text, -1).first
-            GFX.drawRect(x0 + 5, h - y - 12 - fontSize, w0 + 10, fontSize + 8, black and alphaMask)
-            GFX.drawText(x0 + 10, h - y - 10 - fontSize, font, fontSize, false, false, text, color, 0, -1)
-            x0 += w0 + 16
+            var x0 = x
+
+            fun show(text: String, alpha: Float) {
+                val alphaMask = (alpha * 255).toInt().shl(24) or 0xffffff
+                val color = -1 and alphaMask
+                val w0 = GFX.getTextSize(font, fontSize, false, false, text, -1).first
+                GFX.drawRect(x0 + 5, h - y - 12 - fontSize, w0 + 10, fontSize + 8, black and alphaMask)
+                GFX.drawText(x0 + 10, h - y - 10 - fontSize, font, fontSize, false, false, text, color, 0, -1)
+                x0 += w0 + 16
+            }
+
+            activeKeys.forEach { key ->
+                val alpha = key.time
+                val text = KeyCombination.keyMapping.reverse[key.keyCode] ?: key.keyCode.toString()
+                show(text, alpha)
+            }
+
+            bp.unbind()
+
+            return true
+
         }
 
-        activeKeys.forEach { key ->
-            val alpha = key.time
-            val text = KeyCombination.keyMapping.reverse[key.keyCode] ?: key.keyCode.toString()
-            show(text, alpha)
-        }
-
-        bp.unbind()
+        return false
 
     }
 

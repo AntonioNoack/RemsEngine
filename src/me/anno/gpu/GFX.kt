@@ -136,6 +136,9 @@ object GFX : GFXBase1() {
         loadTexturesSync.push(false)
     }
 
+    var deltaX = 0
+    var deltaY = 0
+
     var windowX = 0
     var windowY = 0
     var windowWidth = 0
@@ -175,7 +178,7 @@ object GFX : GFXBase1() {
         check()
         if (w < 1 || h < 1) throw java.lang.RuntimeException("w < 1 || h < 1 not allowed, got $w x $h")
         val realY = height - (y + h)
-        Frame(x, realY, w, h){
+        Frame(x, realY, w, h, false){
            render()
         }
     }
@@ -205,7 +208,7 @@ object GFX : GFXBase1() {
     }
 
     fun getPanelAt(panel: Panel, x: Int, y: Int): Panel? {
-        return if (panel.isVisible && (x - panel.x) in 0 until panel.w && (y - panel.y) in 0 until panel.h) {
+        return if (panel.canBeSeen && (x - panel.x) in 0 until panel.w && (y - panel.y) in 0 until panel.h) {
             if (panel is PanelGroup) {
                 for (child in panel.children.reversed()) {
                     val clickedByChild = getPanelAt(child, x, y)
@@ -259,6 +262,14 @@ object GFX : GFXBase1() {
         shader.v4("color", color.r() / 255f, color.g() / 255f, color.b() / 255f, color.a() / 255f)
         flat01.draw(shader)
         check()
+    }
+
+    fun drawBorder(x: Int, y: Int, w: Int, h: Int, color: Int, size: Int){
+        flatColor(color)
+        drawRect(x, y, w, size)
+        drawRect(x, y+h-size, w, size)
+        drawRect(x, y+size, size, h-2*size)
+        drawRect(x+w-size, y+size, size, h-2*size)
     }
 
     fun flatColor(color: Int) {
@@ -798,11 +809,11 @@ object GFX : GFXBase1() {
 
         Texture2D.textureBudgetUsed = 0
 
-        glBindTexture(GL_TEXTURE_2D, 0)
-
         check()
 
-        glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
+        glBindTexture(GL_TEXTURE_2D, 0)
+
+        // glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
         BlendDepth.reset()
         BlendDepth(BlendMode.DEFAULT, false).bind()
@@ -998,7 +1009,7 @@ object GFX : GFXBase1() {
         FrameTimes.place(x0, y0, FrameTimes.width, FrameTimes.height)
         FrameTimes.draw()
         loadTexturesSync.push(true)
-        drawText(x0 + 1, y0 + 1, "SansSerif", 12, false, false, currentEditorFPS.f1(), -1, 0, -1)
+        drawText(x0 + 1, y0 + 1, "Consolas", 12, false, false, currentEditorFPS.f1(), -1, 0, -1)
         loadTexturesSync.pop()
     }
 

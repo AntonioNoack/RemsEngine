@@ -80,7 +80,7 @@ class Framebuffer(
         }
     }
 
-    fun create(){
+    private fun create(){
         Frame.invalidate()
         // LOGGER.info("w: $w, h: $h, samples: $samples, targets: $targetCount x fp32? $fpTargets")
         GFX.check()
@@ -121,7 +121,7 @@ class Framebuffer(
         check()
     }
 
-    fun createColorBuffer(){
+    /*fun createColorBuffer(){
         if(!withMultisampling) throw RuntimeException()
         val renderBuffer = glGenRenderbuffers()
         colorRenderBuffer = renderBuffer
@@ -129,9 +129,9 @@ class Framebuffer(
         glBindRenderbuffer(GL_RENDERBUFFER, renderBuffer)
         glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, GL_RGBA8, w, h)
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, renderBuffer)
-    }
+    }*/
 
-    fun createDepthBuffer(){
+    private fun createDepthBuffer(){
         val renderBuffer = glGenRenderbuffers()
         depthRenderBuffer = renderBuffer
         if(renderBuffer < 0) throw RuntimeException()
@@ -142,7 +142,7 @@ class Framebuffer(
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, renderBuffer)
     }
 
-    fun resolveTo(target: Framebuffer?){
+    private fun resolveTo(target: Framebuffer?){
         try {
             GFX.check()
             if(target != null){
@@ -168,7 +168,7 @@ class Framebuffer(
         }
     }
 
-    fun check(){
+    private fun check(){
         val state = glCheckFramebufferStatus(GL_FRAMEBUFFER)
         if(state != GL_FRAMEBUFFER_COMPLETE){
             throw RuntimeException("framebuffer is incomplete: $state")
@@ -216,18 +216,18 @@ class Framebuffer(
         }
     }
 
-    fun use(x: Int, y: Int, w: Int, h: Int, rendering: () -> Unit){
+    /*fun use(x: Int, y: Int, w: Int, h: Int, rendering: () -> Unit){
         bind(w, h, false)
         glViewport(x, y, w, h)
         rendering()
         unbind()
-    }
+    }*/
 
-    private fun unbindUntil(){
+    /*private fun unbindUntil(){
         var popped = stack.pop()
         while(popped !== this) popped = stack.pop()!!
         stack.pop()!!.bind(true)
-    }
+    }*/
 
     private fun unbind(){
         val popped = stack.pop()
@@ -250,8 +250,6 @@ class Framebuffer(
 
     companion object {
 
-        var currentBuffer: Framebuffer? = null
-
         val LOGGER = LogManager.getLogger(Framebuffer::class)!!
 
         val stack = Stack<Framebuffer?>()
@@ -261,19 +259,6 @@ class Framebuffer(
         private fun bindNull(){
             glBindFramebuffer(GL_FRAMEBUFFER, 0)
             stack.push(null)
-        }
-
-        private fun unbind(){
-            stack.pop()
-            if(stack.isNotEmpty()){
-                stack.pop()?.bind(true) ?: {
-                    glBindFramebuffer(GL_FRAMEBUFFER, 0)
-                    glViewport(0, 0, GFX.width, GFX.height)
-                }()
-            } else {
-                glBindFramebuffer(GL_FRAMEBUFFER, 0)
-                glViewport(0, 0, GFX.width, GFX.height)
-            }
         }
 
     }

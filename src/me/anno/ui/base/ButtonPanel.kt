@@ -29,14 +29,18 @@ open class ButtonPanel(text: String, style: Style): TextPanel(text, style.getChi
         this += WrapAlign.LeftTop
     }
 
+    var mouseDown = false
+
+    override fun getVisualState(): Any? {
+        mouseDown = (isHovered && 0 in Input.mouseKeysDown) ||
+                (isInFocus && keysDown.one { it.key.isClickKey() })
+        backgroundColor = if(isHovered && !mouseDown) hoveredBackground else normalBackground
+        return Triple(super.getVisualState(), mouseDown, isHovered)
+    }
+
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
 
-        val isInFocus = isInFocus
         val isHovered = isHovered
-        val mouseDown = (isHovered && 0 in Input.mouseKeysDown) ||
-                (isInFocus && keysDown.one { it.key.isClickKey() })
-
-        backgroundColor = if(isHovered && !mouseDown) hoveredBackground else normalBackground
 
         drawBackground()
 

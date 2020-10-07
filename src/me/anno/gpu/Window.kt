@@ -1,5 +1,6 @@
 package me.anno.gpu
 
+import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.input.MouseButton
 import me.anno.ui.base.Panel
 import me.anno.utils.f3
@@ -14,6 +15,11 @@ class Window (val panel: Panel, val isFullscreen: Boolean, val x: Int, val y: In
 
     val needsRedraw = HashSet<Panel>()
     val needsLayout = HashSet<Panel>()
+
+    var lastW = -1
+    var lastH = -1
+
+    val buffer = Framebuffer("window-${panel.getClassName()}", 1, 1, 1, 1, false, Framebuffer.DepthBufferType.NONE)
 
     init { panel.window = this }
 
@@ -37,6 +43,10 @@ class Window (val panel: Panel, val isFullscreen: Boolean, val x: Int, val y: In
     }
 
     var acceptsClickAway = { _: MouseButton -> true }
+
+    fun destroy(){
+        buffer.destroy()
+    }
 
     companion object {
         private val LOGGER = LogManager.getLogger(Window::class.java)

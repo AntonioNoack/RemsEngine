@@ -23,23 +23,16 @@ abstract class NumberInput(
     val indexInProperty: Int
 ) : PanelListY(style) {
 
-    var hasValue = false
-
-    val titleView = object : TextPanel(title, style) {
-        override fun onMouseDown(x: Float, y: Float, button: MouseButton) {
-            this@NumberInput.onMouseDown(x, y, button)
-        }
-
-        override fun onMouseUp(x: Float, y: Float, button: MouseButton) {
-            this@NumberInput.onMouseUp(x, y, button)
-        }
-
-        override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
-            this@NumberInput.onMouseMoved(x, y, dx, dy)
-        }
+    private class TitlePanel(title: String, val numberInput: NumberInput, style: Style): TextPanel(title, style){
+        override fun onMouseDown(x: Float, y: Float, button: MouseButton) { numberInput.onMouseDown(x, y, button) }
+        override fun onMouseUp(x: Float, y: Float, button: MouseButton) { numberInput.onMouseUp(x, y, button) }
+        override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) { numberInput.onMouseMoved(x, y, dx, dy) }
     }
 
-    val inputPanel = object : PureTextInput(style.getChild("deep")) {
+    class NumberInputPanel(val owningProperty: AnimatedProperty<*>?,
+                           val indexInProperty: Int,
+                           val numberInput: NumberInput,
+                           style: Style): PureTextInput(style.getChild("deep")) {
 
         val driver get() = owningProperty?.drivers?.get(indexInProperty)
         val hasDriver get() = driver != null
@@ -50,9 +43,9 @@ abstract class NumberInput(
             if(lastTime != editorTime && owningProperty != null && owningProperty.isAnimated){
                 lastTime = editorTime
                 val value = owningProperty[editorTime]!![indexInProperty]
-                when(this@NumberInput){
-                    is IntInput -> setValue(value.toLong(), false)
-                    is FloatInput -> setValue(value.toDouble(), false)
+                when(numberInput){
+                    is IntInput -> numberInput.setValue(value.toLong(), false)
+                    is FloatInput -> numberInput.setValue(value.toDouble(), false)
                     else -> throw RuntimeException()
                 }
             }
@@ -70,16 +63,16 @@ abstract class NumberInput(
         override fun onMouseDown(x: Float, y: Float, button: MouseButton) {
             if (!hasDriver) {
                 super.onMouseDown(x, y, button)
-                this@NumberInput.onMouseDown(x, y, button)
+                numberInput.onMouseDown(x, y, button)
             }
         }
 
         override fun onMouseUp(x: Float, y: Float, button: MouseButton) {
-            if (!hasDriver) this@NumberInput.onMouseUp(x, y, button)
+            if (!hasDriver) numberInput.onMouseUp(x, y, button)
         }
 
         override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
-            if (!hasDriver) this@NumberInput.onMouseMoved(x, y, dx, dy)
+            if (!hasDriver) numberInput.onMouseMoved(x, y, dx, dy)
         }
 
         override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
@@ -89,9 +82,9 @@ abstract class NumberInput(
                     owningProperty.drivers[indexInProperty] = it
                     if (it != null) selectedInspectable = it
                     else {
-                        text = when(this@NumberInput){
-                            is IntInput -> stringify(lastValue)
-                            is FloatInput -> stringify(lastValue)
+                        text = when(numberInput){
+                            is IntInput -> numberInput.stringify(numberInput.lastValue)
+                            is FloatInput -> numberInput.stringify(numberInput.lastValue)
                             else -> throw RuntimeException()
                         }
                     }
@@ -105,8 +98,8 @@ abstract class NumberInput(
         override fun onEmpty(x: Float, y: Float) {
             if (hasDriver) {
                 owningProperty?.drivers?.set(indexInProperty, null)
-                this@NumberInput.onEmpty(x, y)
-            } else this@NumberInput.onEmpty(x, y)
+            }
+            numberInput.onEmpty(x, y)
         }
 
         override fun acceptsChar(char: Int): Boolean {
@@ -117,6 +110,12 @@ abstract class NumberInput(
         }
 
     }
+
+    var hasValue = false
+
+    private val titleView = TitlePanel(title, this, style)
+
+    val inputPanel = NumberInputPanel(owningProperty, indexInProperty, this, style)
 
     var wasInFocus = false
 
@@ -141,6 +140,7 @@ abstract class NumberInput(
 
     init {
         this += titleView
+        titleView.enableHoverColor = true
         titleView.focusTextColor = titleView.textColor
         titleView.setSimpleClickListener { inputPanel.toggleVisibility() }
         this += inputPanel

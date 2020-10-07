@@ -33,6 +33,8 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
 
     var folder: File? = project?.scenes ?: File(OS.home, "Documents")
 
+    override fun getLayoutState() = Pair(super.getLayoutState(), folder)
+
     val searchBar = TextInput("Search Term", style)
         .setChangeListener {
             searchTerm = it

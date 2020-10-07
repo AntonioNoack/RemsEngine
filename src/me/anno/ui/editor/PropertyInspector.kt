@@ -31,7 +31,8 @@ class PropertyInspector(style: Style):
         }
     }
 
-    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun tickUpdate() {
+        super.tickUpdate()
         val selected = selectedInspectable
         if(selected != lastSelected){
             lastSelected = selected
@@ -41,6 +42,7 @@ class PropertyInspector(style: Style):
                 createInspector(selected, list)
             }
         } else if(needsUpdate){
+            invalidateDrawing()
             lastSelected = selected
             needsUpdate = false
             secondaryList.clear()
@@ -75,7 +77,6 @@ class PropertyInspector(style: Style):
                 // we (would?) need to update the structure...
             }
         }
-        super.onDraw(x0, y0, x1, y1)
     }
 
     operator fun plusAssign(panel: Panel){

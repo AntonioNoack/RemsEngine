@@ -28,7 +28,7 @@ object RemsStudio: StudioBase(true){
         UILayouts.createWelcomeUI()
     }
 
-    var gfxSettings = DefaultConfig["editor.gfx", 0].run { GFXSettings.values().filter { it.id == this }.firstOrNull() ?: GFXSettings.LOW }
+    var gfxSettings = DefaultConfig["editor.gfx", 0].run { GFXSettings.values().firstOrNull { it.id == this } ?: GFXSettings.LOW }
         set(value) {
             field = value
             DefaultConfig["editor.gfx"] = value.id
@@ -77,16 +77,5 @@ object RemsStudio: StudioBase(true){
     var selectedTransform: Transform? = null
     var selectedProperty: AnimatedProperty<*>? = null
     var selectedInspectable: Inspectable? = null
-
-    fun updateInspector(){
-        windowStack.forEach { window ->
-            window.panel.listOfAll.forEach {
-                (it as? PropertyInspector)?.apply {
-                    needsUpdate = true
-                }
-            }
-        }
-    }
-
 
 }

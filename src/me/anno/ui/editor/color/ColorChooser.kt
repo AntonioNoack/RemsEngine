@@ -17,6 +17,7 @@ import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.input.EnumInput
 import me.anno.ui.style.Style
+import me.anno.utils.Quad
 import me.anno.utils.clamp
 import me.anno.utils.f3
 import me.anno.utils.get
@@ -35,6 +36,8 @@ class ColorChooser(style: Style, withAlpha: Boolean, val owningProperty: Animate
     // check box for hsl/hsluv
     // field(?) to enter rgb codes
 
+    override fun getVisualState(): Any? = Pair(super.getVisualState(), Triple(hue, saturation, lightness))
+
     var visualisation = lastVisualisation ?: ColorVisualisation.WHEEL
     var colorSpace = lastColorSpace ?: ColorSpace[DefaultConfig["color.defaultColorSpace", "HSLuv"]] ?: ColorSpace.HSLuv
 
@@ -49,6 +52,7 @@ class ColorChooser(style: Style, withAlpha: Boolean, val owningProperty: Animate
             setHSL(hue, saturation, lightness, opacity, colorSpace, true)
             onSmallChange("color-hue")
         }) {
+        override fun getVisualState(): Any? = Pair(super.getVisualState(), hue)
         override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
             super.onDraw(x0, y0, x1, y1)
             val x = x0 + ((x1 - x0) * hue).roundToInt()
@@ -65,6 +69,7 @@ class ColorChooser(style: Style, withAlpha: Boolean, val owningProperty: Animate
                 setHSL(hue, saturation, lightness, clamp(opacity, 0f, 1f), colorSpace, true)
                 onSmallChange("color-alpha")
             }) {
+            override fun getVisualState(): Any? = Pair(super.getVisualState(), opacity)
             override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
                 // super.onDraw(x0, y0, x1, y1)
                 val dragX = clamp(x0 + ((x1 - x0) * opacity).roundToInt(), x0, x1-1)
@@ -167,7 +172,10 @@ class ColorChooser(style: Style, withAlpha: Boolean, val owningProperty: Animate
         opacity = clamp(a, 0f, 1f)
         this.colorSpace = newColorSpace
         val rgb = colorSpace.toRGB(Vector3f(hue, saturation, lightness))
-        if (notify) changeRGBListener(rgb.x, rgb.y, rgb.z, opacity)
+        if (notify){
+            changeRGBListener(rgb.x, rgb.y, rgb.z, opacity)
+            onSmallChange("color-input")
+        }
     }
 
     fun drawColorBox(element: Panel, d0: Vector3f, du: Vector3f, dv: Vector3f, dh: Float, mainBox: Boolean) {

@@ -20,6 +20,7 @@ import me.anno.objects.animation.Keyframe
 import me.anno.studio.RemsStudio.onSmallChange
 import me.anno.studio.RemsStudio.editorTime
 import me.anno.studio.RemsStudio.editorTimeDilation
+import me.anno.studio.RemsStudio.isPaused
 import me.anno.studio.RemsStudio.root
 import me.anno.studio.RemsStudio.selectedProperty
 import me.anno.studio.RemsStudio.selectedTransform
@@ -65,6 +66,8 @@ class GraphEditorBody(style: Style): TimelinePanel(style.getChild("deep")){
 
     var activeChannels = -1
 
+    override fun getVisualState() = Quad(
+        super.getVisualState(), centralValue, dvHalfHeight, selectedProperty)
 
     fun normValue01(value: Float) = 0.5f - (value-centralValue)/dvHalfHeight * 0.5f
 
@@ -349,6 +352,7 @@ class GraphEditorBody(style: Style): TimelinePanel(style.getChild("deep")){
 
     override fun onMouseDown(x: Float, y: Float, button: MouseButton) {
         // find the dragged element
+        invalidateDrawing()
         draggedKeyframe = null
         if(button.isLeft){
             isSelecting = isShiftDown
@@ -423,7 +427,7 @@ class GraphEditorBody(style: Style): TimelinePanel(style.getChild("deep")){
             onSmallChange("graph-drag")
         } else {
             if(0 in mouseKeysDown){
-                if((isShiftDown || isControlDown) && editorTimeDilation == 0.0){
+                if((isShiftDown || isControlDown) && isPaused){
                     // scrubbing
                     editorTime = getTimeAt(x)
                 } else {

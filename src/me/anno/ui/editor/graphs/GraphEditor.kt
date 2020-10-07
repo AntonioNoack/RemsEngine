@@ -12,7 +12,7 @@ class GraphEditor(style: Style): PanelFrame(style) {
     // val title = TextPanel("Timeline", style)
     val body = GraphEditorBody(style)
     // val activateButtonContainer = PanelListY(style)
-    val activateButton = ButtonPanel("Enable Animations", style)
+    val activateButton = ButtonPanel("Enable Animation", style)
         .setSimpleClickListener { selectedProperty?.isAnimated = true }
 
     init {
@@ -27,10 +27,10 @@ class GraphEditor(style: Style): PanelFrame(style) {
         this += activateButton
     }
 
-    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+    override fun tickUpdate() {
+        super.tickUpdate()
         val canBeActivated = selectedProperty?.isAnimated == false
         activateButton.visibility = Visibility[canBeActivated]
-        super.onDraw(x0, y0, x1, y1)
     }
 
 }

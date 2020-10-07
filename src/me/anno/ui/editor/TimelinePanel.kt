@@ -7,15 +7,14 @@ import me.anno.gpu.GFX.openMenu
 import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.studio.RemsStudio.editorTime
-import me.anno.studio.RemsStudio.editorTimeDilation
+import me.anno.studio.RemsStudio.isPaused
 import me.anno.studio.RemsStudio.project
 import me.anno.studio.RemsStudio.targetDuration
 import me.anno.studio.RemsStudio.targetFPS
-import me.anno.studio.RemsStudio.updateInspector
+import me.anno.studio.RemsStudio.updateSceneViews
 import me.anno.studio.StudioBase.Companion.updateAudio
 import me.anno.ui.base.Panel
 import me.anno.ui.custom.CustomContainer.Companion.isCross
-import me.anno.ui.editor.graphs.GraphEditorBody
 import me.anno.ui.style.Style
 import me.anno.utils.clamp
 import me.anno.utils.mixARGB
@@ -26,6 +25,8 @@ import kotlin.math.roundToInt
 import kotlin.math.sqrt
 
 open class TimelinePanel(style: Style) : Panel(style) {
+
+    override fun getVisualState(): Any? = Triple(dtHalfLength, centralTime, editorTime)
 
     val accentColor = style.getColor("accentColor", DefaultStyle.black)
 
@@ -221,14 +222,14 @@ open class TimelinePanel(style: Style) : Panel(style) {
     fun jumpToX(x: Float) = jumpToT(getTimeAt(x))
     fun jumpToT(t: Double) {
         editorTime = t
-        updateInspector()
+        updateSceneViews()
         updateAudio()
     }
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
         GFX.editorHoverTime = getTimeAt(x)
         if (0 in Input.mouseKeysDown) {
-            if((Input.isShiftDown || Input.isControlDown) && editorTimeDilation == 0.0){
+            if((Input.isShiftDown || Input.isControlDown) && isPaused){
                 // scrubbing
                 editorTime = getTimeAt(x)
             } else {

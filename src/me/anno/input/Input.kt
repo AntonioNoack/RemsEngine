@@ -162,7 +162,7 @@ object Input {
                             while(true){
                                 val peek = windowStack.peek()
                                 if(panelWindow.second == peek || !peek.acceptsClickAway(mouseButton)) break
-                                windowStack.pop()
+                                windowStack.pop().destroy()
                             }
                         }
 
@@ -328,7 +328,7 @@ object Input {
                                         "Save & Exit" to {  },
                                         "Exit" to { requestExit() }
                                     ))
-                            } else windowStack.pop()
+                            } else windowStack.pop().destroy()
                             /*if (true || inFocus is SceneView) {
                                 if (windowStack.size < 2) {
                                     openMenu(mouseX, mouseY, "Exit?",
@@ -337,7 +337,7 @@ object Input {
                                             "Save & Exit" to { b, l -> true },
                                             "Exit" to { _, _ -> requestExit(); true }
                                         ))
-                                } else windowStack.pop()
+                                } else windowStack.pop().destroy()
                             } else {
                                 requestFocus(windowStack.mapNotNull {
                                     it.panel.listOfAll.firstOrNull { panel -> panel is SceneView }

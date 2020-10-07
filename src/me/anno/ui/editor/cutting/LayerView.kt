@@ -16,6 +16,9 @@ import me.anno.objects.animation.Keyframe
 import me.anno.studio.RemsStudio.onLargeChange
 import me.anno.studio.RemsStudio.onSmallChange
 import me.anno.studio.RemsStudio
+import me.anno.studio.RemsStudio.editorTime
+import me.anno.studio.RemsStudio.editorTimeDilation
+import me.anno.studio.RemsStudio.isPlaying
 import me.anno.studio.RemsStudio.root
 import me.anno.studio.RemsStudio.selectedProperty
 import me.anno.studio.RemsStudio.selectedTransform
@@ -191,6 +194,12 @@ class LayerView(style: Style) : TimelinePanel(style) {
         isCalculating = false
     }
 
+    var visualStateCtr = 0
+    override fun getVisualState(): Any? =
+        if((isHovered && mouseKeysDown.isNotEmpty()) || isPlaying) visualStateCtr++
+        else if(isHovered) Triple(editorTime, mouseX, mouseY)
+        else editorTime
+
     var lastTime = GFX.lastTime
 
     // calculation is fast, drawing is slow
@@ -364,7 +373,6 @@ class LayerView(style: Style) : TimelinePanel(style) {
                         val dt = shiftSlowdown * dilation * dx * dtHalfLength * 2 / w
                         transform.timeOffset += dt
                     }
-                    RemsStudio.updateInspector()
                     onSmallChange("layer-dx")
                 }
                 var sumDY = (y - Input.mouseDownY) / height
@@ -374,7 +382,6 @@ class LayerView(style: Style) : TimelinePanel(style) {
                 val newSlot = thisSlot + sumDY.roundToInt()
                 if (newSlot != timelineSlot) {
                     timelineSlot = newSlot
-                    RemsStudio.updateInspector()
                     onSmallChange("layer-slot")
                 }
             }

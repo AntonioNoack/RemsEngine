@@ -2,6 +2,7 @@ package me.anno.ui.base
 
 import me.anno.gpu.GFX
 import me.anno.gpu.Window
+import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.input.Input
 import me.anno.input.MouseButton
@@ -10,6 +11,7 @@ import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.state.Rect
 import me.anno.ui.style.Style
 import me.anno.utils.Tabs
+import me.anno.utils.one
 import java.io.File
 import java.lang.RuntimeException
 
@@ -17,6 +19,8 @@ open class Panel(val style: Style) {
 
     var minW = 1
     var minH = 1
+
+    val depth: Int get() = 1 + (parent?.depth ?: 0)
 
     var visibility = Visibility.VISIBLE
     var window: Window? = null
@@ -30,19 +34,22 @@ open class Panel(val style: Style) {
     fun hide(){ visibility = Visibility.GONE }
     fun show(){ visibility = Visibility.VISIBLE }
 
-    // todo make layout become valid/invalid, so we can save some cpu+gpu resources
+    // layout
     open fun invalidateLayout(){
         parent?.invalidateLayout() ?: {
-            window!!.needsLayout += this
+            val window = window ?: throw RuntimeException("${javaClass.simpleName} is missing parent")
+            window.needsLayout += this
         }()
     }
 
     open fun invalidateDrawing(){
-        window!!.needsRedraw += this
+        val window = window ?: throw RuntimeException("${javaClass.simpleName} is missing parent")
+        window.needsRedraw += this
     }
 
-    open fun getLayoutState(): Any? = Rect(x,y,w,h)
-    open fun getVisualState(): Any? = isHovered
+    open fun tickUpdate(){}
+    open fun getLayoutState(): Any? = Rect(lx0, ly0, lx1, ly1)
+    open fun getVisualState(): Any? = backgroundColor
 
     var oldLayoutState: Any? = null
     var oldVisualState: Any? = null
@@ -83,13 +90,15 @@ open class Panel(val style: Style) {
     var x = 0
     var y = 0
 
-    val isInFocus get() = this in GFX.inFocus
-    val canBeSeen get() = lx1 > lx0 && ly1 > ly0
-    val isHovered get() = Input.mouseX.toInt() - x in 0 until w && Input.mouseY.toInt() - y in 0 until h
+    // is updated by StudioBase
+    // should make some computations easier :)
+    var canBeSeen = true
+    var isInFocus = false
+    var isHovered = false
+
     val rootPanel: Panel get() = parent?.rootPanel ?: this
 
     var tooltip: String? = null
-    val isVisible get() = visibility == Visibility.VISIBLE && canBeSeen
 
     fun requestFocus() = GFX.requestFocus(this, true)
 
@@ -164,12 +173,8 @@ open class Panel(val style: Style) {
     }
 
     open fun applyPlacement(w: Int, h: Int) {
-        //this.minW = w
-        //this.minH = h
         this.w = w
         this.h = h
-        val x = x
-        val y = y
         for (c in layoutConstraints) {
             c.apply(this)
             if (this.w > w || this.h > h) throw RuntimeException("${c.javaClass} isn't working properly: $w -> ${this.w}, $h -> ${this.h}")
@@ -304,7 +309,7 @@ open class Panel(val style: Style) {
     }
 
     open fun printLayout(tabDepth: Int) {
-        println("${Tabs.spaces(tabDepth * 2)}${javaClass.simpleName}($weight) $x $y += $w $h ($minW $minH)")
+        println("${Tabs.spaces(tabDepth * 2)}${javaClass.simpleName}($weight, ${if(visibility==Visibility.VISIBLE) "v" else "_"})) $x $y += $w $h ($minW $minH)")
     }
 
     /**
@@ -313,6 +318,26 @@ open class Panel(val style: Style) {
      * */
     open fun isKeyInput() = false
     open fun acceptsChar(char: Int) = true
+
+    val listOfHierarchy: Sequence<Panel>
+        get() = sequence {
+            parent?.apply {
+                yieldAll(listOfHierarchy)
+            }
+            yield(this@Panel)
+        }
+
+    val listOfVisible: Sequence<Panel>
+        get() = sequence {
+            if(canBeSeen){
+                yield(this@Panel)
+                if(this@Panel is PanelGroup){
+                    this@Panel.children.forEach { child ->
+                        yieldAll(child.listOfAll)
+                    }
+                }
+            }
+        }
 
     val listOfAll: Sequence<Panel>
         get() = sequence {

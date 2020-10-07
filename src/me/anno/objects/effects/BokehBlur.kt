@@ -75,7 +75,6 @@ object BokehBlur {
         val shader = perChannelShader!!
         shader.use()
         shader.v2("stepVal", normRadius / w, normRadius / h)
-
         drawChannel(shader, r, w, h, xAxis)
         drawChannel(shader, g, w, h, yAxis)
         drawChannel(shader, b, w, h, zAxis)
@@ -87,7 +86,7 @@ object BokehBlur {
         target: Framebuffer
     ) {
 
-        Frame(w, h, target){
+        Frame(w, h, true, target){
 
             val shader = compositionShader!!
             shader.use()
@@ -107,7 +106,8 @@ object BokehBlur {
     }
 
     fun drawChannel(shader: Shader, target: Framebuffer, w: Int, h: Int, channel: Vector3f) {
-        Frame(w, h, target){
+        Frame(w, h, true, target){
+            Frame.currentFrame!!.bind()
             shader.v3("channelSelection", channel)
             flat01.draw(shader)
         }

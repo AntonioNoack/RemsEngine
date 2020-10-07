@@ -12,6 +12,7 @@ import me.anno.studio.RemsStudio.onSmallChange
 import me.anno.utils.clamp
 import me.anno.ui.base.TextPanel
 import me.anno.ui.style.Style
+import me.anno.utils.Quad
 import me.anno.utils.getIndexFromText
 import me.anno.utils.joinChars
 import kotlin.math.abs
@@ -23,9 +24,7 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
 
     val characters = ArrayList<Int>()
 
-    init {
-        instantTextLoading = true
-    }
+    init { instantTextLoading = true }
 
     fun setCursorToEnd(){
         cursor1 = characters.size
@@ -77,6 +76,15 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
         drawingOffset = -clamp(cursor - w / 3, 0, max(0, required - w))
     }
 
+    var showBars = false
+    override fun getVisualState(): Any? = Quad(super.getVisualState(), showBars, cursor1, cursor2)
+
+    override fun tickUpdate() {
+        super.tickUpdate()
+        val blinkVisible = ((GFX.lastTime / 500_000_000L) % 2L == 0L)
+        showBars = isInFocus && (blinkVisible || wasJustChanged)
+    }
+
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         loadTexturesSync.push(true)
         drawBackground()
@@ -86,8 +94,6 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
         val textColor = if(usePlaceholder) placeholderColor else effectiveTextColor
         val drawnText = if(usePlaceholder) placeholder else text
         val wh = drawText(drawingOffset, 0, drawnText, textColor)
-        val blinkVisible = ((System.nanoTime() / 500_000_000L) % 2L == 0L)
-        val showBars = blinkVisible || wasJustChanged
         if(isInFocus && (showBars || cursor1 != cursor2)){
             ensureCursorBounds()
             val padding = textSize/4
@@ -290,8 +296,9 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
         }
     }
 
-    override val enableHoverColor: Boolean
+    override var enableHoverColor: Boolean
         get() = text.isNotEmpty()
+        set(_) {}
 
     override fun getCursor() = Cursor.editText
     override fun isKeyInput() = true
