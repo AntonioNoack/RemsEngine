@@ -70,6 +70,7 @@ object Grid {
             color.shr(8).and(255) / 255f,
             color.and(255) / 255f, alpha)
         shader.v1("drawMode", GFX.drawMode.id)
+        // println(GFX.drawMode)
     }
 
     fun drawLine2(x0: Float, y0: Float, x1: Float, y1: Float,

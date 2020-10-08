@@ -242,7 +242,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                 val frameIndex = (localTime * videoFPS).toInt() % frameCount
 
                 val frame = Cache.getVideoFrame(
-                    file, zoomLevel, frameIndex,
+                    file, max(1, zoomLevel), frameIndex,
                     framesPerContainer, videoFPS, videoFrameTimeout, true
                 )
 
@@ -366,9 +366,9 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                             val frameIndex1 = (localTime1 * videoFPS).toInt() % frameCount
 
                             if (frameIndex1 >= frameIndex0) {
-                                for (frameIndex in frameIndex0..frameIndex1) {
+                                for (frameIndex in frameIndex0 .. frameIndex1 step framesPerContainer) {
                                     Cache.getVideoFrame(
-                                        file, zoomLevel, frameIndex, frameCount,
+                                        file, max(1, zoomLevel), frameIndex, framesPerContainer,
                                         videoFPS, videoFrameTimeout, true
                                     )
                                 }
@@ -395,14 +395,14 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
 
                         if (index1 >= index0) {
                             for (i in index0..index1) {
-                                Cache.getImage(meta.getImage(i), 500L, true)
+                                Cache.getImage(meta.getImage(i), videoFrameTimeout, true)
                             }
                         } else {
                             for (i in index1 until meta.matches.size) {
-                                Cache.getImage(meta.getImage(i), 500L, true)
+                                Cache.getImage(meta.getImage(i), videoFrameTimeout, true)
                             }
                             for (i in 0 until index0) {
-                                Cache.getImage(meta.getImage(i), 500L, true)
+                                Cache.getImage(meta.getImage(i), videoFrameTimeout, true)
                             }
                         }
 

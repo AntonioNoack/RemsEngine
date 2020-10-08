@@ -21,9 +21,8 @@ enum class GFXSettings(val id: Int, val displayName: String) {
             HIGH.data[key] = high
         }
         init {
-            put("editor.useMSAA", false, true, true)
-            put("editor.frames.perContainer", 32, 128, 512)
-            put("editor.frames.fps", 10.0, 20.0, 60.0)
+            put("ui.editor.useMSAA", false, true, true)
+            put("video.frames.perContainer", 32, 128, 512)
         }
     }
 }

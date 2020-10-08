@@ -29,11 +29,11 @@ object Tooltips {
         style
     )
 
-    val tooltipReactionTime = DefaultConfig["tooltip.reactionTime", 300]
-
     init {
         container += WrapAlign.LeftTop
     }
+
+    private val tooltipReactionTime get() = DefaultConfig["ui.tooltip.reactionTime", 300]
 
     fun draw(): Boolean {
 

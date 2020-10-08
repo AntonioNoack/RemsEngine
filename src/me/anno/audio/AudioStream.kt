@@ -237,19 +237,19 @@ abstract class AudioStream(
                 var a1: Double
 
                 when {
-                    mni == mxi -> {
+                    mni == mxi -> {// time is standing still
                         val data = getAmplitudesSync(mni)
                         a0 = data.first.toDouble()
                         a1 = data.second.toDouble()
                     }
-                    mnI == mxI -> {
+                    mnI == mxI -> {// time is roughly standing still
                         // from the same index, so 50:50
                         val data0 = getAmplitudesSync(mni)
                         val data1 = getAmplitudesSync(mxi)
                         a0 = 0.5 * (data0.first + data1.first)
                         a1 = 0.5 * (data0.second + data1.second)
                     }
-                    else -> {
+                    else -> {// time is changing
                         // sampling from all values
                         // (slow motion sound effects)
                         val data0 = getAmplitudesSync(mni)
@@ -308,26 +308,11 @@ abstract class AudioStream(
                 stereoBuffer.put(transfer0.getLeft(a0, a1, approxFraction, transfer1).toShort())
                 stereoBuffer.put(transfer0.getRight(a0, a1, approxFraction, transfer1).toShort())
 
-                // global0 = global1
-                // local0 = local1
                 index0 = index1
 
             }
 
             stereoBuffer.position(0)
-
-            // 1:1 playback
-            /*val soundBuffer = Cache.getEntry(AudioSliceKey(file, (time/dt).roundToInt()), 1000){
-                val sequence = FFMPEGStream.getAudioSequence(file, time, dt, sampleRate)
-                var buffer: SoundBuffer?
-                while(true){
-                    buffer = sequence.soundBuffer
-                    if(buffer != null) break
-                    // somebody else needs to work on the queue
-                    Thread.sleep(10)
-                }
-                buffer!!
-            } as SoundBuffer*/
 
             onBufferFilled(stereoBuffer, bufferIndex)
 

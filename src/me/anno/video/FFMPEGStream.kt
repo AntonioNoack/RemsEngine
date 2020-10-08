@@ -1,5 +1,7 @@
 package me.anno.video
 
+import me.anno.gpu.GFX
+import me.anno.video.FFMPEGMetadata.Companion.getMeta
 import org.apache.logging.log4j.LogManager
 import java.io.File
 import java.io.InputStream
@@ -22,17 +24,31 @@ abstract class FFMPEGStream(val file: File?){
         )) as FFMPEGMeta).stringData
         fun getImageSequence(input: File, w: Int, h: Int, startFrame: Int, frameCount: Int, fps: Double = 10.0) =
             getImageSequence(input, w, h, startFrame / fps, frameCount, fps)
+        // ffmpeg needs to fetch hardware decoded frames (-hwaccel auto) from gpu memory;
+        // if we use hardware decoding, we need to use it on the gpu...
         fun getImageSequence(input: File, w: Int, h: Int, startTime: Double, frameCount: Int, fps: Double = 10.0) = FFMPEGVideo(
-            input, (startTime * fps).roundToInt(), frameCount).run(listOf(
-            "-i", input.absolutePath,
-            "-ss", "$startTime",
-            "-vf", "scale=$w:$h",
-            "-r", "$fps",
-            "-vframes", "$frameCount",
-            "-movflags", "faststart", // has no effect :(
-            "-f", "rawvideo", "-"// format
-            // "pipe:1" // 1 = stdout, 2 = stdout
-        )) as FFMPEGVideo
+            input, (startTime * fps).roundToInt(), frameCount).run(
+            if(getMeta(input, false)?.videoWidth == w){
+                listOf(
+                    "-i", input.absolutePath,
+                    "-ss", "$startTime",
+                    "-r", "$fps",
+                    "-vframes", "$frameCount",
+                    // "-movflags", "faststart", // has no effect :(
+                    "-f", "rawvideo", "-" // format
+                )
+            } else {
+                listOf(
+                    "-i", input.absolutePath,
+                    "-ss", "$startTime",
+                    "-vf", "scale=$w:$h",
+                    "-r", "$fps",
+                    "-vframes", "$frameCount",
+                    // "-movflags", "faststart", // has no effect :(
+                    "-f", "rawvideo", "-" // format
+                )
+            }
+        ) as FFMPEGVideo
         fun getAudioSequence(input: File, startTime: Double, duration: Double, sampleRate: Int) = FFMPEGAudio(
             input, sampleRate, duration).run(listOf(
             "-i", input.absolutePath,
@@ -55,6 +71,7 @@ abstract class FFMPEGStream(val file: File?){
     abstract fun destroy()
 
     fun run(arguments: List<String>): FFMPEGStream {
+        // LOGGER.info("${(GFX.lastTime/1e9).toInt()} ${arguments.joinToString(" ")}")
         val args = ArrayList<String>(arguments.size+2)
         args += FFMPEG.ffmpegPathString
         if(arguments.isNotEmpty()) args += "-hide_banner"

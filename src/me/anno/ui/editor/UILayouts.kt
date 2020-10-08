@@ -136,6 +136,7 @@ object UILayouts {
                 RemsStudio.loadProject(name.trim(), file)
                 addEvent {
                     nullCamera.farZ.set(5000f)
+                    nullCamera.resetTransform()
                     windowStack.clear()
                     createEditorUI()
                 }
@@ -301,12 +302,12 @@ object UILayouts {
             .setTooltip("Disables MSAA")
         quickSettings += BooleanInput("Enable Vsync", GFXBase0.enableVsync, style)
             .setChangeListener {
-                DefaultConfig["editor.vsync"] = it
+                DefaultConfig["debug.ui.enableVsync"] = it
                 GFXBase0.setVsyncEnabled(it)
             }
             .setTooltip("Recommended: true, false only for debugging")
         quickSettings += BooleanInput("Show FPS", RemsStudio.showFPS, style)
-            .setChangeListener { DefaultConfig["debug.fps.show"] = it }
+            .setChangeListener { DefaultConfig["debug.ui.showFPS"] = it }
             .setTooltip("For debugging / monitoring stutters")
 
         val scroll = ScrollPanelY(welcome, Padding(5), style)

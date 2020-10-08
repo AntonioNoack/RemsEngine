@@ -5,6 +5,7 @@ import me.anno.video.formats.ARGBFrame
 import me.anno.video.formats.BGRAFrame
 import me.anno.video.formats.I420Frame
 import me.anno.video.formats.RGBFrame
+import org.apache.logging.log4j.LogManager
 import java.io.File
 import java.io.InputStream
 import java.lang.Exception
@@ -20,6 +21,7 @@ class FFMPEGVideo(file: File?, val frame0: Int, bufferLength: Int):
             val parser = FFMPEGMetaParser()
             while(true){
                 val line = out.readLine() ?: break
+                // if('!' in line || "Error" in line) LOGGER.warn("ffmpeg $frame0 ${arguments.joinToString(" ")}: $line")
                 parser.parseLine(line, this)
             }
         }
@@ -79,6 +81,8 @@ class FFMPEGVideo(file: File?, val frame0: Int, bufferLength: Int):
         }
     }
 
-
+    companion object {
+        private val LOGGER = LogManager.getLogger(FFMPEGVideo::class.java)
+    }
 
 }

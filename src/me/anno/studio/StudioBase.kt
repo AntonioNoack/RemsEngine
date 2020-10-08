@@ -21,6 +21,7 @@ import me.anno.input.ActionManager
 import me.anno.input.Input
 import me.anno.input.ShowKeys
 import me.anno.objects.cache.Cache
+import me.anno.studio.RemsStudio.selectedProperty
 import me.anno.studio.RemsStudio.selectedTransform
 import me.anno.studio.history.SceneState
 import me.anno.studio.project.Project
@@ -66,7 +67,7 @@ abstract class StudioBase(val needsAudio: Boolean) {
 
     val windowStack = Stack<Window>()
 
-    var showTutorialKeys = DefaultConfig["tutorial.keys.show", true]
+    val showTutorialKeys get() = DefaultConfig["tutorial.keys.show", true]
     val showFPS get() = DefaultConfig["debug.ui.showFPS", Build.isDebug]
     val showRedraws get() = DefaultConfig["debug.ui.showRedraws", false]
 
@@ -95,12 +96,14 @@ abstract class StudioBase(val needsAudio: Boolean) {
                             it.invalidateDrawing()
                         }
                         is GraphEditorBody -> {
-                            if (selectedTransform != null) {
+                            if (selectedProperty != null) {
                                 it.invalidateDrawing()
                             }
                         }
                         is PropertyInspector -> {
-                            it.needsUpdate = true
+                            if(selectedTransform != null){
+                                it.needsUpdate = true
+                            }
                         }
                     }
                 }

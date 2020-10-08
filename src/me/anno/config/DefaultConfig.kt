@@ -18,11 +18,8 @@ import me.anno.utils.f3
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3f
 import java.io.File
-import java.lang.Exception
-import kotlin.math.max
-import kotlin.math.min
 
-object DefaultConfig: StringMap() {
+object DefaultConfig : StringMap() {
 
     private val LOGGER = LogManager.getLogger(DefaultConfig::class)
 
@@ -38,7 +35,6 @@ object DefaultConfig: StringMap() {
 
         this["style"] = "dark"
         this["ffmpeg.path"] = File(OS.downloads, "lib\\ffmpeg\\bin\\ffmpeg.exe") // I'm not sure about that one ;)
-        this["tooltip.reactionTime"] = 300
         this["lastUsed.fonts.count"] = 5
         this["default.video.nearest"] = false
         this["default.image.nearest"] = false
@@ -52,20 +48,28 @@ object DefaultConfig: StringMap() {
         this["target.resolutions.defaultValues"] = "1920x1080,1920x1200,720x480,2560x1440,3840x2160"
         this["target.resolutions.sort"] = 1 // 1 = ascending order, -1 = descending order, 0 = don't sort
 
-        this["display.colorDepth"] = 8
-
         this["rendering.useMSAA"] = true // should not be deactivated, unless... idk...
-        this["editor.useMSAA"] = true // can be deactivated for really weak GPUs
+        // this["ui.editor.useMSAA"] = true // can be deactivated for really weak GPUs
 
         addImportMappings("Transform", "json")
-        addImportMappings("Image", "png", "jpg", "jpeg", "tiff", "webp", "svg", "ico")
+        addImportMappings(
+            "Image",
+            "png", "jpg", "jpeg", "tiff", "webp", "svg", "ico", "psd"
+        )
         addImportMappings("Cubemap-Equ", "hdr")
-        addImportMappings("Video", "mp4", "gif", "mpeg", "avi", "flv", "wmv", "mkv")
+        addImportMappings(
+            "Video",
+            "mp4", "m4p", "m4v", "gif",
+            "mpeg", "mp2", "mpg", "mpe", "mpv", "svi", "3gp", "3g2", "roq",
+            "nsv", "f4v", "f4p", "f4a", "f4b",
+            "avi", "flv", "vob", "wmv", "mkv", "ogg", "ogv", "drc",
+            "mov", "qt", "mts", "m2ts", "ts", "rm", "rmvb", "viv", "asf", "amv"
+        )
         addImportMappings("Text", "txt")
         addImportMappings("Mesh", "obj", "fbx", "dae")
         // not yet supported
         // addImportMappings("Markdown", "md")
-        addImportMappings("Audio", "mp3", "wav", "ogg", "m4a")
+        addImportMappings("Audio", "mp3", "wav", "m4a")
 
         this["import.mapping.*"] = "Text"
 
@@ -75,7 +79,7 @@ object DefaultConfig: StringMap() {
         try {
             newConfig = ConfigBasics.loadConfig("main.config", this, true)
             putAll(newConfig)
-        } catch (e: Exception){
+        } catch (e: Exception) {
             e.printStackTrace()
         }
 
@@ -86,18 +90,18 @@ object DefaultConfig: StringMap() {
 
         val t1 = System.nanoTime()
         // not completely true; is loading some classes, too
-        LOGGER.info("Used ${((t1-t0)*1e-9f).f3()}s to read the config")
+        LOGGER.info("Used ${((t1 - t0) * 1e-9f).f3()}s to read the config")
 
     }
 
-    fun save(){
+    fun save() {
         this.wasChanged = false
         baseTheme.values.wasChanged = false
         ConfigBasics.save("main.config", this.toString())
         ConfigBasics.save("style.config", baseTheme.values.toString())
     }
 
-    fun newInstances(){
+    fun newInstances() {
 
         val t0 = System.nanoTime()
 
@@ -142,7 +146,7 @@ object DefaultConfig: StringMap() {
                 .addAll(newInstances)
 
         val t1 = System.nanoTime()
-        LOGGER.info("Used ${((t1-t0)*1e-9).f3()}s for new instances list")
+        LOGGER.info("Used ${((t1 - t0) * 1e-9).f3()}s for new instances list")
 
     }
 
@@ -152,10 +156,10 @@ object DefaultConfig: StringMap() {
     fun getRecentProjects(): ArrayList<ProjectHeader> {
         val projects = ArrayList<ProjectHeader>()
         val usedFiles = HashSet<File>()
-        for(i in 0 until recentProjectCount){
+        for (i in 0 until recentProjectCount) {
             val name = this["recent.projects[$i].name"] as? String ?: continue
             val file = File(this["recent.projects[$i].file"] as? String ?: continue)
-            if(file !in usedFiles){
+            if (file !in usedFiles) {
                 projects += ProjectHeader(name, file)
                 usedFiles += file
             }
@@ -163,42 +167,42 @@ object DefaultConfig: StringMap() {
         return projects
     }
 
-    fun addToRecentProjects(project: Project){
+    fun addToRecentProjects(project: Project) {
         addToRecentProjects(ProjectHeader(project.name, project.file))
     }
 
-    fun removeFromRecentProjects(file: File){
+    fun removeFromRecentProjects(file: File) {
         val recent = getRecentProjects()
         recent.removeIf { it.file == file }
         updateRecentProjects(recent)
     }
 
-    fun addToRecentProjects(project: ProjectHeader){
+    fun addToRecentProjects(project: ProjectHeader) {
         val recent = getRecentProjects()
         recent.add(0, project)
         updateRecentProjects(recent)
     }
 
-    fun updateRecentProjects(recent: List<ProjectHeader>){
+    fun updateRecentProjects(recent: List<ProjectHeader>) {
         val usedFiles = HashSet<File>()
         var i = 0
-        for(projectI in recent){
-            if(projectI.file !in usedFiles){
+        for (projectI in recent) {
+            if (projectI.file !in usedFiles) {
                 this["recent.projects[$i].name"] = projectI.name
                 this["recent.projects[$i].file"] = projectI.file.absolutePath
                 usedFiles += projectI.file
-                if(++i > recentProjectCount) break
+                if (++i > recentProjectCount) break
             }
         }
-        for(j in i until recentProjectCount){
+        for (j in i until recentProjectCount) {
             remove("recent.projects[$i].name")
             remove("recent.projects[$i].file")
         }
         save()
     }
 
-    fun addImportMappings(result: String, vararg extensions: String){
-        for(extension in extensions){
+    fun addImportMappings(result: String, vararg extensions: String) {
+        for (extension in extensions) {
             this["import.mapping.$extension"] = result
         }
     }

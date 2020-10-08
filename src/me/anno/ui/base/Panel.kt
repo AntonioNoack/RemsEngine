@@ -314,7 +314,7 @@ open class Panel(val style: Style) {
     }
 
     open fun printLayout(tabDepth: Int) {
-        println("${Tabs.spaces(tabDepth * 2)}${javaClass.simpleName}($weight, ${if(visibility==Visibility.VISIBLE) "v" else "_"})) $x $y += $w $h ($minW $minH)")
+        println("${Tabs.spaces(tabDepth * 2)}${javaClass.simpleName}($weight, ${if(visibility==Visibility.VISIBLE) "v" else "_"})) $x $y += $w $h ($minW $minH) ${style.prefix}")
     }
 
     open fun drawsOverlaysOverChildren(lx0: Int, ly0: Int, lx1: Int, ly1: Int) = false

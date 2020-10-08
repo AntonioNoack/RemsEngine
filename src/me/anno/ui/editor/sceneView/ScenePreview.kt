@@ -85,8 +85,6 @@ class ScenePreview(style: Style) : PanelList(null, style.getChild("sceneView")),
 
         GFX.ensureEmptyStack()
 
-        GFX.drawMode = ShaderPlus.DrawMode.COLOR_SQUARED
-
         GFX.check()
 
         updatePosition()
@@ -115,15 +113,8 @@ class ScenePreview(style: Style) : PanelList(null, style.getChild("sceneView")),
         // because resizing all framebuffers is expensive (causes lag)
         val matchesSize = lastW == rw && lastH == rh
         val wasNotRecentlyUpdated = lastSizeUpdate + 1e8 < GFX.lastTime
-        val wasDrawn = matchesSize && wasNotRecentlyUpdated
         if (matchesSize) {
             if (wasNotRecentlyUpdated) {
-                Scene.draw(
-                    camera,
-                    x + dx, y + dy, rw, rh,
-                    editorTime, false,
-                    ShaderPlus.DrawMode.COLOR_SQUARED, this
-                )
                 goodW = rw
                 goodH = rh
             }
@@ -133,20 +124,19 @@ class ScenePreview(style: Style) : PanelList(null, style.getChild("sceneView")),
             lastH = rh
         }
 
-        if (!wasDrawn) {
-            if (goodW == 0 || goodH == 0) {
-                goodW = rw
-                goodH = rh
-            }
-            GFX.drawRect(x + dx, y + dy, rw, rh, black)
-            Scene.draw(
-                camera,
-                x + dx, y + dy, goodW, goodH,
-                editorTime, false,
-                if(usesFPBuffers) ShaderPlus.DrawMode.COLOR_SQUARED else ShaderPlus.DrawMode.COLOR,
-                this
-            )
+        if (goodW == 0 || goodH == 0) {
+            goodW = rw
+            goodH = rh
         }
+
+        GFX.drawRect(x + dx, y + dy, rw, rh, black)
+        Scene.draw(
+            camera,
+            x + dx, y + dy, goodW, goodH,
+            editorTime, false,
+            ShaderPlus.DrawMode.COLOR,
+            this
+        )
 
         GFX.ensureEmptyStack()
 

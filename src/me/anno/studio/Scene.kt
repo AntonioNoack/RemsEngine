@@ -191,7 +191,8 @@ object Scene {
                     "           default: toneMapped = vec3(1,0,1);\n" +
                     "       }" +
                     "       vec3 colorGraded = colorGrading(toneMapped);\n" +
-                    "       vec4 color = vec4(sqrt(colorGraded), ga.y);\n" + // toneMapper == ${ToneMappers.RAW8.id} ? graded :
+                    // todo the grid is drawn with ^2 in raw8 mode, the rest is fine...
+                    "       vec4 color = vec4(toneMapper == ${ToneMappers.RAW8.id} ? colorGraded : sqrt(colorGraded), ga.y);\n" +
                     "       float rSq = dot(nuv,nuv);\n" + // nuv nuv 😂 (hedgehog sounds for German children)
                     "       color = mix(vec4(vignetteColor, 1.0), color, 1.0/(1.0 + vignetteStrength*rSq));\n" +
                     "       gl_FragColor = color + random(uv) * minValue;\n" +
@@ -283,7 +284,7 @@ object Scene {
         val mayUseMSAA = if (isFinalRendering)
             DefaultConfig["rendering.useMSAA", true]
         else
-            DefaultConfig["editor.useMSAA", gfxSettings["editor.useMSAA"]]
+            DefaultConfig["ui.editor.useMSAA", gfxSettings["ui.editor.useMSAA"]]
         val samples = if (mayUseMSAA && !isFakeColorRendering) 8 else 1
 
         GFX.check()
@@ -468,7 +469,7 @@ object Scene {
             val shader = sqrtToneMappingShader
             shader.use()
             shader.v1("ySign", if (flipY) -1f else 1f)
-            val colorDepth = DefaultConfig["display.colorDepth", 8]
+            val colorDepth = DefaultConfig["gpu.display.colorDepth", 8]
 
             val minValue = if (isFakeColorRendering) -1f else 1f / (1 shl colorDepth)
             shader.v1("minValue", minValue)

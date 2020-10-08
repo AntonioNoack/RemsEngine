@@ -51,12 +51,13 @@ object DefaultStyle {
         set("propertyInspector.background", flatDark, midGray)
         set("sceneView.background", deepDark, lightGray)
         set("menu.background", reallyDark, nearWhite)
-        /*set("spacer.background", deepDark, lightGray)
-        set("spacer.menu.background", fontGray, lightGray)*/
+        set("spacer.background", deepDark, lightGray)
+        set("spacer.menu.background", fontGray, lightGray)
         set("options.spacer.background", flatDark, midGray)
         set("deep.background", deepDark, lightGray)
         set("deep.edit.background", deepDark, lightGray)
         set("deep.propertyInspector.background", deepDark, lightGray)
+        set("spacer.background", scrollGray, white)
 
         // special color
         set("accentColor", brightYellow, shinyBlue)

@@ -56,9 +56,9 @@ class VideoCreator(val w: Int, val h: Int, val fps: Double, val totalFrameCount:
             "-c:v", "libx264", // encoding
             "-an", // no audio
             "-r", "$fps",
-            "-crf", "22",
+            "-crf", "18",
             "-pix_fmt", "yuv420p",
-            "-preset", "ultrafast",
+            // "-preset", "ultrafast",
             // "-qp", "0", // constant quality
             output.absolutePath
         )

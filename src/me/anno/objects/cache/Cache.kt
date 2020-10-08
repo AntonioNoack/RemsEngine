@@ -9,6 +9,7 @@ import me.anno.video.VFrame
 import org.apache.logging.log4j.LogManager
 import java.io.File
 import java.io.FileNotFoundException
+import java.lang.RuntimeException
 import javax.imageio.ImageIO
 import kotlin.concurrent.thread
 import kotlin.math.abs
@@ -177,10 +178,10 @@ object Cache {
 
     }
 
-    fun getVideoFrame(file: File, scale0: Int, index: Int, bufferLength0: Int, fps: Double, timeout: Long, async: Boolean): VFrame? {
+    fun getVideoFrame(file: File, scale: Int, index: Int, bufferLength0: Int, fps: Double, timeout: Long, async: Boolean): VFrame? {
         if(file.isDirectory || !file.exists()) return null
         if (index < 0) return null
-        val scale = max(1, scale0)
+        if(scale < 1) throw RuntimeException()
         val bufferLength = max(1, bufferLength0)
         val bufferIndex = index / bufferLength
         val videoData = getVideoFrames(file, scale, bufferIndex, bufferLength, fps, timeout, async) ?: return null

@@ -8,6 +8,7 @@ import me.anno.objects.Camera
 import me.anno.studio.RemsStudio.nullCamera
 import me.anno.studio.RemsStudio.root
 import me.anno.studio.Scene
+import java.lang.RuntimeException
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.concurrent.thread
 import kotlin.math.min
@@ -86,7 +87,12 @@ class VideoBackgroundTask(val video: VideoCreator) {
         GFX.isFinalRendering = true
         Frame(0, 0, video.w, video.h, false, framebuffer) {
             try {
-                Scene.draw(camera, 0, 0, video.w, video.h, time, true, ShaderPlus.DrawMode.COLOR_SQUARED, null)
+                Scene.draw(
+                    camera, 0, 0, video.w, video.h,
+                    time, true,
+                    ShaderPlus.DrawMode.COLOR,
+                    null)
+                if(!GFX.isFinalRendering) throw RuntimeException()
             } catch (e: MissingFrameException) {
                 GFX.isFinalRendering = false
             }
