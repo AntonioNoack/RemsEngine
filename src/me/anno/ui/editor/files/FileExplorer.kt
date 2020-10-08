@@ -49,6 +49,7 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
 
     fun invalidate(){
         isValid = 0f
+        invalidateLayout()
     }
 
     val uContent = PanelListX(style)

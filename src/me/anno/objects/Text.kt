@@ -102,7 +102,6 @@ open class Text(text: String = "", parent: Transform? = null): GFXTransform(pare
             RemsStudio.updateSceneViews()
             needsUpdate = false
         }
-
     }
 
     open fun splitSegments(text: String): PartResult? {

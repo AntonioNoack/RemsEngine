@@ -20,6 +20,10 @@ class PropertyInspector(style: Style):
     var lastSelected: Inspectable? = null
     var needsUpdate = false
 
+    override fun getLayoutState(): Any? {
+        return Pair(super.getLayoutState(), selectedInspectable)
+    }
+
     fun createInspector(ins: Inspectable, list: PanelListY){
         val groups = HashMap<String, SettingCategory>()
         ins.createInspector(list, style){ title, id ->
