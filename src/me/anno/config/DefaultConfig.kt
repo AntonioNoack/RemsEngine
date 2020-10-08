@@ -91,7 +91,10 @@ object DefaultConfig: StringMap() {
     }
 
     fun save(){
+        this.wasChanged = false
+        baseTheme.values.wasChanged = false
         ConfigBasics.save("main.config", this.toString())
+        ConfigBasics.save("style.config", baseTheme.values.toString())
     }
 
     fun newInstances(){

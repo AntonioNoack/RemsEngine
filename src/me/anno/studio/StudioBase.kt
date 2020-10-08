@@ -8,6 +8,7 @@ import me.anno.gpu.Cursor
 import me.anno.gpu.Cursor.useCursor
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.inFocus
+import me.anno.gpu.GFXBase0
 import me.anno.gpu.Window
 import me.anno.gpu.blending.BlendDepth
 import me.anno.gpu.blending.BlendMode
@@ -54,7 +55,6 @@ abstract class StudioBase(val needsAudio: Boolean) {
 
     abstract fun createUI()
 
-    var showRedraws = DefaultConfig["debug.ui.showRedraws", false]
     val startTime = System.nanoTime()
 
     val isSaving = AtomicBoolean(false)
@@ -67,7 +67,8 @@ abstract class StudioBase(val needsAudio: Boolean) {
     val windowStack = Stack<Window>()
 
     var showTutorialKeys = DefaultConfig["tutorial.keys.show", true]
-    var showFPS = DefaultConfig["debug.fps.show", Build.isDebug]
+    val showFPS get() = DefaultConfig["debug.ui.showFPS", Build.isDebug]
+    val showRedraws get() = DefaultConfig["debug.ui.showRedraws", false]
 
     var workspace = DefaultConfig["workspace.dir", File(OS.home, "Documents/RemsStudio")]
 
@@ -106,6 +107,7 @@ abstract class StudioBase(val needsAudio: Boolean) {
         }
     }
 
+    var wasSavingConfig = 0L
     fun saveStateMaybe() {
         val historySaveDuration = 1e9
         if (saveIsRequested && !isSaving.get()) {
@@ -115,6 +117,16 @@ abstract class StudioBase(val needsAudio: Boolean) {
                 forceSave = false
                 saveIsRequested = false
                 saveState()
+            }
+        }
+        if ((DefaultConfig.wasChanged || style.values.wasChanged)
+            && GFX.lastTime > wasSavingConfig + 1_000_000_000
+        ) {// only save every 1s
+            // delay in case it needs longer
+            wasSavingConfig = GFX.lastTime + (60 * 1e9).toLong()
+            thread {
+                DefaultConfig.save()
+                wasSavingConfig = GFX.lastTime
             }
         }
     }
@@ -195,6 +207,11 @@ abstract class StudioBase(val needsAudio: Boolean) {
 
             check()
 
+            val vsync = DefaultConfig["debug.ui.enableVsync", Build.isDebug]
+            if (vsync != GFXBase0.enableVsync) {
+                GFXBase0.setVsyncEnabled(vsync)
+            }
+
             saveStateMaybe()
 
             if (isFirstFrame) mt("game loop")
@@ -269,7 +286,7 @@ abstract class StudioBase(val needsAudio: Boolean) {
                         }
                     }
 
-                    if(panel0.w > 0 && panel0.h > 0){
+                    if (panel0.w > 0 && panel0.h > 0) {
 
                         val sparseRedraw = DefaultConfig["ui.sparseRedraw", true]
 
@@ -317,7 +334,14 @@ abstract class StudioBase(val needsAudio: Boolean) {
                                             if (panel.canBeSeen) {
                                                 val y = panel.ly0
                                                 val h2 = panel.ly1 - panel.ly0
-                                                Frame(panel.lx0, h - (y + h2), panel.lx1 - panel.lx0, h2, false, buffer) {
+                                                Frame(
+                                                    panel.lx0,
+                                                    h - (y + h2),
+                                                    panel.lx1 - panel.lx0,
+                                                    h2,
+                                                    false,
+                                                    buffer
+                                                ) {
                                                     panel.redraw()
                                                 }
                                             }
@@ -346,9 +370,15 @@ abstract class StudioBase(val needsAudio: Boolean) {
                                         window.buffer.bindTexture0(0, NearestMode.TRULY_NEAREST, ClampMode.CLAMP)
                                         GFX.copy()
 
-                                        if(showRedraws){
+                                        if (showRedraws) {
                                             wasRedrawn.forEach {
-                                                GFX.drawRect(it.lx0, it.ly0, it.lx1 - it.lx0, it.ly1 - it.ly0, 0x33ff0000)
+                                                GFX.drawRect(
+                                                    it.lx0,
+                                                    it.ly0,
+                                                    it.lx1 - it.lx0,
+                                                    it.ly1 - it.ly0,
+                                                    0x33ff0000
+                                                )
                                             }
                                         }
 

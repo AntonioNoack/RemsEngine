@@ -13,7 +13,7 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
-class CustomListX(style: Style) : PanelListX(style), CustomList {
+open class CustomListX(style: Style) : PanelListX(style), CustomList {
 
     init {
         spacing = style.getSize("custom.drag.size", 4)

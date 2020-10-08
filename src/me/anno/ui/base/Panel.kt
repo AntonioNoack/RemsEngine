@@ -8,6 +8,8 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.studio.RemsStudio
+import me.anno.ui.base.components.Padding
+import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.state.Rect
 import me.anno.ui.style.Style
@@ -34,6 +36,8 @@ open class Panel(val style: Style) {
     fun toggleVisibility(){ visibility = if(visibility == Visibility.VISIBLE) Visibility.GONE else Visibility.VISIBLE }
     fun hide(){ visibility = Visibility.GONE }
     fun show(){ visibility = Visibility.VISIBLE }
+
+    fun withPadding(l: Int, t: Int, r: Int, b: Int) = PanelContainer(this, Padding(l, t, r, b), style)
 
     // layout
     open fun invalidateLayout(){

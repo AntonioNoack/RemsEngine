@@ -7,7 +7,6 @@ abstract class PanelList(val sorter: Comparator<Panel>?, style: Style): PanelGro
 
     override val children = ArrayList<Panel>()
     var spacing = style.getSize("spacer.width", 0)
-    var spaceColor = style.getColor("spacer.background", 0)
     var disableConstantSpaceForWeightedChildren = false
 
     fun clear() = children.clear()

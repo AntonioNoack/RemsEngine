@@ -46,6 +46,10 @@ open class ScrollPanelX(child: Panel, padding: Padding,
     val scrollbarHeight = style.getSize("scrollbar.height", 8)
     val scrollbarPadding = style.getSize("scrollbar.padding", 1)
 
+    override fun drawsOverlaysOverChildren(lx0: Int, ly0: Int, lx1: Int, ly1: Int): Boolean {
+        return maxScrollPosition > 0 && ly1 > this.ly1 - scrollbarHeight // overlaps on the bottom
+    }
+
     override fun calculateSize(w: Int, h: Int) {
         super.calculateSize(w, h)
 

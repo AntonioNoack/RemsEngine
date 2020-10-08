@@ -23,7 +23,7 @@ abstract class NumberInput(
     val indexInProperty: Int
 ) : PanelListY(style) {
 
-    private class TitlePanel(title: String, val numberInput: NumberInput, style: Style): TextPanel(title, style){
+    class TitlePanel(title: String, val numberInput: NumberInput, style: Style): TextPanel(title, style){
         override fun onMouseDown(x: Float, y: Float, button: MouseButton) { numberInput.onMouseDown(x, y, button) }
         override fun onMouseUp(x: Float, y: Float, button: MouseButton) { numberInput.onMouseUp(x, y, button) }
         override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) { numberInput.onMouseMoved(x, y, dx, dy) }
@@ -111,9 +111,15 @@ abstract class NumberInput(
 
     }
 
+    fun noTitle(): NumberInput {
+        titleView.hide()
+        inputPanel.show()
+        return this
+    }
+
     var hasValue = false
 
-    private val titleView = TitlePanel(title, this, style)
+    val titleView = TitlePanel(title, this, style)
 
     val inputPanel = NumberInputPanel(owningProperty, indexInProperty, this, style)
 

@@ -17,6 +17,10 @@ open class ScrollPanelXY(child: Panel, padding: Padding,
         ),
         padding, style, alignX){
 
+    constructor(child: Panel, style: Style): this(
+        child, Padding(), style, AxisAlignment.MIN, AxisAlignment.MIN
+    )
+
     constructor(padding: Padding, style: Style): this(
         PanelListY(style), padding, style,
         AxisAlignment.MIN,

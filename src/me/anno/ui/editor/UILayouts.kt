@@ -38,6 +38,7 @@ import me.anno.ui.custom.CustomContainer
 import me.anno.ui.custom.CustomListX
 import me.anno.ui.custom.CustomListY
 import me.anno.ui.debug.ConsoleOutputPanel
+import me.anno.ui.editor.config.ConfigPanel
 import me.anno.ui.editor.cutting.CuttingView
 import me.anno.ui.editor.files.FileExplorer
 import me.anno.ui.editor.files.toAllowedFilename
@@ -305,10 +306,7 @@ object UILayouts {
             }
             .setTooltip("Recommended: true, false only for debugging")
         quickSettings += BooleanInput("Show FPS", RemsStudio.showFPS, style)
-            .setChangeListener {
-                DefaultConfig["debug.fps.show"] = it
-                RemsStudio.showFPS = it
-            }
+            .setChangeListener { DefaultConfig["debug.fps.show"] = it }
             .setTooltip("For debugging / monitoring stutters")
 
         val scroll = ScrollPanelY(welcome, Padding(5), style)
@@ -358,6 +356,20 @@ object UILayouts {
         // options.addMajor("View")
         // options.addMajor("Navigate")
         // options.addMajor("Code")
+
+        options.addAction("File", "Settings") {
+            val panel = ConfigPanel(DefaultConfig, style)
+            val window = Window(panel)
+            panel.create()
+            windowStack.push(window)
+        }
+
+        options.addAction("File", "Style") {
+            val panel = ConfigPanel(DefaultConfig.style.values, style)
+            val window = Window(panel)
+            panel.create()
+            windowStack.push(window)
+        }
 
         options.addAction("File", "Save") { Input.save() }
         options.addAction("File", "Load") { }

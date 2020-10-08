@@ -22,7 +22,8 @@ class Checkbox(startValue: Boolean, val size: Int, style: Style): Panel(style.ge
 
     var isChecked = startValue
 
-    init {
+    override fun calculateSize(w: Int, h: Int) {
+        super.calculateSize(w, h)
         minW = size + 2
         minH = size + 2
     }

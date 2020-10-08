@@ -114,6 +114,8 @@ open class IntInput(
         return when(value){
             is Int -> value.toLong()
             is Long -> value
+            is Double -> value.toLong()
+            is Float -> value.toLong()
             else -> throw RuntimeException("Unknown type $value for ${javaClass.simpleName}")
         }
     }

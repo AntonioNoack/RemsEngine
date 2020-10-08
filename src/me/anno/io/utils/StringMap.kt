@@ -7,6 +7,7 @@ import me.anno.ui.editor.files.toAllowedFilename
 import me.anno.utils.OS
 import org.joml.Vector3f
 import java.io.File
+import kotlin.math.min
 
 /**
  * can be used for config easily :D
@@ -15,9 +16,9 @@ open class StringMap(
     capacity: Int = 16,
     val sortKeysWhenSaving: Boolean = true,
     val saveDefaultValues: Boolean = false
-    ): ConfigEntry(), MutableMap<String, Any?> {
+) : ConfigEntry(), MutableMap<String, Any?> {
 
-    constructor(data: Map<String, Any?>): this(data.size + 16){
+    constructor(data: Map<String, Any?>) : this(data.size + 16) {
         map.putAll(data)
     }
 
@@ -28,28 +29,28 @@ open class StringMap(
     override fun getApproxSize(): Int = 1_000_000
     override fun save(writer: BaseWriter) {
         super.save(writer)
-        if(!map.containsKey("notice")) writer.writeString("notice", "#thisIsJSON")
+        if (!map.containsKey("notice")) writer.writeString("notice", "#thisIsJSON")
         // sorting keys for convenience
-        val leMap = if(sortKeysWhenSaving) map.toSortedMap() else map
-        for((name, value) in leMap){
+        val leMap = if (sortKeysWhenSaving) map.toSortedMap() else map
+        for ((name, value) in leMap) {
             writer.writeSomething(this, name, value, saveDefaultValues)
         }
     }
 
     override fun readSomething(name: String, value: Any?) {
-        if(name != "notice") map[name] = value
+        if (name != "notice") map[name] = value
     }
 
     operator fun get(key: String, addIfMissing: Any?): Any? {
         val value = map[key]
-        return if(value == null){
+        return if (value == null) {
             map[key] = addIfMissing
             addIfMissing
         } else value
     }
 
     override operator fun get(key: String) = map[key]
-    operator fun set(key: String, value: Any?){
+    operator fun set(key: String, value: Any?) {
         wasChanged = true
         map[key] = value
     }
@@ -69,106 +70,134 @@ open class StringMap(
     override fun remove(key: String): Any? = map.remove(key)
 
     operator fun get(key: String, default: String): String {
-        return when(val value = this[key]){
+        return when (val value = this[key]) {
             is String -> value
-            null -> default
+            null -> {
+                set(key, default)
+                default
+            }
             else -> value.toString()
         }
     }
 
     fun parseFile(str0: String): File {
         var str = str0
-        if(str.startsWith("~") && OS.isWindows){
+            .replace('\\', '/')
+        if (str.startsWith("~") && OS.isWindows) {
             str = "%HOMEPATH%/${str.substring(1)}"
         }
+
         // make this file valid; no matter what
-        str = str.toAllowedFilename() ?: "tmp"
+        val str2 = str.split(":/")
+        str = str2.subList(0, min(2, str2.size))
+            .joinToString(":/") {
+                it.split('/').joinToString("/") { name -> name.toAllowedFilename() ?: "x" }
+            }
+
         return File(str)
     }
 
     operator fun get(key: String, default: File): File {
-        return when(val value = this[key]){
+        return when (val value = this[key]) {
             is File -> value
             is String -> parseFile(value)
-            null -> default
+            null -> {
+                set(key, default)
+                default
+            }
             else -> parseFile(value.toString())
         }
     }
 
     operator fun get(key: String, default: Float): Float {
-        return when(val value = this[key]){
+        return when (val value = this[key]) {
             is Float -> value
             is Double -> value.toFloat()
             is Int -> value.toFloat()
             is Long -> value.toFloat()
             is String -> value.toFloatOrNull() ?: default
-            null -> default
+            null -> {
+                set(key, default)
+                default
+            }
             else -> value.toString().toFloatOrNull() ?: default
         }
     }
 
     operator fun get(key: String, default: Double): Double {
-        return when(val value = this[key]){
+        return when (val value = this[key]) {
             is Float -> value.toDouble()
             is Double -> value
             is Number -> value.toDouble()
             is String -> value.toDoubleOrNull() ?: default
-            null -> default
+            null -> {
+                set(key, default)
+                default
+            }
             else -> value.toString().toDoubleOrNull() ?: default
         }
     }
 
     operator fun get(key: String, default: Int): Int {
-        return when(val value = this[key]){
+        return when (val value = this[key]) {
             is Int -> value
             is Long -> value.toInt()
             is Float -> value.toInt()
             is Double -> value.toInt()
             is String -> value.toIntOrNull() ?: default
-            null -> default
+            null -> {
+                set(key, default)
+                default
+            }
             else -> value.toString().toIntOrNull() ?: default
         }
     }
 
     operator fun get(key: String, default: Vector3f): Vector3f {
-        return when(val value = this[key]){
+        return when (val value = this[key]) {
             is Vector3f -> value
             else -> default
         }
     }
 
     operator fun get(key: String, default: Boolean): Boolean {
-        return when(val value = this[key]){
+        return when (val value = this[key]) {
             is Boolean -> value
             is Int -> value != 0
             is Long -> value != 0L
             is Float -> !value.isNaN() && value != 0f
             is Double -> !value.isNaN() && value != 0.0
             is String -> {
-                when(value.toLowerCase()){
+                when (value.toLowerCase()) {
                     "true", "t" -> true
                     "false", "f" -> false
                     else -> default
                 }
             }
-            null -> default
+            null -> {
+                set(key, default)
+                default
+            }
             else -> value.toString().toBoolean()
         }
     }
 
     operator fun get(key: String, default: FilteringMode): FilteringMode {
-        return when(val value = this[key]){
-            is Boolean -> if(value) FilteringMode.NEAREST else FilteringMode.LINEAR
+        return when (val value = this[key]) {
+            is Boolean -> if (value) FilteringMode.NEAREST else FilteringMode.LINEAR
             is Int -> default.find(value)
             is String -> {
-                when(value.toLowerCase()){
+                when (value.toLowerCase()) {
                     "true", "t", "nearest" -> FilteringMode.NEAREST
                     "false", "f", "linear" -> FilteringMode.LINEAR
                     "cubic", "bicubic" -> FilteringMode.CUBIC
                     else -> default
                 }
             }
-            else -> default
+            else -> {
+                set(key, default)
+                default
+            }
         }
     }
 

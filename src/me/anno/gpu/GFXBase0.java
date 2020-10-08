@@ -43,7 +43,7 @@ import static org.lwjgl.system.MemoryUtil.memAddress;
  */
 public class GFXBase0 {
 
-    public static boolean enableVsync = DefaultConfig.INSTANCE.get("editor.vsync", !Build.INSTANCE.isDebug());
+    public static boolean enableVsync = DefaultConfig.INSTANCE.get("debug.ui.enableVsync", !Build.INSTANCE.isDebug());
 
     public static void setVsyncEnabled(boolean enabled){
         enableVsync = enabled;

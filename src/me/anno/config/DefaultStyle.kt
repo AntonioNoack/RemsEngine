@@ -51,8 +51,8 @@ object DefaultStyle {
         set("propertyInspector.background", flatDark, midGray)
         set("sceneView.background", deepDark, lightGray)
         set("menu.background", reallyDark, nearWhite)
-        set("spacer.background", deepDark, lightGray)
-        set("spacer.menu.background", fontGray, lightGray)
+        /*set("spacer.background", deepDark, lightGray)
+        set("spacer.menu.background", fontGray, lightGray)*/
         set("options.spacer.background", flatDark, midGray)
         set("deep.background", deepDark, lightGray)
         set("deep.edit.background", deepDark, lightGray)
@@ -68,6 +68,8 @@ object DefaultStyle {
         set("textPadding", 2)
         set("italic.propertyInspector.textItalic", true)
         set("fileExplorer.textSize", smallTextSize)
+        set("header.textSize", textSize * 2)
+        set("header.small.textSize", textSize * 3 / 2)
 
         for((key, value) in loadStyle("style.config")){
             baseTheme.values[key] = value

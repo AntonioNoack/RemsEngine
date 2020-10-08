@@ -6,6 +6,7 @@ import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.style.Style
+import kotlin.math.min
 
 class OptionBar(style: Style): PanelListX(null, style.getChild("options")) {
 
@@ -16,6 +17,7 @@ class OptionBar(style: Style): PanelListX(null, style.getChild("options")) {
     class Major(val name: String, style: Style): TextPanel(name, style){
 
         val actions = HashMap<String, Minor>()
+        val actionList = ArrayList<Pair<String, Minor>>()
 
         init {
             this += WrapAlign.LeftTop
@@ -23,11 +25,17 @@ class OptionBar(style: Style): PanelListX(null, style.getChild("options")) {
         }
 
         fun addMinor(minor: Minor, id: String){
-            actions[id] = minor
+            if(actions.containsKey(id)){
+                actions[id] = minor
+                actionList[actionList.indexOfFirst { it.first == id }] = id to minor
+            } else {
+                actions[id] = minor
+                actionList += id to minor
+            }
         }
 
         override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
-            GFX.openMenu(this.x, this.y + this.h, "", actions.values.map { minor ->
+            GFX.openMenu(this.x, this.y + this.h, "", actionList.map { (_, minor) ->
                 minor.name to { minor.action() }
             })
         }

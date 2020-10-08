@@ -15,20 +15,21 @@ import me.anno.ui.base.SpacePanel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.editor.color.HSVBoxMain.Companion.drawColoredAlpha
 import me.anno.ui.input.EnumInput
 import me.anno.ui.style.Style
-import me.anno.utils.Quad
 import me.anno.utils.clamp
 import me.anno.utils.f3
 import me.anno.utils.get
+import me.anno.utils.toVecRGBA
 import org.apache.logging.log4j.LogManager
 import org.hsluv.HSLuvColorSpace
 import org.joml.Vector3f
 import org.joml.Vector4f
-import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.roundToInt
 
-class ColorChooser(style: Style, withAlpha: Boolean, val owningProperty: AnimatedProperty<*>?) : PanelListY(style) {
+class ColorChooser(style: Style, val withAlpha: Boolean, val owningProperty: AnimatedProperty<*>?) : PanelListY(style) {
 
     // color section
     // bottom section:
@@ -36,53 +37,23 @@ class ColorChooser(style: Style, withAlpha: Boolean, val owningProperty: Animate
     // check box for hsl/hsluv
     // field(?) to enter rgb codes
 
+    private val maxWidth = style.getSize("colorChooser.maxWidth", 500)
+    override fun calculateSize(w: Int, h: Int) {
+        super.calculateSize(min(w, maxWidth), h)
+    }
+
     override fun getVisualState(): Any? = Pair(super.getVisualState(), Triple(hue, saturation, lightness))
 
+    val rgba get() = Vector4f(colorSpace.toRGB(Vector3f(hue, saturation, lightness)), opacity)
     var visualisation = lastVisualisation ?: ColorVisualisation.WHEEL
-    var colorSpace = lastColorSpace ?: ColorSpace[DefaultConfig["color.defaultColorSpace", "HSLuv"]] ?: ColorSpace.HSLuv
+    var colorSpace = lastColorSpace ?: ColorSpace[DefaultConfig["default.colorSpace", "HSLuv"]] ?: ColorSpace.HSLuv
 
     var isDownInRing = false
     val hslBox = HSVBoxMain(this, Vector3f(), Vector3f(0f, 1f, 0f), Vector3f(0f, 0f, 1f), style)
 
     val hueChooserSpace = SpacePanel(0, 2, style)
-    val hueChooser = object : HSVBox(this,
-        Vector3f(0f, 1f, 0.75f),
-        Vector3f(1f, 0f, 0f),
-        Vector3f(), 0f, style, 1f, { hue, _ ->
-            setHSL(hue, saturation, lightness, opacity, colorSpace, true)
-            onSmallChange("color-hue")
-        }) {
-        override fun getVisualState(): Any? = Pair(super.getVisualState(), hue)
-        override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-            super.onDraw(x0, y0, x1, y1)
-            val x = x0 + ((x1 - x0) * hue).roundToInt()
-            GFX.drawRect(x, y0, 1, y1 - y0, black)
-        }
-    }
-
-    val alphaBar = if (withAlpha) {
-        object : HSVBox(this,
-            Vector3f(0f, 0f, 0f),
-            Vector3f(0f, 0f, 1f),
-            Vector3f(0f, 0f, 0f), 0f, style, 1f,
-            { opacity, _ ->
-                setHSL(hue, saturation, lightness, clamp(opacity, 0f, 1f), colorSpace, true)
-                onSmallChange("color-alpha")
-            }) {
-            override fun getVisualState(): Any? = Pair(super.getVisualState(), opacity)
-            override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-                // super.onDraw(x0, y0, x1, y1)
-                val dragX = clamp(x0 + ((x1 - x0) * opacity).roundToInt(), x0, x1-1)
-                // lerp transparency for the alpha bar
-                for (xi in x0 until x1) {
-                    GFX.drawRect(xi, y, 1, h, 0xffffff or ((xi-this.x) * 255 / w).shl(24))
-                }
-                colorShowTexture.bind(0, NearestMode.TRULY_NEAREST, ClampMode.REPEAT)
-                GFX.drawTexture(this.x, y, w, h, colorShowTexture, -1, Vector4f(w.toFloat() / h, 1f, 0f, 0f))
-                GFX.drawRect(dragX, y0, 1, y1 - y0, black)
-            }
-        }
-    } else null
+    val hueChooser = HueBar(this, style)
+    val alphaBar = if (withAlpha) AlphaBar(this, style) else null
 
     val colorSpaceInput = EnumInput(
         "Color Space", false, colorSpace.name,
@@ -179,11 +150,20 @@ class ColorChooser(style: Style, withAlpha: Boolean, val owningProperty: Animate
     }
 
     fun drawColorBox(element: Panel, d0: Vector3f, du: Vector3f, dv: Vector3f, dh: Float, mainBox: Boolean) {
-        val spaceStyle = if (mainBox) visualisation else ColorVisualisation.BOX
+        drawColorBox(
+            element.x, element.y, element.w, element.h,
+            d0, du, dv, dh,
+            if (mainBox) visualisation else ColorVisualisation.BOX
+        )
+    }
+
+    fun drawColorBox(x: Int, y: Int, w: Int, h: Int,
+                     d0: Vector3f, du: Vector3f, dv: Vector3f, dh: Float,
+                     spaceStyle: ColorVisualisation) {
         val shader = colorSpace.getShader(spaceStyle)
         shader.use()
-        GFX.posSize(shader, element.x, element.y + element.h, element.w, -element.h)
-        val sharpness = max(w, h) * 0.25f + 1f
+        GFX.posSize(shader, x, y + h, w, -h)
+        val sharpness = min(w, h) * 0.25f + 1f
         when (spaceStyle) {
             ColorVisualisation.WHEEL -> {
                 shader.v3("v0", d0.x + hue * dh, d0.y, d0.z)

@@ -38,6 +38,10 @@ open class ScrollPanelY(child: Panel, padding: Padding,
         }
     }
 
+    override fun drawsOverlaysOverChildren(lx0: Int, ly0: Int, lx1: Int, ly1: Int): Boolean {
+        return maxScrollPosition > 0 && lx1 > this.lx1 - scrollbarWidth // overlaps on the right
+    }
+
     override var scrollPosition = 0f
     val maxLength = 100_000
     var isDownOnScrollbar = false

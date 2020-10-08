@@ -75,6 +75,12 @@ class ColorInput(style: Style, title: String,
         contentView.hide()
     }
 
+    fun noTitle(): ColorInput {
+        titleView.hide()
+        contentView.show()
+        return this
+    }
+
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         val focused1 = titleView.isInFocus || contentView.listOfAll.one { it.isInFocus }
         if(focused1) isSelectedListener?.invoke()
