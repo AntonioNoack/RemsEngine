@@ -28,13 +28,22 @@ object ActionManager {
 
     private val LOGGER = LogManager.getLogger(ActionManager::class)
 
-    val keyDragDelay = DefaultConfig["keyDragDelay", 0.5f]
+    val keyDragDelay = DefaultConfig["ui.keyDragDelay", 0.5f]
 
     val localActions = HashMap<Pair<String, KeyCombination>, List<String>>()
 
     val globalActions = HashMap<KeyCombination, List<String>>()
 
+    lateinit var keyMap: StringMap
+
     fun init(){
+
+        keyMap = DefaultConfig["ui.keyMap", { createKeymap() }]
+        parseConfig(keyMap)
+
+    }
+
+    fun createKeymap(): StringMap {
 
         /**
          * types:
@@ -100,7 +109,7 @@ object ActionManager {
         keyMap["PureTextInput.leftArrow.typed"] = "MoveLeft"
         keyMap["PureTextInput.rightArrow.typed"] = "MoveRight"
 
-        parseConfig(keyMap)
+        return keyMap
 
     }
 

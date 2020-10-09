@@ -1,9 +1,14 @@
 package me.anno.objects.animation
 
+import org.apache.logging.log4j.LogManager
 import org.joml.Vector3f
 import java.util.*
+import kotlin.math.log
 
 fun main(){
+
+    val logger = LogManager.getLogger("TestBinarySearchPerformance")
+
     // java 1.8.0 build 112
     // sequential 50 cycles vs random 220 cycles
     // random with values: 35-38ns slower -> binarySearch seems to be already optimized for sequential calls :)
@@ -26,7 +31,7 @@ fun main(){
             pos[t]
         }
         val t1 = System.nanoTime()
-        println("Sequential: ${((t1-t0)/times)} ns/try")
+        logger.info("Sequential: ${((t1-t0)/times)} ns/try")
     }
     fun rnd(){
         val t2 = System.nanoTime()
@@ -35,7 +40,7 @@ fun main(){
             pos[t]
         }
         val t3 = System.nanoTime()
-        println("Random:    ${((t3-t2)/times)} ns/try")
+        logger.info("Random:    ${((t3-t2)/times)} ns/try")
     }
     seq()
     rnd()

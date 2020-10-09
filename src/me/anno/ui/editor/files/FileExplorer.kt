@@ -78,6 +78,11 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
         uContent += content.setWeight(3f)
     }
 
+    fun removeOldFiles(){
+        content.children.forEach { (it as? FileEntry)?.stopPlayback() }
+        content.clear()
+    }
+
     var isWorking = false
     fun createResults(){
         if(isWorking) return
@@ -90,9 +95,9 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
                 val parent = folder?.parentFile
                 if(parent != null){
                     val fe = FileEntry(this, true, parent, style)
-                    GFX.addGPUTask(1){ content.clear(); content += fe }
+                    GFX.addGPUTask(1){ removeOldFiles(); content += fe }
                 } else {
-                    GFX.addGPUTask(1){ content.clear() }
+                    GFX.addGPUTask(1){ removeOldFiles() }
                 }
                 val tmpCount = 64
                 var tmpList = ArrayList<FileEntry>(tmpCount)

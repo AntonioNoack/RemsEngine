@@ -1,22 +1,17 @@
 package me.anno.ui.base
 
-import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.Window
-import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
-import me.anno.input.Input
 import me.anno.input.MouseButton
-import me.anno.studio.RemsStudio
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.state.Rect
 import me.anno.ui.style.Style
+import me.anno.utils.LOGGER
 import me.anno.utils.Tabs
-import me.anno.utils.one
 import java.io.File
-import java.lang.RuntimeException
 
 open class Panel(val style: Style) {
 
@@ -28,54 +23,66 @@ open class Panel(val style: Style) {
     var visibility = Visibility.VISIBLE
     var window: Window? = null
         get() {
-            if(field != null) return field
+            if (field != null) return field
             field = parent?.window
             return field
         }
 
-    fun toggleVisibility(){ visibility = if(visibility == Visibility.VISIBLE) Visibility.GONE else Visibility.VISIBLE }
-    fun hide(){ visibility = Visibility.GONE }
-    fun show(){ visibility = Visibility.VISIBLE }
+    fun toggleVisibility() {
+        visibility = if (visibility == Visibility.VISIBLE) Visibility.GONE else Visibility.VISIBLE
+    }
+
+    fun hide() {
+        visibility = Visibility.GONE
+    }
+
+    fun show() {
+        visibility = Visibility.VISIBLE
+    }
 
     fun withPadding(l: Int, t: Int, r: Int, b: Int) = PanelContainer(this, Padding(l, t, r, b), style)
 
     // layout
-    open fun invalidateLayout(){
+    open fun invalidateLayout() {
         parent?.invalidateLayout() ?: {
-            val window = window ?: throw RuntimeException("${javaClass.simpleName} is missing parent")
+            val window = window
+                ?: throw RuntimeException("${javaClass.simpleName} is missing parent, state: $oldLayoutState/$oldVisualState")
             window.needsLayout += this
         }()
     }
 
-    open fun invalidateDrawing(){
-        val window = window ?: throw RuntimeException("${javaClass.simpleName} is missing parent")
+    open fun invalidateDrawing() {
+        val window = window
+            ?: throw RuntimeException("${javaClass.simpleName} is missing parent, state: $oldLayoutState/$oldVisualState")
         window.needsRedraw += this
     }
 
-    open fun tickUpdate(){}
+    open fun tickUpdate() {}
     open fun getLayoutState(): Any? = Rect(lx0, ly0, lx1, ly1)
     open fun getVisualState(): Any? = backgroundColor
 
     var oldLayoutState: Any? = null
     var oldVisualState: Any? = null
 
-    fun tick(){
+    fun tick() {
         val newLayoutState = getLayoutState()
-        if(newLayoutState != oldLayoutState){
+        if (newLayoutState != oldLayoutState) {
             oldLayoutState = newLayoutState
             oldVisualState = getVisualState()
             invalidateLayout()
         } else {
             val newVisualState = getVisualState()
-            if(newVisualState != oldVisualState){
+            if (newVisualState != oldVisualState) {
                 oldVisualState = newVisualState
                 invalidateDrawing()
             }
         }
     }
 
-    var cachedVisuals = Framebuffer("panel", 1, 1, 1, 1, false,
-        Framebuffer.DepthBufferType.NONE)
+    var cachedVisuals = Framebuffer(
+        "panel", 1, 1, 1, 1, false,
+        Framebuffer.DepthBufferType.NONE
+    )
     var renderOnRequestOnly = false
 
     /**
@@ -166,7 +173,7 @@ open class Panel(val style: Style) {
         if (!b) throw RuntimeException(msg)
     }
 
-    fun place(x: Int, y: Int, w: Int, h: Int){
+    fun place(x: Int, y: Int, w: Int, h: Int) {
         placeInParent(x, y)
         applyPlacement(w, h)
         placeInParent(this.x, this.y)
@@ -267,7 +274,7 @@ open class Panel(val style: Style) {
     }
 
     open fun onPasteFiles(x: Float, y: Float, files: List<File>) {
-        parent?.onPasteFiles(x, y, files) ?: println("Paste Ignored! $files, ${javaClass.simpleName}")
+        parent?.onPasteFiles(x, y, files) ?: LOGGER.warn("Paste Ignored! $files, ${javaClass.simpleName}")
     }
 
     open fun onCopyRequested(x: Float, y: Float): String? = parent?.onCopyRequested(x, y)
@@ -314,10 +321,11 @@ open class Panel(val style: Style) {
     }
 
     open fun printLayout(tabDepth: Int) {
-        println("${Tabs.spaces(tabDepth * 2)}${javaClass.simpleName}($weight, ${if(visibility==Visibility.VISIBLE) "v" else "_"})) $x $y += $w $h ($minW $minH) ${style.prefix}")
+        println("${Tabs.spaces(tabDepth * 2)}${javaClass.simpleName}($weight, ${if (visibility == Visibility.VISIBLE) "v" else "_"})) $x $y += $w $h ($minW $minH) ${style.prefix}")
     }
 
     open fun drawsOverlaysOverChildren(lx0: Int, ly0: Int, lx1: Int, ly1: Int) = false
+
     // first or null would be correct, however our overlays are all the same
     // (the small cross, which should be part of the ui instead)
     //, so we can use the last one
@@ -340,9 +348,9 @@ open class Panel(val style: Style) {
 
     val listOfVisible: Sequence<Panel>
         get() = sequence {
-            if(canBeSeen){
+            if (canBeSeen) {
                 yield(this@Panel)
-                if(this@Panel is PanelGroup){
+                if (this@Panel is PanelGroup) {
                     this@Panel.children.forEach { child ->
                         yieldAll(child.listOfAll)
                     }
@@ -353,7 +361,7 @@ open class Panel(val style: Style) {
     val listOfAll: Sequence<Panel>
         get() = sequence {
             yield(this@Panel)
-            if(this@Panel is PanelGroup){
+            if (this@Panel is PanelGroup) {
                 this@Panel.children.forEach { child ->
                     yieldAll(child.listOfAll)
                 }

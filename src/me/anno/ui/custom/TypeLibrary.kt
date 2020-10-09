@@ -16,7 +16,7 @@ object TypeLibrary {
         val internalName = constructor().javaClass.simpleName
     }
 
-    val types = listOf(
+    val types = listOf<Pair<String, () -> Panel>>(
         "Scene View" to { SceneView(DefaultConfig.style) },
         "Tree View" to { TreeView(DefaultConfig.style) },
         "Inspector" to { PropertyInspector(DefaultConfig.style) },

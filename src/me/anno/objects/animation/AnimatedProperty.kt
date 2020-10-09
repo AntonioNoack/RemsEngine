@@ -26,6 +26,7 @@ class AnimatedProperty<V>(val type: Type, var defaultValue: V): Saveable(){
         val hasExponential: Boolean,
         val minValue: Any?, val maxValue: Any?,
         val accepts: (Any?) -> Boolean){
+        ANY("any", 0, 1, 1f, true, true, null, null, { true }),
         INT("int", 0, 1, 1f, true, true, null, null, { it is Int }),
         INT_PLUS("int+", 0, 1, 1f, true, true, 0, null, { it is Int }),
         LONG("long", 0L, 1, 1f, true, true, null, null, { it is Long }),
@@ -67,6 +68,7 @@ class AnimatedProperty<V>(val type: Type, var defaultValue: V): Saveable(){
         private val LOGGER = LogManager.getLogger(AnimatedProperty::class)
 
         val types = HashMap<String, Type>()
+        fun any() = AnimatedProperty<Any>(Type.ANY)
         fun int() = AnimatedProperty<Int>(Type.INT)
         fun intPlus() = AnimatedProperty<Int>(Type.INT_PLUS)
         fun intPlus(defaultValue: Int) = AnimatedProperty(Type.INT_PLUS, defaultValue)
@@ -264,7 +266,7 @@ class AnimatedProperty<V>(val type: Type, var defaultValue: V): Saveable(){
         return (if(rawIndex < 0) -rawIndex-1 else rawIndex) - 1
     }
 
-    override fun getClassName(): String = "AnimatedProperty<${type.code}>"
+    override fun getClassName(): String = "AnimatedProperty"
     override fun getApproxSize(): Int = 10
 
     override fun save(writer: BaseWriter) {
@@ -317,7 +319,7 @@ class AnimatedProperty<V>(val type: Type, var defaultValue: V): Saveable(){
     fun copyFrom(obj: Any?, force: Boolean = false){
         if(obj === this && !force) throw RuntimeException("Probably a typo!")
         if(obj is AnimatedProperty<*>){
-            if(type.accepts(obj.type.defaultValue)){
+            /*if(type.accepts(obj.type.defaultValue)){
                 isAnimated = obj.isAnimated
                 keyframes.clear()
                 obj.keyframes.forEach {
@@ -328,7 +330,19 @@ class AnimatedProperty<V>(val type: Type, var defaultValue: V): Saveable(){
                 }
                 keyframes.addAll(obj.keyframes as List<Keyframe<V>>)
                 interpolation = obj.interpolation
-            } else println("$type does not accept type ${obj.type} with default value ${obj.type.defaultValue}")
+            } else LOGGER.warn("$type does not accept type ${obj.type} with default value ${obj.type.defaultValue}")*/
+            isAnimated = obj.isAnimated
+            keyframes.clear()
+            obj.keyframes.forEach {
+                if(type.accepts(it.value)){
+                    keyframes.add(Keyframe(it.time, clamp(it.value as V)))
+                } else LOGGER.warn("${it.value} is not accepted by $type")
+                // else convert the type??...
+            }
+            for(i in 0 until type.components){
+                this.drivers[i] = obj.drivers.getOrNull(i)
+            }
+            interpolation = obj.interpolation
         } else println("copy-from-object $obj is not an AnimatedProperty!")
     }
 

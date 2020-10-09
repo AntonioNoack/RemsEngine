@@ -8,6 +8,7 @@ import me.anno.gpu.GFX.openMenu
 import me.anno.gpu.GFX.select
 import me.anno.gpu.GFXBase0
 import me.anno.gpu.Window
+import me.anno.input.ActionManager
 import me.anno.input.Input
 import me.anno.objects.Text
 import me.anno.objects.cache.Cache
@@ -371,6 +372,14 @@ object UILayouts {
             panel.create()
             windowStack.push(window)
         }
+
+        // needs a different kind of editor...
+        /*options.addAction("File", "Key Map") {
+            val panel = ConfigPanel(ActionManager.keyMap, style)
+            val window = Window(panel)
+            panel.create()
+            windowStack.push(window)
+        }*/
 
         options.addAction("File", "Save") { Input.save() }
         options.addAction("File", "Load") { }

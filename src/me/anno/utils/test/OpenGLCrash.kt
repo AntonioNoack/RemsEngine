@@ -1,11 +1,14 @@
 package me.anno.utils.test
 
+import org.apache.logging.log4j.LogManager
 import org.lwjgl.Version
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL30.GL_R8
 import java.nio.ByteBuffer
 
 object OpenGLCrash {
+    
+    private val LOGGER = LogManager.getLogger(OpenGLCrash::class.java)
 
     // solution: glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
 
@@ -38,8 +41,8 @@ object OpenGLCrash {
 
         // 18 x 552
 
-        println(Version.getVersion())
-        println(glGetString(GL_VERSION))
+        LOGGER.info(Version.getVersion())
+        LOGGER.info(glGetString(GL_VERSION).toString())
 
         // 242 x 901
         // 337 x 396
@@ -49,7 +52,7 @@ object OpenGLCrash {
             val w = 1590//(Math.random()*3000+10).toInt()
             val h = 2246//(Math.random()*3000+10).toInt()
 
-            println("[GLCrashTest] $w x $h")
+            LOGGER.info("[GLCrashTest] $w x $h")
 
             val texture = glGenTextures()
             glBindTexture(GL_TEXTURE_2D, texture)

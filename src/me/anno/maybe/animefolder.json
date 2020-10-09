@@ -22,15 +22,14 @@
     "Image:children":16,
     "Image:children":17,
     "Image:children":18,
-    "Image:children":19,
-    "b:isVisibleInTimeline":false
+    "Image:children":19
   },
   {
     "class":"Image",
     "i:*ptr":2,
     "Transform:parent":1,
     "S:name":"0c7aceb27784c1edd0bcc4f47c66a9d0.webp",
-    "AnimatedProperty<pos>:position":{
+    "AnimatedProperty:position":{
       "i:*ptr":20,
       "Keyframe:keyframes":{
         "i:*ptr":21,
@@ -44,16 +43,14 @@
     },
     "d:timeDilation":1.0,
     "S:blendMode":"*Inherit",
-    "b:isVisibleInTimeline":true,
-    "S:file":"C:\\Users\\Antonio\\Pictures\\Anime\\0c7aceb27784c1edd0bcc4f47c66a9d0.webp",
-    "b:nearestFiltering":false
+    "S:file":"C:\\Users\\Antonio\\Pictures\\Anime\\0c7aceb27784c1edd0bcc4f47c66a9d0.webp"
   },
   {
     "class":"Image",
     "i:*ptr":3,
     "Transform:parent":1,
     "S:name":"64bb3b17c22af131d67f11a1a1adb258.webp",
-    "AnimatedProperty<pos>:position":{
+    "AnimatedProperty:position":{
       "i:*ptr":22,
       "Keyframe:keyframes":{
         "i:*ptr":23,
@@ -67,16 +64,14 @@
     },
     "d:timeDilation":1.0,
     "S:blendMode":"*Inherit",
-    "b:isVisibleInTimeline":true,
-    "S:file":"C:\\Users\\Antonio\\Pictures\\Anime\\64bb3b17c22af131d67f11a1a1adb258.webp",
-    "b:nearestFiltering":false
+    "S:file":"C:\\Users\\Antonio\\Pictures\\Anime\\64bb3b17c22af131d67f11a1a1adb258.webp"
   },
   {
     "class":"Image",
     "i:*ptr":4,
     "Transform:parent":1,
     "S:name":"70697252_p4_master1200.webp",
-    "AnimatedProperty<pos>:position":{
+    "AnimatedProperty:position":{
       "i:*ptr":24,
       "Keyframe:keyframes":{
         "i:*ptr":25,
@@ -90,16 +85,14 @@
     },
     "d:timeDilation":1.0,
     "S:blendMode":"*Inherit",
-    "b:isVisibleInTimeline":true,
-    "S:file":"C:\\Users\\Antonio\\Pictures\\Anime\\70697252_p4_master1200.webp",
-    "b:nearestFiltering":false
+    "S:file":"C:\\Users\\Antonio\\Pictures\\Anime\\70697252_p4_master1200.webp"
   },
   {
     "class":"Image",
     "i:*ptr":5,
     "Transform:parent":1,
     "S:name":"battle_angel_alita_rework_tutorial_final_render.webp",
-    "AnimatedProperty<pos>:position":{
+    "AnimatedProperty:position":{
       "i:*ptr":26,
       "Keyframe:keyframes":{
         "i:*ptr":27,
@@ -113,16 +106,14 @@
     },
     "d:timeDilation":1.0,
     "S:blendMode":"*Inherit",
-    "b:isVisibleInTimeline":true,
-    "S:file":"C:\\Users\\Antonio\\Pictures\\Anime\\battle_angel_alita_rework_tutorial_final_render.webp",
-    "b:nearestFiltering":false
+    "S:file":"C:\\Users\\Antonio\\Pictures\\Anime\\battle_angel_alita_rework_tutorial_final_render.webp"
   },
   {
     "class":"Image",
     "i:*ptr":6,
     "Transform:parent":1,
     "S:name":"e3479f9c8e2478be2b972dfcbdf8c9ab.webp",
-    "AnimatedProperty<pos>:position":{
+    "AnimatedProperty:position":{
       "i:*ptr":28,
       "Keyframe:keyframes":{
         "i:*ptr":29,
@@ -136,16 +127,14 @@
     },
     "d:timeDilation":1.0,
     "S:blendMode":"*Inherit",
-    "b:isVisibleInTimeline":true,
-    "S:file":"C:\\Users\\Antonio\\Pictures\\Anime\\e3479f9c8e2478be2b972dfcbdf8c9ab.webp",
-    "b:nearestFiltering":false
+    "S:file":"C:\\Users\\Antonio\\Pictures\\Anime\\e3479f9c8e2478be2b972dfcbdf8c9ab.webp"
   },
   {
     "class":"Image",
     "i:*ptr":7,
     "Transform:parent":1,
     "S:name":"gplus-1707798211.webp",
-    "AnimatedProperty<pos>:position":{
+    "AnimatedProperty:position":{
       "i:*ptr":30,
       "Keyframe:keyframes":{
         "i:*ptr":31,
@@ -159,16 +148,14 @@
     },
     "d:timeDilation":1.0,
     "S:blendMode":"*Inherit",
-    "b:isVisibleInTimeline":true,
-    "S:file":"C:\\Users\\Antonio\\Pictures\\Anime\\gplus-1707798211.webp",
-    "b:nearestFiltering":false
+    "S:file":"C:\\Users\\Antonio\\Pictures\\Anime\\gplus-1707798211.webp"
   },
   {
     "class":"Image",
     "i:*ptr":8,
     "Transform:parent":1,
     "S:name":"gplus-1899045053.webp",
-    "AnimatedProperty<pos>:position":{
+    "AnimatedProperty:position":{
       "i:*ptr":32,
       "Keyframe:keyframes":{
         "i:*ptr":33,
@@ -182,16 +169,14 @@
     },
     "d:timeDilation":1.0,
     "S:blendMode":"*Inherit",
-    "b:isVisibleInTimeline":true,
-    "S:file":"C:\\Users\\Antonio\\Pictures\\Anime\\gplus-1899045053.webp",
-    "b:nearestFiltering":false
+    "S:file":"C:\\Users\\Antonio\\Pictures\\Anime\\gplus-1899045053.webp"
   },
   {
     "class":"Image",
     "i:*ptr":9,
     "Transform:parent":1,
     "S:name":"gplus1040906257644436652.webp",
-    "AnimatedProperty<pos>:position":{
+    "AnimatedProperty:position":{
       "i:*ptr":34,
       "Keyframe:keyframes":{
         "i:*ptr":35,
@@ -205,16 +190,14 @@
     },
     "d:timeDilation":1.0,
     "S:blendMode":"*Inherit",
-    "b:isVisibleInTimeline":true,
-    "S:file":"C:\\Users\\Antonio\\Pictures\\Anime\\gplus1040906257644436652.webp",
-    "b:nearestFiltering":false
+    "S:file":"C:\\Users\\Antonio\\Pictures\\Anime\\gplus1040906257644436652.webp"
   },
   {
     "class":"Image",
     "i:*ptr":10,
     "Transform:parent":1,
     "S:name":"gplus1407215761.webp",
-    "AnimatedProperty<pos>:position":{
+    "AnimatedProperty:position":{
       "i:*ptr":36,
       "Keyframe:keyframes":{
         "i:*ptr":37,
@@ -228,16 +211,14 @@
     },
     "d:timeDilation":1.0,
     "S:blendMode":"*Inherit",
-    "b:isVisibleInTimeline":true,
-    "S:file":"C:\\Users\\Antonio\\Pictures\\Anime\\gplus1407215761.webp",
-    "b:nearestFiltering":false
+    "S:file":"C:\\Users\\Antonio\\Pictures\\Anime\\gplus1407215761.webp"
   },
   {
     "class":"Image",
     "i:*ptr":11,
     "Transform:parent":1,
     "S:name":"gplus702702111.webp",
-    "AnimatedProperty<pos>:position":{
+    "AnimatedProperty:position":{
       "i:*ptr":38,
       "Keyframe:keyframes":{
         "i:*ptr":39,
@@ -251,16 +232,14 @@
     },
     "d:timeDilation":1.0,
     "S:blendMode":"*Inherit",
-    "b:isVisibleInTimeline":true,
-    "S:file":"C:\\Users\\Antonio\\Pictures\\Anime\\gplus702702111.webp",
-    "b:nearestFiltering":false
+    "S:file":"C:\\Users\\Antonio\\Pictures\\Anime\\gplus702702111.webp"
   },
   {
     "class":"Image",
     "i:*ptr":12,
     "Transform:parent":1,
     "S:name":"img (191).webp",
-    "AnimatedProperty<pos>:position":{
+    "AnimatedProperty:position":{
       "i:*ptr":40,
       "Keyframe:keyframes":{
         "i:*ptr":41,
@@ -274,16 +253,14 @@
     },
     "d:timeDilation":1.0,
     "S:blendMode":"*Inherit",
-    "b:isVisibleInTimeline":true,
-    "S:file":"C:\\Users\\Antonio\\Pictures\\Anime\\img (191).webp",
-    "b:nearestFiltering":false
+    "S:file":"C:\\Users\\Antonio\\Pictures\\Anime\\img (191).webp"
   },
   {
     "class":"Image",
     "i:*ptr":13,
     "Transform:parent":1,
     "S:name":"img (205).webp",
-    "AnimatedProperty<pos>:position":{
+    "AnimatedProperty:position":{
       "i:*ptr":42,
       "Keyframe:keyframes":{
         "i:*ptr":43,
@@ -297,16 +274,14 @@
     },
     "d:timeDilation":1.0,
     "S:blendMode":"*Inherit",
-    "b:isVisibleInTimeline":true,
-    "S:file":"C:\\Users\\Antonio\\Pictures\\Anime\\img (205).webp",
-    "b:nearestFiltering":false
+    "S:file":"C:\\Users\\Antonio\\Pictures\\Anime\\img (205).webp"
   },
   {
     "class":"Image",
     "i:*ptr":14,
     "Transform:parent":1,
     "S:name":"img (3).webp",
-    "AnimatedProperty<pos>:position":{
+    "AnimatedProperty:position":{
       "i:*ptr":44,
       "Keyframe:keyframes":{
         "i:*ptr":45,
@@ -320,16 +295,14 @@
     },
     "d:timeDilation":1.0,
     "S:blendMode":"*Inherit",
-    "b:isVisibleInTimeline":true,
-    "S:file":"C:\\Users\\Antonio\\Pictures\\Anime\\img (3).webp",
-    "b:nearestFiltering":false
+    "S:file":"C:\\Users\\Antonio\\Pictures\\Anime\\img (3).webp"
   },
   {
     "class":"Image",
     "i:*ptr":15,
     "Transform:parent":1,
     "S:name":"pixiv 65834705.webp",
-    "AnimatedProperty<pos>:position":{
+    "AnimatedProperty:position":{
       "i:*ptr":46,
       "Keyframe:keyframes":{
         "i:*ptr":47,
@@ -343,16 +316,14 @@
     },
     "d:timeDilation":1.0,
     "S:blendMode":"*Inherit",
-    "b:isVisibleInTimeline":true,
-    "S:file":"C:\\Users\\Antonio\\Pictures\\Anime\\pixiv 65834705.webp",
-    "b:nearestFiltering":false
+    "S:file":"C:\\Users\\Antonio\\Pictures\\Anime\\pixiv 65834705.webp"
   },
   {
     "class":"Image",
     "i:*ptr":16,
     "Transform:parent":1,
     "S:name":"pixiv 73258098.webp",
-    "AnimatedProperty<pos>:position":{
+    "AnimatedProperty:position":{
       "i:*ptr":48,
       "Keyframe:keyframes":{
         "i:*ptr":49,
@@ -366,16 +337,14 @@
     },
     "d:timeDilation":1.0,
     "S:blendMode":"*Inherit",
-    "b:isVisibleInTimeline":true,
-    "S:file":"C:\\Users\\Antonio\\Pictures\\Anime\\pixiv 73258098.webp",
-    "b:nearestFiltering":false
+    "S:file":"C:\\Users\\Antonio\\Pictures\\Anime\\pixiv 73258098.webp"
   },
   {
     "class":"Image",
     "i:*ptr":17,
     "Transform:parent":1,
     "S:name":"pixiv 73341873.webp",
-    "AnimatedProperty<pos>:position":{
+    "AnimatedProperty:position":{
       "i:*ptr":50,
       "Keyframe:keyframes":{
         "i:*ptr":51,
@@ -389,16 +358,14 @@
     },
     "d:timeDilation":1.0,
     "S:blendMode":"*Inherit",
-    "b:isVisibleInTimeline":true,
-    "S:file":"C:\\Users\\Antonio\\Pictures\\Anime\\pixiv 73341873.webp",
-    "b:nearestFiltering":false
+    "S:file":"C:\\Users\\Antonio\\Pictures\\Anime\\pixiv 73341873.webp"
   },
   {
     "class":"Image",
     "i:*ptr":18,
     "Transform:parent":1,
     "S:name":"pixiv 73349552.webp",
-    "AnimatedProperty<pos>:position":{
+    "AnimatedProperty:position":{
       "i:*ptr":52,
       "Keyframe:keyframes":{
         "i:*ptr":53,
@@ -412,16 +379,14 @@
     },
     "d:timeDilation":1.0,
     "S:blendMode":"*Inherit",
-    "b:isVisibleInTimeline":true,
-    "S:file":"C:\\Users\\Antonio\\Pictures\\Anime\\pixiv 73349552.webp",
-    "b:nearestFiltering":false
+    "S:file":"C:\\Users\\Antonio\\Pictures\\Anime\\pixiv 73349552.webp"
   },
   {
     "class":"Image",
     "i:*ptr":19,
     "Transform:parent":1,
     "S:name":"__grey_wolf_and_italian_wolf_kemono_friends_drawn_by_o_hamachi__4dd8ada486e526a0d0f9f514d59c98ba.webp",
-    "AnimatedProperty<pos>:position":{
+    "AnimatedProperty:position":{
       "i:*ptr":54,
       "Keyframe:keyframes":{
         "i:*ptr":55,
@@ -435,8 +400,6 @@
     },
     "d:timeDilation":1.0,
     "S:blendMode":"*Inherit",
-    "b:isVisibleInTimeline":true,
-    "S:file":"C:\\Users\\Antonio\\Pictures\\Anime\\__grey_wolf_and_italian_wolf_kemono_friends_drawn_by_o_hamachi__4dd8ada486e526a0d0f9f514d59c98ba.webp",
-    "b:nearestFiltering":false
+    "S:file":"C:\\Users\\Antonio\\Pictures\\Anime\\__grey_wolf_and_italian_wolf_kemono_friends_drawn_by_o_hamachi__4dd8ada486e526a0d0f9f514d59c98ba.webp"
   }
 ]

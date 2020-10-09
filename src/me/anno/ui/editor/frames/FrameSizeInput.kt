@@ -89,7 +89,7 @@ class FrameSizeInput(title: String, value0: String, style: Style): PanelListY(st
             return Resolution(w, h)
         }
 
-        const val configNamespace = "target.resolutions"
+        const val configNamespace = "rendering.resolutions"
         var defaultResolution = DefaultConfig["$configNamespace.default", ""].parseResolution() ?: Resolution(1920, 1080)
         val defaultResolutions =
             DefaultConfig["$configNamespace.defaultValues", ""]

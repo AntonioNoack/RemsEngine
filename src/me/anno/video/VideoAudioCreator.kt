@@ -16,7 +16,8 @@ import kotlin.math.ceil
 import kotlin.math.roundToInt
 
 class VideoAudioCreator(
-    val videoCreator: VideoCreator, val sampleRate: Int, val output: File){
+    val videoCreator: VideoCreator, val sampleRate: Int, val output: File
+) {
 
     val audioSources = root.listOfAll
         .filterIsInstance<Audio>()
@@ -26,17 +27,19 @@ class VideoAudioCreator(
 
     lateinit var camera: Camera
 
-    fun start(){
+    fun start() {
         thread { run() }
     }
 
-    fun run(){
+    fun run() {
         val vbt = VideoBackgroundTask(videoCreator)
         camera = vbt.camera
         vbt.start()
         // wait for the task to finish
-        while(!vbt.isDone){ Thread.sleep(1) }
-        if(audioSources.isEmpty()){
+        while (!vbt.isDone) {
+            Thread.sleep(1)
+        }
+        if (audioSources.isEmpty()) {
             videoCreator.output.renameTo(output)
             LOGGER.info("No audio found, saved result to $output.")
             onFinished()
@@ -48,7 +51,7 @@ class VideoAudioCreator(
 
     lateinit var audioOutput: DataOutputStream
 
-    fun appendAudio(){
+    fun appendAudio() {
 
         output.delete()
 
@@ -67,14 +70,14 @@ class VideoAudioCreator(
             output.absolutePath
         )
 
-        val args = ArrayList<String>(audioEncodingArguments.size+2)
+        val args = ArrayList<String>(audioEncodingArguments.size + 2)
         args += FFMPEG.ffmpegPathString
-        if(audioEncodingArguments.isNotEmpty()) args += "-hide_banner"
+        if (audioEncodingArguments.isNotEmpty()) args += "-hide_banner"
         args += audioEncodingArguments
         val process = ProcessBuilder(args).start()
         thread {
             val out = process.errorStream.bufferedReader()
-            while(true){
+            while (true) {
                 val line = out.readLine() ?: break
                 LOGGER.info("[FFMPEG-Debug]: $line")
             }
@@ -89,16 +92,18 @@ class VideoAudioCreator(
 
     }
 
-    class BufferStream(val audio: Audio, sampleRate: Int, val buffer: ShortBuffer,
-                       listener: Camera, val notifier: AtomicInteger):
-        AudioStream(audio, 1.0, 0.0, sampleRate, listener){
+    class BufferStream(
+        val audio: Audio, sampleRate: Int, val buffer: ShortBuffer,
+        listener: Camera, val notifier: AtomicInteger
+    ) :
+        AudioStream(audio, 1.0, 0.0, sampleRate, listener) {
         override fun onBufferFilled(stereoBuffer: ShortBuffer, bufferIndex: Long) {
-            synchronized(buffer){
+            synchronized(buffer) {
                 buffer.position(0)
                 val min = Short.MIN_VALUE.toInt()
                 val max = Short.MAX_VALUE.toInt()
                 val size = buffer.capacity()
-                for(i in 0 until size){
+                for (i in 0 until size) {
                     buffer.put(clamp(buffer[i] + stereoBuffer[i], min, max).toShort())
                 }
             }
@@ -106,7 +111,7 @@ class VideoAudioCreator(
         }
     }
 
-    fun createAudio(){
+    fun createAudio() {
 
         // todo automatically fade-in/fade-out the audio at the start and end?
 
@@ -130,18 +135,18 @@ class VideoAudioCreator(
                 BufferStream(it, sampleRate, buffer, camera, streamFillCounter)
             }
 
-            for(bufferIndex in 0 until bufferCount){
+            for (bufferIndex in 0 until bufferCount) {
                 streamFillCounter.set(0)
                 val startTime = bufferIndex * sliceDuration
                 streams.forEach {
                     it.requestNextBuffer(startTime, bufferIndex)
                 }
-                while(streamFillCounter.get() < streams.size){
+                while (streamFillCounter.get() < streams.size) {
                     Thread.sleep(1)
                 }
                 // write the data to ffmpeg
                 val size = buffer.capacity()
-                for(i in 0 until size){
+                for (i in 0 until size) {
                     audioOutput.writeShort(buffer[i].toInt())
                 }
             }
@@ -149,11 +154,13 @@ class VideoAudioCreator(
             audioOutput.flush()
             audioOutput.close()
 
-        } catch (e: IOException){
+        } catch (e: IOException) {
             val msg = e.message!!
             // pipe has been ended will be thrown, if we write more audio bytes than required
             // this really isn't an issue xD
-            if("pipe has been ended" !in msg.toLowerCase()){
+            if ("pipe has been ended" !in msg.toLowerCase() &&
+                "pipe is being closed" !in msg.toLowerCase()
+            ) {
                 throw e
             }
         }

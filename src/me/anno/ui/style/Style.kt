@@ -3,6 +3,7 @@ package me.anno.ui.style
 import me.anno.config.DefaultStyle.black
 import me.anno.io.utils.StringMap
 import me.anno.ui.base.components.Padding
+import org.apache.logging.log4j.LogManager
 
 class Style(val prefix: String?, val suffix: String?){
 
@@ -18,7 +19,7 @@ class Style(val prefix: String?, val suffix: String?){
         return if(value != null) getMaybe(fullName, value, defaultValue)
         else {
 
-            // warn("Missing config/style/$name")
+            // LOGGER.warn("Missing config/style/$name")
 
             val index = name.indexOf('.')
             val index2 = name.indexOf('.', index+1)
@@ -82,7 +83,7 @@ class Style(val prefix: String?, val suffix: String?){
                         defaultValue
                     } else colorValue
                 } else {
-                    println("invalid value! $value for int/color")
+                    LOGGER.warn("invalid value! $value for int/color")
                     values[fullName] = defaultValue
                     defaultValue
                 }
@@ -136,6 +137,10 @@ class Style(val prefix: String?, val suffix: String?){
         child.values = values
         children[space] = child
         return child
+    }
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(Style::class.java)
     }
 
 }

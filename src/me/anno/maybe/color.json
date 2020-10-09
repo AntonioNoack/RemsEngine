@@ -4,7 +4,7 @@
     "i:*ptr": 1,
     "S:name": "Folder",
     "d:timeDilation": 1.0,
-    "AnimatedProperty<color>:color": {
+    "AnimatedProperty:color": {
       "i:*ptr": 2,
       "Keyframe:keyframes": {
         "i:*ptr": 3,
@@ -22,14 +22,15 @@
     "Circle:children": 5,
     "Circle:children": 6,
     "Circle:children": 7,
-    "i:timelineSlot": -1
+    "i:timelineSlot": -1,
+    "b:editorOnly": false
   },
   {
     "class": "Circle",
     "i:*ptr": 4,
     "Transform:parent": 1,
     "S:name": "Circle",
-    "AnimatedProperty<pos>:position": {
+    "AnimatedProperty:position": {
       "i:*ptr": 8,
       "Keyframe:keyframes": {
         "i:*ptr": 9,
@@ -42,7 +43,7 @@
       "b:isAnimated": false
     },
     "d:timeDilation": 1.0,
-    "AnimatedProperty<color>:color": {
+    "AnimatedProperty:color": {
       "i:*ptr": 10,
       "Keyframe:keyframes": {
         "i:*ptr": 11,
@@ -56,14 +57,15 @@
       "b:isAnimated": false
     },
     "S:blendMode": "*Inherit",
-    "i:timelineSlot": 1
+    "i:timelineSlot": 1,
+    "b:editorOnly": false
   },
   {
     "class": "Circle",
     "i:*ptr": 5,
     "Transform:parent": 1,
     "S:name": "Circle",
-    "AnimatedProperty<pos>:position": {
+    "AnimatedProperty:position": {
       "i:*ptr": 12,
       "Keyframe:keyframes": {
         "i:*ptr": 13,
@@ -76,7 +78,7 @@
       "b:isAnimated": false
     },
     "d:timeDilation": 1.0,
-    "AnimatedProperty<color>:color": {
+    "AnimatedProperty:color": {
       "i:*ptr": 14,
       "Keyframe:keyframes": {
         "i:*ptr": 15,
@@ -90,14 +92,15 @@
       "b:isAnimated": false
     },
     "S:blendMode": "*Inherit",
-    "i:timelineSlot": 1
+    "i:timelineSlot": 1,
+    "b:editorOnly": false
   },
   {
     "class": "Circle",
     "i:*ptr": 6,
     "Transform:parent": 1,
     "S:name": "Circle",
-    "AnimatedProperty<pos>:position": {
+    "AnimatedProperty:position": {
       "i:*ptr": 16,
       "Keyframe:keyframes": {
         "i:*ptr": 17,
@@ -110,7 +113,7 @@
       "b:isAnimated": false
     },
     "d:timeDilation": 1.0,
-    "AnimatedProperty<color>:color": {
+    "AnimatedProperty:color": {
       "i:*ptr": 18,
       "Keyframe:keyframes": {
         "i:*ptr": 19,
@@ -124,14 +127,15 @@
       "b:isAnimated": false
     },
     "S:blendMode": "*Inherit",
-    "i:timelineSlot": 1
+    "i:timelineSlot": 1,
+    "b:editorOnly": false
   },
   {
     "class": "Circle",
     "i:*ptr": 7,
     "Transform:parent": 1,
     "S:name": "Circle",
-    "AnimatedProperty<pos>:position": {
+    "AnimatedProperty:position": {
       "i:*ptr": 20,
       "Keyframe:keyframes": {
         "i:*ptr": 21,
@@ -144,7 +148,7 @@
       "b:isAnimated": false
     },
     "d:timeDilation": 1.0,
-    "AnimatedProperty<color>:color": {
+    "AnimatedProperty:color": {
       "i:*ptr": 22,
       "Keyframe:keyframes": {
         "i:*ptr": 23,
@@ -158,6 +162,7 @@
       "b:isAnimated": false
     },
     "S:blendMode": "*Inherit",
-    "i:timelineSlot": 1
+    "i:timelineSlot": 1,
+    "b:editorOnly": false
   }
 ]

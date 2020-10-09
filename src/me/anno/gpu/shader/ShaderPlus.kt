@@ -1,5 +1,6 @@
 package me.anno.gpu.shader
 
+import me.anno.utils.LOGGER
 import me.karl.shaders.ShaderProgram
 import java.lang.RuntimeException
 
@@ -17,7 +18,7 @@ open class ShaderPlus(name: String, vertex: String, varying: String, fragment: S
 
     init {
         if(this is ShaderProgram){
-            println(shader.fragment)
+            LOGGER.info("ShaderProgram-Fragement:\n${shader.fragment}")
         }
     }
 

@@ -39,7 +39,7 @@ fun main(){
         val t1 = System.nanoTime()
         val dt = t1 - t0
         val charsPerSecond = symbolCount * 1e9f / dt
-        println("$charsPerSecond chars/s for length $symbolCount")
+        LOGGER.info("$charsPerSecond chars/s for length $symbolCount")
     }*/
 
     test("(17.15)", 17.15)

@@ -1,6 +1,7 @@
 package me.anno.input
 
 import me.anno.utils.BiMap
+import org.apache.logging.log4j.LogManager
 import org.lwjgl.glfw.GLFW.*
 
 class KeyCombination(val key: Int, val modifiers: Int, val type: Type){
@@ -34,6 +35,8 @@ class KeyCombination(val key: Int, val modifiers: Int, val type: Type){
     override fun toString() = "$key:$modifiers:$type"
 
     companion object {
+
+        private val LOGGER = LogManager.getLogger(KeyCombination::class.java)
 
         operator fun get(name: String) = keyMapping[name]
         operator fun get(key: Int) = keyMapping.reverse[key]
@@ -99,7 +102,7 @@ class KeyCombination(val key: Int, val modifiers: Int, val type: Type){
                 else -> {
                     val asInt = button.toIntOrNull()
                     if(asInt != null) return asInt
-                    println("Button unknown: $button")
+                    LOGGER.warn("Button unknown: $button")
                     -1
                 }
             }
@@ -127,7 +130,7 @@ class KeyCombination(val key: Int, val modifiers: Int, val type: Type){
                     'n' -> mods = mods or GLFW_MOD_NUM_LOCK
                     'l' -> mods = mods or GLFW_MOD_CAPS_LOCK
                     ' ' -> {}
-                    else -> println("Unknown action modifier '$c'")
+                    else -> LOGGER.warn("Unknown action modifier '$c'")
                 }
             }
             return KeyCombination(key, mods, type)

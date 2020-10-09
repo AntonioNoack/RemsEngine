@@ -203,6 +203,9 @@ abstract class AudioStream(
             var transfer0 = if(sender.is3D) calculateLoudness(startTime) else copyTransfer
             var transfer1 = transfer0
 
+            // todo linear approximation, if possible
+            // todo this is possible, if the time is linear, and the amplitude not too crazy, I guess
+
             val updatePositionEveryNFrames = 100
 
             for(sampleIndex in 0 until sampleCount){
@@ -305,8 +308,8 @@ abstract class AudioStream(
                 }
 
                 // write the data
-                stereoBuffer.put(transfer0.getLeft(a0, a1, approxFraction, transfer1).toShort())
-                stereoBuffer.put(transfer0.getRight(a0, a1, approxFraction, transfer1).toShort())
+                stereoBuffer.put(doubleToShort(transfer0.getLeft(a0, a1, approxFraction, transfer1)))
+                stereoBuffer.put(doubleToShort(transfer0.getRight(a0, a1, approxFraction, transfer1)))
 
                 index0 = index1
 
@@ -318,6 +321,17 @@ abstract class AudioStream(
 
         }
 
+    }
+
+    // the usual function calls d.toInt().toShort(),
+    // which causes breaking from max to -max, which ruins audio quality (cracking)
+    // this fixes that :)
+    private fun doubleToShort(d: Double): Short {
+        return when {
+            d >= 32767.0 -> 32767
+            d >= -32768.0 -> d.toInt().toShort()
+            else -> -32768
+        }
     }
 
     abstract fun onBufferFilled(stereoBuffer: ShortBuffer, bufferIndex: Long)

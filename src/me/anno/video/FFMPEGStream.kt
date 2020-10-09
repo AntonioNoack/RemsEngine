@@ -1,6 +1,5 @@
 package me.anno.video
 
-import me.anno.gpu.GFX
 import me.anno.video.FFMPEGMetadata.Companion.getMeta
 import org.apache.logging.log4j.LogManager
 import java.io.File

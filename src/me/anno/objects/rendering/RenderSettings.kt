@@ -1,5 +1,6 @@
 package me.anno.objects.rendering
 
+import me.anno.config.DefaultConfig
 import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.studio.RemsStudio.project
@@ -23,16 +24,19 @@ object RenderSettings : Transform(){
         super.createInspector(list, style, getGroup)
 
         val project = project!!
+
         list.clear()
         list += TextPanel(getDefaultDisplayName(), style)
         list += VI("Duration", "Video length in seconds", AnimatedProperty.Type.FLOAT_PLUS, targetDuration, style){
             project.targetDuration = it
             save()
         }
+
         list += VI("Relative Frame Size (%)", "For rendering tests, in percent", AnimatedProperty.Type.FLOAT_PERCENT, project.targetSizePercentage, style){
             project.targetSizePercentage = it
             save()
         }
+
         list += FrameSizeInput("Frame Size", "${project.targetWidth}x${project.targetHeight}", style)
             .setChangeListener { w, h ->
                 project.targetWidth = max(1, w)
@@ -40,8 +44,14 @@ object RenderSettings : Transform(){
                 save()
             }
             .setTooltip("Size of resulting video")
-        list += EnumInput("Framerate", true, project.targetFPS.toString(), setOf(
-            project.targetFPS, 24.0, 30.0, 60.0, 90.0, 120.0, 144.0, 240.0, 300.0, 360.0).sorted().toList().map { it.toString() }, style)
+
+        var framesRates = DefaultConfig["rendering.frameRates", "60"]
+            .split(',')
+            .mapNotNull { it.trim().toDoubleOrNull() }
+            .toMutableList()
+        if(framesRates.isEmpty()) framesRates = arrayListOf(60.0)
+        if(project.targetFPS !in framesRates) framesRates.add(0, project.targetFPS)
+        list += EnumInput("Framerate", true, project.targetFPS.toString(), framesRates.map { it.toString() }, style)
             .setChangeListener { value, _, _ ->
                 project.targetFPS = value.toDouble()
                 save()

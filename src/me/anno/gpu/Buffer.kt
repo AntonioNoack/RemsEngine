@@ -2,6 +2,7 @@ package me.anno.gpu
 
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.shader.Shader
+import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL15
 import org.lwjgl.opengl.GL20.*
@@ -36,7 +37,7 @@ abstract class Buffer(val attributes: List<Attribute>, val stride: Int, val usag
             GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, buffer)
             if(nioBuffer == null){
                 createNioBuffer()
-                println("called create nio buffer")
+                LOGGER.info("called create nio buffer")
             }
             val nio = nioBuffer!!
             nio.position(0)
@@ -81,7 +82,8 @@ abstract class Buffer(val attributes: List<Attribute>, val stride: Int, val usag
         }
     }
 
-
-
+    companion object {
+        private val LOGGER = LogManager.getLogger(Buffer::class.java)
+    }
 
 }

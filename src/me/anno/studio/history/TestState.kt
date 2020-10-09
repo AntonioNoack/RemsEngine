@@ -3,28 +3,35 @@ package me.anno.studio.history
 import me.anno.io.base.BaseWriter
 import me.anno.studio.RemsStudio
 import me.anno.studio.RemsStudio.history
+import org.apache.logging.log4j.LogManager
+import kotlin.math.log
 
 class TestState(name: String): HistoryState<String>(){
     init {
         state = name
     }
     override fun apply(state: String) {
-        println("current: $state")
+        LOGGER.info("current: $state")
     }
     override fun writeState(writer: BaseWriter, name: String, v: String) {
         writer.writeString(name, state)
     }
     override fun getClassName() = ""
+    companion object {
+        private val LOGGER = LogManager.getLogger(TestState::class.java)
+    }
 }
 
 fun main(){
 
+    val logger = LogManager.getLogger()
+
     val history = history
 
     fun check(title: String, action: () -> Unit){
-        println("\nGoal: $title, (from ${history.nextInsertIndex})")
+        logger.info("\nGoal: $title, (from ${history.nextInsertIndex})")
         action()
-        println("Result: ${history.elements.map { (it as TestState).state }}, ${history.nextInsertIndex}")
+        logger.info("Result: ${history.elements.map { (it as TestState).state }}, ${history.nextInsertIndex}")
     }
 
     history.put(TestState("A"))

@@ -16,6 +16,8 @@ import me.anno.ui.style.Style
 
 class CustomContainer(default: Panel, style: Style) : PanelContainer(default, Padding(0), style), ICustomDataCreator {
 
+    override fun getLayoutState(): Any? = Pair(super.getLayoutState(), child)
+
     override fun calculateSize(w: Int, h: Int) {
         child.calculateSize(w, h)
         minW = child.minW

@@ -45,8 +45,8 @@ class FFMPEGMetadata(file: File): CacheData {
 
         // get and parse the data :)
         val data = JsonReader(process.inputStream.buffered()).readObject()
-        val streams = data["streams"] as JsonArray
-        val format = data["format"] as JsonObject
+        val streams = data["streams"] as? JsonArray ?: JsonArray()
+        val format = data["format"] as? JsonObject ?: JsonObject()
 
         // critical, not working 001.gif file data from ffprobe:
         // works in Windows, just not Linux

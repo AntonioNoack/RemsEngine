@@ -12,7 +12,7 @@ import java.lang.Exception
 import java.lang.RuntimeException
 import kotlin.concurrent.thread
 
-class FFMPEGVideo(file: File?, val frame0: Int, bufferLength: Int):
+class FFMPEGVideo(file: File?, private val frame0: Int, bufferLength: Int):
     FFMPEGStream(file){
 
     override fun process(process: Process, arguments: List<String>) {

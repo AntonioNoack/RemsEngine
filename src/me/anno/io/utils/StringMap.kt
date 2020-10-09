@@ -41,6 +41,15 @@ open class StringMap(
         if (name != "notice") map[name] = value
     }
 
+    operator fun get(key: String, addIfMissing: () -> StringMap): StringMap {
+        val value = map[key]
+        return if(value !is StringMap) {
+            val value2 = addIfMissing()
+            map[key] = value2
+            value2
+        } else value
+    }
+
     operator fun get(key: String, addIfMissing: Any?): Any? {
         val value = map[key]
         return if (value == null) {

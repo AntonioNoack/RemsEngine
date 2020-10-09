@@ -1,6 +1,7 @@
 package me.anno.ui.editor.sceneView
 
-import me.anno.config.DefaultConfig
+import me.anno.config.DefaultConfig.style
+import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.toRadians
 import me.anno.gpu.ShaderLib.shader3D
@@ -8,21 +9,17 @@ import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.gpu.blending.BlendDepth
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticFloatBuffer
-import me.anno.gpu.texture.ClampMode
 import me.anno.objects.Transform.Companion.xAxis
 import me.anno.objects.Transform.Companion.yAxis
 import me.anno.objects.Transform.Companion.zAxis
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.shader.Shader
-import me.anno.gpu.texture.NearestMode
-import me.anno.image.svg.SVGStyle.Companion.parseColor
 import me.anno.utils.distance
 import me.anno.utils.pow
 import me.anno.utils.toVec3f
 import org.joml.Matrix4f
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
-import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL20.*
 import kotlin.math.atan2
 import kotlin.math.floor
@@ -30,9 +27,9 @@ import kotlin.math.log10
 
 object Grid {
 
-    private val xAxisColor = parseColor(DefaultConfig["grid.axis.x.color", "#ff7777"]) ?: 0xff7777
-    private val yAxisColor = parseColor(DefaultConfig["grid.axis.y.color", "#77ff77"]) ?: 0x77ff77
-    private val zAxisColor = parseColor(DefaultConfig["grid.axis.z.color", "#7777ff"]) ?: 0x7777ff
+    private val xAxisColor = style.getColor("grid.axis.x.color", 0xff7777 or black)
+    private val yAxisColor = style.getColor("grid.axis.y.color", 0x77ff77 or black)
+    private val zAxisColor = style.getColor("grid.axis.z.color", 0x7777ff or black)
 
     private val gridBuffer = StaticFloatBuffer(listOf(Attribute("attr0", 3), Attribute("attr1", 2)), 201 * 4)
     private val lineBuffer = StaticFloatBuffer(listOf(Attribute("attr0", 3), Attribute("attr1", 2)), 2)

@@ -19,6 +19,7 @@ import me.anno.objects.effects.MaskType
 import me.anno.objects.effects.ToneMappers
 import me.anno.objects.modes.ArraySelectionMode
 import me.anno.objects.modes.LoopingState
+import me.anno.objects.modes.TransformVisibility
 import me.anno.objects.modes.UVProjection
 import me.anno.objects.particles.ParticleSystem
 import me.anno.studio.RemsStudio
@@ -59,7 +60,7 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
 
     val clickId = nextClickId.incrementAndGet()
     var timelineSlot = -1
-    var isEditorOnly = false
+    var visibility = TransformVisibility.VISIBLE
 
     var position = AnimatedProperty.pos()
     var scale = AnimatedProperty.scale()
@@ -198,7 +199,8 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
             timelineSlot,
             style
         ) { timelineSlot = it }
-        editorGroup += VI("Editor Only", "Just a guideline?", null, isEditorOnly, style) { isEditorOnly = it }
+        // todo warn of invisible elements somehow!...
+        editorGroup += VI("Visibility", "", null, visibility, style) { visibility = it }
 
         if (parent?.acceptsWeight() == true) {
             list += VI("Weight", "For particle systems", AnimatedProperty.Type.FLOAT_PLUS, weight, style) {
@@ -286,7 +288,7 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
         val time = getLocalTime(parentTime)
         val color = getLocalColor(parentColor, time)
 
-        if (color.w > minAlpha && !(isFinalRendering && isEditorOnly)) { // 12 bit = 4k
+        if (color.w > minAlpha && visibility.isVisible) {
             applyTransformLT(stack, time)
             GFX.drawnTransform = this
             val doBlending = when (GFX.drawMode) {
@@ -366,19 +368,13 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
         writer.writeString("blendMode", blendMode.id)
         writer.writeList(this, "children", children)
         writer.writeInt("timelineSlot", timelineSlot, true)
-        writer.writeBool("editorOnly", isEditorOnly)
-    }
-
-    override fun readBool(name: String, value: Boolean) {
-        when (name) {
-            "editorOnly" -> isEditorOnly = value
-            else -> super.readBool(name, value)
-        }
+        writer.writeInt("visibility", visibility.id, false)
     }
 
     override fun readInt(name: String, value: Int) {
         when (name) {
             "timelineSlot" -> timelineSlot = value
+            "visibility" -> visibility = TransformVisibility[value]
             else -> super.readInt(name, value)
         }
     }
@@ -636,6 +632,7 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
                     is ArraySelectionMode -> ArraySelectionMode.values()
                     is UVProjection -> UVProjection.values()
                     is ClampMode -> ClampMode.values()
+                    is TransformVisibility -> TransformVisibility.values()
                     else -> throw RuntimeException("Missing enum .values() implementation for UI in Transform.kt for $value")
                 }
                 val valueNames = values.map {
@@ -647,6 +644,7 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
                         is ArraySelectionMode -> it.displayName
                         is UVProjection -> it.displayName
                         is ClampMode -> it.displayName
+                        is TransformVisibility -> it.displayName
                         else -> it.name
                     }
                 }
@@ -760,7 +758,7 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
         val zAxis = Vector3f(0f, 0f, 1f)
         var nextClickId = AtomicInteger()
         fun String.toTransform() = TextReader.fromText(this).first() as? Transform
-        const val minAlpha = 0.00025f
+        const val minAlpha = 0.5f / 255f
     }
 
 

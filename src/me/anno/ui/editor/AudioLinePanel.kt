@@ -14,6 +14,7 @@ import me.anno.utils.clamp
 import me.anno.utils.pow
 import me.anno.video.FFMPEGMetadata
 import me.anno.video.FFMPEGStream
+import org.apache.logging.log4j.LogManager
 import java.lang.IndexOutOfBoundsException
 import java.lang.RuntimeException
 import kotlin.concurrent.thread
@@ -133,7 +134,7 @@ class AudioLinePanel(var meta: FFMPEGMetadata, val audio: Audio, style: Style): 
             buffer!!
         } as SoundBuffer
         val data = soundBuffer.pcm!!
-        if(arrayIndex0+1 > data.capacity() || arrayIndex0 < 0) println("$arrayIndex0 for ${data.capacity()}")
+        if(arrayIndex0+1 > data.capacity() || arrayIndex0 < 0) LOGGER.info("$arrayIndex0 for ${data.capacity()}")
         return data[arrayIndex0] to data[arrayIndex0+1]
     }
 
@@ -223,6 +224,10 @@ class AudioLinePanel(var meta: FFMPEGMetadata, val audio: Audio, style: Style): 
     fun clampTime(){
         time0 = clamp(time0, 0.0, lengthSeconds - dt)
         if(time0.isNaN()) time0 = 0.0
+    }
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(AudioLinePanel::class.java)
     }
 
 }

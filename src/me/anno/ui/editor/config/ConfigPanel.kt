@@ -1,10 +1,8 @@
 package me.anno.ui.editor.config
 
-import me.anno.input.Input
 import me.anno.io.utils.StringMap
 import me.anno.ui.base.Panel
 import me.anno.ui.base.TextPanel
-import me.anno.ui.base.Visibility
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelXY
 import me.anno.ui.custom.CustomListX
@@ -28,7 +26,7 @@ class ConfigPanel(val config: StringMap, style: Style) : CustomListX(style) {
         createTopics()
         if (topicTree.children.isNotEmpty()) {
             val tp = topicTree.children.first() as TopicPanel
-            createContent(tp.topic, tp.topicName)
+            createContent(tp.topic)
         }
         fun add(panel: Panel, weight: Float) {
             this.add(ScrollPanelXY(panel.withPadding(5, 5, 5, 5), style), weight)
@@ -78,12 +76,13 @@ class ConfigPanel(val config: StringMap, style: Style) : CustomListX(style) {
         invalidateLayout()
     }
 
-    fun createContent(topic: String, topicName: String) {
+    fun createContent(topic: String) {
 
         contentList.clear()
 
         val pattern = "$topic."
         val entries = config.entries
+            .filter { it.value !is StringMap }
             .filter { it.key.startsWith(pattern) }
             .map {
                 val fullName = it.key

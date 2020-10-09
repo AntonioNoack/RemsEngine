@@ -120,7 +120,7 @@ class Polygon(parent: Transform? = null): GFXTransform(parent){
         val sqrt2 = sqrt(2f)
         val meshTimeout = 1000L
         private const val minEdges = 3
-        private val maxEdges = DefaultConfig["polygon.maxEdges", 1000]
+        private val maxEdges = DefaultConfig["objects.polygon.maxEdges", 1000]
 
         fun getBuffer(n: Int, hasDepth: Boolean): StaticFloatBuffer {
             if(n < minEdges) return getBuffer(minEdges, hasDepth)

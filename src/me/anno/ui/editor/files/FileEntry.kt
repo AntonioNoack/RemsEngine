@@ -34,10 +34,14 @@ import kotlin.math.roundToInt
 
 // todo special icons for music, documents, videos, ... like in Windows and any other OS
 
-class FileEntry(val explorer: FileExplorer, val isParent: Boolean, val file: File, style: Style) :
+class FileEntry(
+    private val explorer: FileExplorer,
+    isParent: Boolean, val file: File, style: Style
+) :
     PanelGroup(style.getChild("fileEntry")) {
 
     // todo don't select stuff with secondary mouse keys
+    // todo sometimes the title is missing... or its color... why ever...
 
     var audio: Audio? = null
 
@@ -45,8 +49,13 @@ class FileEntry(val explorer: FileExplorer, val isParent: Boolean, val file: Fil
 
     val importType = file.extension.getImportType()
     var iconPath = if (file.isDirectory) {
-        if (file.listFiles2().isNotEmpty())
-            "file/folder.png" else "file/empty_folder.png"
+        when(file.name.toLowerCase()){
+            "music", "musik", "videos", "movies" -> "file/music.png"
+            "documents", "dokumente", "downloads" -> "file/text.png"
+            "images", "pictures" -> "file/image.png"
+            else -> if (file.listFiles2().isNotEmpty())
+                "file/folder.png" else "file/empty_folder.png"
+        }
     } else {
         when (importType) {
             "Image", "Cubemap" -> "file/image.png"
@@ -64,6 +73,15 @@ class FileEntry(val explorer: FileExplorer, val isParent: Boolean, val file: Fil
     init {
         title.breaksIntoMultiline = true
         title.parent = this
+        title.instantTextLoading = true
+    }
+
+    fun stopPlayback(){
+        val audio = audio
+        if (audio != null && audio.component?.isPlaying == true) {
+            this.audio = null
+            GFX.addAudioTask(1) { audio.stopPlayback() }
+        }
     }
 
     var wasInFocus = false
@@ -84,8 +102,8 @@ class FileEntry(val explorer: FileExplorer, val isParent: Boolean, val file: Fil
 
     override fun getLayoutState(): Any? = Pair(super.getLayoutState(), title.getLayoutState())
     override fun getVisualState(): Any? {
-        val tex = when(val tex = getTexture()){
-            is VFrame -> if(tex.isLoaded) tex else null
+        val tex = when (val tex = getTexture()) {
+            is VFrame -> if (tex.isLoaded) tex else null
             is Texture2D -> tex.state
             else -> tex
         }
@@ -111,8 +129,8 @@ class FileEntry(val explorer: FileExplorer, val isParent: Boolean, val file: Fil
     var previewFPS = 1.0
     var meta: FFMPEGMetadata? = null
 
-    fun updatePlaybackTime(){
-        when(importType){
+    fun updatePlaybackTime() {
+        when (importType) {
             "Video", "Audio" -> {
                 val meta = FFMPEGMetadata.getMeta(file, true)
                 this.meta = meta
@@ -135,11 +153,7 @@ class FileEntry(val explorer: FileExplorer, val isParent: Boolean, val file: Fil
                         }
                     } else {
                         startTime = 0
-                        val audio = audio
-                        if (audio != null && audio.component?.isPlaying == true) {
-                            this.audio = null
-                            GFX.addAudioTask(1) { audio.stopPlayback() }
-                        }
+                        stopPlayback()
                         0
                     } % maxFrameIndex
                     scale = max(min(meta.videoWidth / w, meta.videoHeight / h), 1)
@@ -227,8 +241,11 @@ class FileEntry(val explorer: FileExplorer, val isParent: Boolean, val file: Fil
 
     fun drawVideo(): Boolean {
         val bufferLength = 64
-        fun getFrame(offset: Int) = Cache.getVideoFrame(file, scale, frameIndex + offset,
-            bufferLength, previewFPS, 1000, true)
+        fun getFrame(offset: Int) = Cache.getVideoFrame(
+            file, scale, frameIndex + offset,
+            bufferLength, previewFPS, 1000, true
+        )
+
         val image = getFrame(0)
         if (frameIndex > 0) getFrame(bufferLength)
         return if (image != null && image.isLoaded) {
@@ -275,7 +292,7 @@ class FileEntry(val explorer: FileExplorer, val isParent: Boolean, val file: Fil
         drawTitle(x0, y0, x1, y1)
     }
 
-    fun drawTitle(x0: Int, y0: Int, x1: Int, y1: Int){
+    fun drawTitle(x0: Int, y0: Int, x1: Int, y1: Int) {
         title.x = x
         title.y = y
         title.w = 1

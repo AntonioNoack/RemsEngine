@@ -1,5 +1,6 @@
 package me.anno.ui.editor.cutting
 
+import org.apache.logging.log4j.LogManager
 import org.joml.Vector4f
 
 fun main(){
@@ -9,25 +10,29 @@ fun main(){
         Vector4f(0f, 0f, 0f, 0f), Vector4f(0.2f, 0f, 0f, 0.2f)
     )
 
-    println(g.isLinear(5, 1, Vector4f(0.5f, 0f, 0f, 0.5f)))// t
-    println(g.isLinear(5, 1, Vector4f(0.4f, 0f, 0f, 0.5f)))// f
-    println(g.isLinear(5, 1, Vector4f(0.6f, 0f, 0f, 0.5f)))// f
+    val logger = LogManager.getLogger("TestLinear")
 
-    println(g.isLinear(5, 2, Vector4f(0.5f, 0f, 0f, 0.5f)))// t
-    println(g.isLinear(5, 2, Vector4f(0.4f, 0f, 0f, 0.5f)))// t
-    println(g.isLinear(5, 2, Vector4f(0.6f, 0f, 0f, 0.5f)))// t
+    logger.info(g.isLinear(5, 1, Vector4f(0.5f, 0f, 0f, 0.5f)).toString())// t
+    logger.info(g.isLinear(5, 1, Vector4f(0.4f, 0f, 0f, 0.5f)).toString())// f
+    logger.info(g.isLinear(5, 1, Vector4f(0.6f, 0f, 0f, 0.5f)).toString())// f
+
+    logger.info(g.isLinear(5, 2, Vector4f(0.5f, 0f, 0f, 0.5f)).toString())// t
+    logger.info(g.isLinear(5, 2, Vector4f(0.4f, 0f, 0f, 0.5f)).toString())// t
+    logger.info(g.isLinear(5, 2, Vector4f(0.6f, 0f, 0f, 0.5f)).toString())// t
 
 }
 
 fun t1(){
+
+    val logger = LogManager.getLogger("TestLinear")
 
     val g = Gradient(null,
         0, 1,
         Vector4f(0f), Vector4f(1f)
     )
 
-    println(g.isLinear(5, 1, Vector4f(5f)))// t
-    println(g.isLinear(5, 1, Vector4f(4f)))// f
-    println(g.isLinear(5, 1, Vector4f(6f)))// f
+    logger.info(g.isLinear(5, 1, Vector4f(5f)).toString())// t
+    logger.info(g.isLinear(5, 1, Vector4f(4f)).toString())// f
+    logger.info(g.isLinear(5, 1, Vector4f(6f)).toString())// f
 
 }

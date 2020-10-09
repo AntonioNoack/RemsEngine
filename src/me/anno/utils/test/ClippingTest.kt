@@ -1,18 +1,19 @@
 package me.anno.utils.test
 
 import me.anno.utils.Clipping
-import me.anno.utils.generatePermutations
+import org.apache.logging.log4j.LogManager
 import org.joml.Vector4f
-import org.joml.Vector4fc
 
 fun main(){
 
-    println(
+    val logger = LogManager.getLogger("ClippingTest")
+
+    logger.info(
         Clipping.check(
             Vector4f(10f, 0f, 0f, 0f),
             Vector4f(-1f, 0f, 0f, 0f),
             Vector4f(5f, 0f, 0f, 0f)
-        ){ it.x }
+        ){ it.x }.toString()
     )
 
     val v00 = Vector4f(+1f, +1f, 1f, 1f)
@@ -26,6 +27,6 @@ fun main(){
         println(Clipping.getZ(perm[0], perm[1], perm[2], perm[3]))
     }*/
 
-    println(Clipping.getZ(v00, v01, v10, v11))
+    logger.info(Clipping.getZ(v00, v01, v10, v11).toString())
 
 }

@@ -527,7 +527,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
         val (_, cameraTime) = camera.getGlobalTransform(editorTime)
         val oldRotation = camera.rotationYXZ[cameraTime]
         camera.putValue(camera.rotationYXZ, oldRotation + Vector3f(dy0 * scaleFactor, dx0 * scaleFactor, 0f))
-        onSmallChange("SceneView-turn")
+        if(camera != nullCamera) onSmallChange("SceneView-turn")
         invalidateDrawing()
     }
 

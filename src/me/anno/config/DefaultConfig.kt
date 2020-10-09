@@ -39,14 +39,13 @@ object DefaultConfig : StringMap() {
         this["default.video.nearest"] = false
         this["default.image.nearest"] = false
 
-        this["grid.axis.x.color"] = "#ff7777"
-        this["grid.axis.y.color"] = "#77ff77"
-        this["grid.axis.z.color"] = "#7777ff"
         this["format.svg.stepsPerDegree"] = 0.1f
+        this["objects.polygon.maxEdges"] = 1000
 
-        this["target.resolutions.default"] = "1920x1080"
-        this["target.resolutions.defaultValues"] = "1920x1080,1920x1200,720x480,2560x1440,3840x2160"
-        this["target.resolutions.sort"] = 1 // 1 = ascending order, -1 = descending order, 0 = don't sort
+        this["rendering.resolutions.default"] = "1920x1080"
+        this["rendering.resolutions.defaultValues"] = "1920x1080,1920x1200,720x480,2560x1440,3840x2160"
+        this["rendering.resolutions.sort"] = 1 // 1 = ascending order, -1 = descending order, 0 = don't sort
+        this["rendering.frameRates"] = "24,30,60,90,120,144,240,300,360"
 
         this["rendering.useMSAA"] = true // should not be deactivated, unless... idk...
         // this["ui.editor.useMSAA"] = true // can be deactivated for really weak GPUs

@@ -2,6 +2,7 @@ package me.anno.io.text
 
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseReader
+import org.apache.logging.log4j.LogManager
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -181,7 +182,7 @@ class TextReader(val data: String): BaseReader(){
                     else -> error("unknown character $next in $typeName[]")
                 }
             }
-            if(i > length) println("[TextReader] $typeName[] contained too many elements!")
+            if(i > length) LOGGER.warn("$typeName[] contained too many elements!")
             return values
         } else error("broken file :/, $typeName[].length > data.length")
     }
@@ -376,6 +377,7 @@ class TextReader(val data: String): BaseReader(){
     }
 
     companion object {
+        private val LOGGER = LogManager.getLogger(TextReader::class.java)
         fun fromText(data: String): List<ISaveable> {
             val reader = TextReader(data)
             reader.readAllInList()

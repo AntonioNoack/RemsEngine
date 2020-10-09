@@ -52,8 +52,6 @@ import kotlin.math.roundToInt
 
 abstract class StudioBase(val needsAudio: Boolean) {
 
-    // todo fix overlay views...
-
     abstract fun createUI()
 
     val startTime = System.nanoTime()
@@ -63,11 +61,9 @@ abstract class StudioBase(val needsAudio: Boolean) {
     var lastSave = System.nanoTime()
     var saveIsRequested = true
 
-    private val LOGGER = LogManager.getLogger(StudioBase::class)
-
     val windowStack = Stack<Window>()
 
-    val showTutorialKeys get() = DefaultConfig["tutorial.keys.show", true]
+    val showTutorialKeys get() = DefaultConfig["ui.tutorial.showKeys", true]
     val showFPS get() = DefaultConfig["debug.ui.showFPS", Build.isDebug]
     val showRedraws get() = DefaultConfig["debug.ui.showRedraws", false]
 
@@ -77,7 +73,7 @@ abstract class StudioBase(val needsAudio: Boolean) {
         saveIsRequested = true
         SceneTabs.currentTab?.hasChanged = true
         updateSceneViews()
-        // println(cause)
+        // LOGGER.info(cause)
     }
 
     fun onLargeChange() {
@@ -237,6 +233,8 @@ abstract class StudioBase(val needsAudio: Boolean) {
             var didSomething = false
             fun shallDraw() = didSomething || didNothingCounter < 3
 
+            val sparseRedraw = DefaultConfig["ui.sparseRedraw", true]
+
             val lastFullscreenIndex = windowStack.indexOfLast { it.isFullscreen }
             windowStack.forEachIndexed { index, window ->
                 if (index >= lastFullscreenIndex) {
@@ -290,8 +288,6 @@ abstract class StudioBase(val needsAudio: Boolean) {
                     }
 
                     if (panel0.w > 0 && panel0.h > 0) {
-
-                        val sparseRedraw = DefaultConfig["ui.sparseRedraw", true]
 
                         // overlays get missing...
                         // this somehow needs to be circumvented...
