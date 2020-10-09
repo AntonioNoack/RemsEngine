@@ -7,11 +7,16 @@ import me.anno.gpu.GFX.inFocus
 import me.anno.gpu.GFX.inFocus0
 import me.anno.io.utils.StringMap
 import me.anno.objects.cache.Cache
+import me.anno.objects.modes.TransformVisibility
 import me.anno.studio.RemsStudio
 import me.anno.studio.RemsStudio.editorTime
 import me.anno.studio.RemsStudio.editorTimeDilation
 import me.anno.studio.RemsStudio.history
+import me.anno.studio.RemsStudio.onLargeChange
+import me.anno.studio.RemsStudio.onSmallChange
 import me.anno.studio.RemsStudio.project
+import me.anno.studio.RemsStudio.root
+import me.anno.studio.RemsStudio.selectedTransform
 import me.anno.studio.RemsStudio.targetFPS
 import me.anno.studio.StudioBase
 import me.anno.studio.StudioBase.Companion.dragged
@@ -72,6 +77,8 @@ object ActionManager {
         keyMap["global.z.t.${Modifiers[true, true]}"] = "Redo"
         keyMap["global.y.t.${Modifiers[true, false]}"] = "Undo"
         keyMap["global.y.t.${Modifiers[true, true]}"] = "Redo"
+        keyMap["global.h.t.${Modifiers[false, false, true]}"] = "ShowAllObjects"
+        keyMap["global.h.t"] = "ToggleHideObject"
 
         // press instead of down for the delay
         keyMap["SceneTab.left.press"] = "DragStart"
@@ -285,6 +292,30 @@ object ActionManager {
                     "Undo" -> {
                         history.undo()
                         true }
+                    "ShowAllObjects" -> {
+                        if (root.listOfAll.count {
+                                if (it.visibility == TransformVisibility.VIDEO_ONLY) {
+                                    it.visibility = TransformVisibility.VISIBLE
+                                    true
+                                } else {
+                                    false
+                                }
+                            } > 0) {
+                            onSmallChange("show-all")
+                            true
+                        } else false
+                    }
+                    "ToggleHideObject" -> {
+                        val obj = selectedTransform
+                        if(obj != null){
+                            obj.visibility = when(obj.visibility){
+                                TransformVisibility.VISIBLE -> TransformVisibility.VIDEO_ONLY
+                                else -> TransformVisibility.VISIBLE
+                            }
+                            onSmallChange("toggle-hide")
+                            true
+                        } else false
+                    }
                     else -> false
                 }) return
         }

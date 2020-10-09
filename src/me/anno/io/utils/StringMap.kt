@@ -46,6 +46,7 @@ open class StringMap(
         return if(value !is StringMap) {
             val value2 = addIfMissing()
             map[key] = value2
+            wasChanged = true
             value2
         } else value
     }
