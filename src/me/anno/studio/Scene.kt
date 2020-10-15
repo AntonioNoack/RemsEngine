@@ -57,7 +57,6 @@ object Scene {
 
     lateinit var sqrtToneMappingShader: Shader
     lateinit var lutShader: Shader
-    lateinit var copyShader: Shader
 
     private var isInited = false
     private fun init() {
@@ -220,18 +219,6 @@ object Scene {
                     "   vec3 color = clamp(c0.rgb, 0.0, 1.0);\n" +
                     "   gl_FragColor = vec4(texture(lut, color.rbg).rgb, c0.a);\n" +
                     "}", listOf("tex", "lut")
-        )
-
-        copyShader = createShader(
-            "copy", "in vec2 attr0;\n" +
-                    "void main(){\n" +
-                    "   gl_Position = vec4(attr0*2.0-1.0, 0.5, 1.0);\n" +
-                    "   uv = attr0;\n" +
-                    "}\n", "varying vec2 uv;\n", "" +
-                    "uniform sampler2D tex;\n" +
-                    "void main(){\n" +
-                    "   gl_FragColor = texture(tex, uv);\n" +
-                    "}", listOf("tex")
         )
 
         isInited = true

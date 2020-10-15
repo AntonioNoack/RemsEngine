@@ -3,7 +3,7 @@ package me.anno.objects.meshes
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.buffer.Attribute
-import me.anno.gpu.buffer.StaticFloatBuffer
+import me.anno.gpu.buffer.StaticBuffer
 import me.anno.io.base.BaseWriter
 import me.anno.objects.GFXTransform
 import me.anno.objects.Transform
@@ -109,7 +109,7 @@ class Mesh(var file: File, parent: Transform?): GFXTransform(parent){
                         // generate mesh data from this obj somehow...
                         val meshData = MeshData()
                         meshData.objData = obj.pointsByMaterial.mapValues {
-                            val buffer = StaticFloatBuffer(attributes, it.value.size)
+                            val buffer = StaticBuffer(attributes, it.value.size)
                             it.value.forEach { v -> buffer.put(v) }
                             buffer
                         }

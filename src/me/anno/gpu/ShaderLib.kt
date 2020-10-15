@@ -6,6 +6,7 @@ import me.anno.gpu.texture.FilteringMode
 import me.anno.objects.effects.MaskType
 import me.anno.objects.meshes.fbx.model.FBXGeometry
 import me.anno.objects.modes.UVProjection
+import me.anno.studio.Scene
 import org.lwjgl.opengl.GL20
 import kotlin.math.PI
 
@@ -28,6 +29,7 @@ object ShaderLib {
     lateinit var shader3DBlur: Shader
     lateinit var shaderObjMtl: ShaderPlus
     lateinit var shaderFBX: ShaderPlus
+    lateinit var copyShader: Shader
 
     const val brightness = "" +
             "float brightness(vec3 color){\n" +
@@ -94,6 +96,18 @@ object ShaderLib {
                     "void main(){\n" +
                     "   gl_FragColor = color * texture(tex, uv);\n" +
                     "}"
+        )
+
+        copyShader = createShader(
+            "copy", "in vec2 attr0;\n" +
+                    "void main(){\n" +
+                    "   gl_Position = vec4(attr0*2.0-1.0, 0.5, 1.0);\n" +
+                    "   uv = attr0;\n" +
+                    "}\n", "varying vec2 uv;\n", "" +
+                    "uniform sampler2D tex;\n" +
+                    "void main(){\n" +
+                    "   gl_FragColor = texture(tex, uv);\n" +
+                    "}", listOf("tex")
         )
 
         // with texture
@@ -395,7 +409,7 @@ object ShaderLib {
                     "   vec4 color = getTexture(tex, uv);\n" +
                     "   color.rgb *= 0.5 + 0.5 * dot(vec3(1.0, 0.0, 0.0), normal);\n" +
                     "   gl_FragColor = tint * color;\n" +
-                    "}", listOf()
+                    "}", listOf("tex")
         )
 
         // create the fbx shader

@@ -2,122 +2,38 @@ package me.anno.input
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
-import me.anno.gpu.GFX.hoveredPanel
 import me.anno.gpu.GFX.inFocus
-import me.anno.gpu.GFX.inFocus0
 import me.anno.io.utils.StringMap
-import me.anno.objects.cache.Cache
-import me.anno.objects.modes.TransformVisibility
 import me.anno.studio.RemsStudio
-import me.anno.studio.RemsStudio.editorTime
-import me.anno.studio.RemsStudio.editorTimeDilation
-import me.anno.studio.RemsStudio.history
-import me.anno.studio.RemsStudio.onLargeChange
-import me.anno.studio.RemsStudio.onSmallChange
-import me.anno.studio.RemsStudio.project
-import me.anno.studio.RemsStudio.root
-import me.anno.studio.RemsStudio.selectedTransform
-import me.anno.studio.RemsStudio.targetFPS
-import me.anno.studio.StudioBase
-import me.anno.studio.StudioBase.Companion.dragged
-import me.anno.studio.StudioBase.Companion.updateAudio
-import me.anno.ui.editor.UILayouts
 import me.anno.ui.base.Panel
-import me.anno.ui.editor.TimelinePanel.Companion.moveRight
 import org.apache.logging.log4j.LogManager
-import java.io.File
 import kotlin.math.abs
-import kotlin.math.round
 
 object ActionManager {
 
     private val LOGGER = LogManager.getLogger(ActionManager::class)
 
-    val keyDragDelay = DefaultConfig["ui.keyDragDelay", 0.5f]
+    private val keyDragDelay = DefaultConfig["ui.keyDragDelay", 0.5f]
 
-    val localActions = HashMap<Pair<String, KeyCombination>, List<String>>()
+    private val localActions = HashMap<Pair<String, KeyCombination>, List<String>>()
 
-    val globalActions = HashMap<KeyCombination, List<String>>()
+    private val globalKeyCombinations = HashMap<KeyCombination, List<String>>()
+    private val globalActions = HashMap<String, () -> Boolean>()
 
-    lateinit var keyMap: StringMap
+    private lateinit var keyMap: StringMap
 
     fun init(){
 
-        keyMap = DefaultConfig["ui.keyMap", { createKeymap() }]
+        keyMap = DefaultConfig["ui.keyMap", {
+            createDefaultKeymap()
+        }]
         parseConfig(keyMap)
 
     }
 
-    fun createKeymap(): StringMap {
-
-        /**
-         * types:
-         * - typed -> typed
-         * - down -> down
-         * - while down -> press
-         * - up -> up
-         * */
-
-        val keyMap = StringMap()
-        keyMap["global.space.down.${Modifiers[false, false]}"] = "Play|Pause"
-        keyMap["global.space.down.${Modifiers[false, true]}"] = "PlaySlow|Pause"
-        keyMap["global.space.down.${Modifiers[true, false]}"] = "PlayReversed|Pause"
-        keyMap["global.space.down.${Modifiers[true, true]}"] = "PlayReversedSlow|Pause"
-        keyMap["global.f11.down"] = "ToggleFullscreen"
-        keyMap["global.print.down"] = "PrintLayout"
-        keyMap["global.left.up"] = "DragEnd"
-        keyMap["global.f5.down.${Modifiers[true, false]}"] = "ClearCache"
-        keyMap["global.arrowLeft.t"] = "PreviousStep"
-        keyMap["global.arrowRight.t"] = "NextStep"
-        keyMap["global.arrowLeft.down.c"] = "Jump2Start"
-        keyMap["global.arrowRight.down.c"] = "Jump2End"
-        keyMap["global.comma.t"] = "PreviousFrame"
-        keyMap["global.dot.t"] = "NextFrame"
-        keyMap["global.z.t.${Modifiers[true, false]}"] = "Undo"
-        keyMap["global.z.t.${Modifiers[true, true]}"] = "Redo"
-        keyMap["global.y.t.${Modifiers[true, false]}"] = "Undo"
-        keyMap["global.y.t.${Modifiers[true, true]}"] = "Redo"
-        keyMap["global.h.t.${Modifiers[false, false, true]}"] = "ShowAllObjects"
-        keyMap["global.h.t"] = "ToggleHideObject"
-
-        // press instead of down for the delay
-        keyMap["SceneTab.left.press"] = "DragStart"
-        keyMap["FileEntry.left.press"] = "DragStart"
-        keyMap["FileEntry.left.double"] = "Enter|Open"
-        keyMap["FileEntry.right.down"] = "OpenOptions"
-        keyMap["FileExplorer.right.down"] = "Back"
-        keyMap["FileExplorer.mousebackward.down"] = "Back"
-        keyMap["TreeViewPanel.left.press"] = "DragStart"
-
-        keyMap["HSVBox.left.down"] = "selectColor"
-        keyMap["HSVBox.left.press-unsafe"] = "selectColor"
-
-        keyMap["SceneView.right.p"] = "Turn"
-        keyMap["SceneView.left.p"] = "MoveObject"
-        keyMap["SceneView.left.p.${Modifiers[false, true]}"] = "MoveObjectAlternate"
-        keyMap["SceneView.numpad0.down"] = "ResetCamera"
-        keyMap["SceneView.w.p"] = "MoveForward"
-        keyMap["SceneView.a.p"] = "MoveLeft"
-        keyMap["SceneView.s.p"] = "MoveBackward"
-        keyMap["SceneView.d.p"] = "MoveRight"
-        keyMap["SceneView.q.p"] = "MoveDown"
-        keyMap["SceneView.e.p"] = "MoveUp"
-        keyMap["SceneView.r.p"] = "SetMode(MOVE)"
-        keyMap["SceneView.t.p"] = "SetMode(SCALE)"
-        keyMap["SceneView.z.p"] = "SetMode(ROTATE)"
-        keyMap["SceneView.y.p"] = "SetMode(ROTATE)"
-
-        keyMap["PureTextInputML.delete.typed"] = "DeleteAfter"
-        keyMap["PureTextInputML.backspace.typed"] = "DeleteBefore"
-        keyMap["PureTextInputML.leftArrow.typed"] = "MoveLeft"
-        keyMap["PureTextInputML.rightArrow.typed"] = "MoveRight"
-        keyMap["PureTextInputML.upArrow.typed"] = "MoveUp"
-        keyMap["PureTextInputML.downArrow.typed"] = "MoveDown"
-        keyMap["PureTextInput.leftArrow.typed"] = "MoveLeft"
-        keyMap["PureTextInput.rightArrow.typed"] = "MoveRight"
-
-        return keyMap
-
+    var createDefaultKeymap = {
+        LOGGER.warn("Using default keymap... this should not happen!")
+        StringMap()
     }
 
     fun parseConfig(config: StringMap){
@@ -140,7 +56,7 @@ object ActionManager {
             if(keyComb != null){
                 val values = value.toString().split('|')
                 if(namespace.equals("global", true)){
-                    globalActions[keyComb] = values
+                    globalKeyCombinations[keyComb] = values
                 } else {
                     localActions[namespace to keyComb] = values
                 }
@@ -186,7 +102,7 @@ object ActionManager {
         // filter action keys, if they are typing keys and a typing field is in focus
         val isWriting = combination.isWritingKey && (panel?.isKeyInput() == true)
         if(!isWriting){
-            executeGlobally(0f, 0f, false, globalActions[combination])
+            executeGlobally(0f, 0f, false, globalKeyCombinations[combination])
         }
         val x = Input.mouseX
         val y = Input.mouseY
@@ -217,113 +133,19 @@ object ActionManager {
     fun executeGlobally(dx: Float, dy: Float, isContinuous: Boolean, actions: List<String>?){
         if(actions == null) return
         for(action in actions){
-            fun setEditorTimeDilation(dilation: Double): Boolean {
-                return if(dilation == editorTimeDilation || inFocus0?.isKeyInput() == true) false
-                else {
-                    editorTimeDilation = dilation
-                    true
-                }
+            if(globalActions[action]?.invoke() == true){
+                return
             }
-            if(when(action){
-                    "Play" -> setEditorTimeDilation(1.0)
-                    "Pause" -> setEditorTimeDilation(0.0)
-                    "PlaySlow" -> setEditorTimeDilation(0.2)
-                    "PlayReversed" -> setEditorTimeDilation(-1.0)
-                    "PlayReversedSlow" -> setEditorTimeDilation(-0.2)
-                    "ToggleFullscreen" -> { GFX.toggleFullscreen(); true }
-                    "PrintLayout" -> { UILayouts.printLayout();true }
-                    "NextFrame" -> {
-                        editorTime = (round(editorTime*targetFPS) + 1) / targetFPS
-                        updateAudio()
-                        true
-                    }
-                    "PreviousFrame" -> {
-                        editorTime = (round(editorTime*targetFPS) - 1) / targetFPS
-                        updateAudio()
-                        true
-                    }
-                    "NextStep" -> {
-                        moveRight(1f)
-                        true
-                    }
-                    "PreviousStep" -> {
-                        moveRight(-1f)
-                        true
-                    }
-                    "Jump2Start" -> {
-                        editorTime = 0.0
-                        updateAudio()
-                        true
-                    }
-                    "Jump2End" -> {
-                        editorTime = project?.targetDuration ?: 10.0
-                        updateAudio()
-                        true
-                    }
-                    "DragEnd" -> {
-                        val dragged = dragged
-                        if(dragged != null){
-
-                            val data = dragged.getContent()
-                            val type = dragged.getContentType()
-
-                            when(type){
-                                "File" -> {
-                                    hoveredPanel?.onPasteFiles(Input.mouseX, Input.mouseY, listOf(File(data)))
-                                }
-                                else -> {
-                                    hoveredPanel?.onPaste(Input.mouseX, Input.mouseY, data, type)
-                                }
-                            }
-
-                            StudioBase.dragged = null
-
-                            true
-                        } else false
-                    }
-                    "ClearCache" -> {
-                        Cache.clear()
-                        // Video.clearCache()
-                        true
-                    }
-                    "Redo" -> {
-                        history.redo()
-                        true }
-                    "Undo" -> {
-                        history.undo()
-                        true }
-                    "ShowAllObjects" -> {
-                        if (root.listOfAll.count {
-                                if (it.visibility == TransformVisibility.VIDEO_ONLY) {
-                                    it.visibility = TransformVisibility.VISIBLE
-                                    true
-                                } else {
-                                    false
-                                }
-                            } > 0) {
-                            onSmallChange("show-all")
-                            true
-                        } else false
-                    }
-                    "ToggleHideObject" -> {
-                        val obj = selectedTransform
-                        if(obj != null){
-                            obj.visibility = when(obj.visibility){
-                                TransformVisibility.VISIBLE -> TransformVisibility.VIDEO_ONLY
-                                else -> TransformVisibility.VISIBLE
-                            }
-                            onSmallChange("toggle-hide")
-                            true
-                        } else false
-                    }
-                    else -> false
-                }) return
         }
         for(window in RemsStudio.windowStack){
             for(panel in window.panel.listOfAll){
                 executeLocally(dx, dy, isContinuous, panel, actions)
             }
         }
+    }
+
+    fun registerGlobalAction(name:String, action: () -> Boolean){
+        globalActions[name] = action
     }
 
 }

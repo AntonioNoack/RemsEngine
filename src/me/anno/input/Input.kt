@@ -320,15 +320,12 @@ object Input {
                             }
                         }
                         GLFW.GLFW_KEY_ESCAPE -> {
-                            // val inFocus = inFocus.firstOrNull()
-                            if (windowStack.size < 2) {
-                                openMenu(mouseX, mouseY, "Exit?",
-                                    listOf(
-                                        "Save" to {  },
-                                        "Save & Exit" to {  },
-                                        "Exit" to { requestExit() }
-                                    ))
-                            } else windowStack.pop().destroy()
+                            if (windowStack.size > 1) {
+                                val window2 = windowStack.peek()
+                                if(window2.canBeClosedByUser){
+                                    windowStack.pop().destroy()
+                                } else inFocus0?.onEscapeKey(mouseX, mouseY)
+                            } else inFocus0?.onEscapeKey(mouseX, mouseY)
                             /*if (true || inFocus is SceneView) {
                                 if (windowStack.size < 2) {
                                     openMenu(mouseX, mouseY, "Exit?",

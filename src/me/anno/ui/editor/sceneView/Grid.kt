@@ -8,7 +8,7 @@ import me.anno.gpu.ShaderLib.shader3D
 import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.gpu.blending.BlendDepth
 import me.anno.gpu.buffer.Attribute
-import me.anno.gpu.buffer.StaticFloatBuffer
+import me.anno.gpu.buffer.StaticBuffer
 import me.anno.objects.Transform.Companion.xAxis
 import me.anno.objects.Transform.Companion.yAxis
 import me.anno.objects.Transform.Companion.zAxis
@@ -31,8 +31,8 @@ object Grid {
     private val yAxisColor = style.getColor("grid.axis.y.color", 0x77ff77 or black)
     private val zAxisColor = style.getColor("grid.axis.z.color", 0x7777ff or black)
 
-    private val gridBuffer = StaticFloatBuffer(listOf(Attribute("attr0", 3), Attribute("attr1", 2)), 201 * 4)
-    private val lineBuffer = StaticFloatBuffer(listOf(Attribute("attr0", 3), Attribute("attr1", 2)), 2)
+    private val gridBuffer = StaticBuffer(listOf(Attribute("attr0", 3), Attribute("attr1", 2)), 201 * 4)
+    private val lineBuffer = StaticBuffer(listOf(Attribute("attr0", 3), Attribute("attr1", 2)), 2)
 
     init {
 
@@ -139,7 +139,7 @@ object Grid {
 
     }
 
-    fun drawBuffer(stack: Matrix4fArrayList, color: Vector4f, buffer: StaticFloatBuffer){
+    fun drawBuffer(stack: Matrix4fArrayList, color: Vector4f, buffer: StaticBuffer){
 
         if(color.w <= 0f) return
 

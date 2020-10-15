@@ -310,21 +310,21 @@ open class Text(text: String = "", parent: Transform? = null): GFXTransform(pare
 
         fontGroup += EnumInput("Font Name", true, font, fontList, style)
             .setChangeListener { it, _, _ ->
+                getSelfWithShadows().forEach { c -> c.font = it }
                 invalidate()
                 putLastUsedFont(it)
-                sortFavourites()
-                getSelfWithShadows().forEach { c -> c.font = it } }
+                sortFavourites() }
             .setIsSelectedListener { show(null) }
         fontGroup += BooleanInput("Italic", isItalic, style)
             .setChangeListener {
-                invalidate()
                 getSelfWithShadows().forEach { c -> c.isItalic = it }
+                invalidate()
             }
             .setIsSelectedListener { show(null) }
         fontGroup += BooleanInput("Bold", isBold, style)
             .setChangeListener {
-                invalidate()
                 getSelfWithShadows().forEach { c -> c.isBold = it }
+                invalidate()
             }
             .setIsSelectedListener { show(null) }
 
@@ -338,6 +338,7 @@ open class Text(text: String = "", parent: Transform? = null): GFXTransform(pare
                 .setChangeListener { name, _, _ ->
                     val alignment = AxisAlignment.values().first { it[x] == name }
                     getSelfWithShadows().forEach { set(it, alignment) }
+                    invalidate()
                 }
         }
 

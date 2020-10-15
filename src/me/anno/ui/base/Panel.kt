@@ -298,6 +298,10 @@ open class Panel(val style: Style) {
         parent?.onDeleteKey(x, y)
     }
 
+    open fun onEscapeKey(x: Float, y: Float){
+        parent?.onEscapeKey(x, y)
+    }
+
     /**
      * must not be used for important actions, because not all mice have these
      * not all users know about the keys -> default reroute?

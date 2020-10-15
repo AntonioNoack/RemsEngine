@@ -1,5 +1,6 @@
 package me.anno.io.config
 
+import me.anno.gpu.GFXBase0.projectName
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.io.utils.StringMap
@@ -17,8 +18,8 @@ object ConfigBasics {
     val LOGGER = LogManager.getLogger(ConfigBasics::class)!!
     val utf8Charset = Charset.forName("UTF-8")
 
-    val configFolder = File(OS.home, ".config/RemsStudio")
-    val cacheFolder = File(OS.home, ".cache/RemsStudio")
+    val configFolder get() = File(OS.home, ".config/$projectName")
+    val cacheFolder get() = File(OS.home, ".cache/$projectName")
 
     val beautify = true
 

@@ -8,10 +8,18 @@ import org.apache.logging.log4j.LogManager
 import java.lang.RuntimeException
 import kotlin.math.min
 
-class Window (val panel: Panel, val isFullscreen: Boolean, val x: Int, val y: Int){
+class Window (
+    val panel: Panel, val isFullscreen: Boolean, val x: Int, val y: Int){
 
     constructor(panel: Panel): this(panel, true, 0, 0)
     constructor(panel: Panel, x: Int, y: Int): this(panel, false, x, y)
+
+    var canBeClosedByUser = true
+
+    fun cannotClose(): Window {
+        canBeClosedByUser = false
+        return this
+    }
 
     val needsRedraw = HashSet<Panel>()
     val needsLayout = HashSet<Panel>()
@@ -44,7 +52,7 @@ class Window (val panel: Panel, val isFullscreen: Boolean, val x: Int, val y: In
         acceptsClickAway = { boolean }
     }
 
-    var acceptsClickAway = { _: MouseButton -> true }
+    var acceptsClickAway = { _: MouseButton -> canBeClosedByUser }
 
     fun destroy(){
         buffer.destroy()

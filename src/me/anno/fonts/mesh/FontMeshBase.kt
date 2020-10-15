@@ -1,6 +1,6 @@
 package me.anno.fonts.mesh
 
-import me.anno.gpu.buffer.StaticFloatBuffer
+import me.anno.gpu.buffer.StaticBuffer
 import me.anno.objects.cache.CacheData
 import org.joml.Matrix4fArrayList
 
@@ -9,5 +9,5 @@ abstract class FontMeshBase: CacheData {
     var minY = Float.POSITIVE_INFINITY
     var maxX = Float.NEGATIVE_INFINITY
     var maxY = Float.NEGATIVE_INFINITY
-    abstract fun draw(matrix: Matrix4fArrayList, drawBuffer: (StaticFloatBuffer) -> Unit)
+    abstract fun draw(matrix: Matrix4fArrayList, drawBuffer: (StaticBuffer) -> Unit)
 }

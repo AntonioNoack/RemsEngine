@@ -1,10 +1,12 @@
 package me.anno.gpu.buffer
 
+import org.joml.Vector2f
 import org.joml.Vector3f
+import org.joml.Vector4f
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
-open class StaticFloatBuffer(attributes: List<Attribute>, val vertexCount: Int): GPUFloatBuffer(attributes){
+open class StaticBuffer(attributes: List<Attribute>, val vertexCount: Int): Buffer(attributes){
 
     constructor(points: List<List<Float>>, attributes: List<Attribute>, vertices: IntArray): this(attributes, vertices.size){
         vertices.forEach {
@@ -18,8 +20,16 @@ open class StaticFloatBuffer(attributes: List<Attribute>, val vertexCount: Int):
         createNioBuffer()
     }
 
+    fun put(v: Vector2f){
+        put(v.x, v.y)
+    }
+
     fun put(v: Vector3f){
         put(v.x, v.y, v.z)
+    }
+
+    fun put(v: Vector4f){
+        put(v.x, v.y, v.z, v.w)
     }
 
     fun put(x: Float, y: Float, z: Float, w: Float, a: Float){
@@ -49,15 +59,43 @@ open class StaticFloatBuffer(attributes: List<Attribute>, val vertexCount: Int):
     }
 
     fun put(f: Float){
-        floatBuffer.put(f)
+        nioBuffer!!.putFloat(f)
+        isUpToDate = false
+    }
+
+    fun putByte(b: Byte){
+        nioBuffer!!.put(b)
+        isUpToDate = false
+    }
+
+    fun putUByte(b: Int){
+        nioBuffer!!.put(b.toByte())
+        isUpToDate = false
+    }
+
+    fun putShort(b: Short){
+        nioBuffer!!.putShort(b)
+        isUpToDate = false
+    }
+
+    fun putUShort(b: Int){
+        nioBuffer!!.putShort(b.toShort())
+        isUpToDate = false
+    }
+
+    fun putInt(b: Int){
+        nioBuffer!!.putInt(b)
+        isUpToDate = false
+    }
+
+    fun putDouble(d: Double){
+        nioBuffer!!.putDouble(d)
         isUpToDate = false
     }
 
     final override fun createNioBuffer() {
-        val byteSize = vertexCount * attributes.sumBy { it.components * it.byteSize }
+        val byteSize = vertexCount * attributes.sumBy { it.byteSize }
         val nio = ByteBuffer.allocateDirect(byteSize).order(ByteOrder.nativeOrder())
         nioBuffer = nio
-        floatBuffer = nio.asFloatBuffer()
-        floatBuffer.position(0)
     }
 }

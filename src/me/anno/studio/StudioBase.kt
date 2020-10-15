@@ -474,7 +474,7 @@ abstract class StudioBase(val needsAudio: Boolean) {
             false
         }
 
-        GFX.shutdown = {
+        GFX.onShutdown = {
             AudioManager.requestDestruction()
             Cursor.destroy()
         }

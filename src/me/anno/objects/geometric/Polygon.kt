@@ -5,7 +5,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFX.toRadians
 import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.gpu.buffer.Attribute
-import me.anno.gpu.buffer.StaticFloatBuffer
+import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.texture.ClampMode
 import me.anno.gpu.texture.FilteringMode
 import me.anno.io.ISaveable
@@ -122,7 +122,7 @@ class Polygon(parent: Transform? = null): GFXTransform(parent){
         private const val minEdges = 3
         private val maxEdges = DefaultConfig["objects.polygon.maxEdges", 1000]
 
-        fun getBuffer(n: Int, hasDepth: Boolean): StaticFloatBuffer {
+        fun getBuffer(n: Int, hasDepth: Boolean): StaticBuffer {
             if(n < minEdges) return getBuffer(minEdges, hasDepth)
             if(n > maxEdges) return getBuffer(maxEdges, hasDepth)
             val cached = Cache.getEntry("Mesh", "Polygon", n * 2 + (if(hasDepth) 1 else 0),
@@ -132,12 +132,12 @@ class Polygon(parent: Transform? = null): GFXTransform(parent){
             return cached.buffer
         }
 
-        private fun createBuffer(n: Int, hasDepth: Boolean): StaticFloatBuffer {
+        private fun createBuffer(n: Int, hasDepth: Boolean): StaticBuffer {
 
             val frontCount = n * 3
             val sideCount = n * 6
             val vertexCount = if(hasDepth) frontCount * 2 + sideCount else frontCount
-            val buffer = StaticFloatBuffer(listOf(Attribute("attr0", 3), Attribute("attr1", 2)), vertexCount)
+            val buffer = StaticBuffer(listOf(Attribute("attr0", 3), Attribute("attr1", 2)), vertexCount)
             val angles = FloatArray(n+1){ i -> (i*Math.PI*2.0/n).toFloat() }
             val sin = angles.map { sin(it)*.5f+.5f }
             val cos = angles.map { -cos(it)*.5f+.5f }

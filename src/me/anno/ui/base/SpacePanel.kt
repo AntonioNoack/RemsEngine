@@ -10,7 +10,7 @@ open class SpacePanel(sizeX: Int, sizeY: Int, style: Style): Panel(style.getChil
         minH = sizeY
         when {
             sizeX == 0 -> {
-                layoutConstraints += WrapAlign.Top
+                layoutConstraints += WrapAlign.TopFill
             }
             sizeY == 0 -> {
                 layoutConstraints += WrapAlign.Left

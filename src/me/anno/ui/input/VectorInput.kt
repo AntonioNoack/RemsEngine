@@ -157,7 +157,7 @@ class VectorInput(
         if(type == AnimatedProperty.Type.COLOR) warn("VectorInput should be replaced with ColorInput for type color!")
 
         // titleList += WrapAlign.Top
-        valueList += WrapAlign.Top
+        valueList += WrapAlign.TopFill
 
         this += titleView
         titleView.enableHoverColor = true

@@ -4,7 +4,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFX.toRadians
 import me.anno.gpu.ShaderLib.lineShader3D
 import me.anno.gpu.buffer.Attribute
-import me.anno.gpu.buffer.StaticFloatBuffer
+import me.anno.gpu.buffer.StaticBuffer
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.animation.AnimatedProperty
@@ -223,7 +223,7 @@ class Camera(parent: Transform? = null): Transform(parent){
 
 
     companion object {
-        val cameraModel = StaticFloatBuffer(listOf(Attribute("attr0", 3)), 2 * 8)
+        val cameraModel = StaticBuffer(listOf(Attribute("attr0", 3)), 2 * 8)
         val DEFAULT_VIGNETTE_STRENGTH = 5f
         init {
 

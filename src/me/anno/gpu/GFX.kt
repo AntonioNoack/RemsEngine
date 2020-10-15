@@ -1,9 +1,9 @@
 package me.anno.gpu
 
 import me.anno.config.DefaultConfig
-import me.anno.config.DefaultConfig.style
 import me.anno.config.DefaultStyle.black
 import me.anno.fonts.FontManager
+import me.anno.gpu.ShaderLib.copyShader
 import me.anno.gpu.ShaderLib.flatShader
 import me.anno.gpu.ShaderLib.flatShaderGradient
 import me.anno.gpu.ShaderLib.flatShaderTexture
@@ -19,7 +19,7 @@ import me.anno.gpu.ShaderLib.subpixelCorrectTextShader
 import me.anno.gpu.blending.BlendDepth
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.SimpleBuffer
-import me.anno.gpu.buffer.StaticFloatBuffer
+import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.Shader
@@ -40,7 +40,6 @@ import me.anno.objects.geometric.Circle
 import me.anno.objects.modes.UVProjection
 import me.anno.studio.Build.isDebug
 import me.anno.studio.RemsStudio
-import me.anno.studio.Scene
 import me.anno.studio.RemsStudio.editorTime
 import me.anno.studio.RemsStudio.editorTimeDilation
 import me.anno.studio.RemsStudio.nullCamera
@@ -133,7 +132,7 @@ object GFX : GFXBase1() {
 
     lateinit var gameInit: () -> Unit
     lateinit var gameLoop: (w: Int, h: Int) -> Boolean
-    lateinit var shutdown: () -> Unit
+    lateinit var onShutdown: () -> Unit
 
     val loadTexturesSync = Stack<Boolean>()
 
@@ -558,7 +557,7 @@ object GFX : GFXBase1() {
 
     fun copy(){
         check()
-        val shader = Scene.copyShader
+        val shader = copyShader
         flat01.draw(shader)
         check()
     }
@@ -581,7 +580,7 @@ object GFX : GFXBase1() {
     }
 
     fun draw3D(
-        stack: Matrix4fArrayList, buffer: StaticFloatBuffer, texture: Texture2D, w: Int, h: Int, color: Vector4f,
+        stack: Matrix4fArrayList, buffer: StaticBuffer, texture: Texture2D, w: Int, h: Int, color: Vector4f,
         filtering: FilteringMode, clampMode: ClampMode, tiling: Vector4f?
     ) {
         val shader = shader3D.shader
@@ -592,7 +591,7 @@ object GFX : GFXBase1() {
     }
 
     fun draw3D(
-        stack: Matrix4fArrayList, buffer: StaticFloatBuffer, texture: Texture2D, color: Vector4f,
+        stack: Matrix4fArrayList, buffer: StaticBuffer, texture: Texture2D, color: Vector4f,
         filtering: FilteringMode, clampMode: ClampMode, tiling: Vector4f?
     ) {
         draw3D(stack, buffer, texture, texture.w, texture.h, color, filtering, clampMode, tiling)
@@ -606,7 +605,7 @@ object GFX : GFXBase1() {
     }
 
     fun draw3DPolygon(
-        stack: Matrix4fArrayList, buffer: StaticFloatBuffer,
+        stack: Matrix4fArrayList, buffer: StaticBuffer,
         texture: Texture2D, color: Vector4f,
         inset: Float,
         filtering: FilteringMode, clampMode: ClampMode
@@ -716,7 +715,7 @@ object GFX : GFXBase1() {
     }
 
     fun draw3DSVG(
-        stack: Matrix4fArrayList, buffer: StaticFloatBuffer, texture: Texture2D, color: Vector4f,
+        stack: Matrix4fArrayList, buffer: StaticBuffer, texture: Texture2D, color: Vector4f,
         filtering: FilteringMode, clampMode: ClampMode
     ) {
         val shader = shader3DSVG.shader
@@ -851,7 +850,7 @@ object GFX : GFXBase1() {
         val thisTime = System.nanoTime()
         rawDeltaTime = (thisTime - lastTime) * 1e-9f
         deltaTime = min(rawDeltaTime, 0.1f)
-        FrameTimes.putValue(deltaTime)
+        FrameTimes.putValue(rawDeltaTime)
 
         val newFPS = 1f / rawDeltaTime
         currentEditorFPS = min(currentEditorFPS + (newFPS - currentEditorFPS) * 0.05f, newFPS)
@@ -1018,7 +1017,7 @@ object GFX : GFXBase1() {
         FrameTimes.place(x0, y0, FrameTimes.width, FrameTimes.height)
         FrameTimes.draw()
         loadTexturesSync.push(true)
-        drawText(x0 + 1, y0 + 1, "Consolas", 12, false, false, currentEditorFPS.f1(),
+        drawText(x0 + 1, y0 + 1, "Consolas", 12, false, false, "${currentEditorFPS.f1()}, min: ${(1f/FrameTimes.maxValue).f1()}",
             FrameTimes.textColor, FrameTimes.backgroundColor, -1)
         loadTexturesSync.pop()
     }

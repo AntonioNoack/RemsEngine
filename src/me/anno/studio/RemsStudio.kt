@@ -2,14 +2,12 @@ package me.anno.studio
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
-import me.anno.input.Input
+import me.anno.input.ActionManager
 import me.anno.objects.Camera
 import me.anno.objects.Inspectable
 import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.studio.project.Project
-import me.anno.ui.dragging.IDraggable
-import me.anno.ui.editor.PropertyInspector
 import me.anno.ui.editor.UILayouts
 import me.anno.ui.editor.sceneTabs.SceneTabs
 import kotlin.math.max
@@ -26,6 +24,8 @@ object RemsStudio: StudioBase(true){
 
     override fun createUI() {
         UILayouts.createWelcomeUI()
+        StudioActions.register()
+        ActionManager.init()
     }
 
     var gfxSettings = DefaultConfig["editor.gfx", 0].run { GFXSettings.values().firstOrNull { it.id == this } ?: GFXSettings.LOW }

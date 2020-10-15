@@ -2,7 +2,7 @@ package me.anno.objects.geometric
 
 import me.anno.gpu.GFX
 import me.anno.gpu.buffer.Attribute
-import me.anno.gpu.buffer.StaticFloatBuffer
+import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.shader.Shader
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
@@ -54,7 +54,7 @@ class Circle(parent: Transform? = null): GFXTransform(parent){
     companion object {
 
         var isInited = false
-        lateinit var buffer: StaticFloatBuffer
+        lateinit var buffer: StaticBuffer
 
         fun drawBuffer(shader: Shader){
             if(!isInited){
@@ -67,7 +67,7 @@ class Circle(parent: Transform? = null): GFXTransform(parent){
         fun createBuffer(){
             val n = 36 * 4
             // angle, scaling
-            buffer = StaticFloatBuffer(listOf(Attribute("attr0", 2)), 3 * 2 * n)
+            buffer = StaticBuffer(listOf(Attribute("attr0", 2)), 3 * 2 * n)
             fun put(index: Int, scaling: Float){
                 buffer.put(index.toFloat()/n, scaling)
             }

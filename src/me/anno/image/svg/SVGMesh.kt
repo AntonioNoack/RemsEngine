@@ -3,7 +3,7 @@ package me.anno.image.svg
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX.toRadians
 import me.anno.gpu.buffer.Attribute
-import me.anno.gpu.buffer.StaticFloatBuffer
+import me.anno.gpu.buffer.StaticBuffer
 import me.anno.image.svg.gradient.LinearGradient
 import me.anno.image.svg.gradient.RadialGradient
 import me.anno.io.xml.XMLElement
@@ -128,7 +128,7 @@ class SVGMesh {
         }
     }
 
-    var buffer: StaticFloatBuffer? = null
+    var buffer: StaticBuffer? = null
 
     fun debugMesh(x: Double, y: Double, w: Double, h: Double){
         val x0 = x+w/2
@@ -160,7 +160,7 @@ class SVGMesh {
         val totalPointCount = curves.sumBy { it.triangles.size }
         val totalDoubleCount = totalPointCount * 7 // xyz, rgba
         if(totalPointCount > 0){
-            val buffer = StaticFloatBuffer(listOf(
+            val buffer = StaticBuffer(listOf(
                 Attribute("attr0",3), Attribute("attr1", 4)
             ), totalDoubleCount)
             this.buffer = buffer

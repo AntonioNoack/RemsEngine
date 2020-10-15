@@ -2,7 +2,7 @@ package me.anno.fonts.mesh
 
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.AttributeType
-import me.anno.gpu.buffer.StaticFloatBuffer
+import me.anno.gpu.buffer.StaticBuffer
 import me.anno.ui.base.DefaultRenderingHints
 import me.anno.utils.*
 import org.apache.logging.log4j.LogManager
@@ -32,7 +32,7 @@ class FontMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
     private fun ix(v: Vector2f) = (debugImageSize / 2 + (v.x - 4.8) * 80).toInt()
     private fun iy(v: Vector2f) = (debugImageSize / 2 + (v.y + 4.0) * 80).toInt()
 
-    val buffer: StaticFloatBuffer
+    val buffer: StaticBuffer
     val random = Random()
 
     private fun testTriangulator() {
@@ -276,9 +276,9 @@ class FontMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
             triangles += it.triangles
         }
 
-        buffer = StaticFloatBuffer(
+        buffer = StaticBuffer(
             listOf(
-                Attribute("attr0", AttributeType.FLOAT, 2)
+                Attribute("attr0", 2)
             ), triangles.size * 2
         )
 
@@ -422,7 +422,7 @@ class FontMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
         }
     }
 
-    override fun draw(matrix: Matrix4fArrayList, drawBuffer: (StaticFloatBuffer) -> Unit) {
+    override fun draw(matrix: Matrix4fArrayList, drawBuffer: (StaticBuffer) -> Unit) {
         drawBuffer(buffer)
     }
 

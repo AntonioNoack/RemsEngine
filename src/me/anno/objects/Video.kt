@@ -6,7 +6,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.TextureLib
 import me.anno.gpu.TextureLib.colorShowTexture
 import me.anno.gpu.buffer.Attribute
-import me.anno.gpu.buffer.StaticFloatBuffer
+import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.texture.ClampMode
 import me.anno.gpu.texture.FilteringMode
 import me.anno.image.svg.SVGMesh
@@ -696,8 +696,8 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
 
         val imageTimeout = 5000L
 
-        val cubemapModel = StaticFloatBuffer(listOf(Attribute("attr0", 3), Attribute("attr1", 2)), 4 * 6)
-        val speakerModel: StaticFloatBuffer
+        val cubemapModel = StaticBuffer(listOf(Attribute("attr0", 3), Attribute("attr1", 2)), 4 * 6)
+        val speakerModel: StaticBuffer
 
         init {
 
@@ -727,7 +727,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
             cubemapModel.quads()
 
             val speakerEdges = 64
-            speakerModel = StaticFloatBuffer(
+            speakerModel = StaticBuffer(
                 listOf(
                     Attribute("attr0", 3),
                     Attribute("attr1", 2)

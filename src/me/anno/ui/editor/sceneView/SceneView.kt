@@ -333,8 +333,6 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
         if (bestResult > 0) {
             val transform = (root.listOfAll + nullCamera).firstOrNull { it.clickId == bestResult }
             select(transform)
-            // println("clicked color ${bestResult.toUInt().toString(16)}, transform: $transform")
-            // println((root.listOfAll + nullCamera).map { it.clickId.toString(16) }.joinToString())
         } else select(null)
         GFX.check()
 

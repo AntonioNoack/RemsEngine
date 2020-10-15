@@ -214,7 +214,7 @@ class Texture2D(override var w: Int, override var h: Int, val samples: Int): ITe
             // they don't accept the command to be what they are either
             return
         }
-        if(!hasMipmap && nearest != NearestMode.TRULY_NEAREST){
+        if(!hasMipmap && nearest.needsMipmap){
             glGenerateMipmap(tex2D)
             hasMipmap = true
             if(GFX.supportsAnisotropicFiltering){
@@ -258,7 +258,7 @@ class Texture2D(override var w: Int, override var h: Int, val samples: Int): ITe
         if(withMultisampling){
             glTexImage2DMultisample(tex2D, samples, GL_DEPTH_COMPONENT32, w, h, false)
         } else {
-            glTexImage2D(tex2D, 0, GL_DEPTH_COMPONENT32, w, h, 0, GL_DEPTH_COMPONENT,	GL_FLOAT, 0)
+            glTexImage2D(tex2D, 0, GL_DEPTH_COMPONENT, w, h, 0, GL_DEPTH_COMPONENT,	GL_FLOAT, 0)
         }
         filtering(nearest)
         clamping(ClampMode.CLAMP)

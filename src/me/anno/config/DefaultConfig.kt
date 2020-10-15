@@ -85,8 +85,6 @@ object DefaultConfig : StringMap() {
         val stylePath = newConfig["style"]?.toString() ?: "dark"
         style = baseTheme.getStyle(stylePath)
 
-        ActionManager.init()
-
         val t1 = System.nanoTime()
         // not completely true; is loading some classes, too
         LOGGER.info("Used ${((t1 - t0) * 1e-9f).f3()}s to read the config")

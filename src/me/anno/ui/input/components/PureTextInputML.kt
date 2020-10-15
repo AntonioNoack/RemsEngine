@@ -258,6 +258,7 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
         cursor1 = min
         cursor2 = min
         onSmallChange("text/ml-delete-selection")
+        updateText()
         return true
     }
 
@@ -338,10 +339,10 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
                 lines[cursor1.y].removeAt(cursor1.x - 1)
                 cursor1 = CursorPosition(cursor1.x - 1, cursor1.y)
             }
-            update()
             cursor2 = cursor1
         }
         ensureCursorBounds()
+        update()
     }
 
     fun deleteAfter() {

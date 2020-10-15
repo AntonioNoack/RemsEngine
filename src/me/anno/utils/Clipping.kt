@@ -33,6 +33,39 @@ object Clipping {
         // ("${v0.print()} ${v1.print()} -> ${result.print()} ($val0 $val1 -> ${getValue(result)})")
     }
 
+    fun isRoughlyVisible(points: Iterable<Vector4f>): Boolean {
+
+        var allNegative = true
+        var allPositive = true
+        for(v in points){
+            if(v.x >= -1f) allNegative = false
+            if(v.x <= +1f) allPositive = false
+        }
+
+        if(allNegative || allPositive) return false
+
+        allNegative = true
+        allPositive = true
+        for(v in points){
+            if(v.y >= -1f) allNegative = false
+            if(v.y <= +1f) allPositive = false
+        }
+
+        if(allNegative || allPositive) return false
+
+        allNegative = true
+        allPositive = true
+        for(v in points){
+            if(v.z >= -1f) allNegative = false
+            if(v.z <= +1f) allPositive = false
+        }
+
+        if(allNegative || allPositive) return false
+
+        return true
+
+    }
+
     fun getZ(p00: Vector4f, p01: Vector4f, p10: Vector4f, p11: Vector4f): Pair<Float, Float>? {
 
         var v00 = p00

@@ -1,9 +1,8 @@
 package me.anno.gpu.buffer
 
 import org.joml.Vector2f
-import org.w3c.dom.Attr
 
-class SimpleBuffer(val vertices: Array<Vector2f>, name: String): StaticFloatBuffer(listOf(
+class SimpleBuffer(val vertices: Array<Vector2f>, name: String): StaticBuffer(listOf(
     Attribute(name, 2)
 ), vertices.size){
 
@@ -37,7 +36,7 @@ class SimpleBuffer(val vertices: Array<Vector2f>, name: String): StaticFloatBuff
             ), intArrayOf(0, 1, 2, 0, 2, 3), "attr0"
         )
 
-        val flat01Cube = StaticFloatBuffer(
+        val flat01Cube = StaticBuffer(
             listOf(
                 listOf(-1f, -1f, 0f, 0f, 0f),
                 listOf(-1f, +1f, 0f, 0f, 1f),

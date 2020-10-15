@@ -1,6 +1,6 @@
 package me.anno.fonts.mesh
 
-import me.anno.gpu.buffer.StaticFloatBuffer
+import me.anno.gpu.buffer.StaticBuffer
 import me.anno.utils.accumulate
 import org.joml.Matrix4fArrayList
 import java.awt.Font
@@ -80,7 +80,7 @@ class FontMesh2(val font: Font, val text: String, val charSpacing: Float, debugP
         }
     }
 
-    var buffer: StaticFloatBuffer? = null
+    var buffer: StaticBuffer? = null
 
     // better for the performance of long texts
     fun createStaticBuffer(){
@@ -90,17 +90,17 @@ class FontMesh2(val font: Font, val text: String, val charSpacing: Float, debugP
         codepoints.forEach { codepoint ->
             vertexCount += characters[codepoint]!!.vertexCount
         }
-        val buffer = StaticFloatBuffer(b0.attributes, vertexCount)
+        val buffer = StaticBuffer(b0.attributes, vertexCount)
         val components = b0.attributes.sumBy { it.components }
         codepoints.forEachIndexed { index, codePoint ->
             val offset = offsets[index] * baseScale
             val subBuffer = characters[codePoint]!!
-            val fb = subBuffer.floatBuffer
+            val fb = subBuffer.nioBuffer!!
             var k = 0
             for(i in 0 until subBuffer.vertexCount){
-                buffer.put((fb[k++] + offset).toFloat())
+                buffer.put((fb.getFloat(4 * k++) + offset).toFloat())
                 for(j in 1 until components){
-                    buffer.put(fb[k++])
+                    buffer.put(fb.getFloat(4 * k++))
                 }
             }
         }
@@ -114,7 +114,7 @@ class FontMesh2(val font: Font, val text: String, val charSpacing: Float, debugP
 
     // the performance could be improved
     // still its initialization time should be much faster than FontMesh
-    override fun draw(matrix: Matrix4fArrayList, drawBuffer: (StaticFloatBuffer) -> Unit) {
+    override fun draw(matrix: Matrix4fArrayList, drawBuffer: (StaticBuffer) -> Unit) {
         if(codepoints.isEmpty()) return
         if(isSmallBuffer){
             drawSlowly(matrix, drawBuffer)
@@ -124,7 +124,7 @@ class FontMesh2(val font: Font, val text: String, val charSpacing: Float, debugP
         }
     }
 
-    fun drawSlowly(matrix: Matrix4fArrayList, drawBuffer: (StaticFloatBuffer) -> Unit){
+    fun drawSlowly(matrix: Matrix4fArrayList, drawBuffer: (StaticBuffer) -> Unit){
         val characters = alignment.third
         codepoints.forEachIndexed { index, codePoint ->
             val offset = offsets[index] * baseScale

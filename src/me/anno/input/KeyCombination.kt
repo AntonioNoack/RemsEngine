@@ -85,6 +85,7 @@ class KeyCombination(val key: Int, val modifiers: Int, val type: Type){
             put(GLFW_KEY_RIGHT_ALT, "r-alt")
             put(GLFW_KEY_COMMA, ",", "comma")
             put(GLFW_KEY_PERIOD, ".", "period", "dot")
+            put(GLFW_KEY_ESCAPE, "esc", "escape")
         }
 
         fun getButton(button: String): Int {

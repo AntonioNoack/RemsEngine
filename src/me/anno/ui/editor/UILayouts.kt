@@ -323,6 +323,7 @@ object UILayouts {
         windowStack.push(Window(background))
         windowStack.push(Window(background2, false, 0, 0))
         val mainWindow = Window(scroll, false, 0, 0)
+        mainWindow.cannotClose()
         mainWindow.acceptsClickAway = {
             if (it.isLeft) {
                 loadNewProject()

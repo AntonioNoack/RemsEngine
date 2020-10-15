@@ -7,8 +7,9 @@ package me.anno.gpu;
 import kotlin.Unit;
 import me.anno.config.DefaultConfig;
 import me.anno.input.Input;
-import me.anno.objects.GFXArray;
-import me.anno.studio.*;
+import me.anno.studio.Build;
+import me.anno.studio.RemsStudio;
+import me.anno.studio.StudioBase;
 import me.anno.studio.project.Project;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -35,9 +36,9 @@ import static org.lwjgl.system.MemoryUtil.memAddress;
 /**
  * Showcases how you can use multithreading in a GLFW application in order to
  * separate the (blocking) winproc handling from the render loop.
- * 
- * @author Kai Burjack
  *
+ * @author Kai Burjack
+ * <p>
  * modified by Antonio Noack
  * including all os natives has luckily only very few overhead :) (&lt; 1 MiB)
  */
@@ -45,7 +46,7 @@ public class GFXBase0 {
 
     public static boolean enableVsync = DefaultConfig.INSTANCE.get("debug.ui.enableVsync", !Build.INSTANCE.isDebug());
 
-    public static void setVsyncEnabled(boolean enabled){
+    public static void setVsyncEnabled(boolean enabled) {
         enableVsync = enabled;
         glfwSwapInterval(enableVsync ? 1 : 0);
     }
@@ -56,7 +57,7 @@ public class GFXBase0 {
     GLFWKeyCallback keyCallback;
     GLFWFramebufferSizeCallback fsCallback;
     Callback debugProc;
-    
+
     public String title = "Rem's Studio";
 
     public long window;
@@ -82,7 +83,7 @@ public class GFXBase0 {
             keyCallback.free();
             fsCallback.free();
 
-        } catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         } finally {
             glfwTerminate();
@@ -101,7 +102,7 @@ public class GFXBase0 {
             throw new IllegalStateException("Unable to initialize GLFW");
 
         long t2 = System.nanoTime();
-        LOGGER.info(String.format(Locale.ENGLISH, "Used %.3fs for error callback + %.3fs for glfwInit", ((t1-t0)*1e-9f), ((t2-t1)*1e-9f)));
+        LOGGER.info(String.format(Locale.ENGLISH, "Used %.3fs for error callback + %.3fs for glfwInit", ((t1 - t0) * 1e-9f), ((t2 - t1) * 1e-9f)));
 
         glfwDefaultWindowHints();
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
@@ -122,7 +123,8 @@ public class GFXBase0 {
         long t4 = System.nanoTime();
 
         GLFWVidMode videoMode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-        if(videoMode != null) glfwSetWindowPos(window, (videoMode.width() - width) / 2, (videoMode.height() - height) / 2);
+        if (videoMode != null)
+            glfwSetWindowPos(window, (videoMode.width() - width) / 2, (videoMode.height() - height) / 2);
         try (MemoryStack frame = MemoryStack.stackPush()) {
             IntBuffer framebufferSize = frame.mallocInt(2);
             nglfwGetFramebufferSize(window, memAddress(framebufferSize), memAddress(framebufferSize) + 4);
@@ -139,16 +141,16 @@ public class GFXBase0 {
         long t6 = System.nanoTime();
 
         LOGGER.info("Used %.3fs for window hints + %.3fs for window creation + %.3fs for callbacks + %.3fs for position + %.3fs for show",
-                (t3-t2)*1e-9f, (t3_2-t3)*1e-9f, (t4-t3_2)*1e-9f, (t5-t4)*1e-9f, (t6-t5)*1e-9f);
+                (t3 - t2) * 1e-9f, (t3_2 - t3) * 1e-9f, (t4 - t3_2) * 1e-9f, (t5 - t4) * 1e-9f, (t6 - t5) * 1e-9f);
 
     }
 
-    public void updateTitle(){
+    public void updateTitle() {
         Project project = RemsStudio.INSTANCE.getProject();
-        glfwSetWindowTitle(window, project == null ? "Rem's Studio" : "Rem's Studio: "+project.getName());
+        glfwSetWindowTitle(window, project == null ? "Rem's Studio" : "Rem's Studio: " + project.getName());
     }
 
-    public void addCallbacks(){
+    public void addCallbacks() {
         glfwSetKeyCallback(window, keyCallback = new GLFWKeyCallback() {
             public void invoke(long window, int key, int scancode, int action, int mods) {
                 if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE)
@@ -169,7 +171,7 @@ public class GFXBase0 {
         });
     }
 
-    public void runRenderLoop() {
+    private void runRenderLoop() {
 
         glfwMakeContextCurrent(window);
         glfwSwapInterval(enableVsync ? 1 : 0);
@@ -182,7 +184,7 @@ public class GFXBase0 {
         renderStep0();
 
         while (!destroyed) {
-            synchronized (lock2){
+            synchronized (lock2) {
                 renderStep();
 
                 synchronized (lock) {
@@ -193,11 +195,11 @@ public class GFXBase0 {
             }
         }
 
-        GFX.shutdown.invoke();
+        GFX.onShutdown.invoke();
 
     }
 
-    private void setupDebugging(){
+    private void setupDebugging() {
         debugProc = GLUtil.setupDebugMessageCallback(
                 new PrintStream(new OutputStream() {
                     // parse the message instead
@@ -210,27 +212,39 @@ public class GFXBase0 {
                     private final Logger LOGGER = LogManager.getLogger("LWJGL");
                     private String id, source, type, severity;
                     private StringBuilder line = new StringBuilder();
-                    @Override public void write(int i) {
-                        switch (i){
-                            case '\r':break;// idc
+
+                    @Override
+                    public void write(int i) {
+                        switch (i) {
+                            case '\r':
+                                break;// idc
                             case '\n':
                                 String info = line.toString().trim();
-                                if(info.startsWith("[LWJGL]")){
+                                if (info.startsWith("[LWJGL]")) {
                                     // idc...
                                 } else {
                                     int index = info.indexOf(':');
-                                    if(index > 0){
+                                    if (index > 0) {
                                         String key = info.substring(0, index).trim().toLowerCase();
-                                        String value = info.substring(index+1).trim();
-                                        switch (key){
-                                            case "id": id = value;break;
-                                            case "source": source = value;break;
-                                            case "type": type = value;break;
-                                            case "severity": severity = value;break;
+                                        String value = info.substring(index + 1).trim();
+                                        switch (key) {
+                                            case "id":
+                                                id = value;
+                                                break;
+                                            case "source":
+                                                source = value;
+                                                break;
+                                            case "type":
+                                                type = value;
+                                                break;
+                                            case "severity":
+                                                severity = value;
+                                                break;
                                             case "message":
-                                                String printedMessage = value + " ID: "+id+" Source: "+source;
-                                                if(!"NOTIFICATION".equals(severity)) printedMessage += " Severity: "+severity;
-                                                switch(type == null ? "" : type.toLowerCase()){
+                                                String printedMessage = value + " ID: " + id + " Source: " + source;
+                                                if (!"NOTIFICATION".equals(severity))
+                                                    printedMessage += " Severity: " + severity;
+                                                switch (type == null ? "" : type.toLowerCase()) {
                                                     case "error":
                                                         LOGGER.error(printedMessage);
                                                         break;
@@ -238,7 +252,7 @@ public class GFXBase0 {
                                                         LOGGER.info(printedMessage);
                                                         break;
                                                     default:
-                                                        printedMessage += " Type: "+type;
+                                                        printedMessage += " Type: " + type;
                                                         LOGGER.info(printedMessage);
                                                 }
                                                 id = null;
@@ -247,7 +261,7 @@ public class GFXBase0 {
                                                 severity = null;
                                                 break;
                                         }
-                                    } else if(!info.isEmpty()){
+                                    } else if (!info.isEmpty()) {
                                         // awkward...
                                         LOGGER.info(info);
                                     }
@@ -258,9 +272,9 @@ public class GFXBase0 {
                             default:
                                 final int maxLength = 500 - 3;
                                 final int length = line.length();
-                                if(length < maxLength){
+                                if (length < maxLength) {
                                     line.append((char) i);
-                                } else if(length == maxLength){
+                                } else if (length == maxLength) {
                                     line.append("...");
                                 }// else too many chars, we don't care ;)
                         }
@@ -268,10 +282,10 @@ public class GFXBase0 {
                 }));
     }
 
-    public void renderStep0(){
+    public void renderStep0() {
     }
 
-    public void renderStep(){
+    public void renderStep() {
 
         glClear(GL_COLOR_BUFFER_BIT);
 
@@ -293,6 +307,7 @@ public class GFXBase0 {
 
     }
 
+    public static String projectName = "Rem's Studio";
     boolean shouldClose = false;
 
     void windowLoop() {
@@ -300,18 +315,21 @@ public class GFXBase0 {
          * Start new thread to have the OpenGL context current in and which does
          * the rendering.
          */
-        new Thread(this::runRenderLoop).start();
+        new Thread(() -> {
+            runRenderLoop();
+            cleanUp();
+        }).start();
 
-        while(!shouldClose){
+        while (!shouldClose) {
             while (!glfwWindowShouldClose(window) && !shouldClose) {
                 glfwWaitEvents();
             }
-            if(DefaultConfig.INSTANCE.get("window.close.directly", false)){
+            if (DefaultConfig.INSTANCE.get("window.close.directly", false)) {
                 break;
             } else {
                 glfwSetWindowShouldClose(window, false);
                 GFX.INSTANCE.addGPUTask(1, () -> {
-                    GFX.INSTANCE.ask("Close Rem's Studio?", () -> {
+                    GFX.INSTANCE.ask("Close "+projectName+"?", () -> {
                         shouldClose = true;
                         glfwSetWindowShouldClose(window, true);
                         return null;
@@ -323,6 +341,9 @@ public class GFXBase0 {
             }
         }
 
+    }
+
+    public void cleanUp() {
     }
 
     public static void main(String[] args) {

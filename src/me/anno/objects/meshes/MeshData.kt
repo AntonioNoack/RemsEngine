@@ -6,8 +6,7 @@ import me.anno.gpu.GFX.matrixBufferFBX
 import me.anno.gpu.ShaderLib.shaderFBX
 import me.anno.gpu.ShaderLib.shaderObjMtl
 import me.anno.gpu.TextureLib.whiteTexture
-import me.anno.gpu.buffer.StaticFloatBuffer
-import me.anno.gpu.texture.ClampMode
+import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.texture.FilteringMode
 import me.anno.gpu.texture.Texture2D
 import me.anno.objects.Transform.Companion.yAxis
@@ -26,16 +25,9 @@ import java.io.File
 
 class MeshData : CacheData {
 
-    var objData: Map<Material, StaticFloatBuffer>? = null
+    var objData: Map<Material, StaticBuffer>? = null
     var fbxGeometry: FBXGeometry? = null
     var daeScene: Scene? = null
-
-    fun getTexture(file: File?, defaultTexture: Texture2D): Texture2D {
-        if (file == null) return defaultTexture
-        val tex = Cache.getImage(file, 1000, true)
-        if (tex == null && isFinalRendering) throw MissingFrameException(file)
-        return tex ?: defaultTexture
-    }
 
     fun drawObj(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
         for ((material, buffer) in objData!!) {
@@ -60,10 +52,11 @@ class MeshData : CacheData {
 
     // doesn't work :/
     fun drawFBX(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
-        for ((material, buffer) in objData!!) {
 
-            val shader = shaderFBX.shader
-            shader.use()
+        val shader = shaderFBX.shader
+        shader.use()
+
+        for ((material, buffer) in objData!!) {
 
             // todo calculate all bone transforms, and upload them to the shader...
             val geo = fbxGeometry!!
@@ -132,6 +125,15 @@ class MeshData : CacheData {
         }
         // fbxGeometry?.destroy()
         daeScene?.animatedModel?.destroy()
+    }
+
+    companion object {
+        fun getTexture(file: File?, defaultTexture: Texture2D): Texture2D {
+            if (file == null) return defaultTexture
+            val tex = Cache.getImage(file, 1000, true)
+            if (tex == null && isFinalRendering) throw MissingFrameException(file)
+            return tex ?: defaultTexture
+        }
     }
 
 }

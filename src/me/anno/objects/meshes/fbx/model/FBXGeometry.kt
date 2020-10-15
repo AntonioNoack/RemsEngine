@@ -3,7 +3,7 @@ package me.anno.objects.meshes.fbx.model
 import me.anno.gpu.GFX
 import me.anno.gpu.ShaderLib
 import me.anno.gpu.buffer.Attribute
-import me.anno.gpu.buffer.StaticFloatBuffer
+import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.shader.ShaderPlus
 import me.anno.objects.meshes.fbx.structure.FBXNode
 import me.anno.utils.clamp
@@ -69,7 +69,7 @@ class FBXGeometry(node: FBXNode) : FBXObject(node) {
         }
     }
 
-    fun generateMesh(): StaticFloatBuffer {
+    fun generateMesh(): StaticBuffer {
 
         val uvMapCount = min(1, uvs.size) // could be changed
         val weightCount = maxWeights
@@ -92,7 +92,7 @@ class FBXGeometry(node: FBXNode) : FBXObject(node) {
             )
         }
 
-        val buffer = StaticFloatBuffer(attributes, faceCount * 3)
+        val buffer = StaticBuffer(attributes, faceCount * 3)
         // ("faces: $faceCount, x3 = ${3*faceCount}, face-indices: ${faces.size}")
 
         var a = 0
@@ -169,7 +169,7 @@ class FBXGeometry(node: FBXNode) : FBXObject(node) {
             }
         }
 
-        println("${buffer.floatBuffer.position()} vs ${buffer.floatBuffer.capacity()}")
+        println("${buffer.nioBuffer!!.position()} vs ${buffer.nioBuffer!!.capacity()}")
 
         return buffer
 
@@ -210,7 +210,7 @@ class FBXGeometry(node: FBXNode) : FBXObject(node) {
         ) n.getIntArray("NormalsIndex")
             ?: n.getIntArray("UVIndex") else null // a second remapping xD ; could exist for colors, materials (useless) and colors as well
 
-        fun put(vertIndex: Int, totalVertIndex: Int, faceIndex: Int, buffer: StaticFloatBuffer) {
+        fun put(vertIndex: Int, totalVertIndex: Int, faceIndex: Int, buffer: StaticBuffer) {
             var index = (when (accessType) {
                 0 -> vertIndex
                 1 -> faceIndex
@@ -227,7 +227,7 @@ class FBXGeometry(node: FBXNode) : FBXObject(node) {
 
     class LayerElementIA(n: FBXNode, val components: Int) : LayerElement(n) {
         val data = n.getIntArray("Materials")!!
-        fun put(vertIndex: Int, totalVertIndex: Int, faceIndex: Int, buffer: StaticFloatBuffer) {
+        fun put(vertIndex: Int, totalVertIndex: Int, faceIndex: Int, buffer: StaticBuffer) {
             var index = (when (accessType) {
                 0 -> vertIndex
                 1 -> faceIndex

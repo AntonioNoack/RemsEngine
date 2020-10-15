@@ -23,7 +23,7 @@ public class GFXBaseDae extends GFXBase0 {
 
     public GFXBaseDae(){
         GFX.INSTANCE.setGameInit(() -> null);
-        GFX.INSTANCE.setShutdown(() -> null);
+        GFX.INSTANCE.setOnShutdown(() -> null);
         title += ": .dea Test";
     }
 
@@ -60,8 +60,8 @@ public class GFXBaseDae extends GFXBase0 {
     }
 
     @Override
-    public void runRenderLoop() {
-        super.runRenderLoop();
+    public void cleanUp() {
+        super.cleanUp();
         engine.close();
     }
 
