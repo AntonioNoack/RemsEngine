@@ -2,10 +2,18 @@ package me.anno.ui.editor.color
 
 import me.anno.gpu.shader.Shader
 import me.anno.ui.editor.color.ColorChooser.Companion.CircleBarRatio
-import me.anno.utils.*
-import org.hsluv.HSLuvColorSpace
+import me.anno.ui.editor.color.spaces.HSLuv
+import me.anno.ui.editor.color.spaces.HSV
+import me.anno.ui.editor.color.spaces.LinearHSI
+import me.anno.utils.gradientDescent
+import me.anno.utils.mix
+import me.anno.utils.times
 import org.joml.Vector3f
-import kotlin.math.*
+import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
+import kotlin.collections.plusAssign
+import kotlin.collections.set
+import kotlin.math.PI
 
 // could be used to replace the two color spaces with more
 abstract class ColorSpace(
@@ -13,7 +21,6 @@ abstract class ColorSpace(
     val serializationName: String,
     // display
     val glsl: String,
-    // val shader: Shader,
     val hue0: Vector3f
 ) {
 
@@ -125,37 +132,10 @@ abstract class ColorSpace(
         val values = HashMap<String, ColorSpace>()
         operator fun get(name: String) = values[name] ?: values[name.toLowerCase()]
 
-        val HSLuv = object : ColorSpace(
-            "HSLuv", HSLuvGLSL.GLSL + "\n" +
-                    "vec3 spaceToRGB(vec3 hsl){\n" +
-                    "   return clamp(hsluvToRgb(hsl*vec3(360.0, 100.0, 100.0)), 0.0, 1.0);\n" +
-                    "}\n", Vector3f(0f, 1f, 0.5f)
-        ) {
-            override fun fromRGB(rgb: Vector3f): Vector3f {
-                return HSLuvColorSpace.rgbToHsluv(
-                    doubleArrayOf(
-                        rgb.x.toDouble(), rgb.y.toDouble(), rgb.z.toDouble()
-                    )
-                ).toVec3().mul(1 / 360f, 1 / 100f, 1 / 100f)
-            }
-
-            override fun toRGB(input: Vector3f): Vector3f {
-                return HSLuvColorSpace.hsluvToRgb(
-                    doubleArrayOf(
-                        input.x * 360.0, input.y * 100.0, input.z * 100.0
-                    )
-                ).toVec3()
-            }
-        }
-
-        val HSV = object : ColorSpace("HSV", HSVColorSpace.GLSL, Vector3f(0f, 0.7f, 1f)) {
-            override fun fromRGB(rgb: Vector3f): Vector3f {
-                return HSVColorSpace.rgbToHSV(rgb.x, rgb.y, rgb.z)
-            }
-
-            override fun toRGB(input: Vector3f): Vector3f {
-                return HSVColorSpace.hsvToRGB(input.x, input.y, input.z)
-            }
+        init {
+            HSLuv.toString()
+            HSV.toString()
+            LinearHSI.toString()
         }
 
         /*val RGB = object: ColorSpace("R-GB", "vec3 spaceToRGB(vec3 rgb){ return rgb; }\n",
@@ -245,61 +225,6 @@ abstract class ColorSpace(
                 }
             }
         }*/
-
-        val LinearHSI = object: ColorSpace("HSI", "HSI-Linear", "" +
-                "vec3 hueToRGB(float h){" +
-                "   vec3 hsv = vec3(h, 1.0, 1.0);\n" +
-                "   float x = (1.0 - abs(mod(h*6.0, 2.0) - 1.0));\n" +
-                "   vec3 rgb = h < 0.5 ? (\n" +
-                "       h < ${1.0/6.0} ? vec3(1.0,x,0.0) : h < ${2.0/6.0} ? vec3(x,1.0,0.0) : vec3(0.0,1.0,x) \n" +
-                "   ) : (\n" +
-                "       h < ${4.0/6.0} ? vec3(0.0,x,1.0) : h < ${5.0/6.0} ? vec3(x,0.0,1.0) : vec3(1.0,0.0,x)\n" +
-                "   );\n" +
-                "   return rgb;\n" +
-                "}" +
-                "vec3 spaceToRGB(vec3 hsv){" +
-                "   float h = hsv.x, s = hsv.y, v = hsv.z;\n" +
-                // just interpolate between black, white, and the most vibrant color at that hue
-                "   vec3 color = hueToRGB(h);\n" +
-                "   vec3 center = mix(vec3(0.5), color, s);\n" +
-                "   if(v > 0.5){\n" +
-                "       return mix(center, vec3(1.0), 2*v-1);\n" +
-                "   } else {\n" +
-                "       return center*(2*v);\n" +
-                "   }\n" +
-                "}", Vector3f(0f, 0.69f, 0.63f)
-        ){
-
-            // not completely correct yet;
-            // use this as a starting point for gradient descent,
-            // if we can't figure it out?
-            override fun fromRGB(rgb: Vector3f): Vector3f {
-                val hsv = HSVColorSpace.rgbToHSV(rgb.x, rgb.y, rgb.z)
-                // we were too lazy to find the correct solution 😅, so we just use gradient descent to find it
-                val solution = gradientDescent(floatArrayOf(hsv.x, hsv.y, hsv.z), 0.1f, 1e-7f){
-                    val currentRGB = toRGB(Vector3f(it[0], it[1], it[2]))
-                    val dr = currentRGB.x - rgb.x
-                    val dg = currentRGB.y - rgb.y
-                    val db = currentRGB.z - rgb.z
-                    dr*dr+dg*dg+db*db
-                }
-                return Vector3f(solution[0], solution[1], solution[2])
-            }
-
-            override fun toRGB(input: Vector3f): Vector3f {
-                val h = input.x
-                val s = input.y
-                val v = input.z
-                val color = HSVColorSpace.hsvToRGB(h, 1f, 1f)
-                val center = mix(Vector3f(0.5f), color, s)
-                return if(v > 0.5){
-                    mix(center, Vector3f(1f), 2*v-1)
-                } else {
-                    center * (2 * v)
-                }
-            }
-
-        }
 
     }
 }

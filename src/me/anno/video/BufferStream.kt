@@ -8,7 +8,7 @@ import java.util.concurrent.atomic.AtomicInteger
 
 class BufferStream(
     val audio: Audio, sampleRate: Int, val buffer: ShortBuffer,
-    listener: Camera, val notifier: AtomicInteger
+    listener: Camera, private val notifier: AtomicInteger
     ) :
         AudioStream(audio, 1.0, 0.0, sampleRate, listener) {
         override fun onBufferFilled(stereoBuffer: ShortBuffer, bufferIndex: Long) {

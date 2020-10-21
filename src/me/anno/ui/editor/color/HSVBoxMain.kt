@@ -6,8 +6,7 @@ import me.anno.gpu.TextureLib
 import me.anno.gpu.texture.ClampMode
 import me.anno.gpu.texture.NearestMode
 import me.anno.input.MouseButton
-import me.anno.ui.base.Constraint
-import me.anno.ui.base.Panel
+import me.anno.ui.base.constraints.AspectRatioConstraint
 import me.anno.ui.editor.color.ColorChooser.Companion.CircleBarRatio
 import me.anno.ui.style.Style
 import me.anno.utils.length
@@ -162,18 +161,7 @@ class HSVBoxMain(chooser: ColorChooser, v0: Vector3f, du: Vector3f, dv: Vector3f
 
     init {
         // enforce the aspect ratio
-        this += object : Constraint(25) {
-            override fun apply(panel: Panel) {
-                val targetAspectRatio = chooser.visualisation.ratio
-                if (panel.w * targetAspectRatio > panel.h) {
-                    // zu breit -> weniger breit
-                    panel.w = min(panel.w, (panel.h / targetAspectRatio).roundToInt())
-                } else {
-                    // zu hoch -> weniger hoch
-                    panel.h = min(panel.h, (panel.w * targetAspectRatio).roundToInt())
-                }
-            }
-        }
+        this += AspectRatioConstraint { chooser.visualisation.ratio }
     }
 
     companion object {
@@ -181,7 +169,7 @@ class HSVBoxMain(chooser: ColorChooser, v0: Vector3f, du: Vector3f, dv: Vector3f
             x: Int, y: Int, w: Int, h: Int, chooser: ColorChooser,
             sx: Float, sy: Float, withGradient: Boolean
         ) {
-            if(withGradient){
+            if (withGradient) {
                 GFX.drawRectGradient(x, y, w, h, chooser.backgroundColor.toVecRGBA(), chooser.rgba)
             } else {
                 chooser.drawColorBox(
@@ -194,7 +182,7 @@ class HSVBoxMain(chooser: ColorChooser, v0: Vector3f, du: Vector3f, dv: Vector3f
             if (chooser.opacity < 1f) {
                 val color =
                     (chooser.backgroundColor and 0xffffff) or ((1f - chooser.opacity) * 255).roundToInt().shl(24)
-                GFX.drawTexture(x, y, w, h, TextureLib.colorShowTexture, color, Vector4f(sx, sy, sx/2, sy/2))
+                GFX.drawTexture(x, y, w, h, TextureLib.colorShowTexture, color, Vector4f(sx, sy, sx / 2, sy / 2))
             }
         }
     }

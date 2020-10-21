@@ -25,7 +25,7 @@ import me.anno.ui.base.ButtonPanel
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
-import me.anno.ui.editor.color.ColorSpace.Companion.HSLuv
+import me.anno.ui.editor.color.spaces.HSLuv
 import me.anno.ui.input.BooleanInput
 import me.anno.ui.input.EnumInput
 import me.anno.ui.input.TextInputML

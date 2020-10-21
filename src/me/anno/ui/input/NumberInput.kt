@@ -10,10 +10,10 @@ import me.anno.studio.RemsStudio.editorTime
 import me.anno.studio.RemsStudio.onSmallChange
 import me.anno.studio.RemsStudio.selectedInspectable
 import me.anno.studio.RemsStudio.selectedProperty
-import me.anno.ui.base.TextPanel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.input.components.PureTextInput
+import me.anno.ui.input.components.TitlePanel
 import me.anno.ui.style.Style
 import me.anno.utils.get
 
@@ -24,11 +24,7 @@ abstract class NumberInput(
     val indexInProperty: Int
 ) : PanelListY(style) {
 
-    class TitlePanel(title: String, val numberInput: NumberInput, style: Style): TextPanel(title, style){
-        override fun onMouseDown(x: Float, y: Float, button: MouseButton) { numberInput.onMouseDown(x, y, button) }
-        override fun onMouseUp(x: Float, y: Float, button: MouseButton) { numberInput.onMouseUp(x, y, button) }
-        override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) { numberInput.onMouseMoved(x, y, dx, dy) }
-    }
+
 
     class NumberInputPanel(val owningProperty: AnimatedProperty<*>?,
                            val indexInProperty: Int,

@@ -1,11 +1,7 @@
 package me.anno.ui.editor.color
 
 import me.anno.config.DefaultConfig
-import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
-import me.anno.gpu.TextureLib.colorShowTexture
-import me.anno.gpu.texture.ClampMode
-import me.anno.gpu.texture.NearestMode
 import me.anno.image.svg.SVGStyle.Companion.parseColorComplex
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.studio.RemsStudio.onSmallChange
@@ -15,19 +11,17 @@ import me.anno.ui.base.SpacePanel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
-import me.anno.ui.editor.color.HSVBoxMain.Companion.drawColoredAlpha
+import me.anno.ui.editor.color.spaces.HSLuv
 import me.anno.ui.input.EnumInput
 import me.anno.ui.style.Style
 import me.anno.utils.clamp
 import me.anno.utils.f3
 import me.anno.utils.get
-import me.anno.utils.toVecRGBA
 import org.apache.logging.log4j.LogManager
 import org.hsluv.HSLuvColorSpace
 import org.joml.Vector3f
 import org.joml.Vector4f
 import kotlin.math.min
-import kotlin.math.roundToInt
 
 class ColorChooser(style: Style, val withAlpha: Boolean, val owningProperty: AnimatedProperty<*>?) : PanelListY(style) {
 
@@ -46,7 +40,7 @@ class ColorChooser(style: Style, val withAlpha: Boolean, val owningProperty: Ani
 
     val rgba get() = Vector4f(colorSpace.toRGB(Vector3f(hue, saturation, lightness)), opacity)
     var visualisation = lastVisualisation ?: ColorVisualisation.WHEEL
-    var colorSpace = lastColorSpace ?: ColorSpace[DefaultConfig["default.colorSpace", "HSLuv"]] ?: ColorSpace.HSLuv
+    var colorSpace = lastColorSpace ?: ColorSpace[DefaultConfig["default.colorSpace", "HSLuv"]] ?: HSLuv
 
     var isDownInRing = false
     val hslBox = HSVBoxMain(this, Vector3f(), Vector3f(0f, 1f, 0f), Vector3f(0f, 0f, 1f), style)

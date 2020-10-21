@@ -1,4 +1,6 @@
-package me.anno.ui.base
+package me.anno.ui.base.constraints
+
+import me.anno.ui.base.Panel
 
 abstract class Constraint(val order: Int){
 

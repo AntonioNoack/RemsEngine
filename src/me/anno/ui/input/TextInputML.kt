@@ -13,7 +13,7 @@ open class TextInputML(title: String, style: Style): PanelContainer(
     ), Padding(2), style.getChild("deep")) {
 
     constructor(title: String, style: Style, v0: String): this(title, style){
-        setText(v0)
+        setText(v0, false)
     }
 
     val base = child as PureTextInputML
@@ -24,8 +24,6 @@ open class TextInputML(title: String, style: Style): PanelContainer(
     }
 
     fun setCursorToEnd() = base.setCursorToEnd()
-    // fun updateChars() = base.updateChars()
-    fun updateText() = base.updateText()
 
     fun setPlaceholder(text: String): TextInputML {
         base.placeholder = text
@@ -44,8 +42,8 @@ open class TextInputML(title: String, style: Style): PanelContainer(
         return this
     }
 
-    fun setText(text: String): TextInputML {
-        base.setText(text)
+    fun setText(text: String, notify: Boolean): TextInputML {
+        base.setText(text, notify)
         /*base.text = text
         updateChars()*/
         return this
@@ -66,7 +64,7 @@ open class TextInputML(title: String, style: Style): PanelContainer(
 
     override fun onPasteFiles(x: Float, y: Float, files: List<File>) {
         val keyFile = files.firstOrNull() ?: return
-        setText(keyFile.toString())
+        setText(keyFile.toString(), true)
     }
 
     override fun getCursor(): Long = Cursor.drag

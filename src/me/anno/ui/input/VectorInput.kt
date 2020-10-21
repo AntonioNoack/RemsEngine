@@ -20,6 +20,8 @@ import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.input.components.PureTextInput
+import me.anno.ui.input.components.TitlePanel
+import me.anno.ui.input.components.VectorInputComponent
 import me.anno.ui.style.Style
 import me.anno.utils.*
 import org.joml.Quaternionf
@@ -71,20 +73,7 @@ class VectorInput(
     val valueFields = ArrayList<PureTextInput>(components)
 
     fun addComponent(i: Int, title: String): FloatInput {
-        val pseudo = object: FloatInput(style, title, type, owningProperty, i){
-            override fun onEmpty(x: Float, y: Float) {
-                val defaultValue = type.defaultValue
-                this.setValue(defaultValue[i], true)
-            }
-        }
-        pseudo.setChangeListener {
-            changeListener(
-                compX.lastValue.anyToFloat(),
-                compY.lastValue.anyToFloat(),
-                compZ?.lastValue?.anyToFloat() ?: 0f,
-                compW?.lastValue?.anyToFloat() ?: 0f)
-        }
-        // titleList += pseudo.titlePanel.setWeight(1f)
+        val pseudo = VectorInputComponent(title, type, owningProperty, i, this, style)
         val input = pseudo.inputPanel
         valueList += input.setWeight(1f)
         valueFields += input
@@ -95,63 +84,7 @@ class VectorInput(
     val valueList = PanelListX(style)
     init { valueList.disableConstantSpaceForWeightedChildren = true }
 
-    val titleView = object: TextPanel(title, style){
-
-        override fun onMouseDown(x: Float, y: Float, button: MouseButton) { this@VectorInput.onMouseDown(x,y,button) }
-        override fun onMouseUp(x: Float, y: Float, button: MouseButton) { this@VectorInput.onMouseUp(x,y,button) }
-        override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) { this@VectorInput.onMouseMoved(x,y,dx,dy) }
-        override fun onCopyRequested(x: Float, y: Float): String? =
-            owningProperty?.toString() ?:
-            "[${compX.lastValue}, ${compY.lastValue}, ${compZ?.lastValue ?: 0f}, ${compW?.lastValue ?: 0f}]"
-
-        override fun onPaste(x: Float, y: Float, data: String, type: String) {
-            val allComponents = data.toDoubleOrNull()
-            if(allComponents != null){
-                compX.setValue(allComponents, true)
-                compY.setValue(allComponents, true)
-                compZ?.setValue(allComponents, true)
-                compW?.setValue(allComponents, true)
-            } else {
-                // parse vector
-                if(data.startsWith("[") && data.endsWith("]") && data.indexOf('{') < 0){
-                    val values = data.substring(1, data.lastIndex).split(',').map { it.trim().toDoubleOrNull() }
-                    if(values.size in 1 .. 4){
-                        values[0]?.apply { compX.setValue(this, true) }
-                        values[1]?.apply { compY.setValue(this, true) }
-                        values.getOrNull(2)?.apply { compZ?.setValue(this, true) }
-                        values.getOrNull(3)?.apply { compW?.setValue(this, true) }
-                    }
-                } else {
-                    try {
-                        val editorTime = editorTime
-                        val animProperty = TextReader.fromText(data).firstOrNull() as? AnimatedProperty<*>
-                        if(animProperty != null){
-                            if(owningProperty != null){
-                                owningProperty.copyFrom(animProperty)
-                                when(val value = owningProperty[editorTime]){
-                                    is Vector2f -> setValue(value, true)
-                                    is Vector3f -> setValue(value, true)
-                                    is Vector4f -> setValue(value, true)
-                                    is Quaternionf -> setValue(value, true)
-                                    else -> warn("Unknown pasted data type $value")
-                                }
-                            } else {
-                                // get the default value? no, the current value? yes.
-                                setValue(Vector4f(
-                                    animProperty[editorTime]!![0, vx],
-                                    animProperty[editorTime]!![1, vy],
-                                    animProperty[editorTime]!![2, vz],
-                                    animProperty[editorTime]!![3, vw]), true
-                                )
-                            }
-                        }
-                    } catch (e: Exception){
-                        e.printStackTrace()
-                    }
-                }
-            }
-        }
-    }
+    val titleView = TitlePanel(title, this, style)
 
     init {
 
@@ -172,6 +105,58 @@ class VectorInput(
         this += valueList
         valueList.hide()
 
+    }
+
+    override fun onCopyRequested(x: Float, y: Float): String? =
+        owningProperty?.toString() ?:
+        "[${compX.lastValue}, ${compY.lastValue}, ${compZ?.lastValue ?: 0f}, ${compW?.lastValue ?: 0f}]"
+
+    override fun onPaste(x: Float, y: Float, data: String, type: String) {
+        val allComponents = data.toDoubleOrNull()
+        if(allComponents != null){
+            compX.setValue(allComponents, true)
+            compY.setValue(allComponents, true)
+            compZ?.setValue(allComponents, true)
+            compW?.setValue(allComponents, true)
+        } else {
+            // parse vector
+            if(data.startsWith("[") && data.endsWith("]") && data.indexOf('{') < 0){
+                val values = data.substring(1, data.lastIndex).split(',').map { it.trim().toDoubleOrNull() }
+                if(values.size in 1 .. 4){
+                    values[0]?.apply { compX.setValue(this, true) }
+                    values[1]?.apply { compY.setValue(this, true) }
+                    values.getOrNull(2)?.apply { compZ?.setValue(this, true) }
+                    values.getOrNull(3)?.apply { compW?.setValue(this, true) }
+                }
+            } else {
+                try {
+                    val editorTime = editorTime
+                    val animProperty = TextReader.fromText(data).firstOrNull() as? AnimatedProperty<*>
+                    if(animProperty != null){
+                        if(owningProperty != null){
+                            owningProperty.copyFrom(animProperty)
+                            when(val value = owningProperty[editorTime]){
+                                is Vector2f -> setValue(value, true)
+                                is Vector3f -> setValue(value, true)
+                                is Vector4f -> setValue(value, true)
+                                is Quaternionf -> setValue(value, true)
+                                else -> warn("Unknown pasted data type $value")
+                            }
+                        } else {
+                            // get the default value? no, the current value? yes.
+                            setValue(Vector4f(
+                                animProperty[editorTime]!![0, vx],
+                                animProperty[editorTime]!![1, vy],
+                                animProperty[editorTime]!![2, vz],
+                                animProperty[editorTime]!![3, vw]), true
+                            )
+                        }
+                    }
+                } catch (e: Exception){
+                    e.printStackTrace()
+                }
+            }
+        }
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {

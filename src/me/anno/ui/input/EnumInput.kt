@@ -5,9 +5,8 @@ import me.anno.gpu.GFX
 import me.anno.input.MouseButton
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.groups.PanelListX
+import me.anno.ui.input.components.EnumValuePanel
 import me.anno.ui.style.Style
-import me.anno.utils.isDownKey
-import me.anno.utils.isUpKey
 
 class EnumInput(
     private val title: String, withTitle: Boolean, startValue: String,
@@ -17,14 +16,7 @@ class EnumInput(
     var lastIndex = options.indexOf(startValue)
 
     private val titleView = if (withTitle) TextPanel("$title:", style) else null
-    private val inputPanel = object : TextPanel(startValue, style.getChild("italic")) {
-        override fun acceptsChar(char: Int) = char.isUpKey() || char.isDownKey()
-        override fun onKeyTyped(x: Float, y: Float, key: Int) {
-            if(key.isDownKey()) moveDown(1)
-            else if(key.isUpKey()) moveDown(-1)
-        }
-        override fun isKeyInput() = true
-    }
+    private val inputPanel = EnumValuePanel(startValue, this, style)
 
     init {
         titleView?.enableHoverColor = true

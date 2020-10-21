@@ -5,6 +5,7 @@ import me.anno.gpu.Window
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.input.MouseButton
 import me.anno.ui.base.components.Padding
+import me.anno.ui.base.constraints.Constraint
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.state.Rect

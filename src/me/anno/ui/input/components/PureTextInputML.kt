@@ -6,8 +6,6 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.input.Input
 import me.anno.input.MouseButton
-import me.anno.studio.RemsStudio
-import me.anno.studio.RemsStudio.lastT
 import me.anno.studio.RemsStudio.onSmallChange
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.components.Padding
@@ -28,7 +26,7 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
     var placeholder = ""
         set(value) {
             field = value
-            if (text.isEmpty()) update()
+            if (text.isEmpty()) update(false)
         }
 
     override fun tickUpdate() {
@@ -215,7 +213,7 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
     fun String.toLines() = split('\n')
         .map { line -> line.codePoints().toList().toMutableList() }
 
-    fun setText(text: String) {
+    fun setText(text: String, notify: Boolean) {
         if (text == this.text) return
         this.text = text
         val textLines = text.split('\n')
@@ -230,15 +228,14 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
                 lineList.addAll(line.codePoints().toList())
             }
         }
-        update()
+        update(notify)
     }
 
-    fun updateText() {
+    fun updateText(notify: Boolean) {
         text = joinedText
         if(text != lastText){
-            // println("$placeholder update: $lastText -> $text")
             lastText = text
-            changeListener(text)
+            if(notify) changeListener(text)
         }
     }
 
@@ -264,23 +261,25 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
         cursor1 = min
         cursor2 = min
         onSmallChange("text/ml-delete-selection")
-        updateText()
+        updateText(true)
         return true
     }
 
     fun addKey(codePoint: Int) = insert(codePoint, true)
 
     fun insert(insertion: String) {
-        lastChangeTime = GFX.lastTime
-        insertion.codePoints().forEach {
-            insert(it, false)
+        if(insertion.isNotEmpty()){
+            lastChangeTime = GFX.lastTime
+            insertion.codePoints().forEach {
+                insert(it, false)
+            }
+            update(true)
+            onSmallChange("text/ml-insert-string")
         }
-        update()
-        onSmallChange("text/ml-insert-string")
     }
 
-    fun update() {
-        updateText()
+    fun update(notify: Boolean) {
+        updateText(notify)
         updateLines()
     }
 
@@ -296,7 +295,7 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
         return line.subList(0, i)
     }
 
-    fun insert(insertion: Int, update: Boolean) {
+    fun insert(insertion: Int, notify: Boolean) {
         lastChangeTime = GFX.lastTime
         deleteSelection()
         when (insertion) {
@@ -324,8 +323,8 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
             }
         }
         ensureCursorBounds()
-        if (update) {
-            update()
+        if (notify) {
+            update(true)
             onSmallChange("text/ml-insert")
         }
     }
@@ -348,7 +347,7 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
             cursor2 = cursor1
         }
         ensureCursorBounds()
-        update()
+        update(true)
     }
 
     fun deleteAfter() {
@@ -541,12 +540,12 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
 
     override fun onEmpty(x: Float, y: Float) {
         deleteSelection()
-        update()
+        update(true)
         onSmallChange("text/ml-empty")
     }
 
-    fun clearText() {
-        setText("")
+    fun clearText(notify: Boolean) {
+        setText("", notify)
         onSmallChange("text/ml-clear")
     }
 
@@ -559,7 +558,7 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
             "MoveRight" -> moveRight()
             "MoveUp" -> moveUp()
             "MoveDown" -> moveDown()
-            "Clear" -> clearText()
+            "Clear" -> clearText(true)
             else -> return super.onGotAction(x, y, dx, dy, action, isContinuous)
         }
         return true
@@ -573,7 +572,7 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
     override fun isKeyInput() = true
 
     init {
-        update()
+        update(false)
     }
 
 }

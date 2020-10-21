@@ -1,6 +1,5 @@
 package me.anno.ui.base.constraints
 
-import me.anno.ui.base.Constraint
 import me.anno.ui.base.Panel
 import kotlin.math.max
 import kotlin.math.min

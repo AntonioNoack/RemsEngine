@@ -122,27 +122,6 @@ abstract class AudioStream(
         return data[arrayIndex0] to data[arrayIndex0+1]
     }
 
-    val copyTransfer = object: AudioTransfer(1.0, 1.0, 0.0, 0.0){
-        override fun l2l(f: Double, s: AudioTransfer) = 1.0
-        override fun r2r(f: Double, s: AudioTransfer) = 1.0
-        override fun l2r(f: Double, s: AudioTransfer) = 0.0
-        override fun r2l(f: Double, s: AudioTransfer) = 0.0
-        override fun getLeft(left: Double, right: Double, f: Double, s: AudioTransfer) = left
-        override fun getRight(left: Double, right: Double, f: Double, s: AudioTransfer) = right
-    }
-
-    open class AudioTransfer(val l2l: Double, val r2r: Double, val l2r: Double, val rl2: Double){
-        open fun l2l(f: Double, s: AudioTransfer) = mix(l2l, s.l2l, f)
-        open fun r2r(f: Double, s: AudioTransfer) = mix(r2r, s.r2r, f)
-        open fun l2r(f: Double, s: AudioTransfer) = mix(l2r, s.l2r, f)
-        open fun r2l(f: Double, s: AudioTransfer) = mix(rl2, s.rl2, f)
-        open fun getLeft(left: Double, right: Double, f: Double, s: AudioTransfer) =
-            left * l2l(f, s) + right * r2l(f, s)
-        open fun getRight(left: Double, right: Double, f: Double, s: AudioTransfer) =
-            left * l2r(f, s) + right * r2r(f, s)
-        override fun toString() = "[${l2l.f2()} ${r2r.f2()} ${l2r.f2()} ${rl2.f2()}]"
-    }
-
     fun calculateLoudness(global1: Double): AudioTransfer {
 
         // todo decide on loudness depending on speaker orientation and size (e.g. Nierencharcteristik)
@@ -200,7 +179,7 @@ abstract class AudioStream(
                 .order(ByteOrder.nativeOrder())
             val stereoBuffer = byteBuffer.asShortBuffer()
 
-            var transfer0 = if(sender.is3D) calculateLoudness(startTime) else copyTransfer
+            var transfer0 = if(sender.is3D) calculateLoudness(startTime) else CopyTransfer
             var transfer1 = transfer0
 
             // todo linear approximation, if possible
