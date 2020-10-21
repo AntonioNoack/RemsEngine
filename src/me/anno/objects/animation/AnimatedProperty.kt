@@ -19,60 +19,10 @@ class AnimatedProperty<V>(val type: Type, var defaultValue: V) : Saveable() {
 
     constructor(type: Type) : this(type, type.defaultValue as V)
 
-    enum class Type(
-        val code: String,
-        val defaultValue: Any,
-        val components: Int,
-        val unitScale: Float,
-        val hasLinear: Boolean,
-        val hasExponential: Boolean,
-        val minValue: Any?, val maxValue: Any?,
-        val accepts: (Any?) -> Boolean
-    ) {
-        ANY("any", 0, 16, 1f, true, true, null, null, { true }),
-        INT("int", 0, 1, 1f, true, true, null, null, { it is Int }),
-        INT_PLUS("int+", 0, 1, 1f, true, true, 0, null, { it is Int }),
-        LONG("long", 0L, 1, 1f, true, true, null, null, { it is Long }),
-        FLOAT("float", 0f, 1, 1f, true, true, null, null, { it is Float }),
-        FLOAT_01("float01", 0f, 1, 1f, true, true, 0f, 1f, { it is Float }),
-        FLOAT_01_EXP("float01exp", 0f, 1, 1f, false, true, 0f, 1f, { it is Float }),
-        FLOAT_PLUS("float+", 0f, 1, 1f, true, true, 0f, null, { it is Float }),
-        FLOAT_PLUS_EXP("float+exp", 0f, 1, 1f, false, true, 0f, null, { it is Float }),
-        FLOAT_PERCENT("float%", 100f, 1, 100f, true, false, 0f, 100f, { it is Float }),
-        DOUBLE("double", 0.0, 1, 1f, true, true, null, null, { it is Double }),
-        VEC2("vec2", Vector2f(), 2, 1f, true, true, null, null, { it is Vector2f }),
-        VEC3("vec3", Vector3f(), 3, 1f, true, true, null, null, { it is Vector3f }),
-        VEC4("vec4", Vector4f(), 4, 1f, true, true, null, null, { it is Vector4f }),
-        POSITION("pos", Vector3f(), 3, 1f, true, true, null, null, { it is Vector3f }),
-        SCALE("scale", Vector3f(1f, 1f, 1f), 3, 1f, true, true, null, null, { it is Vector3f }),
-        ROT_YXZ("rotYXZ", Vector3f(), 3, 90f, true, true, null, null, { it is Vector3f }),
-        SKEW_2D("skew2D", Vector2f(), 2, 1f, true, true, null, null, { it is Vector2f }),
-        QUATERNION("quaternion", Quaternionf(), 4, 1f, true, true, null, null, { it is Quaternionf }),
-        COLOR("color", Vector4f(1f, 1f, 1f, 1f), 4, 1f, true, true, null, null, { it is Vector4f }),
-        COLOR3("color3", Vector3f(1f, 1f, 1f), 3, 1f, true, true, null, null, { it is Vector3f }),
-        TILING("tiling", Vector4f(1f, 1f, 0f, 0f), 4, 1f, true, true, null, null, { it is Vector4f });
-
-        // register inverse mapping for loading
-        init {
-            types[code] = this
-        }
-
-        fun <V> clamp(value: V): V {
-            if (minValue != null || maxValue != null) {
-                value as Comparable<V>
-                if (minValue != null && value < minValue as V) return minValue
-                if (maxValue != null && value >= maxValue as V) return maxValue
-            }
-            return value
-        }
-
-    }
-
     companion object {
 
         private val LOGGER = LogManager.getLogger(AnimatedProperty::class)
 
-        val types = HashMap<String, Type>()
         fun any() = AnimatedProperty<Any>(Type.ANY)
         fun int() = AnimatedProperty<Int>(Type.INT)
         fun intPlus() = AnimatedProperty<Int>(Type.INT_PLUS)

@@ -2,6 +2,7 @@ package me.anno.ui.input
 
 import me.anno.gpu.GFX
 import me.anno.objects.animation.AnimatedProperty
+import me.anno.objects.animation.Type
 import me.anno.parser.SimpleExpressionParser
 import me.anno.studio.RemsStudio
 import me.anno.studio.StudioBase.Companion.shiftSlowdown
@@ -15,7 +16,7 @@ import kotlin.math.roundToLong
 
 open class IntInput(
     style: Style, title: String,
-    type: AnimatedProperty.Type = AnimatedProperty.Type.FLOAT,
+    type: Type = Type.FLOAT,
     owningProperty: AnimatedProperty<*>?,
     indexInProperty: Int
 ): NumberInput(style, title, type, owningProperty, indexInProperty) {
@@ -41,19 +42,19 @@ open class IntInput(
         }
     }
 
-    constructor(title: String, value0: Int, type: AnimatedProperty.Type, style: Style): this(style, title, type, null, 0){
+    constructor(title: String, value0: Int, type: Type, style: Style): this(style, title, type, null, 0){
         setValue(value0, false)
     }
 
-    constructor(title: String, value0: Long, type: AnimatedProperty.Type, style: Style): this(style, title, type, null, 0){
+    constructor(title: String, value0: Long, type: Type, style: Style): this(style, title, type, null, 0){
         setValue(value0, false)
     }
 
-    constructor(title: String, value0: Int, style: Style): this(style, title, AnimatedProperty.Type.FLOAT, null, 0){
+    constructor(title: String, value0: Int, style: Style): this(style, title, Type.FLOAT, null, 0){
         setValue(value0, false)
     }
 
-    constructor(title: String, value0: Long, style: Style): this(style, title, AnimatedProperty.Type.DOUBLE, null, 0){
+    constructor(title: String, value0: Long, style: Style): this(style, title, Type.DOUBLE, null, 0){
         setValue(value0, false)
     }
 

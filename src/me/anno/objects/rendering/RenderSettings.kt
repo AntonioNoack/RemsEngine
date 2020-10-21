@@ -3,6 +3,7 @@ package me.anno.objects.rendering
 import me.anno.config.DefaultConfig
 import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
+import me.anno.objects.animation.Type
 import me.anno.studio.RemsStudio.project
 import me.anno.studio.RemsStudio.targetDuration
 import me.anno.studio.RemsStudio.targetOutputFile
@@ -13,6 +14,7 @@ import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.frames.FrameSizeInput
 import me.anno.ui.input.EnumInput
 import me.anno.ui.input.FileInput
+import me.anno.ui.input.IntInput
 import me.anno.ui.style.Style
 import java.io.File
 import kotlin.concurrent.thread
@@ -30,12 +32,14 @@ object RenderSettings : Transform(){
 
         list.clear()
         list += TextPanel(getDefaultDisplayName(), style)
-        list += VI("Duration", "Video length in seconds", AnimatedProperty.Type.FLOAT_PLUS, targetDuration, style){
+        list += VI("Duration", "Video length in seconds", Type.FLOAT_PLUS, targetDuration, style){
             project.targetDuration = it
             save()
         }
 
-        list += VI("Relative Frame Size (%)", "For rendering tests, in percent", AnimatedProperty.Type.FLOAT_PERCENT, project.targetSizePercentage, style){
+        list += VI(
+            "Relative Frame Size (%)", "For rendering tests, in percent",
+            Type.FLOAT_PERCENT, project.targetSizePercentage, style){
             project.targetSizePercentage = it
             save()
         }
@@ -54,12 +58,20 @@ object RenderSettings : Transform(){
             .toMutableList()
         if(framesRates.isEmpty()) framesRates = arrayListOf(60.0)
         if(project.targetFPS !in framesRates) framesRates.add(0, project.targetFPS)
-        list += EnumInput("Framerate", true, project.targetFPS.toString(), framesRates.map { it.toString() }, style)
+        list += EnumInput("Frame Rate", true, project.targetFPS.toString(), framesRates.map { it.toString() }, style)
             .setChangeListener { value, _, _ ->
                 project.targetFPS = value.toDouble()
                 save()
             }
             .setTooltip("The fps of the video, or how many frame are shown per second")
+
+        list += IntInput("Video Quality", project.targetVideoQuality, Type.VIDEO_QUALITY_CRF, style)
+            .setChangeListener {
+                project.targetVideoQuality = it.toInt()
+                save()
+            }
+            .setTooltip("0 = lossless, 23 = default, 51 = worst; worse results have smaller file sizes")
+
 
         list += FileInput("Output File", style, targetOutputFile)
             .setChangeListener {

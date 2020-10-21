@@ -8,6 +8,7 @@ import me.anno.input.MouseButton
 import me.anno.io.text.TextReader
 import me.anno.objects.Camera
 import me.anno.objects.animation.AnimatedProperty
+import me.anno.objects.animation.Type
 import me.anno.studio.RemsStudio
 import me.anno.studio.RemsStudio.editorTime
 import me.anno.studio.RemsStudio.selectedProperty
@@ -31,7 +32,7 @@ import kotlin.math.max
 
 class VectorInput(
     style: Style, var title: String,
-    val type: AnimatedProperty.Type,
+    val type: Type,
     val owningProperty: AnimatedProperty<*>? = null
 ): PanelListY(style){
 
@@ -46,23 +47,23 @@ class VectorInput(
         }
     }
 
-    constructor(style: Style, title: String, value: Vector2f, type: AnimatedProperty.Type,
+    constructor(style: Style, title: String, value: Vector2f, type: Type,
                 owningProperty: AnimatedProperty<*>? = null): this(style, title, type, owningProperty){
         setValue(value, false)
     }
 
-    constructor(style: Style, title: String, value: Vector3f, type: AnimatedProperty.Type,
+    constructor(style: Style, title: String, value: Vector3f, type: Type,
                 owningProperty: AnimatedProperty<*>? = null): this(style, title, type, owningProperty){
         setValue(value, false)
     }
 
-    constructor(style: Style, title: String, value: Vector4f, type: AnimatedProperty.Type,
+    constructor(style: Style, title: String, value: Vector4f, type: Type,
                 owningProperty: AnimatedProperty<*>? = null): this(style, title, type, owningProperty){
         setValue(value, false)
     }
 
     constructor(style: Style, title: String, value: Quaternionf,
-                type: AnimatedProperty.Type = AnimatedProperty.Type.QUATERNION): this(style, title, type){
+                type: Type = Type.QUATERNION): this(style, title, type){
         setValue(value, false)
     }
 
@@ -154,7 +155,7 @@ class VectorInput(
 
     init {
 
-        if(type == AnimatedProperty.Type.COLOR) warn("VectorInput should be replaced with ColorInput for type color!")
+        if(type == Type.COLOR) warn("VectorInput should be replaced with ColorInput for type color!")
 
         // titleList += WrapAlign.Top
         valueList += WrapAlign.TopFill
@@ -259,11 +260,11 @@ class VectorInput(
             val dy0 = dy*size
             val delta = dx0-dy0
             when(type){
-                AnimatedProperty.Type.POSITION -> {
+                Type.POSITION -> {
                     val scaleFactor = 0.2f
                     setValue(Vector3f(vx + dx0 * scaleFactor, vy - dy0 * scaleFactor, vz), true)
                 }
-                AnimatedProperty.Type.ROT_YXZ -> {
+                Type.ROT_YXZ -> {
                     val scaleFactor = 20f
                     if(isControlDown){
                         setValue(Vector3f(vx, vy, vz + delta * scaleFactor), true)
@@ -271,7 +272,7 @@ class VectorInput(
                         setValue(Vector3f(vx + dy0 * scaleFactor, vy + dx0 * scaleFactor, vz), true)
                     }
                 }
-                AnimatedProperty.Type.SCALE -> {
+                Type.SCALE -> {
                     val scaleFactor = 1.03f
                     if(isControlDown){
                         val scaleX = pow(scaleFactor, dx0)
@@ -282,7 +283,7 @@ class VectorInput(
                         setValue(Vector3f(vx * scale, vy * scale, vz * scale), true)
                     }
                 }
-                AnimatedProperty.Type.COLOR -> {
+                Type.COLOR -> {
                     val scaleFactor = 1.10f
                     val scale = pow(scaleFactor, delta)
                     if(isControlDown){
@@ -291,7 +292,7 @@ class VectorInput(
                         setValue(Vector4f(vx, vy, vz, clamp(vw + delta, 0f, 1f)), true)
                     }
                 }
-                AnimatedProperty.Type.SKEW_2D -> {
+                Type.SKEW_2D -> {
                     if(isShiftDown){
                         setValue(Vector2f(vx, vy + dy0/5), true)
                     } else {

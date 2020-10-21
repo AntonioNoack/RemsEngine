@@ -15,6 +15,7 @@ import me.anno.io.base.BaseWriter
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.objects.animation.AnimatedProperty
+import me.anno.objects.animation.Type
 import me.anno.objects.effects.MaskType
 import me.anno.objects.effects.ToneMappers
 import me.anno.objects.modes.ArraySelectionMode
@@ -192,18 +193,13 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
         // todo automatically extend timeline panel or restrict moving it down
 
         val editorGroup = getGroup("Editor", "editor")
-        editorGroup += VI(
-            "Timeline Slot",
-            "< 1 means invisible",
-            AnimatedProperty.Type.INT_PLUS,
-            timelineSlot,
-            style
+        editorGroup += VI("Timeline Slot", "< 1 means invisible", Type.INT_PLUS, timelineSlot, style
         ) { timelineSlot = it }
         // todo warn of invisible elements somehow!...
         editorGroup += VI("Visibility", "", null, visibility, style) { visibility = it }
 
         if (parent?.acceptsWeight() == true) {
-            list += VI("Weight", "For particle systems", AnimatedProperty.Type.FLOAT_PLUS, weight, style) {
+            list += VI("Weight", "For particle systems", Type.FLOAT_PLUS, weight, style) {
                 weight = it
                 (parent as? ParticleSystem)?.apply {
                     if (children.size > 1) clearCache()
@@ -396,7 +392,7 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
             "rotationYXZ" -> rotationYXZ.copyFrom(value)
             "rotationQuat" -> {
                 rotationQuaternion?.copyFrom(value) ?: {
-                    if (value is AnimatedProperty<*> && value.type == AnimatedProperty.Type.QUATERNION) {
+                    if (value is AnimatedProperty<*> && value.type == Type.QUATERNION) {
                         rotationQuaternion = value as AnimatedProperty<Quaternionf>
                     }
                 }()
@@ -505,7 +501,7 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
     fun <V> VI(
         title: String,
         ttt: String,
-        type: AnimatedProperty.Type?,
+        type: Type?,
         value: V,
         style: Style,
         setValue: (V) -> Unit
@@ -518,35 +514,35 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
                 }
                 .setIsSelectedListener { show(null) }
                 .setTooltip(ttt)
-            is Int -> IntInput(title, value, type ?: AnimatedProperty.Type.INT, style)
+            is Int -> IntInput(title, value, type ?: Type.INT, style)
                 .setChangeListener {
                     setValue(it.toInt() as V)
                     RemsStudio.updateSceneViews()
                 }
                 .setIsSelectedListener { show(null) }
                 .setTooltip(ttt)
-            is Long -> IntInput(title, value, type ?: AnimatedProperty.Type.LONG, style)
+            is Long -> IntInput(title, value, type ?: Type.LONG, style)
                 .setChangeListener {
                     setValue(it as V)
                     RemsStudio.updateSceneViews()
                 }
                 .setIsSelectedListener { show(null) }
                 .setTooltip(ttt)
-            is Float -> FloatInput(title, value, type ?: AnimatedProperty.Type.FLOAT, style)
+            is Float -> FloatInput(title, value, type ?: Type.FLOAT, style)
                 .setChangeListener {
                     setValue(it.toFloat() as V)
                     RemsStudio.updateSceneViews()
                 }
                 .setIsSelectedListener { show(null) }
                 .setTooltip(ttt)
-            is Double -> FloatInput(title, value, type ?: AnimatedProperty.Type.DOUBLE, style)
+            is Double -> FloatInput(title, value, type ?: Type.DOUBLE, style)
                 .setChangeListener {
                     setValue(it as V)
                     RemsStudio.updateSceneViews()
                 }
                 .setIsSelectedListener { show(null) }
                 .setTooltip(ttt)
-            is Vector2f -> VectorInput(style, title, value, type ?: AnimatedProperty.Type.VEC2)
+            is Vector2f -> VectorInput(style, title, value, type ?: Type.VEC2)
                 .setChangeListener { x, y, _, _ ->
                     setValue(Vector2f(x, y) as V)
                     RemsStudio.updateSceneViews()
@@ -554,7 +550,7 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
                 .setIsSelectedListener { show(null) }
                 .setTooltip(ttt)
             is Vector3f ->
-                if (type == AnimatedProperty.Type.COLOR3) {
+                if (type == Type.COLOR3) {
                     ColorInput(style, title, Vector4f(value, 1f), false, null)
                         .setChangeListener { r, g, b, _ ->
                             setValue(Vector3f(r, g, b) as V)
@@ -563,7 +559,7 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
                         .setIsSelectedListener { show(null) }
                         .setTooltip(ttt)
                 } else {
-                    VectorInput(style, title, value, type ?: AnimatedProperty.Type.VEC3)
+                    VectorInput(style, title, value, type ?: Type.VEC3)
                         .setChangeListener { x, y, z, _ ->
                             setValue(Vector3f(x, y, z) as V)
                             RemsStudio.updateSceneViews()
@@ -572,7 +568,7 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
                         .setTooltip(ttt)
                 }
             is Vector4f -> {
-                if (type == null || type == AnimatedProperty.Type.COLOR) {
+                if (type == null || type == Type.COLOR) {
                     ColorInput(style, title, value, true, null)
                         .setChangeListener { r, g, b, a ->
                             setValue(Vector4f(r, g, b, a) as V)
@@ -590,7 +586,7 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
                         .setTooltip(ttt)
                 }
             }
-            is Quaternionf -> VectorInput(style, title, value, type ?: AnimatedProperty.Type.QUATERNION)
+            is Quaternionf -> VectorInput(style, title, value, type ?: Type.QUATERNION)
                 .setChangeListener { x, y, z, w ->
                     setValue(Quaternionf(x, y, z, w) as V)
                     RemsStudio.updateSceneViews()
@@ -690,7 +686,7 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
                 .setIsSelectedListener { show(values) }
                 .setTooltip(ttt)
             is Vector3f ->
-                if (values.type == AnimatedProperty.Type.COLOR3) {
+                if (values.type == Type.COLOR3) {
                     ColorInput(style, title, Vector4f(value, 1f), false, values)
                         .setChangeListener { r, g, b, _ -> putValue(values, Vector3f(r, g, b)) }
                         .setIsSelectedListener { show(values) }
@@ -702,7 +698,7 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
                         .setTooltip(ttt)
                 }
             is Vector4f -> {
-                if (values.type == AnimatedProperty.Type.COLOR) {
+                if (values.type == Type.COLOR) {
                     ColorInput(style, title, value, true, values)
                         .setChangeListener { r, g, b, a -> putValue(values, Vector4f(r, g, b, a)) }
                         .setIsSelectedListener { show(values) }

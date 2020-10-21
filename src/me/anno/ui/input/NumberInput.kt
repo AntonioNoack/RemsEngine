@@ -3,6 +3,7 @@ package me.anno.ui.input
 import me.anno.gpu.Cursor
 import me.anno.input.MouseButton
 import me.anno.objects.animation.AnimatedProperty
+import me.anno.objects.animation.Type
 import me.anno.objects.animation.drivers.AnimationDriver
 import me.anno.studio.RemsStudio
 import me.anno.studio.RemsStudio.editorTime
@@ -18,7 +19,7 @@ import me.anno.utils.get
 
 abstract class NumberInput(
     style: Style, title: String,
-    val type: AnimatedProperty.Type = AnimatedProperty.Type.FLOAT,
+    val type: Type = Type.FLOAT,
     val owningProperty: AnimatedProperty<*>?,
     val indexInProperty: Int
 ) : PanelListY(style) {

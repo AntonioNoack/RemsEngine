@@ -3,6 +3,7 @@ package me.anno.video
 import me.anno.gpu.GFX
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.studio.RemsStudio.project
 import me.anno.utils.clamp
 import me.anno.utils.f1
 import me.anno.utils.formatTime
@@ -15,11 +16,8 @@ import java.io.OutputStream
 import kotlin.concurrent.thread
 import kotlin.math.round
 
-/**
- * todo write at the same time as rendering (does it work?)
- * todo why are we limited to 11 fps?
- * */
-class VideoCreator(val w: Int, val h: Int, val fps: Double, val totalFrameCount: Int, val output: File) {
+class VideoCreator(
+    val w: Int, val h: Int, val fps: Double, val totalFrameCount: Int, val output: File) {
 
     init {
         if (w % 2 != 0 || h % 2 != 0) throw RuntimeException("width and height must be divisible by 2")
@@ -27,13 +25,8 @@ class VideoCreator(val w: Int, val h: Int, val fps: Double, val totalFrameCount:
 
     val t0 = GFX.lastTime
 
-    val videoQualities = arrayListOf(
-        "ultrafast", "superfast", "veryfast", "faster",
-        "fast", "medium", "slow", "slower", "**veryslow**", "placebo"
-    )
-
-    val videoOut: OutputStream
-    lateinit var process: Process
+    private val videoOut: OutputStream
+    private var process: Process
 
     init {
 
@@ -50,14 +43,14 @@ class VideoCreator(val w: Int, val h: Int, val fps: Double, val totalFrameCount:
          * */
         val videoEncodingArguments = arrayListOf(
             "-f", "rawvideo",
-            "-s", "${w}x$h",
+            "-s", "${w}x${h}",
             "-r", "$fps",
             "-pix_fmt", "rgb24",
             "-i", "pipe:0",
             "-c:v", "libx264", // encoding
             "-an", // no audio
             "-r", "$fps",
-            "-crf", "18",
+            "-crf", "${project?.targetVideoQuality ?: 23}",
             "-pix_fmt", "yuv420p",
             // "-preset", "ultrafast",
             // "-qp", "0", // constant quality

@@ -17,6 +17,7 @@ import me.anno.io.text.TextWriter
 import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.animation.Keyframe
+import me.anno.objects.animation.Type
 import me.anno.studio.RemsStudio.onSmallChange
 import me.anno.studio.RemsStudio.editorTime
 import me.anno.studio.RemsStudio.editorTimeDilation
@@ -200,7 +201,7 @@ class GraphEditorBody(style: Style): TimelinePanel(style.getChild("deep")){
         )
 
         when(type){
-            AnimatedProperty.Type.FLOAT -> {
+            Type.FLOAT -> {
                 valueColors[0] = blueish
             }
             else -> {}

@@ -91,24 +91,7 @@ class VideoAudioCreator(
 
     }
 
-    class BufferStream(
-        val audio: Audio, sampleRate: Int, val buffer: ShortBuffer,
-        listener: Camera, val notifier: AtomicInteger
-    ) :
-        AudioStream(audio, 1.0, 0.0, sampleRate, listener) {
-        override fun onBufferFilled(stereoBuffer: ShortBuffer, bufferIndex: Long) {
-            synchronized(buffer) {
-                buffer.position(0)
-                val min = Short.MIN_VALUE.toInt()
-                val max = Short.MAX_VALUE.toInt()
-                val size = buffer.capacity()
-                for (i in 0 until size) {
-                    buffer.put(clamp(buffer[i] + stereoBuffer[i], min, max).toShort())
-                }
-            }
-            notifier.incrementAndGet()
-        }
-    }
+
 
     fun createAudio() {
 

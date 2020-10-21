@@ -2,6 +2,7 @@ package me.anno.ui.input
 
 import me.anno.gpu.GFX
 import me.anno.objects.animation.AnimatedProperty
+import me.anno.objects.animation.Type
 import me.anno.parser.SimpleExpressionParser
 import me.anno.studio.RemsStudio
 import me.anno.studio.StudioBase.Companion.shiftSlowdown
@@ -18,7 +19,7 @@ import kotlin.math.roundToLong
 
 open class FloatInput(
     style: Style, title: String,
-    type: AnimatedProperty.Type = AnimatedProperty.Type.FLOAT,
+    type: Type = Type.FLOAT,
     owningProperty: AnimatedProperty<*>?,
     indexInProperty: Int
 ): NumberInput(style, title, type, owningProperty, indexInProperty) {
@@ -44,11 +45,11 @@ open class FloatInput(
         }
     }
 
-    constructor(title: String, value0: Float, type: AnimatedProperty.Type, style: Style): this(style, title, type, null, 0){
+    constructor(title: String, value0: Float, type: Type, style: Style): this(style, title, type, null, 0){
         setValue(value0, false)
     }
 
-    constructor(title: String, value0: Double, type: AnimatedProperty.Type, style: Style): this(style, title, type, null, 0){
+    constructor(title: String, value0: Double, type: Type, style: Style): this(style, title, type, null, 0){
         setValue(value0, false)
     }
 

@@ -4,6 +4,7 @@ import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
+import me.anno.objects.animation.Type
 import me.anno.ui.base.Panel
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
@@ -44,8 +45,8 @@ class PerlinNoiseDriver: AnimationDriver(){
 
     override fun createInspector(list: MutableList<Panel>, transform: Transform, style: Style, getGroup: (title: String, id: String) -> SettingCategory) {
         super.createInspector(list, transform, style, getGroup)
-        list += transform.VI("Octaves", "Levels of Detail", AnimatedProperty.Type.INT_PLUS, octaves, style){ octaves = it }
-        list += transform.VI("Seed", "", AnimatedProperty.Type.LONG, seed, style){ seed = it }
+        list += transform.VI("Octaves", "Levels of Detail", Type.INT_PLUS, octaves, style){ octaves = it }
+        list += transform.VI("Seed", "", Type.LONG, seed, style){ seed = it }
         list += transform.VI("Falloff", "Changes high-frequency weight", falloff, style)
     }
 

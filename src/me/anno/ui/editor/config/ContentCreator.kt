@@ -5,6 +5,7 @@ import me.anno.config.DefaultStyle.black
 import me.anno.image.svg.SVGStyle.Companion.parseColor
 import me.anno.io.utils.StringMap
 import me.anno.objects.animation.AnimatedProperty
+import me.anno.objects.animation.Type
 import me.anno.studio.RemsStudio.root
 import me.anno.ui.base.Panel
 import me.anno.ui.base.TextPanel
@@ -68,10 +69,10 @@ class ContentCreator(
                     is Long -> IntInput(shortName, value, style)
                         .setChangeListener { map[fullName] = it }
                         .noTitle()
-                    is Float -> FloatInput(shortName, value, AnimatedProperty.Type.FLOAT, style)
+                    is Float -> FloatInput(shortName, value, Type.FLOAT, style)
                         .setChangeListener { map[fullName] = it.toFloat() }
                         .noTitle()
-                    is Double -> FloatInput(shortName, value, AnimatedProperty.Type.DOUBLE, style)
+                    is Double -> FloatInput(shortName, value, Type.DOUBLE, style)
                         .setChangeListener { map[fullName] = it }
                         .noTitle()
                     else -> {

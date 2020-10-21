@@ -7,6 +7,7 @@ import me.anno.io.base.BaseWriter
 import me.anno.objects.Inspectable
 import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
+import me.anno.objects.animation.Type
 import me.anno.studio.RemsStudio.selectedInspectable
 import me.anno.studio.RemsStudio.selectedProperty
 import me.anno.studio.RemsStudio.selectedTransform
@@ -30,8 +31,8 @@ abstract class AnimationDriver: Saveable(), Inspectable {
     override fun isDefaultValue() = false
 
     open fun createInspector(list: MutableList<Panel>, transform: Transform, style: Style, getGroup: (title: String, id: String) -> SettingCategory){
-        list += transform.VI("Amplitude", "", amplitude, style)
-        list += transform.VI("Frequency", "", AnimatedProperty.Type.DOUBLE, frequency, style){ frequency = it }
+        list += transform.VI("Amplitude", "Scale of randomness", amplitude, style)
+        list += transform.VI("Frequency", "How fast it's changing", Type.DOUBLE, frequency, style){ frequency = it }
     }
 
     fun show(toShow: AnimatedProperty<*>?){

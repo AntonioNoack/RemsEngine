@@ -14,6 +14,7 @@ import me.anno.gpu.texture.FilteringMode
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.animation.AnimatedProperty
+import me.anno.objects.animation.Type
 import me.anno.objects.cache.Cache
 import me.anno.objects.modes.TextMode
 import me.anno.studio.RemsStudio
@@ -371,22 +372,16 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
         }
         spaceGroup += VI("Line Spacing", "How much lines are apart from each other", relativeLineSpacing, style)
         spaceGroup += VI(
-            "Tab Size",
-            "Relative tab size, in widths of o's",
-            AnimatedProperty.Type.FLOAT_PLUS,
-            relativeTabSize,
-            style
+            "Tab Size", "Relative tab size, in widths of o's",
+            Type.FLOAT_PLUS, relativeTabSize, style
         ) {
             relativeTabSize = it
             invalidate()
             onSmallChange("tab-size")
         }
         spaceGroup += VI(
-            "Line Break Width",
-            "How broad the text shall be, at maximum; < 0 = no limit",
-            AnimatedProperty.Type.FLOAT,
-            lineBreakWidth,
-            style
+            "Line Break Width", "How broad the text shall be, at maximum; < 0 = no limit",
+            Type.FLOAT, lineBreakWidth, style
         ) {
             lineBreakWidth = it
             invalidate()
