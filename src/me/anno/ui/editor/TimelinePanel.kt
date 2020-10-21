@@ -2,6 +2,7 @@ package me.anno.ui.editor
 
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle
+import me.anno.fonts.FontManager
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.openMenu
 import me.anno.input.Input
@@ -29,9 +30,12 @@ open class TimelinePanel(style: Style) : Panel(style) {
 
     override fun getVisualState(): Any? = Quad(dtHalfLength, centralTime, editorTime, targetDuration)
 
+    var drawnStrings = ArrayList<String>(64)
+
     val accentColor = style.getColor("accentColor", DefaultStyle.black)
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+        drawnStrings.clear()
         drawBackground()
         drawTimeAxis(x0, y0, x1, y1, true)
     }
@@ -138,6 +142,19 @@ open class TimelinePanel(style: Style) : Panel(style) {
 
     }
 
+    override fun tickUpdate() {
+        super.tickUpdate()
+
+        val fontSize = tinyFontSize
+        val fontName = fontName
+        val isBold = isBold
+        val isItalic = isItalic
+        drawnStrings.forEach { text ->
+            FontManager.getString(fontName, fontSize.toFloat(), text, isItalic, isBold, -1)
+        }
+
+    }
+
     fun drawTimeAxis(
         timeStep: Double, x0: Int, y0: Int, x1: Int, y1: Int,
         lineColor: Int, drawText: Boolean
@@ -179,6 +196,7 @@ open class TimelinePanel(style: Style) : Panel(style) {
                 val x = getXAt(time).roundToInt()
                 if (x > x0 + 1 && x + 2 < x1) {
                     val text = getTimeString(time, timeStep)
+                    drawnStrings.add(text)
                     GFX.drawText(
                         x, y0, fontName, fontSize, isBold, isItalic,
                         text, fontColor, backgroundColor, -1, true

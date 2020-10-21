@@ -16,12 +16,8 @@ import kotlin.math.ceil
 import kotlin.math.roundToInt
 
 class VideoAudioCreator(
-    val videoCreator: VideoCreator, val sampleRate: Int, val output: File
+    val videoCreator: VideoCreator, val sampleRate: Int, val audioSources: List<Audio>, val output: File
 ) {
-
-    val audioSources = root.listOfAll
-        .filterIsInstance<Audio>()
-        .filter { it.forcedMeta?.hasAudio == true }.toList()
 
     var onFinished = {}
 
@@ -40,7 +36,10 @@ class VideoAudioCreator(
             Thread.sleep(1)
         }
         if (audioSources.isEmpty()) {
-            videoCreator.output.renameTo(output)
+            if(output != videoCreator.output){
+                output.delete()
+                videoCreator.output.renameTo(output)
+            }
             LOGGER.info("No audio found, saved result to $output.")
             onFinished()
         } else {

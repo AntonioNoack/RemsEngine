@@ -35,26 +35,31 @@ class VideoBackgroundTask(val video: VideoCreator) {
 
     }
 
+    var isDoneRenderingAndSaving = false
+
     fun addNextTask() {
 
-        if (min(renderingIndex.get(), savingIndex.get()) < totalFrameCount) {// not done yet
+        if (!isDoneRenderingAndSaving) {// not done yet
 
             /**
              * runs on GPU thread
              * */
-            if (renderingIndex.get() < savingIndex.get() + 2) {
+            val ri = renderingIndex.get()
+            if (ri < totalFrameCount && ri < savingIndex.get() + 2) {
                 GFX.addGPUTask(1000, 1000) {
 
                     val frameIndex = renderingIndex.get()
                     if (renderFrame(frameIndex / video.fps)) {
+                        renderingIndex.incrementAndGet()
                         video.writeFrame(framebuffer, frameIndex) {
                             // it was saved -> everything works well :)
-                            savingIndex.incrementAndGet()
+                            val si = savingIndex.incrementAndGet()
+                            if(si == totalFrameCount){
+                                isDoneRenderingAndSaving = true
+                            } else if(si > totalFrameCount) throw RuntimeException("too many saves: $si, $totalFrameCount")
                         }
-                        renderingIndex.incrementAndGet()
                         addNextTask()
                     } else {
-                        // ("waiting for frame (data missing)")
                         // waiting
                         thread {
                             Thread.sleep(1)
@@ -84,6 +89,8 @@ class VideoBackgroundTask(val video: VideoCreator) {
         GFX.check()
 
         GFX.isFinalRendering = true
+
+        var needsMoreSources = false
         Frame(0, 0, video.w, video.h, false, framebuffer) {
             try {
                 Scene.draw(
@@ -94,13 +101,13 @@ class VideoBackgroundTask(val video: VideoCreator) {
                 )
                 if (!GFX.isFinalRendering) throw RuntimeException()
             } catch (e: MissingFrameException) {
-                GFX.isFinalRendering = false
+                needsMoreSources = true
             }
         }
 
-        if (!GFX.isFinalRendering) return false
-
         GFX.isFinalRendering = false
+
+        if (needsMoreSources) return false
 
         GFX.check()
 

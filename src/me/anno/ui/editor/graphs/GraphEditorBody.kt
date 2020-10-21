@@ -114,16 +114,29 @@ class GraphEditorBody(style: Style): TimelinePanel(style.getChild("deep")){
         val minStepIndex = (minValue / valueStep).toInt() - 1
         val maxStepIndex = (maxValue / valueStep).toInt() + 1
 
+        val fontSize = tinyFontSize
+        val fontName = fontName
+        val isBold = isBold
+        val isItalic = isItalic
+        val fontColor = fontColor
+        val backgroundColor = backgroundColor
+
         for(stepIndex in maxStepIndex downTo minStepIndex){
             val value = stepIndex * valueStep
             val y = getYAt(value).roundToInt()
             if(y > y0+1 && y+2 < y1){
+
                 val text = getValueString(value, valueStep)
-                val size = GFX.getTextSize(fontName, tinyFontSize, isBold, isItalic, text, -1)
+
+                // to keep it loaded
+                drawnStrings.add(text)
+
+                val size = GFX.getTextSize(fontName, fontSize, isBold, isItalic, text, -1)
                 val h = size.second
                 GFX.drawRect(x0 + size.first + 2, y, x1-x0-size.first, 1, fontColor and 0x3fffffff)
-                GFX.drawText(x0 + 2, y - h/2, fontName, tinyFontSize, isBold, isItalic,
+                GFX.drawText(x0 + 2, y - h/2, fontName, fontSize, isBold, isItalic,
                     text, fontColor, backgroundColor, -1)
+
             }
         }
 
@@ -145,6 +158,8 @@ class GraphEditorBody(style: Style): TimelinePanel(style.getChild("deep")){
     var time1 = 1.0
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+
+        drawnStrings.clear()
 
         drawBackground()
 

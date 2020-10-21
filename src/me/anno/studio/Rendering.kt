@@ -1,10 +1,13 @@
 package me.anno.studio
 
 import me.anno.gpu.GFX
+import me.anno.objects.Audio
+import me.anno.studio.RemsStudio.targetOutputFile
 import me.anno.video.VideoAudioCreator
 import me.anno.video.VideoCreator
 import org.apache.logging.log4j.LogManager
 import java.io.File
+import kotlin.math.max
 
 object Rendering {
 
@@ -20,7 +23,7 @@ object Rendering {
             width / 2 * 2,
             height / 2 * 2
         )
-        if(isRendering){
+        if (isRendering) {
             GFX.openMenu("Rendering already in progress!", listOf(
                 "Ok" to {}
             ))
@@ -28,18 +31,23 @@ object Rendering {
         }
         isRendering = true
         LOGGER.info("Rendering video at $width x $height")
+        val targetOutputFile = targetOutputFile
         val tmpFile = File(
-            RemsStudio.targetOutputFile.parentFile,
-            RemsStudio.targetOutputFile.nameWithoutExtension + ".tmp." + RemsStudio.targetOutputFile.extension
+            targetOutputFile.parentFile,
+            targetOutputFile.nameWithoutExtension + ".tmp." + targetOutputFile.extension
         )
         val fps = RemsStudio.targetFPS
-        val totalFrameCount = (fps * RemsStudio.targetDuration).toInt()
+        val totalFrameCount = max(1, (fps * RemsStudio.targetDuration).toInt() + 1)
         val sampleRate = 48000
+        val audioSources = RemsStudio.root.listOfAll
+            .filterIsInstance<Audio>()
+            .filter { it.forcedMeta?.hasAudio == true }.toList()
         val creator = VideoAudioCreator(
             VideoCreator(
                 width, height,
-                RemsStudio.targetFPS, totalFrameCount, tmpFile
-            ), sampleRate, RemsStudio.targetOutputFile
+                RemsStudio.targetFPS, totalFrameCount,
+                if (audioSources.isEmpty()) targetOutputFile else tmpFile
+            ), sampleRate, audioSources, targetOutputFile
         )
         creator.onFinished = { isRendering = false }
         creator.start()

@@ -205,6 +205,8 @@ class LayerView(style: Style) : TimelinePanel(style) {
     // calculation is fast, drawing is slow
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
 
+        drawnStrings.clear()
+
         val t0 = System.nanoTime()
         // 80-100µ for background and time axis
         drawBackground()

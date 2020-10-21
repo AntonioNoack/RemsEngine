@@ -3,14 +3,15 @@ package me.anno.video
 import me.anno.gpu.GFX
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
-import me.anno.utils.*
+import me.anno.utils.clamp
+import me.anno.utils.f1
+import me.anno.utils.formatTime
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL11.*
 import java.io.File
+import java.io.IOException
 import java.io.OutputStream
-import java.lang.Exception
-import java.lang.RuntimeException
 import kotlin.concurrent.thread
 import kotlin.math.round
 
@@ -32,6 +33,7 @@ class VideoCreator(val w: Int, val h: Int, val fps: Double, val totalFrameCount:
     )
 
     val videoOut: OutputStream
+    lateinit var process: Process
 
     init {
 
@@ -66,7 +68,7 @@ class VideoCreator(val w: Int, val h: Int, val fps: Double, val totalFrameCount:
         args += FFMPEG.ffmpegPathString
         if (videoEncodingArguments.isNotEmpty()) args += "-hide_banner"
         args += videoEncodingArguments
-        val process = ProcessBuilder(args).start()
+        process = ProcessBuilder(args).start()
         thread {
             val out = process.errorStream.bufferedReader()
             while (true) {
@@ -115,7 +117,7 @@ class VideoCreator(val w: Int, val h: Int, val fps: Double, val totalFrameCount:
                     val relativeProgress = frameIndex.toDouble() / totalFrameCount
                     // estimate remaining time
                     // round the value to not confuse artists (and to "give" 0.5s "extra" ;))
-                    val remainingTime = round(
+                    val remainingTime = if (relativeProgress < 1e-11) "Unknown" else round(
                         elapsedTime / relativeProgress *
                                 (1.0 - relativeProgress)
                     ).formatTime()
@@ -126,8 +128,8 @@ class VideoCreator(val w: Int, val h: Int, val fps: Double, val totalFrameCount:
                                 "remaining: $remainingTime"
                     )
                 }// else {
-                    // the rest logged is only x264 statistics
-                    // LOGGER.debug(line)
+                // the rest logged is only x264 statistics
+                // LOGGER.debug(line)
                 // }
                 // frame=  151 fps= 11 q=12.0 size=     256kB time=00:00:04.40 bitrate= 476.7kbits/s speed=0.314x
                 // or [libx264 @ 000001c678804000] frame I:1     Avg QP:19.00  size:  2335
@@ -136,10 +138,15 @@ class VideoCreator(val w: Int, val h: Int, val fps: Double, val totalFrameCount:
 
         videoOut = process.outputStream.buffered()
 
+        LOGGER.info("total frame count: $totalFrameCount")
+
     }
 
-    private val buffer1 = BufferUtils.createByteBuffer(w * h * 3)
-    private val buffer2 = BufferUtils.createByteBuffer(w * h * 3)
+    private val pixelCount = w * h * 3
+    private val byteArrayBuffer = ByteArray(pixelCount)
+
+    private val buffer1 = BufferUtils.createByteBuffer(pixelCount)
+    private val buffer2 = BufferUtils.createByteBuffer(pixelCount)
 
     fun writeFrame(frame: Framebuffer, frameIndex: Int, callback: () -> Unit) {
 
@@ -157,12 +164,10 @@ class VideoCreator(val w: Int, val h: Int, val fps: Double, val totalFrameCount:
 
         GFX.check()
 
-        thread {
+        thread {// offload to other thread
             synchronized(videoOut) {
-                val pixelCount = w * h * 3
-                val bytes = ByteArray(pixelCount)
-                buffer.get(bytes)
-                videoOut.write(bytes)
+                buffer.get(byteArrayBuffer)
+                videoOut.write(byteArrayBuffer)
                 callback()
             }
         }
@@ -170,8 +175,11 @@ class VideoCreator(val w: Int, val h: Int, val fps: Double, val totalFrameCount:
     }
 
     fun close() {
-        videoOut.flush()
-        videoOut.close()
+        synchronized(videoOut){
+            videoOut.flush()
+            videoOut.close()
+        }
+        process.waitFor()
         LOGGER.info("Saved video without audio to $output")
     }
 
