@@ -94,8 +94,6 @@ abstract class StudioBase(val needsAudio: Boolean) {
         var lmx = Input.mouseX
         var lmy = Input.mouseY
 
-        UILayouts.createLoadingUI()
-
         mt("loading ui")
 
         GFX.windowStack = windowStack

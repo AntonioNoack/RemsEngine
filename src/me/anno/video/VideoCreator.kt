@@ -12,7 +12,6 @@ import java.io.OutputStream
 import java.lang.Exception
 import java.lang.RuntimeException
 import kotlin.concurrent.thread
-import kotlin.math.ceil
 import kotlin.math.round
 
 /**
@@ -160,12 +159,10 @@ class VideoCreator(val w: Int, val h: Int, val fps: Double, val totalFrameCount:
 
         thread {
             synchronized(videoOut) {
-                // buffer.get(byteBuffer)
-                // use a buffer instead for better performance?
                 val pixelCount = w * h * 3
-                for (i in 0 until pixelCount) {
-                    videoOut.write(buffer.get().toInt())
-                }
+                val bytes = ByteArray(pixelCount)
+                buffer.get(bytes)
+                videoOut.write(bytes)
                 callback()
             }
         }

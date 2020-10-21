@@ -26,6 +26,8 @@ import me.anno.studio.RemsStudio.targetFPS
 import me.anno.studio.RemsStudio.targetHeight
 import me.anno.studio.RemsStudio.targetOutputFile
 import me.anno.studio.RemsStudio.targetWidth
+import me.anno.studio.Rendering.render
+import me.anno.studio.Rendering.renderPart
 import me.anno.studio.StudioBase
 import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.ui.base.*
@@ -66,51 +68,6 @@ import kotlin.math.roundToInt
 object UILayouts {
 
     private val LOGGER = LogManager.getLogger(UILayouts::class)
-
-    fun createLoadingUI() {
-
-        val style = DefaultConfig.style
-
-        val ui = PanelListY(style)
-        val customUI = CustomListY(style)
-        customUI.setWeight(10f)
-
-    }
-
-    fun renderPart(size: Int) {
-        render(targetWidth / size, targetHeight / size)
-    }
-
-    var isRendering = false
-    fun render(width: Int, height: Int) {
-        if (width % 2 != 0 || height % 2 != 0) return render(
-            width / 2 * 2,
-            height / 2 * 2
-        )
-        if(isRendering){
-            openMenu("Rendering already in progress!", listOf(
-                "Ok" to {}
-            ))
-            return
-        }
-        isRendering = true
-        LOGGER.info("Rendering video at $width x $height")
-        val tmpFile = File(
-            targetOutputFile.parentFile,
-            targetOutputFile.nameWithoutExtension + ".tmp." + targetOutputFile.extension
-        )
-        val fps = targetFPS
-        val totalFrameCount = (fps * targetDuration).toInt()
-        val sampleRate = 48000
-        val creator = VideoAudioCreator(
-            VideoCreator(
-                width, height,
-                targetFPS, totalFrameCount, tmpFile
-            ), sampleRate, targetOutputFile
-        )
-        creator.onFinished = { isRendering = false }
-        creator.start()
-    }
 
     fun createWelcomeUI() {
 
