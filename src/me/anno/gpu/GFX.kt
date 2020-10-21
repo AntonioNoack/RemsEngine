@@ -562,6 +562,15 @@ object GFX : GFXBase1() {
         check()
     }
 
+    fun copyNoAlpha(){
+        check()
+        BlendDepth(BlendMode.DST_ALPHA, false).use {
+            val shader = copyShader
+            flat01.draw(shader)
+        }
+        check()
+    }
+
     fun draw3DMasked(
         stack: Matrix4fArrayList, color: Vector4f,
         maskType: MaskType,

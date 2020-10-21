@@ -7,9 +7,19 @@ import me.anno.objects.Camera
 import me.anno.objects.Inspectable
 import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
+import me.anno.studio.history.SceneState
 import me.anno.studio.project.Project
+import me.anno.ui.editor.PropertyInspector
 import me.anno.ui.editor.UILayouts
+import me.anno.ui.editor.graphs.GraphEditorBody
 import me.anno.ui.editor.sceneTabs.SceneTabs
+import me.anno.ui.editor.sceneView.ISceneView
+import me.anno.ui.editor.treeView.TreeView
+import me.anno.utils.OS
+import java.io.File
+import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.concurrent.thread
+import kotlin.math.abs
 import kotlin.math.max
 
 // todo scene screenshot/editor screenshot
@@ -35,6 +45,8 @@ object RemsStudio: StudioBase(true){
             DefaultConfig.putAll(value.data)
         }
 
+    var workspace = DefaultConfig["workspace.dir", File(OS.documents, "RemsStudio")]
+
     var project: Project? = null
 
     // todo save in project
@@ -49,6 +61,11 @@ object RemsStudio: StudioBase(true){
             if(value != field) updateAudio()
             field = value
         }
+
+    val isSaving = AtomicBoolean(false)
+    var forceSave = false
+    var lastSave = System.nanoTime()
+    var saveIsRequested = true
 
     val isPaused get() = editorTimeDilation == 0.0
     val isPlaying get() = editorTimeDilation != 0.0
@@ -77,5 +94,94 @@ object RemsStudio: StudioBase(true){
     var selectedTransform: Transform? = null
     var selectedProperty: AnimatedProperty<*>? = null
     var selectedInspectable: Inspectable? = null
+
+    override fun onGameLoopStart() {
+        saveStateMaybe()
+    }
+
+    override fun onGameLoopEnd() {
+
+    }
+
+    override fun onProgramExit() {
+
+    }
+
+    var wasSavingConfig = 0L
+    fun saveStateMaybe() {
+        val historySaveDuration = 1e9
+        if (saveIsRequested && !isSaving.get()) {
+            val current = System.nanoTime()
+            if (forceSave || abs(current - lastSave) > historySaveDuration) {
+                lastSave = current
+                forceSave = false
+                saveIsRequested = false
+                saveState()
+            }
+        }
+        if ((DefaultConfig.wasChanged || DefaultConfig.style.values.wasChanged)
+            && GFX.lastTime > wasSavingConfig + 1_000_000_000
+        ) {// only save every 1s
+            // delay in case it needs longer
+            wasSavingConfig = GFX.lastTime + (60 * 1e9).toLong()
+            thread {
+                DefaultConfig.save()
+                wasSavingConfig = GFX.lastTime
+            }
+        }
+    }
+
+    fun saveState() {
+        // saving state
+        if (RemsStudio.project == null) return
+        isSaving.set(true)
+        thread {
+            try {
+                val state = SceneState()
+                state.update()
+                history.put(state)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+            isSaving.set(false)
+        }
+    }
+
+    fun onSmallChange(cause: String) {
+        saveIsRequested = true
+        SceneTabs.currentTab?.hasChanged = true
+        updateSceneViews()
+        // LOGGER.info(cause)
+    }
+
+    fun onLargeChange() {
+        saveIsRequested = true
+        forceSave = true
+        SceneTabs.currentTab?.hasChanged = true
+        updateSceneViews()
+    }
+
+    fun updateSceneViews() {
+        windowStack.forEach { window ->
+            window.panel.listOfVisible
+                .forEach {
+                    when (it) {
+                        is TreeView, is ISceneView -> {
+                            it.invalidateDrawing()
+                        }
+                        is GraphEditorBody -> {
+                            if (selectedProperty != null) {
+                                it.invalidateDrawing()
+                            }
+                        }
+                        is PropertyInspector -> {
+                            if(selectedTransform != null){
+                                it.needsUpdate = true
+                            }
+                        }
+                    }
+                }
+        }
+    }
 
 }

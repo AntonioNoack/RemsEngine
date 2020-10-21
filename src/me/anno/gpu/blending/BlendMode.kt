@@ -93,6 +93,11 @@ class BlendMode(
             .set(GL11.GL_ONE, GL11.GL_ONE)
             .set(BlendFunc.REV_SUB, BlendFunc.ADD)
 
+        // a way to remove alpha from an image
+        val DST_ALPHA = BlendMode("Dst Alpha", "Dst Alpha")
+            .set(GL_ONE, GL_ZERO, GL_ZERO, GL_ONE)
+            .set(BlendFunc.ADD)
+
         operator fun get(code: String) = blendModes[code] ?: UNSPECIFIED
     }
 

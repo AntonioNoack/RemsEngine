@@ -7,6 +7,7 @@ import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.studio.RemsStudio
+import me.anno.studio.RemsStudio.lastT
 import me.anno.studio.RemsStudio.onSmallChange
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.components.Padding
@@ -39,6 +40,7 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
     override fun getVisualState(): Any? = showBars to Quad(super.getVisualState(), cursor1, cursor2, text)
 
     private var text = ""
+    private var lastText = ""
     private val lines: ArrayList<MutableList<Int>> = arrayListOf(mutableListOf())
     private val endCursor get() = CursorPosition(lines.size - 1, lines.last().size)
     private val joinedText get() = lines.joinToString("\n") { list -> list.joinChars() }
@@ -233,7 +235,11 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
 
     fun updateText() {
         text = joinedText
-        changeListener(text)
+        if(text != lastText){
+            // println("$placeholder update: $lastText -> $text")
+            lastText = text
+            changeListener(text)
+        }
     }
 
     fun deleteSelection(): Boolean {

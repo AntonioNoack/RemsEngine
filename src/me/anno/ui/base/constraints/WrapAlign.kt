@@ -2,18 +2,23 @@ package me.anno.ui.base.constraints
 
 import me.anno.ui.base.Constraint
 import me.anno.ui.base.Panel
+import kotlin.math.max
 import kotlin.math.min
 
 class WrapAlign(val alignX: AxisAlignment?, val alignY: AxisAlignment?): Constraint(10){
     
     override fun apply(panel: Panel) {
         alignX?.apply {
-            val delta = getOffset(panel.w, panel.minW)
+            // delta is the movement to the right;
+            // therefore it must not be < 0
+            val delta = max(0, getOffset(panel.w, panel.minW))
             panel.x = panel.x + delta
             panel.w = min(panel.minW, panel.w)
         }
         alignY?.apply {
-            val delta = getOffset(panel.h, panel.minH)
+            // delta is the movement to the bottom;
+            // therefore it must not be < 0
+            val delta = max(0, getOffset(panel.h, panel.minH))
             panel.y = panel.y + delta
             panel.h = min(panel.minH, panel.h)
         }

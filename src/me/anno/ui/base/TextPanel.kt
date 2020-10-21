@@ -102,7 +102,8 @@ open class TextPanel(open var text: String, style: Style): Panel(style){
     override fun getCursor(): Long? = if(onClickListener == null) super.getCursor() else Cursor.drag
 
     override fun printLayout(tabDepth: Int) {
-        println("${Tabs.spaces(tabDepth * 2)}${javaClass.simpleName}($weight, ${if(visibility==Visibility.VISIBLE) "v" else "_"}) $x $y += $w $h ($minW $minH) ${text.substring(0, min(text.length, 20))}")
+        println("${Tabs.spaces(tabDepth * 2)}${javaClass.simpleName}($weight, ${if(visibility==Visibility.VISIBLE) "v" else "_"}) " +
+                "$x $y += $w $h ($minW $minH) \"${text.substring(0, min(text.length, 20))}\"")
     }
 
     override fun isKeyInput() = onClickListener != null

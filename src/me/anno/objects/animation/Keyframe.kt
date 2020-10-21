@@ -71,6 +71,8 @@ class Keyframe<V>(var time: Double, var value: V): Saveable(), Comparable<Keyfra
         return when(val value = value){
             is Float -> value
             is Double -> value.toFloat()
+            is Int -> value.toFloat()
+            is Long -> value.toFloat()
             is Vector2f -> when(index){
                 0 -> value.x
                 else -> value.y

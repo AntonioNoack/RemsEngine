@@ -5,13 +5,16 @@ import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.studio.RemsStudio.project
 import me.anno.studio.RemsStudio.targetDuration
+import me.anno.studio.RemsStudio.targetOutputFile
 import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.frames.FrameSizeInput
 import me.anno.ui.input.EnumInput
+import me.anno.ui.input.FileInput
 import me.anno.ui.style.Style
+import java.io.File
 import kotlin.concurrent.thread
 import kotlin.math.abs
 import kotlin.math.max
@@ -57,6 +60,12 @@ object RenderSettings : Transform(){
                 save()
             }
             .setTooltip("The fps of the video, or how many frame are shown per second")
+
+        list += FileInput("Output File", style, targetOutputFile)
+            .setChangeListener {
+                project.targetOutputFile = File(it)
+                save()
+            }
 
     }
 

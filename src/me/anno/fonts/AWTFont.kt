@@ -3,14 +3,13 @@ package me.anno.fonts
 import me.anno.gpu.texture.FakeWhiteTexture
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
-import me.anno.ui.base.DefaultRenderingHints
 import me.anno.ui.base.DefaultRenderingHints.prepareGraphics
 import me.anno.utils.OS
-import me.anno.utils.getLineWidth
 import me.anno.utils.incrementTab
 import me.anno.utils.joinChars
 import org.apache.logging.log4j.LogManager
 import java.awt.Font
+import java.awt.FontMetrics
 import java.awt.Graphics2D
 import java.awt.font.FontRenderContext
 import java.awt.font.TextLayout
@@ -22,37 +21,40 @@ import kotlin.math.max
 import kotlin.math.roundToInt
 import kotlin.streams.toList
 
-class AWTFont(val font: Font): XFont {
+class AWTFont(val font: Font) : XFont {
 
-    val unused = BufferedImage(1,1,1).graphics as Graphics2D
+    private val fontMetrics: FontMetrics
+
     init {
+        val unused = BufferedImage(1, 1, 1).graphics as Graphics2D
         unused.prepareGraphics(font)
+        fontMetrics = unused.fontMetrics
     }
 
-    val fontMetrics = unused.fontMetrics
-
     fun containsSpecialChar(text: String): Boolean {
-        for(cp in text.codePoints()){
-            if(cp > 127 || cp == '\t'.toInt()) return true
+        for (cp in text.codePoints()) {
+            if (cp > 127 || cp == '\t'.toInt()) return true
         }
         return false
     }
 
     fun String.countLines() = count { it == '\n' } + 1
 
-    override fun generateTexture(text: String, fontSize: Float): ITexture2D? {
+    override fun generateTexture(text: String, fontSize: Float, widthLimit: Int): ITexture2D? {
 
-        if(text.isEmpty()) return null
-        if(containsSpecialChar(text)) return generateTextureV3(text, fontSize)
+        if (text.isEmpty()) return null
+        if (containsSpecialChar(text) || widthLimit > 0) {
+            return generateTextureV3(text, fontSize, widthLimit.toFloat())
+        }
 
-        val width = fontMetrics.stringWidth(text) + (if(font.isItalic) max(2, (fontSize / 5f).roundToInt()) else 1)
+        val width = fontMetrics.stringWidth(text) + (if (font.isItalic) max(2, (fontSize / 5f).roundToInt()) else 1)
         val lineCount = text.countLines()
         val spaceBetweenLines = (0.5f * fontSize).roundToInt()
         val fontHeight = fontMetrics.height
         val height = fontHeight * lineCount + (lineCount - 1) * spaceBetweenLines
 
-        if(width < 1 || height < 1) return null
-        if(text.isBlank()){
+        if (width < 1 || height < 1) return null
+        if (text.isBlank()) {
             // we need some kind of wrapper around texture2D
             // and return an empty/blank texture
             // that the correct size is returned is required by text input fields
@@ -70,7 +72,7 @@ class AWTFont(val font: Font): XFont {
             val x = 0
             val y = fontMetrics.ascent
 
-            if(lineCount == 1){
+            if (lineCount == 1) {
                 gfx.drawString(text, x, y)
             } else {
                 val lines = text.split('\n')
@@ -79,7 +81,7 @@ class AWTFont(val font: Font): XFont {
                 }
             }
             gfx.dispose()
-            if(debugJVMResults) debug(image)
+            if (debugJVMResults) debug(image)
             image
 
         }, needsSync)
@@ -88,17 +90,23 @@ class AWTFont(val font: Font): XFont {
 
     }
 
-    fun debug(image: BufferedImage){
+    fun debug(image: BufferedImage) {
         ImageIO.write(image, "png", File(OS.desktop, "img/${ctr++}.png"))
     }
 
-    fun splitParts(text: String, fontSize: Float, relativeTabSize: Float, relativeCharSpacing: Float, lineBreakWidth: Float): PartResult {
+    fun splitParts(
+        text: String,
+        fontSize: Float,
+        relativeTabSize: Float,
+        relativeCharSpacing: Float,
+        lineBreakWidth: Float
+    ): PartResult {
 
         val fonts = listOf(font, getFallback(fontSize))
 
         fun getSupportLevel(char: Int, lastSupportLevel: Int): Int {
             fonts.forEachIndexed { index, font ->
-                if(font.canDisplay(char)) return index
+                if (font.canDisplay(char)) return index
             }
             return lastSupportLevel
         }
@@ -120,8 +128,8 @@ class AWTFont(val font: Font): XFont {
             var startIndex = 0
             var index = 0
             var lastSupportLevel = 0
-            fun display(){
-                if(index > startIndex){
+            fun display() {
+                if (index > startIndex) {
                     val substring = cp.subList(startIndex, index).joinChars()
                     val font = fonts[lastSupportLevel]
                     val layout = TextLayout(substring, font, ctx)
@@ -132,19 +140,21 @@ class AWTFont(val font: Font): XFont {
                     startIndex = index
                 }
             }
-            fun nextLine(){
+
+            fun nextLine() {
                 display()
-                for(i in startResultIndex until result.size){
+                for (i in startResultIndex until result.size) {
                     result[i].lineWidth = max(0f, currentX - charSpacing)
                 }
                 startResultIndex = result.size
                 currentY += fontHeight
                 currentX = 0f
             }
+
             fun isSpace(char: Int) = char == '\t'.toInt() || char == ' '.toInt()
             var hadNonSpaceCharacter = false
-            while(index < cp.size){
-                when(val char = cp[index]){
+            while (index < cp.size) {
+                when (val char = cp[index]) {
                     '\t'.toInt() -> {
                         display()
                         startIndex++ // skip \t too
@@ -153,21 +163,23 @@ class AWTFont(val font: Font): XFont {
                     ' '.toInt() -> {
                         // break line, if the next work doesn't fit in this line, and there already was a word
                         // search for the next word
-                        if(hasAutomaticLineBreak && index+1 < cp.size && !isSpace(cp[index+1]) && hadNonSpaceCharacter){
+                        if (hasAutomaticLineBreak && index + 1 < cp.size && !isSpace(cp[index + 1]) && hadNonSpaceCharacter) {
 
-                            var endIndex = index+1
-                            while(endIndex < cp.size){
-                                if(!isSpace(cp[endIndex])) endIndex++
+                            var endIndex = index + 1
+                            while (endIndex < cp.size) {
+                                if (!isSpace(cp[endIndex])) endIndex++
                                 else break
                             }
 
                             // not 100% accurate for text with smileys
                             val previousWord = cp.subList(startIndex, index).joinChars()
-                            val nextWord = cp.subList(index+1, endIndex).joinChars()
-                            val currentX2 = currentX + if(previousWord.isEmpty()) 0f else TextLayout(previousWord, font, ctx).advance
+                            val nextWord = cp.subList(index + 1, endIndex).joinChars()
+                            val currentX2 = currentX +
+                                    if (previousWord.isEmpty()) 0f
+                                    else TextLayout(previousWord, font, ctx).advance
                             val layout = TextLayout(nextWord, font, ctx)
                             val advance = layout.advance
-                            if(currentX2 + advance + (endIndex - startIndex) * charSpacing > lineBreakWidth){
+                            if (currentX2 + advance + (endIndex - startIndex) * charSpacing > lineBreakWidth) {
                                 // it doesn't fit -> line break
                                 hadNonSpaceCharacter = false
                                 nextLine()
@@ -175,17 +187,19 @@ class AWTFont(val font: Font): XFont {
                             }
 
                         }
+
                         // todo break very long words by force (on sense making syllables)
                         val supportLevel = getSupportLevel(char, lastSupportLevel)
-                        if(supportLevel != lastSupportLevel){
+                        if (supportLevel != lastSupportLevel) {
                             display()
                             lastSupportLevel = supportLevel
                         }
+
                     }
                     else -> {
                         hadNonSpaceCharacter = true
                         val supportLevel = getSupportLevel(char, lastSupportLevel)
-                        if(supportLevel != lastSupportLevel){
+                        if (supportLevel != lastSupportLevel) {
                             display()
                             lastSupportLevel = supportLevel
                         }
@@ -200,9 +214,9 @@ class AWTFont(val font: Font): XFont {
 
     }
 
-    fun generateTextureV3(text: String, fontSize: Float): Texture2D? {
+    fun generateTextureV3(text: String, fontSize: Float, lineBreakWidth: Float): Texture2D? {
 
-        val parts = splitParts(text, fontSize, 4f, 0f, -1f)
+        val parts = splitParts(text, fontSize, 4f, 0f, lineBreakWidth)
         val result = parts.parts
         val exampleLayout = parts.exampleLayout
 
@@ -214,7 +228,7 @@ class AWTFont(val font: Font): XFont {
         val texture = Texture2D(width, height, 1)
         texture.create({
             val image = BufferedImage(width, height, 1)
-            if(result.isNotEmpty()){
+            if (result.isNotEmpty()) {
                 val gfx = image.graphics as Graphics2D
                 gfx.prepareGraphics(font)
 
@@ -227,7 +241,7 @@ class AWTFont(val font: Font): XFont {
                 }
 
                 gfx.dispose()
-                if(debugJVMResults) debug(image)
+                if (debugJVMResults) debug(image)
             }
             image
         }, needsSync)
@@ -235,64 +249,6 @@ class AWTFont(val font: Font): XFont {
         return texture
 
     }
-
-    /*fun generateTexture2(text: String, fontSize: Float): Texture2D? {
-
-        val withIcons = createFallbackString(text, font, getFallback(fontSize))
-        val layout = TextLayout(withIcons.iterator, unused.fontRenderContext)
-        val bounds = layout.bounds
-
-        val width = ceil(bounds.width)
-        val height = ceil(layout.ascent + layout.descent)
-
-        val texture = Texture2D(width, height, 1)
-        texture.create {
-            val image = BufferedImage(width, height, 1)
-            val gfx = image.graphics as Graphics2D
-            prepareGraphics(gfx)
-
-            val x = (image.width - width) * 0.5f
-            val y = (image.height - height) * 0.5f + layout.ascent
-
-            gfx.drawString(withIcons.iterator, x, y)
-
-            gfx.dispose()
-            image
-        }
-
-        return texture
-
-    }
-
-    private fun createFallbackString(
-        text: String,
-        mainFont: Font,
-        fallbackFont: Font
-    ): AttributedString {
-        val result = AttributedString(text)
-        val textLength = text.length
-        result.addAttribute(TextAttribute.FONT, mainFont, 0, textLength)
-        var fallback = false
-        var fallbackBegin = 0
-        val codePoints = text.codePoints().toList()
-        for (i in codePoints.indices) {
-            // 😉
-            val inQuestion = codePoints[i]
-            val curFallback = !mainFont.canDisplay(inQuestion)
-            if(curFallback){
-                LOGGER.info("[AWTFont] ${String(Character.toChars(inQuestion))}, $inQuestion needs fallback, supported? ${fallbackFont.canDisplay(inQuestion)}")
-            }
-            if (curFallback != fallback) {
-                fallback = curFallback
-                if (fallback) {
-                    fallbackBegin = i
-                } else {
-                    result.addAttribute(TextAttribute.FONT, fallbackFont, fallbackBegin, i)
-                }
-            }
-        }
-        return result
-    }*/
 
     fun ceil(f: Float) = round(f + 0.5f)
     fun ceil(f: Double) = round(f + 0.5).toInt()
@@ -318,7 +274,7 @@ class AWTFont(val font: Font): XFont {
         val fallbackFonts = HashMap<Float, Font>()
         fun getFallback(size: Float): Font {
             val cached = fallbackFonts[size]
-            if(cached != null) return cached
+            if (cached != null) return cached
             val font = fallbackFont0.deriveFont(size)
             fallbackFonts[size] = font
             return font

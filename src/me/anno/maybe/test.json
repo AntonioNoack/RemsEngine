@@ -2,28 +2,37 @@
   {
     "class": "Circle",
     "i:*ptr": 1,
-    "S:name": "C2",
-    "d:timeOffset": -1.506276150627615,
-    "d:timeDilation": 1.0,
-    "AnimatedProperty<color>:color": {
+    "S:name": "Circle",
+    "AnimatedProperty:position": {
       "i:*ptr": 2,
-      "Keyframe:keyframes": {
-        "i:*ptr": 3
+      "b:isAnimated": false,
+      "PerlinNoiseDriver:driver0": {
+        "i:*ptr": 3,
+        "d:frequency": 1.0,
+        "l:seed": 0,
+        "i:octaves": 5
       },
+      "PerlinNoiseDriver:driver1": {
+        "i:*ptr": 3,
+        "d:frequency": 1.0,
+        "l:seed": 1,
+        "i:octaves": 5
+      }
+    },
+    "AnimatedProperty:scale": {
+      "i:*ptr": 4,
       "Keyframe:keyframes": {
-        "i:*ptr": 4,
-        "d:time": 0.1,
-        "v4:value": [
-          1.0,
-          1.0,
-          1.0,
-          1.0
+        "i:*ptr": 5,
+        "v3:value": [
+          0.045549624,
+          0.045549624,
+          0.045549624
         ]
       },
-      "b:isAnimated": true
+      "b:isAnimated": false
     },
+    "d:timeDilation": 1.0,
     "S:blendMode": "*Inherit",
-    "i:timelineSlot": 0,
-    "b:editorOnly": false
+    "i:timelineSlot": 0
   }
 ]

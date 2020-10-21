@@ -21,139 +21,38 @@ import me.anno.input.ActionManager
 import me.anno.input.Input
 import me.anno.input.ShowKeys
 import me.anno.objects.cache.Cache
-import me.anno.studio.RemsStudio.selectedProperty
-import me.anno.studio.RemsStudio.selectedTransform
-import me.anno.studio.history.SceneState
 import me.anno.studio.project.Project
 import me.anno.ui.base.Panel
 import me.anno.ui.base.Tooltips
 import me.anno.ui.base.Visibility
+import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.debug.ConsoleOutputPanel
 import me.anno.ui.dragging.IDraggable
-import me.anno.ui.editor.PropertyInspector
 import me.anno.ui.editor.UILayouts
-import me.anno.ui.editor.graphs.GraphEditorBody
-import me.anno.ui.editor.sceneTabs.SceneTabs
-import me.anno.ui.editor.sceneView.ISceneView
-import me.anno.ui.editor.treeView.TreeView
-import me.anno.utils.OS
 import me.anno.utils.clamp
 import me.anno.utils.f3
-import me.anno.utils.listFiles2
 import org.apache.logging.log4j.LogManager
+import org.lwjgl.glfw.GLFW
 import org.lwjgl.opengl.GL11.*
 import java.io.File
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
-import java.util.concurrent.atomic.AtomicBoolean
-import kotlin.concurrent.thread
-import kotlin.math.abs
 import kotlin.math.roundToInt
 
 abstract class StudioBase(val needsAudio: Boolean) {
 
     abstract fun createUI()
+    abstract fun onGameLoopStart()
+    abstract fun onGameLoopEnd()
+    abstract fun onProgramExit()
 
-    val startTime = System.nanoTime()
-
-    val isSaving = AtomicBoolean(false)
-    var forceSave = false
-    var lastSave = System.nanoTime()
-    var saveIsRequested = true
+    private val startTime = System.nanoTime()
 
     val windowStack = Stack<Window>()
 
     val showTutorialKeys get() = DefaultConfig["ui.tutorial.showKeys", true]
     val showFPS get() = DefaultConfig["debug.ui.showFPS", Build.isDebug]
     val showRedraws get() = DefaultConfig["debug.ui.showRedraws", false]
-
-    var workspace = DefaultConfig["workspace.dir", File(OS.home, "Documents/RemsStudio")]
-
-    fun onSmallChange(cause: String) {
-        saveIsRequested = true
-        SceneTabs.currentTab?.hasChanged = true
-        updateSceneViews()
-        // LOGGER.info(cause)
-    }
-
-    fun onLargeChange() {
-        saveIsRequested = true
-        forceSave = true
-        SceneTabs.currentTab?.hasChanged = true
-        updateSceneViews()
-    }
-
-    fun updateSceneViews() {
-        windowStack.forEach { window ->
-            window.panel.listOfVisible
-                .forEach {
-                    when (it) {
-                        is TreeView, is ISceneView -> {
-                            it.invalidateDrawing()
-                        }
-                        is GraphEditorBody -> {
-                            if (selectedProperty != null) {
-                                it.invalidateDrawing()
-                            }
-                        }
-                        is PropertyInspector -> {
-                            if(selectedTransform != null){
-                                it.needsUpdate = true
-                            }
-                        }
-                    }
-                }
-        }
-    }
-
-    var wasSavingConfig = 0L
-    fun saveStateMaybe() {
-        val historySaveDuration = 1e9
-        if (saveIsRequested && !isSaving.get()) {
-            val current = System.nanoTime()
-            if (forceSave || abs(current - lastSave) > historySaveDuration) {
-                lastSave = current
-                forceSave = false
-                saveIsRequested = false
-                saveState()
-            }
-        }
-        if ((DefaultConfig.wasChanged || style.values.wasChanged)
-            && GFX.lastTime > wasSavingConfig + 1_000_000_000
-        ) {// only save every 1s
-            // delay in case it needs longer
-            wasSavingConfig = GFX.lastTime + (60 * 1e9).toLong()
-            thread {
-                DefaultConfig.save()
-                wasSavingConfig = GFX.lastTime
-            }
-        }
-    }
-
-    fun saveState() {
-        // saving state
-        if (RemsStudio.project == null) return
-        isSaving.set(true)
-        thread {
-            try {
-                val state = SceneState()
-                state.update()
-                RemsStudio.history.put(state)
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-            isSaving.set(false)
-        }
-    }
-
-    fun clear(file: File) {
-        if (file.isDirectory) {
-            for (file2 in file.listFiles2()) {
-                file2.delete()
-            }
-            file.delete()
-        } else file.delete()
-    }
 
     var lastT = startTime
     fun mt(name: String) {
@@ -211,7 +110,7 @@ abstract class StudioBase(val needsAudio: Boolean) {
                 GFXBase0.setVsyncEnabled(vsync)
             }
 
-            saveStateMaybe()
+            onGameLoopStart()
 
             if (isFirstFrame) mt("game loop")
 
@@ -258,6 +157,16 @@ abstract class StudioBase(val needsAudio: Boolean) {
 
                     inFocus.forEach {
                         it.isInFocus = true
+                    }
+
+                    // resolve missing parents...
+                    // which still happen...
+                    visiblePanels.forEach {
+                        if(it.parent == null && it !== panel0) {
+                            it.parent = visiblePanels
+                                .filterIsInstance<PanelGroup>()
+                                .first { parent -> it in parent.children }
+                        }
                     }
 
                     visiblePanels.forEach { it.tickUpdate() }
@@ -471,23 +380,30 @@ abstract class StudioBase(val needsAudio: Boolean) {
 
             Cache.update()
 
+            onGameLoopEnd()
+
             false
         }
 
         GFX.onShutdown = {
             AudioManager.requestDestruction()
             Cursor.destroy()
+            onProgramExit()
         }
 
         GFX.run()
 
     }
 
+
+
     fun loadProject(name: String, folder: File) {
         val project = Project(name.trim(), folder)
         RemsStudio.project = project
         project.open()
-        GFX.addGPUTask(1) { GFX.updateTitle() }
+        GFX.addGPUTask(1) {
+            GFX.setTitle("Rem's Studio: ${project.name}")
+        }
     }
 
     private var isFirstFrame = true

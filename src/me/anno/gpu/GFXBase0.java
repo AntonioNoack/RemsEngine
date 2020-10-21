@@ -145,9 +145,8 @@ public class GFXBase0 {
 
     }
 
-    public void updateTitle() {
-        Project project = RemsStudio.INSTANCE.getProject();
-        glfwSetWindowTitle(window, project == null ? "Rem's Studio" : "Rem's Studio: " + project.getName());
+    public void setTitle(String title){
+        glfwSetWindowTitle(window, title);
     }
 
     public void addCallbacks() {

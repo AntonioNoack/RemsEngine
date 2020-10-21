@@ -1,6 +1,5 @@
 package me.anno.gpu
 
-import me.anno.input.Input
 import org.lwjgl.glfw.GLFW.*
 
 object Cursor {

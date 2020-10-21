@@ -35,6 +35,10 @@ object CodeEditor : StudioBase(false) {
 
     }
 
+    override fun onGameLoopStart() {}
+    override fun onGameLoopEnd() {}
+    override fun onProgramExit() {}
+
     override fun createUI(){
 
         val style = style
