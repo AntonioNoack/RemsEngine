@@ -1,10 +1,11 @@
 package me.anno.config
 
 import me.anno.config.DefaultStyle.baseTheme
-import me.anno.input.ActionManager
 import me.anno.io.config.ConfigBasics
 import me.anno.io.utils.StringMap
 import me.anno.objects.*
+import me.anno.objects.attractors.ColorAttractor
+import me.anno.objects.attractors.UVAttractor
 import me.anno.objects.effects.MaskLayer
 import me.anno.objects.geometric.Circle
 import me.anno.objects.geometric.Polygon
@@ -135,7 +136,9 @@ object DefaultConfig : StringMap() {
                 Circle(ps)
                 ps.timeOffset = -5.0
                 ps
-            }()
+            }(),
+            "Color Attractor" to ColorAttractor(),
+            "UV Attractor" to UVAttractor()
         )
 
         this["createNewInstancesList"] =

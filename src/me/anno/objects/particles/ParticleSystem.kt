@@ -8,6 +8,7 @@ import me.anno.ui.editor.SettingCategory
 import me.anno.ui.input.BooleanInput
 import me.anno.ui.style.Style
 import me.anno.utils.plus
+import me.anno.utils.sumByFloat
 import me.anno.utils.times
 import me.anno.video.MissingFrameException
 import org.joml.Matrix4fArrayList
@@ -133,7 +134,7 @@ class ParticleSystem(parent: Transform? = null): Transform(parent){
 
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
 
-        sumWeight = children.sumByDouble { it.weight.toDouble() }.toFloat()
+        sumWeight = children.sumByFloat { it.weight }
         if(time < 0f || children.isEmpty() || sumWeight <= 0.0) return
 
         // calculate the missing timesteps, if required

@@ -54,6 +54,7 @@ object CodeEditor : StudioBase(false) {
                 }
             }
         }
+
         // todo open all last files...?
         main += ScrollPanelX(tabs, Padding(0), style, AxisAlignment.MIN)
 

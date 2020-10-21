@@ -96,6 +96,21 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
         return localTime >= 0.0 && (isLooping != LoopingState.PLAY_ONCE || localTime < lastDuration)
     }
 
+    var w = 16
+    var h = 9
+
+    override fun transformLocally(pos: Vector3f, time: Double): Vector3f {
+        val doScale = uvProjection.doScale && w != h
+        return if (doScale) {
+            val avgSize = if (w * targetHeight > h * targetWidth) w.toFloat() * targetHeight / targetWidth else h.toFloat()
+            val sx = w / avgSize
+            val sy = h / avgSize
+            Vector3f(pos.x/sx, -pos.y/sy, pos.z)
+        } else {
+            Vector3f(pos.x, -pos.y, pos.z)
+        }
+    }
+
     fun calculateSize(matrix: Matrix4f, w: Int, h: Int): Int? {
 
         /**
@@ -152,7 +167,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
 
     }
 
-    fun getCacheableZoomLevel(level: Int): Int {
+    private fun getCacheableZoomLevel(level: Int): Int {
         return when {
             level < 1 -> 1
             level <= 6 || level == 8 || level == 12 || level == 16 -> level
@@ -165,7 +180,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
         }
     }
 
-    fun drawImageSequence(meta: ImageSequenceMeta, stack: Matrix4fArrayList, time: Double, color: Vector4f) {
+    private fun drawImageSequence(meta: ImageSequenceMeta, stack: Matrix4fArrayList, time: Double, color: Vector4f) {
 
         var wasDrawn = false
 
@@ -182,6 +197,8 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                 val frame = Cache.getImage(meta.getImage(localTime), 500L, true)
                 if(frame == null) onMissingImageOrFrame()
                 else {
+                    w = frame.w
+                    h = frame.h
                     GFX.draw3DVideo(
                         this, time,
                         stack, frame, color, this@Video.filtering, this@Video.clampMode, tiling[time], uvProjection
@@ -204,12 +221,12 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
     }
 
     // todo this is somehow not working, and idk why...
-    fun onMissingImageOrFrame(){
+    private fun onMissingImageOrFrame(){
         if(GFX.isFinalRendering) throw MissingFrameException(file)
         else needsImageUpdate = true
     }
 
-    fun drawVideoFrames(meta: FFMPEGMetadata, stack: Matrix4fArrayList, time: Double, color: Vector4f) {
+    private fun drawVideo(meta: FFMPEGMetadata, stack: Matrix4fArrayList, time: Double, color: Vector4f) {
 
         // todo automatic spherical size estimation??
         val zoomLevel = if (videoScale < 1) {
@@ -247,6 +264,8 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                 )
 
                 if (frame != null && frame.isLoaded) {
+                    w = frame.w
+                    h = frame.h
                     GFX.draw3DVideo(
                         this, time,
                         stack, frame, color, this@Video.filtering, this@Video.clampMode, tiling[time], uvProjection
@@ -272,7 +291,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
         }
     }
 
-    fun drawImageFrames(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
+    private fun drawImage(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
         val name = file.name
         when {
             name.endsWith("svg", true) -> {
@@ -307,6 +326,8 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                 if (texture == null) onMissingImageOrFrame()
                 else {
                     texture.rotation?.apply(stack)
+                    w = texture.w
+                    h = texture.h
                     GFX.draw3DVideo(
                         this, time, stack, texture, color, this.filtering, this.clampMode,
                         tiling, uvProjection
@@ -316,7 +337,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
         }
     }
 
-    fun drawSpeakers(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
+    private fun drawSpeakers(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
         if (GFX.isFinalRendering) return
         color.w = clamp(color.w * 0.5f * abs(amplitude[time]), 0f, 1f)
         if (is3D) {
@@ -474,7 +495,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                             lastAddedEndKeyframesFile = file
                             addEndKeyframesMaybe(meta.duration)
                         }
-                        drawVideoFrames(meta, stack, time, color)
+                        drawVideo(meta, stack, time, color)
                     }
                     // very intrusive :/
                     /*if(meta?.hasAudio == true){
@@ -485,7 +506,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                     val meta = imageSequenceMeta!!
                     drawImageSequence(meta, stack, time, color)
                 }
-                VideoType.IMAGE -> drawImageFrames(stack, time, color)
+                VideoType.IMAGE -> drawImage(stack, time, color)
                 VideoType.AUDIO -> drawSpeakers(stack, time, color)
                 else -> throw RuntimeException("$type needs visualization")
             }

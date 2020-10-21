@@ -37,6 +37,7 @@ import me.anno.objects.Transform
 import me.anno.objects.Video
 import me.anno.objects.effects.MaskType
 import me.anno.objects.geometric.Circle
+import me.anno.objects.geometric.Polygon
 import me.anno.objects.modes.UVProjection
 import me.anno.studio.Build.isDebug
 import me.anno.studio.RemsStudio
@@ -614,12 +615,15 @@ object GFX : GFXBase1() {
     }
 
     fun draw3DPolygon(
+        polygon: Polygon, time: Double,
         stack: Matrix4fArrayList, buffer: StaticBuffer,
         texture: Texture2D, color: Vector4f,
         inset: Float,
         filtering: FilteringMode, clampMode: ClampMode
     ) {
         val shader = shader3DPolygon.shader
+        shader.use()
+        polygon.uploadAttractors(shader, time)
         shader3DUniforms(shader, stack, texture.w, texture.h, color, null, filtering, null)
         shader.v1("inset", inset)
         texture.bind(0, filtering, clampMode)
@@ -651,6 +655,8 @@ object GFX : GFXBase1() {
     ) {
         if (!texture.isLoaded) throw RuntimeException("Frame must be loaded to be rendered!")
         val shader = texture.get3DShader().shader
+        shader.use()
+        video.uploadAttractors(shader, time)
         shader3DUniforms(shader, stack, texture.w, texture.h, color, tiling, filtering, uvProjection)
         colorGradingUniforms(video, time, shader)
         texture.bind(0, filtering, clampMode)
@@ -716,6 +722,8 @@ object GFX : GFXBase1() {
         filtering: FilteringMode, clampMode: ClampMode, tiling: Vector4f?, uvProjection: UVProjection
     ) {
         val shader = shader3DRGBA.shader
+        shader.use()
+        video.uploadAttractors(shader, time)
         shader3DUniforms(shader, stack, texture.w, texture.h, color, tiling, filtering, uvProjection)
         colorGradingUniforms(video, time, shader)
         texture.bind(0, filtering, clampMode)

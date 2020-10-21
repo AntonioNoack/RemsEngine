@@ -1,13 +1,16 @@
 package me.anno.gpu
 
+import me.anno.config.DefaultConfig
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderPlus
 import me.anno.gpu.texture.FilteringMode
 import me.anno.objects.effects.MaskType
 import me.anno.objects.meshes.fbx.model.FBXGeometry
 import me.anno.objects.modes.UVProjection
-import me.anno.studio.Scene
 import org.lwjgl.opengl.GL20
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
+import java.nio.FloatBuffer
 import kotlin.math.PI
 
 object ShaderLib {
@@ -36,6 +39,29 @@ object ShaderLib {
             "   return sqrt(0.299*color.r*color.r + 0.587*color.g*color.g + 0.114*color.b*color.b);\n" +
             "}\n"
 
+
+    val bicubicInterpolation = "" +
+            // https://www.paulinternet.nl/?page=bicubic
+            "vec4 cubicInterpolation(vec4 p0, vec4 p1, vec4 p2, vec4 p3, float x){\n" +
+            "   return p1 + 0.5 * x*(p2 - p0 + x*(2.0*p0 - 5.0*p1 + 4.0*p2 - p3 + x*(3.0*(p1 - p2) + p3 - p0)));\n" +
+            "}\n" +
+            "vec4 cubicInterpolation(sampler2D tex, vec2 uv, float du, float x){\n" +
+            "   vec4 p0 = texture(tex, vec2(uv.x - du, uv.y));\n" +
+            "   vec4 p1 = texture(tex, vec2(uv.x     , uv.y));\n" +
+            "   vec4 p2 = texture(tex, vec2(uv.x + du, uv.y));\n" +
+            "   vec4 p3 = texture(tex, vec2(uv.x+2*du, uv.y));\n" +
+            "   return cubicInterpolation(p0, p1, p2, p3, x);\n" +
+            "}\n" +
+            "vec4 bicubicInterpolation(sampler2D tex, vec2 uv, vec2 duv){\n" +
+            "   uv -= 0.5*duv;\n" +
+            "   vec2 xy = fract(uv / duv);\n" +
+            "   vec4 p0 = cubicInterpolation(tex, vec2(uv.x, uv.y - duv.y), duv.x, xy.x);\n" +
+            "   vec4 p1 = cubicInterpolation(tex, vec2(uv.x, uv.y        ), duv.x, xy.x);\n" +
+            "   vec4 p2 = cubicInterpolation(tex, vec2(uv.x, uv.y + duv.y), duv.x, xy.x);\n" +
+            "   vec4 p3 = cubicInterpolation(tex, vec2(uv.x, uv.y+2*duv.y), duv.x, xy.x);\n" +
+            "   return cubicInterpolation(p0, p1, p2, p3, xy.y);\n" +
+            "}\n"
+
     // https://en.wikipedia.org/wiki/ASC_CDL
     // color grading with asc cdl standard
     const val ascColorDecisionList = "" +
@@ -47,13 +73,128 @@ object ShaderLib {
             "   return mix(vec3(gray), color, cgSaturation);\n" +
             "}\n"
 
-    fun init(){
+    // todo uv/scale attractors...
+    // todo color attractors are too complicated to use
+
+    val maxColorForceFields = DefaultConfig["objects.attractors.color.maxCount", 12]
+    val getColorForceFieldLib = "" +
+            // additional weights?...
+            "uniform int forceFieldColorCount;\n" +
+            "uniform vec4 forceFieldBaseColor;\n" +
+            "uniform vec4[$maxColorForceFields] forceFieldColors;\n" +
+            "uniform vec4[$maxColorForceFields] forceFieldPositionsNWeights;\n" +
+            "uniform vec4[$maxColorForceFields] forceFieldColorPowerSizes;\n" +
+            "vec4 getForceFieldColor(){\n" +
+            "   float sumWeight = 0.25;\n" +
+            "   vec4 sumColor = sumWeight * forceFieldBaseColor;\n" +
+            "   for(int i=0;i<forceFieldColorCount;i++){\n" +
+            "       vec4 positionNWeight = forceFieldPositionsNWeights[i];\n" +
+            "       vec3 positionDelta = localPosition - positionNWeight.xyz;\n" +
+            "       vec4 powerSize = forceFieldColorPowerSizes[i];\n" +
+            "       float weight = positionNWeight.w / (1.0 + pow(dot(powerSize.xyz * positionDelta, positionDelta), powerSize.w));\n" +
+            "       sumWeight += weight;\n" +
+            "       sumColor += weight * forceFieldColors[i];\n" +
+            "   }\n" +
+            "   return sumColor / sumWeight;\n" +
+            "}\n"
+
+    val colorForceFieldBuffer: FloatBuffer = ByteBuffer
+        .allocateDirect(4 * maxColorForceFields)
+        .order(ByteOrder.nativeOrder())
+        .asFloatBuffer()
+
+    val maxUVForceFields = DefaultConfig["objects.attractors.scale.maxCount", 12]
+    val getUVForceFieldLib = "" +
+            "uniform int forceFieldUVCount;\n" +
+            "uniform vec3[$maxUVForceFields] forceFieldUVs;\n" + // xyz
+            "uniform vec4[$maxUVForceFields] forceFieldUVSpecs;\n" + // size, power
+            "vec3 getForceFieldUVs(vec3 uvw){\n" +
+            "   vec3 sumUVs = uvw;\n" +
+            "   for(int i=0;i<forceFieldUVCount;i++){\n" +
+            "       vec3 position = forceFieldUVs[i];\n" +
+            "       vec4 sizePower = forceFieldUVSpecs[i];\n" +
+            "       vec3 positionDelta = uvw - position;\n" +
+            "       float weight = sizePower.x / (1.0 + pow(sizePower.z * dot(positionDelta, positionDelta), sizePower.w));\n" +
+            "       sumUVs += weight * positionDelta;\n" +
+            "   }\n" +
+            "   return sumUVs;\n" +
+            "}\n" +
+            "vec2 getForceFieldUVs(vec2 uv){\n" +
+            "   vec2 sumUVs = uv;\n" +
+            "   for(int i=0;i<forceFieldUVCount;i++){\n" +
+            "       vec3 position = forceFieldUVs[i];\n" +
+            "       vec4 sizePower = forceFieldUVSpecs[i];\n" +
+            "       vec2 positionDelta = (uv - position.xy) * sizePower.xy;\n" +
+            "       float weight = 1.0 / (1.0 + pow(sizePower.z * dot(positionDelta, positionDelta), sizePower.w));\n" +
+            "       sumUVs += weight * positionDelta;\n" +
+            "   }\n" +
+            "   return sumUVs;\n" +
+            "}\n"
+
+    val uvForceFieldBuffer: FloatBuffer = ByteBuffer
+        .allocateDirect(3 * maxUVForceFields)
+        .order(ByteOrder.nativeOrder())
+        .asFloatBuffer()
+
+    const val hasForceFieldColor = "(forceFieldColorCount > 0)"
+    const val hasForceFieldUVs = "(forceFieldUVCount > 0)"
+
+    val getTextureLib = "" +
+            bicubicInterpolation +
+            getUVForceFieldLib +
+            // the uvs correspond to the used mesh
+            // used meshes are flat01 and cubemapBuffer
+            "uniform vec2 textureDeltaUV;\n" +
+            "uniform int filtering, uvProjection;\n" +
+            "vec2 getProjectedUVs(vec2 uv){\n" +
+            "   switch(uvProjection){\n" +
+            "       case ${UVProjection.TiledCubemap.id}:\n" +
+            "           return uv;\n" + // correct???
+            "       default:\n" +
+            "           return uv;\n" +
+            "   }\n" +
+            "}\n" +
+            "vec2 getProjectedUVs(vec3 uvw){\n" +
+            "   switch(uvProjection){\n" +
+            "       case ${UVProjection.Equirectangular.id}:\n" +
+            "       default:\n" +
+            "           float u = atan(uvw.z, uvw.x)*${0.5 / PI}+0.5;\n " +
+            "           float v = atan(uvw.y, length(uvw.xz))*${1.0 / PI}+0.5;\n" +
+            "           return vec2(u, v);\n" +
+            "   }\n" +
+            "}\n" +
+            "vec2 getProjectedUVs(vec2 uv, vec3 uvw){\n" +
+            "   return uvProjection == ${UVProjection.Equirectangular.id} ?\n" +
+            "       ($hasForceFieldUVs ? getProjectedUVs(getForceFieldUVs(uvw)) : getProjectedUVs(uvw)) :\n" +
+            "       ($hasForceFieldUVs ? getProjectedUVs(getForceFieldUVs(uv))  : getProjectedUVs(uv));\n" +
+            "}\n" +
+            "vec4 getTexture(sampler2D tex, vec2 uv, vec2 duv){" +
+            "   switch(filtering){" +
+            "       case ${FilteringMode.NEAREST.id}:\n" +
+            "       case ${FilteringMode.LINEAR.id}:\n" +
+            "           return texture(tex, uv);\n" +
+            "       case ${FilteringMode.CUBIC.id}:\n" +
+            "           return bicubicInterpolation(tex, uv, duv);\n" +
+            "   }\n" +
+            "}\n" +
+            "vec4 getTexture(sampler2D tex, vec2 uv){" +
+            "   switch(filtering){" +
+            "       case ${FilteringMode.NEAREST.id}:\n" +
+            "       case ${FilteringMode.LINEAR.id}:\n" +
+            "           return texture(tex, uv);\n" +
+            "       case ${FilteringMode.CUBIC.id}:\n" +
+            "           return bicubicInterpolation(tex, uv, textureDeltaUV);\n" +
+            "   }\n" +
+            "}\n"
+
+    fun init() {
 
         // make this customizable?
 
         // color only for a rectangle
         // (can work on more complex shapes)
-        flatShader = Shader("flatShader",
+        flatShader = Shader(
+            "flatShader",
             "" +
                     "a2 attr0;\n" +
                     "u2 pos, size;\n" +
@@ -66,7 +207,8 @@ object ShaderLib {
                     "}"
         )
 
-        flatShaderGradient = Shader("flatShaderGradient",
+        flatShaderGradient = Shader(
+            "flatShaderGradient",
             "" +
                     "a2 attr0;\n" +
                     "u2 pos, size;\n" +
@@ -81,7 +223,8 @@ object ShaderLib {
                     "}"
         )
 
-        flatShaderTexture = Shader("flatShaderTexture",
+        flatShaderTexture = Shader(
+            "flatShaderTexture",
             "" +
                     "a2 attr0;\n" +
                     "u2 pos, size;\n" +
@@ -111,7 +254,8 @@ object ShaderLib {
         )
 
         // with texture
-        subpixelCorrectTextShader = Shader("subpixelCorrectTextShader",
+        subpixelCorrectTextShader = Shader(
+            "subpixelCorrectTextShader",
             "" +
                     "a2 attr0;\n" +
                     "u2 pos, size;\n" +
@@ -141,86 +285,24 @@ object ShaderLib {
         subpixelCorrectTextShader.use()
         GL20.glUniform1i(subpixelCorrectTextShader["tex"], 0)
 
-        val bicubicInterpolation = "" +
-                // https://www.paulinternet.nl/?page=bicubic
-                "vec4 cubicInterpolation(vec4 p0, vec4 p1, vec4 p2, vec4 p3, float x){\n" +
-                "   return p1 + 0.5 * x*(p2 - p0 + x*(2.0*p0 - 5.0*p1 + 4.0*p2 - p3 + x*(3.0*(p1 - p2) + p3 - p0)));\n" +
-                "}\n" +
-                "vec4 cubicInterpolation(sampler2D tex, vec2 uv, float du, float x){\n" +
-                "   vec4 p0 = texture(tex, vec2(uv.x - du, uv.y));\n" +
-                "   vec4 p1 = texture(tex, vec2(uv.x     , uv.y));\n" +
-                "   vec4 p2 = texture(tex, vec2(uv.x + du, uv.y));\n" +
-                "   vec4 p3 = texture(tex, vec2(uv.x+2*du, uv.y));\n" +
-                "   return cubicInterpolation(p0, p1, p2, p3, x);\n" +
-                "}\n" +
-                "vec4 bicubicInterpolation(sampler2D tex, vec2 uv, vec2 duv){\n" +
-                "   uv -= 0.5*duv;\n" +
-                "   vec2 xy = fract(uv / duv);\n" +
-                "   vec4 p0 = cubicInterpolation(tex, vec2(uv.x, uv.y - duv.y), duv.x, xy.x);\n" +
-                "   vec4 p1 = cubicInterpolation(tex, vec2(uv.x, uv.y        ), duv.x, xy.x);\n" +
-                "   vec4 p2 = cubicInterpolation(tex, vec2(uv.x, uv.y + duv.y), duv.x, xy.x);\n" +
-                "   vec4 p3 = cubicInterpolation(tex, vec2(uv.x, uv.y+2*duv.y), duv.x, xy.x);\n" +
-                "   return cubicInterpolation(p0, p1, p2, p3, xy.y);\n" +
-                "}\n"
-
-        val getTextureLib = "" +
-                bicubicInterpolation +
-                "uniform vec2 textureDeltaUV;\n" +
-                "uniform int filtering, uvProjection;\n" +
-                "vec2 getProjectedUVs(vec2 uv, vec3 uvw){\n" +
-                // the uvs correspond to the used mesh
-                // used meshes are flat01 and cubemapBuffer
-                "   switch(uvProjection){\n" +
-                "       case ${UVProjection.Equirectangular.id}:\n" +
-                "           float u = atan(uvw.z, uvw.x)*${0.5/ PI}+0.5;\n " +
-                "           float v = atan(uvw.y, length(uvw.xz))*${1.0/PI}+0.5;\n" +
-                "           return vec2(u, v);\n" +
-                "       case ${UVProjection.TiledCubemap.id}:\n" +
-                "           return uv;\n" + // correct???
-                "       default:\n" +
-                "           return uv;\n" +
-                "   }\n" +
-                "}\n" +
-                "vec4 getTexture(sampler2D tex, vec2 uv, vec2 duv){" +
-                "   switch(filtering){" +
-                "       case ${FilteringMode.NEAREST.id}:\n" +
-                "       case ${FilteringMode.LINEAR.id}:\n" +
-                "           return texture(tex, uv);\n" +
-                "       case ${FilteringMode.CUBIC.id}:\n" +
-                "           return bicubicInterpolation(tex, uv, duv);\n" +
-                "   }\n" +
-                "}\n" +
-                "vec4 getTexture(sampler2D tex, vec2 uv){" +
-                "   switch(filtering){" +
-                "       case ${FilteringMode.NEAREST.id}:\n" +
-                "       case ${FilteringMode.LINEAR.id}:\n" +
-                "           return texture(tex, uv);\n" +
-                "       case ${FilteringMode.CUBIC.id}:\n" +
-                "           return bicubicInterpolation(tex, uv, textureDeltaUV);\n" +
-                "   }\n" +
-                "}\n"
-
         val positionPostProcessing = "" +
                 "   zDistance = gl_Position.w;\n"
-                // this mapping only works with well tesselated geometry
-                // or we need to add it to the fragment shader instead
-                //"   const float far = 1000;\n" +
-                //"   const float near = 0.001;\n" +
-                //"   gl_Position.z = 2.0*log(gl_Position.w*near + 1)/log(far*near + 1) - 1;\n" +
-                //"   gl_Position.z *= gl_Position.w;"
+        // this mapping only works with well tesselated geometry
+        // or we need to add it to the fragment shader instead
+        //"   const float far = 1000;\n" +
+        //"   const float near = 0.001;\n" +
+        //"   gl_Position.z = 2.0*log(gl_Position.w*near + 1)/log(far*near + 1) - 1;\n" +
+        //"   gl_Position.z *= gl_Position.w;"
 
         val v3DBase = "" +
-                "uniform mat4 transform;\n" +
-                "" +
-                "vec4 transform3D(vec2 betterUV){\n" +
-                "   return transform * vec4(betterUV, 0.0, 1.0);\n" +
-                "}\n"
+                "uniform mat4 transform;\n"
 
         val v3D = v3DBase +
                 "a3 attr0;\n" +
                 "a2 attr1;\n" +
                 "u4 tiling;\n" +
                 "void main(){\n" +
+                "   localPosition = attr0;\n" +
                 "   gl_Position = transform * vec4(attr0, 1.0);\n" +
                 positionPostProcessing +
                 "   uv = (attr1-0.5) * tiling.xy + 0.5 + tiling.zw;\n" +
@@ -232,7 +314,8 @@ object ShaderLib {
                 "a4 attr1;\n" +
                 "void main(){\n" +
                 "   vec2 betterUV = attr0.xy*2.-1.;\n" +
-                "   gl_Position = transform * vec4(betterUV, attr0.z, 1.0);\n" +
+                "   localPosition = vec3(betterUV, attr0.z);\n" +
+                "   gl_Position = transform * vec4(localPosition, 1.0);\n" +
                 positionPostProcessing +
                 "   uv = attr0.xy;\n" +
                 "   color = attr1;\n" +
@@ -241,6 +324,7 @@ object ShaderLib {
         val y3D = "" +
                 "varying v2 uv;\n" +
                 "varying v3 uvw;\n" +
+                "varying v3 localPosition;\n" +
                 "varying float zDistance;\n"
 
         val y3DSVG = y3D +
@@ -250,8 +334,10 @@ object ShaderLib {
                 "uniform vec4 tint;" +
                 "uniform sampler2D tex;\n" +
                 getTextureLib +
+                getColorForceFieldLib +
                 "void main(){\n" +
                 "   vec4 color = getTexture(tex, getProjectedUVs(uv, uvw));\n" +
+                "   if($hasForceFieldColor) color *= getForceFieldColor();\n" +
                 "   gl_FragColor = tint * color;\n" +
                 "}"
 
@@ -264,7 +350,8 @@ object ShaderLib {
                 "void main(){\n" +
                 "   vec2 betterUV = attr0.xy*2.-1.;\n" +
                 "   betterUV *= mix(1.0, attr1.r, inset);\n" +
-                "   gl_Position = transform * vec4(betterUV, attr0.z, 1.0);\n" +
+                "   localPosition = vec3(betterUV, attr0.z);\n" +
+                "   gl_Position = transform * vec4(localPosition, 1.0);\n" +
                 positionPostProcessing +
                 "   uv = attr1.yx;\n" +
                 "}"
@@ -274,13 +361,15 @@ object ShaderLib {
                 "a2 attr0;\n" +
                 "void main(){\n" +
                 "   vec2 betterUV = attr0*2.-1.;\n" +
-                "   gl_Position = transform3D(betterUV);\n" +
+                "   localPosition = vec3(betterUV, 0.0);\n" +
+                "   gl_Position = transform * vec4(betterUV, 0.0, 1.0);\n" +
                 "   uv = gl_Position.xyw;\n" +
                 positionPostProcessing +
                 "}"
 
         val y3DMasked = "" +
                 "varying v3 uv;\n" +
+                "varying v3 localPosition;\n" +
                 "varying float zDistance;\n"
 
         val f3DMasked = "" +
@@ -293,6 +382,7 @@ object ShaderLib {
                 "uniform vec2 blurDeltaUV;\n" +
                 "uniform int maskType;\n" +
                 "uniform float maxSteps;\n" +
+                getColorForceFieldLib +
                 "void main(){\n" +
                 "   vec2 uv2 = uv.xy/uv.z * 0.5 + 0.5;\n" +
                 "   vec4 mask = texture(mask, uv2);\n" +
@@ -300,8 +390,8 @@ object ShaderLib {
                 "   float effect;\n" +
                 "   switch(maskType){\n" +
                 "       case ${MaskType.MASKING.id}:\n" +
-                "           vec4 maskColor = vec4(" +
-                "               mix(vec3(1.0), mask.rgb, useMaskColor)," +
+                "           vec4 maskColor = vec4(\n" +
+                "               mix(vec3(1.0), mask.rgb, useMaskColor),\n" +
                 "               mix(mask.a, 1.0-mask.a, invertMask));\n" +
                 "           color = texture(tex, uv2) * maskColor;\n" +
                 "           break;\n" +
@@ -330,6 +420,7 @@ object ShaderLib {
                 "           color = texture(tex, uv2 + offset);\n" +
                 "           break;\n" +
                 "   }\n" +
+                "   if($hasForceFieldColor) color *= getForceFieldColor();\n" +
                 "   gl_FragColor = tint * color;\n" +
                 "   gl_FragColor.a = min(gl_FragColor.a, 1.0);\n" +
                 "}"
@@ -377,25 +468,30 @@ object ShaderLib {
                 "void main(){\n" +
                 "   float angle = mix(circleParams.y, circleParams.z, attr0.x);\n" +
                 "   vec2 betterUV = vec2(cos(angle), -sin(angle)) * (1.0 - circleParams.x * attr0.y);\n" +
+                "   localPosition = vec3(betterUV, 0.0);\n" +
                 "   gl_Position = transform * vec4(betterUV, 0.0, 1.0);\n" +
                 positionPostProcessing +
                 "}"
 
-        val f3DCircle = "" +
+        val f3DMonoColor = "" +
                 "u4 tint;\n" + // rgba
+                getColorForceFieldLib +
                 "void main(){\n" +
                 "   vec4 color = vec4(1.0);\n" +
+                "   if($hasForceFieldColor) color *= getForceFieldColor();\n" +
                 "   gl_FragColor = tint;\n" +
                 "}"
 
 
         // create the obj+mtl shader
-        shaderObjMtl = createShaderPlus("obj/mtl",
+        shaderObjMtl = createShaderPlus(
+            "obj/mtl",
             v3DBase +
                     "a3 coords;\n" +
                     "a2 uvs;\n" +
                     "a3 normals;\n" +
                     "void main(){\n" +
+                    "   localPosition = coords;\n" +
                     "   gl_Position = transform * vec4(coords, 1.0);\n" +
                     "   uv = uvs;\n" +
                     "   normal = normals;\n" +
@@ -405,9 +501,11 @@ object ShaderLib {
                     "uniform vec4 tint;" +
                     "uniform sampler2D tex;\n" +
                     getTextureLib +
+                    getColorForceFieldLib +
                     "void main(){\n" +
                     "   vec4 color = getTexture(tex, uv);\n" +
                     "   color.rgb *= 0.5 + 0.5 * dot(vec3(1.0, 0.0, 0.0), normal);\n" +
+                    "   if($hasForceFieldColor) color *= getForceFieldColor();\n" +
                     "   gl_FragColor = tint * color;\n" +
                     "}", listOf("tex")
         )
@@ -415,16 +513,18 @@ object ShaderLib {
         // create the fbx shader
         shaderFBX = FBXGeometry.getShader(v3DBase, positionPostProcessing, y3D, getTextureLib)
 
-        shader3DCircle = createShaderPlus("3dCircle", v3DCircle, y3D, f3DCircle, listOf())
+        shader3DCircle = createShaderPlus("3dCircle", v3DCircle, y3D, f3DMonoColor, listOf())
 
         shader3DSVG = createShaderPlus("3d-svg", v3DSVG, y3DSVG, f3DSVG, listOf("tex"))
 
-        shader3DYUV = createShaderPlus("3d-yuv",
+        shader3DYUV = createShaderPlus(
+            "3d-yuv",
             v3D, y3D, "" +
                     "uniform vec4 tint;" +
                     "uniform sampler2D texY, texU, texV;\n" +
                     "uniform vec2 uvCorrection;\n" +
                     getTextureLib +
+                    getColorForceFieldLib +
                     brightness +
                     ascColorDecisionList +
                     "void main(){\n" +
@@ -441,53 +541,64 @@ object ShaderLib {
                     "       dot(yuv, vec3( 1.164, -0.392, -0.813))," +
                     "       dot(yuv, vec3( 1.164,  2.017,  0.000)), 1.0);\n" +
                     "   color.rgb = colorGrading(color.rgb);\n" +
+                    "   if($hasForceFieldColor) color *= getForceFieldColor();\n" +
                     "   gl_FragColor = tint * color;\n" +
                     "}", listOf("texY", "texU", "texV")
         )
 
-        shader3DRGBA = createShaderPlus("3d-rgba",
+        shader3DRGBA = createShaderPlus(
+            "3d-rgba",
             v3D, y3D, "" +
                     "uniform vec4 tint;" +
                     "uniform sampler2D tex;\n" +
                     getTextureLib +
+                    getColorForceFieldLib +
                     brightness +
                     ascColorDecisionList +
                     "void main(){\n" +
                     "   vec4 color = getTexture(tex, getProjectedUVs(uv, uvw));\n" +
                     "   color.rgb = colorGrading(color.rgb);\n" +
+                    "   if($hasForceFieldColor) color *= getForceFieldColor();\n" +
                     "   gl_FragColor = tint * color;\n" +
                     "}", listOf("tex")
         )
 
-        shader3DARGB = createShaderPlus("3d-argb",
+        shader3DARGB = createShaderPlus(
+            "3d-argb",
             v3D, y3D, "" +
                     "uniform vec4 tint;" +
                     "uniform sampler2D tex;\n" +
                     getTextureLib +
+                    getColorForceFieldLib +
                     brightness +
                     ascColorDecisionList +
                     "void main(){\n" +
                     "   vec4 color = getTexture(tex, getProjectedUVs(uv, uvw)).gbar;\n" +
                     "   color.rgb = colorGrading(color.rgb);\n" +
+                    "   if($hasForceFieldColor) color *= getForceFieldColor();\n" +
                     "   gl_FragColor = tint * color;\n" +
                     "}", listOf("tex")
         )
 
-        shader3DBGRA = createShaderPlus("3d-bgra",
+        shader3DBGRA = createShaderPlus(
+            "3d-bgra",
             v3D, y3D, "" +
                     "uniform vec4 tint;" +
                     "uniform sampler2D tex;\n" +
                     getTextureLib +
+                    getColorForceFieldLib +
                     brightness +
                     ascColorDecisionList +
                     "void main(){\n" +
                     "   vec4 color = getTexture(tex, getProjectedUVs(uv, uvw)).bgra;\n" +
                     "   color.rgb = colorGrading(color.rgb);\n" +
+                    "   if($hasForceFieldColor) color *= getForceFieldColor();\n" +
                     "   gl_FragColor = tint * color;\n" +
                     "}", listOf("tex")
         )
 
-        lineShader3D = Shader("3d-lines",
+        lineShader3D = Shader(
+            "3d-lines",
             "in vec3 attr0;\n" +
                     "uniform mat4 transform;\n" +
                     "void main(){" +
@@ -504,7 +615,13 @@ object ShaderLib {
 
     }
 
-    fun createShaderNoShorts(shaderName: String, v3D: String, y3D: String, f3D: String, textures: List<String>): Shader {
+    fun createShaderNoShorts(
+        shaderName: String,
+        v3D: String,
+        y3D: String,
+        f3D: String,
+        textures: List<String>
+    ): Shader {
         val shader = Shader(shaderName, v3D, y3D, f3D, true)
         shader.use()
         textures.forEachIndexed { index, name ->
@@ -513,9 +630,15 @@ object ShaderLib {
         return shader
     }
 
-    fun createShaderPlus(shaderName: String, v3D: String, y3D: String, f3D: String, textures: List<String>): ShaderPlus {
+    fun createShaderPlus(
+        shaderName: String,
+        v3D: String,
+        y3D: String,
+        f3D: String,
+        textures: List<String>
+    ): ShaderPlus {
         val shader = ShaderPlus(shaderName, v3D, y3D, f3D)
-        for(shader2 in listOf(shader.shader)){
+        for (shader2 in listOf(shader.shader)) {
             shader2.use()
             textures.forEachIndexed { index, name ->
                 GL20.glUniform1i(shader2[name], index)

@@ -20,8 +20,10 @@ import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.files.hasValidName
 import me.anno.ui.style.Style
 import me.anno.utils.clamp
+import me.anno.utils.sq
 import me.anno.video.MissingFrameException
 import org.joml.Matrix4fArrayList
+import org.joml.Vector3f
 import org.joml.Vector4f
 import java.io.File
 import kotlin.math.cos
@@ -55,10 +57,22 @@ class Polygon(parent: Transform? = null): GFXTransform(parent){
         } else if(!is3D){
             stack.scale(1f, 1f, 0f)
         }
-        GFX.draw3DPolygon(stack, getBuffer(count, selfDepth > 0f), texture, color,
+        GFX.draw3DPolygon(this, time, stack, getBuffer(count, selfDepth > 0f), texture, color,
             inset, filtering, ClampMode.CLAMP)
         stack.popMatrix()
         return
+    }
+
+    override fun transformLocally(pos: Vector3f, time: Double): Vector3f {
+        val count = vertexCount[time]
+        val z = if(is3D) pos.z else 0f
+        return if(autoAlign){
+            if(count == 4){
+                Vector3f(0.5f * (pos.x + pos.y), 0.5f * (pos.x - pos.y), z)
+            } else {
+                Vector3f(sqrt2, -sqrt2, z)
+            }
+        } else Vector3f(pos.x, -pos.y, z)
     }
 
     override fun createInspector(list: PanelListY, style: Style, getGroup: (title: String, id: String) -> SettingCategory) {

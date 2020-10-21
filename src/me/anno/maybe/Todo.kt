@@ -14,6 +14,8 @@ package me.anno.maybe
 // todo effects, that clip onto everything/start/end, and manipulate the animations???
 // (fade-in, fade-out effect)
 
+// todo stretching force fields by points with values and weights (= color force field + delta-by-color-mask)
+// todo color force fields by points with values and weights
 
 
 

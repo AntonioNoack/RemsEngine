@@ -2,6 +2,8 @@ package me.anno.objects.meshes.fbx.model
 
 import me.anno.gpu.GFX
 import me.anno.gpu.ShaderLib
+import me.anno.gpu.ShaderLib.getColorForceFieldLib
+import me.anno.gpu.ShaderLib.hasForceFieldColor
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.shader.ShaderPlus
@@ -29,11 +31,12 @@ class FBXGeometry(node: FBXNode) : FBXObject(node) {
                         "a4 weightValues;\n" +
                         "uniform mat4x4 transforms[$maxBones];\n" +
                         "void main(){\n" +
-                        "   vec3 localPosition = (transforms[weightIndices.x] * vec4(xyz, 1.0)).xyz * weightValues.x;\n" + //  * weightValues.x
-                        "   if(weightValues.y > 0.01) localPosition += (transforms[weightIndices.y] * vec4(xyz, 1.0)).xyz * weightValues.y;\n" +
-                        "   if(weightValues.z > 0.01) localPosition += (transforms[weightIndices.z] * vec4(xyz, 1.0)).xyz * weightValues.z;\n" +
-                        "   if(weightValues.w > 0.01) localPosition += (transforms[int(weightIndices.w)] * vec4(xyz, 1.0)).xyz * weightValues.w;\n" +
-                        "   gl_Position = transform * vec4(localPosition, 1.0);\n" + // already include second transform? yes, we should probably do that
+                        "   vec3 localPosition0 = (transforms[weightIndices.x] * vec4(xyz, 1.0)).xyz * weightValues.x;\n" + //  * weightValues.x
+                        "   if(weightValues.y > 0.01) localPosition0 += (transforms[weightIndices.y] * vec4(xyz, 1.0)).xyz * weightValues.y;\n" +
+                        "   if(weightValues.z > 0.01) localPosition0 += (transforms[weightIndices.z] * vec4(xyz, 1.0)).xyz * weightValues.z;\n" +
+                        "   if(weightValues.w > 0.01) localPosition0 += (transforms[int(weightIndices.w)] * vec4(xyz, 1.0)).xyz * weightValues.w;\n" +
+                        "   localPosition = localPosition0;\n" +
+                        "   gl_Position = transform * vec4(localPosition0, 1.0);\n" + // already include second transform? yes, we should probably do that
                         "   uv = uvs;\n" +
                         "   normal = normals;\n" +
                         positionPostProcessing +
@@ -42,9 +45,11 @@ class FBXGeometry(node: FBXNode) : FBXObject(node) {
                         "uniform vec4 tint;" +
                         "uniform sampler2D tex;\n" +
                         getTextureLib +
+                        getColorForceFieldLib +
                         "void main(){\n" +
                         "   vec4 color = getTexture(tex, uv);\n" +
                         "   color.rgb *= 0.5 + 0.5 * dot(vec3(1.0, 0.0, 0.0), normal);\n" +
+                        "   if(${hasForceFieldColor}) color *= getForceFieldColor();\n" +
                         "   gl_FragColor = tint * color;\n" +
                         "}", listOf()
             )
