@@ -431,9 +431,11 @@ class LayerView(style: Style) : TimelinePanel(style) {
                             SceneTabs.currentTab?.root = newRoot
                         }
                         // transform.color.addKeyframe(localTime-fadingTime/2, color)
+                        transform.color.checkThread()
                         transform.color.keyframes.removeIf { it.time >= cTime }
                         transform.color.addKeyframe(cTime, color)
                         transform.color.addKeyframe(rTime, rTransparent)
+                        second.color.checkThread()
                         second.color.keyframes.removeIf { it.time <= cTime }
                         second.color.addKeyframe(lTime, lTransparent)
                         second.color.addKeyframe(cTime, color)

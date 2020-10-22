@@ -5,6 +5,7 @@ import me.anno.config.DefaultStyle.black
 import me.anno.config.DefaultStyle.deepDark
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.deltaTime
+import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.GFX.select
 import me.anno.gpu.GFX.windowStack
 import me.anno.gpu.Window
@@ -34,6 +35,7 @@ import me.anno.studio.RemsStudio.targetWidth
 import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.studio.StudioBase.Companion.shiftSlowdown
 import me.anno.ui.base.ButtonPanel
+import me.anno.ui.base.TextPanel
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.custom.CustomContainer
 import me.anno.ui.custom.data.CustomPanelData
@@ -98,16 +100,18 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
 
     val controls = ArrayList<SimplePanel>()
 
+    val pad = 3
     val iconSize = 32
 
     // we need the depth for post processing effects like dof
 
     init {
         val is2DPanel = ButtonPanel("2D", style)
+        is2DPanel.instantTextLoading = true
         controls += SimplePanel(
             is2DPanel,
             true, true,
-            3, 3,
+            pad, pad,
             iconSize
         ).setOnClickListener {
             isLocked2D = !isLocked2D
@@ -118,6 +122,28 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
                 camera.putValue(rot, Vector3f(0f, 0f, rot0z))
             }
             is2DPanel.text = if (isLocked2D) "3D" else "2D"
+            invalidateDrawing()
+        }
+        fun add(i: Int, name: String, mode: SceneDragMode){
+            controls += SimplePanel(
+                object: ButtonPanel(name, style){
+                    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+                        draw(isHovered, mouseDown || mode == this@SceneView.mode)
+                    }
+                },
+                true, true,
+                pad * 2 + iconSize * (i + 1), pad,
+                iconSize
+            ).setOnClickListener {
+                this.mode = mode
+                invalidateDrawing()
+            }
+        }
+        add(0, "M", SceneDragMode.MOVE)
+        add(1, "R", SceneDragMode.ROTATE)
+        add(2, "S", SceneDragMode.SCALE)
+        controls.forEach {
+            children += it.drawable
         }
     }
 
@@ -437,8 +463,6 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
 
         if (!mayControlCamera) return
 
-        val delta = dx0 - dy0
-
         val (target2global, localTime) = (selected.parent ?: selected).getGlobalTransform(editorTime)
 
         val camera = camera
@@ -470,38 +494,46 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
             Vector4f(targetZonUI.x+dx, targetZonUI.y-dy, targetZonUI.z, 1f)
         ).toVec3f()
 
+        val delta = dx - dy
+
         when (mode) {
             SceneDragMode.MOVE -> {
 
                 // todo find the (truly) correct speed...
                 // depends on FOV, camera and object transform
 
-                val camPos = camera2global.transformPosition(Vector3f())
-                val targetPos = target2global.transformPosition(Vector3f())
-                val uiZ = camPos.distance(targetPos)
+                // val camPos = camera2global.transformPosition(Vector3f())
+                // val targetPos = target2global.transformPosition(Vector3f())
+                // val uiZ = camPos.distance(targetPos)
 
                 val oldPosition = selected.position[localTime]
                 /*val localDelta = camera2target.transformDirection(
                     if (Input.isControlDown) Vector3f(0f, 0f, -delta)
                     else Vector3f(dx0, -dy0, 0f)
                 ) * (uiZ / 6) // why ever 1/6...*/
-                val localDelta = if (Input.isControlDown) Vector3f() else pos1
+                val localDelta = if (Input.isControlDown)
+                    camera2target.transformDirection(Vector3f(0f, 0f, -delta)) * (targetZ / 6)
+                else pos1
                 selected.position.addKeyframe(localTime, oldPosition + localDelta)
-                if (selected != nullCamera) {
-                    onSmallChange("SceneView-move")
-                }
+                if (selected != nullCamera) onSmallChange("SceneView-move")
                 invalidateDrawing()
 
             }
-            /*TransformMode.SCALE -> {
+            SceneDragMode.SCALE -> {
                 val oldScale = selected.scale[localTime]
-                val localDelta = global2ui.transformDirection(
+                val localDelta = target2camera.transformDirection(
                     if(Input.isControlDown) Vector3f(0f, 0f, -delta)
-                    else Vector3f(dx0, -dy0, 0f)
+                    else Vector3f(dx, dy, 0f)
                 )
-                selected.scale.addKeyframe(localTime, oldScale + localDelta)
+                val base = 2f
+                selected.scale.addKeyframe(localTime, Vector3f(
+                    oldScale.x * pow(base, localDelta.x),
+                    oldScale.y * pow(base, localDelta.y),
+                    oldScale.z * pow(base, localDelta.z)))
+                if (selected != nullCamera) onSmallChange("SceneView-move")
+                invalidateDrawing()
             }
-            TransformMode.ROTATE -> {
+            /*TransformMode.ROTATE -> {
                 // todo transform rotation??? quaternions...
                 val oldScale = selected.scale[localTime]
                 val localDelta = global2ui.transformDirection(

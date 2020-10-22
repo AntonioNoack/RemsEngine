@@ -8,7 +8,6 @@ import me.anno.gpu.GFX.openMenu
 import me.anno.gpu.GFX.select
 import me.anno.gpu.GFXBase0
 import me.anno.gpu.Window
-import me.anno.input.ActionManager
 import me.anno.input.Input
 import me.anno.objects.Text
 import me.anno.objects.cache.Cache
@@ -16,16 +15,11 @@ import me.anno.objects.rendering.RenderSettings
 import me.anno.studio.GFXSettings
 import me.anno.studio.RemsStudio
 import me.anno.studio.RemsStudio.gfxSettings
-import me.anno.studio.RemsStudio.windowStack
-import me.anno.studio.RemsStudio.workspace
 import me.anno.studio.RemsStudio.nullCamera
 import me.anno.studio.RemsStudio.project
 import me.anno.studio.RemsStudio.root
-import me.anno.studio.RemsStudio.targetDuration
-import me.anno.studio.RemsStudio.targetFPS
-import me.anno.studio.RemsStudio.targetHeight
-import me.anno.studio.RemsStudio.targetOutputFile
-import me.anno.studio.RemsStudio.targetWidth
+import me.anno.studio.RemsStudio.windowStack
+import me.anno.studio.RemsStudio.workspace
 import me.anno.studio.Rendering.render
 import me.anno.studio.Rendering.renderPart
 import me.anno.studio.StudioBase
@@ -40,7 +34,6 @@ import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.custom.CustomContainer
 import me.anno.ui.custom.CustomListX
 import me.anno.ui.custom.CustomListY
-import me.anno.ui.debug.ConsoleOutputPanel
 import me.anno.ui.editor.config.ConfigPanel
 import me.anno.ui.editor.cutting.CuttingView
 import me.anno.ui.editor.files.FileExplorer
@@ -55,13 +48,9 @@ import me.anno.ui.input.EnumInput
 import me.anno.ui.input.FileInput
 import me.anno.ui.input.TextInput
 import me.anno.ui.style.Style
-import me.anno.video.VideoAudioCreator
-import me.anno.video.VideoCreator
 import org.apache.logging.log4j.LogManager
 import java.io.File
-import java.nio.file.attribute.GroupPrincipal
 import kotlin.concurrent.thread
-import kotlin.contracts.contract
 import kotlin.math.max
 import kotlin.math.roundToInt
 
@@ -89,7 +78,7 @@ object UILayouts {
         recentProjects.show2()
         welcome += recentProjects
 
-        fun openProject(name: String, file: File){
+        fun openProject(name: String, file: File) {
             thread {
                 RemsStudio.loadProject(name.trim(), file)
                 addEvent {
@@ -107,14 +96,14 @@ object UILayouts {
             tp.enableHoverColor = true
             tp.setTooltip(project.file.absolutePath)
             thread {// file search can use some time
-                if(!project.file.exists()){
+                if (!project.file.exists()) {
                     tp.textColor = 0xff0000 or black
                     tp.setTooltip("${project.file.absolutePath}, not found!")
                 }
             }
             tp.setOnClickListener { _, _, button, _ ->
-                fun open(){// open zip?
-                    if(project.file.exists() && project.file.isDirectory){
+                fun open() {// open zip?
+                    if (project.file.exists() && project.file.isDirectory) {
                         openProject(project.name, project.file)
                     } else {
                         openMenu(listOf(
@@ -132,7 +121,7 @@ object UILayouts {
                                 tp.visibility = Visibility.GONE
                             },
                             "Delete" to {
-                                ask("Are you sure?"){
+                                ask("Are you sure?") {
                                     DefaultConfig.removeFromRecentProjects(project.file)
                                     project.file.deleteRecursively()
                                     tp.visibility = Visibility.GONE
@@ -165,10 +154,11 @@ object UILayouts {
                 if (file.exists()) return true
                 return rootIsOk(file.parentFile ?: return false)
             }
+
             var invalidName = ""
             fun fileNameIsOk(file: File): Boolean {
-                if(file.name.isEmpty() && file.parentFile == null) return true // root drive
-                if(file.name.toAllowedFilename() != file.name){
+                if (file.name.isEmpty() && file.parentFile == null) return true // root drive
+                if (file.name.toAllowedFilename() != file.name) {
                     invalidName = file.name
                     return false
                 }
@@ -205,7 +195,7 @@ object UILayouts {
                 -2 -> 0xff0000
                 else -> 0x00ff00
             } or black
-            usableFile = if(state == -2){
+            usableFile = if (state == -2) {
                 null
             } else file
             base.focusTextColor = base.textColor
@@ -214,7 +204,7 @@ object UILayouts {
         updateFileInputColor()
 
         nameInput.setChangeListener {
-            val newName = if(it.isBlank()) "-" else it.trim()
+            val newName = if (it.isBlank()) "-" else it.trim()
             if (lastName == fileInput.file.name) {
                 fileInput.setText(File(fileInput.file.parentFile, newName).toString(), false)
                 updateFileInputColor()
@@ -230,7 +220,7 @@ object UILayouts {
 
         fun loadNewProject() {
             val file = usableFile
-            if(file != null){
+            if (file != null) {
                 openProject(nameInput.text, file)
             } else {
                 openMenu("Please choose a $dir!", listOf(
@@ -252,7 +242,8 @@ object UILayouts {
         welcome += quickSettings
 
         quickSettings += EnumInput("GFX Quality", true,
-            gfxSettings.displayName, GFXSettings.values().map { it.displayName }, style)
+            gfxSettings.displayName, GFXSettings.values().map { it.displayName }, style
+        )
             .setChangeListener { _, index, _ ->
                 val value = GFXSettings.values()[index]
                 gfxSettings = value
@@ -342,10 +333,10 @@ object UILayouts {
         options.addAction("File", "Save") { Input.save() }
         options.addAction("File", "Load") { }
 
-        options.addAction("Select", "Render Settings") { select(RenderSettings) }
         options.addAction("Select", "Inspector Camera") { select(nullCamera) }
         options.addAction("Debug", "Refresh (Ctrl+F5)") { Cache.clear() }
 
+        options.addAction("Render", "Settings") { select(RenderSettings) }
         options.addAction("Render", "Set%") {
             render(
                 max(2, (project!!.targetWidth * project!!.targetSizePercentage / 100).roundToInt()),

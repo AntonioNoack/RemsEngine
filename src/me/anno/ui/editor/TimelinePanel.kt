@@ -7,6 +7,8 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFX.openMenu
 import me.anno.input.Input
 import me.anno.input.MouseButton
+import me.anno.objects.Transform
+import me.anno.studio.RemsStudio
 import me.anno.studio.RemsStudio.editorTime
 import me.anno.studio.RemsStudio.isPaused
 import me.anno.studio.RemsStudio.project
@@ -17,10 +19,7 @@ import me.anno.studio.StudioBase.Companion.updateAudio
 import me.anno.ui.base.Panel
 import me.anno.ui.custom.CustomContainer.Companion.isCross
 import me.anno.ui.style.Style
-import me.anno.utils.Quad
-import me.anno.utils.clamp
-import me.anno.utils.mixARGB
-import me.anno.utils.pow
+import me.anno.utils.*
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.roundToInt
@@ -53,9 +52,43 @@ open class TimelinePanel(style: Style) : Panel(style) {
             3600f * 6f, 3600f * 12f, 3600f * 24f
         )
 
+        var lastOwner: Transform = RemsStudio.root
+
+        fun updateLocalTime(){
+
+            lastOwner = RemsStudio.selectedTransform ?: lastOwner
+
+            val owner = lastOwner
+            val child2root = owner.listOfInheritance.toList()
+            val root2child = child2root.reversed()
+
+            // only simple time transforms are supported
+            time0 = 0.0
+            time1 = 1.0
+
+            root2child.forEach { t ->
+                // localTime0 = (parentTime - timeOffset) * timeDilation
+                time0 = (time0 - t.timeOffset) * t.timeDilation
+                time1 = (time1 - t.timeOffset) * t.timeDilation
+            }
+
+            // make sure the values are ok-ish
+            if (abs(time1 - time0) !in 0.001..1000.0) {
+                time0 = 0.0
+                time1 = 1.0
+            }
+
+        }
+
+        var time0 = 0.0
+        var time1 = 1.0
+
+        fun kf2Global(t: Double) = (t - time0) / (time1 - time0)
+        fun global2Kf(t: Double) = mix(time0, time1, t)
+
         fun clampTime() {
             dtHalfLength = clamp(dtHalfLength, 2.0 / targetFPS, timeFractions.last().toDouble())
-            centralTime = max(centralTime, dtHalfLength)
+            // centralTime = max(centralTime, dtHalfLength)
         }
 
         val movementSpeed get() = 0.05f * sqrt(GFX.width * GFX.height.toFloat())

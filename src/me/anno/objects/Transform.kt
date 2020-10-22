@@ -35,6 +35,7 @@ import me.anno.ui.base.Panel
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.TimelinePanel
+import me.anno.ui.editor.TimelinePanel.Companion.global2Kf
 import me.anno.ui.input.*
 import me.anno.ui.style.Style
 import org.joml.*
@@ -100,7 +101,8 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
     var weight = 1f
 
     fun putValue(list: AnimatedProperty<*>, value: Any) {
-        list.addKeyframe(if (list.isAnimated) editorTime else 0.0, value, TimelinePanel.propertyDt)
+        val time = if (list.isAnimated) global2Kf(editorTime) else 0.0
+        list.addKeyframe(time, value, TimelinePanel.propertyDt)
         RemsStudio.updateSceneViews()
     }
 

@@ -1,10 +1,15 @@
 package me.anno.objects.animation
 
+import me.anno.gpu.GFX.glThread
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
+import me.anno.objects.animation.Spline.getWeights
 import me.anno.objects.animation.drivers.AnimationDriver
+import me.anno.studio.RemsStudio.root
 import me.anno.utils.WrongClassType
+import me.anno.utils.plus
+import me.anno.utils.times
 import org.apache.logging.log4j.LogManager
 import org.joml.Quaternionf
 import org.joml.Vector2f
@@ -61,7 +66,7 @@ class AnimatedProperty<V>(val type: Type, var defaultValue: V) : Saveable() {
 
     var isAnimated = false
     val keyframes = ArrayList<Keyframe<V>>()
-    var interpolation = Interpolation.LINEAR_BOUNDED
+    var interpolation = Interpolation.SPLINE
 
     fun ensureCorrectType(v: Any?): V {
         if (!type.accepts(v)) throw RuntimeException("got $v for $type")
@@ -70,17 +75,11 @@ class AnimatedProperty<V>(val type: Type, var defaultValue: V) : Saveable() {
 
     fun clampAny(value: Any) = clamp(value as V)
     fun clamp(value: V): V {
-        val minValue = type.minValue as? V
-        val maxValue = type.maxValue as? V
-        if (minValue != null || maxValue != null) {
-            value as Comparable<V>
-            if (minValue != null && value < minValue) return minValue
-            if (maxValue != null && value >= maxValue) return maxValue
-        }
-        return value
+        return type.clamp?.invoke(value) as V ?: value
     }
 
     fun set(value: V): AnimatedProperty<V> {
+        checkThread()
         keyframes.clear()
         keyframes.add(Keyframe(0.0, clamp(value)))
         keyframes.sort()
@@ -97,6 +96,7 @@ class AnimatedProperty<V>(val type: Type, var defaultValue: V) : Saveable() {
     }
 
     private fun addKeyframeInternal(time: Double, value: V, equalityDt: Double) {
+        checkThread()
         ensureCorrectType(value)
         keyframes.forEachIndexed { index, it ->
             if (abs(it.time - time) < equalityDt) {
@@ -108,10 +108,25 @@ class AnimatedProperty<V>(val type: Type, var defaultValue: V) : Saveable() {
         sort()
     }
 
+    fun checkThread() {
+        if (glThread != null && Thread.currentThread() != glThread &&
+            !root.listOfAll.none {
+                when (this) {
+                    it.color, it.position, it.rotationYXZ,
+                    it.colorMultiplier, it.skew -> true
+                    else -> false
+                }
+            }
+        ) {
+            throw RuntimeException()
+        }
+    }
+
     /**
      * true, if found
      * */
     fun remove(keyframe: Keyframe<*>): Boolean {
+        checkThread()
         return keyframes.remove(keyframe)
     }
 
@@ -129,28 +144,31 @@ class AnimatedProperty<V>(val type: Type, var defaultValue: V) : Saveable() {
             0 -> defaultValue
             1 -> keyframes[0].value
             else -> {
+
                 val index = getIndexBefore(time)
-                val frame0 = keyframes.getOrElse(index) { keyframes[0] }
-                val frame1 = keyframes.getOrElse(index + 1) { keyframes.last() }
-                if (frame0 == frame1) return frame0.value
-                val t0 = frame0.time
+                val frame0 = keyframes.getOrElse(index - 1) { keyframes[0] }
+                val frame1 = keyframes.getOrElse(index) { keyframes[0] }
+                val frame2 = keyframes.getOrElse(index + 1) { keyframes.last() }
+                val frame3 = keyframes.getOrElse(index + 2) { keyframes.last() }
+                if (frame1 == frame2) return frame1.value
+
                 val t1 = frame1.time
-                when (interpolation) {
-                    Interpolation.STEP -> {
-                        (if (time < t1) frame0 else frame1).value
-                    }
-                    Interpolation.LINEAR_UNBOUNDED -> {
-                        val relativeTime = (time - t0) / (t1 - t0)
-                        lerp(frame0.value, frame1.value, relativeTime)
-                    }
-                    Interpolation.LINEAR_BOUNDED -> {
-                        if (time <= t0) return frame0.value
-                        if (time >= t1) return frame1.value
-                        val relativeTime = (time - t0) / (t1 - t0)
-                        lerp(frame0.value, frame1.value, relativeTime)
-                    }
-                    else -> throw RuntimeException("todo interpolation $interpolation")
-                }
+                val t2 = frame2.time
+
+                val f = (time - t1) / (t2 - t1)
+                val w = getWeights(frame0, frame1, frame2, frame3, f)
+
+                val value = mulAdd(
+                    mulAdd(
+                        mulAdd(
+                            mul(toCalc(frame0.value), w.x),
+                            toCalc(frame1.value), w.y
+                        ), toCalc(frame2.value), w.z
+                    ), toCalc(frame3.value), w.w
+                )
+
+                return clamp(fromCalc(value))
+
             }
         }
     }
@@ -195,6 +213,9 @@ class AnimatedProperty<V>(val type: Type, var defaultValue: V) : Saveable() {
 
     fun lerp(a: Float, b: Float, f: Float, g: Float) = a * g + b * f
 
+    /**
+     * a * (1-f) + f * b
+     * */
     fun lerp(a: V, b: V, f: Double): V {
         val g = 1.0 - f
         return when (type) {
@@ -215,6 +236,62 @@ class AnimatedProperty<V>(val type: Type, var defaultValue: V) : Saveable() {
         } as V
     }
 
+    fun toCalc(a: V): Any {
+        return when (a) {
+            is Int -> a.toDouble()
+            is Float -> a.toDouble()
+            is Double -> a
+            is Long -> a.toDouble()
+            is Vector2f, is Vector3f, is Vector4f, is Quaternionf -> a
+            else -> throw RuntimeException("don't know how to calc $a")
+        } as Any
+    }
+
+    fun fromCalc(a: Any): V {
+        return when (type) {
+            Type.INT,
+            Type.INT_PLUS -> (a as Double).roundToInt()
+            Type.LONG -> (a as Double).toLong()
+            Type.FLOAT,
+            Type.FLOAT_01, Type.FLOAT_01_EXP,
+            Type.FLOAT_PLUS -> (a as Double).toFloat()
+            Type.DOUBLE -> a
+            Type.SKEW_2D -> a
+            Type.POSITION,
+            Type.ROT_YXZ,
+            Type.SCALE -> a
+            Type.COLOR, Type.TILING -> a
+            Type.QUATERNION -> a
+            else -> throw RuntimeException("don't know how to calc2 $a")
+        } as V
+    }
+
+    /**
+     * b + a * f
+     * */
+    fun mulAdd(b: Any, a: Any, f: Double): Any {
+        return when (b) {
+            is Double -> b + (a as Double) * f
+            is Vector2f -> b + ((a as Vector2f) * f.toFloat())
+            is Vector3f -> b + ((a as Vector3f) * f.toFloat())
+            is Vector4f -> b + ((a as Vector4f) * f.toFloat())
+            else -> throw RuntimeException("don't know how to mul-add $a and $b")
+        }
+    }
+
+    /**
+     * a * f
+     * */
+    fun mul(a: Any, f: Double): Any {
+        return when (a) {
+            is Double -> a * f
+            is Vector2f -> a * f.toFloat()
+            is Vector3f -> a * f.toFloat()
+            is Vector4f -> a * f.toFloat()
+            else -> throw RuntimeException("don't know how to mul $a")
+        }
+    }
+
     fun getIndexBefore(time: Double): Int {
         // get the index of the time
         val rawIndex = keyframes.binarySearch { it.time.compareTo(time) }
@@ -229,6 +306,7 @@ class AnimatedProperty<V>(val type: Type, var defaultValue: V) : Saveable() {
         sort()
         writer.writeList(this, "keyframes", keyframes)
         writer.writeBool("isAnimated", isAnimated)
+        writer.writeInt("interpolation", interpolation.code)
         for (i in 0 until type.components) {
             writer.writeObject(this, "driver$i", drivers[i])
         }
@@ -236,6 +314,13 @@ class AnimatedProperty<V>(val type: Type, var defaultValue: V) : Saveable() {
 
     fun sort() {
         keyframes.sort()
+    }
+
+    override fun readInt(name: String, value: Int) {
+        when (name) {
+            "interpolation" -> interpolation = Interpolation.getType(value)
+            else -> super.readInt(name, value)
+        }
     }
 
     override fun readBool(name: String, value: Boolean) {
@@ -263,7 +348,7 @@ class AnimatedProperty<V>(val type: Type, var defaultValue: V) : Saveable() {
     }
 
     fun setDriver(index: Int, value: ISaveable?) {
-        if (index >= drivers.size){
+        if (index >= drivers.size) {
             LOGGER.warn("Driver$index out of bounds for ${type.components}/${drivers.size}/$type")
             return
         }
@@ -277,19 +362,8 @@ class AnimatedProperty<V>(val type: Type, var defaultValue: V) : Saveable() {
     fun copyFrom(obj: Any?, force: Boolean = false) {
         if (obj === this && !force) throw RuntimeException("Probably a typo!")
         if (obj is AnimatedProperty<*>) {
-            /*if(type.accepts(obj.type.defaultValue)){
-                isAnimated = obj.isAnimated
-                keyframes.clear()
-                obj.keyframes.forEach {
-                    it.setValueUnsafe(clamp(it.value as V))
-                }
-                obj.drivers.forEachIndexed { index, animationDriver ->
-                    this.drivers[index] = animationDriver
-                }
-                keyframes.addAll(obj.keyframes as List<Keyframe<V>>)
-                interpolation = obj.interpolation
-            } else LOGGER.warn("$type does not accept type ${obj.type} with default value ${obj.type.defaultValue}")*/
             isAnimated = obj.isAnimated
+            interpolation = obj.interpolation
             keyframes.clear()
             obj.keyframes.forEach {
                 if (type.accepts(it.value)) {

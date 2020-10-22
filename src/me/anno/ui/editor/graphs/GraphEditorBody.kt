@@ -5,6 +5,7 @@ import me.anno.config.DefaultStyle.white
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.TextureLib.whiteTexture
+import me.anno.input.Input.isControlDown
 import me.anno.input.Input.isShiftDown
 import me.anno.input.Input.mouseDownX
 import me.anno.input.Input.mouseDownY
@@ -14,40 +15,28 @@ import me.anno.input.Input.mouseY
 import me.anno.input.MouseButton
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
-import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
+import me.anno.objects.animation.Interpolation
 import me.anno.objects.animation.Keyframe
 import me.anno.objects.animation.Type
-import me.anno.studio.RemsStudio.onSmallChange
 import me.anno.studio.RemsStudio.editorTime
-import me.anno.studio.RemsStudio.editorTimeDilation
 import me.anno.studio.RemsStudio.isPaused
-import me.anno.studio.RemsStudio.root
+import me.anno.studio.RemsStudio.onSmallChange
 import me.anno.studio.RemsStudio.selectedProperty
-import me.anno.studio.RemsStudio.selectedTransform
 import me.anno.studio.StudioBase.Companion.updateAudio
 import me.anno.ui.editor.TimelinePanel
+import me.anno.ui.editor.sceneView.Grid.drawSmoothLine
 import me.anno.ui.style.Style
 import me.anno.utils.*
 import org.joml.Vector2f
-import java.lang.Exception
-import kotlin.math.*
-import me.anno.input.Input.isControlDown as isControlDown
-
-// todo optimized ui system:
-// todo invalidate layout -> recalc + redraw
-// todo invalidate drawing -> redraw
-// todo invalidate layout only until CustomContainer
-// todo invalidate draw only on self+children -> local -> create a set containing everything needing an update
-// todo tick function on hover, which checks for changes and issues layout/draw invalidation
-// todo one framebuffer per window (start screen has changing background + static foreground)
-
+import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.roundToInt
 
 // todo make music x times calmer, if another audio line (voice) is on as an optional feature
 
-// todo a method to easily create curves? splines?...
-
-class GraphEditorBody(style: Style): TimelinePanel(style.getChild("deep")){
+class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
 
     var centralValue = 0f
     var dvHalfHeight = 1f
@@ -68,9 +57,10 @@ class GraphEditorBody(style: Style): TimelinePanel(style.getChild("deep")){
     var activeChannels = -1
 
     override fun getVisualState() = Quad(
-        super.getVisualState(), centralValue, dvHalfHeight, selectedProperty)
+        super.getVisualState(), centralValue, dvHalfHeight, selectedProperty
+    )
 
-    fun normValue01(value: Float) = 0.5f - (value-centralValue)/dvHalfHeight * 0.5f
+    fun normValue01(value: Float) = 0.5f - (value - centralValue) / dvHalfHeight * 0.5f
 
     fun getValueAt(my: Float) = centralValue - dvHalfHeight * normAxis11(my, y, h)
     fun getYAt(value: Float) = y + h * normValue01(value)
@@ -82,29 +72,22 @@ class GraphEditorBody(style: Style): TimelinePanel(style.getChild("deep")){
         minH = size
     }
 
-    fun getValueString(value: Float, step: Float) = getValueString(abs(value), step, if(value < 0) '-' else '+')
+    fun getValueString(value: Float, step: Float) = getValueString(abs(value), step, if (value < 0) '-' else '+')
 
     fun getValueString(value: Float, step: Float, sign: Char): String {
         val int = value.toInt()
-        if(step >= 1f) return "$sign$int"
+        if (step >= 1f) return "$sign$int"
         val float = value % 1
-        if(step >= 0.1f) return "$sign$int.${(float*10).roundToInt()}"
-        if(step >= 0.01f) return "$sign$int.${get0XString((float*100).roundToInt())}"
-        return "$sign$int.${get00XString((float*1000).roundToInt())}"
+        if (step >= 0.1f) return "$sign$int.${(float * 10).roundToInt()}"
+        if (step >= 0.01f) return "$sign$int.${get0XString((float * 100).roundToInt())}"
+        return "$sign$int.${get00XString((float * 1000).roundToInt())}"
     }
 
     fun getValueStep(value: Float): Float {
         return valueFractions.minBy { abs(it - value) }!!
     }
 
-    val valueFractions = listOf(
-        0.1f, 0.2f, 0.5f, 1f,
-        2f, 5f, 10f, 15f, 30f, 45f,
-        90f, 120f, 180f, 360f, 720f
-    )
-
-
-    fun drawValueAxis(x0: Int, y0: Int, x1: Int, y1: Int){
+    fun drawValueAxis(x0: Int, y0: Int, x1: Int, y1: Int) {
 
         val minValue = centralValue - dvHalfHeight
         val maxValue = centralValue + dvHalfHeight
@@ -122,10 +105,10 @@ class GraphEditorBody(style: Style): TimelinePanel(style.getChild("deep")){
         val fontColor = fontColor
         val backgroundColor = backgroundColor
 
-        for(stepIndex in maxStepIndex downTo minStepIndex){
+        for (stepIndex in maxStepIndex downTo minStepIndex) {
             val value = stepIndex * valueStep
             val y = getYAt(value).roundToInt()
-            if(y > y0+1 && y+2 < y1){
+            if (y > y0 + 1 && y + 2 < y1) {
 
                 val text = getValueString(value, valueStep)
 
@@ -134,29 +117,37 @@ class GraphEditorBody(style: Style): TimelinePanel(style.getChild("deep")){
 
                 val size = GFX.getTextSize(fontName, fontSize, isBold, isItalic, text, -1)
                 val h = size.second
-                GFX.drawRect(x0 + size.first + 2, y, x1-x0-size.first, 1, fontColor and 0x3fffffff)
-                GFX.drawText(x0 + 2, y - h/2, fontName, fontSize, isBold, isItalic,
-                    text, fontColor, backgroundColor, -1)
+                GFX.drawRect(x0 + size.first + 2, y, x1 - x0 - size.first, 1, fontColor and 0x3fffffff)
+                GFX.drawText(
+                    x0 + 2, y - h / 2, fontName, fontSize, isBold, isItalic,
+                    text, fontColor, backgroundColor, -1
+                )
 
             }
         }
 
     }
 
-    fun drawCurrentTime(){
+    fun drawCurrentTime() {
         loadTexturesSync.push(true)
         val timeFontSize = 20
         val text = getTimeString(editorTime, 0.0)
         val (tw, th) = GFX.getTextSize(fontName, timeFontSize, isBold, isItalic, text, -1)
         val color = mixARGB(fontColor, backgroundColor, 0.8f)
-        GFX.drawText(x+(w-tw)/2, y+(h-th)/2, fontName, timeFontSize, isBold, isItalic, text, color, backgroundColor, -1)
+        GFX.drawText(
+            x + (w - tw) / 2,
+            y + (h - th) / 2,
+            fontName,
+            timeFontSize,
+            isBold,
+            isItalic,
+            text,
+            color,
+            backgroundColor,
+            -1
+        )
         loadTexturesSync.pop()
     }
-
-    var lastOwner: Transform = root
-
-    var time0 = 0.0
-    var time1 = 1.0
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
 
@@ -165,7 +156,7 @@ class GraphEditorBody(style: Style): TimelinePanel(style.getChild("deep")){
         drawBackground()
 
         val targetUnitScale = selectedProperty?.type?.unitScale ?: lastUnitScale
-        if(lastUnitScale != targetUnitScale){
+        if (lastUnitScale != targetUnitScale) {
             val scale = targetUnitScale / lastUnitScale
             centralValue *= scale
             dvHalfHeight *= scale
@@ -177,17 +168,16 @@ class GraphEditorBody(style: Style): TimelinePanel(style.getChild("deep")){
 
         drawTimeAxis(x0, y0, x1, y1, true)
 
-        lastOwner = selectedTransform ?: lastOwner
+        updateLocalTime()
 
-        val owner = lastOwner
         val property = selectedProperty ?: return
-        if(!property.isAnimated) return
+        if (!property.isAnimated) return
 
         // only required, if there are values
         drawValueAxis(x0, y0, x1, y1)
 
         val type = property.type
-        val halfSize = dotSize/2
+        val halfSize = dotSize / 2
 
         val blueish = 0x7799ff
         val red = 0xff0000
@@ -196,115 +186,176 @@ class GraphEditorBody(style: Style): TimelinePanel(style.getChild("deep")){
 
         val channelCount = property.type.components
         val valueColors = intArrayOf(
-            if(channelCount == 1) white else red,
+            if (channelCount == 1) white else red,
             green, blue, white
         )
 
-        when(type){
+        when (type) {
             Type.FLOAT -> {
                 valueColors[0] = blueish
             }
-            else -> {}
+            else -> {
+            }
         }
 
-        for(i in 0 until 4){
+        for (i in 0 until 4) {
             valueColors[i] = (valueColors[i] or black) and 0x7fffffff
         }
 
-        val child2root = owner.listOfInheritance.toList()
-        val root2child = child2root.reversed()
-
-        // only simple time transforms are supported
-        time0 = 0.0
-        time1 = 1.0
-
-        root2child.forEach { t ->
-            // localTime0 = (parentTime - timeOffset) * timeDilation
-            time0 = (time0 - t.timeOffset) * t.timeDilation
-            time1 = (time1 - t.timeOffset) * t.timeDilation
-        }
-
-        // make sure the values are ok-ish
-        if(abs(time1-time0) !in 0.001 .. 1000.0){
-            time0 = 0.0
-            time1 = 1.0
-        }
-
         // val values = FloatArray(channelCount)
+
+
+        fun drawDot(x: Int, y: Int, color: Int, willBeSelected: Boolean) {
+            if (willBeSelected) {// draw outline, if point is selected
+                GFX.drawTexture(
+                    x - halfSize - 1, clamp(y - halfSize - 1, y0 - 1, y1),
+                    dotSize + 2, dotSize + 2,
+                    whiteTexture, -1, null
+                )
+            }
+            GFX.drawTexture(
+                x - halfSize, clamp(y - halfSize, y0 - 1, y1),
+                dotSize, dotSize,
+                whiteTexture, color, null
+            )
+        }
 
         val minSelectX = min(mouseDownX, mouseX).toInt()
         val maxSelectX = max(mouseDownX, mouseX).toInt()
         val minSelectY = min(mouseDownY, mouseY).toInt()
         val maxSelectY = max(mouseDownY, mouseY).toInt()
-        val selectX = minSelectX-halfSize .. maxSelectX+halfSize
-        val selectY = minSelectY-halfSize .. maxSelectY+halfSize
-
-        fun drawDot(x: Int, y: Int, color: Int, willBeSelected: Boolean){
-            if(willBeSelected){// draw outline, if point is selected
-                GFX.drawTexture(x-halfSize-1, clamp(y-halfSize-1, y0-1, y1),
-                    dotSize+2, dotSize+2,
-                    whiteTexture, -1, null)
-            }
-            GFX.drawTexture(x-halfSize, clamp(y-halfSize, y0-1, y1),
-                dotSize, dotSize,
-                whiteTexture, color, null)
-        }
+        val selectX = minSelectX - halfSize..maxSelectX + halfSize
+        val selectY = minSelectY - halfSize..maxSelectY + halfSize
 
         // draw selection box
-        if(isSelecting){
+        if (isSelecting) {
 
             // draw borders
-            GFX.drawTexture(minSelectX, minSelectY,
-                maxSelectX-minSelectX, 1,
-                whiteTexture, black, null)
-            GFX.drawTexture(minSelectX, minSelectY,
-                1, maxSelectY-minSelectY,
-                whiteTexture, black, null)
-            GFX.drawTexture(minSelectX, maxSelectY,
-                maxSelectX-minSelectX, 1,
-                whiteTexture, black, null)
-            GFX.drawTexture(maxSelectX, minSelectY,
-                1, maxSelectY-minSelectY,
-                whiteTexture, black, null)
+            GFX.drawTexture(
+                minSelectX, minSelectY,
+                maxSelectX - minSelectX, 1,
+                whiteTexture, black, null
+            )
+            GFX.drawTexture(
+                minSelectX, minSelectY,
+                1, maxSelectY - minSelectY,
+                whiteTexture, black, null
+            )
+            GFX.drawTexture(
+                minSelectX, maxSelectY,
+                maxSelectX - minSelectX, 1,
+                whiteTexture, black, null
+            )
+            GFX.drawTexture(
+                maxSelectX, minSelectY,
+                1, maxSelectY - minSelectY,
+                whiteTexture, black, null
+            )
 
             // draw inner
-            if(minSelectX+1 < maxSelectX && minSelectY+1 < maxSelectY) GFX.drawTexture(minSelectX+1, minSelectY+1,
-                maxSelectX-minSelectX-2, maxSelectY-minSelectY-2,
-                whiteTexture, black and 0x77000000, null)
+            if (minSelectX + 1 < maxSelectX && minSelectY + 1 < maxSelectY) GFX.drawTexture(
+                minSelectX + 1, minSelectY + 1,
+                maxSelectX - minSelectX - 2, maxSelectY - minSelectY - 2,
+                whiteTexture, black and 0x77000000, null
+            )
 
         }
 
 
         // draw all data points
         val yValues = IntArray(type.components)
-        property.keyframes.forEach { kf ->
+        val prevYValues = IntArray(type.components)
+        val kfs = property.keyframes
+        for ((j, kf) in kfs.withIndex()) {
 
-            val keyTime = mix(0.0, 1.0, (kf.time-time0)/(time1-time0))
+            val tGlobal = kf2Global(kf.time)
             val keyValue = kf.value
-            val x = getXAt(keyTime).roundToInt()
+            val x = getXAt(tGlobal).roundToInt()
 
-            for(i in 0 until channelCount){
+            if (j > 0) {
+                System.arraycopy(yValues, 0, prevYValues, 0, yValues.size)
+            }
+
+            for (i in 0 until channelCount) {
                 val value = keyValue!![i]
                 yValues[i] = getYAt(value).roundToInt()
             }
 
+            if (j > 0) {// draw all lines
+                drawLines(property, x, x0, x1, j, tGlobal, channelCount, valueColors)
+            }
+
             var willBeSelected = kf in selectedKeyframes
-            if(!willBeSelected && isSelecting && x in selectX){
-                for(i in 0 until channelCount){
-                    if(yValues[i] in selectY && i.isChannelActive()){
+            if (!willBeSelected && isSelecting && x in selectX) {
+                for (i in 0 until channelCount) {
+                    if (yValues[i] in selectY && i.isChannelActive()) {
                         willBeSelected = true
                         break
                     }
                 }
             }
 
-            for(i in 0 until channelCount){
-                drawDot(x, yValues[i], valueColors[i], willBeSelected && (draggedKeyframe !== kf || draggedChannel == i))
+            for (i in 0 until channelCount) {
+                drawDot(
+                    x, yValues[i], valueColors[i],
+                    willBeSelected && (draggedKeyframe !== kf || draggedChannel == i)
+                )
             }
 
-            // GFX.drawRect(x.toInt()-1, y+h/2, 2,2, black or 0xff0000)
         }
+    }
 
+    fun drawLines(property: AnimatedProperty<*>, x: Int, x0: Int, x1: Int,
+                  j: Int, endTime: Double,
+                  channelCount: Int, valueColors: IntArray){
+        val kfs = property.keyframes
+        val previous = kfs[j - 1]
+        val tGlobalPrev = mix(0.0, 1.0, kf2Global(previous.time))
+        val prevX = getXAt(tGlobalPrev).roundToInt()
+        val minX = max(prevX, x0)
+        val maxX = min(x, x1)
+        val stepSize = max(1, (maxX - minX) / 30)
+        val t0 = getTimeAt(minX.toFloat())
+        for (i in 0 until channelCount) {
+            var lastX = minX
+            var lastY = getYAt(property[global2Kf(t0)]!![i])
+            fun addLine(xHere: Int, tGlobalHere: Double) {
+                val value = property[global2Kf(tGlobalHere)]!!
+                val yHere = getYAt(value[i])
+                if (xHere > lastX && xHere >= x0 && lastX < x1) {
+                    drawSmoothLine(
+                        lastX.toFloat(), lastY, xHere.toFloat(), yHere,
+                        this.x, this.y, this.w, this.h, valueColors[i], 0.5f
+                    )
+                }
+                lastX = xHere
+                lastY = yHere
+            }
+            // draw differently depending on section mode
+            when(previous.interpolation){
+                Interpolation.LINEAR_BOUNDED, Interpolation.LINEAR_UNBOUNDED -> {
+                    addLine(x, endTime) // done
+                }
+                Interpolation.STEP -> {
+                    val startTime = kf2Global(previous.time)
+                    var time: Double
+                    time = mix(startTime, endTime, 0.4999)
+                    addLine(getXAt(time).toInt(), time)
+                    time = mix(startTime, endTime, 0.5001)
+                    addLine(getXAt(time).toInt(), time)
+                    addLine(x, endTime)
+                }
+                // Interpolation.SPLINE,
+                else -> {
+                    // steps in between are required
+                    for (xHere in minX until maxX step stepSize) {
+                        val tGlobalHere = getTimeAt(xHere.toFloat())
+                        addLine(xHere, tGlobalHere)
+                    }
+                    addLine(x, endTime)
+                }
+            }
+        }
     }
 
     fun Int.isChannelActive() = ((1 shl this) and activeChannels) != 0
@@ -313,18 +364,18 @@ class GraphEditorBody(style: Style): TimelinePanel(style.getChild("deep")){
         val property = selectedProperty ?: return null
         var bestDragged: Keyframe<*>? = null
         var bestChannel = 0
-        val maxMargin = dotSize*2f/3f + 1f
+        val maxMargin = dotSize * 2f / 3f + 1f
         var bestDistance = maxMargin
         property.keyframes.forEach { kf ->
-            val globalT = mix(0.0, 1.0, (kf.time-time0)/(time1-time0))
+            val globalT = mix(0.0, 1.0, kf2Global(kf.time))
             val dx = x - getXAt(globalT)
-            if(abs(dx) < maxMargin){
-                for(channel in 0 until property.type.components){
-                    if(channel.isChannelActive()){
+            if (abs(dx) < maxMargin) {
+                for (channel in 0 until property.type.components) {
+                    if (channel.isChannelActive()) {
                         val dy = y - getYAt(kf.getValue(channel))
-                        if(abs(dy) < maxMargin){
+                        if (abs(dy) < maxMargin) {
                             val distance = length(dx.toFloat(), dy)
-                            if(distance < bestDistance){
+                            if (distance < bestDistance) {
                                 bestDragged = kf
                                 bestChannel = channel
                                 bestDistance = distance
@@ -341,16 +392,21 @@ class GraphEditorBody(style: Style): TimelinePanel(style.getChild("deep")){
     // todo move a group of selected keyframes
     // todo select full keyframes, or partial keyframes?
     fun getAllKeyframes(minX: Float, maxX: Float, minY: Float, maxY: Float): List<Keyframe<*>> {
-        if(minX > maxX || minY > maxY) return getAllKeyframes(min(minX, maxX), max(minX, maxX), min(minY, maxY), max(minY, maxY))
-        val halfSize = dotSize/2
+        if (minX > maxX || minY > maxY) return getAllKeyframes(
+            min(minX, maxX),
+            max(minX, maxX),
+            min(minY, maxY),
+            max(minY, maxY)
+        )
+        val halfSize = dotSize / 2
         val property = selectedProperty ?: return emptyList()
         val keyframes = ArrayList<Keyframe<*>>()
-        keyframes@for(kf in property.keyframes){
-            val globalT = mix(0.0, 1.0, (kf.time-time0)/(time1-time0))
-            if(getXAt(globalT) in minX-halfSize .. maxX+halfSize){
-                for(channel in 0 until property.type.components){
-                    if(channel.isChannelActive()){
-                        if(getYAt(kf.getValue(channel)) in minY-halfSize .. maxY+halfSize){
+        keyframes@ for (kf in property.keyframes) {
+            val globalT = mix(0.0, 1.0, kf2Global(kf.time))
+            if (getXAt(globalT) in minX - halfSize..maxX + halfSize) {
+                for (channel in 0 until property.type.components) {
+                    if (channel.isChannelActive()) {
+                        if (getYAt(kf.getValue(channel)) in minY - halfSize..maxY + halfSize) {
                             keyframes += kf
                             continue@keyframes
                         }
@@ -370,11 +426,13 @@ class GraphEditorBody(style: Style): TimelinePanel(style.getChild("deep")){
         // find the dragged element
         invalidateDrawing()
         draggedKeyframe = null
-        if(button.isLeft){
+        if (button.isLeft) {
             isSelecting = isShiftDown
-            if(!isSelecting){ selectedKeyframes.clear() }
+            if (!isSelecting) {
+                selectedKeyframes.clear()
+            }
             val keyframeChannel = getKeyframeAt(x, y)
-            if(keyframeChannel != null){
+            if (keyframeChannel != null) {
                 val (keyframe, channel) = keyframeChannel
                 draggedKeyframe = keyframe
                 draggedChannel = channel
@@ -384,42 +442,44 @@ class GraphEditorBody(style: Style): TimelinePanel(style.getChild("deep")){
                 select0.y = y
             }
         }
+        invalidateDrawing()
     }
 
     // todo always show the other properties, too???
     override fun onMouseUp(x: Float, y: Float, button: MouseButton) {
         draggedKeyframe = null
-        if(isSelecting){
+        if (isSelecting) {
             // add all keyframes in that area
             selectedKeyframes += getAllKeyframes(select0.x, x, select0.y, y)
             isSelecting = false
         }
+        invalidateDrawing()
     }
 
     override fun onDeleteKey(x: Float, y: Float) {
         var wasChanged = false
         selectedKeyframes.forEach {
-            if(selectedProperty?.remove(it) == true){
+            if (selectedProperty?.remove(it) == true) {
                 wasChanged = true
             }
         }
-        if(selectedProperty == null){
+        if (selectedProperty == null) {
             wasChanged = wasChanged || selectedKeyframes.isNotEmpty()
             selectedKeyframes.clear()
         }
-        if(wasChanged){
+        if (wasChanged) {
             onSmallChange("graph-delete")
         }
     }
 
-    fun moveUp(sign: Float){
+    fun moveUp(sign: Float) {
         val delta = sign * dvHalfHeight * movementSpeed / h
         centralValue += delta
         clampTime()
     }
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
-        when(action){
+        when (action) {
             "MoveUp" -> moveUp(1f)
             "MoveDown" -> moveUp(-1f)
             else -> return super.onGotAction(x, y, dx, dy, action, isContinuous)
@@ -430,29 +490,33 @@ class GraphEditorBody(style: Style): TimelinePanel(style.getChild("deep")){
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
         GFX.editorHoverTime = getTimeAt(x)
         val draggedKeyframe = draggedKeyframe
-        if(isSelecting){
+        val selectedProperty = selectedProperty
+        if (isSelecting) {
             // select new elements, update the selected keyframes?
-        } else if(draggedKeyframe != null){
+            invalidateDrawing()
+        } else if (draggedKeyframe != null && selectedProperty != null) {
             // dragging
             val time = getTimeAt(x)
-            draggedKeyframe.time = mix(time0, time1, time) // global -> local
+            draggedKeyframe.time = global2Kf(time) // global -> local
             editorTime = time
             updateAudio()
-            draggedKeyframe.setValue(draggedChannel, getValueAt(y))
-            selectedProperty?.sort()
+            draggedKeyframe.setValue(draggedChannel, getValueAt(y), selectedProperty.type)
+            selectedProperty.sort()
+            invalidateDrawing()
             onSmallChange("graph-drag")
         } else {
-            if(0 in mouseKeysDown){
-                if((isShiftDown || isControlDown) && isPaused){
+            if (0 in mouseKeysDown) {
+                if ((isShiftDown || isControlDown) && isPaused) {
                     // scrubbing
                     editorTime = getTimeAt(x)
                 } else {
                     // move left/right/up/down
-                    centralTime -= dx * dtHalfLength / (w/2)
-                    centralValue += dy * dvHalfHeight / (h/2)
+                    centralTime -= dx * dtHalfLength / (w / 2)
+                    centralValue += dy * dvHalfHeight / (h / 2)
                     clampTime()
                     clampValues()
                 }
+                invalidateDrawing()
             }
         }
     }
@@ -460,13 +524,13 @@ class GraphEditorBody(style: Style): TimelinePanel(style.getChild("deep")){
     override fun onDoubleClick(x: Float, y: Float, button: MouseButton) {
         val property = selectedProperty
         property?.apply {
-            val time = getTimeAt(x)
+            val time = global2Kf(getTimeAt(x))
             property.addKeyframe(time, property[time]!!, propertyDt)
             onSmallChange("graph-add")
         } ?: println("Please select a property first!")
     }
 
-    fun clampValues(){
+    fun clampValues() {
         dvHalfHeight = clamp(dvHalfHeight, 0.001f * lastUnitScale, 1000f * lastUnitScale)
     }
 
@@ -482,13 +546,13 @@ class GraphEditorBody(style: Style): TimelinePanel(style.getChild("deep")){
             val parsedKeyframes = TextReader.fromText(data)
             parsedKeyframes.forEach { sth ->
                 (sth as? Keyframe<*>)?.apply {
-                    if(targetType.accepts(value)){
+                    if (targetType.accepts(value)) {
                         target.addKeyframe(time + time0, value!!)
                     } else println("$targetType doesn't accept $value")
                 }
             }
             onSmallChange("graph-paste")
-        } catch (e: Exception){
+        } catch (e: Exception) {
             e.printStackTrace()
             super.onPaste(x, y, data, type)
         }
@@ -501,19 +565,56 @@ class GraphEditorBody(style: Style): TimelinePanel(style.getChild("deep")){
         val time0 = selectedKeyframes.minBy { it.time }?.time ?: 0.0
         return TextWriter.toText(
             selectedKeyframes
-            .map { Keyframe(it.time - time0, it.value) }
-            .toList(), false)
+                .map { Keyframe(it.time - time0, it.value) }
+                .toList(), false)
     }
 
     override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float) {
-        val delta = dx-dy
+        val delta = dx - dy
         val scale = pow(1.05f, delta)
-        if(isShiftDown){
+        if (isShiftDown) {
             dvHalfHeight *= scale
             clampValues()
         } else {// time
             super.onMouseWheel(x, y, dx, dy)
         }
+    }
+
+    override fun onSelectAll(x: Float, y: Float) {
+        val kf = selectedProperty?.keyframes
+        if(kf != null){
+            selectedKeyframes.clear()
+            selectedKeyframes.addAll(kf)
+        }
+        invalidateDrawing()
+    }
+
+    override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
+        when {
+            button.isRight -> {
+                if (selectedKeyframes.isEmpty()) {
+                    super.onMouseClicked(x, y, button, long)
+                } else {
+                    GFX.openMenu("Interpolation", Interpolation.values().map { mode ->
+                        mode.displayName to {
+                            selectedKeyframes.forEach {
+                                it.interpolation = mode
+                            }
+                            invalidateDrawing()
+                        }
+                    })
+                }
+            }
+            else -> super.onMouseClicked(x, y, button, long)
+        }
+    }
+
+    companion object {
+        val valueFractions = listOf(
+            0.1f, 0.2f, 0.5f, 1f,
+            2f, 5f, 10f, 15f, 30f, 45f,
+            90f, 120f, 180f, 360f, 720f
+        )
     }
 
 }

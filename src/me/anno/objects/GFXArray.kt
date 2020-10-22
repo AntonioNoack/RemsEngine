@@ -9,6 +9,8 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
 import org.joml.Matrix4fArrayList
+import org.joml.Vector2f
+import org.joml.Vector3f
 import org.joml.Vector4f
 import java.util.*
 
@@ -64,38 +66,45 @@ class GFXArray(parent: Transform? = null): GFXTransform(parent) {
             val random = Random(seed)
             random.nextInt() // first one otherwise is always 1 (with two elements)
             val perChildDelay = perChildDelay[time]
-            drawArrayChild(stack, time, perChildDelay, color, 0, instanceCount, random)
+            drawArrayChild(stack, time, perChildDelay, color, 0, instanceCount, random,
+            perChildTranslation[time], perChildRotation[time], perChildScale[time], perChildSkew[time])
         }
 
     }
 
-    fun drawArrayChild(transform: Matrix4fArrayList, time: Double, perChildDelay: Double, color: Vector4f,
-                       index: Int, instanceCount: Int, random: Random){
+    fun drawArrayChild(
+        transform: Matrix4fArrayList, time: Double, perChildDelay: Double, color: Vector4f,
+        index: Int, instanceCount: Int, random: Random,
+        position: Vector3f, euler: Vector3f, scale: Vector3f, skew: Vector2f
+    ){
 
         val childIndex = selectionMode[index, children.size, random]
         drawChild(transform, time, color, children[childIndex])
 
         if(index+1 < instanceCount){
 
-            val position = perChildTranslation[time]
+            //val position = perChildTranslation[time]
             if(position.x != 0f || position.y != 0f || position.z != 0f){ transform.translate(position) }
 
-            val euler = perChildRotation[time]
+            //val euler = perChildRotation[time]
             if(euler.y != 0f) transform.rotate(GFX.toRadians(euler.y), yAxis)
             if(euler.x != 0f) transform.rotate(GFX.toRadians(euler.x), xAxis)
             if(euler.z != 0f) transform.rotate(GFX.toRadians(euler.z), zAxis)
 
-            val scale = perChildScale[time]
+            //val scale = perChildScale[time]
             if(scale.x != 1f || scale.y != 1f || scale.z != 1f) transform.scale(scale)
 
-            val skew = perChildSkew[time]
+           // val skew = perChildSkew[time]
             if(skew.x != 0f || skew.y != 0f) transform.mul3x3(// works
                 1f, skew.y, 0f,
                 skew.x, 1f, 0f,
                 0f, 0f, 1f
             )
 
-            drawArrayChild(transform, time+perChildDelay, perChildDelay, color, index+1, instanceCount, random)
+            drawArrayChild(transform,
+                time+perChildDelay, perChildDelay, color, index+1, instanceCount, random,
+                position, euler, scale, skew
+            )
 
         }
     }

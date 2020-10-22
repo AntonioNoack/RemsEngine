@@ -53,7 +53,8 @@ object RemsStudio: StudioBase(true){
     var editorTime = 0.5
         set(value) {// cannot be set < 0
             // clamping to the right edge is annoying
-            field = max(value, 0.0)
+            // clamping to the left is annoying too
+            field = value // max(value, 0.0)
         }
 
     var editorTimeDilation = 0.0
@@ -133,7 +134,7 @@ object RemsStudio: StudioBase(true){
 
     fun saveState() {
         // saving state
-        if (RemsStudio.project == null) return
+        if (project == null) return
         isSaving.set(true)
         thread {
             try {

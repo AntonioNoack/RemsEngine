@@ -8,14 +8,10 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.texture.Texture2D
 import me.anno.input.MouseButton
-import me.anno.ui.base.components.Padding
-import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.style.Style
-import me.anno.utils.Quad
 import me.anno.utils.Tabs
 import me.anno.utils.isClickKey
 import me.anno.utils.mixARGB
-import org.lwjgl.glfw.GLFW
 import kotlin.math.max
 import kotlin.math.min
 

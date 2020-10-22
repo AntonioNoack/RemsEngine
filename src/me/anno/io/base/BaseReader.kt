@@ -40,7 +40,7 @@ abstract class BaseReader {
             "Mesh" -> Mesh()
             "Timer" -> Timer()
             "AnimatedProperty" -> AnimatedProperty.any()
-            "Keyframe" -> Keyframe<Any>(0.0, 0f)
+            "Keyframe" -> Keyframe<Any>()
             "HarmonicDriver" -> HarmonicDriver()
             "PerlinNoiseDriver" -> PerlinNoiseDriver()
             "CustomDriver", "FunctionDriver" -> FunctionDriver()

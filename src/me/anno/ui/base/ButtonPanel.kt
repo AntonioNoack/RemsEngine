@@ -43,9 +43,10 @@ open class ButtonPanel(text: String, style: Style): TextPanel(text, style.getChi
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+        draw(isHovered, mouseDown)
+    }
 
-        val isHovered = isHovered
-
+    fun draw(isHovered: Boolean, mouseDown: Boolean){
         drawBackground()
 
         GFX.drawRect(x+w-borderSize.right, y, borderSize.right, h, getColor(isHovered, mouseDown, rightColor, leftColor)) // right
@@ -53,7 +54,10 @@ open class ButtonPanel(text: String, style: Style): TextPanel(text, style.getChi
         GFX.drawRect(x, y, borderSize.left, h, getColor(isHovered, mouseDown, leftColor, rightColor)) // left
         GFX.drawRect(x, y, w, borderSize.top, getColor(isHovered, mouseDown, topColor, bottomColor)) // top
 
-        drawText(0, 0, text, textColor)
+        val limit = if(breaksIntoMultiline) this.w else -1
+        val size = GFX.getTextSize(fontName, textSize, isBold, isItalic, text, limit)
+        GFX.drawText(x + (w - size.first) / 2, y + (h - size.second) / 2, fontName, textSize, isBold, isItalic,
+            text, textColor, backgroundColor, limit)
 
     }
 

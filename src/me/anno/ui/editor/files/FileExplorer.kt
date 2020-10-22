@@ -45,7 +45,7 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
     var searchTerm = ""
     var isValid = 0f
 
-    var entrySize = 100f
+    var entrySize = 64f
 
     fun invalidate(){
         isValid = 0f
@@ -60,6 +60,9 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
     val title = PathPanel(folder, style)
 
     init {
+        val esi = entrySize.toInt()
+        content.childWidth = esi
+        content.childHeight = esi
         val topBar = PanelListX(style)
         this += topBar
         topBar += title

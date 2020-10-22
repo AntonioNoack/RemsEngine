@@ -9,22 +9,15 @@ import me.anno.ui.style.Style
 
 class GraphEditor(style: Style): PanelFrame(style) {
 
-    // val title = TextPanel("Timeline", style)
     val body = GraphEditorBody(style)
-    // val activateButtonContainer = PanelListY(style)
     val activateButton = ButtonPanel("Enable Animation", style)
         .setSimpleClickListener { selectedProperty?.isAnimated = true }
-
-    init {
-        // activateButtonContainer += activateButton
-        // activateButtonContainer.setWeight(1f)
-        activateButton += WrapAlign.Center
-    }
 
     init {
         // this += title
         this += body.setWeight(1f)
         this += activateButton
+        activateButton += WrapAlign.Center
     }
 
     override fun tickUpdate() {

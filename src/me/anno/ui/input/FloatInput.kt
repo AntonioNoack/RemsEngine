@@ -84,7 +84,7 @@ open class FloatInput(
     }
 
     fun setValueClamped(value: Double, notify: Boolean){
-        if(type.minValue == null && type.maxValue == null){
+        if(type.clamp == null){
             setValue(value, notify)
         } else
         when(val clamped = type.clamp(

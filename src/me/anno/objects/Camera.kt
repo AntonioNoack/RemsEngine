@@ -63,6 +63,7 @@ class Camera(parent: Transform? = null): Transform(parent){
     init {
         position.addKeyframe(0.0, Vector3f(0f, 0f, 1f))
     }
+
     fun getEffectiveOffset(localTime: Double) = orthoDistance(orthographicness[localTime])
     fun getEffectiveNear(localTime: Double, offset: Float = getEffectiveOffset(localTime)) = nearZ[localTime]
     fun getEffectiveFar(localTime: Double, offset: Float = getEffectiveOffset(localTime)) = farZ[localTime] + offset

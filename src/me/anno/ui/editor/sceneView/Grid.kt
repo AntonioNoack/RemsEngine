@@ -7,23 +7,25 @@ import me.anno.gpu.GFX.toRadians
 import me.anno.gpu.ShaderLib.shader3D
 import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.gpu.blending.BlendDepth
+import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer
+import me.anno.gpu.shader.Shader
 import me.anno.objects.Transform.Companion.xAxis
 import me.anno.objects.Transform.Companion.yAxis
 import me.anno.objects.Transform.Companion.zAxis
-import me.anno.gpu.blending.BlendMode
-import me.anno.gpu.shader.Shader
 import me.anno.utils.distance
 import me.anno.utils.pow
 import me.anno.utils.toVec3f
 import org.joml.Matrix4f
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
-import org.lwjgl.opengl.GL20.*
+import org.lwjgl.opengl.GL20.GL_LINES
+import org.lwjgl.opengl.GL20.glUniformMatrix4fv
 import kotlin.math.atan2
 import kotlin.math.floor
 import kotlin.math.log10
+import kotlin.math.sqrt
 
 object Grid {
 
@@ -39,7 +41,7 @@ object Grid {
         lineBuffer.put(1f, 0f, 0f, 0f, 0f)
         lineBuffer.put(-1f, 0f, 0f, 0f, 0f)
 
-        for(i in -100 .. 100){
+        for (i in -100..100) {
             val v = 0.01f * i
             gridBuffer.put(v, 1f, 0f, 0f, 0f)
             gridBuffer.put(v, -1f, 0f, 0f, 0f)
@@ -49,34 +51,80 @@ object Grid {
 
     }
 
-    fun drawLine01(x0: Float, y0: Float, x1: Float, y1: Float,
-                   w: Int, h: Int, color: Int, alpha: Float){
+    fun drawSmoothLine(
+        x0: Float, y0: Float, x1: Float, y1: Float,
+        x: Int, y: Int, w: Int, h: Int, color: Int, alpha: Float
+    ) {
+        drawSmoothLine(x0 - x, y0 - y, x1 - x, y1 - y, w, h, color, alpha)
+    }
 
-        drawLine2((x0+x1)/w-1, 1-(y0+y1)/h, x1*2/w-1, 1-2*y1/h, color, alpha)
+    fun drawSmoothLine(
+        x0: Float, y0: Float, x1: Float, y1: Float,
+        w: Int, h: Int, color: Int, alpha: Float
+    ) {
+        if(y0 == y1){
+            drawLine01(x0, y0, x1, y1, w, h, color, alpha)
+        } else {
+            val actualAlpha = alpha * 0.2f
+            val nx = (y1 - y0)
+            val ny = -(x1 - x0)
+            val len = 0.25f / sqrt(nx * nx + ny * ny)
+            for (di in -2..2) {
+                val dx = nx * len * di
+                val dy = ny * len * di
+                drawLine01(
+                    x0 + dx, y0 + dy,
+                    x1 + dx, y1 + dy,
+                    w, h, color, actualAlpha
+                )
+            }
+        }
+    }
+
+    fun drawLine01(
+        x0: Float, y0: Float, x1: Float, y1: Float,
+        x: Int, y: Int,
+        w: Int, h: Int, color: Int, alpha: Float
+    ) {
+
+        drawLine01(x0 - x, y0 - y, x1 - x, y1 - y, w, h, color, alpha)
 
     }
 
-    fun defaultUniforms(shader: Shader, color: Vector4f){
+    fun drawLine01(
+        x0: Float, y0: Float, x1: Float, y1: Float,
+        w: Int, h: Int, color: Int, alpha: Float
+    ) {
+
+        drawLine2((x0 + x1) / w - 1f, 1f - (y0 + y1) / h, x1 * 2f / w - 1f, 1f - 2f * y1 / h, color, alpha)
+
+    }
+
+    fun defaultUniforms(shader: Shader, color: Vector4f) {
         shader.v4("tint", color)
         shader.v1("drawMode", GFX.drawMode.id)
     }
 
-    fun defaultUniforms(shader: Shader, color: Int, alpha: Float){
-        shader.v4("tint",
+    fun defaultUniforms(shader: Shader, color: Int, alpha: Float) {
+        shader.v4(
+            "tint",
             color.shr(16).and(255) / 255f,
             color.shr(8).and(255) / 255f,
-            color.and(255) / 255f, alpha)
+            color.and(255) / 255f, alpha
+        )
         shader.v1("drawMode", GFX.drawMode.id)
         // println(GFX.drawMode)
     }
 
-    fun drawLine2(x0: Float, y0: Float, x1: Float, y1: Float,
-                  color: Int, alpha: Float){
+    fun drawLine2(
+        x0: Float, y0: Float, x1: Float, y1: Float,
+        color: Int, alpha: Float
+    ) {
         val shader = shader3D.shader
         shader.use()
         val stack = Matrix4f()
         stack.translate(x0, y0, 0f)
-        val angle = atan2(y1-y0, x1-x0)
+        val angle = atan2(y1 - y0, x1 - x0)
         stack.rotate(angle, zAxis)
         stack.scale(distance(x0, y0, x1, y1))
         stack.get(GFX.matrixBuffer)
@@ -86,7 +134,7 @@ object Grid {
         lineBuffer.draw(shader, GL_LINES)
     }
 
-    fun drawLine(stack: Matrix4fArrayList, color: Int, alpha: Float){
+    fun drawLine(stack: Matrix4fArrayList, color: Int, alpha: Float) {
 
         val shader = shader3D.shader
         shader.use()
@@ -99,9 +147,9 @@ object Grid {
     }
 
     // allow more/full grid customization?
-    fun draw(stack: Matrix4fArrayList, cameraTransform: Matrix4f){
+    fun draw(stack: Matrix4fArrayList, cameraTransform: Matrix4f) {
 
-        if(GFX.isFinalRendering) return
+        if (GFX.isFinalRendering) return
 
         val bd = BlendDepth(BlendMode.ADD, false)
         bd.bind()
@@ -139,9 +187,9 @@ object Grid {
 
     }
 
-    fun drawBuffer(stack: Matrix4fArrayList, color: Vector4f, buffer: StaticBuffer){
+    fun drawBuffer(stack: Matrix4fArrayList, color: Vector4f, buffer: StaticBuffer) {
 
-        if(color.w <= 0f) return
+        if (color.w <= 0f) return
 
         val shader = shader3D.shader
         shader.use()
@@ -153,9 +201,9 @@ object Grid {
 
     }
 
-    fun drawGrid(stack: Matrix4fArrayList, alpha: Float){
+    fun drawGrid(stack: Matrix4fArrayList, alpha: Float) {
 
-        if(alpha <= 0f) return
+        if (alpha <= 0f) return
 
         val shader = shader3D.shader
         shader.use()
@@ -167,7 +215,7 @@ object Grid {
 
     }
 
-    fun bindWhite(index: Int){
+    fun bindWhite(index: Int) {
         whiteTexture.bind(index, whiteTexture.nearest, whiteTexture.clampMode)
     }
 

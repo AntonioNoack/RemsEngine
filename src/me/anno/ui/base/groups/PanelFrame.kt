@@ -13,7 +13,7 @@ open class PanelFrame(sorter: Comparator<Panel>?, style: Style): PanelList(sorte
         minW = 0
         minH = 0
         children.forEach {  child ->
-            child.calculateSize(w,h)
+            child.calculateSize(w, h)
             // child.applyPlacement(w, h)
             // child.applyConstraints()
             minW = max(minW, child.minW)
@@ -24,7 +24,7 @@ open class PanelFrame(sorter: Comparator<Panel>?, style: Style): PanelList(sorte
     override fun placeInParent(x: Int, y: Int) {
         super.placeInParent(x, y)
         children.forEach { child ->
-            child.place(x, y, child.w, child.h)
+            child.place(x, y, w, h)
         }
     }
 

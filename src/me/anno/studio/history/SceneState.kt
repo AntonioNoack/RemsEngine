@@ -8,7 +8,6 @@ class SceneState: HistoryState<Transform>(){
 
     fun update(){
         state = root.clone()
-        // (state!!.listOfAll.size)
     }
 
     override fun apply(state: Transform) {

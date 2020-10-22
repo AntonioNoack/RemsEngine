@@ -8,7 +8,14 @@ import org.joml.Vector3f
 import org.joml.Vector4f
 import java.lang.RuntimeException
 
-class Keyframe<V>(var time: Double, var value: V): Saveable(), Comparable<Keyframe<V>> {
+class Keyframe<V>(
+    var time: Double, var value: V,
+    var interpolation: Interpolation
+): Saveable(), Comparable<Keyframe<V>> {
+
+    constructor(): this(0.0, 0f as V, Interpolation.SPLINE)
+    constructor(time: Double, value: V): this(time, value, Interpolation.SPLINE)
+
     override fun compareTo(other: Keyframe<V>): Int = time.compareTo(other.time)
 
     override fun getClassName(): String = "Keyframe"
@@ -18,12 +25,20 @@ class Keyframe<V>(var time: Double, var value: V): Saveable(), Comparable<Keyfra
         super.save(writer)
         writer.writeDouble("time", time)
         writer.writeValue("value", value)
+        writer.writeInt("mode", interpolation.code)
     }
 
     override fun readDouble(name: String, value: Double) {
         when(name){
             "time" -> time = value
             else -> super.readDouble(name, value)
+        }
+    }
+
+    override fun readInt(name: String, value: Int) {
+        when(name){
+            "mode" -> interpolation = Interpolation.getType(value)
+            else -> super.readInt(name, value)
         }
     }
 
@@ -38,33 +53,35 @@ class Keyframe<V>(var time: Double, var value: V): Saveable(), Comparable<Keyfra
         this.value = value as V
     }
 
-    fun setValue(index: Int, v: Float){
-        value = when(val value = value){
-            is Float -> v
-            is Double -> v.toDouble()
-            is Vector2f -> when(index){
-                0 -> Vector2f(v, value.y)
-                else -> Vector2f(value.x, v)
-            }
-            is Vector3f -> when(index){
-                0 -> Vector3f(v, value.y, value.z)
-                1 -> Vector3f(value.x, v, value.z)
-                else -> Vector3f(value.x, value.y, v)
-            }
-            is Vector4f -> when(index){
-                0 -> Vector4f(v, value.y, value.z, value.w)
-                1 -> Vector4f(value.x, v, value.z, value.w)
-                2 -> Vector4f(value.x, value.y, v, value.w)
-                else -> Vector4f(value.x, value.y, value.z, v)
-            }
-            is Quaternionf -> when(index){
-                0 -> Quaternionf(v, value.y, value.z, value.w)
-                1 -> Quaternionf(value.x, v, value.z, value.w)
-                2 -> Quaternionf(value.x, value.y, v, value.w)
-                else -> Quaternionf(value.x, value.y, value.z, v)
-            }
-            else -> throw RuntimeException("todo implement Keyframe.getValue(index) for $value")
-        } as V
+    fun setValue(index: Int, v: Float, type: Type){
+        value = type.clamp(
+            when(val value = value){
+                is Float -> v
+                is Double -> v.toDouble()
+                is Vector2f -> when(index){
+                    0 -> Vector2f(v, value.y)
+                    else -> Vector2f(value.x, v)
+                }
+                is Vector3f -> when(index){
+                    0 -> Vector3f(v, value.y, value.z)
+                    1 -> Vector3f(value.x, v, value.z)
+                    else -> Vector3f(value.x, value.y, v)
+                }
+                is Vector4f -> when(index){
+                    0 -> Vector4f(v, value.y, value.z, value.w)
+                    1 -> Vector4f(value.x, v, value.z, value.w)
+                    2 -> Vector4f(value.x, value.y, v, value.w)
+                    else -> Vector4f(value.x, value.y, value.z, v)
+                }
+                is Quaternionf -> when(index){
+                    0 -> Quaternionf(v, value.y, value.z, value.w)
+                    1 -> Quaternionf(value.x, v, value.z, value.w)
+                    2 -> Quaternionf(value.x, value.y, v, value.w)
+                    else -> Quaternionf(value.x, value.y, value.z, v)
+                }
+                else -> throw RuntimeException("todo implement Keyframe.getValue(index) for $value")
+            } as V
+        )
     }
 
     fun getValue(index: Int): Float {
