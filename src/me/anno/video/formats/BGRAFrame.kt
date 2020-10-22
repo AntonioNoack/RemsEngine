@@ -14,7 +14,7 @@ import java.lang.RuntimeException
 
 class BGRAFrame(w: Int, h: Int): VFrame(w,h){
 
-    val bgra = Texture2D(w, h, 1)
+    private val bgra = Texture2D(w, h, 1)
 
     override fun load(input: InputStream){
         val s0 = w*h*4

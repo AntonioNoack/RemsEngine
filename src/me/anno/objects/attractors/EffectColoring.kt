@@ -7,14 +7,18 @@ import me.anno.objects.animation.AnimatedProperty
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
+import org.joml.Vector4f
 
-class UVAttractor: Transform() {
+class EffectColoring: Transform() {
 
     var lastInfluence = 0f
-    val influence = AnimatedProperty.float(0f)
-    val sharpness = AnimatedProperty.float(1f)
+    val influence = AnimatedProperty.float(1f)
+    val sharpness = AnimatedProperty.float(20f)
 
-    override fun getClassName() = "UVAttractor"
+    init { color.set(Vector4f(1f, 0f, 0f, 1f)) }
+
+    override fun getDefaultDisplayName() = "Effect: Coloring"
+    override fun getClassName() = "EffectColoring"
 
     override fun createInspector(
         list: PanelListY,
@@ -23,8 +27,8 @@ class UVAttractor: Transform() {
     ) {
         super.createInspector(list, style, getGroup)
         val fx = getGroup("Effect", "effect")
-        fx += VI("Influence", "The effective scale", influence, style)
-        fx += VI("Sharpness", "How sharp the lens effect is", sharpness, style)
+        fx += VI("Strength", "How much this color shall be used", influence, style)
+        fx += VI("Sharpness", "How sharp the circle is", sharpness, style)
     }
 
     override fun save(writer: BaseWriter) {

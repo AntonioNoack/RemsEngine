@@ -97,7 +97,10 @@ abstract class StudioBase(val needsAudio: Boolean) {
         mt("loading ui")
 
         GFX.windowStack = windowStack
-        GFX.gameInit = { gameInit() }
+        GFX.gameInit = {
+            GFX.check()
+            gameInit()
+        }
 
         GFX.gameLoop = { w, h ->
 
@@ -153,22 +156,20 @@ abstract class StudioBase(val needsAudio: Boolean) {
 
                     val visiblePanels = allPanels.filter { it.canBeSeen }
 
-                    inFocus.forEach {
-                        it.isInFocus = true
-                    }
+                    for(panel in inFocus) panel.isInFocus = true
 
                     // resolve missing parents...
                     // which still happen...
-                    visiblePanels.forEach {
-                        if(it.parent == null && it !== panel0) {
-                            it.parent = visiblePanels
+                    for(panel in visiblePanels){
+                        if(panel.parent == null && panel !== panel0) {
+                            panel.parent = visiblePanels
                                 .filterIsInstance<PanelGroup>()
-                                .first { parent -> it in parent.children }
+                                .first { parent -> panel in parent.children }
                         }
                     }
 
-                    visiblePanels.forEach { it.tickUpdate() }
-                    visiblePanels.forEach { it.tick() }
+                    for(panel in visiblePanels) panel.tickUpdate()
+                    for(panel in visiblePanels) panel.tick()
 
                     val needsRedraw = window.needsRedraw
                         .map { it.getOverlayParent() ?: it }

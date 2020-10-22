@@ -130,30 +130,4 @@ class TreeView(style: Style):
         }
     }
 
-    companion object {
-
-        fun addText(name: String, parent: Transform?, text: String, callback: (Transform) -> Unit){
-            // important ;)
-            // should maybe be done sometimes in object as well ;)
-            if(text.length > 500){
-                GFX.addGPUTask(text.length * 15, 30){
-                    GFX.ask("Text has ${text.codePoints().count()} characters, import?"){
-                        val textNode = Text(text, parent)
-                        textNode.name = name
-                        select(textNode)
-                        callback(textNode)
-                    }
-                }
-                return
-            }
-            val textNode = Text(text, parent)
-            textNode.name = name
-            select(textNode)
-            callback(textNode)
-        }
-
-
-    }
-
-
 }

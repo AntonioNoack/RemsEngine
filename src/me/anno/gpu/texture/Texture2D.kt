@@ -138,7 +138,7 @@ class Texture2D(override var w: Int, override var h: Int, val samples: Int): ITe
     }
 
     fun createMonochrome(data: ByteArray){
-        if(w*h != data.size) throw RuntimeException("incorrect size!")
+        if(w * h != data.size) throw RuntimeException("incorrect size!")
         GFX.check()
         ensurePointer()
         forceBind()
@@ -179,13 +179,18 @@ class Texture2D(override var w: Int, override var h: Int, val samples: Int): ITe
 
     fun createRGBA(data: ByteArray){
         if(w*h*4 != data.size) throw RuntimeException("incorrect size!")
-        ensurePointer()
-        forceBind()
-        GFX.check()
         val byteBuffer = ByteBuffer.allocateDirect(data.size)
         byteBuffer.position(0)
         byteBuffer.put(data)
         byteBuffer.position(0)
+        createRGBA(byteBuffer)
+    }
+
+    fun createRGBA(byteBuffer: ByteBuffer){
+        if(w*h*4 != byteBuffer.capacity()) throw RuntimeException("incorrect size!")
+        ensurePointer()
+        forceBind()
+        GFX.check()
         glTexImage2D(tex2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, byteBuffer)
         isCreated = true
         filtering(nearest)

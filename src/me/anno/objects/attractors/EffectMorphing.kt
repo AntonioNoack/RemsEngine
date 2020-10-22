@@ -8,13 +8,14 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
 
-class ColorAttractor: Transform() {
+class EffectMorphing: Transform() {
 
     var lastInfluence = 0f
     val influence = AnimatedProperty.float(1f)
-    val sharpness = AnimatedProperty.float(1f)
+    val sharpness = AnimatedProperty.float(20f)
 
-    override fun getClassName() = "ColorAttractor"
+    override fun getDefaultDisplayName() = "Effect: Morphing"
+    override fun getClassName() = "EffectMorphing"
 
     override fun createInspector(
         list: PanelListY,
@@ -22,9 +23,9 @@ class ColorAttractor: Transform() {
         getGroup: (title: String, id: String) -> SettingCategory
     ) {
         super.createInspector(list, style, getGroup)
-        val fx = getGroup("Effect", "effect")
-        fx += VI("Influence", "How much this color shall be used", influence, style)
-        fx += VI("Sharpness", "How sharp the circle is", sharpness, style)
+        val fx = getGroup("Effect", "effects")
+        fx += VI("Strength", "The effective scale", influence, style)
+        fx += VI("Sharpness", "How sharp the lens effect is", sharpness, style)
     }
 
     override fun save(writer: BaseWriter) {

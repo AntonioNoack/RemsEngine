@@ -7,8 +7,8 @@ import me.anno.gpu.shader.Shader
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.animation.AnimatedProperty
-import me.anno.objects.attractors.ColorAttractor
-import me.anno.objects.attractors.UVAttractor
+import me.anno.objects.attractors.EffectColoring
+import me.anno.objects.attractors.EffectMorphing
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
@@ -45,7 +45,8 @@ abstract class GFXTransform(parent: Transform?) : Transform(parent) {
         getGroup: (title: String, id: String) -> SettingCategory
     ) {
         super.createInspector(list, style, getGroup)
-        list += VI("Attractor Base Color", "Base color for manipulation", attractorBaseColor, style)
+        val fx = getGroup("Effects", "effects")
+        fx += VI("Coloring: Base Color", "Base color for coloring", attractorBaseColor, style)
     }
 
     open fun transformLocally(pos: Vector3f, time: Double): Vector3f {
@@ -62,7 +63,7 @@ abstract class GFXTransform(parent: Transform?) : Transform(parent) {
     fun uploadUVAttractors(shader: Shader, time: Double) {
 
         var attractors = children
-            .filterIsInstance<UVAttractor>()
+            .filterIsInstance<EffectMorphing>()
 
         attractors.forEach {
             it.lastLocalTime = it.getLocalTime(time)
@@ -119,7 +120,7 @@ abstract class GFXTransform(parent: Transform?) : Transform(parent) {
     fun uploadColorAttractors(shader: Shader, time: Double) {
 
         var attractors = children
-            .filterIsInstance<ColorAttractor>()
+            .filterIsInstance<EffectColoring>()
 
         attractors.forEach {
             it.lastLocalTime = it.getLocalTime(time)
@@ -139,7 +140,11 @@ abstract class GFXTransform(parent: Transform?) : Transform(parent) {
             for (attractor in attractors) {
                 val localTime = attractor.lastLocalTime
                 val color = attractor.color[localTime]
-                buffer.put(color)
+                val colorM = attractor.colorMultiplier[localTime]
+                buffer.put(color.x * colorM)
+                buffer.put(color.y * colorM)
+                buffer.put(color.z * colorM)
+                buffer.put(color.w)
             }
             buffer.position(0)
             glUniform4fv(shader["forceFieldColors"], buffer)

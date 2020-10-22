@@ -12,7 +12,9 @@ import me.anno.input.Input.mouseY
 import me.anno.input.MouseButton
 import me.anno.io.text.TextReader
 import me.anno.io.utils.StringMap
-import me.anno.objects.*
+import me.anno.objects.Camera
+import me.anno.objects.Rectangle
+import me.anno.objects.Transform
 import me.anno.objects.Transform.Companion.toTransform
 import me.anno.objects.effects.MaskLayer
 import me.anno.studio.RemsStudio.onLargeChange
@@ -25,16 +27,16 @@ import me.anno.ui.style.Style
 import me.anno.utils.clamp
 import org.joml.Vector4f
 import java.io.File
-import java.lang.Exception
-import java.lang.RuntimeException
 
-class TreeViewPanel(val getElement: () -> Transform, style: Style): TextPanel("", style){
+class TreeViewPanel(val getElement: () -> Transform, style: Style) : TextPanel("", style) {
 
     // todo text shadow, if text color and background color are close
 
     private val accentColor = style.getColor("accentColor", black or 0xff0000)
 
-    init { enableHoverColor = true }
+    init {
+        enableHoverColor = true
+    }
 
     var showAddIndex: Int? = null
 
@@ -45,29 +47,30 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style): TextPanel(""
         val transform = getElement()
         val dragged = dragged
         textColor = black or (transform.getLocalColor().toRGB(180))
-        showAddIndex = if(
-            mouseX.toInt() in lx0 .. lx1 &&
-            mouseY.toInt() in ly0 .. ly1 &&
-            dragged is Draggable && dragged.getOriginal() is Transform){
+        showAddIndex = if (
+            mouseX.toInt() in lx0..lx1 &&
+            mouseY.toInt() in ly0..ly1 &&
+            dragged is Draggable && dragged.getOriginal() is Transform
+        ) {
             clamp(((mouseY - this.y) / this.h * 3).toInt(), 0, 2)
         } else null
         val isInFocus = isInFocus || selectedTransform == transform
-        if(isHovered) textColor = hoverColor
-        if(isInFocus) textColor = accentColor
+        if (isHovered) textColor = hoverColor
+        if (isInFocus) textColor = accentColor
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.onDraw(x0, y0, x1, y1)
         val showAddIndex = showAddIndex
-        if(showAddIndex != null){
+        if (showAddIndex != null) {
             val x = x + padding.left
             val indent = textSize
             val lineWidth = textSize * 7
             val lineColor = midGray
-            when(showAddIndex){
+            when (showAddIndex) {
                 0 -> GFX.drawRect(x, y, lineWidth, 1, lineColor)
-                1 -> GFX.drawRect(x+indent, y+h-1, lineWidth, 1, lineColor)
-                2 -> GFX.drawRect(x, y+h-1, lineWidth, 1, lineColor)
+                1 -> GFX.drawRect(x + indent, y + h - 1, lineWidth, 1, lineColor)
+                2 -> GFX.drawRect(x, y + h - 1, lineWidth, 1, lineColor)
             }
         }
     }
@@ -77,9 +80,9 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style): TextPanel(""
     override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
 
         val transform = getElement()
-        when(button){
+        when (button) {
             MouseButton.LEFT -> {
-                if(Input.isShiftDown){
+                if (Input.isShiftDown) {
                     transform.isCollapsed = !transform.isCollapsed
                 } else {
                     select(transform)
@@ -89,13 +92,13 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style): TextPanel(""
 
                 fun add(action: (Transform) -> Transform): () -> Unit = { transform.apply { select(action(this)) } }
                 val options = DefaultConfig["createNewInstancesList"] as? StringMap
-                if(options != null){
+                if (options != null) {
                     val extras = ArrayList<Pair<String, () -> Unit>>()
-                    if(transform.parent != null){
+                    if (transform.parent != null) {
                         extras += "Add Mask" to {
                             val parent = transform.parent!!
                             val i = parent.children.indexOf(transform)
-                            if(i < 0) throw RuntimeException()
+                            if (i < 0) throw RuntimeException()
                             val mask = MaskLayer.create(listOf(Rectangle.create()), listOf(transform))
                             mask.isFullscreen = true
                             parent.setChildAt(mask, i)
@@ -103,14 +106,16 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style): TextPanel(""
                     }
                     GFX.openMenu(
                         mouseX, mouseY, "Add Child",
-                        options.entries.map { (key, value) ->
-                            key to add {
-                                val newT = if(value is Transform) value.clone() else value.toString().toTransform()
-                                newT!!
-                                it.addChild(newT)
-                                newT
-                            }
-                        } + extras
+                        options.entries
+                            .sortedBy { (key, _) -> key.toLowerCase() }
+                            .map { (key, value) ->
+                                key to add {
+                                    val newT = if (value is Transform) value.clone() else value.toString().toTransform()
+                                    newT!!
+                                    it.addChild(newT)
+                                    newT
+                                }
+                            } + extras
                     )
                 } else println("Reset the config, to enable this menu!")
             }
@@ -122,47 +127,52 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style): TextPanel(""
     }
 
     override fun onPaste(x: Float, y: Float, data: String, type: String) {
-        if(!data.startsWith("[")) return super.onPaste(x, y, data, type)
+        if (!data.startsWith("[")) return super.onPaste(x, y, data, type)
         try {
-            val child = TextReader.fromText(data).firstOrNull { it is Transform } as? Transform ?: return super.onPaste(x, y, data, type)
+            val child = TextReader.fromText(data).firstOrNull { it is Transform } as? Transform ?: return super.onPaste(
+                x,
+                y,
+                data,
+                type
+            )
             val original = (dragged as? Draggable)?.getOriginal() as? Transform
             val relativeY = (y - this.y) / this.h
             val e = getElement()
-            if(relativeY < 0.33f){
+            if (relativeY < 0.33f) {
                 // paste on top
-                if(e.parent != null){
+                if (e.parent != null) {
                     e.addBefore(child)
                 } else {
                     e.addChild(child)
                 }
                 // we can't remove the element, if it's the parent
-                if(original !in child.listOfAll){
+                if (original !in child.listOfAll) {
                     original?.removeFromParent()
                 }
-            } else if(relativeY < 0.67f){
+            } else if (relativeY < 0.67f) {
                 // paste as child
                 e.addChild(child)
-                if(e != original){
+                if (e != original) {
                     // we can't remove the element, if it's the parent
-                    if(original !in child.listOfAll){
+                    if (original !in child.listOfAll) {
                         original?.removeFromParent()
                     }
                 }
             } else {
                 // paste below
-                if(e.parent != null){
+                if (e.parent != null) {
                     e.addAfter(child)
                 } else {
                     e.addChild(child)
                 }
                 // we can't remove the element, if it's the parent
-                if(original !in child.listOfAll){
+                if (original !in child.listOfAll) {
                     original?.removeFromParent()
                 }
             }
             select(child)
             onLargeChange()
-        } catch (e: Exception){
+        } catch (e: Exception) {
             e.printStackTrace()
             super.onPaste(x, y, data, type)
         }
@@ -176,10 +186,10 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style): TextPanel(""
     }
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
-        when(action){
+        when (action) {
             "DragStart" -> {
                 val transform = getElement()
-                if(dragged?.getOriginal() != transform){
+                if (dragged?.getOriginal() != transform) {
                     dragged = Draggable(transform.stringify(), "Transform", transform, TextPanel(transform.name, style))
                 }
             }
@@ -196,12 +206,12 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style): TextPanel(""
         getElement().destroy()
     }
 
-    override fun onBackSpaceKey(x: Float, y: Float) = onDeleteKey(x,y)
+    override fun onBackSpaceKey(x: Float, y: Float) = onDeleteKey(x, y)
     override fun getCursor() = Cursor.drag
 
     override fun getTooltipText(x: Float, y: Float): String? {
         val transform = getElement()
-        return if(transform is Camera) "Drag Onto Scene to Use" else null
+        return if (transform is Camera) "Drag Onto Scene to Use" else null
     }
 
     fun Vector4f.toRGB(scale: Int = 255): Int {

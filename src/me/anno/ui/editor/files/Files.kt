@@ -2,13 +2,14 @@ package me.anno.ui.editor.files
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
+import me.anno.objects.Text
 import me.anno.objects.Transform
 import me.anno.objects.Transform.Companion.toTransform
 import me.anno.objects.Video
 import me.anno.objects.meshes.Mesh
 import me.anno.objects.modes.UVProjection
 import me.anno.studio.RemsStudio
-import me.anno.ui.editor.treeView.TreeView
+import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.utils.LOGGER
 import me.anno.utils.getImportType
 import org.joml.Vector3f
@@ -16,14 +17,13 @@ import java.io.File
 import kotlin.concurrent.thread
 
 fun addChildFromFile(parent: Transform?, file: File, callback: (Transform) -> Unit, depth: Int = 0) {
-    GFX.check()
     if (file.isDirectory) {
-        thread {
-            val directory = Transform(parent)
-            directory.name = file.name
-            if (depth < DefaultConfig["import.depth.max", 3]) {
+        val directory = Transform(parent)
+        directory.name = file.name
+        if (depth < DefaultConfig["import.depth.max", 3]) {
+            thread {
                 file.listFiles()?.filter { !it.name.startsWith(".") }?.forEach {
-                    GFX.addGPUTask(5){
+                    addEvent {
                         addChildFromFile(directory, it, callback, depth + 1)
                     }
                 }
@@ -36,19 +36,21 @@ fun addChildFromFile(parent: Transform?, file: File, callback: (Transform) -> Un
                 val text = file.readText()
                 try {
                     val transform = text.toTransform()
-                    if(transform == null){
+                    if (transform == null) {
                         LOGGER.warn("JSON didn't contain Transform!")
-                        TreeView.addText(name, parent, text, callback)
+                        addText(name, parent, text, callback)
                     } else {
-                        parent?.addChild(transform)
-                        GFX.select(transform)
-                        callback(transform)
-                        RemsStudio.onLargeChange()
+                        addEvent {
+                            parent?.addChild(transform)
+                            GFX.select(transform)
+                            callback(transform)
+                            RemsStudio.onLargeChange()
+                        }
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
                     LOGGER.warn("Didn't understand JSON! ${e.message}")
-                    TreeView.addText(name, parent, text, callback)
+                    addText(name, parent, text, callback)
                 }
             }
             "Cubemap-Equ" -> {
@@ -89,8 +91,7 @@ fun addChildFromFile(parent: Transform?, file: File, callback: (Transform) -> Un
             }
             "Text" -> {
                 try {
-                    TreeView.addText(name, parent, file.readText(), callback)
-                    RemsStudio.onLargeChange()
+                    addText(name, parent, file.readText(), callback)
                 } catch (e: Exception) {
                     e.printStackTrace()
                     return
@@ -117,5 +118,29 @@ fun addChildFromFile(parent: Transform?, file: File, callback: (Transform) -> Un
             }
             else -> println("Unknown file type: ${file.extension}")
         }
+    }
+}
+
+fun addText(name: String, parent: Transform?, text: String, callback: (Transform) -> Unit) {
+    // important ;)
+    // should maybe be done sometimes in object as well ;)
+    if (text.length > 500) {
+        addEvent {
+            GFX.ask("Text has ${text.codePoints().count()} characters, import?") {
+                val textNode = Text(text, parent)
+                textNode.name = name
+                GFX.select(textNode)
+                callback(textNode)
+                RemsStudio.onLargeChange()
+            }
+        }
+        return
+    }
+    addEvent {
+        val textNode = Text(text, parent)
+        textNode.name = name
+        GFX.select(textNode)
+        callback(textNode)
+        RemsStudio.onLargeChange()
     }
 }

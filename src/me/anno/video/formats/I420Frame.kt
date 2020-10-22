@@ -14,12 +14,12 @@ import java.lang.RuntimeException
 class I420Frame(iw: Int, ih: Int): VFrame(iw,ih){
 
     // this is correct, confirmed by example
-    val w2 = (w+1)/2
-    val h2 = (h+1)/2
+    private val w2 = (w+1)/2
+    private val h2 = (h+1)/2
 
-    val y = Texture2D(w, h, 1)
-    val u = Texture2D(w2, h2, 1)
-    val v = Texture2D(w2, h2, 1)
+    private val y = Texture2D(w, h, 1)
+    private val u = Texture2D(w2, h2, 1)
+    private val v = Texture2D(w2, h2, 1)
 
     override fun load(input: InputStream){
         val s0 = w * h

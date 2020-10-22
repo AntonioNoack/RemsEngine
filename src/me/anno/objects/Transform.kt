@@ -1,6 +1,7 @@
 package me.anno.objects
 
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.glThread
 import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.GFX.toRadians
 import me.anno.gpu.blending.BlendDepth
@@ -26,6 +27,7 @@ import me.anno.objects.particles.ParticleSystem
 import me.anno.studio.RemsStudio
 import me.anno.studio.RemsStudio.editorTime
 import me.anno.studio.RemsStudio.onLargeChange
+import me.anno.studio.RemsStudio.root
 import me.anno.studio.RemsStudio.selectedProperty
 import me.anno.studio.RemsStudio.selectedTransform
 import me.anno.studio.Scene
@@ -450,6 +452,11 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
     }
 
     fun addChild(child: Transform) {
+        if(
+            glThread != null &&
+            Thread.currentThread() != glThread &&
+            this in root.listOfAll
+        ) throw RuntimeException("Called from wrong thread!")
         if (child.contains(this)) throw RuntimeException("this cannot contain its parent!")
         child.parent?.removeChild(child)
         child.parent = this

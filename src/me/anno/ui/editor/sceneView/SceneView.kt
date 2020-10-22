@@ -42,8 +42,10 @@ import me.anno.ui.editor.files.addChildFromFile
 import me.anno.ui.simple.SimplePanel
 import me.anno.ui.style.Style
 import me.anno.utils.*
+import org.joml.Matrix4f
 import org.joml.Matrix4fArrayList
 import org.joml.Vector3f
+import org.joml.Vector4f
 import org.lwjgl.opengl.GL11.*
 import java.io.File
 import kotlin.math.max
@@ -430,6 +432,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
         }
     }
 
+    val global2normUI = Matrix4fArrayList()
     fun move(selected: Transform, dx0: Float, dy0: Float) {
 
         if (!mayControlCamera) return
@@ -441,17 +444,31 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
         val camera = camera
         val (camera2global, cameraTime) = camera.getGlobalTransform(editorTime)
 
-        val global2normUI = Matrix4fArrayList()
+        global2normUI.clear()
         GFX.applyCameraTransform(camera, cameraTime, camera2global, global2normUI)
 
         // val inverse = Matrix4f(global2normUI).invert()
+
+        val global2target = Matrix4f(target2global).invert()
 
         // transforms: global to local
         // ->
         // camera local to global, then global to local
         //      obj   cam
         // v' = G2L * L2G * v
-        val global2ui = camera2global.mul(target2global.invert())
+        val camera2target = Matrix4f(camera2global).mul(global2target)
+        val target2camera = Matrix4f(camera2target).invert()
+
+        // where the object is on screen
+        val targetZonUI = target2camera.transform(Vector4f(0f,0f,0f,1f)).toVec3f()
+        val targetZ = -targetZonUI.z
+        val shiftSlowdown = shiftSlowdown
+        val speed = shiftSlowdown * 2 * targetZ / h
+        val dx = dx0 * speed
+        val dy = dy0 * speed
+        val pos1 = camera2target.transform(
+            Vector4f(targetZonUI.x+dx, targetZonUI.y-dy, targetZonUI.z, 1f)
+        ).toVec3f()
 
         when (mode) {
             SceneDragMode.MOVE -> {
@@ -464,10 +481,11 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
                 val uiZ = camPos.distance(targetPos)
 
                 val oldPosition = selected.position[localTime]
-                val localDelta = global2ui.transformDirection(
+                /*val localDelta = camera2target.transformDirection(
                     if (Input.isControlDown) Vector3f(0f, 0f, -delta)
                     else Vector3f(dx0, -dy0, 0f)
-                ) * (uiZ / 6) // why ever 1/6...
+                ) * (uiZ / 6) // why ever 1/6...*/
+                val localDelta = if (Input.isControlDown) Vector3f() else pos1
                 selected.position.addKeyframe(localTime, oldPosition + localDelta)
                 if (selected != nullCamera) {
                     onSmallChange("SceneView-move")
@@ -506,7 +524,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
             // move the object
             val selected = selectedTransform
             if (selected != null) {
-                move(selected, dx0, dy0)
+                move(selected, dx, dy)
             } else {
                 moveDirectly(-dx0, +dy0, 0f)
             }

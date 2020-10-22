@@ -8,8 +8,8 @@ import me.anno.objects.animation.Keyframe
 import me.anno.objects.animation.drivers.FunctionDriver
 import me.anno.objects.animation.drivers.HarmonicDriver
 import me.anno.objects.animation.drivers.PerlinNoiseDriver
-import me.anno.objects.attractors.ColorAttractor
-import me.anno.objects.attractors.UVAttractor
+import me.anno.objects.attractors.EffectColoring
+import me.anno.objects.attractors.EffectMorphing
 import me.anno.objects.effects.MaskLayer
 import me.anno.objects.geometric.Circle
 import me.anno.objects.geometric.Polygon
@@ -47,8 +47,8 @@ abstract class BaseReader {
             "CustomListData" -> CustomListData()
             "CustomPanelData" -> CustomPanelData()
             "SceneTabData" -> SceneTabData()
-            "ColorAttractor" -> ColorAttractor()
-            "UVAttractor" -> UVAttractor()
+            "ColorAttractor", "EffectColoring" -> EffectColoring()
+            "UVAttractor", "EffectMorphing" -> EffectMorphing()
             else -> {
                 // just for old stuff; AnimatedProperties must not be loaded directly; always just copied into
                 if(clazz.startsWith("AnimatedProperty<")) AnimatedProperty.any()

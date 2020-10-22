@@ -5,6 +5,7 @@ import me.anno.gpu.ShaderLib.shader3DRGBA
 import me.anno.gpu.texture.ClampMode
 import me.anno.gpu.texture.NearestMode
 import me.anno.gpu.texture.Texture2D
+import me.anno.utils.readNBytes2
 import me.anno.video.VFrame
 import me.anno.video.LastFrame
 import java.io.EOFException
@@ -12,19 +13,23 @@ import java.io.InputStream
 
 class RGBFrame(w: Int, h: Int): VFrame(w,h){
 
-    val rgb = Texture2D(w, h, 1)
+    private val rgb = Texture2D(w, h, 1)
 
     override fun load(input: InputStream){
-        val s0 = w*h
+        val s0 = w * h
         val data = ByteArray(s0 * 4)
+        val srcData = input.readNBytes2(s0 * 3)
+        if(srcData.isEmpty()) throw LastFrame()
+        if(srcData.size < data.size) throw EOFException()
         var j = 0
+        var k = 0
+        val alpha = 255.toByte()
+        println("loaded rgb")
         for(i in 0 until s0){
-            val r0 = input.read()
-            if(r0 < 0) throw if(j == 0) LastFrame() else EOFException()
-            data[j++] = r0.toByte()
-            data[j++] = input.read().toByte()
-            data[j++] = input.read().toByte()
-            data[j++] = 255.toByte() // offset is required
+            data[j++] = srcData[k++]
+            data[j++] = srcData[k++]
+            data[j++] = srcData[k++]
+            data[j++] = alpha // offset is required
         }
         GFX.addGPUTask(w, h){
             rgb.createRGBA(data)
