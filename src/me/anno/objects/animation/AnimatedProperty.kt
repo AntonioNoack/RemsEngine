@@ -8,6 +8,7 @@ import me.anno.objects.animation.Spline.getWeights
 import me.anno.objects.animation.drivers.AnimationDriver
 import me.anno.studio.RemsStudio.root
 import me.anno.utils.WrongClassType
+import me.anno.utils.clamp
 import me.anno.utils.plus
 import me.anno.utils.times
 import org.apache.logging.log4j.LogManager
@@ -145,10 +146,10 @@ class AnimatedProperty<V>(val type: Type, var defaultValue: V) : Saveable() {
             1 -> keyframes[0].value
             else -> {
 
-                val index = getIndexBefore(time)
+                val index = clamp(getIndexBefore(time), 0, keyframes.size-2)
                 val frame0 = keyframes.getOrElse(index - 1) { keyframes[0] }
-                val frame1 = keyframes.getOrElse(index) { keyframes[0] }
-                val frame2 = keyframes.getOrElse(index + 1) { keyframes.last() }
+                val frame1 = keyframes[index]
+                val frame2 = keyframes[index+1]
                 val frame3 = keyframes.getOrElse(index + 2) { keyframes.last() }
                 if (frame1 == frame2) return frame1.value
 

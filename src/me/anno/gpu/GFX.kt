@@ -873,9 +873,10 @@ object GFX : GFXBase1() {
         currentEditorFPS = min(currentEditorFPS + (newFPS - currentEditorFPS) * 0.05f, newFPS)
         lastTime = thisTime
 
-        editorTime = max(editorTime + deltaTime * editorTimeDilation, 0.0)
-        if (editorTime == 0.0 && editorTimeDilation < 0.0) {
+        editorTime += deltaTime * editorTimeDilation
+        if (editorTime <= 0.0 && editorTimeDilation < 0.0) {
             editorTimeDilation = 0.0
+            editorTime = 0.0
         }
 
         smoothSin = sin(editorTime)

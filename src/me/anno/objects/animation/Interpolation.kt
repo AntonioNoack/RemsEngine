@@ -6,6 +6,7 @@ enum class Interpolation(val code: Int, val displayName: String){
     LINEAR_BOUNDED(1, "Linear"),
     LINEAR_UNBOUNDED(2, "Linear (unbounded)"),
     STEP(3, "Step"),
+    SINE(4, "Sine")
     ;
 
     companion object {

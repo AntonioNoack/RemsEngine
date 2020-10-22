@@ -38,9 +38,6 @@ import kotlin.math.roundToInt
 
 class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
 
-    var centralValue = 0f
-    var dvHalfHeight = 1f
-
     var draggedKeyframe: Keyframe<*>? = null
     var draggedChannel = 0
 
@@ -305,6 +302,9 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
         }
     }
 
+    // todo draw curve of animation-drivers :)
+    // todo input (animated values) and output (calculated values)?
+
     fun drawLines(property: AnimatedProperty<*>, x: Int, x0: Int, x1: Int,
                   j: Int, endTime: Double,
                   channelCount: Int, valueColors: IntArray){
@@ -446,6 +446,7 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
     }
 
     // todo always show the other properties, too???
+    // todo maybe add a list of all animated properties?
     override fun onMouseUp(x: Float, y: Float, button: MouseButton) {
         draggedKeyframe = null
         if (isSelecting) {

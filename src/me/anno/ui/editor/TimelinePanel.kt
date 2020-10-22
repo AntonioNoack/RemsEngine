@@ -41,6 +41,9 @@ open class TimelinePanel(style: Style) : Panel(style) {
 
     companion object {
 
+        var centralValue = 0f
+        var dvHalfHeight = 1f
+
         var dtHalfLength = 30.0
         var centralTime = dtHalfLength
 

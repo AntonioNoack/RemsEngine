@@ -17,7 +17,7 @@ class Type(
     val accepts: (Any?) -> Boolean
 ) {
 
-    fun <V> clamp(value: V): V = if (clamp != null) clamp(value) else value
+    fun <V> clamp(value: V): V = if (clamp != null) clamp.invoke(value) as V else value
 
     companion object {
 
