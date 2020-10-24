@@ -296,11 +296,10 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
                 else -> false
             }
             if (doBlending) {
-                val bd = BlendDepth(blendMode, GFX.currentCamera.useDepth)
-                bd.bind()
-                onDraw(stack, time, color)
-                drawChildren(stack, time, color, parentColor)
-                bd.unbind()
+                BlendDepth(blendMode, GFX.currentCamera.useDepth){
+                    onDraw(stack, time, color)
+                    drawChildren(stack, time, color, parentColor)
+                }
             } else {
                 onDraw(stack, time, color)
                 drawChildren(stack, time, color, parentColor)

@@ -55,22 +55,19 @@ abstract class MaskLayerBase(parent: Transform? = null): GFXTransform(parent){
             mask = FBStack["mask", GFX.windowWidth, GFX.windowHeight, samples, true]
             masked = FBStack["masked", GFX.windowWidth, GFX.windowHeight, samples, true]
 
-            val bd = BlendDepth(null, false)
-            bd.bind()
+            BlendDepth(null, false){
+                // (low priority)
+                // to do calculate the size on screen to limit overhead
+                // to do this additionally requires us to recalculate the transform
 
-            // (low priority)
-            // to do calculate the size on screen to limit overhead
-            // to do this additionally requires us to recalculate the transform
+                BlendMode.DEFAULT.apply()
 
-            BlendMode.DEFAULT.apply()
+                drawMask(stack, time, color)
 
-            drawMask(stack, time, color)
+                BlendMode.DEFAULT.apply()
 
-            BlendMode.DEFAULT.apply()
-
-            drawMasked(stack, time, color)
-
-            bd.unbind()
+                drawMasked(stack, time, color)
+            }
 
             drawOnScreen(stack, time, color)
 

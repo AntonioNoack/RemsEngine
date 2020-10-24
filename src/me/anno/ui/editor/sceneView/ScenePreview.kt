@@ -83,8 +83,6 @@ class ScenePreview(style: Style) : PanelList(null, style.getChild("sceneView")),
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
 
-        GFX.ensureEmptyStack()
-
         GFX.check()
 
         updatePosition()
@@ -106,8 +104,6 @@ class ScenePreview(style: Style) : PanelList(null, style.getChild("sceneView")),
                 dy = (h - rh) / 2
             }
         }
-
-        GFX.ensureEmptyStack()
 
         // check if the size stayed the same;
         // because resizing all framebuffers is expensive (causes lag)
@@ -137,8 +133,6 @@ class ScenePreview(style: Style) : PanelList(null, style.getChild("sceneView")),
             ShaderPlus.DrawMode.COLOR,
             this
         )
-
-        GFX.ensureEmptyStack()
 
     }
 

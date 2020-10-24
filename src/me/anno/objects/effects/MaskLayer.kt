@@ -21,9 +21,9 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
 import org.joml.Matrix4fArrayList
-import org.joml.Vector2f
 import org.joml.Vector4f
-import org.lwjgl.opengl.GL11.*
+import org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT
+import org.lwjgl.opengl.GL11.glClear
 import kotlin.math.max
 
 class MaskLayer(parent: Transform? = null) : MaskLayerBase(parent) {
@@ -36,12 +36,12 @@ class MaskLayer(parent: Transform? = null) : MaskLayerBase(parent) {
             val maskLayer = MaskLayer(null)
             val mask2 = Transform(maskLayer)
             mask2.name = "Mask Folder"
-            if(mask == null){
+            if (mask == null) {
                 Circle(mask2).innerRadius.set(0.5f)
             } else mask.forEach { mask2.addChild(it) }
             val masked2 = Transform(maskLayer)
             masked2.name = "Masked Folder"
-            if(masked == null){
+            if (masked == null) {
                 Polygon(masked2)
             } else masked.forEach { masked2.addChild(it) }
             return maskLayer
@@ -67,13 +67,15 @@ class MaskLayer(parent: Transform? = null) : MaskLayerBase(parent) {
 
                 fun drawBlur(target: Framebuffer, w: Int, h: Int, offset: Int, isFirst: Boolean) {
                     // step1
-                    Frame(w, h, true, target){
+                    Frame(w, h, true, target) {
                         glClear(GL_DEPTH_BUFFER_BIT)
                         GFX.draw3DBlur(localTransform, size, w, h, isFirst)
                     }
-                    target.bindTexture0(offset,
-                        if(true || isFirst || size == pixelSize) NearestMode.NEAREST
-                        else NearestMode.LINEAR, ClampMode.CLAMP)
+                    target.bindTexture0(
+                        offset,
+                        if (true || isFirst || size == pixelSize) NearestMode.NEAREST
+                        else NearestMode.LINEAR, ClampMode.CLAMP
+                    )
                 }
 
                 val oldDrawMode = GFX.drawMode
@@ -83,7 +85,7 @@ class MaskLayer(parent: Transform? = null) : MaskLayerBase(parent) {
                 masked.bindTexture0(0, NearestMode.TRULY_NEAREST, ClampMode.CLAMP)
                 GFX.check()
 
-                BlendDepth(null, false).use {
+                BlendDepth(null, false) {
 
                     val steps = pixelSize * windowHeight
                     val subSteps = (steps / 10f).toInt()
@@ -94,17 +96,17 @@ class MaskLayer(parent: Transform? = null) : MaskLayerBase(parent) {
                     val debug = false
 
                     // sample down for large blur sizes for performance reasons
-                    if(debug && subSteps > 1){
+                    if (debug && subSteps > 1) {
                         // smallerW /= 2
                         // smallerH /= 2
                         smallerW = max(10, w / subSteps)
-                        if(debug && 'J'.toInt() in keysDown) smallerH = max(10, h / subSteps)
+                        if (debug && 'J'.toInt() in keysDown) smallerH = max(10, h / subSteps)
                         // smallerH /= 2
                         // smallerH = max(10, h / subSteps)
                         size = pixelSize * smallerW / w
                         // draw image on smaller thing...
                         val temp2 = FBStack["mask-gaussian-blur-2", smallerW, smallerH, 1, true]// temp[2]
-                        Frame(smallerW, smallerH, false, temp2){
+                        Frame(smallerW, smallerH, false, temp2) {
                             // glClearColor(0f, 0f, 0f, 0f)
                             // glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
                             // draw texture 0 (masked) onto temp2
@@ -114,7 +116,7 @@ class MaskLayer(parent: Transform? = null) : MaskLayerBase(parent) {
                         }
                     }
 
-                    if(debug && 'I'.toInt() in keysDown) println("$w,$h -> $smallerW,$smallerH")
+                    if (debug && 'I'.toInt() in keysDown) println("$w,$h -> $smallerW,$smallerH")
 
                     drawBlur(FBStack["mask-gaussian-blur-0", smallerW, smallerH, 1, true], smallerW, smallerH, 0, true)
                     drawBlur(FBStack["mask-gaussian-blur-1", smallerW, smallerH, 1, true], smallerW, smallerH, 2, false)
@@ -171,7 +173,11 @@ class MaskLayer(parent: Transform? = null) : MaskLayerBase(parent) {
         }
     }
 
-    override fun createInspector(list: PanelListY, style: Style, getGroup: (title: String, id: String) -> SettingCategory) {
+    override fun createInspector(
+        list: PanelListY,
+        style: Style,
+        getGroup: (title: String, id: String) -> SettingCategory
+    ) {
         super.createInspector(list, style, getGroup)
         val effect = getGroup("Effect", "fx")
         effect += VI("Type", "Masks are multipurpose objects", null, type, style) { type = it }

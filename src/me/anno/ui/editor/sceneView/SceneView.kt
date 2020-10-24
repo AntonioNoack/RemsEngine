@@ -228,8 +228,6 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
 
-        GFX.ensureEmptyStack()
-
         val mode =
             if (camera.toneMapping == ToneMappers.RAW8) ShaderPlus.DrawMode.COLOR
             else ShaderPlus.DrawMode.COLOR_SQUARED
@@ -243,8 +241,6 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
         // todo only do this, if we are appended to a camera :), not if we are building a 3D scene
 
         GFX.drawRect(x, y, w, h, deepDark)
-
-        GFX.ensureEmptyStack()
 
         // preload resources :)
         // e.g. for video playback
@@ -261,38 +257,17 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
             )
         }
 
-        GFX.ensureEmptyStack()
-
         GFX.clip(x0, y0, x1, y1){
 
-            val bd = BlendDepth(BlendMode.DEFAULT, false)
-            bd.bind()
-
-            /*GFX.drawText(
-                x + 2, y + 2, "Verdana", 12,
-                false, false, this.mode.displayName, -1, 0, -1
-            )
-
-            GFX.drawText(
-                x + 16, y + 2, "Verdana", 12,
-                false, false, if (isLocked2D) "2D" else "3D", -1, 0, -1
-            )*/
-
-            controls.forEach {
-                it.draw(x, y, w, h, x0, y0, x1, y1)
+            BlendDepth(BlendMode.DEFAULT, false){
+                controls.forEach {
+                    it.draw(x, y, w, h, x0, y0, x1, y1)
+                }
             }
-
-            GFX.ensureEmptyStack()
-
-            bd.unbind()
 
             super.onDraw(x0, y0, x1, y1)
 
         }
-
-        GFX.ensureEmptyStack()
-
-
 
     }
 

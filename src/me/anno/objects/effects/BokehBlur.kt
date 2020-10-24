@@ -44,27 +44,24 @@ object BokehBlur {
 
         if (compositionShader == null) init()
 
-        val bd = BlendDepth(null, false)
-        bd.bind()
+        BlendDepth(null, false){
+            val fp = Scene.usesFPBuffers
+            val r = FBStack["bokeh-r", w, h, 1, fp]
+            val g = FBStack["bokeh-g", w, h, 1, fp]
+            val b = FBStack["bokeh-b", w, h, 1, fp]
 
-        val fp = Scene.usesFPBuffers
-        val r = FBStack["bokeh-r", w, h, 1, fp]
-        val g = FBStack["bokeh-g", w, h, 1, fp]
-        val b = FBStack["bokeh-b", w, h, 1, fp]
+            val pixelRadius = relativeToH * h
+            val normRadius = pixelRadius / KERNEL_RADIUS
 
-        val pixelRadius = relativeToH * h
-        val normRadius = pixelRadius / KERNEL_RADIUS
+            //val stepsRadius = max(KERNEL_RADIUS, pixelRadius.roundToInt())
+            //val step = pixelRadius/stepsRadius
 
-        //val stepsRadius = max(KERNEL_RADIUS, pixelRadius.roundToInt())
-        //val step = pixelRadius/stepsRadius
+            filterTexture.bind(0, NearestMode.LINEAR, ClampMode.CLAMP)
+            srcTexture.bind(1, NearestMode.LINEAR, ClampMode.CLAMP)
 
-        filterTexture.bind(0, NearestMode.LINEAR, ClampMode.CLAMP)
-        srcTexture.bind(1, NearestMode.LINEAR, ClampMode.CLAMP)
-
-        drawX(normRadius, w, h, r, g, b)
-        drawY(normRadius, w, h, r, g, b, target)
-
-        bd.unbind()
+            drawX(normRadius, w, h, r, g, b)
+            drawY(normRadius, w, h, r, g, b, target)
+        }
 
     }
 

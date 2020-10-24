@@ -28,11 +28,9 @@ import me.anno.ui.base.Visibility
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.debug.ConsoleOutputPanel
 import me.anno.ui.dragging.IDraggable
-import me.anno.ui.editor.UILayouts
 import me.anno.utils.clamp
 import me.anno.utils.f3
 import org.apache.logging.log4j.LogManager
-import org.lwjgl.glfw.GLFW
 import org.lwjgl.opengl.GL11.*
 import java.io.File
 import java.util.*
@@ -156,20 +154,20 @@ abstract class StudioBase(val needsAudio: Boolean) {
 
                     val visiblePanels = allPanels.filter { it.canBeSeen }
 
-                    for(panel in inFocus) panel.isInFocus = true
+                    for (panel in inFocus) panel.isInFocus = true
 
                     // resolve missing parents...
                     // which still happen...
-                    for(panel in visiblePanels){
-                        if(panel.parent == null && panel !== panel0) {
+                    for (panel in visiblePanels) {
+                        if (panel.parent == null && panel !== panel0) {
                             panel.parent = visiblePanels
                                 .filterIsInstance<PanelGroup>()
                                 .first { parent -> panel in parent.children }
                         }
                     }
 
-                    for(panel in visiblePanels) panel.tickUpdate()
-                    for(panel in visiblePanels) panel.tick()
+                    for (panel in visiblePanels) panel.tickUpdate()
+                    for (panel in visiblePanels) panel.tick()
 
                     val needsRedraw = window.needsRedraw
                         .map { it.getOverlayParent() ?: it }
@@ -214,7 +212,7 @@ abstract class StudioBase(val needsAudio: Boolean) {
                                 GFX.deltaX = panel0.x
                                 GFX.deltaY = h - (panel0.y + panel0.h)
 
-                                BlendDepth(BlendMode.DEFAULT, false).use {
+                                BlendDepth(BlendMode.DEFAULT, false) {
 
                                     val buffer = window.buffer
                                     if (panel0 in needsRedraw) {
@@ -272,7 +270,7 @@ abstract class StudioBase(val needsAudio: Boolean) {
                                 // draw cached image
                                 Frame(panel0.x, h - (panel0.y + panel0.h), panel0.w, panel0.h, false, null) {
 
-                                    BlendDepth(BlendMode.DEFAULT, false).use {
+                                    BlendDepth(BlendMode.DEFAULT, false) {
 
                                         window.buffer.bindTexture0(0, NearestMode.TRULY_NEAREST, ClampMode.CLAMP)
                                         GFX.copy()
@@ -393,7 +391,6 @@ abstract class StudioBase(val needsAudio: Boolean) {
         GFX.run()
 
     }
-
 
 
     fun loadProject(name: String, folder: File) {

@@ -1,6 +1,5 @@
 package me.anno.gpu
 
-import javafx.scene.control.Button
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style
 import me.anno.config.DefaultStyle.black
@@ -572,7 +571,7 @@ object GFX : GFXBase1() {
 
     fun copyNoAlpha() {
         check()
-        BlendDepth(BlendMode.DST_ALPHA, false).use {
+        BlendDepth(BlendMode.DST_ALPHA, false) {
             val shader = copyShader
             flat01.draw(shader)
         }
@@ -788,10 +787,6 @@ object GFX : GFXBase1() {
 
     }
 
-    fun clearStack() {
-        Framebuffer.stack.clear()
-    }
-
     fun ensureEmptyStack() {
         if (Framebuffer.stack.size > 0) {
             /*Framebuffer.stack.forEach {
@@ -807,15 +802,21 @@ object GFX : GFXBase1() {
         workQueue(gpuTasks)
     }
 
+    fun workEventTasks(){
+        while (eventTasks.isNotEmpty()) {
+            try {
+                eventTasks.poll()!!.invoke()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
     override fun renderStep() {
 
         ensureEmptyStack()
 
-        // Framebuffer.bindNull()
-
         workGPUTasks()
-
-        // Framebuffer.stack.pop()
 
         ensureEmptyStack()
 
@@ -827,13 +828,7 @@ object GFX : GFXBase1() {
         // the worker thread might have invalidated those
         updateLastLocalTime(root, editorTime)
 
-        while (eventTasks.isNotEmpty()) {
-            try {
-                eventTasks.poll()!!.invoke()
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
+        workEventTasks()
 
         Texture2D.textureBudgetUsed = 0
 
@@ -841,10 +836,7 @@ object GFX : GFXBase1() {
 
         glBindTexture(GL_TEXTURE_2D, 0)
 
-        // glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
-
         BlendDepth.reset()
-        BlendDepth(BlendMode.DEFAULT, false).bind()
 
         glDisable(GL_CULL_FACE)
         glDisable(GL_ALPHA_TEST)
@@ -900,7 +892,7 @@ object GFX : GFXBase1() {
     ) {
 
         lateinit var window: Window
-        fun close(){
+        fun close() {
             windowStack.remove(window)
             window.destroy()
         }

@@ -38,6 +38,7 @@ import org.joml.Matrix4f
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
 import org.lwjgl.opengl.GL11.glClearColor
+import org.lwjgl.opengl.GL11.glDepthMask
 import org.lwjgl.opengl.GL30
 import java.io.File
 import kotlin.math.cos
@@ -249,8 +250,7 @@ object Scene {
         flipY: Boolean, drawMode: ShaderPlus.DrawMode, sceneView: ISceneView?
     ) {
 
-        GFX.ensureEmptyStack()
-
+        val oldDrawMode = GFX.drawMode
         GFX.drawMode = drawMode
         usesFPBuffers = sceneView?.usesFPBuffers ?: camera.toneMapping != ToneMappers.RAW8
 
@@ -373,54 +373,47 @@ object Scene {
                 stack.popMatrix()
             }
 
-            val bd = BlendDepth(if (isFakeColorRendering) null else BlendMode.DEFAULT, camera.useDepth)
-            bd.bind()
+            BlendDepth(if (isFakeColorRendering) null else BlendMode.DEFAULT, camera.useDepth){
 
-            GL30.glDepthMask(true)
+                glDepthMask(true)
 
-            if (!isFinalRendering && camera != nullCamera) {
-                stack.pushMatrix()
-                nullCamera.draw(stack, time, white)
-                stack.popMatrix()
-            }
-
-            stack.pushMatrix()
-            RemsStudio.root.draw(stack, time, white)
-            stack.popMatrix()
-
-            GFX.check()
-
-            if (!isFinalRendering && !isFakeColorRendering) {
-                drawGizmo(cameraTransform, x0, y0, w, h)
-                GFX.check()
-            }
-
-            /**
-             * draw the selection ring for selected objects
-             * draw it after everything else and without depth
-             * */
-            if (!isFinalRendering && !isFakeColorRendering && selectedTransform != camera) { // seeing the own camera is irritating xD
-                selectedTransform?.apply {
-                    val bd2 = BlendDepth(BlendMode.DEFAULT, false)
-                    bd2.bind()
-                    val (transform, _) = getGlobalTransform(time)
+                if (!isFinalRendering && camera != nullCamera) {
                     stack.pushMatrix()
-                    stack.mul(transform)
-                    stack.scale(0.02f)
-                    drawUICircle(stack, 1f, 0.700f, Vector4f(1f, 0.9f, 0.5f, 1f))
-                    stack.scale(1.2f)
-                    drawUICircle(stack, 1f, 0.833f, Vector4f(0f, 0f, 0f, 1f))
+                    nullCamera.draw(stack, time, white)
                     stack.popMatrix()
-                    bd2.unbind()
+                }
+
+                stack.pushMatrix()
+                RemsStudio.root.draw(stack, time, white)
+                stack.popMatrix()
+
+                GFX.check()
+
+                if (!isFinalRendering && !isFakeColorRendering) {
+                    drawGizmo(cameraTransform, x0, y0, w, h)
+                    GFX.check()
+                }
+
+                /**
+                 * draw the selection ring for selected objects
+                 * draw it after everything else and without depth
+                 * */
+                if (!isFinalRendering && !isFakeColorRendering && selectedTransform != camera) { // seeing the own camera is irritating xD
+                    selectedTransform?.apply {
+                        BlendDepth(BlendMode.DEFAULT, false){
+                            val (transform, _) = getGlobalTransform(time)
+                            stack.pushMatrix()
+                            stack.mul(transform)
+                            stack.scale(0.02f)
+                            drawUICircle(stack, 1f, 0.700f, Vector4f(1f, 0.9f, 0.5f, 1f))
+                            stack.scale(1.2f)
+                            drawUICircle(stack, 1f, 0.833f, Vector4f(0f, 0f, 0f, 1f))
+                            stack.popMatrix()
+                        }
+                    }
                 }
             }
-
-            bd.unbind()
-
         }
-
-        val bd = BlendDepth(null, false)
-        bd.bind()
 
         /*val enableCircularDOF = 'O'.toInt() in keysDown && 'F'.toInt() in keysDown
         if(enableCircularDOF){
@@ -503,42 +496,43 @@ object Scene {
 
         if (buffer != null) {
 
-            val useLUT = lut != null
-            if (useLUT) {
+            BlendDepth(null, false){
 
-                buffer = getNextBuffer("Scene-LUT", buffer, 0, nearest = NearestMode.LINEAR, samples = 1)
-                Frame(buffer) {
+                val useLUT = lut != null
+                if (useLUT) {
+
+                    buffer = getNextBuffer("Scene-LUT", buffer!!, 0, nearest = NearestMode.LINEAR, samples = 1)
+                    Frame(buffer) {
+                        drawColors()
+                    }
+
+                    /**
+                     * apply the LUT for sepia looks, cold looks, general color correction, ...
+                     * uses the Unreal Engine "format" of an 256x16 image (or 1024x32)
+                     * */
+                    buffer!!.bindTextures(0, NearestMode.TRULY_NEAREST, ClampMode.CLAMP)
+                    lutShader.use()
+                    lut!!.bind(1, NearestMode.LINEAR)
+                    lut.clamping(false)
+                    flat01.draw(lutShader)
+                    GFX.check()
+
+                } else {
+
+                    buffer!!.bindTextures(0, NearestMode.TRULY_NEAREST, ClampMode.CLAMP)
                     drawColors()
+
                 }
-
-                /**
-                 * apply the LUT for sepia looks, cold looks, general color correction, ...
-                 * uses the Unreal Engine "format" of an 256x16 image (or 1024x32)
-                 * */
-                buffer.bindTextures(0, NearestMode.TRULY_NEAREST, ClampMode.CLAMP)
-                lutShader.use()
-                lut!!.bind(1, NearestMode.LINEAR)
-                lut.clamping(false)
-                flat01.draw(lutShader)
-                GFX.check()
-
-            } else {
-
-                buffer.bindTextures(0, NearestMode.TRULY_NEAREST, ClampMode.CLAMP)
-                drawColors()
-
             }
 
         }
-
-        bd.unbind()
 
         if (stack.currentIndex != 0) {
             warn("Some function isn't correctly pushing/popping the stack!")
             // further analysis by testing each object individually?
         }
 
-        GFX.drawMode = ShaderPlus.DrawMode.COLOR_SQUARED
+        GFX.drawMode = oldDrawMode
 
     }
 

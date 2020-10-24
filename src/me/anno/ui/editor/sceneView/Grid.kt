@@ -151,39 +151,38 @@ object Grid {
 
         if (GFX.isFinalRendering) return
 
-        val bd = BlendDepth(BlendMode.ADD, false)
-        bd.bind()
+        BlendDepth(BlendMode.ADD, false){
 
-        val distance = cameraTransform.transformProject(Vector4f(0f, 0f, 0f, 1f)).toVec3f().length()
-        val log = log10(distance)
-        val f = log - floor(log)
-        val cameraDistance = 10f * pow(10f, floor(log))
+            val distance = cameraTransform.transformProject(Vector4f(0f, 0f, 0f, 1f)).toVec3f().length()
+            val log = log10(distance)
+            val f = log - floor(log)
+            val cameraDistance = 10f * pow(10f, floor(log))
 
-        stack.scale(cameraDistance)
+            stack.scale(cameraDistance)
 
-        stack.rotate(toRadians(90f), xAxis)
+            stack.rotate(toRadians(90f), xAxis)
 
-        val gridAlpha = 0.05f
+            val gridAlpha = 0.05f
 
-        drawGrid(stack, gridAlpha * (1f - f))
+            drawGrid(stack, gridAlpha * (1f - f))
 
-        stack.scale(10f)
+            stack.scale(10f)
 
-        drawGrid(stack, gridAlpha)
+            drawGrid(stack, gridAlpha)
 
-        stack.scale(10f)
+            stack.scale(10f)
 
-        drawGrid(stack, gridAlpha * f)
+            drawGrid(stack, gridAlpha * f)
 
-        drawLine(stack, xAxisColor, 0.15f) // x
+            drawLine(stack, xAxisColor, 0.15f) // x
 
-        stack.rotate(toRadians(90f), yAxis)
-        drawLine(stack, yAxisColor, 0.15f) // y
+            stack.rotate(toRadians(90f), yAxis)
+            drawLine(stack, yAxisColor, 0.15f) // y
 
-        stack.rotate(toRadians(90f), zAxis)
-        drawLine(stack, zAxisColor, 0.15f) // z
+            stack.rotate(toRadians(90f), zAxis)
+            drawLine(stack, zAxisColor, 0.15f) // z
 
-        bd.unbind()
+        }
 
     }
 

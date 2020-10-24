@@ -69,37 +69,32 @@ object ShowKeys {
 
         if (activeKeys.isNotEmpty()) {
 
-            val bp = BlendDepth(BlendMode.DEFAULT, false)
-            bp.bind()
+            BlendDepth(BlendMode.DEFAULT, false) {
 
-            var x0 = x
+                var x0 = x
 
-            val bgColor = colors.backgroundColor
-            val textColor = colors.textColor
+                val bgColor = colors.backgroundColor
+                val textColor = colors.textColor
 
-            fun show(text: String, alpha: Float) {
-                val alphaMask = (alpha * 255).toInt().shl(24) or 0xffffff
-                val color = textColor and alphaMask
-                val w0 = GFX.getTextSize(font, fontSize, false, false, text, -1).first
-                GFX.drawRect(x0 + 5, h - y - 12 - fontSize, w0 + 10, fontSize + 8, bgColor and alphaMask)
-                GFX.drawText(x0 + 10, h - y - 10 - fontSize, font, fontSize, false, false, text, color, bgColor, -1)
-                x0 += w0 + 16
+                fun show(text: String, alpha: Float) {
+                    val alphaMask = (alpha * 255).toInt().shl(24) or 0xffffff
+                    val color = textColor and alphaMask
+                    val w0 = GFX.getTextSize(font, fontSize, false, false, text, -1).first
+                    GFX.drawRect(x0 + 5, h - y - 12 - fontSize, w0 + 10, fontSize + 8, bgColor and alphaMask)
+                    GFX.drawText(x0 + 10, h - y - 10 - fontSize, font, fontSize, false, false, text, color, bgColor, -1)
+                    x0 += w0 + 16
+                }
+
+                activeKeys.forEach { key ->
+                    val alpha = key.time
+                    val text = KeyCombination.keyMapping.reverse[key.keyCode] ?: key.keyCode.toString()
+                    show(text, alpha)
+                }
+
             }
-
-            activeKeys.forEach { key ->
-                val alpha = key.time
-                val text = KeyCombination.keyMapping.reverse[key.keyCode] ?: key.keyCode.toString()
-                show(text, alpha)
-            }
-
-            bp.unbind()
-
             return true
-
         }
-
         return false
-
     }
 
 }

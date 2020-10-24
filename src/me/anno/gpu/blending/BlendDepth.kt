@@ -17,24 +17,24 @@ data class BlendDepth(val blendMode: BlendMode?, val depth: Boolean, val depthMa
         use(action)
     }
 
-    fun use(render: () -> Unit){
+    private fun use(render: () -> Unit){
         bind()
         render()
         unbind()
     }
 
-    fun bind(){
+    private fun bind(){
         underThis = if(stack.isEmpty()) null else stack.peek()
         actualBlendMode = if(blendMode == BlendMode.UNSPECIFIED) underThis?.actualBlendMode else blendMode
         stack.push(this)
         apply(actualBlendMode, underThis)
     }
 
-    fun apply(previousApplied: BlendDepth?){
+    private fun apply(previousApplied: BlendDepth?){
         apply(actualBlendMode, previousApplied)
     }
 
-    fun apply(blendMode: BlendMode?, last: BlendDepth?){
+    private fun apply(blendMode: BlendMode?, last: BlendDepth?){
         if(blendMode != last?.blendMode){
             if(blendMode != null){
                 if(!blendIsEnabled){
@@ -76,7 +76,7 @@ data class BlendDepth(val blendMode: BlendMode?, val depth: Boolean, val depthMa
 
     }
 
-    fun unbind(){
+    private fun unbind(){
         if(stack.pop() != this) throw RuntimeException()
         val toBind = stack.peek()
         toBind.apply(this)
@@ -98,6 +98,7 @@ data class BlendDepth(val blendMode: BlendMode?, val depth: Boolean, val depthMa
             depthIsEnabled = false
             glDepthMask(true)
             depthMaskIsEnabled = true
+            stack += BlendDepth(null, false)
         }
 
     }
