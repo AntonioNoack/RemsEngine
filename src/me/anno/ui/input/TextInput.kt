@@ -44,6 +44,10 @@ open class TextInput(title: String, style: Style): PanelContainer(
         base.setChangeListener(listener)
         return this
     }
+    fun setEnterListener(listener: (text: String) -> Unit): TextInput {
+        base.setEnterListener(listener)
+        return this
+    }
 
     val text get() = base.text
 

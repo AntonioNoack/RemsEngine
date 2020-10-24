@@ -5,9 +5,6 @@ import me.anno.ui.editor.color.ColorChooser.Companion.CircleBarRatio
 import me.anno.ui.editor.color.spaces.HSLuv
 import me.anno.ui.editor.color.spaces.HSV
 import me.anno.ui.editor.color.spaces.LinearHSI
-import me.anno.utils.gradientDescent
-import me.anno.utils.mix
-import me.anno.utils.times
 import org.joml.Vector3f
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap

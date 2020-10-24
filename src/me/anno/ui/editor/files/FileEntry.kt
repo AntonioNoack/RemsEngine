@@ -2,9 +2,14 @@ package me.anno.ui.editor.files
 
 import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.ask
+import me.anno.gpu.GFX.askName
 import me.anno.gpu.GFX.inFocus
 import me.anno.gpu.GFX.openMenu
+import me.anno.gpu.GFX.width
 import me.anno.gpu.TextureLib.whiteTexture
+import me.anno.gpu.blending.BlendDepth
+import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.texture.ClampMode
 import me.anno.gpu.texture.NearestMode
 import me.anno.gpu.texture.Texture2D
@@ -28,11 +33,10 @@ import me.anno.video.VFrame
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
 import java.io.File
+import kotlin.math.exp
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
-
-// todo special icons for music, documents, videos, ... like in Windows and any other OS
 
 class FileEntry(
     private val explorer: FileExplorer,
@@ -40,7 +44,6 @@ class FileEntry(
 ) :
     PanelGroup(style.getChild("fileEntry")) {
 
-    // todo don't select stuff with secondary mouse keys
     // todo sometimes the title is missing... or its color... why ever...
 
     var audio: Audio? = null
@@ -257,8 +260,8 @@ class FileEntry(
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
 
-        // todo only show tooltip, if there is not enough space for the full name
-        // tooltip = if(x1-x0 > title.minW2) file.name else ""
+        // only show tooltip, if there is not enough space for the full name
+        tooltip = if(h/2 < title.minH2) file.name else ""
 
         drawBackground()
 
@@ -293,11 +296,19 @@ class FileEntry(
     }
 
     fun drawTitle(x0: Int, y0: Int, x1: Int, y1: Int) {
+        title.calculateSize(w, h)
+        title.backgroundColor = mixARGB(backgroundColor, title.textColor, -0.2f)
         title.x = x
         title.y = y
-        title.w = 1
+        title.w = min(title.minW, w)
         title.h = 1
-        title.draw(x0, y0, x1, y1)
+        val y12 = min(y1, min(y+h/2, y+title.minH2))
+        val x12 = min(x1, x+title.w)
+        if(y12 > y0 && x12 > x0){
+            GFX.clip2(x0, y0, x12, y12){
+                title.draw(x0, y0, x1, y12)
+            }
+        }
     }
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
@@ -316,18 +327,31 @@ class FileEntry(
                     return false
                 }
             }
+            "Rename" -> {
+                askName(x.toInt(), y.toInt(), "Rename To...", "Rename", { -1 }){
+                    val allowed = it.toAllowedFilename()
+                    if(allowed != null){
+                        val dst = File(file.parentFile, allowed)
+                        if(dst.exists() && !allowed.equals(file.name, true)){
+                            ask("Override existing file?"){
+                                file.renameTo(dst)
+                                explorer.invalidate()
+                            }
+                        } else {
+                            file.renameTo(dst)
+                            explorer.invalidate()
+                        }
+                    }
+
+                }
+            }
+            "OpenInExplorer" -> file.openInExplorer()
+            "Delete" -> deleteFileMaybe()
             "OpenOptions" -> {
+                // todo add option to open json in specialized json editor...
                 openMenu(
                     listOf(
-                        "Rename" to {
-                            // todo on F2
-                            // todo ask new name
-                            // todo change name
-                            // todo ok and cancel button
-                            // todo check if name is valid
-                            // todo rename the file...
-                            LOGGER.warn("Renaming not yet implemented!")
-                        },
+                        "Rename" to { onGotAction(x, y, dx, dy, "Rename", false) },
                         "Open in Explorer" to file::openInExplorer,
                         "Delete" to this::deleteFileMaybe
                     )

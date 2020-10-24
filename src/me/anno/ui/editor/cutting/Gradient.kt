@@ -2,7 +2,6 @@ package me.anno.ui.editor.cutting
 
 import me.anno.ui.editor.cutting.LayerView.Companion.minAlpha
 import me.anno.ui.editor.cutting.LayerView.Companion.minDistSq
-import me.anno.utils.clamp
 import me.anno.utils.mix
 import org.joml.Vector4f
 

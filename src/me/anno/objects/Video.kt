@@ -24,6 +24,7 @@ import me.anno.objects.modes.UVProjection
 import me.anno.objects.modes.VideoType
 import me.anno.studio.RemsStudio
 import me.anno.studio.RemsStudio.isPaused
+import me.anno.studio.RemsStudio.lastT
 import me.anno.studio.RemsStudio.nullCamera
 import me.anno.studio.RemsStudio.targetHeight
 import me.anno.studio.RemsStudio.targetWidth
@@ -291,6 +292,26 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
         }
     }
 
+    fun getImage(): Any? {
+        val name = file.name
+        when {
+            name.endsWith("svg", true) -> {
+                return Cache.getEntry(file.absolutePath, "svg", 0, imageTimeout, true) {
+                    val svg = SVGMesh()
+                    svg.parse(XMLReader.parse(file.inputStream().buffered()) as XMLElement)
+                    StaticFloatBufferData(svg.buffer!!)
+                }
+            }
+            name.endsWith("webp", true) -> {
+                // calculate required scale? no, without animation, we don't need to scale it down ;)
+                return Cache.getVideoFrame(file, 1, 0, 1, 1.0, imageTimeout, true)
+            }
+            else -> {// some image
+                return Cache.getImage(file, imageTimeout, true)
+            }
+        }
+    }
+
     private fun drawImage(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
         val name = file.name
         when {
@@ -356,6 +377,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
     }
 
     var needsImageUpdate = false
+    var lastTexture: Any? = null
     override fun claimLocalResources(lTime0: Double, lTime1: Double) {
 
         val minT = min(lTime0, lTime1)
@@ -432,6 +454,11 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
             }
             // nothing to do for image and audio
             VideoType.IMAGE -> {
+                val texture = getImage()
+                if(lastTexture != texture){
+                    needsImageUpdate = true
+                    lastTexture = texture
+                }
             }
             VideoType.AUDIO -> {
             }

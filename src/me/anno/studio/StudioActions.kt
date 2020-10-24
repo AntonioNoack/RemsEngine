@@ -162,8 +162,9 @@ object StudioActions {
         keyMap["SceneTab.left.press"] = "DragStart"
         keyMap["FileEntry.left.press"] = "DragStart"
         keyMap["FileEntry.left.double"] = "Enter|Open"
+        keyMap["FileEntry.f2.press"] = "Rename"
         keyMap["FileEntry.right.down"] = "OpenOptions"
-        keyMap["FileExplorer.right.down"] = "Back"
+        keyMap["FileExplorer.right.down"] = "OpenOptions"
         keyMap["FileExplorer.mousebackward.down"] = "Back"
         keyMap["TreeViewPanel.left.press"] = "DragStart"
 

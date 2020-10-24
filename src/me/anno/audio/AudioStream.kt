@@ -5,7 +5,6 @@ import me.anno.objects.Camera
 import me.anno.objects.modes.LoopingState
 import me.anno.objects.cache.Cache
 import me.anno.utils.clamp
-import me.anno.utils.f2
 import me.anno.utils.minus
 import me.anno.utils.mix
 import me.anno.video.FFMPEGMetadata

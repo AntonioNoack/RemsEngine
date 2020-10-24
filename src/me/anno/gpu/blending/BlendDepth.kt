@@ -9,6 +9,14 @@ data class BlendDepth(val blendMode: BlendMode?, val depth: Boolean, val depthMa
     private var underThis: BlendDepth? = null
     private var actualBlendMode = blendMode
 
+    constructor(blendMode: BlendMode?, depth: Boolean, action: () -> Unit): this(blendMode, depth){
+        use(action)
+    }
+
+    constructor(blendMode: BlendMode?, depth: Boolean, depthMask: Boolean = true, action: () -> Unit): this(blendMode, depth, depthMask){
+        use(action)
+    }
+
     fun use(render: () -> Unit){
         bind()
         render()

@@ -1,13 +1,8 @@
 package me.anno.ui.base.scrolling
 
 import me.anno.gpu.GFX
-import me.anno.gpu.GFX.deltaTime
 import me.anno.input.Input
-import me.anno.ui.base.Panel
 import me.anno.ui.style.Style
-import me.anno.utils.clamp
-import me.anno.utils.mix
-import kotlin.math.min
 
 open class ScrollbarX(val scrollbar: ScrollPanelX, style: Style): Scrollbar(style){
 

@@ -1,7 +1,6 @@
 package me.anno.utils
 
 import org.joml.Vector3f
-import org.joml.Vector4f
 import kotlin.math.floor
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
@@ -44,8 +43,8 @@ fun mix(a: Int, b: Int, f: Float): Int {
     return (a * (1.0-f) + b*f).roundToInt()
 }
 
-fun mix(a: Int, b: Int, shift: Int, f: Float): Int {
-    return mix((a shr shift) and 0xff, (b shr shift) and 0xff, f) shl shift
+fun mixChannel(a: Int, b: Int, shift: Int, f: Float): Int {
+    return clamp(mix((a shr shift) and 0xff, (b shr shift) and 0xff, f), 0, 255) shl shift
 }
 
 fun mixAngle(a: Float, b: Float, f: Float): Float {
@@ -58,7 +57,10 @@ fun mixAngle(a: Float, b: Float, f: Float): Float {
 }
 
 fun mixARGB(a: Int, b: Int, f: Float): Int {
-    return mix(a, b, 24, f) or mix(a, b, 16, f) or mix(a, b, 8, f) or mix(a, b, 0, f)
+    return mixChannel(a, b, 24, f) or
+            mixChannel(a, b, 16, f) or
+            mixChannel(a, b, 8, f) or
+            mixChannel(a, b, 0, f)
 }
 
 fun mix(a: Vector3f, b: Vector3f, f: Float) = Vector3f(

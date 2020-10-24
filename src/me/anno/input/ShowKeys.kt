@@ -1,7 +1,6 @@
 package me.anno.input
 
 import me.anno.config.DefaultConfig
-import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
 import me.anno.gpu.blending.BlendDepth
 import me.anno.gpu.blending.BlendMode

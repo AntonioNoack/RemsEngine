@@ -2,7 +2,10 @@ package me.anno.ui.editor.files
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.askName
+import me.anno.gpu.GFX.openMenu
 import me.anno.input.Input
+import me.anno.objects.Transform
 import me.anno.objects.Transform.Companion.toTransform
 import me.anno.studio.RemsStudio.project
 import me.anno.ui.base.components.Padding
@@ -172,6 +175,31 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
         when(action){
+            "OpenOptions" -> {
+                val home = folder
+                openMenu("", listOf(
+                    "Create Folder" to {
+                        askName(x.toInt(), y.toInt(), "Name", "Create", { -1 }){
+                            val validName = it.toAllowedFilename()
+                            if(validName != null){
+                                File(home, validName).mkdirs()
+                                invalidate()
+                            }
+                        }
+                    },
+                    "Create Transform" to {
+                        askName(x.toInt(), y.toInt(), "Name", "Create", { -1 }){
+                            val validName = it.toAllowedFilename()
+                            if(validName != null){
+                                File(home, "${validName}.json").writeText(Transform()
+                                    .apply { name = it }
+                                    .toString())
+                                invalidate()
+                            }
+                        }
+                    }
+                ))
+            }
             "Back" -> {
                 folder = folder?.parentFile
                 invalidate()

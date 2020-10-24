@@ -142,12 +142,9 @@ object UILayouts {
         newProject.show2()
         welcome += newProject
 
-        val nameInput = TextInput("Title", style, "New Project")
-        var lastName = nameInput.text
-
-        val fileInput = FileInput("Project Location", style, File(workspace, nameInput.text))
-
         var usableFile: File? = null
+        lateinit var nameInput: TextInput
+        lateinit var fileInput: FileInput
 
         fun updateFileInputColor() {
             fun rootIsOk(file: File): Boolean {
@@ -201,6 +198,25 @@ object UILayouts {
             base.focusTextColor = base.textColor
         }
 
+        fun loadNewProject() {
+            val file = usableFile
+            if (file != null) {
+                openProject(nameInput.text, file)
+            } else {
+                openMenu("Please choose a $dir!", listOf(
+                    "Ok" to {}
+                ))
+            }
+        }
+
+        nameInput = TextInput("Title", style, "New Project")
+        nameInput.setEnterListener { loadNewProject() }
+
+        var lastName = nameInput.text
+
+        fileInput = FileInput("Project Location", style, File(workspace, nameInput.text))
+
+
         updateFileInputColor()
 
         nameInput.setChangeListener {
@@ -217,17 +233,6 @@ object UILayouts {
             updateFileInputColor()
         }
         newProject += fileInput
-
-        fun loadNewProject() {
-            val file = usableFile
-            if (file != null) {
-                openProject(nameInput.text, file)
-            } else {
-                openMenu("Please choose a $dir!", listOf(
-                    "Ok" to {}
-                ))
-            }
-        }
 
         val button = ButtonPanel("Create Project", style)
         button.setSimpleClickListener {

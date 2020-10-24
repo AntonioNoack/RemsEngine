@@ -223,6 +223,16 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
         return this
     }
 
+    private var enterListener: ((text: String) -> Unit)? = null
+    fun setEnterListener(listener: (String) -> Unit): PureTextInput {
+        enterListener = listener
+        return this
+    }
+
+    override fun onEnterKey(x: Float, y: Float) {
+        enterListener?.invoke(text) ?: super.onEnterKey(x, y)
+    }
+
     override fun onMouseDown(x: Float, y: Float, button: MouseButton) {
         lastMove = GFX.lastTime
         if(isControlDown){

@@ -1,19 +1,29 @@
 package me.anno.ui.editor.files.thumbs
 
 import me.anno.gpu.GFX
+import me.anno.gpu.TextureLib
 import me.anno.gpu.blending.BlendDepth
 import me.anno.gpu.framebuffer.FBStack
+import me.anno.gpu.framebuffer.Frame
+import me.anno.gpu.texture.ClampMode
+import me.anno.gpu.texture.FilteringMode
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.HDRImage
+import me.anno.image.svg.SVGMesh
 import me.anno.io.config.ConfigBasics
+import me.anno.io.xml.XMLElement
+import me.anno.io.xml.XMLReader
+import me.anno.objects.Video
 import me.anno.objects.cache.Cache
 import me.anno.objects.cache.ImageData
+import me.anno.objects.cache.StaticFloatBufferData
 import me.anno.objects.cache.TextureCache
 import me.anno.utils.*
 import me.anno.video.FFMPEGMetadata.Companion.getMeta
 import me.anno.video.VFrame
 import net.boeckling.crc.CRC64
 import org.apache.commons.imaging.Imaging
+import org.lwjgl.opengl.ARBDirectStateAccess.glNamedFramebufferReadBuffer
 import org.lwjgl.opengl.GL11.*
 import java.awt.image.BufferedImage
 import java.io.File
@@ -26,9 +36,12 @@ import kotlin.math.roundToInt
 
 object Thumbs {
 
-    val folder = File(ConfigBasics.cacheFolder, "thumbs")
+    private val folder = File(ConfigBasics.cacheFolder, "thumbs")
+    private val sizes = intArrayOf(32, 64, 128, 256, 512)
+    private val neededSizes = IntArray(sizes.last() + 1)
+    private const val timeout = 5000L
 
-    fun File.getCacheFile(size: Int): File {
+    private fun File.getCacheFile(size: Int): File {
         val hashReadLimit = 256
         var hash = this.lastModified() xor (454781903L * this.length())
         if (!isDirectory) {
@@ -42,11 +55,6 @@ object Thumbs {
         return File(folder, "$size/${hashString.substring(0, 2)}/${hashString.substring(2)}.$destinationFormat")
     }
 
-
-    private val sizes = intArrayOf(32, 64, 128, 256, 512)
-    private val neededSizes = IntArray(sizes.last() + 1)
-    private const val timeout = 5000L
-
     init {
         var index = 0
         for (size in sizes) {
@@ -56,20 +64,16 @@ object Thumbs {
         }
     }
 
-    fun getSize(neededSize: Int): Int {
+    private fun getSize(neededSize: Int): Int {
         return if (neededSize < neededSizes.size) {
             neededSizes[neededSize]
-        } else {
-            sizes.last()
-        }
+        } else sizes.last()
     }
-
-    data class ThumbnailKey(val file: File, val size: Int)
 
     fun getThumbnail(file: File, neededSize: Int): Texture2D? {
         val size = getSize(neededSize)
         val key = ThumbnailKey(file, size)
-        return (Cache.getEntry(key, timeout, false) {
+        return (Cache.getEntry(key, timeout, true) {
             val cache = TextureCache(null)
             thread { generate(file, size) { cache.texture = it } }
             cache
@@ -77,8 +81,8 @@ object Thumbs {
     }
 
     // png/bmp/jpg?
-    val destinationFormat = "png"
-    fun generate(srcFile: File, size: Int, callback: (Texture2D) -> Unit) {
+    private const val destinationFormat = "png"
+    private fun generate(srcFile: File, size: Int, callback: (Texture2D) -> Unit) {
 
         if (size < 16) return // does not need to generate image (?)
         val dstFile = srcFile.getCacheFile(size)
@@ -185,34 +189,33 @@ object Thumbs {
                 // create frame buffer as target, and then read from it...
                 GFX.addGPUTask(sw, sh) {
 
+                    GFX.check()
+
                     // framebuffer to buffered image
 
+                    // cannot read from separate framebuffer, only from null... why ever...
                     val buffer = IntArray(w * h)
-                    val fb = FBStack["generateVideoFrame", w, h, 1, false]
-                    me.anno.gpu.framebuffer.Frame(fb) {
+                    val fb = null//FBStack["generateVideoFrame", w, h, 1, false]
+                    Frame(0, 0, w, h, false, fb) {
 
-                        // GFX.clip(0, 0, w, h)
+                        BlendDepth(null, false){
 
-                        val bd = BlendDepth(null, false)
-                        bd.bind()
+                            Frame.currentFrame!!.bind()
 
-                        // some thumbnails are broken, probably by overlapping time frames... but how? everything is synced...
-                        // fixed by clearing the screen???
-                        glClearColor(0f, 0f, 0f, 1f)
-                        glClear(GL_COLOR_BUFFER_BIT)
+                            glClearColor(0f, 0f, 0f, 1f)
+                            glClear(GL_COLOR_BUFFER_BIT)
 
-                        GFX.draw2D(src)
+                            GFX.draw2D(src)
 
-                        // draw only the clicked area?
-                        GFX.check()
+                            // draw only the clicked area?
+                            glFlush(); glFinish() // wait for everything to be drawn
+                            glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
 
-                        glFlush(); glFinish() // wait for everything to be drawn
-                        glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
-                        glReadPixels(
-                            0, GFX.height - h, w, h,
-                            GL_RGBA, GL_UNSIGNED_BYTE, buffer
-                        )
-                        bd.unbind()
+                            glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
+
+                            GFX.check()
+
+                        }
 
                     }
 
@@ -228,6 +231,29 @@ object Thumbs {
                     }
 
                 }
+            }
+
+            fun generateSVGFrame(){
+
+                val bufferData = Cache.getEntry(srcFile.absolutePath, "svg", 0,
+                    Video.imageTimeout,
+                    false) {
+                    val svg = SVGMesh()
+                    svg.parse(XMLReader.parse(srcFile.inputStream().buffered()) as XMLElement)
+                    StaticFloatBufferData(svg.buffer!!)
+                } as StaticFloatBufferData
+
+                // todo use buffer data to generate svg image...
+
+                /*GFX.draw3DSVG(
+                        stack,
+                        bufferData.buffer,
+                        TextureLib.whiteTexture,
+                        color,
+                        FilteringMode.NEAREST,
+                        ClampMode.CLAMP
+                    )*/
+
             }
 
             try {
@@ -254,9 +280,10 @@ object Thumbs {
                         saveNUpload(dst)
                     }
                     "ico" -> transformNSaveNUpload(Imaging.getBufferedImage(srcFile))
+                    "svg" -> generateSVGFrame()
                     else -> {
                         when (ext.getImportType()) {
-                            "Video" -> generateVideoFrame(0.0)
+                            "Video" -> generateVideoFrame(1.0)
                             "Image", "Cubemap" -> transformNSaveNUpload(Imaging.getBufferedImage(srcFile))
                             // else nothing to do
                         }

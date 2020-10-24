@@ -1,6 +1,8 @@
 package me.anno.gpu
 
+import javafx.scene.control.Button
 import me.anno.config.DefaultConfig
+import me.anno.config.DefaultConfig.style
 import me.anno.config.DefaultStyle.black
 import me.anno.fonts.FontManager
 import me.anno.gpu.ShaderLib.copyShader
@@ -50,6 +52,7 @@ import me.anno.studio.RemsStudio.selectedTransform
 import me.anno.studio.RemsStudio.targetHeight
 import me.anno.studio.RemsStudio.targetWidth
 import me.anno.studio.StudioBase.Companion.eventTasks
+import me.anno.ui.base.ButtonPanel
 import me.anno.ui.base.Panel
 import me.anno.ui.base.SpacePanel
 import me.anno.ui.base.TextPanel
@@ -57,22 +60,26 @@ import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelGroup
+import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.debug.FrameTimes
+import me.anno.ui.input.components.PureTextInput
 import me.anno.utils.clamp
 import me.anno.utils.f1
 import me.anno.utils.minus
 import me.anno.video.VFrame
 import org.apache.logging.log4j.LogManager
-import org.joml.*
+import org.joml.Matrix4f
+import org.joml.Matrix4fArrayList
+import org.joml.Vector3f
+import org.joml.Vector4f
 import org.lwjgl.BufferUtils
 import org.lwjgl.glfw.GLFW.glfwSetWindowShouldClose
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL30.*
-import java.lang.Math
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.math.*
@@ -108,7 +115,7 @@ object GFX : GFXBase1() {
     var hoveredWindow: Window? = null
 
     fun select(transform: Transform?) {
-        if(selectedTransform != transform || selectedInspectable != transform){
+        if (selectedTransform != transform || selectedInspectable != transform) {
             selectedInspectable = transform
             selectedTransform = transform
             RemsStudio.updateSceneViews()
@@ -183,8 +190,8 @@ object GFX : GFXBase1() {
         check()
         if (w < 1 || h < 1) throw java.lang.RuntimeException("w < 1 || h < 1 not allowed, got $w x $h")
         val realY = height - (y + h)
-        Frame(x, realY, w, h, false){
-           render()
+        Frame(x, realY, w, h, false) {
+            render()
         }
     }
 
@@ -269,12 +276,12 @@ object GFX : GFXBase1() {
         check()
     }
 
-    fun drawBorder(x: Int, y: Int, w: Int, h: Int, color: Int, size: Int){
+    fun drawBorder(x: Int, y: Int, w: Int, h: Int, color: Int, size: Int) {
         flatColor(color)
         drawRect(x, y, w, size)
-        drawRect(x, y+h-size, w, size)
-        drawRect(x, y+size, size, h-2*size)
-        drawRect(x+w-size, y+size, size, h-2*size)
+        drawRect(x, y + h - size, w, size)
+        drawRect(x, y + size, size, h - 2 * size)
+        drawRect(x + w - size, y + size, size, h - 2 * size)
     }
 
     fun flatColor(color: Int) {
@@ -549,21 +556,21 @@ object GFX : GFXBase1() {
     ) {
         val shader = shader3DBlur
         transformUniform(shader, stack)
-        if(isFirst) shader.v2("stepSize", 0f, 1f / h)
+        if (isFirst) shader.v2("stepSize", 0f, 1f / h)
         else shader.v2("stepSize", 1f / w, 0f)
         shader.v1("steps", size * h)
         flat01.draw(shader)
         check()
     }
 
-    fun copy(){
+    fun copy() {
         check()
         val shader = copyShader
         flat01.draw(shader)
         check()
     }
 
-    fun copyNoAlpha(){
+    fun copyNoAlpha() {
         check()
         BlendDepth(BlendMode.DST_ALPHA, false).use {
             val shader = copyShader
@@ -884,32 +891,67 @@ object GFX : GFXBase1() {
 
     }
 
+    fun askName(
+        x: Int, y: Int,
+        title: String,
+        actionName: String,
+        getColor: (String) -> Int,
+        callback: (String) -> Unit
+    ) {
+
+        lateinit var window: Window
+        fun close(){
+            windowStack.remove(window)
+            window.destroy()
+        }
+
+        val style = style.getChild("menu")
+        val panel = PureTextInput(style)
+        panel.placeholder = title
+        panel.setEnterListener {
+            callback(panel.text)
+            close()
+        }
+        panel.setChangeListener {
+            panel.textColor = getColor(it)
+        }
+
+        val submit = ButtonPanel(actionName, style)
+            .setSimpleClickListener {
+                callback(panel.text)
+                close()
+            }
+
+        val cancel = ButtonPanel("Cancel", style)
+            .setSimpleClickListener { close() }
+
+        val buttons = PanelListX(style)
+        buttons += cancel
+        buttons += submit
+
+        window = openMenuComplex2(x, y, title, listOf(panel, buttons))!!
+
+    }
+
     fun openMenuComplex(
         x: Int,
         y: Int,
         title: String,
         options: List<Pair<String, (button: MouseButton, isLong: Boolean) -> Boolean>>
     ) {
-        loadTexturesSync.push(true) // to calculate the correct size, which is needed for correct placement
+
         if (options.isEmpty()) return
-        val style = DefaultConfig.style.getChild("menu")
-        val list = PanelListY(style)
-        list += WrapAlign.LeftTop
-        val container = ScrollPanelY(list, Padding(1), style, AxisAlignment.MIN)
-        container += WrapAlign.LeftTop
+        val style = style.getChild("menu")
+
         lateinit var window: Window
         fun close() {
             windowStack.remove(window)
+            window.destroy()
         }
 
+        val list = ArrayList<Panel>()
+
         val padding = 4
-        if (title.isNotEmpty()) {
-            val titlePanel = TextPanel(title, style)
-            titlePanel.padding.left = padding
-            titlePanel.padding.right = padding
-            list += titlePanel
-            list += SpacePanel(0, 1, style)
-        }
         for ((index, element) in options.withIndex()) {
             val (name, action) = element
             if (name == menuSeparator) {
@@ -929,19 +971,54 @@ object GFX : GFXBase1() {
                 list += buttonView
             }
         }
+
+        window = openMenuComplex2(x, y, title, list)!!
+
+    }
+
+    fun openMenuComplex2(
+        x: Int,
+        y: Int,
+        title: String,
+        panels: List<Panel>
+    ): Window? {
+
+        loadTexturesSync.push(true) // to calculate the correct size, which is needed for correct placement
+        if (panels.isEmpty()) return null
+        val style = style.getChild("menu")
+        val list = PanelListY(style)
+        list += WrapAlign.LeftTop
+        val container = ScrollPanelY(list, Padding(1), style, AxisAlignment.MIN)
+        container += WrapAlign.LeftTop
+        lateinit var window: Window
+
+        val padding = 4
+        if (title.isNotEmpty()) {
+            val titlePanel = TextPanel(title, style)
+            titlePanel.padding.left = padding
+            titlePanel.padding.right = padding
+            list += titlePanel
+            list += SpacePanel(0, 1, style)
+        }
+
+        for (panel in panels) {
+            list += panel
+        }
+
         val maxWidth = max(300, GFX.width)
         val maxHeight = max(300, GFX.height)
         container.calculateSize(maxWidth, maxHeight)
         container.applyPlacement(min(container.minW, maxWidth), min(container.minH, maxHeight))
-        // ("size for window: ${container.w} ${container.h}")
+
         val wx = clamp(x, 0, max(GFX.width - container.w, 0))
         val wy = clamp(y, 0, max(GFX.height - container.h, 0))
-
-        // LOGGER.debug(container.listOfAll.joinToString { "${it.style.prefix}/.../${it.style.suffix}" })
 
         window = Window(container, false, wx, wy)
         windowStack.add(window)
         loadTexturesSync.pop()
+
+        return window
+
     }
 
     fun openMenuComplex(
@@ -1035,8 +1112,18 @@ object GFX : GFXBase1() {
         FrameTimes.place(x0, y0, FrameTimes.width, FrameTimes.height)
         FrameTimes.draw()
         loadTexturesSync.push(true)
-        drawText(x0 + 1, y0 + 1, "Consolas", 12, false, false, "${currentEditorFPS.f1()}, min: ${(1f/FrameTimes.maxValue).f1()}",
-            FrameTimes.textColor, FrameTimes.backgroundColor, -1)
+        drawText(
+            x0 + 1,
+            y0 + 1,
+            "Consolas",
+            12,
+            false,
+            false,
+            "${currentEditorFPS.f1()}, min: ${(1f / FrameTimes.maxValue).f1()}",
+            FrameTimes.textColor,
+            FrameTimes.backgroundColor,
+            -1
+        )
         loadTexturesSync.pop()
     }
 
