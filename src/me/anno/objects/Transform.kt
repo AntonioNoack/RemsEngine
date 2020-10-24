@@ -70,7 +70,7 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
     var position = AnimatedProperty.pos()
     var scale = AnimatedProperty.scale()
     var rotationYXZ = AnimatedProperty.rotYXZ()
-    var rotationQuaternion: AnimatedProperty<Quaternionf>? = null
+
     var skew = AnimatedProperty.skew()
     var alignWithCamera = AnimatedProperty.float01()
     var color = AnimatedProperty.color()
@@ -116,8 +116,6 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
         child.parent = this
     }
 
-    val usesEuler get() = rotationQuaternion == null
-
     fun show(anim: AnimatedProperty<*>?) {
         selectedProperty = anim
     }
@@ -157,22 +155,7 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
         val transform = getGroup("Transform", "transform")
         transform += VI("Position", "Location of this object", position, style)
         transform += VI("Scale", "Makes it bigger/smaller", scale, style)
-
-        if (usesEuler) {
-            transform += VI("Rotation (YXZ)", "", rotationYXZ, style)
-        } else {
-            transform += VectorInput(
-                style,
-                "Rotation (Quaternion)",
-                rotationQuaternion?.get(lastLocalTime) ?: Quaternionf()
-            )
-                .setChangeListener { x, y, z, w ->
-                    if (rotationQuaternion == null) rotationQuaternion = AnimatedProperty.quat()
-                    putValue(rotationQuaternion!!, Quaternionf(x, y, z, w + 1e-9f).normalize())
-                }
-                .setIsSelectedListener { show(rotationQuaternion) }
-        }
-
+        transform += VI("Rotation (YXZ)", "", rotationYXZ, style)
         transform += VI("Skew", "Transform it similar to a shear", skew, style)
         transform += VI(
             "Alignment with Camera",
@@ -233,8 +216,6 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
         val position = position[time]
         val scale = scale[time]
         val euler = rotationYXZ[time]
-        val rotationQuat = rotationQuaternion
-        val usesEuler = usesEuler
         val skew = skew[time]
         val alignWithCamera = alignWithCamera[time]
 
@@ -242,13 +223,9 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
             transform.translate(position)
         }
 
-        if (usesEuler) {// y x z
-            if (euler.y != 0f) transform.rotate(toRadians(euler.y), yAxis)
-            if (euler.x != 0f) transform.rotate(toRadians(euler.x), xAxis)
-            if (euler.z != 0f) transform.rotate(toRadians(euler.z), zAxis)
-        } else {
-            if (rotationQuat != null) transform.rotate(rotationQuat[time])
-        }
+        if (euler.y != 0f) transform.rotate(toRadians(euler.y), yAxis)
+        if (euler.x != 0f) transform.rotate(toRadians(euler.x), xAxis)
+        if (euler.z != 0f) transform.rotate(toRadians(euler.z), zAxis)
 
         if (scale.x != 1f || scale.y != 1f || scale.z != 1f) transform.scale(scale)
 
@@ -355,10 +332,10 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
         super.save(writer)
         writer.writeObject(this, "parent", parent)
         writer.writeString("name", name)
+        writer.writeBool("collapsed", isCollapsed, false)
         writer.writeObject(this, "position", position)
         writer.writeObject(this, "scale", scale)
         writer.writeObject(this, "rotationYXZ", rotationYXZ)
-        writer.writeObject(this, "rotationQuat", rotationQuaternion)
         writer.writeObject(this, "skew", skew)
         writer.writeObject(this, "alignWithCamera", alignWithCamera)
         writer.writeDouble("timeOffset", timeOffset)
@@ -370,6 +347,13 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
         writer.writeList(this, "children", children)
         writer.writeInt("timelineSlot", timelineSlot, true)
         writer.writeInt("visibility", visibility.id, false)
+    }
+
+    override fun readBool(name: String, value: Boolean) {
+        when(name){
+            "collapsed" -> isCollapsed = value
+            else -> super.readBool(name, value)
+        }
     }
 
     override fun readInt(name: String, value: Int) {
@@ -395,13 +379,6 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
             "position" -> position.copyFrom(value)
             "scale" -> scale.copyFrom(value)
             "rotationYXZ" -> rotationYXZ.copyFrom(value)
-            "rotationQuat" -> {
-                rotationQuaternion?.copyFrom(value) ?: {
-                    if (value is AnimatedProperty<*> && value.type == Type.QUATERNION) {
-                        rotationQuaternion = value as AnimatedProperty<Quaternionf>
-                    }
-                }()
-            }
             "skew" -> skew.copyFrom(value)
             "alignWithCamera" -> alignWithCamera.copyFrom(value)
             "timeAnimated" -> timeAnimated.copyFrom(value)

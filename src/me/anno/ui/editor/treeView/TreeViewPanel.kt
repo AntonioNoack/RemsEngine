@@ -18,6 +18,7 @@ import me.anno.objects.Transform
 import me.anno.objects.Transform.Companion.toTransform
 import me.anno.objects.effects.MaskLayer
 import me.anno.studio.RemsStudio.onLargeChange
+import me.anno.studio.RemsStudio.onSmallChange
 import me.anno.studio.RemsStudio.selectedTransform
 import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.ui.base.TextPanel
@@ -82,15 +83,16 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style) : TextPanel("
     override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
 
         val transform = getElement()
-        when (button) {
-            MouseButton.LEFT -> {
+        when {
+            button.isLeft -> {
                 if (Input.isShiftDown) {
                     transform.isCollapsed = !transform.isCollapsed
+                    onSmallChange("collapse")
                 } else {
                     select(transform)
                 }
             }
-            MouseButton.RIGHT -> {
+            button.isRight -> {
 
                 fun add(action: (Transform) -> Transform): () -> Unit = { transform.apply { select(action(this)) } }
                 val options = DefaultConfig["createNewInstancesList"] as? StringMap

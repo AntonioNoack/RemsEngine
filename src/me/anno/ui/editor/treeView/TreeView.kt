@@ -17,14 +17,7 @@ import me.anno.ui.editor.files.addChildFromFile
 import me.anno.ui.style.Style
 import java.io.File
 
-// todo icons for the different types of Transforms
-
-// todo a panel for linear video editing
-// todo maybe control the cameras there...
-
 // todo select multiple elements, filter for common properties, and apply them all together :)
-
-// todo collapse elements
 
 class TreeView(style: Style) :
     ScrollPanelXY(Padding(5), style.getChild("treeView")) {
