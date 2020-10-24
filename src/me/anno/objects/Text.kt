@@ -52,6 +52,7 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
             field = value.replace("\r", "")
         }
 
+    override fun getSymbol() = DefaultConfig["ui.symbol.text", "\uD83D\uDCC4"]
 
     // todo blurry, colorful text shadow
     // todo by calculated distance fields:

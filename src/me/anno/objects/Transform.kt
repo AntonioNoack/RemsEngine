@@ -1,5 +1,6 @@
 package me.anno.objects
 
+import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.glThread
 import me.anno.gpu.GFX.isFinalRendering
@@ -85,6 +86,7 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
     var name = getDefaultDisplayName()
     var comment = ""
 
+    open fun getSymbol() = DefaultConfig["ui.symbol.transform", "\uD83D\uDCC1"]
     open fun getDefaultDisplayName() = if (getClassName() == "Transform") "Folder" else getClassName()
     open fun isVisible(localTime: Double) = true
 

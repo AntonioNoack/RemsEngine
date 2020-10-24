@@ -1,5 +1,6 @@
 package me.anno.objects.attractors
 
+import me.anno.config.DefaultConfig
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.Transform
@@ -19,6 +20,7 @@ class EffectColoring: Transform() {
 
     override fun getDefaultDisplayName() = "Effect: Coloring"
     override fun getClassName() = "EffectColoring"
+    override fun getSymbol() = DefaultConfig["ui.symbol.fx.coloring", "\uD83C\uDFA8"]
 
     override fun createInspector(
         list: PanelListY,

@@ -1,5 +1,6 @@
 package me.anno.objects
 
+import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
@@ -25,6 +26,8 @@ class GFXArray(parent: Transform? = null): GFXTransform(parent) {
     // val perChildTimeDilation = FloatArray(MAX_ARRAY_DIMENSION) // useful?, power vs linear
 
     // per child skew?
+
+    override fun getSymbol() = DefaultConfig["ui.symbol.array", "[[["]
 
     val instanceCount = AnimatedProperty.intPlus(10)
     var selectionSeed = AnimatedProperty.long()

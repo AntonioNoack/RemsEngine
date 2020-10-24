@@ -24,17 +24,6 @@ class PropertyInspector(style: Style):
         return Pair(super.getLayoutState(), selectedInspectable)
     }
 
-    fun createInspector(ins: Inspectable, list: PanelListY){
-        val groups = HashMap<String, SettingCategory>()
-        ins.createInspector(list, style){ title, id ->
-            groups.getOrPut(id){
-                val group = SettingCategory(title, style)
-                list += group
-                group
-            }
-        }
-    }
-
     override fun tickUpdate() {
         super.tickUpdate()
         val selected = selectedInspectable
@@ -43,7 +32,7 @@ class PropertyInspector(style: Style):
             needsUpdate = false
             list.clear()
             if(selected != null){
-                createInspector(selected, list)
+                createInspector(selected, list, style)
             }
         } else if(needsUpdate){
             invalidateDrawing()
@@ -51,7 +40,7 @@ class PropertyInspector(style: Style):
             needsUpdate = false
             secondaryList.clear()
             if(selected != null){
-                createInspector(selected, secondaryList)
+                createInspector(selected, secondaryList, style)
             }
             // is matching required? not really
             val src = secondaryList.listOfAll.iterator()
@@ -85,6 +74,19 @@ class PropertyInspector(style: Style):
 
     operator fun plusAssign(panel: Panel){
         list += panel
+    }
+
+    companion object {
+        fun createInspector(ins: Inspectable, list: PanelListY, style: Style){
+            val groups = HashMap<String, SettingCategory>()
+            ins.createInspector(list, style){ title, id ->
+                groups.getOrPut(id){
+                    val group = SettingCategory(title, style)
+                    list += group
+                    group
+                }
+            }
+        }
     }
 
 }

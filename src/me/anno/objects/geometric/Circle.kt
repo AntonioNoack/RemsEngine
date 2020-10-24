@@ -1,5 +1,6 @@
 package me.anno.objects.geometric
 
+import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer
@@ -20,6 +21,8 @@ class Circle(parent: Transform? = null): GFXTransform(parent){
     var innerRadius = AnimatedProperty.float01()
     var startDegrees = AnimatedProperty.float()
     var endDegrees = AnimatedProperty.float(360f)
+
+    override fun getSymbol() = DefaultConfig["ui.style.circle", "◯"]
 
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
         GFX.draw3DCircle(stack, innerRadius[time], startDegrees[time], endDegrees[time], color)

@@ -49,15 +49,15 @@ open class ButtonPanel(text: String, style: Style): TextPanel(text, style.getChi
     fun draw(isHovered: Boolean, mouseDown: Boolean){
         drawBackground()
 
-        GFX.drawRect(x+w-borderSize.right, y, borderSize.right, h, getColor(isHovered, mouseDown, rightColor, leftColor)) // right
-        GFX.drawRect(x, y+h-borderSize.bottom, w, borderSize.bottom, getColor(isHovered, mouseDown, bottomColor, topColor)) // bottom
-        GFX.drawRect(x, y, borderSize.left, h, getColor(isHovered, mouseDown, leftColor, rightColor)) // left
-        GFX.drawRect(x, y, w, borderSize.top, getColor(isHovered, mouseDown, topColor, bottomColor)) // top
-
         val limit = if(breaksIntoMultiline) this.w else -1
         val size = GFX.getTextSize(fontName, textSize, isBold, isItalic, text, limit)
         GFX.drawText(x + (w - size.first) / 2, y + (h - size.second) / 2, fontName, textSize, isBold, isItalic,
             text, textColor, backgroundColor, limit)
+
+        GFX.drawRect(x+w-borderSize.right, y, borderSize.right, h, getColor(isHovered, mouseDown, rightColor, leftColor)) // right
+        GFX.drawRect(x, y+h-borderSize.bottom, w, borderSize.bottom, getColor(isHovered, mouseDown, bottomColor, topColor)) // bottom
+        GFX.drawRect(x, y, borderSize.left, h, getColor(isHovered, mouseDown, leftColor, rightColor)) // left
+        GFX.drawRect(x, y, w, borderSize.top, getColor(isHovered, mouseDown, topColor, bottomColor)) // top
 
     }
 

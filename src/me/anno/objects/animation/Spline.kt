@@ -1,6 +1,5 @@
 package me.anno.objects.animation
 
-import me.anno.utils.clamp
 import org.joml.Vector4d
 import kotlin.math.PI
 import kotlin.math.cos
@@ -21,10 +20,7 @@ object Spline {
 
     ): Vector4d {
 
-        // todo calculate the left and right control points...
-        // todo first maybe an approximation by being completely linear
-
-        return when (f1.interpolation) {
+        return when ((if(t0 > 1.0) f2 else f1).interpolation) {
             Interpolation.SPLINE -> {
 
                 if(t0 <= 0.0){

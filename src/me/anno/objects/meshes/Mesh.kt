@@ -1,5 +1,6 @@
 package me.anno.objects.meshes
 
+import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.buffer.Attribute
@@ -38,6 +39,8 @@ class Mesh(var file: File, parent: Transform?): GFXTransform(parent){
     // for the start it is nice to be able to import meshes like a torus into the engine :)
 
     constructor(): this(File(""), null)
+
+    override fun getSymbol() = DefaultConfig["ui.symbol.mesh", "\uD83D\uDC69"]
 
     var lastFile: File? = null
     var extension = ""

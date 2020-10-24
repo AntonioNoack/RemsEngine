@@ -9,6 +9,8 @@ import me.anno.gpu.GFX.select
 import me.anno.gpu.GFXBase0
 import me.anno.gpu.Window
 import me.anno.input.Input
+import me.anno.input.Input.mouseX
+import me.anno.input.Input.mouseY
 import me.anno.objects.Text
 import me.anno.objects.cache.Cache
 import me.anno.objects.rendering.RenderSettings
@@ -34,6 +36,7 @@ import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.custom.CustomContainer
 import me.anno.ui.custom.CustomListX
 import me.anno.ui.custom.CustomListY
+import me.anno.ui.editor.PropertyInspector.Companion.createInspector
 import me.anno.ui.editor.config.ConfigPanel
 import me.anno.ui.editor.cutting.CuttingView
 import me.anno.ui.editor.files.FileExplorer
@@ -341,7 +344,15 @@ object UILayouts {
         options.addAction("Select", "Inspector Camera") { select(nullCamera) }
         options.addAction("Debug", "Refresh (Ctrl+F5)") { Cache.clear() }
 
-        options.addAction("Render", "Settings") { select(RenderSettings) }
+        options.addAction("Render", "Settings") {
+            /*val style2 = style.getChild("menu")
+            val list = PanelListY(style2)
+            createInspector(RenderSettings, list, style2)
+            GFX.openMenuComplex2(mouseX.toInt(), mouseY.toInt(), "", listOf(
+                list
+            ))*/
+            select(RenderSettings)
+        }
         options.addAction("Render", "Set%") {
             render(
                 max(2, (project!!.targetWidth * project!!.targetSizePercentage / 100).roundToInt()),

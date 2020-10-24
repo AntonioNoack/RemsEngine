@@ -1,5 +1,6 @@
 package me.anno.objects
 
+import me.anno.config.DefaultConfig
 import me.anno.fonts.PartResult
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
@@ -14,6 +15,8 @@ import kotlin.math.floor
 class Timer(parent: Transform? = null): Text("", parent) {
 
     // todo extra start value in a date format?
+
+    override fun getSymbol() = DefaultConfig["ui.symbol.timer", "\uD83D\uDD51"]
 
     var format = "hh:mm:ss.s2"
 

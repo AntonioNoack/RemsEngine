@@ -1,14 +1,15 @@
 package me.anno.ui.editor.treeView
 
+import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
-import me.anno.gpu.GFX.select
 import me.anno.input.Input.mouseX
 import me.anno.input.Input.mouseY
-import me.anno.objects.*
-import me.anno.objects.rendering.RenderSettings
+import me.anno.objects.Transform
 import me.anno.studio.RemsStudio.nullCamera
 import me.anno.studio.RemsStudio.root
-import me.anno.ui.base.*
+import me.anno.ui.base.Panel
+import me.anno.ui.base.TextPanel
+import me.anno.ui.base.Visibility
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.scrolling.ScrollPanelXY
@@ -16,8 +17,7 @@ import me.anno.ui.editor.files.addChildFromFile
 import me.anno.ui.style.Style
 import java.io.File
 
-// todo support for multiple cameras? -> just use scenes?
-// todo switch back and forth? how -> multiple cameras... how?
+// todo icons for the different types of Transforms
 
 // todo a panel for linear video editing
 // todo maybe control the cameras there...
@@ -26,35 +26,40 @@ import java.io.File
 
 // todo collapse elements
 
-class TreeView(style: Style):
+class TreeView(style: Style) :
     ScrollPanelXY(Padding(5), style.getChild("treeView")) {
 
     val list = content as PanelList
 
-    init { padding.top = 16 }
+    init {
+        padding.top = 16
+    }
 
     val transformByIndex = ArrayList<Transform>()
-    var inset = style.getSize("treeView.inset", style.getSize("textSize", 12)/3)
+    var inset = style.getSize("treeView.inset", style.getSize("textSize", 12) / 3)
 
     var index = 0
 
-    fun updateTree(){
-        val todo = ArrayList<Pair<Transform, Int>>()
-        todo.add(root to 0)
-        todo.add(nullCamera to 0)
-        todo.add(RenderSettings to 0)
+    fun updateTree() {
+        val open = ArrayList<Pair<Transform, Int>>()
+        open.add(root to 0)
+        open.add(nullCamera to 0)
+        // open.add(RenderSettings to 0)
         index = 0
-        while(todo.isNotEmpty()){
-            val (transform, depth) = todo.removeAt(todo.lastIndex)
+        while (open.isNotEmpty()) {
+            val (transform, depth) = open.removeAt(open.lastIndex)
             val panel = getOrCreateChild(index++, transform)
             //(panel.parent!!.children[0] as SpacePanel).minW = inset * depth + panel.padding.right
-            panel.text = transform.name
+            val symbol =
+                if (transform.isCollapsed) DefaultConfig["ui.symbol.collapsed", "\uD83D\uDDBF"]
+                else transform.getSymbol()
+            panel.text = if (symbol.isEmpty()) transform.name else "$symbol ${transform.name}"
             panel.padding.left = inset * depth + panel.padding.right
-            if(!transform.isCollapsed){
-                todo.addAll(transform.children.map { it to (depth+1) }.reversed())
+            if (!transform.isCollapsed) {
+                open.addAll(transform.children.map { it to (depth + 1) }.reversed())
             }
         }
-        for(i in index until list.children.size){
+        for (i in index until list.children.size) {
             list.children[i].visibility = Visibility.GONE
         }
     }
@@ -67,27 +72,27 @@ class TreeView(style: Style):
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.onDraw(x0, y0, x1, y1)
 
-        if(focused?.isInFocus != true){
+        if (focused?.isInFocus != true) {
             takenElement = null
         }
 
         val focused = focused
-        if(focused != null && takenElement != null){
+        if (focused != null && takenElement != null) {
             val h = focused.h
             val mx = mouseX.toInt()
             val my = mouseY.toInt()
             val hoveredTransformIndex = (my - (list.children.firstOrNull()?.y ?: 0)).toFloat() / (h + list.spacing)
             val fractionalHTI = hoveredTransformIndex % 1f
-            if(fractionalHTI in 0.25f .. 0.75f){
+            if (fractionalHTI in 0.25f..0.75f) {
                 // on top
                 // add as child
-                val targetY = my - 1 + h/2 - (fractionalHTI * h).toInt()
-                GFX.drawRect(this.x+2, targetY, 3, 1, -1)
+                val targetY = my - 1 + h / 2 - (fractionalHTI * h).toInt()
+                GFX.drawRect(this.x + 2, targetY, 3, 1, -1)
             } else {
                 // in between
                 // add in between elements
-                val targetY = my - 1 + h/2 - (((hoveredTransformIndex + 0.5f) % 1f) * h).toInt()
-                GFX.drawRect(this.x+2, targetY, 3, 1, -1)
+                val targetY = my - 1 + h / 2 - (((hoveredTransformIndex + 0.5f) % 1f) * h).toInt()
+                GFX.drawRect(this.x + 2, targetY, 3, 1, -1)
             }
             val x = focused.x
             val y = focused.y
@@ -104,7 +109,7 @@ class TreeView(style: Style):
     var takenElement: Transform? = null
 
     fun getOrCreateChild(index: Int, transform0: Transform): TextPanel {
-        if(index < list.children.size){
+        if (index < list.children.size) {
             transformByIndex[index] = transform0
             val panel = list.children[index] as TextPanel
             panel.visibility = Visibility.VISIBLE

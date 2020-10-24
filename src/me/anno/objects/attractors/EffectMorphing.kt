@@ -1,5 +1,6 @@
 package me.anno.objects.attractors
 
+import me.anno.config.DefaultConfig
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.Transform
@@ -16,6 +17,7 @@ class EffectMorphing: Transform() {
 
     override fun getDefaultDisplayName() = "Effect: Morphing"
     override fun getClassName() = "EffectMorphing"
+    override fun getSymbol() = DefaultConfig["ui.symbol.fx.morphing", "\uD83D\uDCA0"]
 
     override fun createInspector(
         list: PanelListY,

@@ -30,6 +30,8 @@ import java.io.File
 
 class TreeViewPanel(val getElement: () -> Transform, style: Style) : TextPanel("", style) {
 
+    // todo the symbols should have equal size...
+
     // todo text shadow, if text color and background color are close
 
     private val accentColor = style.getColor("accentColor", black or 0xff0000)
@@ -211,7 +213,7 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style) : TextPanel("
 
     override fun getTooltipText(x: Float, y: Float): String? {
         val transform = getElement()
-        return if (transform is Camera) "Drag Onto Scene to Use" else null
+        return if (transform is Camera) transform.getDefaultDisplayName() + ", drag onto scene to view" else transform.getDefaultDisplayName()
     }
 
     fun Vector4f.toRGB(scale: Int = 255): Int {

@@ -263,6 +263,31 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
         val yValues = IntArray(type.components)
         val prevYValues = IntArray(type.components)
         val kfs = property.keyframes
+
+        if(kfs.isNotEmpty()){
+            val first = kfs[0]
+            when(first.interpolation){
+                Interpolation.LINEAR_BOUNDED, Interpolation.STEP, Interpolation.SPLINE -> {
+                    if(getXAt(kf2Global(first.time)) > x0+1){// a line is needed from left to 1st point
+                        val startValue = property[global2Kf(getTimeAt(x0.toFloat()))]!!
+                        val endX = getXAt(kf2Global(first.time)).toFloat()
+                        val endValue = first.value!!
+                        for (i in 0 until channelCount) {
+                            val startY = getYAt(startValue[i])
+                            val endY = getYAt(endValue[i])
+                            drawSmoothLine(
+                                x0.toFloat(), startY, endX, endY,
+                                this.x, this.y, this.w, this.h, valueColors[i], 0.5f
+                            )
+                        }
+                    }
+                }
+                else -> {
+                    // ...
+                }
+            }
+        }
+
         for ((j, kf) in kfs.withIndex()) {
 
             val tGlobal = kf2Global(kf.time)
@@ -300,12 +325,43 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
             }
 
         }
+
+        // todo not correct, because of clamping...
+        // start is either
+        // todo we need to calculate the correct cutting point with min or max...
+        // todo sine is crazy as well ->
+        // todo we need a function similar to drawLines()
+        if(kfs.isNotEmpty()){
+            val last = kfs.last()
+            when(last.interpolation){
+                Interpolation.SPLINE, Interpolation.STEP, Interpolation.LINEAR_BOUNDED -> {
+                    if(getXAt(kf2Global(last.time)) < x1){// a line is needed from last pt to end
+                        val endValue = property[global2Kf(getTimeAt(x1.toFloat()))]!!
+                        val startX = getXAt(kf2Global(last.time)).toFloat()
+                        val startValue = last.value!!
+                        for (i in 0 until channelCount) {
+                            val endY = getYAt(endValue[i])
+                            val startY = getYAt(startValue[i])
+                            drawSmoothLine(
+                                startX, startY, x1.toFloat(), endY,
+                                this.x, this.y, this.w, this.h, valueColors[i], 0.5f
+                            )
+                        }
+                    }
+                }
+                else -> {
+                    // ...
+                }
+            }
+        }
+
     }
 
     // todo draw curve of animation-drivers :)
     // todo input (animated values) and output (calculated values)?
 
-    fun drawLines(property: AnimatedProperty<*>, x: Int, x0: Int, x1: Int,
+    fun drawLines(property: AnimatedProperty<*>,
+                  x: Int, x0: Int, x1: Int,
                   j: Int, endTime: Double,
                   channelCount: Int, valueColors: IntArray){
         val kfs = property.keyframes

@@ -1,5 +1,6 @@
 package me.anno.objects
 
+import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.toRadians
 import me.anno.gpu.ShaderLib.lineShader3D
@@ -72,7 +73,7 @@ class Camera(parent: Transform? = null): Transform(parent){
     fun orthoDistance(ortho: Float) = pow(200f, ortho) - 1f
     fun orthoFOV(fov: Float, offset: Float) = fov / (1f + offset)
 
-
+    override fun getSymbol() = DefaultConfig["ui.symbol.camera", "\uD83C\uDFA5"]
     override fun getClassName() = "Camera"
 
     override fun createInspector(list: PanelListY, style: Style, getGroup: (title: String, id: String) -> SettingCategory) {

@@ -42,6 +42,17 @@ class Polygon(parent: Transform? = null): GFXTransform(parent){
     var vertexCount = AnimatedProperty.intPlus(5)
     var starNess = AnimatedProperty.float01()
 
+    override fun getSymbol() =
+        if(vertexCount.isAnimated) DefaultConfig["ui.symbol.polygon.any", "⭐"]
+        else when(vertexCount[0.0]){
+            3 -> DefaultConfig["ui.symbol.polygon.3", "△"]
+            4 -> DefaultConfig["ui.symbol.polygon.4", "⬜"]
+            5 -> DefaultConfig["ui.symbol.polygon.5", "⭐"]
+            6 -> DefaultConfig["ui.symbol.polygon.6", "⬡"]
+            in 30 until Integer.MAX_VALUE -> DefaultConfig["ui.symbol.polygon.circle", "◯"]
+            else -> DefaultConfig["ui.symbol.polygon.any", "⭐"]
+        }
+
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f){
         val inset = clamp(starNess[time], 0f, 1f)
         val image = Cache.getImage(texture, 5000, true)

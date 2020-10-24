@@ -79,6 +79,24 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
 
     var videoScale = DefaultConfig["default.video.scale", 6]
 
+    override fun getDefaultDisplayName(): String {
+        return if(file.hasValidName()) when(type){
+            VideoType.AUDIO -> "Audio"
+            VideoType.IMAGE -> "Image"
+            VideoType.IMAGE_SEQUENCE -> "Image Sequence"
+            VideoType.VIDEO -> "Video"
+        } else "Video"
+    }
+
+    override fun getSymbol(): String {
+        return when(if(file.hasValidName()) type else VideoType.VIDEO){
+            VideoType.AUDIO -> DefaultConfig["ui.symbol.audio", "\uD83D\uDD09"]
+            VideoType.IMAGE -> DefaultConfig["ui.symbol.image", "\uD83D\uDDBC️️"]
+            VideoType.VIDEO -> DefaultConfig["ui.symbol.video", "\uD83C\uDF9E️"]
+            VideoType.IMAGE_SEQUENCE -> DefaultConfig["ui.symbol.imageSequence", "\uD83C\uDF9E️"]
+        }
+    }
+
     var lastFile: File? = null
     var lastDuration = 10.0
     var imageSequenceMeta: ImageSequenceMeta? = null

@@ -1,5 +1,6 @@
 package me.anno.fonts
 
+import me.anno.config.DefaultConfig
 import me.anno.gpu.texture.FakeWhiteTexture
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
@@ -102,7 +103,11 @@ class AWTFont(val font: Font) : XFont {
         lineBreakWidth: Float
     ): PartResult {
 
-        val fonts = listOf(font, getFallback(fontSize))
+        val fallback = getFallback(fontSize)
+        val fonts = ArrayList<Font>(fallback.size + 1)
+
+        fonts += font
+        fonts += fallback
 
         fun getSupportLevel(char: Int, lastSupportLevel: Int): Int {
             fonts.forEachIndexed { index, font ->
@@ -270,14 +275,27 @@ class AWTFont(val font: Font) : XFont {
         // val staticMetrics = staticGfx.fontMetrics
         // val staticFontRenderCTX = staticGfx.fontRenderContext
 
-        var fallbackFont0 = Font("Segoe UI Emoji", Font.PLAIN, 25)
-        val fallbackFonts = HashMap<Float, Font>()
-        fun getFallback(size: Float): Font {
+        private val fallbackFontList = DefaultConfig[
+                "ui.font.fallbacks",
+                "Segoe UI Emoji,Segoe UI Symbol,DejaVu Sans,FreeMono,Unifont,Symbola"
+        ]
+            .split(',')
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+
+        // val fallbacks = FontManager.getFont("", size, 0f, 0f)
+        // var fallbackFont0 = Font("Segoe UI Emoji", Font.PLAIN, 25)
+        private val fallbackFonts = HashMap<Float, List<Font>>()
+        fun getFallback(size: Float): List<Font> {
             val cached = fallbackFonts[size]
             if (cached != null) return cached
-            val font = fallbackFont0.deriveFont(size)
-            fallbackFonts[size] = font
-            return font
+            val fonts = fallbackFontList
+                .map { FontManager.getFont(it, size, false, false) }
+                .filterIsInstance<AWTFont>()
+                .map { it.font }
+            // fallbackFont0.deriveFont(size)
+            fallbackFonts[size] = fonts
+            return fonts
         }
     }
 }

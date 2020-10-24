@@ -1,5 +1,6 @@
 package me.anno.objects.effects
 
+import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.blending.BlendDepth
@@ -46,6 +47,8 @@ abstract class MaskLayerBase(parent: Transform? = null): GFXTransform(parent){
     // for user-debugging
     var showMask = false
     var showMasked = false
+
+    override fun getSymbol() = DefaultConfig["ui.symbol.mask", "\uD83D\uDCA5"]
 
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
 
