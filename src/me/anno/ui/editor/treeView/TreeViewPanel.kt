@@ -6,6 +6,7 @@ import me.anno.config.DefaultStyle.midGray
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.select
+import me.anno.gpu.GFXx2D.drawRect
 import me.anno.input.Input
 import me.anno.input.Input.mouseX
 import me.anno.input.Input.mouseY
@@ -71,9 +72,9 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style) : TextPanel("
             val lineWidth = textSize * 7
             val lineColor = midGray
             when (showAddIndex) {
-                0 -> GFX.drawRect(x, y, lineWidth, 1, lineColor)
-                1 -> GFX.drawRect(x + indent, y + h - 1, lineWidth, 1, lineColor)
-                2 -> GFX.drawRect(x, y + h - 1, lineWidth, 1, lineColor)
+                0 -> drawRect(x, y, lineWidth, 1, lineColor)
+                1 -> drawRect(x + indent, y + h - 1, lineWidth, 1, lineColor)
+                2 -> drawRect(x, y + h - 1, lineWidth, 1, lineColor)
             }
         }
     }

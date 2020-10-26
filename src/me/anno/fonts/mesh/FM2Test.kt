@@ -2,6 +2,7 @@ package me.anno.fonts.mesh
 
 import me.anno.fonts.AWTFont
 import me.anno.fonts.FontManager
+import me.anno.gpu.GFXx2D.drawRect
 import me.anno.ui.base.DefaultRenderingHints.prepareGraphics
 import me.anno.utils.OS
 import java.awt.Color
@@ -41,7 +42,7 @@ fun main(){
     fun drawString(str: String, x: Float){
         val w = width(str)
         gfx.color = Color.DARK_GRAY
-        gfx.drawRect(x.toInt(), 0, w.toInt(), fh.toInt())
+        drawRect(x.toInt(), 0, w.toInt(), fh.toInt())
         gfx.color = Color.WHITE
         gfx.drawString(str, x, fs)
     }

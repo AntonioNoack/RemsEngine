@@ -3,6 +3,7 @@ package me.anno.objects.meshes
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.GFX.matrixBufferFBX
+import me.anno.gpu.GFXx3D.shader3DUniforms
 import me.anno.gpu.ShaderLib.shaderFBX
 import me.anno.gpu.ShaderLib.shaderObjMtl
 import me.anno.gpu.TextureLib.whiteTexture
@@ -32,7 +33,7 @@ class MeshData : CacheData {
     fun drawObj(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
         for ((material, buffer) in objData!!) {
             val shader = shaderObjMtl.shader
-            GFX.shader3DUniforms(shader, stack, 1, 1, color, null, FilteringMode.NEAREST, null)
+            shader3DUniforms(shader, stack, 1, 1, color, null, FilteringMode.NEAREST, null)
             getTexture(material.diffuseTexture, whiteTexture).bind(0, whiteTexture.nearest, whiteTexture.clampMode)
             buffer.draw(shader)
             GFX.check()
@@ -111,7 +112,7 @@ class MeshData : CacheData {
             GL20.glUniformMatrix4fv(shader["transforms"], false, matrixBufferFBX)
             GFX.check()
 
-            GFX.shader3DUniforms(shader, stack, 1, 1, color, null, FilteringMode.NEAREST, null)
+            shader3DUniforms(shader, stack, 1, 1, color, null, FilteringMode.NEAREST, null)
             getTexture(material.diffuseTexture, whiteTexture).bind(0, whiteTexture.nearest, whiteTexture.clampMode)
             buffer.draw(shader)
             GFX.check()

@@ -8,6 +8,7 @@ import me.anno.gpu.GFX.deltaTime
 import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.GFX.select
 import me.anno.gpu.GFX.windowStack
+import me.anno.gpu.GFXx2D.drawRect
 import me.anno.gpu.Window
 import me.anno.gpu.blending.BlendDepth
 import me.anno.gpu.blending.BlendMode
@@ -240,14 +241,14 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
         // todo ideally we could zoom in the image etc...
         // todo only do this, if we are appended to a camera :), not if we are building a 3D scene
 
-        GFX.drawRect(x, y, w, h, deepDark)
+        drawRect(x, y, w, h, deepDark)
 
         // preload resources :)
         // e.g. for video playback
         // we maybe could disable next frame fetching in Cache.kt...
         // todo doesn't work for auto-scaled videos... other plan?...
 
-        GFX.drawRect(x + dx, y + dy, rw, rh, black)
+        drawRect(x + dx, y + dy, rw, rh, black)
         if(goodW > 0 && goodH > 0){
             Scene.draw(
                 camera,

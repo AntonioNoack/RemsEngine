@@ -4,6 +4,10 @@ import me.anno.config.DefaultStyle.black
 import me.anno.config.DefaultStyle.white
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.loadTexturesSync
+import me.anno.gpu.GFXx2D.drawRect
+import me.anno.gpu.GFXx2D.drawText
+import me.anno.gpu.GFXx2D.drawTexture
+import me.anno.gpu.GFXx2D.getTextSize
 import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.input.Input.isControlDown
 import me.anno.input.Input.isShiftDown
@@ -112,10 +116,10 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
                 // to keep it loaded
                 drawnStrings.add(text)
 
-                val size = GFX.getTextSize(fontName, fontSize, isBold, isItalic, text, -1)
+                val size = getTextSize(fontName, fontSize, isBold, isItalic, text, -1)
                 val h = size.second
-                GFX.drawRect(x0 + size.first + 2, y, x1 - x0 - size.first, 1, fontColor and 0x3fffffff)
-                GFX.drawText(
+                drawRect(x0 + size.first + 2, y, x1 - x0 - size.first, 1, fontColor and 0x3fffffff)
+                drawText(
                     x0 + 2, y - h / 2, fontName, fontSize, isBold, isItalic,
                     text, fontColor, backgroundColor, -1
                 )
@@ -129,9 +133,9 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
         loadTexturesSync.push(true)
         val timeFontSize = 20
         val text = getTimeString(editorTime, 0.0)
-        val (tw, th) = GFX.getTextSize(fontName, timeFontSize, isBold, isItalic, text, -1)
+        val (tw, th) = getTextSize(fontName, timeFontSize, isBold, isItalic, text, -1)
         val color = mixARGB(fontColor, backgroundColor, 0.8f)
-        GFX.drawText(
+        drawText(
             x + (w - tw) / 2,
             y + (h - th) / 2,
             fontName,
@@ -204,13 +208,13 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
 
         fun drawDot(x: Int, y: Int, color: Int, willBeSelected: Boolean) {
             if (willBeSelected) {// draw outline, if point is selected
-                GFX.drawTexture(
+                drawTexture(
                     x - halfSize - 1, clamp(y - halfSize - 1, y0 - 1, y1),
                     dotSize + 2, dotSize + 2,
                     whiteTexture, -1, null
                 )
             }
-            GFX.drawTexture(
+            drawTexture(
                 x - halfSize, clamp(y - halfSize, y0 - 1, y1),
                 dotSize, dotSize,
                 whiteTexture, color, null
@@ -228,29 +232,29 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
         if (isSelecting) {
 
             // draw borders
-            GFX.drawTexture(
+            drawTexture(
                 minSelectX, minSelectY,
                 maxSelectX - minSelectX, 1,
                 whiteTexture, black, null
             )
-            GFX.drawTexture(
+            drawTexture(
                 minSelectX, minSelectY,
                 1, maxSelectY - minSelectY,
                 whiteTexture, black, null
             )
-            GFX.drawTexture(
+            drawTexture(
                 minSelectX, maxSelectY,
                 maxSelectX - minSelectX, 1,
                 whiteTexture, black, null
             )
-            GFX.drawTexture(
+            drawTexture(
                 maxSelectX, minSelectY,
                 1, maxSelectY - minSelectY,
                 whiteTexture, black, null
             )
 
             // draw inner
-            if (minSelectX + 1 < maxSelectX && minSelectY + 1 < maxSelectY) GFX.drawTexture(
+            if (minSelectX + 1 < maxSelectX && minSelectY + 1 < maxSelectY) drawTexture(
                 minSelectX + 1, minSelectY + 1,
                 maxSelectX - minSelectX - 2, maxSelectY - minSelectY - 2,
                 whiteTexture, black and 0x77000000, null

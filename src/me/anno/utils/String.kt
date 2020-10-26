@@ -1,14 +1,13 @@
 package me.anno.utils
 
 import me.anno.config.DefaultConfig
-import me.anno.gpu.GFX
 import me.anno.gpu.GFX.loadTexturesSync
+import me.anno.gpu.GFXx2D.getTextSize
 import me.anno.ui.base.TextPanel
 import java.io.File
 import kotlin.math.abs
 import kotlin.math.floor
 import kotlin.math.min
-
 
 fun List<Int>.joinChars() = joinToString(""){ String(Character.toChars(it)) }
 
@@ -20,7 +19,7 @@ fun getLineWidth(line: List<Int>, endIndex: Int, fontName: String, textSize: Int
     else {
         loadTexturesSync.push(true)
         val stringValue = line.subList(0, min(endIndex, line.size)).joinChars()
-        val measures = GFX.getTextSize(fontName, textSize, isBold, isItalic, stringValue, -1)
+        val measures = getTextSize(fontName, textSize, isBold, isItalic, stringValue, -1)
         loadTexturesSync.pop()
         measures.first.toFloat()
     }

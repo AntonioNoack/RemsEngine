@@ -1,5 +1,6 @@
 package me.anno.fonts.mesh
 
+import me.anno.gpu.GFXx2D.drawRect
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.buffer.StaticBuffer
@@ -354,7 +355,7 @@ class FontMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
         gfx.color = Color.GRAY
         for (i in pts.indices) {
             val a = pts[i]
-            gfx.drawRect(ix(a), iy(a), 1, 1)
+            drawRect(ix(a), iy(a), 1, 1)
             gfx.drawString("$i", ix(a), iy(a))
         }
     }
@@ -368,7 +369,7 @@ class FontMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
             gfx.drawLine(ix(c) + d, iy(c) + d, ix(b) + d, iy(b) + d)
             gfx.drawLine(ix(a) + d, iy(a) + d, ix(c) + d, iy(c) + d)
             val center = avg(a, b, c)
-            gfx.drawRect(ix(center) + d, iy(center) + d, 1, 1)
+            drawRect(ix(center) + d, iy(center) + d, 1, 1)
             gfx.drawString("${i / 3}", ix(center), iy(center))
         }
     }

@@ -5,6 +5,9 @@ import me.anno.config.DefaultStyle
 import me.anno.fonts.FontManager
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.openMenu
+import me.anno.gpu.GFXx2D
+import me.anno.gpu.GFXx2D.drawRect
+import me.anno.gpu.GFXx2D.flatColor
 import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.objects.Transform
@@ -216,12 +219,12 @@ open class TimelinePanel(style: Style) : Panel(style) {
         // probably because of program switching
         // 8% more are gained by assigning the color only once
         if(lineH > 0){
-            GFX.flatColor(lineColor)
+            flatColor(lineColor)
             for (stepIndex in maxStepIndex downTo minStepIndex) {
                 val time = stepIndex * timeStep
                 val x = getXAt(time).roundToInt()
                 if (x > x0 + 1 && x + 2 < x1) {
-                    GFX.drawRect(x, lineY, 1, lineH)
+                    drawRect(x, lineY, 1, lineH)
                 }
             }
         }
@@ -233,7 +236,7 @@ open class TimelinePanel(style: Style) : Panel(style) {
                 if (x > x0 + 1 && x + 2 < x1) {
                     val text = getTimeString(time, timeStep)
                     drawnStrings.add(text)
-                    GFX.drawText(
+                    GFXx2D.drawText(
                         x, y0, fontName, fontSize, isBold, isItalic,
                         text, fontColor, backgroundColor, -1, true
                     )
@@ -244,7 +247,7 @@ open class TimelinePanel(style: Style) : Panel(style) {
     }
 
     fun drawLine(time: Double, y0: Int, y1: Int, color: Int) {
-        GFX.drawRect(getXAt(time).roundToInt(), y0 + 2, 1, y1 - y0 - 4, color)
+        drawRect(getXAt(time).roundToInt(), y0 + 2, 1, y1 - y0 - 4, color)
     }
 
 

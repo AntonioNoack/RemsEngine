@@ -5,6 +5,7 @@ import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.flat01
 import me.anno.gpu.GFX.isFinalRendering
+import me.anno.gpu.GFXx2D.drawRect
 import me.anno.gpu.ShaderLib.ascColorDecisionList
 import me.anno.gpu.ShaderLib.brightness
 import me.anno.gpu.ShaderLib.createShader
@@ -343,7 +344,7 @@ object Scene {
 
             if (buffer == null) {
                 GFX.check()
-                GFX.drawRect(x0, y0, w, h, black)
+                drawRect(x0, y0, w, h, black)
             }
 
             // draw the 3D stuff

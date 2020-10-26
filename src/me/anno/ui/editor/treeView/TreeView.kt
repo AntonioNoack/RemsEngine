@@ -2,6 +2,7 @@ package me.anno.ui.editor.treeView
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
+import me.anno.gpu.GFXx2D.drawRect
 import me.anno.input.Input.mouseX
 import me.anno.input.Input.mouseY
 import me.anno.objects.Transform
@@ -80,12 +81,12 @@ class TreeView(style: Style) :
                 // on top
                 // add as child
                 val targetY = my - 1 + h / 2 - (fractionalHTI * h).toInt()
-                GFX.drawRect(this.x + 2, targetY, 3, 1, -1)
+                drawRect(this.x + 2, targetY, 3, 1, -1)
             } else {
                 // in between
                 // add in between elements
                 val targetY = my - 1 + h / 2 - (((hoveredTransformIndex + 0.5f) % 1f) * h).toInt()
-                GFX.drawRect(this.x + 2, targetY, 3, 1, -1)
+                drawRect(this.x + 2, targetY, 3, 1, -1)
             }
             val x = focused.x
             val y = focused.y

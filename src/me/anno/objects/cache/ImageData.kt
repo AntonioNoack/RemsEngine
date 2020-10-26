@@ -3,6 +3,7 @@ package me.anno.objects.cache
 import com.drew.imaging.ImageMetadataReader
 import com.drew.metadata.exif.ExifIFD0Directory
 import me.anno.gpu.GFX
+import me.anno.gpu.GFXx3D.shader3DUniforms
 import me.anno.gpu.ShaderLib.shader3DYUV
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
@@ -53,7 +54,7 @@ class ImageData(file: File) : CacheData {
             Frame(framebuffer){
                 id?.texture = framebuffer.textures[0]
                 val shader = frame.get3DShader().shader
-                GFX.shader3DUniforms(shader, Matrix4f(), Vector4f(1f, 1f, 1f, 1f))
+                shader3DUniforms(shader, Matrix4f(), Vector4f(1f, 1f, 1f, 1f))
                 frame.bind(0, NearestMode.TRULY_NEAREST, ClampMode.CLAMP)
                 if (shader == shader3DYUV.shader) {
                     val w2 = frame.w
@@ -111,7 +112,7 @@ class ImageData(file: File) : CacheData {
                 GFX.addGPUTask(frame.w, frame.h) {
                     frameToFramebuffer(frame, frame.w, frame.h, this)
                 }
-                // if(texture?.isLoaded == true) GFX.draw3D(stack, texture, color, nearestFiltering, tiling)
+                // if(texture?.isLoaded == true) draw3D(stack, texture, color, nearestFiltering, tiling)
             }
             else -> {
                 texture.create({

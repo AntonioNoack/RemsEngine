@@ -2,6 +2,7 @@ package me.anno.ui.custom
 
 import me.anno.config.DefaultStyle.white
 import me.anno.gpu.GFX
+import me.anno.gpu.GFXx2D.drawTexture
 import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.input.MouseButton
 import me.anno.objects.cache.Cache
@@ -41,7 +42,7 @@ class CustomContainer(default: Panel, style: Style) : PanelContainer(default, Pa
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.onDraw(x0, y0, x1, y1)
         val icon = Cache.getIcon("cross.png", true) ?: whiteTexture
-        GFX.drawTexture(x + w - 14, y + 2, 12, 12, icon, white, null)
+        drawTexture(x + w - 14, y + 2, 12, 12, icon, white, null)
     }
 
     fun changeType() {

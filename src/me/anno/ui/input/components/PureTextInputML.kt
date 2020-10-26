@@ -4,6 +4,8 @@ import me.anno.config.DefaultStyle.black
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.loadTexturesSync
+import me.anno.gpu.GFXx2D.drawRect
+import me.anno.gpu.GFXx2D.getTextSize
 import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.studio.RemsStudio.onSmallChange
@@ -119,7 +121,7 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
             val panel1 = children[cursor1.y]
             val line1 = lines[cursor1.y]
             val cursor1Text = line1.subList(0, cursor1.x).joinChars()
-            val cursorX1 = if (cursor1.x == 0) -1 else GFX.getTextSize(
+            val cursorX1 = if (cursor1.x == 0) -1 else getTextSize(
                 fontName,
                 textSize,
                 isBold,
@@ -131,7 +133,7 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
                 val panel2 = children[cursor2.y]
                 val line2 = lines[cursor2.y]
                 val cursor2Text = line2.subList(0, cursor2.x).joinChars()
-                val cursorX2 = if (cursor2.x == 0) -1 else GFX.getTextSize(
+                val cursorX2 = if (cursor2.x == 0) -1 else getTextSize(
                     fontName,
                     textSize,
                     isBold,
@@ -147,7 +149,7 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
                 val maxCursorX = kotlin.math.max(cursorX1, cursorX2)
                 if (minCursor.y == maxCursor.y) {
                     // draw box in same line
-                    GFX.drawRect(
+                    drawRect(
                         panel2.x + minCursorX,
                         panel2.y + padding,
                         maxCursorX - minCursorX,
@@ -159,7 +161,7 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
                     // todo not working when covered???
 
                     // draw end of first line
-                    GFX.drawRect(
+                    drawRect(
                         minPanel.x + minCursorX,
                         minPanel.y + padding,
                         (w - padding * 2) - minCursorX,
@@ -169,7 +171,7 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
 
                     // draw in between lines
                     if (minCursor.y + 1 < maxCursor.y) {
-                        GFX.drawRect(
+                        drawRect(
                             x,
                             minPanel.y + minPanel.h,
                             w,
@@ -180,10 +182,10 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
 
                     // draw start of last line
                     val endX = maxPanel.x + maxCursorX
-                    GFX.drawRect(x, maxPanel.y, endX - x, maxPanel.h - padding, textColor and 0x3fffffff)
+                    drawRect(x, maxPanel.y, endX - x, maxPanel.h - padding, textColor and 0x3fffffff)
 
                 }
-                if (showBars) GFX.drawRect(
+                if (showBars) drawRect(
                     panel2.x + cursorX2,
                     panel2.y + padding,
                     2,
@@ -191,7 +193,7 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
                     textColor
                 ) // cursor 1
             }
-            if (showBars) GFX.drawRect(
+            if (showBars) drawRect(
                 panel1.x + cursorX1,
                 panel1.y + padding,
                 2,

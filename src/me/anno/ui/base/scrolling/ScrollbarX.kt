@@ -1,6 +1,6 @@
 package me.anno.ui.base.scrolling
 
-import me.anno.gpu.GFX
+import me.anno.gpu.GFXx2D.drawRect
 import me.anno.input.Input
 import me.anno.ui.style.Style
 
@@ -17,7 +17,7 @@ open class ScrollbarX(val scrollbar: ScrollPanelX, style: Style): Scrollbar(styl
         val barW = relativeSize * w
         val barX = x + relativePosition * w * (1f - relativeSize)
 
-        GFX.drawRect(barX.toInt(), y0, barW.toInt(), y1-y0, multiplyAlpha(scrollColor, scrollColorAlpha + activeAlpha * wasActive))
+        drawRect(barX.toInt(), y0, barW.toInt(), y1-y0, multiplyAlpha(scrollColor, scrollColorAlpha + activeAlpha * wasActive))
 
     }
 

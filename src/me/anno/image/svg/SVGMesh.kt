@@ -52,8 +52,8 @@ class SVGMesh {
         val w = viewBox[2]
         val h = viewBox[3]
         createMesh(viewBox[0], viewBox[1], w, h)
-        minX = -w/2
-        maxX = +w/2
+        minX = -w/(2*h)
+        maxX = +w/(2*h)
         minY = -0.5
         maxY = +0.5
     }
@@ -250,7 +250,9 @@ class SVGMesh {
     }
 
     fun createMesh(x0: Double, y0: Double, w: Double, h: Double){
-        val scale = 1f/h
+        val cx = x0 + w / 2
+        val cy = y0 + h / 2
+        val scale = 1f / h
         val totalPointCount = curves.sumBy { it.triangles.size }
         val totalDoubleCount = totalPointCount * 7 // xyz, rgba
         if(totalPointCount > 0){
@@ -266,7 +268,7 @@ class SVGMesh {
                 val a = color.shr(24).and(255)/255f
                 val depth = it.depth.toFloat()
                 it.triangles.forEach { v ->
-                    buffer.put(((v.x-x0)*scale).toFloat(), ((v.y-y0)*scale).toFloat(), depth)
+                    buffer.put(((v.x-cx)*scale).toFloat(), ((v.y-cy)*scale).toFloat(), depth)
                     //buffer.put(Math.random().toDouble(), Math.random().toDouble(), Math.random().toDouble(), Math.random().toDouble())
                     // LOGGER.info(Vector3d((v.x-x0)*scale, (v.y-y0)*scale, it.depth).print())
                     buffer.put(r, g, b, a)

@@ -1,7 +1,7 @@
 package me.anno.ui.editor.color
 
 import me.anno.config.DefaultStyle
-import me.anno.gpu.GFX
+import me.anno.gpu.GFXx2D.drawRect
 import me.anno.studio.RemsStudio
 import me.anno.ui.style.Style
 import org.joml.Vector3f
@@ -18,6 +18,6 @@ class HueBar(chooser: ColorChooser, style: Style): HSVBox(chooser,
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.onDraw(x0, y0, x1, y1)
         val x = x0 + ((x1 - x0) * chooser.hue).roundToInt()
-        GFX.drawRect(x, y0, 1, y1 - y0, DefaultStyle.black)
+        drawRect(x, y0, 1, y1 - y0, DefaultStyle.black)
     }
 }

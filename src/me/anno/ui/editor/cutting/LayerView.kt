@@ -2,6 +2,7 @@ package me.anno.ui.editor.cutting
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
+import me.anno.gpu.GFXx2D.drawRect
 import me.anno.input.Input
 import me.anno.input.Input.isControlDown
 import me.anno.input.Input.keysDown
@@ -258,7 +259,7 @@ class LayerView(style: Style) : TimelinePanel(style) {
                     val relativeTime = (it.time - ht0) / (ht1 - ht0)
                     val x2 = mix(hx0, hx1, relativeTime).toInt()
                     if (x2 > x) {
-                        GFX.drawRect(x2, y0, 1, y1 - y0, accentColor)
+                        drawRect(x2, y0, 1, y1 - y0, accentColor)
                         x = x2
                     }
                 }

@@ -5,6 +5,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFX.glThread
 import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.GFX.toRadians
+import me.anno.gpu.GFXx3D.draw3DCircle
 import me.anno.gpu.blending.BlendDepth
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.blending.blendModes
@@ -316,7 +317,7 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
             stack.pushMatrix()
             if (scale != 1f) stack.scale(scale)
             stack.alignWithCamera(1f)
-            GFX.draw3DCircle(stack, inner, 0f, 360f, color)
+            draw3DCircle(stack, inner, 0f, 360f, color)
             stack.popMatrix()
         }
     }

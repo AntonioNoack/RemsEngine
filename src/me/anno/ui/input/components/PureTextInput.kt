@@ -3,6 +3,8 @@ package me.anno.ui.input.components
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.loadTexturesSync
+import me.anno.gpu.GFXx2D.drawRect
+import me.anno.gpu.GFXx2D.getTextSize
 import me.anno.input.Input.isControlDown
 import me.anno.input.Input.isShiftDown
 import me.anno.input.Input.mouseKeysDown
@@ -98,18 +100,18 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
             ensureCursorBounds()
             val padding = textSize/4
             // to do cache sizes... (low priority, because it has to be in focus for this calculation, so this calculation is rather rare)
-            val cursorX1 = if(cursor1 == 0) -1 else GFX.getTextSize(fontName, textSize, isBold, isItalic, characters.subList(0, cursor1).joinChars(), -1).first-1
+            val cursorX1 = if(cursor1 == 0) -1 else getTextSize(fontName, textSize, isBold, isItalic, characters.subList(0, cursor1).joinChars(), -1).first-1
             if(cursor1 != cursor2){
-                val cursorX2 = if(cursor2 == 0) -1 else GFX.getTextSize(fontName, textSize, isBold, isItalic, characters.subList(0, cursor2).joinChars(), -1).first-1
+                val cursorX2 = if(cursor2 == 0) -1 else getTextSize(fontName, textSize, isBold, isItalic, characters.subList(0, cursor2).joinChars(), -1).first-1
                 val min = min(cursorX1, cursorX2)
                 val max = max(cursorX1, cursorX2)
-                GFX.drawRect(x+min+drawingOffset, y+padding, max-min, h-2*padding, textColor and 0x3fffffff) // marker
-                if(showBars) GFX.drawRect(x+cursorX2+drawingOffset, y+padding, 2, h-2*padding, textColor) // cursor 1
+                drawRect(x+min+drawingOffset, y+padding, max-min, h-2*padding, textColor and 0x3fffffff) // marker
+                if(showBars) drawRect(x+cursorX2+drawingOffset, y+padding, 2, h-2*padding, textColor) // cursor 1
                 calculateOffset(wh.first, cursorX2)
             } else {
                 calculateOffset(wh.first, cursorX1)
             }
-            if(showBars) GFX.drawRect(x+cursorX1+drawingOffset, y+padding, 2, h-2*padding, textColor) // cursor 2
+            if(showBars) drawRect(x+cursorX1+drawingOffset, y+padding, 2, h-2*padding, textColor) // cursor 2
         }
         loadTexturesSync.pop()
     }

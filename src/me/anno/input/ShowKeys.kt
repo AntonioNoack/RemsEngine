@@ -2,6 +2,9 @@ package me.anno.input
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
+import me.anno.gpu.GFXx2D.drawRect
+import me.anno.gpu.GFXx2D.drawText
+import me.anno.gpu.GFXx2D.getTextSize
 import me.anno.gpu.blending.BlendDepth
 import me.anno.gpu.blending.BlendMode
 import me.anno.ui.base.TextPanel
@@ -79,9 +82,9 @@ object ShowKeys {
                 fun show(text: String, alpha: Float) {
                     val alphaMask = (alpha * 255).toInt().shl(24) or 0xffffff
                     val color = textColor and alphaMask
-                    val w0 = GFX.getTextSize(font, fontSize, false, false, text, -1).first
-                    GFX.drawRect(x0 + 5, h - y - 12 - fontSize, w0 + 10, fontSize + 8, bgColor and alphaMask)
-                    GFX.drawText(x0 + 10, h - y - 10 - fontSize, font, fontSize, false, false, text, color, bgColor, -1)
+                    val w0 = getTextSize(font, fontSize, false, false, text, -1).first
+                    drawRect(x0 + 5, h - y - 12 - fontSize, w0 + 10, fontSize + 8, bgColor and alphaMask)
+                    drawText(x0 + 10, h - y - 10 - fontSize, font, fontSize, false, false, text, color, bgColor, -1)
                     x0 += w0 + 16
                 }
 

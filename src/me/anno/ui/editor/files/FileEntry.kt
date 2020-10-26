@@ -7,6 +7,8 @@ import me.anno.gpu.GFX.askName
 import me.anno.gpu.GFX.inFocus
 import me.anno.gpu.GFX.openMenu
 import me.anno.gpu.GFX.width
+import me.anno.gpu.GFXx2D
+import me.anno.gpu.GFXx2D.drawTexture
 import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.gpu.blending.BlendDepth
 import me.anno.gpu.blending.BlendMode
@@ -175,7 +177,7 @@ class FileEntry(
         ih = (ih * scale).roundToInt()
         // makes them black, why ever...
         // image.ensureFilterAndClamping(NearestMode.LINEAR, ClampMode.CLAMP)
-        GFX.drawTexture(x + (size - iw) / 2, y + (size - ih) / 2, iw, ih, image, -1, null)
+        drawTexture(x + (size - iw) / 2, y + (size - ih) / 2, iw, ih, image, -1, null)
     }
 
     fun getTexture(): Any? {
@@ -214,11 +216,11 @@ class FileEntry(
                 val scale = (size - 20) / max(iw, ih).toFloat()
                 iw = (iw * scale).roundToInt()
                 ih = (ih * scale).roundToInt()
-                GFX.drawTexture(x + (size - iw) / 2, y + (size - ih) / 2, iw, ih, image, -1, null)
+                drawTexture(x + (size - iw) / 2, y + (size - ih) / 2, iw, ih, image, -1, null)
             } else {
                 val m = Matrix4fArrayList()
                 rot.apply(m)
-                GFX.drawTexture(m, w, h, image, -1, null)
+                drawTexture(m, w, h, image, -1, null)
             }
             false
         } else true
@@ -235,7 +237,7 @@ class FileEntry(
             // (maybe after half of the waiting time)
             val relativeTime = ((hoverPlaybackDelay + time) / hoverPlaybackDelay).toFloat()
             val r = 1f - sq(relativeTime * 2 - 1)
-            GFX.drawCircle(
+            GFXx2D.drawCircle(
                 w, h, 0f, relativeTime * 360f * 4 / 3, relativeTime * 360f * 2,
                 Vector4f(1f, 1f, 1f, r * 0.2f)
             )
@@ -252,7 +254,7 @@ class FileEntry(
         val image = getFrame(0)
         if (frameIndex > 0) getFrame(bufferLength)
         return if (image != null && image.isLoaded) {
-            GFX.drawTexture(w, h, image, -1, null)
+            drawTexture(w, h, image, -1, null)
             drawCircle()
             false
         } else true

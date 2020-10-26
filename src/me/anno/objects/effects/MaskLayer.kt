@@ -3,6 +3,8 @@ package me.anno.objects.effects
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.windowHeight
 import me.anno.gpu.GFX.windowWidth
+import me.anno.gpu.GFXx3D.draw3DBlur
+import me.anno.gpu.GFXx3D.draw3DMasked
 import me.anno.gpu.blending.BlendDepth
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
@@ -69,7 +71,7 @@ class MaskLayer(parent: Transform? = null) : MaskLayerBase(parent) {
                     // step1
                     Frame(w, h, true, target) {
                         glClear(GL_DEPTH_BUFFER_BIT)
-                        GFX.draw3DBlur(localTransform, size, w, h, isFirst)
+                        draw3DBlur(localTransform, size, w, h, isFirst)
                     }
                     target.bindTexture0(
                         offset,
@@ -130,7 +132,7 @@ class MaskLayer(parent: Transform? = null) : MaskLayerBase(parent) {
 
                 GFX.check()
 
-                GFX.draw3DMasked(
+                draw3DMasked(
                     localTransform, color,
                     type, useMaskColor[time],
                     pixelSize, isInverted
@@ -151,7 +153,7 @@ class MaskLayer(parent: Transform? = null) : MaskLayerBase(parent) {
                 masked.bindTexture0(1, NearestMode.TRULY_NEAREST, ClampMode.CLAMP)
                 mask.bindTexture0(0, NearestMode.TRULY_NEAREST, ClampMode.CLAMP)
 
-                GFX.draw3DMasked(
+                draw3DMasked(
                     localTransform, color,
                     type, useMaskColor[time],
                     0f, isInverted
@@ -164,7 +166,7 @@ class MaskLayer(parent: Transform? = null) : MaskLayerBase(parent) {
                 GFX.check()
                 mask.bindTextures(0, NearestMode.TRULY_NEAREST, ClampMode.CLAMP)
                 GFX.check()
-                GFX.draw3DMasked(
+                draw3DMasked(
                     localTransform, color,
                     type, useMaskColor[time],
                     pixelSize, isInverted

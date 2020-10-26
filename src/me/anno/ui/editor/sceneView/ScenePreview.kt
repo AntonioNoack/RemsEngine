@@ -3,6 +3,7 @@ package me.anno.ui.editor.sceneView
 import me.anno.config.DefaultStyle.black
 import me.anno.config.DefaultStyle.deepDark
 import me.anno.gpu.GFX
+import me.anno.gpu.GFXx2D.drawRect
 import me.anno.gpu.shader.ShaderPlus
 import me.anno.studio.Scene
 import me.anno.studio.RemsStudio.editorTime
@@ -87,7 +88,7 @@ class ScenePreview(style: Style) : PanelList(null, style.getChild("sceneView")),
 
         updatePosition()
 
-        GFX.drawRect(x, y, w, h, deepDark)
+        drawRect(x, y, w, h, deepDark)
 
         var dx = 0
         var dy = 0
@@ -125,7 +126,7 @@ class ScenePreview(style: Style) : PanelList(null, style.getChild("sceneView")),
             goodH = rh
         }
 
-        GFX.drawRect(x + dx, y + dy, rw, rh, black)
+        drawRect(x + dx, y + dy, rw, rh, black)
         Scene.draw(
             camera,
             x + dx, y + dy, goodW, goodH,

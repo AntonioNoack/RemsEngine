@@ -4,6 +4,7 @@ import me.anno.audio.AudioStream
 import me.anno.audio.SoundBuffer
 import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
+import me.anno.gpu.GFXx2D.drawRect
 import me.anno.input.Input
 import me.anno.objects.Audio
 import me.anno.objects.cache.Cache
@@ -105,7 +106,7 @@ class AudioLinePanel(var meta: FFMPEGMetadata, val audio: Audio, style: Style): 
                 val index = x - x0
                 val minY = minValue[index]
                 val maxY = maxValue[index]
-                GFX.drawRect(x, y+minY, 1, maxY-minY+1, black)
+                drawRect(x, y+minY, 1, maxY-minY+1, black)
             }
         } catch (e: IndexOutOfBoundsException){
             // buffer was changed -> we don't really care;

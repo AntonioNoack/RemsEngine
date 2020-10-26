@@ -1,6 +1,7 @@
 package me.anno.ui.base
 
 import me.anno.gpu.GFX
+import me.anno.gpu.GFXx2D.drawRect
 import me.anno.gpu.Window
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.input.MouseButton
@@ -118,9 +119,9 @@ open class Panel(val style: Style) {
     fun drawBackground() {
         // if the children are overlapping, this is incorrect
         // this however, should rarely happen...
-        GFX.drawRect(x, y, w, h, backgroundColor)
+        drawRect(x, y, w, h, backgroundColor)
         /*if(parent?.backgroundColor != backgroundColor){
-            GFX.drawRect(x, y, w, h, backgroundColor)
+            drawRect(x, y, w, h, backgroundColor)
         }*/
     }
 

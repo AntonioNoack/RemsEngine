@@ -2,6 +2,7 @@ package me.anno.ui.editor.sceneView
 
 import me.anno.config.DefaultStyle
 import me.anno.gpu.GFX
+import me.anno.gpu.GFXx2D.drawRect
 import me.anno.objects.Transform
 import org.joml.Matrix4f
 import org.joml.Vector3f
@@ -34,7 +35,7 @@ object Gizmo {
                 w, h, color, 1f
             )
             val rectSize = 7f - z * 3f
-            GFX.drawRect(
+            drawRect(
                 gx + gizmoSize * x - rectSize * 0.5f,
                 gy - gizmoSize * y - rectSize * 0.5f,
                 rectSize, rectSize, color or DefaultStyle.black

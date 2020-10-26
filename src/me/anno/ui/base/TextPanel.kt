@@ -7,6 +7,8 @@ import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.GFX.width
+import me.anno.gpu.GFXx2D
+import me.anno.gpu.GFXx2D.getTextSize
 import me.anno.gpu.texture.Texture2D
 import me.anno.input.MouseButton
 import me.anno.ui.style.Style
@@ -57,7 +59,7 @@ open class TextPanel(open var text: String, style: Style): Panel(style){
     var disableCopy = false
 
     fun drawText(x: Int, y: Int, text: String, color: Int): Pair<Int, Int> {
-        return GFX.drawText(this.x + x + padding.left, this.y + y + padding.top, fontName, textSize, isBold, isItalic,
+        return GFXx2D.drawText(this.x + x + padding.left, this.y + y + padding.top, fontName, textSize, isBold, isItalic,
             text, color, backgroundColor, widthLimit)
     }
 
@@ -71,7 +73,7 @@ open class TextPanel(open var text: String, style: Style): Panel(style){
         val inst = instantTextLoading
         if(inst) loadTexturesSync.push(true)
         super.calculateSize(w, h)
-        val (w2, h2) = GFX.getTextSize(fontName, textSize, isBold, isItalic, text, widthLimit)
+        val (w2, h2) = getTextSize(fontName, textSize, isBold, isItalic, text, widthLimit)
         minW = max(1, w2 + padding.width)
         minH = max(1, h2 + padding.height)
         minW2 = minW

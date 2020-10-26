@@ -1,6 +1,6 @@
 package me.anno.ui.editor.cutting
 
-import me.anno.gpu.GFX
+import me.anno.gpu.GFXx2D.drawRectGradient
 import me.anno.ui.editor.cutting.LayerView.Companion.maxStripes
 
 class Solution(val x0: Int, val y0: Int, val x1: Int, val y1: Int) {
@@ -19,8 +19,8 @@ class Solution(val x0: Int, val y0: Int, val x1: Int, val y1: Int) {
             gradients.forEach {
                 // val l = random.nextFloat()
                 // val v = Vector4f(l, l, l, 1f)
-                GFX.drawRectGradient(it.x0, y0, it.w, h0, it.c0, it.c2)
-                // GFX.drawRect(it.x0, y0, it.w, h0, v)
+                drawRectGradient(it.x0, y0, it.w, h0, it.c0, it.c2)
+                // drawRect(it.x0, y0, it.w, h0, v)
             }
         }
     }

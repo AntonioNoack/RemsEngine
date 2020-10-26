@@ -3,6 +3,9 @@ package me.anno.objects
 import me.anno.audio.AudioManager
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
+import me.anno.gpu.GFXx3D.draw3D
+import me.anno.gpu.GFXx3D.draw3DVideo
+import me.anno.gpu.SVGxGFX
 import me.anno.gpu.TextureLib
 import me.anno.gpu.TextureLib.colorShowTexture
 import me.anno.gpu.buffer.Attribute
@@ -158,7 +161,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
         for(pt in listOf(v00, v01, v10, v11)){
             val x = GFX.windowX + (+pt.x * 0.5f + 0.5f) * GFX.windowWidth
             val y = GFX.windowY + (-pt.y * 0.5f + 0.5f) * GFX.windowHeight
-            GFX.drawRect(x.toInt()-2, y.toInt()-2, 5, 5, 0xff0000 or black)
+            drawRect(x.toInt()-2, y.toInt()-2, 5, 5, 0xff0000 or black)
         }
         */
 
@@ -215,7 +218,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                 else {
                     w = frame.w
                     h = frame.h
-                    GFX.draw3DVideo(
+                    draw3DVideo(
                         this, time,
                         stack, frame, color, this@Video.filtering, this@Video.clampMode, tiling[time], uvProjection
                     )
@@ -227,7 +230,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
         }
 
         if (!wasDrawn) {
-            GFX.draw3D(
+            draw3D(
                 stack, colorShowTexture, 16, 9,
                 Vector4f(0.5f, 0.5f, 0.5f, 1f).mul(color),
                 FilteringMode.NEAREST, ClampMode.REPEAT, tiling16x9, uvProjection
@@ -281,7 +284,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                 if (frame != null && frame.isLoaded) {
                     w = frame.w
                     h = frame.h
-                    GFX.draw3DVideo(
+                    draw3DVideo(
                         this, time,
                         stack, frame, color, this@Video.filtering, this@Video.clampMode, tiling[time], uvProjection
                     )
@@ -291,14 +294,14 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                 }
 
                 // stack.scale(0.1f)
-                // GFX.draw3D(stack, FontManager.getString("Verdana",15f, "$frameIndex/$fps/$duration/$frameCount")!!, Vector4f(1f,1f,1f,1f), 0f)
+                // draw3D(stack, FontManager.getString("Verdana",15f, "$frameIndex/$fps/$duration/$frameCount")!!, Vector4f(1f,1f,1f,1f), 0f)
                 // stack.scale(10f)
 
             } else wasDrawn = true
         }
 
         if (!wasDrawn) {
-            GFX.draw3D(
+            draw3D(
                 stack, colorShowTexture, 16, 9,
                 Vector4f(0.5f, 0.5f, 0.5f, 1f).mul(color),
                 FilteringMode.NEAREST, ClampMode.REPEAT, tiling16x9, uvProjection
@@ -339,10 +342,10 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                 } as? StaticFloatBufferData
                 if (bufferData == null) onMissingImageOrFrame()
                 else {
-                    GFX.draw3DSVG(
+                    SVGxGFX.draw3DSVG(
                         this, time,
                         stack, bufferData, TextureLib.whiteTexture,
-                        color, FilteringMode.NEAREST, ClampMode.CLAMP, tiling[time]
+                        color, FilteringMode.NEAREST, clampMode, tiling[time]
                     )
                 }
             }
@@ -351,7 +354,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                 // calculate required scale? no, without animation, we don't need to scale it down ;)
                 val texture = Cache.getVideoFrame(file, 1, 0, 1, 1.0, imageTimeout, true)
                 if (texture == null || !texture.isLoaded) onMissingImageOrFrame()
-                else { GFX.draw3DVideo(this, time, stack, texture, color, filtering, clampMode, tiling, uvProjection) }
+                else { draw3DVideo(this, time, stack, texture, color, filtering, clampMode, tiling, uvProjection) }
             }
             else -> {// some image
                 val tiling = tiling[time]
@@ -361,7 +364,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                     texture.rotation?.apply(stack)
                     w = texture.w
                     h = texture.h
-                    GFX.draw3DVideo(
+                    draw3DVideo(
                         this, time, stack, texture, color, this.filtering, this.clampMode,
                         tiling, uvProjection
                     )

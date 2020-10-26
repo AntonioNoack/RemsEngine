@@ -1,7 +1,7 @@
 package me.anno.ui.base.scrolling
 
-import me.anno.gpu.GFX
 import me.anno.gpu.GFX.deltaTime
+import me.anno.gpu.GFXx2D.drawRect
 import me.anno.input.Input
 import me.anno.ui.base.Panel
 import me.anno.ui.style.Style
@@ -29,7 +29,7 @@ open class Scrollbar(style: Style): Panel(style.getChild("scrollbar")){
         val isActive = Input.mouseX.toInt() in x0 .. x1 && Input.mouseY.toInt() in y0 .. y1
         wasActive = mix(wasActive, if(isActive) 1f else 0f, min(1f, 5f * deltaTime))
 
-        GFX.drawRect(x0, y0, x1-x0, y1-y0, multiplyAlpha(scrollBackground, activeAlpha * wasActive))
+        drawRect(x0, y0, x1-x0, y1-y0, multiplyAlpha(scrollBackground, activeAlpha * wasActive))
 
     }
 

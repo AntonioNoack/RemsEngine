@@ -9,6 +9,7 @@ import me.anno.gpu.Cursor.useCursor
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.inFocus
 import me.anno.gpu.GFXBase0
+import me.anno.gpu.GFXx2D.drawRect
 import me.anno.gpu.Window
 import me.anno.gpu.blending.BlendDepth
 import me.anno.gpu.blending.BlendMode
@@ -277,7 +278,7 @@ abstract class StudioBase(val needsAudio: Boolean) {
 
                                         if (showRedraws) {
                                             wasRedrawn.forEach {
-                                                GFX.drawRect(
+                                                drawRect(
                                                     it.lx0,
                                                     it.ly0,
                                                     it.lx1 - it.lx0,

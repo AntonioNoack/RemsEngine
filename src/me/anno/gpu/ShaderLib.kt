@@ -442,8 +442,7 @@ object ShaderLib {
                 "a3 attr0;\n" +
                 "a4 attr1;\n" +
                 "void main(){\n" +
-                "   vec2 betterUV = attr0.xy*2.-1.;\n" +
-                "   localPosition = vec3(betterUV, attr0.z);\n" +
+                "   localPosition = attr0;\n" +
                 "   gl_Position = transform * vec4(localPosition, 1.0);\n" +
                 positionPostProcessing +
                 "   uv = attr0.xy;\n" +
@@ -469,7 +468,7 @@ object ShaderLib {
                 "   color.rgb = colorGrading(color.rgb);\n" +
                 "   if($hasForceFieldColor) color *= getForceFieldColor();\n" +
                 "   gl_FragColor = isInLimits(uv.x, uvLimits.xz) && isInLimits(uv.y, uvLimits.yw) ?\n" +
-                "       tint * color * getTexture(tex, uv) : vec4(0.0);\n" +
+                "       tint * color * getTexture(tex, uv * 0.5 + 0.5) : vec4(0.0);\n" +
                 "}"
 
         shader3DSVG = createShaderPlus("3d-svg", v3DSVG, y3DSVG, f3DSVG, listOf("tex"))

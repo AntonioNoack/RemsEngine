@@ -2,6 +2,7 @@ package me.anno.objects.geometric
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
+import me.anno.gpu.GFXx3D.draw3DCircle
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.shader.Shader
@@ -25,7 +26,7 @@ class Circle(parent: Transform? = null): GFXTransform(parent){
     override fun getSymbol() = DefaultConfig["ui.style.circle", "◯"]
 
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
-        GFX.draw3DCircle(stack, innerRadius[time], startDegrees[time], endDegrees[time], color)
+        draw3DCircle(stack, innerRadius[time], startDegrees[time], endDegrees[time], color)
     }
 
     override fun createInspector(list: PanelListY, style: Style, getGroup: (title: String, id: String) -> SettingCategory) {

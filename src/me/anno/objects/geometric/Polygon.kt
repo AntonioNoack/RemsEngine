@@ -3,6 +3,7 @@ package me.anno.objects.geometric
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.toRadians
+import me.anno.gpu.GFXx3D.draw3DPolygon
 import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer
@@ -68,7 +69,7 @@ class Polygon(parent: Transform? = null): GFXTransform(parent){
         } else if(!is3D){
             stack.scale(1f, 1f, 0f)
         }
-        GFX.draw3DPolygon(this, time, stack, getBuffer(count, selfDepth > 0f), texture, color,
+        draw3DPolygon(this, time, stack, getBuffer(count, selfDepth > 0f), texture, color,
             inset, filtering, ClampMode.CLAMP)
         stack.popMatrix()
         return

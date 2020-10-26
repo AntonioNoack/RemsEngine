@@ -1,6 +1,7 @@
 package me.anno.ui.editor.files.thumbs
 
 import me.anno.gpu.GFX
+import me.anno.gpu.GFXx2D.draw2D
 import me.anno.gpu.TextureLib
 import me.anno.gpu.blending.BlendDepth
 import me.anno.gpu.framebuffer.FBStack
@@ -205,7 +206,7 @@ object Thumbs {
                             glClearColor(0f, 0f, 0f, 1f)
                             glClear(GL_COLOR_BUFFER_BIT)
 
-                            GFX.draw2D(src)
+                            draw2D(src)
 
                             // draw only the clicked area?
                             glFlush(); glFinish() // wait for everything to be drawn
@@ -245,7 +246,7 @@ object Thumbs {
 
                 // todo use buffer data to generate svg image...
 
-                /*GFX.draw3DSVG(
+                /*draw3DSVG(
                         stack,
                         bufferData.buffer,
                         TextureLib.whiteTexture,

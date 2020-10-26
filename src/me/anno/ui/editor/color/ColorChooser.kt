@@ -2,6 +2,7 @@ package me.anno.ui.editor.color
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
+import me.anno.gpu.GFXx2D.posSize
 import me.anno.image.svg.SVGStyle.Companion.parseColorComplex
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.studio.RemsStudio.onSmallChange
@@ -156,7 +157,7 @@ class ColorChooser(style: Style, val withAlpha: Boolean, val owningProperty: Ani
                      spaceStyle: ColorVisualisation) {
         val shader = colorSpace.getShader(spaceStyle)
         shader.use()
-        GFX.posSize(shader, x, y + h, w, -h)
+        posSize(shader, x, y + h, w, -h)
         val sharpness = min(w, h) * 0.25f + 1f
         when (spaceStyle) {
             ColorVisualisation.WHEEL -> {

@@ -2,6 +2,9 @@ package me.anno.ui.editor.color
 
 import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
+import me.anno.gpu.GFXx2D.drawRect
+import me.anno.gpu.GFXx2D.drawRectGradient
+import me.anno.gpu.GFXx2D.drawTexture
 import me.anno.gpu.TextureLib
 import me.anno.gpu.texture.ClampMode
 import me.anno.gpu.texture.NearestMode
@@ -72,8 +75,8 @@ class HSVBoxMain(chooser: ColorChooser, v0: Vector3f, du: Vector3f, dv: Vector3f
 
     fun drawCrossHair(x: Int, y: Int) {
         // draw a circle around instead?
-        GFX.drawRect(x, y - 1, 1, 3, black)
-        GFX.drawRect(x - 1, y, 3, 1, black)
+        drawRect(x, y - 1, 1, 3, black)
+        drawRect(x - 1, y, 3, 1, black)
     }
 
     override fun onMouseDown(x: Float, y: Float, button: MouseButton) {
@@ -122,7 +125,7 @@ class HSVBoxMain(chooser: ColorChooser, v0: Vector3f, du: Vector3f, dv: Vector3f
                 while (i < outerRadius) {
                     val x2 = (cx + cos * i).roundToInt()
                     val y2 = (cy - sin * i).roundToInt()
-                    GFX.drawRect(x2, y2, 1, 1, 0x11000000)
+                    drawRect(x2, y2, 1, 1, 0x11000000)
                     i += 0.1f
                 }
                 if (!chooser.withAlpha) drawSmallRect()
@@ -147,7 +150,7 @@ class HSVBoxMain(chooser: ColorChooser, v0: Vector3f, du: Vector3f, dv: Vector3f
                 drawCrossHair(x, y)
                 val w3 = w - w2
                 // 0.515
-                GFX.drawRect(
+                drawRect(
                     this.x + (w2 * 0.510f / 0.5f).toInt(),
                     this.y + (dy * (1f - chooser.lightness)).toInt(),
                     (w3 * 0.5f / 0.515f).toInt(),
@@ -170,7 +173,7 @@ class HSVBoxMain(chooser: ColorChooser, v0: Vector3f, du: Vector3f, dv: Vector3f
             sx: Float, sy: Float, withGradient: Boolean
         ) {
             if (withGradient) {
-                GFX.drawRectGradient(x, y, w, h, chooser.backgroundColor.toVecRGBA(), chooser.rgba)
+                drawRectGradient(x, y, w, h, chooser.backgroundColor.toVecRGBA(), chooser.rgba)
             } else {
                 chooser.drawColorBox(
                     x, y, w, h,
@@ -182,7 +185,7 @@ class HSVBoxMain(chooser: ColorChooser, v0: Vector3f, du: Vector3f, dv: Vector3f
             if (chooser.opacity < 1f) {
                 val color =
                     (chooser.backgroundColor and 0xffffff) or ((1f - chooser.opacity) * 255).roundToInt().shl(24)
-                GFX.drawTexture(x, y, w, h, TextureLib.colorShowTexture, color, Vector4f(sx, sy, sx / 2, sy / 2))
+                drawTexture(x, y, w, h, TextureLib.colorShowTexture, color, Vector4f(sx, sy, sx / 2, sy / 2))
             }
         }
     }

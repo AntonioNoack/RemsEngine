@@ -1,7 +1,7 @@
 package me.anno.ui.editor.color
 
 import me.anno.config.DefaultStyle
-import me.anno.gpu.GFX
+import me.anno.gpu.GFXx2D.drawRect
 import me.anno.studio.RemsStudio
 import me.anno.ui.style.Style
 import me.anno.utils.clamp
@@ -20,10 +20,10 @@ class AlphaBar(chooser: ColorChooser, style: Style): HSVBox(chooser,
     override fun getVisualState(): Any? = Pair(super.getVisualState(), chooser.opacity)
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         val dragX = clamp(x0 + ((x1 - x0) * chooser.opacity).roundToInt(), x0, x1-1)
-        // GFX.drawRectGradient(x, y, w, h, backgroundColor.toVecRGBA(), Vector4f(1f))
+        // drawRectGradient(x, y, w, h, backgroundColor.toVecRGBA(), Vector4f(1f))
         // colorShowTexture.bind(0, NearestMode.TRULY_NEAREST, ClampMode.REPEAT)
-        // GFX.drawTexture(x, y, w, h, colorShowTexture, -1, Vector4f(w.toFloat() / h, 1f, 0f, 0f))
+        // drawTexture(x, y, w, h, colorShowTexture, -1, Vector4f(w.toFloat() / h, 1f, 0f, 0f))
         HSVBoxMain.drawColoredAlpha(x, y, w, h, chooser, w.toFloat() / h, 1f, true)
-        GFX.drawRect(dragX, y0, 1, y1 - y0, DefaultStyle.black)
+        drawRect(dragX, y0, 1, y1 - y0, DefaultStyle.black)
     }
 }
