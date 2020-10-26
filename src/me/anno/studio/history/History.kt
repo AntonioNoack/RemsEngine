@@ -4,6 +4,7 @@ import me.anno.config.DefaultConfig
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
+import org.apache.logging.log4j.LogManager
 import java.util.*
 import kotlin.math.max
 
@@ -33,7 +34,7 @@ class History: Saveable(){
     }
 
     fun undo(){
-        println("undo")
+        LOGGER.info("undo")
         synchronized(elements){
             // if the next insert index was 1,
             // then there were only 1 entry,
@@ -45,7 +46,7 @@ class History: Saveable(){
     }
 
     fun redo(){
-        println("redo")
+        LOGGER.info("redo")
         synchronized(elements){
             if(nextInsertIndex < elements.size){
                 elements[nextInsertIndex++].apply()
@@ -98,5 +99,9 @@ class History: Saveable(){
     }
 
     override fun isDefaultValue() = false
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(History::class)
+    }
 
 }

@@ -66,3 +66,10 @@ fun <K, V> Map<K, V>.one(func: (Map.Entry<K, V>) -> Boolean): Boolean {
     }
     return false
 }
+
+fun <V> List<V>.indexOf2(v: V, i0: Int, minus1: Boolean): Int {
+    for(i in i0 until size){
+        if(this[i] == v) return i
+    }
+    return if(minus1) -1 else size
+}

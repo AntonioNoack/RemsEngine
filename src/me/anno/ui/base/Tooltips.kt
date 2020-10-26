@@ -31,6 +31,7 @@ object Tooltips {
 
     init {
         container += WrapAlign.LeftTop
+        textPanel.breaksIntoMultiline = true
     }
 
     private val tooltipReactionTime get() = DefaultConfig["ui.tooltip.reactionTime", 300]
@@ -62,7 +63,8 @@ object Tooltips {
             val tooltipText = hoveredPanel?.getTooltipText(mouseX, mouseY)
             if(tooltipText != null && tooltipText.isNotBlank()){
                 textPanel.text = tooltipText
-                container.calculateSize(w, h)
+                val availableW = min(w, textPanel.textSize * 20)
+                container.calculateSize(availableW, h)
                 // container.applyConstraints()
                 val x = min(mouseX.roundToInt() + 10, w - container.minW)
                 val y = min(mouseY.roundToInt() - 20 , h - container.minH)

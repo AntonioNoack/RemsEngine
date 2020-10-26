@@ -309,26 +309,11 @@ object ShaderLib {
                 "   uvw = attr0;\n" +
                 "}"
 
-        val v3DSVG = v3DBase +
-                "a3 attr0;\n" +
-                "a4 attr1;\n" +
-                "void main(){\n" +
-                "   vec2 betterUV = attr0.xy*2.-1.;\n" +
-                "   localPosition = vec3(betterUV, attr0.z);\n" +
-                "   gl_Position = transform * vec4(localPosition, 1.0);\n" +
-                positionPostProcessing +
-                "   uv = attr0.xy;\n" +
-                "   color = attr1;\n" +
-                "}"
-
         val y3D = "" +
                 "varying v2 uv;\n" +
                 "varying v3 uvw;\n" +
                 "varying v3 localPosition;\n" +
                 "varying float zDistance;\n"
-
-        val y3DSVG = y3D +
-                "varying v4 color;\n"
 
         val f3D = "" +
                 "uniform vec4 tint;" +
@@ -453,14 +438,41 @@ object ShaderLib {
                 "}"
         shader3DBlur = createShader("3d-blur", v3DMasked, y3DMasked, f3DBlur, listOf("tex"))
 
+        val v3DSVG = v3DBase +
+                "a3 attr0;\n" +
+                "a4 attr1;\n" +
+                "void main(){\n" +
+                "   vec2 betterUV = attr0.xy*2.-1.;\n" +
+                "   localPosition = vec3(betterUV, attr0.z);\n" +
+                "   gl_Position = transform * vec4(localPosition, 1.0);\n" +
+                positionPostProcessing +
+                "   uv = attr0.xy;\n" +
+                "   color0 = attr1;\n" +
+                "}"
+
+        val y3DSVG = y3D +
+                "varying v4 color0;\n"
+
         val f3DSVG = "" +
                 "uniform vec4 tint;" +
                 "uniform sampler2D tex;\n" +
+                "uniform vec4 uvLimits;\n" +
                 getTextureLib +
+                getColorForceFieldLib +
+                brightness +
+                ascColorDecisionList +
+                "bool isInLimits(float value, vec2 minMax){\n" +
+                "   return value >= minMax.x && value <= minMax.y;\n" +
+                "}\n" +
                 "void main(){\n" +
-                "   gl_FragColor = tint * color * getTexture(tex, uv);\n" +
+                "   vec4 color = color0;\n" +
+                "   color.rgb = colorGrading(color.rgb);\n" +
+                "   if($hasForceFieldColor) color *= getForceFieldColor();\n" +
+                "   gl_FragColor = isInLimits(uv.x, uvLimits.xz) && isInLimits(uv.y, uvLimits.yw) ?\n" +
+                "       tint * color * getTexture(tex, uv) : vec4(0.0);\n" +
                 "}"
 
+        shader3DSVG = createShaderPlus("3d-svg", v3DSVG, y3DSVG, f3DSVG, listOf("tex"))
 
         val v3DCircle = v3DBase +
                 "a2 attr0;\n" + // angle, inner/outer
@@ -514,8 +526,6 @@ object ShaderLib {
         shaderFBX = FBXGeometry.getShader(v3DBase, positionPostProcessing, y3D, getTextureLib)
 
         shader3DCircle = createShaderPlus("3dCircle", v3DCircle, y3D, f3DMonoColor, listOf())
-
-        shader3DSVG = createShaderPlus("3d-svg", v3DSVG, y3DSVG, f3DSVG, listOf("tex"))
 
         shader3DYUV = createShaderPlus(
             "3d-yuv",

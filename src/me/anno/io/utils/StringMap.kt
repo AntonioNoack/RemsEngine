@@ -163,6 +163,21 @@ open class StringMap(
         }
     }
 
+    operator fun get(key: String, default: Long): Long {
+        return when (val value = this[key]) {
+            is Int -> value.toLong()
+            is Long -> value
+            is Float -> value.toLong()
+            is Double -> value.toLong()
+            is String -> value.toLongOrNull() ?: default
+            null -> {
+                set(key, default)
+                default
+            }
+            else -> value.toString().toLongOrNull() ?: default
+        }
+    }
+
     operator fun get(key: String, default: Vector3f): Vector3f {
         return when (val value = this[key]) {
             is Vector3f -> value

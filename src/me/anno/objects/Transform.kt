@@ -39,6 +39,7 @@ import me.anno.ui.editor.TimelinePanel
 import me.anno.ui.editor.TimelinePanel.Companion.global2Kf
 import me.anno.ui.input.*
 import me.anno.ui.style.Style
+import me.anno.utils.skew
 import org.joml.*
 import java.io.File
 import java.util.concurrent.atomic.AtomicInteger
@@ -229,11 +230,7 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
 
         if (scale.x != 1f || scale.y != 1f || scale.z != 1f) transform.scale(scale)
 
-        if (skew.x != 0f || skew.y != 0f) transform.mul3x3(// works
-            1f, skew.y, 0f,
-            skew.x, 1f, 0f,
-            0f, 0f, 1f
-        )
+        if (skew.x != 0f || skew.y != 0f) transform.skew(skew.x, skew.y)
 
         if (alignWithCamera != 0f) {
             transform.alignWithCamera(alignWithCamera)

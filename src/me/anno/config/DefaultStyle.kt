@@ -47,6 +47,7 @@ object DefaultStyle {
         // dark / light
         set("background", flatDark, white)
         set("menu.background", black, white)
+        set("tooltip.background", black, white)
         set("treeView.background", flatDark, midGray)
         set("propertyInspector.background", flatDark, midGray)
         set("sceneView.background", deepDark, lightGray)

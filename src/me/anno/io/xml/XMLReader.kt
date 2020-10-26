@@ -74,10 +74,11 @@ object XMLReader {
                 val (name, end) = input.readTypeUntilSpaceOrEnd()
                 // (name)
                 when {
-                    name.startsWith("?xml", true) -> {
+                    name.startsWith("?", true) -> {
                         // <?xml version="1.0" encoding="utf-8"?>
                         // I don't really care about it
                         // read until ?>
+                        // or <?xpacket end="w"?>
                         input.readUntil("?>")
                         return parse(null, input)
                     }

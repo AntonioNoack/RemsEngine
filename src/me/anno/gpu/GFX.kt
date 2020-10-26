@@ -36,6 +36,7 @@ import me.anno.input.MouseButton
 import me.anno.objects.Camera
 import me.anno.objects.Transform
 import me.anno.objects.Video
+import me.anno.objects.cache.StaticFloatBufferData
 import me.anno.objects.effects.MaskType
 import me.anno.objects.geometric.Circle
 import me.anno.objects.geometric.Polygon
@@ -738,14 +739,31 @@ object GFX : GFXBase1() {
     }
 
     fun draw3DSVG(
-        stack: Matrix4fArrayList, buffer: StaticBuffer, texture: Texture2D, color: Vector4f,
-        filtering: FilteringMode, clampMode: ClampMode
+        video: Video, time: Double,
+        stack: Matrix4fArrayList, buffer: StaticFloatBufferData, texture: Texture2D, color: Vector4f,
+        filtering: FilteringMode, clampMode: ClampMode, tiling: Vector4f?
     ) {
-        val shader = shader3DSVG.shader
-        shader3DUniforms(shader, stack, texture.w, texture.h, color, null, filtering, null)
-        texture.bind(0, filtering, clampMode)
-        buffer.draw(shader)
-        check()
+        // normalized on y-axis, width unknown
+        // uv[1] = (uv[0]-0.5) * tiling.xy + 0.5 + tiling.zw
+        // todo apply tiling for svgs...
+        if(tiling == null || true){
+            val shader = shader3DSVG.shader
+            shader3DUniforms(shader, stack, texture.w, texture.h, color, null, filtering, null)
+            colorGradingUniforms(video, time, shader)
+            shader.v4("uvLimits", 0f, 0f, 1f, 1f)
+            texture.bind(0, filtering, clampMode)
+            buffer.buffer.draw(shader)
+            check()
+        } else {
+            val minX = tiling.x
+            val shader = shader3DSVG.shader
+            shader3DUniforms(shader, stack, texture.w, texture.h, color, null, filtering, null)
+            colorGradingUniforms(video, time, shader)
+            shader.v4("uvLimits", 0f, 0f, 1f, 1f)
+            texture.bind(0, filtering, clampMode)
+            buffer.buffer.draw(shader)
+            check()
+        }
     }
 
     override fun renderStep0() {

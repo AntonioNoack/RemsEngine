@@ -6,12 +6,12 @@ import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.image.svg.gradient.LinearGradient
 import me.anno.image.svg.gradient.RadialGradient
+import me.anno.image.svg.tokenizer.SVGTokenizer
 import me.anno.io.xml.XMLElement
-import me.anno.utils.OS
-import me.anno.utils.clamp
-import me.anno.utils.length
+import me.anno.objects.Transform.Companion.zAxis
+import me.anno.utils.*
 import org.apache.logging.log4j.LogManager
-import org.joml.Vector2d
+import org.joml.*
 import java.awt.Color
 import java.awt.Graphics2D
 import java.awt.image.BufferedImage
@@ -38,10 +38,24 @@ class SVGMesh {
 
     val styles = HashMap<String, Any>()
 
+    // centered
+    var minX = 0.0
+    var maxX = 0.0
+    var minY = 0.0
+    var maxY = 0.0
+
+    val transform = Matrix4dArrayList()
+
     fun parse(svg: XMLElement){
         parseChildren(svg.children, null)
         val viewBox = (svg["viewBox"] ?: "0 0 100 100").split(' ').map { it.toDouble() }
-        createMesh(viewBox[0], viewBox[1], viewBox[2], viewBox[3])
+        val w = viewBox[2]
+        val h = viewBox[3]
+        createMesh(viewBox[0], viewBox[1], w, h)
+        minX = -w/2
+        maxX = +w/2
+        minY = -0.5
+        maxY = +0.5
     }
 
     fun parseChildren(children: List<Any>, parentGroup: XMLElement?){
@@ -84,7 +98,15 @@ class SVGMesh {
                         if(style.isStroke) addPath(this, style, false)
                     }
                     "g" -> {
+                        val transform2 = this["transform"]
+                        if(transform2 != null){
+                            transform.pushMatrix()
+                            applyTransform(transform, transform2)
+                        }
                         parseChildren(this.children, this)
+                        if(transform2 != null){
+                            transform.popMatrix()
+                        }
                     }
                     "switch", "foreignobject", "i:pgfref", "i:pgf" -> {
                         parseChildren(this.children, parentGroup)
@@ -122,9 +144,81 @@ class SVGMesh {
                             styles[id] = RadialGradient(this.children)
                         }
                     }
+                    "metadata" -> {} // I don't think, that I care...
                     else -> throw RuntimeException("Unknown svg element $type")
                 }
             }
+        }
+    }
+
+    private fun applyTransform(matrix: Matrix4d, actions: String){
+        val tokens = SVGTokenizer(actions).tokens
+        var i = 0
+        while(i+2 < tokens.size){
+            val name = tokens[i] as? String
+            if(name != null && tokens[i+1] == '('){
+                val endIndex = tokens.indexOf2(')', i, true)
+                if(endIndex < 0) return
+                val params = tokens.subList(i+2, endIndex)
+                    .filterIsInstance<Double>()
+                when(name.toLowerCase()){
+                    "translate" -> {
+                        if(params.isNotEmpty()){
+                            matrix.translate(
+                                params[0],
+                                params.getOrElse(1){ 0.0 },
+                                params.getOrElse(2){ 0.0 })
+                        }
+                    }
+                    "scale" -> {
+                        if(params.isNotEmpty()){
+                            matrix.scale(
+                                params[0],
+                                params.getOrElse(1){ 1.0 },
+                                params.getOrElse(2){ 1.0 })
+                        }
+                    }
+                    "matrix" -> {
+                        if(params.size == 6){
+                            transform.mul(
+                                Matrix4d(
+                                    params[0], params[1], 0.0, params[2],
+                                    params[3], params[4], 0.0, params[5],
+                                    0.0, 0.0, 1.0, 0.0,
+                                    0.0, 0.0, 0.0, 1.0
+                                )
+                            )
+                        }
+                    }
+                    "rotate" -> {
+                        when(params.size){
+                            1 -> {
+                                transform.rotate(toRadians(params[0]), zAxis)
+                            }
+                            3 -> {
+                                val dx = params[1]
+                                val dy = params[2]
+                                transform.translate(-dx, -dy, 0.0)
+                                transform.rotate(toRadians(params[0]), zAxis)
+                                transform.translate(dx, dy, 0.0)
+                            }
+                        }
+                    }
+                    "skewx" -> {
+                        if(params.size == 1){
+                            transform.skew(params[0], 0.0)
+                        }
+                    }
+                    "skewy" -> {
+                        if(params.size == 1){
+                            transform.skew(0.0, params[0])
+                        }
+                    }
+                    else -> throw RuntimeException("Unknown transform $name($params)")
+                }
+                i = endIndex
+            }// else unknown stuff...
+            i++
         }
     }
 
@@ -660,7 +754,15 @@ class SVGMesh {
     fun end(closed: Boolean){
 
         if(currentCurve.isNotEmpty()){
-            curves += SVGCurve(ArrayList(currentCurve), closed, z,
+            curves += SVGCurve(
+                ArrayList(
+                    currentCurve
+                        .map {
+                            val v = transform.transform(Vector4d(it.x, it.y, 0.0, 1.0))
+                            Vector2d(v.x, v.y)
+                        }
+                ),
+                closed, z,
                 if(currentFill) currentStyle.fill!! else currentStyle.stroke!!,
                 if(currentFill) 0.0 else currentStyle.strokeWidth)
             currentCurve.clear()

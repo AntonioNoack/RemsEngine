@@ -24,7 +24,6 @@ import me.anno.objects.modes.UVProjection
 import me.anno.objects.modes.VideoType
 import me.anno.studio.RemsStudio
 import me.anno.studio.RemsStudio.isPaused
-import me.anno.studio.RemsStudio.lastT
 import me.anno.studio.RemsStudio.nullCamera
 import me.anno.studio.RemsStudio.targetHeight
 import me.anno.studio.RemsStudio.targetWidth
@@ -57,8 +56,6 @@ import kotlin.math.*
 // todo pre-render small version for scrubbing? can we playback a small version using ffmpeg with no storage overhead?
 
 // todo feature tracking on videos as anchors, e.g. for easy blurry signs, or text above heads (marker on head/eyes)
-
-// todo image sequences using % in the name and number parsing...
 
 /**
  * Images, Cubemaps, Videos, Audios, joint into one
@@ -106,7 +103,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
 
     var editorVideoFPS = EditorFPS.F10
 
-    val cgOffset = AnimatedProperty.vec3()
+    val cgOffset = AnimatedProperty.color3(Vector3f())
     val cgSlope = AnimatedProperty.color(Vector4f(1f, 1f, 1f, 1f))
     val cgPower = AnimatedProperty.color(Vector4f(1f, 1f, 1f, 1f))
     val cgSaturation = AnimatedProperty.float(1f) // only allow +? only 01?
@@ -247,7 +244,6 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
 
     private fun drawVideo(meta: FFMPEGMetadata, stack: Matrix4fArrayList, time: Double, color: Vector4f) {
 
-        // todo automatic spherical size estimation??
         val zoomLevel = if (videoScale < 1) {
             // calculate reasonable zoom level from canvas size
             if (uvProjection.doScale) {
@@ -337,18 +333,16 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                 val bufferData = Cache.getEntry(file.absolutePath, "svg", 0, imageTimeout, true) {
                     val svg = SVGMesh()
                     svg.parse(XMLReader.parse(file.inputStream().buffered()) as XMLElement)
-                    StaticFloatBufferData(svg.buffer!!)
+                    val buffer = StaticFloatBufferData(svg.buffer!!)
+                    buffer.setBounds(svg)
+                    buffer
                 } as? StaticFloatBufferData
                 if (bufferData == null) onMissingImageOrFrame()
                 else {
-                    // todo apply tiling for svgs...
                     GFX.draw3DSVG(
-                        stack,
-                        bufferData.buffer,
-                        TextureLib.whiteTexture,
-                        color,
-                        FilteringMode.NEAREST,
-                        ClampMode.CLAMP
+                        this, time,
+                        stack, bufferData, TextureLib.whiteTexture,
+                        color, FilteringMode.NEAREST, ClampMode.CLAMP, tiling[time]
                     )
                 }
             }
@@ -490,7 +484,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
     }
 
     var lastAddedEndKeyframesFile: File? = null
-    fun addEndKeyframesMaybe(duration: Double){
+    private fun addEndKeyframesMaybe(duration: Double){
         // if the start was not modified, change the end... more flexible?
         val color = color
         if(color.isAnimated && duration > 0.2){
@@ -616,7 +610,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
             .setTooltip("Full resolution isn't always required. Define it yourself, or set it to automatic."))
         quality += vid(EnumInput(
             "Preview FPS", true, editorVideoFPS.displayName,
-            EditorFPS.values().map { it.displayName }, style
+            EditorFPS.values().filter { it.value * 0.98 <= (meta?.videoFPS ?: 1e85) }.map { it.displayName }, style
         )
             .setChangeListener { _, index, _ ->
                 editorVideoFPS = EditorFPS.values()[index]
@@ -636,7 +630,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
             )
         )
         color += img(VI("Slope", "Color Grading, Intensity", cgSlope, style))
-        color += img(VI("Offset", "Color Grading, ASC CDL", cgOffset, style))
+        color += img(VI("Offset", "Color Grading, can be used to color black objects", cgOffset, style))
 
         val audio = getGroup("Audio", "audio")
         /*if(meta?.hasAudio == true){
@@ -662,9 +656,9 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                     playbackButton.text = getPlaybackTitle(true)
                     if (component == null) {
                         GFX.addAudioTask(5) {
-                            val audio = Video(file, null)
-                            audio.startPlayback(0.0, 1.0, nullCamera)
-                            component = audio.component
+                            val audio2 = Video(file, null)
+                            audio2.startPlayback(0.0, 1.0, nullCamera)
+                            component = audio2.component
                         }
                     } else GFX.addAudioTask(1) { stopPlayback() }
                 } else StudioBase.warn("Separated playback is only available with paused editor")
@@ -757,10 +751,10 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
             videoScaleNames["1/16"] = 16
         }
 
-        val videoFrameTimeout = 500L
+        val videoFrameTimeout = DefaultConfig["ui.video.frameTimeout", 500L]
         val tiling16x9 = Vector4f(8f, 4.5f, 0f, 0f)
 
-        val imageTimeout = 5000L
+        val imageTimeout = DefaultConfig["ui.image.frameTimeout", 5000L]
 
         val cubemapModel = StaticBuffer(listOf(Attribute("attr0", 3), Attribute("attr1", 2)), 4 * 6)
         val speakerModel: StaticBuffer
