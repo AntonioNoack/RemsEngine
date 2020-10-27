@@ -2,6 +2,7 @@ package me.anno.config
 
 import me.anno.config.DefaultStyle.baseTheme
 import me.anno.io.config.ConfigBasics
+import me.anno.io.text.TextReader
 import me.anno.io.utils.StringMap
 import me.anno.objects.*
 import me.anno.objects.attractors.EffectColoring
@@ -12,6 +13,7 @@ import me.anno.objects.geometric.Polygon
 import me.anno.objects.meshes.Mesh
 import me.anno.objects.modes.UVProjection
 import me.anno.objects.particles.ParticleSystem
+import me.anno.studio.RemsStudio.workspace
 import me.anno.studio.project.Project
 import me.anno.ui.style.Style
 import me.anno.utils.OS
@@ -162,6 +164,31 @@ object DefaultConfig : StringMap() {
             if (file !in usedFiles) {
                 projects += ProjectHeader(name, file)
                 usedFiles += file
+            }
+        }
+        // load projects, which were forgotten because the config was deleted
+        if (DefaultConfig["recent.projects.detectAutomatically", true]) {
+            try {
+                for (folder in workspace.listFiles() ?: emptyArray()) {
+                    if (folder !in usedFiles) {
+                        if (folder.isDirectory) {
+                            val configFile = File(folder, "config.json")
+                            if (configFile.exists()) {
+                                try {
+                                    val config = TextReader.fromText(configFile.readText()).firstOrNull() as? StringMap
+                                    if (config != null) {
+                                        projects += ProjectHeader(config["general.name", folder.name], folder)
+                                        usedFiles += folder
+                                    }
+                                } catch (e: Exception){
+                                    e.printStackTrace()
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                LOGGER.warn("Crashed loading projects automatically", e)
             }
         }
         return projects
