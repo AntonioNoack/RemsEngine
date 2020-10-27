@@ -9,5 +9,5 @@ abstract class FontMeshBase: CacheData {
     var minY = Float.POSITIVE_INFINITY
     var maxX = Float.NEGATIVE_INFINITY
     var maxY = Float.NEGATIVE_INFINITY
-    abstract fun draw(matrix: Matrix4fArrayList, drawBuffer: (StaticBuffer) -> Unit)
+    abstract fun draw(drawBuffer: (StaticBuffer, offset: Float) -> Unit)
 }

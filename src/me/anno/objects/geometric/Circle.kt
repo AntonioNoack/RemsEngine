@@ -15,6 +15,7 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
 import org.joml.Matrix4fArrayList
+import org.joml.Vector3f
 import org.joml.Vector4f
 
 class Circle(parent: Transform? = null): GFXTransform(parent){
@@ -26,7 +27,11 @@ class Circle(parent: Transform? = null): GFXTransform(parent){
     override fun getSymbol() = DefaultConfig["ui.style.circle", "◯"]
 
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
-        draw3DCircle(stack, innerRadius[time], startDegrees[time], endDegrees[time], color)
+        draw3DCircle(this, time, stack, innerRadius[time], startDegrees[time], endDegrees[time], color)
+    }
+
+    override fun transformLocally(pos: Vector3f, time: Double): Vector3f {
+        return Vector3f(pos.x, -pos.y, pos.z) // why ever y needs to be mirrored...
     }
 
     override fun createInspector(list: PanelListY, style: Style, getGroup: (title: String, id: String) -> SettingCategory) {

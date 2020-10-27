@@ -176,4 +176,16 @@ abstract class GFXTransform(parent: Transform?) : Transform(parent) {
 
     }
 
+    companion object {
+
+
+        fun uploadAttractors0(shader: Shader) {
+
+            // localScale, localOffset not needed
+            shader.v1("forceFieldColorCount", 0)
+            shader.v1("forceFieldUVCount", 0)
+
+        }
+    }
+
 }

@@ -2,6 +2,7 @@ package me.anno.fonts.mesh
 
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.utils.accumulate
+import me.anno.utils.joinChars
 import org.joml.Matrix4fArrayList
 import java.awt.Font
 import java.awt.font.FontRenderContext
@@ -12,7 +13,9 @@ import kotlin.streams.toList
 /**
  * custom character-character alignment maps by font for faster calculation
  * */
-class FontMesh2(val font: Font, val text: String, val charSpacing: Float, debugPieces: Boolean = false) : FontMeshBase() {
+class FontMesh2(val font: Font, val text: String, val charSpacing: Float,
+                forceVariableBuffer: Boolean,
+                debugPieces: Boolean = false) : FontMeshBase() {
 
     val alignment = getAlignments(font)
     val ctx = FontRenderContext(null, true, true)
@@ -84,6 +87,7 @@ class FontMesh2(val font: Font, val text: String, val charSpacing: Float, debugP
 
     // better for the performance of long texts
     fun createStaticBuffer(){
+        // ("creating large ${codepoints.joinChars()}")
         val characters = alignment.third
         val b0 = characters[codepoints.first()]!!
         var vertexCount = 0
@@ -110,28 +114,25 @@ class FontMesh2(val font: Font, val text: String, val charSpacing: Float, debugP
     // are draw-calls always expensive??
     // or buffer creation?
     // very long strings just are displayed char by char (you must be kidding me ;))
-    private val isSmallBuffer = codepoints.size < 5 || codepoints.size > 512
+    private val isSmallBuffer = forceVariableBuffer || codepoints.size < 5 || codepoints.size > 512
 
     // the performance could be improved
     // still its initialization time should be much faster than FontMesh
-    override fun draw(matrix: Matrix4fArrayList, drawBuffer: (StaticBuffer) -> Unit) {
+    override fun draw(drawBuffer: (StaticBuffer, offset: Float) -> Unit) {
         if(codepoints.isEmpty()) return
         if(isSmallBuffer){
-            drawSlowly(matrix, drawBuffer)
+            drawSlowly(drawBuffer)
         } else {
             if(buffer == null) createStaticBuffer()
-            drawBuffer(buffer!!)
+            drawBuffer(buffer!!, 0f)
         }
     }
 
-    fun drawSlowly(matrix: Matrix4fArrayList, drawBuffer: (StaticBuffer) -> Unit){
+    fun drawSlowly(drawBuffer: (StaticBuffer, offset: Float) -> Unit){
         val characters = alignment.third
         codepoints.forEachIndexed { index, codePoint ->
-            val offset = offsets[index] * baseScale
-            matrix.pushMatrix()
-            matrix.translate(offset.toFloat(), 0f, 0f)
-            drawBuffer(characters[codePoint]!!)
-            matrix.popMatrix()
+            val offset = (offsets[index] * baseScale).toFloat()
+            drawBuffer(characters[codePoint]!!, offset)
         }
     }
 

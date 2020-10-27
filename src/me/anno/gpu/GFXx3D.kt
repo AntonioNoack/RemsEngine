@@ -5,6 +5,7 @@ import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.ClampMode
 import me.anno.gpu.texture.FilteringMode
 import me.anno.gpu.texture.Texture2D
+import me.anno.objects.GFXTransform
 import me.anno.objects.Video
 import me.anno.objects.effects.MaskType
 import me.anno.objects.geometric.Circle
@@ -14,6 +15,7 @@ import me.anno.studio.RemsStudio
 import me.anno.video.VFrame
 import org.joml.Matrix4f
 import org.joml.Matrix4fArrayList
+import org.joml.Vector3f
 import org.joml.Vector4f
 import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL30
@@ -95,28 +97,48 @@ object GFXx3D {
     }
 
     fun draw3D(
+        that: GFXTransform?, time: Double, offset: Vector3f,
         stack: Matrix4fArrayList, buffer: StaticBuffer, texture: Texture2D, w: Int, h: Int, color: Vector4f,
         filtering: FilteringMode, clampMode: ClampMode, tiling: Vector4f?
     ) {
         val shader = ShaderLib.shader3D.shader
         shader3DUniforms(shader, stack, w, h, color, tiling, filtering, null)
+        shader.v3("offset", offset)
+        that?.uploadAttractors(shader, time) ?: GFXTransform.uploadAttractors0(shader)
         texture.bind(0, filtering, clampMode)
         buffer.draw(shader)
         GFX.check()
     }
 
     fun draw3D(
+        that: GFXTransform?, time: Double, offset: Vector3f,
         stack: Matrix4fArrayList, buffer: StaticBuffer, texture: Texture2D, color: Vector4f,
         filtering: FilteringMode, clampMode: ClampMode, tiling: Vector4f?
     ) {
-        draw3D(stack, buffer, texture, texture.w, texture.h, color, filtering, clampMode, tiling)
+        draw3D(that, time, offset, stack, buffer, texture, texture.w, texture.h, color, filtering, clampMode, tiling)
     }
 
-    fun colorGradingUniforms(video: Video, time: Double, shader: Shader) {
-        shader.v3("cgOffset", video.cgOffset[time])
-        shader.v3X("cgSlope", video.cgSlope[time])
-        shader.v3X("cgPower", video.cgPower[time])
-        shader.v1("cgSaturation", video.cgSaturation[time])
+    fun draw3DOffset(
+        buffer: StaticBuffer,
+        offset: Vector3f
+    ) {
+        val shader = ShaderLib.shader3D.shader
+        shader.v3("offset", offset)
+        buffer.draw(shader)
+    }
+
+    fun colorGradingUniforms(video: Video?, time: Double, shader: Shader) {
+        if(video == null){
+            shader.v3("cgOffset", Vector3f())
+            shader.v3X("cgSlope", Vector4f(1f))
+            shader.v3X("cgPower", Vector4f(1f))
+            shader.v1("cgSaturation", 1f)
+        } else {
+            shader.v3("cgOffset", video.cgOffset[time])
+            shader.v3X("cgSlope", video.cgSlope[time])
+            shader.v3X("cgPower", video.cgPower[time])
+            shader.v1("cgSaturation", video.cgSaturation[time])
+        }
     }
 
     fun draw3DPolygon(
@@ -187,6 +209,7 @@ object GFXx3D {
     ) {
         val shader = ShaderLib.shader3D.shader
         shader3DUniforms(shader, stack, w, h, color, tiling, filtering, uvProjection)
+        shader.v3("offset", 0f, 0f, 0f)
         texture.bind(0, filtering, clampMode)
         uvProjection.getBuffer().draw(shader)
         GFX.check()
@@ -221,6 +244,7 @@ object GFXx3D {
     }
 
     fun draw3DCircle(
+        that: GFXTransform?, time: Double,
         stack: Matrix4fArrayList,
         innerRadius: Float,
         startDegrees: Float,
@@ -229,6 +253,7 @@ object GFXx3D {
     ) {
         val shader = ShaderLib.shader3DCircle.shader
         shader3DUniforms(shader, stack, 1, 1, color, null, FilteringMode.NEAREST, null)
+        that?.uploadAttractors(shader, time) ?: GFXTransform.uploadAttractors0(shader)
         var a0 = startDegrees
         var a1 = endDegrees
         // if the two arrows switch sides, flip the circle

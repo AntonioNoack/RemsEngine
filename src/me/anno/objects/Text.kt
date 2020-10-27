@@ -9,6 +9,7 @@ import me.anno.fonts.mesh.FontMesh2
 import me.anno.fonts.mesh.FontMeshBase
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXx3D.draw3D
+import me.anno.gpu.GFXx3D.draw3DOffset
 import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.gpu.texture.ClampMode
 import me.anno.gpu.texture.FilteringMode
@@ -39,11 +40,9 @@ import java.awt.Font
 import java.io.File
 import kotlin.math.max
 
-// todo when a new part is loaded, notify the ui
-
 // todo animated text, like in RPGs, where text appears; or like typing
-
 // todo background "color" in the shape of a plane? for selections and such
+
 open class Text(text: String = "", parent: Transform? = null) : GFXTransform(parent) {
 
     val backgroundColor = AnimatedProperty.color()
@@ -95,6 +94,7 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
 
     val fontSize0 = 20f
     val charSpacing get() = fontSize0 * relativeCharSpacing
+    var forceVariableBuffer = false
 
     fun createKeys() =
         lineSegmentsWithStyle?.parts?.map { FontMeshKey(it.font, isBold, isItalic, it.text, charSpacing) }
@@ -128,13 +128,11 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
         val isBold = isBold
         val isItalic = isItalic
 
-        val shallLoadAsync = true
+        val shallLoadAsync = !forceVariableBuffer
 
         val charSpacing = charSpacing
 
-        if (text.isNotBlank()) {
-
-            stack.pushMatrix()
+        if (text.isNotEmpty()) {
 
             if (text != lastText || keys == null) {
                 lastText = text
@@ -163,7 +161,7 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
 
             fun getFontMesh(fontMeshKey: FontMeshKey): FontMeshBase? {
                 return Cache.getEntry(fontMeshKey, fontMeshTimeout, shallLoadAsync) {
-                    FontMesh2(fontMeshKey.font, fontMeshKey.text, charSpacing)
+                    FontMesh2(fontMeshKey.font, fontMeshKey.text, charSpacing, forceVariableBuffer)
                 } as? FontMeshBase
             }
 
@@ -172,17 +170,19 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
 
             val totalHeight = lineOffset * height
 
-            stack.translate(
-                when (blockAlignmentX) {
-                    AxisAlignment.MIN -> -width
-                    AxisAlignment.CENTER -> -width / 2
-                    AxisAlignment.MAX -> 0f
-                }, when (blockAlignmentY) {
-                    AxisAlignment.MIN -> 0f + lineOffset * 0.57f // text touches top
-                    AxisAlignment.CENTER -> -totalHeight * 0.5f + lineOffset * 0.75f // center line, height of horizontal in e
-                    AxisAlignment.MAX -> -totalHeight + lineOffset // exactly baseline
-                }, 0f
-            )
+            val dx0 = when (blockAlignmentX) {
+                AxisAlignment.MIN -> -width
+                AxisAlignment.CENTER -> -width / 2
+                AxisAlignment.MAX -> 0f
+            }
+
+            val dy0 = when (blockAlignmentY) {
+                AxisAlignment.MIN -> 0f + lineOffset * 0.57f // text touches top
+                AxisAlignment.CENTER -> -totalHeight * 0.5f + lineOffset * 0.75f // center line, height of horizontal in e
+                AxisAlignment.MAX -> -totalHeight + lineOffset // exactly baseline
+            }
+
+            var firstTimeDrawing = true
 
             for ((index, value) in lineSegmentsWithStyle.parts.withIndex()) {
 
@@ -201,25 +201,32 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
                     AxisAlignment.MAX -> (width - value.lineWidth * scaleX)
                 }// - 2 * fontMesh.minX.toFloat()
 
-                stack.pushMatrix()
+                val dx1 = dx0 + value.xPos * scaleX + offsetX
+                val dy1 = dy0 + value.yPos * scaleY * lineOffset
 
-                stack.translate(value.xPos * scaleX + offsetX, value.yPos * scaleY * lineOffset, 0f)
-
-                fontMesh.draw(stack) { buffer ->
-                    draw3D(stack, buffer, whiteTexture, color, FilteringMode.NEAREST, ClampMode.CLAMP, null)
+                fontMesh.draw { buffer, xOffset ->
+                    // why is y mirrored?
+                    val offset = Vector3f(dx1 + xOffset, -dy1, 0f)
+                    if(firstTimeDrawing){
+                        draw3D(
+                            this, time, offset, stack, buffer, whiteTexture, color,
+                            FilteringMode.NEAREST, ClampMode.CLAMP, null
+                        )
+                        firstTimeDrawing = false
+                    } else {
+                        draw3DOffset(buffer, offset)
+                    }
                 }
-
-                stack.popMatrix()
 
             }
 
-            // todo calculate (signed) distance fields for different kinds of shadows from the mesh
-
-            stack.popMatrix()
-
         }
 
+    }
 
+    override fun transformLocally(pos: Vector3f, time: Double): Vector3f {
+        // why is y mirrored?
+        return Vector3f(pos.x, -pos.y, pos.z)
     }
 
     override fun save(writer: BaseWriter) {
@@ -348,7 +355,8 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
         val alignGroup = getGroup("Alignment", "alignment")
         fun align(title: String, value: AxisAlignment, x: Boolean, set: (self: Text, AxisAlignment) -> Unit) {
             operator fun AxisAlignment.get(x: Boolean) = if (x) xName else yName
-            alignGroup += EnumInput(title, true,
+            alignGroup += EnumInput(
+                title, true,
                 value[x],
                 AxisAlignment.values().map { it[x] }, style
             )

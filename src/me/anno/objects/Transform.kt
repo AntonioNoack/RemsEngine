@@ -105,7 +105,7 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
     var weight = 1f
 
     fun putValue(list: AnimatedProperty<*>, value: Any) {
-        val time = if (list.isAnimated) global2Kf(editorTime) else 0.0
+        val time = global2Kf(editorTime)
         list.addKeyframe(time, value, TimelinePanel.propertyDt)
         RemsStudio.updateSceneViews()
     }
@@ -317,7 +317,7 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
             stack.pushMatrix()
             if (scale != 1f) stack.scale(scale)
             stack.alignWithCamera(1f)
-            draw3DCircle(stack, inner, 0f, 360f, color)
+            draw3DCircle(null, 0.0, stack, inner, 0f, 360f, color)
             stack.popMatrix()
         }
     }

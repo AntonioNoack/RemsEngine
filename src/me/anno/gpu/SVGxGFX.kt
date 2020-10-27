@@ -17,7 +17,7 @@ import kotlin.math.round
 object SVGxGFX {
 
     fun draw3DSVG(
-        video: Video, time: Double,
+        video: Video?, time: Double,
         stack: Matrix4fArrayList, buffer: StaticFloatBufferData, texture: Texture2D, color: Vector4f,
         filtering: FilteringMode, clampMode: ClampMode, tiling: Vector4f?
     ) {

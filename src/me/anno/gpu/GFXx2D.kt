@@ -199,7 +199,7 @@ object GFXx2D {
         color.w /= 25f
         for (dx in 0 until 5) {
             for (dy in 0 until 5) {
-                draw3DCircle(matrix, innerRadius, startDegrees, endDegrees, color)
+                draw3DCircle(null, 0.0, matrix, innerRadius, startDegrees, endDegrees, color)
             }
         }
     }

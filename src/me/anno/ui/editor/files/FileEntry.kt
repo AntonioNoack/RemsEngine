@@ -180,9 +180,13 @@ class FileEntry(
         drawTexture(x + (size - iw) / 2, y + (size - ih) / 2, iw, ih, image, -1, null)
     }
 
+    fun getDefaultIcon() = Cache.getIcon(iconPath, true)
+
     fun getTexture(): Any? {
-        fun getImage() = Thumbs.getThumbnail(file, w)
-        fun getDefaultIcon() = Cache.getIcon(iconPath, true)
+        fun getImage(): Any? {
+            val thumb = Thumbs.getThumbnail(file, w)
+            return thumb ?: getDefaultIcon()
+        }
         return when (importType) {
             "Video", "Audio" -> {
                 val meta = meta
@@ -205,7 +209,7 @@ class FileEntry(
         val w = w
         val h = h
         val size = size
-        val image = Thumbs.getThumbnail(file, w)
+        val image = Thumbs.getThumbnail(file, w) ?: getDefaultIcon()
         // val image = if (file.length() < 10e6) Cache.getImage(file, 1000, true) else null
         return if (image != null) {
             var iw = image.w

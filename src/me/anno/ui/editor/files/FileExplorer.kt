@@ -49,6 +49,7 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
     var isValid = 0f
 
     var entrySize = 64f
+    val minEntrySize = 32f
 
     fun invalidate(){
         isValid = 0f
@@ -211,7 +212,7 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
 
     override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float) {
         if(Input.isControlDown){
-            entrySize = clamp(entrySize * pow(1.05f, dy), 20f, max(w/2f, 20f))
+            entrySize = clamp(entrySize * pow(1.05f, dy), minEntrySize, max(w/2f, 20f))
             val esi = entrySize.toInt()
             content.childWidth = esi
             content.childHeight = esi

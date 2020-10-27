@@ -14,13 +14,15 @@ import kotlin.math.floor
 
 class Timer(parent: Transform? = null): Text("", parent) {
 
+    init { forceVariableBuffer = true } // saves buffer creation
+
     // todo extra start value in a date format?
 
     override fun getSymbol() = DefaultConfig["ui.symbol.timer", "\uD83D\uDD51"]
 
     var format = "hh:mm:ss.s2"
 
-    override fun splitSegments(text: String): PartResult? {
+    /*override fun splitSegments(text: String): PartResult? {
         if(text.isEmpty()) return null
         var index = 0
         var startIndex = 0
@@ -42,7 +44,7 @@ class Timer(parent: Transform? = null): Text("", parent) {
         }
         if(index > startIndex) add(super.splitSegments(text.substring(startIndex, index))!!)
         return partResult!!
-    }
+    }*/
 
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
 

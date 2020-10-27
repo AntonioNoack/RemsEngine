@@ -11,6 +11,7 @@ import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.shader.Shader
+import me.anno.objects.GFXTransform
 import me.anno.objects.Transform.Companion.xAxis
 import me.anno.objects.Transform.Companion.yAxis
 import me.anno.objects.Transform.Companion.zAxis
@@ -122,6 +123,8 @@ object Grid {
     ) {
         val shader = shader3D.shader
         shader.use()
+        GFXTransform.uploadAttractors0(shader)
+        shader.v3("offset", 0f, 0f, 0f)
         val stack = Matrix4f()
         stack.translate(x0, y0, 0f)
         val angle = atan2(y1 - y0, x1 - x0)
@@ -138,6 +141,8 @@ object Grid {
 
         val shader = shader3D.shader
         shader.use()
+        GFXTransform.uploadAttractors0(shader)
+        shader.v3("offset", 0f, 0f, 0f)
         stack.get(GFX.matrixBuffer)
         glUniformMatrix4fv(shader["transform"], false, GFX.matrixBuffer)
         defaultUniforms(shader, color, alpha)
@@ -192,6 +197,8 @@ object Grid {
 
         val shader = shader3D.shader
         shader.use()
+        GFXTransform.uploadAttractors0(shader)
+        shader.v3("offset", 0f, 0f, 0f)
         stack.get(GFX.matrixBuffer)
         glUniformMatrix4fv(shader["transform"], false, GFX.matrixBuffer)
         defaultUniforms(shader, color)
@@ -206,6 +213,8 @@ object Grid {
 
         val shader = shader3D.shader
         shader.use()
+        GFXTransform.uploadAttractors0(shader)
+        shader.v3("offset", 0f, 0f, 0f)
         stack.get(GFX.matrixBuffer)
         glUniformMatrix4fv(shader["transform"], false, GFX.matrixBuffer)
         defaultUniforms(shader, -1, alpha)

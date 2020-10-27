@@ -1,13 +1,17 @@
 package me.anno.ui.editor.files.thumbs
 
 import me.anno.gpu.GFX
+import me.anno.gpu.GFXx2D
 import me.anno.gpu.GFXx2D.draw2D
+import me.anno.gpu.SVGxGFX
 import me.anno.gpu.TextureLib
+import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.gpu.blending.BlendDepth
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.texture.ClampMode
 import me.anno.gpu.texture.FilteringMode
+import me.anno.gpu.texture.NearestMode
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.HDRImage
 import me.anno.image.svg.SVGMesh
@@ -24,7 +28,8 @@ import me.anno.video.FFMPEGMetadata.Companion.getMeta
 import me.anno.video.VFrame
 import net.boeckling.crc.CRC64
 import org.apache.commons.imaging.Imaging
-import org.lwjgl.opengl.ARBDirectStateAccess.glNamedFramebufferReadBuffer
+import org.joml.Matrix4fArrayList
+import org.joml.Vector4f
 import org.lwjgl.opengl.GL11.*
 import java.awt.image.BufferedImage
 import java.io.File
@@ -74,18 +79,19 @@ object Thumbs {
     fun getThumbnail(file: File, neededSize: Int): Texture2D? {
         val size = getSize(neededSize)
         val key = ThumbnailKey(file, size)
-        return (Cache.getEntry(key, timeout, true) {
+        return (Cache.getEntry(key, timeout, false) {
             val cache = TextureCache(null)
             thread { generate(file, size) { cache.texture = it } }
             cache
-        } as TextureCache?)?.texture as? Texture2D
+        } as TextureCache).texture as? Texture2D
     }
 
     // png/bmp/jpg?
     private const val destinationFormat = "png"
     private fun generate(srcFile: File, size: Int, callback: (Texture2D) -> Unit) {
 
-        if (size < 16) return // does not need to generate image (?)
+        if(size < 1) return
+
         val dstFile = srcFile.getCacheFile(size)
         if (dstFile.exists()) {
 
@@ -114,7 +120,7 @@ object Thumbs {
 
             fun saveNUpload(dst: BufferedImage) {
                 dstFile.parentFile.mkdirs()
-                ImageIO.write(dst, "png", dstFile)
+                ImageIO.write(dst, destinationFormat, dstFile)
                 upload(dst)
             }
 
@@ -148,6 +154,69 @@ object Thumbs {
                 }
             }
 
+            fun renderToBufferedImage(w: Int, h: Int, render: () -> Unit) {
+
+                val buffer = IntArray(w * h)
+
+
+                GFX.addGPUTask(w, h) {
+
+                    GFX.check()
+
+                    val fb2 = FBStack["generateVideoFrame", w, h, 8, false]
+
+                    BlendDepth(null, false) {
+
+                        Frame(0, 0, w, h, false, fb2) {
+
+
+                            Frame.currentFrame!!.bind()
+
+                            glClearColor(0f, 0f, 0f, 0f)
+                            glClear(GL_COLOR_BUFFER_BIT)
+
+                            GFXx2D.drawTexture(
+                                0, 0, w, h,
+                                TextureLib.colorShowTexture,
+                                -1, Vector4f(4f, 4f, 0f, 0f)
+                            )
+
+                            render()
+
+                        }
+
+                        // cannot read from separate framebuffer, only from null... why ever...
+                        Frame(0, 0, w, h, false, null) {
+
+                            fb2.bindTexture0(0, NearestMode.TRULY_NEAREST, ClampMode.CLAMP)
+                            GFX.copy()
+
+                            // draw only the clicked area?
+                            glFlush(); glFinish() // wait for everything to be drawn
+                            glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
+
+                            glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
+
+                            GFX.check()
+
+                        }
+
+                    }
+
+                    thread {
+                        val dst = BufferedImage(w, h, 2)
+                        val buffer2 = dst.raster.dataBuffer
+                        for (i in 0 until w * h) {
+                            val col = buffer[i]
+                            // swizzle colors, because rgba != argb
+                            buffer2.setElem(i, rgba(col.b(), col.g(), col.r(), col.a()))
+                        }
+                        saveNUpload(dst)
+                    }
+
+                }
+            }
+
             fun generateVideoFrame(wantedTime: Double) {
 
                 val meta = getMeta(srcFile, false)!!
@@ -167,6 +236,8 @@ object Thumbs {
                     w = w * size / h
                     h = size
                 }
+
+                if(w < 2 || h < 2) return
 
                 if (w > GFX.width || h > GFX.height) {
                     // cannot use this large size...
@@ -188,72 +259,42 @@ object Thumbs {
 
                 // todo create an image from ffmpeg without using the gpu for downscaling
                 // create frame buffer as target, and then read from it...
-                GFX.addGPUTask(sw, sh) {
-
-                    GFX.check()
-
-                    // framebuffer to buffered image
-
-                    // cannot read from separate framebuffer, only from null... why ever...
-                    val buffer = IntArray(w * h)
-                    val fb = null//FBStack["generateVideoFrame", w, h, 1, false]
-                    Frame(0, 0, w, h, false, fb) {
-
-                        BlendDepth(null, false){
-
-                            Frame.currentFrame!!.bind()
-
-                            glClearColor(0f, 0f, 0f, 1f)
-                            glClear(GL_COLOR_BUFFER_BIT)
-
-                            draw2D(src)
-
-                            // draw only the clicked area?
-                            glFlush(); glFinish() // wait for everything to be drawn
-                            glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
-
-                            glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
-
-                            GFX.check()
-
-                        }
-
-                    }
-
-                    thread {
-                        val dst = BufferedImage(w, h, 1)
-                        val buffer2 = dst.raster.dataBuffer
-                        for (i in 0 until w * h) {
-                            val col = buffer[i]
-                            // swizzle colors, because rgba != argb
-                            buffer2.setElem(i, rgba(col.b(), col.g(), col.r(), 255))
-                        }
-                        saveNUpload(dst)
-                    }
-
+                renderToBufferedImage(w, h) {
+                    draw2D(src)
                 }
+
             }
 
-            fun generateSVGFrame(){
+            fun generateSVGFrame() {
 
-                val bufferData = Cache.getEntry(srcFile.absolutePath, "svg", 0,
+                val bufferData = Cache.getEntry(
+                    srcFile.absolutePath, "svg", 0,
                     Video.imageTimeout,
-                    false) {
+                    false
+                ) {
                     val svg = SVGMesh()
                     svg.parse(XMLReader.parse(srcFile.inputStream().buffered()) as XMLElement)
-                    StaticFloatBufferData(svg.buffer!!)
+                    val buffer = StaticFloatBufferData(svg.buffer!!)
+                    buffer.setBounds(svg)
+                    buffer
                 } as StaticFloatBufferData
 
-                // todo use buffer data to generate svg image...
+                val maxSize = max(bufferData.maxX, bufferData.maxY)
+                val w = (size * bufferData.maxX / maxSize).roundToInt()
+                val h = (size * bufferData.maxY / maxSize).roundToInt()
 
-                /*draw3DSVG(
-                        stack,
-                        bufferData.buffer,
-                        TextureLib.whiteTexture,
-                        color,
-                        FilteringMode.NEAREST,
-                        ClampMode.CLAMP
-                    )*/
+                if(w < 2 || h < 2) return
+
+                val transform = Matrix4fArrayList()
+                transform.scale(2f / (bufferData.maxX / bufferData.maxY).toFloat(), -2f, 2f)
+                renderToBufferedImage(w, h) {
+                    SVGxGFX.draw3DSVG(
+                        null, 0.0,
+                        transform, bufferData, whiteTexture,
+                        Vector4f(1f), FilteringMode.NEAREST,
+                        whiteTexture.clampMode, null
+                    )
+                }
 
             }
 
@@ -277,6 +318,7 @@ object Thumbs {
                             w = w * size / h
                             h = size
                         }
+                        if(w < 2 || h < 2) return
                         val dst = src.createBufferedImage(w, h)
                         saveNUpload(dst)
                     }

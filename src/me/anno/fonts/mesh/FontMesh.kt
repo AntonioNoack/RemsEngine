@@ -423,8 +423,8 @@ class FontMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
         }
     }
 
-    override fun draw(matrix: Matrix4fArrayList, drawBuffer: (StaticBuffer) -> Unit) {
-        drawBuffer(buffer)
+    override fun draw(drawBuffer: (StaticBuffer, offset: Float) -> Unit) {
+        drawBuffer(buffer, 0f)
     }
 
     fun assert(b: Boolean) {

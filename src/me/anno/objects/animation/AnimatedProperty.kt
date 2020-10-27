@@ -99,11 +99,15 @@ class AnimatedProperty<V>(val type: Type, var defaultValue: V) : Saveable() {
     private fun addKeyframeInternal(time: Double, value: V, equalityDt: Double) {
         checkThread()
         ensureCorrectType(value)
-        keyframes.forEachIndexed { index, it ->
-            if (abs(it.time - time) < equalityDt) {
-                keyframes[index] = Keyframe(time, value)
-                return
+        if(isAnimated){
+            keyframes.forEachIndexed { index, it ->
+                if (abs(it.time - time) < equalityDt) {
+                    keyframes[index] = Keyframe(time, value)
+                    return
+                }
             }
+        } else {
+            keyframes.clear()
         }
         keyframes.add(Keyframe(time, value))
         sort()
@@ -141,9 +145,10 @@ class AnimatedProperty<V>(val type: Type, var defaultValue: V) : Saveable() {
     }
 
     fun getAnimatedValue(time: Double): V {
-        return when (keyframes.size) {
-            0 -> defaultValue
-            1 -> keyframes[0].value
+        val size = keyframes.size
+        return when {
+            size == 0 -> defaultValue
+            size == 1 || !isAnimated -> keyframes[0].value
             else -> {
 
                 val index = clamp(getIndexBefore(time), 0, keyframes.size-2)

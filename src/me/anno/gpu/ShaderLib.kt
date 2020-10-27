@@ -295,15 +295,16 @@ object ShaderLib {
         //"   gl_Position.z *= gl_Position.w;"
 
         val v3DBase = "" +
-                "uniform mat4 transform;\n"
+                "u4x4 transform;\n"
 
         val v3D = v3DBase +
                 "a3 attr0;\n" +
                 "a2 attr1;\n" +
                 "u4 tiling;\n" +
+                "u3 offset;\n" +
                 "void main(){\n" +
-                "   localPosition = attr0;\n" +
-                "   gl_Position = transform * vec4(attr0, 1.0);\n" +
+                "   localPosition = attr0 + offset;\n" +
+                "   gl_Position = transform * vec4(localPosition, 1.0);\n" +
                 positionPostProcessing +
                 "   uv = (attr1-0.5) * tiling.xy + 0.5 + tiling.zw;\n" +
                 "   uvw = attr0;\n" +
@@ -316,7 +317,7 @@ object ShaderLib {
                 "varying float zDistance;\n"
 
         val f3D = "" +
-                "uniform vec4 tint;" +
+                "u4 tint;" +
                 "uniform sampler2D tex;\n" +
                 getTextureLib +
                 getColorForceFieldLib +
@@ -480,18 +481,20 @@ object ShaderLib {
                 "   float angle = mix(circleParams.y, circleParams.z, attr0.x);\n" +
                 "   vec2 betterUV = vec2(cos(angle), -sin(angle)) * (1.0 - circleParams.x * attr0.y);\n" +
                 "   localPosition = vec3(betterUV, 0.0);\n" +
-                "   gl_Position = transform * vec4(betterUV, 0.0, 1.0);\n" +
+                "   gl_Position = transform * vec4(localPosition, 1.0);\n" +
                 positionPostProcessing +
                 "}"
 
-        val f3DMonoColor = "" +
+        val f3DCircle = "" +
                 "u4 tint;\n" + // rgba
                 getColorForceFieldLib +
                 "void main(){\n" +
                 "   vec4 color = vec4(1.0);\n" +
                 "   if($hasForceFieldColor) color *= getForceFieldColor();\n" +
-                "   gl_FragColor = tint;\n" +
+                "   gl_FragColor = tint * color;\n" +
                 "}"
+
+        shader3DCircle = createShaderPlus("3dCircle", v3DCircle, y3D, f3DCircle, listOf())
 
 
         // create the obj+mtl shader
@@ -523,8 +526,6 @@ object ShaderLib {
 
         // create the fbx shader
         shaderFBX = FBXGeometry.getShader(v3DBase, positionPostProcessing, y3D, getTextureLib)
-
-        shader3DCircle = createShaderPlus("3dCircle", v3DCircle, y3D, f3DMonoColor, listOf())
 
         shader3DYUV = createShaderPlus(
             "3d-yuv",
