@@ -5,7 +5,6 @@ import me.anno.config.DefaultStyle.black
 import me.anno.config.DefaultStyle.deepDark
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.deltaTime
-import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.GFX.select
 import me.anno.gpu.GFX.windowStack
 import me.anno.gpu.GFXx2D.drawRect
@@ -17,26 +16,31 @@ import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.ShaderPlus
 import me.anno.input.Input
+import me.anno.input.Input.mouseDownX
+import me.anno.input.Input.mouseDownY
 import me.anno.input.Input.mouseKeysDown
+import me.anno.input.Input.mouseX
+import me.anno.input.Input.mouseY
 import me.anno.input.MouseButton
 import me.anno.input.Touch.Companion.touches
 import me.anno.objects.Camera
 import me.anno.objects.Transform
 import me.anno.objects.effects.ToneMappers
-import me.anno.studio.RemsStudio.onSmallChange
-import me.anno.studio.Scene
+import me.anno.studio.RemsStudio
 import me.anno.studio.RemsStudio.editorTime
 import me.anno.studio.RemsStudio.editorTimeDilation
 import me.anno.studio.RemsStudio.isPaused
 import me.anno.studio.RemsStudio.nullCamera
+import me.anno.studio.RemsStudio.onSmallChange
 import me.anno.studio.RemsStudio.root
+import me.anno.studio.RemsStudio.selectedProperty
 import me.anno.studio.RemsStudio.selectedTransform
 import me.anno.studio.RemsStudio.targetHeight
 import me.anno.studio.RemsStudio.targetWidth
+import me.anno.studio.Scene
 import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.studio.StudioBase.Companion.shiftSlowdown
 import me.anno.ui.base.ButtonPanel
-import me.anno.ui.base.TextPanel
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.custom.CustomContainer
 import me.anno.ui.custom.data.CustomPanelData
@@ -51,9 +55,8 @@ import org.joml.Vector3f
 import org.joml.Vector4f
 import org.lwjgl.opengl.GL11.*
 import java.io.File
-import kotlin.math.max
-import kotlin.math.min
-import kotlin.math.roundToInt
+import java.lang.Math.toDegrees
+import kotlin.math.*
 
 // done scene tabs
 // todo scene selection
@@ -125,9 +128,9 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
             is2DPanel.text = if (isLocked2D) "3D" else "2D"
             invalidateDrawing()
         }
-        fun add(i: Int, name: String, mode: SceneDragMode){
+        fun add(i: Int, name: String, mode: SceneDragMode) {
             controls += SimplePanel(
-                object: ButtonPanel(name, style){
+                object : ButtonPanel(name, style) {
                     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
                         draw(isHovered, mouseDown || mode == this@SceneView.mode)
                     }
@@ -159,6 +162,14 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
     }
 
     var mode = SceneDragMode.MOVE
+        set(value) {
+            field = value
+            selectedProperty = when(value){
+                SceneDragMode.MOVE -> selectedTransform?.position
+                SceneDragMode.SCALE -> selectedTransform?.scale
+                SceneDragMode.ROTATE -> selectedTransform?.rotationYXZ
+            }
+        }
 
     var velocity = Vector3f()
 
@@ -175,7 +186,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
     var goodW = 0
     var goodH = 0
 
-    fun claimResources(){
+    fun claimResources() {
         // this is expensive, so do it only when the time changed
         val edt = editorTimeDilation
         val et = editorTime
@@ -188,7 +199,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
     var rw = 0
     var rh = 0
 
-    fun updateSize(){
+    fun updateSize() {
 
         dx = 0
         dy = 0
@@ -249,7 +260,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
         // todo doesn't work for auto-scaled videos... other plan?...
 
         drawRect(x + dx, y + dy, rw, rh, black)
-        if(goodW > 0 && goodH > 0){
+        if (goodW > 0 && goodH > 0) {
             Scene.draw(
                 camera,
                 x + dx, y + dy, goodW, goodH,
@@ -258,9 +269,9 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
             )
         }
 
-        GFX.clip(x0, y0, x1, y1){
+        GFX.clip(x0, y0, x1, y1) {
 
-            BlendDepth(BlendMode.DEFAULT, false){
+            BlendDepth(BlendMode.DEFAULT, false) {
                 controls.forEach {
                     it.draw(x, y, w, h, x0, y0, x1, y1)
                 }
@@ -287,7 +298,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
         fun getPixels(mode: ShaderPlus.DrawMode): IntArray {
             // draw only the clicked area?
             val buffer = IntArray(diameter * diameter)
-            Frame(fb){
+            Frame(fb) {
                 Scene.draw(camera, 0, 0, rw, rh, editorTime, false, mode, this)
                 GFX.check()
                 val localX = (clickX - this.x).roundToInt()
@@ -381,7 +392,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
             // todo transform into the correct space: from that camera to this camera
             val newPosition = oldPosition + step2
             camera.position.addKeyframe(cameraTime, newPosition, 0.01)
-            if(camera != nullCamera) onSmallChange("camera-move")
+            if (camera != nullCamera) onSmallChange("camera-move")
             invalidateDrawing()
         }
 
@@ -460,16 +471,17 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
         val target2camera = Matrix4f(camera2target).invert()
 
         // where the object is on screen
-        val targetZonUI = target2camera.transform(Vector4f(0f,0f,0f,1f)).toVec3f()
+        val targetZonUI = target2camera.transform(Vector4f(0f, 0f, 0f, 1f)).toVec3f()
         val targetZ = -targetZonUI.z
         val shiftSlowdown = shiftSlowdown
         val speed = shiftSlowdown * 2 * targetZ / h
         val dx = dx0 * speed
         val dy = dy0 * speed
         val pos1 = camera2target.transform(
-            Vector4f(targetZonUI.x+dx, targetZonUI.y-dy, targetZonUI.z, 1f)
+            Vector4f(targetZonUI.x + dx, targetZonUI.y - dy, targetZonUI.z, 1f)
         ).toVec3f()
 
+        val delta0 = dx0 - dy0
         val delta = dx - dy
 
         when (mode) {
@@ -496,28 +508,42 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
 
             }
             SceneDragMode.SCALE -> {
+                val speed2 = 1f / h
                 val oldScale = selected.scale[localTime]
                 val localDelta = target2camera.transformDirection(
-                    if(Input.isControlDown) Vector3f(0f, 0f, -delta)
-                    else Vector3f(dx, dy, 0f)
+                    if (Input.isControlDown) Vector3f(dx0, dy0, 0f)
+                    else Vector3f(delta0, delta0, delta0)
                 )
                 val base = 2f
-                selected.scale.addKeyframe(localTime, Vector3f(
-                    oldScale.x * pow(base, localDelta.x),
-                    oldScale.y * pow(base, localDelta.y),
-                    oldScale.z * pow(base, localDelta.z)))
-                if (selected != nullCamera) onSmallChange("SceneView-move")
+                selected.scale.addKeyframe(
+                    localTime, Vector3f(
+                        oldScale.x * pow(base, localDelta.x * speed2),
+                        oldScale.y * pow(base, localDelta.y * speed2),
+                        oldScale.z * pow(base, localDelta.z * speed2)
+                    )
+                )
+                if (selected != nullCamera) onSmallChange("SceneView-scale")
                 invalidateDrawing()
             }
-            /*TransformMode.ROTATE -> {
+            SceneDragMode.ROTATE -> {
                 // todo transform rotation??? quaternions...
-                val oldScale = selected.scale[localTime]
-                val localDelta = global2ui.transformDirection(
-                    if(Input.isControlDown) Vector3f(0f, 0f, -delta)
-                    else Vector3f(dx0, -dy0, 0f)
-                )
-                selected.scale.addKeyframe(localTime, oldScale + localDelta)
-            }*/
+                val centerX = x + w/2
+                val centerY = y + h/2
+                val mdx = (mouseX - centerX).toDouble()
+                val mdy = (mouseY - centerY).toDouble()
+                val oldDegree = toDegrees(atan2(mdy - dy0, mdx - dx0)).toFloat()
+                val newDegree = toDegrees(atan2(mdy, mdx)).toFloat()
+                val deltaDegree = newDegree - oldDegree
+                val speed2 = 20f / h
+                val oldRotation = selected.rotationYXZ[localTime]
+                val localDelta = //global2ui.transformDirection(
+                    if (Input.isControlDown) Vector3f(dx0 * speed2, -dy0 * speed2, 0f)
+                    else Vector3f(0f, 0f, -deltaDegree)
+                //)
+                selected.rotationYXZ.addKeyframe(localTime, oldRotation + localDelta)
+                if (selected != nullCamera) onSmallChange("SceneView-rotate")
+                invalidateDrawing()
+            }
         }
 
     }
@@ -551,7 +577,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
         val (_, cameraTime) = camera.getGlobalTransform(editorTime)
         val oldRotation = camera.rotationYXZ[cameraTime]
         camera.putValue(camera.rotationYXZ, oldRotation + Vector3f(dy0 * scaleFactor, dx0 * scaleFactor, 0f))
-        if(camera != nullCamera) onSmallChange("SceneView-turn")
+        if (camera != nullCamera) onSmallChange("SceneView-turn")
         invalidateDrawing()
     }
 

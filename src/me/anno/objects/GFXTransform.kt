@@ -62,6 +62,9 @@ abstract class GFXTransform(parent: Transform?) : Transform(parent) {
 
     fun uploadUVAttractors(shader: Shader, time: Double) {
 
+        // has no ability to display them
+        if(shader["forceFieldUVCount"] < 0) return
+
         var attractors = children
             .filterIsInstance<EffectMorphing>()
 
@@ -118,6 +121,9 @@ abstract class GFXTransform(parent: Transform?) : Transform(parent) {
     }
 
     fun uploadColorAttractors(shader: Shader, time: Double) {
+
+        // has no ability to display them
+        if(shader["forceFieldColorCount"] < 0) return
 
         var attractors = children
             .filterIsInstance<EffectColoring>()

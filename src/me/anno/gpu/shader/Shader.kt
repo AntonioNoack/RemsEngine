@@ -25,6 +25,7 @@ open class Shader(val shaderName: String,
     private var program = -1
 
     val pointer get() = program
+    val ignoredNames = HashSet<String>()
 
     // shader compile time doesn't really matter... -> move it to the start to preserve ram use?
     // isn't that much either...
@@ -90,14 +91,18 @@ open class Shader(val shaderName: String,
     private val uniformCache = HashMap<String, Int>()
     private val attributeCache = HashMap<String, Int>()
 
+    fun ignoreUniformWarnings(names: List<String>){
+        ignoredNames += names
+    }
+
     fun getUniformLocation(name: String): Int {
         val old = uniformCache[name]
         if(old != null) return old
-        check()
         val loc = glGetUniformLocation(program, name)
-        check()
         uniformCache[name] = loc
-        if(loc < 0) LOGGER.warn("Uniform location \"$name\" not found in shader $shaderName")
+        if(loc < 0 && name !in ignoredNames){
+            LOGGER.warn("Uniform location \"$name\" not found in shader $shaderName")
+        }
         return loc
     }
 

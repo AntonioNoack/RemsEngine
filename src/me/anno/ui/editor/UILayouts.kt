@@ -94,7 +94,8 @@ object UILayouts {
             }
         }
 
-        for (project in DefaultConfig.getRecentProjects()) {
+        val recent = DefaultConfig.getRecentProjects()
+        for (project in recent) {
             val tp = TextPanel(project.name, style)
             tp.enableHoverColor = true
             tp.setTooltip(project.file.absolutePath)
@@ -212,6 +213,14 @@ object UILayouts {
             }
         }
 
+        fun loadLastProject(){
+            if(recent.isEmpty()) loadNewProject()
+            else {
+                val project = recent.first()
+                openProject(project.name, project.file)
+            }
+        }
+
         nameInput = TextInput("Title", style, "New Project")
         nameInput.setEnterListener { loadNewProject() }
 
@@ -238,9 +247,7 @@ object UILayouts {
         newProject += fileInput
 
         val button = ButtonPanel("Create Project", style)
-        button.setSimpleClickListener {
-            loadNewProject()
-        }
+        button.setSimpleClickListener { loadNewProject() }
         newProject += button
 
         welcome += SpacePanel(0, 1, style)
@@ -282,7 +289,7 @@ object UILayouts {
         mainWindow.cannotClose()
         mainWindow.acceptsClickAway = {
             if (it.isLeft) {
-                loadNewProject()
+                loadLastProject()
                 usableFile != null
             } else false
         }

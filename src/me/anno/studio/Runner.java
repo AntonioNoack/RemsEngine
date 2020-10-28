@@ -14,8 +14,6 @@ import me.anno.installer.Installer;
 
 public class Runner {
     public static void main(String[] args){
-        DefaultConfig.INSTANCE.getName();
-        Installer.INSTANCE.checkInstall();
         RemsStudio.INSTANCE.run();
     }
 }

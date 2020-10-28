@@ -20,7 +20,10 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
 import me.anno.utils.pow
-import org.joml.*
+import org.joml.Matrix4fArrayList
+import org.joml.Vector2f
+import org.joml.Vector3f
+import org.joml.Vector4f
 import org.lwjgl.opengl.GL20.glUniformMatrix4fv
 import java.io.File
 import kotlin.math.tan
@@ -31,7 +34,7 @@ import kotlin.math.tan
 // todo drag color into there / paste it / auto-line(s)
 // todo color picker
 
-class Camera(parent: Transform? = null): Transform(parent){
+class Camera(parent: Transform? = null) : Transform(parent) {
 
     // todo allow cameras to be merged
     // todo allow cameras to film camera (post processing) -> todo create a stack of cameras/scenes?
@@ -68,7 +71,8 @@ class Camera(parent: Transform? = null): Transform(parent){
     fun getEffectiveOffset(localTime: Double) = orthoDistance(orthographicness[localTime])
     fun getEffectiveNear(localTime: Double, offset: Float = getEffectiveOffset(localTime)) = nearZ[localTime]
     fun getEffectiveFar(localTime: Double, offset: Float = getEffectiveOffset(localTime)) = farZ[localTime] + offset
-    fun getEffectiveFOV(localTime: Double, offset: Float = getEffectiveOffset(localTime)) = orthoFOV(fovYDegrees[localTime], offset)
+    fun getEffectiveFOV(localTime: Double, offset: Float = getEffectiveOffset(localTime)) =
+        orthoFOV(fovYDegrees[localTime], offset)
 
     fun orthoDistance(ortho: Float) = pow(200f, ortho) - 1f
     fun orthoFOV(fov: Float, offset: Float) = fov / (1f + offset)
@@ -76,7 +80,11 @@ class Camera(parent: Transform? = null): Transform(parent){
     override fun getSymbol() = DefaultConfig["ui.symbol.camera", "\uD83C\uDFA5"]
     override fun getClassName() = "Camera"
 
-    override fun createInspector(list: PanelListY, style: Style, getGroup: (title: String, id: String) -> SettingCategory) {
+    override fun createInspector(
+        list: PanelListY,
+        style: Style,
+        getGroup: (title: String, id: String) -> SettingCategory
+    ) {
         super.createInspector(list, style, getGroup)
 
         val cam = getGroup("Projection", "projection")
@@ -85,7 +93,7 @@ class Camera(parent: Transform? = null): Transform(parent){
         val depth = getGroup("Depth", "depth")
         depth += VI("Near Z", "Closest Visible Distance", nearZ, style)
         depth += VI("Far Z", "Farthest Visible Distance", farZ, style)
-        depth += VI("Use Depth", "Causes Z-Fighting, but allows 3D", null, useDepth, style){ useDepth = it }
+        depth += VI("Use Depth", "Causes Z-Fighting, but allows 3D", null, useDepth, style) { useDepth = it }
         val chroma = getGroup("Chromatic Aberration", "chroma")
         chroma += VI("Strength", "Effect occurring in cheap lenses", chromaticAberration, style)
         chroma += VI("Offset", "Offset", chromaticOffset, style)
@@ -97,24 +105,43 @@ class Camera(parent: Transform? = null): Transform(parent){
         vignette += VI("Vignette Color", "Color of the border", vignetteColor, style)
         vignette += VI("Vignette Strength", "Strength of the colored border", vignetteStrength, style)
         val color = getGroup("Color", "color")
-        color += VI("Tone Mapping", "Maps large ranges of brightnesses (e.g. HDR) to monitor color space", null, toneMapping, style){ toneMapping = it }
-        color += VI("Look Up Table", "LUT, Look Up Table for colors, formatted like in UE4", null, lut, style){ lut = it }
+        color += VI(
+            "Tone Mapping",
+            "Maps large ranges of brightnesses (e.g. HDR) to monitor color space",
+            null,
+            toneMapping,
+            style
+        ) { toneMapping = it }
+        color += VI("Look Up Table", "LUT, Look Up Table for colors, formatted like in UE4", null, lut, style) {
+            lut = it
+        }
         val editor = getGroup("Editor", "editor")
-        editor += VI("Only Show Target", "Forces the viewport to have the correct aspect ratio", null, onlyShowTarget, style){ onlyShowTarget = it }
+        editor += VI(
+            "Only Show Target",
+            "Forces the viewport to have the correct aspect ratio",
+            null,
+            onlyShowTarget,
+            style
+        ) { onlyShowTarget = it }
         val ops = getGroup("Operations", "operations")
         ops += ButtonPanel("Reset Transform", style)
             .setSimpleClickListener { resetTransform() }
             .setTooltip("If accidentally moved")
         color += VI("Power", "Color Grading, ASC CDL", cgPower, style)
-        color += VI("Saturation", "Color Grading, 0 = gray scale, 1 = normal, -1 = inverted colors", cgSaturation, style)
+        color += VI(
+            "Saturation",
+            "Color Grading, 0 = gray scale, 1 = normal, -1 = inverted colors",
+            cgSaturation,
+            style
+        )
         color += VI("Slope", "Color Grading, Intensity", cgSlope, style)
         color += VI("Offset", "Color Grading, ASC CDL", cgOffset, style)
     }
 
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
 
-        if(GFX.isFinalRendering) return
-        if(this === usedCamera) return
+        if (GFX.isFinalRendering) return
+        if (this === usedCamera) return
         // idk...
         // if(this !== GFX.selectedTransform) return
 
@@ -126,7 +153,7 @@ class Camera(parent: Transform? = null): Transform(parent){
         stack.translate(0f, 0f, offset)
 
         val scaleZ = 1f
-        val scaleY = scaleZ * tan(toRadians(fov)/2f)
+        val scaleY = scaleZ * tan(toRadians(fov) / 2f)
         val scaleX = scaleY * targetWidth / targetHeight
         stack.scale(scaleX, scaleY, scaleZ)
         val shader = lineShader3D
@@ -144,19 +171,19 @@ class Camera(parent: Transform? = null): Transform(parent){
         glUniformMatrix4fv(shader["transform"], false, GFX.matrixBuffer)
         cameraModel.draw(shader)
 
-        stack.scale(far/near)
+        stack.scale(far / near)
         stack.get(GFX.matrixBuffer)
         glUniformMatrix4fv(shader["transform"], false, GFX.matrixBuffer)
         cameraModel.draw(shader)
 
     }
 
-    fun resetTransform(){
+    fun resetTransform() {
         putValue(position, Vector3f(0f, 0f, 1f))
         putValue(scale, Vector3f(1f, 1f, 1f))
         putValue(skew, Vector2f(0f, 0f))
         putValue(rotationYXZ, Vector3f())
-        if(this != nullCamera) onSmallChange("camera-reset")
+        if (this != nullCamera) onSmallChange("camera-reset")
     }
 
     override fun save(writer: BaseWriter) {
@@ -182,7 +209,7 @@ class Camera(parent: Transform? = null): Transform(parent){
     }
 
     override fun readBool(name: String, value: Boolean) {
-        when(name){
+        when (name) {
             "onlyShowTarget" -> onlyShowTarget = value
             "useDepth" -> useDepth = value
             else -> super.readBool(name, value)
@@ -190,7 +217,7 @@ class Camera(parent: Transform? = null): Transform(parent){
     }
 
     override fun readObject(name: String, value: ISaveable?) {
-        when(name){
+        when (name) {
             "nearZ" -> nearZ.copyFrom(value)
             "farZ" -> farZ.copyFrom(value)
             "fovY" -> fovYDegrees.copyFrom(value)
@@ -210,14 +237,14 @@ class Camera(parent: Transform? = null): Transform(parent){
     }
 
     override fun readString(name: String, value: String) {
-        when(name){
+        when (name) {
             "lut" -> lut = File(value)
             else -> super.readString(name, value)
         }
     }
 
     override fun readInt(name: String, value: Int) {
-        when(name){
+        when (name) {
             "toneMapping" -> toneMapping = ToneMappers.values().firstOrNull { it.id == value } ?: toneMapping
             else -> super.readInt(name, value)
         }
@@ -225,46 +252,51 @@ class Camera(parent: Transform? = null): Transform(parent){
 
 
     companion object {
-        val cameraModel = StaticBuffer(listOf(Attribute("attr0", 3)), 2 * 8)
-        val DEFAULT_VIGNETTE_STRENGTH = 5f
-        init {
 
-            // points
-            val zero = Vector3f()
-            val p00 = Vector3f(-1f, -1f, -1f)
-            val p01 = Vector3f(-1f, +1f, -1f)
-            val p10 = Vector3f(+1f, -1f, -1f)
-            val p11 = Vector3f(+1f, +1f, -1f)
+        val cameraModel: StaticBuffer by lazy {
 
-            // lines to frame
-            cameraModel.put(zero)
-            cameraModel.put(p00)
+            StaticBuffer(listOf(Attribute("attr0", 3)), 2 * 8)
+                .apply {
+                    // points
+                    val zero = Vector3f()
+                    val p00 = Vector3f(-1f, -1f, -1f)
+                    val p01 = Vector3f(-1f, +1f, -1f)
+                    val p10 = Vector3f(+1f, -1f, -1f)
+                    val p11 = Vector3f(+1f, +1f, -1f)
 
-            cameraModel.put(zero)
-            cameraModel.put(p01)
+                    // lines to frame
+                    put(zero)
+                    put(p00)
 
-            cameraModel.put(zero)
-            cameraModel.put(p10)
+                    put(zero)
+                    put(p01)
 
-            cameraModel.put(zero)
-            cameraModel.put(p11)
+                    put(zero)
+                    put(p10)
 
-            // frame
-            cameraModel.put(p00)
-            cameraModel.put(p01)
+                    put(zero)
+                    put(p11)
 
-            cameraModel.put(p01)
-            cameraModel.put(p11)
+                    // frame
+                    put(p00)
+                    put(p01)
 
-            cameraModel.put(p11)
-            cameraModel.put(p10)
+                    put(p01)
+                    put(p11)
 
-            cameraModel.put(p10)
-            cameraModel.put(p00)
+                    put(p11)
+                    put(p10)
 
-            cameraModel.lines()
+                    put(p10)
+                    put(p00)
+
+                    lines()
+                }
 
         }
+
+        val DEFAULT_VIGNETTE_STRENGTH = 5f
+
     }
 
 }

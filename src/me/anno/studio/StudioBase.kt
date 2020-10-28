@@ -43,7 +43,8 @@ abstract class StudioBase(val needsAudio: Boolean) {
     abstract fun createUI()
     abstract fun onGameLoopStart()
     abstract fun onGameLoopEnd()
-    abstract fun onProgramExit()
+    abstract fun onGameClose()
+    abstract fun onGameInit()
 
     private val startTime = System.nanoTime()
 
@@ -64,6 +65,8 @@ abstract class StudioBase(val needsAudio: Boolean) {
     }
 
     open fun gameInit() {
+
+        onGameInit()
 
         mt("game init")
 
@@ -386,7 +389,7 @@ abstract class StudioBase(val needsAudio: Boolean) {
         GFX.onShutdown = {
             AudioManager.requestDestruction()
             Cursor.destroy()
-            onProgramExit()
+            onGameClose()
         }
 
         GFX.run()

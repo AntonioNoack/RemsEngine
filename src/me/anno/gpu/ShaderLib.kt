@@ -342,6 +342,7 @@ object ShaderLib {
                 "   uv = attr1.yx;\n" +
                 "}"
         shader3DPolygon = createShaderPlus("3d-polygon", v3DPolygon, y3D, f3D, listOf("tex"))
+        shader3DPolygon.shader.ignoreUniformWarnings(listOf("tiling", "forceFieldUVCount"))
 
         val v3DMasked = v3DBase +
                 "a2 attr0;\n" +
@@ -495,7 +496,9 @@ object ShaderLib {
                 "}"
 
         shader3DCircle = createShaderPlus("3dCircle", v3DCircle, y3D, f3DCircle, listOf())
-
+        shader3DCircle.shader.ignoreUniformWarnings(listOf(
+            "filtering", "textureDeltaUV", "tiling", "uvProjection", "forceFieldUVCount"
+        ))
 
         // create the obj+mtl shader
         shaderObjMtl = createShaderPlus(

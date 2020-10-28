@@ -3,6 +3,7 @@ package me.anno.studio
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.input.ActionManager
+import me.anno.installer.Installer.checkInstall
 import me.anno.objects.Camera
 import me.anno.objects.Inspectable
 import me.anno.objects.Transform
@@ -20,7 +21,6 @@ import java.io.File
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.concurrent.thread
 import kotlin.math.abs
-import kotlin.math.max
 
 // todo scene screenshot/editor screenshot
 
@@ -32,20 +32,27 @@ import kotlin.math.max
 
 object RemsStudio: StudioBase(true){
 
+    override fun onGameInit() {
+        RemsConfig.init()
+        gfxSettings = DefaultConfig["editor.gfx", 0].run { GFXSettings.values().firstOrNull { it.id == this } ?: GFXSettings.LOW }
+        workspace = DefaultConfig["workspace.dir", File(OS.documents, "RemsStudio")]
+        checkInstall()
+    }
+
     override fun createUI() {
         UILayouts.createWelcomeUI()
         StudioActions.register()
         ActionManager.init()
     }
 
-    var gfxSettings = DefaultConfig["editor.gfx", 0].run { GFXSettings.values().firstOrNull { it.id == this } ?: GFXSettings.LOW }
+    var gfxSettings = GFXSettings.LOW
         set(value) {
             field = value
             DefaultConfig["editor.gfx"] = value.id
             DefaultConfig.putAll(value.data)
         }
 
-    var workspace = DefaultConfig["workspace.dir", File(OS.documents, "RemsStudio")]
+    lateinit var workspace: File
 
     var project: Project? = null
 
@@ -78,17 +85,19 @@ object RemsStudio: StudioBase(true){
     val targetOutputFile get() = project!!.targetOutputFile
     val history get() = SceneTabs.currentTab!!.history
 
-    val nullCamera = Camera(null)
-
-    init {
-        nullCamera.name = "Inspector Camera"
-        nullCamera.onlyShowTarget = false
-        // higher far value to allow other far values to be seen
-        nullCamera.farZ.defaultValue = 5000f
-        nullCamera.timeDilation = 0.0 // the camera has no time, so no motion can be recorded
+    val nullCamera: Camera by lazy {
+        Camera(null)
+            .apply {
+                name = "Inspector Camera"
+                onlyShowTarget = false
+                // higher far value to allow other far values to be seen
+                farZ.defaultValue = 5000f
+                timeDilation = 0.0 // the camera has no time, so no motion can be recorded
+            }
     }
 
     var root = Transform()
+
     // var selectedCamera = nullCamera
     var usedCamera = nullCamera
 
@@ -104,7 +113,7 @@ object RemsStudio: StudioBase(true){
 
     }
 
-    override fun onProgramExit() {
+    override fun onGameClose() {
 
     }
 

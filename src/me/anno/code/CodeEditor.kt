@@ -1,5 +1,6 @@
 package me.anno.code
 
+import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.Window
 import me.anno.studio.StudioBase
@@ -35,9 +36,13 @@ object CodeEditor : StudioBase(false) {
 
     }
 
+    override fun onGameInit() {
+        DefaultConfig.init()
+    }
+
     override fun onGameLoopStart() {}
     override fun onGameLoopEnd() {}
-    override fun onProgramExit() {}
+    override fun onGameClose() {}
 
     override fun createUI(){
 
