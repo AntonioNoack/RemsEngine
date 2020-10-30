@@ -26,9 +26,6 @@ abstract class MaskLayerBase(parent: Transform? = null): GFXTransform(parent){
     // just a little expensive...
     // todo enable multisampling
     val samples = 1
-    /*val mask = Framebuffer("ML-mask", 1, 1, samples, 1, true, Framebuffer.DepthBufferType.NONE)
-    val masked = Framebuffer("ML-masked", 1, 1, samples, 1, true, Framebuffer.DepthBufferType.TEXTURE)
-    val temp = Array(3){ Framebuffer("ML-temp$it", 1, 1, samples, 1, true, Framebuffer.DepthBufferType.NONE) }*/
 
     lateinit var mask: Framebuffer
     lateinit var masked: Framebuffer
@@ -36,7 +33,8 @@ abstract class MaskLayerBase(parent: Transform? = null): GFXTransform(parent){
     // limit to [0,1]?
     // nice effects can be created with values outside of [0,1], so while [0,1] is the valid range,
     // numbers outside [0,1] give artists more control
-    var useMaskColor = AnimatedProperty.float()
+    val useMaskColor = AnimatedProperty.float()
+    val blurThreshold = AnimatedProperty.float()
 
     // not animated, because it's not meant to be transitioned, but instead to be a little helper
     var isInverted = false
@@ -59,6 +57,7 @@ abstract class MaskLayerBase(parent: Transform? = null): GFXTransform(parent){
             masked = FBStack["masked", GFX.windowWidth, GFX.windowHeight, samples, true]
 
             BlendDepth(null, false){
+
                 // (low priority)
                 // to do calculate the size on screen to limit overhead
                 // to do this additionally requires us to recalculate the transform
@@ -89,6 +88,7 @@ abstract class MaskLayerBase(parent: Transform? = null): GFXTransform(parent){
         writer.writeBool("isFullscreen", isFullscreen, true)
         writer.writeBool("isInverted", isInverted, true)
         writer.writeObject(this, "useMaskColor", useMaskColor)
+        writer.writeObject(this, "blurThreshold", blurThreshold)
     }
 
     override fun readBool(name: String, value: Boolean) {
@@ -104,6 +104,7 @@ abstract class MaskLayerBase(parent: Transform? = null): GFXTransform(parent){
     override fun readObject(name: String, value: ISaveable?) {
         when(name){
             "useMaskColor" -> useMaskColor.copyFrom(value)
+            "blurThreshold" -> blurThreshold.copyFrom(value)
             else -> super.readObject(name, value)
         }
     }
@@ -113,6 +114,7 @@ abstract class MaskLayerBase(parent: Transform? = null): GFXTransform(parent){
         val mask = getGroup("Mask Settings", "mask")
         mask += VI("Invert Mask", "Changes transparency with opacity", null, isInverted, style){ isInverted = it }
         mask += VI("Use Color / Transparency", "Should the color influence the masked?", useMaskColor, style)
+        mask += VI("Blur Threshold", "", blurThreshold, style)
         // todo expand plane to infinity if fullscreen -> depth works then, idk...
         // infinite bounds doesn't mean that it's actually filling the whole screen
         // (infinite horizon isn't covering both roof and floor)
@@ -179,7 +181,8 @@ abstract class MaskLayerBase(parent: Transform? = null): GFXTransform(parent){
     fun drawOnScreen(stack: Matrix4fArrayList, time: Double, color: Vector4f){
 
         val localTransform = if(isFullscreen){
-            Matrix4fArrayList()
+            stack.scale(1000f) // should work fine most times...
+            stack
         } else {
             stack
         }

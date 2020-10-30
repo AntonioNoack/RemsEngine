@@ -70,7 +70,8 @@ class MaskLayer(parent: Transform? = null) : MaskLayerBase(parent) {
                 val oldDrawMode = GFX.drawMode
                 if (oldDrawMode == ShaderPlus.DrawMode.COLOR_SQUARED) GFX.drawMode = ShaderPlus.DrawMode.COLOR
 
-                GaussianBlur.draw(masked, pixelSize, w, h, 2, 0f, localTransform)
+                val threshold = blurThreshold[time]
+                GaussianBlur.draw(masked, pixelSize, w, h, 2, threshold, localTransform)
 
                 GFX.drawMode = oldDrawMode
                 masked.bindTexture0(1, NearestMode.TRULY_NEAREST, ClampMode.CLAMP)
