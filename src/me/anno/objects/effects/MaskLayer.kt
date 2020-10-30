@@ -53,6 +53,8 @@ class MaskLayer(parent: Transform? = null) : MaskLayerBase(parent) {
     // mask = 0, tex = 1
     override fun drawOnScreen2(localTransform: Matrix4fArrayList, time: Double, color: Vector4f) {
 
+        GFX.check()
+
         val pixelSize = effectSize[time]
         val isInverted = if (isInverted) 1f else 0f
 
@@ -60,15 +62,13 @@ class MaskLayer(parent: Transform? = null) : MaskLayerBase(parent) {
         val h = windowHeight
 
         when (type) {
-            MaskType.GAUSSIAN_BLUR -> {
+            MaskType.GAUSSIAN_BLUR, MaskType.BLOOM -> {
 
                 // done first blur everything, then mask
                 // the artist could notice the fps going down, and act on his own (screenshot, rendering once, ...) ;)
 
                 val oldDrawMode = GFX.drawMode
                 if (oldDrawMode == ShaderPlus.DrawMode.COLOR_SQUARED) GFX.drawMode = ShaderPlus.DrawMode.COLOR
-
-                GFX.check()
 
                 GaussianBlur.draw(masked, pixelSize, w, h, 2, 0f, localTransform)
 
@@ -108,7 +108,7 @@ class MaskLayer(parent: Transform? = null) : MaskLayerBase(parent) {
 
             }
             else -> {
-                GFX.check()
+
                 masked.bindTextures(1, NearestMode.TRULY_NEAREST, ClampMode.MIRRORED_REPEAT)
                 GFX.check()
                 mask.bindTextures(0, NearestMode.TRULY_NEAREST, ClampMode.CLAMP)
@@ -118,6 +118,7 @@ class MaskLayer(parent: Transform? = null) : MaskLayerBase(parent) {
                     type, useMaskColor[time],
                     pixelSize, isInverted
                 )
+
             }
         }
     }

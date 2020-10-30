@@ -402,6 +402,11 @@ object ShaderLib {
                 "           vec4 src = texture(tex, uv2);\n" +
                 "           color = vec4(mix(src.rgb, texture(tex2, uv2).rgb, effect), src.a);\n" +
                 "           break;\n" +
+                "       case ${MaskType.BLOOM.id}:\n" +
+                "           effect = mix(mask.a, dot(vec3(0.3), mask.rgb), useMaskColor);\n" +
+                "           effect = mix(effect, 1.0 - effect, invertMask);\n" +
+                "           color = texture(tex, uv2) + effect * texture(tex2, uv2);\n" +
+                "           break;\n" +
                 "       case ${MaskType.UV_OFFSET.id}:\n" +
                 "           vec2 offset = (mask.rg-mask.gb) * pixelating;\n" +
                 "           color = texture(tex, uv2 + offset);\n" +
