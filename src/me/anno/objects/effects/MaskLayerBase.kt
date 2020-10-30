@@ -181,7 +181,9 @@ abstract class MaskLayerBase(parent: Transform? = null): GFXTransform(parent){
     fun drawOnScreen(stack: Matrix4fArrayList, time: Double, color: Vector4f){
 
         val localTransform = if(isFullscreen){
-            stack.scale(1000f) // should work fine most times...
+            // todo better solution...
+            // todo scaling by 1000 is no option, because it causes artifacts, because of fp precision issues
+            stack.scale(5f)
             stack
         } else {
             stack

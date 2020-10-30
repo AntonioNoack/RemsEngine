@@ -329,7 +329,7 @@ object Scene {
 
         var needsTemporaryBuffer = !isFakeColorRendering
         if (needsTemporaryBuffer) {
-            needsTemporaryBuffer = true || // ^^
+            needsTemporaryBuffer = true || // I had issues without (low quality settings), soo...
                     flipY ||
                     samples > 1 ||
                     !distortion.is000() ||
