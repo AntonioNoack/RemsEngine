@@ -417,6 +417,8 @@ object ShaderLib {
                 "uniform sampler2D tex;\n" +
                 "uniform vec2 stepSize;\n" +
                 "uniform float steps;\n" +
+                "uniform float threshold;\n" +
+                brightness +
                 "void main(){\n" +
                 "   vec2 uv2 = uv.xy/uv.z * 0.5 + 0.5;\n" +
                 "   vec4 color;\n" +
@@ -430,9 +432,10 @@ object ShaderLib {
                 "       for(int i=-iSteps;i<=iSteps;i++){\n" +
                 "           float fi = float(i);\n" +
                 "           float relativeX = fi/steps;\n" +
+                "           vec4 colorHere = texture(tex, uv2 + fi * stepSize);\n" +
                 "           float weight = i == 0 ? 1.0 : exp(-relativeX*relativeX);\n" +
                 "           sum += weight;\n" +
-                "           color += texture(tex, uv2 + fi * stepSize) * weight;\n" +
+                "           color += vec4(max(vec3(0), colorHere.rgb - threshold), colorHere.a) * weight;\n" +
                 "       }\n" +
                 "       color /= sum;\n" +
                 "   }\n" +

@@ -232,13 +232,15 @@ object GFXx3D {
 
     fun draw3DBlur(
         stack: Matrix4fArrayList,
-        size: Float, w: Int, h: Int, isFirst: Boolean
+        size: Float, w: Int, h: Int,
+        threshold: Float, isFirst: Boolean
     ) {
         val shader = ShaderLib.shader3DBlur
         transformUniform(shader, stack)
         if (isFirst) shader.v2("stepSize", 0f, 1f / h)
         else shader.v2("stepSize", 1f / w, 0f)
         shader.v1("steps", size * h)
+        shader.v1("threshold", threshold)
         GFX.flat01.draw(shader)
         GFX.check()
     }

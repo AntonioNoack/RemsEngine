@@ -9,6 +9,7 @@ import me.anno.gpu.GFXx2D.drawRect
 import me.anno.gpu.ShaderLib.ascColorDecisionList
 import me.anno.gpu.ShaderLib.brightness
 import me.anno.gpu.ShaderLib.createShader
+import me.anno.gpu.TextureLib.colorShowTexture
 import me.anno.gpu.blending.BlendDepth
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.framebuffer.FBStack
@@ -22,6 +23,7 @@ import me.anno.objects.Camera
 import me.anno.objects.Camera.Companion.DEFAULT_VIGNETTE_STRENGTH
 import me.anno.objects.Transform.Companion.xAxis
 import me.anno.objects.cache.Cache
+import me.anno.objects.effects.GaussianBlur
 import me.anno.objects.effects.ToneMappers
 import me.anno.studio.RemsStudio.gfxSettings
 import me.anno.studio.RemsStudio.nullCamera
@@ -59,6 +61,7 @@ object Scene {
 
     lateinit var sqrtToneMappingShader: Shader
     lateinit var lutShader: Shader
+    lateinit var addBloomShader: Shader
 
     private var isInited = false
     private fun init() {
@@ -223,6 +226,23 @@ object Scene {
                     "}", listOf("tex", "lut")
         )
 
+        addBloomShader = createShader(
+            "addBloom", "" +
+                    "in vec2 attr0;\n" +
+                    "void main(){" +
+                    "   gl_Position = vec4(attr0*2.0-1.0, 0.0, 1.0);\n" +
+                    "   uv = attr0;\n" +
+                    "}", "" +
+                    "varying vec2 uv;\n", "" +
+                    "uniform sampler2D original, blurred;\n" +
+                    "uniform float intensity;\n" +
+                    "void main(){" +
+                    "   gl_FragColor = texture(original, uv) + intensity * texture(blurred, uv);\n" +
+                    "   gl_FragColor.a = clamp(gl_FragColor.a, 0.0, 1.0);\n" +
+                    "}", listOf("original", "blurred")
+        )
+
+
         isInited = true
     }
 
@@ -300,6 +320,13 @@ object Scene {
         val cgPower = camera.cgPower[cameraTime]
         val cgSaturation = camera.cgSaturation[cameraTime]
 
+        val bloomIntensity = camera.bloomIntensity[cameraTime]
+        val bloomSize = camera.bloomSize[cameraTime]
+        val bloomThreshold = camera.bloomThreshold[cameraTime]
+
+        val needsCG = !cgOffset.is000() || !cgSlope.is1111() || !cgPower.is1111() || cgSaturation != 1f
+        val needsBloom = bloomIntensity > 0f && bloomSize > 0f
+
         var needsTemporaryBuffer = !isFakeColorRendering
         if (needsTemporaryBuffer) {
             needsTemporaryBuffer = true || // ^^
@@ -309,10 +336,8 @@ object Scene {
                     vignetteStrength > 0f ||
                     chromaticAberration > 0f ||
                     toneMapping != ToneMappers.RAW8 ||
-                    !cgOffset.is000() ||
-                    !cgSlope.is1111() ||
-                    !cgPower.is1111() ||
-                    cgSaturation != 1f
+                    needsCG ||
+                    needsBloom
         }
 
         var buffer: Framebuffer? =
@@ -499,10 +524,26 @@ object Scene {
 
             BlendDepth(null, false){
 
+                if(needsBloom){
+
+                    // create blurred version
+                    GaussianBlur.draw(buffer!!, bloomSize, w, h, 1, bloomThreshold, Matrix4fArrayList())
+                    buffer = getNextBuffer("Scene-Bloom", buffer!!, 0, NearestMode.TRULY_NEAREST, 1)
+
+                    // add it on top
+                    Frame(buffer){
+                        val shader = addBloomShader
+                        shader.use()
+                        shader.v1("intensity", bloomIntensity)
+                        flat01.draw(shader)
+                    }
+
+                }
+
                 val useLUT = lut != null
                 if (useLUT) {
 
-                    buffer = getNextBuffer("Scene-LUT", buffer!!, 0, nearest = NearestMode.LINEAR, samples = 1)
+                    buffer = getNextBuffer("Scene-LUT", buffer!!, 0, NearestMode.LINEAR, 1)
                     Frame(buffer) {
                         drawColors()
                     }

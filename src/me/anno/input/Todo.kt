@@ -22,7 +22,7 @@ package me.anno.input
 // todo depth of field
 // todo motion blur?
 // done bokeh blur
-// todo bloom
+// done bloom
 
 // todo open file explorer with chooser on file input
 // done enum input type with scrollbar

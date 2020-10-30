@@ -62,71 +62,17 @@ class MaskLayer(parent: Transform? = null) : MaskLayerBase(parent) {
         when (type) {
             MaskType.GAUSSIAN_BLUR -> {
 
-                var size = pixelSize
-
                 // done first blur everything, then mask
                 // the artist could notice the fps going down, and act on his own (screenshot, rendering once, ...) ;)
-
-                fun drawBlur(target: Framebuffer, w: Int, h: Int, offset: Int, isFirst: Boolean) {
-                    // step1
-                    Frame(w, h, true, target) {
-                        glClear(GL_DEPTH_BUFFER_BIT)
-                        draw3DBlur(localTransform, size, w, h, isFirst)
-                    }
-                    target.bindTexture0(
-                        offset,
-                        if (true || isFirst || size == pixelSize) NearestMode.NEAREST
-                        else NearestMode.LINEAR, ClampMode.CLAMP
-                    )
-                }
 
                 val oldDrawMode = GFX.drawMode
                 if (oldDrawMode == ShaderPlus.DrawMode.COLOR_SQUARED) GFX.drawMode = ShaderPlus.DrawMode.COLOR
 
                 GFX.check()
-                masked.bindTexture0(0, NearestMode.TRULY_NEAREST, ClampMode.CLAMP)
-                GFX.check()
 
-                BlendDepth(null, false) {
-
-                    val steps = pixelSize * windowHeight
-                    val subSteps = (steps / 10f).toInt()
-
-                    var smallerW = w
-                    var smallerH = h
-
-                    val debug = false
-
-                    // sample down for large blur sizes for performance reasons
-                    if (debug && subSteps > 1) {
-                        // smallerW /= 2
-                        // smallerH /= 2
-                        smallerW = max(10, w / subSteps)
-                        if (debug && 'J'.toInt() in keysDown) smallerH = max(10, h / subSteps)
-                        // smallerH /= 2
-                        // smallerH = max(10, h / subSteps)
-                        size = pixelSize * smallerW / w
-                        // draw image on smaller thing...
-                        val temp2 = FBStack["mask-gaussian-blur-2", smallerW, smallerH, 1, true]// temp[2]
-                        Frame(smallerW, smallerH, false, temp2) {
-                            // glClearColor(0f, 0f, 0f, 0f)
-                            // glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
-                            // draw texture 0 (masked) onto temp2
-                            // todo sample multiple times...
-                            GFX.copy()
-                            temp2.bindTexture0(0, NearestMode.TRULY_NEAREST, ClampMode.CLAMP)
-                        }
-                    }
-
-                    if (debug && 'I'.toInt() in keysDown) println("$w,$h -> $smallerW,$smallerH")
-
-                    drawBlur(FBStack["mask-gaussian-blur-0", smallerW, smallerH, 1, true], smallerW, smallerH, 0, true)
-                    drawBlur(FBStack["mask-gaussian-blur-1", smallerW, smallerH, 1, true], smallerW, smallerH, 2, false)
-
-                }
+                GaussianBlur.draw(masked, pixelSize, w, h, 2, 0f, localTransform)
 
                 GFX.drawMode = oldDrawMode
-
                 masked.bindTexture0(1, NearestMode.TRULY_NEAREST, ClampMode.CLAMP)
                 mask.bindTexture0(0, NearestMode.TRULY_NEAREST, ClampMode.CLAMP)
 
@@ -137,6 +83,7 @@ class MaskLayer(parent: Transform? = null) : MaskLayerBase(parent) {
                     type, useMaskColor[time],
                     pixelSize, isInverted
                 )
+
             }
             MaskType.BOKEH_BLUR -> {
 

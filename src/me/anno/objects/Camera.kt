@@ -59,6 +59,10 @@ class Camera(parent: Transform? = null) : Transform(parent) {
     val cgPower = AnimatedProperty.color(Vector4f(1f, 1f, 1f, 1f))
     val cgSaturation = AnimatedProperty.float(1f) // only allow +? only 01?
 
+    val bloomSize = AnimatedProperty.floatPlus(0.05f)
+    val bloomIntensity = AnimatedProperty.floatPlus(0f)
+    val bloomThreshold = AnimatedProperty.floatPlus(0.8f)
+
     var toneMapping = ToneMappers.RAW8
 
     var onlyShowTarget = true
@@ -104,6 +108,10 @@ class Camera(parent: Transform? = null) : Transform(parent) {
         val vignette = getGroup("Vignette", "vignette")
         vignette += VI("Vignette Color", "Color of the border", vignetteColor, style)
         vignette += VI("Vignette Strength", "Strength of the colored border", vignetteStrength, style)
+        val bloom = getGroup("Bloom", "bloom")
+        bloom += VI("Intensity", "Brightness of effect, 0 = off", bloomIntensity, style)
+        bloom += VI("Effect Size", "How much it is blurred", bloomSize, style)
+        bloom += VI("Threshold", "Minimum brightness", bloomThreshold, style)
         val color = getGroup("Color", "color")
         color += VI(
             "Tone Mapping",
@@ -150,31 +158,7 @@ class Camera(parent: Transform? = null) : Transform(parent) {
         val near = getEffectiveNear(time, offset)
         val far = getEffectiveFar(time, offset)
 
-        stack.translate(0f, 0f, offset)
-
-        val scaleZ = 1f
-        val scaleY = scaleZ * tan(toRadians(fov) / 2f)
-        val scaleX = scaleY * targetWidth / targetHeight
-        stack.scale(scaleX, scaleY, scaleZ)
-        val shader = lineShader3D
-
-        // todo show the standard level only on user request, or when DOF is enabled
-        // todo render the intersections instead
-        shader.use()
-        stack.get(GFX.matrixBuffer)
-        glUniformMatrix4fv(shader["transform"], false, GFX.matrixBuffer)
-        GFX.shaderColor(shader, "color", color)
-        cameraModel.draw(shader)
-
-        stack.scale(near)
-        stack.get(GFX.matrixBuffer)
-        glUniformMatrix4fv(shader["transform"], false, GFX.matrixBuffer)
-        cameraModel.draw(shader)
-
-        stack.scale(far / near)
-        stack.get(GFX.matrixBuffer)
-        glUniformMatrix4fv(shader["transform"], false, GFX.matrixBuffer)
-        cameraModel.draw(shader)
+        drawCamera(stack, offset, fov, color, near, far)
 
     }
 
@@ -198,6 +182,9 @@ class Camera(parent: Transform? = null) : Transform(parent) {
         writer.writeObject(this, "orthographicness", orthographicness)
         writer.writeObject(this, "vignetteStrength", vignetteStrength)
         writer.writeObject(this, "vignetteColor", vignetteColor)
+        writer.writeObject(this, "bloomIntensity", bloomIntensity)
+        writer.writeObject(this, "bloomSize", bloomSize)
+        writer.writeObject(this, "bloomThreshold", bloomThreshold)
         writer.writeInt("toneMapping", toneMapping.id, true)
         writer.writeBool("onlyShowTarget", onlyShowTarget)
         writer.writeBool("useDepth", useDepth)
@@ -228,6 +215,9 @@ class Camera(parent: Transform? = null) : Transform(parent) {
             "orthographicness" -> orthographicness.copyFrom(value)
             "vignetteStrength" -> vignetteStrength.copyFrom(value)
             "vignetteColor" -> vignetteColor.copyFrom(value)
+            "bloomIntensity" -> bloomIntensity.copyFrom(value)
+            "bloomThreshold" -> bloomThreshold.copyFrom(value)
+            "bloomSize" -> bloomSize.copyFrom(value)
             "cgSaturation" -> cgSaturation.copyFrom(value)
             "cgOffset" -> cgOffset.copyFrom(value)
             "cgSlope" -> cgSlope.copyFrom(value)
@@ -250,8 +240,38 @@ class Camera(parent: Transform? = null) : Transform(parent) {
         }
     }
 
-
     companion object {
+
+        fun drawCamera(stack: Matrix4fArrayList,
+                       offset: Float, fov: Float, color: Vector4f, near: Float, far: Float){
+
+            stack.translate(0f, 0f, offset)
+
+            val scaleZ = 1f
+            val scaleY = scaleZ * tan(toRadians(fov) / 2f)
+            val scaleX = scaleY * targetWidth / targetHeight
+            stack.scale(scaleX, scaleY, scaleZ)
+            val shader = lineShader3D
+
+            // todo show the standard level only on user request, or when DOF is enabled
+            // todo render the intersections instead
+            shader.use()
+            stack.get(GFX.matrixBuffer)
+            glUniformMatrix4fv(shader["transform"], false, GFX.matrixBuffer)
+            GFX.shaderColor(shader, "color", color)
+            cameraModel.draw(shader)
+
+            stack.scale(near)
+            stack.get(GFX.matrixBuffer)
+            glUniformMatrix4fv(shader["transform"], false, GFX.matrixBuffer)
+            cameraModel.draw(shader)
+
+            stack.scale(far / near)
+            stack.get(GFX.matrixBuffer)
+            glUniformMatrix4fv(shader["transform"], false, GFX.matrixBuffer)
+            cameraModel.draw(shader)
+
+        }
 
         val cameraModel: StaticBuffer by lazy {
 

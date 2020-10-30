@@ -32,9 +32,11 @@ open class ShaderPlus(name: String, vertex: String, varying: String, fragment: S
                 "   switch(drawMode){\n" +
                 "       case ${DrawMode.COLOR_SQUARED.id}:\n" +
                 "           gl_FragColor.rgb *= gl_FragColor.rgb;\n" +
+                "           gl_FragColor.a = clamp(gl_FragColor.a, 0, 1);\n" +
                 "           break;\n" +
                 "       case ${DrawMode.COLOR.id}:\n" +
-                "           break;\n" + // nothing to do
+                "           gl_FragColor.a = clamp(gl_FragColor.a, 0, 1);\n" +
+                "           break;\n" +
                 "       case ${DrawMode.ID.id}:\n" +
                 "           if(gl_FragColor.a < 0.01) discard;\n" +
                 "           gl_FragColor.rgb = tint.rgb;\n" +
