@@ -1,5 +1,6 @@
 package me.anno.gpu
 
+import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.ClampMode
@@ -17,6 +18,7 @@ import org.joml.Matrix4f
 import org.joml.Matrix4fArrayList
 import org.joml.Vector3f
 import org.joml.Vector4f
+import org.lwjgl.opengl.GL11.GL_LINES
 import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL30
 
@@ -79,13 +81,6 @@ object GFXx3D {
         GL30.glUniformMatrix4fv(shader["transform"], false, GFX.matrixBuffer)
     }
 
-    private val dirs = listOf(
-        "l00" to Vector4f(-1f, -1f, 0f, 1f),
-        "l01" to Vector4f(-1f, +1f, 0f, 1f),
-        "l10" to Vector4f(+1f, -1f, 0f, 1f),
-        "l11" to Vector4f(+1f, +1f, 0f, 1f)
-    )
-
     fun draw3DMasked(
         stack: Matrix4fArrayList, color: Vector4f,
         maskType: MaskType,
@@ -100,20 +95,8 @@ object GFXx3D {
         shader.v1("invertMask", isInverted)
         shader.v1("maskType", maskType.id)
         shader.v2("pixelating", pixelSize * GFX.windowHeight / GFX.windowWidth, pixelSize)
-        if(isFullscreen){
-            // val inv = Matrix4f(stack).invert()
-            // get the locations of the four corners...
-            for((name, d00) in dirs){
-                val pseudoDepth = 0.5f
-                val realDepth = 1f
-                shader.v4(name, Vector4f(d00.x * realDepth, d00.y * realDepth, pseudoDepth * realDepth, realDepth))
-            }
-        } else {
-            for((name, d00) in dirs){
-                shader.v4(name, stack.transform(d00))
-            }
-        }
-        GFX.flat01.draw(shader)
+        val buffer = if (isFullscreen) SimpleBuffer.flatLarge else SimpleBuffer.flat11
+        buffer.draw(shader)
         GFX.check()
     }
 
@@ -149,7 +132,7 @@ object GFXx3D {
     }
 
     fun colorGradingUniforms(video: Video?, time: Double, shader: Shader) {
-        if(video == null){
+        if (video == null) {
             shader.v3("cgOffset", Vector3f())
             shader.v3X("cgSlope", Vector4f(1f))
             shader.v3X("cgPower", Vector4f(1f))

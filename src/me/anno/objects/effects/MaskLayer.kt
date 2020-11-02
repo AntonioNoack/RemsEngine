@@ -262,12 +262,7 @@ class MaskLayer(parent: Transform? = null): GFXTransform(parent){
         mask += VI("Invert Mask", "Changes transparency with opacity", null, isInverted, style){ isInverted = it }
         mask += VI("Use Color / Transparency", "Should the color influence the masked?", useMaskColor, style)
         mask += VI("Blur Threshold", "", blurThreshold, style)
-        // todo expand plane to infinity if fullscreen -> depth works then, idk...
-        // infinite bounds doesn't mean that it's actually filling the whole screen
-        // (infinite horizon isn't covering both roof and floor)
-        mask += VI("Fullscreen", "if not, the borders are clipped by the quad shape", null, isFullscreen, style){ isFullscreen = it }
-        /*list += SpacePanel(0, 1, style)
-            .setColor(style.getChild("deep").getColor("background", black))*/
+        mask += VI("Make Huge", "scales the mask, without affecting the children", null, isFullscreen, style){ isFullscreen = it }
         val editor = getGroup("Editor", "editor")
         editor += VI("Show Mask", "for debugging purposes; shows the stencil", null, showMask, style){ showMask = it }
         editor += VI("Show Masked", "for debugging purposes", null, showMasked, style){ showMasked = it }

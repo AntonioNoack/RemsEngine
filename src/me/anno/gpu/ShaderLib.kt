@@ -347,12 +347,8 @@ object ShaderLib {
         // todo disable color effects on masks for simplicity? or break it in fullscreen mode?
         val v3DMasked = v3DBase +
                 "a2 attr0;\n" +
-                "u4 l00,l01,l10,l11;\n" +
                 "void main(){\n" +
-                "   localPosition = vec3(attr0*2.-1., 0.0);\n" +
-                /*"   gl_Position = attr0.x > 0.5 ?\n" +
-                "       (attr0.y > 0.5 ? l11 : l01):\n" +
-                "       (attr0.y > 0.5 ? l01 : l00);\n" +*/
+                "   localPosition = vec3(attr0, 0.0);\n" +
                 "   gl_Position = transform * vec4(localPosition, 1.0);\n" +
                 "   uv = gl_Position.xyw;\n" +
                 positionPostProcessing +
