@@ -79,12 +79,20 @@ object GFXx3D {
         GL30.glUniformMatrix4fv(shader["transform"], false, GFX.matrixBuffer)
     }
 
+    private val dirs = listOf(
+        "l00" to Vector4f(-1f, -1f, 0f, 1f),
+        "l01" to Vector4f(-1f, +1f, 0f, 1f),
+        "l10" to Vector4f(+1f, -1f, 0f, 1f),
+        "l11" to Vector4f(+1f, +1f, 0f, 1f)
+    )
+
     fun draw3DMasked(
         stack: Matrix4fArrayList, color: Vector4f,
         maskType: MaskType,
         useMaskColor: Float,
         pixelSize: Float,
-        isInverted: Float
+        isInverted: Float,
+        isFullscreen: Boolean
     ) {
         val shader = ShaderLib.shader3DMasked.shader
         shader3DUniforms(shader, stack, color)
@@ -92,6 +100,19 @@ object GFXx3D {
         shader.v1("invertMask", isInverted)
         shader.v1("maskType", maskType.id)
         shader.v2("pixelating", pixelSize * GFX.windowHeight / GFX.windowWidth, pixelSize)
+        if(isFullscreen){
+            // val inv = Matrix4f(stack).invert()
+            // get the locations of the four corners...
+            for((name, d00) in dirs){
+                val pseudoDepth = 0.5f
+                val realDepth = 1f
+                shader.v4(name, Vector4f(d00.x * realDepth, d00.y * realDepth, pseudoDepth * realDepth, realDepth))
+            }
+        } else {
+            for((name, d00) in dirs){
+                shader.v4(name, stack.transform(d00))
+            }
+        }
         GFX.flat01.draw(shader)
         GFX.check()
     }

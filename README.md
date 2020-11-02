@@ -23,17 +23,13 @@ It is additionally developed with Java, so it works with Windows and Linux.
 * [OpenSimplexNoise](https://gist.github.com/KdotJPG/b1270127455a94ac5d19) (Noise Generator)
 * [Apache Imaging](https://commons.apache.org/proper/commons-imaging/) (More supported image formats, like .ico)
 * [Metadata Extractor](https://github.com/drewnoakes/metadata-extractor) (Detecting rotated JPEG files)
-* [Thumbcache Viewer](https://github.com/thumbcacheviewer/thumbcacheviewer) (Using thumbnails from Windows instead of generating new ones)
 
 ## Download
 
 The version still is a pre-alpha.
 
 Missing, important features:
-- project management
-- redo/undo
-- linear video editor
-- bug-free input fields ;)
+- well working redo/undo
 
 ### Linux
 

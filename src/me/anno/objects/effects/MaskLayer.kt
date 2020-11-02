@@ -1,22 +1,22 @@
 package me.anno.objects.effects
 
+import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
-import me.anno.gpu.GFX.windowHeight
-import me.anno.gpu.GFX.windowWidth
-import me.anno.gpu.GFXx3D.draw3DBlur
-import me.anno.gpu.GFXx3D.draw3DMasked
+import me.anno.gpu.GFX.isFinalRendering
+import me.anno.gpu.GFXx3D
 import me.anno.gpu.blending.BlendDepth
-import me.anno.gpu.framebuffer.FBStack
-import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.ShaderPlus
-import me.anno.gpu.texture.ClampMode
-import me.anno.gpu.texture.NearestMode
-import me.anno.input.Input.keysDown
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
+import me.anno.objects.GFXTransform
 import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
+import me.anno.gpu.blending.BlendMode
+import me.anno.gpu.framebuffer.FBStack
+import me.anno.gpu.framebuffer.Frame
+import me.anno.gpu.texture.ClampMode
+import me.anno.gpu.texture.NearestMode
 import me.anno.objects.geometric.Circle
 import me.anno.objects.geometric.Polygon
 import me.anno.ui.base.groups.PanelListY
@@ -24,42 +24,164 @@ import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
-import org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT
-import org.lwjgl.opengl.GL11.glClear
-import kotlin.math.max
+import org.lwjgl.opengl.GL11.*
 
-class MaskLayer(parent: Transform? = null) : MaskLayerBase(parent) {
+class MaskLayer(parent: Transform? = null): GFXTransform(parent){
+
+    // just a little expensive...
+    // todo enable multisampling
+    val samples = 1
+
+    lateinit var mask: Framebuffer
+    lateinit var masked: Framebuffer
+
+    // limit to [0,1]?
+    // nice effects can be created with values outside of [0,1], so while [0,1] is the valid range,
+    // numbers outside [0,1] give artists more control
+    val useMaskColor = AnimatedProperty.float()
+    val blurThreshold = AnimatedProperty.float()
+
+    // not animated, because it's not meant to be transitioned, but instead to be a little helper
+    var isInverted = false
+
+    // ignore the bounds of this objects xy-plane?
+    var isFullscreen = false
+
+    // for user-debugging
+    var showMask = false
+    var showMasked = false
 
     var type = MaskType.MASKING
     val effectSize = AnimatedProperty.float01exp(0.01f)
 
-    companion object {
-        fun create(mask: List<Transform>?, masked: List<Transform>?): MaskLayer {
-            val maskLayer = MaskLayer(null)
-            val mask2 = Transform(maskLayer)
-            mask2.name = "Mask Folder"
-            if (mask == null) {
-                Circle(mask2).innerRadius.set(0.5f)
-            } else mask.forEach { mask2.addChild(it) }
-            val masked2 = Transform(maskLayer)
-            masked2.name = "Masked Folder"
-            if (masked == null) {
-                Polygon(masked2)
-            } else masked.forEach { masked2.addChild(it) }
-            return maskLayer
+    override fun getSymbol() = DefaultConfig["ui.symbol.mask", "\uD83D\uDCA5"]
+
+    override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
+
+        val showResult = isFinalRendering || (!showMask && !showMasked)
+        if(children.size >= 2 && showResult){// else invisible
+
+            mask = FBStack["mask", GFX.windowWidth, GFX.windowHeight, samples, true]
+            masked = FBStack["masked", GFX.windowWidth, GFX.windowHeight, samples, true]
+
+            BlendDepth(null, false){
+
+                // (low priority)
+                // to do calculate the size on screen to limit overhead
+                // to do this additionally requires us to recalculate the transform
+
+                BlendMode.DEFAULT.apply()
+
+                drawMask(stack, time, color)
+
+                BlendMode.DEFAULT.apply()
+
+                drawMasked(stack, time, color)
+            }
+
+            drawOnScreen(stack, time, color)
+
+        } else super.onDraw(stack, time, color)
+
+        if(showMask) drawChild(stack, time, color, children.getOrNull(0))
+        if(showMasked) drawChild(stack, time, color, children.getOrNull(1))
+
+    }
+
+    override fun save(writer: BaseWriter) {
+        super.save(writer)
+        // forced, because the default value might be true instead of false
+        writer.writeBool("showMask", showMask, true)
+        writer.writeBool("showMasked", showMasked, true)
+        writer.writeBool("isFullscreen", isFullscreen, true)
+        writer.writeBool("isInverted", isInverted, true)
+        writer.writeObject(this, "useMaskColor", useMaskColor)
+        writer.writeObject(this, "blurThreshold", blurThreshold)
+        writer.writeInt("type", type.id)
+        writer.writeObject(this, "pixelSize", effectSize)
+    }
+
+    override fun readBool(name: String, value: Boolean) {
+        when(name){
+            "showMask" -> showMask = value
+            "showMasked" -> showMasked = value
+            "isFullscreen" -> isFullscreen = value
+            "isInverted" -> isInverted = value
+            else -> super.readBool(name, value)
         }
     }
 
+    override fun readObject(name: String, value: ISaveable?) {
+        when(name){
+            "useMaskColor" -> useMaskColor.copyFrom(value)
+            "blurThreshold" -> blurThreshold.copyFrom(value)
+            "pixelSize" -> effectSize.copyFrom(value)
+            else -> super.readObject(name, value)
+        }
+    }
+
+    override fun drawChildrenAutomatically() = false
+
+
+    fun drawMask(stack: Matrix4fArrayList, time: Double, color: Vector4f){
+
+        Frame(GFX.windowWidth, GFX.windowHeight, false, mask){
+
+            Frame.currentFrame!!.bind()
+
+            val child = children.getOrNull(0)
+            if(child?.getClassName() == "Transform" && child.children.isEmpty()){
+
+                glClearColor(1f, 1f, 1f, 1f)
+                glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
+
+            } else {
+
+                glClearColor(0f, 0f, 0f, 0f)
+                glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
+
+                val oldDrawMode = GFX.drawMode
+                if(oldDrawMode == ShaderPlus.DrawMode.COLOR_SQUARED) GFX.drawMode = ShaderPlus.DrawMode.COLOR
+
+                drawChild(stack, time, color, child)
+
+                GFX.drawMode = oldDrawMode
+
+            }
+        }
+
+    }
+
+    fun drawMasked(stack: Matrix4fArrayList, time: Double, color: Vector4f){
+
+        Frame(GFX.windowWidth, GFX.windowHeight, false, masked){
+
+            Frame.currentFrame!!.bind()
+
+            val oldDrawMode = GFX.drawMode
+            if(oldDrawMode == ShaderPlus.DrawMode.COLOR_SQUARED) GFX.drawMode = ShaderPlus.DrawMode.COLOR
+
+            glClearColor(0f, 0f, 0f, 0f)
+            glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
+
+            drawChild(stack, time, color, children.getOrNull(1))
+
+            GFX.drawMode = oldDrawMode
+
+        }
+
+    }
+
     // mask = 0, tex = 1
-    override fun drawOnScreen2(localTransform: Matrix4fArrayList, time: Double, color: Vector4f) {
+    fun drawOnScreen(stack: Matrix4fArrayList, time: Double, color: Vector4f){
 
         GFX.check()
 
         val pixelSize = effectSize[time]
         val isInverted = if (isInverted) 1f else 0f
 
-        val w = windowWidth
-        val h = windowHeight
+        val w = GFX.windowWidth
+        val h = GFX.windowHeight
 
         when (type) {
             MaskType.GAUSSIAN_BLUR, MaskType.BLOOM -> {
@@ -71,7 +193,7 @@ class MaskLayer(parent: Transform? = null) : MaskLayerBase(parent) {
                 if (oldDrawMode == ShaderPlus.DrawMode.COLOR_SQUARED) GFX.drawMode = ShaderPlus.DrawMode.COLOR
 
                 val threshold = blurThreshold[time]
-                GaussianBlur.draw(masked, pixelSize, w, h, 2, threshold, localTransform)
+                GaussianBlur.draw(masked, pixelSize, w, h, 2, threshold, stack)
 
                 GFX.drawMode = oldDrawMode
                 masked.bindTexture0(1, NearestMode.TRULY_NEAREST, ClampMode.CLAMP)
@@ -79,10 +201,11 @@ class MaskLayer(parent: Transform? = null) : MaskLayerBase(parent) {
 
                 GFX.check()
 
-                draw3DMasked(
-                    localTransform, color,
+                GFXx3D.draw3DMasked(
+                    stack, color,
                     type, useMaskColor[time],
-                    pixelSize, isInverted
+                    pixelSize, isInverted,
+                    isFullscreen
                 )
 
             }
@@ -101,10 +224,11 @@ class MaskLayer(parent: Transform? = null) : MaskLayerBase(parent) {
                 masked.bindTexture0(1, NearestMode.TRULY_NEAREST, ClampMode.CLAMP)
                 mask.bindTexture0(0, NearestMode.TRULY_NEAREST, ClampMode.CLAMP)
 
-                draw3DMasked(
-                    localTransform, color,
+                GFXx3D.draw3DMasked(
+                    stack, color,
                     type, useMaskColor[time],
-                    0f, isInverted
+                    0f, isInverted,
+                    isFullscreen
                 )
 
             }
@@ -114,10 +238,11 @@ class MaskLayer(parent: Transform? = null) : MaskLayerBase(parent) {
                 GFX.check()
                 mask.bindTextures(0, NearestMode.TRULY_NEAREST, ClampMode.CLAMP)
                 GFX.check()
-                draw3DMasked(
-                    localTransform, color,
+                GFXx3D.draw3DMasked(
+                    stack, color,
                     type, useMaskColor[time],
-                    pixelSize, isInverted
+                    pixelSize, isInverted,
+                    isFullscreen
                 )
 
             }
@@ -133,12 +258,19 @@ class MaskLayer(parent: Transform? = null) : MaskLayerBase(parent) {
         val effect = getGroup("Effect", "fx")
         effect += VI("Type", "Masks are multipurpose objects", null, type, style) { type = it }
         effect += VI("Size", "How large pixelated pixels or blur should be", effectSize, style)
-    }
-
-    override fun save(writer: BaseWriter) {
-        super.save(writer)
-        writer.writeInt("type", type.id)
-        writer.writeObject(this, "pixelSize", effectSize)
+        val mask = getGroup("Mask Settings", "mask")
+        mask += VI("Invert Mask", "Changes transparency with opacity", null, isInverted, style){ isInverted = it }
+        mask += VI("Use Color / Transparency", "Should the color influence the masked?", useMaskColor, style)
+        mask += VI("Blur Threshold", "", blurThreshold, style)
+        // todo expand plane to infinity if fullscreen -> depth works then, idk...
+        // infinite bounds doesn't mean that it's actually filling the whole screen
+        // (infinite horizon isn't covering both roof and floor)
+        mask += VI("Fullscreen", "if not, the borders are clipped by the quad shape", null, isFullscreen, style){ isFullscreen = it }
+        /*list += SpacePanel(0, 1, style)
+            .setColor(style.getChild("deep").getColor("background", black))*/
+        val editor = getGroup("Editor", "editor")
+        editor += VI("Show Mask", "for debugging purposes; shows the stencil", null, showMask, style){ showMask = it }
+        editor += VI("Show Masked", "for debugging purposes", null, showMasked, style){ showMasked = it }
     }
 
     override fun readInt(name: String, value: Int) {
@@ -148,14 +280,24 @@ class MaskLayer(parent: Transform? = null) : MaskLayerBase(parent) {
         }
     }
 
-    override fun readObject(name: String, value: ISaveable?) {
-        when (name) {
-            "pixelSize" -> effectSize.copyFrom(value)
-            else -> super.readObject(name, value)
-        }
-    }
-
     override fun getDefaultDisplayName() = "Mask Layer"
     override fun getClassName() = "MaskLayer"
+
+    companion object {
+        fun create(mask: List<Transform>?, masked: List<Transform>?): MaskLayer {
+            val maskLayer = MaskLayer(null)
+            val mask2 = Transform(maskLayer)
+            mask2.name = "Mask Folder"
+            if (mask == null) {
+                Circle(mask2).innerRadius.set(0.5f)
+            } else mask.forEach { mask2.addChild(it) }
+            val masked2 = Transform(maskLayer)
+            masked2.name = "Masked Folder"
+            if (masked == null) {
+                Polygon(masked2)
+            } else masked.forEach { masked2.addChild(it) }
+            return maskLayer
+        }
+    }
 
 }
