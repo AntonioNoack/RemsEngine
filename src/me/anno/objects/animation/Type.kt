@@ -1,6 +1,6 @@
 package me.anno.objects.animation
 
-import me.anno.utils.clamp
+import me.anno.utils.Maths.clamp
 import org.joml.Quaternionf
 import org.joml.Vector2f
 import org.joml.Vector3f

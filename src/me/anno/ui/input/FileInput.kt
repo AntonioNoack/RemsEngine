@@ -3,7 +3,7 @@ package me.anno.ui.input
 import me.anno.gpu.GFX
 import me.anno.input.MouseButton
 import me.anno.ui.style.Style
-import me.anno.utils.openInExplorer
+import me.anno.utils.FileHelper.openInExplorer
 import java.io.File
 
 class FileInput(title: String, style: Style): TextInput(title, style){
@@ -20,7 +20,7 @@ class FileInput(title: String, style: Style): TextInput(title, style){
     override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
         if(button.isRight){
             GFX.openMenu(listOf(
-                "Open In Explorer" to File(text)::openInExplorer
+                "Open In Explorer" to { File(text).openInExplorer() }
             ))
         } else {
             super.onMouseClicked(x, y, button, long)

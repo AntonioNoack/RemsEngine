@@ -11,8 +11,8 @@ import me.anno.objects.cache.Cache
 import me.anno.studio.StudioBase.Companion.shiftSlowdown
 import me.anno.ui.base.Panel
 import me.anno.ui.style.Style
-import me.anno.utils.clamp
-import me.anno.utils.pow
+import me.anno.utils.Maths.clamp
+import me.anno.utils.Maths.pow
 import me.anno.video.FFMPEGMetadata
 import me.anno.video.FFMPEGStream
 import org.apache.logging.log4j.LogManager

@@ -26,7 +26,7 @@ import me.anno.ui.base.TextPanel
 import me.anno.ui.dragging.Draggable
 import me.anno.ui.editor.files.addChildFromFile
 import me.anno.ui.style.Style
-import me.anno.utils.clamp
+import me.anno.utils.Maths.clamp
 import org.joml.Vector4f
 import java.io.File
 

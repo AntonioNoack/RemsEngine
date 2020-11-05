@@ -3,8 +3,8 @@ package me.anno.ui.editor.color.spaces
 import me.anno.ui.editor.color.ColorSpace
 import me.anno.ui.editor.color.HSVColorSpace
 import me.anno.utils.gradientDescent
-import me.anno.utils.mix
-import me.anno.utils.times
+import me.anno.utils.Maths.mix
+import me.anno.utils.Vectors.times
 import org.joml.Vector3f
 
 object LinearHSI : ColorSpace(

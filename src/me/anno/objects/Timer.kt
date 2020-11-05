@@ -1,12 +1,11 @@
 package me.anno.objects
 
 import me.anno.config.DefaultConfig
-import me.anno.fonts.PartResult
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.input.TextInputML
 import me.anno.ui.style.Style
-import me.anno.utils.fract
+import me.anno.utils.Maths.fract
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
 import java.util.*

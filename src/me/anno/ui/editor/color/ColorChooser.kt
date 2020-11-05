@@ -15,7 +15,7 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.color.spaces.HSLuv
 import me.anno.ui.input.EnumInput
 import me.anno.ui.style.Style
-import me.anno.utils.clamp
+import me.anno.utils.Maths.clamp
 import me.anno.utils.f3
 import me.anno.utils.get
 import org.apache.logging.log4j.LogManager

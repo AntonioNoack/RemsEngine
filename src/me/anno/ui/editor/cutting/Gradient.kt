@@ -2,7 +2,7 @@ package me.anno.ui.editor.cutting
 
 import me.anno.ui.editor.cutting.LayerView.Companion.minAlpha
 import me.anno.ui.editor.cutting.LayerView.Companion.minDistSq
-import me.anno.utils.mix
+import me.anno.utils.Maths.mix
 import org.joml.Vector4f
 
 class Gradient(val owner: Any?, val x0: Int, var x2: Int, val c0: Vector4f, var c2: Vector4f) {

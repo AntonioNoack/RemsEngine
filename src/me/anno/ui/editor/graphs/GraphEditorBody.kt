@@ -32,6 +32,11 @@ import me.anno.ui.editor.TimelinePanel
 import me.anno.ui.editor.sceneView.Grid.drawSmoothLine
 import me.anno.ui.style.Style
 import me.anno.utils.*
+import me.anno.utils.Maths.clamp
+import me.anno.utils.Maths.length
+import me.anno.utils.Maths.mix
+import me.anno.utils.Maths.mixARGB
+import me.anno.utils.Maths.pow
 import org.joml.Vector2f
 import kotlin.math.abs
 import kotlin.math.max

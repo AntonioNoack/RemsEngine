@@ -1,6 +1,8 @@
 package me.anno.installer
 
 import me.anno.utils.*
+import me.anno.utils.StringHelper.formatDownload
+import me.anno.utils.StringHelper.formatDownloadEnd
 import me.anno.video.FFMPEG
 import me.anno.video.FFMPEG.ffmpegPath
 import me.anno.video.FFMPEG.ffprobePath

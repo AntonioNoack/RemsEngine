@@ -8,7 +8,7 @@ import me.anno.gpu.texture.FilteringMode
 import me.anno.gpu.texture.Texture2D
 import me.anno.objects.Video
 import me.anno.objects.cache.StaticFloatBufferData
-import me.anno.utils.fract
+import me.anno.utils.Maths.fract
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
 import kotlin.math.floor

@@ -8,9 +8,9 @@ import me.anno.objects.animation.Spline.getWeights
 import me.anno.objects.animation.drivers.AnimationDriver
 import me.anno.studio.RemsStudio.root
 import me.anno.utils.WrongClassType
-import me.anno.utils.clamp
-import me.anno.utils.plus
-import me.anno.utils.times
+import me.anno.utils.Maths.clamp
+import me.anno.utils.Vectors.plus
+import me.anno.utils.Vectors.times
 import org.apache.logging.log4j.LogManager
 import org.joml.Quaternionf
 import org.joml.Vector2f

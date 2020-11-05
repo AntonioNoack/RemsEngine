@@ -6,8 +6,8 @@ import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.ui.base.DefaultRenderingHints.prepareGraphics
 import me.anno.utils.OS
-import me.anno.utils.incrementTab
-import me.anno.utils.joinChars
+import me.anno.utils.StringHelper.incrementTab
+import me.anno.utils.StringHelper.joinChars
 import org.apache.logging.log4j.LogManager
 import java.awt.Font
 import java.awt.FontMetrics

@@ -20,8 +20,8 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.files.hasValidName
 import me.anno.ui.style.Style
-import me.anno.utils.clamp
-import me.anno.utils.sq
+import me.anno.utils.Maths.clamp
+import me.anno.utils.Maths.sq
 import me.anno.video.MissingFrameException
 import org.joml.Matrix4fArrayList
 import org.joml.Vector3f

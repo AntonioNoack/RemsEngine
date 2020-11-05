@@ -1,7 +1,6 @@
 package me.anno.ui.editor.color
 
 import me.anno.config.DefaultStyle.black
-import me.anno.gpu.GFX
 import me.anno.gpu.GFXx2D.drawRect
 import me.anno.gpu.GFXx2D.drawRectGradient
 import me.anno.gpu.GFXx2D.drawTexture
@@ -12,8 +11,8 @@ import me.anno.input.MouseButton
 import me.anno.ui.base.constraints.AspectRatioConstraint
 import me.anno.ui.editor.color.ColorChooser.Companion.CircleBarRatio
 import me.anno.ui.style.Style
-import me.anno.utils.length
-import me.anno.utils.toVecRGBA
+import me.anno.utils.Color.toVecRGBA
+import me.anno.utils.Maths.length
 import org.joml.Vector3f
 import org.joml.Vector4f
 import kotlin.math.*

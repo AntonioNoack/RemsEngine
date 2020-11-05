@@ -4,13 +4,12 @@ import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.deltaTime
 import me.anno.gpu.GFX.hoveredPanel
-import me.anno.gpu.framebuffer.Frame
 import me.anno.input.Input.mouseX
 import me.anno.input.Input.mouseY
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelContainer
-import me.anno.utils.length
+import me.anno.utils.Maths.length
 import kotlin.math.abs
 import kotlin.math.min
 import kotlin.math.roundToInt

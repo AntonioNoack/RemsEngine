@@ -3,7 +3,7 @@ package me.anno.ui.base.scrolling
 import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.ui.base.Panel
-import me.anno.utils.clamp
+import me.anno.utils.Maths.clamp
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.constraints.WrapAlign

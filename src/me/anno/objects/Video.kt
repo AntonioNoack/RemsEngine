@@ -43,6 +43,11 @@ import me.anno.ui.editor.sceneView.Grid
 import me.anno.ui.input.EnumInput
 import me.anno.ui.style.Style
 import me.anno.utils.*
+import me.anno.utils.Maths.clamp
+import me.anno.utils.Maths.pow
+import me.anno.utils.StringHelper.getImportType
+import me.anno.utils.Vectors.plus
+import me.anno.utils.Vectors.times
 import me.anno.utils.test.ImageSequenceMeta
 import me.anno.video.FFMPEGMetadata
 import me.anno.video.FFMPEGMetadata.Companion.getMeta

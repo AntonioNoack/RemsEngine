@@ -9,7 +9,7 @@ import me.anno.ui.base.scrolling.ScrollableY
 import me.anno.ui.base.scrolling.ScrollbarY
 import me.anno.ui.style.Style
 import me.anno.utils.Quad
-import me.anno.utils.clamp
+import me.anno.utils.Maths.clamp
 import kotlin.math.max
 
 class PanelListMultiline(style: Style): PanelGroup(style), ScrollableY {

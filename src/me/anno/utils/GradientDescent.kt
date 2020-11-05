@@ -1,5 +1,7 @@
 package me.anno.utils
 
+import me.anno.utils.Maths.sq
+
 var ctr = 0
 
 fun gradientDescent(

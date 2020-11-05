@@ -7,9 +7,9 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.input.BooleanInput
 import me.anno.ui.style.Style
-import me.anno.utils.plus
+import me.anno.utils.Vectors.plus
+import me.anno.utils.Vectors.times
 import me.anno.utils.sumByFloat
-import me.anno.utils.times
 import me.anno.video.MissingFrameException
 import org.joml.Matrix4fArrayList
 import org.joml.Random

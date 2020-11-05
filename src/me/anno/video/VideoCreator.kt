@@ -4,14 +4,13 @@ import me.anno.gpu.GFX
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.studio.RemsStudio.project
-import me.anno.utils.clamp
+import me.anno.utils.Maths.clamp
+import me.anno.utils.StringHelper.formatTime
 import me.anno.utils.f1
-import me.anno.utils.formatTime
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL11.*
 import java.io.File
-import java.io.IOException
 import java.io.OutputStream
 import kotlin.concurrent.thread
 import kotlin.math.round

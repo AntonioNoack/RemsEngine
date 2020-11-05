@@ -16,8 +16,6 @@ import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.ShaderPlus
 import me.anno.input.Input
-import me.anno.input.Input.mouseDownX
-import me.anno.input.Input.mouseDownY
 import me.anno.input.Input.mouseKeysDown
 import me.anno.input.Input.mouseX
 import me.anno.input.Input.mouseY
@@ -26,7 +24,6 @@ import me.anno.input.Touch.Companion.touches
 import me.anno.objects.Camera
 import me.anno.objects.Transform
 import me.anno.objects.effects.ToneMappers
-import me.anno.studio.RemsStudio
 import me.anno.studio.RemsStudio.editorTime
 import me.anno.studio.RemsStudio.editorTimeDilation
 import me.anno.studio.RemsStudio.isPaused
@@ -49,6 +46,11 @@ import me.anno.ui.editor.files.addChildFromFile
 import me.anno.ui.simple.SimplePanel
 import me.anno.ui.style.Style
 import me.anno.utils.*
+import me.anno.utils.Maths.clamp
+import me.anno.utils.Maths.pow
+import me.anno.utils.Vectors.plus
+import me.anno.utils.Vectors.times
+import me.anno.utils.Vectors.toVec3f
 import org.joml.Matrix4f
 import org.joml.Matrix4fArrayList
 import org.joml.Vector3f

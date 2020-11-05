@@ -10,6 +10,7 @@ import me.anno.objects.GFXTransform
 import me.anno.objects.Transform
 import me.anno.objects.cache.Cache
 import me.anno.objects.meshes.fbx.model.FBXGeometry
+import me.anno.objects.meshes.fbx.model.FBXGeometry.Companion.maxWeightsDefault
 import me.anno.objects.meshes.fbx.structure.FBXReader
 import me.anno.objects.meshes.obj.Material
 import me.anno.objects.meshes.obj.OBJReader
@@ -25,7 +26,7 @@ import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
 import java.io.File
 
-class Mesh(var file: File, parent: Transform?): GFXTransform(parent){
+class Mesh(var file: File, parent: Transform?) : GFXTransform(parent) {
 
     companion object {
         // var daeEngine: RenderEngine? = null
@@ -38,7 +39,7 @@ class Mesh(var file: File, parent: Transform?): GFXTransform(parent){
 
     // for the start it is nice to be able to import meshes like a torus into the engine :)
 
-    constructor(): this(File(""), null)
+    constructor() : this(File(""), null)
 
     override fun getSymbol() = DefaultConfig["ui.symbol.mesh", "\uD83D\uDC69"]
 
@@ -48,59 +49,68 @@ class Mesh(var file: File, parent: Transform?): GFXTransform(parent){
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
 
         val file = file
-        if(file.hasValidName()){
+        if (file.hasValidName()) {
 
-            if(file !== lastFile){
+            if (file !== lastFile) {
                 extension = file.extension.toLowerCase()
                 lastFile = file
             }
 
-            when(extension){// todo decide on file magic instead
+            when (extension) {// todo decide on file magic instead
                 "dae" -> {
 
                     GFX.check()
-                    if(daeRenderer == null){
+                    if (daeRenderer == null) {
                         daeRenderer = AnimatedModelRenderer()
                     }
                     GFX.check()
 
                     // load the 3D model
-                    val data = Cache.getEntry(file, false, "Mesh", 1000, true){
+                    val data = Cache.getEntry(file, false, "Mesh", 1000, true) {
 
                         val meshData = MeshData()
-                        GFX.addGPUTask(10){
+                        GFX.addGPUTask(10) {
                             GFX.check()
-                            meshData.daeScene = SceneLoader.loadScene(URI(file),URI(file))
+                            meshData.daeScene = SceneLoader.loadScene(URI(file), URI(file))
                             GFX.check()
                         }
                         Thread.sleep(100) // wait for the texture to load
                         meshData
                     } as? MeshData
 
-                    if(isFinalRendering && data == null) throw MissingFrameException(file)
+                    if (isFinalRendering && data == null) throw MissingFrameException(file)
 
                     // stack.scale(0.01f, -0.01f, 0.01f)
-                    if(data?.daeScene != null) data.drawDae(stack, time, color) ?: super.onDraw(stack, time, color)
+                    if (data?.daeScene != null) data.drawDae(stack, time, color) ?: super.onDraw(stack, time, color)
 
                 }
                 "fbx" -> {
                     // load the 3D model
-                    val data = Cache.getEntry(file, false, "Mesh", 1000, true){
-                        val fbxGeometry = FBXReader(file.inputStream().buffered()).fbxObjects.filterIsInstance<FBXGeometry>().first()
+                    val data = Cache.getEntry(file, false, "Mesh", 1000, true) {
+                        val fbxGeometry =
+                            FBXReader(file.inputStream().buffered()).fbxObjects.filterIsInstance<FBXGeometry>().first()
                         val meshData = MeshData()
-                        meshData.objData = mapOf(Material() to fbxGeometry.generateMesh())
+                        meshData.objData = mapOf(
+                            Material() to fbxGeometry.generateMesh(
+                                "xyz",
+                                "normals",
+                                "materialIndex",
+                                1,
+                                maxWeightsDefault
+                            )
+                        )
                         meshData.fbxGeometry = fbxGeometry
                         meshData
                     } as? MeshData
 
-                    if(isFinalRendering && data == null) throw MissingFrameException(file)
+                    if (isFinalRendering && data == null) throw MissingFrameException(file)
 
                     stack.scale(0.01f, -0.01f, 0.01f)
                     data?.drawFBX(stack, time, color) ?: super.onDraw(stack, time, color)
                 }
                 "obj" -> {
                     // load the 3D model
-                    val data = Cache.getEntry(file, false, "Mesh", 1000, true){
+                    val data = Cache.getEntry(file, false, "Mesh", 1000, true) {
                         val attributes = listOf(
                             Attribute("coords", 3),
                             Attribute("uvs", 2),
@@ -119,7 +129,7 @@ class Mesh(var file: File, parent: Transform?): GFXTransform(parent){
                         meshData
                     } as? MeshData
 
-                    if(isFinalRendering && data == null) throw MissingFrameException(file)
+                    if (isFinalRendering && data == null) throw MissingFrameException(file)
 
                     data?.drawObj(stack, time, color) ?: super.onDraw(stack, time, color)
                 }
@@ -129,9 +139,13 @@ class Mesh(var file: File, parent: Transform?): GFXTransform(parent){
 
     }
 
-    override fun createInspector(list: PanelListY, style: Style, getGroup: (title: String, id: String) -> SettingCategory) {
+    override fun createInspector(
+        list: PanelListY,
+        style: Style,
+        getGroup: (title: String, id: String) -> SettingCategory
+    ) {
         super.createInspector(list, style, getGroup)
-        list += VI("File", "", null, file, style){ file = it }
+        list += VI("File", "", null, file, style) { file = it }
     }
 
     override fun save(writer: BaseWriter) {
@@ -140,7 +154,7 @@ class Mesh(var file: File, parent: Transform?): GFXTransform(parent){
     }
 
     override fun readString(name: String, value: String) {
-        when(name){
+        when (name) {
             "file" -> file = File(value)
             else -> super.readString(name, value)
         }

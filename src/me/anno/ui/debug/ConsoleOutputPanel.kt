@@ -10,7 +10,7 @@ import me.anno.ui.base.groups.PanelList
 import me.anno.ui.debug.console.COFullscreen
 import me.anno.ui.debug.console.COLine
 import me.anno.ui.style.Style
-import me.anno.utils.mixARGB
+import me.anno.utils.Maths.mixARGB
 import java.util.logging.Level
 import kotlin.math.min
 

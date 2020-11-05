@@ -4,7 +4,7 @@ import me.anno.gpu.Cursor
 import me.anno.input.Input
 import me.anno.ui.base.SpacePanel
 import me.anno.ui.style.Style
-import me.anno.utils.mixARGB
+import me.anno.utils.Maths.mixARGB
 
 class CustomizingBar(var index: Int, sizeX: Int, sizeY: Int, style: Style): SpacePanel(sizeX, sizeY, style){
 

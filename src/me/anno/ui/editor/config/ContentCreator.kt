@@ -4,16 +4,15 @@ import me.anno.config.DefaultConfig.style
 import me.anno.config.DefaultStyle.black
 import me.anno.image.svg.SVGStyle.Companion.parseColor
 import me.anno.io.utils.StringMap
-import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.animation.Type
 import me.anno.studio.RemsStudio.root
 import me.anno.ui.base.Panel
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.input.*
-import me.anno.ui.input.components.PureTextInput
-import me.anno.ui.input.components.PureTextInputML
-import me.anno.utils.*
+import me.anno.utils.Color.rgba
+import me.anno.utils.Color.toHexColor
+import me.anno.utils.Color.toVecRGBA
 import org.joml.Vector4f
 
 class ContentCreator(

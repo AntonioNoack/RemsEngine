@@ -16,6 +16,10 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelXY
 import me.anno.ui.style.Style
 import me.anno.utils.*
+import me.anno.utils.Maths.clamp
+import me.anno.utils.StringHelper.getIndexFromText
+import me.anno.utils.StringHelper.getLineWidth
+import me.anno.utils.StringHelper.joinChars
 import java.lang.StringBuilder
 import kotlin.math.abs
 import kotlin.streams.toList

@@ -4,9 +4,11 @@ import me.anno.gpu.GFX
 import me.anno.gpu.framebuffer.Frame
 import me.anno.objects.cache.CacheData
 import org.apache.logging.log4j.LogManager
+import org.joml.Matrix4f
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
+import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL20.*
 import java.lang.RuntimeException
 
@@ -175,6 +177,15 @@ open class Shader(val shaderName: String,
     fun v2(name: String, v: Vector2f) = v2(name, v.x, v.y)
     fun v3(name: String, v: Vector3f) = v3(name, v.x, v.y, v.z)
     fun v4(name: String, v: Vector4f) = v4(name, v.x, v.y, v.z, v.w)
+
+    fun m4x4(name: String, value: Matrix4f){
+        use()
+        val loc = this[name]
+        if(loc > -1){
+            value.get(GFX.matrixBuffer)
+            glUniformMatrix4fv(loc, false, GFX.matrixBuffer)
+        }
+    }
 
     fun check() = GFX.check()
 

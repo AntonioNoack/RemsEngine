@@ -23,6 +23,10 @@ import me.anno.ui.base.Panel
 import me.anno.ui.custom.CustomContainer.Companion.isCross
 import me.anno.ui.style.Style
 import me.anno.utils.*
+import me.anno.utils.Maths.clamp
+import me.anno.utils.Maths.mix
+import me.anno.utils.Maths.mixARGB
+import me.anno.utils.Maths.pow
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.roundToInt

@@ -24,6 +24,8 @@ import me.anno.ui.input.components.TitlePanel
 import me.anno.ui.input.components.VectorInputComponent
 import me.anno.ui.style.Style
 import me.anno.utils.*
+import me.anno.utils.Maths.clamp
+import me.anno.utils.Maths.pow
 import org.joml.Quaternionf
 import org.joml.Vector2f
 import org.joml.Vector3f

@@ -12,7 +12,7 @@ import me.anno.objects.attractors.EffectMorphing
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
-import me.anno.utils.put
+import me.anno.utils.Floats.put3
 import org.joml.Vector3f
 import org.joml.Vector4f
 import org.lwjgl.opengl.GL20.*
@@ -159,7 +159,7 @@ abstract class GFXTransform(parent: Transform?) : Transform(parent) {
                 val localTime = attractor.lastLocalTime
                 val position = transformLocally(attractor.position[localTime], time)
                 val weight = attractor.lastInfluence
-                buffer.put(position)
+                buffer.put3(position)
                 buffer.put(weight)
             }
             buffer.position(0)

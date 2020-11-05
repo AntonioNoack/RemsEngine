@@ -8,7 +8,7 @@ import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.style.Style
 import me.anno.utils.isClickKey
-import me.anno.utils.mixARGB
+import me.anno.utils.Maths.mixARGB
 import kotlin.math.max
 
 class SettingCategory(titleText: String, style: Style) : PanelGroup(style) {

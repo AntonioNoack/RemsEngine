@@ -18,7 +18,7 @@ import me.anno.ui.editor.files.toAllowedFilename
 import me.anno.ui.editor.sceneTabs.SceneTabs.currentTab
 import me.anno.ui.editor.sceneTabs.SceneTabs.open
 import me.anno.ui.editor.sceneView.SceneTabData
-import me.anno.utils.mixARGB
+import me.anno.utils.Maths.mixARGB
 import java.io.File
 import kotlin.concurrent.thread
 

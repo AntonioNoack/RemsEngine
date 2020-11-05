@@ -11,7 +11,7 @@ import me.anno.objects.modes.UVProjection
 import me.anno.studio.RemsStudio
 import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.utils.LOGGER
-import me.anno.utils.getImportType
+import me.anno.utils.StringHelper.getImportType
 import org.joml.Vector3f
 import java.io.File
 import kotlin.concurrent.thread

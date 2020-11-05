@@ -6,12 +6,9 @@ import me.anno.gpu.GFX.ask
 import me.anno.gpu.GFX.askName
 import me.anno.gpu.GFX.inFocus
 import me.anno.gpu.GFX.openMenu
-import me.anno.gpu.GFX.width
 import me.anno.gpu.GFXx2D
 import me.anno.gpu.GFXx2D.drawTexture
 import me.anno.gpu.TextureLib.whiteTexture
-import me.anno.gpu.blending.BlendDepth
-import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.texture.ClampMode
 import me.anno.gpu.texture.NearestMode
 import me.anno.gpu.texture.Texture2D
@@ -30,6 +27,12 @@ import me.anno.ui.editor.files.thumbs.Thumbs
 import me.anno.ui.editor.sceneTabs.SceneTabs
 import me.anno.ui.style.Style
 import me.anno.utils.*
+import me.anno.utils.FileHelper.formatFileSize
+import me.anno.utils.FileHelper.listFiles2
+import me.anno.utils.FileHelper.openInExplorer
+import me.anno.utils.Maths.mixARGB
+import me.anno.utils.Maths.sq
+import me.anno.utils.StringHelper.getImportType
 import me.anno.video.FFMPEGMetadata
 import me.anno.video.VFrame
 import org.joml.Matrix4fArrayList
@@ -358,7 +361,7 @@ class FileEntry(
                 openMenu(
                     listOf(
                         "Rename" to { onGotAction(x, y, dx, dy, "Rename", false) },
-                        "Open in Explorer" to file::openInExplorer,
+                        "Open in Explorer" to { file.openInExplorer() },
                         "Delete" to this::deleteFileMaybe
                     )
                 )

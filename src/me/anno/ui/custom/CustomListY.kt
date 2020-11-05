@@ -7,7 +7,7 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.custom.data.CustomListData
 import me.anno.ui.custom.data.ICustomDataCreator
 import me.anno.ui.style.Style
-import me.anno.utils.clamp
+import me.anno.utils.Maths.clamp
 import me.anno.utils.sumByFloat
 import java.lang.Exception
 import kotlin.math.max

@@ -14,9 +14,9 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.color.ColorChooser
 import me.anno.ui.input.components.TitlePanel
 import me.anno.ui.style.Style
-import me.anno.utils.clamp
+import me.anno.utils.Maths.clamp
 import me.anno.utils.one
-import me.anno.utils.pow
+import me.anno.utils.Maths.pow
 import org.joml.Vector4f
 import kotlin.math.max
 

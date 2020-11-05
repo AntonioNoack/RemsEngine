@@ -4,7 +4,7 @@ import me.anno.config.DefaultStyle
 import me.anno.gpu.GFXx2D.drawRect
 import me.anno.studio.RemsStudio
 import me.anno.ui.style.Style
-import me.anno.utils.clamp
+import me.anno.utils.Maths.clamp
 import org.joml.Vector3f
 import kotlin.math.roundToInt
 

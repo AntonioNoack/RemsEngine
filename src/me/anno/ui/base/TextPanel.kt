@@ -14,7 +14,7 @@ import me.anno.input.MouseButton
 import me.anno.ui.style.Style
 import me.anno.utils.Tabs
 import me.anno.utils.isClickKey
-import me.anno.utils.mixARGB
+import me.anno.utils.Maths.mixARGB
 import kotlin.math.max
 import kotlin.math.min
 

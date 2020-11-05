@@ -5,17 +5,19 @@ import me.anno.gpu.ShaderLib
 import me.anno.gpu.ShaderLib.getColorForceFieldLib
 import me.anno.gpu.ShaderLib.hasForceFieldColor
 import me.anno.gpu.buffer.Attribute
+import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.shader.ShaderPlus
 import me.anno.objects.meshes.fbx.structure.FBXNode
-import me.anno.utils.clamp
+import me.anno.utils.LOGGER
+import me.anno.utils.Maths.clamp
 import kotlin.math.max
 import kotlin.math.min
 
 class FBXGeometry(node: FBXNode) : FBXObject(node) {
 
     companion object {
-        const val maxWeights = 4 // 1 .. 4
+        const val maxWeightsDefault = 4 // 1 .. 4
         fun getShader(
             v3DBase: String, positionPostProcessing: String,
             y3D: String, getTextureLib: String
@@ -59,11 +61,11 @@ class FBXGeometry(node: FBXNode) : FBXObject(node) {
     val xyz = node.getDoubleArray("Vertices")!!
     val vertexCount = xyz.size / 3
     val faces = node.getIntArray("PolygonVertexIndex")!! // polygons, each: 0, 1, 2, 3 ... , ~8
-    val weights = FloatArray(vertexCount * maxWeights * 2)
+    val weights = FloatArray(vertexCount * maxWeightsDefault * 2)
 
     fun addWeight(vertexIndex: Int, boneIndex: Int, weight: Float) {
-        var baseIndex = vertexIndex * maxWeights * 2
-        for (i in 0 until maxWeights) {
+        var baseIndex = vertexIndex * maxWeightsDefault * 2
+        for (i in 0 until maxWeightsDefault) {
             val oldWeight = weights[baseIndex]
             if (weight > oldWeight) {
                 weights[baseIndex++] = weight
@@ -74,18 +76,30 @@ class FBXGeometry(node: FBXNode) : FBXObject(node) {
         }
     }
 
-    fun generateMesh(): StaticBuffer {
+    fun generateMesh(
+        xyzName: String,
+        normalName: String?,
+        materialIndexName: String?,
+        maxUVs: Int,
+        maxWeights: Int
+    ): StaticBuffer {
 
-        val uvMapCount = min(1, uvs.size) // could be changed
-        val weightCount = maxWeights
-        val attributes = arrayListOf(
-            Attribute("xyz", 3),
-            Attribute("normals", 3),
-            Attribute("materialIndex", 1)
-        )
+        val uvMapCount = min(maxUVs, uvs.size) // could be changed
+        val weightCount = min(maxWeightsDefault, maxWeights)
+        val attributes = arrayListOf(Attribute(xyzName, 3))
 
-        attributes += Attribute("weightValues", weightCount)
-        attributes += Attribute("weightIndices", weightCount)
+        if (normalName != null) {
+            attributes += Attribute("normals", 3)
+        }
+
+        if (materialIndexName != null) {
+            attributes += Attribute("materialIndex", AttributeType.UINT32, 1)
+        }
+
+        if (weightCount > 0) {
+            attributes += Attribute("weightValues", weightCount)
+            attributes += Attribute("weightIndices", weightCount)
+        }
 
         val relevantUVMaps = Array(uvMapCount) { uvs[it] }
         for (i in 0 until uvMapCount) {
@@ -112,34 +126,42 @@ class FBXGeometry(node: FBXNode) : FBXObject(node) {
             val vo = vertIndex * 3
             // xyz
             buffer.put(vertices[vo].toFloat(), vertices[vo + 1].toFloat(), vertices[vo + 2].toFloat())
-            // normals
-            normals.put(vertIndex, totalVertIndex, faceIndex, buffer)
-            // material index
-            materialIDs?.put(vertIndex, totalVertIndex, faceIndex, buffer) ?: buffer.put(0f)
-            // weights (yes, they are a bit more complicated, as they are not given directly)
-            var weightBaseIndex = vertIndex * maxWeights * 2
-            var weightSum = 0f
-            for (i in 0 until weightCount) {// count weights for normalization
-                weightSum += weights[weightBaseIndex]
-                weightBaseIndex += 2
+            if(normalName != null){
+                // normals
+                normals.put(vertIndex, totalVertIndex, faceIndex, buffer)
             }
-            val minWeight = 0.01f
-            val weightNormFactor = 1f / max(minWeight, weightSum)
-            weightBaseIndex -= weightCount * 2
-            buffer.put(max(minWeight, weights[weightBaseIndex]) * weightNormFactor)
-            weightBaseIndex += 2
-            for (i in 1 until weightCount) {// weight values
-                buffer.put(weights[weightBaseIndex] * weightNormFactor)
-                weightBaseIndex += 2
+            if(materialIndexName != null){
+                // material index
+                materialIDs?.put(vertIndex, totalVertIndex, faceIndex, buffer) ?: buffer.putInt(0)
             }
-            weightBaseIndex -= weightCount * 2 - 1
-            for (i in 0 until weightCount) {// weight indices
-                buffer.put(weights[weightBaseIndex])
+            if(weightCount > 0){
+                // weights (yes, they are a bit more complicated, as they are not given directly)
+                var weightBaseIndex = vertIndex * maxWeightsDefault * 2
+                var weightSum = 0f
+                for (i in 0 until weightCount) {// count weights for normalization
+                    weightSum += weights[weightBaseIndex]
+                    weightBaseIndex += 2
+                }
+                val minWeight = 0.01f
+                val weightNormFactor = 1f / max(minWeight, weightSum)
+                weightBaseIndex -= weightCount * 2
+                buffer.put(max(minWeight, weights[weightBaseIndex]) * weightNormFactor)
                 weightBaseIndex += 2
+                for (i in 1 until weightCount) {// weight values
+                    buffer.put(weights[weightBaseIndex] * weightNormFactor)
+                    weightBaseIndex += 2
+                }
+                weightBaseIndex -= weightCount * 2 - 1
+                for (i in 0 until weightCount) {// weight indices
+                    buffer.put(weights[weightBaseIndex])
+                    weightBaseIndex += 2
+                }
             }
-            // uvs
-            relevantUVMaps.forEach { map ->
-                map.put(vertIndex, totalVertIndex, faceIndex, buffer)
+            if(maxUVs > 0){
+                // uvs
+                relevantUVMaps.forEach { map ->
+                    map.put(vertIndex, totalVertIndex, faceIndex, buffer)
+                }
             }
         }
 
@@ -174,7 +196,7 @@ class FBXGeometry(node: FBXNode) : FBXObject(node) {
             }
         }
 
-        println("${buffer.nioBuffer!!.position()} vs ${buffer.nioBuffer!!.capacity()}")
+        // println("${buffer.nioBuffer!!.position()} vs ${buffer.nioBuffer!!.capacity()}")
 
         return buffer
 
@@ -240,7 +262,7 @@ class FBXGeometry(node: FBXNode) : FBXObject(node) {
                 else -> 0
             }) * components
             for (i in 0 until components) {
-                buffer.put(data[index++].toFloat())
+                buffer.putInt(data[index++])
             }
         }
     }
@@ -264,22 +286,24 @@ class FBXGeometry(node: FBXNode) : FBXObject(node) {
     var nextBoneIndex = 0
     fun findBoneWeights(model: FBXModel) {
         val todo = ArrayList<Pair<FBXModel, FBXDeformer>>(100)
-        val boneMap = children
-            .filterIsInstance<FBXDeformer>().first().children
+        val deformer = children
+            .filterIsInstance<FBXDeformer>()
+            .firstOrNull() ?: return
+        val boneMap = deformer.children
             .filterIsInstance<FBXDeformer>()
             .associateBy { it.name.split(' ').last() }
-        println(boneMap.keys)
+        LOGGER.info(boneMap.keys.toString())
         todo += model to (boneMap[model.name] ?: throw RuntimeException("Bone ${model.name} wasn't found"))
         while (true) {
             val (lastModel, lastBone) = todo.lastOrNull() ?: break
             todo.removeAt(todo.lastIndex)
             findBoneWeights(lastBone)
             lastModel.children.filterIsInstance<FBXModel>()
-                .forEach { model ->
-                    val bone = boneMap[model.name]
-                    if(bone != null){
+                .forEach { model2 ->
+                    val bone = boneMap[model2.name]
+                    if (bone != null) {
                         bone.parent = lastBone
-                        todo += model to bone
+                        todo += model2 to bone
                     } // else end bone without transform
                 }
         }

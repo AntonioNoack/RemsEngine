@@ -15,7 +15,7 @@ import me.anno.input.Touch.Companion.onTouchUp
 import me.anno.studio.RemsStudio.project
 import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.ui.editor.treeView.TreeViewPanel
-import me.anno.utils.length
+import me.anno.utils.Maths.length
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWDropCallback

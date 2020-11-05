@@ -7,7 +7,7 @@ import me.anno.parser.SimpleExpressionParser
 import me.anno.studio.RemsStudio
 import me.anno.studio.StudioBase.Companion.shiftSlowdown
 import me.anno.ui.style.Style
-import me.anno.utils.pow
+import me.anno.utils.Maths.pow
 import java.lang.Exception
 import java.lang.RuntimeException
 import kotlin.math.max

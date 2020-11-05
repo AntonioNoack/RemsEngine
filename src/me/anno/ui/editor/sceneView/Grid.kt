@@ -15,9 +15,9 @@ import me.anno.objects.GFXTransform
 import me.anno.objects.Transform.Companion.xAxis
 import me.anno.objects.Transform.Companion.yAxis
 import me.anno.objects.Transform.Companion.zAxis
-import me.anno.utils.distance
-import me.anno.utils.pow
-import me.anno.utils.toVec3f
+import me.anno.utils.Maths.distance
+import me.anno.utils.Maths.pow
+import me.anno.utils.Vectors.toVec3f
 import org.joml.Matrix4f
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f

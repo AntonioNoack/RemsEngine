@@ -4,9 +4,9 @@ import me.anno.objects.Audio
 import me.anno.objects.Camera
 import me.anno.objects.modes.LoopingState
 import me.anno.objects.cache.Cache
-import me.anno.utils.clamp
-import me.anno.utils.minus
-import me.anno.utils.mix
+import me.anno.utils.Maths.clamp
+import me.anno.utils.Maths.mix
+import me.anno.utils.Vectors.minus
 import me.anno.video.FFMPEGMetadata
 import me.anno.video.FFMPEGMetadata.Companion.getMeta
 import me.anno.video.FFMPEGStream

@@ -11,7 +11,7 @@ import me.anno.input.MouseButton
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.style.Style
 import me.anno.utils.isClickKey
-import me.anno.utils.mixARGB
+import me.anno.utils.Maths.mixARGB
 import me.anno.utils.one
 import org.lwjgl.glfw.GLFW
 

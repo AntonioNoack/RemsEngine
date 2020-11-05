@@ -9,14 +9,13 @@ import me.anno.input.Input.isControlDown
 import me.anno.input.Input.isShiftDown
 import me.anno.input.Input.mouseKeysDown
 import me.anno.input.MouseButton
-import me.anno.studio.RemsStudio
 import me.anno.studio.RemsStudio.onSmallChange
-import me.anno.utils.clamp
+import me.anno.utils.Maths.clamp
 import me.anno.ui.base.TextPanel
 import me.anno.ui.style.Style
 import me.anno.utils.Quad
-import me.anno.utils.getIndexFromText
-import me.anno.utils.joinChars
+import me.anno.utils.StringHelper.getIndexFromText
+import me.anno.utils.StringHelper.joinChars
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min

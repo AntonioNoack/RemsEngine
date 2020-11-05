@@ -2,12 +2,15 @@ package me.anno.fonts.mesh
 
 import me.anno.gpu.GFXx2D.drawRect
 import me.anno.gpu.buffer.Attribute
-import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.ui.base.DefaultRenderingHints
 import me.anno.utils.*
+import me.anno.utils.Maths.distance
+import me.anno.utils.Vectors.avg
+import me.anno.utils.Vectors.isInsideTriangle
+import me.anno.utils.Vectors.minus
+import me.anno.utils.Vectors.print
 import org.apache.logging.log4j.LogManager
-import org.joml.Matrix4fArrayList
 import org.joml.Vector2d
 import org.joml.Vector2f
 import java.awt.Color

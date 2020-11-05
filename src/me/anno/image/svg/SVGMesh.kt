@@ -10,6 +10,9 @@ import me.anno.image.svg.tokenizer.SVGTokenizer
 import me.anno.io.xml.XMLElement
 import me.anno.objects.Transform.Companion.zAxis
 import me.anno.utils.*
+import me.anno.utils.Maths.clamp
+import me.anno.utils.Maths.length
+import me.anno.utils.MatrixHelper.skew
 import org.apache.logging.log4j.LogManager
 import org.joml.*
 import java.awt.Color

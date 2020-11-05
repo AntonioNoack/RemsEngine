@@ -1,6 +1,6 @@
 package me.anno.parser
 
-import me.anno.utils.clamp
+import me.anno.utils.Maths.clamp
 import java.lang.RuntimeException
 import java.lang.StrictMath.cbrt
 import kotlin.math.*
