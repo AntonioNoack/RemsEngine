@@ -4,10 +4,8 @@ import me.anno.gpu.GFX
 import me.anno.gpu.framebuffer.Frame
 import me.anno.objects.cache.CacheData
 import org.apache.logging.log4j.LogManager
-import org.joml.Matrix4f
-import org.joml.Vector2f
-import org.joml.Vector3f
-import org.joml.Vector4f
+import org.joml.*
+import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL20.*
 import java.lang.RuntimeException
@@ -21,9 +19,12 @@ open class Shader(val shaderName: String,
     companion object {
         private val LOGGER = LogManager.getLogger(Shader::class)
         const val attributeName = "in"
+        private val matrixBuffer = BufferUtils.createFloatBuffer(16)
         var lastProgram = -1
     }
 
+    var glslVersion = 150
+    
     private var program = -1
 
     val pointer get() = program
@@ -35,10 +36,10 @@ open class Shader(val shaderName: String,
         program = glCreateProgram()
         // the shaders are like a C compilation process, .o-files: after linking, they can be removed
         val vertexShader = compile(GL_VERTEX_SHADER, ("" +
-                "#version 150\n " +
+                "#version $glslVersion\n " +
                 "${varying.replace("varying", "out")} $vertex").replaceShortCuts())
         val fragmentShader = compile(GL_FRAGMENT_SHADER, ("" +
-                "#version 150\n" +
+                "#version $glslVersion\n" +
                 "precision mediump float; ${varying.replace("varying", "in")} $fragment").replaceShortCuts())
         glLinkProgram(program)
         glDeleteShader(vertexShader)
@@ -178,12 +179,21 @@ open class Shader(val shaderName: String,
     fun v3(name: String, v: Vector3f) = v3(name, v.x, v.y, v.z)
     fun v4(name: String, v: Vector4f) = v4(name, v.x, v.y, v.z, v.w)
 
+    fun m3x3(name: String, value: Matrix3f){
+        use()
+        val loc = this[name]
+        if(loc > -1){
+            value.get(matrixBuffer)
+            glUniformMatrix3fv(loc, false, matrixBuffer)
+        }
+    }
+
     fun m4x4(name: String, value: Matrix4f){
         use()
         val loc = this[name]
         if(loc > -1){
-            value.get(GFX.matrixBuffer)
-            glUniformMatrix4fv(loc, false, GFX.matrixBuffer)
+            value.get(matrixBuffer)
+            glUniformMatrix4fv(loc, false, matrixBuffer)
         }
     }
 

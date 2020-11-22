@@ -10,8 +10,8 @@ import me.anno.gpu.blending.BlendDepth
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.blending.blendModes
 import me.anno.gpu.shader.ShaderPlus
-import me.anno.gpu.texture.ClampMode
-import me.anno.gpu.texture.FilteringMode
+import me.anno.gpu.texture.Clamping
+import me.anno.gpu.texture.Filtering
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
@@ -609,10 +609,10 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
                     is LoopingState -> LoopingState.values()
                     is ToneMappers -> ToneMappers.values()
                     is MaskType -> MaskType.values()
-                    is FilteringMode -> FilteringMode.values()
+                    is Filtering -> Filtering.values()
                     is ArraySelectionMode -> ArraySelectionMode.values()
                     is UVProjection -> UVProjection.values()
-                    is ClampMode -> ClampMode.values()
+                    is Clamping -> Clamping.values()
                     is TransformVisibility -> TransformVisibility.values()
                     else -> throw RuntimeException("Missing enum .values() implementation for UI in Transform.kt for $value")
                 }
@@ -621,10 +621,10 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
                         is LoopingState -> it.displayName
                         is ToneMappers -> it.displayName
                         is MaskType -> it.displayName
-                        is FilteringMode -> it.displayName
+                        is Filtering -> it.displayName
                         is ArraySelectionMode -> it.displayName
                         is UVProjection -> it.displayName
-                        is ClampMode -> it.displayName
+                        is Clamping -> it.displayName
                         is TransformVisibility -> it.displayName
                         else -> it.name
                     }

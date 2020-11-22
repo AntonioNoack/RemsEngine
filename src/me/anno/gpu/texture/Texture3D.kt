@@ -23,7 +23,7 @@ class Texture3D(val w: Int, val h: Int, val d: Int){
 
     var pointer = -1
     var isCreated = false
-    var isFilteredNearest = NearestMode.NEAREST
+    var isFilteredNearest = GPUFiltering.NEAREST
 
     fun ensurePointer(){
         if(pointer < 0) pointer = glGenTextures()
@@ -148,12 +148,12 @@ class Texture3D(val w: Int, val h: Int, val d: Int){
         GFX.check()
     }
 
-    fun ensureFiltering(nearest: NearestMode){
+    fun ensureFiltering(nearest: GPUFiltering){
         if(nearest != isFilteredNearest) filtering(nearest)
     }
 
-    fun filtering(nearest: NearestMode){
-        if(nearest != NearestMode.LINEAR){
+    fun filtering(nearest: GPUFiltering){
+        if(nearest != GPUFiltering.LINEAR){
             glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
             glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
         } else {
@@ -175,16 +175,16 @@ class Texture3D(val w: Int, val h: Int, val d: Int){
         glBindTexture(GL_TEXTURE_3D, pointer)
     }
 
-    fun bind(nearest: NearestMode){
+    fun bind(nearest: GPUFiltering){
         if(pointer > -1 && isCreated){
             glBindTexture(GL_TEXTURE_3D, pointer)
             ensureFiltering(nearest)
         } else {
-            invisibleTexture.bind(NearestMode.LINEAR, ClampMode.CLAMP)
+            invisibleTexture.bind(GPUFiltering.LINEAR, Clamping.CLAMP)
         }
     }
 
-    fun bind(index: Int, nearest: NearestMode){
+    fun bind(index: Int, nearest: GPUFiltering){
         glActiveTexture(GL_TEXTURE0 + index)
         bind(nearest)
     }

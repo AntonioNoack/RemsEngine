@@ -22,6 +22,7 @@ import me.anno.studio.Build.isDebug
 import me.anno.studio.RemsStudio
 import me.anno.studio.RemsStudio.editorTime
 import me.anno.studio.RemsStudio.editorTimeDilation
+import me.anno.studio.RemsStudio.lastT
 import me.anno.studio.RemsStudio.nullCamera
 import me.anno.studio.RemsStudio.root
 import me.anno.studio.RemsStudio.selectedInspectable
@@ -132,7 +133,6 @@ object GFX : GFXBase1() {
 
     val flat01 = SimpleBuffer.flat01
 
-    val matrixBuffer = BufferUtils.createFloatBuffer(16)
     val matrixBufferFBX = BufferUtils.createFloatBuffer(16 * 256)
 
     var rawDeltaTime = 0f
@@ -140,7 +140,10 @@ object GFX : GFXBase1() {
 
     var currentEditorFPS = 60f
 
-    var lastTime = System.nanoTime()
+    val startTime = System.nanoTime()
+    var lastTime = startTime
+
+    val gameTime get() = lastTime - startTime
 
     var editorHoverTime = 0.0
 

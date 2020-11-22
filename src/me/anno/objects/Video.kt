@@ -10,8 +10,8 @@ import me.anno.gpu.TextureLib
 import me.anno.gpu.TextureLib.colorShowTexture
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer
-import me.anno.gpu.texture.ClampMode
-import me.anno.gpu.texture.FilteringMode
+import me.anno.gpu.texture.Clamping
+import me.anno.gpu.texture.Filtering
 import me.anno.image.svg.SVGMesh
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
@@ -19,7 +19,7 @@ import me.anno.io.xml.XMLElement
 import me.anno.io.xml.XMLReader
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.cache.Cache
-import me.anno.objects.cache.StaticFloatBufferData
+import me.anno.objects.cache.StaticBufferData
 import me.anno.objects.cache.VideoData.Companion.framesPerContainer
 import me.anno.objects.modes.EditorFPS
 import me.anno.objects.modes.LoopingState
@@ -78,9 +78,9 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
 
     var tiling = AnimatedProperty.tiling()
     var uvProjection = UVProjection.Planar
-    var clampMode = ClampMode.MIRRORED_REPEAT
+    var clampMode = Clamping.MIRRORED_REPEAT
 
-    var filtering = DefaultConfig["default.video.nearest", FilteringMode.LINEAR]
+    var filtering = DefaultConfig["default.video.nearest", Filtering.LINEAR]
 
     var videoScale = DefaultConfig["default.video.scale", 6]
 
@@ -238,7 +238,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
             draw3D(
                 stack, colorShowTexture, 16, 9,
                 Vector4f(0.5f, 0.5f, 0.5f, 1f).mul(color),
-                FilteringMode.NEAREST, ClampMode.REPEAT, tiling16x9, uvProjection
+                Filtering.NEAREST, Clamping.REPEAT, tiling16x9, uvProjection
             )
         }
 
@@ -309,7 +309,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
             draw3D(
                 stack, colorShowTexture, 16, 9,
                 Vector4f(0.5f, 0.5f, 0.5f, 1f).mul(color),
-                FilteringMode.NEAREST, ClampMode.REPEAT, tiling16x9, uvProjection
+                Filtering.NEAREST, Clamping.REPEAT, tiling16x9, uvProjection
             )
         }
     }
@@ -321,7 +321,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                 return Cache.getEntry(file.absolutePath, "svg", 0, imageTimeout, true) {
                     val svg = SVGMesh()
                     svg.parse(XMLReader.parse(file.inputStream().buffered()) as XMLElement)
-                    StaticFloatBufferData(svg.buffer!!)
+                    StaticBufferData(svg.buffer!!)
                 }
             }
             name.endsWith("webp", true) -> {
@@ -341,16 +341,16 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                 val bufferData = Cache.getEntry(file.absolutePath, "svg", 0, imageTimeout, true) {
                     val svg = SVGMesh()
                     svg.parse(XMLReader.parse(file.inputStream().buffered()) as XMLElement)
-                    val buffer = StaticFloatBufferData(svg.buffer!!)
+                    val buffer = StaticBufferData(svg.buffer!!)
                     buffer.setBounds(svg)
                     buffer
-                } as? StaticFloatBufferData
+                } as? StaticBufferData
                 if (bufferData == null) onMissingImageOrFrame()
                 else {
                     SVGxGFX.draw3DSVG(
                         this, time,
                         stack, bufferData, TextureLib.whiteTexture,
-                        color, FilteringMode.NEAREST, clampMode, tiling[time]
+                        color, Filtering.NEAREST, clampMode, tiling[time]
                     )
                 }
             }
@@ -727,7 +727,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
         when (name) {
             "videoScale" -> videoScale = value
             "filtering" -> filtering = filtering.find(value)
-            "clamping" -> clampMode = ClampMode.values().firstOrNull { it.id == value } ?: clampMode
+            "clamping" -> clampMode = Clamping.values().firstOrNull { it.id == value } ?: clampMode
             "uvProjection" -> uvProjection = UVProjection.values().firstOrNull { it.id == value } ?: uvProjection
             "editorVideoFPS" -> editorVideoFPS = EditorFPS.values().firstOrNull { it.value == value } ?: editorVideoFPS
             else -> super.readInt(name, value)

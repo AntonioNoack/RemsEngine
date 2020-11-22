@@ -1,6 +1,6 @@
 package me.anno.io.utils
 
-import me.anno.gpu.texture.FilteringMode
+import me.anno.gpu.texture.Filtering
 import me.anno.io.base.BaseWriter
 import me.anno.io.config.ConfigEntry
 import me.anno.ui.editor.files.toAllowedFilename
@@ -207,15 +207,15 @@ open class StringMap(
         }
     }
 
-    operator fun get(key: String, default: FilteringMode): FilteringMode {
+    operator fun get(key: String, default: Filtering): Filtering {
         return when (val value = this[key]) {
-            is Boolean -> if (value) FilteringMode.NEAREST else FilteringMode.LINEAR
+            is Boolean -> if (value) Filtering.NEAREST else Filtering.LINEAR
             is Int -> default.find(value)
             is String -> {
                 when (value.toLowerCase()) {
-                    "true", "t", "nearest" -> FilteringMode.NEAREST
-                    "false", "f", "linear" -> FilteringMode.LINEAR
-                    "cubic", "bicubic" -> FilteringMode.CUBIC
+                    "true", "t", "nearest" -> Filtering.NEAREST
+                    "false", "f", "linear" -> Filtering.LINEAR
+                    "cubic", "bicubic" -> Filtering.CUBIC
                     else -> default
                 }
             }

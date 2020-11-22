@@ -11,8 +11,8 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFXx3D.draw3D
 import me.anno.gpu.GFXx3D.draw3DOffset
 import me.anno.gpu.TextureLib.whiteTexture
-import me.anno.gpu.texture.ClampMode
-import me.anno.gpu.texture.FilteringMode
+import me.anno.gpu.texture.Clamping
+import me.anno.gpu.texture.Filtering
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.animation.AnimatedProperty
@@ -32,7 +32,6 @@ import me.anno.ui.input.BooleanInput
 import me.anno.ui.input.EnumInput
 import me.anno.ui.input.TextInputML
 import me.anno.ui.style.Style
-import me.anno.utils.StackTrace
 import me.anno.video.MissingFrameException
 import org.joml.Matrix4fArrayList
 import org.joml.Vector3f
@@ -211,7 +210,7 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
                     if(firstTimeDrawing){
                         draw3D(
                             this, time, offset, stack, buffer, whiteTexture, color,
-                            FilteringMode.NEAREST, ClampMode.CLAMP, null
+                            Filtering.NEAREST, Clamping.CLAMP, null
                         )
                         firstTimeDrawing = false
                     } else {

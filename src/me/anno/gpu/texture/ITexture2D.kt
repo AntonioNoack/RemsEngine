@@ -6,14 +6,14 @@ interface ITexture2D {
     var h: Int
 
 
-    fun bind(nearest: NearestMode, clampMode: ClampMode)
-    fun bind(filtering: FilteringMode, clampMode: ClampMode){
-        bind(if(filtering.baseIsNearest) NearestMode.NEAREST else NearestMode.LINEAR, clampMode)
+    fun bind(nearest: GPUFiltering, clamping: Clamping)
+    fun bind(filtering: Filtering, clamping: Clamping){
+        bind(if(filtering.baseIsNearest) GPUFiltering.NEAREST else GPUFiltering.LINEAR, clamping)
     }
 
-    fun bind(index: Int, nearest: NearestMode, clampMode: ClampMode)
-    fun bind(index: Int, filtering: FilteringMode, clampMode: ClampMode){
-        bind(index, if(filtering.baseIsNearest) NearestMode.NEAREST else NearestMode.LINEAR, clampMode)
+    fun bind(index: Int, nearest: GPUFiltering, clamping: Clamping)
+    fun bind(index: Int, filtering: Filtering, clamping: Clamping){
+        bind(index, if(filtering.baseIsNearest) GPUFiltering.NEAREST else GPUFiltering.LINEAR, clamping)
     }
 
     fun destroy()

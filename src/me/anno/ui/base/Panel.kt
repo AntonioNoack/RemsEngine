@@ -240,7 +240,7 @@ open class Panel(val style: Style) {
     }
 
     open fun onDoubleClick(x: Float, y: Float, button: MouseButton) {
-        parent?.onDoubleClick(x, y, button)
+        onClickListener?.invoke(x, y, button, false) ?: parent?.onDoubleClick(x, y, button)
     }
 
     open fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
@@ -300,7 +300,7 @@ open class Panel(val style: Style) {
         parent?.onDeleteKey(x, y)
     }
 
-    open fun onEscapeKey(x: Float, y: Float){
+    open fun onEscapeKey(x: Float, y: Float) {
         parent?.onEscapeKey(x, y)
     }
 

@@ -22,7 +22,6 @@ import org.joml.Matrix4f
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
 import org.lwjgl.opengl.GL20.GL_LINES
-import org.lwjgl.opengl.GL20.glUniformMatrix4fv
 import kotlin.math.atan2
 import kotlin.math.floor
 import kotlin.math.log10
@@ -130,8 +129,7 @@ object Grid {
         val angle = atan2(y1 - y0, x1 - x0)
         stack.rotate(angle, zAxis)
         stack.scale(distance(x0, y0, x1, y1))
-        stack.get(GFX.matrixBuffer)
-        glUniformMatrix4fv(shader["transform"], false, GFX.matrixBuffer)
+        shader.m4x4("transform", stack)
         defaultUniforms(shader, color, alpha)
         bindWhite(0)
         lineBuffer.draw(shader, GL_LINES)
@@ -143,8 +141,7 @@ object Grid {
         shader.use()
         GFXTransform.uploadAttractors0(shader)
         shader.v3("offset", 0f, 0f, 0f)
-        stack.get(GFX.matrixBuffer)
-        glUniformMatrix4fv(shader["transform"], false, GFX.matrixBuffer)
+        shader.m4x4("transform", stack)
         defaultUniforms(shader, color, alpha)
         bindWhite(0)
         lineBuffer.draw(shader, GL_LINES)
@@ -199,8 +196,7 @@ object Grid {
         shader.use()
         GFXTransform.uploadAttractors0(shader)
         shader.v3("offset", 0f, 0f, 0f)
-        stack.get(GFX.matrixBuffer)
-        glUniformMatrix4fv(shader["transform"], false, GFX.matrixBuffer)
+        shader.m4x4("transform", stack)
         defaultUniforms(shader, color)
         bindWhite(0)
         buffer.draw(shader, GL_LINES)
@@ -215,8 +211,7 @@ object Grid {
         shader.use()
         GFXTransform.uploadAttractors0(shader)
         shader.v3("offset", 0f, 0f, 0f)
-        stack.get(GFX.matrixBuffer)
-        glUniformMatrix4fv(shader["transform"], false, GFX.matrixBuffer)
+        shader.m4x4("transform", stack)
         defaultUniforms(shader, -1, alpha)
         bindWhite(0)
         gridBuffer.draw(shader, GL_LINES)
@@ -224,7 +219,7 @@ object Grid {
     }
 
     fun bindWhite(index: Int) {
-        whiteTexture.bind(index, whiteTexture.nearest, whiteTexture.clampMode)
+        whiteTexture.bind(index, whiteTexture.filtering, whiteTexture.clamping)
     }
 
 }

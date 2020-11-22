@@ -16,8 +16,8 @@ import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
-import me.anno.gpu.texture.ClampMode
-import me.anno.gpu.texture.NearestMode
+import me.anno.gpu.texture.Clamping
+import me.anno.gpu.texture.GPUFiltering
 import me.anno.input.ActionManager
 import me.anno.input.Input
 import me.anno.input.ShowKeys
@@ -39,7 +39,9 @@ import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.math.roundToInt
 
-abstract class StudioBase(val needsAudio: Boolean) {
+abstract class StudioBase(
+    val needsAudio: Boolean,
+    val title: String, val configName: String) {
 
     abstract fun createUI()
     abstract fun onGameLoopStart()
@@ -85,6 +87,9 @@ abstract class StudioBase(val needsAudio: Boolean) {
     var didNothingCounter = 0
 
     fun run() {
+
+        GFX.title = title
+        GFXBase0.projectName = configName
 
         instance = this
 
@@ -228,7 +233,7 @@ abstract class StudioBase(val needsAudio: Boolean) {
                                         GFX.loadTexturesSync.push(true)
 
                                         Frame(panel0.x, panel0.y, panel0.w, panel0.h, true, buffer) {
-                                            Frame.currentFrame!!.bind()
+                                            Frame.bind()
                                             glClearColor(0f, 0f, 0f, 0f)
                                             glClear(GL_COLOR_BUFFER_BIT)
                                             panel0.canBeSeen = true
@@ -277,7 +282,7 @@ abstract class StudioBase(val needsAudio: Boolean) {
 
                                     BlendDepth(BlendMode.DEFAULT, false) {
 
-                                        window.buffer.bindTexture0(0, NearestMode.TRULY_NEAREST, ClampMode.CLAMP)
+                                        window.buffer.bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
                                         GFX.copy()
 
                                         if (showRedraws) {

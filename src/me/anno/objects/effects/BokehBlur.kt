@@ -7,8 +7,8 @@ import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.Shader
-import me.anno.gpu.texture.ClampMode
-import me.anno.gpu.texture.NearestMode
+import me.anno.gpu.texture.Clamping
+import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.objects.Transform.Companion.xAxis
 import me.anno.objects.Transform.Companion.yAxis
@@ -56,8 +56,8 @@ object BokehBlur {
             //val stepsRadius = max(KERNEL_RADIUS, pixelRadius.roundToInt())
             //val step = pixelRadius/stepsRadius
 
-            filterTexture.bind(0, NearestMode.LINEAR, ClampMode.CLAMP)
-            srcTexture.bind(1, NearestMode.LINEAR, ClampMode.CLAMP)
+            filterTexture.bind(0, GPUFiltering.LINEAR, Clamping.CLAMP)
+            srcTexture.bind(1, GPUFiltering.LINEAR, Clamping.CLAMP)
 
             drawX(normRadius, w, h, r, g, b)
             drawY(normRadius, w, h, r, g, b, target)
@@ -93,9 +93,9 @@ object BokehBlur {
             glClear(GL_COLOR_BUFFER_BIT)
 
             // filter texture is bound correctly
-            r.bindTexture0(1, NearestMode.LINEAR, ClampMode.CLAMP)
-            g.bindTexture0(2, NearestMode.LINEAR, ClampMode.CLAMP)
-            b.bindTexture0(3, NearestMode.LINEAR, ClampMode.CLAMP)
+            r.bindTexture0(1, GPUFiltering.LINEAR, Clamping.CLAMP)
+            g.bindTexture0(2, GPUFiltering.LINEAR, Clamping.CLAMP)
+            b.bindTexture0(3, GPUFiltering.LINEAR, Clamping.CLAMP)
             flat01.draw(shader)
 
         }
@@ -104,7 +104,7 @@ object BokehBlur {
 
     fun drawChannel(shader: Shader, target: Framebuffer, w: Int, h: Int, channel: Vector3f) {
         Frame(w, h, true, target){
-            Frame.currentFrame!!.bind()
+            Frame.bind()
             shader.v3("channelSelection", channel)
             flat01.draw(shader)
         }

@@ -21,7 +21,7 @@ import java.io.File
  * Intellij Ideas support for JS is bad, so I want to give it a try to use my video studio code,
  * slightly altered, as a code editor
  * */
-object CodeEditor : StudioBase(false) {
+object CodeEditor : StudioBase(false, "IDE", "IDE") {
 
     var projectFolder = File(OS.documents, "IdeaProjects\\JSTest\\src")
     var currentTab: CodeTab? = null

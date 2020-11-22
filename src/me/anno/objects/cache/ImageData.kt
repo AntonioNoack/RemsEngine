@@ -7,8 +7,8 @@ import me.anno.gpu.GFXx3D.shader3DUniforms
 import me.anno.gpu.ShaderLib.shader3DYUV
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
-import me.anno.gpu.texture.ClampMode
-import me.anno.gpu.texture.NearestMode
+import me.anno.gpu.texture.Clamping
+import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.HDRImage
 import me.anno.objects.Video.Companion.imageTimeout
@@ -55,7 +55,7 @@ class ImageData(file: File) : CacheData {
                 id?.texture = framebuffer.textures[0]
                 val shader = frame.get3DShader().shader
                 shader3DUniforms(shader, Matrix4f(), Vector4f(1f, 1f, 1f, 1f))
-                frame.bind(0, NearestMode.TRULY_NEAREST, ClampMode.CLAMP)
+                frame.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
                 if (shader == shader3DYUV.shader) {
                     val w2 = frame.w
                     val h2 = frame.h

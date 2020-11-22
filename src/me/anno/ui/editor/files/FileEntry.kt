@@ -9,8 +9,8 @@ import me.anno.gpu.GFX.openMenu
 import me.anno.gpu.GFXx2D
 import me.anno.gpu.GFXx2D.drawTexture
 import me.anno.gpu.TextureLib.whiteTexture
-import me.anno.gpu.texture.ClampMode
-import me.anno.gpu.texture.NearestMode
+import me.anno.gpu.texture.Clamping
+import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.input.Input
 import me.anno.input.MouseButton
@@ -38,7 +38,6 @@ import me.anno.video.VFrame
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
 import java.io.File
-import kotlin.math.exp
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -218,7 +217,7 @@ class FileEntry(
             var iw = image.w
             var ih = image.h
             val rot = image.rotation
-            image.ensureFilterAndClamping(NearestMode.LINEAR, ClampMode.CLAMP)
+            image.ensureFilterAndClamping(GPUFiltering.LINEAR, Clamping.CLAMP)
             if (rot == null) {
                 val scale = (size - 20) / max(iw, ih).toFloat()
                 iw = (iw * scale).roundToInt()

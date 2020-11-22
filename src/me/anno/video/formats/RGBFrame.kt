@@ -2,8 +2,8 @@ package me.anno.video.formats
 
 import me.anno.gpu.GFX
 import me.anno.gpu.ShaderLib.shader3DRGBA
-import me.anno.gpu.texture.ClampMode
-import me.anno.gpu.texture.NearestMode
+import me.anno.gpu.texture.Clamping
+import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.utils.readNBytes2
 import me.anno.video.VFrame
@@ -39,8 +39,8 @@ class RGBFrame(w: Int, h: Int): VFrame(w,h){
 
     override fun get3DShader() = shader3DRGBA
 
-    override fun bind(offset: Int, nearestFiltering: NearestMode, clampMode: ClampMode){
-        rgb.bind(offset, nearestFiltering, clampMode)
+    override fun bind(offset: Int, nearestFiltering: GPUFiltering, clamping: Clamping){
+        rgb.bind(offset, nearestFiltering, clamping)
     }
 
     override fun destroy(){

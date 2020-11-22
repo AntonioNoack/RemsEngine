@@ -9,6 +9,7 @@ import java.nio.ByteBuffer
 
 abstract class Buffer(val attributes: List<Attribute>, val stride: Int, val usage: Int = GL15.GL_STATIC_DRAW) {
 
+    constructor(attributes: List<Attribute>, usage: Int) : this(attributes, attributes.sumBy { it.byteSize }, usage)
     constructor(attributes: List<Attribute>) : this(attributes, attributes.sumBy { it.byteSize })
 
     init {
@@ -61,6 +62,11 @@ abstract class Buffer(val attributes: List<Attribute>, val stride: Int, val usag
 
     open fun draw(shader: Shader) = draw(shader, drawMode)
     open fun draw(shader: Shader, mode: Int) {
+        bind(shader)
+        draw(mode, 0, drawLength)
+    }
+
+    fun bind(shader: Shader){
         if (!isUpToDate) upload()
         else if (drawLength > 0) glBindBuffer(GL15.GL_ARRAY_BUFFER, buffer)
         if (drawLength > 0) {
@@ -73,8 +79,15 @@ abstract class Buffer(val attributes: List<Attribute>, val stride: Int, val usag
                     glEnableVertexAttribArray(index)
                 }
             }
-            glDrawArrays(mode, 0, drawLength)
         }
+    }
+
+    fun draw(first: Int, length: Int){
+        glDrawArrays(drawMode, first, length)
+    }
+
+    fun draw(mode: Int, first: Int, length: Int){
+        glDrawArrays(mode, first, length)
     }
 
 

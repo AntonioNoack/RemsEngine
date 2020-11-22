@@ -1,6 +1,8 @@
 package me.anno.utils
 
+import org.joml.Vector2f
 import org.joml.Vector3f
+import org.joml.Vector4f
 import kotlin.math.floor
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
@@ -9,8 +11,14 @@ object Maths {
 
     val GoldenRatio = (1f + sqrt(5f))*0.5f
 
+
     fun sq(x: Float) = x*x
+    fun sq(x: Float, y: Float) = x*x+y*y
+    fun sq(x: Float, y: Float, z: Float) = x*x+y*y+z*z
+
     fun sq(x: Double) = x*x
+    fun sq(x: Double, y: Double) = x*x+y*y
+    fun sq(x: Double, y: Double, z: Double) = x*x+y*y+z*z
 
     fun clamp(x: Int, min: Int, max: Int) = if(x < min) min else if(x < max) x else max
     fun clamp(x: Float, min: Float, max: Float) = if(x < min) min else if(x < max) x else max
@@ -65,10 +73,22 @@ object Maths {
                 mixChannel(a, b, 0, f)
     }
 
+    fun mix(a: Vector2f, b: Vector2f, f: Float) = Vector2f(
+        mix(a.x, b.x, f),
+        mix(a.y, b.y, f)
+    )
+
     fun mix(a: Vector3f, b: Vector3f, f: Float) = Vector3f(
         mix(a.x, b.x, f),
         mix(a.y, b.y, f),
         mix(a.z, b.z, f)
+    )
+
+    fun mix(a: Vector4f, b: Vector4f, f: Float) = Vector4f(
+        mix(a.x, b.x, f),
+        mix(a.y, b.y, f),
+        mix(a.z, b.z, f),
+        mix(a.w, b.w, f)
     )
 
     fun fract(f: Float) = f - floor(f)

@@ -7,21 +7,20 @@ import me.anno.gpu.GFXx3D.draw3DPolygon
 import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer
-import me.anno.gpu.texture.ClampMode
-import me.anno.gpu.texture.FilteringMode
+import me.anno.gpu.texture.Clamping
+import me.anno.gpu.texture.Filtering
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.GFXTransform
 import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.cache.Cache
-import me.anno.objects.cache.StaticFloatBufferData
+import me.anno.objects.cache.StaticBufferData
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.files.hasValidName
 import me.anno.ui.style.Style
 import me.anno.utils.Maths.clamp
-import me.anno.utils.Maths.sq
 import me.anno.video.MissingFrameException
 import org.joml.Matrix4fArrayList
 import org.joml.Vector3f
@@ -37,7 +36,7 @@ class Polygon(parent: Transform? = null): GFXTransform(parent){
 
     var texture = File("")
     var autoAlign = false
-    var filtering = FilteringMode.LINEAR
+    var filtering = Filtering.LINEAR
 
     var is3D = false
     var vertexCount = AnimatedProperty.intPlus(5)
@@ -70,7 +69,7 @@ class Polygon(parent: Transform? = null): GFXTransform(parent){
             stack.scale(1f, 1f, 0f)
         }
         draw3DPolygon(this, time, stack, getBuffer(count, selfDepth > 0f), texture, color,
-            inset, filtering, ClampMode.CLAMP)
+            inset, filtering, Clamping.CLAMP)
         stack.popMatrix()
         return
     }
@@ -153,8 +152,8 @@ class Polygon(parent: Transform? = null): GFXTransform(parent){
             if(n > maxEdges) return getBuffer(maxEdges, hasDepth)
             val cached = Cache.getEntry("Mesh", "Polygon", n * 2 + (if(hasDepth) 1 else 0),
                 meshTimeout, false){
-                StaticFloatBufferData(createBuffer(n, hasDepth))
-            } as StaticFloatBufferData
+                StaticBufferData(createBuffer(n, hasDepth))
+            } as StaticBufferData
             return cached.buffer
         }
 

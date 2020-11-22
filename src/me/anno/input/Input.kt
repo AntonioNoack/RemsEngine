@@ -50,6 +50,7 @@ object Input {
     var keyModState = 0
 
     var mouseMovementSinceMouseDown = 0f
+    val maxClickDistance = 5f
 
     val isControlDown get() = (keyModState and GLFW.GLFW_MOD_CONTROL) != 0
     val isShiftDown get() = (keyModState and GLFW.GLFW_MOD_SHIFT) != 0
@@ -197,7 +198,6 @@ object Input {
 
                         val longClickMillis = DefaultConfig["longClick", 300]
                         val currentNanos = System.nanoTime()
-                        val maxClickDistance = 5f
                         val isClick = mouseMovementSinceMouseDown < maxClickDistance
 
                         if (isClick) {
@@ -415,6 +415,10 @@ object Input {
     fun save() {
         // save the project
         project?.save()
+    }
+
+    fun isKeyDown(key: Char): Boolean {
+        return key.toUpperCase().toInt() in keysDown
     }
 
 

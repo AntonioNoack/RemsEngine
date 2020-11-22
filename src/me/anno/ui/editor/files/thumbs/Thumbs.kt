@@ -9,9 +9,9 @@ import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.gpu.blending.BlendDepth
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
-import me.anno.gpu.texture.ClampMode
-import me.anno.gpu.texture.FilteringMode
-import me.anno.gpu.texture.NearestMode
+import me.anno.gpu.texture.Clamping
+import me.anno.gpu.texture.Filtering
+import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.HDRImage
 import me.anno.image.svg.SVGMesh
@@ -21,7 +21,7 @@ import me.anno.io.xml.XMLReader
 import me.anno.objects.Video
 import me.anno.objects.cache.Cache
 import me.anno.objects.cache.ImageData
-import me.anno.objects.cache.StaticFloatBufferData
+import me.anno.objects.cache.StaticBufferData
 import me.anno.objects.cache.TextureCache
 import me.anno.utils.*
 import me.anno.utils.Color.a
@@ -176,7 +176,7 @@ object Thumbs {
                         Frame(0, 0, w, h, false, fb2) {
 
 
-                            Frame.currentFrame!!.bind()
+                            Frame.bind()
 
                             glClearColor(0f, 0f, 0f, 0f)
                             glClear(GL_COLOR_BUFFER_BIT)
@@ -194,7 +194,7 @@ object Thumbs {
                         // cannot read from separate framebuffer, only from null... why ever...
                         Frame(0, 0, w, h, false, null) {
 
-                            fb2.bindTexture0(0, NearestMode.TRULY_NEAREST, ClampMode.CLAMP)
+                            fb2.bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
                             GFX.copy()
 
                             // draw only the clicked area?
@@ -280,10 +280,10 @@ object Thumbs {
                 ) {
                     val svg = SVGMesh()
                     svg.parse(XMLReader.parse(srcFile.inputStream().buffered()) as XMLElement)
-                    val buffer = StaticFloatBufferData(svg.buffer!!)
+                    val buffer = StaticBufferData(svg.buffer!!)
                     buffer.setBounds(svg)
                     buffer
-                } as StaticFloatBufferData
+                } as StaticBufferData
 
                 val maxSize = max(bufferData.maxX, bufferData.maxY)
                 val w = (size * bufferData.maxX / maxSize).roundToInt()
@@ -297,8 +297,8 @@ object Thumbs {
                     SVGxGFX.draw3DSVG(
                         null, 0.0,
                         transform, bufferData, whiteTexture,
-                        Vector4f(1f), FilteringMode.NEAREST,
-                        whiteTexture.clampMode, null
+                        Vector4f(1f), Filtering.NEAREST,
+                        whiteTexture.clamping, null
                     )
                 }
 

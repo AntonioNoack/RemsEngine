@@ -8,13 +8,13 @@ import me.anno.gpu.ShaderLib.shaderFBX
 import me.anno.gpu.ShaderLib.shaderObjMtl
 import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.gpu.buffer.StaticBuffer
-import me.anno.gpu.texture.FilteringMode
+import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2D
 import me.anno.objects.Transform.Companion.yAxis
 import me.anno.objects.cache.Cache
 import me.anno.objects.cache.CacheData
-import me.anno.objects.meshes.fbx.model.FBXGeometry
-import me.anno.objects.meshes.obj.Material
+import me.anno.mesh.fbx.model.FBXGeometry
+import me.anno.mesh.obj.Material
 import me.anno.video.MissingFrameException
 import me.karl.main.Camera
 import me.karl.scene.Scene
@@ -33,8 +33,8 @@ class MeshData : CacheData {
     fun drawObj(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
         for ((material, buffer) in objData!!) {
             val shader = shaderObjMtl.shader
-            shader3DUniforms(shader, stack, 1, 1, color, null, FilteringMode.NEAREST, null)
-            getTexture(material.diffuseTexture, whiteTexture).bind(0, whiteTexture.nearest, whiteTexture.clampMode)
+            shader3DUniforms(shader, stack, 1, 1, color, null, Filtering.NEAREST, null)
+            getTexture(material.diffuseTexture, whiteTexture).bind(0, whiteTexture.filtering, whiteTexture.clamping)
             buffer.draw(shader)
             GFX.check()
         }
@@ -112,8 +112,8 @@ class MeshData : CacheData {
             GL20.glUniformMatrix4fv(shader["transforms"], false, matrixBufferFBX)
             GFX.check()
 
-            shader3DUniforms(shader, stack, 1, 1, color, null, FilteringMode.NEAREST, null)
-            getTexture(material.diffuseTexture, whiteTexture).bind(0, whiteTexture.nearest, whiteTexture.clampMode)
+            shader3DUniforms(shader, stack, 1, 1, color, null, Filtering.NEAREST, null)
+            getTexture(material.diffuseTexture, whiteTexture).bind(0, whiteTexture.filtering, whiteTexture.clamping)
             buffer.draw(shader)
             GFX.check()
 

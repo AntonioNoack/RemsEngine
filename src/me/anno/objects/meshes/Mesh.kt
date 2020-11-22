@@ -9,11 +9,11 @@ import me.anno.io.base.BaseWriter
 import me.anno.objects.GFXTransform
 import me.anno.objects.Transform
 import me.anno.objects.cache.Cache
-import me.anno.objects.meshes.fbx.model.FBXGeometry
-import me.anno.objects.meshes.fbx.model.FBXGeometry.Companion.maxWeightsDefault
-import me.anno.objects.meshes.fbx.structure.FBXReader
-import me.anno.objects.meshes.obj.Material
-import me.anno.objects.meshes.obj.OBJReader
+import me.anno.mesh.fbx.model.FBXGeometry
+import me.anno.mesh.fbx.model.FBXShader.maxWeightsDefault
+import me.anno.mesh.fbx.structure.FBXReader
+import me.anno.mesh.obj.Material
+import me.anno.mesh.obj.OBJReader
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.files.hasValidName
@@ -95,6 +95,7 @@ class Mesh(var file: File, parent: Transform?) : GFXTransform(parent) {
                                 "xyz",
                                 "normals",
                                 "materialIndex",
+                                true,
                                 1,
                                 maxWeightsDefault
                             )

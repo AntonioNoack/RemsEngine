@@ -3,10 +3,11 @@ package me.anno.gpu.buffer
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
+import org.lwjgl.opengl.GL15.GL_STATIC_DRAW
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
-open class StaticBuffer(attributes: List<Attribute>, val vertexCount: Int): Buffer(attributes){
+open class StaticBuffer(attributes: List<Attribute>, val vertexCount: Int, usage: Int = GL_STATIC_DRAW): Buffer(attributes, usage){
 
     constructor(points: List<List<Float>>, attributes: List<Attribute>, vertices: IntArray): this(attributes, vertices.size){
         vertices.forEach {

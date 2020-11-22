@@ -256,19 +256,16 @@ class Camera(parent: Transform? = null) : Transform(parent) {
             // todo show the standard level only on user request, or when DOF is enabled
             // todo render the intersections instead
             shader.use()
-            stack.get(GFX.matrixBuffer)
-            glUniformMatrix4fv(shader["transform"], false, GFX.matrixBuffer)
+            shader.m4x4("transform", stack)
             GFX.shaderColor(shader, "color", color)
             cameraModel.draw(shader)
 
             stack.scale(near)
-            stack.get(GFX.matrixBuffer)
-            glUniformMatrix4fv(shader["transform"], false, GFX.matrixBuffer)
+            shader.m4x4("transform", stack)
             cameraModel.draw(shader)
 
             stack.scale(far / near)
-            stack.get(GFX.matrixBuffer)
-            glUniformMatrix4fv(shader["transform"], false, GFX.matrixBuffer)
+            shader.m4x4("transform", stack)
             cameraModel.draw(shader)
 
         }

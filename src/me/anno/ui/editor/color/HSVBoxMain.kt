@@ -5,8 +5,8 @@ import me.anno.gpu.GFXx2D.drawRect
 import me.anno.gpu.GFXx2D.drawRectGradient
 import me.anno.gpu.GFXx2D.drawTexture
 import me.anno.gpu.TextureLib
-import me.anno.gpu.texture.ClampMode
-import me.anno.gpu.texture.NearestMode
+import me.anno.gpu.texture.Clamping
+import me.anno.gpu.texture.GPUFiltering
 import me.anno.input.MouseButton
 import me.anno.ui.base.constraints.AspectRatioConstraint
 import me.anno.ui.editor.color.ColorChooser.Companion.CircleBarRatio
@@ -180,7 +180,7 @@ class HSVBoxMain(chooser: ColorChooser, v0: Vector3f, du: Vector3f, dv: Vector3f
                     ColorVisualisation.BOX
                 )
             }
-            TextureLib.colorShowTexture.bind(0, NearestMode.TRULY_NEAREST, ClampMode.REPEAT)
+            TextureLib.colorShowTexture.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.REPEAT)
             if (chooser.opacity < 1f) {
                 val color =
                     (chooser.backgroundColor and 0xffffff) or ((1f - chooser.opacity) * 255).roundToInt().shl(24)

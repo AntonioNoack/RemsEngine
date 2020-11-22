@@ -3,6 +3,7 @@ package me.anno.gpu.texture
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.TextureLib.invisibleTexture
+import me.anno.gpu.framebuffer.TargetType
 import me.anno.objects.modes.RotateJPEG
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
@@ -22,7 +23,7 @@ class Texture2D(override var w: Int, override var h: Int, val samples: Int): ITe
 
     constructor(img: BufferedImage): this(img.width, img.height, 1){
         create(img, true)
-        filtering(NearestMode.NEAREST)
+        filtering(GPUFiltering.NEAREST)
     }
 
     val withMultisampling get() = samples > 1
@@ -32,8 +33,8 @@ class Texture2D(override var w: Int, override var h: Int, val samples: Int): ITe
 
     var pointer = -1
     var isCreated = false
-    var nearest = NearestMode.TRULY_NEAREST
-    var clampMode = ClampMode.CLAMP
+    var filtering = GPUFiltering.TRULY_NEAREST
+    var clamping = Clamping.CLAMP
 
     // only used for images with exif rotation tag...
     var rotation: RotateJPEG? = null
@@ -61,8 +62,22 @@ class Texture2D(override var w: Int, override var h: Int, val samples: Int): ITe
         } else {
             glTexImage2D(tex2D, 0, GL_RGBA8, w, h, 0, GL11.GL_RGBA, GL_UNSIGNED_BYTE, null as ByteBuffer?)
         }
-        filtering(nearest)
-        clamping(clampMode)
+        filtering(filtering)
+        clamping(clamping)
+        isCreated = true
+    }
+
+
+    fun create(type: TargetType){
+        ensurePointer()
+        forceBind()
+        if(withMultisampling){
+            glTexImage2DMultisample(tex2D, samples, type.type0, w, h, false)
+        } else {
+            glTexImage2D(tex2D, 0, type.type0, w, h, 0, type.type1, type.fillType, null as ByteBuffer?)
+        }
+        filtering(filtering)
+        clamping(clamping)
         isCreated = true
     }
 
@@ -78,8 +93,8 @@ class Texture2D(override var w: Int, override var h: Int, val samples: Int): ITe
         }
         // LOGGER.info("FP32 $w $h $samples")
         GFX.check()
-        filtering(nearest)
-        clamping(clampMode)
+        filtering(filtering)
+        clamping(clamping)
         isCreated = true
         GFX.check()
     }
@@ -132,8 +147,8 @@ class Texture2D(override var w: Int, override var h: Int, val samples: Int): ITe
         glTexImage2D(tex2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, intData)
         isCreated = true
         GFX.check()
-        filtering(nearest)
-        clamping(clampMode)
+        filtering(filtering)
+        clamping(clamping)
         GFX.check()
     }
 
@@ -149,8 +164,8 @@ class Texture2D(override var w: Int, override var h: Int, val samples: Int): ITe
         byteBuffer.position(0)
         glTexImage2D(tex2D, 0, GL_RED, w, h, 0, GL_RED, GL_UNSIGNED_BYTE, byteBuffer)
         isCreated = true
-        filtering(nearest)
-        clamping(clampMode)
+        filtering(filtering)
+        clamping(clamping)
         GFX.check()
     }
 
@@ -173,7 +188,7 @@ class Texture2D(override var w: Int, override var h: Int, val samples: Int): ITe
         // rgba32f as internal format is extremely important... otherwise the value is cropped
         glTexImage2D(tex2D, 0, GL_RGBA32F, w, h, 0, GL_RGBA, GL_FLOAT, floatBuffer)
         isCreated = true
-        filtering(nearest)
+        filtering(filtering)
         GFX.check()
     }
 
@@ -193,28 +208,28 @@ class Texture2D(override var w: Int, override var h: Int, val samples: Int): ITe
         GFX.check()
         glTexImage2D(tex2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, byteBuffer)
         isCreated = true
-        filtering(nearest)
-        clamping(clampMode)
+        filtering(filtering)
+        clamping(clamping)
         GFX.check()
     }
 
-    fun ensureFilterAndClamping(nearest: NearestMode, clampMode: ClampMode){
-        if(nearest != this.nearest) filtering(nearest)
-        if(clampMode != this.clampMode) clamping(clampMode)
+    fun ensureFilterAndClamping(nearest: GPUFiltering, clamping: Clamping){
+        if(nearest != this.filtering) filtering(nearest)
+        if(clamping != this.clamping) clamping(clamping)
     }
 
-    private fun clamping(clampMode: ClampMode){
+    private fun clamping(clamping: Clamping){
         if(!withMultisampling){
-            this.clampMode = clampMode
-            val type = clampMode.mode
+            this.clamping = clamping
+            val type = clamping.mode
             glTexParameteri(tex2D, GL_TEXTURE_WRAP_S, type)
             glTexParameteri(tex2D, GL_TEXTURE_WRAP_T, type)
         }
     }
 
-    private fun filtering(nearest: NearestMode){
+    private fun filtering(nearest: GPUFiltering){
         if(withMultisampling){
-            this.nearest = NearestMode.TRULY_NEAREST
+            this.filtering = GPUFiltering.TRULY_NEAREST
             // multisample textures only support nearest filtering;
             // they don't accept the command to be what they are either
             return
@@ -231,7 +246,7 @@ class Texture2D(override var w: Int, override var h: Int, val samples: Int): ITe
         }
         glTexParameteri(tex2D, GL_TEXTURE_MIN_FILTER, nearest.min)
         glTexParameteri(tex2D, GL_TEXTURE_MAG_FILTER, nearest.mag)
-        this.nearest = nearest
+        this.filtering = nearest
     }
 
     var hasMipmap = false
@@ -241,16 +256,16 @@ class Texture2D(override var w: Int, override var h: Int, val samples: Int): ITe
         glBindTexture(tex2D, pointer)
     }
 
-    override fun bind(nearest: NearestMode, clampMode: ClampMode){
+    override fun bind(nearest: GPUFiltering, clamping: Clamping){
         if(pointer > -1 && isCreated){
             glBindTexture(tex2D, pointer)
-            ensureFilterAndClamping(nearest, clampMode)
-        } else invisibleTexture.bind(invisibleTexture.nearest, invisibleTexture.clampMode)
+            ensureFilterAndClamping(nearest, clamping)
+        } else invisibleTexture.bind(invisibleTexture.filtering, invisibleTexture.clamping)
     }
 
-    override fun bind(index: Int, nearest: NearestMode, clampMode: ClampMode){
+    override fun bind(index: Int, nearest: GPUFiltering, clamping: Clamping){
         glActiveTexture(GL_TEXTURE0 + index)
-        bind(nearest, clampMode)
+        bind(nearest, clamping)
     }
 
     override fun destroy(){
@@ -265,8 +280,8 @@ class Texture2D(override var w: Int, override var h: Int, val samples: Int): ITe
         } else {
             glTexImage2D(tex2D, 0, GL_DEPTH_COMPONENT, w, h, 0, GL_DEPTH_COMPONENT,	GL_FLOAT, 0)
         }
-        filtering(nearest)
-        clamping(ClampMode.CLAMP)
+        filtering(filtering)
+        clamping(Clamping.CLAMP)
         GFX.check()
     }
 

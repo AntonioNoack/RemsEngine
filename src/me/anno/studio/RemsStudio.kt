@@ -30,7 +30,7 @@ import kotlin.math.abs
 
 // todo input field title, no focus color
 
-object RemsStudio: StudioBase(true){
+object RemsStudio: StudioBase(true, "Rem's Studio", "RemsStudio"){
 
     override fun onGameInit() {
         RemsConfig.init()

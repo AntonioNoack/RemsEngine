@@ -24,10 +24,18 @@ object Cache {
     private val lockedKeys = HashSet<Any>(2048)
 
     fun clear() {
-        synchronized(this) {
+        synchronized(cache) {
             cache.values.forEach { it.destroy() }
             cache.clear()
             lockedKeys.clear() // mmh...
+        }
+    }
+
+    fun remove(filter: (Map.Entry<Any, CacheEntry>) -> Boolean){
+        synchronized(cache){
+            val toRemove = cache.filter(filter)
+            cache.remove(toRemove)
+            toRemove.values.forEach { it.destroy() }
         }
     }
 

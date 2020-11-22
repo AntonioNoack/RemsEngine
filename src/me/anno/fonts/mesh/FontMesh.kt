@@ -252,9 +252,10 @@ class FontMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
         outerFragments.forEach { outer ->
             outer.apply {
                 if (needingRemoval.isNotEmpty()) {
-                    needingRemoval.sortedByDescending { it.size }.forEach { inner ->
+                    mergeRings2(ring, needingRemoval.map { it.ring })
+                    /*needingRemoval.sortedByDescending { it.size }.forEach { inner ->
                         mergeRings(ring, inner.ring)
-                    }
+                    }*/
                     needingRemoval.clear()
                     triangles = Triangulation.ringToTriangles2(ring, name)
                     gfx?.apply {
@@ -300,8 +301,8 @@ class FontMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
         val baseScale = DEFAULT_LINE_HEIGHT / (layout.ascent + layout.descent)
 
         triangles.forEach {
-            buffer.put(it.x.toFloat() * baseScale)
-            buffer.put(it.y.toFloat() * baseScale)
+            buffer.put(it.x * baseScale)
+            buffer.put(it.y * baseScale)
         }
 
         minX *= baseScale * 0.5f
@@ -309,32 +310,6 @@ class FontMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
 
         minX += 0.5f
         maxX += 0.5f
-
-    }
-
-    fun mergeRings(outer: MutableList<Vector2f>, inner: List<Vector2f>) {
-
-        // find the closest pair
-        var bestDistance = Float.POSITIVE_INFINITY
-        var bestOuterIndex = 0
-        var bestInnerIndex = 0
-
-        outer.forEachIndexed { outerIndex, o ->
-            inner.forEachIndexed { innerIndex, i ->
-                val distance = o.distanceSquared(i)
-                if (distance < bestDistance) {
-                    bestOuterIndex = outerIndex
-                    bestInnerIndex = innerIndex
-                    bestDistance = distance
-                }
-            }
-        }
-
-        // merge them at the merging points
-        val mergingPoint = outer[bestOuterIndex]
-        outer.addAll(bestOuterIndex, inner.subList(0, bestInnerIndex + 1))
-        outer.addAll(bestOuterIndex, inner.subList(bestInnerIndex, inner.size))
-        outer.add(bestOuterIndex, mergingPoint)
 
     }
 
@@ -410,6 +385,38 @@ class FontMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
         private val LOGGER = LogManager.getLogger(FontMesh::class)
 
         val DEFAULT_LINE_HEIGHT = 0.2f
+
+        fun mergeRings2(outer: MutableList<Vector2f>, innerList: List<List<Vector2f>>) {
+            innerList.sortedBy { it.map { p -> p.x }.min()!! }.forEach { inner ->
+                mergeRings(outer, inner)
+            }
+        }
+
+        fun mergeRings(outer: MutableList<Vector2f>, inner: List<Vector2f>) {
+
+            // find the closest pair
+            var bestDistance = Float.POSITIVE_INFINITY
+            var bestOuterIndex = 0
+            var bestInnerIndex = 0
+
+            outer.forEachIndexed { outerIndex, o ->
+                inner.forEachIndexed { innerIndex, i ->
+                    val distance = o.distanceSquared(i)
+                    if (distance < bestDistance) {
+                        bestOuterIndex = outerIndex
+                        bestInnerIndex = innerIndex
+                        bestDistance = distance
+                    }
+                }
+            }
+
+            // merge them at the merging points
+            val mergingPoint = outer[bestOuterIndex]
+            outer.addAll(bestOuterIndex, inner.subList(0, bestInnerIndex + 1))
+            outer.addAll(bestOuterIndex, inner.subList(bestInnerIndex, inner.size))
+            outer.add(bestOuterIndex, mergingPoint)
+
+        }
 
         fun triangleSize(triangles: List<Vector2f>): Float {
             var areaSum = 0f

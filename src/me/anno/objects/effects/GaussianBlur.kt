@@ -6,8 +6,8 @@ import me.anno.gpu.blending.BlendDepth
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
-import me.anno.gpu.texture.ClampMode
-import me.anno.gpu.texture.NearestMode
+import me.anno.gpu.texture.Clamping
+import me.anno.gpu.texture.GPUFiltering
 import me.anno.input.Input
 import org.joml.Matrix4fArrayList
 import org.lwjgl.opengl.GL11
@@ -27,8 +27,8 @@ object GaussianBlur {
         }
         target.bindTexture0(
             resultIndex,
-            if (true || isFirst || size == pixelSize) NearestMode.NEAREST
-            else NearestMode.LINEAR, ClampMode.CLAMP
+            if (true || isFirst || size == pixelSize) GPUFiltering.NEAREST
+            else GPUFiltering.LINEAR, Clamping.CLAMP
         )
     }
 
@@ -39,7 +39,7 @@ object GaussianBlur {
         localTransform: Matrix4fArrayList
     ) {
 
-        src.bindTexture0(0, NearestMode.TRULY_NEAREST, ClampMode.CLAMP)
+        src.bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
 
         var size = pixelSize
 
@@ -70,7 +70,7 @@ object GaussianBlur {
                     // draw texture 0 (masked) onto temp2
                     // todo sample multiple times...
                     GFX.copy()
-                    temp2.bindTexture0(0, NearestMode.TRULY_NEAREST, ClampMode.CLAMP)
+                    temp2.bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
                 }
             }
 

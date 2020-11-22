@@ -3,9 +3,10 @@ package me.anno.gpu
 import me.anno.config.DefaultConfig
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderPlus
-import me.anno.gpu.texture.FilteringMode
+import me.anno.gpu.texture.Filtering
 import me.anno.objects.effects.MaskType
-import me.anno.objects.meshes.fbx.model.FBXGeometry
+import me.anno.mesh.fbx.model.FBXGeometry
+import me.anno.mesh.fbx.model.FBXShader
 import me.anno.objects.modes.UVProjection
 import org.lwjgl.opengl.GL20
 import java.nio.ByteBuffer
@@ -170,19 +171,19 @@ object ShaderLib {
             "}\n" +
             "vec4 getTexture(sampler2D tex, vec2 uv, vec2 duv){" +
             "   switch(filtering){" +
-            "       case ${FilteringMode.NEAREST.id}:\n" +
-            "       case ${FilteringMode.LINEAR.id}:\n" +
+            "       case ${Filtering.NEAREST.id}:\n" +
+            "       case ${Filtering.LINEAR.id}:\n" +
             "           return texture(tex, uv);\n" +
-            "       case ${FilteringMode.CUBIC.id}:\n" +
+            "       case ${Filtering.CUBIC.id}:\n" +
             "           return bicubicInterpolation(tex, uv, duv);\n" +
             "   }\n" +
             "}\n" +
             "vec4 getTexture(sampler2D tex, vec2 uv){" +
             "   switch(filtering){" +
-            "       case ${FilteringMode.NEAREST.id}:\n" +
-            "       case ${FilteringMode.LINEAR.id}:\n" +
+            "       case ${Filtering.NEAREST.id}:\n" +
+            "       case ${Filtering.LINEAR.id}:\n" +
             "           return texture(tex, uv);\n" +
-            "       case ${FilteringMode.CUBIC.id}:\n" +
+            "       case ${Filtering.CUBIC.id}:\n" +
             "           return bicubicInterpolation(tex, uv, textureDeltaUV);\n" +
             "   }\n" +
             "}\n"
@@ -537,7 +538,7 @@ object ShaderLib {
         )
 
         // create the fbx shader
-        shaderFBX = FBXGeometry.getShader(v3DBase, positionPostProcessing, y3D, getTextureLib)
+        shaderFBX = FBXShader.getShader(v3DBase, positionPostProcessing, y3D, getTextureLib)
 
         shader3DYUV = createShaderPlus(
             "3d-yuv",

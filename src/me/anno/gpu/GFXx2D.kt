@@ -11,16 +11,15 @@ import me.anno.gpu.GFXx3D.draw3D
 import me.anno.gpu.GFXx3D.draw3DCircle
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderPlus
-import me.anno.gpu.texture.ClampMode
-import me.anno.gpu.texture.FilteringMode
-import me.anno.gpu.texture.NearestMode
+import me.anno.gpu.texture.Clamping
+import me.anno.gpu.texture.Filtering
+import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.objects.modes.UVProjection
 import me.anno.video.VFrame
 import org.joml.Matrix4f
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
-import org.lwjgl.opengl.GL20
 
 object GFXx2D {
 
@@ -115,7 +114,7 @@ object GFXx2D {
         val w = texture.w
         val h = texture.h
         if (text.isNotBlank()) {
-            texture.bind(NearestMode.TRULY_NEAREST, ClampMode.CLAMP)
+            texture.bind(GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
             val shader = ShaderLib.subpixelCorrectTextShader
             // check()
             shader.use()
@@ -163,7 +162,7 @@ object GFXx2D {
         shader.v4("color", color.r() / 255f, color.g() / 255f, color.b() / 255f, color.a() / 255f)
         if (tiling != null) shader.v4("tiling", tiling)
         else shader.v4("tiling", 1f, 1f, 0f, 0f)
-        texture.bind(0, texture.nearest, texture.clampMode)
+        texture.bind(0, texture.filtering, texture.clamping)
         GFX.flat01.draw(shader)
         GFX.check()
     }
@@ -173,7 +172,7 @@ object GFXx2D {
         GFX.drawMode = ShaderPlus.DrawMode.COLOR
         draw3D(
             matrix, texture, color.v4(),
-            FilteringMode.LINEAR, ClampMode.CLAMP, tiling, UVProjection.Planar
+            Filtering.LINEAR, Clamping.CLAMP, tiling, UVProjection.Planar
         )
     }
 
@@ -183,7 +182,7 @@ object GFXx2D {
         GFX.drawMode = ShaderPlus.DrawMode.COLOR
         draw3D(
             matrix, texture, color.v4(),
-            FilteringMode.LINEAR, ClampMode.CLAMP, tiling, UVProjection.Planar
+            Filtering.LINEAR, Clamping.CLAMP, tiling, UVProjection.Planar
         )
     }
 
@@ -222,16 +221,15 @@ object GFXx2D {
         GFX.check()
 
         shader.use()
-        shader.v1("filtering", FilteringMode.LINEAR.id)
+        shader.v1("filtering", Filtering.LINEAR.id)
         shader.v2("textureDeltaUV", 1f / texture.w, 1f / texture.h)
-        Matrix4f().get(GFX.matrixBuffer)
-        GL20.glUniformMatrix4fv(shader["transform"], false, GFX.matrixBuffer)
+        shader.m4x4("transform", Matrix4f())
         shader.v4("tint", 1f, 1f, 1f, 1f)
         shader.v4("tiling", 1f, 1f, 0f, 0f)
         shader.v1("drawMode", ShaderPlus.DrawMode.COLOR.id)
         shader.v1("uvProjection", UVProjection.Planar.id)
 
-        texture.bind(0, FilteringMode.LINEAR, ClampMode.CLAMP)
+        texture.bind(0, Filtering.LINEAR, Clamping.CLAMP)
         if (shader == ShaderLib.shader3DYUV.shader) {
             val w = texture.w
             val h = texture.h

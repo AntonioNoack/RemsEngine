@@ -3,8 +3,8 @@ package me.anno.gpu
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.shader.Shader
-import me.anno.gpu.texture.ClampMode
-import me.anno.gpu.texture.FilteringMode
+import me.anno.gpu.texture.Clamping
+import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2D
 import me.anno.objects.GFXTransform
 import me.anno.objects.Video
@@ -18,16 +18,13 @@ import org.joml.Matrix4f
 import org.joml.Matrix4fArrayList
 import org.joml.Vector3f
 import org.joml.Vector4f
-import org.lwjgl.opengl.GL11.GL_LINES
-import org.lwjgl.opengl.GL20
-import org.lwjgl.opengl.GL30
 
 object GFXx3D {
 
     fun shader3DUniforms(
         shader: Shader, stack: Matrix4fArrayList,
         w: Int, h: Int, color: Vector4f,
-        tiling: Vector4f?, filtering: FilteringMode,
+        tiling: Vector4f?, filtering: Filtering,
         uvProjection: UVProjection?
     ) {
         GFX.check()
@@ -51,8 +48,7 @@ object GFXx3D {
             stack.scale(1f, -1f, 1f)
         }
 
-        stack.get(GFX.matrixBuffer)
-        GL20.glUniformMatrix4fv(shader["transform"], false, GFX.matrixBuffer)
+        shader.m4x4("transform", stack)
         stack.popMatrix()
 
         GFX.shaderColor(shader, "tint", color)
@@ -63,12 +59,19 @@ object GFXx3D {
 
     }
 
+    fun drawDebugCube(matrix: Matrix4fArrayList, size: Float, color: Vector4f?){
+        matrix.scale(0.5f * size, -0.5f * size, 0.5f * size) // flip inside out
+        val tex = TextureLib.whiteTexture
+        draw3D(
+            matrix, tex, color ?: Vector4f(1f),
+            Filtering.NEAREST, tex.clamping, null, UVProjection.TiledCubemap
+        )
+    }
 
     fun shader3DUniforms(shader: Shader, stack: Matrix4f, color: Vector4f) {
         GFX.check()
         shader.use()
-        stack.get(GFX.matrixBuffer)
-        GL30.glUniformMatrix4fv(shader["transform"], false, GFX.matrixBuffer)
+        shader.m4x4("transform", stack)
         GFX.shaderColor(shader, "tint", color)
         shader.v4("tiling", 1f, 1f, 0f, 0f)
         shader.v1("drawMode", GFX.drawMode.id)
@@ -77,8 +80,7 @@ object GFXx3D {
     fun transformUniform(shader: Shader, stack: Matrix4f) {
         GFX.check()
         shader.use()
-        stack.get(GFX.matrixBuffer)
-        GL30.glUniformMatrix4fv(shader["transform"], false, GFX.matrixBuffer)
+        shader.m4x4("transform", stack)
     }
 
     fun draw3DMasked(
@@ -103,13 +105,13 @@ object GFXx3D {
     fun draw3D(
         that: GFXTransform?, time: Double, offset: Vector3f,
         stack: Matrix4fArrayList, buffer: StaticBuffer, texture: Texture2D, w: Int, h: Int, color: Vector4f,
-        filtering: FilteringMode, clampMode: ClampMode, tiling: Vector4f?
+        filtering: Filtering, clamping: Clamping, tiling: Vector4f?
     ) {
         val shader = ShaderLib.shader3D.shader
         shader3DUniforms(shader, stack, w, h, color, tiling, filtering, null)
         shader.v3("offset", offset)
         that?.uploadAttractors(shader, time) ?: GFXTransform.uploadAttractors0(shader)
-        texture.bind(0, filtering, clampMode)
+        texture.bind(0, filtering, clamping)
         buffer.draw(shader)
         GFX.check()
     }
@@ -117,9 +119,9 @@ object GFXx3D {
     fun draw3D(
         that: GFXTransform?, time: Double, offset: Vector3f,
         stack: Matrix4fArrayList, buffer: StaticBuffer, texture: Texture2D, color: Vector4f,
-        filtering: FilteringMode, clampMode: ClampMode, tiling: Vector4f?
+        filtering: Filtering, clamping: Clamping, tiling: Vector4f?
     ) {
-        draw3D(that, time, offset, stack, buffer, texture, texture.w, texture.h, color, filtering, clampMode, tiling)
+        draw3D(that, time, offset, stack, buffer, texture, texture.w, texture.h, color, filtering, clamping, tiling)
     }
 
     fun draw3DOffset(
@@ -150,26 +152,26 @@ object GFXx3D {
         stack: Matrix4fArrayList, buffer: StaticBuffer,
         texture: Texture2D, color: Vector4f,
         inset: Float,
-        filtering: FilteringMode, clampMode: ClampMode
+        filtering: Filtering, clamping: Clamping
     ) {
         val shader = ShaderLib.shader3DPolygon.shader
         shader.use()
         polygon.uploadAttractors(shader, time)
         shader3DUniforms(shader, stack, texture.w, texture.h, color, null, filtering, null)
         shader.v1("inset", inset)
-        texture.bind(0, filtering, clampMode)
+        texture.bind(0, filtering, clamping)
         buffer.draw(shader)
         GFX.check()
     }
 
     fun draw3D(
         stack: Matrix4fArrayList, texture: VFrame, color: Vector4f,
-        filtering: FilteringMode, clampMode: ClampMode, tiling: Vector4f?, uvProjection: UVProjection
+        filtering: Filtering, clamping: Clamping, tiling: Vector4f?, uvProjection: UVProjection
     ) {
         if (!texture.isLoaded) throw RuntimeException("Frame must be loaded to be rendered!")
         val shader = texture.get3DShader().shader
         shader3DUniforms(shader, stack, texture.w, texture.h, color, tiling, filtering, uvProjection)
-        texture.bind(0, filtering, clampMode)
+        texture.bind(0, filtering, clamping)
         if (shader == ShaderLib.shader3DYUV.shader) {
             val w = texture.w
             val h = texture.h
@@ -182,7 +184,7 @@ object GFXx3D {
     fun draw3DVideo(
         video: Video, time: Double,
         stack: Matrix4fArrayList, texture: VFrame, color: Vector4f,
-        filtering: FilteringMode, clampMode: ClampMode, tiling: Vector4f?, uvProjection: UVProjection
+        filtering: Filtering, clamping: Clamping, tiling: Vector4f?, uvProjection: UVProjection
     ) {
         if (!texture.isLoaded) throw RuntimeException("Frame must be loaded to be rendered!")
         val shader = texture.get3DShader().shader
@@ -190,7 +192,7 @@ object GFXx3D {
         video.uploadAttractors(shader, time)
         shader3DUniforms(shader, stack, texture.w, texture.h, color, tiling, filtering, uvProjection)
         colorGradingUniforms(video, time, shader)
-        texture.bind(0, filtering, clampMode)
+        texture.bind(0, filtering, clamping)
         if (shader == ShaderLib.shader3DYUV.shader) {
             val w = texture.w
             val h = texture.h
@@ -202,19 +204,19 @@ object GFXx3D {
 
     fun draw3D(
         stack: Matrix4fArrayList, texture: Texture2D, color: Vector4f,
-        filtering: FilteringMode, clampMode: ClampMode, tiling: Vector4f?, uvProjection: UVProjection
+        filtering: Filtering, clamping: Clamping, tiling: Vector4f?, uvProjection: UVProjection
     ) {
-        draw3D(stack, texture, texture.w, texture.h, color, filtering, clampMode, tiling, uvProjection)
+        draw3D(stack, texture, texture.w, texture.h, color, filtering, clamping, tiling, uvProjection)
     }
 
     fun draw3D(
         stack: Matrix4fArrayList, texture: Texture2D, w: Int, h: Int, color: Vector4f,
-        filtering: FilteringMode, clampMode: ClampMode, tiling: Vector4f?, uvProjection: UVProjection
+        filtering: Filtering, clamping: Clamping, tiling: Vector4f?, uvProjection: UVProjection
     ) {
         val shader = ShaderLib.shader3D.shader
         shader3DUniforms(shader, stack, w, h, color, tiling, filtering, uvProjection)
         shader.v3("offset", 0f, 0f, 0f)
-        texture.bind(0, filtering, clampMode)
+        texture.bind(0, filtering, clamping)
         uvProjection.getBuffer().draw(shader)
         GFX.check()
     }
@@ -222,14 +224,14 @@ object GFXx3D {
     fun draw3DVideo(
         video: Video, time: Double,
         stack: Matrix4fArrayList, texture: Texture2D, color: Vector4f,
-        filtering: FilteringMode, clampMode: ClampMode, tiling: Vector4f?, uvProjection: UVProjection
+        filtering: Filtering, clamping: Clamping, tiling: Vector4f?, uvProjection: UVProjection
     ) {
         val shader = ShaderLib.shader3DRGBA.shader
         shader.use()
         video.uploadAttractors(shader, time)
         shader3DUniforms(shader, stack, texture.w, texture.h, color, tiling, filtering, uvProjection)
         colorGradingUniforms(video, time, shader)
-        texture.bind(0, filtering, clampMode)
+        texture.bind(0, filtering, clamping)
         uvProjection.getBuffer().draw(shader)
         GFX.check()
     }
@@ -258,7 +260,7 @@ object GFXx3D {
         color: Vector4f
     ) {
         val shader = ShaderLib.shader3DCircle.shader
-        shader3DUniforms(shader, stack, 1, 1, color, null, FilteringMode.NEAREST, null)
+        shader3DUniforms(shader, stack, 1, 1, color, null, Filtering.NEAREST, null)
         that?.uploadAttractors(shader, time) ?: GFXTransform.uploadAttractors0(shader)
         var a0 = startDegrees
         var a1 = endDegrees

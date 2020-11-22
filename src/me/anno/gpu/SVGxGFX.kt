@@ -3,11 +3,11 @@ package me.anno.gpu
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFXx3D.colorGradingUniforms
 import me.anno.gpu.GFXx3D.shader3DUniforms
-import me.anno.gpu.texture.ClampMode
-import me.anno.gpu.texture.FilteringMode
+import me.anno.gpu.texture.Clamping
+import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2D
 import me.anno.objects.Video
-import me.anno.objects.cache.StaticFloatBufferData
+import me.anno.objects.cache.StaticBufferData
 import me.anno.utils.Maths.fract
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
@@ -18,8 +18,8 @@ object SVGxGFX {
 
     fun draw3DSVG(
         video: Video?, time: Double,
-        stack: Matrix4fArrayList, buffer: StaticFloatBufferData, texture: Texture2D, color: Vector4f,
-        filtering: FilteringMode, clampMode: ClampMode, tiling: Vector4f?
+        stack: Matrix4fArrayList, buffer: StaticBufferData, texture: Texture2D, color: Vector4f,
+        filtering: Filtering, clamping: Clamping, tiling: Vector4f?
     ) {
 
         // normalized on y-axis, width unknown
@@ -32,7 +32,7 @@ object SVGxGFX {
             colorGradingUniforms(video, time, shader)
             // x2 just for security...
             shader.v4("uvLimits", -2f * sx, -2f, 2f * sx, 2f)
-            texture.bind(0, filtering, clampMode)
+            texture.bind(0, filtering, clamping)
             buffer.buffer.draw(shader)
             GFX.check()
 
@@ -50,7 +50,7 @@ object SVGxGFX {
             val y0 = round(-.5f * ty + fy)
             val y1 = round(+.5f * ty + fy)
 
-            val mirrorRepeat = clampMode == ClampMode.MIRRORED_REPEAT
+            val mirrorRepeat = clamping == Clamping.MIRRORED_REPEAT
 
             stack.scale(1f / tiling.x, 1f / tiling.y, 1f)
 
@@ -89,7 +89,7 @@ object SVGxGFX {
                     shader3DUniforms(shader, stack, texture.w, texture.h, color, null, filtering, null)
                     colorGradingUniforms(video, time, shader)
                     shader.v4("uvLimits", sx * a0, b0, sx * a1, b1)
-                    texture.bind(0, filtering, clampMode)
+                    texture.bind(0, filtering, clamping)
                     buffer.buffer.draw(shader)
                     GFX.check()
                     stack.popMatrix()

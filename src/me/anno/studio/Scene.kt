@@ -16,8 +16,9 @@ import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderPlus
-import me.anno.gpu.texture.ClampMode
-import me.anno.gpu.texture.NearestMode
+import me.anno.gpu.texture.Clamping
+import me.anno.gpu.texture.GPUFiltering
+import me.anno.input.Input.isKeyDown
 import me.anno.objects.Camera
 import me.anno.objects.Camera.Companion.DEFAULT_VIGNETTE_STRENGTH
 import me.anno.objects.Transform.Companion.xAxis
@@ -249,12 +250,12 @@ object Scene {
         name: String,
         previous: Framebuffer,
         offset: Int,
-        nearest: NearestMode,
+        nearest: GPUFiltering,
         samples: Int?
     ): Framebuffer {
         val next = FBStack[name, previous.w, previous.h, samples ?: previous.samples, usesFPBuffers]
         // next.bind()
-        previous.bindTextures(offset, nearest, ClampMode.CLAMP)
+        previous.bindTextures(offset, nearest, Clamping.CLAMP)
         return next
     }
 
@@ -345,7 +346,7 @@ object Scene {
 
         Frame(0, 0, w, h, false, buffer) {
 
-            Frame.currentFrame!!.bind()
+            Frame.bind()
 
             if (camera.useDepth) {
                 GL30.glEnable(GL30.GL_DEPTH_TEST)
@@ -440,7 +441,7 @@ object Scene {
             }
         }
 
-        /*val enableCircularDOF = 'O'.toInt() in keysDown && 'F'.toInt() in keysDown
+        /*val enableCircularDOF = isKeyDown('o') && isKeyDown('f')
         if(enableCircularDOF){
             // todo render dof instead of bokeh blur only
             // make bokeh blur an additional camera effect?
@@ -527,7 +528,7 @@ object Scene {
 
                     // create blurred version
                     GaussianBlur.draw(buffer!!, bloomSize, w, h, 1, bloomThreshold, Matrix4fArrayList())
-                    buffer = getNextBuffer("Scene-Bloom", buffer!!, 0, NearestMode.TRULY_NEAREST, 1)
+                    buffer = getNextBuffer("Scene-Bloom", buffer!!, 0, GPUFiltering.TRULY_NEAREST, 1)
 
                     // add it on top
                     Frame(buffer){
@@ -542,7 +543,7 @@ object Scene {
                 val useLUT = lut != null
                 if (useLUT) {
 
-                    buffer = getNextBuffer("Scene-LUT", buffer!!, 0, NearestMode.LINEAR, 1)
+                    buffer = getNextBuffer("Scene-LUT", buffer!!, 0, GPUFiltering.LINEAR, 1)
                     Frame(buffer) {
                         drawColors()
                     }
@@ -551,16 +552,16 @@ object Scene {
                      * apply the LUT for sepia looks, cold looks, general color correction, ...
                      * uses the Unreal Engine "format" of an 256x16 image (or 1024x32)
                      * */
-                    buffer!!.bindTextures(0, NearestMode.TRULY_NEAREST, ClampMode.CLAMP)
+                    buffer!!.bindTextures(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
                     lutShader.use()
-                    lut!!.bind(1, NearestMode.LINEAR)
+                    lut!!.bind(1, GPUFiltering.LINEAR)
                     lut.clamping(false)
                     flat01.draw(lutShader)
                     GFX.check()
 
                 } else {
 
-                    buffer!!.bindTextures(0, NearestMode.TRULY_NEAREST, ClampMode.CLAMP)
+                    buffer!!.bindTextures(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
                     drawColors()
 
                 }
