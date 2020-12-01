@@ -1,7 +1,6 @@
 package me.anno.ui.base
 
 import me.anno.config.DefaultStyle.black
-import me.anno.gpu.GFX
 import me.anno.gpu.GFXx2D
 import me.anno.gpu.GFXx2D.drawRect
 import me.anno.gpu.GFXx2D.getTextSize
@@ -12,8 +11,7 @@ import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.style.Style
 import me.anno.utils.isClickKey
 import me.anno.utils.Maths.mixARGB
-import me.anno.utils.one
-import org.lwjgl.glfw.GLFW
+import me.anno.utils.Lists.one
 
 open class ButtonPanel(text: String, style: Style): TextPanel(text, style.getChild("button")){
 
@@ -53,9 +51,8 @@ open class ButtonPanel(text: String, style: Style): TextPanel(text, style.getChi
         drawBackground()
 
         val limit = if(breaksIntoMultiline) this.w else -1
-        val size = getTextSize(fontName, textSize, isBold, isItalic, text, limit)
-        GFXx2D.drawText(x + (w - size.first) / 2, y + (h - size.second) / 2, fontName, textSize, isBold, isItalic,
-            text, textColor, backgroundColor, limit)
+        val size = getTextSize(font, text, limit)
+        GFXx2D.drawText(x + (w - size.first) / 2, y + (h - size.second) / 2, font, text, textColor, backgroundColor, limit)
 
         drawRect(x+w-borderSize.right, y, borderSize.right, h, getColor(isHovered, mouseDown, rightColor, leftColor)) // right
         drawRect(x, y+h-borderSize.bottom, w, borderSize.bottom, getColor(isHovered, mouseDown, bottomColor, topColor)) // bottom

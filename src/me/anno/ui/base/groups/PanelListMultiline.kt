@@ -3,16 +3,14 @@ package me.anno.ui.base.groups
 import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.ui.base.Panel
-import me.anno.ui.base.constraints.AxisAlignment
-import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.scrolling.ScrollableY
 import me.anno.ui.base.scrolling.ScrollbarY
 import me.anno.ui.style.Style
-import me.anno.utils.Quad
 import me.anno.utils.Maths.clamp
+import me.anno.utils.Quad
 import kotlin.math.max
 
-class PanelListMultiline(style: Style): PanelGroup(style), ScrollableY {
+class PanelListMultiline(style: Style) : PanelGroup(style), ScrollableY {
 
     override val children = ArrayList<Panel>(256)
     override val child: Panel
@@ -45,7 +43,7 @@ class PanelListMultiline(style: Style): PanelGroup(style), ScrollableY {
     var calcChildHeight = 0
     var minH2 = 0
 
-    val spacing = 1
+    var spacing = style.getSize("childSpacing", 1)
 
     override fun calculateSize(w: Int, h: Int) {
 
@@ -53,7 +51,7 @@ class PanelListMultiline(style: Style): PanelGroup(style), ScrollableY {
 
         updateSize(w, h)
 
-        for(child in children){
+        for (child in children) {
             child.calculateSize(calcChildWidth, calcChildHeight)
             // child.applyConstraints()
         }
@@ -61,19 +59,21 @@ class PanelListMultiline(style: Style): PanelGroup(style), ScrollableY {
     }
 
     fun clear() = children.clear()
-    operator fun plusAssign(child: Panel){
+    operator fun plusAssign(child: Panel) {
         children.plusAssign(child)
         child.parent = this
     }
 
-    override fun remove(child: Panel){ children.remove(child) }
+    override fun remove(child: Panel) {
+        children.remove(child)
+    }
 
-    fun updateSize(w: Int, h: Int){
-        columns = max(1, (w+spacing)/(childWidth+spacing))
+    fun updateSize(w: Int, h: Int) {
+        columns = max(1, (w + spacing) / (childWidth + spacing))
         rows = max(1, (children.size + columns - 1) / columns)
-        val childScale = if(scaleChildren) max(1f, ((w+spacing)/columns - spacing)*1f/childWidth) else 1f
-        calcChildWidth = if(scaleChildren) (childWidth * childScale).toInt() else childWidth
-        calcChildHeight = if(scaleChildren) (childHeight * childScale).toInt() else childHeight
+        val childScale = if (scaleChildren) max(1f, ((w + spacing) / columns - spacing) * 1f / childWidth) else 1f
+        calcChildWidth = if (scaleChildren) (childWidth * childScale).toInt() else childWidth
+        calcChildHeight = if (scaleChildren) (childHeight * childScale).toInt() else childHeight
         minW = max(w, calcChildWidth)
         minH = max((calcChildHeight + spacing) * rows - spacing, h)
         minH += childHeight / 2 /* Reserve, because somehow it's not enough... */
@@ -89,11 +89,11 @@ class PanelListMultiline(style: Style): PanelGroup(style), ScrollableY {
         super.placeInParent(x, y)
 
         val scroll = scrollPosition.toInt()
-        for((i, child) in children.withIndex()){
+        for ((i, child) in children.withIndex()) {
             val ix = i % columns
             val iy = i / columns
-            val cx = x + ix * (calcChildWidth + spacing) - spacing
-            val cy = y + iy * (calcChildHeight + spacing) - spacing - scroll
+            val cx = x + ix * (calcChildWidth + spacing) + spacing
+            val cy = y + iy * (calcChildHeight + spacing) + spacing - scroll
             child.placeInParent(cx, cy)
         }
 
@@ -110,7 +110,7 @@ class PanelListMultiline(style: Style): PanelGroup(style), ScrollableY {
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.onDraw(x0, y0, x1, y1)
         clampScrollPosition()
-        if(maxScrollPosition > 0f){
+        if (maxScrollPosition > 0f) {
             scrollbar.x = x1 - scrollbarWidth - scrollbarPadding
             scrollbar.y = y + scrollbarPadding
             scrollbar.w = scrollbarWidth
@@ -120,11 +120,12 @@ class PanelListMultiline(style: Style): PanelGroup(style), ScrollableY {
     }
 
     override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float) {
-        if(!Input.isShiftDown && !Input.isControlDown){
-            val delta = dx-dy
+        if (!Input.isShiftDown && !Input.isControlDown) {
+            val delta = dx - dy
             val scale = 20f
-            if((delta > 0f && scrollPosition >= maxScrollPosition) ||
-                (delta < 0f && scrollPosition <= 0f)){// if done scrolling go up the hierarchy one
+            if ((delta > 0f && scrollPosition >= maxScrollPosition) ||
+                (delta < 0f && scrollPosition <= 0f)
+            ) {// if done scrolling go up the hierarchy one
                 super.onMouseWheel(x, y, dx, dy)
             } else {
                 scrollPosition += scale * delta
@@ -133,13 +134,13 @@ class PanelListMultiline(style: Style): PanelGroup(style), ScrollableY {
         } else super.onMouseWheel(x, y, dx, dy)
     }
 
-    fun clampScrollPosition(){
+    fun clampScrollPosition() {
         scrollPosition = clamp(scrollPosition, 0f, maxScrollPosition.toFloat())
     }
 
     override fun onMouseDown(x: Float, y: Float, button: MouseButton) {
-        isDownOnScrollbar = scrollbar.contains(x,y,scrollbarPadding*2)
-        if(!isDownOnScrollbar) super.onMouseDown(x, y, button)
+        isDownOnScrollbar = scrollbar.contains(x, y, scrollbarPadding * 2)
+        if (!isDownOnScrollbar) super.onMouseDown(x, y, button)
     }
 
     override fun onMouseUp(x: Float, y: Float, button: MouseButton) {
@@ -148,7 +149,7 @@ class PanelListMultiline(style: Style): PanelGroup(style), ScrollableY {
     }
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
-        if(isDownOnScrollbar){
+        if (isDownOnScrollbar) {
             scrollbar.onMouseMoved(x, y, dx, dy)
             clampScrollPosition()
         } else super.onMouseMoved(x, y, dx, dy)

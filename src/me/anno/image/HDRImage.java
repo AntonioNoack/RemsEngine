@@ -41,6 +41,12 @@ public class HDRImage {
         return nioPixels;
     }
 
+    public HDRImage(InputStream input, boolean useNioBuffer) throws IOException {
+        try (InputStream in = input instanceof BufferedInputStream ? input : new BufferedInputStream(input)) {
+            read(in, useNioBuffer);
+        }
+    }
+
     public HDRImage(File file, boolean useNioBuffer) throws IOException {
         try (InputStream in = new BufferedInputStream(new FileInputStream(file));) {
             read(in, useNioBuffer);

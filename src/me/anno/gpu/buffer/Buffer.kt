@@ -5,6 +5,7 @@ import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL15
 import org.lwjgl.opengl.GL20.*
+import org.lwjgl.opengl.GL30.glVertexAttribIPointer
 import java.nio.ByteBuffer
 
 abstract class Buffer(val attributes: List<Attribute>, val stride: Int, val usage: Int = GL15.GL_STATIC_DRAW) {
@@ -75,7 +76,11 @@ abstract class Buffer(val attributes: List<Attribute>, val stride: Int, val usag
                 val index = shader.getAttributeLocation(attr.name)
                 if (index > -1) {
                     val type = attr.type
-                    glVertexAttribPointer(index, attr.components, type.glType, type.normalized, stride, attr.offset)
+                    if(attr.isNativeInt){
+                        glVertexAttribIPointer(index, attr.components, type.glType, stride, attr.offset)
+                    } else {
+                        glVertexAttribPointer(index, attr.components, type.glType, type.normalized, stride, attr.offset)
+                    }
                     glEnableVertexAttribArray(index)
                 }
             }

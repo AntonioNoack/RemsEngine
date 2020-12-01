@@ -1,8 +1,10 @@
 package me.anno.utils
 
 import me.anno.config.DefaultConfig
-import java.io.File
+import java.io.*
 import java.util.*
+import java.util.zip.DeflaterOutputStream
+import java.util.zip.InflaterInputStream
 
 object FileHelper {
 
@@ -44,5 +46,17 @@ object FileHelper {
             }
         }
     }
+
+    fun <I : Closeable, V> use(closeable: I, run: (I) -> V): V {
+        val result = run(closeable)
+        closeable.close()
+        return result
+    }
+
+    fun File.zippedOutput() = outputStream().zipped()
+    fun File.zippedInput() = inputStream().zipped()
+
+    fun OutputStream.zipped() = DataOutputStream(DeflaterOutputStream(this.buffered()))
+    fun InputStream.zipped() = DataInputStream(InflaterInputStream(this.buffered()))
 
 }

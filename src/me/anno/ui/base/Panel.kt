@@ -5,6 +5,7 @@ import me.anno.gpu.GFXx2D.drawRect
 import me.anno.gpu.Window
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.input.MouseButton
+import me.anno.ui.base.components.Corner.drawRoundedRect
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.Constraint
 import me.anno.ui.base.groups.PanelContainer
@@ -93,6 +94,10 @@ open class Panel(val style: Style) {
      * */
     var weight = 0f
 
+    var backgroundRadiusX = style.getSize("background.radius.x", 0)
+    var backgroundRadiusY = style.getSize("background.radius.y", 0)
+    var backgroundRadiusCorners = style.getInt("background.radius.sides", 15)
+
     var backgroundColor = style.getColor("background", -1)
     val originalBGColor = backgroundColor
 
@@ -119,7 +124,17 @@ open class Panel(val style: Style) {
     fun drawBackground() {
         // if the children are overlapping, this is incorrect
         // this however, should rarely happen...
-        drawRect(x, y, w, h, backgroundColor)
+        if (backgroundRadiusX > 0 && backgroundRadiusY > 0 && backgroundRadiusCorners != 0) {
+            drawRoundedRect(
+                x, y, w, h, backgroundRadiusX, backgroundRadiusY, backgroundColor,
+                backgroundRadiusCorners and 1 != 0,
+                backgroundRadiusCorners and 2 != 0,
+                backgroundRadiusCorners and 4 != 0,
+                backgroundRadiusCorners and 8 != 0
+            )
+        } else {
+            drawRect(x, y, w, h, backgroundColor)
+        }
         /*if(parent?.backgroundColor != backgroundColor){
             drawRect(x, y, w, h, backgroundColor)
         }*/
@@ -319,6 +334,8 @@ open class Panel(val style: Style) {
 
     open fun getCursor(): Long? = parent?.getCursor() ?: 0L
 
+    var tooltipPanel: Panel? = null
+    open fun getTooltipPanel(x: Float, y: Float): Panel? = tooltipPanel
     open fun getTooltipText(x: Float, y: Float): String? = tooltip ?: parent?.getTooltipText(x, y)
 
     fun setTooltip(tooltipText: String?): Panel {

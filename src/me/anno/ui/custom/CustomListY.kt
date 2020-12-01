@@ -8,7 +8,7 @@ import me.anno.ui.custom.data.CustomListData
 import me.anno.ui.custom.data.ICustomDataCreator
 import me.anno.ui.style.Style
 import me.anno.utils.Maths.clamp
-import me.anno.utils.sumByFloat
+import me.anno.utils.Lists.sumByFloat
 import java.lang.Exception
 import kotlin.math.max
 import kotlin.math.min

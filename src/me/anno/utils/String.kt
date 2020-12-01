@@ -3,6 +3,7 @@ package me.anno.utils
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.GFXx2D.getTextSize
+import me.anno.ui.base.Font
 import me.anno.ui.base.TextPanel
 import me.anno.utils.FileHelper.formatFileSize
 import me.anno.utils.Maths.fract
@@ -16,25 +17,25 @@ object StringHelper {
     fun List<Int>.joinChars() = joinToString(""){ String(Character.toChars(it)) }
 
     fun getLineWidth(line: List<Int>, endIndex: Int, tp: TextPanel) =
-        getLineWidth(line, endIndex, tp.fontName, tp.textSize, tp.isBold, tp.isItalic)
+        getLineWidth(line, endIndex, tp.font)
 
-    fun getLineWidth(line: List<Int>, endIndex: Int, fontName: String, textSize: Int, isBold: Boolean, isItalic: Boolean): Float {
+    fun getLineWidth(line: List<Int>, endIndex: Int, font: Font): Float {
         return if(endIndex == 0) 0f
         else {
             loadTexturesSync.push(true)
             val stringValue = line.subList(0, min(endIndex, line.size)).joinChars()
-            val measures = getTextSize(fontName, textSize, isBold, isItalic, stringValue, -1)
+            val measures = getTextSize(font, stringValue, -1)
             loadTexturesSync.pop()
             measures.first.toFloat()
         }
     }
 
     fun getIndexFromText(characters: List<Int>, localX: Float, tp: TextPanel) =
-        getIndexFromText(characters, localX, tp.fontName, tp.textSize, tp.isBold, tp.isItalic)
+        getIndexFromText(characters, localX, tp.font)
 
-    fun getIndexFromText(characters: List<Int>, localX: Float, fontName: String, textSize: Int, isBold: Boolean, isItalic: Boolean): Int {
+    fun getIndexFromText(characters: List<Int>, localX: Float, font: Font): Int {
         val list = BinarySearch.ExpensiveList(characters.size+1){
-            getLineWidth(characters, it, fontName, textSize, isBold, isItalic)
+            getLineWidth(characters, it, font)
         }
         var index = list.binarySearch { it.compareTo(localX) }
         if(index < 0) index = -1 - index

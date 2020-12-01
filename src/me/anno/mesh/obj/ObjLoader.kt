@@ -23,12 +23,15 @@ object ObjLoader {
         val normals = ArrayList<Vector3f>(size)
         val uvs = ArrayList<Vector2f>(size)
         val faces = ArrayList<Point>(size)
+
         var objName = ""
         var material = ""
 
-        positions += Vector3f()
-        normals += Vector3f()
-        uvs += Vector2f()
+        val null3 = Vector3f()
+        positions += null3
+        normals += null3
+        val null2 = Vector2f()
+        uvs += null2
 
         fun closeMaterial() {
             if (faces.isNotEmpty()) {
@@ -71,8 +74,8 @@ object ObjLoader {
                         fun String.parsePoint(): Point {
                             val indices = split('/').map { it.toIntOrNull() }
                             val position = positions[indices[0] ?: 0]
-                            val uv = uvs[indices[1] ?: 0]
-                            val normal = normals[indices[2] ?: 0]
+                            val uv = if(indices.size > 1) uvs[indices[1] ?: 0] else null2
+                            val normal = if(indices.size> 2) normals[indices[2] ?: 0] else null3
                             return Point(position, normal, uv)
                         }
 

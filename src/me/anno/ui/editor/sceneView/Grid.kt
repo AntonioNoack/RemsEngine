@@ -106,12 +106,7 @@ object Grid {
     }
 
     fun defaultUniforms(shader: Shader, color: Int, alpha: Float) {
-        shader.v4(
-            "tint",
-            color.shr(16).and(255) / 255f,
-            color.shr(8).and(255) / 255f,
-            color.and(255) / 255f, alpha
-        )
+        shader.v4("tint", color, alpha)
         shader.v1("drawMode", GFX.drawMode.id)
         // println(GFX.drawMode)
     }
@@ -123,7 +118,7 @@ object Grid {
         val shader = shader3D.shader
         shader.use()
         GFXTransform.uploadAttractors0(shader)
-        shader.v3("offset", 0f, 0f, 0f)
+        shader.v3("offset", 0f)
         val stack = Matrix4f()
         stack.translate(x0, y0, 0f)
         val angle = atan2(y1 - y0, x1 - x0)
@@ -140,7 +135,7 @@ object Grid {
         val shader = shader3D.shader
         shader.use()
         GFXTransform.uploadAttractors0(shader)
-        shader.v3("offset", 0f, 0f, 0f)
+        shader.v3("offset", 0f)
         shader.m4x4("transform", stack)
         defaultUniforms(shader, color, alpha)
         bindWhite(0)
@@ -195,7 +190,7 @@ object Grid {
         val shader = shader3D.shader
         shader.use()
         GFXTransform.uploadAttractors0(shader)
-        shader.v3("offset", 0f, 0f, 0f)
+        shader.v3("offset", 0f)
         shader.m4x4("transform", stack)
         defaultUniforms(shader, color)
         bindWhite(0)
@@ -210,7 +205,7 @@ object Grid {
         val shader = shader3D.shader
         shader.use()
         GFXTransform.uploadAttractors0(shader)
-        shader.v3("offset", 0f, 0f, 0f)
+        shader.v3("offset", 0f)
         shader.m4x4("transform", stack)
         defaultUniforms(shader, -1, alpha)
         bindWhite(0)

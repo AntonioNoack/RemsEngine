@@ -1,6 +1,7 @@
 package me.anno.input
 
-import me.anno.config.DefaultConfig
+import me.anno.config.DefaultConfig.defaultFont
+import me.anno.config.DefaultConfig.style
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXx2D.drawRect
 import me.anno.gpu.GFXx2D.drawText
@@ -16,10 +17,9 @@ object ShowKeys {
     val activeKeys = ArrayList<Key>()
     val activeKeysMap = HashMap<Int, Key>()
     val decaySpeed = 1f
-    val fontSize = DefaultConfig.style.getSize("tutorial.fontSize", 12)
-    val font = DefaultConfig.style.getString("tutorial.font", "Verdana")
 
-    val colors = TextPanel("", DefaultConfig.style)
+    val font = style.getFont("tutorialText", defaultFont)
+    val colors = TextPanel("", style)
 
     class Key(val keyCode: Int, val isSuperKey: Boolean, var time: Float)
 
@@ -79,12 +79,15 @@ object ShowKeys {
                 val bgColor = colors.backgroundColor
                 val textColor = colors.textColor
 
+                val fontSize = font.size.toInt()
                 fun show(text: String, alpha: Float) {
                     val alphaMask = (alpha * 255).toInt().shl(24) or 0xffffff
                     val color = textColor and alphaMask
-                    val w0 = getTextSize(font, fontSize, false, false, text, -1).first
+                    val w0 = getTextSize(font, text, -1).first
                     drawRect(x0 + 5, h - y - 12 - fontSize, w0 + 10, fontSize + 8, bgColor and alphaMask)
-                    drawText(x0 + 10, h - y - 10 - fontSize, font, fontSize, false, false, text, color, bgColor, -1)
+                    drawText(x0 + 10, h - y - 10 - fontSize, font, text,
+                        color and alphaMask,
+                        bgColor and 0xffffff, -1)
                     x0 += w0 + 16
                 }
 

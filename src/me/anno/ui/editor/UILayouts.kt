@@ -72,7 +72,7 @@ object UILayouts {
         val style = DefaultConfig.style
         val welcome = PanelListY(style)
         val title = TextPanel("Rem's Studio", style)
-        title.textSize *= 3
+        title.font.size *= 3
         welcome += title
 
         welcome += SpacePanel(0, 1, style)

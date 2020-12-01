@@ -10,7 +10,7 @@ import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.scrolling.ScrollPanelX
 import me.anno.ui.editor.files.addChildFromFile
 import me.anno.ui.editor.sceneView.SceneTabData
-import me.anno.utils.getOrPrevious
+import me.anno.utils.Lists.getOrPrevious
 import org.apache.logging.log4j.LogManager
 import java.io.File
 

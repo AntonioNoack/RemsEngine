@@ -15,6 +15,7 @@ import me.anno.objects.modes.UVProjection
 import me.anno.objects.particles.ParticleSystem
 import me.anno.studio.RemsStudio.workspace
 import me.anno.studio.project.Project
+import me.anno.ui.base.Font
 import me.anno.ui.style.Style
 import me.anno.utils.OS
 import me.anno.utils.f3
@@ -204,6 +205,7 @@ object DefaultConfig : StringMap() {
         }
     }
 
-    val defaultFont get() = this["defaultFont"] as? String ?: "Verdana"
+    val defaultFontName get() = this["defaultFont"] as? String ?: "Verdana"
+    val defaultFont = Font(defaultFontName, 15f, false, false)
 
 }

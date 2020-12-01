@@ -46,6 +46,7 @@ import me.anno.ui.editor.files.addChildFromFile
 import me.anno.ui.simple.SimplePanel
 import me.anno.ui.style.Style
 import me.anno.utils.*
+import me.anno.utils.Lists.sumByFloat
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.pow
 import me.anno.utils.Vectors.plus

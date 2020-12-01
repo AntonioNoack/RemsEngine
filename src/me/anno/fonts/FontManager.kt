@@ -56,6 +56,8 @@ object FontManager {
 
     data class TextCacheKey(val text: String, val fontName: String, val properties: Int, val widthLimit: Int)
 
+    fun getString(font: me.anno.ui.base.Font, text: String, widthLimit: Int) =
+        getString(font.name, font.size, text, font.isBold, font.isItalic, widthLimit)
     fun getString(fontName: String, fontSize: Float, text: String, bold: Boolean, italic: Boolean, widthLimit: Int): ITexture2D? {
         if(text.isEmpty()) return null
         val fontSizeIndex = getFontSizeIndex(fontSize)

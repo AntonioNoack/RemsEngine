@@ -101,7 +101,7 @@ class ConfigPanel(val config: StringMap, style: Style) : CustomListX(style) {
         val topList = entries.filter { it.depth == 0 }
         // add header
         contentList += TextPanel(topic, largeHeader).apply {
-            isItalic = true
+            font.isItalic = true
         }
         for (top in topList) {
             top.createPanels(contentList)

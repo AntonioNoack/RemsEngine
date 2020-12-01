@@ -104,10 +104,7 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
         val minStepIndex = (minValue / valueStep).toInt() - 1
         val maxStepIndex = (maxValue / valueStep).toInt() + 1
 
-        val fontSize = tinyFontSize
-        val fontName = fontName
-        val isBold = isBold
-        val isItalic = isItalic
+        val fontSize = font.size
         val fontColor = fontColor
         val backgroundColor = backgroundColor
 
@@ -121,11 +118,11 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
                 // to keep it loaded
                 drawnStrings.add(text)
 
-                val size = getTextSize(fontName, fontSize, isBold, isItalic, text, -1)
+                val size = getTextSize(font, text, -1)
                 val h = size.second
                 drawRect(x0 + size.first + 2, y, x1 - x0 - size.first, 1, fontColor and 0x3fffffff)
                 drawText(
-                    x0 + 2, y - h / 2, fontName, fontSize, isBold, isItalic,
+                    x0 + 2, y - h / 2, font,
                     text, fontColor, backgroundColor, -1
                 )
 
@@ -134,24 +131,14 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
 
     }
 
+    val timeFont = font.withSize(20f)
+
     fun drawCurrentTime() {
         loadTexturesSync.push(true)
-        val timeFontSize = 20
         val text = getTimeString(editorTime, 0.0)
-        val (tw, th) = getTextSize(fontName, timeFontSize, isBold, isItalic, text, -1)
+        val (tw, th) = getTextSize(font, text, -1)
         val color = mixARGB(fontColor, backgroundColor, 0.8f)
-        drawText(
-            x + (w - tw) / 2,
-            y + (h - th) / 2,
-            fontName,
-            timeFontSize,
-            isBold,
-            isItalic,
-            text,
-            color,
-            backgroundColor,
-            -1
-        )
+        drawText(x + (w - tw) / 2, y + (h - th) / 2, timeFont, text, color, backgroundColor, -1)
         loadTexturesSync.pop()
     }
 

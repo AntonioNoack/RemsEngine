@@ -623,12 +623,8 @@ object GFX : GFXBase1() {
         FrameTimes.draw()
         loadTexturesSync.push(true)
         drawText(
-            x0 + 1,
-            y0 + 1,
-            "Consolas",
-            12,
-            false,
-            false,
+            x0 + 1, y0 + 1,
+            "Consolas", 12f, false, false,
             "${currentEditorFPS.f1()}, min: ${(1f / FrameTimes.maxValue).f1()}",
             FrameTimes.textColor,
             FrameTimes.backgroundColor,

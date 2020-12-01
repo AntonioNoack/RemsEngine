@@ -8,7 +8,7 @@ import me.anno.ui.custom.data.CustomListData
 import me.anno.ui.custom.data.ICustomDataCreator
 import me.anno.ui.style.Style
 import me.anno.utils.Maths.clamp
-import me.anno.utils.sumByFloat
+import me.anno.utils.Lists.sumByFloat
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -17,6 +17,7 @@ open class CustomListX(style: Style) : PanelListX(style), CustomList {
 
     init {
         spacing = style.getSize("custom.drag.size", 4)
+        println("spacing: $spacing")
         weight = 1f
     }
 

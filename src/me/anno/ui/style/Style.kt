@@ -2,6 +2,7 @@ package me.anno.ui.style
 
 import me.anno.config.DefaultStyle.black
 import me.anno.io.utils.StringMap
+import me.anno.ui.base.Font
 import me.anno.ui.base.components.Padding
 import org.apache.logging.log4j.LogManager
 
@@ -96,9 +97,18 @@ class Style(val prefix: String?, val suffix: String?){
     }
 
     fun getBoolean(name: String, defaultValue: Boolean) = getValue(getFullName(name), if(defaultValue) 1 else 0) != 0
+    fun getInt(name: String, defaultValue: Int): Int = getValue(getFullName(name), defaultValue)
     fun getSize(name: String, defaultValue: Int): Int = getValue(getFullName(name), defaultValue)
     fun getColor(name: String, defaultValue: Int): Int = getValue(getFullName(name), defaultValue)
     fun getString(name: String, defaultValue: String): String = getValue(getFullName(name), defaultValue)
+    fun getFont(name: String, defaultValue: Font): Font {
+        val type = getString("$name.fontName", defaultValue.name)
+        val size = getSize("$name.fontSize", defaultValue.size.toInt()).toFloat()
+        val isBold = getBoolean("$name.fontBold", defaultValue.isBold)
+        val isItalic = getBoolean("$name.fontItalic", defaultValue.isItalic)
+        return Font(type, size, isBold, isItalic)
+    }
+
     fun getPadding(name: String, defaultSize: Int) = Padding(getSize(name, defaultSize)) // todo allow asymmetric paddings
 
     fun getFullName(name: String): String {

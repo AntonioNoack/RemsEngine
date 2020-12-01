@@ -1,7 +1,7 @@
 package me.anno.fonts.mesh
 
 import me.anno.gpu.buffer.StaticBuffer
-import me.anno.utils.accumulate
+import me.anno.utils.Lists.accumulate
 import java.awt.Font
 import java.awt.font.FontRenderContext
 import java.awt.font.TextLayout

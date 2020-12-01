@@ -7,8 +7,8 @@ import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.style.Style
-import me.anno.utils.isClickKey
 import me.anno.utils.Maths.mixARGB
+import me.anno.utils.isClickKey
 import kotlin.math.max
 
 class SettingCategory(titleText: String, style: Style) : PanelGroup(style) {
@@ -16,7 +16,7 @@ class SettingCategory(titleText: String, style: Style) : PanelGroup(style) {
     val title = TextPanel(titleText, style.getChild("group"))
 
     val content = PanelListY(style)
-    val padding = Padding(title.textSize*2/3, 0, 0, 0)
+    val padding = Padding((title.font.size * .667f).toInt(), 0, 0, 0)
 
     init {
         title.parent = this
@@ -28,17 +28,20 @@ class SettingCategory(titleText: String, style: Style) : PanelGroup(style) {
         title.setSimpleClickListener { toggle() }
     }
 
-    fun show2(){
+    fun show2() {
         content.visibility = Visibility.VISIBLE
     }
 
-    fun toggle(){
+    fun toggle() {
         content.visibility =
             if (content.visibility == Visibility.VISIBLE) Visibility.GONE
             else Visibility.VISIBLE
     }
 
-    override fun onKeyTyped(x: Float, y: Float, key: Int) { if(key.isClickKey()) toggle() }
+    override fun onKeyTyped(x: Float, y: Float, key: Int) {
+        if (key.isClickKey()) toggle()
+    }
+
     override fun acceptsChar(char: Int) = char.isClickKey()
     override fun isKeyInput() = true
 
@@ -47,17 +50,18 @@ class SettingCategory(titleText: String, style: Style) : PanelGroup(style) {
         throw RuntimeException("Not supported!")
     }
 
-    val isEmpty get() = content
-        .children
-        .firstOrNull { it.visibility == Visibility.VISIBLE } == null
+    val isEmpty
+        get() = content
+            .children
+            .firstOrNull { it.visibility == Visibility.VISIBLE } == null
 
     override fun calculateSize(w: Int, h: Int) {
-        if(isEmpty){
+        if (isEmpty) {
             minW = 0
             minH = 0
         } else {
             title.calculateSize(w, h)
-            if(content.visibility == Visibility.GONE){
+            if (content.visibility == Visibility.GONE) {
                 minW = title.minW
                 minH = title.minH
             } else {

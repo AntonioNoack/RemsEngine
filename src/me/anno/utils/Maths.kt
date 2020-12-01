@@ -3,6 +3,7 @@ package me.anno.utils
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
+import kotlin.math.exp
 import kotlin.math.floor
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
@@ -10,7 +11,6 @@ import kotlin.math.sqrt
 object Maths {
 
     val GoldenRatio = (1f + sqrt(5f))*0.5f
-
 
     fun sq(x: Float) = x*x
     fun sq(x: Float, y: Float) = x*x+y*y
@@ -91,9 +91,12 @@ object Maths {
         mix(a.w, b.w, f)
     )
 
+    fun sigmoid01(x: Float) = 1f / (1f + exp(-x))
+    fun sigmoid01(x: Double) = 1.0 / (1.0 + exp(-x))
+    fun sigmoid11(x: Float) = 2f / (1f + exp(-x)) - 1f
+    fun sigmoid11(x: Double) = 2.0 / (1.0 + exp(-x)) - 1.0
+
     fun fract(f: Float) = f - floor(f)
     fun fract(d: Double) = d - floor(d)
-
-    fun Float.toDegrees() = this * (180f/Math.PI).toFloat()
 
 }

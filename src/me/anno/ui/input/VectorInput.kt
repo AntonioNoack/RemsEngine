@@ -14,7 +14,6 @@ import me.anno.studio.RemsStudio.editorTime
 import me.anno.studio.RemsStudio.selectedProperty
 import me.anno.studio.RemsStudio.selectedTransform
 import me.anno.studio.StudioBase.Companion.shiftSlowdown
-import me.anno.ui.base.TextPanel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelListX
@@ -24,6 +23,7 @@ import me.anno.ui.input.components.TitlePanel
 import me.anno.ui.input.components.VectorInputComponent
 import me.anno.ui.style.Style
 import me.anno.utils.*
+import me.anno.utils.Lists.one
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.pow
 import org.joml.Quaternionf

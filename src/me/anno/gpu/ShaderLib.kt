@@ -38,6 +38,9 @@ object ShaderLib {
     const val brightness = "" +
             "float brightness(vec3 color){\n" +
             "   return sqrt(0.299*color.r*color.r + 0.587*color.g*color.g + 0.114*color.b*color.b);\n" +
+            "}\n" +
+            "float brightness(vec4 color){\n" +
+            "   return sqrt(0.299*color.r*color.r + 0.587*color.g*color.g + 0.114*color.b*color.b);\n" +
             "}\n"
 
 
@@ -266,20 +269,16 @@ object ShaderLib {
                     "}", "" +
                     "varying v2 uv;\n", "" +
                     "uniform vec4 textColor;" +
-                    "uniform vec3 backgroundColor;\n" +
+                    "uniform vec4 backgroundColor;\n" +
                     "uniform sampler2D tex;\n" +
-                    "float brightness(vec3 color){" +
-                    "   return dot(color, vec3(1.));\n" +
-                    "}" +
+                    brightness +
                     "void main(){\n" +
                     "   vec3 textMask = texture(tex, uv).rgb;\n" +
-                    "   vec3 mixing = brightness(textColor.rgb) > brightness(backgroundColor) ? textMask.rgb : textMask.rgb;\n" +
+                    "   vec3 mixing = brightness(textColor) > brightness(backgroundColor) ? textMask.rgb : textMask.rgb;\n" +
                     "   mixing *= textColor.a;\n" +
-                    "   vec3 color = vec3(\n" +
-                    "       mix(backgroundColor.r, textColor.r, mixing.r),\n" +
-                    "       mix(backgroundColor.g, textColor.g, mixing.g),\n" +
-                    "       mix(backgroundColor.b, textColor.b, mixing.b));\n" +
-                    "   gl_FragColor = vec4(color, 1.0);\n" +
+                    "   vec4 color = mix(backgroundColor, textColor, vec4(mixing, dot(mixing,vec3(${1f/3f}))));\n" +
+                    "   if(color.a < 0.001) discard;\n" +
+                    "   gl_FragColor = vec4(color.rgb, 1.0);\n" +
                     "}"
         )
 

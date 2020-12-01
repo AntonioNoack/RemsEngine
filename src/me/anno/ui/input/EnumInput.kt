@@ -15,8 +15,8 @@ class EnumInput(
 
     var lastIndex = options.indexOf(startValue)
 
-    private val titleView = if (withTitle) TextPanel("$title:", style) else null
-    private val inputPanel = EnumValuePanel(startValue, this, style)
+    val titleView = if (withTitle) TextPanel("$title:", style) else null
+    val inputPanel = EnumValuePanel(startValue, this, style)
 
     init {
         titleView?.enableHoverColor = true

@@ -38,7 +38,7 @@ class Window (
         val t0 = System.nanoTime()
         panel.calculateSize(min(w - window.x, w), min(h - window.y, h))
         // panel.applyPlacement(min(w - window.x, w), min(h - window.y, h))
-        if(panel.w > w || panel.h > h) throw RuntimeException("Panel is too large...")
+        // if(panel.w > w || panel.h > h) throw RuntimeException("Panel is too large...")
         // panel.applyConstraints()
         val t1 = System.nanoTime()
         panel.place(window.x, window.y, w, h)

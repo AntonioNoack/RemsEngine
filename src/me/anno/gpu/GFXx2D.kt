@@ -2,10 +2,6 @@ package me.anno.gpu
 
 import me.anno.config.DefaultStyle
 import me.anno.fonts.FontManager
-import me.anno.gpu.GFX.a
-import me.anno.gpu.GFX.b
-import me.anno.gpu.GFX.g
-import me.anno.gpu.GFX.r
 import me.anno.gpu.GFX.v4
 import me.anno.gpu.GFXx3D.draw3D
 import me.anno.gpu.GFXx3D.draw3DCircle
@@ -16,6 +12,7 @@ import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.objects.modes.UVProjection
+import me.anno.ui.base.Font
 import me.anno.video.VFrame
 import org.joml.Matrix4f
 import org.joml.Matrix4fArrayList
@@ -41,7 +38,7 @@ object GFXx2D {
         val shader = ShaderLib.flatShader
         shader.use()
         posSize(shader, x, y, w, h)
-        shader.v4("color", color.x, color.y, color.z, color.w)
+        shader.v4("color", color)
         GFX.flat01.draw(shader)
         GFX.check()
     }
@@ -52,7 +49,7 @@ object GFXx2D {
         val shader = ShaderLib.flatShader
         shader.use()
         posSize(shader, x, y, w, h)
-        shader.v4("color", color.r() / 255f, color.g() / 255f, color.b() / 255f, color.a() / 255f)
+        shader.v4("color", color)
         GFX.flat01.draw(shader)
         GFX.check()
     }
@@ -68,7 +65,7 @@ object GFXx2D {
     fun flatColor(color: Int) {
         val shader = ShaderLib.flatShader
         shader.use()
-        shader.v4("color", color.r() / 255f, color.g() / 255f, color.b() / 255f, color.a() / 255f)
+        shader.v4("color", color)
     }
 
     fun drawRect(x: Int, y: Int, w: Int, h: Int) {
@@ -84,21 +81,27 @@ object GFXx2D {
         val shader = ShaderLib.flatShader
         shader.use()
         posSize(shader, x, y, w, h)
-        shader.v4("color", color.r() / 255f, color.g() / 255f, color.b() / 255f, color.a() / 255f)
+        shader.v4("color", color)
         GFX.flat01.draw(shader)
         GFX.check()
     }
 
     // the background color is important for correct subpixel rendering, because we can't blend per channel
     fun drawText(
-        x: Int, y: Int, font: String, fontSize: Int, bold: Boolean, italic: Boolean, text: String,
+        x: Int, y: Int, font: String, fontSize: Float, bold: Boolean, italic: Boolean, text: String,
         color: Int, backgroundColor: Int, widthLimit: Int, centerX: Boolean = false
     ) =
         writeText(x, y, font, fontSize, bold, italic, text, color, backgroundColor, widthLimit, centerX)
 
+    fun drawText(
+        x: Int, y: Int, font: Font, text: String,
+        color: Int, backgroundColor: Int, widthLimit: Int, centerX: Boolean = false
+    ) =
+        writeText(x, y, font.name, font.size, font.isBold, font.isItalic, text, color, backgroundColor, widthLimit, centerX)
+
     fun writeText(
         x: Int, y: Int,
-        font: String, fontSize: Int,
+        font: String, fontSize: Float,
         bold: Boolean, italic: Boolean,
         text: String,
         color: Int,
@@ -109,7 +112,7 @@ object GFXx2D {
 
         GFX.check()
         val texture =
-            FontManager.getString(font, fontSize.toFloat(), text, italic, bold, widthLimit) ?: return 0 to fontSize
+            FontManager.getString(font, fontSize, text, italic, bold, widthLimit) ?: return 0 to fontSize.toInt()
         // check()
         val w = texture.w
         val h = texture.h
@@ -120,15 +123,14 @@ object GFXx2D {
             shader.use()
             var x2 = x
             if (centerX) x2 -= w / 2
-            shader.v2("pos", (x2 - GFX.windowX).toFloat() / GFX.windowWidth, 1f - (y - GFX.windowY).toFloat() / GFX.windowHeight)
-            shader.v2("size", w.toFloat() / GFX.windowWidth, -h.toFloat() / GFX.windowHeight)
-            shader.v4("textColor", color.r() / 255f, color.g() / 255f, color.b() / 255f, color.a() / 255f)
-            shader.v3(
-                "backgroundColor",
-                backgroundColor.r() / 255f,
-                backgroundColor.g() / 255f,
-                backgroundColor.b() / 255f
+            shader.v2(
+                "pos",
+                (x2 - GFX.windowX).toFloat() / GFX.windowWidth,
+                1f - (y - GFX.windowY).toFloat() / GFX.windowHeight
             )
+            shader.v2("size", w.toFloat() / GFX.windowWidth, -h.toFloat() / GFX.windowHeight)
+            shader.v4("textColor", color)
+            shader.v4("backgroundColor", backgroundColor)
             GFX.flat01.draw(shader)
             GFX.check()
         } else {
@@ -137,20 +139,18 @@ object GFXx2D {
         return w to h
     }
 
-    // fun getTextSize(fontSize: Int, bold: Boolean, italic: Boolean, text: String) = getTextSize(defaultFont, fontSize, bold, italic, text)
+    fun getTextSize(font: Font, text: String, widthLimit: Int) =
+        getTextSize(font.name, font.size, font.isBold, font.isItalic, text, widthLimit)
+
     fun getTextSize(
-        font: String,
-        fontSize: Int,
-        bold: Boolean,
-        italic: Boolean,
-        text: String,
-        widthLimit: Int
+        font: String, fontSize: Float, bold: Boolean, italic: Boolean,
+        text: String, widthLimit: Int
     ): Pair<Int, Int> {
         // count how many spaces there are at the end
         // get accurate space and tab widths
         val spaceWidth = 0//text.endSpaceCount() * fontSize / 4
-        val texture = FontManager.getString(font, fontSize.toFloat(), text, bold, italic, widthLimit)
-            ?: return spaceWidth to fontSize
+        val texture = FontManager.getString(font, fontSize, text, bold, italic, widthLimit)
+            ?: return spaceWidth to fontSize.toInt()
         return (texture.w + spaceWidth) to texture.h
     }
 
@@ -159,7 +159,7 @@ object GFXx2D {
         val shader = ShaderLib.flatShaderTexture
         shader.use()
         posSize(shader, x, y, w, h)
-        shader.v4("color", color.r() / 255f, color.g() / 255f, color.b() / 255f, color.a() / 255f)
+        shader.v4("color", color)
         if (tiling != null) shader.v4("tiling", tiling)
         else shader.v4("tiling", 1f, 1f, 0f, 0f)
         texture.bind(0, texture.filtering, texture.clamping)
@@ -204,7 +204,11 @@ object GFXx2D {
     }
 
     fun posSize(shader: Shader, x: Int, y: Int, w: Int, h: Int) {
-        shader.v2("pos", (x - GFX.windowX).toFloat() / GFX.windowWidth, 1f - (y - GFX.windowY).toFloat() / GFX.windowHeight)
+        shader.v2(
+            "pos",
+            (x - GFX.windowX).toFloat() / GFX.windowWidth,
+            1f - (y - GFX.windowY).toFloat() / GFX.windowHeight
+        )
         shader.v2("size", w.toFloat() / GFX.windowWidth, -h.toFloat() / GFX.windowHeight)
     }
 
@@ -224,7 +228,7 @@ object GFXx2D {
         shader.v1("filtering", Filtering.LINEAR.id)
         shader.v2("textureDeltaUV", 1f / texture.w, 1f / texture.h)
         shader.m4x4("transform", Matrix4f())
-        shader.v4("tint", 1f, 1f, 1f, 1f)
+        shader.v4("tint", 1f)
         shader.v4("tiling", 1f, 1f, 0f, 0f)
         shader.v1("drawMode", ShaderPlus.DrawMode.COLOR.id)
         shader.v1("uvProjection", UVProjection.Planar.id)

@@ -1,6 +1,6 @@
 package me.anno.ui.editor
 
-import me.anno.config.DefaultConfig
+import me.anno.config.DefaultConfig.defaultFont
 import me.anno.config.DefaultStyle
 import me.anno.fonts.FontManager
 import me.anno.gpu.GFX
@@ -28,7 +28,6 @@ import me.anno.utils.Maths.mix
 import me.anno.utils.Maths.mixARGB
 import me.anno.utils.Maths.pow
 import kotlin.math.abs
-import kotlin.math.max
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
 
@@ -143,11 +142,8 @@ open class TimelinePanel(style: Style) : Panel(style) {
         }
     }
 
-    val tinyFontSize = style.getSize("tinyTextSize", 10)
+    val font = style.getFont("tinyText", defaultFont)
     val fontColor = style.getColor("textColor", DefaultStyle.fontGray)
-    val fontName = style.getString("textFont", DefaultConfig.defaultFont)
-    val isBold = style.getBoolean("textBold", false)
-    val isItalic = style.getBoolean("textItalic", false)
     val endColor = style.getColor("endColor", mixARGB(fontColor, 0xffff0000.toInt(), 0.5f))
 
     fun normTime01(time: Double) = (time - centralTime) / dtHalfLength * 0.5f + 0.5f
@@ -160,10 +156,10 @@ open class TimelinePanel(style: Style) : Panel(style) {
 
     fun drawTimeAxis(x0: Int, y0: Int, x1: Int, y1: Int, drawText: Boolean) {
 
-        val y0 = if (drawText) y0 else y0 - (2 + tinyFontSize)
+        val y0 = if (drawText) y0 else y0 - (2 + font.size.toInt())
 
         // make the step amount dependent on width and font size
-        val deltaFrame = 500 * dtHalfLength * tinyFontSize / w
+        val deltaFrame = 500 * dtHalfLength * font.size / w
 
         val timeStep = getTimeStep(deltaFrame * 0.2)
 
@@ -187,15 +183,7 @@ open class TimelinePanel(style: Style) : Panel(style) {
 
     override fun tickUpdate() {
         super.tickUpdate()
-
-        val fontSize = tinyFontSize
-        val fontName = fontName
-        val isBold = isBold
-        val isItalic = isItalic
-        drawnStrings.forEach { text ->
-            FontManager.getString(fontName, fontSize.toFloat(), text, isItalic, isBold, -1)
-        }
-
+        drawnStrings.forEach { text -> FontManager.getString(font, text, -1) }
     }
 
     fun drawTimeAxis(
@@ -209,10 +197,7 @@ open class TimelinePanel(style: Style) : Panel(style) {
         val minStepIndex = (minFrame / timeStep).toLong() - 1
         val maxStepIndex = (maxFrame / timeStep).toLong() + 1
 
-        val fontSize = tinyFontSize
-        val fontName = fontName
-        val isBold = isBold
-        val isItalic = isItalic
+        val fontSize = font.size.toInt()
         val fontColor = fontColor
         val backgroundColor = backgroundColor
 
@@ -241,7 +226,7 @@ open class TimelinePanel(style: Style) : Panel(style) {
                     val text = getTimeString(time, timeStep)
                     drawnStrings.add(text)
                     GFXx2D.drawText(
-                        x, y0, fontName, fontSize, isBold, isItalic,
+                        x, y0, font,
                         text, fontColor, backgroundColor, -1, true
                     )
                 }

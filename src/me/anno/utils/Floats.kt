@@ -5,6 +5,7 @@ import org.joml.Vector3f
 import org.joml.Vector4f
 import java.lang.RuntimeException
 import java.nio.FloatBuffer
+import kotlin.math.PI
 
 object Floats {
 
@@ -35,5 +36,12 @@ object Floats {
         put(v.z)
         put(v.w)
     }
+
+    private val piF180 = (PI/180).toFloat()
+    private val x180fPi = (180/PI).toFloat()
+
+    fun Float.toDegrees() = this * x180fPi
+    fun Float.toRadians() = this * piF180
+
 
 }

@@ -131,6 +131,12 @@ class JsonReader(val data: InputStream) {
                 assert(next(), 'e', 'E')
                 return false
             }
+            'n', 'N' -> {
+                assert(next(), 'u', 'U')
+                assert(next(), 'l', 'L')
+                assert(next(), 'l', 'L')
+                return Null // pseudo-null ;)
+            }
             else -> throw RuntimeException("Expected value, got $next")
         }
     }
