@@ -26,8 +26,8 @@ object GradientDescent {
         var e0 = err(v0)
 
         var stepCtr = 0
-        var wasChanged = false
         do {
+            var wasChanged = false
             for(axis in 0 until l){
                 // quickly alternating the axes results in not
                 // needing to follow straightly to the hole
@@ -78,8 +78,8 @@ object GradientDescent {
         var e0 = err(v0)
 
         var stepCtr = 0
-        var wasChanged = false
         do {
+            var wasChanged = false
             for(axis in 0 until l){
                 // quickly alternating the axes results in not
                 // needing to follow straightly to the hole
