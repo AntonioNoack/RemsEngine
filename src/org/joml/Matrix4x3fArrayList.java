@@ -6,30 +6,30 @@ import java.io.ObjectOutput;
 import java.util.ArrayList;
 
 /**
- * A stack of many {@link Matrix4d} instances. This resembles the matrix stack known from legacy OpenGL.
+ * A stack of many {@link Matrix4x3f} instances. This resembles the matrix stack known from legacy OpenGL.
  * <p>
- * This {@link Matrix4dArrayList} class inherits from {@link Matrix4d}, so the current/top matrix is always the {@link Matrix4dArrayList}/{@link Matrix4d} itself. This
- * affects all operations in {@link Matrix4d} that take another {@link Matrix4d} as parameter. If a {@link Matrix4dArrayList} is used as argument to those methods,
+ * This {@link Matrix4x3fArrayList} class inherits from {@link Matrix4x3f}, so the current/top matrix is always the {@link Matrix4x3fArrayList}/{@link Matrix4x3f} itself. This
+ * affects all operations in {@link Matrix4x3f} that take another {@link Matrix4x3f} as parameter. If a {@link Matrix4x3fArrayList} is used as argument to those methods,
  * the effective argument will always be the <i>current</i> matrix of the matrix stack.
  * 
  * @author Kai Burjack, modified by Antonio Noack to be infinite, yet not allocation free
  * users of RemsStudio shouldn't have to worry about tree depth, if their machine is strong enough to handle it
  */
-public class Matrix4dArrayList extends Matrix4d {
+public class Matrix4x3fArrayList extends Matrix4x3f {
 
     private static final long serialVersionUID = 1L;
 
     /**
      * The matrix stack
      */
-    private ArrayList<Matrix4d> matrices = new ArrayList<>();
+    private ArrayList<Matrix4x3f> matrices = new ArrayList<>();
 
     /**
      * The index of the "current" matrix within {@link #matrices}.
      */
     private int currentIndex;
 
-    public Matrix4dArrayList() {}
+    public Matrix4x3fArrayList() {}
 
     public int getSize(){
         return matrices.size();
@@ -41,7 +41,7 @@ public class Matrix4dArrayList extends Matrix4d {
      * 
      * @return this
      */
-    public Matrix4dArrayList clear() {
+    public Matrix4x3fArrayList clear() {
         currentIndex = 0;
         identity();
         return this;
@@ -52,9 +52,9 @@ public class Matrix4dArrayList extends Matrix4d {
      * 
      * @return this
      */
-    public Matrix4dArrayList pushMatrix() {
+    public Matrix4x3fArrayList pushMatrix() {
         if (currentIndex == matrices.size()) {
-            matrices.add(new Matrix4d());
+            matrices.add(new Matrix4x3f());
         }
         matrices.get(currentIndex++).set(this);
         return this;
@@ -67,7 +67,7 @@ public class Matrix4dArrayList extends Matrix4d {
      * 
      * @return this
      */
-    public Matrix4dArrayList popMatrix() {
+    public Matrix4x3fArrayList popMatrix() {
         if (currentIndex == 0) {
             throw new IllegalStateException("already at the buttom of the stack"); //$NON-NLS-1$
         }
@@ -101,8 +101,8 @@ public class Matrix4dArrayList extends Matrix4d {
             return true;
         if (!super.equals(obj))
             return false;
-        if (obj instanceof Matrix4dArrayList) {
-            Matrix4dArrayList other = (Matrix4dArrayList) obj;
+        if (obj instanceof Matrix4x3fArrayList) {
+            Matrix4x3fArrayList other = (Matrix4x3fArrayList) obj;
             if (currentIndex != other.currentIndex)
                 return false;
             for (int i = 0; i < currentIndex; i++) {
@@ -126,7 +126,7 @@ public class Matrix4dArrayList extends Matrix4d {
         currentIndex = in.readInt();
         matrices = new ArrayList<>(currentIndex);
         for (int i = 0; i < currentIndex; i++) {
-            Matrix4d m = new Matrix4d();
+            Matrix4x3f m = new Matrix4x3f();
             m.readExternal(in);
             matrices.set(i, m);
         }

@@ -17,7 +17,6 @@ open class CustomListX(style: Style) : PanelListX(style), CustomList {
 
     init {
         spacing = style.getSize("custom.drag.size", 4)
-        println("spacing: $spacing")
         weight = 1f
     }
 

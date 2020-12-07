@@ -7,12 +7,21 @@ import me.anno.image.svg.SVGStyle.Companion.parseColor
 import me.anno.input.Input.isControlDown
 import me.anno.input.Input.keysDown
 import me.anno.utils.Color.toVecRGBA
+import org.joml.Vector3f
 import org.joml.Vector4f
 import org.lwjgl.opengl.GL11.GL_LINES
 
 class Mesh(val material: String, val points: ArrayList<Point>) {
 
     fun flipV() = points.forEach { it.flipV() }
+    fun scale(scale: Float) = points.forEach { it.scale(scale) }
+    fun switchYZ() {
+        points.forEach { it.switchYZ() }
+    }
+
+    fun translate(delta: Vector3f){
+        points.forEach { it.translate(delta) }
+    }
 
     val tint = (try {
         parseColor(material)
@@ -28,9 +37,9 @@ class Mesh(val material: String, val points: ArrayList<Point>) {
             if (buffer == null) fillBuffer()
             val tint = materialOverride[material] ?: tint
             val finalAlpha = alpha * tint.w
-            if(finalAlpha > 0.5/255f){
+            if (finalAlpha > 0.5 / 255f) {
                 shader.v4("tint", tint.x, tint.y, tint.z, tint.w * alpha)
-                if(isControlDown && 'L'.toInt() in keysDown) buffer?.draw(shader, GL_LINES) else buffer?.draw(shader)
+                if (isControlDown && 'L'.toInt() in keysDown) buffer?.draw(shader, GL_LINES) else buffer?.draw(shader)
             }
         }
     }
@@ -54,9 +63,11 @@ class Mesh(val material: String, val points: ArrayList<Point>) {
         this.buffer = buffer
     }
 
+    override fun toString() = "$material x ${points.size}"
+
     companion object {
         val attrNoUV = listOf(
-            Attribute("xyz", 3),
+            Attribute("coords", 3),
             Attribute("normals", 3)
         )
         val attrUV = attrNoUV + Attribute("uvs", 2)

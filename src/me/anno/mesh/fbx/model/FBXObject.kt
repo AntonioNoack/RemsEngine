@@ -8,7 +8,7 @@ open class FBXObject(node: FBXNode) {
 
     val ptr = node.getId()
     val name = node.getName()
-    val subType = node.properties[2] as String
+    val subType = node.properties.getOrNull(2) as? String ?: "#"
 
     val children = ArrayList<FBXObject>()
     val overrides = HashMap<String, FBXObject>()
@@ -23,14 +23,15 @@ open class FBXObject(node: FBXNode) {
                 val type = p[1] as String
                 val offset = 4
                 val value = when (type) {
-                    "Color", "ColorRGB", "Vector3D", "Lcl Rotation", "Lcl Translation", "Lcl Scaling" -> {
+                    "Color", "ColorRGB", "Vector", "Vector3D", "Lcl Rotation", "Lcl Translation", "Lcl Scaling" -> {
                         Vector3f(
                             (p[offset] as Double).toFloat(),
                             (p[offset + 1] as Double).toFloat(),
                             (p[offset + 2] as Double).toFloat()
                         )
                     }
-                    "Number", "double" -> (p[offset] as Double).toFloat()
+                    "Number", "double", "FieldOfView", "FieldOfViewX", "FieldOfViewY"
+                    -> (p[offset] as Double).toFloat()
                     "KTime" -> p[offset] as Long
                     "KString", "KRefUrl", "charptr" -> p[offset] as String
                     "int", "Integer", "enum", "Action" -> p[offset] as Int
@@ -55,7 +56,7 @@ open class FBXObject(node: FBXNode) {
             "d|DefaultAttributeIndex" -> Unit // ?? what does this do?? information about local position???
             "d|Visibility" -> Unit // not interesting
             "d|liw" -> Unit // probably not interesting, look influence weight
-            else -> throw RuntimeException("Unknown property $name: $value")
+            else -> throw RuntimeException("Unknown property $name: $value for ${javaClass.simpleName}")
         }
     }
 

@@ -66,6 +66,7 @@ object Cache {
                 } catch (e: FileNotFoundException) {
                     LOGGER.warn("Icon $name not found!")
                 } catch (e: Exception) {
+                    LOGGER.warn("Icon $name is invalid!")
                     e.printStackTrace()
                 }
             }
@@ -111,7 +112,7 @@ object Cache {
                 try {
                     data = generator()
                 } catch (e: FileNotFoundException){
-                    LOGGER.info(e.message ?: "")
+                    LOGGER.warn("FileNotFoundException: ${e.message}")
                 } catch (e: Exception){
                     e.printStackTrace()
                 }
@@ -162,7 +163,7 @@ object Cache {
                 try {
                     data = generator()
                 } catch (e: FileNotFoundException) {
-                    LOGGER.info(e.message ?: "")
+                    LOGGER.warn("FileNotFoundException: ${e.message}")
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
@@ -175,7 +176,7 @@ object Cache {
             try {
                 data = generator()
             } catch (e: FileNotFoundException) {
-                LOGGER.info(e.message ?: "")
+                LOGGER.warn("FileNotFoundException: ${e.message}")
             } catch (e: Exception) {
                 e.printStackTrace()
             }

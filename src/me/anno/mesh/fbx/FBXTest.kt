@@ -1,5 +1,6 @@
 package me.anno.mesh.fbx
 
+import me.anno.mesh.ConvertMeshes
 import me.anno.mesh.fbx.structure.FBXReader
 import me.anno.utils.OS
 import java.io.File
@@ -83,12 +84,17 @@ fun invertLong(l: ULong): ULong {
 fun main(){
 
     /*val root = */
-    FBXReader(
+    /*FBXReader(
         File(
             OS.downloads,
             "Warrior with animation.fbx"
         ).inputStream()
-    )
+    )*/
+
+    //ConvertMeshes.convertMeshes(File("C:\\Users\\Antonio\\Documents\\IdeaProjects\\HomeDesigner"), true)
+    val src = File("C:\\Users\\Antonio\\Documents\\IdeaProjects\\HomeDesigner\\models\\interior\\kitchen\\SM_Prop_Fridge_01.fbx")
+    ConvertMeshes.convertMeshes(src, src, true)
+
     /*val objects = root["Objects"].first()
     val nodeAttributes = objects["NodeAttribute"]
     val models = objects["Model"]

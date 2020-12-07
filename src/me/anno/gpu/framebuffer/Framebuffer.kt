@@ -38,6 +38,8 @@ class Framebuffer(
         TEXTURE
     }
 
+    var needsBlit = true
+
     val withMultisampling get() = samples > 1
     var msBuffer = if (withMultisampling)
         Framebuffer("$name.ms", w, h, 1, targets, depthBufferType) else null
@@ -57,6 +59,7 @@ class Framebuffer(
     fun bindDirectly(w: Int, h: Int, viewport: Boolean) = bind(w, h, viewport)
 
     private fun bind(viewport: Boolean) {
+        needsBlit = true
         if (pointer < 0) create()
         glBindFramebuffer(GL_FRAMEBUFFER, pointer)
         if (viewport) glViewport(0, 0, w, h)
@@ -69,6 +72,7 @@ class Framebuffer(
     }
 
     private fun bind(newWidth: Int, newHeight: Int, viewport: Boolean = true) {
+        needsBlit = true
         if (newWidth != w || newHeight != h) {
             w = newWidth
             h = newHeight
@@ -153,6 +157,8 @@ class Framebuffer(
     }
 
     private fun resolveTo(target: Framebuffer?) {
+        if(!needsBlit) return
+        needsBlit = true
         try {
             GFX.check()
             if (target != null) {
@@ -187,13 +193,21 @@ class Framebuffer(
     }
 
     fun bindTexture0(offset: Int = 0, nearest: GPUFiltering, clamping: Clamping) {
+        bindTextureI(0, offset, nearest, clamping)
+    }
+
+    fun bindTextureI(index: Int, offset: Int) {
+        bindTextureI(index, offset, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+    }
+
+    fun bindTextureI(index: Int, offset: Int, nearest: GPUFiltering, clamping: Clamping) {
         if (withMultisampling) {
             val msBuffer = msBuffer!!
             resolveTo(msBuffer)
-            msBuffer.bindTexture0(offset, nearest, clamping)
+            msBuffer.bindTextureI(index, offset, nearest, clamping)
         } else {
             GL13.glActiveTexture(GL13.GL_TEXTURE0 + offset)
-            textures[0].bind(nearest, clamping)
+            textures[index].bind(nearest, clamping)
         }
     }
 

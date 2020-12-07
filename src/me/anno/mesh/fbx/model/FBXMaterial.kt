@@ -24,6 +24,7 @@ class FBXMaterial(data: FBXNode) : FBXObject(data) {
         when (name) {
             "Ambient", "AmbientColor" -> ambient.set(value as Vector3f)
             "AmbientFactor" -> ambient.w = value as Float
+            "TransparentColor",
             "TransparencyColor" -> transparency.set(value as Vector3f)
             "TransparencyFactor" -> transparency.w = value as Float
             "Emissive" -> emissive.set(value as Vector3f)

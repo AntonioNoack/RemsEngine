@@ -12,11 +12,12 @@ class FBXNode(val nameOrType: String, val properties: Array<Any>) : FBXNodeBase 
     override val children = ArrayList<FBXNode>()
 
     companion object {
-        fun create(input: FBXReader): FBXNode {
-            val endOffset = input.readUInt()
+        fun create(input: FBXReader, version7500: Boolean): FBXNode {
+
+            val endOffset = if(version7500) input.readLong() else input.readUInt()
             if (endOffset == 0L) throw EmptyNodeException
-            val numProperties = input.readInt()
-            /*val propertyListLength = */input.readInt()
+            val numProperties = if(version7500) input.readLong().toInt() else input.readInt()
+            /*val propertyListLength = */if(version7500) input.readLong().toInt() else input.readInt()
             val nameOrType = input.readLength8String()
             val properties = Array(numProperties) {
                 readProperty(input)
@@ -24,15 +25,19 @@ class FBXNode(val nameOrType: String, val properties: Array<Any>) : FBXNodeBase 
 
             val node = FBXNode(nameOrType, properties)
 
-            val zeroBlockLength = 13
+            val zeroBlockLength = if(version7500) 25 else 13
             if (input.position < endOffset) {
+
                 while (input.position < endOffset - zeroBlockLength) {
-                    node.children += create(input)
+                    node.children += create(input, version7500)
                 }
+
                 for (i in 0 until zeroBlockLength) {
                     if (input.read() != 0) throw RuntimeException("Failed to read nested block sentinel, expected all bytes to be 0")
                 }
+
             }
+
             if (input.position != endOffset) {
                 throw RuntimeException("Scope length not reached, something is wrong")
             }
@@ -148,16 +153,20 @@ class FBXNode(val nameOrType: String, val properties: Array<Any>) : FBXNodeBase 
 
     fun getM4x4(name: String): Matrix4f? {
         val da = getDoubleArray(name) ?: return null
-        if(da.size != 16) throw RuntimeException("Got mat4x4 of size ${da.size}, expected 16")
+        if (da.size != 16) throw RuntimeException("Got mat4x4 of size ${da.size}, expected 16")
         val m = Matrix4f()
         // correct
         for (i in 0 until 16) {
-            m.set(i/4, i and 3, da[i].toFloat())
+            m.set(i / 4, i and 3, da[i].toFloat())
         }
         return m
     }
 
-    fun getName() = (properties[1] as String).split(0.toChar())[0]
-    fun getId() = properties[0] as Long
+    fun getName() = (properties.getOrNull(1) as? String)?.split(0.toChar())?.get(0) ?: "#"
+    fun getId() = when (val id = properties[0]) {
+        is Int -> id.toLong()
+        is Long -> id
+        else -> throw RuntimeException("ID of unknown type $id, ${id.javaClass.simpleName}")
+    }
 
 }

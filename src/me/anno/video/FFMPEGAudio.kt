@@ -44,7 +44,7 @@ class FFMPEGAudio(file: File?, val sampleRate: Int, val length: Double):
                 // keep a reference to wav.stereoPCM, because we need it
                 // it crashes the JVM in Java 8
                 Thread.sleep(30_000)
-                println(wav.stereoPCM.get(0))
+                LOGGER.info(wav.stereoPCM.get(0))
             }*/
             /*val wav = WaveData.create(input, frameCount)
             if(wav != null){

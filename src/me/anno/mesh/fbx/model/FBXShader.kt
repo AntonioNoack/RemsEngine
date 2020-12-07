@@ -14,7 +14,7 @@ object FBXShader {
         val maxBones = Maths.clamp((GFX.maxVertexUniforms - (16 * 3)) / 16, 4, 256)
         return ShaderLib.createShaderPlus(
             "fbx", v3DBase +
-                    "a3 xyz;\n" +
+                    "a3 coords;\n" +
                     "a2 uvs;\n" +
                     "a3 normals;\n" +
                     "a1 materialIndex;\n" +
@@ -22,10 +22,10 @@ object FBXShader {
                     "a4 weightValues;\n" +
                     "uniform mat4x4 transforms[$maxBones];\n" +
                     "void main(){\n" +
-                    "   vec3 localPosition0 = (transforms[weightIndices.x] * vec4(xyz, 1.0)).xyz * weightValues.x;\n" + //  * weightValues.x
-                    "   if(weightValues.y > 0.01) localPosition0 += (transforms[weightIndices.y] * vec4(xyz, 1.0)).xyz * weightValues.y;\n" +
-                    "   if(weightValues.z > 0.01) localPosition0 += (transforms[weightIndices.z] * vec4(xyz, 1.0)).xyz * weightValues.z;\n" +
-                    "   if(weightValues.w > 0.01) localPosition0 += (transforms[int(weightIndices.w)] * vec4(xyz, 1.0)).xyz * weightValues.w;\n" +
+                    "   vec3 localPosition0 = (transforms[weightIndices.x] * vec4(coords, 1.0)).xyz * weightValues.x;\n" + //  * weightValues.x
+                    "   if(weightValues.y > 0.01) localPosition0 += (transforms[weightIndices.y] * vec4(coords, 1.0)).xyz * weightValues.y;\n" +
+                    "   if(weightValues.z > 0.01) localPosition0 += (transforms[weightIndices.z] * vec4(coords, 1.0)).xyz * weightValues.z;\n" +
+                    "   if(weightValues.w > 0.01) localPosition0 += (transforms[int(weightIndices.w)] * vec4(coords, 1.0)).xyz * weightValues.w;\n" +
                     "   localPosition = localPosition0;\n" +
                     "   gl_Position = transform * vec4(localPosition0, 1.0);\n" + // already include second transform? yes, we should probably do that
                     "   uv = uvs;\n" +

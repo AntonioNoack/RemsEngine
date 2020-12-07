@@ -5,6 +5,7 @@
       <w>bokeh</w>
       <w>codepoint</w>
       <w>collada</w>
+      <w>coords</w>
       <w>cubemap</w>
       <w>deformer</w>
       <w>emissive</w>
@@ -18,6 +19,7 @@
       <w>gizmos</w>
       <w>glfw</w>
       <w>glsl</w>
+      <w>himmelblau</w>
       <w>hsluv</w>
       <w>msaa</w>
       <w>mtllib</w>
@@ -25,6 +27,7 @@
       <w>numpad</w>
       <w>orthographicness</w>
       <w>perlin</w>
+      <w>pickable</w>
       <w>premultiplied</w>
       <w>shaders</w>
       <w>skybox</w>

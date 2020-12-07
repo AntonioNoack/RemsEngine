@@ -23,8 +23,8 @@ fun main(){
 
     /*generatePermutations(listOf(v00, v01, v10, v11)){ perm ->
         // check that we don't input a non planar form...
-        println(perm.map { it.x })
-        println(Clipping.getZ(perm[0], perm[1], perm[2], perm[3]))
+        logger.info(perm.map { it.x })
+        logger.info(Clipping.getZ(perm[0], perm[1], perm[2], perm[3]))
     }*/
 
     logger.info(Clipping.getZ(v00, v01, v10, v11).toString())

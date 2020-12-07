@@ -120,7 +120,7 @@ class FontMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
                         currentShape.add(quadAt(i.toFloat() / steps))
                     }
 
-                    // if(debugPieces) println("quad to $x0 $y0 $x1 $y1")
+                    // if(debugPieces) Logger.info("quad to $x0 $y0 $x1 $y1")
 
                     x = x1
                     y = y1

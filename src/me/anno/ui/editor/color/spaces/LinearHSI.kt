@@ -38,7 +38,7 @@ object LinearHSI : ColorSpace(
     override fun fromRGB(rgb: Vector3f): Vector3f {
         val hsv = HSVColorSpace.rgbToHSV(rgb.x, rgb.y, rgb.z)
         // we were too lazy to find the correct solution 😅, so we just use gradient descent to find it
-        val solution = gradientDescent(floatArrayOf(hsv.x, hsv.y, hsv.z), 0.1f, 1e-6f) {
+        val solution = gradientDescent(floatArrayOf(hsv.x, hsv.y, hsv.z), 0.1f, 1e-6f, 250) {
             val currentRGB = toRGB(Vector3f(it[0], it[1], it[2]))
             val dr = currentRGB.x - rgb.x
             val dg = currentRGB.y - rgb.y

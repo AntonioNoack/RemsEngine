@@ -3,14 +3,14 @@ package me.anno.mesh.fbx.structure
 import me.anno.io.binary.LittleEndianDataInputStream
 import me.anno.mesh.fbx.model.*
 import me.anno.utils.OS
+import org.apache.logging.log4j.LogManager
 import java.io.File
 import java.io.InputStream
-import java.lang.RuntimeException
 
 // todo create a fbx reader to transform this Video Studio into our own game engine? :)
 // todo this data is only a decoded representation -> get the data out of it, including animations <3
 
-class FBXReader(input: InputStream): LittleEndianDataInputStream(input.buffered()),
+class FBXReader(input: InputStream) : LittleEndianDataInputStream(input.buffered()),
     FBXNodeBase {
 
     override val children = ArrayList<FBXNode>()
@@ -19,29 +19,39 @@ class FBXReader(input: InputStream): LittleEndianDataInputStream(input.buffered(
     val fbxObjectMap = HashMap<Long, FBXObject>()
     val root = FBXObject(FBXNode("Root", arrayOf(0L, "Root", "")))
 
+    var major = 0
+    var minor = 0
+
     init {
 
         readHeader()
 
+        val version = major * 1000 + minor
+        val version7500 = version >= 7500
+
         // the end is the empty node
         try {
-            while(true){
-                children += FBXNode.create(this)
+            while (true) {
+                children += FBXNode.create(this, version7500)
             }
-        } catch (e: EmptyNodeException){}
-
-        val out = File(OS.desktop, "fbx.json").outputStream().buffered()
-        for(node in children){
-            out.write(node.toString().toByteArray())
-            out.write('\n'.toInt())
+        } catch (e: EmptyNodeException) {
         }
-        out.close()
+
+        if (printDebugMessages) {
+            val out = File(OS.desktop, "fbx.json").outputStream().buffered()
+            debug { "${children.size} children" }
+            for (node in children) {
+                out.write(node.toString().toByteArray())
+                out.write('\n'.toInt())
+            }
+            out.close()
+        }
 
         fbxObjectMap[root.ptr] = root
 
         children.forEach { nodes ->
             nodes.children.forEach { node ->
-                val fbxObject = when(node.nameOrType){
+                val fbxObject = when (node.nameOrType) {
                     "Model" -> FBXModel(node)
                     "Geometry" -> FBXGeometry(node)
                     "Material" -> FBXMaterial(node)
@@ -56,7 +66,7 @@ class FBXReader(input: InputStream): LittleEndianDataInputStream(input.buffered(
                     "AnimationCurveNode" -> FBXAnimationCurveNode(node)
                     else -> null
                 }
-                if(fbxObject != null){
+                if (fbxObject != null) {
                     fbxObject.applyProperties(node)
                     fbxObjects += fbxObject
                     fbxObjectMap[fbxObject.ptr] = fbxObject
@@ -66,20 +76,20 @@ class FBXReader(input: InputStream): LittleEndianDataInputStream(input.buffered(
 
         children.filter { it.nameOrType == "Connections" }.forEach { connections ->
             connections.children.forEach { node ->
-                when(node.nameOrType){
+                when (node.nameOrType) {
                     "C" -> {
                         // a connection (child, parent)
                         val p = node.properties
                         val type = p[0] as String
                         val n1 = fbxObjectMap[p[1] as Long]
                         val n2 = fbxObjectMap[p[2] as Long]
-                        if(n1 == null || n2 == null){
+                        if (n1 == null || n2 == null) {
                             // Missing pointers actually occur;
                             // but it's good to check anyways
                             // if(n1 == null) println("Missing ${p[1]}")
                             // if(n2 == null) println("Missing ${p[2]}")
                         } else {
-                            when(type){
+                            when (type) {
                                 "OO" -> {
                                     // add parent-child relation
                                     assert(p.size == 3)
@@ -100,27 +110,36 @@ class FBXReader(input: InputStream): LittleEndianDataInputStream(input.buffered(
             }
         }
 
-        println(root)
+        if (printDebugMessages) {
+            debug { root }
+        }
 
         fbxObjects.filterIsInstance<FBXGeometry>().forEach {
             val realBone = root.children.filterIsInstance<FBXModel>().getOrNull(1)
-            if(realBone != null) it.findBoneWeights(realBone)
+            if (realBone != null) it.findBoneWeights(realBone)
         }
 
     }
 
-    fun readHeader(){
+    fun readHeader() {
         assert(read0String() == "Kaydara FBX Binary  ")
         assert(read() == 0x1a)
         assert(read() == 0x00)
         val version = readInt()
-        val major = version / 1000
-        val minor = version % 1000
-        debug { "Version: $major.$minor" }
+        major = version / 1000
+        minor = version % 1000
+        if (printDebugMessages) {
+            debug { "Version: $major.$minor" }
+        }
     }
 
-    fun debug(msg: () -> String){
-        println(msg())
+    fun debug(msg: () -> Any?) {
+        if (printDebugMessages) LOGGER.debug(msg().toString())
+    }
+
+    companion object {
+        var printDebugMessages = false
+        private val LOGGER = LogManager.getLogger(FBXReader::class)
     }
 
 }
