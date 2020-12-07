@@ -1,6 +1,7 @@
 package me.anno.utils
 
 import me.anno.utils.Maths.sq
+import kotlin.math.abs
 
 object GradientDescent {
 
@@ -23,7 +24,11 @@ object GradientDescent {
         val expansion = 1.3f
         val contraction = -0.5f
 
-        var e0 = err(v0)
+        var lastError = err(v0)
+
+        // 1e-7, but there may be numerical issues
+        // which cause stair-stepping, which would be an issue
+        val precision = 1e-6f
 
         var stepCtr = 0
         do {
@@ -35,20 +40,32 @@ object GradientDescent {
                 for(i in 0 until 3){
                     ctr++
                     val step = steps[axis]
-                    val x0 = v0[axis]
-                    val x1 = x0 + step
-                    v0[axis] = x1
-                    val e1 = err(v0)
-                    if(e1 <= goodEnoughError) return v0
-                    if(e1 < e0){
+                    val lastX = v0[axis]
+                    val nextX = lastX + step
+                    v0[axis] = nextX
+                    val nextError = err(v0)
+                    if(nextError <= goodEnoughError) return v0
+                    if(nextError < lastError){
                         // better: expand and keep
-                        steps[axis] *= expansion
-                        e0 = e1
+                        steps[axis] = step * expansion
+                        lastError = nextError
                         wasChanged = true
                     } else {
                         // worse: contract and reset
-                        steps[axis] *= contraction
-                        v0[axis] = x0
+                        val newStep = step * contraction
+                        val minStepAllowed = abs(lastX * precision)
+                        val allowedNewStep = if(abs(newStep) < minStepAllowed){
+                            if(step < 0) minStepAllowed else -minStepAllowed // alternate sign
+                        } else {
+                            newStep
+                        }
+                        // what, if the next step is just too small
+                        // -> see steps as a change
+                        steps[axis] = allowedNewStep
+                        if(abs(allowedNewStep) < abs(newStep)){
+                            wasChanged = true
+                        }
+                        v0[axis] = lastX
                     }
                 }
             }
@@ -75,7 +92,11 @@ object GradientDescent {
         val expansion = 1.3
         val contraction = -0.5
 
-        var e0 = err(v0)
+        var lastError = err(v0)
+
+        // 1e-16, but there may be numerical issues
+        // which cause stair-stepping, which would be an issue
+        val precision = 1e-14
 
         var stepCtr = 0
         do {
@@ -87,20 +108,32 @@ object GradientDescent {
                 for(i in 0 until 3){
                     ctr++
                     val step = steps[axis]
-                    val x0 = v0[axis]
-                    val x1 = x0 + step
-                    v0[axis] = x1
-                    val e1 = err(v0)
-                    if(e1 <= goodEnoughError) return v0
-                    if(e1 < e0){
+                    val lastX = v0[axis]
+                    val nextX = lastX + step
+                    v0[axis] = nextX
+                    val nextError = err(v0)
+                    if(nextError <= goodEnoughError) return v0
+                    if(nextError < lastError){
                         // better: expand and keep
-                        steps[axis] *= expansion
-                        e0 = e1
+                        steps[axis] = step * expansion
+                        lastError = nextError
                         wasChanged = true
                     } else {
                         // worse: contract and reset
-                        steps[axis] *= contraction
-                        v0[axis] = x0
+                        val newStep = step * contraction
+                        val minStepAllowed = abs(lastX * precision)
+                        val allowedNewStep = if(abs(newStep) < minStepAllowed){
+                            if(step < 0) minStepAllowed else -minStepAllowed // alternate sign
+                        } else {
+                            newStep
+                        }
+                        // what, if the next step is just too small
+                        // -> see steps as a change
+                        steps[axis] = allowedNewStep
+                        if(abs(allowedNewStep) < abs(newStep)){
+                            wasChanged = true
+                        }
+                        v0[axis] = lastX
                     }
                 }
             }
