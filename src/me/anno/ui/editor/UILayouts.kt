@@ -256,20 +256,18 @@ object UILayouts {
         quickSettings.show2()
         welcome += quickSettings
 
-        quickSettings += EnumInput("GFX Quality", true,
-            gfxSettings.displayName, GFXSettings.values().map { it.displayName }, style
-        )
+        quickSettings += EnumInput("GFX Quality", true, gfxSettings.displayName, GFXSettings.values().map { it.displayName }, style)
             .setChangeListener { _, index, _ ->
                 val value = GFXSettings.values()[index]
                 gfxSettings = value
             }
-            .setTooltip("Disables MSAA")
+            .setTooltip("Low disables UI MSAA")
         quickSettings += BooleanInput("Enable Vsync", GFXBase0.enableVsync, style)
             .setChangeListener {
                 DefaultConfig["debug.ui.enableVsync"] = it
                 GFXBase0.setVsyncEnabled(it)
             }
-            .setTooltip("Recommended: true, false only for debugging")
+            .setTooltip("Recommended; false for debugging")
         quickSettings += BooleanInput("Show FPS", RemsStudio.showFPS, style)
             .setChangeListener { DefaultConfig["debug.ui.showFPS"] = it }
             .setTooltip("For debugging / monitoring stutters")

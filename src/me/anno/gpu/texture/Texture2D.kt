@@ -201,14 +201,13 @@ class Texture2D(
         val t0 = System.nanoTime()
         ensurePointer()
         forceBind()
-
         glTexImage2D(tex2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
         val t1 = System.nanoTime() // 0.02s for a single 4k texture
         isCreated = true
         filtering(filtering)
         clamping(clamping)
         val t2 = System.nanoTime() // 1e-6
-        if (w * h > 1e4) LOGGER.info("(${(t1 - t0) * 1e-9f} + ${(t2 - t1) * 1e-9f})s for ${w * h}px image")
+        if (w * h > 1e4 && (t2-t0)*1e-9f>0.01f) LOGGER.info("Used ${(t1 - t0) * 1e-9f}s + ${(t2 - t1) * 1e-9f}s to upload ${(w * h)/1e6f} MPixel image to GPU")
     }
 
     /*fun upload2(data: ByteBuffer){

@@ -635,7 +635,7 @@ object GFX : GFXBase1() {
         drawText(
             x0 + 1, y0 + 1,
             "Consolas", 12f, false, false,
-            "${currentEditorFPS.f1()}, min: ${(1f / FrameTimes.maxValue).f1()}, frames: ${windowStack.size}",
+            "${currentEditorFPS.f1()}, min: ${(1f / FrameTimes.maxValue).f1()}",
             FrameTimes.textColor,
             FrameTimes.backgroundColor,
             -1

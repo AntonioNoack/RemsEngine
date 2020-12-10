@@ -11,6 +11,7 @@ import me.anno.io.base.BaseWriter
 import me.anno.objects.GFXTransform
 import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
+import me.anno.objects.animation.Type
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
@@ -21,8 +22,8 @@ import org.joml.Vector4f
 class Circle(parent: Transform? = null): GFXTransform(parent){
 
     var innerRadius = AnimatedProperty.float01()
-    var startDegrees = AnimatedProperty.float()
-    var endDegrees = AnimatedProperty.float(360f)
+    var startDegrees = AnimatedProperty(Type.ANGLE, 0f)
+    var endDegrees = AnimatedProperty(Type.ANGLE,360f)
 
     override fun getSymbol() = DefaultConfig["ui.style.circle", "◯"]
 

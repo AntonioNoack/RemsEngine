@@ -31,6 +31,7 @@ class Type(
         val FLOAT_PLUS = Type(0f, 1, 1f, true, true, { max(it as Float, 0f) }) { it is Float }
         val FLOAT_PLUS_EXP = Type(0f, 1, 1f, false, true, { max(it as Float, 0f) }) { it is Float }
         val FLOAT_PERCENT = Type(100f, 1, 100f, true, false, { clamp(it as Float, 0f, 100f) }) { it is Float }
+        val ANGLE = Type(0f, 1, 90f, true, false, null) { it is Float }
         val DOUBLE = Type(0.0, 1, 1f, true, true, null) { it is Double }
         val VEC2 = Type(Vector2f(), 2, 1f, true, true, null) { it is Vector2f }
         val VEC3 = Type(Vector3f(), 3, 1f, true, true, null) { it is Vector3f }
