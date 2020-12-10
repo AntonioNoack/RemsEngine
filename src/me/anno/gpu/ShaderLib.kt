@@ -252,8 +252,9 @@ object ShaderLib {
                     "   uv = attr0;\n" +
                     "}\n", "varying vec2 uv;\n", "" +
                     "uniform sampler2D tex;\n" +
+                    "uniform float am1;\n" +
                     "void main(){\n" +
-                    "   gl_FragColor = texture(tex, uv);\n" +
+                    "   gl_FragColor = (1-am1) * texture(tex, uv);\n" +
                     "}", listOf("tex")
         )
 

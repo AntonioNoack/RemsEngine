@@ -11,6 +11,7 @@ import org.apache.logging.log4j.LogManager
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL11.*
 import java.io.File
+import java.io.IOException
 import java.io.OutputStream
 import kotlin.concurrent.thread
 import kotlin.math.round
@@ -157,10 +158,15 @@ class VideoCreator(
         GFX.check()
 
         thread {// offload to other thread
-            synchronized(videoOut) {
-                buffer.get(byteArrayBuffer)
-                videoOut.write(byteArrayBuffer)
-                callback()
+            try {
+                synchronized(videoOut) {
+                    buffer.get(byteArrayBuffer)
+                    videoOut.write(byteArrayBuffer)
+                    callback()
+                }
+            } catch (e: IOException){
+                e.printStackTrace()
+                videoOut.close()
             }
         }
 

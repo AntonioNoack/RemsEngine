@@ -1,12 +1,10 @@
 package me.anno.ui.input.components
 
-import me.anno.gpu.GFX
 import me.anno.gpu.GFXx2D.drawTexture
 import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.gpu.texture.Texture2D
 import me.anno.input.MouseButton
 import me.anno.objects.cache.Cache
-import me.anno.studio.RemsStudio
 import me.anno.studio.RemsStudio.onSmallChange
 import me.anno.ui.base.Panel
 import me.anno.ui.style.Style
@@ -18,7 +16,7 @@ class Checkbox(startValue: Boolean, val size: Int, style: Style): Panel(style.ge
     // todo hover/toggle/focus color change
 
     companion object {
-        fun getImage(checked: Boolean): Texture2D? = Cache.getIcon(if(checked) "checked.png" else "unchecked.png", true)
+        fun getImage(checked: Boolean): Texture2D? = Cache.getInternalTexture(if(checked) "checked.png" else "unchecked.png", true)
     }
 
     var isChecked = startValue

@@ -13,7 +13,7 @@ import java.io.InputStream
 
 class RGBFrame(w: Int, h: Int): VFrame(w,h){
 
-    private val rgb = Texture2D(w, h, 1)
+    private val rgb = Texture2D("rgb-frame", w, h, 1)
 
     override fun load(input: InputStream){
         val s0 = w * h

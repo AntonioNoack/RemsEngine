@@ -2,6 +2,8 @@ package me.anno.studio
 
 import me.anno.gpu.GFX
 import me.anno.objects.Audio
+import me.anno.studio.RemsStudio.motionBlurSteps
+import me.anno.studio.RemsStudio.shutterPercentage
 import me.anno.studio.RemsStudio.targetOutputFile
 import me.anno.video.VideoAudioCreator
 import me.anno.video.VideoCreator
@@ -47,7 +49,7 @@ object Rendering {
                 width, height,
                 RemsStudio.targetFPS, totalFrameCount,
                 if (audioSources.isEmpty()) targetOutputFile else tmpFile
-            ), sampleRate, audioSources, targetOutputFile
+            ), sampleRate, motionBlurSteps, shutterPercentage, audioSources, targetOutputFile
         )
         creator.onFinished = { isRendering = false }
         creator.start()

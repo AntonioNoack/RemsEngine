@@ -250,9 +250,18 @@ object GFX : GFXBase1() {
     fun toRadians(f: Float) = Math.toRadians(f.toDouble()).toFloat()
     fun toRadians(f: Double) = Math.toRadians(f)
 
+    fun copy(alpha: Float) {
+        check()
+        val shader = copyShader
+        shader.v1("am1", 1f-alpha)
+        flat01.draw(shader)
+        check()
+    }
+
     fun copy() {
         check()
         val shader = copyShader
+        shader.v1("am1", 0f)
         flat01.draw(shader)
         check()
     }
@@ -261,6 +270,7 @@ object GFX : GFXBase1() {
         check()
         BlendDepth(BlendMode.DST_ALPHA, false) {
             val shader = copyShader
+            shader.v1("am1", 0f)
             flat01.draw(shader)
         }
         check()
@@ -306,14 +316,14 @@ object GFX : GFXBase1() {
     }
 
     fun ensureEmptyStack() {
-        if (Framebuffer.stack.size > 0) {
+        /*if (Framebuffer.stack.size > 0) {
             /*Framebuffer.stack.forEach {
                 println(it)
             }
             throw RuntimeException("Catched ${Framebuffer.stack.size} items on the Framebuffer.stack")
             exitProcess(1)*/
         }
-        Framebuffer.stack.clear()
+        Framebuffer.stack.clear()*/
     }
 
     fun workGPUTasks() {
@@ -577,9 +587,9 @@ object GFX : GFXBase1() {
             }
             val error = glGetError()
             if (error != 0) {
-                Framebuffer.stack.forEach {
+                /*Framebuffer.stack.forEach {
                     LOGGER.info(it.toString())
-                }
+                }*/
                 throw RuntimeException(
                     "GLException: ${when (error) {
                         1280 -> "invalid enum"
@@ -625,7 +635,7 @@ object GFX : GFXBase1() {
         drawText(
             x0 + 1, y0 + 1,
             "Consolas", 12f, false, false,
-            "${currentEditorFPS.f1()}, min: ${(1f / FrameTimes.maxValue).f1()}",
+            "${currentEditorFPS.f1()}, min: ${(1f / FrameTimes.maxValue).f1()}, frames: ${windowStack.size}",
             FrameTimes.textColor,
             FrameTimes.backgroundColor,
             -1

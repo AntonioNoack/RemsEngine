@@ -20,6 +20,11 @@ class Point(val position: Vector3f, val normal: Vector3f, val uv: Vector2f?){
         normal.set(normal.x, normal.z, -normal.y)
     }
 
+    fun switchXZ(){
+        position.set(position.z, position.y, -position.x)
+        normal.set(normal.z, normal.y, -normal.x)
+    }
+
     fun translate(delta: Vector3f){
         position.add(delta)
     }

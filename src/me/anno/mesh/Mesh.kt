@@ -7,6 +7,7 @@ import me.anno.image.svg.SVGStyle.Companion.parseColor
 import me.anno.input.Input.isControlDown
 import me.anno.input.Input.keysDown
 import me.anno.utils.Color.toVecRGBA
+import org.joml.AABBf
 import org.joml.Vector3f
 import org.joml.Vector4f
 import org.lwjgl.opengl.GL11.GL_LINES
@@ -15,8 +16,13 @@ class Mesh(val material: String, val points: ArrayList<Point>) {
 
     fun flipV() = points.forEach { it.flipV() }
     fun scale(scale: Float) = points.forEach { it.scale(scale) }
+
     fun switchYZ() {
         points.forEach { it.switchYZ() }
+    }
+
+    fun switchXZ() {
+        points.forEach { it.switchXZ() }
     }
 
     fun translate(delta: Vector3f){
@@ -28,6 +34,17 @@ class Mesh(val material: String, val points: ArrayList<Point>) {
     } catch (e: Exception) {
         null
     })?.toVecRGBA() ?: Vector4f(1f)
+
+    private val bounds = AABBf()
+    fun getBounds(): AABBf {
+        if(bounds.maxX < bounds.minX){
+            // needs recalculation
+            points.forEach { pt ->
+                bounds.union(pt.position)
+            }
+        }
+        return bounds
+    }
 
     val hasUV get() = points[0].uv != null
     var buffer: StaticBuffer? = null

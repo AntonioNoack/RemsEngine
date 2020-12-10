@@ -14,6 +14,7 @@ import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.frames.FrameSizeInput
 import me.anno.ui.input.EnumInput
 import me.anno.ui.input.FileInput
+import me.anno.ui.input.FloatInput
 import me.anno.ui.input.IntInput
 import me.anno.ui.style.Style
 import java.io.File
@@ -72,6 +73,19 @@ object RenderSettings : Transform(){
             }
             .setTooltip("0 = lossless, 23 = default, 51 = worst; worse results have smaller file sizes")
 
+        list += IntInput("Motion-Blur-Steps", project.motionBlurSteps, Type.INT_PLUS, style)
+            .setChangeListener {
+                project.motionBlurSteps = it.toInt()
+                save()
+            }
+            .setTooltip("0,1 = no motion blur, e.g. 16 = decent motion blur, sub-frames per frame")
+
+        list += FloatInput("Shutter-Percentage", project.shutterPercentage, Type.FLOAT_01, style)
+            .setChangeListener {
+                project.shutterPercentage = it.toFloat()
+                save()
+            }
+            .setTooltip("[Motion Blur] 1 = full frame is used; 0.1 = only 1/10th of a frame time is used")
 
         list += FileInput("Output File", style, targetOutputFile)
             .setChangeListener {

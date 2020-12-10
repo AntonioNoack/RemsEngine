@@ -94,4 +94,14 @@ object StringHelper {
         return x
     }
 
+    fun addPrefix(prefix: String?, suffix: String): String {
+        return if (prefix == null) suffix
+        else "$prefix$suffix"
+    }
+
+    fun addSuffix(prefix: String, suffix: String?): String {
+        return if (suffix == null) prefix
+        else "$prefix$suffix"
+    }
+
 }

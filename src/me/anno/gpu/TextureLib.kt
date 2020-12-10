@@ -4,12 +4,12 @@ import me.anno.gpu.texture.Texture2D
 
 object TextureLib {
 
-    val invisibleTexture = Texture2D(1, 1, 1)
-    val whiteTexture = Texture2D(1, 1, 1)
-    val stripeTexture = Texture2D(5, 1, 1)
-    val colorShowTexture = Texture2D(2, 2, 1)
-    val normalTexture = Texture2D(1,1,1)
-    val blackTexture = Texture2D(1,1,1)
+    val invisibleTexture = Texture2D("invisible", 1, 1, 1)
+    val whiteTexture = Texture2D("white", 1, 1, 1)
+    val stripeTexture = Texture2D("stripes", 5, 1, 1)
+    val colorShowTexture = Texture2D("color-show", 2, 2, 1)
+    val normalTexture = Texture2D("normal",1,1,1)
+    val blackTexture = Texture2D("black",1,1,1)
 
     fun init(){
         invisibleTexture.createRGBA(ByteArray(4) { 0.toByte() })

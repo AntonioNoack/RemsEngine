@@ -35,7 +35,7 @@ object BokehBlur {
     // fun fb() = Framebuffer(1, 1, 1, 1, true, Framebuffer.DepthBufferType.NONE)
     // fun fbPair() = fb() to fb()
 
-    val filterTexture = Texture2D(KERNEL_COUNT, 1, 1)
+    val filterTexture = Texture2D("bokeh", KERNEL_COUNT, 1, 1)
 
     fun draw(srcTexture: Texture2D, target: Framebuffer, relativeToH: Float) {
 
@@ -44,7 +44,7 @@ object BokehBlur {
 
         if (compositionShader == null) init()
 
-        BlendDepth(null, false){
+        BlendDepth(null, false) {
             val fp = Scene.usesFPBuffers
             val r = FBStack["bokeh-r", w, h, 1, fp]
             val g = FBStack["bokeh-g", w, h, 1, fp]
@@ -83,7 +83,7 @@ object BokehBlur {
         target: Framebuffer
     ) {
 
-        Frame(w, h, true, target){
+        Frame(w, h, true, target) {
 
             val shader = compositionShader!!
             shader.use()
@@ -103,7 +103,7 @@ object BokehBlur {
     }
 
     fun drawChannel(shader: Shader, target: Framebuffer, w: Int, h: Int, channel: Vector3f) {
-        Frame(w, h, true, target){
+        Frame(w, h, true, target) {
             Frame.bind()
             shader.v3("channelSelection", channel)
             flat01.draw(shader)

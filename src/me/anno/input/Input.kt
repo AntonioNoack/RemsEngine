@@ -134,6 +134,7 @@ object Input {
         }
 
         var mouseStart = 0L
+        var windowWasClosed = false
         GLFW.glfwSetMouseButtonCallback(window) { _, button, action, mods ->
             addEvent {
                 framesSinceLastInteraction = 0
@@ -145,6 +146,7 @@ object Input {
                         mouseDownY = mouseY
                         mouseMovementSinceMouseDown = 0f
 
+                        windowWasClosed = false
                         val panelWindow = getPanelAndWindowAt(mouseX, mouseY)
                         if (panelWindow != null) {
                             val mouseButton = button.toMouseButton()
@@ -152,6 +154,7 @@ object Input {
                                 val peek = windowStack.peek()
                                 if (panelWindow.second == peek || !peek.acceptsClickAway(mouseButton)) break
                                 windowStack.pop().destroy()
+                                windowWasClosed = true
                             }
                         }
 
@@ -183,11 +186,16 @@ object Input {
                             requestFocus(panelWindow?.first, true)
                         }
 
-                        inFocus0?.onMouseDown(mouseX, mouseY, button.toMouseButton())
-                        ActionManager.onKeyDown(button)
-                        mouseStart = System.nanoTime()
-                        mouseKeysDown.add(button)
-                        keysDown[button] = GFX.lastTime
+                        if(!windowWasClosed){
+
+                            inFocus0?.onMouseDown(mouseX, mouseY, button.toMouseButton())
+                            ActionManager.onKeyDown(button)
+                            mouseStart = System.nanoTime()
+                            mouseKeysDown.add(button)
+                            keysDown[button] = GFX.lastTime
+
+                        }
+
                     }
                     GLFW.GLFW_RELEASE -> {
 
@@ -198,7 +206,7 @@ object Input {
 
                         val longClickMillis = DefaultConfig["longClick", 300]
                         val currentNanos = System.nanoTime()
-                        val isClick = mouseMovementSinceMouseDown < maxClickDistance
+                        val isClick = mouseMovementSinceMouseDown < maxClickDistance && !windowWasClosed
 
                         if (isClick) {
 

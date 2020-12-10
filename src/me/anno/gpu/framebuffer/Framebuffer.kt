@@ -63,7 +63,7 @@ class Framebuffer(
         if (pointer < 0) create()
         glBindFramebuffer(GL_FRAMEBUFFER, pointer)
         if (viewport) glViewport(0, 0, w, h)
-        stack.push(this)
+        //stack.push(this)
         if (withMultisampling) {
             GL11.glEnable(GL13.GL_MULTISAMPLE)
         } else {
@@ -100,11 +100,11 @@ class Framebuffer(
         pointer = glGenFramebuffers()
         if (pointer < 0) throw RuntimeException()
         glBindFramebuffer(GL_FRAMEBUFFER, pointer)
-        stack.push(this)
+        //stack.push(this)
         GFX.check()
-        textures = Array(targets.size) {
-            val texture = Texture2D(w, h, samples)
-            texture.create(targets[it])
+        textures = Array(targets.size) { index ->
+            val texture = Texture2D("$name-tex[$index]", w, h, samples)
+            texture.create(targets[index])
             // if (fpTargets) texture.createFP32()
             // else texture.create()
             // LOGGER.info("create/textures-array $w $h $samples $fpTargets")
@@ -125,7 +125,7 @@ class Framebuffer(
             }
             DepthBufferType.INTERNAL -> createDepthBuffer()
             DepthBufferType.TEXTURE -> {
-                val depthTexture = Texture2D(w, h, samples) // xD
+                val depthTexture = Texture2D("$name-depth", w, h, samples) // xD
                 depthTexture.createDepth()
                 glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, tex2D, depthTexture.pointer, 0)
                 this.depthTexture = depthTexture
@@ -255,7 +255,7 @@ class Framebuffer(
     }*/
 
     private fun unbind() {
-        val popped = stack.pop()
+        /*val popped = stack.pop()
         if (popped !== this) {
             stack.forEach {
                 LOGGER.warn(it.toString())
@@ -270,20 +270,20 @@ class Framebuffer(
         } else {
             glBindFramebuffer(GL_FRAMEBUFFER, 0)
             glViewport(0, 0, GFX.width, GFX.height)
-        }
+        }*/
     }
 
     companion object {
 
         val LOGGER = LogManager.getLogger(Framebuffer::class)!!
 
-        val stack = Stack<Framebuffer?>()
+        //val stack = Stack<Framebuffer?>()
 
         fun bindNullDirectly() = bindNull()
 
         private fun bindNull() {
             glBindFramebuffer(GL_FRAMEBUFFER, 0)
-            stack.push(null)
+            //stack.push(null)
         }
 
     }

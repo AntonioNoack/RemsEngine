@@ -140,6 +140,8 @@ class Project(var name: String, val file: File) : Saveable() {
     var targetFPS = config["target.fps", 30.0]
     var targetOutputFile = config["target.file", File(file, "output.mp4")]
     var targetVideoQuality = config["target.quality", 23]
+    var motionBlurSteps = config["target.motionBlur.steps", 8]
+    var shutterPercentage = config["target.motionBlur.shutterPercentage", 1f]
 
     override fun getClassName() = "Project"
     override fun getApproxSize() = 1000
@@ -156,6 +158,8 @@ class Project(var name: String, val file: File) : Saveable() {
         config["target.height"] = targetHeight
         config["target.fps"] = targetFPS
         config["target.quality"] = targetVideoQuality
+        config["target.motionBlur.steps"] = motionBlurSteps
+        config["target.motionBlur.shutterPercentage"] = shutterPercentage
         config["recent.files"] = SceneTabs.children3
             .filter { it.file != null }
             .joinToString("\n") { it.file.toString() }

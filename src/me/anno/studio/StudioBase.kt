@@ -216,7 +216,7 @@ abstract class StudioBase(
                                 didSomething = true
 
                                 GFX.ensureEmptyStack()
-                                Framebuffer.stack.push(null)
+                                // Framebuffer.stack.push(null)
                                 Frame.reset()
 
                                 GFX.deltaX = panel0.x
@@ -310,7 +310,7 @@ abstract class StudioBase(
                                 needsRedraw.clear()
 
                                 GFX.ensureEmptyStack()
-                                Framebuffer.stack.push(null)
+                                // Framebuffer.stack.push(null)
                                 Frame.reset()
 
                                 GFX.loadTexturesSync.clear()

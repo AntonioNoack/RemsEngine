@@ -16,7 +16,12 @@ import kotlin.math.ceil
 import kotlin.math.roundToInt
 
 class VideoAudioCreator(
-    val videoCreator: VideoCreator, val sampleRate: Int, val audioSources: List<Audio>, val output: File
+    val videoCreator: VideoCreator,
+    val sampleRate: Int,
+    val motionBlurSteps: Int,
+    val shutterPercentage: Float,
+    val audioSources: List<Audio>,
+    val output: File
 ) {
 
     var onFinished = {}
@@ -28,7 +33,7 @@ class VideoAudioCreator(
     }
 
     fun run() {
-        val vbt = VideoBackgroundTask(videoCreator)
+        val vbt = VideoBackgroundTask(videoCreator, motionBlurSteps, shutterPercentage)
         camera = vbt.camera
         vbt.start()
         // wait for the task to finish

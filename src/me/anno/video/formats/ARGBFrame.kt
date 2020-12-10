@@ -12,7 +12,7 @@ import java.io.InputStream
 
 class ARGBFrame(w: Int, h: Int) : VFrame(w, h) {
 
-    private val argb = Texture2D(w, h, 1)
+    private val argb = Texture2D("argb-frame", w, h, 1)
 
     override fun load(input: InputStream) {
         val s0 = w * h * 4

@@ -9,7 +9,6 @@ import me.anno.objects.cache.Cache
 import me.anno.ui.base.Panel
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer
-import me.anno.ui.custom.data.CustomData
 import me.anno.ui.custom.data.CustomPanelData
 import me.anno.ui.custom.data.ICustomDataCreator
 import me.anno.ui.editor.sceneView.SceneView
@@ -41,7 +40,7 @@ class CustomContainer(default: Panel, style: Style) : PanelContainer(default, Pa
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.onDraw(x0, y0, x1, y1)
-        val icon = Cache.getIcon("cross.png", true) ?: whiteTexture
+        val icon = Cache.getInternalTexture("cross.png", true) ?: whiteTexture
         drawTexture(x + w - 14, y + 2, 12, 12, icon, white, null)
     }
 

@@ -73,6 +73,11 @@ class BlendMode(
         val DEFAULT = BlendMode("Default", "*Blend")
         val ADD = BlendMode("Add", "Add")
             .set(GL_SRC_ALPHA, GL_ONE)
+
+        val PURE_ADD = BlendMode("Add", "Add")
+            .set(GL_ONE, GL_ONE)
+            .set(BlendFunc.ADD)
+
         /*val ADD_MASK = BlendMode("Sub Mask", "Sub Mask")
             .set(GL_ONE, GL_ONE)
             .set(BlendFunc.SUB)*/

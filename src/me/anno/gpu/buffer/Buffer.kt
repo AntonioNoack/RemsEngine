@@ -4,8 +4,9 @@ import me.anno.gpu.shader.Shader
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL15
-import org.lwjgl.opengl.GL20.*
-import org.lwjgl.opengl.GL30.glVertexAttribIPointer
+import org.lwjgl.opengl.GL30.*
+import org.lwjgl.opengl.GL33.glDrawArraysInstanced
+import org.lwjgl.opengl.GL33.glVertexAttribDivisor
 import java.nio.ByteBuffer
 
 abstract class Buffer(val attributes: List<Attribute>, val stride: Int, val usage: Int = GL15.GL_STATIC_DRAW) {
@@ -61,40 +62,63 @@ abstract class Buffer(val attributes: List<Attribute>, val stride: Int, val usag
         return this
     }
 
+    private fun bindBufferAttributes(shader: Shader, instanced: Boolean) {
+        val instanceDivisor = if(instanced) 1 else 0
+        shader.use()
+        attributes.forEach { attr ->
+            val index = shader.getAttributeLocation(attr.name)
+            if (index > -1) {
+                val type = attr.type
+                if (attr.isNativeInt) {
+                    glVertexAttribIPointer(index, attr.components, type.glType, stride, attr.offset)
+                } else {
+                    glVertexAttribPointer(index, attr.components, type.glType, type.normalized, stride, attr.offset)
+                }
+                if(isInstanced[index] != instanced){
+                    isInstanced[index] = instanced
+                    glVertexAttribDivisor(index, instanceDivisor)
+                }
+                glEnableVertexAttribArray(index)
+            }
+        }
+    }
+
     open fun draw(shader: Shader) = draw(shader, drawMode)
     open fun draw(shader: Shader, mode: Int) {
         bind(shader)
         draw(mode, 0, drawLength)
     }
 
-    fun bind(shader: Shader){
+    open fun drawInstanced(shader: Shader, base: Buffer) = drawInstanced(shader, base, drawMode)
+    open fun drawInstanced(shader: Shader, base: Buffer, mode: Int) {
+        base.bind(shader)
+        bindInstanced(shader)
+        glDrawArraysInstanced(mode, 0, base.drawLength, drawLength)
+    }
+
+    fun bind(shader: Shader) {
         if (!isUpToDate) upload()
         else if (drawLength > 0) glBindBuffer(GL15.GL_ARRAY_BUFFER, buffer)
         if (drawLength > 0) {
-            shader.use()
-            attributes.forEach { attr ->
-                val index = shader.getAttributeLocation(attr.name)
-                if (index > -1) {
-                    val type = attr.type
-                    if(attr.isNativeInt){
-                        glVertexAttribIPointer(index, attr.components, type.glType, stride, attr.offset)
-                    } else {
-                        glVertexAttribPointer(index, attr.components, type.glType, type.normalized, stride, attr.offset)
-                    }
-                    glEnableVertexAttribArray(index)
-                }
-            }
+            bindBufferAttributes(shader, false)
         }
     }
 
-    fun draw(first: Int, length: Int){
+    fun bindInstanced(shader: Shader) {
+        if (!isUpToDate) upload()
+        else if (drawLength > 0) glBindBuffer(GL15.GL_ARRAY_BUFFER, buffer)
+        if (drawLength > 0) {
+            bindBufferAttributes(shader, true)
+        }
+    }
+
+    fun draw(first: Int, length: Int) {
         glDrawArrays(drawMode, first, length)
     }
 
-    fun draw(mode: Int, first: Int, length: Int){
+    fun draw(mode: Int, first: Int, length: Int) {
         glDrawArrays(mode, first, length)
     }
-
 
     fun destroy() {
         if (buffer > -1) {
@@ -105,6 +129,7 @@ abstract class Buffer(val attributes: List<Attribute>, val stride: Int, val usag
 
     companion object {
         private val LOGGER = LogManager.getLogger(Buffer::class.java)
+        private val isInstanced = BooleanArray(128)
     }
 
 }

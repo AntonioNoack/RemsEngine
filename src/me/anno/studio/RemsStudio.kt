@@ -22,6 +22,10 @@ import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.concurrent.thread
 import kotlin.math.abs
 
+// todo curve-editor: show colors as blobs/circles
+// todo motion blur, because it's relatively cheap
+// todo filter for colors (green screen)
+
 // todo scene screenshot/editor screenshot
 
 // todo draw frame by frame, only save x,y,radius?
@@ -83,6 +87,8 @@ object RemsStudio: StudioBase(true, "Rem's Studio", "RemsStudio"){
     val targetWidth get() = project?.targetWidth ?: GFX.windowWidth
     val targetHeight get() = project?.targetHeight ?: GFX.windowHeight
     val targetOutputFile get() = project!!.targetOutputFile
+    val motionBlurSteps get() = project!!.motionBlurSteps
+    val shutterPercentage get() = project!!.shutterPercentage
     val history get() = SceneTabs.currentTab!!.history
 
     val nullCamera: Camera by lazy {

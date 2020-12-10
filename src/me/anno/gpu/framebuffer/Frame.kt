@@ -2,6 +2,7 @@ package me.anno.gpu.framebuffer
 
 import me.anno.gpu.GFX
 import org.lwjgl.opengl.GL11.glViewport
+import java.lang.Exception
 
 class Frame(val x: Int, val y: Int, val w: Int, val h: Int, val changeSize: Boolean, val buffer: Framebuffer?, render: () -> Unit) {
 
@@ -14,8 +15,13 @@ class Frame(val x: Int, val y: Int, val w: Int, val h: Int, val changeSize: Bool
     init {
         val lastFrame = currentFrame
         currentFrame = this
-        render()
-        currentFrame = lastFrame
+        try {
+            render()
+            currentFrame = lastFrame
+        } catch (e: Throwable){
+            currentFrame = lastFrame
+            throw e
+        }
     }
 
     fun bind(){

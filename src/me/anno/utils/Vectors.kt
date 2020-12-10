@@ -179,4 +179,7 @@ object Vectors {
 
     fun Vector3fi(x: Int, y: Int, z: Int) = Vector3f(x.toFloat(), y.toFloat(), z.toFloat())
 
+    val Vector3f.yzx get() = Vector3f(y,z,x)
+    val Vector3f.zxy get() = Vector3f(z,x,y)
+
 }

@@ -51,6 +51,11 @@ public class GFXBase0 {
         glfwSwapInterval(enableVsync ? 1 : 0);
     }
 
+    public static void toggleVsync() {
+        enableVsync = !enableVsync;
+        glfwSwapInterval(enableVsync ? 1 : 0);
+    }
+
     static Logger LOGGER = LogManager.getLogger(GFXBase0.class);
 
     GLFWErrorCallback errorCallback;

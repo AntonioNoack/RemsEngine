@@ -1,10 +1,12 @@
 <component name="ProjectDictionaryState">
   <dictionary name="Antonio">
     <words>
+      <w>abgr</w>
       <w>bgra</w>
       <w>bokeh</w>
       <w>codepoint</w>
       <w>collada</w>
+      <w>consolas</w>
       <w>coords</w>
       <w>cubemap</w>
       <w>deformer</w>
@@ -20,7 +22,9 @@
       <w>glfw</w>
       <w>glsl</w>
       <w>himmelblau</w>
+      <w>hori</w>
       <w>hsluv</w>
+      <w>mediump</w>
       <w>msaa</w>
       <w>mtllib</w>
       <w>ness</w>

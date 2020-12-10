@@ -25,7 +25,7 @@ import kotlin.concurrent.thread
 
 class ImageData(file: File) : CacheData {
 
-    var texture = Texture2D(1024, 1024, 1)
+    var texture = Texture2D("image-data",1024, 1024, 1)
     var framebuffer: Framebuffer? = null
 
     companion object {

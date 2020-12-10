@@ -1,6 +1,7 @@
 package me.anno.utils
 
 import me.anno.utils.Maths.sq
+import org.apache.logging.log4j.LogManager
 import kotlin.math.abs
 
 object GradientDescent {
@@ -151,13 +152,15 @@ object GradientDescent {
     fun main(args: Array<String>) {
         // test gradient descent
         val t0 = System.nanoTime()
-        val solution = gradientDescent(doubleArrayOf(0.0, 0.0), 1.0, 1e-6, 10000) {
+        val solution = gradientDescent(doubleArrayOf(0.0, 0.0), 1.0, 1e-6, 500) {
             himmelblau(it[0], it[1])
         }
         val t1 = System.nanoTime()
-        println(solution.joinToString())
-        println(ctr)
-        println("${((t1-t0)*1e-9)}")
+        LOGGER.info(solution.joinToString())
+        LOGGER.info("$ctr sub-steps used")
+        LOGGER.info("${((t1-t0)*1e-9f)}s used")
     }
+
+    private val LOGGER = LogManager.getLogger(GradientDescent::class)
 
 }

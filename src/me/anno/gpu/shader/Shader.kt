@@ -3,6 +3,7 @@ package me.anno.gpu.shader
 import me.anno.gpu.GFX
 import me.anno.gpu.framebuffer.Frame
 import me.anno.objects.cache.CacheData
+import me.anno.utils.FloatArrayList
 import org.apache.logging.log4j.LogManager
 import org.joml.*
 import org.lwjgl.BufferUtils
@@ -19,8 +20,11 @@ open class Shader(
 
     companion object {
         private val LOGGER = LogManager.getLogger(Shader::class)
-        const val attributeName = "in"
+        private const val attributeName = "in"
         private val matrixBuffer = BufferUtils.createFloatBuffer(16)
+        private val identity3 = Matrix3f()
+        private val identity4 = Matrix4f()
+        private val identity4x3 = Matrix4x3f()
         var lastProgram = -1
     }
 
@@ -28,8 +32,12 @@ open class Shader(
 
     private var program = -1
 
+    private val uniformLocations = HashMap<String, Int>()
+    private val attributeLocations = HashMap<String, Int>()
+    private val uniformCache = FloatArrayList(128, Float.NaN)
+
     val pointer get() = program
-    val ignoredNames = HashSet<String>()
+    private val ignoredNames = HashSet<String>()
 
     // shader compile time doesn't really matter... -> move it to the start to preserve ram use?
     // isn't that much either...
@@ -61,6 +69,8 @@ open class Shader(
         .replace(" u2x2 ", " uniform mat2 ")
         .replace(" u3x3 ", " uniform mat3 ")
         .replace(" u4x4 ", " uniform mat4 ")
+        .replace(" u4x3 ", " uniform mat4x3 ")
+        .replace(" u3x4 ", " uniform mat3x4 ")
         .replace(" a1 ", " $attributeName float ")
         .replace(" a2 ", " $attributeName vec2 ")
         .replace(" a3 ", " $attributeName vec3 ")
@@ -98,18 +108,16 @@ open class Shader(
         }
     }
 
-    private val uniformCache = HashMap<String, Int>()
-    private val attributeCache = HashMap<String, Int>()
-
     fun ignoreUniformWarnings(names: List<String>) {
         ignoredNames += names
     }
 
     fun getUniformLocation(name: String): Int {
-        val old = uniformCache[name]
-        if (old != null) return old
+        val old = uniformLocations.getOrDefault(name, -100)
+        if (old != -100) return old
+        use()
         val loc = glGetUniformLocation(program, name)
-        uniformCache[name] = loc
+        uniformLocations[name] = loc
         if (loc < 0 && name !in ignoredNames) {
             LOGGER.warn("Uniform location \"$name\" not found in shader $shaderName")
         }
@@ -117,10 +125,10 @@ open class Shader(
     }
 
     fun getAttributeLocation(name: String): Int {
-        val old = attributeCache[name]
-        if (old != null) return old
+        val old = attributeLocations.getOrDefault(name, -100)
+        if (old != -100) return old
         val loc = glGetAttribLocation(program, name)
-        attributeCache[name] = loc
+        attributeLocations[name] = loc
         if (loc < 0) LOGGER.warn("Attribute location \"$name\" not found in shader $shaderName")
         return loc
     }
@@ -134,66 +142,80 @@ open class Shader(
         }
     }
 
-    fun v1(name: String, x: Float) {
-        val loc = getUniformLocation(name)
-        if (loc > -1) glUniform1f(loc, x)
-    }
-
     fun v1(name: String, x: Int) {
         val loc = getUniformLocation(name)
-        if (loc > -1) glUniform1i(loc, x)
+        if (loc > -1) {
+            val asFloat = x.toFloat()
+            if (asFloat.toInt() != x) {
+                // cannot be represented as a float -> cannot currently be cached
+                uniformCache[loc * 4] = Float.NaN
+                use()
+                glUniform1i(loc, x)
+            } else if (uniformCache[loc * 4, Float.NaN] != asFloat) {
+                // it has changed
+                uniformCache[loc * 4] = asFloat
+                use()
+                glUniform1i(loc, x)
+            }
+        }
+    }
+
+    fun v1(name: String, x: Float) {
+        val loc = getUniformLocation(name)
+        if (loc > -1) {
+            val index0 = loc * 4
+            if (uniformCache[index0 + 0, Float.NaN] != x) {
+                uniformCache[index0 + 0] = x
+                use()
+                glUniform1f(loc, x)
+            }
+        }
     }
 
     fun v2(name: String, x: Float, y: Float) {
         val loc = getUniformLocation(name)
-        if (loc > -1) glUniform2f(loc, x, y)
+        if (loc > -1) {
+            val index0 = loc * 4
+            if (
+                uniformCache[index0 + 0, Float.NaN] != x ||
+                uniformCache[index0 + 1, Float.NaN] != y
+            ) {
+                uniformCache[index0 + 0] = x
+                uniformCache[index0 + 1] = y
+                use()
+                glUniform2f(loc, x, y)
+            }
+        }
     }
 
     fun v3(name: String, x: Float, y: Float, z: Float) {
         val loc = getUniformLocation(name)
-        if (loc > -1) glUniform3f(loc, x, y, z)
+        if (loc > -1) {
+            val index0 = loc * 4
+            if (
+                uniformCache[index0 + 0, Float.NaN] != x ||
+                uniformCache[index0 + 1, Float.NaN] != y ||
+                uniformCache[index0 + 2, Float.NaN] != z
+            ) {
+                uniformCache[index0 + 0] = x
+                uniformCache[index0 + 1] = y
+                uniformCache[index0 + 2] = z
+                use()
+                glUniform3f(loc, x, y, z)
+            }
+        }
     }
 
     fun v3X(name: String, v: Vector4f) {
-        val loc = getUniformLocation(name)
-        if (loc > -1) glUniform3f(loc, v.x / v.w, v.y / v.w, v.z / v.w)
+        v3(name, v.x / v.w, v.y / v.w, v.z / v.w)
     }
 
     fun v3(name: String, color: Int) {
-        val loc = getUniformLocation(name)
-        if (loc > -1) glUniform3f(
-            loc,
+        v3(
+            name,
             (color.shr(16) and 255) / 255f,
             (color.shr(8) and 255) / 255f,
             color.and(255) / 255f
-        )
-    }
-
-    fun v3(name: String, all: Float) = v3(name, all, all, all)
-
-    fun v4(name: String, color: Int) {
-        val loc = getUniformLocation(name)
-        if (loc > -1) glUniform4f(
-            loc,
-            (color.shr(16) and 255) / 255f,
-            (color.shr(8) and 255) / 255f,
-            color.and(255) / 255f,
-            (color.shr(24) and 255) / 255f
-        )
-    }
-
-    fun v4(name: String, all: Float) {
-        val loc = getUniformLocation(name)
-        if (loc > -1) glUniform4f(loc, all, all, all, all)
-    }
-
-    fun v4(name: String, color: Int, alpha: Float) {
-        val loc = getUniformLocation(name)
-        if (loc > -1) glUniform4f(
-            loc,
-            color.shr(16).and(255) / 255f,
-            color.shr(8).and(255) / 255f,
-            color.and(255) / 255f, alpha
         )
     }
 
@@ -202,11 +224,36 @@ open class Shader(
         if (loc > -1) glUniform4f(loc, x, y, z, w)
     }
 
+    fun v4(name: String, color: Int) {
+        v4(
+            name,
+            (color.shr(16) and 255) / 255f,
+            (color.shr(8) and 255) / 255f,
+            color.and(255) / 255f,
+            (color.shr(24) and 255) / 255f
+        )
+    }
+
+
+    fun v4(name: String, color: Int, alpha: Float) {
+        v4(
+            name,
+            color.shr(16).and(255) / 255f,
+            color.shr(8).and(255) / 255f,
+            color.and(255) / 255f, alpha
+        )
+    }
+
+
+    fun v2(name: String, all: Float) = v2(name, all, all)
+    fun v3(name: String, all: Float) = v3(name, all, all, all)
+    fun v4(name: String, all: Float) = v4(name, all, all, all, all)
+
     fun v2(name: String, v: Vector2f) = v2(name, v.x, v.y)
     fun v3(name: String, v: Vector3f) = v3(name, v.x, v.y, v.z)
     fun v4(name: String, v: Vector4f) = v4(name, v.x, v.y, v.z, v.w)
 
-    fun m3x3(name: String, value: Matrix3f) {
+    fun m3x3(name: String, value: Matrix3f = identity3) {
         use()
         val loc = this[name]
         if (loc > -1) {
@@ -215,7 +262,7 @@ open class Shader(
         }
     }
 
-    fun m4x3(name: String, value: Matrix4x3f) {
+    fun m4x3(name: String, value: Matrix4x3f = identity4x3) {
         use()
         val loc = this[name]
         if (loc > -1) {
@@ -224,7 +271,7 @@ open class Shader(
         }
     }
 
-    fun m4x4(name: String, value: Matrix4f) {
+    fun m4x4(name: String, value: Matrix4f = identity4) {
         use()
         val loc = this[name]
         if (loc > -1) {

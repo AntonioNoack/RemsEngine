@@ -54,19 +54,19 @@ object Cache {
         return cache?.texture
     }
 
-    fun getIcon(name: String, asyncGenerator: Boolean, timeout: Long = 5000): Texture2D? {
-        val cache = getEntry("Icon", name, 0, timeout, asyncGenerator) {
+    fun getInternalTexture(name: String, asyncGenerator: Boolean, timeout: Long = 5000): Texture2D? {
+        val cache = getEntry("Texture", name, 0, timeout, asyncGenerator) {
             val cache = TextureCache(null)
             thread {
                 try {
                     val img = GFX.loadAssetsImage(name)
-                    val tex = Texture2D(img.width, img.height, 1)
+                    val tex = Texture2D("internal-texture",img.width, img.height, 1)
                     tex.create(img, false)
                     cache.texture = tex
                 } catch (e: FileNotFoundException) {
-                    LOGGER.warn("Icon $name not found!")
+                    LOGGER.warn("Internal texture $name not found!")
                 } catch (e: Exception) {
-                    LOGGER.warn("Icon $name is invalid!")
+                    LOGGER.warn("Internal texture $name is invalid!")
                     e.printStackTrace()
                 }
             }

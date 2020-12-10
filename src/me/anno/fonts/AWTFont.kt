@@ -1,14 +1,18 @@
 package me.anno.fonts
 
 import me.anno.config.DefaultConfig
-import me.anno.gpu.texture.FakeWhiteTexture
-import me.anno.gpu.texture.ITexture2D
-import me.anno.gpu.texture.Texture2D
+import me.anno.fonts.mesh.FontMesh2
+import me.anno.gpu.framebuffer.Frame
+import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.texture.*
+import me.anno.objects.Text
 import me.anno.ui.base.DefaultRenderingHints.prepareGraphics
 import me.anno.utils.OS
 import me.anno.utils.StringHelper.incrementTab
 import me.anno.utils.StringHelper.joinChars
 import org.apache.logging.log4j.LogManager
+import org.joml.Matrix4fArrayList
+import org.joml.Vector4f
 import java.awt.Font
 import java.awt.FontMetrics
 import java.awt.Graphics2D
@@ -41,7 +45,28 @@ class AWTFont(val font: Font) : XFont {
 
     fun String.countLines() = count { it == '\n' } + 1
 
+    // todo move to generating the texture on the gpu with our triangulated meshes...
+    fun generateTextureV4(text: String, fontSize: Float, widthLimit: Int): ITexture2D? {
+
+        val textElement = Text(text)
+
+        val w = (fontSize * 3).toInt()
+        val h = fontSize.toInt()
+        val fb = Framebuffer("awt-font-v4", w, h, 8, 1, true, Framebuffer.DepthBufferType.NONE)
+
+        Frame(w, h, true, fb) {
+            textElement.draw(Matrix4fArrayList(), 0.0, Vector4f(1f))
+        }
+
+        fb.bindTexture0(0, GPUFiltering.NEAREST, Clamping.CLAMP)
+        // todo destroy all but texture0
+        return fb.msBuffer!!.textures[0]
+
+    }
+
     override fun generateTexture(text: String, fontSize: Float, widthLimit: Int): ITexture2D? {
+
+        // return generateTextureV4(text, fontSize, widthLimit)
 
         if (text.isEmpty()) return null
         if (containsSpecialChar(text) || widthLimit > 0) {
@@ -63,7 +88,7 @@ class AWTFont(val font: Font) : XFont {
             return FakeWhiteTexture(width, height)
         }
 
-        val texture = Texture2D(width, height, 1)
+        val texture = Texture2D("awt-font", width, height, 1)
         texture.create({
 
             val image = BufferedImage(width, height, 1)
@@ -230,7 +255,7 @@ class AWTFont(val font: Font) : XFont {
 
         // ("$width for ${result.size} parts")
 
-        val texture = Texture2D(width, height, 1)
+        val texture = Texture2D("awt-font-v3", width, height, 1)
         texture.create({
             val image = BufferedImage(width, height, 1)
             if (result.isNotEmpty()) {

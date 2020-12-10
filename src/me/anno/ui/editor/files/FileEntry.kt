@@ -171,7 +171,7 @@ class FileEntry(
 
     fun drawDefaultIcon() {
         val size = size
-        val image = Cache.getIcon(iconPath, true) ?: whiteTexture
+        val image = Cache.getInternalTexture(iconPath, true) ?: whiteTexture
         var iw = image.w
         var ih = image.h
         val scale = (size - 20) / max(iw, ih).toFloat()
@@ -182,7 +182,7 @@ class FileEntry(
         drawTexture(x + (size - iw) / 2, y + (size - ih) / 2, iw, ih, image, -1, null)
     }
 
-    fun getDefaultIcon() = Cache.getIcon(iconPath, true)
+    fun getDefaultIcon() = Cache.getInternalTexture(iconPath, true)
 
     fun getTexture(): Any? {
         fun getImage(): Any? {
