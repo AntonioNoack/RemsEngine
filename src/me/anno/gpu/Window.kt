@@ -8,7 +8,7 @@ import org.apache.logging.log4j.LogManager
 import java.lang.RuntimeException
 import kotlin.math.min
 
-class Window (
+open class Window (
     val panel: Panel, val isFullscreen: Boolean, val x: Int, val y: Int){
 
     constructor(panel: Panel): this(panel, true, 0, 0)
@@ -54,7 +54,7 @@ class Window (
 
     var acceptsClickAway = { _: MouseButton -> canBeClosedByUser }
 
-    fun destroy(){
+    open fun destroy(){
         buffer.destroy()
     }
 

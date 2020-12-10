@@ -32,7 +32,7 @@ object DefaultStyle {
         val textSize = 15
         val smallTextSize = textSize * 12 / 15
 
-        set("textFont", "Verdana")
+        set("fontName", "Verdana")
         set("textSize", textSize)
         set("small.textSize", smallTextSize)
 

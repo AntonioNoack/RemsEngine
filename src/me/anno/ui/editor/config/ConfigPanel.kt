@@ -1,26 +1,32 @@
 package me.anno.ui.editor.config
 
+import me.anno.gpu.GFX.windowStack
 import me.anno.io.utils.StringMap
+import me.anno.ui.base.ButtonPanel
 import me.anno.ui.base.Panel
 import me.anno.ui.base.TextPanel
+import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelXY
 import me.anno.ui.custom.CustomListX
+import me.anno.ui.input.TextInput
 import me.anno.ui.style.Style
 import kotlin.math.max
 
 // todo allow fields to be added
-// todo add style section...
-class ConfigPanel(val config: StringMap, style: Style) : CustomListX(style) {
+class ConfigPanel(val config: StringMap, val isStyle: Boolean, style: Style) : PanelListY(style) {
 
     // todo reload ui when sth was changed?...
 
-    // todo search bar for all
-    // todo close-button
-
     val deep = style.getChild("deep")
+    val searchBar = PanelListX(deep)
+
+    val mainBox = CustomListX(style)
     val topicTree = PanelListY(style)
-    val contentList = PanelListY(style)
+    val contentListUI = PanelListY(style)
+    val contentList = ArrayList<Pair<String, Panel>>()
+
+    val searchInput = TextInput("Search", deep)
 
     fun create() {
         createTopics()
@@ -29,12 +35,55 @@ class ConfigPanel(val config: StringMap, style: Style) : CustomListX(style) {
             createContent(tp.topic)
         }
         fun add(panel: Panel, weight: Float) {
-            this.add(ScrollPanelXY(panel.withPadding(5, 5, 5, 5), style), weight)
+            mainBox.add(ScrollPanelXY(panel.withPadding(5, 5, 5, 5), style), weight)
         }
         add(topicTree, 1f)
-        add(contentList, 3f)
+        add(contentListUI, 3f)
+        searchBar += ButtonPanel("Close", deep).setSimpleClickListener { windowStack.pop().destroy() }
+        if (isStyle) {
+            searchBar += ButtonPanel("Apply", deep).setSimpleClickListener {
+                createTopics()
+                lastTopic = "-"
+                applySearch(searchInput.text)
+            }
+        }
+        searchBar += searchInput.apply {
+            setChangeListener { query -> applySearch(query) }
+            weight = 1f
+        }
+        this += mainBox
+        this += searchBar
     }
 
+    fun applySearch(query: String) {
+
+        if (query.isBlank()) {
+
+            createContent(lastNotEmptyTopic)
+
+        } else {
+
+            val queryTerms = query
+                .replace('\t', ',')
+                .replace(' ', ',')
+                .split(',')
+                .map { it.trim() }
+                .filter { it.isNotEmpty() }
+                .map { it.toLowerCase() }
+
+            if (lastTopic.isNotEmpty()) createContent("")
+            contentList.forEach { (name, ui) ->
+                if (queryTerms.all { it in name }) {
+                    ui.show()
+                } else ui.hide()
+            }
+
+        }
+
+    }
+
+    var lastTopic = ""
+    var lastNotEmptyTopic = ""
     fun createTopics() {
         topicTree.clear()
         // concat stuff, that has only one entry?
@@ -78,9 +127,13 @@ class ConfigPanel(val config: StringMap, style: Style) : CustomListX(style) {
 
     fun createContent(topic: String) {
 
+        lastTopic = topic
+        if (topic.isNotEmpty()) lastNotEmptyTopic = topic
+
+        contentListUI.clear()
         contentList.clear()
 
-        val pattern = "$topic."
+        val pattern = if (topic.isEmpty()) "" else "$topic."
         val entries = config.entries
             .filter { it.value !is StringMap }
             .filter { it.key.startsWith(pattern) }
@@ -95,30 +148,53 @@ class ConfigPanel(val config: StringMap, style: Style) : CustomListX(style) {
             }
             .sortedBy { it.relevantName }
 
-        val largeHeader = style.getChild("header")
-        val smallHeader = style.getChild("header.small")
+        val largeHeaderText = style.getChild("header")
+        val smallHeaderStyle = style.getChild("header.small")
 
         val topList = entries.filter { it.depth == 0 }
+
         // add header
-        contentList += TextPanel(topic, largeHeader).apply {
-            font.isItalic = true
+        val largeHeader2 = TextPanel(topic, largeHeaderText).apply { font.isItalic = true }
+        contentListUI += largeHeader2
+        val subChain = StringBuilder(topList.size * 2)
+        for (entry in topList) {
+            val subList = PanelListY(style)
+            subList.setTooltip(entry.fullName)
+            entry.createPanels(subList)
+            val searchKey = entry.fullName.toLowerCase()
+            contentList += searchKey to subList
+            contentListUI += subList
+            subChain.append(searchKey)
+            subChain.append(' ')
         }
-        for (top in topList) {
-            top.createPanels(contentList)
-        }
+        contentList += subChain.toString() to largeHeader2
+
 
         // add sub headers for all topics...
         val groups = entries
             .filter { it.depth > 0 }
             .groupBy { it.groupName }
+
         for (group in groups.entries.sortedBy { it.key }) {
             val groupName = group.key
-            contentList += TextPanel(groupName, smallHeader)
+            val smallHeader = TextPanel(groupName, smallHeaderStyle)
+            contentListUI += smallHeader
+            val subChain2 = StringBuilder(group.value.size * 2)
             for (entry in group.value) {
-                entry.createPanels(contentList)
+                val subList = PanelListY(style)
+                subList.setTooltip(entry.fullName)
+                entry.createPanels(subList)
+                val searchKey = entry.fullName.toLowerCase()
+                contentList += searchKey to subList
+                contentListUI += subList
+                subChain2.append(searchKey)
+                subChain2.append(' ')
             }
+            contentList += subChain2.toString() to smallHeader
         }
+
         invalidateLayout()
+
     }
 
 }

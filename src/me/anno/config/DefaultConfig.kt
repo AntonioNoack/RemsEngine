@@ -61,7 +61,7 @@ object DefaultConfig : StringMap() {
     }
 
     override fun get(key: String): Any? {
-        if(!hasInit) LOGGER.warn("to early DefaultConfig[$key]")
+        if(!hasInit) LOGGER.warn("Too early access of DefaultConfig[$key]")
         return super.get(key)
     }
 
@@ -206,6 +206,6 @@ object DefaultConfig : StringMap() {
     }
 
     val defaultFontName get() = this["defaultFont"] as? String ?: "Verdana"
-    val defaultFont = Font(defaultFontName, 15f, false, false)
+    val defaultFont get() = Font(defaultFontName, 15f, false, false)
 
 }

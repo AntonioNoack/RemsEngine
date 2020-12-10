@@ -11,6 +11,7 @@ import me.anno.gpu.GFX.select
 import me.anno.gpu.GFXBase0
 import me.anno.gpu.Window
 import me.anno.input.Input
+import me.anno.objects.Camera
 import me.anno.objects.Text
 import me.anno.objects.cache.Cache
 import me.anno.objects.rendering.RenderSettings
@@ -335,15 +336,15 @@ object UILayouts {
         // options.addMajor("Code")
 
         options.addAction("Config", "Settings") {
-            val panel = ConfigPanel(DefaultConfig, style)
+            val panel = ConfigPanel(DefaultConfig, false, style)
             val window = Window(panel)
             panel.create()
             windowStack.push(window)
         }
 
         options.addAction("Config", "Style") {
-            val panel = ConfigPanel(DefaultConfig.style.values, style)
-            val window = Window(panel)
+            val panel = ConfigPanel(DefaultConfig.style.values, true, style)
+            val window = object: Window(panel){ override fun destroy() { createEditorUI() } }
             panel.create()
             windowStack.push(window)
         }
@@ -364,13 +365,16 @@ object UILayouts {
         }
 
         options.addAction("Project", "Load") {
-            openMenuComplex2("", listOf(
+            openMenuComplex2("Load Project", listOf(
                 createRecentProjectsUI(menuStyle, getRecentProjects()),
                 createNewProjectUI(menuStyle)
             ))
         }
 
         options.addAction("Select", "Inspector Camera") { select(nullCamera) }
+        options.addAction("Select", "Root") { select(root) }
+        options.addAction("Select", "First Camera") { select(root.listOfAll.filterIsInstance<Camera>().firstOrNull()) }
+
         options.addAction("Debug", "Refresh (Ctrl+F5)") { Cache.clear() }
 
         options.addAction("Render", "Settings") {
