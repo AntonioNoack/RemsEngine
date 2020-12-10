@@ -44,7 +44,7 @@ object ShaderLib {
             "}\n"
 
 
-    val bicubicInterpolation = "" +
+    const val bicubicInterpolation = "" +
             // https://www.paulinternet.nl/?page=bicubic
             "vec4 cubicInterpolation(vec4 p0, vec4 p1, vec4 p2, vec4 p3, float x){\n" +
             "   return p1 + 0.5 * x*(p2 - p0 + x*(2.0*p0 - 5.0*p1 + 4.0*p2 - p3 + x*(3.0*(p1 - p2) + p3 - p0)));\n" +
@@ -77,8 +77,17 @@ object ShaderLib {
             "   return mix(vec3(gray), color, cgSaturation);\n" +
             "}\n"
 
-    // todo uv/scale attractors...
-    // todo color attractors are too complicated to use
+    const val rgb2uv = "" +
+            "vec2 RGBtoUV(vec3 rgb){\n" +
+            "   vec4 rgba = vec4(rgb,1);\n" +
+            "   return vec2(\n" +
+            "       dot(rgba, vec4(-0.169, -0.331,  0.500, 0.5)),\n" +
+            "       dot(rgba, vec4( 0.500, -0.419, -0.081, 0.5)) \n" +
+            "   );\n" +
+            "}\n"
+
+    // uv/scale attractors...
+    // todo color attractors are too complicated to use (? is this still the case? when did I write that? maybe a mode, where you can see the paint only? :))
 
     val maxColorForceFields = DefaultConfig["objects.attractors.color.maxCount", 12]
     val getColorForceFieldLib = "" +
@@ -370,12 +379,15 @@ object ShaderLib {
                 "uniform vec2 blurDeltaUV;\n" +
                 "uniform int maskType;\n" +
                 "uniform float maxSteps;\n" +
+                "uniform vec3 greenScreenSettings;\n" +
+                brightness +
                 getColorForceFieldLib +
+                rgb2uv +
                 "void main(){\n" +
                 "   vec2 uv2 = uv.xy/uv.z * 0.5 + 0.5;\n" +
                 "   vec4 mask = texture(mask, uv2);\n" +
                 "   vec4 color;\n" +
-                "   float effect;\n" +
+                "   float effect, inverseEffect;\n" +
                 "   switch(maskType){\n" +
                 "       case ${MaskType.MASKING.id}:\n" +
                 "           vec4 maskColor = vec4(\n" +
@@ -411,6 +423,27 @@ object ShaderLib {
                 "       case ${MaskType.UV_OFFSET.id}:\n" +
                 "           vec2 offset = (mask.rg-mask.gb) * pixelating;\n" +
                 "           color = texture(tex, uv2 + offset);\n" +
+                "           break;\n" +
+                "       case ${MaskType.GREEN_SCREEN.id}:\n" +
+                // blur? is already good enough, I think...
+                "           inverseEffect = clamp(mask.a, 0, 1);\n" +
+                "           float similarity = greenScreenSettings.x;\n" +
+                "           float smoothness = greenScreenSettings.y;\n" +
+                "           float spill = greenScreenSettings.z;\n" +
+                "           vec4 keyColor = mask;\n" +
+                "           color = texture(tex, uv2);\n" +
+                "           float chromaDistance = distance(RGBtoUV(color.rgb), RGBtoUV(keyColor.rgb));\n" +
+                "           float baseMask = chromaDistance - similarity;\n" +
+                "           float fullMask = pow(clamp(baseMask / smoothness, 0, 1), 1.5);\n" +
+                "           if(invertMask < 0.5){\n" +
+                "               float spillValue = pow(clamp(baseMask / spill, 0, 1), 1.5);\n" +
+                "               float grayscale = dot(color.rgb, vec3(0.2126,0.7152,0.0722));\n" +
+                "               color.rgb = mix(color.rgb, vec3(grayscale), (1-spillValue) * (1-effect));\n" +
+                "               color.a *= fullMask * inverseEffect;\n" +
+                "           } else {\n" + // special inversion: only use the key color
+                "               color.rgb = keyColor.rgb;\n" +
+                "               color.a *= (1-fullMask) * inverseEffect;\n" +
+                "           }\n" +
                 "           break;\n" +
                 "   }\n" +
                 "   if(color.a <= 0.001) discard;\n" +

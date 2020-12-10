@@ -23,7 +23,6 @@ import kotlin.concurrent.thread
 import kotlin.math.abs
 
 // todo curve-editor: show colors as blobs/circles
-// todo motion blur, because it's relatively cheap
 // todo filter for colors (green screen)
 
 // todo scene screenshot/editor screenshot

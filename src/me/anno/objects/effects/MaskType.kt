@@ -6,5 +6,6 @@ enum class MaskType(val id: Int, val displayName: String){
     GAUSSIAN_BLUR(2, "Gaussian Blur"),
     BOKEH_BLUR(3, "Bokeh Blur"),
     BLOOM(5, "Bloom"),
-    UV_OFFSET(4, "Per-Pixel Offset")
+    UV_OFFSET(4, "Per-Pixel Offset"),
+    GREEN_SCREEN(6, "Green-Screen")
 }

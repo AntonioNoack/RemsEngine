@@ -89,7 +89,8 @@ object GFXx3D {
         useMaskColor: Float,
         pixelSize: Float,
         isInverted: Float,
-        isFullscreen: Boolean
+        isFullscreen: Boolean,
+        greenScreenSettings: Vector3f
     ) {
         val shader = ShaderLib.shader3DMasked.shader
         shader3DUniforms(shader, stack, color)
@@ -97,6 +98,7 @@ object GFXx3D {
         shader.v1("invertMask", isInverted)
         shader.v1("maskType", maskType.id)
         shader.v2("pixelating", pixelSize * GFX.windowHeight / GFX.windowWidth, pixelSize)
+        shader.v3("greenScreenSettings", greenScreenSettings)
         val buffer = if (isFullscreen) SimpleBuffer.flatLarge else SimpleBuffer.flat11
         buffer.draw(shader)
         GFX.check()

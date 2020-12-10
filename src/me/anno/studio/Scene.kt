@@ -264,6 +264,8 @@ object Scene {
     var lGCTInverted = Matrix4f()
     var usesFPBuffers = false
 
+    val mayUseMSAA get() = if (isFinalRendering) DefaultConfig["rendering.useMSAA", true] else DefaultConfig["ui.editor.useMSAA", gfxSettings["ui.editor.useMSAA"]]
+
     // rendering must be done in sync with the rendering thread (OpenGL limitation) anyways, so one object is enough
     val stack = Matrix4fArrayList()
     fun draw(
@@ -289,10 +291,7 @@ object Scene {
 
         stack.clear()
 
-        val mayUseMSAA = if (isFinalRendering)
-            DefaultConfig["rendering.useMSAA", true]
-        else
-            DefaultConfig["ui.editor.useMSAA", gfxSettings["ui.editor.useMSAA"]]
+        val mayUseMSAA = mayUseMSAA
         val samples = if (mayUseMSAA && !isFakeColorRendering) 8 else 1
 
         GFX.check()

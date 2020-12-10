@@ -47,6 +47,7 @@ class AnimatedProperty<V>(val type: Type, var defaultValue: V) : Saveable() {
         fun double() = AnimatedProperty<Double>(Type.DOUBLE)
         fun vec2() = AnimatedProperty<Vector2f>(Type.VEC2)
         fun vec3() = AnimatedProperty<Vector3f>(Type.VEC3)
+        fun vec3(defaultValue: Vector3f) = AnimatedProperty<Vector3f>(Type.VEC3, defaultValue)
         fun vec4() = AnimatedProperty<Vector3f>(Type.VEC4)
         fun vec4(defaultValue: Vector4f) = AnimatedProperty(Type.VEC4, defaultValue)
         fun pos() = AnimatedProperty<Vector3f>(Type.POSITION)

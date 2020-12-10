@@ -5,32 +5,35 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.GFXx3D
 import me.anno.gpu.blending.BlendDepth
+import me.anno.gpu.blending.BlendMode
+import me.anno.gpu.framebuffer.FBStack
+import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.ShaderPlus
+import me.anno.gpu.texture.Clamping
+import me.anno.gpu.texture.GPUFiltering
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.GFXTransform
 import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
-import me.anno.gpu.blending.BlendMode
-import me.anno.gpu.framebuffer.FBStack
-import me.anno.gpu.framebuffer.Frame
-import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
 import me.anno.objects.geometric.Circle
 import me.anno.objects.geometric.Polygon
+import me.anno.studio.Scene.mayUseMSAA
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
 import org.joml.Matrix4fArrayList
+import org.joml.Vector3f
 import org.joml.Vector4f
 import org.lwjgl.opengl.GL11.*
 
-class MaskLayer(parent: Transform? = null): GFXTransform(parent){
+class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
 
     // just a little expensive...
-    // todo enable multisampling
-    val samples = 1
+    // todo why is multisampling sometimes black?
+    // it's not yet production ready...
+    val samples get() = 1// if(mayUseMSAA) 8 else 1
 
     lateinit var mask: Framebuffer
     lateinit var masked: Framebuffer
@@ -40,6 +43,12 @@ class MaskLayer(parent: Transform? = null): GFXTransform(parent){
     // numbers outside [0,1] give artists more control
     val useMaskColor = AnimatedProperty.float()
     val blurThreshold = AnimatedProperty.float()
+
+    val greenScreenSimilarity = AnimatedProperty.float01(0.03f)
+    val greenScreenSmoothness = AnimatedProperty.float01(0.01f)
+    val greenScreenSpillValue = AnimatedProperty.float01(0.15f)
+    fun greenScreenSettings(time: Double) =
+        Vector3f(greenScreenSimilarity[time], greenScreenSmoothness[time], greenScreenSpillValue[time])
 
     // not animated, because it's not meant to be transitioned, but instead to be a little helper
     var isInverted = false
@@ -59,12 +68,12 @@ class MaskLayer(parent: Transform? = null): GFXTransform(parent){
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
 
         val showResult = isFinalRendering || (!showMask && !showMasked)
-        if(children.size >= 2 && showResult){// else invisible
+        if (children.size >= 2 && showResult) {// else invisible
 
             mask = FBStack["mask", GFX.windowWidth, GFX.windowHeight, samples, true]
             masked = FBStack["masked", GFX.windowWidth, GFX.windowHeight, samples, true]
 
-            BlendDepth(null, false){
+            BlendDepth(null, false) {
 
                 // (low priority)
                 // to do calculate the size on screen to limit overhead
@@ -83,8 +92,8 @@ class MaskLayer(parent: Transform? = null): GFXTransform(parent){
 
         } else super.onDraw(stack, time, color)
 
-        if(showMask) drawChild(stack, time, color, children.getOrNull(0))
-        if(showMasked) drawChild(stack, time, color, children.getOrNull(1))
+        if (showMask) drawChild(stack, time, color, children.getOrNull(0))
+        if (showMasked) drawChild(stack, time, color, children.getOrNull(1))
 
     }
 
@@ -99,10 +108,13 @@ class MaskLayer(parent: Transform? = null): GFXTransform(parent){
         writer.writeObject(this, "blurThreshold", blurThreshold)
         writer.writeInt("type", type.id)
         writer.writeObject(this, "pixelSize", effectSize)
+        writer.writeObject(this, "greenScreenSimilarity", greenScreenSimilarity)
+        writer.writeObject(this, "greenScreenSmoothness", greenScreenSmoothness)
+        writer.writeObject(this, "greenScreenSpillValue", greenScreenSpillValue)
     }
 
     override fun readBool(name: String, value: Boolean) {
-        when(name){
+        when (name) {
             "showMask" -> showMask = value
             "showMasked" -> showMasked = value
             "isFullscreen" -> isFullscreen = value
@@ -112,10 +124,13 @@ class MaskLayer(parent: Transform? = null): GFXTransform(parent){
     }
 
     override fun readObject(name: String, value: ISaveable?) {
-        when(name){
+        when (name) {
             "useMaskColor" -> useMaskColor.copyFrom(value)
             "blurThreshold" -> blurThreshold.copyFrom(value)
             "pixelSize" -> effectSize.copyFrom(value)
+            "greenScreenSimilarity" -> greenScreenSimilarity.copyFrom(value)
+            "greenScreenSmoothness" -> greenScreenSmoothness.copyFrom(value)
+            "greenScreenSpillValue" -> greenScreenSpillValue.copyFrom(value)
             else -> super.readObject(name, value)
         }
     }
@@ -123,14 +138,14 @@ class MaskLayer(parent: Transform? = null): GFXTransform(parent){
     override fun drawChildrenAutomatically() = false
 
 
-    fun drawMask(stack: Matrix4fArrayList, time: Double, color: Vector4f){
+    fun drawMask(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
 
-        Frame(GFX.windowWidth, GFX.windowHeight, false, mask){
+        Frame(mask) {
 
             Frame.bind()
 
             val child = children.getOrNull(0)
-            if(child?.getClassName() == "Transform" && child.children.isEmpty()){
+            if (child?.getClassName() == "Transform" && child.children.isEmpty()) {
 
                 glClearColor(1f, 1f, 1f, 1f)
                 glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
@@ -141,7 +156,7 @@ class MaskLayer(parent: Transform? = null): GFXTransform(parent){
                 glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
                 val oldDrawMode = GFX.drawMode
-                if(oldDrawMode == ShaderPlus.DrawMode.COLOR_SQUARED) GFX.drawMode = ShaderPlus.DrawMode.COLOR
+                if (oldDrawMode == ShaderPlus.DrawMode.COLOR_SQUARED) GFX.drawMode = ShaderPlus.DrawMode.COLOR
 
                 drawChild(stack, time, color, child)
 
@@ -152,14 +167,14 @@ class MaskLayer(parent: Transform? = null): GFXTransform(parent){
 
     }
 
-    fun drawMasked(stack: Matrix4fArrayList, time: Double, color: Vector4f){
+    fun drawMasked(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
 
-        Frame(GFX.windowWidth, GFX.windowHeight, false, masked){
+        Frame(masked) {
 
             Frame.bind()
 
             val oldDrawMode = GFX.drawMode
-            if(oldDrawMode == ShaderPlus.DrawMode.COLOR_SQUARED) GFX.drawMode = ShaderPlus.DrawMode.COLOR
+            if (oldDrawMode == ShaderPlus.DrawMode.COLOR_SQUARED) GFX.drawMode = ShaderPlus.DrawMode.COLOR
 
             glClearColor(0f, 0f, 0f, 0f)
             glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
@@ -173,7 +188,7 @@ class MaskLayer(parent: Transform? = null): GFXTransform(parent){
     }
 
     // mask = 0, tex = 1
-    fun drawOnScreen(stack: Matrix4fArrayList, time: Double, color: Vector4f){
+    fun drawOnScreen(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
 
         GFX.check()
 
@@ -205,7 +220,8 @@ class MaskLayer(parent: Transform? = null): GFXTransform(parent){
                     stack, color,
                     type, useMaskColor[time],
                     pixelSize, isInverted,
-                    isFullscreen
+                    isFullscreen,
+                    greenScreenSettings(time)
                 )
 
             }
@@ -228,7 +244,8 @@ class MaskLayer(parent: Transform? = null): GFXTransform(parent){
                     stack, color,
                     type, useMaskColor[time],
                     0f, isInverted,
-                    isFullscreen
+                    isFullscreen,
+                    greenScreenSettings(time)
                 )
 
             }
@@ -242,7 +259,8 @@ class MaskLayer(parent: Transform? = null): GFXTransform(parent){
                     stack, color,
                     type, useMaskColor[time],
                     pixelSize, isInverted,
-                    isFullscreen
+                    isFullscreen,
+                    greenScreenSettings(time)
                 )
 
             }
@@ -255,17 +273,26 @@ class MaskLayer(parent: Transform? = null): GFXTransform(parent){
         getGroup: (title: String, id: String) -> SettingCategory
     ) {
         super.createInspector(list, style, getGroup)
-        val effect = getGroup("Effect", "fx")
-        effect += VI("Type", "Masks are multipurpose objects", null, type, style) { type = it }
-        effect += VI("Size", "How large pixelated pixels or blur should be", effectSize, style)
         val mask = getGroup("Mask Settings", "mask")
-        mask += VI("Invert Mask", "Changes transparency with opacity", null, isInverted, style){ isInverted = it }
+        mask += VI("Type", "Masks are multipurpose objects", null, type, style) { type = it }
+        mask += VI("Size", "How large pixelated pixels or blur should be", effectSize, style)
+        mask += VI("Invert Mask", "Changes transparency with opacity", null, isInverted, style) { isInverted = it }
         mask += VI("Use Color / Transparency", "Should the color influence the masked?", useMaskColor, style)
         mask += VI("Blur Threshold", "", blurThreshold, style)
-        mask += VI("Make Huge", "scales the mask, without affecting the children", null, isFullscreen, style){ isFullscreen = it }
+        mask += VI(
+            "Make Huge",
+            "Scales the mask, without affecting the children",
+            null,
+            isFullscreen,
+            style
+        ) { isFullscreen = it }
+        val greenScreen = getGroup("Green Screen", "greenScreen")
+        greenScreen += VI("Similarity", "", greenScreenSimilarity, style)
+        greenScreen += VI("Smoothness", "", greenScreenSmoothness, style)
+        greenScreen += VI("Spill Value", "", greenScreenSpillValue, style)
         val editor = getGroup("Editor", "editor")
-        editor += VI("Show Mask", "for debugging purposes; shows the stencil", null, showMask, style){ showMask = it }
-        editor += VI("Show Masked", "for debugging purposes", null, showMasked, style){ showMasked = it }
+        editor += VI("Show Mask", "for debugging purposes; shows the stencil", null, showMask, style) { showMask = it }
+        editor += VI("Show Masked", "for debugging purposes", null, showMasked, style) { showMasked = it }
     }
 
     override fun readInt(name: String, value: Int) {

@@ -10,6 +10,7 @@
       <w>coords</w>
       <w>cubemap</w>
       <w>deformer</w>
+      <w>desaturate</w>
       <w>emissive</w>
       <w>equirectangular</w>
       <w>fadein</w>
@@ -35,6 +36,7 @@
       <w>premultiplied</w>
       <w>shaders</w>
       <w>skybox</w>
+      <w>smoothstep</w>
       <w>uchimura</w>
       <w>usemtl</w>
       <w>vertice</w>
