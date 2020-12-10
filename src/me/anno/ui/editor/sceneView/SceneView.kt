@@ -114,6 +114,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
 
     init {
         val is2DPanel = ButtonPanel("2D", style)
+        is2DPanel.setTooltip("Lock the camera; use control to keep the angle")
         is2DPanel.instantTextLoading = true
         controls += SimplePanel(
             is2DPanel,
@@ -128,15 +129,17 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
                 val rot0z = rot[camera.lastLocalTime].z
                 camera.putValue(rot, Vector3f(0f, 0f, rot0z))
             }
-            is2DPanel.text = if (isLocked2D) "3D" else "2D"
+            is2DPanel.text = if (isLocked2D) "2D" else "3D"
             invalidateDrawing()
         }
-        fun add(i: Int, name: String, mode: SceneDragMode) {
+        fun add(i: Int, mode: SceneDragMode) {
             controls += SimplePanel(
-                object : ButtonPanel(name, style) {
+                object : ButtonPanel(mode.displayName, style) {
                     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
                         draw(isHovered, mouseDown || mode == this@SceneView.mode)
                     }
+                }.apply {
+                    setTooltip(mode.description)
                 },
                 true, true,
                 pad * 2 + iconSize * (i + 1), pad,
@@ -146,9 +149,9 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
                 invalidateDrawing()
             }
         }
-        add(0, "M", SceneDragMode.MOVE)
-        add(1, "R", SceneDragMode.ROTATE)
-        add(2, "S", SceneDragMode.SCALE)
+        add(0, SceneDragMode.MOVE)
+        add(1, SceneDragMode.ROTATE)
+        add(2, SceneDragMode.SCALE)
         controls.forEach {
             children += it.drawable
         }

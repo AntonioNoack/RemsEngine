@@ -1,16 +1,16 @@
 package me.anno.ui.editor
 
 import me.anno.config.DefaultConfig
+import me.anno.config.DefaultConfig.getRecentProjects
 import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.ask
 import me.anno.gpu.GFX.openMenu
+import me.anno.gpu.GFX.openMenuComplex2
 import me.anno.gpu.GFX.select
 import me.anno.gpu.GFXBase0
 import me.anno.gpu.Window
 import me.anno.input.Input
-import me.anno.input.Input.mouseX
-import me.anno.input.Input.mouseY
 import me.anno.objects.Text
 import me.anno.objects.cache.Cache
 import me.anno.objects.rendering.RenderSettings
@@ -36,7 +36,6 @@ import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.custom.CustomContainer
 import me.anno.ui.custom.CustomListX
 import me.anno.ui.custom.CustomListY
-import me.anno.ui.editor.PropertyInspector.Companion.createInspector
 import me.anno.ui.editor.config.ConfigPanel
 import me.anno.ui.editor.cutting.CuttingView
 import me.anno.ui.editor.files.FileExplorer
@@ -61,40 +60,24 @@ object UILayouts {
 
     private val LOGGER = LogManager.getLogger(UILayouts::class)
 
-    fun createWelcomeUI() {
+    fun openProject(name: String, file: File) {
+        thread {
+            RemsStudio.loadProject(name.trim(), file)
+            addEvent {
+                nullCamera.farZ.set(5000f)
+                nullCamera.resetTransform()
+                windowStack.clear()
+                createEditorUI()
+            }
+            DefaultConfig.addToRecentProjects(project!!)
+        }
+    }
 
-        // manage and load recent projects
-        // load recently opened parts / scenes / default scene
-        // list of all known projects
-        // color them depending on existence
-
-        val dir = "directory" // vs folder ^^
-        val style = DefaultConfig.style
-        val welcome = PanelListY(style)
-        val title = TextPanel("Rem's Studio", style)
-        title.font.size *= 3
-        welcome += title
-
-        welcome += SpacePanel(0, 1, style)
+    fun createRecentProjectsUI(style: Style, recent: List<DefaultConfig.ProjectHeader>): Panel {
 
         val recentProjects = SettingCategory("Recent Projects", style)
         recentProjects.show2()
-        welcome += recentProjects
 
-        fun openProject(name: String, file: File) {
-            thread {
-                RemsStudio.loadProject(name.trim(), file)
-                addEvent {
-                    nullCamera.farZ.set(5000f)
-                    nullCamera.resetTransform()
-                    windowStack.clear()
-                    createEditorUI()
-                }
-                DefaultConfig.addToRecentProjects(project!!)
-            }
-        }
-
-        val recent = DefaultConfig.getRecentProjects()
         for (project in recent) {
             val tp = TextPanel(project.name, style)
             tp.enableHoverColor = true
@@ -140,14 +123,40 @@ object UILayouts {
             recentProjects += tp
         }
 
-        welcome += SpacePanel(0, 1, style)
+        return recentProjects
+
+    }
+
+    fun loadLastProject(
+        usableFile: File?, nameInput: TextInput,
+        recent: List<DefaultConfig.ProjectHeader>) {
+        if (recent.isEmpty()) loadNewProject(usableFile, nameInput)
+        else {
+            val project = recent.first()
+            openProject(project.name, project.file)
+        }
+    }
+
+    fun loadNewProject(usableFile: File?, nameInput: TextInput) {
+        val file = usableFile
+        if (file != null) {
+            openProject(nameInput.text, file)
+        } else {
+            openMenu("Please choose a $dirName!", listOf(
+                "Ok" to {}
+            ))
+        }
+    }
+
+    private val dirName = "directory" // vs folder ^^
+    lateinit var nameInput: TextInput
+    var usableFile: File? = null
+
+    fun createNewProjectUI(style: Style): Panel {
 
         val newProject = SettingCategory("New Project", style)
         newProject.show2()
-        welcome += newProject
 
-        var usableFile: File? = null
-        lateinit var nameInput: TextInput
         lateinit var fileInput: FileInput
 
         fun updateFileInputColor() {
@@ -174,11 +183,11 @@ object UILayouts {
             when {
                 !rootIsOk(file) -> {
                     state = -2
-                    msg = "Root $dir does not exist!"
+                    msg = "Root $dirName does not exist!"
                 }
                 !file.parentFile.exists() -> {
                     state = -1
-                    msg = "Parent $dir does not exist!"
+                    msg = "Parent $dirName does not exist!"
                 }
                 !fileNameIsOk(file) -> {
                     state = -2
@@ -202,32 +211,12 @@ object UILayouts {
             base.focusTextColor = base.textColor
         }
 
-        fun loadNewProject() {
-            val file = usableFile
-            if (file != null) {
-                openProject(nameInput.text, file)
-            } else {
-                openMenu("Please choose a $dir!", listOf(
-                    "Ok" to {}
-                ))
-            }
-        }
-
-        fun loadLastProject(){
-            if(recent.isEmpty()) loadNewProject()
-            else {
-                val project = recent.first()
-                openProject(project.name, project.file)
-            }
-        }
-
         nameInput = TextInput("Title", style, "New Project")
-        nameInput.setEnterListener { loadNewProject() }
+        nameInput.setEnterListener { loadNewProject(usableFile, nameInput) }
 
         var lastName = nameInput.text
 
         fileInput = FileInput("Project Location", style, File(workspace, nameInput.text))
-
 
         updateFileInputColor()
 
@@ -247,16 +236,40 @@ object UILayouts {
         newProject += fileInput
 
         val button = ButtonPanel("Create Project", style)
-        button.setSimpleClickListener { loadNewProject() }
+        button.setSimpleClickListener { loadNewProject(usableFile, nameInput) }
         newProject += button
 
+        return newProject
+
+    }
+
+    fun createWelcomeUI() {
+
+        // manage and load recent projects
+        // load recently opened parts / scenes / default scene
+        // list of all known projects
+        // color them depending on existence
+
+        val style = DefaultConfig.style
+        val welcome = PanelListY(style)
+
+        welcome += TextPanel("Rem's Studio", style).apply { font.size *= 3 }
+        welcome += SpacePanel(0, 1, style)
+
+        val recent = getRecentProjects()
+
+        welcome += createRecentProjectsUI(style, recent)
+        welcome += SpacePanel(0, 1, style)
+
+        welcome += createNewProjectUI(style)
         welcome += SpacePanel(0, 1, style)
 
         val quickSettings = SettingCategory("Quick Settings", style)
         quickSettings.show2()
         welcome += quickSettings
 
-        quickSettings += EnumInput("GFX Quality", true, gfxSettings.displayName, GFXSettings.values().map { it.displayName }, style)
+        val gfxNames = GFXSettings.values().map { it.displayName }
+        quickSettings += EnumInput("GFX Quality", true, gfxSettings.displayName, gfxNames, style)
             .setChangeListener { _, index, _ ->
                 val value = GFXSettings.values()[index]
                 gfxSettings = value
@@ -287,7 +300,7 @@ object UILayouts {
         mainWindow.cannotClose()
         mainWindow.acceptsClickAway = {
             if (it.isLeft) {
-                loadLastProject()
+                loadLastProject(usableFile, nameInput, recent)
                 usableFile != null
             } else false
         }
@@ -321,14 +334,14 @@ object UILayouts {
         // options.addMajor("Navigate")
         // options.addMajor("Code")
 
-        options.addAction("File", "Settings") {
+        options.addAction("Config", "Settings") {
             val panel = ConfigPanel(DefaultConfig, style)
             val window = Window(panel)
             panel.create()
             windowStack.push(window)
         }
 
-        options.addAction("File", "Style") {
+        options.addAction("Config", "Style") {
             val panel = ConfigPanel(DefaultConfig.style.values, style)
             val window = Window(panel)
             panel.create()
@@ -343,8 +356,19 @@ object UILayouts {
             windowStack.push(window)
         }*/
 
-        options.addAction("File", "Save") { Input.save() }
-        options.addAction("File", "Load") { }
+        val menuStyle = style.getChild("menu")
+
+        options.addAction("Project", "Save") {
+            Input.save()
+            LOGGER.info("Saved the project")
+        }
+
+        options.addAction("Project", "Load") {
+            openMenuComplex2("", listOf(
+                createRecentProjectsUI(menuStyle, getRecentProjects()),
+                createNewProjectUI(menuStyle)
+            ))
+        }
 
         options.addAction("Select", "Inspector Camera") { select(nullCamera) }
         options.addAction("Debug", "Refresh (Ctrl+F5)") { Cache.clear() }

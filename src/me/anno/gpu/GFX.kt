@@ -8,7 +8,6 @@ import me.anno.gpu.blending.BlendDepth
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.framebuffer.Frame
-import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderPlus
 import me.anno.gpu.texture.Texture2D
@@ -22,7 +21,6 @@ import me.anno.studio.Build.isDebug
 import me.anno.studio.RemsStudio
 import me.anno.studio.RemsStudio.editorTime
 import me.anno.studio.RemsStudio.editorTimeDilation
-import me.anno.studio.RemsStudio.lastT
 import me.anno.studio.RemsStudio.nullCamera
 import me.anno.studio.RemsStudio.root
 import me.anno.studio.RemsStudio.selectedInspectable
@@ -41,9 +39,9 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.debug.FrameTimes
 import me.anno.ui.input.components.PureTextInput
-import me.anno.utils.*
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Vectors.minus
+import me.anno.utils.f1
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
 import org.joml.Matrix4fArrayList
@@ -253,7 +251,7 @@ object GFX : GFXBase1() {
     fun copy(alpha: Float) {
         check()
         val shader = copyShader
-        shader.v1("am1", 1f-alpha)
+        shader.v1("am1", 1f - alpha)
         flat01.draw(shader)
         check()
     }
@@ -495,6 +493,9 @@ object GFX : GFXBase1() {
         window = openMenuComplex2(x, y, title, list)!!
 
     }
+
+    fun openMenuComplex2(title: String, panels: List<Panel>) =
+        openMenuComplex2(mouseX.toInt() - 10, mouseY.toInt() - 10, title, panels)
 
     fun openMenuComplex2(
         x: Int,
