@@ -17,6 +17,7 @@ import org.lwjgl.opengl.GL32.glTexImage2DMultisample
 import java.awt.image.BufferedImage
 import java.awt.image.DataBufferByte
 import java.awt.image.DataBufferInt
+import java.lang.Exception
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
@@ -125,12 +126,17 @@ class Texture2D(
         h = img.height
         val intData = when (val buffer = img.raster.dataBuffer) {
             is DataBufferByte -> {
-                val buffer2 = getBuffer(buffer.data)
-                if (sync) uploadData(buffer2)
-                else GFX.addGPUTask(w, h) {
-                    uploadData(buffer2)
+                try {
+                    val buffer2 = getBuffer(buffer.data)
+                    if (sync) uploadData(buffer2)
+                    else GFX.addGPUTask(w, h) {
+                        uploadData(buffer2)
+                    }
+                    return
+                } catch (e:Exception){
+                    // LOGGER.warn(e.message.toString())
+                    img.getRGB(0, 0, w, h, null, 0, img.width)
                 }
-                return
             }
             is DataBufferInt -> buffer.data
             else -> {// said to be slow; I indeed had lags in HomeDesigner
@@ -160,38 +166,51 @@ class Texture2D(
 
     fun getBuffer(bytes: ByteArray): ByteBuffer {
         val buffer = ByteBuffer.allocateDirect(w * h * 4)
-        if (w * h * 4 != bytes.size) {
-            if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN) {
+        when(bytes.size/(w*h)){
+            1 -> {
                 for (i in 0 until w * h) {
-                    buffer.put(bytes[i * 3 + 2])
-                    buffer.put(bytes[i * 3 + 1])
-                    buffer.put(bytes[i * 3])
-                    buffer.put(-1)
-                }
-            } else {
-                for (i in 0 until w * h) {
-                    buffer.put(bytes[i * 3])
-                    buffer.put(bytes[i * 3 + 1])
-                    buffer.put(bytes[i * 3 + 2])
+                    val c = bytes[i]
+                    buffer.put(c)
+                    buffer.put(c)
+                    buffer.put(c)
                     buffer.put(-1)
                 }
             }
-        } else {
-            if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN) {
-                for (i in 0 until w * h) {
-                    buffer.put(bytes[i * 4 + 3])
-                    buffer.put(bytes[i * 4 + 2])
-                    buffer.put(bytes[i * 4 + 1])
-                    buffer.put(bytes[i * 4])
-                }
-            } else {
-                for (i in 0 until w * h) {
-                    buffer.put(bytes[i * 4 + 3])
-                    buffer.put(bytes[i * 4])
-                    buffer.put(bytes[i * 4 + 1])
-                    buffer.put(bytes[i * 4 + 2])
+            3 -> {
+                if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN) {
+                    for (i in 0 until w * h) {
+                        buffer.put(bytes[i * 3 + 2])
+                        buffer.put(bytes[i * 3 + 1])
+                        buffer.put(bytes[i * 3])
+                        buffer.put(-1)
+                    }
+                } else {
+                    for (i in 0 until w * h) {
+                        buffer.put(bytes[i * 3])
+                        buffer.put(bytes[i * 3 + 1])
+                        buffer.put(bytes[i * 3 + 2])
+                        buffer.put(-1)
+                    }
                 }
             }
+            4 -> {
+                if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN) {
+                    for (i in 0 until w * h) {
+                        buffer.put(bytes[i * 4 + 3])
+                        buffer.put(bytes[i * 4 + 2])
+                        buffer.put(bytes[i * 4 + 1])
+                        buffer.put(bytes[i * 4])
+                    }
+                } else {
+                    for (i in 0 until w * h) {
+                        buffer.put(bytes[i * 4 + 3])
+                        buffer.put(bytes[i * 4])
+                        buffer.put(bytes[i * 4 + 1])
+                        buffer.put(bytes[i * 4 + 2])
+                    }
+                }
+            }
+            else -> throw RuntimeException("Not matching sizes! ${w*h} vs ${bytes.size}")
         }
         buffer.position(0)
         return buffer

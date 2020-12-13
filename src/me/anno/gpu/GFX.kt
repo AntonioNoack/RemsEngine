@@ -41,7 +41,7 @@ import me.anno.ui.debug.FrameTimes
 import me.anno.ui.input.components.PureTextInput
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Vectors.minus
-import me.anno.utils.f1
+import me.anno.utils.FloatFormat.f1
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
 import org.joml.Matrix4fArrayList

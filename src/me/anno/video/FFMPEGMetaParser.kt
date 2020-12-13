@@ -1,7 +1,7 @@
 package me.anno.video
 
 import me.anno.io.utils.StringMap
-import me.anno.utils.warn
+import me.anno.utils.Warning.warn
 import org.apache.logging.log4j.LogManager
 import java.lang.Exception
 import java.lang.RuntimeException

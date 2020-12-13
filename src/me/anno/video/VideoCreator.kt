@@ -4,9 +4,10 @@ import me.anno.gpu.GFX
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.studio.RemsStudio.project
+import me.anno.studio.Rendering.isRendering
 import me.anno.utils.Maths.clamp
 import me.anno.utils.StringHelper.formatTime
-import me.anno.utils.f1
+import me.anno.utils.FloatFormat.f1
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL11.*
@@ -17,7 +18,8 @@ import kotlin.concurrent.thread
 import kotlin.math.round
 
 class VideoCreator(
-    val w: Int, val h: Int, val fps: Double, val totalFrameCount: Int, val output: File) {
+    val w: Int, val h: Int, val fps: Double, val totalFrameCount: Int, val output: File
+) {
 
     init {
         if (w % 2 != 0 || h % 2 != 0) throw RuntimeException("width and height must be divisible by 2")
@@ -63,9 +65,20 @@ class VideoCreator(
         args += videoEncodingArguments
         process = ProcessBuilder(args).start()
         thread {
+            val reader = process.inputStream.bufferedReader()
+            while (true) {
+                val line = reader.readLine() ?: break
+                LOGGER.warn(line)
+            }
+        }
+        thread {
             val out = process.errorStream.bufferedReader()
             while (true) {
                 val line = out.readLine() ?: break
+                if (line.contains("unable", true) || line.contains("null", true)) {
+                    LOGGER.error(line)
+                    isRendering = false
+                }
                 // parse the line
                 if (line.indexOf('=') > 0) {
                     var frameIndex = 0
@@ -164,16 +177,21 @@ class VideoCreator(
                     videoOut.write(byteArrayBuffer)
                     callback()
                 }
-            } catch (e: IOException){
-                e.printStackTrace()
-                videoOut.close()
+            } catch (e: IOException) {
+                if(!wasClosed){
+                    LOGGER.error("Closing because of ${e.message}")
+                    e.printStackTrace()
+                    close()
+                }
             }
         }
 
     }
 
+    var wasClosed = false
     fun close() {
-        synchronized(videoOut){
+        wasClosed = true
+        synchronized(videoOut) {
             videoOut.flush()
             videoOut.close()
         }

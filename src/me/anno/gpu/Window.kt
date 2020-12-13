@@ -3,7 +3,7 @@ package me.anno.gpu
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.input.MouseButton
 import me.anno.ui.base.Panel
-import me.anno.utils.f3
+import me.anno.utils.FloatFormat.f3
 import org.apache.logging.log4j.LogManager
 import java.lang.RuntimeException
 import kotlin.math.min

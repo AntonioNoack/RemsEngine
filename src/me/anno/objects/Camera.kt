@@ -123,6 +123,16 @@ class Camera(parent: Transform? = null) : Transform(parent) {
         color += VI("Look Up Table", "LUT, Look Up Table for colors, formatted like in UE4", null, lut, style) {
             lut = it
         }
+        val cg = getGroup("Color Grading (ASC CDL)", "color-grading")
+        cg += VI("Power", "sRGB, Linear, ...", cgPower, style)
+        cg += VI(
+            "Saturation",
+            "0 = gray scale, 1 = normal, -1 = inverted colors",
+            cgSaturation,
+            style
+        )
+        cg += VI("Slope", "Intensity or Tint", cgSlope, style)
+        cg += VI("Offset", "Can be used to color black objects", cgOffset, style)
         val editor = getGroup("Editor", "editor")
         editor += VI(
             "Only Show Target",
@@ -135,15 +145,6 @@ class Camera(parent: Transform? = null) : Transform(parent) {
         ops += ButtonPanel("Reset Transform", style)
             .setSimpleClickListener { resetTransform() }
             .setTooltip("If accidentally moved")
-        color += VI("Power", "Color Grading, ASC CDL", cgPower, style)
-        color += VI(
-            "Saturation",
-            "Color Grading, 0 = gray scale, 1 = normal, -1 = inverted colors",
-            cgSaturation,
-            style
-        )
-        color += VI("Slope", "Color Grading, Intensity", cgSlope, style)
-        color += VI("Offset", "Color Grading, ASC CDL", cgOffset, style)
     }
 
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {

@@ -16,12 +16,8 @@ import kotlin.math.ceil
 import kotlin.math.roundToInt
 
 class VideoAudioCreator(
-    val videoCreator: VideoCreator,
-    val sampleRate: Int,
-    val motionBlurSteps: Int,
-    val shutterPercentage: Float,
-    val audioSources: List<Audio>,
-    val output: File
+    val videoCreator: VideoCreator, val sampleRate: Int, val audioSources: List<Audio>, val output: File,
+    val motionBlurSteps: Int, val shutterPercentage: Float
 ) {
 
     var onFinished = {}

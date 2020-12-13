@@ -14,6 +14,7 @@ object Logging {
 
     val lastConsoleLines = LinkedList<String>()
     var lastConsoleLineCount = 500
+    var maxConsoleLineLength = 500
 
     class OutputPipe(val output: OutputStream, val processMessage: (String) -> String): OutputStream() {
         var line = ""
@@ -28,14 +29,14 @@ object Logging {
                     console?.text = line
                     line = ""
                 }
-                line.length < 100 -> {
+                line.length < maxConsoleLineLength -> {
                     // enable for
                     /*if(line.isEmpty() && b != '['.toInt()){
                         throw RuntimeException("Please use the LogManager.getLogger(YourClass)!")
                     }*/
                     line += b.toChar()
                 }
-                line.length == 100 -> {
+                line.length == maxConsoleLineLength -> {
                     line += "..."
                 }
             }

@@ -5,6 +5,7 @@ import me.anno.objects.Audio
 import me.anno.studio.RemsStudio.motionBlurSteps
 import me.anno.studio.RemsStudio.shutterPercentage
 import me.anno.studio.RemsStudio.targetOutputFile
+import me.anno.utils.StringHelper.getImportType
 import me.anno.video.VideoAudioCreator
 import me.anno.video.VideoCreator
 import org.apache.logging.log4j.LogManager
@@ -33,7 +34,19 @@ object Rendering {
         }
         isRendering = true
         LOGGER.info("Rendering video at $width x $height")
-        val targetOutputFile = targetOutputFile
+        var targetOutputFile = targetOutputFile
+        do {
+            val file0 = targetOutputFile
+            if (targetOutputFile.exists() && targetOutputFile.isDirectory) {
+                targetOutputFile = File(targetOutputFile, "output.mp4")
+            }
+            if(!targetOutputFile.name.contains('.')){
+                targetOutputFile = File(targetOutputFile, ".mp4")
+            }
+        } while (file0 !== targetOutputFile)
+        if(targetOutputFile.extension.getImportType() != "Video"){
+            LOGGER.warn("The file extension .${targetOutputFile.extension} is unknown! Your export may fail!")
+        }
         val tmpFile = File(
             targetOutputFile.parentFile,
             targetOutputFile.nameWithoutExtension + ".tmp." + targetOutputFile.extension
@@ -49,7 +62,8 @@ object Rendering {
                 width, height,
                 RemsStudio.targetFPS, totalFrameCount,
                 if (audioSources.isEmpty()) targetOutputFile else tmpFile
-            ), sampleRate, motionBlurSteps, shutterPercentage, audioSources, targetOutputFile
+            ), sampleRate, audioSources, targetOutputFile,
+            motionBlurSteps, shutterPercentage
         )
         creator.onFinished = { isRendering = false }
         creator.start()

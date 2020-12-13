@@ -4,10 +4,10 @@ import me.anno.config.DefaultConfig
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderPlus
 import me.anno.gpu.texture.Filtering
-import me.anno.objects.effects.MaskType
-import me.anno.mesh.fbx.model.FBXGeometry
 import me.anno.mesh.fbx.model.FBXShader
+import me.anno.objects.effects.MaskType
 import me.anno.objects.modes.UVProjection
+import me.anno.studio.Scene.noiseFunc
 import org.lwjgl.opengl.GL20
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -22,6 +22,7 @@ object ShaderLib {
     lateinit var subpixelCorrectTextShader: Shader
     lateinit var shader3DPolygon: ShaderPlus
     lateinit var shader3D: ShaderPlus
+    lateinit var shader3DforText: ShaderPlus
     lateinit var shader3DRGBA: ShaderPlus
     lateinit var shader3DYUV: ShaderPlus
     lateinit var shader3DARGB: ShaderPlus
@@ -286,7 +287,7 @@ object ShaderLib {
                     "   vec3 textMask = texture(tex, uv).rgb;\n" +
                     "   vec3 mixing = brightness(textColor) > brightness(backgroundColor) ? textMask.rgb : textMask.rgb;\n" +
                     "   mixing *= textColor.a;\n" +
-                    "   vec4 color = mix(backgroundColor, textColor, vec4(mixing, dot(mixing,vec3(${1f/3f}))));\n" +
+                    "   vec4 color = mix(backgroundColor, textColor, vec4(mixing, dot(mixing,vec3(${1f / 3f}))));\n" +
                     "   if(color.a < 0.001) discard;\n" +
                     "   gl_FragColor = vec4(color.rgb, 1.0);\n" +
                     "}"
@@ -311,9 +312,8 @@ object ShaderLib {
                 "a3 attr0;\n" +
                 "a2 attr1;\n" +
                 "u4 tiling;\n" +
-                "u3 offset;\n" +
                 "void main(){\n" +
-                "   localPosition = attr0 + offset;\n" +
+                "   localPosition = attr0;\n" +
                 "   gl_Position = transform * vec4(localPosition, 1.0);\n" +
                 positionPostProcessing +
                 "   uv = (attr1-0.5) * tiling.xy + 0.5 + tiling.zw;\n" +
@@ -338,6 +338,29 @@ object ShaderLib {
                 "}"
 
         shader3D = createShaderPlus("3d", v3D, y3D, f3D, listOf("tex"))
+        shader3DforText = createShaderPlus(
+            "3d-text", v3DBase +
+                    "a3 attr0;\n" +
+                    "a2 attr1;\n" +
+                    "u3 offset;\n" +
+                    "void main(){\n" +
+                    "   localPosition = attr0 + offset;\n" +
+                    "   gl_Position = transform * vec4(localPosition, 1.0);\n" +
+                    positionPostProcessing +
+                    "   vertexId = gl_VertexID;\n" +
+                    "}",
+            y3D + "" +
+                    "flat varying int vertexId;\n", "" +
+                    "u4 tint;" +
+                    noiseFunc +
+                    getTextureLib +
+                    getColorForceFieldLib +
+                    "void main(){\n" +
+                    "   vec4 color = vec4(1);\n" +
+                    "   if($hasForceFieldColor) color *= getForceFieldColor();\n" +
+                    "   gl_FragColor = tint * color;\n" +
+                    "}", listOf("tex")
+        )
 
         val v3DPolygon = v3DBase +
                 "a3 attr0;\n" +
@@ -539,9 +562,11 @@ object ShaderLib {
                 "}"
 
         shader3DCircle = createShaderPlus("3dCircle", v3DCircle, y3D, f3DCircle, listOf())
-        shader3DCircle.shader.ignoreUniformWarnings(listOf(
-            "filtering", "textureDeltaUV", "tiling", "uvProjection", "forceFieldUVCount"
-        ))
+        shader3DCircle.shader.ignoreUniformWarnings(
+            listOf(
+                "filtering", "textureDeltaUV", "tiling", "uvProjection", "forceFieldUVCount"
+            )
+        )
 
         // create the obj+mtl shader
         shaderObjMtl = createShaderPlus(

@@ -2,7 +2,7 @@ package me.anno.ui.editor.color.spaces
 
 import me.anno.ui.editor.color.ColorSpace
 import me.anno.ui.editor.color.HSVColorSpace
-import me.anno.utils.GradientDescent.gradientDescent
+import me.anno.utils.Optimization.simplexAlgorithm
 import me.anno.utils.Maths.mix
 import me.anno.utils.Vectors.times
 import org.joml.Vector3f
@@ -38,7 +38,7 @@ object LinearHSI : ColorSpace(
     override fun fromRGB(rgb: Vector3f): Vector3f {
         val hsv = HSVColorSpace.rgbToHSV(rgb.x, rgb.y, rgb.z)
         // we were too lazy to find the correct solution 😅, so we just use gradient descent to find it
-        val solution = gradientDescent(floatArrayOf(hsv.x, hsv.y, hsv.z), 0.1f, 1e-6f, 250) {
+        val solution = simplexAlgorithm(floatArrayOf(hsv.x, hsv.y, hsv.z), 0.1f, 1e-6f, 250) {
             val currentRGB = toRGB(Vector3f(it[0], it[1], it[2]))
             val dr = currentRGB.x - rgb.x
             val dg = currentRGB.y - rgb.y

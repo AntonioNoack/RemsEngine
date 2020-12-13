@@ -46,7 +46,7 @@ class FontMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
                 Vector2d(0.0, 1.0),
                 Vector2d(1.0, 1.0),
                 Vector2d(1.0, 0.0)
-            ), name
+            )
         )
     }
 
@@ -182,7 +182,7 @@ class FontMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
                         // randomize the shapes to break up linear parts,
                         // which can't be solved by our currently used triangulator
                         // works <3
-                        fragments.add(Fragment(currentShape, name))
+                        fragments.add(Fragment(currentShape))
                     }// else crazy...
                     currentShape = ArrayList()
 
@@ -257,7 +257,7 @@ class FontMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
                         mergeRings(ring, inner.ring)
                     }*/
                     needingRemoval.clear()
-                    triangles = Triangulation.ringToTriangles2(ring, name)
+                    triangles = Triangulation.ringToTriangles2(ring)
                     gfx?.apply {
                         gfx.color = Color.GRAY
                         drawTriangles(gfx, 0, triangles)
@@ -352,8 +352,8 @@ class FontMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
         }
     }
 
-    class Fragment(val ring: MutableList<Vector2f>, name: String) {
-        var triangles = Triangulation.ringToTriangles2(ring, name)
+    class Fragment(val ring: MutableList<Vector2f>) {
+        var triangles = Triangulation.ringToTriangles2(ring)
         val minX: Float
         val minY: Float
         val maxX: Float

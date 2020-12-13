@@ -1,13 +1,15 @@
 package me.anno.ui.debug
 
 import me.anno.config.DefaultStyle
+import me.anno.gpu.GFX.windowStack
 import me.anno.gpu.Window
 import me.anno.input.MouseButton
 import me.anno.studio.Logging
 import me.anno.studio.RemsStudio
+import me.anno.ui.base.ButtonPanel
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.groups.PanelList
-import me.anno.ui.debug.console.COFullscreen
+import me.anno.ui.debug.console.ConsoleLogFullscreen
 import me.anno.ui.debug.console.COLine
 import me.anno.ui.style.Style
 import me.anno.utils.Maths.mixARGB
@@ -23,10 +25,13 @@ class ConsoleOutputPanel(style: Style): TextPanel("", style) {
     override fun onDoubleClick(x: Float, y: Float, button: MouseButton) {
         if (button.isLeft) {
             // open console in large with scrollbar
-            val listPanel = COFullscreen(style)
+            val listPanel = ConsoleLogFullscreen(style)
             // todo update, if there are new messages incoming
             // done select the text color based on the type of message
-            val list = listPanel.child as PanelList
+            val list = listPanel.content as PanelList
+            list += ButtonPanel("Close", style).setSimpleClickListener {
+                windowStack.pop().destroy()
+            }
             Logging.lastConsoleLines.reversed().forEach { msg ->
                 val level = if (msg.startsWith('[')) {
                     when (msg.substring(0, min(4, msg.length))) {

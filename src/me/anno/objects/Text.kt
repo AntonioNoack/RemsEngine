@@ -8,11 +8,8 @@ import me.anno.fonts.mesh.FontMesh.Companion.DEFAULT_LINE_HEIGHT
 import me.anno.fonts.mesh.FontMesh2
 import me.anno.fonts.mesh.FontMeshBase
 import me.anno.gpu.GFX
-import me.anno.gpu.GFXx3D.draw3D
-import me.anno.gpu.GFXx3D.draw3DOffset
-import me.anno.gpu.TextureLib.whiteTexture
-import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.Filtering
+import me.anno.gpu.GFXx3D.draw3DText
+import me.anno.gpu.GFXx3D.draw3DTextWithOffset
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.animation.AnimatedProperty
@@ -40,6 +37,8 @@ import java.awt.Font
 import java.io.File
 import kotlin.math.max
 
+// todo calculate distance field...
+
 // todo animated text, like in RPGs, where text appears; or like typing
 // todo background "color" in the shape of a plane? for selections and such
 
@@ -55,9 +54,7 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
     override fun getSymbol() = DefaultConfig["ui.symbol.text", "\uD83D\uDCC4"]
 
     // todo blurry, colorful text shadow
-    // todo by calculated distance fields:
-    // todo just project the points outwards xD
-    // todo and create the shadow on a (linked?) child element
+    // by calculated distance fields:
 
     // done multiple line alignment
     // done working tabs
@@ -205,16 +202,12 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
                 val dy1 = dy0 + value.yPos * scaleY * lineOffset
 
                 fontMesh.draw { buffer, xOffset ->
-                    // why is y mirrored?
                     val offset = Vector3f(dx1 + xOffset, -dy1, 0f)
                     if(firstTimeDrawing){
-                        draw3D(
-                            this, time, offset, stack, buffer, whiteTexture, color,
-                            Filtering.NEAREST, Clamping.CLAMP, null
-                        )
+                        draw3DText(this, time, offset, stack, buffer, color)
                         firstTimeDrawing = false
                     } else {
-                        draw3DOffset(buffer, offset)
+                        draw3DTextWithOffset(buffer, offset)
                     }
                 }
 

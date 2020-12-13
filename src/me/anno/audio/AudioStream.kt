@@ -77,7 +77,7 @@ abstract class AudioStream(
     var isPlaying = false
 
     var globalToLocalTime = { globalTime: Double -> globalTime }
-    var localAmplitude = { localtime: Double -> 1f }
+    var localAmplitude: (localTime: Double) -> Float = { _: Double -> 1f }
 
     val buffers = ArrayList<SoundBuffer>()
 

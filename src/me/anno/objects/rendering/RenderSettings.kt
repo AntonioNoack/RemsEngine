@@ -4,10 +4,14 @@ import me.anno.config.DefaultConfig
 import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.animation.Type
+import me.anno.studio.RemsStudio
 import me.anno.studio.RemsStudio.project
 import me.anno.studio.RemsStudio.targetDuration
 import me.anno.studio.RemsStudio.targetOutputFile
+import me.anno.studio.Rendering
+import me.anno.studio.Rendering.renderPart
 import me.anno.studio.StudioBase.Companion.addEvent
+import me.anno.ui.base.ButtonPanel
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
@@ -21,6 +25,7 @@ import java.io.File
 import kotlin.concurrent.thread
 import kotlin.math.abs
 import kotlin.math.max
+import kotlin.math.roundToInt
 
 object RenderSettings : Transform(){
 
@@ -57,6 +62,7 @@ object RenderSettings : Transform(){
             .split(',')
             .mapNotNull { it.trim().toDoubleOrNull() }
             .toMutableList()
+
         if(framesRates.isEmpty()) framesRates = arrayListOf(60.0)
         if(project.targetFPS !in framesRates) framesRates.add(0, project.targetFPS)
         list += EnumInput("Frame Rate", true, project.targetFPS.toString(), framesRates.map { it.toString() }, style)
@@ -87,12 +93,33 @@ object RenderSettings : Transform(){
             }
             .setTooltip("[Motion Blur] 1 = full frame is used; 0.1 = only 1/10th of a frame time is used")
 
+        // todo file input file selector...
         list += FileInput("Output File", style, targetOutputFile)
             .setChangeListener {
                 project.targetOutputFile = File(it)
                 save()
             }
 
+        list += ButtonPanel("Render at 100%", style)
+            .setSimpleClickListener { renderPart(1) }
+            .setTooltip("Create video at full resolution")
+        list += ButtonPanel("Render at 50%", style)
+            .setSimpleClickListener { renderPart(2) }
+            .setTooltip("Create video at half resolution")
+        list += ButtonPanel("Render at 25%", style)
+            .setSimpleClickListener { renderPart(4) }
+            .setTooltip("Create video at quarter resolution")
+        list += ButtonPanel("Render at Set%", style)
+            .setSimpleClickListener { renderSetPercent() }
+            .setTooltip("Create video at your custom set relative resolution")
+
+    }
+
+    fun renderSetPercent(){
+        Rendering.render(
+            max(2, (project!!.targetWidth * project!!.targetSizePercentage / 100).roundToInt()),
+            max(2, (project!!.targetHeight * project!!.targetSizePercentage / 100).roundToInt())
+        )
     }
 
     var lastSavePoint = 0L

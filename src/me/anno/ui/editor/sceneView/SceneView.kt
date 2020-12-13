@@ -113,7 +113,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
     // we need the depth for post processing effects like dof
 
     init {
-        val is2DPanel = ButtonPanel("2D", style)
+        val is2DPanel = ButtonPanel("3D", style)
         is2DPanel.setTooltip("Lock the camera; use control to keep the angle")
         is2DPanel.instantTextLoading = true
         controls += SimplePanel(

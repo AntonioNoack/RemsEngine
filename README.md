@@ -5,13 +5,15 @@ and was inspired by the channel [YDS](https://www.youtube.com/user/Yutsuraidance
 
 ![Screenshot of the program](https://phychi.com/remsstudio/shots/01.09.2020.png)
 
+See the website for help: [remsstudio.phychi.com](https://remsstudio.phychi.com)
+
 That's why Rem's Studio will always be sold **low-priced** to individuals, and may stay free, if you build it yourself (proof of work, that you really can't afford it ;)).
 In the alpha times, you all are early testers, so you get it for **free** anyways <3 :D.
 
 
 The name is from Rem, an Anime character, I like; inspired by YDS, too, because they use the Anime/Manga style. If you have issues with that, you can imagine it's named after Rembrandt.
 
-The project is developed with Kotlin,JVM, so plugins should be possible, and are a goal at some point.
+The project is developed with Kotlin, JVM, so plugins should be possible, and are a goal at some point.
 It is additionally developed with Java, so it works with Windows and Linux.
 
 ## Currently used libraries
@@ -35,7 +37,7 @@ Missing, important features:
 
 FFmpeg needs to be installed.
 
-You can download the [universal build here](https://phychi.com/remsstudio/VideoStudio.jar).
+You can download the [universal build here](https://remsstudio.phychi.com/download/VideoStudio.jar).
 Later, I'll probably create specific builds depending on your OS, so they are smaller.
 
 My FFmpeg install on Linux Mint 19 somehow misses features, that FFmpeg for Windows has. You might encounter issues as well.
@@ -47,7 +49,7 @@ Observed missing features:
 
 You probably have to copy the files for ffmpeg (the program will tell you in the console). This is because of a bug in Java 8 (but Java 8 is the default download for Win10), and a slight config issue on my webserver.
 
-You can download the [universal build here](https://phychi.com/remsstudio/VideoStudio.jar).
+You can download the [universal build here](https://remsstudio.phychi.com/download/VideoStudio.jar).
 Later, I'll probably create specific builds depending on your OS, so they are smaller.
 
 ### Mac OS

@@ -31,7 +31,7 @@ import me.anno.ui.debug.ConsoleOutputPanel
 import me.anno.ui.dragging.IDraggable
 import me.anno.utils.ProcessingQueue
 import me.anno.utils.Maths.clamp
-import me.anno.utils.f3
+import me.anno.utils.FloatFormat.f3
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL11.*
 import java.io.File

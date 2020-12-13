@@ -138,7 +138,7 @@ class Project(var name: String, val file: File) : Saveable() {
     var targetWidth = config["target.width", 1920]
     var targetHeight = config["target.height", 1080]
     var targetFPS = config["target.fps", 30.0]
-    var targetOutputFile = config["target.file", File(file, "output.mp4")]
+    var targetOutputFile = config["target.output", File(file, "output.mp4")]
     var targetVideoQuality = config["target.quality", 23]
     var motionBlurSteps = config["target.motionBlur.steps", 8]
     var shutterPercentage = config["target.motionBlur.shutterPercentage", 1f]
@@ -160,6 +160,7 @@ class Project(var name: String, val file: File) : Saveable() {
         config["target.quality"] = targetVideoQuality
         config["target.motionBlur.steps"] = motionBlurSteps
         config["target.motionBlur.shutterPercentage"] = shutterPercentage
+        config["target.output"] = targetOutputFile.toString()
         config["recent.files"] = SceneTabs.children3
             .filter { it.file != null }
             .joinToString("\n") { it.file.toString() }

@@ -32,8 +32,11 @@
       <w>numpad</w>
       <w>orthographicness</w>
       <w>perlin</w>
+      <w>phychi</w>
       <w>pickable</w>
       <w>premultiplied</w>
+      <w>rasterization</w>
+      <w>remsstudio</w>
       <w>shaders</w>
       <w>skybox</w>
       <w>smoothstep</w>

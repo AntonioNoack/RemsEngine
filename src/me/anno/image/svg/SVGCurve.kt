@@ -42,7 +42,7 @@ class SVGCurve(points: MutableList<Vector2d>, closed: Boolean, val depth: Double
 
         if(fill){
 
-            triangles = Triangulation.ringToTriangles(points, "svg-fill")
+            triangles = Triangulation.ringToTriangles(points)
 
         } else {
 
@@ -57,7 +57,7 @@ class SVGCurve(points: MutableList<Vector2d>, closed: Boolean, val depth: Double
 
             ring2.reverse()
 
-            triangles = Triangulation.ringToTriangles(ring1 + ring2, "svg-line")
+            triangles = Triangulation.ringToTriangles(ring1 + ring2)
 
         }
 

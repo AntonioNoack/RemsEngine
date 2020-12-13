@@ -26,13 +26,14 @@ import me.anno.ui.dragging.Draggable
 import me.anno.ui.editor.files.thumbs.Thumbs
 import me.anno.ui.editor.sceneTabs.SceneTabs
 import me.anno.ui.style.Style
-import me.anno.utils.*
 import me.anno.utils.FileHelper.formatFileSize
 import me.anno.utils.FileHelper.listFiles2
 import me.anno.utils.FileHelper.openInExplorer
 import me.anno.utils.Maths.mixARGB
 import me.anno.utils.Maths.sq
+import me.anno.utils.Quad
 import me.anno.utils.StringHelper.getImportType
+import me.anno.utils.Tabs
 import me.anno.video.FFMPEGMetadata
 import me.anno.video.VFrame
 import org.joml.Matrix4fArrayList
@@ -56,7 +57,7 @@ class FileEntry(
 
     val importType = file.extension.getImportType()
     var iconPath = if (file.isDirectory) {
-        when(file.name.toLowerCase()){
+        when (file.name.toLowerCase()) {
             "music", "musik", "videos", "movies" -> "file/music.png"
             "documents", "dokumente", "downloads" -> "file/text.png"
             "images", "pictures" -> "file/image.png"
@@ -83,7 +84,7 @@ class FileEntry(
         title.instantTextLoading = true
     }
 
-    fun stopPlayback(){
+    fun stopPlayback() {
         val audio = audio
         if (audio != null && audio.component?.isPlaying == true) {
             this.audio = null
@@ -114,6 +115,7 @@ class FileEntry(
             is Texture2D -> tex.state
             else -> tex
         }
+        title.canBeSeen = canBeSeen
         return Quad(super.getVisualState(), title.getVisualState(), tex, meta)
     }
 
@@ -268,8 +270,7 @@ class FileEntry(
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
 
-        // only show tooltip, if there is not enough space for the full name
-        tooltip = if(h/2 < title.minH2) file.name else ""
+        tooltip = file.name
 
         drawBackground()
 
@@ -310,11 +311,11 @@ class FileEntry(
         title.y = y
         title.w = min(title.minW, w)
         title.h = 1
-        val y12 = min(y1, min(y+h/2, y+title.minH2))
-        val x12 = min(x1, x+title.w)
-        if(y12 > y0 && x12 > x0){
-            GFX.clip2(x0, y0, x12, y12){
-                title.draw(x0, y0, x1, y12)
+        val y12 = min(y1, min(y + (title.font.size * 2.5f).toInt(), y + title.minH2))
+        val x12 = min(x1, x + title.w)
+        if (y12 > y0 && x12 > x0) {
+            GFX.clip2(x0, y0, x1, y12) {
+                title.drawText(0, 0, title.text, title.textColor)
             }
         }
     }
@@ -336,12 +337,12 @@ class FileEntry(
                 }
             }
             "Rename" -> {
-                askName(x.toInt(), y.toInt(), "Rename To...", "Rename", { -1 }){
+                askName(x.toInt(), y.toInt(), "Rename To...", "Rename", { -1 }) {
                     val allowed = it.toAllowedFilename()
-                    if(allowed != null){
+                    if (allowed != null) {
                         val dst = File(file.parentFile, allowed)
-                        if(dst.exists() && !allowed.equals(file.name, true)){
-                            ask("Override existing file?"){
+                        if (dst.exists() && !allowed.equals(file.name, true)) {
+                            ask("Override existing file?") {
                                 file.renameTo(dst)
                                 explorer.invalidate()
                             }

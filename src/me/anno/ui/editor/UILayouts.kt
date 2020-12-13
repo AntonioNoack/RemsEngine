@@ -326,15 +326,9 @@ object UILayouts {
 
         val ui = PanelListY(style)
 
-        // todo show the file location up there, too?
-        // todo fully customizable content
         val options = OptionBar(style)
-        // options.addMajor("File")
-        // options.addMajor("Edit")
-        // options.addMajor("View")
-        // options.addMajor("Navigate")
-        // options.addMajor("Code")
 
+        // todo option to save/load/restore layout
         options.addAction("Config", "Settings") {
             val panel = ConfigPanel(DefaultConfig, false, style)
             val window = Window(panel)
@@ -348,14 +342,6 @@ object UILayouts {
             panel.create()
             windowStack.push(window)
         }
-
-        // needs a different kind of editor...
-        /*options.addAction("File", "Key Map") {
-            val panel = ConfigPanel(ActionManager.keyMap, style)
-            val window = Window(panel)
-            panel.create()
-            windowStack.push(window)
-        }*/
 
         val menuStyle = style.getChild("menu")
 
@@ -377,15 +363,7 @@ object UILayouts {
 
         options.addAction("Debug", "Refresh (Ctrl+F5)") { Cache.clear() }
 
-        options.addAction("Render", "Settings") {
-            /*val style2 = style.getChild("menu")
-            val list = PanelListY(style2)
-            createInspector(RenderSettings, list, style2)
-            GFX.openMenuComplex2(mouseX.toInt(), mouseY.toInt(), "", listOf(
-                list
-            ))*/
-            select(RenderSettings)
-        }
+        options.addAction("Render", "Settings") { select(RenderSettings) }
         options.addAction("Render", "Set%") {
             render(
                 max(2, (project!!.targetWidth * project!!.targetSizePercentage / 100).roundToInt()),

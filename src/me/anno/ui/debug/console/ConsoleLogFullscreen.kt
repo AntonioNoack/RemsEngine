@@ -6,10 +6,11 @@ import me.anno.studio.RemsStudio
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelList
+import me.anno.ui.base.scrolling.ScrollPanelXY
 import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.style.Style
 
-class COFullscreen(style: Style): ScrollPanelY(Padding(5), AxisAlignment.CENTER, style) {
+class ConsoleLogFullscreen(style: Style): ScrollPanelXY(Padding(5), style) {
     override fun onBackSpaceKey(x: Float, y: Float) {
         RemsStudio.windowStack.pop().destroy()
     }

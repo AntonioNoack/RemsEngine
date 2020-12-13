@@ -104,33 +104,27 @@ object GFXx3D {
         GFX.check()
     }
 
-    fun draw3D(
+    fun draw3DText(
         that: GFXTransform?, time: Double, offset: Vector3f,
-        stack: Matrix4fArrayList, buffer: StaticBuffer, texture: Texture2D, w: Int, h: Int, color: Vector4f,
-        filtering: Filtering, clamping: Clamping, tiling: Vector4f?
+        stack: Matrix4fArrayList, buffer: StaticBuffer, color: Vector4f
     ) {
-        val shader = ShaderLib.shader3D.shader
-        shader3DUniforms(shader, stack, w, h, color, tiling, filtering, null)
+        // todo remove the y-scale of -1 everywhere...
+        stack.pushMatrix()
+        stack.scale(1f, -1f, 1f)
+        val shader = ShaderLib.shader3DforText.shader
+        shader3DUniforms(shader, stack, color)
         shader.v3("offset", offset)
         that?.uploadAttractors(shader, time) ?: GFXTransform.uploadAttractors0(shader)
-        texture.bind(0, filtering, clamping)
         buffer.draw(shader)
         GFX.check()
+        stack.popMatrix()
     }
 
-    fun draw3D(
-        that: GFXTransform?, time: Double, offset: Vector3f,
-        stack: Matrix4fArrayList, buffer: StaticBuffer, texture: Texture2D, color: Vector4f,
-        filtering: Filtering, clamping: Clamping, tiling: Vector4f?
-    ) {
-        draw3D(that, time, offset, stack, buffer, texture, texture.w, texture.h, color, filtering, clamping, tiling)
-    }
-
-    fun draw3DOffset(
+    fun draw3DTextWithOffset(
         buffer: StaticBuffer,
         offset: Vector3f
     ) {
-        val shader = ShaderLib.shader3D.shader
+        val shader = ShaderLib.shader3DforText.shader
         shader.v3("offset", offset)
         buffer.draw(shader)
     }
@@ -217,7 +211,6 @@ object GFXx3D {
     ) {
         val shader = ShaderLib.shader3D.shader
         shader3DUniforms(shader, stack, w, h, color, tiling, filtering, uvProjection)
-        shader.v3("offset", 0f, 0f, 0f)
         texture.bind(0, filtering, clamping)
         uvProjection.getBuffer().draw(shader)
         GFX.check()

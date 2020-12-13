@@ -34,7 +34,7 @@ import me.anno.ui.editor.sceneView.ISceneView
 import me.anno.utils.Vectors.is000
 import me.anno.utils.Vectors.is1111
 import me.anno.utils.Vectors.times
-import me.anno.utils.warn
+import me.anno.utils.Warning.warn
 import me.anno.video.MissingFrameException
 import org.joml.Matrix4f
 import org.joml.Matrix4fArrayList

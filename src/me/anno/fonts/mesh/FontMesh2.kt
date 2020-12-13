@@ -11,7 +11,8 @@ import kotlin.streams.toList
 /**
  * custom character-character alignment maps by font for faster calculation
  * */
-class FontMesh2(val font: Font, val text: String, val charSpacing: Float,
+class FontMesh2(val font: Font, val text: String,
+                val charSpacing: Float,
                 forceVariableBuffer: Boolean,
                 debugPieces: Boolean = false) : FontMeshBase() {
 

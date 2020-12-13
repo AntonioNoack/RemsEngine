@@ -4,11 +4,11 @@ import me.anno.utils.Maths.sq
 import org.apache.logging.log4j.LogManager
 import kotlin.math.abs
 
-object GradientDescent {
+object Optimization {
 
     var ctr = 0
 
-    fun gradientDescent(
+    fun simplexAlgorithm(
         v0: FloatArray,
         firstStepSize: Float,
         goodEnoughError: Float,
@@ -76,7 +76,7 @@ object GradientDescent {
 
     }
 
-    fun gradientDescent(
+    fun simplexAlgorithm(
         v0: DoubleArray,
         firstStepSize: Double,
         goodEnoughError: Double,
@@ -152,7 +152,7 @@ object GradientDescent {
     fun main(args: Array<String>) {
         // test gradient descent
         val t0 = System.nanoTime()
-        val solution = gradientDescent(doubleArrayOf(0.0, 0.0), 1.0, 1e-6, 500) {
+        val solution = simplexAlgorithm(doubleArrayOf(0.0, 0.0), 1.0, 1e-6, 500) {
             himmelblau(it[0], it[1])
         }
         val t1 = System.nanoTime()
@@ -161,6 +161,6 @@ object GradientDescent {
         LOGGER.info("${((t1-t0)*1e-9f)}s used")
     }
 
-    private val LOGGER = LogManager.getLogger(GradientDescent::class)
+    private val LOGGER = LogManager.getLogger(Optimization::class)
 
 }

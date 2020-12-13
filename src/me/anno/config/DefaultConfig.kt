@@ -18,7 +18,7 @@ import me.anno.studio.project.Project
 import me.anno.ui.base.Font
 import me.anno.ui.style.Style
 import me.anno.utils.OS
-import me.anno.utils.f3
+import me.anno.utils.FloatFormat.f3
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3f
 import java.io.File

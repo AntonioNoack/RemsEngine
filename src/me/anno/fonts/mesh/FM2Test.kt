@@ -40,9 +40,9 @@ fun main(){
 
     val fh = sl.ascent + sl.descent
     fun drawString(str: String, x: Float){
-        val w = width(str)
+        val wi = width(str)
         gfx.color = Color.DARK_GRAY
-        drawRect(x.toInt(), 0, w.toInt(), fh.toInt())
+        drawRect(x.toInt(), 0, wi.toInt(), fh.toInt())
         gfx.color = Color.WHITE
         gfx.drawString(str, x, fs)
     }

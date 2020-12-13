@@ -30,7 +30,6 @@ class TreeView(style: Style) :
     }
 
     val transformByIndex = ArrayList<Transform>()
-    var inset = style.getSize("treeView.inset", style.getSize("textSize", 12) / 3)
 
     var index = 0
 
@@ -40,13 +39,15 @@ class TreeView(style: Style) :
         open.add(nullCamera to 0)
         // open.add(RenderSettings to 0)
         index = 0
+        val inset = style.getSize("textSize", 12) / 3
         while (open.isNotEmpty()) {
             val (transform, depth) = open.removeAt(open.lastIndex)
             val panel = getOrCreateChild(index++, transform)
             //(panel.parent!!.children[0] as SpacePanel).minW = inset * depth + panel.padding.right
-            val symbol =
+            var symbol =
                 if (transform.isCollapsed) DefaultConfig["ui.symbol.collapsed", "\uD83D\uDDBF"]
                 else transform.getSymbol()
+            symbol = symbol.trim()
             panel.text = if (symbol.isEmpty()) transform.name else "$symbol ${transform.name}"
             panel.padding.left = inset * depth + panel.padding.right
             if (!transform.isCollapsed) {

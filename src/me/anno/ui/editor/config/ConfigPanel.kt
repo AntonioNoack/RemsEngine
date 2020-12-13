@@ -16,8 +16,6 @@ import kotlin.math.max
 // todo allow fields to be added
 class ConfigPanel(val config: StringMap, val isStyle: Boolean, style: Style) : PanelListY(style) {
 
-    // todo reload ui when sth was changed?...
-
     val deep = style.getChild("deep")
     val searchBar = PanelListX(deep)
 

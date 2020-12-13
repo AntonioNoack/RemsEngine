@@ -48,7 +48,7 @@ import me.anno.utils.Maths.pow
 import me.anno.utils.StringHelper.getImportType
 import me.anno.utils.Vectors.plus
 import me.anno.utils.Vectors.times
-import me.anno.utils.test.ImageSequenceMeta
+import me.anno.video.ImageSequenceMeta
 import me.anno.video.FFMPEGMetadata
 import me.anno.video.FFMPEGMetadata.Companion.getMeta
 import me.anno.video.MissingFrameException
@@ -627,18 +627,18 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
             .setTooltip("Smoother preview, heavier calculation")
         )
 
-        val color = getGroup("Color", "color")
-        color += img(VI("Power", "Color Grading, ASC CDL", cgPower, style))
+        val color = getGroup("Color Grading (ASC CDL)", "color-grading")
+        color += img(VI("Power", "sRGB, Linear, ...", cgPower, style))
         color += img(
             VI(
                 "Saturation",
-                "Color Grading, 0 = gray scale, 1 = normal, -1 = inverted colors",
+                "0 = gray scale, 1 = normal, -1 = inverted colors",
                 cgSaturation,
                 style
             )
         )
-        color += img(VI("Slope", "Color Grading, Intensity", cgSlope, style))
-        color += img(VI("Offset", "Color Grading, can be used to color black objects", cgOffset, style))
+        color += img(VI("Slope", "Intensity or Tint", cgSlope, style))
+        color += img(VI("Offset", "Can be used to color black objects", cgOffset, style))
 
         val audio = getGroup("Audio", "audio")
         /*if(meta?.hasAudio == true){

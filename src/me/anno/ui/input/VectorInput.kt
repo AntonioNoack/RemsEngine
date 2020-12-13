@@ -14,6 +14,7 @@ import me.anno.studio.RemsStudio.editorTime
 import me.anno.studio.RemsStudio.selectedProperty
 import me.anno.studio.RemsStudio.selectedTransform
 import me.anno.studio.StudioBase.Companion.shiftSlowdown
+import me.anno.studio.StudioBase.Companion.warn
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelListX
