@@ -11,6 +11,7 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
+import me.anno.objects.GFXTransform.Companion.uploadAttractors0
 import me.anno.objects.modes.UVProjection
 import me.anno.ui.base.Font
 import me.anno.video.VFrame
@@ -97,7 +98,10 @@ object GFXx2D {
         x: Int, y: Int, font: Font, text: String,
         color: Int, backgroundColor: Int, widthLimit: Int, centerX: Boolean = false
     ) =
-        writeText(x, y, font.name, font.size, font.isBold, font.isItalic, text, color, backgroundColor, widthLimit, centerX)
+        writeText(
+            x, y, font.name, font.size, font.isBold, font.isItalic,
+            text, color, backgroundColor, widthLimit, centerX
+        )
 
     fun writeText(
         x: Int, y: Int,
@@ -111,8 +115,8 @@ object GFXx2D {
     ): Pair<Int, Int> {
 
         GFX.check()
-        val texture =
-            FontManager.getString(font, fontSize, text, italic, bold, widthLimit) ?: return 0 to fontSize.toInt()
+        val tex0 = FontManager.getString(font, fontSize, text, italic, bold, widthLimit)
+        val texture = tex0 ?: return 0 to fontSize.toInt()
         // check()
         val w = texture.w
         val h = texture.h
@@ -180,6 +184,7 @@ object GFXx2D {
         val matrix = Matrix4fArrayList()
         matrix.scale(w.toFloat() / GFX.windowWidth, h.toFloat() / GFX.windowHeight, 1f)
         GFX.drawMode = ShaderPlus.DrawMode.COLOR
+        uploadAttractors0(texture.get3DShader())
         draw3D(
             matrix, texture, color.v4(),
             Filtering.LINEAR, Clamping.CLAMP, tiling, UVProjection.Planar
@@ -187,13 +192,17 @@ object GFXx2D {
     }
 
     fun drawCircle(
-        w: Int, h: Int, innerRadius: Float, startDegrees: Float, endDegrees: Float, color: Vector4f
+        x: Int, y: Int,
+        radiusX: Float, radiusY: Float, innerRadius: Float, startDegrees: Float, endDegrees: Float, color: Vector4f
     ) {
+        val rx = x.toFloat() / GFX.windowWidth * 2 - 1
+        val ry = y.toFloat() / GFX.windowHeight * 2 - 1
         // not perfect, but pretty good
         // anti-aliasing for the rough edges
         // not very economical, could be improved
         val matrix = Matrix4fArrayList()
-        matrix.scale(w.toFloat() / GFX.windowWidth, h.toFloat() / GFX.windowHeight, 1f)
+        matrix.translate(rx, ry, 0f)
+        matrix.scale(radiusX / GFX.windowWidth, radiusY / GFX.windowHeight, 1f)
         GFX.drawMode = ShaderPlus.DrawMode.COLOR
         color.w /= 25f
         for (dx in 0 until 5) {
@@ -217,10 +226,19 @@ object GFXx2D {
         shader.v2("size", w / GFX.windowWidth, -h / GFX.windowHeight)
     }
 
+    fun disableAdvancedGraphicalFeatures(shader: Shader) {
+        shader.v1("forceFieldUVCount", 0)
+        shader.v1("forceFieldColorCount", 0)
+        shader.v3("cgSlope", 1f)
+        shader.v3("cgOffset", 0f)
+        shader.v3("cgPower", 1f)
+        shader.v1("cgSaturation", 1f)
+    }
+
     fun draw2D(texture: VFrame) {
 
         if (!texture.isLoaded) throw RuntimeException("Frame must be loaded to be rendered!")
-        val shader = texture.get3DShader().shader
+        val shader = texture.get3DShader()
 
         GFX.check()
 
@@ -233,8 +251,10 @@ object GFXx2D {
         shader.v1("drawMode", ShaderPlus.DrawMode.COLOR.id)
         shader.v1("uvProjection", UVProjection.Planar.id)
 
+        disableAdvancedGraphicalFeatures(shader)
+
         texture.bind(0, Filtering.LINEAR, Clamping.CLAMP)
-        if (shader == ShaderLib.shader3DYUV.shader) {
+        if (shader == ShaderLib.shader3DYUV) {
             val w = texture.w
             val h = texture.h
             shader.v2("uvCorrection", w.toFloat() / ((w + 1) / 2 * 2), h.toFloat() / ((h + 1) / 2 * 2))

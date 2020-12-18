@@ -6,6 +6,8 @@ import me.anno.gpu.GFXx2D.drawRect
 import me.anno.input.Input.mouseX
 import me.anno.input.Input.mouseY
 import me.anno.objects.Transform
+import me.anno.objects.Transform.Companion.toTransform
+import me.anno.studio.RemsStudio
 import me.anno.studio.RemsStudio.nullCamera
 import me.anno.studio.RemsStudio.root
 import me.anno.ui.base.Panel
@@ -36,7 +38,7 @@ class TreeView(style: Style) :
     fun updateTree() {
         val open = ArrayList<Pair<Transform, Int>>()
         open.add(root to 0)
-        open.add(nullCamera to 0)
+        open.add(nullCamera!! to 0)
         // open.add(RenderSettings to 0)
         index = 0
         val inset = style.getSize("textSize", 12) / 3
@@ -123,6 +125,20 @@ class TreeView(style: Style) :
     // todo use the arrow keys to move elements left, right, up, down?
     // todo always give the user hints? :D
     // todo we'd need a selection mode with the arrow keys, too...
+
+    override fun onPaste(x: Float, y: Float, data: String, type: String) {
+        if(!pasteTransform(data)){
+            super.onPaste(x, y, data, type)
+        }
+    }
+
+    fun pasteTransform(data: String): Boolean {
+        val transform = data.toTransform() ?: return false
+        RemsStudio.largeChange("Pasted ${transform.name}"){
+            root.addChild(transform)
+        }
+        return true
+    }
 
     override fun onPasteFiles(x: Float, y: Float, files: List<File>) {
         files.forEach {

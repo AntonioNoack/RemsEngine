@@ -142,6 +142,7 @@ class Project(var name: String, val file: File) : Saveable() {
     var targetVideoQuality = config["target.quality", 23]
     var motionBlurSteps = config["target.motionBlur.steps", 8]
     var shutterPercentage = config["target.motionBlur.shutterPercentage", 1f]
+    var nullCamera = config["camera.null"] as? Camera ?: createNullCamera()
 
     override fun getClassName() = "Project"
     override fun getApproxSize() = 1000
@@ -164,12 +165,24 @@ class Project(var name: String, val file: File) : Saveable() {
         config["recent.files"] = SceneTabs.children3
             .filter { it.file != null }
             .joinToString("\n") { it.file.toString() }
+        config["camera.null"] = nullCamera
         ConfigBasics.save(configFile, config.toString())
     }
 
     fun save() {
         saveConfig()
         SceneTabs.currentTab?.save {}
+    }
+
+    fun createNullCamera(): Camera {
+        return Camera(null)
+            .apply {
+                name = "Inspector Camera"
+                onlyShowTarget = false
+                // higher far value to allow other far values to be seen
+                farZ.defaultValue = 5000f
+                timeDilation = 0.0 // the camera has no time, so no motion can be recorded
+            }
     }
 
 }

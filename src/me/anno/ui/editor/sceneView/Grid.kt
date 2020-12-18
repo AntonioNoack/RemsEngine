@@ -115,7 +115,7 @@ object Grid {
         x0: Float, y0: Float, x1: Float, y1: Float,
         color: Int, alpha: Float
     ) {
-        val shader = shader3D.shader
+        val shader = shader3D
         shader.use()
         GFXTransform.uploadAttractors0(shader)
         val stack = Matrix4f()
@@ -131,7 +131,7 @@ object Grid {
 
     fun drawLine(stack: Matrix4fArrayList, color: Int, alpha: Float) {
 
-        val shader = shader3D.shader
+        val shader = shader3D
         shader.use()
         GFXTransform.uploadAttractors0(shader)
         shader.m4x4("transform", stack)
@@ -185,7 +185,7 @@ object Grid {
 
         if (color.w <= 0f) return
 
-        val shader = shader3D.shader
+        val shader = shader3D
         shader.use()
         GFXTransform.uploadAttractors0(shader)
         shader.m4x4("transform", stack)
@@ -199,7 +199,7 @@ object Grid {
 
         if (alpha <= 0f) return
 
-        val shader = shader3D.shader
+        val shader = shader3D
         shader.use()
         GFXTransform.uploadAttractors0(shader)
         shader.m4x4("transform", stack)

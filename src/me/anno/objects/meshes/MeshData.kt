@@ -32,7 +32,7 @@ class MeshData : CacheData {
 
     fun drawObj(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
         for ((material, buffer) in objData!!) {
-            val shader = shaderObjMtl.shader
+            val shader = shaderObjMtl
             shader3DUniforms(shader, stack, 1, 1, color, null, Filtering.NEAREST, null)
             getTexture(material.diffuseTexture, whiteTexture).bind(0, whiteTexture.filtering, whiteTexture.clamping)
             buffer.draw(shader)
@@ -54,7 +54,7 @@ class MeshData : CacheData {
     // doesn't work :/
     fun drawFBX(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
 
-        val shader = shaderFBX.shader
+        val shader = shaderFBX
         shader.use()
 
         for ((material, buffer) in objData!!) {
@@ -77,7 +77,7 @@ class MeshData : CacheData {
 
                 val bp = bone.parent
                 val parentMatrix = bp?.localJointMatrix
-                val angle = 1f * (GFX.lastTime/3 * 1e-9f).rem(1f)
+                val angle = 1f * (GFX.gameTime/3 * 1e-9f).rem(1f)
 
                 val dx = jointMatrix[3,0] - (bp?.transform?.get(3,0) ?: 0f)
                 val dy = jointMatrix[3,1] - (bp?.transform?.get(3,1) ?: 0f)

@@ -21,7 +21,7 @@ class PanelListMultiline(style: Style) : PanelGroup(style), ScrollableY {
     var childHeight: Int
 
     init {
-        val defaultSize = 100//style.getSize("textSize", 12) * 10
+        val defaultSize = 100
         childWidth = style.getSize("childWidth", defaultSize)
         childHeight = style.getSize("childHeight", defaultSize)
     }

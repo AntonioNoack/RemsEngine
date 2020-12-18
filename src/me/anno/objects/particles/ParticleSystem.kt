@@ -110,7 +110,7 @@ class ParticleSystem(parent: Transform? = null): Transform(parent){
     fun calculateMissingSteps(time: Double): Boolean {
         // cancel after 30ms = 30fps
         val maxTime = 30_000_000L
-        val time0 = GFX.lastTime
+        val time0 = GFX.gameTime
         synchronized(this){
             while((nextIndex - 2) * timeStep < time){
                 step(particles, nextIndex*timeStep, nextIndex, timeStep)

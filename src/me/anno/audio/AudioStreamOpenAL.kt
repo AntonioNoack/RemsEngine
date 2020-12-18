@@ -100,6 +100,8 @@ class AudioStreamOpenAL(file: File, repeat: LoopingState, startTime: Double, met
                 ALBase.check()
                 val soundBuffer = SoundBuffer()
                 ALBase.check()
+                // todo wait until we have enough data to be played back...
+                // todo then it needs to work like this, because that's already perfect:
                 if(isFirstBuffer){
                     val dt = max(0f, (System.nanoTime() - startTimeNanos) * 1e-9f)
                     // "skipping first $dt"

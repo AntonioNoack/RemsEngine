@@ -14,9 +14,8 @@ import me.anno.input.MouseButton
 import me.anno.io.text.TextReader
 import me.anno.objects.Transform
 import me.anno.objects.animation.Keyframe
+import me.anno.studio.RemsStudio
 import me.anno.studio.RemsStudio.isPlaying
-import me.anno.studio.RemsStudio.onLargeChange
-import me.anno.studio.RemsStudio.onSmallChange
 import me.anno.studio.RemsStudio.root
 import me.anno.studio.RemsStudio.selectedProperty
 import me.anno.studio.RemsStudio.selectedTransform
@@ -86,9 +85,7 @@ class LayerView(style: Style) : TimelinePanel(style) {
         needsUpdate = false
 
         if (asnyc) {
-            thread {
-                calculateSolution(x0, y0, x1, y1, false)
-            }
+            thread { calculateSolution(x0, y0, x1, y1, false) }
             return
         }
 
@@ -190,6 +187,7 @@ class LayerView(style: Style) : TimelinePanel(style) {
         }
         this.solution = solution
         isCalculating = false
+        invalidateDrawing()
     }
 
     var visualStateCtr = 0
@@ -201,7 +199,7 @@ class LayerView(style: Style) : TimelinePanel(style) {
             else null
         )
 
-    var lastTime = GFX.lastTime
+    var lastTime = GFX.gameTime
 
     // calculation is fast, drawing is slow
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
@@ -219,11 +217,11 @@ class LayerView(style: Style) : TimelinePanel(style) {
                 solution == null ||
                 x0 != solution.x0 ||
                 x1 != solution.x1 || isHovered || mouseKeysDown.isNotEmpty() || keysDown.isNotEmpty() ||
-                abs(this.lastTime - GFX.lastTime) > if (needsLayoutUpdate()) 5e7 else 1e9
+                abs(this.lastTime - GFX.gameTime) > if (needsLayoutUpdate()) 5e7 else 1e9
 
 
         if (needsUpdate && !isCalculating) {
-            lastTime = GFX.lastTime
+            lastTime = GFX.gameTime
             calculateSolution(x0, y0, x1, y1, true)
         }
 
@@ -348,7 +346,9 @@ class LayerView(style: Style) : TimelinePanel(style) {
     }
 
     override fun onDeleteKey(x: Float, y: Float) {
-        selectedTransform?.destroy()
+        RemsStudio.largeChange("Deleted Component") {
+            selectedTransform?.destroy()
+        }
     }
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
@@ -356,27 +356,33 @@ class LayerView(style: Style) : TimelinePanel(style) {
         val draggedKeyframes = draggedKeyframes
         if (transform != null) {
             if (draggedKeyframes != null) {
-                val dilation = transform.listOfInheritance
-                    .fold(1.0) { t0, tx -> t0 * tx.timeDilation }
-                val dt = shiftSlowdown * dilation * dx * dtHalfLength * 2 / w
-                draggedKeyframes.forEach {
-                    it.time += dt
+                if (draggedKeyframes.isNotEmpty()) {
+                    val dilation = transform.listOfInheritance
+                        .fold(1.0) { t0, tx -> t0 * tx.timeDilation }
+                    val dt = shiftSlowdown * dilation * dx * dtHalfLength * 2 / w
+                    if (dt != 0.0) {
+                        RemsStudio.incrementalChange("move-keyframes") {
+                            draggedKeyframes.forEach {
+                                it.time += dt
+                            }
+                        }
+                    }
                 }
-                onSmallChange("moved-keyframes")
             } else {
                 val thisSlot = this@LayerView.timelineSlot
                 if (dx != 0f) {
                     val dilation = transform.listOfInheritance
                         .fold(1.0) { t0, tx -> t0 * tx.timeDilation }
-                    if (isControlDown) {
-                        // todo scale around the time=0 point?
-                        // todo first find this point...
-                        transform.timeDilation *= clamp(1f - shiftSlowdown * dx / w, 0.01f, 100f)
-                    } else {
-                        val dt = shiftSlowdown * dilation * dx * dtHalfLength * 2 / w
-                        transform.timeOffset += dt
+                    RemsStudio.incrementalChange("move-time-dilation/offset") {
+                        if (isControlDown) {
+                            // todo scale around the time=0 point?
+                            // todo first find this point...
+                            transform.timeDilation *= clamp(1f - shiftSlowdown * dx / w, 0.01f, 100f)
+                        } else {
+                            val dt = shiftSlowdown * dilation * dx * dtHalfLength * 2 / w
+                            transform.timeOffset += dt
+                        }
                     }
-                    onSmallChange("layer-dx")
                 }
                 var sumDY = (y - Input.mouseDownY) / height
                 if (sumDY < 0) sumDY += 0.5f
@@ -384,8 +390,9 @@ class LayerView(style: Style) : TimelinePanel(style) {
                 // todo make sure the timeline slot doesn't have invalid values
                 val newSlot = thisSlot + sumDY.roundToInt()
                 if (newSlot != timelineSlot) {
-                    timelineSlot = newSlot
-                    onSmallChange("layer-slot")
+                    RemsStudio.largeChange("Changed Timeline Slot") {
+                        timelineSlot = newSlot
+                    }
                 }
             }
         } else super.onMouseMoved(x, y, dx, dy)
@@ -407,40 +414,41 @@ class LayerView(style: Style) : TimelinePanel(style) {
                     options += "Split Here" to {
                         // todo ask user for split time?... todo rather add fadeout- / fadein-effects
                         // todo 100% transparency on both in the middle??
-                        val fadingTime = 0.2
-                        val fadingHalf = fadingTime / 2
-                        transform.color.isAnimated = true
-                        val lTime = cTime - fadingHalf
-                        val rTime = cTime + fadingHalf
-                        val color = transform.color[cTime]
-                        val lColor = transform.color[lTime]
-                        val lTransparent = Vector4f(lColor.x, lColor.y, lColor.z, 0f)
-                        val rColor = transform.color[rTime]
-                        val rTransparent = Vector4f(rColor.x, rColor.y, rColor.z, 0f)
-                        val second = transform.clone()!!
-                        second.name = incrementName(transform.name)
-                        if (transform.parent != null) {
-                            transform.addAfter(second)
-                        } else {
-                            // can't split directly,
-                            // because we have no parent
-                            val newRoot = Transform()
-                            newRoot.addChild(transform)
-                            newRoot.addChild(second)
-                            root = newRoot
-                            // needs to be updated
-                            SceneTabs.currentTab?.root = newRoot
+                        RemsStudio.largeChange("Split Component") {
+                            val fadingTime = 0.2
+                            val fadingHalf = fadingTime / 2
+                            transform.color.isAnimated = true
+                            val lTime = cTime - fadingHalf
+                            val rTime = cTime + fadingHalf
+                            val color = transform.color[cTime]
+                            val lColor = transform.color[lTime]
+                            val lTransparent = Vector4f(lColor.x, lColor.y, lColor.z, 0f)
+                            val rColor = transform.color[rTime]
+                            val rTransparent = Vector4f(rColor.x, rColor.y, rColor.z, 0f)
+                            val second = transform.clone()!!
+                            second.name = incrementName(transform.name)
+                            if (transform.parent != null) {
+                                transform.addAfter(second)
+                            } else {
+                                // can't split directly,
+                                // because we have no parent
+                                val newRoot = Transform()
+                                newRoot.addChild(transform)
+                                newRoot.addChild(second)
+                                root = newRoot
+                                // needs to be updated
+                                SceneTabs.currentTab?.root = newRoot
+                            }
+                            // transform.color.addKeyframe(localTime-fadingTime/2, color)
+                            transform.color.checkThread()
+                            transform.color.keyframes.removeIf { it.time >= cTime }
+                            transform.color.addKeyframe(cTime, color)
+                            transform.color.addKeyframe(rTime, rTransparent)
+                            second.color.checkThread()
+                            second.color.keyframes.removeIf { it.time <= cTime }
+                            second.color.addKeyframe(lTime, lTransparent)
+                            second.color.addKeyframe(cTime, color)
                         }
-                        // transform.color.addKeyframe(localTime-fadingTime/2, color)
-                        transform.color.checkThread()
-                        transform.color.keyframes.removeIf { it.time >= cTime }
-                        transform.color.addKeyframe(cTime, color)
-                        transform.color.addKeyframe(rTime, rTransparent)
-                        second.color.checkThread()
-                        second.color.keyframes.removeIf { it.time <= cTime }
-                        second.color.addKeyframe(lTime, lTransparent)
-                        second.color.addKeyframe(cTime, color)
-                        onLargeChange()
                     }
                     GFX.openMenu(options)
                 } else super.onMouseClicked(x, y, button, long)
@@ -470,14 +478,14 @@ class LayerView(style: Style) : TimelinePanel(style) {
             val childMaybe = TextReader.fromText(data).firstOrNull { it is Transform } as? Transform
             val child = childMaybe ?: return super.onPaste(x, y, data, type)
             val original = (StudioBase.dragged as? Draggable)?.getOriginal() as? Transform
-            if (original != null) {
-                original.timelineSlot = timelineSlot
-                onSmallChange("layer-paste")
-            } else {
-                root.addChild(child)
-                root.timelineSlot = timelineSlot
-                GFX.select(child)
-                onLargeChange()
+            RemsStudio.largeChange("Pasted Component / Changed Timeline Slot") {
+                if (original != null) {
+                    original.timelineSlot = timelineSlot
+                } else {
+                    root.addChild(child)
+                    root.timelineSlot = timelineSlot
+                    GFX.select(child)
+                }
             }
         } catch (e: Exception) {
             e.printStackTrace()

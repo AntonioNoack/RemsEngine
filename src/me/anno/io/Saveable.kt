@@ -6,20 +6,20 @@ import org.apache.logging.log4j.LogManager
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
-import java.lang.RuntimeException
+import java.util.*
 
-abstract class Saveable: ISaveable {
+abstract class Saveable : ISaveable {
 
     // abstract fun getClassName(): String
     // abstract fun getApproxSize(): Int
 
-    override fun save(writer: BaseWriter){}
+    override fun save(writer: BaseWriter) {}
 
-    override fun onReadingStarted(){}
-    override fun onReadingEnded(){}
+    override fun onReadingStarted() {}
+    override fun onReadingEnded() {}
 
-    fun warnMissingParam(name: String){
-        if(name == "*ptr") throw RuntimeException()
+    fun warnMissingParam(name: String) {
+        if (name == "*ptr") throw RuntimeException()
         LogManager.getLogger(Saveable::class).warn("Unknown param ${getClassName()}.$name")
     }
 

@@ -1,5 +1,6 @@
 package me.anno.io.xml
 
+import me.anno.utils.LOGGER
 import java.io.EOFException
 import java.io.InputStream
 import java.lang.RuntimeException
@@ -37,9 +38,22 @@ object XMLReader {
         while(true){
             when(val char = read()){
                 '\\'.toInt() -> {
-                    when(val second = read()){
-                        else -> throw RuntimeException("Special character \\${second.toChar()} not yet implemented")
-                    }
+                    str.append(when(val second = read()){
+                        '\\'.toInt() -> "\\"
+                        /*'U'.toInt(), 'u'.toInt() -> {
+                            val str2 = "${read().toChar()}${read().toChar()}${read().toChar()}${read().toChar()}"
+                            val value = str2.toIntOrNull(16) ?: {
+                                LOGGER.warn("JSON String \\$second$str2 could not be parsed")
+                                32
+                            }()
+                            Character.toChars(value).joinToString("")
+                        }*/
+                        else -> {
+                            str.append('\\')
+                            second.toChar()
+                            // throw RuntimeException("Special character \\${second.toChar()} not yet implemented")
+                        }
+                    })
                 }
                 startSymbol -> return str.toString()
                 -1 -> throw EOFException()

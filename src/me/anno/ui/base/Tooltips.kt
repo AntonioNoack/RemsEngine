@@ -43,7 +43,7 @@ object Tooltips {
         oldX = mouseX
         oldY = mouseY
 
-        val time = GFX.lastTime
+        val time = GFX.gameTime
 
         if (length(dx, dy) > deltaTime) {// 1px / s
             lastMovementTime = time

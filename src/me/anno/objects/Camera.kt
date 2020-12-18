@@ -10,11 +10,10 @@ import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.effects.ToneMappers
-import me.anno.studio.RemsStudio.nullCamera
-import me.anno.studio.RemsStudio.onSmallChange
+import me.anno.studio.RemsStudio
 import me.anno.studio.RemsStudio.targetHeight
 import me.anno.studio.RemsStudio.targetWidth
-import me.anno.studio.RemsStudio.usedCamera
+import me.anno.studio.RemsStudio.currentlyDrawnCamera
 import me.anno.ui.base.ButtonPanel
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
@@ -24,7 +23,6 @@ import org.joml.Matrix4fArrayList
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
-import org.lwjgl.opengl.GL20.glUniformMatrix4fv
 import java.io.File
 import kotlin.math.tan
 
@@ -69,7 +67,7 @@ class Camera(parent: Transform? = null) : Transform(parent) {
     var useDepth = true
 
     init {
-        position.addKeyframe(0.0, Vector3f(0f, 0f, 1f))
+        position.defaultValue = Vector3f(0f, 0f, 1f)
     }
 
     fun getEffectiveOffset(localTime: Double) = orthoDistance(orthographicness[localTime])
@@ -143,14 +141,14 @@ class Camera(parent: Transform? = null) : Transform(parent) {
         ) { onlyShowTarget = it }
         val ops = getGroup("Operations", "operations")
         ops += ButtonPanel("Reset Transform", style)
-            .setSimpleClickListener { resetTransform() }
+            .setSimpleClickListener { resetTransform(true) }
             .setTooltip("If accidentally moved")
     }
 
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
 
         if (GFX.isFinalRendering) return
-        if (this === usedCamera) return
+        if (this === currentlyDrawnCamera) return
         // idk...
         // if(this !== GFX.selectedTransform) return
 
@@ -163,12 +161,17 @@ class Camera(parent: Transform? = null) : Transform(parent) {
 
     }
 
-    fun resetTransform() {
-        putValue(position, Vector3f(0f, 0f, 1f))
-        putValue(scale, Vector3f(1f, 1f, 1f))
-        putValue(skew, Vector2f(0f, 0f))
-        putValue(rotationYXZ, Vector3f())
-        if (this != nullCamera) onSmallChange("camera-reset")
+    fun resetTransform(updateHistory: Boolean) {
+        if (updateHistory) {
+            RemsStudio.largeChange("Reset Camera Transform"){
+                resetTransform(false)
+            }
+        } else {
+            putValue(position, Vector3f(0f, 0f, 1f), false)
+            putValue(scale, Vector3f(1f, 1f, 1f), false)
+            putValue(skew, Vector2f(0f, 0f), false)
+            putValue(rotationYXZ, Vector3f(), false)
+        }
     }
 
     override fun save(writer: BaseWriter) {
@@ -243,8 +246,10 @@ class Camera(parent: Transform? = null) : Transform(parent) {
 
     companion object {
 
-        fun drawCamera(stack: Matrix4fArrayList,
-                       offset: Float, fov: Float, color: Vector4f, near: Float, far: Float){
+        fun drawCamera(
+            stack: Matrix4fArrayList,
+            offset: Float, fov: Float, color: Vector4f, near: Float, far: Float
+        ) {
 
             stack.translate(0f, 0f, offset)
 

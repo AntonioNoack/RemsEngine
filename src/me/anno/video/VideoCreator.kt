@@ -25,7 +25,7 @@ class VideoCreator(
         if (w % 2 != 0 || h % 2 != 0) throw RuntimeException("width and height must be divisible by 2")
     }
 
-    val t0 = GFX.lastTime
+    val t0 = GFX.gameTime
 
     private val videoOut: OutputStream
     private var process: Process
@@ -85,7 +85,7 @@ class VideoCreator(
                     var fps = 0f
                     var quality = 0f
                     var size = 0
-                    val elapsedTime = (GFX.lastTime - t0) * 1e-9
+                    val elapsedTime = (GFX.gameTime - t0) * 1e-9
                     var bitrate = 0
                     var speed = 0f
                     var remaining = line

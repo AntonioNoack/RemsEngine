@@ -24,11 +24,11 @@ import me.anno.input.Touch.Companion.touches
 import me.anno.objects.Camera
 import me.anno.objects.Transform
 import me.anno.objects.effects.ToneMappers
+import me.anno.studio.RemsStudio
 import me.anno.studio.RemsStudio.editorTime
 import me.anno.studio.RemsStudio.editorTimeDilation
 import me.anno.studio.RemsStudio.isPaused
 import me.anno.studio.RemsStudio.nullCamera
-import me.anno.studio.RemsStudio.onSmallChange
 import me.anno.studio.RemsStudio.root
 import me.anno.studio.RemsStudio.selectedProperty
 import me.anno.studio.RemsStudio.selectedTransform
@@ -45,10 +45,10 @@ import me.anno.ui.custom.data.ICustomDataCreator
 import me.anno.ui.editor.files.addChildFromFile
 import me.anno.ui.simple.SimplePanel
 import me.anno.ui.style.Style
-import me.anno.utils.*
 import me.anno.utils.Lists.sumByFloat
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.pow
+import me.anno.utils.Quad
 import me.anno.utils.Vectors.plus
 import me.anno.utils.Vectors.times
 import me.anno.utils.Vectors.toVec3f
@@ -59,7 +59,10 @@ import org.joml.Vector4f
 import org.lwjgl.opengl.GL11.*
 import java.io.File
 import java.lang.Math.toDegrees
-import kotlin.math.*
+import kotlin.math.atan2
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.roundToInt
 
 // done scene tabs
 // todo scene selection
@@ -100,7 +103,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
 
     }
 
-    var camera = nullCamera
+    var camera = nullCamera ?: Camera()
 
     override val usesFPBuffers: Boolean get() = camera.toneMapping != ToneMappers.RAW8
     override var isLocked2D = false
@@ -127,7 +130,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
             if (isLocked2D && !Input.isControlDown) {
                 val rot = camera.rotationYXZ
                 val rot0z = rot[camera.lastLocalTime].z
-                camera.putValue(rot, Vector3f(0f, 0f, rot0z))
+                camera.putValue(rot, Vector3f(0f, 0f, rot0z), true)
             }
             is2DPanel.text = if (isLocked2D) "2D" else "3D"
             invalidateDrawing()
@@ -170,7 +173,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
     var mode = SceneDragMode.MOVE
         set(value) {
             field = value
-            selectedProperty = when(value){
+            selectedProperty = when (value) {
                 SceneDragMode.MOVE -> selectedTransform?.position
                 SceneDragMode.SCALE -> selectedTransform?.scale
                 SceneDragMode.ROTATE -> selectedTransform?.rotationYXZ
@@ -188,7 +191,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
     val mayControlCamera get() = camera === nullCamera || isPaused
     var lastW = 0
     var lastH = 0
-    var lastSizeUpdate = GFX.lastTime
+    var lastSizeUpdate = GFX.gameTime
     var goodW = 0
     var goodH = 0
 
@@ -226,14 +229,14 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
         // check if the size stayed the same;
         // because resizing all framebuffers is expensive (causes lag)
         val matchesSize = lastW == rw && lastH == rh
-        val wasNotRecentlyUpdated = lastSizeUpdate + 1e8 < GFX.lastTime
+        val wasNotRecentlyUpdated = lastSizeUpdate + 1e8 < GFX.gameTime
         if (matchesSize) {
             if (wasNotRecentlyUpdated) {
                 goodW = rw
                 goodH = rh
             }
         } else {
-            lastSizeUpdate = GFX.lastTime
+            lastSizeUpdate = GFX.gameTime
             lastW = rw
             lastH = rh
         }
@@ -249,6 +252,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
         val mode =
             if (camera.toneMapping == ToneMappers.RAW8) ShaderPlus.DrawMode.COLOR
             else ShaderPlus.DrawMode.COLOR_SQUARED
+
 
         GFX.drawMode = mode
 
@@ -352,7 +356,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
 
         // find the transform with the id to select it
         if (bestResult > 0) {
-            val transform = (root.listOfAll + nullCamera).firstOrNull { it.clickId == bestResult }
+            val transform = (root.listOfAll + nullCamera!!).firstOrNull { it.clickId == bestResult }
             select(transform)
         } else select(null)
         GFX.check()
@@ -397,8 +401,9 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
             val step2 = cameraTransform.transformDirection(step)
             // todo transform into the correct space: from that camera to this camera
             val newPosition = oldPosition + step2
-            camera.position.addKeyframe(cameraTime, newPosition, 0.01)
-            if (camera != nullCamera) onSmallChange("camera-move")
+            RemsStudio.incrementalChange("move-camera") {
+                camera.position.addKeyframe(cameraTime, newPosition, 0.01)
+            }
             invalidateDrawing()
         }
 
@@ -508,8 +513,9 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
                 val localDelta = if (Input.isControlDown)
                     camera2target.transformDirection(Vector3f(0f, 0f, -delta)) * (targetZ / 6)
                 else pos1
-                selected.position.addKeyframe(localTime, oldPosition + localDelta)
-                if (selected != nullCamera) onSmallChange("SceneView-move")
+                RemsStudio.incrementalChange("object-move") {
+                    selected.position.addKeyframe(localTime, oldPosition + localDelta)
+                }
                 invalidateDrawing()
 
             }
@@ -521,20 +527,21 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
                     else Vector3f(delta0, delta0, delta0)
                 )
                 val base = 2f
-                selected.scale.addKeyframe(
-                    localTime, Vector3f(
-                        oldScale.x * pow(base, localDelta.x * speed2),
-                        oldScale.y * pow(base, localDelta.y * speed2),
-                        oldScale.z * pow(base, localDelta.z * speed2)
+                RemsStudio.incrementalChange("object-scale") {
+                    selected.scale.addKeyframe(
+                        localTime, Vector3f(
+                            oldScale.x * pow(base, localDelta.x * speed2),
+                            oldScale.y * pow(base, localDelta.y * speed2),
+                            oldScale.z * pow(base, localDelta.z * speed2)
+                        )
                     )
-                )
-                if (selected != nullCamera) onSmallChange("SceneView-scale")
+                }
                 invalidateDrawing()
             }
             SceneDragMode.ROTATE -> {
                 // todo transform rotation??? quaternions...
-                val centerX = x + w/2
-                val centerY = y + h/2
+                val centerX = x + w / 2
+                val centerY = y + h / 2
                 val mdx = (mouseX - centerX).toDouble()
                 val mdy = (mouseY - centerY).toDouble()
                 val oldDegree = toDegrees(atan2(mdy - dy0, mdx - dx0)).toFloat()
@@ -546,8 +553,9 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
                     if (Input.isControlDown) Vector3f(dx0 * speed2, -dy0 * speed2, 0f)
                     else Vector3f(0f, 0f, -deltaDegree)
                 //)
-                selected.rotationYXZ.addKeyframe(localTime, oldRotation + localDelta)
-                if (selected != nullCamera) onSmallChange("SceneView-rotate")
+                RemsStudio.incrementalChange("object-rotate") {
+                    selected.rotationYXZ.addKeyframe(localTime, oldRotation + localDelta)
+                }
                 invalidateDrawing()
             }
         }
@@ -582,8 +590,9 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
         val camera = camera
         val (_, cameraTime) = camera.getGlobalTransform(editorTime)
         val oldRotation = camera.rotationYXZ[cameraTime]
-        camera.putValue(camera.rotationYXZ, oldRotation + Vector3f(dy0 * scaleFactor, dx0 * scaleFactor, 0f))
-        if (camera != nullCamera) onSmallChange("SceneView-turn")
+        RemsStudio.incrementalChange("camera-turn") {
+            camera.putValue(camera.rotationYXZ, oldRotation + Vector3f(dy0 * scaleFactor, dx0 * scaleFactor, 0f), false)
+        }
         invalidateDrawing()
     }
 
@@ -602,7 +611,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
                 invalidateDrawing()
             }
             "ResetCamera" -> {
-                camera.resetTransform()
+                camera.resetTransform(true)
                 invalidateDrawing()
             }
             "MoveLeft" -> this.inputDx--
@@ -700,7 +709,9 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
             "Transform" -> {
                 val original = dragged?.getOriginal() ?: return
                 if (original is Camera) {
-                    camera = original
+                    RemsStudio.largeChange ("Changed Scene-View Camera to ${original.name}"){
+                        camera = original
+                    }
                 }// else focus?
                 invalidateDrawing()
             }
@@ -719,7 +730,9 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
     }
 
     fun deleteSelectedTransform() {
-        selectedTransform?.destroy()
+        RemsStudio.largeChange("Deleted Component"){
+            selectedTransform?.destroy()
+        }
     }
 
     override fun onPasteFiles(x: Float, y: Float, files: List<File>) {

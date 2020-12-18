@@ -94,7 +94,7 @@ class AnimatedProperty<V>(val type: Type, var defaultValue: V) : Saveable() {
     fun addKeyframe(time: Double, value: Any, equalityDt: Double) {
         if (type.accepts(value)) {
             addKeyframeInternal(time, clamp(value as V), equalityDt)
-        } else LOGGER.warn("value is not accepted!")
+        } else LOGGER.warn("Value $value is not accepted by type $type!")
     }
 
     private fun addKeyframeInternal(time: Double, value: V, equalityDt: Double) {
@@ -311,8 +311,9 @@ class AnimatedProperty<V>(val type: Type, var defaultValue: V) : Saveable() {
     override fun save(writer: BaseWriter) {
         super.save(writer)
         sort()
-        writer.writeList(this, "keyframes", keyframes)
+        // must be written before keyframes!!
         writer.writeBool("isAnimated", isAnimated)
+        writer.writeList(this, "keyframes", keyframes)
         writer.writeInt("interpolation", interpolation.code)
         for (i in 0 until type.components) {
             writer.writeObject(this, "driver$i", drivers[i])
@@ -342,7 +343,7 @@ class AnimatedProperty<V>(val type: Type, var defaultValue: V) : Saveable() {
             "keyframes" -> {
                 if (value is Keyframe<*>) {
                     if (type.accepts(value.value)) {
-                        addKeyframe(value.time, clamp(value.value as V) as Any, 1e-5) // do clamp?
+                        addKeyframe(value.time, clamp(value.value as V) as Any, 0.0) // do clamp?
                     } else LOGGER.warn("Dropped keyframe!, incompatible type ${value.value} for $type")
                 } else WrongClassType.warn("keyframe", value)
             }

@@ -23,9 +23,9 @@ import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.animation.Interpolation
 import me.anno.objects.animation.Keyframe
 import me.anno.objects.animation.Type
+import me.anno.studio.RemsStudio
 import me.anno.studio.RemsStudio.editorTime
 import me.anno.studio.RemsStudio.isPaused
-import me.anno.studio.RemsStudio.onSmallChange
 import me.anno.studio.RemsStudio.selectedProperty
 import me.anno.studio.StudioBase.Companion.updateAudio
 import me.anno.ui.editor.TimelinePanel
@@ -38,6 +38,8 @@ import me.anno.utils.Maths.mix
 import me.anno.utils.Maths.mixARGB
 import me.anno.utils.Maths.pow
 import org.joml.Vector2f
+import java.security.Key
+import java.security.KeyFactory
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -510,18 +512,13 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
     }
 
     override fun onDeleteKey(x: Float, y: Float) {
-        var wasChanged = false
-        selectedKeyframes.forEach {
-            if (selectedProperty?.remove(it) == true) {
-                wasChanged = true
+        RemsStudio.largeChange("Deleted Keyframes"){
+            selectedKeyframes.forEach {
+                selectedProperty?.remove(it)
             }
-        }
-        if (selectedProperty == null) {
-            wasChanged = wasChanged || selectedKeyframes.isNotEmpty()
-            selectedKeyframes.clear()
-        }
-        if (wasChanged) {
-            onSmallChange("graph-delete")
+            if (selectedProperty == null) {
+                selectedKeyframes.clear()
+            }
         }
     }
 
@@ -550,13 +547,14 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
         } else if (draggedKeyframe != null && selectedProperty != null) {
             // dragging
             val time = getTimeAt(x)
-            draggedKeyframe.time = global2Kf(time) // global -> local
-            editorTime = time
-            updateAudio()
-            draggedKeyframe.setValue(draggedChannel, getValueAt(y), selectedProperty.type)
-            selectedProperty.sort()
+            RemsStudio.incrementalChange("dragging keyframe"){
+                draggedKeyframe.time = global2Kf(time) // global -> local
+                editorTime = time
+                updateAudio()
+                draggedKeyframe.setValue(draggedChannel, getValueAt(y), selectedProperty.type)
+                selectedProperty.sort()
+            }
             invalidateDrawing()
-            onSmallChange("graph-drag")
         } else {
             if (0 in mouseKeysDown) {
                 if ((isShiftDown || isControlDown) && isPaused) {
@@ -578,8 +576,9 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
         val property = selectedProperty
         property?.apply {
             val time = global2Kf(getTimeAt(x))
-            property.addKeyframe(time, property[time]!!, propertyDt)
-            onSmallChange("graph-add")
+            RemsStudio.largeChange("Created keyframe at ${time}s"){
+                property.addKeyframe(time, property[time]!!, propertyDt)
+            }
         } ?: println("Please select a property first!")
     }
 
@@ -596,15 +595,18 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
             val time0 = getTimeAt(x)
             val target = selectedProperty ?: return super.onPaste(x, y, data, type)
             val targetType = target.type
-            val parsedKeyframes = TextReader.fromText(data)
-            parsedKeyframes.forEach { sth ->
-                (sth as? Keyframe<*>)?.apply {
-                    if (targetType.accepts(value)) {
-                        target.addKeyframe(time + time0, value!!)
-                    } else println("$targetType doesn't accept $value")
+            val parsedKeyframes = TextReader.fromText(data).filterIsInstance<Keyframe<*>>()
+            if(parsedKeyframes.isNotEmpty()){
+                RemsStudio.largeChange("Pasted Keyframes") {
+                    parsedKeyframes.forEach { sth ->
+                        sth.apply {
+                            if (targetType.accepts(value)) {
+                                target.addKeyframe(time + time0, value!!)
+                            } else LOGGER.warn("$targetType doesn't accept $value")
+                        }
+                    }
                 }
             }
-            onSmallChange("graph-paste")
         } catch (e: Exception) {
             e.printStackTrace()
             super.onPaste(x, y, data, type)

@@ -42,6 +42,9 @@ open class Shader(
     // shader compile time doesn't really matter... -> move it to the start to preserve ram use?
     // isn't that much either...
     fun init() {
+
+        // println("$shaderName\nVERTEX:\n$vertex\nVARYING:\n$varying\nFRAGMENT:\n$fragment")
+
         program = glCreateProgram()
         // the shaders are like a C compilation process, .o-files: after linking, they can be removed
         val vertexShader = compile(

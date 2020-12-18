@@ -3,8 +3,8 @@ package me.anno.ui.input.components
 import me.anno.input.MouseButton
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.animation.drivers.AnimationDriver
+import me.anno.studio.RemsStudio
 import me.anno.studio.RemsStudio.editorTime
-import me.anno.studio.RemsStudio.onSmallChange
 import me.anno.studio.RemsStudio.selectedInspectable
 import me.anno.ui.input.FloatInput
 import me.anno.ui.input.IntInput
@@ -63,16 +63,17 @@ class NumberInputPanel(val owningProperty: AnimatedProperty<*>?,
             if (owningProperty != null && (!button.isLeft || long)) {
                 val oldDriver = owningProperty.drivers[indexInProperty]
                 AnimationDriver.openDriverSelectionMenu(oldDriver) {
-                    owningProperty.drivers[indexInProperty] = it
-                    if (it != null) selectedInspectable = it
-                    else {
-                        text = when(numberInput){
-                            is IntInput -> numberInput.stringify(numberInput.lastValue)
-                            is FloatInput -> numberInput.stringify(numberInput.lastValue)
-                            else -> throw RuntimeException()
+                    RemsStudio.largeChange("Changed driver to ${it?.getClassName()}"){
+                        owningProperty.drivers[indexInProperty] = it
+                        if (it != null) selectedInspectable = it
+                        else {
+                            text = when(numberInput){
+                                is IntInput -> numberInput.stringify(numberInput.lastValue)
+                                is FloatInput -> numberInput.stringify(numberInput.lastValue)
+                                else -> throw RuntimeException()
+                            }
                         }
                     }
-                    onSmallChange("number-set-driver")
                 }
                 return
             }

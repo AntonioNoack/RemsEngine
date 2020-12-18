@@ -12,8 +12,6 @@ import org.joml.Matrix4f
 import org.lwjgl.openal.AL
 import org.lwjgl.openal.ALC
 import org.lwjgl.openal.ALC10.*
-import java.lang.Exception
-import java.lang.IllegalStateException
 import java.nio.ByteBuffer
 import java.nio.IntBuffer
 import kotlin.concurrent.thread
@@ -33,21 +31,23 @@ object AudioManager {
     var lastUpdate = 0L
     var ctr = 0
     var runningThread: Thread? = null
-    fun startRunning(){
+    fun startRunning() {
         runningThread = thread {
             init()
-            while(!shallStop){
+            while (!shallStop) {
                 ALBase.check()
                 val time = System.nanoTime()
                 try {
                     GFX.workQueue(GFX.audioTasks)
-                } catch (e: Exception){
+                } catch (e: Exception) {
                     // if(e.message != "ALException: Invalid Name") // why does the error happen???
                     e.printStackTrace()
                 }
                 ALBase.check()
-                if(RemsStudio.isPlaying && ctr++ > 15){ ctr = 0; checkTree(root) }
-                if(RemsStudio.isPlaying && needsUpdate && abs(time-lastUpdate) > 200 * 1_000_000){
+                if (RemsStudio.isPlaying && ctr++ > 15) {
+                    ctr = 0; checkTree(root)
+                }
+                if (RemsStudio.isPlaying && needsUpdate && abs(time - lastUpdate) > 200 * 1_000_000) {
                     // ensure 200 ms delay between changing the time / dilation
                     // for performance reasons
                     lastUpdate = time
@@ -61,8 +61,8 @@ object AudioManager {
         }
     }
 
-    fun stop(transform: Transform = root){
-        if(transform is Audio){
+    fun stop(transform: Transform = root) {
+        if (transform is Audio) {
             transform.stopPlayback()
         }
         transform.children.forEach {
@@ -70,13 +70,13 @@ object AudioManager {
         }
     }
 
-    fun requestUpdate(){
+    fun requestUpdate() {
         needsUpdate = true
     }
 
-    val camera = nullCamera
-    fun updateTime(time: Double, dilation: Double, transform: Transform){
-        if(transform is Audio){
+    val camera by lazy { nullCamera!! }
+    fun updateTime(time: Double, dilation: Double, transform: Transform) {
+        if (transform is Audio) {
             transform.startPlayback(time, dilation, camera)
         }
         transform.children.forEach {
@@ -84,8 +84,8 @@ object AudioManager {
         }
     }
 
-    fun checkTree(transform: Transform){
-        if(transform is Audio && transform.needsUpdate){
+    fun checkTree(transform: Transform) {
+        if (transform is Audio && transform.needsUpdate) {
             transform.needsUpdate = false
             transform.startPlayback(editorTime, editorTimeDilation, camera)
         }
@@ -94,24 +94,24 @@ object AudioManager {
         }
     }
 
-    fun init(){
+    fun init() {
         device = alcOpenDevice(null as ByteBuffer?)
-        if(device == 0L) throw IllegalStateException("Failed to open default OpenAL device")
+        if (device == 0L) throw IllegalStateException("Failed to open default OpenAL device")
         val deviceCaps = ALC.createCapabilities(device)
         context = alcCreateContext(device, null as IntBuffer?)
-        if(context == 0L) throw IllegalStateException("Failed to create OpenAL context")
+        if (context == 0L) throw IllegalStateException("Failed to create OpenAL context")
         alcMakeContextCurrent(context)
         AL.createCapabilities(deviceCaps)
         ALBase.check()
     }
 
-    fun destroy(){
+    fun destroy() {
         ALBase.check()
         alcCloseDevice(device)
         device = 0L
     }
 
-    fun requestDestruction(){
+    fun requestDestruction() {
         shallStop = true
     }
 

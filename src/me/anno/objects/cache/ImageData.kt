@@ -53,10 +53,10 @@ class ImageData(file: File) : CacheData {
             id?.framebuffer = framebuffer
             Frame(framebuffer){
                 id?.texture = framebuffer.textures[0]
-                val shader = frame.get3DShader().shader
+                val shader = frame.get3DShader()
                 shader3DUniforms(shader, Matrix4f(), Vector4f(1f, 1f, 1f, 1f))
                 frame.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-                if (shader == shader3DYUV.shader) {
+                if (shader == shader3DYUV) {
                     val w2 = frame.w
                     val h2 = frame.h
                     shader.v2("uvCorrection", w2.toFloat() / ((w2 + 1) / 2 * 2), h2.toFloat() / ((h2 + 1) / 2 * 2))

@@ -2,6 +2,7 @@ package me.anno.mesh.fbx.model
 
 import me.anno.gpu.GFX
 import me.anno.gpu.ShaderLib
+import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderPlus
 import me.anno.utils.Maths
 
@@ -10,7 +11,7 @@ object FBXShader {
     fun getShader(
         v3DBase: String, positionPostProcessing: String,
         y3D: String, getTextureLib: String
-    ): ShaderPlus {
+    ): Shader {
         val maxBones = Maths.clamp((GFX.maxVertexUniforms - (16 * 3)) / 16, 4, 256)
         return ShaderLib.createShaderPlus(
             "fbx", v3DBase +

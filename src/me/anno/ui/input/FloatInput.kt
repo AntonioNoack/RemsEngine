@@ -129,7 +129,6 @@ open class FloatInput(
         val newValue = getValue(owningProperty?.defaultValue ?: type.defaultValue)
         if(newValue != lastValue){
             setValue(newValue, true)
-            RemsStudio.onSmallChange("empty")
         }
     }
 

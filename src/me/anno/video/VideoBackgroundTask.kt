@@ -21,7 +21,7 @@ class VideoBackgroundTask(val video: VideoCreator, val motionBlurSteps: Int, val
 
     val cameras = root.listOfAll.filter { it is Camera }.toList() as List<Camera>
 
-    val camera = cameras.firstOrNull() ?: nullCamera
+    val camera = cameras.firstOrNull() ?: nullCamera ?: Camera()
 
     val partialFrame = Framebuffer("VideoBackgroundTask-partial", video.w, video.h, 1, 1, false, Framebuffer.DepthBufferType.TEXTURE)
     val averageFrame = Framebuffer("VideoBackgroundTask-sum", video.w, video.h, 1, 1, true, Framebuffer.DepthBufferType.TEXTURE)

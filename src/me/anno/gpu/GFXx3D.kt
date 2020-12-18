@@ -18,6 +18,7 @@ import org.joml.Matrix4f
 import org.joml.Matrix4fArrayList
 import org.joml.Vector3f
 import org.joml.Vector4f
+import kotlin.math.roundToInt
 
 object GFXx3D {
 
@@ -59,7 +60,7 @@ object GFXx3D {
 
     }
 
-    fun drawDebugCube(matrix: Matrix4fArrayList, size: Float, color: Vector4f?){
+    fun drawDebugCube(matrix: Matrix4fArrayList, size: Float, color: Vector4f?) {
         matrix.scale(0.5f * size, -0.5f * size, 0.5f * size) // flip inside out
         val tex = TextureLib.whiteTexture
         draw3D(
@@ -92,7 +93,7 @@ object GFXx3D {
         isFullscreen: Boolean,
         greenScreenSettings: Vector3f
     ) {
-        val shader = ShaderLib.shader3DMasked.shader
+        val shader = ShaderLib.shader3DMasked
         shader3DUniforms(shader, stack, color)
         shader.v1("useMaskColor", useMaskColor)
         shader.v1("invertMask", isInverted)
@@ -111,7 +112,7 @@ object GFXx3D {
         // todo remove the y-scale of -1 everywhere...
         stack.pushMatrix()
         stack.scale(1f, -1f, 1f)
-        val shader = ShaderLib.shader3DforText.shader
+        val shader = ShaderLib.shader3DforText
         shader3DUniforms(shader, stack, color)
         shader.v3("offset", offset)
         that?.uploadAttractors(shader, time) ?: GFXTransform.uploadAttractors0(shader)
@@ -124,7 +125,7 @@ object GFXx3D {
         buffer: StaticBuffer,
         offset: Vector3f
     ) {
-        val shader = ShaderLib.shader3DforText.shader
+        val shader = ShaderLib.shader3DforText
         shader.v3("offset", offset)
         buffer.draw(shader)
     }
@@ -150,7 +151,7 @@ object GFXx3D {
         inset: Float,
         filtering: Filtering, clamping: Clamping
     ) {
-        val shader = ShaderLib.shader3DPolygon.shader
+        val shader = ShaderLib.shader3DPolygon
         shader.use()
         polygon.uploadAttractors(shader, time)
         shader3DUniforms(shader, stack, texture.w, texture.h, color, null, filtering, null)
@@ -165,10 +166,10 @@ object GFXx3D {
         filtering: Filtering, clamping: Clamping, tiling: Vector4f?, uvProjection: UVProjection
     ) {
         if (!texture.isLoaded) throw RuntimeException("Frame must be loaded to be rendered!")
-        val shader = texture.get3DShader().shader
+        val shader = texture.get3DShader()
         shader3DUniforms(shader, stack, texture.w, texture.h, color, tiling, filtering, uvProjection)
         texture.bind(0, filtering, clamping)
-        if (shader == ShaderLib.shader3DYUV.shader) {
+        if (shader == ShaderLib.shader3DYUV) {
             val w = texture.w
             val h = texture.h
             shader.v2("uvCorrection", w.toFloat() / ((w + 1) / 2 * 2), h.toFloat() / ((h + 1) / 2 * 2))
@@ -183,13 +184,13 @@ object GFXx3D {
         filtering: Filtering, clamping: Clamping, tiling: Vector4f?, uvProjection: UVProjection
     ) {
         if (!texture.isLoaded) throw RuntimeException("Frame must be loaded to be rendered!")
-        val shader = texture.get3DShader().shader
+        val shader = texture.get3DShader()
         shader.use()
         video.uploadAttractors(shader, time)
         shader3DUniforms(shader, stack, texture.w, texture.h, color, tiling, filtering, uvProjection)
         colorGradingUniforms(video, time, shader)
         texture.bind(0, filtering, clamping)
-        if (shader == ShaderLib.shader3DYUV.shader) {
+        if (shader == ShaderLib.shader3DYUV) {
             val w = texture.w
             val h = texture.h
             shader.v2("uvCorrection", w.toFloat() / ((w + 1) / 2 * 2), h.toFloat() / ((h + 1) / 2 * 2))
@@ -209,7 +210,7 @@ object GFXx3D {
         stack: Matrix4fArrayList, texture: Texture2D, w: Int, h: Int, color: Vector4f,
         filtering: Filtering, clamping: Clamping, tiling: Vector4f?, uvProjection: UVProjection
     ) {
-        val shader = ShaderLib.shader3D.shader
+        val shader = ShaderLib.shader3D
         shader3DUniforms(shader, stack, w, h, color, tiling, filtering, uvProjection)
         texture.bind(0, filtering, clamping)
         uvProjection.getBuffer().draw(shader)
@@ -221,7 +222,7 @@ object GFXx3D {
         stack: Matrix4fArrayList, texture: Texture2D, color: Vector4f,
         filtering: Filtering, clamping: Clamping, tiling: Vector4f?, uvProjection: UVProjection
     ) {
-        val shader = ShaderLib.shader3DRGBA.shader
+        val shader = ShaderLib.shader3DRGBA
         shader.use()
         video.uploadAttractors(shader, time)
         shader3DUniforms(shader, stack, texture.w, texture.h, color, tiling, filtering, uvProjection)
@@ -231,17 +232,35 @@ object GFXx3D {
         GFX.check()
     }
 
-    fun draw3DBlur(
+    fun draw3DGaussianBlur(
         stack: Matrix4fArrayList,
         size: Float, w: Int, h: Int,
         threshold: Float, isFirst: Boolean
     ) {
-        val shader = ShaderLib.shader3DBlur
+        val shader = ShaderLib.shader3DGaussianBlur
         transformUniform(shader, stack)
         if (isFirst) shader.v2("stepSize", 0f, 1f / h)
         else shader.v2("stepSize", 1f / w, 0f)
         shader.v1("steps", size * h)
         shader.v1("threshold", threshold)
+        GFX.flat01.draw(shader)
+        GFX.check()
+    }
+
+    fun draw3DBoxBlur(
+        stack: Matrix4fArrayList,
+        steps: Int, w: Int, h: Int,
+        isFirst: Boolean
+    ) {
+        val shader = ShaderLib.shader3DBoxBlur
+        transformUniform(shader, stack)
+        if (isFirst) {
+            shader.v2("stepSize", 0f, 1f / h)
+            shader.v1("steps", steps)
+        } else {
+            shader.v2("stepSize", 1f / w, 0f)
+            shader.v1("steps", steps)
+        }
         GFX.flat01.draw(shader)
         GFX.check()
     }
@@ -254,7 +273,7 @@ object GFXx3D {
         endDegrees: Float,
         color: Vector4f
     ) {
-        val shader = ShaderLib.shader3DCircle.shader
+        val shader = ShaderLib.shader3DCircle
         shader3DUniforms(shader, stack, 1, 1, color, null, Filtering.NEAREST, null)
         that?.uploadAttractors(shader, time) ?: GFXTransform.uploadAttractors0(shader)
         var a0 = startDegrees

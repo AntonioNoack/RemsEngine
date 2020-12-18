@@ -5,7 +5,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFXx2D.posSize
 import me.anno.image.svg.SVGStyle.Companion.parseColorComplex
 import me.anno.objects.animation.AnimatedProperty
-import me.anno.studio.RemsStudio.onSmallChange
+import me.anno.studio.RemsStudio
 import me.anno.studio.RemsStudio.editorTime
 import me.anno.ui.base.Panel
 import me.anno.ui.base.SpacePanel
@@ -140,7 +140,6 @@ class ColorChooser(style: Style, val withAlpha: Boolean, val owningProperty: Ani
         val rgb = colorSpace.toRGB(Vector3f(hue, saturation, lightness))
         if (notify){
             changeRGBListener(rgb.x, rgb.y, rgb.z, opacity)
-            onSmallChange("color-input")
         }
     }
 
@@ -198,11 +197,9 @@ class ColorChooser(style: Style, val withAlpha: Boolean, val owningProperty: Ani
         when (val color = parseColorComplex(data)) {
             is Int -> {
                 setARGB(color, true)
-                onSmallChange("color-paste-argb")
             }
             is Vector4f -> {
                 setRGBA(color.x, color.y, color.z, color.w, true)
-                onSmallChange("color-paste-vec4")
             }
             null -> LOGGER.warn("Didn't understand color $data")
             else -> throw RuntimeException("Color type $data -> $color isn't yet supported for ColorChooser")
@@ -212,7 +209,6 @@ class ColorChooser(style: Style, val withAlpha: Boolean, val owningProperty: Ani
     override fun onEmpty(x: Float, y: Float) {
         val default = owningProperty?.defaultValue ?: Vector4f(0f)
         setRGBA(default[0], default[1], default[2], default[3], true)
-        onSmallChange("color-empty")
     }
 
     companion object {

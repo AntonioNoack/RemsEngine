@@ -43,7 +43,7 @@ fun processUnbalanced(i0: Int, i1: Int, heavy: Boolean, func: (i0: Int, i1: Int)
 
 fun processBalanced(i0: Int, i1: Int, heavy: Boolean, func: (i0: Int, i1: Int) -> Unit) {
     // todo a second function with balanced load?
-    val minCountPerThread = if (heavy) 1 else 20
+    val minCountPerThread = if (heavy) 1 else 512
     val count = i1 - i0
     val threadCount = clamp(count / minCountPerThread, 1, threads)
     if (threadCount == 1) {

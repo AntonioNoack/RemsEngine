@@ -1,25 +1,11 @@
 package me.anno.gpu.shader
 
-import me.anno.utils.LOGGER
-import me.karl.shaders.ShaderProgram
 import java.lang.RuntimeException
 
-/**
- * a pair of a shader that is rendered normally,
- * and a shader, which renders a pure color for object click detection
- * */
-open class ShaderPlus(name: String, vertex: String, varying: String, fragment: String){
+object ShaderPlus {
 
-    // val correctShader = Shader(vertex, varying, fragment)
-    // val monoShader = Shader(vertex, varying, makeMono(fragment))
-
-    // universal
-    val shader = Shader(name, vertex, varying, makeUniversal(fragment))
-
-    init {
-        if(this is ShaderProgram){
-            LOGGER.info("ShaderProgram-Fragement:\n${shader.fragment}")
-        }
+    fun create(name: String, vertex: String, varying: String, fragment: String): Shader {
+        return Shader(name, vertex, varying, makeUniversal(fragment))
     }
 
     fun makeUniversal(shader: String): String {

@@ -19,10 +19,11 @@ import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.geometric.Circle
 import me.anno.objects.geometric.Polygon
-import me.anno.studio.Scene.mayUseMSAA
+import me.anno.studio.RemsStudio
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
+import me.anno.utils.Maths.clamp
 import org.joml.Matrix4fArrayList
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -72,8 +73,10 @@ class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
         val showResult = isFinalRendering || (!showMask && !showMasked)
         if (children.size >= 2 && showResult) {// else invisible
 
-            mask = FBStack["mask", GFX.windowWidth, GFX.windowHeight, samples, true]
-            masked = FBStack["masked", GFX.windowWidth, GFX.windowHeight, samples, true]
+            val w = GFX.windowWidth
+            val h = GFX.windowHeight
+            mask = FBStack["mask", w, h, samples, true]
+            masked = FBStack["masked", w, h, samples, true]
 
             BlendDepth(null, false) {
 
@@ -94,8 +97,8 @@ class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
 
         } else super.onDraw(stack, time, color)
 
-        if (showMask) drawChild(stack, time, color, children.getOrNull(0))
-        if (showMasked) drawChild(stack, time, color, children.getOrNull(1))
+        if (showMask && !isFinalRendering) drawChild(stack, time, color, children.getOrNull(0))
+        if (showMasked && !isFinalRendering) drawChild(stack, time, color, children.getOrNull(1))
 
     }
 
@@ -251,6 +254,28 @@ class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
                 )
 
             }
+            // awkward brightness bug; not production-ready
+            /*MaskType.PIXELATING -> {
+
+                val ih = clamp((2f / pixelSize).toInt(), 4, h)
+                val iw = clamp(w * ih / h, 4, w)
+
+                BoxBlur.draw(masked, w, h, iw, ih, 2, stack)
+
+                masked.bindTexture0(1, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+                mask.bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+
+                GFX.check()
+
+                GFXx3D.draw3DMasked(
+                    stack, color,
+                    type, useMaskColor[time],
+                    pixelSize, isInverted,
+                    isFullscreen,
+                    greenScreenSettings(time)
+                )
+
+            }*/
             else -> {
 
                 masked.bindTextures(1, GPUFiltering.TRULY_NEAREST, Clamping.MIRRORED_REPEAT)
@@ -282,11 +307,8 @@ class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
         mask += VI("Use Color / Transparency", "Should the color influence the masked?", useMaskColor, style)
         mask += VI("Blur Threshold", "", blurThreshold, style)
         mask += VI(
-            "Make Huge",
-            "Scales the mask, without affecting the children",
-            null,
-            isFullscreen,
-            style
+            "Make Huge", "Scales the mask, without affecting the children", null,
+            isFullscreen, style
         ) { isFullscreen = it }
         val greenScreen = getGroup("Green Screen", "greenScreen")
         greenScreen += VI("Similarity", "", greenScreenSimilarity, style)

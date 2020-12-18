@@ -1,107 +1,122 @@
 package me.anno.studio.history
 
-import me.anno.config.DefaultConfig
+import me.anno.gpu.GFX
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
+import me.anno.studio.history.State.Companion.capture
 import org.apache.logging.log4j.LogManager
-import java.util.*
 import kotlin.math.max
 
-class History: Saveable(){
+class History : Saveable() {
 
-    // history states instead of history entries
-
-    // todo history with branches, commits, etc?
-    // todo hierarchic history, so ending of editing a field only saves the final state??
-    // logarithmic history? -> no, just make it long enough?
-
-    // limit the size of elements? -> nah, disk space is cheap ^^
-    // save them on the disk, because they are relatively rarely changed anyways?
-    // nah, they are changed every step...
-
-    private var maxHistoryElements = max(1, DefaultConfig["maxHistoryElements", 256])
-    val elements = ArrayList<HistoryState<*>>(maxHistoryElements)
+    var currentState: State? = null
     var nextInsertIndex = 0
+        set(value) {
+            field = max(value, 0)
+        }
 
-    override fun getClassName() = "History"
-    override fun getApproxSize(): Int = 1_000_000
+    private val states = ArrayList<State>()
 
-    fun clear(){
-        synchronized(elements){
-            elements.clear()
+    fun isEmpty() = states.isEmpty()
+
+    fun clearToSize() {
+        while (states.size > maxChanged && maxChanged > 0) {
+            states.removeAt(0)
         }
     }
 
-    fun undo(){
-        LOGGER.info("undo")
-        synchronized(elements){
-            // if the next insert index was 1,
-            // then there were only 1 entry,
-            // so there would be nothing to undo
-            if(nextInsertIndex > 1){
-                elements[nextInsertIndex-- - 2].apply()
+    fun update(title: String){
+        val last = states.lastOrNull()
+        if(last?.title == title){
+            last.capture(last)
+        } else {
+            put(title)
+        }
+    }
+
+    fun put(change: State): Int {
+        // remove states at the top of the stack...
+        while (states.size > nextInsertIndex) states.removeAt(states.lastIndex)
+        states += change
+        nextInsertIndex = states.size
+        clearToSize()
+        return nextInsertIndex
+    }
+
+    fun put(title: String) {
+        val nextState = capture(title, currentState)
+        if (nextState != currentState) {
+            nextInsertIndex = put(nextState)
+            currentState = nextState
+        }
+    }
+
+    fun redo() {
+        if (nextInsertIndex < states.size) {
+            states[nextInsertIndex].apply()
+            nextInsertIndex++
+        } else LOGGER.info("Nothing left to redo!")
+    }
+
+    fun undo() {
+        if(nextInsertIndex > 1){
+            nextInsertIndex--
+            states[nextInsertIndex - 1].apply()
+        } else LOGGER.info("Nothing left to undo!")
+    }
+
+    fun redo(index: Int) {
+        if (index != states.lastIndex) {
+            states.getOrNull(index)?.apply {
+                put(this)
+                apply()
             }
         }
     }
 
-    fun redo(){
-        LOGGER.info("redo")
-        synchronized(elements){
-            if(nextInsertIndex < elements.size){
-                elements[nextInsertIndex++].apply()
+    fun display() {
+        GFX.openMenu("Change History", states.mapIndexed { index, change ->
+            val title = if(index == nextInsertIndex-1) "* ${change.title}" else change.title
+            title to {
+                redo(index)
             }
-        }
+        }.reversed())
     }
 
-    /**
-     * put the old state here, so it can be reversed
-     * */
-    fun put(element: HistoryState<*>){
-        if(nextInsertIndex > 0 && element == elements[nextInsertIndex-1]){
-            // don't push, if they are the same
-            return
-        }
-        synchronized(elements){
-            while(elements.size > nextInsertIndex && elements.isNotEmpty()){
-                elements.removeAt(elements.lastIndex)
-            }
-            if(elements.size+1 > maxHistoryElements){
-                elements.removeAt(0)
-            }
-            elements.add(element)
-            nextInsertIndex = elements.size
-        }
-    }
-
-    override fun save(writer: BaseWriter) {
-        super.save(writer)
-        writer.writeInt("nextInsertIndex", nextInsertIndex)
-        writer.writeList(this, "elements", elements)
-    }
+    // todo file explorer states?
 
     override fun readInt(name: String, value: Int) {
         when(name){
-            "nextInsertIndex" -> nextInsertIndex = max(0, value)
+            "nextInsertIndex" -> nextInsertIndex = value
             else -> super.readInt(name, value)
         }
     }
 
     override fun readObject(name: String, value: ISaveable?) {
         when(name){
-            "elements" -> {
-                if(value is HistoryState<*>){
-                    elements.add(value)
-                }
+            "state" -> {
+                states += value as? State ?: return
             }
             else -> super.readObject(name, value)
         }
     }
 
-    override fun isDefaultValue() = false
+    override fun save(writer: BaseWriter) {
+        super.save(writer)
+        writer.writeInt("nextInsertIndex", nextInsertIndex)
+        states.forEach {  state ->
+            writer.writeObject(this, "state", state)
+        }
+    }
+
+    override fun getApproxSize(): Int = 1_500_000_000
+    override fun isDefaultValue(): Boolean = false
+    override fun getClassName(): String = "History2"
 
     companion object {
-        private val LOGGER = LogManager.getLogger(History::class)
+        val LOGGER = LogManager.getLogger(History::class)
+        val maxChanged = 512
     }
 
 }

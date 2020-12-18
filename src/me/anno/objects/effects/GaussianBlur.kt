@@ -23,7 +23,7 @@ object GaussianBlur {
         // step1
         Frame(w, h, true, target) {
             GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT)
-            GFXx3D.draw3DBlur(localTransform, size, w, h, threshold, isFirst)
+            GFXx3D.draw3DGaussianBlur(localTransform, size, w, h, threshold, isFirst)
         }
         target.bindTexture0(
             resultIndex,

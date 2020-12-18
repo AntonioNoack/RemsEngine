@@ -1,5 +1,6 @@
 package me.anno.ui.editor
 
+import me.anno.input.MouseButton
 import me.anno.ui.base.Panel
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.Visibility
@@ -11,9 +12,14 @@ import me.anno.utils.Maths.mixARGB
 import me.anno.utils.isClickKey
 import kotlin.math.max
 
-class SettingCategory(titleText: String, style: Style) : PanelGroup(style) {
+open class SettingCategory(titleText: String, style: Style) : PanelGroup(style) {
 
-    val title = TextPanel(titleText, style.getChild("group"))
+    val title = object: TextPanel(titleText, style.getChild("group")){
+        override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
+            if(button.isLeft && !long) toggle()
+            else super.onMouseClicked(x, y, button, long)
+        }
+    }
 
     val content = PanelListY(style)
     val padding = Padding((title.font.size * .667f).toInt(), 0, 0, 0)
@@ -25,7 +31,6 @@ class SettingCategory(titleText: String, style: Style) : PanelGroup(style) {
         title.focusTextColor = title.textColor
         content.parent = this
         content.visibility = Visibility.GONE
-        title.setSimpleClickListener { toggle() }
     }
 
     fun show2() {

@@ -13,6 +13,7 @@ class FileInput(title: String, style: Style): TextInput(title, style){
 
     constructor(title: String, style: Style, f0: File): this(title, style){
         setText(f0.toString(), false)
+        setTooltip(title)
     }
 
     val file get() = File(text)

@@ -1,6 +1,7 @@
 package me.anno.objects.cache
 
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.gameTime
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture3D
@@ -105,7 +106,7 @@ object Cache {
             synchronized(cache){
                 val cached = cache[key]
                 if(cached != null){
-                    cached.lastUsed = GFX.lastTime
+                    cached.lastUsed = GFX.gameTime
                     return cached.data
                 }
                 var data: CacheData? = null
@@ -117,7 +118,7 @@ object Cache {
                     e.printStackTrace()
                 }
                 synchronized(cache){
-                    cache[key] = CacheEntry(data, timeout, GFX.lastTime)
+                    cache[key] = CacheEntry(data, timeout, GFX.gameTime)
                 }
                 return data
             }
@@ -152,7 +153,7 @@ object Cache {
         val cached: CacheEntry?
         synchronized(cache) { cached = cache[key] }
         if (cached != null) {
-            cached.lastUsed = GFX.lastTime
+            cached.lastUsed = GFX.gameTime
             synchronized(lockedKeys) { lockedKeys.remove(key) }
             return cached.data
         }
@@ -167,7 +168,7 @@ object Cache {
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
-                synchronized(cache) { cache[key] = CacheEntry(data, timeout, GFX.lastTime) }
+                synchronized(cache) { cache[key] = CacheEntry(data, timeout, gameTime) }
                 synchronized(lockedKeys) { lockedKeys.remove(key) }
             }
             null
@@ -180,7 +181,7 @@ object Cache {
             } catch (e: Exception) {
                 e.printStackTrace()
             }
-            synchronized(cache) { cache[key] = CacheEntry(data, timeout, GFX.lastTime) }
+            synchronized(cache) { cache[key] = CacheEntry(data, timeout, gameTime) }
             synchronized(lockedKeys) { lockedKeys.remove(key) }
             data
         }
@@ -213,7 +214,7 @@ object Cache {
 
     fun update() {
         val minTimeout = 300L
-        val time = GFX.lastTime
+        val time = GFX.gameTime
         synchronized(cache) {
             val toRemove =
                 cache.filter { (_, entry) -> abs(entry.lastUsed - time) > max(entry.timeout, minTimeout) * 1_000_000 }

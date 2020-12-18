@@ -1,5 +1,6 @@
 package me.anno.audio
 
+import me.anno.audio.effects.SoundPipeline.Companion.bufferSize
 import me.anno.objects.Audio
 import me.anno.objects.Camera
 import me.anno.objects.modes.LoopingState
@@ -18,11 +19,14 @@ import java.nio.ShortBuffer
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.concurrent.thread
 import kotlin.math.abs
+import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
 
 // only play once, then destroy; it makes things easier
 // (on user input and when finally rendering only)
+
+// todo does not work, if the buffers aren't filled fast enough -> always fill them fast enough...
 
 /**
  * todo audio effects:
@@ -35,8 +39,9 @@ import kotlin.math.min
  * */
 abstract class AudioStream(
     val file: File, val repeat: LoopingState,
-    val startTime: Double, val meta: FFMPEGMetadata,
-    val sender: Audio,
+    val startTime: Double,
+    val meta: FFMPEGMetadata,
+    val source: Audio,
     val listener: Camera,
     val playbackSampleRate: Int = 48000){
 
@@ -129,7 +134,7 @@ abstract class AudioStream(
         // todo timing differences seam to matter, so we need to include them (aww)
 
         val (camLocal2Global, _) = listener.getGlobalTransform(global1)
-        val (srcLocal2Global, _) = sender.getGlobalTransform(global1)
+        val (srcLocal2Global, _) = source.getGlobalTransform(global1)
         val camGlobalPos = camLocal2Global.transformPosition(Vector3f())
         val srcGlobalPos = srcLocal2Global.transformPosition(Vector3f())
         val dirGlobal = (camGlobalPos - srcGlobalPos).normalize() // in global space
@@ -142,6 +147,9 @@ abstract class AudioStream(
         return AudioTransfer(left1, right1, 0.0, 0.0)
 
     }
+
+    val leftPipeline = source.effects.clone()
+    val rightPipeline = source.effects.clone()
 
     fun requestNextBuffer(startTime: Double, bufferIndex: Long){
 
@@ -157,7 +165,8 @@ abstract class AudioStream(
             // (superfluous calculations)
 
             // time += dt
-            val sampleCount = (playbackSampleRate * playbackSliceDuration).toInt()
+            val sampleBuffers = ceil(playbackSampleRate * playbackSliceDuration / bufferSize).toInt()
+            val sampleCount = sampleBuffers * bufferSize
 
             // todo get higher/lower quality, if it's sped up/slowed down?
             // rare use-case...
@@ -178,7 +187,7 @@ abstract class AudioStream(
                 .order(ByteOrder.nativeOrder())
             val stereoBuffer = byteBuffer.asShortBuffer()
 
-            var transfer0 = if(sender.is3D) calculateLoudness(startTime) else CopyTransfer
+            var transfer0 = if(source.is3D) calculateLoudness(startTime) else CopyTransfer
             var transfer1 = transfer0
 
             // todo linear approximation, if possible
@@ -192,7 +201,7 @@ abstract class AudioStream(
 
                     // load loudness from camera
 
-                    if(sender.is3D) {
+                    if(source.is3D) {
 
                         transfer0 = transfer1
                         val global1 = startTime + (sampleIndex + updatePositionEveryNFrames) * dtx
@@ -259,9 +268,9 @@ abstract class AudioStream(
                 // because high quality may be expensive...
                 // it rather should be computed as a post-processing effect...
                 // todo irregular chaos component?? (different reflection directions)
-                val echoMultiplier = sender.echoMultiplier[global0]
+                val echoMultiplier = source.echoMultiplier[global0]
                 if(echoMultiplier > 0f){
-                    val echoDelay = sender.echoDelay[global0]
+                    val echoDelay = source.echoDelay[global0]
                     var sum = 1f
                     if(abs(echoDelay) > 1e-5f){
                         var global = global1 - echoDelay

@@ -1,7 +1,6 @@
 package me.anno.objects
 
 import me.anno.config.DefaultConfig
-import me.anno.fonts.AWTFont
 import me.anno.fonts.FontManager
 import me.anno.fonts.PartResult
 import me.anno.fonts.mesh.FontMesh.Companion.DEFAULT_LINE_HEIGHT
@@ -17,10 +16,9 @@ import me.anno.objects.animation.Type
 import me.anno.objects.cache.Cache
 import me.anno.objects.modes.TextMode
 import me.anno.studio.RemsStudio
-import me.anno.studio.RemsStudio.onLargeChange
-import me.anno.studio.RemsStudio.onSmallChange
 import me.anno.studio.RemsStudio.selectedProperty
 import me.anno.ui.base.ButtonPanel
+import me.anno.ui.base.Font
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
@@ -33,7 +31,6 @@ import me.anno.video.MissingFrameException
 import org.joml.Matrix4fArrayList
 import org.joml.Vector3f
 import org.joml.Vector4f
-import java.awt.Font
 import java.io.File
 import kotlin.math.max
 
@@ -63,10 +60,6 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
     // how we apply sampling probably depends on our AA solution...
 
     // parameters
-    var font = "Verdana"
-
-    var isBold = false
-    var isItalic = false
 
     var textAlignment = AxisAlignment.CENTER
     var blockAlignmentX = AxisAlignment.CENTER
@@ -89,12 +82,12 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
     var lineSegmentsWithStyle: PartResult? = null
     var keys: List<FontMeshKey>? = null
 
-    val fontSize0 = 20f
-    val charSpacing get() = fontSize0 * relativeCharSpacing
+    val font = Font("Verdana", 20f, false,false)
+    val charSpacing get() = font.size * relativeCharSpacing
     var forceVariableBuffer = false
 
     fun createKeys() =
-        lineSegmentsWithStyle?.parts?.map { FontMeshKey(it.font, isBold, isItalic, it.text, charSpacing) }
+        lineSegmentsWithStyle?.parts?.map { FontMeshKey(it.font, font.isBold, font.isItalic, it.text, charSpacing) }
 
     var needsUpdate = false
     override fun claimLocalResources(lTime0: Double, lTime1: Double) {
@@ -106,13 +99,13 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
 
     open fun splitSegments(text: String): PartResult? {
         if (text.isEmpty()) return null
-        val awtFont = FontManager.getFont(font, fontSize0, isBold, isItalic) as AWTFont
-        val absoluteLineBreakWidth = lineBreakWidth * fontSize0 * 2f / DEFAULT_LINE_HEIGHT
-        return awtFont.splitParts(text, fontSize0, relativeTabSize, relativeCharSpacing, absoluteLineBreakWidth)
+        val awtFont = FontManager.getFont(font)
+        val absoluteLineBreakWidth = lineBreakWidth * font.size * 2f / DEFAULT_LINE_HEIGHT
+        return awtFont.splitParts(text, font.size, relativeTabSize, relativeCharSpacing, absoluteLineBreakWidth)
     }
 
     data class FontMeshKey(
-        val font: Font, val isBold: Boolean, val isItalic: Boolean,
+        val font: java.awt.Font, val isBold: Boolean, val isItalic: Boolean,
         val text: String, val charSpacing: Float
     ) {
         fun equals(isBold: Boolean, isItalic: Boolean, text: String, charSpacing: Float) =
@@ -122,8 +115,8 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
 
         val text = text
-        val isBold = isBold
-        val isItalic = isItalic
+        val isBold = font.isBold
+        val isItalic = font.isItalic
 
         val shallLoadAsync = !forceVariableBuffer
 
@@ -203,7 +196,7 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
 
                 fontMesh.draw { buffer, xOffset ->
                     val offset = Vector3f(dx1 + xOffset, -dy1, 0f)
-                    if(firstTimeDrawing){
+                    if (firstTimeDrawing) {
                         draw3DText(this, time, offset, stack, buffer, color)
                         firstTimeDrawing = false
                     } else {
@@ -225,9 +218,9 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
     override fun save(writer: BaseWriter) {
         super.save(writer)
         writer.writeString("text", text)
-        writer.writeString("font", font)
-        writer.writeBool("isItalic", isItalic, true)
-        writer.writeBool("isBold", isBold, true)
+        writer.writeString("font", font.name)
+        writer.writeBool("isItalic", font.isItalic, true)
+        writer.writeBool("isBold", font.isBold, true)
         writer.writeObject(this, "relativeLineSpacing", relativeLineSpacing)
         writer.writeInt("textAlignment", textAlignment.id, true)
         writer.writeInt("blockAlignmentX", blockAlignmentX.id, true)
@@ -264,7 +257,7 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
     override fun readString(name: String, value: String) {
         when (name) {
             "text" -> text = value
-            "font" -> font = value
+            "font" -> font.name = value
             else -> super.readString(name, value)
         }
         invalidate()
@@ -272,8 +265,8 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
 
     override fun readBool(name: String, value: Boolean) {
         when (name) {
-            "isBold" -> isBold = value
-            "isItalic" -> isItalic = value
+            "isBold" -> font.isBold = value
+            "isItalic" -> font.isItalic = value
             else -> super.readBool(name, value)
         }
         invalidate()
@@ -295,12 +288,13 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
 
         list += TextInputML("Text", style, text)
             .setChangeListener {
-                getSelfWithShadows().forEach { c -> c.text = it }
-                onSmallChange("text-changed")
+                RemsStudio.incrementalChange("text"){
+                    getSelfWithShadows().forEach { c -> c.text = it }
+                }
             }
             .setIsSelectedListener { selectedProperty = null }
         val fontList = ArrayList<String>()
-        fontList += font
+        fontList += font.name
         fontList += GFX.menuSeparator
 
         fun sortFavourites() {
@@ -311,7 +305,7 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
 
         FontManager.requestFontList { systemFonts ->
             synchronized(fontList) {
-                fontList += systemFonts.filter { it != font }
+                fontList += systemFonts.filter { it != font.name }
                 sortFavourites()
             }
         }
@@ -321,27 +315,30 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
 
         val fontGroup = getGroup("Font", "font")
 
-        fontGroup += EnumInput("Font Name", true, font, fontList, style)
+        fontGroup += EnumInput("Font Name", true, font.name, fontList, style)
             .setChangeListener { it, _, _ ->
-                getSelfWithShadows().forEach { c -> c.font = it }
+                RemsStudio.largeChange("Change Font to '$it'"){
+                    getSelfWithShadows().forEach { c -> c.font.name = it }
+                }
                 invalidate()
                 putLastUsedFont(it)
                 sortFavourites()
-                onSmallChange("text-font")
             }
             .setIsSelectedListener { show(null) }
-        fontGroup += BooleanInput("Italic", isItalic, style)
+        fontGroup += BooleanInput("Italic", font.isItalic, style)
             .setChangeListener {
-                getSelfWithShadows().forEach { c -> c.isItalic = it }
+                RemsStudio.largeChange("Italic: $it"){
+                    getSelfWithShadows().forEach { c -> c.font.isItalic = it }
+                }
                 invalidate()
-                onSmallChange("text-italic")
             }
             .setIsSelectedListener { show(null) }
-        fontGroup += BooleanInput("Bold", isBold, style)
+        fontGroup += BooleanInput("Bold", font.isBold, style)
             .setChangeListener {
-                getSelfWithShadows().forEach { c -> c.isBold = it }
+                RemsStudio.largeChange("Bold: $it"){
+                    getSelfWithShadows().forEach { c -> c.font.isBold = it }
+                }
                 invalidate()
-                onSmallChange("text-bold")
             }
             .setIsSelectedListener { show(null) }
 
@@ -356,9 +353,10 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
                 .setIsSelectedListener { show(null) }
                 .setChangeListener { name, _, _ ->
                     val alignment = AxisAlignment.values().first { it[x] == name }
-                    getSelfWithShadows().forEach { set(it, alignment) }
+                    RemsStudio.largeChange("Set $title to $name"){
+                        getSelfWithShadows().forEach { set(it, alignment) }
+                    }
                     invalidate()
-                    onSmallChange("text-alignment")
                 }
         }
 
@@ -369,26 +367,29 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
         val spaceGroup = getGroup("Spacing", "spacing")
         // make this element separable from the parent???
         spaceGroup += VI("Character Spacing", "Space between individual characters", null, relativeCharSpacing, style) {
-            relativeCharSpacing = it
+            RemsStudio.incrementalChange("char space"){
+                relativeCharSpacing = it
+            }
             invalidate()
-            onSmallChange("char-space")
         }
         spaceGroup += VI("Line Spacing", "How much lines are apart from each other", relativeLineSpacing, style)
         spaceGroup += VI(
             "Tab Size", "Relative tab size, in widths of o's",
             Type.FLOAT_PLUS, relativeTabSize, style
         ) {
-            relativeTabSize = it
+            RemsStudio.incrementalChange("tab size"){
+                relativeTabSize = it
+            }
             invalidate()
-            onSmallChange("tab-size")
         }
         spaceGroup += VI(
             "Line Break Width", "How broad the text shall be, at maximum; < 0 = no limit",
             Type.FLOAT, lineBreakWidth, style
         ) {
-            lineBreakWidth = it
+            RemsStudio.incrementalChange("line break width"){
+                lineBreakWidth = it
+            }
             invalidate()
-            onSmallChange("line-break-width")
         }
 
         val ops = getGroup("Operations", "operations")
@@ -404,9 +405,8 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
                 shadow.color.set(signalColor)
                 shadow.position.set(Vector3f(0.01f, -0.01f, -0.001f))
                 shadow.relativeLineSpacing = relativeLineSpacing // evil ;)
-                addChild(shadow)
+                RemsStudio.largeChange("Add Text Shadow"){ addChild(shadow) }
                 GFX.select(shadow)
-                onLargeChange()
             }
 
     }

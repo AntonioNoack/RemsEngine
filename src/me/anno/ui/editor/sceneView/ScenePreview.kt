@@ -3,8 +3,10 @@ package me.anno.ui.editor.sceneView
 import me.anno.config.DefaultStyle.black
 import me.anno.config.DefaultStyle.deepDark
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.gameTime
 import me.anno.gpu.GFXx2D.drawRect
 import me.anno.gpu.shader.ShaderPlus
+import me.anno.objects.Camera
 import me.anno.studio.Scene
 import me.anno.studio.RemsStudio.editorTime
 import me.anno.studio.RemsStudio.nullCamera
@@ -32,12 +34,7 @@ class ScenePreview(style: Style) : PanelList(null, style.getChild("sceneView")),
 
     }
 
-    val camera = nullCamera
-
-    init {
-        camera.onlyShowTarget = false
-        camera.farZ.set(10000f)
-    }
+    val camera = nullCamera ?: Camera()
 
     // never the same :D
     var visualStateCtr = 0
@@ -50,7 +47,7 @@ class ScenePreview(style: Style) : PanelList(null, style.getChild("sceneView")),
     // -> do this by disabling controls when playing, excepts when it's the inspector camera (?)
     var lastW = 0
     var lastH = 0
-    var lastSizeUpdate = GFX.lastTime
+    var lastSizeUpdate = gameTime
     var goodW = 0
     var goodH = 0
 
@@ -115,14 +112,14 @@ class ScenePreview(style: Style) : PanelList(null, style.getChild("sceneView")),
         // check if the size stayed the same;
         // because resizing all framebuffers is expensive (causes lag)
         val matchesSize = lastW == rw && lastH == rh
-        val wasNotRecentlyUpdated = lastSizeUpdate + 1e8 < GFX.lastTime
+        val wasNotRecentlyUpdated = lastSizeUpdate + 1e8 < gameTime
         if (matchesSize) {
             if (wasNotRecentlyUpdated) {
                 goodW = rw
                 goodH = rh
             }
         } else {
-            lastSizeUpdate = GFX.lastTime
+            lastSizeUpdate = gameTime
             lastW = rw
             lastH = rh
         }

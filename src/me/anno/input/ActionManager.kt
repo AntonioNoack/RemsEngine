@@ -2,6 +2,7 @@ package me.anno.input
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.gameTime
 import me.anno.gpu.GFX.inFocus
 import me.anno.io.utils.StringMap
 import me.anno.studio.RemsStudio
@@ -90,7 +91,7 @@ object ActionManager {
     fun onMouseMoved(dx: Float, dy: Float){
         Input.keysDown.forEach { (key, downTime) ->
             onKeyHoldDown(dx, dy, key, false)
-            val deltaTime = abs(downTime - GFX.lastTime) * 1e-9f
+            val deltaTime = (gameTime - downTime) * 1e-9f
             if(deltaTime >= keyDragDelay){
                 onKeyHoldDown(dx, dy, key, true)
             }

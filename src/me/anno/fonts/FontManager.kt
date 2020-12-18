@@ -26,7 +26,7 @@ object FontManager {
     private val awtFontList = ArrayList<String>()
     private val awtFonts = HashMap<FontKey, Font>()
 
-    private val fonts = HashMap<FontKey, XFont>()
+    private val fonts = HashMap<FontKey, AWTFont>()
 
     fun requestFontList(callback: (List<String>) -> Unit){
         if(hasFonts) callback(awtFontList)
@@ -58,6 +58,7 @@ object FontManager {
 
     fun getString(font: me.anno.ui.base.Font, text: String, widthLimit: Int) =
         getString(font.name, font.size, text, font.isBold, font.isItalic, widthLimit)
+
     fun getString(fontName: String, fontSize: Float, text: String, bold: Boolean, italic: Boolean, widthLimit: Int): ITexture2D? {
         if(text.isEmpty()) return null
         val fontSizeIndex = getFontSizeIndex(fontSize)
@@ -79,7 +80,9 @@ object FontManager {
         return cache?.texture
     }
 
-    fun getFont(name: String, fontSize: Float, bold: Boolean, italic: Boolean): XFont {
+    fun getFont(font: me.anno.ui.base.Font) = getFont(font.name, font.size, font.isBold, font.isItalic)
+
+    fun getFont(name: String, fontSize: Float, bold: Boolean, italic: Boolean): AWTFont {
         val fontSizeIndex = getFontSizeIndex(fontSize)
         val averageFontSize = getAvgFontSize(fontSizeIndex)
         return getFont(name, averageFontSize, fontSizeIndex, bold, italic)
@@ -87,7 +90,7 @@ object FontManager {
 
     data class FontKey(val name: String, val sizeIndex: Int, val bold: Boolean, val italic: Boolean)
 
-    private fun getFont(name: String, fontSize: Float, fontSizeIndex: Int, bold: Boolean, italic: Boolean): XFont {
+    private fun getFont(name: String, fontSize: Float, fontSizeIndex: Int, bold: Boolean, italic: Boolean): AWTFont {
         val key = FontKey(name, fontSizeIndex, bold, italic)//"$name:$fontSizeIndex:$boldItalicStyle"
         val font = fonts[key]
         if(font != null) return font

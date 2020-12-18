@@ -66,7 +66,7 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
     init {
         val esi = entrySize.toInt()
         content.childWidth = esi
-        content.childHeight = esi
+        content.childHeight = esi * 4 / 3
         val topBar = PanelListX(style)
         this += topBar
         topBar += title
@@ -141,6 +141,7 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
         if(isValid <= 0f){
             isValid = 5f // depending on amount of files?
             title.file = folder// ?.toString() ?: "This Computer"
+            title.tooltip = folder?.toString() ?: "This Computer"
             createResults()
         } else isValid -= GFX.deltaTime
     }
@@ -158,20 +159,28 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
     override fun onPaste(x: Float, y: Float, data: String, type: String) {
         when(type){
             "Transform" -> {
-                var name = data.toTransform()!!.name.toAllowedFilename()
-                if(name != null){
-                    // make .json lowercase
-                    if(name.endsWith(".json", true)){
-                        name = name.substring(0, name.length-5)
-                    }
-                    name += ".json"
-                    // todo replace vs add new?
-                    File(folder, name).writeText(data)
-                    invalidate()
+                pasteTransform(data)
+            }
+            else -> {
+                if(!pasteTransform(data)){
+                    super.onPaste(x, y, data, type)
                 }
             }
-            else -> super.onPaste(x, y, data, type)
         }
+    }
+
+    fun pasteTransform(data: String): Boolean {
+        val transform = data.toTransform() ?: return false
+        var name = transform.name.toAllowedFilename() ?: transform.getDefaultDisplayName()
+        // make .json lowercase
+        if(name.endsWith(".json", true)){
+            name = name.substring(0, name.length-5)
+        }
+        name += ".json"
+        // todo replace vs add new?
+        File(folder, name).writeText(data)
+        invalidate()
+        return true
     }
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
@@ -215,7 +224,7 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
             entrySize = clamp(entrySize * pow(1.05f, dy), minEntrySize, max(w/2f, 20f))
             val esi = entrySize.toInt()
             content.childWidth = esi
-            content.childHeight = esi
+            content.childHeight = esi * 4 / 3
         } else super.onMouseWheel(x, y, dx, dy)
     }
 

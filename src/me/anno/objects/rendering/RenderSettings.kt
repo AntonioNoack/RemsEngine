@@ -1,10 +1,9 @@
 package me.anno.objects.rendering
 
 import me.anno.config.DefaultConfig
+import me.anno.config.DefaultStyle.black
 import me.anno.objects.Transform
-import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.animation.Type
-import me.anno.studio.RemsStudio
 import me.anno.studio.RemsStudio.project
 import me.anno.studio.RemsStudio.targetDuration
 import me.anno.studio.RemsStudio.targetOutputFile
@@ -21,31 +20,37 @@ import me.anno.ui.input.FileInput
 import me.anno.ui.input.FloatInput
 import me.anno.ui.input.IntInput
 import me.anno.ui.style.Style
+import me.anno.utils.Maths.mixARGB
 import java.io.File
 import kotlin.concurrent.thread
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.roundToInt
 
-object RenderSettings : Transform(){
+object RenderSettings : Transform() {
 
     override fun getDefaultDisplayName(): String = "Render Settings"
 
-    override fun createInspector(list: PanelListY, style: Style, getGroup: (title: String, id: String) -> SettingCategory) {
+    override fun createInspector(
+        list: PanelListY,
+        style: Style,
+        getGroup: (title: String, id: String) -> SettingCategory
+    ) {
         super.createInspector(list, style, getGroup)
 
         val project = project!!
 
         list.clear()
         list += TextPanel(getDefaultDisplayName(), style)
-        list += VI("Duration", "Video length in seconds", Type.FLOAT_PLUS, targetDuration, style){
+        list += VI("Duration", "Video length in seconds", Type.FLOAT_PLUS, targetDuration, style) {
             project.targetDuration = it
             save()
         }
 
         list += VI(
             "Relative Frame Size (%)", "For rendering tests, in percent",
-            Type.FLOAT_PERCENT, project.targetSizePercentage, style){
+            Type.FLOAT_PERCENT, project.targetSizePercentage, style
+        ) {
             project.targetSizePercentage = it
             save()
         }
@@ -63,8 +68,8 @@ object RenderSettings : Transform(){
             .mapNotNull { it.trim().toDoubleOrNull() }
             .toMutableList()
 
-        if(framesRates.isEmpty()) framesRates = arrayListOf(60.0)
-        if(project.targetFPS !in framesRates) framesRates.add(0, project.targetFPS)
+        if (framesRates.isEmpty()) framesRates = arrayListOf(60.0)
+        if (project.targetFPS !in framesRates) framesRates.add(0, project.targetFPS)
         list += EnumInput("Frame Rate", true, project.targetFPS.toString(), framesRates.map { it.toString() }, style)
             .setChangeListener { value, _, _ ->
                 project.targetFPS = value.toDouble()
@@ -93,12 +98,29 @@ object RenderSettings : Transform(){
             }
             .setTooltip("[Motion Blur] 1 = full frame is used; 0.1 = only 1/10th of a frame time is used")
 
-        // todo file input file selector...
-        list += FileInput("Output File", style, targetOutputFile)
-            .setChangeListener {
-                project.targetOutputFile = File(it)
-                save()
+        // todo file selector from OS...
+        val fileInput = FileInput("Output File", style, targetOutputFile)
+        val originalColor = fileInput.base.textColor
+        fun updateFileInputColor() {
+            val file = project.targetOutputFile
+            fileInput.base.run {
+                textColor = mixARGB(originalColor, when {
+                    file.isDirectory -> 0xff0000 or black
+                    file.exists() -> 0xffff00 or black
+                    else -> 0x00ff00 or black
+                }, 0.5f)
+                focusTextColor = textColor
             }
+        }
+
+        updateFileInputColor()
+        fileInput.setChangeListener {
+            val file = File(it)
+            project.targetOutputFile = file
+            updateFileInputColor()
+            save()
+        }
+        list += fileInput
 
         list += ButtonPanel("Render at 100%", style)
             .setSimpleClickListener { renderPart(1) }
@@ -115,7 +137,7 @@ object RenderSettings : Transform(){
 
     }
 
-    fun renderSetPercent(){
+    fun renderSetPercent() {
         Rendering.render(
             max(2, (project!!.targetWidth * project!!.targetSizePercentage / 100).roundToInt()),
             max(2, (project!!.targetHeight * project!!.targetSizePercentage / 100).roundToInt())
@@ -124,17 +146,17 @@ object RenderSettings : Transform(){
 
     var lastSavePoint = 0L
     var wasChanged = false
-    fun save(){
+    fun save() {
         val time = System.nanoTime()
-        if(abs(time-lastSavePoint) > 500_000_000L){// 500ms, saving 2/s
+        if (abs(time - lastSavePoint) > 500_000_000L) {// 500ms, saving 2/s
             actuallySave()
         } else {
             wasChanged = true
             thread {
                 Thread.sleep(500) // save
-                if(wasChanged){
+                if (wasChanged) {
                     addEvent {
-                        if(wasChanged){// yes, checking twice makes sense
+                        if (wasChanged) {// yes, checking twice makes sense
                             actuallySave()
                         }
                     }
@@ -143,7 +165,7 @@ object RenderSettings : Transform(){
         }
     }
 
-    fun actuallySave(){
+    fun actuallySave() {
         wasChanged = false
         project!!.saveConfig()
     }

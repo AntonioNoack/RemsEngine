@@ -19,13 +19,16 @@
       <w>fmpeg</w>
       <w>fprobe</w>
       <w>framebuffers</w>
+      <w>gbar</w>
       <w>gizmos</w>
       <w>glfw</w>
       <w>glsl</w>
+      <w>highp</w>
       <w>himmelblau</w>
       <w>hori</w>
       <w>hsluv</w>
       <w>mediump</w>
+      <w>mids</w>
       <w>msaa</w>
       <w>mtllib</w>
       <w>ness</w>
@@ -35,12 +38,16 @@
       <w>phychi</w>
       <w>pickable</w>
       <w>premultiplied</w>
+      <w>quat</w>
       <w>rasterization</w>
       <w>remsstudio</w>
+      <w>segoe</w>
       <w>shaders</w>
       <w>skybox</w>
       <w>smoothstep</w>
+      <w>symbola</w>
       <w>uchimura</w>
+      <w>unifont</w>
       <w>usemtl</w>
       <w>vertice</w>
     </words>

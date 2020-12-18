@@ -164,7 +164,6 @@ object Thumbs {
 
                 val buffer = IntArray(w * h)
 
-
                 GFX.addGPUTask(w, h) {
 
                     GFX.check()
@@ -174,7 +173,6 @@ object Thumbs {
                     BlendDepth(null, false) {
 
                         Frame(0, 0, w, h, false, fb2) {
-
 
                             Frame.bind()
 
@@ -257,7 +255,7 @@ object Thumbs {
 
                 var src: VFrame? = null
                 while (src == null) {
-                    src = Cache.getVideoFrame(srcFile, scale, index, 1, fps, 1000L, false)
+                    src = Cache.getVideoFrame(srcFile, scale, index, 1, fps, 1000L, true)
                     Thread.sleep(1)
                 }
 

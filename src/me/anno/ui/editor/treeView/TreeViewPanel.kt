@@ -18,8 +18,7 @@ import me.anno.objects.Rectangle
 import me.anno.objects.Transform
 import me.anno.objects.Transform.Companion.toTransform
 import me.anno.objects.effects.MaskLayer
-import me.anno.studio.RemsStudio.onLargeChange
-import me.anno.studio.RemsStudio.onSmallChange
+import me.anno.studio.RemsStudio
 import me.anno.studio.RemsStudio.selectedTransform
 import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.ui.base.TextPanel
@@ -88,8 +87,9 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style) : TextPanel("
         when {
             button.isLeft -> {
                 if (Input.isShiftDown) {
-                    transform.isCollapsed = !transform.isCollapsed
-                    onSmallChange("collapse")
+                    RemsStudio.largeChange(if(transform.isCollapsed) "Expanded ${transform.name}" else "Collapsed ${transform.name}"){
+                        transform.isCollapsed = !transform.isCollapsed
+                    }
                 } else {
                     select(transform)
                 }
@@ -133,51 +133,46 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style) : TextPanel("
     }
 
     override fun onPaste(x: Float, y: Float, data: String, type: String) {
-        if (!data.startsWith("[")) return super.onPaste(x, y, data, type)
         try {
-            val child = TextReader.fromText(data).firstOrNull { it is Transform } as? Transform ?: return super.onPaste(
-                x,
-                y,
-                data,
-                type
-            )
+            val child = data.toTransform() ?: return super.onPaste(x, y, data, type)
             val original = (dragged as? Draggable)?.getOriginal() as? Transform
             val relativeY = (y - this.y) / this.h
             val e = getElement()
-            if (relativeY < 0.33f) {
-                // paste on top
-                if (e.parent != null) {
-                    e.addBefore(child)
-                } else {
+            RemsStudio.largeChange("Moved Component"){
+                if (relativeY < 0.33f) {
+                    // paste on top
+                    if (e.parent != null) {
+                        e.addBefore(child)
+                    } else {
+                        e.addChild(child)
+                    }
+                    // we can't remove the element, if it's the parent
+                    if (original !in child.listOfAll) {
+                        original?.removeFromParent()
+                    }
+                } else if (relativeY < 0.67f) {
+                    // paste as child
                     e.addChild(child)
-                }
-                // we can't remove the element, if it's the parent
-                if (original !in child.listOfAll) {
-                    original?.removeFromParent()
-                }
-            } else if (relativeY < 0.67f) {
-                // paste as child
-                e.addChild(child)
-                if (e != original) {
+                    if (e != original) {
+                        // we can't remove the element, if it's the parent
+                        if (original !in child.listOfAll) {
+                            original?.removeFromParent()
+                        }
+                    }
+                } else {
+                    // paste below
+                    if (e.parent != null) {
+                        e.addAfter(child)
+                    } else {
+                        e.addChild(child)
+                    }
                     // we can't remove the element, if it's the parent
                     if (original !in child.listOfAll) {
                         original?.removeFromParent()
                     }
                 }
-            } else {
-                // paste below
-                if (e.parent != null) {
-                    e.addAfter(child)
-                } else {
-                    e.addChild(child)
-                }
-                // we can't remove the element, if it's the parent
-                if (original !in child.listOfAll) {
-                    original?.removeFromParent()
-                }
+                select(child)
             }
-            select(child)
-            onLargeChange()
         } catch (e: Exception) {
             e.printStackTrace()
             super.onPaste(x, y, data, type)
@@ -209,7 +204,9 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style) : TextPanel("
     }
 
     override fun onDeleteKey(x: Float, y: Float) {
-        getElement().destroy()
+        RemsStudio.largeChange("Deleted Component ${getElement().name}"){
+            getElement().destroy()
+        }
     }
 
     override fun onBackSpaceKey(x: Float, y: Float) = onDeleteKey(x, y)

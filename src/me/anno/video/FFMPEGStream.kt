@@ -70,7 +70,7 @@ abstract class FFMPEGStream(val file: File?){
     abstract fun destroy()
 
     fun run(arguments: List<String>): FFMPEGStream {
-        // LOGGER.info("${(GFX.lastTime/1e9).toInt()} ${arguments.joinToString(" ")}")
+        // LOGGER.info("${(GFX.gameTime/1e9).toInt()} ${arguments.joinToString(" ")}")
         val args = ArrayList<String>(arguments.size+2)
         args += FFMPEG.ffmpegPathString
         if(arguments.isNotEmpty()) args += "-hide_banner"

@@ -18,7 +18,11 @@ class PropertyInspector(style: Style):
     val list = child as PanelListY
     val secondaryList = PanelListY(style)
     var lastSelected: Inspectable? = null
-    var needsUpdate = false
+    private var needsUpdate = false
+
+    fun invalidate(){
+        needsUpdate = true
+    }
 
     override fun getLayoutState(): Any? {
         return Pair(super.getLayoutState(), selectedInspectable)

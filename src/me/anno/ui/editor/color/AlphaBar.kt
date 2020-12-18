@@ -14,7 +14,6 @@ class AlphaBar(chooser: ColorChooser, style: Style): HSVBox(chooser,
     Vector3f(0f, 0f, 0f), 0f, style, 1f,
     { opacity, _ ->
         chooser.setHSL(chooser.hue, chooser.saturation, chooser.lightness, clamp(opacity, 0f, 1f), chooser.colorSpace, true)
-        RemsStudio.onSmallChange("color-alpha")
     }) {
     override fun invalidateDrawing() { parent?.invalidateDrawing() }
     override fun getVisualState(): Any? = Pair(super.getVisualState(), chooser.opacity)

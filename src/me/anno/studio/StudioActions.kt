@@ -94,26 +94,23 @@ object StudioActions {
                 true
             },
             "ShowAllObjects" to {
-                if (RemsStudio.root.listOfAll.count {
-                        if (it.visibility == TransformVisibility.VIDEO_ONLY) {
-                            it.visibility = TransformVisibility.VISIBLE
-                            true
-                        } else {
-                            false
-                        }
-                    } > 0) {
-                    RemsStudio.onSmallChange("show-all")
+                if (RemsStudio.root.listOfAll.any { it.visibility == TransformVisibility.VIDEO_ONLY }) {
+                    RemsStudio.largeChange("Show all objects"){
+                        RemsStudio.root.listOfAll.filter { it.visibility == TransformVisibility.VIDEO_ONLY }
+                            .forEach { it.visibility = TransformVisibility.VISIBLE }
+                    }
                     true
                 } else false
             },
             "ToggleHideObject" to {
                 val obj = RemsStudio.selectedTransform
                 if (obj != null) {
-                    obj.visibility = when (obj.visibility) {
-                        TransformVisibility.VISIBLE -> TransformVisibility.VIDEO_ONLY
-                        else -> TransformVisibility.VISIBLE
+                    RemsStudio.largeChange("Toggle Visibility"){
+                        obj.visibility = when (obj.visibility) {
+                            TransformVisibility.VISIBLE -> TransformVisibility.VIDEO_ONLY
+                            else -> TransformVisibility.VISIBLE
+                        }
                     }
-                    RemsStudio.onSmallChange("toggle-hide")
                     true
                 } else false
             }

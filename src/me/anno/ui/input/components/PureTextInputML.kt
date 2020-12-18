@@ -8,7 +8,6 @@ import me.anno.gpu.GFXx2D.drawRect
 import me.anno.gpu.GFXx2D.getTextSize
 import me.anno.input.Input
 import me.anno.input.MouseButton
-import me.anno.studio.RemsStudio.onSmallChange
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelList
@@ -38,7 +37,7 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
 
     override fun tickUpdate() {
         super.tickUpdate()
-        val blinkVisible = ((GFX.lastTime / 500_000_000L) % 2L == 0L)
+        val blinkVisible = ((GFX.gameTime / 500_000_000L) % 2L == 0L)
         showBars = (isInFocus || children.one { it.isInFocus }) && (blinkVisible || wasJustChanged)
     }
 
@@ -54,7 +53,7 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
     private val scrollbarStartY get() = if (minW > w) actualChildren.last().run { y + h - 3 } else y + h
 
     private var lastChangeTime = 0L
-    private val wasJustChanged get() = abs(GFX.lastTime - lastChangeTime) < 200_000_000
+    private val wasJustChanged get() = abs(GFX.gameTime - lastChangeTime) < 200_000_000
 
     data class CursorPosition(val x: Int, val y: Int) : Comparable<CursorPosition> {
         override fun hashCode(): Int = x + y * 65536
@@ -221,7 +220,6 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
         }
         cursor1 = min
         cursor2 = min
-        onSmallChange("text/ml-delete-selection")
         updateText(true)
         return true
     }
@@ -230,12 +228,11 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
 
     fun insert(insertion: String) {
         if(insertion.isNotEmpty()){
-            lastChangeTime = GFX.lastTime
+            lastChangeTime = GFX.gameTime
             insertion.codePoints().forEach {
                 insert(it, false)
             }
             update(true)
-            onSmallChange("text/ml-insert-string")
         }
     }
 
@@ -257,7 +254,7 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
     }
 
     fun insert(insertion: Int, notify: Boolean) {
-        lastChangeTime = GFX.lastTime
+        lastChangeTime = GFX.gameTime
         deleteSelection()
         when (insertion) {
             '\n'.toInt() -> {
@@ -286,12 +283,11 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
         ensureCursorBounds()
         if (notify) {
             update(true)
-            onSmallChange("text/ml-insert")
         }
     }
 
     fun deleteBefore() {
-        lastChangeTime = GFX.lastTime
+        lastChangeTime = GFX.gameTime
         if (!deleteSelection() && cursor1.x + cursor1.y > 0) {
             if (cursor1.x == 0) {
                 // join lines
@@ -314,7 +310,6 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
     fun deleteAfter() {
         moveRight()
         deleteBefore()
-        onSmallChange("delete-after")
     }
 
     fun ensureCursorBounds() {
@@ -336,7 +331,7 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
 
 
     override fun onCharTyped(x: Float, y: Float, key: Int) {
-        lastChangeTime = GFX.lastTime
+        lastChangeTime = GFX.gameTime
         addKey(key)
     }
 
@@ -358,7 +353,7 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
             cursor2 = cursor1
         }
         ensureCursorBounds()
-        lastChangeTime = GFX.lastTime
+        lastChangeTime = GFX.gameTime
     }
 
     fun moveLeft() {
@@ -378,7 +373,7 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
             cursor2 = cursor1
         }
         ensureCursorBounds()
-        lastChangeTime = GFX.lastTime
+        lastChangeTime = GFX.gameTime
     }
 
     fun moveUp() {
@@ -394,7 +389,7 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
             cursor2 = cursor1
         }
         ensureCursorBounds()
-        lastChangeTime = GFX.lastTime
+        lastChangeTime = GFX.gameTime
     }
 
     fun moveDown() {
@@ -410,7 +405,7 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
             cursor2 = cursor1
         }
         ensureCursorBounds()
-        lastChangeTime = GFX.lastTime
+        lastChangeTime = GFX.gameTime
     }
 
     override fun onCopyRequested(x: Float, y: Float): String? {
@@ -502,12 +497,10 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
     override fun onEmpty(x: Float, y: Float) {
         deleteSelection()
         update(true)
-        onSmallChange("text/ml-empty")
     }
 
     fun clearText(notify: Boolean) {
         setText("", notify)
-        onSmallChange("text/ml-clear")
     }
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {

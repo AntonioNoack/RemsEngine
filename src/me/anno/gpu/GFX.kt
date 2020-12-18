@@ -39,9 +39,9 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.debug.FrameTimes
 import me.anno.ui.input.components.PureTextInput
+import me.anno.utils.FloatFormat.f1
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Vectors.minus
-import me.anno.utils.FloatFormat.f1
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
 import org.joml.Matrix4fArrayList
@@ -82,16 +82,17 @@ object GFX : GFXBase1() {
     var maxFragmentUniforms = 0
     var maxVertexUniforms = 0
 
-    var currentCamera = nullCamera
+    lateinit var currentCamera: Camera
 
     var hoveredPanel: Panel? = null
     var hoveredWindow: Window? = null
 
     fun select(transform: Transform?) {
-        if (selectedTransform != transform || selectedInspectable != transform) {
-            selectedInspectable = transform
-            selectedTransform = transform
-            RemsStudio.updateSceneViews()
+        RemsStudio.largeChange("Select ${transform?.name ?: "Nothing"}") {
+            if (selectedTransform != transform || selectedInspectable != transform) {
+                selectedInspectable = transform
+                selectedTransform = transform
+            }
         }
     }
 
@@ -138,9 +139,14 @@ object GFX : GFXBase1() {
 
     var currentEditorFPS = 60f
 
-    val startTime = System.nanoTime()
-    var lastTime = startTime
+    private val startTime = System.nanoTime()
+    private var lastTime = startTime
 
+    /**
+     * time since the engine started;
+     * System.nanoTime() is relative to the start time of
+     * the computer anyways;
+     * */
     val gameTime get() = lastTime - startTime
 
     var editorHoverTime = 0.0
@@ -173,6 +179,28 @@ object GFX : GFXBase1() {
     fun clip(size: me.anno.gpu.size.WindowSize, render: () -> Unit) = clip(size.x, size.y, size.w, size.h, render)
 
     fun clip2(x0: Int, y0: Int, x1: Int, y1: Int, render: () -> Unit) = clip(x0, y0, x1 - x0, y1 - y0, render)
+    fun clip2Save(x0: Int, y0: Int, x1: Int, y1: Int, render: () -> Unit) {
+        val w = x1 - x0
+        val h = y1 - y0
+        if (w > 0 && h > 0) {
+            clip(x0, y0, w, h, render)
+        }
+    }
+
+    fun clip2Dual(
+        x0: Int, y0: Int, x1: Int, y1: Int,
+        x2: Int, y2: Int, x3: Int, y3: Int,
+        render: (x0: Int, y0: Int, x1: Int, y1: Int) -> Unit
+    ) {
+        clip2Save(
+            max(x0, x2),
+            max(y0, y2),
+            min(x1, x3),
+            min(y1, y3)
+        ) {
+            render(x2, y2, x3, y3)
+        }
+    }
 
     lateinit var windowStack: Stack<Window>
 
@@ -241,7 +269,7 @@ object GFX : GFXBase1() {
             val id = drawnTransform!!.clickId
             shader.v4(name, id.b() / 255f, id.g() / 255f, id.r() / 255f, 1f)
         } else {
-            shader.v4(name, color.x, color.y, color.z, color.w)
+            shader.v4(name, color)
         }
     }
 

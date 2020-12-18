@@ -1,7 +1,6 @@
 package me.anno.fonts
 
 import me.anno.config.DefaultConfig
-import me.anno.fonts.mesh.FontMesh2
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.texture.*
@@ -26,7 +25,7 @@ import kotlin.math.max
 import kotlin.math.roundToInt
 import kotlin.streams.toList
 
-class AWTFont(val font: Font) : XFont {
+class AWTFont(val font: Font) {
 
     private val fontMetrics: FontMetrics
 
@@ -64,7 +63,7 @@ class AWTFont(val font: Font) : XFont {
 
     }
 
-    override fun generateTexture(text: String, fontSize: Float, widthLimit: Int): ITexture2D? {
+    fun generateTexture(text: String, fontSize: Float, widthLimit: Int): ITexture2D? {
 
         // return generateTextureV4(text, fontSize, widthLimit)
 
@@ -120,6 +119,18 @@ class AWTFont(val font: Font) : XFont {
         ImageIO.write(image, "png", File(OS.desktop, "img/${ctr++}.png"))
     }
 
+    val renderContext by lazy {
+        FontRenderContext(null, true, true)
+    }
+
+    val exampleLayout by lazy {
+        TextLayout("o", font, renderContext)
+    }
+
+    val actualFontSize by lazy {
+        exampleLayout.ascent + exampleLayout.descent
+    }
+
     fun splitParts(
         text: String,
         fontSize: Float,
@@ -144,14 +155,12 @@ class AWTFont(val font: Font) : XFont {
         val hasAutomaticLineBreak = lineBreakWidth >= 0f
         val lines = text.split('\n')
         val result = ArrayList<StringPart>(lines.size * 2)
-        val ctx = FontRenderContext(null, true, true)
-        val exampleLayout = TextLayout("o", font, ctx)
         val tabSize = exampleLayout.advance * relativeTabSize
         val charSpacing = fontSize * relativeCharSpacing
         var widthF = 0f
         var currentX = 0f
         var currentY = 0f
-        val fontHeight = exampleLayout.ascent + exampleLayout.descent
+        val fontHeight = actualFontSize
         var startResultIndex = 0
         lines.forEach { line ->
             val cp = line.codePoints().toList()
@@ -162,7 +171,7 @@ class AWTFont(val font: Font) : XFont {
                 if (index > startIndex) {
                     val substring = cp.subList(startIndex, index).joinChars()
                     val font = fonts[lastSupportLevel]
-                    val layout = TextLayout(substring, font, ctx)
+                    val layout = TextLayout(substring, font, renderContext)
                     // val bounds = layout.bounds
                     result += StringPart(currentX, currentY, substring, font, 0f)
                     currentX += layout.advance + (index - startIndex) * charSpacing
@@ -191,6 +200,7 @@ class AWTFont(val font: Font) : XFont {
                         currentX = incrementTab(currentX, tabSize, relativeTabSize)
                     }
                     ' '.toInt() -> {
+
                         // break line, if the next work doesn't fit in this line, and there already was a word
                         // search for the next word
                         if (hasAutomaticLineBreak && index + 1 < cp.size && !isSpace(cp[index + 1]) && hadNonSpaceCharacter) {
@@ -206,8 +216,8 @@ class AWTFont(val font: Font) : XFont {
                             val nextWord = cp.subList(index + 1, endIndex).joinChars()
                             val currentX2 = currentX +
                                     if (previousWord.isEmpty()) 0f
-                                    else TextLayout(previousWord, font, ctx).advance
-                            val layout = TextLayout(nextWord, font, ctx)
+                                    else TextLayout(previousWord, font, renderContext).advance
+                            val layout = TextLayout(nextWord, font, renderContext)
                             val advance = layout.advance
                             if (currentX2 + advance + (endIndex - startIndex) * charSpacing > lineBreakWidth) {
                                 // it doesn't fit -> line break
@@ -252,8 +262,6 @@ class AWTFont(val font: Font) : XFont {
 
         val width = ceil(parts.width)
         val height = ceil(parts.height)
-
-        // ("$width for ${result.size} parts")
 
         val texture = Texture2D("awt-font-v3", width, height, 1)
         texture.create({
@@ -315,10 +323,7 @@ class AWTFont(val font: Font) : XFont {
             val cached = fallbackFonts[size]
             if (cached != null) return cached
             val fonts = fallbackFontList
-                .map { FontManager.getFont(it, size, false, false) }
-                .filterIsInstance<AWTFont>()
-                .map { it.font }
-            // fallbackFont0.deriveFont(size)
+                .map { FontManager.getFont(it, size, false, false).font }
             fallbackFonts[size] = fonts
             return fonts
         }

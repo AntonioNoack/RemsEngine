@@ -65,8 +65,6 @@ object UILayouts {
         thread {
             RemsStudio.loadProject(name.trim(), file)
             addEvent {
-                nullCamera.farZ.set(5000f)
-                nullCamera.resetTransform()
                 windowStack.clear()
                 createEditorUI()
             }
@@ -315,8 +313,6 @@ object UILayouts {
             relativeCharSpacing = 0.12f
             invalidate()
         }
-
-        nullCamera.farZ.set(100f)
 
     }
 

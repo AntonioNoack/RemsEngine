@@ -27,7 +27,7 @@ object SVGxGFX {
         val sy = 1f
         if (tiling == null) {
 
-            val shader = ShaderLib.shader3DSVG.shader
+            val shader = ShaderLib.shader3DSVG
             shader3DUniforms(shader, stack, texture.w, texture.h, color, null, filtering, null)
             colorGradingUniforms(video, time, shader)
             // x2 just for security...
@@ -85,7 +85,7 @@ object SVGxGFX {
                     // fix mirrored sharks
                     if(mirrorX){ val t = -a0; a0 = -a1; a1 = t }
                     if(mirrorY){ val t = -b0; b0 = -b1; b1 = t }
-                    val shader = ShaderLib.shader3DSVG.shader
+                    val shader = ShaderLib.shader3DSVG
                     shader3DUniforms(shader, stack, texture.w, texture.h, color, null, filtering, null)
                     colorGradingUniforms(video, time, shader)
                     shader.v4("uvLimits", sx * a0, b0, sx * a1, b1)

@@ -20,20 +20,21 @@ object ShaderLib {
     lateinit var flatShaderGradient: Shader
     lateinit var flatShaderTexture: Shader
     lateinit var subpixelCorrectTextShader: Shader
-    lateinit var shader3DPolygon: ShaderPlus
-    lateinit var shader3D: ShaderPlus
-    lateinit var shader3DforText: ShaderPlus
-    lateinit var shader3DRGBA: ShaderPlus
-    lateinit var shader3DYUV: ShaderPlus
-    lateinit var shader3DARGB: ShaderPlus
-    lateinit var shader3DBGRA: ShaderPlus
-    lateinit var shader3DCircle: ShaderPlus
-    lateinit var shader3DSVG: ShaderPlus
+    lateinit var shader3DPolygon: Shader
+    lateinit var shader3D: Shader
+    lateinit var shader3DforText: Shader
+    lateinit var shader3DRGBA: Shader
+    lateinit var shader3DYUV: Shader
+    lateinit var shader3DARGB: Shader
+    lateinit var shader3DBGRA: Shader
+    lateinit var shader3DCircle: Shader
+    lateinit var shader3DSVG: Shader
     lateinit var lineShader3D: Shader
-    lateinit var shader3DMasked: ShaderPlus
-    lateinit var shader3DBlur: Shader
-    lateinit var shaderObjMtl: ShaderPlus
-    lateinit var shaderFBX: ShaderPlus
+    lateinit var shader3DMasked: Shader
+    lateinit var shader3DGaussianBlur: Shader
+    lateinit var shader3DBoxBlur: Shader
+    lateinit var shaderObjMtl: Shader
+    lateinit var shaderFBX: Shader
     lateinit var copyShader: Shader
 
     const val brightness = "" +
@@ -72,7 +73,7 @@ object ShaderLib {
     const val ascColorDecisionList = "" +
             "uniform vec3 cgSlope, cgOffset, cgPower;\n" +
             "uniform float cgSaturation;\n" +
-            "vec3 colorGrading(vec3 raw){" +
+            "vec3 colorGrading(vec3 raw){\n" +
             "   vec3 color = pow(max(vec3(0), raw * cgSlope + cgOffset), cgPower);\n" +
             "   float gray = brightness(color);\n" +
             "   return mix(vec3(gray), color, cgSaturation);\n" +
@@ -160,30 +161,31 @@ object ShaderLib {
             // used meshes are flat01 and cubemapBuffer
             "uniform vec2 textureDeltaUV;\n" +
             "uniform int filtering, uvProjection;\n" +
-            "vec2 getProjectedUVs(vec2 uv){\n" +
+            /*"vec2 getProjectedUVs(vec2 uv){\n" +
             "   switch(uvProjection){\n" +
             "       case ${UVProjection.TiledCubemap.id}:\n" +
             "           return uv;\n" + // correct???
             "       default:\n" +
             "           return uv;\n" +
             "   }\n" +
-            "}\n" +
+            "}\n" +*/
+            "vec2 getProjectedUVs(vec2 uv){ return uv; }\n" +
             "vec2 getProjectedUVs(vec3 uvw){\n" +
-            "   switch(uvProjection){\n" +
-            "       case ${UVProjection.Equirectangular.id}:\n" +
-            "       default:\n" +
+            //"   switch(uvProjection){\n" +
+            //"       case ${UVProjection.Equirectangular.id}:\n" +
+            //"       default:\n" +
             "           float u = atan(uvw.z, uvw.x)*${0.5 / PI}+0.5;\n " +
             "           float v = atan(uvw.y, length(uvw.xz))*${1.0 / PI}+0.5;\n" +
             "           return vec2(u, v);\n" +
-            "   }\n" +
+            //"   }\n" +
             "}\n" +
             "vec2 getProjectedUVs(vec2 uv, vec3 uvw){\n" +
             "   return uvProjection == ${UVProjection.Equirectangular.id} ?\n" +
             "       ($hasForceFieldUVs ? getProjectedUVs(getForceFieldUVs(uvw)) : getProjectedUVs(uvw)) :\n" +
             "       ($hasForceFieldUVs ? getProjectedUVs(getForceFieldUVs(uv))  : getProjectedUVs(uv));\n" +
             "}\n" +
-            "vec4 getTexture(sampler2D tex, vec2 uv, vec2 duv){" +
-            "   switch(filtering){" +
+            "vec4 getTexture(sampler2D tex, vec2 uv, vec2 duv){\n" +
+            "   switch(filtering){\n" +
             "       case ${Filtering.NEAREST.id}:\n" +
             "       case ${Filtering.LINEAR.id}:\n" +
             "           return texture(tex, uv);\n" +
@@ -191,8 +193,8 @@ object ShaderLib {
             "           return bicubicInterpolation(tex, uv, duv);\n" +
             "   }\n" +
             "}\n" +
-            "vec4 getTexture(sampler2D tex, vec2 uv){" +
-            "   switch(filtering){" +
+            "vec4 getTexture(sampler2D tex, vec2 uv){\n" +
+            "   switch(filtering){\n" +
             "       case ${Filtering.NEAREST.id}:\n" +
             "       case ${Filtering.LINEAR.id}:\n" +
             "           return texture(tex, uv);\n" +
@@ -361,6 +363,7 @@ object ShaderLib {
                     "   gl_FragColor = tint * color;\n" +
                     "}", listOf("tex")
         )
+        shader3DforText.ignoreUniformWarnings(listOf("tiling", "forceFieldUVCount"))
 
         val v3DPolygon = v3DBase +
                 "a3 attr0;\n" +
@@ -375,7 +378,7 @@ object ShaderLib {
                 "   uv = attr1.yx;\n" +
                 "}"
         shader3DPolygon = createShaderPlus("3d-polygon", v3DPolygon, y3D, f3D, listOf("tex"))
-        shader3DPolygon.shader.ignoreUniformWarnings(listOf("tiling", "forceFieldUVCount"))
+        shader3DPolygon.ignoreUniformWarnings(listOf("tiling", "forceFieldUVCount"))
 
         // todo disable color effects on masks for simplicity? or break it in fullscreen mode?
         val v3DMasked = v3DBase +
@@ -424,6 +427,7 @@ object ShaderLib {
                 "           color = mix(\n" +
                 "               texture(tex, uv2),\n" +
                 "               texture(tex, round((uv2 - 0.5) / pixelating) * pixelating + 0.5),\n" +
+                // "               texture(tex2, uv2),\n" +
                 "               effect);\n" +
                 "           break;\n" +
                 // just mix two images
@@ -475,8 +479,9 @@ object ShaderLib {
                 "   gl_FragColor.a = min(gl_FragColor.a, 1.0);\n" +
                 "}"
         shader3DMasked = createShaderPlus("3d-masked", v3DMasked, y3DMasked, f3DMasked, listOf("mask", "tex", "tex2"))
+        shader3DMasked.ignoreUniformWarnings(listOf("tiling"))
 
-        val f3DBlur = "" +
+        val f3DGaussianBlur = "" +
                 "uniform sampler2D tex;\n" +
                 "uniform vec2 stepSize;\n" +
                 "uniform float steps;\n" +
@@ -504,7 +509,34 @@ object ShaderLib {
                 "   }\n" +
                 "   gl_FragColor = color;\n" +
                 "}"
-        shader3DBlur = createShader("3d-blur", v3DMasked, y3DMasked, f3DBlur, listOf("tex"))
+        shader3DGaussianBlur = createShader("3d-blur", v3DMasked, y3DMasked, f3DGaussianBlur, listOf("tex"))
+
+        // somehow becomes dark for large |steps|-values
+        shader3DBoxBlur = createShader(
+            "3d-blur", "" +
+                    "a2 attr0;\n" +
+                    "void main(){\n" +
+                    "   gl_Position = vec4(2*attr0-1, 0.0, 1.0);\n" +
+                    "   uv = attr0;\n" +
+                    "}", "varying vec2 uv;\n",  "" +
+                    "precision highp float;\n" +
+                    "uniform sampler2D tex;\n" +
+                    "uniform vec2 stepSize;\n" +
+                    "uniform int steps;\n" +
+                    "void main(){\n" +
+                    "   vec4 color;\n" +
+                    "   if(steps < 2){\n" +
+                    "       color = texture(tex, uv);\n" +
+                    "   } else {\n" +
+                    "       color = vec4(0.0);\n" +
+                    "       for(int i=-steps/2;i<(steps+1)/2;i++){\n" +
+                    "           color += texture(tex, uv + float(i) * stepSize);\n" +
+                    "       }\n" +
+                    "       color /= float(steps);\n" +
+                    "   }\n" +
+                    "   gl_FragColor = color;\n" +
+                    "}", listOf("tex")
+        )
 
         val v3DSVG = v3DBase +
                 "a3 attr0;\n" +
@@ -562,9 +594,13 @@ object ShaderLib {
                 "}"
 
         shader3DCircle = createShaderPlus("3dCircle", v3DCircle, y3D, f3DCircle, listOf())
-        shader3DCircle.shader.ignoreUniformWarnings(
+        shader3DCircle.ignoreUniformWarnings(
             listOf(
-                "filtering", "textureDeltaUV", "tiling", "uvProjection", "forceFieldUVCount"
+                "filtering",
+                "textureDeltaUV",
+                "tiling",
+                "uvProjection",
+                "forceFieldUVCount"
             )
         )
 
@@ -601,7 +637,7 @@ object ShaderLib {
         shader3DYUV = createShaderPlus(
             "3d-yuv",
             v3D, y3D, "" +
-                    "uniform vec4 tint;" +
+                    "uniform vec4 tint;\n" +
                     "uniform sampler2D texY, texU, texV;\n" +
                     "uniform vec2 uvCorrection;\n" +
                     getTextureLib +
@@ -627,56 +663,28 @@ object ShaderLib {
                     "}", listOf("texY", "texU", "texV")
         )
 
-        shader3DRGBA = createShaderPlus(
-            "3d-rgba",
-            v3D, y3D, "" +
-                    "uniform vec4 tint;" +
-                    "uniform sampler2D tex;\n" +
-                    getTextureLib +
-                    getColorForceFieldLib +
-                    brightness +
-                    ascColorDecisionList +
-                    "void main(){\n" +
-                    "   vec4 color = getTexture(tex, getProjectedUVs(uv, uvw));\n" +
-                    "   color.rgb = colorGrading(color.rgb);\n" +
-                    "   if($hasForceFieldColor) color *= getForceFieldColor();\n" +
-                    "   gl_FragColor = tint * color;\n" +
-                    "}", listOf("tex")
-        )
+        fun createSwizzleShader(swizzle: String): Shader {
+            return createShaderPlus(
+                "3d-${if (swizzle.isBlank()) "rgba" else swizzle}",
+                v3D, y3D, "" +
+                        "uniform vec4 tint;\n" +
+                        "uniform sampler2D tex;\n" +
+                        getTextureLib +
+                        getColorForceFieldLib +
+                        brightness +
+                        ascColorDecisionList +
+                        "void main(){\n" +
+                        "   vec4 color = getTexture(tex, getProjectedUVs(uv, uvw))$swizzle;\n" +
+                        "   color.rgb = colorGrading(color.rgb);\n" +
+                        "   if($hasForceFieldColor) color *= getForceFieldColor();\n" +
+                        "   gl_FragColor = tint * color;\n" +
+                        "}", listOf("tex")
+            )
+        }
 
-        shader3DARGB = createShaderPlus(
-            "3d-argb",
-            v3D, y3D, "" +
-                    "uniform vec4 tint;" +
-                    "uniform sampler2D tex;\n" +
-                    getTextureLib +
-                    getColorForceFieldLib +
-                    brightness +
-                    ascColorDecisionList +
-                    "void main(){\n" +
-                    "   vec4 color = getTexture(tex, getProjectedUVs(uv, uvw)).gbar;\n" +
-                    "   color.rgb = colorGrading(color.rgb);\n" +
-                    "   if($hasForceFieldColor) color *= getForceFieldColor();\n" +
-                    "   gl_FragColor = tint * color;\n" +
-                    "}", listOf("tex")
-        )
-
-        shader3DBGRA = createShaderPlus(
-            "3d-bgra",
-            v3D, y3D, "" +
-                    "uniform vec4 tint;" +
-                    "uniform sampler2D tex;\n" +
-                    getTextureLib +
-                    getColorForceFieldLib +
-                    brightness +
-                    ascColorDecisionList +
-                    "void main(){\n" +
-                    "   vec4 color = getTexture(tex, getProjectedUVs(uv, uvw)).bgra;\n" +
-                    "   color.rgb = colorGrading(color.rgb);\n" +
-                    "   if($hasForceFieldColor) color *= getForceFieldColor();\n" +
-                    "   gl_FragColor = tint * color;\n" +
-                    "}", listOf("tex")
-        )
+        shader3DRGBA = createSwizzleShader("")
+        shader3DARGB = createSwizzleShader(".gbar")
+        shader3DBGRA = createSwizzleShader(".bgra")
 
         lineShader3D = Shader(
             "3d-lines",
@@ -717,13 +725,11 @@ object ShaderLib {
         y3D: String,
         f3D: String,
         textures: List<String>
-    ): ShaderPlus {
-        val shader = ShaderPlus(shaderName, v3D, y3D, f3D)
-        for (shader2 in listOf(shader.shader)) {
-            shader2.use()
-            textures.forEachIndexed { index, name ->
-                GL20.glUniform1i(shader2[name], index)
-            }
+    ): Shader {
+        val shader = ShaderPlus.create(shaderName, v3D, y3D, f3D)
+        shader.use()
+        textures.forEachIndexed { index, name ->
+            GL20.glUniform1i(shader[name], index)
         }
         return shader
     }

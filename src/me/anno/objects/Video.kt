@@ -665,7 +665,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                     if (component == null) {
                         GFX.addAudioTask(5) {
                             val audio2 = Video(file, null)
-                            audio2.startPlayback(0.0, 1.0, nullCamera)
+                            audio2.startPlayback(0.0, 1.0, nullCamera!!)
                             component = audio2.component
                         }
                     } else GFX.addAudioTask(1) { stopPlayback() }

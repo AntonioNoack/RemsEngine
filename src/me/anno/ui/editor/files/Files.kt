@@ -41,10 +41,11 @@ fun addChildFromFile(parent: Transform?, file: File, callback: (Transform) -> Un
                         addText(name, parent, text, callback)
                     } else {
                         addEvent {
-                            parent?.addChild(transform)
-                            GFX.select(transform)
-                            callback(transform)
-                            RemsStudio.onLargeChange()
+                            RemsStudio.largeChange("Added Folder"){
+                                parent?.addChild(transform)
+                                GFX.select(transform)
+                                callback(transform)
+                            }
                         }
                     }
                 } catch (e: Exception) {
@@ -54,40 +55,43 @@ fun addChildFromFile(parent: Transform?, file: File, callback: (Transform) -> Un
                 }
             }
             "Cubemap-Equ" -> {
-                val cube = Video(file, parent)
-                cube.scale.set(Vector3f(1000f, 1000f, 1000f))
-                cube.uvProjection = UVProjection.Equirectangular
-                cube.name = name
-                GFX.select(cube)
-                callback(cube)
-                RemsStudio.onLargeChange()
+                RemsStudio.largeChange("Added Cubemap"){
+                    val cube = Video(file, parent)
+                    cube.scale.set(Vector3f(1000f, 1000f, 1000f))
+                    cube.uvProjection = UVProjection.Equirectangular
+                    cube.name = name
+                    GFX.select(cube)
+                    callback(cube)
+                }
             }
             "Cubemap-Tiles" -> {
-                val cube = Video(file, parent)
-                cube.scale.set(Vector3f(1000f, 1000f, 1000f))
-                cube.uvProjection = UVProjection.TiledCubemap
-                cube.name = name
-                GFX.select(cube)
-                callback(cube)
-                RemsStudio.onLargeChange()
+                RemsStudio.largeChange("Added Cubemap"){
+                    val cube = Video(file, parent)
+                    cube.scale.set(Vector3f(1000f, 1000f, 1000f))
+                    cube.uvProjection = UVProjection.TiledCubemap
+                    cube.name = name
+                    GFX.select(cube)
+                    callback(cube)
+                }
             }
             "Video", "Image", "Audio" -> {// the same, really ;)
                 // rather use a list of keywords?
-                val video = Video(file, parent)
-                val fName = file.name
-                video.name = fName
-                if (DefaultConfig["import.decideCubemap", true]) {
-                    if (fName.contains("360", true)) {
-                        video.scale.set(Vector3f(1000f, 1000f, 1000f))
-                        video.uvProjection = UVProjection.Equirectangular
-                    } else if (fName.contains("cubemap", true)) {
-                        video.scale.set(Vector3f(1000f, 1000f, 1000f))
-                        video.uvProjection = UVProjection.TiledCubemap
+                RemsStudio.largeChange("Added Video"){
+                    val video = Video(file, parent)
+                    val fName = file.name
+                    video.name = fName
+                    if (DefaultConfig["import.decideCubemap", true]) {
+                        if (fName.contains("360", true)) {
+                            video.scale.set(Vector3f(1000f, 1000f, 1000f))
+                            video.uvProjection = UVProjection.Equirectangular
+                        } else if (fName.contains("cubemap", true)) {
+                            video.scale.set(Vector3f(1000f, 1000f, 1000f))
+                            video.uvProjection = UVProjection.TiledCubemap
+                        }
                     }
+                    GFX.select(video)
+                    callback(video)
                 }
-                GFX.select(video)
-                callback(video)
-                RemsStudio.onLargeChange()
             }
             "Text" -> {
                 try {
@@ -98,12 +102,13 @@ fun addChildFromFile(parent: Transform?, file: File, callback: (Transform) -> Un
                 }
             }
             "Mesh" -> {
-                val mesh = Mesh(file, parent)
-                mesh.file = file
-                mesh.name = name
-                GFX.select(mesh)
-                callback(mesh)
-                RemsStudio.onLargeChange()
+                RemsStudio.largeChange("Added Mesh"){
+                    val mesh = Mesh(file, parent)
+                    mesh.file = file
+                    mesh.name = name
+                    GFX.select(mesh)
+                    callback(mesh)
+                }
             }
             "HTML" -> {
                 // parse html? maybe, but html and css are complicated
@@ -127,20 +132,22 @@ fun addText(name: String, parent: Transform?, text: String, callback: (Transform
     if (text.length > 500) {
         addEvent {
             GFX.ask("Text has ${text.codePoints().count()} characters, import?") {
-                val textNode = Text(text, parent)
-                textNode.name = name
-                GFX.select(textNode)
-                callback(textNode)
-                RemsStudio.onLargeChange()
+                RemsStudio.largeChange("Imported Text"){
+                    val textNode = Text(text, parent)
+                    textNode.name = name
+                    GFX.select(textNode)
+                    callback(textNode)
+                }
             }
         }
         return
     }
     addEvent {
-        val textNode = Text(text, parent)
-        textNode.name = name
-        GFX.select(textNode)
-        callback(textNode)
-        RemsStudio.onLargeChange()
+        RemsStudio.largeChange("Imported Text"){
+            val textNode = Text(text, parent)
+            textNode.name = name
+            GFX.select(textNode)
+            callback(textNode)
+        }
     }
 }

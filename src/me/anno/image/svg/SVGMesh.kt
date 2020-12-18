@@ -149,7 +149,10 @@ class SVGMesh {
                         }
                     }
                     "metadata" -> {} // I don't think, that I care...
-                    else -> throw RuntimeException("Unknown svg element $type")
+                    else -> {
+                        // idc
+                        // throw RuntimeException("Unknown svg element $type")
+                    }
                 }
             }
         }

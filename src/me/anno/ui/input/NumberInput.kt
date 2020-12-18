@@ -7,7 +7,6 @@ import me.anno.objects.animation.Type
 import me.anno.objects.animation.drivers.AnimationDriver
 import me.anno.studio.RemsStudio
 import me.anno.studio.RemsStudio.editorTime
-import me.anno.studio.RemsStudio.onSmallChange
 import me.anno.studio.RemsStudio.selectedInspectable
 import me.anno.studio.RemsStudio.selectedProperty
 import me.anno.ui.base.Visibility
@@ -85,7 +84,6 @@ abstract class NumberInput(
         super.onMouseMoved(x, y, dx, dy)
         if (mouseIsDown) {
             changeValue(dx, dy)
-            onSmallChange("number-drag")
         }
     }
 

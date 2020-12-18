@@ -9,7 +9,6 @@ import me.anno.input.Input.isControlDown
 import me.anno.input.Input.isShiftDown
 import me.anno.input.Input.mouseKeysDown
 import me.anno.input.MouseButton
-import me.anno.studio.RemsStudio.onSmallChange
 import me.anno.utils.Maths.clamp
 import me.anno.ui.base.TextPanel
 import me.anno.ui.style.Style
@@ -60,7 +59,6 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
                 updateText(true)
                 cursor1 = min
                 cursor2 = min
-                onSmallChange("text-delete-selection")
             }
             return max > min
         }
@@ -69,7 +67,7 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
     var drawingOffset = 0
     var lastMove = 0L
 
-    val wasJustChanged get() = abs(GFX.lastTime-lastMove) < 200_000_000
+    val wasJustChanged get() = abs(GFX.gameTime-lastMove) < 200_000_000
 
     fun calculateOffset(required: Int, cursor: Int){
         // center the cursor, 1/3 of the width, if possible;
@@ -82,7 +80,7 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
 
     override fun tickUpdate() {
         super.tickUpdate()
-        val blinkVisible = ((GFX.lastTime / 500_000_000L) % 2L == 0L)
+        val blinkVisible = ((GFX.gameTime / 500_000_000L) % 2L == 0L)
         showBars = isInFocus && (blinkVisible || wasJustChanged)
     }
 
@@ -120,7 +118,7 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
 
     fun insert(insertion: String){
         if(insertion.isNotEmpty()){
-            lastMove = GFX.lastTime
+            lastMove = GFX.gameTime
             deleteSelection()
             insertion.codePoints().forEach {
                 characters.add(cursor1++, it)
@@ -128,23 +126,21 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
             cursor2 = cursor1
             updateText(true)
             ensureCursorBounds()
-            onSmallChange("text-insert")
         }
     }
 
     fun insert(insertion: Int, updateText: Boolean = true){
-        lastMove = GFX.lastTime
+        lastMove = GFX.gameTime
         deleteSelection()
         characters.add(cursor1, insertion)
         if(updateText) updateText(true)
         cursor1++
         cursor2++
         ensureCursorBounds()
-        onSmallChange("text-insert2")
     }
 
     fun deleteBefore(){
-        lastMove = GFX.lastTime
+        lastMove = GFX.gameTime
         if(!deleteSelection() && cursor1 > 0){
             characters.removeAt(cursor1-1)
             updateText(true)
@@ -152,17 +148,15 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
             cursor2--
         }
         ensureCursorBounds()
-        onSmallChange("text-delete-before")
     }
 
     fun deleteAfter(){
-        lastMove = GFX.lastTime
+        lastMove = GFX.gameTime
         if(!deleteSelection() && cursor1 < characters.size){
             characters.removeAt(cursor1)
             updateText(true)
         }
         ensureCursorBounds()
-        onSmallChange("text-delete-after")
     }
 
     fun ensureCursorBounds(){
@@ -172,12 +166,12 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
     }
 
     override fun onCharTyped(x: Float, y: Float, key: Int) {
-        lastMove = GFX.lastTime
+        lastMove = GFX.gameTime
         addKey(key)
     }
 
     fun moveRight(){
-        lastMove = GFX.lastTime
+        lastMove = GFX.gameTime
         if(isShiftDown){
             cursor2++
         } else {
@@ -192,7 +186,7 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
     }
 
     fun moveLeft(){
-        lastMove = GFX.lastTime
+        lastMove = GFX.gameTime
         if(isShiftDown){
             cursor2--
         } else {
@@ -236,7 +230,7 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
     }
 
     override fun onMouseDown(x: Float, y: Float, button: MouseButton) {
-        lastMove = GFX.lastTime
+        lastMove = GFX.gameTime
         if(isControlDown){
             selectAll()
         } else {
@@ -280,12 +274,11 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
     }
 
     fun clear(){
-        lastMove = GFX.lastTime
+        lastMove = GFX.gameTime
         text = ""
         characters.clear()
         cursor1 = 0
         cursor2 = 0
-        onSmallChange("text-clear")
     }
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {

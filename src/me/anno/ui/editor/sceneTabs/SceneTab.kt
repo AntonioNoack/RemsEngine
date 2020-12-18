@@ -3,7 +3,6 @@ package me.anno.ui.editor.sceneTabs
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.input.ActionManager
-import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
@@ -30,40 +29,42 @@ class SceneTab(var file: File?, var root: Transform, history: History?) : TextPa
 
     var history = history ?: try {
         TextReader.fromText(file!!.readText()).filterIsInstance<History>().first()
-    } catch (e: java.lang.Exception){
+    } catch (e: java.lang.Exception) {
         History()
     }
 
-    val fullText get() = file?.name ?: root.name
-    val createText get() = fullText.run {
-        if(length > maxNameLength){
-            substring(0, maxNameLength-3) + "..."
-        } else this
-    }
+    private val longName get() = file?.name ?: root.name
+    private val shortName
+        get() = longName.run {
+            if (length > maxNameLength) {
+                substring(0, maxNameLength - 3) + "..."
+            } else this
+        }
 
     init {
-        text = createText
-        tooltip = fullText
+        text = shortName
+        tooltip = longName
     }
 
     var hasChanged = false
         set(value) {
-            val baseName = createText
-            text = if (field) "$baseName*" else baseName
-            tooltip = fullText
+            val baseName = shortName
+            val newText = if (value) "$baseName*" else baseName
+            text = newText
+            tooltip = longName
             field = value
         }
 
     init {
-        padding.top --
-        padding.bottom --
+        padding.top--
+        padding.bottom--
         setOnClickListener { _, _, button, _ ->
             when {
                 button.isLeft -> {
                     open(this)
                 }
                 button.isRight -> {
-                    if(hasChanged){
+                    if (hasChanged) {
                         GFX.openMenu(listOf(
                             "Close" to { save { close() } },
                             "Close (Unsaved)" to { close() }
@@ -92,7 +93,7 @@ class SceneTab(var file: File?, var root: Transform, history: History?) : TextPa
             if (dst.isDirectory) dst.deleteRecursively()
             thread {
                 try {
-                    synchronized(root){
+                    synchronized(root) {
                         dst.parentFile.mkdirs()
                         dst.writeText(TextWriter.toText(root, false))
                         file = dst
@@ -133,10 +134,10 @@ class SceneTab(var file: File?, var root: Transform, history: History?) : TextPa
     }
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
-        when(action){
+        when (action) {
             "DragStart" -> {
                 if (dragged?.getOriginal() != this) {
-                    dragged = Draggable(SceneTabData(this).toString(), "SceneTab", this, TextPanel(createText, style))
+                    dragged = Draggable(SceneTabData(this).toString(), "SceneTab", this, TextPanel(shortName, style))
                 }
             }
             else -> return super.onGotAction(x, y, dx, dy, action, isContinuous)

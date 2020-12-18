@@ -18,7 +18,6 @@ import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderPlus
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
-import me.anno.input.Input.isKeyDown
 import me.anno.objects.Camera
 import me.anno.objects.Camera.Companion.DEFAULT_VIGNETTE_STRENGTH
 import me.anno.objects.Transform.Companion.xAxis
@@ -273,6 +272,8 @@ object Scene {
         flipY: Boolean, drawMode: ShaderPlus.DrawMode, sceneView: ISceneView?
     ) {
 
+        GFX.currentCamera = camera
+
         val oldDrawMode = GFX.drawMode
         GFX.drawMode = drawMode
         usesFPBuffers = sceneView?.usesFPBuffers ?: camera.toneMapping != ToneMappers.RAW8
@@ -298,7 +299,7 @@ object Scene {
 
         if (!isInited) init()
 
-        RemsStudio.usedCamera = camera
+        RemsStudio.currentlyDrawnCamera = camera
 
         val (cameraTransform, cameraTime) = camera.getGlobalTransform(time)
         lastGlobalCameraTransform.set(cameraTransform)
@@ -404,7 +405,7 @@ object Scene {
 
                 if (!isFinalRendering && camera != nullCamera) {
                     stack.pushMatrix()
-                    nullCamera.draw(stack, time, white)
+                    nullCamera?.draw(stack, time, white)
                     stack.popMatrix()
                 }
 

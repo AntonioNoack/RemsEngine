@@ -1,9 +1,11 @@
 package me.anno.ui.editor.files
 
 import me.anno.config.DefaultStyle.black
+import me.anno.fonts.FontManager
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.ask
 import me.anno.gpu.GFX.askName
+import me.anno.gpu.GFX.clip2Dual
 import me.anno.gpu.GFX.inFocus
 import me.anno.gpu.GFX.openMenu
 import me.anno.gpu.GFXx2D
@@ -39,6 +41,7 @@ import me.anno.video.VFrame
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
 import java.io.File
+import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -101,16 +104,16 @@ class FileEntry(
         super.calculateSize(w, h)
         val size = size
         minW = size
-        minH = size
+        minH = size * 4 / 3
         this.w = size
-        this.h = size
+        this.h = size * 4 / 3
     }
 
     var startTime = 0L
 
     override fun getLayoutState(): Any? = Pair(super.getLayoutState(), title.getLayoutState())
     override fun getVisualState(): Any? {
-        val tex = when (val tex = getTexture()) {
+        val tex = when (val tex = getTexKey()) {
             is VFrame -> if (tex.isLoaded) tex else null
             is Texture2D -> tex.state
             else -> tex
@@ -151,13 +154,13 @@ class FileEntry(
                     time = 0.0
                     frameIndex = if (isHovered) {
                         if (startTime == 0L) {
-                            startTime = GFX.lastTime
+                            startTime = GFX.gameTime
                             val audio = Video(file)
                             this.audio = audio
                             GFX.addAudioTask(5) { audio.startPlayback(-hoverPlaybackDelay, 1.0, Camera()) }
                             0
                         } else {
-                            time = (GFX.lastTime - startTime) * 1e-9 - hoverPlaybackDelay
+                            time = (GFX.gameTime - startTime) * 1e-9 - hoverPlaybackDelay
                             max(0, (time * previewFPS).toInt())
                         }
                     } else {
@@ -171,22 +174,25 @@ class FileEntry(
         }
     }
 
-    fun drawDefaultIcon() {
-        val size = size
+    fun drawDefaultIcon(x0: Int, y0: Int, x1: Int, y1: Int) {
         val image = Cache.getInternalTexture(iconPath, true) ?: whiteTexture
+        drawTexture(x0, y0, x1, y1, image)
+    }
+
+    fun drawTexture(x0: Int, y0: Int, x1: Int, y1: Int, image: Texture2D) {
+        val w = x1 - x0
+        val h = y1 - y0
         var iw = image.w
         var ih = image.h
-        val scale = (size - 20) / max(iw, ih).toFloat()
+        val scale = min(w.toFloat() / iw, h.toFloat() / ih)
         iw = (iw * scale).roundToInt()
         ih = (ih * scale).roundToInt()
-        // makes them black, why ever...
-        // image.ensureFilterAndClamping(NearestMode.LINEAR, ClampMode.CLAMP)
-        drawTexture(x + (size - iw) / 2, y + (size - ih) / 2, iw, ih, image, -1, null)
+        drawTexture(x0 + (w - iw) / 2, y0 + (h - ih) / 2, iw, ih, image, -1, null)
     }
 
     fun getDefaultIcon() = Cache.getInternalTexture(iconPath, true)
 
-    fun getTexture(): Any? {
+    fun getTexKey(): Any? {
         fun getImage(): Any? {
             val thumb = Thumbs.getThumbnail(file, w)
             return thumb ?: getDefaultIcon()
@@ -207,34 +213,22 @@ class FileEntry(
         }
     }
 
-    fun drawImage(): Boolean {
-        val x = x
-        val y = y
-        val w = w
-        val h = h
-        val size = size
-        val image = Thumbs.getThumbnail(file, w) ?: getDefaultIcon()
-        // val image = if (file.length() < 10e6) Cache.getImage(file, 1000, true) else null
-        return if (image != null) {
-            var iw = image.w
-            var ih = image.h
-            val rot = image.rotation
-            image.ensureFilterAndClamping(GPUFiltering.LINEAR, Clamping.CLAMP)
-            if (rot == null) {
-                val scale = (size - 20) / max(iw, ih).toFloat()
-                iw = (iw * scale).roundToInt()
-                ih = (ih * scale).roundToInt()
-                drawTexture(x + (size - iw) / 2, y + (size - ih) / 2, iw, ih, image, -1, null)
-            } else {
-                val m = Matrix4fArrayList()
-                rot.apply(m)
-                drawTexture(m, w, h, image, -1, null)
-            }
-            false
-        } else true
+    fun drawImageOrThumb(x0: Int, y0: Int, x1: Int, y1: Int) {
+        val w = x1 - x0
+        val h = y1 - y0
+        val image = Thumbs.getThumbnail(file, w) ?: getDefaultIcon() ?: whiteTexture
+        val rot = image.rotation
+        image.ensureFilterAndClamping(GPUFiltering.LINEAR, Clamping.CLAMP)
+        if (rot == null) {
+            drawTexture(x0, y0, x1, y1, image)
+        } else {
+            val m = Matrix4fArrayList()
+            rot.apply(m)
+            drawTexture(m, w, h, image, -1, null)
+        }
     }
 
-    fun drawCircle() {
+    fun drawCircle(x0: Int, y0: Int, x1: Int, y1: Int) {
         if (time < 0.0) {
             // countdown-circle, pseudo-loading
             // saves us some computations
@@ -245,14 +239,20 @@ class FileEntry(
             // (maybe after half of the waiting time)
             val relativeTime = ((hoverPlaybackDelay + time) / hoverPlaybackDelay).toFloat()
             val r = 1f - sq(relativeTime * 2 - 1)
+            val radius = min(y1 - y0, x1 - x0) / 2f
             GFXx2D.drawCircle(
-                w, h, 0f, relativeTime * 360f * 4 / 3, relativeTime * 360f * 2,
+                (x0 + x1) / 2, (y0 + y1) / 2, radius, radius, 0f, relativeTime * 360f * 4 / 3, relativeTime * 360f * 2,
                 Vector4f(1f, 1f, 1f, r * 0.2f)
             )
         }
     }
 
-    fun drawVideo(): Boolean {
+    fun drawVideo(x0: Int, y0: Int, x1: Int, y1: Int) {
+
+        // todo something with the states is broken...
+        // todo only white is visible, even if there should be colors...
+
+        val w = x1 - x0
         val bufferLength = 64
         fun getFrame(offset: Int) = Cache.getVideoFrame(
             file, scale, frameIndex + offset,
@@ -261,26 +261,15 @@ class FileEntry(
 
         val image = getFrame(0)
         if (frameIndex > 0) getFrame(bufferLength)
-        return if (image != null && image.isLoaded) {
-            drawTexture(w, h, image, -1, null)
-            drawCircle()
-            false
-        } else true
+        if (image != null && image.isLoaded) {
+            drawTexture(w, w, image, -1, null)
+            drawCircle(x0, y0, x1, y1)
+        } else drawDefaultIcon(x0, y0, x1, y1)
     }
 
-    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-
-        tooltip = file.name
-
-        drawBackground()
-
-        // todo extra start button for Isabell, and disabled auto-play
-        // todo settings xD
-
-        // todo tiles on background to show transparency? ofc only in the area of the image
-
+    fun drawThumb(x0: Int, y0: Int, x1: Int, y1: Int) {
         if (file.extension.equals("svg", true)) {
-            drawDefaultIcon()
+            drawDefaultIcon(x0, y0, x1, y1)
         } else {
             when (importType) {
                 // todo audio preview???
@@ -289,35 +278,82 @@ class FileEntry(
                     if (meta != null) {
                         if (meta.videoWidth > 0) {
                             if (time == 0.0) { // not playing
-                                drawImage()
-                            } else drawVideo()
+                                drawImageOrThumb(x0, y0, x1, y1)
+                            } else drawVideo(x0, y0, x1, y1)
                         } else {
-                            drawCircle()
-                            drawDefaultIcon()
+                            drawDefaultIcon(x0, y0, x1, y1)
+                            drawCircle(x0, y0, x1, y1)
                         }
-                    } else drawDefaultIcon()
+                    } else drawDefaultIcon(x0, y0, x1, y1)
                 }
-                "Image" -> drawImage()
-                else -> drawDefaultIcon()
+                "Image" -> drawImageOrThumb(x0, y0, x1, y1)
+                else -> drawDefaultIcon(x0, y0, x1, y1)
             }
         }
-        drawTitle(x0, y0, x1, y1)
     }
 
-    fun drawTitle(x0: Int, y0: Int, x1: Int, y1: Int) {
-        title.calculateSize(w, h)
-        title.backgroundColor = mixARGB(backgroundColor, title.textColor, -0.2f)
-        title.x = x
-        title.y = y
-        title.w = min(title.minW, w)
-        title.h = 1
-        val y12 = min(y1, min(y + (title.font.size * 2.5f).toInt(), y + title.minH2))
-        val x12 = min(x1, x + title.w)
-        if (y12 > y0 && x12 > x0) {
-            GFX.clip2(x0, y0, x1, y12) {
-                title.drawText(0, 0, title.text, title.textColor)
-            }
-        }
+    private var lines = 0
+    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+
+        tooltip = file.name
+
+        drawBackground()
+
+        val font0 = title.font
+        val font1 = FontManager.getFont(font0)
+        val fontSize = font1.actualFontSize
+
+        lines = max(ceil((h - w) / fontSize).toInt(), 1)
+
+        val padding = w / 20
+
+        val remainingW = w - padding * 2
+        val remainingH = h - padding * 2
+
+        val textH = (lines * fontSize).toInt()
+        val imageH = remainingH - textH
+
+        clip2Dual(
+            x0, y0, x1, y1,
+            x + padding,
+            y + padding,
+            x + remainingW,
+            y + padding + imageH,
+            ::drawThumb
+        )
+
+        clip2Dual(
+            x0, y0, x1, y1,
+            x + padding,
+            y + h - padding - textH,
+            x + remainingW,
+            y + h - padding,
+            ::drawText
+        )
+
+        return
+
+        // todo extra start button for Isabell, and disabled auto-play
+        // todo settings xD
+
+        // todo tiles on background to show transparency? ofc only in the area of the image
+
+
+    }
+
+    /**
+     * draws the title
+     * todo completely center aligned text
+     * */
+    fun drawText(x0: Int, y0: Int, x1: Int, y1: Int) {
+        title.calculateSize(x1 - x0, y1 - y0)
+        title.backgroundColor = backgroundColor and 0xffffff
+        val deltaX = ((x1 - x0) - title.minW) / 2
+        title.x = x0 + max(0, deltaX)
+        title.y = y0
+        title.w = title.minW
+        title.h = y1 - y0
+        title.drawText(0, 0, title.text, title.textColor)
     }
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {

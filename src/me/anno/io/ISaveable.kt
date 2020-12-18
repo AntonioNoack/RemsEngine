@@ -4,6 +4,8 @@ import me.anno.io.base.BaseWriter
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
+import java.util.*
+import kotlin.collections.HashMap
 
 interface ISaveable {
 

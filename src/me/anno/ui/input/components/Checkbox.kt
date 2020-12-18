@@ -5,7 +5,7 @@ import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.gpu.texture.Texture2D
 import me.anno.input.MouseButton
 import me.anno.objects.cache.Cache
-import me.anno.studio.RemsStudio.onSmallChange
+import me.anno.studio.RemsStudio
 import me.anno.ui.base.Panel
 import me.anno.ui.style.Style
 import org.lwjgl.glfw.GLFW
@@ -51,9 +51,11 @@ class Checkbox(startValue: Boolean, val size: Int, style: Style): Panel(style.ge
     }
 
     fun toggle(){
-        isChecked = !isChecked
-        onCheckedChanged?.invoke(isChecked)
-        onSmallChange("checkbox-toggle")
+        // todo show undo somehow...
+        RemsStudio.largeChange("Toggled to ${!isChecked}") {
+            isChecked = !isChecked
+            onCheckedChanged?.invoke(isChecked)
+        }
     }
 
     override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {

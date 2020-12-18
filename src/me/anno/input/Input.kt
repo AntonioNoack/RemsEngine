@@ -2,6 +2,7 @@ package me.anno.input
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.gameTime
 import me.anno.gpu.GFX.getPanelAndWindowAt
 import me.anno.gpu.GFX.getPanelAt
 import me.anno.gpu.GFX.inFocus
@@ -12,6 +13,7 @@ import me.anno.gpu.GFX.windowStack
 import me.anno.input.Touch.Companion.onTouchDown
 import me.anno.input.Touch.Companion.onTouchMove
 import me.anno.input.Touch.Companion.onTouchUp
+import me.anno.studio.RemsStudio.history
 import me.anno.studio.RemsStudio.project
 import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.ui.editor.treeView.TreeViewPanel
@@ -34,6 +36,8 @@ import kotlin.math.min
 object Input {
 
     private val LOGGER = LogManager.getLogger(Input::class)
+
+    var keyUpCtr = 0
 
     var mouseX = 0f
     var mouseY = 0f
@@ -192,12 +196,14 @@ object Input {
                             ActionManager.onKeyDown(button)
                             mouseStart = System.nanoTime()
                             mouseKeysDown.add(button)
-                            keysDown[button] = GFX.lastTime
+                            keysDown[button] = gameTime
 
                         }
 
                     }
                     GLFW.GLFW_RELEASE -> {
+
+                        keyUpCtr++
 
                         inFocus0?.onMouseUp(mouseX, mouseY, button.toMouseButton())
 
@@ -355,6 +361,7 @@ object Input {
                                                 copy()
                                                 inFocus0?.onEmpty(mouseX, mouseY)
                                             }
+                                            GLFW.GLFW_KEY_H -> history.display()
                                             GLFW.GLFW_KEY_A -> inFocus0?.onSelectAll(mouseX, mouseY)
                                         }
                                     }
@@ -367,12 +374,13 @@ object Input {
                     }
                     when (action) {
                         GLFW.GLFW_PRESS -> {
-                            keysDown[key] = GFX.lastTime
+                            keysDown[key] = gameTime
                             inFocus0?.onKeyDown(mouseX, mouseY, key) // 264
                             ActionManager.onKeyDown(key)
                             keyTyped(key)
                         }
                         GLFW.GLFW_RELEASE -> {
+                            keyUpCtr++
                             inFocus0?.onKeyUp(mouseX, mouseY, key)
                             ActionManager.onKeyUp(key)
                             keysDown.remove(key)
