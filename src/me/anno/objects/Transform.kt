@@ -333,6 +333,7 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
         super.save(writer)
         writer.writeObject(this, "parent", parent)
         writer.writeString("name", name)
+        writer.writeString("comment", comment)
         writer.writeBool("collapsed", isCollapsed, false)
         writer.writeObject(this, "position", position)
         writer.writeObject(this, "scale", scale)
@@ -400,7 +401,8 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
     override fun readString(name: String, value: String) {
         when (name) {
             "name" -> this.name = value
-            "blendMode" -> this.blendMode = BlendMode[value]
+            "comment" -> comment = value
+            "blendMode" -> blendMode = BlendMode[value]
             else -> super.readString(name, value)
         }
     }

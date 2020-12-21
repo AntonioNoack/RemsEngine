@@ -32,6 +32,7 @@ import me.anno.ui.input.BooleanInput
 import me.anno.ui.input.EnumInput
 import me.anno.ui.input.TextInputML
 import me.anno.ui.style.Style
+import me.anno.utils.Vectors.plus
 import me.anno.utils.Vectors.times
 import me.anno.video.MissingFrameException
 import org.joml.Matrix4fArrayList
@@ -265,12 +266,23 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
 
                 val scale = Vector2f(0.5f * texture.w * baseScale, 0.5f * texture.h * baseScale)
 
+                /**
+                 * character- and alignment offset
+                 * */
                 stack.translate(lineDeltaX + xOffset, lineDeltaY, 0f)
                 stack.scale(scale.x, scale.y, 1f)
 
                 val sdfOffset = sdf.offset
-                val scale2 = sdfResolution * 2f
-                stack.translate(sdfOffset.x * scale2 / texture.w, -sdfOffset.y * scale2 / texture.h, 0f)
+                val offset = Vector2f(
+                    (lineDeltaX + xOffset) * scale.x,
+                    lineDeltaY * scale.y
+                ) + sdfOffset
+
+                /**
+                 * offset, because the textures are always centered; don't start from the bottom left
+                 * (text mesh does)
+                 * */
+                stack.translate(sdfOffset.x, sdfOffset.y, 0f)
 
                 if (firstTimeDrawing) {
 
@@ -283,7 +295,8 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
 
                     drawOutlinedText(
                         this, time,
-                        stack, texture, color, 5,
+                        stack, offset, scale,
+                        texture, color, 5,
                         arrayOf(
                             color,
                             outlineColor0[time] * parentColor,
@@ -299,7 +312,7 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
 
                 } else {
 
-                    drawOutlinedText(stack, texture)
+                    drawOutlinedText(stack, offset, scale, texture)
 
                 }
 

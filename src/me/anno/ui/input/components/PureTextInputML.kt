@@ -14,13 +14,12 @@ import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelXY
 import me.anno.ui.style.Style
-import me.anno.utils.*
 import me.anno.utils.Lists.one
 import me.anno.utils.Maths.clamp
+import me.anno.utils.Quad
 import me.anno.utils.StringHelper.getIndexFromText
 import me.anno.utils.StringHelper.getLineWidth
 import me.anno.utils.StringHelper.joinChars
-import java.lang.StringBuilder
 import kotlin.math.abs
 import kotlin.streams.toList
 
@@ -38,7 +37,8 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
     override fun tickUpdate() {
         super.tickUpdate()
         val blinkVisible = ((GFX.gameTime / 500_000_000L) % 2L == 0L)
-        showBars = (isInFocus || children.one { it.isInFocus }) && (blinkVisible || wasJustChanged)
+        val isInFocus = isInFocus || content.isInFocus || (content as PanelList).children.any { it.isInFocus }
+        showBars = isInFocus && (blinkVisible || wasJustChanged)
     }
 
     override fun getVisualState(): Any? = showBars to Quad(super.getVisualState(), cursor1, cursor2, text)
@@ -61,6 +61,7 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
         override fun equals(other: Any?): Boolean {
             return other is CursorPosition && other.x == x && other.y == y
         }
+
         override fun toString() = "$x $y"
     }
 
@@ -120,15 +121,15 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
         if (isReallyInFocus && (showBars || cursor1 != cursor2)) {
             ensureCursorBounds()
             val padding = textSize / 4
-            val panel1 = children[cursor1.y]
+            val panel1 = children[cursor1.y] as TextPanel
             val line1 = lines[cursor1.y]
             val cursor1Text = line1.subList(0, cursor1.x).joinChars()
-            val cursorX1 = if (cursor1.x == 0) -1 else getTextSize(font, cursor1Text, -1).first - 1
+            val cursorX1 = if (cursor1.x == 0) 0 else getTextSize(font, cursor1Text, -1).first - 1
             if (cursor1 != cursor2) {
-                val panel2 = children[cursor2.y]
+                val panel2 = children[cursor2.y] as TextPanel
                 val line2 = lines[cursor2.y]
                 val cursor2Text = line2.subList(0, cursor2.x).joinChars()
-                val cursorX2 = if (cursor2.x == 0) -1 else getTextSize(font, cursor2Text, -1).first - 1
+                val cursorX2 = if (cursor2.x == 0) 0 else getTextSize(font, cursor2Text, -1).first - 1
                 val minCursor = min(cursor1, cursor2)
                 val maxCursor = max(cursor1, cursor2)
                 val minPanel = children[minCursor.y] as TextPanel
@@ -137,27 +138,47 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
                 val maxCursorX = kotlin.math.max(cursorX1, cursorX2)
                 if (minCursor.y == maxCursor.y) {
                     // draw box in same line
-                    drawRect(panel2.x + minCursorX, panel2.y + padding, maxCursorX - minCursorX, panel2.h - 2 * padding, textColor and 0x3fffffff) // marker
+                    drawRect(
+                        panel2.x + minCursorX + panel2.padding.left,
+                        panel2.y + padding,
+                        maxCursorX - minCursorX,
+                        panel2.h - 2 * padding,
+                        textColor and 0x3fffffff
+                    ) // marker
                 } else {
 
                     // todo not working when covered???
 
                     // draw end of first line
-                    drawRect(minPanel.x + minCursorX, minPanel.y + padding, (w - padding * 2) - minCursorX, minPanel.h - padding, textColor and 0x3fffffff)
+                    drawRect(
+                        x + panel2.padding.left + minCursorX,
+                        minPanel.y + padding,
+                        w - panel2.padding.width - minCursorX,
+                        minPanel.h - padding,
+                        textColor and 0x3fffffff
+                    )
 
                     // draw in between lines
                     if (minCursor.y + 1 < maxCursor.y) {
-                        drawRect(x, minPanel.y + minPanel.h, w, maxPanel.y - minPanel.y - minPanel.h, textColor and 0x3fffffff)
+                        drawRect(
+                            x + panel2.padding.left,
+                            minPanel.y + minPanel.h,
+                            w - panel2.padding.width,
+                            maxPanel.y - minPanel.y - minPanel.h,
+                            textColor and 0x3fffffff
+                        )
                     }
 
                     // draw start of last line
                     val endX = maxPanel.x + maxCursorX
-                    drawRect(x, maxPanel.y, endX - x, maxPanel.h - padding, textColor and 0x3fffffff)
+                    drawRect(x + panel2.padding.left, maxPanel.y, endX - x, maxPanel.h - padding, textColor and 0x3fffffff)
 
                 }
-                if (showBars) drawRect(panel2.x + cursorX2, panel2.y + padding, 2, panel2.h - 2 * padding, textColor) // cursor 1
+                if (showBars) drawRect(panel2.x + cursorX2 + panel2.padding.left - 1, panel2.y + padding, 2, panel2.h - 2 * padding, textColor)
+                // cursor 1
             }
-            if (showBars) drawRect(panel1.x + cursorX1, panel1.y + padding, 2, panel1.h - 2 * padding, textColor) // cursor 2
+            if (showBars) drawRect(panel1.x + cursorX1 + panel1.padding.left - 1, panel1.y + padding, 2, panel1.h - 2 * padding, textColor)
+            // cursor 2
         }
         loadTexturesSync.pop()
     }
@@ -193,9 +214,9 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
 
     fun updateText(notify: Boolean) {
         text = joinedText
-        if(text != lastText){
+        if (text != lastText) {
             lastText = text
-            if(notify) changeListener(text)
+            if (notify) changeListener(text)
         }
     }
 
@@ -227,7 +248,7 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
     fun addKey(codePoint: Int) = insert(codePoint, true)
 
     fun insert(insertion: String) {
-        if(insertion.isNotEmpty()){
+        if (insertion.isNotEmpty()) {
             lastChangeTime = GFX.gameTime
             insertion.codePoints().forEach {
                 insert(it, false)
@@ -444,7 +465,7 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
     fun onMouseMoved(x: Float, indexY: Int) {
         if (!Input.isControlDown) {
             if (0 in Input.mouseKeysDown) {
-                val localX = x - (this.x + padding.left)
+                val localX = x - ((content as PanelList).children.first().x + padding.left)
                 val line = lines[indexY]
                 val indexX = getIndexFromText(line, localX, styleSample)
                 cursor2 = CursorPosition(indexX, indexY)
@@ -461,7 +482,7 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
     fun getCursor(x: Float, indexY: Int, withOffset: Boolean): CursorPosition {
         val line = lines[indexY]
         var ix = x
-        if (withOffset) ix -= this.x + padding.left
+        if (withOffset) ix -= (content as PanelList).children.first().x + padding.left
         val indexX = getIndexFromText(line, ix, styleSample)
         return CursorPosition(indexX, indexY)
     }
@@ -493,9 +514,7 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
     fun selectAll() {
         cursor1 = CursorPosition(0, 0)
         cursor2 = endCursor
-        println("selected all: $cursor1 .. $cursor2")
         ensureCursorBounds()
-        println("selected all: $cursor1 .. $cursor2")
     }
 
     override fun onEmpty(x: Float, y: Float) {

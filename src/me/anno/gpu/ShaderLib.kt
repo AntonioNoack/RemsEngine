@@ -372,9 +372,9 @@ object ShaderLib {
             "3d-text-withOutline", v3DBase +
                     "a3 attr0;\n" +
                     "a2 attr1;\n" +
-                    "u2 offset;\n" +
+                    "u2 offset, scale;\n" +
                     "void main(){\n" +
-                    "   localPosition = attr0 + vec3(offset, 0);\n" +
+                    "   localPosition = vec3(attr0.xy * scale + offset, 0);\n" +
                     "   gl_Position = transform * vec4(attr0, 1.0);\n" +
                     positionPostProcessing +
                     "   uv = attr0.xy * 0.5 + 0.5;\n" +

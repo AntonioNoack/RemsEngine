@@ -1,5 +1,6 @@
 package me.anno.gpu
 
+import me.anno.fonts.signeddistfields.structs.Vector2
 import me.anno.gpu.ShaderLib.maxOutlineColors
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.buffer.StaticBuffer
@@ -218,6 +219,8 @@ object GFXx3D {
         that: GFXTransform?,
         time: Double,
         stack: Matrix4fArrayList,
+        offset: Vector2f,
+        scale: Vector2f,
         texture: Texture2D,
         color: Vector4f,
         colorCount: Int,
@@ -262,6 +265,8 @@ object GFXx3D {
         outlineStatsBuffer.position(0)
         shader.v2Array("distSmoothness", outlineStatsBuffer)
         shader.v1("colorCount", cc)
+        shader.v2("offset", offset)
+        shader.v2("scale", scale)
 
         GFX.check()
 
@@ -272,6 +277,8 @@ object GFXx3D {
 
     fun drawOutlinedText(
         stack: Matrix4fArrayList,
+        offset: Vector2f,
+        scale: Vector2f,
         texture: Texture2D
     ) {
         val shader = ShaderLib.shader3DOutlinedText
@@ -279,6 +286,8 @@ object GFXx3D {
 
         shader.use()
         shader.m4x4("transform", stack)
+        shader.v2("offset", offset)
+        shader.v2("scale", scale)
 
         texture.bind(0, GPUFiltering.LINEAR, Clamping.CLAMP)
         UVProjection.Planar.getBuffer().draw(shader)

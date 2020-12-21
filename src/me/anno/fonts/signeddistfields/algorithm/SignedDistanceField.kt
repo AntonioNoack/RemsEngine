@@ -54,6 +54,8 @@ object SignedDistanceField {
 
     fun create(font: java.awt.Font, text: String, roundEdges: Boolean): TextSDF {
 
+        val sdfResolution = sdfResolution
+
         val contours = ArrayList<Contour>()
         var segments = ArrayList<EdgeSegment>()
 
@@ -174,7 +176,7 @@ object SignedDistanceField {
             .order(ByteOrder.nativeOrder())
             .asFloatBuffer()
 
-        val maxDistance = max(maxX-minX, maxY-minY)
+        val maxDistance = max(maxX - minX, maxY - minY)
 
         processBalanced(0, h, true) { i0, i1 ->
             for (y in i0 until i1) {
@@ -193,7 +195,7 @@ object SignedDistanceField {
                         lx + maxDistance, ly + maxDistance, 1.0
                     )
                     contours.forEach { contour ->
-                        if(contour.bounds.testAABB(pointBounds)){// this test brings down the complexity from O(chars²) to O(chars)
+                        if (contour.bounds.testAABB(pointBounds)) {// this test brings down the complexity from O(chars²) to O(chars)
                             contour.segments.forEach { edge ->
                                 val distance = edge.signedDistance(origin, ptr)
                                 if (distance < minDistance) {
@@ -205,7 +207,7 @@ object SignedDistanceField {
                     }
 
                     val trueDistance = if (roundEdges) {
-                        if(closestEdge == null) +100.0 else minDistance.distance
+                        if (closestEdge == null) +100.0 else minDistance.distance
                     } else {
                         closestEdge?.trueSignedDistance(origin) ?: +100.0
                     }
@@ -224,8 +226,8 @@ object SignedDistanceField {
         }
 
         // the center, because we draw the pieces from the center
-        val ox = (maxX + minX).toFloat() / 2f
-        val oy = (maxY + minY).toFloat() / 2f
+        val ox = (maxX + minX).toFloat() * +sdfResolution / w
+        val oy = (maxY + minY).toFloat() * -sdfResolution / h // mirrored for OpenGL
         return TextSDF(tex, Vector2f(ox, oy))
 
     }
