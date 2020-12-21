@@ -75,7 +75,7 @@ class AnimatedProperty<V>(val type: Type, var defaultValue: V) : Saveable() {
 
     fun clampAny(value: Any) = clamp(value as V)
     fun clamp(value: V): V {
-        return type.clamp?.invoke(value) as V ?: value
+        return type.clampFunc?.invoke(value) as V ?: value
     }
 
     fun set(value: V): AnimatedProperty<V> {

@@ -128,7 +128,6 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
     var lastVisualState: Any? = null
     fun getVisualState() = Triple(Triple(text, font, lineBreakWidth), renderingMode, roundSDFCorners)
 
-
     val shallLoadAsync get() = !forceVariableBuffer
     fun getTextMesh(key: TextSegmentKey): TextRepBase? {
         return Cache.getEntry(key, textMeshTimeout, shallLoadAsync) {

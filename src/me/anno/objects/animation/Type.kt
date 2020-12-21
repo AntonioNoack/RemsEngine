@@ -5,7 +5,6 @@ import org.joml.Quaternionf
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
-import java.lang.RuntimeException
 import kotlin.math.max
 
 class Type(
@@ -14,11 +13,11 @@ class Type(
     val unitScale: Float,
     val hasLinear: Boolean,
     val hasExponential: Boolean,
-    val clamp: ((Any?) -> Any)?,
+    val clampFunc: ((Any?) -> Any)?,
     val accepts: (Any?) -> Boolean
 ) {
 
-    fun <V> clamp(value: V): V = if (clamp != null) clamp.invoke(value) as V else value
+    fun <V> clamp(value: V): V = if (clampFunc != null) clampFunc.invoke(value) as V else value
 
     companion object {
 
@@ -38,30 +37,42 @@ class Type(
         val VEC2_PLUS = Type(Vector2f(), 2, 1f, true, true, { max(it as Float, 0f) }) { it is Vector2f }
         val VEC3 = Type(Vector3f(), 3, 1f, true, true, null) { it is Vector3f }
         val VEC4 = Type(Vector4f(), 4, 1f, true, true, null) { it is Vector4f }
-        val VEC4_PLUS = Type(Vector4f(), 4, 1f, true, true, { when(it){
-            is Float -> max(it, 0f)
-            is Vector4f -> Vector4f(max(it.x, 0f), max(it.y, 0f), max(it.z, 0f), max(it.w, 0f))
-            else -> throw RuntimeException()
-        } }) { it is Vector4f }
+        val VEC4_PLUS = Type(Vector4f(), 4, 1f, true, true, {
+            when (it) {
+                is Float -> max(it, 0f)
+                is Vector4f -> Vector4f(max(it.x, 0f), max(it.y, 0f), max(it.z, 0f), max(it.w, 0f))
+                else -> throw RuntimeException()
+            }
+        }) { it is Vector4f }
         val POSITION = Type(Vector3f(), 3, 1f, true, true, null) { it is Vector3f }
         val SCALE = Type(Vector3f(1f, 1f, 1f), 3, 1f, true, true, null) { it is Vector3f }
         val ROT_YXZ = Type(Vector3f(), 3, 90f, true, true, null) { it is Vector3f }
         val SKEW_2D = Type(Vector2f(), 2, 1f, true, true, null) { it is Vector2f }
         val QUATERNION = Type(Quaternionf(), 4, 1f, true, true, null) { it is Quaternionf }
         val COLOR = Type(Vector4f(1f, 1f, 1f, 1f), 4, 1f, true, true, {
-            it as Vector4f
-            it.x = clamp(it.x, 0f, 1f)
-            it.y = clamp(it.y, 0f, 1f)
-            it.z = clamp(it.z, 0f, 1f)
-            it.w = clamp(it.w, 0f, 1f)
-            it
+            when(it){
+                is Vector4f -> {
+                    it.x = clamp(it.x, 0f, 1f)
+                    it.y = clamp(it.y, 0f, 1f)
+                    it.z = clamp(it.z, 0f, 1f)
+                    it.w = clamp(it.w, 0f, 1f)
+                    it
+                }
+                is Float -> clamp(it, 0f, 1f)
+                else -> throw RuntimeException()
+            }
         }) { it is Vector4f }
         val COLOR3 = Type(Vector3f(1f, 1f, 1f), 3, 1f, true, true, {
-            it as Vector3f
-            it.x = clamp(it.x, 0f, 1f)
-            it.y = clamp(it.y, 0f, 1f)
-            it.z = clamp(it.z, 0f, 1f)
-            it
+            when(it){
+                is Vector3f -> {
+                    it.x = clamp(it.x, 0f, 1f)
+                    it.y = clamp(it.y, 0f, 1f)
+                    it.z = clamp(it.z, 0f, 1f)
+                    it
+                }
+                is Float -> clamp(it, 0f, 1f)
+                else -> throw RuntimeException()
+            }
         }) { it is Vector3f }
         val TILING = Type(Vector4f(1f, 1f, 0f, 0f), 4, 1f, true, true, null) { it is Vector4f }
 
