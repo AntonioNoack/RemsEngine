@@ -42,8 +42,6 @@ import java.awt.font.TextLayout
 import java.io.File
 import kotlin.math.max
 
-// todo calculate distance field...
-
 // todo animated text, like in RPGs, where text appears; or like typing
 // todo background "color" in the shape of a plane? for selections and such
 
@@ -57,17 +55,6 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
         }
 
     override fun getSymbol() = DefaultConfig["ui.symbol.text", "\uD83D\uDCC4"]
-
-    // todo blurry, colorful text shadow
-    // by calculated distance fields:
-
-    // done multiple line alignment
-    // done working tabs
-
-
-    // how we apply sampling probably depends on our AA solution...
-
-    // parameters
 
     var renderingMode = TextRenderMode.MESH
     var roundSDFCorners = false
@@ -328,9 +315,6 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
         }
     }
 
-    /**
-     * todo mirror y coordinates
-     * */
     private fun drawMesh(
         key: TextSegmentKey, time: Double, stack: Matrix4fArrayList,
         color: Vector4f, lineDeltaX: Float, lineDeltaY: Float
@@ -345,7 +329,7 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
 
         textMesh.draw { buffer, _, xOffset ->
             buffer!!
-            val offset = Vector3f(lineDeltaX + xOffset, -lineDeltaY, 0f)
+            val offset = Vector3f(lineDeltaX + xOffset, lineDeltaY, 0f)
             if (firstTimeDrawing) {
                 draw3DText(this, time, offset, stack, buffer, color)
                 firstTimeDrawing = false
@@ -357,7 +341,7 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
     }
 
     override fun transformLocally(pos: Vector3f, time: Double): Vector3f {
-        return Vector3f(pos.x, -pos.y, pos.z)
+        return pos
     }
 
     fun invalidate() {

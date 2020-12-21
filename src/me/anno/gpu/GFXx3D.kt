@@ -109,23 +109,6 @@ object GFXx3D {
         that: GFXTransform?, time: Double, offset: Vector3f,
         stack: Matrix4fArrayList, buffer: StaticBuffer, color: Vector4f
     ) {
-        // todo remove the y-scale of -1 everywhere...
-        stack.pushMatrix()
-        stack.scale(1f, -1f, 1f)
-        val shader = ShaderLib.shader3DforText
-        shader3DUniforms(shader, stack, color)
-        shader.v3("offset", offset)
-        that?.uploadAttractors(shader, time) ?: GFXTransform.uploadAttractors0(shader)
-        buffer.draw(shader)
-        GFX.check()
-        stack.popMatrix()
-    }
-
-    fun draw3DText2(
-        that: GFXTransform?, time: Double, offset: Vector3f,
-        stack: Matrix4fArrayList, buffer: StaticBuffer, color: Vector4f
-    ) {
-        // todo remove the y-scale of -1 everywhere...
         val shader = ShaderLib.shader3DforText
         shader3DUniforms(shader, stack, color)
         shader.v3("offset", offset)

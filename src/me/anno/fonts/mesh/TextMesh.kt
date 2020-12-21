@@ -92,14 +92,15 @@ class TextMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
 
             val type = path.currentSegment(coordinates)
 
-            val x0 = coordinates[0]
-            val y0 = coordinates[1]
+            // y is mirrored, because y is up, not down in our 3D coordinate system
+            val x0 = +coordinates[0]
+            val y0 = -coordinates[1]
 
-            val x1 = coordinates[2]
-            val y1 = coordinates[3]
+            val x1 = +coordinates[2]
+            val y1 = -coordinates[3]
 
-            val x2 = coordinates[4]
-            val y2 = coordinates[5]
+            val x2 = +coordinates[4]
+            val y2 = -coordinates[5]
 
             when (type) {
                 PathIterator.SEG_QUADTO -> {
