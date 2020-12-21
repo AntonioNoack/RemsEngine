@@ -37,17 +37,17 @@ class History : Saveable() {
 
     fun put(change: State): Int {
         // remove states at the top of the stack...
-        while (states.size > nextInsertIndex) states.removeAt(states.lastIndex)
+        // while (states.size > nextInsertIndex) states.removeAt(states.lastIndex)
         states += change
-        nextInsertIndex = states.size
         clearToSize()
+        nextInsertIndex = states.size
         return nextInsertIndex
     }
 
     fun put(title: String) {
         val nextState = capture(title, currentState)
         if (nextState != currentState) {
-            nextInsertIndex = put(nextState)
+            put(nextState)
             currentState = nextState
         }
     }

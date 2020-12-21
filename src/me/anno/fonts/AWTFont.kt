@@ -45,6 +45,7 @@ class AWTFont(val font: Font) {
     fun String.countLines() = count { it == '\n' } + 1
 
     // todo move to generating the texture on the gpu with our triangulated meshes...
+    // to solve the Te-problem
     fun generateTextureV4(text: String, fontSize: Float, widthLimit: Int): ITexture2D? {
 
         val textElement = Text(text)

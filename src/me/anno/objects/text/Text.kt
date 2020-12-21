@@ -557,16 +557,17 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
                 GFX.select(shadow)
             }
 
-        val outline = getGroup("Outline (SDF Mode)", "outline")
+        val outline = getGroup("Outline", "outline")
+        outline.setTooltip("Needs Rendering Mode = SDF or Merged SDF")
         outline += VI(
             "Rendering Mode", "Mesh: Sharp, Signed Distance Fields: with outline",
             null, renderingMode, style
         ) { renderingMode = it }
-        outline += VI("Outline Color (1)", "", outlineColor0, style)
-        outline += VI("Outline Color (2)", "", outlineColor1, style)
-        outline += VI("Outline Color (3)", "", outlineColor2, style)
-        outline += VI("Outline Widths", "First: Main Width, Second: Outline Width", outlineWidths, style)
-        outline += VI("Outline Smoothness", "How smooth the edge is", outlineSmoothness, style)
+        outline += VI("Color 1", "", outlineColor0, style)
+        outline += VI("Color 2", "", outlineColor1, style)
+        outline += VI("Color 3", "", outlineColor2, style)
+        outline += VI("Widths", "First: Main Width, Second: Outline Width", outlineWidths, style)
+        outline += VI("Smoothness", "How smooth the edge is", outlineSmoothness, style)
         outline += VI("Rounded Corners", "Otherwise uses a pseudo-distance", null, roundSDFCorners, style) {
             roundSDFCorners = it
             invalidate()

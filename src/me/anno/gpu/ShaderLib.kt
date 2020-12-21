@@ -91,9 +91,6 @@ object ShaderLib {
             "   );\n" +
             "}\n"
 
-    // uv/scale attractors...
-    // todo color attractors are too complicated to use (? is this still the case? when did I write that? maybe a mode, where you can see the paint only? :))
-
     val maxColorForceFields = DefaultConfig["objects.attractors.color.maxCount", 12]
     val getColorForceFieldLib = "" +
             // additional weights?...
@@ -426,7 +423,6 @@ object ShaderLib {
         shader3DPolygon = createShaderPlus("3d-polygon", v3DPolygon, y3D, f3D, listOf("tex"))
         shader3DPolygon.ignoreUniformWarnings(listOf("tiling", "forceFieldUVCount"))
 
-        // todo disable color effects on masks for simplicity? or break it in fullscreen mode?
         val v3DMasked = v3DBase +
                 "a2 attr0;\n" +
                 "void main(){\n" +

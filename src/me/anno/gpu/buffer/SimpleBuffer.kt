@@ -32,8 +32,8 @@ class SimpleBuffer(val vertices: Array<Vector2f>, name: String) : StaticBuffer(
         }
 
         // todo "move" towards the viewer for large distance, so it stays fullscreen?
-        // todo like a sphere?
-        // todo or add a sphere additionally? (then without our effects)
+        // like a sphere?
+        // or add a sphere additionally? (then without our effects)
         private fun createFlatLarge(): StaticBuffer {
             val step = 10f
             val iList = -10 .. 10

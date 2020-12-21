@@ -18,6 +18,7 @@ import me.anno.utils.Vectors.plus
 import me.anno.utils.Vectors.times
 import org.joml.AABBf
 import org.joml.Vector2f
+import java.lang.RuntimeException
 import kotlin.math.abs
 import kotlin.math.sqrt
 
@@ -58,7 +59,7 @@ class CubicSegment(
     }
 
     override fun length(): Float {
-        TODO("Not yet implemented")
+        throw RuntimeException("length() not implemented")
     }
 
     override fun reverse() {
