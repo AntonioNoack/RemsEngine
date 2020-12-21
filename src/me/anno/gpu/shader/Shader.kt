@@ -2,13 +2,14 @@ package me.anno.gpu.shader
 
 import me.anno.gpu.GFX
 import me.anno.gpu.framebuffer.Frame
-import me.anno.objects.cache.CacheData
+import me.anno.cache.CacheData
 import me.anno.utils.FloatArrayList
 import org.apache.logging.log4j.LogManager
 import org.joml.*
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL20.*
 import org.lwjgl.opengl.GL21.glUniformMatrix4x3fv
+import java.nio.FloatBuffer
 
 open class Shader(
     val shaderName: String,
@@ -132,7 +133,9 @@ open class Shader(
         if (old != -100) return old
         val loc = glGetAttribLocation(program, name)
         attributeLocations[name] = loc
-        if (loc < 0) LOGGER.warn("Attribute location \"$name\" not found in shader $shaderName")
+        if (loc < 0 && name !in ignoredNames){
+            LOGGER.warn("Attribute location \"$name\" not found in shader $shaderName")
+        }
         return loc
     }
 
@@ -280,6 +283,38 @@ open class Shader(
         if (loc > -1) {
             value.get(matrixBuffer)
             glUniformMatrix4fv(loc, false, matrixBuffer)
+        }
+    }
+
+    fun v1Array(name: String, value: FloatBuffer) {
+        use()
+        val loc = this[name]
+        if (loc > -1) {
+            glUniform1fv(loc, value)
+        }
+    }
+
+    fun v2Array(name: String, value: FloatBuffer) {
+        use()
+        val loc = this[name]
+        if (loc > -1) {
+            glUniform2fv(loc, value)
+        }
+    }
+
+    fun v3Array(name: String, value: FloatBuffer) {
+        use()
+        val loc = this[name]
+        if (loc > -1) {
+            glUniform3fv(loc, value)
+        }
+    }
+
+    fun v4Array(name: String, value: FloatBuffer) {
+        use()
+        val loc = this[name]
+        if (loc > -1) {
+            glUniform4fv(loc, value)
         }
     }
 

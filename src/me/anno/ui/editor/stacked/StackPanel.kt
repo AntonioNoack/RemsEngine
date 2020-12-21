@@ -9,20 +9,20 @@ import me.anno.ui.base.Visibility
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.groups.PanelListY
-import me.anno.ui.editor.PropertyInspector
-import me.anno.ui.editor.SettingCategory
+
+// todo is glTexture2D a bottleneck for playback?
 
 /**
  * done allow the user to add fields
  * done allow the user to customize fields
- * todo allow the user to remove fields
+ * done allow the user to remove fields
  * todo reorder fields by dragging up/down
- * todo copy fields
+ * done copy fields
  * todo paste fields
  * todo add left-padding to all fields...
  * */
 abstract class StackPanel(
-    title: String,
+    val titleText: String,
     tooltipText: String,
     val options: List<Option>,
     val values: List<Option>
@@ -30,72 +30,19 @@ abstract class StackPanel(
 
     val content = PanelListY(style)
 
-    class Option private constructor(
-        val title: String,
-        val tooltipText: String,
-        val value0: Inspectable?,
-        val generator: () -> Inspectable
-    ) {
-        constructor(title: String, tooltipText: String, value0: Inspectable) : this(
-            title, tooltipText, value0,
-            { value0 }
-        )
-
-        constructor(title: String, tooltipText: String, generator: () -> Inspectable) : this(
-            title, tooltipText, null, generator
-        )
-    }
-
-    class OptionPanel(
-        val sp: StackPanel,
-        title: String,
-        tooltipText: String,
-        val value: Inspectable
-    ) : SettingCategory(title, style) {
-
-        init {
-            setTooltip(tooltipText)
-            PropertyInspector.createInspector(value, content, style)
-        }
-
-        override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
-            when {
-                button.isRight -> {
-                    val index = indexInParent
-                    openMenu(
-                        sp.options.map { option ->
-                            "Prepend ${option.title}" to {
-                                sp.addComponent(option, index, true)
-                            }
-                        } + ("Remove Component" to {
-                            sp.removeComponent(value)
-                        })
-                    )
-                }
-                else -> super.onMouseClicked(x, y, button, long)
-            }
-        }
-
-        override fun onDeleteKey(x: Float, y: Float) {
-            sp.removeComponent(value)
-        }
-
-    }
-
-    val title = object: TextPanel(title, style){
+    val title = object: TextPanel(titleText, style){
         init {
             focusTextColor = textColor
         }
         override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
-            if(button.isLeft && !long){
-                val isHidden = this@StackPanel.children.getOrNull(1)?.visibility == Visibility.VISIBLE
+            /*if(button.isLeft && !long && !content.isEmpty()){
+                val isHidden = content.children.firstOrNull()?.visibility == Visibility.GONE
                 val visibility = if(isHidden) Visibility.VISIBLE else Visibility.GONE
-                this@StackPanel.children.forEachIndexed { index, panel ->
-                    if(index > 0){
-                        panel.visibility = visibility
-                    }
+                content.children.forEach { panel ->
+                    panel.visibility = visibility
                 }
-            } else super.onMouseClicked(x, y, button, long)
+            } else */
+            super.onMouseClicked(x, y, button, long)
         }
     }
 
@@ -120,7 +67,7 @@ abstract class StackPanel(
 
     override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
         when {
-            button.isRight || long -> {
+            button.isRight || long || content.isEmpty() -> {
                 showMenu()
             }
             else -> super.onMouseClicked(x, y, button, long)
@@ -129,17 +76,23 @@ abstract class StackPanel(
 
     fun addComponent(option: Option, index: Int, notify: Boolean) {
         val component = option.value0 ?: option.generator()
-        content.children.add(index, OptionPanel(this, option.title, option.tooltipText, component))
-        if (notify) onAddComponent(component, index)
+        content.add(index, OptionPanel(this, option.title, option.tooltipText, component))
+        if (notify){
+            onAddComponent(component, index)
+            invalidateLayout()
+        }
     }
-
-    abstract fun onAddComponent(component: Inspectable, index: Int)
 
     fun removeComponent(component: Inspectable) {
         content.children.removeIf { it is OptionPanel && it.value === component }
         onRemoveComponent(component)
+        invalidateLayout()
     }
 
+
+    abstract fun onAddComponent(component: Inspectable, index: Int)
     abstract fun onRemoveComponent(component: Inspectable)
+    abstract fun getOptionFromInspectable(inspectable: Inspectable): Option?
+
 
 }

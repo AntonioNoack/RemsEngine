@@ -19,7 +19,7 @@ import me.anno.input.MouseButton
 import me.anno.objects.Audio
 import me.anno.objects.Camera
 import me.anno.objects.Video
-import me.anno.objects.cache.Cache
+import me.anno.cache.Cache
 import me.anno.studio.StudioBase
 import me.anno.ui.base.Panel
 import me.anno.ui.base.TextPanel

@@ -5,6 +5,7 @@ import org.joml.Quaternionf
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
+import java.lang.RuntimeException
 import kotlin.math.max
 
 class Type(
@@ -34,8 +35,14 @@ class Type(
         val ANGLE = Type(0f, 1, 90f, true, false, null) { it is Float }
         val DOUBLE = Type(0.0, 1, 1f, true, true, null) { it is Double }
         val VEC2 = Type(Vector2f(), 2, 1f, true, true, null) { it is Vector2f }
+        val VEC2_PLUS = Type(Vector2f(), 2, 1f, true, true, { max(it as Float, 0f) }) { it is Vector2f }
         val VEC3 = Type(Vector3f(), 3, 1f, true, true, null) { it is Vector3f }
         val VEC4 = Type(Vector4f(), 4, 1f, true, true, null) { it is Vector4f }
+        val VEC4_PLUS = Type(Vector4f(), 4, 1f, true, true, { when(it){
+            is Float -> max(it, 0f)
+            is Vector4f -> Vector4f(max(it.x, 0f), max(it.y, 0f), max(it.z, 0f), max(it.w, 0f))
+            else -> throw RuntimeException()
+        } }) { it is Vector4f }
         val POSITION = Type(Vector3f(), 3, 1f, true, true, null) { it is Vector3f }
         val SCALE = Type(Vector3f(1f, 1f, 1f), 3, 1f, true, true, null) { it is Vector3f }
         val ROT_YXZ = Type(Vector3f(), 3, 90f, true, true, null) { it is Vector3f }

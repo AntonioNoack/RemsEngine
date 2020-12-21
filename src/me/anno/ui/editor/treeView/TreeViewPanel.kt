@@ -11,15 +11,14 @@ import me.anno.input.Input
 import me.anno.input.Input.mouseX
 import me.anno.input.Input.mouseY
 import me.anno.input.MouseButton
-import me.anno.io.text.TextReader
 import me.anno.io.utils.StringMap
 import me.anno.objects.Camera
 import me.anno.objects.Rectangle
 import me.anno.objects.Transform
 import me.anno.objects.Transform.Companion.toTransform
 import me.anno.objects.effects.MaskLayer
-import me.anno.studio.RemsStudio
-import me.anno.studio.RemsStudio.selectedTransform
+import me.anno.studio.rems.RemsStudio
+import me.anno.studio.rems.RemsStudio.selectedTransform
 import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.ui.base.TextPanel
 import me.anno.ui.dragging.Draggable

@@ -1,5 +1,6 @@
 package me.anno.gpu.texture
 
+import me.anno.cache.CacheData
 import me.anno.gpu.GFX
 import me.anno.gpu.TextureLib.invisibleTexture
 import me.anno.gpu.texture.Texture2D.Companion.textureBudgetTotal
@@ -14,7 +15,7 @@ import java.nio.ByteOrder
 import java.nio.FloatBuffer
 import kotlin.concurrent.thread
 
-class Texture3D(val w: Int, val h: Int, val d: Int){
+class Texture3D(val w: Int, val h: Int, val d: Int): CacheData {
 
     constructor(img: BufferedImage, depth: Int): this(img.width/depth, img.height, depth){
         create(img, true)
@@ -189,8 +190,14 @@ class Texture3D(val w: Int, val h: Int, val d: Int){
         bind(nearest)
     }
 
-    fun destroy(){
-        if(pointer > -1) glDeleteTextures(pointer)
+    override fun destroy(){
+        val pointer = pointer
+        if(pointer > -1) {
+            GFX.addGPUTask(1){
+                glDeleteTextures(pointer)
+            }
+        }
+        this.pointer = -1
     }
 
 }

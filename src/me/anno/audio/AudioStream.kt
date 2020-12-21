@@ -1,10 +1,12 @@
 package me.anno.audio
 
+import me.anno.audio.effects.Domain
 import me.anno.audio.effects.SoundPipeline.Companion.bufferSize
+import me.anno.audio.effects.Time
 import me.anno.objects.Audio
 import me.anno.objects.Camera
+import me.anno.cache.Cache
 import me.anno.objects.modes.LoopingState
-import me.anno.objects.cache.Cache
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.mix
 import me.anno.utils.Vectors.minus
@@ -43,21 +45,22 @@ abstract class AudioStream(
     val meta: FFMPEGMetadata,
     val source: Audio,
     val listener: Camera,
-    val playbackSampleRate: Int = 48000){
+    val playbackSampleRate: Int = 48000
+) {
 
-    constructor(audio: Audio, speed: Double, globalTime: Double, playbackSampleRate: Int, listener: Camera):
-            this(audio.file, audio.isLooping, 0.0, getMeta(audio.file, false)!!, audio, listener, playbackSampleRate){
+    constructor(audio: Audio, speed: Double, globalTime: Double, playbackSampleRate: Int, listener: Camera) :
+            this(audio.file, audio.isLooping, 0.0, getMeta(audio.file, false)!!, audio, listener, playbackSampleRate) {
         configure(audio, speed, globalTime)
     }
 
-    fun configure(audio: Audio, speed: Double, globalTime: Double){
+    fun configure(audio: Audio, speed: Double, globalTime: Double) {
         globalToLocalTime = { time -> audio.getGlobalTransform(time * speed + globalTime).second }
         val amplitude = audio.amplitude
         val color = audio.color
         localAmplitude = { time -> amplitude[time] * clamp(color[time].w, 0f, 1f) }
     }
 
-    val minPerceptibleAmplitude = 1f/32500f
+    val minPerceptibleAmplitude = 1f / 32500f
 
     val ffmpegSampleRate = meta.audioSampleRate
 
@@ -89,41 +92,43 @@ abstract class AudioStream(
     data class AudioSliceKey(val file: File, val slice: Long)
 
     fun getAmplitudesSync(index: Double): Pair<Float, Float> {
-        if(index < 0f) return 0f to 0f
+        if (index < 0f) return 0f to 0f
         // multiply by local time dependent amplitude
         val localAmplitude = localAmplitude(index / ffmpegSampleRate)
-        if(localAmplitude < minPerceptibleAmplitude) return 0f to 0f
+        if (localAmplitude < minPerceptibleAmplitude) return 0f to 0f
         val i0 = index.toLong()
         val data0 = getMaxAmplitudesSync(i0)
-        val data1 = if(index.toInt().toDouble() == index){ // <3, data doesn't need to be interpolated
+        val data1 = if (index.toInt().toDouble() == index) { // <3, data doesn't need to be interpolated
             return data0.first * localAmplitude to data0.second * localAmplitude
-        } else getMaxAmplitudesSync(i0+1)
+        } else getMaxAmplitudesSync(i0 + 1)
         val f = (index - i0).toFloat() // sollte ok sein; hohe Präzession ist hier nicht notwendig
         return mix(data0.first, data1.first, f) * localAmplitude to
                 mix(data0.second, data1.second, f) * localAmplitude
     }
 
     fun getMaxAmplitudesSync(index0: Long): Pair<Short, Short> {
-        if(index0 < 0 || (repeat == LoopingState.PLAY_ONCE && index0 >= maxSampleIndex)) return 0.toShort() to 0.toShort()
+        if (index0 < 0 || (repeat == LoopingState.PLAY_ONCE && index0 >= maxSampleIndex)) return 0.toShort() to 0.toShort()
         val index = repeat[index0, maxSampleIndex]
         // val index = if(repeat) index % maxSampleIndex else index
         val sliceIndex = index / ffmpegSliceSampleCount
         val localIndex = (index % ffmpegSliceSampleCount).toInt()
         val arrayIndex0 = localIndex * 2 // for stereo
         val sliceTime = sliceIndex * ffmpegSliceSampleDuration
-        val soundBuffer = Cache.getEntry(AudioSliceKey(file, sliceIndex), (ffmpegSliceSampleDuration * 2 * 1000).toLong(), false){
-            val sequence = FFMPEGStream.getAudioSequence(file, sliceTime, ffmpegSliceSampleDuration, ffmpegSampleRate)
-            var buffer: SoundBuffer?
-            while(true){
-                buffer = sequence.soundBuffer
-                if(buffer != null) break
-                // somebody else needs to work on the queue
-                Thread.sleep(0, 100_000) // wait 0.1ms
-            }
-            buffer!!
-        } as SoundBuffer
+        val soundBuffer =
+            Cache.getEntry(AudioSliceKey(file, sliceIndex), (ffmpegSliceSampleDuration * 2 * 1000).toLong(), false) {
+                val sequence =
+                    FFMPEGStream.getAudioSequence(file, sliceTime, ffmpegSliceSampleDuration, ffmpegSampleRate)
+                var buffer: SoundBuffer?
+                while (true) {
+                    buffer = sequence.soundBuffer
+                    if (buffer != null) break
+                    // somebody else needs to work on the queue
+                    Thread.sleep(0, 100_000) // wait 0.1ms
+                }
+                buffer!!
+            } as SoundBuffer
         val data = soundBuffer.pcm!!
-        return data[arrayIndex0] to data[arrayIndex0+1]
+        return data[arrayIndex0] to data[arrayIndex0 + 1]
     }
 
     fun calculateLoudness(global1: Double): AudioTransfer {
@@ -138,8 +143,8 @@ abstract class AudioStream(
         val camGlobalPos = camLocal2Global.transformPosition(Vector3f())
         val srcGlobalPos = srcLocal2Global.transformPosition(Vector3f())
         val dirGlobal = (camGlobalPos - srcGlobalPos).normalize() // in global space
-        val leftDirGlobal = camLocal2Global.transformDirection(Vector3f(+1f,0f,-0.1f)).normalize()
-        val rightDirGlobal = camLocal2Global.transformDirection(Vector3f(-1f,0f,-0.1f)).normalize()
+        val leftDirGlobal = camLocal2Global.transformDirection(Vector3f(+1f, 0f, -0.1f)).normalize()
+        val rightDirGlobal = camLocal2Global.transformDirection(Vector3f(-1f, 0f, -0.1f)).normalize()
         // val distance = camGlobalPos.distance(srcGlobalPos)
 
         val left1 = leftDirGlobal.dot(dirGlobal) * 0.48 + 0.52
@@ -149,9 +154,11 @@ abstract class AudioStream(
     }
 
     val leftPipeline = source.effects.clone()
+        .apply { this.camera = listener }
     val rightPipeline = source.effects.clone()
+        .apply { this.camera = listener }
 
-    fun requestNextBuffer(startTime: Double, bufferIndex: Long){
+    fun requestNextBuffer(startTime: Double, bufferIndex: Long) {
 
         // "requesting audio buffer $startTime"
 
@@ -187,7 +194,7 @@ abstract class AudioStream(
                 .order(ByteOrder.nativeOrder())
             val stereoBuffer = byteBuffer.asShortBuffer()
 
-            var transfer0 = if(source.is3D) calculateLoudness(startTime) else CopyTransfer
+            var transfer0 = if (source.is3D) calculateLoudness(startTime) else CopyTransfer
             var transfer1 = transfer0
 
             // todo linear approximation, if possible
@@ -195,13 +202,22 @@ abstract class AudioStream(
 
             val updatePositionEveryNFrames = 100
 
-            for(sampleIndex in 0 until sampleCount){
 
-                if(sampleIndex % updatePositionEveryNFrames == 0){
+            val hasPipeline = leftPipeline.stages.isNotEmpty()
+            lateinit var leftBuffer: FloatArray
+            lateinit var rightBuffer: FloatArray
+            if(hasPipeline){
+                leftBuffer = FloatArray(sampleCount)
+                rightBuffer = FloatArray(sampleCount)
+            }
+
+            for (sampleIndex in 0 until sampleCount) {
+
+                if (sampleIndex % updatePositionEveryNFrames == 0) {
 
                     // load loudness from camera
 
-                    if(source.is3D) {
+                    if (source.is3D) {
 
                         transfer0 = transfer1
                         val global1 = startTime + (sampleIndex + updatePositionEveryNFrames) * dtx
@@ -248,7 +264,7 @@ abstract class AudioStream(
                         val f1 = mxi - mxI // x.2f -> 0.2f
                         var b0 = data0.first * f0 + data1.first * f1
                         var b1 = data0.second * f0 + data1.second * f1
-                        for(index in mnI+1 until mxI){
+                        for (index in mnI + 1 until mxI) {
                             val data = getMaxAmplitudesSync(index)
                             val time = index.toDouble() / ffmpegSampleRate
                             val amplitude = localAmplitude(time)
@@ -269,13 +285,13 @@ abstract class AudioStream(
                 // it rather should be computed as a post-processing effect...
                 // todo irregular chaos component?? (different reflection directions)
                 val echoMultiplier = source.echoMultiplier[global0]
-                if(echoMultiplier > 0f){
+                if (echoMultiplier > 0f) {
                     val echoDelay = source.echoDelay[global0]
                     var sum = 1f
-                    if(abs(echoDelay) > 1e-5f){
+                    if (abs(echoDelay) > 1e-5f) {
                         var global = global1 - echoDelay
                         var multiplier = echoMultiplier
-                        for(i in 0 until 10){
+                        for (i in 0 until 10) {
                             val local = globalToLocalTime(global)
                             val index = (ffmpegSampleRate * local).toLong()
                             val data = getMaxAmplitudesSync(index)
@@ -286,7 +302,7 @@ abstract class AudioStream(
                             sum += multiplier
                             global -= echoDelay
                             multiplier *= echoMultiplier
-                            if(multiplier < 1e-5f) break
+                            if (multiplier < 1e-5f) break
                         }
                     }
                     // normalize the values
@@ -295,11 +311,32 @@ abstract class AudioStream(
                 }
 
                 // write the data
-                stereoBuffer.put(doubleToShort(transfer0.getLeft(a0, a1, approxFraction, transfer1)))
-                stereoBuffer.put(doubleToShort(transfer0.getRight(a0, a1, approxFraction, transfer1)))
+                val left = transfer0.getLeft(a0, a1, approxFraction, transfer1)
+                val right = transfer0.getRight(a0, a1, approxFraction, transfer1)
+                if(hasPipeline){
+                    leftBuffer[sampleIndex] = left.toFloat()
+                    rightBuffer[sampleIndex] = right.toFloat()
+                } else {
+                    stereoBuffer.put(doubleToShort(left))
+                    stereoBuffer.put(doubleToShort(right))
+                }
 
                 index0 = index1
 
+            }
+
+            if(hasPipeline){
+                val global1 = global0 + playbackSliceDuration
+                val time0 = Time(global0, global0)
+                val time1 = Time(global1, global1)
+
+                val leftBuffer2 = leftPipeline.process(leftBuffer, source, Domain.TIME_DOMAIN, Domain.TIME_DOMAIN, time0, time1)
+                val rightBuffer2 = rightPipeline.process(rightBuffer, source, Domain.TIME_DOMAIN, Domain.TIME_DOMAIN, time0, time1)
+
+                for(i in 0 until sampleCount){
+                    stereoBuffer.put(floatToShort(leftBuffer2[i]))
+                    stereoBuffer.put(floatToShort(rightBuffer2[i]))
+                }
             }
 
             stereoBuffer.position(0)
@@ -310,13 +347,28 @@ abstract class AudioStream(
 
     }
 
-    // the usual function calls d.toInt().toShort(),
-    // which causes breaking from max to -max, which ruins audio quality (cracking)
-    // this fixes that :)
+    /**
+     * the usual function calls d.toInt().toShort(),
+     * which causes breaking from max to -max, which ruins audio quality (cracking)
+     * this fixes that :)
+     * */
     private fun doubleToShort(d: Double): Short {
         return when {
             d >= 32767.0 -> 32767
             d >= -32768.0 -> d.toInt().toShort()
+            else -> -32768
+        }
+    }
+
+    /**
+     * the usual function calls d.toInt().toShort(),
+     * which causes breaking from max to -max, which ruins audio quality (cracking)
+     * this fixes that :)
+     * */
+    private fun floatToShort(d: Float): Short {
+        return when {
+            d >= 32767f -> 32767
+            d >= -32768f -> d.toInt().toShort()
             else -> -32768
         }
     }

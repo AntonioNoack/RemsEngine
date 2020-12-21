@@ -3,8 +3,6 @@ package me.anno.video
 import me.anno.audio.AudioStream
 import me.anno.objects.Audio
 import me.anno.objects.Camera
-import me.anno.studio.RemsStudio.root
-import me.anno.utils.Maths.clamp
 import org.apache.logging.log4j.LogManager
 import java.io.DataOutputStream
 import java.io.File

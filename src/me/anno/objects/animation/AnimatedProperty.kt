@@ -6,16 +6,13 @@ import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.animation.Spline.getWeights
 import me.anno.objects.animation.drivers.AnimationDriver
-import me.anno.studio.RemsStudio.root
+import me.anno.studio.rems.RemsStudio.root
 import me.anno.utils.WrongClassType
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Vectors.plus
 import me.anno.utils.Vectors.times
 import org.apache.logging.log4j.LogManager
-import org.joml.Quaternionf
-import org.joml.Vector2f
-import org.joml.Vector3f
-import org.joml.Vector4f
+import org.joml.*
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -46,8 +43,9 @@ class AnimatedProperty<V>(val type: Type, var defaultValue: V) : Saveable() {
         fun floatPercent() = AnimatedProperty<Float>(Type.FLOAT_PERCENT)
         fun double() = AnimatedProperty<Double>(Type.DOUBLE)
         fun vec2() = AnimatedProperty<Vector2f>(Type.VEC2)
+        fun vec2(defaultValue: Vector2f) = AnimatedProperty(Type.VEC2, defaultValue)
         fun vec3() = AnimatedProperty<Vector3f>(Type.VEC3)
-        fun vec3(defaultValue: Vector3f) = AnimatedProperty<Vector3f>(Type.VEC3, defaultValue)
+        fun vec3(defaultValue: Vector3f) = AnimatedProperty(Type.VEC3, defaultValue)
         fun vec4() = AnimatedProperty<Vector3f>(Type.VEC4)
         fun vec4(defaultValue: Vector4f) = AnimatedProperty(Type.VEC4, defaultValue)
         fun pos() = AnimatedProperty<Vector3f>(Type.POSITION)

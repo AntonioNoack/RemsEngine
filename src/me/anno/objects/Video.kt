@@ -18,19 +18,18 @@ import me.anno.io.base.BaseWriter
 import me.anno.io.xml.XMLElement
 import me.anno.io.xml.XMLReader
 import me.anno.objects.animation.AnimatedProperty
-import me.anno.objects.cache.Cache
-import me.anno.objects.cache.StaticBufferData
-import me.anno.objects.cache.VideoData.Companion.framesPerContainer
+import me.anno.cache.Cache
+import me.anno.cache.VideoData.Companion.framesPerContainer
 import me.anno.objects.modes.EditorFPS
 import me.anno.objects.modes.LoopingState
 import me.anno.objects.modes.UVProjection
 import me.anno.objects.modes.VideoType
-import me.anno.studio.RemsStudio
-import me.anno.studio.RemsStudio.isPaused
-import me.anno.studio.RemsStudio.nullCamera
-import me.anno.studio.RemsStudio.targetHeight
-import me.anno.studio.RemsStudio.targetWidth
-import me.anno.studio.Scene
+import me.anno.studio.rems.RemsStudio
+import me.anno.studio.rems.RemsStudio.isPaused
+import me.anno.studio.rems.RemsStudio.nullCamera
+import me.anno.studio.rems.RemsStudio.targetHeight
+import me.anno.studio.rems.RemsStudio.targetWidth
+import me.anno.studio.rems.Scene
 import me.anno.studio.StudioBase
 import me.anno.ui.base.ButtonPanel
 import me.anno.ui.base.Panel
@@ -321,7 +320,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                 return Cache.getEntry(file.absolutePath, "svg", 0, imageTimeout, true) {
                     val svg = SVGMesh()
                     svg.parse(XMLReader.parse(file.inputStream().buffered()) as XMLElement)
-                    StaticBufferData(svg.buffer!!)
+                    svg.buffer!!
                 }
             }
             name.endsWith("webp", true) -> {
@@ -341,10 +340,10 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                 val bufferData = Cache.getEntry(file.absolutePath, "svg", 0, imageTimeout, true) {
                     val svg = SVGMesh()
                     svg.parse(XMLReader.parse(file.inputStream().buffered()) as XMLElement)
-                    val buffer = StaticBufferData(svg.buffer!!)
+                    val buffer = svg.buffer!!
                     buffer.setBounds(svg)
                     buffer
-                } as? StaticBufferData
+                } as? StaticBuffer
                 if (bufferData == null) onMissingImageOrFrame()
                 else {
                     SVGxGFX.draw3DSVG(

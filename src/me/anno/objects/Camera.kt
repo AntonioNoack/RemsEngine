@@ -10,10 +10,10 @@ import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.effects.ToneMappers
-import me.anno.studio.RemsStudio
-import me.anno.studio.RemsStudio.targetHeight
-import me.anno.studio.RemsStudio.targetWidth
-import me.anno.studio.RemsStudio.currentlyDrawnCamera
+import me.anno.studio.rems.RemsStudio
+import me.anno.studio.rems.RemsStudio.targetHeight
+import me.anno.studio.rems.RemsStudio.targetWidth
+import me.anno.studio.rems.RemsStudio.currentlyDrawnCamera
 import me.anno.ui.base.ButtonPanel
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory

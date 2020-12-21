@@ -1,10 +1,10 @@
 package me.anno.io.base
 
 import me.anno.audio.effects.SoundPipeline
-import me.anno.audio.effects.impl.AmplitudeEffect
-import me.anno.audio.effects.impl.EchoEffect
-import me.anno.audio.effects.impl.EqualizerEffect
-import me.anno.audio.effects.impl.PitchEffect
+import me.anno.audio.effects.falloff.ExponentialFalloff
+import me.anno.audio.effects.falloff.LinearFalloff
+import me.anno.audio.effects.falloff.SquareFalloff
+import me.anno.audio.effects.impl.*
 import me.anno.io.ISaveable
 import me.anno.io.utils.StringMap
 import me.anno.objects.*
@@ -20,6 +20,8 @@ import me.anno.objects.geometric.Circle
 import me.anno.objects.geometric.Polygon
 import me.anno.objects.meshes.Mesh
 import me.anno.objects.particles.ParticleSystem
+import me.anno.objects.text.Text
+import me.anno.objects.text.Timer
 import me.anno.ui.custom.data.CustomListData
 import me.anno.ui.custom.data.CustomPanelData
 import me.anno.ui.editor.sceneView.SceneTabData
@@ -59,6 +61,9 @@ abstract class BaseReader {
             "AmplitudeEffect" -> AmplitudeEffect()
             "EqualizerEffect" -> EqualizerEffect()
             "PitchEffect" -> PitchEffect()
+            "SquareFalloffEffect" -> SquareFalloff()
+            "LinearFalloffEffect" -> LinearFalloff()
+            "ExponentialFalloffEffect" -> ExponentialFalloff()
             else -> {
                 // just for old stuff; AnimatedProperties must not be loaded directly; always just copied into
                 if(clazz.startsWith("AnimatedProperty<")) AnimatedProperty.any()

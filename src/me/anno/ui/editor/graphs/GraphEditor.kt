@@ -1,7 +1,7 @@
 package me.anno.ui.editor.graphs
 
 import me.anno.objects.animation.Interpolation
-import me.anno.studio.RemsStudio.selectedProperty
+import me.anno.studio.rems.RemsStudio.selectedProperty
 import me.anno.ui.base.ButtonPanel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.constraints.WrapAlign

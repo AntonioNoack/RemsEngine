@@ -5,7 +5,7 @@ import me.anno.config.DefaultStyle.black
 import me.anno.image.svg.SVGStyle.Companion.parseColor
 import me.anno.io.utils.StringMap
 import me.anno.objects.animation.Type
-import me.anno.studio.RemsStudio.root
+import me.anno.studio.rems.RemsStudio.root
 import me.anno.ui.base.Panel
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.groups.PanelList

@@ -6,6 +6,7 @@ import me.anno.audio.effects.SoundPipeline.Companion.bufferSize
 import me.anno.audio.effects.Time
 import me.anno.io.text.TextReader
 import me.anno.objects.Audio
+import me.anno.objects.Camera
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
@@ -55,12 +56,12 @@ class EqualizerEffect() : SoundEffect(Domain.FREQUENCY_DOMAIN, Domain.FREQUENCY_
             range, mix(
                 sliders[index0][time],
                 sliders[index1][time],
-                (index - index0).toFloat()
+                clamp((index - index0).toFloat(), 0f, 1f)
             ) - 0.5f
         )
     }
 
-    override fun apply(data: FloatArray, sound: Audio, time0: Time, time1: Time): FloatArray {
+    override fun apply(data: FloatArray, source: Audio, destination: Camera, time0: Time, time1: Time): FloatArray {
 
         val dt = time1.localTime - time0.localTime
         val time = time0.localTime + dt / 2

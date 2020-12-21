@@ -13,7 +13,9 @@ import me.anno.objects.geometric.Polygon
 import me.anno.objects.meshes.Mesh
 import me.anno.objects.modes.UVProjection
 import me.anno.objects.particles.ParticleSystem
-import me.anno.studio.RemsStudio.workspace
+import me.anno.objects.text.Text
+import me.anno.objects.text.Timer
+import me.anno.studio.rems.RemsStudio.workspace
 import me.anno.studio.project.Project
 import me.anno.ui.base.Font
 import me.anno.ui.style.Style

@@ -19,10 +19,10 @@ import me.anno.io.config.ConfigBasics
 import me.anno.io.xml.XMLElement
 import me.anno.io.xml.XMLReader
 import me.anno.objects.Video
-import me.anno.objects.cache.Cache
-import me.anno.objects.cache.ImageData
-import me.anno.objects.cache.StaticBufferData
-import me.anno.objects.cache.TextureCache
+import me.anno.cache.Cache
+import me.anno.cache.CacheData
+import me.anno.cache.ImageData
+import me.anno.gpu.buffer.StaticBuffer
 import me.anno.utils.*
 import me.anno.utils.Color.a
 import me.anno.utils.Color.b
@@ -82,6 +82,12 @@ object Thumbs {
         } else sizes.last()
     }
 
+    class TextureCache(var texture: Texture2D?): CacheData {
+        override fun destroy() {
+            texture?.destroy()
+        }
+    }
+
     fun getThumbnail(file: File, neededSize: Int): Texture2D? {
         val size = getSize(neededSize)
         val key = ThumbnailKey(file, size)
@@ -89,7 +95,7 @@ object Thumbs {
             val cache = TextureCache(null)
             thread { generate(file, size) { cache.texture = it } }
             cache
-        } as TextureCache).texture as? Texture2D
+        } as TextureCache).texture
     }
 
     // png/bmp/jpg?
@@ -278,10 +284,10 @@ object Thumbs {
                 ) {
                     val svg = SVGMesh()
                     svg.parse(XMLReader.parse(srcFile.inputStream().buffered()) as XMLElement)
-                    val buffer = StaticBufferData(svg.buffer!!)
+                    val buffer = svg.buffer!!
                     buffer.setBounds(svg)
                     buffer
-                } as StaticBufferData
+                } as StaticBuffer
 
                 val maxSize = max(bufferData.maxX, bufferData.maxY)
                 val w = (size * bufferData.maxX / maxSize).roundToInt()

@@ -8,7 +8,7 @@ import me.anno.gpu.buffer.StaticBuffer
 import me.anno.io.base.BaseWriter
 import me.anno.objects.GFXTransform
 import me.anno.objects.Transform
-import me.anno.objects.cache.Cache
+import me.anno.cache.Cache
 import me.anno.mesh.fbx.model.FBXGeometry
 import me.anno.mesh.fbx.model.FBXShader.maxWeightsDefault
 import me.anno.mesh.fbx.structure.FBXReader

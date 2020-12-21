@@ -1,5 +1,6 @@
 package me.anno.gpu.buffer
 
+import me.anno.image.svg.SVGMesh
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -20,6 +21,11 @@ open class StaticBuffer(attributes: List<Attribute>, val vertexCount: Int, usage
     init {
         createNioBuffer()
     }
+
+    var minX = 0.0
+    var maxX = 0.0
+    var minY = 0.0
+    var maxY = 0.0
 
     fun put(v: Vector2f){
         put(v.x, v.y)
@@ -92,6 +98,13 @@ open class StaticBuffer(attributes: List<Attribute>, val vertexCount: Int, usage
     fun putDouble(d: Double){
         nioBuffer!!.putDouble(d)
         isUpToDate = false
+    }
+
+    fun setBounds(svg: SVGMesh){
+        minX = svg.minX
+        maxX = svg.maxX
+        minY = svg.minY
+        maxY = svg.maxY
     }
 
     final override fun createNioBuffer() {

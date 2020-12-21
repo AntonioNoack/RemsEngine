@@ -7,6 +7,7 @@ import me.anno.audio.effects.Time
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.Audio
+import me.anno.objects.Camera
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
@@ -53,9 +54,9 @@ class PitchEffect() : SoundEffect(Domain.FREQUENCY_DOMAIN, Domain.TIME_DOMAIN) {
 
     val result = FloatArray(bufferSize)
 
-    override fun apply(data: FloatArray, sound: Audio, time0: Time, time1: Time): FloatArray {
+    override fun apply(data: FloatArray, source: Audio, destination: Camera, time0: Time, time1: Time): FloatArray {
 
-        val time = sound.timeAnimated
+        val time = source.timeAnimated
         val pitch = pitch
 
         val isFirstBuffer = bufferIndex == 0
@@ -64,8 +65,8 @@ class PitchEffect() : SoundEffect(Domain.FREQUENCY_DOMAIN, Domain.TIME_DOMAIN) {
 
         if (inverseSpeed) {
             for (i in 0 until bufferSize) {
-                val parentTime = time0.parentTime + i * (time1.parentTime - time0.parentTime) / bufferSize
-                timeIntegral[i] = sound.getLocalTime(parentTime).toFloat()
+                val parentTime = time0.globalTime + i * (time1.globalTime - time0.globalTime) / bufferSize
+                timeIntegral[i] = source.getLocalTime(parentTime).toFloat()
             }
         } else {
             val t0 = time0.localTime

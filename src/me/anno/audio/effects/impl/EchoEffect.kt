@@ -8,6 +8,7 @@ import me.anno.audio.effects.Time
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.Audio
+import me.anno.objects.Camera
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
@@ -26,7 +27,7 @@ class EchoEffect() : SoundEffect(Domain.TIME_DOMAIN, Domain.TIME_DOMAIN) {
 
     private val recentData = ArrayList<FloatArray>(maxBuffers)
 
-    var offset = AnimatedProperty.float(0.1f) // seconds
+    var offset = AnimatedProperty.floatPlus(0.1f) // seconds
     var falloff = AnimatedProperty.float01exp(0.4f)
 
     override fun createInspector(
@@ -54,7 +55,7 @@ class EchoEffect() : SoundEffect(Domain.TIME_DOMAIN, Domain.TIME_DOMAIN) {
 
     companion object {
 
-        val maxEchoes = 200
+        val maxEchoes = 64
         val randomizedOffsets: FloatArray
         private val maxBuffers = 128
 
@@ -76,7 +77,7 @@ class EchoEffect() : SoundEffect(Domain.TIME_DOMAIN, Domain.TIME_DOMAIN) {
         recentData += copy
     }
 
-    override fun apply(data: FloatArray, sound: Audio, time0: Time, time1: Time): FloatArray {
+    override fun apply(data: FloatArray, source: Audio, destination: Camera, time0: Time, time1: Time): FloatArray {
 
         val bufferSize = bufferSize
         val bufferSizeM1 = bufferSizeM1
@@ -84,13 +85,12 @@ class EchoEffect() : SoundEffect(Domain.TIME_DOMAIN, Domain.TIME_DOMAIN) {
         val time = (time0.localTime + time1.localTime) * 0.5
         val falloff = falloff[time]
         val echoes = min(maxEchoes, (log2(minRelativeAmplitude) / log2(falloff)).toInt())
+        val bufferIndex = recentData.lastIndex
+        val offset0 = offset[time] * bufferSize / (time1.localTime - time0.localTime)
 
         put(data)
 
-        if (echoes > 0) {
-
-            val bufferIndex = recentData.lastIndex
-            val offset0 = offset[time] * bufferSize / (time1.localTime - time0.localTime)
+        if (echoes > 0 && offset0 > 0.5) {
 
             val knownSampleCount = recentData.size * bufferSize
 
@@ -105,7 +105,7 @@ class EchoEffect() : SoundEffect(Domain.TIME_DOMAIN, Domain.TIME_DOMAIN) {
                 if (startIndex < knownSampleCount && endIndex > 0) {
                     val buffer0 = recentData[startIndex / bufferSize]
                     val buffer1 = recentData[(endIndex - 1) / bufferSize]
-                    val midIndex = (startIndex / bufferSize + 1) * bufferSize
+                    val midIndex = min((startIndex / bufferSize + 1) * bufferSize, endIndex)
                     processBalanced(startIndex, midIndex, false) { i0, i1 ->
                         for (i in i0 until i1) {
                             data[i - startIndex0] += buffer0[i and bufferSizeM1]

@@ -7,7 +7,7 @@ import me.anno.gpu.texture.Filtering
 import me.anno.mesh.fbx.model.FBXShader
 import me.anno.objects.effects.MaskType
 import me.anno.objects.modes.UVProjection
-import me.anno.studio.Scene.noiseFunc
+import me.anno.studio.rems.Scene.noiseFunc
 import org.lwjgl.opengl.GL20
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -23,6 +23,7 @@ object ShaderLib {
     lateinit var shader3DPolygon: Shader
     lateinit var shader3D: Shader
     lateinit var shader3DforText: Shader
+    lateinit var shader3DOutlinedText: Shader
     lateinit var shader3DRGBA: Shader
     lateinit var shader3DYUV: Shader
     lateinit var shader3DARGB: Shader
@@ -36,6 +37,8 @@ object ShaderLib {
     lateinit var shaderObjMtl: Shader
     lateinit var shaderFBX: Shader
     lateinit var copyShader: Shader
+
+    val maxOutlineColors = 6
 
     const val brightness = "" +
             "float brightness(vec3 color){\n" +
@@ -361,9 +364,52 @@ object ShaderLib {
                     "   vec4 color = vec4(1);\n" +
                     "   if($hasForceFieldColor) color *= getForceFieldColor();\n" +
                     "   gl_FragColor = tint * color;\n" +
-                    "}", listOf("tex")
+                    "}", listOf()
         )
         shader3DforText.ignoreUniformWarnings(listOf("tiling", "forceFieldUVCount"))
+
+        shader3DOutlinedText = createShaderPlus(
+            "3d-text-withOutline", v3DBase +
+                    "a3 attr0;\n" +
+                    "a2 attr1;\n" +
+                    "u2 offset;\n" +
+                    "void main(){\n" +
+                    "   localPosition = attr0 + vec3(offset, 0);\n" +
+                    "   gl_Position = transform * vec4(attr0, 1.0);\n" +
+                    positionPostProcessing +
+                    "   uv = attr0.xy * 0.5 + 0.5;\n" +
+                    "}",
+            y3D, "" +
+                    "u4 tint;" +
+                    noiseFunc +
+                    getTextureLib +
+                    getColorForceFieldLib +
+                    "uniform sampler2D tex;\n" +
+                    "uniform vec4[$maxOutlineColors] colors;\n" +
+                    "uniform vec2[$maxOutlineColors] distSmoothness;\n" +
+                    "uniform int colorCount;\n" +
+                    "void main(){\n" +
+                    "   float distance = texture(tex, uv).r;\n" +
+                    "   float gradient = length(vec2(dFdx(distance), dFdy(distance)));\n" +
+                    "   vec4 color = tint;\n" +
+                    "   for(int i=0;i<colorCount;i++){" +
+                    "       vec4 colorHere = colors[i];\n" +
+                    "       vec2 distSmooth = distSmoothness[i];\n" +
+                    "       float offset = distSmooth.x;\n" +
+                    "       float smoothness = distSmooth.y;\n" +
+                    "       float appliedGradient = max(smoothness, gradient);\n" +
+                    "       float mixingFactor0 = (distance-offset)*0.5/appliedGradient;\n" +
+                    "       float mixingFactor = clamp(mixingFactor0,0,1);\n" +
+                    "       color = mix(color, colorHere, mixingFactor);\n" +
+                    "   }\n" +
+                    "   gl_FragDepth = gl_FragCoord.z * (1 + distance * 0.000001);\n" +
+                    // "   if(uv.x < 0.01 || uv.x > 0.99 || uv.y < 0.01 || uv.y > 0.99) color = vec4(0,0,0,1);" +
+                    "   if(color.a <= 0.001) discard;\n" +
+                    "   if($hasForceFieldColor) color *= getForceFieldColor();\n" +
+                    "   gl_FragColor = color;\n" +
+                    "}", listOf("tex")
+        )
+        shader3DOutlinedText.ignoreUniformWarnings(listOf("tiling", "filtering", "uvProjection", "forceFieldUVCount", "textureDeltaUV", "attr1"))
 
         val v3DPolygon = v3DBase +
                 "a3 attr0;\n" +
@@ -384,7 +430,7 @@ object ShaderLib {
         val v3DMasked = v3DBase +
                 "a2 attr0;\n" +
                 "void main(){\n" +
-                "   localPosition = vec3(attr0, 0.0);\n" +
+                "   localPosition = vec3(attr0 * 2 - 1, 0.0);\n" +
                 "   gl_Position = transform * vec4(localPosition, 1.0);\n" +
                 "   uv = gl_Position.xyw;\n" +
                 positionPostProcessing +

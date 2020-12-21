@@ -7,7 +7,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFXx2D.drawRect
 import me.anno.input.Input
 import me.anno.objects.Audio
-import me.anno.objects.cache.Cache
+import me.anno.cache.Cache
 import me.anno.studio.StudioBase.Companion.shiftSlowdown
 import me.anno.ui.base.Panel
 import me.anno.ui.style.Style

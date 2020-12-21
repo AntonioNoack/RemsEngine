@@ -14,11 +14,11 @@ import me.anno.input.MouseButton
 import me.anno.io.text.TextReader
 import me.anno.objects.Transform
 import me.anno.objects.animation.Keyframe
-import me.anno.studio.RemsStudio
-import me.anno.studio.RemsStudio.isPlaying
-import me.anno.studio.RemsStudio.root
-import me.anno.studio.RemsStudio.selectedProperty
-import me.anno.studio.RemsStudio.selectedTransform
+import me.anno.studio.rems.RemsStudio
+import me.anno.studio.rems.RemsStudio.isPlaying
+import me.anno.studio.rems.RemsStudio.root
+import me.anno.studio.rems.RemsStudio.selectedProperty
+import me.anno.studio.rems.RemsStudio.selectedTransform
 import me.anno.studio.StudioBase
 import me.anno.studio.StudioBase.Companion.shiftSlowdown
 import me.anno.ui.dragging.Draggable

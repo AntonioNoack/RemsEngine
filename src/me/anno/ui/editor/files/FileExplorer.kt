@@ -7,7 +7,7 @@ import me.anno.gpu.GFX.openMenu
 import me.anno.input.Input
 import me.anno.objects.Transform
 import me.anno.objects.Transform.Companion.toTransform
-import me.anno.studio.RemsStudio.project
+import me.anno.studio.rems.RemsStudio.project
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelListMultiline

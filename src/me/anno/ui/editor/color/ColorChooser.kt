@@ -5,8 +5,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFXx2D.posSize
 import me.anno.image.svg.SVGStyle.Companion.parseColorComplex
 import me.anno.objects.animation.AnimatedProperty
-import me.anno.studio.RemsStudio
-import me.anno.studio.RemsStudio.editorTime
+import me.anno.studio.rems.RemsStudio.editorTime
 import me.anno.ui.base.Panel
 import me.anno.ui.base.SpacePanel
 import me.anno.ui.base.Visibility

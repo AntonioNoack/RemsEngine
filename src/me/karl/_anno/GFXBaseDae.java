@@ -7,7 +7,7 @@ package me.karl._anno;
 import me.anno.gpu.GFX;
 import me.anno.gpu.GFXBase0;
 import me.anno.gpu.TextureLib;
-import me.anno.objects.cache.Cache;
+import me.anno.cache.Cache;
 import me.karl.main.GeneralSettings;
 import me.karl.main.SceneLoader;
 import me.karl.renderEngine.RenderEngine;

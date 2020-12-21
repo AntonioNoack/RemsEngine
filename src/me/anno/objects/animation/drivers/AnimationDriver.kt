@@ -8,9 +8,9 @@ import me.anno.objects.Inspectable
 import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.animation.Type
-import me.anno.studio.RemsStudio.selectedInspectable
-import me.anno.studio.RemsStudio.selectedProperty
-import me.anno.studio.RemsStudio.selectedTransform
+import me.anno.studio.rems.RemsStudio.selectedInspectable
+import me.anno.studio.rems.RemsStudio.selectedProperty
+import me.anno.studio.rems.RemsStudio.selectedTransform
 import me.anno.ui.base.Panel
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.groups.PanelListY

@@ -3,8 +3,8 @@ package me.anno.video
 import me.anno.gpu.GFX
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
-import me.anno.studio.RemsStudio.project
-import me.anno.studio.Rendering.isRendering
+import me.anno.studio.rems.RemsStudio.project
+import me.anno.studio.rems.Rendering.isRendering
 import me.anno.utils.Maths.clamp
 import me.anno.utils.StringHelper.formatTime
 import me.anno.utils.FloatFormat.f1

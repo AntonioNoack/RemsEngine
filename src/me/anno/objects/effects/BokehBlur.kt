@@ -13,7 +13,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.objects.Transform.Companion.xAxis
 import me.anno.objects.Transform.Companion.yAxis
 import me.anno.objects.Transform.Companion.zAxis
-import me.anno.studio.Scene
+import me.anno.studio.rems.Scene
 import org.joml.Vector3f
 import org.lwjgl.opengl.GL11.*
 

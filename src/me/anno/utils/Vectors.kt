@@ -7,6 +7,7 @@ object Vectors {
     operator fun Vector2f.plus(s: Vector2f) = Vector2f(x + s.x, y + s.y)
     operator fun Vector2f.minus(s: Vector2f) = Vector2f(x - s.x, y - s.y)
     operator fun Vector2f.times(f: Float) = Vector2f(x * f, y * f)
+    operator fun Vector2f.times(s: Vector2f) = Vector2f(x * s.x, y * s.y)
 
     operator fun Vector2d.plus(s: Vector2d) = Vector2d(x + s.x, y + s.y)
     operator fun Vector2d.minus(s: Vector2d) = Vector2d(x - s.x, y - s.y)
@@ -32,6 +33,7 @@ object Vectors {
     operator fun Vector4f.minus(s: Vector4f) = Vector4f(x - s.x, y - s.y, z - s.z, w - s.w)
     operator fun Vector4f.plus(s: Vector4f) = Vector4f(x + s.x, y + s.y, z + s.z, w + s.w)
     operator fun Vector4f.times(s: Float) = Vector4f(x * s, y * s, z * s, w * s)
+    operator fun Vector4f.times(s: Vector4f) = Vector4f(x * s.x, y * s.y, z * s.z, w * s.w)
 
     fun avg(a: Vector2f, b: Vector2f, c: Vector2f) = Vector2f((a.x + b.x + c.x) / 3f, (a.y + b.y + c.y) / 3f)
     fun avg(a: Vector2d, b: Vector2d, c: Vector2d) = Vector2d((a.x + b.x + c.x) / 3f, (a.y + b.y + c.y) / 3f)
@@ -179,7 +181,7 @@ object Vectors {
 
     fun Vector3fi(x: Int, y: Int, z: Int) = Vector3f(x.toFloat(), y.toFloat(), z.toFloat())
 
-    val Vector3f.yzx get() = Vector3f(y,z,x)
-    val Vector3f.zxy get() = Vector3f(z,x,y)
+    val Vector3f.yzx get() = Vector3f(y, z, x)
+    val Vector3f.zxy get() = Vector3f(z, x, y)
 
 }

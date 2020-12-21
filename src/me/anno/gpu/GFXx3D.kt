@@ -1,10 +1,12 @@
 package me.anno.gpu
 
+import me.anno.gpu.ShaderLib.maxOutlineColors
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
+import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.objects.GFXTransform
 import me.anno.objects.Video
@@ -12,13 +14,11 @@ import me.anno.objects.effects.MaskType
 import me.anno.objects.geometric.Circle
 import me.anno.objects.geometric.Polygon
 import me.anno.objects.modes.UVProjection
-import me.anno.studio.RemsStudio
+import me.anno.studio.rems.RemsStudio
 import me.anno.video.VFrame
-import org.joml.Matrix4f
-import org.joml.Matrix4fArrayList
-import org.joml.Vector3f
-import org.joml.Vector4f
-import kotlin.math.roundToInt
+import org.joml.*
+import org.lwjgl.BufferUtils
+import kotlin.math.min
 
 object GFXx3D {
 
@@ -121,6 +121,19 @@ object GFXx3D {
         stack.popMatrix()
     }
 
+    fun draw3DText2(
+        that: GFXTransform?, time: Double, offset: Vector3f,
+        stack: Matrix4fArrayList, buffer: StaticBuffer, color: Vector4f
+    ) {
+        // todo remove the y-scale of -1 everywhere...
+        val shader = ShaderLib.shader3DforText
+        shader3DUniforms(shader, stack, color)
+        shader.v3("offset", offset)
+        that?.uploadAttractors(shader, time) ?: GFXTransform.uploadAttractors0(shader)
+        buffer.draw(shader)
+        GFX.check()
+    }
+
     fun draw3DTextWithOffset(
         buffer: StaticBuffer,
         offset: Vector3f
@@ -214,6 +227,79 @@ object GFXx3D {
         shader3DUniforms(shader, stack, w, h, color, tiling, filtering, uvProjection)
         texture.bind(0, filtering, clamping)
         uvProjection.getBuffer().draw(shader)
+        GFX.check()
+    }
+
+    val outlineStatsBuffer = BufferUtils.createFloatBuffer(maxOutlineColors * 4)
+    fun drawOutlinedText(
+        that: GFXTransform?,
+        time: Double,
+        stack: Matrix4fArrayList,
+        texture: Texture2D,
+        color: Vector4f,
+        colorCount: Int,
+        colors: Array<Vector4f>,
+        distances: FloatArray,
+        smoothness: FloatArray
+    ) {
+        val shader = ShaderLib.shader3DOutlinedText
+        GFX.check()
+
+        shader.use()
+        shader.m4x4("transform", stack)
+        that?.uploadAttractors(shader, time) ?: GFXTransform.uploadAttractors0(shader)
+
+        GFX.shaderColor(shader, "tint", color)
+
+        shader.v1("drawMode", GFX.drawMode.id)
+
+        texture.bind(0, GPUFiltering.LINEAR, Clamping.CLAMP)
+
+        val cc = min(colorCount, maxOutlineColors)
+        /**
+         * u4[ maxColors ] colors
+         * u2[ maxColors ] distSmooth
+         * uniform int colorCount
+         * */
+        outlineStatsBuffer.position(0)
+        for(i in 0 until cc){
+            val colorI = colors[i]
+            outlineStatsBuffer.put(colorI.x)
+            outlineStatsBuffer.put(colorI.y)
+            outlineStatsBuffer.put(colorI.z)
+            outlineStatsBuffer.put(colorI.w)
+        }
+        outlineStatsBuffer.position(0)
+        shader.v4Array("colors", outlineStatsBuffer)
+        outlineStatsBuffer.position(0)
+        for(i in 0 until cc){
+            outlineStatsBuffer.put(distances[i])
+            outlineStatsBuffer.put(smoothness[i])
+        }
+        outlineStatsBuffer.position(0)
+        shader.v2Array("distSmoothness", outlineStatsBuffer)
+        shader.v1("colorCount", cc)
+
+        GFX.check()
+
+        UVProjection.Planar.getBuffer().draw(shader)
+
+        GFX.check()
+    }
+
+    fun drawOutlinedText(
+        stack: Matrix4fArrayList,
+        texture: Texture2D
+    ) {
+        val shader = ShaderLib.shader3DOutlinedText
+        GFX.check()
+
+        shader.use()
+        shader.m4x4("transform", stack)
+
+        texture.bind(0, GPUFiltering.LINEAR, Clamping.CLAMP)
+        UVProjection.Planar.getBuffer().draw(shader)
+
         GFX.check()
     }
 

@@ -46,7 +46,7 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
     private var text = ""
     private var lastText = ""
     private val lines: ArrayList<MutableList<Int>> = arrayListOf(mutableListOf())
-    private val endCursor get() = CursorPosition(lines.size - 1, lines.last().size)
+    private val endCursor get() = CursorPosition(lines.last().size, lines.lastIndex)
     private val joinedText get() = lines.joinToString("\n") { list -> list.joinChars() }
     private val styleSample get() = actualChildren[0] as TextPanel
     private val actualChildren = (content as PanelListY).children
@@ -321,6 +321,7 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
         var cursor = cursor0
         if (cursor.y !in 0 until lines.size) {
             cursor = CursorPosition(cursor.x, clamp(cursor.y, 0, lines.lastIndex))
+            // println("changed y from ${cursor0.y} to ${cursor.y}, because ${cursor.y} !in 0 until ${lines.size}")
         }
         val line = lines[cursor.y]
         if (cursor.x !in 0..line.size) {
@@ -492,6 +493,9 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
     fun selectAll() {
         cursor1 = CursorPosition(0, 0)
         cursor2 = endCursor
+        println("selected all: $cursor1 .. $cursor2")
+        ensureCursorBounds()
+        println("selected all: $cursor1 .. $cursor2")
     }
 
     override fun onEmpty(x: Float, y: Float) {

@@ -5,9 +5,9 @@ import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.Camera
 import me.anno.objects.Transform
-import me.anno.studio.RemsStudio
-import me.anno.studio.RemsStudio.nullCamera
-import me.anno.studio.RemsStudio.windowStack
+import me.anno.studio.rems.RemsStudio
+import me.anno.studio.rems.RemsStudio.nullCamera
+import me.anno.studio.rems.RemsStudio.windowStack
 import me.anno.ui.editor.sceneView.SceneView
 import me.anno.utils.Lists.join
 

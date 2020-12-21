@@ -5,6 +5,7 @@ import me.anno.audio.effects.SoundEffect
 import me.anno.audio.effects.SoundPipeline.Companion.bufferSize
 import me.anno.audio.effects.Time
 import me.anno.objects.Audio
+import me.anno.objects.Camera
 import me.anno.ui.base.SpacePanel
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
@@ -20,9 +21,9 @@ class AmplitudeEffect() : SoundEffect(Domain.TIME_DOMAIN, Domain.TIME_DOMAIN) {
         this.audio = audio
     }
 
-    override fun apply(data: FloatArray, sound: Audio, time0: Time, time1: Time): FloatArray {
+    override fun apply(data: FloatArray, source: Audio, destination: Camera, time0: Time, time1: Time): FloatArray {
 
-        val amplitude = sound.amplitude
+        val amplitude = source.amplitude
         if (!amplitude.isAnimated && amplitude.drivers[0] == null) {
 
             val singleMultiplier = amplitude[time0.localTime]
@@ -48,7 +49,7 @@ class AmplitudeEffect() : SoundEffect(Domain.TIME_DOMAIN, Domain.TIME_DOMAIN) {
         style: Style,
         getGroup: (title: String, id: String) -> SettingCategory
     ) {
-        list += SpacePanel(1, 1, style) // nothing, but it must not be empty, soo...
+        list += SpacePanel(0, 0, style) // nothing, but it must not be empty, soo...
     }
 
     override fun clone(): SoundEffect {

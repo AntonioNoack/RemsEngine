@@ -1,6 +1,8 @@
 package me.anno.gpu.texture
 
-interface ITexture2D {
+import me.anno.cache.CacheData
+
+interface ITexture2D: CacheData {
 
     var w: Int
     var h: Int
@@ -16,6 +18,6 @@ interface ITexture2D {
         bind(index, if(filtering.baseIsNearest) GPUFiltering.NEAREST else GPUFiltering.LINEAR, clamping)
     }
 
-    fun destroy()
+    // override fun destroy()
 
 }

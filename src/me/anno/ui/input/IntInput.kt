@@ -4,7 +4,6 @@ import me.anno.gpu.GFX
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.animation.Type
 import me.anno.parser.SimpleExpressionParser
-import me.anno.studio.RemsStudio
 import me.anno.studio.StudioBase.Companion.shiftSlowdown
 import me.anno.ui.style.Style
 import me.anno.utils.Maths.pow

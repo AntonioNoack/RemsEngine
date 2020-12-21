@@ -23,10 +23,10 @@ import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.animation.Interpolation
 import me.anno.objects.animation.Keyframe
 import me.anno.objects.animation.Type
-import me.anno.studio.RemsStudio
-import me.anno.studio.RemsStudio.editorTime
-import me.anno.studio.RemsStudio.isPaused
-import me.anno.studio.RemsStudio.selectedProperty
+import me.anno.studio.rems.RemsStudio
+import me.anno.studio.rems.RemsStudio.editorTime
+import me.anno.studio.rems.RemsStudio.isPaused
+import me.anno.studio.rems.RemsStudio.selectedProperty
 import me.anno.studio.StudioBase.Companion.updateAudio
 import me.anno.ui.editor.TimelinePanel
 import me.anno.ui.editor.sceneView.Grid.drawSmoothLine
@@ -38,8 +38,6 @@ import me.anno.utils.Maths.mix
 import me.anno.utils.Maths.mixARGB
 import me.anno.utils.Maths.pow
 import org.joml.Vector2f
-import java.security.Key
-import java.security.KeyFactory
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min

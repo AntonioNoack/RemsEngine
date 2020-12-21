@@ -11,8 +11,8 @@ import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2D
 import me.anno.objects.Transform.Companion.yAxis
-import me.anno.objects.cache.Cache
-import me.anno.objects.cache.CacheData
+import me.anno.cache.Cache
+import me.anno.cache.CacheData
 import me.anno.mesh.fbx.model.FBXGeometry
 import me.anno.mesh.obj.Material
 import me.anno.video.MissingFrameException

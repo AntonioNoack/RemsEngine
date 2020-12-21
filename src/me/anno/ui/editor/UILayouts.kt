@@ -12,19 +12,19 @@ import me.anno.gpu.GFXBase0
 import me.anno.gpu.Window
 import me.anno.input.Input
 import me.anno.objects.Camera
-import me.anno.objects.Text
-import me.anno.objects.cache.Cache
-import me.anno.objects.rendering.RenderSettings
+import me.anno.objects.text.Text
+import me.anno.cache.Cache
+import me.anno.studio.rems.RenderSettings
 import me.anno.studio.GFXSettings
-import me.anno.studio.RemsStudio
-import me.anno.studio.RemsStudio.gfxSettings
-import me.anno.studio.RemsStudio.nullCamera
-import me.anno.studio.RemsStudio.project
-import me.anno.studio.RemsStudio.root
-import me.anno.studio.RemsStudio.windowStack
-import me.anno.studio.RemsStudio.workspace
-import me.anno.studio.Rendering.render
-import me.anno.studio.Rendering.renderPart
+import me.anno.studio.rems.RemsStudio
+import me.anno.studio.rems.RemsStudio.gfxSettings
+import me.anno.studio.rems.RemsStudio.nullCamera
+import me.anno.studio.rems.RemsStudio.project
+import me.anno.studio.rems.RemsStudio.root
+import me.anno.studio.rems.RemsStudio.windowStack
+import me.anno.studio.rems.RemsStudio.workspace
+import me.anno.studio.rems.Rendering.render
+import me.anno.studio.rems.Rendering.renderPart
 import me.anno.studio.StudioBase
 import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.ui.base.*
@@ -252,7 +252,7 @@ object UILayouts {
         val style = DefaultConfig.style
         val welcome = PanelListY(style)
 
-        welcome += TextPanel("Rem's Studio", style).apply { font.size *= 3 }
+        welcome += TextPanel("Rem's Studio", style).apply { font = font.withSize(font.size * 3f) }
         welcome += SpacePanel(0, 1, style)
 
         val recent = getRecentProjects()

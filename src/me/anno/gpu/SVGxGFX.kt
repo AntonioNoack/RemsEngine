@@ -7,7 +7,7 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2D
 import me.anno.objects.Video
-import me.anno.objects.cache.StaticBufferData
+import me.anno.gpu.buffer.StaticBuffer
 import me.anno.utils.Maths.fract
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
@@ -18,7 +18,7 @@ object SVGxGFX {
 
     fun draw3DSVG(
         video: Video?, time: Double,
-        stack: Matrix4fArrayList, buffer: StaticBufferData, texture: Texture2D, color: Vector4f,
+        stack: Matrix4fArrayList, buffer: StaticBuffer, texture: Texture2D, color: Vector4f,
         filtering: Filtering, clamping: Clamping, tiling: Vector4f?
     ) {
 
@@ -33,7 +33,7 @@ object SVGxGFX {
             // x2 just for security...
             shader.v4("uvLimits", -2f * sx, -2f, 2f * sx, 2f)
             texture.bind(0, filtering, clamping)
-            buffer.buffer.draw(shader)
+            buffer.draw(shader)
             GFX.check()
 
         } else {
@@ -90,7 +90,7 @@ object SVGxGFX {
                     colorGradingUniforms(video, time, shader)
                     shader.v4("uvLimits", sx * a0, b0, sx * a1, b1)
                     texture.bind(0, filtering, clamping)
-                    buffer.buffer.draw(shader)
+                    buffer.draw(shader)
                     GFX.check()
                     stack.popMatrix()
                 }

@@ -11,13 +11,12 @@ import me.anno.gpu.GFXx2D.flatColor
 import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.objects.Transform
-import me.anno.studio.RemsStudio
-import me.anno.studio.RemsStudio.editorTime
-import me.anno.studio.RemsStudio.isPaused
-import me.anno.studio.RemsStudio.project
-import me.anno.studio.RemsStudio.targetDuration
-import me.anno.studio.RemsStudio.targetFPS
-import me.anno.studio.RemsStudio.updateSceneViews
+import me.anno.studio.rems.RemsStudio
+import me.anno.studio.rems.RemsStudio.editorTime
+import me.anno.studio.rems.RemsStudio.isPaused
+import me.anno.studio.rems.RemsStudio.project
+import me.anno.studio.rems.RemsStudio.targetDuration
+import me.anno.studio.rems.RemsStudio.targetFPS
 import me.anno.studio.StudioBase.Companion.updateAudio
 import me.anno.ui.base.Panel
 import me.anno.ui.custom.CustomContainer.Companion.isCross
@@ -27,6 +26,7 @@ import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.mix
 import me.anno.utils.Maths.mixARGB
 import me.anno.utils.Maths.pow
+import me.anno.utils.StringHelper.formatTime
 import kotlin.math.abs
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
@@ -267,8 +267,9 @@ open class TimelinePanel(style: Style) : Panel(style) {
 
     fun jumpToX(x: Float) = jumpToT(getTimeAt(x))
     fun jumpToT(t: Double) {
-        editorTime = t
-        updateSceneViews()
+        RemsStudio.largeChange("Timeline jump to ${t.formatTime()}"){
+            editorTime = t
+        }
         updateAudio()
     }
 

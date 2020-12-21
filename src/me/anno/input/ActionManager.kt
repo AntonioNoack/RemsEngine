@@ -1,14 +1,12 @@
 package me.anno.input
 
 import me.anno.config.DefaultConfig
-import me.anno.gpu.GFX
 import me.anno.gpu.GFX.gameTime
 import me.anno.gpu.GFX.inFocus
 import me.anno.io.utils.StringMap
-import me.anno.studio.RemsStudio
+import me.anno.studio.rems.RemsStudio
 import me.anno.ui.base.Panel
 import org.apache.logging.log4j.LogManager
-import kotlin.math.abs
 
 object ActionManager {
 

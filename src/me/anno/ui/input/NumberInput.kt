@@ -4,18 +4,13 @@ import me.anno.gpu.Cursor
 import me.anno.input.MouseButton
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.animation.Type
-import me.anno.objects.animation.drivers.AnimationDriver
-import me.anno.studio.RemsStudio
-import me.anno.studio.RemsStudio.editorTime
-import me.anno.studio.RemsStudio.selectedInspectable
-import me.anno.studio.RemsStudio.selectedProperty
+import me.anno.studio.rems.RemsStudio
+import me.anno.studio.rems.RemsStudio.selectedProperty
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.groups.PanelListY
-import me.anno.ui.input.components.NumberInputPanel
-import me.anno.ui.input.components.PureTextInput
+import me.anno.ui.input.components.NumberInputComponent
 import me.anno.ui.input.components.TitlePanel
 import me.anno.ui.style.Style
-import me.anno.utils.get
 
 abstract class NumberInput(
     style: Style, title: String,
@@ -34,7 +29,7 @@ abstract class NumberInput(
 
     val titleView = TitlePanel(title, this, style)
 
-    val inputPanel = NumberInputPanel(owningProperty, indexInProperty, this, style)
+    val inputPanel = NumberInputComponent(owningProperty, indexInProperty, this, style)
 
     var wasInFocus = false
 

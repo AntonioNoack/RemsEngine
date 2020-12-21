@@ -2,13 +2,13 @@ package me.anno.ui.editor.files
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
-import me.anno.objects.Text
+import me.anno.objects.text.Text
 import me.anno.objects.Transform
 import me.anno.objects.Transform.Companion.toTransform
 import me.anno.objects.Video
 import me.anno.objects.meshes.Mesh
 import me.anno.objects.modes.UVProjection
-import me.anno.studio.RemsStudio
+import me.anno.studio.rems.RemsStudio
 import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.utils.LOGGER
 import me.anno.utils.StringHelper.getImportType

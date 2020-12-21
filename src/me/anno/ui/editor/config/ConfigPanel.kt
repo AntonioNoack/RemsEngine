@@ -152,7 +152,7 @@ class ConfigPanel(val config: StringMap, val isStyle: Boolean, style: Style) : P
         val topList = entries.filter { it.depth == 0 }
 
         // add header
-        val largeHeader2 = TextPanel(topic, largeHeaderText).apply { font.isItalic = true }
+        val largeHeader2 = TextPanel(topic, largeHeaderText).apply { font = font.withItalic(true) }
         contentListUI += largeHeader2
         val subChain = StringBuilder(topList.size * 2)
         for (entry in topList) {

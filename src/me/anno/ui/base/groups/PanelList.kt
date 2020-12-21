@@ -11,6 +11,13 @@ abstract class PanelList(val sorter: Comparator<Panel>?, style: Style): PanelGro
 
     fun clear() = children.clear()
 
+    fun isEmpty() = children.isEmpty()
+
+    fun add(index: Int, child: Panel){
+        children.add(index, child)
+        child.parent = this
+    }
+
     override fun remove(child: Panel) {
         children.remove(child)
         child.parent = null

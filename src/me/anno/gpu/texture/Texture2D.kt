@@ -4,13 +4,12 @@ import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.TextureLib.invisibleTexture
 import me.anno.gpu.framebuffer.TargetType
+import me.anno.cache.CacheData
 import me.anno.objects.modes.RotateJPEG
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL13.GL_TEXTURE0
-import org.lwjgl.opengl.GL15
-import org.lwjgl.opengl.GL21
 import org.lwjgl.opengl.GL30.*
 import org.lwjgl.opengl.GL32.GL_TEXTURE_2D_MULTISAMPLE
 import org.lwjgl.opengl.GL32.glTexImage2DMultisample
@@ -23,14 +22,16 @@ import java.nio.ByteOrder
 import java.nio.FloatBuffer
 import kotlin.concurrent.thread
 
-class Texture2D(
+open class Texture2D(
     val name: String,
-    override var w: Int, override var h: Int, val samples: Int) : ITexture2D {
+    override var w: Int, override var h: Int, val samples: Int) : CacheData, ITexture2D {
 
     constructor(img: BufferedImage) : this("img", img.width, img.height, 1) {
         create(img, true)
         filtering(GPUFiltering.NEAREST)
     }
+
+    override fun toString() = "$name $w $h $samples"
 
     val withMultisampling get() = samples > 1
 
@@ -257,6 +258,32 @@ class Texture2D(
         GFX.check()
     }
 
+    fun createMonochrome(data: ByteBuffer) {
+        if (w * h != data.capacity()) throw RuntimeException("incorrect size!")
+        GFX.check()
+        ensurePointer()
+        forceBind()
+        GFX.check()
+        glTexImage2D(tex2D, 0, GL_RED, w, h, 0, GL_RED, GL_UNSIGNED_BYTE, data)
+        isCreated = true
+        filtering(filtering)
+        clamping(clamping)
+        GFX.check()
+    }
+
+    fun createMonochrome(data: FloatBuffer) {
+        if (w * h != data.capacity()) throw RuntimeException("incorrect size!")
+        GFX.check()
+        ensurePointer()
+        forceBind()
+        GFX.check()
+        glTexImage2D(tex2D, 0, GL_R32F, w, h, 0, GL_RED, GL_FLOAT, data)
+        isCreated = true
+        filtering(filtering)
+        clamping(clamping)
+        GFX.check()
+    }
+
     fun createMonochrome(data: ByteArray) {
         if (w * h != data.size) throw RuntimeException("incorrect size!")
         GFX.check()
@@ -374,7 +401,13 @@ class Texture2D(
     }
 
     override fun destroy() {
-        if (pointer > -1) glDeleteTextures(pointer)
+        val pointer = pointer
+        if (pointer > -1) {
+            GFX.addGPUTask(1){
+                glDeleteTextures(pointer)
+            }
+        }
+        this.pointer = -1
     }
 
     fun createDepth() {

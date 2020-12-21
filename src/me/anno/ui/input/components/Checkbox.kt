@@ -4,8 +4,8 @@ import me.anno.gpu.GFXx2D.drawTexture
 import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.gpu.texture.Texture2D
 import me.anno.input.MouseButton
-import me.anno.objects.cache.Cache
-import me.anno.studio.RemsStudio
+import me.anno.cache.Cache
+import me.anno.studio.rems.RemsStudio
 import me.anno.ui.base.Panel
 import me.anno.ui.style.Style
 import org.lwjgl.glfw.GLFW

@@ -7,11 +7,11 @@ import me.anno.gpu.GFX.gameTime
 import me.anno.gpu.GFXx2D.drawRect
 import me.anno.gpu.shader.ShaderPlus
 import me.anno.objects.Camera
-import me.anno.studio.Scene
-import me.anno.studio.RemsStudio.editorTime
-import me.anno.studio.RemsStudio.nullCamera
-import me.anno.studio.RemsStudio.targetHeight
-import me.anno.studio.RemsStudio.targetWidth
+import me.anno.studio.rems.Scene
+import me.anno.studio.rems.RemsStudio.editorTime
+import me.anno.studio.rems.RemsStudio.nullCamera
+import me.anno.studio.rems.RemsStudio.targetHeight
+import me.anno.studio.rems.RemsStudio.targetWidth
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.style.Style
 import me.anno.utils.Floats.toDegrees

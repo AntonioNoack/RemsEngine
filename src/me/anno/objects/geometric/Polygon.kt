@@ -14,8 +14,7 @@ import me.anno.io.base.BaseWriter
 import me.anno.objects.GFXTransform
 import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
-import me.anno.objects.cache.Cache
-import me.anno.objects.cache.StaticBufferData
+import me.anno.cache.Cache
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.files.hasValidName
@@ -150,11 +149,10 @@ class Polygon(parent: Transform? = null): GFXTransform(parent){
         fun getBuffer(n: Int, hasDepth: Boolean): StaticBuffer {
             if(n < minEdges) return getBuffer(minEdges, hasDepth)
             if(n > maxEdges) return getBuffer(maxEdges, hasDepth)
-            val cached = Cache.getEntry("Mesh", "Polygon", n * 2 + (if(hasDepth) 1 else 0),
+            return Cache.getEntry("Mesh", "Polygon", n * 2 + (if(hasDepth) 1 else 0),
                 meshTimeout, false){
-                StaticBufferData(createBuffer(n, hasDepth))
-            } as StaticBufferData
-            return cached.buffer
+                createBuffer(n, hasDepth)
+            } as StaticBuffer
         }
 
         private fun createBuffer(n: Int, hasDepth: Boolean): StaticBuffer {

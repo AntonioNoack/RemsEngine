@@ -1,30 +1,36 @@
 package me.anno.audio.effects
 
-import me.anno.audio.effects.impl.AmplitudeEffect
-import me.anno.audio.effects.impl.EchoEffect
-import me.anno.audio.effects.impl.EqualizerEffect
-import me.anno.audio.effects.impl.PitchEffect
+import me.anno.audio.effects.falloff.ExponentialFalloff
+import me.anno.audio.effects.falloff.LinearFalloff
+import me.anno.audio.effects.falloff.SquareFalloff
+import me.anno.audio.effects.impl.*
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.Audio
+import me.anno.objects.Camera
 import me.anno.objects.Inspectable
-import me.anno.studio.RemsStudio
+import me.anno.studio.rems.RemsStudio
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
+import me.anno.ui.editor.stacked.Option
 import me.anno.ui.editor.stacked.StackPanel
 import me.anno.ui.style.Style
 import org.jtransforms.fft.FloatFFT_1D
 
 class SoundPipeline() : Saveable(), Inspectable {
 
+    lateinit var audio: Audio
+    lateinit var camera: Camera
+
     constructor(audio: Audio): this(){
         this.audio = audio
     }
 
-    fun option(generator: () -> SoundEffect): StackPanel.Option {
+    fun option(generator: () -> SoundEffect): Option {
         val sample = generator()
-        return StackPanel.Option(sample.displayName, sample.description, generator)
+        sample.audio = audio
+        return Option(sample.displayName, sample.description, generator)
     }
 
     override fun createInspector(
@@ -38,7 +44,10 @@ class SoundPipeline() : Saveable(), Inspectable {
             option { EchoEffect(audio) },
             option { AmplitudeEffect(audio) },
             option { EqualizerEffect(audio) },
-            option { PitchEffect(audio) }
+            option { PitchEffect(audio) },
+            option { SquareFalloff(audio) },
+            option { LinearFalloff(audio) },
+            option { ExponentialFalloff(audio) }
         ), stages.map { Option(it.getClassName(), "", it) }){
             override fun onAddComponent(component: Inspectable, index: Int) {
                 component as SoundEffect
@@ -56,10 +65,14 @@ class SoundPipeline() : Saveable(), Inspectable {
                     stages.remove(component)
                 }
             }
+
+            override fun getOptionFromInspectable(inspectable: Inspectable): Option? {
+                return if(inspectable is SoundEffect){
+                    option { inspectable }
+                } else null
+            }
         }
     }
-
-    lateinit var audio: Audio
 
     val stages = ArrayList<SoundEffect>()
 
@@ -95,7 +108,7 @@ class SoundPipeline() : Saveable(), Inspectable {
                     Domain.FREQUENCY_DOMAIN -> fft.realForward(data)
                 }
             }
-            data = stage.apply(data, audio, time0, time1)
+            data = stage.apply(data, audio, camera, time0, time1)
             domain = stage.outputDomain
         }
 

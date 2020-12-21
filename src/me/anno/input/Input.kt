@@ -13,8 +13,8 @@ import me.anno.gpu.GFX.windowStack
 import me.anno.input.Touch.Companion.onTouchDown
 import me.anno.input.Touch.Companion.onTouchMove
 import me.anno.input.Touch.Companion.onTouchUp
-import me.anno.studio.RemsStudio.history
-import me.anno.studio.RemsStudio.project
+import me.anno.studio.rems.RemsStudio.history
+import me.anno.studio.rems.RemsStudio.project
 import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.ui.editor.treeView.TreeViewPanel
 import me.anno.utils.Maths.length

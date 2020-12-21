@@ -1,5 +1,7 @@
 package me.anno.gpu.buffer
 
+import me.anno.cache.CacheData
+import me.anno.gpu.GFX
 import me.anno.gpu.shader.Shader
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL11
@@ -9,7 +11,7 @@ import org.lwjgl.opengl.GL33.glDrawArraysInstanced
 import org.lwjgl.opengl.GL33.glVertexAttribDivisor
 import java.nio.ByteBuffer
 
-abstract class Buffer(val attributes: List<Attribute>, val stride: Int, val usage: Int = GL15.GL_STATIC_DRAW) {
+abstract class Buffer(val attributes: List<Attribute>, val stride: Int, val usage: Int = GL15.GL_STATIC_DRAW): CacheData {
 
     constructor(attributes: List<Attribute>, usage: Int) : this(attributes, attributes.sumBy { it.byteSize }, usage)
     constructor(attributes: List<Attribute>) : this(attributes, attributes.sumBy { it.byteSize })
@@ -120,11 +122,14 @@ abstract class Buffer(val attributes: List<Attribute>, val stride: Int, val usag
         glDrawArrays(mode, first, length)
     }
 
-    fun destroy() {
+    override fun destroy() {
+        val buffer = buffer
         if (buffer > -1) {
-            GL15.glDeleteBuffers(buffer)
-            buffer = -1
+            GFX.addGPUTask(1){
+                GL15.glDeleteBuffers(buffer)
+            }
         }
+        this.buffer = -1
     }
 
     companion object {

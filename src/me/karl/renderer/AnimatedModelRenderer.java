@@ -5,7 +5,7 @@ import me.anno.gpu.TextureLib;
 import me.anno.gpu.texture.Clamping;
 import me.anno.gpu.texture.GPUFiltering;
 import me.anno.gpu.texture.Texture2D;
-import me.anno.objects.cache.Cache;
+import me.anno.cache.Cache;
 import me.anno.video.MissingFrameException;
 import org.joml.Vector3f;
 import org.lwjgl.opengl.GL11;

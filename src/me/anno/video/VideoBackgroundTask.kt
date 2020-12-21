@@ -10,9 +10,9 @@ import me.anno.gpu.shader.ShaderPlus
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.objects.Camera
-import me.anno.studio.RemsStudio.nullCamera
-import me.anno.studio.RemsStudio.root
-import me.anno.studio.Scene
+import me.anno.studio.rems.RemsStudio.nullCamera
+import me.anno.studio.rems.RemsStudio.root
+import me.anno.studio.rems.Scene
 import org.lwjgl.opengl.GL11.*
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.concurrent.thread

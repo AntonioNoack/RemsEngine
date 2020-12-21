@@ -7,7 +7,7 @@ import me.anno.input.MouseButton
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.objects.Transform
-import me.anno.studio.RemsStudio.project
+import me.anno.studio.rems.RemsStudio.project
 import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.studio.history.History
 import me.anno.ui.base.TextPanel

@@ -12,12 +12,16 @@ import me.anno.utils.Maths.mixARGB
 import me.anno.utils.isClickKey
 import kotlin.math.max
 
-open class SettingCategory(titleText: String, style: Style) : PanelGroup(style) {
+open class SettingCategory(titleText: String, style: Style, val canCopyTitleText: Boolean = false) : PanelGroup(style) {
 
-    val title = object: TextPanel(titleText, style.getChild("group")){
+    val title = object : TextPanel(titleText, style.getChild("group")) {
         override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
-            if(button.isLeft && !long) toggle()
+            if (button.isLeft && !long) toggle()
             else super.onMouseClicked(x, y, button, long)
+        }
+        override fun onCopyRequested(x: Float, y: Float): String? {
+            return if (canCopyTitleText) text
+            else parent?.onCopyRequested(x, y)
         }
     }
 

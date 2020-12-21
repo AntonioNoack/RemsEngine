@@ -1,15 +1,14 @@
 package me.anno.ui.editor.treeView
 
 import me.anno.config.DefaultConfig
-import me.anno.gpu.GFX
 import me.anno.gpu.GFXx2D.drawRect
 import me.anno.input.Input.mouseX
 import me.anno.input.Input.mouseY
 import me.anno.objects.Transform
 import me.anno.objects.Transform.Companion.toTransform
-import me.anno.studio.RemsStudio
-import me.anno.studio.RemsStudio.nullCamera
-import me.anno.studio.RemsStudio.root
+import me.anno.studio.rems.RemsStudio
+import me.anno.studio.rems.RemsStudio.nullCamera
+import me.anno.studio.rems.RemsStudio.root
 import me.anno.ui.base.Panel
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.Visibility

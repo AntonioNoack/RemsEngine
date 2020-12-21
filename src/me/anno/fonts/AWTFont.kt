@@ -4,7 +4,7 @@ import me.anno.config.DefaultConfig
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.texture.*
-import me.anno.objects.Text
+import me.anno.objects.text.Text
 import me.anno.ui.base.DefaultRenderingHints.prepareGraphics
 import me.anno.utils.OS
 import me.anno.utils.StringHelper.incrementTab

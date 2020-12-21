@@ -1,7 +1,7 @@
 package me.anno.gpu.framebuffer
 
-import me.anno.objects.cache.Cache
-import me.anno.objects.cache.CacheData
+import me.anno.cache.Cache
+import me.anno.cache.CacheData
 
 object FBStack {
 

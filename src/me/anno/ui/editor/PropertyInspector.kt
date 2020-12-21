@@ -1,7 +1,7 @@
 package me.anno.ui.editor
 
 import me.anno.objects.Inspectable
-import me.anno.studio.RemsStudio.selectedInspectable
+import me.anno.studio.rems.RemsStudio.selectedInspectable
 import me.anno.ui.base.Panel
 import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.base.components.Padding

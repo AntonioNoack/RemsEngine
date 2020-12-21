@@ -5,7 +5,7 @@ import me.anno.gpu.GFX.windowStack
 import me.anno.gpu.Window
 import me.anno.input.MouseButton
 import me.anno.studio.Logging
-import me.anno.studio.RemsStudio
+import me.anno.studio.rems.RemsStudio
 import me.anno.ui.base.ButtonPanel
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.groups.PanelList

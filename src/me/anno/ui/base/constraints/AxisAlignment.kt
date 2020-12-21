@@ -8,4 +8,7 @@ enum class AxisAlignment(val id: Int, val xName: String, val yName: String){
     MAX(1, "Right", "Bottom"){
         override fun getOffset(parentW: Int, minW: Int): Int = parentW - minW };
     abstract fun getOffset(parentW: Int, minW: Int): Int
+    companion object {
+        fun find(id: Int) = values().firstOrNull { it.id == id }
+    }
 }

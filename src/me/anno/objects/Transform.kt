@@ -26,12 +26,13 @@ import me.anno.objects.modes.LoopingState
 import me.anno.objects.modes.TransformVisibility
 import me.anno.objects.modes.UVProjection
 import me.anno.objects.particles.ParticleSystem
-import me.anno.studio.RemsStudio
-import me.anno.studio.RemsStudio.editorTime
-import me.anno.studio.RemsStudio.root
-import me.anno.studio.RemsStudio.selectedProperty
-import me.anno.studio.RemsStudio.selectedTransform
-import me.anno.studio.Scene
+import me.anno.objects.text.TextRenderMode
+import me.anno.studio.rems.RemsStudio
+import me.anno.studio.rems.RemsStudio.editorTime
+import me.anno.studio.rems.RemsStudio.root
+import me.anno.studio.rems.RemsStudio.selectedProperty
+import me.anno.studio.rems.RemsStudio.selectedTransform
+import me.anno.studio.rems.Scene
 import me.anno.ui.base.Panel
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
@@ -164,10 +165,8 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
         transform += VI("Rotation (YXZ)", "", rotationYXZ, style)
         transform += VI("Skew", "Transform it similar to a shear", skew, style)
         transform += VI(
-            "Alignment with Camera",
-            "0 = in 3D, 1 = looking towards the camera; billboards",
-            alignWithCamera,
-            style
+            "Alignment with Camera", "0 = in 3D, 1 = looking towards the camera; billboards",
+            alignWithCamera, style
         )
 
         // color
@@ -463,8 +462,8 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
         return this
     }
 
-    fun getGlobalTransform(time: Double): Pair<Matrix4f, Double> {
-        val (parentTransform, parentTime) = parent?.getGlobalTransform(time) ?: Matrix4f() to time
+    fun getGlobalTransform(globalTime: Double): Pair<Matrix4f, Double> {
+        val (parentTransform, parentTime) = parent?.getGlobalTransform(globalTime) ?: Matrix4f() to globalTime
         val localTime = getLocalTime(parentTime)
         applyTransformLT(parentTransform, localTime)
         return parentTransform to localTime
@@ -632,6 +631,7 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
                     is UVProjection -> UVProjection.values()
                     is Clamping -> Clamping.values()
                     is TransformVisibility -> TransformVisibility.values()
+                    is TextRenderMode -> TextRenderMode.values()
                     else -> throw RuntimeException("Missing enum .values() implementation for UI in Transform.kt for $value")
                 }
                 val valueNames = values.map {
@@ -644,6 +644,7 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
                         is UVProjection -> it.displayName
                         is Clamping -> it.displayName
                         is TransformVisibility -> it.displayName
+                        is TextRenderMode -> it.displayName
                         else -> it.name
                     }
                 }

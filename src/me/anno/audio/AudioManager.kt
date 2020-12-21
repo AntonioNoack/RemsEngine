@@ -3,11 +3,11 @@ package me.anno.audio
 import me.anno.gpu.GFX
 import me.anno.objects.Audio
 import me.anno.objects.Transform
-import me.anno.studio.RemsStudio
-import me.anno.studio.RemsStudio.editorTime
-import me.anno.studio.RemsStudio.editorTimeDilation
-import me.anno.studio.RemsStudio.nullCamera
-import me.anno.studio.RemsStudio.root
+import me.anno.studio.rems.RemsStudio
+import me.anno.studio.rems.RemsStudio.editorTime
+import me.anno.studio.rems.RemsStudio.editorTimeDilation
+import me.anno.studio.rems.RemsStudio.nullCamera
+import me.anno.studio.rems.RemsStudio.root
 import org.joml.Matrix4f
 import org.lwjgl.openal.AL
 import org.lwjgl.openal.ALC

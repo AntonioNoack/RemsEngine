@@ -5,7 +5,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFXx2D.drawTexture
 import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.input.MouseButton
-import me.anno.objects.cache.Cache
+import me.anno.cache.Cache
 import me.anno.ui.base.Panel
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer

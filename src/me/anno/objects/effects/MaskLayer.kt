@@ -19,11 +19,9 @@ import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.geometric.Circle
 import me.anno.objects.geometric.Polygon
-import me.anno.studio.RemsStudio
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
-import me.anno.utils.Maths.clamp
 import org.joml.Matrix4fArrayList
 import org.joml.Vector3f
 import org.joml.Vector4f

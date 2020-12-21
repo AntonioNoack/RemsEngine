@@ -2,8 +2,9 @@ package me.anno.fonts
 
 import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.texture.ITexture2D
-import me.anno.objects.cache.Cache
-import me.anno.objects.cache.TextureCache
+import me.anno.cache.Cache
+import me.anno.gpu.TextureLib
+import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.utils.FloatFormat.f3
 import me.anno.utils.toInt
 import org.apache.logging.log4j.LogManager
@@ -71,16 +72,15 @@ object FontManager {
             min(w, widthLimit/step*step)
         }
         val key = TextCacheKey(text, fontName, sub, widthLimit2)
-        val cache = Cache.getEntry(key, fontTimeout, asyncGenerator = !loadTexturesSync.peek()){
+        return Cache.getEntry(key, fontTimeout, asyncGenerator = !loadTexturesSync.peek()){
             val font = getFont(fontName, fontSize, fontSizeIndex, italic, bold)
             val averageFontSize = getAvgFontSize(fontSizeIndex)
             val texture = font.generateTexture(text, averageFontSize, widthLimit2)
-            TextureCache(texture)
-        } as? TextureCache
-        return cache?.texture
+            texture ?: TextureLib.nullTexture
+        } as? ITexture2D
     }
 
-    fun getFont(font: me.anno.ui.base.Font) = getFont(font.name, font.size, font.isBold, font.isItalic)
+    fun getFont(font: me.anno.ui.base.Font): AWTFont = getFont(font.name, font.size, font.isBold, font.isItalic)
 
     fun getFont(name: String, fontSize: Float, bold: Boolean, italic: Boolean): AWTFont {
         val fontSizeIndex = getFontSizeIndex(fontSize)

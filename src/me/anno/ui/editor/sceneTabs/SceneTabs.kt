@@ -4,7 +4,7 @@ import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.io.base.BaseWriter
 import me.anno.objects.Transform
-import me.anno.studio.RemsStudio.root
+import me.anno.studio.rems.RemsStudio.root
 import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.scrolling.ScrollPanelX
