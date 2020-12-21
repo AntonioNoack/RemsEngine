@@ -2,13 +2,13 @@ package me.anno.fonts.signeddistfields.structs
 
 import kotlin.math.abs
 
-class SignedDistance(var distance: Double, var dot: Double): Comparable<SignedDistance> {
+class SignedDistance(var distance: Float, var dot: Float): Comparable<SignedDistance> {
 
-    constructor(): this(-1e240, 1.0)
+    constructor(): this(-1e38f, 1f)
     constructor(src: SignedDistance): this(src.distance, src.dot)
 
     companion object { val INFINITE =
-        SignedDistance(-1e240, 1.0)
+        SignedDistance(-1e38f, 1f)
     }
 
     fun set(other: SignedDistance){

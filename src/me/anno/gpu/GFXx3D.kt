@@ -1,6 +1,5 @@
 package me.anno.gpu
 
-import me.anno.fonts.signeddistfields.structs.Vector2
 import me.anno.gpu.ShaderLib.maxOutlineColors
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.buffer.StaticBuffer

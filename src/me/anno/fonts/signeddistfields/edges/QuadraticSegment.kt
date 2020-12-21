@@ -1,9 +1,7 @@
 package me.anno.fonts.signeddistfields.edges
 
-import me.anno.fonts.signeddistfields.structs.DoublePtr
-import me.anno.fonts.signeddistfields.structs.Point2
+import me.anno.fonts.signeddistfields.structs.FloatPtr
 import me.anno.fonts.signeddistfields.structs.SignedDistance
-import me.anno.fonts.signeddistfields.structs.Vector2
 import me.anno.fonts.signeddistfields.algorithm.EquationSolver.solveCubic
 import me.anno.fonts.signeddistfields.algorithm.EquationSolver.solveQuadratic
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.crossProduct
@@ -14,31 +12,32 @@ import me.anno.fonts.signeddistfields.algorithm.SDFMaths.union
 import me.anno.utils.Vectors.minus
 import me.anno.utils.Vectors.plus
 import me.anno.utils.Vectors.times
-import org.joml.AABBd
+import org.joml.AABBf
+import org.joml.Vector2f
 import kotlin.math.abs
 import kotlin.math.ln
 import kotlin.math.sqrt
 
-class QuadraticSegment(var p0: Point2, p10: Point2, var p2: Point2) : EdgeSegment() {
+class QuadraticSegment(var p0: Vector2f, p10: Vector2f, var p2: Vector2f) : EdgeSegment() {
 
-    var p1 = if (p0 == p10 || p10 == p2) (p0 + p2) * 0.5 else p10
+    var p1 = if (p0 == p10 || p10 == p2) (p0 + p2) * 0.5f else p10
 
     override fun toString() = "[$p0 $p1 $p2]"
 
     override fun clone() = QuadraticSegment(p0, p1, p2)
-    override fun point(param: Double): Point2 {
+    override fun point(param: Float): Vector2f {
         return mix(mix(p0, p1, param), mix(p1, p2, param), param)
     }
 
-    override fun direction(param: Double): Vector2 {
+    override fun direction(param: Float): Vector2f {
         val tangent = mix(p1 - p0, p2 - p1, param)
-        if (tangent.length() == 0.0) return p2 - p0
+        if (tangent.length() == 0f) return p2 - p0
         return tangent
     }
 
-    override fun length(): Double {
-        val ab: Vector2 = p1 - p0
-        val br: Vector2 = p2 - p1 - ab
+    override fun length(): Float {
+        val ab: Vector2f = p1 - p0
+        val br: Vector2f = p2 - p1 - ab
         val abab = ab.dot(ab)
         val abbr = ab.dot(br)
         val brbr = br.dot(br)
@@ -56,11 +55,11 @@ class QuadraticSegment(var p0: Point2, p10: Point2, var p2: Point2) : EdgeSegmen
         p2 = t
     }
 
-    override fun union(bounds: AABBd) {
+    override fun union(bounds: AABBf) {
         union(bounds, p0)
         union(bounds, p1)
         val bot = (p1 - p0) - (p2 - p1)
-        if (bot.x != 0.0) {
+        if (bot.x != 0f) {
             val param = (p1.x - p0.x) / bot.x
             if (param > 0 && param < 1) union(bounds, point(param))
         } else {
@@ -69,7 +68,7 @@ class QuadraticSegment(var p0: Point2, p10: Point2, var p2: Point2) : EdgeSegmen
         }
     }
 
-    override fun moveStartPoint(to: Point2) {
+    override fun moveStartPoint(to: Vector2f) {
         val origSDir = p0 - p1
         val origP1 = p1
         p1 = p1 + (p2 - p1) * (crossProduct(p0 - p1, to - p0) / crossProduct(p0 - p1, p2 - p1))
@@ -80,17 +79,18 @@ class QuadraticSegment(var p0: Point2, p10: Point2, var p2: Point2) : EdgeSegmen
     }
 
     override fun splitInThirds(parts: Array<EdgeSegment?>, a: Int, b: Int, c: Int) {
-        parts[a] = QuadraticSegment(p0, mix(p0, p1, 1 / 3.0), point(1 / 3.0))
+        parts[a] = QuadraticSegment(p0, mix(p0, p1, 1f / 3f), point(1f / 3f))
         parts[b] = QuadraticSegment(
-            point(1 / 3.0), mix(
-                mix(p0, p1, 5 / 9.0),
-                mix(p1, p2, 4 / 9.0), .5
-            ), point(2 / 3.0)
+            point(1f / 3f), mix(
+                mix(p0, p1, 5f / 9f),
+                mix(p1, p2, 4f / 9f),
+                0.5f
+            ), point(2f / 3f)
         )
-        parts[c] = QuadraticSegment(point(2 / 3.0), mix(p1, p2, 2 / 3.0), p2)
+        parts[c] = QuadraticSegment(point(2f / 3f), mix(p1, p2, 2f / 3f), p2)
     }
 
-    override fun scanlineIntersections(x: DoubleArray, dy: IntArray, y: Double): Int {
+    override fun scanlineIntersections(x: FloatArray, dy: IntArray, y: Float): Int {
         var total = 0
         var nextDY = if (y > p0.y) 1 else -1
         x[total] = p0.x;
@@ -103,7 +103,7 @@ class QuadraticSegment(var p0: Point2, p10: Point2, var p2: Point2) : EdgeSegmen
 
         val ab = p1 - p0
         val br = p2 - p1 - ab
-        val t = DoubleArray(2)
+        val t = FloatArray(2)
         val solutions = solveQuadratic(t, br.y, 2 * ab.y, p0.y - y)
         // Sort solutions
         if (solutions >= 2 && t[0] > t[1]) {
@@ -149,7 +149,7 @@ class QuadraticSegment(var p0: Point2, p10: Point2, var p2: Point2) : EdgeSegmen
         return total
     }
 
-    override fun signedDistance(origin: Point2, param: DoublePtr): SignedDistance {
+    override fun signedDistance(origin: Vector2f, param: FloatPtr): SignedDistance {
 
         val qa = p0 - origin
         val ab = p1 - p0
@@ -158,14 +158,14 @@ class QuadraticSegment(var p0: Point2, p10: Point2, var p2: Point2) : EdgeSegmen
         val b = 3 * dotProduct(ab, br)
         val c = 2 * dotProduct(ab, ab) + dotProduct(qa, br)
         val d = dotProduct(qa, ab)
-        val t = DoubleArray(3)
+        val t = FloatArray(3)
         val solutions = solveCubic(t, a, b, c, d)
 
-        var epDir = direction(0.0)
+        var epDir = direction(0f)
         var minDistance = nonZeroSign(crossProduct(epDir, qa)) * qa.length() // distance from A
         param.value = -dotProduct(qa, epDir) / dotProduct(epDir, epDir)
 
-        epDir = direction(1.0)
+        epDir = direction(1f)
         val distance = (p2 - origin).length(); // distance from B
         if (distance < abs(minDistance)) {
             minDistance = nonZeroSign(crossProduct(epDir, p2 - origin)) * distance
@@ -185,7 +185,7 @@ class QuadraticSegment(var p0: Point2, p10: Point2, var p2: Point2) : EdgeSegmen
 
         return when {
             param.value in 0.0..1.0 ->
-                SignedDistance(minDistance, 0.0)
+                SignedDistance(minDistance, 0f)
             param.value < .5 ->
                 SignedDistance(
                     minDistance,
@@ -199,9 +199,9 @@ class QuadraticSegment(var p0: Point2, p10: Point2, var p2: Point2) : EdgeSegmen
         }
     }
 
-    fun convertToCubic() = CubicSegment(p0, mix(p0, p1, 2 / 3.0), mix(p1, p2, 1 / 3.0), p2)
+    fun convertToCubic() = CubicSegment(p0, mix(p0, p1, 2f / 3f), mix(p1, p2, 1f / 3f), p2)
 
-    override fun directionChange(param: Double): Vector2 {
+    override fun directionChange(param: Float): Vector2f {
         return (p2-p1)-(p1-p0)
     }
 

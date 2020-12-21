@@ -8,15 +8,14 @@ import me.anno.fonts.signeddistfields.edges.CubicSegment
 import me.anno.fonts.signeddistfields.edges.EdgeSegment
 import me.anno.fonts.signeddistfields.edges.LinearSegment
 import me.anno.fonts.signeddistfields.edges.QuadraticSegment
-import me.anno.fonts.signeddistfields.structs.DoublePtr
+import me.anno.fonts.signeddistfields.structs.FloatPtr
 import me.anno.fonts.signeddistfields.structs.SignedDistance
 import me.anno.gpu.GFX
 import me.anno.gpu.texture.Texture2D
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.mix
 import me.anno.utils.processBalanced
-import org.joml.AABBd
-import org.joml.Vector2d
+import org.joml.AABBf
 import org.joml.Vector2f
 import java.awt.font.FontRenderContext
 import java.awt.font.TextLayout
@@ -30,14 +29,14 @@ import kotlin.math.max
 
 object SignedDistanceField {
 
-    // todo optimize contours
+    // done, kind of optimize contours
     // todo switch for depth manipulation of outlined-characters?
     // todo char spacing for joint strips...
 
     class Contour(val segments: ArrayList<EdgeSegment>) {
-        var bounds = AABBd()
+        var bounds = AABBf()
         fun updateBounds() {
-            bounds = AABBd()
+            bounds = AABBf()
             segments.forEach { it.union(bounds) }
         }
     }
@@ -46,7 +45,7 @@ object SignedDistanceField {
 
     val sdfResolution get() = DefaultConfig["rendering.signedDistanceFields.resolution", 5f]
 
-    private fun vec2d(x: Float, y: Float) = Vector2d(x.toDouble(), y.toDouble())
+    private fun vec2d(x: Float, y: Float) = Vector2f(x, y)
 
     fun create(font: me.anno.ui.base.Font, text: String, round: Boolean) = create(getFont(font), text, round)
 
@@ -154,7 +153,7 @@ object SignedDistanceField {
             return TextSDF(null, Vector2f())
         }
 
-        val bounds = AABBd()
+        val bounds = AABBf()
         contours.forEach { contour ->
             contour.updateBounds()
             bounds.union(contour.bounds)
@@ -180,19 +179,19 @@ object SignedDistanceField {
 
         processBalanced(0, h, true) { i0, i1 ->
             for (y in i0 until i1) {
-                val ry = y / (h - 1.0)
+                val ry = y / (h - 1f)
                 val ly = mix(maxY, minY, ry) // mirrored y for OpenGL
                 for (x in 0 until w) {
                     val index = x + y * w
-                    val rx = x / (w - 1.0)
+                    val rx = x / (w - 1f)
                     val lx = mix(minX, maxX, rx)
-                    val origin = Vector2d(lx, ly)
+                    val origin = Vector2f(lx, ly)
                     val minDistance = SignedDistance()
-                    val ptr = DoublePtr()
+                    val ptr = FloatPtr()
                     var closestEdge: EdgeSegment? = null
-                    val pointBounds = AABBd(
-                        lx - maxDistance, ly - maxDistance, -1.0,
-                        lx + maxDistance, ly + maxDistance, 1.0
+                    val pointBounds = AABBf(
+                        lx - maxDistance, ly - maxDistance, -1f,
+                        lx + maxDistance, ly + maxDistance, +1f
                     )
                     contours.forEach { contour ->
                         if (contour.bounds.testAABB(pointBounds)) {// this test brings down the complexity from O(chars²) to O(chars)
@@ -207,12 +206,12 @@ object SignedDistanceField {
                     }
 
                     val trueDistance = if (roundEdges) {
-                        if (closestEdge == null) +100.0 else minDistance.distance
+                        if (closestEdge == null) +100f else minDistance.distance
                     } else {
-                        closestEdge?.trueSignedDistance(origin) ?: +100.0
+                        closestEdge?.trueSignedDistance(origin) ?: +100f
                     }
 
-                    buffer.put(index, (clamp(trueDistance, -maxDistance, +maxDistance) * sdfResolution).toFloat())
+                    buffer.put(index, clamp(trueDistance, -maxDistance, +maxDistance) * sdfResolution)
 
                 }
             }
@@ -226,8 +225,8 @@ object SignedDistanceField {
         }
 
         // the center, because we draw the pieces from the center
-        val ox = (maxX + minX).toFloat() * +sdfResolution / w
-        val oy = (maxY + minY).toFloat() * -sdfResolution / h // mirrored for OpenGL
+        val ox = (maxX + minX) * +sdfResolution / w
+        val oy = (maxY + minY) * -sdfResolution / h // mirrored for OpenGL
         return TextSDF(tex, Vector2f(ox, oy))
 
     }

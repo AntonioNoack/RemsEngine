@@ -11,8 +11,8 @@ class AlignmentGroup(
 
 /*typealias AlignmentGroup =
         Triple<
-                HashMap<Pair<Int, Int>, Double>, // |a| = |ab| - |b|
-                HashMap<Int, Double>, // |a|
+                HashMap<Pair<Int, Int>, Float>, // |a| = |ab| - |b|
+                HashMap<Int, Float>, // |a|
                 HashMap<Int, StaticBuffer>> // triangles of a
                 */
 

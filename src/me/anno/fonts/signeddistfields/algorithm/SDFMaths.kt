@@ -1,17 +1,14 @@
 package me.anno.fonts.signeddistfields.algorithm
 
-import org.joml.AABBd
+import org.joml.AABBf
 import org.joml.Vector2d
+import org.joml.Vector2f
 import kotlin.math.max
 import kotlin.math.min
 
 object SDFMaths {
 
     fun median(a: Float, b: Float, c: Float): Float {
-        return max(min(a, b), min(max(a, b), c))
-    }
-
-    fun median(a: Double, b: Double, c: Double): Double {
         return max(min(a, b), min(max(a, b), c))
     }
 
@@ -29,24 +26,26 @@ object SDFMaths {
     fun nonZeroSign(f: Float) = if (f >= 0) +1 else -1
     fun nonZeroSign(f: Double) = if (f >= 0) +1 else -1
 
-    fun mix(a: Double, b: Double, f: Double) = (1 - f) * a + b * f
-    fun mix(a: Vector2d, b: Vector2d, f: Double) = Vector2d(mix(a.x, b.x, f), mix(a.y, b.y, f))
+    fun mix(a: Float, b: Float, f: Float) = (1 - f) * a + b * f
+    fun mix(a: Vector2f, b: Vector2f, f: Float) = Vector2f(mix(a.x, b.x, f), mix(a.y, b.y, f))
     fun crossProduct(a: Vector2d, b: Vector2d) = a.x * b.y - a.y * b.x
     fun dotProduct(a: Vector2d, b: Vector2d) = a.x * b.x + a.y * b.y
+    fun crossProduct(a: Vector2f, b: Vector2f) = a.x * b.y - a.y * b.x
+    fun dotProduct(a: Vector2f, b: Vector2f) = a.x * b.x + a.y * b.y
 
-    fun Vector2d.getOrthonormal(polarity: Boolean = true, allowZero: Boolean = false): Vector2d {
+    fun Vector2f.getOrthonormal(polarity: Boolean = true, allowZero: Boolean = false): Vector2f {
         val length = length()
-        return if (length == 0.0) {
+        return if (length == 0f) {
             if (allowZero) {
-                Vector2d(0.0)
+                Vector2f(0f)
             } else {
-                if (polarity) Vector2d(0.0, 1.0) else Vector2d(0.0, -1.0)
+                if (polarity) Vector2f(0f, 1f) else Vector2f(0f, -1f)
             }
-        } else if (polarity) Vector2d(-y / length, x / length) else Vector2d(y / length, -x / length)
+        } else if (polarity) Vector2f(-y / length, x / length) else Vector2f(y / length, -x / length)
     }
 
-    fun union(aabb: AABBd, p1: Vector2d){
-        aabb.union(p1.x, p1.y, 0.0)
+    fun union(aabb: AABBf, p1: Vector2f){
+        aabb.union(p1.x, p1.y, 0f)
     }
 
 }
