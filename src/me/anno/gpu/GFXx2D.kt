@@ -1,6 +1,5 @@
 package me.anno.gpu
 
-import me.anno.config.DefaultStyle
 import me.anno.fonts.FontManager
 import me.anno.gpu.GFX.v4
 import me.anno.gpu.GFXx3D.draw3D
@@ -120,7 +119,7 @@ object GFXx2D {
         // check()
         val w = texture.w
         val h = texture.h
-        if (text.isNotBlank()) {
+        if (text.isNotBlank() && (texture !is Texture2D || texture.isCreated)) {
             texture.bind(GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
             val shader = ShaderLib.subpixelCorrectTextShader
             // check()
@@ -137,9 +136,9 @@ object GFXx2D {
             shader.v4("backgroundColor", backgroundColor)
             GFX.flat01.draw(shader)
             GFX.check()
-        } else {
+        }/* else {
             drawRect(x, y, w, h, backgroundColor or DefaultStyle.black)
-        }
+        }*/
         return w to h
     }
 
@@ -195,21 +194,29 @@ object GFXx2D {
         x: Int, y: Int,
         radiusX: Float, radiusY: Float, innerRadius: Float, startDegrees: Float, endDegrees: Float, color: Vector4f
     ) {
-        val rx = x.toFloat() / GFX.windowWidth * 2 - 1
-        val ry = y.toFloat() / GFX.windowHeight * 2 - 1
+
+        val rx = (x - GFX.windowX).toFloat() / GFX.windowWidth * 2 - 1
+        val ry = (y - GFX.windowY).toFloat() / GFX.windowHeight * 2 - 1
+
+        val matrix = Matrix4fArrayList()
+        matrix.translate(rx, ry, 0f)
+        matrix.scale(2f * radiusX / GFX.windowWidth, 2f * radiusY / GFX.windowHeight, 1f)
+
+        GFX.drawMode = ShaderPlus.DrawMode.COLOR
+
         // not perfect, but pretty good
         // anti-aliasing for the rough edges
         // not very economical, could be improved
-        val matrix = Matrix4fArrayList()
-        matrix.translate(rx, ry, 0f)
-        matrix.scale(radiusX / GFX.windowWidth, radiusY / GFX.windowHeight, 1f)
-        GFX.drawMode = ShaderPlus.DrawMode.COLOR
         color.w /= 25f
         for (dx in 0 until 5) {
             for (dy in 0 until 5) {
+                matrix.pushMatrix()
+                matrix.translate((dx - 2f) / (2.5f * GFX.windowWidth), (dy - 2f) / (2.5f * GFX.windowHeight), 0f)
                 draw3DCircle(null, 0.0, matrix, innerRadius, startDegrees, endDegrees, color)
+                matrix.popMatrix()
             }
         }
+
     }
 
     fun posSize(shader: Shader, x: Int, y: Int, w: Int, h: Int) {

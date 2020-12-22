@@ -1,5 +1,6 @@
 package me.anno.ui.editor.files
 
+import me.anno.cache.Cache
 import me.anno.config.DefaultStyle.black
 import me.anno.fonts.FontManager
 import me.anno.gpu.GFX
@@ -19,7 +20,6 @@ import me.anno.input.MouseButton
 import me.anno.objects.Audio
 import me.anno.objects.Camera
 import me.anno.objects.Video
-import me.anno.cache.Cache
 import me.anno.studio.StudioBase
 import me.anno.ui.base.Panel
 import me.anno.ui.base.TextPanel
@@ -338,12 +338,10 @@ class FileEntry(
 
         // todo tiles on background to show transparency? ofc only in the area of the image
 
-
     }
 
     /**
      * draws the title
-     * todo completely center aligned text
      * */
     fun drawText(x0: Int, y0: Int, x1: Int, y1: Int) {
         title.calculateSize(x1 - x0, y1 - y0)
@@ -417,11 +415,11 @@ class FileEntry(
 
     fun deleteFileMaybe() {
         openMenu("Delete this file? (${file.length().formatFileSize()})", listOf(
-            "Yes" to {
+           /* "Yes" to {
                 // todo put history state...
                 file.deleteRecursively()
                 explorer.invalidate()
-            },
+            },*/
             "No" to {},
             "Yes, permanently" to {
                 file.deleteRecursively()
@@ -458,8 +456,8 @@ class FileEntry(
 
     override fun onCopyRequested(x: Float, y: Float): String? {
         if (this in inFocus) {// multiple files maybe
-            Input.pasteFiles(inFocus.filterIsInstance<FileEntry>().map { it.file })
-        } else Input.pasteFiles(listOf(file))
+            Input.copyFiles(inFocus.filterIsInstance<FileEntry>().map { it.file })
+        } else Input.copyFiles(listOf(file))
         return null
     }
 

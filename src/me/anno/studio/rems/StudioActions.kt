@@ -87,11 +87,11 @@ object StudioActions {
                 true
             },
             "Redo" to {
-                RemsStudio.history.redo()
+                RemsStudio.history?.redo()
                 true
             },
             "Undo" to {
-                RemsStudio.history.undo()
+                RemsStudio.history?.undo()
                 true
             },
             "ShowAllObjects" to {

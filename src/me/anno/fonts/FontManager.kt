@@ -72,7 +72,8 @@ object FontManager {
             min(w, widthLimit/step*step)
         }
         val key = TextCacheKey(text, fontName, sub, widthLimit2)
-        return Cache.getEntry(key, fontTimeout, asyncGenerator = !loadTexturesSync.peek()){
+        val async = false//!loadTexturesSync.peek()
+        return Cache.getEntry(key, fontTimeout, async){
             val font = getFont(fontName, fontSize, fontSizeIndex, italic, bold)
             val averageFontSize = getAvgFontSize(fontSizeIndex)
             val texture = font.generateTexture(text, averageFontSize, widthLimit2)

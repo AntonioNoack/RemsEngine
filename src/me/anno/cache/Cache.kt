@@ -146,7 +146,7 @@ object Cache {
         val cached: CacheEntry?
         synchronized(cache) { cached = cache[key] }
         if (cached != null) {
-            cached.lastUsed = GFX.gameTime
+            cached.lastUsed = gameTime
             synchronized(lockedKeys) { lockedKeys.remove(key) }
             return cached.data
         }

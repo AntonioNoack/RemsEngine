@@ -23,8 +23,10 @@ class VideoBackgroundTask(val video: VideoCreator, val motionBlurSteps: Int, val
 
     val camera = cameras.firstOrNull() ?: nullCamera ?: Camera()
 
-    val partialFrame = Framebuffer("VideoBackgroundTask-partial", video.w, video.h, 1, 1, false, Framebuffer.DepthBufferType.TEXTURE)
-    val averageFrame = Framebuffer("VideoBackgroundTask-sum", video.w, video.h, 1, 1, true, Framebuffer.DepthBufferType.TEXTURE)
+    val partialFrame =
+        Framebuffer("VideoBackgroundTask-partial", video.w, video.h, 1, 1, false, Framebuffer.DepthBufferType.TEXTURE)
+    val averageFrame =
+        Framebuffer("VideoBackgroundTask-sum", video.w, video.h, 1, 1, true, Framebuffer.DepthBufferType.TEXTURE)
 
     val renderingIndex = AtomicInteger(0)
     val savingIndex = AtomicInteger(0)
@@ -125,9 +127,8 @@ class VideoBackgroundTask(val video: VideoCreator, val motionBlurSteps: Int, val
                         try {
                             Scene.draw(
                                 camera, 0, 0, video.w, video.h,
-                                time + i * shutterPercentage / (video.fps * motionBlurSteps), true,
-                                ShaderPlus.DrawMode.COLOR,
-                                null
+                                time + (i - motionBlurSteps / 2f) * shutterPercentage / (video.fps * motionBlurSteps),
+                                true, ShaderPlus.DrawMode.COLOR, null
                             )
                             if (!GFX.isFinalRendering) throw RuntimeException()
                         } catch (e: MissingFrameException) {

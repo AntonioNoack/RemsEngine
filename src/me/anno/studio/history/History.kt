@@ -69,7 +69,7 @@ class History : Saveable() {
     fun redo(index: Int) {
         if (index != states.lastIndex) {
             states.getOrNull(index)?.apply {
-                put(this)
+                // put(this)
                 apply()
             }
         }

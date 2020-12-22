@@ -3,6 +3,7 @@ package me.anno.gpu
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.GFXx2D.drawText
+import me.anno.gpu.GFXx2D.getTextSize
 import me.anno.gpu.ShaderLib.copyShader
 import me.anno.gpu.blending.BlendDepth
 import me.anno.gpu.blending.BlendMode
@@ -18,13 +19,13 @@ import me.anno.input.MouseButton
 import me.anno.objects.Camera
 import me.anno.objects.Transform
 import me.anno.studio.Build.isDebug
+import me.anno.studio.StudioBase.Companion.eventTasks
 import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.RemsStudio.editorTime
 import me.anno.studio.rems.RemsStudio.editorTimeDilation
 import me.anno.studio.rems.RemsStudio.root
 import me.anno.studio.rems.RemsStudio.selectedInspectable
 import me.anno.studio.rems.RemsStudio.selectedTransform
-import me.anno.studio.StudioBase.Companion.eventTasks
 import me.anno.ui.base.ButtonPanel
 import me.anno.ui.base.Panel
 import me.anno.ui.base.SpacePanel
@@ -155,7 +156,7 @@ object GFX : GFXBase1() {
 
     var drawnTransform: Transform? = null
 
-    val menuSeparator = "-----"
+    const val menuSeparator = "-----"
 
     val inFocus = HashSet<Panel>()
     val inFocus0 get() = inFocus.firstOrNull()
@@ -174,8 +175,6 @@ object GFX : GFXBase1() {
             render()
         }
     }
-
-    fun clip(size: me.anno.gpu.size.WindowSize, render: () -> Unit) = clip(size.x, size.y, size.w, size.h, render)
 
     fun clip2(x0: Int, y0: Int, x1: Int, y1: Int, render: () -> Unit) = clip(x0, y0, x1 - x0, y1 - y0, render)
     fun clip2Save(x0: Int, y0: Int, x1: Int, y1: Int, render: () -> Unit) {
@@ -652,23 +651,6 @@ object GFX : GFXBase1() {
                 "No" to onNo
             )
         )
-    }
-
-    fun showFPS() {
-        val x0 = max(0, GFX.width - FrameTimes.width)
-        val y0 = max(0, GFX.height - FrameTimes.height)
-        FrameTimes.place(x0, y0, FrameTimes.width, FrameTimes.height)
-        FrameTimes.draw()
-        loadTexturesSync.push(true)
-        drawText(
-            x0 + 1, y0 + 1,
-            "Consolas", 12f, false, false,
-            "${currentEditorFPS.f1()}, min: ${(1f / FrameTimes.maxValue).f1()}",
-            FrameTimes.textColor,
-            FrameTimes.backgroundColor,
-            -1
-        )
-        loadTexturesSync.pop()
     }
 
 }

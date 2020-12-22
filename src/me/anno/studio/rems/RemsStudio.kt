@@ -86,7 +86,7 @@ object RemsStudio : StudioBase(true, "Rem's Studio", "RemsStudio") {
     val targetOutputFile get() = project!!.targetOutputFile
     val motionBlurSteps get() = project!!.motionBlurSteps
     val shutterPercentage get() = project!!.shutterPercentage
-    val history get() = currentTab!!.history
+    val history get() = currentTab?.history
     val nullCamera get() = project?.nullCamera
 
     var root = Transform()
@@ -128,6 +128,7 @@ object RemsStudio : StudioBase(true, "Rem's Studio", "RemsStudio") {
         incrementalChange(title, title, run)
 
     fun incrementalChange(title: String, groupCode: Any, run: () -> Unit) {
+        val history = history ?: return run()
         val code = groupCode to keyUpCtr
         if (lastCode != code) {
             change(title, run)
@@ -148,6 +149,7 @@ object RemsStudio : StudioBase(true, "Rem's Studio", "RemsStudio") {
     }
 
     private fun change(title: String, run: () -> Unit) {
+        val history = history ?: return run()
         if (history.isEmpty()) {
             history.put("Start State")
         }

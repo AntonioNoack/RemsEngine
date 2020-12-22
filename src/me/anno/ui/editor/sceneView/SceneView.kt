@@ -258,18 +258,9 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
 
         GFX.check()
 
-        // calculate the correct size, such that we miss nothing
-        // todo ideally we could zoom in the image etc...
-        // todo only do this, if we are appended to a camera :), not if we are building a 3D scene
-
         drawRect(x, y, w, h, deepDark)
-
-        // preload resources :)
-        // e.g. for video playback
-        // we maybe could disable next frame fetching in Cache.kt...
-        // todo doesn't work for auto-scaled videos... other plan?...
-
         drawRect(x + dx, y + dy, rw, rh, black)
+
         if (goodW > 0 && goodH > 0) {
             Scene.draw(
                 camera,

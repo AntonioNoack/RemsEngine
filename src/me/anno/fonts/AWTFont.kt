@@ -88,8 +88,10 @@ class AWTFont(val font: Font) {
             return FakeWhiteTexture(width, height)
         }
 
+        // println("$text ${Thread.currentThread()}")
+
         val texture = Texture2D("awt-font", width, height, 1)
-        texture.create({
+        texture.create("AWTFont.generateTexture", {
 
             val image = BufferedImage(width, height, 1)
             val gfx = image.graphics as Graphics2D
@@ -265,7 +267,7 @@ class AWTFont(val font: Font) {
         val height = ceil(parts.height)
 
         val texture = Texture2D("awt-font-v3", width, height, 1)
-        texture.create({
+        texture.create("AWTFont.generateTextureV3", {
             val image = BufferedImage(width, height, 1)
             if (result.isNotEmpty()) {
                 val gfx = image.graphics as Graphics2D

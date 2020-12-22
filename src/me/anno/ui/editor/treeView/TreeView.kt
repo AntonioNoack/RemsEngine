@@ -4,6 +4,7 @@ import me.anno.config.DefaultConfig
 import me.anno.gpu.GFXx2D.drawRect
 import me.anno.input.Input.mouseX
 import me.anno.input.Input.mouseY
+import me.anno.input.MouseButton
 import me.anno.objects.Transform
 import me.anno.objects.Transform.Companion.toTransform
 import me.anno.studio.rems.RemsStudio
@@ -16,6 +17,7 @@ import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.scrolling.ScrollPanelXY
 import me.anno.ui.editor.files.addChildFromFile
+import me.anno.ui.editor.treeView.TreeViewPanel.Companion.openAddMenu
 import me.anno.ui.style.Style
 import java.io.File
 
@@ -99,6 +101,12 @@ class TreeView(style: Style) :
             focused.y = y
         }
 
+    }
+
+    override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
+        if(button.isRight){
+            openAddMenu(root)
+        } else super.onMouseClicked(x, y, button, long)
     }
 
     var focused: Panel? = null

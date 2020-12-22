@@ -36,7 +36,7 @@ open class Texture2D(
     val withMultisampling get() = samples > 1
 
     val tex2D = if (withMultisampling) GL_TEXTURE_2D_MULTISAMPLE else GL_TEXTURE_2D
-    var state: Pair<Texture2D, Int>? = null
+    var state: Triple<Texture2D, Int, Boolean>? = null
 
     var pointer = -1
     var isCreated = false
@@ -54,7 +54,7 @@ open class Texture2D(
     fun ensurePointer() {
         if (pointer < 0) {
             pointer = glGenTextures()
-            state = this to pointer
+            state = Triple(this, pointer, isCreated)
             // many textures can be created by the console log and the fps viewer constantly xD
             // maybe we should use allocation free versions there xD
         }
@@ -106,7 +106,7 @@ open class Texture2D(
         GFX.check()
     }
 
-    fun create(createImage: () -> BufferedImage, forceSync: Boolean) {
+    fun create(name: String, createImage: () -> BufferedImage, forceSync: Boolean) {
         val requiredBudget = textureBudgetUsed + w * h
         if (requiredBudget > textureBudgetTotal || Thread.currentThread() != GFX.glThread) {
             if (forceSync) {

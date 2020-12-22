@@ -90,7 +90,7 @@ object RenderSettings : Transform() {
             }
             .setTooltip("0,1 = no motion blur, e.g. 16 = decent motion blur, sub-frames per frame")
 
-        list += FloatInput("Shutter-Percentage", project.shutterPercentage, Type.FLOAT_01, style)
+        list += FloatInput("Shutter-Percentage", project.shutterPercentage, Type.FLOAT_PLUS, style)
             .setChangeListener {
                 project.shutterPercentage = it.toFloat()
                 save()

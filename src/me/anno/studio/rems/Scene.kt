@@ -1,5 +1,6 @@
 package me.anno.studio.rems
 
+import me.anno.cache.Cache
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
@@ -21,7 +22,6 @@ import me.anno.gpu.texture.GPUFiltering
 import me.anno.objects.Camera
 import me.anno.objects.Camera.Companion.DEFAULT_VIGNETTE_STRENGTH
 import me.anno.objects.Transform.Companion.xAxis
-import me.anno.cache.Cache
 import me.anno.objects.effects.GaussianBlur
 import me.anno.objects.effects.ToneMappers
 import me.anno.studio.rems.RemsStudio.gfxSettings
@@ -329,7 +329,7 @@ object Scene {
 
         var needsTemporaryBuffer = !isFakeColorRendering
         if (needsTemporaryBuffer) {
-            needsTemporaryBuffer = true || // I had issues without (low quality settings), soo...
+            needsTemporaryBuffer = true ||// I had issues without (low quality settings), soo...
                     flipY ||
                     samples > 1 ||
                     !distortion.is000() ||
@@ -376,7 +376,8 @@ object Scene {
             nearZ = camera.nearZ[cameraTime]
             farZ = camera.farZ[cameraTime]
 
-            GFX.applyCameraTransform(camera, cameraTime, cameraTransform,
+            GFX.applyCameraTransform(
+                camera, cameraTime, cameraTransform,
                 stack
             )
 
@@ -388,7 +389,6 @@ object Scene {
             white.z *= whiteMultiplier
 
             // use different settings for white balance etc...
-
             // remember the transform for later use
             lastCameraTransform.set(stack)
 
@@ -401,7 +401,7 @@ object Scene {
                 stack.popMatrix()
             }
 
-            BlendDepth(if (isFakeColorRendering) null else BlendMode.DEFAULT, camera.useDepth){
+            BlendDepth(if (isFakeColorRendering) null else BlendMode.DEFAULT, camera.useDepth) {
 
                 glDepthMask(true)
 
@@ -422,24 +422,8 @@ object Scene {
                     GFX.check()
                 }
 
-                /**
-                 * draw the selection ring for selected objects
-                 * draw it after everything else and without depth
-                 * */
-                if (!isFinalRendering && !isFakeColorRendering && selectedTransform != camera) { // seeing the own camera is irritating xD
-                    selectedTransform?.apply {
-                        BlendDepth(BlendMode.DEFAULT, false){
-                            val (transform, _) = getGlobalTransform(time)
-                            stack.pushMatrix()
-                            stack.mul(transform)
-                            stack.scale(0.02f)
-                            drawUICircle(stack, 1f, 0.700f, Vector4f(1f, 0.9f, 0.5f, 1f))
-                            stack.scale(1.2f)
-                            drawUICircle(stack, 1f, 0.833f, Vector4f(0f, 0f, 0f, 1f))
-                            stack.popMatrix()
-                        }
-                    }
-                }
+                drawSelectionRing(isFakeColorRendering, camera, time)
+
             }
         }
 
@@ -516,6 +500,7 @@ object Scene {
                 shader.v3X("cgPower", cgPower)
                 shader.v1("cgSaturation", cgSaturation)
             }
+
             // draw it!
             flat01.draw(shader)
             GFX.check()
@@ -524,22 +509,16 @@ object Scene {
 
         if (buffer != null) {
 
-            BlendDepth(null, false){
+            BlendDepth(null, false) {
 
-                if(needsBloom){
+                if (needsBloom) {
 
                     // create blurred version
                     GaussianBlur.draw(buffer!!, bloomSize, w, h, 1, bloomThreshold, Matrix4fArrayList())
-                    buffer = getNextBuffer(
-                        "Scene-Bloom",
-                        buffer!!,
-                        0,
-                        GPUFiltering.TRULY_NEAREST,
-                        1
-                    )
+                    buffer = getNextBuffer("Scene-Bloom", buffer!!, 0, GPUFiltering.TRULY_NEAREST, 1)
 
                     // add it on top
-                    Frame(buffer){
+                    Frame(buffer) {
                         val shader = addBloomShader
                         shader.use()
                         shader.v1("intensity", bloomIntensity)
@@ -551,13 +530,7 @@ object Scene {
                 val useLUT = lut != null
                 if (useLUT) {
 
-                    buffer = getNextBuffer(
-                        "Scene-LUT",
-                        buffer!!,
-                        0,
-                        GPUFiltering.LINEAR,
-                        1
-                    )
+                    buffer = getNextBuffer("Scene-LUT", buffer!!, 0, GPUFiltering.LINEAR, 1)
                     Frame(buffer) {
                         drawColors()
                     }
@@ -590,6 +563,27 @@ object Scene {
 
         GFX.drawMode = oldDrawMode
 
+    }
+
+    fun drawSelectionRing(isFakeColorRendering: Boolean, camera: Camera, time: Double){
+        /**
+         * draw the selection ring for selected objects
+         * draw it after everything else and without depth
+         * */
+        if (!isFinalRendering && !isFakeColorRendering && selectedTransform != camera) { // seeing the own camera is irritating xD
+            selectedTransform?.apply {
+                BlendDepth(BlendMode.DEFAULT, false) {
+                    val (transform, _) = getGlobalTransform(time)
+                    stack.pushMatrix()
+                    stack.mul(transform)
+                    stack.scale(0.02f)
+                    drawUICircle(stack, 1f, 0.700f, Vector4f(1f, 0.9f, 0.5f, 1f))
+                    stack.scale(1.2f)
+                    drawUICircle(stack, 1f, 0.833f, Vector4f(0f, 0f, 0f, 1f))
+                    stack.popMatrix()
+                }
+            }
+        }
     }
 
 

@@ -7,6 +7,7 @@ import me.anno.ui.input.components.PureTextInputML
 import me.anno.ui.style.Style
 import java.io.File
 
+// todo line numbers? :)
 open class TextInputML(title: String, style: Style): PanelContainer(
     PureTextInputML(
         style.getChild("deep")

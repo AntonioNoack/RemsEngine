@@ -43,7 +43,7 @@ open class ScrollPanelY(child: Panel, padding: Padding,
     }
 
     override var scrollPosition = 0f
-    val maxLength = 100_000
+    val maxLength = 1_000_000_000
     var isDownOnScrollbar = false
 
     override val maxScrollPosition get() = max(0, child.minH + padding.height - h)

@@ -93,37 +93,7 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style) : TextPanel("
                     select(transform)
                 }
             }
-            button.isRight -> {
-
-                fun add(action: (Transform) -> Transform): () -> Unit = { transform.apply { select(action(this)) } }
-                val options = DefaultConfig["createNewInstancesList"] as? StringMap
-                if (options != null) {
-                    val extras = ArrayList<Pair<String, () -> Unit>>()
-                    if (transform.parent != null) {
-                        extras += "Add Mask" to {
-                            val parent = transform.parent!!
-                            val i = parent.children.indexOf(transform)
-                            if (i < 0) throw RuntimeException()
-                            val mask = MaskLayer.create(listOf(Rectangle.create()), listOf(transform))
-                            mask.isFullscreen = true
-                            parent.setChildAt(mask, i)
-                        }
-                    }
-                    GFX.openMenu(
-                        mouseX, mouseY, "Add Child",
-                        options.entries
-                            .sortedBy { (key, _) -> key.toLowerCase() }
-                            .map { (key, value) ->
-                                key to add {
-                                    val newT = if (value is Transform) value.clone() else value.toString().toTransform()
-                                    newT!!
-                                    it.addChild(newT)
-                                    newT
-                                }
-                            } + extras
-                    )
-                } else println("Reset the config, to enable this menu!")
-            }
+            button.isRight -> openAddMenu(transform)
         }
     }
 
@@ -225,5 +195,38 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style) : TextPanel("
 
     // multiple values can be selected
     override fun getMultiSelectablePanel() = this
+
+    companion object {
+        fun openAddMenu(baseTransform: Transform){
+            fun add(action: (Transform) -> Transform): () -> Unit = { baseTransform.apply { select(action(this)) } }
+            val options = DefaultConfig["createNewInstancesList"] as? StringMap
+            if (options != null) {
+                val extras = ArrayList<Pair<String, () -> Unit>>()
+                if (baseTransform.parent != null) {
+                    extras += "Add Mask" to {
+                        val parent = baseTransform.parent!!
+                        val i = parent.children.indexOf(baseTransform)
+                        if (i < 0) throw RuntimeException()
+                        val mask = MaskLayer.create(listOf(Rectangle.create()), listOf(baseTransform))
+                        mask.isFullscreen = true
+                        parent.setChildAt(mask, i)
+                    }
+                }
+                GFX.openMenu(
+                    mouseX, mouseY, "Add Child",
+                    options.entries
+                        .sortedBy { (key, _) -> key.toLowerCase() }
+                        .map { (key, value) ->
+                            key to add {
+                                val newT = if (value is Transform) value.clone() else value.toString().toTransform()
+                                newT!!
+                                it.addChild(newT)
+                                newT
+                            }
+                        } + extras
+                )
+            } else println("Reset the config, to enable this menu!")
+        }
+    }
 
 }

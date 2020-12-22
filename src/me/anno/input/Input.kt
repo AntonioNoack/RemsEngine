@@ -13,16 +13,17 @@ import me.anno.gpu.GFX.windowStack
 import me.anno.input.Touch.Companion.onTouchDown
 import me.anno.input.Touch.Companion.onTouchMove
 import me.anno.input.Touch.Companion.onTouchUp
+import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.studio.rems.RemsStudio.history
 import me.anno.studio.rems.RemsStudio.project
-import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.ui.editor.treeView.TreeViewPanel
 import me.anno.utils.Maths.length
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWDropCallback
 import java.awt.Toolkit
-import java.awt.datatransfer.DataFlavor
+import java.awt.datatransfer.DataFlavor.javaFileListFlavor
+import java.awt.datatransfer.DataFlavor.stringFlavor
 import java.awt.datatransfer.StringSelection
 import java.awt.datatransfer.UnsupportedFlavorException
 import java.io.File
@@ -190,7 +191,7 @@ object Input {
                             requestFocus(panelWindow?.first, true)
                         }
 
-                        if(!windowWasClosed){
+                        if (!windowWasClosed) {
 
                             inFocus0?.onMouseDown(mouseX, mouseY, button.toMouseButton())
                             ActionManager.onKeyDown(button)
@@ -361,7 +362,7 @@ object Input {
                                                 copy()
                                                 inFocus0?.onEmpty(mouseX, mouseY)
                                             }
-                                            GLFW.GLFW_KEY_H -> history.display()
+                                            GLFW.GLFW_KEY_H -> history?.display()
                                             GLFW.GLFW_KEY_A -> inFocus0?.onSelectAll(mouseX, mouseY)
                                         }
                                     }
@@ -406,22 +407,57 @@ object Input {
 
     fun paste() {
         val clipboard = Toolkit.getDefaultToolkit().systemClipboard
+        /*val flavors = clipboard.availableDataFlavors
+        for(flavor in flavors){
+            val charset = flavor.getParameter("charset")
+            val repClass = flavor.representationClass
+
+        }*/
         try {
-            val data = clipboard.getData(DataFlavor.stringFlavor) as? String
-            if (data != null) inFocus0?.onPaste(mouseX, mouseY, data, "")
-            return
+            val data = clipboard.getData(stringFlavor)
+            if (data is String) {
+                println(data)
+                inFocus0?.onPaste(mouseX, mouseY, data, "")
+                return
+            }
         } catch (e: UnsupportedFlavorException) {
         }
+        /*try {
+            val data = clipboard.getData(getTextPlainUnicodeFlavor())
+            println("plain text data: $data")
+            if (data is String) inFocus0?.onPaste(mouseX, mouseY, data, "")
+            // return
+        } catch (e: UnsupportedFlavorException) {
+            println("Plain text flavor is not supported")
+        }
         try {
-            val data = clipboard.getData(DataFlavor.javaFileListFlavor) as? List<File>
-            if (data != null) inFocus0?.onPasteFiles(mouseX, mouseY, data)
-            return
+            val data = clipboard.getData(javaFileListFlavor)
+            println("file data: $data")
+            println((data as? List<*>)?.map { it?.javaClass })
+            if (data is String) inFocus0?.onPaste(mouseX, mouseY, data, "")
+            // return
+        } catch (e: UnsupportedFlavorException) {
+            println("File List flavor is not supported")
+        }*/
+        try {
+            val data = clipboard.getData(javaFileListFlavor) as? List<*>
+            val data2 = data?.filterIsInstance<File>()
+            if (data2 != null && data2.isNotEmpty()) {
+                println(data2)
+                // inFocus0?.onPasteFiles(mouseX, mouseY, data2)
+                // return
+            }
         } catch (e: UnsupportedFlavorException) {
         }
+        /*try {
+            val data = clipboard.getData(DataFlavor.getTextPlainUnicodeFlavor())
+            println("plain text data: $data")
+        } catch (e: UnsupportedFlavorException) {
+        }*/
         LOGGER.warn("Unsupported Data Flavor")
     }
 
-    fun pasteFiles(files: List<File>) {
+    fun copyFiles(files: List<File>) {
         Toolkit
             .getDefaultToolkit()
             .systemClipboard

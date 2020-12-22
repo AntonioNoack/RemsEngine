@@ -28,6 +28,7 @@ import me.anno.ui.base.Tooltips
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.debug.ConsoleOutputPanel
+import me.anno.ui.debug.FPSPanel
 import me.anno.ui.dragging.IDraggable
 import me.anno.utils.ProcessingQueue
 import me.anno.utils.Maths.clamp
@@ -342,7 +343,7 @@ abstract class StudioBase(
                 }
 
                 if (showFPS) {
-                    GFX.showFPS()
+                    FPSPanel.showFPS()
                 }
 
                 if (showTutorialKeys) {

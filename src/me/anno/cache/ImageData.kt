@@ -100,7 +100,7 @@ class ImageData(file: File) : CacheData {
             // todo read the exif rotation header
             // todo because some camera images are rotated incorrectly
             "png", "jpg", "jpeg" -> {
-                texture.create({
+                texture.create("ImageData-png/jpg", {
                     ImageIO.read(file) ?: throw IOException("Format of $file is not supported.")
                 }, false)
                 texture.rotation = rotation
@@ -115,7 +115,7 @@ class ImageData(file: File) : CacheData {
                 // if(texture?.isLoaded == true) draw3D(stack, texture, color, nearestFiltering, tiling)
             }
             else -> {
-                texture.create({
+                texture.create("ImageData-any", {
                     try {
                         Imaging.getBufferedImage(file) ?: throw IOException("Format of $file is not supported.")
                     } catch (e: Exception) {

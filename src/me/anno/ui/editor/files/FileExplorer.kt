@@ -17,6 +17,7 @@ import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.input.TextInput
 import me.anno.ui.style.Style
 import me.anno.utils.FileHelper.listFiles2
+import me.anno.utils.FileHelper.openInExplorer
 import me.anno.utils.OS
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.pow
@@ -37,6 +38,8 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
     var folder: File? = project?.scenes ?: File(OS.home, "Documents")
 
     override fun getLayoutState() = Pair(super.getLayoutState(), folder)
+    override fun getVisualState(): Any? =
+        listOf(super.getVisualState(), uContent.getVisualState(), title.getVisualState(), searchBar.getVisualState())
 
     val searchBar = TextInput("Search Term", style)
         .setChangeListener {
@@ -207,6 +210,10 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
                                 invalidate()
                             }
                         }
+                    },
+                    "Open In Explorer" to {
+                        folder?.openInExplorer()
+                        Unit
                     }
                 ))
             }
