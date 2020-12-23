@@ -4,10 +4,11 @@ import me.anno.objects.Inspectable
 
 class Option private constructor(
     val title: String,
-    val tooltipText: String,
+    val description: String,
     val value0: Inspectable?,
     val generator: () -> Inspectable
 ) {
+
     constructor(title: String, tooltipText: String, value0: Inspectable) : this(
         title, tooltipText, value0,
         { value0 }
@@ -16,4 +17,5 @@ class Option private constructor(
     constructor(title: String, tooltipText: String, generator: () -> Inspectable) : this(
         title, tooltipText, null, generator
     )
+
 }

@@ -107,7 +107,7 @@ object DefaultConfig : StringMap() {
             "Camera" to Camera(),
             "Particle System" to {
                 val ps = ParticleSystem(null)
-                ps.name = "PSystem"
+                ps.name = "Particles"
                 Circle(ps)
                 ps.timeOffset = -5.0
                 ps

@@ -38,6 +38,7 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.TimelinePanel
 import me.anno.ui.editor.TimelinePanel.Companion.global2Kf
+import me.anno.ui.editor.stacked.Option
 import me.anno.ui.input.*
 import me.anno.ui.style.Style
 import me.anno.utils.MatrixHelper.skew
@@ -85,7 +86,12 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
 
     var timeAnimated = AnimatedProperty.double()
 
-    var name = getDefaultDisplayName()
+    var name = ""
+        get() {
+            if(field == "") field = getDefaultDisplayName()
+            return field
+        }
+
     var comment = ""
 
     open fun getSymbol() = DefaultConfig["ui.symbol.transform", "\uD83D\uDCC1"]
@@ -193,7 +199,8 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
         editorGroup += VI("Visibility", "", null, visibility, style) { visibility = it }
 
         if (parent?.acceptsWeight() == true) {
-            list += VI("Weight", "For particle systems", Type.FLOAT_PLUS, weight, style) {
+            val psGroup = getGroup("Particle System Child", "particles")
+            psGroup += VI("Weight", "For particle systems", Type.FLOAT_PLUS, weight, style) {
                 weight = it
                 (parent as? ParticleSystem)?.apply {
                     if (children.size > 1) clearCache()
@@ -418,7 +425,7 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
     }
 
     override fun getClassName(): String = "Transform"
-    override fun getApproxSize(): Int = 50
+    override fun getApproxSize(): Int = 50 + listOfAll.count()
 
     fun addBefore(child: Transform) {
         val p = parent!!
@@ -790,6 +797,8 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
                 yieldAll(parent.listOfInheritance)
             }
         }
+
+    open fun getAdditionalChildrenOptions(): List<Option> = emptyList()
 
     companion object {
         // these values MUST NOT be changed

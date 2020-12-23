@@ -5,6 +5,7 @@ import me.anno.config.DefaultStyle.black
 import me.anno.config.DefaultStyle.midGray
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.menuSeparator1
 import me.anno.gpu.GFX.select
 import me.anno.gpu.GFXx2D.drawRect
 import me.anno.input.Input
@@ -198,12 +199,13 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style) : TextPanel("
 
     companion object {
         fun openAddMenu(baseTransform: Transform){
-            fun add(action: (Transform) -> Transform): () -> Unit = { baseTransform.apply { select(action(this)) } }
+            fun add(action: (Transform) -> Transform): () -> Unit = { select(action(baseTransform)) }
             val options = DefaultConfig["createNewInstancesList"] as? StringMap
             if (options != null) {
-                val extras = ArrayList<Pair<String, () -> Unit>>()
+                val extras = ArrayList<GFX.MenuOption>()
                 if (baseTransform.parent != null) {
-                    extras += "Add Mask" to {
+                    extras += menuSeparator1
+                    extras += GFX.MenuOption("Add Mask", "") {
                         val parent = baseTransform.parent!!
                         val i = parent.children.indexOf(baseTransform)
                         if (i < 0) throw RuntimeException()
@@ -212,17 +214,30 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style) : TextPanel("
                         parent.setChildAt(mask, i)
                     }
                 }
+                val additional = baseTransform.getAdditionalChildrenOptions().map { option ->
+                    GFX.MenuOption(option.title, option.description) {
+                        RemsStudio.largeChange("Added ${option.title}"){
+                            val new = option.generator() as Transform
+                            baseTransform.addChild(new)
+                            select(new)
+                        }
+                    }
+                }
+                if(additional.isNotEmpty()){
+                    extras += menuSeparator1
+                    extras += additional
+                }
                 GFX.openMenu(
                     mouseX, mouseY, "Add Child",
                     options.entries
                         .sortedBy { (key, _) -> key.toLowerCase() }
                         .map { (key, value) ->
-                            key to add {
+                            GFX.MenuOption(key, "", add {
                                 val newT = if (value is Transform) value.clone() else value.toString().toTransform()
                                 newT!!
                                 it.addChild(newT)
                                 newT
-                            }
+                            })
                         } + extras
                 )
             } else println("Reset the config, to enable this menu!")

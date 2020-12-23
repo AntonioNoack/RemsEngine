@@ -394,9 +394,14 @@ class FileEntry(
                 // todo add option to open json in specialized json editor...
                 openMenu(
                     listOf(
-                        "Rename" to { onGotAction(x, y, dx, dy, "Rename", false) },
-                        "Open in Explorer" to { file.openInExplorer() },
-                        "Delete" to this::deleteFileMaybe
+                        GFX.MenuOption("Rename", "Change the name of this file") {
+                            onGotAction(x, y, dx, dy, "Rename", false)
+                        },
+                        GFX.MenuOption(
+                            "Open in Explorer",
+                            "Open the file in your default file explorer"
+                        ) { file.openInExplorer() },
+                        GFX.MenuOption("Delete", "Delete this file", this::deleteFileMaybe)
                     )
                 )
             }
@@ -415,13 +420,13 @@ class FileEntry(
 
     fun deleteFileMaybe() {
         openMenu("Delete this file? (${file.length().formatFileSize()})", listOf(
-           /* "Yes" to {
-                // todo put history state...
-                file.deleteRecursively()
-                explorer.invalidate()
-            },*/
-            "No" to {},
-            "Yes, permanently" to {
+            /* "Yes" to {
+                 // todo move to OS trash
+                 file.deleteRecursively()
+                 explorer.invalidate()
+             },*/
+            GFX.MenuOption("No", "Don't delete the file, keep it"){},
+            GFX.MenuOption("Yes, permanently", "Deletes the file; file cannot be recovered"){
                 file.deleteRecursively()
                 explorer.invalidate()
             }
@@ -440,13 +445,13 @@ class FileEntry(
                 .toLong()
                 .formatFileSize()
             })", listOf(
-                "Yes" to {
-                    // todo put history state...
+                /*"Yes" to {
+                    // todo put history state or move to OS-trash
                     inFocus.forEach { (it as? FileEntry)?.file?.deleteRecursively() }
                     explorer.invalidate()
-                },
-                "No" to {},
-                "Yes, permanently" to {
+                },*/
+                GFX.MenuOption("No", "Deletes none of the selected file; keeps them all"){},
+                        GFX.MenuOption("Yes, permanently", "Deletes all selected files; forever; files cannot be recovered"){
                     inFocus.forEach { (it as? FileEntry)?.file?.deleteRecursively() }
                     explorer.invalidate()
                 }

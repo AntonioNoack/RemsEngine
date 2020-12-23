@@ -191,7 +191,7 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
             "OpenOptions" -> {
                 val home = folder
                 openMenu("", listOf(
-                    "Create Folder" to {
+                    GFX.MenuOption("Create Folder", "Creates a new directory") {
                         askName(x.toInt(), y.toInt(), "Name", "Create", { -1 }){
                             val validName = it.toAllowedFilename()
                             if(validName != null){
@@ -200,7 +200,7 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
                             }
                         }
                     },
-                    "Create Transform" to {
+                    GFX.MenuOption("Create Component", "Create a new folder component") {
                         askName(x.toInt(), y.toInt(), "Name", "Create", { -1 }){
                             val validName = it.toAllowedFilename()
                             if(validName != null){
@@ -211,9 +211,8 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
                             }
                         }
                     },
-                    "Open In Explorer" to {
+                    GFX.MenuOption("Open In Explorer", "Show the file in your default file explorer") {
                         folder?.openInExplorer()
-                        Unit
                     }
                 ))
             }

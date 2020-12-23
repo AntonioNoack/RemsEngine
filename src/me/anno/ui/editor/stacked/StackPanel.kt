@@ -1,14 +1,14 @@
 package me.anno.ui.editor.stacked
 
-import me.anno.config.DefaultConfig.style
+import me.anno.gpu.GFX
 import me.anno.gpu.GFX.openMenu
 import me.anno.input.MouseButton
 import me.anno.objects.Inspectable
 import me.anno.ui.base.TextPanel
-import me.anno.ui.base.Visibility
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.style.Style
 
 // todo is glTexture2D a bottleneck for playback?
 
@@ -25,15 +25,17 @@ abstract class StackPanel(
     val titleText: String,
     tooltipText: String,
     val options: List<Option>,
-    val values: List<Option>
+    val values: List<Inspectable>,
+    style: Style
 ) : PanelListY(style) {
 
     val content = PanelListY(style)
 
-    val title = object: TextPanel(titleText, style){
+    val title = object : TextPanel(titleText, style) {
         init {
             focusTextColor = textColor
         }
+
         override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
             /*if(button.isLeft && !long && !content.isEmpty()){
                 val isHidden = content.children.firstOrNull()?.visibility == Visibility.GONE
@@ -48,9 +50,9 @@ abstract class StackPanel(
 
     init {
         add(this.title)
-        add(PanelContainer(content, Padding(10,0,0,0), style))
+        add(PanelContainer(content, Padding(10, 0, 0, 0), style))
         values.forEachIndexed { index, it ->
-            addComponent(it, index, false)
+            addComponent(getOptionFromInspectable(it)!!, index, false)
         }
         setTooltip(tooltipText)
     }
@@ -58,7 +60,7 @@ abstract class StackPanel(
     fun showMenu() {
         openMenu(
             options.map { option ->
-                "Append ${option.title}" to {
+                GFX.MenuOption(option.title, option.title) {
                     addComponent(option, content.children.size, true)
                 }
             }
@@ -76,8 +78,8 @@ abstract class StackPanel(
 
     fun addComponent(option: Option, index: Int, notify: Boolean) {
         val component = option.value0 ?: option.generator()
-        content.add(index, OptionPanel(this, option.title, option.tooltipText, component))
-        if (notify){
+        content.add(index, OptionPanel(this, option.title, option.description, component))
+        if (notify) {
             onAddComponent(component, index)
             invalidateLayout()
         }

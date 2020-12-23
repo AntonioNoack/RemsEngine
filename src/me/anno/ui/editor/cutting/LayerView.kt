@@ -410,8 +410,8 @@ class LayerView(style: Style) : TimelinePanel(style) {
                 if (transform != null) {
                     val cTime = transform.lastLocalTime
                     // get the options for this transform
-                    val options = ArrayList<Pair<String, () -> Unit>>()
-                    options += "Split Here" to {
+                    val options = ArrayList<GFX.MenuOption>()
+                    options += GFX.MenuOption("Split Here", "Cuts the element in two halves") {
                         // todo ask user for split time?... todo rather add fadeout- / fadein-effects
                         // todo 100% transparency on both in the middle??
                         RemsStudio.largeChange("Split Component") {

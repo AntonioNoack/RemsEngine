@@ -2,30 +2,29 @@ package me.anno.ui.editor
 
 import me.anno.gpu.GFX
 import me.anno.input.MouseButton
-import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.TextPanel
+import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.style.Style
-import kotlin.math.min
 
-class OptionBar(style: Style): PanelListX(null, style.getChild("options")) {
+class OptionBar(style: Style) : PanelListX(null, style.getChild("options")) {
 
     init {
-        spacing = style.getSize("textSize", 12)/2
+        spacing = style.getSize("textSize", 12) / 2
     }
 
-    class Major(val name: String, style: Style): TextPanel(name, style){
+    class Major(val name: String, style: Style) : TextPanel(name, style) {
 
         val actions = HashMap<String, Minor>()
         val actionList = ArrayList<Pair<String, Minor>>()
 
         init {
             this += WrapAlign.LeftTop
-            if(name == "Edit") weight = 1f
+            if (name == "Edit") weight = 1f
         }
 
-        fun addMinor(minor: Minor, id: String){
-            if(actions.containsKey(id)){
+        fun addMinor(minor: Minor, id: String) {
+            if (actions.containsKey(id)) {
                 actions[id] = minor
                 actionList[actionList.indexOfFirst { it.first == id }] = id to minor
             } else {
@@ -36,7 +35,7 @@ class OptionBar(style: Style): PanelListX(null, style.getChild("options")) {
 
         override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
             GFX.openMenu(this.x, this.y + this.h, "", actionList.map { (_, minor) ->
-                minor.name to { minor.action() }
+                GFX.MenuOption(minor.name, "") { minor.action() }
             })
         }
 
@@ -45,7 +44,7 @@ class OptionBar(style: Style): PanelListX(null, style.getChild("options")) {
     class Minor(val name: String, val action: () -> Unit)
 
     fun addMajor(name: String): Major {
-        if(!majors.containsKey(name)){
+        if (!majors.containsKey(name)) {
             val major = Major(name, style)
             majors[name] = major
             this += major
@@ -54,7 +53,7 @@ class OptionBar(style: Style): PanelListX(null, style.getChild("options")) {
     }
 
     fun addAction(major: String, minor: String, action: () -> Unit) = addAction(major, minor, minor, action)
-    fun addAction(major: String, minor: String, name: String, action: () -> Unit){
+    fun addAction(major: String, minor: String, name: String, action: () -> Unit) {
         addMajor(major).addMinor(Minor(name, action), minor)
     }
 

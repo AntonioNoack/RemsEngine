@@ -1,6 +1,7 @@
 package me.anno.studio.rems
 
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.msg
 import me.anno.objects.Audio
 import me.anno.studio.rems.RemsStudio.motionBlurSteps
 import me.anno.studio.rems.RemsStudio.shutterPercentage
@@ -30,9 +31,7 @@ object Rendering {
             height / 2 * 2
         )
         if (isRendering) {
-            GFX.openMenu("Rendering already in progress!", listOf(
-                "Ok" to {}
-            ))
+            msg("Rendering already in progress!")
             return
         }
         isRendering = true

@@ -21,6 +21,7 @@
       <w>fprobe</w>
       <w>framebuffers</w>
       <w>gbar</w>
+      <w>generatable</w>
       <w>gizmos</w>
       <w>glfw</w>
       <w>glsl</w>
@@ -29,6 +30,7 @@
       <w>hori</w>
       <w>hsluv</w>
       <w>inspectable</w>
+      <w>lerps</w>
       <w>mediump</w>
       <w>mids</w>
       <w>msaa</w>

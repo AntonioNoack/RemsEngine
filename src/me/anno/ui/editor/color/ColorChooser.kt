@@ -91,7 +91,11 @@ class ColorChooser(style: Style, val withAlpha: Boolean, val owningProperty: Ani
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         if (lastTime != editorTime && owningProperty != null) {
             lastTime = editorTime
-            setRGBA(owningProperty[editorTime] as Vector4f, false)
+            setRGBA(when(val c = owningProperty[editorTime]){
+                is Vector3f -> Vector4f(c, 1f)
+                is Vector4f -> c
+                else -> throw RuntimeException()
+            }, false)
         }
         val needsHueChooser = Visibility[visualisation.needsHueChooser]
         hueChooser.visibility = needsHueChooser

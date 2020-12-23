@@ -7,12 +7,15 @@ import me.anno.io.base.BaseWriter
 import me.anno.objects.animation.Spline.getWeights
 import me.anno.objects.animation.drivers.AnimationDriver
 import me.anno.studio.rems.RemsStudio.root
-import me.anno.utils.WrongClassType
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Vectors.plus
 import me.anno.utils.Vectors.times
+import me.anno.utils.WrongClassType
 import org.apache.logging.log4j.LogManager
-import org.joml.*
+import org.joml.Quaternionf
+import org.joml.Vector2f
+import org.joml.Vector3f
+import org.joml.Vector4f
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -45,11 +48,13 @@ class AnimatedProperty<V>(val type: Type, var defaultValue: V) : Saveable() {
         fun vec2() = AnimatedProperty<Vector2f>(Type.VEC2)
         fun vec2(defaultValue: Vector2f) = AnimatedProperty(Type.VEC2, defaultValue)
         fun vec3() = AnimatedProperty<Vector3f>(Type.VEC3)
+        fun dir3() = vec3(Vector3f(0f, 1f, 0f))
         fun vec3(defaultValue: Vector3f) = AnimatedProperty(Type.VEC3, defaultValue)
         fun vec4() = AnimatedProperty<Vector3f>(Type.VEC4)
         fun vec4(defaultValue: Vector4f) = AnimatedProperty(Type.VEC4, defaultValue)
         fun pos() = AnimatedProperty<Vector3f>(Type.POSITION)
         fun rotYXZ() = AnimatedProperty<Vector3f>(Type.ROT_YXZ)
+        fun rotXZ() = AnimatedProperty<Vector2f>(Type.ROT_XZ)
         fun scale() = AnimatedProperty<Vector3f>(Type.SCALE)
         fun scale(defaultValue: Vector3f) = AnimatedProperty(Type.SCALE, defaultValue)
         fun color() = AnimatedProperty<Vector4f>(Type.COLOR)
@@ -69,8 +74,7 @@ class AnimatedProperty<V>(val type: Type, var defaultValue: V) : Saveable() {
     var interpolation = Interpolation.SPLINE
 
     fun ensureCorrectType(v: Any?): V {
-        if (!type.accepts(v)) throw RuntimeException("got $v for $type")
-        return v as V
+        return type.accepts(v!!) as V ?: throw RuntimeException("got $v for $type")
     }
 
     fun clampAny(value: Any) = clamp(value as V)
@@ -90,15 +94,16 @@ class AnimatedProperty<V>(val type: Type, var defaultValue: V) : Saveable() {
         addKeyframe(time, value, 0.001)
 
     fun addKeyframe(time: Double, value: Any, equalityDt: Double) {
-        if (type.accepts(value)) {
-            addKeyframeInternal(time, clamp(value as V), equalityDt)
+        val value2 = type.accepts(value)
+        if (value2 != null) {
+            addKeyframeInternal(time, clamp(value2 as V), equalityDt)
         } else LOGGER.warn("Value $value is not accepted by type $type!")
     }
 
     private fun addKeyframeInternal(time: Double, value: V, equalityDt: Double) {
         checkThread()
         ensureCorrectType(value)
-        if(isAnimated){
+        if (isAnimated) {
             keyframes.forEachIndexed { index, it ->
                 if (abs(it.time - time) < equalityDt) {
                     keyframes[index] = Keyframe(time, value)
@@ -135,6 +140,35 @@ class AnimatedProperty<V>(val type: Type, var defaultValue: V) : Saveable() {
     }
 
     operator fun get(time: Double) = getValueAt(time)
+    fun <N : Number> getIntegral(time: Double): Double {
+        // todo negative integral...
+        val size = keyframes.size
+        return when {
+            size == 0 -> (defaultValue as N).toDouble() * time
+            size == 1 || !isAnimated -> (keyframes[0].value as N).toDouble() * time
+            else -> {
+                if (time <= 0) {
+                    0.0
+                } else {
+                    var sum = 0.0
+                    var lastTime = 0.0
+                    var lastValue = this[0.0] as N
+                    for (kf in keyframes) {
+                        if (kf.time > time) break
+                        if (kf.time > lastTime) {
+                            val value = kf.value as N
+                            sum += (lastValue.toDouble() + value.toDouble()) * (kf.time - lastTime) * 0.5
+                            lastValue = value
+                            lastTime = kf.time
+                        }
+                    }
+                    val endValue = this[time] as N
+                    sum += (lastValue.toDouble() + endValue.toDouble()) * (time - lastTime) * 0.5
+                    sum
+                }
+            }
+        }
+    }
 
     operator fun get(t0: Double, t1: Double): List<Keyframe<V>> {
         val i0 = max(0, getIndexBefore(t0))
@@ -150,10 +184,10 @@ class AnimatedProperty<V>(val type: Type, var defaultValue: V) : Saveable() {
             size == 1 || !isAnimated -> keyframes[0].value
             else -> {
 
-                val index = clamp(getIndexBefore(time), 0, keyframes.size-2)
+                val index = clamp(getIndexBefore(time), 0, keyframes.size - 2)
                 val frame0 = keyframes.getOrElse(index - 1) { keyframes[0] }
                 val frame1 = keyframes[index]
-                val frame2 = keyframes[index+1]
+                val frame2 = keyframes[index + 1]
                 val frame3 = keyframes.getOrElse(index + 2) { keyframes.last() }
                 if (frame1 == frame2) return frame1.value
 
@@ -340,8 +374,9 @@ class AnimatedProperty<V>(val type: Type, var defaultValue: V) : Saveable() {
         when (name) {
             "keyframes" -> {
                 if (value is Keyframe<*>) {
-                    if (type.accepts(value.value)) {
-                        addKeyframe(value.time, clamp(value.value as V) as Any, 0.0) // do clamp?
+                    val castValue = type.accepts(value.value!!)
+                    if (castValue != null) {
+                        addKeyframe(value.time, clamp(castValue as V) as Any, 0.0) // do clamp?
                     } else LOGGER.warn("Dropped keyframe!, incompatible type ${value.value} for $type")
                 } else WrongClassType.warn("keyframe", value)
             }
@@ -363,8 +398,6 @@ class AnimatedProperty<V>(val type: Type, var defaultValue: V) : Saveable() {
         } else WrongClassType.warn("driver", value)
     }
 
-    // todo this may result in an issue, where we can't copy this object by reference...
-    // todo do we want copies by reference anyways? maybe with right click, or key combos..
     fun copyFrom(obj: Any?, force: Boolean = false) {
         if (obj === this && !force) throw RuntimeException("Probably a typo!")
         if (obj is AnimatedProperty<*>) {
@@ -372,8 +405,9 @@ class AnimatedProperty<V>(val type: Type, var defaultValue: V) : Saveable() {
             interpolation = obj.interpolation
             keyframes.clear()
             obj.keyframes.forEach {
-                if (type.accepts(it.value)) {
-                    keyframes.add(Keyframe(it.time, clamp(it.value as V)))
+                val castValue = type.accepts(it.value!!)
+                if (castValue != null) {
+                    keyframes.add(Keyframe(it.time, clamp(castValue as V)))
                 } else LOGGER.warn("${it.value} is not accepted by $type")
                 // else convert the type??...
             }

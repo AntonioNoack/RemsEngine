@@ -36,4 +36,8 @@ open class PanelContainer(onlyChild: Panel, val padding: Padding, style: Style):
         child.placeInParent(x + padding.left, y + padding.right)
     }
 
+    companion object {
+        const val maxLength = 2_000_000_000 // max value, but also enough for any padding addition/subtraction
+    }
+
 }

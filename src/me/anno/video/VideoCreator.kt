@@ -144,7 +144,7 @@ class VideoCreator(
 
         videoOut = process.outputStream.buffered()
 
-        LOGGER.info("total frame count: $totalFrameCount")
+        LOGGER.info("Total frame count: $totalFrameCount")
 
     }
 

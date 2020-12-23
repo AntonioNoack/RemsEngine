@@ -7,9 +7,9 @@ import me.anno.input.MouseButton
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.objects.Transform
-import me.anno.studio.rems.RemsStudio.project
 import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.studio.history.History
+import me.anno.studio.rems.RemsStudio.project
 import me.anno.ui.base.TextPanel
 import me.anno.ui.dragging.Draggable
 import me.anno.ui.editor.files.FileExplorer
@@ -66,12 +66,12 @@ class SceneTab(var file: File?, var root: Transform, history: History?) : TextPa
                 button.isRight -> {
                     if (hasChanged) {
                         GFX.openMenu(listOf(
-                            "Close" to { save { close() } },
-                            "Close (Unsaved)" to { close() }
+                            GFX.MenuOption("Close", "") { save { close() } },
+                            GFX.MenuOption("Close (Unsaved)", "") { close() }
                         ))
                     } else {
                         GFX.openMenu(listOf(
-                            "Close" to { close() }
+                            GFX.MenuOption("Close", "") { close() }
                         ))
                     }
                 }

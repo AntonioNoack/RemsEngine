@@ -15,11 +15,13 @@ import me.anno.objects.animation.drivers.HarmonicDriver
 import me.anno.objects.animation.drivers.PerlinNoiseDriver
 import me.anno.objects.attractors.EffectColoring
 import me.anno.objects.attractors.EffectMorphing
+import me.anno.objects.distributions.*
 import me.anno.objects.effects.MaskLayer
 import me.anno.objects.geometric.Circle
 import me.anno.objects.geometric.Polygon
 import me.anno.objects.meshes.Mesh
 import me.anno.objects.particles.ParticleSystem
+import me.anno.objects.particles.forces.impl.*
 import me.anno.objects.text.Text
 import me.anno.objects.text.Timer
 import me.anno.ui.custom.data.CustomListData
@@ -64,6 +66,18 @@ abstract class BaseReader {
             "SquareFalloffEffect" -> SquareFalloff()
             "LinearFalloffEffect" -> LinearFalloff()
             "ExponentialFalloffEffect" -> ExponentialFalloff()
+            "AnimatedDistribution" -> AnimatedDistribution()
+            "GaussianDistribution" -> GaussianDistribution()
+            "ConstantDistribution" -> ConstantDistribution()
+            "UniformDistribution" -> UniformDistribution()
+            "SphereHullDistribution" -> SphereHullDistribution()
+            "SphereVolumeDistribution" -> SphereVolumeDistribution()
+            "GlobalForce" -> GlobalForce()
+            "GravityForce" -> GravityField()
+            "LorentzForce" -> LorentzForce()
+            "MultiGravityForce" -> MultiGravityForce()
+            "TornadoField" -> TornadoField()
+            "VelocityFrictionForce" -> VelocityFrictionForce()
             else -> {
                 // just for old stuff; AnimatedProperties must not be loaded directly; always just copied into
                 if(clazz.startsWith("AnimatedProperty<")) AnimatedProperty.any()

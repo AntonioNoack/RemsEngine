@@ -48,7 +48,7 @@ class SoundPipeline() : Saveable(), Inspectable {
             option { SquareFalloff(audio) },
             option { LinearFalloff(audio) },
             option { ExponentialFalloff(audio) }
-        ), stages.map { Option(it.getClassName(), "", it) }){
+        ), stages, style){
             override fun onAddComponent(component: Inspectable, index: Int) {
                 component as SoundEffect
                 RemsStudio.largeChange("Add ${component.displayName}"){

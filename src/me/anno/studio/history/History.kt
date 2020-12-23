@@ -26,9 +26,9 @@ class History : Saveable() {
         }
     }
 
-    fun update(title: String){
+    fun update(title: String) {
         val last = states.lastOrNull()
-        if(last?.title == title){
+        if (last?.title == title) {
             last.capture(last)
         } else {
             put(title)
@@ -60,7 +60,7 @@ class History : Saveable() {
     }
 
     fun undo() {
-        if(nextInsertIndex > 1){
+        if (nextInsertIndex > 1) {
             nextInsertIndex--
             states[nextInsertIndex - 1].apply()
         } else LOGGER.info("Nothing left to undo!")
@@ -77,8 +77,8 @@ class History : Saveable() {
 
     fun display() {
         GFX.openMenu("Change History", states.mapIndexed { index, change ->
-            val title = if(index == nextInsertIndex-1) "* ${change.title}" else change.title
-            title to {
+            val title = if (index == nextInsertIndex - 1) "* ${change.title}" else change.title
+            GFX.MenuOption(title, "Click to redo") {
                 redo(index)
             }
         }.reversed())
@@ -87,14 +87,14 @@ class History : Saveable() {
     // todo file explorer states?
 
     override fun readInt(name: String, value: Int) {
-        when(name){
+        when (name) {
             "nextInsertIndex" -> nextInsertIndex = value
             else -> super.readInt(name, value)
         }
     }
 
     override fun readObject(name: String, value: ISaveable?) {
-        when(name){
+        when (name) {
             "state" -> {
                 states += value as? State ?: return
             }
@@ -105,7 +105,7 @@ class History : Saveable() {
     override fun save(writer: BaseWriter) {
         super.save(writer)
         writer.writeInt("nextInsertIndex", nextInsertIndex)
-        states.forEach {  state ->
+        states.forEach { state ->
             writer.writeObject(this, "state", state)
         }
     }

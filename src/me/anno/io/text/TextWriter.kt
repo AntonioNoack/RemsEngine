@@ -5,6 +5,7 @@ import me.anno.io.base.BaseWriter
 import me.anno.io.Saveable
 import org.joml.Vector2f
 import org.joml.Vector3f
+import org.joml.Vector4d
 import org.joml.Vector4f
 
 class TextWriter(beautify: Boolean): BaseWriter() {
@@ -220,6 +221,21 @@ class TextWriter(beautify: Boolean): BaseWriter() {
 
     override fun writeVector4(name: String, value: Vector4f, force: Boolean) {
         if(force || value.x != 0f || value.y != 0f || value.z != 0f || value.w != 0f){
+            writeAttributeStart("v4", name)
+            data += '['
+            data += value.x.toString()
+            data += separator
+            data += value.y.toString()
+            data += separator
+            data += value.z.toString()
+            data += separator
+            data += value.w.toString()
+            data += ']'
+        }
+    }
+
+    override fun writeVector4(name: String, value: Vector4d, force: Boolean) {
+        if(force || value.x != 0.0 || value.y != 0.0 || value.z != 0.0 || value.w != 0.0){
             writeAttributeStart("v4", name)
             data += '['
             data += value.x.toString()

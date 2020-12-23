@@ -1,10 +1,12 @@
 package me.anno.ui.editor
 
+import me.anno.cache.Cache
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.getRecentProjects
 import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.ask
+import me.anno.gpu.GFX.msg
 import me.anno.gpu.GFX.openMenu
 import me.anno.gpu.GFX.openMenuComplex2
 import me.anno.gpu.GFX.select
@@ -13,9 +15,9 @@ import me.anno.gpu.Window
 import me.anno.input.Input
 import me.anno.objects.Camera
 import me.anno.objects.text.Text
-import me.anno.cache.Cache
-import me.anno.studio.rems.RenderSettings
 import me.anno.studio.GFXSettings
+import me.anno.studio.StudioBase
+import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.RemsStudio.gfxSettings
 import me.anno.studio.rems.RemsStudio.nullCamera
@@ -23,10 +25,9 @@ import me.anno.studio.rems.RemsStudio.project
 import me.anno.studio.rems.RemsStudio.root
 import me.anno.studio.rems.RemsStudio.windowStack
 import me.anno.studio.rems.RemsStudio.workspace
+import me.anno.studio.rems.RenderSettings
 import me.anno.studio.rems.Rendering.render
 import me.anno.studio.rems.Rendering.renderPart
-import me.anno.studio.StudioBase
-import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.ui.base.*
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment
@@ -91,22 +92,19 @@ object UILayouts {
                 fun open() {// open zip?
                     if (project.file.exists() && project.file.isDirectory) {
                         openProject(project.name, project.file)
-                    } else {
-                        openMenu(listOf(
-                            "File not found!" to {}
-                        ))
-                    }
+                    } else msg("File not found!")
                 }
                 when {
                     button.isLeft -> open()
                     button.isRight -> {
                         openMenu(listOf(
-                            "Open" to { open() },
-                            "Hide" to {
+                            GFX.MenuOption("Open", "") { open() },
+                            GFX.MenuOption("Hide", "") {
                                 DefaultConfig.removeFromRecentProjects(project.file)
                                 tp.visibility = Visibility.GONE
+                                0
                             },
-                            "Delete" to {
+                            GFX.MenuOption("Delete", "") {
                                 ask("Are you sure?") {
                                     DefaultConfig.removeFromRecentProjects(project.file)
                                     project.file.deleteRecursively()
@@ -128,7 +126,8 @@ object UILayouts {
 
     fun loadLastProject(
         usableFile: File?, nameInput: TextInput,
-        recent: List<DefaultConfig.ProjectHeader>) {
+        recent: List<DefaultConfig.ProjectHeader>
+    ) {
         if (recent.isEmpty()) loadNewProject(usableFile, nameInput)
         else {
             val project = recent.first()
@@ -141,9 +140,7 @@ object UILayouts {
         if (file != null) {
             openProject(nameInput.text, file)
         } else {
-            openMenu("Please choose a $dirName!", listOf(
-                "Ok" to {}
-            ))
+            msg("Please choose a $dirName!")
         }
     }
 
@@ -334,7 +331,11 @@ object UILayouts {
 
         options.addAction("Config", "Style") {
             val panel = ConfigPanel(DefaultConfig.style.values, true, style)
-            val window = object: Window(panel){ override fun destroy() { createEditorUI() } }
+            val window = object : Window(panel) {
+                override fun destroy() {
+                    createEditorUI()
+                }
+            }
             panel.create()
             windowStack.push(window)
         }
@@ -347,10 +348,12 @@ object UILayouts {
         }
 
         options.addAction("Project", "Load") {
-            openMenuComplex2("Load Project", listOf(
-                createRecentProjectsUI(menuStyle, getRecentProjects()),
-                createNewProjectUI(menuStyle)
-            ))
+            openMenuComplex2(
+                "Load Project", listOf(
+                    createRecentProjectsUI(menuStyle, getRecentProjects()),
+                    createNewProjectUI(menuStyle)
+                )
+            )
         }
 
         options.addAction("Select", "Inspector Camera") { select(nullCamera) }

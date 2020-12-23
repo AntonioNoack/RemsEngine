@@ -1,5 +1,6 @@
 package me.anno.ui.editor.stacked
 
+import me.anno.gpu.GFX
 import me.anno.gpu.GFX.openMenu
 import me.anno.input.MouseButton
 import me.anno.io.Saveable
@@ -9,7 +10,6 @@ import me.anno.objects.Inspectable
 import me.anno.ui.base.Panel
 import me.anno.ui.editor.PropertyInspector
 import me.anno.ui.editor.SettingCategory
-import java.lang.Exception
 
 class OptionPanel(
     private val stackPanel: StackPanel,
@@ -29,12 +29,12 @@ class OptionPanel(
                 val index = indexInParent
                 openMenu(
                     stackPanel.options.map { option ->
-                        "Prepend ${option.title}" to {
+                        GFX.MenuOption("Prepend ${option.title}", option.description) {
                             stackPanel.addComponent(option, index, true)
                         }
-                    } + ("Remove Component" to {
+                    } + GFX.MenuOption("Remove Component", "") {
                         stackPanel.removeComponent(value)
-                    })
+                    }
                 )
             }
             else -> super.onMouseClicked(x, y, button, long)
@@ -46,8 +46,8 @@ class OptionPanel(
     }
 
     override fun onCopyRequested(x: Float, y: Float): String? {
-        return if(value is Saveable){
-            TextWriter.toText(value,false)
+        return if (value is Saveable) {
+            TextWriter.toText(value, false)
         } else {
             super.onCopyRequested(x, y)
         }
@@ -57,12 +57,12 @@ class OptionPanel(
         try {
             val index = indexInParent
             val values = TextReader.fromText(data)
-            for(it in values){
+            for (it in values) {
                 it as? Inspectable ?: continue
                 val option = stackPanel.getOptionFromInspectable(it) ?: continue
                 stackPanel.addComponent(option, index, true)
             }
-        } catch (e: Exception){
+        } catch (e: Exception) {
             e.printStackTrace()
         }
     }

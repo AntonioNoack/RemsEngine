@@ -32,6 +32,7 @@ import me.anno.ui.input.BooleanInput
 import me.anno.ui.input.EnumInput
 import me.anno.ui.input.TextInputML
 import me.anno.ui.style.Style
+import me.anno.utils.Casting.castToFloat
 import me.anno.utils.Vectors.plus
 import me.anno.utils.Vectors.times
 import me.anno.video.MissingFrameException
@@ -584,8 +585,8 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
 
     companion object {
 
-        val tabSpaceType = Type(4f, 1, 1f, true, true, { max(it as Float, 0f) }) { it is Float }
-        val lineBreakType = Type(-1f, 1, 1f, true, true, { it as Float }) { it is Float }
+        val tabSpaceType = Type(4f, 1, 1f, true, true, { max(it as Float, 0f) }, ::castToFloat)
+        val lineBreakType = Type(-1f, 1, 1f, true, true, { it as Float }, ::castToFloat)
 
         // save the last used fonts? yes :)
         // todo per project? idk

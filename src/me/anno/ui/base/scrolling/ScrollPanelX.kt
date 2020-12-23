@@ -37,7 +37,6 @@ open class ScrollPanelX(child: Panel, padding: Padding,
     }
 
     var scrollPosition = 0f
-    val maxLength = 1_000_000_000
     var wasActive = 1f
     var isDownOnScrollbar = false
 

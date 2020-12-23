@@ -2,8 +2,6 @@ package me.anno.gpu
 
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style
-import me.anno.gpu.GFXx2D.drawText
-import me.anno.gpu.GFXx2D.getTextSize
 import me.anno.gpu.ShaderLib.copyShader
 import me.anno.gpu.blending.BlendDepth
 import me.anno.gpu.blending.BlendMode
@@ -39,7 +37,6 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.debug.FrameTimes
 import me.anno.ui.input.components.PureTextInput
-import me.anno.utils.FloatFormat.f1
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Vectors.minus
 import org.apache.logging.log4j.LogManager
@@ -157,6 +154,7 @@ object GFX : GFXBase1() {
     var drawnTransform: Transform? = null
 
     const val menuSeparator = "-----"
+    val menuSeparator1 = MenuOption(menuSeparator, ""){}
 
     val inFocus = HashSet<Panel>()
     val inFocus0 get() = inFocus.firstOrNull()
@@ -481,7 +479,7 @@ object GFX : GFXBase1() {
         x: Int,
         y: Int,
         title: String,
-        options: List<Pair<String, (button: MouseButton, isLong: Boolean) -> Boolean>>
+        options: List<ComplexMenuOption>
     ) {
 
         if (options.isEmpty()) return
@@ -497,7 +495,8 @@ object GFX : GFXBase1() {
 
         val padding = 4
         for ((index, element) in options.withIndex()) {
-            val (name, action) = element
+            val name = element.title
+            val action = element.action
             if (name == menuSeparator) {
                 if (index != 0) {
                     list += SpacePanel(0, 1, style)
@@ -509,6 +508,7 @@ object GFX : GFXBase1() {
                         close()
                     }
                 }
+                buttonView.setTooltip(element.description)
                 buttonView.enableHoverColor = true
                 buttonView.padding.left = padding
                 buttonView.padding.right = padding
@@ -572,32 +572,46 @@ object GFX : GFXBase1() {
         x: Float,
         y: Float,
         title: String,
-        options: List<Pair<String, (button: MouseButton, isLong: Boolean) -> Boolean>>,
+        options: List<ComplexMenuOption>,
         delta: Int = 10
     ) {
         openMenuComplex(x.roundToInt() - delta, y.roundToInt() - delta, title, options)
     }
 
-    fun openMenu(options: List<Pair<String, () -> Any>>) {
+    fun openMenu(options: List<MenuOption>) {
         openMenu(mouseX, mouseY, "", options)
     }
 
-    fun openMenu(title: String, options: List<Pair<String, () -> Any>>) {
+    fun openMenu(title: String, options: List<MenuOption>) {
         openMenu(mouseX, mouseY, title, options)
     }
 
-    fun openMenu(x: Int, y: Int, title: String, options: List<Pair<String, () -> Any>>, delta: Int = 10) {
+    fun openMenu(x: Int, y: Int, title: String, options: List<MenuOption>, delta: Int = 10) {
         return openMenu(x.toFloat(), y.toFloat(), title, options, delta)
     }
 
-    fun openMenu(x: Float, y: Float, title: String, options: List<Pair<String, () -> Any>>, delta: Int = 10) {
-        openMenuComplex(x.roundToInt() - delta, y.roundToInt() - delta, title, options.map { (key, value) ->
-            Pair(key, { b: MouseButton, _: Boolean ->
-                if (b.isLeft) {
-                    value(); true
+    class ComplexMenuOption(
+        val title: String,
+        val description: String,
+        val action: (button: MouseButton, long: Boolean) -> Boolean
+    )
+
+    class MenuOption(val title: String, val description: String, val action: () -> Unit) {
+        fun toComplex() =
+            ComplexMenuOption(title, description) { button: MouseButton, _: Boolean ->
+                if (button.isLeft) {
+                    action()
+                    true
                 } else false
-            })
-        })
+            }
+    }
+
+    fun openMenu(x: Float, y: Float, title: String, options: List<MenuOption>, delta: Int = 10) {
+        openMenuComplex(
+            x.roundToInt() - delta,
+            y.roundToInt() - delta,
+            title,
+            options.map { option -> option.toComplex() })
     }
 
     var glThread: Thread? = null
@@ -634,21 +648,21 @@ object GFX : GFXBase1() {
     }
 
     fun msg(title: String) {
-        openMenu(listOf(title to {}))
+        openMenu(listOf(MenuOption(title, "") {}))
     }
 
     fun ask(question: String, onYes: () -> Unit) {
         openMenu(mouseX, mouseY, question, listOf(
-            "Yes" to onYes,
-            "No" to {}
+            MenuOption("Yes", "", onYes),
+            MenuOption("No", "") {}
         ))
     }
 
     fun ask(question: String, onYes: () -> Unit, onNo: () -> Unit) {
         openMenu(
             mouseX, mouseY, question, listOf(
-                "Yes" to onYes,
-                "No" to onNo
+                MenuOption("Yes", "", onYes),
+                MenuOption("No", "", onNo)
             )
         )
     }

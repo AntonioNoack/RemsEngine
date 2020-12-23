@@ -586,7 +586,7 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
 
     override fun onPaste(x: Float, y: Float, data: String, type: String) {
         // paste keyframes
-        // todo convert the values, if required
+        // done convert the values, if required
         // move them? :)
         // paste float/vector values at the mouse position?
         try {
@@ -598,8 +598,9 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
                 RemsStudio.largeChange("Pasted Keyframes") {
                     parsedKeyframes.forEach { sth ->
                         sth.apply {
-                            if (targetType.accepts(value)) {
-                                target.addKeyframe(time + time0, value!!)
+                            val castValue = targetType.accepts(value!!)
+                            if (castValue != null) {
+                                target.addKeyframe(time + time0, castValue)
                             } else LOGGER.warn("$targetType doesn't accept $value")
                         }
                     }
@@ -649,7 +650,7 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
                     super.onMouseClicked(x, y, button, long)
                 } else {
                     GFX.openMenu("Interpolation", Interpolation.values().map { mode ->
-                        mode.displayName to {
+                        GFX.MenuOption(mode.displayName, mode.description){
                             selectedKeyframes.forEach {
                                 it.interpolation = mode
                             }

@@ -16,6 +16,7 @@ object Vectors {
     operator fun Vector3f.plus(s: Vector3f) = Vector3f(x + s.x, y + s.y, z + s.z)
     operator fun Vector3f.minus(s: Vector3f) = Vector3f(x - s.x, y - s.y, z - s.z)
     operator fun Vector3f.times(s: Float) = Vector3f(x * s, y * s, z * s)
+    operator fun Vector3f.times(s: Vector3f) = Vector3f(x * s.x, y * s.y, z * s.z)
 
     operator fun Vector3i.plus(s: Vector3i) = Vector3i(x + s.x, y + s.y, z + s.z)
     operator fun Vector3i.minus(s: Vector3i) = Vector3i(x - s.x, y - s.y, z - s.z)

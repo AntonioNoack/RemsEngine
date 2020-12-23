@@ -1,7 +1,5 @@
 package me.anno.maybe
 
-// todo syntax highlighting for text objects? lol, low priority, developers are not our target audience
-
 // todo tutorials for various effects:
 // todo tut play video/audio backwards effect
 // todo tut make gradient effect
@@ -11,11 +9,6 @@ package me.anno.maybe
 // todo tut video fade-in, fade-out
 // todo tut pixelating a face or car sign
 
-// todo effects, that clip onto everything/start/end, and manipulate the animations???
-// (fade-in, fade-out effect)
-
-// todo stretching force fields by points with values and weights (= color force field + delta-by-color-mask)
-// todo color force fields by points with values and weights
 
 
 

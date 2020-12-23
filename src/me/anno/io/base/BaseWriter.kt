@@ -3,6 +3,7 @@ package me.anno.io.base
 import me.anno.io.ISaveable
 import org.joml.Vector2f
 import org.joml.Vector3f
+import org.joml.Vector4d
 import org.joml.Vector4f
 import java.io.File
 import java.util.*
@@ -29,6 +30,7 @@ abstract class BaseWriter {
     abstract fun writeVector2(name: String, value: Vector2f, force: Boolean = false)
     abstract fun writeVector3(name: String, value: Vector3f, force: Boolean = false)
     abstract fun writeVector4(name: String, value: Vector4f, force: Boolean = false)
+    abstract fun writeVector4(name: String, value: Vector4d, force: Boolean = false)
 
     fun writeFile(name: String, file: File?) = writeString(name, file?.toString() ?: "")
 

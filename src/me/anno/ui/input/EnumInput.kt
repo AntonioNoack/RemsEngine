@@ -43,7 +43,7 @@ class EnumInput(
     }
 
     init {
-        if (titleView != null){
+        if (titleView != null) {
             this += titleView
             titleView.focusTextColor = titleView.textColor
         }
@@ -63,7 +63,7 @@ class EnumInput(
 
     override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
         GFX.openMenu(this.x, this.y, "Select the $title", options.mapIndexed { index, fontName ->
-            fontName to {
+            GFX.MenuOption(fontName, "") {
                 inputPanel.text = fontName
                 lastIndex = index
                 changeListener(fontName, index, options)
