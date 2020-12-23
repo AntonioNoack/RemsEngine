@@ -311,10 +311,10 @@ class LayerView(style: Style) : TimelinePanel(style) {
         return bestTransform
     }
 
-    // todo hold / move up/down / move sideways
-    // todo right click cut
-    // todo move start/end times
-    // todo highlight the hovered panel?
+    // done hold / move up/down / move sideways
+    // done right click cut
+    // done move start/end times
+    // done highlight the hovered panel?
 
     override fun onMouseDown(x: Float, y: Float, button: MouseButton) {
         if (button.isLeft) {

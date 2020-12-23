@@ -31,6 +31,9 @@ import kotlin.math.max
 object SimpleExpressionParser {
 
     // todo give drivers access to global time and parent time?
+    // todo give them access to the keyframes
+    // todo node editor...
+    // todo give them access to all attributes XD
 
     private val LOGGER = LogManager.getLogger(SimpleExpressionParser::class)
 

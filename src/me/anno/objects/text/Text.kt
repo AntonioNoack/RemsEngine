@@ -606,8 +606,8 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
             }
 
         val rpgEffects = getGroup("RPG Effects", "rpg-effects")
-        rpgEffects += VI("Start Cursor", "", startCursor, style)
-        rpgEffects += VI("End Cursor", "", endCursor, style)
+        rpgEffects += VI("Start Cursor", "The first character index to be drawn", startCursor, style)
+        rpgEffects += VI("End Cursor", "The last character index to be drawn; -1 = unlimited", endCursor, style)
 
         val outline = getGroup("Outline", "outline")
         outline.setTooltip("Needs Rendering Mode = SDF or Merged SDF")
@@ -639,10 +639,12 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
         val tabSpaceType = Type(4f, 1, 1f, true, true, { max(it as Float, 0f) }, ::castToFloat)
         val lineBreakType = Type(-1f, 1, 1f, true, true, { it as Float }, ::castToFloat)
 
-        // save the last used fonts? yes :)
-        // todo per project? idk
         val textMeshTimeout = 5000L
         val lastUsedFonts = arrayOfNulls<String>(max(0, DefaultConfig["lastUsed.fonts.count", 5]))
+
+        /**
+         * saves the most recently used fonts
+         * */
         fun putLastUsedFont(font: String) {
             if (lastUsedFonts.isNotEmpty()) {
                 for (i in lastUsedFonts.indices) {
@@ -654,6 +656,7 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
                 lastUsedFonts[lastUsedFonts.lastIndex] = font
             }
         }
+
     }
 
 }

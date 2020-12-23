@@ -7,9 +7,11 @@ import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.input.BooleanInput
 import me.anno.ui.input.ColorInput
 import me.anno.ui.input.FloatInput
 import me.anno.ui.input.VectorInput
+import me.anno.ui.input.components.Checkbox
 import me.anno.ui.style.Style
 
 class PropertyInspector(style: Style):
@@ -49,7 +51,8 @@ class PropertyInspector(style: Style):
             // is matching required? not really
             val src = secondaryList.listOfAll.iterator()
             val dst = list.listOfAll.iterator()
-            while(src.hasNext() && dst.hasNext()){// works as long as the structure stays the same
+            // works as long as the structure stays the same
+            while(src.hasNext() && dst.hasNext()){
                 val s = src.next()
                 val d = dst.next()
                 when(s){
@@ -66,6 +69,11 @@ class PropertyInspector(style: Style):
                     is ColorInput -> {
                         (d as? ColorInput)?.apply {
                             // contentView.
+                        }
+                    }
+                    is Checkbox -> {
+                        (d as? Checkbox)?.apply {
+                            d.isChecked = s.isChecked
                         }
                     }
                 }

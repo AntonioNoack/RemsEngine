@@ -12,7 +12,7 @@ fun main(){
 
     for(i in 0 until 11){
         val time = i/10.0
-        println(line.getIntegral<Float>(time))
+        println(line.getIntegral<Float>(time, false))
     }
 
 }

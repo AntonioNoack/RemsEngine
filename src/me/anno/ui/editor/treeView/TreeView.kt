@@ -127,10 +127,8 @@ class TreeView(style: Style) :
         return child
     }
 
-    // todo display, where we'd move it
-    // todo between vs at the end vs at the start
-    // todo use the arrow keys to move elements left, right, up, down?
-    // todo always give the user hints? :D
+    // done display, where we'd move it
+    // done between vs at the end vs at the start
     // todo we'd need a selection mode with the arrow keys, too...
 
     override fun onPaste(x: Float, y: Float, data: String, type: String) {

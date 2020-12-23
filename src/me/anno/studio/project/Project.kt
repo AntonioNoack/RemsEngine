@@ -10,6 +10,7 @@ import me.anno.io.utils.StringMap
 import me.anno.objects.Camera
 import me.anno.objects.Transform
 import me.anno.studio.history.History
+import me.anno.studio.rems.RemsStudio.editorTime
 import me.anno.ui.base.Panel
 import me.anno.ui.custom.data.CustomData
 import me.anno.ui.custom.data.ICustomDataCreator
@@ -110,6 +111,11 @@ class Project(var name: String, val file: File) : Saveable() {
             e.printStackTrace()
             uiDefault()
         }
+
+        (config["editor.time"] as? Double)?.apply {
+            editorTime = this
+        }
+
     }
 
     fun saveTabs() {
@@ -128,8 +134,7 @@ class Project(var name: String, val file: File) : Saveable() {
 
     // do we need multiple targets per project? maybe... todo overlays!
     // do we need a target at all? -> yes
-    // todo include the scene? or do we store it in different files?
-    // todo a project always is a folder
+    // a project always is a folder
     // zip this folder all the time to not waste SSD life time? -> no, we don't have that many files
     // -> we need to be able to show contents of zip files then
 
@@ -166,6 +171,7 @@ class Project(var name: String, val file: File) : Saveable() {
             .filter { it.file != null }
             .joinToString("\n") { it.file.toString() }
         config["camera.null"] = nullCamera
+        config["editor.time"] = editorTime
         ConfigBasics.save(configFile, config.toString())
     }
 

@@ -5,6 +5,7 @@ import me.anno.config.DefaultStyle.black
 import me.anno.config.DefaultStyle.midGray
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.inFocus
 import me.anno.gpu.GFX.menuSeparator1
 import me.anno.gpu.GFX.select
 import me.anno.gpu.GFXx2D.drawRect
@@ -18,9 +19,9 @@ import me.anno.objects.Rectangle
 import me.anno.objects.Transform
 import me.anno.objects.Transform.Companion.toTransform
 import me.anno.objects.effects.MaskLayer
+import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.RemsStudio.selectedTransform
-import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.ui.base.TextPanel
 import me.anno.ui.dragging.Draggable
 import me.anno.ui.editor.files.addChildFromFile
@@ -87,8 +88,14 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style) : TextPanel("
         when {
             button.isLeft -> {
                 if (Input.isShiftDown) {
-                    RemsStudio.largeChange(if(transform.isCollapsed) "Expanded ${transform.name}" else "Collapsed ${transform.name}"){
-                        transform.isCollapsed = !transform.isCollapsed
+                    RemsStudio.largeChange(if (transform.isCollapsed) "Expanded ${transform.name}" else "Collapsed ${transform.name}") {
+                        val target = !transform.isCollapsed
+                        // remove children from the selection???...
+                        inFocus.filterIsInstance<TreeViewPanel>().forEach {
+                            val transform2 = it.getElement()
+                            transform2.isCollapsed = target
+                        }
+                        transform.isCollapsed = target
                     }
                 } else {
                     select(transform)
@@ -108,7 +115,7 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style) : TextPanel("
             val original = (dragged as? Draggable)?.getOriginal() as? Transform
             val relativeY = (y - this.y) / this.h
             val e = getElement()
-            RemsStudio.largeChange("Moved Component"){
+            RemsStudio.largeChange("Moved Component") {
                 if (relativeY < 0.33f) {
                     // paste on top
                     if (e.parent != null) {
@@ -174,7 +181,7 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style) : TextPanel("
     }
 
     override fun onDeleteKey(x: Float, y: Float) {
-        RemsStudio.largeChange("Deleted Component ${getElement().name}"){
+        RemsStudio.largeChange("Deleted Component ${getElement().name}") {
             getElement().destroy()
         }
     }
@@ -198,7 +205,7 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style) : TextPanel("
     override fun getMultiSelectablePanel() = this
 
     companion object {
-        fun openAddMenu(baseTransform: Transform){
+        fun openAddMenu(baseTransform: Transform) {
             fun add(action: (Transform) -> Transform): () -> Unit = { select(action(baseTransform)) }
             val options = DefaultConfig["createNewInstancesList"] as? StringMap
             if (options != null) {
@@ -216,14 +223,14 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style) : TextPanel("
                 }
                 val additional = baseTransform.getAdditionalChildrenOptions().map { option ->
                     GFX.MenuOption(option.title, option.description) {
-                        RemsStudio.largeChange("Added ${option.title}"){
+                        RemsStudio.largeChange("Added ${option.title}") {
                             val new = option.generator() as Transform
                             baseTransform.addChild(new)
                             select(new)
                         }
                     }
                 }
-                if(additional.isNotEmpty()){
+                if (additional.isNotEmpty()) {
                     extras += menuSeparator1
                     extras += additional
                 }

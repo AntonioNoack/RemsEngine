@@ -16,8 +16,8 @@ import java.nio.FloatBuffer;
 
 // src/author: https://github.com/aicp7/HDR_file_readin
 // modified for our needs
-// This class is used to convert a HDR format image into a three-dimensional float array representing the
-// RGB channels of the original image.
+// This class is used to convert a HDR format image
+// into a three-dimensional float array representing the RGB channels of the original image.
 public class HDRImage {
 
     private int width;
@@ -101,14 +101,14 @@ public class HDRImage {
         return img;
     }
 
-    //Construction method if the input is a InputStream.
-    //Parse the HDR file by its format. HDR format encode can be seen in Radiance HDR(.pic,.hdr) file format
+    // Construction method if the input is a InputStream.
+    // Parse the HDR file by its format. HDR format encode can be seen in Radiance HDR(.pic,.hdr) file format
     private void read(InputStream in, boolean useNioBuffer) throws IOException {
-        //Parse HDR file's header line
-        //readLine(InputStream in) method will be introduced later.
+        // Parse HDR file's header line
+        // readLine(InputStream in) method will be introduced later.
 
-        //The first line of the HDR file. If it is a HDR file, the first line should be "#?RADIANCE"
-        //If not, we will throw a IllegalArgumentException.
+        // The first line of the HDR file. If it is a HDR file, the first line should be "#?RADIANCE"
+        // If not, we will throw a IllegalArgumentException.
         String isHDR = readLine(in);
         if (!isHDR.equals("#?RADIANCE")) throw new IllegalArgumentException("Unrecognized format: " + isHDR);
 
@@ -116,9 +116,9 @@ public class HDRImage {
         // Maybe it will have the exposure time, format(Must be either"32-bit_rle_rgbe" or "32-bit_rle_xyze")
         // Also the owner's information, the software's version, etc.
 
-        //The above information is not so important for us.
-        //The only important information for us is the Resolution which shows the size of the HDR image
-        //The resolution information's format is fixed. Usually, it will be -Y 1024 +X 2048 something like this.
+        // The above information is not so important for us.
+        // The only important information for us is the Resolution which shows the size of the HDR image
+        // The resolution information's format is fixed. Usually, it will be -Y 1024 +X 2048 something like this.
         String inform = readLine(in);
         while (!inform.equals("")) {
             inform = readLine(in);
@@ -247,7 +247,7 @@ public class HDRImage {
             int b = in.read();
             if (b == '\n' || b == -1) {
                 break;
-            } else if (i == 500) {// 100 seems short and unsecure ;)
+            } else if (i == 500) {// 100 seems short and unsure ;)
                 throw new IllegalArgumentException("Line too long");
             } else {
                 bout.write(b);

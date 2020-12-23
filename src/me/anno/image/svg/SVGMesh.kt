@@ -25,6 +25,8 @@ import java.lang.RuntimeException
 import javax.imageio.ImageIO
 import kotlin.math.*
 
+// todo create outline from svg? could be really nice to have :)
+
 // todo animated svg
 // todo transforms
 // todo gradients

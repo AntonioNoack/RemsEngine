@@ -9,9 +9,6 @@ import me.anno.ui.style.Style
 
 class CuttingView(style: Style): ScrollPanelY(Padding(0), AxisAlignment.MIN, style){
 
-    // todo display all elements in their container
-    // todo make a draggable version, so the tracks can be picked up and placed easily
-
     val addLayerView = ButtonPanel("+", style)
         .setSimpleClickListener { addLayerTop() }
 

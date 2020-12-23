@@ -99,7 +99,9 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
         spawnRate.update(time, random)
 
         val c0 = spawnRate.channels[0]
-        val sinceThenIntegral = c0.getIntegral<Float>(time) - c0.getIntegral<Float>(lastTime)
+        val integral0 = c0.getIntegral<Float>(lastTime, false)
+        val integral1 = c0.getIntegral<Float>(time, false)
+        val sinceThenIntegral = integral1 - integral0
 
         val missingChildren = sinceThenIntegral.toInt()
 

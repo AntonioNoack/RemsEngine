@@ -67,7 +67,6 @@ object RemsStudio : StudioBase(true, "Rem's Studio", "RemsStudio") {
 
     var project: Project? = null
 
-    // todo save in project
     var editorTime = 0.5
 
     var editorTimeDilation = 0.0

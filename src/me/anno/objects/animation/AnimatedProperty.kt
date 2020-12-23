@@ -141,32 +141,37 @@ class AnimatedProperty<V>(val type: Type, var defaultValue: V) : Saveable() {
     }
 
     operator fun get(time: Double) = getValueAt(time)
-    fun <N : Number> getIntegral(time: Double): Double {
-        // todo negative integral...
+    fun <N : Number> getIntegral(time: Double, allowNegativeValues: Boolean): Double {
+        val minValue = if (allowNegativeValues) Double.NEGATIVE_INFINITY else 0.0
         val size = keyframes.size
         return when {
-            size == 0 -> (defaultValue as N).toDouble() * time
-            size == 1 || !isAnimated -> (keyframes[0].value as N).toDouble() * time
+            size == 0 -> max(minValue, (defaultValue as N).toDouble()) * time
+            size == 1 || !isAnimated -> max(minValue, (keyframes[0].value as N).toDouble()) * time
             else -> {
+                val startTime: Double
+                val endTime: Double
                 if (time <= 0) {
-                    0.0
+                    startTime = time
+                    endTime = 0.0
                 } else {
-                    var sum = 0.0
-                    var lastTime = 0.0
-                    var lastValue = this[0.0] as N
-                    for (kf in keyframes) {
-                        if (kf.time > time) break
-                        if (kf.time > lastTime) {
-                            val value = kf.value as N
-                            sum += (lastValue.toDouble() + value.toDouble()) * (kf.time - lastTime) * 0.5
-                            lastValue = value
-                            lastTime = kf.time
-                        }
-                    }
-                    val endValue = this[time] as N
-                    sum += (lastValue.toDouble() + endValue.toDouble()) * (time - lastTime) * 0.5
-                    sum
+                    startTime = 0.0
+                    endTime = time
                 }
+                var sum = 0.0
+                var lastTime = startTime
+                var lastValue = max(minValue, (this[startTime] as N).toDouble())
+                for (kf in keyframes) {
+                    if (kf.time > time) break // we are done
+                    if (kf.time > lastTime) {// a new value
+                        val value = max(minValue, (kf.value as N).toDouble())
+                        sum += (lastValue + value) * (kf.time - lastTime) * 0.5
+                        lastValue = value
+                        lastTime = kf.time
+                    }
+                }
+                val endValue = max(minValue, (this[endTime] as N).toDouble())
+                sum += (lastValue + endValue) * (time - lastTime) * 0.5
+                sum
             }
         }
     }
