@@ -7,7 +7,7 @@ class GravityField : PositionedField("Central Gravity", "Gravity towards a singl
 
     override fun getForce(delta: Vector3f): Vector3f {
         val l = delta.length()
-        return delta / (l * l * l + 1e-16f)
+        return delta / (-l * l * l + 1e-16f)
     }
 
     override fun getClassName() = "GravityField"

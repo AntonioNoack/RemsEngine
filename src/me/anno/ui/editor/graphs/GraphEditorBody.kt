@@ -104,7 +104,6 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
         val minStepIndex = (minValue / valueStep).toInt() - 1
         val maxStepIndex = (maxValue / valueStep).toInt() + 1
 
-        val fontSize = font.size
         val fontColor = fontColor
         val backgroundColor = backgroundColor
 

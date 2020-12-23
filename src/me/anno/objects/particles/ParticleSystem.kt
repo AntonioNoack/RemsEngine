@@ -18,6 +18,7 @@ import me.anno.ui.editor.stacked.Option
 import me.anno.ui.input.BooleanInput
 import me.anno.ui.style.Style
 import me.anno.utils.Lists.sumByFloat
+import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.fract
 import me.anno.utils.Maths.mix
 import me.anno.utils.Vectors.plus
@@ -35,12 +36,14 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
 
     override fun getSymbol() = DefaultConfig["ui.symbol.particleSystem", "❄"]
 
-    // todo spawn point as child?
-
     // todo what about negative colors?... need to be generatable
     val spawnColor = AnimatedDistribution(Type.COLOR3, listOf(Vector3f(1f), Vector3f(0f)))
     val spawnPosition = AnimatedDistribution(Type.VEC3, listOf(Vector3f(0f), Vector3f(1f)))
     val spawnVelocity = AnimatedDistribution(GaussianDistribution(), Type.VEC3, listOf(Vector3f(0f), Vector3f(1f)))
+    val spawnSize = AnimatedDistribution(Type.VEC3, listOf(Vector3f(1f), Vector3f(0f)))
+    var spawnSize1D = true
+
+    val spawnOpacity = AnimatedDistribution(Type.FLOAT, listOf(1f, 0f))
 
     val spawnMass = AnimatedDistribution(Type.FLOAT, listOf(1f, 0f))
 
@@ -49,8 +52,6 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
 
     val spawnRate = AnimatedDistribution(Type.FLOAT, 10f)
     val lifeTime = AnimatedDistribution(Type.FLOAT, 10f)
-
-    var childrenScale = 0.1f
 
     var showChildren = false
     var simulationStep = 0.5
@@ -84,7 +85,7 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
             newState.rotation = oldState.rotation + oldState.dRotation * dt
             newState.dRotation = oldState.dRotation // todo rotational friction or acceleration???...
             newState.color = oldState.color
-            synchronized(states){
+            synchronized(states) {
                 states.add(newState)
             }
         }
@@ -114,8 +115,8 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
 
         // update all particles, which need an update
         val forces = children.filterIsInstance<ForceField>()
-        processBalanced(0, aliveParticles.size, false){ i0, i1 ->
-            for(i in i0 until i1){
+        processBalanced(0, aliveParticles.size, false) { i0, i1 ->
+            for (i in i0 until i1) {
                 val particle = aliveParticles[i]
                 val particleTime = time - particle.birthTime
                 val index = (particleTime / simulationStep).roundToInt()
@@ -130,7 +131,7 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
 
     override fun drawChildrenAutomatically() = !GFX.isFinalRendering && showChildren
 
-    fun createParticle(birthTime: Double): Particle {
+    fun createParticle(time: Double): Particle {
 
         // find the particle type
         var randomIndex = random.nextFloat() * sumWeight
@@ -144,18 +145,21 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
             }
         }
 
-        val lifeTime = lifeTime.nextV1(birthTime, random).toDouble()
+        val lifeTime = lifeTime.nextV1(time, random).toDouble()
 
         // create the particle
-        val particle = Particle(type, birthTime, lifeTime, spawnMass.nextV1(birthTime, random))
+        val particle = Particle(type, time, lifeTime, spawnMass.nextV1(time, random))
+        if (spawnSize1D) particle.scale.set(spawnSize.nextV1(time, random))
+        else particle.scale.set(spawnSize.nextV3(time, random))
+        particle.opacity = spawnOpacity.nextV1(time, random)
 
         // create the initial state
         val state = ParticleState()
-        state.position = spawnPosition.nextV3(birthTime, random)
-        state.rotation = spawnRotation.nextV3(birthTime, random)
-        state.color = spawnColor.nextV3(birthTime, random)
-        state.dPosition = spawnVelocity.nextV3(birthTime, random)
-        state.dRotation = spawnRotationVelocity.nextV3(birthTime, random)
+        state.position = spawnPosition.nextV3(time, random)
+        state.rotation = spawnRotation.nextV3(time, random)
+        state.color = spawnColor.nextV3(time, random)
+        state.dPosition = spawnVelocity.nextV3(time, random)
+        state.dRotation = spawnRotationVelocity.nextV3(time, random)
 
         // apply the state
         particle.states.add(state)
@@ -175,6 +179,8 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
 
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
 
+        super.onDraw(stack, time, color)
+
         sumWeight = children.filterNot { it is ForceField }.sumByFloat { it.weight }
         if (time < 0f || children.isEmpty() || sumWeight <= 0.0) return
 
@@ -184,8 +190,9 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
         particles.forEach {
             it.apply {
 
-                val opacity = it.getLifeOpacity(time, simulationStep, fadingIn, fadingOut).toFloat()
-                if (opacity > 0f) {// else not visible
+                val lifeOpacity = it.getLifeOpacity(time, simulationStep, fadingIn, fadingOut).toFloat()
+                val opacity = clamp(lifeOpacity * it.opacity, 0f, 1f)
+                if (opacity > 1e-3f) {// else not visible
                     stack.pushMatrix()
 
                     val particleTime = time - it.birthTime
@@ -200,13 +207,12 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
                     stack.rotateY(rotation.y)
                     stack.rotateX(rotation.x)
                     stack.rotateZ(rotation.z)
-                    stack.scale(childrenScale)
+                    stack.scale(scale)
 
                     val color0 = getColor(index0, indexF)
 
-                    // todo interpolate position, rotation, and scale...
-                    // todo is scale animated? should probably not be directly animated...
-                    // todo normalize time?
+                    // normalize time for calculated functions?
+                    // node editor? like in Blender or Unreal Engine
                     val particleColor = color * Vector4f(color0, opacity)
                     type.draw(stack, time - it.birthTime, particleColor)
 
@@ -236,7 +242,7 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
                     // show all options for different distributions
                     openMenu(
                         "Change Distribution",
-                        listOf<() -> Distribution>(
+                        listOf(
                             { ConstantDistribution() },
                             { GaussianDistribution() },
                             { UniformDistribution() },
@@ -265,28 +271,21 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
 
         VI("Spawn Rate", "How many particles are spawned per second", spawnRate)
         VI("Life Time", "How many seconds a particle is visible", lifeTime)
-        VI("Spawn Position", "Where the particles spawn", spawnPosition)
-        VI("Spawn Velocity", "How fast the particles are, when they are spawned", spawnVelocity)
-        VI("Spawn Rotation", "How the particles are rotated initially", spawnRotation)
-        VI("Spawn Rotation Velocity", "How fast the particles are rotating", spawnRotationVelocity)
-        VI("Spawn Color", "Initial color of the particles", spawnColor)
+        VI("Initial Position", "Where the particles spawn", spawnPosition)
+        VI("Initial Velocity", "How fast the particles are, when they are spawned", spawnVelocity)
+        VI("Initial Rotation", "How the particles are rotated initially", spawnRotation)
+        VI("Rotation Velocity", "How fast the particles are rotating", spawnRotationVelocity)
 
-        // psGroup += VI("Particle Mass", "Weight of the particles; for force fields", spawnMass, style)
-
-        // todo spawn sizes
-        // todo make snowflakes a possibility
-
-        // todo all kinds of forces: uniform gravity, gravity to point x, gravity between particles,
-        // todo swirl (electric field), swirl (tornado), random noise (like heat particles, brownian motion)
+        VI("Color", "Initial particle color", spawnColor)
+        VI("Opacity", "Initial particle opacity (1-transparency)", spawnOpacity)
+        VI("Size", "Initial particle size", spawnSize)
 
         val general = getGroup("Particle System", "particles")
 
         general += VI(
             "Simulation Step",
             "Larger values are faster, while smaller values are more accurate for forces",
-            Type.DOUBLE,
-            simulationStep,
-            style
+            Type.DOUBLE, simulationStep, style
         ) {
             if (it > 1e-9) simulationStep = it
             clearCache()
@@ -334,6 +333,8 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
         writer.writeObject(this, "spawnRate", spawnRate)
         writer.writeObject(this, "lifeTime", lifeTime)
         writer.writeObject(this, "spawnColor", spawnColor)
+        writer.writeObject(this, "spawnOpacity", spawnOpacity)
+        writer.writeObject(this, "spawnSize", spawnSize)
     }
 
     override fun readDouble(name: String, value: Double) {
@@ -352,6 +353,8 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
             "spawnRate" -> spawnRate.copyFrom(value)
             "lifeTime" -> lifeTime.copyFrom(value)
             "spawnColor" -> spawnColor.copyFrom(value)
+            "spawnOpacity" -> spawnOpacity.copyFrom(value)
+            "spawnSize" -> spawnSize.copyFrom(value)
             else -> {
                 super.readObject(name, value)
                 return

@@ -10,8 +10,20 @@ fun DoubleArray.toVec3() = Vector3f(this[0].toFloat(), this[1].toFloat(), this[2
 
 operator fun Any.get(index: Int, defaultValue: Float = 0f): Float {
     return when(this){
+        is Int -> when(index){
+            0 -> this.toFloat()
+            else -> defaultValue
+        }
+        is Long -> when(index){
+            0 -> this.toFloat()
+            else -> defaultValue
+        }
         is Float -> when(index){
             0 -> this
+            else -> defaultValue
+        }
+        is Double -> when(index){
+            0 -> this.toFloat()
             else -> defaultValue
         }
         is Vector2f -> when(index){

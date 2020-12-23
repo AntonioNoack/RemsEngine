@@ -437,7 +437,14 @@ class TextMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
         }
     }
 
-    override fun draw(drawBuffer: (StaticBuffer?, TextSDF?, offset: Float) -> Unit) {
+    /**
+     * start- and endIndex are not supported,
+     * as this class is only used for generating the meshes
+     * */
+    override fun draw(
+        startIndex: Int, endIndex: Int,
+        drawBuffer: (StaticBuffer?, TextSDF?, offset: Float) -> Unit
+    ) {
         drawBuffer(buffer, null, 0f)
     }
 

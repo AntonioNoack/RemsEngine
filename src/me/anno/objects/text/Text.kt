@@ -43,8 +43,8 @@ import org.joml.Vector4f
 import java.awt.font.TextLayout
 import java.io.File
 import kotlin.math.max
+import kotlin.math.min
 
-// todo animated text, like in RPGs, where text appears; or like typing
 // todo background "color" in the shape of a plane? for selections and such
 
 open class Text(text: String = "", parent: Transform? = null) : GFXTransform(parent) {
@@ -70,6 +70,9 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
     val outlineColor2 = AnimatedProperty.color(Vector4f(0f))
     val outlineWidths = AnimatedProperty.vec4(Vector4f(0f, 1f, 1f, 1f))
     val outlineSmoothness = AnimatedProperty<Vector4f>(Type.VEC4_PLUS)
+
+    val startCursor = AnimatedProperty.int(-1)
+    val endCursor = AnimatedProperty.int(-1)
 
     // automatic line break after length x
     var lineBreakWidth = -1f
@@ -150,7 +153,10 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
 
         val charSpacing = charSpacing
 
-        if (text.isBlank()) return
+        if (text.isBlank()) {
+            super.onDraw(stack, time, color)
+            return
+        }
 
         val visualState = getVisualState()
         if (lastVisualState != visualState || keys == null) {
@@ -196,36 +202,71 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
             AxisAlignment.MAX -> -totalHeight + lineOffset // exactly baseline
         }
 
-
         val renderingMode = renderingMode
         val drawMeshes = renderingMode == TextRenderMode.MESH
         val drawTextures = !drawMeshes
 
+        // limit the characters
+        // cursorLimit1 .. cursorLimit2
+        val textLength = text.codePoints().count().toInt()
+        val startCursor = max(0, startCursor[time])
+        var endCursor = min(textLength, endCursor[time])
+        if (endCursor < 0) endCursor = textLength
+
+        if (startCursor > endCursor) {
+            // invisible
+            super.onDraw(stack, time, color)
+            return
+        }
 
         val parentColor = parent?.getLocalColor() ?: Vector4f(1f)
 
         firstTimeDrawing = true
 
+        var charIndex = 0
+
         for ((index, part) in lineSegmentsWithStyle.parts.withIndex()) {
 
-            val key = keys[index]
+            val start = charIndex
+            val partLength = part.codepointLength
+            val end = charIndex + partLength
 
-            val offsetX = when (textAlignment) {
-                AxisAlignment.MIN -> 0f
-                AxisAlignment.CENTER -> (width - part.lineWidth * scaleX) / 2f
-                AxisAlignment.MAX -> (width - part.lineWidth * scaleX)
+            val localMin = max(0, startCursor - start)
+            val localMax = min(partLength, endCursor - start)
+
+            if (localMin < localMax) {
+
+                val key = keys[index]
+
+                val offsetX = when (textAlignment) {
+                    AxisAlignment.MIN -> 0f
+                    AxisAlignment.CENTER -> (width - part.lineWidth * scaleX) / 2f
+                    AxisAlignment.MAX -> (width - part.lineWidth * scaleX)
+                }
+
+                val lineDeltaX = dx + part.xPos * scaleX + offsetX
+                val lineDeltaY = dy + part.yPos * scaleY * lineOffset
+
+                if (drawMeshes) {
+                    drawMesh(
+                        key, time, stack, color,
+                        lineDeltaX, lineDeltaY,
+                        localMin, localMax
+                    )
+                }
+
+                if (drawTextures) {
+                    drawTexture(
+                        key, time, stack, color,
+                        lineDeltaX, lineDeltaY,
+                        localMin, localMax,
+                        exampleLayout, parentColor
+                    )
+                }
+
             }
 
-            val lineDeltaX = dx + part.xPos * scaleX + offsetX
-            val lineDeltaY = dy + part.yPos * scaleY * lineOffset
-
-            if (drawMeshes) {
-                drawMesh(key, time, stack, color, lineDeltaX, lineDeltaY)
-            }
-
-            if (drawTextures) {
-                drawTexture(key, time, stack, color, lineDeltaX, lineDeltaY, exampleLayout, parentColor)
-            }
+            charIndex = end
 
         }
 
@@ -239,6 +280,7 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
     private fun drawTexture(
         key: TextSegmentKey, time: Double, stack: Matrix4fArrayList,
         color: Vector4f, lineDeltaX: Float, lineDeltaY: Float,
+        startIndex: Int, endIndex: Int,
         exampleLayout: TextLayout, parentColor: Vector4f
     ) {
 
@@ -253,7 +295,7 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
 
         sdf2.charByChar = renderingMode != TextRenderMode.SDF_JOINED
         sdf2.roundCorners = roundSDFCorners
-        sdf2.draw { _, sdf, xOffset ->
+        sdf2.draw(startIndex, endIndex){ _, sdf, xOffset ->
 
             val texture = sdf?.texture
 
@@ -330,7 +372,8 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
 
     private fun drawMesh(
         key: TextSegmentKey, time: Double, stack: Matrix4fArrayList,
-        color: Vector4f, lineDeltaX: Float, lineDeltaY: Float
+        color: Vector4f, lineDeltaX: Float, lineDeltaY: Float,
+        startIndex: Int, endIndex: Int
     ) {
 
         val textMesh = getTextMesh(key)
@@ -340,7 +383,7 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
             return
         }
 
-        textMesh.draw { buffer, _, xOffset ->
+        textMesh.draw(startIndex, endIndex) { buffer, _, xOffset ->
             buffer!!
             val offset = Vector3f(lineDeltaX + xOffset, lineDeltaY, 0f)
             if (firstTimeDrawing) {
@@ -382,6 +425,8 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
         writer.writeObject(this, "outlineWidths", outlineWidths)
         writer.writeObject(this, "outlineSmoothness", outlineSmoothness)
         writer.writeBool("roundSDFCorners", roundSDFCorners)
+        writer.writeObject(this, "startCursor", startCursor)
+        writer.writeObject(this, "endCursor", endCursor)
     }
 
     override fun readInt(name: String, value: Int) {
@@ -430,6 +475,8 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
             "outlineColor2" -> outlineColor2.copyFrom(value)
             "outlineWidths" -> outlineWidths.copyFrom(value)
             "outlineSmoothness" -> outlineSmoothness.copyFrom(value)
+            "startCursor" -> startCursor.copyFrom(value)
+            "endCursor" -> endCursor.copyFrom(value)
             else -> super.readObject(name, value)
         }
     }
@@ -557,6 +604,10 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
                 RemsStudio.largeChange("Add Text Shadow") { addChild(shadow) }
                 GFX.select(shadow)
             }
+
+        val rpgEffects = getGroup("RPG Effects", "rpg-effects")
+        rpgEffects += VI("Start Cursor", "", startCursor, style)
+        rpgEffects += VI("End Cursor", "", endCursor, style)
 
         val outline = getGroup("Outline", "outline")
         outline.setTooltip("Needs Rendering Mode = SDF or Merged SDF")

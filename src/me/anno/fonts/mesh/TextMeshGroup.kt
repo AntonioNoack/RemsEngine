@@ -66,19 +66,26 @@ class TextMeshGroup(
 
     // the performance could be improved
     // still its initialization time should be much faster than FontMesh
-    override fun draw(drawBuffer: (StaticBuffer?, TextSDF?, offset: Float) -> Unit) {
+    override fun draw(
+        startIndex: Int, endIndex: Int,
+        drawBuffer: (StaticBuffer?, TextSDF?, offset: Float) -> Unit
+    ) {
         if (codepoints.isEmpty()) return
-        if (isSmallBuffer) {
-            drawSlowly(drawBuffer)
+        if (isSmallBuffer || startIndex > 0 || endIndex < codepoints.size) {
+            drawSlowly(startIndex, endIndex, drawBuffer)
         } else {
             if (buffer == null) createStaticBuffer()
             drawBuffer(buffer!!, null, 0f)
         }
     }
 
-    fun drawSlowly(drawBuffer: (StaticBuffer?, TextSDF?, offset: Float) -> Unit) {
+    fun drawSlowly(
+        startIndex: Int, endIndex: Int,
+        drawBuffer: (StaticBuffer?, TextSDF?, offset: Float) -> Unit
+    ) {
         val characters = alignment.buffers
-        codepoints.forEachIndexed { index, codePoint ->
+        for (index in startIndex until endIndex) {
+            val codePoint = codepoints[index]
             val offset = (offsets[index] * baseScale).toFloat()
             drawBuffer(characters[codePoint]!!, null, offset)
         }

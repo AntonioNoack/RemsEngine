@@ -52,6 +52,8 @@ class Keyframe<V>(
     fun setValue(index: Int, v: Float, type: Type) {
         value = type.clamp(
             when (val value = value) {
+                is Int -> v.toInt()
+                is Long -> v.toLong()
                 is Float -> v
                 is Double -> v.toDouble()
                 is Vector2f -> when (index) {

@@ -24,8 +24,8 @@ class GraphEditor(style: Style) : PanelListY(style) {
         this += controls
         this += body.setWeight(1f)
         val cc = controls.child as PanelList
-        for (i in Interpolation.values()) {
-            cc += object : ButtonPanel(i.symbol, style) {
+        for (type in Interpolation.values()) {
+            cc += object : ButtonPanel(type.symbol, style) {
                 override fun tickUpdate() {
                     visibility = Visibility[body.selectedKeyframes.isNotEmpty()]
                     super.tickUpdate()
@@ -37,10 +37,10 @@ class GraphEditor(style: Style) : PanelListY(style) {
                     padding.top = 0
                     padding.bottom = 0
                 }
-                .setTooltip("${i.displayName} Interpolation")
+                .setTooltip("${type.displayName}: ${type.description}")
                 .setSimpleClickListener {
                     body.selectedKeyframes.forEach {
-                        it.interpolation = i
+                        it.interpolation = type
                     }
                     body.invalidateDrawing()
                 }

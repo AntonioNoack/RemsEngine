@@ -73,7 +73,7 @@ abstract class BaseReader {
             "SphereHullDistribution" -> SphereHullDistribution()
             "SphereVolumeDistribution" -> SphereVolumeDistribution()
             "GlobalForce" -> GlobalForce()
-            "GravityForce" -> GravityField()
+            "GravityField" -> GravityField()
             "LorentzForce" -> LorentzForce()
             "MultiGravityForce" -> MultiGravityForce()
             "TornadoField" -> TornadoField()

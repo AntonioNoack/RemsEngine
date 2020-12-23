@@ -24,8 +24,13 @@ import java.io.File
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.concurrent.thread
 
+// todo always show values in graph editor
+// todo if less than two keyframes are present, it becomes not-animated
+// todo "hacked"-text effect for text: swizzle characters and introduce others
+
+
+
 // todo curve-editor: show colors as blobs/circles
-// todo filter for colors (green screen)
 
 // todo scene screenshot/editor screenshot
 

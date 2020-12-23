@@ -31,6 +31,7 @@ class AnimatedProperty<V>(val type: Type, var defaultValue: V) : Saveable() {
 
         fun any() = AnimatedProperty<Any>(Type.ANY)
         fun int() = AnimatedProperty<Int>(Type.INT)
+        fun int(defaultValue: Int) = AnimatedProperty(Type.INT, defaultValue)
         fun intPlus() = AnimatedProperty<Int>(Type.INT_PLUS)
         fun intPlus(defaultValue: Int) = AnimatedProperty(Type.INT_PLUS, defaultValue)
         fun long() = AnimatedProperty<Long>(Type.LONG)

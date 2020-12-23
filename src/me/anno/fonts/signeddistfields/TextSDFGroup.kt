@@ -5,9 +5,7 @@ import me.anno.fonts.TextGroup
 import me.anno.fonts.signeddistfields.algorithm.SignedDistanceField
 import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.buffer.StaticBuffer
-import me.anno.video.MissingFrameException
 import java.awt.Font
-import java.io.File
 
 /**
  * custom character-character alignment maps by font for faster calculation
@@ -28,10 +26,13 @@ class TextSDFGroup(
 
     // the performance could be improved
     // still its initialization time should be much faster than FontMesh
-    override fun draw(drawBuffer: (StaticBuffer?, TextSDF?, offset: Float) -> Unit) {
+    override fun draw(
+        startIndex: Int, endIndex: Int,
+        drawBuffer: (StaticBuffer?, TextSDF?, offset: Float) -> Unit
+    ) {
         if (codepoints.isEmpty()) return
-        if (charByChar) {
-            drawSlowly(drawBuffer)
+        if (charByChar || startIndex > 0 || endIndex < codepoints.size) {
+            drawSlowly(startIndex, endIndex, drawBuffer)
         } else {
             val roundCorners = roundCorners
             val tc = Cache.getEntry(Triple(font, text, roundCorners), sdfTimeout, !isFinalRendering) {
@@ -46,9 +47,12 @@ class TextSDFGroup(
         }
     }
 
-    fun drawSlowly(drawBuffer: (StaticBuffer?, TextSDF?, offset: Float) -> Unit) {
+    fun drawSlowly(
+        startIndex: Int, endIndex: Int,
+        drawBuffer: (StaticBuffer?, TextSDF?, offset: Float) -> Unit) {
         val roundCorners = roundCorners
-        codepoints.forEachIndexed { index, codePoint ->
+        for(index in startIndex until endIndex){
+            val codePoint = codepoints[index]
             val offset = (offsets[index] * baseScale).toFloat()
             val texture = Cache.getEntry(Triple(font, codePoint, roundCorners), sdfTimeout, !isFinalRendering) {
                 SignedDistanceField.create(font, String(Character.toChars(codePoint)), roundCorners)

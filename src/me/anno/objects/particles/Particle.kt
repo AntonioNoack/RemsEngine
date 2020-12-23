@@ -14,7 +14,10 @@ class Particle(
 
     val position = Vector3f()
     val rotation = Vector3f()
-    val color = Vector3f()
+    val color = Vector3f(1f)
+
+    var opacity = 1f
+    val scale = Vector3f(1f)
 
     fun getPosition(index0: Int, indexF: Float): Vector3f {
         val state0 = states[index0]

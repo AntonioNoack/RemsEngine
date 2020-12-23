@@ -7,4 +7,6 @@ class StringPart(
     val yPos: Float,
     val text: String,
     val font: Font,
-    var lineWidth: Float)
+    var lineWidth: Float){
+    val codepointLength = text.codePoints().count().toInt()
+}
