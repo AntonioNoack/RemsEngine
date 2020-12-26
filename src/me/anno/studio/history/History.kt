@@ -26,12 +26,13 @@ class History : Saveable() {
         }
     }
 
-    fun update(title: String) {
+    fun update(title: String, code: Any) {
         val last = states.lastOrNull()
-        if (last?.title == title) {
+        if (last?.code == code) {
             last.capture(last)
+            last.title = title
         } else {
-            put(title)
+            put(title, code)
         }
     }
 
@@ -44,8 +45,8 @@ class History : Saveable() {
         return nextInsertIndex
     }
 
-    fun put(title: String) {
-        val nextState = capture(title, currentState)
+    fun put(title: String, code: Any) {
+        val nextState = capture(title, code, currentState)
         if (nextState != currentState) {
             put(nextState)
             currentState = nextState
@@ -66,12 +67,10 @@ class History : Saveable() {
         } else LOGGER.info("Nothing left to undo!")
     }
 
-    fun redo(index: Int) {
-        if (index != states.lastIndex) {
-            states.getOrNull(index)?.apply {
-                // put(this)
-                apply()
-            }
+    private fun redo(index: Int) {
+        states.getOrNull(index)?.apply {
+            // put(this)
+            apply()
         }
     }
 

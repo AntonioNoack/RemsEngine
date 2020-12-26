@@ -13,9 +13,16 @@ import me.anno.studio.rems.Selection.select
 import me.anno.ui.editor.sceneView.SceneView
 import me.anno.utils.Lists.join
 
-class HistoryState : Saveable() {
+class HistoryState() : Saveable() {
+
+    constructor(title: String, code: Any): this(){
+        this.title = title
+        this.code = code
+    }
 
     var title = ""
+    var code: Any? = null
+
     lateinit var root: Transform
     var selectedUUID = -1L
     var selectedPropName: String? = null
@@ -70,7 +77,6 @@ class HistoryState : Saveable() {
         }
 
         state.title = title
-        val listOfAll = RemsStudio.root.listOfAll.withIndex().associate { (index, it) -> it to it.uuid }
         state.selectedUUID = Selection.selectedTransform?.uuid ?: -1L
         state.usedCameras = windowStack.map { window ->
             window.panel.listOfAll.filterIsInstance<SceneView>().map { it.camera.uuid }.toList()
@@ -79,9 +85,8 @@ class HistoryState : Saveable() {
     }
 
     companion object {
-        fun capture(title: String, previous: HistoryState?): HistoryState {
-            val state = HistoryState()
-            state.title = title
+        fun capture(title: String, code: Any, previous: HistoryState?): HistoryState {
+            val state = HistoryState(title, code)
             state.capture(previous)
             return state
         }
@@ -91,7 +96,7 @@ class HistoryState : Saveable() {
         super.save(writer)
         writer.writeObject(this, "root", root)
         writer.writeString("title", title)
-        writer.writeLong("selectedTransform", selectedUUID)
+        writer.writeLong("selectedUUID", selectedUUID)
         writer.writeLongArray("usedCameras", usedCameras)
         writer.writeDouble("editorTime", editorTime)
     }

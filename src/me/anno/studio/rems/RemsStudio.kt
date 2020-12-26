@@ -7,9 +7,7 @@ import me.anno.input.ActionManager
 import me.anno.input.Input.keyUpCtr
 import me.anno.installer.Installer.checkInstall
 import me.anno.objects.Camera
-import me.anno.objects.Inspectable
 import me.anno.objects.Transform
-import me.anno.objects.animation.AnimatedProperty
 import me.anno.studio.GFXSettings
 import me.anno.studio.StudioBase
 import me.anno.studio.project.Project
@@ -134,30 +132,30 @@ object RemsStudio : StudioBase(true, "Rem's Studio", "RemsStudio") {
         val history = history ?: return run()
         val code = groupCode to keyUpCtr
         if (lastCode != code) {
-            change(title, run)
+            change(title, code, run)
             lastCode = code
         } else {
             run()
-            history.update(title)
+            history.update(title, code)
         }
         currentTab?.hasChanged = true
         updateSceneViews()
     }
 
     fun largeChange(title: String, run: () -> Unit) {
-        change(title, run)
+        change(title, gameTime, run)
         lastCode = null
         currentTab?.hasChanged = true
         updateSceneViews()
     }
 
-    private fun change(title: String, run: () -> Unit) {
+    private fun change(title: String, code: Any, run: () -> Unit) {
         val history = history ?: return run()
         if (history.isEmpty()) {
-            history.put("Start State")
+            history.put("Start State", Unit)
         }
         run()
-        history.put(title)
+        history.put(title, code)
     }
 
     fun updateSceneViews() {
