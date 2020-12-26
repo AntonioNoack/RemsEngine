@@ -19,11 +19,14 @@ abstract class BaseWriter(val respectsDefaultValues: Boolean) {
      * */
     fun getPointer(value: ISaveable) = pointers[value]
 
-    abstract fun writeBool(name: String, value: Boolean, force: Boolean = true)
+    abstract fun writeBoolean(name: String, value: Boolean, force: Boolean = true)
+    abstract fun writeBooleanArray(name: String, value: BooleanArray, force: Boolean = false)
 
     abstract fun writeByte(name: String, value: Byte, force: Boolean = false)
+    abstract fun writeByteArray(name: String, value: ByteArray, force: Boolean = false)
 
     abstract fun writeShort(name: String, value: Short, force: Boolean = false)
+    abstract fun writeShortArray(name: String, value: ShortArray, force: Boolean = false)
 
     abstract fun writeInt(name: String, value: Int, force: Boolean = false)
     abstract fun writeIntArray(name: String, value: IntArray, force: Boolean = false)
@@ -33,11 +36,14 @@ abstract class BaseWriter(val respectsDefaultValues: Boolean) {
 
     abstract fun writeFloat(name: String, value: Float, force: Boolean = false)
     abstract fun writeFloatArray(name: String, value: FloatArray, force: Boolean = false)
+    abstract fun writeFloatArray2D(name: String, value: Array<FloatArray>, force: Boolean = false)
 
     abstract fun writeDouble(name: String, value: Double, force: Boolean = false)
     abstract fun writeDoubleArray(name: String, value: DoubleArray, force: Boolean = false)
+    abstract fun writeDoubleArray2D(name: String, value: Array<DoubleArray>, force: Boolean = false)
 
     abstract fun writeString(name: String, value: String?, force: Boolean = false)
+    abstract fun writeStringArray(name: String, value: Array<String>, force: Boolean = false)
 
     abstract fun writeVector2f(name: String, value: Vector2f, force: Boolean = false)
     abstract fun writeVector3f(name: String, value: Vector3f, force: Boolean = false)
@@ -99,10 +105,37 @@ abstract class BaseWriter(val respectsDefaultValues: Boolean) {
     abstract fun writePointer(name: String?, className: String, ptr: Int)
     abstract fun writeObjectImpl(name: String?, value: ISaveable)
 
-    abstract fun <V : ISaveable> writeList(self: ISaveable?, name: String, elements: List<V>?, force: Boolean = false)
-    abstract fun writeListV2f(name: String, elements: List<Vector2f>?, force: Boolean = false)
-    abstract fun writeListV3f(name: String, elements: List<Vector3f>?, force: Boolean = false)
-    abstract fun writeListV4f(name: String, elements: List<Vector4f>?, force: Boolean = false)
+   open fun <V : ISaveable> writeObjectList(
+        self: ISaveable?,
+        name: String,
+        elements: List<V>,
+        force: Boolean = false
+    ) {
+        if (force || elements.isNotEmpty()) {
+            writeObjectArray(self, name, Array<ISaveable>(elements.size){ elements[it] } as Array<V>, force)
+        }
+    }
+
+    abstract fun <V : ISaveable> writeObjectArray(
+        self: ISaveable?,
+        name: String,
+        elements: Array<V>,
+        force: Boolean = false
+    )
+
+    /**
+     * only instances of the same class are allowed
+     * */
+    abstract fun <V : ISaveable> writeHomogenousObjectArray(
+        self: ISaveable?,
+        name: String,
+        elements: Array<V>,
+        force: Boolean = false
+    )
+
+    abstract fun writeVector2fArray(name: String, elements: Array<Vector2f>, force: Boolean = false)
+    abstract fun writeVector3fArray(name: String, elements: Array<Vector3f>, force: Boolean = false)
+    abstract fun writeVector4fArray(name: String, elements: Array<Vector4f>, force: Boolean = false)
 
     fun add(obj: ISaveable) {
         if (obj !in listed) {
@@ -131,7 +164,7 @@ abstract class BaseWriter(val respectsDefaultValues: Boolean) {
     fun writeSomething(self: ISaveable, name: String, value: Any?, force: Boolean) {
         when (value) {
             is ISaveable -> writeObject(self, name, value, force)
-            is Boolean -> writeBool(name, value, force)
+            is Boolean -> writeBoolean(name, value, force)
             is Byte -> writeByte(name, value, force)
             is Short -> writeShort(name, value, force)
             is Int -> writeInt(name, value, force)

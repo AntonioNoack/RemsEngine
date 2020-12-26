@@ -21,7 +21,6 @@ import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.animation.Type
 import me.anno.objects.modes.TextMode
 import me.anno.studio.rems.RemsStudio
-import me.anno.studio.rems.Selection.select
 import me.anno.studio.rems.Selection.selectTransform
 import me.anno.ui.base.ButtonPanel
 import me.anno.ui.base.Font
@@ -410,8 +409,8 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
         super.save(writer)
         writer.writeString("text", text)
         writer.writeString("font", font.name)
-        writer.writeBool("isItalic", font.isItalic, true)
-        writer.writeBool("isBold", font.isBold, true)
+        writer.writeBoolean("isItalic", font.isItalic, true)
+        writer.writeBoolean("isBold", font.isBold, true)
         writer.writeObject(this, "relativeLineSpacing", relativeLineSpacing)
         writer.writeInt("textAlignment", textAlignment.id, true)
         writer.writeInt("blockAlignmentX", blockAlignmentX.id, true)
@@ -425,7 +424,7 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
         writer.writeObject(this, "outlineColor2", outlineColor2)
         writer.writeObject(this, "outlineWidths", outlineWidths)
         writer.writeObject(this, "outlineSmoothness", outlineSmoothness)
-        writer.writeBool("roundSDFCorners", roundSDFCorners)
+        writer.writeBoolean("roundSDFCorners", roundSDFCorners)
         writer.writeObject(this, "startCursor", startCursor)
         writer.writeObject(this, "endCursor", endCursor)
     }
@@ -458,12 +457,12 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
         invalidate()
     }
 
-    override fun readBool(name: String, value: Boolean) {
+    override fun readBoolean(name: String, value: Boolean) {
         when (name) {
             "isBold" -> font = font.withBold(value)
             "isItalic" -> font = font.withItalic(value)
             "roundSDFCorners" -> roundSDFCorners = value
-            else -> super.readBool(name, value)
+            else -> super.readBoolean(name, value)
         }
         invalidate()
     }

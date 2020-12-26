@@ -1,9 +1,11 @@
 package me.anno.io.binary;
 
 public class BinaryTypes {
-    public static final char OBJECT = 'o';
+    public static final char OBJECT_IMPL = 'o';
     public static final char OBJECT_ARRAY = 'O';
     public static final char OBJECT_LIST_UNKNOWN_LENGTH = '&';
+    public static final char OBJECT_PTR = '*';
+    public static final char OBJECT_NULL = (char) 0;
     public static final char BOOL = 'z';
     public static final char BOOL_ARRAY = 'Z';
     public static final char BYTE = 'b';
@@ -18,8 +20,10 @@ public class BinaryTypes {
     public static final char LONG_ARRAY = 'L';
     public static final char FLOAT = 'f';
     public static final char FLOAT_ARRAY = 'F';
+    public static final char FLOAT_ARRAY_2D = 'F' + 128;
     public static final char DOUBLE = 'd';
     public static final char DOUBLE_ARRAY = 'D';
+    public static final char DOUBLE_ARRAY_2D = 'D' + 128;
     public static final char STRING = 'q';
     public static final char STRING_ARRAY = 'Q';
     public static final char VECTOR2F = '2';

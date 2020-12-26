@@ -22,27 +22,43 @@ interface ISaveable {
     fun onReadingStarted(){}
     fun onReadingEnded(){}
 
-    fun readBool(name: String, value: Boolean)
-    fun readByte(name: String, value: Byte)
-    fun readShort(name: String, value: Short)
-    fun readInt(name: String, value: Int)
-    fun readFloat(name: String, value: Float)
-    fun readDouble(name: String, value: Double)
-    fun readLong(name: String, value: Long)
+    fun readBoolean(name: String, value: Boolean)
+    fun readBooleanArray(name: String, value: BooleanArray)
 
-    fun readString(name: String, value: String)
-    fun readArray(name: String, value: List<ISaveable>)
+    fun readByte(name: String, value: Byte)
+    fun readByteArray(name: String, value: ByteArray)
+
+    fun readShort(name: String, value: Short)
+    fun readShortArray(name: String, value: ShortArray)
+
+    fun readInt(name: String, value: Int)
     fun readIntArray(name: String, value: IntArray)
+
+    fun readLong(name: String, value: Long)
     fun readLongArray(name: String, value: LongArray)
+
+    fun readFloat(name: String, value: Float)
     fun readFloatArray(name: String, value: FloatArray)
-    fun readDoubleArray(name: String, value: DoubleArray)
     fun readFloatArray2D(name: String, value: Array<FloatArray>)
 
-    fun readObject(name: String, value: ISaveable?)
+    fun readDouble(name: String, value: Double)
+    fun readDoubleArray(name: String, value: DoubleArray)
+    fun readDoubleArray2D(name: String, value: Array<DoubleArray>)
 
-    fun readVector2(name: String, value: Vector2f)
-    fun readVector3(name: String, value: Vector3f)
-    fun readVector4(name: String, value: Vector4f)
+    fun readString(name: String, value: String)
+    fun readStringArray(name: String, value: Array<String>)
+
+    fun readObject(name: String, value: ISaveable?)
+    fun readObjectArray(name: String, value: Array<ISaveable>)
+
+    fun readVector2f(name: String, value: Vector2f)
+    fun readVector2fArray(name: String, value: Array<Vector2f>)
+
+    fun readVector3f(name: String, value: Vector3f)
+    fun readVector3fArray(name: String, value: Array<Vector3f>)
+
+    fun readVector4f(name: String, value: Vector4f)
+    fun readVector4fArray(name: String, value: Array<Vector4f>)
 
     /**
      * can saving be ignored?, because this is default anyways?

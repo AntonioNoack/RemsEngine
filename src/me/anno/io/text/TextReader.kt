@@ -277,7 +277,7 @@ class TextReader(val data: String) : BaseReader() {
         }
         val (type, name) = splitTypeName(typeName)
         when (type) {
-            "b" -> obj.readBool(name, readBool())
+            "b" -> obj.readBoolean(name, readBool())
             "B" -> {// int8
                 val raw = readNumber()
                 obj.readByte(name, raw.toIntOrNull()?.toByte() ?: error("Invalid byte $raw"))
@@ -338,9 +338,9 @@ class TextReader(val data: String) : BaseReader() {
                         { array, index, value -> array[index] = value })
                 )
             }
-            "v2" -> obj.readVector2(name, readVector2f())
-            "v3" -> obj.readVector3(name, readVector3f())
-            "v4" -> obj.readVector4(name, readVector4f())
+            "v2" -> obj.readVector2f(name, readVector2f())
+            "v3" -> obj.readVector3f(name, readVector3f())
+            "v4" -> obj.readVector4f(name, readVector4f())
             "S" -> {
                 assert(skipSpace(), '"')
                 obj.readString(name, readString())

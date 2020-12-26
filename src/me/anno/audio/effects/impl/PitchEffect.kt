@@ -107,14 +107,14 @@ class PitchEffect() : SoundEffect(Domain.FREQUENCY_DOMAIN, Domain.TIME_DOMAIN) {
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
-        writer.writeBool("inverseSpeed", inverseSpeed)
+        writer.writeBoolean("inverseSpeed", inverseSpeed)
         writer.writeObject(this, "pitch", pitch)
     }
 
-    override fun readBool(name: String, value: Boolean) {
+    override fun readBoolean(name: String, value: Boolean) {
         when (name) {
             "inverseSpeed" -> inverseSpeed = value
-            else -> super.readBool(name, value)
+            else -> super.readBoolean(name, value)
         }
     }
 

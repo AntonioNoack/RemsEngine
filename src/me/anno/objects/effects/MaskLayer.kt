@@ -103,10 +103,10 @@ class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
     override fun save(writer: BaseWriter) {
         super.save(writer)
         // forced, because the default value might be true instead of false
-        writer.writeBool("showMask", showMask, true)
-        writer.writeBool("showMasked", showMasked, true)
-        writer.writeBool("isFullscreen", isFullscreen, true)
-        writer.writeBool("isInverted", isInverted, true)
+        writer.writeBoolean("showMask", showMask, true)
+        writer.writeBoolean("showMasked", showMasked, true)
+        writer.writeBoolean("isFullscreen", isFullscreen, true)
+        writer.writeBoolean("isInverted", isInverted, true)
         writer.writeObject(this, "useMaskColor", useMaskColor)
         writer.writeObject(this, "blurThreshold", blurThreshold)
         writer.writeInt("type", type.id)
@@ -116,13 +116,13 @@ class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
         writer.writeObject(this, "greenScreenSpillValue", greenScreenSpillValue)
     }
 
-    override fun readBool(name: String, value: Boolean) {
+    override fun readBoolean(name: String, value: Boolean) {
         when (name) {
             "showMask" -> showMask = value
             "showMasked" -> showMasked = value
             "isFullscreen" -> isFullscreen = value
             "isInverted" -> isInverted = value
-            else -> super.readBool(name, value)
+            else -> super.readBoolean(name, value)
         }
     }
 

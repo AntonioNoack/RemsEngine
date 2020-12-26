@@ -103,8 +103,8 @@ class Polygon(parent: Transform? = null): GFXTransform(parent){
         super.save(writer)
         writer.writeObject(this, "vertexCount", vertexCount)
         writer.writeObject(this, "inset", starNess)
-        writer.writeBool("autoAlign", autoAlign)
-        writer.writeBool("is3D", is3D)
+        writer.writeBoolean("autoAlign", autoAlign)
+        writer.writeBoolean("is3D", is3D)
         writer.writeInt("filtering", filtering.id, true)
         writer.writeFile("texture", texture)
     }
@@ -131,11 +131,11 @@ class Polygon(parent: Transform? = null): GFXTransform(parent){
         }
     }
 
-    override fun readBool(name: String, value: Boolean) {
+    override fun readBoolean(name: String, value: Boolean) {
         when(name){
             "autoAlign" -> autoAlign = value
             "is3D" -> is3D = value
-            else -> super.readBool(name, value)
+            else -> super.readBoolean(name, value)
         }
     }
 

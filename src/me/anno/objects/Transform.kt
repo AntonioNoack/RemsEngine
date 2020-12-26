@@ -346,7 +346,7 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
         writer.writeObject(this, "parent", parent)
         writer.writeString("name", name)
         writer.writeString("comment", comment)
-        writer.writeBool("collapsed", isCollapsed, false)
+        writer.writeBoolean("collapsed", isCollapsed, false)
         writer.writeObject(this, "position", position)
         writer.writeObject(this, "scale", scale)
         writer.writeObject(this, "rotationYXZ", rotationYXZ)
@@ -358,16 +358,16 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
         writer.writeObject(this, "color", color)
         writer.writeObject(this, "colorMultiplier", colorMultiplier)
         writer.writeString("blendMode", blendMode.id)
-        writer.writeList(this, "children", children)
+        writer.writeObjectList(this, "children", children)
         writer.writeInt("timelineSlot", timelineSlot, true)
         writer.writeInt("visibility", visibility.id, false)
         writer.writeLong("uuid", uuid, true)
     }
 
-    override fun readBool(name: String, value: Boolean) {
+    override fun readBoolean(name: String, value: Boolean) {
         when (name) {
             "collapsed" -> isCollapsed = value
-            else -> super.readBool(name, value)
+            else -> super.readBoolean(name, value)
         }
     }
 

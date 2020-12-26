@@ -86,7 +86,7 @@ abstract class BaseReader {
             else -> {
                 // just for old stuff; AnimatedProperties must not be loaded directly; always just copied into
                 if(clazz.startsWith("AnimatedProperty<")) AnimatedProperty.any()
-                else ISaveable.objectTypeRegistry[clazz]?.invoke() ?: throw RuntimeException("Unknown class $clazz")
+                else ISaveable.objectTypeRegistry[clazz]?.invoke() ?: throw RuntimeException("Unknown class '$clazz'")
             }
         }
     }

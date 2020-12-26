@@ -52,7 +52,7 @@ fun main(){
     val bin0 = System.nanoTime()
     var bos: ByteArrayOutputStream
     lateinit var binaryValue: ByteArray
-    for(i in 0 until 1000){
+    for(i in 0 until 100){
         bos = ByteArrayOutputStream(4096)
         use(DataOutputStream(bos)){ dos ->
             val writer = BinaryWriter(dos)
@@ -63,13 +63,15 @@ fun main(){
     }
     val binaryWriteTime = System.nanoTime() - bin0
 
+    file.writeBytes(binaryValue)
+
     // load all files into the cache
     candidates.forEach { it.save(TextWriter(false)) }
 
     // text
     val text0 = System.nanoTime()
     lateinit var textValue: String
-    for(i in 0 until 1000){
+    for(i in 0 until 100){
         val writer = TextWriter(false)
         candidates.forEach { writer.add(it) }
         writer.writeAllInList()
@@ -84,13 +86,13 @@ fun main(){
     println("length in binary: ${binaryValue.size}")
 
     println("length text, compressed: ${compress(textValue.toByteArray())}")
-    println("length binary, compressed: ${compress(file.readBytes())}")
+    println("length binary, compressed: ${compress(binaryValue)}")
 
     use(DataInputStream(ByteArrayInputStream(binaryValue))){ dis ->
         val reader = BinaryReader(dis)
         reader.readAllInList()
         val content = reader.sortedContent
-        println(content)
+        for(c in content) println(c.getClassName())
     }
 
 }

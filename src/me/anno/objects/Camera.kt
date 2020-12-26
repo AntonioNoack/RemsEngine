@@ -10,6 +10,7 @@ import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.effects.ToneMappers
+import me.anno.objects.utils.CameraModel.drawCamera
 import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.RemsStudio.targetHeight
 import me.anno.studio.rems.RemsStudio.targetWidth
@@ -71,7 +72,7 @@ class Camera(parent: Transform? = null) : Transform(parent) {
     }
 
     fun getEffectiveOffset(localTime: Double) = orthoDistance(orthographicness[localTime])
-    fun getEffectiveNear(localTime: Double, offset: Float = getEffectiveOffset(localTime)) = nearZ[localTime]
+    fun getEffectiveNear(localTime: Double, offset: Float = getEffectiveOffset(localTime)) = nearZ[localTime] + offset
     fun getEffectiveFar(localTime: Double, offset: Float = getEffectiveOffset(localTime)) = farZ[localTime] + offset
     fun getEffectiveFOV(localTime: Double, offset: Float = getEffectiveOffset(localTime)) =
         orthoFOV(fovYDegrees[localTime], offset)
@@ -149,15 +150,13 @@ class Camera(parent: Transform? = null) : Transform(parent) {
 
         if (GFX.isFinalRendering) return
         if (this === currentlyDrawnCamera) return
-        // idk...
-        // if(this !== GFX.selectedTransform) return
 
         val offset = getEffectiveOffset(time)
         val fov = getEffectiveFOV(time, offset)
         val near = getEffectiveNear(time, offset)
         val far = getEffectiveFar(time, offset)
 
-        drawCamera(stack, offset, fov, color, near, far)
+        drawCamera(stack, offset, color, fov, near, far)
 
     }
 
@@ -190,8 +189,8 @@ class Camera(parent: Transform? = null) : Transform(parent) {
         writer.writeObject(this, "bloomSize", bloomSize)
         writer.writeObject(this, "bloomThreshold", bloomThreshold)
         writer.writeInt("toneMapping", toneMapping.id, true)
-        writer.writeBool("onlyShowTarget", onlyShowTarget)
-        writer.writeBool("useDepth", useDepth)
+        writer.writeBoolean("onlyShowTarget", onlyShowTarget)
+        writer.writeBoolean("useDepth", useDepth)
         writer.writeFile("lut", lut)
         writer.writeObject(this, "cgSaturation", cgSaturation)
         writer.writeObject(this, "cgOffset", cgOffset)
@@ -199,11 +198,11 @@ class Camera(parent: Transform? = null) : Transform(parent) {
         writer.writeObject(this, "cgPower", cgPower)
     }
 
-    override fun readBool(name: String, value: Boolean) {
+    override fun readBoolean(name: String, value: Boolean) {
         when (name) {
             "onlyShowTarget" -> onlyShowTarget = value
             "useDepth" -> useDepth = value
-            else -> super.readBool(name, value)
+            else -> super.readBoolean(name, value)
         }
     }
 
@@ -246,79 +245,7 @@ class Camera(parent: Transform? = null) : Transform(parent) {
 
     companion object {
 
-        fun drawCamera(
-            stack: Matrix4fArrayList,
-            offset: Float, fov: Float, color: Vector4f, near: Float, far: Float
-        ) {
-
-            stack.translate(0f, 0f, offset)
-
-            val scaleZ = 1f
-            val scaleY = scaleZ * tan(toRadians(fov) / 2f)
-            val scaleX = scaleY * targetWidth / targetHeight
-            stack.scale(scaleX, scaleY, scaleZ)
-            val shader = lineShader3D
-
-            // todo show the standard level only on user request, or when DOF is enabled
-            // todo render the intersections instead
-            shader.use()
-            shader.m4x4("transform", stack)
-            GFX.shaderColor(shader, "color", color)
-            cameraModel.draw(shader)
-
-            stack.scale(near)
-            shader.m4x4("transform", stack)
-            cameraModel.draw(shader)
-
-            stack.scale(far / near)
-            shader.m4x4("transform", stack)
-            cameraModel.draw(shader)
-
-        }
-
-        val cameraModel: StaticBuffer by lazy {
-
-            StaticBuffer(listOf(Attribute("attr0", 3)), 2 * 8)
-                .apply {
-                    // points
-                    val zero = Vector3f()
-                    val p00 = Vector3f(-1f, -1f, -1f)
-                    val p01 = Vector3f(-1f, +1f, -1f)
-                    val p10 = Vector3f(+1f, -1f, -1f)
-                    val p11 = Vector3f(+1f, +1f, -1f)
-
-                    // lines to frame
-                    put(zero)
-                    put(p00)
-
-                    put(zero)
-                    put(p01)
-
-                    put(zero)
-                    put(p10)
-
-                    put(zero)
-                    put(p11)
-
-                    // frame
-                    put(p00)
-                    put(p01)
-
-                    put(p01)
-                    put(p11)
-
-                    put(p11)
-                    put(p10)
-
-                    put(p10)
-                    put(p00)
-
-                    lines()
-                }
-
-        }
-
-        val DEFAULT_VIGNETTE_STRENGTH = 5f
+        const val DEFAULT_VIGNETTE_STRENGTH = 5f
 
     }
 

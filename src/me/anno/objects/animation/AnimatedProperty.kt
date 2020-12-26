@@ -350,8 +350,8 @@ class AnimatedProperty<V>(val type: Type, var defaultValue: V) : Saveable() {
         super.save(writer)
         sort()
         // must be written before keyframes!!
-        writer.writeBool("isAnimated", isAnimated)
-        writer.writeList(this, "keyframes", keyframes)
+        writer.writeBoolean("isAnimated", isAnimated)
+        writer.writeObjectList(this, "keyframes", keyframes)
         writer.writeInt("interpolation", interpolation.code)
         for (i in 0 until type.components) {
             writer.writeObject(this, "driver$i", drivers[i])
@@ -369,10 +369,10 @@ class AnimatedProperty<V>(val type: Type, var defaultValue: V) : Saveable() {
         }
     }
 
-    override fun readBool(name: String, value: Boolean) {
+    override fun readBoolean(name: String, value: Boolean) {
         when (name) {
             "isAnimated" -> isAnimated = value
-            else -> super.readBool(name, value)
+            else -> super.readBoolean(name, value)
         }
     }
 

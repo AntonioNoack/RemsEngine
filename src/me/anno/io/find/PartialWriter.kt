@@ -12,7 +12,7 @@ import org.joml.Vector4f
  * */
 abstract class PartialWriter(respectsDefaultValues: Boolean) : BaseWriter(respectsDefaultValues) {
 
-    override fun writeBool(name: String, value: Boolean, force: Boolean) {}
+    override fun writeBoolean(name: String, value: Boolean, force: Boolean) {}
 
     override fun writeByte(name: String, value: Byte, force: Boolean) {}
 
@@ -52,20 +52,36 @@ abstract class PartialWriter(respectsDefaultValues: Boolean) : BaseWriter(respec
         value.save(this)
     }
 
-    override fun <V : ISaveable> writeList(self: ISaveable?, name: String, elements: List<V>?, force: Boolean) {
-        elements?.forEach { it.save(this) }
+    override fun <V : ISaveable> writeObjectArray(self: ISaveable?, name: String, elements: Array<V>, force: Boolean) {
+        elements.forEach { it.save(this) }
     }
 
-    override fun writeListV2f(name: String, elements: List<Vector2f>?, force: Boolean) {}
+    override fun <V : ISaveable> writeHomogenousObjectArray(
+        self: ISaveable?,
+        name: String,
+        elements: Array<V>,
+        force: Boolean
+    ) {
+        elements.forEach { it.save(this) }
+    }
 
-    override fun writeListV3f(name: String, elements: List<Vector3f>?, force: Boolean) {}
+    override fun writeVector2fArray(name: String, elements: Array<Vector2f>, force: Boolean) {}
 
-    override fun writeListV4f(name: String, elements: List<Vector4f>?, force: Boolean) {}
+    override fun writeVector3fArray(name: String, elements: Array<Vector3f>, force: Boolean) {}
+
+    override fun writeVector4fArray(name: String, elements: Array<Vector4f>, force: Boolean) {}
 
     override fun writeListStart() {}
 
     override fun writeListEnd() {}
 
     override fun writeListSeparator() {}
+
+    override fun writeBooleanArray(name: String, value: BooleanArray, force: Boolean) {}
+    override fun writeByteArray(name: String, value: ByteArray, force: Boolean) {}
+    override fun writeDoubleArray2D(name: String, value: Array<DoubleArray>, force: Boolean) {}
+    override fun writeFloatArray2D(name: String, value: Array<FloatArray>, force: Boolean) {}
+    override fun writeShortArray(name: String, value: ShortArray, force: Boolean) {}
+    override fun writeStringArray(name: String, value: Array<String>, force: Boolean) {}
 
 }

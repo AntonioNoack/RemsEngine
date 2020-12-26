@@ -118,7 +118,7 @@ class Keyframe<V>(
     companion object {
         fun BaseWriter.writeValue(name: String, v: Any?) {
             when (v) {
-                is Boolean -> writeBool(name, v, true)
+                is Boolean -> writeBoolean(name, v, true)
                 is Int -> writeInt(name, v, true)
                 is Long -> writeLong(name, v, true)
                 is Float -> writeFloat(name, v, true)
