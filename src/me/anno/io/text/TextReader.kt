@@ -37,8 +37,7 @@ class TextReader(val data: String) : BaseReader() {
         assert(skipSpace(), '[')
         while (true) {
             when (val next = skipSpace()) {
-                ',' -> {
-                } // nothing to do#
+                ',' -> Unit // nothing to do
                 '{' -> readObject()
                 ']' -> return
                 else -> throw RuntimeException("Unexpected char $next")
@@ -417,7 +416,7 @@ class TextReader(val data: String) : BaseReader() {
             val reader = TextReader(data)
             reader.readAllInList()
             // sorting is very important
-            return reader.content.entries.sortedBy { it.key }.map { it.value }.toList()
+            return reader.sortedContent
         }
     }
 

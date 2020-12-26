@@ -3,7 +3,7 @@ package me.anno.io.binary;
 public class BinaryTypes {
     public static final char OBJECT = 'o';
     public static final char OBJECT_ARRAY = 'O';
-    public static final char OBJECT_ARRAY_NON_NULL = '&';
+    public static final char OBJECT_LIST_UNKNOWN_LENGTH = '&';
     public static final char BOOL = 'z';
     public static final char BOOL_ARRAY = 'Z';
     public static final char BYTE = 'b';
@@ -28,4 +28,10 @@ public class BinaryTypes {
     public static final char VECTOR2D = '5';
     public static final char VECTOR3D = '6';
     public static final char VECTOR4D = '7';
+    public static final char VECTOR2F_ARRAY = '2' + 128;
+    public static final char VECTOR3F_ARRAY = '3' + 128;
+    public static final char VECTOR4F_ARRAY = '4' + 128;
+    public static final char VECTOR2D_ARRAY = '5' + 128;
+    public static final char VECTOR3D_ARRAY = '6' + 128;
+    public static final char VECTOR4D_ARRAY = '7' + 128;
 }

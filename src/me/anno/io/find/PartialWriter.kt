@@ -28,6 +28,8 @@ abstract class PartialWriter(respectsDefaultValues: Boolean) : BaseWriter(respec
 
     override fun writeDouble(name: String, value: Double, force: Boolean) {}
 
+    override fun writeDoubleArray(name: String, value: DoubleArray, force: Boolean) {}
+
     override fun writeString(name: String, value: String?, force: Boolean) {}
 
     override fun writeLong(name: String, value: Long, force: Boolean) {}
@@ -54,11 +56,11 @@ abstract class PartialWriter(respectsDefaultValues: Boolean) : BaseWriter(respec
         elements?.forEach { it.save(this) }
     }
 
-    override fun writeListV2(name: String, elements: List<Vector2f>?, force: Boolean) {}
+    override fun writeListV2f(name: String, elements: List<Vector2f>?, force: Boolean) {}
 
-    override fun writeListV3(name: String, elements: List<Vector3f>?, force: Boolean) {}
+    override fun writeListV3f(name: String, elements: List<Vector3f>?, force: Boolean) {}
 
-    override fun writeListV4(name: String, elements: List<Vector4f>?, force: Boolean) {}
+    override fun writeListV4f(name: String, elements: List<Vector4f>?, force: Boolean) {}
 
     override fun writeListStart() {}
 

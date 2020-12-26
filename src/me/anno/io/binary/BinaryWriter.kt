@@ -3,7 +3,7 @@ package me.anno.io.binary
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.binary.BinaryTypes.*
-import me.anno.utils.toInt
+import me.anno.utils.Booleans.toInt
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4d
@@ -16,24 +16,25 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
      * max number of strings? idk...
      * typically we need only a few, but what if we need many?
      * */
-    private val knownNames = HashMap<String, Int>()
+    private val knownStrings = HashMap<String, Int>()
 
     private val knownNameTypes = HashMap<String, HashMap<NameType, Int>>()
 
     private var currentClass = ""
     private var currentNameTypes = knownNameTypes.getOrPut(currentClass) { HashMap() }
 
-    private fun writeEfficientString(string: String?){
-        if(string == null){
+    private fun writeEfficientString(string: String?) {
+        if (string == null) {
             output.writeInt(-1)
         } else {
-            val known = knownNames.getOrDefault(string,-1)
-            if(known >= 0){
+            val known = knownStrings.getOrDefault(string, -1)
+            if (known >= 0) {
                 output.writeInt(known)
             } else {
                 val bytes = string.toByteArray()
-                output.writeInt(-2-bytes.size)
+                output.writeInt(-2 - bytes.size)
                 output.write(bytes)
+                knownStrings[string] = knownStrings.size
             }
         }
     }
@@ -105,9 +106,7 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         if (force || value.isNotEmpty()) {
             writeAttributeStart(name, FLOAT_ARRAY)
             output.writeInt(value.size)
-            for (v in value) {
-                output.writeFloat(v)
-            }
+            for (v in value) output.writeFloat(v)
         }
     }
 
@@ -115,6 +114,14 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         if (force || value != 0.0) {
             writeAttributeStart(name, DOUBLE)
             output.writeDouble(value)
+        }
+    }
+
+    override fun writeDoubleArray(name: String, value: DoubleArray, force: Boolean) {
+        if (force || value.isNotEmpty()) {
+            writeAttributeStart(name, DOUBLE_ARRAY)
+            output.writeInt(value.size)
+            for (v in value) output.writeDouble(v)
         }
     }
 
@@ -178,56 +185,93 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
     }
 
     override fun writeNull(name: String?) {
-        if(name != null){
+        if (name != null) {
             writeAttributeStart(name, OBJECT)
         }
         output.writeInt(-1)
     }
 
     override fun writePointer(name: String?, className: String, ptr: Int) {
-        if(name != null){
+        if (name != null) {
             writeAttributeStart(name, OBJECT)
         }
         output.writeInt(ptr)
-        output.writeUTF(className) // todo more efficient class name
+        writeEfficientString(className)
     }
 
     override fun writeObjectImpl(name: String?, value: ISaveable) {
-        if(name != null){
+        if (name != null) {
             writeAttributeStart(name, OBJECT)
         }
         currentClass = value.getClassName()
-        currentNameTypes = knownNameTypes.getOrPut(currentClass){ HashMap() }
+        currentNameTypes = knownNameTypes.getOrPut(currentClass) { HashMap() }
         writeTypeString(currentClass)
         value.save(this)
         output.writeInt(-2) // end
     }
 
+    private fun <V> writeGenericList(
+        name: String,
+        elements: List<V>?,
+        force: Boolean,
+        type: Char,
+        writeInstance: (V) -> Unit
+    ) {
+        if (force || elements != null) {
+
+            if (elements == null) {
+                writeNull(name)
+                return
+            }
+
+            writeAttributeStart(name, type)
+            output.writeInt(elements.size)
+            elements.forEach { element ->
+                writeInstance(element)
+            }
+
+        }
+    }
+
     override fun <V : ISaveable> writeList(self: ISaveable?, name: String, elements: List<V>?, force: Boolean) {
-        TODO("Not yet implemented")
+        writeGenericList(name, elements, force, OBJECT_ARRAY) {
+            writeObject(self, name, it, true)
+        }
     }
 
-    override fun writeListV2(name: String, elements: List<Vector2f>?, force: Boolean) {
-        TODO("Not yet implemented")
+    override fun writeListV2f(name: String, elements: List<Vector2f>?, force: Boolean) {
+        writeGenericList(name, elements, force, VECTOR2F_ARRAY) {
+            output.writeFloat(it.x)
+            output.writeFloat(it.y)
+        }
     }
 
-    override fun writeListV3(name: String, elements: List<Vector3f>?, force: Boolean) {
-        TODO("Not yet implemented")
+    override fun writeListV3f(name: String, elements: List<Vector3f>?, force: Boolean) {
+        writeGenericList(name, elements, force, VECTOR3F_ARRAY) {
+            output.writeFloat(it.x)
+            output.writeFloat(it.y)
+            output.writeFloat(it.z)
+        }
     }
 
-    override fun writeListV4(name: String, elements: List<Vector4f>?, force: Boolean) {
-        TODO("Not yet implemented")
+    override fun writeListV4f(name: String, elements: List<Vector4f>?, force: Boolean) {
+        writeGenericList(name, elements, force, VECTOR4F_ARRAY) {
+            output.writeFloat(it.x)
+            output.writeFloat(it.y)
+            output.writeFloat(it.z)
+            output.writeFloat(it.w)
+        }
     }
 
     override fun writeListStart() {
-        writeAttributeStart("", OBJECT_ARRAY_NON_NULL)
+        writeAttributeStart("", OBJECT_LIST_UNKNOWN_LENGTH)
     }
 
     override fun writeListEnd() {
-        writeNull(null)
+        output.write(0)
     }
 
     override fun writeListSeparator() {
-        // nothing
+        output.write(1)
     }
 }

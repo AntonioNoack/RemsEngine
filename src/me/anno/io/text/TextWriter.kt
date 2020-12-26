@@ -180,6 +180,20 @@ class TextWriter(beautify: Boolean): BaseWriter(true) {
         }
     }
 
+    override fun writeDoubleArray(name: String, value: DoubleArray, force: Boolean) {
+        if(force || value.isNotEmpty()){
+            writeAttributeStart("d[]", name)
+            open(true)
+            data += value.size.toString()
+            val lastIndex = value.indexOfLast { it != 0.0 }
+            for(i in 0 until lastIndex){
+                data += ','
+                data += value[i].toString()
+            }
+            close(true)
+        }
+    }
+
     override fun writeString(name: String, value: String?, force: Boolean) {
         if(force || (value != null && value != "")){
             writeAttributeStart("S", name)
@@ -287,7 +301,7 @@ class TextWriter(beautify: Boolean): BaseWriter(true) {
         }
     }
 
-    override fun writeListV2(name: String, elements: List<Vector2f>?, force: Boolean) {
+    override fun writeListV2f(name: String, elements: List<Vector2f>?, force: Boolean) {
         if(elements != null){
             writeAttributeStart("v2[]", name)
             open(true)
@@ -302,7 +316,7 @@ class TextWriter(beautify: Boolean): BaseWriter(true) {
         }
     }
 
-    override fun writeListV3(name: String, elements: List<Vector3f>?, force: Boolean) {
+    override fun writeListV3f(name: String, elements: List<Vector3f>?, force: Boolean) {
         if(elements != null){
             writeAttributeStart("v2[]", name)
             open(true)
@@ -319,7 +333,7 @@ class TextWriter(beautify: Boolean): BaseWriter(true) {
         }
     }
 
-    override fun writeListV4(name: String, elements: List<Vector4f>?, force: Boolean) {
+    override fun writeListV4f(name: String, elements: List<Vector4f>?, force: Boolean) {
         if(elements != null){
             writeAttributeStart("v2[]", name)
             open(true)

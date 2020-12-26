@@ -7,6 +7,12 @@ import me.anno.utils.readNBytes2
 import java.io.DataInputStream
 import java.lang.RuntimeException
 
+/**
+ * writing as text is:
+ * - easier debuggable
+ * - similar speed
+ * - similar length when compressed
+ * */
 class BinaryReader(val input: DataInputStream) : BaseReader() {
 
     private val knownNames = ArrayList<String>()
@@ -35,8 +41,8 @@ class BinaryReader(val input: DataInputStream) : BaseReader() {
         return readEfficientString()!!
     }
 
-    fun readTypeName(id: Int): NameType {
-        return if (id < 0) {
+    private fun readTypeName(id: Int): NameType {
+        return if (id >= 0) {
             currentNameTypes[id]
         } else {
             val name = readTypeString()
@@ -47,14 +53,15 @@ class BinaryReader(val input: DataInputStream) : BaseReader() {
         }
     }
 
-    fun readTypeName(): NameType {
+    private fun readTypeName(): NameType {
         return readTypeName(input.readInt())
     }
 
     override fun readObject(): ISaveable {
         val clazz = readTypeString()
         val obj = getNewClassInstance(clazz)
-        // todo read all properties...
+        val ptr = input.readInt()
+        // real all properties
         while (true){
             val typeId = input.readInt()
             if(typeId < -1) break
@@ -70,15 +77,15 @@ class BinaryReader(val input: DataInputStream) : BaseReader() {
                 DOUBLE -> obj.readDouble(name, input.readDouble())
                 STRING -> obj.readString(name, readEfficientString() ?: throw RuntimeException("String must not be null"))
                 OBJECT -> {
-                    val ptr = input.readInt()
+                    val ptr2 = input.readInt()
                     when {
-                        ptr == -1 -> {
+                        ptr2 == -1 -> {
                             obj.readObject(name, null)
                         }
-                        ptr >= 0 -> {
-                            val child = content[ptr]
+                        ptr2 >= 0 -> {
+                            val child = content[ptr2]
                             if (child == null) {
-                                addMissingReference(obj, name, ptr)
+                                addMissingReference(obj, name, ptr2)
                             } else {
                                 obj.readObject(name, child)
                             }
@@ -92,11 +99,17 @@ class BinaryReader(val input: DataInputStream) : BaseReader() {
                 else -> throw RuntimeException("Unknown type ${typeName.type}")
             }
         }
+        register(obj, ptr)
         return obj
     }
 
     override fun readAllInList() {
-        TODO("Not yet implemented")
+        val nameType = readTypeName()
+        assert(nameType.name == "" && nameType.type == OBJECT_LIST_UNKNOWN_LENGTH)
+        while(true){
+            readObject()
+            if(input.read() != 1) break
+        }
     }
 
 }

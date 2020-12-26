@@ -19,18 +19,26 @@ abstract class BaseWriter(val respectsDefaultValues: Boolean) {
      * */
     fun getPointer(value: ISaveable) = pointers[value]
 
-    // the type is important to notice incompatibilities by changes
     abstract fun writeBool(name: String, value: Boolean, force: Boolean = true)
+
     abstract fun writeByte(name: String, value: Byte, force: Boolean = false)
+
     abstract fun writeShort(name: String, value: Short, force: Boolean = false)
+
     abstract fun writeInt(name: String, value: Int, force: Boolean = false)
     abstract fun writeIntArray(name: String, value: IntArray, force: Boolean = false)
-    abstract fun writeFloat(name: String, value: Float, force: Boolean = false)
-    abstract fun writeFloatArray(name: String, value: FloatArray, force: Boolean = false)
-    abstract fun writeDouble(name: String, value: Double, force: Boolean = false)
-    abstract fun writeString(name: String, value: String?, force: Boolean = false)
+
     abstract fun writeLong(name: String, value: Long, force: Boolean = false)
     abstract fun writeLongArray(name: String, value: LongArray, force: Boolean = false)
+
+    abstract fun writeFloat(name: String, value: Float, force: Boolean = false)
+    abstract fun writeFloatArray(name: String, value: FloatArray, force: Boolean = false)
+
+    abstract fun writeDouble(name: String, value: Double, force: Boolean = false)
+    abstract fun writeDoubleArray(name: String, value: DoubleArray, force: Boolean = false)
+
+    abstract fun writeString(name: String, value: String?, force: Boolean = false)
+
     abstract fun writeVector2f(name: String, value: Vector2f, force: Boolean = false)
     abstract fun writeVector3f(name: String, value: Vector3f, force: Boolean = false)
     abstract fun writeVector4f(name: String, value: Vector4f, force: Boolean = false)
@@ -92,9 +100,9 @@ abstract class BaseWriter(val respectsDefaultValues: Boolean) {
     abstract fun writeObjectImpl(name: String?, value: ISaveable)
 
     abstract fun <V : ISaveable> writeList(self: ISaveable?, name: String, elements: List<V>?, force: Boolean = false)
-    abstract fun writeListV2(name: String, elements: List<Vector2f>?, force: Boolean = false)
-    abstract fun writeListV3(name: String, elements: List<Vector3f>?, force: Boolean = false)
-    abstract fun writeListV4(name: String, elements: List<Vector4f>?, force: Boolean = false)
+    abstract fun writeListV2f(name: String, elements: List<Vector2f>?, force: Boolean = false)
+    abstract fun writeListV3f(name: String, elements: List<Vector3f>?, force: Boolean = false)
+    abstract fun writeListV4f(name: String, elements: List<Vector4f>?, force: Boolean = false)
 
     fun add(obj: ISaveable) {
         if (obj !in listed) {

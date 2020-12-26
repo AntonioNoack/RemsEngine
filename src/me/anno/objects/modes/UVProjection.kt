@@ -2,7 +2,7 @@ package me.anno.objects.modes
 
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01Cube
 import me.anno.gpu.buffer.StaticBuffer
-import me.anno.objects.Video.Companion.cubemapModel
+import me.anno.objects.utils.CubemapModel.cubemapModel
 
 enum class UVProjection(val id: Int, val doScale: Boolean, val displayName: String, val description: String){
     Planar(0, true, "Planar", "Simple plane, e.g. for 2D video"){

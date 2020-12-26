@@ -1,6 +1,6 @@
 package me.anno.input
 
-import me.anno.utils.toInt
+import me.anno.utils.Booleans.toInt
 
 object Modifiers {
 

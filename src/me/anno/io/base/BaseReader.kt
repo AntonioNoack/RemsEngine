@@ -35,6 +35,7 @@ abstract class BaseReader {
 
     val content = HashMap<Int, ISaveable>()
     val missingReferences = HashMap<Int, ArrayList<Pair<Any, String>>>()
+    val sortedContent get() = content.entries.sortedBy { it.key }.map { it.value }.toList()
 
     fun getNewClassInstance(clazz: String): ISaveable {
         return when(clazz){

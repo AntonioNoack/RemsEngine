@@ -8,7 +8,6 @@ import me.anno.gpu.GFXx3D.draw3DVideo
 import me.anno.gpu.SVGxGFX
 import me.anno.gpu.TextureLib
 import me.anno.gpu.TextureLib.colorShowTexture
-import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
@@ -24,6 +23,7 @@ import me.anno.objects.modes.EditorFPS
 import me.anno.objects.modes.LoopingState
 import me.anno.objects.modes.UVProjection
 import me.anno.objects.modes.VideoType
+import me.anno.objects.utils.SpeakerModel.drawSpeakers
 import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.RemsStudio.isPaused
 import me.anno.studio.rems.RemsStudio.nullCamera
@@ -38,15 +38,12 @@ import me.anno.ui.base.Visibility
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.files.hasValidName
-import me.anno.ui.editor.sceneView.Grid
 import me.anno.ui.input.EnumInput
 import me.anno.ui.style.Style
 import me.anno.utils.*
-import me.anno.utils.Maths.clamp
+import me.anno.utils.Booleans.toInt
 import me.anno.utils.Maths.pow
 import me.anno.utils.StringHelper.getImportType
-import me.anno.utils.Vectors.plus
-import me.anno.utils.Vectors.times
 import me.anno.video.ImageSequenceMeta
 import me.anno.video.FFMPEGMetadata
 import me.anno.video.FFMPEGMetadata.Companion.getMeta
@@ -377,24 +374,6 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
         }
     }
 
-    private fun drawSpeakers(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
-        if (GFX.isFinalRendering) return
-        color.w = clamp(color.w * 0.5f * abs(amplitude[time]), 0f, 1f)
-        if (is3D) {
-            val r = 0.85f
-            stack.translate(r, 0f, 0f)
-            Grid.drawBuffer(stack, color, speakerModel)
-            stack.translate(-2 * r, 0f, 0f)
-            Grid.drawBuffer(stack, color, speakerModel)
-        } else {
-            // mark the speaker with yellow,
-            // and let it face upwards (+y) to symbolize, that it's global
-            color.z *= 0.8f // yellow
-            stack.rotate(-1.5708f, xAxis)
-            Grid.drawBuffer(stack, color, speakerModel)
-        }
-    }
-
     var needsImageUpdate = false
     var lastTexture: Any? = null
     override fun claimLocalResources(lTime0: Double, lTime1: Double) {
@@ -553,12 +532,11 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                     drawImageSequence(meta, stack, time, color)
                 }
                 VideoType.IMAGE -> drawImage(stack, time, color)
-                VideoType.AUDIO -> drawSpeakers(stack, time, color)
+                VideoType.AUDIO -> drawSpeakers(stack, color, is3D, amplitude[time])
                 else -> throw RuntimeException("$type needs visualization")
             }
 
-        } else drawSpeakers(stack, time, color)
-        // super.onDraw(stack, time, color) // draw dot
+        } else drawSpeakers(stack, color, is3D, amplitude[time])
 
     }
 
@@ -640,14 +618,12 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
         color += img(vi("Offset", "Can be used to color black objects", cgOffset, style))
 
         val audio = getGroup("Audio", "audio")
-        /*if(meta?.hasAudio == true){
-            list += AudioLinePanel(meta, this, style)
-        }*/
         audio += aud(vi("Amplitude", "How loud it is", amplitude, style))
         audio += aud(vi("Is 3D Sound", "Sound becomes directional", null, is3D, style) {
             is3D = it
             AudioManager.requestUpdate()
         })
+
         val audioFX = getGroup("Audio Effects", "audio-fx")
         audioFX += aud(vi("Echo Delay", "", echoDelay, style))
         audioFX += aud(vi("Echo Multiplier", "", echoMultiplier, style))
@@ -762,80 +738,6 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
         val tiling16x9 = Vector4f(8f, 4.5f, 0f, 0f)
 
         val imageTimeout = DefaultConfig["ui.image.frameTimeout", 5000L]
-
-        val cubemapModel = StaticBuffer(listOf(Attribute("attr0", 3), Attribute("attr1", 2)), 4 * 6)
-        val speakerModel: StaticBuffer
-
-        init {
-
-            fun put(v0: Vector3f, dx: Vector3f, dy: Vector3f, x: Float, y: Float, u: Int, v: Int) {
-                val pos = v0 + dx * x + dy * y
-                cubemapModel.put(pos.x, pos.y, pos.z, u / 4f, v / 3f)
-            }
-
-            fun addFace(u: Int, v: Int, v0: Vector3f, dx: Vector3f, dy: Vector3f) {
-                put(v0, dx, dy, -1f, -1f, u + 1, v)
-                put(v0, dx, dy, -1f, +1f, u + 1, v + 1)
-                put(v0, dx, dy, +1f, +1f, u, v + 1)
-                put(v0, dx, dy, +1f, -1f, u, v)
-            }
-
-            val mxAxis = Vector3f(-1f, 0f, 0f)
-            val myAxis = Vector3f(0f, -1f, 0f)
-            val mzAxis = Vector3f(0f, 0f, -1f)
-
-            addFace(1, 1, mzAxis, mxAxis, yAxis) // center, front
-            addFace(0, 1, mxAxis, zAxis, yAxis) // left, left
-            addFace(2, 1, xAxis, mzAxis, yAxis) // right, right
-            addFace(3, 1, zAxis, xAxis, yAxis) // 2x right, back
-            addFace(1, 0, myAxis, mxAxis, mzAxis) // top
-            addFace(1, 2, yAxis, mxAxis, zAxis) // bottom
-
-            cubemapModel.quads()
-
-            val speakerEdges = 64
-            speakerModel = StaticBuffer(
-                listOf(
-                    Attribute("attr0", 3),
-                    Attribute("attr1", 2)
-                ), speakerEdges * 3 * 2 + 4 * 2 * 2
-            )
-
-            fun addLine(r0: Float, d0: Float, r1: Float, d1: Float, dx: Int, dy: Int) {
-                speakerModel.put(r0 * dx, r0 * dy, d0, 0f, 0f)
-                speakerModel.put(r1 * dx, r1 * dy, d1, 0f, 0f)
-            }
-
-            fun addRing(radius: Float, depth: Float, edges: Int) {
-                val dr = (Math.PI * 2 / edges).toFloat()
-                fun putPoint(i: Int) {
-                    val angle1 = dr * i
-                    speakerModel.put(sin(angle1) * radius, cos(angle1) * radius, depth, 0f, 0f)
-                }
-                putPoint(0)
-                for (i in 1 until edges) {
-                    putPoint(i)
-                    putPoint(i)
-                }
-                putPoint(0)
-            }
-
-            val scale = 0.5f
-
-            addRing(0.45f * scale, 0.02f * scale, speakerEdges)
-            addRing(0.50f * scale, 0.01f * scale, speakerEdges)
-            addRing(0.80f * scale, 0.30f * scale, speakerEdges)
-
-            val dx = listOf(0, 0, 1, -1)
-            val dy = listOf(1, -1, 0, 0)
-            for (i in 0 until 4) {
-                addLine(0.45f * scale, 0.02f * scale, 0.50f * scale, 0.01f * scale, dx[i], dy[i])
-                addLine(0.50f * scale, 0.01f * scale, 0.80f * scale, 0.30f * scale, dx[i], dy[i])
-            }
-
-            speakerModel.lines()
-
-        }
 
     }
 
