@@ -25,8 +25,6 @@ import kotlin.concurrent.thread
 
 // todo "hacked"-text effect for text: swizzle characters and introduce others
 
-// todo curve-editor: show colors as blobs/circles
-
 // todo scene screenshot/editor screenshot
 
 // todo draw frame by frame, only save x,y,radius?

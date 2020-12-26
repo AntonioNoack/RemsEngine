@@ -4,11 +4,12 @@ import me.anno.config.DefaultStyle.black
 import me.anno.config.DefaultStyle.white
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.loadTexturesSync
+import me.anno.gpu.GFXx2D.drawBorder
 import me.anno.gpu.GFXx2D.drawRect
 import me.anno.gpu.GFXx2D.drawText
 import me.anno.gpu.GFXx2D.drawTexture
 import me.anno.gpu.GFXx2D.getTextSize
-import me.anno.gpu.TextureLib.whiteTexture
+import me.anno.gpu.TextureLib.colorShowTexture
 import me.anno.input.Input.isControlDown
 import me.anno.input.Input.isShiftDown
 import me.anno.input.Input.mouseDownX
@@ -31,6 +32,7 @@ import me.anno.studio.rems.Selection.selectedProperty
 import me.anno.ui.editor.TimelinePanel
 import me.anno.ui.editor.sceneView.Grid.drawSmoothLine
 import me.anno.ui.style.Style
+import me.anno.utils.Color.toARGB
 import me.anno.utils.LOGGER
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.length
@@ -39,6 +41,8 @@ import me.anno.utils.Maths.mixARGB
 import me.anno.utils.Maths.pow
 import me.anno.utils.get
 import org.joml.Vector2f
+import org.joml.Vector3f
+import org.joml.Vector4f
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -80,7 +84,8 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
         minH = size
     }
 
-    private fun getValueString(value: Float, step: Float) = getValueString(abs(value), step, if (value < 0) '-' else '+')
+    private fun getValueString(value: Float, step: Float) =
+        getValueString(abs(value), step, if (value < 0) '-' else '+')
 
     private fun getValueString(value: Float, step: Float, sign: Char): String {
         val int = value.toInt()
@@ -171,12 +176,14 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
         } else add(property.defaultValue)
 
         centralValue = (maxValue + minValue) * 0.5f
-        dvHalfHeight = max(property.type.unitScale * 0.1f, (maxValue - minValue) * 0.5f)
+        dvHalfHeight = max(property.type.unitScale * 0.5f, (maxValue - minValue) * 0.5f) * 1.2f
 
     }
 
     var lastProperty: Any? = null
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+
+        val dotSize = dotSize
 
         drawnStrings.clear()
 
@@ -236,17 +243,9 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
 
         fun drawDot(x: Int, y: Int, color: Int, willBeSelected: Boolean) {
             if (willBeSelected) {// draw outline, if point is selected
-                drawTexture(
-                    x - halfSize - 1, clamp(y - halfSize - 1, y0 - 1, y1),
-                    dotSize + 2, dotSize + 2,
-                    whiteTexture, -1, null
-                )
+                drawRect(x - halfSize - 1, clamp(y - halfSize - 1, y0 - 1, y1), dotSize + 2, dotSize + 2, -1)
             }
-            drawTexture(
-                x - halfSize, clamp(y - halfSize, y0 - 1, y1),
-                dotSize, dotSize,
-                whiteTexture, color, null
-            )
+            drawRect(x - halfSize, clamp(y - halfSize, y0 - 1, y1), dotSize, dotSize, color)
         }
 
         val minSelectX = min(mouseDownX, mouseX).toInt()
@@ -259,34 +258,17 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
         // draw selection box
         if (isSelecting) {
 
-            // draw borders
-            drawTexture(
-                minSelectX, minSelectY,
-                maxSelectX - minSelectX, 1,
-                whiteTexture, black, null
-            )
-            drawTexture(
-                minSelectX, minSelectY,
-                1, maxSelectY - minSelectY,
-                whiteTexture, black, null
-            )
-            drawTexture(
-                minSelectX, maxSelectY,
-                maxSelectX - minSelectX, 1,
-                whiteTexture, black, null
-            )
-            drawTexture(
-                maxSelectX, minSelectY,
-                1, maxSelectY - minSelectY,
-                whiteTexture, black, null
-            )
+            // draw border
+            drawBorder(minSelectX, minSelectY, maxSelectX * minSelectX, maxSelectY - minSelectY, black, 1)
 
             // draw inner
-            if (minSelectX + 1 < maxSelectX && minSelectY + 1 < maxSelectY) drawTexture(
-                minSelectX + 1, minSelectY + 1,
-                maxSelectX - minSelectX - 2, maxSelectY - minSelectY - 2,
-                whiteTexture, black and 0x77000000, null
-            )
+            if (minSelectX + 1 < maxSelectX && minSelectY + 1 < maxSelectY) {
+                drawRect(
+                    minSelectX + 1, minSelectY + 1,
+                    maxSelectX - minSelectX - 2, maxSelectY - minSelectY - 2,
+                    black and 0x77000000
+                )
+            }
 
         }
 
@@ -295,6 +277,11 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
         val yValues = IntArray(type.components)
         val prevYValues = IntArray(type.components)
         val kfs = property.keyframes
+
+        // draw colored stripes to show the color...
+        if (property.type == Type.COLOR || property.type == Type.COLOR3) {
+            drawColoredStripes(x0, x1, y0, y1, property)
+        }
 
         if (kfs.isNotEmpty()) {
             val first = kfs[0]
@@ -398,6 +385,39 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
             }
         }
 
+    }
+
+    private fun drawColoredStripes(
+        x0: Int, x1: Int, y0: Int, y1: Int,
+        property: AnimatedProperty<*>
+    ) {
+        val dotSize = dotSize
+        val width = dotSize
+        val halfWidth = (width+1)/2
+        val kfs = property.keyframes
+        val stripeMultiplier = 0.33f // just to make it calmer
+        val tiling = Vector4f(1f, (y1 - y0).toFloat() * stripeMultiplier / dotSize, 0f, 0f)
+        val h = y1 - y0
+        kfs.forEach { kf ->
+            val tGlobal = kf2Global(kf.time)
+            val x = getXAt(tGlobal).roundToInt() - halfWidth
+            if (x < x1 || x + width >= x0) {// visible
+                val colorVector =
+                    if (property.type == Type.COLOR3)
+                        Vector4f(kf.value as Vector3f, 1f)
+                    else kf.value as Vector4f
+                val color = colorVector.toARGB()
+                val color2 = Vector4f(colorVector).mul(1f, 1f, 1f, 0.25f).toARGB()
+                if (h > dotSize * 4) {
+                    val border = dotSize
+                    drawRect(x, y0, width, border, color2)
+                    drawTexture(x, y0 + border, width, h - border * 2, colorShowTexture, color, tiling)
+                    drawRect(x, y1 - border, width, border, color2)
+                } else {
+                    drawTexture(x, y0, width, h, colorShowTexture, color, tiling)
+                }
+            }
+        }
     }
 
     // todo draw curve of animation-drivers :)
