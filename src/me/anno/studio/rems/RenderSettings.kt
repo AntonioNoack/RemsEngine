@@ -41,12 +41,12 @@ object RenderSettings : Transform() {
 
         list.clear()
         list += TextPanel(getDefaultDisplayName(), style)
-        list += VI("Duration", "Video length in seconds", Type.FLOAT_PLUS, targetDuration, style) {
+        list += vi("Duration", "Video length in seconds", Type.FLOAT_PLUS, targetDuration, style) {
             project.targetDuration = it
             save()
         }
 
-        list += VI(
+        list += vi(
             "Relative Frame Size (%)", "For rendering tests, in percent",
             Type.FLOAT_PERCENT, project.targetSizePercentage, style
         ) {

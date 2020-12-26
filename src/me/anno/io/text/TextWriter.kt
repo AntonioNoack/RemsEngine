@@ -8,7 +8,7 @@ import org.joml.Vector3f
 import org.joml.Vector4d
 import org.joml.Vector4f
 
-class TextWriter(beautify: Boolean): BaseWriter() {
+class TextWriter(beautify: Boolean): BaseWriter(true) {
 
     private val separator = if(beautify) ", " else ","
 
@@ -195,7 +195,21 @@ class TextWriter(beautify: Boolean): BaseWriter() {
         }
     }
 
-    override fun writeVector2(name: String, value: Vector2f, force: Boolean) {
+    override fun writeLongArray(name: String, value: LongArray, force: Boolean) {
+        if(force || value.isNotEmpty()){
+            writeAttributeStart("l[]", name)
+            open(true)
+            data += value.size.toString()
+            val lastIndex = value.indexOfLast { it != 0L }
+            for(i in 0 until lastIndex){
+                data += ','
+                data += value[i].toString()
+            }
+            close(true)
+        }
+    }
+
+    override fun writeVector2f(name: String, value: Vector2f, force: Boolean) {
         if(force || value.x != 0f || value.y != 0f){
             writeAttributeStart("v2", name)
             data += '['
@@ -206,7 +220,7 @@ class TextWriter(beautify: Boolean): BaseWriter() {
         }
     }
 
-    override fun writeVector3(name: String, value: Vector3f, force: Boolean) {
+    override fun writeVector3f(name: String, value: Vector3f, force: Boolean) {
         if(force || value.x != 0f || value.y != 0f || value.z != 0f){
             writeAttributeStart("v3", name)
             data += '['
@@ -219,7 +233,7 @@ class TextWriter(beautify: Boolean): BaseWriter() {
         }
     }
 
-    override fun writeVector4(name: String, value: Vector4f, force: Boolean) {
+    override fun writeVector4f(name: String, value: Vector4f, force: Boolean) {
         if(force || value.x != 0f || value.y != 0f || value.z != 0f || value.w != 0f){
             writeAttributeStart("v4", name)
             data += '['
@@ -234,7 +248,7 @@ class TextWriter(beautify: Boolean): BaseWriter() {
         }
     }
 
-    override fun writeVector4(name: String, value: Vector4d, force: Boolean) {
+    override fun writeVector4d(name: String, value: Vector4d, force: Boolean) {
         if(force || value.x != 0.0 || value.y != 0.0 || value.z != 0.0 || value.w != 0.0){
             writeAttributeStart("v4", name)
             data += '['
@@ -335,7 +349,7 @@ class TextWriter(beautify: Boolean): BaseWriter() {
             writeString(value.getClassName())
             hasObject = true
         }
-        writeInt("*ptr", pointers[value]!!)
+        writeInt("*ptr", getPointer(value)!!)
         value.save(this)
         close(false)
     }

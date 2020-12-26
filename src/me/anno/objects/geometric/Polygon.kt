@@ -88,13 +88,13 @@ class Polygon(parent: Transform? = null): GFXTransform(parent){
     override fun createInspector(list: PanelListY, style: Style, getGroup: (title: String, id: String) -> SettingCategory) {
         super.createInspector(list, style, getGroup)
         val geo = getGroup("Geometry", "geometry")
-        geo += VI("Vertex Count", "Quads, Triangles, all possible", vertexCount, style)
-        geo += VI("Star-ness", "Works best with even vertex count", starNess, style)
-        geo += VI("Auto-Align", "Rotate 45°/90, and scale a bit; for rectangles", null, autoAlign, style){ autoAlign = it }
-        geo += VI("Extrude", "Makes it 3D", null, is3D, style){ is3D = it }
+        geo += vi("Vertex Count", "Quads, Triangles, all possible", vertexCount, style)
+        geo += vi("Star-ness", "Works best with even vertex count", starNess, style)
+        geo += vi("Auto-Align", "Rotate 45°/90, and scale a bit; for rectangles", null, autoAlign, style){ autoAlign = it }
+        geo += vi("Extrude", "Makes it 3D", null, is3D, style){ is3D = it }
         val tex = getGroup("Pattern", "texture")
-        tex += VI("Pattern Texture", "For patterns like gradients radially; use a mask layer for images with polygon shape", null, texture, style){ texture = it }
-        tex += VI("Filtering", "Pixelated or soft look of pixels?", null, filtering, style){ filtering = it }
+        tex += vi("Pattern Texture", "For patterns like gradients radially; use a mask layer for images with polygon shape", null, texture, style){ texture = it }
+        tex += vi("Filtering", "Pixelated or soft look of pixels?", null, filtering, style){ filtering = it }
     }
 
     override fun getClassName(): String = "Polygon"

@@ -5,7 +5,7 @@ import me.anno.input.MouseButton
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.animation.Type
 import me.anno.studio.rems.RemsStudio
-import me.anno.studio.rems.RemsStudio.selectedProperty
+import me.anno.studio.rems.Selection.selectedProperty
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.input.components.NumberInputComponent

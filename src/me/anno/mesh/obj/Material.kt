@@ -25,13 +25,13 @@ class Material: Saveable(){
     override fun isDefaultValue() = false
     override fun save(writer: BaseWriter) {
         super.save(writer)
-        ambientColor?.apply { writer.writeVector3("ambient", this) }
+        ambientColor?.apply { writer.writeVector3f("ambient", this) }
         ambientTexture?.apply { writer.writeFile("ambient", this) }
-        emissiveColor?.apply { writer.writeVector3("emissive", this) }
+        emissiveColor?.apply { writer.writeVector3f("emissive", this) }
         emissiveTexture?.apply { writer.writeFile("emissive", this) }
-        diffuseColor?.apply { writer.writeVector3("diffuse", this) }
+        diffuseColor?.apply { writer.writeVector3f("diffuse", this) }
         diffuseTexture?.apply { writer.writeFile("diffuse", this) }
-        specularColor?.apply { writer.writeVector3("specular", this) }
+        specularColor?.apply { writer.writeVector3f("specular", this) }
         specularTexture?.apply { writer.writeFile("specular", this) }
         writer.writeFloat("specularExponent", specularExponent)
         writer.writeFloat("opacity", opacity)

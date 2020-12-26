@@ -45,9 +45,9 @@ class PerlinNoiseDriver: AnimationDriver(){
 
     override fun createInspector(list: MutableList<Panel>, transform: Transform, style: Style, getGroup: (title: String, id: String) -> SettingCategory) {
         super.createInspector(list, transform, style, getGroup)
-        list += transform.VI("Octaves", "Levels of Detail", Type.INT_PLUS, octaves, style){ octaves = it }
-        list += transform.VI("Seed", "", Type.LONG, seed, style){ seed = it }
-        list += transform.VI("Falloff", "Changes high-frequency weight", falloff, style)
+        list += transform.vi("Octaves", "Levels of Detail", Type.INT_PLUS, octaves, style){ octaves = it }
+        list += transform.vi("Seed", "", Type.LONG, seed, style){ seed = it }
+        list += transform.vi("Falloff", "Changes high-frequency weight", falloff, style)
     }
 
     override fun save(writer: BaseWriter) {

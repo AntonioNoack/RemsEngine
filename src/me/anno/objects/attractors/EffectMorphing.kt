@@ -26,8 +26,8 @@ class EffectMorphing: Transform() {
     ) {
         super.createInspector(list, style, getGroup)
         val fx = getGroup("Effect", "effects")
-        fx += VI("Strength", "The effective scale", influence, style)
-        fx += VI("Sharpness", "How sharp the lens effect is", sharpness, style)
+        fx += vi("Strength", "The effective scale", influence, style)
+        fx += vi("Sharpness", "How sharp the lens effect is", sharpness, style)
     }
 
     override fun save(writer: BaseWriter) {

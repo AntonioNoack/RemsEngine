@@ -146,7 +146,7 @@ class Mesh(var file: File, parent: Transform?) : GFXTransform(parent) {
         getGroup: (title: String, id: String) -> SettingCategory
     ) {
         super.createInspector(list, style, getGroup)
-        list += VI("File", "", null, file, style) { file = it }
+        list += vi("File", "", null, file, style) { file = it }
     }
 
     override fun save(writer: BaseWriter) {

@@ -36,6 +36,8 @@ class WrapAlign(val alignX: AxisAlignment?, val alignY: AxisAlignment?): Constra
         val Left = WrapAlign(AxisAlignment.MIN, null)
         val LeftBottom = WrapAlign(AxisAlignment.MIN, AxisAlignment.MAX)
 
+        val RightBottom = WrapAlign(AxisAlignment.MAX, AxisAlignment.MAX)
+
         val TopFill = WrapAlign(null, AxisAlignment.MIN)
         val BottomFill = WrapAlign(null, AxisAlignment.MAX)
 

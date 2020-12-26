@@ -11,10 +11,10 @@ import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.animation.Type
 import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.RemsStudio.editorTime
-import me.anno.studio.rems.RemsStudio.selectedProperty
-import me.anno.studio.rems.RemsStudio.selectedTransform
 import me.anno.studio.StudioBase.Companion.shiftSlowdown
 import me.anno.studio.StudioBase.Companion.warn
+import me.anno.studio.rems.Selection.selectedProperty
+import me.anno.studio.rems.Selection.selectedTransform
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelListX
@@ -287,6 +287,7 @@ class VectorInput(
                         setValue(Vector2f(vx + dx0/5, vy), true)
                     }
                 }
+                // todo implement universal version
             }
             // setValue(lastValue * pow(1.01f, delta))
         }

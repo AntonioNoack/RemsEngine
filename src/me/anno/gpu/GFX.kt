@@ -22,8 +22,8 @@ import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.RemsStudio.editorTime
 import me.anno.studio.rems.RemsStudio.editorTimeDilation
 import me.anno.studio.rems.RemsStudio.root
-import me.anno.studio.rems.RemsStudio.selectedInspectable
-import me.anno.studio.rems.RemsStudio.selectedTransform
+import me.anno.studio.rems.Selection.selectedInspectable
+import me.anno.studio.rems.Selection.selectedTransform
 import me.anno.ui.base.ButtonPanel
 import me.anno.ui.base.Panel
 import me.anno.ui.base.SpacePanel
@@ -84,14 +84,14 @@ object GFX : GFXBase1() {
     var hoveredPanel: Panel? = null
     var hoveredWindow: Window? = null
 
-    fun select(transform: Transform?) {
-        RemsStudio.largeChange("Select ${transform?.name ?: "Nothing"}") {
-            if (selectedTransform != transform || selectedInspectable != transform) {
-                selectedInspectable = transform
-                selectedTransform = transform
+    // todo add history component back
+    /*fun select(transform: Transform?) {
+        if (selectedTransform != transform || selectedInspectable != transform) {
+            RemsStudio.largeChange("Select ${transform?.name ?: "Nothing"}") {
+                select(transform)
             }
         }
-    }
+    }*/
 
     val gpuTasks = ConcurrentLinkedQueue<Task>()
     val audioTasks = ConcurrentLinkedQueue<Task>()
@@ -154,7 +154,7 @@ object GFX : GFXBase1() {
     var drawnTransform: Transform? = null
 
     const val menuSeparator = "-----"
-    val menuSeparator1 = MenuOption(menuSeparator, ""){}
+    val menuSeparator1 = MenuOption(menuSeparator, "") {}
 
     val inFocus = HashSet<Panel>()
     val inFocus0 get() = inFocus.firstOrNull()

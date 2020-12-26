@@ -8,9 +8,9 @@ import me.anno.objects.Inspectable
 import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.animation.Type
-import me.anno.studio.rems.RemsStudio.selectedInspectable
-import me.anno.studio.rems.RemsStudio.selectedProperty
-import me.anno.studio.rems.RemsStudio.selectedTransform
+import me.anno.studio.rems.Selection.select
+import me.anno.studio.rems.Selection.selectProperty
+import me.anno.studio.rems.Selection.selectedTransform
 import me.anno.ui.base.Panel
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.groups.PanelListY
@@ -36,12 +36,12 @@ abstract class AnimationDriver : Saveable(), Inspectable {
         style: Style,
         getGroup: (title: String, id: String) -> SettingCategory
     ) {
-        list += transform.VI("Amplitude", "Scale of randomness", amplitude, style)
-        list += transform.VI("Frequency", "How fast it's changing", Type.DOUBLE, frequency, style) { frequency = it }
+        list += transform.vi("Amplitude", "Scale of randomness", amplitude, style)
+        list += transform.vi("Frequency", "How fast it's changing", Type.DOUBLE, frequency, style) { frequency = it }
     }
 
     fun show(toShow: AnimatedProperty<*>?) {
-        selectedProperty = toShow
+        select(selectedTransform!!, toShow)
     }
 
     override fun save(writer: BaseWriter) {
@@ -86,8 +86,7 @@ abstract class AnimationDriver : Saveable(), Inspectable {
             )
             if (oldDriver != null) {
                 options.add(0, GFX.MenuOption("Customize", "Change the driver properties"){
-                    selectedInspectable = oldDriver
-                    0
+                    selectProperty(oldDriver)
                 })
                 options += GFX.MenuOption("Remove Driver", "Changes back to keyframe-animation"){
                     whenSelected(null)

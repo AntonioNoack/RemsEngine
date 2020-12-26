@@ -30,12 +30,12 @@ class PitchEffect() : SoundEffect(Domain.FREQUENCY_DOMAIN, Domain.TIME_DOMAIN) {
         style: Style,
         getGroup: (title: String, id: String) -> SettingCategory
     ) {
-        list += audio.VI(
+        list += audio.vi(
             "Inverse Speed",
             "Making something play faster, increases the pitch; this is undone by this node",
             null, inverseSpeed, style
         ) { inverseSpeed = it }
-        list += audio.VI("Value", "Pitch height, if Inverse Speed = false", pitch, style)
+        list += audio.vi("Value", "Pitch height, if Inverse Speed = false", pitch, style)
     }
 
     companion object {

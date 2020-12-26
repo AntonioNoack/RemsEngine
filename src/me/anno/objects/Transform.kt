@@ -30,9 +30,10 @@ import me.anno.objects.text.TextRenderMode
 import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.RemsStudio.editorTime
 import me.anno.studio.rems.RemsStudio.root
-import me.anno.studio.rems.RemsStudio.selectedProperty
-import me.anno.studio.rems.RemsStudio.selectedTransform
 import me.anno.studio.rems.Scene
+import me.anno.studio.rems.Selection.select
+import me.anno.studio.rems.Selection.selectTransform
+import me.anno.studio.rems.Selection.selectedTransform
 import me.anno.ui.base.Panel
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
@@ -41,10 +42,12 @@ import me.anno.ui.editor.TimelinePanel.Companion.global2Kf
 import me.anno.ui.editor.stacked.Option
 import me.anno.ui.input.*
 import me.anno.ui.style.Style
+import me.anno.utils.Color.toHexColor
 import me.anno.utils.MatrixHelper.skew
 import org.joml.*
 import java.io.File
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicLong
 
 // pivot? nah, always use the center to make things easy;
 // or should we do it?... idk for sure...
@@ -69,6 +72,7 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
     val clickId = nextClickId.incrementAndGet()
     var timelineSlot = -1
     var visibility = TransformVisibility.VISIBLE
+    var uuid = nextUUID.incrementAndGet()
 
     var position = AnimatedProperty.pos()
     var scale = AnimatedProperty.scale()
@@ -88,7 +92,7 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
 
     var name = ""
         get() {
-            if(field == "") field = getDefaultDisplayName()
+            if (field == "") field = getDefaultDisplayName()
             return field
         }
 
@@ -112,8 +116,8 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
 
     fun putValue(list: AnimatedProperty<*>, value: Any, updateHistory: Boolean) {
         val time = global2Kf(editorTime)
-        if(updateHistory){
-            RemsStudio.incrementalChange("Change Keyframe Value"){
+        if (updateHistory) {
+            RemsStudio.incrementalChange("Change Keyframe Value") {
                 list.addKeyframe(time, value, TimelinePanel.propertyDt)
             }
         } else {
@@ -130,7 +134,7 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
     }
 
     fun show(anim: AnimatedProperty<*>?) {
-        selectedProperty = anim
+        select(this, anim)
     }
 
     open fun claimResources(pTime0: Double, pTime1: Double, pAlpha0: Float, pAlpha1: Float) {
@@ -166,41 +170,42 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
 
         // transforms
         val transform = getGroup("Transform", "transform")
-        transform += VI("Position", "Location of this object", position, style)
-        transform += VI("Scale", "Makes it bigger/smaller", scale, style)
-        transform += VI("Rotation (YXZ)", "", rotationYXZ, style)
-        transform += VI("Skew", "Transform it similar to a shear", skew, style)
-        transform += VI(
+        transform += vi("Position", "Location of this object", position, style)
+        transform += vi("Scale", "Makes it bigger/smaller", scale, style)
+        transform += vi("Rotation (YXZ)", "", rotationYXZ, style)
+        transform += vi("Skew", "Transform it similar to a shear", skew, style)
+        transform += vi(
             "Alignment with Camera", "0 = in 3D, 1 = looking towards the camera; billboards",
             alignWithCamera, style
         )
 
         // color
         val colorGroup = getGroup("Color", "color")
-        colorGroup += VI("Color", "Tint, applied to this & children", color, style)
-        colorGroup += VI("Color Multiplier", "To make things brighter than usually possible", colorMultiplier, style)
+        colorGroup += vi("Color", "Tint, applied to this & children", color, style)
+        colorGroup += vi("Color Multiplier", "To make things brighter than usually possible", colorMultiplier, style)
 
         // kind of color...
-        colorGroup += VI("Blend Mode", "", null, blendMode, style) { blendMode = it }
+        colorGroup += vi("Blend Mode", "", null, blendMode, style) { blendMode = it }
 
         // time
         val timeGroup = getGroup("Time", "time")
-        timeGroup += VI("Start Time", "Delay the animation", null, timeOffset, style) { timeOffset = it }
-        timeGroup += VI("Time Multiplier", "Speed up the animation", null, timeDilation, style) { timeDilation = it }
-        timeGroup += VI("Advanced Time", "Add acceleration/deceleration to your elements", timeAnimated, style)
+        timeGroup += vi("Start Time", "Delay the animation", null, timeOffset, style) { timeOffset = it }
+        timeGroup += vi("Time Multiplier", "Speed up the animation", null, timeDilation, style) { timeDilation = it }
+        timeGroup += vi("Advanced Time", "Add acceleration/deceleration to your elements", timeAnimated, style)
 
 
         // todo automatically extend timeline panel or restrict moving it down
 
         val editorGroup = getGroup("Editor", "editor")
-        editorGroup += VI("Timeline Slot", "< 1 means invisible", Type.INT_PLUS, timelineSlot, style
+        editorGroup += vi(
+            "Timeline Slot", "< 1 means invisible", Type.INT_PLUS, timelineSlot, style
         ) { timelineSlot = it }
         // todo warn of invisible elements somehow!...
-        editorGroup += VI("Visibility", "", null, visibility, style) { visibility = it }
+        editorGroup += vi("Visibility", "", null, visibility, style) { visibility = it }
 
         if (parent?.acceptsWeight() == true) {
             val psGroup = getGroup("Particle System Child", "particles")
-            psGroup += VI("Weight", "For particle systems", Type.FLOAT_PLUS, weight, style) {
+            psGroup += vi("Weight", "For particle systems", Type.FLOAT_PLUS, weight, style) {
                 weight = it
                 (parent as? ParticleSystem)?.apply {
                     if (children.size > 1) clearCache()
@@ -283,7 +288,7 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
                 else -> false
             }
             if (doBlending) {
-                BlendDepth(blendMode, GFX.currentCamera.useDepth){
+                BlendDepth(blendMode, GFX.currentCamera.useDepth) {
                     onDraw(stack, time, color)
                     drawChildren(stack, time, color, parentColor)
                 }
@@ -356,10 +361,11 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
         writer.writeList(this, "children", children)
         writer.writeInt("timelineSlot", timelineSlot, true)
         writer.writeInt("visibility", visibility.id, false)
+        writer.writeLong("uuid", uuid, true)
     }
 
     override fun readBool(name: String, value: Boolean) {
-        when(name){
+        when (name) {
             "collapsed" -> isCollapsed = value
             else -> super.readBool(name, value)
         }
@@ -370,6 +376,13 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
             "timelineSlot" -> timelineSlot = value
             "visibility" -> visibility = TransformVisibility[value]
             else -> super.readInt(name, value)
+        }
+    }
+
+    override fun readLong(name: String, value: Long) {
+        when (name) {
+            "uuid" -> uuid = value
+            else -> super.readLong(name, value)
         }
     }
 
@@ -442,7 +455,7 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
     }
 
     fun addChild(child: Transform) {
-        if(
+        if (
             glThread != null &&
             Thread.currentThread() != glThread &&
             this in root.listOfAll
@@ -495,7 +508,7 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
      * callback is used to adjust the value
      * */
     @Suppress("UNCHECKED_CAST") // all casts are checked in all known use-cases ;)
-    fun <V> VI(
+    fun <V> vi(
         title: String,
         ttt: String,
         type: Type?,
@@ -506,7 +519,7 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
         return when (value) {
             is Boolean -> BooleanInput(title, value, style)
                 .setChangeListener {
-                    RemsStudio.largeChange(title){
+                    RemsStudio.largeChange("Set $title to $it") {
                         setValue(it as V)
                     }
                 }
@@ -514,7 +527,7 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
                 .setTooltip(ttt)
             is Int -> IntInput(title, value, type ?: Type.INT, style)
                 .setChangeListener {
-                    RemsStudio.incrementalChange(title){
+                    RemsStudio.incrementalChange("Set $title to $it", title) {
                         setValue(it.toInt() as V)
                     }
                 }
@@ -522,7 +535,7 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
                 .setTooltip(ttt)
             is Long -> IntInput(title, value, type ?: Type.LONG, style)
                 .setChangeListener {
-                    RemsStudio.incrementalChange(title){
+                    RemsStudio.incrementalChange("Set $title to $it", title) {
                         setValue(it as V)
                     }
                 }
@@ -530,7 +543,7 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
                 .setTooltip(ttt)
             is Float -> FloatInput(title, value, type ?: Type.FLOAT, style)
                 .setChangeListener {
-                    RemsStudio.incrementalChange(title){
+                    RemsStudio.incrementalChange("Set $title to $it", title) {
                         setValue(it.toFloat() as V)
                     }
                 }
@@ -538,7 +551,7 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
                 .setTooltip(ttt)
             is Double -> FloatInput(title, value, type ?: Type.DOUBLE, style)
                 .setChangeListener {
-                    RemsStudio.incrementalChange(title){
+                    RemsStudio.incrementalChange("Set $title to $it", title) {
                         setValue(it as V)
                     }
                 }
@@ -546,7 +559,7 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
                 .setTooltip(ttt)
             is Vector2f -> VectorInput(style, title, value, type ?: Type.VEC2)
                 .setChangeListener { x, y, _, _ ->
-                    RemsStudio.incrementalChange(title){
+                    RemsStudio.incrementalChange("Set $title to ($x,$y)", title) {
                         setValue(Vector2f(x, y) as V)
                     }
                 }
@@ -556,7 +569,7 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
                 if (type == Type.COLOR3) {
                     ColorInput(style, title, Vector4f(value, 1f), false, null)
                         .setChangeListener { r, g, b, _ ->
-                            RemsStudio.incrementalChange(title){
+                            RemsStudio.incrementalChange("Set $title to ${Vector3f(r,g,b).toHexColor()}", title) {
                                 setValue(Vector3f(r, g, b) as V)
                             }
                         }
@@ -565,7 +578,7 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
                 } else {
                     VectorInput(style, title, value, type ?: Type.VEC3)
                         .setChangeListener { x, y, z, _ ->
-                            RemsStudio.incrementalChange(title){
+                            RemsStudio.incrementalChange("Set $title to ($x,$y,$z)", title) {
                                 setValue(Vector3f(x, y, z) as V)
                             }
                         }
@@ -576,7 +589,7 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
                 if (type == null || type == Type.COLOR) {
                     ColorInput(style, title, value, true, null)
                         .setChangeListener { r, g, b, a ->
-                            RemsStudio.incrementalChange(title){
+                            RemsStudio.incrementalChange("Set $title to ${Vector4f(r,g,b,a).toHexColor()}", title) {
                                 setValue(Vector4f(r, g, b, a) as V)
                             }
                         }
@@ -585,7 +598,7 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
                 } else {
                     VectorInput(style, title, value, type)
                         .setChangeListener { x, y, z, w ->
-                            RemsStudio.incrementalChange(title){
+                            RemsStudio.incrementalChange("Set $title to ($x,$y,$z,$w)", title) {
                                 setValue(Vector4f(x, y, z, w) as V)
                             }
                         }
@@ -595,7 +608,7 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
             }
             is Quaternionf -> VectorInput(style, title, value, type ?: Type.QUATERNION)
                 .setChangeListener { x, y, z, w ->
-                    RemsStudio.incrementalChange(title){
+                    RemsStudio.incrementalChange(title) {
                         setValue(Quaternionf(x, y, z, w) as V)
                     }
                 }
@@ -603,7 +616,7 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
                 .setTooltip(ttt)
             is String -> TextInput(title, style, value)
                 .setChangeListener {
-                    RemsStudio.incrementalChange(title){
+                    RemsStudio.incrementalChange("Set $title to \"$it\"", title) {
                         setValue(it as V)
                     }
                 }
@@ -611,7 +624,7 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
                 .setTooltip(ttt)
             is File -> FileInput(title, style, value)
                 .setChangeListener {
-                    RemsStudio.incrementalChange(title){
+                    RemsStudio.incrementalChange("Set $title to \"$it\"", title) {
                         setValue(File(it) as V)
                     }
                 }
@@ -621,9 +634,10 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
                 val values = blendModes.values
                 val valueNames = values.map { it to it.displayName }
                 EnumInput(title, true, valueNames.first { it.first == value }.second,
-                    valueNames.map { it.second }, style)
-                    .setChangeListener { _, index, _ ->
-                        RemsStudio.incrementalChange(title){
+                    valueNames.map { it.second }, style
+                )
+                    .setChangeListener { name, index, _ ->
+                        RemsStudio.incrementalChange("Set $title to $name", title) {
                             setValue(valueNames[index].first as V)
                         }
                     }
@@ -658,9 +672,10 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
                     }
                 }
                 EnumInput(title, true, valueNames.first { it.first == value }.second,
-                    valueNames.map { it.second }, style)
-                    .setChangeListener { _, index, _ ->
-                        RemsStudio.incrementalChange(title){
+                    valueNames.map { it.second }, style
+                )
+                    .setChangeListener { name, index, _ ->
+                        RemsStudio.incrementalChange("Set $title to $name") {
                             setValue(values[index] as V)
                         }
                     }
@@ -676,12 +691,12 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
      * title, tool tip text, type, start value
      * modifies the AnimatedProperty-Object, so no callback is needed
      * */
-    fun VI(title: String, ttt: String, values: AnimatedProperty<*>, style: Style): Panel {
+    fun vi(title: String, ttt: String, values: AnimatedProperty<*>, style: Style): Panel {
         val time = lastLocalTime
         return when (val value = values[time]) {
             is Int -> IntInput(title, values, 0, time, style)
                 .setChangeListener {
-                    RemsStudio.incrementalChange(title){
+                    RemsStudio.incrementalChange("Set $title to $it", title) {
                         putValue(values, it.toInt(), false)
                     }
                 }
@@ -689,7 +704,7 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
                 .setTooltip(ttt)
             is Long -> IntInput(title, values, 0, time, style)
                 .setChangeListener {
-                    RemsStudio.incrementalChange(title){
+                    RemsStudio.incrementalChange("Set $title to $it", title) {
                         putValue(values, it, false)
                     }
                 }
@@ -697,7 +712,7 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
                 .setTooltip(ttt)
             is Float -> FloatInput(title, values, 0, time, style)
                 .setChangeListener {
-                    RemsStudio.incrementalChange(title){
+                    RemsStudio.incrementalChange("Set $title to $it", title) {
                         putValue(values, it.toFloat(), false)
                     }
                 }
@@ -705,7 +720,7 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
                 .setTooltip(ttt)
             is Double -> FloatInput(title, values, 0, time, style)
                 .setChangeListener {
-                    RemsStudio.incrementalChange(title){
+                    RemsStudio.incrementalChange("Set $title to $it", title) {
                         putValue(values, it, false)
                     }
                 }
@@ -713,7 +728,7 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
                 .setTooltip(ttt)
             is Vector2f -> VectorInput(title, values, time, style)
                 .setChangeListener { x, y, _, _ ->
-                    RemsStudio.incrementalChange(title){
+                    RemsStudio.incrementalChange("Set $title to ($x,$y)", title) {
                         putValue(values, Vector2f(x, y), false)
                     }
                 }
@@ -723,7 +738,7 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
                 if (values.type == Type.COLOR3) {
                     ColorInput(style, title, Vector4f(value, 1f), false, values)
                         .setChangeListener { r, g, b, _ ->
-                            RemsStudio.incrementalChange(title){
+                            RemsStudio.incrementalChange("Set $title to ${Vector3f(r,g,b).toHexColor()}", title) {
                                 putValue(values, Vector3f(r, g, b), false)
                             }
                         }
@@ -732,7 +747,7 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
                 } else {
                     VectorInput(title, values, time, style)
                         .setChangeListener { x, y, z, _ ->
-                            RemsStudio.incrementalChange(title){
+                            RemsStudio.incrementalChange("Set $title to ($x,$y,$z)", title) {
                                 putValue(values, Vector3f(x, y, z), false)
                             }
                         }
@@ -743,7 +758,7 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
                 if (values.type == Type.COLOR) {
                     ColorInput(style, title, value, true, values)
                         .setChangeListener { r, g, b, a ->
-                            RemsStudio.incrementalChange(title){
+                            RemsStudio.incrementalChange("Set $title to ${Vector4f(r,g,b,a).toHexColor()}", title) {
                                 putValue(values, Vector4f(r, g, b, a), false)
                             }
                         }
@@ -752,7 +767,7 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
                 } else {
                     VectorInput(title, values, time, style)
                         .setChangeListener { x, y, z, w ->
-                            RemsStudio.incrementalChange(title){
+                            RemsStudio.incrementalChange("Set $title to ($x,$y,$z,$w)", title) {
                                 putValue(values, Vector4f(x, y, z, w), false)
                             }
                         }
@@ -762,7 +777,7 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
             }
             is Quaternionf -> VectorInput(title, values, time, style)
                 .setChangeListener { x, y, z, w ->
-                    RemsStudio.incrementalChange(title){
+                    RemsStudio.incrementalChange("Set $title to ($x,$y,$z,$w)", title) {
                         putValue(values, Quaternionf(x, y, z, w), false)
                     }
                 }
@@ -775,7 +790,7 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
     open fun onDestroy() {}
     open fun destroy() {
         if (selectedTransform === this) {
-            GFX.select(null)
+            selectTransform(null)
         }
         removeFromParent()
         onDestroy()
@@ -807,7 +822,8 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
         val xAxis = Vector3f(1f, 0f, 0f)
         val yAxis = Vector3f(0f, 1f, 0f)
         val zAxis = Vector3f(0f, 0f, 1f)
-        var nextClickId = AtomicInteger()
+        val nextClickId = AtomicInteger()
+        val nextUUID = AtomicLong()
         fun String.toTransform() = TextReader.fromText(this).first() as? Transform
         const val minAlpha = 0.5f / 255f
     }

@@ -21,7 +21,8 @@ import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.animation.Type
 import me.anno.objects.modes.TextMode
 import me.anno.studio.rems.RemsStudio
-import me.anno.studio.rems.RemsStudio.selectedProperty
+import me.anno.studio.rems.Selection.select
+import me.anno.studio.rems.Selection.selectTransform
 import me.anno.ui.base.ButtonPanel
 import me.anno.ui.base.Font
 import me.anno.ui.base.constraints.AxisAlignment
@@ -494,7 +495,7 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
                     getSelfWithShadows().forEach { c -> c.text = it }
                 }
             }
-            .setIsSelectedListener { selectedProperty = null }
+            .setIsSelectedListener { show(null) }
         val fontList = ArrayList<String>()
         fontList += font.name
         fontList += GFX.menuSeparator
@@ -568,19 +569,19 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
 
         val spaceGroup = getGroup("Spacing", "spacing")
         // make this element separable from the parent???
-        spaceGroup += VI("Character Spacing", "Space between individual characters", null, relativeCharSpacing, style) {
+        spaceGroup += vi("Character Spacing", "Space between individual characters", null, relativeCharSpacing, style) {
             RemsStudio.incrementalChange("char space") { relativeCharSpacing = it }
             invalidate()
         }
-        spaceGroup += VI("Line Spacing", "How much lines are apart from each other", relativeLineSpacing, style)
-        spaceGroup += VI(
+        spaceGroup += vi("Line Spacing", "How much lines are apart from each other", relativeLineSpacing, style)
+        spaceGroup += vi(
             "Tab Size", "Relative tab size, in widths of o's",
             tabSpaceType, relativeTabSize, style
         ) {
             RemsStudio.incrementalChange("tab size") { relativeTabSize = it }
             invalidate()
         }
-        spaceGroup += VI(
+        spaceGroup += vi(
             "Line Break Width", "How broad the text shall be, at maximum; < 0 = no limit",
             lineBreakType, lineBreakWidth, style
         ) {
@@ -602,25 +603,25 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
                 shadow.position.set(Vector3f(0.01f, -0.01f, -0.001f))
                 shadow.relativeLineSpacing = relativeLineSpacing // evil ;)
                 RemsStudio.largeChange("Add Text Shadow") { addChild(shadow) }
-                GFX.select(shadow)
+                selectTransform(shadow)
             }
 
         val rpgEffects = getGroup("RPG Effects", "rpg-effects")
-        rpgEffects += VI("Start Cursor", "The first character index to be drawn", startCursor, style)
-        rpgEffects += VI("End Cursor", "The last character index to be drawn; -1 = unlimited", endCursor, style)
+        rpgEffects += vi("Start Cursor", "The first character index to be drawn", startCursor, style)
+        rpgEffects += vi("End Cursor", "The last character index to be drawn; -1 = unlimited", endCursor, style)
 
         val outline = getGroup("Outline", "outline")
         outline.setTooltip("Needs Rendering Mode = SDF or Merged SDF")
-        outline += VI(
+        outline += vi(
             "Rendering Mode", "Mesh: Sharp, Signed Distance Fields: with outline",
             null, renderingMode, style
         ) { renderingMode = it }
-        outline += VI("Color 1", "", outlineColor0, style)
-        outline += VI("Color 2", "", outlineColor1, style)
-        outline += VI("Color 3", "", outlineColor2, style)
-        outline += VI("Widths", "First: Main Width, Second: Outline Width", outlineWidths, style)
-        outline += VI("Smoothness", "How smooth the edge is", outlineSmoothness, style)
-        outline += VI("Rounded Corners", "Otherwise uses a pseudo-distance", null, roundSDFCorners, style) {
+        outline += vi("Color 1", "", outlineColor0, style)
+        outline += vi("Color 2", "", outlineColor1, style)
+        outline += vi("Color 3", "", outlineColor2, style)
+        outline += vi("Widths", "First: Main Width, Second: Outline Width", outlineWidths, style)
+        outline += vi("Smoothness", "How smooth the edge is", outlineSmoothness, style)
+        outline += vi("Rounded Corners", "Otherwise uses a pseudo-distance", null, roundSDFCorners, style) {
             roundSDFCorners = it
             invalidate()
         }

@@ -25,8 +25,6 @@ import java.io.File
 // respect scale? nah, rather not xD
 // (it becomes pretty complicated, I think)
 
-// todo speaker distance
-
 abstract class Audio(var file: File = File(""), parent: Transform? = null) : GFXTransform(parent) {
 
     val amplitude = AnimatedProperty.floatPlus(1f)

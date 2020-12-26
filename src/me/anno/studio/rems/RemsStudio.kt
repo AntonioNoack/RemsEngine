@@ -27,7 +27,7 @@ import kotlin.concurrent.thread
 // todo always show values in graph editor
 // todo if less than two keyframes are present, it becomes not-animated
 // todo "hacked"-text effect for text: swizzle characters and introduce others
-
+// todo automatically scale to the correct position and scale, when the animated property is changed
 
 
 // todo curve-editor: show colors as blobs/circles
@@ -97,12 +97,11 @@ object RemsStudio : StudioBase(true, "Rem's Studio", "RemsStudio") {
 
     var currentlyDrawnCamera: Camera? = nullCamera
 
-    var selectedTransform: Transform? = null
-    var selectedProperty: AnimatedProperty<*>? = null
-    var selectedInspectable: Inspectable? = null
+    val selection = ArrayList<String>()
 
     override fun onGameLoopStart() {
         saveStateMaybe()
+        Selection.update()
     }
 
     override fun onGameLoopEnd() {

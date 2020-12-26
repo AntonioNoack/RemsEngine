@@ -5,7 +5,9 @@ import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.animation.drivers.AnimationDriver
 import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.RemsStudio.editorTime
-import me.anno.studio.rems.RemsStudio.selectedInspectable
+import me.anno.studio.rems.Selection.select
+import me.anno.studio.rems.Selection.selectProperty
+import me.anno.studio.rems.Selection.selectedInspectable
 import me.anno.ui.input.FloatInput
 import me.anno.ui.input.IntInput
 import me.anno.ui.input.NumberInput
@@ -62,10 +64,10 @@ class NumberInputComponent(val owningProperty: AnimatedProperty<*>?,
         override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
             if (owningProperty != null && (!button.isLeft || long)) {
                 val oldDriver = owningProperty.drivers[indexInProperty]
-                AnimationDriver.openDriverSelectionMenu(oldDriver) {
-                    RemsStudio.largeChange("Changed driver to ${it?.getClassName()}"){
-                        owningProperty.drivers[indexInProperty] = it
-                        if (it != null) selectedInspectable = it
+                AnimationDriver.openDriverSelectionMenu(oldDriver) { driver ->
+                    RemsStudio.largeChange("Changed driver to ${driver?.getClassName()}"){
+                        owningProperty.drivers[indexInProperty] = driver
+                        if (driver != null) selectProperty(driver)
                         else {
                             text = when(numberInput){
                                 is IntInput -> numberInput.stringify(numberInput.lastValue)

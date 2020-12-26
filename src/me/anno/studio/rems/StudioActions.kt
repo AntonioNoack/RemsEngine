@@ -104,7 +104,7 @@ object StudioActions {
                 } else false
             },
             "ToggleHideObject" to {
-                val obj = RemsStudio.selectedTransform
+                val obj = Selection.selectedTransform
                 if (obj != null) {
                     RemsStudio.largeChange("Toggle Visibility"){
                         obj.visibility = when (obj.visibility) {

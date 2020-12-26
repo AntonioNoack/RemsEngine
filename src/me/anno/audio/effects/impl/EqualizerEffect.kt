@@ -30,7 +30,7 @@ class EqualizerEffect() : SoundEffect(Domain.FREQUENCY_DOMAIN, Domain.FREQUENCY_
     ) {
         // todo better equalizer view...
         frequencies.forEachIndexed { index, frequency ->
-            list += audio.VI(
+            list += audio.vi(
                 if (frequency > 999) "${frequency / 1000} kHz" else "$frequency Hz",
                 "Relative amplitude of this frequency, from -12dB to +12dB", sliders[index], style
             )

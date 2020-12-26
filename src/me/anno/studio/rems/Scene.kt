@@ -26,7 +26,7 @@ import me.anno.objects.effects.GaussianBlur
 import me.anno.objects.effects.ToneMappers
 import me.anno.studio.rems.RemsStudio.gfxSettings
 import me.anno.studio.rems.RemsStudio.nullCamera
-import me.anno.studio.rems.RemsStudio.selectedTransform
+import me.anno.studio.rems.Selection.selectedTransform
 import me.anno.ui.editor.sceneView.Gizmo.drawGizmo
 import me.anno.ui.editor.sceneView.Grid
 import me.anno.ui.editor.sceneView.ISceneView

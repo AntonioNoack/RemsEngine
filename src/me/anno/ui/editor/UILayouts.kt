@@ -9,14 +9,12 @@ import me.anno.gpu.GFX.ask
 import me.anno.gpu.GFX.msg
 import me.anno.gpu.GFX.openMenu
 import me.anno.gpu.GFX.openMenuComplex2
-import me.anno.gpu.GFX.select
 import me.anno.gpu.GFXBase0
 import me.anno.gpu.Window
 import me.anno.input.Input
 import me.anno.objects.Camera
 import me.anno.objects.text.Text
 import me.anno.studio.GFXSettings
-import me.anno.studio.StudioBase
 import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.RemsStudio.gfxSettings
@@ -28,6 +26,7 @@ import me.anno.studio.rems.RemsStudio.workspace
 import me.anno.studio.rems.RenderSettings
 import me.anno.studio.rems.Rendering.render
 import me.anno.studio.rems.Rendering.renderPart
+import me.anno.studio.rems.Selection.selectTransform
 import me.anno.ui.base.*
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment
@@ -38,6 +37,7 @@ import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.custom.CustomContainer
 import me.anno.ui.custom.CustomListX
 import me.anno.ui.custom.CustomListY
+import me.anno.ui.debug.RuntimeInfoPanel
 import me.anno.ui.editor.config.ConfigPanel
 import me.anno.ui.editor.cutting.CuttingView
 import me.anno.ui.editor.files.FileExplorer
@@ -356,13 +356,13 @@ object UILayouts {
             )
         }
 
-        options.addAction("Select", "Inspector Camera") { select(nullCamera) }
-        options.addAction("Select", "Root") { select(root) }
-        options.addAction("Select", "First Camera") { select(root.listOfAll.filterIsInstance<Camera>().firstOrNull()) }
+        options.addAction("Select", "Inspector Camera") { selectTransform(nullCamera) }
+        options.addAction("Select", "Root") { selectTransform(root) }
+        options.addAction("Select", "First Camera") { selectTransform(root.listOfAll.filterIsInstance<Camera>().firstOrNull()) }
 
         options.addAction("Debug", "Refresh (Ctrl+F5)") { Cache.clear() }
 
-        options.addAction("Render", "Settings") { select(RenderSettings) }
+        options.addAction("Render", "Settings") { selectTransform(RenderSettings) }
         options.addAction("Render", "Set%") {
             render(
                 max(2, (project!!.targetWidth * project!!.targetSizePercentage / 100).roundToInt()),
@@ -380,14 +380,14 @@ object UILayouts {
         val project = project!!
         project.loadUI()
 
-        ui += project.mainUI as Panel
+        ui += project.mainUI
 
         ui += SpacePanel(0, 1, style)
 
-
-        // console.visibility = Visibility.GONE
-
-        ui += StudioBase.instance.createConsole()
+        val bottom = PanelListX(style)
+        bottom += RemsStudio.createConsole().setWeight(1f)
+        bottom += RuntimeInfoPanel(style)
+        ui += bottom
 
         windowStack.clear()
         windowStack += Window(ui)

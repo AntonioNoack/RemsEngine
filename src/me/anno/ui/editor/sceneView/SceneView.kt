@@ -5,7 +5,6 @@ import me.anno.config.DefaultStyle.black
 import me.anno.config.DefaultStyle.deepDark
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.deltaTime
-import me.anno.gpu.GFX.select
 import me.anno.gpu.GFX.windowStack
 import me.anno.gpu.GFXx2D.drawRect
 import me.anno.gpu.Window
@@ -24,19 +23,21 @@ import me.anno.input.Touch.Companion.touches
 import me.anno.objects.Camera
 import me.anno.objects.Transform
 import me.anno.objects.effects.ToneMappers
+import me.anno.studio.StudioBase.Companion.dragged
+import me.anno.studio.StudioBase.Companion.shiftSlowdown
 import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.RemsStudio.editorTime
 import me.anno.studio.rems.RemsStudio.editorTimeDilation
 import me.anno.studio.rems.RemsStudio.isPaused
 import me.anno.studio.rems.RemsStudio.nullCamera
 import me.anno.studio.rems.RemsStudio.root
-import me.anno.studio.rems.RemsStudio.selectedProperty
-import me.anno.studio.rems.RemsStudio.selectedTransform
 import me.anno.studio.rems.RemsStudio.targetHeight
 import me.anno.studio.rems.RemsStudio.targetWidth
 import me.anno.studio.rems.Scene
-import me.anno.studio.StudioBase.Companion.dragged
-import me.anno.studio.StudioBase.Companion.shiftSlowdown
+import me.anno.studio.rems.Selection
+import me.anno.studio.rems.Selection.select
+import me.anno.studio.rems.Selection.selectTransform
+import me.anno.studio.rems.Selection.selectedTransform
 import me.anno.ui.base.ButtonPanel
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.custom.CustomContainer
@@ -173,10 +174,16 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
     var mode = SceneDragMode.MOVE
         set(value) {
             field = value
-            selectedProperty = when (value) {
-                SceneDragMode.MOVE -> selectedTransform?.position
-                SceneDragMode.SCALE -> selectedTransform?.scale
-                SceneDragMode.ROTATE -> selectedTransform?.rotationYXZ
+            val selectedTransform = selectedTransform
+            if(selectedTransform != null){
+                Selection.select(
+                    selectedTransform,
+                    when (value) {
+                        SceneDragMode.MOVE -> selectedTransform.position
+                        SceneDragMode.SCALE -> selectedTransform.scale
+                        SceneDragMode.ROTATE -> selectedTransform.rotationYXZ
+                    }
+                )
             }
         }
 
@@ -348,8 +355,8 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
         // find the transform with the id to select it
         if (bestResult > 0) {
             val transform = (root.listOfAll + nullCamera!!).firstOrNull { it.clickId == bestResult }
-            select(transform)
-        } else select(null)
+            selectTransform(transform)
+        } else selectTransform(null)
         GFX.check()
 
         invalidateDrawing()
@@ -700,7 +707,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
             "Transform" -> {
                 val original = dragged?.getOriginal() ?: return
                 if (original is Camera) {
-                    RemsStudio.largeChange ("Changed Scene-View Camera to ${original.name}"){
+                    RemsStudio.largeChange("Changed Scene-View Camera to ${original.name}") {
                         camera = original
                     }
                 }// else focus?
@@ -721,7 +728,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
     }
 
     fun deleteSelectedTransform() {
-        RemsStudio.largeChange("Deleted Component"){
+        RemsStudio.largeChange("Deleted Component") {
             selectedTransform?.destroy()
         }
     }

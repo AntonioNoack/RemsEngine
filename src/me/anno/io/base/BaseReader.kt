@@ -24,6 +24,8 @@ import me.anno.objects.particles.ParticleSystem
 import me.anno.objects.particles.forces.impl.*
 import me.anno.objects.text.Text
 import me.anno.objects.text.Timer
+import me.anno.studio.history.History
+import me.anno.studio.history.HistoryState
 import me.anno.ui.custom.data.CustomListData
 import me.anno.ui.custom.data.CustomPanelData
 import me.anno.ui.editor.sceneView.SceneTabData
@@ -78,6 +80,8 @@ abstract class BaseReader {
             "MultiGravityForce" -> MultiGravityForce()
             "TornadoField" -> TornadoField()
             "VelocityFrictionForce" -> VelocityFrictionForce()
+            "History" -> History()
+            "HistoryState" -> HistoryState()
             else -> {
                 // just for old stuff; AnimatedProperties must not be loaded directly; always just copied into
                 if(clazz.startsWith("AnimatedProperty<")) AnimatedProperty.any()
@@ -121,7 +125,14 @@ abstract class BaseReader {
         if(isValue != shallValue) throw RuntimeException("Expected $shallValue but got $isValue")
     }
 
+    fun assert(isValue: Char, shallValue: Char, context: String){
+        if(isValue != shallValue) throw RuntimeException("Expected $shallValue but got $isValue for $context")
+    }
+
     fun error(msg: String): Nothing = throw RuntimeException("[BaseReader] $msg")
+
+    abstract fun readObject(): ISaveable
+    abstract fun readAllInList()
 
 
 }

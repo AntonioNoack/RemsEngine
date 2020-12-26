@@ -29,8 +29,8 @@ class EffectColoring: Transform() {
     ) {
         super.createInspector(list, style, getGroup)
         val fx = getGroup("Effect", "effect")
-        fx += VI("Strength", "How much this color shall be used", influence, style)
-        fx += VI("Sharpness", "How sharp the circle is", sharpness, style)
+        fx += vi("Strength", "How much this color shall be used", influence, style)
+        fx += vi("Sharpness", "How sharp the circle is", sharpness, style)
     }
 
     override fun save(writer: BaseWriter) {

@@ -17,10 +17,12 @@ import me.anno.objects.animation.Keyframe
 import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.RemsStudio.isPlaying
 import me.anno.studio.rems.RemsStudio.root
-import me.anno.studio.rems.RemsStudio.selectedProperty
-import me.anno.studio.rems.RemsStudio.selectedTransform
 import me.anno.studio.StudioBase
 import me.anno.studio.StudioBase.Companion.shiftSlowdown
+import me.anno.studio.rems.Selection.select
+import me.anno.studio.rems.Selection.selectTransform
+import me.anno.studio.rems.Selection.selectedProperty
+import me.anno.studio.rems.Selection.selectedTransform
 import me.anno.ui.dragging.Draggable
 import me.anno.ui.editor.TimelinePanel
 import me.anno.ui.editor.files.addChildFromFile
@@ -206,17 +208,20 @@ class LayerView(style: Style) : TimelinePanel(style) {
 
         drawnStrings.clear()
 
-        val t0 = System.nanoTime()
+        // val t0 = System.nanoTime()
         // 80-100µ for background and time axis
         drawBackground()
         drawTimeAxis(x0, y0, x1, y1, timelineSlot == 0)
 
-        val t1 = System.nanoTime()
+        // val t1 = System.nanoTime()
         val solution = solution
         val needsUpdate = needsUpdate ||
                 solution == null ||
                 x0 != solution.x0 ||
-                x1 != solution.x1 || isHovered || mouseKeysDown.isNotEmpty() || keysDown.isNotEmpty() ||
+                x1 != solution.x1 ||
+                isHovered ||
+                mouseKeysDown.isNotEmpty() ||
+                keysDown.isNotEmpty() ||
                 abs(this.lastTime - GFX.gameTime) > if (needsLayoutUpdate()) 5e7 else 1e9
 
 
@@ -225,15 +230,15 @@ class LayerView(style: Style) : TimelinePanel(style) {
             calculateSolution(x0, y0, x1, y1, true)
         }
 
-        if (solution != null) {
-            solution.draw()
-            val t2 = System.nanoTime()
+        // if (solution != null) {
+            solution?.draw()
+            // val t2 = System.nanoTime()
             // two circle example:
             // 11µs for two sections x 2
             // 300µs for the sections with stripes;
             // hardware accelerated stripes? -> we'd have to add a flag/flag color
             // ("${((t1-t0)*1e-6).f3()}+${((t2-t1)*1e-6).f3()}")
-        }
+        //}
 
         val draggedTransform = draggedTransform
         val draggedKeyframes = draggedKeyframes
@@ -321,8 +326,7 @@ class LayerView(style: Style) : TimelinePanel(style) {
             var draggedTransform = getTransformAt(x, y)
             this.draggedTransform = draggedTransform
             if (draggedTransform != null) {
-                GFX.select(draggedTransform)
-                selectedProperty = draggedTransform.color
+                select(draggedTransform, draggedTransform.color)
                 if (draggedTransform == hoveredTransform) {
                     val hoveredKeyframes = hoveredKeyframes
                     draggedKeyframes = if (hoveredKeyframes?.isNotEmpty() == true) {
@@ -337,8 +341,7 @@ class LayerView(style: Style) : TimelinePanel(style) {
                 if (hoveredTransform != null && hoveredKeyframes?.isNotEmpty() == true) {
                     draggedTransform = hoveredTransform
                     this.draggedTransform = draggedTransform
-                    GFX.select(draggedTransform)
-                    selectedProperty = draggedTransform.color
+                    select(draggedTransform, draggedTransform.color)
                     draggedKeyframes = hoveredKeyframes
                 }
             }
@@ -484,7 +487,7 @@ class LayerView(style: Style) : TimelinePanel(style) {
                 } else {
                     root.addChild(child)
                     root.timelineSlot = timelineSlot
-                    GFX.select(child)
+                    selectTransform(child)
                 }
             }
         } catch (e: Exception) {

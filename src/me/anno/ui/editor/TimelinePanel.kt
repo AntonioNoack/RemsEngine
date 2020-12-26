@@ -18,11 +18,13 @@ import me.anno.studio.rems.RemsStudio.project
 import me.anno.studio.rems.RemsStudio.targetDuration
 import me.anno.studio.rems.RemsStudio.targetFPS
 import me.anno.studio.StudioBase.Companion.updateAudio
+import me.anno.studio.rems.Selection
 import me.anno.ui.base.Panel
 import me.anno.ui.custom.CustomContainer.Companion.isCross
 import me.anno.ui.style.Style
 import me.anno.utils.*
 import me.anno.utils.Maths.clamp
+import me.anno.utils.Maths.fract
 import me.anno.utils.Maths.mix
 import me.anno.utils.Maths.mixARGB
 import me.anno.utils.Maths.pow
@@ -65,7 +67,7 @@ open class TimelinePanel(style: Style) : Panel(style) {
 
         fun updateLocalTime(){
 
-            lastOwner = RemsStudio.selectedTransform ?: lastOwner
+            lastOwner = Selection.selectedTransform ?: lastOwner
 
             val owner = lastOwner
             val child2root = owner.listOfInheritance.toList()
@@ -267,7 +269,7 @@ open class TimelinePanel(style: Style) : Panel(style) {
 
     fun jumpToX(x: Float) = jumpToT(getTimeAt(x))
     fun jumpToT(t: Double) {
-        RemsStudio.largeChange("Timeline jump to ${t.formatTime()}"){
+        RemsStudio.largeChange("Timeline jump to ${t.formatTime()}/${(fract(t)*targetFPS).toInt()}"){
             editorTime = t
         }
         updateAudio()

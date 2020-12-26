@@ -4,19 +4,19 @@ import me.anno.gpu.GFX
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
-import me.anno.studio.history.State.Companion.capture
+import me.anno.studio.history.HistoryState.Companion.capture
 import org.apache.logging.log4j.LogManager
 import kotlin.math.max
 
 class History : Saveable() {
 
-    var currentState: State? = null
+    var currentState: HistoryState? = null
     var nextInsertIndex = 0
         set(value) {
             field = max(value, 0)
         }
 
-    private val states = ArrayList<State>()
+    private val states = ArrayList<HistoryState>()
 
     fun isEmpty() = states.isEmpty()
 
@@ -35,7 +35,7 @@ class History : Saveable() {
         }
     }
 
-    fun put(change: State): Int {
+    fun put(change: HistoryState): Int {
         // remove states at the top of the stack...
         // while (states.size > nextInsertIndex) states.removeAt(states.lastIndex)
         states += change
@@ -96,7 +96,7 @@ class History : Saveable() {
     override fun readObject(name: String, value: ISaveable?) {
         when (name) {
             "state" -> {
-                states += value as? State ?: return
+                states += value as? HistoryState ?: return
             }
             else -> super.readObject(name, value)
         }
@@ -112,7 +112,7 @@ class History : Saveable() {
 
     override fun getApproxSize(): Int = 1_500_000_000
     override fun isDefaultValue(): Boolean = false
-    override fun getClassName(): String = "History2"
+    override fun getClassName(): String = "History"
 
     companion object {
         val LOGGER = LogManager.getLogger(History::class)

@@ -3,6 +3,7 @@
     <words>
       <w>abgr</w>
       <w>animatable</w>
+      <w>asnyc</w>
       <w>bgra</w>
       <w>bokeh</w>
       <w>codepoint</w>
@@ -46,6 +47,7 @@
       <w>quat</w>
       <w>rasterization</w>
       <w>remsstudio</w>
+      <w>saveable</w>
       <w>segoe</w>
       <w>shaders</w>
       <w>skybox</w>

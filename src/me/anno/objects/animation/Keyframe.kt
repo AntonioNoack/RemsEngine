@@ -123,11 +123,11 @@ class Keyframe<V>(
                 is Long -> writeLong(name, v, true)
                 is Float -> writeFloat(name, v, true)
                 is Double -> writeDouble(name, v, true)
-                is Vector2f -> writeVector2(name, v, true)
-                is Vector3f -> writeVector3(name, v, true)
-                is Vector4f -> writeVector4(name, v, true)
+                is Vector2f -> writeVector2f(name, v, true)
+                is Vector3f -> writeVector3f(name, v, true)
+                is Vector4f -> writeVector4f(name, v, true)
                 is String -> writeString(name, v, true)
-                is Vector4d -> writeVector4(name, v, true)
+                is Vector4d -> writeVector4d(name, v, true)
                 else -> throw RuntimeException("todo implement")
             }
         }

@@ -26,8 +26,8 @@ import me.anno.objects.animation.Type
 import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.RemsStudio.editorTime
 import me.anno.studio.rems.RemsStudio.isPaused
-import me.anno.studio.rems.RemsStudio.selectedProperty
 import me.anno.studio.StudioBase.Companion.updateAudio
+import me.anno.studio.rems.Selection.selectedProperty
 import me.anno.ui.editor.TimelinePanel
 import me.anno.ui.editor.sceneView.Grid.drawSmoothLine
 import me.anno.ui.style.Style
@@ -44,6 +44,10 @@ import kotlin.math.min
 import kotlin.math.roundToInt
 
 // todo make music x times calmer, if another audio line (voice) is on as an optional feature
+// todo move multiple keyframes at a time
+
+// todo list all animated properties of this object (abbreviated)
+// todo we need to store the name instead of the property, because on Control+Z, control is lost
 
 class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
 
@@ -62,9 +66,7 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
 
     var activeChannels = -1
 
-    override fun getVisualState() = Quad(
-        super.getVisualState(), centralValue, dvHalfHeight, selectedProperty
-    )
+    override fun getVisualState() = Triple(super.getVisualState(), centralValue, dvHalfHeight)
 
     fun normValue01(value: Float) = 0.5f - (value - centralValue) / dvHalfHeight * 0.5f
 

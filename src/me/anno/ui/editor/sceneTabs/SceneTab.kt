@@ -95,7 +95,11 @@ class SceneTab(var file: File?, var root: Transform, history: History?) : TextPa
                 try {
                     synchronized(root) {
                         dst.parentFile.mkdirs()
-                        dst.writeText(TextWriter.toText(root, false))
+                        val writer = TextWriter(false)
+                        writer.add(root)
+                        writer.add(history)
+                        writer.writeAllInList()
+                        dst.writeText(writer.toString())
                         file = dst
                         hasChanged = false
                         onSuccess()

@@ -35,7 +35,7 @@ abstract class ForceField(val displayName: String, val description: String): Tra
 
     fun createInspector(list: PanelList, style: Style) {
         for(property in listProperties()){
-            list += VI(property.title, property.description, property.value, style)
+            list += vi(property.title, property.description, property.value, style)
         }
     }
 

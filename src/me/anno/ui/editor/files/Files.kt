@@ -10,6 +10,7 @@ import me.anno.objects.meshes.Mesh
 import me.anno.objects.modes.UVProjection
 import me.anno.studio.rems.RemsStudio
 import me.anno.studio.StudioBase.Companion.addEvent
+import me.anno.studio.rems.Selection.selectTransform
 import me.anno.utils.LOGGER
 import me.anno.utils.StringHelper.getImportType
 import org.joml.Vector3f
@@ -43,7 +44,7 @@ fun addChildFromFile(parent: Transform?, file: File, callback: (Transform) -> Un
                         addEvent {
                             RemsStudio.largeChange("Added Folder"){
                                 parent?.addChild(transform)
-                                GFX.select(transform)
+                                selectTransform(transform)
                                 callback(transform)
                             }
                         }
@@ -60,7 +61,7 @@ fun addChildFromFile(parent: Transform?, file: File, callback: (Transform) -> Un
                     cube.scale.set(Vector3f(1000f, 1000f, 1000f))
                     cube.uvProjection = UVProjection.Equirectangular
                     cube.name = name
-                    GFX.select(cube)
+                    selectTransform(cube)
                     callback(cube)
                 }
             }
@@ -70,7 +71,7 @@ fun addChildFromFile(parent: Transform?, file: File, callback: (Transform) -> Un
                     cube.scale.set(Vector3f(1000f, 1000f, 1000f))
                     cube.uvProjection = UVProjection.TiledCubemap
                     cube.name = name
-                    GFX.select(cube)
+                    selectTransform(cube)
                     callback(cube)
                 }
             }
@@ -89,7 +90,7 @@ fun addChildFromFile(parent: Transform?, file: File, callback: (Transform) -> Un
                             video.uvProjection = UVProjection.TiledCubemap
                         }
                     }
-                    GFX.select(video)
+                    selectTransform(video)
                     callback(video)
                 }
             }
@@ -106,7 +107,7 @@ fun addChildFromFile(parent: Transform?, file: File, callback: (Transform) -> Un
                     val mesh = Mesh(file, parent)
                     mesh.file = file
                     mesh.name = name
-                    GFX.select(mesh)
+                    selectTransform(mesh)
                     callback(mesh)
                 }
             }
@@ -135,7 +136,7 @@ fun addText(name: String, parent: Transform?, text: String, callback: (Transform
                 RemsStudio.largeChange("Imported Text"){
                     val textNode = Text(text, parent)
                     textNode.name = name
-                    GFX.select(textNode)
+                    selectTransform(textNode)
                     callback(textNode)
                 }
             }
@@ -146,7 +147,7 @@ fun addText(name: String, parent: Transform?, text: String, callback: (Transform
         RemsStudio.largeChange("Imported Text"){
             val textNode = Text(text, parent)
             textNode.name = name
-            GFX.select(textNode)
+            selectTransform(textNode)
             callback(textNode)
         }
     }

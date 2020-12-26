@@ -18,7 +18,7 @@ abstract class Saveable : ISaveable {
     override fun onReadingStarted() {}
     override fun onReadingEnded() {}
 
-    fun warnMissingParam(name: String) {
+    private fun warnMissingParam(name: String) {
         if (name == "*ptr") throw RuntimeException()
         LogManager.getLogger(Saveable::class).warn("Unknown param ${getClassName()}.$name")
     }
@@ -33,6 +33,7 @@ abstract class Saveable : ISaveable {
     override fun readString(name: String, value: String) = readSomething(name, value)
     override fun readArray(name: String, value: List<ISaveable>) = readSomething(name, value)
     override fun readIntArray(name: String, value: IntArray) = readSomething(name, value)
+    override fun readLongArray(name: String, value: LongArray) = readSomething(name, value)
     override fun readFloatArray(name: String, value: FloatArray) = readSomething(name, value)
     override fun readDoubleArray(name: String, value: DoubleArray) = readSomething(name, value)
     override fun readFloatArray2D(name: String, value: Array<FloatArray>) = readSomething(name, value)

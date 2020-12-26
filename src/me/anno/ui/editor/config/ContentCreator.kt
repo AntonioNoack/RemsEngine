@@ -77,7 +77,7 @@ class ContentCreator(
                         .noTitle()
                     else -> {
                         println("Missing type implementation ${value.javaClass.simpleName}")
-                        root.VI(shortName, fullName, null, value, style) { map[fullName] = value }
+                        root.vi(shortName, fullName, null, value, style) { map[fullName] = value }
                     }
                 }
                 list += body.withPadding(pad * 2, 0, 0, 0)

@@ -35,8 +35,8 @@ class EchoEffect() : SoundEffect(Domain.TIME_DOMAIN, Domain.TIME_DOMAIN) {
         style: Style,
         getGroup: (title: String, id: String) -> SettingCategory
     ) {
-        list += audio.VI("Offset", "Distance of 1st echo in seconds", offset, style)
-        list += audio.VI("Falloff", "How much is reflected, the less, the faster the echo fades away", falloff, style)
+        list += audio.vi("Offset", "Distance of 1st echo in seconds", offset, style)
+        list += audio.vi("Falloff", "How much is reflected, the less, the faster the echo fades away", falloff, style)
     }
 
     override fun save(writer: BaseWriter) {

@@ -589,18 +589,18 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
             return panel
         }
 
-        list += VI("File Location", "Source file of this video", null, file, style) { file = it }
+        list += vi("File Location", "Source file of this video", null, file, style) { file = it }
 
         val uvMap = getGroup("Texture", "uvs")
-        uvMap += img(VI("Tiling", "(tile count x, tile count y, offset x, offset y)", tiling, style))
-        uvMap += img(VI("UV-Projection", "Can be used for 360°-Videos", null, uvProjection, style) {
+        uvMap += img(vi("Tiling", "(tile count x, tile count y, offset x, offset y)", tiling, style))
+        uvMap += img(vi("UV-Projection", "Can be used for 360°-Videos", null, uvProjection, style) {
             uvProjection = it
         })
-        uvMap += img(VI("Filtering", "Pixelated look?", null, filtering, style) { filtering = it })
-        uvMap += img(VI("Clamping", "For tiled images", null, clampMode, style) { clampMode = it })
+        uvMap += img(vi("Filtering", "Pixelated look?", null, filtering, style) { filtering = it })
+        uvMap += img(vi("Clamping", "For tiled images", null, clampMode, style) { clampMode = it })
 
         val time = getGroup("Time", "time")
-        time += VI("Looping Type", "Whether to repeat the song/video", null, isLooping, style) {
+        time += vi("Looping Type", "Whether to repeat the song/video", null, isLooping, style) {
             isLooping = it
             AudioManager.requestUpdate()
         }
@@ -627,30 +627,30 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
         )
 
         val color = getGroup("Color Grading (ASC CDL)", "color-grading")
-        color += img(VI("Power", "sRGB, Linear, ...", cgPower, style))
+        color += img(vi("Power", "sRGB, Linear, ...", cgPower, style))
         color += img(
-            VI(
+            vi(
                 "Saturation",
                 "0 = gray scale, 1 = normal, -1 = inverted colors",
                 cgSaturation,
                 style
             )
         )
-        color += img(VI("Slope", "Intensity or Tint", cgSlope, style))
-        color += img(VI("Offset", "Can be used to color black objects", cgOffset, style))
+        color += img(vi("Slope", "Intensity or Tint", cgSlope, style))
+        color += img(vi("Offset", "Can be used to color black objects", cgOffset, style))
 
         val audio = getGroup("Audio", "audio")
         /*if(meta?.hasAudio == true){
             list += AudioLinePanel(meta, this, style)
         }*/
-        audio += aud(VI("Amplitude", "How loud it is", amplitude, style))
-        audio += aud(VI("Is 3D Sound", "Sound becomes directional", null, is3D, style) {
+        audio += aud(vi("Amplitude", "How loud it is", amplitude, style))
+        audio += aud(vi("Is 3D Sound", "Sound becomes directional", null, is3D, style) {
             is3D = it
             AudioManager.requestUpdate()
         })
         val audioFX = getGroup("Audio Effects", "audio-fx")
-        audioFX += aud(VI("Echo Delay", "", echoDelay, style))
-        audioFX += aud(VI("Echo Multiplier", "", echoMultiplier, style))
+        audioFX += aud(vi("Echo Delay", "", echoDelay, style))
+        audioFX += aud(vi("Echo Multiplier", "", echoMultiplier, style))
 
         val playbackTitles = "Test Playback" to "Stop Playback"
         fun getPlaybackTitle(invert: Boolean) =

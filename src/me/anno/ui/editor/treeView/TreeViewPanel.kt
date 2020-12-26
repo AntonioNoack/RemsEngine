@@ -7,7 +7,6 @@ import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.inFocus
 import me.anno.gpu.GFX.menuSeparator1
-import me.anno.gpu.GFX.select
 import me.anno.gpu.GFXx2D.drawRect
 import me.anno.input.Input
 import me.anno.input.Input.mouseX
@@ -21,11 +20,13 @@ import me.anno.objects.Transform.Companion.toTransform
 import me.anno.objects.effects.MaskLayer
 import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.studio.rems.RemsStudio
-import me.anno.studio.rems.RemsStudio.selectedTransform
+import me.anno.studio.rems.Selection.selectTransform
+import me.anno.studio.rems.Selection.selectedTransform
 import me.anno.ui.base.TextPanel
 import me.anno.ui.dragging.Draggable
 import me.anno.ui.editor.files.addChildFromFile
 import me.anno.ui.style.Style
+import me.anno.utils.Color.toARGB
 import me.anno.utils.Maths.clamp
 import org.joml.Vector4f
 import java.io.File
@@ -50,7 +51,7 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style) : TextPanel("
         super.tickUpdate()
         val transform = getElement()
         val dragged = dragged
-        textColor = black or (transform.getLocalColor().toRGB(180))
+        textColor = black or (transform.getLocalColor().toARGB(180))
         showAddIndex = if (
             mouseX.toInt() in lx0..lx1 &&
             mouseY.toInt() in ly0..ly1 &&
@@ -98,7 +99,7 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style) : TextPanel("
                         transform.isCollapsed = target
                     }
                 } else {
-                    select(transform)
+                    selectTransform(transform)
                 }
             }
             button.isRight -> openAddMenu(transform)
@@ -106,6 +107,8 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style) : TextPanel("
     }
 
     override fun onCopyRequested(x: Float, y: Float): String? {
+        /*BinaryWriter(DataOutputStream(File(OS.desktop, "raw.bin").outputStream()))
+            .writeObject(null,null,getElement(),true)*/
         return getElement().stringify()
     }
 
@@ -148,7 +151,7 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style) : TextPanel("
                         original?.removeFromParent()
                     }
                 }
-                select(child)
+                selectTransform(child)
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -194,19 +197,12 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style) : TextPanel("
         return if (transform is Camera) transform.getDefaultDisplayName() + ", drag onto scene to view" else transform.getDefaultDisplayName()
     }
 
-    fun Vector4f.toRGB(scale: Int = 255): Int {
-        return clamp((x * scale).toInt(), 0, 255).shl(16) or
-                clamp((y * scale).toInt(), 0, 255).shl(8) or
-                clamp((z * scale).toInt(), 0, 255) or
-                clamp((w * 255).toInt(), 0, 255).shl(24)
-    }
-
     // multiple values can be selected
     override fun getMultiSelectablePanel() = this
 
     companion object {
         fun openAddMenu(baseTransform: Transform) {
-            fun add(action: (Transform) -> Transform): () -> Unit = { select(action(baseTransform)) }
+            fun add(action: (Transform) -> Transform): () -> Unit = { selectTransform(action(baseTransform)) }
             val options = DefaultConfig["createNewInstancesList"] as? StringMap
             if (options != null) {
                 val extras = ArrayList<GFX.MenuOption>()
@@ -226,7 +222,7 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style) : TextPanel("
                         RemsStudio.largeChange("Added ${option.title}") {
                             val new = option.generator() as Transform
                             baseTransform.addChild(new)
-                            select(new)
+                            selectTransform(new)
                         }
                     }
                 }

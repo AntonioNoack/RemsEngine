@@ -1,7 +1,6 @@
 package me.anno.objects.geometric
 
 import me.anno.config.DefaultConfig
-import me.anno.gpu.GFX
 import me.anno.gpu.GFXx3D.draw3DCircle
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer
@@ -38,9 +37,9 @@ class Circle(parent: Transform? = null): GFXTransform(parent){
     override fun createInspector(list: PanelListY, style: Style, getGroup: (title: String, id: String) -> SettingCategory) {
         super.createInspector(list, style, getGroup)
         val geo = getGroup("Geometry", "geometry")
-        geo += VI("Inner Radius", "Relative size of hole in the middle", innerRadius, style)
-        geo += VI("Start Degrees", "To cut a piece out of the circle", startDegrees, style)
-        geo += VI("End Degrees", "To cut a piece out of the circle", endDegrees, style)
+        geo += vi("Inner Radius", "Relative size of hole in the middle", innerRadius, style)
+        geo += vi("Start Degrees", "To cut a piece out of the circle", startDegrees, style)
+        geo += vi("End Degrees", "To cut a piece out of the circle", endDegrees, style)
     }
 
     override fun getClassName(): String = "Circle"

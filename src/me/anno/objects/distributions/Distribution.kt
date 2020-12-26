@@ -29,7 +29,7 @@ abstract class Distribution(val displayName: String, val description: String): S
     override fun createInspector(list: PanelList, actor: Transform, style: Style){
         val properties = listProperties()
         properties.forEach { property ->
-            list += actor.VI(property.title, property.description, null, property.value, style){ property.value.set(it) }
+            list += actor.vi(property.title, property.description, null, property.value, style){ property.value.set(it) }
         }
     }
 

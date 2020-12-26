@@ -44,7 +44,7 @@ class AnimatedDistribution(
     ) {
         if (lastDist !== distribution) update()
         properties.forEachIndexed { index, property ->
-            list += transform.VI(property.title, property.description, channels[index], style)
+            list += transform.vi(property.title, property.description, channels[index], style)
         }
     }
 

@@ -1,6 +1,7 @@
 package me.anno.utils
 
 import me.anno.utils.Maths.clamp
+import org.joml.Vector3f
 import org.joml.Vector4f
 import kotlin.math.abs
 import kotlin.math.roundToInt
@@ -32,8 +33,20 @@ object Color {
     fun hex(i: Int) = "${hex[(i/16)]}${hex[(i%16)]}"
     fun hex(f: Float) = hex(clamp((255 * f).roundToInt(), 0, 255))
 
+    fun Vector3f.toHexColor(): String {
+        return "#${hex(x)}${hex(y)}${hex(z)}"
+    }
+
     fun Vector4f.toHexColor(): String {
         return "#${if(w == 1f) "" else hex(w)}${hex(x)}${hex(y)}${hex(z)}"
+    }
+
+    fun Vector4f.toARGB() = toARGB(255)
+    fun Vector4f.toARGB(scale: Int): Int {
+        return clamp((x * scale).toInt(), 0, 255).shl(16) or
+                clamp((y * scale).toInt(), 0, 255).shl(8) or
+                clamp((z * scale).toInt(), 0, 255) or
+                clamp((w * 255).toInt(), 0, 255).shl(24)
     }
 
 }

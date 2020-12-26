@@ -2,7 +2,6 @@ package me.anno.objects.particles
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
-import me.anno.gpu.GFX.openMenu
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.Transform
@@ -18,9 +17,7 @@ import me.anno.ui.editor.stacked.Option
 import me.anno.ui.input.BooleanInput
 import me.anno.ui.style.Style
 import me.anno.utils.Lists.sumByFloat
-import me.anno.utils.Maths.clamp
-import me.anno.utils.Maths.fract
-import me.anno.utils.Maths.mix
+import me.anno.utils.Maths
 import me.anno.utils.Vectors.plus
 import me.anno.utils.Vectors.times
 import me.anno.utils.processBalanced
@@ -32,11 +29,13 @@ import kotlin.collections.ArrayList
 import kotlin.math.max
 import kotlin.math.roundToInt
 
-class ParticleSystem(parent: Transform? = null) : Transform(parent) {
+// todo text particle system
+// todo linear + randomness for spawn time
+// todo select base font individually? just select the most common properties? or animatable base properties? idk...
+
+class TextParticles: Transform() {
 
     // todo if notCalculating && property was changed, invalidate cache
-
-    override fun getSymbol() = DefaultConfig["ui.symbol.particleSystem", "❄"]
 
     // todo what about negative colors?... need to be generatable
     val spawnColor = AnimatedDistribution(Type.COLOR3, listOf(Vector3f(1f), Vector3f(0f)))
@@ -112,7 +111,7 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
         // todo until we have reached time
         // generate new particles
         for (i in 0 until missingChildren) {
-            val newParticle = createParticle(mix(lastTime, time, (i + 1.0) / sinceThenIntegral))
+            val newParticle = createParticle(Maths.mix(lastTime, time, (i + 1.0) / sinceThenIntegral))
             particles += newParticle
             aliveParticles += newParticle
         }
@@ -195,14 +194,14 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
             it.apply {
 
                 val lifeOpacity = it.getLifeOpacity(time, simulationStep, fadingIn, fadingOut).toFloat()
-                val opacity = clamp(lifeOpacity * it.opacity, 0f, 1f)
+                val opacity = Maths.clamp(lifeOpacity * it.opacity, 0f, 1f)
                 if (opacity > 1e-3f) {// else not visible
                     stack.pushMatrix()
 
                     val particleTime = time - it.birthTime
                     val index = particleTime / simulationStep
                     val index0 = index.toInt()
-                    val indexF = fract(index).toFloat()
+                    val indexF = Maths.fract(index).toFloat()
 
                     val position = getPosition(index0, indexF)
                     val rotation = getRotation(index0, indexF)
@@ -244,7 +243,7 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
             group.setOnClickListener { _, _, button, long ->
                 if (button.isRight || long) {
                     // show all options for different distributions
-                    openMenu(
+                    GFX.openMenu(
                         "Change Distribution",
                         listOf(
                             { ConstantDistribution() },
@@ -368,6 +367,6 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
     }
 
     override fun acceptsWeight() = true
-    override fun getClassName() = "ParticleSystem"
+    override fun getClassName() = "TextParticleSystem"
 
 }

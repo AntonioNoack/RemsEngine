@@ -122,15 +122,15 @@ class GFXArray(parent: Transform? = null): GFXTransform(parent) {
         // todo replace? :D, # String Array
 
         val child = getGroup("Per-Child Transform", "per-child")
-        child += VI("Offset/Child", "", perChildTranslation, style)
-        child += VI("Rotation/Child", "", perChildRotation, style)
-        child += VI("Scale/Child", "", perChildScale, style)
-        child += VI("Delay/Child", "", perChildDelay, style)
+        child += vi("Offset/Child", "", perChildTranslation, style)
+        child += vi("Rotation/Child", "", perChildRotation, style)
+        child += vi("Scale/Child", "", perChildScale, style)
+        child += vi("Delay/Child", "", perChildDelay, style)
 
         val instances = getGroup("Instances", "children")
-        instances += VI("Instances", "", instanceCount, style)
-        instances += VI("Selection Mode", "", null, selectionMode, style){ selectionMode = it }
-        instances += VI("Selection Seed", "Only for randomized selection mode", selectionSeed, style)
+        instances += vi("Instances", "", instanceCount, style)
+        instances += vi("Selection Mode", "", null, selectionMode, style){ selectionMode = it }
+        instances += vi("Selection Seed", "Only for randomized selection mode", selectionSeed, style)
 
     }
 

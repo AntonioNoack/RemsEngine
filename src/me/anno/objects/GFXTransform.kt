@@ -46,7 +46,7 @@ abstract class GFXTransform(parent: Transform?) : Transform(parent) {
     ) {
         super.createInspector(list, style, getGroup)
         val fx = getGroup("Effects", "effects")
-        fx += VI("Coloring: Base Color", "Base color for coloring", attractorBaseColor, style)
+        fx += vi("Coloring: Base Color", "Base color for coloring", attractorBaseColor, style)
     }
 
     open fun transformLocally(pos: Vector3f, time: Double): Vector3f {

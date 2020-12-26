@@ -299,22 +299,22 @@ class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
     ) {
         super.createInspector(list, style, getGroup)
         val mask = getGroup("Mask Settings", "mask")
-        mask += VI("Type", "Masks are multipurpose objects", null, type, style) { type = it }
-        mask += VI("Size", "How large pixelated pixels or blur should be", effectSize, style)
-        mask += VI("Invert Mask", "Changes transparency with opacity", null, isInverted, style) { isInverted = it }
-        mask += VI("Use Color / Transparency", "Should the color influence the masked?", useMaskColor, style)
-        mask += VI("Blur Threshold", "", blurThreshold, style)
-        mask += VI(
+        mask += vi("Type", "Masks are multipurpose objects", null, type, style) { type = it }
+        mask += vi("Size", "How large pixelated pixels or blur should be", effectSize, style)
+        mask += vi("Invert Mask", "Changes transparency with opacity", null, isInverted, style) { isInverted = it }
+        mask += vi("Use Color / Transparency", "Should the color influence the masked?", useMaskColor, style)
+        mask += vi("Blur Threshold", "", blurThreshold, style)
+        mask += vi(
             "Make Huge", "Scales the mask, without affecting the children", null,
             isFullscreen, style
         ) { isFullscreen = it }
         val greenScreen = getGroup("Green Screen", "greenScreen")
-        greenScreen += VI("Similarity", "", greenScreenSimilarity, style)
-        greenScreen += VI("Smoothness", "", greenScreenSmoothness, style)
-        greenScreen += VI("Spill Value", "", greenScreenSpillValue, style)
+        greenScreen += vi("Similarity", "", greenScreenSimilarity, style)
+        greenScreen += vi("Smoothness", "", greenScreenSmoothness, style)
+        greenScreen += vi("Spill Value", "", greenScreenSpillValue, style)
         val editor = getGroup("Editor", "editor")
-        editor += VI("Show Mask", "for debugging purposes; shows the stencil", null, showMask, style) { showMask = it }
-        editor += VI("Show Masked", "for debugging purposes", null, showMasked, style) { showMasked = it }
+        editor += vi("Show Mask", "for debugging purposes; shows the stencil", null, showMask, style) { showMask = it }
+        editor += vi("Show Masked", "for debugging purposes", null, showMasked, style) { showMasked = it }
     }
 
     override fun readInt(name: String, value: Int) {

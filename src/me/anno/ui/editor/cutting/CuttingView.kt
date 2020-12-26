@@ -9,14 +9,12 @@ import me.anno.ui.style.Style
 
 class CuttingView(style: Style): ScrollPanelY(Padding(0), AxisAlignment.MIN, style){
 
-    val addLayerView = ButtonPanel("+", style)
+    private val addLayerView = ButtonPanel("+", style)
         .setSimpleClickListener { addLayerTop() }
 
-    val content = this//ScrollPanelY(style, Padding(0), AxisAlignment.MIN)
-    val layers = content.child as PanelListY
+    private val content = this
+    private val layers = content.child as PanelListY
     init {
-        // this += TextPanel("Cutting Panel", style)
-        // this += content
         content.setWeight(1f)
         layers += addLayerView
         for(i in 0 until LayerView.defaultLayerCount){
@@ -41,7 +39,5 @@ class CuttingView(style: Style): ScrollPanelY(Padding(0), AxisAlignment.MIN, sty
         }
         return v
     }
-
-    val layerCount get() = layers.children.size - 1
 
 }

@@ -8,28 +8,31 @@ import me.anno.objects.Transform
 import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.RemsStudio.nullCamera
 import me.anno.studio.rems.RemsStudio.windowStack
+import me.anno.studio.rems.Selection
+import me.anno.studio.rems.Selection.select
 import me.anno.ui.editor.sceneView.SceneView
 import me.anno.utils.Lists.join
 
-class State : Saveable() {
+class HistoryState : Saveable() {
 
     var title = ""
     lateinit var root: Transform
-    var selectedTransform = -1
-    var usedCameras = IntArray(0)
+    var selectedUUID = -1L
+    var selectedPropName: String? = null
+    var usedCameras = LongArray(0)
     var editorTime = 0.0
 
     override fun hashCode(): Int {
         var result = root.toString().hashCode()
-        result = 31 * result + selectedTransform
+        result = 31 * result + selectedUUID.toInt()
         result = 31 * result + usedCameras.contentHashCode()
         result = 31 * result + editorTime.hashCode()
         return result
     }
 
     override fun equals(other: Any?): Boolean {
-        return other is State &&
-                other.selectedTransform == selectedTransform &&
+        return other is HistoryState &&
+                other.selectedUUID == selectedUUID &&
                 other.root.toString() == root.toString() &&
                 other.usedCameras.contentEquals(usedCameras) &&
                 other.editorTime == editorTime
@@ -39,23 +42,26 @@ class State : Saveable() {
         RemsStudio.root = this.root
         RemsStudio.editorTime = editorTime
         val listOfAll = root.listOfAll.toList()
-        RemsStudio.selectedTransform = listOfAll.getOrNull(selectedTransform)
-        var index = 0
+        select(selectedUUID, selectedPropName)
         windowStack.map { window ->
-            window.panel.listOfAll.filterIsInstance<SceneView>().forEach {
-                val camera = listOfAll.getOrNull(usedCameras.getOrNull(index++) ?: -1) as? Camera ?: nullCamera!!
-                it.camera = camera
+            window.panel.listOfAll.filterIsInstance<SceneView>().forEachIndexed { index, it ->
+                it.camera = if (index in usedCameras.indices) {
+                    val cameraIndex = usedCameras[index]
+                    listOfAll.firstOrNull { camera -> camera.uuid == cameraIndex } as? Camera ?: nullCamera!!
+                } else {
+                    nullCamera!!
+                }
             }
         }
         RemsStudio.updateSceneViews()
     }
 
-    fun capture(previous: State?){
+    fun capture(previous: HistoryState?) {
 
         val state = this
         state.editorTime = RemsStudio.editorTime
 
-        if(previous?.root?.toString() != RemsStudio.root.toString()){
+        if (previous?.root?.toString() != RemsStudio.root.toString()) {
             // create a clone, if it was changed
             state.root = RemsStudio.root.clone()!!
         } else {
@@ -64,17 +70,17 @@ class State : Saveable() {
         }
 
         state.title = title
-        val listOfAll = RemsStudio.root.listOfAll.withIndex().associate { (index, it) -> it to index }
-        state.selectedTransform = listOfAll[RemsStudio.selectedTransform] ?: -1
+        val listOfAll = RemsStudio.root.listOfAll.withIndex().associate { (index, it) -> it to it.uuid }
+        state.selectedUUID = Selection.selectedTransform?.uuid ?: -1L
         state.usedCameras = windowStack.map { window ->
-            window.panel.listOfAll.filterIsInstance<SceneView>().map { listOfAll[it.camera!!] ?: -1 }.toList()
-        }.join().toIntArray()
+            window.panel.listOfAll.filterIsInstance<SceneView>().map { it.camera.uuid }.toList()
+        }.join().toLongArray()
 
     }
 
     companion object {
-        fun capture(title: String, previous: State?): State {
-            val state = State()
+        fun capture(title: String, previous: HistoryState?): HistoryState {
+            val state = HistoryState()
             state.title = title
             state.capture(previous)
             return state
@@ -85,14 +91,14 @@ class State : Saveable() {
         super.save(writer)
         writer.writeObject(this, "root", root)
         writer.writeString("title", title)
-        writer.writeInt("selectedTransform", selectedTransform)
-        writer.writeIntArray("usedCameras", usedCameras)
+        writer.writeLong("selectedTransform", selectedUUID)
+        writer.writeLongArray("usedCameras", usedCameras)
         writer.writeDouble("editorTime", editorTime)
     }
 
     override fun readString(name: String, value: String) {
-        when(name){
-            "title" -> title = name
+        when (name) {
+            "title" -> title = value
             else -> super.readString(name, value)
         }
     }
@@ -104,17 +110,17 @@ class State : Saveable() {
         }
     }
 
-    override fun readInt(name: String, value: Int) {
+    override fun readLong(name: String, value: Long) {
         when (name) {
-            "selectedTransform" -> selectedTransform = value
-            else -> super.readInt(name, value)
+            "selectedUUID" -> selectedUUID = value
+            else -> super.readLong(name, value)
         }
     }
 
-    override fun readIntArray(name: String, value: IntArray) {
+    override fun readLongArray(name: String, value: LongArray) {
         when (name) {
             "usedCameras" -> usedCameras = value
-            else -> super.readIntArray(name, value)
+            else -> super.readLongArray(name, value)
         }
     }
 
@@ -125,7 +131,7 @@ class State : Saveable() {
         }
     }
 
-    override fun getClassName() = "History2State"
+    override fun getClassName() = "HistoryState"
 
     override fun getApproxSize(): Int = 1_000_000_000
 

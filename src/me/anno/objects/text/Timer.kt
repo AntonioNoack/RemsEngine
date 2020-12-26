@@ -98,7 +98,7 @@ class Timer(parent: Transform? = null): Text("", parent) {
     override fun createInspector(list: PanelListY, style: Style, getGroup: (title: String, id: String) -> SettingCategory) {
         super.createInspector(list, style, getGroup)
         list.children.removeIf { it is TextInputML && it.base.placeholder == "Text" }
-        list += VI("Format", "ss=sec, mm=min, hh=hours, dd=days, s3=millis", null, format, style){ format = it }
+        list += vi("Format", "ss=sec, mm=min, hh=hours, dd=days, s3=millis", null, format, style){ format = it }
     }
 
     override fun getClassName() = "Timer"
