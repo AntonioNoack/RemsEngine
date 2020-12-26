@@ -119,7 +119,17 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
     }
 
     override fun writeBooleanArray(name: String, value: BooleanArray, force: Boolean) {
-        TODO("Not yet implemented")
+        if (force || value.isNotEmpty()) {
+            writeAttributeStart("b[]", name)
+            open(true)
+            data += value.size.toString()
+            val lastIndex = value.indexOfLast { it }
+            for (i in 0 until lastIndex) {
+                data += ','
+                data += if(value[i]) "true" else "false"
+            }
+            close(true)
+        }
     }
 
     override fun writeByte(name: String, value: Byte, force: Boolean) {
@@ -130,7 +140,17 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
     }
 
     override fun writeByteArray(name: String, value: ByteArray, force: Boolean) {
-        TODO("Not yet implemented")
+        if (force || value.isNotEmpty()) {
+            writeAttributeStart("B[]", name)
+            open(true)
+            data += value.size.toString()
+            val lastIndex = value.indexOfLast { it != 0.toByte() }
+            for (i in 0 until lastIndex) {
+                data += ','
+                data += value[i].toString()
+            }
+            close(true)
+        }
     }
 
     override fun writeShort(name: String, value: Short, force: Boolean) {
@@ -141,7 +161,17 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
     }
 
     override fun writeShortArray(name: String, value: ShortArray, force: Boolean) {
-        TODO("Not yet implemented")
+        if (force || value.isNotEmpty()) {
+            writeAttributeStart("s[]", name)
+            open(true)
+            data += value.size.toString()
+            val lastIndex = value.indexOfLast { it != 0.toShort() }
+            for (i in 0 until lastIndex) {
+                data += ','
+                data += value[i].toString()
+            }
+            close(true)
+        }
     }
 
     override fun writeInt(name: String, value: Int, force: Boolean) {
@@ -187,7 +217,22 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
     }
 
     override fun writeFloatArray2D(name: String, value: Array<FloatArray>, force: Boolean) {
-        TODO("Not yet implemented")
+        if (force || value.isNotEmpty()) {
+            writeAttributeStart("f[][]", name)
+            open(true)
+            data += value.size.toString()
+            for (vs in value) {
+                data += ','
+                data += '['
+                data += vs.size.toString()
+                for(v in value){
+                    data += ','
+                    data += v.toString()
+                }
+                data += ']'
+            }
+            close(true)
+        }
     }
 
     override fun writeDouble(name: String, value: Double, force: Boolean) {
@@ -212,7 +257,22 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
     }
 
     override fun writeDoubleArray2D(name: String, value: Array<DoubleArray>, force: Boolean) {
-        TODO("Not yet implemented")
+        if (force || value.isNotEmpty()) {
+            writeAttributeStart("d[][]", name)
+            open(true)
+            data += value.size.toString()
+            for (vs in value) {
+                data += ','
+                data += '['
+                data += vs.size.toString()
+                for(v in value){
+                    data += ','
+                    data += v.toString()
+                }
+                data += ']'
+            }
+            close(true)
+        }
     }
 
     override fun writeString(name: String, value: String?, force: Boolean) {
@@ -224,7 +284,16 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
     }
 
     override fun writeStringArray(name: String, value: Array<String>, force: Boolean) {
-        TODO("Not yet implemented")
+        if (force || value.isNotEmpty()) {
+            writeAttributeStart("S[]", name)
+            open(true)
+            data += value.size.toString()
+            for (v in value) {
+                data += ','
+                data += v
+            }
+            close(true)
+        }
     }
 
     override fun writeLong(name: String, value: Long, force: Boolean) {
@@ -388,7 +457,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
     }
 
     override fun <V : ISaveable> writeObjectArray(self: ISaveable?, name: String, elements: Array<V>, force: Boolean) {
-        // todo correctly implement xD
+        // todo implement correctly xD
         elements.forEach {
             writeObject(self, name, it, force)
         }

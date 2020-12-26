@@ -2,7 +2,7 @@ package me.anno.ui.editor.config
 
 import me.anno.gpu.GFX.windowStack
 import me.anno.io.utils.StringMap
-import me.anno.ui.base.ButtonPanel
+import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.Panel
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.groups.PanelListX
@@ -37,9 +37,10 @@ class ConfigPanel(val config: StringMap, val isStyle: Boolean, style: Style) : P
         }
         add(topicTree, 1f)
         add(contentListUI, 3f)
-        searchBar += ButtonPanel("Close", deep).setSimpleClickListener { windowStack.pop().destroy() }
+        searchBar += TextButton("Close", false, deep)
+            .setSimpleClickListener { windowStack.pop().destroy() }
         if (isStyle) {
-            searchBar += ButtonPanel("Apply", deep).setSimpleClickListener {
+            searchBar += TextButton("Apply", false, deep).setSimpleClickListener {
                 createTopics()
                 lastTopic = "-"
                 applySearch(searchInput.text)

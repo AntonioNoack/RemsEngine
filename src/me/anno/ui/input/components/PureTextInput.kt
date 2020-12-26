@@ -42,6 +42,19 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
         if(notify) changeListener(text)
     }
 
+    override fun calculateSize(w: Int, h: Int) {
+        val text = if(text.isBlank()) placeholder else text
+        val inst = instantTextLoading
+        if(inst) loadTexturesSync.push(true)
+        super.calculateSize(w, h)
+        val (w2, h2) = getTextSize(font, text, widthLimit)
+        minW = max(1, w2 + padding.width)
+        minH = max(1, h2 + padding.height)
+        minW2 = minW
+        minH2 = minH
+        if(inst) loadTexturesSync.pop()
+    }
+
     var cursor1 = 0
     var cursor2 = 0
 
@@ -89,7 +102,7 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
         drawBackground()
         val x = x + padding.left
         val y = y + padding.top
-        val usePlaceholder = text.isEmpty()
+        val usePlaceholder = text.isBlank()
         val textColor = if(usePlaceholder) placeholderColor else effectiveTextColor
         val drawnText = if(usePlaceholder) placeholder else text
         val wh = drawText(drawingOffset, 0, drawnText, textColor)

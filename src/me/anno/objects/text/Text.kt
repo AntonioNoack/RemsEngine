@@ -22,7 +22,7 @@ import me.anno.objects.animation.Type
 import me.anno.objects.modes.TextMode
 import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.Selection.selectTransform
-import me.anno.ui.base.ButtonPanel
+import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.Font
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelListY
@@ -589,7 +589,7 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
         }
 
         val ops = getGroup("Operations", "operations")
-        ops += ButtonPanel("Create Shadow", style)
+        ops += TextButton("Create Shadow", false, style)
             .setSimpleClickListener {
                 // such a mess is the result of copying colors from the editor ;)
                 val signalColor = Vector4f(HSLuv.toRGB(Vector3f(0.000f, 0.934f, 0.591f)), 1f)

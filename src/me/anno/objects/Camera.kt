@@ -2,20 +2,14 @@ package me.anno.objects
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
-import me.anno.gpu.GFX.toRadians
-import me.anno.gpu.ShaderLib.lineShader3D
-import me.anno.gpu.buffer.Attribute
-import me.anno.gpu.buffer.StaticBuffer
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.effects.ToneMappers
 import me.anno.objects.utils.CameraModel.drawCamera
 import me.anno.studio.rems.RemsStudio
-import me.anno.studio.rems.RemsStudio.targetHeight
-import me.anno.studio.rems.RemsStudio.targetWidth
 import me.anno.studio.rems.RemsStudio.currentlyDrawnCamera
-import me.anno.ui.base.ButtonPanel
+import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
@@ -25,7 +19,6 @@ import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
 import java.io.File
-import kotlin.math.tan
 
 // todo color palette
 // todo save the color palette in the project settings
@@ -141,7 +134,7 @@ class Camera(parent: Transform? = null) : Transform(parent) {
             style
         ) { onlyShowTarget = it }
         val ops = getGroup("Operations", "operations")
-        ops += ButtonPanel("Reset Transform", style)
+        ops += TextButton("Reset Transform", false, style)
             .setSimpleClickListener { resetTransform(true) }
             .setTooltip("If accidentally moved")
     }

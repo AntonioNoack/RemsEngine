@@ -1,4 +1,4 @@
-package me.anno.ui.base
+package me.anno.ui.base.buttons
 
 import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFXx2D
@@ -7,13 +7,15 @@ import me.anno.gpu.GFXx2D.getTextSize
 import me.anno.input.Input
 import me.anno.input.Input.keysDown
 import me.anno.input.MouseButton
+import me.anno.ui.base.TextPanel
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.style.Style
 import me.anno.utils.isClickKey
 import me.anno.utils.Maths.mixARGB
 import me.anno.utils.Lists.one
+import kotlin.math.max
 
-open class ButtonPanel(text: String, style: Style): TextPanel(text, style.getChild("button")){
+open class TextButton(text: String, val isSquare: Boolean, style: Style): TextPanel(text, style.getChild("button")){
 
     val leftColor = style.getColor("borderColorLeft", black or 0x999999)
     val rightColor = style.getColor("borderColorRight", black or 0x111111)
@@ -28,6 +30,15 @@ open class ButtonPanel(text: String, style: Style): TextPanel(text, style.getChi
     init {
         padding += borderSize
         this += WrapAlign.LeftTop
+    }
+
+    override fun calculateSize(w: Int, h: Int) {
+        super.calculateSize(w, h)
+        if(isSquare){
+            val size = max(minW, minH)
+            minW = size
+            minH = size
+        }
     }
 
     var mouseDown = false
@@ -48,6 +59,7 @@ open class ButtonPanel(text: String, style: Style): TextPanel(text, style.getChi
     }
 
     fun draw(isHovered: Boolean, mouseDown: Boolean){
+
         drawBackground()
 
         val limit = if(breaksIntoMultiline) this.w else -1

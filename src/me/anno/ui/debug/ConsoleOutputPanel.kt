@@ -6,7 +6,7 @@ import me.anno.gpu.Window
 import me.anno.input.MouseButton
 import me.anno.studio.Logging
 import me.anno.studio.rems.RemsStudio
-import me.anno.ui.base.ButtonPanel
+import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.debug.console.ConsoleLogFullscreen
@@ -29,7 +29,7 @@ class ConsoleOutputPanel(style: Style): TextPanel("", style) {
             // todo update, if there are new messages incoming
             // done select the text color based on the type of message
             val list = listPanel.content as PanelList
-            list += ButtonPanel("Close", style).setSimpleClickListener {
+            list += TextButton("Close", false, style).setSimpleClickListener {
                 windowStack.pop().destroy()
             }
             Logging.lastConsoleLines.reversed().forEach { msg ->

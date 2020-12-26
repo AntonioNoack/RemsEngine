@@ -11,7 +11,7 @@ import me.anno.objects.distributions.*
 import me.anno.objects.particles.forces.ForceField
 import me.anno.objects.particles.forces.impl.*
 import me.anno.studio.rems.RemsStudio
-import me.anno.ui.base.ButtonPanel
+import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.stacked.Option
@@ -304,7 +304,7 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
             clearCache()
         }
 
-        general += ButtonPanel("Reset Cache", style)
+        general += TextButton("Reset Cache", false, style)
             .setSimpleClickListener { clearCache() }
 
     }

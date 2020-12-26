@@ -1,6 +1,6 @@
 package me.anno.ui.editor.cutting
 
-import me.anno.ui.base.ButtonPanel
+import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelListY
@@ -9,7 +9,7 @@ import me.anno.ui.style.Style
 
 class CuttingView(style: Style): ScrollPanelY(Padding(0), AxisAlignment.MIN, style){
 
-    private val addLayerView = ButtonPanel("+", style)
+    private val addLayerView = TextButton("+", true, style)
         .setSimpleClickListener { addLayerTop() }
 
     private val content = this

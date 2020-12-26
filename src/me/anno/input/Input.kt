@@ -14,9 +14,13 @@ import me.anno.input.Touch.Companion.onTouchDown
 import me.anno.input.Touch.Companion.onTouchMove
 import me.anno.input.Touch.Companion.onTouchUp
 import me.anno.studio.StudioBase.Companion.addEvent
+import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.RemsStudio.history
 import me.anno.studio.rems.RemsStudio.project
+import me.anno.studio.rems.RemsStudio.root
+import me.anno.ui.editor.files.addChildFromFile
 import me.anno.ui.editor.treeView.TreeViewPanel
+import me.anno.utils.FileExplorerSelect
 import me.anno.utils.Maths.length
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.glfw.GLFW
@@ -30,6 +34,7 @@ import java.io.File
 import java.util.*
 import kotlin.collections.HashMap
 import kotlin.collections.set
+import kotlin.concurrent.thread
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -42,6 +47,8 @@ object Input {
 
     var mouseX = 0f
     var mouseY = 0f
+
+    var lastFile: File? = null
 
     var mouseDownX = 0f
     var mouseDownY = 0f
@@ -332,24 +339,7 @@ object Input {
                                         windowStack.pop().destroy()
                                     } else inFocus0?.onEscapeKey(mouseX, mouseY)
                                 } else inFocus0?.onEscapeKey(mouseX, mouseY)
-                                /*if (true || inFocus is SceneView) {
-                                    if (windowStack.size < 2) {
-                                        openMenu(mouseX, mouseY, "Exit?",
-                                            listOf(
-                                                "Save" to { b, l -> true },
-                                                "Save & Exit" to { b, l -> true },
-                                                "Exit" to { _, _ -> requestExit(); true }
-                                            ))
-                                    } else windowStack.pop().destroy()
-                                } else {
-                                    requestFocus(windowStack.mapNotNull {
-                                        it.panel.listOfAll.firstOrNull { panel -> panel is SceneView }
-                                    }.firstOrNull(), true)
-                                }*/
                             }
-                            // GLFW.GLFW_KEY_PRINT_SCREEN -> { Layout.printLayout() }
-                            // GLFW.GLFW_KEY_F11 -> addEvent { GFX.toggleFullscreen() }
-                            // GLFW.GLFW_KEY_F12 -> addEvent {}
                             else -> {
 
                                 if (isControlDown) {
@@ -361,6 +351,17 @@ object Input {
                                             GLFW.GLFW_KEY_X -> {
                                                 copy()
                                                 inFocus0?.onEmpty(mouseX, mouseY)
+                                            }
+                                            GLFW.GLFW_KEY_I -> {
+                                                thread {
+                                                    if(lastFile == null) lastFile = project?.file
+                                                    FileExplorerSelect.selectFile(lastFile){ file ->
+                                                        if(file != null){
+                                                            lastFile = file
+                                                            addEvent { addChildFromFile(root, file, {}) }
+                                                        }
+                                                    }
+                                                }
                                             }
                                             GLFW.GLFW_KEY_H -> history?.display()
                                             GLFW.GLFW_KEY_A -> inFocus0?.onSelectAll(mouseX, mouseY)

@@ -2,7 +2,7 @@ package me.anno.ui.editor.graphs
 
 import me.anno.objects.animation.Interpolation
 import me.anno.studio.rems.Selection.selectedProperty
-import me.anno.ui.base.ButtonPanel
+import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelList
@@ -13,7 +13,7 @@ import me.anno.ui.style.Style
 class GraphEditor(style: Style) : PanelListY(style) {
 
     val controls = ScrollPanelX(style)
-    val activateButton = ButtonPanel("Enable Animation", style)
+    val activateButton = TextButton("Enable Animation", false, style)
         .setSimpleClickListener { selectedProperty?.isAnimated = true }
 
     val body = GraphEditorBody(style)
@@ -25,7 +25,7 @@ class GraphEditor(style: Style) : PanelListY(style) {
         this += body.setWeight(1f)
         val cc = controls.child as PanelList
         for (type in Interpolation.values()) {
-            cc += object : ButtonPanel(type.symbol, style) {
+            cc += object : TextButton(type.symbol, true, style) {
                 override fun tickUpdate() {
                     visibility = Visibility[body.selectedKeyframes.isNotEmpty()]
                     super.tickUpdate()

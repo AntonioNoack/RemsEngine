@@ -28,6 +28,7 @@ import me.anno.studio.rems.Rendering.render
 import me.anno.studio.rems.Rendering.renderPart
 import me.anno.studio.rems.Selection.selectTransform
 import me.anno.ui.base.*
+import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.constraints.WrapAlign
@@ -195,7 +196,7 @@ object UILayouts {
                 }
             }
             fileInput.tooltip = msg
-            val base = fileInput.base
+            val base = fileInput.base2
             base.textColor = when (state) {
                 -1 -> 0xffff00
                 -2 -> 0xff0000
@@ -231,7 +232,7 @@ object UILayouts {
         }
         newProject += fileInput
 
-        val button = ButtonPanel("Create Project", style)
+        val button = TextButton("Create Project", false, style)
         button.setSimpleClickListener { loadNewProject(usableFile, nameInput) }
         newProject += button
 

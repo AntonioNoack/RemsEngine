@@ -31,7 +31,7 @@ import me.anno.studio.rems.RemsStudio.targetHeight
 import me.anno.studio.rems.RemsStudio.targetWidth
 import me.anno.studio.rems.Scene
 import me.anno.studio.StudioBase
-import me.anno.ui.base.ButtonPanel
+import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.Panel
 import me.anno.ui.base.SpyPanel
 import me.anno.ui.base.Visibility
@@ -632,7 +632,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
         fun getPlaybackTitle(invert: Boolean) =
             if ((component == null) != invert) playbackTitles.first else playbackTitles.second
 
-        val playbackButton = ButtonPanel(getPlaybackTitle(false), style)
+        val playbackButton = TextButton(getPlaybackTitle(false), false, style)
         audio += aud(playbackButton
             .setSimpleClickListener {
                 if (isPaused) {

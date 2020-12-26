@@ -18,13 +18,10 @@ import me.anno.objects.Camera
 import me.anno.objects.Transform
 import me.anno.studio.Build.isDebug
 import me.anno.studio.StudioBase.Companion.eventTasks
-import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.RemsStudio.editorTime
 import me.anno.studio.rems.RemsStudio.editorTimeDilation
 import me.anno.studio.rems.RemsStudio.root
-import me.anno.studio.rems.Selection.selectedInspectable
-import me.anno.studio.rems.Selection.selectedTransform
-import me.anno.ui.base.ButtonPanel
+import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.Panel
 import me.anno.ui.base.SpacePanel
 import me.anno.ui.base.TextPanel
@@ -458,13 +455,13 @@ object GFX : GFXBase1() {
             panel.textColor = getColor(it)
         }
 
-        val submit = ButtonPanel(actionName, style)
+        val submit = TextButton(actionName, false, style)
             .setSimpleClickListener {
                 callback(panel.text)
                 close()
             }
 
-        val cancel = ButtonPanel("Cancel", style)
+        val cancel = TextButton("Cancel", false, style)
             .setSimpleClickListener { close() }
 
         val buttons = PanelListX(style)

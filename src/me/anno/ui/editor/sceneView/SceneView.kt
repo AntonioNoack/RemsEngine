@@ -35,10 +35,9 @@ import me.anno.studio.rems.RemsStudio.targetHeight
 import me.anno.studio.rems.RemsStudio.targetWidth
 import me.anno.studio.rems.Scene
 import me.anno.studio.rems.Selection
-import me.anno.studio.rems.Selection.select
 import me.anno.studio.rems.Selection.selectTransform
 import me.anno.studio.rems.Selection.selectedTransform
-import me.anno.ui.base.ButtonPanel
+import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.custom.CustomContainer
 import me.anno.ui.custom.data.CustomPanelData
@@ -117,7 +116,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
     // we need the depth for post processing effects like dof
 
     init {
-        val is2DPanel = ButtonPanel("3D", style)
+        val is2DPanel = TextButton("3D", true, style)
         is2DPanel.setTooltip("Lock the camera; use control to keep the angle")
         is2DPanel.instantTextLoading = true
         controls += SimplePanel(
@@ -138,7 +137,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
         }
         fun add(i: Int, mode: SceneDragMode) {
             controls += SimplePanel(
-                object : ButtonPanel(mode.displayName, style) {
+                object : TextButton(mode.displayName, true, style) {
                     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
                         draw(isHovered, mouseDown || mode == this@SceneView.mode)
                     }

@@ -9,7 +9,7 @@ import me.anno.studio.rems.RemsStudio.targetDuration
 import me.anno.studio.rems.RemsStudio.targetOutputFile
 import me.anno.studio.rems.Rendering.renderPart
 import me.anno.studio.StudioBase.Companion.addEvent
-import me.anno.ui.base.ButtonPanel
+import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
@@ -20,7 +20,6 @@ import me.anno.ui.input.FloatInput
 import me.anno.ui.input.IntInput
 import me.anno.ui.style.Style
 import me.anno.utils.Maths.mixARGB
-import java.io.File
 import kotlin.concurrent.thread
 import kotlin.math.abs
 import kotlin.math.max
@@ -99,10 +98,10 @@ object RenderSettings : Transform() {
 
         // todo file selector from OS...
         val fileInput = FileInput("Output File", style, targetOutputFile)
-        val originalColor = fileInput.base.textColor
+        val originalColor = fileInput.base2.textColor
         fun updateFileInputColor() {
             val file = project.targetOutputFile
-            fileInput.base.run {
+            fileInput.base2.run {
                 textColor = mixARGB(originalColor, when {
                     file.isDirectory -> 0xff0000 or black
                     file.exists() -> 0xffff00 or black
@@ -114,23 +113,23 @@ object RenderSettings : Transform() {
 
         updateFileInputColor()
         fileInput.setChangeListener {
-            val file = File(it)
+            val file = it//File(it)
             project.targetOutputFile = file
             updateFileInputColor()
             save()
         }
         list += fileInput
 
-        list += ButtonPanel("Render at 100%", style)
+        list += TextButton("Render at 100%", false, style)
             .setSimpleClickListener { renderPart(1) }
             .setTooltip("Create video at full resolution")
-        list += ButtonPanel("Render at 50%", style)
+        list += TextButton("Render at 50%", false, style)
             .setSimpleClickListener { renderPart(2) }
             .setTooltip("Create video at half resolution")
-        list += ButtonPanel("Render at 25%", style)
+        list += TextButton("Render at 25%", false, style)
             .setSimpleClickListener { renderPart(4) }
             .setTooltip("Create video at quarter resolution")
-        list += ButtonPanel("Render at Set%", style)
+        list += TextButton("Render at Set%", false, style)
             .setSimpleClickListener { renderSetPercent() }
             .setTooltip("Create video at your custom set relative resolution")
 
