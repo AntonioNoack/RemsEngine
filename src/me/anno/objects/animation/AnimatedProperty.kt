@@ -101,6 +101,10 @@ class AnimatedProperty<V>(val type: Type, var defaultValue: V) : Saveable() {
         } else LOGGER.warn("Value $value is not accepted by type $type!")
     }
 
+    fun checkIsAnimated(){
+        isAnimated = keyframes.size >= 2 || drivers.any { it != null }
+    }
+
     private fun addKeyframeInternal(time: Double, value: V, equalityDt: Double) {
         checkThread()
         ensureCorrectType(value)

@@ -23,20 +23,21 @@ import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.animation.Interpolation
 import me.anno.objects.animation.Keyframe
 import me.anno.objects.animation.Type
+import me.anno.studio.StudioBase.Companion.updateAudio
 import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.RemsStudio.editorTime
 import me.anno.studio.rems.RemsStudio.isPaused
-import me.anno.studio.StudioBase.Companion.updateAudio
 import me.anno.studio.rems.Selection.selectedProperty
 import me.anno.ui.editor.TimelinePanel
 import me.anno.ui.editor.sceneView.Grid.drawSmoothLine
 import me.anno.ui.style.Style
-import me.anno.utils.*
+import me.anno.utils.LOGGER
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.length
 import me.anno.utils.Maths.mix
 import me.anno.utils.Maths.mixARGB
 import me.anno.utils.Maths.pow
+import me.anno.utils.get
 import org.joml.Vector2f
 import kotlin.math.abs
 import kotlin.math.max
@@ -47,7 +48,6 @@ import kotlin.math.roundToInt
 // todo move multiple keyframes at a time
 
 // todo list all animated properties of this object (abbreviated)
-// todo we need to store the name instead of the property, because on Control+Z, control is lost
 
 class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
 
@@ -80,9 +80,9 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
         minH = size
     }
 
-    fun getValueString(value: Float, step: Float) = getValueString(abs(value), step, if (value < 0) '-' else '+')
+    private fun getValueString(value: Float, step: Float) = getValueString(abs(value), step, if (value < 0) '-' else '+')
 
-    fun getValueString(value: Float, step: Float, sign: Char): String {
+    private fun getValueString(value: Float, step: Float, sign: Char): String {
         val int = value.toInt()
         if (step >= 1f) return "$sign$int"
         val float = value % 1
@@ -91,11 +91,11 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
         return "$sign$int.${get00XString((float * 1000).roundToInt())}"
     }
 
-    fun getValueStep(value: Float): Float {
+    private fun getValueStep(value: Float): Float {
         return valueFractions.minBy { abs(it - value) }!!
     }
 
-    fun drawValueAxis(x0: Int, y0: Int, x1: Int, y1: Int) {
+    private fun drawValueAxis(x0: Int, y0: Int, x1: Int, y1: Int) {
 
         val minValue = centralValue - dvHalfHeight
         val maxValue = centralValue + dvHalfHeight
@@ -107,7 +107,7 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
         val maxStepIndex = (maxValue / valueStep).toInt() + 1
 
         val fontColor = fontColor
-        val backgroundColor = backgroundColor
+        val backgroundColor = backgroundColor and 0xffffff // transparent background
 
         for (stepIndex in maxStepIndex downTo minStepIndex) {
             val value = stepIndex * valueStep
@@ -143,6 +143,39 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
         loadTexturesSync.pop()
     }
 
+    private fun autoResize(property: AnimatedProperty<*>) {
+
+        val t0 = centralTime - dtHalfLength
+        val t1 = centralTime + dtHalfLength
+
+        var minValue = Float.POSITIVE_INFINITY
+        var maxValue = Float.NEGATIVE_INFINITY
+
+        fun add(value: Float) {
+            minValue = min(value, minValue)
+            maxValue = max(value, maxValue)
+        }
+
+        fun add(value: Any?) {
+            value ?: return
+            for (i in 0 until property.type.components) {
+                add(value[i])
+            }
+        }
+        if (property.isAnimated) {
+            add(property[t0])
+            add(property[t1])
+            property.keyframes
+                .filter { it.time in t0..t1 }
+                .forEach { add(it.value) }
+        } else add(property.defaultValue)
+
+        centralValue = (maxValue + minValue) * 0.5f
+        dvHalfHeight = max(property.type.unitScale * 0.1f, (maxValue - minValue) * 0.5f)
+
+    }
+
+    var lastProperty: Any? = null
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
 
         drawnStrings.clear()
@@ -165,7 +198,12 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
         updateLocalTime()
 
         val property = selectedProperty ?: return
-        if (!property.isAnimated) return
+        // if (!property.isAnimated) return
+
+        if (property !== lastProperty) {
+            lastProperty = property
+            autoResize(property)
+        }
 
         // only required, if there are values
         drawValueAxis(x0, y0, x1, y1)
@@ -195,9 +233,6 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
         for (i in 0 until 4) {
             valueColors[i] = (valueColors[i] or black) and 0x7fffffff
         }
-
-        // val values = FloatArray(channelCount)
-
 
         fun drawDot(x: Int, y: Int, color: Int, willBeSelected: Boolean) {
             if (willBeSelected) {// draw outline, if point is selected
@@ -261,11 +296,11 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
         val prevYValues = IntArray(type.components)
         val kfs = property.keyframes
 
-        if(kfs.isNotEmpty()){
+        if (kfs.isNotEmpty()) {
             val first = kfs[0]
-            when(first.interpolation){
+            when (first.interpolation) {
                 Interpolation.LINEAR_BOUNDED, Interpolation.STEP, Interpolation.SPLINE -> {
-                    if(getXAt(kf2Global(first.time)) > x0+1){// a line is needed from left to 1st point
+                    if (getXAt(kf2Global(first.time)) > x0 + 1) {// a line is needed from left to 1st point
                         val startValue = property[global2Kf(getTimeAt(x0.toFloat()))]!!
                         val endX = getXAt(kf2Global(first.time)).toFloat()
                         val endValue = first.value!!
@@ -282,6 +317,17 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
                 else -> {
                     // ...
                 }
+            }
+        } else {
+            val value = property.defaultValue!!
+            for (i in 0 until channelCount) {
+                val y = getYAt(value[i])
+                drawSmoothLine(
+                    x0.toFloat(), y, x1.toFloat(), y,
+                    this.x, this.y, this.w, this.h,
+                    valueColors[i],
+                    0.5f
+                )
             }
         }
 
@@ -328,11 +374,11 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
         // todo we need to calculate the correct cutting point with min or max...
         // todo sine is crazy as well ->
         // todo we need a function similar to drawLines()
-        if(kfs.isNotEmpty()){
+        if (kfs.isNotEmpty()) {
             val last = kfs.last()
-            when(last.interpolation){
+            when (last.interpolation) {
                 Interpolation.SPLINE, Interpolation.STEP, Interpolation.LINEAR_BOUNDED -> {
-                    if(getXAt(kf2Global(last.time)) < x1){// a line is needed from last pt to end
+                    if (getXAt(kf2Global(last.time)) < x1) {// a line is needed from last pt to end
                         val endValue = property[global2Kf(getTimeAt(x1.toFloat()))]!!
                         val startX = getXAt(kf2Global(last.time)).toFloat()
                         val startValue = last.value!!
@@ -357,10 +403,12 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
     // todo draw curve of animation-drivers :)
     // todo input (animated values) and output (calculated values)?
 
-    fun drawLines(property: AnimatedProperty<*>,
-                  x: Int, x0: Int, x1: Int,
-                  j: Int, endTime: Double,
-                  channelCount: Int, valueColors: IntArray){
+    private fun drawLines(
+        property: AnimatedProperty<*>,
+        x: Int, x0: Int, x1: Int,
+        j: Int, endTime: Double,
+        channelCount: Int, valueColors: IntArray
+    ) {
         val kfs = property.keyframes
         val previous = kfs[j - 1]
         val tGlobalPrev = mix(0.0, 1.0, kf2Global(previous.time))
@@ -385,7 +433,7 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
                 lastY = yHere
             }
             // draw differently depending on section mode
-            when(previous.interpolation){
+            when (previous.interpolation) {
                 Interpolation.LINEAR_BOUNDED, Interpolation.LINEAR_UNBOUNDED -> {
                     addLine(x, endTime) // done
                 }
@@ -511,13 +559,14 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
     }
 
     override fun onDeleteKey(x: Float, y: Float) {
-        RemsStudio.largeChange("Deleted Keyframes"){
+        RemsStudio.largeChange("Deleted Keyframes") {
             selectedKeyframes.forEach {
                 selectedProperty?.remove(it)
             }
             if (selectedProperty == null) {
                 selectedKeyframes.clear()
             }
+            selectedProperty?.checkIsAnimated()
         }
     }
 
@@ -546,7 +595,7 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
         } else if (draggedKeyframe != null && selectedProperty != null) {
             // dragging
             val time = getTimeAt(x)
-            RemsStudio.incrementalChange("dragging keyframe"){
+            RemsStudio.incrementalChange("dragging keyframe") {
                 draggedKeyframe.time = global2Kf(time) // global -> local
                 editorTime = time
                 updateAudio()
@@ -575,8 +624,10 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
         val property = selectedProperty
         property?.apply {
             val time = global2Kf(getTimeAt(x))
-            RemsStudio.largeChange("Created keyframe at ${time}s"){
+            RemsStudio.largeChange("Created keyframe at ${time}s") {
+                isAnimated = true
                 property.addKeyframe(time, property[time]!!, propertyDt)
+                property.checkIsAnimated()
             }
         } ?: println("Please select a property first!")
     }
@@ -595,7 +646,7 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
             val target = selectedProperty ?: return super.onPaste(x, y, data, type)
             val targetType = target.type
             val parsedKeyframes = TextReader.fromText(data).filterIsInstance<Keyframe<*>>()
-            if(parsedKeyframes.isNotEmpty()){
+            if (parsedKeyframes.isNotEmpty()) {
                 RemsStudio.largeChange("Pasted Keyframes") {
                     parsedKeyframes.forEach { sth ->
                         sth.apply {
@@ -637,7 +688,7 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
 
     override fun onSelectAll(x: Float, y: Float) {
         val kf = selectedProperty?.keyframes
-        if(kf != null){
+        if (kf != null) {
             selectedKeyframes.clear()
             selectedKeyframes.addAll(kf)
         }
@@ -651,7 +702,7 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
                     super.onMouseClicked(x, y, button, long)
                 } else {
                     GFX.openMenu("Interpolation", Interpolation.values().map { mode ->
-                        GFX.MenuOption(mode.displayName, mode.description){
+                        GFX.MenuOption(mode.displayName, mode.description) {
                             selectedKeyframes.forEach {
                                 it.interpolation = mode
                             }

@@ -22,11 +22,8 @@ import java.io.File
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.concurrent.thread
 
-// todo always show values in graph editor
-// todo if less than two keyframes are present, it becomes not-animated
-// todo "hacked"-text effect for text: swizzle characters and introduce others
-// todo automatically scale to the correct position and scale, when the animated property is changed
 
+// todo "hacked"-text effect for text: swizzle characters and introduce others
 
 // todo curve-editor: show colors as blobs/circles
 
@@ -37,6 +34,9 @@ import kotlin.concurrent.thread
 // todo small preview?
 
 // todo input field title, no focus color
+
+// todo "onto" isn't rendered correctly in ui
+// -> create our own rasterizer including subpixel support and contrast settings?...
 
 object RemsStudio : StudioBase(true, "Rem's Studio", "RemsStudio") {
 

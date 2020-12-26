@@ -13,14 +13,9 @@ import me.anno.ui.style.Style
 class GraphEditor(style: Style) : PanelListY(style) {
 
     val controls = ScrollPanelX(style)
-    val activateButton = TextButton("Enable Animation", false, style)
-        .setSimpleClickListener { selectedProperty?.isAnimated = true }
-
     val body = GraphEditorBody(style)
 
     init {
-        activateButton += WrapAlign.Center
-        this += activateButton
         this += controls
         this += body.setWeight(1f)
         val cc = controls.child as PanelList
@@ -57,8 +52,7 @@ class GraphEditor(style: Style) : PanelListY(style) {
             it.tick()
         }
 
-        children[0].visibility = Visibility[selectedProperty?.isAnimated == false]
-        children[1].visibility = Visibility[selectedProperty?.isAnimated == true]
+        children[0].visibility = Visibility[selectedProperty?.isAnimated == true]
 
     }
 

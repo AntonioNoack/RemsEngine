@@ -4,7 +4,10 @@ import me.anno.ui.base.Panel
 import kotlin.math.max
 import kotlin.math.min
 
-class WrapAlign(val alignX: AxisAlignment?, val alignY: AxisAlignment?): Constraint(10){
+class WrapAlign(
+    private val alignX: AxisAlignment?,
+    private val alignY: AxisAlignment?
+): Constraint(10){
     
     override fun apply(panel: Panel) {
         alignX?.apply {

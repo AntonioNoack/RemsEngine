@@ -98,7 +98,7 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
 
     var comment = ""
 
-    open fun getSymbol() = DefaultConfig["ui.symbol.transform", "\uD83D\uDCC1"]
+    open fun getSymbol() = DefaultConfig["ui.symbol.folder", "\uD83D\uDCC1"]
     open fun getDefaultDisplayName() = if (getClassName() == "Transform") "Folder" else getClassName()
     open fun isVisible(localTime: Double) = true
 
