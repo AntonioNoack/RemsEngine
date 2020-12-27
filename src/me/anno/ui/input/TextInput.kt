@@ -1,19 +1,24 @@
 package me.anno.ui.input
 
 import me.anno.gpu.Cursor
-import me.anno.gpu.GFX
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.input.components.PureTextInput
 import me.anno.ui.style.Style
 import java.io.File
 
-open class TextInput(title: String, style: Style): PanelContainer(
-    PureTextInput(
-        style
-    ), Padding(), style) {
+open class TextInput(title: String, val enableSuggestions: Boolean, style: Style) : PanelContainer(
+    object : PureTextInput(style) {
+        override val needsSuggestions = enableSuggestions
+    }, Padding(), style
+) {
 
-    constructor(title: String, style: Style, v0: String): this(title, style){
+    constructor(title: String, style: Style, v0: String) : this(title, true, style, v0)
+    constructor(title: String, enableSuggestions: Boolean, style: Style, v0: String) : this(
+        title,
+        enableSuggestions,
+        style
+    ) {
         setText(v0, false)
     }
 
@@ -60,7 +65,7 @@ open class TextInput(title: String, style: Style): PanelContainer(
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.onDraw(x0, y0, x1, y1)
-        if(base.isInFocus){
+        if (base.isInFocus) {
             isSelectedListener?.invoke()
         }
     }

@@ -34,12 +34,10 @@ object RenderSettings : Transform() {
         style: Style,
         getGroup: (title: String, id: String) -> SettingCategory
     ) {
-        super.createInspector(list, style, getGroup)
 
         val project = project!!
 
-        list.clear()
-        list += TextPanel(getDefaultDisplayName(), style)
+        list += TextPanel(getDefaultDisplayName(), style).apply { focusTextColor = textColor }
         list += vi("Duration", "Video length in seconds", Type.FLOAT_PLUS, targetDuration, style) {
             project.targetDuration = it
             save()

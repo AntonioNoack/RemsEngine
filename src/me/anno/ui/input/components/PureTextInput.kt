@@ -1,5 +1,6 @@
 package me.anno.ui.input.components
 
+import me.anno.config.DefaultStyle.black
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.loadTexturesSync
@@ -9,50 +10,55 @@ import me.anno.input.Input.isControlDown
 import me.anno.input.Input.isShiftDown
 import me.anno.input.Input.mouseKeysDown
 import me.anno.input.MouseButton
-import me.anno.utils.Maths.clamp
+import me.anno.language.spellcheck.Spellchecking
+import me.anno.language.spellcheck.Suggestion
 import me.anno.ui.base.TextPanel
 import me.anno.ui.style.Style
+import me.anno.utils.Maths.clamp
 import me.anno.utils.Quad
 import me.anno.utils.StringHelper.getIndexFromText
 import me.anno.utils.StringHelper.joinChars
+import org.lwjgl.glfw.GLFW
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.streams.toList
 
-open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
+open class PureTextInput(style: Style) : TextPanel("", style.getChild("edit")) {
 
     val characters = ArrayList<Int>()
 
-    init { instantTextLoading = true }
+    init {
+        instantTextLoading = true
+    }
 
-    fun setCursorToEnd(){
+    fun setCursorToEnd() {
         cursor1 = characters.size
         cursor2 = cursor1
     }
 
-    fun updateChars(notify: Boolean){
+    fun updateChars(notify: Boolean) {
         characters.clear()
         characters.addAll(text.codePoints().toList())
-        if(notify) changeListener(text)
+        if (notify) changeListener(text)
     }
 
-    fun updateText(notify: Boolean){
+    fun updateText(notify: Boolean) {
         text = characters.joinChars()
-        if(notify) changeListener(text)
+        if (notify) changeListener(text)
     }
 
     override fun calculateSize(w: Int, h: Int) {
-        val text = if(text.isBlank()) placeholder else text
+        val text = if (text.isBlank()) placeholder else text
         val inst = instantTextLoading
-        if(inst) loadTexturesSync.push(true)
+        if (inst) loadTexturesSync.push(true)
         super.calculateSize(w, h)
         val (w2, h2) = getTextSize(font, text, widthLimit)
         minW = max(1, w2 + padding.width)
         minH = max(1, h2 + padding.height)
         minW2 = minW
         minH2 = minH
-        if(inst) loadTexturesSync.pop()
+        if (inst) loadTexturesSync.pop()
     }
 
     var cursor1 = 0
@@ -62,11 +68,11 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
     var placeholder = ""
 
     fun deleteSelection(): Boolean {
-        synchronized(this){
+        synchronized(this) {
             val min = min(cursor1, cursor2)
             val max = max(cursor1, cursor2)
-            if(max != min){
-                for(i in max-1 downTo min){
+            if (max != min) {
+                for (i in max - 1 downTo min) {
                     characters.removeAt(i)
                 }
                 updateText(true)
@@ -80,16 +86,16 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
     var drawingOffset = 0
     var lastMove = 0L
 
-    val wasJustChanged get() = abs(GFX.gameTime-lastMove) < 200_000_000
+    val wasJustChanged get() = abs(GFX.gameTime - lastMove) < 200_000_000
 
-    fun calculateOffset(required: Int, cursor: Int){
+    fun calculateOffset(required: Int, cursor: Int) {
         // center the cursor, 1/3 of the width, if possible;
         // clamp left/right
         drawingOffset = -clamp(cursor - w / 3, 0, max(0, required - w))
     }
 
     var showBars = false
-    override fun getVisualState(): Any? = Quad(super.getVisualState(), showBars, cursor1, cursor2)
+    override fun getVisualState(): Any? = Pair(super.getVisualState(), Quad(showBars, cursor1, cursor2, suggestions))
 
     override fun tickUpdate() {
         super.tickUpdate()
@@ -97,40 +103,98 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
         showBars = isInFocus && (blinkVisible || wasJustChanged)
     }
 
+    open val needsSuggestions = true
+    private val suggestions get() = if (needsSuggestions) Spellchecking.check(text, this) else null
+
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         loadTexturesSync.push(true)
         drawBackground()
         val x = x + padding.left
         val y = y + padding.top
         val usePlaceholder = text.isBlank()
-        val textColor = if(usePlaceholder) placeholderColor else effectiveTextColor
-        val drawnText = if(usePlaceholder) placeholder else text
+        val textColor = if (usePlaceholder) placeholderColor else effectiveTextColor
+        val drawnText = if (usePlaceholder) placeholder else text
         val wh = drawText(drawingOffset, 0, drawnText, textColor)
-        if(isInFocus && (showBars || cursor1 != cursor2)){
+        val suggestions = suggestions
+        if (isInFocus && (showBars || cursor1 != cursor2)) {
             ensureCursorBounds()
             val textSize = font.size.toInt()
-            val padding = textSize/4
+            val padding = textSize / 4
             // to do cache sizes... (low priority, because it has to be in focus for this calculation, so this calculation is rather rare)
-            val cursorX1 = if(cursor1 == 0) -1 else getTextSize(font, characters.subList(0, cursor1).joinChars(), -1).first-1
-            if(cursor1 != cursor2){
-                val cursorX2 = if(cursor2 == 0) -1 else getTextSize(font, characters.subList(0, cursor2).joinChars(), -1).first-1
+            val cursorX1 =
+                if (cursor1 == 0) -1 else getTextSize(font, characters.subList(0, cursor1).joinChars(), -1).first - 1
+            if (cursor1 != cursor2) {
+                val cursorX2 = if (cursor2 == 0) -1 else getTextSize(
+                    font,
+                    characters.subList(0, cursor2).joinChars(),
+                    -1
+                ).first - 1
                 val min = min(cursorX1, cursorX2)
                 val max = max(cursorX1, cursorX2)
-                drawRect(x+min+drawingOffset, y+padding, max-min, h-2*padding, textColor and 0x3fffffff) // marker
-                if(showBars) drawRect(x+cursorX2+drawingOffset, y+padding, 2, h-2*padding, textColor) // cursor 1
+                drawRect(
+                    x + min + drawingOffset,
+                    y + padding,
+                    max - min,
+                    h - 2 * padding,
+                    textColor and 0x3fffffff
+                ) // marker
+                if (showBars) drawRect(
+                    x + cursorX2 + drawingOffset,
+                    y + padding,
+                    2,
+                    h - 2 * padding,
+                    textColor
+                ) // cursor 1
                 calculateOffset(wh.first, cursorX2)
             } else {
                 calculateOffset(wh.first, cursorX1)
             }
-            if(showBars) drawRect(x+cursorX1+drawingOffset, y+padding, 2, h-2*padding, textColor) // cursor 2
+            if (showBars) drawRect(x + cursorX1 + drawingOffset, y + padding, 2, h - 2 * padding, textColor) // cursor 2
+        }
+        // todo multi-line suggestions
+        if (suggestions != null && suggestions.isNotEmpty()) {
+            // display all suggestions
+            suggestions.forEach { s ->
+                // todo wavy line
+                val startX = getX(s.start)
+                val endX = getX(s.end)
+                val theY = this.y + this.h - padding.bottom - 1
+                drawRect(startX, theY, endX - startX, 1, 0xffff00 or black)
+            }
         }
         loadTexturesSync.pop()
+        if (!isHovered) lastSuggestion = null
     }
+
+    // todo better tool tip element to list all options
+    // todo on tab or keys, open a menu with the options
+    var lastSuggestion: Suggestion? = null
+    override fun getTooltipText(x: Float, y: Float): String? {
+        val suggestions = suggestions
+        if (suggestions != null) {
+            for (s in suggestions) {
+                val startX = getX(s.start)
+                val endX = getX(s.end)
+                if (x.toInt() in startX..endX) {
+                    lastSuggestion = s
+                    return if (s.improvements.isEmpty()) s.clearMessage else s.clearMessage + "\n" +
+                            "Suggestions: " + s.improvements.withIndex().joinToString {
+                            (index, s) -> if(index == 0) "$s <Tab>" else s
+                    }
+                }
+            }
+        }
+        lastSuggestion = null
+        return super.getTooltipText(x, y)
+    }
+
+    fun getX(charIndex: Int) = x + padding.left + drawingOffset + if (charIndex <= 0) -1 else
+        getTextSize(font, characters.subList(0, min(charIndex, characters.size)).joinChars(), -1).first - 1
 
     fun addKey(codePoint: Int) = insert(codePoint)
 
-    fun insert(insertion: String){
-        if(insertion.isNotEmpty()){
+    fun insert(insertion: String) {
+        if (insertion.isNotEmpty()) {
             lastMove = GFX.gameTime
             deleteSelection()
             insertion.codePoints().forEach {
@@ -142,20 +206,20 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
         }
     }
 
-    fun insert(insertion: Int, updateText: Boolean = true){
+    fun insert(insertion: Int, updateText: Boolean = true) {
         lastMove = GFX.gameTime
         deleteSelection()
         characters.add(cursor1, insertion)
-        if(updateText) updateText(true)
+        if (updateText) updateText(true)
         cursor1++
         cursor2++
         ensureCursorBounds()
     }
 
-    fun deleteBefore(){
+    fun deleteBefore() {
         lastMove = GFX.gameTime
-        if(!deleteSelection() && cursor1 > 0){
-            characters.removeAt(cursor1-1)
+        if (!deleteSelection() && cursor1 > 0) {
+            characters.removeAt(cursor1 - 1)
             updateText(true)
             cursor1--
             cursor2--
@@ -163,32 +227,27 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
         ensureCursorBounds()
     }
 
-    fun deleteAfter(){
+    fun deleteAfter() {
         lastMove = GFX.gameTime
-        if(!deleteSelection() && cursor1 < characters.size){
+        if (!deleteSelection() && cursor1 < characters.size) {
             characters.removeAt(cursor1)
             updateText(true)
         }
         ensureCursorBounds()
     }
 
-    fun ensureCursorBounds(){
+    fun ensureCursorBounds() {
         val maxLength = characters.size
         cursor1 = clamp(cursor1, 0, maxLength)
         cursor2 = clamp(cursor2, 0, maxLength)
     }
 
-    override fun onCharTyped(x: Float, y: Float, key: Int) {
+    fun moveRight() {
         lastMove = GFX.gameTime
-        addKey(key)
-    }
-
-    fun moveRight(){
-        lastMove = GFX.gameTime
-        if(isShiftDown){
+        if (isShiftDown) {
             cursor2++
         } else {
-            if(cursor2 != cursor1){
+            if (cursor2 != cursor1) {
                 cursor1 = cursor2
             } else {
                 cursor1++
@@ -198,9 +257,9 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
         ensureCursorBounds()
     }
 
-    fun moveLeft(){
+    fun moveLeft() {
         lastMove = GFX.gameTime
-        if(isShiftDown){
+        if (isShiftDown) {
             cursor2--
         } else {
             cursor1--
@@ -218,7 +277,7 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
     }
 
     override fun onCopyRequested(x: Float, y: Float): String? {
-        if(cursor1 == cursor2) return text
+        if (cursor1 == cursor2) return text
         return characters.subList(min(cursor1, cursor2), max(cursor1, cursor2)).joinChars()
     }
 
@@ -238,13 +297,46 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
         return this
     }
 
+    // todo automatically show hints, when the user is typing
+    private fun applySuggestion(suggestion: Suggestion, choice: String) {
+        val text = text
+        val bytes = text.toByteArray()
+        val begin = if(suggestion.start == 0) "" else String(bytes, 0, suggestion.start)
+        val end = if(suggestion.end >= bytes.size) "" else String(bytes, suggestion.end, bytes.size-suggestion.end)
+        this.text = begin + choice + end
+        updateChars(true)
+        setCursor((begin + choice).codePoints().count().toInt()) // set the cursor to after the edit
+    }
+
+    private fun setCursor(position: Int){
+        cursor1 = position
+        cursor2 = position
+        ensureCursorBounds()
+    }
+
+    override fun onCharTyped(x: Float, y: Float, key: Int) {
+        val suggestion = lastSuggestion
+        if (key == '\t'.toInt() && suggestion?.improvements?.isNotEmpty() == true) {
+            lastMove = GFX.gameTime
+            applySuggestion(suggestion, suggestion.improvements[0])
+        } else {
+            lastMove = GFX.gameTime
+            addKey(key)
+        }
+    }
+
     override fun onEnterKey(x: Float, y: Float) {
-        enterListener?.invoke(text) ?: super.onEnterKey(x, y)
+        val suggestion = lastSuggestion
+        if (suggestion != null && suggestion.improvements.isNotEmpty()) {
+            applySuggestion(suggestion, suggestion.improvements[0])
+        } else {
+            enterListener?.invoke(text) ?: super.onEnterKey(x, y)
+        }
     }
 
     override fun onMouseDown(x: Float, y: Float, button: MouseButton) {
         lastMove = GFX.gameTime
-        if(isControlDown){
+        if (isControlDown) {
             selectAll()
         } else {
             // find the correct location for the cursor
@@ -254,14 +346,14 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
         }
     }
 
-    fun selectAll(){
+    fun selectAll() {
         cursor1 = 0
         cursor2 = characters.size
     }
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
-        if(!isControlDown){
-            if(0 in mouseKeysDown){
+        if (!isControlDown) {
+            if (0 in mouseKeysDown) {
                 val localX = x - (this.x + padding.left + drawingOffset)
                 cursor2 = getIndexFromText(characters, localX, font)
             }
@@ -279,14 +371,14 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
     }
 
     override fun onEmpty(x: Float, y: Float) {
-        if(text != ""){
-            if(cursor1 == cursor2){
+        if (text != "") {
+            if (cursor1 == cursor2) {
                 clear()
             } else deleteSelection()
         }
     }
 
-    fun clear(){
+    fun clear() {
         lastMove = GFX.gameTime
         text = ""
         characters.clear()
@@ -295,7 +387,7 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
     }
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
-        when(action){
+        when (action) {
             "DeleteAfter" -> deleteAfter()
             "DeleteBefore" -> deleteBefore()
             "DeleteSelection" -> deleteSelection()
@@ -308,7 +400,7 @@ open class PureTextInput(style: Style): TextPanel("", style.getChild("edit")) {
     }
 
     override fun acceptsChar(char: Int): Boolean {
-        return when(char.toChar()){
+        return when (char.toChar()) {
             '\n' -> false
             else -> true
         }

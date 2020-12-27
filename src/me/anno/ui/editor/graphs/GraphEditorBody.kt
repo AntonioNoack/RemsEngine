@@ -684,7 +684,6 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
         }
     }
 
-    // todo scale and move a selection of keyframes xD
     override fun onCopyRequested(x: Float, y: Float): String? {
         // copy keyframes
         // left anker or center? left for now

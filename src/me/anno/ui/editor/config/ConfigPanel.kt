@@ -24,7 +24,7 @@ class ConfigPanel(val config: StringMap, val isStyle: Boolean, style: Style) : P
     val contentListUI = PanelListY(style)
     val contentList = ArrayList<Pair<String, Panel>>()
 
-    val searchInput = TextInput("Search", deep)
+    val searchInput = TextInput("Search", false, deep)
 
     fun create() {
         createTopics()

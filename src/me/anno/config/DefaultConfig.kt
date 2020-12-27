@@ -21,6 +21,7 @@ import me.anno.ui.base.Font
 import me.anno.ui.style.Style
 import me.anno.utils.OS
 import me.anno.utils.FloatFormat.f3
+import me.anno.utils.Warning
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3f
 import java.io.File
@@ -63,7 +64,7 @@ object DefaultConfig : StringMap() {
     }
 
     override fun get(key: String): Any? {
-        if(!hasInit) LOGGER.warn("Too early access of DefaultConfig[$key]")
+        if(!hasInit) Warning.warn("Too early access of DefaultConfig[$key]")
         return super.get(key)
     }
 

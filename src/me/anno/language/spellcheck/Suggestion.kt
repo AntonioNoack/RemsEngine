@@ -1,0 +1,7 @@
+package me.anno.language.spellcheck
+
+data class Suggestion(val start: Int, val end: Int, val message: String, val shortMessage: String, val improvements: List<String>){
+    val clearMessage = message
+        .replace("<suggestion>","")
+        .replace("</suggestion>","")
+}

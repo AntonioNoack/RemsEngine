@@ -21,6 +21,7 @@ import me.anno.input.ActionManager
 import me.anno.input.Input
 import me.anno.input.ShowKeys
 import me.anno.cache.Cache
+import me.anno.language.spellcheck.Spellchecking
 import me.anno.studio.project.Project
 import me.anno.studio.rems.RemsStudio
 import me.anno.ui.base.Panel
@@ -397,6 +398,7 @@ abstract class StudioBase(
             AudioManager.requestDestruction()
             Cursor.destroy()
             ProcessingQueue.destroy()
+            Spellchecking.destroy()
             onGameClose()
         }
 

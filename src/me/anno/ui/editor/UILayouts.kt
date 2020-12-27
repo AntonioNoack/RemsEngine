@@ -16,6 +16,7 @@ import me.anno.objects.Camera
 import me.anno.objects.text.Text
 import me.anno.studio.GFXSettings
 import me.anno.studio.StudioBase.Companion.addEvent
+import me.anno.studio.rems.ProjectSettings
 import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.RemsStudio.gfxSettings
 import me.anno.studio.rems.RemsStudio.nullCamera
@@ -343,6 +344,7 @@ object UILayouts {
 
         val menuStyle = style.getChild("menu")
 
+        options.addAction("Project", "Settings"){ selectTransform(ProjectSettings) }
         options.addAction("Project", "Save") {
             Input.save()
             LOGGER.info("Saved the project")
@@ -356,6 +358,7 @@ object UILayouts {
                 )
             )
         }
+
 
         options.addAction("Select", "Inspector Camera") { selectTransform(nullCamera) }
         options.addAction("Select", "Root") { selectTransform(root) }

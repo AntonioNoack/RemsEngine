@@ -45,7 +45,7 @@ class ContentCreator(
                                     .noTitle()
                             }
                             else -> {
-                                val panel = TextInput(shortName, style)
+                                val panel = TextInput(shortName, false, style)
                                 panel.setText(value, false)
                                 // panel.setText(value)
                                 panel.setChangeListener { map[fullName] = it }

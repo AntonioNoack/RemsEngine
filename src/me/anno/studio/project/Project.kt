@@ -7,6 +7,7 @@ import me.anno.io.config.ConfigBasics
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.io.utils.StringMap
+import me.anno.language.Language
 import me.anno.objects.Camera
 import me.anno.objects.Transform
 import me.anno.studio.history.History
@@ -148,6 +149,7 @@ class Project(var name: String, val file: File) : Saveable() {
     var motionBlurSteps = config["target.motionBlur.steps", 8]
     var shutterPercentage = config["target.motionBlur.shutterPercentage", 1f]
     var nullCamera = config["camera.null"] as? Camera ?: createNullCamera()
+    var language = Language.get(config["language", Language.AmericanEnglish.code])
 
     override fun getClassName() = "Project"
     override fun getApproxSize() = 1000
@@ -172,6 +174,7 @@ class Project(var name: String, val file: File) : Saveable() {
             .joinToString("\n") { it.file.toString() }
         config["camera.null"] = nullCamera
         config["editor.time"] = editorTime
+        config["language"] = language.code
         ConfigBasics.save(configFile, config.toString())
     }
 

@@ -41,7 +41,7 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
     override fun getVisualState(): Any? =
         listOf(super.getVisualState(), uContent.getVisualState(), title.getVisualState(), searchBar.getVisualState())
 
-    val searchBar = TextInput("Search Term", style)
+    val searchBar = TextInput("Search Term", false, style)
         .setChangeListener {
             searchTerm = it
             invalidate()

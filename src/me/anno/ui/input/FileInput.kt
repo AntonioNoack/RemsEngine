@@ -3,6 +3,7 @@ package me.anno.ui.input
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.input.MouseButton
+import me.anno.ui.base.SpacePanel
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelListX
@@ -15,7 +16,7 @@ import kotlin.concurrent.thread
 class FileInput(title: String, style: Style, f0: File, val isDirectory: Boolean = false) : PanelListX(style) {
 
     val button = TextButton(DefaultConfig["ui.symbol.folder", "\uD83D\uDCC1"], true, style)
-    val base = TextInput(title, style, f0.toString())
+    val base = TextInput(title, false, style, f0.toString())
     val base2 = base.base
 
     val text get() = base.text
@@ -41,6 +42,9 @@ class FileInput(title: String, style: Style, f0: File, val isDirectory: Boolean 
             focusTextColor = textColor
         }
         this += button
+        // for a symmetric border
+        val border = style.getPadding("borderSize", 2).left
+        if(border > 0) this += SpacePanel(border, 0, style).apply { backgroundColor = 0 }
         this += base
     }
 

@@ -1,10 +1,13 @@
 package me.anno.utils
 
+import org.apache.logging.log4j.LogManager
+
 object Warning {
-    val warned = HashSet<String>()
+    private val LOGGER = LogManager.getLogger(Warning::class)
+    private val warned = HashSet<String>()
     fun warn(key: String){
         if(key in warned) return
         warned += key
-        println(key)
+        LOGGER.warn(key)
     }
 }

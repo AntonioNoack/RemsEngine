@@ -17,6 +17,7 @@ import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
+import me.anno.language.Language
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.animation.Type
 import me.anno.objects.effects.MaskType
@@ -656,6 +657,7 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
                     is Clamping -> Clamping.values()
                     is TransformVisibility -> TransformVisibility.values()
                     is TextRenderMode -> TextRenderMode.values()
+                    is Language -> Language.values()
                     else -> throw RuntimeException("Missing enum .values() implementation for UI in Transform.kt for $value")
                 }
                 val valueNames = values.map {
@@ -669,6 +671,7 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
                         is Clamping -> it.displayName
                         is TransformVisibility -> it.displayName
                         is TextRenderMode -> it.displayName
+                        is Language -> it.displayName
                         else -> it.name
                     }
                 }
