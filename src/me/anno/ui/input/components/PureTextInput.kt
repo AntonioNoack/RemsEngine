@@ -168,7 +168,7 @@ open class PureTextInput(style: Style) : TextPanel("", style.getChild("edit")) {
 
     // todo better tool tip element to list all options
     // todo on tab or keys, open a menu with the options
-    var lastSuggestion: Suggestion? = null
+    private var lastSuggestion: Suggestion? = null
     override fun getTooltipText(x: Float, y: Float): String? {
         val suggestions = suggestions
         if (suggestions != null) {
@@ -188,7 +188,7 @@ open class PureTextInput(style: Style) : TextPanel("", style.getChild("edit")) {
         return super.getTooltipText(x, y)
     }
 
-    fun getX(charIndex: Int) = x + padding.left + drawingOffset + if (charIndex <= 0) -1 else
+    private fun getX(charIndex: Int) = x + padding.left + drawingOffset + if (charIndex <= 0) -1 else
         getTextSize(font, characters.subList(0, min(charIndex, characters.size)).joinChars(), -1).first - 1
 
     fun addKey(codePoint: Int) = insert(codePoint)

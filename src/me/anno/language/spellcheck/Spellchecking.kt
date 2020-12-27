@@ -30,7 +30,16 @@ object Spellchecking {
             getValue(sentence2, language, key) { answer.suggestions = it }
             answer
         } as? SuggestionData
-        return data?.suggestions
+        return if (sentence != sentence2) {
+            data?.suggestions?.run {
+                val offset = sentence.withIndex().indexOfFirst { (index, _) -> sentence.substring(0, index+1).isNotBlank() }
+                map {
+                    Suggestion(it.start + offset, it.end + offset, it.message, it.shortMessage, it.improvements)
+                }
+            }
+        } else {
+            data?.suggestions
+        }
     }
 
     fun getValue(sentence: String, language: Language, key: Any, callback: (List<Suggestion>) -> Unit) {
@@ -142,7 +151,8 @@ object Spellchecking {
                                 val message = suggestion["message"]!!.asText()
                                 val shortMessage = suggestion["shortMessage"]!!.asText()
                                 val improvements = suggestion["suggestions"] as JsonArray
-                                val result = Suggestion(start, end, message, shortMessage, improvements.map { it as String })
+                                val result =
+                                    Suggestion(start, end, message, shortMessage, improvements.map { it as String })
                                 result
                             }
                             nextTask.callback(suggestionsList)
