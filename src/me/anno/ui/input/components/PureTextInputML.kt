@@ -34,15 +34,6 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
             if (text.isEmpty()) update(false)
         }
 
-    override fun tickUpdate() {
-        super.tickUpdate()
-        val blinkVisible = ((GFX.gameTime / 500_000_000L) % 2L == 0L)
-        val isInFocus = isInFocus || content.isInFocus || (content as PanelList).children.any { it.isInFocus }
-        showBars = isInFocus && (blinkVisible || wasJustChanged)
-    }
-
-    override fun getVisualState(): Any? = showBars to Quad(super.getVisualState(), cursor1, cursor2, text)
-
     private var text = ""
     private var lastText = ""
     private val lines: ArrayList<MutableList<Int>> = arrayListOf(mutableListOf())
@@ -55,22 +46,6 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
     private var lastChangeTime = 0L
     private val wasJustChanged get() = abs(GFX.gameTime - lastChangeTime) < 200_000_000
 
-    data class CursorPosition(val x: Int, val y: Int) : Comparable<CursorPosition> {
-        override fun hashCode(): Int = x + y * 65536
-        override fun compareTo(other: CursorPosition): Int = hashCode().compareTo(other.hashCode())
-        override fun equals(other: Any?): Boolean {
-            return other is CursorPosition && other.x == x && other.y == y
-        }
-
-        override fun toString() = "$x $y"
-    }
-
-    override fun calculateSize(w: Int, h: Int) {
-        loadTexturesSync.push(true)
-        super.calculateSize(w, h)
-        loadTexturesSync.pop()
-    }
-
     private fun updateLines() {
         val needsPlaceholder = text.isEmpty()
         val children = actualChildren
@@ -82,19 +57,29 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
         }
         val content = content as PanelList
         while (lines.size > children.size) {
-            val panel = object : TextPanel("", style) {
+            val panel = object : CorrectingTextInput(style) {
                 // override fun onBackKey(x: Float, y: Float) = this@PureTextInputML.onBackKey(x, y)
                 // override fun onCharTyped(x: Float, y: Float, key: Int) = this@PureTextInputML.onCharTyped(x, y, key)
                 // override fun onEnterKey(x: Float, y: Float) = this@PureTextInputML.onEnterKey(x, y)
-                override fun isKeyInput() = true
                 override fun onMouseDown(x: Float, y: Float, button: MouseButton) =
                     this@PureTextInputML.onMouseDown(x, indexInParent)
-
                 override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) =
                     this@PureTextInputML.onMouseMoved(x, y, dx, dy)
+                override fun onCopyRequested(x: Float, y: Float): String? = this@PureTextInputML.onCopyRequested(x, y)
+                override fun onCharTyped2(x: Float, y: Float, key: Int) = this@PureTextInputML.onCharTyped(x, y, key)
+                override fun onEnterKey2(x: Float, y: Float) = this@PureTextInputML.onEnterKey(x, y)
 
-                override fun onCopyRequested(x: Float, y: Float): String? {
-                    return this@PureTextInputML.onCopyRequested(x, y)
+                override fun setCursor(position: Int) {
+                    // set cursor after replacement
+                    cursor1 = CursorPosition(position, indexInParent)
+                    cursor2 = cursor1
+                }
+
+                override fun updateChars(notify: Boolean) {
+                    // replace chars in main string...
+                    // convert text back to lines
+                    lines[indexInParent] = text.codePoints().toList().toMutableList()
+                    this@PureTextInputML.update(true)
                 }
             }
             children.add(panel)
@@ -106,6 +91,21 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
             panel.textColor = (panel.textColor and 0xffffff) or (if (needsPlaceholder) 70 else 255).shl(24)
             panel.focusTextColor = panel.textColor
         }
+    }
+
+    override fun tickUpdate() {
+        super.tickUpdate()
+        val blinkVisible = ((GFX.gameTime / 500_000_000L) % 2L == 0L)
+        val isInFocus = isInFocus || content.isInFocus || (content as PanelList).children.any { it.isInFocus }
+        showBars = isInFocus && (blinkVisible || wasJustChanged)
+    }
+
+    override fun getVisualState(): Any? = showBars to Quad(super.getVisualState(), cursor1, cursor2, text)
+
+    override fun calculateSize(w: Int, h: Int) {
+        loadTexturesSync.push(true)
+        super.calculateSize(w, h)
+        loadTexturesSync.pop()
     }
 
     private var showBars = false
@@ -169,13 +169,31 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
 
                     // draw start of last line
                     val endX = maxPanel.x + maxCursorX
-                    drawRect(x + panel2.padding.left, maxPanel.y, endX - x, maxPanel.h - padding, textColor and 0x3fffffff)
+                    drawRect(
+                        x + panel2.padding.left,
+                        maxPanel.y,
+                        endX - x,
+                        maxPanel.h - padding,
+                        textColor and 0x3fffffff
+                    )
 
                 }
-                if (showBars) drawRect(panel2.x + cursorX2 + panel2.padding.left - 1, panel2.y + padding, 2, panel2.h - 2 * padding, textColor)
+                if (showBars) drawRect(
+                    panel2.x + cursorX2 + panel2.padding.left - 1,
+                    panel2.y + padding,
+                    2,
+                    panel2.h - 2 * padding,
+                    textColor
+                )
                 // cursor 1
             }
-            if (showBars) drawRect(panel1.x + cursorX1 + panel1.padding.left - 1, panel1.y + padding, 2, panel1.h - 2 * padding, textColor)
+            if (showBars) drawRect(
+                panel1.x + cursorX1 + panel1.padding.left - 1,
+                panel1.y + padding,
+                2,
+                panel1.h - 2 * padding,
+                textColor
+            )
             // cursor 2
         }
         loadTexturesSync.pop()
@@ -348,7 +366,6 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
         }
         return cursor
     }
-
 
     override fun onCharTyped(x: Float, y: Float, key: Int) {
         lastChangeTime = GFX.gameTime

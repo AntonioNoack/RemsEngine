@@ -1,6 +1,5 @@
 package me.anno.ui.input.components
 
-import me.anno.config.DefaultStyle.black
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.loadTexturesSync
@@ -12,19 +11,17 @@ import me.anno.input.Input.mouseKeysDown
 import me.anno.input.MouseButton
 import me.anno.language.spellcheck.Spellchecking
 import me.anno.language.spellcheck.Suggestion
-import me.anno.ui.base.TextPanel
 import me.anno.ui.style.Style
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Quad
 import me.anno.utils.StringHelper.getIndexFromText
 import me.anno.utils.StringHelper.joinChars
-import org.lwjgl.glfw.GLFW
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.streams.toList
 
-open class PureTextInput(style: Style) : TextPanel("", style.getChild("edit")) {
+open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edit")) {
 
     val characters = ArrayList<Int>()
 
@@ -37,7 +34,7 @@ open class PureTextInput(style: Style) : TextPanel("", style.getChild("edit")) {
         cursor2 = cursor1
     }
 
-    fun updateChars(notify: Boolean) {
+    override fun updateChars(notify: Boolean) {
         characters.clear()
         characters.addAll(text.codePoints().toList())
         if (notify) changeListener(text)
@@ -83,7 +80,6 @@ open class PureTextInput(style: Style) : TextPanel("", style.getChild("edit")) {
         }
     }
 
-    var drawingOffset = 0
     var lastMove = 0L
 
     val wasJustChanged get() = abs(GFX.gameTime - lastMove) < 200_000_000
@@ -95,16 +91,13 @@ open class PureTextInput(style: Style) : TextPanel("", style.getChild("edit")) {
     }
 
     var showBars = false
-    override fun getVisualState(): Any? = Pair(super.getVisualState(), Quad(showBars, cursor1, cursor2, suggestions))
+    override fun getVisualState(): Any? = Quad(super.getVisualState(), showBars, cursor1, cursor2)
 
     override fun tickUpdate() {
         super.tickUpdate()
         val blinkVisible = ((GFX.gameTime / 500_000_000L) % 2L == 0L)
         showBars = isInFocus && (blinkVisible || wasJustChanged)
     }
-
-    open val needsSuggestions = true
-    private val suggestions get() = if (needsSuggestions) Spellchecking.check(text, this) else null
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         loadTexturesSync.push(true)
@@ -115,7 +108,6 @@ open class PureTextInput(style: Style) : TextPanel("", style.getChild("edit")) {
         val textColor = if (usePlaceholder) placeholderColor else effectiveTextColor
         val drawnText = if (usePlaceholder) placeholder else text
         val wh = drawText(drawingOffset, 0, drawnText, textColor)
-        val suggestions = suggestions
         if (isInFocus && (showBars || cursor1 != cursor2)) {
             ensureCursorBounds()
             val textSize = font.size.toInt()
@@ -151,45 +143,9 @@ open class PureTextInput(style: Style) : TextPanel("", style.getChild("edit")) {
             }
             if (showBars) drawRect(x + cursorX1 + drawingOffset, y + padding, 2, h - 2 * padding, textColor) // cursor 2
         }
-        // todo multi-line suggestions
-        if (suggestions != null && suggestions.isNotEmpty()) {
-            // display all suggestions
-            suggestions.forEach { s ->
-                // todo wavy line
-                val startX = getX(s.start)
-                val endX = getX(s.end)
-                val theY = this.y + this.h - padding.bottom - 1
-                drawRect(startX, theY, endX - startX, 1, 0xffff00 or black)
-            }
-        }
+        drawSuggestionLines()
         loadTexturesSync.pop()
-        if (!isHovered) lastSuggestion = null
     }
-
-    // todo better tool tip element to list all options
-    // todo on tab or keys, open a menu with the options
-    private var lastSuggestion: Suggestion? = null
-    override fun getTooltipText(x: Float, y: Float): String? {
-        val suggestions = suggestions
-        if (suggestions != null) {
-            for (s in suggestions) {
-                val startX = getX(s.start)
-                val endX = getX(s.end)
-                if (x.toInt() in startX..endX) {
-                    lastSuggestion = s
-                    return if (s.improvements.isEmpty()) s.clearMessage else s.clearMessage + "\n" +
-                            "Suggestions: " + s.improvements.withIndex().joinToString {
-                            (index, s) -> if(index == 0) "$s <Tab>" else s
-                    }
-                }
-            }
-        }
-        lastSuggestion = null
-        return super.getTooltipText(x, y)
-    }
-
-    private fun getX(charIndex: Int) = x + padding.left + drawingOffset + if (charIndex <= 0) -1 else
-        getTextSize(font, characters.subList(0, min(charIndex, characters.size)).joinChars(), -1).first - 1
 
     fun addKey(codePoint: Int) = insert(codePoint)
 
@@ -309,30 +265,19 @@ open class PureTextInput(style: Style) : TextPanel("", style.getChild("edit")) {
         setCursor((begin + choice).codePoints().count().toInt()) // set the cursor to after the edit
     }
 
-    private fun setCursor(position: Int){
+     override fun setCursor(position: Int){
         cursor1 = position
         cursor2 = position
         ensureCursorBounds()
     }
 
-    override fun onCharTyped(x: Float, y: Float, key: Int) {
-        val suggestion = lastSuggestion
-        if (key == '\t'.toInt() && suggestion?.improvements?.isNotEmpty() == true) {
-            lastMove = GFX.gameTime
-            applySuggestion(suggestion, suggestion.improvements[0])
-        } else {
-            lastMove = GFX.gameTime
-            addKey(key)
-        }
+    override fun onCharTyped2(x: Float, y: Float, key: Int) {
+        lastMove = GFX.gameTime
+        addKey(key)
     }
 
-    override fun onEnterKey(x: Float, y: Float) {
-        val suggestion = lastSuggestion
-        if (suggestion != null && suggestion.improvements.isNotEmpty()) {
-            applySuggestion(suggestion, suggestion.improvements[0])
-        } else {
-            enterListener?.invoke(text) ?: super.onEnterKey(x, y)
-        }
+    override fun onEnterKey2(x: Float, y: Float) {
+        enterListener?.invoke(text) ?: super.onEnterKey(x, y)
     }
 
     override fun onMouseDown(x: Float, y: Float, button: MouseButton) {
@@ -410,8 +355,5 @@ open class PureTextInput(style: Style) : TextPanel("", style.getChild("edit")) {
     override var enableHoverColor: Boolean
         get() = text.isNotEmpty()
         set(_) {}
-
-    override fun getCursor() = Cursor.editText
-    override fun isKeyInput() = true
 
 }
