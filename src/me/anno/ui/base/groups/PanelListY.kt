@@ -4,6 +4,7 @@ import me.anno.ui.base.Panel
 import me.anno.ui.base.Visibility
 import me.anno.ui.style.Style
 import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.roundToInt
 
 open class PanelListY(sorter: Comparator<Panel>?, style: Style) : PanelList(sorter, style) {
@@ -44,7 +45,9 @@ open class PanelListY(sorter: Comparator<Panel>?, style: Style) : PanelList(sort
 
         var yCtr = y
         for (child in children.filter { it.visibility != Visibility.GONE }) {
-            val childH = (perConst * child.minH + perWeight * max(0f, child.weight)).roundToInt()
+            var childH = (perConst * child.minH + perWeight * max(0f, child.weight)).roundToInt()
+            val previousH = yCtr-y
+            childH = min(childH, h - previousH)
             child.calculateSize(w, childH)
             child.placeInParent(x, yCtr)
             child.applyPlacement(w, childH)

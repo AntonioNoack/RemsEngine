@@ -12,8 +12,8 @@ import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.state.Rect
 import me.anno.ui.style.Style
-import me.anno.utils.LOGGER
 import me.anno.utils.Tabs
+import org.apache.logging.log4j.LogManager
 import java.io.File
 
 open class Panel(val style: Style) {
@@ -423,8 +423,8 @@ open class Panel(val style: Style) {
 
     open fun getClassName() = javaClass.simpleName
 
-    /*companion object {
+    companion object {
         private val LOGGER = LogManager.getLogger(Panel::class)
-    }*/
+    }
 
 }

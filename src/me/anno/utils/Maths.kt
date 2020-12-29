@@ -12,6 +12,8 @@ object Maths {
 
     val GoldenRatio = (1f + sqrt(5f)) * 0.5f
 
+    fun sq(x: Int) = x*x
+
     fun sq(x: Float) = x * x
     fun sq(x: Float, y: Float) = x * x + y * y
     fun sq(x: Float, y: Float, z: Float) = x * x + y * y + z * z

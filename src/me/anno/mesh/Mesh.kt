@@ -3,10 +3,10 @@ package me.anno.mesh
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.shader.Shader
-import me.anno.image.svg.SVGStyle.Companion.parseColor
 import me.anno.input.Input.isControlDown
 import me.anno.input.Input.keysDown
 import me.anno.utils.Color.toVecRGBA
+import me.anno.utils.ColorParsing.parseColor
 import org.joml.AABBf
 import org.joml.Vector3f
 import org.joml.Vector4f

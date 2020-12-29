@@ -1,58 +1,139 @@
 <component name="ProjectDictionaryState">
   <dictionary name="Antonio">
     <words>
+      <w>abcdef</w>
       <w>abgr</w>
+      <w>aliceblue</w>
       <w>animatable</w>
+      <w>anno</w>
+      <w>antiquewhite</w>
       <w>asnyc</w>
       <w>asturian</w>
       <w>bgra</w>
+      <w>blanchedalmond</w>
+      <w>blueviolet</w>
       <w>bokeh</w>
+      <w>burlywood</w>
+      <w>cadetblue</w>
       <w>codepoint</w>
       <w>codepoints</w>
       <w>collada</w>
       <w>consolas</w>
       <w>coords</w>
+      <w>cornflowerblue</w>
+      <w>cornsilk</w>
       <w>cubemap</w>
+      <w>darkblue</w>
+      <w>darkcyan</w>
+      <w>darkgoldenrod</w>
+      <w>darkgray</w>
+      <w>darkgreen</w>
+      <w>darkgrey</w>
+      <w>darkkhaki</w>
+      <w>darkmagenta</w>
+      <w>darkolivegreen</w>
+      <w>darkorange</w>
+      <w>darkorchid</w>
+      <w>darkred</w>
+      <w>darksalmon</w>
+      <w>darkseagreen</w>
+      <w>darkslateblue</w>
+      <w>darkslategray</w>
+      <w>darkslategrey</w>
+      <w>darkturquoise</w>
+      <w>darkviolet</w>
+      <w>deeppink</w>
+      <w>deepskyblue</w>
       <w>deformer</w>
       <w>desaturate</w>
+      <w>dimgray</w>
+      <w>dimgrey</w>
+      <w>dodgerblue</w>
       <w>emissive</w>
       <w>equirectangular</w>
       <w>fadein</w>
       <w>ffmpeg</w>
       <w>ffprobe</w>
+      <w>floralwhite</w>
       <w>fmpeg</w>
+      <w>forestgreen</w>
       <w>fprobe</w>
       <w>framebuffers</w>
+      <w>gainsboro</w>
       <w>gbar</w>
       <w>generatable</w>
+      <w>ghostwhite</w>
       <w>gizmos</w>
       <w>glfw</w>
       <w>glsl</w>
+      <w>greenyellow</w>
       <w>highp</w>
       <w>himmelblau</w>
       <w>hori</w>
+      <w>hpluv</w>
       <w>hsluv</w>
       <w>inspectable</w>
       <w>lerps</w>
+      <w>lightgoldenrodyellow</w>
+      <w>lightgray</w>
+      <w>lightgreen</w>
+      <w>lightgrey</w>
+      <w>lightpink</w>
+      <w>lightsalmon</w>
+      <w>lightseagreen</w>
+      <w>lightskyblue</w>
+      <w>lightslategray</w>
+      <w>lightslategrey</w>
+      <w>lightsteelblue</w>
+      <w>lightyellow</w>
+      <w>limegreen</w>
+      <w>mediumaquamarine</w>
+      <w>mediumblue</w>
+      <w>mediumorchid</w>
       <w>mediump</w>
+      <w>mediumpurple</w>
       <w>mids</w>
+      <w>mintcream</w>
+      <w>mistyrose</w>
       <w>msaa</w>
       <w>mtllib</w>
+      <w>navajowhite</w>
       <w>ness</w>
       <w>numpad</w>
+      <w>oldlace</w>
+      <w>olivedrab</w>
+      <w>orangered</w>
       <w>orthographicness</w>
+      <w>palegoldenrod</w>
+      <w>palegreen</w>
+      <w>paleturquoise</w>
+      <w>palevioletred</w>
+      <w>papayawhip</w>
+      <w>peachpuff</w>
       <w>perlin</w>
       <w>phychi</w>
       <w>pickable</w>
+      <w>powderblue</w>
       <w>premultiplied</w>
       <w>quat</w>
       <w>rasterization</w>
       <w>remsstudio</w>
+      <w>rosybrown</w>
+      <w>royalblue</w>
+      <w>saddlebrown</w>
+      <w>sandybrown</w>
       <w>saveable</w>
+      <w>seagreen</w>
       <w>segoe</w>
       <w>shaders</w>
+      <w>skyblue</w>
       <w>skybox</w>
+      <w>slateblue</w>
+      <w>slategray</w>
+      <w>slategrey</w>
       <w>smoothstep</w>
+      <w>springgreen</w>
+      <w>steelblue</w>
       <w>symbola</w>
       <w>tonemapping</w>
       <w>uchimura</w>
@@ -60,6 +141,8 @@
       <w>usemtl</w>
       <w>valencian</w>
       <w>vertice</w>
+      <w>whitesmoke</w>
+      <w>yellowgreen</w>
     </words>
   </dictionary>
 </component>

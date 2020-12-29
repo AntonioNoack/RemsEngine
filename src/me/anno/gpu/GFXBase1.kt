@@ -1,5 +1,7 @@
 package me.anno.gpu
 
+import me.anno.utils.ResourceHelper
+import me.anno.utils.ResourceHelper.loadResource
 import org.joml.Vector4f
 import org.lwjgl.BufferUtils
 import org.lwjgl.glfw.GLFW
@@ -44,10 +46,7 @@ open class GFXBase1: GFXBase0() {
 
     }
 
-    fun loadAssetsImage(name: String) =
-        ImageIO.read(
-            javaClass.classLoader.getResourceAsStream(name)?.buffered()
-                ?: throw FileNotFoundException(name))
+    fun loadAssetsImage(name: String) = ImageIO.read(loadResource(name).buffered())
 
     fun Int.r() = shr(16).and(255)
     fun Int.g() = shr(8).and(255)

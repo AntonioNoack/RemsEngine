@@ -185,4 +185,6 @@ object Vectors {
     val Vector3f.yzx get() = Vector3f(y, z, x)
     val Vector3f.zxy get() = Vector3f(z, x, y)
 
+    fun DoubleArray.toVec3() = Vector3f(this[0].toFloat(), this[1].toFloat(), this[2].toFloat())
+
 }

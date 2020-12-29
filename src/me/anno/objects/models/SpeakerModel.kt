@@ -1,4 +1,4 @@
-package me.anno.objects.utils
+package me.anno.objects.models
 
 import me.anno.gpu.GFX
 import me.anno.gpu.buffer.Attribute

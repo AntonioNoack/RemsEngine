@@ -23,7 +23,7 @@ import me.anno.objects.modes.EditorFPS
 import me.anno.objects.modes.LoopingState
 import me.anno.objects.modes.UVProjection
 import me.anno.objects.modes.VideoType
-import me.anno.objects.utils.SpeakerModel.drawSpeakers
+import me.anno.objects.models.SpeakerModel.drawSpeakers
 import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.RemsStudio.isPaused
 import me.anno.studio.rems.RemsStudio.nullCamera
@@ -39,6 +39,7 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.files.hasValidName
 import me.anno.ui.input.EnumInput
+import me.anno.ui.input.TextInput
 import me.anno.ui.style.Style
 import me.anno.utils.*
 import me.anno.utils.Booleans.toInt
@@ -533,7 +534,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                 }
                 VideoType.IMAGE -> drawImage(stack, time, color)
                 VideoType.AUDIO -> drawSpeakers(stack, color, is3D, amplitude[time])
-                else -> throw RuntimeException("$type needs visualization")
+                else -> throw RuntimeException("$type needs visualization") // for the future
             }
 
         } else drawSpeakers(stack, color, is3D, amplitude[time])
@@ -545,6 +546,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
         style: Style,
         getGroup: (title: String, id: String) -> SettingCategory
     ) {
+
         super.createInspector(list, style, getGroup)
 
         // to hide elements, which are not usable / have no effect
@@ -567,7 +569,12 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
             return panel
         }
 
-        list += vi("File Location", "Source file of this video", null, file, style) { file = it }
+        list += vi("File Location", "Source file of this video", null, file, style) { newFile ->
+            if(name == file.name) {
+                name = newFile.name
+            }
+            file = newFile
+        }
 
         val uvMap = getGroup("Texture", "uvs")
         uvMap += img(vi("Tiling", "(tile count x, tile count y, offset x, offset y)", tiling, style))

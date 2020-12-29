@@ -1,6 +1,5 @@
 package me.anno.io.xml
 
-import me.anno.utils.LOGGER
 import java.io.EOFException
 import java.io.InputStream
 import java.lang.RuntimeException

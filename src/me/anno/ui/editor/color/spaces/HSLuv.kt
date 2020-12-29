@@ -1,13 +1,14 @@
 package me.anno.ui.editor.color.spaces
 
 import me.anno.ui.editor.color.ColorSpace
-import me.anno.ui.editor.color.HSLuvGLSL
-import me.anno.utils.toVec3
+import me.anno.utils.ResourceHelper.loadText
+import me.anno.utils.Vectors.toVec3
 import org.hsluv.HSLuvColorSpace
 import org.joml.Vector3f
 
 object HSLuv : ColorSpace(
-    "HSLuv", HSLuvGLSL.GLSL + "\n" +
+    "HSLuv",
+    loadText("me/anno/ui/editor/color/spaces/HSLuv.glsl") + "\n" +
             "vec3 spaceToRGB(vec3 hsl){\n" +
             "   return clamp(hsluvToRgb(hsl*vec3(360.0, 100.0, 100.0)), 0.0, 1.0);\n" +
             "}\n", Vector3f(0f, 1f, 0.5f)
@@ -17,14 +18,12 @@ object HSLuv : ColorSpace(
             doubleArrayOf(
                 rgb.x.toDouble(), rgb.y.toDouble(), rgb.z.toDouble()
             )
-        ).toVec3().mul(1 / 360f, 1 / 100f, 1 / 100f)
+        ).toVec3().mul(1f / 360f, 0.01f, 0.01f)
     }
 
     override fun toRGB(input: Vector3f): Vector3f {
         return HSLuvColorSpace.hsluvToRgb(
-            doubleArrayOf(
-                input.x * 360.0, input.y * 100.0, input.z * 100.0
-            )
+            doubleArrayOf(input.x * 360.0, input.y * 100.0, input.z * 100.0)
         ).toVec3()
     }
 }

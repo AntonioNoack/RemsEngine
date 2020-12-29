@@ -417,7 +417,7 @@ object Input {
         try {
             val data = clipboard.getData(stringFlavor)
             if (data is String) {
-                println(data)
+                // println(data)
                 inFocus0?.onPaste(mouseX, mouseY, data, "")
                 return
             }
@@ -444,8 +444,8 @@ object Input {
             val data = clipboard.getData(javaFileListFlavor) as? List<*>
             val data2 = data?.filterIsInstance<File>()
             if (data2 != null && data2.isNotEmpty()) {
-                println(data2)
-                // inFocus0?.onPasteFiles(mouseX, mouseY, data2)
+                // println(data2)
+                inFocus0?.onPasteFiles(mouseX, mouseY, data2)
                 // return
             }
         } catch (e: UnsupportedFlavorException) {

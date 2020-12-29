@@ -2,7 +2,7 @@ package me.anno.mesh
 
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Texture2D
-import me.anno.utils.get
+import me.anno.utils.AnyToFloat.get
 import org.joml.AABBf
 import org.joml.Vector3f
 import org.joml.Vector4f

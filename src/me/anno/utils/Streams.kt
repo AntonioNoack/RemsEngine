@@ -16,4 +16,6 @@ object Streams {
         }
     }
 
+    fun InputStream.readText() = String(readBytes())
+
 }

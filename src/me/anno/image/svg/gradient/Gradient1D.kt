@@ -1,13 +1,13 @@
 package me.anno.image.svg.gradient
 
 import me.anno.config.DefaultStyle.black
-import me.anno.image.svg.SVGStyle.Companion.parseColor
 import me.anno.io.xml.XMLElement
 import me.anno.utils.Color.a
 import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.Color.rgba
+import me.anno.utils.ColorParsing.parseColor
 import me.anno.utils.Maths.clamp
 
 // todo sub-tesselation and per-vertex colors?

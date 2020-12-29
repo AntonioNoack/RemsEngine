@@ -299,6 +299,7 @@ open class PureTextInput(style: Style) : TextPanel("", style.getChild("edit")) {
 
     // todo automatically show hints, when the user is typing
     private fun applySuggestion(suggestion: Suggestion, choice: String) {
+        // todo the indexing still isn't completely correct... (example: Löwenfuß)
         val text = text
         val bytes = text.toByteArray()
         val begin = if(suggestion.start == 0) "" else String(bytes, 0, suggestion.start)

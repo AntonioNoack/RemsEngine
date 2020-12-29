@@ -6,7 +6,7 @@ import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.effects.ToneMappers
-import me.anno.objects.utils.CameraModel.drawCamera
+import me.anno.objects.models.CameraModel.drawCamera
 import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.RemsStudio.currentlyDrawnCamera
 import me.anno.ui.base.buttons.TextButton

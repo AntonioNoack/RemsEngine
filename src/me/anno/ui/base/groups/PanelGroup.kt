@@ -4,6 +4,7 @@ import me.anno.gpu.GFX
 import me.anno.ui.base.Panel
 import me.anno.ui.base.Visibility
 import me.anno.ui.style.Style
+import me.anno.utils.Tabs
 import java.lang.Exception
 import java.lang.RuntimeException
 import kotlin.math.max
@@ -48,9 +49,11 @@ abstract class PanelGroup(style: Style): Panel(style){
 
     override fun printLayout(tabDepth: Int) {
         super.printLayout(tabDepth)
-        for(child in children){
-            child.printLayout(tabDepth+1)
-        }
+        if(visibility == Visibility.VISIBLE){
+            for(child in children){
+                child.printLayout(tabDepth+1)
+            }
+        } else println("${Tabs.spaces((tabDepth+1) * 2)}...")
     }
 
 }

@@ -8,12 +8,14 @@ import me.anno.io.json.JsonObject
 import me.anno.io.json.JsonReader
 import me.anno.language.Language
 import me.anno.studio.rems.RemsStudio.project
+import me.anno.utils.Color.hex8
 import me.anno.utils.OS
 import me.anno.utils.Streams.listen
 import org.apache.logging.log4j.LogManager
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.concurrent.thread
+import kotlin.streams.toList
 
 object Spellchecking {
 
@@ -25,6 +27,7 @@ object Spellchecking {
         val language = language
         if (language == Language.None || sentence.isBlank()) return null
         val sentence2 = sentence.trim()
+        if(sentence2 == "#quit") return null
         val data = Cache.getEntry(Triple(Spellchecking, sentence2, language), timeout, true) {
             val answer = SuggestionData(null)
             getValue(sentence2, language, key) { answer.suggestions = it }
@@ -32,7 +35,8 @@ object Spellchecking {
         } as? SuggestionData
         return if (sentence != sentence2) {
             data?.suggestions?.run {
-                val offset = sentence.withIndex().indexOfFirst { (index, _) -> sentence.substring(0, index+1).isNotBlank() }
+                val offset =
+                    sentence.withIndex().indexOfFirst { (index, _) -> sentence.substring(0, index + 1).isNotBlank() }
                 map {
                     Suggestion(it.start + offset, it.end + offset, it.message, it.shortMessage, it.improvements)
                 }
@@ -67,28 +71,20 @@ object Spellchecking {
     private fun getExecutable(language: Language, callback: (File) -> Unit) {
         LOGGER.info("Requesting executable for language ${language.displayName}")
         var fileName: String? = null
-        synchronized(requestedDownloads) {
-            for ((languages, fileNameMaybe) in libraries) {
-                if (language in languages) {
-                    val dst = File(path, fileNameMaybe)
-                    if (dst.exists() || dst in requestedDownloads) {// done :)
-                        callback(dst)
-                        return
-                    }
-                    if (fileName == null) fileName = fileNameMaybe
+        for ((languages, fileNameMaybe) in libraries) {
+            if (language in languages) {
+                val dst = File(path, fileNameMaybe)
+                if (dst.exists()) {// done :)
+                    callback(dst)
+                    return
+                } else if (dst in requestedDownloads) {
+                    waitForDownload(dst, callback)
                 }
+                if (fileName == null) fileName = fileNameMaybe
             }
         }
-        val dst = File(path, fileName ?: return)
-        val answer =
-            synchronized(this) {
-                if (dst in requestedDownloads) {
-                    true
-                } else {
-                    requestedDownloads += dst
-                    false
-                }
-            }
+        val dst = File(path, fileName!!)
+        val answer = if (dst in requestedDownloads) { true } else { requestedDownloads += dst; false }
         if (answer) {
             waitForDownload(dst, callback)
         } else {
@@ -97,11 +93,13 @@ object Spellchecking {
     }
 
     private fun waitForDownload(dst: File, callback: (File) -> Unit) {
-        while (!shallStop) {
-            if (dst.exists()) {
-                callback(dst)
-                return
-            } else Thread.sleep(20)
+        thread {
+            loop@ while (!shallStop) {
+                if (dst.exists()) {
+                    callback(dst)
+                    break@loop
+                } else Thread.sleep(20)
+            }
         }
     }
 
@@ -114,6 +112,11 @@ object Spellchecking {
             }
         }
     }
+
+    fun Int.escapeCodepoint() =
+        if(this < 128) "${toChar()}"
+        else "\\u${hex8((this shr 8) and 255)}${hex8(this and 255)}"
+
 
     /**
      * each instance handles a single language only
@@ -135,7 +138,12 @@ object Spellchecking {
                             val key = queue.keys().nextElement()
                             nextTask = queue.remove(key)!!
                         }
-                        output.write(nextTask.sentence.replace("\n", "\\n"))
+                        var lines = nextTask.sentence.replace("\n", "\\n")
+                        if(lines.any { it > 127.toChar() }){
+                            lines = lines.codePoints()
+                                .toList().joinToString("") { it.escapeCodepoint() }
+                        }
+                        output.write(lines)
                         output.write('\n'.toInt())
                         output.flush()
                         var suggestionsString = ""

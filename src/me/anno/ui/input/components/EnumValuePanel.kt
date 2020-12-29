@@ -3,8 +3,8 @@ package me.anno.ui.input.components
 import me.anno.ui.base.TextPanel
 import me.anno.ui.input.EnumInput
 import me.anno.ui.style.Style
-import me.anno.utils.isDownKey
-import me.anno.utils.isUpKey
+import me.anno.utils.Keys.isDownKey
+import me.anno.utils.Keys.isUpKey
 
 class EnumValuePanel(title: String, private val owner: EnumInput, style: Style) :
     TextPanel(title, style.getChild("italic")) {

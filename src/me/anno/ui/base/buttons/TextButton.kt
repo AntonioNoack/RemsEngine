@@ -10,7 +10,7 @@ import me.anno.input.MouseButton
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.style.Style
-import me.anno.utils.isClickKey
+import me.anno.utils.Keys.isClickKey
 import me.anno.utils.Maths.mixARGB
 import me.anno.utils.Lists.one
 import kotlin.math.max

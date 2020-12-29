@@ -2,7 +2,6 @@ package me.anno.ui.editor.config
 
 import me.anno.config.DefaultConfig.style
 import me.anno.config.DefaultStyle.black
-import me.anno.image.svg.SVGStyle.Companion.parseColor
 import me.anno.io.utils.StringMap
 import me.anno.objects.animation.Type
 import me.anno.studio.rems.RemsStudio.root
@@ -13,6 +12,7 @@ import me.anno.ui.input.*
 import me.anno.utils.Color.rgba
 import me.anno.utils.Color.toHexColor
 import me.anno.utils.Color.toVecRGBA
+import me.anno.utils.ColorParsing.parseColor
 import org.joml.Vector4f
 
 class ContentCreator(

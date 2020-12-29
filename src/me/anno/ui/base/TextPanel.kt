@@ -11,7 +11,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.input.MouseButton
 import me.anno.ui.style.Style
 import me.anno.utils.Tabs
-import me.anno.utils.isClickKey
+import me.anno.utils.Keys.isClickKey
 import me.anno.utils.Maths.mixARGB
 import kotlin.math.max
 import kotlin.math.min

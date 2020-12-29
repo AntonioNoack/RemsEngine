@@ -5,7 +5,7 @@ import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.mesh.fbx.model.FBXShader.maxWeightsDefault
 import me.anno.mesh.fbx.structure.FBXNode
-import me.anno.utils.LOGGER
+import org.apache.logging.log4j.LogManager
 import kotlin.math.max
 import kotlin.math.min
 
@@ -232,6 +232,10 @@ class FBXGeometry(node: FBXNode) : FBXObject(node) {
         indices.forEachIndexed { index, vertIndex ->
             addWeight(vertIndex, boneIndex, weights[index].toFloat())
         }
+    }
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(FBXGeometry::class)
     }
 
 }

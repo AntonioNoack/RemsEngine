@@ -627,7 +627,6 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
                 .setChangeListener {
                     RemsStudio.incrementalChange("Set $title to \"$it\"", title) {
                         setValue(it as V)
-                        // setValue(File(it) as V)
                     }
                 }
                 .setIsSelectedListener { show(null) }

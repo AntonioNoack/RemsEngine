@@ -8,8 +8,8 @@ import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.style.Style
+import me.anno.utils.Keys.isClickKey
 import me.anno.utils.Maths.mixARGB
-import me.anno.utils.isClickKey
 import kotlin.math.max
 
 open class SettingCategory(titleText: String, style: Style, val canCopyTitleText: Boolean = false) : PanelGroup(style) {

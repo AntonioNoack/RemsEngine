@@ -25,6 +25,11 @@ class FileInput(title: String, style: Style, f0: File, val isDirectory: Boolean 
         setTooltip(title)
         base.apply {
             this += WrapAlign.LeftCenter
+            setChangeListener {
+                this@FileInput.changeListener(
+                    File(it)
+                )
+            }
         }
         button.apply {
             setSimpleClickListener {

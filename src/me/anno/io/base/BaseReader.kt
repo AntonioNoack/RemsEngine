@@ -29,7 +29,7 @@ import me.anno.studio.history.HistoryState
 import me.anno.ui.custom.data.CustomListData
 import me.anno.ui.custom.data.CustomPanelData
 import me.anno.ui.editor.sceneView.SceneTabData
-import me.anno.utils.LOGGER
+import org.apache.logging.log4j.LogManager
 
 abstract class BaseReader {
 
@@ -134,6 +134,10 @@ abstract class BaseReader {
 
     abstract fun readObject(): ISaveable
     abstract fun readAllInList()
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(BaseReader::class)
+    }
 
 
 }

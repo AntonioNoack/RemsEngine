@@ -3,7 +3,6 @@ package me.anno.ui.editor.color
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXx2D.posSize
-import me.anno.image.svg.SVGStyle.Companion.parseColorComplex
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.studio.rems.RemsStudio.editorTime
 import me.anno.ui.base.Panel
@@ -14,9 +13,10 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.color.spaces.HSLuv
 import me.anno.ui.input.EnumInput
 import me.anno.ui.style.Style
+import me.anno.utils.ColorParsing.parseColorComplex
 import me.anno.utils.Maths.clamp
 import me.anno.utils.FloatFormat.f3
-import me.anno.utils.get
+import me.anno.utils.AnyToFloat.get
 import org.apache.logging.log4j.LogManager
 import org.hsluv.HSLuvColorSpace
 import org.joml.Vector3f
@@ -198,12 +198,8 @@ class ColorChooser(style: Style, val withAlpha: Boolean, val owningProperty: Ani
 
     override fun onPaste(x: Float, y: Float, data: String, type: String) {
         when (val color = parseColorComplex(data)) {
-            is Int -> {
-                setARGB(color, true)
-            }
-            is Vector4f -> {
-                setRGBA(color.x, color.y, color.z, color.w, true)
-            }
+            is Int -> setARGB(color, true)
+            is Vector4f -> setRGBA(color, true)
             null -> LOGGER.warn("Didn't understand color $data")
             else -> throw RuntimeException("Color type $data -> $color isn't yet supported for ColorChooser")
         }

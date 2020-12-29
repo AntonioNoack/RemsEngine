@@ -12,7 +12,7 @@ import me.anno.ui.input.FloatInput
 import me.anno.ui.input.IntInput
 import me.anno.ui.input.NumberInput
 import me.anno.ui.style.Style
-import me.anno.utils.get
+import me.anno.utils.AnyToFloat.get
 
 class NumberInputComponent(val owningProperty: AnimatedProperty<*>?,
                            val indexInProperty: Int,
