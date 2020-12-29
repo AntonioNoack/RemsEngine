@@ -2,6 +2,7 @@ package me.anno.ui.debug
 
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXx2D
+import me.anno.ui.base.Font
 import me.anno.utils.FloatFormat.f1
 import kotlin.math.max
 
@@ -16,8 +17,10 @@ object FPSPanel {
         GFX.loadTexturesSync.push(true)
         var x = x0 + 1
         val text = "${GFX.currentEditorFPS.f1()}, min: ${(1f / FrameTimes.maxValue).f1()}"
+        val font = Font("Consolas", 12f, false, false)
+        val charWidth = GFXx2D.getTextSize(font, "w", -1).first
         for (char in text) {
-            val wh = GFXx2D.drawText(
+            GFXx2D.drawText(
                 x, y0 + 1,
                 "Consolas", 12f, false, false,
                 "$char",
@@ -25,7 +28,7 @@ object FPSPanel {
                 FrameTimes.backgroundColor,
                 -1
             )
-            x += wh.first -1
+            x += charWidth
         }
 
         // keep these chars loaded at all times

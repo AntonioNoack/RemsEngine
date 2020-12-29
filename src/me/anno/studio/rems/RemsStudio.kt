@@ -41,8 +41,7 @@ object RemsStudio : StudioBase(true, "Rem's Studio", "RemsStudio") {
 
     override fun onGameInit() {
         RemsConfig.init()
-        gfxSettings =
-            DefaultConfig["editor.gfx", 0].run { GFXSettings.values().firstOrNull { it.id == this } ?: GFXSettings.LOW }
+        gfxSettings = GFXSettings.get(DefaultConfig["editor.gfx", GFXSettings.LOW.id], GFXSettings.LOW)
         workspace = DefaultConfig["workspace.dir", File(OS.documents, "RemsStudio")]
         checkInstall()
     }
@@ -71,11 +70,6 @@ object RemsStudio : StudioBase(true, "Rem's Studio", "RemsStudio") {
             if (value != field) updateAudio()
             field = value
         }
-
-    val isSaving = AtomicBoolean(false)
-    var forceSave = false
-    var lastSave = System.nanoTime()
-    var saveIsRequested = true
 
     val isPaused get() = editorTimeDilation == 0.0
     val isPlaying get() = editorTimeDilation != 0.0
@@ -158,8 +152,8 @@ object RemsStudio : StudioBase(true, "Rem's Studio", "RemsStudio") {
     }
 
     fun updateSceneViews() {
-        for(window in windowStack){
-            for(panel in window.panel.listOfVisible){
+        for (window in windowStack) {
+            for (panel in window.panel.listOfVisible) {
                 when (panel) {
                     is TreeView, is ISceneView, is TimelinePanel -> {
                         panel.invalidateDrawing()

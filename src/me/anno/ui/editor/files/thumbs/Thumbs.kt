@@ -20,7 +20,7 @@ import me.anno.io.xml.XMLElement
 import me.anno.io.xml.XMLReader
 import me.anno.objects.Video
 import me.anno.cache.Cache
-import me.anno.cache.CacheData
+import me.anno.cache.ICacheData
 import me.anno.cache.ImageData
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.utils.*
@@ -82,7 +82,7 @@ object Thumbs {
         } else sizes.last()
     }
 
-    class TextureCache(var texture: Texture2D?): CacheData {
+    class TextureCache(var texture: Texture2D?): ICacheData {
         override fun destroy() {
             texture?.destroy()
         }

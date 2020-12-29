@@ -30,11 +30,11 @@ object Spellchecking {
         if(sentence2 == "#quit") return null
         val data = Cache.getEntry(Triple(Spellchecking, sentence2, language), timeout, true) {
             val answer = SuggestionData(null)
-            getValue(sentence2, language, key) { answer.suggestions = it }
+            getValue(sentence2, language, key) { answer.value = it }
             answer
         } as? SuggestionData
         return if (sentence != sentence2) {
-            data?.suggestions?.run {
+            data?.value?.run {
                 val offset =
                     sentence.withIndex().indexOfFirst { (index, _) -> sentence.substring(0, index + 1).isNotBlank() }
                 map {
@@ -42,7 +42,7 @@ object Spellchecking {
                 }
             }
         } else {
-            data?.suggestions
+            data?.value
         }
     }
 
@@ -98,7 +98,7 @@ object Spellchecking {
                 if (dst.exists()) {
                     callback(dst)
                     break@loop
-                } else Thread.sleep(20)
+                } else Thread.sleep(1)
             }
         }
     }

@@ -4,9 +4,11 @@ import me.anno.fonts.mesh.TextMesh
 import me.anno.fonts.mesh.TextMeshGroup.Companion.getAlignments
 import me.anno.fonts.mesh.TextRepBase
 import me.anno.utils.Lists.accumulate
+import me.anno.utils.Maths.clamp
 import java.awt.Font
 import java.awt.font.FontRenderContext
 import java.awt.font.TextLayout
+import kotlin.math.max
 import kotlin.streams.toList
 
 /**
@@ -43,10 +45,22 @@ abstract class TextGroup(
     }
 
     private fun getOffset(ctx: FontRenderContext, previous: Int, current: Int): Double {
+
         val map = alignment.charDistance
         val key = previous to current
         val characterLengthCache = alignment.charSize
+
         fun getLength(str: String): Double {
+            if(str.isEmpty()) return 0.0
+            if(' ' in str) {
+                val lengthWithoutSpaces = getLength(str.replace(" ",""))
+                val spacesLength = str.count { it == ' ' } * clamp(
+                    getLength("x"),
+                    1.0,
+                    font.size.toDouble()
+                ) * 0.667
+                return lengthWithoutSpaces + spacesLength
+            }
             return TextLayout(str, font, ctx).bounds.maxX
         }
 
@@ -57,20 +71,17 @@ abstract class TextGroup(
             characterLengthCache[char] = value
             return value
         }
+
         synchronized(alignment) {
             var offset = map[key]
             if (offset != null) return offset
-            // val aLength = getCharLength(previous)
             val bLength = getCharLength(current)
             val abLength = getLength(String(Character.toChars(previous) + Character.toChars(current)))
-            // ("$abLength = $aLength + $bLength ? (${aLength + bLength})")
             offset = abLength - bLength
-            //(abLength - (bLength + aLength) * 0.5)
-            // offset = (abLength - aLength)
-            // offset = aLength
             map[key] = offset
             return offset
         }
+
     }
 
     override fun destroy() {

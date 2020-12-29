@@ -1,6 +1,5 @@
 package me.anno.fonts.mesh
 
-import me.anno.fonts.AWTFont
 import me.anno.fonts.FontManager
 import me.anno.gpu.GFXx2D.drawRect
 import me.anno.ui.base.DefaultRenderingHints.prepareGraphics
@@ -22,7 +21,7 @@ fun main(){
     val w = 512
 
     val fs = w/5f
-    val font = (FontManager.getFont("Verdana", fs, false, false) as AWTFont).font
+    val font = FontManager.getFont("Verdana", fs, false, false).font
     val img = BufferedImage(w,w,1)
     val gfx = img.graphics as Graphics2D
     gfx.prepareGraphics(font) // yes, values are changing: single letters are assigned fraction widths now too
@@ -42,7 +41,7 @@ fun main(){
     fun drawString(str: String, x: Float){
         val wi = width(str)
         gfx.color = Color.DARK_GRAY
-        drawRect(x.toInt(), 0, wi.toInt(), fh.toInt())
+        gfx.drawRect(x.toInt(), 0, wi.toInt(), fh.toInt())
         gfx.color = Color.WHITE
         gfx.drawString(str, x, fs)
     }

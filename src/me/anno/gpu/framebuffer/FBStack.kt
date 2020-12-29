@@ -1,11 +1,11 @@
 package me.anno.gpu.framebuffer
 
 import me.anno.cache.Cache
-import me.anno.cache.CacheData
+import me.anno.cache.ICacheData
 
 object FBStack {
 
-    class FBStackData : CacheData {
+    class FBStackData : ICacheData {
         var nextIndex = 0
         val data = ArrayList<Framebuffer>()
         override fun destroy() {

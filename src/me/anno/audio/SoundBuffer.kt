@@ -1,6 +1,6 @@
 package me.anno.audio
 
-import me.anno.cache.CacheData
+import me.anno.cache.ICacheData
 import org.lwjgl.openal.AL10.*
 import org.lwjgl.stb.STBVorbis.*
 import org.lwjgl.stb.STBVorbisInfo
@@ -13,7 +13,7 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.ShortBuffer
 
-class SoundBuffer(): CacheData {
+class SoundBuffer(): ICacheData {
 
     init { ALBase.check() }
 

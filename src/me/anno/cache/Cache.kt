@@ -3,7 +3,6 @@ package me.anno.cache
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.gameTime
 import me.anno.gpu.TextureLib
-import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture3D
@@ -75,8 +74,8 @@ object Cache {
         key: Any,
         timeout: Long,
         asyncGenerator: Boolean,
-        generator: () -> CacheData
-    ): CacheData? {
+        generator: () -> ICacheData
+    ): ICacheData? {
         if (!file.exists() || (!allowDirectories && file.isDirectory)) return null
         return getEntry(file to key, timeout, asyncGenerator, generator)
     }
@@ -87,12 +86,12 @@ object Cache {
         sub: Int,
         timeout: Long,
         asyncGenerator: Boolean,
-        generator: () -> CacheData
-    ): CacheData? {
+        generator: () -> ICacheData
+    ): ICacheData? {
         return getEntry(Triple(major, minor, sub), timeout, asyncGenerator, generator)
     }
 
-    fun getEntry(key: Any, timeout: Long, asyncGenerator: Boolean, generator: () -> CacheData): CacheData? {
+    fun getEntry(key: Any, timeout: Long, asyncGenerator: Boolean, generator: () -> ICacheData): ICacheData? {
 
         // old, sync cache
         /*if(false){// key is FBStack.FBKey -> all textures are missing... why ever...
@@ -153,7 +152,7 @@ object Cache {
 
         return if (asyncGenerator) {
             thread {
-                var data: CacheData? = null
+                var data: ICacheData? = null
                 try {
                     data = generator()
                 } catch (e: FileNotFoundException) {
@@ -166,7 +165,7 @@ object Cache {
             }
             null
         } else {
-            var data: CacheData? = null
+            var data: ICacheData? = null
             try {
                 data = generator()
             } catch (e: FileNotFoundException) {

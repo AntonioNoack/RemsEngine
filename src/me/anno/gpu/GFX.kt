@@ -318,6 +318,7 @@ object GFX : GFXBase1() {
 
         // changing to 10 doesn't make the frame rate smoother :/
         val framesForWork = 5
+        if(Thread.currentThread() == glThread) check()
 
         val workTodo = max(1000, queue.sumBy { it.first } / framesForWork)
         var workDone = 0
@@ -325,6 +326,7 @@ object GFX : GFXBase1() {
         while (true) {
             val nextTask = queue.poll() ?: break
             nextTask.second()
+            if(Thread.currentThread() == glThread) check()
             workDone += nextTask.first
             if (workDone >= workTodo) break
             val workTime1 = System.nanoTime()
@@ -360,6 +362,8 @@ object GFX : GFXBase1() {
     }
 
     override fun renderStep() {
+
+        Texture2D.destroyTextures()
 
         ensureEmptyStack()
 

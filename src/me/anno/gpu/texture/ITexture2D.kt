@@ -1,8 +1,8 @@
 package me.anno.gpu.texture
 
-import me.anno.cache.CacheData
+import me.anno.cache.ICacheData
 
-interface ITexture2D: CacheData {
+interface ITexture2D: ICacheData {
 
     var w: Int
     var h: Int

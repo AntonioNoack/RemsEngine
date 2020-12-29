@@ -1,10 +1,10 @@
 package me.anno.fonts.mesh
 
-import me.anno.cache.CacheData
+import me.anno.cache.ICacheData
 import me.anno.fonts.signeddistfields.TextSDF
 import me.anno.gpu.buffer.StaticBuffer
 
-abstract class TextRepBase : CacheData {
+abstract class TextRepBase : ICacheData {
     var minX = Float.POSITIVE_INFINITY
     var minY = Float.POSITIVE_INFINITY
     var maxX = Float.NEGATIVE_INFINITY

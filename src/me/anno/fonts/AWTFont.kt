@@ -1,17 +1,15 @@
 package me.anno.fonts
 
 import me.anno.config.DefaultConfig
-import me.anno.gpu.framebuffer.Frame
-import me.anno.gpu.framebuffer.Framebuffer
-import me.anno.gpu.texture.*
-import me.anno.objects.text.Text
+import me.anno.fonts.mesh.TextMeshGroup
+import me.anno.gpu.texture.FakeWhiteTexture
+import me.anno.gpu.texture.ITexture2D
+import me.anno.gpu.texture.Texture2D
 import me.anno.ui.base.DefaultRenderingHints.prepareGraphics
 import me.anno.utils.OS
 import me.anno.utils.StringHelper.incrementTab
 import me.anno.utils.StringHelper.joinChars
 import org.apache.logging.log4j.LogManager
-import org.joml.Matrix4fArrayList
-import org.joml.Vector4f
 import java.awt.Font
 import java.awt.FontMetrics
 import java.awt.Graphics2D
@@ -19,8 +17,8 @@ import java.awt.font.FontRenderContext
 import java.awt.font.TextLayout
 import java.awt.image.BufferedImage
 import java.io.File
-import java.lang.StrictMath.round
 import javax.imageio.ImageIO
+import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.roundToInt
 import kotlin.streams.toList
@@ -37,45 +35,76 @@ class AWTFont(val font: Font) {
 
     fun containsSpecialChar(text: String): Boolean {
         for (cp in text.codePoints()) {
-            if (cp > 127 || cp == '\t'.toInt()) return true
+            if (cp == '\n'.toInt() || cp > 127 || cp == '\t'.toInt()) return true
         }
         return false
     }
 
-    fun String.countLines() = count { it == '\n' } + 1
+    private fun String.countLines() = count { it == '\n' } + 1
 
-    // todo move to generating the texture on the gpu with our triangulated meshes...
-    // to solve the Te-problem
-    fun generateTextureV4(text: String, fontSize: Float, widthLimit: Int): ITexture2D? {
+    private fun getStringWidth(group: TextMeshGroup) = group.offsets.last() - group.offsets.first()
 
-        val textElement = Text(text)
+    private fun getGroup(text: String) = TextMeshGroup(font, text, 0f, true)
 
-        val w = (fontSize * 3).toInt()
-        val h = fontSize.toInt()
-        val fb = Framebuffer("awt-font-v4", w, h, 8, 1, true, Framebuffer.DepthBufferType.NONE)
+    /**
+     * like gfx.drawText, however this method is respecting the ideal character distances,
+     * so there are no awkward spaces between T and e
+     * */
+    private fun drawString(gfx: Graphics2D, text: String, group: TextMeshGroup?, y: Int) =
+        drawString(gfx, text, group, 0f, y.toFloat())
 
-        Frame(w, h, true, fb) {
-            textElement.draw(Matrix4fArrayList(), 0.0, Vector4f(1f))
+    /**
+     * like gfx.drawText, however this method is respecting the ideal character distances,
+     * so there are no awkward spaces between T and e
+     * */
+    private fun drawString(gfx: Graphics2D, text: String, group: TextMeshGroup?, x: Float, y: Float) {
+        val group2 = group ?: getGroup(text)
+        var index = 0
+        // some distances still are awkward, because it is using the closest position, not float
+        // (useful for 'I's)
+        // maybe we could implement detecting, which sections need int positions, and which don't...
+        text.codePoints().forEach { codepoint ->
+            gfx.drawString(
+                String(Character.toChars(codepoint)),
+                x + group2.offsets[index].toFloat(),
+                y
+            )
+            index++
+        }
+    }
+
+    fun spaceBetweenLines(fontSize: Float) = (0.5f * fontSize).roundToInt()
+
+    fun calculateSize(text: String, fontSize: Float, widthLimit: Int): Pair<Int, Int> {
+
+        if (text.isEmpty()) return 0 to fontSize.toInt()
+        if (containsSpecialChar(text) || widthLimit > 0) {
+            return generateSizeV3(text, fontSize, widthLimit.toFloat())
         }
 
-        fb.bindTexture0(0, GPUFiltering.NEAREST, Clamping.CLAMP)
-        // todo destroy all but texture0
-        return fb.msBuffer!!.textures[0]
+        val lines = text.split('\n')
+        val lineCount = lines.size
+        val spaceBetweenLines = spaceBetweenLines(fontSize)
+        val fontHeight = fontMetrics.height
+        val height = fontHeight * lineCount + (lineCount - 1) * spaceBetweenLines
+
+        val width = max(0, lines.map { getStringWidth(getGroup(it)) }.max()!!.roundToInt() + 1)
+        return width to height
 
     }
 
     fun generateTexture(text: String, fontSize: Float, widthLimit: Int): ITexture2D? {
-
-        // return generateTextureV4(text, fontSize, widthLimit)
 
         if (text.isEmpty()) return null
         if (containsSpecialChar(text) || widthLimit > 0) {
             return generateTextureV3(text, fontSize, widthLimit.toFloat())
         }
 
-        val width = fontMetrics.stringWidth(text) + (if (font.isItalic) max(2, (fontSize / 5f).roundToInt()) else 1)
+        val group = getGroup(text)
+        val width = getStringWidth(group).roundToInt() + 1
+
         val lineCount = text.countLines()
-        val spaceBetweenLines = (0.5f * fontSize).roundToInt()
+        val spaceBetweenLines = spaceBetweenLines(fontSize)
         val fontHeight = fontMetrics.height
         val height = fontHeight * lineCount + (lineCount - 1) * spaceBetweenLines
 
@@ -88,24 +117,22 @@ class AWTFont(val font: Font) {
             return FakeWhiteTexture(width, height)
         }
 
-        // println("$text ${Thread.currentThread()}")
-
         val texture = Texture2D("awt-font", width, height, 1)
         texture.create("AWTFont.generateTexture", {
 
             val image = BufferedImage(width, height, 1)
+
             val gfx = image.graphics as Graphics2D
             gfx.prepareGraphics(font)
 
-            val x = 0
             val y = fontMetrics.ascent
 
             if (lineCount == 1) {
-                gfx.drawString(text, x, y)
+                drawString(gfx, text, group, y)
             } else {
                 val lines = text.split('\n')
                 lines.forEachIndexed { index, line ->
-                    gfx.drawString(line, x, y + index * (fontHeight + spaceBetweenLines))
+                    drawString(gfx, line, null, y + index * (fontHeight + spaceBetweenLines))
                 }
             }
             gfx.dispose()
@@ -119,7 +146,9 @@ class AWTFont(val font: Font) {
     }
 
     fun debug(image: BufferedImage) {
-        ImageIO.write(image, "png", File(OS.desktop, "img/${ctr++}.png"))
+        val parent = File(OS.desktop, "img")
+        parent.mkdir()
+        ImageIO.write(image, "png", File(parent, "${ctr++}.png"))
     }
 
     val renderContext by lazy {
@@ -253,46 +282,60 @@ class AWTFont(val font: Font) {
             nextLine()
         }
 
+        //println("$text -> ${result.joinToString { it.text }}")
         return PartResult(result, widthF, currentY, exampleLayout)
 
     }
 
-    fun generateTextureV3(text: String, fontSize: Float, lineBreakWidth: Float): Texture2D? {
+    fun generateSizeV3(text: String, fontSize: Float, lineBreakWidth: Float): Pair<Int, Int> {
+
+        val parts = splitParts(text, fontSize, 4f, 0f, lineBreakWidth)
+
+        val width = ceil(parts.width).toInt()
+        val height = ceil(parts.height).toInt()
+
+        return width to height
+
+    }
+
+    fun generateTextureV3(text: String, fontSize: Float, lineBreakWidth: Float): ITexture2D? {
 
         val parts = splitParts(text, fontSize, 4f, 0f, lineBreakWidth)
         val result = parts.parts
         val exampleLayout = parts.exampleLayout
 
-        val width = ceil(parts.width)
-        val height = ceil(parts.height)
+        val width = ceil(parts.width).toInt()
+        val height = ceil(parts.height).toInt()
+
+        if (result.isEmpty()) return FakeWhiteTexture(width, height)
 
         val texture = Texture2D("awt-font-v3", width, height, 1)
         texture.create("AWTFont.generateTextureV3", {
+
             val image = BufferedImage(width, height, 1)
-            if (result.isNotEmpty()) {
-                val gfx = image.graphics as Graphics2D
-                gfx.prepareGraphics(font)
+            // for (i in width-10 until width) image.setRGB(i, 0, 0xff0000)
 
-                val x = (image.width - width) * 0.5f
-                val y = (image.height - height) * 0.5f + exampleLayout.ascent
+            val gfx = image.graphics as Graphics2D
+            gfx.prepareGraphics(font)
 
-                result.forEach {
-                    gfx.font = it.font
-                    gfx.drawString(it.text, it.xPos + x, it.yPos + y)
-                }
+            val x = (image.width - width) * 0.5f
+            val y = (image.height - height) * 0.5f + exampleLayout.ascent
 
-                gfx.dispose()
-                if (debugJVMResults) debug(image)
+            result.forEach {
+                gfx.font = it.font
+                drawString(gfx, it.text, null, it.xPos + x, it.yPos + y)
             }
+
+            gfx.dispose()
+            if (debugJVMResults) debug(image)
+
             image
+
         }, needsSync)
 
         return texture
 
     }
-
-    fun ceil(f: Float) = round(f + 0.5f)
-    fun ceil(f: Double) = round(f + 0.5).toInt()
 
     companion object {
 
@@ -301,7 +344,7 @@ class AWTFont(val font: Font) {
         // this should be investigated for other Java versions and on Linux...
         val isJVMImplementationThreadSafe = false
         val needsSync = !isJVMImplementationThreadSafe
-        val debugJVMResults = false
+        const val debugJVMResults = false
 
         var ctr = 0
 

@@ -88,7 +88,7 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style) : TextPanel("
         val transform = getElement()
         when {
             button.isLeft -> {
-                if (Input.isShiftDown) {
+                if (Input.isShiftDown && inFocus.size < 2) {
                     RemsStudio.largeChange(if (transform.isCollapsed) "Expanded ${transform.name}" else "Collapsed ${transform.name}") {
                         val target = !transform.isCollapsed
                         // remove children from the selection???...

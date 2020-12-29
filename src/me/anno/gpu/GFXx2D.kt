@@ -116,13 +116,11 @@ object GFXx2D {
         GFX.check()
         val tex0 = FontManager.getString(font, fontSize, text, italic, bold, widthLimit)
         val texture = tex0 ?: return 0 to fontSize.toInt()
-        // check()
         val w = texture.w
         val h = texture.h
         if (text.isNotBlank() && (texture !is Texture2D || texture.isCreated)) {
             texture.bind(GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
             val shader = ShaderLib.subpixelCorrectTextShader
-            // check()
             shader.use()
             var x2 = x
             if (centerX) x2 -= w / 2
@@ -136,9 +134,7 @@ object GFXx2D {
             shader.v4("backgroundColor", backgroundColor)
             GFX.flat01.draw(shader)
             GFX.check()
-        }/* else {
-            drawRect(x, y, w, h, backgroundColor or DefaultStyle.black)
-        }*/
+        }
         return w to h
     }
 
@@ -149,12 +145,7 @@ object GFXx2D {
         font: String, fontSize: Float, bold: Boolean, italic: Boolean,
         text: String, widthLimit: Int
     ): Pair<Int, Int> {
-        // count how many spaces there are at the end
-        // get accurate space and tab widths
-        val spaceWidth = 0//text.endSpaceCount() * fontSize / 4
-        val texture = FontManager.getString(font, fontSize, text, bold, italic, widthLimit)
-            ?: return spaceWidth to fontSize.toInt()
-        return (texture.w + spaceWidth) to texture.h
+        return FontManager.getSize(font, fontSize, text, bold, italic, widthLimit)
     }
 
     fun drawTexture(x: Int, y: Int, w: Int, h: Int, texture: Texture2D, color: Int, tiling: Vector4f?) {

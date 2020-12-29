@@ -40,34 +40,8 @@ class TextMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
     private fun iy(v: Vector2f) = (debugImageSize / 2 + (v.y + 4.0) * 80).toInt()
 
     val buffer: StaticBuffer
-    val random = Random()
-
-    private fun testTriangulator() {
-        Triangulation.ringToTriangles(
-            listOf(
-                Vector2d(0.0, 0.0),
-                Vector2d(0.0, 1.0),
-                Vector2d(1.0, 1.0),
-                Vector2d(1.0, 0.0)
-            )
-        )
-    }
-
-    private fun testInside() {
-        for (i in 0 until 5000) {
-            val p = Vector2d(Math.random() * 2 - 1, Math.random() * 2 - 1).normalize()
-            if (!p.isInsideTriangle(Vector2d(-1.5, -1.5), Vector2d(2.0, -0.5), Vector2d(-0.5, 2.5))) {
-                LOGGER.info(p.print())
-                LOGGER.info(i.toString())
-                assert(false)
-            }
-        }
-    }
 
     init {
-
-        if (false) testTriangulator()
-        if (false) testInside()
 
         // was 30 before it had O(x²) complexity ;)
         val quadAccuracy = 5f
@@ -328,7 +302,7 @@ class TextMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
         }
     }
 
-    fun drawOutline(gfx: Graphics2D, pts: List<Vector2f>) {
+    private fun drawOutline(gfx: Graphics2D, pts: List<Vector2f>) {
         for (i in pts.indices) {
             val a = pts[i]
             val b = if (i == 0) pts.last() else pts[i - 1]
@@ -388,7 +362,7 @@ class TextMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
 
         private val LOGGER = LogManager.getLogger(TextMesh::class)
 
-        val DEFAULT_LINE_HEIGHT = 0.2f
+        const val DEFAULT_LINE_HEIGHT = 0.2f
 
         fun mergeRings2(outer: MutableList<Vector2f>, innerList: List<List<Vector2f>>) {
             innerList.sortedBy { it.map { p -> p.x }.min()!! }.forEach { inner ->

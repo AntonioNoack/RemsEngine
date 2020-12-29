@@ -1,6 +1,6 @@
 package me.anno.gpu
 
-import me.anno.cache.CacheData
+import me.anno.cache.ICacheData
 import me.anno.gpu.texture.Texture2D
 
 object TextureLib {
@@ -16,7 +16,7 @@ object TextureLib {
     val normalTexture = IndestructableTexture2D("normal", 1, 1)
     val blackTexture = IndestructableTexture2D("black", 1, 1)
 
-    object nullTexture: CacheData { override fun destroy() {} }
+    object nullTexture: ICacheData { override fun destroy() {} }
 
     fun init() {
         invisibleTexture.createRGBA(ByteArray(4) { 0.toByte() })

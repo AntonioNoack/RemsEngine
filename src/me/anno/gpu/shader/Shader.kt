@@ -2,7 +2,7 @@ package me.anno.gpu.shader
 
 import me.anno.gpu.GFX
 import me.anno.gpu.framebuffer.Frame
-import me.anno.cache.CacheData
+import me.anno.cache.ICacheData
 import me.anno.utils.FloatArrayList
 import org.apache.logging.log4j.LogManager
 import org.joml.*
@@ -17,7 +17,7 @@ open class Shader(
     val varying: String,
     val fragment: String,
     private val disableShorts: Boolean = false
-) : CacheData {
+) : ICacheData {
 
     companion object {
         private val LOGGER = LogManager.getLogger(Shader::class)

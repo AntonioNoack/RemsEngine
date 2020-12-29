@@ -76,10 +76,9 @@ class VideoBackgroundTask(val video: VideoCreator, val motionBlurSteps: Int, val
 
                 }
             } else {
-                // ("waiting for frame (writing is slow)")
                 // waiting for saving to ffmpeg
                 thread {
-                    Thread.sleep(100)
+                    Thread.sleep(1)
                     addNextTask()
                 }
             }

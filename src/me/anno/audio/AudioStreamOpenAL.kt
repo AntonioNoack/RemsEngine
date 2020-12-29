@@ -82,7 +82,7 @@ class AudioStreamOpenAL(file: File, repeat: LoopingState, startTime: Double, met
             requestNextBuffer(startTime + playbackSliceDuration * index, index)
         }
         thread {
-            Thread.sleep(10)
+            Thread.sleep(1)
             if(isPlaying){
                 GFX.addAudioTask(1){
                     waitForRequiredBuffers()

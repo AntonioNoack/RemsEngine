@@ -4,12 +4,12 @@ import me.anno.io.json.JsonArray
 import me.anno.io.json.JsonObject
 import me.anno.io.json.JsonReader
 import me.anno.cache.Cache
-import me.anno.cache.CacheData
+import me.anno.cache.ICacheData
 import me.anno.utils.StringHelper.parseTime
 import org.apache.logging.log4j.LogManager
 import java.io.File
 
-class FFMPEGMetadata(file: File): CacheData {
+class FFMPEGMetadata(file: File): ICacheData {
 
     val duration: Double
 

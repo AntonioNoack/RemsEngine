@@ -23,7 +23,7 @@ import javax.imageio.ImageIO
 import kotlin.concurrent.thread
 
 
-class ImageData(file: File) : CacheData {
+class ImageData(file: File) : ICacheData {
 
     var texture = Texture2D("image-data",1024, 1024, 1)
     var framebuffer: Framebuffer? = null

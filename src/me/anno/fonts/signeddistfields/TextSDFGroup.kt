@@ -47,7 +47,7 @@ class TextSDFGroup(
         }
     }
 
-    fun drawSlowly(
+    private fun drawSlowly(
         startIndex: Int, endIndex: Int,
         drawBuffer: (StaticBuffer?, TextSDF?, offset: Float) -> Unit) {
         val roundCorners = roundCorners

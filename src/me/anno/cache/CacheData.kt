@@ -1,5 +1,5 @@
 package me.anno.cache
 
-interface CacheData {
-    fun destroy()
+open class CacheData<V>(var value: V): ICacheData {
+    override fun destroy() {}
 }

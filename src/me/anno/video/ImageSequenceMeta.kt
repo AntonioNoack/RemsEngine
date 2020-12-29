@@ -1,11 +1,8 @@
 package me.anno.video
 
-import me.anno.gpu.texture.Texture2D.Companion.LOGGER
 import me.anno.objects.Video
-import me.anno.utils.Images.withoutAlpha
-import java.awt.image.BufferedImage
+import org.apache.logging.log4j.LogManager
 import java.io.File
-import javax.imageio.ImageIO
 import kotlin.math.min
 
 
@@ -60,6 +57,9 @@ class ImageSequenceMeta(file: File) {
     override fun toString() = "$duration: $matches"
 
     companion object {
+
+        private val LOGGER = LogManager.getLogger(ImageSequenceMeta::class)
+
         @JvmStatic
         fun main(args: Array<String>) {
             val file = File("C:\\Users\\Antonio\\Documents\\Blender\\Image Sequence\\%.jpg")
