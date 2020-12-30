@@ -158,7 +158,7 @@ open class TimelinePanel(style: Style) : Panel(style) {
 
     fun drawTimeAxis(x0: Int, y0: Int, x1: Int, y1: Int, drawText: Boolean) {
 
-        val y0 = if (drawText) y0 else y0 - (2 + font.size.toInt())
+        val y0 = if (drawText) y0 else y0 - (2 + font.sizeInt)
 
         // make the step amount dependent on width and font size
         val deltaFrame = 500 * dtHalfLength * font.size / w
@@ -199,7 +199,7 @@ open class TimelinePanel(style: Style) : Panel(style) {
         val minStepIndex = (minFrame / timeStep).toLong() - 1
         val maxStepIndex = (maxFrame / timeStep).toLong() + 1
 
-        val fontSize = font.size.toInt()
+        val fontSize = font.sizeInt
         val fontColor = fontColor
         val backgroundColor = backgroundColor
 

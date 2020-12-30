@@ -117,7 +117,7 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
         val children = actualChildren
         val examplePanel = children.firstOrNull() as? TextPanel ?: return
         val font = examplePanel.font
-        val textSize = font.size.toInt()
+        val textSize = font.sizeInt
         val textColor = examplePanel.textColor or black
         val isReallyInFocus = isInFocus || children.one { it.isInFocus }
         if (isReallyInFocus && (showBars || cursor1 != cursor2)) {

@@ -1,5 +1,7 @@
 package me.anno.ui.input.components
 
+import me.anno.input.Input.isControlDown
+import me.anno.input.Input.mouseKeysDown
 import me.anno.input.MouseButton
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.animation.drivers.AnimationDriver
@@ -59,6 +61,7 @@ class NumberInputComponent(val owningProperty: AnimatedProperty<*>?,
 
         override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
             if (!hasDriver) numberInput.onMouseMoved(x, y, dx, dy)
+            isDragging = !isControlDown && 0 in mouseKeysDown
         }
 
         override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {

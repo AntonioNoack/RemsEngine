@@ -87,35 +87,90 @@ object GFXx2D {
     }
 
     // the background color is important for correct subpixel rendering, because we can't blend per channel
-    fun drawText(
-        x: Int, y: Int, font: String, fontSize: Float, bold: Boolean, italic: Boolean, text: String,
+    /*fun drawText(
+        x: Int, y: Int, font: Font, text: String,
         color: Int, backgroundColor: Int, widthLimit: Int, centerX: Boolean = false
     ) =
-        writeText(x, y, font, fontSize, bold, italic, text, color, backgroundColor, widthLimit, centerX)
+        writeText(x, y, font, text, color, backgroundColor, widthLimit, centerX)*/
 
     fun drawText(
         x: Int, y: Int, font: Font, text: String,
         color: Int, backgroundColor: Int, widthLimit: Int, centerX: Boolean = false
     ) =
-        writeText(
-            x, y, font.name, font.size, font.isBold, font.isItalic,
-            text, color, backgroundColor, widthLimit, centerX
-        )
+        writeText(x, y, font, text, color, backgroundColor, widthLimit, centerX)
 
-    fun writeText(
+    private fun writeTextFallback(
         x: Int, y: Int,
-        font: String, fontSize: Float,
-        bold: Boolean, italic: Boolean,
+        font: Font,
         text: String,
         color: Int,
         backgroundColor: Int,
+        widthLimit: Int,
+        centerX: Boolean
+    ): Pair<Int, Int> {
+
+        if (centerX) {
+            return writeTextFallback(
+                x - getTextSize(font, text, widthLimit).first / 2, y,
+                font, text, color, backgroundColor,
+                widthLimit, false
+            )
+        }
+
+        // todo width limit...
+
+        val shader = ShaderLib.subpixelCorrectTextShader
+        shader.use()
+        shader.v4("textColor", color)
+        shader.v4("backgroundColor", backgroundColor)
+
+        GFX.loadTexturesSync.push(true)
+
+        var fx = x
+        var h = font.sizeInt
+        for (char in text) {
+            val txt = "$char"
+            val size = FontManager.getSize(font, txt, -1)
+            h = size.second
+            val w = size.first
+            if (txt.isNotBlank()) {
+                val texture = FontManager.getString(font, txt, -1)
+                if (texture != null) {
+                    texture.bind(GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+                    shader.v2(
+                        "pos",
+                        (fx - GFX.windowX).toFloat() / GFX.windowWidth,
+                        1f - (y - GFX.windowY).toFloat() / GFX.windowHeight
+                    )
+                    shader.v2("size", w.toFloat() / GFX.windowWidth, -h.toFloat() / GFX.windowHeight)
+                    GFX.flat01.draw(shader)
+                    GFX.check()
+                }
+            }
+            fx += w
+        }
+
+        GFX.loadTexturesSync.pop()
+
+        return (fx - x) to h
+
+    }
+
+    fun writeText(
+        x: Int, y: Int,
+        font: Font, text: String,
+        color: Int, backgroundColor: Int,
         widthLimit: Int,
         centerX: Boolean = false
     ): Pair<Int, Int> {
 
         GFX.check()
-        val tex0 = FontManager.getString(font, fontSize, text, italic, bold, widthLimit)
-        val texture = tex0 ?: return 0 to fontSize.toInt()
+        val tex0 = FontManager.getString(font, text, widthLimit)
+        if ((tex0 == null || tex0 !is Texture2D || !tex0.isCreated) && text.length > 1) {
+            return writeTextFallback(x, y, font, text, color, backgroundColor, widthLimit, centerX)
+        }
+
+        val texture = tex0 ?: return 0 to font.sizeInt
         val w = texture.w
         val h = texture.h
         if (text.isNotBlank() && (texture !is Texture2D || texture.isCreated)) {
@@ -139,14 +194,7 @@ object GFXx2D {
     }
 
     fun getTextSize(font: Font, text: String, widthLimit: Int) =
-        getTextSize(font.name, font.size, font.isBold, font.isItalic, text, widthLimit)
-
-    fun getTextSize(
-        font: String, fontSize: Float, bold: Boolean, italic: Boolean,
-        text: String, widthLimit: Int
-    ): Pair<Int, Int> {
-        return FontManager.getSize(font, fontSize, text, bold, italic, widthLimit)
-    }
+        FontManager.getSize(font, text, widthLimit)
 
     fun drawTexture(x: Int, y: Int, w: Int, h: Int, texture: Texture2D, color: Int, tiling: Vector4f?) {
         GFX.check()

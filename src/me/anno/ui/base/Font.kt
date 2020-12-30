@@ -1,6 +1,10 @@
 package me.anno.ui.base
 
+import kotlin.math.roundToInt
+
 data class Font(val name: String, val size: Float, val isBold: Boolean, val isItalic: Boolean) {
+
+    val sizeInt = size.roundToInt()
 
     override fun toString() =
         "$name $size${if (isBold) if (isItalic) " bold italic" else " bold" else if (isItalic) " italic" else ""}"

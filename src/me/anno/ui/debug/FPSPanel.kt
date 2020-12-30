@@ -8,6 +8,8 @@ import kotlin.math.max
 
 object FPSPanel {
 
+    var font = Font("Consolas", 12f, false, false)
+
     fun showFPS() {
 
         val x0 = max(0, GFX.width - FrameTimes.width)
@@ -17,7 +19,6 @@ object FPSPanel {
         GFX.loadTexturesSync.push(true)
         var x = x0 + 1
         val text = "${GFX.currentEditorFPS.f1()}, min: ${(1f / FrameTimes.maxValue).f1()}"
-        val font = Font("Consolas", 12f, false, false)
         val sample = GFXx2D.getTextSize(font, "w", -1)
         val charWidth = sample.first
         GFXx2D.drawRect(x, y0 + 1, charWidth * text.length, sample.second, FrameTimes.backgroundColor)
@@ -34,7 +35,7 @@ object FPSPanel {
 
         // keep these chars loaded at all times
         for (char in "0123456789.") {
-            GFXx2D.getTextSize("Consolas", 12f, false, false, "$char", -1)
+            GFXx2D.getTextSize(font, "$char", -1)
         }
 
         GFX.loadTexturesSync.pop()

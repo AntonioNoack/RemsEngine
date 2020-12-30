@@ -307,7 +307,7 @@ class AWTFont(val font: Font) {
         val width = ceil(parts.width).toInt()
         val height = ceil(parts.height).toInt()
 
-        if (result.isEmpty()) return FakeWhiteTexture(width, height)
+        if (result.isEmpty() || width < 1 || height < 1) return FakeWhiteTexture(width, height)
 
         val texture = Texture2D("awt-font-v3", width, height, 1)
         texture.create("AWTFont.generateTextureV3", {

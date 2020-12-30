@@ -69,7 +69,7 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style) : TextPanel("
         val showAddIndex = showAddIndex
         if (showAddIndex != null) {
             val x = x + padding.left
-            val textSize = font.size.toInt()
+            val textSize = font.sizeInt
             val indent = textSize
             val lineWidth = textSize * 7
             val lineColor = midGray

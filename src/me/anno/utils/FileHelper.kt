@@ -1,7 +1,10 @@
 package me.anno.utils
 
 import me.anno.config.DefaultConfig
+import java.awt.Desktop
 import java.io.*
+import java.lang.Exception
+import java.lang.RuntimeException
 import java.util.*
 import java.util.zip.DeflaterOutputStream
 import java.util.zip.InflaterInputStream
@@ -40,8 +43,13 @@ object FileHelper {
                 OS.isWindows -> {// https://stackoverflow.com/questions/2829501/implement-open-containing-folder-and-highlight-file
                     OS.startProcess("explorer.exe", "/select,", absolutePath)
                 }
-                OS.isLinux -> {// https://askubuntu.com/questions/31069/how-to-open-a-file-manager-of-the-current-directory-in-the-terminal
-                    OS.startProcess("xdg-open", absolutePath)
+                else -> {
+                    if(Desktop.isDesktopSupported()){
+                        val desktop = Desktop.getDesktop()
+                        desktop.open(if(isDirectory) this else this.parentFile ?: this)
+                    } else if(OS.isLinux){// https://askubuntu.com/questions/31069/how-to-open-a-file-manager-of-the-current-directory-in-the-terminal
+                        OS.startProcess("xdg-open", absolutePath)
+                    }
                 }
             }
         }

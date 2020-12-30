@@ -8,7 +8,7 @@ class TopicPanel(val topic: String, topicName: String, val configPanel: ConfigPa
     val topicDepth = topic.count { char -> char == '.' }
     init {
         enableHoverColor = true
-        padding.left += topicDepth * font.size.toInt()
+        padding.left += topicDepth * font.sizeInt
         setSimpleClickListener {
             configPanel.createContent(topic)
         }

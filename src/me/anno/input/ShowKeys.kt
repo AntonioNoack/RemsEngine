@@ -79,7 +79,7 @@ object ShowKeys {
                 val bgColor = colors.backgroundColor
                 val textColor = colors.textColor
 
-                val fontSize = font.size.toInt()
+                val fontSize = font.sizeInt
                 fun show(text: String, alpha: Float) {
                     val alphaMask = (alpha * 255).toInt().shl(24) or 0xffffff
                     val color = textColor and alphaMask

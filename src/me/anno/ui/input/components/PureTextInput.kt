@@ -1,6 +1,5 @@
 package me.anno.ui.input.components
 
-import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.GFXx2D.drawRect
@@ -9,8 +8,6 @@ import me.anno.input.Input.isControlDown
 import me.anno.input.Input.isShiftDown
 import me.anno.input.Input.mouseKeysDown
 import me.anno.input.MouseButton
-import me.anno.language.spellcheck.Spellchecking
-import me.anno.language.spellcheck.Suggestion
 import me.anno.ui.style.Style
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Quad
@@ -80,18 +77,17 @@ open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edi
         }
     }
 
-    var lastMove = 0L
-
-    val wasJustChanged get() = abs(GFX.gameTime - lastMove) < 200_000_000
+    var lastChange = 0L
+    val wasJustChanged get() = abs(GFX.gameTime - lastChange) < 200_000_000
 
     fun calculateOffset(required: Int, cursor: Int) {
         // center the cursor, 1/3 of the width, if possible;
         // clamp left/right
-        drawingOffset = -clamp(cursor - w / 3, 0, max(0, required - w))
+        drawingOffset = if(isDragging) 0 else -clamp(cursor - w / 3, 0, max(0, required - w))
     }
 
     var showBars = false
-    override fun getVisualState(): Any? = Quad(super.getVisualState(), showBars, cursor1, cursor2)
+    override fun getVisualState(): Any? = Quad(super.getVisualState(), Pair(showBars, drawingOffset), cursor1, cursor2)
 
     override fun tickUpdate() {
         super.tickUpdate()
@@ -113,7 +109,7 @@ open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edi
         val wh = drawText(drawingOffset, 0, drawnText, textColor)
         if (isInFocus && (showBars || cursor1 != cursor2)) {
             ensureCursorBounds()
-            val textSize = font.size.toInt()
+            val textSize = font.sizeInt
             val padding = textSize / 4
             // to do cache sizes... (low priority, because it has to be in focus for this calculation, so this calculation is rather rare)
             val cursorX1 =
@@ -154,7 +150,7 @@ open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edi
 
     fun insert(insertion: String) {
         if (insertion.isNotEmpty()) {
-            lastMove = GFX.gameTime
+            lastChange = GFX.gameTime
             deleteSelection()
             insertion.codePoints().forEach {
                 characters.add(cursor1++, it)
@@ -166,7 +162,7 @@ open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edi
     }
 
     fun insert(insertion: Int, updateText: Boolean = true) {
-        lastMove = GFX.gameTime
+        lastChange = GFX.gameTime
         deleteSelection()
         characters.add(cursor1, insertion)
         if (updateText) updateText(true)
@@ -176,7 +172,7 @@ open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edi
     }
 
     fun deleteBefore() {
-        lastMove = GFX.gameTime
+        lastChange = GFX.gameTime
         if (!deleteSelection() && cursor1 > 0) {
             characters.removeAt(cursor1 - 1)
             updateText(true)
@@ -187,7 +183,7 @@ open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edi
     }
 
     fun deleteAfter() {
-        lastMove = GFX.gameTime
+        lastChange = GFX.gameTime
         if (!deleteSelection() && cursor1 < characters.size) {
             characters.removeAt(cursor1)
             updateText(true)
@@ -202,7 +198,7 @@ open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edi
     }
 
     fun moveRight() {
-        lastMove = GFX.gameTime
+        lastChange = GFX.gameTime
         if (isShiftDown) {
             cursor2++
         } else {
@@ -217,7 +213,7 @@ open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edi
     }
 
     fun moveLeft() {
-        lastMove = GFX.gameTime
+        lastChange = GFX.gameTime
         if (isShiftDown) {
             cursor2--
         } else {
@@ -256,14 +252,14 @@ open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edi
         return this
     }
 
-     override fun setCursor(position: Int){
+    override fun setCursor(position: Int) {
         cursor1 = position
         cursor2 = position
         ensureCursorBounds()
     }
 
     override fun onCharTyped2(x: Float, y: Float, key: Int) {
-        lastMove = GFX.gameTime
+        lastChange = GFX.gameTime
         addKey(key)
     }
 
@@ -272,7 +268,7 @@ open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edi
     }
 
     override fun onMouseDown(x: Float, y: Float, button: MouseButton) {
-        lastMove = GFX.gameTime
+        lastChange = GFX.gameTime
         if (isControlDown) {
             selectAll()
         } else {
@@ -288,13 +284,15 @@ open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edi
         cursor2 = characters.size
     }
 
+    var isDragging = false
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
         if (!isControlDown) {
             if (0 in mouseKeysDown) {
                 val localX = x - (this.x + padding.left + drawingOffset)
                 cursor2 = getIndexFromText(characters, localX, font)
-            }
-        }
+                isDragging = true
+            } else isDragging = false
+        } else isDragging = false
     }
 
     override fun onDoubleClick(x: Float, y: Float, button: MouseButton) {
@@ -316,7 +314,7 @@ open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edi
     }
 
     fun clear() {
-        lastMove = GFX.gameTime
+        lastChange = GFX.gameTime
         text = ""
         characters.clear()
         cursor1 = 0

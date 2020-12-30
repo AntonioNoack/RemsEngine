@@ -22,7 +22,7 @@ class ContentCreator(
 
     fun createPanels(list: PanelList) {
         val title = TextPanel(shortName, style)
-        val pad = title.font.size.toInt()
+        val pad = title.font.sizeInt
         when (val value = map[fullName]!!) {
             is Boolean -> {
                 list += BooleanInput(shortName, value, style)

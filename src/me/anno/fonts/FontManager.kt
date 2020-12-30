@@ -2,6 +2,8 @@ package me.anno.fonts
 
 import me.anno.cache.Cache
 import me.anno.cache.CacheData
+import me.anno.fonts.keys.FontKey
+import me.anno.fonts.keys.TextCacheKey
 import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.TextureLib
 import me.anno.gpu.texture.ITexture2D
@@ -54,65 +56,63 @@ object FontManager {
     private fun getFontSizeIndex(fontSize: Float): Int = round(100.0 * ln(fontSize)).toInt()
     private fun getAvgFontSize(fontSizeIndex: Int): Float = exp(fontSizeIndex * 0.01f)
 
-    fun getString(font: me.anno.ui.base.Font, text: String, widthLimit: Int) =
-        getString(font.name, font.size, text, font.isBold, font.isItalic, widthLimit)
-
     fun getSize(
-        fontName: String,
-        fontSize: Float,
+        font: me.anno.ui.base.Font,
         text: String,
-        bold: Boolean,
-        italic: Boolean,
         widthLimit: Int
     ): Pair<Int, Int> {
 
+        val fontSize = font.size
         if (text.isEmpty()) return 0 to fontSize.toInt()
         val fontSizeIndex = getFontSizeIndex(fontSize)
-        val sub = fontSizeIndex * 8 + italic.toInt(4) + bold.toInt(2) + 1
+        val sub = fontSizeIndex * 8 + font.isItalic.toInt(4) + font.isBold.toInt(2) + 1
         val widthLimit2 = if (widthLimit < 0) -1 else {
             loadTexturesSync.push(true)
-            val w = getSize(fontName, fontSize, text, bold, italic, -1).first
+            val w = getSize(font, text, -1).first
             loadTexturesSync.pop()
             val step = fontSize.toInt()
             min(w, widthLimit / step * step)
         }
 
+        val fontName = font.name
         val key = TextCacheKey(text, fontName, sub, widthLimit2)
         val data = Cache.getEntry(key, 1000, false) {
-            val font = getFont(fontName, fontSize, fontSizeIndex, italic, bold)
+            val font2 = getFont(font)
             val averageFontSize = getAvgFontSize(fontSizeIndex)
-            CacheData(font.calculateSize(text, averageFontSize, widthLimit2))
+            CacheData(font2.calculateSize(text, averageFontSize, widthLimit2))
         } as CacheData<Pair<Int, Int>>
         return data.value
 
     }
 
     fun getString(
-        fontName: String,
-        fontSize: Float,
+        font: me.anno.ui.base.Font,
         text: String,
-        bold: Boolean,
-        italic: Boolean,
         widthLimit: Int
     ): ITexture2D? {
+
         if (text.isEmpty()) return null
+        val fontSize = font.size
         val fontSizeIndex = getFontSizeIndex(fontSize)
-        val sub = fontSizeIndex * 8 + italic.toInt(4) + bold.toInt(2)
+        val sub = fontSizeIndex * 8 + font.isItalic.toInt(4) + font.isBold.toInt(2)
         val widthLimit2 = if (widthLimit < 0) -1 else {
             loadTexturesSync.push(true)
-            val w = getSize(fontName, fontSize, text, bold, italic, -1).first
+            val w = getSize(font, text, -1).first
             loadTexturesSync.pop()
             val step = fontSize.toInt()
             min(w, widthLimit / step * step)
         }
+
+        val fontName = font.name
         val key = TextCacheKey(text, fontName, sub, widthLimit2)
         val async = false//!loadTexturesSync.peek()
         return Cache.getEntry(key, textureTimeout, async) {
-            val font = getFont(fontName, fontSize, fontSizeIndex, italic, bold)
+            val font2 = getFont(font)
             val averageFontSize = getAvgFontSize(fontSizeIndex)
-            val texture = font.generateTexture(text, averageFontSize, widthLimit2)
+            val texture = font2.generateTexture(text, averageFontSize, widthLimit2)
             texture ?: TextureLib.nullTexture
         } as? ITexture2D
+
     }
 
     fun getFont(font: me.anno.ui.base.Font): AWTFont = getFont(font.name, font.size, font.isBold, font.isItalic)
@@ -122,8 +122,6 @@ object FontManager {
         val averageFontSize = getAvgFontSize(fontSizeIndex)
         return getFont(name, averageFontSize, fontSizeIndex, bold, italic)
     }
-
-    data class FontKey(val name: String, val sizeIndex: Int, val bold: Boolean, val italic: Boolean)
 
     private fun getFont(name: String, fontSize: Float, fontSizeIndex: Int, bold: Boolean, italic: Boolean): AWTFont {
         val key = FontKey(name, fontSizeIndex, bold, italic)

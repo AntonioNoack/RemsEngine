@@ -4,6 +4,7 @@ import me.anno.cache.ICacheData
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.glThread
+import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.TextureLib.invisibleTexture
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.objects.modes.RotateJPEG
@@ -109,7 +110,7 @@ open class Texture2D(
 
     fun create(name: String, createImage: () -> BufferedImage, forceSync: Boolean) {
         val requiredBudget = textureBudgetUsed + w * h
-        if (requiredBudget > textureBudgetTotal || Thread.currentThread() != glThread) {
+        if ((requiredBudget > textureBudgetTotal && !loadTexturesSync.peek()) || Thread.currentThread() != glThread) {
             if (forceSync) {
                 GFX.addGPUTask(1000) {
                     create(createImage(), true)
