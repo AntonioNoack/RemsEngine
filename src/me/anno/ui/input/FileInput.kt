@@ -9,6 +9,7 @@ import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.style.Style
 import me.anno.utils.FileExplorerSelect
+import me.anno.utils.FileExplorerSelectWrapper
 import me.anno.utils.FileHelper.openInExplorer
 import java.io.File
 import kotlin.concurrent.thread
@@ -34,7 +35,7 @@ class FileInput(title: String, style: Style, f0: File, val isDirectory: Boolean 
         button.apply {
             setSimpleClickListener {
                 thread {
-                    FileExplorerSelect.selectFileOrFolder(file, isDirectory) { file ->
+                    FileExplorerSelectWrapper.selectFileOrFolder(file, isDirectory) { file ->
                         if (file != null) {
                             changeListener(file)
                             base.setText(file.toString(), false)

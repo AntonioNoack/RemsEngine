@@ -14,13 +14,12 @@ import me.anno.input.Touch.Companion.onTouchDown
 import me.anno.input.Touch.Companion.onTouchMove
 import me.anno.input.Touch.Companion.onTouchUp
 import me.anno.studio.StudioBase.Companion.addEvent
-import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.RemsStudio.history
 import me.anno.studio.rems.RemsStudio.project
 import me.anno.studio.rems.RemsStudio.root
 import me.anno.ui.editor.files.addChildFromFile
 import me.anno.ui.editor.treeView.TreeViewPanel
-import me.anno.utils.FileExplorerSelect
+import me.anno.utils.FileExplorerSelectWrapper
 import me.anno.utils.Maths.length
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.glfw.GLFW
@@ -355,7 +354,7 @@ object Input {
                                             GLFW.GLFW_KEY_I -> {
                                                 thread {
                                                     if(lastFile == null) lastFile = project?.file
-                                                    FileExplorerSelect.selectFile(lastFile){ file ->
+                                                    FileExplorerSelectWrapper.selectFile(lastFile){ file ->
                                                         if(file != null){
                                                             lastFile = file
                                                             addEvent { addChildFromFile(root, file, {}) }
