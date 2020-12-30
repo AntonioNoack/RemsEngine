@@ -39,7 +39,7 @@ Missing, important features:
 
 FFmpeg needs to be installed.
 
-You can download the [universal build here](https://remsstudio.phychi.com/download/VideoStudio.jar).
+You can download the [universal build here](https://remsstudio.phychi.com/download/RemsStudio.jar).
 Later, I'll probably create specific builds depending on your OS, so they are smaller.
 
 My FFmpeg install on Linux Mint 19 somehow misses features, that FFmpeg for Windows has. You might encounter issues as well.
@@ -51,7 +51,7 @@ Observed missing features:
 
 You probably have to copy the files for ffmpeg (the program will tell you in the console). This is because of a bug in Java 8 (but Java 8 is the default download for Win10), and a slight config issue on my webserver.
 
-You can download the [universal build here](https://remsstudio.phychi.com/download/VideoStudio.jar).
+You can download the [universal build here](https://remsstudio.phychi.com/download/RemsStudio.jar).
 Later, I'll probably create specific builds depending on your OS, so they are smaller.
 
 ### Mac OS
