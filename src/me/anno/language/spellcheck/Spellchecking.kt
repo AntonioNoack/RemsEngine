@@ -125,6 +125,7 @@ object Spellchecking {
         val queue = ConcurrentHashMap<Any, Request>()
         thread {
             getExecutable(language) { executable ->
+                LOGGER.info("Starting process for $language")
                 val process = ProcessBuilder("java", "-jar", executable.absolutePath, language.code).start()
                 val input = process.inputStream.bufferedReader()
                 process.errorStream.listen { msg -> LOGGER.warn(msg) }

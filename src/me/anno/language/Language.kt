@@ -52,6 +52,8 @@ enum class Language(val displayName: String, val code: String) {
     Tagalog("Tagalog", "tl-PH"),
     Ukrainian("Ukrainian", "uk-UA");
 
+    override fun toString() = displayName
+
     companion object {
         fun get(code: String) = values()
             .firstOrNull { it.code.equals(code, true) }

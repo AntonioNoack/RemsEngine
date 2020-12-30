@@ -18,12 +18,13 @@ object FPSPanel {
         var x = x0 + 1
         val text = "${GFX.currentEditorFPS.f1()}, min: ${(1f / FrameTimes.maxValue).f1()}"
         val font = Font("Consolas", 12f, false, false)
-        val charWidth = GFXx2D.getTextSize(font, "w", -1).first
+        val sample = GFXx2D.getTextSize(font, "w", -1)
+        val charWidth = sample.first
+        GFXx2D.drawRect(x, y0 + 1, charWidth * text.length, sample.second, FrameTimes.backgroundColor)
         for (char in text) {
             GFXx2D.drawText(
                 x, y0 + 1,
-                "Consolas", 12f, false, false,
-                "$char",
+                font, "$char",
                 FrameTimes.textColor,
                 FrameTimes.backgroundColor,
                 -1
@@ -32,7 +33,7 @@ object FPSPanel {
         }
 
         // keep these chars loaded at all times
-        for(char in "0123456789."){
+        for (char in "0123456789.") {
             GFXx2D.getTextSize("Consolas", 12f, false, false, "$char", -1)
         }
 
