@@ -19,6 +19,7 @@ abstract class ForceField(val displayName: String, val description: String): Tra
     val strength = AnimatedProperty.vec3(Vector3f(1f))
 
     override fun getSymbol() = DefaultConfig["ui.symbol.forceField", "⇶"]
+    override fun getDefaultDisplayName(): String = displayName
 
     abstract fun getForce(state: ParticleState, time: Double, particles: List<Particle>): Vector3f
 

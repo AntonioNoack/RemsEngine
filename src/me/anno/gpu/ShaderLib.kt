@@ -108,9 +108,10 @@ object ShaderLib {
             "       vec4 powerSize = forceFieldColorPowerSizes[i];\n" +
             "       float weight = positionNWeight.w / (1.0 + pow(dot(powerSize.xyz * positionDelta, positionDelta), powerSize.w));\n" +
             "       sumWeight += weight;\n" +
-            "       sumColor += weight * forceFieldColors[i];\n" +
+            "       vec4 localColor = forceFieldColors[i];\n" +
+            "       sumColor += weight * localColor * localColor;\n" +
             "   }\n" +
-            "   return sumColor / sumWeight;\n" +
+            "   return sqrt(sumColor / sumWeight);\n" +
             "}\n"
 
     val colorForceFieldBuffer: FloatBuffer = ByteBuffer
