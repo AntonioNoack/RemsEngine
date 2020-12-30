@@ -13,7 +13,6 @@ import me.anno.ui.custom.data.CustomPanelData
 import me.anno.ui.custom.data.ICustomDataCreator
 import me.anno.ui.editor.sceneView.SceneView
 import me.anno.ui.style.Style
-import java.awt.peer.MenuPeer
 
 class CustomContainer(default: Panel, style: Style) : PanelContainer(default, Padding(0), style), ICustomDataCreator {
 

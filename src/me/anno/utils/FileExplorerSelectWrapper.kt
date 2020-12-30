@@ -9,6 +9,9 @@ object FileExplorerSelectWrapper {
         try {
             val clazz = javaClass.classLoader.loadClass("me.anno.utils.FileExplorerSelect")
             clazz?.getMethod("selectFileOrFolder", File::class.java, Boolean::class.java, Function1::class.java)
+        } catch (e: NoClassDefFoundError) {
+            LOGGER.info("JavaFX is not available")
+            null
         } catch (e: ClassNotFoundException) {
             LOGGER.info("JavaFX is not available")
             null
