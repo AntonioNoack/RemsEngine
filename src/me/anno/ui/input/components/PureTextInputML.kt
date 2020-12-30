@@ -58,6 +58,8 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
         val content = content as PanelList
         while (lines.size > children.size) {
             val panel = object : CorrectingTextInput(style) {
+                override val isShowingPlaceholder: Boolean
+                    get() = this@PureTextInputML.text.isEmpty()
                 // override fun onBackKey(x: Float, y: Float) = this@PureTextInputML.onBackKey(x, y)
                 // override fun onCharTyped(x: Float, y: Float, key: Int) = this@PureTextInputML.onCharTyped(x, y, key)
                 // override fun onEnterKey(x: Float, y: Float) = this@PureTextInputML.onEnterKey(x, y)

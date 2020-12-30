@@ -463,13 +463,29 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
         }
     }
 
+    class HomogenousArray<V: ISaveable>(val elements: Array<V>): Saveable() {
+        override fun isDefaultValue(): Boolean = false
+        override fun getClassName(): String = "HomogenousArray"
+        override fun getApproxSize() = elements.map { it.getApproxSize() }.max()?.plus(1) ?: 1
+        override fun save(writer: BaseWriter) {
+            super.save(writer)
+
+        }
+    }
+
     override fun <V : ISaveable> writeHomogenousObjectArray(
         self: ISaveable?,
         name: String,
         elements: Array<V>,
         force: Boolean
     ) {
-        TODO("Not yet implemented")
+        if(force || elements.isNotEmpty()){
+            // todo implement correctly xD
+
+            elements.forEach {
+                writeObject(self, name, it, force)
+            }
+        }
     }
 
     override fun writePointer(name: String?, className: String, ptr: Int) {

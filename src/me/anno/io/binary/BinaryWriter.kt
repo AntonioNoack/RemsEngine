@@ -259,6 +259,10 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         output.writeInt(ptr)
     }
 
+    private fun writeObjectEnd(){
+        output.writeInt(-2)
+    }
+
     override fun writeObjectImpl(name: String?, value: ISaveable) {
         if (name != null) writeAttributeStart(name, OBJECT_IMPL)
         else output.write(OBJECT_IMPL.toInt())
@@ -266,7 +270,7 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
             writeTypeString(currentClass)
             output.writeInt(getPointer(value)!!)
             value.save(this)
-            output.writeInt(-2) // end
+            writeObjectEnd()
         }
     }
 
@@ -323,7 +327,15 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         elements: Array<V>,
         force: Boolean
     ) {
-        TODO("Not yet implemented")
+        if(force || elements.isNotEmpty()){
+            writeAttributeStart(name, OBJECTS_HOMOGENOUS_ARRAY)
+            writeTypeString(elements.firstOrNull()?.getClassName() ?: "")
+            output.writeInt(elements.size)
+            for(element in elements){
+                element.save(this)
+                writeObjectEnd()
+            }
+        }
     }
 
     override fun writeVector2fArray(name: String, elements: Array<Vector2f>, force: Boolean) {

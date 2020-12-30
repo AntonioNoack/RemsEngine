@@ -3,7 +3,7 @@
 This studio is intended for starters in the video industry, or YouTubers,
 and was inspired by the channel [YDS](https://www.youtube.com/user/YutsuraidanceStudios). I wanted to be able to make those transitions and motions easily myself. Without needing to buy some expensive software.
 
-![Screenshot of the program](https://phychi.com/remsstudio/shots/01.09.2020.png)
+![Screenshot of working in the program](https://remsstudio.phychi.com/img/mask%20gs%20add%20to%20ron.png)
 
 See the website for help: [remsstudio.phychi.com](https://remsstudio.phychi.com)
 

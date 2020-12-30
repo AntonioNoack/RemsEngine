@@ -3,6 +3,7 @@ package me.anno.io.binary;
 public class BinaryTypes {
     public static final char OBJECT_IMPL = 'o';
     public static final char OBJECT_ARRAY = 'O';
+    public static final char OBJECTS_HOMOGENOUS_ARRAY = '#';
     public static final char OBJECT_LIST_UNKNOWN_LENGTH = '&';
     public static final char OBJECT_PTR = '*';
     public static final char OBJECT_NULL = (char) 0;

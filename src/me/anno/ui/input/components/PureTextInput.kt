@@ -99,6 +99,9 @@ open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edi
         showBars = isInFocus && (blinkVisible || wasJustChanged)
     }
 
+    override val isShowingPlaceholder: Boolean
+        get() = text.isBlank()
+
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         loadTexturesSync.push(true)
         drawBackground()
@@ -251,18 +254,6 @@ open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edi
     fun setEnterListener(listener: (String) -> Unit): PureTextInput {
         enterListener = listener
         return this
-    }
-
-    // todo automatically show hints, when the user is typing
-    private fun applySuggestion(suggestion: Suggestion, choice: String) {
-        // todo the indexing still isn't completely correct... (example: Löwenfuß)
-        val text = text
-        val bytes = text.toByteArray()
-        val begin = if(suggestion.start == 0) "" else String(bytes, 0, suggestion.start)
-        val end = if(suggestion.end >= bytes.size) "" else String(bytes, suggestion.end, bytes.size-suggestion.end)
-        this.text = begin + choice + end
-        updateChars(true)
-        setCursor((begin + choice).codePoints().count().toInt()) // set the cursor to after the edit
     }
 
      override fun setCursor(position: Int){
