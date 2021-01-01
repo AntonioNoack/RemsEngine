@@ -7,28 +7,38 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFX.openMenu
 import me.anno.gpu.GFXx2D
 import me.anno.gpu.GFXx2D.drawRect
+import me.anno.gpu.GFXx2D.drawText
+import me.anno.gpu.GFXx2D.drawTextCharByChar
 import me.anno.gpu.GFXx2D.flatColor
 import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.objects.Transform
+import me.anno.studio.StudioBase.Companion.updateAudio
 import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.RemsStudio.editorTime
 import me.anno.studio.rems.RemsStudio.isPaused
 import me.anno.studio.rems.RemsStudio.project
 import me.anno.studio.rems.RemsStudio.targetDuration
 import me.anno.studio.rems.RemsStudio.targetFPS
-import me.anno.studio.StudioBase.Companion.updateAudio
 import me.anno.studio.rems.Selection
 import me.anno.ui.base.Panel
 import me.anno.ui.custom.CustomContainer.Companion.isCross
 import me.anno.ui.style.Style
-import me.anno.utils.*
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.fract
 import me.anno.utils.Maths.mix
 import me.anno.utils.Maths.mixARGB
 import me.anno.utils.Maths.pow
+import me.anno.utils.Quad
 import me.anno.utils.StringHelper.formatTime
+import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
+import kotlin.collections.forEach
+import kotlin.collections.last
+import kotlin.collections.listOf
+import kotlin.collections.minBy
+import kotlin.collections.reversed
+import kotlin.collections.set
 import kotlin.math.abs
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
@@ -45,6 +55,19 @@ open class TimelinePanel(style: Style) : Panel(style) {
         drawnStrings.clear()
         drawBackground()
         drawTimeAxis(x0, y0, x1, y1, true)
+    }
+
+    val font = style.getFont("tinyText", defaultFont)
+    val fontColor = style.getColor("textColor", DefaultStyle.fontGray)
+    val endColor = style.getColor("endColor", mixARGB(fontColor, 0xffff0000.toInt(), 0.5f))
+    val timeFont = font.withSize(20f)
+
+    fun drawCurrentTime() {
+        GFX.loadTexturesSync.push(true)
+        val text = getTimeString(editorTime, 0.0)
+        val color = mixARGB(fontColor, backgroundColor, 0.8f)
+        drawText(x + w / 2, y + h / 2, timeFont, text, color, backgroundColor, -1, true)
+        GFX.loadTexturesSync.pop()
     }
 
     companion object {
@@ -65,7 +88,7 @@ open class TimelinePanel(style: Style) : Panel(style) {
 
         var lastOwner: Transform = RemsStudio.root
 
-        fun updateLocalTime(){
+        fun updateLocalTime() {
 
             lastOwner = Selection.selectedTransform ?: lastOwner
 
@@ -144,10 +167,6 @@ open class TimelinePanel(style: Style) : Panel(style) {
         }
     }
 
-    val font = style.getFont("tinyText", defaultFont)
-    val fontColor = style.getColor("textColor", DefaultStyle.fontGray)
-    val endColor = style.getColor("endColor", mixARGB(fontColor, 0xffff0000.toInt(), 0.5f))
-
     fun normTime01(time: Double) = (time - centralTime) / dtHalfLength * 0.5f + 0.5f
     fun normTime01(time: Float) = (time - centralTime) / dtHalfLength * 0.5f + 0.5f
     fun normAxis11(lx: Float, x0: Int, size: Int) = (lx - x0) / size * 2f - 1f
@@ -209,7 +228,7 @@ open class TimelinePanel(style: Style) : Panel(style) {
         // splitting this results in 30% less time used
         // probably because of program switching
         // 8% more are gained by assigning the color only once
-        if(lineH > 0){
+        if (lineH > 0) {
             flatColor(lineColor)
             for (stepIndex in maxStepIndex downTo minStepIndex) {
                 val time = stepIndex * timeStep
@@ -241,7 +260,6 @@ open class TimelinePanel(style: Style) : Panel(style) {
         drawRect(getXAt(time).roundToInt(), y0 + 2, 1, y1 - y0 - 4, color)
     }
 
-
     fun getTimeStep(time: Double): Double {
         return timeFractions.minBy { abs(it - time) }!!.toDouble()
     }
@@ -269,7 +287,7 @@ open class TimelinePanel(style: Style) : Panel(style) {
 
     fun jumpToX(x: Float) = jumpToT(getTimeAt(x))
     fun jumpToT(t: Double) {
-        RemsStudio.largeChange("Timeline jump to ${t.formatTime()}/${(fract(t)*targetFPS).toInt()}"){
+        RemsStudio.largeChange("Timeline jump to ${t.formatTime()}/${(fract(t) * targetFPS).toInt()}") {
             editorTime = t
         }
         updateAudio()
@@ -278,7 +296,7 @@ open class TimelinePanel(style: Style) : Panel(style) {
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
         GFX.editorHoverTime = getTimeAt(x)
         if (0 in Input.mouseKeysDown) {
-            if((Input.isShiftDown || Input.isControlDown) && isPaused){
+            if ((Input.isShiftDown || Input.isControlDown) && isPaused) {
                 // scrubbing
                 editorTime = getTimeAt(x)
             } else {
@@ -291,7 +309,7 @@ open class TimelinePanel(style: Style) : Panel(style) {
     }
 
     override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float) {
-        if(Input.isShiftDown || Input.isControlDown){
+        if (Input.isShiftDown || Input.isControlDown) {
             val delta = dx - dy
             val scale = pow(1.05f, delta)
             if (Input.isControlDown) { // zoom

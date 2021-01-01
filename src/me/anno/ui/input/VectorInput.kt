@@ -78,25 +78,30 @@ class VectorInput(
         setValue(value, false)
     }
 
-    val components: Int = type.components
-    val valueFields = ArrayList<PureTextInput>(components)
+    private val components: Int = type.components
+    private val valueFields = ArrayList<PureTextInput>(components)
 
-    fun addComponent(i: Int, title: String): FloatInput {
-        val pseudo = VectorInputComponent(title, type, owningProperty, i, this, style)
+    private fun addComponent(i: Int, title: String): FloatInput {
+        val pseudo = VectorInputComponent(this.title, type, owningProperty, i, this, style)
         val input = pseudo.inputPanel
+        pseudo.inputPanel.tooltip = title
         valueList += input.setWeight(1f)
         valueFields += input
         return pseudo
     }
 
     // val titleList = PanelListX(style)
-    val valueList = PanelListX(style)
+    private val valueList = object : PanelListX(style) {
+        override var visibility: Visibility
+            get() = InputVisibility[title]
+            set(_) {}
+    }
 
     init {
         valueList.disableConstantSpaceForWeightedChildren = true
     }
 
-    val titleView = TitlePanel(title, this, style)
+    private val titleView = TitlePanel(title, this, style)
 
     init {
 
@@ -110,7 +115,7 @@ class VectorInput(
         titleView.setWeight(1f)
         titleView.focusTextColor = titleView.textColor
         titleView.setSimpleClickListener {
-            valueList.toggleVisibility()
+            InputVisibility.toggle(title, this)
             valueList.children.forEach { it.show() }
         }
 

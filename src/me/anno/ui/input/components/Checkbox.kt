@@ -11,7 +11,7 @@ import me.anno.ui.style.Style
 import org.lwjgl.glfw.GLFW
 import kotlin.math.min
 
-class Checkbox(startValue: Boolean, val size: Int, style: Style): Panel(style.getChild("checkbox")){
+open class Checkbox(startValue: Boolean, val size: Int, style: Style): Panel(style.getChild("checkbox")){
 
     // todo hover/toggle/focus color change
 

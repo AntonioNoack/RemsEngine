@@ -36,6 +36,11 @@ object Vectors {
     operator fun Vector4f.times(s: Float) = Vector4f(x * s, y * s, z * s, w * s)
     operator fun Vector4f.times(s: Vector4f) = Vector4f(x * s.x, y * s.y, z * s.z, w * s.w)
 
+
+    fun avg(a: Vector2f, b: Vector2f) = Vector2f(a).add(b).mul(0.5f)
+    fun avg(a: Vector2d, b: Vector2d) = Vector2d(a).add(b).mul(0.5)
+    fun avg(a: Vector3f, b: Vector3f) = Vector3f(a).add(b).mul(0.5f)
+
     fun avg(a: Vector2f, b: Vector2f, c: Vector2f) = Vector2f((a.x + b.x + c.x) / 3f, (a.y + b.y + c.y) / 3f)
     fun avg(a: Vector2d, b: Vector2d, c: Vector2d) = Vector2d((a.x + b.x + c.x) / 3f, (a.y + b.y + c.y) / 3f)
     fun avg(a: Vector3f, b: Vector3f, c: Vector3f) =

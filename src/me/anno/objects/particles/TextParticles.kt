@@ -32,7 +32,7 @@ import kotlin.math.roundToInt
 // todo linear + randomness for spawn time
 // todo select base font individually? just select the most common properties? or animatable base properties? idk...
 
-class TextParticles: Transform() {
+class TextParticles : Transform() {
 
     // todo if notCalculating && property was changed, invalidate cache
 
@@ -248,6 +248,7 @@ class TextParticles: Transform() {
                             { ConstantDistribution() },
                             { GaussianDistribution() },
                             { UniformDistribution() },
+                            { CuboidDistribution() },
                             { SphereHullDistribution() },
                             { SphereVolumeDistribution() }
                         ).map { generator ->
@@ -308,21 +309,7 @@ class TextParticles: Transform() {
     }
 
     override fun getAdditionalChildrenOptions(): List<Option> {
-        return listOf(
-            option { GlobalForce() },
-            option { GravityField() },
-            option { MultiGravityForce() },
-            option { LorentzForce() },
-            option { TornadoField() },
-            option { VelocityFrictionForce() }
-        )
-    }
-
-    fun option(generator: () -> ForceField): Option {
-        val sample = generator()
-        return Option(sample.displayName, sample.description) {
-            generator()
-        }
+        return ForceField.getForceFields()
     }
 
     override fun save(writer: BaseWriter) {

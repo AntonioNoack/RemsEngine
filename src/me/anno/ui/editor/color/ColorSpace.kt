@@ -6,9 +6,7 @@ import me.anno.ui.editor.color.spaces.HSLuv
 import me.anno.ui.editor.color.spaces.HSV
 import me.anno.ui.editor.color.spaces.LinearHSI
 import org.joml.Vector3f
-import kotlin.collections.ArrayList
-import kotlin.collections.HashMap
-import kotlin.collections.plusAssign
+import org.joml.Vector4f
 import kotlin.collections.set
 import kotlin.math.PI
 
@@ -123,6 +121,9 @@ abstract class ColorSpace(
 
     abstract fun fromRGB(rgb: Vector3f): Vector3f
     abstract fun toRGB(input: Vector3f): Vector3f
+
+    fun toRGB(x: Float, y: Float, z: Float, a: Float) = Vector4f(toRGB(Vector3f(x, y, z)), a)
+    fun toRGB(x: Double, y: Double, z: Double, a: Double) = toRGB(x.toFloat(), y.toFloat(), z.toFloat(), a.toFloat())
 
     companion object {
         val list = ArrayList<ColorSpace>()

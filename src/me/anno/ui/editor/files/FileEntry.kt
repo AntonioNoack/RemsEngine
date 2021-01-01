@@ -11,6 +11,7 @@ import me.anno.gpu.GFX.inFocus
 import me.anno.gpu.GFX.openMenu
 import me.anno.gpu.GFXx2D
 import me.anno.gpu.GFXx2D.drawTexture
+import me.anno.gpu.GFXx3D
 import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
@@ -238,6 +239,13 @@ class FileEntry(
             // how about Linux/Mac?
             // (maybe after half of the waiting time)
             val relativeTime = ((hoverPlaybackDelay + time) / hoverPlaybackDelay).toFloat()
+            drawLoadingCircle(relativeTime, x0, x1, y0, y1)
+        }
+    }
+
+    companion object {
+
+        fun drawLoadingCircle(relativeTime: Float, x0: Int, x1: Int, y0: Int, y1: Int) {
             val r = 1f - sq(relativeTime * 2 - 1)
             val radius = min(y1 - y0, x1 - x0) / 2f
             GFXx2D.drawCircle(
@@ -245,6 +253,16 @@ class FileEntry(
                 Vector4f(1f, 1f, 1f, r * 0.2f)
             )
         }
+
+        fun drawLoadingCircle(stack: Matrix4fArrayList, relativeTime: Float) {
+            GFXx3D.draw3DCircle(
+                null, 0.0, stack, 0f,
+                relativeTime * 360f * 4 / 3,
+                relativeTime * 360f * 2,
+                Vector4f(1f, 1f, 1f, 0.2f)
+            )
+        }
+
     }
 
     fun drawVideo(x0: Int, y0: Int, x1: Int, y1: Int) {
@@ -425,8 +443,8 @@ class FileEntry(
                  file.deleteRecursively()
                  explorer.invalidate()
              },*/
-            GFX.MenuOption("No", "Don't delete the file, keep it"){},
-            GFX.MenuOption("Yes, permanently", "Deletes the file; file cannot be recovered"){
+            GFX.MenuOption("No", "Don't delete the file, keep it") {},
+            GFX.MenuOption("Yes, permanently", "Deletes the file; file cannot be recovered") {
                 file.deleteRecursively()
                 explorer.invalidate()
             }
@@ -450,8 +468,11 @@ class FileEntry(
                     inFocus.forEach { (it as? FileEntry)?.file?.deleteRecursively() }
                     explorer.invalidate()
                 },*/
-                GFX.MenuOption("No", "Deletes none of the selected file; keeps them all"){},
-                        GFX.MenuOption("Yes, permanently", "Deletes all selected files; forever; files cannot be recovered"){
+                GFX.MenuOption("No", "Deletes none of the selected file; keeps them all") {},
+                GFX.MenuOption(
+                    "Yes, permanently",
+                    "Deletes all selected files; forever; files cannot be recovered"
+                ) {
                     inFocus.forEach { (it as? FileEntry)?.file?.deleteRecursively() }
                     explorer.invalidate()
                 }

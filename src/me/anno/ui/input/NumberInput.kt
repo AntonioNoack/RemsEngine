@@ -4,8 +4,6 @@ import me.anno.gpu.Cursor
 import me.anno.input.MouseButton
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.animation.Type
-import me.anno.studio.rems.RemsStudio
-import me.anno.studio.rems.Selection.selectedProperty
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.input.components.NumberInputComponent
@@ -29,19 +27,25 @@ abstract class NumberInput(
 
     val titleView = TitlePanel(title, this, style)
 
-    val inputPanel = NumberInputComponent(owningProperty, indexInProperty, this, style)
+    val inputPanel = object : NumberInputComponent(
+        owningProperty, indexInProperty, this@NumberInput, style
+    ) {
+        override var visibility: Visibility
+            get() = InputVisibility[title]
+            set(_) {}
+    }
 
     var wasInFocus = false
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         val focused1 = titleView.isInFocus || inputPanel.isInFocus
         if (focused1) isSelectedListener?.invoke()
-        if(RemsStudio.hideUnusedProperties){
+        /*if(RemsStudio.hideUnusedProperties){
             val focused2 = focused1 || (owningProperty != null && owningProperty == selectedProperty)
             inputPanel.visibility = if (focused2) Visibility.VISIBLE else Visibility.GONE
-        }
+        }*/
         super.onDraw(x0, y0, x1, y1)
-        when(this){
+        when (this) {
             is IntInput -> updateValueMaybe()
             is FloatInput -> updateValueMaybe()
             else -> throw RuntimeException()
@@ -56,7 +60,7 @@ abstract class NumberInput(
         this += titleView
         titleView.enableHoverColor = true
         titleView.focusTextColor = titleView.textColor
-        titleView.setSimpleClickListener { inputPanel.toggleVisibility() }
+        titleView.setSimpleClickListener { InputVisibility.toggle(title, this) }
         this += inputPanel
         inputPanel.setCursorToEnd()
         inputPanel.placeholder = title

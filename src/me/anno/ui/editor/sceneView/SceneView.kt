@@ -398,8 +398,12 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
             val step2 = cameraTransform.transformDirection(step)
             // todo transform into the correct space: from that camera to this camera
             val newPosition = oldPosition + step2
-            RemsStudio.incrementalChange("move-camera") {
+            if(camera == nullCamera){
                 camera.position.addKeyframe(cameraTime, newPosition, 0.01)
+            } else {
+                RemsStudio.incrementalChange("Move Camera") {
+                    camera.position.addKeyframe(cameraTime, newPosition, 0.01)
+                }
             }
             invalidateDrawing()
         }

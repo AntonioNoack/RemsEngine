@@ -16,10 +16,10 @@ import me.anno.ui.input.NumberInput
 import me.anno.ui.style.Style
 import me.anno.utils.AnyToFloat.get
 
-class NumberInputComponent(val owningProperty: AnimatedProperty<*>?,
-                           val indexInProperty: Int,
-                           val numberInput: NumberInput,
-                           style: Style
+open class NumberInputComponent(val owningProperty: AnimatedProperty<*>?,
+                                val indexInProperty: Int,
+                                val numberInput: NumberInput,
+                                style: Style
 ): PureTextInput(style.getChild("deep")) {
 
         val driver get() = owningProperty?.drivers?.get(indexInProperty)

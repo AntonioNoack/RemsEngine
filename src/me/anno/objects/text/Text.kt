@@ -286,7 +286,7 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
 
         val sdf2 = getTextTexture(key)
         if (sdf2 == null) {
-            if (GFX.isFinalRendering) throw MissingFrameException(File("Text-Texture $font: '$text'"))
+            if (GFX.isFinalRendering) throw MissingFrameException("Text-Texture $font: '$text'")
             needsUpdate = true
             return
         }
@@ -362,7 +362,7 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
 
             } else {
 
-                if (GFX.isFinalRendering) throw MissingFrameException(File("Text-Texture $font: '$text'"))
+                if (GFX.isFinalRendering) throw MissingFrameException("Text-Texture $font: '$text'")
                 needsUpdate = true
 
             }
@@ -378,7 +378,7 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
 
         val textMesh = getTextMesh(key)
         if (textMesh == null) {
-            if (GFX.isFinalRendering) throw MissingFrameException(File("Text-Mesh $font: '$text'"))
+            if (GFX.isFinalRendering) throw MissingFrameException("Text-Mesh $font: '$text'")
             needsUpdate = true
             return
         }

@@ -264,7 +264,7 @@ open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edi
     }
 
     override fun onEnterKey2(x: Float, y: Float) {
-        enterListener?.invoke(text) ?: super.onEnterKey(x, y)
+        enterListener?.invoke(text) ?: parent?.onEnterKey(x, y)
     }
 
     override fun onMouseDown(x: Float, y: Float, button: MouseButton) {

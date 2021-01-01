@@ -17,9 +17,13 @@ import me.anno.objects.Transform.Companion.yAxis
 import me.anno.objects.Transform.Companion.zAxis
 import me.anno.utils.Maths.distance
 import me.anno.utils.Maths.pow
+import me.anno.utils.Maths.sq
+import me.anno.utils.Vectors.avg
+import me.anno.utils.Vectors.minus
 import me.anno.utils.Vectors.toVec3f
 import org.joml.Matrix4f
 import org.joml.Matrix4fArrayList
+import org.joml.Vector3f
 import org.joml.Vector4f
 import org.lwjgl.opengl.GL20.GL_LINES
 import kotlin.math.atan2
@@ -62,7 +66,7 @@ object Grid {
         x0: Float, y0: Float, x1: Float, y1: Float,
         w: Int, h: Int, color: Int, alpha: Float
     ) {
-        if(y0 == y1){
+        if (y0 == y1) {
             drawLine01(x0, y0, x1, y1, w, h, color, alpha)
         } else {
             val actualAlpha = alpha * 0.2f
@@ -129,6 +133,30 @@ object Grid {
         lineBuffer.draw(shader, GL_LINES)
     }
 
+    fun drawLine(stack: Matrix4fArrayList, color: Vector4f, p0: Vector3f, p1: Vector3f) {
+
+        // rotate, scale, and move correctly
+        // (-1,0,0) / (+1,0,0) shall become p0 / p1
+        stack.pushMatrix()
+        stack.translate(avg(p0, p1))
+        stack.scale(p0.distance(p1) * 0.5f)
+        val dif = (p1 - p0).normalize()
+        // this rotation is correct
+        stack.rotateZ(-atan2(dif.y, dif.x))
+        stack.rotateY(-atan2(dif.z, sqrt(sq(dif.x, dif.y))))
+
+        val shader = shader3D
+        shader.use()
+        GFXTransform.uploadAttractors0(shader)
+        shader.m4x4("transform", stack)
+        defaultUniforms(shader, color)
+        bindWhite(0)
+        lineBuffer.draw(shader, GL_LINES)
+
+        stack.popMatrix()
+
+    }
+
     fun drawLine(stack: Matrix4fArrayList, color: Int, alpha: Float) {
 
         val shader = shader3D
@@ -146,7 +174,7 @@ object Grid {
 
         if (GFX.isFinalRendering) return
 
-        BlendDepth(BlendMode.ADD, false){
+        BlendDepth(BlendMode.ADD, false) {
 
             val distance = cameraTransform.transformProject(Vector4f(0f, 0f, 0f, 1f)).toVec3f().length()
             val log = log10(distance)

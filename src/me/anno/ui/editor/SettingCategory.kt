@@ -7,12 +7,13 @@ import me.anno.ui.base.Visibility
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.input.InputVisibility
 import me.anno.ui.style.Style
 import me.anno.utils.Keys.isClickKey
 import me.anno.utils.Maths.mixARGB
 import kotlin.math.max
 
-open class SettingCategory(titleText: String, style: Style, val canCopyTitleText: Boolean = false) : PanelGroup(style) {
+open class SettingCategory(val titleText: String, style: Style, val canCopyTitleText: Boolean = false) : PanelGroup(style) {
 
     val title = object : TextPanel(titleText, style.getChild("group")) {
         override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
@@ -25,7 +26,11 @@ open class SettingCategory(titleText: String, style: Style, val canCopyTitleText
         }
     }
 
-    val content = PanelListY(style)
+    val content = object: PanelListY(style){
+        override var visibility: Visibility
+            get() = InputVisibility[titleText]
+            set(value) {}
+    }
     val padding = Padding((title.font.size * .667f).toInt(), 0, 0, 0)
 
     init {
@@ -38,13 +43,11 @@ open class SettingCategory(titleText: String, style: Style, val canCopyTitleText
     }
 
     fun show2() {
-        content.visibility = Visibility.VISIBLE
+        InputVisibility.show(titleText, null)
     }
 
     fun toggle() {
-        content.visibility =
-            if (content.visibility == Visibility.VISIBLE) Visibility.GONE
-            else Visibility.VISIBLE
+        InputVisibility.toggle(titleText, this)
     }
 
     override fun onKeyTyped(x: Float, y: Float, key: Int) {

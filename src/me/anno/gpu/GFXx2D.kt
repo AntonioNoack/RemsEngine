@@ -99,22 +99,37 @@ object GFXx2D {
     ) =
         writeText(x, y, font, text, color, backgroundColor, widthLimit, centerX)
 
-    private fun writeTextFallback(
+    fun drawTextCharByChar(
         x: Int, y: Int,
         font: Font,
         text: String,
         color: Int,
         backgroundColor: Int,
         widthLimit: Int,
-        centerX: Boolean
+        centerX: Boolean,
+        equalSpaced: Boolean
     ): Pair<Int, Int> {
 
+        // todo correct width for spaces...
+
+        val charWidth = if (equalSpaced)
+            getTextSize(font, "a", widthLimit).first
+        else 0
+
         if (centerX) {
-            return writeTextFallback(
-                x - getTextSize(font, text, widthLimit).first / 2, y,
-                font, text, color, backgroundColor,
-                widthLimit, false
-            )
+            return if (equalSpaced) {
+                drawTextCharByChar(
+                    x - (charWidth * text.length) / 2, y,
+                    font, text, color, backgroundColor,
+                    widthLimit, false, equalSpaced
+                )
+            } else {
+                drawTextCharByChar(
+                    x - getTextSize(font, text, widthLimit).first / 2, y,
+                    font, text, color, backgroundColor,
+                    widthLimit, false, equalSpaced
+                )
+            }
         }
 
         // todo width limit...
@@ -132,17 +147,18 @@ object GFXx2D {
             val txt = "$char"
             val size = FontManager.getSize(font, txt, -1)
             h = size.second
-            val w = size.first
+            val w = if (equalSpaced) charWidth else size.first
             if (txt.isNotBlank()) {
                 val texture = FontManager.getString(font, txt, -1)
                 if (texture != null) {
                     texture.bind(GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+                    val x2 = fx + (w - size.first) / 2
                     shader.v2(
                         "pos",
-                        (fx - GFX.windowX).toFloat() / GFX.windowWidth,
+                        (x2 - GFX.windowX).toFloat() / GFX.windowWidth,
                         1f - (y - GFX.windowY).toFloat() / GFX.windowHeight
                     )
-                    shader.v2("size", w.toFloat() / GFX.windowWidth, -h.toFloat() / GFX.windowHeight)
+                    shader.v2("size", size.first.toFloat() / GFX.windowWidth, -h.toFloat() / GFX.windowHeight)
                     GFX.flat01.draw(shader)
                     GFX.check()
                 }
@@ -167,7 +183,7 @@ object GFXx2D {
         GFX.check()
         val tex0 = FontManager.getString(font, text, widthLimit)
         if ((tex0 == null || tex0 !is Texture2D || !tex0.isCreated) && text.length > 1) {
-            return writeTextFallback(x, y, font, text, color, backgroundColor, widthLimit, centerX)
+            return drawTextCharByChar(x, y, font, text, color, backgroundColor, widthLimit, centerX, false)
         }
 
         val texture = tex0 ?: return 0 to font.sizeInt

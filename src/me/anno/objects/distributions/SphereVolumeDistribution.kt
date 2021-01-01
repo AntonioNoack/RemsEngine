@@ -1,5 +1,6 @@
 package me.anno.objects.distributions
 
+import org.joml.Matrix4fArrayList
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -7,7 +8,7 @@ import org.joml.Vector4f
 class SphereVolumeDistribution(center: Vector4f, size: Vector4f) :
     CenterSizeDistribution(
         "Sphere Volume", "Points from the inside of the sphere",
-        center, size
+        center, size,null
     ) {
 
     constructor() : this(0f, 1f)
@@ -23,7 +24,7 @@ class SphereVolumeDistribution(center: Vector4f, size: Vector4f) :
             x = random.nextFloat() * 2f - 1f
             y = random.nextFloat() * 2f - 1f
         } while (x * x + y * y > 1f)
-        return Vector2f(x, y).mul(size.x, size.y).add(center.x, center.y)
+        return Vector2f(x, y).transform()
     }
 
     override fun nextV3(): Vector3f {
@@ -35,7 +36,11 @@ class SphereVolumeDistribution(center: Vector4f, size: Vector4f) :
             y = random.nextFloat() * 2f - 1f
             z = random.nextFloat() * 2f - 1f
         } while (x * x + y * y + z * z > 1f)
-        return Vector3f(x, y, z).normalize().mul(size.x, size.y, size.z).add(center.x, center.y, center.z)
+        return Vector3f(x, y, z).transform()
+    }
+
+    override fun drawTransformed(stack: Matrix4fArrayList) {
+        drawSphere(stack)
     }
 
     override fun getClassName() = "SphereVolumeDistribution"

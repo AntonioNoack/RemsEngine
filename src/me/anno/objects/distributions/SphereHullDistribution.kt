@@ -1,5 +1,6 @@
 package me.anno.objects.distributions
 
+import org.joml.Matrix4fArrayList
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -7,7 +8,7 @@ import org.joml.Vector4f
 class SphereHullDistribution(center: Vector4f, size: Vector4f) :
     CenterSizeDistribution(
         "Sphere Hull", "Distributes points from the hull of a sphere or circle, not from the volume",
-        center, size
+        center, size, null
     ) {
 
     constructor() : this(0f, 1f)
@@ -20,7 +21,7 @@ class SphereHullDistribution(center: Vector4f, size: Vector4f) :
         return Vector2f(
             random.nextFloat() - 0.5f,
             random.nextFloat() - 0.5f
-        ).mul(size).normalize().mul(size).add(center)
+        ).mul(size).normalize().transform()
     }
 
     override fun nextV3(): Vector3f {
@@ -28,7 +29,11 @@ class SphereHullDistribution(center: Vector4f, size: Vector4f) :
             random.nextFloat() - 0.5f,
             random.nextFloat() - 0.5f,
             random.nextFloat() - 0.5f
-        ).mul(size).normalize().mul(size).add(center)
+        ).mul(size).normalize().transform()
+    }
+
+    override fun drawTransformed(stack: Matrix4fArrayList) {
+        drawSphere(stack)
     }
 
     override fun getClassName() = "SphereHullDistribution"

@@ -444,7 +444,7 @@ object Scene {
         val needsLUT = !isFakeColorRendering && lutFile.exists() && !lutFile.isDirectory
         val lut = if (needsLUT) Cache.getLUT(lutFile, true, 20_000) else null
 
-        if (lut == null && needsLUT && isFinalRendering) throw MissingFrameException(File(""))
+        if (lut == null && needsLUT && isFinalRendering) throw MissingFrameException(lutFile)
 
         fun drawColors() {
 

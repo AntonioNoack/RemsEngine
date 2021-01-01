@@ -1,6 +1,8 @@
 package me.anno.objects.distributions
 
 import me.anno.objects.InspectableVector
+import me.anno.ui.editor.sceneView.Grid
+import org.joml.Matrix4fArrayList
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -32,6 +34,17 @@ class ConstantDistribution(val center: Vector4f) : Distribution("Constant", "Alw
         )
     }
 
+    override fun onDraw(stack: Matrix4fArrayList) {
+        val l = displayLength
+        Grid.drawLine(stack, Vector4f(1f), Vector3f(-l,0f,0f), Vector3f(+l,0f,0f))
+        Grid.drawLine(stack, Vector4f(1f), Vector3f(0f,-l,0f), Vector3f(0f,+l,0f))
+        Grid.drawLine(stack, Vector4f(1f), Vector3f(0f,0f,-l), Vector3f(0f,0f,+l))
+    }
+
     override fun getClassName() = "ConstantDistribution"
+
+    companion object {
+        private val displayLength = 0.1f
+    }
 
 }

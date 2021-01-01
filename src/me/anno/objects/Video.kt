@@ -56,6 +56,8 @@ import org.joml.Vector4f
 import java.io.File
 import kotlin.math.*
 
+// todo auto-exposure correction by calculating the exposure, and adjusting the brightness
+
 // idea: hovering needs to be used to predict when the user steps forward in time
 // -> no, that's too taxing; we'd need to pre-render a smaller version
 // todo pre-render small version for scrubbing? can we playback a small version using ffmpeg with no storage overhead?

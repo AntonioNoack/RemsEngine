@@ -51,7 +51,7 @@ class AnimatedProperty<V>(val type: Type, var defaultValue: V) : Saveable() {
         fun vec3() = AnimatedProperty<Vector3f>(Type.VEC3)
         fun dir3() = vec3(Vector3f(0f, 1f, 0f))
         fun vec3(defaultValue: Vector3f) = AnimatedProperty(Type.VEC3, defaultValue)
-        fun vec4() = AnimatedProperty<Vector3f>(Type.VEC4)
+        fun vec4() = AnimatedProperty<Vector4f>(Type.VEC4)
         fun vec4(defaultValue: Vector4f) = AnimatedProperty(Type.VEC4, defaultValue)
         fun pos() = AnimatedProperty<Vector3f>(Type.POSITION)
         fun rotYXZ() = AnimatedProperty<Vector3f>(Type.ROT_YXZ)

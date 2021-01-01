@@ -137,17 +137,6 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
 
     }
 
-    val timeFont = font.withSize(20f)
-
-    fun drawCurrentTime() {
-        loadTexturesSync.push(true)
-        val text = getTimeString(editorTime, 0.0)
-        val (tw, th) = getTextSize(font, text, -1)
-        val color = mixARGB(fontColor, backgroundColor, 0.8f)
-        drawText(x + (w - tw) / 2, y + (h - th) / 2, timeFont, text, color, backgroundColor, -1)
-        loadTexturesSync.pop()
-    }
-
     private fun autoResize(property: AnimatedProperty<*>) {
 
         val t0 = centralTime - dtHalfLength

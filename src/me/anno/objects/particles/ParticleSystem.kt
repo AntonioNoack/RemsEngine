@@ -2,6 +2,7 @@ package me.anno.objects.particles
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.GFX.openMenu
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
@@ -9,11 +10,13 @@ import me.anno.objects.Transform
 import me.anno.objects.animation.Type
 import me.anno.objects.distributions.*
 import me.anno.objects.particles.forces.ForceField
-import me.anno.objects.particles.forces.impl.*
+import me.anno.objects.particles.forces.impl.BetweenParticleGravity
+import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.studio.rems.RemsStudio
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
+import me.anno.ui.editor.files.FileEntry.Companion.drawLoadingCircle
 import me.anno.ui.editor.stacked.Option
 import me.anno.ui.input.BooleanInput
 import me.anno.ui.style.Style
@@ -24,13 +27,18 @@ import me.anno.utils.Maths.mix
 import me.anno.utils.Vectors.plus
 import me.anno.utils.Vectors.times
 import me.anno.utils.processBalanced
+import me.anno.utils.structures.UnsafeArrayList
+import me.anno.utils.structures.UnsafeSkippingArrayList
+import me.anno.video.MissingFrameException
 import org.joml.Matrix4fArrayList
 import org.joml.Vector3f
 import org.joml.Vector4f
 import java.util.*
 import kotlin.collections.ArrayList
+import kotlin.concurrent.thread
+import kotlin.math.abs
 import kotlin.math.max
-import kotlin.math.roundToInt
+import kotlin.math.min
 
 class ParticleSystem(parent: Transform? = null) : Transform(parent) {
 
@@ -38,7 +46,6 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
 
     override fun getSymbol() = DefaultConfig["ui.symbol.particleSystem", "❄"]
 
-    // todo what about negative colors?... need to be generatable
     val spawnColor = AnimatedDistribution(Type.COLOR3, listOf(Vector3f(1f), Vector3f(0f)))
     val spawnPosition = AnimatedDistribution(Type.POSITION, listOf(Vector3f(0f), Vector3f(1f)))
     val spawnVelocity = AnimatedDistribution(GaussianDistribution(), Type.POSITION, listOf(Vector3f(0f), Vector3f(1f)))
@@ -58,8 +65,8 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
     var showChildren = false
     var simulationStep = 0.5
 
-    val aliveParticles = ArrayList<Particle>()
-    val particles = ArrayList<Particle>()
+    val aliveParticles = UnsafeSkippingArrayList<Particle>()
+    val particles = UnsafeArrayList<Particle>()
     var seed = 0L
 
     var random = Random(seed)
@@ -69,13 +76,23 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
     var fadingIn = 0.5
     var fadingOut = 0.5
 
-    fun step(particle: Particle, forces: List<ForceField>) {
+    fun step(particle: Particle, forces: List<ForceField>, aliveParticles: List<Particle>) {
         particle.apply {
             val oldState = states.last()
             val force = Vector3f()
             val time = particle.states.size * simulationStep + particle.birthTime
             forces.forEach { field ->
-                force.add(field.getForce(oldState, time, aliveParticles))
+                val subForce = field.getForce(oldState, time, aliveParticles)
+                val forceLength = subForce.length()
+                if (forceLength.isFinite()) {
+                    force.add(
+                        if (forceLength < 1000f) {
+                            subForce
+                        } else {
+                            subForce * (1000f / forceLength)
+                        }
+                    )
+                }
             }
             val ddPosition = force / mass
             val dt = simulationStep.toFloat()
@@ -87,55 +104,152 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
             newState.rotation = oldState.rotation + oldState.dRotation * dt
             newState.dRotation = oldState.dRotation // todo rotational friction or acceleration???...
             newState.color = oldState.color
-            synchronized(states) {
-                states.add(newState)
-            }
+            states.add(newState)
         }
     }
 
-    fun step(particles: ArrayList<Particle>, time: Double) {
-
-        val lastTime = particles.lastOrNull()?.birthTime ?: 0.0
-        if (lastTime >= time) return
+    private fun spawnIfRequired(time: Double, onlyFirst: Boolean) {
 
         spawnRate.update(time, random)
 
+        val lastTime = particles.lastOrNull()?.birthTime ?: 0.0
         val c0 = spawnRate.channels[0]
         val integral0 = c0.getIntegral<Float>(lastTime, false)
         val integral1 = c0.getIntegral<Float>(time, false)
         val sinceThenIntegral = integral1 - integral0
 
-        val missingChildren = sinceThenIntegral.toInt()
+        var missingChildren = sinceThenIntegral.toInt()
 
-        // todo more accurate calculation for changing spawn rates...
-        // todo calculate, when the integral since lastTime surpassed 1.0 xD
-        // todo until we have reached time
-        // generate new particles
-        for (i in 0 until missingChildren) {
-            val newParticle = createParticle(mix(lastTime, time, (i + 1.0) / sinceThenIntegral))
-            particles += newParticle
-            aliveParticles += newParticle
-        }
+        if (missingChildren > 0) {
 
-        // update all particles, which need an update
-        val forces = children.filterIsInstance<ForceField>()
-        processBalanced(0, aliveParticles.size, false) { i0, i1 ->
-            for (i in i0 until i1) {
-                val particle = aliveParticles[i]
-                val particleTime = time - particle.birthTime
-                val index = (particleTime / simulationStep).roundToInt()
-                while (particle.states.size < index + 2) {
-                    step(particle, forces)
-                }
+            if (onlyFirst) missingChildren = max(1, missingChildren)
+
+            // todo more accurate calculation for changing spawn rates...
+            // todo calculate, when the integral since lastTime surpassed 1.0 xD
+            // todo until we have reached time
+            // generate new particles
+            val newParticles = ArrayList<Particle>()
+            for (i in 0 until missingChildren) {
+                val newParticle = createParticle(mix(lastTime, time, (i + 1.0) / sinceThenIntegral))
+                newParticles += newParticle
             }
+
+            synchronized(this) {
+                particles += newParticles
+                aliveParticles += newParticles
+            }
+
         }
-        aliveParticles.removeIf { time - it.birthTime >= it.lifeTime + 2 * simulationStep }
 
     }
 
-    override fun drawChildrenAutomatically() = !GFX.isFinalRendering && showChildren
+    /**
+     * returns whether everything was calculated
+     * */
+    fun step(time: Double): Boolean {
+        return step(time, false, 1.0 / 120.0)// 120 fps ^^
+    }
 
-    fun createParticle(time: Double): Particle {
+    var isWorkingAsync: Thread? = null
+
+    /**
+     * returns whether everything was calculated
+     * */
+    fun step(time: Double, isAsync: Boolean, timeLimit: Double): Boolean {
+        val startTime = System.nanoTime()
+
+        if (isWorkingAsync != null && !isAsync) {
+            synchronized(this) {
+                val needsUpdates = aliveParticles.any { it.lastTime(simulationStep) < time }
+                return !needsUpdates
+            }
+        }
+
+        if (aliveParticles.isNotEmpty()) {
+
+            val forces = children.filterIsInstance<ForceField>()
+            val hasON2Force = forces.any { it is BetweenParticleGravity }
+            var currentTime = aliveParticles.map { it.lastTime(simulationStep) }.min()!!
+            while (currentTime < time) {
+
+                Thread.sleep(0)
+
+                // 10 ms timeout
+                val deltaTime = abs(System.nanoTime() - startTime)
+                if (deltaTime / 1e9 > timeLimit) {
+
+                    if (!isAsync) {
+                        isWorkingAsync = thread {
+                            try {
+                                step(time + 5.0, true, 1.0)
+                                addEvent { RemsStudio.updateSceneViews() }
+                            } catch (e: InterruptedException) { /* cache was invalidated */
+                            }
+                            isWorkingAsync = null
+                        }
+                    }
+
+                    return false
+                }
+
+                currentTime = min(time, currentTime + simulationStep)
+
+                Thread.sleep(0)
+
+                spawnIfRequired(currentTime, false)
+
+                Thread.sleep(0)
+
+                val needsUpdate = aliveParticles.filter { it.lastTime(simulationStep) < currentTime }
+
+                // update all particles, which need an update
+                if (hasON2Force && !isAsync) {
+                    // just process the first entries...
+                    val limit = max(65536 / needsUpdate.size, 10)
+                    if (needsUpdate.size > limit) {
+                        processBalanced(0, limit, 16) { i0, i1 ->
+                            val aliveParticles = ArrayList(aliveParticles)
+                            for (i in i0 until i1) {
+                                step(needsUpdate[i], forces, aliveParticles)
+                            }
+                        }
+                        currentTime -= simulationStep // undo the advancing step...
+                    } else {
+                        processBalanced(0, needsUpdate.size, 16) { i0, i1 ->
+                            val aliveParticles = ArrayList(aliveParticles)
+                            for (i in i0 until i1) {
+                                step(needsUpdate[i], forces, aliveParticles)
+                            }
+                        }
+                        aliveParticles.removeIf { (it.states.size - 2) * simulationStep >= it.lifeTime }
+                    }
+                } else {
+                    // process all
+                    processBalanced(0, needsUpdate.size, 16) { i0, i1 ->
+                        val aliveParticles = ArrayList(aliveParticles)
+                        for (i in i0 until i1) {
+                            step(needsUpdate[i], forces, aliveParticles)
+                        }
+                    }
+                    aliveParticles.removeIf { (it.states.size - 2) * simulationStep >= it.lifeTime }
+                }
+
+
+            }
+
+        } else {
+
+            spawnIfRequired(time, true)
+            return aliveParticles.isEmpty() || step(time)
+
+        }
+
+        return true
+    }
+
+    override fun drawChildrenAutomatically() = !isFinalRendering && showChildren
+
+    private fun createParticle(time: Double): Particle {
 
         // find the particle type
         var randomIndex = random.nextFloat() * sumWeight
@@ -174,6 +288,10 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
 
     fun clearCache() {
         synchronized(this) {
+            if (isWorkingAsync != null) {
+                isWorkingAsync?.interrupt()
+                isWorkingAsync = null
+            }
             particles.clear()
             aliveParticles.clear()
             random = Random(seed)
@@ -185,43 +303,77 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
 
         super.onDraw(stack, time, color)
 
+        // draw all forces
+        if (!isFinalRendering) {
+            children.filterIsInstance<ForceField>().forEach {
+                stack.pushMatrix()
+                it.draw(stack, time, color)
+                stack.popMatrix()
+            }
+            synchronized(spawnPosition) {
+                spawnPosition.update(time, Random())
+                spawnPosition.distribution.onDraw(stack)
+            }
+        }
+
         sumWeight = children.filterNot { it is ForceField }.sumByFloat { it.weight }
         if (time < 0f || children.isEmpty() || sumWeight <= 0.0) return
 
-        step(particles, time)
+        if (step(time)) {
+            drawParticles(stack, time, color)
+        } else {
+            if (isFinalRendering) throw MissingFrameException(name)
+            drawLoadingCircle(stack, time.toFloat() % 1f)
+            drawParticles(stack, time, color)
+        }
+
+    }
+
+    private fun drawParticles(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
 
         // draw all particles at this point in time
-        particles.forEach {
-            it.apply {
+        particles.forEach { p ->
+            p.apply {
 
-                val lifeOpacity = it.getLifeOpacity(time, simulationStep, fadingIn, fadingOut).toFloat()
-                val opacity = clamp(lifeOpacity * it.opacity, 0f, 1f)
+
+                val lifeOpacity = p.getLifeOpacity(time, simulationStep, fadingIn, fadingOut).toFloat()
+                val opacity = clamp(lifeOpacity * p.opacity, 0f, 1f)
                 if (opacity > 1e-3f) {// else not visible
                     stack.pushMatrix()
 
-                    val particleTime = time - it.birthTime
-                    val index = particleTime / simulationStep
-                    val index0 = index.toInt()
-                    val indexF = fract(index).toFloat()
+                    try {
 
-                    val position = getPosition(index0, indexF)
-                    val rotation = getRotation(index0, indexF)
+                        val particleTime = time - p.birthTime
+                        val index = particleTime / simulationStep
+                        val index0 = index.toInt()
+                        val indexF = fract(index).toFloat()
 
-                    stack.translate(position)
-                    stack.rotateY(rotation.y)
-                    stack.rotateX(rotation.x)
-                    stack.rotateZ(rotation.z)
-                    stack.scale(scale)
+                        val state0 = states.getOrElse(index0) { states.last() }
+                        val state1 = states.getOrElse(index0 + 1) { states.last() }
 
-                    val color0 = getColor(index0, indexF)
+                        val position = state0.position.lerp(state1.position, indexF, position)
+                        val rotation = state0.rotation.lerp(state1.rotation, indexF, rotation)
 
-                    // normalize time for calculated functions?
-                    // node editor? like in Blender or Unreal Engine
-                    val particleColor = color * Vector4f(color0, opacity)
-                    type.draw(stack, time - it.birthTime, particleColor)
+                        stack.translate(position)
+                        stack.rotateY(rotation.y)
+                        stack.rotateX(rotation.x)
+                        stack.rotateZ(rotation.z)
+                        stack.scale(scale)
+
+                        val color0 = state0.color.lerp(state1.color, indexF, p.color)
+
+                        // normalize time for calculated functions?
+                        // node editor? like in Blender or Unreal Engine
+                        val particleColor = color * Vector4f(color0, opacity)
+                        type.draw(stack, time - p.birthTime, particleColor)
+
+                    } catch (e: IndexOutOfBoundsException) {
+                        if (isFinalRendering) throw MissingFrameException("$p")
+                    }
 
                     stack.popMatrix()
                 }
+
 
             }
         }
@@ -250,6 +402,7 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
                             { ConstantDistribution() },
                             { GaussianDistribution() },
                             { UniformDistribution() },
+                            { CuboidDistribution() },
                             { SphereHullDistribution() },
                             { SphereVolumeDistribution() }
                         ).map { generator ->
@@ -310,21 +463,7 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
     }
 
     override fun getAdditionalChildrenOptions(): List<Option> {
-        return listOf(
-            option { GlobalForce() },
-            option { GravityField() },
-            option { MultiGravityForce() },
-            option { LorentzForce() },
-            option { TornadoField() },
-            option { VelocityFrictionForce() }
-        )
-    }
-
-    fun option(generator: () -> ForceField): Option {
-        val sample = generator()
-        return Option(sample.displayName, sample.description) {
-            generator()
-        }
+        return ForceField.getForceFields()
     }
 
     override fun save(writer: BaseWriter) {
