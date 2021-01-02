@@ -6,6 +6,7 @@ import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.GFX.openMenu
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
+import me.anno.language.translation.Dict
 import me.anno.objects.Transform
 import me.anno.objects.animation.Type
 import me.anno.objects.distributions.*
@@ -40,11 +41,12 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
+// todo translations for everything...
+// todo limit the history to entries with 5x the same name? how exactly?...
+
 class ParticleSystem(parent: Transform? = null) : Transform(parent) {
 
     // todo if notCalculating && property was changed, invalidate cache
-
-    override fun getSymbol() = DefaultConfig["ui.symbol.particleSystem", "❄"]
 
     val spawnColor = AnimatedDistribution(Type.COLOR3, listOf(Vector3f(1f), Vector3f(0f)))
     val spawnPosition = AnimatedDistribution(Type.POSITION, listOf(Vector3f(0f), Vector3f(1f)))
@@ -67,14 +69,18 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
 
     val aliveParticles = UnsafeSkippingArrayList<Particle>()
     val particles = UnsafeArrayList<Particle>()
-    var seed = 0L
 
+    var seed = 0L
     var random = Random(seed)
 
     var sumWeight = 0f
 
-    var fadingIn = 0.5
-    var fadingOut = 0.5
+    /**
+     * the calculation depends somewhat on it;
+     * they could be animated, but idk, why you would do that...
+     * */
+    var fadeIn = 0.5
+    var fadeOut = 0.5
 
     fun step(particle: Particle, forces: List<ForceField>, aliveParticles: List<Particle>) {
         particle.apply {
@@ -336,7 +342,7 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
             p.apply {
 
 
-                val lifeOpacity = p.getLifeOpacity(time, simulationStep, fadingIn, fadingOut).toFloat()
+                val lifeOpacity = p.getLifeOpacity(time, simulationStep, fadeIn, fadeOut).toFloat()
                 val opacity = clamp(lifeOpacity * p.opacity, 0f, 1f)
                 if (opacity > 1e-3f) {// else not visible
                     stack.pushMatrix()
@@ -389,7 +395,7 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
         super.createInspector(list, style, getGroup)
 
         var viCtr = 0
-        fun VI(name: String, description: String, property: AnimatedDistribution) {
+        fun vi(name: String, description: String, property: AnimatedDistribution) {
             fun getName() = "$name: ${property.distribution.getClassName().split("Distribution").first()}"
             val group = getGroup(getName(), "$viCtr")
             group.setTooltip(description)
@@ -426,27 +432,37 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
 
         // todo visualize the distributions and their parameters somehow...
 
-        VI("Spawn Rate", "How many particles are spawned per second", spawnRate)
-        VI("Life Time", "How many seconds a particle is visible", lifeTime)
-        VI("Initial Position", "Where the particles spawn", spawnPosition)
-        VI("Initial Velocity", "How fast the particles are, when they are spawned", spawnVelocity)
-        VI("Initial Rotation", "How the particles are rotated initially", spawnRotation)
-        VI("Rotation Velocity", "How fast the particles are rotating", spawnRotationVelocity)
+        fun vt(name: String, title: String, description: String, obj: AnimatedDistribution) {
+            vi(Dict[title, "obj.particles.$name"], Dict[description, "obj.particles.$name.desc"], obj)
+        }
 
-        VI("Color", "Initial particle color", spawnColor)
-        VI("Opacity", "Initial particle opacity (1-transparency)", spawnOpacity)
-        VI("Size", "Initial particle size", spawnSize)
+        vt("spawnRate", "Spawn Rate", "How many particles are spawned per second", spawnRate)
+        vt("lifeTime", "Life Time", "How many seconds a particle is visible", lifeTime)
+        vt("initPosition", "Initial Position", "Where the particles spawn", spawnPosition)
+        vt("initVelocity","Initial Velocity", "How fast the particles are, when they are spawned", spawnVelocity)
+        vi("Initial Rotation", "How the particles are rotated initially", spawnRotation)
+        vi("Rotation Velocity", "How fast the particles are rotating", spawnRotationVelocity)
+
+        vi("Color", "Initial particle color", spawnColor)
+        vi("Opacity", "Initial particle opacity (1-transparency)", spawnOpacity)
+        vi("Size", "Initial particle size", spawnSize)
 
         val general = getGroup("Particle System", "particles")
 
         general += vi(
-            "Simulation Step",
-            "Larger values are faster, while smaller values are more accurate for forces",
+            "Simulation Step", "Larger values are faster, while smaller values are more accurate for forces",
             Type.DOUBLE, simulationStep, style
         ) {
             if (it > 1e-9) simulationStep = it
             clearCache()
         }
+
+        general += vi(
+            "Fade In", "Time from spawning to the max. opacity", Type.DOUBLE_PLUS, fadeIn, style
+        ) { fadeIn = it }
+        general += vi(
+            "Fade Out", "Time before death, from which is starts to fade away", Type.DOUBLE_PLUS, fadeOut, style
+        ) { fadeOut = it }
 
         general += BooleanInput("Show Children", showChildren, style)
             .setChangeListener { showChildren = it }
@@ -469,6 +485,8 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
     override fun save(writer: BaseWriter) {
         super.save(writer)
         writer.writeDouble("simulationStep", simulationStep)
+        writer.writeDouble("fadeIn", fadeIn)
+        writer.writeDouble("fadeOut", fadeOut)
         writer.writeObject(this, "spawnPosition", spawnPosition)
         writer.writeObject(this, "spawnVelocity", spawnVelocity)
         writer.writeObject(this, "spawnRotation", spawnRotation)
@@ -483,6 +501,8 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
     override fun readDouble(name: String, value: Double) {
         when (name) {
             "simulationStep" -> simulationStep = max(1e-9, value)
+            "fadeIn" -> fadeIn = max(value, 0.0)
+            "fadeOut" -> fadeOut = max(value, 0.0)
             else -> super.readDouble(name, value)
         }
     }
@@ -508,5 +528,7 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
 
     override fun acceptsWeight() = true
     override fun getClassName() = "ParticleSystem"
+    override fun getDefaultDisplayName(): String = Dict["Particle System", "obj.particles"]
+    override fun getSymbol() = DefaultConfig["ui.symbol.particleSystem", "❄"]
 
 }

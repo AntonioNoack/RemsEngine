@@ -1,6 +1,7 @@
 package me.anno.objects.text
 
 import me.anno.config.DefaultConfig
+import me.anno.language.translation.Dict
 import me.anno.objects.Transform
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
@@ -18,7 +19,6 @@ class Timer(parent: Transform? = null): Text("", parent) {
 
     // todo extra start value in a date format?
 
-    override fun getSymbol() = DefaultConfig["ui.symbol.timer", "\uD83D\uDD51"]
 
     var format = "hh:mm:ss.s2"
 
@@ -102,5 +102,7 @@ class Timer(parent: Transform? = null): Text("", parent) {
     }
 
     override fun getClassName() = "Timer"
+    override fun getDefaultDisplayName() = Dict["Timer", "obj.timer"]
+    override fun getSymbol() = DefaultConfig["ui.symbol.timer", "\uD83D\uDD51"]
 
 }

@@ -1,6 +1,8 @@
 package me.anno.objects
 
 import me.anno.audio.AudioManager
+import me.anno.cache.Cache
+import me.anno.cache.VideoData.Companion.framesPerContainer
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXx3D.draw3D
@@ -16,44 +18,44 @@ import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.xml.XMLElement
 import me.anno.io.xml.XMLReader
+import me.anno.language.translation.Dict
 import me.anno.objects.animation.AnimatedProperty
-import me.anno.cache.Cache
-import me.anno.cache.VideoData.Companion.framesPerContainer
+import me.anno.objects.models.SpeakerModel.drawSpeakers
 import me.anno.objects.modes.EditorFPS
 import me.anno.objects.modes.LoopingState
 import me.anno.objects.modes.UVProjection
 import me.anno.objects.modes.VideoType
-import me.anno.objects.models.SpeakerModel.drawSpeakers
+import me.anno.studio.StudioBase
 import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.RemsStudio.isPaused
 import me.anno.studio.rems.RemsStudio.nullCamera
 import me.anno.studio.rems.RemsStudio.targetHeight
 import me.anno.studio.rems.RemsStudio.targetWidth
 import me.anno.studio.rems.Scene
-import me.anno.studio.StudioBase
-import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.Panel
 import me.anno.ui.base.SpyPanel
 import me.anno.ui.base.Visibility
+import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.files.hasValidName
 import me.anno.ui.input.EnumInput
-import me.anno.ui.input.TextInput
 import me.anno.ui.style.Style
-import me.anno.utils.*
+import me.anno.utils.BiMap
 import me.anno.utils.Booleans.toInt
+import me.anno.utils.Clipping
 import me.anno.utils.Maths.pow
 import me.anno.utils.StringHelper.getImportType
-import me.anno.video.ImageSequenceMeta
 import me.anno.video.FFMPEGMetadata
 import me.anno.video.FFMPEGMetadata.Companion.getMeta
+import me.anno.video.ImageSequenceMeta
 import me.anno.video.MissingFrameException
 import org.joml.Matrix4f
 import org.joml.Matrix4fArrayList
 import org.joml.Vector3f
 import org.joml.Vector4f
 import java.io.File
+import kotlin.collections.set
 import kotlin.math.*
 
 // todo auto-exposure correction by calculating the exposure, and adjusting the brightness
@@ -71,7 +73,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
 
     init {
         color.isAnimated = true
-        color.addKeyframe(-0.01, Vector4f(1f,1f,1f,0f))
+        color.addKeyframe(-0.01, Vector4f(1f, 1f, 1f, 0f))
         color.addKeyframe(+0.10, Vector4f(1f))
     }
 
@@ -82,24 +84,6 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
     var filtering = DefaultConfig["default.video.nearest", Filtering.LINEAR]
 
     var videoScale = DefaultConfig["default.video.scale", 6]
-
-    override fun getDefaultDisplayName(): String {
-        return if(file.hasValidName()) when(type){
-            VideoType.AUDIO -> "Audio"
-            VideoType.IMAGE -> "Image"
-            VideoType.IMAGE_SEQUENCE -> "Image Sequence"
-            VideoType.VIDEO -> "Video"
-        } else "Video"
-    }
-
-    override fun getSymbol(): String {
-        return when(if(file.hasValidName()) type else VideoType.VIDEO){
-            VideoType.AUDIO -> DefaultConfig["ui.symbol.audio", "\uD83D\uDD09"]
-            VideoType.IMAGE -> DefaultConfig["ui.symbol.image", "\uD83D\uDDBC️️"]
-            VideoType.VIDEO -> DefaultConfig["ui.symbol.video", "\uD83C\uDF9E️"]
-            VideoType.IMAGE_SEQUENCE -> DefaultConfig["ui.symbol.imageSequence", "\uD83C\uDF9E️"]
-        }
-    }
 
     var lastFile: File? = null
     var lastDuration = 10.0
@@ -125,10 +109,11 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
     override fun transformLocally(pos: Vector3f, time: Double): Vector3f {
         val doScale = uvProjection.doScale && w != h
         return if (doScale) {
-            val avgSize = if (w * targetHeight > h * targetWidth) w.toFloat() * targetHeight / targetWidth else h.toFloat()
+            val avgSize =
+                if (w * targetHeight > h * targetWidth) w.toFloat() * targetHeight / targetWidth else h.toFloat()
             val sx = w / avgSize
             val sy = h / avgSize
-            Vector3f(pos.x/sx, -pos.y/sy, pos.z)
+            Vector3f(pos.x / sx, -pos.y / sy, pos.z)
         } else {
             Vector3f(pos.x, -pos.y, pos.z)
         }
@@ -218,7 +203,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                 val localTime = isLooping[time, duration]
 
                 val frame = Cache.getImage(meta.getImage(localTime), 500L, true)
-                if(frame == null) onMissingImageOrFrame()
+                if (frame == null) onMissingImageOrFrame()
                 else {
                     w = frame.w
                     h = frame.h
@@ -244,8 +229,8 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
     }
 
     // todo this is somehow not working, and idk why...
-    private fun onMissingImageOrFrame(){
-        if(GFX.isFinalRendering) throw MissingFrameException(file)
+    private fun onMissingImageOrFrame() {
+        if (GFX.isFinalRendering) throw MissingFrameException(file)
         else needsImageUpdate = true
     }
 
@@ -358,7 +343,9 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                 // calculate required scale? no, without animation, we don't need to scale it down ;)
                 val texture = Cache.getVideoFrame(file, 1, 0, 1, 1.0, imageTimeout, true)
                 if (texture == null || !texture.isLoaded) onMissingImageOrFrame()
-                else { draw3DVideo(this, time, stack, texture, color, filtering, clampMode, tiling, uvProjection) }
+                else {
+                    draw3DVideo(this, time, stack, texture, color, filtering, clampMode, tiling, uvProjection)
+                }
             }
             else -> {// some image
                 val tiling = tiling[time]
@@ -399,7 +386,8 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                             // use full fps when rendering to correctly render at max fps with time dilation
                             // issues arise, when multiple frames should be interpolated together into one
                             // at this time, we chose the center frame only.
-                            val videoFPS = if (GFX.isFinalRendering) sourceFPS else min(sourceFPS, editorVideoFPS.dValue)
+                            val videoFPS =
+                                if (GFX.isFinalRendering) sourceFPS else min(sourceFPS, editorVideoFPS.dValue)
 
                             val frameCount = max(1, (duration * videoFPS).roundToInt())
 
@@ -410,7 +398,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                             val frameIndex1 = (localTime1 * videoFPS).toInt() % frameCount
 
                             if (frameIndex1 >= frameIndex0) {
-                                for (frameIndex in frameIndex0 .. frameIndex1 step framesPerContainer) {
+                                for (frameIndex in frameIndex0..frameIndex1 step framesPerContainer) {
                                     Cache.getVideoFrame(
                                         file, max(1, zoomLevel), frameIndex, framesPerContainer,
                                         videoFPS, videoFrameTimeout, true
@@ -456,35 +444,36 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
             // nothing to do for image and audio
             VideoType.IMAGE -> {
                 val texture = getImage()
-                if(lastTexture != texture){
+                if (lastTexture != texture) {
                     needsImageUpdate = true
                     lastTexture = texture
                 }
             }
             VideoType.AUDIO -> {
             }
-            else -> throw RuntimeException("todo implement resource loading for $type")
+            else -> throw RuntimeException("Todo implement resource loading for $type")
         }
 
-        if(needsImageUpdate) {
+        if (needsImageUpdate) {
             RemsStudio.updateSceneViews()
         }
 
     }
 
     var lastAddedEndKeyframesFile: File? = null
-    private fun addEndKeyframesMaybe(duration: Double){
+    private fun addEndKeyframesMaybe(duration: Double) {
         // if the start was not modified, change the end... more flexible?
         val color = color
-        if(color.isAnimated && duration > 0.2){
+        if (color.isAnimated && duration > 0.2) {
             val kf = color.keyframes
-            if(kf.size == 2 && // only exactly two keyframes
+            if (kf.size == 2 && // only exactly two keyframes
                 kf[0].time > kf[1].time - 1.0 && // is closely together
                 kf[1].time < duration - 0.2 && // far enough from the end
-                kf[0].value.w < 0.1 && kf[1].value.w > 0.1){ // is becoming visible
+                kf[0].value.w < 0.1 && kf[1].value.w > 0.1
+            ) { // is becoming visible
                 val col = color[duration]
                 color.addKeyframe(duration - 0.1, col)
-                color.addKeyframe(duration, Vector4f(col.x, col.y, col.z,0f))
+                color.addKeyframe(duration, Vector4f(col.x, col.y, col.z, 0f))
             }
         }
     }
@@ -519,7 +508,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                 VideoType.VIDEO -> {
                     val meta = meta
                     if (meta?.hasVideo == true) {
-                        if(file != lastAddedEndKeyframesFile){
+                        if (file != lastAddedEndKeyframesFile) {
                             lastAddedEndKeyframesFile = file
                             addEndKeyframesMaybe(meta.duration)
                         }
@@ -572,7 +561,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
         }
 
         list += vi("File Location", "Source file of this video", null, file, style) { newFile ->
-            if(name == file.name) {
+            if (name == file.name) {
                 name = newFile.name
             }
             file = newFile
@@ -614,28 +603,28 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
         )
 
         val color = getGroup("Color Grading (ASC CDL)", "color-grading")
-        color += img(vi("Power", "sRGB, Linear, ...", cgPower, style))
+        color += img(vi("Power", "sRGB, Linear, ...", "cg.power", cgPower, style))
         color += img(
             vi(
                 "Saturation",
-                "0 = gray scale, 1 = normal, -1 = inverted colors",
+                "0 = gray scale, 1 = normal, -1 = inverted colors", "cg.saturation",
                 cgSaturation,
                 style
             )
         )
-        color += img(vi("Slope", "Intensity or Tint", cgSlope, style))
-        color += img(vi("Offset", "Can be used to color black objects", cgOffset, style))
+        color += img(vi("Slope", "Intensity or Tint", "cg.slope", cgSlope, style))
+        color += img(vi("Offset", "Can be used to color black objects", "cg.offset", cgOffset, style))
 
         val audio = getGroup("Audio", "audio")
-        audio += aud(vi("Amplitude", "How loud it is", amplitude, style))
-        audio += aud(vi("Is 3D Sound", "Sound becomes directional", null, is3D, style) {
+        audio += aud(vi("Amplitude", "How loud it is", "audio.amplitude", amplitude, style))
+        audio += aud(vi("Is 3D Sound", "Sound becomes directional", "audio.3d", null, is3D, style) {
             is3D = it
             AudioManager.requestUpdate()
         })
 
         val audioFX = getGroup("Audio Effects", "audio-fx")
-        audioFX += aud(vi("Echo Delay", "", echoDelay, style))
-        audioFX += aud(vi("Echo Multiplier", "", echoMultiplier, style))
+        audioFX += aud(vi("Echo Delay", "How long the delay to the first echo is", "audio.echo.delay", echoDelay, style))
+        audioFX += aud(vi("Echo Multiplier", "How much of the amplitude stays after each echo", "audio.echo.multiplier", echoMultiplier, style))
 
         val playbackTitles = "Test Playback" to "Stop Playback"
         fun getPlaybackTitle(invert: Boolean) =
@@ -680,8 +669,6 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
 
     }
 
-    override fun getClassName(): String = "Video"
-
     override fun save(writer: BaseWriter) {
         super.save(writer)
         writer.writeObject(this, "tiling", tiling)
@@ -722,6 +709,26 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
         when (name) {
             "path", "file" -> file = File(value)
             else -> super.readString(name, value)
+        }
+    }
+
+    override fun getClassName(): String = "Video"
+
+    override fun getDefaultDisplayName(): String {
+        return if (file.hasValidName()) when (type) {
+            VideoType.AUDIO -> Dict["Audio", "obj.audio"]
+            VideoType.IMAGE -> Dict["Image", "obj.image"]
+            VideoType.IMAGE_SEQUENCE -> Dict["Image Sequence", "obj.imageSequence"]
+            VideoType.VIDEO -> Dict["Video", "obj.video"]
+        } else Dict["Video", "obj.video"]
+    }
+
+    override fun getSymbol(): String {
+        return when (if (file.hasValidName()) type else VideoType.VIDEO) {
+            VideoType.AUDIO -> DefaultConfig["ui.symbol.audio", "\uD83D\uDD09"]
+            VideoType.IMAGE -> DefaultConfig["ui.symbol.image", "\uD83D\uDDBC️️"]
+            VideoType.VIDEO -> DefaultConfig["ui.symbol.video", "\uD83C\uDF9E️"]
+            VideoType.IMAGE_SEQUENCE -> DefaultConfig["ui.symbol.imageSequence", "\uD83C\uDF9E️"]
         }
     }
 

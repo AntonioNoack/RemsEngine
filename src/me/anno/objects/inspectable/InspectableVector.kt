@@ -1,4 +1,4 @@
-package me.anno.objects
+package me.anno.objects.inspectable
 
 import org.joml.Vector4f
 

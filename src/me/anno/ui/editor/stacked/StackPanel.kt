@@ -3,7 +3,7 @@ package me.anno.ui.editor.stacked
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.openMenu
 import me.anno.input.MouseButton
-import me.anno.objects.Inspectable
+import me.anno.objects.inspectable.Inspectable
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer

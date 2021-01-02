@@ -6,7 +6,7 @@ import me.anno.input.MouseButton
 import me.anno.io.Saveable
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
-import me.anno.objects.Inspectable
+import me.anno.objects.inspectable.Inspectable
 import me.anno.ui.base.Panel
 import me.anno.ui.editor.PropertyInspector
 import me.anno.ui.editor.SettingCategory

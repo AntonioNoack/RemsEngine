@@ -40,6 +40,7 @@ class Type(
         val FLOAT_PERCENT = Type(100f, 1, 100f, true, false, { clamp(it as Float, 0f, 100f) }, ::castToFloat)
         val ANGLE = Type(0f, 1, 90f, true, false, null, ::castToFloat)
         val DOUBLE = Type(0.0, 1, 1f, true, true, null, ::castToDouble)
+        val DOUBLE_PLUS = Type(0.0, 1, 1f, true, true, { max(it as Double, 0.0) }, ::castToDouble)
         val VEC2 = Type(Vector2f(), 2, 1f, true, true, null, ::castToVector2f)
         val VEC2_PLUS = Type(Vector2f(), 2, 1f, true, true, { max(it as Float, 0f) }, ::castToVector2f)
         val VEC3 = Type(Vector3f(), 3, 1f, true, true, null, ::castToVector3f)

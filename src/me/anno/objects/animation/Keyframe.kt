@@ -2,6 +2,7 @@ package me.anno.objects.animation
 
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
+import me.anno.utils.AnyToFloat
 import org.joml.*
 
 class Keyframe<V>(
@@ -83,34 +84,7 @@ class Keyframe<V>(
     }
 
     fun getValue(index: Int): Float {
-        return when (val value = value) {
-            is Float -> value
-            is Double -> value.toFloat()
-            is Int -> value.toFloat()
-            is Long -> value.toFloat()
-            is Vector2f -> when (index) {
-                0 -> value.x
-                else -> value.y
-            }
-            is Vector3f -> when (index) {
-                0 -> value.x
-                1 -> value.y
-                else -> value.z
-            }
-            is Vector4f -> when (index) {
-                0 -> value.x
-                1 -> value.y
-                2 -> value.z
-                else -> value.w
-            }
-            is Quaternionf -> when (index) {
-                0 -> value.x
-                1 -> value.y
-                2 -> value.z
-                else -> value.w
-            }
-            else -> throw RuntimeException("todo implement Keyframe.getValue(index) for $value")
-        }
+        return AnyToFloat.getFloat(value!!, index)
     }
 
     override fun isDefaultValue() = false

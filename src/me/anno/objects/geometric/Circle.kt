@@ -7,6 +7,7 @@ import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.shader.Shader
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
+import me.anno.language.translation.Dict
 import me.anno.objects.GFXTransform
 import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
@@ -24,8 +25,6 @@ class Circle(parent: Transform? = null): GFXTransform(parent){
     var startDegrees = AnimatedProperty(Type.ANGLE, 0f)
     var endDegrees = AnimatedProperty(Type.ANGLE,360f)
 
-    override fun getSymbol() = DefaultConfig["ui.style.circle", "◯"]
-
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
         draw3DCircle(this, time, stack, innerRadius[time], startDegrees[time], endDegrees[time], color)
     }
@@ -42,8 +41,6 @@ class Circle(parent: Transform? = null): GFXTransform(parent){
         geo += vi("End Degrees", "To cut a piece out of the circle", endDegrees, style)
     }
 
-    override fun getClassName(): String = "Circle"
-
     override fun save(writer: BaseWriter) {
         super.save(writer)
         writer.writeObject(this, "innerRadius", innerRadius)
@@ -59,6 +56,10 @@ class Circle(parent: Transform? = null): GFXTransform(parent){
             else -> super.readObject(name, value)
         }
     }
+
+    override fun getClassName(): String = "Circle"
+    override fun getDefaultDisplayName() = Dict["Circle", "obj.circle"]
+    override fun getSymbol() = DefaultConfig["ui.style.circle", "◯"]
 
     companion object {
 

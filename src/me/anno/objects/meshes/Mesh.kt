@@ -9,6 +9,7 @@ import me.anno.io.base.BaseWriter
 import me.anno.objects.GFXTransform
 import me.anno.objects.Transform
 import me.anno.cache.Cache
+import me.anno.language.translation.Dict
 import me.anno.mesh.fbx.model.FBXGeometry
 import me.anno.mesh.fbx.model.FBXShader.maxWeightsDefault
 import me.anno.mesh.fbx.structure.FBXReader
@@ -40,8 +41,6 @@ class Mesh(var file: File, parent: Transform?) : GFXTransform(parent) {
     // for the start it is nice to be able to import meshes like a torus into the engine :)
 
     constructor() : this(File(""), null)
-
-    override fun getSymbol() = DefaultConfig["ui.symbol.mesh", "\uD83D\uDC69"]
 
     var lastFile: File? = null
     var extension = ""
@@ -162,6 +161,7 @@ class Mesh(var file: File, parent: Transform?) : GFXTransform(parent) {
     }
 
     override fun getClassName() = "Mesh"
-    override fun getDefaultDisplayName() = "Mesh"
+    override fun getDefaultDisplayName() = Dict["Mesh", "obj.mesh"]
+    override fun getSymbol() = DefaultConfig["ui.symbol.mesh", "\uD83D\uDC69"]
 
 }

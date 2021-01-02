@@ -2,8 +2,9 @@ package me.anno.objects.particles.forces.impl
 
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
-import me.anno.objects.InspectableAnimProperty
+import me.anno.language.translation.Dict
 import me.anno.objects.animation.AnimatedProperty
+import me.anno.objects.inspectable.InspectableAnimProperty
 import me.anno.objects.models.ArrowModel.arrowLineModel
 import me.anno.objects.particles.Particle
 import me.anno.objects.particles.ParticleState
@@ -18,7 +19,10 @@ import org.joml.Vector4f
 import kotlin.math.cos
 import kotlin.math.sin
 
-class TornadoField : ForceField("Tornado", "Circular motion around center") {
+class TornadoField : ForceField(
+    Dict["Tornado", "obj.force.tornado"],
+    Dict["Circular motion around center", "obj.force.tornado.desc"]
+) {
 
     val exponent = AnimatedProperty.float(-1f)
 
@@ -67,7 +71,7 @@ class TornadoField : ForceField("Tornado", "Circular motion around center") {
                 stack.pushMatrix()
                 stack.translate(pos)
                 stack.scale(visualForceScale * force)
-                stack.rotateY( - angle - 1.57f)
+                stack.rotateY(-angle - 1.57f)
                 Grid.drawBuffer(stack, Vector4f(1f), arrowLineModel)
                 stack.popMatrix()
             }

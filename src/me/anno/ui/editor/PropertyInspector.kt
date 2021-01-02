@@ -1,13 +1,12 @@
 package me.anno.ui.editor
 
-import me.anno.objects.Inspectable
+import me.anno.objects.inspectable.Inspectable
 import me.anno.studio.rems.Selection.selectedInspectable
 import me.anno.ui.base.Panel
 import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelListY
-import me.anno.ui.input.BooleanInput
 import me.anno.ui.input.ColorInput
 import me.anno.ui.input.FloatInput
 import me.anno.ui.input.VectorInput

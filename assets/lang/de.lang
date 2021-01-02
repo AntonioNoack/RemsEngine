@@ -1,0 +1,31 @@
+lang.name: Deutsch
+obj.particles.spawnRate: Neue Objekte / s
+obj.particles.spawnRate.desc: Wieviele neue Objekte je Sekunde erscheinen
+obj.particles: Partikelsystem
+obj.audio: Tonspur
+obj.video: Video
+obj.image: Bild
+obj.imageSequence: Bilderfolge
+obj.folder: Ordner
+obj.rectangle: Rechteck
+obj.array: Sequenz
+obj.camera: Kamera
+obj.text: Text
+obj.timer: Stoppuhr
+obj.force.global: Globale Kraft
+obj.polygon: Polygon
+obj.circle: Kreis
+obj.effect.morphing: Effekt: Verzerren
+obj.effect.coloring: Effekt: Einfärben
+obj.force.global: Globale Kraft
+obj.force.lorentz: Lorentzkraft
+obj.force.lorentz: Dreht Partikel ohne deren Geschwindigkeit zu ändern
+obj.force.lorentz.noisy: Variierende Lorentzkraft
+obj.force.lorentz.noisy: Gut für zufällige, unregelmäßige Bewegungen
+obj.force.tornado: Tornado
+obj.force.tornado: Dreht Partikel im Kreis
+obj.force.velocityFriction: Luftwiderstand
+obj.force.velocityFriction: Je schneller ein Teilchen ist, umso stärker wird es abgebremst
+
+driver.add: Füge Treiber hinzu
+driver.change: Ändere Treiber-Typ

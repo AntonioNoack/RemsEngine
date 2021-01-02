@@ -3,6 +3,7 @@ package me.anno.objects.attractors
 import me.anno.config.DefaultConfig
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
+import me.anno.language.translation.Dict
 import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.ui.base.groups.PanelListY
@@ -18,8 +19,8 @@ class EffectColoring: Transform() {
 
     init { color.set(Vector4f(1f, 0f, 0f, 1f)) }
 
-    override fun getDefaultDisplayName() = "Effect: Coloring"
     override fun getClassName() = "EffectColoring"
+    override fun getDefaultDisplayName() = Dict["Effect: Coloring", "obj.effect.coloring"]
     override fun getSymbol() = DefaultConfig["ui.symbol.fx.coloring", "\uD83C\uDFA8"]
 
     override fun createInspector(

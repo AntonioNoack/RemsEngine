@@ -1,13 +1,17 @@
 package me.anno.objects.distributions
 
-import me.anno.objects.InspectableVector
+import me.anno.language.translation.Dict
+import me.anno.objects.inspectable.InspectableVector
 import me.anno.ui.editor.sceneView.Grid
 import org.joml.Matrix4fArrayList
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
 
-class ConstantDistribution(val center: Vector4f) : Distribution("Constant", "Always the same value") {
+class ConstantDistribution(val center: Vector4f) : Distribution(
+    Dict["Constant", "obj.dist.constant"],
+    Dict["Always the same value", "obj.dist.constant.desc"]
+) {
 
     constructor() : this(0f)
     constructor(center: Float) : this(Vector4f(center))

@@ -9,8 +9,6 @@ import org.joml.Vector3f
 
 abstract class RelativeForceField(displayName: String, description: String): ForceField(displayName, description) {
 
-    // val position = AnimatedProperty.vec3()
-
     abstract fun getForce(delta: Vector3f, time: Double): Vector3f
 
     override fun getForce(state: ParticleState, time: Double, particles: List<Particle>): Vector3f {

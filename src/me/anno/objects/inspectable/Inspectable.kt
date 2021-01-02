@@ -1,4 +1,4 @@
-package me.anno.objects
+package me.anno.objects.inspectable
 
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory

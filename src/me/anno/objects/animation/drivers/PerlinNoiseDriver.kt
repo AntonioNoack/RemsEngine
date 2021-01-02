@@ -40,9 +40,6 @@ class PerlinNoiseDriver: AnimationDriver(){
         return value0
     }
 
-    override fun getClassName() = "PerlinNoiseDriver"
-    override fun getDisplayName() = "Noise"
-
     override fun createInspector(list: MutableList<Panel>, transform: Transform, style: Style, getGroup: (title: String, id: String) -> SettingCategory) {
         super.createInspector(list, transform, style, getGroup)
         list += transform.vi("Octaves", "Levels of Detail", Type.INT_PLUS, octaves, style){ octaves = it }
@@ -78,8 +75,11 @@ class PerlinNoiseDriver: AnimationDriver(){
         }
     }
 
+    override fun getClassName() = "PerlinNoiseDriver"
+    override fun getDisplayName() = "Noise"
+
     companion object {
-        val MAX_OCTAVES = 32
+        const val MAX_OCTAVES = 32
     }
 
 }

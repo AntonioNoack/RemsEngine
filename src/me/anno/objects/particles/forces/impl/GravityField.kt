@@ -2,14 +2,18 @@ package me.anno.objects.particles.forces.impl
 
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
-import me.anno.objects.InspectableAnimProperty
+import me.anno.language.translation.Dict
+import me.anno.objects.inspectable.InspectableAnimProperty
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.particles.forces.types.RelativeForceField
 import me.anno.utils.Maths.pow
 import me.anno.utils.Vectors.times
 import org.joml.Vector3f
 
-class GravityField : RelativeForceField("Central Gravity", "Gravity towards a single point") {
+class GravityField : RelativeForceField(
+    Dict["Central Gravity", "obj.force.centralGravity"],
+    Dict["Gravity towards a single point", "obj.force.centralGravity.desc"]
+) {
 
     val exponent = AnimatedProperty.float(2f)
 
@@ -19,7 +23,13 @@ class GravityField : RelativeForceField("Central Gravity", "Gravity towards a si
     }
 
     override fun listProperties(): List<InspectableAnimProperty> {
-        return super.listProperties() + listOf(InspectableAnimProperty(exponent, "Exponent", "How quickly the force declines with distance"))
+        return super.listProperties() + listOf(
+            InspectableAnimProperty(
+                exponent,
+                "Exponent",
+                "How quickly the force declines with distance"
+            )
+        )
     }
 
     override fun save(writer: BaseWriter) {

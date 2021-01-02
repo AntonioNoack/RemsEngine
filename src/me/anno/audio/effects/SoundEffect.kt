@@ -3,9 +3,10 @@ package me.anno.audio.effects
 import me.anno.io.Saveable
 import me.anno.objects.Audio
 import me.anno.objects.Camera
-import me.anno.objects.Inspectable
+import me.anno.objects.inspectable.Inspectable
 
-abstract class SoundEffect(val inputDomain: Domain, val outputDomain: Domain) : Saveable(), Inspectable {
+abstract class SoundEffect(val inputDomain: Domain, val outputDomain: Domain) : Saveable(),
+    Inspectable {
 
     open fun reset() {
         bufferIndex = 0

@@ -18,10 +18,12 @@ import me.anno.io.base.BaseWriter
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.language.Language
+import me.anno.language.translation.Dict
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.animation.Type
 import me.anno.objects.effects.MaskType
 import me.anno.objects.effects.ToneMappers
+import me.anno.objects.inspectable.Inspectable
 import me.anno.objects.modes.ArraySelectionMode
 import me.anno.objects.modes.LoopingState
 import me.anno.objects.modes.TransformVisibility
@@ -59,7 +61,8 @@ import java.util.concurrent.atomic.AtomicLong
 
 // todo option to copy css compliant rgba colors?
 
-open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
+open class Transform(var parent: Transform? = null) : Saveable(),
+    Inspectable {
 
     // todo generally "play" the animation of a single transform for testing purposes?
     // todo maybe only for video or audio? for audio it would be simple :)
@@ -100,7 +103,9 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
     var comment = ""
 
     open fun getSymbol() = DefaultConfig["ui.symbol.folder", "\uD83D\uDCC1"]
-    open fun getDefaultDisplayName() = if (getClassName() == "Transform") "Folder" else getClassName()
+    open fun getDefaultDisplayName() =
+        if (getClassName() == "Transform") Dict["Folder", "obj.folder"] else getClassName()
+
     open fun isVisible(localTime: Double) = true
 
     val rightPointingTriangle = "▶"
@@ -503,6 +508,14 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
     open fun acceptsWeight() = false
     open fun passesOnColor() = true
 
+    fun <V> vi(
+        title: String, ttt: String, dictPath: String,
+        type: Type?, value: V,
+        style: Style, setValue: (V) -> Unit
+    ): Panel {
+        return vi(Dict[title, "obj.$dictPath"], Dict[ttt, "obj.$dictPath.desc"], type, value, style, setValue)
+    }
+
     /**
      * creates a panel with the correct input for the type, and sets the default values:
      * title, tool tip text, type, start value
@@ -510,12 +523,9 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
      * */
     @Suppress("UNCHECKED_CAST") // all casts are checked in all known use-cases ;)
     fun <V> vi(
-        title: String,
-        ttt: String,
-        type: Type?,
-        value: V,
-        style: Style,
-        setValue: (V) -> Unit
+        title: String, ttt: String,
+        type: Type?, value: V,
+        style: Style, setValue: (V) -> Unit
     ): Panel {
         return when (value) {
             is Boolean -> BooleanInput(title, value, style)
@@ -570,7 +580,7 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
                 if (type == Type.COLOR3) {
                     ColorInput(style, title, Vector4f(value, 1f), false, null)
                         .setChangeListener { r, g, b, _ ->
-                            RemsStudio.incrementalChange("Set $title to ${Vector3f(r,g,b).toHexColor()}", title) {
+                            RemsStudio.incrementalChange("Set $title to ${Vector3f(r, g, b).toHexColor()}", title) {
                                 setValue(Vector3f(r, g, b) as V)
                             }
                         }
@@ -590,7 +600,7 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
                 if (type == null || type == Type.COLOR) {
                     ColorInput(style, title, value, true, null)
                         .setChangeListener { r, g, b, a ->
-                            RemsStudio.incrementalChange("Set $title to ${Vector4f(r,g,b,a).toHexColor()}", title) {
+                            RemsStudio.incrementalChange("Set $title to ${Vector4f(r, g, b, a).toHexColor()}", title) {
                                 setValue(Vector4f(r, g, b, a) as V)
                             }
                         }
@@ -634,7 +644,8 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
             is BlendMode -> {
                 val values = blendModes.values
                 val valueNames = values.map { it to it.displayName }
-                EnumInput(title, true, valueNames.first { it.first == value }.second,
+                EnumInput(
+                    title, true, valueNames.first { it.first == value }.second,
                     valueNames.map { it.second }, style
                 )
                     .setChangeListener { name, index, _ ->
@@ -674,7 +685,8 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
                         else -> it.name
                     }
                 }
-                EnumInput(title, true, valueNames.first { it.first == value }.second,
+                EnumInput(
+                    title, true, valueNames.first { it.first == value }.second,
                     valueNames.map { it.second }, style
                 )
                     .setChangeListener { name, index, _ ->
@@ -687,6 +699,10 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
             }
             else -> throw RuntimeException("Type $value not yet implemented!")
         }
+    }
+
+    fun vi(title: String, ttt: String, dictPath: String, values: AnimatedProperty<*>, style: Style): Panel {
+        return vi(Dict[title, "obj.$dictPath"], Dict[ttt, "obj.$dictPath.desc"], values, style)
     }
 
     /**
@@ -741,7 +757,7 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
                 if (values.type == Type.COLOR3) {
                     ColorInput(style, title, Vector4f(value, 1f), false, values)
                         .setChangeListener { r, g, b, _ ->
-                            RemsStudio.incrementalChange("Set $title to ${Vector3f(r,g,b).toHexColor()}", title) {
+                            RemsStudio.incrementalChange("Set $title to ${Vector3f(r, g, b).toHexColor()}", title) {
                                 putValue(values, Vector3f(r, g, b), false)
                             }
                         }
@@ -761,7 +777,7 @@ open class Transform(var parent: Transform? = null) : Saveable(), Inspectable {
                 if (values.type == Type.COLOR) {
                     ColorInput(style, title, value, true, values)
                         .setChangeListener { r, g, b, a ->
-                            RemsStudio.incrementalChange("Set $title to ${Vector4f(r,g,b,a).toHexColor()}", title) {
+                            RemsStudio.incrementalChange("Set $title to ${Vector4f(r, g, b, a).toHexColor()}", title) {
                                 putValue(values, Vector4f(r, g, b, a), false)
                             }
                         }

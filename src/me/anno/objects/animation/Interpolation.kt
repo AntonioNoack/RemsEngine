@@ -1,5 +1,6 @@
 package me.anno.objects.animation
 
+import me.anno.language.translation.Dict
 import org.joml.Vector4d
 import kotlin.math.PI
 import kotlin.math.cos
@@ -7,10 +8,16 @@ import kotlin.math.min
 
 enum class Interpolation(
     val code: Int, val symbol: String,
-    val displayName: String, val description: String
+    private val displayNameEn: String,
+    private val descriptionEn: String,
+    private val dictSubPath: String
 ) {
 
-    SPLINE(0, "S", "Spline", "Smooth curve"){
+    SPLINE(
+        0, "S",
+        "Spline",
+        "Smooth curve", "spline"
+    ) {
 
         override fun getWeights(
             f0: Keyframe<*>,
@@ -20,11 +27,11 @@ enum class Interpolation(
             t0: Double
         ): Vector4d {
 
-            if(t0 <= 0.0){
+            if (t0 <= 0.0) {
                 return left
             }
 
-            if(t0 >= 1.0){
+            if (t0 >= 1.0) {
                 return right
             }
 
@@ -55,7 +62,11 @@ enum class Interpolation(
         }
 
     },
-    LINEAR_BOUNDED(1, "/", "Linear", "Straight curve segments, mix(a,b,clamp(t,0,1))"){
+    LINEAR_BOUNDED(
+        1, "/",
+        "Linear",
+        "Straight curve segments, mix(a,b,clamp(t,0,1))", "linear"
+    ) {
 
         override fun getWeights(
             f0: Keyframe<*>,
@@ -72,7 +83,11 @@ enum class Interpolation(
         }
 
     },
-    LINEAR_UNBOUNDED(2, "//", "Linear (unbounded)", "Straight curve segments, extending into infinity, mix(a,b,t)"){
+    LINEAR_UNBOUNDED(
+        2, "//",
+        "Linear (unbounded)",
+        "Straight curve segments, extending into infinity, mix(a,b,t)", "linearUnbounded"
+    ) {
 
         override fun getWeights(
             f0: Keyframe<*>,
@@ -85,7 +100,11 @@ enum class Interpolation(
         }
 
     },
-    STEP(3, "L", "Step", "First half is the first value, second half is the second value, t > 0.5 ? a : b"){
+    STEP(
+        3, "L",
+        "Step",
+        "First half is the first value, second half is the second value, t > 0.5 ? a : b", "step"
+    ) {
 
         override fun getWeights(
             f0: Keyframe<*>,
@@ -94,11 +113,15 @@ enum class Interpolation(
             f3: Keyframe<*>,
             t0: Double
         ): Vector4d {
-            return if(t0 < 0.5) left else right
+            return if (t0 < 0.5) left else right
         }
 
     },
-    SINE(4, "~", "Sine", "Uses a cosine function, mix(a, b, (1-cos(pi*t))/2)"){
+    SINE(
+        4, "~",
+        "Sine",
+        "Uses a cosine function, mix(a, b, (1-cos(pi*t))/2)", "sine"
+    ) {
 
         override fun getWeights(
             f0: Keyframe<*>,
@@ -113,6 +136,9 @@ enum class Interpolation(
         }
 
     };
+
+    val displayName get() = Dict[displayNameEn, "dict.$dictSubPath"]
+    val description get() = Dict[descriptionEn, "dict.$dictSubPath.desc"]
 
     abstract fun getWeights(
 

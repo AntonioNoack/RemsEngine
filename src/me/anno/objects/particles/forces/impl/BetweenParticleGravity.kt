@@ -2,21 +2,17 @@ package me.anno.objects.particles.forces.impl
 
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
-import me.anno.objects.InspectableAnimProperty
+import me.anno.objects.inspectable.InspectableAnimProperty
 import me.anno.objects.animation.AnimatedProperty
-import me.anno.objects.models.ArrowModel
 import me.anno.objects.particles.Particle
 import me.anno.objects.particles.ParticleState
-import me.anno.objects.particles.ParticleSystem
 import me.anno.objects.particles.forces.ForceField
-import me.anno.ui.editor.sceneView.Grid
 import me.anno.utils.Maths.pow
 import me.anno.utils.Vectors.minus
 import me.anno.utils.Vectors.times
 import org.joml.Matrix4fArrayList
 import org.joml.Vector3f
 import org.joml.Vector4f
-import kotlin.math.floor
 
 class BetweenParticleGravity : ForceField("Between-Particle Gravity", "Gravity towards all other particles") {
 

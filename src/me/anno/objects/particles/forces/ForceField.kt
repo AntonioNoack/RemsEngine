@@ -1,7 +1,7 @@
 package me.anno.objects.particles.forces
 
 import me.anno.config.DefaultConfig
-import me.anno.objects.InspectableAnimProperty
+import me.anno.objects.inspectable.InspectableAnimProperty
 import me.anno.objects.Transform
 import me.anno.objects.models.ArrowModel
 import me.anno.objects.particles.Particle
@@ -32,7 +32,11 @@ abstract class ForceField(val displayName: String, val description: String) : Tr
 
     open fun listProperties() = listOf(
         // include it for convenience
-        InspectableAnimProperty(strength, "Strength", "How much effect this force has")
+        InspectableAnimProperty(
+            strength,
+            "Strength",
+            "How much effect this force has"
+        )
     )
 
     override fun createInspector(

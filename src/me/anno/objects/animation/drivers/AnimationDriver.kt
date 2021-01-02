@@ -4,10 +4,11 @@ import me.anno.gpu.GFX
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
-import me.anno.objects.Inspectable
+import me.anno.language.translation.Dict
 import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.animation.Type
+import me.anno.objects.inspectable.Inspectable
 import me.anno.studio.rems.Selection.select
 import me.anno.studio.rems.Selection.selectProperty
 import me.anno.studio.rems.Selection.selectedTransform
@@ -72,7 +73,7 @@ abstract class AnimationDriver : Saveable(), Inspectable {
         style: Style,
         getGroup: (title: String, id: String) -> SettingCategory
     ) {
-        list += TextPanel("Driver Inspector", style)
+        list += TextPanel(Dict["Driver Inspector", "driver.inspector.title"], style)
         createInspector(list.children, selectedTransform!!, style, getGroup)
     }
 
@@ -85,14 +86,21 @@ abstract class AnimationDriver : Saveable(), Inspectable {
                 GFX.MenuOption("Custom", "Specify your own formula", add { FunctionDriver() })
             )
             if (oldDriver != null) {
-                options.add(0, GFX.MenuOption("Customize", "Change the driver properties"){
-                    selectProperty(oldDriver)
-                })
-                options += GFX.MenuOption("Remove Driver", "Changes back to keyframe-animation"){
-                    whenSelected(null)
-                }
+                options.add(0,
+                    GFX.MenuOption(
+                        Dict["Customize", "driver.edit"],
+                        Dict["Change the driver properties", "driver.edit.desc"]
+                    ) { selectProperty(oldDriver) })
+                options += GFX.MenuOption(
+                    Dict["Remove Driver", "driver.remove"],
+                    Dict["Changes back to keyframe-animation", "driver.remove.desc"]
+                ) { whenSelected(null) }
             }
-            GFX.openMenu(if (oldDriver == null) "Add Driver" else "Change Driver", options)
+            GFX.openMenu(
+                if (oldDriver == null) Dict["Add Driver", "driver.add"]
+                else Dict["Change Driver", "driver.change"],
+                options
+            )
         }
     }
 

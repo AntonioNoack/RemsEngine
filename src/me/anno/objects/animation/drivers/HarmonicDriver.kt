@@ -2,6 +2,7 @@ package me.anno.objects.animation.drivers
 
 import me.anno.config.DefaultConfig
 import me.anno.io.base.BaseWriter
+import me.anno.language.translation.Dict
 import me.anno.objects.Transform
 import me.anno.parser.CountingList
 import me.anno.parser.SimpleExpressionParser.parseDouble
@@ -26,14 +27,14 @@ class HarmonicDriver: AnimationDriver(){
 
     override fun createInspector(list: MutableList<Panel>, transform: Transform, style: Style, getGroup: (title: String, id: String) -> SettingCategory) {
         super.createInspector(list, transform, style, getGroup)
-        list += TextInput("Harmonics h(n)", style.getChild("deep"), harmonicsFormula)
+        list += TextInput(getDisplayName(), style.getChild("deep"), harmonicsFormula)
             .setChangeListener { harmonicsFormula = it; updateHarmonics() }
             .setIsSelectedListener { show(null) }
-            .setTooltip("Default value is 1/n, try [2,0,1][n-1]")
+            .setTooltip(Dict["Default value is 1/n, try [2,0,1][n-1]", "driver.harmonic.desc"])
     }
 
     // update by time? would be possible... but still...
-    fun updateHarmonics(){
+    private fun updateHarmonics(){
         val prepared = preparse(harmonicsFormula)
         if(prepared != null){
             for(i in 0 until maxHarmonics){
@@ -67,7 +68,7 @@ class HarmonicDriver: AnimationDriver(){
     }
 
     override fun getClassName() = "HarmonicDriver"
-    override fun getDisplayName() = "Harmonic"
+    override fun getDisplayName() = Dict["Harmonics h(n)", "driver.harmonic"]
 
     companion object {
         // could support more, but is useless anyways xD

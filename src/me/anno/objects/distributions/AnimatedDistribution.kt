@@ -3,7 +3,7 @@ package me.anno.objects.distributions
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
-import me.anno.objects.InspectableVector
+import me.anno.objects.inspectable.InspectableVector
 import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.animation.Type

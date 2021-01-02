@@ -15,6 +15,7 @@ import me.anno.objects.GFXTransform
 import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.cache.Cache
+import me.anno.language.translation.Dict
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.files.hasValidName
@@ -40,17 +41,6 @@ class Polygon(parent: Transform? = null): GFXTransform(parent){
     var is3D = false
     var vertexCount = AnimatedProperty.intPlus(5)
     var starNess = AnimatedProperty.float01()
-
-    override fun getSymbol() =
-        if(vertexCount.isAnimated) DefaultConfig["ui.symbol.polygon.any", "⭐"]
-        else when(vertexCount[0.0]){
-            3 -> DefaultConfig["ui.symbol.polygon.3", "△"]
-            4 -> DefaultConfig["ui.symbol.polygon.4", "⬜"]
-            5 -> DefaultConfig["ui.symbol.polygon.5", "⭐"]
-            6 -> DefaultConfig["ui.symbol.polygon.6", "⬡"]
-            in 30 until Integer.MAX_VALUE -> DefaultConfig["ui.symbol.polygon.circle", "◯"]
-            else -> DefaultConfig["ui.symbol.polygon.any", "⭐"]
-        }
 
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f){
         val inset = clamp(starNess[time], 0f, 1f)
@@ -97,8 +87,6 @@ class Polygon(parent: Transform? = null): GFXTransform(parent){
         tex += vi("Filtering", "Pixelated or soft look of pixels?", null, filtering, style){ filtering = it }
     }
 
-    override fun getClassName(): String = "Polygon"
-
     override fun save(writer: BaseWriter) {
         super.save(writer)
         writer.writeObject(this, "vertexCount", vertexCount)
@@ -138,6 +126,19 @@ class Polygon(parent: Transform? = null): GFXTransform(parent){
             else -> super.readBoolean(name, value)
         }
     }
+
+    override fun getClassName() = "Polygon"
+    override fun getDefaultDisplayName() = Dict["Polygon", "obj.polygon"]
+    override fun getSymbol() =
+        if(vertexCount.isAnimated) DefaultConfig["ui.symbol.polygon.any", "⭐"]
+        else when(vertexCount[0.0]){
+            3 -> DefaultConfig["ui.symbol.polygon.3", "△"]
+            4 -> DefaultConfig["ui.symbol.polygon.4", "⬜"]
+            5 -> DefaultConfig["ui.symbol.polygon.5", "⭐"]
+            6 -> DefaultConfig["ui.symbol.polygon.6", "⬡"]
+            in 30 until Integer.MAX_VALUE -> DefaultConfig["ui.symbol.polygon.circle", "◯"]
+            else -> DefaultConfig["ui.symbol.polygon.any", "⭐"]
+        }
 
     companion object {
 

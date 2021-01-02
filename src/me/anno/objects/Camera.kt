@@ -4,6 +4,7 @@ import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
+import me.anno.language.translation.Dict
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.effects.ToneMappers
 import me.anno.objects.models.CameraModel.drawCamera
@@ -72,9 +73,6 @@ class Camera(parent: Transform? = null) : Transform(parent) {
 
     fun orthoDistance(ortho: Float) = pow(200f, ortho) - 1f
     fun orthoFOV(fov: Float, offset: Float) = fov / (1f + offset)
-
-    override fun getSymbol() = DefaultConfig["ui.symbol.camera", "\uD83C\uDFA5"]
-    override fun getClassName() = "Camera"
 
     override fun createInspector(
         list: PanelListY,
@@ -235,6 +233,9 @@ class Camera(parent: Transform? = null) : Transform(parent) {
             else -> super.readInt(name, value)
         }
     }
+
+    override fun getSymbol() = DefaultConfig["ui.symbol.camera", "\uD83C\uDFA5"]
+    override fun getClassName() = Dict["Camera", "obj.camera"]
 
     companion object {
 

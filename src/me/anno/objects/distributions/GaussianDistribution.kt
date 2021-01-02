@@ -1,15 +1,14 @@
 package me.anno.objects.distributions
 
+import me.anno.language.translation.Dict
 import org.joml.Matrix4fArrayList
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
 
-class GaussianDistribution(
-    center: Vector4f,
-    size: Vector4f
-) : CenterSizeDistribution(
-    "Gaussian", "Gaussian- or Normal Distribution; sum of many small effects",
+class GaussianDistribution(center: Vector4f, size: Vector4f) : CenterSizeDistribution(
+    Dict["Gaussian", "obj.dist.gaussian"],
+    Dict["Gaussian- or Normal Distribution; sum of many small effects", "obj.dist.gaussian.desc"],
     center, size, null
 ) {
 

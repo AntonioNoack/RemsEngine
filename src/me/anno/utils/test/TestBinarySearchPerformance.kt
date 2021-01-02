@@ -1,9 +1,9 @@
-package me.anno.objects.animation
+package me.anno.utils.test
 
+import me.anno.objects.animation.AnimatedProperty
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3f
 import java.util.*
-import kotlin.math.log
 
 fun main(){
 

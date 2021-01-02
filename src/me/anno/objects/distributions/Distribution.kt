@@ -1,8 +1,8 @@
 package me.anno.objects.distributions
 
 import me.anno.io.Saveable
-import me.anno.objects.InspectableAttribute
-import me.anno.objects.InspectableVector
+import me.anno.objects.inspectable.InspectableAttribute
+import me.anno.objects.inspectable.InspectableVector
 import me.anno.objects.Transform
 import me.anno.objects.models.SphereModel
 import me.anno.ui.base.groups.PanelList
@@ -14,7 +14,8 @@ import org.joml.Vector3f
 import org.joml.Vector4f
 import java.util.*
 
-abstract class Distribution(val displayName: String, val description: String) : Saveable(), InspectableAttribute {
+abstract class Distribution(val displayName: String, val description: String) : Saveable(),
+    InspectableAttribute {
 
     /**
      * used by nearly all distributions anyways

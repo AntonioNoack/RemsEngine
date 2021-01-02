@@ -161,7 +161,7 @@ object Input {
                         val panelWindow = getPanelAndWindowAt(mouseX, mouseY)
                         if (panelWindow != null) {
                             val mouseButton = button.toMouseButton()
-                            while (true) {
+                            while (windowStack.isNotEmpty()) {
                                 val peek = windowStack.peek()
                                 if (panelWindow.second == peek || !peek.acceptsClickAway(mouseButton)) break
                                 windowStack.pop().destroy()

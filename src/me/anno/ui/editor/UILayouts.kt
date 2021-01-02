@@ -12,6 +12,10 @@ import me.anno.gpu.GFX.openMenuComplex2
 import me.anno.gpu.GFXBase0
 import me.anno.gpu.Window
 import me.anno.input.Input
+import me.anno.input.Input.mouseX
+import me.anno.input.Input.mouseY
+import me.anno.input.MouseButton
+import me.anno.language.translation.Dict
 import me.anno.objects.Camera
 import me.anno.objects.text.Text
 import me.anno.studio.GFXSettings
@@ -28,7 +32,10 @@ import me.anno.studio.rems.RenderSettings
 import me.anno.studio.rems.Rendering.render
 import me.anno.studio.rems.Rendering.renderPart
 import me.anno.studio.rems.Selection.selectTransform
-import me.anno.ui.base.*
+import me.anno.ui.base.Panel
+import me.anno.ui.base.SpacePanel
+import me.anno.ui.base.TextPanel
+import me.anno.ui.base.Visibility
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment
@@ -266,6 +273,8 @@ object UILayouts {
         quickSettings.show2()
         welcome += quickSettings
 
+        quickSettings += Dict.selectLanguages(style)
+
         val gfxNames = GFXSettings.values().map { it.displayName }
         quickSettings += EnumInput("GFX Quality", true, gfxSettings.displayName, gfxNames, style)
             .setChangeListener { _, index, _ ->
@@ -323,28 +332,40 @@ object UILayouts {
 
         val options = OptionBar(style)
 
+        fun reloadWindow(panel: Panel, fullscreen: Boolean): Window {
+            return object : Window(
+                panel, fullscreen,
+                if (fullscreen) 0 else mouseX.toInt(),
+                if (fullscreen) 0 else mouseY.toInt()
+            ) {
+                override fun destroy() {
+                    createEditorUI()
+                }
+            }
+        }
+
         // todo option to save/load/restore layout
         options.addAction("Config", "Settings") {
             val panel = ConfigPanel(DefaultConfig, false, style)
-            val window = Window(panel)
+            val window = reloadWindow(panel, true)
             panel.create()
             windowStack.push(window)
         }
 
         options.addAction("Config", "Style") {
             val panel = ConfigPanel(DefaultConfig.style.values, true, style)
-            val window = object : Window(panel) {
-                override fun destroy() {
-                    createEditorUI()
-                }
-            }
+            val window = reloadWindow(panel, true)
             panel.create()
             windowStack.push(window)
         }
 
+        options.addAction("Config", "Language") {
+            Dict.selectLanguages(style).onMouseClicked(mouseX, mouseY, MouseButton.LEFT, false)
+        }
+
         val menuStyle = style.getChild("menu")
 
-        options.addAction("Project", "Settings"){ selectTransform(ProjectSettings) }
+        options.addAction("Project", "Settings") { selectTransform(ProjectSettings) }
         options.addAction("Project", "Save") {
             Input.save()
             LOGGER.info("Saved the project")
@@ -362,7 +383,11 @@ object UILayouts {
 
         options.addAction("Select", "Inspector Camera") { selectTransform(nullCamera) }
         options.addAction("Select", "Root") { selectTransform(root) }
-        options.addAction("Select", "First Camera") { selectTransform(root.listOfAll.filterIsInstance<Camera>().firstOrNull()) }
+        options.addAction("Select", "First Camera") {
+            selectTransform(
+                root.listOfAll.filterIsInstance<Camera>().firstOrNull()
+            )
+        }
 
         options.addAction("Debug", "Refresh (Ctrl+F5)") { Cache.clear() }
 

@@ -15,6 +15,7 @@ import me.anno.gpu.GFXx3D.draw3DTextWithOffset
 import me.anno.gpu.GFXx3D.drawOutlinedText
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
+import me.anno.language.translation.Dict
 import me.anno.objects.GFXTransform
 import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
@@ -55,8 +56,6 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
         set(value) {
             field = value.replace("\r", "")
         }
-
-    override fun getSymbol() = DefaultConfig["ui.symbol.text", "\uD83D\uDCC4"]
 
     var renderingMode = TextRenderMode.MESH
     var roundSDFCorners = false
@@ -632,7 +631,8 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
     override fun passesOnColor() = false // otherwise white shadows of black text wont work
 
     override fun getClassName(): String = "Text"
-
+    override fun getDefaultDisplayName() = Dict["Text", "obj.text"]
+    override fun getSymbol() = DefaultConfig["ui.symbol.text", "\uD83D\uDCC4"]
 
     companion object {
 

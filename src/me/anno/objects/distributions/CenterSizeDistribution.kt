@@ -1,6 +1,6 @@
 package me.anno.objects.distributions
 
-import me.anno.objects.InspectableVector
+import me.anno.objects.inspectable.InspectableVector
 import org.joml.Matrix4fArrayList
 import org.joml.Vector2f
 import org.joml.Vector3f

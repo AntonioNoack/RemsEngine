@@ -1,5 +1,6 @@
 package me.anno.objects.distributions
 
+import me.anno.language.translation.Dict
 import me.anno.objects.models.CubemapModel.cubemapLineModel
 import me.anno.ui.editor.sceneView.Grid
 import org.joml.Matrix4fArrayList
@@ -7,11 +8,11 @@ import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
 
-class CuboidDistribution(center: Vector4f, size: Vector4f) :
-    CenterSizeDistribution(
-        "Cuboid", "Selects points from the cuboid shape randomly, uniformly",
-        center, size, Vector3f()
-    ) {
+class CuboidDistribution(center: Vector4f, size: Vector4f) : CenterSizeDistribution(
+    Dict["Cuboid", "obj.dist.cuboid"],
+    Dict["Selects points from the cuboid shape randomly, uniformly", "obj.dist.cuboid"],
+    center, size, Vector3f()
+) {
 
     constructor() : this(0f, 1f)
     constructor(center: Float, size: Float) : this(Vector4f(center), Vector4f(size))

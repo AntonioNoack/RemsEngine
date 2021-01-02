@@ -1,5 +1,6 @@
 package me.anno.objects.particles.forces.impl
 
+import me.anno.language.translation.Dict
 import me.anno.objects.particles.Particle
 import me.anno.objects.particles.ParticleState
 import me.anno.ui.editor.color.spaces.HSLuv
@@ -9,7 +10,10 @@ import org.joml.Matrix4fArrayList
 import org.joml.Vector3f
 import org.joml.Vector4f
 
-class LorentzForce : PerParticleForce("Lorentz Force", "Circular motion by velocity and rotation axis") {
+class LorentzForce : PerParticleForce(
+    Dict["Lorentz Force", "obj.force.lorentz"],
+    Dict["Circular motion by velocity and rotation axis", "obj.force.lorentz.desc"]
+) {
 
     override fun getForce(state: ParticleState, time: Double, particles: List<Particle>): Vector3f {
         val v = state.dPosition

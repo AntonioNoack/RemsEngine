@@ -2,10 +2,9 @@ package me.anno.studio.rems
 
 import me.anno.io.ISaveable
 import me.anno.io.find.PropertyFinder
-import me.anno.objects.Inspectable
+import me.anno.objects.inspectable.Inspectable
 import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
-import me.anno.studio.rems.RemsStudio.nullCamera
 import me.anno.studio.rems.RemsStudio.root
 
 object Selection {

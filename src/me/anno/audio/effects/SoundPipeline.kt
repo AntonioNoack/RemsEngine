@@ -9,7 +9,7 @@ import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.Audio
 import me.anno.objects.Camera
-import me.anno.objects.Inspectable
+import me.anno.objects.inspectable.Inspectable
 import me.anno.studio.rems.RemsStudio
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory

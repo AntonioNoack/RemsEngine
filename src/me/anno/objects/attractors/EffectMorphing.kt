@@ -3,6 +3,7 @@ package me.anno.objects.attractors
 import me.anno.config.DefaultConfig
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
+import me.anno.language.translation.Dict
 import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.ui.base.groups.PanelListY
@@ -15,8 +16,8 @@ class EffectMorphing: Transform() {
     val influence = AnimatedProperty.float(1f)
     val sharpness = AnimatedProperty.float(20f)
 
-    override fun getDefaultDisplayName() = "Effect: Morphing"
     override fun getClassName() = "EffectMorphing"
+    override fun getDefaultDisplayName() = Dict["Effect: Morphing", "obj.effect.morphing"]
     override fun getSymbol() = DefaultConfig["ui.symbol.fx.morphing", "\uD83D\uDCA0"]
 
     override fun createInspector(

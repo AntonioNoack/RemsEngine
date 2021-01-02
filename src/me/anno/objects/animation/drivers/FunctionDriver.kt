@@ -2,6 +2,7 @@ package me.anno.objects.animation.drivers
 
 import me.anno.config.DefaultConfig
 import me.anno.io.base.BaseWriter
+import me.anno.language.translation.Dict
 import me.anno.parser.CountingList
 import me.anno.parser.SimpleExpressionParser.parseDouble
 import me.anno.parser.SimpleExpressionParser.preparse
@@ -10,22 +11,25 @@ import me.anno.ui.editor.SettingCategory
 import me.anno.ui.input.TextInputML
 import me.anno.ui.style.Style
 
-class FunctionDriver: AnimationDriver(){
+class FunctionDriver : AnimationDriver() {
 
     // make them animated? no xD
     var formula = "sin(time*360)"
     var formulaParts: CountingList? = preparse(formula)
 
-    override fun createInspector(list: PanelListY, style: Style, getGroup: (title: String, id: String) -> SettingCategory) {
+    override fun createInspector(
+        list: PanelListY, style: Style,
+        getGroup: (title: String, id: String) -> SettingCategory
+    ) {
         super.createInspector(list, style, getGroup)
-        list += TextInputML("Function f(time)", style, formula)
+        list += TextInputML(Dict["Function f(time)", "driver.function"], style, formula)
             .setChangeListener { formula = it; updateFormula() }
             .setIsSelectedListener { show(null) }
-            .setTooltip("Example: sin(time*pi)")
+            .setTooltip(Dict["Example: sin(time*pi)", "driver.function.desc"])
     }
 
     // update by time? would be possible... but still...
-    fun updateFormula(){
+    fun updateFormula() {
         formulaParts = preparse(formula)
     }
 
@@ -35,7 +39,7 @@ class FunctionDriver: AnimationDriver(){
     }
 
     override fun readString(name: String, value: String) {
-        when(name){
+        when (name) {
             "formula" -> {
                 formula = value
                 updateFormula()
@@ -48,12 +52,15 @@ class FunctionDriver: AnimationDriver(){
         val formulaParts = formulaParts ?: return 0.0
         return parseDouble(
             CountingList(formulaParts), mapOf(
-            "t" to time, "time" to time
-        )) ?: 0.0
+                "t" to time, "time" to time
+            )
+        ) ?: 0.0
     }
 
     override fun getClassName() = "FunctionDriver"
-    override fun getDisplayName() = if(formula.length <= maxFormulaDisplayLength) formula else "Function"
+    override fun getDisplayName() =
+        if (formula.length <= maxFormulaDisplayLength) formula
+        else Dict["Function f(time)", "driver.function"]
 
     companion object {
         // could support more, but is useless anyways xD

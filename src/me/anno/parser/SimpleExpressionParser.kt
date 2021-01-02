@@ -37,7 +37,7 @@ object SimpleExpressionParser {
 
     private val LOGGER = LogManager.getLogger(SimpleExpressionParser::class)
 
-    fun preparse(str: String) = str.splitInternally()//simplify(str.splitInternally(), null)
+    fun preparse(str: String) = str.splitInternally()
 
     fun String.splitInternally(): CountingList {
 
