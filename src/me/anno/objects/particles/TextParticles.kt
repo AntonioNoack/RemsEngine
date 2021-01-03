@@ -5,9 +5,10 @@ import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.Transform
 import me.anno.objects.animation.Type
-import me.anno.objects.distributions.*
-import me.anno.objects.particles.forces.ForceField
-import me.anno.objects.particles.forces.impl.*
+import me.anno.objects.distributions.AnimatedDistribution
+import me.anno.objects.distributions.GaussianDistribution
+import me.anno.objects.forces.ForceField
+import me.anno.objects.particles.ParticleSystem.Companion.listDistributions
 import me.anno.studio.rems.RemsStudio
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelListY
@@ -242,28 +243,18 @@ class TextParticles : Transform() {
             group.setOnClickListener { _, _, button, long ->
                 if (button.isRight || long) {
                     // show all options for different distributions
-                    GFX.openMenu(
-                        "Change Distribution",
-                        listOf(
-                            { ConstantDistribution() },
-                            { GaussianDistribution() },
-                            { UniformDistribution() },
-                            { CuboidDistribution() },
-                            { SphereHullDistribution() },
-                            { SphereVolumeDistribution() }
-                        ).map { generator ->
-                            val sample = generator()
-                            GFX.MenuOption(sample.displayName, sample.description) {
-                                RemsStudio.largeChange("Change $name Distribution") {
-                                    property.distribution = generator()
-                                }
-                                clearCache()
-                                group.content.clear()
-                                group.title.text = getName()
-                                property.createInspector(group.content, this, style)
+                    GFX.openMenu("Change Distribution", listDistributions().map { generator ->
+                        val sample = generator()
+                        GFX.MenuOption(sample.displayName, sample.description) {
+                            RemsStudio.largeChange("Change $name Distribution") {
+                                property.distribution = generator()
                             }
+                            clearCache()
+                            group.content.clear()
+                            group.title.text = getName()
+                            property.createInspector(group.content, this, style)
                         }
-                    )
+                    })
                 }
             }
             property.createInspector(group.content, this, style)

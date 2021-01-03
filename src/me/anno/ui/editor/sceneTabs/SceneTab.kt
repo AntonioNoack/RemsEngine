@@ -24,7 +24,7 @@ import kotlin.concurrent.thread
 class SceneTab(var file: File?, var root: Transform, history: History?) : TextPanel("", DefaultConfig.style) {
 
     companion object {
-        val maxNameLength = 15
+        const val maxDisplayNameLength = 15
     }
 
     var history = history ?: try {
@@ -36,8 +36,8 @@ class SceneTab(var file: File?, var root: Transform, history: History?) : TextPa
     private val longName get() = file?.name ?: root.name
     private val shortName
         get() = longName.run {
-            if (length > maxNameLength) {
-                substring(0, maxNameLength - 3) + "..."
+            if (length > maxDisplayNameLength) {
+                substring(0, maxDisplayNameLength - 3) + "..."
             } else this
         }
 
@@ -88,27 +88,28 @@ class SceneTab(var file: File?, var root: Transform, history: History?) : TextPa
         super.onDraw(x0, y0, x1, y1)
     }
 
-    fun save(onSuccess: () -> Unit) {
-        fun save(dst: File) {
-            if (dst.isDirectory) dst.deleteRecursively()
-            thread {
-                try {
-                    synchronized(root) {
-                        dst.parentFile.mkdirs()
-                        val writer = TextWriter(false)
-                        writer.add(root)
-                        writer.add(history)
-                        writer.writeAllInList()
-                        dst.writeText(writer.toString())
-                        file = dst
-                        hasChanged = false
-                        onSuccess()
-                    }
-                } catch (e: Exception) {
-                    e.printStackTrace()
+    fun save(dst: File, onSuccess: () -> Unit) {
+        if (dst.isDirectory) dst.deleteRecursively()
+        thread {
+            try {
+                synchronized(root) {
+                    dst.parentFile.mkdirs()
+                    val writer = TextWriter(false)
+                    writer.add(root)
+                    writer.add(history)
+                    writer.writeAllInList()
+                    dst.writeText(writer.toString())
+                    file = dst
+                    hasChanged = false
+                    onSuccess()
                 }
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
+    }
+
+    fun save(onSuccess: () -> Unit) {
         if (file == null) {
             var name = root.name.trim()
             if (!name.endsWith(".json", true)) name = "$name.json"
@@ -120,11 +121,11 @@ class SceneTab(var file: File?, var root: Transform, history: History?) : TextPa
                 if (dst.exists()) {
                     GFX.ask("Override ${dst.name}?") {
                         file = dst
-                        save(dst)
+                        save(dst, onSuccess)
                     }
                 } else {
                     file = dst
-                    save(dst)
+                    save(dst, onSuccess)
                     rootPanel.listOfAll
                         .filterIsInstance<FileExplorer>()
                         .forEach { it.invalidate() }
@@ -133,7 +134,7 @@ class SceneTab(var file: File?, var root: Transform, history: History?) : TextPa
                 GFX.msg("'$name0' is no valid file name, rename it!")
             }
         } else {
-            save(file!!)
+            save(file!!, onSuccess)
         }
     }
 

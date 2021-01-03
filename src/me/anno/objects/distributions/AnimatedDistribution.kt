@@ -15,6 +15,7 @@ import org.joml.Vector4f
 import java.util.*
 import kotlin.collections.ArrayList
 
+// todo use meshes as distribution containers...
 class AnimatedDistribution(
     var distribution: Distribution = ConstantDistribution(),
     val types: List<Type>,
@@ -44,6 +45,7 @@ class AnimatedDistribution(
     ) {
         if (lastDist !== distribution) update()
         properties.forEachIndexed { index, property ->
+            if(property.isRotation) channels[index].type = Type.ROT_YXZ
             list += transform.vi(property.title, property.description, channels[index], style)
         }
     }

@@ -1,4 +1,4 @@
-package me.anno.objects.particles.forces
+package me.anno.objects.forces
 
 import me.anno.config.DefaultConfig
 import me.anno.objects.inspectable.InspectableAnimProperty
@@ -7,7 +7,7 @@ import me.anno.objects.models.ArrowModel
 import me.anno.objects.particles.Particle
 import me.anno.objects.particles.ParticleState
 import me.anno.objects.particles.ParticleSystem
-import me.anno.objects.particles.forces.impl.*
+import me.anno.objects.forces.impl.*
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory

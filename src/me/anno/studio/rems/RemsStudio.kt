@@ -26,16 +26,13 @@ import kotlin.concurrent.thread
 
 // todo "hacked"-text effect for text: swizzle characters and introduce others
 
-// todo scene screenshot/editor screenshot
+// todo editor screenshot
 
 // todo draw frame by frame, only save x,y,radius?
 
-// todo small preview?
+// todo small video/rendering preview?
 
 // todo input field title, no focus color
-
-// todo "onto" isn't rendered correctly in ui
-// -> create our own rasterizer including subpixel support and contrast settings?...
 
 object RemsStudio : StudioBase(true, "Rem's Studio", "RemsStudio") {
 

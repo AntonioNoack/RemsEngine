@@ -82,12 +82,12 @@ class Camera(parent: Transform? = null) : Transform(parent) {
         super.createInspector(list, style, getGroup)
 
         val cam = getGroup("Projection", "projection")
-        cam += vi("FOV", "Field Of View, in degrees, vertical", fovYDegrees, style)
-        cam += vi("Perspective - Orthographic", "Sets back the camera", orthographicness, style)
+        cam += vi("FOV", "Field Of View, in degrees, vertical", "camera.fov", fovYDegrees, style)
+        cam += vi("Perspective - Orthographic", "Sets back the camera", "camera.orthographicness", orthographicness, style)
         val depth = getGroup("Depth", "depth")
-        depth += vi("Near Z", "Closest Visible Distance", nearZ, style)
-        depth += vi("Far Z", "Farthest Visible Distance", farZ, style)
-        depth += vi("Use Depth", "Causes Z-Fighting, but allows 3D", null, useDepth, style) { useDepth = it }
+        depth += vi("Near Z", "Closest Visible Distance", "camera.depth.near", nearZ, style)
+        depth += vi("Far Z", "Farthest Visible Distance", "camera.depth.far", farZ, style)
+        depth += vi("Use Depth", "Causes Z-Fighting, but allows 3D", "camera.depth.enabled", null, useDepth, style) { useDepth = it }
         val chroma = getGroup("Chromatic Aberration", "chroma")
         chroma += vi("Strength", "Effect occurring in cheap lenses", chromaticAberration, style)
         chroma += vi("Offset", "Offset", chromaticOffset, style)
@@ -96,40 +96,35 @@ class Camera(parent: Transform? = null) : Transform(parent) {
         dist += vi("Distortion", "Params: R², R⁴, Scale", distortion, style)
         dist += vi("Distortion Offset", "Moves the center of the distortion", distortionOffset, style)
         val vignette = getGroup("Vignette", "vignette")
-        vignette += vi("Vignette Color", "Color of the border", vignetteColor, style)
-        vignette += vi("Vignette Strength", "Strength of the colored border", vignetteStrength, style)
+        vignette += vi("Vignette Color", "Color of the border", "vignette.color", vignetteColor, style)
+        vignette += vi("Vignette Strength", "Strength of the colored border", "vignette.strength", vignetteStrength, style)
         val bloom = getGroup("Bloom", "bloom")
-        bloom += vi("Intensity", "Brightness of effect, 0 = off", bloomIntensity, style)
-        bloom += vi("Effect Size", "How much it is blurred", bloomSize, style)
-        bloom += vi("Threshold", "Minimum brightness", bloomThreshold, style)
+        bloom += vi("Intensity", "Brightness of effect, 0 = off", "bloom.intensity", bloomIntensity, style)
+        bloom += vi("Effect Size", "How much it is blurred", "bloom.size", bloomSize, style)
+        bloom += vi("Threshold", "Minimum brightness", "bloom.threshold", bloomThreshold, style)
         val color = getGroup("Color", "color")
         color += vi(
             "Tone Mapping",
             "Maps large ranges of brightnesses (e.g. HDR) to monitor color space",
-            null,
-            toneMapping,
-            style
+            null, toneMapping, style
         ) { toneMapping = it }
         color += vi("Look Up Table", "LUT, Look Up Table for colors, formatted like in UE4", null, lut, style) {
             lut = it
         }
         val cg = getGroup("Color Grading (ASC CDL)", "color-grading")
-        cg += vi("Power", "sRGB, Linear, ...", cgPower, style)
+        cg += vi("Power", "sRGB, Linear, a kind of contrast", "cg.power", cgPower, style)
         cg += vi(
             "Saturation",
             "0 = gray scale, 1 = normal, -1 = inverted colors",
-            cgSaturation,
-            style
+            cgSaturation, style
         )
-        cg += vi("Slope", "Intensity or Tint", cgSlope, style)
-        cg += vi("Offset", "Can be used to color black objects", cgOffset, style)
+        cg += vi("Slope", "Intensity or Tint", "cg.slope", cgSlope, style)
+        cg += vi("Offset", "Can be used to color black objects, or add a tint", "cg.offset", cgOffset, style)
         val editor = getGroup("Editor", "editor")
         editor += vi(
             "Only Show Target",
             "Forces the viewport to have the correct aspect ratio",
-            null,
-            onlyShowTarget,
-            style
+            null, onlyShowTarget, style
         ) { onlyShowTarget = it }
         val ops = getGroup("Operations", "operations")
         ops += TextButton("Reset Transform", false, style)

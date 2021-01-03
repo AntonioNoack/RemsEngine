@@ -142,7 +142,7 @@ object Grid {
         stack.scale(p0.distance(p1) * 0.5f)
         val dif = (p1 - p0).normalize()
         // this rotation is correct
-        stack.rotateZ(-atan2(dif.y, dif.x))
+        stack.rotateZ(+atan2(dif.y, dif.x))
         stack.rotateY(-atan2(dif.z, sqrt(sq(dif.x, dif.y))))
 
         val shader = shader3D

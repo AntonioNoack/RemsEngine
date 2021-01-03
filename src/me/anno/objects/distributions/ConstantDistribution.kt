@@ -38,11 +38,11 @@ class ConstantDistribution(val center: Vector4f) : Distribution(
         )
     }
 
-    override fun onDraw(stack: Matrix4fArrayList) {
+    override fun onDraw(stack: Matrix4fArrayList, color: Vector4f) {
         val l = displayLength
-        Grid.drawLine(stack, Vector4f(1f), Vector3f(-l,0f,0f), Vector3f(+l,0f,0f))
-        Grid.drawLine(stack, Vector4f(1f), Vector3f(0f,-l,0f), Vector3f(0f,+l,0f))
-        Grid.drawLine(stack, Vector4f(1f), Vector3f(0f,0f,-l), Vector3f(0f,0f,+l))
+        Grid.drawLine(stack, color, Vector3f(-l,0f,0f), Vector3f(+l,0f,0f))
+        Grid.drawLine(stack, color, Vector3f(0f,-l,0f), Vector3f(0f,+l,0f))
+        Grid.drawLine(stack, color, Vector3f(0f,0f,-l), Vector3f(0f,0f,+l))
     }
 
     override fun getClassName() = "ConstantDistribution"

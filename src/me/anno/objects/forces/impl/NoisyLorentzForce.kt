@@ -1,4 +1,4 @@
-package me.anno.objects.particles.forces.impl
+package me.anno.objects.forces.impl
 
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter

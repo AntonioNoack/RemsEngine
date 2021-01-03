@@ -1,6 +1,6 @@
-package me.anno.objects.particles.forces.impl
+package me.anno.objects.forces.impl
 
-import me.anno.objects.particles.forces.ForceField
+import me.anno.objects.forces.ForceField
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
 

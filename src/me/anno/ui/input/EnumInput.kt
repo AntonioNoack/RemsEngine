@@ -3,6 +3,7 @@ package me.anno.ui.input
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
 import me.anno.input.MouseButton
+import me.anno.language.translation.Dict
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.input.components.EnumValuePanel
@@ -12,6 +13,16 @@ class EnumInput(
     private val title: String, withTitle: Boolean, startValue: String,
     private val options: List<String>, style: Style
 ) : PanelListX(style) {
+
+    constructor(title: String, ttt: String, startValue: String, options: List<String>, style: Style) :
+            this(title, true, startValue, options, style) {
+        setTooltip(ttt)
+    }
+
+    constructor(title: String, ttt: String, dictPath: String, startValue: String, options: List<String>, style: Style) :
+            this(Dict[title, dictPath], true, startValue, options, style) {
+        setTooltip(Dict[ttt, "$dictPath.desc"])
+    }
 
     var lastIndex = options.indexOf(startValue)
 

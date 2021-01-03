@@ -6,10 +6,10 @@ import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
 
-class SphereHullDistribution(center: Vector4f, size: Vector4f) : CenterSizeDistribution(
+class SphereHullDistribution(center: Vector4f, size: Vector4f, rotation: Vector4f = Vector4f()) : CenterSizeDistribution(
     Dict["Sphere Hull", "obj.dist.sphere.hull"],
     Dict["Distributes points from the hull of a sphere or circle, not from the volume", "obj.dist.sphere.hull.desc"],
-    center, size, null
+    center, size, rotation
 ) {
 
     constructor() : this(0f, 1f)
@@ -33,8 +33,8 @@ class SphereHullDistribution(center: Vector4f, size: Vector4f) : CenterSizeDistr
         ).mul(size).normalize().transform()
     }
 
-    override fun drawTransformed(stack: Matrix4fArrayList) {
-        drawSphere(stack)
+    override fun drawTransformed(stack: Matrix4fArrayList, color: Vector4f) {
+        drawSphere(stack, color, 1f)
     }
 
     override fun getClassName() = "SphereHullDistribution"

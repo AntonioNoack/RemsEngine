@@ -2,6 +2,7 @@ package me.anno.objects.particles
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.gameTime
 import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.GFX.openMenu
 import me.anno.io.ISaveable
@@ -10,8 +11,8 @@ import me.anno.language.translation.Dict
 import me.anno.objects.Transform
 import me.anno.objects.animation.Type
 import me.anno.objects.distributions.*
-import me.anno.objects.particles.forces.ForceField
-import me.anno.objects.particles.forces.impl.BetweenParticleGravity
+import me.anno.objects.forces.ForceField
+import me.anno.objects.forces.impl.BetweenParticleGravity
 import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.studio.rems.RemsStudio
 import me.anno.ui.base.buttons.TextButton
@@ -48,10 +49,11 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
 
     // todo if notCalculating && property was changed, invalidate cache
 
-    val spawnColor = AnimatedDistribution(Type.COLOR3, listOf(Vector3f(1f), Vector3f(0f)))
-    val spawnPosition = AnimatedDistribution(Type.POSITION, listOf(Vector3f(0f), Vector3f(1f)))
-    val spawnVelocity = AnimatedDistribution(GaussianDistribution(), Type.POSITION, listOf(Vector3f(0f), Vector3f(1f)))
-    val spawnSize = AnimatedDistribution(Type.SCALE, listOf(Vector3f(1f), Vector3f(0f)))
+    val spawnColor = AnimatedDistribution(Type.COLOR3, listOf(Vector3f(1f), Vector3f(0f), Vector3f(0f)))
+    val spawnPosition = AnimatedDistribution(Type.POSITION, listOf(Vector3f(0f), Vector3f(1f), Vector3f(0f)))
+    val spawnVelocity =
+        AnimatedDistribution(GaussianDistribution(), Type.POSITION, listOf(Vector3f(0f), Vector3f(1f), Vector3f(0f)))
+    val spawnSize = AnimatedDistribution(Type.SCALE, listOf(Vector3f(1f), Vector3f(0f), Vector3f(0f)))
     var spawnSize1D = true
 
     val spawnOpacity = AnimatedDistribution(Type.FLOAT, listOf(1f, 0f))
@@ -318,7 +320,7 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
             }
             synchronized(spawnPosition) {
                 spawnPosition.update(time, Random())
-                spawnPosition.distribution.onDraw(stack)
+                spawnPosition.distribution.onDraw(stack, color)
             }
         }
 
@@ -329,7 +331,7 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
             drawParticles(stack, time, color)
         } else {
             if (isFinalRendering) throw MissingFrameException(name)
-            drawLoadingCircle(stack, time.toFloat() % 1f)
+            drawLoadingCircle(stack, (gameTime * 1e-9f) % 1f)
             drawParticles(stack, time, color)
         }
 
@@ -404,14 +406,7 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
                     // show all options for different distributions
                     openMenu(
                         "Change Distribution",
-                        listOf(
-                            { ConstantDistribution() },
-                            { GaussianDistribution() },
-                            { UniformDistribution() },
-                            { CuboidDistribution() },
-                            { SphereHullDistribution() },
-                            { SphereVolumeDistribution() }
-                        ).map { generator ->
+                        listDistributions().map { generator ->
                             val sample = generator()
                             GFX.MenuOption(sample.displayName, sample.description) {
                                 RemsStudio.largeChange("Change $name Distribution") {
@@ -439,7 +434,7 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
         vt("spawnRate", "Spawn Rate", "How many particles are spawned per second", spawnRate)
         vt("lifeTime", "Life Time", "How many seconds a particle is visible", lifeTime)
         vt("initPosition", "Initial Position", "Where the particles spawn", spawnPosition)
-        vt("initVelocity","Initial Velocity", "How fast the particles are, when they are spawned", spawnVelocity)
+        vt("initVelocity", "Initial Velocity", "How fast the particles are, when they are spawned", spawnVelocity)
         vi("Initial Rotation", "How the particles are rotated initially", spawnRotation)
         vi("Rotation Velocity", "How fast the particles are rotating", spawnRotationVelocity)
 
@@ -450,7 +445,8 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
         val general = getGroup("Particle System", "particles")
 
         general += vi(
-            "Simulation Step", "Larger values are faster, while smaller values are more accurate for forces",
+            "Simulation Step",
+            "Larger values are faster, while smaller values are more accurate for forces",
             Type.DOUBLE, simulationStep, style
         ) {
             if (it > 1e-9) simulationStep = it
@@ -458,17 +454,25 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
         }
 
         general += vi(
-            "Fade In", "Time from spawning to the max. opacity", Type.DOUBLE_PLUS, fadeIn, style
+            "Fade In",
+            "Time from spawning to the max. opacity",
+            Type.DOUBLE_PLUS, fadeIn, style
         ) { fadeIn = it }
         general += vi(
-            "Fade Out", "Time before death, from which is starts to fade away", Type.DOUBLE_PLUS, fadeOut, style
+            "Fade Out",
+            "Time before death, from which is starts to fade away",
+            Type.DOUBLE_PLUS, fadeOut, style
         ) { fadeOut = it }
 
         general += BooleanInput("Show Children", showChildren, style)
             .setChangeListener { showChildren = it }
             .setIsSelectedListener { show(null) }
 
-        general += vi("Seed", "The seed for all randomness", null, seed, style) {
+        general += vi(
+            "Seed",
+            "The seed for all randomness",
+            null, seed, style
+        ) {
             seed = it
             clearCache()
         }
@@ -530,5 +534,17 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
     override fun getClassName() = "ParticleSystem"
     override fun getDefaultDisplayName(): String = Dict["Particle System", "obj.particles"]
     override fun getSymbol() = DefaultConfig["ui.symbol.particleSystem", "❄"]
+
+    companion object {
+        fun listDistributions(): List<() -> Distribution> {
+            return listOf(
+                { ConstantDistribution() },
+                { GaussianDistribution() },
+                { CuboidDistribution() },
+                { SphereHullDistribution() },
+                { SphereVolumeDistribution() }
+            )
+        }
+    }
 
 }

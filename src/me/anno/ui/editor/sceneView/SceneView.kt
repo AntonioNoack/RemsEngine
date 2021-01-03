@@ -4,6 +4,7 @@ import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.black
 import me.anno.config.DefaultStyle.deepDark
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.addGPUTask
 import me.anno.gpu.GFX.deltaTime
 import me.anno.gpu.GFX.windowStack
 import me.anno.gpu.GFXx2D.drawRect
@@ -14,6 +15,8 @@ import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.ShaderPlus
+import me.anno.gpu.texture.Clamping
+import me.anno.gpu.texture.GPUFiltering
 import me.anno.input.Input
 import me.anno.input.Input.mouseKeysDown
 import me.anno.input.Input.mouseX
@@ -45,20 +48,33 @@ import me.anno.ui.custom.data.ICustomDataCreator
 import me.anno.ui.editor.files.addChildFromFile
 import me.anno.ui.simple.SimplePanel
 import me.anno.ui.style.Style
+import me.anno.utils.Color.a
+import me.anno.utils.Color.b
+import me.anno.utils.Color.g
+import me.anno.utils.Color.r
+import me.anno.utils.Color.rgba
 import me.anno.utils.Lists.sumByFloat
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.pow
+import me.anno.utils.OS
 import me.anno.utils.Quad
 import me.anno.utils.Vectors.plus
 import me.anno.utils.Vectors.times
 import me.anno.utils.Vectors.toVec3f
+import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
 import org.joml.Matrix4fArrayList
 import org.joml.Vector3f
 import org.joml.Vector4f
 import org.lwjgl.opengl.GL11.*
+import java.awt.image.BufferedImage
 import java.io.File
 import java.lang.Math.toDegrees
+import java.text.SimpleDateFormat
+import java.util.*
+import javax.imageio.ImageIO
+import kotlin.collections.ArrayList
+import kotlin.concurrent.thread
 import kotlin.math.atan2
 import kotlin.math.max
 import kotlin.math.min
@@ -94,6 +110,10 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
         camera = sceneView.camera
         isLocked2D = sceneView.isLocked2D
         mode = sceneView.mode
+    }
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(SceneView::class)
     }
 
     init {
@@ -158,6 +178,16 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
         controls.forEach {
             children += it.drawable
         }
+        // todo background is not drawn... why?
+        controls += SimplePanel(
+            TextButton("\uD83D\uDCF7", true, style)
+                .setTooltip("Take a screenshot"),
+            true, true,
+            pad * 3 + iconSize * (3 + 1), pad,
+            iconSize
+        ).setOnClickListener {
+            takeScreenshot()
+        }
     }
 
     override fun getVisualState(): Any? = Quad(super.getVisualState(), editorTime, goodW, goodH)
@@ -174,7 +204,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
         set(value) {
             field = value
             val selectedTransform = selectedTransform
-            if(selectedTransform != null){
+            if (selectedTransform != null) {
                 Selection.select(
                     selectedTransform,
                     when (value) {
@@ -290,6 +320,67 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
 
     }
 
+    fun takeScreenshot() {
+
+        val folder = File(OS.pictures, "Screenshots")
+        folder.mkdirs()
+        val format = SimpleDateFormat("yyyy-MM-dd_HH.mm.ss")
+        var name = format.format(Date())
+        if (File(folder, "$name.png").exists()) name += "_${System.nanoTime()}"
+        name += ".png"
+        if (File(folder, name).exists()) return // image already exists somehow...
+
+        val w = rw
+        val h = rh
+
+        addGPUTask(w, h) {
+
+            GFX.check()
+
+            val fb: Framebuffer = FBStack["screenshot", w, h, 8, false]
+
+            GFX.check()
+
+            fun getPixels(mode: ShaderPlus.DrawMode): IntArray {
+                // draw only the clicked area?
+                val buffer = IntArray(w * h)
+                Frame(fb) {
+                    GFX.check()
+                    Scene.draw(camera, 0, 0, w, h, editorTime, true, mode, this)
+                    fb.bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+                    Frame(fb.msBuffer){
+                        Frame.bind()
+                        glFlush(); glFinish() // wait for everything to be drawn
+                        glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
+                        glReadPixels(0, 0, w,h, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
+                        GFX.check()
+                    }
+                }
+                return buffer
+            }
+
+            GFX.check()
+
+            val data = getPixels(ShaderPlus.DrawMode.COLOR)
+            thread {
+
+                val image = BufferedImage(w, h, 1)
+
+                for (i in data.indices) {
+                    val abgr = data[i] // rgba, but little endian
+                    val argb = rgba(abgr.b(), abgr.g(), abgr.r(), abgr.a())
+                    image.raster.dataBuffer.setElem(i, argb)
+                }
+
+                val file = File(folder, name)
+                ImageIO.write(image, "png", file)
+                LOGGER.info("Saved screenshot to $file")
+
+            }
+        }
+
+    }
+
     fun resolveClick(clickX: Float, clickY: Float, rw: Int, rh: Int) {
 
         val camera = camera
@@ -398,7 +489,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
             val step2 = cameraTransform.transformDirection(step)
             // todo transform into the correct space: from that camera to this camera
             val newPosition = oldPosition + step2
-            if(camera == nullCamera){
+            if (camera == nullCamera) {
                 camera.position.addKeyframe(cameraTime, newPosition, 0.01)
             } else {
                 RemsStudio.incrementalChange("Move Camera") {

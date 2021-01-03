@@ -1,9 +1,9 @@
-package me.anno.objects.particles.forces.impl
+package me.anno.objects.forces.impl
 
 import me.anno.language.translation.Dict
 import me.anno.objects.particles.Particle
 import me.anno.objects.particles.ParticleState
-import me.anno.objects.particles.forces.ForceField
+import me.anno.objects.forces.ForceField
 import me.anno.utils.Vectors.times
 import org.joml.Matrix4fArrayList
 import org.joml.Vector3f

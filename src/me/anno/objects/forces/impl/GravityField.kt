@@ -1,11 +1,11 @@
-package me.anno.objects.particles.forces.impl
+package me.anno.objects.forces.impl
 
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.language.translation.Dict
 import me.anno.objects.inspectable.InspectableAnimProperty
 import me.anno.objects.animation.AnimatedProperty
-import me.anno.objects.particles.forces.types.RelativeForceField
+import me.anno.objects.forces.types.RelativeForceField
 import me.anno.utils.Maths.pow
 import me.anno.utils.Vectors.times
 import org.joml.Vector3f

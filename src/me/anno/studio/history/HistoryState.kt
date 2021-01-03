@@ -10,6 +10,7 @@ import me.anno.studio.rems.RemsStudio.nullCamera
 import me.anno.studio.rems.RemsStudio.windowStack
 import me.anno.studio.rems.Selection
 import me.anno.studio.rems.Selection.select
+import me.anno.ui.editor.sceneTabs.SceneTabs
 import me.anno.ui.editor.sceneView.SceneView
 import me.anno.utils.Lists.join
 
@@ -47,6 +48,7 @@ class HistoryState() : Saveable() {
 
     fun apply() {
         RemsStudio.root = this.root
+        SceneTabs.currentTab?.root = root
         RemsStudio.editorTime = editorTime
         val listOfAll = root.listOfAll.toList()
         select(selectedUUID, selectedPropName)

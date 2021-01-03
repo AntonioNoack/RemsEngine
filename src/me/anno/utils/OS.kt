@@ -17,8 +17,9 @@ object OS {// the os is important for some things, e.g. the allowed file names, 
     val downloads = File(home, "Downloads")
     val desktop = File(home, "Desktop")
     val documents = File(home, "Documents")
+    val pictures = File(home, "Pictures")
 
-    fun startProcess(vararg args: String){
+    fun startProcess(vararg args: String) {
         thread {
             ProcessBuilder(args.toList()).start()
         }

@@ -6,10 +6,10 @@ import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
 
-class SphereVolumeDistribution(center: Vector4f, size: Vector4f) : CenterSizeDistribution(
+class SphereVolumeDistribution(center: Vector4f, size: Vector4f, rotation: Vector4f = Vector4f()) : CenterSizeDistribution(
     Dict["Sphere Volume", "obj.dist.sphere.volume"],
     Dict["Points from the inside of the sphere", "obj.dist.sphere.volume.desc"],
-    center, size, null
+    center, size, rotation
 ) {
 
     constructor() : this(0f, 1f)
@@ -40,8 +40,8 @@ class SphereVolumeDistribution(center: Vector4f, size: Vector4f) : CenterSizeDis
         return Vector3f(x, y, z).transform()
     }
 
-    override fun drawTransformed(stack: Matrix4fArrayList) {
-        drawSphere(stack)
+    override fun drawTransformed(stack: Matrix4fArrayList, color: Vector4f) {
+        drawSphere(stack, color, 1f)
     }
 
     override fun getClassName() = "SphereVolumeDistribution"

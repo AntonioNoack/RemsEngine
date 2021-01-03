@@ -23,8 +23,8 @@ import me.anno.objects.animation.Type
 import me.anno.objects.modes.TextMode
 import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.Selection.selectTransform
-import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.Font
+import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
@@ -42,7 +42,6 @@ import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
 import java.awt.font.TextLayout
-import java.io.File
 import kotlin.math.max
 import kotlin.math.min
 
@@ -294,7 +293,7 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
 
         sdf2.charByChar = renderingMode != TextRenderMode.SDF_JOINED
         sdf2.roundCorners = roundSDFCorners
-        sdf2.draw(startIndex, endIndex){ _, sdf, xOffset ->
+        sdf2.draw(startIndex, endIndex) { _, sdf, xOffset ->
 
             val texture = sdf?.texture
 
@@ -516,7 +515,7 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
 
         val fontGroup = getGroup("Font", "font")
 
-        fontGroup += EnumInput("Font Name", true, font.name, fontList, style)
+        fontGroup += EnumInput("Font Name", "The style of the text", "obj.font.name", font.name, fontList, style)
             .setChangeListener { it, _, _ ->
                 RemsStudio.largeChange("Change Font to '$it'") {
                     getSelfWithShadows().forEach { c -> c.font = c.font.withName(it) }
@@ -567,20 +566,31 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
 
         val spaceGroup = getGroup("Spacing", "spacing")
         // make this element separable from the parent???
-        spaceGroup += vi("Character Spacing", "Space between individual characters", null, relativeCharSpacing, style) {
+        spaceGroup += vi(
+            "Character Spacing",
+            "Space between individual characters",
+            "text.characterSpacing",
+            null, relativeCharSpacing, style
+        ) {
             RemsStudio.incrementalChange("char space") { relativeCharSpacing = it }
             invalidate()
         }
-        spaceGroup += vi("Line Spacing", "How much lines are apart from each other", relativeLineSpacing, style)
         spaceGroup += vi(
-            "Tab Size", "Relative tab size, in widths of o's",
+            "Line Spacing",
+            "How much lines are apart from each other",
+            "text.lineSpacing",
+            relativeLineSpacing, style
+        )
+        spaceGroup += vi(
+            "Tab Size", "Relative tab size, in widths of o's", "text.tabSpacing",
             tabSpaceType, relativeTabSize, style
         ) {
             RemsStudio.incrementalChange("tab size") { relativeTabSize = it }
             invalidate()
         }
         spaceGroup += vi(
-            "Line Break Width", "How broad the text shall be, at maximum; < 0 = no limit",
+            "Line Break Width",
+            "How broad the text shall be, at maximum; < 0 = no limit", "text.widthLimit",
             lineBreakType, lineBreakWidth, style
         ) {
             RemsStudio.incrementalChange("line break width") { lineBreakWidth = it }
@@ -611,15 +621,16 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
         val outline = getGroup("Outline", "outline")
         outline.setTooltip("Needs Rendering Mode = SDF or Merged SDF")
         outline += vi(
-            "Rendering Mode", "Mesh: Sharp, Signed Distance Fields: with outline",
+            "Rendering Mode",
+            "Mesh: Sharp, Signed Distance Fields: with outline", "text.renderingMode",
             null, renderingMode, style
         ) { renderingMode = it }
-        outline += vi("Color 1", "", outlineColor0, style)
-        outline += vi("Color 2", "", outlineColor1, style)
-        outline += vi("Color 3", "", outlineColor2, style)
-        outline += vi("Widths", "First: Main Width, Second: Outline Width", outlineWidths, style)
-        outline += vi("Smoothness", "How smooth the edge is", outlineSmoothness, style)
-        outline += vi("Rounded Corners", "Otherwise uses a pseudo-distance", null, roundSDFCorners, style) {
+        outline += vi("Color 1", "First Outline Color", "outline.color1", outlineColor0, style)
+        outline += vi("Color 2", "Second Outline Color", "outline.color2", outlineColor1, style)
+        outline += vi("Color 3", "Third Outline Color", "outline.color3", outlineColor2, style)
+        outline += vi("Widths", "[Main, 1st, 2nd, 3rd]", "outline.widths", outlineWidths, style)
+        outline += vi("Smoothness", "How smooth the edge is, [Main, 1st, 2nd, 3rd]", "outline.smoothness", outlineSmoothness, style)
+        outline += vi("Rounded Corners", "Makes corners curvy", "outline.roundCorners", null, roundSDFCorners, style) {
             roundSDFCorners = it
             invalidate()
         }
@@ -639,7 +650,7 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
         val tabSpaceType = Type(4f, 1, 1f, true, true, { max(it as Float, 0f) }, ::castToFloat)
         val lineBreakType = Type(-1f, 1, 1f, true, true, { it as Float }, ::castToFloat)
 
-        val textMeshTimeout = 5000L
+        private val textMeshTimeout = 5000L
         val lastUsedFonts = arrayOfNulls<String>(max(0, DefaultConfig["lastUsed.fonts.count", 5]))
 
         /**

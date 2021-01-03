@@ -1,10 +1,11 @@
 package me.anno.objects.distributions
 
 import me.anno.io.Saveable
+import me.anno.objects.Transform
+import me.anno.objects.animation.Type
 import me.anno.objects.inspectable.InspectableAttribute
 import me.anno.objects.inspectable.InspectableVector
-import me.anno.objects.Transform
-import me.anno.objects.models.SphereModel
+import me.anno.objects.models.SphereAxesModel.sphereAxesModels
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.editor.sceneView.Grid
 import me.anno.ui.style.Style
@@ -46,7 +47,7 @@ abstract class Distribution(val displayName: String, val description: String) : 
             list += actor.vi(
                 property.title,
                 property.description,
-                null,
+                if(property.isRotation) Type.ROT_YXZ else null,
                 property.value,
                 style
             ) { property.value.set(it) }
@@ -62,22 +63,23 @@ abstract class Distribution(val displayName: String, val description: String) : 
     fun Vector3f.mul(size: Vector4f) = mul(size.x, size.y, size.z)
     fun Vector3f.add(delta: Vector4f) = add(delta.x, delta.y, delta.z)
 
-    open fun draw(stack: Matrix4fArrayList){
-        onDraw(stack)
+    open fun draw(stack: Matrix4fArrayList, color: Vector4f) {
+        onDraw(stack, color)
     }
 
-    abstract fun onDraw(stack: Matrix4fArrayList)
+    abstract fun onDraw(stack: Matrix4fArrayList, color: Vector4f)
 
-    fun drawSphere(stack: Matrix4fArrayList, alpha: Float = 1f) {
+    fun drawSphere(stack: Matrix4fArrayList, color: Vector4f, alpha: Float = 1f) {
         Grid.drawBuffer(
             stack,
-            Vector4f(1f, 1f, 1f, alpha),
-            SphereModel.sphereLineModels[sphereSubDivision].value
+            if(alpha == 1f) color
+            else Vector4f(color.x, color.y, color.z, color.w * alpha),
+            sphereAxesModels[sphereSubDivision].value
         )
     }
 
     companion object {
-        const val sphereSubDivision = 1
+        const val sphereSubDivision = 4
     }
 
 }

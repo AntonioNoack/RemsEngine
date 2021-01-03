@@ -1,4 +1,4 @@
-package me.anno.objects.particles.forces.impl
+package me.anno.objects.forces.impl
 
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
@@ -8,7 +8,7 @@ import me.anno.objects.inspectable.InspectableAnimProperty
 import me.anno.objects.models.ArrowModel.arrowLineModel
 import me.anno.objects.particles.Particle
 import me.anno.objects.particles.ParticleState
-import me.anno.objects.particles.forces.ForceField
+import me.anno.objects.forces.ForceField
 import me.anno.ui.editor.sceneView.Grid
 import me.anno.utils.Maths.pow
 import me.anno.utils.Vectors.minus

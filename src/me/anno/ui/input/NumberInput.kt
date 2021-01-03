@@ -11,7 +11,8 @@ import me.anno.ui.input.components.TitlePanel
 import me.anno.ui.style.Style
 
 abstract class NumberInput(
-    style: Style, title: String,
+    style: Style,
+    val title: String,
     val type: Type = Type.FLOAT,
     val owningProperty: AnimatedProperty<*>?,
     val indexInProperty: Int
@@ -20,6 +21,7 @@ abstract class NumberInput(
     fun noTitle(): NumberInput {
         titleView.hide()
         inputPanel.show()
+        InputVisibility.show(title, null)
         return this
     }
 

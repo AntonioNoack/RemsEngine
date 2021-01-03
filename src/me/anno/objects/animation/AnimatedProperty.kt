@@ -21,7 +21,7 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
-class AnimatedProperty<V>(val type: Type, var defaultValue: V) : Saveable() {
+class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
 
     constructor(type: Type) : this(type, type.defaultValue as V)
 

@@ -572,11 +572,11 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
         uvMap += img(vi("UV-Projection", "Can be used for 360°-Videos", null, uvProjection, style) {
             uvProjection = it
         })
-        uvMap += img(vi("Filtering", "Pixelated look?", null, filtering, style) { filtering = it })
-        uvMap += img(vi("Clamping", "For tiled images", null, clampMode, style) { clampMode = it })
+        uvMap += img(vi("Filtering", "Pixelated look?", "texture.filtering", null, filtering, style) { filtering = it })
+        uvMap += img(vi("Clamping", "For tiled images", "texture.clamping", null, clampMode, style) { clampMode = it })
 
         val time = getGroup("Time", "time")
-        time += vi("Looping Type", "Whether to repeat the song/video", null, isLooping, style) {
+        time += vi("Looping Type", "Whether to repeat the song/video", "video.loopingType", null, isLooping, style) {
             isLooping = it
             AudioManager.requestUpdate()
         }
@@ -584,23 +584,20 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
         val quality = getGroup("Quality", "quality")
         val videoScales = videoScaleNames.entries.sortedBy { it.value }
         quality += vid(EnumInput(
-            "Video Scale", true,
+            "Video Scale", "Full resolution isn't always required. Define it yourself, or set it to automatic.",
             videoScaleNames.reverse[videoScale] ?: "Auto",
             videoScales.map { it.key }, style
         )
             .setChangeListener { _, index, _ -> videoScale = videoScales[index].value }
-            .setIsSelectedListener { show(null) }
-            .setTooltip("Full resolution isn't always required. Define it yourself, or set it to automatic."))
+            .setIsSelectedListener { show(null) })
         quality += vid(EnumInput(
-            "Preview FPS", true, editorVideoFPS.displayName,
+            "Preview FPS", "Smoother preview, heavier calculation", editorVideoFPS.displayName,
             EditorFPS.values().filter { it.value * 0.98 <= (meta?.videoFPS ?: 1e85) }.map { it.displayName }, style
         )
             .setChangeListener { _, index, _ ->
                 editorVideoFPS = EditorFPS.values()[index]
             }
-            .setIsSelectedListener { show(null) }
-            .setTooltip("Smoother preview, heavier calculation")
-        )
+            .setIsSelectedListener { show(null) })
 
         val color = getGroup("Color Grading (ASC CDL)", "color-grading")
         color += img(vi("Power", "sRGB, Linear, ...", "cg.power", cgPower, style))
@@ -623,8 +620,24 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
         })
 
         val audioFX = getGroup("Audio Effects", "audio-fx")
-        audioFX += aud(vi("Echo Delay", "How long the delay to the first echo is", "audio.echo.delay", echoDelay, style))
-        audioFX += aud(vi("Echo Multiplier", "How much of the amplitude stays after each echo", "audio.echo.multiplier", echoMultiplier, style))
+        audioFX += aud(
+            vi(
+                "Echo Delay",
+                "How long the delay to the first echo is",
+                "audio.echo.delay",
+                echoDelay,
+                style
+            )
+        )
+        audioFX += aud(
+            vi(
+                "Echo Multiplier",
+                "How much of the amplitude stays after each echo",
+                "audio.echo.multiplier",
+                echoMultiplier,
+                style
+            )
+        )
 
         val playbackTitles = "Test Playback" to "Stop Playback"
         fun getPlaybackTitle(invert: Boolean) =

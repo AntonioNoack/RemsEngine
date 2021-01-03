@@ -11,7 +11,7 @@ import java.io.File
 
 class SceneTabData() : Saveable() {
 
-    constructor(tab: SceneTab): this(){
+    constructor(tab: SceneTab) : this() {
         file = tab.file
         transform = tab.root
         history = tab.history
@@ -23,17 +23,13 @@ class SceneTabData() : Saveable() {
 
     fun apply(tab: SceneTab) {
         tab.file = file
-        val read = TextReader.fromText(file!!.readText())
-        tab.root = transform ?: read
-            .filterIsInstance<Transform>()
-            .first() ?: Transform().run {
+        val read by lazy { TextReader.fromText(file!!.readText()) }
+        tab.root = transform ?: read.filterIsInstance<Transform>().firstOrNull() ?: Transform().run {
             name = "Root"
             comment = "Error loading $file!"
             this
         }
-        tab.history = history ?:
-                read.filterIsInstance<History>().firstOrNull() ?:
-                tab.history
+        tab.history = history ?: read.filterIsInstance<History>().firstOrNull() ?: tab.history
     }
 
     override fun save(writer: BaseWriter) {
@@ -45,14 +41,14 @@ class SceneTabData() : Saveable() {
     }
 
     override fun readString(name: String, value: String) {
-        when(name){
+        when (name) {
             "file" -> file = File(value)
             else -> super.readString(name, value)
         }
     }
 
     override fun readObject(name: String, value: ISaveable?) {
-        when(name){
+        when (name) {
             "transform" -> transform = value as? Transform
             "history" -> history = value as? History
             else -> super.readObject(name, value)

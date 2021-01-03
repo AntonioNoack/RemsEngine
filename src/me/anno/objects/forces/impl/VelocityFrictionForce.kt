@@ -1,4 +1,4 @@
-package me.anno.objects.particles.forces.impl
+package me.anno.objects.forces.impl
 
 import me.anno.language.translation.Dict
 import me.anno.objects.particles.Particle
