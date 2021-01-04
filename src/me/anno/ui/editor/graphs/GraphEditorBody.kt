@@ -339,7 +339,7 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
             for (i in 0 until channelCount) {
                 drawDot(
                     x, yValues[i], valueColors[i],
-                    willBeSelected && (draggedKeyframe !== kf || draggedChannel == i)
+                    willBeSelected// && (draggedKeyframe !== kf || draggedChannel.and(1 shl i) != 0)
                 )
             }
 
@@ -501,7 +501,7 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
     // todo scale a group of selected keyframes
     // todo move a group of selected keyframes
     // todo select full keyframes, or partial keyframes?
-    fun getAllKeyframes(minX: Float, maxX: Float, minY: Float, maxY: Float): List<Keyframe<*>> {
+    private fun getAllKeyframes(minX: Float, maxX: Float, minY: Float, maxY: Float): List<Keyframe<*>> {
         if (minX > maxX || minY > maxY) return getAllKeyframes(
             min(minX, maxX),
             max(minX, maxX),
@@ -535,21 +535,27 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
     override fun onMouseDown(x: Float, y: Float, button: MouseButton) {
         // find the dragged element
         invalidateDrawing()
-        draggedKeyframe = null
-        if (button.isLeft) {
-            isSelecting = isShiftDown
-            if (!isSelecting) {
-                selectedKeyframes.clear()
-            }
-            val keyframeChannel = getKeyframeAt(x, y)
-            if (keyframeChannel != null) {
-                val (keyframe, channel) = keyframeChannel
-                draggedKeyframe = keyframe
-                draggedChannel = channel
-                selectedKeyframes.add(keyframe) // was not found -> add it
-            } else {
-                select0.x = x
-                select0.y = y
+        val atCursor = getKeyframeAt(x,y)
+        if(atCursor != null && selectedKeyframes.size > 1 && atCursor.first in selectedKeyframes){
+            draggedKeyframe = atCursor.first
+            draggedChannel = -1
+        } else {
+            draggedKeyframe = null
+            if (button.isLeft) {
+                isSelecting = isShiftDown
+                if (!isSelecting) {
+                    selectedKeyframes.clear()
+                }
+                val keyframeChannel = getKeyframeAt(x, y)
+                if (keyframeChannel != null) {
+                    val (keyframe, channel) = keyframeChannel
+                    draggedKeyframe = keyframe
+                    draggedChannel = channel
+                    selectedKeyframes.add(keyframe) // was not found -> add it
+                } else {
+                    select0.x = x
+                    select0.y = y
+                }
             }
         }
         invalidateDrawing()
@@ -605,11 +611,22 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
             // dragging
             val time = getTimeAt(x)
             RemsStudio.incrementalChange("dragging keyframe") {
-                draggedKeyframe.time = global2Kf(time) // global -> local
-                editorTime = time
-                updateAudio()
-                draggedKeyframe.setValue(draggedChannel, getValueAt(y), selectedProperty.type)
-                selectedProperty.sort()
+                if(selectedKeyframes.size < 2){
+                    draggedKeyframe.time = global2Kf(time) // global -> local
+                    editorTime = time
+                    updateAudio()
+                    draggedKeyframe.setValue(draggedChannel, getValueAt(y), selectedProperty.type)
+                    selectedProperty.sort()
+                } else {
+                    val timeHere = global2Kf(time)
+                    val deltaTime = timeHere - draggedKeyframe.time
+                    selectedKeyframes.forEach { keyframe ->
+                        keyframe.time += deltaTime // global -> local
+                    }
+                    editorTime = time
+                    updateAudio()
+                    selectedProperty.sort()
+                }
             }
             invalidateDrawing()
         } else {

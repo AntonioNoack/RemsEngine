@@ -1,16 +1,16 @@
 package me.anno.objects.distributions
 
-import me.anno.language.translation.Dict
 import org.joml.Matrix4fArrayList
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
 
-class SphereVolumeDistribution(center: Vector4f, size: Vector4f, rotation: Vector4f = Vector4f()) : CenterSizeDistribution(
-    Dict["Sphere Volume", "obj.dist.sphere.volume"],
-    Dict["Points from the inside of the sphere", "obj.dist.sphere.volume.desc"],
-    center, size, rotation
-) {
+class SphereVolumeDistribution(center: Vector4f, size: Vector4f, rotation: Vector4f = Vector4f()) :
+    CenterSizeDistribution(
+        "Sphere",
+        "Points from the inside of the sphere", "obj.dist.sphere",
+        center, size, rotation
+    ) {
 
     constructor() : this(0f, 1f)
     constructor(center: Vector2f, size: Float) : this(Vector4f(center, 0f, 0f), Vector4f(size))
@@ -44,6 +44,6 @@ class SphereVolumeDistribution(center: Vector4f, size: Vector4f, rotation: Vecto
         drawSphere(stack, color, 1f)
     }
 
-    override fun getClassName() = "SphereVolumeDistribution"
+    override fun getClassName() = "SphereDistribution"
 
 }

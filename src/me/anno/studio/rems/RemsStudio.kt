@@ -22,8 +22,6 @@ import java.io.File
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.concurrent.thread
 
-// todo scale and move a selection of keyframes xD
-
 // todo "hacked"-text effect for text: swizzle characters and introduce others
 
 // todo editor screenshot

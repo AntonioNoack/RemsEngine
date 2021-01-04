@@ -4,10 +4,16 @@ import me.anno.audio.effects.SoundPipeline
 import me.anno.audio.effects.falloff.ExponentialFalloff
 import me.anno.audio.effects.falloff.LinearFalloff
 import me.anno.audio.effects.falloff.SquareFalloff
-import me.anno.audio.effects.impl.*
+import me.anno.audio.effects.impl.AmplitudeEffect
+import me.anno.audio.effects.impl.EchoEffect
+import me.anno.audio.effects.impl.EqualizerEffect
+import me.anno.audio.effects.impl.PitchEffect
 import me.anno.io.ISaveable
 import me.anno.io.utils.StringMap
-import me.anno.objects.*
+import me.anno.objects.Camera
+import me.anno.objects.GFXArray
+import me.anno.objects.Transform
+import me.anno.objects.Video
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.animation.Keyframe
 import me.anno.objects.animation.drivers.FunctionDriver
@@ -17,11 +23,11 @@ import me.anno.objects.attractors.EffectColoring
 import me.anno.objects.attractors.EffectMorphing
 import me.anno.objects.distributions.*
 import me.anno.objects.effects.MaskLayer
+import me.anno.objects.forces.impl.*
 import me.anno.objects.geometric.Circle
 import me.anno.objects.geometric.Polygon
 import me.anno.objects.meshes.Mesh
 import me.anno.objects.particles.ParticleSystem
-import me.anno.objects.forces.impl.*
 import me.anno.objects.text.Text
 import me.anno.objects.text.Timer
 import me.anno.studio.history.History
@@ -38,7 +44,7 @@ abstract class BaseReader {
     val sortedContent get() = content.entries.sortedBy { it.key }.map { it.value }.toList()
 
     fun getNewClassInstance(clazz: String): ISaveable {
-        return when(clazz){
+        return when (clazz) {
             "SMap" -> StringMap()
             "Transform" -> Transform()
             "Text" -> Text()
@@ -74,7 +80,9 @@ abstract class BaseReader {
             "ConstantDistribution" -> ConstantDistribution()
             "UniformDistribution", // replaced
             "CuboidDistribution" -> CuboidDistribution()
+            "CuboidHullDistribution" -> CuboidHullDistribution()
             "SphereHullDistribution" -> SphereHullDistribution()
+            "SphereDistribution",
             "SphereVolumeDistribution" -> SphereVolumeDistribution()
             "GlobalForce" -> GlobalForce()
             "GravityField" -> GravityField()
@@ -87,17 +95,17 @@ abstract class BaseReader {
             "HistoryState" -> HistoryState()
             else -> {
                 // just for old stuff; AnimatedProperties must not be loaded directly; always just copied into
-                if(clazz.startsWith("AnimatedProperty<")) AnimatedProperty.any()
+                if (clazz.startsWith("AnimatedProperty<")) AnimatedProperty.any()
                 else ISaveable.objectTypeRegistry[clazz]?.invoke() ?: throw RuntimeException("Unknown class '$clazz'")
             }
         }
     }
 
-    fun register(value: ISaveable, ptr: Int){
-        if(ptr != 0){
+    fun register(value: ISaveable, ptr: Int) {
+        if (ptr != 0) {
             content[ptr] = value
             missingReferences[ptr]?.forEach { (obj, name) ->
-                when(obj){
+                when (obj) {
                     is ISaveable -> {
                         obj.readObject(name, value)
                     }
@@ -107,29 +115,33 @@ abstract class BaseReader {
                     else -> throw RuntimeException("Unknown missing reference type")
                 }
             }
-        } else LOGGER.warn("Got object with uuid 0: $value, it will be ignored")
+        } else if (ptr == 0) LOGGER.warn("Got object with uuid $ptr: $value, it will be ignored")
     }
 
-    fun addMissingReference(owner: Any, name: String, childPtr: Int){
+    fun addMissingReference(owner: Any, name: String, childPtr: Int) {
         val list = missingReferences[childPtr]
         val entry = owner to name
-        if(list != null){
+        if (list != null) {
             list += entry
         } else {
             missingReferences[childPtr] = arrayListOf(entry)
         }
     }
 
-    fun assert(b: Boolean, msg: String){
-        if(!b) throw RuntimeException(msg)
+    fun assert(b: Boolean) {
+        if (!b) throw RuntimeException()
     }
 
-    fun assert(isValue: Char, shallValue: Char){
-        if(isValue != shallValue) throw RuntimeException("Expected $shallValue but got $isValue")
+    fun assert(b: Boolean, msg: String) {
+        if (!b) throw RuntimeException(msg)
     }
 
-    fun assert(isValue: Char, shallValue: Char, context: String){
-        if(isValue != shallValue) throw RuntimeException("Expected $shallValue but got $isValue for $context")
+    fun assert(isValue: Char, shallValue: Char) {
+        if (isValue != shallValue) throw RuntimeException("Expected $shallValue but got $isValue")
+    }
+
+    fun assert(isValue: Char, shallValue: Char, context: String) {
+        if (isValue != shallValue) throw RuntimeException("Expected $shallValue but got $isValue for $context")
     }
 
     fun error(msg: String): Nothing = throw RuntimeException("[BaseReader] $msg")

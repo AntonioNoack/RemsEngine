@@ -10,8 +10,8 @@ import java.util.*
 
 abstract class BaseWriter(val respectsDefaultValues: Boolean) {
 
+    val todo = ArrayList<ISaveable>(256)
     private val listed = HashSet<ISaveable>()
-    private val todo = ArrayList<ISaveable>(256)
     private val pointers = HashMap<ISaveable, Int>()
 
     /**
@@ -149,7 +149,7 @@ abstract class BaseWriter(val respectsDefaultValues: Boolean) {
     abstract fun writeListEnd()
     abstract fun writeListSeparator()
 
-    fun writeAllInList() {
+    open fun writeAllInList() {
         writeListStart()
         if (todo.isNotEmpty()) {
             while (true) {

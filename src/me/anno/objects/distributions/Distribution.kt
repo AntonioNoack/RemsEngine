@@ -1,6 +1,7 @@
 package me.anno.objects.distributions
 
 import me.anno.io.Saveable
+import me.anno.language.translation.Dict
 import me.anno.objects.Transform
 import me.anno.objects.animation.Type
 import me.anno.objects.inspectable.InspectableAttribute
@@ -17,6 +18,9 @@ import java.util.*
 
 abstract class Distribution(val displayName: String, val description: String) : Saveable(),
     InspectableAttribute {
+
+    constructor(displayName: String, description: String, dictPath: String) :
+            this(Dict[displayName, dictPath], Dict[description, "$dictPath.desc"])
 
     /**
      * used by nearly all distributions anyways
@@ -47,7 +51,7 @@ abstract class Distribution(val displayName: String, val description: String) : 
             list += actor.vi(
                 property.title,
                 property.description,
-                if(property.isRotation) Type.ROT_YXZ else null,
+                if (property.isRotation) Type.ROT_YXZ else null,
                 property.value,
                 style
             ) { property.value.set(it) }
@@ -72,7 +76,7 @@ abstract class Distribution(val displayName: String, val description: String) : 
     fun drawSphere(stack: Matrix4fArrayList, color: Vector4f, alpha: Float = 1f) {
         Grid.drawBuffer(
             stack,
-            if(alpha == 1f) color
+            if (alpha == 1f) color
             else Vector4f(color.x, color.y, color.z, color.w * alpha),
             sphereAxesModels[sphereSubDivision].value
         )

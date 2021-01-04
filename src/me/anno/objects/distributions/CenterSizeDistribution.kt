@@ -1,6 +1,7 @@
 package me.anno.objects.distributions
 
 import me.anno.gpu.GFX.toRadians
+import me.anno.language.translation.Dict
 import me.anno.objects.inspectable.InspectableVector
 import org.joml.*
 import kotlin.math.cos
@@ -8,15 +9,24 @@ import kotlin.math.sin
 
 abstract class CenterSizeDistribution(
     displayName: String, description: String,
-    val center: Vector4f, val size: Vector4f,
+    val center: Vector4f, val scale: Vector4f,
     val rotation: Vector4f
-) :
-    Distribution(displayName, description) {
+) : Distribution(displayName, description) {
 
-    fun Float.transform() = this * size.x + center.x
-    fun Vector2f.transform(): Vector2f = rotate(mul(Vector2f(size.x, size.y))).add(center.x, center.y)
-    fun Vector3f.transform(): Vector3f = rotate(mul(Vector3f(size.x, size.y, size.z))).add(center.x, center.y, center.z)
-    fun Vector4f.transform(): Vector4f = rotate(mul(size)).add(center)
+    constructor(
+        displayName: String, description: String, dictPath: String,
+        center: Vector4f, scale: Vector4f, rotation: Vector4f
+    ) : this(
+        Dict[displayName, dictPath], Dict[description, "$dictPath.desc"],
+        center, scale, rotation
+    )
+
+    fun Float.transform() = this * scale.x + center.x
+    fun Vector2f.transform(): Vector2f = rotate(this.mul(Vector2f(scale.x, scale.y))).add(center.x, center.y)
+    fun Vector3f.transform(): Vector3f =
+        rotate(this.mul(Vector3f(scale.x, scale.y, scale.z))).add(center.x, center.y, center.z)
+
+    fun Vector4f.transform(): Vector4f = rotate(this.mul(scale)).add(center)
 
     fun rotate(vector: Vector2f): Vector2f {
         val angleDegrees = rotation.x + rotation.y + rotation.z
@@ -50,7 +60,7 @@ abstract class CenterSizeDistribution(
         if (rotation.y != 0f) stack.rotateY(toRadians(rotation.y))
         if (rotation.x != 0f) stack.rotateX(toRadians(rotation.x))
         if (rotation.z != 0f) stack.rotateZ(toRadians(rotation.z))
-        stack.scale(size.x, size.y, size.z)
+        stack.scale(scale.x, scale.y, scale.z)
         drawTransformed(stack, color)
         stack.popMatrix()
     }
@@ -64,7 +74,7 @@ abstract class CenterSizeDistribution(
     override fun listProperties(): List<InspectableVector> {
         return listOf(
             InspectableVector(center, "Center"),
-            InspectableVector(size, "Radius / Size"),
+            InspectableVector(scale, "Radius / Size"),
             InspectableVector(rotation, "Rotation", "", true)
         )
     }

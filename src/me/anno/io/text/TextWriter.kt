@@ -13,7 +13,8 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
     private val separator = if (beautify) ", " else ","
 
     var data = StringBuilder(512)
-    var hasObject = false
+    private var hasObject = false
+    private var usedPointers: HashSet<Int>? = null
 
     operator fun StringBuilder.plusAssign(char: Char) {
         append(char)
@@ -40,7 +41,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
         hasObject = true
     }
 
-    fun writeEscaped(value: String) {
+    private fun writeEscaped(value: String) {
         var i = 0
         var lastI = 0
         fun put() {
@@ -87,13 +88,13 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
         put()
     }
 
-    fun writeString(value: String) {
+    private fun writeString(value: String) {
         data += '"'
         writeEscaped(value)
         data += '"'
     }
 
-    fun writeTypeNameString(type: String, name: String?) {
+    private fun writeTypeNameString(type: String, name: String?) {
         if (name != null) {
             data += '"'
             writeEscaped(type)
@@ -103,7 +104,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
         }
     }
 
-    fun writeAttributeStart(type: String, name: String?) {
+    private fun writeAttributeStart(type: String, name: String?) {
         if (name != null) {
             next()
             writeTypeNameString(type, name)
@@ -451,7 +452,10 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
             writeString(value.getClassName())
             hasObject = true
         }
-        writeInt("*ptr", getPointer(value)!!)
+        val pointer = getPointer(value)!!
+        if(usedPointers?.contains(pointer) != false){// null oder true
+            writeInt("*ptr", pointer)
+        }
         value.save(this)
         close(false)
     }
@@ -481,7 +485,6 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
     ) {
         if(force || elements.isNotEmpty()){
             // todo implement correctly xD
-
             elements.forEach {
                 writeObject(self, name, it, force)
             }
@@ -491,6 +494,16 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
     override fun writePointer(name: String?, className: String, ptr: Int) {
         writeAttributeStart(className, name)
         data += ptr.toString()
+    }
+
+    override fun writeAllInList() {
+        val writer0 = FindReferencesWriter()
+        for(todoItem in todo) writer0.add(todoItem)
+        writer0.writeAllInList()
+        usedPointers = writer0.usedPointers
+        // directly written needs this, because of sortedContent
+        usedPointers!!.addAll(todo.map { writer0.getPointer(it)!! })
+        super.writeAllInList()
     }
 
     override fun toString(): String = data.toString()

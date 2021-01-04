@@ -46,7 +46,9 @@ import me.anno.ui.editor.stacked.Option
 import me.anno.ui.input.*
 import me.anno.ui.style.Style
 import me.anno.utils.Color.toHexColor
+import me.anno.utils.LOGGER
 import me.anno.utils.MatrixHelper.skew
+import org.apache.logging.log4j.LogManager
 import org.joml.*
 import java.io.File
 import java.util.concurrent.atomic.AtomicInteger
@@ -350,7 +352,9 @@ open class Transform(var parent: Transform? = null) : Saveable(),
     override fun save(writer: BaseWriter) {
         super.save(writer)
         writer.writeObject(this, "parent", parent)
-        writer.writeString("name", name)
+        if (name != getDefaultDisplayName()) {
+            writer.writeString("name", name)
+        }
         writer.writeString("comment", comment)
         writer.writeBoolean("collapsed", isCollapsed, false)
         writer.writeObject(this, "position", position)
@@ -396,7 +400,11 @@ open class Transform(var parent: Transform? = null) : Saveable(),
         when (name) {
             "parent" -> {
                 if (value is Transform) {
-                    value.addChild(this)
+                    try {
+                        value.addChild(this)
+                    } catch (e: RuntimeException){
+                        LOGGER.warn(e.message.toString())
+                    }
                 }
             }
             "children" -> {
@@ -845,6 +853,7 @@ open class Transform(var parent: Transform? = null) : Saveable(),
         val nextUUID = AtomicLong()
         fun String.toTransform() = TextReader.fromText(this).first() as? Transform
         const val minAlpha = 0.5f / 255f
+        private val LOGGER = LogManager.getLogger(Transform::class)
     }
 
 

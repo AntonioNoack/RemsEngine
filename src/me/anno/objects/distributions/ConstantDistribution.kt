@@ -9,8 +9,8 @@ import org.joml.Vector3f
 import org.joml.Vector4f
 
 class ConstantDistribution(val center: Vector4f) : Distribution(
-    Dict["Constant", "obj.dist.constant"],
-    Dict["Always the same value", "obj.dist.constant.desc"]
+    "Constant",
+    "Always the same value", "obj.dist.constant"
 ) {
 
     constructor() : this(0f)

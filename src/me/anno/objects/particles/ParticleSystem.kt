@@ -541,8 +541,9 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
                 { ConstantDistribution() },
                 { GaussianDistribution() },
                 { CuboidDistribution() },
-                { SphereHullDistribution() },
-                { SphereVolumeDistribution() }
+                { CuboidHullDistribution() },
+                { SphereVolumeDistribution() },
+                { SphereHullDistribution() }
             )
         }
     }

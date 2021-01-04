@@ -56,6 +56,40 @@ object Maths {
         return (a * (1.0 - f) + b * f).roundToInt()
     }
 
+    fun max(a: Float, b: Float): Float {
+        return if(a > b) a else b
+    }
+
+    fun max(a: Float, b: Float, c: Float): Float {
+        var max = if(a > b) a else b
+        max = if(max > c) max else c
+        return max
+    }
+
+    fun max(a: Float, b: Float, c: Float, d: Float): Float {
+        var max = if(a > b) a else b
+        max = if(max > c) max else c
+        max = if(max > d) max else d
+        return max
+    }
+
+    fun max(a: Float, b: Float, c: Float, d: Float, e: Float): Float {
+        var max = if(a > b) a else b
+        max = if(max > c) max else c
+        max = if(max > d) max else d
+        max = if(max > e) max else e
+        return max
+    }
+
+    fun max(a: Float, b: Float, c: Float, d: Float, e: Float, f: Float): Float {
+        var max = if(a > b) a else b
+        max = if(max > c) max else c
+        max = if(max > d) max else d
+        max = if(max > e) max else e
+        max = if(max > f) max else f
+        return max
+    }
+
     fun mixChannel(a: Int, b: Int, shift: Int, f: Float): Int {
         return clamp(mix((a shr shift) and 0xff, (b shr shift) and 0xff, f), 0, 255) shl shift
     }

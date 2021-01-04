@@ -18,11 +18,16 @@ class SphereHullDistribution(center: Vector4f, size: Vector4f, rotation: Vector4
     constructor(center: Vector2f, size: Vector2f) : this(Vector4f(center, 0f, 0f), Vector4f(size, 0f, 0f))
     constructor(center: Float, size: Float) : this(Vector3f(center), size)
 
+    override fun nextV1(): Float {
+        val x = random.nextFloat()
+        return (if (x > 0.5f) 1f else -1f).transform()
+    }
+
     override fun nextV2(): Vector2f {
         return Vector2f(
             random.nextFloat() - 0.5f,
             random.nextFloat() - 0.5f
-        ).mul(size).normalize().transform()
+        ).mul(scale).normalize().transform()
     }
 
     override fun nextV3(): Vector3f {
@@ -30,7 +35,7 @@ class SphereHullDistribution(center: Vector4f, size: Vector4f, rotation: Vector4
             random.nextFloat() - 0.5f,
             random.nextFloat() - 0.5f,
             random.nextFloat() - 0.5f
-        ).mul(size).normalize().transform()
+        ).mul(scale).normalize().transform()
     }
 
     override fun drawTransformed(stack: Matrix4fArrayList, color: Vector4f) {

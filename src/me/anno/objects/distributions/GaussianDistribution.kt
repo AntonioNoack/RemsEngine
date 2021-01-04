@@ -1,6 +1,5 @@
 package me.anno.objects.distributions
 
-import me.anno.language.translation.Dict
 import org.joml.Matrix4fArrayList
 import org.joml.Vector2f
 import org.joml.Vector3f
@@ -8,8 +7,8 @@ import org.joml.Vector4f
 import kotlin.math.sqrt
 
 class GaussianDistribution(center: Vector4f, size: Vector4f, rotation: Vector4f = Vector4f()) : CenterSizeDistribution(
-    Dict["Gaussian", "obj.dist.gaussian"],
-    Dict["Gaussian- or Normal Distribution; sum of many small effects", "obj.dist.gaussian.desc"],
+    "Gaussian",
+    "Gaussian- or Normal Distribution; sum of many small effects", "obj.dist.gaussian",
     center, size, rotation
 ) {
 

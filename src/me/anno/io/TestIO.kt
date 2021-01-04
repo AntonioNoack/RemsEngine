@@ -12,6 +12,7 @@ fun main(){
     configDefaults["key.double"] = 11.0/3.0
     configDefaults["key.string"] = "yes!"
     configDefaults["key.config"] = StringMap()
+    logger.info("default: $configDefaults")
     val config = ConfigBasics.loadConfig("test.config", configDefaults, true)
     logger.info("loaded: $config")
 }

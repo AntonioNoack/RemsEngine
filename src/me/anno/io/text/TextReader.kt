@@ -14,6 +14,11 @@ class TextReader(val data: String) : BaseReader() {
     var index = 0
     var tmpChar = 0.toChar()
 
+    private var unusedPointer = Int.MAX_VALUE
+    private fun getUnusedPointer(): Int {
+        return unusedPointer--
+    }
+
     override fun readObject(): ISaveable {
         assert(skipSpace(), '"')
         val firstProperty = readString()
@@ -24,10 +29,15 @@ class TextReader(val data: String) : BaseReader() {
         assert(skipSpace(), ',')
         assert(skipSpace(), '"')
         val secondProperty = readString()
-        assert(secondProperty == "i:*ptr", "Expected second property to be '*ptr', was $secondProperty")
         assert(skipSpace(), ':')
-        val ptr = readNumber().toIntOrNull() ?: throw RuntimeException("Expected second property to be ptr")
         var obj = getNewClassInstance(clazz)
+        val ptr = if (secondProperty == "i:*ptr") {
+            // assert(secondProperty == "i:*ptr", "Expected second property to be '*ptr', was $secondProperty")
+            readNumber().toIntOrNull() ?: throw RuntimeException("Expected second property to be ptr")
+        } else {
+            obj = readProperty(obj, secondProperty)
+            getUnusedPointer() // not used
+        }
         obj = propertyLoop(obj)
         register(obj, ptr)
         return obj
@@ -45,8 +55,7 @@ class TextReader(val data: String) : BaseReader() {
         }
     }
 
-    private
-    fun next(): Char {
+    private fun next(): Char {
         if (tmpChar != 0.toChar()) {
             val v = tmpChar
             tmpChar = 0.toChar()
@@ -57,8 +66,7 @@ class TextReader(val data: String) : BaseReader() {
         } else throw EOFException()
     }
 
-    private
-    fun skipSpace(): Char {
+    private fun skipSpace(): Char {
         return if (index < length) {
             when (val next = next()) {
                 '\r', '\n', '\t', ' ' -> skipSpace()
@@ -67,8 +75,7 @@ class TextReader(val data: String) : BaseReader() {
         } else throw EOFException()
     }
 
-    private
-    fun readString(): String {
+    private fun readString(): String {
         var startIndex = index
         val str = StringBuilder()
         while (true) {
@@ -125,8 +132,7 @@ class TextReader(val data: String) : BaseReader() {
         }
     }
 
-    private
-    fun readNumber(): String {
+    private fun readNumber(): String {
         var str = ""
         var isFirst = true
         while (true) {
@@ -149,8 +155,7 @@ class TextReader(val data: String) : BaseReader() {
         }
     }
 
-    private
-    fun propertyLoop(obj0: ISaveable): ISaveable {
+    private fun propertyLoop(obj0: ISaveable): ISaveable {
         var obj = obj0
         while (true) {
             when (val next = skipSpace()) {
@@ -161,8 +166,7 @@ class TextReader(val data: String) : BaseReader() {
         }
     }
 
-    private
-    fun <ArrayType, InstanceType> readTypedArray(
+    private fun <ArrayType, InstanceType> readTypedArray(
         typeName: String,
         createArray: (arraySize: Int) -> ArrayType,
         readValue: () -> InstanceType?,
@@ -193,8 +197,7 @@ class TextReader(val data: String) : BaseReader() {
         } else error("broken file :/, $typeName[].length > data.length")
     }
 
-    private
-    fun readBool(): Boolean {
+    private fun readBool(): Boolean {
         return when (val c0 = skipSpace()) {
             '0' -> false
             '1' -> true
@@ -215,8 +218,7 @@ class TextReader(val data: String) : BaseReader() {
         }
     }
 
-    private
-    fun readVector2f(): Vector2f {
+    private fun readVector2f(): Vector2f {
         assert(skipSpace(), '[', "Start of Vector")
         val rawX = readNumber()
         assert(skipSpace(), ',', "Separator of Vector")
@@ -228,8 +230,7 @@ class TextReader(val data: String) : BaseReader() {
         )
     }
 
-    private
-    fun readVector3f(): Vector3f {
+    private fun readVector3f(): Vector3f {
         assert(skipSpace(), '[', "Start of Vector")
         val rawX = readNumber()
         assert(skipSpace(), ',', "Separator of Vector")
@@ -244,8 +245,7 @@ class TextReader(val data: String) : BaseReader() {
         )
     }
 
-    private
-    fun readVector4f(): Vector4f {
+    private fun readVector4f(): Vector4f {
         assert(skipSpace(), '[', "Start of Vector")
         val rawX = readNumber()
         assert(skipSpace(), ',', "Separator of Vector")
@@ -263,11 +263,14 @@ class TextReader(val data: String) : BaseReader() {
         )
     }
 
-    private
-    fun readProperty(obj: ISaveable): ISaveable {
+    private fun readProperty(obj: ISaveable): ISaveable {
         assert(skipSpace(), '"')
         val typeName = readString()
         assert(skipSpace(), ':')
+        return readProperty(obj, typeName)
+    }
+
+    private fun readProperty(obj: ISaveable, typeName: String): ISaveable {
         if (typeName == "class") {
             assert(skipSpace(), '"')
             val clazz = readString()
@@ -302,45 +305,118 @@ class TextReader(val data: String) : BaseReader() {
                 val raw = readNumber()
                 obj.readDouble(name, raw.toDoubleOrNull() ?: error("Invalid double $raw"))
             }
-            "i[]" -> {
-                obj.readIntArray(
+            "b[]" -> obj.readBooleanArray(
+                name,
+                readTypedArray("boolean",
+                    { BooleanArray(it) },
+                    { readBool() },
+                    { array, index, value -> array[index] = value })
+            )
+            "B[]" -> obj.readByteArray(
+                name,
+                readTypedArray("byte",
+                    { ByteArray(it) },
+                    { readNumber().toIntOrNull()?.toByte() ?: error("Invalid byte") },
+                    { array, index, value -> array[index] = value })
+            )
+            "s[]" -> obj.readShortArray(
+                name,
+                readTypedArray("short",
+                    { ShortArray(it) },
+                    { readNumber().toIntOrNull()?.toShort() ?: error("Invalid short") },
+                    { array, index, value -> array[index] = value })
+            )
+            "i[]" -> obj.readIntArray(
+                name,
+                readTypedArray("int",
+                    { IntArray(it) },
+                    { readNumber().toInt() },
+                    { array, index, value -> array[index] = value })
+            )
+            "l[]" -> obj.readLongArray(
+                name,
+                readTypedArray("long",
+                    { LongArray(it) },
+                    { readNumber().toLong() },
+                    { array, index, value -> array[index] = value })
+            )
+            "f[]" -> obj.readFloatArray(
+                name,
+                readTypedArray("float",
+                    { FloatArray(it) },
+                    { readNumber().toFloat() },
+                    { array, index, value -> array[index] = value })
+            )
+            "f[][]" -> {
+                val fa0 = FloatArray(0)
+                obj.readFloatArray2D(
                     name,
-                    readTypedArray("int",
-                        { IntArray(it) },
-                        { readNumber().toInt() },
-                        { array, index, value -> array[index] = value })
+                    readTypedArray("float[]",
+                        { Array(it) { fa0 } }, {
+                            readTypedArray("float",
+                                { FloatArray(it) },
+                                { readNumber().toFloat() },
+                                { array, index, value -> array[index] = value })
+                        },
+                        { array, index, value -> array[index] = value }
+                    )
                 )
             }
-            "l[]" -> {
-                obj.readLongArray(
+            "d[]" -> obj.readDoubleArray(
+                name,
+                readTypedArray("double",
+                    { DoubleArray(it) },
+                    { readNumber().toDouble() },
+                    { array, index, value -> array[index] = value })
+            )
+            "d[][]" -> {
+                val fa0 = DoubleArray(0)
+                obj.readDoubleArray2D(
                     name,
-                    readTypedArray("long",
-                        { LongArray(it) },
-                        { readNumber().toLong() },
-                        { array, index, value -> array[index] = value })
-                )
-            }
-            "f[]" -> {
-                obj.readFloatArray(
-                    name,
-                    readTypedArray("float",
-                        { FloatArray(it) },
-                        { readNumber().toFloat() },
-                        { array, index, value -> array[index] = value })
-                )
-            }
-            "d[]" -> {
-                obj.readDoubleArray(
-                    name,
-                    readTypedArray("double",
-                        { DoubleArray(it) },
-                        { readNumber().toDouble() },
-                        { array, index, value -> array[index] = value })
+                    readTypedArray("double[]",
+                        { Array(it) { fa0 } }, {
+                            readTypedArray("double",
+                                { DoubleArray(it) },
+                                { readNumber().toDouble() },
+                                { array, index, value -> array[index] = value })
+                        },
+                        { array, index, value -> array[index] = value }
+                    )
                 )
             }
             "v2" -> obj.readVector2f(name, readVector2f())
             "v3" -> obj.readVector3f(name, readVector3f())
             "v4" -> obj.readVector4f(name, readVector4f())
+            "v2[]" -> {
+                val v0 = Vector2f()
+                obj.readVector2fArray(
+                    name,
+                    readTypedArray("vector2f",
+                        { Array(it) { v0 } },
+                        { readVector2f() },
+                        { array, index, value -> array[index] = value })
+                )
+            }
+            "v3[]" -> {
+                val v0 = Vector3f()
+                obj.readVector3fArray(
+                    name,
+                    readTypedArray("vector3f",
+                        { Array(it) { v0 } },
+                        { readVector3f() },
+                        { array, index, value -> array[index] = value })
+                )
+            }
+            "v4[]" -> {
+                val v0 = Vector4f()
+                obj.readVector4fArray(
+                    name,
+                    readTypedArray("vector4f",
+                        { Array(it) { v0 } },
+                        { readVector4f() },
+                        { array, index, value -> array[index] = value })
+                )
+            }
             "S" -> {
                 assert(skipSpace(), '"')
                 obj.readString(name, readString())
@@ -354,30 +430,7 @@ class TextReader(val data: String) : BaseReader() {
                         obj.readObject(name, null)
                     }
                     '{' -> {
-                        var child = getNewClassInstance(type)
-                        assert(skipSpace(), '"')
-                        var property0 = readString()
-                        if (property0 == "class") {
-                            assert(skipSpace(), ':')
-                            assert(skipSpace(), '"')
-                            assert(readString() == type)
-                            assert(skipSpace(), ',')
-                            assert(skipSpace(), '"')
-                            property0 = readString()
-                        }
-                        assert(property0 == "*ptr")
-                        assert(skipSpace(), ':')
-                        val ptr = readNumber().toIntOrNull() ?: throw RuntimeException("Invalid pointer")
-                        var n = skipSpace()
-                        if (n != '}') {
-                            if (n == ',') n = skipSpace()
-                            if (n != '}') {
-                                assert(n, '"')
-                                tmpChar = '"'
-                                child = readProperty(child)
-                                child = propertyLoop(child)
-                            }
-                        } // else nothing to do
+                        val (child, ptr) = readObject(name)
                         register(child, ptr)
                         obj.readObject(name, child)
                     }
@@ -401,8 +454,52 @@ class TextReader(val data: String) : BaseReader() {
         return obj
     }
 
-    private
-    fun splitTypeName(typeName: String): Pair<String, String> {
+    private fun readObject(type: String): Pair<ISaveable, Int> {
+        var child = getNewClassInstance(type)
+        val firstChar = skipSpace()
+        val ptr: Int
+        if (firstChar == '}') {
+            // nothing to do
+            ptr = getUnusedPointer() // not used
+        } else {
+            assert(firstChar, '"')
+            var property0 = readString()
+            if (property0 == "class") {
+                assert(skipSpace(), ':')
+                assert(skipSpace(), '"')
+                assert(readString() == type)
+                assert(skipSpace(), ',')
+                assert(skipSpace(), '"')
+                property0 = readString()
+            }
+            val nextChar = skipSpace()
+            if (nextChar == '}') {
+                // nothing to do
+                ptr = getUnusedPointer() // not used
+            } else {
+                assert(nextChar, ':')
+                ptr = if (property0 == "*ptr" || property0 == "i:*ptr") {
+                    readNumber().toIntOrNull() ?: throw RuntimeException("Invalid pointer")
+                } else {
+                    child = readProperty(child, property0)
+                    getUnusedPointer() // not used
+                }
+                var n = skipSpace()
+                if (n != '}') {
+                    if (n == ',') n = skipSpace()
+                    if (n != '}') {
+                        assert(n, '"')
+                        tmpChar = '"'
+                        child = readProperty(child)
+                        child = propertyLoop(child)
+                    }
+                } // else nothing to do
+            }
+        }
+        return child to ptr
+    }
+
+    private fun splitTypeName(typeName: String): Pair<String, String> {
         val index = typeName.indexOf(':')
         if (index < 0) error("Invalid Type:Name '$typeName'")
         val type = typeName.substring(0, index)

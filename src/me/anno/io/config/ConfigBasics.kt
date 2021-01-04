@@ -16,7 +16,7 @@ import java.nio.charset.Charset
 object ConfigBasics {
 
     val LOGGER = LogManager.getLogger(ConfigBasics::class)!!
-    val utf8Charset = Charset.forName("UTF-8")
+    private val utf8Charset: Charset = Charset.forName("UTF-8")
 
     val configFolder get() = File(OS.home, ".config/$projectName")
     val cacheFolder get() = File(OS.home, ".cache/$projectName")

@@ -428,6 +428,6 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
         } else println("copy-from-object $obj is not an AnimatedProperty!")
     }
 
-    override fun isDefaultValue() = !isAnimated && keyframes.isEmpty() && drivers.all { it == null }
+    override fun isDefaultValue() = !isAnimated && (keyframes.isEmpty() || keyframes[0].value == defaultValue) && drivers.all { it == null }
 
 }
