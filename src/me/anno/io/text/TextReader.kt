@@ -2,6 +2,7 @@ package me.anno.io.text
 
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseReader
+import me.anno.io.base.UnknownClassException
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector2f
 import org.joml.Vector3f
@@ -430,7 +431,7 @@ class TextReader(val data: String) : BaseReader() {
                         obj.readObject(name, null)
                     }
                     '{' -> {
-                        val (child, ptr) = readObject(name)
+                        val (child, ptr) = readObject(type)
                         register(child, ptr)
                         obj.readObject(name, child)
                     }
@@ -455,7 +456,12 @@ class TextReader(val data: String) : BaseReader() {
     }
 
     private fun readObject(type: String): Pair<ISaveable, Int> {
-        var child = getNewClassInstance(type)
+        var child = try {
+            getNewClassInstance(type)
+        } catch (e: UnknownClassException){
+            println(data)
+            throw e
+        }
         val firstChar = skipSpace()
         val ptr: Int
         if (firstChar == '}') {

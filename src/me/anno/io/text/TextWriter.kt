@@ -127,7 +127,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
             val lastIndex = value.indexOfLast { it }
             for (i in 0 until lastIndex) {
                 data += ','
-                data += if(value[i]) "true" else "false"
+                data += if(value[i]) '1' else '0'
             }
             close(true)
         }

@@ -40,8 +40,8 @@ import org.apache.logging.log4j.LogManager
 abstract class BaseReader {
 
     val content = HashMap<Int, ISaveable>()
-    val missingReferences = HashMap<Int, ArrayList<Pair<Any, String>>>()
     val sortedContent get() = content.entries.sortedBy { it.key }.map { it.value }.toList()
+    private val missingReferences = HashMap<Int, ArrayList<Pair<Any, String>>>()
 
     fun getNewClassInstance(clazz: String): ISaveable {
         return when (clazz) {
@@ -96,7 +96,7 @@ abstract class BaseReader {
             else -> {
                 // just for old stuff; AnimatedProperties must not be loaded directly; always just copied into
                 if (clazz.startsWith("AnimatedProperty<")) AnimatedProperty.any()
-                else ISaveable.objectTypeRegistry[clazz]?.invoke() ?: throw RuntimeException("Unknown class '$clazz'")
+                else ISaveable.objectTypeRegistry[clazz]?.invoke() ?: throw UnknownClassException(clazz)
             }
         }
     }
