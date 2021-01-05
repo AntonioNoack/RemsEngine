@@ -20,6 +20,7 @@ import me.anno.input.Input.mouseY
 import me.anno.input.MouseButton
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
+import me.anno.language.translation.Dict
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.animation.Interpolation
 import me.anno.objects.animation.Keyframe
@@ -726,7 +727,7 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
                 if (selectedKeyframes.isEmpty()) {
                     super.onMouseClicked(x, y, button, long)
                 } else {
-                    GFX.openMenu("Interpolation", Interpolation.values().map { mode ->
+                    GFX.openMenu(Dict["Interpolation", "ui.graphEditor.interpolation.title"], Interpolation.values().map { mode ->
                         GFX.MenuOption(mode.displayName, mode.description) {
                             selectedKeyframes.forEach {
                                 it.interpolation = mode

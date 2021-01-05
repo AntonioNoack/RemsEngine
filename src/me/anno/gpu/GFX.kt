@@ -14,6 +14,7 @@ import me.anno.input.Input
 import me.anno.input.Input.mouseX
 import me.anno.input.Input.mouseY
 import me.anno.input.MouseButton
+import me.anno.language.translation.Dict
 import me.anno.objects.Camera
 import me.anno.objects.Transform
 import me.anno.studio.Build.isDebug
@@ -21,10 +22,10 @@ import me.anno.studio.StudioBase.Companion.eventTasks
 import me.anno.studio.rems.RemsStudio.editorTime
 import me.anno.studio.rems.RemsStudio.editorTimeDilation
 import me.anno.studio.rems.RemsStudio.root
-import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.Panel
 import me.anno.ui.base.SpacePanel
 import me.anno.ui.base.TextPanel
+import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.constraints.WrapAlign
@@ -318,7 +319,7 @@ object GFX : GFXBase1() {
 
         // changing to 10 doesn't make the frame rate smoother :/
         val framesForWork = 5
-        if(Thread.currentThread() == glThread) check()
+        if (Thread.currentThread() == glThread) check()
 
         val workTodo = max(1000, queue.sumBy { it.first } / framesForWork)
         var workDone = 0
@@ -326,7 +327,7 @@ object GFX : GFXBase1() {
         while (true) {
             val nextTask = queue.poll() ?: break
             nextTask.second()
-            if(Thread.currentThread() == glThread) check()
+            if (Thread.currentThread() == glThread) check()
             workDone += nextTask.first
             if (workDone >= workTodo) break
             val workTime1 = System.nanoTime()
@@ -598,13 +599,18 @@ object GFX : GFXBase1() {
     )
 
     class MenuOption(val title: String, val description: String, val action: () -> Unit) {
-        fun toComplex() =
-            ComplexMenuOption(title, description) { button: MouseButton, _: Boolean ->
+
+        constructor(title: String, description: String, dictPath: String, action: () -> Unit) :
+                this(Dict[title, dictPath], Dict[description, "$dictPath.desc"], action)
+
+        fun toComplex(): ComplexMenuOption {
+            return ComplexMenuOption(title, description) { button: MouseButton, _: Boolean ->
                 if (button.isLeft) {
                     action()
                     true
                 } else false
             }
+        }
     }
 
     fun openMenu(x: Float, y: Float, title: String, options: List<MenuOption>, delta: Int = 10) {

@@ -230,7 +230,8 @@ class Camera(parent: Transform? = null) : Transform(parent) {
     }
 
     override fun getSymbol() = DefaultConfig["ui.symbol.camera", "\uD83C\uDFA5"]
-    override fun getClassName() = Dict["Camera", "obj.camera"]
+    override fun getClassName() = "Camera"
+    override fun getDefaultDisplayName() = Dict["Camera", "obj.camera"]
 
     companion object {
 

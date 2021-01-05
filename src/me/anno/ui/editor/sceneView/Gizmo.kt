@@ -1,7 +1,6 @@
 package me.anno.ui.editor.sceneView
 
 import me.anno.config.DefaultStyle
-import me.anno.gpu.GFX
 import me.anno.gpu.GFXx2D.drawRect
 import me.anno.objects.Transform
 import org.joml.Matrix4f
@@ -30,7 +29,7 @@ object Gizmo {
         fun drawCircle(x: Float, y: Float, z: Float, color: Int) {
             val lx = gx - x0
             val ly = gy - y0
-            Grid.drawLine01(
+            Grid.drawLine0W(
                 lx, ly, lx + gizmoSize * x, ly - gizmoSize * y,
                 w, h, color, 1f
             )

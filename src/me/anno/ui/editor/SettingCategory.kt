@@ -29,7 +29,7 @@ open class SettingCategory(val titleText: String, style: Style, val canCopyTitle
     val content = object: PanelListY(style){
         override var visibility: Visibility
             get() = InputVisibility[titleText]
-            set(value) {}
+            set(_) {}
     }
     val padding = Padding((title.font.size * .667f).toInt(), 0, 0, 0)
 

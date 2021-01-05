@@ -364,7 +364,7 @@ class LayerView(style: Style) : TimelinePanel(style) {
                         .fold(1.0) { t0, tx -> t0 * tx.timeDilation }
                     val dt = shiftSlowdown * dilation * dx * dtHalfLength * 2 / w
                     if (dt != 0.0) {
-                        RemsStudio.incrementalChange("move-keyframes") {
+                        RemsStudio.incrementalChange("Move Keyframes") {
                             draggedKeyframes.forEach {
                                 it.time += dt
                             }
@@ -376,7 +376,7 @@ class LayerView(style: Style) : TimelinePanel(style) {
                 if (dx != 0f) {
                     val dilation = transform.listOfInheritance
                         .fold(1.0) { t0, tx -> t0 * tx.timeDilation }
-                    RemsStudio.incrementalChange("move-time-dilation/offset") {
+                    RemsStudio.incrementalChange("Change Time Dilation / Offset") {
                         if (isControlDown) {
                             // todo scale around the time=0 point?
                             // todo first find this point...
@@ -414,9 +414,7 @@ class LayerView(style: Style) : TimelinePanel(style) {
                     val cTime = transform.lastLocalTime
                     // get the options for this transform
                     val options = ArrayList<GFX.MenuOption>()
-                    options += GFX.MenuOption("Split Here", "Cuts the element in two halves") {
-                        // todo ask user for split time?... todo rather add fadeout- / fadein-effects
-                        // todo 100% transparency on both in the middle??
+                    options += GFX.MenuOption("Split Here", "Cuts the element in two halves", "ui.cutting.splitHere") {
                         RemsStudio.largeChange("Split Component") {
                             val fadingTime = 0.2
                             val fadingHalf = fadingTime / 2

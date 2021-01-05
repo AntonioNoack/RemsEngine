@@ -119,6 +119,7 @@ class SceneTab(var file: File?, var root: Transform, history: History?) : TextPa
             if (name.isEmpty()) {
                 val dst = File(project!!.scenes, name)
                 if (dst.exists()) {
+                    // todo translate
                     GFX.ask("Override ${dst.name}?") {
                         file = dst
                         save(dst, onSuccess)
@@ -131,6 +132,7 @@ class SceneTab(var file: File?, var root: Transform, history: History?) : TextPa
                         .forEach { it.invalidate() }
                 }
             } else {
+                // todo translate
                 GFX.msg("'$name0' is no valid file name, rename it!")
             }
         } else {

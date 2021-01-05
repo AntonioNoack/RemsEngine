@@ -2,6 +2,8 @@ package me.anno.ui.editor.config
 
 import me.anno.gpu.GFX.windowStack
 import me.anno.io.utils.StringMap
+import me.anno.language.translation.Dict
+import me.anno.language.translation.DictObj
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.Panel
 import me.anno.ui.base.TextPanel
@@ -24,7 +26,7 @@ class ConfigPanel(val config: StringMap, val isStyle: Boolean, style: Style) : P
     val contentListUI = PanelListY(style)
     val contentList = ArrayList<Pair<String, Panel>>()
 
-    val searchInput = TextInput("Search", false, deep)
+    val searchInput = TextInput(Dict["Search", "ui.general.search"], false, deep)
 
     fun create() {
         createTopics()
@@ -37,10 +39,10 @@ class ConfigPanel(val config: StringMap, val isStyle: Boolean, style: Style) : P
         }
         add(topicTree, 1f)
         add(contentListUI, 3f)
-        searchBar += TextButton("Close", false, deep)
+        searchBar += TextButton(Dict["Close", "ui.general.close"], false, deep)
             .setSimpleClickListener { windowStack.pop().destroy() }
         if (isStyle) {
-            searchBar += TextButton("Apply", false, deep).setSimpleClickListener {
+            searchBar += TextButton(Dict["Apply", "ui.general.apply"], false, deep).setSimpleClickListener {
                 createTopics()
                 lastTopic = "-"
                 applySearch(searchInput.text)
@@ -54,7 +56,7 @@ class ConfigPanel(val config: StringMap, val isStyle: Boolean, style: Style) : P
         this += searchBar
     }
 
-    fun applySearch(query: String) {
+    private fun applySearch(query: String) {
 
         if (query.isBlank()) {
 
@@ -83,7 +85,7 @@ class ConfigPanel(val config: StringMap, val isStyle: Boolean, style: Style) : P
 
     var lastTopic = ""
     var lastNotEmptyTopic = ""
-    fun createTopics() {
+    private fun createTopics() {
         topicTree.clear()
         // concat stuff, that has only one entry?
         // descriptions???...

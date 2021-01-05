@@ -3,6 +3,7 @@ package me.anno.ui.editor.sceneTabs
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.io.base.BaseWriter
+import me.anno.language.translation.Dict
 import me.anno.objects.Transform
 import me.anno.studio.rems.RemsStudio.root
 import me.anno.studio.StudioBase.Companion.dragged
@@ -94,7 +95,8 @@ object SceneTabs : ScrollPanelX(DefaultConfig.style) {
     fun close(sceneTab: SceneTab){
         if(currentTab === sceneTab){
             if(children2.size == 1){
-                LOGGER.warn("Cannot close last element")
+                // todo translate
+                LOGGER.warn(Dict["Cannot close last element", "ui.sceneTabs.cannotCloseLast"])
             } else {
                 val index = sceneTab.indexInParent
                 sceneTab.removeFromParent()

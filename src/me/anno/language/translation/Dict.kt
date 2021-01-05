@@ -2,7 +2,6 @@ package me.anno.language.translation
 
 import me.anno.config.DefaultConfig
 import me.anno.io.config.ConfigBasics
-import me.anno.ui.base.Panel
 import me.anno.ui.input.EnumInput
 import me.anno.ui.style.Style
 import me.anno.utils.ResourceHelper
@@ -28,7 +27,7 @@ object Dict {
             if (startIndex >= 0) {
                 val key = it.substring(0, startIndex).trim()
                 val value = it.substring(startIndex + 1).trim()
-                if(value.isNotEmpty()){
+                if (value.isNotEmpty()) {
                     values[key] = value
                 }
             }
@@ -47,7 +46,7 @@ object Dict {
                 val key = it.substring(0, startIndex).trim()
                 if ("lang.name".equals(key, true)) {
                     val value = it.substring(startIndex + 1).trim()
-                    if(value.isNotEmpty()){
+                    if (value.isNotEmpty()) {
                         return value
                     }
                 }
@@ -56,20 +55,15 @@ object Dict {
         return null
     }
 
-    data class Option(val data: String, val path: String, val name: String)
-
-    fun selectLanguages(style: Style): EnumInput {
-        // todo two folders, one in the config (lang), and one internally (assets/lang)
-        // todo save the option somehow...
-        // data, path, name
-        val options = ArrayList<Option>()
+    fun getOptions(): List<LanguageOption> {
+        val options = ArrayList<LanguageOption>()
         val internalFiles = listOf("en.lang", "de.lang")
         internalFiles.forEach {
             try {
                 val data = String(ResourceHelper.loadResource("lang/$it").readBytes())
                 val name = getLanguageName(data)
                 if (name?.isNotEmpty() == true) {
-                    options += Option(data, "internal/$it", name)
+                    options += LanguageOption(data, "internal/$it", name)
                 }
             } catch (e: FileNotFoundException) {
                 LOGGER.warn("Skipped $it, didn't find it")
@@ -82,16 +76,40 @@ object Dict {
                     val data = file.readText()
                     val name = getLanguageName(data)
                     if (name?.isNotEmpty() == true) {
-                        options += Option(data, "config/${file.name}", name)
+                        options += LanguageOption(data, "config/${file.name}", name)
                     }
-                } catch (e: IOException) { }
+                } catch (e: IOException) {
+                }
             }
         }
-        val input = EnumInput("Language", true, "English", options.map { it.name }, style)
+        if(options.isEmpty()){
+            options += LanguageOption("", "", "Missing :/")
+        }
+        return options
+    }
+
+    fun getDefaultOption(): LanguageOption {
+        val options = getOptions()
+        val currentLanguagePath = DefaultConfig["ui.language", "internal/en.lang"]
+        return options.firstOrNull { it.path == currentLanguagePath }
+            ?: options.firstOrNull { it.path == "internal/en.lang" } ?: options.first()
+    }
+
+    fun loadDefault(){
+        load(getDefaultOption().data, true)
+    }
+
+    fun selectLanguages(style: Style, changeListener: () -> Unit = {}): EnumInput {
+        // two folders, one in the config (lang), and one internally (assets/lang)
+        // data, path, name
+        val options = getOptions()
+        val currentLanguage = getDefaultOption()
+        val input = EnumInput(Dict["Language", "ui.input.language.title"], true, currentLanguage.name, options.map { it.name }, style)
         input.setChangeListener { _, index, _ ->
             val option = options[index]
             DefaultConfig["ui.language"] = option.path
             load(option.data, true)
+            changeListener()
         }
         return input
     }

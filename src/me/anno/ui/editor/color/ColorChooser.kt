@@ -13,10 +13,10 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.color.spaces.HSLuv
 import me.anno.ui.input.EnumInput
 import me.anno.ui.style.Style
-import me.anno.utils.ColorParsing.parseColorComplex
-import me.anno.utils.Maths.clamp
-import me.anno.utils.FloatFormat.f3
 import me.anno.utils.AnyToFloat.get
+import me.anno.utils.ColorParsing.parseColorComplex
+import me.anno.utils.FloatFormat.f3
+import me.anno.utils.Maths.clamp
 import org.apache.logging.log4j.LogManager
 import org.hsluv.HSLuvColorSpace
 import org.joml.Vector3f
@@ -43,14 +43,16 @@ class ColorChooser(style: Style, val withAlpha: Boolean, val owningProperty: Ani
     var colorSpace = lastColorSpace ?: ColorSpace[DefaultConfig["default.colorSpace", "HSLuv"]] ?: HSLuv
 
     var isDownInRing = false
-    val hslBox = HSVBoxMain(this, Vector3f(), Vector3f(0f, 1f, 0f), Vector3f(0f, 0f, 1f), style)
+    private val hslBox = HSVBoxMain(this, Vector3f(), Vector3f(0f, 1f, 0f), Vector3f(0f, 0f, 1f), style)
 
-    val hueChooserSpace = SpacePanel(0, 2, style)
-    val hueChooser = HueBar(this, style)
-    val alphaBar = if (withAlpha) AlphaBar(this, style) else null
+    private val hueChooserSpace = SpacePanel(0, 2, style)
+    private val hueChooser = HueBar(this, style)
+    private val alphaBar = if (withAlpha) AlphaBar(this, style) else null
 
-    val colorSpaceInput = EnumInput(
-        "Color Space", false, colorSpace.name,
+    private val colorSpaceInput = EnumInput(
+        "Color Space",
+        "Color Layout: which colors are where?, e.g. color circle", "ui.input.color.colorSpace",
+        colorSpace.name,
         ColorSpace.list.map { it.name }, style
     )
         .setChangeListener { it, _, _ ->
@@ -64,13 +66,15 @@ class ColorChooser(style: Style, val withAlpha: Boolean, val owningProperty: Ani
             }
         }
 
-    val styleInput =
-        EnumInput("Style", false, visualisation.displayName, ColorVisualisation.values().map { it.displayName }, style)
-            .setChangeListener { it, _, _ ->
-                visualisation = ColorVisualisation.values().firstOrNull { v -> v.displayName == it } ?: visualisation
-                lastVisualisation = visualisation
-                // onSmallChange("color-style")
-            }
+    private val styleInput = EnumInput(
+        "", false,
+        visualisation.displayName.value,
+        ColorVisualisation.values().map { it.displayName.value },
+        style
+    ).setChangeListener { _, index, _ ->
+        visualisation = ColorVisualisation.values()[index]
+        lastVisualisation = visualisation
+    }.setTooltip("Style, does not change values")
 
     init {
         val spaceBox = PanelListX(style)
@@ -91,11 +95,13 @@ class ColorChooser(style: Style, val withAlpha: Boolean, val owningProperty: Ani
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         if (lastTime != editorTime && owningProperty != null) {
             lastTime = editorTime
-            setRGBA(when(val c = owningProperty[editorTime]){
-                is Vector3f -> Vector4f(c, 1f)
-                is Vector4f -> c
-                else -> throw RuntimeException()
-            }, false)
+            setRGBA(
+                when (val c = owningProperty[editorTime]) {
+                    is Vector3f -> Vector4f(c, 1f)
+                    is Vector4f -> c
+                    else -> throw RuntimeException()
+                }, false
+            )
         }
         val needsHueChooser = Visibility[visualisation.needsHueChooser]
         hueChooser.visibility = needsHueChooser
@@ -141,7 +147,7 @@ class ColorChooser(style: Style, val withAlpha: Boolean, val owningProperty: Ani
         opacity = clamp(a, 0f, 1f)
         this.colorSpace = newColorSpace
         val rgb = colorSpace.toRGB(Vector3f(hue, saturation, lightness))
-        if (notify){
+        if (notify) {
             changeRGBListener(rgb.x, rgb.y, rgb.z, opacity)
         }
     }
@@ -154,9 +160,11 @@ class ColorChooser(style: Style, val withAlpha: Boolean, val owningProperty: Ani
         )
     }
 
-    fun drawColorBox(x: Int, y: Int, w: Int, h: Int,
-                     d0: Vector3f, du: Vector3f, dv: Vector3f, dh: Float,
-                     spaceStyle: ColorVisualisation) {
+    fun drawColorBox(
+        x: Int, y: Int, w: Int, h: Int,
+        d0: Vector3f, du: Vector3f, dv: Vector3f, dh: Float,
+        spaceStyle: ColorVisualisation
+    ) {
         val shader = colorSpace.getShader(spaceStyle)
         shader.use()
         posSize(shader, x, y + h, w, -h)

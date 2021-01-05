@@ -6,6 +6,7 @@ import me.anno.gpu.GFX.gameTime
 import me.anno.input.ActionManager
 import me.anno.input.Input.keyUpCtr
 import me.anno.installer.Installer.checkInstall
+import me.anno.language.translation.Dict
 import me.anno.objects.Camera
 import me.anno.objects.Transform
 import me.anno.studio.GFXSettings
@@ -42,6 +43,7 @@ object RemsStudio : StudioBase(true, "Rem's Studio", "RemsStudio") {
     }
 
     override fun createUI() {
+        Dict.loadDefault()
         UILayouts.createWelcomeUI()
         StudioActions.register()
         ActionManager.init()

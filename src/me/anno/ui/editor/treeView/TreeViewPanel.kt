@@ -13,6 +13,7 @@ import me.anno.input.Input.mouseX
 import me.anno.input.Input.mouseY
 import me.anno.input.MouseButton
 import me.anno.io.utils.StringMap
+import me.anno.language.translation.Dict
 import me.anno.objects.Camera
 import me.anno.objects.Rectangle
 import me.anno.objects.Transform
@@ -28,12 +29,10 @@ import me.anno.ui.editor.files.addChildFromFile
 import me.anno.ui.style.Style
 import me.anno.utils.Color.toARGB
 import me.anno.utils.Maths.clamp
-import org.joml.Vector4f
+import org.apache.logging.log4j.LogManager
 import java.io.File
 
 class TreeViewPanel(val getElement: () -> Transform, style: Style) : TextPanel("", style) {
-
-    // todo the symbols should have equal size...
 
     // todo text shadow, if text color and background color are close
 
@@ -194,13 +193,16 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style) : TextPanel("
 
     override fun getTooltipText(x: Float, y: Float): String? {
         val transform = getElement()
-        return if (transform is Camera) transform.getDefaultDisplayName() + ", drag onto scene to view" else transform.getDefaultDisplayName()
+        return if (transform is Camera)
+            transform.getDefaultDisplayName() + Dict[", drag onto scene to view", "ui.treeView.dragCameraToView"]
+        else transform.getDefaultDisplayName()
     }
 
     // multiple values can be selected
     override fun getMultiSelectablePanel() = this
 
     companion object {
+        private val LOGGER = LogManager.getLogger(TreeViewPanel::class)
         fun openAddMenu(baseTransform: Transform) {
             fun add(action: (Transform) -> Transform): () -> Unit = { selectTransform(action(baseTransform)) }
             val options = DefaultConfig["createNewInstancesList"] as? StringMap
@@ -208,7 +210,10 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style) : TextPanel("
                 val extras = ArrayList<GFX.MenuOption>()
                 if (baseTransform.parent != null) {
                     extras += menuSeparator1
-                    extras += GFX.MenuOption("Add Mask", "") {
+                    extras += GFX.MenuOption(
+                        "Add Mask",
+                        "Creates a mask component, which can be used for many effects", "ui.objects.addMask"
+                    ) {
                         val parent = baseTransform.parent!!
                         val i = parent.children.indexOf(baseTransform)
                         if (i < 0) throw RuntimeException()
@@ -231,7 +236,7 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style) : TextPanel("
                     extras += additional
                 }
                 GFX.openMenu(
-                    mouseX, mouseY, "Add Child",
+                    mouseX, mouseY, Dict["Add Child", "ui.objects.add"],
                     options.entries
                         .sortedBy { (key, _) -> key.toLowerCase() }
                         .map { (key, value) ->
@@ -243,7 +248,7 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style) : TextPanel("
                             })
                         } + extras
                 )
-            } else println("Reset the config, to enable this menu!")
+            } else LOGGER.warn(Dict["Reset the config to enable this menu!", "config.warn.needsReset.forMenu"])
         }
     }
 

@@ -270,13 +270,13 @@ open class TimelinePanel(style: Style) : Panel(style) {
             button.isLeft -> jumpToX(x)
             else -> {
                 val options = listOf(
-                    GFX.MenuOption("Set End Here", "Sets the end of the project to here") {
+                    GFX.MenuOption("Set End Here", "Sets the end of the project to here", "ui.timePanel.setEndHere") {
                         project?.targetDuration = getTimeAt(x)
                     },
-                    GFX.MenuOption("Jump to Start", "Set the time to 0") {
+                    GFX.MenuOption("Jump to Start", "Set the time to 0", "ui.timePanel.jumpToStart") {
                         jumpToT(0.0)
                     },
-                    GFX.MenuOption("Jump to End", "Set the time to the end of the project") {
+                    GFX.MenuOption("Jump to End", "Set the time to the end of the project", "ui.timePanel.jumpToEnd") {
                         jumpToT(targetDuration)
                     }
                 )

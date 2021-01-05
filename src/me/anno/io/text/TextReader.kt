@@ -9,6 +9,9 @@ import org.joml.Vector3f
 import org.joml.Vector4f
 import java.io.EOFException
 
+/**
+ * reads a JSON-similar format from a text file
+ * */
 class TextReader(val data: String) : BaseReader() {
 
     val length = data.length
@@ -33,8 +36,7 @@ class TextReader(val data: String) : BaseReader() {
         assert(skipSpace(), ':')
         var obj = getNewClassInstance(clazz)
         val ptr = if (secondProperty == "i:*ptr") {
-            // assert(secondProperty == "i:*ptr", "Expected second property to be '*ptr', was $secondProperty")
-            readNumber().toIntOrNull() ?: throw RuntimeException("Expected second property to be ptr")
+            readInt()
         } else {
             obj = readProperty(obj, secondProperty)
             getUnusedPointer() // not used
@@ -76,9 +78,14 @@ class TextReader(val data: String) : BaseReader() {
         } else throw EOFException()
     }
 
+    private fun readStringValue(): String {
+        assert(skipSpace(), '"', "Reading String")
+        return readString()
+    }
+
     private fun readString(): String {
         var startIndex = index
-        val str = StringBuilder()
+        val str = StringBuilder(32)
         while (true) {
             when (next()) {
                 '\\' -> {
@@ -133,13 +140,17 @@ class TextReader(val data: String) : BaseReader() {
         }
     }
 
+    /**
+     * reads a number string; may return invalid results
+     * if a string starts here, the string is read instead
+     * */
     private fun readNumber(): String {
-        var str = ""
+        val str = StringBuilder()
         var isFirst = true
         while (true) {
             when (val next = if (isFirst) skipSpace() else next()) {
                 in '0'..'9', '+', '-', '.', 'e', 'E' -> {
-                    str += next
+                    str.append(next)
                 }
                 '_' -> {
                 }
@@ -149,7 +160,7 @@ class TextReader(val data: String) : BaseReader() {
                 }
                 else -> {
                     tmpChar = next
-                    return str
+                    return str.toString()
                 }
             }
             isFirst = false
@@ -175,7 +186,7 @@ class TextReader(val data: String) : BaseReader() {
     ): ArrayType {
         assert(skipSpace(), '[')
         val rawLength = readNumber()
-        val length = rawLength.toIntOrNull() ?: error("invalid $typeName[] length $rawLength")
+        val length = rawLength.toIntOrNull() ?: error("Invalid $typeName[] length $rawLength")
         if (length < (data.length - index) / 2) {
             var i = 0
             val values = createArray(length)
@@ -184,7 +195,8 @@ class TextReader(val data: String) : BaseReader() {
                     ',' -> {
                         val raw = readValue()
                         if (i < length) {
-                            putValue(values, i++, raw ?: error("invalid $typeName $raw at $typeName[$i]"))
+                            val value = raw ?: error("Invalid $typeName $raw at $typeName[$i]")
+                            putValue(values, i++, value)
                         }// else skip
                     }
                     ']' -> {
@@ -195,73 +207,61 @@ class TextReader(val data: String) : BaseReader() {
             }
             if (i > length) LOGGER.warn("$typeName[] contained too many elements!")
             return values
-        } else error("broken file :/, $typeName[].length > data.length")
+        } else error("Broken file :/, $typeName[].length > data.length")
     }
 
     private fun readBool(): Boolean {
-        return when (val c0 = skipSpace()) {
+        return when (val firstChar = skipSpace()) {
             '0' -> false
             '1' -> true
             't', 'T' -> {
-                assert(next(), 'r')
-                assert(next(), 'u')
-                assert(next(), 'e')
+                assert(next(), 'r', "boolean:true")
+                assert(next(), 'u', "boolean:true")
+                assert(next(), 'e', "boolean:true")
                 true
             }
             'f', 'F' -> {
-                assert(next(), 'a')
-                assert(next(), 'l')
-                assert(next(), 's')
-                assert(next(), 'e')
+                assert(next(), 'a', "boolean:false")
+                assert(next(), 'l', "boolean:false")
+                assert(next(), 's', "boolean:false")
+                assert(next(), 'e', "boolean:false")
                 false
             }
-            else -> throw java.lang.RuntimeException("Unknown boolean value starting with $c0")
+            else -> throw java.lang.RuntimeException("Unknown boolean value starting with $firstChar")
         }
     }
 
     private fun readVector2f(): Vector2f {
         assert(skipSpace(), '[', "Start of Vector")
-        val rawX = readNumber()
+        val rawX = readFloat()
         assert(skipSpace(), ',', "Separator of Vector")
-        val rawY = readNumber()
+        val rawY = readFloat()
         assert(skipSpace(), ']', "End of Vector")
-        return Vector2f(
-            rawX.toFloatOrNull() ?: error("Invalid x coordinate $rawX"),
-            rawY.toFloatOrNull() ?: error("Invalid y coordinate $rawY")
-        )
+        return Vector2f(rawX, rawY)
     }
 
     private fun readVector3f(): Vector3f {
         assert(skipSpace(), '[', "Start of Vector")
-        val rawX = readNumber()
+        val rawX = readFloat()
         assert(skipSpace(), ',', "Separator of Vector")
-        val rawY = readNumber()
+        val rawY = readFloat()
         assert(skipSpace(), ',', "Separator of Vector")
-        val rawZ = readNumber()
+        val rawZ = readFloat()
         assert(skipSpace(), ']', "End of Vector")
-        return Vector3f(
-            rawX.toFloatOrNull() ?: error("Invalid x coordinate $rawX"),
-            rawY.toFloatOrNull() ?: error("Invalid y coordinate $rawY"),
-            rawZ.toFloatOrNull() ?: error("Invalid z coordinate $rawZ")
-        )
+        return Vector3f(rawX, rawY, rawZ)
     }
 
     private fun readVector4f(): Vector4f {
         assert(skipSpace(), '[', "Start of Vector")
-        val rawX = readNumber()
+        val rawX = readFloat()
         assert(skipSpace(), ',', "Separator of Vector")
-        val rawY = readNumber()
+        val rawY = readFloat()
         assert(skipSpace(), ',', "Separator of Vector")
-        val rawZ = readNumber()
+        val rawZ = readFloat()
         assert(skipSpace(), ',', "Separator of Vector")
-        val rawW = readNumber()
+        val rawW = readFloat()
         assert(skipSpace(), ']', "End of Vector")
-        return Vector4f(
-            rawX.toFloatOrNull() ?: error("Invalid x coordinate $rawX"),
-            rawY.toFloatOrNull() ?: error("Invalid y coordinate $rawY"),
-            rawZ.toFloatOrNull() ?: error("Invalid z coordinate $rawZ"),
-            rawW.toFloatOrNull() ?: error("Invalid w coordinate $rawW")
-        )
+        return Vector4f(rawX, rawY, rawZ, rawW)
     }
 
     private fun readProperty(obj: ISaveable): ISaveable {
@@ -270,6 +270,42 @@ class TextReader(val data: String) : BaseReader() {
         assert(skipSpace(), ':')
         return readProperty(obj, typeName)
     }
+
+    private fun readByte() = readNumber().run {
+        toIntOrNull()?.toByte() ?: error("Invalid byte", this)
+    }
+
+    private fun readShort() = readNumber().run {
+        toIntOrNull()?.toShort() ?: error("Invalid short", this)
+    }
+
+    private fun readInt() = readNumber().run {
+        toIntOrNull() ?: error("Invalid int", this)
+    }
+
+    private fun readLong() = readNumber().run {
+        toLongOrNull() ?: error("Invalid long", this)
+    }
+
+    private fun readFloat() = readNumber().run {
+        toFloatOrNull() ?: error("Invalid float", this)
+    }
+
+    private fun readDouble() = readNumber().run {
+        toDoubleOrNull() ?: error("Invalid double", this)
+    }
+
+    private fun readFloatArray() = readTypedArray(
+        "float",
+        { FloatArray(it) }, { readFloat() },
+        { array, index, value -> array[index] = value }
+    )
+
+    private fun readDoubleArray() = readTypedArray(
+        "double",
+        { DoubleArray(it) }, { readDouble() },
+        { array, index, value -> array[index] = value }
+    )
 
     private fun readProperty(obj: ISaveable, typeName: String): ISaveable {
         if (typeName == "class") {
@@ -281,106 +317,61 @@ class TextReader(val data: String) : BaseReader() {
         }
         val (type, name) = splitTypeName(typeName)
         when (type) {
-            "b" -> obj.readBoolean(name, readBool())
-            "B" -> {// int8
-                val raw = readNumber()
-                obj.readByte(name, raw.toIntOrNull()?.toByte() ?: error("Invalid byte $raw"))
-            }
-            "s" -> {// int16
-                val raw = readNumber()
-                obj.readShort(name, raw.toIntOrNull()?.toShort() ?: error("Invalid short $raw"))
-            }
-            "i" -> {// int32
-                val raw = readNumber()
-                obj.readInt(name, raw.toIntOrNull() ?: error("Invalid int $raw"))
-            }
-            "u64", "l" -> {
-                val raw = readNumber()
-                obj.readLong(name, raw.toLongOrNull() ?: error("Invalid long $raw"))
-            }
-            "f" -> {
-                val raw = readNumber()
-                obj.readFloat(name, raw.toFloatOrNull() ?: error("Invalid float $raw"))
-            }
-            "d" -> {
-                val raw = readNumber()
-                obj.readDouble(name, raw.toDoubleOrNull() ?: error("Invalid double $raw"))
-            }
-            "b[]" -> obj.readBooleanArray(
+            "i1", "b" -> obj.readBoolean(name, readBool())
+            "i8", "B" -> obj.readByte(name, readByte())
+            "i16", "s" -> obj.readShort(name, readShort())
+            "i32", "i" -> obj.readInt(name, readInt())
+            "u64", "l" -> obj.readLong(name, readLong())
+            "f32", "f" -> obj.readFloat(name, readFloat())
+            "f64", "d" -> obj.readDouble(name, readDouble())
+            "i1[]", "b[]" -> obj.readBooleanArray(
                 name,
                 readTypedArray("boolean",
-                    { BooleanArray(it) },
-                    { readBool() },
+                    { BooleanArray(it) }, { readBool() },
                     { array, index, value -> array[index] = value })
             )
-            "B[]" -> obj.readByteArray(
+            "i8[]", "B[]" -> obj.readByteArray(
                 name,
                 readTypedArray("byte",
-                    { ByteArray(it) },
-                    { readNumber().toIntOrNull()?.toByte() ?: error("Invalid byte") },
+                    { ByteArray(it) }, { readByte() },
                     { array, index, value -> array[index] = value })
             )
-            "s[]" -> obj.readShortArray(
+            "i16[]", "s[]" -> obj.readShortArray(
                 name,
                 readTypedArray("short",
-                    { ShortArray(it) },
-                    { readNumber().toIntOrNull()?.toShort() ?: error("Invalid short") },
+                    { ShortArray(it) }, { readShort() },
                     { array, index, value -> array[index] = value })
             )
-            "i[]" -> obj.readIntArray(
+            "i32[]", "i[]" -> obj.readIntArray(
                 name,
                 readTypedArray("int",
-                    { IntArray(it) },
-                    { readNumber().toInt() },
+                    { IntArray(it) }, { readInt() },
                     { array, index, value -> array[index] = value })
             )
-            "l[]" -> obj.readLongArray(
+            "i64[]", "u64[]", "l[]" -> obj.readLongArray(
                 name,
                 readTypedArray("long",
-                    { LongArray(it) },
-                    { readNumber().toLong() },
+                    { LongArray(it) }, { readLong() },
                     { array, index, value -> array[index] = value })
             )
-            "f[]" -> obj.readFloatArray(
-                name,
-                readTypedArray("float",
-                    { FloatArray(it) },
-                    { readNumber().toFloat() },
-                    { array, index, value -> array[index] = value })
-            )
-            "f[][]" -> {
+            "f32[]", "f[]" -> obj.readFloatArray(name, readFloatArray())
+            "f32[][]", "f[][]" -> {
                 val fa0 = FloatArray(0)
                 obj.readFloatArray2D(
                     name,
                     readTypedArray("float[]",
-                        { Array(it) { fa0 } }, {
-                            readTypedArray("float",
-                                { FloatArray(it) },
-                                { readNumber().toFloat() },
-                                { array, index, value -> array[index] = value })
-                        },
+                        { Array(it) { fa0 } }, { readFloatArray() },
                         { array, index, value -> array[index] = value }
                     )
                 )
             }
-            "d[]" -> obj.readDoubleArray(
-                name,
-                readTypedArray("double",
-                    { DoubleArray(it) },
-                    { readNumber().toDouble() },
-                    { array, index, value -> array[index] = value })
-            )
+            "d[]" -> obj.readDoubleArray(name, readDoubleArray())
             "d[][]" -> {
                 val fa0 = DoubleArray(0)
                 obj.readDoubleArray2D(
                     name,
                     readTypedArray("double[]",
-                        { Array(it) { fa0 } }, {
-                            readTypedArray("double",
-                                { DoubleArray(it) },
-                                { readNumber().toDouble() },
-                                { array, index, value -> array[index] = value })
-                        },
+                        { Array(it) { fa0 } }, { readDoubleArray() },
                         { array, index, value -> array[index] = value }
                     )
                 )
@@ -418,16 +409,19 @@ class TextReader(val data: String) : BaseReader() {
                         { array, index, value -> array[index] = value })
                 )
             }
-            "S" -> {
-                assert(skipSpace(), '"')
-                obj.readString(name, readString())
-            }
+            "S" -> obj.readString(name, readStringValue())
+            "S[]" -> obj.readStringArray(
+                name,
+                readTypedArray("String",
+                    { Array(it) { "" } }, { readStringValue() },
+                    { array, index, value -> array[index] = value })
+            )
             else -> {
                 when (val next = skipSpace()) {
                     'n' -> {
-                        assert(next(), 'u')
-                        assert(next(), 'l')
-                        assert(next(), 'l')
+                        assert(next(), 'u', "Reading null")
+                        assert(next(), 'l', "Reading null")
+                        assert(next(), 'l', "Reading null")
                         obj.readObject(name, null)
                     }
                     '{' -> {
@@ -438,7 +432,7 @@ class TextReader(val data: String) : BaseReader() {
                     in '0'..'9' -> {
                         tmpChar = next
                         val rawPtr = readNumber()
-                        val ptr = rawPtr.toIntOrNull() ?: error("invalid pointer: $rawPtr")
+                        val ptr = rawPtr.toIntOrNull() ?: error("Invalid pointer: $rawPtr")
                         if (ptr > 0) {
                             val child = content[ptr]
                             if (child == null) {
@@ -458,7 +452,7 @@ class TextReader(val data: String) : BaseReader() {
     private fun readObject(type: String): Pair<ISaveable, Int> {
         var child = try {
             getNewClassInstance(type)
-        } catch (e: UnknownClassException){
+        } catch (e: UnknownClassException) {
             println(data)
             throw e
         }

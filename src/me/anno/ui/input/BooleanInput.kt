@@ -1,7 +1,7 @@
 package me.anno.ui.input
 
+import me.anno.language.translation.Dict
 import me.anno.ui.base.TextPanel
-import me.anno.ui.base.Visibility
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.input.components.Checkbox
@@ -13,6 +13,14 @@ import me.anno.ui.style.Style
  * because it forces the programmer to set a tool tip text
  * */
 class BooleanInput(val title: String, startValue: Boolean, style: Style) : PanelListX(style) {
+
+    constructor(title: String, description: String, dictPath: String, startValue: Boolean, style: Style) :
+            this(Dict[title, dictPath], Dict[description, "$dictPath.desc"], startValue, style)
+
+    constructor(title: String, description: String, startValue: Boolean, style: Style) :
+            this(title, startValue, style) {
+        setTooltip(description)
+    }
 
     private val titleView = TextPanel("$title:", style)
     private val checkView = Checkbox(startValue, style.getSize("fontSize", 10), style)

@@ -61,6 +61,7 @@ import me.anno.ui.input.EnumInput
 import me.anno.ui.input.FileInput
 import me.anno.ui.input.TextInput
 import me.anno.ui.style.Style
+import me.anno.utils.FileHelper.openInExplorer
 import org.apache.logging.log4j.LogManager
 import java.io.File
 import kotlin.concurrent.thread
@@ -84,7 +85,7 @@ object UILayouts {
 
     fun createRecentProjectsUI(style: Style, recent: List<DefaultConfig.ProjectHeader>): Panel {
 
-        val recentProjects = SettingCategory("Recent Projects", style)
+        val recentProjects = SettingCategory(Dict["Recent Projects", "ui.recentProjects.title"], style)
         recentProjects.show2()
 
         for (project in recent) {
@@ -94,26 +95,43 @@ object UILayouts {
             thread {// file search can use some time
                 if (!project.file.exists()) {
                     tp.textColor = 0xff0000 or black
-                    tp.setTooltip("${project.file.absolutePath}, not found!")
+                    tp.setTooltip(
+                        Dict["%1, not found!", "ui.recentProjects.projectNotFound"].replace(
+                            "%1",
+                            project.file.absolutePath
+                        )
+                    )
                 }
             }
             tp.setOnClickListener { _, _, button, _ ->
                 fun open() {// open zip?
                     if (project.file.exists() && project.file.isDirectory) {
                         openProject(project.name, project.file)
-                    } else msg("File not found!")
+                    } else msg(Dict["File not found!", "ui.recentProjects.fileNotFound"])
                 }
                 when {
                     button.isLeft -> open()
                     button.isRight -> {
                         openMenu(listOf(
-                            GFX.MenuOption("Open", "") { open() },
-                            GFX.MenuOption("Hide", "") {
+                            GFX.MenuOption(
+                                "Open",
+                                "Opens that project", "ui.recentProjects.open"
+                            ) { open() },
+                            GFX.MenuOption(
+                                "Open In Explorer",
+                                "Opens that project in the file explorer", "ui.recentProjects.openInExplorer"
+                            ) { project.file.openInExplorer() },
+                            GFX.MenuOption(
+                                "Hide",
+                                "Moves the project to the end of the list or removes it", "ui.recentProjects.hide"
+                            ) {
                                 DefaultConfig.removeFromRecentProjects(project.file)
                                 tp.visibility = Visibility.GONE
-                                0
                             },
-                            GFX.MenuOption("Delete", "") {
+                            GFX.MenuOption(
+                                "Delete",
+                                "Removes the project from your drive!", "ui.recentProjects.delete"
+                            ) {
                                 ask("Are you sure?") {
                                     DefaultConfig.removeFromRecentProjects(project.file)
                                     project.file.deleteRecursively()
@@ -149,6 +167,7 @@ object UILayouts {
         if (file != null) {
             openProject(nameInput.text, file)
         } else {
+            // todo translate
             msg("Please choose a $dirName!")
         }
     }
@@ -188,18 +207,22 @@ object UILayouts {
             when {
                 !rootIsOk(file) -> {
                     state = -2
+                    // todo translate
                     msg = "Root $dirName does not exist!"
                 }
                 !file.parentFile.exists() -> {
                     state = -1
+                    // todo translate
                     msg = "Parent $dirName does not exist!"
                 }
                 !fileNameIsOk(file) -> {
                     state = -2
+                    // todo translate
                     msg = "Invalid file name \"$invalidName\""
                 }
                 file.exists() && file.list()?.isNotEmpty() == true -> {
                     state = -1
+                    // todo translate
                     msg = "Folder is not empty!"
                 }
             }
@@ -216,11 +239,13 @@ object UILayouts {
             base.focusTextColor = base.textColor
         }
 
+        // todo translate
         nameInput = TextInput("Title", style, "New Project")
         nameInput.setEnterListener { loadNewProject(usableFile, nameInput) }
 
         var lastName = nameInput.text
 
+        // todo translate
         fileInput = FileInput("Project Location", style, File(workspace, nameInput.text))
 
         updateFileInputColor()
@@ -240,7 +265,7 @@ object UILayouts {
         }
         newProject += fileInput
 
-        val button = TextButton("Create Project", false, style)
+        val button = TextButton("Create Project", "Creates a new project", "ui.createNewProject", false, style)
         button.setSimpleClickListener { loadNewProject(usableFile, nameInput) }
         newProject += button
 
@@ -269,28 +294,40 @@ object UILayouts {
         welcome += createNewProjectUI(style)
         welcome += SpacePanel(0, 1, style)
 
-        val quickSettings = SettingCategory("Quick Settings", style)
+        val quickSettings = SettingCategory(Dict["Quick Settings", "ui.welcome.quickSettings.title"], style)
         quickSettings.show2()
         welcome += quickSettings
 
-        quickSettings += Dict.selectLanguages(style)
+        quickSettings += Dict.selectLanguages(style) {
+            createWelcomeUI()
+        }
 
         val gfxNames = GFXSettings.values().map { it.displayName }
-        quickSettings += EnumInput("GFX Quality", true, gfxSettings.displayName, gfxNames, style)
-            .setChangeListener { _, index, _ ->
-                val value = GFXSettings.values()[index]
-                gfxSettings = value
-            }
-            .setTooltip("Low disables UI MSAA")
-        quickSettings += BooleanInput("Enable Vsync", GFXBase0.enableVsync, style)
-            .setChangeListener {
-                DefaultConfig["debug.ui.enableVsync"] = it
-                GFXBase0.setVsyncEnabled(it)
-            }
-            .setTooltip("Recommended; false for debugging")
-        quickSettings += BooleanInput("Show FPS", RemsStudio.showFPS, style)
-            .setChangeListener { DefaultConfig["debug.ui.showFPS"] = it }
-            .setTooltip("For debugging / monitoring stutters")
+
+        quickSettings += EnumInput(
+            "GFX Quality",
+            "Low disables UI MSAA", "ui.settings.gfxQuality",
+            gfxSettings.displayName, gfxNames, style
+        ).setChangeListener { _, index, _ ->
+            val value = GFXSettings.values()[index]
+            gfxSettings = value
+        }
+
+        quickSettings += BooleanInput(
+            "Enable Vsync",
+            "Recommended; false for debugging", "ui.settings.vSync",
+            GFXBase0.enableVsync, style
+        ).setChangeListener {
+            DefaultConfig["debug.ui.enableVsync"] = it
+            GFXBase0.setVsyncEnabled(it)
+        }
+
+        quickSettings += BooleanInput(
+            "Show FPS",
+            "Shows how many frames were rendered per second, for monitoring stutters", "ui.settings.showFPS",
+            RemsStudio.showFPS,
+            style
+        ).setChangeListener { DefaultConfig["debug.ui.showFPS"] = it }
 
         val scroll = ScrollPanelY(welcome, Padding(5), style)
         scroll += WrapAlign.Center
@@ -344,34 +381,41 @@ object UILayouts {
             }
         }
 
+        val configTitle = Dict["Config", "ui.top.config"]
+        val projectTitle = Dict["Project", "ui.top.project"]
+        val selectTitle = Dict["Select", "ui.top.select"]
+        val debugTitle = Dict["Debug", "ui.top.debug"]
+        val renderTitle = Dict["Render", "ui.top.render"]
+
+        // todo translation
         // todo option to save/load/restore layout
-        options.addAction("Config", "Settings") {
+        options.addAction(configTitle, "Settings") {
             val panel = ConfigPanel(DefaultConfig, false, style)
             val window = reloadWindow(panel, true)
             panel.create()
             windowStack.push(window)
         }
 
-        options.addAction("Config", "Style") {
+        options.addAction(configTitle, "Style") {
             val panel = ConfigPanel(DefaultConfig.style.values, true, style)
             val window = reloadWindow(panel, true)
             panel.create()
             windowStack.push(window)
         }
 
-        options.addAction("Config", "Language") {
+        options.addAction(configTitle, "Language") {
             Dict.selectLanguages(style).onMouseClicked(mouseX, mouseY, MouseButton.LEFT, false)
         }
 
         val menuStyle = style.getChild("menu")
 
-        options.addAction("Project", "Settings") { selectTransform(ProjectSettings) }
-        options.addAction("Project", "Save") {
+        options.addAction(projectTitle, "Settings") { selectTransform(ProjectSettings) }
+        options.addAction(projectTitle, "Save") {
             Input.save()
             LOGGER.info("Saved the project")
         }
 
-        options.addAction("Project", "Load") {
+        options.addAction(projectTitle, "Load") {
             openMenuComplex2(
                 "Load Project", listOf(
                     createRecentProjectsUI(menuStyle, getRecentProjects()),
@@ -381,26 +425,26 @@ object UILayouts {
         }
 
 
-        options.addAction("Select", "Inspector Camera") { selectTransform(nullCamera) }
-        options.addAction("Select", "Root") { selectTransform(root) }
-        options.addAction("Select", "First Camera") {
+        options.addAction(selectTitle, "Inspector Camera") { selectTransform(nullCamera) }
+        options.addAction(selectTitle, "Root") { selectTransform(root) }
+        options.addAction(selectTitle, "First Camera") {
             selectTransform(
                 root.listOfAll.filterIsInstance<Camera>().firstOrNull()
             )
         }
 
-        options.addAction("Debug", "Refresh (Ctrl+F5)") { Cache.clear() }
+        options.addAction(debugTitle, "Refresh (Ctrl+F5)") { Cache.clear() }
 
-        options.addAction("Render", "Settings") { selectTransform(RenderSettings) }
-        options.addAction("Render", "Set%") {
+        options.addAction(renderTitle, "Settings") { selectTransform(RenderSettings) }
+        options.addAction(renderTitle, "Set%") {
             render(
                 max(2, (project!!.targetWidth * project!!.targetSizePercentage / 100).roundToInt()),
                 max(2, (project!!.targetHeight * project!!.targetSizePercentage / 100).roundToInt())
             )
         }
-        options.addAction("Render", "Full") { renderPart(1) }
-        options.addAction("Render", "Half") { renderPart(2) }
-        options.addAction("Render", "Quarter") { renderPart(4) }
+        options.addAction(renderTitle, "Full") { renderPart(1) }
+        options.addAction(renderTitle, "Half") { renderPart(2) }
+        options.addAction(renderTitle, "Quarter") { renderPart(4) }
 
         ui += options
         ui += SceneTabs
@@ -450,7 +494,7 @@ object UILayouts {
     }
 
     fun printLayout() {
-        println("Layout:")
+        LOGGER.info("Layout:")
         for (window1 in GFX.windowStack) {
             window1.panel.printLayout(1)
         }

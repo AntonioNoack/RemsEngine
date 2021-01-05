@@ -29,10 +29,11 @@ class OptionPanel(
                 val index = indexInParent
                 openMenu(
                     stackPanel.options.map { option ->
+                        // todo translate
                         GFX.MenuOption("Prepend ${option.title}", option.description) {
                             stackPanel.addComponent(option, index, true)
                         }
-                    } + GFX.MenuOption("Remove Component", "") {
+                    } + GFX.MenuOption("Remove Component", "Deletes the component", "ui.general.removeComponent") {
                         stackPanel.removeComponent(value)
                     }
                 )

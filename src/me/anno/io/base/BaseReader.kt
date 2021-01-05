@@ -137,14 +137,19 @@ abstract class BaseReader {
     }
 
     fun assert(isValue: Char, shallValue: Char) {
-        if (isValue != shallValue) throw RuntimeException("Expected $shallValue but got $isValue")
+        if (isValue != shallValue.toLowerCase() && isValue != shallValue.toUpperCase()){
+            throw RuntimeException("Expected $shallValue but got $isValue")
+        }
     }
 
     fun assert(isValue: Char, shallValue: Char, context: String) {
-        if (isValue != shallValue) throw RuntimeException("Expected $shallValue but got $isValue for $context")
+        if (isValue != shallValue.toLowerCase() && isValue != shallValue.toUpperCase()){
+            throw RuntimeException("Expected $shallValue but got $isValue for $context")
+        }
     }
 
     fun error(msg: String): Nothing = throw RuntimeException("[BaseReader] $msg")
+    fun error(msg: String, appended: Any?): Nothing = throw RuntimeException("[BaseReader] $msg $appended")
 
     abstract fun readObject(): ISaveable
     abstract fun readAllInList()

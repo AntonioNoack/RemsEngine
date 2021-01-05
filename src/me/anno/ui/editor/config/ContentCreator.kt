@@ -13,12 +13,18 @@ import me.anno.utils.Color.rgba
 import me.anno.utils.Color.toHexColor
 import me.anno.utils.Color.toVecRGBA
 import me.anno.utils.ColorParsing.parseColor
+import org.apache.logging.log4j.LogManager
 import org.joml.Vector4f
 
 class ContentCreator(
     val fullName: String, val relevantName: String,
-    val depth: Int, val groupName: String, val shortName: String, val map: StringMap
+    val depth: Int, val groupName: String,
+    val shortName: String, val map: StringMap
 ) {
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(ContentCreator::class)
+    }
 
     fun createPanels(list: PanelList) {
         val title = TextPanel(shortName, style)
@@ -76,7 +82,7 @@ class ContentCreator(
                         .setChangeListener { map[fullName] = it }
                         .noTitle()
                     else -> {
-                        println("Missing type implementation ${value.javaClass.simpleName}")
+                        LOGGER.warn("Missing type implementation ${value.javaClass.simpleName}")
                         root.vi(shortName, fullName, null, value, style) { map[fullName] = value }
                     }
                 }

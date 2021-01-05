@@ -67,7 +67,7 @@ object Grid {
         w: Int, h: Int, color: Int, alpha: Float
     ) {
         if (y0 == y1) {
-            drawLine01(x0, y0, x1, y1, w, h, color, alpha)
+            drawLine0W(x0, y0, x1, y1, w, h, color, alpha)
         } else {
             val actualAlpha = alpha * 0.2f
             val nx = (y1 - y0)
@@ -76,7 +76,7 @@ object Grid {
             for (di in -2..2) {
                 val dx = nx * len * di
                 val dy = ny * len * di
-                drawLine01(
+                drawLine0W(
                     x0 + dx, y0 + dy,
                     x1 + dx, y1 + dy,
                     w, h, color, actualAlpha
@@ -85,37 +85,37 @@ object Grid {
         }
     }
 
-    fun drawLine01(
-        x0: Float, y0: Float, x1: Float, y1: Float,
+    fun drawLineXW(
+        x0: Float, y0: Float,
+        x1: Float, y1: Float,
         x: Int, y: Int,
         w: Int, h: Int, color: Int, alpha: Float
     ) {
 
-        drawLine01(x0 - x, y0 - y, x1 - x, y1 - y, w, h, color, alpha)
+        drawLine0W(x0 - x, y0 - y, x1 - x, y1 - y, w, h, color, alpha)
 
     }
 
-    fun drawLine01(
+    fun drawLine0W(
         x0: Float, y0: Float, x1: Float, y1: Float,
         w: Int, h: Int, color: Int, alpha: Float
     ) {
 
-        drawLine2((x0 + x1) / w - 1f, 1f - (y0 + y1) / h, x1 * 2f / w - 1f, 1f - 2f * y1 / h, color, alpha)
+        drawLine11((x0 + x1) / w - 1f, 1f - (y0 + y1) / h, x1 * 2f / w - 1f, 1f - 2f * y1 / h, color, alpha)
 
     }
 
-    fun defaultUniforms(shader: Shader, color: Vector4f) {
+    private fun defaultUniforms(shader: Shader, color: Vector4f) {
         shader.v4("tint", color)
         shader.v1("drawMode", GFX.drawMode.id)
     }
 
-    fun defaultUniforms(shader: Shader, color: Int, alpha: Float) {
+    private fun defaultUniforms(shader: Shader, color: Int, alpha: Float) {
         shader.v4("tint", color, alpha)
         shader.v1("drawMode", GFX.drawMode.id)
-        // println(GFX.drawMode)
     }
 
-    fun drawLine2(
+    fun drawLine11(
         x0: Float, y0: Float, x1: Float, y1: Float,
         color: Int, alpha: Float
     ) {
@@ -157,7 +157,7 @@ object Grid {
 
     }
 
-    fun drawLine(stack: Matrix4fArrayList, color: Int, alpha: Float) {
+    private fun drawLine(stack: Matrix4fArrayList, color: Int, alpha: Float) {
 
         val shader = shader3D
         shader.use()

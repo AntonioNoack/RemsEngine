@@ -73,7 +73,7 @@ class EnumInput(
     }
 
     override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
-        GFX.openMenu(this.x, this.y, "Select the $title", options.mapIndexed { index, fontName ->
+        GFX.openMenu(this.x, this.y, Dict["Select the %1", "ui.input.enum.menuTitle"].replace("%1", title), options.mapIndexed { index, fontName ->
             GFX.MenuOption(fontName, "") {
                 inputPanel.text = fontName
                 lastIndex = index

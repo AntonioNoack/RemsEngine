@@ -36,7 +36,6 @@ object FrameTimes : Panel(DefaultConfig.style.getChild("fps")) {
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         drawBackground()
-        // drawRect(x0, y0, x1-x0, y1-y0, black)
         val indexOffset = nextIndex - 1 + width
         for (x in x0 until x1) {
             val i = x - this.x

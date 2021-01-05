@@ -192,31 +192,6 @@ class AudioLinePanel(var meta: FFMPEGMetadata, val audio: Audio, style: Style): 
         }
     }
 
-    override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float) {
-        return super.onMouseWheel(x, y, dx, dy) // annoying
-        // requestBuffer() ?: return
-        val scale = 20f * shiftSlowdown
-        val size = scale / max(GFX.width, GFX.height)
-        val dx0 = dx*size
-        val dy0 = dy*size
-        val delta = dx0-dy0
-        val oldTime = time0
-        val oldDt = dt
-        if(Input.isControlDown){
-            val fraction = (x-this.x)/w
-            time0 += dt * fraction
-            dt *= pow(20f, delta)
-            clampDt()
-            time0 -= dt * fraction
-        } else {
-            time0 += dt * delta
-        }
-        clampTime()
-        if(time0 != oldTime || oldDt != dt){
-            invalidate()
-        }
-    }
-
     fun clampDt(){
         dt = clamp(dt, w/frequency, lengthSeconds)
         if(dt.isNaN()) dt = 1.0

@@ -1,6 +1,8 @@
 package me.anno.ui.custom
 
 import me.anno.config.DefaultConfig
+import me.anno.gpu.GFX
+import me.anno.language.translation.Dict
 import me.anno.ui.base.Panel
 import me.anno.ui.editor.PropertyInspector
 import me.anno.ui.editor.TimelinePanel
@@ -13,17 +15,19 @@ import me.anno.ui.editor.treeView.TreeView
 object TypeLibrary {
 
     class Type(val displayName: String, val constructor: () -> Panel){
-        val internalName = constructor().javaClass.simpleName
+        val internalName: String = constructor().javaClass.simpleName
     }
 
-    val types = listOf<Pair<String, () -> Panel>>(
-        "Scene View" to { SceneView(DefaultConfig.style) },
-        "Tree View" to { TreeView(DefaultConfig.style) },
-        "Inspector" to { PropertyInspector(DefaultConfig.style) },
-        "Cutting Panel" to { CuttingView(DefaultConfig.style) },
-        "Timeline" to { TimelinePanel(DefaultConfig.style) },
-        "Graph Editor" to { GraphEditor(DefaultConfig.style) },
-        "Files" to { FileExplorer(DefaultConfig.style) }
-    ).map { Type(it.first, it.second) }.associateBy { it.internalName }
+    val typeList get() = listOf<Pair<String, () -> Panel>>(
+        Dict["Scene View", "ui.customize.sceneView"] to { SceneView(DefaultConfig.style) },
+        Dict["Tree View", "ui.customize.treeView"] to { TreeView(DefaultConfig.style) },
+        Dict["Properties", "ui.customize.inspector"] to { PropertyInspector(DefaultConfig.style) },
+        Dict["Cutting Panel", "ui.customize.cuttingPanel"] to { CuttingView(DefaultConfig.style) },
+        Dict["Timeline", "ui.customize.timeline"] to { TimelinePanel(DefaultConfig.style) },
+        Dict["Animations", "ui.customize.graphEditor"] to { GraphEditor(DefaultConfig.style) },
+        Dict["Files", "ui.customize.fileExplorer"] to { FileExplorer(DefaultConfig.style) }
+    ).map { Type(it.first, it.second) }
+
+    val types get() = typeList.associateBy { it.internalName }
 
 }

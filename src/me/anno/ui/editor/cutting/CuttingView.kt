@@ -23,8 +23,6 @@ class CuttingView(style: Style): ScrollPanelY(Padding(0), AxisAlignment.MIN, sty
     }
 
     fun createLayer(): LayerView {
-        // todo separate audio and video layers?
-        // todo split them in half?
         // todo display video, audio, title, both, all?
         return LayerView(style)
     }

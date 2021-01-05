@@ -12,9 +12,6 @@ class FrameSizeInput(title: String, value0: String, style: Style): PanelListY(st
 
     val val0 = value0.parseResolution() ?: defaultResolution
 
-    // sort values? no, order should be customizable :) ; could be done with a flag, too...
-    // todo set displayed string to custom, if not in list
-    // todo add a custom value to the list/config with right click + option? -> todo remove a default value
     val typeInput = EnumInput(title, true,
         val0.toString(), defaultResolutions.map { it.toString() } + "Custom",
         style)

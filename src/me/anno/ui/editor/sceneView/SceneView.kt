@@ -23,6 +23,7 @@ import me.anno.input.Input.mouseX
 import me.anno.input.Input.mouseY
 import me.anno.input.MouseButton
 import me.anno.input.Touch.Companion.touches
+import me.anno.language.translation.Dict
 import me.anno.objects.Camera
 import me.anno.objects.Transform
 import me.anno.objects.effects.ToneMappers
@@ -136,8 +137,9 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
     // we need the depth for post processing effects like dof
 
     init {
-        val is2DPanel = TextButton("3D", true, style)
-        is2DPanel.setTooltip("Lock the camera; use control to keep the angle")
+        val is2DPanel = TextButton(
+            "3D", "Lock the camera; use control to keep the angle",
+            "ui.sceneView.3dSwitch", true, style)
         is2DPanel.instantTextLoading = true
         controls += SimplePanel(
             is2DPanel,
@@ -180,8 +182,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
         }
         // todo background is not drawn... why?
         controls += SimplePanel(
-            TextButton("\uD83D\uDCF7", true, style)
-                .setTooltip("Take a screenshot"),
+            TextButton("\uD83D\uDCF7", "Take a screenshot", "ui.sceneView.takeScreenshot", true, style),
             true, true,
             pad * 3 + iconSize * (3 + 1), pad,
             iconSize
@@ -372,9 +373,10 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
                     image.raster.dataBuffer.setElem(i, argb)
                 }
 
+                // todo actions for console messages, e.g. opening a file
                 val file = File(folder, name)
                 ImageIO.write(image, "png", file)
-                LOGGER.info("Saved screenshot to $file")
+                LOGGER.info(Dict["Saved screenshot to %1", "ui.sceneView.savedScreenshot"].replace("%1", file.toString()))
 
             }
         }
@@ -605,7 +607,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
                 val localDelta = if (Input.isControlDown)
                     camera2target.transformDirection(Vector3f(0f, 0f, -delta)) * (targetZ / 6)
                 else pos1
-                RemsStudio.incrementalChange("object-move") {
+                RemsStudio.incrementalChange("Move Object") {
                     selected.position.addKeyframe(localTime, oldPosition + localDelta)
                 }
                 invalidateDrawing()
@@ -619,7 +621,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
                     else Vector3f(delta0, delta0, delta0)
                 )
                 val base = 2f
-                RemsStudio.incrementalChange("object-scale") {
+                RemsStudio.incrementalChange("Scale Object") {
                     selected.scale.addKeyframe(
                         localTime, Vector3f(
                             oldScale.x * pow(base, localDelta.x * speed2),
@@ -645,7 +647,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
                     if (Input.isControlDown) Vector3f(dx0 * speed2, -dy0 * speed2, 0f)
                     else Vector3f(0f, 0f, -deltaDegree)
                 //)
-                RemsStudio.incrementalChange("object-rotate") {
+                RemsStudio.incrementalChange("Rotate Object") {
                     selected.rotationYXZ.addKeyframe(localTime, oldRotation + localDelta)
                 }
                 invalidateDrawing()
@@ -682,7 +684,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
         val camera = camera
         val (_, cameraTime) = camera.getGlobalTransform(editorTime)
         val oldRotation = camera.rotationYXZ[cameraTime]
-        RemsStudio.incrementalChange("camera-turn") {
+        RemsStudio.incrementalChange("Turn Camera") {
             camera.putValue(camera.rotationYXZ, oldRotation + Vector3f(dy0 * scaleFactor, dx0 * scaleFactor, 0f), false)
         }
         invalidateDrawing()
@@ -770,7 +772,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
                 var dx = 0
                 var dy = 0
 
-                GFX.addGPUTask(w, h) {
+                addGPUTask(w, h) {
                     val camera = camera
                     if (camera.onlyShowTarget) {
                         if (w * targetHeight > targetWidth * h) {

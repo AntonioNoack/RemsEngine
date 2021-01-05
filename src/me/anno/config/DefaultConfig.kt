@@ -82,8 +82,7 @@ object DefaultConfig : StringMap() {
         val newInstances: Map<String, Transform> = mapOf(
             "Mesh" to Mesh(File(OS.documents, "monkey.obj"), null),
             "Array" to GFXArray(),
-            "Video" to Video(File(""), null),
-            // "Image" to Video(File(""), null),
+            "Image / Audio / Video" to Video(File(""), null),
             "Polygon" to Polygon(null),
             "Rectangle" to Rectangle.create(),
             "Circle" to Circle(null),

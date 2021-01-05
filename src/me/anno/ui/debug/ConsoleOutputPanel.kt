@@ -4,6 +4,7 @@ import me.anno.config.DefaultStyle
 import me.anno.gpu.GFX.windowStack
 import me.anno.gpu.Window
 import me.anno.input.MouseButton
+import me.anno.language.translation.Dict
 import me.anno.studio.Logging
 import me.anno.studio.rems.RemsStudio
 import me.anno.ui.base.buttons.TextButton
@@ -29,7 +30,7 @@ class ConsoleOutputPanel(style: Style): TextPanel("", style) {
             // todo update, if there are new messages incoming
             // done select the text color based on the type of message
             val list = listPanel.content as PanelList
-            list += TextButton("Close", false, style).setSimpleClickListener {
+            list += TextButton(Dict["Close", "ui.general.close"], false, style).setSimpleClickListener {
                 windowStack.pop().destroy()
             }
             Logging.lastConsoleLines.reversed().forEach { msg ->

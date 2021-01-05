@@ -6,6 +6,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFXx2D.drawTexture
 import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.input.MouseButton
+import me.anno.language.translation.Dict
 import me.anno.ui.base.Panel
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer
@@ -44,18 +45,18 @@ class CustomContainer(default: Panel, style: Style) : PanelContainer(default, Pa
         drawTexture(x + w - 14, y + 2, 12, 12, icon, white, null)
     }
 
-    fun changeType() {
+    private fun changeType() {
         fun action(action: () -> Panel): () -> Unit = { changeTo(action()) }
-        val options = TypeLibrary.types.values
+        val options = TypeLibrary.typeList
             .map { GFX.MenuOption(it.displayName, "", action { it.constructor() }) }
             .toMutableList()
-        options += GFX.MenuOption("Remove This Element", "") {
+        options += GFX.MenuOption("Remove This Element", "", "ui.customize.remove") {
             (parent as? CustomList)?.apply {
                 remove(indexInParent)
             }
             Unit
         }
-        options += GFX.MenuOption("Add Panel Before", "") {
+        options += GFX.MenuOption("Add Panel Before", "", "ui.customize.addBefore") {
             val parent = parent!!
             val index = indexInParent
             if (parent is CustomListX) {
@@ -80,7 +81,7 @@ class CustomContainer(default: Panel, style: Style) : PanelContainer(default, Pa
             }
             Unit
         }
-        options += GFX.MenuOption("Add Panel After", "") {
+        options += GFX.MenuOption("Add Panel After", "", "ui.customize.addAfter") {
             val parent = parent!!
             val index = indexInParent
             if (parent is CustomListX) {
@@ -106,7 +107,7 @@ class CustomContainer(default: Panel, style: Style) : PanelContainer(default, Pa
             }
             Unit
         }
-        options += GFX.MenuOption("Add Panel Above", "") {
+        options += GFX.MenuOption("Add Panel Above", "", "ui.customize.addAbove") {
             val parent = parent!!
             val index = indexInParent
             if (parent is CustomListY) {
@@ -132,7 +133,7 @@ class CustomContainer(default: Panel, style: Style) : PanelContainer(default, Pa
             }
             Unit
         }
-        options += GFX.MenuOption("Add Panel Below", "") {
+        options += GFX.MenuOption("Add Panel Below", "", "ui.customize.addBelow") {
             val parent = parent!!
             val index = indexInParent
             if (parent is CustomListY) {
@@ -158,10 +159,10 @@ class CustomContainer(default: Panel, style: Style) : PanelContainer(default, Pa
             }
             Unit
         }
-        GFX.openMenu(x + w - 16, y, "", options)
+        GFX.openMenu(x + w - 16, y, Dict["Customize UI", "ui.customize.title"], options)
     }
 
-    fun changeTo(panel: Panel) {
+    private fun changeTo(panel: Panel) {
         child = panel
         child.parent = this
     }
