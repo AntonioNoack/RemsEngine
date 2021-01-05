@@ -1,5 +1,6 @@
 package me.anno.ui.editor
 
+import me.anno.language.translation.Dict
 import me.anno.objects.inspectable.Inspectable
 import me.anno.studio.rems.Selection.selectedInspectable
 import me.anno.ui.base.Panel
@@ -90,11 +91,15 @@ class PropertyInspector(style: Style):
     companion object {
         fun createInspector(ins: Inspectable, list: PanelListY, style: Style){
             val groups = HashMap<String, SettingCategory>()
-            ins.createInspector(list, style){ title, id ->
-                groups.getOrPut(id){
-                    val group = SettingCategory(title, style)
+            ins.createInspector(list, style){ title, description, dictSubPath ->
+                groups.getOrPut(dictSubPath){
+                    val group = SettingCategory(Dict[title, "obj.$dictSubPath"], style)
                     list += group
                     group
+                }.apply {
+                    if(tooltip?.isNotBlank() != true){
+                        tooltip = Dict[description, "obj.$dictSubPath.desc"]
+                    }
                 }
             }
         }

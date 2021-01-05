@@ -26,7 +26,7 @@ class EqualizerEffect() : SoundEffect(Domain.FREQUENCY_DOMAIN, Domain.FREQUENCY_
     override fun createInspector(
         list: PanelListY,
         style: Style,
-        getGroup: (title: String, id: String) -> SettingCategory
+        getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
     ) {
         // todo better equalizer view...
         frequencies.forEachIndexed { index, frequency ->

@@ -535,7 +535,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
     override fun createInspector(
         list: PanelListY,
         style: Style,
-        getGroup: (title: String, id: String) -> SettingCategory
+        getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
     ) {
 
         super.createInspector(list, style, getGroup)
@@ -567,7 +567,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
             file = newFile
         }
 
-        val uvMap = getGroup("Texture", "uvs")
+        val uvMap = getGroup("Texture", "", "uvs")
         uvMap += img(vi("Tiling", "(tile count x, tile count y, offset x, offset y)", tiling, style))
         uvMap += img(vi("UV-Projection", "Can be used for 360°-Videos", null, uvProjection, style) {
             uvProjection = it
@@ -575,13 +575,13 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
         uvMap += img(vi("Filtering", "Pixelated look?", "texture.filtering", null, filtering, style) { filtering = it })
         uvMap += img(vi("Clamping", "For tiled images", "texture.clamping", null, clampMode, style) { clampMode = it })
 
-        val time = getGroup("Time", "time")
+        val time = getGroup("Time", "", "time")
         time += vi("Looping Type", "Whether to repeat the song/video", "video.loopingType", null, isLooping, style) {
             isLooping = it
             AudioManager.requestUpdate()
         }
 
-        val quality = getGroup("Quality", "quality")
+        val quality = getGroup("Quality", "", "quality")
         val videoScales = videoScaleNames.entries.sortedBy { it.value }
         quality += vid(EnumInput(
             "Video Scale", "Full resolution isn't always required. Define it yourself, or set it to automatic.",
@@ -599,7 +599,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
             }
             .setIsSelectedListener { show(null) })
 
-        val color = getGroup("Color Grading (ASC CDL)", "color-grading")
+        val color = getGroup("Color Grading (ASC CDL)", "", "color-grading")
         color += img(vi("Power", "sRGB, Linear, ...", "cg.power", cgPower, style))
         color += img(
             vi(
@@ -612,14 +612,14 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
         color += img(vi("Slope", "Intensity or Tint", "cg.slope", cgSlope, style))
         color += img(vi("Offset", "Can be used to color black objects", "cg.offset", cgOffset, style))
 
-        val audio = getGroup("Audio", "audio")
+        val audio = getGroup("Audio", "", "audio")
         audio += aud(vi("Amplitude", "How loud it is", "audio.amplitude", amplitude, style))
         audio += aud(vi("Is 3D Sound", "Sound becomes directional", "audio.3d", null, is3D, style) {
             is3D = it
             AudioManager.requestUpdate()
         })
 
-        val audioFX = getGroup("Audio Effects", "audio-fx")
+        val audioFX = getGroup("Audio Effects", "", "audio-fx")
         audioFX += aud(
             vi(
                 "Echo Delay",

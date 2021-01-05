@@ -71,10 +71,10 @@ class NoisyLorentzForce :
     override fun createInspector(
         list: PanelListY,
         style: Style,
-        getGroup: (title: String, id: String) -> SettingCategory
+        getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
     ) {
         super.createInspector(list, style, getGroup)
-        getGroup("Force Field", "forces") += vi("Seed", "For the random component", null, seed, style) { seed = it }
+        getGroup("Force Field", "", "forces") += vi("Seed", "For the random component", null, seed, style) { seed = it }
     }
 
     override fun save(writer: BaseWriter) {

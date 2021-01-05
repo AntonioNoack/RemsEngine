@@ -13,7 +13,7 @@ object ProjectSettings : Transform() {
     override fun createInspector(
         list: PanelListY,
         style: Style,
-        getGroup: (title: String, id: String) -> SettingCategory
+        getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
     ) {
 
         val project = project!!

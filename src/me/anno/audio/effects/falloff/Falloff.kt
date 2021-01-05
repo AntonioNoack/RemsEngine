@@ -60,7 +60,7 @@ abstract class Falloff() : SoundEffect(Domain.TIME_DOMAIN, Domain.TIME_DOMAIN) {
     override fun createInspector(
         list: PanelListY,
         style: Style,
-        getGroup: (title: String, id: String) -> SettingCategory
+        getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
     ) {
         list += audio.vi(
             "Half Distance",

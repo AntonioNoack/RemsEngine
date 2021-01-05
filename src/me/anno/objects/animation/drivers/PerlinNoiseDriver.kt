@@ -40,7 +40,7 @@ class PerlinNoiseDriver: AnimationDriver(){
         return value0
     }
 
-    override fun createInspector(list: MutableList<Panel>, transform: Transform, style: Style, getGroup: (title: String, id: String) -> SettingCategory) {
+    override fun createInspector(list: MutableList<Panel>, transform: Transform, style: Style, getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory) {
         super.createInspector(list, transform, style, getGroup)
         list += transform.vi("Octaves", "Levels of Detail", Type.INT_PLUS, octaves, style){ octaves = it }
         list += transform.vi("Seed", "", Type.LONG, seed, style){ seed = it }

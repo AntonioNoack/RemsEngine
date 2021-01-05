@@ -26,10 +26,10 @@ class EffectColoring: Transform() {
     override fun createInspector(
         list: PanelListY,
         style: Style,
-        getGroup: (title: String, id: String) -> SettingCategory
+        getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
     ) {
         super.createInspector(list, style, getGroup)
-        val fx = getGroup("Effect", "effect")
+        val fx = getGroup("Effect", "", "effect")
         fx += vi("Strength", "How much this color shall be used", influence, style)
         fx += vi("Sharpness", "How sharp the circle is", sharpness, style)
     }

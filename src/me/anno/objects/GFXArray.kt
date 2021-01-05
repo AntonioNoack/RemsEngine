@@ -123,7 +123,7 @@ class GFXArray(parent: Transform? = null) : GFXTransform(parent) {
     override fun createInspector(
         list: PanelListY,
         style: Style,
-        getGroup: (title: String, id: String) -> SettingCategory
+        getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
     ) {
         super.createInspector(list, style, getGroup)
 
@@ -131,10 +131,10 @@ class GFXArray(parent: Transform? = null) : GFXTransform(parent) {
         // todo we need to be able to insert properties...
         // todo replace? :D, # String Array
 
-        val child = getGroup("Per-Child Transform", "per-child")
+        val child = getGroup("Per-Child Transform", "For the n-th child, it is applied (n-1) times.", "per-child")
         child += vi(
             "Offset/Child",
-            "Delta position from one child to the next",
+            "",
             "array.offset",
             perChildTranslation,
             style
@@ -143,7 +143,7 @@ class GFXArray(parent: Transform? = null) : GFXTransform(parent) {
         child += vi("Scale/Child", "", "array.scale", perChildScale, style)
         child += vi("Delay/Child", "Temporal delay between each child", "array.delay", perChildDelay, style)
 
-        val instances = getGroup("Instances", "children")
+        val instances = getGroup("Instances", "", "children")
         instances += vi("Instance Count", "", "array.instanceCount", instanceCount, style)
         instances += vi("Selection Mode", "", "array.selectionMode", null, selectionMode, style) { selectionMode = it }
         instances += vi(

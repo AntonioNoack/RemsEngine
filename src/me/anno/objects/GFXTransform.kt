@@ -42,10 +42,10 @@ abstract class GFXTransform(parent: Transform?) : Transform(parent) {
     override fun createInspector(
         list: PanelListY,
         style: Style,
-        getGroup: (title: String, id: String) -> SettingCategory
+        getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
     ) {
         super.createInspector(list, style, getGroup)
-        val fx = getGroup("Effects", "effects")
+        val fx = getGroup("Effects", "Visual Effects Settings", "effects")
         fx += vi("Coloring: Base Color", "Base color for coloring", attractorBaseColor, style)
     }
 

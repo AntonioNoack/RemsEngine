@@ -230,7 +230,7 @@ class TextParticles : Transform() {
     override fun createInspector(
         list: PanelListY,
         style: Style,
-        getGroup: (title: String, id: String) -> SettingCategory
+        getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
     ) {
 
         super.createInspector(list, style, getGroup)
@@ -238,7 +238,7 @@ class TextParticles : Transform() {
         var viCtr = 0
         fun VI(name: String, description: String, property: AnimatedDistribution) {
             fun getName() = "$name: ${property.distribution.getClassName().split("Distribution").first()}"
-            val group = getGroup(getName(), "$viCtr")
+            val group = getGroup(getName(), "", "$viCtr")
             group.setTooltip(description)
             group.setOnClickListener { _, _, button, long ->
                 if (button.isRight || long) {
@@ -274,7 +274,7 @@ class TextParticles : Transform() {
         VI("Opacity", "Initial particle opacity (1-transparency)", spawnOpacity)
         VI("Size", "Initial particle size", spawnSize)
 
-        val general = getGroup("Particle System", "particles")
+        val general = getGroup("Particle System", "", "particles")
 
         general += vi(
             "Simulation Step",

@@ -80,10 +80,10 @@ class Polygon(parent: Transform? = null) : GFXTransform(parent) {
     override fun createInspector(
         list: PanelListY,
         style: Style,
-        getGroup: (title: String, id: String) -> SettingCategory
+        getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
     ) {
         super.createInspector(list, style, getGroup)
-        val geo = getGroup("Geometry", "geometry")
+        val geo = getGroup("Geometry", "", "geometry")
         geo += vi("Vertex Count", "Quads, Triangles, all possible", "polygon.vertexCount", vertexCount, style)
         geo += vi("Star-ness", "Works best with even vertex count", "polygon.star-ness", starNess, style)
         geo += vi(
@@ -92,7 +92,7 @@ class Polygon(parent: Transform? = null) : GFXTransform(parent) {
             null, autoAlign, style
         ) { autoAlign = it }
         geo += vi("Extrude", "Makes it 3D", "polygon.extrusion", null, is3D, style) { is3D = it }
-        val tex = getGroup("Pattern", "texture")
+        val tex = getGroup("Pattern", "", "texture")
         tex += vi(
             "Pattern Texture",
             "For patterns like gradients radially; use a mask layer for images with polygon shape", "polygon.pattern",

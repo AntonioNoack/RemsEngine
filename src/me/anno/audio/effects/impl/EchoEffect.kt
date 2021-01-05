@@ -33,7 +33,7 @@ class EchoEffect() : SoundEffect(Domain.TIME_DOMAIN, Domain.TIME_DOMAIN) {
     override fun createInspector(
         list: PanelListY,
         style: Style,
-        getGroup: (title: String, id: String) -> SettingCategory
+        getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
     ) {
         list += audio.vi("Offset", "Distance of 1st echo in seconds", offset, style)
         list += audio.vi("Falloff", "How much is reflected, the less, the faster the echo fades away", falloff, style)

@@ -10,6 +10,14 @@ obj.folder: Ordner
 obj.rectangle: Rechteck
 obj.array: Sequenz
 obj.camera: Kamera
+obj.camera.fov: Sichtfeld
+obj.camera.fov.desc: Wie viel die Kamera sieht, als Winkel in Grad, vertikal
+obj.camera.toneMapping: Tone Mapping
+obj.camera.toneMapping.desc: Bildet rießige Helligkeitsunterschiede auf sRGB ab
+obj.camera.lut: Look Up Table
+obj.camera.lut.desc: Wie UE4, für universelle Kontrolle über Farben, via Photoshop or Gimp
+obj.camera.resetTransform: Setze Transformation zurück
+obj.camera.resetTransform.desc: Falls die Kamera aus Versehen bewegt wurde
 obj.text: Text
 obj.timer: Stoppuhr
 obj.force.global: Globale Kraft

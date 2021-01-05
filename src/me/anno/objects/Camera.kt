@@ -65,71 +65,90 @@ class Camera(parent: Transform? = null) : Transform(parent) {
         position.defaultValue = Vector3f(0f, 0f, 1f)
     }
 
-    fun getEffectiveOffset(localTime: Double) = orthoDistance(orthographicness[localTime])
+    fun getEffectiveOffset(localTime: Double) = orthographicDistance(orthographicness[localTime])
     fun getEffectiveNear(localTime: Double, offset: Float = getEffectiveOffset(localTime)) = nearZ[localTime] + offset
     fun getEffectiveFar(localTime: Double, offset: Float = getEffectiveOffset(localTime)) = farZ[localTime] + offset
     fun getEffectiveFOV(localTime: Double, offset: Float = getEffectiveOffset(localTime)) =
-        orthoFOV(fovYDegrees[localTime], offset)
+        orthographicFOV(fovYDegrees[localTime], offset)
 
-    fun orthoDistance(ortho: Float) = pow(200f, ortho) - 1f
-    fun orthoFOV(fov: Float, offset: Float) = fov / (1f + offset)
+    fun orthographicDistance(orthographicness: Float) = pow(200f, orthographicness) - 1f
+    fun orthographicFOV(fov: Float, offset: Float) = fov / (1f + offset)
 
     override fun createInspector(
         list: PanelListY,
         style: Style,
-        getGroup: (title: String, id: String) -> SettingCategory
+        getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
     ) {
         super.createInspector(list, style, getGroup)
 
-        val cam = getGroup("Projection", "projection")
+        val cam = getGroup("Projection", "How rays of light are mapped to the screen", "projection")
         cam += vi("FOV", "Field Of View, in degrees, vertical", "camera.fov", fovYDegrees, style)
-        cam += vi("Perspective - Orthographic", "Sets back the camera", "camera.orthographicness", orthographicness, style)
-        val depth = getGroup("Depth", "depth")
+        cam += vi(
+            "Perspective - Orthographic",
+            "Sets back the camera", "camera.orthographicness",
+            orthographicness, style
+        )
+        val depth = getGroup("Depth", "Z-axis related settings; from camera perspective", "depth")
         depth += vi("Near Z", "Closest Visible Distance", "camera.depth.near", nearZ, style)
         depth += vi("Far Z", "Farthest Visible Distance", "camera.depth.far", farZ, style)
-        depth += vi("Use Depth", "Causes Z-Fighting, but allows 3D", "camera.depth.enabled", null, useDepth, style) { useDepth = it }
-        val chroma = getGroup("Chromatic Aberration", "chroma")
-        chroma += vi("Strength", "Effect occurring in cheap lenses", chromaticAberration, style)
-        chroma += vi("Offset", "Offset", chromaticOffset, style)
-        chroma += vi("Rotation", "Rotation/angle", chromaticAngle, style)
-        val dist = getGroup("Distortion", "distortion")
+        depth += vi(
+            "Use Depth",
+            "Causes Z-Fighting, but allows 3D", "camera.depth.enabled",
+            null, useDepth, style
+        ) { useDepth = it }
+        val chroma = getGroup("Chromatic Aberration", "Effect occurring in cheap lenses", "chroma")
+        chroma += vi("Strength", "How large the effect is", "camera.chromaStrength", chromaticAberration, style)
+        chroma += vi("Offset", "Offset", "camera.chromaOffset", chromaticOffset, style)
+        chroma += vi("Rotation", "Rotation/angle in Degrees", "camera.chromaRotation", chromaticAngle, style)
+        val dist = getGroup("Distortion", "Transforms the image", "distortion")
         dist += vi("Distortion", "Params: R², R⁴, Scale", distortion, style)
         dist += vi("Distortion Offset", "Moves the center of the distortion", distortionOffset, style)
-        val vignette = getGroup("Vignette", "vignette")
+        val vignette = getGroup("Vignette", "Darkens/colors the border", "vignette")
         vignette += vi("Vignette Color", "Color of the border", "vignette.color", vignetteColor, style)
-        vignette += vi("Vignette Strength", "Strength of the colored border", "vignette.strength", vignetteStrength, style)
-        val bloom = getGroup("Bloom", "bloom")
+        vignette += vi(
+            "Vignette Strength",
+            "Strength of the colored border", "vignette.strength",
+            vignetteStrength,
+            style
+        )
+        val bloom = getGroup("Bloom", "Adds a light halo around bright objects", "bloom")
         bloom += vi("Intensity", "Brightness of effect, 0 = off", "bloom.intensity", bloomIntensity, style)
         bloom += vi("Effect Size", "How much it is blurred", "bloom.size", bloomSize, style)
         bloom += vi("Threshold", "Minimum brightness", "bloom.threshold", bloomThreshold, style)
-        val color = getGroup("Color", "color")
+        val color = getGroup("Color", "Tint and Tonemapping", "color")
         color += vi(
             "Tone Mapping",
-            "Maps large ranges of brightnesses (e.g. HDR) to monitor color space",
+            "Maps large ranges of brightnesses (e.g. HDR) to monitor color space", "camera.toneMapping",
             null, toneMapping, style
         ) { toneMapping = it }
-        color += vi("Look Up Table", "LUT, Look Up Table for colors, formatted like in UE4", null, lut, style) {
+        color += vi(
+            "Look Up Table",
+            "LUT, Look Up Table for colors, formatted like in UE4", "camera.lut", null, lut, style
+        ) {
             lut = it
         }
-        val cg = getGroup("Color Grading (ASC CDL)", "color-grading")
-        cg += vi("Power", "sRGB, Linear, a kind of contrast", "cg.power", cgPower, style)
+        val cg = getGroup("Color Grading (ASC CDL)", "Adjusting colors, contrast and saturation", "color-grading")
+        cg += vi(
+            "Power",
+            "sRGB, Linear, a kind of contrast", "cg.power",
+            cgPower, style
+        )
         cg += vi(
             "Saturation",
-            "0 = gray scale, 1 = normal, -1 = inverted colors",
+            "0 = gray scale, 1 = normal, -1 = inverted colors", "cg.saturation",
             cgSaturation, style
         )
         cg += vi("Slope", "Intensity or Tint", "cg.slope", cgSlope, style)
         cg += vi("Offset", "Can be used to color black objects, or add a tint", "cg.offset", cgOffset, style)
-        val editor = getGroup("Editor", "editor")
+        val editor = getGroup("Editor", "Settings, which only effect editing", "editor")
         editor += vi(
             "Only Show Target",
             "Forces the viewport to have the correct aspect ratio",
             null, onlyShowTarget, style
         ) { onlyShowTarget = it }
-        val ops = getGroup("Operations", "operations")
-        ops += TextButton("Reset Transform", false, style)
+        val ops = getGroup("Operations", "Actions", "operations")
+        ops += TextButton("Reset Transform", "If accidentally moved", "obj.camera.resetTransform", false, style)
             .setSimpleClickListener { resetTransform(true) }
-            .setTooltip("If accidentally moved")
     }
 
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
@@ -148,7 +167,7 @@ class Camera(parent: Transform? = null) : Transform(parent) {
 
     fun resetTransform(updateHistory: Boolean) {
         if (updateHistory) {
-            RemsStudio.largeChange("Reset Camera Transform"){
+            RemsStudio.largeChange("Reset Camera Transform") {
                 resetTransform(false)
             }
         } else {

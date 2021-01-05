@@ -47,7 +47,7 @@ class AmplitudeEffect() : SoundEffect(Domain.TIME_DOMAIN, Domain.TIME_DOMAIN) {
     override fun createInspector(
         list: PanelListY,
         style: Style,
-        getGroup: (title: String, id: String) -> SettingCategory
+        getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
     ) {
         list += SpacePanel(0, 0, style) // nothing, but it must not be empty, soo...
     }

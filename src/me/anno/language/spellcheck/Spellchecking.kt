@@ -120,6 +120,9 @@ object Spellchecking {
 
     /**
      * each instance handles a single language only
+     * the first argument of the executable can be used to define the language
+     * then it will spellcheck all following lines individually.
+     * \n and non-ascii symbols should be escaped with \\n or \Uxxxx
      * */
     fun start(language: Language): ConcurrentHashMap<Any, Request> {
         val queue = ConcurrentHashMap<Any, Request>()

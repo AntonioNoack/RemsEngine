@@ -36,10 +36,10 @@ class SoundPipeline() : Saveable(), Inspectable {
     override fun createInspector(
         list: PanelListY,
         style: Style,
-        getGroup: (title: String, id: String) -> SettingCategory
+        getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
     ) {
         stages.forEach { it.audio = audio }
-        val effectsGroup = getGroup("Effects", "effects")
+        val effectsGroup = getGroup("Effects", "Audio Effects", "effects")
         effectsGroup += object : StackPanel("Effects Stack", "Effects can be added with RMB, are applied one after another", listOf(
             option { EchoEffect(audio) },
             option { AmplitudeEffect(audio) },

@@ -33,9 +33,9 @@ class Circle(parent: Transform? = null): GFXTransform(parent){
         return Vector3f(pos.x, -pos.y, pos.z) // why ever y needs to be mirrored...
     }
 
-    override fun createInspector(list: PanelListY, style: Style, getGroup: (title: String, id: String) -> SettingCategory) {
+    override fun createInspector(list: PanelListY, style: Style, getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory) {
         super.createInspector(list, style, getGroup)
-        val geo = getGroup("Geometry", "geometry")
+        val geo = getGroup("Geometry", "", "geometry")
         geo += vi("Inner Radius", "Relative size of hole in the middle", innerRadius, style)
         geo += vi("Start Degrees", "To cut a piece out of the circle", startDegrees, style)
         geo += vi("End Degrees", "To cut a piece out of the circle", endDegrees, style)

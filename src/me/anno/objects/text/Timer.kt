@@ -95,7 +95,7 @@ class Timer(parent: Transform? = null): Text("", parent) {
 
     fun Long.f2() = if(this < 10) "0$this" else this.toString()
 
-    override fun createInspector(list: PanelListY, style: Style, getGroup: (title: String, id: String) -> SettingCategory) {
+    override fun createInspector(list: PanelListY, style: Style, getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory) {
         super.createInspector(list, style, getGroup)
         list.children.removeIf { it is TextInputML && it.base.placeholder == "Text" }
         list += vi("Format", "ss=sec, mm=min, hh=hours, dd=days, s3=millis", null, format, style){ format = it }

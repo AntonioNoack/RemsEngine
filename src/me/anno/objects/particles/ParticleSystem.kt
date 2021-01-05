@@ -391,7 +391,7 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
     override fun createInspector(
         list: PanelListY,
         style: Style,
-        getGroup: (title: String, id: String) -> SettingCategory
+        getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
     ) {
 
         super.createInspector(list, style, getGroup)
@@ -399,7 +399,7 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
         var viCtr = 0
         fun vi(name: String, description: String, property: AnimatedDistribution) {
             fun getName() = "$name: ${property.distribution.getClassName().split("Distribution").first()}"
-            val group = getGroup(getName(), "$viCtr")
+            val group = getGroup(getName(), "", "$viCtr")
             group.setTooltip(description)
             group.setOnClickListener { _, _, button, long ->
                 if (button.isRight || long) {
@@ -442,7 +442,7 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
         vi("Opacity", "Initial particle opacity (1-transparency)", spawnOpacity)
         vi("Size", "Initial particle size", spawnSize)
 
-        val general = getGroup("Particle System", "particles")
+        val general = getGroup("Particle System", "", "particles")
 
         general += vi(
             "Simulation Step",

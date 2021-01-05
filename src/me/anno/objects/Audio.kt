@@ -86,7 +86,7 @@ abstract class Audio(var file: File = File(""), parent: Transform? = null) : GFX
     override fun createInspector(
         list: PanelListY,
         style: Style,
-        getGroup: (title: String, id: String) -> SettingCategory
+        getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
     ) {
         super.createInspector(list, style, getGroup)
         effects.apply {

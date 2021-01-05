@@ -142,7 +142,7 @@ class Mesh(var file: File, parent: Transform?) : GFXTransform(parent) {
     override fun createInspector(
         list: PanelListY,
         style: Style,
-        getGroup: (title: String, id: String) -> SettingCategory
+        getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
     ) {
         super.createInspector(list, style, getGroup)
         list += vi("File", "", null, file, style) { file = it }

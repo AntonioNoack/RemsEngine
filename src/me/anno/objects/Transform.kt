@@ -46,7 +46,6 @@ import me.anno.ui.editor.stacked.Option
 import me.anno.ui.input.*
 import me.anno.ui.style.Style
 import me.anno.utils.Color.toHexColor
-import me.anno.utils.LOGGER
 import me.anno.utils.MatrixHelper.skew
 import org.apache.logging.log4j.LogManager
 import org.joml.*
@@ -166,7 +165,7 @@ open class Transform(var parent: Transform? = null) : Saveable(),
     override fun createInspector(
         list: PanelListY,
         style: Style,
-        getGroup: (title: String, id: String) -> SettingCategory
+        getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
     ) {
 
         list += TextInput("Name (${getClassName()})", style, name)
@@ -177,7 +176,7 @@ open class Transform(var parent: Transform? = null) : Saveable(),
             .setIsSelectedListener { show(null) }
 
         // transforms
-        val transform = getGroup("Transform", "transform")
+        val transform = getGroup("Transform", "Translation Scale, Rotation, Skewing", "transform")
         transform += vi("Position", "Location of this object", position, style)
         transform += vi("Scale", "Makes it bigger/smaller", scale, style)
         transform += vi("Rotation (YXZ)", "", rotationYXZ, style)
@@ -188,7 +187,7 @@ open class Transform(var parent: Transform? = null) : Saveable(),
         )
 
         // color
-        val colorGroup = getGroup("Color", "color")
+        val colorGroup = getGroup("Color", "", "color")
         colorGroup += vi("Color", "Tint, applied to this & children", color, style)
         colorGroup += vi("Color Multiplier", "To make things brighter than usually possible", colorMultiplier, style)
 
@@ -196,7 +195,7 @@ open class Transform(var parent: Transform? = null) : Saveable(),
         colorGroup += vi("Blend Mode", "", null, blendMode, style) { blendMode = it }
 
         // time
-        val timeGroup = getGroup("Time", "time")
+        val timeGroup = getGroup("Time", "", "time")
         timeGroup += vi("Start Time", "Delay the animation", null, timeOffset, style) { timeOffset = it }
         timeGroup += vi("Time Multiplier", "Speed up the animation", null, timeDilation, style) { timeDilation = it }
         timeGroup += vi("Advanced Time", "Add acceleration/deceleration to your elements", timeAnimated, style)
@@ -204,7 +203,7 @@ open class Transform(var parent: Transform? = null) : Saveable(),
 
         // todo automatically extend timeline panel or restrict moving it down
 
-        val editorGroup = getGroup("Editor", "editor")
+        val editorGroup = getGroup("Editor", "", "editor")
         editorGroup += vi(
             "Timeline Slot", "< 1 means invisible", Type.INT_PLUS, timelineSlot, style
         ) { timelineSlot = it }
@@ -212,7 +211,7 @@ open class Transform(var parent: Transform? = null) : Saveable(),
         editorGroup += vi("Visibility", "", null, visibility, style) { visibility = it }
 
         if (parent?.acceptsWeight() == true) {
-            val psGroup = getGroup("Particle System Child", "particles")
+            val psGroup = getGroup("Particle System Child", "", "particles")
             psGroup += vi("Weight", "For particle systems", Type.FLOAT_PLUS, weight, style) {
                 weight = it
                 (parent as? ParticleSystem)?.apply {
@@ -709,8 +708,8 @@ open class Transform(var parent: Transform? = null) : Saveable(),
         }
     }
 
-    fun vi(title: String, ttt: String, dictPath: String, values: AnimatedProperty<*>, style: Style): Panel {
-        return vi(Dict[title, "obj.$dictPath"], Dict[ttt, "obj.$dictPath.desc"], values, style)
+    fun vi(title: String, ttt: String, dictSubPath: String, values: AnimatedProperty<*>, style: Style): Panel {
+        return vi(Dict[title, "obj.$dictSubPath"], Dict[ttt, "obj.$dictSubPath.desc"], values, style)
     }
 
     /**

@@ -25,7 +25,7 @@ class HarmonicDriver: AnimationDriver(){
         1f/(it+1f)
     }
 
-    override fun createInspector(list: MutableList<Panel>, transform: Transform, style: Style, getGroup: (title: String, id: String) -> SettingCategory) {
+    override fun createInspector(list: MutableList<Panel>, transform: Transform, style: Style, getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory) {
         super.createInspector(list, transform, style, getGroup)
         list += TextInput(getDisplayName(), style.getChild("deep"), harmonicsFormula)
             .setChangeListener { harmonicsFormula = it; updateHarmonics() }

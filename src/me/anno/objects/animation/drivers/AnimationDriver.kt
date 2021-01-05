@@ -35,7 +35,7 @@ abstract class AnimationDriver : Saveable(), Inspectable {
         list: MutableList<Panel>,
         transform: Transform,
         style: Style,
-        getGroup: (title: String, id: String) -> SettingCategory
+        getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
     ) {
         list += transform.vi("Amplitude", "Scale of randomness", amplitude, style)
         list += transform.vi("Frequency", "How fast it's changing", Type.DOUBLE, frequency, style) { frequency = it }
@@ -71,7 +71,7 @@ abstract class AnimationDriver : Saveable(), Inspectable {
     override fun createInspector(
         list: PanelListY,
         style: Style,
-        getGroup: (title: String, id: String) -> SettingCategory
+        getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
     ) {
         list += TextPanel(Dict["Driver Inspector", "driver.inspector.title"], style)
         createInspector(list.children, selectedTransform!!, style, getGroup)

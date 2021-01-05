@@ -482,7 +482,7 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
     override fun createInspector(
         list: PanelListY,
         style: Style,
-        getGroup: (title: String, id: String) -> SettingCategory
+        getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
     ) {
         super.createInspector(list, style, getGroup)
 
@@ -513,7 +513,7 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
         // todo general favourites for all enum types?
         // todo at least a generalized form to make it simpler?
 
-        val fontGroup = getGroup("Font", "font")
+        val fontGroup = getGroup("Font", "", "font")
 
         fontGroup += EnumInput("Font Name", "The style of the text", "obj.font.name", font.name, fontList, style)
             .setChangeListener { it, _, _ ->
@@ -542,7 +542,7 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
             }
             .setIsSelectedListener { show(null) }
 
-        val alignGroup = getGroup("Alignment", "alignment")
+        val alignGroup = getGroup("Alignment", "", "alignment")
         fun align(title: String, value: AxisAlignment, x: Boolean, set: (self: Text, AxisAlignment) -> Unit) {
             operator fun AxisAlignment.get(x: Boolean) = if (x) xName else yName
             alignGroup += EnumInput(
@@ -564,7 +564,7 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
         align("Block Alignment X", blockAlignmentX, true) { self, it -> self.blockAlignmentX = it }
         align("Block Alignment Y", blockAlignmentY, false) { self, it -> self.blockAlignmentY = it }
 
-        val spaceGroup = getGroup("Spacing", "spacing")
+        val spaceGroup = getGroup("Spacing", "", "spacing")
         // make this element separable from the parent???
         spaceGroup += vi(
             "Character Spacing",
@@ -597,7 +597,7 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
             invalidate()
         }
 
-        val ops = getGroup("Operations", "operations")
+        val ops = getGroup("Operations", "", "operations")
         ops += TextButton("Create Shadow", false, style)
             .setSimpleClickListener {
                 // such a mess is the result of copying colors from the editor ;)
@@ -614,11 +614,11 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
                 selectTransform(shadow)
             }
 
-        val rpgEffects = getGroup("RPG Effects", "rpg-effects")
+        val rpgEffects = getGroup("RPG Effects", "", "rpg-effects")
         rpgEffects += vi("Start Cursor", "The first character index to be drawn", startCursor, style)
         rpgEffects += vi("End Cursor", "The last character index to be drawn; -1 = unlimited", endCursor, style)
 
-        val outline = getGroup("Outline", "outline")
+        val outline = getGroup("Outline", "", "outline")
         outline.setTooltip("Needs Rendering Mode = SDF or Merged SDF")
         outline += vi(
             "Rendering Mode",

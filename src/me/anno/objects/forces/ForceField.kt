@@ -42,10 +42,10 @@ abstract class ForceField(val displayName: String, val description: String) : Tr
     override fun createInspector(
         list: PanelListY,
         style: Style,
-        getGroup: (title: String, id: String) -> SettingCategory
+        getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
     ) {
         super.createInspector(list, style, getGroup)
-        createInspector(getGroup("Force Field", "forces").content, style)
+        createInspector(getGroup("Force Field", "", "forces").content, style)
     }
 
     fun createInspector(list: PanelList, style: Style) {

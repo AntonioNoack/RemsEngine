@@ -295,11 +295,11 @@ class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
     override fun createInspector(
         list: PanelListY,
         style: Style,
-        getGroup: (title: String, id: String) -> SettingCategory
+        getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
     ) {
         super.createInspector(list, style, getGroup)
-        val mask = getGroup("Mask Settings", "mask")
-        mask += vi("Type", "Masks are multipurpose objects", null, type, style) { type = it }
+        val mask = getGroup("Mask Settings", "Masks are multipurpose objects", "mask")
+        mask += vi("Type", "Specifies what kind of mask it is", null, type, style) { type = it }
         mask += vi("Size", "How large pixelated pixels or blur should be", effectSize, style)
         mask += vi("Invert Mask", "Changes transparency with opacity", null, isInverted, style) { isInverted = it }
         mask += vi("Use Color / Transparency", "Should the color influence the masked?", useMaskColor, style)
@@ -308,11 +308,11 @@ class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
             "Make Huge", "Scales the mask, without affecting the children", null,
             isFullscreen, style
         ) { isFullscreen = it }
-        val greenScreen = getGroup("Green Screen", "greenScreen")
+        val greenScreen = getGroup("Green Screen", "Type needs to be green-screen; cuts out a specific color", "greenScreen")
         greenScreen += vi("Similarity", "", greenScreenSimilarity, style)
         greenScreen += vi("Smoothness", "", greenScreenSmoothness, style)
         greenScreen += vi("Spill Value", "", greenScreenSpillValue, style)
-        val editor = getGroup("Editor", "editor")
+        val editor = getGroup("Editor", "", "editor")
         editor += vi("Show Mask", "for debugging purposes; shows the stencil", null, showMask, style) { showMask = it }
         editor += vi("Show Masked", "for debugging purposes", null, showMasked, style) { showMasked = it }
     }
