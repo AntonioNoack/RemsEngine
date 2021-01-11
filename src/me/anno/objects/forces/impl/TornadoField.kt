@@ -20,8 +20,8 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 class TornadoField : ForceField(
-    Dict["Tornado", "obj.force.tornado"],
-    Dict["Circular motion around center", "obj.force.tornado.desc"]
+    "Tornado",
+    "Circular motion around center", "tornado"
 ) {
 
     val exponent = AnimatedProperty.float(-1f)

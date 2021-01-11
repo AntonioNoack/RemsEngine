@@ -29,8 +29,6 @@ import org.lwjgl.opengl.GL11.*
 
 class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
 
-    // todo black green-screen does not work (division by zero somewhere?)
-
     // just a little expensive...
     // todo why is multisampling sometimes black?
     // it's not yet production ready...

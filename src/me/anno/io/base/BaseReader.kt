@@ -35,6 +35,7 @@ import me.anno.studio.history.HistoryState
 import me.anno.ui.custom.data.CustomListData
 import me.anno.ui.custom.data.CustomPanelData
 import me.anno.ui.editor.sceneView.SceneTabData
+import me.anno.utils.structures.arrays.BoolArray
 import org.apache.logging.log4j.LogManager
 
 abstract class BaseReader {
@@ -93,6 +94,7 @@ abstract class BaseReader {
             "VelocityFrictionForce" -> VelocityFrictionForce()
             "History" -> History()
             "HistoryState" -> HistoryState()
+            "BoolArray" -> BoolArray()
             else -> {
                 // just for old stuff; AnimatedProperties must not be loaded directly; always just copied into
                 if (clazz.startsWith("AnimatedProperty<")) AnimatedProperty.any()

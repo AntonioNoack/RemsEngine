@@ -2,9 +2,8 @@ package me.anno.objects.forces.impl
 
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
-import me.anno.language.translation.Dict
-import me.anno.objects.inspectable.InspectableAnimProperty
 import me.anno.objects.animation.AnimatedProperty
+import me.anno.objects.inspectable.InspectableAnimProperty
 import me.anno.objects.particles.Particle
 import me.anno.objects.particles.ParticleState
 import me.anno.ui.base.groups.PanelListY
@@ -16,11 +15,10 @@ import org.joml.Vector4f
 import org.kdotjpg.OpenSimplexNoise
 import java.util.*
 
-class NoisyLorentzForce :
-    PerParticleForce(
-        Dict["Noisy Lorentz Force", "org.force.lorentz.noisy"],
-        Dict["Circular motion by velocity, randomized by location", "org.force.lorentz.noisy.desc"]
-    ) {
+class NoisyLorentzForce : PerParticleForce(
+    "Noisy Lorentz Force",
+    "Circular motion by velocity, randomized by location", "lorentz.noisy"
+) {
 
     lateinit var nx: OpenSimplexNoise
     lateinit var ny: OpenSimplexNoise

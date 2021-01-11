@@ -9,6 +9,16 @@ import kotlin.math.PI
 
 object Floats {
 
+    fun Any.anyToDouble(): Double {
+        return when(this){
+            is Int -> this.toDouble()
+            is Long -> this.toDouble()
+            is Float -> this.toDouble()
+            is Double -> this
+            else -> throw RuntimeException()
+        }
+    }
+
     fun Any.anyToFloat(): Float {
         return when(this){
             is Int -> this.toFloat()

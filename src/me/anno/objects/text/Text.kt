@@ -27,6 +27,7 @@ import me.anno.ui.base.Font
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.base.menu.Menu.menuSeparator
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.color.spaces.HSLuv
 import me.anno.ui.input.BooleanInput
@@ -495,12 +496,12 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
             .setIsSelectedListener { show(null) }
         val fontList = ArrayList<String>()
         fontList += font.name
-        fontList += GFX.menuSeparator
+        fontList += menuSeparator
 
         fun sortFavourites() {
             fontList.sort()
             val lastUsedSet = lastUsedFonts.toHashSet()
-            fontList.sortByDescending { if (it == GFX.menuSeparator) 1 else if (it in lastUsedSet) 2 else 0 }
+            fontList.sortByDescending { if (it == menuSeparator) 1 else if (it in lastUsedSet) 2 else 0 }
         }
 
         FontManager.requestFontList { systemFonts ->

@@ -1,10 +1,13 @@
 package me.anno.studio.history
 
-import me.anno.gpu.GFX
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
+import me.anno.language.translation.Dict
+import me.anno.language.translation.NameDesc
 import me.anno.studio.history.HistoryState.Companion.capture
+import me.anno.ui.base.menu.Menu.openMenu
+import me.anno.ui.base.menu.MenuOption
 import org.apache.logging.log4j.LogManager
 import kotlin.math.max
 
@@ -75,9 +78,9 @@ class History : Saveable() {
     }
 
     fun display() {
-        GFX.openMenu("Change History", states.mapIndexed { index, change ->
+        openMenu(NameDesc("Inspect History", "", "ui.inspectHistory"), states.mapIndexed { index, change ->
             val title = if (index == nextInsertIndex - 1) "* ${change.title}" else change.title
-            GFX.MenuOption(title, "Click to redo") {
+            MenuOption(NameDesc(title, Dict["Click to redo", "ui.history.clickToUndo"], "")) {
                 redo(index)
             }
         }.reversed())

@@ -88,7 +88,7 @@ object FBXLoader {
             }
 
             val meshes = pointsByMaterial.mapIndexed { index, it ->
-                Mesh(materials.getOrNull(index)?.name ?: "M$index", it)
+                Mesh(materials.getOrNull(index)?.name ?: "M$index", it, arrayListOf())
             }
 
             models += Model(model.name, meshes).apply {

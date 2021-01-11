@@ -12,6 +12,7 @@ import me.anno.input.Input.mouseY
 import me.anno.input.Input.needsLayoutUpdate
 import me.anno.input.MouseButton
 import me.anno.io.text.TextReader
+import me.anno.language.translation.NameDesc
 import me.anno.objects.Transform
 import me.anno.objects.animation.Keyframe
 import me.anno.studio.rems.RemsStudio
@@ -23,6 +24,8 @@ import me.anno.studio.rems.Selection.select
 import me.anno.studio.rems.Selection.selectTransform
 import me.anno.studio.rems.Selection.selectedProperty
 import me.anno.studio.rems.Selection.selectedTransform
+import me.anno.ui.base.menu.Menu.openMenu
+import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.dragging.Draggable
 import me.anno.ui.editor.TimelinePanel
 import me.anno.ui.editor.files.addChildFromFile
@@ -413,8 +416,8 @@ class LayerView(style: Style) : TimelinePanel(style) {
                 if (transform != null) {
                     val cTime = transform.lastLocalTime
                     // get the options for this transform
-                    val options = ArrayList<GFX.MenuOption>()
-                    options += GFX.MenuOption("Split Here", "Cuts the element in two halves", "ui.cutting.splitHere") {
+                    val options = ArrayList<MenuOption>()
+                    options += MenuOption(NameDesc("Split Here", "Cuts the element in two halves", "ui.cutting.splitHere")) {
                         RemsStudio.largeChange("Split Component") {
                             val fadingTime = 0.2
                             val fadingHalf = fadingTime / 2
@@ -451,7 +454,7 @@ class LayerView(style: Style) : TimelinePanel(style) {
                             second.color.addKeyframe(cTime, color)
                         }
                     }
-                    GFX.openMenu(options)
+                    openMenu(options)
                 } else super.onMouseClicked(x, y, button, long)
             }
             else -> super.onMouseClicked(x, y, button, long)

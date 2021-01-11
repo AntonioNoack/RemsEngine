@@ -20,10 +20,10 @@ enum class Interpolation(
     ) {
 
         override fun getWeights(
-            f0: Keyframe<*>,
-            f1: Keyframe<*>,
-            f2: Keyframe<*>,
-            f3: Keyframe<*>,
+            time0: Double,
+            time1: Double,
+            time2: Double,
+            time3: Double,
             t0: Double
         ): Vector4d {
 
@@ -35,22 +35,17 @@ enum class Interpolation(
                 return right
             }
 
-            val x0 = f0.time
-            val x1 = f1.time
-            val x2 = f2.time
-            val x3 = f3.time
-
             val g0 = 1.0 - t0
             val fg = t0 * g0
 
-            val l = x1 - x0
-            val r = x3 - x2
-            val d = x2 - x1
+            val l = time1 - time0
+            val r = time3 - time2
+            val d = time2 - time1
 
             val maxGradient = 10.0
 
-            val e0 = if (x1 == x0) 0.0 else fg * min(d / l, maxGradient)
-            val e1 = if (x3 == x2) 0.0 else fg * min(d / r, maxGradient)
+            val e0 = if (time1 == time0) 0.0 else fg * min(d / l, maxGradient)
+            val e1 = if (time3 == time2) 0.0 else fg * min(d / r, maxGradient)
 
             val w0 = -e0 * g0
             val w1 = (1 + e0) * g0
@@ -69,10 +64,10 @@ enum class Interpolation(
     ) {
 
         override fun getWeights(
-            f0: Keyframe<*>,
-            f1: Keyframe<*>,
-            f2: Keyframe<*>,
-            f3: Keyframe<*>,
+            time0: Double,
+            time1: Double,
+            time2: Double,
+            time3: Double,
             t0: Double
         ): Vector4d {
             return when {
@@ -90,10 +85,10 @@ enum class Interpolation(
     ) {
 
         override fun getWeights(
-            f0: Keyframe<*>,
-            f1: Keyframe<*>,
-            f2: Keyframe<*>,
-            f3: Keyframe<*>,
+            time0: Double,
+            time1: Double,
+            time2: Double,
+            time3: Double,
             t0: Double
         ): Vector4d {
             return Vector4d(0.0, 1.0 - t0, t0, 0.0)
@@ -107,10 +102,10 @@ enum class Interpolation(
     ) {
 
         override fun getWeights(
-            f0: Keyframe<*>,
-            f1: Keyframe<*>,
-            f2: Keyframe<*>,
-            f3: Keyframe<*>,
+            time0: Double,
+            time1: Double,
+            time2: Double,
+            time3: Double,
             t0: Double
         ): Vector4d {
             return if (t0 < 0.5) left else right
@@ -124,10 +119,10 @@ enum class Interpolation(
     ) {
 
         override fun getWeights(
-            f0: Keyframe<*>,
-            f1: Keyframe<*>,
-            f2: Keyframe<*>,
-            f3: Keyframe<*>,
+            time0: Double,
+            time1: Double,
+            time2: Double,
+            time3: Double,
             t0: Double
         ): Vector4d {
             val f = cos(t0 * PI) * 0.5 + 0.5
@@ -141,16 +136,31 @@ enum class Interpolation(
     val description get() = Dict[descriptionEn, "dict.$dictSubPath.desc"]
 
     abstract fun getWeights(
-
-        f0: Keyframe<*>,
-        f1: Keyframe<*>,
-        f2: Keyframe<*>,
-        f3: Keyframe<*>,
+        time0: Double,
+        time1: Double,
+        time2: Double,
+        time3: Double,
         t0: Double
-
     ): Vector4d
 
     companion object {
+
+        fun getWeights(
+
+            f0: Keyframe<*>,
+            f1: Keyframe<*>,
+            f2: Keyframe<*>,
+            f3: Keyframe<*>,
+            t0: Double
+
+        ): Vector4d {
+
+            val interpolation = (if(t0 > 1.0) f2 else f1).interpolation
+            return interpolation.getWeights(
+                f0.time, f1.time, f2.time, f3.time, t0
+            )
+
+        }
 
         val left = Vector4d(0.0, 1.0, 0.0, 0.0)
         val right = Vector4d(0.0, 0.0, 1.0, 0.0)

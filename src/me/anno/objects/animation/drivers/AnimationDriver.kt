@@ -5,6 +5,7 @@ import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.language.translation.Dict
+import me.anno.language.translation.NameDesc
 import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.animation.Type
@@ -15,19 +16,20 @@ import me.anno.studio.rems.Selection.selectedTransform
 import me.anno.ui.base.Panel
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.base.menu.Menu.openMenu
+import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
-
-// todo convert a section of the driver to keyframes...
 
 abstract class AnimationDriver : Saveable(), Inspectable {
 
     var frequency = 1.0
     var amplitude = AnimatedProperty.float(1f)
 
-    fun getValue(time: Double) = getValue0(time * frequency) * amplitude[time]
+    fun getValue(time: Double, keyframeValue: Double) =
+        getValue0(time * frequency, keyframeValue) * amplitude[time]
 
-    abstract fun getValue0(time: Double): Double
+    abstract fun getValue0(time: Double, keyframeValue: Double): Double
     override fun getApproxSize() = 5
     override fun isDefaultValue() = false
 
@@ -37,8 +39,16 @@ abstract class AnimationDriver : Saveable(), Inspectable {
         style: Style,
         getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
     ) {
-        list += transform.vi("Amplitude", "Scale of randomness", amplitude, style)
-        list += transform.vi("Frequency", "How fast it's changing", Type.DOUBLE, frequency, style) { frequency = it }
+        list += transform.vi(
+            "Amplitude",
+            "Scale of randomness", "driver.amplitude",
+            amplitude, style
+        )
+        list += transform.vi(
+            "Frequency",
+            "How fast it's changing", "driver.frequency",
+            Type.DOUBLE, frequency, style
+        ) { frequency = it }
     }
 
     fun show(toShow: AnimatedProperty<*>?) {
@@ -81,24 +91,26 @@ abstract class AnimationDriver : Saveable(), Inspectable {
         fun openDriverSelectionMenu(oldDriver: AnimationDriver?, whenSelected: (AnimationDriver?) -> Unit) {
             fun add(create: () -> AnimationDriver): () -> Unit = { whenSelected(create()) }
             val options = arrayListOf(
-                GFX.MenuOption("Harmonics", "sin(pi*i*t)", add { HarmonicDriver() }),
-                GFX.MenuOption("Noise", "Perlin Noise, Randomness", add { PerlinNoiseDriver() }),
-                GFX.MenuOption("Custom", "Specify your own formula", add { FunctionDriver() })
+                MenuOption(NameDesc("Harmonics", "sin(pi*i*t)", "obj.driver.harmonics"), add { HarmonicDriver() }),
+                MenuOption(
+                    NameDesc("Noise", "Perlin Noise, Randomness", "obj.driver.noise"),
+                    add { PerlinNoiseDriver() }),
+                MenuOption(
+                    NameDesc("Custom", "Specify your own formula", "obj.driver.custom"),
+                    add { FunctionDriver() })
             )
             if (oldDriver != null) {
                 options.add(0,
-                    GFX.MenuOption(
-                        Dict["Customize", "driver.edit"],
-                        Dict["Change the driver properties", "driver.edit.desc"]
-                    ) { selectProperty(oldDriver) })
-                options += GFX.MenuOption(
-                    Dict["Remove Driver", "driver.remove"],
-                    Dict["Changes back to keyframe-animation", "driver.remove.desc"]
+                    MenuOption(NameDesc("Customize", "Change the driver properties", "driver.edit")) {
+                        selectProperty(oldDriver)
+                    })
+                options += MenuOption(
+                    NameDesc("Remove Driver", "Changes back to keyframe-animation", "driver.remove")
                 ) { whenSelected(null) }
             }
-            GFX.openMenu(
-                if (oldDriver == null) Dict["Add Driver", "driver.add"]
-                else Dict["Change Driver", "driver.change"],
+            openMenu(
+                if (oldDriver == null) NameDesc("Add Driver", "", "driver.add")
+                else NameDesc("Change Driver", "", "driver.change"),
                 options
             )
         }

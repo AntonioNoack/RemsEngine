@@ -7,7 +7,8 @@ import me.anno.utils.Vectors.minus
 import me.anno.utils.Vectors.times
 import org.joml.Vector3f
 
-abstract class RelativeForceField(displayName: String, description: String): ForceField(displayName, description) {
+abstract class RelativeForceField(displayName: String, description: String, dictSubPath: String):
+    ForceField(displayName, description, dictSubPath) {
 
     abstract fun getForce(delta: Vector3f, time: Double): Vector3f
 

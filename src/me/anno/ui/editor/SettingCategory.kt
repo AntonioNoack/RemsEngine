@@ -1,6 +1,7 @@
 package me.anno.ui.editor
 
 import me.anno.input.MouseButton
+import me.anno.language.translation.Dict
 import me.anno.ui.base.Panel
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.Visibility
@@ -13,41 +14,51 @@ import me.anno.utils.Keys.isClickKey
 import me.anno.utils.Maths.mixARGB
 import kotlin.math.max
 
-open class SettingCategory(val titleText: String, style: Style, val canCopyTitleText: Boolean = false) : PanelGroup(style) {
+open class SettingCategory(
+    val title: String,
+    style: Style,
+    val canCopyTitleText: Boolean = false
+) : PanelGroup(style) {
 
-    val title = object : TextPanel(titleText, style.getChild("group")) {
+    constructor(title: String, description: String, dictPath: String, style: Style) :
+            this(Dict[title, dictPath], style){
+        setTooltip(Dict[description, "$dictPath.desc"])
+    }
+
+    val titlePanel = object : TextPanel(title, style.getChild("group")) {
         override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
             if (button.isLeft && !long) toggle()
             else super.onMouseClicked(x, y, button, long)
         }
+
         override fun onCopyRequested(x: Float, y: Float): String? {
             return if (canCopyTitleText) text
             else parent?.onCopyRequested(x, y)
         }
     }
 
-    val content = object: PanelListY(style){
+    val content = object : PanelListY(style) {
         override var visibility: Visibility
-            get() = InputVisibility[titleText]
+            get() = InputVisibility[title]
             set(_) {}
     }
-    val padding = Padding((title.font.size * .667f).toInt(), 0, 0, 0)
+    val padding = Padding((titlePanel.font.size * .667f).toInt(), 0, 0, 0)
 
     init {
-        title.parent = this
+        titlePanel.parent = this
         // title.enableHoverColor = true
-        title.textColor = mixARGB(title.textColor, title.textColor and 0xffffff, 0.5f)
-        title.focusTextColor = title.textColor
+        titlePanel.textColor = mixARGB(titlePanel.textColor, titlePanel.textColor and 0xffffff, 0.5f)
+        titlePanel.focusTextColor = titlePanel.textColor
         content.parent = this
         content.visibility = Visibility.GONE
     }
 
     fun show2() {
-        InputVisibility.show(titleText, null)
+        InputVisibility.show(title, null)
     }
 
     fun toggle() {
-        InputVisibility.toggle(titleText, this)
+        InputVisibility.toggle(title, this)
     }
 
     override fun onKeyTyped(x: Float, y: Float, key: Int) {
@@ -57,7 +68,7 @@ open class SettingCategory(val titleText: String, style: Style, val canCopyTitle
     override fun acceptsChar(char: Int) = char.isClickKey()
     override fun isKeyInput() = true
 
-    override val children: List<Panel> = listOf(this.title, content)
+    override val children: List<Panel> = listOf(this.titlePanel, content)
     override fun remove(child: Panel) {
         throw RuntimeException("Not supported!")
     }
@@ -72,22 +83,22 @@ open class SettingCategory(val titleText: String, style: Style, val canCopyTitle
             minW = 0
             minH = 0
         } else {
-            title.calculateSize(w, h)
+            titlePanel.calculateSize(w, h)
             if (content.visibility == Visibility.GONE) {
-                minW = title.minW
-                minH = title.minH
+                minW = titlePanel.minW
+                minH = titlePanel.minH
             } else {
                 content.calculateSize(w - padding.width, h)
-                minW = max(title.minW, content.minW + padding.width)
-                minH = title.minH + content.minH + padding.height
+                minW = max(titlePanel.minW, content.minW + padding.width)
+                minH = titlePanel.minH + content.minH + padding.height
             }
         }
     }
 
     override fun placeInParent(x: Int, y: Int) {
         super.placeInParent(x, y)
-        title.placeInParent(x, y)
-        content.placeInParent(x + padding.left, y + title.minH + padding.top)
+        titlePanel.placeInParent(x, y)
+        content.placeInParent(x + padding.left, y + titlePanel.minH + padding.top)
     }
 
     operator fun plusAssign(child: Panel) {

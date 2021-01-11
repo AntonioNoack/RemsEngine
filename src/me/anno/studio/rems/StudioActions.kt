@@ -172,7 +172,14 @@ object StudioActions {
         keyMap["SceneView.right.p"] = "Turn"
         keyMap["SceneView.left.p"] = "MoveObject"
         keyMap["SceneView.left.p.${Modifiers[false, true]}"] = "MoveObjectAlternate"
-        keyMap["SceneView.numpad0.down"] = "ResetCamera"
+
+        for(i in 0 until 10){
+            keyMap["SceneView.$i.down"] = "Cam$i"
+            keyMap["SceneView.numpad$i.down"] = "Cam$i"
+            keyMap["SceneView.$i.down.${Modifiers[true,false]}"] = "Cam$i"
+            keyMap["SceneView.numpad$i.down.${Modifiers[true,false]}"] = "Cam$i"
+        }
+
         keyMap["SceneView.w.p"] = "MoveForward"
         keyMap["SceneView.a.p"] = "MoveLeft"
         keyMap["SceneView.s.p"] = "MoveBackward"

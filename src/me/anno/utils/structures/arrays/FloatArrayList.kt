@@ -1,4 +1,4 @@
-package me.anno.utils
+package me.anno.utils.structures.arrays
 
 import me.anno.utils.Color.a
 import me.anno.utils.Color.b

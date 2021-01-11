@@ -1,16 +1,20 @@
 package me.anno.ui.editor.sceneTabs
 
 import me.anno.config.DefaultConfig
-import me.anno.gpu.GFX
 import me.anno.input.ActionManager
 import me.anno.input.MouseButton
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
+import me.anno.language.translation.NameDesc
 import me.anno.objects.Transform
 import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.studio.history.History
 import me.anno.studio.rems.RemsStudio.project
 import me.anno.ui.base.TextPanel
+import me.anno.ui.base.menu.Menu.ask
+import me.anno.ui.base.menu.Menu.msg
+import me.anno.ui.base.menu.Menu.openMenu
+import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.dragging.Draggable
 import me.anno.ui.editor.files.FileExplorer
 import me.anno.ui.editor.files.toAllowedFilename
@@ -65,13 +69,13 @@ class SceneTab(var file: File?, var root: Transform, history: History?) : TextPa
                 }
                 button.isRight -> {
                     if (hasChanged) {
-                        GFX.openMenu(listOf(
-                            GFX.MenuOption("Close", "") { save { close() } },
-                            GFX.MenuOption("Close (Unsaved)", "") { close() }
+                        openMenu(listOf(
+                            MenuOption(NameDesc("Close", "", "ui.sceneTab.closeSaved")) { save { close() } },
+                            MenuOption(NameDesc("Close (Unsaved)", "", "ui.sceneTab.closeUnsaved")) { close() }
                         ))
                     } else {
-                        GFX.openMenu(listOf(
-                            GFX.MenuOption("Close", "") { close() }
+                        openMenu(listOf(
+                            MenuOption(NameDesc("Close", "", "ui.sceneTab.close")) { close() }
                         ))
                     }
                 }
@@ -120,7 +124,10 @@ class SceneTab(var file: File?, var root: Transform, history: History?) : TextPa
                 val dst = File(project!!.scenes, name)
                 if (dst.exists()) {
                     // todo translate
-                    GFX.ask("Override ${dst.name}?") {
+                    ask(
+                        NameDesc("Override %1?", "Replaces the old file", "ui.file.override")
+                            .with("%1", dst.name)
+                    ) {
                         file = dst
                         save(dst, onSuccess)
                     }
@@ -132,8 +139,10 @@ class SceneTab(var file: File?, var root: Transform, history: History?) : TextPa
                         .forEach { it.invalidate() }
                 }
             } else {
-                // todo translate
-                GFX.msg("'$name0' is no valid file name, rename it!")
+                msg(
+                    NameDesc("'%1' is no valid file name, rename it!", "", "ui.file.invalidName")
+                        .with("%1", name0)
+                )
             }
         } else {
             save(file!!, onSuccess)

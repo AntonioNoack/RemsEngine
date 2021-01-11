@@ -3,7 +3,6 @@ package me.anno.ui.editor.graphs
 import me.anno.config.DefaultStyle.black
 import me.anno.config.DefaultStyle.white
 import me.anno.gpu.GFX
-import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.GFXx2D.drawBorder
 import me.anno.gpu.GFXx2D.drawRect
 import me.anno.gpu.GFXx2D.drawText
@@ -21,6 +20,7 @@ import me.anno.input.MouseButton
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.language.translation.Dict
+import me.anno.language.translation.NameDesc
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.animation.Interpolation
 import me.anno.objects.animation.Keyframe
@@ -30,6 +30,8 @@ import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.RemsStudio.editorTime
 import me.anno.studio.rems.RemsStudio.isPaused
 import me.anno.studio.rems.Selection.selectedProperty
+import me.anno.ui.base.menu.Menu.openMenu
+import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.editor.TimelinePanel
 import me.anno.ui.editor.sceneView.Grid.drawSmoothLine
 import me.anno.ui.style.Style
@@ -38,7 +40,6 @@ import me.anno.utils.LOGGER
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.length
 import me.anno.utils.Maths.mix
-import me.anno.utils.Maths.mixARGB
 import me.anno.utils.Maths.pow
 import me.anno.utils.AnyToFloat.get
 import org.joml.Vector2f
@@ -483,7 +484,7 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
             if (abs(dx) < maxMargin) {
                 for (channel in 0 until property.type.components) {
                     if (channel.isChannelActive()) {
-                        val dy = y - getYAt(kf.getValue(channel))
+                        val dy = y - getYAt(kf.getChannelAsFloat(channel))
                         if (abs(dy) < maxMargin) {
                             val distance = length(dx.toFloat(), dy)
                             if (distance < bestDistance) {
@@ -517,7 +518,7 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
             if (getXAt(globalT) in minX - halfSize..maxX + halfSize) {
                 for (channel in 0 until property.type.components) {
                     if (channel.isChannelActive()) {
-                        if (getYAt(kf.getValue(channel)) in minY - halfSize..maxY + halfSize) {
+                        if (getYAt(kf.getChannelAsFloat(channel)) in minY - halfSize..maxY + halfSize) {
                             keyframes += kf
                             continue@keyframes
                         }
@@ -727,8 +728,8 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
                 if (selectedKeyframes.isEmpty()) {
                     super.onMouseClicked(x, y, button, long)
                 } else {
-                    GFX.openMenu(Dict["Interpolation", "ui.graphEditor.interpolation.title"], Interpolation.values().map { mode ->
-                        GFX.MenuOption(mode.displayName, mode.description) {
+                    openMenu(NameDesc("Interpolation", "", "ui.graphEditor.interpolation.title"), Interpolation.values().map { mode ->
+                        MenuOption(NameDesc(mode.displayName, mode.description, "")) {
                             selectedKeyframes.forEach {
                                 it.interpolation = mode
                             }

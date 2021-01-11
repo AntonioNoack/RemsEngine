@@ -1,5 +1,6 @@
 package me.anno.mesh.obj
 
+import me.anno.mesh.Line
 import me.anno.mesh.Mesh
 import me.anno.mesh.Model
 import me.anno.mesh.Point
@@ -23,6 +24,7 @@ object ObjLoader {
         val normals = ArrayList<Vector3f>(size)
         val uvs = ArrayList<Vector2f>(size)
         val faces = ArrayList<Point>(size)
+        val lines = ArrayList<Line>(size)
 
         var objName = ""
         var material = ""
@@ -35,8 +37,9 @@ object ObjLoader {
 
         fun closeMaterial() {
             if (faces.isNotEmpty()) {
-                meshes += Mesh(material, ArrayList(faces))
+                meshes += Mesh(material, ArrayList(faces), ArrayList(lines))
                 faces.clear()
+                lines.clear()
             }
         }
 
@@ -74,8 +77,8 @@ object ObjLoader {
                         fun String.parsePoint(): Point {
                             val indices = split('/').map { it.toIntOrNull() }
                             val position = positions[indices[0] ?: 0]
-                            val uv = if(indices.size > 1) uvs[indices[1] ?: 0] else null2
-                            val normal = if(indices.size> 2) normals[indices[2] ?: 0] else null3
+                            val uv = if (indices.size > 1) uvs[indices[1] ?: 0] else null2
+                            val normal = if (indices.size > 2) normals[indices[2] ?: 0] else null3
                             return Point(position, normal, uv)
                         }
 
@@ -88,6 +91,19 @@ object ObjLoader {
                             faces += last
                             faces += that
                         }
+                    }
+                    "l" -> {
+
+                        fun String.parsePosition(): Vector3f {
+                            val indices = toIntOrNull()
+                            return positions[indices ?: 0]
+                        }
+
+                        val indexGroups = args.map { group -> group.parsePosition() }
+                        for (i in 1 until indexGroups.size) {
+                            lines += Line(indexGroups[i - 1], indexGroups[i])
+                        }
+
                     }
                 }
             }// else comment

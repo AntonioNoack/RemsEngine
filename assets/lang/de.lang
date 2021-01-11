@@ -1,4 +1,5 @@
 lang.name: Deutsch
+lang.spellcheck: de-DE
 obj.particles.spawnRate: Neue Objekte / s
 obj.particles.spawnRate.desc: Wieviele neue Objekte je Sekunde erscheinen
 obj.particles: Partikelsystem
@@ -27,13 +28,15 @@ obj.effect.morphing: Effekt: Verzerren
 obj.effect.coloring: Effekt: Einfärben
 obj.force.global: Globale Kraft
 obj.force.lorentz: Lorentzkraft
-obj.force.lorentz: Dreht Partikel ohne deren Geschwindigkeit zu ändern
+obj.force.lorentz.desc: Dreht Partikel ohne deren Geschwindigkeit zu ändern
 obj.force.lorentz.noisy: Variierende Lorentzkraft
-obj.force.lorentz.noisy: Gut für zufällige, unregelmäßige Bewegungen
+obj.force.lorentz.noisy.desc: Gut für zufällige, unregelmäßige Bewegungen
 obj.force.tornado: Tornado
-obj.force.tornado: Dreht Partikel im Kreis
+obj.force.tornado.desc: Dreht Partikel im Kreis
+obj.force.betweenParticleGravity: Gravitations-Galaxie
+obj.force.betweenParticleGravity.desc: Anziehungskräfte zwischen allen Partikeln
 obj.force.velocityFriction: Luftwiderstand
-obj.force.velocityFriction: Je schneller ein Teilchen ist, umso stärker wird es abgebremst
+obj.force.velocityFriction.desc: Je schneller ein Teilchen ist, umso stärker wird es abgebremst
 
 driver.add: Füge Treiber hinzu
 driver.change: Ändere Treiber-Typ
@@ -60,10 +63,13 @@ ui.timePanel.jumpToEnd: Spring ans Ende
 ui.timePanel.jumpToEnd.desc: Setzt den Zeitcursor an das Ende des Projektes
 
 ui.recentProjects.title: Letzte Projekte
+ui.recentProjects.title.desc: Deine vergangenen Projekte
 ui.recentProjects.projectNotFound: %1, Pfad wurde nicht gefunden
 ui.recentProjects.fileNotFound: Datei wurde nicht gefunden
 ui.recentProjects.open: Öffne Projekt
 ui.recentProjects.open.desc: Öffnet das Projekt in Rem's Studio
+ui.project.new: Neues Projekt
+ui.project.new.desc: Platz für neue Ideen, Spots oder Videos
 ui.createNewProject: Erstelle Projekt
 ui.createNewProject.desc: Erstellt ein neues Projekt
 ui.welcome.quickSettings.title: Schnelleinstellungen
@@ -109,5 +115,31 @@ ui.input.color.colorSpace.desc: Wo welche Farben sind, z.B. Farbkreis
 ui.input.color.vis.wheel: Farbrad
 ui.input.color.vis.circle: Farbkreis
 ui.input.color.vis.box: Farbkasten
+
+ui.loadProject: Projekt laden
+ui.newProject.pleaseChooseDir: Bitte wähle einen Ordner!
+ui.option.prepend: %1 einfügen
+ui.file.invalidName: '%1' ist kein gültiger Dateiname, benenne es anders!
+ui.newFolder: Erstelle Ordner
+ui.newFolder.desc: Kreiert einen neuen Unterordner
+ui.newFolder.askName: Name
+ui.newFolder.askName.desc: Wie soll der Ordner heißen?
+ui.newComponent: Erstelle Komponente
+ui.newComponent.desc: Erstellt eine neue Ordner-Komponente
+ui.newComponent.askName: Name
+ui.newComponent.askName.desc: Wie soll die Komponente heißen?
+
+ui.file.openInExplorer: Im Explorer öffnen
+ui.file.openInExplorer: Öffnet die Datei im Standard-Dateiexplorer
+obj.text.askLargeImport: Der Text hat %1 Zeichen, trotzdem importieren?
+ui.inspectHistory: Verlauf inspizieren
+ui.history.clickToUndo: Zum Wiederherstellen anklicken
+ui.newProject.defaultName: Neues Projekt
+ui.newProject.location: Speicherort
+
+ui.closeProgram: %1 verlassen?
+
+ui.warn.renderingInProgress: Gerade wird schon gerendert!
+ui.warn.renderingInProgress.desc: Wenn du denkst, dass das falsch ist, starte Rem's Studio neu.
 
 ui.debug.ramUsage: RAM %1 MiB

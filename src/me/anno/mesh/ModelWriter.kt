@@ -8,6 +8,14 @@ import kotlin.math.roundToInt
 
 object ModelWriter {
 
+    fun normalize1(x: Float, min: Float, max: Float) =
+        if (max == min) 127
+        else ((x - min) / (max - min + 1e-35f) * 255).roundToInt()
+
+    fun normalize2(x: Float, min: Float, max: Float) =
+        if (max == min) 65535/2
+        else ((x - min) / (max - min + 1e-35f) * 65535).roundToInt()
+
     fun writeMesh(dos: DataOutputStream, withUVs: Boolean, mesh: Mesh){
 
         dos.writeUTF(mesh.material)
@@ -35,14 +43,6 @@ object ModelWriter {
             dos.writeFloat(z0)
             dos.writeFloat(z1)
 
-            fun normalize1(x: Float, min: Float, max: Float) =
-                if (max == min) 127
-                else ((x - min) / (max - min + 1e-35f) * 255).roundToInt()
-
-            fun normalize2(x: Float, min: Float, max: Float) =
-                if (max == min) 65535/2
-                else ((x - min) / (max - min + 1e-35f) * 65535).roundToInt()
-
             for (point in points) {
                 val pos = point.position
                 dos.writeShort(normalize2(pos.x, x0, x1))
@@ -59,6 +59,38 @@ object ModelWriter {
                     dos.writeFloat(uv?.y ?: 0f)
                 }
             }
+        }
+
+        val lines = mesh.lines
+        dos.writeInt(lines.size)
+        if(lines.isNotEmpty()){
+
+            val positions = lines.map { it.a } + lines.map { it.b }
+            val x0 = positions.minBy { it.x }!!.x
+            val x1 = positions.maxBy { it.x }!!.x
+            val y0 = positions.minBy { it.y }!!.y
+            val y1 = positions.maxBy { it.y }!!.y
+            val z0 = positions.minBy { it.z }!!.z
+            val z1 = positions.maxBy { it.z }!!.z
+
+            dos.writeFloat(x0)
+            dos.writeFloat(x1)
+            dos.writeFloat(y0)
+            dos.writeFloat(y1)
+            dos.writeFloat(z0)
+            dos.writeFloat(z1)
+
+            for (line in lines) {
+                val a = line.a
+                val b = line.b
+                dos.writeShort(normalize2(a.x, x0, x1))
+                dos.writeShort(normalize2(a.y, y0, y1))
+                dos.writeShort(normalize2(a.z, z0, z1))
+                dos.writeShort(normalize2(b.x, x0, x1))
+                dos.writeShort(normalize2(b.y, y0, y1))
+                dos.writeShort(normalize2(b.z, z0, z1))
+            }
+
         }
 
     }

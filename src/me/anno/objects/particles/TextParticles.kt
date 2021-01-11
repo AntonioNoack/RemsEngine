@@ -3,6 +3,7 @@ package me.anno.objects.particles
 import me.anno.gpu.GFX
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
+import me.anno.language.translation.NameDesc
 import me.anno.objects.Transform
 import me.anno.objects.animation.Type
 import me.anno.objects.distributions.AnimatedDistribution
@@ -12,6 +13,8 @@ import me.anno.objects.particles.ParticleSystem.Companion.listDistributions
 import me.anno.studio.rems.RemsStudio
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.base.menu.Menu.openMenu
+import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.stacked.Option
 import me.anno.ui.input.BooleanInput
@@ -243,15 +246,16 @@ class TextParticles : Transform() {
             group.setOnClickListener { _, _, button, long ->
                 if (button.isRight || long) {
                     // show all options for different distributions
-                    GFX.openMenu("Change Distribution", listDistributions().map { generator ->
+                    // todo translate
+                    openMenu(NameDesc("Change Distribution", "", ""), listDistributions().map { generator ->
                         val sample = generator()
-                        GFX.MenuOption(sample.displayName, sample.description) {
+                        MenuOption(NameDesc(sample.displayName, sample.description, "")) {
                             RemsStudio.largeChange("Change $name Distribution") {
                                 property.distribution = generator()
                             }
                             clearCache()
                             group.content.clear()
-                            group.title.text = getName()
+                            group.titlePanel.text = getName()
                             property.createInspector(group.content, this, style)
                         }
                     })

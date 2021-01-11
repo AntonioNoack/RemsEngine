@@ -5,17 +5,15 @@ import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.getRecentProjects
 import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
-import me.anno.gpu.GFX.ask
-import me.anno.gpu.GFX.msg
-import me.anno.gpu.GFX.openMenu
-import me.anno.gpu.GFX.openMenuComplex2
 import me.anno.gpu.GFXBase0
 import me.anno.gpu.Window
 import me.anno.input.Input
 import me.anno.input.Input.mouseX
 import me.anno.input.Input.mouseY
 import me.anno.input.MouseButton
+import me.anno.language.Language
 import me.anno.language.translation.Dict
+import me.anno.language.translation.NameDesc
 import me.anno.objects.Camera
 import me.anno.objects.text.Text
 import me.anno.studio.GFXSettings
@@ -42,6 +40,11 @@ import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.base.menu.Menu.ask
+import me.anno.ui.base.menu.Menu.msg
+import me.anno.ui.base.menu.Menu.openMenu
+import me.anno.ui.base.menu.Menu.openMenuComplex2
+import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.custom.CustomContainer
 import me.anno.ui.custom.CustomListX
@@ -85,7 +88,8 @@ object UILayouts {
 
     fun createRecentProjectsUI(style: Style, recent: List<DefaultConfig.ProjectHeader>): Panel {
 
-        val recentProjects = SettingCategory(Dict["Recent Projects", "ui.recentProjects.title"], style)
+        val recentProjects =
+            SettingCategory("Recent Projects", "Your projects of the past", "ui.recentProjects.title", style)
         recentProjects.show2()
 
         for (project in recent) {
@@ -107,32 +111,41 @@ object UILayouts {
                 fun open() {// open zip?
                     if (project.file.exists() && project.file.isDirectory) {
                         openProject(project.name, project.file)
-                    } else msg(Dict["File not found!", "ui.recentProjects.fileNotFound"])
+                    } else msg(NameDesc("File not found!", "", "ui.recentProjects.fileNotFound"))
                 }
                 when {
                     button.isLeft -> open()
                     button.isRight -> {
                         openMenu(listOf(
-                            GFX.MenuOption(
-                                "Open",
-                                "Opens that project", "ui.recentProjects.open"
+                            MenuOption(
+                                NameDesc(
+                                    "Open",
+                                    "Opens that project", "ui.recentProjects.open"
+                                )
                             ) { open() },
-                            GFX.MenuOption(
-                                "Open In Explorer",
-                                "Opens that project in the file explorer", "ui.recentProjects.openInExplorer"
+                            MenuOption(
+                                NameDesc(
+                                    "Open In Explorer",
+                                    "Opens that project in the file explorer", "ui.recentProjects.openInExplorer"
+                                )
                             ) { project.file.openInExplorer() },
-                            GFX.MenuOption(
-                                "Hide",
-                                "Moves the project to the end of the list or removes it", "ui.recentProjects.hide"
+                            MenuOption(
+                                NameDesc(
+                                    "Hide",
+                                    "Moves the project to the end of the list or removes it",
+                                    "ui.recentProjects.hide"
+                                )
                             ) {
                                 DefaultConfig.removeFromRecentProjects(project.file)
                                 tp.visibility = Visibility.GONE
                             },
-                            GFX.MenuOption(
-                                "Delete",
-                                "Removes the project from your drive!", "ui.recentProjects.delete"
+                            MenuOption(
+                                NameDesc(
+                                    "Delete",
+                                    "Removes the project from your drive!", "ui.recentProjects.delete"
+                                )
                             ) {
-                                ask("Are you sure?") {
+                                ask(NameDesc("Are you sure?", "", "")) {
                                     DefaultConfig.removeFromRecentProjects(project.file)
                                     project.file.deleteRecursively()
                                     tp.visibility = Visibility.GONE
@@ -167,18 +180,17 @@ object UILayouts {
         if (file != null) {
             openProject(nameInput.text, file)
         } else {
-            // todo translate
-            msg("Please choose a $dirName!")
+            msg(NameDesc("Please choose a $dirNameEn!", "", "ui.newProject.pleaseChooseDir"))
         }
     }
 
-    private val dirName = "directory" // vs folder ^^
+    private const val dirNameEn = "directory" // vs folder ^^
     lateinit var nameInput: TextInput
     var usableFile: File? = null
 
     fun createNewProjectUI(style: Style): Panel {
 
-        val newProject = SettingCategory("New Project", style)
+        val newProject = SettingCategory("New Project", "New Workplace", "ui.project.new", style)
         newProject.show2()
 
         lateinit var fileInput: FileInput
@@ -208,12 +220,12 @@ object UILayouts {
                 !rootIsOk(file) -> {
                     state = -2
                     // todo translate
-                    msg = "Root $dirName does not exist!"
+                    msg = "Root $dirNameEn does not exist!"
                 }
                 !file.parentFile.exists() -> {
                     state = -1
                     // todo translate
-                    msg = "Parent $dirName does not exist!"
+                    msg = "Parent $dirNameEn does not exist!"
                 }
                 !fileNameIsOk(file) -> {
                     state = -2
@@ -239,14 +251,11 @@ object UILayouts {
             base.focusTextColor = base.textColor
         }
 
-        // todo translate
-        nameInput = TextInput("Title", style, "New Project")
+        nameInput = TextInput("Title", style, Dict["New Project", "ui.newProject.defaultName"])
         nameInput.setEnterListener { loadNewProject(usableFile, nameInput) }
 
         var lastName = nameInput.text
-
-        // todo translate
-        fileInput = FileInput("Project Location", style, File(workspace, nameInput.text))
+        fileInput = FileInput(Dict["Project Location", "ui.newProject.location"], style, File(workspace, nameInput.text))
 
         updateFileInputColor()
 
@@ -417,13 +426,12 @@ object UILayouts {
 
         options.addAction(projectTitle, "Load") {
             openMenuComplex2(
-                "Load Project", listOf(
+                NameDesc("Load Project", "", "ui.loadProject"), listOf(
                     createRecentProjectsUI(menuStyle, getRecentProjects()),
                     createNewProjectUI(menuStyle)
                 )
             )
         }
-
 
         options.addAction(selectTitle, "Inspector Camera") { selectTransform(nullCamera) }
         options.addAction(selectTitle, "Root") { selectTransform(root) }

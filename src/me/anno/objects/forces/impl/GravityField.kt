@@ -11,8 +11,8 @@ import me.anno.utils.Vectors.times
 import org.joml.Vector3f
 
 class GravityField : RelativeForceField(
-    Dict["Central Gravity", "obj.force.centralGravity"],
-    Dict["Gravity towards a single point", "obj.force.centralGravity.desc"]
+    "Central Gravity",
+    "Gravity towards a single point", "centralGravity"
 ) {
 
     val exponent = AnimatedProperty.float(2f)

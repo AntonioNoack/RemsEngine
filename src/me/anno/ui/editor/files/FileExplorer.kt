@@ -2,9 +2,8 @@ package me.anno.ui.editor.files
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
-import me.anno.gpu.GFX.askName
-import me.anno.gpu.GFX.openMenu
 import me.anno.input.Input
+import me.anno.language.translation.NameDesc
 import me.anno.objects.Transform
 import me.anno.objects.Transform.Companion.toTransform
 import me.anno.studio.rems.RemsStudio.project
@@ -13,6 +12,9 @@ import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelListMultiline
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.base.menu.Menu.askName
+import me.anno.ui.base.menu.Menu.openMenu
+import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.input.TextInput
 import me.anno.ui.style.Style
@@ -24,6 +26,7 @@ import me.anno.utils.Maths.pow
 import java.io.File
 import kotlin.concurrent.thread
 import kotlin.math.max
+import kotlin.reflect.jvm.internal.impl.descriptors.Named
 
 // todo the text size is quite small on my x360 -> get the font size for the ui from the OS :)
 // todo double click is not working in touch mode?
@@ -190,9 +193,10 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
         when(action){
             "OpenOptions" -> {
                 val home = folder
-                openMenu("", listOf(
-                    GFX.MenuOption("Create Folder", "Creates a new directory") {
-                        askName(x.toInt(), y.toInt(), "Name", "Create", { -1 }){
+                openMenu(
+                    listOf(
+                    MenuOption(NameDesc("Create Folder", "Creates a new directory", "ui.newFolder")) {
+                        askName(x.toInt(), y.toInt(), NameDesc("Name", "", "ui.newFolder.askName"), "Create", { -1 }){
                             val validName = it.toAllowedFilename()
                             if(validName != null){
                                 File(home, validName).mkdirs()
@@ -200,8 +204,8 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
                             }
                         }
                     },
-                    GFX.MenuOption("Create Component", "Create a new folder component") {
-                        askName(x.toInt(), y.toInt(), "Name", "Create", { -1 }){
+                    MenuOption(NameDesc("Create Component", "Create a new folder component", "ui.newComponent")) {
+                        askName(x.toInt(), y.toInt(), NameDesc("Name", "", "ui.newComponent.askName"), "Create", { -1 }){
                             val validName = it.toAllowedFilename()
                             if(validName != null){
                                 File(home, "${validName}.json").writeText(Transform()
@@ -211,7 +215,7 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
                             }
                         }
                     },
-                    GFX.MenuOption("Open In Explorer", "Show the file in your default file explorer") {
+                    MenuOption(NameDesc("Open In Explorer", "Show the file in your default file explorer", "ui.file.openInExplorer")) {
                         folder?.openInExplorer()
                     }
                 ))

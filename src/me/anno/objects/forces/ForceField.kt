@@ -1,6 +1,7 @@
 package me.anno.objects.forces
 
 import me.anno.config.DefaultConfig
+import me.anno.language.translation.Dict
 import me.anno.objects.inspectable.InspectableAnimProperty
 import me.anno.objects.Transform
 import me.anno.objects.models.ArrowModel
@@ -22,6 +23,9 @@ import kotlin.math.atan2
 import kotlin.math.floor
 
 abstract class ForceField(val displayName: String, val description: String) : Transform() {
+
+    constructor(displayName: String, description: String, dictSubPath: String):
+            this(Dict[displayName, "obj.force.$dictSubPath"], Dict[description, "obj.force.$dictSubPath.desc"])
 
     val strength = scale
 

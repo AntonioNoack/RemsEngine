@@ -92,8 +92,10 @@ fun main(){
     )*/
 
     //ConvertMeshes.convertMeshes(File("C:\\Users\\Antonio\\Documents\\IdeaProjects\\HomeDesigner"), true)
-    val src = File("C:\\Users\\Antonio\\Documents\\IdeaProjects\\HomeDesigner\\models\\interior\\kitchen\\SM_Prop_Fridge_01.fbx")
-    ConvertMeshes.convertMeshes(src, src, true)
+    //val src = File(OS.documents, "IdeaProjects\\HomeDesigner\\models\\interior\\kitchen\\SM_Prop_Fridge_01.fbx")
+    //ConvertMeshes.convertMeshes(src, src, true)
+
+    FBXLoader.loadFBX(File(OS.documents, "Bricks/2x4.fbx").inputStream().buffered())
 
     /*val objects = root["Objects"].first()
     val nodeAttributes = objects["NodeAttribute"]

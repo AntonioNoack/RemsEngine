@@ -1,4 +1,4 @@
-package me.anno.utils
+package me.anno.utils.structures.arrays
 
 class IntArrayList(val capacity: Int){
     private val buffers = ArrayList<IntArray>()

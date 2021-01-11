@@ -1,10 +1,12 @@
 package me.anno.ui.editor
 
-import me.anno.gpu.GFX
 import me.anno.input.MouseButton
+import me.anno.language.translation.NameDesc
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelListX
+import me.anno.ui.base.menu.Menu.openMenu
+import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.style.Style
 
 class OptionBar(style: Style) : PanelListX(null, style.getChild("options")) {
@@ -34,8 +36,8 @@ class OptionBar(style: Style) : PanelListX(null, style.getChild("options")) {
         }
 
         override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
-            GFX.openMenu(this.x, this.y + this.h, "", actionList.map { (_, minor) ->
-                GFX.MenuOption(minor.name, "") { minor.action() }
+            openMenu(this.x, this.y + this.h, NameDesc(), actionList.map { (_, minor) ->
+                MenuOption(NameDesc(minor.name, "", "")) { minor.action() }
             })
         }
 

@@ -7,6 +7,7 @@ import me.anno.io.json.JsonArray
 import me.anno.io.json.JsonObject
 import me.anno.io.json.JsonReader
 import me.anno.language.Language
+import me.anno.language.translation.Dict
 import me.anno.studio.rems.RemsStudio.project
 import me.anno.utils.Color.hex8
 import me.anno.utils.OS
@@ -21,7 +22,7 @@ object Spellchecking {
 
     private val path = File(DefaultConfig["spellchecking.path", File(OS.downloads, "lib\\spellchecking").toString()])
 
-    private val language get() = project?.language ?: Language.AmericanEnglish
+    private val language get() = project?.language ?: Language.get(Dict["en-US", "lang.spellcheck"])
 
     fun check(sentence: String, key: Any): List<Suggestion>? {
         val language = language

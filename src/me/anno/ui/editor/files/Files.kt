@@ -2,6 +2,7 @@ package me.anno.ui.editor.files
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
+import me.anno.language.translation.NameDesc
 import me.anno.objects.text.Text
 import me.anno.objects.Transform
 import me.anno.objects.Transform.Companion.toTransform
@@ -11,6 +12,7 @@ import me.anno.objects.modes.UVProjection
 import me.anno.studio.rems.RemsStudio
 import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.studio.rems.Selection.selectTransform
+import me.anno.ui.base.menu.Menu.ask
 import me.anno.utils.LOGGER
 import me.anno.utils.StringHelper.getImportType
 import org.joml.Vector3f
@@ -132,7 +134,8 @@ fun addText(name: String, parent: Transform?, text: String, callback: (Transform
     // should maybe be done sometimes in object as well ;)
     if (text.length > 500) {
         addEvent {
-            GFX.ask("Text has ${text.codePoints().count()} characters, import?") {
+            ask(NameDesc("Text has %1 characters, import?", "", "obj.text.askLargeImport")
+                .with("%1", text.codePoints().count().toString())) {
                 RemsStudio.largeChange("Imported Text"){
                     val textNode = Text(text, parent)
                     textNode.name = name

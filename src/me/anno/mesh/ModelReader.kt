@@ -12,25 +12,40 @@ object ModelReader {
 
     fun readMesh(dis: DataInputStream, withUVs: Boolean): Mesh {
         val material = dis.readUTF()
-        val count = dis.readInt()
-        val points = ArrayList<Point>(count)
-        if (count != 0) {
+        val pointCount = dis.readInt()
+        val points = ArrayList<Point>(pointCount)
+        fun read1(min: Float, max: Float) = mix(min, max, (dis.readUnsignedByte() and 255) / 255f)
+        fun read2(min: Float, max: Float) = mix(min, max, (dis.readUnsignedShort() and 65535) / 65535f)
+        if (pointCount != 0) {
             val x0 = dis.readFloat()
             val x1 = dis.readFloat()
             val y0 = dis.readFloat()
             val y1 = dis.readFloat()
             val z0 = dis.readFloat()
             val z1 = dis.readFloat()
-            fun read1(min: Float, max: Float) = mix(min, max, (dis.readUnsignedByte() and 255) / 255f)
-            fun read2(min: Float, max: Float) = mix(min, max, (dis.readUnsignedShort() and 65535) / 65535f)
-            for (k in 0 until count) {
+            for (k in 0 until pointCount) {
                 val position = Vector3f(read2(x0, x1), read2(y0, y1), read2(z0, z1))
                 val normal = Vector3f(read1(-1f, 1f), read1(-1f, 1f), read1(-1f, 1f))
                 val uv = if (withUVs) Vector2f(dis.readFloat(), dis.readFloat()) else null
                 points += Point(position, normal, uv)
             }
         }
-        return Mesh(material, points)
+        val lineCount = dis.readInt()
+        val lines = ArrayList<Line>(lineCount)
+        if(lineCount != 0){
+            val x0 = dis.readFloat()
+            val x1 = dis.readFloat()
+            val y0 = dis.readFloat()
+            val y1 = dis.readFloat()
+            val z0 = dis.readFloat()
+            val z1 = dis.readFloat()
+            for (k in 0 until pointCount) {
+                val p0 = Vector3f(read2(x0, x1), read2(y0, y1), read2(z0, z1))
+                val p1 = Vector3f(read2(x0, x1), read2(y0, y1), read2(z0, z1))
+                lines += Line(p0, p1)
+            }
+        }
+        return Mesh(material, points, lines)
     }
 
     fun readModel(dis: DataInputStream, withUVs: Boolean): Model {

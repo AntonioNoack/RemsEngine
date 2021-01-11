@@ -55,16 +55,26 @@ object Input {
 
     val keysDown = HashMap<Int, Long>()
 
+    var lastShiftDown = 0L
+
     var lastClickX = 0f
     var lastClickY = 0f
     var lastClickTime = 0L
     var keyModState = 0
+        set(value) {// check for shift...
+            if(isShiftTrulyDown) lastShiftDown = gameTime
+            field = value
+        }
 
     var mouseMovementSinceMouseDown = 0f
     val maxClickDistance = 5f
 
     val isControlDown get() = (keyModState and GLFW.GLFW_MOD_CONTROL) != 0
-    val isShiftDown get() = (keyModState and GLFW.GLFW_MOD_SHIFT) != 0
+
+    // 30ms shift lag for numpad, because shift disables it on Windows
+    val isShiftTrulyDown get() = (keyModState and GLFW.GLFW_MOD_SHIFT) != 0
+    val isShiftDown get() = isShiftTrulyDown || abs(lastShiftDown - gameTime) < 30_000_000
+
     val isCapsLockDown get() = (keyModState and GLFW.GLFW_MOD_CAPS_LOCK) != 0
     val isAltDown get() = (keyModState and GLFW.GLFW_MOD_ALT) != 0
     val isSuperDown get() = (keyModState and GLFW.GLFW_MOD_SUPER) != 0
@@ -353,9 +363,9 @@ object Input {
                                             }
                                             GLFW.GLFW_KEY_I -> {
                                                 thread {
-                                                    if(lastFile == null) lastFile = project?.file
-                                                    FileExplorerSelectWrapper.selectFile(lastFile){ file ->
-                                                        if(file != null){
+                                                    if (lastFile == null) lastFile = project?.file
+                                                    FileExplorerSelectWrapper.selectFile(lastFile) { file ->
+                                                        if (file != null) {
                                                             lastFile = file
                                                             addEvent { addChildFromFile(root, file, {}) }
                                                         }

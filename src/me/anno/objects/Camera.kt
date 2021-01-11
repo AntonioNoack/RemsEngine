@@ -47,6 +47,8 @@ class Camera(parent: Transform? = null) : Transform(parent) {
     val vignetteStrength = AnimatedProperty.floatPlus()
     val vignetteColor = AnimatedProperty.color3(Vector3f(0f, 0f, 0f))
 
+    val orbitRadius = AnimatedProperty.floatPlus(1f)
+
     val cgOffset = AnimatedProperty.vec3()
     val cgSlope = AnimatedProperty.color(Vector4f(1f, 1f, 1f, 1f))
     val cgPower = AnimatedProperty.color(Vector4f(1f, 1f, 1f, 1f))
@@ -60,10 +62,6 @@ class Camera(parent: Transform? = null) : Transform(parent) {
 
     var onlyShowTarget = true
     var useDepth = true
-
-    init {
-        position.defaultValue = Vector3f(0f, 0f, 1f)
-    }
 
     fun getEffectiveOffset(localTime: Double) = orthographicDistance(orthographicness[localTime])
     fun getEffectiveNear(localTime: Double, offset: Float = getEffectiveOffset(localTime)) = nearZ[localTime] + offset
@@ -80,6 +78,9 @@ class Camera(parent: Transform? = null) : Transform(parent) {
         getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
     ) {
         super.createInspector(list, style, getGroup)
+
+        val transform = getGroup("Transform", "", "transform")
+        transform += vi("Orbit Radius", "Orbiting Distance", "camera.orbitDis", orbitRadius, style)
 
         val cam = getGroup("Projection", "How rays of light are mapped to the screen", "projection")
         cam += vi("FOV", "Field Of View, in degrees, vertical", "camera.fov", fovYDegrees, style)
@@ -161,6 +162,10 @@ class Camera(parent: Transform? = null) : Transform(parent) {
         val near = getEffectiveNear(time, offset)
         val far = getEffectiveFar(time, offset)
 
+        super.onDraw(stack, time, color)
+
+        stack.translate(0f, 0f, orbitRadius[time])
+
         drawCamera(stack, offset, color, fov, near, far)
 
     }
@@ -171,15 +176,28 @@ class Camera(parent: Transform? = null) : Transform(parent) {
                 resetTransform(false)
             }
         } else {
-            putValue(position, Vector3f(0f, 0f, 1f), false)
+            putValue(position, Vector3f(), false)
             putValue(scale, Vector3f(1f, 1f, 1f), false)
             putValue(skew, Vector2f(0f, 0f), false)
             putValue(rotationYXZ, Vector3f(), false)
+            putValue(orbitRadius, 1f, false)
+        }
+    }
+
+    fun cloneTransform(src: Transform, srcTime: Double) {
+        putValue(position, src.position[srcTime], false)
+        putValue(rotationYXZ, src.rotationYXZ[srcTime], false)
+        putValue(scale, src.scale[srcTime], false)
+        putValue(skew, src.skew[srcTime], false)
+        if (src is Camera) {
+            putValue(fovYDegrees, src.fovYDegrees[srcTime], false)
+            putValue(orbitRadius, src.orbitRadius[srcTime], false)
         }
     }
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
+        writer.writeObject(this, "orbitRadius", orbitRadius)
         writer.writeObject(this, "nearZ", nearZ)
         writer.writeObject(this, "farZ", farZ)
         writer.writeObject(this, "fovY", fovYDegrees)
@@ -213,6 +231,7 @@ class Camera(parent: Transform? = null) : Transform(parent) {
 
     override fun readObject(name: String, value: ISaveable?) {
         when (name) {
+            "orbitRadius" -> orbitRadius.copyFrom(value)
             "nearZ" -> nearZ.copyFrom(value)
             "farZ" -> farZ.copyFrom(value)
             "fovY" -> fovYDegrees.copyFrom(value)

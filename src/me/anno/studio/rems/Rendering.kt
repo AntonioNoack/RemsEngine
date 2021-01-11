@@ -1,11 +1,11 @@
 package me.anno.studio.rems
 
-import me.anno.gpu.GFX
-import me.anno.gpu.GFX.msg
+import me.anno.language.translation.NameDesc
 import me.anno.objects.Audio
 import me.anno.studio.rems.RemsStudio.motionBlurSteps
 import me.anno.studio.rems.RemsStudio.shutterPercentage
 import me.anno.studio.rems.RemsStudio.targetOutputFile
+import me.anno.ui.base.menu.Menu.msg
 import me.anno.utils.StringHelper.getImportType
 import me.anno.video.VideoAudioCreator
 import me.anno.video.VideoCreator
@@ -31,7 +31,13 @@ object Rendering {
             height / 2 * 2
         )
         if (isRendering) {
-            msg("Rendering already in progress!")
+            msg(
+                NameDesc(
+                    "Rendering already in progress!",
+                    "If you think, this is an error, please restart!",
+                    "ui.warn.renderingInProgress"
+                )
+            )
             return
         }
         isRendering = true
@@ -42,11 +48,11 @@ object Rendering {
             if (targetOutputFile.exists() && targetOutputFile.isDirectory) {
                 targetOutputFile = File(targetOutputFile, "output.mp4")
             }
-            if(!targetOutputFile.name.contains('.')){
+            if (!targetOutputFile.name.contains('.')) {
                 targetOutputFile = File(targetOutputFile, ".mp4")
             }
         } while (file0 !== targetOutputFile)
-        if(targetOutputFile.extension.getImportType() != "Video"){
+        if (targetOutputFile.extension.getImportType() != "Video") {
             LOGGER.warn("The file extension .${targetOutputFile.extension} is unknown! Your export may fail!")
         }
         val tmpFile = File(

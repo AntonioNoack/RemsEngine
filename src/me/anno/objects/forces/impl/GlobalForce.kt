@@ -1,6 +1,5 @@
 package me.anno.objects.forces.impl
 
-import me.anno.language.translation.Dict
 import me.anno.objects.particles.Particle
 import me.anno.objects.particles.ParticleState
 import me.anno.objects.forces.ForceField
@@ -10,8 +9,8 @@ import org.joml.Vector3f
 import org.joml.Vector4f
 
 class GlobalForce : ForceField(
-    Dict["Global Force", "obj.force.global"],
-    Dict["Constant Acceleration, e.g. Gravity on Earth", "obj.force.global.desc"]
+    "Global Force",
+    "Constant Acceleration, e.g. Gravity on Earth", "global"
 ) {
 
     override fun getForce(state: ParticleState, time: Double, particles: List<Particle>): Vector3f {

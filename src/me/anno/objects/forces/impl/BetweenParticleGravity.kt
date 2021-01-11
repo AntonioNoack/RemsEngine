@@ -2,11 +2,11 @@ package me.anno.objects.forces.impl
 
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
-import me.anno.objects.inspectable.InspectableAnimProperty
 import me.anno.objects.animation.AnimatedProperty
+import me.anno.objects.forces.ForceField
+import me.anno.objects.inspectable.InspectableAnimProperty
 import me.anno.objects.particles.Particle
 import me.anno.objects.particles.ParticleState
-import me.anno.objects.forces.ForceField
 import me.anno.utils.Maths.pow
 import me.anno.utils.Vectors.minus
 import me.anno.utils.Vectors.times
@@ -14,10 +14,10 @@ import org.joml.Matrix4fArrayList
 import org.joml.Vector3f
 import org.joml.Vector4f
 
-class BetweenParticleGravity : ForceField("Between-Particle Gravity", "Gravity towards all other particles") {
-
-    // drawing this field probably is computationally too expensive
-    // todo we need to draw this field, if there are only a few particles
+class BetweenParticleGravity : ForceField(
+    "Between-Particle Gravity",
+    "Gravity towards all other particles", "betweenParticleGravity"
+) {
 
     val exponent = AnimatedProperty.float(2f)
 

@@ -1,13 +1,14 @@
 package me.anno.ui.editor.stacked
 
-import me.anno.gpu.GFX
-import me.anno.gpu.GFX.openMenu
 import me.anno.input.MouseButton
+import me.anno.language.translation.NameDesc
 import me.anno.objects.inspectable.Inspectable
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.base.menu.Menu.openMenu
+import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.style.Style
 
 // todo is glTexture2D a bottleneck for playback?
@@ -60,7 +61,7 @@ abstract class StackPanel(
     fun showMenu() {
         openMenu(
             options.map { option ->
-                GFX.MenuOption(option.title, option.title) {
+                MenuOption(NameDesc(option.title, "", "")) {
                     addComponent(option, content.children.size, true)
                 }
             }

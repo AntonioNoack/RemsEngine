@@ -124,7 +124,7 @@ open class Texture2D(
         }
     }
 
-    // todo this function is ok, but a later function is broken
+    // todo this function is ok, but a later function is broken (@Text)
     fun create(img: BufferedImage, sync: Boolean) {
         w = img.width
         h = img.height

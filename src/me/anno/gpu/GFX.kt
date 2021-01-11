@@ -1,7 +1,6 @@
 package me.anno.gpu
 
 import me.anno.config.DefaultConfig
-import me.anno.config.DefaultConfig.style
 import me.anno.gpu.ShaderLib.copyShader
 import me.anno.gpu.blending.BlendDepth
 import me.anno.gpu.blending.BlendMode
@@ -11,10 +10,6 @@ import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderPlus
 import me.anno.gpu.texture.Texture2D
 import me.anno.input.Input
-import me.anno.input.Input.mouseX
-import me.anno.input.Input.mouseY
-import me.anno.input.MouseButton
-import me.anno.language.translation.Dict
 import me.anno.objects.Camera
 import me.anno.objects.Transform
 import me.anno.studio.Build.isDebug
@@ -23,19 +18,8 @@ import me.anno.studio.rems.RemsStudio.editorTime
 import me.anno.studio.rems.RemsStudio.editorTimeDilation
 import me.anno.studio.rems.RemsStudio.root
 import me.anno.ui.base.Panel
-import me.anno.ui.base.SpacePanel
-import me.anno.ui.base.TextPanel
-import me.anno.ui.base.buttons.TextButton
-import me.anno.ui.base.components.Padding
-import me.anno.ui.base.constraints.AxisAlignment
-import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelGroup
-import me.anno.ui.base.groups.PanelListX
-import me.anno.ui.base.groups.PanelListY
-import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.debug.FrameTimes
-import me.anno.ui.input.components.PureTextInput
-import me.anno.utils.Maths.clamp
 import me.anno.utils.Vectors.minus
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
@@ -81,15 +65,6 @@ object GFX : GFXBase1() {
 
     var hoveredPanel: Panel? = null
     var hoveredWindow: Window? = null
-
-    // todo add history component back
-    /*fun select(transform: Transform?) {
-        if (selectedTransform != transform || selectedInspectable != transform) {
-            RemsStudio.largeChange("Select ${transform?.name ?: "Nothing"}") {
-                select(transform)
-            }
-        }
-    }*/
 
     val gpuTasks = ConcurrentLinkedQueue<Task>()
     val audioTasks = ConcurrentLinkedQueue<Task>()
@@ -150,9 +125,6 @@ object GFX : GFXBase1() {
     var smoothCos = 0.0
 
     var drawnTransform: Transform? = null
-
-    const val menuSeparator = "-----"
-    val menuSeparator1 = MenuOption(menuSeparator, "") {}
 
     val inFocus = HashSet<Panel>()
     val inFocus0 get() = inFocus.firstOrNull()
@@ -241,6 +213,7 @@ object GFX : GFXBase1() {
 
     fun applyCameraTransform(camera: Camera, time: Double, cameraTransform: Matrix4f, stack: Matrix4fArrayList) {
         val offset = camera.getEffectiveOffset(time)
+        cameraTransform.translate(0f,0f,camera.orbitRadius[time])
         val cameraTransform2 = if (offset != 0f) {
             Matrix4f(cameraTransform).translate(0f, 0f, offset)
         } else cameraTransform
@@ -397,7 +370,11 @@ object GFX : GFXBase1() {
 
         ensureEmptyStack()
 
-        gameLoop(width, height)
+        try {
+            gameLoop(width, height)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
 
         ensureEmptyStack()
 
@@ -435,192 +412,6 @@ object GFX : GFXBase1() {
 
     }
 
-    fun askName(
-        x: Int, y: Int,
-        title: String,
-        actionName: String,
-        getColor: (String) -> Int,
-        callback: (String) -> Unit
-    ) {
-
-        lateinit var window: Window
-        fun close() {
-            windowStack.remove(window)
-            window.destroy()
-        }
-
-        val style = style.getChild("menu")
-        val panel = PureTextInput(style)
-        panel.placeholder = title
-        panel.setEnterListener {
-            callback(panel.text)
-            close()
-        }
-        panel.setChangeListener {
-            panel.textColor = getColor(it)
-        }
-
-        val submit = TextButton(actionName, false, style)
-            .setSimpleClickListener {
-                callback(panel.text)
-                close()
-            }
-
-        val cancel = TextButton("Cancel", false, style)
-            .setSimpleClickListener { close() }
-
-        val buttons = PanelListX(style)
-        buttons += cancel
-        buttons += submit
-
-        window = openMenuComplex2(x, y, title, listOf(panel, buttons))!!
-
-    }
-
-    fun openMenuComplex(
-        x: Int,
-        y: Int,
-        title: String,
-        options: List<ComplexMenuOption>
-    ) {
-
-        if (options.isEmpty()) return
-        val style = style.getChild("menu")
-
-        lateinit var window: Window
-        fun close() {
-            windowStack.remove(window)
-            window.destroy()
-        }
-
-        val list = ArrayList<Panel>()
-
-        val padding = 4
-        for ((index, element) in options.withIndex()) {
-            val name = element.title
-            val action = element.action
-            if (name == menuSeparator) {
-                if (index != 0) {
-                    list += SpacePanel(0, 1, style)
-                }
-            } else {
-                val buttonView = TextPanel(name, style)
-                buttonView.setOnClickListener { _, _, button, long ->
-                    if (action(button, long)) {
-                        close()
-                    }
-                }
-                buttonView.setTooltip(element.description)
-                buttonView.enableHoverColor = true
-                buttonView.padding.left = padding
-                buttonView.padding.right = padding
-                list += buttonView
-            }
-        }
-
-        window = openMenuComplex2(x, y, title, list)!!
-
-    }
-
-    fun openMenuComplex2(title: String, panels: List<Panel>) =
-        openMenuComplex2(mouseX.toInt() - 10, mouseY.toInt() - 10, title, panels)
-
-    fun openMenuComplex2(
-        x: Int,
-        y: Int,
-        title: String,
-        panels: List<Panel>
-    ): Window? {
-
-        loadTexturesSync.push(true) // to calculate the correct size, which is needed for correct placement
-        if (panels.isEmpty()) return null
-        val style = style.getChild("menu")
-        val list = PanelListY(style)
-        list += WrapAlign.LeftTop
-        val container = ScrollPanelY(list, Padding(1), style, AxisAlignment.MIN)
-        container += WrapAlign.LeftTop
-        lateinit var window: Window
-
-        val padding = 4
-        if (title.isNotEmpty()) {
-            val titlePanel = TextPanel(title, style)
-            titlePanel.padding.left = padding
-            titlePanel.padding.right = padding
-            list += titlePanel
-            list += SpacePanel(0, 1, style)
-        }
-
-        for (panel in panels) {
-            list += panel
-        }
-
-        val maxWidth = max(300, GFX.width)
-        val maxHeight = max(300, GFX.height)
-        container.calculateSize(maxWidth, maxHeight)
-        container.applyPlacement(min(container.minW, maxWidth), min(container.minH, maxHeight))
-
-        val wx = clamp(x, 0, max(GFX.width - container.w, 0))
-        val wy = clamp(y, 0, max(GFX.height - container.h, 0))
-
-        window = Window(container, false, wx, wy)
-        windowStack.add(window)
-        loadTexturesSync.pop()
-
-        return window
-
-    }
-
-    fun openMenuComplex(
-        x: Float,
-        y: Float,
-        title: String,
-        options: List<ComplexMenuOption>,
-        delta: Int = 10
-    ) {
-        openMenuComplex(x.roundToInt() - delta, y.roundToInt() - delta, title, options)
-    }
-
-    fun openMenu(options: List<MenuOption>) {
-        openMenu(mouseX, mouseY, "", options)
-    }
-
-    fun openMenu(title: String, options: List<MenuOption>) {
-        openMenu(mouseX, mouseY, title, options)
-    }
-
-    fun openMenu(x: Int, y: Int, title: String, options: List<MenuOption>, delta: Int = 10) {
-        return openMenu(x.toFloat(), y.toFloat(), title, options, delta)
-    }
-
-    class ComplexMenuOption(
-        val title: String,
-        val description: String,
-        val action: (button: MouseButton, long: Boolean) -> Boolean
-    )
-
-    class MenuOption(val title: String, val description: String, val action: () -> Unit) {
-
-        constructor(title: String, description: String, dictPath: String, action: () -> Unit) :
-                this(Dict[title, dictPath], Dict[description, "$dictPath.desc"], action)
-
-        fun toComplex(): ComplexMenuOption {
-            return ComplexMenuOption(title, description) { button: MouseButton, _: Boolean ->
-                if (button.isLeft) {
-                    action()
-                    true
-                } else false
-            }
-        }
-    }
-
-    fun openMenu(x: Float, y: Float, title: String, options: List<MenuOption>, delta: Int = 10) {
-        openMenuComplex(
-            x.roundToInt() - delta,
-            y.roundToInt() - delta,
-            title,
-            options.map { option -> option.toComplex() })
-    }
-
     var glThread: Thread? = null
     fun check() {
         if (isDebug) {
@@ -638,40 +429,19 @@ object GFX : GFXBase1() {
                 /*Framebuffer.stack.forEach {
                     LOGGER.info(it.toString())
                 }*/
-                throw RuntimeException(
-                    "GLException: ${when (error) {
-                        1280 -> "invalid enum"
-                        1281 -> "invalid value"
-                        1282 -> "invalid operation"
-                        1283 -> "stack overflow"
-                        1284 -> "stack underflow"
-                        1285 -> "out of memory"
-                        1286 -> "invalid framebuffer operation"
-                        else -> "$error"
-                    }}"
-                )
+                val title = "GLException: ${when (error) {
+                    GL_INVALID_ENUM -> "invalid enum"
+                    GL_INVALID_VALUE -> "invalid value"
+                    GL_INVALID_OPERATION -> "invalid operation"
+                    GL_STACK_OVERFLOW -> throw StackOverflowError("OpenGL Exception")
+                    GL_STACK_UNDERFLOW -> "stack underflow"
+                    GL_OUT_OF_MEMORY -> throw OutOfMemoryError("OpenGL Exception")
+                    GL_INVALID_FRAMEBUFFER_OPERATION -> "invalid framebuffer operation"
+                    else -> "$error"
+                }}"
+                throw RuntimeException(title)
             }
         }
-    }
-
-    fun msg(title: String) {
-        openMenu(listOf(MenuOption(title, "") {}))
-    }
-
-    fun ask(question: String, onYes: () -> Unit) {
-        openMenu(mouseX, mouseY, question, listOf(
-            MenuOption("Yes", "", onYes),
-            MenuOption("No", "") {}
-        ))
-    }
-
-    fun ask(question: String, onYes: () -> Unit, onNo: () -> Unit) {
-        openMenu(
-            mouseX, mouseY, question, listOf(
-                MenuOption("Yes", "", onYes),
-                MenuOption("No", "", onNo)
-            )
-        )
     }
 
 }

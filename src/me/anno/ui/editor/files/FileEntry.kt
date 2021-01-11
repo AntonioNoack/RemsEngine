@@ -4,11 +4,8 @@ import me.anno.cache.Cache
 import me.anno.config.DefaultStyle.black
 import me.anno.fonts.FontManager
 import me.anno.gpu.GFX
-import me.anno.gpu.GFX.ask
-import me.anno.gpu.GFX.askName
 import me.anno.gpu.GFX.clip2Dual
 import me.anno.gpu.GFX.inFocus
-import me.anno.gpu.GFX.openMenu
 import me.anno.gpu.GFXx2D
 import me.anno.gpu.GFXx2D.drawTexture
 import me.anno.gpu.GFXx3D
@@ -18,6 +15,7 @@ import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.input.Input
 import me.anno.input.MouseButton
+import me.anno.language.translation.NameDesc
 import me.anno.objects.Audio
 import me.anno.objects.Camera
 import me.anno.objects.Video
@@ -25,6 +23,10 @@ import me.anno.studio.StudioBase
 import me.anno.ui.base.Panel
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.groups.PanelGroup
+import me.anno.ui.base.menu.Menu.ask
+import me.anno.ui.base.menu.Menu.askName
+import me.anno.ui.base.menu.Menu.openMenu
+import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.dragging.Draggable
 import me.anno.ui.editor.files.thumbs.Thumbs
 import me.anno.ui.editor.sceneTabs.SceneTabs
@@ -389,12 +391,12 @@ class FileEntry(
                 }
             }
             "Rename" -> {
-                askName(x.toInt(), y.toInt(), "Rename To...", "Rename", { -1 }) {
+                askName(x.toInt(), y.toInt(), NameDesc("Rename To...", "", "ui.file.rename2"), "Rename", { -1 }) {
                     val allowed = it.toAllowedFilename()
                     if (allowed != null) {
                         val dst = File(file.parentFile, allowed)
                         if (dst.exists() && !allowed.equals(file.name, true)) {
-                            ask("Override existing file?") {
+                            ask(NameDesc("Override existing file?", "", "ui.file.override")) {
                                 file.renameTo(dst)
                                 explorer.invalidate()
                             }
@@ -412,14 +414,22 @@ class FileEntry(
                 // todo add option to open json in specialized json editor...
                 openMenu(
                     listOf(
-                        GFX.MenuOption("Rename", "Change the name of this file") {
+                        MenuOption(NameDesc("Rename", "Change the name of this file", "ui.file.rename")) {
                             onGotAction(x, y, dx, dy, "Rename", false)
                         },
-                        GFX.MenuOption(
-                            "Open in Explorer",
-                            "Open the file in your default file explorer"
+                        MenuOption(
+                            NameDesc(
+                                "Open in Explorer",
+                                "Open the file in your default file explorer",
+                                "ui.file.openInExplorer"
+                            )
                         ) { file.openInExplorer() },
-                        GFX.MenuOption("Delete", "Delete this file", this::deleteFileMaybe)
+                        MenuOption(
+                            NameDesc(
+                                "Delete", "Delete this file", "ui.file.delete"
+                            ),
+                            this::deleteFileMaybe
+                        )
                     )
                 )
             }
@@ -437,18 +447,35 @@ class FileEntry(
     }
 
     fun deleteFileMaybe() {
-        openMenu("Delete this file? (${file.length().formatFileSize()})", listOf(
-            /* "Yes" to {
-                 // todo move to OS trash
-                 file.deleteRecursively()
-                 explorer.invalidate()
-             },*/
-            GFX.MenuOption("No", "Don't delete the file, keep it") {},
-            GFX.MenuOption("Yes, permanently", "Deletes the file; file cannot be recovered") {
-                file.deleteRecursively()
-                explorer.invalidate()
-            }
-        ))
+        openMenu(
+            NameDesc(
+                "Delete this file? (${file.length().formatFileSize()})",
+                "",
+                "ui.file.delete.ask"
+            ), listOf(
+                /* "Yes" to {
+                     // todo move to OS trash
+                     file.deleteRecursively()
+                     explorer.invalidate()
+                 },*/
+                MenuOption(
+                    NameDesc(
+                        "No",
+                        "Don't delete the file, keep it",
+                        "ui.file.delete.no"
+                    )
+                ) {},
+                MenuOption(
+                    NameDesc(
+                        "Yes, permanently",
+                        "Deletes the file; file cannot be recovered",
+                        "ui.file.delete.permanent"
+                    )
+                ) {
+                    file.deleteRecursively()
+                    explorer.invalidate()
+                }
+            ))
     }
 
     override fun onDeleteKey(x: Float, y: Float) {
@@ -457,21 +484,32 @@ class FileEntry(
             deleteFileMaybe()
         } else if (inFocus.firstOrNull() == this) {
             // ask, then delete all (or cancel)
-            openMenu("Delete these files? (${GFX.inFocus.size}x, ${
-            inFocus
-                .sumByDouble { (it as? FileEntry)?.file?.length()?.toDouble() ?: 0.0 }
-                .toLong()
-                .formatFileSize()
-            })", listOf(
+            openMenu(NameDesc(
+                "Delete these files? (${inFocus.size}x, ${
+                inFocus
+                    .sumByDouble { (it as? FileEntry)?.file?.length()?.toDouble() ?: 0.0 }
+                    .toLong()
+                    .formatFileSize()
+                })", "", "ui.file.delete.ask.many"
+            ), listOf(
                 /*"Yes" to {
                     // todo put history state or move to OS-trash
                     inFocus.forEach { (it as? FileEntry)?.file?.deleteRecursively() }
                     explorer.invalidate()
                 },*/
-                GFX.MenuOption("No", "Deletes none of the selected file; keeps them all") {},
-                GFX.MenuOption(
-                    "Yes, permanently",
-                    "Deletes all selected files; forever; files cannot be recovered"
+                MenuOption(
+                    NameDesc(
+                        "No",
+                        "Deletes none of the selected file; keeps them all",
+                        "ui.file.delete.many.no"
+                    )
+                ) {},
+                MenuOption(
+                    NameDesc(
+                        "Yes, permanently",
+                        "Deletes all selected files; forever; files cannot be recovered",
+                        "ui.file.delete.many.permanently"
+                    )
                 ) {
                     inFocus.forEach { (it as? FileEntry)?.file?.deleteRecursively() }
                     explorer.invalidate()

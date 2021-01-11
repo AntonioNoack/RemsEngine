@@ -27,6 +27,7 @@ It is additionally developed with Java, so it works with Windows and Linux.
 * [JTransforms](https://sites.google.com/site/piotrwendykier/software/jtransforms) (Fast Fourier Transform)
 * [Apache Imaging](https://commons.apache.org/proper/commons-imaging/) (More supported image formats, like .ico)
 * [Metadata Extractor](https://github.com/drewnoakes/metadata-extractor) (Detecting rotated JPEG files)
+<!-- * [Caliko](https://github.com/FedUni/caliko) (FABRIK IK) -->
 
 ## Download
 

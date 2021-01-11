@@ -1,13 +1,12 @@
 package me.anno.objects.particles
 
 import me.anno.config.DefaultConfig
-import me.anno.gpu.GFX
 import me.anno.gpu.GFX.gameTime
 import me.anno.gpu.GFX.isFinalRendering
-import me.anno.gpu.GFX.openMenu
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.language.translation.Dict
+import me.anno.language.translation.NameDesc
 import me.anno.objects.Transform
 import me.anno.objects.animation.Type
 import me.anno.objects.distributions.*
@@ -17,6 +16,8 @@ import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.studio.rems.RemsStudio
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.base.menu.Menu.openMenu
+import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.files.FileEntry.Companion.drawLoadingCircle
 import me.anno.ui.editor.stacked.Option
@@ -405,16 +406,16 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
                 if (button.isRight || long) {
                     // show all options for different distributions
                     openMenu(
-                        "Change Distribution",
+                        NameDesc("Change Distribution", "", "obj.particles.changeDistribution"),
                         listDistributions().map { generator ->
                             val sample = generator()
-                            GFX.MenuOption(sample.displayName, sample.description) {
+                            MenuOption(NameDesc(sample.displayName, sample.description, "")) {
                                 RemsStudio.largeChange("Change $name Distribution") {
                                     property.distribution = generator()
                                 }
                                 clearCache()
                                 group.content.clear()
-                                group.title.text = getName()
+                                group.titlePanel.text = getName()
                                 property.createInspector(group.content, this, style)
                             }
                         }

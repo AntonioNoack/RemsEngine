@@ -7,7 +7,9 @@ package me.anno.gpu;
 import kotlin.Unit;
 import me.anno.config.DefaultConfig;
 import me.anno.input.Input;
+import me.anno.language.translation.NameDesc;
 import me.anno.studio.StudioBase;
+import me.anno.ui.base.menu.Menu;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.Version;
@@ -114,7 +116,7 @@ public class GFXBase0 {
 
         long t3 = System.nanoTime();
 
-        window = glfwCreateWindow(width, height, "Hello World!", NULL, NULL);
+        window = glfwCreateWindow(width, height, projectName, NULL, NULL);
         if (window == NULL)
             throw new RuntimeException("Failed to create the GLFW window");
 
@@ -147,7 +149,7 @@ public class GFXBase0 {
 
     }
 
-    public void setTitle(String title){
+    public void setTitle(String title) {
         glfwSetWindowTitle(window, title);
     }
 
@@ -330,7 +332,8 @@ public class GFXBase0 {
             } else {
                 glfwSetWindowShouldClose(window, false);
                 GFX.INSTANCE.addGPUTask(1, () -> {
-                    GFX.INSTANCE.ask("Close "+projectName+"?", () -> {
+                    Menu.INSTANCE.ask(new NameDesc("Close %1?", "", "ui.closeProgram")
+                            .with("%1", projectName), () -> {
                         shouldClose = true;
                         glfwSetWindowShouldClose(window, true);
                         return null;

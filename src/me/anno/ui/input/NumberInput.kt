@@ -32,6 +32,7 @@ abstract class NumberInput(
     val inputPanel = object : NumberInputComponent(
         owningProperty, indexInProperty, this@NumberInput, style
     ) {
+        override val needsSuggestions: Boolean get() = false
         override var visibility: Visibility
             get() = InputVisibility[title]
             set(_) {}

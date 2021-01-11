@@ -1,11 +1,13 @@
 package me.anno.ui.input
 
 import me.anno.gpu.Cursor
-import me.anno.gpu.GFX
 import me.anno.input.MouseButton
 import me.anno.language.translation.Dict
+import me.anno.language.translation.NameDesc
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.groups.PanelListX
+import me.anno.ui.base.menu.Menu.openMenu
+import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.input.components.EnumValuePanel
 import me.anno.ui.style.Style
 
@@ -73,13 +75,17 @@ class EnumInput(
     }
 
     override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
-        GFX.openMenu(this.x, this.y, Dict["Select the %1", "ui.input.enum.menuTitle"].replace("%1", title), options.mapIndexed { index, fontName ->
-            GFX.MenuOption(fontName, "") {
-                inputPanel.text = fontName
-                lastIndex = index
-                changeListener(fontName, index, options)
-            }
-        })
+        openMenu(
+            this.x, this.y,
+            NameDesc("Select the %1", "", "ui.input.enum.menuTitle")
+                .with("%1", title),
+            options.mapIndexed { index, fontName ->
+                MenuOption(NameDesc(fontName, "", "")) {
+                    inputPanel.text = fontName
+                    lastIndex = index
+                    changeListener(fontName, index, options)
+                }
+            })
     }
 
     override fun getCursor(): Long = Cursor.drag

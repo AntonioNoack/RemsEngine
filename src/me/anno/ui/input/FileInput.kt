@@ -1,14 +1,15 @@
 package me.anno.ui.input
 
 import me.anno.config.DefaultConfig
-import me.anno.gpu.GFX
 import me.anno.input.MouseButton
+import me.anno.language.translation.NameDesc
 import me.anno.ui.base.SpacePanel
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelListX
+import me.anno.ui.base.menu.Menu.openMenu
+import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.style.Style
-import me.anno.utils.FileExplorerSelect
 import me.anno.utils.FileExplorerSelectWrapper
 import me.anno.utils.FileHelper.openInExplorer
 import java.io.File
@@ -50,7 +51,7 @@ class FileInput(title: String, style: Style, f0: File, val isDirectory: Boolean 
         this += button
         // for a symmetric border
         val border = style.getPadding("borderSize", 2).left
-        if(border > 0) this += SpacePanel(border, 0, style).apply { backgroundColor = 0 }
+        if (border > 0) this += SpacePanel(border, 0, style).apply { backgroundColor = 0 }
         this += base
     }
 
@@ -69,8 +70,14 @@ class FileInput(title: String, style: Style, f0: File, val isDirectory: Boolean 
     override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
         when {
             button.isRight -> {
-                GFX.openMenu(listOf(
-                    GFX.MenuOption("Open In Explorer", "") { File(base.text).openInExplorer() }
+                openMenu(listOf(
+                    MenuOption(
+                        NameDesc(
+                            "Open In Explorer",
+                            "Opens the file in the default file explorer",
+                            "ui.file.openInExplorer"
+                        )
+                    ) { File(base.text).openInExplorer() }
                 ))
             }
             else -> super.onMouseClicked(x, y, button, long)

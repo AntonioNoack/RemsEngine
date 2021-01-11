@@ -30,6 +30,9 @@ import kotlin.math.max
  * */
 object SimpleExpressionParser {
 
+    // todo noise function
+    // todo harmonics function
+
     // todo give drivers access to global time and parent time?
     // todo give them access to the keyframes
     // todo node editor...

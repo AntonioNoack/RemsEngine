@@ -4,9 +4,7 @@ import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.black
 import me.anno.config.DefaultStyle.midGray
 import me.anno.gpu.Cursor
-import me.anno.gpu.GFX
 import me.anno.gpu.GFX.inFocus
-import me.anno.gpu.GFX.menuSeparator1
 import me.anno.gpu.GFXx2D.drawRect
 import me.anno.input.Input
 import me.anno.input.Input.mouseX
@@ -14,6 +12,7 @@ import me.anno.input.Input.mouseY
 import me.anno.input.MouseButton
 import me.anno.io.utils.StringMap
 import me.anno.language.translation.Dict
+import me.anno.language.translation.NameDesc
 import me.anno.objects.Camera
 import me.anno.objects.Rectangle
 import me.anno.objects.Transform
@@ -24,6 +23,9 @@ import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.Selection.selectTransform
 import me.anno.studio.rems.Selection.selectedTransform
 import me.anno.ui.base.TextPanel
+import me.anno.ui.base.menu.Menu.menuSeparator1
+import me.anno.ui.base.menu.Menu.openMenu
+import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.dragging.Draggable
 import me.anno.ui.editor.files.addChildFromFile
 import me.anno.ui.style.Style
@@ -207,12 +209,15 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style) : TextPanel("
             fun add(action: (Transform) -> Transform): () -> Unit = { selectTransform(action(baseTransform)) }
             val options = DefaultConfig["createNewInstancesList"] as? StringMap
             if (options != null) {
-                val extras = ArrayList<GFX.MenuOption>()
+                val extras = ArrayList<MenuOption>()
                 if (baseTransform.parent != null) {
                     extras += menuSeparator1
-                    extras += GFX.MenuOption(
-                        "Add Mask",
-                        "Creates a mask component, which can be used for many effects", "ui.objects.addMask"
+                    extras += MenuOption(
+                        NameDesc(
+                            "Add Mask",
+                            "Creates a mask component, which can be used for many effects",
+                            "ui.objects.addMask"
+                        )
                     ) {
                         val parent = baseTransform.parent!!
                         val i = parent.children.indexOf(baseTransform)
@@ -223,7 +228,7 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style) : TextPanel("
                     }
                 }
                 val additional = baseTransform.getAdditionalChildrenOptions().map { option ->
-                    GFX.MenuOption(option.title, option.description) {
+                    MenuOption(NameDesc(option.title, option.description, "")) {
                         RemsStudio.largeChange("Added ${option.title}") {
                             val new = option.generator() as Transform
                             baseTransform.addChild(new)
@@ -235,12 +240,12 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style) : TextPanel("
                     extras += menuSeparator1
                     extras += additional
                 }
-                GFX.openMenu(
-                    mouseX, mouseY, Dict["Add Child", "ui.objects.add"],
+                openMenu(
+                    mouseX, mouseY, NameDesc("Add Child", "", "ui.objects.add"),
                     options.entries
                         .sortedBy { (key, _) -> key.toLowerCase() }
                         .map { (key, value) ->
-                            GFX.MenuOption(key, "", add {
+                            MenuOption(NameDesc(key, "", ""), add {
                                 val newT = if (value is Transform) value.clone() else value.toString().toTransform()
                                 newT!!
                                 it.addChild(newT)

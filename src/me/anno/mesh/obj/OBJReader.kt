@@ -1,5 +1,8 @@
 package me.anno.mesh.obj
 
+import me.anno.mesh.Line
+import me.anno.mesh.Mesh
+import me.anno.mesh.Model
 import me.anno.mesh.Point
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector2f
@@ -7,12 +10,17 @@ import org.joml.Vector3f
 import java.io.EOFException
 import java.io.File
 import java.io.IOException
+import java.io.InputStream
 
-class OBJReader(val file: File): OBJMTLReader(file.inputStream().buffered()){
+class OBJReader(input: InputStream, val file: File?) : OBJMTLReader(input) {
+
+    constructor(file: File) : this(file.inputStream().buffered(), null)
 
     companion object {
         private val LOGGER = LogManager.getLogger(OBJReader::class)
     }
+
+    val objects = ArrayList<Model>()
 
     /**
      * x,y,z,u,v,nx,ny,nz
@@ -24,7 +32,10 @@ class OBJReader(val file: File): OBJMTLReader(file.inputStream().buffered()){
         val materials = HashMap<String, Material>()
         val defaultSize = 256
         try {
-            lateinit var trianglePoints: ArrayList<Float>
+            lateinit var byMaterialPoints: ArrayList<Float>
+            var mesh: Mesh? = null
+            var model: Model? = null
+            var lastMaterial = ""
             val vertices = ArrayList<Vector3f>(defaultSize)
             val normals = ArrayList<Vector3f>(defaultSize)
             val uvs = ArrayList<Vector2f>(defaultSize)
@@ -32,35 +43,49 @@ class OBJReader(val file: File): OBJMTLReader(file.inputStream().buffered()){
             vertices += Vector3f()
             uvs += Vector2f()
             normals += Vector3f(0f, 0f, 0f)
-            while(true){
+            while (true) {
                 // read the line
                 skipSpaces()
                 val char0 = next()
-                if(char0 == '#'.toInt()){
+                if (char0 == '#'.toInt()) {
                     // just a comment
                     skipLine()
                 } else {
                     putBack(char0)
-                    when(val name = readUntilSpace()){
+                    when (val cmd = readUntilSpace()) {
                         "o" -> {// a new object begins...
                             // do I care? not really...
+                            skipSpaces()
+                            val name = readUntilSpace()
+                            model = Model(name, arrayListOf(Mesh(
+                                lastMaterial,
+                                ArrayList(defaultSize),
+                                ArrayList(16)
+                            )))
+                            mesh = model.meshes[0]
                             skipLine()
                         }
                         "usemtl" -> {
                             skipSpaces()
                             val materialName = readUntilSpace()
-                            var material = materials[materialName]
-                            if(material == null){
-                                material = Material()
-                                materials[materialName] = material
-                                LOGGER.warn("Unknown material $materialName")
-                            }
+                            val material = materials.getOrPut(materialName){ Material() }
                             var points = pointsByMaterial[material]
-                            if(points == null){
+                            if (points == null) {
                                 points = ArrayList(defaultSize * 8)
                                 pointsByMaterial[material] = points
                             }
-                            trianglePoints = points
+                            if(model != null){
+                                // clear the model, if it was unknown...
+                                if(model.meshes.last().points.isEmpty()){
+                                    (model.meshes as MutableList).apply {
+                                        removeAt(lastIndex)
+                                    }
+                                }
+                                mesh = Mesh(materialName, ArrayList(defaultSize), ArrayList(16))
+                                (model.meshes as MutableList).add(mesh)
+                            }
+                            lastMaterial = materialName
+                            byMaterialPoints = points
                         }
                         "v" -> vertices.add(readVector3f())
                         "vt" -> uvs.add(readVector2f())
@@ -71,11 +96,37 @@ class OBJReader(val file: File): OBJMTLReader(file.inputStream().buffered()){
                             // what would it be otherwise???...
                             skipLine()
                         }
+                        "l" -> {
+
+                            val points = ArrayList<Vector3f>()
+                            pts@ while (true) {
+                                when (val next = next()) {
+                                    ' '.toInt(), '\t'.toInt() -> {
+                                    }
+                                    '\n'.toInt() -> break@pts
+                                    else -> {
+                                        // support negative indices? haven't seen them in the wild yet...
+                                        putBack(next)
+                                        val vertexIndex = readUntilSpace().toInt()
+                                        points += vertices[vertexIndex]
+                                    }
+                                }
+                            }
+
+                            if(mesh != null){
+                                for(i in 1 until points.size){
+                                    mesh.lines.add(Line(points[i-1], points[i]))
+                                }
+                            }
+
+                        }
                         "f" -> {
+
                             val points = ArrayList<Point>()
-                            pts@while(true){
-                                when(val next = next()){
-                                    ' '.toInt(), '\t'.toInt() -> {}
+                            pts@ while (true) {
+                                when (val next = next()) {
+                                    ' '.toInt(), '\t'.toInt() -> {
+                                    }
                                     '\n'.toInt() -> break@pts
                                     else -> {
                                         // support negative indices? haven't seen them in the wild yet...
@@ -84,29 +135,35 @@ class OBJReader(val file: File): OBJMTLReader(file.inputStream().buffered()){
                                         val vertexIndex = indices[0].toInt()
                                         val uvIndex = indices.getOrNull(1)?.toIntOrNull()
                                         val normalIndex = indices.getOrNull(2)?.toIntOrNull()
-                                        points += Point(vertices[vertexIndex], normals[normalIndex ?: 0], uvs[uvIndex ?: 0])
+                                        points += Point(
+                                            vertices[vertexIndex],
+                                            normals[normalIndex ?: 0],
+                                            uvs[uvIndex ?: 0]
+                                        )
                                     }
                                 }
                             }
 
-                            fun putPoint(point: Point){
+                            fun putPoint(point: Point) {
+                                mesh?.points?.add(point)
                                 val (coordinates, normal, uv) = point
-                                trianglePoints.add(coordinates.x)
-                                trianglePoints.add(-coordinates.y) // y is flipped
-                                trianglePoints.add(coordinates.z)
-                                trianglePoints.add(uv?.x ?: 0f)
-                                trianglePoints.add(uv?.y ?: 0f)
-                                trianglePoints.add(normal.x)
-                                trianglePoints.add(normal.y)
-                                trianglePoints.add(normal.z)
+                                byMaterialPoints.add(coordinates.x)
+                                byMaterialPoints.add(-coordinates.y) // y is flipped
+                                byMaterialPoints.add(coordinates.z)
+                                byMaterialPoints.add(uv?.x ?: 0f)
+                                byMaterialPoints.add(uv?.y ?: 0f)
+                                byMaterialPoints.add(normal.x)
+                                byMaterialPoints.add(normal.y)
+                                byMaterialPoints.add(normal.z)
                             }
 
-                            fun putPoint(index: Int){
+                            fun putPoint(index: Int) {
                                 putPoint(points[index])
                             }
 
-                            when(points.size){
-                                in 0 .. 2 -> {}
+                            when (points.size) {
+                                in 0..2 -> {
+                                }
                                 3 -> {
                                     putPoint(0)
                                     putPoint(1)
@@ -116,32 +173,35 @@ class OBJReader(val file: File): OBJMTLReader(file.inputStream().buffered()){
                                     // todo triangulate the points correctly
                                     // is this possible in 3D?
                                     // do we need to project/rotate them into 2D first?
-                                    for(i in 2 until points.size){
+                                    for (i in 2 until points.size) {
                                         putPoint(0)
-                                        putPoint(i-1)
+                                        putPoint(i - 1)
                                         putPoint(i)
                                     }
                                 }
                             }
                         }
                         "mtllib" -> {
-                            val file2 = readFile(file)
-                            if(file2.exists() && !file2.isDirectory){
-                                try {
-                                    materials.putAll(MTLReader(file2).materials)
-                                } catch (e: IOException){
-                                    e.printStackTrace()
+                            if (file != null) {
+                                val file2 = readFile(file)
+                                if (file2.exists() && !file2.isDirectory) {
+                                    try {
+                                        materials.putAll(MTLReader(file2).materials)
+                                    } catch (e: IOException) {
+                                        e.printStackTrace()
+                                    }
                                 }
                             }
                         }
                         else -> {
-                            LOGGER.info("Unknown tag in obj: $name")
+                            LOGGER.info("Unknown tag in obj: $cmd")
                             skipLine()
                         }
                     }
                 }
             }
-        } catch (e: EOFException){}
+        } catch (e: EOFException) {
+        }
         reader.close()
     }
 

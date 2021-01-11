@@ -4,9 +4,10 @@ import me.anno.gpu.GFX.glThread
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
-import me.anno.objects.animation.Spline.getWeights
 import me.anno.objects.animation.drivers.AnimationDriver
+import me.anno.objects.animation.Interpolation.Companion.getWeights
 import me.anno.studio.rems.RemsStudio.root
+import me.anno.utils.AnyToDouble.getDouble
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Vectors.plus
 import me.anno.utils.Vectors.times
@@ -101,7 +102,7 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
         } else LOGGER.warn("Value $value is not accepted by type $type!")
     }
 
-    fun checkIsAnimated(){
+    fun checkIsAnimated() {
         isAnimated = keyframes.size >= 2 || drivers.any { it != null }
     }
 
@@ -229,43 +230,49 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
         return if (drivers.all { it == null }) animatedValue
         else {
             // replace the components, which have drivers, with the driver values
+            val v = animatedValue ?: defaultValue ?: 0.0
+            val v0 = getDouble(v, 0)
+            val v1 by lazy { getDouble(v, 1) }
+            val v2 by lazy { getDouble(v, 2) }
+            val v3 by lazy { getDouble(v, 3) }
+            // todo functions for vectors???...
             when (animatedValue) {
-                is Int -> drivers[0]?.getValue(time)?.toInt() ?: animatedValue
-                is Long -> drivers[0]?.getValue(time)?.toLong() ?: animatedValue
-                is Float -> drivers[0]?.getValue(time)?.toFloat() ?: animatedValue
-                is Double -> drivers[0]?.getValue(time) ?: animatedValue
+                is Int -> drivers[0]?.getValue(time, v0)?.toInt() ?: animatedValue
+                is Long -> drivers[0]?.getValue(time, v0)?.toLong() ?: animatedValue
+                is Float -> drivers[0]?.getValue(time, v0)?.toFloat() ?: animatedValue
+                is Double -> drivers[0]?.getValue(time, v0) ?: animatedValue
                 is Vector2f -> Vector2f(
-                    drivers[0]?.getValue(time)?.toFloat() ?: animatedValue.x,
-                    drivers[1]?.getValue(time)?.toFloat() ?: animatedValue.y
+                    drivers[0]?.getValue(time, v0)?.toFloat() ?: animatedValue.x,
+                    drivers[1]?.getValue(time, v1)?.toFloat() ?: animatedValue.y
                 )
                 is Vector3f -> Vector3f(
-                    drivers[0]?.getValue(time)?.toFloat() ?: animatedValue.x,
-                    drivers[1]?.getValue(time)?.toFloat() ?: animatedValue.y,
-                    drivers[2]?.getValue(time)?.toFloat() ?: animatedValue.z
+                    drivers[0]?.getValue(time, v0)?.toFloat() ?: animatedValue.x,
+                    drivers[1]?.getValue(time, v1)?.toFloat() ?: animatedValue.y,
+                    drivers[2]?.getValue(time, v2)?.toFloat() ?: animatedValue.z
                 )
                 is Vector4f -> Vector4f(
-                    drivers[0]?.getValue(time)?.toFloat() ?: animatedValue.x,
-                    drivers[1]?.getValue(time)?.toFloat() ?: animatedValue.y,
-                    drivers[2]?.getValue(time)?.toFloat() ?: animatedValue.z,
-                    drivers[3]?.getValue(time)?.toFloat() ?: animatedValue.w
+                    drivers[0]?.getValue(time, v0)?.toFloat() ?: animatedValue.x,
+                    drivers[1]?.getValue(time, v1)?.toFloat() ?: animatedValue.y,
+                    drivers[2]?.getValue(time, v2)?.toFloat() ?: animatedValue.z,
+                    drivers[3]?.getValue(time, v3)?.toFloat() ?: animatedValue.w
                 )
                 is Quaternionf -> Quaternionf(
-                    drivers[0]?.getValue(time)?.toFloat() ?: animatedValue.x,
-                    drivers[1]?.getValue(time)?.toFloat() ?: animatedValue.y,
-                    drivers[2]?.getValue(time)?.toFloat() ?: animatedValue.z,
-                    drivers[3]?.getValue(time)?.toFloat() ?: animatedValue.w
+                    drivers[0]?.getValue(time, v0)?.toFloat() ?: animatedValue.x,
+                    drivers[1]?.getValue(time, v1)?.toFloat() ?: animatedValue.y,
+                    drivers[2]?.getValue(time, v2)?.toFloat() ?: animatedValue.z,
+                    drivers[3]?.getValue(time, v3)?.toFloat() ?: animatedValue.w
                 )
                 else -> throw RuntimeException("Replacing components with drivers in $animatedValue is not yet supported!")
             }
         } as V
     }
 
-    fun lerp(a: Float, b: Float, f: Float, g: Float) = a * g + b * f
+    fun mix(a: Float, b: Float, f: Float, g: Float) = a * g + b * f
 
     /**
      * a * (1-f) + f * b
      * */
-    fun lerp(a: V, b: V, f: Double): V {
+    fun mix(a: V, b: V, f: Double): V {
         val g = 1.0 - f
         return when (type) {
             Type.INT,
@@ -285,7 +292,7 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
         } as V
     }
 
-    fun toCalc(a: V): Any {
+    private fun toCalc(a: V): Any {
         return when (a) {
             is Int -> a.toDouble()
             is Float -> a.toDouble()
@@ -293,10 +300,10 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
             is Long -> a.toDouble()
             is Vector2f, is Vector3f, is Vector4f, is Quaternionf -> a
             else -> throw RuntimeException("don't know how to calc $a")
-        } as Any
+        } as Any // needed by Intellij Kotlin compiler
     }
 
-    fun fromCalc(a: Any): V {
+    private fun fromCalc(a: Any): V {
         return when (type) {
             Type.INT,
             Type.INT_PLUS -> (a as Double).roundToInt()
@@ -318,7 +325,7 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
     /**
      * b + a * f
      * */
-    fun mulAdd(b: Any, a: Any, f: Double): Any {
+    private fun mulAdd(b: Any, a: Any, f: Double): Any {
         return when (b) {
             is Double -> b + (a as Double) * f
             is Vector2f -> b + ((a as Vector2f) * f.toFloat())
@@ -341,7 +348,7 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
         }
     }
 
-    fun getIndexBefore(time: Double): Int {
+    private fun getIndexBefore(time: Double): Int {
         // get the index of the time
         val rawIndex = keyframes.binarySearch { it.time.compareTo(time) }
         return (if (rawIndex < 0) -rawIndex - 1 else rawIndex) - 1
@@ -428,6 +435,7 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
         } else println("copy-from-object $obj is not an AnimatedProperty!")
     }
 
-    override fun isDefaultValue() = !isAnimated && (keyframes.isEmpty() || keyframes[0].value == defaultValue) && drivers.all { it == null }
+    override fun isDefaultValue() =
+        !isAnimated && (keyframes.isEmpty() || keyframes[0].value == defaultValue) && drivers.all { it == null }
 
 }

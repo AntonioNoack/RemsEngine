@@ -24,7 +24,7 @@ class HistoryState() : Saveable() {
     var title = ""
     var code: Any? = null
 
-    lateinit var root: Transform
+    var root: Transform? = null
     var selectedUUID = -1L
     var selectedPropName: String? = null
     var usedCameras = LongArray(0)
@@ -47,7 +47,8 @@ class HistoryState() : Saveable() {
     }
 
     fun apply() {
-        RemsStudio.root = this.root
+        val root = root ?: return
+        RemsStudio.root = root
         SceneTabs.currentTab?.root = root
         RemsStudio.editorTime = editorTime
         val listOfAll = root.listOfAll.toList()

@@ -18,6 +18,8 @@ import me.anno.gpu.shader.ShaderPlus
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.input.Input
+import me.anno.input.Input.isControlDown
+import me.anno.input.Input.isShiftDown
 import me.anno.input.Input.mouseKeysDown
 import me.anno.input.Input.mouseX
 import me.anno.input.Input.mouseY
@@ -139,7 +141,8 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
     init {
         val is2DPanel = TextButton(
             "3D", "Lock the camera; use control to keep the angle",
-            "ui.sceneView.3dSwitch", true, style)
+            "ui.sceneView.3dSwitch", true, style
+        )
         is2DPanel.instantTextLoading = true
         controls += SimplePanel(
             is2DPanel,
@@ -349,11 +352,11 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
                     GFX.check()
                     Scene.draw(camera, 0, 0, w, h, editorTime, true, mode, this)
                     fb.bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-                    Frame(fb.msBuffer){
+                    Frame(fb.msBuffer) {
                         Frame.bind()
                         glFlush(); glFinish() // wait for everything to be drawn
                         glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
-                        glReadPixels(0, 0, w,h, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
+                        glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
                         GFX.check()
                     }
                 }
@@ -376,7 +379,12 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
                 // todo actions for console messages, e.g. opening a file
                 val file = File(folder, name)
                 ImageIO.write(image, "png", file)
-                LOGGER.info(Dict["Saved screenshot to %1", "ui.sceneView.savedScreenshot"].replace("%1", file.toString()))
+                LOGGER.info(
+                    Dict["Saved screenshot to %1", "ui.sceneView.savedScreenshot"].replace(
+                        "%1",
+                        file.toString()
+                    )
+                )
 
             }
         }
@@ -478,14 +486,16 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
 
     fun move(dt: Float) {
 
-        val acceleration = Vector3f(inputDx, inputDy, inputDz)
+        val camera = camera
+        val (cameraTransform, cameraTime) = camera.getGlobalTransform(editorTime)
+
+        val speed = 0.1f + 0.9f * camera.orbitRadius[cameraTime]
+        val acceleration = Vector3f(inputDx, inputDy, inputDz).mul(speed)
 
         velocity.mul(1f - dt)
         velocity.mulAdd(dt, acceleration)
 
         if (velocity.x != 0f || velocity.y != 0f || velocity.z != 0f) {
-            val camera = camera
-            val (cameraTransform, cameraTime) = camera.getGlobalTransform(editorTime)
             val oldPosition = camera.position[cameraTime]
             val step = (velocity * dt)
             val step2 = cameraTransform.transformDirection(step)
@@ -682,12 +692,28 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
         val dy0 = dy * size
         val scaleFactor = -10f
         val camera = camera
-        val (_, cameraTime) = camera.getGlobalTransform(editorTime)
+        val cameraTime = cameraTime
         val oldRotation = camera.rotationYXZ[cameraTime]
         RemsStudio.incrementalChange("Turn Camera") {
             camera.putValue(camera.rotationYXZ, oldRotation + Vector3f(dy0 * scaleFactor, dx0 * scaleFactor, 0f), false)
         }
         invalidateDrawing()
+    }
+
+    val cameraTime get() = camera.getGlobalTransform(editorTime).second
+    val firstCamera get() = root.listOfAll.filterIsInstance<Camera>().firstOrNull()
+
+    fun rotateCameraTo(rotation: Vector3f) {
+        camera.putValue(camera.rotationYXZ, rotation, true)
+    }
+
+    fun rotateCamera(delta: Vector3f) {
+        val oldRot = camera.rotationYXZ[cameraTime]
+        camera.putValue(
+            camera.rotationYXZ,
+            oldRot + delta,
+            true
+        )
     }
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
@@ -704,10 +730,43 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
                 mode = SceneDragMode.ROTATE
                 invalidateDrawing()
             }
-            "ResetCamera" -> {
-                camera.resetTransform(true)
+            "Cam0", "ResetCamera" -> {
+                val firstCamera = firstCamera
+                if (firstCamera == null) {
+                    camera.resetTransform(true)
+                } else {
+                    // copy the transform
+                    val firstCameraTime = firstCamera.getGlobalTransform(editorTime).second
+                    RemsStudio.largeChange("Reset Camera") {
+                        camera.cloneTransform(firstCamera, firstCameraTime)
+                    }
+                }
                 invalidateDrawing()
             }
+            "Cam5" -> {// switch between orthographic and perspective
+                camera.putValue(camera.orthographicness, 1f - camera.orthographicness[cameraTime], true)
+            }
+            // todo control numpad does not work
+            "Cam1" -> rotateCameraTo(Vector3f(0f, if (isControlDown) 180f else 0f, 0f))// default view
+            "Cam3" -> rotateCameraTo(Vector3f(0f, if (isControlDown) -90f else +90f, 0f))// rotate to side view
+            "Cam7" -> rotateCameraTo(Vector3f(if (isControlDown) +90f else -90f, 0f, 0f)) // look from above
+            "Cam4" -> rotateCamera(
+                if (isShiftDown) {// left
+                    Vector3f(0f, 0f, -15f)
+                } else {
+                    Vector3f(0f, -15f, 0f)
+                }
+            )
+            "Cam6" -> rotateCamera(
+                if (isShiftDown) {// right
+                    Vector3f(0f, 0f, +15f)
+                } else {
+                    Vector3f(0f, +15f, 0f)
+                }
+            )
+            "Cam8" -> rotateCamera(Vector3f(-15f, 0f, 0f)) // up
+            "Cam2" -> rotateCamera(Vector3f(+15f, 0f, 0f)) // down
+            "Cam9" -> rotateCamera(Vector3f(0f, 180f, 0f)) // look at back; rotate by 90 degrees on y axis
             "MoveLeft" -> this.inputDx--
             "MoveRight" -> this.inputDx++
             "MoveUp" -> this.inputDy++
@@ -837,7 +896,12 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
     }
 
     override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float) {
-        moveDirectly(0f, 0f, -dy)
+        RemsStudio.incrementalChange("Zoom In / Out") {
+            val delta = -dy * shiftSlowdown
+            val factor = pow(1.02f, delta)
+            val newOrbitDistance = camera.orbitRadius[cameraTime] * factor
+            camera.putValue(camera.orbitRadius, newOrbitDistance, false)
+        }
     }
 
     override fun toData() = CustomPanelData(this)

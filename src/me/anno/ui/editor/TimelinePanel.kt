@@ -4,7 +4,6 @@ import me.anno.config.DefaultConfig.defaultFont
 import me.anno.config.DefaultStyle
 import me.anno.fonts.FontManager
 import me.anno.gpu.GFX
-import me.anno.gpu.GFX.openMenu
 import me.anno.gpu.GFXx2D
 import me.anno.gpu.GFXx2D.drawRect
 import me.anno.gpu.GFXx2D.drawText
@@ -12,6 +11,7 @@ import me.anno.gpu.GFXx2D.drawTextCharByChar
 import me.anno.gpu.GFXx2D.flatColor
 import me.anno.input.Input
 import me.anno.input.MouseButton
+import me.anno.language.translation.NameDesc
 import me.anno.objects.Transform
 import me.anno.studio.StudioBase.Companion.updateAudio
 import me.anno.studio.rems.RemsStudio
@@ -22,6 +22,8 @@ import me.anno.studio.rems.RemsStudio.targetDuration
 import me.anno.studio.rems.RemsStudio.targetFPS
 import me.anno.studio.rems.Selection
 import me.anno.ui.base.Panel
+import me.anno.ui.base.menu.Menu.openMenu
+import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.custom.CustomContainer.Companion.isCross
 import me.anno.ui.style.Style
 import me.anno.utils.Maths.clamp
@@ -270,13 +272,13 @@ open class TimelinePanel(style: Style) : Panel(style) {
             button.isLeft -> jumpToX(x)
             else -> {
                 val options = listOf(
-                    GFX.MenuOption("Set End Here", "Sets the end of the project to here", "ui.timePanel.setEndHere") {
+                    MenuOption(NameDesc("Set End Here", "Sets the end of the project to here", "ui.timePanel.setEndHere")) {
                         project?.targetDuration = getTimeAt(x)
                     },
-                    GFX.MenuOption("Jump to Start", "Set the time to 0", "ui.timePanel.jumpToStart") {
+                    MenuOption(NameDesc("Jump to Start", "Set the time to 0", "ui.timePanel.jumpToStart")) {
                         jumpToT(0.0)
                     },
-                    GFX.MenuOption("Jump to End", "Set the time to the end of the project", "ui.timePanel.jumpToEnd") {
+                    MenuOption(NameDesc("Jump to End", "Set the time to the end of the project", "ui.timePanel.jumpToEnd")) {
                         jumpToT(targetDuration)
                     }
                 )
