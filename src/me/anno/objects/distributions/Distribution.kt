@@ -82,6 +82,10 @@ abstract class Distribution(val displayName: String, val description: String) : 
         )
     }
 
+    override fun equals(other: Any?): Boolean {
+        return other?.javaClass === javaClass && other.toString() == toString()
+    }
+
     companion object {
         const val sphereSubDivision = 4
     }

@@ -47,6 +47,9 @@ import me.anno.ui.input.*
 import me.anno.ui.style.Style
 import me.anno.utils.Color.toHexColor
 import me.anno.utils.MatrixHelper.skew
+import me.anno.utils.structures.ValueWithDefault
+import me.anno.utils.structures.ValueWithDefault.Companion.writeMaybe
+import me.anno.utils.structures.ValueWithDefaultFunc
 import org.apache.logging.log4j.LogManager
 import org.joml.*
 import java.io.File
@@ -75,7 +78,9 @@ open class Transform(var parent: Transform? = null) : Saveable(),
     }
 
     val clickId = nextClickId.incrementAndGet()
-    var timelineSlot = -1
+
+    val timelineSlot = ValueWithDefault(-1)
+
     var visibility = TransformVisibility.VISIBLE
     var uuid = nextUUID.incrementAndGet()
 
@@ -95,11 +100,10 @@ open class Transform(var parent: Transform? = null) : Saveable(),
 
     var timeAnimated = AnimatedProperty.double()
 
-    var name = ""
-        get() {
-            if (field == "") field = getDefaultDisplayName()
-            return field
-        }
+    private val nameI = ValueWithDefaultFunc { getDefaultDisplayName() }
+    var name: String
+        get() = nameI.value
+        set(value) = nameI.set(value)
 
     var comment = ""
 
@@ -114,12 +118,18 @@ open class Transform(var parent: Transform? = null) : Saveable(),
     val folder = "\uD83D\uDCC1"
 
     val children = ArrayList<Transform>()
-    var isCollapsed = false
+    private val isCollapsedI = ValueWithDefault(false)
+    var isCollapsed: Boolean
+        get() = isCollapsedI.value
+        set(value) = isCollapsedI.set(value)
 
     var lastLocalColor = Vector4f()
     var lastLocalTime = 0.0
 
-    var weight = 1f
+    private val weightI = ValueWithDefault(1f)
+    var weight: Float
+        get() = weightI.value
+        set(value) = weightI.set(value)
 
     fun putValue(list: AnimatedProperty<*>, value: Any, updateHistory: Boolean) {
         val time = global2Kf(editorTime)
@@ -205,8 +215,8 @@ open class Transform(var parent: Transform? = null) : Saveable(),
 
         val editorGroup = getGroup("Editor", "", "editor")
         editorGroup += vi(
-            "Timeline Slot", "< 1 means invisible", Type.INT_PLUS, timelineSlot, style
-        ) { timelineSlot = it }
+            "Timeline Slot", "< 1 means invisible", Type.INT_PLUS, timelineSlot.value, style
+        ) { timelineSlot.value = it }
         // todo warn of invisible elements somehow!...
         editorGroup += vi("Visibility", "", null, visibility, style) { visibility = it }
 
@@ -350,25 +360,26 @@ open class Transform(var parent: Transform? = null) : Saveable(),
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
+        // many properties are only written if they changed;
+        // to reduce file sizes
         writer.writeObject(this, "parent", parent)
-        if (name != getDefaultDisplayName()) {
-            writer.writeString("name", name)
-        }
+        writer.writeMaybe(this, "name", nameI)
         writer.writeString("comment", comment)
-        writer.writeBoolean("collapsed", isCollapsed, false)
+        writer.writeMaybe(this, "collapsed", isCollapsedI)
+        writer.writeMaybe(this, "weight", weightI)
         writer.writeObject(this, "position", position)
         writer.writeObject(this, "scale", scale)
         writer.writeObject(this, "rotationYXZ", rotationYXZ)
         writer.writeObject(this, "skew", skew)
         writer.writeObject(this, "alignWithCamera", alignWithCamera)
         writer.writeDouble("timeOffset", timeOffset)
-        if(timeDilation != 1.0) writer.writeDouble("timeDilation", timeDilation, true)
+        if (timeDilation != 1.0) writer.writeDouble("timeDilation", timeDilation, true)
         writer.writeObject(this, "timeAnimated", timeAnimated)
         writer.writeObject(this, "color", color)
         writer.writeObject(this, "colorMultiplier", colorMultiplier)
-        if(blendMode !== BlendMode.UNSPECIFIED) writer.writeString("blendMode", blendMode.id)
+        if (blendMode !== BlendMode.UNSPECIFIED) writer.writeString("blendMode", blendMode.id)
         writer.writeObjectList(this, "children", children)
-        writer.writeInt("timelineSlot", timelineSlot, true)
+        writer.writeMaybe(this, "timelineSlot", timelineSlot)
         writer.writeInt("visibility", visibility.id, false)
         writer.writeLong("uuid", uuid, true)
     }
@@ -382,7 +393,7 @@ open class Transform(var parent: Transform? = null) : Saveable(),
 
     override fun readInt(name: String, value: Int) {
         when (name) {
-            "timelineSlot" -> timelineSlot = value
+            "timelineSlot" -> timelineSlot.value = value
             "visibility" -> visibility = TransformVisibility[value]
             else -> super.readInt(name, value)
         }
@@ -395,13 +406,37 @@ open class Transform(var parent: Transform? = null) : Saveable(),
         }
     }
 
+    override fun readFloat(name: String, value: Float) {
+        when (name) {
+            "weight" -> weight = value
+            else -> super.readFloat(name, value)
+        }
+    }
+
+    override fun readDouble(name: String, value: Double) {
+        when (name) {
+            "timeDilation" -> timeDilation = value
+            "timeOffset" -> timeOffset = value
+            else -> super.readDouble(name, value)
+        }
+    }
+
+    override fun readString(name: String, value: String) {
+        when (name) {
+            "name" -> this.name = value
+            "comment" -> comment = value
+            "blendMode" -> blendMode = BlendMode[value]
+            else -> super.readString(name, value)
+        }
+    }
+
     override fun readObject(name: String, value: ISaveable?) {
         when (name) {
             "parent" -> {
                 if (value is Transform) {
                     try {
                         value.addChild(this)
-                    } catch (e: RuntimeException){
+                    } catch (e: RuntimeException) {
                         LOGGER.warn(e.message.toString())
                     }
                 }
@@ -420,23 +455,6 @@ open class Transform(var parent: Transform? = null) : Saveable(),
             "color" -> color.copyFrom(value)
             "colorMultiplier" -> colorMultiplier.copyFrom(value)
             else -> super.readObject(name, value)
-        }
-    }
-
-    override fun readDouble(name: String, value: Double) {
-        when (name) {
-            "timeDilation" -> timeDilation = value
-            "timeOffset" -> timeOffset = value
-            else -> super.readDouble(name, value)
-        }
-    }
-
-    override fun readString(name: String, value: String) {
-        when (name) {
-            "name" -> this.name = value
-            "comment" -> comment = value
-            "blendMode" -> blendMode = BlendMode[value]
-            else -> super.readString(name, value)
         }
     }
 

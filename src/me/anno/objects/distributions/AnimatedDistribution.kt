@@ -9,6 +9,8 @@ import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.animation.Type
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.style.Style
+import me.anno.utils.structures.ValueWithDefault
+import me.anno.utils.structures.ValueWithDefault.Companion.writeMaybe
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -17,10 +19,15 @@ import kotlin.collections.ArrayList
 
 // todo use meshes as distribution containers...
 class AnimatedDistribution(
-    var distribution: Distribution = ConstantDistribution(),
+    distribution: Distribution = ConstantDistribution(),
     val types: List<Type>,
     val defaultValues: List<Any>
 ) : Saveable() {
+
+    val distributionI = ValueWithDefault(distribution)
+    var distribution: Distribution
+        get() = distributionI.value
+        set(value) = distributionI.set(value)
 
     constructor() : this(Type.ANY, 0f)
     constructor(type: Type, defaultValue: Any) : this(ConstantDistribution(), listOf(type), listOf(defaultValue))
@@ -118,7 +125,7 @@ class AnimatedDistribution(
     override fun save(writer: BaseWriter) {
         super.save(writer)
         update()
-        writer.writeObject(this, "distribution", distribution)
+        writer.writeMaybe(this, "distribution", distributionI)
         for (i in channels.indices) {
             writer.writeObject(this, "channel[$i]", channels[i])
         }
@@ -146,7 +153,7 @@ class AnimatedDistribution(
     }
 
     override fun getApproxSize(): Int = 35
-    override fun isDefaultValue(): Boolean = false
+    override fun isDefaultValue(): Boolean = !distributionI.isSet && channels.all { it.isDefaultValue() }
     override fun getClassName(): String = "AnimatedDistribution"
 
 }

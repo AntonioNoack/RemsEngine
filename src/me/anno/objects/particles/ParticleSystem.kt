@@ -30,8 +30,10 @@ import me.anno.utils.Maths.mix
 import me.anno.utils.Vectors.plus
 import me.anno.utils.Vectors.times
 import me.anno.utils.processBalanced
+import me.anno.utils.structures.ValueWithDefault
 import me.anno.utils.structures.UnsafeArrayList
 import me.anno.utils.structures.UnsafeSkippingArrayList
+import me.anno.utils.structures.ValueWithDefault.Companion.writeMaybe
 import me.anno.video.MissingFrameException
 import org.joml.Matrix4fArrayList
 import org.joml.Vector3f
@@ -68,7 +70,10 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
     val lifeTime = AnimatedDistribution(Type.FLOAT, 10f)
 
     var showChildren = false
-    var simulationStep = 0.5
+    var simulationStepI = ValueWithDefault(0.5)
+    var simulationStep: Double
+        get() = simulationStepI.value
+        set(value) = simulationStepI.set(value)
 
     val aliveParticles = UnsafeSkippingArrayList<Particle>()
     val particles = UnsafeArrayList<Particle>()
@@ -82,8 +87,14 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
      * the calculation depends somewhat on it;
      * they could be animated, but idk, why you would do that...
      * */
-    var fadeIn = 0.5
-    var fadeOut = 0.5
+    var fadeInI = ValueWithDefault(0.5)
+    var fadeOutI = ValueWithDefault(0.5)
+    var fadeIn: Double
+        get() = fadeInI.value
+        set(value) = fadeInI.set(value)
+    var fadeOut: Double
+        get() = fadeOutI.value
+        set(value) = fadeOutI.set(value)
 
     fun step(particle: Particle, forces: List<ForceField>, aliveParticles: List<Particle>) {
         particle.apply {
@@ -489,9 +500,9 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
-        writer.writeDouble("simulationStep", simulationStep)
-        writer.writeDouble("fadeIn", fadeIn)
-        writer.writeDouble("fadeOut", fadeOut)
+        writer.writeMaybe(this, "simulationStep", simulationStepI)
+        writer.writeMaybe(this, "fadeIn", fadeInI)
+        writer.writeMaybe(this, "fadeOut", fadeOutI)
         writer.writeObject(this, "spawnPosition", spawnPosition)
         writer.writeObject(this, "spawnVelocity", spawnVelocity)
         writer.writeObject(this, "spawnRotation", spawnRotation)

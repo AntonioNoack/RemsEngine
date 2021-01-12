@@ -99,7 +99,7 @@ class LayerView(style: Style) : TimelinePanel(style) {
         // val t1 = System.nanoTime()
         val root = root
         calculated = findElements()
-        val drawn = calculated.filter { it.timelineSlot == timelineSlot }.reversed()
+        val drawn = calculated.filter { it.timelineSlot.value == timelineSlot }.reversed()
         this.drawn = drawn
         // val t2 = System.nanoTime()
         val isHovered = isHovered
@@ -275,7 +275,7 @@ class LayerView(style: Style) : TimelinePanel(style) {
         if (draggedTransform == null || draggedKeyframes == null) {
             if (isHovered) {
                 val hovered = getTransformAt(mouseX, mouseY)
-                    ?: if (selectedTransform?.timelineSlot == timelineSlot) selectedTransform else null
+                    ?: if (selectedTransform?.timelineSlot?.value == timelineSlot) selectedTransform else null
                 hoveredTransform = hovered
                 if (hovered != null) {
                     drawLines(hovered)
@@ -466,7 +466,7 @@ class LayerView(style: Style) : TimelinePanel(style) {
         fun inspect(parent: Transform): Boolean {
             val isRequired = parent.children.count { child ->
                 inspect(child)
-            } > 0 || parent.timelineSlot == timelineSlot
+            } > 0 || parent.timelineSlot.value == timelineSlot
             if (isRequired) {
                 list += parent
             }
@@ -484,10 +484,10 @@ class LayerView(style: Style) : TimelinePanel(style) {
             val original = (StudioBase.dragged as? Draggable)?.getOriginal() as? Transform
             RemsStudio.largeChange("Pasted Component / Changed Timeline Slot") {
                 if (original != null) {
-                    original.timelineSlot = timelineSlot
+                    original.timelineSlot.value = timelineSlot
                 } else {
                     root.addChild(child)
-                    root.timelineSlot = timelineSlot
+                    root.timelineSlot.value = timelineSlot
                     selectTransform(child)
                 }
             }
@@ -502,7 +502,7 @@ class LayerView(style: Style) : TimelinePanel(style) {
         files.forEach { file ->
             addChildFromFile(root, file, {
                 it.timeOffset = time
-                it.timelineSlot = timelineSlot
+                it.timelineSlot.value = timelineSlot
                 // fade-in? is better for stuff xD
                 if (DefaultConfig["import.files.fade", true]) {
                     val fadingTime = 0.2

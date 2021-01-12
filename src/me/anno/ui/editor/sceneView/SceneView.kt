@@ -489,7 +489,8 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
         val camera = camera
         val (cameraTransform, cameraTime) = camera.getGlobalTransform(editorTime)
 
-        val speed = 0.1f + 0.9f * camera.orbitRadius[cameraTime]
+        val radius = camera.orbitRadius[cameraTime]
+        val speed = if (radius == 0f) 1f else 0.1f + 0.9f * radius
         val acceleration = Vector3f(inputDx, inputDy, inputDz).mul(speed)
 
         velocity.mul(1f - dt)
@@ -897,10 +898,16 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
 
     override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float) {
         RemsStudio.incrementalChange("Zoom In / Out") {
-            val delta = -dy * shiftSlowdown
-            val factor = pow(1.02f, delta)
-            val newOrbitDistance = camera.orbitRadius[cameraTime] * factor
-            camera.putValue(camera.orbitRadius, newOrbitDistance, false)
+            val radius = camera.orbitRadius[cameraTime]
+            if (radius == 0f) {
+                // no orbiting
+                moveDirectly(0f, 0f, -0.5f * dy)
+            } else {
+                val delta = -dy * shiftSlowdown
+                val factor = pow(1.02f, delta)
+                val newOrbitDistance = radius * factor
+                camera.putValue(camera.orbitRadius, newOrbitDistance, false)
+            }
         }
     }
 

@@ -234,7 +234,9 @@ class TextReader(val data: String) : BaseReader() {
     private fun readVector2f(): Vector2f {
         assert(skipSpace(), '[', "Start of Vector")
         val rawX = readFloat()
-        assert(skipSpace(), ',', "Separator of Vector")
+        val sep0 = skipSpace()
+        if(sep0 == ']') return Vector2f(rawX)
+        assert(sep0, ',', "Separator of Vector")
         val rawY = readFloat()
         assert(skipSpace(), ']', "End of Vector")
         return Vector2f(rawX, rawY)
@@ -243,7 +245,9 @@ class TextReader(val data: String) : BaseReader() {
     private fun readVector3f(): Vector3f {
         assert(skipSpace(), '[', "Start of Vector")
         val rawX = readFloat()
-        assert(skipSpace(), ',', "Separator of Vector")
+        val sep0 = skipSpace()
+        if (sep0 == ']') return Vector3f(rawX) // monotone / grayscale
+        assert(sep0, ',', "Separator of Vector")
         val rawY = readFloat()
         assert(skipSpace(), ',', "Separator of Vector")
         val rawZ = readFloat()
@@ -254,9 +258,13 @@ class TextReader(val data: String) : BaseReader() {
     private fun readVector4f(): Vector4f {
         assert(skipSpace(), '[', "Start of Vector")
         val rawX = readFloat()
-        assert(skipSpace(), ',', "Separator of Vector")
+        val sep0 = skipSpace()
+        if (sep0 == ']') return Vector4f(rawX) // monotone
+        assert(sep0, ',', "Separator of Vector")
         val rawY = readFloat()
-        assert(skipSpace(), ',', "Separator of Vector")
+        val sep1 = skipSpace()
+        if (sep1 == ']') return Vector4f(rawX, rawX, rawX, rawY) // white with alpha
+        assert(sep1, ',', "Separator of Vector")
         val rawZ = readFloat()
         assert(skipSpace(), ',', "Separator of Vector")
         val rawW = readFloat()

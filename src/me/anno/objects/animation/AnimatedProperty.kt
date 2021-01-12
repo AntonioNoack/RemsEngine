@@ -4,8 +4,9 @@ import me.anno.gpu.GFX.glThread
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
-import me.anno.objects.animation.drivers.AnimationDriver
 import me.anno.objects.animation.Interpolation.Companion.getWeights
+import me.anno.objects.animation.TimeValue.Companion.writeValue
+import me.anno.objects.animation.drivers.AnimationDriver
 import me.anno.studio.rems.RemsStudio.root
 import me.anno.utils.AnyToDouble.getDouble
 import me.anno.utils.Maths.clamp
@@ -361,8 +362,16 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
         super.save(writer)
         sort()
         // must be written before keyframes!!
-        writer.writeBoolean("isAnimated", isAnimated)
-        writer.writeObjectList(this, "keyframes", keyframes)
+        if (isAnimated) {
+            writer.writeBoolean("isAnimated", isAnimated)
+            writer.writeObjectList(this, "keyframes", keyframes)
+        } else {
+            // isAnimated = false is default
+            val value0 = keyframes.firstOrNull()?.value
+            if (value0 != null && value0 != defaultValue) {
+                writer.writeValue(this, "v", value0)
+            }
+        }
         writer.writeInt("interpolation", interpolation.code)
         for (i in 0 until type.components) {
             writer.writeObject(this, "driver$i", drivers[i])
@@ -371,6 +380,13 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
 
     fun sort() {
         keyframes.sort()
+    }
+
+    override fun readSomething(name: String, value: Any?) {
+        when (name) {
+            "keyframe0", "v" -> addKeyframe(0.0, value ?: return)
+            else -> super.readSomething(name, value)
+        }
     }
 
     override fun readInt(name: String, value: Int) {

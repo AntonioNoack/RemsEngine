@@ -322,9 +322,13 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
         if (force || value.x != 0f || value.y != 0f) {
             writeAttributeStart("v2", name)
             data += '['
-            data += value.x.toString()
-            data += separator
-            data += value.y.toString()
+            if(value.x == value.y){
+                data += value.x.toString()
+            } else {
+                data += value.x.toString()
+                data += separator
+                data += value.y.toString()
+            }
             data += ']'
         }
     }
@@ -333,11 +337,15 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
         if (force || value.x != 0f || value.y != 0f || value.z != 0f) {
             writeAttributeStart("v3", name)
             data += '['
-            data += value.x.toString()
-            data += separator
-            data += value.y.toString()
-            data += separator
-            data += value.z.toString()
+            if(value.x == value.y && value.x == value.z){
+                data += value.x.toString()
+            } else {
+                data += value.x.toString()
+                data += separator
+                data += value.y.toString()
+                data += separator
+                data += value.z.toString()
+            }
             data += ']'
         }
     }
@@ -346,13 +354,24 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
         if (force || value.x != 0f || value.y != 0f || value.z != 0f || value.w != 0f) {
             writeAttributeStart("v4", name)
             data += '['
-            data += value.x.toString()
-            data += separator
-            data += value.y.toString()
-            data += separator
-            data += value.z.toString()
-            data += separator
-            data += value.w.toString()
+            // compressed writing for gray scale values, which are typical
+            if(value.x == value.y && value.x == value.z){
+                if(value.x == value.w){
+                    data += value.w.toString()
+                } else {
+                    data += value.x.toString()
+                    data += separator
+                    data += value.w.toString()
+                }
+            } else {
+                data += value.x.toString()
+                data += separator
+                data += value.y.toString()
+                data += separator
+                data += value.z.toString()
+                data += separator
+                data += value.w.toString()
+            }
             data += ']'
         }
     }
@@ -361,13 +380,24 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
         if (force || value.x != 0.0 || value.y != 0.0 || value.z != 0.0 || value.w != 0.0) {
             writeAttributeStart("v4", name)
             data += '['
-            data += value.x.toString()
-            data += separator
-            data += value.y.toString()
-            data += separator
-            data += value.z.toString()
-            data += separator
-            data += value.w.toString()
+            // compressed writing for gray scale values, which are typical
+            if(value.x == value.y && value.x == value.z){
+                if(value.x == value.w){
+                    data += value.w.toString()
+                } else {
+                    data += value.x.toString()
+                    data += separator
+                    data += value.w.toString()
+                }
+            } else {
+                data += value.x.toString()
+                data += separator
+                data += value.y.toString()
+                data += separator
+                data += value.z.toString()
+                data += separator
+                data += value.w.toString()
+            }
             data += ']'
         }
     }

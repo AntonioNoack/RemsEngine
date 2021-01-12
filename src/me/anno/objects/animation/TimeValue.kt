@@ -1,10 +1,11 @@
 package me.anno.objects.animation
 
+import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import org.joml.*
 
-open class TimeValue<V>(var time: Double, var value: V): Saveable() {
+open class TimeValue<V>(var time: Double, var value: V) : Saveable() {
 
     override fun getClassName() = "TimeValue"
     override fun getApproxSize() = 1
@@ -13,7 +14,7 @@ open class TimeValue<V>(var time: Double, var value: V): Saveable() {
     override fun save(writer: BaseWriter) {
         super.save(writer)
         writer.writeDouble("time", time)
-        writer.writeValue("value", value)
+        writer.writeValue(this, "value", value)
     }
 
     override fun readDouble(name: String, value: Double) {
@@ -64,7 +65,7 @@ open class TimeValue<V>(var time: Double, var value: V): Saveable() {
     }
 
     companion object {
-        fun BaseWriter.writeValue(name: String, v: Any?) {
+        fun BaseWriter.writeValue(self: ISaveable?, name: String, v: Any?) {
             when (v) {
                 is Boolean -> writeBoolean(name, v, true)
                 is Int -> writeInt(name, v, true)
@@ -76,7 +77,9 @@ open class TimeValue<V>(var time: Double, var value: V): Saveable() {
                 is Vector4f -> writeVector4f(name, v, true)
                 is String -> writeString(name, v, true)
                 is Vector4d -> writeVector4d(name, v, true)
-                else -> throw RuntimeException("todo implement")
+                null -> Unit /* mmh ... */
+                is ISaveable -> writeObject(self, name, v, true)
+                else -> throw RuntimeException("todo implement writing $v")
             }
         }
     }

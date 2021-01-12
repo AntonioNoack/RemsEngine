@@ -32,6 +32,9 @@ abstract class ForceField(val displayName: String, val description: String) : Tr
     override fun getSymbol() = DefaultConfig["ui.symbol.forceField", "⇶"]
     override fun getDefaultDisplayName(): String = displayName
 
+    override fun isDefaultValue() = false
+    override fun getApproxSize() = 25
+
     abstract fun getForce(state: ParticleState, time: Double, particles: List<Particle>): Vector3f
 
     open fun listProperties() = listOf(
@@ -111,9 +114,6 @@ abstract class ForceField(val displayName: String, val description: String) : Tr
             stack.scale(force.length() * visualForceScale)
         }
     }
-
-    override fun isDefaultValue() = false
-    override fun getApproxSize() = 25
 
     fun getDirection(time: Double): Vector3f {
         val rot = rotationYXZ[time]
