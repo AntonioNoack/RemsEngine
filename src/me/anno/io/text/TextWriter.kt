@@ -112,6 +112,24 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
         }
     }
 
+    private fun append(f: Float) {
+        val str = f.toString()
+        if (str.endsWith(".0")) {
+            data.append(str.substring(0, str.length - 2))
+        } else {
+            data.append(str)
+        }
+    }
+
+    private fun append(f: Double) {
+        val str = f.toString()
+        if (str.endsWith(".0")) {
+            data.append(str.substring(0, str.length - 2))
+        } else {
+            data.append(str)
+        }
+    }
+
     override fun writeBoolean(name: String, value: Boolean, force: Boolean) {
         if (force || value) {
             writeAttributeStart("b", name)
@@ -127,7 +145,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
             val lastIndex = value.indexOfLast { it }
             for (i in 0 until lastIndex) {
                 data += ','
-                data += if(value[i]) '1' else '0'
+                data += if (value[i]) '1' else '0'
             }
             close(true)
         }
@@ -199,7 +217,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
     override fun writeFloat(name: String, value: Float, force: Boolean) {
         if (force || value != 0f) {
             writeAttributeStart("f", name)
-            data += value.toString()
+            append(value)
         }
     }
 
@@ -211,7 +229,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
             val lastIndex = value.indexOfLast { it != 0f }
             for (i in 0 until lastIndex) {
                 data += ','
-                data += value[i].toString()
+                append(value[i])
             }
             close(true)
         }
@@ -226,7 +244,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
                 data += ','
                 data += '['
                 data += vs.size.toString()
-                for(v in value){
+                for (v in value) {
                     data += ','
                     data += v.toString()
                 }
@@ -239,7 +257,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
     override fun writeDouble(name: String, value: Double, force: Boolean) {
         if (force || value != 0.0) {
             writeAttributeStart("d", name)
-            data += value.toString()
+            append(value)
         }
     }
 
@@ -251,7 +269,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
             val lastIndex = value.indexOfLast { it != 0.0 }
             for (i in 0 until lastIndex) {
                 data += ','
-                data += value[i].toString()
+                append(value[i])
             }
             close(true)
         }
@@ -266,7 +284,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
                 data += ','
                 data += '['
                 data += vs.size.toString()
-                for(v in value){
+                for (v in value) {
                     data += ','
                     data += v.toString()
                 }
@@ -291,7 +309,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
             data += value.size.toString()
             for (v in value) {
                 data += ','
-                data += v
+                writeString(v)
             }
             close(true)
         }
@@ -318,87 +336,91 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
         }
     }
 
+    private fun writeVector2f(value: Vector2f) {
+        data += '['
+        append(value.x)
+        if (value.x != value.y) {
+            data += separator
+            append(value.y)
+        }
+        data += ']'
+    }
+
+    private fun writeVector3f(value: Vector3f) {
+        data += '['
+        append(value.x)
+        if (!(value.x == value.y && value.x == value.z)) {
+            data += separator
+            append(value.y)
+            data += separator
+            append(value.z)
+        }
+        data += ']'
+    }
+
+    private fun writeVector4f(value: Vector4f) {
+        data += '['
+        // compressed writing for gray scale values, which are typical
+        val xyz = value.x == value.y && value.x == value.z
+        val xw = value.x == value.w
+        append(value.x)
+        if (xyz) {
+            data += separator
+            append(value.y)
+            data += separator
+            append(value.z)
+        }
+        if (xyz || xw) {
+            data += separator
+            append(value.w)
+        }
+        data += ']'
+    }
+
+    private fun writeVector4d(value: Vector4d) {
+        data += '['
+        // compressed writing for gray scale values, which are typical
+        val xyz = value.x == value.y && value.x == value.z
+        val xw = value.x == value.w
+        append(value.x)
+        if (xyz) {
+            data += separator
+            append(value.y)
+            data += separator
+            append(value.z)
+        }
+        if (xyz || xw) {
+            data += separator
+            append(value.w)
+        }
+        data += ']'
+    }
+
     override fun writeVector2f(name: String, value: Vector2f, force: Boolean) {
         if (force || value.x != 0f || value.y != 0f) {
             writeAttributeStart("v2", name)
-            data += '['
-            if(value.x == value.y){
-                data += value.x.toString()
-            } else {
-                data += value.x.toString()
-                data += separator
-                data += value.y.toString()
-            }
-            data += ']'
+            writeVector2f(value)
         }
     }
 
     override fun writeVector3f(name: String, value: Vector3f, force: Boolean) {
         if (force || value.x != 0f || value.y != 0f || value.z != 0f) {
             writeAttributeStart("v3", name)
-            data += '['
-            if(value.x == value.y && value.x == value.z){
-                data += value.x.toString()
-            } else {
-                data += value.x.toString()
-                data += separator
-                data += value.y.toString()
-                data += separator
-                data += value.z.toString()
-            }
-            data += ']'
+            writeVector3f(value)
         }
     }
 
     override fun writeVector4f(name: String, value: Vector4f, force: Boolean) {
         if (force || value.x != 0f || value.y != 0f || value.z != 0f || value.w != 0f) {
             writeAttributeStart("v4", name)
-            data += '['
-            // compressed writing for gray scale values, which are typical
-            if(value.x == value.y && value.x == value.z){
-                if(value.x == value.w){
-                    data += value.w.toString()
-                } else {
-                    data += value.x.toString()
-                    data += separator
-                    data += value.w.toString()
-                }
-            } else {
-                data += value.x.toString()
-                data += separator
-                data += value.y.toString()
-                data += separator
-                data += value.z.toString()
-                data += separator
-                data += value.w.toString()
-            }
-            data += ']'
+            writeVector4f(value)
         }
     }
 
     override fun writeVector4d(name: String, value: Vector4d, force: Boolean) {
         if (force || value.x != 0.0 || value.y != 0.0 || value.z != 0.0 || value.w != 0.0) {
             writeAttributeStart("v4", name)
-            data += '['
-            // compressed writing for gray scale values, which are typical
-            if(value.x == value.y && value.x == value.z){
-                if(value.x == value.w){
-                    data += value.w.toString()
-                } else {
-                    data += value.x.toString()
-                    data += separator
-                    data += value.w.toString()
-                }
-            } else {
-                data += value.x.toString()
-                data += separator
-                data += value.y.toString()
-                data += separator
-                data += value.z.toString()
-                data += separator
-                data += value.w.toString()
-            }
-            data += ']'
+            writeVector4d(value)
         }
     }
 
@@ -424,13 +446,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
         if (force || elements.isNotEmpty()) {
             writeAttributeStart("v2[]", name)
             open(true)
-            elements.forEach {
-                data += '['
-                data += it.x.toString()
-                data += separator
-                data += it.y.toString()
-                data += ']'
-            }
+            elements.forEach { writeVector2f(it) }
             close(true)
         }
     }
@@ -439,15 +455,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
         if (force || elements.isNotEmpty()) {
             writeAttributeStart("v3[]", name)
             open(true)
-            elements.forEach {
-                data += '['
-                data += it.x.toString()
-                data += separator
-                data += it.y.toString()
-                data += separator
-                data += it.z.toString()
-                data += ']'
-            }
+            elements.forEach { writeVector3f(it) }
             close(true)
         }
     }
@@ -456,17 +464,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
         if (force || elements.isNotEmpty()) {
             writeAttributeStart("v4[]", name)
             open(true)
-            elements.forEach {
-                data += '['
-                data += it.x.toString()
-                data += separator
-                data += it.y.toString()
-                data += separator
-                data += it.z.toString()
-                data += separator
-                data += it.w.toString()
-                data += ']'
-            }
+            elements.forEach { writeVector4f(it) }
             close(true)
         }
     }
@@ -483,7 +481,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
             hasObject = true
         }
         val pointer = getPointer(value)!!
-        if(usedPointers?.contains(pointer) != false){// null oder true
+        if (usedPointers?.contains(pointer) != false) {// null oder true
             writeInt("*ptr", pointer)
         }
         value.save(this)
@@ -497,7 +495,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
         }
     }
 
-    class HomogenousArray<V: ISaveable>(val elements: Array<V>): Saveable() {
+    class HomogenousArray<V : ISaveable>(val elements: Array<V>) : Saveable() {
         override fun isDefaultValue(): Boolean = false
         override fun getClassName(): String = "HomogenousArray"
         override fun getApproxSize() = elements.map { it.getApproxSize() }.max()?.plus(1) ?: 1
@@ -513,7 +511,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
         elements: Array<V>,
         force: Boolean
     ) {
-        if(force || elements.isNotEmpty()){
+        if (force || elements.isNotEmpty()) {
             // todo implement correctly xD
             elements.forEach {
                 writeObject(self, name, it, force)
@@ -528,7 +526,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
 
     override fun writeAllInList() {
         val writer0 = FindReferencesWriter()
-        for(todoItem in todo) writer0.add(todoItem)
+        for (todoItem in todo) writer0.add(todoItem)
         writer0.writeAllInList()
         usedPointers = writer0.usedPointers
         // directly written needs this, because of sortedContent

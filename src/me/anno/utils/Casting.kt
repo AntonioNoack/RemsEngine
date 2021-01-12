@@ -87,7 +87,7 @@ object Casting {
         is Long -> Vector4f(it.toFloat())
         is Float -> Vector4f(it)
         is Double -> Vector4f(it.toFloat())
-        is Vector2f -> Vector4f(it.x, it.y, it.x, it.y)
+        is Vector2f -> Vector4f(it.x, it.x, it.x, it.y)
         is Vector3f -> Vector4f(it, 1f)
         is Vector4f -> it
         is Vector4d -> Vector4f(it.x.toFloat(), it.y.toFloat(), it.z.toFloat(), it.w.toFloat())

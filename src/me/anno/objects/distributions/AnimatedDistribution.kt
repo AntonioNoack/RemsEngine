@@ -45,6 +45,9 @@ class AnimatedDistribution(
         defaultValues
     )
 
+    val channels = ArrayList<AnimatedProperty<*>>()
+    lateinit var properties: List<InspectableVector>
+
     fun createInspector(
         list: PanelListY,
         transform: Transform,
@@ -68,9 +71,6 @@ class AnimatedDistribution(
             setChannel(index, channel)
         }
     }
-
-    val channels = ArrayList<AnimatedProperty<*>>()
-    lateinit var properties: List<InspectableVector>
 
     private fun createChannel(index: Int): AnimatedProperty<*> {
         return AnimatedProperty<Any>(types[index % types.size]).apply {
