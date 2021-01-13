@@ -29,55 +29,65 @@ open class StringMap(
     override fun getApproxSize(): Int = 1_000_000
     override fun save(writer: BaseWriter) {
         super.save(writer)
-        if (!map.containsKey("notice")) writer.writeString("notice", "#thisIsJSON")
+        // avoid locking up the program up while waiting for IO
+        val mapClone = synchronized(this) { HashMap(map) }
+        if (!mapClone.containsKey("notice")) writer.writeString("notice", "#thisIsJSON")
         // sorting keys for convenience
-        val leMap = if (sortKeysWhenSaving) map.toSortedMap() else map
+        val leMap = if (sortKeysWhenSaving) mapClone.toSortedMap() else mapClone
         for ((name, value) in leMap) {
             writer.writeSomething(this, name, value, saveDefaultValues)
         }
     }
 
     override fun readSomething(name: String, value: Any?) {
-        if (name != "notice") map[name] = value
+        if (name != "notice") synchronized(this){
+            map[name] = value
+        }
     }
 
     operator fun get(key: String, addIfMissing: () -> StringMap): StringMap {
-        val value = map[key]
-        return if(value !is StringMap) {
-            val value2 = addIfMissing()
-            map[key] = value2
-            wasChanged = true
-            value2
-        } else value
+        synchronized(this) {
+            val value = map[key]
+            return if (value !is StringMap) {
+                val value2 = addIfMissing()
+                map[key] = value2
+                wasChanged = true
+                value2
+            } else value
+        }
     }
 
     operator fun get(key: String, addIfMissing: Any?): Any? {
-        val value = map[key]
-        return if (value == null) {
-            map[key] = addIfMissing
-            addIfMissing
-        } else value
+        synchronized(this) {
+            val value = map[key]
+            return if (value == null) {
+                map[key] = addIfMissing
+                addIfMissing
+            } else value
+        }
     }
 
-    override operator fun get(key: String) = map[key]
+    override operator fun get(key: String): Any? = synchronized(this) { map[key] }
     operator fun set(key: String, value: Any?) {
-        wasChanged = true
-        map[key] = value
+        synchronized(this) {
+            wasChanged = true
+            map[key] = value
+        }
     }
 
-    override fun containsKey(key: String) = map.containsKey(key)
-    override fun containsValue(value: Any?) = map.containsValue(value)
+    override fun containsKey(key: String) = synchronized(this) { map.containsKey(key) }
+    override fun containsValue(value: Any?) = synchronized(this) { map.containsValue(value) }
 
     override val entries get() = map.entries
     override val keys get() = map.keys
     override val values get() = map.values
     override val size get() = map.size
 
-    override fun clear() = map.clear()
-    override fun isEmpty() = map.isEmpty()
-    override fun put(key: String, value: Any?): Any? = map.put(key, value)
-    override fun putAll(from: Map<out String, Any?>) = map.putAll(from)
-    override fun remove(key: String): Any? = map.remove(key)
+    override fun clear() = synchronized(this) { map.clear() }
+    override fun isEmpty() = synchronized(this) { map.isEmpty() }
+    override fun put(key: String, value: Any?): Any? = synchronized(this) { map.put(key, value) }
+    override fun putAll(from: Map<out String, Any?>) = synchronized(this) { map.putAll(from) }
+    override fun remove(key: String): Any? = synchronized(this) { map.remove(key) }
 
     operator fun get(key: String, default: String): String {
         return when (val value = this[key]) {

@@ -235,7 +235,7 @@ class TextReader(val data: String) : BaseReader() {
         assert(skipSpace(), '[', "Start of Vector")
         val rawX = readFloat()
         val sep0 = skipSpace()
-        if(sep0 == ']') return Vector2f(rawX)
+        if (sep0 == ']') return Vector2f(rawX)
         assert(sep0, ',', "Separator of Vector")
         val rawY = readFloat()
         assert(skipSpace(), ']', "End of Vector")
@@ -267,6 +267,7 @@ class TextReader(val data: String) : BaseReader() {
         assert(sep1, ',', "Separator of Vector")
         val rawZ = readFloat()
         val sep2 = skipSpace()
+        if (sep2 == ']') return Vector4f(rawX, rawY, rawZ, 1f) // opaque color
         assert(sep2, ',', "Separator of Vector")
         val rawW = readFloat()
         assert(skipSpace(), ']', "End of Vector")
