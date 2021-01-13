@@ -188,7 +188,7 @@ class Framebuffer(
     private fun check() {
         val state = glCheckFramebufferStatus(GL_FRAMEBUFFER)
         if (state != GL_FRAMEBUFFER_COMPLETE) {
-            throw RuntimeException("framebuffer is incomplete: $state")
+            throw RuntimeException("Framebuffer is incomplete: $state")
         }
     }
 

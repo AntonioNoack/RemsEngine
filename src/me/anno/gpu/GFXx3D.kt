@@ -1,5 +1,7 @@
 package me.anno.gpu
 
+import me.anno.gpu.GFX.windowHeight
+import me.anno.gpu.GFX.windowWidth
 import me.anno.gpu.ShaderLib.maxOutlineColors
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.buffer.StaticBuffer
@@ -98,8 +100,9 @@ object GFXx3D {
         shader.v1("useMaskColor", useMaskColor)
         shader.v1("invertMask", isInverted)
         shader.v1("maskType", maskType.id)
-        shader.v2("pixelating", pixelSize * GFX.windowHeight / GFX.windowWidth, pixelSize)
+        shader.v2("pixelating", pixelSize * windowHeight / windowWidth, pixelSize)
         shader.v3("greenScreenSettings", greenScreenSettings)
+        shader.v2("windowSize", windowWidth.toFloat(), windowHeight.toFloat())
         val buffer = if (isFullscreen) SimpleBuffer.flatLarge else SimpleBuffer.flat11
         buffer.draw(shader)
         GFX.check()
@@ -312,7 +315,8 @@ object GFXx3D {
     fun draw3DGaussianBlur(
         stack: Matrix4fArrayList,
         size: Float, w: Int, h: Int,
-        threshold: Float, isFirst: Boolean
+        threshold: Float, isFirst: Boolean,
+        isFullscreen: Boolean
     ) {
         val shader = ShaderLib.shader3DGaussianBlur
         transformUniform(shader, stack)
@@ -320,7 +324,8 @@ object GFXx3D {
         else shader.v2("stepSize", 1f / w, 0f)
         shader.v1("steps", size * h)
         shader.v1("threshold", threshold)
-        GFX.flat01.draw(shader)
+        val buffer = if (isFullscreen) SimpleBuffer.flatLarge else SimpleBuffer.flat11
+        buffer.draw(shader)
         GFX.check()
     }
 

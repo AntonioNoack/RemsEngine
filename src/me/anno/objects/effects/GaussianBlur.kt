@@ -18,12 +18,13 @@ object GaussianBlur {
     private fun drawBlur(
         target: Framebuffer, w: Int, h: Int, resultIndex: Int,
         threshold: Float, isFirst: Boolean,
+        isFullscreen: Boolean,
         localTransform: Matrix4fArrayList, size: Float, pixelSize: Float
     ) {
         // step1
         Frame(w, h, true, target) {
             GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT)
-            GFXx3D.draw3DGaussianBlur(localTransform, size, w, h, threshold, isFirst)
+            GFXx3D.draw3DGaussianBlur(localTransform, size, w, h, threshold, isFirst, isFullscreen)
         }
         target.bindTexture0(
             resultIndex,
@@ -35,7 +36,7 @@ object GaussianBlur {
     fun draw(
         src: Framebuffer,
         pixelSize: Float, w: Int, h: Int, resultIndex: Int,
-        threshold: Float,
+        threshold: Float, isFullscreen: Boolean,
         localTransform: Matrix4fArrayList
     ) {
 
@@ -77,11 +78,13 @@ object GaussianBlur {
             if (debug && 'I'.toInt() in Input.keysDown) println("$w,$h -> $smallerW,$smallerH")
 
             drawBlur(
-                FBStack["mask-gaussian-blur-0", smallerW, smallerH, 1, true], smallerW, smallerH, 0, threshold, true,
+                FBStack["mask-gaussian-blur-0", smallerW, smallerH, 1, true], smallerW, smallerH,
+                0, threshold, true, isFullscreen,
                 localTransform, size, pixelSize
             )
             drawBlur(
-                FBStack["mask-gaussian-blur-1", smallerW, smallerH, 1, true], smallerW, smallerH, resultIndex, 0f, false,
+                FBStack["mask-gaussian-blur-1", smallerW, smallerH, 1, true], smallerW, smallerH,
+                resultIndex, 0f, false, isFullscreen,
                 localTransform, size, pixelSize
             )
 

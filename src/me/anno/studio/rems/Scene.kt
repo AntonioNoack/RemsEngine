@@ -514,7 +514,7 @@ object Scene {
                 if (needsBloom) {
 
                     // create blurred version
-                    GaussianBlur.draw(buffer!!, bloomSize, w, h, 1, bloomThreshold, Matrix4fArrayList())
+                    GaussianBlur.draw(buffer!!, bloomSize, w, h, 1, bloomThreshold, false, Matrix4fArrayList())
                     buffer = getNextBuffer("Scene-Bloom", buffer!!, 0, GPUFiltering.TRULY_NEAREST, 1)
 
                     // add it on top

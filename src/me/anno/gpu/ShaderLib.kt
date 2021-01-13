@@ -13,6 +13,7 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
 import kotlin.math.PI
+import kotlin.math.exp
 
 object ShaderLib {
 
@@ -445,7 +446,7 @@ object ShaderLib {
                 "uniform float useMaskColor;\n" +
                 "uniform float invertMask;\n" +
                 "uniform vec2 pixelating;\n" +
-                "uniform vec2 blurDeltaUV;\n" +
+                "uniform vec2 windowSize;\n" +
                 "uniform int maskType;\n" +
                 "uniform float maxSteps;\n" +
                 "uniform vec3 greenScreenSettings;\n" +
@@ -453,7 +454,8 @@ object ShaderLib {
                 getColorForceFieldLib +
                 rgb2uv +
                 "void main(){\n" +
-                "   vec2 uv2 = uv.xy/uv.z * 0.5 + 0.5;\n" +
+                "   vec2 uv1 = uv.xy/uv.z;\n" +
+                "   vec2 uv2 = uv1 * 0.5 + 0.5;\n" +
                 "   vec4 mask = texture(mask, uv2);\n" +
                 "   vec4 color;\n" +
                 "   float effect, inverseEffect;\n" +
@@ -482,8 +484,31 @@ object ShaderLib {
                 "       case ${MaskType.BOKEH_BLUR.id}:\n" +
                 "           effect = mix(mask.a, dot(vec3(0.3), mask.rgb), useMaskColor);\n" +
                 "           effect = mix(effect, 1.0 - effect, invertMask);\n" +
-                "           vec4 src = texture(tex, uv2);\n" +
-                "           color = vec4(mix(src.rgb, texture(tex2, uv2).rgb, effect), src.a);\n" +
+                "           color = mix(texture(tex, uv2), texture(tex2, uv2), effect);\n" +
+                "           break;\n" +
+                "       case ${MaskType.RADIAL_BLUR.id}:\n" +
+                "           effect = mix(mask.a, dot(vec3(0.3), mask.rgb), useMaskColor);\n" +
+                "           effect = mix(effect, 1.0 - effect, invertMask);\n" +
+                "           if(abs(effect) > 0.001){\n" +
+                // where is this constant coming from???
+                "               vec2 dir = uv1 * -pixelating.y;\n" +
+                "               float weightSum = 0;\n" +
+                "               vec4 colorSum = vec4(0);\n" +
+                "               float steps0 = clamp(dot(windowSize, abs(dir)), 1, 1000);\n" +
+                "               float steps = exp(round(log(steps0))), invSteps = 1.0/floor(steps);\n" +
+                "               int stepsI = int(steps);\n" +
+                "               for(int i=0;i<stepsI;i++){" +
+                "                   float fi = float(i)*invSteps;" +
+                "                   float weight = 1-fi;\n" +
+                "                   vec2 nextUV = uv2 + dir * fi;\n" +
+                "                   vec4 colorHere = texture(tex, nextUV);\n" +
+                "                   colorSum += weight * colorHere;\n" +
+                "                   weightSum += weight;\n" +
+                "               }\n" +
+                "               color = mix(texture(tex, uv2), colorSum / weightSum, effect);\n" +
+                "           } else {\n" +
+                "               color = texture(tex, uv2);\n" +
+                "           }\n" +
                 "           break;\n" +
                 "       case ${MaskType.BLOOM.id}:\n" +
                 "           effect = mix(mask.a, dot(vec3(0.3), mask.rgb), useMaskColor);\n" +

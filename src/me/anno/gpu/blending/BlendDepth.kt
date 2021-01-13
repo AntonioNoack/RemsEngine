@@ -1,6 +1,8 @@
 package me.anno.gpu.blending
 
+import me.anno.gpu.GFX
 import org.lwjgl.opengl.GL11.*
+import java.lang.Exception
 import java.lang.RuntimeException
 import java.util.*
 
@@ -19,7 +21,12 @@ data class BlendDepth(val blendMode: BlendMode?, val depth: Boolean, val depthMa
 
     private fun use(render: () -> Unit){
         bind()
-        render()
+        try {
+            render()
+            GFX.check()
+        } catch (e: Exception){
+            e.printStackTrace()
+        }
         unbind()
     }
 
@@ -77,7 +84,7 @@ data class BlendDepth(val blendMode: BlendMode?, val depth: Boolean, val depthMa
     }
 
     private fun unbind(){
-        if(stack.pop() != this) throw RuntimeException()
+        if(stack.pop() != this) throw RuntimeException("BlendDepth not matching")
         val toBind = stack.peek()
         toBind.apply(this)
     }
