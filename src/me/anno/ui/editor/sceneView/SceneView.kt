@@ -58,6 +58,7 @@ import me.anno.utils.Color.r
 import me.anno.utils.Color.rgba
 import me.anno.utils.Lists.sumByFloat
 import me.anno.utils.Maths.clamp
+import me.anno.utils.Maths.length
 import me.anno.utils.Maths.pow
 import me.anno.utils.OS
 import me.anno.utils.Quad
@@ -535,24 +536,47 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
                     // rotating is the hardest on a touchpad, because we need to click right
                     // -> rotation
                     // axes: angle, zoom,
-                    // rotate
-                    // todo zoom
                     val dx = touches.sumByFloat { it.x - it.lastX } * size * 0.5f
                     val dy = touches.sumByFloat { it.y - it.lastY } * size * 0.5f
+
+                    val t0 = touches[0]
+                    val t1 = touches[1]
+
+                    val d1 = length(t1.x - t0.x, t1.y - t0.y)
+                    val d0 = length(t1.lastX - t0.lastX, t1.lastY - t0.lastY)
+
+                    val minDistance = 10
+                    if (d1 > minDistance && d0 > minDistance) {
+                        val time = cameraTime
+                        val oldCamZoom = camera.orbitRadius[time]
+                        if(oldCamZoom == 0f){
+                            // todo delta zoom for cameras without orbit
+                        } else {
+                            val newZoom = oldCamZoom * d0 / d1
+                            camera.putValue(camera.orbitRadius, newZoom, false)
+                        }
+                    }
+
                     val (_, time) = camera.getGlobalTransform(editorTime)
                     val old = camera.rotationYXZ[time]
                     val rotationSpeed = -10f
-                    camera.rotationYXZ.addKeyframe(time, old + Vector3f(dy * rotationSpeed, dx * rotationSpeed, 0f))
+                    if(!isLocked2D){
+                        camera.rotationYXZ.addKeyframe(time, old + Vector3f(dy * rotationSpeed, dx * rotationSpeed, 0f))
+                    } else {
+                        // move camera? completely ignore, what is selected
+                    }
                     touches.forEach { it.update() }
                     invalidateDrawing()
                 }
             }
             3 -> {
-                // todo move the camera around? :)
+                // very slow... but we can move around with a single finger, so it shouldn't matter...
+                // move the camera around
                 val first = touches.first()
+                val speed = 10f
                 if (contains(first.x, first.y)) {
-                    val dx = touches.sumByFloat { it.x - it.lastX } * size * 0.333f
-                    val dy = touches.sumByFloat { it.y - it.lastY } * size * 0.333f
+                    val dx = speed * touches.sumByFloat { it.x - it.lastX } * size * 0.333f
+                    val dy = speed * touches.sumByFloat { it.y - it.lastY } * size * 0.333f
                     move(camera, dx, dy)
                     touches.forEach { it.update() }
                     invalidateDrawing()
