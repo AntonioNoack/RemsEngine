@@ -8,8 +8,10 @@ import me.anno.video.FFMPEG.ffmpegPath
 import me.anno.video.FFMPEG.ffprobePath
 import org.apache.logging.log4j.LogManager
 import java.io.File
+import java.io.FileInputStream
 import java.io.IOException
 import java.net.HttpURLConnection
+import java.net.URI
 import java.net.URL
 import javax.net.ssl.SSLHandshakeException
 import kotlin.concurrent.thread
@@ -48,7 +50,7 @@ object Installer {
         // create a temporary file, and rename, so we know that we finished the download :)
         val tmp = File(dstFile.parentFile, dstFile.name + ".tmp")
         thread {
-            val totalURL = "${if (withHttps) "https" else "http"}://remsstudio.phychi.com/download/$fileName"
+            val totalURL = "${if (withHttps) "https" else "http"}://remsstudio.phychi.com/download/${fileName.replace(" ", "%20")}"
             try {
                 val con = URL(totalURL).openConnection() as HttpURLConnection
                 val input = con.inputStream.buffered()

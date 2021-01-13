@@ -31,35 +31,4 @@ It is additionally developed with Java, so it works with Windows and Linux.
 
 ## Download
 
-The version still is a pre-alpha.
-
-Missing, important features:
-- well working redo/undo
-
-### Linux
-
-FFmpeg needs to be installed.
-
-You can download the [universal build here](https://remsstudio.phychi.com/download/RemsStudio.jar).
-Later, I'll probably create specific builds depending on your OS, so they are smaller.
-
-My FFmpeg install on Linux Mint 19 somehow misses features, that FFmpeg for Windows has. You might encounter issues as well.
-Observed missing features:
-- wav file can't be exported without extra INFO-header; I built a work-around for that
-- I have a gif file, which can't be played on Linux
-
-### Windows
-
-You probably have to copy the files for ffmpeg (the program will tell you in the console). This is because of a bug in Java 8 (but Java 8 is the default download for Win10), and a slight config issue on my webserver.
-
-You can download the [universal build here](https://remsstudio.phychi.com/download/RemsStudio.jar).
-Later, I'll probably create specific builds depending on your OS, so they are smaller.
-
-### Mac OS
-
-I own no device to test Rem's Studio on Mac OS. I read that installing Java on iOS isn't that easy either.
-I am sure, you could make it work, if you are a developer. I have included the FFmpeg files for Mac OS in the [universal build, which you can download here](https://phychi.com/remsstudio/VideoStudio.jar).
-
-### Android / iOS
-
-I don't have currently good touch controls, and the ui isn't meant for mobile devices, soo...
+**[Download on the official website](https://remsstudio.phychi.com/?s=download)**

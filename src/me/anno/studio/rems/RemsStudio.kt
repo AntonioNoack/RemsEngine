@@ -12,6 +12,7 @@ import me.anno.objects.Transform
 import me.anno.studio.GFXSettings
 import me.anno.studio.StudioBase
 import me.anno.studio.project.Project
+import me.anno.studio.rems.CheckVersion.checkVersion
 import me.anno.ui.editor.PropertyInspector
 import me.anno.ui.editor.TimelinePanel
 import me.anno.ui.editor.UILayouts
@@ -20,12 +21,9 @@ import me.anno.ui.editor.sceneView.ISceneView
 import me.anno.ui.editor.treeView.TreeView
 import me.anno.utils.OS
 import java.io.File
-import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.concurrent.thread
 
 // todo "hacked"-text effect for text: swizzle characters and introduce others
-
-// todo editor screenshot
 
 // todo draw frame by frame, only save x,y,radius?
 
@@ -35,11 +33,15 @@ import kotlin.concurrent.thread
 
 object RemsStudio : StudioBase(true, "Rem's Studio", "RemsStudio") {
 
+    val versionNumber = 10000
+    val versionName = "${versionNumber/10000}.${(versionNumber/100)%100}.${versionNumber%100}"
+
     override fun onGameInit() {
         RemsConfig.init()
         gfxSettings = GFXSettings.get(DefaultConfig["editor.gfx", GFXSettings.LOW.id], GFXSettings.LOW)
         workspace = DefaultConfig["workspace.dir", File(OS.documents, "RemsStudio")]
         checkInstall()
+        checkVersion()
     }
 
     override fun createUI() {

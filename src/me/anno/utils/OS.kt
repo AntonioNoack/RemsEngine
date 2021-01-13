@@ -8,6 +8,7 @@ object OS {// the os is important for some things, e.g. the allowed file names, 
     val data = System.getProperty("os.name")
     val isWindows = data.contains("windows", true)
     val isLinux = !isWindows // ^^
+    val isMac = false // ^^
 
     // we haven't implemented a mobile version yet (because that needs different controls),
     // and idk about performance
