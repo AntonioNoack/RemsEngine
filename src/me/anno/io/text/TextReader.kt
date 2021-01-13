@@ -266,7 +266,8 @@ class TextReader(val data: String) : BaseReader() {
         if (sep1 == ']') return Vector4f(rawX, rawX, rawX, rawY) // white with alpha
         assert(sep1, ',', "Separator of Vector")
         val rawZ = readFloat()
-        assert(skipSpace(), ',', "Separator of Vector")
+        val sep2 = skipSpace()
+        assert(sep2, ',', "Separator of Vector")
         val rawW = readFloat()
         assert(skipSpace(), ']', "End of Vector")
         return Vector4f(rawX, rawY, rawZ, rawW)

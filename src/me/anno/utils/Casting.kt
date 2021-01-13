@@ -4,6 +4,7 @@ import org.joml.*
 
 object Casting {
 
+    fun castToInt2(it: Any?) = castToInt(it ?: 0) ?: 0
     fun castToInt(it: Any): Int? = when (it) {
         is Int -> it
         is Long -> it.toInt()
@@ -17,6 +18,7 @@ object Casting {
         else -> null
     }
 
+    fun castToLong2(it: Any?) = castToLong(it ?: 0L) ?: 0L
     fun castToLong(it: Any): Long? = when (it) {
         is Int -> it.toLong()
         is Long -> it
@@ -30,6 +32,7 @@ object Casting {
         else -> null
     }
 
+    fun castToFloat2(it: Any?) = castToFloat(it ?: 0f) ?: 0f
     fun castToFloat(it: Any): Float? = when (it) {
         is Int -> it.toFloat()
         is Long -> it.toFloat()
@@ -43,6 +46,7 @@ object Casting {
         else -> null
     }
 
+    fun castToDouble2(it: Any?) = castToDouble(it ?: 0.0) ?: 0.0
     fun castToDouble(it: Any): Double? = when (it) {
         is Int -> it.toDouble()
         is Long -> it.toDouble()
@@ -56,6 +60,7 @@ object Casting {
         else -> null
     }
 
+    fun castToVector2fb(it: Any?) = castToVector2f(it ?: Unit) ?: Vector2f()
     fun castToVector2f(it: Any): Vector2f? = when (it) {
         is Int -> Vector2f(it.toFloat())
         is Long -> Vector2f(it.toFloat())
@@ -69,6 +74,7 @@ object Casting {
         else -> null
     }
 
+    fun castToVector3fb(it: Any?) = castToVector3f(it ?: Unit) ?: Vector3f()
     fun castToVector3f(it: Any): Vector3f? = when (it) {
         is Int -> Vector3f(it.toFloat())
         is Long -> Vector3f(it.toFloat())
@@ -82,6 +88,7 @@ object Casting {
         else -> null
     }
 
+    fun castToVector4fb(it: Any?) = castToVector4f(it ?: Unit) ?: Vector4f()
     fun castToVector4f(it: Any): Vector4f? = when (it) {
         is Int -> Vector4f(it.toFloat())
         is Long -> Vector4f(it.toFloat())
@@ -95,6 +102,7 @@ object Casting {
         else -> null
     }
 
+    fun castToVector4db(it: Any?) = castToVector4d(it ?: Unit) ?: Vector4d()
     fun castToVector4d(it: Any): Vector4d? = when (it) {
         is Int -> Vector4d(it.toDouble())
         is Long -> Vector4d(it.toDouble())

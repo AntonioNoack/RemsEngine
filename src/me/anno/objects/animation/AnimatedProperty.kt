@@ -56,6 +56,7 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
         fun vec4() = AnimatedProperty<Vector4f>(Type.VEC4)
         fun vec4(defaultValue: Vector4f) = AnimatedProperty(Type.VEC4, defaultValue)
         fun pos() = AnimatedProperty<Vector3f>(Type.POSITION)
+        fun pos2D() = AnimatedProperty<Vector2f>(Type.POSITION_2D)
         fun rotYXZ() = AnimatedProperty<Vector3f>(Type.ROT_YXZ)
         fun rotXZ() = AnimatedProperty<Vector2f>(Type.ROT_XZ)
         fun scale() = AnimatedProperty<Vector3f>(Type.SCALE)
@@ -304,24 +305,7 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
         } as Any // needed by Intellij Kotlin compiler
     }
 
-    private fun fromCalc(a: Any): V {
-        return when (type) {
-            Type.INT,
-            Type.INT_PLUS -> (a as Double).roundToInt()
-            Type.LONG -> (a as Double).toLong()
-            Type.FLOAT,
-            Type.FLOAT_01, Type.FLOAT_01_EXP,
-            Type.FLOAT_PLUS -> (a as Double).toFloat()
-            Type.DOUBLE -> a
-            Type.SKEW_2D -> a
-            Type.POSITION,
-            Type.ROT_YXZ,
-            Type.SCALE -> a
-            Type.COLOR, Type.TILING -> a
-            Type.QUATERNION -> a
-            else -> throw RuntimeException("don't know how to calc2 $a")
-        } as V
-    }
+    private fun fromCalc(a: Any): V = clampAny(a)
 
     /**
      * b + a * f

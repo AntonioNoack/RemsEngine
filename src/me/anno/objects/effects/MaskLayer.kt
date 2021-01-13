@@ -19,10 +19,12 @@ import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.geometric.Circle
 import me.anno.objects.geometric.Polygon
+import me.anno.studio.rems.Scene.mayUseMSAA
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
 import org.joml.Matrix4fArrayList
+import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
 import org.lwjgl.opengl.GL11.*
@@ -32,16 +34,19 @@ class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
     // just a little expensive...
     // todo why is multisampling sometimes black?
     // it's not yet production ready...
-    val samples get() = 1// if(mayUseMSAA) 8 else 1
+    val samples get() = if(useExperimentalMSAA && mayUseMSAA) 8 else 1
 
     lateinit var mask: Framebuffer
     lateinit var masked: Framebuffer
+
+    var useExperimentalMSAA = false
 
     // limit to [0,1]?
     // nice effects can be created with values outside of [0,1], so while [0,1] is the valid range,
     // numbers outside [0,1] give artists more control
     val useMaskColor = AnimatedProperty.float()
     val blurThreshold = AnimatedProperty.float()
+    val effectOffset = AnimatedProperty.pos2D()
 
     val greenScreenSimilarity = AnimatedProperty.float01(0.03f)
     val greenScreenSmoothness = AnimatedProperty.float01(0.01f)
@@ -67,34 +72,46 @@ class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
 
         val showResult = isFinalRendering || (!showMask && !showMasked)
+        var needsDefault = false
         if (children.size >= 2 && showResult) {// else invisible
 
-            val w = GFX.windowWidth
-            val h = GFX.windowHeight
-            mask = FBStack["mask", w, h, samples, true]
-            masked = FBStack["masked", w, h, samples, true]
+            val size = effectSize[time]
 
-            BlendDepth(null, false) {
+            if (size > 0f) {
 
-                // (low priority)
-                // to do calculate the size on screen to limit overhead
-                // to do this additionally requires us to recalculate the transform
+                val w = GFX.windowWidth
+                val h = GFX.windowHeight
+                mask = FBStack["mask", w, h, samples, true]
+                masked = FBStack["masked", w, h, samples, true]
 
-                BlendMode.DEFAULT.apply()
+                BlendDepth(null, false) {
 
-                drawMask(stack, time, color)
+                    // (low priority)
+                    // to do calculate the size on screen to limit overhead
+                    // to do this additionally requires us to recalculate the transform
 
-                BlendMode.DEFAULT.apply()
+                    BlendMode.DEFAULT.apply()
 
-                drawMasked(stack, time, color)
+                    drawMask(stack, time, color)
+
+                    BlendMode.DEFAULT.apply()
+
+                    drawMasked(stack, time, color)
+                }
+
+                drawOnScreen(stack, time, color)
+
+            } else {
+
+                // draw default
+                needsDefault = true
+
             }
-
-            drawOnScreen(stack, time, color)
 
         } else super.onDraw(stack, time, color)
 
         if (showMask && !isFinalRendering) drawChild(stack, time, color, children.getOrNull(0))
-        if (showMasked && !isFinalRendering) drawChild(stack, time, color, children.getOrNull(1))
+        if (needsDefault || (showMasked && !isFinalRendering)) drawChild(stack, time, color, children.getOrNull(1))
 
     }
 
@@ -105,8 +122,10 @@ class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
         writer.writeBoolean("showMasked", showMasked, true)
         writer.writeBoolean("isFullscreen", isFullscreen, true)
         writer.writeBoolean("isInverted", isInverted, true)
+        writer.writeBoolean("useMSAA", useExperimentalMSAA)
         writer.writeObject(this, "useMaskColor", useMaskColor)
         writer.writeObject(this, "blurThreshold", blurThreshold)
+        writer.writeObject(this, "effectOffset", effectOffset)
         writer.writeInt("type", type.id)
         writer.writeObject(this, "pixelSize", effectSize)
         writer.writeObject(this, "greenScreenSimilarity", greenScreenSimilarity)
@@ -120,6 +139,7 @@ class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
             "showMasked" -> showMasked = value
             "isFullscreen" -> isFullscreen = value
             "isInverted" -> isInverted = value
+            "useMSAA" -> useExperimentalMSAA = value
             else -> super.readBoolean(name, value)
         }
     }
@@ -129,6 +149,7 @@ class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
             "useMaskColor" -> useMaskColor.copyFrom(value)
             "blurThreshold" -> blurThreshold.copyFrom(value)
             "pixelSize" -> effectSize.copyFrom(value)
+            "effectOffset" -> effectOffset.copyFrom(value)
             "greenScreenSimilarity" -> greenScreenSimilarity.copyFrom(value)
             "greenScreenSmoothness" -> greenScreenSmoothness.copyFrom(value)
             "greenScreenSpillValue" -> greenScreenSpillValue.copyFrom(value)
@@ -199,6 +220,9 @@ class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
         val w = GFX.windowWidth
         val h = GFX.windowHeight
 
+        val offset0 = effectOffset[time]
+        val offset = Vector2f(offset0.x, offset0.y)
+
         when (type) {
             MaskType.GAUSSIAN_BLUR, MaskType.BLOOM -> {
 
@@ -220,7 +244,7 @@ class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
                 GFXx3D.draw3DMasked(
                     stack, color,
                     type, useMaskColor[time],
-                    pixelSize, isInverted,
+                    pixelSize, offset, isInverted,
                     isFullscreen,
                     greenScreenSettings(time)
                 )
@@ -244,7 +268,7 @@ class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
                 GFXx3D.draw3DMasked(
                     stack, color,
                     type, useMaskColor[time],
-                    0f, isInverted,
+                    0f, offset, isInverted,
                     isFullscreen,
                     greenScreenSettings(time)
                 )
@@ -281,7 +305,7 @@ class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
                 GFXx3D.draw3DMasked(
                     stack, color,
                     type, useMaskColor[time],
-                    pixelSize, isInverted,
+                    pixelSize, offset, isInverted,
                     isFullscreen,
                     greenScreenSettings(time)
                 )
@@ -301,12 +325,15 @@ class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
         mask += vi("Size", "How large pixelated pixels or blur should be", effectSize, style)
         mask += vi("Invert Mask", "Changes transparency with opacity", null, isInverted, style) { isInverted = it }
         mask += vi("Use Color / Transparency", "Should the color influence the masked?", useMaskColor, style)
+        mask += vi("Center Offset", "For the radial blur", effectOffset, style)
         mask += vi("Blur Threshold", "", blurThreshold, style)
         mask += vi(
             "Make Huge", "Scales the mask, without affecting the children", null,
             isFullscreen, style
         ) { isFullscreen = it }
-        val greenScreen = getGroup("Green Screen", "Type needs to be green-screen; cuts out a specific color", "greenScreen")
+        mask += vi("Use MSAA(!)", "MSAA is experimental, may not always work", null, useExperimentalMSAA, style){ useExperimentalMSAA = it }
+        val greenScreen =
+            getGroup("Green Screen", "Type needs to be green-screen; cuts out a specific color", "greenScreen")
         greenScreen += vi("Similarity", "", greenScreenSimilarity, style)
         greenScreen += vi("Smoothness", "", greenScreenSmoothness, style)
         greenScreen += vi("Spill Value", "", greenScreenSpillValue, style)

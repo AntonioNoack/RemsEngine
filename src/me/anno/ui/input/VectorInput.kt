@@ -268,6 +268,10 @@ class VectorInput(
                     val scaleFactor = 0.2f
                     setValue(Vector3f(vx + dx0 * scaleFactor, vy - dy0 * scaleFactor, vz), true)
                 }
+                Type.POSITION_2D -> {
+                    val scaleFactor = 0.2f
+                    setValue(Vector2f(vx + dx0 * scaleFactor, vy - dy0 * scaleFactor), true)
+                }
                 Type.ROT_YXZ -> {
                     val scaleFactor = 20f
                     if (isControlDown) {

@@ -150,7 +150,7 @@ object SignedDistanceField {
         }
 
         if (contours.sumBy { it.segments.size } < 1) {
-            return TextSDF(null, Vector2f())
+            return TextSDF.empty
         }
 
         val bounds = AABBf()
@@ -168,7 +168,7 @@ object SignedDistanceField {
         val h = ((maxY - minY) * sdfResolution).toInt()
 
         if (w < 1 || h < 1) {
-            return TextSDF(null, Vector2f())
+            return TextSDF.empty
         }
 
         val buffer = ByteBuffer.allocateDirect(w * h * 4)

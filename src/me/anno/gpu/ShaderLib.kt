@@ -446,7 +446,7 @@ object ShaderLib {
                 "uniform float useMaskColor;\n" +
                 "uniform float invertMask;\n" +
                 "uniform vec2 pixelating;\n" +
-                "uniform vec2 windowSize;\n" +
+                "uniform vec2 windowSize, offset;\n" +
                 "uniform int maskType;\n" +
                 "uniform float maxSteps;\n" +
                 "uniform vec3 greenScreenSettings;\n" +
@@ -486,12 +486,14 @@ object ShaderLib {
                 "           effect = mix(effect, 1.0 - effect, invertMask);\n" +
                 "           color = mix(texture(tex, uv2), texture(tex2, uv2), effect);\n" +
                 "           break;\n" +
+                // mix in original? no, we would need many more variables
+                // can be done by reducing the effect strength and increasing the color strength
                 "       case ${MaskType.RADIAL_BLUR.id}:\n" +
                 "           effect = mix(mask.a, dot(vec3(0.3), mask.rgb), useMaskColor);\n" +
                 "           effect = mix(effect, 1.0 - effect, invertMask);\n" +
                 "           if(abs(effect) > 0.001){\n" +
                 // where is this constant coming from???
-                "               vec2 dir = uv1 * -pixelating.y;\n" +
+                "               vec2 dir = (uv1 - offset) * -pixelating.y;\n" +
                 "               float weightSum = 0;\n" +
                 "               vec4 colorSum = vec4(0);\n" +
                 "               float steps0 = clamp(dot(windowSize, abs(dir)), 1, 1000);\n" +

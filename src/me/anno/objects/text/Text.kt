@@ -43,6 +43,7 @@ import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
 import java.awt.font.TextLayout
+import java.lang.RuntimeException
 import kotlin.math.max
 import kotlin.math.min
 
@@ -139,9 +140,11 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
     }
 
     fun getTextTexture(key: TextSegmentKey): TextSDFGroup? {
-        return Cache.getEntry(key to 1, textMeshTimeout, shallLoadAsync) {
+        val entry = Cache.getEntry(key to 1, textMeshTimeout, shallLoadAsync) {
             TextSDFGroup(key.font, key.text, charSpacing, forceVariableBuffer)
-        } as? TextSDFGroup
+        } ?: return null
+        if(entry !is TextSDFGroup) throw RuntimeException("Got different class for $key to 1: ${entry.javaClass.simpleName}")
+        return entry
     }
 
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
@@ -285,7 +288,7 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
 
         val sdf2 = getTextTexture(key)
         if (sdf2 == null) {
-            if (GFX.isFinalRendering) throw MissingFrameException("Text-Texture $font: '$text'")
+            if (GFX.isFinalRendering) throw MissingFrameException("Text-Texture (291) $font: '$text'")
             needsUpdate = true
             return
         }
@@ -297,7 +300,6 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
         sdf2.draw(startIndex, endIndex) { _, sdf, xOffset ->
 
             val texture = sdf?.texture
-
             if (texture != null && texture.isCreated) {
 
                 stack.pushMatrix()
@@ -359,9 +361,9 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
 
                 stack.popMatrix()
 
-            } else {
+            } else if(sdf?.isValid != true){
 
-                if (GFX.isFinalRendering) throw MissingFrameException("Text-Texture $font: '$text'")
+                if (GFX.isFinalRendering) throw MissingFrameException("Text-Texture (367) $font: '$text'")
                 needsUpdate = true
 
             }
@@ -377,7 +379,7 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
 
         val textMesh = getTextMesh(key)
         if (textMesh == null) {
-            if (GFX.isFinalRendering) throw MissingFrameException("Text-Mesh $font: '$text'")
+            if (GFX.isFinalRendering) throw MissingFrameException("Text-Mesh (383) $font: '$text'")
             needsUpdate = true
             return
         }

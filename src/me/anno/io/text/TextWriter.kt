@@ -361,8 +361,8 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
     private fun writeVector4f(value: Vector4f) {
         data += '['
         // compressed writing for gray scale values, which are typical
-        val xyz = value.x == value.y && value.x == value.z
-        val xw = value.x == value.w
+        val xyz = !(value.x == value.y && value.x == value.z)
+        val xw = value.x != value.w
         append(value.x)
         if (xyz) {
             data += separator
@@ -380,8 +380,8 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
     private fun writeVector4d(value: Vector4d) {
         data += '['
         // compressed writing for gray scale values, which are typical
-        val xyz = value.x == value.y && value.x == value.z
-        val xw = value.x == value.w
+        val xyz = !(value.x == value.y && value.x == value.z)
+        val xw = value.x != value.w
         append(value.x)
         if (xyz) {
             data += separator

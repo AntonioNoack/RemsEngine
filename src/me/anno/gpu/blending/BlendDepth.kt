@@ -1,6 +1,7 @@
 package me.anno.gpu.blending
 
 import me.anno.gpu.GFX
+import me.anno.video.MissingFrameException
 import org.lwjgl.opengl.GL11.*
 import java.lang.Exception
 import java.lang.RuntimeException
@@ -24,6 +25,8 @@ data class BlendDepth(val blendMode: BlendMode?, val depth: Boolean, val depthMa
         try {
             render()
             GFX.check()
+        } catch (e: MissingFrameException){
+            throw e
         } catch (e: Exception){
             e.printStackTrace()
         }

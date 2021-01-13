@@ -13,6 +13,7 @@ import me.anno.objects.Camera
 import me.anno.studio.rems.RemsStudio.nullCamera
 import me.anno.studio.rems.RemsStudio.root
 import me.anno.studio.rems.Scene
+import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL11.*
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.concurrent.thread
@@ -23,10 +24,15 @@ class VideoBackgroundTask(val video: VideoCreator, val motionBlurSteps: Int, val
 
     val camera = cameras.firstOrNull() ?: nullCamera ?: Camera()
 
-    val partialFrame =
-        Framebuffer("VideoBackgroundTask-partial", video.w, video.h, 1, 1, false, Framebuffer.DepthBufferType.TEXTURE)
-    val averageFrame =
-        Framebuffer("VideoBackgroundTask-sum", video.w, video.h, 1, 1, true, Framebuffer.DepthBufferType.TEXTURE)
+    val partialFrame = Framebuffer(
+        "VideoBackgroundTask-partial", video.w, video.h, 1, 1,
+        false, Framebuffer.DepthBufferType.TEXTURE
+    )
+
+    val averageFrame = Framebuffer(
+        "VideoBackgroundTask-sum", video.w, video.h, 1, 1,
+        true, Framebuffer.DepthBufferType.TEXTURE
+    )
 
     val renderingIndex = AtomicInteger(0)
     val savingIndex = AtomicInteger(0)
@@ -109,6 +115,7 @@ class VideoBackgroundTask(val video: VideoCreator, val motionBlurSteps: Int, val
                     )
                     if (!GFX.isFinalRendering) throw RuntimeException()
                 } catch (e: MissingFrameException) {
+                    missingResource = e.message ?: ""
                     needsMoreSources = true
                 }
             }
@@ -131,6 +138,7 @@ class VideoBackgroundTask(val video: VideoCreator, val motionBlurSteps: Int, val
                             )
                             if (!GFX.isFinalRendering) throw RuntimeException()
                         } catch (e: MissingFrameException) {
+                            missingResource = e.message ?: ""
                             needsMoreSources = true
                         }
                     }
@@ -155,6 +163,17 @@ class VideoBackgroundTask(val video: VideoCreator, val motionBlurSteps: Int, val
 
         return true
 
+    }
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(VideoBackgroundTask::class)
+        var missingResource = ""
+            set(value) {
+                if (field != value) {
+                    LOGGER.info("Waiting for $value")
+                }
+                field = value
+            }
     }
 
 }
