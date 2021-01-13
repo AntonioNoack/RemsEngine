@@ -630,16 +630,8 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
                 // todo find the (truly) correct speed...
                 // depends on FOV, camera and object transform
 
-                // val camPos = camera2global.transformPosition(Vector3f())
-                // val targetPos = target2global.transformPosition(Vector3f())
-                // val uiZ = camPos.distance(targetPos)
-
                 val oldPosition = selected.position[localTime]
-                /*val localDelta = camera2target.transformDirection(
-                    if (Input.isControlDown) Vector3f(0f, 0f, -delta)
-                    else Vector3f(dx0, -dy0, 0f)
-                ) * (uiZ / 6) // why ever 1/6...*/
-                val localDelta = if (Input.isControlDown)
+                val localDelta = if (isControlDown)
                     camera2target.transformDirection(Vector3f(0f, 0f, -delta)) * (targetZ / 6)
                 else pos1
                 RemsStudio.incrementalChange("Move Object") {
@@ -652,7 +644,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
                 val speed2 = 1f / h
                 val oldScale = selected.scale[localTime]
                 val localDelta = target2camera.transformDirection(
-                    if (Input.isControlDown) Vector3f(dx0, dy0, 0f)
+                    if (isControlDown) Vector3f(dx0, dy0, 0f)
                     else Vector3f(delta0, delta0, delta0)
                 )
                 val base = 2f
@@ -678,10 +670,9 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
                 val deltaDegree = newDegree - oldDegree
                 val speed2 = 20f / h
                 val oldRotation = selected.rotationYXZ[localTime]
-                val localDelta = //global2ui.transformDirection(
-                    if (Input.isControlDown) Vector3f(dx0 * speed2, -dy0 * speed2, 0f)
+                val localDelta =
+                    if (isControlDown) Vector3f(dx0 * speed2, -dy0 * speed2, 0f)
                     else Vector3f(0f, 0f, -deltaDegree)
-                //)
                 RemsStudio.incrementalChange("Rotate Object") {
                     selected.rotationYXZ.addKeyframe(localTime, oldRotation + localDelta)
                 }
@@ -693,14 +684,14 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
         // fov is relative to height -> modified to depend on height
-        val size = 20f * shiftSlowdown * (if (selectedTransform === camera) -1f else 1f) / GFX.height
+        val size = 20f * shiftSlowdown / GFX.height
         val dx0 = dx * size
         val dy0 = dy * size
         // move stuff, if mouse is down and no touch is down
         if (0 in mouseKeysDown && touches.size < 2) {
             // move the object
             val selected = selectedTransform
-            if (selected != null) {
+            if (selected != null && selected != camera) {
                 move(selected, dx, dy)
             } else {
                 moveDirectly(-dx0, +dy0, 0f)
