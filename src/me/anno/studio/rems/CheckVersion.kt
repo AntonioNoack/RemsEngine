@@ -28,6 +28,8 @@ object CheckVersion {
                     val name = "RemsStudio $mega.$major.$minor.${if (OS.isWindows) "exe" else "jar"}"
                     val dst = File(OS.documents, name)
                     if(!dst.exists()){
+                        LOGGER.info("Found newer version: $name")
+                        // wait for everything to be loaded xD
                         addEvent {
                             Menu.openMenu(
                                 NameDesc("New Version Available!", "", "ui.newVersion"), listOf(

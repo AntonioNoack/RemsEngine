@@ -23,6 +23,8 @@ import me.anno.utils.OS
 import java.io.File
 import kotlin.concurrent.thread
 
+// todo spline editor inside Rem's Studio, with points, that can be animated (???)
+
 // todo "hacked"-text effect for text: swizzle characters and introduce others
 
 // todo draw frame by frame, only save x,y,radius?
@@ -33,8 +35,17 @@ import kotlin.concurrent.thread
 
 object RemsStudio : StudioBase(true, "Rem's Studio", "RemsStudio") {
 
-    val versionNumber = 10000
-    val versionName = "${versionNumber/10000}.${(versionNumber/100)%100}.${versionNumber%100}"
+    /**
+     * version of Rem's Studio,
+     * will not change during runtime
+     * */
+    const val versionNumber = 10000
+
+    /**
+     * version of Rem's Studio as string,
+     * x.yy.zz
+     * */
+    const val versionName = "${versionNumber/10000}.${(versionNumber/100)%100}.${versionNumber%100}"
 
     override fun onGameInit() {
         RemsConfig.init()

@@ -11,7 +11,6 @@ import me.anno.input.Input
 import me.anno.input.Input.mouseX
 import me.anno.input.Input.mouseY
 import me.anno.input.MouseButton
-import me.anno.language.Language
 import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
 import me.anno.objects.Camera
@@ -24,6 +23,7 @@ import me.anno.studio.rems.RemsStudio.gfxSettings
 import me.anno.studio.rems.RemsStudio.nullCamera
 import me.anno.studio.rems.RemsStudio.project
 import me.anno.studio.rems.RemsStudio.root
+import me.anno.studio.rems.RemsStudio.versionName
 import me.anno.studio.rems.RemsStudio.windowStack
 import me.anno.studio.rems.RemsStudio.workspace
 import me.anno.studio.rems.RenderSettings
@@ -65,8 +65,10 @@ import me.anno.ui.input.FileInput
 import me.anno.ui.input.TextInput
 import me.anno.ui.style.Style
 import me.anno.utils.FileHelper.openInExplorer
+import me.anno.utils.OpenInBrowser.openInBrowser
 import org.apache.logging.log4j.LogManager
 import java.io.File
+import java.net.URL
 import kotlin.concurrent.thread
 import kotlin.math.max
 import kotlin.math.roundToInt
@@ -75,9 +77,14 @@ object UILayouts {
 
     private val LOGGER = LogManager.getLogger(UILayouts::class)
 
-    fun openProject(name: String, file: File) {
+    /**
+     * opens a project; completely async
+     * @param name: name of the project
+     * @param folder: location of the project
+     * */
+    fun openProject(name: String, folder: File) {
         thread {
-            RemsStudio.loadProject(name.trim(), file)
+            RemsStudio.loadProject(name.trim(), folder)
             addEvent {
                 windowStack.clear()
                 createEditorUI()
@@ -193,6 +200,7 @@ object UILayouts {
         val newProject = SettingCategory("New Project", "New Workplace", "ui.project.new", style)
         newProject.show2()
 
+        // cannot be moved down
         lateinit var fileInput: FileInput
 
         fun updateFileInputColor() {
@@ -255,7 +263,8 @@ object UILayouts {
         nameInput.setEnterListener { loadNewProject(usableFile, nameInput) }
 
         var lastName = nameInput.text
-        fileInput = FileInput(Dict["Project Location", "ui.newProject.location"], style, File(workspace, nameInput.text))
+        fileInput =
+            FileInput(Dict["Project Location", "ui.newProject.location"], style, File(workspace, nameInput.text))
 
         updateFileInputColor()
 
@@ -293,6 +302,11 @@ object UILayouts {
         val welcome = PanelListY(style)
 
         welcome += TextPanel("Rem's Studio", style).apply { font = font.withSize(font.size * 3f) }
+        welcome += TextPanel("Version ${RemsStudio.versionName}", style).apply {
+            textColor = textColor and 0x7fffffff
+            focusTextColor = textColor
+        }
+
         welcome += SpacePanel(0, 1, style)
 
         val recent = getRecentProjects()
@@ -395,36 +409,37 @@ object UILayouts {
         val selectTitle = Dict["Select", "ui.top.select"]
         val debugTitle = Dict["Debug", "ui.top.debug"]
         val renderTitle = Dict["Render", "ui.top.render"]
+        val helpTitle = Dict["Help", "ui.top.help"]
 
-        // todo translation
+        // todo complete translation
         // todo option to save/load/restore layout
-        options.addAction(configTitle, "Settings") {
+        options.addAction(configTitle, Dict["Settings", "ui.top.config.settings"]) {
             val panel = ConfigPanel(DefaultConfig, false, style)
             val window = reloadWindow(panel, true)
             panel.create()
             windowStack.push(window)
         }
 
-        options.addAction(configTitle, "Style") {
+        options.addAction(configTitle, Dict["Style", "ui.top.config.style"]) {
             val panel = ConfigPanel(DefaultConfig.style.values, true, style)
             val window = reloadWindow(panel, true)
             panel.create()
             windowStack.push(window)
         }
 
-        options.addAction(configTitle, "Language") {
+        options.addAction(configTitle, Dict["Language", "ui.top.config.language"]) {
             Dict.selectLanguages(style).onMouseClicked(mouseX, mouseY, MouseButton.LEFT, false)
         }
 
         val menuStyle = style.getChild("menu")
 
-        options.addAction(projectTitle, "Settings") { selectTransform(ProjectSettings) }
-        options.addAction(projectTitle, "Save") {
+        options.addAction(projectTitle, Dict["Settings", "ui.top.project.settings"]) { selectTransform(ProjectSettings) }
+        options.addAction(projectTitle, Dict["Save", "ui.top.project.save"]) {
             Input.save()
             LOGGER.info("Saved the project")
         }
 
-        options.addAction(projectTitle, "Load") {
+        options.addAction(projectTitle, Dict["Load", "ui.top.project.load"]) {
             openMenuComplex2(
                 NameDesc("Load Project", "", "ui.loadProject"), listOf(
                     createRecentProjectsUI(menuStyle, getRecentProjects()),
@@ -453,6 +468,17 @@ object UILayouts {
         options.addAction(renderTitle, "Full") { renderPart(1) }
         options.addAction(renderTitle, "Half") { renderPart(2) }
         options.addAction(renderTitle, "Quarter") { renderPart(4) }
+
+        options.addAction(helpTitle, "Tutorials"){
+            URL("https://remsstudio.phychi.com/?s=learn").openInBrowser()
+        }
+        options.addAction(helpTitle, "Version: $versionName"){}
+        options.addAction(helpTitle, "About"){
+            // to do more info
+            msg(NameDesc("Rem's Studio is created by Antonio Noack from Jena, Germany", "", ""))
+            // e.g. the info, why I created it
+            // that it is Open Source
+        }
 
         ui += options
         ui += SceneTabs
@@ -501,6 +527,9 @@ object UILayouts {
 
     }
 
+    /**
+     * prints the layout for UI debugging
+     * */
     fun printLayout() {
         LOGGER.info("Layout:")
         for (window1 in GFX.windowStack) {

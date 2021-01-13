@@ -34,7 +34,7 @@ class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
     // just a little expensive...
     // todo why is multisampling sometimes black?
     // it's not yet production ready...
-    val samples get() = if(useExperimentalMSAA && mayUseMSAA) 8 else 1
+    val samples get() = if (useExperimentalMSAA && mayUseMSAA) 8 else 1
 
     lateinit var mask: Framebuffer
     lateinit var masked: Framebuffer
@@ -254,10 +254,8 @@ class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
 
                 val temp = FBStack["mask-bokeh", w, h, 1, true]
 
-                // todo not working correctly for large sizes because of too small sample size
-                // calculate and apply bokeh...
-
                 val src0 = masked
+                src0.bindTexture0(0, src0.textures[0].filtering, src0.textures[0].clamping)
                 val srcBuffer = src0.msBuffer ?: src0
                 BokehBlur.draw(srcBuffer.textures[0], temp, pixelSize)
 
@@ -331,7 +329,13 @@ class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
             "Make Huge", "Scales the mask, without affecting the children", null,
             isFullscreen, style
         ) { isFullscreen = it }
-        mask += vi("Use MSAA(!)", "MSAA is experimental, may not always work", null, useExperimentalMSAA, style){ useExperimentalMSAA = it }
+        mask += vi(
+            "Use MSAA(!)",
+            "MSAA is experimental, may not always work",
+            null,
+            useExperimentalMSAA,
+            style
+        ) { useExperimentalMSAA = it }
         val greenScreen =
             getGroup("Green Screen", "Type needs to be green-screen; cuts out a specific color", "greenScreen")
         greenScreen += vi("Similarity", "", greenScreenSimilarity, style)

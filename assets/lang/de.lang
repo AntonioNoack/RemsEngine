@@ -143,3 +143,11 @@ ui.warn.renderingInProgress: Gerade wird schon gerendert!
 ui.warn.renderingInProgress.desc: Wenn du denkst, dass das falsch ist, starte Rem's Studio neu.
 
 ui.debug.ramUsage: RAM %1 MiB
+
+ui.top.help: Hilfe
+ui.top.project.settings: Einstellungen
+ui.top.project.save: Speichern
+ui.top.project.load: Laden
+ui.top.config.settings: Einstellungen
+ui.top.config.style: Darstellung
+ui.top.config.language: Sprache

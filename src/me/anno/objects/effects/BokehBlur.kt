@@ -11,16 +11,19 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.studio.rems.Scene
+import me.anno.utils.Maths.clamp
 import org.joml.Vector4f
 import org.lwjgl.opengl.GL11.*
+import kotlin.math.roundToInt
 
 /**
  * shader by Kleber Garcia, 'Kecho', 2017, MIT license (https://github.com/kecho/CircularDofFilterGenerator)
  * the shader was modified to work without ShaderToy, and the filter texture was uploaded directly
- *
- * // todo use the generator for larger kernels (more expensive, larger results without artifacts)
+ * todo more steps for larger sizes of bokeh blur?
  * */
 object BokehBlur {
+
+    // todo somehow the edges are cut off... why?
 
     private const val KERNEL_RADIUS = 8
     private const val KERNEL_COUNT = KERNEL_RADIUS * 2 + 1
@@ -71,7 +74,7 @@ object BokehBlur {
     ) {
         val shader = perChannelShader!!
         shader.use()
-        shader.v2("stepVal", normRadius / w, normRadius / h)
+        uniforms(shader, w, h, normRadius)
         drawChannel(shader, r, w, h, xAxis)
         drawChannel(shader, g, w, h, yAxis)
         drawChannel(shader, b, w, h, zAxis)
@@ -83,6 +86,14 @@ object BokehBlur {
     private val zAxis = Vector4f(0f, 0f, 1f, 0f)
     private val wAxis = Vector4f(0f, 0f, 0f, 1f)
 
+    private fun uniforms(shader: Shader, w: Int, h: Int, normRadius: Float){
+        val radius = normRadius * KERNEL_RADIUS
+        shader.v2("stepVal", radius / w, radius / h)
+        val radiusI = clamp(radius.roundToInt(), KERNEL_RADIUS, 64)
+        shader.v1("radius", radiusI)
+        shader.v1("multiplier", KERNEL_RADIUS.toFloat()/radiusI)
+    }
+
     fun drawY(
         normRadius: Float, w: Int, h: Int,
         r: Framebuffer, g: Framebuffer, b: Framebuffer, a: Framebuffer,
@@ -93,7 +104,7 @@ object BokehBlur {
 
             val shader = compositionShader!!
             shader.use()
-            shader.v2("stepVal", normRadius / w, normRadius / h)
+            uniforms(shader, w, h, normRadius)
 
             glClearColor(0f, 0f, 0f, 0f)
             glClear(GL_COLOR_BUFFER_BIT)
@@ -113,12 +124,21 @@ object BokehBlur {
         Frame(w, h, true, target) {
             Frame.bind()
             shader.v4("channelSelection", channel)
-
             flat01.draw(shader)
         }
     }
 
     fun init() {
+
+        val loopUniforms = "" +
+                "uniform int radius;\n" +
+                "uniform float multiplier;\n"
+
+        val loop = "" +
+                "for (int i=-radius;i<=radius;i++){\n" +
+                "   float f11 = float(i)/float(radius);\n" + // -1 .. +1
+                "   float f01 = f11*0.5-0.5;\n" + // 0 .. 1
+                "   "
 
         val vertexShader = "" +
                 "in vec2 attr0;\n" +
@@ -130,7 +150,10 @@ object BokehBlur {
         val getFilters = "" +
                 "vec4 getFilters(int x){\n" +
                 "   float u = float(x)*${1.0 / (KERNEL_COUNT - 1.0)};\n" +
-                "   return texture(filterTexture, vec2(u, 0.0));\n" +
+                "   return texture(filterTexture, vec2(u, 0));\n" +
+                "}\n" +
+                "vec4 getFilters(float x){\n" +
+                "   return texture(filterTexture, vec2(x, 0));\n" +
                 "}\n"
 
         val varyingShader = "varying vec2 uv;\n"
@@ -143,16 +166,17 @@ object BokehBlur {
                     "uniform vec4 channelSelection;\n" +
 
                     getFilters +
+                    loopUniforms +
 
                     "void main(){\n" +
-                    "   vec4 val = vec4(0,0,0,0);\n" +
-                    "   for (int i=-$KERNEL_RADIUS;i<=$KERNEL_RADIUS;++i){\n" +
-                    "       vec2 coords = uv + vec2(stepVal.x*float(i),0.0);\n" +
+                    "   vec4 sum = vec4(0);\n" +
+                    loop +
+                    "       vec2 coords = uv + vec2(stepVal.x*f11,0.0);\n" +
                     "       float imageTexelR = dot(texture(image, coords), channelSelection);\n" +
-                    "       vec4 c0_c1 = getFilters(i+$KERNEL_RADIUS);\n" +
-                    "       val += imageTexelR * c0_c1;\n" +
+                    "       vec4 c0_c1 = getFilters(f01);\n" +
+                    "       sum += imageTexelR * c0_c1;\n" +
                     "    }\n" +
-                    "    gl_FragColor = val;\n" +
+                    "    gl_FragColor = sum * multiplier;\n" +
                     "}", listOf("filterTexture", "image")
         )
 
@@ -161,7 +185,7 @@ object BokehBlur {
 
                     "uniform vec2 stepVal;\n" + // 1/resolution
                     "uniform sampler2D inputRed, inputGreen, inputBlue, inputAlpha, filterTexture;\n" +
-                    "const vec2 Kernel0Weights_RealX_ImY = vec2(0.411259, -0.548794);\n" +
+                    "const vec2 Kernel0Weights_RealX_ImY = vec2(0.411259,-0.548794);\n" +
                     "const vec2 Kernel1Weights_RealX_ImY = vec2(0.513282, 4.561110);\n" +
 
                     "vec2 mulComplex(vec2 p, vec2 q){\n" +
@@ -169,6 +193,7 @@ object BokehBlur {
                     "}\n" +
 
                     getFilters +
+                    loopUniforms +
 
                     "void main(){\n" +
 
@@ -177,35 +202,41 @@ object BokehBlur {
                     "   vec4 valB = vec4(0);\n" +
                     "   vec4 valA = vec4(0);\n" +
 
-                    "    for (int i = -$KERNEL_RADIUS; i <= $KERNEL_RADIUS; ++i){\n" +
+                    loop +
 
-                    "        vec2 coords = uv + vec2(0.0,stepVal.y*float(i));\n" +
-                    "        vec4 imageTexelR = texture(inputRed,   coords);  \n" +
-                    "        vec4 imageTexelG = texture(inputGreen, coords); \n" +
-                    "        vec4 imageTexelB = texture(inputBlue,  coords);  \n" +
-                    "        vec4 imageTexelA = texture(inputAlpha, coords);  \n" +
+                    "       vec2 coords = uv + vec2(0.0,stepVal.y*f11);\n" +
+                    "       vec4 imageTexelR = texture(inputRed,   coords);  \n" +
+                    "       vec4 imageTexelG = texture(inputGreen, coords); \n" +
+                    "       vec4 imageTexelB = texture(inputBlue,  coords);  \n" +
+                    "       vec4 imageTexelA = texture(inputAlpha, coords);  \n" +
 
-                    "        vec4 c0_c1 = getFilters(i+$KERNEL_RADIUS);\n" +
+                    "       vec4 c0_c1 = getFilters(f01);\n" +
 
-                    "        valR.xy += mulComplex(imageTexelR.xy,c0_c1.xy);\n" +
-                    "        valR.zw += mulComplex(imageTexelR.zw,c0_c1.zw);\n" +
+                    "       valR.xy += mulComplex(imageTexelR.xy, c0_c1.xy);\n" +
+                    "       valR.zw += mulComplex(imageTexelR.zw, c0_c1.zw);\n" +
 
-                    "        valG.xy += mulComplex(imageTexelG.xy,c0_c1.xy);\n" +
-                    "        valG.zw += mulComplex(imageTexelG.zw,c0_c1.zw);\n" +
+                    "       valG.xy += mulComplex(imageTexelG.xy, c0_c1.xy);\n" +
+                    "       valG.zw += mulComplex(imageTexelG.zw, c0_c1.zw);\n" +
 
-                    "        valB.xy += mulComplex(imageTexelB.xy,c0_c1.xy);\n" +
-                    "        valB.zw += mulComplex(imageTexelB.zw,c0_c1.zw);\n" +
+                    "       valB.xy += mulComplex(imageTexelB.xy, c0_c1.xy);\n" +
+                    "       valB.zw += mulComplex(imageTexelB.zw, c0_c1.zw);\n" +
 
-                    "        valA.xy += mulComplex(imageTexelA.xy,c0_c1.xy);\n" +
-                    "        valA.zw += mulComplex(imageTexelA.zw,c0_c1.zw);\n" +
+                    "       valA.xy += mulComplex(imageTexelA.xy, c0_c1.xy);\n" +
+                    "       valA.zw += mulComplex(imageTexelA.zw, c0_c1.zw);\n" +
 
-                    "    }\n" +
+                    "   }\n" +
 
-                    "    float rChannel = dot(valR, vec4(Kernel0Weights_RealX_ImY, Kernel1Weights_RealX_ImY));\n" +
-                    "    float gChannel = dot(valG, vec4(Kernel0Weights_RealX_ImY, Kernel1Weights_RealX_ImY));\n" +
-                    "    float bChannel = dot(valB, vec4(Kernel0Weights_RealX_ImY, Kernel1Weights_RealX_ImY));\n" +
-                    "    float aChannel = dot(valA, vec4(Kernel0Weights_RealX_ImY, Kernel1Weights_RealX_ImY));\n" +
-                    "    gl_FragColor = vec4(rChannel, gChannel, bChannel, aChannel);\n" +
+                    "   valR *= multiplier;\n" +
+                    "   valG *= multiplier;\n" +
+                    "   valB *= multiplier;\n" +
+                    "   valA *= multiplier;\n" +
+
+                    "   float rChannel = dot(valR, vec4(Kernel0Weights_RealX_ImY, Kernel1Weights_RealX_ImY));\n" +
+                    "   float gChannel = dot(valG, vec4(Kernel0Weights_RealX_ImY, Kernel1Weights_RealX_ImY));\n" +
+                    "   float bChannel = dot(valB, vec4(Kernel0Weights_RealX_ImY, Kernel1Weights_RealX_ImY));\n" +
+                    "   float aChannel = dot(valA, vec4(Kernel0Weights_RealX_ImY, Kernel1Weights_RealX_ImY));\n" +
+                    "   gl_FragColor = vec4(rChannel, gChannel, bChannel, aChannel);\n" +
+
                     "}", listOf("filterTexture", "inputRed", "inputGreen", "inputBlue", "inputAlpha")
         )
 
