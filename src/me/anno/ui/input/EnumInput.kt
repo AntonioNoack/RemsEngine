@@ -13,20 +13,20 @@ import me.anno.ui.style.Style
 
 class EnumInput(
     private val title: String, withTitle: Boolean, startValue: String,
-    private val options: List<String>, style: Style
+    private val options: List<NameDesc>, style: Style
 ) : PanelListX(style) {
 
-    constructor(title: String, ttt: String, startValue: String, options: List<String>, style: Style) :
+    constructor(title: String, ttt: String, startValue: String, options: List<NameDesc>, style: Style) :
             this(title, true, startValue, options, style) {
         setTooltip(ttt)
     }
 
-    constructor(title: String, ttt: String, dictPath: String, startValue: String, options: List<String>, style: Style) :
+    constructor(title: String, ttt: String, dictPath: String, startValue: String, options: List<NameDesc>, style: Style) :
             this(Dict[title, dictPath], true, startValue, options, style) {
         setTooltip(Dict[ttt, "$dictPath.desc"])
     }
 
-    var lastIndex = options.indexOf(startValue)
+    var lastIndex = options.indexOfFirst { it.name == startValue }
 
     val titleView = if (withTitle) TextPanel("$title:", style) else null
     val inputPanel = EnumValuePanel(startValue, this, style)
@@ -41,13 +41,14 @@ class EnumInput(
         val index = lastIndex + direction
         lastIndex = (index + 2 * options.size) % options.size
         val newValue = options[lastIndex]
-        if (oldValue != newValue) {
-            inputPanel.text = newValue
-            changeListener(newValue, lastIndex, options)
+        if (oldValue != newValue.name) {
+            inputPanel.text = newValue.name
+            inputPanel.tooltip = newValue.desc
+            changeListener(newValue.name, lastIndex, options)
         }
     }
 
-    private var changeListener = { _: String, _: Int, _: List<String> -> }
+    private var changeListener = { _: String, _: Int, _: List<NameDesc> -> }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         val focused = titleView?.isInFocus == true || inputPanel.isInFocus
@@ -63,7 +64,7 @@ class EnumInput(
         this += inputPanel
     }
 
-    fun setChangeListener(listener: (value: String, index: Int, values: List<String>) -> Unit): EnumInput {
+    fun setChangeListener(listener: (value: String, index: Int, values: List<NameDesc>) -> Unit): EnumInput {
         changeListener = listener
         return this
     }
@@ -79,11 +80,12 @@ class EnumInput(
             this.x, this.y,
             NameDesc("Select the %1", "", "ui.input.enum.menuTitle")
                 .with("%1", title),
-            options.mapIndexed { index, fontName ->
-                MenuOption(NameDesc(fontName, "", "")) {
-                    inputPanel.text = fontName
+            options.mapIndexed { index, option ->
+                MenuOption(option) {
+                    inputPanel.text = option.name
+                    inputPanel.tooltip = option.desc
                     lastIndex = index
-                    changeListener(fontName, index, options)
+                    changeListener(option.name, index, options)
                 }
             })
     }

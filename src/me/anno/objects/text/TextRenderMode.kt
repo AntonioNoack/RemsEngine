@@ -1,7 +1,9 @@
 package me.anno.objects.text
 
-enum class TextRenderMode (val displayName: String, val id: Int){
-    MESH("Mesh", 0),
-    SDF("Signed Distance Field", 1),
-    SDF_JOINED("Merged Signed Distance Field", 2)
+import me.anno.language.translation.NameDesc
+
+enum class TextRenderMode (val naming: NameDesc, val id: Int){
+    MESH(NameDesc("Mesh"), 0),
+    SDF(NameDesc("Signed Distance Field"), 1),
+    SDF_JOINED(NameDesc("Merged Signed Distance Field"), 2)
 }

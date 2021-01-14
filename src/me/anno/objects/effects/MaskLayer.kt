@@ -20,6 +20,9 @@ import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.geometric.Circle
 import me.anno.objects.geometric.Polygon
 import me.anno.studio.rems.Scene.mayUseMSAA
+import me.anno.ui.base.Panel
+import me.anno.ui.base.SpyPanel
+import me.anno.ui.base.Visibility
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
@@ -158,7 +161,6 @@ class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
     }
 
     override fun drawChildrenAutomatically() = false
-
 
     fun drawMask(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
 
@@ -320,11 +322,27 @@ class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
         super.createInspector(list, style, getGroup)
         val mask = getGroup("Mask Settings", "Masks are multipurpose objects", "mask")
         mask += vi("Type", "Specifies what kind of mask it is", null, type, style) { type = it }
+
+        fun typeSpecific(panel: Panel, isVisible: (MaskType) -> Boolean) {
+            mask += panel
+            mask += SpyPanel(style) { panel.visibility = Visibility[isVisible(type)] }
+        }
+
         mask += vi("Size", "How large pixelated pixels or blur should be", effectSize, style)
         mask += vi("Invert Mask", "Changes transparency with opacity", null, isInverted, style) { isInverted = it }
         mask += vi("Use Color / Transparency", "Should the color influence the masked?", useMaskColor, style)
-        mask += vi("Center Offset", "For the radial blur", effectOffset, style)
-        mask += vi("Blur Threshold", "", blurThreshold, style)
+        typeSpecific(vi("Effect Center", "", effectOffset, style)) {
+            when (it) {
+                MaskType.RADIAL_BLUR_1, MaskType.RADIAL_BLUR_2 -> true
+                else -> false
+            }
+        }
+        typeSpecific(vi("Blur Threshold", "", blurThreshold, style)) {
+            when (it) {
+                MaskType.GAUSSIAN_BLUR, MaskType.BLOOM -> true
+                else -> false
+            }
+        }
         mask += vi(
             "Make Huge", "Scales the mask, without affecting the children", null,
             isFullscreen, style
@@ -338,6 +356,7 @@ class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
         ) { useExperimentalMSAA = it }
         val greenScreen =
             getGroup("Green Screen", "Type needs to be green-screen; cuts out a specific color", "greenScreen")
+        list += SpyPanel(style) { greenScreen.visibility = Visibility[type == MaskType.GREEN_SCREEN] }
         greenScreen += vi("Similarity", "", greenScreenSimilarity, style)
         greenScreen += vi("Smoothness", "", greenScreenSmoothness, style)
         greenScreen += vi("Spill Value", "", greenScreenSpillValue, style)

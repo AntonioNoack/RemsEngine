@@ -104,7 +104,7 @@ object Dict {
         // data, path, name
         val options = getOptions()
         val currentLanguage = getDefaultOption()
-        val input = EnumInput(Dict["Language", "ui.input.language.title"], true, currentLanguage.name, options.map { it.name }, style)
+        val input = EnumInput(Dict["Language", "ui.input.language.title"], true, currentLanguage.name, options.map { NameDesc(it.name) }, style)
         input.setChangeListener { _, index, _ ->
             val option = options[index]
             DefaultConfig["ui.language"] = option.path

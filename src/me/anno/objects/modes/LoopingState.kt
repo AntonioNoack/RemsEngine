@@ -1,9 +1,11 @@
 package me.anno.objects.modes
 
-enum class LoopingState(val id: Int, val displayName: String){
-    PLAY_ONCE(0, "Once"),
-    PLAY_LOOP(1, "Looping"),
-    PLAY_REVERSING_LOOP(2, "Reversing");
+import me.anno.language.translation.NameDesc
+
+enum class LoopingState(val id: Int, val naming: NameDesc){
+    PLAY_ONCE(0, NameDesc("Once")),
+    PLAY_LOOP(1, NameDesc("Looping")),
+    PLAY_REVERSING_LOOP(2, NameDesc("Reversing"));
 
     operator fun get(time: Double, duration: Double) = when(this){
         PLAY_ONCE -> time

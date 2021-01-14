@@ -6,6 +6,7 @@ import me.anno.gpu.shader.ShaderPlus
 import me.anno.gpu.texture.Filtering
 import me.anno.mesh.fbx.model.FBXShader
 import me.anno.objects.effects.MaskType
+import me.anno.objects.effects.types.GLSLLib
 import me.anno.objects.modes.UVProjection
 import me.anno.studio.rems.Scene.noiseFunc
 import org.lwjgl.opengl.GL20
@@ -13,7 +14,6 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
 import kotlin.math.PI
-import kotlin.math.exp
 
 object ShaderLib {
 
@@ -442,7 +442,7 @@ object ShaderLib {
         val f3DMasked = "" +
                 "precision highp float;\n" +
                 "uniform vec4 tint;" +
-                "uniform sampler2D mask, tex, tex2;\n" +
+                "uniform sampler2D maskTex, tex, tex2;\n" +
                 "uniform float useMaskColor;\n" +
                 "uniform float invertMask;\n" +
                 "uniform vec2 pixelating;\n" +
@@ -456,91 +456,25 @@ object ShaderLib {
                 "void main(){\n" +
                 "   vec2 uv1 = uv.xy/uv.z;\n" +
                 "   vec2 uv2 = uv1 * 0.5 + 0.5;\n" +
-                "   vec4 mask = texture(mask, uv2);\n" +
+                "   vec4 mask = texture(maskTex, uv2);\n" +
                 "   vec4 color;\n" +
                 "   float effect, inverseEffect;\n" +
                 "   switch(maskType){\n" +
-                "       case ${MaskType.MASKING.id}:\n" +
-                "           vec4 maskColor = vec4(\n" +
-                "               mix(vec3(1.0), mask.rgb, useMaskColor),\n" +
-                "               mix(mask.a, 1.0-mask.a, invertMask));\n" +
-                "           color = texture(tex, uv2) * maskColor;\n" +
-                "           break;\n" +
-                "       case ${MaskType.PIXELATING.id}:\n" +
-                "           effect = mix(mask.a, dot(vec3(0.3), mask.rgb), useMaskColor);\n" +
-                "           effect = mix(effect, 1.0 - effect, invertMask);\n" +
-                "           color = mix(\n" +
-                "               texture(tex, uv2),\n" +
-                "               texture(tex, round((uv2 - 0.5) / pixelating) * pixelating + 0.5),\n" +
-                // "               texture(tex2, uv2),\n" +
-                "               effect);\n" +
-                "           break;\n" +
-                // just mix two images
+                GLSLLib.case(MaskType.MASKING.id, "me/anno/objects/effects/types/Masking.glsl") +
+                GLSLLib.case(MaskType.PIXELATING.id, "me/anno/objects/effects/types/Pixelating.glsl") +
+                GLSLLib.case(MaskType.RADIAL_BLUR_1.id, "me/anno/objects/effects/types/RadialBlur1.glsl") +
+                GLSLLib.case(MaskType.RADIAL_BLUR_2.id, "me/anno/objects/effects/types/RadialBlur2.glsl") +
+                GLSLLib.case(MaskType.GREEN_SCREEN.id, "me/anno/objects/effects/types/GreenScreen.glsl") +
                 "       case ${MaskType.GAUSSIAN_BLUR.id}:\n" +
-                "           effect = mix(mask.a, dot(vec3(0.3), mask.rgb), useMaskColor);\n" +
-                "           effect = mix(effect, 1.0 - effect, invertMask);\n" +
-                "           color = mix(texture(tex, uv2), texture(tex2, uv2), effect);\n" +
-                "           break;\n" +
                 "       case ${MaskType.BOKEH_BLUR.id}:\n" +
+                "       case ${MaskType.BLOOM.id}:\n" + // just mix two images
                 "           effect = mix(mask.a, dot(vec3(0.3), mask.rgb), useMaskColor);\n" +
                 "           effect = mix(effect, 1.0 - effect, invertMask);\n" +
                 "           color = mix(texture(tex, uv2), texture(tex2, uv2), effect);\n" +
-                "           break;\n" +
-                // mix in original? no, we would need many more variables
-                // can be done by reducing the effect strength and increasing the color strength
-                "       case ${MaskType.RADIAL_BLUR.id}:\n" +
-                "           effect = mix(mask.a, dot(vec3(0.3), mask.rgb), useMaskColor);\n" +
-                "           effect = mix(effect, 1.0 - effect, invertMask);\n" +
-                "           if(abs(effect) > 0.001){\n" +
-                // where is this constant coming from???
-                "               vec2 dir = (uv1 - offset) * -pixelating.y;\n" +
-                "               float weightSum = 0;\n" +
-                "               vec4 colorSum = vec4(0);\n" +
-                "               float steps0 = clamp(dot(windowSize, abs(dir)), 1, 1000);\n" +
-                "               float steps = exp(round(log(steps0))), invSteps = 1.0/floor(steps);\n" +
-                "               int stepsI = int(steps);\n" +
-                "               for(int i=0;i<stepsI;i++){" +
-                "                   float fi = float(i)*invSteps;" +
-                "                   float weight = 1-fi;\n" +
-                "                   vec2 nextUV = uv2 + dir * fi;\n" +
-                "                   vec4 colorHere = texture(tex, nextUV);\n" +
-                "                   colorSum += weight * colorHere;\n" +
-                "                   weightSum += weight;\n" +
-                "               }\n" +
-                "               color = mix(texture(tex, uv2), colorSum / weightSum, effect);\n" +
-                "           } else {\n" +
-                "               color = texture(tex, uv2);\n" +
-                "           }\n" +
-                "           break;\n" +
-                "       case ${MaskType.BLOOM.id}:\n" +
-                "           effect = mix(mask.a, dot(vec3(0.3), mask.rgb), useMaskColor);\n" +
-                "           effect = mix(effect, 1.0 - effect, invertMask);\n" +
-                "           color = texture(tex, uv2) + effect * texture(tex2, uv2);\n" +
                 "           break;\n" +
                 "       case ${MaskType.UV_OFFSET.id}:\n" +
                 "           vec2 offset = (mask.rg-mask.gb) * pixelating;\n" +
                 "           color = texture(tex, uv2 + offset);\n" +
-                "           break;\n" +
-                "       case ${MaskType.GREEN_SCREEN.id}:\n" +
-                // blur? is already good enough, I think...
-                "           inverseEffect = clamp(mask.a, 0, 1);\n" +
-                "           float similarity = greenScreenSettings.x;\n" +
-                "           float smoothness = greenScreenSettings.y;\n" +
-                "           float spill = greenScreenSettings.z;\n" +
-                "           vec4 keyColor = mask;\n" +
-                "           color = texture(tex, uv2);\n" +
-                "           float chromaDistance = distance(RGBtoUV(color.rgb), RGBtoUV(keyColor.rgb));\n" +
-                "           float baseMask = chromaDistance - similarity;\n" +
-                "           float fullMask = pow(clamp(baseMask / smoothness, 0, 1), 1.5);\n" +
-                "           if(invertMask < 0.5){\n" +
-                "               float spillValue = pow(clamp(baseMask / spill, 0, 1), 1.5);\n" +
-                "               float grayscale = dot(color.rgb, vec3(0.2126,0.7152,0.0722));\n" +
-                "               color.rgb = mix(color.rgb, vec3(grayscale), (1-spillValue) * (1-effect));\n" +
-                "               color.a *= fullMask * inverseEffect;\n" +
-                "           } else {\n" + // special inversion: only use the key color
-                "               color.rgb = keyColor.rgb;\n" +
-                "               color.a *= (1-fullMask) * inverseEffect;\n" +
-                "           }\n" +
                 "           break;\n" +
                 "   }\n" +
                 "   if(color.a <= 0.001) discard;\n" +
@@ -548,7 +482,7 @@ object ShaderLib {
                 "   gl_FragColor = tint * color;\n" +
                 "   gl_FragColor.a = min(gl_FragColor.a, 1.0);\n" +
                 "}"
-        shader3DMasked = createShaderPlus("3d-masked", v3DMasked, y3DMasked, f3DMasked, listOf("mask", "tex", "tex2"))
+        shader3DMasked = createShaderPlus("3d-masked", v3DMasked, y3DMasked, f3DMasked, listOf("maskTex", "tex", "tex2"))
         shader3DMasked.ignoreUniformWarnings(listOf("tiling"))
 
         val f3DGaussianBlur = "" +

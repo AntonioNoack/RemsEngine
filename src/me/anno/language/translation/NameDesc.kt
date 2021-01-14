@@ -8,11 +8,14 @@ class NameDesc(
     private val dictPath: String
 ) {
 
+    constructor(name: String): this(name, "", "")
     constructor() : this("", "", "")
 
     private val iName = name
     private val iDesc = description
     private val replacements = ArrayList<Pair<String, String>>()
+
+    val englishName = iName
 
     val name get() = replace(Dict[iName, dictPath])
     val desc get() = replace(Dict[iDesc, "$dictPath.desc"])

@@ -1,5 +1,6 @@
 package me.anno.ui.editor.color.spaces
 
+import me.anno.language.translation.NameDesc
 import me.anno.ui.editor.color.ColorSpace
 import me.anno.utils.ResourceHelper.loadText
 import me.anno.utils.Vectors.toVec3
@@ -7,7 +8,7 @@ import org.hsluv.HSLuvColorSpace
 import org.joml.Vector3f
 
 object HSLuv : ColorSpace(
-    "HSLuv",
+    NameDesc("HSLuv","HSL/HSV with constant brightness","colorSpace.hsluv"),
     loadText("me/anno/ui/editor/color/spaces/HSLuv.glsl") + "\n" +
             "vec3 spaceToRGB(vec3 hsl){\n" +
             "   return clamp(hsluvToRgb(hsl*vec3(360.0, 100.0, 100.0)), 0.0, 1.0);\n" +

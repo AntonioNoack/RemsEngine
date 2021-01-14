@@ -325,7 +325,7 @@ object UILayouts {
             createWelcomeUI()
         }
 
-        val gfxNames = GFXSettings.values().map { it.displayName }
+        val gfxNames = GFXSettings.values().map { it.naming }
 
         quickSettings += EnumInput(
             "GFX Quality",

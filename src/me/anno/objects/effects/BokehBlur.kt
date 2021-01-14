@@ -28,14 +28,14 @@ object BokehBlur {
     private const val KERNEL_RADIUS = 8
     private const val KERNEL_COUNT = KERNEL_RADIUS * 2 + 1
 
-    var compositionShader: Shader? = null
-    var perChannelShader: Shader? = null
+    private var compositionShader: Shader? = null
+    private var perChannelShader: Shader? = null
 
     // do I need f32 pairs?
     // fun fb() = Framebuffer(1, 1, 1, 1, true, Framebuffer.DepthBufferType.NONE)
     // fun fbPair() = fb() to fb()
 
-    val filterTexture = Texture2D("bokeh", KERNEL_COUNT, 1, 1)
+    private val filterTexture = Texture2D("bokeh", KERNEL_COUNT, 1, 1)
 
     fun draw(srcTexture: Texture2D, target: Framebuffer, relativeToH: Float) {
 
@@ -137,8 +137,7 @@ object BokehBlur {
         val loop = "" +
                 "for (int i=-radius;i<=radius;i++){\n" +
                 "   float f11 = float(i)/float(radius);\n" + // -1 .. +1
-                "   float f01 = f11*0.5-0.5;\n" + // 0 .. 1
-                "   "
+                "   float f01 = f11*0.5-0.5;\n" // 0 .. 1
 
         val vertexShader = "" +
                 "in vec2 attr0;\n" +
@@ -148,10 +147,6 @@ object BokehBlur {
                 "}"
 
         val getFilters = "" +
-                "vec4 getFilters(int x){\n" +
-                "   float u = float(x)*${1.0 / (KERNEL_COUNT - 1.0)};\n" +
-                "   return texture(filterTexture, vec2(u, 0));\n" +
-                "}\n" +
                 "vec4 getFilters(float x){\n" +
                 "   return texture(filterTexture, vec2(x, 0));\n" +
                 "}\n"
@@ -289,7 +284,12 @@ object BokehBlur {
 
         filterTexture.create(kernelTexture)
 
+    }
 
+    fun destroy(){
+        filterTexture.destroy()
+        compositionShader?.destroy()
+        perChannelShader?.destroy()
     }
 
 }

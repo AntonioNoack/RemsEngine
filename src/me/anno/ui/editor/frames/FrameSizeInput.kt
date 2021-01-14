@@ -1,6 +1,7 @@
 package me.anno.ui.editor.frames
 
 import me.anno.config.DefaultConfig
+import me.anno.language.translation.NameDesc
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
@@ -13,7 +14,8 @@ class FrameSizeInput(title: String, value0: String, style: Style): PanelListY(st
     val val0 = value0.parseResolution() ?: defaultResolution
 
     val typeInput = EnumInput(title, true,
-        val0.toString(), defaultResolutions.map { it.toString() } + "Custom",
+        val0.toString(), defaultResolutions.map { NameDesc(it.toString()) } +
+                NameDesc("Custom", "","ui.frameSizeInput.custom"),
         style)
 
     val deepStyle = style.getChild("deep")

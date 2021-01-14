@@ -19,6 +19,7 @@ import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.language.Language
 import me.anno.language.translation.Dict
+import me.anno.language.translation.NameDesc
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.animation.Type
 import me.anno.objects.effects.MaskType
@@ -668,9 +669,9 @@ open class Transform(var parent: Transform? = null) : Saveable(),
                 .setTooltip(ttt)
             is BlendMode -> {
                 val values = blendModes.values
-                val valueNames = values.map { it to it.displayName }
+                val valueNames = values.map { it to it.naming }
                 EnumInput(
-                    title, true, valueNames.first { it.first == value }.second,
+                    title, true, valueNames.first { it.first == value }.second.name,
                     valueNames.map { it.second }, style
                 )
                     .setChangeListener { name, index, _ ->
@@ -695,23 +696,23 @@ open class Transform(var parent: Transform? = null) : Saveable(),
                     is Language -> Language.values()
                     else -> throw RuntimeException("Missing enum .values() implementation for UI in Transform.kt for $value")
                 }
-                val valueNames = values.map {
+                val valueNames: List<Pair<Any, NameDesc>> = values.map {
                     it to when (it) {
-                        is LoopingState -> it.displayName
-                        is ToneMappers -> it.displayName
-                        is MaskType -> it.displayName
-                        is Filtering -> it.displayName
-                        is ArraySelectionMode -> it.displayName
-                        is UVProjection -> it.displayName
-                        is Clamping -> it.displayName
-                        is TransformVisibility -> it.displayName
-                        is TextRenderMode -> it.displayName
-                        is Language -> it.displayName
-                        else -> it.name
+                        is LoopingState -> it.naming
+                        is ToneMappers -> it.naming
+                        is MaskType -> it.nameing
+                        is Filtering -> it.naming
+                        is ArraySelectionMode -> it.naming
+                        is UVProjection -> it.naming
+                        is Clamping -> it.naming
+                        is TransformVisibility -> it.naming
+                        is TextRenderMode -> it.naming
+                        is Language -> it.naming
+                        else -> NameDesc(it.name, "", "")
                     }
                 }
                 EnumInput(
-                    title, true, valueNames.first { it.first == value }.second,
+                    title, true, valueNames.first { it.first == value }.second.name,
                     valueNames.map { it.second }, style
                 )
                     .setChangeListener { name, index, _ ->

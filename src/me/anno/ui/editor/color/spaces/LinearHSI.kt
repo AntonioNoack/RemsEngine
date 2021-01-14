@@ -1,14 +1,15 @@
 package me.anno.ui.editor.color.spaces
 
+import me.anno.language.translation.NameDesc
 import me.anno.ui.editor.color.ColorSpace
 import me.anno.ui.editor.color.HSVColorSpace
-import me.anno.utils.Optimization.simplexAlgorithm
 import me.anno.utils.Maths.mix
+import me.anno.utils.Optimization.simplexAlgorithm
 import me.anno.utils.Vectors.times
 import org.joml.Vector3f
 
 object LinearHSI : ColorSpace(
-    "HSI", "HSI-Linear", "" +
+    NameDesc("HSI"), "HSI-Linear", "" +
             "vec3 hueToRGB(float h){" +
             "   vec3 hsv = vec3(h, 1.0, 1.0);\n" +
             "   float x = (1.0 - abs(mod(h*6.0, 2.0) - 1.0));\n" +

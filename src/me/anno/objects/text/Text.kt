@@ -16,6 +16,7 @@ import me.anno.gpu.GFXx3D.drawOutlinedText
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.language.translation.Dict
+import me.anno.language.translation.NameDesc
 import me.anno.objects.GFXTransform
 import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
@@ -518,7 +519,7 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
 
         val fontGroup = getGroup("Font", "", "font")
 
-        fontGroup += EnumInput("Font Name", "The style of the text", "obj.font.name", font.name, fontList, style)
+        fontGroup += EnumInput("Font Name", "The style of the text", "obj.font.name", font.name, fontList.map { NameDesc(it) }, style)
             .setChangeListener { it, _, _ ->
                 RemsStudio.largeChange("Change Font to '$it'") {
                     getSelfWithShadows().forEach { c -> c.font = c.font.withName(it) }
@@ -546,16 +547,16 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
             .setIsSelectedListener { show(null) }
 
         val alignGroup = getGroup("Alignment", "", "alignment")
-        fun align(title: String, value: AxisAlignment, x: Boolean, set: (self: Text, AxisAlignment) -> Unit) {
+        fun align(title: String, value: AxisAlignment, xAxis: Boolean, set: (self: Text, AxisAlignment) -> Unit) {
             operator fun AxisAlignment.get(x: Boolean) = if (x) xName else yName
             alignGroup += EnumInput(
                 title, true,
-                value[x],
-                AxisAlignment.values().map { it[x] }, style
+                value[xAxis],
+                AxisAlignment.values().map { NameDesc(it[xAxis]) }, style
             )
                 .setIsSelectedListener { show(null) }
                 .setChangeListener { name, _, _ ->
-                    val alignment = AxisAlignment.values().first { it[x] == name }
+                    val alignment = AxisAlignment.values().first { it[xAxis] == name }
                     RemsStudio.largeChange("Set $title to $name") {
                         getSelfWithShadows().forEach { set(it, alignment) }
                     }

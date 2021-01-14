@@ -1,6 +1,8 @@
 package me.anno.language
 
-enum class Language(val displayName: String, val code: String) {
+import me.anno.language.translation.NameDesc
+
+enum class Language(val name2: String, val code: String) {
 
     None("None", ""),
 
@@ -52,7 +54,9 @@ enum class Language(val displayName: String, val code: String) {
     Tagalog("Tagalog", "tl-PH"),
     Ukrainian("Ukrainian", "uk-UA");
 
-    override fun toString() = displayName
+    val naming = NameDesc(name2, "", "lang.$code")
+
+    override fun toString() = naming.name
 
     companion object {
         fun get(code: String) = values()

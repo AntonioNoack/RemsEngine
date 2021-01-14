@@ -52,8 +52,8 @@ class ColorChooser(style: Style, val withAlpha: Boolean, val owningProperty: Ani
     private val colorSpaceInput = EnumInput(
         "Color Space",
         "Color Layout: which colors are where?, e.g. color circle", "ui.input.color.colorSpace",
-        colorSpace.name,
-        ColorSpace.list.map { it.name }, style
+        colorSpace.naming.name,
+        ColorSpace.list.map { it.naming }, style
     )
         .setChangeListener { it, _, _ ->
             val newColorSpace = ColorSpace[it]
@@ -68,8 +68,8 @@ class ColorChooser(style: Style, val withAlpha: Boolean, val owningProperty: Ani
 
     private val styleInput = EnumInput(
         "", false,
-        visualisation.displayName.value,
-        ColorVisualisation.values().map { it.displayName.value },
+        visualisation.naming.name,
+        ColorVisualisation.values().map { it.naming },
         style
     ).setChangeListener { _, index, _ ->
         visualisation = ColorVisualisation.values()[index]

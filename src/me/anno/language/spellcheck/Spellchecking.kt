@@ -70,7 +70,7 @@ object Spellchecking {
 
     private val requestedDownloads = HashSet<File>()
     private fun getExecutable(language: Language, callback: (File) -> Unit) {
-        LOGGER.info("Requesting executable for language ${language.displayName}")
+        LOGGER.info("Requesting executable for language ${language.naming}")
         var fileName: String? = null
         for ((languages, fileNameMaybe) in libraries) {
             if (language in languages) {

@@ -2,6 +2,7 @@ package me.anno.studio.rems
 
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.black
+import me.anno.language.translation.NameDesc
 import me.anno.objects.Transform
 import me.anno.objects.animation.Type
 import me.anno.studio.rems.RemsStudio.project
@@ -20,6 +21,7 @@ import me.anno.ui.input.FloatInput
 import me.anno.ui.input.IntInput
 import me.anno.ui.style.Style
 import me.anno.utils.Maths.mixARGB
+import sun.net.spi.nameservice.NameService
 import kotlin.concurrent.thread
 import kotlin.math.abs
 import kotlin.math.max
@@ -66,7 +68,7 @@ object RenderSettings : Transform() {
 
         if (framesRates.isEmpty()) framesRates = arrayListOf(60.0)
         if (project.targetFPS !in framesRates) framesRates.add(0, project.targetFPS)
-        list += EnumInput("Frame Rate", true, project.targetFPS.toString(), framesRates.map { it.toString() }, style)
+        list += EnumInput("Frame Rate", true, project.targetFPS.toString(), framesRates.map { NameDesc(it.toString()) }, style)
             .setChangeListener { value, _, _ ->
                 project.targetFPS = value.toDouble()
                 save()

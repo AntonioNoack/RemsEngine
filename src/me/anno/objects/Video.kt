@@ -19,6 +19,7 @@ import me.anno.io.base.BaseWriter
 import me.anno.io.xml.XMLElement
 import me.anno.io.xml.XMLReader
 import me.anno.language.translation.Dict
+import me.anno.language.translation.NameDesc
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.models.SpeakerModel.drawSpeakers
 import me.anno.objects.modes.EditorFPS
@@ -586,13 +587,13 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
         quality += vid(EnumInput(
             "Video Scale", "Full resolution isn't always required. Define it yourself, or set it to automatic.",
             videoScaleNames.reverse[videoScale] ?: "Auto",
-            videoScales.map { it.key }, style
+            videoScales.map { NameDesc(it.key) }, style
         )
             .setChangeListener { _, index, _ -> videoScale = videoScales[index].value }
             .setIsSelectedListener { show(null) })
         quality += vid(EnumInput(
             "Preview FPS", "Smoother preview, heavier calculation", editorVideoFPS.displayName,
-            EditorFPS.values().filter { it.value * 0.98 <= (meta?.videoFPS ?: 1e85) }.map { it.displayName }, style
+            EditorFPS.values().filter { it.value * 0.98 <= (meta?.videoFPS ?: 1e85) }.map { NameDesc(it.displayName) }, style
         )
             .setChangeListener { _, index, _ ->
                 editorVideoFPS = EditorFPS.values()[index]
@@ -659,24 +660,22 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
             }
             .setTooltip("Listen to the audio separated from the rest"))
 
-        list += object : SpyPanel(style) {
-            var lastState = -1
-            override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-                val isValid = file.hasValidName()
-                val hasAudio = isValid && meta?.hasAudio == true
-                val hasImage = isValid && type != VideoType.AUDIO
-                val hasVideo = isValid && when (type) {
-                    VideoType.IMAGE_SEQUENCE, VideoType.VIDEO -> true
-                    else -> false
-                } && meta?.hasVideo == true
-                val state = hasAudio.toInt(1) + hasImage.toInt(2) + hasVideo.toInt(4)
-                if (state != lastState) {
-                    lastState = state
-                    audioPanels.forEach { it.visibility = if (hasAudio) Visibility.VISIBLE else Visibility.GONE }
-                    videoPanels.forEach { it.visibility = if (hasVideo) Visibility.VISIBLE else Visibility.GONE }
-                    imagePanels.forEach { it.visibility = if (hasImage) Visibility.VISIBLE else Visibility.GONE }
-                    list.invalidateLayout()
-                }
+        var lastState = -1
+        list += SpyPanel(style) {
+            val isValid = file.hasValidName()
+            val hasAudio = isValid && meta?.hasAudio == true
+            val hasImage = isValid && type != VideoType.AUDIO
+            val hasVideo = isValid && when (type) {
+                VideoType.IMAGE_SEQUENCE, VideoType.VIDEO -> true
+                else -> false
+            } && meta?.hasVideo == true
+            val state = hasAudio.toInt(1) + hasImage.toInt(2) + hasVideo.toInt(4)
+            if (state != lastState) {
+                lastState = state
+                audioPanels.forEach { it.visibility = if (hasAudio) Visibility.VISIBLE else Visibility.GONE }
+                videoPanels.forEach { it.visibility = if (hasVideo) Visibility.VISIBLE else Visibility.GONE }
+                imagePanels.forEach { it.visibility = if (hasImage) Visibility.VISIBLE else Visibility.GONE }
+                list.invalidateLayout()
             }
         }
 

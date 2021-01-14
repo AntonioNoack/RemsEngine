@@ -1,6 +1,7 @@
 package me.anno.ui.editor.color
 
 import me.anno.gpu.shader.Shader
+import me.anno.language.translation.NameDesc
 import me.anno.ui.editor.color.ColorChooser.Companion.CircleBarRatio
 import me.anno.ui.editor.color.spaces.HSLuv
 import me.anno.ui.editor.color.spaces.HSV
@@ -12,18 +13,18 @@ import kotlin.math.PI
 
 // could be used to replace the two color spaces with more
 abstract class ColorSpace(
-    val name: String,
+    val naming: NameDesc,
     val serializationName: String,
     // display
     val glsl: String,
     val hue0: Vector3f
 ) {
 
-    constructor(name: String, glsl: String, hue0: Vector3f) : this(name, name, glsl, hue0)
+    constructor(name: NameDesc, glsl: String, hue0: Vector3f) : this(name, name.englishName, glsl, hue0)
 
     init {
-        values[name] = this
-        values[name.toLowerCase()] = this
+        values[serializationName] = this
+        values[serializationName.toLowerCase()] = this
         list += this
     }
 
@@ -109,7 +110,7 @@ abstract class ColorSpace(
             }
         }
         val newShader = Shader(
-            "$name-${type.displayName}",
+            "$naming-${type.naming}",
             vertexShader,
             varyingShader,
             fragmentShader,
