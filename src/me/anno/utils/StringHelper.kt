@@ -53,8 +53,6 @@ object StringHelper {
         DefaultConfig["import.mapping.${toLowerCase()}"]?.toString() ?:
         DefaultConfig["import.mapping.*"]?.toString() ?: "Text"
 
-
-
     // 00:57:28.87 -> 57 * 60 + 28.87
     fun String.parseTime(): Double {
         val parts = split(":").reversed()

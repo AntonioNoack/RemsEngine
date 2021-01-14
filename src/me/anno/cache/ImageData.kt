@@ -96,9 +96,9 @@ class ImageData(file: File) : ICacheData {
                     }
                 }
             }
-            // todo read metadata information from jpegs
-            // todo read the exif rotation header
-            // todo because some camera images are rotated incorrectly
+            // read metadata information from jpegs
+            // read the exif rotation header
+            // because some camera images are rotated incorrectly
             "png", "jpg", "jpeg" -> {
                 texture.create("ImageData-png/jpg", {
                     ImageIO.read(file) ?: throw IOException("Format of $file is not supported.")

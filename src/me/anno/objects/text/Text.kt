@@ -10,6 +10,7 @@ import me.anno.fonts.mesh.TextRepBase
 import me.anno.fonts.signeddistfields.TextSDFGroup
 import me.anno.fonts.signeddistfields.algorithm.SignedDistanceField.sdfResolution
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.GFXx3D.draw3DText
 import me.anno.gpu.GFXx3D.draw3DTextWithOffset
 import me.anno.gpu.GFXx3D.drawOutlinedText
@@ -24,6 +25,7 @@ import me.anno.objects.animation.Type
 import me.anno.objects.modes.TextMode
 import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.Selection.selectTransform
+import me.anno.studio.rems.Selection.selectedTransform
 import me.anno.ui.base.Font
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.constraints.AxisAlignment
@@ -31,6 +33,7 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.menu.Menu.menuSeparator
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.color.spaces.HSLuv
+import me.anno.ui.editor.sceneView.Grid
 import me.anno.ui.input.BooleanInput
 import me.anno.ui.input.EnumInput
 import me.anno.ui.input.TextInputML
@@ -44,7 +47,6 @@ import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
 import java.awt.font.TextLayout
-import java.lang.RuntimeException
 import kotlin.math.max
 import kotlin.math.min
 
@@ -144,7 +146,7 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
         val entry = Cache.getEntry(key to 1, textMeshTimeout, shallLoadAsync) {
             TextSDFGroup(key.font, key.text, charSpacing, forceVariableBuffer)
         } ?: return null
-        if(entry !is TextSDFGroup) throw RuntimeException("Got different class for $key to 1: ${entry.javaClass.simpleName}")
+        if (entry !is TextSDFGroup) throw RuntimeException("Got different class for $key to 1: ${entry.javaClass.simpleName}")
         return entry
     }
 
@@ -227,6 +229,19 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
         firstTimeDrawing = true
 
         var charIndex = 0
+
+        val lbw = lineBreakWidth
+        if (lbw >= 0f && !isFinalRendering && selectedTransform === this) {
+            // draw the line
+            // why 0.81? correct x-scale? (off by ca ~ x0.9)
+            val x0 = dx + width * 0.5f
+            val minX = x0 - 0.81f * lbw
+            val maxX = x0 + 0.81f * lbw
+            val y0 = dy - lineOffset * 0.75f
+            val y1 = y0 + totalHeight
+            Grid.drawLine(stack, color, Vector3f(minX, y0, 0f), Vector3f(minX, y1, 0f))
+            Grid.drawLine(stack, color, Vector3f(maxX, y0, 0f), Vector3f(maxX, y1, 0f))
+        }
 
         for ((index, part) in lineSegmentsWithStyle.parts.withIndex()) {
 
@@ -362,7 +377,7 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
 
                 stack.popMatrix()
 
-            } else if(sdf?.isValid != true){
+            } else if (sdf?.isValid != true) {
 
                 if (GFX.isFinalRendering) throw MissingFrameException("Text-Texture (367) $font: '$text'")
                 needsUpdate = true
@@ -519,7 +534,14 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
 
         val fontGroup = getGroup("Font", "", "font")
 
-        fontGroup += EnumInput("Font Name", "The style of the text", "obj.font.name", font.name, fontList.map { NameDesc(it) }, style)
+        fontGroup += EnumInput(
+            "Font Name",
+            "The style of the text",
+            "obj.font.name",
+            font.name,
+            fontList.map { NameDesc(it) },
+            style
+        )
             .setChangeListener { it, _, _ ->
                 RemsStudio.largeChange("Change Font to '$it'") {
                     getSelfWithShadows().forEach { c -> c.font = c.font.withName(it) }
@@ -633,7 +655,13 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
         outline += vi("Color 2", "Second Outline Color", "outline.color2", outlineColor1, style)
         outline += vi("Color 3", "Third Outline Color", "outline.color3", outlineColor2, style)
         outline += vi("Widths", "[Main, 1st, 2nd, 3rd]", "outline.widths", outlineWidths, style)
-        outline += vi("Smoothness", "How smooth the edge is, [Main, 1st, 2nd, 3rd]", "outline.smoothness", outlineSmoothness, style)
+        outline += vi(
+            "Smoothness",
+            "How smooth the edge is, [Main, 1st, 2nd, 3rd]",
+            "outline.smoothness",
+            outlineSmoothness,
+            style
+        )
         outline += vi("Rounded Corners", "Makes corners curvy", "outline.roundCorners", null, roundSDFCorners, style) {
             roundSDFCorners = it
             invalidate()
