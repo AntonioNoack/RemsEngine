@@ -12,8 +12,10 @@ class BufferStream(
     ) :
         AudioStream(audio, 1.0, 0.0, sampleRate, listener) {
         override fun onBufferFilled(stereoBuffer: ShortBuffer, bufferIndex: Long) {
-            buffer.position(0)
-            buffer.put(stereoBuffer)
-            notifier.incrementAndGet()
+            synchronized(buffer){
+                buffer.position(0)
+                buffer.put(stereoBuffer)
+                notifier.incrementAndGet()
+            }
         }
     }

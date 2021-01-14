@@ -45,6 +45,7 @@ import me.anno.ui.style.Style
 import me.anno.utils.BiMap
 import me.anno.utils.Booleans.toInt
 import me.anno.utils.Clipping
+import me.anno.utils.Maths.mix
 import me.anno.utils.Maths.pow
 import me.anno.utils.StringHelper.getImportType
 import me.anno.video.FFMPEGMetadata
@@ -58,6 +59,8 @@ import org.joml.Vector4f
 import java.io.File
 import kotlin.collections.set
 import kotlin.math.*
+
+// todo video is constantly reloading :/
 
 // todo auto-exposure correction by calculating the exposure, and adjusting the brightness
 
@@ -392,19 +395,22 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
 
                             val frameCount = max(1, (duration * videoFPS).roundToInt())
 
-                            // draw the current texture
-                            val localTime0 = isLooping[lTime0, duration]
-                            val localTime1 = isLooping[lTime1, duration]
-                            val frameIndex0 = (localTime0 * videoFPS).toInt() % frameCount
-                            val frameIndex1 = (localTime1 * videoFPS).toInt() % frameCount
+                            var minT2 = 0
+                            var maxT2 = 0
+                            val steps = 10
+                            for(i in 0 until steps){
+                                val f0 = mix(minT, maxT, i/(steps-1.0))
+                                val localTime0 = isLooping[f0, duration]
+                                val frame = (localTime0 * videoFPS).toInt() % frameCount
+                                minT2 = if(i == 0) frame else min(frame, minT2)
+                                maxT2 = if(i == 0) frame else max(frame, maxT2)
+                            }
 
-                            if (frameIndex1 >= frameIndex0) {
-                                for (frameIndex in frameIndex0..frameIndex1 step framesPerContainer) {
-                                    Cache.getVideoFrame(
-                                        file, max(1, zoomLevel), frameIndex, framesPerContainer,
-                                        videoFPS, videoFrameTimeout, true
-                                    )
-                                }
+                            for (frameIndex in minT2..maxT2 step framesPerContainer) {
+                                Cache.getVideoFrame(
+                                    file, max(1, zoomLevel), frameIndex,
+                                    framesPerContainer, videoFPS, videoFrameTimeout, true
+                                )
                             }
                         }
                     }

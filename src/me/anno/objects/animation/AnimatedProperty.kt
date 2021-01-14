@@ -75,7 +75,6 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
 
     var isAnimated = false
     val keyframes = ArrayList<Keyframe<V>>()
-    var interpolation = Interpolation.SPLINE
 
     fun ensureCorrectType(v: Any?): V {
         return type.accepts(v!!) as V ?: throw RuntimeException("got $v for $type")
@@ -97,32 +96,42 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
     fun addKeyframe(time: Double, value: Any) =
         addKeyframe(time, value, 0.001)
 
-    fun addKeyframe(time: Double, value: Any, equalityDt: Double) {
+    fun addKeyframe(time: Double, value: Any, equalityDt: Double): Keyframe<V>? {
         val value2 = type.accepts(value)
-        if (value2 != null) {
+        return if (value2 != null) {
             addKeyframeInternal(time, clamp(value2 as V), equalityDt)
-        } else LOGGER.warn("Value $value is not accepted by type $type!")
+        } else {
+            LOGGER.warn("Value $value is not accepted by type $type!")
+            null
+        }
     }
 
     fun checkIsAnimated() {
         isAnimated = keyframes.size >= 2 || drivers.any { it != null }
     }
 
-    private fun addKeyframeInternal(time: Double, value: V, equalityDt: Double) {
+    private fun addKeyframeInternal(time: Double, value: V, equalityDt: Double): Keyframe<V> {
         checkThread()
         ensureCorrectType(value)
         if (isAnimated) {
             keyframes.forEachIndexed { index, it ->
                 if (abs(it.time - time) < equalityDt) {
-                    keyframes[index] = Keyframe(time, value)
-                    return
+                    return keyframes[index].apply {
+                        this.time = time
+                        this.value = value
+                    }
                 }
             }
         } else {
             keyframes.clear()
         }
-        keyframes.add(Keyframe(time, value))
+        var index = keyframes.binarySearch { it.time.compareTo(time) }
+        if(index < 0) index = -1-index
+        val interpolation = keyframes.getOrNull(index)?.interpolation ?: Interpolation.SPLINE
+        val newFrame = Keyframe(time, value, interpolation)
+        keyframes.add(newFrame)
         sort()
+        return newFrame
     }
 
     fun checkThread() {
@@ -348,7 +357,7 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
         // must be written before keyframes!!
         if (isAnimated) {
             writer.writeBoolean("isAnimated", isAnimated)
-            writer.writeObjectList(this, "keyframes", keyframes)
+            writer.writeObjectList(this, "vs", keyframes)
         } else {
             // isAnimated = false is default
             val value0 = keyframes.firstOrNull()?.value
@@ -356,7 +365,6 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
                 writer.writeValue(this, "v", value0)
             }
         }
-        writer.writeInt("interpolation", interpolation.code)
         for (i in 0 until type.components) {
             writer.writeObject(this, "driver$i", drivers[i])
         }
@@ -373,13 +381,6 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
         }
     }
 
-    override fun readInt(name: String, value: Int) {
-        when (name) {
-            "interpolation" -> interpolation = Interpolation.getType(value)
-            else -> super.readInt(name, value)
-        }
-    }
-
     override fun readBoolean(name: String, value: Boolean) {
         when (name) {
             "isAnimated" -> isAnimated = value
@@ -389,11 +390,13 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
 
     override fun readObject(name: String, value: ISaveable?) {
         when (name) {
-            "keyframes" -> {
+            "keyframes", "vs" -> {
                 if (value is Keyframe<*>) {
                     val castValue = type.accepts(value.value!!)
                     if (castValue != null) {
-                        addKeyframe(value.time, clamp(castValue as V) as Any, 0.0) // do clamp?
+                        addKeyframe(value.time, clamp(castValue as V) as Any, 0.0)?.apply {
+                            interpolation = value.interpolation
+                        }
                     } else LOGGER.warn("Dropped keyframe!, incompatible type ${value.value} for $type")
                 } else WrongClassType.warn("keyframe", value)
             }
@@ -419,19 +422,18 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
         if (obj === this && !force) throw RuntimeException("Probably a typo!")
         if (obj is AnimatedProperty<*>) {
             isAnimated = obj.isAnimated
-            interpolation = obj.interpolation
             keyframes.clear()
-            obj.keyframes.forEach {
-                val castValue = type.accepts(it.value!!)
+            obj.keyframes.forEach { src ->
+                val castValue = type.accepts(src.value!!)
                 if (castValue != null) {
-                    keyframes.add(Keyframe(it.time, clamp(castValue as V)))
-                } else LOGGER.warn("${it.value} is not accepted by $type")
+                    val dst = Keyframe(src.time, clamp(castValue as V), src.interpolation)
+                    keyframes.add(dst)
+                } else LOGGER.warn("${src.value} is not accepted by $type")
                 // else convert the type??...
             }
             for (i in 0 until type.components) {
                 this.drivers[i] = obj.drivers.getOrNull(i)
             }
-            interpolation = obj.interpolation
         } else println("copy-from-object $obj is not an AnimatedProperty!")
     }
 

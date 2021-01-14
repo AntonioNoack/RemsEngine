@@ -57,6 +57,6 @@ abstract class Saveable : ISaveable {
 
     open fun readSomething(name: String, value: Any?) = warnMissingParam(name)
 
-    override fun toString(): String = TextWriter.toText(this, true)
+    override fun toString(): String = TextWriter.toText(this, true)// + "@${super.toString()}"
 
 }

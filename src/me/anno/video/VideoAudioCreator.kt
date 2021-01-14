@@ -1,6 +1,7 @@
 package me.anno.video
 
 import me.anno.audio.AudioStream
+import me.anno.audio.effects.SoundPipeline
 import me.anno.objects.Audio
 import me.anno.objects.Camera
 import org.apache.logging.log4j.LogManager
@@ -105,9 +106,10 @@ class VideoAudioCreator(
         try {
 
             val sliceDuration = AudioStream.playbackSliceDuration
-            val sliceSampleCount = (sliceDuration * sampleRate).roundToInt()
+            val sampleBuffers = ceil(playbackSampleRate * AudioStream.playbackSliceDuration / SoundPipeline.bufferSize).toInt()
+            val sampleCount = sampleBuffers * SoundPipeline.bufferSize
 
-            val buffer = ShortBuffer.allocate(sliceSampleCount * 2)
+            val buffer = ShortBuffer.allocate(sampleCount * 2)
 
             val bufferCount = ceil(durationSeconds / sliceDuration).toLong()
 
@@ -151,6 +153,7 @@ class VideoAudioCreator(
     }
 
     companion object {
+        val playbackSampleRate = 48000
         private val LOGGER = LogManager.getLogger(VideoAudioCreator::class)
     }
 

@@ -1,9 +1,12 @@
 package me.anno.objects.animation
 
 import me.anno.language.translation.Dict
+import me.anno.utils.Maths.clamp
+import me.anno.utils.Maths.mix
 import org.joml.Vector4d
 import kotlin.math.PI
 import kotlin.math.cos
+import kotlin.math.exp
 import kotlin.math.min
 
 enum class Interpolation(
@@ -130,6 +133,40 @@ enum class Interpolation(
             return Vector4d(0.0, f, g, 0.0)
         }
 
+    },
+
+    EASE_IN(5, ">", "Ease-In", "", "ease-in") {
+
+        override fun getWeights(time0: Double, time1: Double, time2: Double, time3: Double, t0: Double): Vector4d {
+            val time = clamp(t0, 0.0, 1.0)
+            val expM2 = exp(-3.0)
+            val w = (exp(-time * 3.0) - expM2) / (1.0 - expM2)
+            return Vector4d(0.0, w, 1.0 - w, 0.0)
+        }
+
+    },
+
+    EASE_OUT(6, "<", "Ease-Out", "", "ease-out") {
+
+        override fun getWeights(time0: Double, time1: Double, time2: Double, time3: Double, t0: Double): Vector4d {
+            val time = 1.0 - clamp(t0, 0.0, 1.0)
+            val expM2 = exp(-3.0)
+            val w = (exp(-time * 3.0) - expM2) / (1.0 - expM2)
+            return Vector4d(0.0, 1.0 - w, w, 0.0)
+        }
+
+    },
+
+    SWING(7, "#", "Swinging", "", "swing") {
+
+        override fun getWeights(time0: Double, time1: Double, time2: Double, time3: Double, t0: Double): Vector4d {
+            val time = clamp(t0, 0.0, 1.0)
+            val expFactor = 7.0
+            val expM2 = exp(-expFactor)
+            val w = (exp(-time * expFactor) - expM2) / (1.0 - expM2) * mix(1.0, 3.0 * cos(time * 3.1416 * 5.0), clamp(2.0 * time, 0.0, 1.0))
+            return Vector4d(0.0, w, 1.0 - w, 0.0)
+        }
+
     };
 
     val displayName get() = Dict[displayNameEn, "dict.$dictSubPath"]
@@ -155,7 +192,7 @@ enum class Interpolation(
 
         ): Vector4d {
 
-            val interpolation = (if(t0 > 1.0) f2 else f1).interpolation
+            val interpolation = (if (t0 > 1.0) f2 else f1).interpolation
             return interpolation.getWeights(
                 f0.time, f1.time, f2.time, f3.time, t0
             )

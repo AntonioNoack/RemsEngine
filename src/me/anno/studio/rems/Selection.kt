@@ -40,13 +40,15 @@ object Selection {
 
     fun select(transform: Transform?, property: ISaveable?) {
         if(st == transform && sp == property) return
-        val propName = if (transform == null || property == null) null else PropertyFinder.getName(transform, property)
+        val newName = if (transform == null || property == null) null else PropertyFinder.getName(transform, property)
+        val propName = newName ?: selectedPropName
         RemsStudio.largeChange("Select ${transform?.name ?: "Nothing"}:$propName") {
             selectedUUID = transform?.uuid ?: -1
             selectedPropName = propName
             st = transform
-            si = property as? Inspectable ?: transform
-            sp = property as? AnimatedProperty<*>
+            val property2 = if(transform == null) property else PropertyFinder.getValue(transform, selectedPropName ?: "")
+            si = property2 as? Inspectable ?: transform
+            sp = property2 as? AnimatedProperty<*>
         }
     }
 
