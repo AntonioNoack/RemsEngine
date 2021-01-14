@@ -3,6 +3,7 @@ package me.anno.ui.base.groups
 import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.ui.base.Panel
+import me.anno.ui.base.Visibility
 import me.anno.ui.base.scrolling.ScrollableY
 import me.anno.ui.base.scrolling.ScrollbarY
 import me.anno.ui.style.Style
@@ -33,7 +34,7 @@ class PanelListMultiline(style: Style) : PanelGroup(style), ScrollableY {
     override fun getLayoutState() =
         Triple(
             super.getLayoutState(),
-            children.size,
+            children.count { it.visibility == Visibility.VISIBLE },
             Quad(childWidth, childHeight, scrollPosition, maxScrollPosition)
         )
 
@@ -52,8 +53,10 @@ class PanelListMultiline(style: Style) : PanelGroup(style), ScrollableY {
         updateSize(w, h)
 
         for (child in children) {
-            child.calculateSize(calcChildWidth, calcChildHeight)
-            // child.applyConstraints()
+            if(child.visibility == Visibility.VISIBLE){
+                child.calculateSize(calcChildWidth, calcChildHeight)
+                // child.applyConstraints()
+            }
         }
 
     }
@@ -69,14 +72,15 @@ class PanelListMultiline(style: Style) : PanelGroup(style), ScrollableY {
     }
 
     fun updateSize(w: Int, h: Int) {
+        val childrenSize = children.count { it.visibility == Visibility.VISIBLE }
         columns = max(1, (w + spacing) / (childWidth + spacing))
-        rows = max(1, (children.size + columns - 1) / columns)
+        rows = max(1, (childrenSize + columns - 1) / columns)
         val childScale = if (scaleChildren) max(1f, ((w + spacing) / columns - spacing) * 1f / childWidth) else 1f
         calcChildWidth = if (scaleChildren) (childWidth * childScale).toInt() else childWidth
         calcChildHeight = if (scaleChildren) (childHeight * childScale).toInt() else childHeight
         minW = max(w, calcChildWidth)
         minH = max((calcChildHeight + spacing) * rows - spacing, h)
-        minH += childHeight / 2 /* Reserve, because somehow it's not enough... */
+        minH += childHeight / 6 /* Reserve, because somehow it's not enough... */
         minH2 = minH
     }
 
@@ -89,12 +93,16 @@ class PanelListMultiline(style: Style) : PanelGroup(style), ScrollableY {
         super.placeInParent(x, y)
 
         val scroll = scrollPosition.toInt()
-        for ((i, child) in children.withIndex()) {
-            val ix = i % columns
-            val iy = i / columns
-            val cx = x + ix * (calcChildWidth + spacing) + spacing
-            val cy = y + iy * (calcChildHeight + spacing) + spacing - scroll
-            child.placeInParent(cx, cy)
+        var i = 0
+        for (child in children) {
+            if(child.visibility == Visibility.VISIBLE){
+                val ix = i % columns
+                val iy = i / columns
+                val cx = x + ix * (calcChildWidth + spacing) + spacing
+                val cy = y + iy * (calcChildHeight + spacing) + spacing - scroll
+                child.placeInParent(cx, cy)
+                i++
+            }
         }
 
     }

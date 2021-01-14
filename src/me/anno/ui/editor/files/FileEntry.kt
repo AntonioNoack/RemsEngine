@@ -55,6 +55,8 @@ class FileEntry(
 ) :
     PanelGroup(style.getChild("fileEntry")) {
 
+    // todo why is .. split into two lines???
+
     // todo sometimes the title is missing... or its color... why ever...
 
     var audio: Audio? = null
@@ -364,12 +366,15 @@ class FileEntry(
      * draws the title
      * */
     fun drawText(x0: Int, y0: Int, x1: Int, y1: Int) {
+        title.w = x1-x0
+        title.minW = x1-x0
         title.calculateSize(x1 - x0, y1 - y0)
         title.backgroundColor = backgroundColor and 0xffffff
         val deltaX = ((x1 - x0) - title.minW) / 2
         title.x = x0 + max(0, deltaX)
         title.y = y0
-        title.w = title.minW
+        title.w = x1-x0
+        title.minW = x1-x0
         title.h = y1 - y0
         title.drawText(0, 0, title.text, title.textColor)
     }

@@ -212,7 +212,6 @@ class AWTFont(val font: Font) {
         charSpacing: Float, lineBreakWidth: Float, currentX: Float
     ): Int {
         // find the best index, where nextX <= lineBreakWidth
-        // todo skit all whitespace at the start...
         val firstSplitIndex = index0 + 1
         val lastSplitIndex = index1 - 1
         return if (firstSplitIndex == lastSplitIndex) firstSplitIndex else {
@@ -243,10 +242,6 @@ class AWTFont(val font: Font) {
 
             firstSplitIndex + lastValidSplitIndex
 
-            /*println(
-                "splitting '$substring' into '${chars.subList(index0, splitIndex)
-                    .joinChars()}' + '${chars.subList(splitIndex, index1).joinChars()}'"
-            )*/
         }
     }
 
@@ -287,6 +282,11 @@ class AWTFont(val font: Font) {
                 if (hasAutomaticLineBreak && index0 + 1 < index1 && currentX == 0f && nextX > lineBreakWidth) {
                     val tmp1 = index1
                     val splitIndex = findSplitIndex(chars, index0, index1, charSpacing, lineBreakWidth, currentX)
+                    /*println("split [$line $fontSize $lineBreakWidth] $substring into " +
+                            chars.subList(index0,splitIndex).joinChars() +
+                            " + " +
+                            chars.subList(splitIndex,index1).joinChars()
+                    )*/
                     index1 = splitIndex
                     if(index1 > index0 && chars[index1-1] == ' '.toInt() && chars[index1-2] != ' '.toInt()) index1-- // cut off last space
                     nextLine()

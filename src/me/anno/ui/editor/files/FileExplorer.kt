@@ -6,7 +6,9 @@ import me.anno.input.Input
 import me.anno.language.translation.NameDesc
 import me.anno.objects.Transform
 import me.anno.objects.Transform.Companion.toTransform
+import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.studio.rems.RemsStudio.project
+import me.anno.ui.base.Visibility
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelListMultiline
@@ -33,7 +35,7 @@ import kotlin.reflect.jvm.internal.impl.descriptors.Named
 // todo make file path clickable to quickly move to a grandparent folder :)
 class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
 
-    // todo somehow gets assigned a huge height... -.-
+    // todo list view
 
     // todo a stack or history to know where we were...
     // todo left list of relevant places? todo drag stuff in there
@@ -101,6 +103,9 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
         if(isWorking) return
         isWorking = true
         thread {
+
+            val search = Search(searchTerm)
+
             val children = folder?.listFiles2() ?: File.listRoots().toList()
             val newFiles = children.joinToString { it.name }
             if(lastFiles != newFiles){
@@ -117,7 +122,7 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
                 fun put(){
                     if(tmpList.isNotEmpty()){
                         val list = tmpList
-                        GFX.addGPUTask(1){
+                        addEvent {
                             list.forEach { content += it }
                             // force layout update
                             Input.invalidateLayout()
@@ -127,16 +132,18 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
                 }
                 children.sortedBy { !it.isDirectory }.forEach { file ->
                     val name = file.name
-                    if(!name.startsWith(".")){
-                        // todo check if this file is valid, part of the search results
-                        // do this async for large folders and slow drives...
-                        // todo only display the first ... entries maybe...
+                    if(!name.startsWith(".") && search.matches(name)){
                         val fe = FileEntry(this, false, file, style)
                         tmpList.add(fe)
                         if(tmpList.size >= tmpCount) put()
                     }
                 }
                 put()
+            } else {
+                val fe = content.children.filterIsInstance<FileEntry>()
+                fe.forEach {
+                    it.visibility = Visibility[search.matches(it.file.name)]
+                }
             }
             isWorking = false
         }
@@ -244,8 +251,8 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
 
     // todo buttons for filters, then dir name, search over it?, ...
     // todo drag n drop; links or copy?
-    // todo search options
-    // todo search results below
+    // done search options
+    // done search results below
     // todo search in text files
     // todo search in meta data for audio and video
 
