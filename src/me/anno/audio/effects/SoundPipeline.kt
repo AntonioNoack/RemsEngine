@@ -39,7 +39,7 @@ class SoundPipeline() : Saveable(), Inspectable {
         getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
     ) {
         stages.forEach { it.audio = audio }
-        val effectsGroup = getGroup("Effects", "Audio Effects", "effects")
+        val effectsGroup = getGroup("Audio Effects", "Audio Effects", "audio-fx")
         effectsGroup += object : StackPanel("Effects Stack", "Effects can be added with RMB, are applied one after another", listOf(
             option { EchoEffect(audio) },
             option { AmplitudeEffect(audio) },
@@ -147,7 +147,13 @@ class SoundPipeline() : Saveable(), Inspectable {
 
     fun clone(): SoundPipeline {
         val copy = SoundPipeline(audio)
-        copy.stages.addAll(stages.map { it.clone() })
+        copy.stages.addAll(
+            stages.map {
+                it.clone().apply {
+                    audio = this@SoundPipeline.audio
+                }
+            }
+        )
         return copy
     }
 

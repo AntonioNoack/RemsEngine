@@ -15,6 +15,11 @@ class FloatArrayList(val capacity: Int, val defaultValue: Float = 0f) {
     private val buffers = ArrayList<FloatArray>()
     var size = 0
 
+    fun clear(){
+        size = 0
+        buffers.clear()
+    }
+
     operator fun get(index: Int) = buffers[index / capacity][index % capacity]
     operator fun get(index: Int, defaultValue: Float): Float {
         val buffer = buffers.getOrNull(index / capacity) ?: return defaultValue

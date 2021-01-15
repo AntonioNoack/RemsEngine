@@ -53,6 +53,10 @@ abstract class AudioStream(
         configure(audio, speed, globalTime)
     }
 
+    init {
+        source.effects.audio = source
+    }
+
     fun configure(audio: Audio, speed: Double, globalTime: Double) {
         globalToLocalTime = { time -> audio.getGlobalTransform(time * speed + globalTime).second }
         val amplitude = audio.amplitude
@@ -326,9 +330,12 @@ abstract class AudioStream(
             }
 
             if(hasPipeline){
+
                 val global1 = global0 + playbackSliceDuration
-                val time0 = Time(global0, global0)
-                val time1 = Time(global1, global1)
+                val time0 = Time(local0, global0)
+
+                val local1 = globalToLocalTime(global1)
+                val time1 = Time(local1, global1)
 
                 val leftBuffer2 = leftPipeline.process(leftBuffer, source, Domain.TIME_DOMAIN, Domain.TIME_DOMAIN, time0, time1)
                 val rightBuffer2 = rightPipeline.process(rightBuffer, source, Domain.TIME_DOMAIN, Domain.TIME_DOMAIN, time0, time1)

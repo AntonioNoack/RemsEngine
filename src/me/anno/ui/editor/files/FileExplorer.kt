@@ -33,12 +33,21 @@ import kotlin.reflect.jvm.internal.impl.descriptors.Named
 // todo the text size is quite small on my x360 -> get the font size for the ui from the OS :)
 // todo double click is not working in touch mode?
 // todo make file path clickable to quickly move to a grandparent folder :)
+
+// todo buttons for filters, then dir name, search over it?, ...
+// todo drag n drop; links or copy?
+// done search options
+// done search results below
+// todo search in text files
+// todo search in meta data for audio and video
+
+// todo list view
+
+// todo a stack or history to know where we were...
+// todo left list of relevant places? todo drag stuff in there
+
 class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
 
-    // todo list view
-
-    // todo a stack or history to know where we were...
-    // todo left list of relevant places? todo drag stuff in there
 
     var folder: File? = project?.scenes ?: File(OS.home, "Documents")
 
@@ -245,18 +254,11 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
         } else super.onMouseWheel(x, y, dx, dy)
     }
 
+    // multiple elements can be selected
+    override fun getMultiSelectablePanel() = this
+
     companion object {
         val forbiddenCharacters = DefaultConfig["files.forbiddenCharacters", "<>:\"/\\|?*" + (0 .. 31).map { it.toChar() }.joinToString("")].toHashSet()
     }
-
-    // todo buttons for filters, then dir name, search over it?, ...
-    // todo drag n drop; links or copy?
-    // done search options
-    // done search results below
-    // todo search in text files
-    // todo search in meta data for audio and video
-
-    // multiple elements can be selected
-    override fun getMultiSelectablePanel() = this
 
 }

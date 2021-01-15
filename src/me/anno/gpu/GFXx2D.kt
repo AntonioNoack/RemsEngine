@@ -110,10 +110,10 @@ object GFXx2D {
         equalSpaced: Boolean
     ): Pair<Int, Int> {
 
-        // todo correct width for spaces...
+        // todo correct distances for everything
 
         val charWidth = if (equalSpaced)
-            getTextSize(font, "a", widthLimit).first
+            getTextSize(font, "x", widthLimit).first
         else 0
 
         if (centerX) {

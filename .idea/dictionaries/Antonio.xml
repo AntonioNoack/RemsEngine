@@ -77,6 +77,7 @@
       <w>iter</w>
       <w>jacobian</w>
       <w>konqueror</w>
+      <w>lerped</w>
       <w>lerps</w>
       <w>lightgoldenrodyellow</w>
       <w>lightgray</w>
@@ -96,6 +97,8 @@
       <w>mediumorchid</w>
       <w>mediump</w>
       <w>mediumpurple</w>
+      <w>memcpy</w>
+      <w>memset</w>
       <w>mgtpezy</w>
       <w>mids</w>
       <w>mintcream</w>

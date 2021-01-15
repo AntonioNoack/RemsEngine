@@ -1,5 +1,6 @@
 package me.anno.audio.effects.impl
 
+import audacity.soundtouch.TimeDomainStretch
 import me.anno.audio.effects.Domain
 import me.anno.audio.effects.SoundEffect
 import me.anno.audio.effects.SoundPipeline.Companion.bufferSize
@@ -8,18 +9,26 @@ import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.Audio
 import me.anno.objects.Camera
-import me.anno.objects.animation.AnimatedProperty
+import me.anno.objects.animation.Type
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
-import me.anno.utils.Maths
-import me.anno.utils.processBalanced
-import kotlin.math.PI
-import kotlin.math.abs
-import kotlin.math.atan2
-import kotlin.math.cos
+import me.anno.utils.Casting.castToFloat2
+import me.anno.utils.Maths.clamp
+import me.anno.utils.Maths.fract
+import me.anno.utils.Maths.mix
+import kotlin.math.*
 
-class PitchEffect() : SoundEffect(Domain.FREQUENCY_DOMAIN, Domain.TIME_DOMAIN) {
+class PitchEffect() : SoundEffect(Domain.TIME_DOMAIN, Domain.TIME_DOMAIN) {
+
+    companion object {
+        val maxPitch = 20f
+        val minPitch = 1f/ maxPitch
+        val pitchType = Type(1f, 1, 1f, false, true,
+            { clamp(castToFloat2(it), minPitch, maxPitch) },
+            { it is Float }
+        )
+    }
 
     constructor(audio: Audio) : this() {
         this.audio = audio
@@ -35,16 +44,11 @@ class PitchEffect() : SoundEffect(Domain.FREQUENCY_DOMAIN, Domain.TIME_DOMAIN) {
             "Making something play faster, increases the pitch; this is undone by this node",
             null, inverseSpeed, style
         ) { inverseSpeed = it }
-        list += audio.vi("Value", "Pitch height, if Inverse Speed = false", pitch, style)
-    }
-
-    companion object {
-        private val amplitudeMultiplier = 2f / bufferSize
-        private val piX2 = (2.0 * Math.PI).toFloat()
+        list += audio.vi("Value", "Pitch height, if Inverse Speed = false", pitchType, pitch, style){ pitch = it }
     }
 
     var inverseSpeed = false
-    var pitch = AnimatedProperty.float(1f)
+    var pitch = 1f
 
     private val phaseOffset = FloatArray(bufferSize / 2)
 
@@ -54,61 +58,83 @@ class PitchEffect() : SoundEffect(Domain.FREQUENCY_DOMAIN, Domain.TIME_DOMAIN) {
 
     val result = FloatArray(bufferSize)
 
+    private val stretch = TimeDomainStretch()
+    init { stretch.setChannels(1) }
+
+    var tempo = 1f
+    var hasTempo = false
+    var outputOffset = 0
+
     override fun apply(data: FloatArray, source: Audio, destination: Camera, time0: Time, time1: Time): FloatArray {
 
-        val time = source.timeAnimated
-        val pitch = pitch
-
-        val isFirstBuffer = bufferIndex == 0
-
-        val timeIntegral = FloatArray(bufferSize)
-
-        if (inverseSpeed) {
-            for (i in 0 until bufferSize) {
-                val parentTime = time0.globalTime + i * (time1.globalTime - time0.globalTime) / bufferSize
-                timeIntegral[i] = source.getLocalTime(parentTime).toFloat()
-            }
-        } else {
-            val t0 = time0.localTime
-            val t1 = time1.localTime
-            timeIntegral[0] = pitch[t0]
-            for (i in 1 until bufferSize) {
-                timeIntegral[i] = timeIntegral[i - 1] + pitch[t0 + i * (t1 - t0) / bufferSize]
-            }
+        if(!hasTempo){
+            // todo can tempo be changed while running???...
+            tempo = clamp(
+                if(inverseSpeed){
+                    val localDt = abs(time1.localTime-time0.localTime)
+                    val globalDt = abs(time1.globalTime - time0.globalTime)
+                    (localDt/globalDt).toFloat()
+                } else 1f/pitch, minPitch, maxPitch
+            )
+            stretch.setTempo(tempo)
+            hasTempo = true
         }
 
-        for (i in 0 until bufferSize) {
-            result[i] = 0f
-        }
+        // nothing to do, should be exact enough
+        if(tempo in 0.999f .. 1.001f) return data
 
-        // is it possible to work in the frequency domain only? mhh...
-        // only approximately
-        for (frequency in 1 until bufferSize / 2) {
-            val r = data[frequency * 2]
-            val i = data[frequency * 2 + 1]
-            val amplitude0 = Maths.length(r, i) * amplitudeMultiplier
-            if (abs(amplitude0) > 1e-5f && frequency == 4) {
-                val baseFrequency = (frequency * 2 * PI).toFloat() / bufferSize
-                val phase0 = if (isFirstBuffer) atan2(i, r) else phaseOffset[frequency]
-                processBalanced(0, bufferSize, false){ i0, i1 ->
-                    for(t in i0 until i1){
-                        result[t] += cos((phase0 + timeIntegral[t]) * baseFrequency) * amplitude0
+        // put the data
+        stretch.putSamples(data)
+
+        // then read the data, and rescale it to match the output
+        val output = stretch.outputBuffer
+        val output2 = output.backend
+        val offset = outputOffset
+        val size = output.numSamples() - offset
+        if(size > 0){
+
+            // keep size "constant" (it's not), only use what you need
+            val usedSize = min(size, (data.size*pitch).toInt())
+            val factor = usedSize.toFloat() / data.size
+            // println("$usedSize (${output.numSamples()} - $offset) / ${data.size} -> $factor from $pitch")
+            val maxIndex = size + offset - 1
+
+            var f0 = 0f
+            var i0 = 0
+            for(i in data.indices){
+                val f1 = (i+1) * factor
+                val i1 = f1.toInt() + offset
+                data[i] = if(i1 > i1){
+                    // there are multiple values
+                    // average f0 .. f1
+                    var sum = 0f
+                    sum += output2[i0] * (1f-fract(f0))
+                    sum += output2[i1] * fract(f1)
+                    for(j in i0+1 until i1){
+                        sum += output2[j]
                     }
+                    sum / (f1-f0)
+                } else {
+                    // only a single one, lerped
+                    mix(output2[i0], output2[min(i0+1, maxIndex)], fract(f0))
                 }
-                phaseOffset[frequency] = (phase0 + timeIntegral.last()) % (piX2 / baseFrequency)
-            } else phaseOffset[frequency] = 0f
+                f0 = f1
+                i0 = i1
+            }
+
+            outputOffset += usedSize
+
         }
 
-        bufferIndex++
-
-        return result
+        return data
 
     }
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
         writer.writeBoolean("inverseSpeed", inverseSpeed)
-        writer.writeObject(this, "pitch", pitch)
+        writer.writeFloat("pitch", pitch)
+        // writer.writeObject(this, "pitch", pitch)
     }
 
     override fun readBoolean(name: String, value: Boolean) {
@@ -118,9 +144,16 @@ class PitchEffect() : SoundEffect(Domain.FREQUENCY_DOMAIN, Domain.TIME_DOMAIN) {
         }
     }
 
+    override fun readFloat(name: String, value: Float) {
+        when(name){
+            "pitch" -> pitch = value
+            else -> super.readFloat(name, value)
+        }
+    }
+
     override fun readObject(name: String, value: ISaveable?) {
         when (name) {
-            "pitch" -> pitch.copyFrom(value)
+            // "pitch" -> pitch.copyFrom(value)
             else -> super.readObject(name, value)
         }
     }

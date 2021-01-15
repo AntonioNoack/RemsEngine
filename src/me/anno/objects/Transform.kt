@@ -470,7 +470,7 @@ open class Transform(var parent: Transform? = null) : Saveable(),
     }
 
     override fun getClassName(): String = "Transform"
-    override fun getApproxSize(): Int = 50 + listOfAll.count()
+    override fun getApproxSize(): Int = 1024 + listOfAll.count()
 
     fun addBefore(child: Transform) {
         val p = parent!!
