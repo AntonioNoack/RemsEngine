@@ -12,9 +12,6 @@ import kotlin.math.sqrt
  * */
 class TimeDomainStretch {
 
-    // outDebt = 0
-    // val max(x, y) (((x) > (y)) ? (x) : (y))
-
     /*****************************************************************************
      *
      * Constant definitions
@@ -424,8 +421,7 @@ class TimeDomainStretch {
         nominalSkip = tempo * (seekWindowLength - overlapLength)
         val idealSkip = (nominalSkip + 0.5f).toInt()
 
-        // Calculate how many samples are needed in the 'inputBuffer' to
-        // process another batch of samples
+        // Calculate how many samples are needed in the 'inputBuffer' to process another batch of samples
         // sampleReq = max(idealSkip + overlapLength, seekWindowLength) + seekLength / 2
         sampleReq = max(idealSkip + overlapLength, seekWindowLength) + seekLength
     }

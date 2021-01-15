@@ -134,7 +134,6 @@ class PitchEffect() : SoundEffect(Domain.TIME_DOMAIN, Domain.TIME_DOMAIN) {
         super.save(writer)
         writer.writeBoolean("inverseSpeed", inverseSpeed)
         writer.writeFloat("pitch", pitch)
-        // writer.writeObject(this, "pitch", pitch)
     }
 
     override fun readBoolean(name: String, value: Boolean) {
@@ -148,13 +147,6 @@ class PitchEffect() : SoundEffect(Domain.TIME_DOMAIN, Domain.TIME_DOMAIN) {
         when(name){
             "pitch" -> pitch = value
             else -> super.readFloat(name, value)
-        }
-    }
-
-    override fun readObject(name: String, value: ISaveable?) {
-        when (name) {
-            // "pitch" -> pitch.copyFrom(value)
-            else -> super.readObject(name, value)
         }
     }
 
