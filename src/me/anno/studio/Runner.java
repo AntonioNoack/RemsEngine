@@ -6,7 +6,7 @@ package me.anno.studio;
 // done timeline cutting tool
 // done general settings?
 // todo merging cameras?
-// todo particle systems
+// done particle systems
 // done move entries in tree
 
 import me.anno.studio.rems.RemsStudio;

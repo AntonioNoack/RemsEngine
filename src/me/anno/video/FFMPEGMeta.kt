@@ -2,7 +2,7 @@ package me.anno.video
 
 import java.io.File
 
-class FFMPEGMeta(file: File?):
+open class FFMPEGMeta(file: File?):
     FFMPEGStream(file){
 
     override fun process(process: Process, arguments: List<String>) {

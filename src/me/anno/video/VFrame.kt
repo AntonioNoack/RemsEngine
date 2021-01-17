@@ -7,7 +7,7 @@ import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.GPUFiltering
 import java.io.InputStream
 
-abstract class VFrame(var w: Int, var h: Int){
+abstract class VFrame(var w: Int, var h: Int, val code: Int){
     var isLoaded = false
     abstract fun get3DShader(): Shader
     abstract fun bind(offset: Int, nearestFiltering: GPUFiltering, clamping: Clamping)

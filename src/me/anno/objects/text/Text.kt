@@ -1,6 +1,7 @@
 package me.anno.objects.text
 
-import me.anno.cache.Cache
+import me.anno.cache.instances.TextCache
+import me.anno.cache.keys.TextSegmentKey
 import me.anno.config.DefaultConfig
 import me.anno.fonts.FontManager
 import me.anno.fonts.PartResult
@@ -51,6 +52,8 @@ import kotlin.math.max
 import kotlin.math.min
 
 // todo background "color" in the shape of a plane? for selections and such
+
+// todo fix color attractors
 
 open class Text(text: String = "", parent: Transform? = null) : GFXTransform(parent) {
 
@@ -124,26 +127,18 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
         return awtFont.splitParts(text, font.size, relativeTabSize, relativeCharSpacing, absoluteLineBreakWidth)
     }
 
-    data class TextSegmentKey(
-        val font: java.awt.Font, val isBold: Boolean, val isItalic: Boolean,
-        val text: String, val charSpacing: Float
-    ) {
-        fun equals(isBold: Boolean, isItalic: Boolean, text: String, charSpacing: Float) =
-            isBold == this.isBold && isItalic == this.isItalic && text == this.text && charSpacing == this.charSpacing
-    }
-
     var lastVisualState: Any? = null
     fun getVisualState() = Triple(Triple(text, font, lineBreakWidth), renderingMode, roundSDFCorners)
 
     val shallLoadAsync get() = !forceVariableBuffer
     fun getTextMesh(key: TextSegmentKey): TextRepBase? {
-        return Cache.getEntry(key, textMeshTimeout, shallLoadAsync) {
+        return TextCache.getEntry(key, textMeshTimeout, shallLoadAsync) {
             TextMeshGroup(key.font, key.text, charSpacing, forceVariableBuffer)
         } as? TextRepBase
     }
 
     fun getTextTexture(key: TextSegmentKey): TextSDFGroup? {
-        val entry = Cache.getEntry(key to 1, textMeshTimeout, shallLoadAsync) {
+        val entry = TextCache.getEntry(key to 1, textMeshTimeout, shallLoadAsync) {
             TextSDFGroup(key.font, key.text, charSpacing, forceVariableBuffer)
         } ?: return null
         if (entry !is TextSDFGroup) throw RuntimeException("Got different class for $key to 1: ${entry.javaClass.simpleName}")
@@ -292,9 +287,6 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
 
     var firstTimeDrawing = false
 
-    /**
-     * todo repair color attractors
-     * */
     private fun drawTexture(
         key: TextSegmentKey, time: Double, stack: Matrix4fArrayList,
         color: Vector4f, lineDeltaX: Float, lineDeltaY: Float,
@@ -304,7 +296,7 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
 
         val sdf2 = getTextTexture(key)
         if (sdf2 == null) {
-            if (GFX.isFinalRendering) throw MissingFrameException("Text-Texture (291) $font: '$text'")
+            if (isFinalRendering) throw MissingFrameException("Text-Texture (291) $font: '$text'")
             needsUpdate = true
             return
         }
@@ -379,7 +371,7 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
 
             } else if (sdf?.isValid != true) {
 
-                if (GFX.isFinalRendering) throw MissingFrameException("Text-Texture (367) $font: '$text'")
+                if (isFinalRendering) throw MissingFrameException("Text-Texture (367) $font: '$text'")
                 needsUpdate = true
 
             }

@@ -1,9 +1,9 @@
 package me.anno.gpu.framebuffer
 
-import me.anno.cache.Cache
-import me.anno.cache.ICacheData
+import me.anno.cache.CacheSection
+import me.anno.cache.data.ICacheData
 
-object FBStack {
+object FBStack : CacheSection("FBStack") {
 
     class FBStackData : ICacheData {
         var nextIndex = 0
@@ -16,7 +16,7 @@ object FBStack {
     data class FBKey(val w: Int, val h: Int, val samples: Int, val usesFP: Boolean)
 
     fun getValue(w: Int, h: Int, samples: Int, usesFP: Boolean): FBStackData {
-        return Cache.getEntry(FBKey(w, h, samples, usesFP), 1000, false) {
+        return getEntry(FBKey(w, h, samples, usesFP), 1000, false) {
             FBStackData()
         } as FBStackData
     }
@@ -55,7 +55,17 @@ object FBStack {
     }
 
     fun reset() {
-        Cache.resetFBStack()
+        resetFBStack()
+    }
+
+    fun resetFBStack() {
+        synchronized(cache) {
+            cache.values.forEach {
+                (it.data as? FBStackData)?.apply {
+                    nextIndex = 0
+                }
+            }
+        }
     }
 
 }

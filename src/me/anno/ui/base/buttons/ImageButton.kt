@@ -1,6 +1,6 @@
 package me.anno.ui.base.buttons
 
-import me.anno.cache.Cache
+import me.anno.cache.instances.ImageCache.getInternalTexture
 import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFXx2D
 import me.anno.gpu.blending.BlendDepth
@@ -29,7 +29,7 @@ class ImageButton(
 
     var guiScale = 1f
 
-    private val icon get() = Cache.getInternalTexture(path, true, 10_000)
+    private val icon get() = getInternalTexture(path, true, 10_000)
 
     init {
         add(WrapAlign.LeftTop)

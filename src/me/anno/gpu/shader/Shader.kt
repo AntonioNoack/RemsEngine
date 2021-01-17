@@ -2,7 +2,7 @@ package me.anno.gpu.shader
 
 import me.anno.gpu.GFX
 import me.anno.gpu.framebuffer.Frame
-import me.anno.cache.ICacheData
+import me.anno.cache.data.ICacheData
 import me.anno.utils.structures.arrays.FloatArrayList
 import org.apache.logging.log4j.LogManager
 import org.joml.*

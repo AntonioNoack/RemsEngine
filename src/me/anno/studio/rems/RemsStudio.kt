@@ -1,6 +1,7 @@
 package me.anno.studio.rems
 
 import me.anno.config.DefaultConfig
+import me.anno.config.DefaultStyle.baseTheme
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.gameTime
 import me.anno.input.ActionManager
@@ -23,7 +24,7 @@ import me.anno.utils.OS
 import java.io.File
 import kotlin.concurrent.thread
 
-// todo spline editor inside Rem's Studio, with points, that can be animated (???)
+// todo spline polygon editor inside Rem's Studio, with points, that can be animated (???)
 
 // todo "hacked"-text effect for text: swizzle characters and introduce others
 
@@ -113,18 +114,9 @@ object RemsStudio : StudioBase(true, "Rem's Studio", "RemsStudio") {
 
     }
 
-    var wasSavingConfig = 0L
     fun saveStateMaybe() {
-        if ((DefaultConfig.wasChanged || DefaultConfig.style.values.wasChanged)
-            && gameTime > wasSavingConfig + 1_000_000_000
-        ) {// only save every 1s
-            // delay in case it needs longer
-            wasSavingConfig = gameTime + (60 * 1e9).toLong()
-            thread {
-                DefaultConfig.save()
-                wasSavingConfig = gameTime
-            }
-        }
+        DefaultConfig.saveMaybe("main.config")
+        baseTheme.values.saveMaybe("style.config")
     }
 
     private var lastCode: Any? = null

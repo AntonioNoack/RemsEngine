@@ -1,6 +1,7 @@
 package me.anno.ui.editor.files
 
-import me.anno.cache.Cache
+import me.anno.cache.instances.ImageCache.getInternalTexture
+import me.anno.cache.instances.VideoCache.getVideoFrame
 import me.anno.config.DefaultStyle.black
 import me.anno.fonts.FontManager
 import me.anno.gpu.GFX
@@ -12,6 +13,7 @@ import me.anno.gpu.GFXx3D
 import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.input.Input
 import me.anno.input.MouseButton
@@ -180,11 +182,11 @@ class FileEntry(
     }
 
     fun drawDefaultIcon(x0: Int, y0: Int, x1: Int, y1: Int) {
-        val image = Cache.getInternalTexture(iconPath, true) ?: whiteTexture
+        val image = getInternalTexture(iconPath, true) ?: whiteTexture
         drawTexture(x0, y0, x1, y1, image)
     }
 
-    fun drawTexture(x0: Int, y0: Int, x1: Int, y1: Int, image: Texture2D) {
+    fun drawTexture(x0: Int, y0: Int, x1: Int, y1: Int, image: ITexture2D) {
         val w = x1 - x0
         val h = y1 - y0
         var iw = image.w
@@ -195,7 +197,7 @@ class FileEntry(
         drawTexture(x0 + (w - iw) / 2, y0 + (h - ih) / 2, iw, ih, image, -1, null)
     }
 
-    fun getDefaultIcon() = Cache.getInternalTexture(iconPath, true)
+    fun getDefaultIcon() = getInternalTexture(iconPath, true)
 
     fun getTexKey(): Any? {
         fun getImage(): Any? {
@@ -222,8 +224,9 @@ class FileEntry(
         val w = x1 - x0
         val h = y1 - y0
         val image = Thumbs.getThumbnail(file, w) ?: getDefaultIcon() ?: whiteTexture
-        val rot = image.rotation
-        image.ensureFilterAndClamping(GPUFiltering.LINEAR, Clamping.CLAMP)
+        val tex2D = image as? Texture2D
+        val rot = tex2D?.rotation
+        tex2D?.ensureFilterAndClamping(GPUFiltering.LINEAR, Clamping.CLAMP)
         if (rot == null) {
             drawTexture(x0, y0, x1, y1, image)
         } else {
@@ -276,7 +279,7 @@ class FileEntry(
 
         val w = x1 - x0
         val bufferLength = 64
-        fun getFrame(offset: Int) = Cache.getVideoFrame(
+        fun getFrame(offset: Int) = getVideoFrame(
             file, scale, frameIndex + offset,
             bufferLength, previewFPS, 1000, true
         )
@@ -366,15 +369,15 @@ class FileEntry(
      * draws the title
      * */
     fun drawText(x0: Int, y0: Int, x1: Int, y1: Int) {
-        title.w = x1-x0
-        title.minW = x1-x0
+        title.w = x1 - x0
+        title.minW = x1 - x0
         title.calculateSize(x1 - x0, y1 - y0)
         title.backgroundColor = backgroundColor and 0xffffff
         val deltaX = ((x1 - x0) - title.minW) / 2
         title.x = x0 + max(0, deltaX)
         title.y = y0
-        title.w = x1-x0
-        title.minW = x1-x0
+        title.w = x1 - x0
+        title.minW = x1 - x0
         title.h = y1 - y0
         title.drawText(0, 0, title.text, title.textColor)
     }

@@ -1,6 +1,6 @@
 package me.anno.gpu
 
-import me.anno.cache.ICacheData
+import me.anno.cache.data.ICacheData
 import me.anno.gpu.texture.Texture2D
 
 object TextureLib {

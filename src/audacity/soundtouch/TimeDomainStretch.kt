@@ -111,7 +111,6 @@ class TimeDomainStretch {
     private var tempo = 1f
 
     var pMidBuffer: FloatArray? = null
-    var pMidBufferUnaligned: FloatArray? = null
 
     var overlapLength = 0
     var seekLength = 0
@@ -532,14 +531,9 @@ class TimeDomainStretch {
         overlapLength = newOverlapLength
 
         if (overlapLength > prevOvl) {
-            // delete[] pMidBufferUnaligned
-
-            pMidBufferUnaligned = FloatArray(overlapLength * 2 + 4)
             // ensure that 'pMidBuffer' is aligned to 16 byte boundary for efficiency
             // impossible in Java, but maybe already done in the backend
-            pMidBuffer = pMidBufferUnaligned
-            //(float *) SOUNDTOUCH_ALIGN_POINTER_16 (pMidBufferUnaligned)
-
+            pMidBuffer = FloatArray(overlapLength * 2)// +4, align
             clearMidBuffer()
         }
     }
@@ -547,7 +541,7 @@ class TimeDomainStretch {
     /**
      * Overlaps samples in 'midBuffer' with the samples in 'pInput'
      * */
-    fun overlapStereo(pOutput: FloatPtr, pInput: FloatPtr) {
+    private fun overlapStereo(pOutput: FloatPtr, pInput: FloatPtr) {
 
         val fScale = 1.0f / overlapLength
 

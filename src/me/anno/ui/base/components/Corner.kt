@@ -47,6 +47,11 @@ object Corner {
         if (w > 0 && h > 0) {
             if (radiusX > 0 && radiusY > 0 && (topLeft || topRight || bottomLeft || bottomRight)) {
 
+                // val bottomFree = !bottomLeft && !bottomRight
+                // val topFree = !topLeft && !topRight
+                // val leftFree = !topLeft && !bottomLeft
+                // val rightFree = !topRight && !bottomRight
+
                 // todo optimize to use less draw calls if 1 or 2 corners are drawn only
 
                 GFXx2D.flatColor(color)

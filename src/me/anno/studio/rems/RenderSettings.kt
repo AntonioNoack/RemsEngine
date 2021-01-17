@@ -96,7 +96,6 @@ object RenderSettings : Transform() {
             }
             .setTooltip("[Motion Blur] 1 = full frame is used; 0.1 = only 1/10th of a frame time is used")
 
-        // todo file selector from OS...
         val fileInput = FileInput("Output File", style, targetOutputFile)
         val originalColor = fileInput.base2.textColor
         fun updateFileInputColor() {

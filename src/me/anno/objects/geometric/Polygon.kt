@@ -1,6 +1,7 @@
 package me.anno.objects.geometric
 
-import me.anno.cache.Cache
+import me.anno.cache.instances.ImageCache.getImage
+import me.anno.cache.instances.MeshCache
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.toRadians
@@ -44,7 +45,7 @@ class Polygon(parent: Transform? = null) : GFXTransform(parent) {
 
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
         val inset = clamp(starNess[time], 0f, 1f)
-        val image = Cache.getImage(texture, 5000, true)
+        val image = getImage(texture, 5000, true)
         if (image == null && texture.hasValidName() && GFX.isFinalRendering) throw MissingFrameException(texture)
         val texture = image ?: whiteTexture
         val count = vertexCount[time]//.roundToInt()
@@ -169,8 +170,8 @@ class Polygon(parent: Transform? = null) : GFXTransform(parent) {
         fun getBuffer(n: Int, hasDepth: Boolean): StaticBuffer {
             if (n < minEdges) return getBuffer(minEdges, hasDepth)
             if (n > maxEdges) return getBuffer(maxEdges, hasDepth)
-            return Cache.getEntry(
-                "Mesh", "Polygon", n * 2 + (if (hasDepth) 1 else 0),
+            return MeshCache.getEntry(
+                n * 2 + (if (hasDepth) 1 else 0),
                 meshTimeout, false
             ) {
                 createBuffer(n, hasDepth)

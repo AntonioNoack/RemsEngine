@@ -10,7 +10,7 @@ import me.anno.video.LastFrame
 import me.anno.video.VFrame
 import java.io.InputStream
 
-class I420Frame(iw: Int, ih: Int) : VFrame(iw, ih) {
+class I420Frame(iw: Int, ih: Int) : VFrame(iw, ih, 2) {
 
     // this is correct, confirmed by example
     private val w2 = (w + 1) / 2

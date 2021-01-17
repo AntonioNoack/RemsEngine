@@ -44,10 +44,6 @@ open class TextPanel(open var text: String, style: Style): Panel(style){
         return Triple(super.getVisualState(), (texture as? Texture2D)?.state, effectiveTextColor)
     }
 
-    // breaks into multiline
-    // todo use a guess instead???
-    // todo at max use full text length???
-    // todo only 5er steps?
     var breaksIntoMultiline = false
 
     // can be disabled for parents to copy ALL lines, e.g. for a bug report :)

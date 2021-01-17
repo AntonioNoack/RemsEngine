@@ -1,11 +1,11 @@
 package me.anno.studio.rems
 
+import me.anno.cache.CacheSection
 import me.anno.gpu.GFX
 import me.anno.input.ActionManager
 import me.anno.input.Input
 import me.anno.input.Modifiers
 import me.anno.io.utils.StringMap
-import me.anno.cache.Cache
 import me.anno.objects.modes.TransformVisibility
 import me.anno.studio.StudioBase
 import me.anno.ui.editor.TimelinePanel
@@ -82,8 +82,7 @@ object StudioActions {
                 } else false
             },
             "ClearCache" to {
-                Cache.clear()
-                // Video.clearCache()
+                CacheSection.clearAll()
                 true
             },
             "Redo" to {
@@ -96,7 +95,7 @@ object StudioActions {
             },
             "ShowAllObjects" to {
                 if (RemsStudio.root.listOfAll.any { it.visibility == TransformVisibility.VIDEO_ONLY }) {
-                    RemsStudio.largeChange("Show all objects"){
+                    RemsStudio.largeChange("Show all objects") {
                         RemsStudio.root.listOfAll.filter { it.visibility == TransformVisibility.VIDEO_ONLY }
                             .forEach { it.visibility = TransformVisibility.VISIBLE }
                     }
@@ -106,7 +105,7 @@ object StudioActions {
             "ToggleHideObject" to {
                 val obj = Selection.selectedTransform
                 if (obj != null) {
-                    RemsStudio.largeChange("Toggle Visibility"){
+                    RemsStudio.largeChange("Toggle Visibility") {
                         obj.visibility = when (obj.visibility) {
                             TransformVisibility.VISIBLE -> TransformVisibility.VIDEO_ONLY
                             else -> TransformVisibility.VISIBLE
@@ -173,11 +172,11 @@ object StudioActions {
         keyMap["SceneView.left.p"] = "MoveObject"
         keyMap["SceneView.left.p.${Modifiers[false, true]}"] = "MoveObjectAlternate"
 
-        for(i in 0 until 10){
+        for (i in 0 until 10) {
             keyMap["SceneView.$i.down"] = "Cam$i"
             keyMap["SceneView.numpad$i.down"] = "Cam$i"
-            keyMap["SceneView.$i.down.${Modifiers[true,false]}"] = "Cam$i"
-            keyMap["SceneView.numpad$i.down.${Modifiers[true,false]}"] = "Cam$i"
+            keyMap["SceneView.$i.down.${Modifiers[true, false]}"] = "Cam$i"
+            keyMap["SceneView.numpad$i.down.${Modifiers[true, false]}"] = "Cam$i"
         }
 
         keyMap["SceneView.w.p"] = "MoveForward"

@@ -1,7 +1,7 @@
 package me.anno.fonts
 
-import me.anno.cache.Cache
 import me.anno.cache.CacheData
+import me.anno.cache.instances.TextCache
 import me.anno.fonts.keys.FontKey
 import me.anno.fonts.keys.TextCacheKey
 import me.anno.gpu.GFX.loadTexturesSync
@@ -76,7 +76,7 @@ object FontManager {
 
         val fontName = font.name
         val key = TextCacheKey(text, fontName, sub, widthLimit2)
-        val data = Cache.getEntry(key, 1000, false) {
+        val data = TextCache.getEntry(key, 1000, false) {
             val font2 = getFont(font)
             val averageFontSize = getAvgFontSize(fontSizeIndex)
             CacheData(font2.calculateSize(text, averageFontSize, widthLimit2))
@@ -106,7 +106,7 @@ object FontManager {
         val fontName = font.name
         val key = TextCacheKey(text, fontName, sub, widthLimit2)
         val async = false//!loadTexturesSync.peek()
-        return Cache.getEntry(key, textureTimeout, async) {
+        return TextCache.getEntry(key, textureTimeout, async) {// must be sync
             val font2 = getFont(font)
             val averageFontSize = getAvgFontSize(fontSizeIndex)
             val texture = font2.generateTexture(text, averageFontSize, widthLimit2)

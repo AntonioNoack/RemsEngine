@@ -1,20 +1,20 @@
 package me.anno.objects.meshes
 
+import me.anno.cache.instances.MeshCache.getMesh
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.io.base.BaseWriter
-import me.anno.objects.GFXTransform
-import me.anno.objects.Transform
-import me.anno.cache.Cache
 import me.anno.language.translation.Dict
 import me.anno.mesh.fbx.model.FBXGeometry
 import me.anno.mesh.fbx.model.FBXShader.maxWeightsDefault
 import me.anno.mesh.fbx.structure.FBXReader
 import me.anno.mesh.obj.Material
 import me.anno.mesh.obj.OBJReader
+import me.anno.objects.GFXTransform
+import me.anno.objects.Transform
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.files.hasValidName
@@ -65,7 +65,7 @@ class Mesh(var file: File, parent: Transform?) : GFXTransform(parent) {
                     GFX.check()
 
                     // load the 3D model
-                    val data = Cache.getEntry(file, false, "Mesh", 1000, true) {
+                    val data = getMesh(file, "Mesh-DAE", 1000, true) {
 
                         val meshData = MeshData()
                         GFX.addGPUTask(10) {
@@ -85,7 +85,7 @@ class Mesh(var file: File, parent: Transform?) : GFXTransform(parent) {
                 }
                 "fbx" -> {
                     // load the 3D model
-                    val data = Cache.getEntry(file, false, "Mesh", 1000, true) {
+                    val data = getMesh(file, "Mesh-FBX", 1000, true) {
                         val fbxGeometry =
                             FBXReader(file.inputStream().buffered()).fbxObjects.filterIsInstance<FBXGeometry>().first()
                         val meshData = MeshData()
@@ -110,7 +110,7 @@ class Mesh(var file: File, parent: Transform?) : GFXTransform(parent) {
                 }
                 "obj" -> {
                     // load the 3D model
-                    val data = Cache.getEntry(file, false, "Mesh", 1000, true) {
+                    val data = getMesh(file, "Mesh-OBJ", 1000, true) {
                         val attributes = listOf(
                             Attribute("coords", 3),
                             Attribute("uvs", 2),

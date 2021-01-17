@@ -1,10 +1,14 @@
 package me.anno.objects
 
 import me.anno.audio.AudioManager
-import me.anno.cache.Cache
-import me.anno.cache.VideoData.Companion.framesPerContainer
+import me.anno.cache.data.VideoData.Companion.framesPerContainer
+import me.anno.cache.instances.ImageCache
+import me.anno.cache.instances.MeshCache
+import me.anno.cache.instances.VideoCache
+import me.anno.cache.instances.VideoCache.getVideoFrame
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.GFXx3D.draw3D
 import me.anno.gpu.GFXx3D.draw3DVideo
 import me.anno.gpu.SVGxGFX
@@ -48,10 +52,8 @@ import me.anno.utils.Clipping
 import me.anno.utils.Maths.mix
 import me.anno.utils.Maths.pow
 import me.anno.utils.StringHelper.getImportType
-import me.anno.video.FFMPEGMetadata
+import me.anno.video.*
 import me.anno.video.FFMPEGMetadata.Companion.getMeta
-import me.anno.video.ImageSequenceMeta
-import me.anno.video.MissingFrameException
 import org.joml.Matrix4f
 import org.joml.Matrix4fArrayList
 import org.joml.Vector3f
@@ -59,8 +61,6 @@ import org.joml.Vector4f
 import java.io.File
 import kotlin.collections.set
 import kotlin.math.*
-
-// todo video is constantly reloading :/
 
 // todo auto-exposure correction by calculating the exposure, and adjusting the brightness
 
@@ -206,7 +206,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                 // draw the current texture
                 val localTime = isLooping[time, duration]
 
-                val frame = Cache.getImage(meta.getImage(localTime), 500L, true)
+                val frame = ImageCache.getImage(meta.getImage(localTime), 500L, true)
                 if (frame == null) onMissingImageOrFrame()
                 else {
                     w = frame.w
@@ -238,6 +238,48 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
         else needsImageUpdate = true
     }
 
+    fun getFrameAt(time: Double, width: Int, meta: FFMPEGMetadata): VFrame? {
+
+        // only load a single frame at a time?? idk...
+
+        if (isFinalRendering) throw RuntimeException("Not supported")
+
+        val sourceFPS = meta.videoFPS
+        val duration = meta.videoDuration
+
+        if (sourceFPS > 0.0) {
+            if (time >= 0.0 && (isLooping != LoopingState.PLAY_ONCE || time <= duration)) {
+
+                val rawZoomLevel = meta.videoWidth / width
+                val zoomLevel = getCacheableZoomLevel(rawZoomLevel)
+
+                val videoFPS = min(sourceFPS, editorVideoFPS.dValue)
+                val frameCount = max(1, (duration * videoFPS).roundToInt())
+
+                // draw the current texture
+                val localTime = isLooping[time, duration]
+                val frameIndex = (localTime * videoFPS).toInt() % frameCount
+
+                // val t0 = System.nanoTime()
+                val frame = getVideoFrame(// 0.07ms
+                    file, max(1, zoomLevel), frameIndex,
+                    framesPerContainer, videoFPS, 20_000, true
+                )
+                // val t1 = System.nanoTime()
+                // println("cache.getVideoFrame: ${(t1-t0)*1e-6}ms")
+
+                if (frame != null && frame.isLoaded) {
+                    w = frame.w
+                    h = frame.h
+                    return frame
+                }
+            }
+        }
+
+        return null
+
+    }
+
     private fun drawVideo(meta: FFMPEGMetadata, stack: Matrix4fArrayList, time: Double, color: Vector4f) {
 
         val zoomLevel = if (videoScale < 1) {
@@ -261,7 +303,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                 // use full fps when rendering to correctly render at max fps with time dilation
                 // issues arise, when multiple frames should be interpolated together into one
                 // at this time, we chose the center frame only.
-                val videoFPS = if (GFX.isFinalRendering) sourceFPS else min(sourceFPS, editorVideoFPS.dValue)
+                val videoFPS = if (isFinalRendering) sourceFPS else min(sourceFPS, editorVideoFPS.dValue)
 
                 val frameCount = max(1, (duration * videoFPS).roundToInt())
 
@@ -269,7 +311,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                 val localTime = isLooping[time, duration]
                 val frameIndex = (localTime * videoFPS).toInt() % frameCount
 
-                val frame = Cache.getVideoFrame(
+                val frame = VideoCache.getVideoFrame(
                     file, max(1, zoomLevel), frameIndex,
                     framesPerContainer, videoFPS, videoFrameTimeout, true
                 )
@@ -306,7 +348,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
         val name = file.name
         when {
             name.endsWith("svg", true) -> {
-                return Cache.getEntry(file.absolutePath, "svg", 0, imageTimeout, true) {
+                return MeshCache.getEntry(file.absolutePath, "svg", 0, imageTimeout, true) {
                     val svg = SVGMesh()
                     svg.parse(XMLReader.parse(file.inputStream().buffered()) as XMLElement)
                     svg.buffer!!
@@ -314,10 +356,10 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
             }
             name.endsWith("webp", true) -> {
                 // calculate required scale? no, without animation, we don't need to scale it down ;)
-                return Cache.getVideoFrame(file, 1, 0, 1, 1.0, imageTimeout, true)
+                return getVideoFrame(file, 1, 0, 1, 1.0, imageTimeout, true)
             }
             else -> {// some image
-                return Cache.getImage(file, imageTimeout, true)
+                return ImageCache.getImage(file, imageTimeout, true)
             }
         }
     }
@@ -326,7 +368,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
         val name = file.name
         when {
             name.endsWith("svg", true) -> {
-                val bufferData = Cache.getEntry(file.absolutePath, "svg", 0, imageTimeout, true) {
+                val bufferData = MeshCache.getEntry(file.absolutePath, "svg", 0, imageTimeout, true) {
                     val svg = SVGMesh()
                     svg.parse(XMLReader.parse(file.inputStream().buffered()) as XMLElement)
                     val buffer = svg.buffer!!
@@ -345,7 +387,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
             name.endsWith("webp", true) -> {
                 val tiling = tiling[time]
                 // calculate required scale? no, without animation, we don't need to scale it down ;)
-                val texture = Cache.getVideoFrame(file, 1, 0, 1, 1.0, imageTimeout, true)
+                val texture = getVideoFrame(file, 1, 0, 1, 1.0, imageTimeout, true)
                 if (texture == null || !texture.isLoaded) onMissingImageOrFrame()
                 else {
                     draw3DVideo(this, time, stack, texture, color, filtering, clampMode, tiling, uvProjection)
@@ -353,7 +395,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
             }
             else -> {// some image
                 val tiling = tiling[time]
-                val texture = Cache.getImage(file, imageTimeout, true)
+                val texture = ImageCache.getImage(file, imageTimeout, true)
                 if (texture == null) onMissingImageOrFrame()
                 else {
                     texture.rotation?.apply(stack)
@@ -398,16 +440,16 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                             var minT2 = 0
                             var maxT2 = 0
                             val steps = 10
-                            for(i in 0 until steps){
-                                val f0 = mix(minT, maxT, i/(steps-1.0))
+                            for (i in 0 until steps) {
+                                val f0 = mix(minT, maxT, i / (steps - 1.0))
                                 val localTime0 = isLooping[f0, duration]
                                 val frame = (localTime0 * videoFPS).toInt() % frameCount
-                                minT2 = if(i == 0) frame else min(frame, minT2)
-                                maxT2 = if(i == 0) frame else max(frame, maxT2)
+                                minT2 = if (i == 0) frame else min(frame, minT2)
+                                maxT2 = if (i == 0) frame else max(frame, maxT2)
                             }
 
                             for (frameIndex in minT2..maxT2 step framesPerContainer) {
-                                Cache.getVideoFrame(
+                                getVideoFrame(
                                     file, max(1, zoomLevel), frameIndex,
                                     framesPerContainer, videoFPS, videoFrameTimeout, true
                                 )
@@ -434,14 +476,14 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
 
                         if (index1 >= index0) {
                             for (i in index0..index1) {
-                                Cache.getImage(meta.getImage(i), videoFrameTimeout, true)
+                                ImageCache.getImage(meta.getImage(i), videoFrameTimeout, true)
                             }
                         } else {
                             for (i in index1 until meta.matches.size) {
-                                Cache.getImage(meta.getImage(i), videoFrameTimeout, true)
+                                ImageCache.getImage(meta.getImage(i), videoFrameTimeout, true)
                             }
                             for (i in 0 until index0) {
-                                Cache.getImage(meta.getImage(i), videoFrameTimeout, true)
+                                ImageCache.getImage(meta.getImage(i), videoFrameTimeout, true)
                             }
                         }
 
@@ -598,8 +640,11 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
             .setChangeListener { _, index, _ -> videoScale = videoScales[index].value }
             .setIsSelectedListener { show(null) })
         quality += vid(EnumInput(
-            "Preview FPS", "Smoother preview, heavier calculation", editorVideoFPS.displayName,
-            EditorFPS.values().filter { it.value * 0.98 <= (meta?.videoFPS ?: 1e85) }.map { NameDesc(it.displayName) }, style
+            "Preview FPS",
+            "Smoother preview, heavier calculation",
+            editorVideoFPS.displayName,
+            EditorFPS.values().filter { it.value * 0.98 <= (meta?.videoFPS ?: 1e85) }.map { NameDesc(it.displayName) },
+            style
         )
             .setChangeListener { _, index, _ ->
                 editorVideoFPS = EditorFPS.values()[index]

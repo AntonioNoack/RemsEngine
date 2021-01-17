@@ -84,7 +84,7 @@ class LayerView(style: Style) : TimelinePanel(style) {
 
     var solution: Solution? = null
 
-    fun calculateSolution(x0: Int, y0: Int, x1: Int, y1: Int, asnyc: Boolean) {
+    private fun calculateSolution(x0: Int, y0: Int, x1: Int, y1: Int, asnyc: Boolean) {
 
         isCalculating = true
         needsUpdate = false
@@ -94,7 +94,7 @@ class LayerView(style: Style) : TimelinePanel(style) {
             return
         }
 
-        val solution = Solution(x0, y0, x1, y1)
+        val solution = Solution(x0, y0, x1, y1, centralTime)
         val stripes = solution.stripes
         // val t1 = System.nanoTime()
         val root = root
@@ -143,7 +143,6 @@ class LayerView(style: Style) : TimelinePanel(style) {
                     var alpha = color.w * alphaMultiplier
                     if (!tr.isVisible(time)) alpha = 0f
 
-                    // todo draw a stripe of the current image, or a symbol or sth...
                     color.w = alpha
 
                     // show stripes on the selected/hovered element
@@ -203,6 +202,12 @@ class LayerView(style: Style) : TimelinePanel(style) {
             else if (isHovered) Pair(mouseX, mouseY)
             else null
         )
+
+    override fun tickUpdate() {
+        super.tickUpdate()
+        // todo how is this causing flickering???...
+        // solution?.apply { thread { this.keepResourcesLoaded() } }
+    }
 
     var lastTime = GFX.gameTime
 

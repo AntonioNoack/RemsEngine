@@ -45,7 +45,7 @@ class ContentCreator(
                     is String -> {
                         when(shortName){
                             "background", "color", "textColor" -> {
-                                // todo define size with buttons...
+                                // todo define size with +/- buttons...
                                 ColorInput(style, shortName, (parseColor(value) ?: black).toVecRGBA(), true)
                                     .setChangeListener { r, g, b, a -> map[fullName] = Vector4f(r,g,b,a).toHexColor() }
                                     .noTitle()

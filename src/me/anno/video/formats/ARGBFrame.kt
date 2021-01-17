@@ -10,7 +10,7 @@ import me.anno.video.LastFrame
 import me.anno.video.VFrame
 import java.io.InputStream
 
-class ARGBFrame(w: Int, h: Int) : VFrame(w, h) {
+class ARGBFrame(w: Int, h: Int) : VFrame(w, h, 0) {
 
     private val argb = Texture2D("argb-frame", w, h, 1)
 

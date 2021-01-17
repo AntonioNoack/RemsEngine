@@ -2,6 +2,7 @@ package me.anno.studio
 
 import me.anno.audio.ALBase
 import me.anno.audio.AudioManager
+import me.anno.cache.CacheSection
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.Cursor
@@ -20,7 +21,6 @@ import me.anno.gpu.texture.GPUFiltering
 import me.anno.input.ActionManager
 import me.anno.input.Input
 import me.anno.input.ShowKeys
-import me.anno.cache.Cache
 import me.anno.language.spellcheck.Spellchecking
 import me.anno.studio.project.Project
 import me.anno.studio.rems.RemsStudio
@@ -31,9 +31,9 @@ import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.debug.ConsoleOutputPanel
 import me.anno.ui.debug.FPSPanel
 import me.anno.ui.dragging.IDraggable
-import me.anno.utils.ProcessingQueue
-import me.anno.utils.Maths.clamp
 import me.anno.utils.FloatFormat.f3
+import me.anno.utils.Maths.clamp
+import me.anno.utils.ProcessingQueue
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL11.*
 import java.io.File
@@ -43,7 +43,8 @@ import kotlin.math.roundToInt
 
 abstract class StudioBase(
     val needsAudio: Boolean,
-    val title: String, val configName: String) {
+    val title: String, val configName: String
+) {
 
     abstract fun createUI()
     abstract fun onGameLoopStart()
@@ -387,7 +388,7 @@ abstract class StudioBase(
                 isFirstFrame = false
             }
 
-            Cache.update()
+            CacheSection.updateAll()
 
             onGameLoopEnd()
 
@@ -395,7 +396,7 @@ abstract class StudioBase(
         }
 
         GFX.onShutdown = {
-            AudioManager.requestDestruction()
+            shallStop = true
             Cursor.destroy()
             ProcessingQueue.destroy()
             Spellchecking.destroy()
@@ -432,6 +433,8 @@ abstract class StudioBase(
     }
 
     companion object {
+
+        var shallStop = false
 
         lateinit var instance: StudioBase
 

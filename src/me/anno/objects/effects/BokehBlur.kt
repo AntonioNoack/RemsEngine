@@ -19,21 +19,15 @@ import kotlin.math.roundToInt
 /**
  * shader by Kleber Garcia, 'Kecho', 2017, MIT license (https://github.com/kecho/CircularDofFilterGenerator)
  * the shader was modified to work without ShaderToy, and the filter texture was uploaded directly
- * todo more steps for larger sizes of bokeh blur?
+ * done more steps for larger sizes of bokeh blur
  * */
 object BokehBlur {
-
-    // todo somehow the edges are cut off... why?
 
     private const val KERNEL_RADIUS = 8
     private const val KERNEL_COUNT = KERNEL_RADIUS * 2 + 1
 
     private var compositionShader: Shader? = null
     private var perChannelShader: Shader? = null
-
-    // do I need f32 pairs?
-    // fun fb() = Framebuffer(1, 1, 1, 1, true, Framebuffer.DepthBufferType.NONE)
-    // fun fbPair() = fb() to fb()
 
     private val filterTexture = Texture2D("bokeh", KERNEL_COUNT, 1, 1)
 

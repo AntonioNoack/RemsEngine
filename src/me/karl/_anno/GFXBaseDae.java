@@ -4,15 +4,16 @@
  */
 package me.karl._anno;
 
+import me.anno.cache.CacheSection;
 import me.anno.gpu.GFX;
 import me.anno.gpu.GFXBase0;
 import me.anno.gpu.TextureLib;
-import me.anno.cache.Cache;
 import me.karl.main.GeneralSettings;
 import me.karl.main.SceneLoader;
 import me.karl.renderEngine.RenderEngine;
 import me.karl.scene.Scene;
-import org.lwjgl.glfw.*;
+import org.lwjgl.glfw.GLFWCursorPosCallback;
+import org.lwjgl.glfw.GLFWMouseButtonCallback;
 
 import static org.lwjgl.glfw.GLFW.*;
 
@@ -21,7 +22,7 @@ import static org.lwjgl.glfw.GLFW.*;
  */
 public class GFXBaseDae extends GFXBase0 {
 
-    public GFXBaseDae(){
+    public GFXBaseDae() {
         GFX.INSTANCE.setGameInit(() -> null);
         GFX.INSTANCE.setOnShutdown(() -> null);
         title += ": .dea Test";
@@ -75,7 +76,7 @@ public class GFXBaseDae extends GFXBase0 {
     @Override
     public void renderStep() {
         GFX.INSTANCE.workGPUTasks();
-        Cache.INSTANCE.update();
+        CacheSection.Companion.updateAll();
         // somehow the texture isn't loading for the test... :/
         scene.getCamera().move();
         scene.getAnimatedModel().update(System.currentTimeMillis() * 1e-3);

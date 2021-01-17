@@ -211,9 +211,6 @@ open class Transform(var parent: Transform? = null) : Saveable(),
         timeGroup += vi("Time Multiplier", "Speed up the animation", null, timeDilation, style) { timeDilation = it }
         timeGroup += vi("Advanced Time", "Add acceleration/deceleration to your elements", timeAnimated, style)
 
-
-        // todo automatically extend timeline panel or restrict moving it down
-
         val editorGroup = getGroup("Editor", "", "editor")
         editorGroup += vi(
             "Timeline Slot", "< 1 means invisible", Type.INT_PLUS, timelineSlot.value, style
@@ -857,6 +854,15 @@ open class Transform(var parent: Transform? = null) : Saveable(),
                 yieldAll(parent.listOfInheritance)
             }
         }
+
+    fun getLocalTimeFromRoot(globalTime: Double): Double {
+        val inh = listOfInheritance.toList().reversed()
+        var localTime = globalTime
+        for (e in inh){
+            localTime = e.getLocalTime(localTime)
+        }
+        return localTime
+    }
 
     open fun getAdditionalChildrenOptions(): List<Option> = emptyList()
 

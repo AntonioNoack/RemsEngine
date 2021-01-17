@@ -112,6 +112,8 @@ object GFX : GFXBase1() {
     private val startTime = System.nanoTime()
     private var lastTime = startTime
 
+    val startDateTime = System.currentTimeMillis()
+
     /**
      * time since the engine started;
      * System.nanoTime() is relative to the start time of

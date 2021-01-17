@@ -92,6 +92,15 @@ object ShaderLib {
             "   );\n" +
             "}\n"
 
+    const val yuv2rgb ="" +
+            "vec3 yuv2rgb(vec3 yuv){" +
+            "   yuv -= vec3(${16f / 255f}, 0.5, 0.5);\n" +
+            "   return vec3(" +
+            "       dot(yuv, vec3( 1.164,  0.000,  1.596))," +
+            "       dot(yuv, vec3( 1.164, -0.392, -0.813))," +
+            "       dot(yuv, vec3( 1.164,  2.017,  0.000)));\n" +
+            "}"
+
     val maxColorForceFields = DefaultConfig["objects.attractors.color.maxCount", 12]
     val getColorForceFieldLib = "" +
             // additional weights?...
@@ -225,20 +234,39 @@ object ShaderLib {
                     "}"
         )
 
-        flatShaderGradient = Shader(
+        flatShaderGradient = createShader(
             "flatShaderGradient",
             "" +
                     "a2 attr0;\n" +
                     "u2 pos, size;\n" +
+                    "u4 uvs;\n" +
                     "u4 lColor, rColor;\n" +
                     "void main(){\n" +
                     "   gl_Position = vec4((pos + attr0 * size)*2.-1., 0.0, 1.0);\n" +
                     "   color = attr0.x < 0.5 ? lColor : rColor;\n" +
+                    "   uv = mix(uvs.xy, uvs.zw, attr0);\n" +
                     "}", "" + // mixing is done by varying
-                    "varying vec4 color;\n", "" +
+                    yuv2rgb +
+                    "varying vec4 color;\n" +
+                    "varying vec2 uv;\n", "" +
+                    "uniform int code;\n" +
+                    "uniform sampler2D tex0,tex1,tex2;\n" +
                     "void main(){\n" +
-                    "   gl_FragColor = color;\n" +
-                    "}"
+                    "   vec4 texColor;\n" +
+                    "   if(uv.x >= 0 && uv.x <= 1){\n" +
+                    "       switch(code){" +
+                    "           case 0: texColor = texture(tex0, uv).gbar;break;\n" + // ARGB
+                    "           case 1: texColor = texture(tex0, uv).bgra;break;\n" + // BGRA
+                    "           case 2: \n" +
+                    "               vec3 yuv = vec3(texture(tex0, uv).r, texture(tex1, uv).r, texture(tex2, uv).r);\n" +
+                    "               texColor = vec4(yuv2rgb(yuv), 1.0);\n" +
+                    "               break;\n" + // 420
+                    "           default: texColor = texture(tex0, uv);\n" +
+                    "       }" +
+                    "   }\n" +
+                    "   else texColor = vec4(1.0);\n" +
+                    "   gl_FragColor = color * texColor;\n" +
+                    "}", listOf("tex0","tex1","tex2")
         )
 
         flatShaderTexture = Shader(
@@ -402,7 +430,6 @@ object ShaderLib {
                     "       color = mix(color, colorHere, mixingFactor);\n" +
                     "   }\n" +
                     "   gl_FragDepth = gl_FragCoord.z * (1 + distance * 0.000001);\n" +
-                    // "   if(uv.x < 0.01 || uv.x > 0.99 || uv.y < 0.01 || uv.y > 0.99) color = vec4(0,0,0,1);" +
                     "   if(color.a <= 0.001) discard;\n" +
                     "   if($hasForceFieldColor) color *= getForceFieldColor();\n" +
                     "   gl_FragColor = color;\n" +
@@ -648,6 +675,7 @@ object ShaderLib {
                     getColorForceFieldLib +
                     brightness +
                     ascColorDecisionList +
+                    yuv2rgb +
                     "void main(){\n" +
                     "   vec2 uv2 = getProjectedUVs(uv, uvw);\n" +
                     "   vec2 correctedUV = uv2*uvCorrection;\n" +
@@ -656,11 +684,7 @@ object ShaderLib {
                     "       getTexture(texY, uv2).r, " +
                     "       getTexture(texU, correctedUV, correctedDUV).r, " +
                     "       getTexture(texV, correctedUV, correctedDUV).r);\n" +
-                    "   yuv -= vec3(${16f / 255f}, 0.5, 0.5);\n" +
-                    "   vec4 color = vec4(" +
-                    "       dot(yuv, vec3( 1.164,  0.000,  1.596))," +
-                    "       dot(yuv, vec3( 1.164, -0.392, -0.813))," +
-                    "       dot(yuv, vec3( 1.164,  2.017,  0.000)), 1.0);\n" +
+                    "   vec4 color = vec4(yuv2rgb(yuv), 1.0);\n" +
                     "   color.rgb = colorGrading(color.rgb);\n" +
                     "   if($hasForceFieldColor) color *= getForceFieldColor();\n" +
                     "   gl_FragColor = tint * color;\n" +

@@ -9,20 +9,18 @@ import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.gpu.blending.BlendDepth
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
-import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.Filtering
-import me.anno.gpu.texture.GPUFiltering
-import me.anno.gpu.texture.Texture2D
 import me.anno.image.HDRImage
 import me.anno.image.svg.SVGMesh
 import me.anno.io.config.ConfigBasics
 import me.anno.io.xml.XMLElement
 import me.anno.io.xml.XMLReader
 import me.anno.objects.Video
-import me.anno.cache.Cache
-import me.anno.cache.ICacheData
-import me.anno.cache.ImageData
+import me.anno.cache.data.ImageData
+import me.anno.cache.instances.MeshCache
+import me.anno.cache.instances.TextureCache.getLateinitTexture
+import me.anno.cache.instances.VideoCache.getVideoFrame
 import me.anno.gpu.buffer.StaticBuffer
+import me.anno.gpu.texture.*
 import me.anno.utils.*
 import me.anno.utils.Color.a
 import me.anno.utils.Color.b
@@ -82,20 +80,12 @@ object Thumbs {
         } else sizes.last()
     }
 
-    class TextureCache(var texture: Texture2D?): ICacheData {
-        override fun destroy() {
-            texture?.destroy()
-        }
-    }
-
-    fun getThumbnail(file: File, neededSize: Int): Texture2D? {
+    fun getThumbnail(file: File, neededSize: Int): ITexture2D? {
         val size = getSize(neededSize)
         val key = ThumbnailKey(file, size)
-        return (Cache.getEntry(key, timeout, false) {
-            val cache = TextureCache(null)
-            thread { generate(file, size) { cache.texture = it } }
-            cache
-        } as TextureCache).texture
+        return getLateinitTexture(key, timeout) { callback ->
+            generate(file, size, callback)
+        }.texture
     }
 
     // png/bmp/jpg?
@@ -261,8 +251,8 @@ object Thumbs {
 
                 var src: VFrame? = null
                 while (src == null) {
-                    src = Cache.getVideoFrame(srcFile, scale, index, 1, fps, 1000L, true)
-                    Thread.sleep(1)
+                    src = getVideoFrame(srcFile, scale, index, 1, fps, 1000L, true)
+                    Thread.sleep(0, 1000)
                 }
 
                 src.waitToLoad()
@@ -277,7 +267,7 @@ object Thumbs {
 
             fun generateSVGFrame() {
 
-                val bufferData = Cache.getEntry(
+                val bufferData = MeshCache.getEntry(
                     srcFile.absolutePath, "svg", 0,
                     Video.imageTimeout,
                     false

@@ -11,8 +11,8 @@ import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2D
 import me.anno.objects.Transform.Companion.yAxis
-import me.anno.cache.Cache
-import me.anno.cache.ICacheData
+import me.anno.cache.data.ICacheData
+import me.anno.cache.instances.ImageCache.getImage
 import me.anno.mesh.fbx.model.FBXGeometry
 import me.anno.mesh.obj.Material
 import me.anno.video.MissingFrameException
@@ -131,7 +131,7 @@ class MeshData : ICacheData {
     companion object {
         fun getTexture(file: File?, defaultTexture: Texture2D): Texture2D {
             if (file == null) return defaultTexture
-            val tex = Cache.getImage(file, 1000, true)
+            val tex = getImage(file, 1000, true)
             if (tex == null && isFinalRendering) throw MissingFrameException(file)
             return tex ?: defaultTexture
         }

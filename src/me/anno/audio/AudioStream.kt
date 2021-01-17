@@ -3,9 +3,10 @@ package me.anno.audio
 import me.anno.audio.effects.Domain
 import me.anno.audio.effects.SoundPipeline.Companion.bufferSize
 import me.anno.audio.effects.Time
+import me.anno.cache.instances.AudioCache
+import me.anno.cache.keys.AudioSliceKey
 import me.anno.objects.Audio
 import me.anno.objects.Camera
-import me.anno.cache.Cache
 import me.anno.objects.modes.LoopingState
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.mix
@@ -93,8 +94,6 @@ abstract class AudioStream(
 
     val buffers = ArrayList<SoundBuffer>()
 
-    data class AudioSliceKey(val file: File, val slice: Long)
-
     fun getAmplitudesSync(index: Double): Pair<Float, Float> {
         if (index < 0f) return 0f to 0f
         // multiply by local time dependent amplitude
@@ -119,7 +118,11 @@ abstract class AudioStream(
         val arrayIndex0 = localIndex * 2 // for stereo
         val sliceTime = sliceIndex * ffmpegSliceSampleDuration
         val soundBuffer =
-            Cache.getEntry(AudioSliceKey(file, sliceIndex), (ffmpegSliceSampleDuration * 2 * 1000).toLong(), false) {
+            AudioCache.getEntry(
+                AudioSliceKey(file, sliceIndex),
+                (ffmpegSliceSampleDuration * 2 * 1000).toLong(),
+                false
+            ) {
                 val sequence =
                     FFMPEGStream.getAudioSequence(file, sliceTime, ffmpegSliceSampleDuration, ffmpegSampleRate)
                 var buffer: SoundBuffer?
@@ -127,7 +130,7 @@ abstract class AudioStream(
                     buffer = sequence.soundBuffer
                     if (buffer != null) break
                     // somebody else needs to work on the queue
-                    Thread.sleep(0, 100_000) // wait 0.1ms
+                    Thread.sleep(0, 1000)
                 }
                 buffer!!
             } as SoundBuffer
@@ -210,7 +213,7 @@ abstract class AudioStream(
             val hasPipeline = leftPipeline.stages.isNotEmpty()
             lateinit var leftBuffer: FloatArray
             lateinit var rightBuffer: FloatArray
-            if(hasPipeline){
+            if (hasPipeline) {
                 leftBuffer = FloatArray(sampleCount)
                 rightBuffer = FloatArray(sampleCount)
             }
@@ -317,7 +320,7 @@ abstract class AudioStream(
                 // write the data
                 val left = transfer0.getLeft(a0, a1, approxFraction, transfer1)
                 val right = transfer0.getRight(a0, a1, approxFraction, transfer1)
-                if(hasPipeline){
+                if (hasPipeline) {
                     leftBuffer[sampleIndex] = left.toFloat()
                     rightBuffer[sampleIndex] = right.toFloat()
                 } else {
@@ -329,7 +332,7 @@ abstract class AudioStream(
 
             }
 
-            if(hasPipeline){
+            if (hasPipeline) {
 
                 val global1 = global0 + playbackSliceDuration
                 val time0 = Time(local0, global0)
@@ -337,10 +340,12 @@ abstract class AudioStream(
                 val local1 = globalToLocalTime(global1)
                 val time1 = Time(local1, global1)
 
-                val leftBuffer2 = leftPipeline.process(leftBuffer, source, Domain.TIME_DOMAIN, Domain.TIME_DOMAIN, time0, time1)
-                val rightBuffer2 = rightPipeline.process(rightBuffer, source, Domain.TIME_DOMAIN, Domain.TIME_DOMAIN, time0, time1)
+                val leftBuffer2 =
+                    leftPipeline.process(leftBuffer, source, Domain.TIME_DOMAIN, Domain.TIME_DOMAIN, time0, time1)
+                val rightBuffer2 =
+                    rightPipeline.process(rightBuffer, source, Domain.TIME_DOMAIN, Domain.TIME_DOMAIN, time0, time1)
 
-                for(i in 0 until sampleCount){
+                for (i in 0 until sampleCount) {
                     stereoBuffer.put(floatToShort(leftBuffer2[i]))
                     stereoBuffer.put(floatToShort(rightBuffer2[i]))
                 }

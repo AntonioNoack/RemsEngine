@@ -1,6 +1,6 @@
 package me.anno.studio.rems
 
-import me.anno.cache.Cache
+import me.anno.cache.instances.ImageCache.getLUT
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
@@ -41,7 +41,6 @@ import org.joml.Vector4f
 import org.lwjgl.opengl.GL11.glClearColor
 import org.lwjgl.opengl.GL11.glDepthMask
 import org.lwjgl.opengl.GL30
-import java.io.File
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.sqrt
@@ -442,7 +441,7 @@ object Scene {
 
         val lutFile = camera.lut
         val needsLUT = !isFakeColorRendering && lutFile.exists() && !lutFile.isDirectory
-        val lut = if (needsLUT) Cache.getLUT(lutFile, true, 20_000) else null
+        val lut = if (needsLUT) getLUT(lutFile, true, 20_000) else null
 
         if (lut == null && needsLUT && isFinalRendering) throw MissingFrameException(lutFile)
 
@@ -565,7 +564,7 @@ object Scene {
 
     }
 
-    fun drawSelectionRing(isFakeColorRendering: Boolean, camera: Camera, time: Double){
+    fun drawSelectionRing(isFakeColorRendering: Boolean, camera: Camera, time: Double) {
         /**
          * draw the selection ring for selected objects
          * draw it after everything else and without depth

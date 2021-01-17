@@ -245,7 +245,8 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style) : TextPanel("
                     options.entries
                         .sortedBy { (key, _) -> key.toLowerCase() }
                         .map { (key, value) ->
-                            MenuOption(NameDesc(key, "", ""), add {
+                            val sample = if (value is Transform) value.clone() else value.toString().toTransform()
+                            MenuOption(NameDesc(key, sample?.getDefaultDisplayName() ?: "", ""), add {
                                 val newT = if (value is Transform) value.clone() else value.toString().toTransform()
                                 newT!!
                                 it.addChild(newT)

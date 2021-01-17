@@ -23,6 +23,7 @@ abstract class GFXTransform(parent: Transform?) : Transform(parent) {
 
     init {
         timelineSlot.default = 0
+        timelineSlot.value = 0
     }
 
     private val attractorBaseColor = AnimatedProperty.color(Vector4f(1f))

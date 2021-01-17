@@ -1,6 +1,6 @@
 package me.anno.audio
 
-import me.anno.cache.ICacheData
+import me.anno.cache.data.ICacheData
 import org.lwjgl.openal.AL10.*
 import org.lwjgl.stb.STBVorbis.*
 import org.lwjgl.stb.STBVorbisInfo

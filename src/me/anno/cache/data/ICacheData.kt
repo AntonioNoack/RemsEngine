@@ -1,4 +1,4 @@
-package me.anno.cache
+package me.anno.cache.data
 
 interface ICacheData {
     fun destroy()

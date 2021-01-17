@@ -1,12 +1,20 @@
 package me.anno.io.utils
 
+import me.anno.config.DefaultConfig
+import me.anno.config.DefaultStyle
+import me.anno.gpu.GFX
+import me.anno.gpu.GFX.gameTime
 import me.anno.gpu.texture.Filtering
 import me.anno.io.base.BaseWriter
+import me.anno.io.config.ConfigBasics
 import me.anno.io.config.ConfigEntry
+import me.anno.studio.rems.RemsStudio
 import me.anno.ui.editor.files.toAllowedFilename
 import me.anno.utils.OS
 import org.joml.Vector3f
 import java.io.File
+import kotlin.concurrent.thread
+import kotlin.math.abs
 import kotlin.math.min
 
 /**
@@ -40,7 +48,7 @@ open class StringMap(
     }
 
     override fun readSomething(name: String, value: Any?) {
-        if (name != "notice") synchronized(this){
+        if (name != "notice") synchronized(this) {
             map[name] = value
         }
     }
@@ -239,6 +247,23 @@ open class StringMap(
     fun addAll(map: Map<String, Any>): StringMap {
         putAll(map)
         return this
+    }
+
+    var lastSaveTime = gameTime
+    fun saveMaybe(name: String) {
+        if ((wasChanged) && abs(lastSaveTime - gameTime) > 1_000_000_000) {// only save every 1s
+            // delay in case it needs longer
+            lastSaveTime = gameTime + (60 * 1e9).toLong()
+            thread {
+                save(name)
+                lastSaveTime = gameTime
+            }
+        }
+    }
+
+    fun save(name: String) {
+        wasChanged = false
+        ConfigBasics.save(name, this.toString())
     }
 
     override fun isDefaultValue() = false

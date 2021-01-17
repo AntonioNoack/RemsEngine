@@ -1,7 +1,8 @@
-package me.anno.cache
+package me.anno.cache.data
 
 import com.drew.imaging.ImageMetadataReader
 import com.drew.metadata.exif.ExifIFD0Directory
+import me.anno.cache.instances.VideoCache.getVideoFrame
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXx3D.shader3DUniforms
 import me.anno.gpu.ShaderLib.shader3DYUV
@@ -107,10 +108,15 @@ class ImageData(file: File) : ICacheData {
             }
             "webp" -> {
                 // calculate required scale? no, without animation, we don't need to scale it down ;)
-                val frame = Cache.getVideoFrame(file, 1, 0, 0, 1.0, imageTimeout, false)!!
+                val frame = getVideoFrame(file, 1, 0, 0, 1.0, imageTimeout, false)!!
                 frame.waitToLoad()
                 GFX.addGPUTask(frame.w, frame.h) {
-                    frameToFramebuffer(frame, frame.w, frame.h, this)
+                    frameToFramebuffer(
+                        frame,
+                        frame.w,
+                        frame.h,
+                        this
+                    )
                 }
                 // if(texture?.isLoaded == true) draw3D(stack, texture, color, nearestFiltering, tiling)
             }

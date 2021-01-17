@@ -144,6 +144,7 @@ ui.warn.renderingInProgress.desc: Wenn du denkst, dass das falsch ist, starte Re
 
 ui.debug.ramUsage: RAM %1 MiB
 
+ui.top.add: Hinzufügen
 ui.top.help: Hilfe
 ui.top.project.settings: Einstellungen
 ui.top.project.save: Speichern

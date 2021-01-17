@@ -1,6 +1,6 @@
 package me.anno.gpu.texture
 
-import me.anno.cache.ICacheData
+import me.anno.cache.data.ICacheData
 import me.anno.gpu.GFX
 import me.anno.gpu.TextureLib.invisibleTexture
 import me.anno.gpu.texture.Texture2D.Companion.textureBudgetTotal

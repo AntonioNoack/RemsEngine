@@ -1,12 +1,10 @@
 package me.anno.ui.custom
 
-import me.anno.cache.Cache
+import me.anno.cache.instances.ImageCache.getInternalTexture
 import me.anno.config.DefaultStyle.white
-import me.anno.gpu.GFX
 import me.anno.gpu.GFXx2D.drawTexture
 import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.input.MouseButton
-import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
 import me.anno.ui.base.Panel
 import me.anno.ui.base.components.Padding
@@ -44,7 +42,7 @@ class CustomContainer(default: Panel, style: Style) : PanelContainer(default, Pa
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.onDraw(x0, y0, x1, y1)
-        val icon = Cache.getInternalTexture("cross.png", true) ?: whiteTexture
+        val icon = getInternalTexture("cross.png", true) ?: whiteTexture
         drawTexture(x + w - 14, y + 2, 12, 12, icon, white, null)
     }
 

@@ -1,6 +1,6 @@
 package me.anno.fonts.signeddistfields
 
-import me.anno.cache.Cache
+import me.anno.cache.instances.TextureCache
 import me.anno.fonts.TextGroup
 import me.anno.fonts.signeddistfields.algorithm.SignedDistanceField
 import me.anno.gpu.GFX.isFinalRendering
@@ -35,7 +35,9 @@ class TextSDFGroup(
             drawSlowly(startIndex, endIndex, drawBuffer)
         } else {
             val roundCorners = roundCorners
-            val tc = Cache.getEntry(Triple(font, text, roundCorners), sdfTimeout, !isFinalRendering) {
+            val tc = TextureCache.getEntry(
+                Triple(font, text, roundCorners), sdfTimeout, !isFinalRendering
+            ) {
                 SignedDistanceField.create(font, text, roundCorners)
             } as? TextSDF
             val t = tc?.texture
@@ -49,12 +51,15 @@ class TextSDFGroup(
 
     private fun drawSlowly(
         startIndex: Int, endIndex: Int,
-        drawBuffer: (StaticBuffer?, TextSDF?, offset: Float) -> Unit) {
+        drawBuffer: (StaticBuffer?, TextSDF?, offset: Float) -> Unit
+    ) {
         val roundCorners = roundCorners
-        for(index in startIndex until endIndex){
+        for (index in startIndex until endIndex) {
             val codePoint = codepoints[index]
             val offset = (offsets[index] * baseScale).toFloat()
-            val texture = Cache.getEntry(Triple(font, codePoint, roundCorners), sdfTimeout, !isFinalRendering) {
+            val texture = TextureCache.getEntry(
+                Triple(font, codePoint, roundCorners), sdfTimeout, !isFinalRendering
+            ) {
                 SignedDistanceField.create(font, String(Character.toChars(codePoint)), roundCorners)
             } as? TextSDF
             drawBuffer(null, texture, offset)

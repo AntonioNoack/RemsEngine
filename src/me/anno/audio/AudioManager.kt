@@ -3,6 +3,7 @@ package me.anno.audio
 import me.anno.gpu.GFX
 import me.anno.objects.Audio
 import me.anno.objects.Transform
+import me.anno.studio.StudioBase.Companion.shallStop
 import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.RemsStudio.editorTime
 import me.anno.studio.rems.RemsStudio.editorTimeDilation
@@ -26,7 +27,6 @@ object AudioManager {
     private var device = 0L
     private var context = 0L
 
-    var shallStop = false
     var needsUpdate = false
     var lastUpdate = 0L
     var ctr = 0
@@ -109,10 +109,6 @@ object AudioManager {
         ALBase.check()
         alcCloseDevice(device)
         device = 0L
-    }
-
-    fun requestDestruction() {
-        shallStop = true
     }
 
 }

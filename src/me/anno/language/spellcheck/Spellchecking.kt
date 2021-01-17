@@ -1,6 +1,6 @@
 package me.anno.language.spellcheck
 
-import me.anno.cache.Cache
+import me.anno.cache.CacheSection
 import me.anno.config.DefaultConfig
 import me.anno.installer.Installer
 import me.anno.io.json.JsonArray
@@ -18,7 +18,7 @@ import java.util.concurrent.ConcurrentHashMap
 import kotlin.concurrent.thread
 import kotlin.streams.toList
 
-object Spellchecking {
+object Spellchecking : CacheSection("Spellchecking") {
 
     private val path = File(DefaultConfig["spellchecking.path", File(OS.downloads, "lib\\spellchecking").toString()])
 
@@ -28,8 +28,8 @@ object Spellchecking {
         val language = language
         if (language == Language.None || sentence.isBlank()) return null
         val sentence2 = sentence.trim()
-        if(sentence2 == "#quit") return null
-        val data = Cache.getEntry(Triple(Spellchecking, sentence2, language), timeout, true) {
+        if (sentence2 == "#quit") return null
+        val data = getEntry(Pair(sentence2, language), timeout, true) {
             val answer = SuggestionData(null)
             getValue(sentence2, language, key) { answer.value = it }
             answer
@@ -85,7 +85,11 @@ object Spellchecking {
             }
         }
         val dst = File(path, fileName!!)
-        val answer = if (dst in requestedDownloads) { true } else { requestedDownloads += dst; false }
+        val answer = if (dst in requestedDownloads) {
+            true
+        } else {
+            requestedDownloads += dst; false
+        }
         if (answer) {
             waitForDownload(dst, callback)
         } else {
@@ -115,7 +119,7 @@ object Spellchecking {
     }
 
     fun Int.escapeCodepoint() =
-        if(this < 128) "${toChar()}"
+        if (this < 128) "${toChar()}"
         else "\\u${hex8((this shr 8) and 255)}${hex8(this and 255)}"
 
 
@@ -144,7 +148,7 @@ object Spellchecking {
                             nextTask = queue.remove(key)!!
                         }
                         var lines = nextTask.sentence.replace("\n", "\\n")
-                        if(lines.any { it > 127.toChar() }){
+                        if (lines.any { it > 127.toChar() }) {
                             lines = lines.codePoints()
                                 .toList().joinToString("") { it.escapeCodepoint() }
                         }

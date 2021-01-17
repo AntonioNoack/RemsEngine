@@ -2,12 +2,13 @@ package me.anno.ui.editor
 
 import me.anno.audio.AudioStream
 import me.anno.audio.SoundBuffer
+import me.anno.cache.instances.AudioCache
+import me.anno.cache.keys.AudioSliceKey
 import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXx2D.drawRect
 import me.anno.input.Input
 import me.anno.objects.Audio
-import me.anno.cache.Cache
 import me.anno.studio.StudioBase.Companion.shiftSlowdown
 import me.anno.ui.base.Panel
 import me.anno.ui.style.Style
@@ -123,7 +124,7 @@ class AudioLinePanel(var meta: FFMPEGMetadata, val audio: Audio, style: Style): 
         val localIndex = (index % ffmpegSliceSampleCount).toInt()
         val arrayIndex0 = localIndex * 2 // for stereo
         val sliceTime = sliceIndex * ffmpegSliceSampleDuration
-        val soundBuffer = Cache.getEntry(AudioStream.AudioSliceKey(file, sliceIndex), (ffmpegSliceSampleDuration * 2 * 1000).toLong(), false){
+        val soundBuffer = AudioCache.getEntry(AudioSliceKey(file, sliceIndex), (ffmpegSliceSampleDuration * 2 * 1000).toLong(), false){
             val sequence = FFMPEGStream.getAudioSequence(file, sliceTime, ffmpegSliceSampleDuration, ffmpegSampleRate)
             var buffer: SoundBuffer?
             while(true){

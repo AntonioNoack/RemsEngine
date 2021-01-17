@@ -3,8 +3,8 @@ package me.anno.video
 import me.anno.io.json.JsonArray
 import me.anno.io.json.JsonObject
 import me.anno.io.json.JsonReader
-import me.anno.cache.Cache
-import me.anno.cache.ICacheData
+import me.anno.cache.CacheSection
+import me.anno.cache.data.ICacheData
 import me.anno.utils.StringHelper.parseTime
 import org.apache.logging.log4j.LogManager
 import java.io.File
@@ -139,9 +139,10 @@ class FFMPEGMetadata(file: File): ICacheData {
 
     companion object {
         private val LOGGER = LogManager.getLogger(FFMPEGMetadata::class)
+        private val metadataCache = CacheSection("Metadata")
         fun getMeta(file: File, async: Boolean): FFMPEGMetadata? {
             if(file.isDirectory || !file.exists()) return null
-            return Cache.getEntry("metadata" to file, 10_000, async){
+            return metadataCache.getEntry(file to file.lastModified(), 300_000, async){
                 FFMPEGMetadata(file)
             } as? FFMPEGMetadata
         }

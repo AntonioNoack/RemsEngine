@@ -4,12 +4,10 @@ import me.anno.fonts.FontManager
 import me.anno.gpu.GFX.v4
 import me.anno.gpu.GFXx3D.draw3D
 import me.anno.gpu.GFXx3D.draw3DCircle
+import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderPlus
-import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.Filtering
-import me.anno.gpu.texture.GPUFiltering
-import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.texture.*
 import me.anno.objects.GFXTransform.Companion.uploadAttractors0
 import me.anno.objects.modes.UVProjection
 import me.anno.ui.base.Font
@@ -25,9 +23,29 @@ object GFXx2D {
         GFX.check()
         val shader = ShaderLib.flatShaderGradient
         shader.use()
+        whiteTexture.bind(0, whiteTexture.filtering, whiteTexture.clamping)
         posSize(shader, x, y, w, h)
         shader.v4("lColor", lColor)
         shader.v4("rColor", rColor)
+        shader.v1("code", -1)
+        GFX.flat01.draw(shader)
+        GFX.check()
+    }
+
+    fun drawRectGradient(
+        x: Int, y: Int, w: Int, h: Int, lColor: Vector4f, rColor: Vector4f,
+        frame: VFrame, uvs: Vector4f
+    ) {
+        if (w == 0 || h == 0) return
+        GFX.check()
+        val shader = ShaderLib.flatShaderGradient
+        shader.use()
+        frame.bind(0, GPUFiltering.TRULY_LINEAR, Clamping.CLAMP)
+        posSize(shader, x, y, w, h)
+        shader.v4("lColor", lColor)
+        shader.v4("rColor", rColor)
+        shader.v4("uvs", uvs)
+        shader.v1("code", frame.code)
         GFX.flat01.draw(shader)
         GFX.check()
     }
@@ -212,7 +230,7 @@ object GFXx2D {
     fun getTextSize(font: Font, text: String, widthLimit: Int) =
         FontManager.getSize(font, text, widthLimit)
 
-    fun drawTexture(x: Int, y: Int, w: Int, h: Int, texture: Texture2D, color: Int, tiling: Vector4f?) {
+    fun drawTexture(x: Int, y: Int, w: Int, h: Int, texture: ITexture2D, color: Int, tiling: Vector4f?) {
         GFX.check()
         val shader = ShaderLib.flatShaderTexture
         shader.use()
@@ -220,7 +238,12 @@ object GFXx2D {
         shader.v4("color", color)
         if (tiling != null) shader.v4("tiling", tiling)
         else shader.v4("tiling", 1f, 1f, 0f, 0f)
-        texture.bind(0, texture.filtering, texture.clamping)
+        val tex = texture as? Texture2D
+        texture.bind(
+            0,
+            tex?.filtering ?: GPUFiltering.NEAREST,
+            tex?.clamping ?: Clamping.CLAMP
+        )
         GFX.flat01.draw(shader)
         GFX.check()
     }

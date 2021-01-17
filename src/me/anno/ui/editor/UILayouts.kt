@@ -1,6 +1,6 @@
 package me.anno.ui.editor
 
-import me.anno.cache.Cache
+import me.anno.cache.CacheSection
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.getRecentProjects
 import me.anno.config.DefaultStyle.black
@@ -11,6 +11,7 @@ import me.anno.input.Input
 import me.anno.input.Input.mouseX
 import me.anno.input.Input.mouseY
 import me.anno.input.MouseButton
+import me.anno.io.utils.StringMap
 import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
 import me.anno.objects.Camera
@@ -30,6 +31,7 @@ import me.anno.studio.rems.RenderSettings
 import me.anno.studio.rems.Rendering.render
 import me.anno.studio.rems.Rendering.renderPart
 import me.anno.studio.rems.Selection.selectTransform
+import me.anno.studio.rems.Selection.selectedTransform
 import me.anno.ui.base.Panel
 import me.anno.ui.base.SpacePanel
 import me.anno.ui.base.TextPanel
@@ -59,6 +61,7 @@ import me.anno.ui.editor.sceneTabs.SceneTabs
 import me.anno.ui.editor.sceneView.ScenePreview
 import me.anno.ui.editor.sceneView.SceneView
 import me.anno.ui.editor.treeView.TreeView
+import me.anno.ui.editor.treeView.TreeViewPanel.Companion.openAddMenu
 import me.anno.ui.input.BooleanInput
 import me.anno.ui.input.EnumInput
 import me.anno.ui.input.FileInput
@@ -411,6 +414,10 @@ object UILayouts {
         val renderTitle = Dict["Render", "ui.top.render"]
         val helpTitle = Dict["Help", "ui.top.help"]
 
+        options.addMajor(Dict["Add", "ui.top.add"]){
+            openAddMenu(selectedTransform ?: root)
+        }
+
         // todo complete translation
         // todo option to save/load/restore layout
         options.addAction(configTitle, Dict["Settings", "ui.top.config.settings"]) {
@@ -456,7 +463,7 @@ object UILayouts {
             )
         }
 
-        options.addAction(debugTitle, "Refresh (Ctrl+F5)") { Cache.clear() }
+        options.addAction(debugTitle, "Refresh (Ctrl+F5)") { CacheSection.clearAll() }
 
         options.addAction(renderTitle, "Settings") { selectTransform(RenderSettings) }
         options.addAction(renderTitle, "Set%") {
