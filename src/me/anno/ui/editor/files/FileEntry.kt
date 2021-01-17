@@ -57,16 +57,31 @@ class FileEntry(
 ) :
     PanelGroup(style.getChild("fileEntry")) {
 
-    // todo why is .. split into two lines???
+    // todo why is ".." split into two lines???
 
     // todo sometimes the title is missing... or its color... why ever...
 
-    var audio: Audio? = null
+    private var audio: Audio? = null
 
-    val size get() = explorer.entrySize.toInt()
+    private var startTime = 0L
 
-    val importType = file.extension.getImportType()
-    var iconPath = if (file.isDirectory) {
+    var time = 0.0
+    var frameIndex = 0
+    var maxFrameIndex = 0
+    val hoverPlaybackDelay = 0.5
+    var scale = 1
+    var previewFPS = 1.0
+    var meta: FFMPEGMetadata? = null
+
+    private var wasInFocus = false
+    private val originalBackgroundColor = backgroundColor
+    private val hoverBackgroundColor = mixARGB(black, originalBackgroundColor, 0.85f)
+    private val darkerBackgroundColor = mixARGB(black, originalBackgroundColor, 0.7f)
+
+    private val size get() = explorer.entrySize.toInt()
+
+    private val importType = file.extension.getImportType()
+    private var iconPath = if (file.isDirectory) {
         when (file.name.toLowerCase()) {
             "music", "musik", "videos", "movies" -> "file/music.png"
             "documents", "dokumente", "downloads" -> "file/text.png"
@@ -83,15 +98,15 @@ class FileEntry(
         }
     }
 
-    val title = TextPanel(if (isParent) ".." else if (file.name.isEmpty()) file.toString() else file.name, style)
+    private val titlePanel = TextPanel(if (isParent) ".." else if (file.name.isEmpty()) file.toString() else file.name, style)
 
-    override val children: List<Panel> = listOf(title)
+    override val children: List<Panel> = listOf(titlePanel)
     override fun remove(child: Panel) {}
 
     init {
-        title.breaksIntoMultiline = true
-        title.parent = this
-        title.instantTextLoading = true
+        titlePanel.breaksIntoMultiline = true
+        titlePanel.parent = this
+        titlePanel.instantTextLoading = true
     }
 
     fun stopPlayback() {
@@ -102,11 +117,6 @@ class FileEntry(
         }
     }
 
-    var wasInFocus = false
-    val originalBackgroundColor = backgroundColor
-    val hoverBackgroundColor = mixARGB(black, originalBackgroundColor, 0.85f)
-    val darkerBackgroundColor = mixARGB(black, originalBackgroundColor, 0.7f)
-
     override fun calculateSize(w: Int, h: Int) {
         super.calculateSize(w, h)
         val size = size
@@ -116,17 +126,15 @@ class FileEntry(
         this.h = size * 4 / 3
     }
 
-    var startTime = 0L
-
-    override fun getLayoutState(): Any? = Pair(super.getLayoutState(), title.getLayoutState())
+    override fun getLayoutState(): Any? = Pair(super.getLayoutState(), titlePanel.getLayoutState())
     override fun getVisualState(): Any? {
         val tex = when (val tex = getTexKey()) {
             is VFrame -> if (tex.isLoaded) tex else null
             is Texture2D -> tex.state
             else -> tex
         }
-        title.canBeSeen = canBeSeen
-        return Quad(super.getVisualState(), title.getVisualState(), tex, meta)
+        titlePanel.canBeSeen = canBeSeen
+        return Quad(super.getVisualState(), titlePanel.getVisualState(), tex, meta)
     }
 
     override fun tickUpdate() {
@@ -140,15 +148,7 @@ class FileEntry(
         updatePlaybackTime()
     }
 
-    var time = 0.0
-    var frameIndex = 0
-    var maxFrameIndex = 0
-    val hoverPlaybackDelay = 0.5
-    var scale = 1
-    var previewFPS = 1.0
-    var meta: FFMPEGMetadata? = null
-
-    fun updatePlaybackTime() {
+    private fun updatePlaybackTime() {
         when (importType) {
             "Video", "Audio" -> {
                 val meta = FFMPEGMetadata.getMeta(file, true)
@@ -164,7 +164,9 @@ class FileEntry(
                             startTime = GFX.gameTime
                             val audio = Video(file)
                             this.audio = audio
-                            GFX.addAudioTask(5) { audio.startPlayback(-hoverPlaybackDelay, 1.0, Camera()) }
+                            GFX.addAudioTask(5) {
+                                audio.startPlayback(-hoverPlaybackDelay, 1.0, Camera())
+                            }
                             0
                         } else {
                             time = (GFX.gameTime - startTime) * 1e-9 - hoverPlaybackDelay
@@ -181,12 +183,12 @@ class FileEntry(
         }
     }
 
-    fun drawDefaultIcon(x0: Int, y0: Int, x1: Int, y1: Int) {
+    private fun drawDefaultIcon(x0: Int, y0: Int, x1: Int, y1: Int) {
         val image = getInternalTexture(iconPath, true) ?: whiteTexture
         drawTexture(x0, y0, x1, y1, image)
     }
 
-    fun drawTexture(x0: Int, y0: Int, x1: Int, y1: Int, image: ITexture2D) {
+    private fun drawTexture(x0: Int, y0: Int, x1: Int, y1: Int, image: ITexture2D) {
         val w = x1 - x0
         val h = y1 - y0
         var iw = image.w
@@ -197,9 +199,9 @@ class FileEntry(
         drawTexture(x0 + (w - iw) / 2, y0 + (h - ih) / 2, iw, ih, image, -1, null)
     }
 
-    fun getDefaultIcon() = getInternalTexture(iconPath, true)
+    private fun getDefaultIcon() = getInternalTexture(iconPath, true)
 
-    fun getTexKey(): Any? {
+    private fun getTexKey(): Any? {
         fun getImage(): Any? {
             val thumb = Thumbs.getThumbnail(file, w)
             return thumb ?: getDefaultIcon()
@@ -220,7 +222,7 @@ class FileEntry(
         }
     }
 
-    fun drawImageOrThumb(x0: Int, y0: Int, x1: Int, y1: Int) {
+    private fun drawImageOrThumb(x0: Int, y0: Int, x1: Int, y1: Int) {
         val w = x1 - x0
         val h = y1 - y0
         val image = Thumbs.getThumbnail(file, w) ?: getDefaultIcon() ?: whiteTexture
@@ -236,7 +238,7 @@ class FileEntry(
         }
     }
 
-    fun drawCircle(x0: Int, y0: Int, x1: Int, y1: Int) {
+    private fun drawCircle(x0: Int, y0: Int, x1: Int, y1: Int) {
         if (time < 0.0) {
             // countdown-circle, pseudo-loading
             // saves us some computations
@@ -272,12 +274,11 @@ class FileEntry(
 
     }
 
-    fun drawVideo(x0: Int, y0: Int, x1: Int, y1: Int) {
+    private fun drawVideo(x0: Int, y0: Int, x1: Int, y1: Int) {
 
         // todo something with the states is broken...
         // todo only white is visible, even if there should be colors...
 
-        val w = x1 - x0
         val bufferLength = 64
         fun getFrame(offset: Int) = getVideoFrame(
             file, scale, frameIndex + offset,
@@ -287,12 +288,15 @@ class FileEntry(
         val image = getFrame(0)
         if (frameIndex > 0) getFrame(bufferLength)
         if (image != null && image.isLoaded) {
-            drawTexture(w, w, image, -1, null)
+            drawTexture(
+                GFX.windowWidth, GFX.windowHeight,
+                image, -1, null
+            )
             drawCircle(x0, y0, x1, y1)
         } else drawDefaultIcon(x0, y0, x1, y1)
     }
 
-    fun drawThumb(x0: Int, y0: Int, x1: Int, y1: Int) {
+    private fun drawThumb(x0: Int, y0: Int, x1: Int, y1: Int) {
         if (file.extension.equals("svg", true)) {
             drawDefaultIcon(x0, y0, x1, y1)
         } else {
@@ -324,7 +328,7 @@ class FileEntry(
 
         drawBackground()
 
-        val font0 = title.font
+        val font0 = titlePanel.font
         val font1 = FontManager.getFont(font0)
         val fontSize = font1.actualFontSize
 
@@ -368,18 +372,18 @@ class FileEntry(
     /**
      * draws the title
      * */
-    fun drawText(x0: Int, y0: Int, x1: Int, y1: Int) {
-        title.w = x1 - x0
-        title.minW = x1 - x0
-        title.calculateSize(x1 - x0, y1 - y0)
-        title.backgroundColor = backgroundColor and 0xffffff
-        val deltaX = ((x1 - x0) - title.minW) / 2
-        title.x = x0 + max(0, deltaX)
-        title.y = y0
-        title.w = x1 - x0
-        title.minW = x1 - x0
-        title.h = y1 - y0
-        title.drawText(0, 0, title.text, title.textColor)
+    private fun drawText(x0: Int, y0: Int, x1: Int, y1: Int) {
+        titlePanel.w = x1 - x0
+        titlePanel.minW = x1 - x0
+        titlePanel.calculateSize(x1 - x0, y1 - y0)
+        titlePanel.backgroundColor = backgroundColor and 0xffffff
+        val deltaX = ((x1 - x0) - titlePanel.minW) / 2
+        titlePanel.x = x0 + max(0, deltaX)
+        titlePanel.y = y0
+        titlePanel.w = x1 - x0
+        titlePanel.minW = x1 - x0
+        titlePanel.h = y1 - y0
+        titlePanel.drawText(0, 0, titlePanel.text, titlePanel.textColor)
     }
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
@@ -454,7 +458,7 @@ class FileEntry(
         }
     }
 
-    fun deleteFileMaybe() {
+    private fun deleteFileMaybe() {
         openMenu(
             NameDesc(
                 "Delete this file? (${file.length().formatFileSize()})",

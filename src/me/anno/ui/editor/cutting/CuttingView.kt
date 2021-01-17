@@ -23,7 +23,8 @@ class CuttingView(style: Style): ScrollPanelY(Padding(0), AxisAlignment.MIN, sty
     }
 
     fun createLayer(): LayerView {
-        // todo display video, audio, title, both, all?
+        // todo display audio, name?
+        // done: video
         return LayerView(style)
     }
 

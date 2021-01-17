@@ -85,7 +85,7 @@ object Thumbs {
         val size = getSize(neededSize)
         val key = ThumbnailKey(file, size)
         return getLateinitTexture(key, timeout) { callback ->
-            generate(file, size, callback)
+            thread { generate(file, size, callback) }
         }.texture
     }
 

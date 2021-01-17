@@ -193,7 +193,6 @@ class LayerView(style: Style) : TimelinePanel(style) {
 
     override fun tickUpdate() {
         super.tickUpdate()
-        // todo how is this causing flickering???...
         solution?.keepResourcesLoaded()
     }
 
@@ -376,7 +375,8 @@ class LayerView(style: Style) : TimelinePanel(style) {
                         if (isControlDown) {
                             // todo scale around the time=0 point?
                             // todo first find this point...
-                            transform.timeDilation *= clamp(1f - shiftSlowdown * dx / w, 0.01f, 100f)
+                            val factor = clamp(1f - shiftSlowdown * dx / w, 0.01f, 100f)
+                            transform.timeDilation *= factor
                         } else {
                             val dt = shiftSlowdown * dilation * dx * dtHalfLength * 2 / w
                             transform.timeOffset += dt
