@@ -6,7 +6,9 @@ import me.anno.utils.Maths.mix
 import org.joml.Vector4f
 
 class Gradient(
-    val owner: Any?, val x0: Int, var x2: Int, val c0: Vector4f, var c2: Vector4f
+    val owner: Any?,
+    val x0: Int, var x2: Int,
+    val c0: Vector4f, var c2: Vector4f
 ) {
 
     // must be saved, so the gradient difference doesn't grow

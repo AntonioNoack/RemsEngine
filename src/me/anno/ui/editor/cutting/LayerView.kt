@@ -106,7 +106,7 @@ class LayerView(style: Style) : TimelinePanel(style) {
         val draggedTransform = draggedTransform
         val stripeDelay = 5
         val stepSize = 1
-        val additionalStripes = ArrayList<Pair<Int, Gradient>>((x1 - x0) / stripeDelay + 5)
+        // val additionalStripes = ArrayList<Pair<Int, Gradient>>((x1 - x0) / stripeDelay + 5)
         if (drawn.isNotEmpty()) {
             val selectedTransform = if (isHovered && mouseKeysDown.isEmpty()) {
                 getTransformAt(mouseX, mouseY)
@@ -145,15 +145,6 @@ class LayerView(style: Style) : TimelinePanel(style) {
 
                     color.w = alpha
 
-                    // show stripes on the selected/hovered element
-                    if (alpha >= minAlpha && x % stripeDelay == 0 && (selectedTransform === tr || draggedTransform === tr)) {
-                        // additional stripes reduces the draw time from 400-600µs to 300µs :)
-                        // more time reduction could be done with a specialized shader and an additional channel
-                        val color2 = Vector4f(color)
-                        color2.w *= 1.5f
-                        additionalStripes += ctr to Gradient(tr, x, x, color2, color2)
-                    }
-
                     if (alpha >= minAlpha) {
 
                         if (ctr >= maxStripes) break@trs
@@ -186,9 +177,6 @@ class LayerView(style: Style) : TimelinePanel(style) {
         stripes.forEach { list ->
             list.removeIf { !it.needsDrawn() }
         }
-        additionalStripes.forEach { (index, stripe) ->
-            stripes.getOrNull(index)?.add(stripe)
-        }
         this.solution = solution
         isCalculating = false
         invalidateDrawing()
@@ -199,14 +187,14 @@ class LayerView(style: Style) : TimelinePanel(style) {
         Pair(
             super.getVisualState(),
             if ((isHovered && mouseKeysDown.isNotEmpty()) || isPlaying) visualStateCtr++
-            else if (isHovered) Pair(mouseX, mouseY)
+            else if (isHovered) getTransformAt(mouseX, mouseY)
             else null
         )
 
     override fun tickUpdate() {
         super.tickUpdate()
         // todo how is this causing flickering???...
-        // solution?.apply { thread { this.keepResourcesLoaded() } }
+        solution?.keepResourcesLoaded()
     }
 
     var lastTime = GFX.gameTime
@@ -239,7 +227,7 @@ class LayerView(style: Style) : TimelinePanel(style) {
         }
 
         // if (solution != null) {
-            solution?.draw()
+            solution?.draw(selectedTransform, draggedTransform)
             // val t2 = System.nanoTime()
             // two circle example:
             // 11µs for two sections x 2
@@ -292,7 +280,7 @@ class LayerView(style: Style) : TimelinePanel(style) {
 
     }
 
-    fun getTransformAt(x: Float, y: Float): Transform? {
+    private fun getTransformAt(x: Float, y: Float): Transform? {
         val drawn = drawn ?: return null
         var bestTransform: Transform? = null
         val yInt = y.toInt()

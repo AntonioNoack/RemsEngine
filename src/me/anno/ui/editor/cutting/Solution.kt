@@ -1,5 +1,6 @@
 package me.anno.ui.editor.cutting
 
+import me.anno.gpu.GFXx2D.drawRect
 import me.anno.gpu.GFXx2D.drawRectGradient
 import me.anno.objects.Transform
 import me.anno.objects.Video
@@ -13,27 +14,28 @@ import kotlin.math.roundToInt
 
 class Solution(
     val x0: Int, val y0: Int, val x1: Int, val y1: Int,
-    val refTime: Double
+    private val referenceTime: Double
 ) {
     val w = x1 - x0
     val stripes = Array(maxStripes) {
         ArrayList<Gradient>(w / 2)
     }
 
-    // todo draw a stripe of the current image, or a symbol or sth...
+    private val relativeVideoBorder = 0.1f
+    private val stripeColor = Vector4f(1f,1f,1f,0.2f)
+
+    // draw a stripe of the current image, or a symbol or sth...
+    // todo shader for the stripes (less draw calls)
+    // todo video: sometimes the first frame is missing
     // todo if audio, draw audio levels
-    // todo if video, draw a few frames in small
+    // if video, draw a few frames in small
 
-    val enableVideoPreview = false
-
-    fun draw() {
-
-        val t0 = System.nanoTime()
+    fun draw(selectedTransform: Transform?, draggedTransform: Transform?) {
 
         val y = y0
         val h = y1 - y0
 
-        val deltaX = ((refTime - centralTime) * w / (dtHalfLength * 2)).roundToInt()
+        val deltaX = ((referenceTime - centralTime) * w / (dtHalfLength * 2)).roundToInt()
 
         val metas = HashMap<Any, Any>()
 
@@ -42,8 +44,11 @@ class Solution(
             val h0 = h - 10
             gradients.forEach {
 
-                val video = it.owner as? Video
-                val meta = if(video == null || !enableVideoPreview) null
+                val tr = it.owner as? Transform
+                val isStriped = selectedTransform === tr || draggedTransform === tr
+
+                val video = tr as? Video
+                val meta = if(video == null) null
                 else metas.getOrPut(video){ video.meta ?: Unit } as? FFMPEGMetadata
 
                 val hasAudio = meta?.hasAudio ?: false
@@ -55,18 +60,14 @@ class Solution(
                 val ix0 = it.x0 + deltaX
                 val ix1 = it.x2 + deltaX
 
-                val t1 = System.nanoTime()
-                val budget = 20 * 1e6 // ms
-                val hasBudgetLeft = (t1 - t0) < budget
-
-                if (hasBudgetLeft && hasVideo && enableVideoPreview) {
+                if (hasVideo) {
 
                     video!!
                     meta!!
 
-                    val frameWidth = (h * (1f + border) * video.w / video.h).roundToInt()
+                    val frameWidth = (h * (1f + relativeVideoBorder) * video.w / video.h).roundToInt()
 
-                    val frameOffset = (-centralTime / (2f * dtHalfLength) * w).toInt() % frameWidth
+                    val frameOffset = ((-centralTime / (2f * dtHalfLength) * w).toInt() % frameWidth + frameWidth) % frameWidth
 
                     val frameIndex0 = (ix0 - frameOffset) / frameWidth
                     val frameIndex1 = (ix1 - frameOffset) / frameWidth
@@ -108,37 +109,40 @@ class Solution(
 
                 } else draw(ix0, ix1 + 1, y0, h0, c0, c1)
 
+                if(isStriped){
+                    drawStripes(ix0, ix1 + 1, y0, h0)
+                }
+
             }
         }
     }
 
     fun keepResourcesLoaded() {
 
-        val t0 = System.nanoTime()
-
         val h = y1 - y0
+        val metas = HashMap<Any, Any>()
 
         stripes.forEach { gradients ->
             gradients.forEach {
 
-                val video = it.owner as? Video
-                val meta = video?.meta
+                val tr = it.owner as? Transform
 
+                val video = tr as? Video
+                val meta = if(video == null) null
+                else metas.getOrPut(video){ video.meta ?: Unit } as? FFMPEGMetadata
+
+                // val hasAudio = meta?.hasAudio ?: false
                 val hasVideo = meta?.hasVideo ?: false
 
                 val ix0 = it.x0
                 val ix1 = it.x2
 
-                val t1 = System.nanoTime()
-                val budget = 100 * 1e6 // ms
-                val hasBudgetLeft = (t1 - t0) < budget
-
-                if (hasBudgetLeft && hasVideo) {
+                if (hasVideo) {
 
                     video!!
                     meta!!
 
-                    val frameWidth = (h * (1f + border) * video.w / video.h).roundToInt()
+                    val frameWidth = (h * (1f + relativeVideoBorder) * video.w / video.h).roundToInt()
 
                     val frameOffset = (-centralTime / (2f * dtHalfLength) * w).toInt() % frameWidth
 
@@ -178,10 +182,15 @@ class Solution(
         }
     }
 
-    private val border = 0.1f // 10% border for video
-
     fun draw(x0: Int, x1: Int, y: Int, h: Int, c0: Vector4f, c1: Vector4f) {
         drawRectGradient(x0, y, x1 - x0, h, c0, c1)
+    }
+
+    private fun drawStripes(x0: Int, x1: Int, y: Int, h: Int) {
+        val si = 5
+        for(x in ((x0+si-1)/si*si) until x1 step si){
+            drawRect(x, y, 1, h, stripeColor)
+        }
     }
 
     fun draw(
@@ -191,8 +200,8 @@ class Solution(
         video: Video, meta: FFMPEGMetadata,
         fract0: Float, fract1: Float
     ) {
-        val f0 = fract0 * (1f + border) - border * 0.5f
-        val f1 = fract1 * (1f + border) - border * 0.5f
+        val f0 = fract0 * (1f + relativeVideoBorder) - relativeVideoBorder * 0.5f
+        val f1 = fract1 * (1f + relativeVideoBorder) - relativeVideoBorder * 0.5f
         if (f1 <= 0f || f0 >= 1f) {
             drawRectGradient(x0, y, x1 - x0, h, c0, c1)
         } else {
@@ -201,10 +210,8 @@ class Solution(
             val timeAtX = centralTime + dtHalfLength * mix(-1.0, +1.0, (centerX - this.x0).toDouble() / this.w)
             val localTime = video.getLocalTimeFromRoot(timeAtX)
             // get frame at time
-            //val t0 = System.nanoTime()
-            val videoWidth = (frameWidth / (1f + border)).toInt()
+            val videoWidth = (frameWidth / (1f + relativeVideoBorder)).toInt()
             val frame = video.getFrameAt(localTime, videoWidth, meta)
-            //val t1 = System.nanoTime()
             if (frame == null) {
                 drawRectGradient(x0, y, x1 - x0, h, c0, c1)
             } else {
@@ -214,10 +221,6 @@ class Solution(
                     Vector4f(f0, 0f, f1, 1f)
                 )
             }
-            // val t2 = System.nanoTime()
-            // getting: 0.15ms - improved to > 0.07ms
-            // drawing: 0.02ms
-            // println("get ${(t1-t0)*1e-6} vs draw ${(t2-t1)*1e-6}")
         }
     }
 
@@ -228,8 +231,8 @@ class Solution(
         video: Video, meta: FFMPEGMetadata,
         fract0: Float, fract1: Float
     ) {
-        val f0 = fract0 * (1f + border) - border * 0.5f
-        val f1 = fract1 * (1f + border) - border * 0.5f
+        val f0 = fract0 * (1f + relativeVideoBorder) - relativeVideoBorder * 0.5f
+        val f1 = fract1 * (1f + relativeVideoBorder) - relativeVideoBorder * 0.5f
         if (!(f1 <= 0f || f0 >= 1f)) {
             // get time at frameIndex
             val centerX = x0 - ((x0 - frameOffset + 10 * frameWidth) % frameWidth) + frameWidth / 2

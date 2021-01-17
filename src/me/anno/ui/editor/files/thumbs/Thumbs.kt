@@ -16,6 +16,7 @@ import me.anno.io.xml.XMLElement
 import me.anno.io.xml.XMLReader
 import me.anno.objects.Video
 import me.anno.cache.data.ImageData
+import me.anno.cache.instances.LastModifiedCache
 import me.anno.cache.instances.MeshCache
 import me.anno.cache.instances.TextureCache.getLateinitTexture
 import me.anno.cache.instances.VideoCache.getVideoFrame
@@ -53,7 +54,7 @@ object Thumbs {
 
     private fun File.getCacheFile(size: Int): File {
         val hashReadLimit = 256
-        var hash = this.lastModified() xor (454781903L * this.length())
+        var hash = LastModifiedCache[this].second xor (454781903L * this.length())
         if (!isDirectory) {
             val reader = inputStream().buffered()
             val bytes = reader.readNBytes2(hashReadLimit)

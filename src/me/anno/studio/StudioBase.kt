@@ -41,6 +41,8 @@ import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.math.roundToInt
 
+// todo remove unnecessary checks, whether files exist and when they were created: much too expensive (0.2ms)
+
 abstract class StudioBase(
     val needsAudio: Boolean,
     val title: String, val configName: String

@@ -260,13 +260,11 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                 val localTime = isLooping[time, duration]
                 val frameIndex = (localTime * videoFPS).toInt() % frameCount
 
-                // val t0 = System.nanoTime()
-                val frame = getVideoFrame(// 0.07ms
+                val frame = getVideoFrame(
                     file, max(1, zoomLevel), frameIndex,
-                    framesPerContainer, videoFPS, 20_000, true
+                    framesPerContainer, videoFPS, 20_000, meta,
+                    true
                 )
-                // val t1 = System.nanoTime()
-                // println("cache.getVideoFrame: ${(t1-t0)*1e-6}ms")
 
                 if (frame != null && frame.isLoaded) {
                     w = frame.w

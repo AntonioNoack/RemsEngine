@@ -156,7 +156,7 @@ class FileEntry(
                 if (meta != null) {
                     val w = w
                     val h = h
-                    previewFPS = min(meta.videoFPS, 30.0)
+                    previewFPS = min(meta.videoFPS, 120.0)
                     maxFrameIndex = max(1, (previewFPS * meta.videoDuration).toInt())
                     time = 0.0
                     frameIndex = if (isHovered) {
