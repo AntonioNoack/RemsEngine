@@ -42,13 +42,14 @@ open class SettingCategory(
             get() = InputVisibility[title]
             set(_) {}
     }
+
     val padding = Padding((titlePanel.font.size * .667f).toInt(), 0, 0, 0)
 
     init {
         titlePanel.parent = this
-        // title.enableHoverColor = true
+        // titlePanel.enableHoverColor = true
         titlePanel.textColor = mixARGB(titlePanel.textColor, titlePanel.textColor and 0xffffff, 0.5f)
-        titlePanel.focusTextColor = titlePanel.textColor
+        titlePanel.focusTextColor = -1//titlePanel.textColor
         content.parent = this
         content.visibility = Visibility.GONE
     }
@@ -99,6 +100,10 @@ open class SettingCategory(
         super.placeInParent(x, y)
         titlePanel.placeInParent(x, y)
         content.placeInParent(x + padding.left, y + titlePanel.minH + padding.top)
+    }
+
+    fun add(child: Panel){
+        content += child
     }
 
     operator fun plusAssign(child: Panel) {

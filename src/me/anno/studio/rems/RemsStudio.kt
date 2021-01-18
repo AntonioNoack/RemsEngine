@@ -34,6 +34,9 @@ import kotlin.concurrent.thread
 
 // todo input field title, no focus color
 
+// todo translations for everything...
+// todo limit the history to entries with 5x the same name? how exactly?...
+
 object RemsStudio : StudioBase(true, "Rem's Studio", "RemsStudio") {
 
     /**

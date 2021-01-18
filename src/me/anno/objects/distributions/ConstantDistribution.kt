@@ -1,6 +1,5 @@
 package me.anno.objects.distributions
 
-import me.anno.language.translation.Dict
 import me.anno.objects.inspectable.InspectableVector
 import me.anno.ui.editor.sceneView.Grid
 import org.joml.Matrix4fArrayList
@@ -38,11 +37,18 @@ class ConstantDistribution(val center: Vector4f) : Distribution(
         )
     }
 
+    override fun draw(stack: Matrix4fArrayList, color: Vector4f) {
+        stack.pushMatrix()
+        stack.translate(center.x, center.y, center.z)
+        onDraw(stack, color)
+        stack.popMatrix()
+    }
+
     override fun onDraw(stack: Matrix4fArrayList, color: Vector4f) {
         val l = displayLength
-        Grid.drawLine(stack, color, Vector3f(-l,0f,0f), Vector3f(+l,0f,0f))
-        Grid.drawLine(stack, color, Vector3f(0f,-l,0f), Vector3f(0f,+l,0f))
-        Grid.drawLine(stack, color, Vector3f(0f,0f,-l), Vector3f(0f,0f,+l))
+        Grid.drawLine(stack, color, Vector3f(-l, 0f, 0f), Vector3f(+l, 0f, 0f))
+        Grid.drawLine(stack, color, Vector3f(0f, -l, 0f), Vector3f(0f, +l, 0f))
+        Grid.drawLine(stack, color, Vector3f(0f, 0f, -l), Vector3f(0f, 0f, +l))
     }
 
     override fun getClassName() = "ConstantDistribution"

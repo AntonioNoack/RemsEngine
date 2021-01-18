@@ -46,6 +46,7 @@ import me.anno.ui.editor.TimelinePanel.Companion.global2Kf
 import me.anno.ui.editor.stacked.Option
 import me.anno.ui.input.*
 import me.anno.ui.style.Style
+import me.anno.utils.Casting.castToDouble2
 import me.anno.utils.Color.toHexColor
 import me.anno.utils.MatrixHelper.skew
 import me.anno.utils.structures.ValueWithDefault
@@ -208,7 +209,7 @@ open class Transform(var parent: Transform? = null) : Saveable(),
         // time
         val timeGroup = getGroup("Time", "", "time")
         timeGroup += vi("Start Time", "Delay the animation", null, timeOffset, style) { timeOffset = it }
-        timeGroup += vi("Time Multiplier", "Speed up the animation", null, timeDilation, style) { timeDilation = it }
+        timeGroup += vi("Time Multiplier", "Speed up the animation", dilationType, timeDilation, style) { timeDilation = it }
         timeGroup += vi("Advanced Time", "Add acceleration/deceleration to your elements", timeAnimated, style)
 
         val editorGroup = getGroup("Editor", "", "editor")
@@ -858,7 +859,7 @@ open class Transform(var parent: Transform? = null) : Saveable(),
     fun getLocalTimeFromRoot(globalTime: Double): Double {
         val inh = listOfInheritance.toList().reversed()
         var localTime = globalTime
-        for (e in inh){
+        for (e in inh) {
             localTime = e.getLocalTime(localTime)
         }
         return localTime
@@ -878,6 +879,7 @@ open class Transform(var parent: Transform? = null) : Saveable(),
         fun String.toTransform() = TextReader.fromText(this).first() as? Transform
         const val minAlpha = 0.5f / 255f
         private val LOGGER = LogManager.getLogger(Transform::class)
+        val dilationType = Type(1.0, 1, 1f, true, true, { castToDouble2(it) }, { it is Double })
     }
 
 

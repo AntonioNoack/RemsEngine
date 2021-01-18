@@ -5,6 +5,7 @@ import me.anno.gpu.GFX.gameTime
 import me.anno.gpu.GFX.isFinalRendering
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
+import me.anno.io.text.TextWriter
 import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
 import me.anno.objects.Transform
@@ -14,6 +15,7 @@ import me.anno.objects.forces.ForceField
 import me.anno.objects.forces.impl.BetweenParticleGravity
 import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.studio.rems.RemsStudio
+import me.anno.ui.base.SpyPanel
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.menu.Menu.openMenu
@@ -24,15 +26,11 @@ import me.anno.ui.editor.stacked.Option
 import me.anno.ui.input.BooleanInput
 import me.anno.ui.style.Style
 import me.anno.utils.Lists.sumByFloat
-import me.anno.utils.Maths.clamp
-import me.anno.utils.Maths.fract
 import me.anno.utils.Maths.mix
-import me.anno.utils.Vectors.plus
-import me.anno.utils.Vectors.times
 import me.anno.utils.processBalanced
-import me.anno.utils.structures.ValueWithDefault
 import me.anno.utils.structures.UnsafeArrayList
 import me.anno.utils.structures.UnsafeSkippingArrayList
+import me.anno.utils.structures.ValueWithDefault
 import me.anno.utils.structures.ValueWithDefault.Companion.writeMaybe
 import me.anno.video.MissingFrameException
 import org.joml.Matrix4fArrayList
@@ -45,17 +43,12 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
-// todo translations for everything...
-// todo limit the history to entries with 5x the same name? how exactly?...
-
 class ParticleSystem(parent: Transform? = null) : Transform(parent) {
-
-    // todo if notCalculating && property was changed, invalidate cache
 
     val spawnColor = AnimatedDistribution(Type.COLOR3, listOf(Vector3f(1f), Vector3f(0f), Vector3f(0f)))
     val spawnPosition = AnimatedDistribution(Type.POSITION, listOf(Vector3f(0f), Vector3f(1f), Vector3f(0f)))
     val spawnVelocity =
-        AnimatedDistribution(GaussianDistribution(), Type.POSITION, listOf(Vector3f(0f), Vector3f(1f), Vector3f(0f)))
+        AnimatedDistribution(GaussianDistribution(), Type.POSITION, listOf(Vector3f(), Vector3f(1f), Vector3f()))
     val spawnSize = AnimatedDistribution(Type.SCALE, listOf(Vector3f(1f), Vector3f(0f), Vector3f(0f)))
     var spawnSize1D = true
 
@@ -95,38 +88,6 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
     var fadeOut: Double
         get() = fadeOutI.value
         set(value) = fadeOutI.set(value)
-
-    fun step(particle: Particle, forces: List<ForceField>, aliveParticles: List<Particle>) {
-        particle.apply {
-            val oldState = states.last()
-            val force = Vector3f()
-            val time = particle.states.size * simulationStep + particle.birthTime
-            forces.forEach { field ->
-                val subForce = field.getForce(oldState, time, aliveParticles)
-                val forceLength = subForce.length()
-                if (forceLength.isFinite()) {
-                    force.add(
-                        if (forceLength < 1000f) {
-                            subForce
-                        } else {
-                            subForce * (1000f / forceLength)
-                        }
-                    )
-                }
-            }
-            val ddPosition = force / mass
-            val dt = simulationStep.toFloat()
-            val dPosition = oldState.dPosition + ddPosition * dt
-            val position = oldState.position + dPosition * dt
-            val newState = ParticleState()
-            newState.position = position
-            newState.dPosition = dPosition
-            newState.rotation = oldState.rotation + oldState.dRotation * dt
-            newState.dRotation = oldState.dRotation // todo rotational friction or acceleration???...
-            newState.color = oldState.color
-            states.add(newState)
-        }
-    }
 
     private fun spawnIfRequired(time: Double, onlyFirst: Boolean) {
 
@@ -221,6 +182,7 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
                 Thread.sleep(0)
 
                 val needsUpdate = aliveParticles.filter { it.lastTime(simulationStep) < currentTime }
+                val simulationStep = simulationStep
 
                 // update all particles, which need an update
                 if (hasON2Force && !isAsync) {
@@ -229,17 +191,13 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
                     if (needsUpdate.size > limit) {
                         processBalanced(0, limit, 16) { i0, i1 ->
                             val aliveParticles = ArrayList(aliveParticles)
-                            for (i in i0 until i1) {
-                                step(needsUpdate[i], forces, aliveParticles)
-                            }
+                            for (i in i0 until i1) needsUpdate[i].step(simulationStep, forces, aliveParticles)
                         }
                         currentTime -= simulationStep // undo the advancing step...
                     } else {
                         processBalanced(0, needsUpdate.size, 16) { i0, i1 ->
                             val aliveParticles = ArrayList(aliveParticles)
-                            for (i in i0 until i1) {
-                                step(needsUpdate[i], forces, aliveParticles)
-                            }
+                            for (i in i0 until i1) needsUpdate[i].step(simulationStep, forces, aliveParticles)
                         }
                         aliveParticles.removeIf { (it.states.size - 2) * simulationStep >= it.lifeTime }
                     }
@@ -247,14 +205,10 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
                     // process all
                     processBalanced(0, needsUpdate.size, 16) { i0, i1 ->
                         val aliveParticles = ArrayList(aliveParticles)
-                        for (i in i0 until i1) {
-                            step(needsUpdate[i], forces, aliveParticles)
-                        }
+                        for (i in i0 until i1) needsUpdate[i].step(simulationStep, forces, aliveParticles)
                     }
                     aliveParticles.removeIf { (it.states.size - 2) * simulationStep >= it.lifeTime }
                 }
-
-
             }
 
         } else {
@@ -306,7 +260,9 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
 
     }
 
-    fun clearCache() {
+    fun clearCache(state: Any? = getSystemState()) {
+        lastState = state
+        lastCheckup = gameTime
         synchronized(this) {
             if (isWorkingAsync != null) {
                 isWorkingAsync?.interrupt()
@@ -319,9 +275,35 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
         RemsStudio.updateSceneViews()
     }
 
+    var lastState: Any? = null
+    var lastCheckup = 0L
+    var timeoutMultiplier = 1
+
+    private fun checkNeedsUpdate() {
+        val time = gameTime
+        if (abs(time - lastCheckup) > 33_000_000 * timeoutMultiplier) {// 30 fps
+            // how fast is this method?
+            // would be binary writing and reading faster?
+            val state = getSystemState()
+            lastCheckup = time
+            if (lastState != state) {
+                timeoutMultiplier = 1
+                lastState = state
+                clearCache(state)
+            } else {// once every 5s, if not changed
+                timeoutMultiplier = min(
+                    timeoutMultiplier + 1,
+                    30 * 5
+                )
+            }
+        }
+    }
+
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
 
         super.onDraw(stack, time, color)
+
+        checkNeedsUpdate()
 
         // draw all forces
         if (!isFinalRendering) {
@@ -330,9 +312,11 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
                 it.draw(stack, time, color)
                 stack.popMatrix()
             }
-            synchronized(spawnPosition) {
-                spawnPosition.update(time, Random())
-                spawnPosition.distribution.onDraw(stack, color)
+            val dist = selectedDistribution
+            // todo this doesn't seem to work completely :/
+            synchronized(dist) {
+                dist.update(time, Random())
+                dist.distribution.draw(stack, color)
             }
         }
 
@@ -349,56 +333,16 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
 
     }
 
+    /**
+     * draw all particles at this point in time
+     * */
     private fun drawParticles(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
-
-        // draw all particles at this point in time
         particles.forEach { p ->
-            p.apply {
-
-
-                val lifeOpacity = p.getLifeOpacity(time, simulationStep, fadeIn, fadeOut).toFloat()
-                val opacity = clamp(lifeOpacity * p.opacity, 0f, 1f)
-                if (opacity > 1e-3f) {// else not visible
-                    stack.pushMatrix()
-
-                    try {
-
-                        val particleTime = time - p.birthTime
-                        val index = particleTime / simulationStep
-                        val index0 = index.toInt()
-                        val indexF = fract(index).toFloat()
-
-                        val state0 = states.getOrElse(index0) { states.last() }
-                        val state1 = states.getOrElse(index0 + 1) { states.last() }
-
-                        val position = state0.position.lerp(state1.position, indexF, position)
-                        val rotation = state0.rotation.lerp(state1.rotation, indexF, rotation)
-
-                        stack.translate(position)
-                        stack.rotateY(rotation.y)
-                        stack.rotateX(rotation.x)
-                        stack.rotateZ(rotation.z)
-                        stack.scale(scale)
-
-                        val color0 = state0.color.lerp(state1.color, indexF, p.color)
-
-                        // normalize time for calculated functions?
-                        // node editor? like in Blender or Unreal Engine
-                        val particleColor = color * Vector4f(color0, opacity)
-                        type.draw(stack, time - p.birthTime, particleColor)
-
-                    } catch (e: IndexOutOfBoundsException) {
-                        if (isFinalRendering) throw MissingFrameException("$p")
-                    }
-
-                    stack.popMatrix()
-                }
-
-
-            }
+            p.draw(stack, time, color, simulationStep, fadeIn, fadeOut)
         }
-
     }
+
+    var selectedDistribution: AnimatedDistribution = spawnPosition
 
     override fun createInspector(
         list: PanelListY,
@@ -413,6 +357,13 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
             fun getName() = "$name: ${property.distribution.getClassName().split("Distribution").first()}"
             val group = getGroup(getName(), "", "$viCtr")
             group.setTooltip(description)
+            group.add(SpyPanel(style) {
+                if (group.listOfVisible.any { it.isInFocus }) {
+                    val needsUpdate = selectedDistribution !== property
+                    selectedDistribution = property
+                    if (needsUpdate) RemsStudio.updateSceneViews()
+                }
+            })
             group.setOnClickListener { _, _, button, long ->
                 if (button.isRight || long) {
                     // show all options for different distributions
@@ -436,8 +387,6 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
             property.createInspector(group.content, this, style)
             viCtr++
         }
-
-        // todo visualize the distributions and their parameters somehow...
 
         fun vt(name: String, title: String, description: String, obj: AnimatedDistribution) {
             vi(Dict[title, "obj.particles.$name"], Dict[description, "obj.particles.$name.desc"], obj)
@@ -541,6 +490,50 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
         }
         clearCache()
     }
+
+    private fun getSystemState(): Any? {
+        // val t0 = System.nanoTime()
+        val writer = TextWriter(false)
+        writer.add(spawnPosition)
+        writer.add(spawnVelocity)
+        writer.add(spawnRotation)
+        writer.add(spawnRotationVelocity)
+        writer.add(spawnRate)
+        writer.add(lifeTime)
+        writer.add(spawnColor)
+        writer.add(spawnOpacity)
+        writer.add(spawnSize)
+        val builder = writer.data
+        builder.append(simulationStepI.value)
+        children.forEach {
+            if (it is ForceField) {
+                it.parent = null
+                writer.add(it)
+            } else {
+                builder.append(it.weight)
+                builder.append(it.uuid)
+            }
+        }
+        writer.writeAllInList()
+        children.forEach {
+            if (it is ForceField) {
+                it.parent = this
+            }
+        }
+        /* val t1 = System.nanoTime()
+        timeSum += (t1-t0)*1e-6f
+        timeCtr++
+        println("${timeSum/timeCtr}ms")*/
+        // 0.3-0.5 ms -> could be improved
+        // -> improved it to ~ 0.056 ms by avoiding a full copy
+        // could be improved to 0.045 ms (~20%) by using a binary writer
+        // but it's less well readable -> use the more expensive version;
+        // the gain is just too small for the costs
+        return builder.toString()
+    }
+
+    // var timeSum = 0f
+    // var timeCtr = 0
 
     override fun acceptsWeight() = true
     override fun getClassName() = "ParticleSystem"

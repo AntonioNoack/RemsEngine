@@ -19,6 +19,10 @@ class ValueWithDefault<V>(var value: V, var default: V) {
         }
     }
 
+    fun clear(){
+        value = default
+    }
+
     fun set(v: V){
         value = v
     }

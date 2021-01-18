@@ -12,7 +12,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
 
     private val separator = if (beautify) ", " else ","
 
-    var data = StringBuilder(512)
+    val data = StringBuilder(512)
     private var hasObject = false
     private var usedPointers: HashSet<Int>? = null
 
@@ -25,18 +25,18 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
     }
 
     fun open(array: Boolean) {
-        data += if (array) '[' else '{'
+        data.append(if (array) '[' else '{')
         hasObject = false
     }
 
     fun close(array: Boolean) {
-        data += if (array) ']' else '}'
+        data.append(if (array) ']' else '}')
         hasObject = true
     }
 
     fun next() {
         if (hasObject) {
-            data += ','
+            data.append(',')
         }
         hasObject = true
     }
@@ -89,18 +89,18 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
     }
 
     private fun writeString(value: String) {
-        data += '"'
+        data.append('"')
         writeEscaped(value)
-        data += '"'
+        data.append('"')
     }
 
     private fun writeTypeNameString(type: String, name: String?) {
         if (name != null) {
-            data += '"'
+            data.append('"')
             writeEscaped(type)
-            data += ':'
+            data.append(':')
             writeEscaped(name)
-            data += '"'
+            data.append('"')
         }
     }
 
@@ -108,7 +108,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
         if (name != null) {
             next()
             writeTypeNameString(type, name)
-            data += ':'
+            data.append(':')
         }
     }
 
@@ -133,7 +133,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
     override fun writeBoolean(name: String, value: Boolean, force: Boolean) {
         if (force || value) {
             writeAttributeStart("b", name)
-            data += if (value) "true" else "false"
+            data.append(if (value) "true" else "false")
         }
     }
 
@@ -141,11 +141,11 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
         if (force || value.isNotEmpty()) {
             writeAttributeStart("b[]", name)
             open(true)
-            data += value.size.toString()
+            data.append(value.size)
             val lastIndex = value.indexOfLast { it }
             for (i in 0 until lastIndex) {
-                data += ','
-                data += if (value[i]) '1' else '0'
+                data.append(',')
+                data.append(if (value[i]) '1' else '0')
             }
             close(true)
         }
@@ -154,7 +154,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
     override fun writeByte(name: String, value: Byte, force: Boolean) {
         if (force || value != 0.toByte()) {
             writeAttributeStart("B", name)
-            data += value.toString()
+            data.append(value.toString())
         }
     }
 
@@ -162,11 +162,11 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
         if (force || value.isNotEmpty()) {
             writeAttributeStart("B[]", name)
             open(true)
-            data += value.size.toString()
+            data.append(value.size)
             val lastIndex = value.indexOfLast { it != 0.toByte() }
             for (i in 0 until lastIndex) {
-                data += ','
-                data += value[i].toString()
+                data.append(',')
+                data.append(value[i].toString())
             }
             close(true)
         }
@@ -183,11 +183,11 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
         if (force || value.isNotEmpty()) {
             writeAttributeStart("s[]", name)
             open(true)
-            data += value.size.toString()
+            data.append(value.size)
             val lastIndex = value.indexOfLast { it != 0.toShort() }
             for (i in 0 until lastIndex) {
-                data += ','
-                data += value[i].toString()
+                data.append(',')
+                data.append(value[i].toString())
             }
             close(true)
         }
@@ -196,7 +196,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
     override fun writeInt(name: String, value: Int, force: Boolean) {
         if (force || value != 0) {
             writeAttributeStart("i", name)
-            data += value.toString()
+            data.append(value.toString())
         }
     }
 
@@ -204,11 +204,11 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
         if (force || value.isNotEmpty()) {
             writeAttributeStart("i[]", name)
             open(true)
-            data += value.size.toString()
+            data.append(value.size)
             val lastIndex = value.indexOfLast { it != 0 }
             for (i in 0 until lastIndex) {
-                data += ','
-                data += value[i].toString()
+                data.append(',')
+                data.append(value[i].toString())
             }
             close(true)
         }
@@ -225,10 +225,10 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
         if (force || value.isNotEmpty()) {
             writeAttributeStart("f[]", name)
             open(true)
-            data += value.size.toString()
+            data.append(value.size)
             val lastIndex = value.indexOfLast { it != 0f }
             for (i in 0 until lastIndex) {
-                data += ','
+                data.append(',')
                 append(value[i])
             }
             close(true)
@@ -239,11 +239,11 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
         if (force || value.isNotEmpty()) {
             writeAttributeStart("f[][]", name)
             open(true)
-            data += value.size.toString()
+            data.append(value.size)
             for (vs in value) {
                 data += ','
                 data += '['
-                data += vs.size.toString()
+                data.append(vs.size)
                 for (v in value) {
                     data += ','
                     data += v.toString()
@@ -265,7 +265,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
         if (force || value.isNotEmpty()) {
             writeAttributeStart("d[]", name)
             open(true)
-            data += value.size.toString()
+            data.append(value.size)
             val lastIndex = value.indexOfLast { it != 0.0 }
             for (i in 0 until lastIndex) {
                 data += ','
@@ -279,11 +279,11 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
         if (force || value.isNotEmpty()) {
             writeAttributeStart("d[][]", name)
             open(true)
-            data += value.size.toString()
+            data.append(value.size)
             for (vs in value) {
                 data += ','
                 data += '['
-                data += vs.size.toString()
+                data.append(vs.size)
                 for (v in value) {
                     data += ','
                     data += v.toString()
@@ -297,7 +297,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
     override fun writeString(name: String, value: String?, force: Boolean) {
         if (force || (value != null && value != "")) {
             writeAttributeStart("S", name)
-            if (value == null) data += "null"
+            if (value == null) data.append("null")
             else writeString(value)
         }
     }
@@ -306,9 +306,9 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
         if (force || value.isNotEmpty()) {
             writeAttributeStart("S[]", name)
             open(true)
-            data += value.size.toString()
+            data.append(value.size)
             for (v in value) {
-                data += ','
+                data.append(',')
                 writeString(v)
             }
             close(true)
@@ -318,7 +318,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
     override fun writeLong(name: String, value: Long, force: Boolean) {
         if (force || value != 0L) {
             writeAttributeStart("l", name)
-            data += value.toString()
+            data.append(value)
         }
     }
 
@@ -326,74 +326,74 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
         if (force || value.isNotEmpty()) {
             writeAttributeStart("l[]", name)
             open(true)
-            data += value.size.toString()
+            data.append(value.size)
             val lastIndex = value.indexOfLast { it != 0L }
             for (i in 0 until lastIndex) {
-                data += ','
-                data += value[i].toString()
+                data.append(',')
+                data.append(value[i])
             }
             close(true)
         }
     }
 
     private fun writeVector2f(value: Vector2f) {
-        data += '['
+        data.append('[')
         append(value.x)
         if (value.x != value.y) {
-            data += separator
+            data.append(separator)
             append(value.y)
         }
-        data += ']'
+        data.append(']')
     }
 
     private fun writeVector3f(value: Vector3f) {
-        data += '['
+        data.append('[')
         append(value.x)
         if (!(value.x == value.y && value.x == value.z)) {
-            data += separator
+            data.append(separator)
             append(value.y)
-            data += separator
+            data.append(separator)
             append(value.z)
         }
-        data += ']'
+        data.append(']')
     }
 
     private fun writeVector4f(value: Vector4f) {
-        data += '['
+        data.append('[')
         // compressed writing for gray scale values, which are typical
         val xyz = !(value.x == value.y && value.x == value.z)
         val xw = value.x != value.w
         append(value.x)
         if (xyz) {
-            data += separator
+            data.append(separator)
             append(value.y)
-            data += separator
+            data.append(separator)
             append(value.z)
         }
         if (xyz || xw) {
-            data += separator
+            data.append(separator)
             append(value.w)
         }
-        data += ']'
+        data.append(']')
     }
 
     private fun writeVector4d(value: Vector4d) {
-        data += '['
+        data.append('[')
         // compressed writing for gray scale values, which are typical
         val xyz = !(value.x == value.y && value.x == value.z)
         val xw = value.x != value.w
         append(value.x)
         if (xyz) {
-            data += separator
+            data.append(separator)
             append(value.y)
-            data += separator
+            data.append(separator)
             append(value.z)
         }
         if (xyz || xw) {
-            data += separator
+            data.append(separator)
             append(value.w)
         }
-        data += ']'
+        data.append(']')
     }
 
     override fun writeVector2f(name: String, value: Vector2f, force: Boolean) {
@@ -426,7 +426,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
 
     override fun writeNull(name: String?) {
         writeAttributeStart("?", name)
-        data += "null"
+        data.append("null")
     }
 
     override fun writeListStart() {
@@ -434,7 +434,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
     }
 
     override fun writeListSeparator() {
-        data += ','
+        data.append(',')
         hasObject = true
     }
 
@@ -476,7 +476,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
         } else {
             open(false)
             writeString("class")
-            data += ':'
+            data.append(':')
             writeString(value.getClassName())
             hasObject = true
         }
@@ -521,7 +521,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
 
     override fun writePointer(name: String?, className: String, ptr: Int) {
         writeAttributeStart(className, name)
-        data += ptr.toString()
+        data.append(ptr)
     }
 
     override fun writeAllInList() {
@@ -550,6 +550,13 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
             writer.add(data)
             writer.writeAllInList()
             return writer.toString()
+        }
+
+        fun toBuilder(data: Saveable, beautify: Boolean): StringBuilder {
+            val writer = TextWriter(beautify)
+            writer.add(data)
+            writer.writeAllInList()
+            return writer.data
         }
 
     }

@@ -13,13 +13,13 @@ open class TextInput(title: String, val enableSuggestions: Boolean, style: Style
     }, Padding(), style
 ) {
 
-    constructor(title: String, style: Style, v0: String) : this(title, true, style, v0)
-    constructor(title: String, enableSuggestions: Boolean, style: Style, v0: String) : this(
+    constructor(title: String, style: Style, v0: String?) : this(title, true, style, v0)
+    constructor(title: String, enableSuggestions: Boolean, style: Style, v0: String?) : this(
         title,
         enableSuggestions,
         style
     ) {
-        setText(v0, false)
+        setText(v0 ?: "", false)
     }
 
     val base = child as PureTextInput
