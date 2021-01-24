@@ -480,6 +480,8 @@ object ShaderLib {
                 brightness +
                 getColorForceFieldLib +
                 rgb2uv +
+                "float max(vec3 rgb){return max(rgb.r, max(rgb.g, rgb.b));}\n" +
+                "float min(vec3 rgb){return min(rgb.r, min(rgb.g, rgb.b));}\n" +
                 "void main(){\n" +
                 "   vec2 uv1 = uv.xy/uv.z;\n" +
                 "   vec2 uv2 = uv1 * 0.5 + 0.5;\n" +

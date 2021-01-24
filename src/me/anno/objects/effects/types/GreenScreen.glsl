@@ -6,8 +6,9 @@ void main(){
     float spill = greenScreenSettings.z;
     vec4 keyColor = mask;
     color = texture(tex, uv2);
+    float isGrayscale = 1-clamp((max(keyColor.rgb)-min(keyColor.rgb))*50,0,1);
     float chromaDistance = distance(RGBtoUV(color.rgb), RGBtoUV(keyColor.rgb));
-    float baseMask = chromaDistance - similarity;
+    float baseMask = mix(chromaDistance - similarity, distance(keyColor.rgb, color.rgb), isGrayscale);
     float fullMask = pow(clamp(baseMask / smoothness, 0, 1), 1.5);
     if(invertMask < 0.5){
         float spillValue = pow(clamp(baseMask / spill, 0, 1), 1.5);

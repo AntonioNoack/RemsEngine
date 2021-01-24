@@ -22,7 +22,6 @@ import me.anno.ui.editor.sceneView.ISceneView
 import me.anno.ui.editor.treeView.TreeView
 import me.anno.utils.OS
 import java.io.File
-import kotlin.concurrent.thread
 
 // todo spline polygon editor inside Rem's Studio, with points, that can be animated (???)
 
@@ -37,24 +36,12 @@ import kotlin.concurrent.thread
 // todo translations for everything...
 // todo limit the history to entries with 5x the same name? how exactly?...
 
-object RemsStudio : StudioBase(true, "Rem's Studio", "RemsStudio") {
-
-    /**
-     * version of Rem's Studio,
-     * will not change during runtime
-     * */
-    const val versionNumber = 10000
-
-    /**
-     * version of Rem's Studio as string,
-     * x.yy.zz
-     * */
-    const val versionName = "${versionNumber/10000}.${(versionNumber/100)%100}.${versionNumber%100}"
+object RemsStudio : StudioBase(true, "Rem's Studio", 10001) {
 
     override fun onGameInit() {
         RemsConfig.init()
         gfxSettings = GFXSettings.get(DefaultConfig["editor.gfx", GFXSettings.LOW.id], GFXSettings.LOW)
-        workspace = DefaultConfig["workspace.dir", File(OS.documents, "RemsStudio")]
+        workspace = DefaultConfig["workspace.dir", File(OS.documents, configName)]
         checkInstall()
         checkVersion()
     }

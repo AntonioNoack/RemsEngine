@@ -363,6 +363,7 @@ class TextMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
         private val LOGGER = LogManager.getLogger(TextMesh::class)
 
         const val DEFAULT_LINE_HEIGHT = 0.2f
+        const val DEFAULT_FONT_HEIGHT = 20f
 
         fun mergeRings2(outer: MutableList<Vector2f>, innerList: List<List<Vector2f>>) {
             innerList.sortedBy { it.map { p -> p.x }.min()!! }.forEach { inner ->

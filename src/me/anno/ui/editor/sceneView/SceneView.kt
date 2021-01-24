@@ -36,6 +36,7 @@ import me.anno.studio.rems.RemsStudio.editorTime
 import me.anno.studio.rems.RemsStudio.editorTimeDilation
 import me.anno.studio.rems.RemsStudio.isPaused
 import me.anno.studio.rems.RemsStudio.nullCamera
+import me.anno.studio.rems.RemsStudio.project
 import me.anno.studio.rems.RemsStudio.root
 import me.anno.studio.rems.RemsStudio.targetHeight
 import me.anno.studio.rems.RemsStudio.targetWidth
@@ -455,7 +456,13 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
 
         // find the transform with the id to select it
         if (bestResult > 0) {
-            val transform = (root.listOfAll + nullCamera!!).firstOrNull { it.clickId == bestResult }
+            var transform = root.listOfAll.firstOrNull { it.clickId == bestResult }
+            if(transform == null){// transformed, so it works without project as well
+                val nullCamera = project?.nullCamera
+                if(nullCamera != null && nullCamera.clickId == bestResult){
+                    transform = nullCamera
+                }
+            }
             selectTransform(transform)
         } else selectTransform(null)
         GFX.check()
@@ -634,10 +641,10 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
                 val localDelta = if (isControlDown)
                     camera2target.transformDirection(Vector3f(0f, 0f, -delta)) * (targetZ / 6)
                 else pos1
+                invalidateDrawing()
                 RemsStudio.incrementalChange("Move Object") {
                     selected.position.addKeyframe(localTime, oldPosition + localDelta)
                 }
-                invalidateDrawing()
 
             }
             SceneDragMode.SCALE -> {
@@ -648,6 +655,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
                     else Vector3f(delta0, delta0, delta0)
                 )
                 val base = 2f
+                invalidateDrawing()
                 RemsStudio.incrementalChange("Scale Object") {
                     selected.scale.addKeyframe(
                         localTime, Vector3f(
@@ -657,7 +665,6 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
                         )
                     )
                 }
-                invalidateDrawing()
             }
             SceneDragMode.ROTATE -> {
                 // todo transform rotation??? quaternions...
@@ -673,10 +680,10 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
                 val localDelta =
                     if (isControlDown) Vector3f(dx0 * speed2, -dy0 * speed2, 0f)
                     else Vector3f(0f, 0f, -deltaDegree)
+                invalidateDrawing()
                 RemsStudio.incrementalChange("Rotate Object") {
                     selected.rotationYXZ.addKeyframe(localTime, oldRotation + localDelta)
                 }
-                invalidateDrawing()
             }
         }
 
@@ -710,10 +717,10 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
         val camera = camera
         val cameraTime = cameraTime
         val oldRotation = camera.rotationYXZ[cameraTime]
+        invalidateDrawing()
         RemsStudio.incrementalChange("Turn Camera") {
             camera.putValue(camera.rotationYXZ, oldRotation + Vector3f(dy0 * scaleFactor, dx0 * scaleFactor, 0f), false)
         }
-        invalidateDrawing()
     }
 
     val cameraTime get() = camera.getGlobalTransform(editorTime).second
@@ -811,7 +818,6 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
     override fun onDoubleClick(x: Float, y: Float, button: MouseButton) {
 
         invalidateDrawing()
-
         if (button.isLeft) {
             val xi = x.toInt()
             val yi = y.toInt()
@@ -899,6 +905,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
     }
 
     fun deleteSelectedTransform() {
+        invalidateDrawing()
         RemsStudio.largeChange("Deleted Component") {
             selectedTransform?.destroy()
         }
@@ -912,6 +919,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
     }
 
     override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float) {
+        invalidateDrawing()
         RemsStudio.incrementalChange("Zoom In / Out") {
             val radius = camera.orbitRadius[cameraTime]
             if (radius == 0f) {

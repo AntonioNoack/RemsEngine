@@ -5,12 +5,12 @@ import me.anno.cache.keys.TextSegmentKey
 import me.anno.config.DefaultConfig
 import me.anno.fonts.FontManager
 import me.anno.fonts.PartResult
+import me.anno.fonts.mesh.TextMesh.Companion.DEFAULT_FONT_HEIGHT
 import me.anno.fonts.mesh.TextMesh.Companion.DEFAULT_LINE_HEIGHT
 import me.anno.fonts.mesh.TextMeshGroup
 import me.anno.fonts.mesh.TextRepBase
 import me.anno.fonts.signeddistfields.TextSDFGroup
 import me.anno.fonts.signeddistfields.algorithm.SignedDistanceField.sdfResolution
-import me.anno.gpu.GFX
 import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.GFXx3D.draw3DText
 import me.anno.gpu.GFXx3D.draw3DTextWithOffset
@@ -97,7 +97,7 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
     var lineSegmentsWithStyle: PartResult? = null
     var keys: List<TextSegmentKey>? = null
 
-    var font = Font("Verdana", 20f, false, false)
+    var font = Font("Verdana", DEFAULT_FONT_HEIGHT, false, false)
     val charSpacing get() = font.size * relativeCharSpacing
     var forceVariableBuffer = false
 
@@ -133,7 +133,7 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
     val shallLoadAsync get() = !forceVariableBuffer
     fun getTextMesh(key: TextSegmentKey): TextRepBase? {
         return TextCache.getEntry(key, textMeshTimeout, shallLoadAsync) {
-            TextMeshGroup(key.font, key.text, charSpacing, forceVariableBuffer)
+            TextMeshGroup(key.font, key.text, key.charSpacing, forceVariableBuffer)
         } as? TextRepBase
     }
 
@@ -240,12 +240,12 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
 
         for ((index, part) in lineSegmentsWithStyle.parts.withIndex()) {
 
-            val start = charIndex
+            val startIndex = charIndex
             val partLength = part.codepointLength
-            val end = charIndex + partLength
+            val endIndex = charIndex + partLength
 
-            val localMin = max(0, startCursor - start)
-            val localMax = min(partLength, endCursor - start)
+            val localMin = max(0, startCursor - startIndex)
+            val localMax = min(partLength, endCursor - startIndex)
 
             if (localMin < localMax) {
 
@@ -279,7 +279,7 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
 
             }
 
-            charIndex = end
+            charIndex = endIndex
 
         }
 
@@ -387,7 +387,7 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
 
         val textMesh = getTextMesh(key)
         if (textMesh == null) {
-            if (GFX.isFinalRendering) throw MissingFrameException("Text-Mesh (383) $font: '$text'")
+            if (isFinalRendering) throw MissingFrameException("Text-Mesh (383) $font: '$text'")
             needsUpdate = true
             return
         }
@@ -416,6 +416,10 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
+        saveWithoutSuper(writer)
+    }
+
+    fun saveWithoutSuper(writer: BaseWriter){
         writer.writeString("text", text)
         writer.writeString("font", font.name)
         writer.writeBoolean("isItalic", font.isItalic, true)
@@ -496,6 +500,14 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
         getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
     ) {
         super.createInspector(list, style, getGroup)
+        createInspectorWithoutSuper(list, style, getGroup)
+    }
+
+    fun createInspectorWithoutSuper(
+        list: PanelListY,
+        style: Style,
+        getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
+    ) {
 
         list += TextInputML("Text", style, text)
             .setChangeListener {
@@ -674,7 +686,7 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
         val tabSpaceType = Type(4f, 1, 1f, true, true, { max(it as Float, 0f) }, ::castToFloat)
         val lineBreakType = Type(-1f, 1, 1f, true, true, { it as Float }, ::castToFloat)
 
-        private val textMeshTimeout = 5000L
+        val textMeshTimeout = 5000L
         val lastUsedFonts = arrayOfNulls<String>(max(0, DefaultConfig["lastUsed.fonts.count", 5]))
 
         /**

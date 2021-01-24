@@ -1,19 +1,28 @@
 package me.anno.gpu
 
+import me.anno.cache.instances.TextCache
+import me.anno.cache.keys.TextSegmentKey
 import me.anno.fonts.FontManager
+import me.anno.fonts.mesh.TextMesh.Companion.DEFAULT_FONT_HEIGHT
+import me.anno.fonts.mesh.TextMeshGroup
 import me.anno.gpu.GFX.v4
 import me.anno.gpu.GFXx3D.draw3D
 import me.anno.gpu.GFXx3D.draw3DCircle
 import me.anno.gpu.TextureLib.whiteTexture
+import me.anno.gpu.blending.BlendDepth
+import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderPlus
 import me.anno.gpu.texture.*
 import me.anno.objects.GFXTransform.Companion.uploadAttractors0
 import me.anno.objects.modes.UVProjection
+import me.anno.objects.text.Text
 import me.anno.ui.base.Font
+import me.anno.utils.Color.toVecRGBA
 import me.anno.video.VFrame
 import org.joml.Matrix4f
 import org.joml.Matrix4fArrayList
+import org.joml.Vector3f
 import org.joml.Vector4f
 
 object GFXx2D {
@@ -200,7 +209,8 @@ object GFXx2D {
 
         GFX.check()
         val tex0 = FontManager.getString(font, text, widthLimit)
-        if ((tex0 == null || tex0 !is Texture2D || !tex0.isCreated) && text.length > 1) {
+        val charByChar = (tex0 == null || tex0 !is Texture2D || !tex0.isCreated) && text.length > 1
+        if (charByChar) {
             return drawTextCharByChar(x, y, font, text, color, backgroundColor, widthLimit, centerX, false)
         }
 

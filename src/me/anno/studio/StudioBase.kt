@@ -34,6 +34,8 @@ import me.anno.ui.dragging.IDraggable
 import me.anno.utils.FloatFormat.f3
 import me.anno.utils.Maths.clamp
 import me.anno.utils.ProcessingQueue
+import me.anno.utils.StringHelper.addSuffix
+import me.anno.utils.StringHelper.filterAlphaNumeric
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL11.*
 import java.io.File
@@ -45,8 +47,20 @@ import kotlin.math.roundToInt
 
 abstract class StudioBase(
     val needsAudio: Boolean,
-    val title: String, val configName: String
+    val title: String,
+    val configName: String,
+    val versionNumber: Int,
+    versionSuffix: String? = null
 ) {
+
+    constructor(needsAudio: Boolean, title: String, versionNumber: Int, versionSuffix: String? = null):
+            this(needsAudio, title, filterAlphaNumeric(title), versionNumber, versionSuffix)
+
+    /**
+     * version of program as string,
+     * x.yy.zz
+     * */
+    val versionName = addSuffix("${versionNumber/10000}.${(versionNumber/100)%100}.${versionNumber%100}", versionSuffix)
 
     abstract fun createUI()
     abstract fun onGameLoopStart()

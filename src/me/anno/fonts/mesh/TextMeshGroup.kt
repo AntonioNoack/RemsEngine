@@ -4,6 +4,7 @@ import me.anno.fonts.TextGroup
 import me.anno.fonts.signeddistfields.TextSDF
 import me.anno.gpu.buffer.StaticBuffer
 import java.awt.Font
+import kotlin.math.min
 
 /**
  * custom character-character alignment maps by font for faster calculation
@@ -84,7 +85,7 @@ class TextMeshGroup(
         drawBuffer: (StaticBuffer?, TextSDF?, offset: Float) -> Unit
     ) {
         val characters = alignment.buffers
-        for (index in startIndex until endIndex) {
+        for (index in startIndex until min(endIndex, codepoints.size)) {
             val codePoint = codepoints[index]
             val offset = (offsets[index] * baseScale).toFloat()
             drawBuffer(characters[codePoint]!!, null, offset)

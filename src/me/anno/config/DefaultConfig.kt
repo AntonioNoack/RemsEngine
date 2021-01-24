@@ -13,6 +13,7 @@ import me.anno.objects.geometric.Polygon
 import me.anno.objects.meshes.Mesh
 import me.anno.objects.modes.UVProjection
 import me.anno.objects.particles.ParticleSystem
+import me.anno.objects.particles.TextParticles
 import me.anno.objects.text.Text
 import me.anno.objects.text.Timer
 import me.anno.studio.rems.RemsStudio.workspace
@@ -112,6 +113,7 @@ object DefaultConfig : StringMap() {
                 ps.timeOffset = -5.0
                 ps
             }(),
+            "Text Particles" to TextParticles(),
             "Effect: Coloring" to EffectColoring(),
             "Effect: Morphing" to EffectMorphing()
         )

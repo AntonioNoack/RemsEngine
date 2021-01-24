@@ -103,4 +103,8 @@ object StringHelper {
         else "$prefix$suffix"
     }
 
+    fun filterAlphaNumeric(str: String): String {
+        return str.filter { it in 'A' .. 'Z' || it in 'a' .. 'z' || it in '0' .. '9' }
+    }
+
 }

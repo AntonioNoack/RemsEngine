@@ -43,7 +43,7 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
-class ParticleSystem(parent: Transform? = null) : Transform(parent) {
+open class ParticleSystem(parent: Transform? = null) : Transform(parent) {
 
     val spawnColor = AnimatedDistribution(Type.COLOR3, listOf(Vector3f(1f), Vector3f(0f), Vector3f(0f)))
     val spawnPosition = AnimatedDistribution(Type.POSITION, listOf(Vector3f(0f), Vector3f(1f), Vector3f(0f)))
@@ -105,14 +105,19 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
 
             if (onlyFirst) missingChildren = max(1, missingChildren)
 
+            val ps = particles.size
+
             // todo more accurate calculation for changing spawn rates...
             // todo calculate, when the integral since lastTime surpassed 1.0 xD
             // todo until we have reached time
             // generate new particles
             val newParticles = ArrayList<Particle>()
             for (i in 0 until missingChildren) {
-                val newParticle = createParticle(mix(lastTime, time, (i + 1.0) / sinceThenIntegral))
-                newParticles += newParticle
+                val newParticle = createParticle(
+                    ps + i,
+                    mix(lastTime, time, (i + 1.0) / sinceThenIntegral)
+                )
+                newParticles += newParticle ?: continue
             }
 
             synchronized(this) {
@@ -223,11 +228,11 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
 
     override fun drawChildrenAutomatically() = !isFinalRendering && showChildren
 
-    private fun createParticle(time: Double): Particle {
+    open fun createParticle(index: Int, time: Double): Particle? {
 
         // find the particle type
         var randomIndex = random.nextFloat() * sumWeight
-        var type = children.first()
+        var type = children.firstOrNull() ?: Transform()
         for (child in children.filterNot { it is ForceField }) {
             val cWeight = child.weight
             randomIndex -= cWeight
@@ -299,6 +304,8 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
         }
     }
 
+    open fun needsChildren() = true
+
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
 
         super.onDraw(stack, time, color)
@@ -321,7 +328,7 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
         }
 
         sumWeight = children.filterNot { it is ForceField }.sumByFloat { it.weight }
-        if (time < 0f || children.isEmpty() || sumWeight <= 0.0) return
+        if (needsChildren() && (time < 0f || children.isEmpty() || sumWeight <= 0.0)) return
 
         if (step(time)) {
             drawParticles(stack, time, color)
@@ -491,7 +498,7 @@ class ParticleSystem(parent: Transform? = null) : Transform(parent) {
         clearCache()
     }
 
-    private fun getSystemState(): Any? {
+    open fun getSystemState(): Any? {
         // val t0 = System.nanoTime()
         val writer = TextWriter(false)
         writer.add(spawnPosition)
