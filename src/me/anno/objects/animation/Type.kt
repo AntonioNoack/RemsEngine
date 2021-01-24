@@ -22,7 +22,7 @@ class Type(
     val hasLinear: Boolean,
     val hasExponential: Boolean,
     val clampFunc: ((Any?) -> Any)?,
-    val accepts: (Any) -> Any?
+    val acceptOrNull: (Any) -> Any?
 ) {
 
     override fun toString() = "Type[${defaultValue.javaClass.simpleName} x $components]"
@@ -51,10 +51,11 @@ class Type(
         val VEC4_PLUS = Type(Vector4f(), 4, 1f, true, true, {
             when (it) {
                 is Float -> max(it, 0f)
+                is Double -> max(it, 0.0)
                 is Vector4f -> Vector4f(max(it.x, 0f), max(it.y, 0f), max(it.z, 0f), max(it.w, 0f))
-                else -> throw RuntimeException()
+                else -> throw RuntimeException("Unsupported type $it")
             }
-        }) { it is Vector4f }
+        }, ::castToVector4f)
         val POSITION = Type(Vector3f(), 3, 1f, true, true, null, ::castToVector3f)
         val POSITION_2D = Type(Vector2f(), 2, 1f, true, true, null, ::castToVector2f)
         val SCALE = Type(Vector3f(1f, 1f, 1f), 3, 1f, true, true, null, ::castToVector3f)
@@ -72,6 +73,7 @@ class Type(
                     it
                 }
                 is Float -> clamp(it, 0f, 1f)
+                is Double -> clamp(it, 0.0, 1.0)
                 else -> throw RuntimeException()
             }
         }, ::castToVector4f)

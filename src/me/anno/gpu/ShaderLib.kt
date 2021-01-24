@@ -39,7 +39,10 @@ object ShaderLib {
     lateinit var shaderFBX: Shader
     lateinit var copyShader: Shader
 
-    val maxOutlineColors = 6
+    /**
+     * our code only uses 3, I think
+     * */
+    const val maxOutlineColors = 6
 
     const val brightness = "" +
             "float brightness(vec3 color){\n" +

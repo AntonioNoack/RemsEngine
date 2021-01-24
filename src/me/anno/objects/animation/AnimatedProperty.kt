@@ -77,7 +77,7 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
     val keyframes = ArrayList<Keyframe<V>>()
 
     fun ensureCorrectType(v: Any?): V {
-        return type.accepts(v!!) as V ?: throw RuntimeException("got $v for $type")
+        return type.acceptOrNull(v!!) as V ?: throw RuntimeException("got $v for $type")
     }
 
     fun clampAny(value: Any) = clamp(value as V)
@@ -97,7 +97,7 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
         addKeyframe(time, value, 0.001)
 
     fun addKeyframe(time: Double, value: Any, equalityDt: Double): Keyframe<V>? {
-        val value2 = type.accepts(value)
+        val value2 = type.acceptOrNull(value)
         return if (value2 != null) {
             addKeyframeInternal(time, clamp(value2 as V), equalityDt)
         } else {
@@ -392,7 +392,7 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
         when (name) {
             "keyframes", "vs" -> {
                 if (value is Keyframe<*>) {
-                    val castValue = type.accepts(value.value!!)
+                    val castValue = type.acceptOrNull(value.value!!)
                     if (castValue != null) {
                         addKeyframe(value.time, clamp(castValue as V) as Any, 0.0)?.apply {
                             interpolation = value.interpolation
@@ -424,7 +424,7 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
             isAnimated = obj.isAnimated
             keyframes.clear()
             obj.keyframes.forEach { src ->
-                val castValue = type.accepts(src.value!!)
+                val castValue = type.acceptOrNull(src.value!!)
                 if (castValue != null) {
                     val dst = Keyframe(src.time, clamp(castValue as V), src.interpolation)
                     keyframes.add(dst)

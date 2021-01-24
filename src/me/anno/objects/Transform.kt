@@ -698,7 +698,7 @@ open class Transform(var parent: Transform? = null) : Saveable(),
                     it to when (it) {
                         is LoopingState -> it.naming
                         is ToneMappers -> it.naming
-                        is MaskType -> it.nameing
+                        is MaskType -> it.naming
                         is Filtering -> it.naming
                         is ArraySelectionMode -> it.naming
                         is UVProjection -> it.naming

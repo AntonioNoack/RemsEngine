@@ -12,7 +12,7 @@ void main(){
     float fullMask = pow(clamp(baseMask / smoothness, 0, 1), 1.5);
     if(invertMask < 0.5){
         float spillValue = pow(clamp(baseMask / spill, 0, 1), 1.5);
-        float grayscale = dot(color.rgb, vec3(0.2126,0.7152,0.0722));
+        float grayscale = dot(color.rgb, vec3(0.2126, 0.7152, 0.0722));
         color.rgb = mix(color.rgb, vec3(grayscale), (1-spillValue) * (1-effect));
         color.a *= fullMask * inverseEffect;
     } else {

@@ -19,7 +19,6 @@ import me.anno.input.Input.mouseY
 import me.anno.input.MouseButton
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
-import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.animation.Interpolation
@@ -678,7 +677,7 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
                 RemsStudio.largeChange("Pasted Keyframes") {
                     parsedKeyframes.forEach { sth ->
                         sth.apply {
-                            val castValue = targetType.accepts(value!!)
+                            val castValue = targetType.acceptOrNull(value!!)
                             if (castValue != null) {
                                 target.addKeyframe(time + time0, castValue)
                             } else LOGGER.warn("$targetType doesn't accept $value")

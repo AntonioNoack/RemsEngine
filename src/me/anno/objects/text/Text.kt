@@ -75,7 +75,7 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
     val outlineColor1 = AnimatedProperty.color(Vector4f(0f))
     val outlineColor2 = AnimatedProperty.color(Vector4f(0f))
     val outlineWidths = AnimatedProperty.vec4(Vector4f(0f, 1f, 1f, 1f))
-    val outlineSmoothness = AnimatedProperty<Vector4f>(Type.VEC4_PLUS)
+    val outlineSmoothness = AnimatedProperty(Type.VEC4_PLUS, Vector4f(0f))
 
     val startCursor = AnimatedProperty.int(-1)
     val endCursor = AnimatedProperty.int(-1)
