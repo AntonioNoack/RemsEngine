@@ -23,6 +23,9 @@ import me.anno.ui.editor.treeView.TreeView
 import me.anno.utils.OS
 import java.io.File
 
+
+
+
 // todo spline polygon editor inside Rem's Studio, with points, that can be animated (???)
 
 // todo "hacked"-text effect for text: swizzle characters and introduce others
@@ -157,5 +160,11 @@ object RemsStudio : StudioBase(true, "Rem's Studio", 10001) {
             }
         }
     }
+
+
+    // UI with traditional editor?
+    // - adding effects
+    // - simple mask overlays
+    // - simple color correction
 
 }

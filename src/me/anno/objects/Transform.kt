@@ -15,6 +15,7 @@ import me.anno.gpu.texture.Filtering
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
+import me.anno.io.find.PropertyFinder.getName
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.language.Language

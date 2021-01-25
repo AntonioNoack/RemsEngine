@@ -40,6 +40,7 @@ import me.anno.ui.input.EnumInput
 import me.anno.ui.input.TextInputML
 import me.anno.ui.style.Style
 import me.anno.utils.Casting.castToFloat
+import me.anno.utils.Vectors.mulAlpha
 import me.anno.utils.Vectors.plus
 import me.anno.utils.Vectors.times
 import me.anno.video.MissingFrameException
@@ -76,6 +77,10 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
     val outlineColor2 = AnimatedProperty.color(Vector4f(0f))
     val outlineWidths = AnimatedProperty.vec4(Vector4f(0f, 1f, 1f, 1f))
     val outlineSmoothness = AnimatedProperty(Type.VEC4_PLUS, Vector4f(0f))
+
+    val shadowColor = AnimatedProperty.color(Vector4f(0f))
+    val shadowOffset = AnimatedProperty.pos(Vector3f(0f, 0f, -0.1f))
+    val shadowSmoothness = AnimatedProperty.floatPlus(0f)
 
     val startCursor = AnimatedProperty.int(-1)
     val endCursor = AnimatedProperty.int(-1)
@@ -219,12 +224,6 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
             return
         }
 
-        val parentColor = parent?.getLocalColor() ?: Vector4f(1f)
-
-        firstTimeDrawing = true
-
-        var charIndex = 0
-
         val lbw = lineBreakWidth
         if (lbw >= 0f && !isFinalRendering && selectedTransform === this) {
             // draw the line
@@ -237,6 +236,68 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
             Grid.drawLine(stack, color, Vector3f(minX, y0, 0f), Vector3f(minX, y1, 0f))
             Grid.drawLine(stack, color, Vector3f(maxX, y0, 0f), Vector3f(maxX, y1, 0f))
         }
+
+        val shadowColor = shadowColor[time]
+
+        if (shadowColor.w >= 0f) {
+            val shadowSmoothness = shadowSmoothness[time]
+            val shadowOffset = shadowOffset[time] * (1f / DEFAULT_FONT_HEIGHT)
+            stack.pushMatrix()
+            stack.translate(shadowOffset)
+            draw(
+                stack, time, color * shadowColor,
+                lineSegmentsWithStyle, drawMeshes, drawTextures,
+                keys, exampleLayout,
+                width, lineOffset,
+                dx, dy, scaleX, scaleY,
+                startCursor, endCursor,
+                false, shadowSmoothness
+            )
+            stack.popMatrix()
+        }
+
+        draw(
+            stack, time, color,
+            lineSegmentsWithStyle, drawMeshes, drawTextures,
+            keys, exampleLayout,
+            width, lineOffset,
+            dx, dy, scaleX, scaleY,
+            startCursor, endCursor,
+            true, 0f
+        )
+
+    }
+
+    private fun draw(
+        stack: Matrix4fArrayList, time: Double, color: Vector4f,
+        lineSegmentsWithStyle: PartResult,
+        drawMeshes: Boolean, drawTextures: Boolean,
+        keys: List<TextSegmentKey>, exampleLayout: TextLayout,
+        width: Float, lineOffset: Float,
+        dx: Float, dy: Float, scaleX: Float, scaleY: Float,
+        startCursor: Int, endCursor: Int,
+        useExtraColors: Boolean,
+        extraSmoothness: Float
+    ) {
+
+        val parentColor = parent?.getLocalColor() ?: Vector4f(1f)
+
+        val oc0: Vector4f
+        val oc1: Vector4f
+        val oc2: Vector4f
+        if (useExtraColors && drawTextures) {
+            oc0 = parentColor * outlineColor0[time]
+            oc1 = parentColor * outlineColor1[time]
+            oc2 = parentColor * outlineColor2[time]
+        } else {
+            oc0 = color.mulAlpha(outlineColor0[time].w)
+            oc1 = color.mulAlpha(outlineColor1[time].w)
+            oc2 = color.mulAlpha(outlineColor2[time].w)
+        }
+
+        var charIndex = 0
+
+        firstTimeDrawing = true
 
         for ((index, part) in lineSegmentsWithStyle.parts.withIndex()) {
 
@@ -273,7 +334,9 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
                         key, time, stack, color,
                         lineDeltaX, lineDeltaY,
                         localMin, localMax,
-                        exampleLayout, parentColor
+                        exampleLayout,
+                        extraSmoothness,
+                        oc0, oc1, oc2
                     )
                 }
 
@@ -282,7 +345,6 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
             charIndex = endIndex
 
         }
-
     }
 
     var firstTimeDrawing = false
@@ -291,7 +353,9 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
         key: TextSegmentKey, time: Double, stack: Matrix4fArrayList,
         color: Vector4f, lineDeltaX: Float, lineDeltaY: Float,
         startIndex: Int, endIndex: Int,
-        exampleLayout: TextLayout, parentColor: Vector4f
+        exampleLayout: TextLayout,
+        extraSmoothness: Float,
+        oc1: Vector4f, oc2: Vector4f, oc3: Vector4f
     ) {
 
         val sdf2 = getTextTexture(key)
@@ -342,17 +406,15 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
                     outline.z = max(0f, outline.z) + outline.y
                     outline.w = max(0f, outline.w) + outline.z
 
-                    val smoothness = outlineSmoothness[time] * sdfResolution
+                    val s0 = outlineSmoothness[time] + extraSmoothness
+                    val smoothness = s0 * sdfResolution
 
                     drawOutlinedText(
                         this, time,
                         stack, offset, scale,
                         texture, color, 5,
                         arrayOf(
-                            color,
-                            outlineColor0[time] * parentColor,
-                            outlineColor1[time] * parentColor,
-                            outlineColor2[time] * parentColor,
+                            color, oc1, oc2, oc3,
                             Vector4f(0f)
                         ),
                         floatArrayOf(-1e3f, outline.x, outline.y, outline.z, outline.w),
@@ -405,10 +467,6 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
 
     }
 
-    override fun transformLocally(pos: Vector3f, time: Double): Vector3f {
-        return pos
-    }
-
     fun invalidate() {
         lastVisualState = null
         needsUpdate = true
@@ -419,27 +477,45 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
         saveWithoutSuper(writer)
     }
 
-    fun saveWithoutSuper(writer: BaseWriter){
+    fun saveWithoutSuper(writer: BaseWriter) {
+
+        // basic settings
         writer.writeString("text", text)
         writer.writeString("font", font.name)
         writer.writeBoolean("isItalic", font.isItalic, true)
         writer.writeBoolean("isBold", font.isBold, true)
-        writer.writeObject(this, "relativeLineSpacing", relativeLineSpacing)
+
+        // alignment
         writer.writeInt("textAlignment", textAlignment.id, true)
         writer.writeInt("blockAlignmentX", blockAlignmentX.id, true)
         writer.writeInt("blockAlignmentY", blockAlignmentY.id, true)
+
+        // spacing
+        writer.writeObject(this, "relativeLineSpacing", relativeLineSpacing)
         writer.writeFloat("relativeTabSize", relativeTabSize, true)
         writer.writeFloat("lineBreakWidth", lineBreakWidth)
         writer.writeFloat("relativeCharSpacing", relativeCharSpacing)
+
+        // outlines
         writer.writeInt("renderingMode", renderingMode.id)
+        writer.writeBoolean("roundSDFCorners", roundSDFCorners)
         writer.writeObject(this, "outlineColor0", outlineColor0)
         writer.writeObject(this, "outlineColor1", outlineColor1)
         writer.writeObject(this, "outlineColor2", outlineColor2)
         writer.writeObject(this, "outlineWidths", outlineWidths)
         writer.writeObject(this, "outlineSmoothness", outlineSmoothness)
-        writer.writeBoolean("roundSDFCorners", roundSDFCorners)
+
+        // shadows
+        writer.writeObject(this, "shadowColor", shadowColor)
+        writer.writeObject(this, "shadowOffset", shadowOffset)
+        writer.writeObject(this, "shadowSmoothness", shadowSmoothness)
+
+        // rpg cursor animation
+        // todo append cursor symbol at the end
+        // todo blinking cursor
         writer.writeObject(this, "startCursor", startCursor)
         writer.writeObject(this, "endCursor", endCursor)
+
     }
 
     override fun readInt(name: String, value: Int) {
@@ -482,6 +558,9 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
 
     override fun readObject(name: String, value: ISaveable?) {
         when (name) {
+            "shadowOffset" -> shadowOffset.copyFrom(value)
+            "shadowColor" -> shadowColor.copyFrom(value)
+            "shadowSmoothness" -> shadowSmoothness.copyFrom(value)
             "relativeLineSpacing" -> relativeLineSpacing.copyFrom(value)
             "outlineColor0" -> outlineColor0.copyFrom(value)
             "outlineColor1" -> outlineColor1.copyFrom(value)
@@ -670,6 +749,11 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
             roundSDFCorners = it
             invalidate()
         }
+
+        val shadows = getGroup("Shadow", "", "shadow")
+        shadows += vi("Color", "", "shadow.color", shadowColor, style)
+        shadows += vi("Offset", "", "shadow.offset", shadowOffset, style)
+        shadows += vi("Smoothness", "", "shadow.smoothness", shadowSmoothness, style)
 
     }
 

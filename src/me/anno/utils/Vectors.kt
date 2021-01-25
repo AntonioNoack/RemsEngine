@@ -33,9 +33,10 @@ object Vectors {
 
     operator fun Vector4f.minus(s: Vector4f) = Vector4f(x - s.x, y - s.y, z - s.z, w - s.w)
     operator fun Vector4f.plus(s: Vector4f) = Vector4f(x + s.x, y + s.y, z + s.z, w + s.w)
+    operator fun Vector4f.plus(s: Float) = if (s == 0f) this else Vector4f(x + s, y + s, z + s, w + s)
     operator fun Vector4f.times(s: Float) = Vector4f(x * s, y * s, z * s, w * s)
     operator fun Vector4f.times(s: Vector4f) = Vector4f(x * s.x, y * s.y, z * s.z, w * s.w)
-
+    fun Vector4f.mulAlpha(m: Float) = Vector4f(x, y, z, w * m)
 
     fun avg(a: Vector2f, b: Vector2f) = Vector2f(a).add(b).mul(0.5f)
     fun avg(a: Vector2d, b: Vector2d) = Vector2d(a).add(b).mul(0.5)

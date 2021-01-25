@@ -50,9 +50,7 @@ abstract class GFXTransform(parent: Transform?) : Transform(parent) {
         fx += vi("Coloring: Base Color", "Base color for coloring", attractorBaseColor, style)
     }
 
-    open fun transformLocally(pos: Vector3f, time: Double): Vector3f {
-        return pos
-    }
+    open fun transformLocally(pos: Vector3f, time: Double): Vector3f { return pos }
 
     fun uploadAttractors(shader: Shader, time: Double) {
 
