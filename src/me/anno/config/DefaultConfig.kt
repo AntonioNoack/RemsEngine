@@ -88,7 +88,7 @@ object DefaultConfig : StringMap() {
             "Rectangle" to Rectangle.create(),
             "Circle" to Circle(null),
             "Folder" to Transform(),
-            "Linked Object" to SoftLink(),
+            // "Linked Object" to SoftLink(), // non-default, can be created using drag n drop
             "Mask" to MaskLayer.create(null, null),
             "Text" to Text("Text", null),
             "Timer" to Timer(null),
