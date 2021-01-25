@@ -11,7 +11,6 @@ import me.anno.input.Input
 import me.anno.input.Input.mouseX
 import me.anno.input.Input.mouseY
 import me.anno.input.MouseButton
-import me.anno.io.utils.StringMap
 import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
 import me.anno.objects.Camera
@@ -387,7 +386,7 @@ object UILayouts {
 
     }
 
-    fun createEditorUI() {
+    fun createEditorUI(loadUI: Boolean = true) {
 
         val style = DefaultConfig.style
 
@@ -395,7 +394,7 @@ object UILayouts {
 
         val options = OptionBar(style)
 
-        fun reloadWindow(panel: Panel, fullscreen: Boolean): Window {
+        fun createReloadWindow(panel: Panel, fullscreen: Boolean): Window {
             return object : Window(
                 panel, fullscreen,
                 if (fullscreen) 0 else mouseX.toInt(),
@@ -422,14 +421,14 @@ object UILayouts {
         // todo option to save/load/restore layout
         options.addAction(configTitle, Dict["Settings", "ui.top.config.settings"]) {
             val panel = ConfigPanel(DefaultConfig, false, style)
-            val window = reloadWindow(panel, true)
+            val window = createReloadWindow(panel, true)
             panel.create()
             windowStack.push(window)
         }
 
         options.addAction(configTitle, Dict["Style", "ui.top.config.style"]) {
             val panel = ConfigPanel(DefaultConfig.style.values, true, style)
-            val window = reloadWindow(panel, true)
+            val window = createReloadWindow(panel, true)
             panel.create()
             windowStack.push(window)
         }
@@ -453,6 +452,15 @@ object UILayouts {
                     createNewProjectUI(menuStyle)
                 )
             )
+        }
+
+        options.addAction(projectTitle, Dict["Reset UI", "ui.top.resetUI"]){
+            ask(NameDesc("Are you sure?", "", "")) {
+                project?.apply {
+                    resetUIToDefault()
+                    createEditorUI(false)
+                }
+            }
         }
 
         options.addAction(selectTitle, "Inspector Camera") { selectTransform(nullCamera) }
@@ -492,7 +500,7 @@ object UILayouts {
         ui += SpacePanel(0, 1, style)
 
         val project = project!!
-        project.loadUI()
+        if(loadUI) project.loadUI()
 
         ui += project.mainUI
 
@@ -525,10 +533,10 @@ object UILayouts {
         animationWindow.setWeight(1f)
 
         val timeline = GraphEditor(style)
-        customUI.add(CustomContainer(timeline, style), 0.5f)
+        customUI.add(CustomContainer(timeline, style), 0.25f)
 
         val linear = CuttingView(style)
-        customUI.add(CustomContainer(linear, style), 0.5f)
+        customUI.add(CustomContainer(linear, style), 0.25f)
 
         return customUI
 

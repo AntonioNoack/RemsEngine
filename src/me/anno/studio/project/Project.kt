@@ -1,6 +1,5 @@
 package me.anno.studio.project
 
-import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.GFX
 import me.anno.io.Saveable
@@ -54,12 +53,11 @@ class Project(var name: String, val file: File) : Saveable() {
 
     lateinit var mainUI: Panel
 
-    fun loadUI() {
+    fun resetUIToDefault() {
+        mainUI = createDefaultMainUI(style)
+    }
 
-        fun uiDefault() {
-            mainUI = createDefaultMainUI(DefaultConfig.style)
-            // saveUI()
-        }
+    fun loadUI() {
 
         fun tabsDefault() {
             val tab =
@@ -111,11 +109,11 @@ class Project(var name: String, val file: File) : Saveable() {
                 val loadedUIData = loadUI2()
                 if (loadedUIData != null) {
                     mainUI = loadedUIData
-                } else uiDefault()
-            } else uiDefault()
+                } else resetUIToDefault()
+            } else resetUIToDefault()
         } catch (e: Exception) {
             e.printStackTrace()
-            uiDefault()
+            resetUIToDefault()
         }
 
         (config["editor.time"] as? Double)?.apply {
