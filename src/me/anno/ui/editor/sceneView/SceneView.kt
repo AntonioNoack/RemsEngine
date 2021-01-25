@@ -152,7 +152,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
         ).setOnClickListener {
             isLocked2D = !isLocked2D
             // control can be used to avoid rotating the camera
-            if (isLocked2D && !Input.isControlDown) {
+            if (isLocked2D && !isControlDown) {
                 val rot = camera.rotationYXZ
                 val rot0z = rot[camera.lastLocalTime].z
                 camera.putValue(rot, Vector3f(0f, 0f, rot0z), true)
@@ -180,17 +180,23 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
         add(0, SceneDragMode.MOVE)
         add(1, SceneDragMode.ROTATE)
         add(2, SceneDragMode.SCALE)
-        controls.forEach {
-            children += it.drawable
-        }
-        // todo background is not drawn... why?
         controls += SimplePanel(
-            TextButton("\uD83D\uDCF7", "Take a screenshot", "ui.sceneView.takeScreenshot", true, style),
+            TextButton(
+                "\uD83D\uDCF7",
+                "Take a screenshot", "ui.sceneView.takeScreenshot",
+                true, style
+            ),
             true, true,
             pad * 3 + iconSize * (3 + 1), pad,
             iconSize
         ).setOnClickListener {
             takeScreenshot()
+        }
+    }
+
+    init {
+        controls.forEach {
+            children += it.drawable
         }
     }
 
@@ -455,9 +461,9 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
         // find the transform with the id to select it
         if (bestResult > 0) {
             var transform = root.listOfAll.firstOrNull { it.clickId == bestResult }
-            if(transform == null){// transformed, so it works without project as well
+            if (transform == null) {// transformed, so it works without project as well
                 val nullCamera = project?.nullCamera
-                if(nullCamera != null && nullCamera.clickId == bestResult){
+                if (nullCamera != null && nullCamera.clickId == bestResult) {
                     transform = nullCamera
                 }
             }
@@ -554,7 +560,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
                     if (d1 > minDistance && d0 > minDistance) {
                         val time = cameraTime
                         val oldCamZoom = camera.orbitRadius[time]
-                        if(oldCamZoom == 0f){
+                        if (oldCamZoom == 0f) {
                             // todo delta zoom for cameras without orbit
                         } else {
                             val newZoom = oldCamZoom * d0 / d1
@@ -565,7 +571,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
                     val (_, time) = camera.getGlobalTransform(editorTime)
                     val old = camera.rotationYXZ[time]
                     val rotationSpeed = -10f
-                    if(!isLocked2D){
+                    if (!isLocked2D) {
                         camera.rotationYXZ.addKeyframe(time, old + Vector3f(dy * rotationSpeed, dx * rotationSpeed, 0f))
                     } else {
                         // move camera? completely ignore, what is selected
