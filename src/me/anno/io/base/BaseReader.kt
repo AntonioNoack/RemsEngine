@@ -33,8 +33,8 @@ import me.anno.objects.text.Text
 import me.anno.objects.text.Timer
 import me.anno.studio.history.History
 import me.anno.studio.history.HistoryState
-import me.anno.ui.custom.data.CustomListData
-import me.anno.ui.custom.data.CustomPanelData
+import me.anno.ui.custom.CustomListX
+import me.anno.ui.custom.CustomListY
 import me.anno.ui.editor.sceneView.SceneTabData
 import me.anno.utils.structures.arrays.BoolArray
 import org.apache.logging.log4j.LogManager
@@ -44,66 +44,6 @@ abstract class BaseReader {
     val content = HashMap<Int, ISaveable>()
     val sortedContent get() = content.entries.sortedBy { it.key }.map { it.value }.toList()
     private val missingReferences = HashMap<Int, ArrayList<Pair<Any, String>>>()
-
-    fun getNewClassInstance(clazz: String): ISaveable {
-        return when (clazz) {
-            "SMap" -> StringMap()
-            "Transform" -> Transform()
-            "Text" -> Text()
-            "Circle" -> Circle()
-            "Polygon" -> Polygon()
-            "Video", "Audio", "Image" -> Video()
-            "GFXArray" -> GFXArray()
-            "MaskLayer" -> MaskLayer()
-            "ParticleSystem" -> ParticleSystem()
-            "Camera" -> Camera()
-            "Mesh" -> Mesh()
-            "Timer" -> Timer()
-            "AnimatedProperty" -> AnimatedProperty.any()
-            "Keyframe" -> Keyframe<Any>()
-            "HarmonicDriver" -> HarmonicDriver()
-            "PerlinNoiseDriver" -> PerlinNoiseDriver()
-            "CustomDriver", "FunctionDriver" -> FunctionDriver()
-            "CustomListData" -> CustomListData()
-            "CustomPanelData" -> CustomPanelData()
-            "SceneTabData" -> SceneTabData()
-            "ColorAttractor", "EffectColoring" -> EffectColoring()
-            "UVAttractor", "EffectMorphing" -> EffectMorphing()
-            "SoundPipeline" -> SoundPipeline()
-            "EchoEffect" -> EchoEffect()
-            "AmplitudeEffect" -> AmplitudeEffect()
-            "EqualizerEffect" -> EqualizerEffect()
-            "PitchEffect" -> PitchEffect()
-            "SquareFalloffEffect" -> SquareFalloff()
-            "LinearFalloffEffect" -> LinearFalloff()
-            "ExponentialFalloffEffect" -> ExponentialFalloff()
-            "AnimatedDistribution" -> AnimatedDistribution()
-            "GaussianDistribution" -> GaussianDistribution()
-            "ConstantDistribution" -> ConstantDistribution()
-            "UniformDistribution", // replaced
-            "CuboidDistribution" -> CuboidDistribution()
-            "CuboidHullDistribution" -> CuboidHullDistribution()
-            "SphereHullDistribution" -> SphereHullDistribution()
-            "SphereDistribution",
-            "SphereVolumeDistribution" -> SphereVolumeDistribution()
-            "GlobalForce" -> GlobalForce()
-            "GravityField" -> GravityField()
-            "LorentzForce" -> LorentzForce()
-            "NoisyLorentzForce" -> NoisyLorentzForce()
-            "MultiGravityForce" -> BetweenParticleGravity()
-            "TornadoField" -> TornadoField()
-            "VelocityFrictionForce" -> VelocityFrictionForce()
-            "History" -> History()
-            "HistoryState" -> HistoryState()
-            "BoolArray" -> BoolArray()
-            "TextParticles" -> TextParticles()
-            else -> {
-                // just for old stuff; AnimatedProperties must not be loaded directly; always just copied into
-                if (clazz.startsWith("AnimatedProperty<")) AnimatedProperty.any()
-                else ISaveable.objectTypeRegistry[clazz]?.invoke() ?: throw UnknownClassException(clazz)
-            }
-        }
-    }
 
     fun register(value: ISaveable, ptr: Int) {
         if (ptr != 0) {
@@ -152,14 +92,73 @@ abstract class BaseReader {
         }
     }
 
-    fun error(msg: String): Nothing = throw RuntimeException("[BaseReader] $msg")
-    fun error(msg: String, appended: Any?): Nothing = throw RuntimeException("[BaseReader] $msg $appended")
-
     abstract fun readObject(): ISaveable
     abstract fun readAllInList()
 
     companion object {
+
         private val LOGGER = LogManager.getLogger(BaseReader::class)
+
+        fun error(msg: String): Nothing = throw RuntimeException("[BaseReader] $msg")
+        fun error(msg: String, appended: Any?): Nothing = throw RuntimeException("[BaseReader] $msg $appended")
+
+        fun getNewClassInstance(clazz: String): ISaveable {
+            return when (clazz) {
+                "SMap" -> StringMap()
+                "Transform" -> Transform()
+                "Text" -> Text()
+                "Circle" -> Circle()
+                "Polygon" -> Polygon()
+                "Video", "Audio", "Image" -> Video()
+                "GFXArray" -> GFXArray()
+                "MaskLayer" -> MaskLayer()
+                "ParticleSystem" -> ParticleSystem()
+                "Camera" -> Camera()
+                "Mesh" -> Mesh()
+                "Timer" -> Timer()
+                "AnimatedProperty" -> AnimatedProperty.any()
+                "Keyframe" -> Keyframe<Any>()
+                "HarmonicDriver" -> HarmonicDriver()
+                "PerlinNoiseDriver" -> PerlinNoiseDriver()
+                "CustomDriver", "FunctionDriver" -> FunctionDriver()
+                "SceneTabData" -> SceneTabData()
+                "ColorAttractor", "EffectColoring" -> EffectColoring()
+                "UVAttractor", "EffectMorphing" -> EffectMorphing()
+                "SoundPipeline" -> SoundPipeline()
+                "EchoEffect" -> EchoEffect()
+                "AmplitudeEffect" -> AmplitudeEffect()
+                "EqualizerEffect" -> EqualizerEffect()
+                "PitchEffect" -> PitchEffect()
+                "SquareFalloffEffect" -> SquareFalloff()
+                "LinearFalloffEffect" -> LinearFalloff()
+                "ExponentialFalloffEffect" -> ExponentialFalloff()
+                "AnimatedDistribution" -> AnimatedDistribution()
+                "GaussianDistribution" -> GaussianDistribution()
+                "ConstantDistribution" -> ConstantDistribution()
+                "UniformDistribution", // replaced
+                "CuboidDistribution" -> CuboidDistribution()
+                "CuboidHullDistribution" -> CuboidHullDistribution()
+                "SphereHullDistribution" -> SphereHullDistribution()
+                "SphereDistribution",
+                "SphereVolumeDistribution" -> SphereVolumeDistribution()
+                "GlobalForce" -> GlobalForce()
+                "GravityField" -> GravityField()
+                "LorentzForce" -> LorentzForce()
+                "NoisyLorentzForce" -> NoisyLorentzForce()
+                "MultiGravityForce" -> BetweenParticleGravity()
+                "TornadoField" -> TornadoField()
+                "VelocityFrictionForce" -> VelocityFrictionForce()
+                "History" -> History()
+                "HistoryState" -> HistoryState()
+                "BoolArray" -> BoolArray()
+                "TextParticles" -> TextParticles()
+                else -> {
+                    // just for old stuff; AnimatedProperties must not be loaded directly; always just copied into
+                    if (clazz.startsWith("AnimatedProperty<")) AnimatedProperty.any()
+                    else ISaveable.objectTypeRegistry[clazz]?.invoke() ?: throw UnknownClassException(clazz)
+                }
+            }
+        }
     }
 
 

@@ -15,6 +15,7 @@ object Casting {
         is Vector4f -> it.x.toInt()
         is Vector4d -> it.x.toInt()
         is Quaternionf -> it.x.toInt()
+        is String -> it.toIntOrNull()
         else -> null
     }
 
@@ -29,6 +30,7 @@ object Casting {
         is Vector4f -> it.x.toLong()
         is Vector4d -> it.x.toLong()
         is Quaternionf -> it.x.toLong()
+        is String -> it.toLongOrNull()
         else -> null
     }
 
@@ -43,6 +45,7 @@ object Casting {
         is Vector4f -> it.x
         is Vector4d -> it.x.toFloat()
         is Quaternionf -> it.x
+        is String -> it.toFloatOrNull()
         else -> null
     }
 
@@ -57,6 +60,7 @@ object Casting {
         is Vector4f -> it.x.toDouble()
         is Vector4d -> it.x
         is Quaternionf -> it.x.toDouble()
+        is String -> it.toDoubleOrNull()
         else -> null
     }
 

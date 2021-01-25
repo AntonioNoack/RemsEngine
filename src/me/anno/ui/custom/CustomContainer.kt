@@ -11,12 +11,10 @@ import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
-import me.anno.ui.custom.data.CustomPanelData
-import me.anno.ui.custom.data.ICustomDataCreator
 import me.anno.ui.editor.sceneView.SceneView
 import me.anno.ui.style.Style
 
-class CustomContainer(default: Panel, style: Style) : PanelContainer(default, Padding(0), style), ICustomDataCreator {
+class CustomContainer(default: Panel, style: Style) : PanelContainer(default, Padding(0), style) {
 
     override fun getLayoutState(): Any? = Pair(super.getLayoutState(), child)
 
@@ -187,8 +185,6 @@ class CustomContainer(default: Panel, style: Style) : PanelContainer(default, Pa
             true
         } else false
     }
-
-    override fun toData() = CustomPanelData(child)
 
     companion object {
         val customContainerCrossSize = 16f

@@ -24,6 +24,10 @@ class SimplePanel(
 
     init {
         drawable.backgroundColor = 0
+        drawable.w = sizeX
+        drawable.h = sizeY
+        drawable.minW = sizeX
+        drawable.minH = sizeY
     }
 
     fun setOnClickListener(listener: () -> Unit): SimplePanel {

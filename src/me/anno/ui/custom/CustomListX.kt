@@ -1,11 +1,11 @@
 package me.anno.ui.custom
 
+import me.anno.io.ISaveable
+import me.anno.io.base.BaseWriter
 import me.anno.ui.base.Panel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.groups.PanelListX
-import me.anno.ui.custom.data.CustomListData
-import me.anno.ui.custom.data.ICustomDataCreator
 import me.anno.ui.style.Style
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Lists.sumByFloat
@@ -29,9 +29,8 @@ open class CustomListX(style: Style) : PanelListX(style), CustomList {
         return Pair(super.getLayoutState(), weights)
     }
 
-    override val dataChildren
-        get() = children
-            .filter { it !is CustomizingBar } as List<ICustomDataCreator>
+    override val customChildren
+        get() = children.filter { it !is CustomizingBar }
 
     companion object {
         fun remove(vg: PanelList, index: Int) {
@@ -114,8 +113,6 @@ open class CustomListX(style: Style) : PanelListX(style), CustomList {
     override fun addChild(panel: Panel) {
         add(panel)
     }
-
-    override fun toData() = CustomListData(this)
 
     override fun calculateSize(w: Int, h: Int) {
         this.w = w

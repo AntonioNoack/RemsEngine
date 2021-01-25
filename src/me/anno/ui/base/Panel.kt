@@ -92,7 +92,12 @@ open class Panel(val style: Style) {
      * this weight is used inside some layouts
      * it allows layout by percentages and such
      * */
-    var weight = 0f
+    open var weight = 0f
+        set(value) {
+            if(value.isFinite()){
+                field = value
+            }
+        }
 
     var backgroundRadiusX = style.getSize("background.radius.x", 0)
     var backgroundRadiusY = style.getSize("background.radius.y", 0)

@@ -9,6 +9,7 @@ import me.anno.utils.FileHelper.formatFileSize
 import me.anno.utils.FloatFormat.f1
 import me.anno.utils.Maths.fract
 import java.io.File
+import java.lang.StringBuilder
 import kotlin.math.abs
 import kotlin.math.floor
 import kotlin.math.min
@@ -105,6 +106,53 @@ object StringHelper {
 
     fun filterAlphaNumeric(str: String): String {
         return str.filter { it in 'A' .. 'Z' || it in 'a' .. 'z' || it in '0' .. '9' }
+    }
+
+    fun writeEscaped(value: String, data: StringBuilder){
+        var i = 0
+        var lastI = 0
+        fun put() {
+            if (i > lastI) {
+                data.append(value.substring(lastI, i))
+            }
+            lastI = i + 1
+        }
+        while (i < value.length) {
+            when (value[i]) {
+                '\\' -> {
+                    put()
+                    data.append("\\\\")
+                }
+                '\t' -> {
+                    put()
+                    data.append("\\t")
+                }
+                '\r' -> {
+                    put()
+                    data.append("\\r")
+                }
+                '\n' -> {
+                    put()
+                    data.append("\\n")
+                }
+                '"' -> {
+                    put()
+                    data.append("\\\"")
+                }
+                '\b' -> {
+                    put()
+                    data.append("\\b")
+                }
+                12.toChar() -> {
+                    put()
+                    data.append("\\f")
+                }
+                else -> {
+                } // nothing
+            }
+            i++
+        }
+        put()
     }
 
 }

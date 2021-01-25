@@ -3,6 +3,7 @@ package me.anno.io.text
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
+import me.anno.utils.StringHelper
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4d
@@ -42,50 +43,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
     }
 
     private fun writeEscaped(value: String) {
-        var i = 0
-        var lastI = 0
-        fun put() {
-            if (i > lastI) {
-                data += value.substring(lastI, i)
-            }
-            lastI = i + 1
-        }
-        while (i < value.length) {
-            when (value[i]) {
-                '\\' -> {
-                    put()
-                    data += "\\\\"
-                }
-                '\t' -> {
-                    put()
-                    data += "\\t"
-                }
-                '\r' -> {
-                    put()
-                    data += "\\r"
-                }
-                '\n' -> {
-                    put()
-                    data += "\\n"
-                }
-                '"' -> {
-                    put()
-                    data += "\\\""
-                }
-                '\b' -> {
-                    put()
-                    data += "\\b"
-                }
-                12.toChar() -> {
-                    put()
-                    data += "\\f"
-                }
-                else -> {
-                } // nothing
-            }
-            i++
-        }
-        put()
+        StringHelper.writeEscaped(value, data)
     }
 
     private fun writeString(value: String) {

@@ -47,8 +47,6 @@ import me.anno.studio.rems.Selection.selectedTransform
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.custom.CustomContainer
-import me.anno.ui.custom.data.CustomPanelData
-import me.anno.ui.custom.data.ICustomDataCreator
 import me.anno.ui.editor.files.addChildFromFile
 import me.anno.ui.simple.SimplePanel
 import me.anno.ui.style.Style
@@ -109,7 +107,7 @@ import kotlin.math.roundToInt
 // then say the number + change axis
 // then press enter to apply the change
 
-class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), ISceneView, ICustomDataCreator {
+class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), ISceneView {
 
     constructor(sceneView: SceneView) : this(DefaultConfig.style) {
         camera = sceneView.camera
@@ -933,7 +931,5 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
             }
         }
     }
-
-    override fun toData() = CustomPanelData(this)
 
 }

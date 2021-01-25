@@ -1,9 +1,8 @@
 package me.anno.ui.custom
 
 import me.anno.ui.base.Panel
-import me.anno.ui.custom.data.ICustomDataCreator
 
-interface CustomList: ICustomDataCreator {
+interface CustomList {
 
     fun addChild(panel: Panel)
 
@@ -11,6 +10,6 @@ interface CustomList: ICustomDataCreator {
 
     fun remove(index: Int)
 
-    val dataChildren: List<ICustomDataCreator>
+    val customChildren: List<Panel>
 
 }

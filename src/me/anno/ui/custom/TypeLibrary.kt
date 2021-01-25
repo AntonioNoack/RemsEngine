@@ -14,10 +14,6 @@ import me.anno.ui.editor.treeView.TreeView
 
 object TypeLibrary {
 
-    class Type(val displayName: String, val constructor: () -> Panel){
-        val internalName: String = constructor().javaClass.simpleName
-    }
-
     val typeList get() = listOf<Pair<String, () -> Panel>>(
         Dict["Scene View", "ui.customize.sceneView"] to { SceneView(DefaultConfig.style) },
         Dict["Tree View", "ui.customize.treeView"] to { TreeView(DefaultConfig.style) },

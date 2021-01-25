@@ -4,8 +4,6 @@ import me.anno.ui.base.Panel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.groups.PanelListY
-import me.anno.ui.custom.data.CustomListData
-import me.anno.ui.custom.data.ICustomDataCreator
 import me.anno.ui.style.Style
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Lists.sumByFloat
@@ -30,10 +28,8 @@ class CustomListY(style: Style): PanelListY(style), CustomList {
         return Pair(super.getLayoutState(), weights)
     }
 
-    override val dataChildren
-        get() = children
-            .filter { it !is CustomizingBar }
-            .filterIsInstance<ICustomDataCreator>()
+    override val customChildren
+        get() = children.filter { it !is CustomizingBar }
 
     val minSize get() = 10f / h
 
@@ -90,8 +86,6 @@ class CustomListY(style: Style): PanelListY(style), CustomList {
     override fun addChild(panel: Panel) {
         add(panel, panel.weight)
     }
-
-    override fun toData() = CustomListData(this)
 
     override fun calculateSize(w: Int, h: Int) {
         this.w = w

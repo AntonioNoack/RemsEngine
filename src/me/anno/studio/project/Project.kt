@@ -1,9 +1,13 @@
 package me.anno.studio.project
 
 import me.anno.config.DefaultConfig
+import me.anno.config.DefaultConfig.style
 import me.anno.gpu.GFX
 import me.anno.io.Saveable
 import me.anno.io.config.ConfigBasics
+import me.anno.io.json.JsonArray
+import me.anno.io.json.JsonReader
+import me.anno.io.json.JsonWriter
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.io.utils.StringMap
@@ -13,13 +17,17 @@ import me.anno.objects.Transform
 import me.anno.studio.history.History
 import me.anno.studio.rems.RemsStudio.editorTime
 import me.anno.ui.base.Panel
-import me.anno.ui.custom.data.CustomData
-import me.anno.ui.custom.data.ICustomDataCreator
+import me.anno.ui.custom.*
 import me.anno.ui.editor.UILayouts.createDefaultMainUI
 import me.anno.ui.editor.sceneTabs.SceneTab
 import me.anno.ui.editor.sceneTabs.SceneTabs
 import me.anno.ui.editor.sceneView.SceneTabData
+import me.anno.utils.Casting.castToFloat
+import me.anno.utils.FileHelper.use
+import me.anno.utils.LOGGER
+import me.anno.utils.Lists.sumByFloat
 import java.io.File
+import kotlin.math.roundToInt
 
 class Project(var name: String, val file: File) : Saveable() {
 
@@ -100,13 +108,10 @@ class Project(var name: String, val file: File) : Saveable() {
         // main ui
         try {
             if (uiFile.exists()) {
-                val loadedUIData = TextReader
-                    .fromText(uiFile.readText())
-                val data = loadedUIData
-                    .filterIsInstance<CustomData>()
-                    .firstOrNull()
-                    ?: throw RuntimeException("UI panel not found!")
-                mainUI = data.toPanel(false)
+                val loadedUIData = loadUI2()
+                if (loadedUIData != null) {
+                    mainUI = loadedUIData
+                } else uiDefault()
             } else uiDefault()
         } catch (e: Exception) {
             e.printStackTrace()
@@ -126,11 +131,64 @@ class Project(var name: String, val file: File) : Saveable() {
         tabsFile.writeText(writer.data.toString())
     }
 
+    fun loadUI2(): Panel? {
+        return use(uiFile.inputStream()) { fis ->
+            val types = TypeLibrary.types
+            val notFound = HashSet<String>()
+            val style = style
+            fun load(arr: JsonArray?): Panel? {
+                arr ?: return null
+                return try {
+                    val type = arr[0] as? String ?: return null
+                    val obj = when (type) {
+                        "CustomListX" -> CustomListX(style)
+                        "CustomListY" -> CustomListY(style)
+                        else -> types[type]?.constructor?.invoke()
+                    }
+                    if (obj == null) {
+                        notFound += type
+                        return null
+                    }
+                    val weight = castToFloat(arr[1]) ?: 1f
+                    if (obj is CustomList) {
+                        for (i in 2 until arr.size) {
+                            val child = load(arr[i] as? JsonArray) ?: continue
+                            obj.addChild(child)
+                        }
+                        obj.setWeight(weight)
+                    } else CustomContainer(obj, style).setWeight(weight)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    null
+                }
+            }
+            val obj = load(JsonReader(fis).readArray())
+            if(notFound.isNotEmpty()) LOGGER.warn("UI-Types $notFound not found!")
+            obj
+        }
+    }
+
     fun saveUI() {
-        val writer = TextWriter(false)
-        writer.add((mainUI as ICustomDataCreator).toData())
-        writer.writeAllInList()
-        uiFile.writeText(writer.data.toString())
+        use(uiFile.outputStream()) { fos ->
+            val writer = JsonWriter(fos)
+            val cdc = mainUI as CustomListY
+            fun write(c: Panel, w: Float) {
+                if (c is CustomContainer) {
+                    return write(c.child, w)
+                }
+                writer.open(true)
+                writer.write(c.getClassName())
+                writer.write((w * 1000f).roundToInt())
+                if (c is CustomList) {
+                    val weightSum = c.customChildren.sumByFloat { it.weight }
+                    for (chi in c.customChildren) {
+                        write(chi, chi.weight / weightSum)
+                    }
+                }
+                writer.close(true)
+            }
+            write(cdc, 1f)
+        }
     }
 
     // do we need multiple targets per project? maybe... todo overlays!
@@ -181,6 +239,7 @@ class Project(var name: String, val file: File) : Saveable() {
     fun save() {
         saveConfig()
         SceneTabs.currentTab?.save {}
+        saveUI()
     }
 
     fun createNullCamera(): Camera {
