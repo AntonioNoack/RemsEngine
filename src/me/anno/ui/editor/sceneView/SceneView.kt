@@ -865,7 +865,6 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
                     resolveClick(x - dx, y - dy, rw, rh)
                 }
             }
-
         }
     }
 
