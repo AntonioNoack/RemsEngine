@@ -11,6 +11,7 @@ import me.anno.input.Input
 import me.anno.input.Input.mouseX
 import me.anno.input.Input.mouseY
 import me.anno.input.MouseButton
+import me.anno.io.config.ConfigBasics
 import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
 import me.anno.objects.Camera
@@ -435,6 +436,10 @@ object UILayouts {
 
         options.addAction(configTitle, Dict["Language", "ui.top.config.language"]) {
             Dict.selectLanguages(style).onMouseClicked(mouseX, mouseY, MouseButton.LEFT, false)
+        }
+
+        options.addAction(configTitle, Dict["Open Config Folder", "ui.top.config.openFolder"]){
+            ConfigBasics.configFolder.openInExplorer()
         }
 
         val menuStyle = style.getChild("menu")

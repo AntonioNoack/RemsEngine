@@ -17,7 +17,6 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.ShaderPlus
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
-import me.anno.input.Input
 import me.anno.input.Input.isControlDown
 import me.anno.input.Input.isShiftDown
 import me.anno.input.Input.mouseKeysDown
@@ -83,10 +82,6 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
-// done scene tabs
-// todo scene selection
-// done open/close scene tabs
-// todo render a scene
 // todo include scenes in large scene...
 
 // todo search elements
@@ -532,7 +527,6 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
 
     }
 
-    var lastTouchZoom = 0f
     fun parseTouchInput() {
 
         if (!mayControlCamera) return
@@ -773,7 +767,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
             "Cam5" -> {// switch between orthographic and perspective
                 camera.putValue(camera.orthographicness, 1f - camera.orthographicness[cameraTime], true)
             }
-            // todo control numpad does not work
+            // todo control + numpad does not work
             "Cam1" -> rotateCameraTo(Vector3f(0f, if (isControlDown) 180f else 0f, 0f))// default view
             "Cam3" -> rotateCameraTo(Vector3f(0f, if (isControlDown) -90f else +90f, 0f))// rotate to side view
             "Cam7" -> rotateCameraTo(Vector3f(if (isControlDown) +90f else -90f, 0f, 0f)) // look from above
@@ -915,9 +909,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
     }
 
     override fun onPasteFiles(x: Float, y: Float, files: List<File>) {
-        files.forEach { file ->
-            addChildFromFile(root, file, { })
-        }
+        files.forEach { file -> addChildFromFile(root, file, null, true) { } }
         invalidateDrawing()
     }
 

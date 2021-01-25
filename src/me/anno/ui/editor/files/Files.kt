@@ -1,25 +1,43 @@
 package me.anno.ui.editor.files
 
 import me.anno.config.DefaultConfig
-import me.anno.gpu.GFX
 import me.anno.language.translation.NameDesc
-import me.anno.objects.text.Text
+import me.anno.objects.SoftLink
 import me.anno.objects.Transform
 import me.anno.objects.Transform.Companion.toTransform
 import me.anno.objects.Video
 import me.anno.objects.meshes.Mesh
 import me.anno.objects.modes.UVProjection
-import me.anno.studio.rems.RemsStudio
+import me.anno.objects.text.Text
 import me.anno.studio.StudioBase.Companion.addEvent
+import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.Selection.selectTransform
 import me.anno.ui.base.menu.Menu.ask
+import me.anno.ui.base.menu.Menu.openMenu
+import me.anno.ui.base.menu.MenuOption
 import me.anno.utils.LOGGER
 import me.anno.utils.StringHelper.getImportType
 import org.joml.Vector3f
 import java.io.File
 import kotlin.concurrent.thread
 
-fun addChildFromFile(parent: Transform?, file: File, callback: (Transform) -> Unit, depth: Int = 0) {
+fun addChildFromFile(
+    parent: Transform?,
+    file: File,
+    useSoftLink: Boolean?,
+    doSelect: Boolean,
+    callback: (Transform) -> Unit
+) =
+    addChildFromFile(parent, file, useSoftLink, doSelect, 0, callback)
+
+fun addChildFromFile(
+    parent: Transform?,
+    file: File,
+    useSoftLink: Boolean?,
+    doSelect: Boolean,
+    depth: Int,
+    callback: (Transform) -> Unit
+) {
     if (file.isDirectory) {
         val directory = Transform(parent)
         directory.name = file.name
@@ -27,7 +45,7 @@ fun addChildFromFile(parent: Transform?, file: File, callback: (Transform) -> Un
             thread {
                 file.listFiles()?.filter { !it.name.startsWith(".") }?.forEach {
                     addEvent {
-                        addChildFromFile(directory, it, callback, depth + 1)
+                        addChildFromFile(directory, it, useSoftLink, doSelect, depth + 1, callback)
                     }
                 }
             }
@@ -35,51 +53,77 @@ fun addChildFromFile(parent: Transform?, file: File, callback: (Transform) -> Un
     } else {
         val name = file.name
         when (file.extension.getImportType()) {
-            "Transform" -> thread {
-                val text = file.readText()
-                try {
-                    val transform = text.toTransform()
-                    if (transform == null) {
-                        LOGGER.warn("JSON didn't contain Transform!")
-                        addText(name, parent, text, callback)
-                    } else {
-                        addEvent {
-                            RemsStudio.largeChange("Added Folder"){
-                                parent?.addChild(transform)
-                                selectTransform(transform)
-                                callback(transform)
+            "Transform" -> when (useSoftLink) {
+                null -> openMenu(listOf(
+                    MenuOption(NameDesc("Link")) {
+                        addChildFromFile(parent, file, true, doSelect, depth, callback)
+                    },
+                    MenuOption(NameDesc("Copy")) {
+                        addChildFromFile(parent, file, false, doSelect, depth, callback)
+                    }
+                ))
+                true -> {
+                    val transform = SoftLink(file)
+                    RemsStudio.largeChange("Added ${transform.name} to ${file.name}") {
+                        var name2 = "${file.parentFile?.parentFile?.name}/${file.parentFile?.name}/${file.name}"
+                        name2 = name2.replace("/Scenes/Root", "/")
+                        name2 = name2.replace("/Scenes/", "/")
+                        if (name2.endsWith(".json")) name2 = name2.substring(0, name2.length - 5)
+                        if (name2.endsWith("/")) name2 = name2.substring(0, name2.lastIndex)
+                        transform.name = name2
+                        parent?.addChild(transform)
+                        if(doSelect) selectTransform(transform)
+                        callback(transform)
+                    }
+                }
+                else -> {
+                    thread {
+                        val text = file.readText()
+                        try {
+                            val transform = text.toTransform()
+                            if (transform == null) {
+                                LOGGER.warn("JSON didn't contain Transform!")
+                                addText(name, parent, text, doSelect, callback)
+                            } else {
+                                addEvent {
+                                    RemsStudio.largeChange("Added ${transform.name}") {
+                                        parent?.addChild(transform)
+                                        if (doSelect) selectTransform(transform)
+                                        callback(transform)
+                                    }
+                                }
                             }
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                            LOGGER.warn("Didn't understand JSON! ${e.message}")
+                            addText(name, parent, text, doSelect, callback)
                         }
                     }
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    LOGGER.warn("Didn't understand JSON! ${e.message}")
-                    addText(name, parent, text, callback)
                 }
             }
             "Cubemap-Equ" -> {
-                RemsStudio.largeChange("Added Cubemap"){
+                RemsStudio.largeChange("Added Cubemap") {
                     val cube = Video(file, parent)
                     cube.scale.set(Vector3f(1000f, 1000f, 1000f))
                     cube.uvProjection = UVProjection.Equirectangular
                     cube.name = name
-                    selectTransform(cube)
+                    if (doSelect) selectTransform(cube)
                     callback(cube)
                 }
             }
             "Cubemap-Tiles" -> {
-                RemsStudio.largeChange("Added Cubemap"){
+                RemsStudio.largeChange("Added Cubemap") {
                     val cube = Video(file, parent)
                     cube.scale.set(Vector3f(1000f, 1000f, 1000f))
                     cube.uvProjection = UVProjection.TiledCubemap
                     cube.name = name
-                    selectTransform(cube)
+                    if (doSelect) selectTransform(cube)
                     callback(cube)
                 }
             }
             "Video", "Image", "Audio" -> {// the same, really ;)
                 // rather use a list of keywords?
-                RemsStudio.largeChange("Added Video"){
+                RemsStudio.largeChange("Added Video") {
                     val video = Video(file, parent)
                     val fName = file.name
                     video.name = fName
@@ -92,24 +136,24 @@ fun addChildFromFile(parent: Transform?, file: File, callback: (Transform) -> Un
                             video.uvProjection = UVProjection.TiledCubemap
                         }
                     }
-                    selectTransform(video)
+                    if (doSelect) selectTransform(video)
                     callback(video)
                 }
             }
             "Text" -> {
                 try {
-                    addText(name, parent, file.readText(), callback)
+                    addText(name, parent, file.readText(), doSelect, callback)
                 } catch (e: Exception) {
                     e.printStackTrace()
                     return
                 }
             }
             "Mesh" -> {
-                RemsStudio.largeChange("Added Mesh"){
+                RemsStudio.largeChange("Added Mesh") {
                     val mesh = Mesh(file, parent)
                     mesh.file = file
                     mesh.name = name
-                    selectTransform(mesh)
+                    if (doSelect) selectTransform(mesh)
                     callback(mesh)
                 }
             }
@@ -117,29 +161,31 @@ fun addChildFromFile(parent: Transform?, file: File, callback: (Transform) -> Un
                 // parse html? maybe, but html and css are complicated
                 // rather use screenshots or svg...
                 // integrated browser?
-                println("todo html")
+                LOGGER.warn("todo html")
             }
             "Markdeep", "Markdown" -> {
                 // execute markdeep script or interpret markdown to convert it to html? no
                 // I see few use-cases
-                println("todo markdeep")
+                LOGGER.warn("todo markdeep")
             }
-            else -> println("Unknown file type: ${file.extension}")
+            else -> LOGGER.warn("Unknown file type: ${file.extension}")
         }
     }
 }
 
-fun addText(name: String, parent: Transform?, text: String, callback: (Transform) -> Unit) {
+fun addText(name: String, parent: Transform?, text: String, doSelect: Boolean, callback: (Transform) -> Unit) {
     // important ;)
     // should maybe be done sometimes in object as well ;)
     if (text.length > 500) {
         addEvent {
-            ask(NameDesc("Text has %1 characters, import?", "", "obj.text.askLargeImport")
-                .with("%1", text.codePoints().count().toString())) {
-                RemsStudio.largeChange("Imported Text"){
+            ask(
+                NameDesc("Text has %1 characters, import?", "", "obj.text.askLargeImport")
+                    .with("%1", text.codePoints().count().toString())
+            ) {
+                RemsStudio.largeChange("Imported Text") {
                     val textNode = Text(text, parent)
                     textNode.name = name
-                    selectTransform(textNode)
+                    if (doSelect) selectTransform(textNode)
                     callback(textNode)
                 }
             }
@@ -147,10 +193,10 @@ fun addText(name: String, parent: Transform?, text: String, callback: (Transform
         return
     }
     addEvent {
-        RemsStudio.largeChange("Imported Text"){
+        RemsStudio.largeChange("Imported Text") {
             val textNode = Text(text, parent)
             textNode.name = name
-            selectTransform(textNode)
+            if (doSelect) selectTransform(textNode)
             callback(textNode)
         }
     }

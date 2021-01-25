@@ -162,9 +162,7 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style) : TextPanel("
 
     override fun onPasteFiles(x: Float, y: Float, files: List<File>) {
         val transform = getElement()
-        files.forEach {
-            addChildFromFile(transform, it, {})
-        }
+        files.forEach { addChildFromFile(transform, it, null, true) {} }
     }
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {

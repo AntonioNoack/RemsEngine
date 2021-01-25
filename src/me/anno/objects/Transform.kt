@@ -15,7 +15,6 @@ import me.anno.gpu.texture.Filtering
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
-import me.anno.io.find.PropertyFinder.getName
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.language.Language
@@ -121,7 +120,7 @@ open class Transform(var parent: Transform? = null) : Saveable(),
     val folder = "\uD83D\uDCC1"
 
     val children = ArrayList<Transform>()
-    private val isCollapsedI = ValueWithDefault(false)
+    val isCollapsedI = ValueWithDefault(false)
     var isCollapsed: Boolean
         get() = isCollapsedI.value
         set(value) = isCollapsedI.set(value)
@@ -210,7 +209,9 @@ open class Transform(var parent: Transform? = null) : Saveable(),
         // time
         val timeGroup = getGroup("Time", "", "time")
         timeGroup += vi("Start Time", "Delay the animation", null, timeOffset, style) { timeOffset = it }
-        timeGroup += vi("Time Multiplier", "Speed up the animation", dilationType, timeDilation, style) { timeDilation = it }
+        timeGroup += vi("Time Multiplier", "Speed up the animation", dilationType, timeDilation, style) {
+            timeDilation = it
+        }
         timeGroup += vi("Advanced Time", "Add acceleration/deceleration to your elements", timeAnimated, style)
 
         val editorGroup = getGroup("Editor", "", "editor")
@@ -513,6 +514,15 @@ open class Transform(var parent: Transform? = null) : Saveable(),
     fun setName(name: String): Transform {
         this.name = name
         return this
+    }
+
+    fun getLocalTransform(globalTime: Double, reference: Transform): Pair<Matrix4f, Double> {
+        val (parentTransform, parentTime) =
+            if (reference === parent) Matrix4f() to globalTime
+            else parent?.getGlobalTransform(globalTime) ?: Matrix4f() to globalTime
+        val localTime = getLocalTime(parentTime)
+        applyTransformLT(parentTransform, localTime)
+        return parentTransform to localTime
     }
 
     fun getGlobalTransform(globalTime: Double): Pair<Matrix4f, Double> {

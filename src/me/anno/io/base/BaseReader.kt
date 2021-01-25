@@ -10,10 +10,7 @@ import me.anno.audio.effects.impl.EqualizerEffect
 import me.anno.audio.effects.impl.PitchEffect
 import me.anno.io.ISaveable
 import me.anno.io.utils.StringMap
-import me.anno.objects.Camera
-import me.anno.objects.GFXArray
-import me.anno.objects.Transform
-import me.anno.objects.Video
+import me.anno.objects.*
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.animation.Keyframe
 import me.anno.objects.animation.drivers.FunctionDriver
@@ -33,8 +30,6 @@ import me.anno.objects.text.Text
 import me.anno.objects.text.Timer
 import me.anno.studio.history.History
 import me.anno.studio.history.HistoryState
-import me.anno.ui.custom.CustomListX
-import me.anno.ui.custom.CustomListY
 import me.anno.ui.editor.sceneView.SceneTabData
 import me.anno.utils.structures.arrays.BoolArray
 import org.apache.logging.log4j.LogManager
@@ -152,6 +147,7 @@ abstract class BaseReader {
                 "HistoryState" -> HistoryState()
                 "BoolArray" -> BoolArray()
                 "TextParticles" -> TextParticles()
+                "SoftLink" -> SoftLink()
                 else -> {
                     // just for old stuff; AnimatedProperties must not be loaded directly; always just copied into
                     if (clazz.startsWith("AnimatedProperty<")) AnimatedProperty.any()

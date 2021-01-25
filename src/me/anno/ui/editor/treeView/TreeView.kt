@@ -104,7 +104,7 @@ class TreeView(style: Style) :
     }
 
     override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
-        if(button.isRight){
+        if (button.isRight) {
             openAddMenu(root)
         } else super.onMouseClicked(x, y, button, long)
     }
@@ -132,23 +132,21 @@ class TreeView(style: Style) :
     // todo we'd need a selection mode with the arrow keys, too...
 
     override fun onPaste(x: Float, y: Float, data: String, type: String) {
-        if(!pasteTransform(data)){
+        if (!pasteTransform(data)) {
             super.onPaste(x, y, data, type)
         }
     }
 
     fun pasteTransform(data: String): Boolean {
         val transform = data.toTransform() ?: return false
-        RemsStudio.largeChange("Pasted ${transform.name}"){
+        RemsStudio.largeChange("Pasted ${transform.name}") {
             root.addChild(transform)
         }
         return true
     }
 
     override fun onPasteFiles(x: Float, y: Float, files: List<File>) {
-        files.forEach {
-            addChildFromFile(root, it, {})
-        }
+        files.forEach { addChildFromFile(root, it, null, true) {} }
     }
 
 }

@@ -15,14 +15,13 @@ import me.anno.io.text.TextReader
 import me.anno.language.translation.NameDesc
 import me.anno.objects.Transform
 import me.anno.objects.animation.Keyframe
+import me.anno.studio.StudioBase
+import me.anno.studio.StudioBase.Companion.shiftSlowdown
 import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.RemsStudio.isPlaying
 import me.anno.studio.rems.RemsStudio.root
-import me.anno.studio.StudioBase
-import me.anno.studio.StudioBase.Companion.shiftSlowdown
 import me.anno.studio.rems.Selection.select
 import me.anno.studio.rems.Selection.selectTransform
-import me.anno.studio.rems.Selection.selectedProperty
 import me.anno.studio.rems.Selection.selectedTransform
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
@@ -226,13 +225,13 @@ class LayerView(style: Style) : TimelinePanel(style) {
         }
 
         // if (solution != null) {
-            solution?.draw(selectedTransform, draggedTransform)
-            // val t2 = System.nanoTime()
-            // two circle example:
-            // 11µs for two sections x 2
-            // 300µs for the sections with stripes;
-            // hardware accelerated stripes? -> we'd have to add a flag/flag color
-            // ("${((t1-t0)*1e-6).f3()}+${((t2-t1)*1e-6).f3()}")
+        solution?.draw(selectedTransform, draggedTransform)
+        // val t2 = System.nanoTime()
+        // two circle example:
+        // 11µs for two sections x 2
+        // 300µs for the sections with stripes;
+        // hardware accelerated stripes? -> we'd have to add a flag/flag color
+        // ("${((t1-t0)*1e-6).f3()}+${((t2-t1)*1e-6).f3()}")
         //}
 
         val draggedTransform = draggedTransform
@@ -410,7 +409,13 @@ class LayerView(style: Style) : TimelinePanel(style) {
                     val cTime = transform.lastLocalTime
                     // get the options for this transform
                     val options = ArrayList<MenuOption>()
-                    options += MenuOption(NameDesc("Split Here", "Cuts the element in two halves", "ui.cutting.splitHere")) {
+                    options += MenuOption(
+                        NameDesc(
+                            "Split Here",
+                            "Cuts the element in two halves",
+                            "ui.cutting.splitHere"
+                        )
+                    ) {
                         RemsStudio.largeChange("Split Component") {
                             val fadingTime = 0.2
                             val fadingHalf = fadingTime / 2
@@ -493,7 +498,7 @@ class LayerView(style: Style) : TimelinePanel(style) {
     override fun onPasteFiles(x: Float, y: Float, files: List<File>) {
         val time = getTimeAt(x)
         files.forEach { file ->
-            addChildFromFile(root, file, {
+            addChildFromFile(root, file, null, true) {
                 it.timeOffset = time
                 it.timelineSlot.value = timelineSlot
                 // fade-in? is better for stuff xD
@@ -505,7 +510,7 @@ class LayerView(style: Style) : TimelinePanel(style) {
                         it.color.addKeyframe(fadingTime, Vector4f(1f, 1f, 1f, 1f))
                     }
                 }
-            })
+            }
         }
     }
 

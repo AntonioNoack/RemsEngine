@@ -9,7 +9,10 @@ import me.anno.objects.animation.TimeValue.Companion.writeValue
  * these values don't need to be saved in text form,
  * because they can be set automatically
  * */
-class ValueWithDefault<V>(var value: V, var default: V) {
+class ValueWithDefault<V>(
+    var value: V,
+    private var default: V
+) {
     constructor(value: V) : this(value, value)
 
     val isSet get() = value != default
@@ -19,18 +22,24 @@ class ValueWithDefault<V>(var value: V, var default: V) {
         }
     }
 
-    fun clear(){
+    fun clear() {
         value = default
     }
 
-    fun set(v: V){
+    fun set(v: V) {
         value = v
+    }
+
+    fun setDefault(v: V) {
+        value = v
+        default = v
     }
 
     companion object {
         fun BaseWriter.writeMaybe(self: ISaveable?, name: String, value: ValueWithDefault<*>) {
             value.write(this, self, name)
         }
+
         fun BaseWriter.writeMaybe(self: ISaveable?, name: String, value: ValueWithDefaultFunc<*>) {
             value.write(this, self, name)
         }

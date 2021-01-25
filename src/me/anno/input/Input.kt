@@ -367,7 +367,7 @@ object Input {
                                                     FileExplorerSelectWrapper.selectFile(lastFile) { file ->
                                                         if (file != null) {
                                                             lastFile = file
-                                                            addEvent { addChildFromFile(root, file, {}) }
+                                                            addEvent { addChildFromFile(root, file, null, true) {} }
                                                         }
                                                     }
                                                 }

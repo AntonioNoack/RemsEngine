@@ -5,8 +5,8 @@ import me.anno.gpu.GFX
 import me.anno.io.base.BaseWriter
 import me.anno.language.translation.Dict
 import me.anno.objects.Transform
-import me.anno.studio.rems.RemsStudio.root
 import me.anno.studio.StudioBase.Companion.dragged
+import me.anno.studio.rems.RemsStudio.root
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.scrolling.ScrollPanelX
 import me.anno.ui.editor.files.addChildFromFile
@@ -31,22 +31,22 @@ object SceneTabs : ScrollPanelX(DefaultConfig.style) {
         if (opened != null) {
             open(opened)
         } else {
-            GFX.addGPUTask(1){
-                addChildFromFile(null, file, { transform ->
+            GFX.addGPUTask(1) {
+                addChildFromFile(null, file, false, false) { transform ->
                     var file2 = file
-                    if(!file2.extension.equals("json", true)){
-                        file2 = File(file2.parentFile, file2.name+".json")
+                    if (!file2.extension.equals("json", true)) {
+                        file2 = File(file2.parentFile, file2.name + ".json")
                     }
                     val tab = SceneTab(file2, transform, null)
                     content += tab
                     open(tab)
-                })
+                }
             }
         }
     }
 
     fun open(transform: Transform) {
-        synchronized(this){
+        synchronized(this) {
             val opened = children3.firstOrNull { it.root === transform }
             if (opened != null) {
                 open(opened)
@@ -59,17 +59,17 @@ object SceneTabs : ScrollPanelX(DefaultConfig.style) {
     }
 
     override fun onPaste(x: Float, y: Float, data: String, type: String) {
-        when(type){
+        when (type) {
             "SceneTab" -> {
                 val tab = dragged!!.getOriginal() as SceneTab
-                if(!tab.contains(x,y)){
+                if (!tab.contains(x, y)) {
                     val oldIndex = tab.indexInParent
-                    val newIndex = children2.map { it.x + it.w/2 }.count { it < x }
+                    val newIndex = children2.map { it.x + it.w / 2 }.count { it < x }
                     // println("$oldIndex -> $newIndex, $x ${children2.map { it.x + it.w/2 }}")
-                    if(oldIndex < newIndex){
+                    if (oldIndex < newIndex) {
                         children2.add(newIndex, tab)
                         children2.removeAt(oldIndex)
-                    } else if(oldIndex > newIndex){
+                    } else if (oldIndex > newIndex) {
                         children2.removeAt(oldIndex)
                         children2.add(newIndex, tab)
                     }
@@ -82,19 +82,19 @@ object SceneTabs : ScrollPanelX(DefaultConfig.style) {
     }
 
     fun open(sceneTab: SceneTab) {
-        if(currentTab == sceneTab) return
-        synchronized(this){
+        if (currentTab == sceneTab) return
+        synchronized(this) {
             currentTab = sceneTab
             root = sceneTab.root
-            if(sceneTab !in children3){
+            if (sceneTab !in children3) {
                 content += sceneTab
             }
         }
     }
 
-    fun close(sceneTab: SceneTab){
-        if(currentTab === sceneTab){
-            if(children2.size == 1){
+    fun close(sceneTab: SceneTab) {
+        if (currentTab === sceneTab) {
+            if (children2.size == 1) {
                 // todo translate
                 LOGGER.warn(Dict["Cannot close last element", "ui.sceneTabs.cannotCloseLast"])
             } else {
@@ -105,11 +105,11 @@ object SceneTabs : ScrollPanelX(DefaultConfig.style) {
         } else sceneTab.removeFromParent()
     }
 
-    fun closeAll(){
+    fun closeAll() {
         children2.clear()
     }
 
-    fun save(writer: BaseWriter){
+    fun save(writer: BaseWriter) {
         children3.forEach {
             writer.add(SceneTabData(it))
         }
