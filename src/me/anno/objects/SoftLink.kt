@@ -14,10 +14,6 @@ import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
 import java.io.File
 
-/**
- * todo make children immutable
- * todo or somehow save them directly...
- * */
 class SoftLink(var file: File) : Transform() {
 
     constructor() : this(File(""))
@@ -112,6 +108,8 @@ class SoftLink(var file: File) : Transform() {
             else -> super.readString(name, value)
         }
     }
+
+    override val areChildrenImmutable: Boolean = true
 
     override fun getDefaultDisplayName(): String = Dict["Linked Object", "obj.softLink"]
     override fun getClassName() = "SoftLink"

@@ -2,15 +2,19 @@ package me.anno.studio.rems
 
 import me.anno.io.ISaveable
 import me.anno.io.find.PropertyFinder
-import me.anno.objects.inspectable.Inspectable
 import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
+import me.anno.objects.inspectable.Inspectable
 import me.anno.studio.rems.RemsStudio.root
+import me.anno.utils.LOGGER
+import org.apache.logging.log4j.LogManager
 
 object Selection {
 
     // todo make it possible to select multiple stuff
     // todo to edit common properties of all selected members <3 :D
+
+    private val LOGGER = LogManager.getLogger(Selection::class)
 
     val selectedProperty: AnimatedProperty<*>? get() = sp
     val selectedTransform: Transform? get() = st
@@ -39,14 +43,26 @@ object Selection {
     }
 
     fun select(transform: Transform?, property: ISaveable?) {
-        if(st == transform && sp == property) return
+
+        if (transform != null){
+            val loi = transform.listOfInheritance.toList()
+            if(loi.withIndex().any { (index, t) -> index > 0 && t.areChildrenImmutable }) {
+                val lot = loi.last { it.areChildrenImmutable }
+                LOGGER.info("Selected immutable element ${transform.name}, selecting the parent ${lot.name}")
+                select(lot, null)
+                return
+            }
+        }
+
+        if (st == transform && sp == property) return
         val newName = if (transform == null || property == null) null else PropertyFinder.getName(transform, property)
         val propName = newName ?: selectedPropName
         RemsStudio.largeChange("Select ${transform?.name ?: "Nothing"}:$propName") {
             selectedUUID = transform?.uuid ?: -1
             selectedPropName = propName
             st = transform
-            val property2 = if(transform == null) property else PropertyFinder.getValue(transform, selectedPropName ?: "")
+            val property2 =
+                if (transform == null) property else PropertyFinder.getValue(transform, selectedPropName ?: "")
             si = property2 as? Inspectable ?: transform
             sp = property2 as? AnimatedProperty<*>
         }

@@ -858,6 +858,9 @@ open class Transform(var parent: Transform? = null) : Saveable(),
             }
         }
 
+    /**
+     * return from this to root all parents
+     * */
     val listOfInheritance: Sequence<Transform>
         get() = sequence {
             yield(this@Transform)
@@ -877,6 +880,8 @@ open class Transform(var parent: Transform? = null) : Saveable(),
     }
 
     open fun getAdditionalChildrenOptions(): List<Option> = emptyList()
+
+    open val areChildrenImmutable: Boolean = false
 
     companion object {
         // these values MUST NOT be changed
