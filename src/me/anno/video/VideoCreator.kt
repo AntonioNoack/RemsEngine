@@ -196,7 +196,7 @@ class VideoCreator(
             videoOut.close()
         }
         process.waitFor()
-        LOGGER.info("Saved video without audio to $output")
+        if(output.exists()) LOGGER.info("Saved video without audio to $output")
     }
 
     companion object {

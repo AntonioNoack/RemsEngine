@@ -102,7 +102,8 @@ class VideoBackgroundTask(val video: VideoCreator, val motionBlurSteps: Int, val
 
         GFX.isFinalRendering = true
 
-        val drawMode = ShaderPlus.DrawMode.COLOR_SQUARED
+        // is this correct??? mmh...
+        val drawMode = ShaderPlus.DrawMode.COLOR
 
         var needsMoreSources = false
 

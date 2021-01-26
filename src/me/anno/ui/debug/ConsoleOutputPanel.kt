@@ -22,6 +22,8 @@ class ConsoleOutputPanel(style: Style): TextPanel("", style) {
     // still sometimes flickering and idk why...
     init { instantTextLoading = true }
 
+    // todo open path, if clicked on
+
     override val effectiveTextColor: Int get() = textColor
     override fun onDoubleClick(x: Float, y: Float, button: MouseButton) {
         if (button.isLeft) {

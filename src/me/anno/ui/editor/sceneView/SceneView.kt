@@ -118,7 +118,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
     var camera = nullCamera ?: Camera()
 
     override val usesFPBuffers: Boolean get() = camera.toneMapping != ToneMappers.RAW8
-    override var isLocked2D = true
+    override var isLocked2D = camera.rotationYXZ.isDefaultValue()
 
     val controls = ArrayList<SimplePanel>()
 
