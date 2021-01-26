@@ -20,6 +20,7 @@ import me.anno.studio.rems.RemsStudio.root
 import me.anno.ui.base.Panel
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.debug.FrameTimes
+import me.anno.utils.Maths.pow
 import me.anno.utils.Vectors.minus
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
@@ -231,6 +232,8 @@ object GFX : GFXBase1() {
                 windowWidth * 1f / windowHeight, near, far
             )
             .lookAt(position, lookAt, up.normalize())
+        val scale = pow(1f / camera.orbitRadius[time], camera.orthographicness[time])
+        if(scale != 0f && scale.isFinite()) stack.scale(scale)
     }
 
     fun shaderColor(shader: Shader, name: String, color: Vector4f) {

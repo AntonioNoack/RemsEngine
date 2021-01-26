@@ -66,7 +66,7 @@ object ShaderLib {
             "   return cubicInterpolation(p0, p1, p2, p3, x);\n" +
             "}\n" +
             "vec4 bicubicInterpolation(sampler2D tex, vec2 uv, vec2 duv){\n" +
-            "   uv -= 0.5*duv;\n" +
+            "   uv -= 0.5 * duv;\n" +
             "   vec2 xy = fract(uv / duv);\n" +
             "   vec4 p0 = cubicInterpolation(tex, vec2(uv.x, uv.y - duv.y), duv.x, xy.x);\n" +
             "   vec4 p1 = cubicInterpolation(tex, vec2(uv.x, uv.y        ), duv.x, xy.x);\n" +

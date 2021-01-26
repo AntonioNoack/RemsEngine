@@ -73,7 +73,6 @@ class FileEntry(
     var previewFPS = 1.0
     var meta: FFMPEGMetadata? = null
 
-    private var wasInFocus = false
     private val originalBackgroundColor = backgroundColor
     private val hoverBackgroundColor = mixARGB(black, originalBackgroundColor, 0.85f)
     private val darkerBackgroundColor = mixARGB(black, originalBackgroundColor, 0.7f)

@@ -23,6 +23,7 @@ class PropertyInspector(style: Style):
     private var needsUpdate = false
 
     fun invalidate(){
+        // println("updating property inspector")
         needsUpdate = true
     }
 

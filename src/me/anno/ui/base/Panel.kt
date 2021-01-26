@@ -157,6 +157,8 @@ open class Panel(val style: Style) {
         draw(lx0, ly0, lx1, ly1)
     }
 
+    var wasInFocus = false
+
     /**
      * draw the panel inside the rectangle (x0 until x1, y0 until y1)
      * more does not need to be drawn;
@@ -168,6 +170,7 @@ open class Panel(val style: Style) {
         lx1 = x1
         ly1 = y1
         onDraw(x0, y0, x1, y1)
+        wasInFocus = isInFocus
     }
 
     open fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {

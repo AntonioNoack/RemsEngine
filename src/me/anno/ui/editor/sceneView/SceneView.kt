@@ -501,7 +501,6 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
             val oldPosition = camera.position[cameraTime]
             val step = (velocity * dt)
             val step2 = cameraTransform.transformDirection(step)
-            // todo transform into the correct space: from that camera to this camera
             val newPosition = oldPosition + step2
             if (camera == nullCamera) {
                 camera.position.addKeyframe(cameraTime, newPosition, 0.01)
@@ -572,10 +571,10 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
                 // very slow... but we can move around with a single finger, so it shouldn't matter...
                 // move the camera around
                 val first = touches.first()
-                val speed = 10f
+                val speed = 10f / 3f
                 if (contains(first.x, first.y)) {
-                    val dx = speed * touches.sumByFloat { it.x - it.lastX } * size * 0.333f
-                    val dy = speed * touches.sumByFloat { it.y - it.lastY } * size * 0.333f
+                    val dx = speed * touches.sumByFloat { it.x - it.lastX } * size
+                    val dy = speed * touches.sumByFloat { it.y - it.lastY } * size
                     move(camera, dx, dy)
                     touches.forEach { it.update() }
                     invalidateDrawing()
@@ -613,7 +612,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
         val targetZonUI = target2camera.transform(Vector4f(0f, 0f, 0f, 1f)).toVec3f()
         val targetZ = -targetZonUI.z
         val shiftSlowdown = shiftSlowdown
-        val speed = shiftSlowdown * 2 * targetZ / h
+        val speed = shiftSlowdown * 2 * targetZ / h * pow(0.02f, camera.orthographicness[cameraTime])
         val dx = dx0 * speed
         val dy = dy0 * speed
         val pos1 = camera2target.transform(
@@ -636,6 +635,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
                 invalidateDrawing()
                 RemsStudio.incrementalChange("Move Object") {
                     selected.position.addKeyframe(localTime, oldPosition + localDelta)
+                    RemsStudio.updateSceneViews()
                 }
 
             }
@@ -656,6 +656,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
                             oldScale.z * pow(base, localDelta.z * speed2)
                         )
                     )
+                    RemsStudio.updateSceneViews()
                 }
             }
             SceneDragMode.ROTATE -> {
@@ -675,6 +676,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
                 invalidateDrawing()
                 RemsStudio.incrementalChange("Rotate Object") {
                     selected.rotationYXZ.addKeyframe(localTime, oldRotation + localDelta)
+                    RemsStudio.updateSceneViews()
                 }
             }
         }
@@ -709,9 +711,11 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
         val camera = camera
         val cameraTime = cameraTime
         val oldRotation = camera.rotationYXZ[cameraTime]
+        // if(camera.orthographicness[cameraTime] > 0.5f) scaleFactor = -scaleFactor
         invalidateDrawing()
         RemsStudio.incrementalChange("Turn Camera") {
             camera.putValue(camera.rotationYXZ, oldRotation + Vector3f(dy0 * scaleFactor, dx0 * scaleFactor, 0f), false)
+            RemsStudio.updateSceneViews()
         }
     }
 
@@ -839,7 +843,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
                 }
             }
 
-            if (!isProcessed) {
+            if (!isProcessed && wasInFocus) {
                 var rw = w
                 var rh = h
                 var dx = 0

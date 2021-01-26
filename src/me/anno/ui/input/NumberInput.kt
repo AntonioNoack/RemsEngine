@@ -38,8 +38,6 @@ abstract class NumberInput(
             set(_) {}
     }
 
-    var wasInFocus = false
-
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         val focused1 = titleView.isInFocus || inputPanel.isInFocus
         if (focused1) isSelectedListener?.invoke()
