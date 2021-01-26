@@ -10,6 +10,7 @@ import me.anno.studio.rems.RemsStudio.targetDuration
 import me.anno.studio.rems.RemsStudio.targetOutputFile
 import me.anno.studio.rems.Rendering.renderPart
 import me.anno.studio.StudioBase.Companion.addEvent
+import me.anno.studio.rems.Rendering.renderSetPercent
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.TextPanel
 import me.anno.ui.base.groups.PanelListY
@@ -68,6 +69,7 @@ object RenderSettings : Transform() {
 
         if (framesRates.isEmpty()) framesRates = arrayListOf(60.0)
         if (project.targetFPS !in framesRates) framesRates.add(0, project.targetFPS)
+
         list += EnumInput("Frame Rate", true, project.targetFPS.toString(), framesRates.map { NameDesc(it.toString()) }, style)
             .setChangeListener { value, _, _ ->
                 project.targetFPS = value.toDouble()
@@ -120,25 +122,18 @@ object RenderSettings : Transform() {
         list += fileInput
 
         list += TextButton("Render at 100%", false, style)
-            .setSimpleClickListener { renderPart(1) }
+            .setSimpleClickListener { renderPart(1, true) }
             .setTooltip("Create video at full resolution")
         list += TextButton("Render at 50%", false, style)
-            .setSimpleClickListener { renderPart(2) }
+            .setSimpleClickListener { renderPart(2, true) }
             .setTooltip("Create video at half resolution")
         list += TextButton("Render at 25%", false, style)
-            .setSimpleClickListener { renderPart(4) }
+            .setSimpleClickListener { renderPart(4, true) }
             .setTooltip("Create video at quarter resolution")
         list += TextButton("Render at Set%", false, style)
-            .setSimpleClickListener { renderSetPercent() }
+            .setSimpleClickListener { renderSetPercent(true) }
             .setTooltip("Create video at your custom set relative resolution")
 
-    }
-
-    fun renderSetPercent() {
-        Rendering.render(
-            max(2, (project!!.targetWidth * project!!.targetSizePercentage / 100).roundToInt()),
-            max(2, (project!!.targetHeight * project!!.targetSizePercentage / 100).roundToInt())
-        )
     }
 
     var lastSavePoint = 0L

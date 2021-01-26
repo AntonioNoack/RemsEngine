@@ -5,6 +5,8 @@ import me.anno.objects.Audio
 import me.anno.studio.rems.RemsStudio.motionBlurSteps
 import me.anno.studio.rems.RemsStudio.shutterPercentage
 import me.anno.studio.rems.RemsStudio.targetOutputFile
+import me.anno.ui.base.menu.Menu
+import me.anno.ui.base.menu.Menu.ask
 import me.anno.ui.base.menu.Menu.msg
 import me.anno.utils.StringHelper.getImportType
 import me.anno.video.VideoAudioCreator
@@ -12,23 +14,30 @@ import me.anno.video.VideoCreator
 import org.apache.logging.log4j.LogManager
 import java.io.File
 import kotlin.math.max
+import kotlin.math.roundToInt
 
 object Rendering {
 
     private val LOGGER = LogManager.getLogger(Rendering::class)
 
-    fun renderPart(size: Int) {
+    fun renderPart(size: Int, ask: Boolean) {
+        render(RemsStudio.targetWidth / size, RemsStudio.targetHeight / size, ask)
+    }
+
+    fun renderSetPercent(ask: Boolean) {
         render(
-            RemsStudio.targetWidth / size,
-            RemsStudio.targetHeight / size
+            max(2, (RemsStudio.project!!.targetWidth * RemsStudio.project!!.targetSizePercentage / 100).roundToInt()),
+            max(2, (RemsStudio.project!!.targetHeight * RemsStudio.project!!.targetSizePercentage / 100).roundToInt()),
+            ask
         )
     }
 
     var isRendering = false
-    fun render(width: Int, height: Int) {
+    fun render(width: Int, height: Int, ask: Boolean) {
         if (width % 2 != 0 || height % 2 != 0) return render(
             width / 2 * 2,
-            height / 2 * 2
+            height / 2 * 2,
+            ask
         )
         if (isRendering) {
             msg(
@@ -55,10 +64,16 @@ object Rendering {
         if (targetOutputFile.extension.getImportType() != "Video") {
             LOGGER.warn("The file extension .${targetOutputFile.extension} is unknown! Your export may fail!")
         }
-        val tmpFile = File(
-            targetOutputFile.parentFile,
-            targetOutputFile.nameWithoutExtension + ".tmp." + targetOutputFile.extension
-        )
+
+        if(targetOutputFile.exists() && ask){
+            isRendering = false
+            ask(NameDesc("Override %1?").with("%1", targetOutputFile)){
+                render(width, height, false)
+            }
+            return
+        }
+
+        val tmpFile = File(targetOutputFile.parentFile, targetOutputFile.nameWithoutExtension + ".tmp." + targetOutputFile.extension)
         val fps = RemsStudio.targetFPS
         val totalFrameCount = max(1, (fps * RemsStudio.targetDuration).toInt() + 1)
         val sampleRate = 48000
@@ -75,6 +90,7 @@ object Rendering {
         )
         creator.onFinished = { isRendering = false }
         creator.start()
+
     }
 
 }

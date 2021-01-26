@@ -118,7 +118,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
     var camera = nullCamera ?: Camera()
 
     override val usesFPBuffers: Boolean get() = camera.toneMapping != ToneMappers.RAW8
-    override var isLocked2D = false
+    override var isLocked2D = true
 
     val controls = ArrayList<SimplePanel>()
 
@@ -129,7 +129,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
 
     init {
         val is2DPanel = TextButton(
-            "3D", "Lock the camera; use control to keep the angle",
+            if(isLocked2D) "2D" else "3D", "Lock the camera; use control to keep the angle",
             "ui.sceneView.3dSwitch", true, style
         )
         is2DPanel.instantTextLoading = true

@@ -20,6 +20,7 @@ class NameDesc(
     val name get() = replace(Dict[iName, dictPath])
     val desc get() = replace(Dict[iDesc, "$dictPath.desc"])
 
+    fun with(src: String, dst: Any) = with(src, dst.toString())
     fun with(src: String, dst: String) = replace(src, dst)
     fun with(values: List<Pair<String, String>>): NameDesc {
         replacements += values

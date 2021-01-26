@@ -102,6 +102,8 @@ class VideoBackgroundTask(val video: VideoCreator, val motionBlurSteps: Int, val
 
         GFX.isFinalRendering = true
 
+        val drawMode = ShaderPlus.DrawMode.COLOR_SQUARED
+
         var needsMoreSources = false
 
         if (motionBlurSteps < 2 || shutterPercentage <= 1e-3f) {
@@ -109,9 +111,7 @@ class VideoBackgroundTask(val video: VideoCreator, val motionBlurSteps: Int, val
                 try {
                     Scene.draw(
                         camera, 0, 0, video.w, video.h,
-                        time, true,
-                        ShaderPlus.DrawMode.COLOR,
-                        null
+                        time, true, drawMode, null
                     )
                     if (!GFX.isFinalRendering) throw RuntimeException()
                 } catch (e: MissingFrameException) {
@@ -134,7 +134,7 @@ class VideoBackgroundTask(val video: VideoCreator, val motionBlurSteps: Int, val
                             Scene.draw(
                                 camera, 0, 0, video.w, video.h,
                                 time + (i - motionBlurSteps / 2f) * shutterPercentage / (video.fps * motionBlurSteps),
-                                true, ShaderPlus.DrawMode.COLOR, null
+                                true, drawMode, null
                             )
                             if (!GFX.isFinalRendering) throw RuntimeException()
                         } catch (e: MissingFrameException) {

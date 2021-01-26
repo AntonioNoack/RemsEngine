@@ -98,7 +98,7 @@ class VideoAudioCreator(
         // todo automatically fade-in/fade-out the audio at the start and end?
 
         val durationSeconds = videoCreator.totalFrameCount / videoCreator.fps
-        val totalSampleCount = (durationSeconds * sampleRate).roundToInt()
+        // val totalSampleCount = (durationSeconds * sampleRate).roundToInt()
 
         // collect all audio from all audio sources
         // todo optimize to use only playing ones (if not too complex)

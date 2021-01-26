@@ -48,7 +48,6 @@ import kotlin.reflect.jvm.internal.impl.descriptors.Named
 
 class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
 
-
     var folder: File? = project?.scenes ?: File(OS.home, "Documents")
 
     override fun getLayoutState() = Pair(super.getLayoutState(), folder)

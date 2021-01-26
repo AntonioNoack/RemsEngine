@@ -30,6 +30,7 @@ import me.anno.studio.rems.RemsStudio.windowStack
 import me.anno.studio.rems.RenderSettings
 import me.anno.studio.rems.Rendering.render
 import me.anno.studio.rems.Rendering.renderPart
+import me.anno.studio.rems.Rendering.renderSetPercent
 import me.anno.studio.rems.Selection.selectTransform
 import me.anno.studio.rems.Selection.selectedTransform
 import me.anno.ui.base.Panel
@@ -479,15 +480,10 @@ object UILayouts {
         options.addAction(debugTitle, "Refresh (Ctrl+F5)") { CacheSection.clearAll() }
 
         options.addAction(renderTitle, "Settings") { selectTransform(RenderSettings) }
-        options.addAction(renderTitle, "Set%") {
-            render(
-                max(2, (project!!.targetWidth * project!!.targetSizePercentage / 100).roundToInt()),
-                max(2, (project!!.targetHeight * project!!.targetSizePercentage / 100).roundToInt())
-            )
-        }
-        options.addAction(renderTitle, "Full") { renderPart(1) }
-        options.addAction(renderTitle, "Half") { renderPart(2) }
-        options.addAction(renderTitle, "Quarter") { renderPart(4) }
+        options.addAction(renderTitle, "Set%") { renderSetPercent(true) }
+        options.addAction(renderTitle, "Full") { renderPart(1, true) }
+        options.addAction(renderTitle, "Half") { renderPart(2, true) }
+        options.addAction(renderTitle, "Quarter") { renderPart(4, true) }
 
         options.addAction(helpTitle, "Tutorials"){
             URL("https://remsstudio.phychi.com/?s=learn").openInBrowser()

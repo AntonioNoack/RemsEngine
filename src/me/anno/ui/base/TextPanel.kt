@@ -72,6 +72,8 @@ open class TextPanel(open var text: String, style: Style): Panel(style){
         if(inst) loadTexturesSync.pop()
     }
 
+    fun getMaxWidth() = getTextSize(font, text, -1).first + padding.width
+
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         val inst = instantTextLoading
         if(inst) loadTexturesSync.push(true)
