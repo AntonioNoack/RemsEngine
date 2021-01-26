@@ -6,8 +6,10 @@ import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.abs
 
 object LastModifiedCache {
+
     var lastChecked = 0L
     var values = ConcurrentHashMap<File, Pair<File, Long>>()
+
     operator fun get(file: File): Pair<File, Long> {
         val time = gameTime
         if(abs(time - lastChecked)/1_000_000 > timeout){
@@ -16,5 +18,11 @@ object LastModifiedCache {
         }
         return values.getOrPut(file){ file to file.lastModified() }
     }
+
+    fun clear(){
+        values.clear()
+    }
+
     const val timeout = 20_000 // ms
+
 }

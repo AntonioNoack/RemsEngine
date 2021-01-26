@@ -16,7 +16,7 @@ import me.anno.objects.particles.ParticleSystem
 import me.anno.objects.particles.TextParticles
 import me.anno.objects.text.Text
 import me.anno.objects.text.Timer
-import me.anno.studio.rems.RemsStudio.workspace
+import me.anno.studio.StudioBase.Companion.workspace
 import me.anno.studio.project.Project
 import me.anno.ui.base.Font
 import me.anno.ui.style.Style

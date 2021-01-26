@@ -82,8 +82,6 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
-// todo include scenes in large scene...
-
 // todo search elements
 // todo search with tags
 // todo tags for elements

@@ -14,6 +14,7 @@ import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
+import me.anno.utils.LocalFile.toGlobalFile
 import me.anno.utils.Maths.pow
 import org.joml.Matrix4fArrayList
 import org.joml.Vector2f
@@ -255,7 +256,7 @@ class Camera(parent: Transform? = null) : Transform(parent) {
 
     override fun readString(name: String, value: String) {
         when (name) {
-            "lut" -> lut = File(value)
+            "lut" -> lut = value.toGlobalFile()
             else -> super.readString(name, value)
         }
     }

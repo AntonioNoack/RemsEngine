@@ -19,6 +19,7 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.files.hasValidName
 import me.anno.ui.style.Style
+import me.anno.utils.LocalFile.toGlobalFile
 import me.anno.video.MissingFrameException
 import me.karl.main.SceneLoader
 import me.karl.renderer.AnimatedModelRenderer
@@ -155,7 +156,7 @@ class Mesh(var file: File, parent: Transform?) : GFXTransform(parent) {
 
     override fun readString(name: String, value: String) {
         when (name) {
-            "file" -> file = File(value)
+            "file" -> file = value.toGlobalFile()
             else -> super.readString(name, value)
         }
     }

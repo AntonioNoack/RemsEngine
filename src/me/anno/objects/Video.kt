@@ -766,13 +766,6 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
         }
     }
 
-    override fun readString(name: String, value: String) {
-        when (name) {
-            "path", "file" -> file = File(value)
-            else -> super.readString(name, value)
-        }
-    }
-
     override fun getClassName(): String = "Video"
 
     override fun getDefaultDisplayName(): String {

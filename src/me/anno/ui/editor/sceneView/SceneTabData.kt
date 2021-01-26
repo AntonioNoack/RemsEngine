@@ -7,6 +7,7 @@ import me.anno.io.text.TextReader
 import me.anno.objects.Transform
 import me.anno.studio.history.History
 import me.anno.ui.editor.sceneTabs.SceneTab
+import me.anno.utils.LocalFile.toGlobalFile
 import java.io.File
 
 class SceneTabData() : Saveable() {
@@ -43,7 +44,7 @@ class SceneTabData() : Saveable() {
 
     override fun readString(name: String, value: String) {
         when (name) {
-            "file" -> file = File(value)
+            "file" -> file = value.toGlobalFile()
             else -> super.readString(name, value)
         }
     }

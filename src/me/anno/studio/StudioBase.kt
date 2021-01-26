@@ -33,6 +33,7 @@ import me.anno.ui.debug.FPSPanel
 import me.anno.ui.dragging.IDraggable
 import me.anno.utils.FloatFormat.f3
 import me.anno.utils.Maths.clamp
+import me.anno.utils.OS
 import me.anno.utils.ProcessingQueue
 import me.anno.utils.StringHelper.addSuffix
 import me.anno.utils.StringHelper.filterAlphaNumeric
@@ -453,6 +454,8 @@ abstract class StudioBase(
         var shallStop = false
 
         lateinit var instance: StudioBase
+
+        var workspace = OS.documents
 
         private val LOGGER = LogManager.getLogger(StudioBase::class.java)
 

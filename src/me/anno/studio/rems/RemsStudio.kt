@@ -63,8 +63,6 @@ object RemsStudio : StudioBase(true, "Rem's Studio", 10001) {
             DefaultConfig.putAll(value.data)
         }
 
-    lateinit var workspace: File
-
     var project: Project? = null
 
     var editorTime = 0.5

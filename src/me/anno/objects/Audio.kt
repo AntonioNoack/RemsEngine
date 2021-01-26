@@ -16,6 +16,7 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.stacked.StackPanel
 import me.anno.ui.style.Style
+import me.anno.utils.LocalFile.toGlobalFile
 import me.anno.video.FFMPEGMetadata.Companion.getMeta
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
@@ -120,7 +121,7 @@ abstract class Audio(var file: File = File(""), parent: Transform? = null) : GFX
 
     override fun readString(name: String, value: String) {
         when (name) {
-            "src" -> file = File(value)
+            "src", "file", "path" -> file = value.toGlobalFile()
             else -> super.readString(name, value)
         }
     }

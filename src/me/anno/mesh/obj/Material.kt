@@ -2,11 +2,12 @@ package me.anno.mesh.obj
 
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
+import me.anno.utils.LocalFile.toGlobalFile
 import org.joml.Vector3f
 import java.io.File
 
 // https://en.wikipedia.org/wiki/Wavefront_.obj_file
-class Material: Saveable(){
+class Material : Saveable() {
     var ambientColor: Vector3f? = null // Ka
     var ambientTexture: File? = null
     var diffuseColor: Vector3f? = null // Kd
@@ -36,7 +37,34 @@ class Material: Saveable(){
         writer.writeFloat("specularExponent", specularExponent)
         writer.writeFloat("opacity", opacity)
         opacityTexture?.apply { writer.writeFile("opacity", this) }
-        writer.writeFloat("refrationIndex", refractionIndex)
+        writer.writeFloat("refractionIndex", refractionIndex)
         writer.writeInt("model", model.id)
+    }
+
+    override fun readInt(name: String, value: Int) {
+        when(name){
+            "model" -> model = IlluminationModel.values().firstOrNull { it.id == value } ?: return
+            else -> super.readInt(name, value)
+        }
+    }
+
+    override fun readFloat(name: String, value: Float) {
+        when(name){
+            "opacity" -> opacity = value
+            "specularExponent" -> specularExponent = value
+            "refractionIndex" -> refractionIndex = value
+            else -> super.readFloat(name, value)
+        }
+    }
+
+    override fun readString(name: String, value: String) {
+        when (name) {
+            "ambient" -> ambientTexture = value.toGlobalFile()
+            "emissive" -> emissiveTexture = value.toGlobalFile()
+            "diffuse" -> diffuseTexture = value.toGlobalFile()
+            "specular" -> specularTexture = value.toGlobalFile()
+            "opacity" -> opacityTexture = value.toGlobalFile()
+            else -> super.readString(name, value)
+        }
     }
 }

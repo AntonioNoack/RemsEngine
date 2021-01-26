@@ -1,6 +1,10 @@
 package me.anno.io.base
 
 import me.anno.io.ISaveable
+import me.anno.io.config.ConfigBasics
+import me.anno.studio.StudioBase
+import me.anno.studio.rems.RemsStudio
+import me.anno.utils.LocalFile.toLocalPath
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4d
@@ -50,7 +54,13 @@ abstract class BaseWriter(val respectsDefaultValues: Boolean) {
     abstract fun writeVector4f(name: String, value: Vector4f, force: Boolean = false)
     abstract fun writeVector4d(name: String, value: Vector4d, force: Boolean = false)
 
-    fun writeFile(name: String, file: File?) = writeString(name, file?.toString() ?: "")
+    fun writeFile(name: String, file: File?, workspace: File? = StudioBase.workspace) {
+        if (file != null) {
+            writeString(name, file.toLocalPath(workspace))
+        } else {
+            writeString(name, null)
+        }
+    }
 
     private
     fun getOrCreatePtr(value: ISaveable): Int {
@@ -105,14 +115,14 @@ abstract class BaseWriter(val respectsDefaultValues: Boolean) {
     abstract fun writePointer(name: String?, className: String, ptr: Int)
     abstract fun writeObjectImpl(name: String?, value: ISaveable)
 
-   open fun <V : ISaveable> writeObjectList(
+    open fun <V : ISaveable> writeObjectList(
         self: ISaveable?,
         name: String,
         elements: List<V>,
         force: Boolean = false
     ) {
         if (force || elements.isNotEmpty()) {
-            writeObjectArray(self, name, Array<ISaveable>(elements.size){ elements[it] } as Array<V>, force)
+            writeObjectArray(self, name, Array<ISaveable>(elements.size) { elements[it] } as Array<V>, force)
         }
     }
 

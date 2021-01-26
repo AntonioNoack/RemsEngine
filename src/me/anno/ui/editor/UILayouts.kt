@@ -18,6 +18,7 @@ import me.anno.objects.Camera
 import me.anno.objects.text.Text
 import me.anno.studio.GFXSettings
 import me.anno.studio.StudioBase.Companion.addEvent
+import me.anno.studio.StudioBase.Companion.workspace
 import me.anno.studio.rems.ProjectSettings
 import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.RemsStudio.gfxSettings
@@ -26,7 +27,6 @@ import me.anno.studio.rems.RemsStudio.project
 import me.anno.studio.rems.RemsStudio.root
 import me.anno.studio.rems.RemsStudio.versionName
 import me.anno.studio.rems.RemsStudio.windowStack
-import me.anno.studio.rems.RemsStudio.workspace
 import me.anno.studio.rems.RenderSettings
 import me.anno.studio.rems.Rendering.render
 import me.anno.studio.rems.Rendering.renderPart

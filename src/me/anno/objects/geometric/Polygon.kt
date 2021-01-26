@@ -21,6 +21,7 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.files.hasValidName
 import me.anno.ui.style.Style
+import me.anno.utils.LocalFile.toGlobalFile
 import me.anno.utils.Maths.clamp
 import me.anno.video.MissingFrameException
 import org.joml.Matrix4fArrayList
@@ -119,7 +120,7 @@ class Polygon(parent: Transform? = null) : GFXTransform(parent) {
 
     override fun readString(name: String, value: String) {
         when (name) {
-            "texture" -> texture = File(name)
+            "texture" -> texture = value.toGlobalFile()
             else -> super.readString(name, value)
         }
     }

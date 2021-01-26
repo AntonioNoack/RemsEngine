@@ -1,6 +1,7 @@
 package me.anno.cache
 
 import me.anno.cache.data.ICacheData
+import me.anno.cache.instances.LastModifiedCache
 import me.anno.gpu.GFX.gameTime
 import org.apache.logging.log4j.LogManager
 import java.io.File
@@ -176,6 +177,7 @@ open class CacheSection(val name: String): Comparable<CacheSection> {
             caches.forEach {
                 it.clear()
             }
+            LastModifiedCache.clear()
         }
 
         private val LOGGER = LogManager.getLogger(CacheSection::class)
