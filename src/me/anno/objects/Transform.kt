@@ -108,6 +108,7 @@ open class Transform(var parent: Transform? = null) : Saveable(),
         set(value) = nameI.set(value)
 
     var comment = ""
+    var tags = ""
 
     open fun getSymbol() = DefaultConfig["ui.symbol.folder", "\uD83D\uDCC1"]
     open fun getDefaultDisplayName() =
@@ -186,6 +187,16 @@ open class Transform(var parent: Transform? = null) : Saveable(),
         list += TextInputML("Comment", style, comment)
             .setChangeListener { comment = it }
             .setIsSelectedListener { show(null) }
+
+        // todo dedicated tags-input field
+        // todo sort for tags
+        // - crosses to remove tags
+        // - sort them?
+        // - a field to add new ones
+        list += TextInput("Tags", style, tags)
+            .setChangeListener { tags = it }
+            .setIsSelectedListener { show(null) }
+            .setTooltip("For Search | Not implemented yet")
 
         // transforms
         val transform = getGroup("Transform", "Translation Scale, Rotation, Skewing", "transform")
@@ -366,6 +377,7 @@ open class Transform(var parent: Transform? = null) : Saveable(),
         writer.writeObject(this, "parent", parent)
         writer.writeMaybe(this, "name", nameI)
         writer.writeString("comment", comment)
+        writer.writeString("tags", tags)
         writer.writeMaybe(this, "collapsed", isCollapsedI)
         writer.writeMaybe(this, "weight", weightI)
         writer.writeObject(this, "position", position)
@@ -426,6 +438,7 @@ open class Transform(var parent: Transform? = null) : Saveable(),
         when (name) {
             "name" -> this.name = value
             "comment" -> comment = value
+            "tags" -> tags = value
             "blendMode" -> blendMode = BlendMode[value]
             else -> super.readString(name, value)
         }
@@ -887,9 +900,9 @@ open class Transform(var parent: Transform? = null) : Saveable(),
         // these values MUST NOT be changed
         // they are universal constants, and are used
         // within shaders, too
-        val xAxis = Vector3f(1f, 0f, 0f)
-        val yAxis = Vector3f(0f, 1f, 0f)
-        val zAxis = Vector3f(0f, 0f, 1f)
+        val xAxis: Vector3fc = Vector3f(1f, 0f, 0f)
+        val yAxis: Vector3fc = Vector3f(0f, 1f, 0f)
+        val zAxis: Vector3fc = Vector3f(0f, 0f, 1f)
         val nextClickId = AtomicInteger()
         val nextUUID = AtomicLong()
         fun String.toTransform() = TextReader.fromText(this).first() as? Transform

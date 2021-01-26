@@ -3,7 +3,9 @@ package me.anno.utils
 import me.anno.config.DefaultStyle.black
 import me.anno.utils.Maths.clamp
 import org.joml.Vector3f
+import org.joml.Vector3fc
 import org.joml.Vector4f
+import org.joml.Vector4fc
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -46,20 +48,20 @@ object Color {
         else "#${hex32(this)}"
     }
 
-    fun Vector3f.toHexColor(): String {
-        return "#${hex8(x)}${hex8(y)}${hex8(z)}"
+    fun Vector3fc.toHexColor(): String {
+        return "#${hex8(x())}${hex8(y())}${hex8(z())}"
     }
 
-    fun Vector4f.toHexColor(): String {
-        return "#${if (w == 1f) "" else hex8(w)}${hex8(x)}${hex8(y)}${hex8(z)}"
+    fun Vector4fc.toHexColor(): String {
+        return "#${if (w() == 1f) "" else hex8(w())}${hex8(x())}${hex8(y())}${hex8(z())}"
     }
 
-    fun Vector4f.toARGB() = toARGB(255)
-    fun Vector4f.toARGB(scale: Int): Int {
-        return clamp((x * scale).toInt(), 0, 255).shl(16) or
-                clamp((y * scale).toInt(), 0, 255).shl(8) or
-                clamp((z * scale).toInt(), 0, 255) or
-                clamp((w * 255).toInt(), 0, 255).shl(24)
+    fun Vector4fc.toARGB() = toARGB(255)
+    fun Vector4fc.toARGB(scale: Int): Int {
+        return clamp((x() * scale).toInt(), 0, 255).shl(16) or
+                clamp((y() * scale).toInt(), 0, 255).shl(8) or
+                clamp((z() * scale).toInt(), 0, 255) or
+                clamp((w() * 255).toInt(), 0, 255).shl(24)
     }
 
 }

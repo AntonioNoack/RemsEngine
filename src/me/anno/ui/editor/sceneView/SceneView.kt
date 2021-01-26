@@ -84,15 +84,11 @@ import kotlin.math.roundToInt
 
 // todo search elements
 // todo search with tags
-// todo tags for elements
 // todo search properties
 
 // todo control click -> fullscreen view of this element?
 
-// todo show the current mode with the cursor
-
 // todo right click on input to get context menu, e.g. to reset
-// todo switch animatedproperty when selecting another object
 
 // todo key controls like in Blender:
 // start command with s/g/...

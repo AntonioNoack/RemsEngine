@@ -4,39 +4,39 @@ import org.joml.*
 
 object Vectors {
 
-    operator fun Vector2f.plus(s: Vector2f) = Vector2f(x + s.x, y + s.y)
-    operator fun Vector2f.minus(s: Vector2f) = Vector2f(x - s.x, y - s.y)
-    operator fun Vector2f.times(f: Float) = Vector2f(x * f, y * f)
-    operator fun Vector2f.times(s: Vector2f) = Vector2f(x * s.x, y * s.y)
+    operator fun Vector2fc.plus(s: Vector2fc) = Vector2f(x() + s.x(), y() + s.y())
+    operator fun Vector2fc.minus(s: Vector2fc) = Vector2f(x() - s.x(), y() - s.y())
+    operator fun Vector2fc.times(f: Float) = Vector2f(x() * f, y() * f)
+    operator fun Vector2fc.times(s: Vector2fc) = Vector2f(x() * s.x(), y() * s.y())
 
-    operator fun Vector2d.plus(s: Vector2d) = Vector2d(x + s.x, y + s.y)
-    operator fun Vector2d.minus(s: Vector2d) = Vector2d(x - s.x, y - s.y)
-    operator fun Vector2d.times(f: Double) = Vector2d(x * f, y * f)
+    operator fun Vector2dc.plus(s: Vector2dc) = Vector2d(x() + s.x(), y() + s.y())
+    operator fun Vector2dc.minus(s: Vector2dc) = Vector2d(x() - s.x(), y() - s.y())
+    operator fun Vector2dc.times(f: Double) = Vector2d(x() * f, y() * f)
 
-    operator fun Vector3f.plus(s: Vector3f) = Vector3f(x + s.x, y + s.y, z + s.z)
-    operator fun Vector3f.minus(s: Vector3f) = Vector3f(x - s.x, y - s.y, z - s.z)
-    operator fun Vector3f.times(s: Float) = Vector3f(x * s, y * s, z * s)
-    operator fun Vector3f.times(s: Vector3f) = Vector3f(x * s.x, y * s.y, z * s.z)
+    operator fun Vector3fc.plus(s: Vector3fc) = Vector3f(x() + s.x(), y() + s.y(), z() + s.z())
+    operator fun Vector3fc.minus(s: Vector3fc) = Vector3f(x() - s.x(), y() - s.y(), z() - s.z())
+    operator fun Vector3fc.times(s: Float) = Vector3f(x() * s, y() * s, z() * s)
+    operator fun Vector3fc.times(s: Vector3fc) = Vector3f(x() * s.x(), y() * s.y(), z() * s.z())
 
-    operator fun Vector3i.plus(s: Vector3i) = Vector3i(x + s.x, y + s.y, z + s.z)
-    operator fun Vector3i.minus(s: Vector3i) = Vector3i(x - s.x, y - s.y, z - s.z)
-    operator fun Vector3i.times(s: Float) = Vector3f(x * s, y * s, z * s)
+    operator fun Vector3ic.plus(s: Vector3ic) = Vector3i(x() + s.x(), y() + s.y(), z() + s.z())
+    operator fun Vector3ic.minus(s: Vector3ic) = Vector3i(x() - s.x(), y() - s.y(), z() - s.z())
+    operator fun Vector3ic.times(s: Float) = Vector3f(x() * s, y() * s, z() * s)
 
-    operator fun Vector3d.plus(s: Vector3d) = Vector3d(x + s.x, y + s.y, z + s.z)
-    operator fun Vector3d.minus(s: Vector3d) = Vector3d(x - s.x, y - s.y, z - s.z)
-    operator fun Vector3d.times(s: Double) = Vector3d(x * s, y * s, z * s)
+    operator fun Vector3dc.plus(s: Vector3dc) = Vector3d(x() + s.x(), y() + s.y(), z() + s.z())
+    operator fun Vector3dc.minus(s: Vector3dc) = Vector3d(x() - s.x(), y() - s.y(), z() - s.z())
+    operator fun Vector3dc.times(s: Double) = Vector3d(x() * s, y() * s, z() * s)
 
-    operator fun Vector3f.plus(s: Vector3i) = Vector3f(x + s.x, y + s.y, z + s.z)
-    operator fun Vector3i.plus(s: Vector3f) = Vector3f(x + s.x, y + s.y, z + s.z)
-    operator fun Vector3f.minus(s: Vector3i) = Vector3f(x - s.x, y - s.y, z - s.z)
-    operator fun Vector3i.minus(s: Vector3f) = Vector3f(x - s.x, y - s.y, z - s.z)
+    operator fun Vector3fc.plus(s: Vector3ic) = Vector3f(x() + s.x(), y() + s.y(), z() + s.z())
+    operator fun Vector3ic.plus(s: Vector3fc) = Vector3f(x() + s.x(), y() + s.y(), z() + s.z())
+    operator fun Vector3fc.minus(s: Vector3ic) = Vector3f(x() - s.x(), y() - s.y(), z() - s.z())
+    operator fun Vector3ic.minus(s: Vector3fc) = Vector3f(x() - s.x(), y() - s.y(), z() - s.z())
 
-    operator fun Vector4f.minus(s: Vector4f) = Vector4f(x - s.x, y - s.y, z - s.z, w - s.w)
-    operator fun Vector4f.plus(s: Vector4f) = Vector4f(x + s.x, y + s.y, z + s.z, w + s.w)
-    operator fun Vector4f.plus(s: Float) = if (s == 0f) this else Vector4f(x + s, y + s, z + s, w + s)
-    operator fun Vector4f.times(s: Float) = Vector4f(x * s, y * s, z * s, w * s)
-    operator fun Vector4f.times(s: Vector4f) = Vector4f(x * s.x, y * s.y, z * s.z, w * s.w)
-    fun Vector4f.mulAlpha(m: Float) = Vector4f(x, y, z, w * m)
+    operator fun Vector4fc.minus(s: Vector4fc) = Vector4f(x() - s.x(), y() - s.y(), z() - s.z(), w() - s.w())
+    operator fun Vector4fc.plus(s: Vector4fc) = Vector4f(x() + s.x(), y() + s.y(), z() + s.z(), w() + s.w())
+    operator fun Vector4fc.plus(s: Float) = if (s == 0f) this else Vector4f(x() + s, y() + s, z() + s, w() + s)
+    operator fun Vector4fc.times(s: Float) = Vector4f(x() * s, y() * s, z() * s, w() * s)
+    operator fun Vector4fc.times(s: Vector4fc) = Vector4f(x() * s.x(), y() * s.y(), z() * s.z(), w() * s.w())
+    fun Vector4fc.mulAlpha(m: Float) = Vector4f(x(), y(), z(), w() * m)
 
     fun avg(a: Vector2f, b: Vector2f) = Vector2f(a).add(b).mul(0.5f)
     fun avg(a: Vector2d, b: Vector2d) = Vector2d(a).add(b).mul(0.5)
@@ -170,17 +170,20 @@ object Vectors {
     fun Vector3f.toHex() =
         "#${(x * 255).toInt().byteToHex()}${(y * 255).toInt().byteToHex()}${(z * 255).toInt().byteToHex()}"
 
-    fun Vector2f.print() = "($x $y)"
-    fun Vector2d.print() = "($x $y)"
-    fun Vector2i.print() = "($x $y)"
-    fun Vector3f.print() = "($x $y $z)"
-    fun Vector3d.print() = "($x $y $z)"
-    fun Vector3i.print() = "($x $y $z)"
-    fun Vector4f.print() = "($x $y $z $w)"
-    fun Vector4d.print() = "($x $y $z $w)"
-    fun Vector4i.print() = "($x $y $z $w)"
+    fun Vector2fc.print() = "(${x()} ${y()})"
+    fun Vector2dc.print() = "(${x()} ${y()})"
+    fun Vector2ic.print() = "(${x()} ${y()})"
+    fun Vector3fc.print() = "(${x()} ${y()} ${z()})"
+    fun Vector3dc.print() = "(${x()} ${y()} ${z()})"
+    fun Vector3ic.print() = "(${x()} ${y()} ${z()})"
+    fun Vector4fc.print() = "(${x()} ${y()} ${z()} ${w()})"
+    fun Vector4dc.print() = "(${x()} ${y()} ${z()} ${w()})"
+    fun Vector4ic.print() = "(${x()} ${y()} ${z()} ${w()})"
 
-    fun Vector4f.toVec3f() = Vector3f(x / w, y / w, z / w)
+    fun Vector4fc.toVec3f(): Vector3f {
+        val w = w()
+        return Vector3f(x() / w, y() / w, z() / w)
+    }
 
     fun Vector3f.is000() = x == 0f && y == 0f && z == 0f
     fun Vector3f.is111() = x == 1f && y == 1f && z == 1f
