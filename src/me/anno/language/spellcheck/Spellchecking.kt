@@ -24,10 +24,11 @@ object Spellchecking : CacheSection("Spellchecking") {
 
     private val language get() = project?.language ?: Language.get(Dict["en-US", "lang.spellcheck"])
 
-    fun check(sentence: String, key: Any): List<Suggestion>? {
+    fun check(sentence: String, allowFirstLowercase: Boolean, key: Any): List<Suggestion>? {
         val language = language
         if (language == Language.None || sentence.isBlank()) return null
-        val sentence2 = sentence.trim()
+        var sentence2 = sentence.trim()
+        if(allowFirstLowercase) sentence2 = sentence2.capitalize()
         if (sentence2 == "#quit") return null
         val data = getEntry(Pair(sentence2, language), timeout, true) {
             val answer = SuggestionData(null)

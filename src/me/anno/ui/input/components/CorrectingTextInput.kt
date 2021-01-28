@@ -19,11 +19,15 @@ abstract class CorrectingTextInput(style: Style) : TextPanel("", style) {
     }
 
     var drawingOffset = 0
+    var allowFirstLowercase = true
 
     override fun getVisualState(): Any? = Pair(super.getVisualState(), suggestions)
 
     open val needsSuggestions = true
-    private val suggestions get() = if (needsSuggestions && !isShowingPlaceholder) Spellchecking.check(text, this) else null
+    private val suggestions get() =
+        if (needsSuggestions && !isShowingPlaceholder){
+            Spellchecking.check(text, allowFirstLowercase, this)
+        } else null
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         loadTexturesSync.push(true)

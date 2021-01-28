@@ -32,7 +32,7 @@ import java.io.File
 
 // todo draw frame by frame, only save x,y,radius?
 
-// todo small video/rendering preview?
+// todo small video/rendering preview on timeline hover
 
 // todo input field title, no focus color
 

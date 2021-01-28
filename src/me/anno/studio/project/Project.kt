@@ -204,7 +204,7 @@ class Project(var name: String, val file: File) : Saveable() {
     var targetVideoQuality = config["target.quality", 23]
     var motionBlurSteps = config["target.motionBlur.steps", 8]
     var shutterPercentage = config["target.motionBlur.shutterPercentage", 1f]
-    var nullCamera = config["camera.null"] as? Camera ?: createNullCamera()
+    var nullCamera = createNullCamera(config["camera.null"] as? Camera)
     var language = Language.get(config["language", Language.AmericanEnglish.code])
 
     override fun getClassName() = "Project"
@@ -213,7 +213,6 @@ class Project(var name: String, val file: File) : Saveable() {
 
     fun open() {}
 
-    // todo even save not saved parts? :)
     fun saveConfig() {
         config["general.name"] = name
         config["target.duration"] = targetDuration
@@ -240,11 +239,12 @@ class Project(var name: String, val file: File) : Saveable() {
         saveUI()
     }
 
-    fun createNullCamera(): Camera {
-        return Camera(null)
+    fun createNullCamera(camera: Camera?): Camera {
+        return (camera ?: Camera(null).apply {
+            name = "Inspector Camera"
+            onlyShowTarget = false
+        })
             .apply {
-                name = "Inspector Camera"
-                onlyShowTarget = false
                 // higher far value to allow other far values to be seen
                 farZ.defaultValue = 5000f
                 timeDilation = 0.0 // the camera has no time, so no motion can be recorded

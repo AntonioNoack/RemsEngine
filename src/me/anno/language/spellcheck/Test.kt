@@ -10,11 +10,11 @@ fun main(){
     project = Project("", OS.downloads)
     project?.language = Language.AmericanEnglish
 
-    Spellchecking.check("I love you", 0)
+    Spellchecking.check("I love you", true, 0)
 
     var answer: List<*>? = null
     while (answer == null){
-        answer = Spellchecking.check("I love you", 0)
+        answer = Spellchecking.check("I love you", true, 0)
         Thread.sleep(10)
     }
 
