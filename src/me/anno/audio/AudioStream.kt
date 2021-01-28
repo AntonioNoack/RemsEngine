@@ -30,15 +30,15 @@ import kotlin.math.min
 // (on user input and when finally rendering only)
 
 // todo does not work, if the buffers aren't filled fast enough -> always fill them fast enough...
+// todo or restart playing...
 
 /**
  * todo audio effects:
  * todo better echoing ;)
  * todo velocity frequency change
- * todo pitch
+ * done pitch
  * todo losing high frequencies in the distance
  * todo audio becoming quiet in the distance
- * todo -> we need some kind of fourier transform, but how such that it doesn't change the tone???
  * */
 abstract class AudioStream(
     val file: File, val repeat: LoopingState,

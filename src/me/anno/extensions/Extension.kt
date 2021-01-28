@@ -5,18 +5,33 @@ import me.anno.extensions.events.EventHandler
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 
-// todo dependencies, priorities?...
+// todo priorities?...
 abstract class Extension {
 
-    var name = ""
-    var uuid = ""
-    var description = ""
-    var version = ""
-    var authors = ""
+    lateinit var name: String
+    lateinit var uuid: String
+    lateinit var description: String
+    lateinit var version: String
+    lateinit var authors: String
 
-    var dependencies = emptyList<String>()
+    lateinit var dependencies: List<String>
 
     private val listeners = HashMap<Class<*>, HashSet<Pair<Any, Method>>>()
+
+    var isRunning = true
+
+    fun setInfo(info: ExtensionInfo){
+        uuid = info.uuid
+        name = info.name
+        description = info.description
+        version = info.version
+        authors = info.authors
+        dependencies = info.dependencies
+    }
+
+    fun clearListeners(){
+        listeners.clear()
+    }
 
     /**
      * register an object with listener methods
@@ -27,19 +42,21 @@ abstract class Extension {
      * */
     fun registerListener(any: Any): Int {
         var ctr = 0
-        any.javaClass.methods.forEach { method ->
-            val modifiers = method.modifiers
-            if (
-                Modifier.isPublic(modifiers) &&
-                !Modifier.isAbstract(modifiers) &&
-                !Modifier.isStatic(modifiers) &&
-                method.annotations.any { it is EventHandler }
-            ) {
-                val types = method.parameterTypes
-                if (types.size == 2) {
-                    // first is object, second is argument
-                    listeners.getOrPut(types[1]) { HashSet() }.add(any to method)
-                    ctr++
+        if(isRunning){
+            any.javaClass.methods.forEach { method ->
+                val modifiers = method.modifiers
+                if (
+                    Modifier.isPublic(modifiers) &&
+                    !Modifier.isAbstract(modifiers) &&
+                    !Modifier.isStatic(modifiers) &&
+                    method.annotations.any { it is EventHandler }
+                ) {
+                    val types = method.parameterTypes
+                    if (types.size == 2) {
+                        // first is object, second is argument
+                        listeners.getOrPut(types[1]) { HashSet() }.add(any to method)
+                        ctr++
+                    }
                 }
             }
         }
@@ -47,9 +64,11 @@ abstract class Extension {
     }
 
     fun unregisterListener(any: Any) {
-        listeners.values.forEach {
-            it.removeIf { (listener, _) ->
-                listener == any
+        if(isRunning){
+            listeners.values.forEach {
+                it.removeIf { (listener, _) ->
+                    listener == any
+                }
             }
         }
     }

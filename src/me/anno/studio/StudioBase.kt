@@ -5,6 +5,7 @@ import me.anno.audio.AudioManager
 import me.anno.cache.CacheSection
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style
+import me.anno.extensions.ExtensionLoader
 import me.anno.gpu.Cursor
 import me.anno.gpu.Cursor.useCursor
 import me.anno.gpu.GFX
@@ -42,6 +43,7 @@ import org.lwjgl.opengl.GL11.*
 import java.io.File
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
+import kotlin.concurrent.thread
 import kotlin.math.roundToInt
 
 // todo remove unnecessary checks, whether files exist and when they were created: much too expensive (0.2ms)
@@ -101,6 +103,8 @@ abstract class StudioBase(
         Cursor.init()
 
         createUI()
+
+        ExtensionLoader.load()
 
     }
 
@@ -414,6 +418,7 @@ abstract class StudioBase(
 
         GFX.onShutdown = {
             shallStop = true
+            ExtensionLoader.unload()
             Cursor.destroy()
             ProcessingQueue.destroy()
             Spellchecking.destroy()

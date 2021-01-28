@@ -65,3 +65,19 @@ fun processBalanced(i0: Int, i1: Int, heavy: Boolean, func: (i0: Int, i1: Int) -
     // todo a second function with balanced load?
     processBalanced(i0, i1, if (heavy) 1 else 512, func)
 }
+
+fun <V> processStage(entries: List<V>, doIO: Boolean, stage: (V) -> Unit) {
+    if (doIO) {
+        entries.map { thread { stage(it) } }.forEach { it.join() }
+    } else {
+        processUnbalanced(0, entries.size, true) { i0, i1 ->
+            for (i in i0 until i1) {
+                try {
+                    stage(entries[i])
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+        }
+    }
+}

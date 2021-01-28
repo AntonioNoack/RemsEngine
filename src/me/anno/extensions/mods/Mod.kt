@@ -8,15 +8,15 @@ import me.anno.extensions.Extension
  * */
 abstract class Mod: Extension() {
 
-    abstract fun onPreInit()
-    abstract fun onInit()
-    abstract fun onPostInit()
+    open fun onPreInit(){}
+    open fun onInit(){}
+    open fun onPostInit(){}
 
     /**
      * may be called, when the program exists
      * if the program is killed, which will not be executed
      * async
      * */
-    abstract fun onExit()
+    open fun onExit(){}
 
 }

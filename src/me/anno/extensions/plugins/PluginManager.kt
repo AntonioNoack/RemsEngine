@@ -1,20 +1,22 @@
 package me.anno.extensions.plugins
 
-import java.io.File
+import me.anno.extensions.ExtensionManager
+import me.anno.utils.processStage
 
-/**
- * todo loads all plugins at runtime
- * */
-object PluginManager {
+object PluginManager: ExtensionManager<Plugin>() {
 
-    fun loadPlugins(folder: File){
-        folder.listFiles()?.forEach {
-
+    override fun onEnable(extensions: List<Plugin>) {
+        processStage(extensions, true) {
+            it.isRunning = true
+            it.onEnable()
         }
     }
 
-    fun loadLibrary(file: File){
-
+    override fun onDisable(extensions: List<Plugin>) {
+        processStage(extensions, true) {
+            it.isRunning = false
+            it.onDisable()
+        }
     }
 
 }

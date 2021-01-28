@@ -39,6 +39,8 @@ import java.io.File
 // todo translations for everything...
 // todo limit the history to entries with 5x the same name? how exactly?...
 
+// todo saturation/lightness controls by hue
+
 object RemsStudio : StudioBase(true, "Rem's Studio", 10002) {
 
     override fun onGameInit() {

@@ -15,6 +15,9 @@ import me.anno.utils.processBalanced
 
 // todo different distance based effects <3 :D
 // todo velocity-based effects
+// todo normalize amplitude effect
+// todo limit amplitude effect (straight cut-off; smooth-cut-off)
+
 class AmplitudeEffect() : SoundEffect(Domain.TIME_DOMAIN, Domain.TIME_DOMAIN) {
 
     constructor(audio: Audio) : this() {

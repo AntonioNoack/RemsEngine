@@ -1,7 +1,6 @@
 package me.anno.extensions.events
 
-import me.anno.extensions.ExtensionLoader.loadedMods
-import me.anno.extensions.ExtensionLoader.loadedPlugins
+import me.anno.extensions.ExtensionLoader.managers
 
 object EventBroadcasting {
 
@@ -9,14 +8,11 @@ object EventBroadcasting {
 
         if(event.isCancelled) return null
 
-        for(mod in loadedMods){
-            mod.onEvent(event)
-            if(event.isCancelled) return null
-        }
-
-        for(plugin in loadedPlugins){
-            plugin.onEvent(event)
-            if(event.isCancelled) return null
+        for(manager in managers){
+            for(ext in manager.loaded){
+                ext.onEvent(event)
+                if(event.isCancelled) return null
+            }
         }
 
         return event

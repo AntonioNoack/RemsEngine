@@ -9,7 +9,7 @@ abstract class Plugin: Extension() {
      * loads async
      * everything, that is not 100% always the same, should be initialized here
      * */
-    abstract fun onEnable()
+    open fun onEnable(){}
 
     /**
      * is called at the end of plugin life,
@@ -17,6 +17,14 @@ abstract class Plugin: Extension() {
      * asnyc as well
      * will not be executed, if the program is killed
      * */
-    abstract fun onDisable()
+    open fun onDisable(){}
+
+    fun reload(){
+        isRunning = false
+        onDisable()
+        clearListeners()
+        isRunning = true
+        onEnable()
+    }
 
 }
