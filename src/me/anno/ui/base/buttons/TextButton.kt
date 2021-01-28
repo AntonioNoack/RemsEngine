@@ -8,7 +8,7 @@ import me.anno.input.Input
 import me.anno.input.Input.keysDown
 import me.anno.input.MouseButton
 import me.anno.language.translation.Dict
-import me.anno.ui.base.TextPanel
+import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.style.Style
 import me.anno.utils.Keys.isClickKey

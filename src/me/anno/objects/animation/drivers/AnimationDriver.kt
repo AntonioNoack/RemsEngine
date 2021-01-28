@@ -1,6 +1,5 @@
 package me.anno.objects.animation.drivers
 
-import me.anno.gpu.GFX
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
@@ -14,7 +13,7 @@ import me.anno.studio.rems.Selection.select
 import me.anno.studio.rems.Selection.selectProperty
 import me.anno.studio.rems.Selection.selectedTransform
 import me.anno.ui.base.Panel
-import me.anno.ui.base.TextPanel
+import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
@@ -83,7 +82,10 @@ abstract class AnimationDriver : Saveable(), Inspectable {
         style: Style,
         getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
     ) {
-        list += TextPanel(Dict["Driver Inspector", "driver.inspector.title"], style)
+        list += TextPanel(
+            Dict["Driver Inspector", "driver.inspector.title"],
+            style
+        )
         createInspector(list.children, selectedTransform!!, style, getGroup)
     }
 

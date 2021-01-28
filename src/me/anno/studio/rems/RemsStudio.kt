@@ -24,7 +24,7 @@ import me.anno.utils.OS
 import java.io.File
 
 
-
+// Launch4j
 
 // todo spline polygon editor inside Rem's Studio, with points, that can be animated (???)
 
@@ -39,7 +39,7 @@ import java.io.File
 // todo translations for everything...
 // todo limit the history to entries with 5x the same name? how exactly?...
 
-object RemsStudio : StudioBase(true, "Rem's Studio", 10001) {
+object RemsStudio : StudioBase(true, "Rem's Studio", 10002) {
 
     override fun onGameInit() {
         RemsConfig.init()

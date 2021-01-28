@@ -4,7 +4,7 @@ import me.anno.gpu.Cursor
 import me.anno.input.MouseButton
 import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
-import me.anno.ui.base.TextPanel
+import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption

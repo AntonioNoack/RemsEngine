@@ -1,6 +1,6 @@
 package me.anno.studio
 
-import me.anno.ui.base.TextPanel
+import me.anno.ui.base.text.TextPanel
 import java.io.OutputStream
 import java.io.PrintStream
 import java.util.*

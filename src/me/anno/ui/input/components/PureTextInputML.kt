@@ -8,7 +8,7 @@ import me.anno.gpu.GFXx2D.drawRect
 import me.anno.gpu.GFXx2D.getTextSize
 import me.anno.input.Input
 import me.anno.input.MouseButton
-import me.anno.ui.base.TextPanel
+import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.groups.PanelListY

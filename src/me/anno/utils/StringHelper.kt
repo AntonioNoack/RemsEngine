@@ -4,7 +4,7 @@ import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.GFXx2D.getTextSize
 import me.anno.ui.base.Font
-import me.anno.ui.base.TextPanel
+import me.anno.ui.base.text.TextPanel
 import me.anno.utils.FileHelper.formatFileSize
 import me.anno.utils.FloatFormat.f1
 import me.anno.utils.Maths.fract

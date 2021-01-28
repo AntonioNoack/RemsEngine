@@ -8,7 +8,7 @@ import me.anno.language.translation.Dict
 import me.anno.studio.Logging
 import me.anno.studio.rems.RemsStudio
 import me.anno.ui.base.buttons.TextButton
-import me.anno.ui.base.TextPanel
+import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.debug.console.ConsoleLogFullscreen
 import me.anno.ui.debug.console.COLine

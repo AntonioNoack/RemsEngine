@@ -1,7 +1,7 @@
 package me.anno.ui.input
 
 import me.anno.language.translation.Dict
-import me.anno.ui.base.TextPanel
+import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.input.components.Checkbox

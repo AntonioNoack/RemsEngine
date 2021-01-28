@@ -1,6 +1,6 @@
 package me.anno.ui.editor.files
 
-import me.anno.ui.base.TextPanel
+import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.style.Style
 import java.io.File

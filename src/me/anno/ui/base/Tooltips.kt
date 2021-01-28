@@ -9,6 +9,7 @@ import me.anno.input.Input.mouseY
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelContainer
+import me.anno.ui.base.text.TextPanel
 import me.anno.utils.Maths.length
 import kotlin.math.abs
 import kotlin.math.min

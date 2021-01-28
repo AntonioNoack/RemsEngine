@@ -8,7 +8,7 @@ import me.anno.gpu.GFXx2D.drawText
 import me.anno.gpu.GFXx2D.getTextSize
 import me.anno.gpu.blending.BlendDepth
 import me.anno.gpu.blending.BlendMode
-import me.anno.ui.base.TextPanel
+import me.anno.ui.base.text.TextPanel
 import me.anno.utils.Maths.mix
 import org.lwjgl.glfw.GLFW
 

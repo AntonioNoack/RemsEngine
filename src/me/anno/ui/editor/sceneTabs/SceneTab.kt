@@ -10,7 +10,7 @@ import me.anno.objects.Transform
 import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.studio.history.History
 import me.anno.studio.rems.RemsStudio.project
-import me.anno.ui.base.TextPanel
+import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.menu.Menu.ask
 import me.anno.ui.base.menu.Menu.msg
 import me.anno.ui.base.menu.Menu.openMenu
@@ -153,7 +153,9 @@ class SceneTab(var file: File?, var root: Transform, history: History?) : TextPa
         when (action) {
             "DragStart" -> {
                 if (dragged?.getOriginal() != this) {
-                    dragged = Draggable(SceneTabData(this).toString(), "SceneTab", this, TextPanel(shortName, style))
+                    dragged = Draggable(SceneTabData(this).toString(), "SceneTab", this,
+                        TextPanel(shortName, style)
+                    )
                 }
             }
             else -> return super.onGotAction(x, y, dx, dy, action, isContinuous)

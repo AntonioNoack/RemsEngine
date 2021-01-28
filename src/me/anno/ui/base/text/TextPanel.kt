@@ -1,4 +1,4 @@
-package me.anno.ui.base
+package me.anno.ui.base.text
 
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.iconGray
@@ -9,6 +9,8 @@ import me.anno.gpu.GFXx2D
 import me.anno.gpu.GFXx2D.getTextSize
 import me.anno.gpu.texture.Texture2D
 import me.anno.input.MouseButton
+import me.anno.ui.base.Panel
+import me.anno.ui.base.Visibility
 import me.anno.ui.style.Style
 import me.anno.utils.Tabs
 import me.anno.utils.Keys.isClickKey
@@ -96,7 +98,7 @@ open class TextPanel(open var text: String, style: Style): Panel(style){
     override fun getCursor(): Long? = if(onClickListener == null) super.getCursor() else Cursor.drag
 
     override fun printLayout(tabDepth: Int) {
-        println("${Tabs.spaces(tabDepth * 2)}${javaClass.simpleName}($weight, ${if(visibility==Visibility.VISIBLE) "v" else "_"}) " +
+        println("${Tabs.spaces(tabDepth * 2)}${javaClass.simpleName}($weight, ${if(visibility== Visibility.VISIBLE) "v" else "_"}) " +
                 "$x $y += $w $h ($minW $minH) \"${text.substring(0, min(text.length, 20))}\"")
     }
 

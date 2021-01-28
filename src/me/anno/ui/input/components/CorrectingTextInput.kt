@@ -7,7 +7,7 @@ import me.anno.gpu.GFXx2D
 import me.anno.gpu.GFXx2D.getTextSize
 import me.anno.language.spellcheck.Spellchecking
 import me.anno.language.spellcheck.Suggestion
-import me.anno.ui.base.TextPanel
+import me.anno.ui.base.text.TextPanel
 import me.anno.ui.style.Style
 import org.apache.logging.log4j.LogManager
 import kotlin.math.min

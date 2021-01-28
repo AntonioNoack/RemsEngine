@@ -1,6 +1,6 @@
 package me.anno.ui.input.components
 
-import me.anno.ui.base.TextPanel
+import me.anno.ui.base.text.TextPanel
 import me.anno.ui.input.EnumInput
 import me.anno.ui.style.Style
 import me.anno.utils.Keys.isDownKey

@@ -12,7 +12,7 @@ import me.anno.studio.rems.Rendering.renderPart
 import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.studio.rems.Rendering.renderSetPercent
 import me.anno.ui.base.buttons.TextButton
-import me.anno.ui.base.TextPanel
+import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.frames.FrameSizeInput
@@ -22,11 +22,9 @@ import me.anno.ui.input.FloatInput
 import me.anno.ui.input.IntInput
 import me.anno.ui.style.Style
 import me.anno.utils.Maths.mixARGB
-import sun.net.spi.nameservice.NameService
 import kotlin.concurrent.thread
 import kotlin.math.abs
 import kotlin.math.max
-import kotlin.math.roundToInt
 
 object RenderSettings : Transform() {
 
@@ -40,7 +38,8 @@ object RenderSettings : Transform() {
 
         val project = project!!
 
-        list += TextPanel(getDefaultDisplayName(), style).apply { focusTextColor = textColor }
+        list += TextPanel(getDefaultDisplayName(), style)
+            .apply { focusTextColor = textColor }
         list += vi("Duration", "Video length in seconds", Type.FLOAT_PLUS, targetDuration, style) {
             project.targetDuration = it
             save()

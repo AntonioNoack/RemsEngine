@@ -35,7 +35,8 @@ class ImageSequenceMeta(file: File) {
 
 
     private val startTime = matches.firstOrNull()?.second ?: 0.0
-    val duration = (matches.lastOrNull()?.second ?: 1.0) - startTime
+    val duration = (matches.lastOrNull()?.second ?: 1.0) - startTime + 1.0 // last frame for one second
+    val frameCount = matches.size
 
     val isValid = matches.isNotEmpty()
 

@@ -1,7 +1,6 @@
 package audacity.soundtouch
 
 import me.anno.utils.Maths.clamp
-import java.lang.RuntimeException
 import kotlin.math.max
 import kotlin.math.sqrt
 
@@ -20,10 +19,10 @@ class TimeDomainStretch {
 
     companion object {
 
-        const val FLT_MIN = 1e-38 // todo set to the correct value
+        const val FLT_MIN = 1e-38
 
         // Table for the hierarchical mixing position seeking algorithm
-        val _scanOffsets = arrayOf(
+        val scanOffsets = arrayOf(
             shortArrayOf(
                 124, 186, 248, 310, 372, 434, 496, 558, 620, 682, 744, 806,
                 868, 930, 992, 1054, 1116, 1178, 1240, 1302, 1364, 1426, 1488, 0
@@ -310,7 +309,7 @@ class TimeDomainStretch {
     fun seekBestOverlapPositionQuick(refPos: FloatPtr): Int {
 
         var bestCorr = FLT_MIN
-        var bestOffs = _scanOffsets[0][0]
+        var bestOffs = scanOffsets[0][0]
         var corrOffset = 0.toShort()
 
         // Scans for the best correlation value using four-pass hierarchical search.
@@ -323,8 +322,8 @@ class TimeDomainStretch {
         val pMidBuffer = pMidBuffer!!
         for (scanCount in 0 until 4) {
             var j = 0
-            while (_scanOffsets[scanCount][j] != 0.toShort()) {
-                val tempOffset = (corrOffset + _scanOffsets[scanCount][j]).toShort()
+            while (scanOffsets[scanCount][j] != 0.toShort()) {
+                val tempOffset = (corrOffset + scanOffsets[scanCount][j]).toShort()
                 if (tempOffset >= seekLength) break
 
                 // Calculates correlation value for the mixing position corresponding

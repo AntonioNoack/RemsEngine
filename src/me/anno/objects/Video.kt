@@ -42,6 +42,7 @@ import me.anno.ui.base.SpyPanel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.base.text.UpdatingTextPanel
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.files.hasValidName
 import me.anno.ui.input.EnumInput
@@ -49,11 +50,15 @@ import me.anno.ui.style.Style
 import me.anno.utils.BiMap
 import me.anno.utils.Booleans.toInt
 import me.anno.utils.Clipping
+import me.anno.utils.FloatFormat.f2
 import me.anno.utils.Maths.mix
 import me.anno.utils.Maths.pow
 import me.anno.utils.StringHelper.getImportType
-import me.anno.video.*
+import me.anno.video.FFMPEGMetadata
 import me.anno.video.FFMPEGMetadata.Companion.getMeta
+import me.anno.video.ImageSequenceMeta
+import me.anno.video.MissingFrameException
+import me.anno.video.VFrame
 import org.joml.Matrix4f
 import org.joml.Matrix4fArrayList
 import org.joml.Vector3f
@@ -92,7 +97,15 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
     var lastFile: File? = null
     var lastDuration = 10.0
     var imageSequenceMeta: ImageSequenceMeta? = null
+    val imSeqExampleMeta get() = imageSequenceMeta?.matches?.first()?.first?.run { getMeta(this, true) }
+
     var type = VideoType.AUDIO
+
+    override fun clearCache() {
+        lastTexture = null
+        needsImageUpdate = true
+        lastFile = null
+    }
 
     var zoomLevel = 0
 
@@ -103,12 +116,15 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
     val cgPower = AnimatedProperty.color(Vector4f(1f, 1f, 1f, 1f))
     val cgSaturation = AnimatedProperty.float(1f) // only allow +? only 01?
 
+    var w = 16
+    var h = 9
+
+    val forceAutoScale get() = DefaultConfig["rendering.video.forceAutoScale", true]
+    val forceFullScale get() = DefaultConfig["rendering.video.forceFullScale", false]
+
     override fun isVisible(localTime: Double): Boolean {
         return localTime >= 0.0 && (isLooping != LoopingState.PLAY_ONCE || localTime < lastDuration)
     }
-
-    var w = 16
-    var h = 9
 
     override fun transformLocally(pos: Vector3f, time: Double): Vector3f {
         val doScale = uvProjection.doScale && w != h
@@ -234,7 +250,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
 
     // todo this is somehow not working, and idk why...
     private fun onMissingImageOrFrame() {
-        if (GFX.isFinalRendering) throw MissingFrameException(file)
+        if (isFinalRendering) throw MissingFrameException(file)
         else needsImageUpdate = true
     }
 
@@ -280,13 +296,18 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
 
     private fun drawVideo(meta: FFMPEGMetadata, stack: Matrix4fArrayList, time: Double, color: Vector4f) {
 
-        val zoomLevel = if (videoScale < 1) {
-            // calculate reasonable zoom level from canvas size
-            if (uvProjection.doScale) {
+        val forceAuto = isFinalRendering && forceAutoScale
+        val forceFull = isFinalRendering && forceFullScale
+        val zoomLevel = when {
+            forceFull -> 1
+            (videoScale < 1 || forceAuto) && uvProjection.doScale -> {
                 val rawZoomLevel = calculateSize(stack, meta.videoWidth, meta.videoHeight) ?: return
                 getCacheableZoomLevel(rawZoomLevel)
-            } else 1
-        } else videoScale
+            }
+            (videoScale < 1 || forceAuto) -> 1
+            else -> videoScale
+        }
+
         this.zoomLevel = zoomLevel
 
         var wasDrawn = false
@@ -607,6 +628,26 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
             return panel
         }
 
+        val infoGroup = getGroup("Info", "File information", "info")
+        infoGroup += UpdatingTextPanel(250, style) { "Type: ${type.name}" }
+        infoGroup += UpdatingTextPanel(250, style) {
+            if(type == VideoType.IMAGE) null
+            else "Duration: ${meta?.duration ?: imageSequenceMeta?.duration}"
+        }
+        infoGroup += vid(UpdatingTextPanel(250, style) { "Video Duration: ${meta?.videoDuration}s" })
+        infoGroup += img(UpdatingTextPanel(250, style) {
+            val meta = meta ?: imSeqExampleMeta
+            "Resolution: ${meta?.videoWidth} x ${meta?.videoHeight}"
+        })
+        infoGroup += vid(UpdatingTextPanel(250, style) { "Frame Rate: ${meta?.videoFPS?.f2()} frames/s" })
+        infoGroup += img(UpdatingTextPanel(250, style) {
+            "Frame Count: ${meta?.videoFrameCount ?: imageSequenceMeta?.frameCount}"
+        })
+        // infoGroup += vid(UpdatingTextPanel(250, style) { "Video Start Time: ${meta?.videoStartTime}s" })
+        infoGroup += aud(UpdatingTextPanel(250, style) { "Audio Duration: ${meta?.audioDuration}" })
+        infoGroup += aud(UpdatingTextPanel(250, style) { "Sample Rate: ${meta?.audioSampleRate} samples/s" })
+        infoGroup += aud(UpdatingTextPanel(250, style) { "Sample Count: ${meta?.audioSampleCount} samples" })
+
         list += vi("File Location", "Source file of this video", null, file, style) { newFile ->
             if (name == file.name) {
                 name = newFile.name
@@ -628,16 +669,22 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
             AudioManager.requestUpdate()
         }
 
-        val quality = getGroup("Quality", "", "quality")
+        val editor = getGroup("Editor", "", "editor")
+        fun quality() = getGroup("Quality", "", "quality")
+
+        // quality; if controlled automatically, then editor; else quality
         val videoScales = videoScaleNames.entries.sortedBy { it.value }
-        quality += vid(EnumInput(
-            "Video Scale", "Full resolution isn't always required. Define it yourself, or set it to automatic.",
+        (if (forceFullScale || forceAutoScale) editor else quality()) += vid(EnumInput(
+            "Preview Scale",
+            "Full video resolution isn't always required. Define it yourself, or set it to automatic.",
             videoScaleNames.reverse[videoScale] ?: "Auto",
-            videoScales.map { NameDesc(it.key) }, style
+            videoScales.map { NameDesc(it.key) },
+            style
         )
             .setChangeListener { _, index, _ -> videoScale = videoScales[index].value }
             .setIsSelectedListener { show(null) })
-        quality += vid(EnumInput(
+
+        editor += vid(EnumInput(
             "Preview FPS",
             "Smoother preview, heavier calculation",
             editorVideoFPS.displayName,
@@ -718,7 +765,8 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                 VideoType.IMAGE_SEQUENCE, VideoType.VIDEO -> true
                 else -> false
             } && meta?.hasVideo == true
-            val state = hasAudio.toInt(1) + hasImage.toInt(2) + hasVideo.toInt(4)
+            val hasImSeq = isValid && type == VideoType.IMAGE_SEQUENCE
+            val state = hasAudio.toInt(1) + hasImage.toInt(2) + hasVideo.toInt(4) + hasImSeq.toInt(8)
             if (state != lastState) {
                 lastState = state
                 audioPanels.forEach { it.visibility = if (hasAudio) Visibility.VISIBLE else Visibility.GONE }
@@ -802,6 +850,8 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
             videoScaleNames["1/8"] = 8
             videoScaleNames["1/12"] = 12
             videoScaleNames["1/16"] = 16
+            videoScaleNames["1/32"] = 32
+            videoScaleNames["1/64"] = 64
         }
 
         val videoFrameTimeout = DefaultConfig["ui.video.frameTimeout", 500L]

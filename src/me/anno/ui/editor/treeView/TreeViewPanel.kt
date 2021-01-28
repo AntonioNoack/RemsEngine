@@ -22,7 +22,7 @@ import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.Selection.selectTransform
 import me.anno.studio.rems.Selection.selectedTransform
-import me.anno.ui.base.TextPanel
+import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.menu.Menu.menuSeparator1
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
@@ -170,7 +170,9 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style) : TextPanel("
             "DragStart" -> {
                 val transform = getElement()
                 if (dragged?.getOriginal() != transform) {
-                    dragged = Draggable(transform.stringify(), "Transform", transform, TextPanel(transform.name, style))
+                    dragged = Draggable(transform.stringify(), "Transform", transform,
+                        TextPanel(transform.name, style)
+                    )
                 }
             }
             else -> return super.onGotAction(x, y, dx, dy, action, isContinuous)

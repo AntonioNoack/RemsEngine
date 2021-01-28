@@ -7,7 +7,7 @@ import me.anno.input.Input
 import me.anno.language.translation.NameDesc
 import me.anno.ui.base.Panel
 import me.anno.ui.base.SpacePanel
-import me.anno.ui.base.TextPanel
+import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment

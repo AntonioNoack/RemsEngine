@@ -3,7 +3,7 @@ package me.anno.ui.debug
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFXx2D.drawRect
 import me.anno.ui.base.Panel
-import me.anno.ui.base.TextPanel
+import me.anno.ui.base.text.TextPanel
 import kotlin.math.max
 
 object FrameTimes : Panel(DefaultConfig.style.getChild("fps")) {

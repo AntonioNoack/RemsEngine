@@ -28,14 +28,13 @@ import me.anno.studio.rems.RemsStudio.root
 import me.anno.studio.rems.RemsStudio.versionName
 import me.anno.studio.rems.RemsStudio.windowStack
 import me.anno.studio.rems.RenderSettings
-import me.anno.studio.rems.Rendering.render
 import me.anno.studio.rems.Rendering.renderPart
 import me.anno.studio.rems.Rendering.renderSetPercent
 import me.anno.studio.rems.Selection.selectTransform
 import me.anno.studio.rems.Selection.selectedTransform
 import me.anno.ui.base.Panel
 import me.anno.ui.base.SpacePanel
-import me.anno.ui.base.TextPanel
+import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.components.Padding
@@ -74,8 +73,6 @@ import org.apache.logging.log4j.LogManager
 import java.io.File
 import java.net.URL
 import kotlin.concurrent.thread
-import kotlin.math.max
-import kotlin.math.roundToInt
 
 object UILayouts {
 
@@ -306,7 +303,7 @@ object UILayouts {
         val welcome = PanelListY(style)
 
         welcome += TextPanel("Rem's Studio", style).apply { font = font.withSize(font.size * 3f) }
-        welcome += TextPanel("Version ${RemsStudio.versionName}", style).apply {
+        welcome += TextPanel("Version $versionName", style).apply {
             textColor = textColor and 0x7fffffff
             focusTextColor = textColor
         }

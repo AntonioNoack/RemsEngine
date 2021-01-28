@@ -2,7 +2,7 @@ package me.anno.ui.input.components
 
 import me.anno.input.MouseButton
 import me.anno.ui.base.Panel
-import me.anno.ui.base.TextPanel
+import me.anno.ui.base.text.TextPanel
 import me.anno.ui.style.Style
 
 class TitlePanel(title: String, val owner: Panel, style: Style) : TextPanel(title, style) {

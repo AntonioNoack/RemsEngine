@@ -3,7 +3,7 @@ package me.anno.ui.editor.stacked
 import me.anno.input.MouseButton
 import me.anno.language.translation.NameDesc
 import me.anno.objects.inspectable.Inspectable
-import me.anno.ui.base.TextPanel
+import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.groups.PanelListY

@@ -19,22 +19,34 @@ class SoftLink(var file: File) : Transform() {
 
     constructor() : this(File(""))
 
-    var lastModified: Any? = null
-    var camera: Camera? = null
+    /**
+     * which camera is chosen from the scene
+     * */
     var cameraIndex = 0
 
-    init {
-        isCollapsedI.setDefault(true)
-    }
+    /**
+     * to apply LUTs, effects and such
+     * */
+    var renderToTexture = false
+
+    init { isCollapsedI.setDefault(true) }
+
+    private var lastModified: Any? = null
+    private var lastCamera: Camera? = null
 
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
         super.onDraw(stack, time, color)
+
+        if(renderToTexture){
+            // todo option to render to texture;
+        }
+
         val lm = LastModifiedCache[file] to cameraIndex
         if (lm != lastModified) {
             lastModified = lm
             load()
         }
-        val camera = camera
+        val camera = lastCamera
         if (camera != null) {
             val (cameraTransform, _) = camera.getLocalTransform(time, this)
             val inv = Matrix4f(cameraTransform).invert()
@@ -59,7 +71,7 @@ class SoftLink(var file: File) : Transform() {
                     addChild(Text("Use scene files!"))
                 } else {
                     addChildFromFile(this, file, false, false) { transform ->
-                        camera = transform.listOfAll
+                        lastCamera = transform.listOfAll
                             .filterIsInstance<Camera>()
                             .toList()
                             .getOrNull(cameraIndex - 1)// 1 = first, 0 = none
@@ -92,7 +104,15 @@ class SoftLink(var file: File) : Transform() {
             children.clear()
             writer.writeFile("file", file)
             writer.writeInt("cameraIndex", cameraIndex)
+            writer.writeBoolean("renderToTexture", renderToTexture)
             children.addAll(c)
+        }
+    }
+
+    override fun readBoolean(name: String, value: Boolean) {
+        when(name){
+            "renderToTexture" -> renderToTexture = value
+            else -> super.readBoolean(name, value)
         }
     }
 

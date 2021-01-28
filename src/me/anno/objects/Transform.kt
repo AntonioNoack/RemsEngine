@@ -145,6 +145,8 @@ open class Transform(var parent: Transform? = null) : Saveable(),
         }
     }
 
+    open fun clearCache(){}
+
     fun setChildAt(child: Transform, index: Int) {
         if (this in child.listOfAll) throw RuntimeException()
         if (index >= children.size) {

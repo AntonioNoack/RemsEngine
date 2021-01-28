@@ -6,7 +6,7 @@ import me.anno.io.utils.StringMap
 import me.anno.objects.animation.Type
 import me.anno.studio.rems.RemsStudio.root
 import me.anno.ui.base.Panel
-import me.anno.ui.base.TextPanel
+import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.input.*
 import me.anno.utils.Color.rgba

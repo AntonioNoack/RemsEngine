@@ -23,7 +23,7 @@ import me.anno.objects.Camera
 import me.anno.objects.Video
 import me.anno.studio.StudioBase
 import me.anno.ui.base.Panel
-import me.anno.ui.base.TextPanel
+import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.base.menu.Menu.ask
 import me.anno.ui.base.menu.Menu.askName
@@ -97,7 +97,10 @@ class FileEntry(
         }
     }
 
-    private val titlePanel = TextPanel(if (isParent) ".." else if (file.name.isEmpty()) file.toString() else file.name, style)
+    private val titlePanel = TextPanel(
+        if (isParent) ".." else if (file.name.isEmpty()) file.toString() else file.name,
+        style
+    )
 
     override val children: List<Panel> = listOf(titlePanel)
     override fun remove(child: Panel) {}
@@ -390,7 +393,9 @@ class FileEntry(
             "DragStart" -> {
                 if (StudioBase.dragged?.getOriginal() != file) {
                     StudioBase.dragged =
-                        Draggable(file.toString(), "File", file, TextPanel(file.nameWithoutExtension, style))
+                        Draggable(file.toString(), "File", file,
+                            TextPanel(file.nameWithoutExtension, style)
+                        )
                 }
             }
             "Enter" -> {

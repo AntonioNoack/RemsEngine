@@ -3,7 +3,7 @@ package me.anno.ui.debug.console
 import me.anno.gpu.GFX
 import me.anno.input.MouseButton
 import me.anno.ui.base.Panel
-import me.anno.ui.base.TextPanel
+import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.style.Style
 
