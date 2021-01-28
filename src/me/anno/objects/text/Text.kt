@@ -40,6 +40,7 @@ import me.anno.ui.input.EnumInput
 import me.anno.ui.input.TextInputML
 import me.anno.ui.style.Style
 import me.anno.utils.Casting.castToFloat
+import me.anno.utils.Casting.castToFloat2
 import me.anno.utils.Vectors.mulAlpha
 import me.anno.utils.Vectors.plus
 import me.anno.utils.Vectors.times
@@ -767,8 +768,8 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
 
     companion object {
 
-        val tabSpaceType = Type(4f, 1, 1f, true, true, { max(it as Float, 0f) }, ::castToFloat)
-        val lineBreakType = Type(-1f, 1, 1f, true, true, { it as Float }, ::castToFloat)
+        val tabSpaceType = Type.FLOAT_PLUS.withDefaultValue(4f)
+        val lineBreakType = Type.FLOAT.withDefaultValue(-1f)
 
         val textMeshTimeout = 5000L
         val lastUsedFonts = arrayOfNulls<String>(max(0, DefaultConfig["lastUsed.fonts.count", 5]))

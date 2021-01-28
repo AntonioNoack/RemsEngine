@@ -2,7 +2,7 @@ package me.anno.extensions
 
 import org.apache.logging.log4j.LogManager
 
-abstract class ExtensionManager<V: Extension> {
+abstract class ExtensionManager<V: Extension>(val instanceName: String) {
 
     val loaded = HashSet<V>()
 
@@ -10,7 +10,7 @@ abstract class ExtensionManager<V: Extension> {
         onEnable(extensions)
         loaded += extensions
         for(ex in extensions){
-            LOGGER.info("Enabled Extension \"${ex.name}\"")
+            LOGGER.info("Enabled $instanceName \"${ex.name}\"")
         }
     }
 
@@ -20,7 +20,7 @@ abstract class ExtensionManager<V: Extension> {
         val list = loaded.toList()
         onDisable(list)
         for(ex in list){
-            LOGGER.info("Disabled Extension \"${ex.name}\"")
+            LOGGER.info("Disabled $instanceName \"${ex.name}\"")
         }
         loaded.clear()
     }

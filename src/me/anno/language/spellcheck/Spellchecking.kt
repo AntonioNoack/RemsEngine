@@ -193,6 +193,7 @@ object Spellchecking : CacheSection("Spellchecking") {
 
     private var shallStop = false
     fun destroy() {
+        LOGGER.info("Shutting down")
         shallStop = true
     }
 

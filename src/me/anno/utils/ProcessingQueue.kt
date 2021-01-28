@@ -1,5 +1,6 @@
 package me.anno.utils
 
+import org.apache.logging.log4j.LogManager
 import java.util.concurrent.LinkedBlockingQueue
 import kotlin.concurrent.thread
 
@@ -30,8 +31,10 @@ class ProcessingQueue(val name: String){
     }
 
     companion object {
+        private val LOGGER = LogManager.getLogger(ProcessingQueue::class)
         var shallShutDown = false
         fun destroy(){
+            LOGGER.info("Shutting down")
             shallShutDown = true
         }
     }

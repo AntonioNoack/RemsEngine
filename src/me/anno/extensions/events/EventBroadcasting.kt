@@ -4,8 +4,9 @@ import me.anno.extensions.ExtensionLoader.managers
 
 object EventBroadcasting {
 
-    fun callEvent(event: Event): Event? {
+    fun callEventNullable(event: Event?): Event? {
 
+        event ?: return null
         if(event.isCancelled) return null
 
         for(manager in managers){
@@ -17,6 +18,11 @@ object EventBroadcasting {
 
         return event
 
+    }
+
+    fun callEvent(event: Event): Event {
+        if(callEventNullable(event) == null) event.isCancelled = true
+        return event
     }
 
 }

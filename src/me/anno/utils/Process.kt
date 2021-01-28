@@ -9,7 +9,6 @@ val reservedThreadCount = 1 + 1 /* ui + audio?/file-loading/network? */
 val threads = max(1, Runtime.getRuntime().availableProcessors() - reservedThreadCount)
 
 fun processUnbalanced(i0: Int, i1: Int, heavy: Boolean, func: (i0: Int, i1: Int) -> Unit) {
-    // todo a second function with balanced load?
     val minCountPerThread = if (heavy) 1 else 5
     val count = i1 - i0
     val threadCount = clamp(count / minCountPerThread, 1, threads)
@@ -42,7 +41,6 @@ fun processUnbalanced(i0: Int, i1: Int, heavy: Boolean, func: (i0: Int, i1: Int)
 }
 
 fun processBalanced(i0: Int, i1: Int, minCountPerThread: Int, func: (i0: Int, i1: Int) -> Unit) {
-    // todo a second function with balanced load?
     val count = i1 - i0
     val threadCount = clamp(count / minCountPerThread, 1, threads)
     if (threadCount == 1) {
@@ -53,7 +51,7 @@ fun processBalanced(i0: Int, i1: Int, minCountPerThread: Int, func: (i0: Int, i1
             val endIndex = i0 + (threadId + 1) * count / threadCount
             thread { func(startIndex, endIndex) }
         }
-        // todo process last
+        // process last
         val threadId = threadCount - 1
         val startIndex = i0 + threadId * count / threadCount
         func(startIndex, i1)
@@ -62,13 +60,20 @@ fun processBalanced(i0: Int, i1: Int, minCountPerThread: Int, func: (i0: Int, i1
 }
 
 fun processBalanced(i0: Int, i1: Int, heavy: Boolean, func: (i0: Int, i1: Int) -> Unit) {
-    // todo a second function with balanced load?
     processBalanced(i0, i1, if (heavy) 1 else 512, func)
 }
 
 fun <V> processStage(entries: List<V>, doIO: Boolean, stage: (V) -> Unit) {
     if (doIO) {
-        entries.map { thread { stage(it) } }.forEach { it.join() }
+        entries.map {
+            thread {
+                try {
+                    stage(it)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+        }.forEach { it.join() }
     } else {
         processUnbalanced(0, entries.size, true) { i0, i1 ->
             for (i in i0 until i1) {

@@ -4,6 +4,7 @@ import me.anno.cache.CacheSection
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.getRecentProjects
 import me.anno.config.DefaultStyle.black
+import me.anno.extensions.ExtensionLoader
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXBase0
 import me.anno.gpu.Window
@@ -474,7 +475,13 @@ object UILayouts {
             )
         }
 
-        options.addAction(debugTitle, "Refresh (Ctrl+F5)") { CacheSection.clearAll() }
+        options.addAction(debugTitle, "Reload Cache (Ctrl+F5)") { CacheSection.clearAll() }
+        options.addAction(debugTitle, "Reload Plugins"){ ExtensionLoader.reloadPlugins() }
+        // todo overview to show plugins & mods
+        // todo marketplace for plugins & mods?
+        // ...
+
+        // todo shortcuts, which can be set for all actions??...
 
         options.addAction(renderTitle, "Settings") { selectTransform(RenderSettings) }
         options.addAction(renderTitle, "Set%") { renderSetPercent(true) }

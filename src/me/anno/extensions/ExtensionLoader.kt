@@ -1,21 +1,19 @@
 package me.anno.extensions
 
+import me.anno.config.DefaultConfig
 import me.anno.extensions.mods.Mod
 import me.anno.extensions.mods.ModManager
 import me.anno.extensions.plugins.Plugin
 import me.anno.extensions.plugins.PluginManager
 import me.anno.io.config.ConfigBasics.configFolder
-import me.anno.utils.LOGGER
+import me.anno.studio.StudioBase
 import me.anno.utils.processStage
+import org.apache.logging.log4j.LogManager
 import java.io.BufferedReader
 import java.io.File
-import java.lang.reflect.Method
-import java.net.URI
-import java.net.URL
 import java.net.URLClassLoader
 import java.util.zip.ZipInputStream
 import kotlin.concurrent.thread
-
 
 object ExtensionLoader {
 
@@ -42,7 +40,8 @@ object ExtensionLoader {
                     if (!name.startsWith(".") && name.endsWith(".jar")) {
                         threads += thread {
                             val info = loadInfo(it)
-                            if (info != null) {
+                            // (check if compatible???)
+                            if (info != null && checkExtensionRequirements(info)) {
                                 synchronized(extInfos0) {
                                     extInfos0 += info
                                 }
@@ -56,6 +55,22 @@ object ExtensionLoader {
         add(modsFolder)
         threads.forEach { it.join() }
         return extInfos0
+    }
+
+    fun checkExtensionRequirements(info: ExtensionInfo): Boolean {
+        val instance = StudioBase.instance
+        if(instance.versionNumber in info.minVersion until info.maxVersion){
+            // check if the mod was not disabled
+            val isDisabled = DefaultConfig["extensions.isDisabled.${info.uuid}",false]
+            if(isDisabled){
+                LOGGER.info("Ignored extension \"${info.name}\", because it was disabled")
+            } else return true
+        } else {
+            LOGGER.warn("Extension \"${info.name}\" is incompatible " +
+                    "with ${instance.title} version ${instance.versionName}!, " +
+                    "${info.minVersion} <= ${instance.versionNumber} < ${info.maxVersion}")
+        }
+        return false
     }
 
     private fun warnOfMissingDependencies(extInfos: Collection<ExtensionInfo>, extInfos0: Collection<ExtensionInfo>) {
@@ -175,6 +190,8 @@ object ExtensionLoader {
                     var isPluginNotMod = true
                     var dependencies = ""
                     var uuid = ""
+                    var minVersion = 0
+                    var maxVersion = Integer.MAX_VALUE
                     while (true) {
                         val line = reader.readLine() ?: break
                         val index = line.indexOf(':')
@@ -211,6 +228,8 @@ object ExtensionLoader {
                                 "plugindependencies", "plugin-dependencies",
                                 "dependencies" -> dependencies += value
                                 "plugin-uuid", "mod-uuid", "plugin-id", "mod-id", "uuid" -> uuid = value
+                                "minversion", "min-version" -> minVersion = value.toIntOrNull() ?: minVersion
+                                "maxversion", "max-version" -> maxVersion = value.toIntOrNull() ?: maxVersion
                             }
                         }
                     }
@@ -224,6 +243,7 @@ object ExtensionLoader {
                         return ExtensionInfo(
                             uuid, file,
                             name, description, version, authors,
+                            minVersion, maxVersion,
                             mainClass, isPluginNotMod, dependencyList
                         )
                     }
@@ -232,5 +252,7 @@ object ExtensionLoader {
         }
         return null
     }
+
+    private val LOGGER = LogManager.getLogger(ExtensionLoader::class)
 
 }

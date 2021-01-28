@@ -41,22 +41,20 @@ abstract class Extension {
      * were found
      * */
     fun registerListener(any: Any): Int {
+        if(!isRunning) return 0
         var ctr = 0
-        if(isRunning){
-            any.javaClass.methods.forEach { method ->
-                val modifiers = method.modifiers
-                if (
-                    Modifier.isPublic(modifiers) &&
-                    !Modifier.isAbstract(modifiers) &&
-                    !Modifier.isStatic(modifiers) &&
-                    method.annotations.any { it is EventHandler }
-                ) {
-                    val types = method.parameterTypes
-                    if (types.size == 2) {
-                        // first is object, second is argument
-                        listeners.getOrPut(types[1]) { HashSet() }.add(any to method)
-                        ctr++
-                    }
+        any.javaClass.methods.forEach { method ->
+            val modifiers = method.modifiers
+            if (
+                Modifier.isPublic(modifiers) &&
+                !Modifier.isAbstract(modifiers) &&
+                !Modifier.isStatic(modifiers) &&
+                method.annotations.any { it is EventHandler }
+            ) {
+                val types = method.parameterTypes
+                if (types.size == 1) {
+                    listeners.getOrPut(types[0]) { HashSet() }.add(any to method)
+                    ctr++
                 }
             }
         }
@@ -64,11 +62,10 @@ abstract class Extension {
     }
 
     fun unregisterListener(any: Any) {
-        if(isRunning){
-            listeners.values.forEach {
-                it.removeIf { (listener, _) ->
-                    listener == any
-                }
+        if(!isRunning) return
+        listeners.values.forEach {
+            it.removeIf { (listener, _) ->
+                listener == any
             }
         }
     }

@@ -27,6 +27,11 @@ class Type(
 
     override fun toString() = "Type[${defaultValue.javaClass.simpleName} x $components]"
 
+    fun withDefaultValue(defaultValue: Any) = Type(
+        defaultValue, components, unitScale, hasLinear, hasExponential,
+        clampFunc, acceptOrNull
+    )
+
     fun <V> clamp(value: V): V = if (clampFunc != null) clampFunc.invoke(value) as V else value
 
     companion object {
@@ -62,7 +67,7 @@ class Type(
         val ROT_YXZ = Type(Vector3f(), 3, 90f, true, true, null, ::castToVector3f)
         val ROT_XZ = Type(Vector3f(), 2, 90f, true, true, null, ::castToVector2f)
         val SKEW_2D = Type(Vector2f(), 2, 1f, true, true, null, ::castToVector2f)
-        val QUATERNION = Type(Quaternionf(), 4, 1f, true, true, null) { if(it is Quaternionf) it else null }
+        val QUATERNION = Type(Quaternionf(), 4, 1f, true, true, null) { if (it is Quaternionf) it else null }
         val COLOR = Type(Vector4f(1f, 1f, 1f, 1f), 4, 1f, true, true, {
             when (it) {
                 is Vector4f -> {

@@ -3,7 +3,7 @@ package me.anno.extensions.mods
 import me.anno.extensions.ExtensionManager
 import me.anno.utils.processStage
 
-object ModManager: ExtensionManager<Mod>() {
+object ModManager: ExtensionManager<Mod>("Mod") {
 
     override fun onEnable(extensions: List<Mod>) {
         extensions.forEach { it.isRunning = true }
