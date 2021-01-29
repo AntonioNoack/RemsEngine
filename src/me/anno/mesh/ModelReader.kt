@@ -1,7 +1,7 @@
 package me.anno.mesh
 
 import me.anno.utils.Maths.mix
-import me.anno.utils.Writing.readVec3
+import me.anno.utils.io.Writing.readVec3
 import org.joml.Vector2f
 import org.joml.Vector3f
 import java.io.DataInputStream

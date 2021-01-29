@@ -18,9 +18,9 @@ import me.anno.objects.Transform.Companion.zAxis
 import me.anno.utils.Maths.distance
 import me.anno.utils.Maths.pow
 import me.anno.utils.Maths.sq
-import me.anno.utils.Vectors.avg
-import me.anno.utils.Vectors.minus
-import me.anno.utils.Vectors.toVec3f
+import me.anno.utils.types.Vectors.avg
+import me.anno.utils.types.Vectors.minus
+import me.anno.utils.types.Vectors.toVec3f
 import org.joml.Matrix4f
 import org.joml.Matrix4fArrayList
 import org.joml.Vector3f

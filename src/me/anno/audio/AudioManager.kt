@@ -9,6 +9,7 @@ import me.anno.studio.rems.RemsStudio.editorTime
 import me.anno.studio.rems.RemsStudio.editorTimeDilation
 import me.anno.studio.rems.RemsStudio.nullCamera
 import me.anno.studio.rems.RemsStudio.root
+import me.anno.utils.Sleep.sleepShortly
 import org.joml.Matrix4f
 import org.lwjgl.openal.AL
 import org.lwjgl.openal.ALC
@@ -55,7 +56,7 @@ object AudioManager {
                     updateTime(editorTime, editorTimeDilation, root)
                 }
                 ALBase.check()
-                Thread.sleep(1)
+                sleepShortly()
             }
             destroy()
         }

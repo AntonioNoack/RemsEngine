@@ -1,6 +1,6 @@
 package me.anno.objects.effects.types
 
-import me.anno.utils.ResourceHelper
+import me.anno.utils.io.ResourceHelper
 
 object GLSLLib {
 

@@ -10,9 +10,9 @@ import me.anno.input.Input.mouseKeysDown
 import me.anno.input.MouseButton
 import me.anno.ui.style.Style
 import me.anno.utils.Maths.clamp
-import me.anno.utils.Quad
-import me.anno.utils.StringHelper.getIndexFromText
-import me.anno.utils.StringHelper.joinChars
+import me.anno.utils.structures.tuples.Quad
+import me.anno.utils.types.Strings.getIndexFromText
+import me.anno.utils.types.Strings.joinChars
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -87,7 +87,12 @@ open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edi
     }
 
     var showBars = false
-    override fun getVisualState(): Any? = Quad(super.getVisualState(), Pair(showBars, drawingOffset), cursor1, cursor2)
+    override fun getVisualState(): Any? = Quad(
+        super.getVisualState(),
+        Pair(showBars, drawingOffset),
+        cursor1,
+        cursor2
+    )
 
     override fun tickUpdate() {
         super.tickUpdate()

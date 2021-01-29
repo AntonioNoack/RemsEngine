@@ -8,8 +8,8 @@ import me.anno.objects.inspectable.InspectableAnimProperty
 import me.anno.objects.particles.Particle
 import me.anno.objects.particles.ParticleState
 import me.anno.utils.Maths.pow
-import me.anno.utils.Vectors.minus
-import me.anno.utils.Vectors.times
+import me.anno.utils.types.Vectors.minus
+import me.anno.utils.types.Vectors.times
 import org.joml.Matrix4fArrayList
 import org.joml.Vector3f
 import org.joml.Vector4f

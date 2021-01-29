@@ -13,7 +13,7 @@ import me.anno.ui.base.Panel
 import me.anno.ui.base.Visibility
 import me.anno.ui.style.Style
 import me.anno.utils.Tabs
-import me.anno.utils.Keys.isClickKey
+import me.anno.utils.input.Keys.isClickKey
 import me.anno.utils.Maths.mixARGB
 import kotlin.math.max
 import kotlin.math.min

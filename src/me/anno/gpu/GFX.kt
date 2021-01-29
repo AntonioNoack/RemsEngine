@@ -21,7 +21,7 @@ import me.anno.ui.base.Panel
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.debug.FrameTimes
 import me.anno.utils.Maths.pow
-import me.anno.utils.Vectors.minus
+import me.anno.utils.types.Vectors.minus
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
 import org.joml.Matrix4fArrayList

@@ -7,7 +7,7 @@ import me.anno.fonts.keys.TextCacheKey
 import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.TextureLib
 import me.anno.gpu.texture.ITexture2D
-import me.anno.utils.Booleans.toInt
+import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.FloatFormat.f3
 import org.apache.logging.log4j.LogManager
 import java.awt.Font

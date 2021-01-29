@@ -10,7 +10,7 @@ import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
-import me.anno.utils.StringHelper.joinChars
+import me.anno.utils.types.Strings.joinChars
 import org.joml.Vector3f
 import kotlin.streams.toList
 

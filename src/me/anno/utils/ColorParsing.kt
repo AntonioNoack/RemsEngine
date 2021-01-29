@@ -8,6 +8,7 @@ import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.Color.toHexColor
 import me.anno.utils.Maths.sq
+import me.anno.utils.structures.maps.BiMap
 import org.joml.Vector3f
 import org.joml.Vector4f
 

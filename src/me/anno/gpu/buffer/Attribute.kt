@@ -1,6 +1,6 @@
 package me.anno.gpu.buffer
 
-import me.anno.utils.StringHelper.addPrefix
+import me.anno.utils.types.Strings.addPrefix
 
 class Attribute(val name: String, val type: AttributeType, val components: Int, val isNativeInt: Boolean = false) {
 

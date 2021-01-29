@@ -5,7 +5,7 @@ import me.anno.language.translation.Dict
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.style.Style
-import me.anno.utils.FileHelper.formatFileSize
+import me.anno.utils.files.Files.formatFileSize
 import kotlin.math.abs
 
 class RuntimeInfoPanel(style: Style) : TextPanel("", style) {

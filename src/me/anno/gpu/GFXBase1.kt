@@ -1,7 +1,6 @@
 package me.anno.gpu
 
-import me.anno.utils.ResourceHelper
-import me.anno.utils.ResourceHelper.loadResource
+import me.anno.utils.io.ResourceHelper.loadResource
 import org.joml.Vector4f
 import org.lwjgl.BufferUtils
 import org.lwjgl.glfw.GLFW
@@ -9,7 +8,6 @@ import org.lwjgl.glfw.GLFW.glfwSetWindowIcon
 import org.lwjgl.glfw.GLFWImage
 import org.lwjgl.system.MemoryUtil
 import java.awt.image.BufferedImage
-import java.io.FileNotFoundException
 import java.lang.Exception
 import javax.imageio.ImageIO
 

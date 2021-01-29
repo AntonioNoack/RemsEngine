@@ -8,10 +8,10 @@ import me.anno.objects.animation.Interpolation.Companion.getWeights
 import me.anno.objects.animation.TimeValue.Companion.writeValue
 import me.anno.objects.animation.drivers.AnimationDriver
 import me.anno.studio.rems.RemsStudio.root
-import me.anno.utils.AnyToDouble.getDouble
+import me.anno.utils.types.AnyToDouble.getDouble
 import me.anno.utils.Maths.clamp
-import me.anno.utils.Vectors.plus
-import me.anno.utils.Vectors.times
+import me.anno.utils.types.Vectors.plus
+import me.anno.utils.types.Vectors.times
 import me.anno.utils.WrongClassType
 import org.apache.logging.log4j.LogManager
 import org.joml.Quaternionf

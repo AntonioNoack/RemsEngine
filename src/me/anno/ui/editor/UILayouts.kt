@@ -68,8 +68,8 @@ import me.anno.ui.input.EnumInput
 import me.anno.ui.input.FileInput
 import me.anno.ui.input.TextInput
 import me.anno.ui.style.Style
-import me.anno.utils.FileHelper.openInExplorer
-import me.anno.utils.OpenInBrowser.openInBrowser
+import me.anno.utils.files.Files.openInExplorer
+import me.anno.utils.files.OpenInBrowser.openInBrowser
 import org.apache.logging.log4j.LogManager
 import java.io.File
 import java.net.URL

@@ -19,7 +19,7 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.files.hasValidName
 import me.anno.ui.style.Style
-import me.anno.utils.LocalFile.toGlobalFile
+import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.video.MissingFrameException
 import me.karl.main.SceneLoader
 import me.karl.renderer.AnimatedModelRenderer
@@ -67,7 +67,6 @@ class Mesh(var file: File, parent: Transform?) : GFXTransform(parent) {
 
                     // load the 3D model
                     val data = getMesh(file, "Mesh-DAE", 1000, true) {
-
                         val meshData = MeshData()
                         GFX.addGPUTask(10) {
                             GFX.check()

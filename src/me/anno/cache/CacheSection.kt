@@ -4,6 +4,7 @@ import me.anno.cache.data.ICacheData
 import me.anno.cache.instances.LastModifiedCache
 import me.anno.gpu.GFX.gameTime
 import me.anno.studio.rems.RemsStudio.root
+import me.anno.utils.Sleep.sleepShortly
 import org.apache.logging.log4j.LogManager
 import java.io.File
 import java.io.FileNotFoundException
@@ -107,7 +108,7 @@ open class CacheSection(val name: String): Comparable<CacheSection> {
                     }
                 }
                 if (hasKey) break
-                Thread.sleep(0, 1000)
+                sleepShortly()
             }
         }
 

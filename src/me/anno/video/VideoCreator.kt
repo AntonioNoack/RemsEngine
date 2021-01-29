@@ -6,7 +6,7 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.studio.rems.RemsStudio.project
 import me.anno.studio.rems.Rendering.isRendering
 import me.anno.utils.Maths.clamp
-import me.anno.utils.StringHelper.formatTime
+import me.anno.utils.types.Strings.formatTime
 import me.anno.utils.FloatFormat.f1
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.BufferUtils

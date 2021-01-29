@@ -1,6 +1,6 @@
 package me.anno.mesh
 
-import me.anno.utils.Writing.writeVec3
+import me.anno.utils.io.Writing.writeVec3
 import java.io.DataOutputStream
 import java.io.OutputStream
 import java.util.zip.DeflaterOutputStream

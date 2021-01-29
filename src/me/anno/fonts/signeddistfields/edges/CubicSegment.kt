@@ -13,9 +13,9 @@ import me.anno.fonts.signeddistfields.algorithm.SDFMaths.sign
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.union
 import me.anno.fonts.signeddistfields.structs.FloatPtr
 import me.anno.fonts.signeddistfields.structs.SignedDistance
-import me.anno.utils.Vectors.minus
-import me.anno.utils.Vectors.plus
-import me.anno.utils.Vectors.times
+import me.anno.utils.types.Vectors.minus
+import me.anno.utils.types.Vectors.plus
+import me.anno.utils.types.Vectors.times
 import org.joml.AABBf
 import org.joml.Vector2f
 import java.lang.RuntimeException

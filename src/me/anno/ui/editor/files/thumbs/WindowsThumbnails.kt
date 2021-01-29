@@ -7,7 +7,7 @@ import me.anno.ui.editor.files.thumbs.WindowsThumbDBVersions.win8
 import me.anno.ui.editor.files.thumbs.WindowsThumbDBVersions.win8_1
 import me.anno.ui.editor.files.thumbs.WindowsThumbDBVersions.win8v2
 import me.anno.ui.editor.files.thumbs.WindowsThumbDBVersions.win8v3
-import me.anno.utils.readNBytes2
+import me.anno.utils.input.readNBytes2
 import java.io.EOFException
 import java.io.File
 

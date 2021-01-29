@@ -1,6 +1,6 @@
 package me.anno.io.binary
 
-import me.anno.utils.readNBytes2
+import me.anno.utils.input.readNBytes2
 import java.io.EOFException
 import java.io.InputStream
 import java.lang.RuntimeException

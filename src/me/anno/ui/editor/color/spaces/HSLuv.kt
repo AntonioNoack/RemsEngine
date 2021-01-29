@@ -2,8 +2,8 @@ package me.anno.ui.editor.color.spaces
 
 import me.anno.language.translation.NameDesc
 import me.anno.ui.editor.color.ColorSpace
-import me.anno.utils.ResourceHelper.loadText
-import me.anno.utils.Vectors.toVec3
+import me.anno.utils.io.ResourceHelper.loadText
+import me.anno.utils.types.Vectors.toVec3
 import org.hsluv.HSLuvColorSpace
 import org.joml.Vector3f
 

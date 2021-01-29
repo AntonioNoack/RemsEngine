@@ -3,12 +3,11 @@ package me.anno.fonts
 import me.anno.fonts.mesh.TextMesh
 import me.anno.fonts.mesh.TextMeshGroup.Companion.getAlignments
 import me.anno.fonts.mesh.TextRepBase
-import me.anno.utils.Lists.accumulate
+import me.anno.utils.types.Lists.accumulate
 import me.anno.utils.Maths.clamp
 import java.awt.Font
 import java.awt.font.FontRenderContext
 import java.awt.font.TextLayout
-import kotlin.math.max
 import kotlin.streams.toList
 
 /**

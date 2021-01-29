@@ -13,7 +13,7 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.color.spaces.HSLuv
 import me.anno.ui.input.EnumInput
 import me.anno.ui.style.Style
-import me.anno.utils.AnyToFloat.get
+import me.anno.utils.types.AnyToFloat.get
 import me.anno.utils.ColorParsing.parseColorComplex
 import me.anno.utils.FloatFormat.f3
 import me.anno.utils.Maths.clamp

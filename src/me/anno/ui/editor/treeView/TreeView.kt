@@ -16,7 +16,7 @@ import me.anno.ui.base.Visibility
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.scrolling.ScrollPanelXY
-import me.anno.ui.editor.files.addChildFromFile
+import me.anno.ui.editor.files.ImportFromFile.addChildFromFile
 import me.anno.ui.editor.treeView.TreeViewPanel.Companion.openAddMenu
 import me.anno.ui.style.Style
 import java.io.File

@@ -39,11 +39,9 @@ import me.anno.ui.input.BooleanInput
 import me.anno.ui.input.EnumInput
 import me.anno.ui.input.TextInputML
 import me.anno.ui.style.Style
-import me.anno.utils.Casting.castToFloat
-import me.anno.utils.Casting.castToFloat2
-import me.anno.utils.Vectors.mulAlpha
-import me.anno.utils.Vectors.plus
-import me.anno.utils.Vectors.times
+import me.anno.utils.types.Vectors.mulAlpha
+import me.anno.utils.types.Vectors.plus
+import me.anno.utils.types.Vectors.times
 import me.anno.video.MissingFrameException
 import org.joml.Matrix4fArrayList
 import org.joml.Vector2f

@@ -4,6 +4,7 @@ import me.anno.audio.AudioStream
 import me.anno.audio.effects.SoundPipeline
 import me.anno.objects.Audio
 import me.anno.objects.Camera
+import me.anno.utils.Sleep.sleepShortly
 import org.apache.logging.log4j.LogManager
 import java.io.DataOutputStream
 import java.io.File
@@ -33,7 +34,7 @@ class VideoAudioCreator(
         vbt.start()
         // wait for the task to finish
         while (!vbt.isDone) {
-            Thread.sleep(1)
+            sleepShortly()
         }
         if (audioSources.isEmpty()) {
             if(output != videoCreator.output){
@@ -125,7 +126,7 @@ class VideoAudioCreator(
                     it.requestNextBuffer(startTime, bufferIndex)
                 }
                 while (streamFillCounter.get() < streams.size) {
-                    Thread.sleep(1)
+                    sleepShortly()
                 }
                 // write the data to ffmpeg
                 val size = buffer.capacity()

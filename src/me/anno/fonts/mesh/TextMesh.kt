@@ -7,12 +7,10 @@ import me.anno.gpu.buffer.StaticBuffer
 import me.anno.ui.base.DefaultRenderingHints
 import me.anno.utils.Maths.distance
 import me.anno.utils.OS
-import me.anno.utils.Vectors.avg
-import me.anno.utils.Vectors.isInsideTriangle
-import me.anno.utils.Vectors.minus
-import me.anno.utils.Vectors.print
+import me.anno.utils.types.Vectors.avg
+import me.anno.utils.types.Vectors.isInsideTriangle
+import me.anno.utils.types.Vectors.minus
 import org.apache.logging.log4j.LogManager
-import org.joml.Vector2d
 import org.joml.Vector2f
 import java.awt.Color
 import java.awt.Font
@@ -23,7 +21,6 @@ import java.awt.geom.GeneralPath
 import java.awt.geom.PathIterator
 import java.awt.image.BufferedImage
 import java.io.File
-import java.util.*
 import javax.imageio.ImageIO
 import kotlin.collections.ArrayList
 import kotlin.math.abs

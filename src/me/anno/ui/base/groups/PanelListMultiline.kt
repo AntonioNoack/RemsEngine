@@ -8,7 +8,7 @@ import me.anno.ui.base.scrolling.ScrollableY
 import me.anno.ui.base.scrolling.ScrollbarY
 import me.anno.ui.style.Style
 import me.anno.utils.Maths.clamp
-import me.anno.utils.Quad
+import me.anno.utils.structures.tuples.Quad
 import kotlin.math.max
 
 class PanelListMultiline(style: Style) : PanelGroup(style), ScrollableY {
@@ -35,7 +35,12 @@ class PanelListMultiline(style: Style) : PanelGroup(style), ScrollableY {
         Triple(
             super.getLayoutState(),
             children.count { it.visibility == Visibility.VISIBLE },
-            Quad(childWidth, childHeight, scrollPosition, maxScrollPosition)
+            Quad(
+                childWidth,
+                childHeight,
+                scrollPosition,
+                maxScrollPosition
+            )
         )
 
     var rows = 1

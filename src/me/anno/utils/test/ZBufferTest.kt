@@ -1,6 +1,6 @@
 package me.anno.utils.test
 
-import me.anno.utils.Vectors.print
+import me.anno.utils.types.Vectors.print
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
 import org.joml.Vector4f

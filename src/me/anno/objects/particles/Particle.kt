@@ -3,11 +3,11 @@ package me.anno.objects.particles
 import me.anno.gpu.GFX
 import me.anno.objects.Transform
 import me.anno.objects.forces.ForceField
-import me.anno.utils.Floats.toRadians
+import me.anno.utils.types.Floats.toRadians
 import me.anno.utils.Maths
-import me.anno.utils.Vectors.plus
-import me.anno.utils.Vectors.times
-import me.anno.utils.structures.UnsafeArrayList
+import me.anno.utils.types.Vectors.plus
+import me.anno.utils.types.Vectors.times
+import me.anno.utils.structures.lists.UnsafeArrayList
 import me.anno.video.MissingFrameException
 import org.joml.Matrix4fArrayList
 import org.joml.Vector3f

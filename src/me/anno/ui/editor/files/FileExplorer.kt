@@ -20,15 +20,14 @@ import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.input.TextInput
 import me.anno.ui.style.Style
-import me.anno.utils.FileHelper.listFiles2
-import me.anno.utils.FileHelper.openInExplorer
+import me.anno.utils.files.Files.listFiles2
+import me.anno.utils.files.Files.openInExplorer
 import me.anno.utils.OS
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.pow
 import java.io.File
 import kotlin.concurrent.thread
 import kotlin.math.max
-import kotlin.reflect.jvm.internal.impl.descriptors.Named
 
 // todo the text size is quite small on my x360 -> get the font size for the ui from the OS :)
 // todo double click is not working in touch mode?

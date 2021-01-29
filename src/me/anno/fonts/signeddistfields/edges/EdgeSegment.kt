@@ -4,7 +4,7 @@ import me.anno.fonts.signeddistfields.structs.FloatPtr
 import me.anno.fonts.signeddistfields.structs.SignedDistance
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.crossProduct
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.dotProduct
-import me.anno.utils.Vectors.minus
+import me.anno.utils.types.Vectors.minus
 import org.joml.AABBf
 import org.joml.Vector2f
 import kotlin.math.abs

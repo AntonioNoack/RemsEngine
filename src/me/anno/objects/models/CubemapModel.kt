@@ -3,8 +3,8 @@ package me.anno.objects.models
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.objects.Transform
-import me.anno.utils.Vectors.plus
-import me.anno.utils.Vectors.times
+import me.anno.utils.types.Vectors.plus
+import me.anno.utils.types.Vectors.times
 import org.joml.Vector3f
 import org.joml.Vector3fc
 

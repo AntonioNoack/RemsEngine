@@ -1,10 +1,8 @@
 package me.anno.io.base
 
 import me.anno.io.ISaveable
-import me.anno.io.config.ConfigBasics
 import me.anno.studio.StudioBase
-import me.anno.studio.rems.RemsStudio
-import me.anno.utils.LocalFile.toLocalPath
+import me.anno.utils.files.LocalFile.toLocalPath
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4d

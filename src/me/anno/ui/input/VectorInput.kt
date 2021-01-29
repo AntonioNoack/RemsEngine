@@ -23,8 +23,8 @@ import me.anno.ui.input.components.PureTextInput
 import me.anno.ui.input.components.TitlePanel
 import me.anno.ui.input.components.VectorInputComponent
 import me.anno.ui.style.Style
-import me.anno.utils.AnyToFloat.getFloat
-import me.anno.utils.Lists.one
+import me.anno.utils.types.AnyToFloat.getFloat
+import me.anno.utils.types.Lists.one
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.pow
 import org.joml.Quaternionf

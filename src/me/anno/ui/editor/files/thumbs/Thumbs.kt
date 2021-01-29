@@ -22,13 +22,14 @@ import me.anno.cache.instances.TextureCache.getLateinitTexture
 import me.anno.cache.instances.VideoCache.getVideoFrame
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.texture.*
-import me.anno.utils.*
 import me.anno.utils.Color.a
 import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.Color.rgba
-import me.anno.utils.StringHelper.getImportType
+import me.anno.utils.Sleep.sleepABit
+import me.anno.utils.input.readNBytes2
+import me.anno.utils.types.Strings.getImportType
 import me.anno.video.FFMPEGMetadata.Companion.getMeta
 import me.anno.video.VFrame
 import net.boeckling.crc.CRC64
@@ -253,7 +254,7 @@ object Thumbs {
                 var src: VFrame? = null
                 while (src == null) {
                     src = getVideoFrame(srcFile, scale, index, 1, fps, 1000L, true)
-                    Thread.sleep(0, 1000)
+                    sleepABit()
                 }
 
                 src.waitToLoad()

@@ -5,9 +5,9 @@ import me.anno.language.translation.NameDesc
 import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.MenuOption
-import me.anno.utils.FileHelper.openInExplorer
+import me.anno.utils.files.Files.openInExplorer
 import me.anno.utils.OS
-import me.anno.utils.OpenInBrowser.openInBrowser
+import me.anno.utils.files.OpenInBrowser.openInBrowser
 import org.apache.logging.log4j.LogManager
 import java.io.File
 import java.io.IOException

@@ -2,7 +2,7 @@ package me.anno.image.svg
 
 import me.anno.fonts.mesh.Triangulation
 import me.anno.utils.OS
-import me.anno.utils.Vectors.plus
+import me.anno.utils.types.Vectors.plus
 import org.joml.Vector2d
 import java.awt.Color
 import java.awt.Graphics2D

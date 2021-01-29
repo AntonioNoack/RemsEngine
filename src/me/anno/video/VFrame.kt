@@ -6,6 +6,8 @@ import me.anno.gpu.shader.ShaderPlus
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.GPUFiltering
+import me.anno.utils.Sleep
+import me.anno.utils.Sleep.sleepShortly
 import java.io.InputStream
 import java.lang.RuntimeException
 
@@ -22,7 +24,7 @@ abstract class VFrame(var w: Int, var h: Int, val code: Int){
         if(Thread.currentThread() == glThread) throw RuntimeException("Cannot wait on main thread")
         while (true) {
             if (isLoaded) break
-            Thread.sleep(1)
+            sleepShortly()
         }
     }
 }

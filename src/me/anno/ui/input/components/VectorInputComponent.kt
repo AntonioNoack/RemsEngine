@@ -5,7 +5,7 @@ import me.anno.objects.animation.Type
 import me.anno.ui.input.FloatInput
 import me.anno.ui.input.VectorInput
 import me.anno.ui.style.Style
-import me.anno.utils.Floats.anyToFloat
+import me.anno.utils.types.Floats.anyToFloat
 
 class VectorInputComponent(
     title: String, type: Type, owningProperty: AnimatedProperty<*>?,

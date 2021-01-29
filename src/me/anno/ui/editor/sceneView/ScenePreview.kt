@@ -14,13 +14,13 @@ import me.anno.studio.rems.RemsStudio.targetHeight
 import me.anno.studio.rems.RemsStudio.targetWidth
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.style.Style
-import me.anno.utils.Floats.toDegrees
+import me.anno.utils.types.Floats.toDegrees
 import me.anno.utils.Maths.clamp01
 import me.anno.utils.Maths.length
 import me.anno.utils.Maths.mix
 import me.anno.utils.Maths.mixAngle
-import me.anno.utils.Vectors.minus
-import me.anno.utils.Vectors.times
+import me.anno.utils.types.Vectors.minus
+import me.anno.utils.types.Vectors.times
 import org.joml.Vector3f
 import java.util.*
 import kotlin.math.atan2

@@ -1,17 +1,15 @@
 package me.anno.installer
 
 import me.anno.utils.OS
-import me.anno.utils.StringHelper.formatDownload
-import me.anno.utils.StringHelper.formatDownloadEnd
+import me.anno.utils.types.Strings.formatDownload
+import me.anno.utils.types.Strings.formatDownloadEnd
 import me.anno.video.FFMPEG
 import me.anno.video.FFMPEG.ffmpegPath
 import me.anno.video.FFMPEG.ffprobePath
 import org.apache.logging.log4j.LogManager
 import java.io.File
-import java.io.FileInputStream
 import java.io.IOException
 import java.net.HttpURLConnection
-import java.net.URI
 import java.net.URL
 import javax.net.ssl.SSLHandshakeException
 import kotlin.concurrent.thread

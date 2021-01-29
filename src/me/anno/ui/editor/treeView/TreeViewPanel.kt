@@ -27,7 +27,7 @@ import me.anno.ui.base.menu.Menu.menuSeparator1
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.dragging.Draggable
-import me.anno.ui.editor.files.addChildFromFile
+import me.anno.ui.editor.files.ImportFromFile.addChildFromFile
 import me.anno.ui.style.Style
 import me.anno.utils.Color.toARGB
 import me.anno.utils.Maths.clamp

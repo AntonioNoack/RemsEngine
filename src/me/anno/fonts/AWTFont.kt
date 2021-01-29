@@ -7,10 +7,10 @@ import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.ui.base.DefaultRenderingHints.prepareGraphics
 import me.anno.utils.BinarySearch
-import me.anno.utils.Lists.join
+import me.anno.utils.types.Lists.join
 import me.anno.utils.OS
-import me.anno.utils.StringHelper.incrementTab
-import me.anno.utils.StringHelper.joinChars
+import me.anno.utils.types.Strings.incrementTab
+import me.anno.utils.types.Strings.joinChars
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector2f
 import java.awt.Font

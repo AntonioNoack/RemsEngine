@@ -10,7 +10,8 @@ import me.anno.objects.Camera
 import me.anno.objects.modes.LoopingState
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.mix
-import me.anno.utils.Vectors.minus
+import me.anno.utils.Sleep.sleepShortly
+import me.anno.utils.types.Vectors.minus
 import me.anno.video.FFMPEGMetadata
 import me.anno.video.FFMPEGMetadata.Companion.getMeta
 import me.anno.video.FFMPEGStream
@@ -130,7 +131,7 @@ abstract class AudioStream(
                     buffer = sequence.soundBuffer
                     if (buffer != null) break
                     // somebody else needs to work on the queue
-                    Thread.sleep(0, 1000)
+                    sleepShortly()
                 }
                 buffer!!
             } as SoundBuffer

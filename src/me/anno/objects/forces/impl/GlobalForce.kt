@@ -3,7 +3,7 @@ package me.anno.objects.forces.impl
 import me.anno.objects.particles.Particle
 import me.anno.objects.particles.ParticleState
 import me.anno.objects.forces.ForceField
-import me.anno.utils.Vectors.times
+import me.anno.utils.types.Vectors.times
 import org.joml.Matrix4fArrayList
 import org.joml.Vector3f
 import org.joml.Vector4f

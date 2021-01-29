@@ -4,6 +4,7 @@ import me.anno.gpu.GFX
 import me.anno.objects.Audio
 import me.anno.objects.Camera
 import me.anno.objects.modes.LoopingState
+import me.anno.utils.Sleep.sleepShortly
 import me.anno.video.FFMPEGMetadata
 import org.lwjgl.openal.AL10.*
 import java.io.File
@@ -82,7 +83,7 @@ class AudioStreamOpenAL(file: File, repeat: LoopingState, startTime: Double, met
             requestNextBuffer(startTime + playbackSliceDuration * index, index)
         }
         thread {
-            Thread.sleep(1)
+            sleepShortly()
             if(isPlaying){
                 GFX.addAudioTask(1){
                     waitForRequiredBuffers()

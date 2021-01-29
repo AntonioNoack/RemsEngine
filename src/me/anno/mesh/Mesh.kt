@@ -8,7 +8,7 @@ import me.anno.input.Input.isKeyDown
 import me.anno.input.Input.keysDown
 import me.anno.utils.Color.toVecRGBA
 import me.anno.utils.ColorParsing.parseColor
-import me.anno.utils.Vectors
+import me.anno.utils.types.Vectors
 import org.joml.AABBf
 import org.joml.Vector3f
 import org.joml.Vector4f

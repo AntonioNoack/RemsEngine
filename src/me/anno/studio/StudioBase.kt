@@ -35,15 +35,14 @@ import me.anno.ui.dragging.IDraggable
 import me.anno.utils.FloatFormat.f3
 import me.anno.utils.Maths.clamp
 import me.anno.utils.OS
-import me.anno.utils.ProcessingQueue
-import me.anno.utils.StringHelper.addSuffix
-import me.anno.utils.StringHelper.filterAlphaNumeric
+import me.anno.utils.hpc.ProcessingQueue
+import me.anno.utils.types.Strings.addSuffix
+import me.anno.utils.types.Strings.filterAlphaNumeric
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL11.*
 import java.io.File
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
-import kotlin.concurrent.thread
 import kotlin.math.roundToInt
 
 // todo remove unnecessary checks, whether files exist and when they were created: much too expensive (0.2ms)

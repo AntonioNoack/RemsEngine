@@ -4,7 +4,7 @@ import me.anno.config.DefaultConfig
 import me.anno.io.config.ConfigBasics
 import me.anno.ui.input.EnumInput
 import me.anno.ui.style.Style
-import me.anno.utils.ResourceHelper
+import me.anno.utils.io.ResourceHelper
 import org.apache.logging.log4j.LogManager
 import java.io.File
 import java.io.FileNotFoundException

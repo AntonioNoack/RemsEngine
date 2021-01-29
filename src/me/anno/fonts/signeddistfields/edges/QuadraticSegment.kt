@@ -9,9 +9,9 @@ import me.anno.fonts.signeddistfields.algorithm.SDFMaths.dotProduct
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.mix
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.nonZeroSign
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.union
-import me.anno.utils.Vectors.minus
-import me.anno.utils.Vectors.plus
-import me.anno.utils.Vectors.times
+import me.anno.utils.types.Vectors.minus
+import me.anno.utils.types.Vectors.plus
+import me.anno.utils.types.Vectors.times
 import org.joml.AABBf
 import org.joml.Vector2f
 import kotlin.math.abs

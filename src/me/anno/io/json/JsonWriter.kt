@@ -1,6 +1,6 @@
 package me.anno.io.json
 
-import me.anno.utils.StringHelper
+import me.anno.utils.types.Strings
 import java.io.OutputStream
 
 class JsonWriter(val output: OutputStream) {
@@ -11,7 +11,7 @@ class JsonWriter(val output: OutputStream) {
     private fun writeString(value: String){
         output.write('"'.toInt())
         val sb = StringBuilder()
-        StringHelper.writeEscaped(value, sb)
+        Strings.writeEscaped(value, sb)
         output.write(sb.toString().toByteArray())
         output.write('"'.toInt())
     }

@@ -34,7 +34,7 @@ fun main(){
             SoundListener.setPosition(Vector3f(sin(arc) * rad, 0f, cos(arc) * rad))
             // source.setGain(sin(arc)*0.5f+0.5f)
 
-            Thread.sleep(10)
+            sleepShortly()
         }*/
 
         // source.destroy()

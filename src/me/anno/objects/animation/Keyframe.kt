@@ -1,7 +1,7 @@
 package me.anno.objects.animation
 
 import me.anno.io.base.BaseWriter
-import me.anno.utils.AnyToFloat
+import me.anno.utils.types.AnyToFloat
 
 class Keyframe<V>(
     time: Double, value: V,

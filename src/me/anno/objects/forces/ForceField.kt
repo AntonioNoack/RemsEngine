@@ -15,7 +15,7 @@ import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.sceneView.Grid
 import me.anno.ui.editor.stacked.Option
 import me.anno.ui.style.Style
-import me.anno.utils.Floats.toRadians
+import me.anno.utils.types.Floats.toRadians
 import me.anno.utils.Maths
 import org.joml.*
 import kotlin.math.abs

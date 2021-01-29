@@ -10,8 +10,8 @@ import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.style.Style
-import me.anno.utils.FileExplorerSelectWrapper
-import me.anno.utils.FileHelper.openInExplorer
+import me.anno.utils.files.FileExplorerSelectWrapper
+import me.anno.utils.files.Files.openInExplorer
 import java.io.File
 import kotlin.concurrent.thread
 

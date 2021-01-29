@@ -3,7 +3,7 @@ package me.anno.io.text
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
-import me.anno.utils.StringHelper
+import me.anno.utils.types.Strings
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4d
@@ -43,7 +43,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
     }
 
     private fun writeEscaped(value: String) {
-        StringHelper.writeEscaped(value, data)
+        Strings.writeEscaped(value, data)
     }
 
     private fun writeString(value: String) {

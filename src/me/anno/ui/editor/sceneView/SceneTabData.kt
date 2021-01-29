@@ -7,7 +7,7 @@ import me.anno.io.text.TextReader
 import me.anno.objects.Transform
 import me.anno.studio.history.History
 import me.anno.ui.editor.sceneTabs.SceneTab
-import me.anno.utils.LocalFile.toGlobalFile
+import me.anno.utils.files.LocalFile.toGlobalFile
 import java.io.File
 
 class SceneTabData() : Saveable() {

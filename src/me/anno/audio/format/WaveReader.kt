@@ -1,6 +1,6 @@
 package me.anno.audio.format
 
-import me.anno.utils.readNBytes2
+import me.anno.utils.input.readNBytes2
 import org.apache.logging.log4j.LogManager
 import java.io.EOFException
 import java.io.InputStream

@@ -25,11 +25,11 @@ import me.anno.ui.editor.files.FileEntry.Companion.drawLoadingCircle
 import me.anno.ui.editor.stacked.Option
 import me.anno.ui.input.BooleanInput
 import me.anno.ui.style.Style
-import me.anno.utils.Lists.sumByFloat
+import me.anno.utils.types.Lists.sumByFloat
 import me.anno.utils.Maths.mix
 import me.anno.utils.processBalanced
-import me.anno.utils.structures.UnsafeArrayList
-import me.anno.utils.structures.UnsafeSkippingArrayList
+import me.anno.utils.structures.lists.UnsafeArrayList
+import me.anno.utils.structures.lists.UnsafeSkippingArrayList
 import me.anno.utils.structures.ValueWithDefault
 import me.anno.utils.structures.ValueWithDefault.Companion.writeMaybe
 import me.anno.video.MissingFrameException

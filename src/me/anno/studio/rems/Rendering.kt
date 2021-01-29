@@ -5,10 +5,9 @@ import me.anno.objects.Audio
 import me.anno.studio.rems.RemsStudio.motionBlurSteps
 import me.anno.studio.rems.RemsStudio.shutterPercentage
 import me.anno.studio.rems.RemsStudio.targetOutputFile
-import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.Menu.ask
 import me.anno.ui.base.menu.Menu.msg
-import me.anno.utils.StringHelper.getImportType
+import me.anno.utils.types.Strings.getImportType
 import me.anno.video.VideoAudioCreator
 import me.anno.video.VideoCreator
 import org.apache.logging.log4j.LogManager

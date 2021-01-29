@@ -6,7 +6,7 @@ import me.anno.io.json.JsonReader
 import me.anno.cache.CacheSection
 import me.anno.cache.data.ICacheData
 import me.anno.cache.instances.LastModifiedCache
-import me.anno.utils.StringHelper.parseTime
+import me.anno.utils.types.Strings.parseTime
 import org.apache.logging.log4j.LogManager
 import java.io.File
 

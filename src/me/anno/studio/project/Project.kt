@@ -21,10 +21,10 @@ import me.anno.ui.editor.UILayouts.createDefaultMainUI
 import me.anno.ui.editor.sceneTabs.SceneTab
 import me.anno.ui.editor.sceneTabs.SceneTabs
 import me.anno.ui.editor.sceneView.SceneTabData
-import me.anno.utils.Casting.castToFloat
-import me.anno.utils.FileHelper.use
-import me.anno.utils.LOGGER
-import me.anno.utils.Lists.sumByFloat
+import me.anno.utils.types.Casting.castToFloat
+import me.anno.utils.files.Files.use
+import me.anno.utils.types.Lists.sumByFloat
+import org.apache.logging.log4j.LogManager
 import java.io.File
 import kotlin.math.roundToInt
 
@@ -160,8 +160,9 @@ class Project(var name: String, val file: File) : Saveable() {
                     null
                 }
             }
+
             val obj = load(JsonReader(fis).readArray())
-            if(notFound.isNotEmpty()) LOGGER.warn("UI-Types $notFound not found!")
+            if (notFound.isNotEmpty()) LOGGER.warn("UI-Types $notFound not found!")
             obj
         }
     }
@@ -249,6 +250,10 @@ class Project(var name: String, val file: File) : Saveable() {
                 farZ.defaultValue = 5000f
                 timeDilation = 0.0 // the camera has no time, so no motion can be recorded
             }
+    }
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(Project::class)
     }
 
 }

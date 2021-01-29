@@ -35,12 +35,12 @@ import me.anno.ui.editor.TimelinePanel
 import me.anno.ui.editor.sceneView.Grid.drawSmoothLine
 import me.anno.ui.style.Style
 import me.anno.utils.Color.toARGB
-import me.anno.utils.LOGGER
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.length
 import me.anno.utils.Maths.mix
 import me.anno.utils.Maths.pow
-import me.anno.utils.AnyToFloat.get
+import me.anno.utils.types.AnyToFloat.get
+import org.apache.logging.log4j.LogManager
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -742,6 +742,7 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
     }
 
     companion object {
+        private val LOGGER = LogManager.getLogger(GraphEditorBody::class)
         val valueFractions = listOf(
             0.1f, 0.2f, 0.5f, 1f,
             2f, 5f, 10f, 15f, 30f, 45f,

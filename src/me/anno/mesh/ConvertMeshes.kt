@@ -3,10 +3,9 @@ package me.anno.mesh
 import me.anno.mesh.ModelWriter.writeModels
 import me.anno.mesh.fbx.FBXLoader.loadFBX
 import me.anno.mesh.obj.ObjLoader.loadObj
-import me.anno.utils.FileHelper.use
+import me.anno.utils.files.Files.use
 import java.io.File
 import java.io.InputStream
-import kotlin.concurrent.thread
 
 object ConvertMeshes {
 

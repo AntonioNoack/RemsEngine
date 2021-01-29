@@ -2,7 +2,6 @@ package me.anno.objects.forces.impl
 
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
-import me.anno.language.translation.Dict
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.inspectable.InspectableAnimProperty
 import me.anno.objects.models.ArrowModel.arrowLineModel
@@ -11,8 +10,8 @@ import me.anno.objects.particles.ParticleState
 import me.anno.objects.forces.ForceField
 import me.anno.ui.editor.sceneView.Grid
 import me.anno.utils.Maths.pow
-import me.anno.utils.Vectors.minus
-import me.anno.utils.Vectors.times
+import me.anno.utils.types.Vectors.minus
+import me.anno.utils.types.Vectors.times
 import org.joml.Matrix4fArrayList
 import org.joml.Vector3f
 import org.joml.Vector4f

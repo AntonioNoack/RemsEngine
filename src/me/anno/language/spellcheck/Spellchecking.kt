@@ -11,7 +11,8 @@ import me.anno.language.translation.Dict
 import me.anno.studio.rems.RemsStudio.project
 import me.anno.utils.Color.hex8
 import me.anno.utils.OS
-import me.anno.utils.Streams.listen
+import me.anno.utils.Sleep.sleepShortly
+import me.anno.utils.io.Streams.listen
 import org.apache.logging.log4j.LogManager
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
@@ -104,7 +105,7 @@ object Spellchecking : CacheSection("Spellchecking") {
                 if (dst.exists()) {
                     callback(dst)
                     break@loop
-                } else Thread.sleep(1)
+                } else sleepShortly()
             }
         }
     }
@@ -141,7 +142,7 @@ object Spellchecking : CacheSection("Spellchecking") {
                 val output = process.outputStream.bufferedWriter()
                 LOGGER.info(input.readLine())
                 while (!shallStop) {
-                    if (queue.isEmpty()) Thread.sleep(1)
+                    if (queue.isEmpty()) sleepShortly()
                     else {
                         val nextTask: Request
                         synchronized(this) {

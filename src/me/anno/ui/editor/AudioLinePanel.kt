@@ -14,6 +14,7 @@ import me.anno.ui.base.Panel
 import me.anno.ui.style.Style
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.pow
+import me.anno.utils.Sleep.sleepShortly
 import me.anno.video.FFMPEGMetadata
 import me.anno.video.FFMPEGStream
 import org.apache.logging.log4j.LogManager
@@ -131,7 +132,7 @@ class AudioLinePanel(var meta: FFMPEGMetadata, val audio: Audio, style: Style): 
                 buffer = sequence.soundBuffer
                 if(buffer != null) break
                 // somebody else needs to work on the queue
-                Thread.sleep(0, 100_000) // wait 0.1ms
+                sleepShortly() // wait 0.1ms
             }
             buffer!!
         } as SoundBuffer

@@ -5,7 +5,7 @@ import me.anno.ui.editor.color.ColorSpace
 import me.anno.ui.editor.color.HSVColorSpace
 import me.anno.utils.Maths.mix
 import me.anno.utils.Optimization.simplexAlgorithm
-import me.anno.utils.Vectors.times
+import me.anno.utils.types.Vectors.times
 import org.joml.Vector3f
 
 object LinearHSI : ColorSpace(

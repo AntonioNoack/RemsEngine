@@ -7,7 +7,6 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFXx2D
 import me.anno.gpu.GFXx2D.drawRect
 import me.anno.gpu.GFXx2D.drawText
-import me.anno.gpu.GFXx2D.drawTextCharByChar
 import me.anno.gpu.GFXx2D.flatColor
 import me.anno.input.Input
 import me.anno.input.MouseButton
@@ -31,8 +30,8 @@ import me.anno.utils.Maths.fract
 import me.anno.utils.Maths.mix
 import me.anno.utils.Maths.mixARGB
 import me.anno.utils.Maths.pow
-import me.anno.utils.Quad
-import me.anno.utils.StringHelper.formatTime
+import me.anno.utils.structures.tuples.Quad
+import me.anno.utils.types.Strings.formatTime
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 import kotlin.collections.forEach
@@ -47,7 +46,8 @@ import kotlin.math.sqrt
 
 open class TimelinePanel(style: Style) : Panel(style) {
 
-    override fun getVisualState(): Any? = Quad(dtHalfLength, centralTime, editorTime, targetDuration)
+    override fun getVisualState(): Any? =
+        Quad(dtHalfLength, centralTime, editorTime, targetDuration)
 
     var drawnStrings = ArrayList<String>(64)
 

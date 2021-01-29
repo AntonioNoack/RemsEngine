@@ -3,7 +3,7 @@ package me.anno.io.binary
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.binary.BinaryTypes.*
-import me.anno.utils.Booleans.toInt
+import me.anno.utils.types.Booleans.toInt
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4d

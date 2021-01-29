@@ -14,12 +14,12 @@ import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelXY
 import me.anno.ui.style.Style
-import me.anno.utils.Lists.one
+import me.anno.utils.types.Lists.one
 import me.anno.utils.Maths.clamp
-import me.anno.utils.Quad
-import me.anno.utils.StringHelper.getIndexFromText
-import me.anno.utils.StringHelper.getLineWidth
-import me.anno.utils.StringHelper.joinChars
+import me.anno.utils.structures.tuples.Quad
+import me.anno.utils.types.Strings.getIndexFromText
+import me.anno.utils.types.Strings.getLineWidth
+import me.anno.utils.types.Strings.joinChars
 import kotlin.math.abs
 import kotlin.streams.toList
 
@@ -102,7 +102,12 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
         showBars = isInFocus && (blinkVisible || wasJustChanged)
     }
 
-    override fun getVisualState(): Any? = showBars to Quad(super.getVisualState(), cursor1, cursor2, text)
+    override fun getVisualState(): Any? = showBars to Quad(
+        super.getVisualState(),
+        cursor1,
+        cursor2,
+        text
+    )
 
     override fun calculateSize(w: Int, h: Int) {
         loadTexturesSync.push(true)

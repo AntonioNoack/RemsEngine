@@ -9,7 +9,7 @@ import me.anno.objects.particles.ParticleState
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
-import me.anno.utils.Vectors.times
+import me.anno.utils.types.Vectors.times
 import org.joml.Vector3f
 import org.joml.Vector4f
 import org.kdotjpg.OpenSimplexNoise

@@ -1,7 +1,7 @@
 package me.anno.mesh.fbx.model
 
 import me.anno.mesh.fbx.structure.FBXNode
-import me.anno.utils.Vectors.print
+import me.anno.utils.types.Vectors.print
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3f
 

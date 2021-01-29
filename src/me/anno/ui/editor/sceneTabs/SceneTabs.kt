@@ -9,9 +9,9 @@ import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.studio.rems.RemsStudio.root
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.scrolling.ScrollPanelX
-import me.anno.ui.editor.files.addChildFromFile
+import me.anno.ui.editor.files.ImportFromFile.addChildFromFile
 import me.anno.ui.editor.sceneView.SceneTabData
-import me.anno.utils.Lists.getOrPrevious
+import me.anno.utils.types.Lists.getOrPrevious
 import org.apache.logging.log4j.LogManager
 import java.io.File
 

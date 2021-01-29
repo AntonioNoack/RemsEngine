@@ -11,8 +11,8 @@ import me.anno.language.translation.Dict
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.style.Style
-import me.anno.utils.Keys.isClickKey
-import me.anno.utils.Lists.one
+import me.anno.utils.input.Keys.isClickKey
+import me.anno.utils.types.Lists.one
 import me.anno.utils.Maths.mixARGB
 import kotlin.math.max
 

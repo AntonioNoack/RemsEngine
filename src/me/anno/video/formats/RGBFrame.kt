@@ -5,7 +5,7 @@ import me.anno.gpu.ShaderLib.shader3DRGBA
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
-import me.anno.utils.readNBytes2
+import me.anno.utils.input.readNBytes2
 import me.anno.video.LastFrame
 import me.anno.video.VFrame
 import java.io.EOFException

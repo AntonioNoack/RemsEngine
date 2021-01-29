@@ -2,7 +2,7 @@ package me.anno.objects.forces.impl
 
 import me.anno.objects.particles.Particle
 import me.anno.objects.particles.ParticleState
-import me.anno.utils.Vectors.times
+import me.anno.utils.types.Vectors.times
 import org.joml.Vector3f
 
 class VelocityFrictionForce : PerParticleForce(

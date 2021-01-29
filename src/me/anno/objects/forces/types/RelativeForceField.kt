@@ -3,8 +3,8 @@ package me.anno.objects.forces.types
 import me.anno.objects.particles.Particle
 import me.anno.objects.particles.ParticleState
 import me.anno.objects.forces.ForceField
-import me.anno.utils.Vectors.minus
-import me.anno.utils.Vectors.times
+import me.anno.utils.types.Vectors.minus
+import me.anno.utils.types.Vectors.times
 import org.joml.Vector3f
 
 abstract class RelativeForceField(displayName: String, description: String, dictSubPath: String):

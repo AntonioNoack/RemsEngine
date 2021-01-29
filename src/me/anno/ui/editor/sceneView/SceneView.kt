@@ -46,7 +46,7 @@ import me.anno.studio.rems.Selection.selectedTransform
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.custom.CustomContainer
-import me.anno.ui.editor.files.addChildFromFile
+import me.anno.ui.editor.files.ImportFromFile.addChildFromFile
 import me.anno.ui.simple.SimplePanel
 import me.anno.ui.style.Style
 import me.anno.utils.Color.a
@@ -54,15 +54,15 @@ import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.Color.rgba
-import me.anno.utils.Lists.sumByFloat
+import me.anno.utils.types.Lists.sumByFloat
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.length
 import me.anno.utils.Maths.pow
 import me.anno.utils.OS
-import me.anno.utils.Quad
-import me.anno.utils.Vectors.plus
-import me.anno.utils.Vectors.times
-import me.anno.utils.Vectors.toVec3f
+import me.anno.utils.structures.tuples.Quad
+import me.anno.utils.types.Vectors.plus
+import me.anno.utils.types.Vectors.times
+import me.anno.utils.types.Vectors.toVec3f
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
 import org.joml.Matrix4fArrayList
@@ -189,7 +189,8 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
         }
     }
 
-    override fun getVisualState(): Any? = Quad(super.getVisualState(), editorTime, goodW, goodH)
+    override fun getVisualState(): Any? =
+        Quad(super.getVisualState(), editorTime, goodW, goodH)
 
     override fun tickUpdate() {
         super.tickUpdate()

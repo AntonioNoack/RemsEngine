@@ -6,7 +6,6 @@ import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.inspectable.Inspectable
 import me.anno.studio.rems.RemsStudio.root
-import me.anno.utils.LOGGER
 import org.apache.logging.log4j.LogManager
 
 object Selection {

@@ -1,12 +1,7 @@
 package me.anno.objects
 
 import me.anno.audio.AudioStreamOpenAL
-import me.anno.audio.effects.SoundEffect
 import me.anno.audio.effects.SoundPipeline
-import me.anno.audio.effects.impl.AmplitudeEffect
-import me.anno.audio.effects.impl.EchoEffect
-import me.anno.audio.effects.impl.EqualizerEffect
-import me.anno.audio.effects.impl.PitchEffect
 import me.anno.gpu.GFX
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
@@ -14,9 +9,8 @@ import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.modes.LoopingState
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
-import me.anno.ui.editor.stacked.StackPanel
 import me.anno.ui.style.Style
-import me.anno.utils.LocalFile.toGlobalFile
+import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.video.FFMPEGMetadata.Companion.getMeta
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f

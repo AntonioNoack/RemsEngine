@@ -17,9 +17,9 @@ import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.studio.rems.RemsStudio.history
 import me.anno.studio.rems.RemsStudio.project
 import me.anno.studio.rems.RemsStudio.root
-import me.anno.ui.editor.files.addChildFromFile
+import me.anno.ui.editor.files.ImportFromFile.addChildFromFile
 import me.anno.ui.editor.treeView.TreeViewPanel
-import me.anno.utils.FileExplorerSelectWrapper
+import me.anno.utils.files.FileExplorerSelectWrapper
 import me.anno.utils.Maths.length
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.glfw.GLFW

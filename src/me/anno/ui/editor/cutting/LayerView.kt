@@ -27,13 +27,13 @@ import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.dragging.Draggable
 import me.anno.ui.editor.TimelinePanel
-import me.anno.ui.editor.files.addChildFromFile
+import me.anno.ui.editor.files.ImportFromFile.addChildFromFile
 import me.anno.ui.editor.sceneTabs.SceneTabs
 import me.anno.ui.style.Style
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.mix
 import me.anno.utils.Maths.sq
-import me.anno.utils.Naming.incrementName
+import me.anno.utils.files.Naming.incrementName
 import org.joml.Vector4f
 import java.io.File
 import kotlin.collections.set

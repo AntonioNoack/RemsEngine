@@ -10,7 +10,7 @@ import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.input.InputVisibility
 import me.anno.ui.style.Style
-import me.anno.utils.Keys.isClickKey
+import me.anno.utils.input.Keys.isClickKey
 import me.anno.utils.Maths.mixARGB
 import kotlin.math.max
 

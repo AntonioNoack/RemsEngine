@@ -8,7 +8,7 @@ import me.anno.objects.geometric.Circle
 import me.anno.objects.geometric.Polygon
 import me.anno.objects.particles.ParticleSystem
 import me.anno.objects.text.Text
-import me.anno.utils.FileHelper.use
+import me.anno.utils.files.Files.use
 import me.anno.utils.OS
 import java.io.*
 import java.util.zip.DeflaterOutputStream

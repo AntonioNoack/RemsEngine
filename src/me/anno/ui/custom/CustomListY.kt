@@ -6,7 +6,7 @@ import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.style.Style
 import me.anno.utils.Maths.clamp
-import me.anno.utils.Lists.sumByFloat
+import me.anno.utils.types.Lists.sumByFloat
 import java.lang.Exception
 import kotlin.math.max
 import kotlin.math.min

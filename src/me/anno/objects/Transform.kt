@@ -46,9 +46,9 @@ import me.anno.ui.editor.TimelinePanel.Companion.global2Kf
 import me.anno.ui.editor.stacked.Option
 import me.anno.ui.input.*
 import me.anno.ui.style.Style
-import me.anno.utils.Casting.castToDouble2
+import me.anno.utils.types.Casting.castToDouble2
 import me.anno.utils.Color.toHexColor
-import me.anno.utils.MatrixHelper.skew
+import me.anno.utils.types.Matrices.skew
 import me.anno.utils.structures.ValueWithDefault
 import me.anno.utils.structures.ValueWithDefault.Companion.writeMaybe
 import me.anno.utils.structures.ValueWithDefaultFunc

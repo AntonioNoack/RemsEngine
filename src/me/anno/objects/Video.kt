@@ -47,13 +47,13 @@ import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.files.hasValidName
 import me.anno.ui.input.EnumInput
 import me.anno.ui.style.Style
-import me.anno.utils.BiMap
-import me.anno.utils.Booleans.toInt
+import me.anno.utils.structures.maps.BiMap
+import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.Clipping
 import me.anno.utils.FloatFormat.f2
 import me.anno.utils.Maths.mix
 import me.anno.utils.Maths.pow
-import me.anno.utils.StringHelper.getImportType
+import me.anno.utils.types.Strings.getImportType
 import me.anno.video.FFMPEGMetadata
 import me.anno.video.FFMPEGMetadata.Companion.getMeta
 import me.anno.video.ImageSequenceMeta

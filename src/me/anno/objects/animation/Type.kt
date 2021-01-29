@@ -1,16 +1,16 @@
 package me.anno.objects.animation
 
-import me.anno.utils.Casting.castToDouble
-import me.anno.utils.Casting.castToDouble2
-import me.anno.utils.Casting.castToFloat
-import me.anno.utils.Casting.castToFloat2
-import me.anno.utils.Casting.castToInt
-import me.anno.utils.Casting.castToInt2
-import me.anno.utils.Casting.castToLong
-import me.anno.utils.Casting.castToVector2f
-import me.anno.utils.Casting.castToVector3f
-import me.anno.utils.Casting.castToVector4d
-import me.anno.utils.Casting.castToVector4f
+import me.anno.utils.types.Casting.castToDouble
+import me.anno.utils.types.Casting.castToDouble2
+import me.anno.utils.types.Casting.castToFloat
+import me.anno.utils.types.Casting.castToFloat2
+import me.anno.utils.types.Casting.castToInt
+import me.anno.utils.types.Casting.castToInt2
+import me.anno.utils.types.Casting.castToLong
+import me.anno.utils.types.Casting.castToVector2f
+import me.anno.utils.types.Casting.castToVector3f
+import me.anno.utils.types.Casting.castToVector4d
+import me.anno.utils.types.Casting.castToVector4f
 import me.anno.utils.Maths.clamp
 import org.joml.*
 import kotlin.math.max

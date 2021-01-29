@@ -33,13 +33,13 @@ import me.anno.ui.dragging.Draggable
 import me.anno.ui.editor.files.thumbs.Thumbs
 import me.anno.ui.editor.sceneTabs.SceneTabs
 import me.anno.ui.style.Style
-import me.anno.utils.FileHelper.formatFileSize
-import me.anno.utils.FileHelper.listFiles2
-import me.anno.utils.FileHelper.openInExplorer
+import me.anno.utils.files.Files.formatFileSize
+import me.anno.utils.files.Files.listFiles2
+import me.anno.utils.files.Files.openInExplorer
 import me.anno.utils.Maths.mixARGB
 import me.anno.utils.Maths.sq
-import me.anno.utils.Quad
-import me.anno.utils.StringHelper.getImportType
+import me.anno.utils.structures.tuples.Quad
+import me.anno.utils.types.Strings.getImportType
 import me.anno.utils.Tabs
 import me.anno.video.FFMPEGMetadata
 import me.anno.video.VFrame
@@ -136,7 +136,12 @@ class FileEntry(
             else -> tex
         }
         titlePanel.canBeSeen = canBeSeen
-        return Quad(super.getVisualState(), titlePanel.getVisualState(), tex, meta)
+        return Quad(
+            super.getVisualState(),
+            titlePanel.getVisualState(),
+            tex,
+            meta
+        )
     }
 
     override fun tickUpdate() {

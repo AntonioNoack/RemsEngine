@@ -8,7 +8,7 @@ import me.anno.fonts.signeddistfields.algorithm.SDFMaths.getOrthonormal
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.mix
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.nonZeroSign
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.sign
-import me.anno.utils.Vectors.minus
+import me.anno.utils.types.Vectors.minus
 import org.joml.AABBf
 import org.joml.Vector2f
 import kotlin.math.abs
