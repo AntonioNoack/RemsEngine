@@ -6,7 +6,7 @@ import kotlin.math.min
 /**
  * UnsafeArrayList with the ability to remove items
  * */
-class UnsafeSkippingArrayList<V> : MutableList<V> {
+class UnsafeSkippingArrayList<V>() : MutableList<V> {
 
     var backend = arrayOfNulls<Any?>(1024)
     var removed = BooleanArray(1024)
@@ -172,6 +172,10 @@ class UnsafeSkippingArrayList<V> : MutableList<V> {
 
     override fun subList(fromIndex: Int, toIndex: Int): MutableList<V> {
         throw NotImplementedError()
+    }
+
+    override fun toString(): String {
+        return joinToString { it.toString() }
     }
 
 }

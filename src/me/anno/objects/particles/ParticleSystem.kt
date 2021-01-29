@@ -35,6 +35,7 @@ import me.anno.video.MissingFrameException
 import org.joml.Matrix4fArrayList
 import org.joml.Vector3f
 import org.joml.Vector4f
+import java.lang.RuntimeException
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.math.abs
@@ -45,8 +46,7 @@ open class ParticleSystem(parent: Transform? = null) : Transform(parent) {
 
     val spawnColor = AnimatedDistribution(Type.COLOR3, listOf(Vector3f(1f), Vector3f(0f), Vector3f(0f)))
     val spawnPosition = AnimatedDistribution(Type.POSITION, listOf(Vector3f(0f), Vector3f(1f), Vector3f(0f)))
-    val spawnVelocity =
-        AnimatedDistribution(GaussianDistribution(), Type.POSITION, listOf(Vector3f(), Vector3f(1f), Vector3f()))
+    val spawnVelocity = AnimatedDistribution(GaussianDistribution(), Type.POSITION, listOf(Vector3f(), Vector3f(1f), Vector3f()))
     val spawnSize = AnimatedDistribution(Type.SCALE, listOf(Vector3f(1f), Vector3f(0f), Vector3f(0f)))
     var spawnSize1D = true
 
@@ -66,8 +66,8 @@ open class ParticleSystem(parent: Transform? = null) : Transform(parent) {
         get() = simulationStepI.value
         set(value) = simulationStepI.set(value)
 
-    val aliveParticles = UnsafeSkippingArrayList<Particle>()
-    val particles = UnsafeArrayList<Particle>()
+    val aliveParticles = ArrayList<Particle>(1024)
+    val particles = ArrayList<Particle>(1024)
 
     var seed = 0L
     var random = Random(seed)
@@ -137,7 +137,7 @@ open class ParticleSystem(parent: Transform? = null) : Transform(parent) {
 
             val forces = children.filterIsInstance<ForceField>()
             val hasHeavyComputeForce = forces.any { it is BetweenParticleGravity }
-            var currentTime = aliveParticles.map { it.lastTime(simulationStep) }.min()!!
+            var currentTime = aliveParticles.map { it.lastTime(simulationStep) }.min() ?: return true
             while (currentTime < time) {
 
                 // 10 ms timeout
@@ -148,6 +148,8 @@ open class ParticleSystem(parent: Transform? = null) : Transform(parent) {
 
                 spawnIfRequired(currentTime, false)
 
+                if(aliveParticles == null) throw RuntimeException("list has become null")
+                if(aliveParticles.any { it == null }) throw RuntimeException("list has null entry")
                 val needsUpdate = aliveParticles.filter { it.lastTime(simulationStep) < currentTime }
                 val simulationStep = simulationStep
 
@@ -496,9 +498,6 @@ open class ParticleSystem(parent: Transform? = null) : Transform(parent) {
         // the gain is just too small for the costs
         return builder.toString()
     }
-
-    // var timeSum = 0f
-    // var timeCtr = 0
 
     override fun acceptsWeight() = true
     override fun getClassName() = "ParticleSystem"

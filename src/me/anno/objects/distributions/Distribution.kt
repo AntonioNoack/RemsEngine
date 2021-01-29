@@ -3,7 +3,6 @@ package me.anno.objects.distributions
 import me.anno.io.Saveable
 import me.anno.language.translation.Dict
 import me.anno.objects.Transform
-import me.anno.objects.animation.Type
 import me.anno.objects.inspectable.InspectableAttribute
 import me.anno.objects.inspectable.InspectableVector
 import me.anno.objects.models.SphereAxesModel.sphereAxesModels
@@ -51,7 +50,7 @@ abstract class Distribution(val displayName: String, val description: String) : 
             list += actor.vi(
                 property.title,
                 property.description,
-                if (property.isRotation) Type.ROT_YXZ else null,
+                property.pType.type,
                 property.value,
                 style
             ) { property.value.set(it) }

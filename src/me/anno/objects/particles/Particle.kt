@@ -8,6 +8,7 @@ import me.anno.utils.Maths
 import me.anno.utils.types.Vectors.plus
 import me.anno.utils.types.Vectors.times
 import me.anno.utils.structures.lists.UnsafeArrayList
+import me.anno.utils.types.Floats.f2
 import me.anno.video.MissingFrameException
 import org.joml.Matrix4fArrayList
 import org.joml.Vector3f
@@ -19,6 +20,10 @@ class Particle(
     val lifeTime: Double,
     val mass: Float
 ) {
+
+    override fun toString(): String {
+        return "Particle[${type.getClassName()}, ${birthTime.f2()}]"
+    }
 
     val states = UnsafeArrayList<ParticleState>()
 

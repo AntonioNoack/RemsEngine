@@ -73,9 +73,9 @@ abstract class CenterSizeDistribution(
 
     override fun listProperties(): List<InspectableVector> {
         return listOf(
-            InspectableVector(center, "Center"),
-            InspectableVector(scale, "Radius / Size"),
-            InspectableVector(rotation, "Rotation", "", true)
+            InspectableVector(center, "Center", InspectableVector.PType.DEFAULT),
+            InspectableVector(scale, "Radius / Size", InspectableVector.PType.SCALE),
+            InspectableVector(rotation, "Rotation", InspectableVector.PType.ROTATION)
         )
     }
 

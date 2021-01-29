@@ -33,7 +33,7 @@ class ConstantDistribution(val center: Vector4f) : Distribution(
 
     override fun listProperties(): List<InspectableVector> {
         return listOf(
-            InspectableVector(center, "Center")
+            InspectableVector(center, "Center", InspectableVector.PType.DEFAULT)
         )
     }
 

@@ -201,8 +201,8 @@ class VectorInput(
 
     val vx get() = compX.lastValue.toFloat()
     val vy get() = compY.lastValue.toFloat()
-    val vz get() = compZ!!.lastValue.toFloat()
-    val vw get() = compW!!.lastValue.toFloat()
+    val vz get() = compZ?.lastValue?.toFloat() ?: 0f
+    val vw get() = compW?.lastValue?.toFloat() ?: 0f
 
     fun setValue(v: Vector2f, notify: Boolean) {
         compX.setValue(v.x, notify)
@@ -280,7 +280,7 @@ class VectorInput(
                         setValue(Vector3f(vx + dy0 * scaleFactor, vy + dx0 * scaleFactor, vz), true)
                     }
                 }
-                Type.SCALE -> {
+                /*Type.SCALE -> {
                     val scaleFactor = 1.03f
                     if (isControlDown) {
                         val scaleX = pow(scaleFactor, dx0)
@@ -290,7 +290,7 @@ class VectorInput(
                         val scale = pow(scaleFactor, delta)
                         setValue(Vector3f(vx * scale, vy * scale, vz * scale), true)
                     }
-                }
+                }*/
                 Type.COLOR -> {
                     val scaleFactor = 1.10f
                     val scale = pow(scaleFactor, delta)

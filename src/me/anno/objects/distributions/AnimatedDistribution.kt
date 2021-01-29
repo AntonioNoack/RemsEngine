@@ -55,7 +55,8 @@ class AnimatedDistribution(
     ) {
         if (lastDist !== distribution) update()
         properties.forEachIndexed { index, property ->
-            if(property.isRotation) channels[index].type = Type.ROT_YXZ
+            if(property.pType == InspectableVector.PType.ROTATION) channels[index].type = Type.ROT_YXZ
+            if(property.pType == InspectableVector.PType.SCALE) channels[index].type = Type.SCALE
             list += transform.vi(property.title, property.description, channels[index], style)
         }
     }
