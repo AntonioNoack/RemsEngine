@@ -75,16 +75,24 @@
       <w>highp</w>
       <w>himmelblau</w>
       <w>hori</w>
+      <w>hotpink</w>
       <w>hpluv</w>
       <w>hsluv</w>
+      <w>indianred</w>
       <w>infos</w>
       <w>inspectable</w>
       <w>iter</w>
       <w>jacobian</w>
       <w>konqueror</w>
       <w>lateinit</w>
+      <w>lavenderblush</w>
+      <w>lawngreen</w>
+      <w>lemonchiffon</w>
       <w>lerped</w>
       <w>lerps</w>
+      <w>lightblue</w>
+      <w>lightcoral</w>
+      <w>lightcyan</w>
       <w>lightgoldenrodyellow</w>
       <w>lightgray</w>
       <w>lightgreen</w>
@@ -103,9 +111,15 @@
       <w>mediumorchid</w>
       <w>mediump</w>
       <w>mediumpurple</w>
+      <w>mediumseagreen</w>
+      <w>mediumslateblue</w>
+      <w>mediumspringgreen</w>
+      <w>mediumturquoise</w>
+      <w>mediumvioletred</w>
       <w>memcpy</w>
       <w>memset</w>
       <w>mgtpezy</w>
+      <w>midnightblue</w>
       <w>mids</w>
       <w>mintcream</w>
       <w>mistyrose</w>

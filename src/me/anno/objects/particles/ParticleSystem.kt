@@ -13,7 +13,6 @@ import me.anno.objects.animation.Type
 import me.anno.objects.distributions.*
 import me.anno.objects.forces.ForceField
 import me.anno.objects.forces.impl.BetweenParticleGravity
-import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.studio.rems.RemsStudio
 import me.anno.ui.base.SpyPanel
 import me.anno.ui.base.buttons.TextButton
@@ -38,7 +37,6 @@ import org.joml.Vector3f
 import org.joml.Vector4f
 import java.util.*
 import kotlin.collections.ArrayList
-import kotlin.concurrent.thread
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -132,65 +130,29 @@ open class ParticleSystem(parent: Transform? = null) : Transform(parent) {
     /**
      * returns whether everything was calculated
      * */
-    fun step(time: Double): Boolean {
-        return step(time, false, 1.0 / 120.0)// 120 fps ^^
-    }
-
-    var isWorkingAsync: Thread? = null
-
-    /**
-     * returns whether everything was calculated
-     * */
-    fun step(time: Double, isAsync: Boolean, timeLimit: Double): Boolean {
+    fun step(time: Double, timeLimit: Double = 1.0/120.0): Boolean {
         val startTime = System.nanoTime()
-
-        if (isWorkingAsync != null && !isAsync) {
-            synchronized(this) {
-                val needsUpdates = aliveParticles.any { it.lastTime(simulationStep) < time }
-                return !needsUpdates
-            }
-        }
 
         if (aliveParticles.isNotEmpty()) {
 
             val forces = children.filterIsInstance<ForceField>()
-            val hasON2Force = forces.any { it is BetweenParticleGravity }
+            val hasHeavyComputeForce = forces.any { it is BetweenParticleGravity }
             var currentTime = aliveParticles.map { it.lastTime(simulationStep) }.min()!!
             while (currentTime < time) {
 
-                Thread.sleep(0)
-
                 // 10 ms timeout
                 val deltaTime = abs(System.nanoTime() - startTime)
-                if (deltaTime / 1e9 > timeLimit) {
-
-                    if (!isAsync) {
-                        isWorkingAsync = thread {
-                            try {
-                                step(time + 5.0, true, 1.0)
-                                addEvent { RemsStudio.updateSceneViews() }
-                            } catch (e: InterruptedException) { /* cache was invalidated */
-                            }
-                            isWorkingAsync = null
-                        }
-                    }
-
-                    return false
-                }
+                if (deltaTime / 1e9 > timeLimit) return false
 
                 currentTime = min(time, currentTime + simulationStep)
 
-                Thread.sleep(0)
-
                 spawnIfRequired(currentTime, false)
-
-                Thread.sleep(0)
 
                 val needsUpdate = aliveParticles.filter { it.lastTime(simulationStep) < currentTime }
                 val simulationStep = simulationStep
 
                 // update all particles, which need an update
-                if (hasON2Force && !isAsync) {
+                if (hasHeavyComputeForce) {
                     // just process the first entries...
                     val limit = max(65536 / needsUpdate.size, 10)
                     if (needsUpdate.size > limit) {
@@ -269,10 +231,6 @@ open class ParticleSystem(parent: Transform? = null) : Transform(parent) {
         lastState = state
         lastCheckup = gameTime
         synchronized(this) {
-            if (isWorkingAsync != null) {
-                isWorkingAsync?.interrupt()
-                isWorkingAsync = null
-            }
             particles.clear()
             aliveParticles.clear()
             random = Random(seed)
