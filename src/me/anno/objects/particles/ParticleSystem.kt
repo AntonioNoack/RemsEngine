@@ -27,7 +27,7 @@ import me.anno.ui.input.BooleanInput
 import me.anno.ui.style.Style
 import me.anno.utils.types.Lists.sumByFloat
 import me.anno.utils.Maths.mix
-import me.anno.utils.processBalanced
+import me.anno.utils.hpc.HeavyProcessing.processBalanced
 import me.anno.utils.structures.lists.UnsafeArrayList
 import me.anno.utils.structures.lists.UnsafeSkippingArrayList
 import me.anno.utils.structures.ValueWithDefault

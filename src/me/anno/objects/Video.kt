@@ -50,9 +50,9 @@ import me.anno.ui.style.Style
 import me.anno.utils.structures.maps.BiMap
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.Clipping
-import me.anno.utils.FloatFormat.f2
 import me.anno.utils.Maths.mix
 import me.anno.utils.Maths.pow
+import me.anno.utils.types.Floats.f2
 import me.anno.utils.types.Strings.getImportType
 import me.anno.video.FFMPEGMetadata
 import me.anno.video.FFMPEGMetadata.Companion.getMeta

@@ -5,10 +5,10 @@ import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.GFXx2D.getTextSize
 import me.anno.ui.base.Font
 import me.anno.ui.base.text.TextPanel
-import me.anno.utils.BinarySearch
 import me.anno.utils.files.Files.formatFileSize
-import me.anno.utils.FloatFormat.f1
 import me.anno.utils.Maths.fract
+import me.anno.utils.structures.lists.ExpensiveList
+import me.anno.utils.types.Floats.f1
 import java.io.File
 import java.lang.StringBuilder
 import kotlin.math.abs
@@ -37,7 +37,7 @@ object Strings {
         getIndexFromText(characters, localX, tp.font)
 
     fun getIndexFromText(characters: List<Int>, localX: Float, font: Font): Int {
-        val list = BinarySearch.ExpensiveList(characters.size + 1) {
+        val list = ExpensiveList(characters.size + 1) {
             getLineWidth(characters, it, font)
         }
         var index = list.binarySearch { it.compareTo(localX) }

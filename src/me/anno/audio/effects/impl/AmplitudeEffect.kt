@@ -11,7 +11,7 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
 import me.anno.utils.Maths.mix
-import me.anno.utils.processBalanced
+import me.anno.utils.hpc.HeavyProcessing.processBalanced
 
 // todo different distance based effects <3 :D
 // todo velocity-based effects

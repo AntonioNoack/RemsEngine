@@ -6,9 +6,9 @@ import me.anno.gpu.texture.FakeWhiteTexture
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.ui.base.DefaultRenderingHints.prepareGraphics
-import me.anno.utils.BinarySearch
 import me.anno.utils.types.Lists.join
 import me.anno.utils.OS
+import me.anno.utils.structures.lists.ExpensiveList
 import me.anno.utils.types.Strings.incrementTab
 import me.anno.utils.types.Strings.joinChars
 import org.apache.logging.log4j.LogManager
@@ -217,7 +217,7 @@ class AWTFont(val font: Font) {
         return if (firstSplitIndex == lastSplitIndex) firstSplitIndex else {
 
             // calculation is expensive
-            val listOfWidths = BinarySearch.ExpensiveList(lastSplitIndex - firstSplitIndex) {
+            val listOfWidths = ExpensiveList(lastSplitIndex - firstSplitIndex) {
                 val splitIndex = firstSplitIndex + it
                 val substring2 = chars.subList(index0, splitIndex).joinChars()
                 val advance2 = TextLayout(substring2, font, renderContext).advance

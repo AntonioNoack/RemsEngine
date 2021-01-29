@@ -1,7 +1,7 @@
 package me.anno.extensions.plugins
 
 import me.anno.extensions.ExtensionManager
-import me.anno.utils.processStage
+import me.anno.utils.hpc.HeavyProcessing.processStage
 
 object PluginManager: ExtensionManager<Plugin>("Plugin") {
 

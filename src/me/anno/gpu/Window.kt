@@ -3,16 +3,16 @@ package me.anno.gpu
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.input.MouseButton
 import me.anno.ui.base.Panel
-import me.anno.utils.FloatFormat.f3
+import me.anno.utils.types.Floats.f3
 import org.apache.logging.log4j.LogManager
-import java.lang.RuntimeException
 import kotlin.math.min
 
-open class Window (
-    val panel: Panel, val isFullscreen: Boolean, val x: Int, val y: Int){
+open class Window(
+    val panel: Panel, val isFullscreen: Boolean, val x: Int, val y: Int
+) {
 
-    constructor(panel: Panel): this(panel, true, 0, 0)
-    constructor(panel: Panel, x: Int, y: Int): this(panel, false, x, y)
+    constructor(panel: Panel) : this(panel, true, 0, 0)
+    constructor(panel: Panel, x: Int, y: Int) : this(panel, false, x, y)
 
     var canBeClosedByUser = true
 
@@ -31,9 +31,11 @@ open class Window (
 
     val buffer = Framebuffer("window-${panel.getClassName()}", 1, 1, 1, 1, false, Framebuffer.DepthBufferType.NONE)
 
-    init { panel.window = this }
+    init {
+        panel.window = this
+    }
 
-    fun calculateFullLayout(w: Int, h: Int, isFirstFrame: Boolean){
+    fun calculateFullLayout(w: Int, h: Int, isFirstFrame: Boolean) {
         val window = this
         val t0 = System.nanoTime()
         panel.calculateSize(min(w - window.x, w), min(h - window.y, h))
@@ -54,7 +56,7 @@ open class Window (
 
     var acceptsClickAway = { _: MouseButton -> canBeClosedByUser }
 
-    open fun destroy(){
+    open fun destroy() {
         buffer.destroy()
     }
 

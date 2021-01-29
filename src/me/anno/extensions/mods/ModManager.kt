@@ -1,7 +1,7 @@
 package me.anno.extensions.mods
 
 import me.anno.extensions.ExtensionManager
-import me.anno.utils.processStage
+import me.anno.utils.hpc.HeavyProcessing.processStage
 
 object ModManager: ExtensionManager<Mod>("Mod") {
 

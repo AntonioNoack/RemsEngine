@@ -32,10 +32,10 @@ import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.debug.ConsoleOutputPanel
 import me.anno.ui.debug.FPSPanel
 import me.anno.ui.dragging.IDraggable
-import me.anno.utils.FloatFormat.f3
 import me.anno.utils.Maths.clamp
 import me.anno.utils.OS
 import me.anno.utils.hpc.ProcessingQueue
+import me.anno.utils.types.Floats.f3
 import me.anno.utils.types.Strings.addSuffix
 import me.anno.utils.types.Strings.filterAlphaNumeric
 import org.apache.logging.log4j.LogManager

@@ -14,7 +14,7 @@ import me.anno.ui.style.Style
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.mix
 import me.anno.utils.Maths.pow
-import me.anno.utils.processBalanced
+import me.anno.utils.hpc.HeavyProcessing.processBalanced
 import kotlin.math.log2
 
 class EqualizerEffect() : SoundEffect(Domain.FREQUENCY_DOMAIN, Domain.FREQUENCY_DOMAIN) {

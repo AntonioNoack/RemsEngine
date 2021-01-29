@@ -15,8 +15,8 @@ import me.anno.ui.input.EnumInput
 import me.anno.ui.style.Style
 import me.anno.utils.types.AnyToFloat.get
 import me.anno.utils.ColorParsing.parseColorComplex
-import me.anno.utils.FloatFormat.f3
 import me.anno.utils.Maths.clamp
+import me.anno.utils.types.Floats.f3
 import org.apache.logging.log4j.LogManager
 import org.hsluv.HSLuvColorSpace
 import org.joml.Vector3f

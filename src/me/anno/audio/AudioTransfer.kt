@@ -1,7 +1,7 @@
 package me.anno.audio
 
-import me.anno.utils.FloatFormat.f2
 import me.anno.utils.Maths.mix
+import me.anno.utils.types.Floats.f2
 
 open class AudioTransfer(val l2l: Double, val r2r: Double, val l2r: Double, val rl2: Double) {
     open fun l2l(f: Double, s: AudioTransfer) = mix(l2l, s.l2l, f)

@@ -7,7 +7,7 @@ import me.anno.extensions.plugins.Plugin
 import me.anno.extensions.plugins.PluginManager
 import me.anno.io.config.ConfigBasics.configFolder
 import me.anno.studio.StudioBase
-import me.anno.utils.processStage
+import me.anno.utils.hpc.HeavyProcessing.processStage
 import org.apache.logging.log4j.LogManager
 import java.io.BufferedReader
 import java.io.File

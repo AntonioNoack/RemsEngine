@@ -3,7 +3,7 @@ package me.anno.ui.debug
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXx2D
 import me.anno.ui.base.Font
-import me.anno.utils.FloatFormat.f1
+import me.anno.utils.types.Floats.f1
 import kotlin.math.max
 
 object FPSPanel {
