@@ -70,6 +70,21 @@ object GFXx2D {
         GFX.check()
     }
 
+    fun drawRectStriped(x: Int, y: Int, w: Int, h: Int, offset: Int, stride: Int, color: Vector4f) {
+        if (w == 0 || h == 0) return
+        GFX.check()
+        val shader = ShaderLib.flatShaderStriped
+        shader.use()
+        posSize(shader, x, y, w, h)
+        shader.v4("color", color)
+        var o = offset % stride
+        if(o < 0) o += stride
+        shader.v1("offset", o)
+        shader.v1("stride", stride)
+        GFX.flat01.draw(shader)
+        GFX.check()
+    }
+
     fun drawRect(x: Int, y: Int, w: Int, h: Int, color: Int) {
         if (w == 0 || h == 0) return
         GFX.check()

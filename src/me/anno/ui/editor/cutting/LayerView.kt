@@ -74,7 +74,7 @@ class LayerView(style: Style) : TimelinePanel(style) {
     companion object {
         val minAlpha = 1f / 255f
         val minDistSq = sq(3f / 255f)
-        val maxStripes = 5
+        val maxLines = 5
         val defaultLayerCount = 8
     }
 
@@ -94,37 +94,38 @@ class LayerView(style: Style) : TimelinePanel(style) {
         }
 
         val solution = Solution(x0, y0, x1, y1, centralTime)
-        val stripes = solution.stripes
+        val stripes = solution.lines
         // val t1 = System.nanoTime()
         val root = root
         calculated = findElements()
         val drawn = calculated.filter { it.timelineSlot.value == timelineSlot }.reversed()
         this.drawn = drawn
         // val t2 = System.nanoTime()
-        val isHovered = isHovered
+        /*val isHovered = isHovered
         val draggedTransform = draggedTransform
-        val stripeDelay = 5
+        val stripeDelay = 5*/
         val stepSize = 1
         // val additionalStripes = ArrayList<Pair<Int, Gradient>>((x1 - x0) / stripeDelay + 5)
         if (drawn.isNotEmpty()) {
-            val selectedTransform = if (isHovered && mouseKeysDown.isEmpty()) {
+            /*val selectedTransform = if (isHovered && mouseKeysDown.isEmpty()) {
                 getTransformAt(mouseX, mouseY)
-            } else null
+            } else null*/
             val leftTime = getTimeAt(x0.toFloat())
             val dt = dtHalfLength * 2.0 / w
             val white = Vector4f(1f, 1f, 1f, 1f)
             for (x in x0 until x1 step stepSize) {
+
                 val i = x - x0
                 var ctr = 0
                 val globalTime = leftTime + i * dt
+
                 // hashmaps are slower, but thread safe
                 val localTime = HashMap<Transform, Double>()
                 val localColor = HashMap<Transform, Vector4f>()
                 val rootTime = root.getLocalTime(globalTime)
                 localTime[root] = rootTime
                 localColor[root] = root.getLocalColor(white, rootTime)
-                // root.lastLocalTime = root.getLocalTime(globalTime)
-                // root.lastLocalColor = root.getLocalColor(white, root.lastLocalTime)
+
                 for (tr in calculated) {
                     if (tr !== root) {
                         val p = tr.parent ?: continue // was deleted
@@ -134,6 +135,7 @@ class LayerView(style: Style) : TimelinePanel(style) {
                         localColor[tr] = tr.getLocalColor(localColor[p]!!, localTime0)
                     }
                 }
+
                 // smooth transition of ctr???
                 // stripes by index to make visible, that there are multiple objects
                 trs@ for (tr in drawn) {
@@ -146,7 +148,7 @@ class LayerView(style: Style) : TimelinePanel(style) {
 
                     if (alpha >= minAlpha) {
 
-                        if (ctr >= maxStripes) break@trs
+                        if (ctr >= maxLines) break@trs
                         val list = stripes[ctr]
                         if (list.isEmpty()) {
                             if (alpha > minAlpha) {
@@ -154,14 +156,15 @@ class LayerView(style: Style) : TimelinePanel(style) {
                             } // else not worth it
                         } else {
                             val last = list.last()
-                            if (last.owner == tr && last.isLinear(x, stepSize, color) && last.x2 + stepSize >= x) {
-                                last.set(x, color)
+                            // println("${last.owner === tr} && ${last.isLinear(x, stepSize, color)} && ${last.x1 + stepSize} >= $x")
+                            if (last.owner === tr && last.x1 + stepSize >= x && last.isLinear(x, stepSize, color)) {
+                                last.setEnd(x, stepSize, color)
                             } else {
                                 list += Gradient(tr, x - stepSize + 1, x, color, color)
                             }
                         }
 
-                        if (ctr++ >= maxStripes) {
+                        if (ctr++ >= maxLines) {
                             break@trs
                         }
 

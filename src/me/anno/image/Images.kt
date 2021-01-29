@@ -1,4 +1,4 @@
-package me.anno.utils
+package me.anno.image
 
 import java.awt.image.BufferedImage
 

@@ -18,6 +18,7 @@ import kotlin.math.PI
 object ShaderLib {
 
     lateinit var flatShader: Shader
+    lateinit var flatShaderStriped: Shader
     lateinit var flatShaderGradient: Shader
     lateinit var flatShaderTexture: Shader
     lateinit var subpixelCorrectTextShader: Shader
@@ -233,6 +234,23 @@ object ShaderLib {
                     "}", "", "" +
                     "u4 color;\n" +
                     "void main(){\n" +
+                    "   gl_FragColor = color;\n" +
+                    "}"
+        )
+
+        flatShaderStriped = Shader(
+            "flatShader",
+            "" +
+                    "a2 attr0;\n" +
+                    "u2 pos, size;\n" +
+                    "void main(){\n" +
+                    "   gl_Position = vec4((pos + attr0 * size)*2.-1., 0.0, 1.0);\n" +
+                    "}", "", "" +
+                    "u4 color;\n" +
+                    "uniform int offset, stride;\n" +
+                    "void main(){\n" +
+                    "   int x = int(gl_FragCoord.x);\n" +
+                    "   if(x % stride != offset) discard;\n" +
                     "   gl_FragColor = color;\n" +
                     "}"
         )

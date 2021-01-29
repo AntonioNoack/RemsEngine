@@ -1,32 +1,38 @@
 package me.anno.ui.editor.cutting
 
-import me.anno.gpu.GFXx2D.drawRect
 import me.anno.gpu.GFXx2D.drawRectGradient
+import me.anno.gpu.GFXx2D.drawRectStriped
 import me.anno.objects.Transform
 import me.anno.objects.Video
+import me.anno.objects.modes.LoopingState
 import me.anno.ui.editor.TimelinePanel.Companion.centralTime
 import me.anno.ui.editor.TimelinePanel.Companion.dtHalfLength
-import me.anno.ui.editor.cutting.LayerView.Companion.maxStripes
+import me.anno.ui.editor.cutting.LayerView.Companion.maxLines
+import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.mix
+import me.anno.utils.Maths.nonNegativeModulo
 import me.anno.video.FFMPEGMetadata
 import org.joml.Vector4f
+import kotlin.math.floor
 import kotlin.math.roundToInt
 
 class Solution(
     val x0: Int, val y0: Int, val x1: Int, val y1: Int,
     private val referenceTime: Double
 ) {
+
+    val stripeStride = 5
+
     val w = x1 - x0
-    val stripes = Array(maxStripes) {
+    val lines = Array(maxLines) {
         ArrayList<Gradient>(w / 2)
     }
 
     private val relativeVideoBorder = 0.1f
-    private val stripeColor = Vector4f(1f,1f,1f,0.2f)
+    private val stripeColor = Vector4f(1f, 1f, 1f, 0.2f)
 
     // draw a stripe of the current image, or a symbol or sth...
-    // todo shader for the stripes (less draw calls)
-    // todo video: sometimes the first frame is missing
+    // done shader for the stripes (less draw calls)
     // todo if audio, draw audio levels
     // if video, draw a few frames in small
 
@@ -39,26 +45,30 @@ class Solution(
 
         val metas = HashMap<Any, Any>()
 
-        stripes.forEachIndexed { index, gradients ->
-            val y0 = y + 3 + index * 3
-            val h0 = h - 10
-            gradients.forEach {
+        val timeOffset = (-centralTime / (2f * dtHalfLength) * w).toInt()
 
-                val tr = it.owner as? Transform
+        for ((lineIndex, gradients) in lines.withIndex()) {
+
+            val y0 = y + 3 + lineIndex * 3
+            val h0 = h - 10
+
+            for (gradient in gradients) {
+
+                val tr = gradient.owner as? Transform
                 val isStriped = selectedTransform === tr || draggedTransform === tr
 
                 val video = tr as? Video
-                val meta = if(video == null) null
-                else metas.getOrPut(video){ video.meta ?: Unit } as? FFMPEGMetadata
+                val meta = if (video == null) null
+                else metas.getOrPut(video) { video.meta ?: Unit } as? FFMPEGMetadata
 
                 val hasAudio = meta?.hasAudio ?: false
                 val hasVideo = meta?.hasVideo ?: false
 
-                val c0 = it.c0
-                val c1 = it.c2
+                val c0 = gradient.c0
+                val c1 = gradient.c1
 
-                val ix0 = it.x0 + deltaX
-                val ix1 = it.x2 + deltaX
+                val ix0 = gradient.x0 + deltaX
+                val ix1 = gradient.x1 + deltaX + 1
 
                 if (hasVideo) {
 
@@ -67,10 +77,21 @@ class Solution(
 
                     val frameWidth = (h * (1f + relativeVideoBorder) * video.w / video.h).roundToInt()
 
-                    val frameOffset = ((-centralTime / (2f * dtHalfLength) * w).toInt() % frameWidth + frameWidth) % frameWidth
+                    val frameOffset =
+                        (timeOffset % frameWidth + frameWidth) % frameWidth
 
-                    val frameIndex0 = (ix0 - frameOffset) / frameWidth
-                    val frameIndex1 = (ix1 - frameOffset) / frameWidth
+                    val frameIndex0 = floor((ix0 - frameOffset).toFloat() / frameWidth).toInt()
+                    val frameIndex1 = floor((ix1 - frameOffset).toFloat() / frameWidth).toInt()
+
+                    fun getFraction(x: Int, allow0: Boolean): Float {
+                        var lx = (x + frameWidth - frameOffset) % frameWidth
+                        if (lx > frameWidth) lx -= frameWidth
+                        if (lx < 0) lx += frameWidth
+                        if (lx == 0 && !allow0) return 1f
+                        return lx.toFloat() / frameWidth
+                    }
+
+                    fun getLerpedColor(x: Int) = mix(c0, c1, (x - ix0).toFloat() / gradient.w)
 
                     if (frameIndex0 != frameIndex1) {
                         // split into multiple frames
@@ -79,38 +100,39 @@ class Solution(
                         for (frameIndex in frameIndex0 + 1 until frameIndex1) {
                             val x0 = frameWidth * frameIndex + frameOffset
                             val x1 = x0 + frameWidth
-                            val lerpedC0 = mix(c0, c1, (x0 - ix0).toFloat() / it.w)
-                            val lerpedC1 = mix(c0, c1, (x1 - ix0).toFloat() / it.w)
-                            draw(x0, x1, y0, h0, lerpedC0, lerpedC1, frameOffset, frameWidth, video, meta, 0f, 1f)
+                            val c0x = getLerpedColor(x0)
+                            val c1x = getLerpedColor(x1)
+                            draw(x0, x1, y0, h0, c0x, c1x, frameOffset, frameWidth, video, meta, 0f, 1f)
                         }
 
                         // first frame
                         val x1 = (frameIndex0 + 1) * frameWidth + frameOffset
-                        val lerpedC1 = mix(c0, c1, (x1 - ix0).toFloat() / it.w)
-                        val f0 = ((ix0 - frameOffset) % frameWidth).toFloat() / frameWidth
-                        draw(ix0, x1, y0, h0, c0, lerpedC1, frameOffset, frameWidth, video, meta, f0, 1f)
+                        if (x1 > ix0) {
+                            val f0 = getFraction(ix0, true)
+                            val lerpedC1 = getLerpedColor(x1 - 1)
+                            draw(ix0, x1, y0, h0, c0, lerpedC1, frameOffset, frameWidth, video, meta, f0, 1f)
+                        }
 
                         // last frame
                         val x0 = frameIndex1 * frameWidth + frameOffset
-                        val lerpedC0 = if (x0 == x1) lerpedC1
-                        else mix(c0, c1, (x0 - ix0).toFloat() / it.w)
-                        val x2Mod = (ix1 - frameOffset) % frameWidth
-                        val f1 = if (x2Mod == 0) 1f else x2Mod.toFloat() / frameWidth
-                        draw(x0, ix0 + it.w, y0, h0, lerpedC0, c1, frameOffset, frameWidth, video, meta, 0f, f1)
+                        if (x0 < ix1) {
+                            val lerpedC0 = getLerpedColor(x0)
+                            val f1 = getFraction(ix1, false)
+                            draw(x0, ix1, y0, h0, lerpedC0, c1, frameOffset, frameWidth, video, meta, 0f, f1)
+                        }
 
                     } else {
 
-                        val f0 = ((ix0 - frameOffset) % frameWidth).toFloat() / frameWidth
-                        val x2Mod = (ix1 - frameOffset) % frameWidth
-                        val f1 = if (x2Mod == 0) 1f else x2Mod.toFloat() / frameWidth
-                        draw(ix0, ix1 + 1, y0, h0, c0, c1, frameOffset, frameWidth, video, meta, f0, f1)
+                        val f0 = getFraction(ix0, true)
+                        val f1 = getFraction(ix1, false)
+                        draw(ix0, ix1, y0, h0, c0, c1, frameOffset, frameWidth, video, meta, f0, f1)
 
                     }
 
-                } else draw(ix0, ix1 + 1, y0, h0, c0, c1)
+                } else draw(ix0, ix1, y0, h0, c0, c1)
 
-                if(isStriped){
-                    drawStripes(ix0, ix1 + 1, y0, h0)
+                if (isStriped) {
+                    drawStripes(ix0, ix1, y0, h0, timeOffset)
                 }
 
             }
@@ -122,20 +144,20 @@ class Solution(
         val h = y1 - y0
         val metas = HashMap<Any, Any>()
 
-        stripes.forEach { gradients ->
+        lines.forEach { gradients ->
             gradients.forEach {
 
                 val tr = it.owner as? Transform
 
                 val video = tr as? Video
-                val meta = if(video == null) null
-                else metas.getOrPut(video){ video.meta ?: Unit } as? FFMPEGMetadata
+                val meta = if (video == null) null
+                else metas.getOrPut(video) { video.meta ?: Unit } as? FFMPEGMetadata
 
                 // val hasAudio = meta?.hasAudio ?: false
                 val hasVideo = meta?.hasVideo ?: false
 
                 val ix0 = it.x0
-                val ix1 = it.x2
+                val ix1 = it.x1
 
                 if (hasVideo) {
 
@@ -182,18 +204,25 @@ class Solution(
         }
     }
 
-    fun draw(x0: Int, x1: Int, y: Int, h: Int, c0: Vector4f, c1: Vector4f) {
+    private fun draw(x0: Int, x1: Int, y: Int, h: Int, c0: Vector4f, c1: Vector4f) {
         drawRectGradient(x0, y, x1 - x0, h, c0, c1)
     }
 
-    private fun drawStripes(x0: Int, x1: Int, y: Int, h: Int) {
-        val si = 5
-        for(x in ((x0+si-1)/si*si) until x1 step si){
-            drawRect(x, y, 1, h, stripeColor)
-        }
+    private fun drawStripes(x0: Int, x1: Int, y: Int, h: Int, offset: Int) {
+        drawRectStriped(x0, y, x1 - x0, h, offset, stripeStride, stripeColor)
     }
 
-    fun draw(
+    private fun getTimeAt(x: Int) = centralTime + dtHalfLength * mix(-1.0, +1.0, (x - this.x0).toDouble() / this.w)
+
+    private fun clampTime(localTime: Double, video: Video): Double {
+        return if (video.isLooping == LoopingState.PLAY_ONCE) clamp(localTime, 0.0, video.lastDuration)
+        else localTime
+    }
+
+    private fun getCenterX(x0: Int, frameOffset: Int, frameWidth: Int) =
+        x0 - nonNegativeModulo(x0 - frameOffset, frameWidth) + frameWidth / 2
+
+    private fun draw(
         x0: Int, x1: Int, y: Int, h: Int,
         c0: Vector4f, c1: Vector4f,
         frameOffset: Int, frameWidth: Int,
@@ -206,12 +235,12 @@ class Solution(
             drawRectGradient(x0, y, x1 - x0, h, c0, c1)
         } else {
             // get time at frameIndex
-            val centerX = x0 - ((x0 - frameOffset + 10 * frameWidth) % frameWidth) + frameWidth / 2
-            val timeAtX = centralTime + dtHalfLength * mix(-1.0, +1.0, (centerX - this.x0).toDouble() / this.w)
-            val localTime = video.getLocalTimeFromRoot(timeAtX)
+            val centerX = getCenterX(x0, frameOffset, frameWidth)
+            val timeAtX = getTimeAt(centerX)
+            val localTime = clampTime(video.getLocalTimeFromRoot(timeAtX), video)
             // get frame at time
             val videoWidth = (frameWidth / (1f + relativeVideoBorder)).toInt()
-            val frame = video.getFrameAt(localTime, videoWidth, meta)
+            val frame = video.getFrameAtLocalTime(localTime, videoWidth, meta)
             if (frame == null) {
                 drawRectGradient(x0, y, x1 - x0, h, c0, c1)
             } else {
@@ -235,11 +264,11 @@ class Solution(
         val f1 = fract1 * (1f + relativeVideoBorder) - relativeVideoBorder * 0.5f
         if (!(f1 <= 0f || f0 >= 1f)) {
             // get time at frameIndex
-            val centerX = x0 - ((x0 - frameOffset + 10 * frameWidth) % frameWidth) + frameWidth / 2
-            val timeAtX = centralTime + dtHalfLength * mix(-1.0, +1.0, (centerX - this.x0).toDouble() / this.w)
-            val localTime = video.getLocalTimeFromRoot(timeAtX)
+            val centerX = getCenterX(x0, frameOffset, frameWidth)
+            val timeAtX = getTimeAt(centerX)
+            val localTime = clampTime(video.getLocalTimeFromRoot(timeAtX), video)
             // get frame at time
-            video.getFrameAt(localTime, frameWidth, meta)
+            video.getFrameAtLocalTime(localTime, frameWidth, meta)
         }
     }
 

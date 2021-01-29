@@ -136,4 +136,10 @@ object Maths {
     fun fract(f: Float) = f - floor(f)
     fun fract(d: Double) = d - floor(d)
 
+    fun nonNegativeModulo(x: Int, div: Int): Int {
+        var y = x % div
+        if (y < 0) y += div
+        return y
+    }
+
 }

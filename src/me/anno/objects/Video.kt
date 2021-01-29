@@ -254,7 +254,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
         else needsImageUpdate = true
     }
 
-    fun getFrameAt(time: Double, width: Int, meta: FFMPEGMetadata): VFrame? {
+    fun getFrameAtLocalTime(time: Double, width: Int, meta: FFMPEGMetadata): VFrame? {
 
         // only load a single frame at a time?? idk...
 
