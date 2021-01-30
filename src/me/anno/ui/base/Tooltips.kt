@@ -34,6 +34,8 @@ object Tooltips {
 
     private val tooltipReactionTime get() = DefaultConfig["ui.tooltip.reactionTime", 300]
 
+    var lastPanel: Panel? = null
+
     fun draw(): Boolean {
 
         if (tooltipReactionTime < 0) return false
@@ -53,7 +55,7 @@ object Tooltips {
 
         val delta = abs(time - lastMovementTime) / 1_000_000
 
-        if (delta >= tooltipReactionTime) {
+        if (delta >= tooltipReactionTime || lastPanel?.onMovementHideTooltip == false) {
 
             val w = GFX.width
             val h = GFX.height
@@ -70,6 +72,8 @@ object Tooltips {
             }
 
             val panel = hoveredPanel?.getTooltipPanel(mouseX, mouseY)
+            lastPanel = panel
+
             if (panel != null) {
 
                 draw(panel)
@@ -86,7 +90,7 @@ object Tooltips {
 
             }
 
-        }
+        } else lastPanel = null
 
         return false
 

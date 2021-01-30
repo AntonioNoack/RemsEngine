@@ -122,6 +122,7 @@ open class Panel(val style: Style) {
 
     val rootPanel: Panel get() = parent?.rootPanel ?: this
 
+    open val onMovementHideTooltip = true
     var tooltip: String? = null
 
     fun requestFocus() = GFX.requestFocus(this, true)

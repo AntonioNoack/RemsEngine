@@ -4,7 +4,6 @@ import me.anno.ui.editor.cutting.LayerView.Companion.minAlpha
 import me.anno.ui.editor.cutting.LayerView.Companion.minDistSq
 import me.anno.utils.Maths.mix
 import org.joml.Vector4f
-import kotlin.math.abs
 
 class Gradient(
     val owner: Any?,

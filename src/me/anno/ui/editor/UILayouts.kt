@@ -29,6 +29,7 @@ import me.anno.studio.rems.RemsStudio.root
 import me.anno.studio.rems.RemsStudio.versionName
 import me.anno.studio.rems.RemsStudio.windowStack
 import me.anno.studio.rems.RenderSettings
+import me.anno.studio.rems.Rendering.renderAudio
 import me.anno.studio.rems.Rendering.renderPart
 import me.anno.studio.rems.Rendering.renderSetPercent
 import me.anno.studio.rems.Selection.selectTransform
@@ -488,6 +489,7 @@ object UILayouts {
         options.addAction(renderTitle, "Full") { renderPart(1, true) }
         options.addAction(renderTitle, "Half") { renderPart(2, true) }
         options.addAction(renderTitle, "Quarter") { renderPart(4, true) }
+        options.addAction(renderTitle, "Audio") { renderAudio(true) }
 
         options.addAction(helpTitle, "Tutorials"){
             URL("https://remsstudio.phychi.com/?s=learn").openInBrowser()

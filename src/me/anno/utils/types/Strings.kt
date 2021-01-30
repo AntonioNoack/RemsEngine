@@ -49,11 +49,12 @@ object Strings {
         return index
     }
 
+    val defaultImportType = "Text"
 
     fun String.getImportType(): String =
         DefaultConfig["import.mapping.$this"]?.toString() ?:
         DefaultConfig["import.mapping.${toLowerCase()}"]?.toString() ?:
-        DefaultConfig["import.mapping.*"]?.toString() ?: "Text"
+        DefaultConfig["import.mapping.*"]?.toString() ?: defaultImportType
 
     // 00:57:28.87 -> 57 * 60 + 28.87
     fun String.parseTime(): Double {

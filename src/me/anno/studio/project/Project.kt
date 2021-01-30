@@ -190,7 +190,7 @@ class Project(var name: String, val file: File) : Saveable() {
         }
     }
 
-    // do we need multiple targets per project? maybe... todo overlays!
+    // do we need multiple targets per project? maybe... soft links!
     // do we need a target at all? -> yes
     // a project always is a folder
     // zip this folder all the time to not waste SSD life time? -> no, we don't have that many files

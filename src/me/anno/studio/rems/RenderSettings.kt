@@ -10,6 +10,7 @@ import me.anno.studio.rems.RemsStudio.targetDuration
 import me.anno.studio.rems.RemsStudio.targetOutputFile
 import me.anno.studio.rems.Rendering.renderPart
 import me.anno.studio.StudioBase.Companion.addEvent
+import me.anno.studio.rems.Rendering.renderAudio
 import me.anno.studio.rems.Rendering.renderSetPercent
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.text.TextPanel
@@ -132,6 +133,9 @@ object RenderSettings : Transform() {
         list += TextButton("Render at Set%", false, style)
             .setSimpleClickListener { renderSetPercent(true) }
             .setTooltip("Create video at your custom set relative resolution")
+        list += TextButton("Render Audio only", false, style)
+            .setSimpleClickListener { renderAudio(true) }
+            .setTooltip("Only creates an audio file; no video is rendered nor saved.")
 
     }
 

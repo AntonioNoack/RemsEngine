@@ -10,8 +10,6 @@ import me.anno.gpu.shader.ShaderPlus
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.objects.Camera
-import me.anno.studio.rems.RemsStudio.nullCamera
-import me.anno.studio.rems.RemsStudio.root
 import me.anno.studio.rems.Scene
 import me.anno.utils.Sleep.sleepShortly
 import org.apache.logging.log4j.LogManager
@@ -19,11 +17,12 @@ import org.lwjgl.opengl.GL11.*
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.concurrent.thread
 
-class VideoBackgroundTask(val video: VideoCreator, val motionBlurSteps: Int, val shutterPercentage: Float) {
-
-    val cameras = root.listOfAll.filter { it is Camera }.toList() as List<Camera>
-
-    val camera = cameras.firstOrNull() ?: nullCamera ?: Camera()
+class VideoBackgroundTask(
+    val video: VideoCreator,
+    val camera: Camera,
+    val motionBlurSteps: Int,
+    val shutterPercentage: Float
+) {
 
     val partialFrame = Framebuffer(
         "VideoBackgroundTask-partial", video.w, video.h, 1, 1,

@@ -9,6 +9,7 @@ import me.anno.io.text.TextWriter
 import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
 import me.anno.objects.Transform
+import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.animation.Type
 import me.anno.objects.distributions.*
 import me.anno.objects.forces.ForceField
@@ -57,7 +58,7 @@ open class ParticleSystem(parent: Transform? = null) : Transform(parent) {
     val spawnRotation = AnimatedDistribution(Type.ROT_YXZ, Vector3f())
     val spawnRotationVelocity = AnimatedDistribution(Type.ROT_YXZ, Vector3f())
 
-    val spawnRate = AnimatedDistribution(Type.FLOAT, 10f)
+    val spawnRate = AnimatedProperty.floatPlus(10f)
     val lifeTime = AnimatedDistribution(Type.FLOAT, 10f)
 
     var showChildren = false
@@ -89,10 +90,8 @@ open class ParticleSystem(parent: Transform? = null) : Transform(parent) {
 
     private fun spawnIfRequired(time: Double, onlyFirst: Boolean) {
 
-        spawnRate.update(time, random)
-
         val lastTime = particles.lastOrNull()?.birthTime ?: 0.0
-        val c0 = spawnRate.channels[0]
+        val c0 = spawnRate
         val integral0 = c0.getIntegral<Float>(lastTime, false)
         val integral1 = c0.getIntegral<Float>(time, false)
         val sinceThenIntegral = integral1 - integral0
@@ -118,10 +117,8 @@ open class ParticleSystem(parent: Transform? = null) : Transform(parent) {
                 newParticles += newParticle ?: continue
             }
 
-            synchronized(this) {
-                particles += newParticles
-                aliveParticles += newParticles
-            }
+            particles += newParticles
+            aliveParticles += newParticles
 
         }
 
@@ -148,8 +145,6 @@ open class ParticleSystem(parent: Transform? = null) : Transform(parent) {
 
                 spawnIfRequired(currentTime, false)
 
-                if(aliveParticles == null) throw RuntimeException("list has become null")
-                if(aliveParticles.any { it == null }) throw RuntimeException("list has null entry")
                 val needsUpdate = aliveParticles.filter { it.lastTime(simulationStep) < currentTime }
                 val simulationStep = simulationStep
 
@@ -232,11 +227,9 @@ open class ParticleSystem(parent: Transform? = null) : Transform(parent) {
     fun clearCache(state: Any? = getSystemState()) {
         lastState = state
         lastCheckup = gameTime
-        synchronized(this) {
-            particles.clear()
-            aliveParticles.clear()
-            random = Random(seed)
-        }
+        particles.clear()
+        aliveParticles.clear()
+        random = Random(seed)
         RemsStudio.updateSceneViews()
     }
 
@@ -280,11 +273,8 @@ open class ParticleSystem(parent: Transform? = null) : Transform(parent) {
                 stack.popMatrix()
             }
             val dist = selectedDistribution
-            // todo this doesn't seem to work completely :/
-            synchronized(dist) {
-                dist.update(time, Random())
-                dist.distribution.draw(stack, color)
-            }
+            dist.update(time, Random())
+            dist.distribution.draw(stack, color)
         }
 
         sumWeight = children.filterNot { it is ForceField }.sumByFloat { it.weight }
@@ -359,7 +349,6 @@ open class ParticleSystem(parent: Transform? = null) : Transform(parent) {
             vi(Dict[title, "obj.particles.$name"], Dict[description, "obj.particles.$name.desc"], obj)
         }
 
-        vt("spawnRate", "Spawn Rate", "How many particles are spawned per second", spawnRate)
         vt("lifeTime", "Life Time", "How many seconds a particle is visible", lifeTime)
         vt("initPosition", "Initial Position", "Where the particles spawn", spawnPosition)
         vt("initVelocity", "Initial Velocity", "How fast the particles are, when they are spawned", spawnVelocity)
@@ -371,6 +360,8 @@ open class ParticleSystem(parent: Transform? = null) : Transform(parent) {
         vi("Size", "Initial particle size", spawnSize)
 
         val general = getGroup("Particle System", "", "particles")
+
+        general += vi("Spawn Rate", "How many particles are spawned per second", "", spawnRate, style)
 
         general += vi(
             "Simulation Step",

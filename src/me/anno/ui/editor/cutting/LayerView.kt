@@ -14,6 +14,7 @@ import me.anno.input.MouseButton
 import me.anno.io.text.TextReader
 import me.anno.language.translation.NameDesc
 import me.anno.objects.Transform
+import me.anno.objects.Video
 import me.anno.objects.animation.Keyframe
 import me.anno.studio.StudioBase
 import me.anno.studio.StudioBase.Companion.shiftSlowdown
@@ -23,6 +24,7 @@ import me.anno.studio.rems.RemsStudio.root
 import me.anno.studio.rems.Selection.select
 import me.anno.studio.rems.Selection.selectTransform
 import me.anno.studio.rems.Selection.selectedTransform
+import me.anno.ui.base.Panel
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.dragging.Draggable
@@ -49,6 +51,15 @@ class LayerView(style: Style) : TimelinePanel(style) {
     var timelineSlot = 0
 
     val height = 50
+
+    override fun getTooltipPanel(x: Float, y: Float): Panel? {
+        val video = getTransformAt(x,y) as? Video
+        return if(video != null){
+            VideoPreviewPanel(video, height * 2, style){
+                video.getLocalTimeFromRoot(getTimeAt(it))
+            }
+        } else null
+    }
 
     lateinit var calculated: List<Transform>
     var drawn: List<Transform>? = null
