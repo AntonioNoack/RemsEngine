@@ -54,10 +54,10 @@ class BoolArray(var size: Int) : Saveable() {
         }
     }
 
-    override fun readIntArray(name: String, value: IntArray) {
+    override fun readIntArray(name: String, values: IntArray) {
         when (name) {
-            "values" -> values = value
-            else -> super.readIntArray(name, value)
+            "values" -> this.values = values
+            else -> super.readIntArray(name, values)
         }
     }
 

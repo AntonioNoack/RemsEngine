@@ -63,7 +63,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
     }
 
     private fun writeAttributeStart(type: String, name: String?) {
-        if (name != null) {
+        if (name != null && name.isNotBlank()) {
             next()
             writeTypeNameString(type, name)
             data.append(':')
@@ -428,11 +428,9 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
     }
 
     override fun writeObjectImpl(name: String?, value: ISaveable) {
-        if (name != null && name.isNotEmpty()) {
-            writeAttributeStart(value.getClassName(), name)
-            open(false)
-        } else {
-            open(false)
+        writeAttributeStart(value.getClassName(), name)
+        open(false)
+        if(name == null){
             writeString("class")
             data.append(':')
             writeString(value.getClassName())
@@ -447,19 +445,35 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
     }
 
     override fun <V : ISaveable> writeObjectArray(self: ISaveable?, name: String, elements: Array<V>, force: Boolean) {
-        // todo implement correctly xD
-        elements.forEach {
-            writeObject(self, name, it, force)
-        }
-    }
-
-    class HomogenousArray<V : ISaveable>(val elements: Array<V>) : Saveable() {
-        override fun isDefaultValue(): Boolean = false
-        override fun getClassName(): String = "HomogenousArray"
-        override fun getApproxSize() = elements.map { it.getApproxSize() }.max()?.plus(1) ?: 1
-        override fun save(writer: BaseWriter) {
-            super.save(writer)
-
+        if (force || elements.isNotEmpty()) {
+            if(elements.isEmpty()){
+                writeAttributeStart("*[]", name)
+                data.append("[0]")
+            } else {
+                val firstType = elements.first().getClassName()
+                val allHaveSameType = elements.all { it.getClassName() == firstType }
+                if(allHaveSameType){
+                    writeAttributeStart("$firstType[]", name)
+                    open(true)
+                    data.append(elements.size)
+                    elements.forEach {
+                        data.append(',')
+                        // self is null, because later init is not allowed
+                        writeObject(null, "", it, true)
+                    }
+                    close(true)
+                } else {
+                    writeAttributeStart("*[]", name)
+                    open(true)
+                    data.append(elements.size)
+                    elements.forEach {
+                        data.append(',')
+                        // self is null, because later init is not allowed
+                        writeObject(null, null, it, true)
+                    }
+                    close(true)
+                }
+            }
         }
     }
 
@@ -468,14 +482,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
         name: String,
         elements: Array<V>,
         force: Boolean
-    ) {
-        if (force || elements.isNotEmpty()) {
-            // todo implement correctly xD
-            elements.forEach {
-                writeObject(self, name, it, force)
-            }
-        }
-    }
+    ) = writeObjectArray(self, name, elements, force)
 
     override fun writePointer(name: String?, className: String, ptr: Int) {
         writeAttributeStart(className, name)

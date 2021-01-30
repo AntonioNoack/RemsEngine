@@ -186,7 +186,7 @@ class TextReader(val data: String) : BaseReader() {
     ): ArrayType {
         assert(skipSpace(), '[')
         val rawLength = readNumber()
-        val length = rawLength.toIntOrNull() ?: error("Invalid $typeName[] length $rawLength")
+        val length = rawLength.toIntOrNull() ?: error("Invalid $typeName[] length '$rawLength'")
         if (length < (data.length - index) / 2) {
             var i = 0
             val values = createArray(length)
@@ -325,7 +325,7 @@ class TextReader(val data: String) : BaseReader() {
             return if (clazz == obj.getClassName()) obj
             else getNewClassInstance(clazz)
         }
-        val (type, name) = splitTypeName(typeName)
+        var (type, name) = splitTypeName(typeName)
         when (type) {
             "i1", "b" -> obj.readBoolean(name, readBool())
             "i8", "B" -> obj.readByte(name, readByte())
@@ -426,37 +426,74 @@ class TextReader(val data: String) : BaseReader() {
                     { Array(it) { "" } }, { readStringValue() },
                     { array, index, value -> array[index] = value })
             )
+            "*[]", "[]" -> {
+                val elements = readTypedArray("Any", { arrayOfNulls<ISaveable?>(it) }, {
+                    when (val next = skipSpace()) {
+                        'n' -> readNull()
+                        '{' -> readObject()
+                        in '0'..'9' -> readPtr(next)
+                        else -> error("Missing { or ptr or null after starting object[], got '$next'")
+                    }
+                }, { array, index, value -> array[index] = value })
+                obj.readObjectArray(name, elements)
+            }
             else -> {
-                when (val next = skipSpace()) {
-                    'n' -> {
-                        assert(next(), 'u', "Reading null")
-                        assert(next(), 'l', "Reading null")
-                        assert(next(), 'l', "Reading null")
-                        obj.readObject(name, null)
-                    }
-                    '{' -> {
-                        val (child, ptr) = readObject(type)
-                        register(child, ptr)
-                        obj.readObject(name, child)
-                    }
-                    in '0'..'9' -> {
-                        tmpChar = next
-                        val rawPtr = readNumber()
-                        val ptr = rawPtr.toIntOrNull() ?: error("Invalid pointer: $rawPtr")
-                        if (ptr > 0) {
-                            val child = content[ptr]
-                            if (child == null) {
-                                addMissingReference(obj, name, ptr)
-                            } else {
-                                obj.readObject(name, child)
+                if (type.endsWith("[]")) {// array, but all elements have the same type
+                    type = type.substring(0, type.length - 2)
+                    val elements = readTypedArray(type, { arrayOfNulls<ISaveable?>(it) }, {
+                        when (val next = skipSpace()) {
+                            'n' -> readNull()
+                            '{' -> readObjectAndRegister(type)
+                            in '0'..'9' -> readPtr(next)
+                            else -> error("Missing { or ptr or null after starting object[], got '$next'")
+                        }
+                    }, { array, index, value -> array[index] = value })
+                    obj.readObjectArray(name, elements)
+                } else {
+                    when (val next = skipSpace()) {
+                        'n' -> obj.readObject(name, readNull())
+                        '{' -> obj.readObject(name, readObjectAndRegister(type))
+                        in '0'..'9' -> {
+                            tmpChar = next
+                            val rawPtr = readNumber()
+                            val ptr = rawPtr.toIntOrNull() ?: error("Invalid pointer: $rawPtr")
+                            if (ptr > 0) {
+                                val child = content[ptr]
+                                if (child == null) {
+                                    addMissingReference(obj, name, ptr)
+                                } else {
+                                    obj.readObject(name, child)
+                                }
                             }
                         }
+                        else -> error("Missing { or ptr or null after starting object of class $type, got '$next'")
                     }
-                    else -> error("Missing { or ptr or null after starting object of class $type")
                 }
             }
         }
         return obj
+    }
+
+    private fun readPtr(next: Char): ISaveable? {
+        tmpChar = next
+        val rawPtr = readNumber()
+        val ptr = rawPtr.toIntOrNull() ?: error("Invalid pointer: $rawPtr")
+        return if (ptr > 0) {
+            content[ptr]
+        } else null
+    }
+
+    private fun readNull(): Nothing? {
+        assert(next(), 'u', "Reading null")
+        assert(next(), 'l', "Reading null")
+        assert(next(), 'l', "Reading null")
+        return null
+    }
+
+    private fun readObjectAndRegister(type: String): ISaveable {
+        val (value, ptr) = readObject(type)
+        register(value, ptr)
+        return value
     }
 
     private fun readObject(type: String): Pair<ISaveable, Int> {

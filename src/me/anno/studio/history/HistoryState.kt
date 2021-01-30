@@ -125,10 +125,10 @@ class HistoryState() : Saveable() {
         }
     }
 
-    override fun readLongArray(name: String, value: LongArray) {
+    override fun readLongArray(name: String, values: LongArray) {
         when (name) {
-            "usedCameras" -> usedCameras = value
-            else -> super.readLongArray(name, value)
+            "usedCameras" -> usedCameras = values
+            else -> super.readLongArray(name, values)
         }
     }
 

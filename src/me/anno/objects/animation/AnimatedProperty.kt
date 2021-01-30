@@ -389,6 +389,22 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
         }
     }
 
+    override fun readObjectArray(name: String, values: Array<ISaveable?>) {
+        when(name){
+            "keyframes", "vs" -> {
+                values.filterIsInstance<Keyframe<*>>().forEach { value ->
+                    val castValue = type.acceptOrNull(value.value!!)
+                    if (castValue != null) {
+                        addKeyframe(value.time, clamp(castValue as V) as Any, 0.0)?.apply {
+                            interpolation = value.interpolation
+                        }
+                    } else LOGGER.warn("Dropped keyframe!, incompatible type ${value.value} for $type")
+                }
+            }
+            else -> super.readObjectArray(name, values)
+        }
+    }
+
     override fun readObject(name: String, value: ISaveable?) {
         when (name) {
             "keyframes", "vs" -> {

@@ -46,12 +46,12 @@ import me.anno.ui.editor.TimelinePanel.Companion.global2Kf
 import me.anno.ui.editor.stacked.Option
 import me.anno.ui.input.*
 import me.anno.ui.style.Style
-import me.anno.utils.types.Casting.castToDouble2
 import me.anno.utils.Color.toHexColor
-import me.anno.utils.types.Matrices.skew
 import me.anno.utils.structures.ValueWithDefault
 import me.anno.utils.structures.ValueWithDefault.Companion.writeMaybe
 import me.anno.utils.structures.ValueWithDefaultFunc
+import me.anno.utils.types.Casting.castToDouble2
+import me.anno.utils.types.Matrices.skew
 import org.apache.logging.log4j.LogManager
 import org.joml.*
 import java.io.File
@@ -145,7 +145,7 @@ open class Transform(var parent: Transform? = null) : Saveable(),
         }
     }
 
-    open fun clearCache(){}
+    open fun clearCache() {}
 
     fun setChildAt(child: Transform, index: Int) {
         if (this in child.listOfAll) throw RuntimeException()
@@ -443,6 +443,13 @@ open class Transform(var parent: Transform? = null) : Saveable(),
             "tags" -> tags = value
             "blendMode" -> blendMode = BlendMode[value]
             else -> super.readString(name, value)
+        }
+    }
+
+    override fun readObjectArray(name: String, values: Array<ISaveable?>) {
+        when (name) {
+            "children" -> values.filterIsInstance<Transform>().forEach(::addChild)
+            else -> super.readObjectArray(name, values)
         }
     }
 
