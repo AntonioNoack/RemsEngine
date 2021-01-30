@@ -49,7 +49,7 @@ object Strings {
         return index
     }
 
-    val defaultImportType = "Text"
+    const val defaultImportType = "Text"
 
     fun String.getImportType(): String =
         DefaultConfig["import.mapping.$this"]?.toString() ?:

@@ -24,8 +24,11 @@ open class AudioCreator(
 
     var onFinished = {}
 
-    val cameras = root.listOfAll.filter { it is Camera }.toList() as List<Camera>
-    val camera = cameras.firstOrNull() ?: RemsStudio.nullCamera ?: Camera()
+    val camera: Camera
+    init {
+        val cameras = root.listOfAll.filterIsInstance<Camera>()
+        camera = cameras.firstOrNull() ?: RemsStudio.nullCamera ?: Camera()
+    }
 
     fun createOrAppendAudio(output: File, videoCreator: VideoCreator?) {
 
@@ -45,7 +48,7 @@ open class AudioCreator(
                 "-i", videoCreator.output.absolutePath,
                 "-f", "s16be",
                 "-ar", "$sampleRate",
-                "-ac", "2",
+                "-ac", "2", // stereo
                 "-i", "pipe:0",
                 "-c:v", "copy",
                 "-c:a", audioCodec,
@@ -56,7 +59,7 @@ open class AudioCreator(
             listOf(
                 "-f", "s16be",
                 "-ar", "$sampleRate",
-                "-ac", "2",
+                "-ac", "2", // stereo
                 "-i", "pipe:0",
                 "-c:a", audioCodec,
                 output.absolutePath
