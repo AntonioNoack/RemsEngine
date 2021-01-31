@@ -7,11 +7,13 @@ import me.anno.mesh.fbx.model.FBXGeometry
 import me.anno.mesh.fbx.model.FBXMaterial
 import me.anno.mesh.fbx.model.FBXModel
 import me.anno.mesh.fbx.structure.FBXReader
+import me.anno.utils.types.Vectors.minus
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector2f
 import org.joml.Vector3f
 import java.io.InputStream
 import kotlin.math.max
+import kotlin.math.sqrt
 
 object FBXLoader {
 
@@ -84,7 +86,7 @@ object FBXLoader {
             }
 
             pointsByMaterial.forEach {
-                frontToBack(it)
+                correctNormals(it, true)
             }
 
             val meshes = pointsByMaterial.mapIndexed { index, it ->
@@ -110,13 +112,19 @@ object FBXLoader {
 
     }
 
-    // fbx files are GL_BACK, obj is GL_FRONT
-    // todo we could just flip them, if their normal disagrees...
-    fun frontToBack(list: MutableList<Point>) {
+    fun correctNormals(list: MutableList<Point>, front: Boolean) {
         for (i in 0 until list.size step 3) {
-            val tmp = list[i]
-            list[i] = list[i + 1]
-            list[i + 1] = tmp
+            val a = list[i]
+            val b = list[i+1]
+            val c = list[i+2]
+            val da = a.position - b.position
+            val db = b.position - c.position
+            val cross = da.cross(db, Vector3f()) / sqrt(da.lengthSquared() * db.lengthSquared())
+            if(cross.lengthSquared() > 0.01f && (cross.dot(a.normal) < 0f) == front){
+                val tmp = list[i]
+                list[i] = list[i + 1]
+                list[i + 1] = tmp
+            }
         }
     }
 

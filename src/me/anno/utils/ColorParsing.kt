@@ -1,6 +1,5 @@
 package me.anno.utils
 
-import me.anno.config.DefaultStyle
 import me.anno.config.DefaultStyle.black
 import me.anno.ui.editor.color.ColorSpace
 import me.anno.utils.Color.b
@@ -62,15 +61,15 @@ object ColorParsing {
     fun parseColor(name: String): Int? {
         if (name.startsWith("#")) {
             return when (name.length) {
-                4 -> (hex[name[1].toInt()] * 0x110000 + hex[name[2].toInt()] * 0x1100 + hex[name[3].toInt()] * 0x11) or DefaultStyle.black
+                4 -> (hex[name[1].toInt()] * 0x110000 + hex[name[2].toInt()] * 0x1100 + hex[name[3].toInt()] * 0x11) or black
                 5 -> (hex[name[1].toInt()] * 0x11000000 + hex[name[1].toInt()] * 0x110000 + hex[name[2].toInt()] * 0x1100 + hex[name[3].toInt()] * 0x11)
-                7 -> name.substring(1).toInt(16) or DefaultStyle.black
-                9 -> name.substring(1).toInt(16)
+                7 -> name.substring(1).toInt(16) or black
+                9 -> name.substring(1).toLong(16).toInt()
                 else -> throw RuntimeException("Unknown color $name")
             }
         }
         val lcName = name.trim().toLowerCase()
-        return if(lcName == "none") null
+        return if (lcName == "none") null
         else colorMap[lcName]?.or(black) ?: throw RuntimeException("Unknown color $name")
     }
 
@@ -90,7 +89,7 @@ object ColorParsing {
         return colorMap.reverse[this] ?: toHexColor()
     }
 
-    fun Int.rgbDistanceSq(other: Int) = sq(r()-other.r()) + sq(g()-other.g()) + sq(b()-other.b())
+    fun Int.rgbDistanceSq(other: Int) = sq(r() - other.r()) + sq(g() - other.g()) + sq(b() - other.b())
 
     fun Int.getClosestColorName(): String {
         // hsv or rgb? hsv is more important, I think...
@@ -99,13 +98,13 @@ object ColorParsing {
         val b = this.b()
         return colorMap.entries.minBy {
             val other = it.value
-            sq(r-other.r()) + sq(g-other.g()) + sq(b-other.b())
+            sq(r - other.r()) + sq(g - other.g()) + sq(b - other.b())
         }!!.key
     }
 
     private val colorMap by lazy {
         val map = BiMap<String, Int>(148)
-        fun put(k: String, v: Int) = map.put(k,v)
+        fun put(k: String, v: Int) = map.put(k, v)
         put("aliceblue", 0xf0f8ff)
         put("antiquewhite", 0xfaebd7)
         put("aqua", 0x00ffff)

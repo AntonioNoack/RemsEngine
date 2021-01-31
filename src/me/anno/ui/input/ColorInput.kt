@@ -5,6 +5,7 @@ import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.objects.Camera
 import me.anno.objects.animation.AnimatedProperty
+import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.studio.rems.RemsStudio
 import me.anno.studio.StudioBase.Companion.shiftSlowdown
 import me.anno.studio.rems.Selection.selectedProperty
@@ -19,6 +20,8 @@ import me.anno.utils.types.Lists.one
 import me.anno.utils.Maths.pow
 import org.joml.Vector4f
 import kotlin.math.max
+
+// todo color picker
 
 class ColorInput(
     style: Style, title: String,
@@ -53,7 +56,7 @@ class ColorInput(
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
         super.onMouseMoved(x, y, dx, dy)
-        if (mouseIsDown) {
+        if (mouseIsDown && dragged == null) {
             val scale2 = 20f * shiftSlowdown
             val size = scale2 * (if (selectedTransform is Camera) -1f else 1f) / max(GFX.width, GFX.height)
             val dx0 = dx * size

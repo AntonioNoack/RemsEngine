@@ -64,8 +64,8 @@ object StudioActions {
                 val dragged = StudioBase.dragged
                 if (dragged != null) {
 
-                    val data = dragged.getContent()
                     val type = dragged.getContentType()
+                    val data = dragged.getContent()
 
                     when (type) {
                         "File" -> {
@@ -156,6 +156,7 @@ object StudioActions {
         keyMap["global.h.t"] = "ToggleHideObject"
 
         // press instead of down for the delay
+        keyMap["ColorPaletteEntry.left.press"] = "DragStart"
         keyMap["SceneTab.left.press"] = "DragStart"
         keyMap["FileEntry.left.press"] = "DragStart"
         keyMap["FileEntry.left.double"] = "Enter|Open"

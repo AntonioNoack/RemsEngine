@@ -22,12 +22,6 @@ import org.joml.Vector3f
 import org.joml.Vector4f
 import java.io.File
 
-// todo color palette
-// todo save the color palette in the project settings
-// todo 8x5 colors?
-// todo drag color into there / paste it / auto-line(s)
-// todo color picker
-
 class Camera(parent: Transform? = null) : Transform(parent) {
 
     // todo allow cameras to be merged

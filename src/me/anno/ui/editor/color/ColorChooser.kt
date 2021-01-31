@@ -4,6 +4,7 @@ import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXx2D.posSize
 import me.anno.objects.animation.AnimatedProperty
+import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.studio.rems.RemsStudio.editorTime
 import me.anno.ui.base.Panel
 import me.anno.ui.base.SpacePanel
@@ -12,10 +13,11 @@ import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.color.spaces.HSLuv
 import me.anno.ui.input.EnumInput
+import me.anno.ui.input.components.ColorPalette
 import me.anno.ui.style.Style
-import me.anno.utils.types.AnyToFloat.get
 import me.anno.utils.ColorParsing.parseColorComplex
 import me.anno.utils.Maths.clamp
+import me.anno.utils.types.AnyToFloat.get
 import me.anno.utils.types.Floats.f3
 import org.apache.logging.log4j.LogManager
 import org.hsluv.HSLuvColorSpace
@@ -76,6 +78,8 @@ class ColorChooser(style: Style, val withAlpha: Boolean, val owningProperty: Ani
         lastVisualisation = visualisation
     }.setTooltip("Style, does not change values")
 
+    private val colorPalette = ColorPalette(8, 4, style)
+
     init {
         val spaceBox = PanelListX(style)
         this += spaceBox
@@ -89,6 +93,8 @@ class ColorChooser(style: Style, val withAlpha: Boolean, val owningProperty: Ani
             this += SpacePanel(0, 2, style)
             this += alphaBar
         }
+        this += colorPalette
+        colorPalette.onColorSelected = { setARGB(it,true) }
     }
 
     var lastTime = editorTime

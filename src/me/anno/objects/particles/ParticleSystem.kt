@@ -105,8 +105,8 @@ open class ParticleSystem(parent: Transform? = null) : Transform(parent) {
             val ps = particles.size
 
             // todo more accurate calculation for changing spawn rates...
-            // todo calculate, when the integral since lastTime surpassed 1.0 xD
-            // todo until we have reached time
+            // - calculate, when the integral since lastTime surpassed 1.0 until we have reached time
+
             // generate new particles
             val newParticles = ArrayList<Particle>()
             for (i in 0 until missingChildren) {

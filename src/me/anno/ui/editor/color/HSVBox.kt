@@ -1,5 +1,6 @@
 package me.anno.ui.editor.color
 
+import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.ui.base.Panel
 import me.anno.ui.style.Style
 import org.joml.Vector3f
@@ -24,7 +25,11 @@ open class HSVBox(
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
         when(action){
-            "selectColor" -> onValueChanged((x-this.x)/w, 1f-(y-this.y)/h)
+            "selectColor" -> {
+                if(dragged == null){
+                    onValueChanged((x-this.x)/w, 1f-(y-this.y)/h)
+                }
+            }
             else -> return super.onGotAction(x, y, dx, dy, action, isContinuous)
         }
         return true
