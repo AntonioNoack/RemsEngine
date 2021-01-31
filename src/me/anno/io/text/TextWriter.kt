@@ -503,21 +503,21 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
 
     companion object {
 
-        fun toText(data: List<Saveable>, beautify: Boolean): String {
+        fun toText(data: List<ISaveable>, beautify: Boolean): String {
             val writer = TextWriter(beautify)
             for (entry in data) writer.add(entry)
             writer.writeAllInList()
             return writer.toString()
         }
 
-        fun toText(data: Saveable, beautify: Boolean): String {
+        fun toText(data: ISaveable, beautify: Boolean): String {
             val writer = TextWriter(beautify)
             writer.add(data)
             writer.writeAllInList()
             return writer.toString()
         }
 
-        fun toBuilder(data: Saveable, beautify: Boolean): StringBuilder {
+        fun toBuilder(data: ISaveable, beautify: Boolean): StringBuilder {
             val writer = TextWriter(beautify)
             writer.add(data)
             writer.writeAllInList()

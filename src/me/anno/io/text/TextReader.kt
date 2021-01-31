@@ -426,7 +426,7 @@ class TextReader(val data: String) : BaseReader() {
                     { Array(it) { "" } }, { readStringValue() },
                     { array, index, value -> array[index] = value })
             )
-            "*[]", "[]" -> {
+            "*[]", "[]" -> {// array of mixed types
                 val elements = readTypedArray("Any", { arrayOfNulls<ISaveable?>(it) }, {
                     when (val next = skipSpace()) {
                         'n' -> readNull()

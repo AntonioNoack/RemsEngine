@@ -124,6 +124,9 @@ abstract class BaseWriter(val respectsDefaultValues: Boolean) {
         }
     }
 
+    /**
+     * saves an array of objects of different classes
+     * */
     abstract fun <V : ISaveable> writeObjectArray(
         self: ISaveable?,
         name: String,
@@ -132,7 +135,8 @@ abstract class BaseWriter(val respectsDefaultValues: Boolean) {
     )
 
     /**
-     * only instances of the same class are allowed
+     * saves an array of objects of one single class
+     * all elements are guaranteed to be of the exact same getClassName()
      * */
     abstract fun <V : ISaveable> writeHomogenousObjectArray(
         self: ISaveable?,

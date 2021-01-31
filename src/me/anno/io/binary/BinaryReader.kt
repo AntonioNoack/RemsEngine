@@ -71,6 +71,10 @@ class BinaryReader(val input: DataInputStream) : BaseReader() {
 
     override fun readObject(): ISaveable {
         val clazz = readTypeString()
+        return readObject(clazz)
+    }
+
+    fun readObject(clazz: String): ISaveable {
         val obj = getNewClassInstance(clazz)
         usingType(clazz) {
             val ptr = input.readInt()
@@ -113,6 +117,18 @@ class BinaryReader(val input: DataInputStream) : BaseReader() {
                             when (val subType = input.read().toChar()) {
                                 OBJECT_IMPL -> readObject()
                                 OBJECT_PTR -> content[input.readInt()]!!
+                                OBJECT_NULL -> null
+                                else -> throw RuntimeException("Unknown sub-type $subType")
+                            }
+                        })
+                    }
+                    OBJECTS_HOMOGENOUS_ARRAY -> {
+                        val type = readTypeString()
+                        obj.readObjectArray(name, Array(input.readInt()) {
+                            when (val subType = input.read().toChar()) {
+                                OBJECT_IMPL -> readObject(type)
+                                OBJECT_PTR -> content[input.readInt()]!!
+                                OBJECT_NULL -> null
                                 else -> throw RuntimeException("Unknown sub-type $subType")
                             }
                         })

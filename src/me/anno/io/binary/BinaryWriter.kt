@@ -259,7 +259,7 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         output.writeInt(ptr)
     }
 
-    private fun writeObjectEnd(){
+    private fun writeObjectEnd() {
         output.writeInt(-2)
     }
 
@@ -282,13 +282,11 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         writeInstance: (V) -> Unit
     ) {
         if (force || elements.isNotEmpty()) {
-
             writeAttributeStart(name, type)
             output.writeInt(elements.size)
             elements.forEach { element ->
                 writeInstance(element)
             }
-
         }
     }
 
@@ -299,20 +297,32 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         writeInstance: (V) -> Unit
     ) {
         if (force || elements.isNotEmpty()) {
-
             writeAttributeStart(name, OBJECT_ARRAY)
             output.writeInt(elements.size)
             elements.forEach { element ->
                 writeInstance(element)
             }
-
         }
     }
 
     override fun <V : ISaveable> writeObjectArray(self: ISaveable?, name: String, elements: Array<V>, force: Boolean) {
-        writeGenericArray(name, elements, force, OBJECT_ARRAY) {
-            writeObject(null, null, it, true)
+        if (force || elements.isNotEmpty()) {
+            if (elements.isNotEmpty()) {
+                val firstType = elements.first().getClassName()
+                val allSameType = elements.all { it.getClassName() == firstType }
+                if (allSameType) {
+                    writeHomogenousObjectArray(self, name, elements, force)
+                } else {
+                    writeGenericArray(name, elements, force, OBJECT_ARRAY) {
+                        writeObject(null, null, it, true)
+                    }
+                }
+            } else {
+                writeAttributeStart(name, OBJECT_ARRAY)
+                output.writeInt(0)
+            }
         }
+
     }
 
     override fun <V : ISaveable> writeObjectList(self: ISaveable?, name: String, elements: List<V>, force: Boolean) {
@@ -327,11 +337,11 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         elements: Array<V>,
         force: Boolean
     ) {
-        if(force || elements.isNotEmpty()){
+        if (force || elements.isNotEmpty()) {
             writeAttributeStart(name, OBJECTS_HOMOGENOUS_ARRAY)
             writeTypeString(elements.firstOrNull()?.getClassName() ?: "")
             output.writeInt(elements.size)
-            for(element in elements){
+            for (element in elements) {
                 element.save(this)
                 writeObjectEnd()
             }
