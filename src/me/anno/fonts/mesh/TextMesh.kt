@@ -232,7 +232,7 @@ class TextMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
                         mergeRings(ring, inner.ring)
                     }*/
                     needingRemoval.clear()
-                    triangles = Triangulation.ringToTriangles2(ring)
+                    triangles = Triangulation.ringToTrianglesVec2f(ring)
                     gfx?.apply {
                         gfx.color = Color.GRAY
                         drawTriangles(gfx, 0, triangles)
@@ -328,7 +328,7 @@ class TextMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
     }
 
     class Fragment(val ring: MutableList<Vector2f>) {
-        var triangles = Triangulation.ringToTriangles2(ring)
+        var triangles = Triangulation.ringToTrianglesVec2f(ring)
         val minX: Float
         val minY: Float
         val maxX: Float

@@ -1,5 +1,6 @@
 package me.anno.mesh.obj
 
+import me.anno.fonts.mesh.Triangulation
 import me.anno.mesh.Line
 import me.anno.mesh.Mesh
 import me.anno.mesh.Model
@@ -170,13 +171,12 @@ class OBJReader(input: InputStream, val file: File?) : OBJMTLReader(input) {
                                     putPoint(2)
                                 }
                                 else -> {
-                                    // todo triangulate the points correctly
-                                    // is this possible in 3D?
-                                    // do we need to project/rotate them into 2D first?
-                                    for (i in 2 until points.size) {
-                                        putPoint(0)
-                                        putPoint(i - 1)
-                                        putPoint(i)
+                                    // triangulate the points correctly
+                                    val triangles = Triangulation.ringToTrianglesPoint(points)
+                                    for(i in triangles.indices step 3){
+                                        putPoint(triangles[i])
+                                        putPoint(triangles[i+1])
+                                        putPoint(triangles[i+2])
                                     }
                                 }
                             }
