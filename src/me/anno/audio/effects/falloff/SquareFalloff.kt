@@ -1,13 +1,8 @@
 package me.anno.audio.effects.falloff
 
 import me.anno.audio.effects.SoundEffect
-import me.anno.objects.Audio
 
 class SquareFalloff() : Falloff() {
-
-    constructor(audio: Audio) : this() {
-        this.audio = audio
-    }
 
     constructor(halfDistance: Float) : this() {
         this.halfDistance = halfDistance

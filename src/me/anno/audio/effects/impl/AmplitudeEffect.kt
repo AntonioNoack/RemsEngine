@@ -20,10 +20,6 @@ import me.anno.utils.hpc.HeavyProcessing.processBalanced
 
 class AmplitudeEffect() : SoundEffect(Domain.TIME_DOMAIN, Domain.TIME_DOMAIN) {
 
-    constructor(audio: Audio) : this() {
-        this.audio = audio
-    }
-
     override fun apply(data: FloatArray, source: Audio, destination: Camera, time0: Time, time1: Time): FloatArray {
 
         val amplitude = source.amplitude

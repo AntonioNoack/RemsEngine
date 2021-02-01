@@ -12,25 +12,22 @@ import me.anno.objects.animation.Type
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
-import me.anno.utils.types.Casting.castToFloat2
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.fract
 import me.anno.utils.Maths.mix
-import kotlin.math.*
+import me.anno.utils.types.Casting.castToFloat2
+import kotlin.math.abs
+import kotlin.math.min
 
-class PitchEffect() : SoundEffect(Domain.TIME_DOMAIN, Domain.TIME_DOMAIN) {
+class PitchEffect : SoundEffect(Domain.TIME_DOMAIN, Domain.TIME_DOMAIN) {
 
     companion object {
         val maxPitch = 20f
-        val minPitch = 1f/ maxPitch
+        val minPitch = 1f / maxPitch
         val pitchType = Type(1f, 1, 1f, false, true,
             { clamp(castToFloat2(it), minPitch, maxPitch) },
             { it is Float }
         )
-    }
-
-    constructor(audio: Audio) : this() {
-        this.audio = audio
     }
 
     override fun createInspector(
@@ -43,7 +40,7 @@ class PitchEffect() : SoundEffect(Domain.TIME_DOMAIN, Domain.TIME_DOMAIN) {
             "Making something play faster, increases the pitch; this is undone by this node",
             null, inverseSpeed, style
         ) { inverseSpeed = it }
-        list += audio.vi("Value", "Pitch height, if Inverse Speed = false", pitchType, pitch, style){ pitch = it }
+        list += audio.vi("Value", "Pitch height, if Inverse Speed = false", pitchType, pitch, style) { pitch = it }
     }
 
     var inverseSpeed = false
@@ -58,7 +55,10 @@ class PitchEffect() : SoundEffect(Domain.TIME_DOMAIN, Domain.TIME_DOMAIN) {
     val result = FloatArray(bufferSize)
 
     private val stretch = TimeDomainStretch()
-    init { stretch.setChannels(1) }
+
+    init {
+        stretch.setChannels(1)
+    }
 
     var tempo = 1f
     var hasTempo = false
@@ -66,21 +66,21 @@ class PitchEffect() : SoundEffect(Domain.TIME_DOMAIN, Domain.TIME_DOMAIN) {
 
     override fun apply(data: FloatArray, source: Audio, destination: Camera, time0: Time, time1: Time): FloatArray {
 
-        if(!hasTempo){
+        if (!hasTempo) {
             // todo can tempo be changed while running???...
             tempo = clamp(
-                if(inverseSpeed){
-                    val localDt = abs(time1.localTime-time0.localTime)
+                if (inverseSpeed) {
+                    val localDt = abs(time1.localTime - time0.localTime)
                     val globalDt = abs(time1.globalTime - time0.globalTime)
-                    (localDt/globalDt).toFloat()
-                } else 1f/pitch, minPitch, maxPitch
+                    (localDt / globalDt).toFloat()
+                } else 1f / pitch, minPitch, maxPitch
             )
             stretch.setTempo(tempo)
             hasTempo = true
         }
 
         // nothing to do, should be exact enough
-        if(tempo in 0.999f .. 1.001f) return data
+        if (tempo in 0.999f..1.001f) return data
 
         // put the data
         stretch.putSamples(data)
@@ -90,32 +90,32 @@ class PitchEffect() : SoundEffect(Domain.TIME_DOMAIN, Domain.TIME_DOMAIN) {
         val output2 = output.backend
         val offset = outputOffset
         val size = output.numSamples() - offset
-        if(size > 0){
+        if (size > 0) {
 
             // keep size "constant" (it's not), only use what you need
-            val usedSize = min(size, (data.size*pitch).toInt())
+            val usedSize = min(size, (data.size * pitch).toInt())
             val factor = usedSize.toFloat() / data.size
             // println("$usedSize (${output.numSamples()} - $offset) / ${data.size} -> $factor from $pitch")
             val maxIndex = size + offset - 1
 
             var f0 = 0f
             var i0 = 0
-            for(i in data.indices){
-                val f1 = (i+1) * factor
+            for (i in data.indices) {
+                val f1 = (i + 1) * factor
                 val i1 = f1.toInt() + offset
-                data[i] = if(i1 > i1){
+                data[i] = if (i1 > i1) {
                     // there are multiple values
                     // average f0 .. f1
                     var sum = 0f
-                    sum += output2[i0] * (1f-fract(f0))
+                    sum += output2[i0] * (1f - fract(f0))
                     sum += output2[i1] * fract(f1)
-                    for(j in i0+1 until i1){
+                    for (j in i0 + 1 until i1) {
                         sum += output2[j]
                     }
-                    sum / (f1-f0)
+                    sum / (f1 - f0)
                 } else {
                     // only a single one, lerped
-                    mix(output2[i0], output2[min(i0+1, maxIndex)], fract(f0))
+                    mix(output2[i0], output2[min(i0 + 1, maxIndex)], fract(f0))
                 }
                 f0 = f1
                 i0 = i1
@@ -143,7 +143,7 @@ class PitchEffect() : SoundEffect(Domain.TIME_DOMAIN, Domain.TIME_DOMAIN) {
     }
 
     override fun readFloat(name: String, value: Float) {
-        when(name){
+        when (name) {
             "pitch" -> pitch = value
             else -> super.readFloat(name, value)
         }

@@ -82,8 +82,8 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
 
     init {
         color.isAnimated = true
-        color.addKeyframe(-0.01, Vector4f(1f, 1f, 1f, 0f))
-        color.addKeyframe(+0.10, Vector4f(1f))
+        color.addKeyframe(-1.0/128.0, Vector4f(1f, 1f, 1f, 0f))
+        color.addKeyframe(+1.0/8.0, Vector4f(1f))
     }
 
     var tiling = AnimatedProperty.tiling()
@@ -537,10 +537,10 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
             if (kf.size == 2 && // only exactly two keyframes
                 kf[0].time > kf[1].time - 1.0 && // is closely together
                 kf[1].time < duration - 0.2 && // far enough from the end
-                kf[0].value.w < 0.1 && kf[1].value.w > 0.1
+                kf[0].value.w < 0.05 && kf[1].value.w > 0.15
             ) { // is becoming visible
                 val col = color[duration]
-                color.addKeyframe(duration - 0.1, col)
+                color.addKeyframe(duration - 1.0/8.0, col)
                 color.addKeyframe(duration, Vector4f(col.x, col.y, col.z, 0f))
             }
         }
@@ -715,26 +715,6 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
             is3D = it
             AudioManager.requestUpdate()
         })
-
-        val audioFX = getGroup("Audio Effects", "", "audio-fx")
-        audioFX += aud(
-            vi(
-                "Echo Delay",
-                "How long the delay to the first echo is",
-                "audio.echo.delay",
-                echoDelay,
-                style
-            )
-        )
-        audioFX += aud(
-            vi(
-                "Echo Multiplier",
-                "How much of the amplitude stays after each echo",
-                "audio.echo.multiplier",
-                echoMultiplier,
-                style
-            )
-        )
 
         val playbackTitles = "Test Playback" to "Stop Playback"
         fun getPlaybackTitle(invert: Boolean) =

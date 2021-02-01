@@ -1,14 +1,9 @@
 package me.anno.audio.effects.falloff
 
 import me.anno.audio.effects.SoundEffect
-import me.anno.objects.Audio
 import me.anno.utils.Maths.pow
 
 class ExponentialFalloff() : Falloff() {
-
-    constructor(audio: Audio): this() {
-        this.audio = audio
-    }
 
     constructor(halfDistance: Float) : this() {
         this.halfDistance = halfDistance

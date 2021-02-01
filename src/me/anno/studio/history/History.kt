@@ -24,8 +24,10 @@ class History : Saveable() {
     fun isEmpty() = states.isEmpty()
 
     fun clearToSize() {
-        while (states.size > maxChanged && maxChanged > 0) {
-            states.removeAt(0)
+        synchronized(states){
+            while (states.size > maxChanged && maxChanged > 0) {
+                states.removeAt(0)
+            }
         }
     }
 
@@ -40,12 +42,14 @@ class History : Saveable() {
     }
 
     fun put(change: HistoryState): Int {
-        // remove states at the top of the stack...
-        // while (states.size > nextInsertIndex) states.removeAt(states.lastIndex)
-        states += change
-        clearToSize()
-        nextInsertIndex = states.size
-        return nextInsertIndex
+        synchronized(states){
+            // remove states at the top of the stack...
+            // while (states.size > nextInsertIndex) states.removeAt(states.lastIndex)
+            states += change
+            clearToSize()
+            nextInsertIndex = states.size
+            return nextInsertIndex
+        }
     }
 
     fun put(title: String, code: Any) {
@@ -57,17 +61,21 @@ class History : Saveable() {
     }
 
     fun redo() {
-        if (nextInsertIndex < states.size) {
-            states[nextInsertIndex].apply()
-            nextInsertIndex++
-        } else LOGGER.info("Nothing left to redo!")
+        synchronized(states){
+            if (nextInsertIndex < states.size) {
+                states[nextInsertIndex].apply()
+                nextInsertIndex++
+            } else LOGGER.info("Nothing left to redo!")
+        }
     }
 
     fun undo() {
-        if (nextInsertIndex > 1) {
-            nextInsertIndex--
-            states[nextInsertIndex - 1].apply()
-        } else LOGGER.info("Nothing left to undo!")
+        synchronized(states){
+            if (nextInsertIndex > 1) {
+                nextInsertIndex--
+                states[nextInsertIndex - 1].apply()
+            } else LOGGER.info("Nothing left to undo!")
+        }
     }
 
     private fun redo(index: Int) {
@@ -95,11 +103,20 @@ class History : Saveable() {
         }
     }
 
+    override fun readObjectArray(name: String, values: Array<ISaveable?>) {
+        when(name){
+            "states" -> {
+                synchronized(states){
+                    states += values.filterIsInstance<HistoryState>()
+                }
+            }
+            else -> super.readObjectArray(name, values)
+        }
+    }
+
     override fun readObject(name: String, value: ISaveable?) {
         when (name) {
-            "state" -> {
-                states += value as? HistoryState ?: return
-            }
+            "state" -> states += value as? HistoryState ?: return
             else -> super.readObject(name, value)
         }
     }
@@ -107,8 +124,8 @@ class History : Saveable() {
     override fun save(writer: BaseWriter) {
         super.save(writer)
         writer.writeInt("nextInsertIndex", nextInsertIndex)
-        states.forEach { state ->
-            writer.writeObject(this, "state", state)
+        synchronized(states){
+            writer.writeObjectList(this, "states", states)
         }
     }
 

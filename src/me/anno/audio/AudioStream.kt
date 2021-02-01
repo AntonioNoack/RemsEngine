@@ -288,36 +288,6 @@ abstract class AudioStream(
 
                 val approxFraction = (sampleIndex % updatePositionEveryNFrames) * 1.0 / updatePositionEveryNFrames
 
-                // low quality echo
-                // because high quality may be expensive...
-                // it rather should be computed as a post-processing effect...
-                // todo irregular chaos component?? (different reflection directions)
-                val echoMultiplier = source.echoMultiplier[global0]
-                if (echoMultiplier > 0f) {
-                    val echoDelay = source.echoDelay[global0]
-                    var sum = 1f
-                    if (abs(echoDelay) > 1e-5f) {
-                        var global = global1 - echoDelay
-                        var multiplier = echoMultiplier
-                        for (i in 0 until 10) {
-                            val local = globalToLocalTime(global)
-                            val index = (ffmpegSampleRate * local).toLong()
-                            val data = getMaxAmplitudesSync(index)
-                            val avg = data.first // echo mixes it anyways ;)
-                            val delta = avg * multiplier
-                            a0 += delta
-                            a1 += delta
-                            sum += multiplier
-                            global -= echoDelay
-                            multiplier *= echoMultiplier
-                            if (multiplier < 1e-5f) break
-                        }
-                    }
-                    // normalize the values
-                    a0 /= sum
-                    a1 /= sum
-                }
-
                 // write the data
                 val left = transfer0.getLeft(a0, a1, approxFraction, transfer1)
                 val right = transfer0.getRight(a0, a1, approxFraction, transfer1)

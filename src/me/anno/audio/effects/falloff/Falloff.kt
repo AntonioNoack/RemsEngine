@@ -14,15 +14,7 @@ import me.anno.ui.style.Style
 import me.anno.utils.Maths.mix
 import org.joml.Vector3f
 
-abstract class Falloff() : SoundEffect(Domain.TIME_DOMAIN, Domain.TIME_DOMAIN) {
-
-    constructor(audio: Audio): this() {
-        this.audio = audio
-    }
-
-    constructor(halfDistance: Float) : this() {
-        this.halfDistance = halfDistance
-    }
+abstract class Falloff : SoundEffect(Domain.TIME_DOMAIN, Domain.TIME_DOMAIN) {
 
     var halfDistance = 1f
 

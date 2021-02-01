@@ -23,19 +23,17 @@ import java.io.File
 abstract class Audio(var file: File = File(""), parent: Transform? = null) : GFXTransform(parent) {
 
     val amplitude = AnimatedProperty.floatPlus(1f)
-    val echoDelay = AnimatedProperty.float01()
-    val echoMultiplier = AnimatedProperty.float01()
-    val forcedMeta get() = getMeta(file, false)
-    val meta get() = getMeta(file, true)
     var effects = SoundPipeline(this)
-
-    var is3D = false
-
-    var needsUpdate = true
     var isLooping =
         if (file.extension.equals("gif", true)) LoopingState.PLAY_LOOP
         else LoopingState.PLAY_ONCE
 
+    var is3D = false
+
+    val meta get() = getMeta(file, true)
+    val forcedMeta get() = getMeta(file, false)
+
+    var needsUpdate = true
     var component: AudioStreamOpenAL? = null
 
     /**

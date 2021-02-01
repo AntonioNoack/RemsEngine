@@ -19,11 +19,7 @@ import java.util.*
 import kotlin.math.log2
 import kotlin.math.min
 
-class EchoEffect() : SoundEffect(Domain.TIME_DOMAIN, Domain.TIME_DOMAIN) {
-
-    constructor(audio: Audio) : this() {
-        this.audio = audio
-    }
+class EchoEffect : SoundEffect(Domain.TIME_DOMAIN, Domain.TIME_DOMAIN) {
 
     private val recentData = ArrayList<FloatArray>(maxBuffers)
 
@@ -55,20 +51,19 @@ class EchoEffect() : SoundEffect(Domain.TIME_DOMAIN, Domain.TIME_DOMAIN) {
 
     companion object {
 
-        val maxEchoes = 64
-        val randomizedOffsets: FloatArray
-        private val maxBuffers = 128
+        private const val maxEchoes = 64
+        private val randomizedOffsets: FloatArray
+        private const val maxBuffers = 128
+        private const val minRelativeAmplitude = 1e-4f
 
         init {
             val random = Random(1234)
-            randomizedOffsets = FloatArray(maxEchoes) { (it + 1) * (0.9f + 0.2f) * random.nextFloat() }
+            randomizedOffsets = FloatArray(maxEchoes) { (it + 1) * (0.8f + 0.4f * random.nextFloat()) }
         }
-
-        val minRelativeAmplitude = 0.001f
 
     }
 
-    fun put(data: FloatArray) {
+    private fun putCopy(data: FloatArray) {
         if (recentData.size >= maxBuffers) {
             recentData.removeAt(0)
         }
@@ -88,7 +83,7 @@ class EchoEffect() : SoundEffect(Domain.TIME_DOMAIN, Domain.TIME_DOMAIN) {
         val bufferIndex = recentData.lastIndex
         val offset0 = offset[time] * bufferSize / (time1.localTime - time0.localTime)
 
-        put(data)
+        putCopy(data)
 
         if (echoes > 0 && offset0 > 0.5) {
 
@@ -108,12 +103,12 @@ class EchoEffect() : SoundEffect(Domain.TIME_DOMAIN, Domain.TIME_DOMAIN) {
                     val midIndex = min((startIndex / bufferSize + 1) * bufferSize, endIndex)
                     processBalanced(startIndex, midIndex, false) { i0, i1 ->
                         for (i in i0 until i1) {
-                            data[i - startIndex0] += buffer0[i and bufferSizeM1]
+                            data[i - startIndex0] += buffer0[i and bufferSizeM1] * multiplier
                         }
                     }
                     processBalanced(midIndex, endIndex, false) { i0, i1 ->
                         for (i in i0 until i1) {
-                            data[i - startIndex0] += buffer1[i and bufferSizeM1]
+                            data[i - startIndex0] += buffer1[i and bufferSizeM1] * multiplier
                         }
                     }
                 }
