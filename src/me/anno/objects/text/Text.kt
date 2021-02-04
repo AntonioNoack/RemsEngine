@@ -1,5 +1,6 @@
 package me.anno.objects.text
 
+import me.anno.cache.CacheData
 import me.anno.cache.instances.TextCache
 import me.anno.cache.keys.TextSegmentKey
 import me.anno.config.DefaultConfig
@@ -39,6 +40,8 @@ import me.anno.ui.input.BooleanInput
 import me.anno.ui.input.EnumInput
 import me.anno.ui.input.TextInputML
 import me.anno.ui.style.Style
+import me.anno.utils.Maths.mix
+import me.anno.utils.Maths.next
 import me.anno.utils.types.Vectors.mulAlpha
 import me.anno.utils.types.Vectors.plus
 import me.anno.utils.types.Vectors.times
@@ -59,17 +62,14 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
 
     val backgroundColor = AnimatedProperty.color()
 
-    var text = text.replace("\r", "")
-        set(value) {
-            field = value.replace("\r", "")
-        }
+    var text = AnimatedProperty.string()
 
     var renderingMode = TextRenderMode.MESH
     var roundSDFCorners = false
 
-    var textAlignment = AxisAlignment.CENTER
-    var blockAlignmentX = AxisAlignment.CENTER
-    var blockAlignmentY = AxisAlignment.CENTER
+    var textAlignment = AnimatedProperty.alignment()
+    var blockAlignmentX = AnimatedProperty.alignment()
+    var blockAlignmentY = AnimatedProperty.alignment()
 
     val outlineColor0 = AnimatedProperty.color()
     val outlineColor1 = AnimatedProperty.color(Vector4f(0f))
@@ -87,6 +87,7 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
     // automatic line break after length x
     var lineBreakWidth = -1f
 
+    // todo allow style by HTML/.md? :D
     var textMode = TextMode.RAW
 
     var relativeLineSpacing = AnimatedProperty.float(1f)
@@ -94,18 +95,11 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
     var relativeCharSpacing = 0f
     var relativeTabSize = 4f
 
-    // caching
-    var lastText = ""
-
-    // todo allow style by HTML/.md? :D
-    var lineSegmentsWithStyle: PartResult? = null
-    var keys: List<TextSegmentKey>? = null
-
     var font = Font("Verdana", DEFAULT_FONT_HEIGHT, false, false)
     val charSpacing get() = font.size * relativeCharSpacing
     var forceVariableBuffer = false
 
-    fun createKeys() =
+    fun createKeys(lineSegmentsWithStyle: PartResult?) =
         lineSegmentsWithStyle?.parts?.map {
             TextSegmentKey(
                 it.font,
@@ -131,8 +125,10 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
         return awtFont.splitParts(text, font.size, relativeTabSize, relativeCharSpacing, absoluteLineBreakWidth)
     }
 
-    var lastVisualState: Any? = null
-    fun getVisualState() = Triple(Triple(text, font, lineBreakWidth), renderingMode, roundSDFCorners)
+    fun getVisualState(text: String) = Pair(
+        Triple(text, font, lineBreakWidth),
+        Triple(renderingMode, roundSDFCorners, charSpacing)
+    )
 
     val shallLoadAsync get() = !forceVariableBuffer
     fun getTextMesh(key: TextSegmentKey): TextRepBase? {
@@ -151,34 +147,22 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
 
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
 
-        val text = text
-        val isBold = font.isBold
-        val isItalic = font.isItalic
-
-        val charSpacing = charSpacing
-
+        val text = text[time]
         if (text.isBlank()) {
             super.onDraw(stack, time, color)
             return
         }
 
-        val visualState = getVisualState()
-        if (lastVisualState != visualState || keys == null) {
-            lastText = text
-            lineSegmentsWithStyle = splitSegments(text)
-            keys = createKeys()
-            lastVisualState = visualState
-        } else {
-            // !none = at least one?, is not equal, so needs update
-            if (!keys!!.withIndex().none { (index, fontMeshKey) ->
-                    !fontMeshKey.equals(isBold, isItalic, lineSegmentsWithStyle!!.parts[index].text, charSpacing)
-                }) {
-                keys = createKeys()
-            }
-        }
+        val visualState = getVisualState(text)
+        val data = TextCache.getEntry(visualState, 1000L, false){
+            val segments = splitSegments(text)
+            val keys = createKeys(segments)
+            CacheData(segments to keys)
+        } as CacheData<*>
+        val dataValue = data.value as Pair<PartResult, List<TextSegmentKey>>
 
-        val lineSegmentsWithStyle = lineSegmentsWithStyle!!
-        val keys = keys!!
+        val lineSegmentsWithStyle = dataValue.first
+        val keys = dataValue.second
 
         val exampleLayout = lineSegmentsWithStyle.exampleLayout
         val scaleX = DEFAULT_LINE_HEIGHT / (exampleLayout.ascent + exampleLayout.descent)
@@ -194,17 +178,28 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
 
         val totalHeight = lineOffset * height
 
-        val dx = when (blockAlignmentX) {
+        val blockAlignmentX01 = blockAlignmentX[time] * .5f + .5f
+        val dx = (blockAlignmentX01 - 1f) * width
+        /* when (blockAlignmentX) {
             AxisAlignment.MIN -> -width
             AxisAlignment.CENTER -> -width / 2
             AxisAlignment.MAX -> 0f
-        }
+        } */
 
-        val dy = when (blockAlignmentY) {
-            AxisAlignment.MIN -> 0f + lineOffset * 0.57f // text touches top
-            AxisAlignment.CENTER -> -totalHeight * 0.5f + lineOffset * 0.75f // center line, height of horizontal in e
-            AxisAlignment.MAX -> -totalHeight + lineOffset // exactly baseline
+        val dy0 = lineOffset * 0.57f // text touches top
+        val dy1 = -totalHeight * 0.5f + lineOffset * 0.75f // center line, height of horizontal in e
+        val dy2 = -totalHeight + lineOffset // exactly baseline
+        val blockAlignmentY11 = blockAlignmentY[time]
+        val dy = if (blockAlignmentY11 < 0f) {
+            mix(dy0, dy1, blockAlignmentY11 + 1f)
+        } else {
+            mix(dy1, dy2, blockAlignmentY11)
         }
+        /* when (blockAlignmentY) {
+            AxisAlignment.MIN -> dy0
+            AxisAlignment.CENTER -> dy1
+            AxisAlignment.MAX -> dy2
+        } */
 
         val renderingMode = renderingMode
         val drawMeshes = renderingMode == TextRenderMode.MESH
@@ -241,18 +236,18 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
         if (shadowColor.w >= 0f) {
             val shadowSmoothness = shadowSmoothness[time]
             val shadowOffset = shadowOffset[time] * (1f / DEFAULT_FONT_HEIGHT)
-            stack.pushMatrix()
-            stack.translate(shadowOffset)
-            draw(
-                stack, time, color * shadowColor,
-                lineSegmentsWithStyle, drawMeshes, drawTextures,
-                keys, exampleLayout,
-                width, lineOffset,
-                dx, dy, scaleX, scaleY,
-                startCursor, endCursor,
-                false, shadowSmoothness
-            )
-            stack.popMatrix()
+            stack.next {
+                stack.translate(shadowOffset)
+                draw(
+                    stack, time, color * shadowColor,
+                    lineSegmentsWithStyle, drawMeshes, drawTextures,
+                    keys, exampleLayout,
+                    width, lineOffset,
+                    dx, dy, scaleX, scaleY,
+                    startCursor, endCursor,
+                    false, shadowSmoothness
+                )
+            }
         }
 
         draw(
@@ -311,11 +306,13 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
 
                 val key = keys[index]
 
-                val offsetX = when (textAlignment) {
+                val textAlignment01 = textAlignment[time] * .5f + .5f
+                val offsetX = (width - part.lineWidth * scaleX) * textAlignment01
+                /* when (textAlignment) {
                     AxisAlignment.MIN -> 0f
                     AxisAlignment.CENTER -> (width - part.lineWidth * scaleX) / 2f
                     AxisAlignment.MAX -> (width - part.lineWidth * scaleX)
-                }
+                } */
 
                 val lineDeltaX = dx + part.xPos * scaleX + offsetX
                 val lineDeltaY = dy + part.yPos * scaleY * lineOffset
@@ -373,62 +370,61 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
             val texture = sdf?.texture
             if (texture != null && texture.isCreated) {
 
-                stack.pushMatrix()
+                stack.next {
 
-                val baseScale =
-                    DEFAULT_LINE_HEIGHT / sdfResolution / (exampleLayout.ascent + exampleLayout.descent)
+                    val baseScale =
+                        DEFAULT_LINE_HEIGHT / sdfResolution / (exampleLayout.ascent + exampleLayout.descent)
 
-                val scale = Vector2f(0.5f * texture.w * baseScale, 0.5f * texture.h * baseScale)
+                    val scale = Vector2f(0.5f * texture.w * baseScale, 0.5f * texture.h * baseScale)
 
-                /**
-                 * character- and alignment offset
-                 * */
-                stack.translate(lineDeltaX + xOffset, lineDeltaY, 0f)
-                stack.scale(scale.x, scale.y, 1f)
+                    /**
+                     * character- and alignment offset
+                     * */
+                    stack.translate(lineDeltaX + xOffset, lineDeltaY, 0f)
+                    stack.scale(scale.x, scale.y, 1f)
 
-                val sdfOffset = sdf.offset
-                val offset = Vector2f(
-                    (lineDeltaX + xOffset) * scale.x,
-                    lineDeltaY * scale.y
-                ) + sdfOffset
+                    val sdfOffset = sdf.offset
+                    val offset = Vector2f(
+                        (lineDeltaX + xOffset) * scale.x,
+                        lineDeltaY * scale.y
+                    ) + sdfOffset
 
-                /**
-                 * offset, because the textures are always centered; don't start from the bottom left
-                 * (text mesh does)
-                 * */
-                stack.translate(sdfOffset.x, sdfOffset.y, 0f)
+                    /**
+                     * offset, because the textures are always centered; don't start from the bottom left
+                     * (text mesh does)
+                     * */
+                    stack.translate(sdfOffset.x, sdfOffset.y, 0f)
 
-                if (firstTimeDrawing) {
+                    if (firstTimeDrawing) {
 
-                    val outline = outlineWidths[time] * sdfResolution
-                    outline.y = max(0f, outline.y) + outline.x
-                    outline.z = max(0f, outline.z) + outline.y
-                    outline.w = max(0f, outline.w) + outline.z
+                        val outline = outlineWidths[time] * sdfResolution
+                        outline.y = max(0f, outline.y) + outline.x
+                        outline.z = max(0f, outline.z) + outline.y
+                        outline.w = max(0f, outline.w) + outline.z
 
-                    val s0 = outlineSmoothness[time] + extraSmoothness
-                    val smoothness = s0 * sdfResolution
+                        val s0 = outlineSmoothness[time] + extraSmoothness
+                        val smoothness = s0 * sdfResolution
 
-                    drawOutlinedText(
-                        this, time,
-                        stack, offset, scale,
-                        texture, color, 5,
-                        arrayOf(
-                            color, oc1, oc2, oc3,
-                            Vector4f(0f)
-                        ),
-                        floatArrayOf(-1e3f, outline.x, outline.y, outline.z, outline.w),
-                        floatArrayOf(0f, smoothness.x, smoothness.y, smoothness.z, smoothness.w)
-                    )
+                        drawOutlinedText(
+                            this, time,
+                            stack, offset, scale,
+                            texture, color, 5,
+                            arrayOf(
+                                color, oc1, oc2, oc3,
+                                Vector4f(0f)
+                            ),
+                            floatArrayOf(-1e3f, outline.x, outline.y, outline.z, outline.w),
+                            floatArrayOf(0f, smoothness.x, smoothness.y, smoothness.z, smoothness.w)
+                        )
 
-                    firstTimeDrawing = false
+                        firstTimeDrawing = false
 
-                } else {
+                    } else {
 
-                    drawOutlinedText(stack, offset, scale, texture)
+                        drawOutlinedText(stack, offset, scale, texture)
 
+                    }
                 }
-
-                stack.popMatrix()
 
             } else if (sdf?.isValid != true) {
 
@@ -467,7 +463,6 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
     }
 
     fun invalidate() {
-        lastVisualState = null
         needsUpdate = true
     }
 
@@ -479,15 +474,15 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
     fun saveWithoutSuper(writer: BaseWriter) {
 
         // basic settings
-        writer.writeString("text", text)
+        writer.writeObject(this, "text", text)
         writer.writeString("font", font.name)
         writer.writeBoolean("isItalic", font.isItalic, true)
         writer.writeBoolean("isBold", font.isBold, true)
 
         // alignment
-        writer.writeInt("textAlignment", textAlignment.id, true)
-        writer.writeInt("blockAlignmentX", blockAlignmentX.id, true)
-        writer.writeInt("blockAlignmentY", blockAlignmentY.id, true)
+        writer.writeObject(this, "textAlignment", textAlignment)
+        writer.writeObject(this, "blockAlignmentX", blockAlignmentX)
+        writer.writeObject(this, "blockAlignmentY", blockAlignmentY)
 
         // spacing
         writer.writeObject(this, "relativeLineSpacing", relativeLineSpacing)
@@ -519,9 +514,9 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
 
     override fun readInt(name: String, value: Int) {
         when (name) {
-            "textAlignment" -> textAlignment = AxisAlignment.find(value) ?: textAlignment
-            "blockAlignmentX" -> blockAlignmentX = AxisAlignment.find(value) ?: blockAlignmentX
-            "blockAlignmentY" -> blockAlignmentY = AxisAlignment.find(value) ?: blockAlignmentY
+            "textAlignment" -> textAlignment.set(AxisAlignment.find(value)?.id?.toFloat() ?: return)
+            "blockAlignmentX" -> blockAlignmentX.set(AxisAlignment.find(value)?.id?.toFloat() ?: return)
+            "blockAlignmentY" -> blockAlignmentY.set(AxisAlignment.find(value)?.id?.toFloat() ?: return)
             "renderingMode" -> renderingMode = TextRenderMode.values().firstOrNull { it.id == value } ?: renderingMode
             else -> super.readInt(name, value)
         }
@@ -538,7 +533,7 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
 
     override fun readString(name: String, value: String) {
         when (name) {
-            "text" -> text = value
+            "text" -> text.set(value)
             "font" -> font = font.withName(value)
             else -> super.readString(name, value)
         }
@@ -557,6 +552,10 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
 
     override fun readObject(name: String, value: ISaveable?) {
         when (name) {
+            "text" -> text.copyFrom(value)
+            "textAlignment" -> textAlignment.copyFrom(value)
+            "blockAlignmentX" -> blockAlignmentX.copyFrom(value)
+            "blockAlignmentY" -> blockAlignmentY.copyFrom(value)
             "shadowOffset" -> shadowOffset.copyFrom(value)
             "shadowColor" -> shadowColor.copyFrom(value)
             "shadowSmoothness" -> shadowSmoothness.copyFrom(value)
@@ -587,13 +586,17 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
         getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
     ) {
 
-        list += TextInputML("Text", style, text)
+        list += vi("Text", "", "", text, style)
+        /*list += TextInputML("Text", style, text[lastLocalTime])
             .setChangeListener {
                 RemsStudio.incrementalChange("text") {
-                    getSelfWithShadows().forEach { c -> c.text = it }
+                    getSelfWithShadows().forEach { c ->
+                        c.putValue(c.text, it, true)
+                    }
                 }
             }
-            .setIsSelectedListener { show(null) }
+            .setIsSelectedListener { show(null) }*/
+
         val fontList = ArrayList<String>()
         fontList += font.name
         fontList += menuSeparator
@@ -651,26 +654,28 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
             .setIsSelectedListener { show(null) }
 
         val alignGroup = getGroup("Alignment", "", "alignment")
-        fun align(title: String, value: AxisAlignment, xAxis: Boolean, set: (self: Text, AxisAlignment) -> Unit) {
-            operator fun AxisAlignment.get(x: Boolean) = if (x) xName else yName
-            alignGroup += EnumInput(
-                title, true,
-                value[xAxis],
-                AxisAlignment.values().map { NameDesc(it[xAxis]) }, style
-            )
-                .setIsSelectedListener { show(null) }
-                .setChangeListener { name, _, _ ->
-                    val alignment = AxisAlignment.values().first { it[xAxis] == name }
-                    RemsStudio.largeChange("Set $title to $name") {
-                        getSelfWithShadows().forEach { set(it, alignment) }
-                    }
-                    invalidate()
-                }
+        fun align(title: String, value: AnimatedProperty<*>) {
+            // , xAxis: Boolean, set: (self: Text, AxisAlignment) -> Unit
+            alignGroup += vi(title, "", "", value, style)
+            /* operator fun AxisAlignment.get(x: Boolean) = if (x) xName else yName
+             alignGroup += EnumInput(
+                 title, true,
+                 value[xAxis],
+                 AxisAlignment.values().map { NameDesc(it[xAxis]) }, style
+             )
+                 .setIsSelectedListener { show(null) }
+                 .setChangeListener { name, _, _ ->
+                     val alignment = AxisAlignment.values().first { it[xAxis] == name }
+                     RemsStudio.largeChange("Set $title to $name") {
+                         getSelfWithShadows().forEach { set(it, alignment) }
+                     }
+                     invalidate()
+                 }*/
         }
 
-        align("Text Alignment", textAlignment, true) { self, it -> self.textAlignment = it }
-        align("Block Alignment X", blockAlignmentX, true) { self, it -> self.blockAlignmentX = it }
-        align("Block Alignment Y", blockAlignmentY, false) { self, it -> self.blockAlignmentY = it }
+        align("Text Alignment", textAlignment)//, true)// { self, it -> self.textAlignment = it }
+        align("Block Alignment X", blockAlignmentX)//, true)// { self, it -> self.blockAlignmentX = it }
+        align("Block Alignment Y", blockAlignmentY)//, false)// { self, it -> self.blockAlignmentY = it }
 
         val spaceGroup = getGroup("Spacing", "", "spacing")
         // make this element separable from the parent???

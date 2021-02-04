@@ -3,6 +3,7 @@ package me.anno.objects.distributions
 import me.anno.gpu.GFX.toRadians
 import me.anno.language.translation.Dict
 import me.anno.objects.inspectable.InspectableVector
+import me.anno.utils.Maths.next
 import org.joml.*
 import kotlin.math.cos
 import kotlin.math.sin
@@ -55,14 +56,14 @@ abstract class CenterSizeDistribution(
 
     override fun onDraw(stack: Matrix4fArrayList, color: Vector4f) {
         // draw a sphere
-        stack.pushMatrix()
-        stack.translate(center.x, center.y, center.z)
-        if (rotation.y != 0f) stack.rotateY(toRadians(rotation.y))
-        if (rotation.x != 0f) stack.rotateX(toRadians(rotation.x))
-        if (rotation.z != 0f) stack.rotateZ(toRadians(rotation.z))
-        stack.scale(scale.x, scale.y, scale.z)
-        drawTransformed(stack, color)
-        stack.popMatrix()
+        stack.next {
+            stack.translate(center.x, center.y, center.z)
+            if (rotation.y != 0f) stack.rotateY(toRadians(rotation.y))
+            if (rotation.x != 0f) stack.rotateX(toRadians(rotation.x))
+            if (rotation.z != 0f) stack.rotateZ(toRadians(rotation.z))
+            stack.scale(scale.x, scale.y, scale.z)
+            drawTransformed(stack, color)
+        }
     }
 
     abstract fun drawTransformed(stack: Matrix4fArrayList, color: Vector4f)

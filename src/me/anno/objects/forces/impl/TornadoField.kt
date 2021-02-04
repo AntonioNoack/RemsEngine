@@ -9,6 +9,7 @@ import me.anno.objects.particles.Particle
 import me.anno.objects.particles.ParticleState
 import me.anno.objects.forces.ForceField
 import me.anno.ui.editor.sceneView.Grid
+import me.anno.utils.Maths.next
 import me.anno.utils.Maths.pow
 import me.anno.utils.types.Vectors.minus
 import me.anno.utils.types.Vectors.times
@@ -67,12 +68,12 @@ class TornadoField : ForceField(
                 val angle = j * 6.2830f / arrowCount
                 val pos = Vector3f(cos(angle) * distance, 0f, sin(angle) * distance)
                 val force = pow(distance, -exponent[time])
-                stack.pushMatrix()
-                stack.translate(pos)
-                stack.scale(visualForceScale * force)
-                stack.rotateY(-angle - 1.57f)
-                Grid.drawBuffer(stack, Vector4f(1f), arrowLineModel)
-                stack.popMatrix()
+                stack.next {
+                    stack.translate(pos)
+                    stack.scale(visualForceScale * force)
+                    stack.rotateY(-angle - 1.57f)
+                    Grid.drawBuffer(stack, Vector4f(1f), arrowLineModel)
+                }
             }
         }
     }

@@ -9,6 +9,7 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.files.ImportFromFile.addChildFromFile
 import me.anno.ui.style.Style
+import me.anno.utils.Maths.next
 import me.anno.utils.files.LocalFile.toGlobalFile
 import org.joml.Matrix4f
 import org.joml.Matrix4fArrayList
@@ -50,10 +51,10 @@ class SoftLink(var file: File) : Transform() {
         if (camera != null) {
             val (cameraTransform, _) = camera.getLocalTransform(time, this)
             val inv = Matrix4f(cameraTransform).invert()
-            stack.pushMatrix()
-            stack.mul(inv)
-            drawChildren(stack, time, color)
-            stack.popMatrix()
+            stack.next {
+                stack.mul(inv)
+                drawChildren(stack, time, color)
+            }
         } else {
             drawChildren(stack, time, color)
         }

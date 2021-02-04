@@ -10,6 +10,7 @@ import me.anno.gpu.shader.ShaderPlus
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.objects.Camera
+import me.anno.objects.Transform
 import me.anno.studio.rems.Scene
 import me.anno.utils.Sleep.sleepShortly
 import org.apache.logging.log4j.LogManager
@@ -19,6 +20,7 @@ import kotlin.concurrent.thread
 
 class VideoBackgroundTask(
     val video: VideoCreator,
+    val scene: Transform,
     val camera: Camera,
     val motionBlurSteps: Int,
     val shutterPercentage: Float
@@ -111,7 +113,7 @@ class VideoBackgroundTask(
             Frame(0, 0, video.w, video.h, false, averageFrame) {
                 try {
                     Scene.draw(
-                        camera, 0, 0, video.w, video.h,
+                        camera, scene, 0, 0, video.w, video.h,
                         time, true, drawMode, null
                     )
                     if (!GFX.isFinalRendering) throw RuntimeException()
@@ -133,7 +135,7 @@ class VideoBackgroundTask(
                     Frame(partialFrame) {
                         try {
                             Scene.draw(
-                                camera, 0, 0, video.w, video.h,
+                                camera, scene, 0, 0, video.w, video.h,
                                 time + (i - motionBlurSteps / 2f) * shutterPercentage / (video.fps * motionBlurSteps),
                                 true, drawMode, null
                             )

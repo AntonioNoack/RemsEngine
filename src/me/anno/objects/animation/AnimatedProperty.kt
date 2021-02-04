@@ -8,20 +8,19 @@ import me.anno.objects.animation.Interpolation.Companion.getWeights
 import me.anno.objects.animation.TimeValue.Companion.writeValue
 import me.anno.objects.animation.drivers.AnimationDriver
 import me.anno.studio.rems.RemsStudio.root
-import me.anno.utils.types.AnyToDouble.getDouble
+import me.anno.utils.Maths
 import me.anno.utils.Maths.clamp
+import me.anno.utils.WrongClassType
+import me.anno.utils.types.AnyToDouble.getDouble
 import me.anno.utils.types.Vectors.plus
 import me.anno.utils.types.Vectors.times
-import me.anno.utils.WrongClassType
 import org.apache.logging.log4j.LogManager
-import org.joml.Quaternionf
-import org.joml.Vector2f
-import org.joml.Vector3f
-import org.joml.Vector4f
+import org.joml.*
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
+import kotlin.streams.toList
 
 class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
 
@@ -69,6 +68,9 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
         fun quat() = AnimatedProperty<Quaternionf>(Type.QUATERNION)
         fun skew() = AnimatedProperty<Vector2f>(Type.SKEW_2D)
         fun tiling() = AnimatedProperty<Vector4f>(Type.TILING)
+
+        fun string() = AnimatedProperty(Type.STRING, "")
+        fun alignment() = AnimatedProperty(Type.ALIGNMENT, 0f)
 
     }
 
@@ -127,7 +129,7 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
             keyframes.clear()
         }
         var index = keyframes.binarySearch { it.time.compareTo(time) }
-        if(index < 0) index = -1-index
+        if (index < 0) index = -1 - index
         val interpolation = keyframes.getOrNull(index)?.interpolation ?: Interpolation.SPLINE
         val newFrame = Keyframe(time, value, interpolation)
         keyframes.add(newFrame)
@@ -157,7 +159,6 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
         return keyframes.remove(keyframe)
     }
 
-    operator fun get(time: Double) = getValueAt(time)
     fun <N : Number> getIntegral(time: Double, allowNegativeValues: Boolean): Double {
         val minValue = if (allowNegativeValues) Double.NEGATIVE_INFINITY else 0.0
         val size = keyframes.size
@@ -220,7 +221,33 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
                 val f = (time - t1) / (t2 - t1)
                 val w = getWeights(frame0, frame1, frame2, frame3, f)
 
-                val value = mulAdd(
+                // println("weights: ${w.print()}")
+
+                var wasFirst = true
+                var valueSum: Any? = null
+                var weightSum = 0.0
+                fun addMaybe(value: V, weight: Double) {
+                    if (weightSum == 0.0) {
+                        valueSum = value
+                        weightSum = weight
+                    } else if (weight != 0.0) {
+                        // add value with weight...
+                        if (wasFirst && weightSum != 1.0) {
+                            // we need to multiply valueSum by weightSum
+                            wasFirst = false
+                            valueSum = fromCalc(mul(valueSum!!, weightSum))
+                        }
+                        valueSum = mulAdd(valueSum!!, toCalc(value), weight)
+                        weightSum += weight
+                    }// else done
+                }
+
+                addMaybe(frame0.value, w.x)
+                addMaybe(frame1.value, w.y)
+                addMaybe(frame2.value, w.z)
+                addMaybe(frame3.value, w.w)
+
+                /*val value = mulAdd(
                     mulAdd(
                         mulAdd(
                             mul(toCalc(frame0.value), w.x),
@@ -229,12 +256,14 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
                     ), toCalc(frame3.value), w.w
                 )
 
-                return clamp(fromCalc(value))
+                return clamp(fromCalc(value))*/
+                return clamp(fromCalc(valueSum!!))
 
             }
         }
     }
 
+    operator fun get(time: Double) = getValueAt(time)
     fun getValueAt(time: Double): V {
         val animatedValue = if (drivers.all { it != null })
             type.defaultValue
@@ -300,7 +329,50 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
             Type.SCALE -> (a as Vector3f).lerp(b as Vector3f, f.toFloat(), Vector3f())
             Type.COLOR, Type.TILING -> (a as Vector4f).lerp(b as Vector4f, f.toFloat(), Vector4f())
             Type.QUATERNION -> (a as Quaternionf).slerp(b as Quaternionf, f.toFloat())
-            else -> throw RuntimeException("don't know how to lerp $a and $b")
+            Type.STRING -> {
+
+                a as String
+                b as String
+
+                fun mixedLength(max: Int): Int {
+                    return clamp(Maths.mix(a.length.toDouble(), b.length.toDouble(), f).roundToInt(), 0, max)
+                }
+
+                val mixedValue = when {
+                    f <= 0f -> a
+                    f >= 1f -> b
+                    a == b -> a
+                    a.startsWith(b) -> a.substring(0, mixedLength(a.length))
+                    b.startsWith(a) -> b.substring(0, mixedLength(b.length))
+                    a.endsWith(b) -> a.substring(clamp(((a.length - b.length) * f).roundToInt(), 0, a.length))
+                    b.endsWith(a) -> b.substring(clamp(((b.length - a.length) * g).roundToInt(), 0, b.length))
+                    else -> {
+                        val aChars = a.codePoints().toList()
+                        val bChars = b.codePoints().toList()
+                        if (aChars.size == bChars.size) {
+                            // totally different -> mix randomly for hacking-like effect (??...)
+                            val str = StringBuilder(a.length)
+                            val random = java.util.Random(1234)
+                            val shuffled = aChars.indices.shuffled(random)
+                            val shuffleEnd = (g * aChars.size).roundToInt()
+                            for (i in aChars.indices) {
+                                val code = if (shuffled[i] < shuffleEnd) aChars[i] else bChars[i]
+                                str.append(Character.toChars(code))
+                            }
+                            str.toString()
+                        } else {
+                            val aLength = (a.length * g).roundToInt()
+                            val bLength = (b.length * f).roundToInt()
+                            val aEndIndex = clamp(aLength, 0, a.length)
+                            val bStartIndex = clamp(b.length - bLength, 0, b.lastIndex)
+                            a.substring(0, aEndIndex) + b.substring(bStartIndex, b.length)
+                        }
+                    }
+                }
+                // println("mix($a, $b, $f) = $v")
+                mixedValue
+            }
+            else -> throw RuntimeException("don't know how to linearly interpolate $a and $b")
         } as V
     }
 
@@ -311,6 +383,8 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
             is Double -> a
             is Long -> a.toDouble()
             is Vector2f, is Vector3f, is Vector4f, is Quaternionf -> a
+            is Vector2d, is Vector3d, is Vector4d, is Quaterniond -> a
+            is String -> a
             else -> throw RuntimeException("don't know how to calc $a")
         } as Any // needed by Intellij Kotlin compiler
     }
@@ -320,13 +394,14 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
     /**
      * b + a * f
      * */
-    private fun mulAdd(b: Any, a: Any, f: Double): Any {
-        return when (b) {
-            is Double -> b + (a as Double) * f
-            is Vector2f -> b + ((a as Vector2f) * f.toFloat())
-            is Vector3f -> b + ((a as Vector3f) * f.toFloat())
-            is Vector4f -> b + ((a as Vector4f) * f.toFloat())
-            else -> throw RuntimeException("don't know how to mul-add $a and $b")
+    private fun mulAdd(first: Any, second: Any, f: Double): Any {
+        return when (first) {
+            is Double -> first + (second as Double) * f
+            is Vector2f -> first + ((second as Vector2f) * f.toFloat())
+            is Vector3f -> first + ((second as Vector3f) * f.toFloat())
+            is Vector4f -> first + ((second as Vector4f) * f.toFloat())
+            is String -> mix(first as V, second as V, f) as Any
+            else -> throw RuntimeException("don't know how to mul-add $second and $first")
         }
     }
 
@@ -339,6 +414,7 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
             is Vector2f -> a * f.toFloat()
             is Vector3f -> a * f.toFloat()
             is Vector4f -> a * f.toFloat()
+            is String -> a//a.substring(0, clamp((a.length * f).roundToInt(), 0, a.length))
             else -> throw RuntimeException("don't know how to mul $a")
         }
     }
@@ -390,7 +466,7 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
     }
 
     override fun readObjectArray(name: String, values: Array<ISaveable?>) {
-        when(name){
+        when (name) {
             "keyframes", "vs" -> {
                 values.filterIsInstance<Keyframe<*>>().forEach { value ->
                     val castValue = type.acceptOrNull(value.value!!)
@@ -454,9 +530,9 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
         } else println("copy-from-object $obj is not an AnimatedProperty!")
     }
 
-    fun clear(){
+    fun clear() {
         isAnimated = false
-        for(i in drivers.indices){
+        for (i in drivers.indices) {
             drivers[i] = null
         }
         keyframes.clear()

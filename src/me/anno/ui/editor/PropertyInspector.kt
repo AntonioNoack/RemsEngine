@@ -10,6 +10,7 @@ import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.input.ColorInput
 import me.anno.ui.input.FloatInput
+import me.anno.ui.input.TextInputML
 import me.anno.ui.input.VectorInput
 import me.anno.ui.input.components.Checkbox
 import me.anno.ui.style.Style
@@ -75,6 +76,11 @@ class PropertyInspector(style: Style):
                     is Checkbox -> {
                         (d as? Checkbox)?.apply {
                             d.isChecked = s.isChecked
+                        }
+                    }
+                    is TextInputML -> {
+                        (d as? TextInputML)?.apply {
+                            d.setText(s.text, false)
                         }
                     }
                 }

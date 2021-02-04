@@ -17,6 +17,7 @@ import me.anno.ui.editor.stacked.Option
 import me.anno.ui.style.Style
 import me.anno.utils.types.Floats.toRadians
 import me.anno.utils.Maths
+import me.anno.utils.Maths.next
 import org.joml.*
 import kotlin.math.abs
 import kotlin.math.atan2
@@ -78,14 +79,14 @@ abstract class ForceField(val displayName: String, val description: String) : Tr
                 val index0 = floor(index).toInt()
                 val indexF = (index - index0).toFloat()
                 val position = particle.getPosition(index0, indexF)
-                stack.pushMatrix()
-                stack.translate(position)
-                applyTransform(particle, index0, indexF)
-                Grid.drawBuffer(
-                    stack, Vector4f(color.x, color.y, color.z, color.w * opacity),
-                    ArrowModel.arrowLineModel
-                )
-                stack.popMatrix()
+                stack.next {
+                    stack.translate(position)
+                    applyTransform(particle, index0, indexF)
+                    Grid.drawBuffer(
+                        stack, Vector4f(color.x, color.y, color.z, color.w * opacity),
+                        ArrowModel.arrowLineModel
+                    )
+                }
                 val t1 = System.nanoTime()
                 if(abs(t1-t0) > 10_000_000) break // spend at max 10ms here
             }

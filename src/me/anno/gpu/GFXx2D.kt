@@ -1,28 +1,20 @@
 package me.anno.gpu
 
-import me.anno.cache.instances.TextCache
-import me.anno.cache.keys.TextSegmentKey
 import me.anno.fonts.FontManager
-import me.anno.fonts.mesh.TextMesh.Companion.DEFAULT_FONT_HEIGHT
-import me.anno.fonts.mesh.TextMeshGroup
 import me.anno.gpu.GFX.v4
 import me.anno.gpu.GFXx3D.draw3D
 import me.anno.gpu.GFXx3D.draw3DCircle
 import me.anno.gpu.TextureLib.whiteTexture
-import me.anno.gpu.blending.BlendDepth
-import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderPlus
 import me.anno.gpu.texture.*
 import me.anno.objects.GFXTransform.Companion.uploadAttractors0
 import me.anno.objects.modes.UVProjection
-import me.anno.objects.text.Text
 import me.anno.ui.base.Font
-import me.anno.utils.Color.toVecRGBA
+import me.anno.utils.Maths.next
 import me.anno.video.VFrame
 import org.joml.Matrix4f
 import org.joml.Matrix4fArrayList
-import org.joml.Vector3f
 import org.joml.Vector4f
 
 object GFXx2D {
@@ -301,9 +293,9 @@ object GFXx2D {
         val rx = (x - GFX.windowX).toFloat() / GFX.windowWidth * 2 - 1
         val ry = (y - GFX.windowY).toFloat() / GFX.windowHeight * 2 - 1
 
-        val matrix = Matrix4fArrayList()
-        matrix.translate(rx, ry, 0f)
-        matrix.scale(2f * radiusX / GFX.windowWidth, 2f * radiusY / GFX.windowHeight, 1f)
+        val stack = Matrix4fArrayList()
+        stack.translate(rx, ry, 0f)
+        stack.scale(2f * radiusX / GFX.windowWidth, 2f * radiusY / GFX.windowHeight, 1f)
 
         GFX.drawMode = ShaderPlus.DrawMode.COLOR
 
@@ -313,10 +305,10 @@ object GFXx2D {
         color.w /= 25f
         for (dx in 0 until 5) {
             for (dy in 0 until 5) {
-                matrix.pushMatrix()
-                matrix.translate((dx - 2f) / (2.5f * GFX.windowWidth), (dy - 2f) / (2.5f * GFX.windowHeight), 0f)
-                draw3DCircle(null, 0.0, matrix, innerRadius, startDegrees, endDegrees, color)
-                matrix.popMatrix()
+                stack.next {
+                    stack.translate((dx - 2f) / (2.5f * GFX.windowWidth), (dy - 2f) / (2.5f * GFX.windowHeight), 0f)
+                    draw3DCircle(null, 0.0, stack, innerRadius, startDegrees, endDegrees, color)
+                }
             }
         }
 

@@ -10,6 +10,7 @@ import me.anno.objects.Camera
 import me.anno.studio.rems.Scene
 import me.anno.studio.rems.RemsStudio.editorTime
 import me.anno.studio.rems.RemsStudio.nullCamera
+import me.anno.studio.rems.RemsStudio.root
 import me.anno.studio.rems.RemsStudio.targetHeight
 import me.anno.studio.rems.RemsStudio.targetWidth
 import me.anno.ui.base.groups.PanelList
@@ -131,8 +132,9 @@ class ScenePreview(style: Style) : PanelList(null, style.getChild("sceneView")),
 
         drawRect(x + dx, y + dy, rw, rh, black)
         Scene.draw(
-            camera,
-            x + dx, y + dy, goodW, goodH,
+            camera, root,
+            x + dx, y + dy,
+            goodW, goodH,
             editorTime, false,
             ShaderPlus.DrawMode.COLOR,
             this

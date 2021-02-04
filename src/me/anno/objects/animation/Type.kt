@@ -1,5 +1,6 @@
 package me.anno.objects.animation
 
+import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.utils.types.Casting.castToDouble
 import me.anno.utils.types.Casting.castToDouble2
 import me.anno.utils.types.Casting.castToFloat
@@ -12,6 +13,7 @@ import me.anno.utils.types.Casting.castToVector3f
 import me.anno.utils.types.Casting.castToVector4d
 import me.anno.utils.types.Casting.castToVector4f
 import me.anno.utils.Maths.clamp
+import me.anno.utils.types.Casting.castToString
 import org.joml.*
 import kotlin.math.max
 
@@ -104,6 +106,9 @@ class Type(
         val VIDEO_QUALITY_CRF = Type(23, 1, 1f, true, false, { clamp(it as Int, 0, 51) }, ::castToInt)
 
         val VEC4D = Type(Vector4d(), 4, 1f, true, true, null, ::castToVector4d)
+
+        val STRING = Type("", 1, 1f, false, false, { castToString(it).replace("\r", "") }, ::castToString)
+        val ALIGNMENT = Type(0f, 1, 4f, true, false, { clamp(castToFloat2(it), -1f, +1f) }, ::castToFloat)
 
 
     }

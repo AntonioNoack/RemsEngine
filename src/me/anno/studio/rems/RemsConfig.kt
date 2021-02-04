@@ -30,7 +30,7 @@ object RemsConfig {
                 addImportMappings("Transform", "json")
                 addImportMappings(
                     "Image",
-                    "png", "jpg", "jpeg", "tiff", "webp", "svg", "ico", "psd"
+                    "png", "jpg", "jpeg", "tiff", "webp", "svg", "ico", "psd", "bmp"
                 )
                 addImportMappings("Cubemap-Equ", "hdr")
                 addImportMappings(

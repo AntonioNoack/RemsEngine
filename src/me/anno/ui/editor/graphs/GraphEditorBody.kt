@@ -41,9 +41,7 @@ import me.anno.utils.Maths.mix
 import me.anno.utils.Maths.pow
 import me.anno.utils.types.AnyToFloat.get
 import org.apache.logging.log4j.LogManager
-import org.joml.Vector2f
-import org.joml.Vector3f
-import org.joml.Vector4f
+import org.joml.*
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -383,7 +381,7 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
     ) {
         val dotSize = dotSize
         val width = dotSize
-        val halfWidth = (width+1)/2
+        val halfWidth = (width + 1) / 2
         val kfs = property.keyframes
         val stripeMultiplier = 0.33f // just to make it calmer
         val tiling = Vector4f(1f, (y1 - y0).toFloat() * stripeMultiplier / dotSize, 0f, 0f)
@@ -536,8 +534,8 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
     override fun onMouseDown(x: Float, y: Float, button: MouseButton) {
         // find the dragged element
         invalidateDrawing()
-        val atCursor = getKeyframeAt(x,y)
-        if(atCursor != null && selectedKeyframes.size > 1 && atCursor.first in selectedKeyframes){
+        val atCursor = getKeyframeAt(x, y)
+        if (atCursor != null && selectedKeyframes.size > 1 && atCursor.first in selectedKeyframes) {
             draggedKeyframe = atCursor.first
             draggedChannel = -1
         } else {
@@ -611,12 +609,20 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
         } else if (draggedKeyframe != null && selectedProperty != null) {
             // dragging
             val time = getTimeAt(x)
-            RemsStudio.incrementalChange("dragging keyframe") {
-                if(selectedKeyframes.size < 2){
+            RemsStudio.incrementalChange("Dragging keyframe") {
+                if (selectedKeyframes.size < 2) {
                     draggedKeyframe.time = global2Kf(time) // global -> local
                     editorTime = time
                     updateAudio()
-                    draggedKeyframe.setValue(draggedChannel, getValueAt(y), selectedProperty.type)
+                    if (draggedKeyframe.value is Number || when (draggedKeyframe.value) {
+                            is Vector2f, is Vector3f, is Vector4f,
+                            is Vector2d, is Vector3d, is Vector4d,
+                            is Quaternionf, is Quaterniond -> true
+                            else -> false
+                        }
+                    ) {
+                        draggedKeyframe.setValue(draggedChannel, getValueAt(y), selectedProperty.type)
+                    }
                     selectedProperty.sort()
                 } else {
                     val timeHere = global2Kf(time)
@@ -727,14 +733,16 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
                 if (selectedKeyframes.isEmpty()) {
                     super.onMouseClicked(x, y, button, long)
                 } else {
-                    openMenu(NameDesc("Interpolation", "", "ui.graphEditor.interpolation.title"), Interpolation.values().map { mode ->
-                        MenuOption(NameDesc(mode.displayName, mode.description, "")) {
-                            selectedKeyframes.forEach {
-                                it.interpolation = mode
+                    openMenu(
+                        NameDesc("Interpolation", "", "ui.graphEditor.interpolation.title"),
+                        Interpolation.values().map { mode ->
+                            MenuOption(NameDesc(mode.displayName, mode.description, "")) {
+                                selectedKeyframes.forEach {
+                                    it.interpolation = mode
+                                }
+                                invalidateDrawing()
                             }
-                            invalidateDrawing()
-                        }
-                    })
+                        })
                 }
             }
             else -> super.onMouseClicked(x, y, button, long)

@@ -37,7 +37,7 @@ class AWTFont(val font: Font) {
         fontMetrics = unused.fontMetrics
     }
 
-    fun String.containsSpecialChar(): Boolean {
+    private fun String.containsSpecialChar(): Boolean {
         for (cp in codePoints()) {
             if (cp == '\n'.toInt() || cp > 127 || cp == '\t'.toInt()) return true
         }
@@ -77,7 +77,7 @@ class AWTFont(val font: Font) {
         }
     }
 
-    fun spaceBetweenLines(fontSize: Float) = (0.5f * fontSize).roundToInt()
+    private fun spaceBetweenLines(fontSize: Float) = (0.5f * fontSize).roundToInt()
 
     fun calculateSize(text: String, fontSize: Float, widthLimit: Int): Pair<Int, Int> {
 
@@ -155,11 +155,11 @@ class AWTFont(val font: Font) {
         ImageIO.write(image, "png", File(parent, "${ctr++}.png"))
     }
 
-    val renderContext by lazy {
+    private val renderContext by lazy {
         FontRenderContext(null, true, true)
     }
 
-    val exampleLayout by lazy {
+    private val exampleLayout by lazy {
         TextLayout("o", font, renderContext)
     }
 
@@ -190,12 +190,12 @@ class AWTFont(val font: Font) {
         }
         val width = splitLines.maxBy { it?.width ?: 0f }?.width ?: 0f
         var lineCount = 0
-        val parts = splitLines.mapIndexed { index, partResult ->
+        val parts = splitLines.mapNotNull { partResult ->
             val offsetY = actualFontSize * lineCount
             lineCount += partResult?.lineCount ?: 1
             val offset = Vector2f(0f, offsetY)
             partResult?.parts?.map { it + offset }
-        }.filterNotNull().join()
+        }.join()
         val height = lineCount * actualFontSize
         return PartResult(parts, width, height, lineCount, exampleLayout)
     }
@@ -207,7 +207,7 @@ class AWTFont(val font: Font) {
         return lastSupportLevel
     }
 
-    fun findSplitIndex(
+    private fun findSplitIndex(
         chars: List<Int>, index0: Int, index1: Int,
         charSpacing: Float, lineBreakWidth: Float, currentX: Float
     ): Int {
@@ -245,7 +245,7 @@ class AWTFont(val font: Font) {
         }
     }
 
-    fun splitLine(
+    private fun splitLine(
         fonts: List<Font>,
         line: String,
         fontSize: Float,
@@ -338,7 +338,7 @@ class AWTFont(val font: Font) {
 
     }
 
-    fun generateSizeV3(text: String, fontSize: Float, lineBreakWidth: Float): Pair<Int, Int> {
+    private fun generateSizeV3(text: String, fontSize: Float, lineBreakWidth: Float): Pair<Int, Int> {
 
         val parts = splitParts(text, fontSize, 4f, 0f, lineBreakWidth)
 
@@ -349,7 +349,7 @@ class AWTFont(val font: Font) {
 
     }
 
-    fun generateTextureV3(text: String, fontSize: Float, lineBreakWidth: Float): ITexture2D? {
+    private fun generateTextureV3(text: String, fontSize: Float, lineBreakWidth: Float): ITexture2D? {
 
         val parts = splitParts(text, fontSize, 4f, 0f, lineBreakWidth)
         val result = parts.parts
@@ -393,7 +393,7 @@ class AWTFont(val font: Font) {
         val splittingOrder: List<Collection<Int>> = listOf(
             listOf(' ').map { it.toInt() },
             listOf('-').map { it.toInt() },
-            listOf('/', ':', '-', '*', '?', '=', '&', '|', '!', '#').map { it.toInt() }.toSortedSet(),
+            listOf('/', '\\', ':', '-', '*', '?', '=', '&', '|', '!', '#').map { it.toInt() }.toSortedSet(),
             listOf(',', '.').map { it.toInt() }
         )
 

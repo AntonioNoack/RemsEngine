@@ -4,7 +4,6 @@ import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXx2D.posSize
 import me.anno.objects.animation.AnimatedProperty
-import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.studio.rems.RemsStudio.editorTime
 import me.anno.ui.base.Panel
 import me.anno.ui.base.SpacePanel
@@ -15,6 +14,7 @@ import me.anno.ui.editor.color.spaces.HSLuv
 import me.anno.ui.input.EnumInput
 import me.anno.ui.input.components.ColorPalette
 import me.anno.ui.style.Style
+import me.anno.utils.Color.toHexColor
 import me.anno.utils.ColorParsing.parseColorComplex
 import me.anno.utils.Maths.clamp
 import me.anno.utils.types.AnyToFloat.get
@@ -94,7 +94,7 @@ class ColorChooser(style: Style, val withAlpha: Boolean, val owningProperty: Ani
             this += alphaBar
         }
         this += colorPalette
-        colorPalette.onColorSelected = { setARGB(it,true) }
+        colorPalette.onColorSelected = { setARGB(it, true) }
     }
 
     var lastTime = editorTime
@@ -207,7 +207,13 @@ class ColorChooser(style: Style, val withAlpha: Boolean, val owningProperty: Ani
     }
 
     override fun onCopyRequested(x: Float, y: Float): String {
-        return "${colorSpace.serializationName}(${hue.f3()},${saturation.f3()},${lightness.f3()},${opacity.f3()})"
+        val cssCompatible = DefaultConfig["editor.copyColorsCSS-compatible", false]
+        val useAlpha = DefaultConfig["editor.copyColorsCSS-withAlpha", true]
+        return if (cssCompatible) {
+            colorSpace.toRGB(hue, saturation, lightness, if(useAlpha) opacity else 1f).toHexColor()
+        } else {
+            "${colorSpace.serializationName}(${hue.f3()},${saturation.f3()},${lightness.f3()},${opacity.f3()})"
+        }
     }
 
     override fun onPaste(x: Float, y: Float, data: String, type: String) {

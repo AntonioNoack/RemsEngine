@@ -378,9 +378,9 @@ object UILayouts {
 
         root.children.clear()
         Text("Rem's Studio", root).apply {
-            blockAlignmentX = AxisAlignment.CENTER
-            blockAlignmentY = AxisAlignment.CENTER
-            textAlignment = AxisAlignment.CENTER
+            blockAlignmentX.set(0f)
+            blockAlignmentY.set(0f)
+            textAlignment.set(0f)
             relativeCharSpacing = 0.12f
             invalidate()
         }

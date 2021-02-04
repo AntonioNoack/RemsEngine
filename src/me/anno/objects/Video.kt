@@ -97,7 +97,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
     var lastFile: File? = null
     var lastDuration = 10.0
     var imageSequenceMeta: ImageSequenceMeta? = null
-    val imSeqExampleMeta get() = imageSequenceMeta?.matches?.first()?.first?.run { getMeta(this, true) }
+    val imSeqExampleMeta get() = imageSequenceMeta?.matches?.firstOrNull()?.first?.run { getMeta(this, true) }
 
     var type = VideoType.AUDIO
 
@@ -208,6 +208,9 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
         }
     }
 
+    /**
+     * todo when final rendering, then sometimes frames are just black...
+     * */
     private fun drawImageSequence(meta: ImageSequenceMeta, stack: Matrix4fArrayList, time: Double, color: Vector4f) {
 
         var wasDrawn = false
@@ -222,7 +225,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                 // draw the current texture
                 val localTime = isLooping[time, duration]
 
-                val frame = ImageCache.getImage(meta.getImage(localTime), 500L, true)
+                val frame = ImageCache.getImage(meta.getImage(localTime), 5L, true)
                 if (frame == null) onMissingImageOrFrame()
                 else {
                     w = frame.w
@@ -238,7 +241,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
 
         }
 
-        if (!wasDrawn) {
+        if (!wasDrawn && !isFinalRendering) {
             draw3D(
                 stack, colorShowTexture, 16, 9,
                 Vector4f(0.5f, 0.5f, 0.5f, 1f).mul(color),
@@ -248,7 +251,6 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
 
     }
 
-    // todo this is somehow not working, and idk why...
     private fun onMissingImageOrFrame() {
         if (isFinalRendering) throw MissingFrameException(file)
         else needsImageUpdate = true
@@ -452,7 +454,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                             // issues arise, when multiple frames should be interpolated together into one
                             // at this time, we chose the center frame only.
                             val videoFPS =
-                                if (GFX.isFinalRendering) sourceFPS else min(sourceFPS, editorVideoFPS.dValue)
+                                if (isFinalRendering) sourceFPS else min(sourceFPS, editorVideoFPS.dValue)
 
                             val frameCount = max(1, (duration * videoFPS).roundToInt())
 

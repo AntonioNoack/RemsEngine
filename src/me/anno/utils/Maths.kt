@@ -1,8 +1,6 @@
 package me.anno.utils
 
-import org.joml.Vector2f
-import org.joml.Vector3f
-import org.joml.Vector4f
+import org.joml.*
 import kotlin.math.exp
 import kotlin.math.floor
 import kotlin.math.roundToInt
@@ -140,6 +138,23 @@ object Maths {
         var y = x % div
         if (y < 0) y += div
         return y
+    }
+
+    /**
+     * reduces errors, because neither push nor pop can be forgotten,
+     * even if errors happen
+     * */
+    fun <V> Matrix4fArrayList.next(run: () -> V): V {
+        pushMatrix()
+        val result: V
+        try {
+            result = run()
+            popMatrix()
+        } catch (e: Throwable){
+            popMatrix()
+            throw e
+        }
+        return result
     }
 
 }

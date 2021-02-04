@@ -48,13 +48,17 @@ class TextReader(val data: String) : BaseReader() {
 
     override fun readAllInList() {
         assert(skipSpace(), '[')
-        while (true) {
-            when (val next = skipSpace()) {
-                ',' -> Unit // nothing to do
-                '{' -> readObject()
-                ']' -> return
-                else -> throw RuntimeException("Unexpected char $next")
+        try {
+            while (true) {
+                when (val next = skipSpace()) {
+                    ',' -> Unit // nothing to do
+                    '{' -> readObject()
+                    ']' -> return
+                    else -> throw RuntimeException("Unexpected char $next")
+                }
             }
+        } catch (e: Exception){
+            e.printStackTrace()
         }
     }
 

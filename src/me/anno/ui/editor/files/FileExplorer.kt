@@ -210,7 +210,7 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
                 openMenu(
                     listOf(
                     MenuOption(NameDesc("Create Folder", "Creates a new directory", "ui.newFolder")) {
-                        askName(x.toInt(), y.toInt(), NameDesc("Name", "", "ui.newFolder.askName"), "Create", { -1 }){
+                        askName(x.toInt(), y.toInt(), NameDesc("Name", "", "ui.newFolder.askName"), "", NameDesc("Create"), { -1 }){
                             val validName = it.toAllowedFilename()
                             if(validName != null){
                                 File(home, validName).mkdirs()
@@ -219,7 +219,7 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
                         }
                     },
                     MenuOption(NameDesc("Create Component", "Create a new folder component", "ui.newComponent")) {
-                        askName(x.toInt(), y.toInt(), NameDesc("Name", "", "ui.newComponent.askName"), "Create", { -1 }){
+                        askName(x.toInt(), y.toInt(), NameDesc("Name", "", "ui.newComponent.askName"), "", NameDesc("Create"), { -1 }){
                             val validName = it.toAllowedFilename()
                             if(validName != null){
                                 File(home, "${validName}.json").writeText(Transform()

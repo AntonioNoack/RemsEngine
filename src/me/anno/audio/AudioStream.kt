@@ -35,11 +35,11 @@ import kotlin.math.min
 
 /**
  * todo audio effects:
- * todo better echoing ;)
+ * done better echoing ;)
  * todo velocity frequency change
  * done pitch
  * todo losing high frequencies in the distance
- * todo audio becoming quiet in the distance
+ * done audio becoming quiet in the distance
  * */
 abstract class AudioStream(
     val file: File, val repeat: LoopingState,
@@ -209,7 +209,6 @@ abstract class AudioStream(
             // todo this is possible, if the time is linear, and the amplitude not too crazy, I guess
 
             val updatePositionEveryNFrames = 100
-
 
             val hasPipeline = leftPipeline.stages.isNotEmpty()
             lateinit var leftBuffer: FloatArray

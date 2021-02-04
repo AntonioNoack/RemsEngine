@@ -1,5 +1,9 @@
 package me.anno.objects.particles
 
+import me.anno.cache.CacheData
+import me.anno.cache.instances.TextCache
+import me.anno.cache.keys.TextSegmentKey
+import me.anno.fonts.PartResult
 import me.anno.fonts.mesh.TextMesh
 import me.anno.fonts.mesh.TextMeshGroup
 import me.anno.io.ISaveable
@@ -33,11 +37,11 @@ class TextParticles : ParticleSystem() {
 
     override fun createParticle(index: Int, time: Double): Particle? {
 
-        val char = text.text.codePoints().toList().getOrNull(index) ?: return null
+        val char = text.text[time].codePoints().toList().getOrNull(index) ?: return null
 
         val str = listOf(char).joinChars()
         val clone = text.clone() as Text
-        clone.text = str
+        clone.text.set(str)
 
         val particle = super.createParticle(index, time)!!
         particle.type = clone
@@ -48,26 +52,18 @@ class TextParticles : ParticleSystem() {
 
         text.apply {
 
-            val isBold = font.isBold
-            val isItalic = font.isItalic
+            val text = text[time]
 
-            val visualState = getVisualState()
-            if (lastVisualState != visualState || keys == null) {
-                lastText = text
-                lineSegmentsWithStyle = splitSegments(text)
-                keys = createKeys()
-                lastVisualState = visualState
-            } else {
-                // !none = at least one?, is not equal, so needs update
-                if (!keys!!.withIndex().none { (index, fontMeshKey) ->
-                        !fontMeshKey.equals(isBold, isItalic, lineSegmentsWithStyle!!.parts[index].text, charSpacing)
-                    }) {
-                    keys = createKeys()
-                }
-            }
+            val visualState = getVisualState(text)
+            val data = TextCache.getEntry(visualState, 1000L, false){
+                val segments = splitSegments(text)
+                val keys = createKeys(segments)
+                CacheData(segments to keys)
+            } as CacheData<*>
+            val dataValue = data.value as Pair<PartResult, List<TextSegmentKey>>
 
-            val lineSegmentsWithStyle = lineSegmentsWithStyle!!
-            val keys = keys!!
+            val lineSegmentsWithStyle = dataValue.first
+            val keys = dataValue.second
 
             val exampleLayout = lineSegmentsWithStyle.exampleLayout
             val scaleX = TextMesh.DEFAULT_LINE_HEIGHT / (exampleLayout.ascent + exampleLayout.descent)
@@ -83,17 +79,17 @@ class TextParticles : ParticleSystem() {
 
             val totalHeight = lineOffset * height
 
-            val dx = when (blockAlignmentX) {
+            val dx = 0f/*when (blockAlignmentX) {
                 AxisAlignment.MIN -> -width
                 AxisAlignment.CENTER -> -width / 2
                 AxisAlignment.MAX -> 0f
-            }
+            }*/
 
-            val dy = when (blockAlignmentY) {
+            val dy = 0f/*when (blockAlignmentY) {
                 AxisAlignment.MIN -> 0f + lineOffset * 0.57f // text touches top
                 AxisAlignment.CENTER -> -totalHeight * 0.5f + lineOffset * 0.75f // center line, height of horizontal in e
                 AxisAlignment.MAX -> -totalHeight + lineOffset // exactly baseline
-            }
+            }*/
 
             var charIndex = 0
 
@@ -106,11 +102,11 @@ class TextParticles : ParticleSystem() {
                 val endIndex = charIndex + partLength
 
                 if (index in startIndex until endIndex) {
-                    val offsetX = when (textAlignment) {
+                    val offsetX = 0f/*when (textAlignment) {
                         AxisAlignment.MIN -> 0f
                         AxisAlignment.CENTER -> (width - part.lineWidth * scaleX) / 2f
                         AxisAlignment.MAX -> (width - part.lineWidth * scaleX)
-                    }
+                    }*/
 
                     val lineDeltaX = dx + part.xPos * scaleX + offsetX
                     val lineDeltaY = dy + part.yPos * scaleY * lineOffset

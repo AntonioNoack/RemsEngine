@@ -17,6 +17,7 @@ import me.anno.objects.geometric.Circle
 import me.anno.objects.geometric.Polygon
 import me.anno.objects.modes.UVProjection
 import me.anno.studio.rems.RemsStudio
+import me.anno.utils.Maths.next
 import me.anno.video.VFrame
 import org.joml.*
 import org.lwjgl.BufferUtils
@@ -30,29 +31,26 @@ object GFXx3D {
         tiling: Vector4f?, filtering: Filtering,
         uvProjection: UVProjection?
     ) {
-        GFX.check()
 
-        shader.use()
-        stack.pushMatrix()
+        stack.next {
 
-        val doScale2 = (uvProjection?.doScale ?: true) && w != h
+            val doScale2 = (uvProjection?.doScale ?: true) && w != h
+            // val avgSize = sqrt(w * h.toFloat())
+            if (doScale2) {
+                val avgSize =
+                    if (w * RemsStudio.targetHeight > h * RemsStudio.targetWidth) w.toFloat() * RemsStudio.targetHeight / RemsStudio.targetWidth else h.toFloat()
+                val sx = w / avgSize
+                val sy = h / avgSize
+                stack.scale(sx, -sy, 1f)
+            } else {
+                stack.scale(1f, -1f, 1f)
+            }
 
-        shader.v1("filtering", filtering.id)
-        shader.v2("textureDeltaUV", 1f / w, 1f / h)
+            transformUniform(shader, stack)
+            shader.v1("filtering", filtering.id)
+            shader.v2("textureDeltaUV", 1f / w, 1f / h)
 
-        // val avgSize = sqrt(w * h.toFloat())
-        if (doScale2) {
-            val avgSize =
-                if (w * RemsStudio.targetHeight > h * RemsStudio.targetWidth) w.toFloat() * RemsStudio.targetHeight / RemsStudio.targetWidth else h.toFloat()
-            val sx = w / avgSize
-            val sy = h / avgSize
-            stack.scale(sx, -sy, 1f)
-        } else {
-            stack.scale(1f, -1f, 1f)
         }
-
-        shader.m4x4("transform", stack)
-        stack.popMatrix()
 
         GFX.shaderColor(shader, "tint", color)
         if (tiling != null) shader.v4("tiling", tiling)
@@ -72,9 +70,7 @@ object GFXx3D {
     }
 
     fun shader3DUniforms(shader: Shader, stack: Matrix4f, color: Vector4f) {
-        GFX.check()
-        shader.use()
-        shader.m4x4("transform", stack)
+        transformUniform(shader, stack)
         GFX.shaderColor(shader, "tint", color)
         shader.v4("tiling", 1f, 1f, 0f, 0f)
         shader.v1("drawMode", GFX.drawMode.id)
@@ -82,7 +78,6 @@ object GFXx3D {
 
     fun transformUniform(shader: Shader, stack: Matrix4f) {
         GFX.check()
-        shader.use()
         shader.m4x4("transform", stack)
     }
 
@@ -203,9 +198,7 @@ object GFXx3D {
     fun draw3D(
         stack: Matrix4fArrayList, texture: Texture2D, color: Vector4f,
         filtering: Filtering, clamping: Clamping, tiling: Vector4f?, uvProjection: UVProjection
-    ) {
-        draw3D(stack, texture, texture.w, texture.h, color, filtering, clamping, tiling, uvProjection)
-    }
+    ) = draw3D(stack, texture, texture.w, texture.h, color, filtering, clamping, tiling, uvProjection)
 
     fun draw3D(
         stack: Matrix4fArrayList, texture: Texture2D, w: Int, h: Int, color: Vector4f,
@@ -232,11 +225,9 @@ object GFXx3D {
         distances: FloatArray,
         smoothness: FloatArray
     ) {
-        val shader = ShaderLib.shader3DOutlinedText
-        GFX.check()
 
-        shader.use()
-        shader.m4x4("transform", stack)
+        val shader = ShaderLib.shader3DOutlinedText
+        transformUniform(shader, stack)
         that?.uploadAttractors(shader, time) ?: GFXTransform.uploadAttractors0(shader)
 
         GFX.shaderColor(shader, "tint", color)
@@ -252,7 +243,7 @@ object GFXx3D {
          * uniform int colorCount
          * */
         outlineStatsBuffer.position(0)
-        for(i in 0 until cc){
+        for (i in 0 until cc) {
             val colorI = colors[i]
             outlineStatsBuffer.put(colorI.x)
             outlineStatsBuffer.put(colorI.y)
@@ -262,7 +253,7 @@ object GFXx3D {
         outlineStatsBuffer.position(0)
         shader.v4Array("colors", outlineStatsBuffer)
         outlineStatsBuffer.position(0)
-        for(i in 0 until cc){
+        for (i in 0 until cc) {
             outlineStatsBuffer.put(distances[i])
             outlineStatsBuffer.put(smoothness[i])
         }
@@ -286,16 +277,11 @@ object GFXx3D {
         texture: Texture2D
     ) {
         val shader = ShaderLib.shader3DOutlinedText
-        GFX.check()
-
-        shader.use()
-        shader.m4x4("transform", stack)
+        transformUniform(shader, stack)
         shader.v2("offset", offset)
         shader.v2("scale", scale)
-
         texture.bind(0, GPUFiltering.LINEAR, Clamping.CLAMP)
         UVProjection.Planar.getBuffer().draw(shader)
-
         GFX.check()
     }
 
@@ -305,9 +291,8 @@ object GFXx3D {
         filtering: Filtering, clamping: Clamping, tiling: Vector4f?, uvProjection: UVProjection
     ) {
         val shader = ShaderLib.shader3DRGBA
-        shader.use()
-        video.uploadAttractors(shader, time)
         shader3DUniforms(shader, stack, texture.w, texture.h, color, tiling, filtering, uvProjection)
+        video.uploadAttractors(shader, time)
         colorGradingUniforms(video, time, shader)
         texture.bind(0, filtering, clamping)
         uvProjection.getBuffer().draw(shader)

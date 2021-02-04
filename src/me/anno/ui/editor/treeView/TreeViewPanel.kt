@@ -22,10 +22,12 @@ import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.Selection.selectTransform
 import me.anno.studio.rems.Selection.selectedTransform
-import me.anno.ui.base.text.TextPanel
+import me.anno.ui.base.groups.PanelListX
+import me.anno.ui.base.menu.Menu.askName
 import me.anno.ui.base.menu.Menu.menuSeparator1
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
+import me.anno.ui.base.text.TextPanel
 import me.anno.ui.dragging.Draggable
 import me.anno.ui.editor.files.ImportFromFile.addChildFromFile
 import me.anno.ui.style.Style
@@ -34,17 +36,52 @@ import me.anno.utils.Maths.clamp
 import org.apache.logging.log4j.LogManager
 import java.io.File
 
-class TreeViewPanel(val getElement: () -> Transform, style: Style) : TextPanel("", style) {
+class TreeViewPanel(val getElement: () -> Transform, style: Style) : PanelListX(style) {
 
+    // todo double click to edit name
     // todo text shadow, if text color and background color are close
 
     private val accentColor = style.getColor("accentColor", black or 0xff0000)
 
+    val symbol = TextPanel("", style)
+    val text = TextPanel("", style)
+
     init {
-        enableHoverColor = true
+        symbol.enableHoverColor = true
+        text.enableHoverColor = true
+        this += symbol
+        this += text
+    }
+
+    fun setText(symbol: String, name: String) {
+        this.symbol.text = symbol
+        this.text.text = name
     }
 
     var showAddIndex: Int? = null
+
+    var textColor
+        get() = symbol.textColor
+        set(value) {
+            symbol.textColor = value
+            text.textColor = value
+        }
+
+    override fun onDoubleClick(x: Float, y: Float, button: MouseButton) {
+        when {
+            button.isLeft -> {
+                askName(x.toInt(), y.toInt(), NameDesc(), getElement().name, NameDesc("Change Name"), { textColor }){
+                    getElement().name = it
+                }
+            }
+            else -> super.onDoubleClick(x, y, button)
+        }
+    }
+
+    // override val effectiveTextColor: Int get() = textColor
+    val hoverColor get() = symbol.hoverColor
+    val padding get() = symbol.padding
+    val font get() = symbol.font
 
     override fun getVisualState(): Any? = Pair(super.getVisualState(), showAddIndex)
 
@@ -81,8 +118,6 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style) : TextPanel("
             }
         }
     }
-
-    override val effectiveTextColor: Int get() = textColor
 
     override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
 
@@ -170,7 +205,8 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style) : TextPanel("
             "DragStart" -> {
                 val transform = getElement()
                 if (dragged?.getOriginal() != transform) {
-                    dragged = Draggable(transform.stringify(), "Transform", transform,
+                    dragged = Draggable(
+                        transform.stringify(), "Transform", transform,
                         TextPanel(transform.name, style)
                     )
                 }

@@ -1,70 +1,62 @@
 package me.anno.mesh.fbx
 
-import me.anno.mesh.ConvertMeshes
-import me.anno.mesh.fbx.structure.FBXReader
-import me.anno.utils.OS
-import java.io.File
+fun markCalculatorForJasmin() {
 
-/*fun notenRechnerFuerJasmin(){
+    val marks = 15..25
+    val markCount = 15..19
 
-    val notenZahlen = 15 .. 19
-
-    fun line(){
-        for(notenZahl in notenZahlen){
+    fun line() {
+        for (mark in markCount) {
             print("------------------------")
         }
         println("----------")
     }
 
     print("    |  ")
-    for(notenZahl in notenZahlen){
-        print("          $notenZahl            ")
+    for (mark in markCount) {
+        print("          $mark            ")
     }
     println()
     line()
-    fun format(einsen: Int, zweien: Int, dreien: Int){
+    fun format(ones: Int, twos: Int, threes: Int) {
         // val durchschnitt = (einsen + zweien * 2 + dreien * 3) * 1f / (einsen + zweien + dreien)
         //  (${durchschnitt.f2()})
-        print("${einsen.f2xI(1)}${einsen.p()} ${zweien.f2xI(2)}${dreien.p()} ${dreien.f2xI(3)} | ")
+        print("${ones.f2xI(1)}${ones.p()} ${twos.f2xI(2)}${threes.p()} ${threes.f2xI(3)} | ")
     }
-    for(noteX10 in 15 .. 19){
-        val note = noteX10 * 0.1
-        print("${noteX10/10},${noteX10%10} | ")
-        for(notenZahl in notenZahlen){
-            val rest = note + 0.0499 - 1.0
-            val zweien = (rest * notenZahl).toInt()
-            val einsen = notenZahl - zweien
-            //  (${((einsen + zweien + zweien).toFloat()/notenZahl).f3()})
-            format(einsen, zweien, 0)
+    for (mark in marks) {
+        if (mark % 10 < 2) line()
+        if (mark % 10 == 0) {
+            print("${mark / 10},0 | ")
+            for (markC in markCount) {
+                when (mark) {
+                    10 -> format(markC, 0, 0)
+                    20 -> format(0, markC, 0)
+                    30 -> format(0, 0, markC)
+                }
+            }
+            println()
+        } else {
+            val mark2 = mark * 0.1
+            print("${mark / 10},${mark % 10} | ")
+            for (markC in markCount) {
+                val rest = mark2 + 0.0499 - (mark / 10)
+                val twos = (rest * markC).toInt()
+                val ones = markC - twos
+                if (mark > 20) {
+                    format(0, ones, twos)
+                } else {
+                    format(ones, twos, 0)
+                }
+            }
+            println()
         }
-        println()
     }
-    line()
-    for(noteX10 in 20 .. 20){
-        print("${noteX10/10},${noteX10%10} | ")
-        for(notenZahl in notenZahlen){
-            format(0, notenZahl, 0)
-        }
-        println()
-    }
-    line()
-    for(noteX10 in 21 .. 25){
-        val note = noteX10 * 0.1
-        print("${noteX10/10},${noteX10%10} | ")
-        for(notenZahl in notenZahlen){
-            val rest = note + 0.0499 - 2.0
-            val dreien = (rest * notenZahl).toInt()
-            val zweien = notenZahl - dreien
-            format(0, zweien, dreien)
-        }
-        println()
-    }
-}*/
+}
 
-fun Int.p() = if(this == 0) " " else ","
+fun Int.p() = if (this == 0) " " else ","
 
-fun Int.f2xI(i: Int) = if(this == 0) "      " else "${this.f2()} x $i"
-fun Int.f2() = "${if(this>9) (this/10).toString() else " "}${this%10}"
+fun Int.f2xI(i: Int) = if (this == 0) "      " else "${this.f2()} x $i"
+fun Int.f2() = "${if (this > 9) (this / 10).toString() else " "}${this % 10}"
 
 fun invertShort(l: UShort): UShort {
     val v = l.toUInt()
@@ -81,7 +73,9 @@ fun invertLong(l: ULong): ULong {
         .toULong() + invertInt(l.toUInt()).toULong().shl(32))
 }
 
-fun main(){
+fun main() {
+
+    markCalculatorForJasmin()
 
     /*val root = */
     /*FBXReader(
@@ -95,7 +89,7 @@ fun main(){
     //val src = File(OS.documents, "IdeaProjects\\HomeDesigner\\models\\interior\\kitchen\\SM_Prop_Fridge_01.fbx")
     //ConvertMeshes.convertMeshes(src, src, true)
 
-    FBXLoader.loadFBX(File(OS.documents, "Bricks/2x4.fbx").inputStream().buffered())
+    // FBXLoader.loadFBX(File(OS.documents, "Bricks/2x4.fbx").inputStream().buffered())
 
     /*val objects = root["Objects"].first()
     val nodeAttributes = objects["NodeAttribute"]

@@ -16,6 +16,7 @@ import me.anno.objects.Transform.Companion.xAxis
 import me.anno.objects.Transform.Companion.yAxis
 import me.anno.objects.Transform.Companion.zAxis
 import me.anno.utils.Maths.distance
+import me.anno.utils.Maths.next
 import me.anno.utils.Maths.pow
 import me.anno.utils.Maths.sq
 import me.anno.utils.types.Vectors.avg
@@ -137,23 +138,22 @@ object Grid {
 
         // rotate, scale, and move correctly
         // (-1,0,0) / (+1,0,0) shall become p0 / p1
-        stack.pushMatrix()
-        stack.translate(avg(p0, p1))
-        stack.scale(p0.distance(p1) * 0.5f)
-        val dif = (p1 - p0).normalize()
-        // this rotation is correct
-        stack.rotateZ(+atan2(dif.y, dif.x))
-        stack.rotateY(-atan2(dif.z, sqrt(sq(dif.x, dif.y))))
+        stack.next {
+            stack.translate(avg(p0, p1))
+            stack.scale(p0.distance(p1) * 0.5f)
+            val dif = (p1 - p0).normalize()
+            // this rotation is correct
+            stack.rotateZ(+atan2(dif.y, dif.x))
+            stack.rotateY(-atan2(dif.z, sqrt(sq(dif.x, dif.y))))
 
-        val shader = shader3D
-        shader.use()
-        GFXTransform.uploadAttractors0(shader)
-        shader.m4x4("transform", stack)
-        defaultUniforms(shader, color)
-        bindWhite(0)
-        lineBuffer.draw(shader, GL_LINES)
-
-        stack.popMatrix()
+            val shader = shader3D
+            shader.use()
+            GFXTransform.uploadAttractors0(shader)
+            shader.m4x4("transform", stack)
+            defaultUniforms(shader, color)
+            bindWhite(0)
+            lineBuffer.draw(shader, GL_LINES)
+        }
 
     }
 

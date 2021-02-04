@@ -23,6 +23,7 @@ import me.anno.ui.editor.files.hasValidName
 import me.anno.ui.style.Style
 import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.utils.Maths.clamp
+import me.anno.utils.Maths.next
 import me.anno.video.MissingFrameException
 import org.joml.Matrix4fArrayList
 import org.joml.Vector3f
@@ -52,18 +53,18 @@ class Polygon(parent: Transform? = null) : GFXTransform(parent) {
         val count = vertexCount[time]//.roundToInt()
         if (inset == 1f && count % 2 == 0) return// invisible
         val selfDepth = scale[time].z
-        stack.pushMatrix()
-        if (autoAlign) {
-            stack.rotate(toRadians(if (count == 4) 45f else 90f), zAxis)
-            stack.scale(sqrt2, sqrt2, if (is3D) 1f else 0f)
-        } else if (!is3D) {
-            stack.scale(1f, 1f, 0f)
+        stack.next {
+            if (autoAlign) {
+                stack.rotate(toRadians(if (count == 4) 45f else 90f), zAxis)
+                stack.scale(sqrt2, sqrt2, if (is3D) 1f else 0f)
+            } else if (!is3D) {
+                stack.scale(1f, 1f, 0f)
+            }
+            draw3DPolygon(
+                this, time, stack, getBuffer(count, selfDepth > 0f), texture, color,
+                inset, filtering, Clamping.CLAMP
+            )
         }
-        draw3DPolygon(
-            this, time, stack, getBuffer(count, selfDepth > 0f), texture, color,
-            inset, filtering, Clamping.CLAMP
-        )
-        stack.popMatrix()
         return
     }
 

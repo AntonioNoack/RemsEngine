@@ -56,6 +56,7 @@ object Selection {
         if (st == transform && sp == property) return
         val newName = if (transform == null || property == null) null else PropertyFinder.getName(transform, property)
         val propName = newName ?: selectedPropName
+        // println("$newName:$propName from ${transform?.getClassName()}:${property?.getClassName()}")
         RemsStudio.largeChange("Select ${transform?.name ?: "Nothing"}:$propName") {
             selectedUUID = transform?.uuid ?: -1
             selectedPropName = propName

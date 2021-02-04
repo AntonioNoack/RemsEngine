@@ -27,6 +27,7 @@ import me.anno.ui.input.BooleanInput
 import me.anno.ui.style.Style
 import me.anno.utils.types.Lists.sumByFloat
 import me.anno.utils.Maths.mix
+import me.anno.utils.Maths.next
 import me.anno.utils.hpc.HeavyProcessing.processBalanced
 import me.anno.utils.structures.lists.UnsafeArrayList
 import me.anno.utils.structures.lists.UnsafeSkippingArrayList
@@ -268,9 +269,9 @@ open class ParticleSystem(parent: Transform? = null) : Transform(parent) {
         // draw all forces
         if (!isFinalRendering) {
             children.filterIsInstance<ForceField>().forEach {
-                stack.pushMatrix()
-                it.draw(stack, time, color)
-                stack.popMatrix()
+                stack.next {
+                    it.draw(stack, time, color)
+                }
             }
             val dist = selectedDistribution
             dist.update(time, Random())

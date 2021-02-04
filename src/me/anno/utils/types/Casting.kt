@@ -120,4 +120,6 @@ object Casting {
         else -> null
     }
 
+    fun castToString(it: Any?) = it?.toString() ?: ""
+
 }

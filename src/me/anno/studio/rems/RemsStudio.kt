@@ -27,14 +27,14 @@ import java.io.File
 
 // todo spline polygon editor inside Rem's Studio, with points, that can be animated (???)
 
-// todo "hacked"-text effect for text: swizzle characters and introduce others
-
 // todo draw frame by frame, only save x,y,radius?
 
 // todo translations for everything...
 // todo limit the history to entries with 5x the same name? how exactly?...
 
 // todo saturation/lightness controls by hue
+
+// to do Mod with "hacked"-text effect for text: swizzle characters and introduce others?
 
 object RemsStudio : StudioBase(true, "Rem's Studio", 10002) {
 

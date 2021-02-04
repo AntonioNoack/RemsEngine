@@ -6,6 +6,7 @@ import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.flat01
 import me.anno.gpu.GFX.isFinalRendering
+import me.anno.gpu.GFX.startDateTime
 import me.anno.gpu.GFXx2D.drawRect
 import me.anno.gpu.ShaderLib.ascColorDecisionList
 import me.anno.gpu.ShaderLib.brightness
@@ -21,6 +22,7 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.objects.Camera
 import me.anno.objects.Camera.Companion.DEFAULT_VIGNETTE_STRENGTH
+import me.anno.objects.Transform
 import me.anno.objects.Transform.Companion.xAxis
 import me.anno.objects.effects.GaussianBlur
 import me.anno.objects.effects.ToneMappers
@@ -30,6 +32,7 @@ import me.anno.studio.rems.Selection.selectedTransform
 import me.anno.ui.editor.sceneView.Gizmo.drawGizmo
 import me.anno.ui.editor.sceneView.Grid
 import me.anno.ui.editor.sceneView.ISceneView
+import me.anno.utils.Maths.next
 import me.anno.utils.types.Vectors.is000
 import me.anno.utils.types.Vectors.is1111
 import me.anno.utils.types.Vectors.times
@@ -267,9 +270,11 @@ object Scene {
     // rendering must be done in sync with the rendering thread (OpenGL limitation) anyways, so one object is enough
     val stack = Matrix4fArrayList()
     fun draw(
-        camera: Camera, x0: Int, y0: Int, w: Int, h: Int, time: Double,
+        camera: Camera, scene: Transform, x0: Int, y0: Int, w: Int, h: Int, time: Double,
         flipY: Boolean, drawMode: ShaderPlus.DrawMode, sceneView: ISceneView?
     ) {
+
+        val stack = stack
 
         GFX.currentCamera = camera
 
@@ -392,12 +397,12 @@ object Scene {
             lastCameraTransform.set(stack)
 
             if (!isFakeColorRendering && sceneView != null) {
-                stack.pushMatrix()
-                if (sceneView.isLocked2D) {
-                    stack.rotate(Math.PI.toFloat() / 2, xAxis)
+                stack.next {
+                    if (sceneView.isLocked2D) {
+                        stack.rotate(Math.PI.toFloat() / 2, xAxis)
+                    }
+                    Grid.draw(stack, cameraTransform)
                 }
-                Grid.draw(stack, cameraTransform)
-                stack.popMatrix()
             }
 
             BlendDepth(if (isFakeColorRendering) null else BlendMode.DEFAULT, camera.useDepth) {
@@ -405,14 +410,10 @@ object Scene {
                 glDepthMask(true)
 
                 if (!isFinalRendering && camera != nullCamera) {
-                    stack.pushMatrix()
-                    nullCamera?.draw(stack, time, white)
-                    stack.popMatrix()
+                    stack.next { nullCamera?.draw(stack, time, white) }
                 }
 
-                stack.pushMatrix()
-                RemsStudio.root.draw(stack, time, white)
-                stack.popMatrix()
+                stack.next { scene.draw(stack, time, white) }
 
                 GFX.check()
 
@@ -570,16 +571,17 @@ object Scene {
          * draw it after everything else and without depth
          * */
         if (!isFinalRendering && !isFakeColorRendering && selectedTransform != camera) { // seeing the own camera is irritating xD
+            val stack = stack
             selectedTransform?.apply {
                 BlendDepth(BlendMode.DEFAULT, false) {
                     val (transform, _) = getGlobalTransform(time)
-                    stack.pushMatrix()
-                    stack.mul(transform)
-                    stack.scale(0.02f)
-                    drawUICircle(stack, 1f, 0.700f, Vector4f(1f, 0.9f, 0.5f, 1f))
-                    stack.scale(1.2f)
-                    drawUICircle(stack, 1f, 0.833f, Vector4f(0f, 0f, 0f, 1f))
-                    stack.popMatrix()
+                    stack.next {
+                        stack.mul(transform)
+                        stack.scale(0.02f)
+                        drawUICircle(stack, 1f, 0.700f, Vector4f(1f, 0.9f, 0.5f, 1f))
+                        stack.scale(1.2f)
+                        drawUICircle(stack, 1f, 0.833f, Vector4f(0f, 0f, 0f, 1f))
+                    }
                 }
             }
         }

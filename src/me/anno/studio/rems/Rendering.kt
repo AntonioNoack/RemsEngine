@@ -3,6 +3,7 @@ package me.anno.studio.rems
 import me.anno.language.translation.NameDesc
 import me.anno.objects.Audio
 import me.anno.studio.rems.RemsStudio.motionBlurSteps
+import me.anno.studio.rems.RemsStudio.root
 import me.anno.studio.rems.RemsStudio.shutterPercentage
 import me.anno.studio.rems.RemsStudio.targetOutputFile
 import me.anno.ui.base.menu.Menu.ask
@@ -63,7 +64,8 @@ object Rendering {
         val fps = RemsStudio.targetFPS
         val totalFrameCount = max(1, (fps * duration).toInt() + 1)
         val sampleRate = 48000
-        val audioSources = RemsStudio.root.listOfAll
+        val scene = root.clone()!!
+        val audioSources = scene.listOfAll
             .filterIsInstance<Audio>()
             .filter { it.forcedMeta?.hasAudio == true }.toList()
         val creator = VideoAudioCreator(
@@ -71,7 +73,7 @@ object Rendering {
                 width, height,
                 RemsStudio.targetFPS, totalFrameCount,
                 if (audioSources.isEmpty()) targetOutputFile else tmpFile
-            ), duration, sampleRate, audioSources,
+            ), scene, duration, sampleRate, audioSources,
             motionBlurSteps, shutterPercentage, targetOutputFile
         )
         creator.onFinished = { isRendering = false }
@@ -95,10 +97,11 @@ object Rendering {
 
         val duration = RemsStudio.targetDuration
         val sampleRate = 48000
-        val audioSources = RemsStudio.root.listOfAll
+        val scene = root.clone()!!
+        val audioSources = scene.listOfAll
             .filterIsInstance<Audio>()
             .filter { it.forcedMeta?.hasAudio == true }.toList()
-        AudioCreator(duration, sampleRate, audioSources).apply {
+        AudioCreator(scene, duration, sampleRate, audioSources).apply {
             onFinished = { isRendering = false }
             createOrAppendAudio(targetOutputFile, null)
         }

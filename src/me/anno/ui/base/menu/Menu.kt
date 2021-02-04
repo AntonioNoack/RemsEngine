@@ -51,7 +51,8 @@ object Menu {
     fun askName(
         x: Int, y: Int,
         title: NameDesc,
-        actionName: String,
+        value0: String,
+        actionName: NameDesc,
         getColor: (String) -> Int,
         callback: (String) -> Unit
     ) {
@@ -64,6 +65,8 @@ object Menu {
 
         val style = DefaultConfig.style.getChild("menu")
         val panel = PureTextInput(style)
+        panel.text = value0
+        panel.updateChars(false)
         panel.placeholder = title.name
         panel.setTooltip(title.desc)
         panel.setEnterListener {
@@ -74,7 +77,8 @@ object Menu {
             panel.textColor = getColor(it)
         }
 
-        val submit = TextButton(actionName, false, style)
+        val submit = TextButton(actionName.name, false, style)
+            .setTooltip(actionName.desc)
             .setSimpleClickListener {
                 callback(panel.text)
                 close()

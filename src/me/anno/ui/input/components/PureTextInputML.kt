@@ -34,7 +34,7 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
             if (text.isEmpty()) update(false)
         }
 
-    private var text = ""
+    var text = ""
     private var lastText = ""
     private val lines: ArrayList<MutableList<Int>> = arrayListOf(mutableListOf())
     private val endCursor get() = CursorPosition(lines.last().size, lines.lastIndex)

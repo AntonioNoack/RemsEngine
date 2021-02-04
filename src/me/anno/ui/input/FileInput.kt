@@ -5,10 +5,13 @@ import me.anno.input.MouseButton
 import me.anno.language.translation.NameDesc
 import me.anno.ui.base.SpacePanel
 import me.anno.ui.base.buttons.TextButton
+import me.anno.ui.base.components.Padding
+import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
+import me.anno.ui.base.scrolling.ScrollPanelX
 import me.anno.ui.style.Style
 import me.anno.utils.files.FileExplorerSelectWrapper
 import me.anno.utils.files.Files.openInExplorer
@@ -18,7 +21,7 @@ import kotlin.concurrent.thread
 class FileInput(title: String, style: Style, f0: File, val isDirectory: Boolean = false) : PanelListX(style) {
 
     val button = TextButton(DefaultConfig["ui.symbol.folder", "\uD83D\uDCC1"], true, style)
-    val base = TextInput(title, false, style, f0.toString())
+    val base = TextInput(title, false, style, f0.toString2())
     val base2 = base.base
 
     val text get() = base.text
@@ -39,7 +42,7 @@ class FileInput(title: String, style: Style, f0: File, val isDirectory: Boolean 
                     FileExplorerSelectWrapper.selectFileOrFolder(file, isDirectory) { file ->
                         if (file != null) {
                             changeListener(file)
-                            base.setText(file.toString(), false)
+                            base.setText(file.toString2(), false)
                         }
                     }
                 }
@@ -52,8 +55,10 @@ class FileInput(title: String, style: Style, f0: File, val isDirectory: Boolean 
         // for a symmetric border
         val border = style.getPadding("borderSize", 2).left
         if (border > 0) this += SpacePanel(border, 0, style).apply { backgroundColor = 0 }
-        this += base
+        this += base//ScrollPanelX(base, Padding(), style, AxisAlignment.MIN)
     }
+
+    private fun File.toString2() = toString().replace('\\', '/') // / is easier to type
 
     val file get() = File(base.text)
 
@@ -64,7 +69,7 @@ class FileInput(title: String, style: Style, f0: File, val isDirectory: Boolean 
     }
 
     fun setText(text: String, notify: Boolean) {
-        base.setText(text, notify)
+        base.setText(text.replace('\\', '/'), notify)
     }
 
     override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {

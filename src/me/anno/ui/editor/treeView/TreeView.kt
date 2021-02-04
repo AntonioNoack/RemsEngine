@@ -47,11 +47,10 @@ class TreeView(style: Style) :
             val (transform, depth) = open.removeAt(open.lastIndex)
             val panel = getOrCreateChild(index++, transform)
             //(panel.parent!!.children[0] as SpacePanel).minW = inset * depth + panel.padding.right
-            var symbol =
+            val symbol =
                 if (transform.isCollapsed) DefaultConfig["ui.symbol.collapsed", "\uD83D\uDDBF"]
                 else transform.getSymbol()
-            symbol = symbol.trim()
-            panel.text = if (symbol.isEmpty()) transform.name else "$symbol ${transform.name}"
+            panel.setText(symbol.trim(), transform.name)
             panel.padding.left = inset * depth + panel.padding.right
             if (!transform.isCollapsed) {
                 open.addAll(transform.children.map { it to (depth + 1) }.reversed())
@@ -112,10 +111,10 @@ class TreeView(style: Style) :
     var focused: Panel? = null
     var takenElement: Transform? = null
 
-    fun getOrCreateChild(index: Int, transform0: Transform): TextPanel {
+    fun getOrCreateChild(index: Int, transform0: Transform): TreeViewPanel {
         if (index < list.children.size) {
             transformByIndex[index] = transform0
-            val panel = list.children[index] as TextPanel
+            val panel = list.children[index] as TreeViewPanel
             panel.visibility = Visibility.VISIBLE
             return panel
         }

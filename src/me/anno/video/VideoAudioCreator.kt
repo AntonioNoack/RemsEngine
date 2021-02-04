@@ -1,6 +1,7 @@
 package me.anno.video
 
 import me.anno.objects.Audio
+import me.anno.objects.Transform
 import me.anno.utils.Sleep.sleepShortly
 import org.apache.logging.log4j.LogManager
 import java.io.File
@@ -8,17 +9,18 @@ import kotlin.concurrent.thread
 
 class VideoAudioCreator(
     val videoCreator: VideoCreator,
+    scene: Transform,
     durationSeconds: Double, sampleRate: Int, audioSources: List<Audio>,
     val motionBlurSteps: Int, val shutterPercentage: Float,
     val output: File
-): AudioCreator(durationSeconds, sampleRate, audioSources) {
+) : AudioCreator(scene, durationSeconds, sampleRate, audioSources) {
 
     fun start() {
         thread { run() }
     }
 
     fun run() {
-        val vbt = VideoBackgroundTask(videoCreator, camera, motionBlurSteps, shutterPercentage)
+        val vbt = VideoBackgroundTask(videoCreator, scene, camera, motionBlurSteps, shutterPercentage)
         vbt.start()
         // wait for the task to finish
         while (!vbt.isDone) {

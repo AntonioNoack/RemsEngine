@@ -66,7 +66,7 @@ open class TextPanel(open var text: String, style: Style): Panel(style){
         val inst = instantTextLoading
         if(inst) loadTexturesSync.push(true)
         super.calculateSize(w, h)
-        val (w2, h2) = getTextSize(font, text, widthLimit)
+        val (w2, h2) = getTextSize(font, text, if(breaksIntoMultiline) w - padding.width else -1)
         minW = max(1, w2 + padding.width)
         minH = max(1, h2 + padding.height)
         minW2 = minW

@@ -2,6 +2,7 @@ package me.anno.objects.distributions
 
 import me.anno.objects.inspectable.InspectableVector
 import me.anno.ui.editor.sceneView.Grid
+import me.anno.utils.Maths.next
 import org.joml.Matrix4fArrayList
 import org.joml.Vector2f
 import org.joml.Vector3f
@@ -38,10 +39,10 @@ class ConstantDistribution(val center: Vector4f) : Distribution(
     }
 
     override fun draw(stack: Matrix4fArrayList, color: Vector4f) {
-        stack.pushMatrix()
-        stack.translate(center.x, center.y, center.z)
-        onDraw(stack, color)
-        stack.popMatrix()
+        stack.next {
+            stack.translate(center.x, center.y, center.z)
+            onDraw(stack, color)
+        }
     }
 
     override fun onDraw(stack: Matrix4fArrayList, color: Vector4f) {

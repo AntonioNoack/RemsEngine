@@ -18,6 +18,7 @@ open class TextInputML(title: String, style: Style): PanelContainer(
     }
 
     val base = child as PureTextInputML
+    val text get() = base.text
 
     init {
         base.placeholder = title
@@ -52,7 +53,7 @@ open class TextInputML(title: String, style: Style): PanelContainer(
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.onDraw(x0, y0, x1, y1)
-        if(base.isInFocus){
+        if(listOfVisible.any { it.isInFocus }){
             isSelectedListener?.invoke()
         }
     }

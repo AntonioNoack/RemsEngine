@@ -412,7 +412,7 @@ class FileEntry(
                 }
             }
             "Rename" -> {
-                askName(x.toInt(), y.toInt(), NameDesc("Rename To...", "", "ui.file.rename2"), "Rename", { -1 }) {
+                askName(x.toInt(), y.toInt(), NameDesc("Rename To...", "", "ui.file.rename2"), file.name, NameDesc("Rename"), { -1 }) {
                     val allowed = it.toAllowedFilename()
                     if (allowed != null) {
                         val dst = File(file.parentFile, allowed)

@@ -68,7 +68,9 @@ object FontManager {
         val sub = fontSizeIndex * 8 + font.isItalic.toInt(4) + font.isBold.toInt(2) + 1
         val widthLimit2 = if (widthLimit < 0) -1 else {
             loadTexturesSync.push(true)
-            val w = getSize(font, text, -1).first
+            val size0 = getSize(font, text, -1)
+            val w = size0.first
+            if(w <= widthLimit) return size0
             loadTexturesSync.pop()
             val step = fontSize.toInt()
             min(w, widthLimit / step * step)
@@ -97,7 +99,9 @@ object FontManager {
         val sub = fontSizeIndex * 8 + font.isItalic.toInt(4) + font.isBold.toInt(2)
         val widthLimit2 = if (widthLimit < 0) -1 else {
             loadTexturesSync.push(true)
-            val w = getSize(font, text, -1).first
+            val size0 = getSize(font, text, -1)
+            val w = size0.first
+            if(w <= widthLimit) return getString(font, text, -1)
             loadTexturesSync.pop()
             val step = fontSize.toInt()
             min(w, widthLimit / step * step)

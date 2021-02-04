@@ -4,8 +4,8 @@ import me.anno.audio.AudioStream
 import me.anno.audio.effects.SoundPipeline
 import me.anno.objects.Audio
 import me.anno.objects.Camera
+import me.anno.objects.Transform
 import me.anno.studio.rems.RemsStudio
-import me.anno.studio.rems.RemsStudio.root
 import me.anno.utils.Sleep.sleepShortly
 import org.apache.logging.log4j.LogManager
 import java.io.DataOutputStream
@@ -17,6 +17,7 @@ import kotlin.concurrent.thread
 import kotlin.math.ceil
 
 open class AudioCreator(
+    val scene: Transform,
     private val durationSeconds: Double,
     private val sampleRate: Int,
     val audioSources: List<Audio>
@@ -25,8 +26,9 @@ open class AudioCreator(
     var onFinished = {}
 
     val camera: Camera
+
     init {
-        val cameras = root.listOfAll.filterIsInstance<Camera>()
+        val cameras = scene.listOfAll.filterIsInstance<Camera>()
         camera = cameras.firstOrNull() ?: RemsStudio.nullCamera ?: Camera()
     }
 

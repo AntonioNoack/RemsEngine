@@ -180,6 +180,7 @@ class VideoCreator(
             } catch (e: IOException) {
                 if(!wasClosed){
                     LOGGER.error("Closing because of ${e.message}")
+                    isRendering = false
                     e.printStackTrace()
                     close()
                 }

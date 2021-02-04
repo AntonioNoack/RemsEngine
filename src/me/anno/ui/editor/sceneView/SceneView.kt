@@ -299,7 +299,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
 
         if (goodW > 0 && goodH > 0) {
             Scene.draw(
-                camera,
+                camera, root,
                 x + dx, y + dy, goodW, goodH,
                 editorTime, false,
                 mode, this
@@ -346,7 +346,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
                 val buffer = IntArray(w * h)
                 Frame(fb) {
                     GFX.check()
-                    Scene.draw(camera, 0, 0, w, h, editorTime, true, mode, this)
+                    Scene.draw(camera, root, 0, 0, w, h, editorTime, true, mode, this)
                     fb.bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
                     Frame(fb.msBuffer) {
                         Frame.bind()
@@ -403,7 +403,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
             // draw only the clicked area?
             val buffer = IntArray(diameter * diameter)
             Frame(fb) {
-                Scene.draw(camera, 0, 0, rw, rh, editorTime, false, mode, this)
+                Scene.draw(camera, root, 0, 0, rw, rh, editorTime, false, mode, this)
                 GFX.check()
                 val localX = (clickX - this.x).roundToInt()
                 val localH = fb.h

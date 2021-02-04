@@ -8,29 +8,18 @@ import me.anno.gpu.GFX.toRadians
 import me.anno.gpu.GFXx3D.draw3DCircle
 import me.anno.gpu.blending.BlendDepth
 import me.anno.gpu.blending.BlendMode
-import me.anno.gpu.blending.blendModes
 import me.anno.gpu.shader.ShaderPlus
-import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.Filtering
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
-import me.anno.language.Language
 import me.anno.language.translation.Dict
-import me.anno.language.translation.NameDesc
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.animation.Type
-import me.anno.objects.effects.MaskType
-import me.anno.objects.effects.ToneMappers
 import me.anno.objects.inspectable.Inspectable
-import me.anno.objects.modes.ArraySelectionMode
-import me.anno.objects.modes.LoopingState
 import me.anno.objects.modes.TransformVisibility
-import me.anno.objects.modes.UVProjection
 import me.anno.objects.particles.ParticleSystem
-import me.anno.objects.text.TextRenderMode
 import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.RemsStudio.editorTime
 import me.anno.studio.rems.RemsStudio.root
@@ -43,10 +32,12 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.TimelinePanel
 import me.anno.ui.editor.TimelinePanel.Companion.global2Kf
+import me.anno.ui.editor.components.ComponentUI
 import me.anno.ui.editor.stacked.Option
-import me.anno.ui.input.*
+import me.anno.ui.input.TextInput
+import me.anno.ui.input.TextInputML
 import me.anno.ui.style.Style
-import me.anno.utils.Color.toHexColor
+import me.anno.utils.Maths.next
 import me.anno.utils.structures.ValueWithDefault
 import me.anno.utils.structures.ValueWithDefault.Companion.writeMaybe
 import me.anno.utils.structures.ValueWithDefaultFunc
@@ -54,7 +45,6 @@ import me.anno.utils.types.Casting.castToDouble2
 import me.anno.utils.types.Matrices.skew
 import org.apache.logging.log4j.LogManager
 import org.joml.*
-import java.io.File
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
 
@@ -64,8 +54,6 @@ import java.util.concurrent.atomic.AtomicLong
 
 // gradients? -> can be done using the mask layer
 // done select by clicking
-
-// todo option to copy css compliant rgba colors?
 
 open class Transform(var parent: Transform? = null) : Saveable(),
     Inspectable {
@@ -349,22 +337,20 @@ open class Transform(var parent: Transform? = null) : Saveable(),
 
     fun drawChild(stack: Matrix4fArrayList, time: Double, color: Vector4f, child: Transform?) {
         if (child != null) {
-            // if(child is MaskLayer) println("0 ${GFX.drawMode}")
-            stack.pushMatrix()
-            child.draw(stack, time, color)
-            stack.popMatrix()
-            // if(child is MaskLayer) println("1 ${GFX.drawMode}")
+            stack.next {
+                child.draw(stack, time, color)
+            }
         }
     }
 
     fun drawUICircle(stack: Matrix4fArrayList, scale: Float, inner: Float, color: Vector4f) {
         // draw a small symbol to indicate pivot
         if (!isFinalRendering) {
-            stack.pushMatrix()
-            if (scale != 1f) stack.scale(scale)
-            stack.alignWithCamera(1f)
-            draw3DCircle(null, 0.0, stack, inner, 0f, 360f, color)
-            stack.popMatrix()
+            stack.next {
+                if (scale != 1f) stack.scale(scale)
+                stack.alignWithCamera(1f)
+                draw3DCircle(null, 0.0, stack, inner, 0f, 360f, color)
+            }
         }
     }
 
@@ -584,178 +570,7 @@ open class Transform(var parent: Transform? = null) : Saveable(),
         type: Type?, value: V,
         style: Style, setValue: (V) -> Unit
     ): Panel {
-        return when (value) {
-            is Boolean -> BooleanInput(title, value, style)
-                .setChangeListener {
-                    RemsStudio.largeChange("Set $title to $it") {
-                        setValue(it as V)
-                    }
-                }
-                .setIsSelectedListener { show(null) }
-                .setTooltip(ttt)
-            is Int -> IntInput(title, value, type ?: Type.INT, style)
-                .setChangeListener {
-                    RemsStudio.incrementalChange("Set $title to $it", title) {
-                        setValue(it.toInt() as V)
-                    }
-                }
-                .setIsSelectedListener { show(null) }
-                .setTooltip(ttt)
-            is Long -> IntInput(title, value, type ?: Type.LONG, style)
-                .setChangeListener {
-                    RemsStudio.incrementalChange("Set $title to $it", title) {
-                        setValue(it as V)
-                    }
-                }
-                .setIsSelectedListener { show(null) }
-                .setTooltip(ttt)
-            is Float -> FloatInput(title, value, type ?: Type.FLOAT, style)
-                .setChangeListener {
-                    RemsStudio.incrementalChange("Set $title to $it", title) {
-                        setValue(it.toFloat() as V)
-                    }
-                }
-                .setIsSelectedListener { show(null) }
-                .setTooltip(ttt)
-            is Double -> FloatInput(title, value, type ?: Type.DOUBLE, style)
-                .setChangeListener {
-                    RemsStudio.incrementalChange("Set $title to $it", title) {
-                        setValue(it as V)
-                    }
-                }
-                .setIsSelectedListener { show(null) }
-                .setTooltip(ttt)
-            is Vector2f -> VectorInput(style, title, value, type ?: Type.VEC2)
-                .setChangeListener { x, y, _, _ ->
-                    RemsStudio.incrementalChange("Set $title to ($x,$y)", title) {
-                        setValue(Vector2f(x, y) as V)
-                    }
-                }
-                .setIsSelectedListener { show(null) }
-                .setTooltip(ttt)
-            is Vector3f ->
-                if (type == Type.COLOR3) {
-                    ColorInput(style, title, Vector4f(value, 1f), false, null)
-                        .setChangeListener { r, g, b, _ ->
-                            RemsStudio.incrementalChange("Set $title to ${Vector3f(r, g, b).toHexColor()}", title) {
-                                setValue(Vector3f(r, g, b) as V)
-                            }
-                        }
-                        .setIsSelectedListener { show(null) }
-                        .setTooltip(ttt)
-                } else {
-                    VectorInput(style, title, value, type ?: Type.VEC3)
-                        .setChangeListener { x, y, z, _ ->
-                            RemsStudio.incrementalChange("Set $title to ($x,$y,$z)", title) {
-                                setValue(Vector3f(x, y, z) as V)
-                            }
-                        }
-                        .setIsSelectedListener { show(null) }
-                        .setTooltip(ttt)
-                }
-            is Vector4f -> {
-                if (type == null || type == Type.COLOR) {
-                    ColorInput(style, title, value, true, null)
-                        .setChangeListener { r, g, b, a ->
-                            RemsStudio.incrementalChange("Set $title to ${Vector4f(r, g, b, a).toHexColor()}", title) {
-                                setValue(Vector4f(r, g, b, a) as V)
-                            }
-                        }
-                        .setIsSelectedListener { show(null) }
-                        .setTooltip(ttt)
-                } else {
-                    VectorInput(style, title, value, type)
-                        .setChangeListener { x, y, z, w ->
-                            RemsStudio.incrementalChange("Set $title to ($x,$y,$z,$w)", title) {
-                                setValue(Vector4f(x, y, z, w) as V)
-                            }
-                        }
-                        .setIsSelectedListener { show(null) }
-                        .setTooltip(ttt)
-                }
-            }
-            is Quaternionf -> VectorInput(style, title, value, type ?: Type.QUATERNION)
-                .setChangeListener { x, y, z, w ->
-                    RemsStudio.incrementalChange(title) {
-                        setValue(Quaternionf(x, y, z, w) as V)
-                    }
-                }
-                .setIsSelectedListener { show(null) }
-                .setTooltip(ttt)
-            is String -> TextInput(title, style, value)
-                .setChangeListener {
-                    RemsStudio.incrementalChange("Set $title to \"$it\"", title) {
-                        setValue(it as V)
-                    }
-                }
-                .setIsSelectedListener { show(null) }
-                .setTooltip(ttt)
-            is File -> FileInput(title, style, value)
-                .setChangeListener {
-                    RemsStudio.incrementalChange("Set $title to \"$it\"", title) {
-                        setValue(it as V)
-                    }
-                }
-                .setIsSelectedListener { show(null) }
-                .setTooltip(ttt)
-            is BlendMode -> {
-                val values = blendModes.values
-                val valueNames = values.map { it to it.naming }
-                EnumInput(
-                    title, true, valueNames.first { it.first == value }.second.name,
-                    valueNames.map { it.second }, style
-                )
-                    .setChangeListener { name, index, _ ->
-                        RemsStudio.incrementalChange("Set $title to $name", title) {
-                            setValue(valueNames[index].first as V)
-                        }
-                    }
-                    .setIsSelectedListener { show(null) }
-                    .setTooltip(ttt)
-            }
-            is Enum<*> -> {
-                val values = when (value) {
-                    is LoopingState -> LoopingState.values()
-                    is ToneMappers -> ToneMappers.values()
-                    is MaskType -> MaskType.values()
-                    is Filtering -> Filtering.values()
-                    is ArraySelectionMode -> ArraySelectionMode.values()
-                    is UVProjection -> UVProjection.values()
-                    is Clamping -> Clamping.values()
-                    is TransformVisibility -> TransformVisibility.values()
-                    is TextRenderMode -> TextRenderMode.values()
-                    is Language -> Language.values()
-                    else -> throw RuntimeException("Missing enum .values() implementation for UI in Transform.kt for $value")
-                }
-                val valueNames: List<Pair<Any, NameDesc>> = values.map {
-                    it to when (it) {
-                        is LoopingState -> it.naming
-                        is ToneMappers -> it.naming
-                        is MaskType -> it.naming
-                        is Filtering -> it.naming
-                        is ArraySelectionMode -> it.naming
-                        is UVProjection -> it.naming
-                        is Clamping -> it.naming
-                        is TransformVisibility -> it.naming
-                        is TextRenderMode -> it.naming
-                        is Language -> it.naming
-                        else -> NameDesc(it.name, "", "")
-                    }
-                }
-                EnumInput(
-                    title, true, valueNames.first { it.first == value }.second.name,
-                    valueNames.map { it.second }, style
-                )
-                    .setChangeListener { name, index, _ ->
-                        RemsStudio.incrementalChange("Set $title to $name") {
-                            setValue(values[index] as V)
-                        }
-                    }
-                    .setIsSelectedListener { show(null) }
-                    .setTooltip(ttt)
-            }
-            else -> throw RuntimeException("Type $value not yet implemented!")
-        }
+        return ComponentUI.vi(this, title, ttt, type, value, style, setValue)
     }
 
     fun vi(title: String, ttt: String, dictSubPath: String, values: AnimatedProperty<*>, style: Style): Panel {
@@ -768,99 +583,7 @@ open class Transform(var parent: Transform? = null) : Saveable(),
      * modifies the AnimatedProperty-Object, so no callback is needed
      * */
     fun vi(title: String, ttt: String, values: AnimatedProperty<*>, style: Style): Panel {
-        val time = lastLocalTime
-        return when (val value = values[time]) {
-            is Int -> IntInput(title, values, 0, time, style)
-                .setChangeListener {
-                    RemsStudio.incrementalChange("Set $title to $it", title) {
-                        putValue(values, it.toInt(), false)
-                    }
-                }
-                .setIsSelectedListener { show(values) }
-                .setTooltip(ttt)
-            is Long -> IntInput(title, values, 0, time, style)
-                .setChangeListener {
-                    RemsStudio.incrementalChange("Set $title to $it", title) {
-                        putValue(values, it, false)
-                    }
-                }
-                .setIsSelectedListener { show(values) }
-                .setTooltip(ttt)
-            is Float -> FloatInput(title, values, 0, time, style)
-                .setChangeListener {
-                    RemsStudio.incrementalChange("Set $title to $it", title) {
-                        putValue(values, it.toFloat(), false)
-                    }
-                }
-                .setIsSelectedListener { show(values) }
-                .setTooltip(ttt)
-            is Double -> FloatInput(title, values, 0, time, style)
-                .setChangeListener {
-                    RemsStudio.incrementalChange("Set $title to $it", title) {
-                        putValue(values, it, false)
-                    }
-                }
-                .setIsSelectedListener { show(values) }
-                .setTooltip(ttt)
-            is Vector2f -> VectorInput(title, values, time, style)
-                .setChangeListener { x, y, _, _ ->
-                    RemsStudio.incrementalChange("Set $title to ($x,$y)", title) {
-                        putValue(values, Vector2f(x, y), false)
-                    }
-                }
-                .setIsSelectedListener { show(values) }
-                .setTooltip(ttt)
-            is Vector3f ->
-                if (values.type == Type.COLOR3) {
-                    ColorInput(style, title, Vector4f(value, 1f), false, values)
-                        .setChangeListener { r, g, b, _ ->
-                            RemsStudio.incrementalChange("Set $title to ${Vector3f(r, g, b).toHexColor()}", title) {
-                                putValue(values, Vector3f(r, g, b), false)
-                            }
-                        }
-                        .setIsSelectedListener { show(values) }
-                        .setTooltip(ttt)
-                } else {
-                    VectorInput(title, values, time, style)
-                        .setChangeListener { x, y, z, _ ->
-                            RemsStudio.incrementalChange("Set $title to ($x,$y,$z)", title) {
-                                putValue(values, Vector3f(x, y, z), false)
-                            }
-                        }
-                        .setIsSelectedListener { show(values) }
-                        .setTooltip(ttt)
-                }
-            is Vector4f -> {
-                if (values.type == Type.COLOR) {
-                    ColorInput(style, title, value, true, values)
-                        .setChangeListener { r, g, b, a ->
-                            RemsStudio.incrementalChange("Set $title to ${Vector4f(r, g, b, a).toHexColor()}", title) {
-                                putValue(values, Vector4f(r, g, b, a), false)
-                            }
-                        }
-                        .setIsSelectedListener { show(values) }
-                        .setTooltip(ttt)
-                } else {
-                    VectorInput(title, values, time, style)
-                        .setChangeListener { x, y, z, w ->
-                            RemsStudio.incrementalChange("Set $title to ($x,$y,$z,$w)", title) {
-                                putValue(values, Vector4f(x, y, z, w), false)
-                            }
-                        }
-                        .setIsSelectedListener { show(values) }
-                        .setTooltip(ttt)
-                }
-            }
-            is Quaternionf -> VectorInput(title, values, time, style)
-                .setChangeListener { x, y, z, w ->
-                    RemsStudio.incrementalChange("Set $title to ($x,$y,$z,$w)", title) {
-                        putValue(values, Quaternionf(x, y, z, w), false)
-                    }
-                }
-                .setIsSelectedListener { show(values) }
-                .setTooltip(ttt)
-            else -> throw RuntimeException("Type $value not yet implemented!")
-        }
+        return ComponentUI.vi(this, title, ttt, values, style)
     }
 
     open fun onDestroy() {}

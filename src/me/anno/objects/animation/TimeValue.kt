@@ -59,6 +59,7 @@ open class TimeValue<V>(var time: Double, var value: V) : Saveable() {
                     2 -> Quaternionf(value.x, value.y, v, value.w)
                     else -> Quaternionf(value.x, value.y, value.z, v)
                 }
+                is String -> v
                 else -> throw RuntimeException("todo implement Keyframe.getValue(index) for $value")
             } as V
         )
