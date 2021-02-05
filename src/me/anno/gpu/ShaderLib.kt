@@ -727,13 +727,16 @@ object ShaderLib {
                         "void main(){\n" +
                         "   vec4 color = getTexture(tex, getProjectedUVs(uv, uvw))$swizzle;\n" +
                         "   color.rgb = colorGrading(color.rgb);\n" +
+                        // "   color.a = 1.0;\n" +
+                        // "   color.rg = getProjectedUVs(uv, uvw);\n" +
+                        // "   color.b = 0;" +
                         "   if($hasForceFieldColor) color *= getForceFieldColor();\n" +
                         "   gl_FragColor = tint * color;\n" +
                         "}", listOf("tex")
             )
         }
 
-        shader3DRGBA = createSwizzleShader("")
+        shader3DRGBA = createSwizzleShader(".rgba")
         shader3DARGB = createSwizzleShader(".gbar")
         shader3DBGRA = createSwizzleShader(".bgra")
 

@@ -275,7 +275,7 @@ object GFX : GFXBase1() {
     }
 
     override fun renderStep0() {
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 1) // opengl is evil ;), for optimizations, we might set it back
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1) // OpenGL is evil ;), for optimizations, we might set it back
         supportsAnisotropicFiltering = GL.getCapabilities().GL_EXT_texture_filter_anisotropic
         LOGGER.info("OpenGL supports Anisotropic Filtering? $supportsAnisotropicFiltering")
         if (supportsAnisotropicFiltering) {

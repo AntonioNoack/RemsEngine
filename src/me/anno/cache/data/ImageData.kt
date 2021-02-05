@@ -14,6 +14,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.image.HDRImage
 import me.anno.objects.Video.Companion.imageTimeout
 import me.anno.objects.modes.RotateJPEG
+import me.anno.utils.Sleep.sleepABit
 import me.anno.video.VFrame
 import org.apache.commons.imaging.Imaging
 import org.joml.Matrix4f
@@ -53,6 +54,7 @@ class ImageData(file: File) : ICacheData {
             val framebuffer = Framebuffer("webp-temp", w, h, 1, 1, false, Framebuffer.DepthBufferType.NONE)
             id?.framebuffer = framebuffer
             Frame(framebuffer){
+                Frame.bind()
                 id?.texture = framebuffer.textures[0]
                 val shader = frame.get3DShader()
                 shader3DUniforms(shader, Matrix4f(), Vector4f(1f, 1f, 1f, 1f))
@@ -106,9 +108,16 @@ class ImageData(file: File) : ICacheData {
                 }, false)
                 texture.rotation = rotation
             }
-            "webp" -> {
+            // jp2 = jpeg 2000
+            "webp", "jp2" -> {
                 // calculate required scale? no, without animation, we don't need to scale it down ;)
-                val frame = getVideoFrame(file, 1, 0, 0, 1.0, imageTimeout, false)!!
+                var frame: VFrame?
+                while (true){
+                    frame = getVideoFrame(file, 1, 0, 0, 1.0, imageTimeout, false)
+                    if(frame == null) sleepABit()
+                    else break
+                }
+                frame!!
                 frame.waitToLoad()
                 GFX.addGPUTask(frame.w, frame.h) {
                     frameToFramebuffer(

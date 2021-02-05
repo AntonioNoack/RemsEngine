@@ -101,7 +101,7 @@ class FFMPEGMetadata(file: File): ICacheData {
         hasVideo = video != null
         videoStartTime = video?.get("start_time")?.asText()?.toDouble() ?: 0.0
         videoDuration = video?.get("duration")?.asText()?.toDouble() ?: duration
-        videoFrameCount = video?.get("nb_frames")?.asText()?.toInt() ?: 0
+        videoFrameCount = video?.get("nb_frames")?.asText()?.toInt() ?: 1
         videoWidth = video?.get("width")?.asText()?.toInt() ?: 0
         videoHeight = video?.get("height")?.asText()?.toInt() ?: 0
         videoFPS = video?.get("r_frame_rate")?.asText()?.parseFraction() ?: 30.0

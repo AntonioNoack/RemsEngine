@@ -18,6 +18,7 @@ import org.lwjgl.opengl.GL32.glTexImage2DMultisample
 import java.awt.image.BufferedImage
 import java.awt.image.DataBufferByte
 import java.awt.image.DataBufferInt
+import java.nio.Buffer
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
@@ -25,7 +26,9 @@ import kotlin.concurrent.thread
 
 open class Texture2D(
     val name: String,
-    override var w: Int, override var h: Int, val samples: Int
+    override var w: Int,
+    override var h: Int,
+    val samples: Int
 ) : ICacheData, ITexture2D {
 
     constructor(img: BufferedImage) : this("img", img.width, img.height, 1) {
@@ -75,7 +78,6 @@ open class Texture2D(
         clamping(clamping)
         isCreated = true
     }
-
 
     fun create(type: TargetType) {
         ensurePointer()
@@ -290,7 +292,7 @@ open class Texture2D(
     }
 
     fun createMonochrome(data: ByteBuffer) {
-        if (w * h != data.capacity()) throw RuntimeException("incorrect size!")
+        checkSize(1, data)
         GFX.check()
         ensurePointer()
         bindBeforeUpload()
@@ -307,7 +309,7 @@ open class Texture2D(
      * used by SDF
      * */
     fun createMonochrome(data: FloatBuffer) {
-        if (w * h != data.capacity()) throw RuntimeException("incorrect size!")
+        checkSize(1, data)
         GFX.check()
         ensurePointer()
         bindBeforeUpload()
@@ -320,7 +322,7 @@ open class Texture2D(
     }
 
     fun createMonochrome(data: ByteArray) {
-        if (w * h != data.size) throw RuntimeException("incorrect size!")
+        checkSize(1, data.size)
         GFX.check()
         ensurePointer()
         bindBeforeUpload()
@@ -337,7 +339,7 @@ open class Texture2D(
     }
 
     fun create(data: FloatArray) {
-        if (w * h * 4 != data.size) throw RuntimeException("incorrect size!")
+        checkSize(4, data.size)
         val byteBuffer = ByteBuffer
             .allocateDirect(data.size * 4)
             .order(ByteOrder.nativeOrder())
@@ -348,19 +350,19 @@ open class Texture2D(
         create(floatBuffer)
     }
 
-    fun create(floatBuffer: FloatBuffer) {
+    fun create(buffer: FloatBuffer) {
         ensurePointer()
         bindBeforeUpload()
         GFX.check()
         // rgba32f as internal format is extremely important... otherwise the value is cropped
-        glTexImage2D(tex2D, 0, GL_RGBA32F, w, h, 0, GL_RGBA, GL_FLOAT, floatBuffer)
+        glTexImage2D(tex2D, 0, GL_RGBA32F, w, h, 0, GL_RGBA, GL_FLOAT, buffer)
         isCreated = true
         filtering(filtering)
         GFX.check()
     }
 
     fun createRGBA(data: ByteArray) {
-        if (w * h * 4 != data.size) throw RuntimeException("incorrect size!")
+        checkSize(4, data.size)
         val byteBuffer = ByteBuffer.allocateDirect(data.size)
         byteBuffer.position(0)
         byteBuffer.put(data)
@@ -368,12 +370,12 @@ open class Texture2D(
         createRGBA(byteBuffer)
     }
 
-    fun createRGBA(byteBuffer: ByteBuffer) {
-        if (w * h * 4 != byteBuffer.capacity()) throw RuntimeException("incorrect size!")
+    fun createRGBA(buffer: ByteBuffer) {
+        checkSize(4, buffer)
         ensurePointer()
         bindBeforeUpload()
         GFX.check()
-        glTexImage2D(tex2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, byteBuffer)
+        glTexImage2D(tex2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
         isCreated = true
         filtering(filtering)
         clamping(clamping)
@@ -455,6 +457,14 @@ open class Texture2D(
         filtering(filtering)
         clamping(Clamping.CLAMP)
         GFX.check()
+    }
+
+    private fun checkSize(channels: Int, buffer: Buffer) {
+        checkSize(channels, buffer.remaining())
+    }
+
+    private fun checkSize(channels: Int, size: Int) {
+        if (size < w * h * channels) throw IllegalArgumentException("Incorrect size, ${w * h * channels} vs ${size}!")
     }
 
     companion object {

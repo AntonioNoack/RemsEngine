@@ -8,6 +8,7 @@ import me.anno.video.FFMPEGMetadata.Companion.getMeta
 import me.anno.video.VFrame
 import me.anno.video.VideoProxyCreator
 import java.io.File
+import java.lang.IllegalArgumentException
 import kotlin.math.max
 import kotlin.math.min
 
@@ -57,11 +58,11 @@ object VideoCache : CacheSection("Videos") {
         async: Boolean
     ): VFrame? {
         if (index < 0) return null
-        if (scale < 1) throw RuntimeException()
+        if (scale < 1) throw IllegalArgumentException("Scale must not be < 1")
         val bufferLength = max(1, bufferLength0)
         val bufferIndex = index / bufferLength
         // if scale >= 4 && width >= 200 create a smaller version in case using ffmpeg
-        if (scale >= 4 && (getMeta(file, async)?.run { min(videoWidth, videoHeight) >= VideoProxyCreator.minSizeForScaling } == true)) {
+        if (bufferLength0 > 0 && scale >= 4 && (getMeta(file, async)?.run { min(videoWidth, videoHeight) >= VideoProxyCreator.minSizeForScaling } == true)) {
             val file2 = VideoProxyCreator.getProxyFile(file)
             if (file2 != null) {
                 return getVideoFrame(file2, (scale + 2) / 4, index, bufferLength0, fps, timeout, async)

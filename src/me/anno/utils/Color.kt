@@ -16,6 +16,11 @@ object Color {
     fun Int.b() = this and 255
     fun Int.a() = shr(24) and 255
 
+    fun rgba(r: Byte, g: Byte, b: Byte, a: Byte): Int = r.toInt().and(255).shl(16) or
+            g.toInt().and(255).shl(8) or
+            b.toInt().and(255) or
+            a.toInt().and(255).shl(24)
+
     fun rgba(r: Int, g: Int, b: Int, a: Int): Int = clamp(r, 0, 255).shl(16) or
             clamp(g, 0, 255).shl(8) or
             clamp(b, 0, 255) or

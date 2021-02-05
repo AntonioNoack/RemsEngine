@@ -185,7 +185,7 @@ class TextReader(val data: String) : BaseReader() {
     private fun <ArrayType, InstanceType> readTypedArray(
         typeName: String,
         createArray: (arraySize: Int) -> ArrayType,
-        readValue: () -> InstanceType?,
+        readValue: () -> InstanceType,
         putValue: (array: ArrayType, index: Int, value: InstanceType) -> Unit
     ): ArrayType {
         assert(skipSpace(), '[')
@@ -199,13 +199,10 @@ class TextReader(val data: String) : BaseReader() {
                     ',' -> {
                         val raw = readValue()
                         if (i < length) {
-                            val value = raw ?: error("Invalid $typeName $raw at $typeName[$i]")
-                            putValue(values, i++, value)
+                            putValue(values, i++, raw)
                         }// else skip
                     }
-                    ']' -> {
-                        break@content
-                    }
+                    ']' -> break@content
                     else -> error("unknown character $next in $typeName[]")
                 }
             }

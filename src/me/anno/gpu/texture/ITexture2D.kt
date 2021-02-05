@@ -7,7 +7,6 @@ interface ITexture2D: ICacheData {
     var w: Int
     var h: Int
 
-
     fun bind(nearest: GPUFiltering, clamping: Clamping)
     fun bind(filtering: Filtering, clamping: Clamping){
         bind(if(filtering.baseIsNearest) GPUFiltering.NEAREST else GPUFiltering.LINEAR, clamping)
@@ -17,7 +16,5 @@ interface ITexture2D: ICacheData {
     fun bind(index: Int, filtering: Filtering, clamping: Clamping){
         bind(index, if(filtering.baseIsNearest) GPUFiltering.NEAREST else GPUFiltering.LINEAR, clamping)
     }
-
-    // override fun destroy()
 
 }

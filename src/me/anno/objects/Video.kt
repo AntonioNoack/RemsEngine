@@ -226,7 +226,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                 val localTime = isLooping[time, duration]
 
                 val frame = ImageCache.getImage(meta.getImage(localTime), 5L, true)
-                if (frame == null) onMissingImageOrFrame()
+                if (frame == null || !frame.isCreated) onMissingImageOrFrame()
                 else {
                     w = frame.w
                     h = frame.h
@@ -417,7 +417,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
             else -> {// some image
                 val tiling = tiling[time]
                 val texture = ImageCache.getImage(file, imageTimeout, true)
-                if (texture == null) onMissingImageOrFrame()
+                if (texture == null || !texture.isCreated) onMissingImageOrFrame()
                 else {
                     texture.rotation?.apply(stack)
                     w = texture.w

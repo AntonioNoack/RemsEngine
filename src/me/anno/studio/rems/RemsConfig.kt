@@ -30,7 +30,7 @@ object RemsConfig {
                 addImportMappings("Transform", "json")
                 addImportMappings(
                     "Image",
-                    "png", "jpg", "jpeg", "tiff", "webp", "svg", "ico", "psd", "bmp"
+                    "png", "jpg", "jpeg", "tiff", "webp", "svg", "ico", "psd", "bmp", "jp2"
                 )
                 addImportMappings("Cubemap-Equ", "hdr")
                 addImportMappings(
@@ -54,6 +54,7 @@ object RemsConfig {
         }
 
         DefaultConfig.init()
+        RemsVersionFeatures(DefaultConfig).addNewPackages(DefaultConfig)
 
     }
 }

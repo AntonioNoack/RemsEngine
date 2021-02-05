@@ -48,13 +48,6 @@ import org.joml.*
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
 
-// pivot? nah, always use the center to make things easy;
-// or should we do it?... idk for sure...
-// just make the tree work perfectly <3
-
-// gradients? -> can be done using the mask layer
-// done select by clicking
-
 open class Transform(var parent: Transform? = null) : Saveable(),
     Inspectable {
 
