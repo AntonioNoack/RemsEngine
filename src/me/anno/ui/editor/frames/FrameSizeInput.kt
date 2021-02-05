@@ -2,10 +2,13 @@ package me.anno.ui.editor.frames
 
 import me.anno.config.DefaultConfig
 import me.anno.language.translation.NameDesc
+import me.anno.parser.SimpleExpressionParser.parseDouble
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.input.EnumInput
+import me.anno.ui.input.IntInput
+import me.anno.ui.input.NumberInput
 import me.anno.ui.input.components.PureTextInput
 import me.anno.ui.style.Style
 
@@ -20,8 +23,8 @@ class FrameSizeInput(title: String, value0: String, style: Style): PanelListY(st
 
     val deepStyle = style.getChild("deep")
     val customInput = PanelListX(deepStyle)
-    val customX = PureTextInput(deepStyle)
-    val customY = PureTextInput(deepStyle)
+    val customX = IntInput("X", 0, deepStyle).apply { noTitle() }
+    val customY = IntInput("Y", 0, deepStyle).apply { noTitle() }
 
     init {
         this += typeInput
@@ -33,34 +36,26 @@ class FrameSizeInput(title: String, value0: String, style: Style): PanelListY(st
                     }
                     else -> {
                         val wh = it.split('x')
-                        val ws = wh[0].trim()
-                        val hs = wh[1].trim()
+                        val ws = wh[0].trim().toInt()
+                        val hs = wh[1].trim().toInt()
                         update(ws, hs)
                         customInput.visibility = Visibility.GONE
                     }
                 }
             }
-        customX.text = val0.w.toString()
-        customY.text = val0.h.toString()
-        customX.updateChars(false)
-        customY.updateChars(false)
-        customInput += customX.setChangeListener { update(it, customY.text) }.setWeight(1f)
-        customInput += customY.setChangeListener { update(customX.text, it) }.setWeight(1f)
+        customX.setValue(val0.w, false)
+        customY.setValue(val0.h, false)
+        customInput += customX.setChangeListener { update(it, customY.lastValue) }.setWeight(1f)
+        customInput += customY.setChangeListener { update(customX.lastValue, it) }.setWeight(1f)
         customInput.visibility = Visibility.GONE
         this += customInput
     }
 
-    fun update(ws: String, hs: String){
-        val w = ws.toIntOrNull() ?: return
-        val h = hs.toIntOrNull() ?: return
-        if(ws != customX.text){
-            customX.text = ws
-            customX.updateChars(false)
-        }
-        if(hs != customY.text){
-            customY.text = hs
-            customY.updateChars(false)
-        }
+    fun update(ws: Long, hs: Long){
+        update(ws.toInt(), hs.toInt())
+    }
+
+    fun update(w: Int, h: Int){
         changeListener(w, h)
         defaultResolution = Resolution(w, h)
     }
@@ -83,8 +78,8 @@ class FrameSizeInput(title: String, value0: String, style: Style): PanelListY(st
             val wh = toLowerCase()
                 .replace('×', 'x') // utf8 x -> ascii x
                 .split('x')
-            val w = wh[0].trim().toIntOrNull() ?: return null
-            val h = wh.getOrNull(1)?.trim()?.toIntOrNull() ?: return null
+            val w = parseDouble(wh[0])?.toInt() ?: return null
+            val h = wh.getOrNull(1)?.run { parseDouble(this) }?.toInt() ?: return null
             return Resolution(w, h)
         }
 
