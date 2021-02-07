@@ -6,20 +6,23 @@ import org.apache.logging.log4j.LogManager
 import org.lwjgl.Version
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWErrorCallback
-import org.lwjgl.system.MemoryStack
+import org.lwjgl.opengl.GL
 import org.lwjgl.system.MemoryUtil
 
-object HiddenWindow {
+/**
+ * a class, which allows us to use OpenGL without visible window
+ * */
+object HiddenOpenGLContext {
 
-    var window = 0L
-    var width = 1
-    var height = 1
+    private var window = 0L
+    private var width = 1
+    private var height = 1
 
-    var errorCallback: GLFWErrorCallback? = null
+    private var errorCallback: GLFWErrorCallback? = null
 
-    private val LOGGER = LogManager.getLogger(HiddenWindow::class)
+    private val LOGGER = LogManager.getLogger(HiddenOpenGLContext::class)
 
-    fun create(){
+    fun createOpenGL() {
 
         LOGGER.info("Using LWJGL Version " + Version.getVersion())
 
@@ -76,6 +79,10 @@ object HiddenWindow {
         /*GLFW.glfwShowWindow(window)
 
         tick.stop("show window")*/
+
+        GLFW.glfwMakeContextCurrent(window)
+        GLFW.glfwSwapInterval(1)
+        GL.createCapabilities()
 
     }
 

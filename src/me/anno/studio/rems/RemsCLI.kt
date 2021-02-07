@@ -6,7 +6,7 @@ import me.anno.gpu.ShaderLib
 import me.anno.gpu.TextureLib
 import me.anno.gpu.blending.BlendDepth
 import me.anno.gpu.framebuffer.Frame
-import me.anno.gpu.hidden.HiddenWindow
+import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.texture.Texture2D
 import me.anno.installer.Installer.checkInstall
 import me.anno.io.config.ConfigBasics
@@ -18,8 +18,6 @@ import me.anno.utils.Sleep.sleepABit
 import me.anno.utils.types.Strings.getImportType
 import org.apache.commons.cli.*
 import org.apache.logging.log4j.LogManager
-import org.lwjgl.glfw.GLFW
-import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL30
 import java.io.File
 import java.net.URL
@@ -46,6 +44,10 @@ object RemsCLI {
         options.addOption("end", true, "end time in seconds")
         options.addOption("duration", true, "end time after start, in seconds")
         options.addOption("project", true, "project settings, containing resolution, frame size, duration, ...")
+        // todo crf
+        // todo balance
+        // todo audio samples
+        // todo all other relevant factors
         val parser = DefaultParser()
         try {
             val line = parser.parse(options, args)
@@ -79,6 +81,7 @@ object RemsCLI {
             e.printStackTrace()
             return error("Error in input file")
         }
+        RemsStudio.root = scene
 
         val project = if (line.hasOption("project")) {
             Project("Unnamed", File(line.getOptionValue("project")))
@@ -167,10 +170,14 @@ object RemsCLI {
     }
 
     fun initOpenGL() {
-        HiddenWindow.create()
-        GLFW.glfwMakeContextCurrent(HiddenWindow.window)
-        GLFW.glfwSwapInterval(1)
-        GL.createCapabilities()
+        HiddenOpenGLContext.createOpenGL()
+    }
+
+    fun init() {
+        RemsStudio.setupNames()
+        RemsConfig.init()
+        checkInstall()
+        // checkVersion() needs to be killed, if the time is long over ;)
     }
 
     fun ask(question: String, default: Boolean): Boolean {
@@ -187,14 +194,14 @@ object RemsCLI {
         }
     }
 
-    fun parseTime(line: CommandLine, name: String, defaultValue: Double): Double {
+    private fun parseTime(line: CommandLine, name: String, defaultValue: Double): Double {
         return if (line.hasOption(name)) {
             val value = line.getOptionValue(name)
             value.toDoubleOrNull() ?: throw ParseException("Could not parse time '$value' for '$name'")
         } else defaultValue
     }
 
-    fun parseSize(line: CommandLine, name: String, defaultValue: Int): Int {
+    private fun parseSize(line: CommandLine, name: String, defaultValue: Int): Int {
         return if (line.hasOption(name)) {
             val value = line.getOptionValue(name)
             val valueInt = value.toIntOrNull() ?: throw ParseException("Could not parse size '$value' for '$name'")
@@ -203,18 +210,11 @@ object RemsCLI {
         } else defaultValue
     }
 
-    fun init() {
-        RemsStudio.setupNames()
-        RemsConfig.init()
-        checkInstall()
-        // checkVersion() needs to be killed, if the time is long over ;)
-    }
-
     fun readText(source: String): String {
-        return if (source.contains("://")) {
-            URL(source).readText()
-        } else {
-            File(source).readText()
+        return when {
+            source.startsWith("text://", true) -> source.substring(7)
+            source.contains("://") -> URL(source).readText()
+            else -> File(source).readText()
         }
     }
 
@@ -222,7 +222,7 @@ object RemsCLI {
         LOGGER.error(message)
     }
 
-    fun printHelp(options: Options) {
+    private fun printHelp(options: Options) {
         val formatter = HelpFormatter()
         formatter.printHelp("RemsStudio", options)
     }

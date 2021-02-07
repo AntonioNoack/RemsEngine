@@ -88,7 +88,11 @@ open class AudioCreator(
         LOGGER.info(if (videoCreator != null) "Saved video with audio to $output" else "Saved audio to $output")
 
         // delete the temporary file
-        videoCreator?.output?.delete()
+        videoCreator?.output?.apply {
+            // temporary file survives sometimes
+            // -> kill it at the end at the very least
+            if(!delete()) deleteOnExit()
+        }
         onFinished()
 
     }
