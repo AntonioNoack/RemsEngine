@@ -6,7 +6,6 @@ import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.flat01
 import me.anno.gpu.GFX.isFinalRendering
-import me.anno.gpu.GFX.startDateTime
 import me.anno.gpu.GFXx2D.drawRect
 import me.anno.gpu.ShaderLib.ascColorDecisionList
 import me.anno.gpu.ShaderLib.brightness
@@ -33,10 +32,10 @@ import me.anno.ui.editor.sceneView.Gizmo.drawGizmo
 import me.anno.ui.editor.sceneView.Grid
 import me.anno.ui.editor.sceneView.ISceneView
 import me.anno.utils.Maths.next
+import me.anno.utils.Warning.warn
 import me.anno.utils.types.Vectors.is000
 import me.anno.utils.types.Vectors.is1111
 import me.anno.utils.types.Vectors.times
-import me.anno.utils.Warning.warn
 import me.anno.video.MissingFrameException
 import org.joml.Matrix4f
 import org.joml.Matrix4fArrayList

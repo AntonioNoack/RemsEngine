@@ -36,11 +36,9 @@ import me.anno.studio.rems.Selection.selectTransform
 import me.anno.studio.rems.Selection.selectedTransform
 import me.anno.ui.base.Panel
 import me.anno.ui.base.SpacePanel
-import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.components.Padding
-import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
@@ -50,6 +48,7 @@ import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.Menu.openMenuComplex2
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.scrolling.ScrollPanelY
+import me.anno.ui.base.text.TextPanel
 import me.anno.ui.custom.CustomContainer
 import me.anno.ui.custom.CustomListX
 import me.anno.ui.custom.CustomListY
@@ -414,7 +413,7 @@ object UILayouts {
         val renderTitle = Dict["Render", "ui.top.render"]
         val helpTitle = Dict["Help", "ui.top.help"]
 
-        options.addMajor(Dict["Add", "ui.top.add"]){
+        options.addMajor(Dict["Add", "ui.top.add"]) {
             openAddMenu(selectedTransform ?: root)
         }
 
@@ -438,13 +437,16 @@ object UILayouts {
             Dict.selectLanguages(style).onMouseClicked(mouseX, mouseY, MouseButton.LEFT, false)
         }
 
-        options.addAction(configTitle, Dict["Open Config Folder", "ui.top.config.openFolder"]){
+        options.addAction(configTitle, Dict["Open Config Folder", "ui.top.config.openFolder"]) {
             ConfigBasics.configFolder.openInExplorer()
         }
 
         val menuStyle = style.getChild("menu")
 
-        options.addAction(projectTitle, Dict["Settings", "ui.top.project.settings"]) { selectTransform(ProjectSettings) }
+        options.addAction(
+            projectTitle,
+            Dict["Settings", "ui.top.project.settings"]
+        ) { selectTransform(ProjectSettings) }
         options.addAction(projectTitle, Dict["Save", "ui.top.project.save"]) {
             Input.save()
             LOGGER.info("Saved the project")
@@ -459,7 +461,7 @@ object UILayouts {
             )
         }
 
-        options.addAction(projectTitle, Dict["Reset UI", "ui.top.resetUI"]){
+        options.addAction(projectTitle, Dict["Reset UI", "ui.top.resetUI"]) {
             ask(NameDesc("Are you sure?", "", "")) {
                 project?.apply {
                     resetUIToDefault()
@@ -477,7 +479,7 @@ object UILayouts {
         }
 
         options.addAction(debugTitle, "Reload Cache (Ctrl+F5)") { CacheSection.clearAll() }
-        options.addAction(debugTitle, "Reload Plugins"){ ExtensionLoader.reloadPlugins() }
+        options.addAction(debugTitle, "Reload Plugins") { ExtensionLoader.reloadPlugins() }
         // todo overview to show plugins & mods
         // todo marketplace for plugins & mods?
         // ...
@@ -485,17 +487,17 @@ object UILayouts {
         // todo shortcuts, which can be set for all actions??...
 
         options.addAction(renderTitle, "Settings") { selectTransform(RenderSettings) }
-        options.addAction(renderTitle, "Set%") { renderSetPercent(true) }
-        options.addAction(renderTitle, "Full") { renderPart(1, true) }
-        options.addAction(renderTitle, "Half") { renderPart(2, true) }
-        options.addAction(renderTitle, "Quarter") { renderPart(4, true) }
-        options.addAction(renderTitle, "Audio") { renderAudio(true) }
+        options.addAction(renderTitle, "Set%") { renderSetPercent(true) {} }
+        options.addAction(renderTitle, "Full") { renderPart(1, true) {} }
+        options.addAction(renderTitle, "Half") { renderPart(2, true) {} }
+        options.addAction(renderTitle, "Quarter") { renderPart(4, true) {} }
+        options.addAction(renderTitle, "Audio") { renderAudio(true) {} }
 
-        options.addAction(helpTitle, "Tutorials"){
+        options.addAction(helpTitle, "Tutorials") {
             URL("https://remsstudio.phychi.com/?s=learn").openInBrowser()
         }
-        options.addAction(helpTitle, "Version: $versionName"){}
-        options.addAction(helpTitle, "About"){
+        options.addAction(helpTitle, "Version: $versionName") {}
+        options.addAction(helpTitle, "About") {
             // to do more info
             msg(NameDesc("Rem's Studio is created by Antonio Noack from Jena, Germany", "", ""))
             // e.g. the info, why I created it
@@ -507,7 +509,7 @@ object UILayouts {
         ui += SpacePanel(0, 1, style)
 
         val project = project!!
-        if(loadUI) project.loadUI()
+        if (loadUI) project.loadUI()
 
         ui += project.mainUI
 

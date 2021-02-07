@@ -9,6 +9,7 @@ import me.anno.audio.effects.impl.EchoEffect
 import me.anno.audio.effects.impl.EqualizerEffect
 import me.anno.audio.effects.impl.PitchEffect
 import me.anno.io.ISaveable
+import me.anno.io.InvalidFormatException
 import me.anno.io.utils.StringMap
 import me.anno.objects.*
 import me.anno.objects.animation.AnimatedProperty
@@ -68,22 +69,28 @@ abstract class BaseReader {
     }
 
     fun assert(b: Boolean) {
-        if (!b) throw RuntimeException()
+        if (!b) throw InvalidFormatException("Assertion failed")
     }
 
     fun assert(b: Boolean, msg: String) {
-        if (!b) throw RuntimeException(msg)
+        if (!b) throw InvalidFormatException(msg)
+    }
+
+    fun assert(isValue: String, shallValue: String) {
+        if (!isValue.equals(shallValue, true)) {
+            throw InvalidFormatException("Expected $shallValue but got $isValue")
+        }
     }
 
     fun assert(isValue: Char, shallValue: Char) {
-        if (isValue != shallValue.toLowerCase() && isValue != shallValue.toUpperCase()){
-            throw RuntimeException("Expected $shallValue but got $isValue")
+        if (isValue != shallValue.toLowerCase() && isValue != shallValue.toUpperCase()) {
+            throw InvalidFormatException("Expected $shallValue but got $isValue")
         }
     }
 
     fun assert(isValue: Char, shallValue: Char, context: String) {
-        if (isValue != shallValue.toLowerCase() && isValue != shallValue.toUpperCase()){
-            throw RuntimeException("Expected $shallValue but got $isValue for $context")
+        if (isValue != shallValue.toLowerCase() && isValue != shallValue.toUpperCase()) {
+            throw InvalidFormatException("Expected $shallValue but got $isValue for $context")
         }
     }
 
@@ -94,8 +101,8 @@ abstract class BaseReader {
 
         private val LOGGER = LogManager.getLogger(BaseReader::class)
 
-        fun error(msg: String): Nothing = throw RuntimeException("[BaseReader] $msg")
-        fun error(msg: String, appended: Any?): Nothing = throw RuntimeException("[BaseReader] $msg $appended")
+        fun error(msg: String): Nothing = throw InvalidFormatException("[BaseReader] $msg")
+        fun error(msg: String, appended: Any?): Nothing = throw InvalidFormatException("[BaseReader] $msg $appended")
 
         fun getNewClassInstance(clazz: String): ISaveable {
             return when (clazz) {

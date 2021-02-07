@@ -20,6 +20,7 @@ import me.anno.studio.StudioBase.Companion.workspace
 import me.anno.studio.project.Project
 import me.anno.ui.base.Font
 import me.anno.ui.style.Style
+import me.anno.utils.Clock
 import me.anno.utils.OS
 import me.anno.utils.Warning
 import me.anno.utils.types.Floats.f3
@@ -41,7 +42,7 @@ object DefaultConfig : StringMap() {
 
         hasInit = true
 
-        val t0 = System.nanoTime()
+        val tick = Clock()
 
         this["style"] = "dark"
 
@@ -58,9 +59,8 @@ object DefaultConfig : StringMap() {
         val stylePath = newConfig["style"]?.toString() ?: "dark"
         style = baseTheme.getStyle(stylePath)
 
-        val t1 = System.nanoTime()
         // not completely true; is loading some classes, too
-        LOGGER.info("Used ${((t1 - t0) * 1e-9f).f3()}s to read the config")
+        tick.stop("reading the config")
 
     }
 
@@ -78,7 +78,7 @@ object DefaultConfig : StringMap() {
 
     fun newInstances() {
 
-        val t0 = System.nanoTime()
+        val tick = Clock()
 
         val newInstances: Map<String, Transform> = mapOf(
             "Mesh" to Mesh(File(OS.documents, "monkey.obj"), null),
@@ -123,8 +123,7 @@ object DefaultConfig : StringMap() {
             StringMap(16, false, saveDefaultValues = true)
                 .addAll(newInstances)
 
-        val t1 = System.nanoTime()
-        LOGGER.info("Used ${((t1 - t0) * 1e-9).f3()}s for new instances list")
+        tick.stop("new instances list")
 
     }
 

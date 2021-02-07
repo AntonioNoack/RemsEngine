@@ -113,8 +113,12 @@ object RenderSettings : Transform() {
             .setTooltip("[Motion Blur] 1 = full frame is used; 0.1 = only 1/10th of a frame time is used")
 
         list += EnumInput(
-            "Encoding Speed / Compression", "How much time is spent on compressing the video into a smaller file", "ui.ffmpeg.encodingSpeed",
-            project.ffmpegBalance.nameDesc, FFMPEGEncodingBalance.values().map { it.nameDesc }, style
+            "Encoding Speed / Compression",
+            "How much time is spent on compressing the video into a smaller file",
+            "ui.ffmpeg.encodingSpeed",
+            project.ffmpegBalance.nameDesc,
+            FFMPEGEncodingBalance.values().map { it.nameDesc },
+            style
         ).setChangeListener { _, index, _ -> project.ffmpegBalance = FFMPEGEncodingBalance.values()[index]; save() }
 
         list += EnumInput(
@@ -148,22 +152,22 @@ object RenderSettings : Transform() {
         list += fileInput
 
         list += TextButton("Render at 100%", false, style)
-            .setSimpleClickListener { renderPart(1, true) }
+            .setSimpleClickListener { renderPart(1, true) {} }
             .setTooltip("Create video at full resolution")
         list += TextButton("Render at 50%", false, style)
-            .setSimpleClickListener { renderPart(2, true) }
+            .setSimpleClickListener { renderPart(2, true) {} }
             .setTooltip("Create video at half resolution")
         list += TextButton("Render at 25%", false, style)
-            .setSimpleClickListener { renderPart(4, true) }
+            .setSimpleClickListener { renderPart(4, true) {} }
             .setTooltip("Create video at quarter resolution")
         list += TextButton("Render at Set%", false, style)
-            .setSimpleClickListener { renderSetPercent(true) }
+            .setSimpleClickListener { renderSetPercent(true) {} }
             .setTooltip("Create video at your custom set relative resolution")
         list += TextButton("Render Audio only", false, style)
-            .setSimpleClickListener { renderAudio(true) }
+            .setSimpleClickListener { renderAudio(true) {} }
             .setTooltip("Only creates an audio file; no video is rendered nor saved.")
         list += TextButton("Render Current Frame", false, style)
-            .setSimpleClickListener { renderFrame(targetWidth, targetHeight, editorTime, true) }
+            .setSimpleClickListener { renderFrame(targetWidth, targetHeight, editorTime, true) {} }
             .setTooltip("Only creates an audio file; no video is rendered nor saved.")
 
     }

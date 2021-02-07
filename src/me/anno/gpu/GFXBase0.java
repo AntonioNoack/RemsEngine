@@ -10,6 +10,7 @@ import me.anno.input.Input;
 import me.anno.language.translation.NameDesc;
 import me.anno.studio.StudioBase;
 import me.anno.ui.base.menu.Menu;
+import me.anno.utils.Clock;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.Version;
@@ -99,14 +100,14 @@ public class GFXBase0 {
 
         LOGGER.info("Using LWJGL Version " + Version.getVersion());
 
-        long t0 = System.nanoTime();
+        Clock tick = new Clock();
         glfwSetErrorCallback(errorCallback = GLFWErrorCallback.createPrint(System.err));
-        long t1 = System.nanoTime();
+        tick.stop("error callback");
+
         if (!glfwInit())
             throw new IllegalStateException("Unable to initialize GLFW");
 
-        long t2 = System.nanoTime();
-        LOGGER.info(String.format(Locale.ENGLISH, "Used %.3fs for error callback + %.3fs for glfwInit", ((t1 - t0) * 1e-9f), ((t2 - t1) * 1e-9f)));
+        tick.stop("GLFW initialization");
 
         glfwDefaultWindowHints();
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
@@ -114,17 +115,17 @@ public class GFXBase0 {
         // removes scaling options -> how could we replace them?
         // glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
 
-        long t3 = System.nanoTime();
+        // tick.stop("window hints");// 0s
 
         window = glfwCreateWindow(width, height, projectName, NULL, NULL);
         if (window == NULL)
             throw new RuntimeException("Failed to create the GLFW window");
 
-        long t3_2 = System.nanoTime();
+        tick.stop("create window");
 
         addCallbacks();
 
-        long t4 = System.nanoTime();
+        tick.stop("adding callbacks");
 
         GLFWVidMode videoMode = glfwGetVideoMode(glfwGetPrimaryMonitor());
         if (videoMode != null)
@@ -136,16 +137,15 @@ public class GFXBase0 {
             height = framebufferSize.get(1);
         }
 
-        long t5 = System.nanoTime();
+        tick.stop("window position");
 
         glfwSetWindowTitle(window, title);
 
+        // tick.stop("window title"); // 0s
+
         glfwShowWindow(window);
 
-        long t6 = System.nanoTime();
-
-        LOGGER.info("Used %.3fs for window hints + %.3fs for window creation + %.3fs for callbacks + %.3fs for position + %.3fs for show",
-                (t3 - t2) * 1e-9f, (t3_2 - t3) * 1e-9f, (t4 - t3_2) * 1e-9f, (t5 - t4) * 1e-9f, (t6 - t5) * 1e-9f);
+        tick.stop("show window");
 
     }
 
@@ -176,10 +176,16 @@ public class GFXBase0 {
 
     private void runRenderLoop() {
 
+        Clock tick = new Clock();
+
         glfwMakeContextCurrent(window);
         glfwSwapInterval(enableVsync ? 1 : 0);
 
+        tick.stop("make context current + vsync");
+
         GL.createCapabilities();
+
+        tick.stop("OpenGL initialization");
 
         setupDebugging();
 

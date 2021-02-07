@@ -1,6 +1,7 @@
 package me.anno.io.text
 
 import me.anno.io.ISaveable
+import me.anno.io.InvalidFormatException
 import me.anno.io.base.BaseReader
 import me.anno.io.base.UnknownClassException
 import org.apache.logging.log4j.LogManager
@@ -54,7 +55,7 @@ class TextReader(val data: String) : BaseReader() {
                     ',' -> Unit // nothing to do
                     '{' -> readObject()
                     ']' -> return
-                    else -> throw RuntimeException("Unexpected char $next")
+                    else -> throw InvalidFormatException("Unexpected char $next")
                 }
             }
         } catch (e: Exception){
@@ -133,7 +134,7 @@ class TextReader(val data: String) : BaseReader() {
                             str.append('\b')
                             startIndex = index
                         }
-                        else -> throw RuntimeException("Unknown escape sequence \\${data[index - 1]}")
+                        else -> throw InvalidFormatException("Unknown escape sequence \\${data[index - 1]}")
                     }
                 }
                 '"' -> {
@@ -160,7 +161,7 @@ class TextReader(val data: String) : BaseReader() {
                 }
                 '"' -> {
                     if (str.isEmpty()) return readString()
-                    else throw RuntimeException("Unexpected symbol \" inside number!")
+                    else throw InvalidFormatException("Unexpected symbol \" inside number!")
                 }
                 else -> {
                     tmpChar = next
@@ -177,7 +178,7 @@ class TextReader(val data: String) : BaseReader() {
             when (val next = skipSpace()) {
                 ',' -> obj = readProperty(obj)
                 '}' -> return obj
-                else -> throw RuntimeException("Unexpected char $next in object of class ${obj.getClassName()}")
+                else -> throw InvalidFormatException("Unexpected char $next in object of class ${obj.getClassName()}")
             }
         }
     }
@@ -228,7 +229,7 @@ class TextReader(val data: String) : BaseReader() {
                 assert(next(), 'e', "boolean:false")
                 false
             }
-            else -> throw java.lang.RuntimeException("Unknown boolean value starting with $firstChar")
+            else -> throw InvalidFormatException("Unknown boolean value starting with $firstChar")
         }
     }
 
@@ -515,7 +516,7 @@ class TextReader(val data: String) : BaseReader() {
             if (property0 == "class") {
                 assert(skipSpace(), ':')
                 assert(skipSpace(), '"')
-                assert(readString() == type)
+                assert(readString(), type)
                 assert(skipSpace(), ',')
                 assert(skipSpace(), '"')
                 property0 = readString()
@@ -527,7 +528,7 @@ class TextReader(val data: String) : BaseReader() {
             } else {
                 assert(nextChar, ':')
                 ptr = if (property0 == "*ptr" || property0 == "i:*ptr") {
-                    readNumber().toIntOrNull() ?: throw RuntimeException("Invalid pointer")
+                    readNumber().toIntOrNull() ?: throw InvalidFormatException("Invalid pointer")
                 } else {
                     child = readProperty(child, property0)
                     getUnusedPointer() // not used

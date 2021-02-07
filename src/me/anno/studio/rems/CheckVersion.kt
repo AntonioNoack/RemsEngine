@@ -17,15 +17,19 @@ import kotlin.concurrent.thread
 
 object CheckVersion {
 
+    private fun formatVersion(version: Int): String {
+        val mega = version / 10000
+        val major = (version / 100) % 100
+        val minor = version % 100
+        return "$mega.$major.$minor"
+    }
+
     fun checkVersion() {
         thread {
             val latestVersion = checkVersion(URL("https://remsstudio.phychi.com/version.php?isWindows=${if(OS.isWindows) 1 else 0}"))
             if (latestVersion > -1) {
                 if(latestVersion > RemsStudio.versionNumber){
-                    val mega = latestVersion / 10000
-                    val major = (latestVersion / 100) % 100
-                    val minor = latestVersion % 100
-                    val name = "RemsStudio $mega.$major.$minor.${if (OS.isWindows) "exe" else "jar"}"
+                    val name = "RemsStudio ${formatVersion(latestVersion)}.${if (OS.isWindows) "exe" else "jar"}"
                     val dst = File(OS.documents, name)
                     if(!dst.exists()){
                         LOGGER.info("Found newer version: $name")
@@ -60,7 +64,7 @@ object CheckVersion {
                         LOGGER.warn("Newer version available, but not used! $dst")
                     }
                 } else {
-                    LOGGER.info("The newest version is in use: ${RemsStudio.versionName}")
+                    LOGGER.info("The newest version is in use: ${RemsStudio.versionName} (Server: ${formatVersion(latestVersion)})")
                 }
             }
         }

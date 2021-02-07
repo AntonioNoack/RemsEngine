@@ -9,6 +9,7 @@ import me.anno.objects.effects.MaskType
 import me.anno.objects.effects.types.GLSLLib
 import me.anno.objects.modes.UVProjection
 import me.anno.studio.rems.Scene.noiseFunc
+import me.anno.utils.Clock
 import org.lwjgl.opengl.GL20
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -219,6 +220,8 @@ object ShaderLib {
             "}\n"
 
     fun init() {
+
+        val tick = Clock()
 
         // make this customizable?
 
@@ -755,6 +758,8 @@ object ShaderLib {
                     "}"
 
         )
+
+        tick.stop("creating default shaders")
 
     }
 

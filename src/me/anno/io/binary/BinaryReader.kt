@@ -153,7 +153,8 @@ class BinaryReader(val input: DataInputStream) : BaseReader() {
 
     override fun readAllInList() {
         val nameType = readTypeName()
-        assert(nameType.name == "" && nameType.type == OBJECT_LIST_UNKNOWN_LENGTH)
+        assert(nameType.name == "", "Expected object without a name")
+        assert(nameType.type == OBJECT_LIST_UNKNOWN_LENGTH, "Expected list of unknown length")
         loop@ while (true) {
             val type = input.read().toChar()
             if (type != OBJECT_IMPL) throw RuntimeException("Type must be OBJECT_IMPL, but got $type != $OBJECT_IMPL")

@@ -13,6 +13,6 @@ import me.anno.studio.rems.RemsStudio;
 
 public class Runner {
     public static void main(String[] args){
-        RemsStudio.INSTANCE.run();
+        RemsStudio.main(args);
     }
 }

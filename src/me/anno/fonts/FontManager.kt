@@ -7,6 +7,7 @@ import me.anno.fonts.keys.TextCacheKey
 import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.TextureLib
 import me.anno.gpu.texture.ITexture2D
+import me.anno.utils.Clock
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.f3
 import org.apache.logging.log4j.LogManager
@@ -36,17 +37,16 @@ object FontManager {
             thread {
                 synchronized(awtFontList) {
                     hasFonts = true
-                    val t0 = System.nanoTime()
+                    val tick = Clock()
                     val ge = GraphicsEnvironment.getLocalGraphicsEnvironment()
                     val fontNames = ge.availableFontFamilyNames
                     awtFontList.clear()
                     awtFontList += fontNames
-                    val t1 = System.nanoTime()
                     // 0.17s on Win 10, R5 2600, a few extra fonts
                     // this lag would not be acceptable :)
                     // worst-case-scenario: list too long, and no fonts are returned
                     // (because of that, the already used one is added)
-                    LOGGER.info("Used ${((t1 - t0) * 1e-9f).f3()} to get font list")
+                    tick.stop("getting the font list")
                     callback(awtFontList)
                 }
             }

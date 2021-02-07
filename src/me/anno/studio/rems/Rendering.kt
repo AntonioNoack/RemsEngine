@@ -23,24 +23,25 @@ object Rendering {
 
     private val LOGGER = LogManager.getLogger(Rendering::class)
 
-    fun renderPart(size: Int, ask: Boolean) {
-        renderVideo(RemsStudio.targetWidth / size, RemsStudio.targetHeight / size, ask)
+    fun renderPart(size: Int, ask: Boolean, callback: () -> Unit) {
+        renderVideo(RemsStudio.targetWidth / size, RemsStudio.targetHeight / size, ask, callback)
     }
 
-    fun renderSetPercent(ask: Boolean) {
+    fun renderSetPercent(ask: Boolean, callback: () -> Unit) {
+        val project = project!!
         renderVideo(
-            max(2, (RemsStudio.project!!.targetWidth * RemsStudio.project!!.targetSizePercentage / 100).roundToInt()),
-            max(2, (RemsStudio.project!!.targetHeight * RemsStudio.project!!.targetSizePercentage / 100).roundToInt()),
-            ask
+            max(2, (project.targetWidth * project.targetSizePercentage / 100).roundToInt()),
+            max(2, (project.targetHeight * project.targetSizePercentage / 100).roundToInt()),
+            ask, callback
         )
     }
 
-    fun renderVideo(width: Int, height: Int, ask: Boolean) {
+    fun renderVideo(width: Int, height: Int, ask: Boolean, callback: () -> Unit) {
 
         if (width % 2 != 0 || height % 2 != 0) return renderVideo(
             width / 2 * 2,
             height / 2 * 2,
-            ask
+            ask, callback
         )
 
         if (isRendering) return onAlreadyRendering()
@@ -48,7 +49,7 @@ object Rendering {
         val targetOutputFile = findTargetOutputFile(RenderType.VIDEO)
         if (targetOutputFile.exists() && ask) {
             return askOverridingIsAllowed(targetOutputFile) {
-                renderVideo(width, height, false)
+                renderVideo(width, height, false, callback)
             }
         }
 
@@ -77,17 +78,20 @@ object Rendering {
             ), scene, duration, sampleRate, audioSources,
             motionBlurSteps, shutterPercentage, targetOutputFile
         )
-        creator.onFinished = { isRendering = false }
+        creator.onFinished = {
+            isRendering = false
+            callback()
+        }
         creator.start()
 
     }
 
-    fun renderFrame(width: Int, height: Int, time: Double, ask: Boolean) {
+    fun renderFrame(width: Int, height: Int, time: Double, ask: Boolean, callback: () -> Unit) {
 
         val targetOutputFile = findTargetOutputFile(RenderType.FRAME)
         if (targetOutputFile.exists() && ask) {
             return askOverridingIsAllowed(targetOutputFile) {
-                renderFrame(width, height, time, false)
+                renderFrame(width, height, time, false, callback)
             }
         }
 
@@ -101,18 +105,18 @@ object Rendering {
             shutterPercentage,
             time,
             targetOutputFile
-        ).start()
+        ).start(callback)
 
     }
 
-    fun renderAudio(ask: Boolean) {
+    fun renderAudio(ask: Boolean, callback: () -> Unit) {
 
         if (isRendering) return onAlreadyRendering()
 
         val targetOutputFile = findTargetOutputFile(RenderType.AUDIO)
         if (targetOutputFile.exists() && ask) {
             return askOverridingIsAllowed(targetOutputFile) {
-                renderAudio(false)
+                renderAudio(false, callback)
             }
         }
 
@@ -126,7 +130,10 @@ object Rendering {
             .filterIsInstance<Audio>()
             .filter { it.forcedMeta?.hasAudio == true }.toList()
         AudioCreator(scene, duration, sampleRate, audioSources).apply {
-            onFinished = { isRendering = false }
+            onFinished = {
+                isRendering = false
+                callback()
+            }
             createOrAppendAudio(targetOutputFile, null)
         }
 
@@ -152,7 +159,7 @@ object Rendering {
         FRAME("Image", ".png")
     }
 
-    private fun findTargetOutputFile(type: RenderType): File {
+    fun findTargetOutputFile(type: RenderType): File {
         var targetOutputFile = targetOutputFile
         val defaultExtension = type.extension
         val defaultName = type.defaultName

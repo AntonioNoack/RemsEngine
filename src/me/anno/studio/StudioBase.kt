@@ -32,6 +32,7 @@ import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.debug.ConsoleOutputPanel
 import me.anno.ui.debug.FPSPanel
 import me.anno.ui.dragging.IDraggable
+import me.anno.utils.Clock
 import me.anno.utils.Maths.clamp
 import me.anno.utils.OS
 import me.anno.utils.hpc.ProcessingQueue
@@ -70,7 +71,10 @@ abstract class StudioBase(
     abstract fun onGameClose()
     abstract fun onGameInit()
 
-    private val startTime = System.nanoTime()
+    val startClock = Clock()
+    fun tick(name: String) {
+        startClock.stop(name)
+    }
 
     val windowStack = Stack<Window>()
 
@@ -78,25 +82,15 @@ abstract class StudioBase(
     val showFPS get() = DefaultConfig["debug.ui.showFPS", Build.isDebug]
     val showRedraws get() = DefaultConfig["debug.ui.showRedraws", false]
 
-    var lastT = startTime
-    fun mt(name: String) {
-        val t = System.nanoTime()
-        val dt = t - lastT
-        lastT = t
-        if (dt > 500_000) {// 0.5 ms
-            LOGGER.info("Used ${(dt * 1e-9).f3()}s for $name")
-        }
-    }
-
     open fun gameInit() {
 
         onGameInit()
 
-        mt("game init")
+        tick("game init")
 
         if (needsAudio) {
             AudioManager.startRunning()
-            mt("audio manager")
+            tick("audio manager")
         }
 
         Cursor.init()
@@ -109,23 +103,26 @@ abstract class StudioBase(
 
     var didNothingCounter = 0
 
-    fun run() {
-
+    fun setupNames(){
         GFX.title = title
         GFXBase0.projectName = configName
-
         instance = this
+    }
 
-        mt("run")
+    fun run() {
+
+        setupNames()
+
+        tick("run")
 
         Logging.setup()
 
-        mt("logging")
+        tick("logging")
 
         var lmx = Input.mouseX
         var lmy = Input.mouseY
 
-        mt("loading ui")
+        tick("loading ui")
 
         GFX.windowStack = windowStack
         GFX.gameInit = {
@@ -144,7 +141,7 @@ abstract class StudioBase(
 
             onGameLoopStart()
 
-            if (isFirstFrame) mt("game loop")
+            if (isFirstFrame) tick("game loop")
 
             val hovered = GFX.getPanelAndWindowAt(Input.mouseX, Input.mouseY)
             GFX.hoveredPanel = hovered?.first
@@ -159,7 +156,7 @@ abstract class StudioBase(
 
             GFX.hoveredPanel?.getCursor()?.useCursor()
 
-            if (isFirstFrame) mt("before window drawing")
+            if (isFirstFrame) tick("before window drawing")
 
             var didSomething = false
             fun shallDraw() = didSomething || didNothingCounter < 3
@@ -356,7 +353,7 @@ abstract class StudioBase(
 
             Input.framesSinceLastInteraction++
 
-            if (isFirstFrame) mt("window drawing")
+            if (isFirstFrame) tick("window drawing")
 
             Frame(0, 0, GFX.width, GFX.height, false, null) {
 
@@ -403,8 +400,7 @@ abstract class StudioBase(
             check()
 
             if (isFirstFrame) {
-                mt("first frame finished")
-                LOGGER.info("Used ${((System.nanoTime() - startTime) * 1e-9f).f3()}s from start to finishing the first frame")
+                startClock.total("first frame finished")
                 isFirstFrame = false
             }
 

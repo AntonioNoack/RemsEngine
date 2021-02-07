@@ -43,9 +43,7 @@ class FrameTask(
         true, Framebuffer.DepthBufferType.TEXTURE
     )
 
-    fun start() = tryRendering()
-
-    fun tryRendering() {
+    fun start(callback: () -> Unit) {
 
         /**
          * runs on GPU thread
@@ -54,11 +52,12 @@ class FrameTask(
             if (renderFrame(time)) {
                 writeFrame(averageFrame)
                 destroy()
+                callback()
             } else {
                 // waiting
                 thread {
                     sleepShortly()
-                    tryRendering()
+                    start(callback)
                 }
             }
         }

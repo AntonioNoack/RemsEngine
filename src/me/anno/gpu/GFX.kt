@@ -20,6 +20,7 @@ import me.anno.studio.rems.RemsStudio.root
 import me.anno.ui.base.Panel
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.debug.FrameTimes
+import me.anno.utils.Clock
 import me.anno.utils.Maths.pow
 import me.anno.utils.types.Vectors.minus
 import org.apache.logging.log4j.LogManager
@@ -275,6 +276,7 @@ object GFX : GFXBase1() {
     }
 
     override fun renderStep0() {
+        val tick = Clock()
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1) // OpenGL is evil ;), for optimizations, we might set it back
         supportsAnisotropicFiltering = GL.getCapabilities().GL_EXT_texture_filter_anisotropic
         LOGGER.info("OpenGL supports Anisotropic Filtering? $supportsAnisotropicFiltering")
@@ -285,9 +287,12 @@ object GFX : GFXBase1() {
         maxVertexUniforms = glGetInteger(GL_MAX_VERTEX_UNIFORM_COMPONENTS)
         maxFragmentUniforms = glGetInteger(GL20.GL_MAX_FRAGMENT_UNIFORM_COMPONENTS)
         LOGGER.info("Max Uniform Components: [Vertex: $maxVertexUniforms, Fragment: $maxFragmentUniforms]")
+        tick.stop("render step zero")
         TextureLib.init()
         ShaderLib.init()
+        tick.start()
         setIcon()
+        tick.stop("setting icon")
     }
 
     fun workQueue(queue: ConcurrentLinkedQueue<Task>) {

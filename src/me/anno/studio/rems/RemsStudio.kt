@@ -161,4 +161,13 @@ object RemsStudio : StudioBase(true, "Rem's Studio", 10002) {
     // - simple mask overlays
     // - simple color correction
 
+    @JvmStatic
+    fun main(args: Array<String>){
+        if(args.isEmpty()){
+            run()
+        } else {
+            RemsCLI.main(args)
+        }
+    }
+
 }
