@@ -14,6 +14,8 @@ import me.anno.ui.editor.sceneTabs.SceneTabs
 import me.anno.ui.editor.sceneView.SceneView
 import me.anno.utils.types.Lists.join
 
+// todo remove uuids
+// todo instead use the position in the tree...
 class HistoryState() : Saveable() {
 
     constructor(title: String, code: Any): this(){

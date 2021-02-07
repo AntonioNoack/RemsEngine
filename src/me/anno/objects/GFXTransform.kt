@@ -25,6 +25,9 @@ abstract class GFXTransform(parent: Transform?) : Transform(parent) {
 
     val attractorBaseColor = AnimatedProperty.color(Vector4f(1f))
 
+    // sure about that??...
+    override fun getStartTime(): Double = 0.0
+
     override fun save(writer: BaseWriter) {
         super.save(writer)
         writer.writeObject(this, "attractorBaseColor", attractorBaseColor)

@@ -47,6 +47,7 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
         fun float01exp(defaultValue: Float) = AnimatedProperty(Type.FLOAT_01_EXP, defaultValue)
         fun floatPercent() = AnimatedProperty<Float>(Type.FLOAT_PERCENT)
         fun double() = AnimatedProperty<Double>(Type.DOUBLE)
+        fun double(defaultValue: Double) = AnimatedProperty(Type.DOUBLE, defaultValue)
         fun vec2() = AnimatedProperty<Vector2f>(Type.VEC2)
         fun vec2(defaultValue: Vector2f) = AnimatedProperty(Type.VEC2, defaultValue)
         fun vec3() = AnimatedProperty<Vector3f>(Type.VEC3)

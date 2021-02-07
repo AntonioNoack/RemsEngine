@@ -515,15 +515,6 @@ class LayerView(style: Style) : TimelinePanel(style) {
             addChildFromFile(root, file, null, true) {
                 it.timeOffset = time
                 it.timelineSlot.value = timelineSlot
-                // fade-in? is better for stuff xD
-                if (DefaultConfig["import.files.fade", true]) {
-                    val fadingTime = 0.2
-                    if (it.color.isDefaultValue()) {
-                        it.color.isAnimated = true
-                        it.color.addKeyframe(0.0, Vector4f(1f, 1f, 1f, 0f))
-                        it.color.addKeyframe(fadingTime, Vector4f(1f, 1f, 1f, 1f))
-                    }
-                }
             }
         }
     }

@@ -94,7 +94,7 @@ object DefaultConfig : StringMap() {
             "Timer" to Timer(null),
             "Cubemap" to {
                 val cube = Video(File(""), null)
-                cube.uvProjection = UVProjection.TiledCubemap
+                cube.uvProjection.set(UVProjection.TiledCubemap)
                 cube.scale.set(Vector3f(1000f, 1000f, 1000f))
                 cube
             }(),

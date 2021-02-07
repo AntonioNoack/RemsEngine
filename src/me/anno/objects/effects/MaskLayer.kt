@@ -39,6 +39,9 @@ class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
     // it's not yet production ready...
     val samples get() = if (useExperimentalMSAA && mayUseMSAA) 8 else 1
 
+    // seems better, because it should not influence the alpha values
+    override fun getStartTime(): Double = Double.NEGATIVE_INFINITY
+
     lateinit var mask: Framebuffer
     lateinit var masked: Framebuffer
 

@@ -37,6 +37,7 @@ import me.anno.ui.editor.stacked.Option
 import me.anno.ui.input.TextInput
 import me.anno.ui.input.TextInputML
 import me.anno.ui.style.Style
+import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.next
 import me.anno.utils.structures.ValueWithDefault
 import me.anno.utils.structures.ValueWithDefault.Companion.writeMaybe
@@ -75,6 +76,12 @@ open class Transform(var parent: Transform? = null) : Saveable(),
     var alignWithCamera = AnimatedProperty.float01()
     var color = AnimatedProperty.color()
     var colorMultiplier = AnimatedProperty.floatPlus(1f)
+
+    val fadeIn = AnimatedProperty.floatPlus(0.1f)
+    val fadeOut = AnimatedProperty.floatPlus(0.1f)
+
+    open fun getStartTime(): Double = Double.NEGATIVE_INFINITY
+    open fun getEndTime(): Double = Double.POSITIVE_INFINITY
 
     var blendMode = BlendMode.UNSPECIFIED
 
@@ -158,6 +165,8 @@ open class Transform(var parent: Transform? = null) : Saveable(),
         // only for things using video textures
     }
 
+    open fun usesFadingDifferently() = false
+
     override fun createInspector(
         list: PanelListY,
         style: Style,
@@ -196,6 +205,10 @@ open class Transform(var parent: Transform? = null) : Saveable(),
         val colorGroup = getGroup("Color", "", "color")
         colorGroup += vi("Color", "Tint, applied to this & children", color, style)
         colorGroup += vi("Color Multiplier", "To make things brighter than usually possible", colorMultiplier, style)
+
+        val ufd = usesFadingDifferently()
+        if(ufd || getStartTime().isFinite()) colorGroup += vi("Fade In", "Transparency at the start", fadeIn, style)
+        if(ufd || getEndTime().isFinite()) colorGroup += vi("Fade Out", "Transparency at the end", fadeOut, style)
 
         // kind of color...
         colorGroup += vi("Blend Mode", "", null, blendMode, style) { blendMode = it }
@@ -237,7 +250,12 @@ open class Transform(var parent: Transform? = null) : Saveable(),
     fun getLocalColor(parentColor: Vector4f, localTime: Double): Vector4f {
         val col = color.getValueAt(localTime)
         val mul = colorMultiplier[localTime]
-        return Vector4f(col).mul(parentColor).mul(mul, mul, mul, 1f)
+        val fadeIn = fadeIn[localTime]
+        val fadeOut = fadeOut[localTime]
+        val m1 = clamp((localTime - getStartTime()) / fadeIn, 0.0, 1.0)
+        val m2 = clamp((getEndTime() - localTime) / fadeOut, 0.0, 1.0)
+        val fading = (m1 * m2).toFloat()
+        return Vector4f(col).mul(parentColor).mul(mul, mul, mul, fading)
     }
 
     fun applyTransformLT(transform: Matrix4f, time: Double) {
@@ -263,7 +281,6 @@ open class Transform(var parent: Transform? = null) : Saveable(),
         if (alignWithCamera != 0f) {
             transform.alignWithCamera(alignWithCamera)
         }
-
 
     }
 
@@ -371,6 +388,8 @@ open class Transform(var parent: Transform? = null) : Saveable(),
         writer.writeObject(this, "timeAnimated", timeAnimated)
         writer.writeObject(this, "color", color)
         writer.writeObject(this, "colorMultiplier", colorMultiplier)
+        writer.writeObject(this, "fadeIn", fadeIn)
+        writer.writeObject(this, "fadeOut", fadeOut)
         if (blendMode !== BlendMode.UNSPECIFIED) writer.writeString("blendMode", blendMode.id)
         writer.writeObjectList(this, "children", children)
         writer.writeMaybe(this, "timelineSlot", timelineSlot)
@@ -456,6 +475,8 @@ open class Transform(var parent: Transform? = null) : Saveable(),
             "timeAnimated" -> timeAnimated.copyFrom(value)
             "color" -> color.copyFrom(value)
             "colorMultiplier" -> colorMultiplier.copyFrom(value)
+            "fadeIn" -> fadeIn.copyFrom(value)
+            "fadeOut" -> fadeOut.copyFrom(value)
             else -> super.readObject(name, value)
         }
     }

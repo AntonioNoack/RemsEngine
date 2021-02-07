@@ -11,6 +11,8 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
 import me.anno.utils.files.LocalFile.toGlobalFile
+import me.anno.utils.structures.ValueWithDefault.Companion.writeMaybe
+import me.anno.utils.structures.ValueWithDefaultFunc
 import me.anno.video.FFMPEGMetadata.Companion.getMeta
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
@@ -24,9 +26,10 @@ abstract class Audio(var file: File = File(""), parent: Transform? = null) : GFX
 
     val amplitude = AnimatedProperty.floatPlus(1f)
     var effects = SoundPipeline(this)
-    var isLooping =
+    var isLooping = ValueWithDefaultFunc {
         if (file.extension.equals("gif", true)) LoopingState.PLAY_LOOP
         else LoopingState.PLAY_ONCE
+    }
 
     var is3D = false
 
@@ -93,12 +96,12 @@ abstract class Audio(var file: File = File(""), parent: Transform? = null) : GFX
         writer.writeFile("file", file)
         writer.writeObject(this, "amplitude", amplitude)
         writer.writeObject(this, "effects", effects)
-        writer.writeInt("isLooping", isLooping.id, true)
+        writer.writeMaybe(this, "isLooping", isLooping)
     }
 
     override fun readInt(name: String, value: Int) {
         when (name) {
-            "isLooping" -> isLooping = LoopingState.getState(value)
+            "isLooping" -> isLooping.set(LoopingState.getState(value))
             else -> super.readInt(name, value)
         }
     }

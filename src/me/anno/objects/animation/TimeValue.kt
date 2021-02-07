@@ -1,8 +1,12 @@
 package me.anno.objects.animation
 
+import me.anno.gpu.texture.Clamping
+import me.anno.gpu.texture.Filtering
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
+import me.anno.objects.modes.EditorFPS
+import me.anno.objects.modes.LoopingState
 import org.joml.*
 
 open class TimeValue<V>(var time: Double, var value: V) : Saveable() {
@@ -79,6 +83,10 @@ open class TimeValue<V>(var time: Double, var value: V) : Saveable() {
                 is String -> writeString(name, v, true)
                 is Vector4d -> writeVector4d(name, v, true)
                 null -> Unit /* mmh ... */
+                is Filtering -> writeInt(name, v.id)
+                is Clamping -> writeInt(name, v.id)
+                is EditorFPS -> writeInt(name, v.value)
+                is LoopingState -> writeInt(name, v.id)
                 is ISaveable -> writeObject(self, name, v, true)
                 else -> throw RuntimeException("todo implement writing $v")
             }

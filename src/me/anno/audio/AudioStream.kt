@@ -50,7 +50,7 @@ abstract class AudioStream(
 ) {
 
     constructor(audio: Audio, speed: Double, globalTime: Double, playbackSampleRate: Int, listener: Camera) :
-            this(audio.file, audio.isLooping, 0.0, getMeta(audio.file, false)!!, audio, listener, playbackSampleRate) {
+            this(audio.file, audio.isLooping.value, 0.0, getMeta(audio.file, false)!!, audio, listener, playbackSampleRate) {
         configure(audio, speed, globalTime)
     }
 

@@ -25,19 +25,16 @@ import me.anno.ui.editor.files.FileEntry.Companion.drawLoadingCircle
 import me.anno.ui.editor.stacked.Option
 import me.anno.ui.input.BooleanInput
 import me.anno.ui.style.Style
-import me.anno.utils.types.Lists.sumByFloat
 import me.anno.utils.Maths.mix
 import me.anno.utils.Maths.next
 import me.anno.utils.hpc.HeavyProcessing.processBalanced
-import me.anno.utils.structures.lists.UnsafeArrayList
-import me.anno.utils.structures.lists.UnsafeSkippingArrayList
 import me.anno.utils.structures.ValueWithDefault
 import me.anno.utils.structures.ValueWithDefault.Companion.writeMaybe
+import me.anno.utils.types.Lists.sumByFloat
 import me.anno.video.MissingFrameException
 import org.joml.Matrix4fArrayList
 import org.joml.Vector3f
 import org.joml.Vector4f
-import java.lang.RuntimeException
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.math.abs
@@ -48,7 +45,8 @@ open class ParticleSystem(parent: Transform? = null) : Transform(parent) {
 
     val spawnColor = AnimatedDistribution(Type.COLOR3, listOf(Vector3f(1f), Vector3f(0f), Vector3f(0f)))
     val spawnPosition = AnimatedDistribution(Type.POSITION, listOf(Vector3f(0f), Vector3f(1f), Vector3f(0f)))
-    val spawnVelocity = AnimatedDistribution(GaussianDistribution(), Type.POSITION, listOf(Vector3f(), Vector3f(1f), Vector3f()))
+    val spawnVelocity =
+        AnimatedDistribution(GaussianDistribution(), Type.POSITION, listOf(Vector3f(), Vector3f(1f), Vector3f()))
     val spawnSize = AnimatedDistribution(Type.SCALE, listOf(Vector3f(1f), Vector3f(0f), Vector3f(0f)))
     var spawnSize1D = true
 
@@ -76,18 +74,9 @@ open class ParticleSystem(parent: Transform? = null) : Transform(parent) {
 
     var sumWeight = 0f
 
-    /**
-     * the calculation depends somewhat on it;
-     * they could be animated, but idk, why you would do that...
-     * */
-    var fadeInI = ValueWithDefault(0.5)
-    var fadeOutI = ValueWithDefault(0.5)
-    var fadeIn: Double
-        get() = fadeInI.value
-        set(value) = fadeInI.set(value)
-    var fadeOut: Double
-        get() = fadeOutI.value
-        set(value) = fadeOutI.set(value)
+    override fun usesFadingDifferently(): Boolean = true
+    override fun getStartTime(): Double = Double.NEGATIVE_INFINITY
+    override fun getEndTime(): Double = Double.POSITIVE_INFINITY
 
     private fun spawnIfRequired(time: Double, onlyFirst: Boolean) {
 
@@ -128,7 +117,7 @@ open class ParticleSystem(parent: Transform? = null) : Transform(parent) {
     /**
      * returns whether everything was calculated
      * */
-    fun step(time: Double, timeLimit: Double = 1.0/120.0): Boolean {
+    fun step(time: Double, timeLimit: Double = 1.0 / 120.0): Boolean {
         val startTime = System.nanoTime()
 
         if (aliveParticles.isNotEmpty()) {
@@ -295,6 +284,9 @@ open class ParticleSystem(parent: Transform? = null) : Transform(parent) {
      * draw all particles at this point in time
      * */
     private fun drawParticles(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
+        val fadeIn = fadeIn[time].toDouble()
+        val fadeOut = fadeOut[time].toDouble()
+        val simulationStep = simulationStep
         particles.forEach { p ->
             p.draw(stack, time, color, simulationStep, fadeIn, fadeOut)
         }
@@ -373,16 +365,8 @@ open class ParticleSystem(parent: Transform? = null) : Transform(parent) {
             clearCache()
         }
 
-        general += vi(
-            "Fade In",
-            "Time from spawning to the max. opacity",
-            Type.DOUBLE_PLUS, fadeIn, style
-        ) { fadeIn = it }
-        general += vi(
-            "Fade Out",
-            "Time before death, from which is starts to fade away",
-            Type.DOUBLE_PLUS, fadeOut, style
-        ) { fadeOut = it }
+        // general += vi("Fade In", "Time from spawning to the max. opacity", fadeIn, style)
+        // general += vi("Fade Out", "Time before death, from which is starts to fade away", fadeOut, style)
 
         general += BooleanInput("Show Children", showChildren, style)
             .setChangeListener { showChildren = it }
@@ -409,8 +393,8 @@ open class ParticleSystem(parent: Transform? = null) : Transform(parent) {
     override fun save(writer: BaseWriter) {
         super.save(writer)
         writer.writeMaybe(this, "simulationStep", simulationStepI)
-        writer.writeMaybe(this, "fadeIn", fadeInI)
-        writer.writeMaybe(this, "fadeOut", fadeOutI)
+        // writer.writeMaybe(this, "fadeIn", fadeInI)
+        // writer.writeMaybe(this, "fadeOut", fadeOutI)
         writer.writeObject(this, "spawnPosition", spawnPosition)
         writer.writeObject(this, "spawnVelocity", spawnVelocity)
         writer.writeObject(this, "spawnRotation", spawnRotation)
@@ -425,8 +409,8 @@ open class ParticleSystem(parent: Transform? = null) : Transform(parent) {
     override fun readDouble(name: String, value: Double) {
         when (name) {
             "simulationStep" -> simulationStep = max(1e-9, value)
-            "fadeIn" -> fadeIn = max(value, 0.0)
-            "fadeOut" -> fadeOut = max(value, 0.0)
+            // "fadeIn" -> fadeIn = max(value, 0.0)
+            // "fadeOut" -> fadeOut = max(value, 0.0)
             else -> super.readDouble(name, value)
         }
     }

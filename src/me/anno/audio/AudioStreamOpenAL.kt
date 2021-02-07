@@ -22,7 +22,7 @@ class AudioStreamOpenAL(file: File, repeat: LoopingState, startTime: Double, met
     AudioStream(file, repeat, startTime, meta, sender, listener){
 
     constructor(audio: Audio, speed: Double, globalTime: Double, listener: Camera):
-            this(audio.file, audio.isLooping, 0.0, FFMPEGMetadata.getMeta(audio.file, false)!!, audio, listener){
+            this(audio.file, audio.isLooping.value, 0.0, FFMPEGMetadata.getMeta(audio.file, false)!!, audio, listener){
         configure(audio, speed, globalTime)
     }
 

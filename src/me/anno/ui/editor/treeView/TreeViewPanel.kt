@@ -43,8 +43,12 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style) : PanelListX(
 
     private val accentColor = style.getColor("accentColor", black or 0xff0000)
 
-    val symbol = TextPanel("", style)
-    val text = TextPanel("", style)
+    val symbol = object : TextPanel("", style) {
+        override fun onCopyRequested(x: Float, y: Float): String? = parent?.onCopyRequested(x, y)
+    }
+    val text = object : TextPanel("", style) {
+        override fun onCopyRequested(x: Float, y: Float): String? = parent?.onCopyRequested(x, y)
+    }
 
     init {
         symbol.enableHoverColor = true
@@ -70,7 +74,7 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style) : PanelListX(
     override fun onDoubleClick(x: Float, y: Float, button: MouseButton) {
         when {
             button.isLeft -> {
-                askName(x.toInt(), y.toInt(), NameDesc(), getElement().name, NameDesc("Change Name"), { textColor }){
+                askName(x.toInt(), y.toInt(), NameDesc(), getElement().name, NameDesc("Change Name"), { textColor }) {
                     getElement().name = it
                 }
             }
