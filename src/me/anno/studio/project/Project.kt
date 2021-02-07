@@ -24,6 +24,8 @@ import me.anno.ui.editor.sceneView.SceneTabData
 import me.anno.utils.types.Casting.castToFloat
 import me.anno.utils.files.Files.use
 import me.anno.utils.types.Lists.sumByFloat
+import me.anno.video.FFMPEGEncodingBalance
+import me.anno.video.FFMPEGEncodingType
 import org.apache.logging.log4j.LogManager
 import java.io.File
 import kotlin.math.roundToInt
@@ -207,6 +209,8 @@ class Project(var name: String, val file: File) : Saveable() {
     var shutterPercentage = config["target.motionBlur.shutterPercentage", 1f]
     var nullCamera = createNullCamera(config["camera.null"] as? Camera)
     var language = Language.get(config["language", Language.AmericanEnglish.code])
+    var ffmpegFlags = FFMPEGEncodingType[config["target.ffmpegFlags.id", FFMPEGEncodingType.DEFAULT.id]]
+    var ffmpegBalance = FFMPEGEncodingBalance[config["target.encodingBalance", 0.5f]]
 
     override fun getClassName() = "Project"
     override fun getApproxSize() = 1000
@@ -231,6 +235,8 @@ class Project(var name: String, val file: File) : Saveable() {
         config["camera.null"] = nullCamera
         config["editor.time"] = editorTime
         config["language"] = language.code
+        config["target.ffmpegFlags.id"] = ffmpegFlags.id
+        config["target.encodingBalance"] = ffmpegBalance.value
         ConfigBasics.save(configFile, config.toString())
     }
 

@@ -26,6 +26,11 @@ class EnumInput(
         setTooltip(Dict[ttt, "$dictPath.desc"])
     }
 
+    constructor(title: String, ttt: String, dictPath: String, startValue: NameDesc, options: List<NameDesc>, style: Style) :
+            this(Dict[title, dictPath], true, startValue.name, options, style) {
+        setTooltip(Dict[ttt, "$dictPath.desc"])
+    }
+
     var lastIndex = options.indexOfFirst { it.name == startValue }
 
     val titleView = if (withTitle) TextPanel("$title:", style) else null

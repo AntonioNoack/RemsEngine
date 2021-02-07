@@ -10,10 +10,10 @@ import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.text.TextWriter
 import me.anno.objects.text.Text
-import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
+import me.anno.utils.Maths
 import me.anno.utils.types.Strings.joinChars
 import org.joml.Vector3f
 import kotlin.streams.toList
@@ -37,7 +37,9 @@ class TextParticles : ParticleSystem() {
 
     override fun createParticle(index: Int, time: Double): Particle? {
 
-        val char = text.text[time].codePoints().toList().getOrNull(index) ?: return null
+        val text2 = text.text[time]
+
+        val char = text2.codePoints().toList().getOrNull(index) ?: return null
 
         val str = listOf(char).joinChars()
         val clone = text.clone() as Text
@@ -52,11 +54,9 @@ class TextParticles : ParticleSystem() {
 
         text.apply {
 
-            val text = text[time]
-
-            val visualState = getVisualState(text)
-            val data = TextCache.getEntry(visualState, 1000L, false){
-                val segments = splitSegments(text)
+            val visualState = getVisualState(text2)
+            val data = TextCache.getEntry(visualState, 1000L, false) {
+                val segments = splitSegments(text2)
                 val keys = createKeys(segments)
                 CacheData(segments to keys)
             } as CacheData<*>
@@ -72,29 +72,20 @@ class TextParticles : ParticleSystem() {
             val height = lineSegmentsWithStyle.height * scaleY
 
             val lineOffset = -TextMesh.DEFAULT_LINE_HEIGHT * relativeLineSpacing[time]
-            val textAlignment = textAlignment
 
             // min and max x are cached for long texts with thousands of lines (not really relevant)
             // actual text height vs baseline? for height
 
             val totalHeight = lineOffset * height
 
-            val dx = 0f/*when (blockAlignmentX) {
-                AxisAlignment.MIN -> -width
-                AxisAlignment.CENTER -> -width / 2
-                AxisAlignment.MAX -> 0f
-            }*/
-
-            val dy = 0f/*when (blockAlignmentY) {
-                AxisAlignment.MIN -> 0f + lineOffset * 0.57f // text touches top
-                AxisAlignment.CENTER -> -totalHeight * 0.5f + lineOffset * 0.75f // center line, height of horizontal in e
-                AxisAlignment.MAX -> -totalHeight + lineOffset // exactly baseline
-            }*/
+            val dx = getDrawDX(width, time)
+            val dy = getDrawDY(lineOffset, totalHeight, time)
 
             var charIndex = 0
 
             forceVariableBuffer = true
 
+            val textAlignment01 = textAlignment[time] * .5f + .5f
             partSearch@ for ((partIndex, part) in lineSegmentsWithStyle.parts.withIndex()) {
 
                 val startIndex = charIndex
@@ -102,11 +93,8 @@ class TextParticles : ParticleSystem() {
                 val endIndex = charIndex + partLength
 
                 if (index in startIndex until endIndex) {
-                    val offsetX = 0f/*when (textAlignment) {
-                        AxisAlignment.MIN -> 0f
-                        AxisAlignment.CENTER -> (width - part.lineWidth * scaleX) / 2f
-                        AxisAlignment.MAX -> (width - part.lineWidth * scaleX)
-                    }*/
+
+                    val offsetX = (width - part.lineWidth * scaleX) * textAlignment01
 
                     val lineDeltaX = dx + part.xPos * scaleX + offsetX
                     val lineDeltaY = dy + part.yPos * scaleY * lineOffset
@@ -145,10 +133,12 @@ class TextParticles : ParticleSystem() {
 
     override fun readObject(name: String, value: ISaveable?) {
         when (name) {
+            "text",
             "relativeLineSpacing", "outlineColor0",
             "outlineColor1", "outlineColor2",
             "outlineWidths", "outlineSmoothness",
-            "startCursor", "endCursor" ->
+            "startCursor", "endCursor",
+            "textAlignment", "blockAlignmentX", "blockAlignmentY" ->
                 text.readObject(name, value)
             else -> super.readObject(name, value)
         }

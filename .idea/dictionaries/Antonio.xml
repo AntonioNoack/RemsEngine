@@ -45,6 +45,7 @@
       <w>darkslategrey</w>
       <w>darkturquoise</w>
       <w>darkviolet</w>
+      <w>deblocking</w>
       <w>deeppink</w>
       <w>deepskyblue</w>
       <w>deformer</w>
@@ -55,6 +56,7 @@
       <w>emissive</w>
       <w>equirectangular</w>
       <w>fadein</w>
+      <w>fastdecode</w>
       <w>ffmpeg</w>
       <w>ffprobe</w>
       <w>floralwhite</w>
@@ -90,6 +92,7 @@
       <w>lemonchiffon</w>
       <w>lerped</w>
       <w>lerps</w>
+      <w>libx</w>
       <w>lightblue</w>
       <w>lightcoral</w>
       <w>lightcyan</w>
@@ -146,6 +149,7 @@
       <w>premultiplied</w>
       <w>quat</w>
       <w>rasterization</w>
+      <w>rawvideo</w>
       <w>remsstudio</w>
       <w>rosybrown</w>
       <w>royalblue</w>
@@ -164,15 +168,21 @@
       <w>smoothstep</w>
       <w>springgreen</w>
       <w>steelblue</w>
+      <w>stillimage</w>
+      <w>superfast</w>
       <w>symbola</w>
       <w>tonemapping</w>
       <w>uchimura</w>
+      <w>ultrafast</w>
       <w>unifont</w>
       <w>usemtl</w>
       <w>valencian</w>
       <w>vertice</w>
+      <w>veryfast</w>
+      <w>veryslow</w>
       <w>whitesmoke</w>
       <w>yellowgreen</w>
+      <w>zerolatency</w>
     </words>
   </dictionary>
 </component>

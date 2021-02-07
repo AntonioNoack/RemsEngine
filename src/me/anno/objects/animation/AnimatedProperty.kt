@@ -334,18 +334,36 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
                 a as String
                 b as String
 
-                fun mixedLength(max: Int): Int {
+                fun mixLength(max: Int): Int {
                     return clamp(Maths.mix(a.length.toDouble(), b.length.toDouble(), f).roundToInt(), 0, max)
                 }
+
+                fun mixIndices(l0: Int, l1: Int, f: Double): Int {
+                    return Maths.mix(l0.toDouble(), l1.toDouble(), f).roundToInt()
+                }
+
+                fun mixSubstring(s: String, l0: Int, l1: Int, d0: Int, d1: Int, f: Double): String {
+                    return s.substring(mixIndices(l0, l1, f), mixIndices(d0, d1, f))
+                }
+
+                fun mixContains(a: String, b: String, f: Double): String {
+                    val firstIndex = a.indexOf(b, 0, true)
+                    return mixSubstring(a, 0, 0, firstIndex, 0, f) + b + a.substring(mixIndices(firstIndex + b.length, a.length, f))
+                }
+
+                val aIsLonger = a.length > b.length
+                val bIsLonger = b.length > a.length
 
                 val mixedValue = when {
                     f <= 0f -> a
                     f >= 1f -> b
                     a == b -> a
-                    a.startsWith(b) -> a.substring(0, mixedLength(a.length))
-                    b.startsWith(a) -> b.substring(0, mixedLength(b.length))
-                    a.endsWith(b) -> a.substring(clamp(((a.length - b.length) * f).roundToInt(), 0, a.length))
-                    b.endsWith(a) -> b.substring(clamp(((b.length - a.length) * g).roundToInt(), 0, b.length))
+                    aIsLonger && a.startsWith(b, true) -> a.substring(0, mixLength(a.length))
+                    bIsLonger && b.startsWith(a, true) -> b.substring(0, mixLength(b.length))
+                    aIsLonger && a.endsWith(b, true) -> a.substring(clamp(((a.length - b.length) * f).roundToInt(), 0, a.length))
+                    bIsLonger && b.endsWith(a, true) -> b.substring(clamp(((b.length - a.length) * g).roundToInt(), 0, b.length))
+                    aIsLonger && a.contains(b, true) -> mixContains(a, b, f)
+                    bIsLonger && b.contains(a, true) -> mixContains(b, a, g)
                     else -> {
                         val aChars = a.codePoints().toList()
                         val bChars = b.codePoints().toList()
@@ -379,7 +397,7 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
     private fun toCalc(a: V): Any {
         return when (a) {
             is Int -> a.toDouble()
-            is Float -> a.toDouble()
+            is Float -> a
             is Double -> a
             is Long -> a.toDouble()
             is Vector2f, is Vector3f, is Vector4f, is Quaternionf -> a
@@ -396,6 +414,7 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
      * */
     private fun mulAdd(first: Any, second: Any, f: Double): Any {
         return when (first) {
+            is Float -> first + (second as Float) * f.toFloat()
             is Double -> first + (second as Double) * f
             is Vector2f -> first + ((second as Vector2f) * f.toFloat())
             is Vector3f -> first + ((second as Vector3f) * f.toFloat())
@@ -410,6 +429,7 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
      * */
     fun mul(a: Any, f: Double): Any {
         return when (a) {
+            is Float -> a * f.toFloat()
             is Double -> a * f
             is Vector2f -> a * f.toFloat()
             is Vector3f -> a * f.toFloat()

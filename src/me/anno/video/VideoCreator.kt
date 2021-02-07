@@ -18,7 +18,12 @@ import kotlin.concurrent.thread
 import kotlin.math.round
 
 class VideoCreator(
-    val w: Int, val h: Int, val fps: Double, val totalFrameCount: Int, val output: File
+    val w: Int, val h: Int,
+    val fps: Double,
+    val totalFrameCount: Int,
+    balance: FFMPEGEncodingBalance,
+    type: FFMPEGEncodingType,
+    val output: File
 ) {
 
     init {
@@ -54,10 +59,16 @@ class VideoCreator(
             "-r", "$fps",
             "-crf", "${project?.targetVideoQuality ?: 23}",
             "-pix_fmt", "yuv420p",
-            // "-preset", "ultrafast",
+            "-preset", balance.internalName
             // "-qp", "0", // constant quality
-            output.absolutePath
         )
+
+        if(type.internalName != null) {
+            videoEncodingArguments += "-tune"
+            videoEncodingArguments += type.internalName
+        }
+
+        videoEncodingArguments += output.absolutePath
 
         val args = ArrayList<String>(videoEncodingArguments.size + 2)
         args += FFMPEG.ffmpegPathString
@@ -148,11 +159,11 @@ class VideoCreator(
 
     }
 
-    private val pixelCount = w * h * 3
-    private val byteArrayBuffer = ByteArray(pixelCount)
+    private val pixelByteCount = w * h * 3
+    private val byteArrayBuffer = ByteArray(pixelByteCount)
 
-    private val buffer1 = BufferUtils.createByteBuffer(pixelCount)
-    private val buffer2 = BufferUtils.createByteBuffer(pixelCount)
+    private val buffer1 = BufferUtils.createByteBuffer(pixelByteCount)
+    private val buffer2 = BufferUtils.createByteBuffer(pixelByteCount)
 
     fun writeFrame(frame: Framebuffer, frameIndex: Int, callback: () -> Unit) {
 

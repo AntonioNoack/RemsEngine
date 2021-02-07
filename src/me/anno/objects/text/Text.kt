@@ -38,7 +38,6 @@ import me.anno.ui.editor.color.spaces.HSLuv
 import me.anno.ui.editor.sceneView.Grid
 import me.anno.ui.input.BooleanInput
 import me.anno.ui.input.EnumInput
-import me.anno.ui.input.TextInputML
 import me.anno.ui.style.Style
 import me.anno.utils.Maths.mix
 import me.anno.utils.Maths.next
@@ -58,7 +57,17 @@ import kotlin.math.min
 
 // todo fix color attractors
 
-open class Text(text: String = "", parent: Transform? = null) : GFXTransform(parent) {
+// todo Kapitälchen
+
+open class Text(parent: Transform? = null) : GFXTransform(parent) {
+
+    constructor(text: String): this(null){
+        this.text.set(text)
+    }
+
+    constructor(text: String, parent: Transform?): this(parent){
+        this.text.set(text)
+    }
 
     val backgroundColor = AnimatedProperty.color()
 
@@ -125,7 +134,7 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
         return awtFont.splitParts(text, font.size, relativeTabSize, relativeCharSpacing, absoluteLineBreakWidth)
     }
 
-    fun getVisualState(text: String) = Pair(
+    fun getVisualState(text: String): Any = Pair(
         Triple(text, font, lineBreakWidth),
         Triple(renderingMode, roundSDFCorners, charSpacing)
     )
@@ -145,6 +154,33 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
         return entry
     }
 
+    fun getDrawDX(width: Float, time: Double): Float {
+        val blockAlignmentX01 = blockAlignmentX[time] * .5f + .5f
+        return (blockAlignmentX01 - 1f) * width
+        /* when (blockAlignmentX) {
+            AxisAlignment.MIN -> -width
+            AxisAlignment.CENTER -> -width / 2
+            AxisAlignment.MAX -> 0f
+        } */
+    }
+
+    fun getDrawDY(lineOffset: Float, totalHeight: Float, time: Double): Float {
+        val dy0 = lineOffset * 0.57f // text touches top
+        val dy1 = -totalHeight * 0.5f + lineOffset * 0.75f // center line, height of horizontal in e
+        val dy2 = -totalHeight + lineOffset // exactly baseline
+        val blockAlignmentY11 = blockAlignmentY[time]
+        return if (blockAlignmentY11 < 0f) {
+            mix(dy0, dy1, blockAlignmentY11 + 1f)
+        } else {
+            mix(dy1, dy2, blockAlignmentY11)
+        }
+        /* when (blockAlignmentY) {
+            AxisAlignment.MIN -> dy0
+            AxisAlignment.CENTER -> dy1
+            AxisAlignment.MAX -> dy2
+        } */
+    }
+
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
 
         val text = text[time]
@@ -154,7 +190,7 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
         }
 
         val visualState = getVisualState(text)
-        val data = TextCache.getEntry(visualState, 1000L, false){
+        val data = TextCache.getEntry(visualState, 1000L, false) {
             val segments = splitSegments(text)
             val keys = createKeys(segments)
             CacheData(segments to keys)
@@ -171,35 +207,14 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
         val height = lineSegmentsWithStyle.height * scaleY
 
         val lineOffset = -DEFAULT_LINE_HEIGHT * relativeLineSpacing[time]
-        val textAlignment = textAlignment
 
         // min and max x are cached for long texts with thousands of lines (not really relevant)
         // actual text height vs baseline? for height
 
         val totalHeight = lineOffset * height
 
-        val blockAlignmentX01 = blockAlignmentX[time] * .5f + .5f
-        val dx = (blockAlignmentX01 - 1f) * width
-        /* when (blockAlignmentX) {
-            AxisAlignment.MIN -> -width
-            AxisAlignment.CENTER -> -width / 2
-            AxisAlignment.MAX -> 0f
-        } */
-
-        val dy0 = lineOffset * 0.57f // text touches top
-        val dy1 = -totalHeight * 0.5f + lineOffset * 0.75f // center line, height of horizontal in e
-        val dy2 = -totalHeight + lineOffset // exactly baseline
-        val blockAlignmentY11 = blockAlignmentY[time]
-        val dy = if (blockAlignmentY11 < 0f) {
-            mix(dy0, dy1, blockAlignmentY11 + 1f)
-        } else {
-            mix(dy1, dy2, blockAlignmentY11)
-        }
-        /* when (blockAlignmentY) {
-            AxisAlignment.MIN -> dy0
-            AxisAlignment.CENTER -> dy1
-            AxisAlignment.MAX -> dy2
-        } */
+        val dx = getDrawDX(width, time)
+        val dy = getDrawDY(lineOffset, totalHeight, time)
 
         val renderingMode = renderingMode
         val drawMeshes = renderingMode == TextRenderMode.MESH
@@ -293,6 +308,7 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
 
         firstTimeDrawing = true
 
+        val textAlignment01 = textAlignment[time] * .5f + .5f
         for ((index, part) in lineSegmentsWithStyle.parts.withIndex()) {
 
             val startIndex = charIndex
@@ -306,7 +322,6 @@ open class Text(text: String = "", parent: Transform? = null) : GFXTransform(par
 
                 val key = keys[index]
 
-                val textAlignment01 = textAlignment[time] * .5f + .5f
                 val offsetX = (width - part.lineWidth * scaleX) * textAlignment01
                 /* when (textAlignment) {
                     AxisAlignment.MIN -> 0f

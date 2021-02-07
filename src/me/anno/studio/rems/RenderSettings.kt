@@ -5,16 +5,20 @@ import me.anno.config.DefaultStyle.black
 import me.anno.language.translation.NameDesc
 import me.anno.objects.Transform
 import me.anno.objects.animation.Type
+import me.anno.studio.StudioBase.Companion.addEvent
+import me.anno.studio.rems.RemsStudio.editorTime
 import me.anno.studio.rems.RemsStudio.project
 import me.anno.studio.rems.RemsStudio.targetDuration
+import me.anno.studio.rems.RemsStudio.targetHeight
 import me.anno.studio.rems.RemsStudio.targetOutputFile
-import me.anno.studio.rems.Rendering.renderPart
-import me.anno.studio.StudioBase.Companion.addEvent
+import me.anno.studio.rems.RemsStudio.targetWidth
 import me.anno.studio.rems.Rendering.renderAudio
+import me.anno.studio.rems.Rendering.renderFrame
+import me.anno.studio.rems.Rendering.renderPart
 import me.anno.studio.rems.Rendering.renderSetPercent
 import me.anno.ui.base.buttons.TextButton
-import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.frames.FrameSizeInput
 import me.anno.ui.input.EnumInput
@@ -23,6 +27,8 @@ import me.anno.ui.input.FloatInput
 import me.anno.ui.input.IntInput
 import me.anno.ui.style.Style
 import me.anno.utils.Maths.mixARGB
+import me.anno.video.FFMPEGEncodingBalance
+import me.anno.video.FFMPEGEncodingType
 import kotlin.concurrent.thread
 import kotlin.math.abs
 import kotlin.math.max
@@ -72,7 +78,13 @@ object RenderSettings : Transform() {
         if (framesRates.isEmpty()) framesRates = arrayListOf(60.0)
         if (project.targetFPS !in framesRates) framesRates.add(0, project.targetFPS)
 
-        list += EnumInput("Frame Rate", true, project.targetFPS.toString(), framesRates.map { NameDesc(it.toString()) }, style)
+        list += EnumInput(
+            "Frame Rate",
+            true,
+            project.targetFPS.toString(),
+            framesRates.map { NameDesc(it.toString()) },
+            style
+        )
             .setChangeListener { value, _, _ ->
                 project.targetFPS = value.toDouble()
                 save()
@@ -100,16 +112,28 @@ object RenderSettings : Transform() {
             }
             .setTooltip("[Motion Blur] 1 = full frame is used; 0.1 = only 1/10th of a frame time is used")
 
+        list += EnumInput(
+            "Encoding Speed / Compression", "How much time is spent on compressing the video into a smaller file", "ui.ffmpeg.encodingSpeed",
+            project.ffmpegBalance.nameDesc, FFMPEGEncodingBalance.values().map { it.nameDesc }, style
+        ).setChangeListener { _, index, _ -> project.ffmpegBalance = FFMPEGEncodingBalance.values()[index]; save() }
+
+        list += EnumInput(
+            "Encoding Type", "Helps FFMPEG with the encoding process", "ui.ffmpeg.flags.input",
+            project.ffmpegFlags.nameDesc, FFMPEGEncodingType.values().map { it.nameDesc }, style
+        ).setChangeListener { _, index, _ -> project.ffmpegFlags = FFMPEGEncodingType.values()[index]; save() }
+
         val fileInput = FileInput("Output File", style, targetOutputFile)
         val originalColor = fileInput.base2.textColor
         fun updateFileInputColor() {
             val file = project.targetOutputFile
             fileInput.base2.run {
-                textColor = mixARGB(originalColor, when {
-                    file.isDirectory -> 0xff0000 or black
-                    file.exists() -> 0xffff00 or black
-                    else -> 0x00ff00 or black
-                }, 0.5f)
+                textColor = mixARGB(
+                    originalColor, when {
+                        file.isDirectory -> 0xff0000 or black
+                        file.exists() -> 0xffff00 or black
+                        else -> 0x00ff00 or black
+                    }, 0.5f
+                )
                 focusTextColor = textColor
             }
         }
@@ -137,6 +161,9 @@ object RenderSettings : Transform() {
             .setTooltip("Create video at your custom set relative resolution")
         list += TextButton("Render Audio only", false, style)
             .setSimpleClickListener { renderAudio(true) }
+            .setTooltip("Only creates an audio file; no video is rendered nor saved.")
+        list += TextButton("Render Current Frame", false, style)
+            .setSimpleClickListener { renderFrame(targetWidth, targetHeight, editorTime, true) }
             .setTooltip("Only creates an audio file; no video is rendered nor saved.")
 
     }
