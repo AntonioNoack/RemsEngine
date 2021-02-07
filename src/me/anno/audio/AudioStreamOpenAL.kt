@@ -119,6 +119,7 @@ class AudioStreamOpenAL(file: File, repeat: LoopingState, startTime: Double, met
                     }
                 }
                 soundBuffer.loadRawStereo16(stereoBuffer, playbackSampleRate)
+                soundBuffer.ensureData()
                 buffers.add(soundBuffer)
                 ALBase.check()
                 // ("Invalid Name? alSourceQueueBuffers(${alSource.sourcePtr}, ${soundBuffer.buffer})")

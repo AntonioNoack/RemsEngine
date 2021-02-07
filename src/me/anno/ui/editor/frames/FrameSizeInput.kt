@@ -8,29 +8,27 @@ import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.input.EnumInput
 import me.anno.ui.input.IntInput
-import me.anno.ui.input.NumberInput
-import me.anno.ui.input.components.PureTextInput
 import me.anno.ui.style.Style
 
-class FrameSizeInput(title: String, value0: String, style: Style): PanelListY(style){
+class FrameSizeInput(title: String, value0: String, style: Style) : PanelListY(style) {
 
-    val val0 = value0.parseResolution() ?: defaultResolution
+    private val val0 = value0.parseResolution() ?: defaultResolution
 
-    val typeInput = EnumInput(title, true,
+    private val typeInput = EnumInput(title, true,
         val0.toString(), defaultResolutions.map { NameDesc(it.toString()) } +
-                NameDesc("Custom", "","ui.frameSizeInput.custom"),
+                NameDesc("Custom", "", "ui.frameSizeInput.custom"),
         style)
 
-    val deepStyle = style.getChild("deep")
-    val customInput = PanelListX(deepStyle)
-    val customX = IntInput("X", 0, deepStyle).apply { noTitle() }
-    val customY = IntInput("Y", 0, deepStyle).apply { noTitle() }
+    private val deepStyle = style.getChild("deep")
+    private val customInput = PanelListX(deepStyle)
+    private val customX = IntInput("X", 0, deepStyle).apply { noTitle() }
+    private val customY = IntInput("Y", 0, deepStyle).apply { noTitle() }
 
     init {
         this += typeInput
         typeInput
             .setChangeListener { it, _, _ ->
-                when(it){
+                when (it) {
                     "Custom" -> {
                         customInput.visibility = Visibility.VISIBLE
                     }
@@ -51,22 +49,22 @@ class FrameSizeInput(title: String, value0: String, style: Style): PanelListY(st
         this += customInput
     }
 
-    fun update(ws: Long, hs: Long){
+    fun update(ws: Long, hs: Long) {
         update(ws.toInt(), hs.toInt())
     }
 
-    fun update(w: Int, h: Int){
+    fun update(w: Int, h: Int) {
         changeListener(w, h)
         defaultResolution = Resolution(w, h)
     }
 
-    class Resolution(val w: Int, val h: Int): Comparable<Resolution> {
+    class Resolution(val w: Int, val h: Int) : Comparable<Resolution> {
         override fun toString() = "${w}x$h"
-        private val sortValue = w*(h+1)
+        private val sortValue = w * (h + 1)
         override fun compareTo(other: Resolution): Int = sortValue.compareTo(other.sortValue)
     }
 
-    var changeListener: (w: Int, h: Int) -> Unit = { _,_ -> }
+    var changeListener: (w: Int, h: Int) -> Unit = { _, _ -> }
     fun setChangeListener(listener: (w: Int, h: Int) -> Unit): FrameSizeInput {
         changeListener = listener
         return this
@@ -84,16 +82,17 @@ class FrameSizeInput(title: String, value0: String, style: Style): PanelListY(st
         }
 
         const val configNamespace = "rendering.resolutions"
-        var defaultResolution = DefaultConfig["$configNamespace.default", ""].parseResolution() ?: Resolution(1920, 1080)
+        var defaultResolution =
+            DefaultConfig["$configNamespace.default", ""].parseResolution() ?: Resolution(1920, 1080)
         val defaultResolutions =
             DefaultConfig["$configNamespace.defaultValues", ""]
                 .split(',').mapNotNull { it.parseResolution() }.toMutableList()
 
         init {
             val sortResolutions = DefaultConfig["$configNamespace.sort", 1]
-            if(sortResolutions > 0){
+            if (sortResolutions > 0) {
                 defaultResolutions.sort()
-            } else if(sortResolutions < 0){
+            } else if (sortResolutions < 0) {
                 defaultResolutions.sortDescending()
             }
         }

@@ -483,5 +483,4 @@ object Input {
         return key.toUpperCase().toInt() in keysDown
     }
 
-
 }

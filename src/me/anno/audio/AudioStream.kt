@@ -22,7 +22,6 @@ import java.nio.ByteOrder
 import java.nio.ShortBuffer
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.concurrent.thread
-import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
@@ -118,14 +117,11 @@ abstract class AudioStream(
         val localIndex = (index % ffmpegSliceSampleCount).toInt()
         val arrayIndex0 = localIndex * 2 // for stereo
         val sliceTime = sliceIndex * ffmpegSliceSampleDuration
+        val key = AudioSliceKey(file, sliceIndex)
+        val timeout = (ffmpegSliceSampleDuration * 2 * 1000).toLong()
         val soundBuffer =
-            AudioCache.getEntry(
-                AudioSliceKey(file, sliceIndex),
-                (ffmpegSliceSampleDuration * 2 * 1000).toLong(),
-                false
-            ) {
-                val sequence =
-                    FFMPEGStream.getAudioSequence(file, sliceTime, ffmpegSliceSampleDuration, ffmpegSampleRate)
+            AudioCache.getEntry(key, timeout, false) {
+                val sequence = FFMPEGStream.getAudioSequence(file, sliceTime, ffmpegSliceSampleDuration, ffmpegSampleRate)
                 var buffer: SoundBuffer?
                 while (true) {
                     buffer = sequence.soundBuffer
@@ -135,7 +131,7 @@ abstract class AudioStream(
                 }
                 buffer!!
             } as SoundBuffer
-        val data = soundBuffer.pcm!!
+        val data = soundBuffer.data!!
         return data[arrayIndex0] to data[arrayIndex0 + 1]
     }
 
@@ -174,6 +170,8 @@ abstract class AudioStream(
         thread {// load all data async
 
             // "[INFO:AudioStream] Working on buffer $queued"
+
+            // println("$startTime/$bufferIndex")
 
             // todo speed up for 1:1 playback
             // todo cache sound buffer for 1:1 playback
@@ -290,6 +288,7 @@ abstract class AudioStream(
                 // write the data
                 val left = transfer0.getLeft(a0, a1, approxFraction, transfer1)
                 val right = transfer0.getRight(a0, a1, approxFraction, transfer1)
+
                 if (hasPipeline) {
                     leftBuffer[sampleIndex] = left.toFloat()
                     rightBuffer[sampleIndex] = right.toFloat()
@@ -311,9 +310,9 @@ abstract class AudioStream(
                 val time1 = Time(local1, global1)
 
                 val leftBuffer2 =
-                    leftPipeline.process(leftBuffer, source, Domain.TIME_DOMAIN, Domain.TIME_DOMAIN, time0, time1)
+                    leftPipeline.process(leftBuffer, Domain.TIME_DOMAIN, Domain.TIME_DOMAIN, time0, time1)
                 val rightBuffer2 =
-                    rightPipeline.process(rightBuffer, source, Domain.TIME_DOMAIN, Domain.TIME_DOMAIN, time0, time1)
+                    rightPipeline.process(rightBuffer, Domain.TIME_DOMAIN, Domain.TIME_DOMAIN, time0, time1)
 
                 for (i in 0 until sampleCount) {
                     stereoBuffer.put(floatToShort(leftBuffer2[i]))

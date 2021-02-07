@@ -6,6 +6,7 @@ import me.anno.objects.Audio
 import me.anno.objects.Camera
 import me.anno.objects.Transform
 import me.anno.studio.rems.RemsStudio
+import me.anno.utils.Maths.clamp
 import me.anno.utils.Sleep.sleepShortly
 import org.apache.logging.log4j.LogManager
 import java.io.DataOutputStream
@@ -104,32 +105,26 @@ open class AudioCreator(
         try {
 
             val sliceDuration = AudioStream.playbackSliceDuration
-            val sampleBuffers =
-                ceil(playbackSampleRate * AudioStream.playbackSliceDuration / SoundPipeline.bufferSize).toInt()
-            val sampleCount = sampleBuffers * SoundPipeline.bufferSize
-
-            val buffer = ShortBuffer.allocate(sampleCount * 2)
-
             val bufferCount = ceil(durationSeconds / sliceDuration).toLong()
 
-            val streamFillCounter = AtomicInteger()
-            val streams = audioSources.map {
-                BufferStream(it, sampleRate, buffer, camera, streamFillCounter)
-            }
+            val streams = audioSources.map { BufferStream(it, sampleRate, camera) }
 
             for (bufferIndex in 0 until bufferCount) {
-                streamFillCounter.set(0)
                 val startTime = bufferIndex * sliceDuration
-                streams.forEach {
-                    it.requestNextBuffer(startTime, bufferIndex)
-                }
-                while (streamFillCounter.get() < streams.size) {
-                    sleepShortly()
-                }
+                streams.forEach { it.requestNextBuffer(startTime, bufferIndex) }
+                val buffers = streams.map { it.getAndReplace() }
+                val buffer = buffers.first()
                 // write the data to ffmpeg
                 val size = buffer.capacity()
-                for (i in 0 until size) {
-                    audioOutput.writeShort(buffer[i].toInt())
+                if(buffers.size == 1){
+                    for (i in 0 until size) {
+                        audioOutput.writeShort(buffer[i].toInt())
+                    }
+                } else {
+                    for (i in 0 until size) {
+                        val sum = buffers.sumBy { it[i].toInt() }
+                        audioOutput.writeShort(clamp(sum, Short.MIN_VALUE.toInt(), Short.MAX_VALUE.toInt()))
+                    }
                 }
             }
 

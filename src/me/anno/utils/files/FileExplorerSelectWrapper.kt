@@ -5,22 +5,23 @@ import java.io.File
 
 object FileExplorerSelectWrapper {
 
+    private fun notAvailable(e: Throwable): Nothing? {
+        LOGGER.info("JavaFX is not available, ${e.message}")
+        return null
+    }
+
     private val method by lazy {
         try {
             val clazz = javaClass.classLoader.loadClass("me.anno.utils.FileExplorerSelect")
             clazz?.getMethod("selectFileOrFolder", File::class.java, Boolean::class.java, Function1::class.java)
         } catch (e: NoClassDefFoundError) {
-            LOGGER.info("JavaFX is not available")
-            null
+            notAvailable(e)
         } catch (e: ClassNotFoundException) {
-            LOGGER.info("JavaFX is not available")
-            null
+            notAvailable(e)
         } catch (e: NoSuchMethodError) {
-            LOGGER.info("JavaFX is not available")
-            null
+            notAvailable(e)
         } catch (e: SecurityException) {
-            LOGGER.info("JavaFX is not available")
-            null
+            notAvailable(e)
         }
     }
 

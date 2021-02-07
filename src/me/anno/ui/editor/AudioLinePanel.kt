@@ -1,19 +1,14 @@
 package me.anno.ui.editor
 
-import me.anno.audio.AudioStream
 import me.anno.audio.SoundBuffer
 import me.anno.cache.instances.AudioCache
 import me.anno.cache.keys.AudioSliceKey
 import me.anno.config.DefaultStyle.black
-import me.anno.gpu.GFX
 import me.anno.gpu.GFXx2D.drawRect
-import me.anno.input.Input
 import me.anno.objects.Audio
-import me.anno.studio.StudioBase.Companion.shiftSlowdown
 import me.anno.ui.base.Panel
 import me.anno.ui.style.Style
 import me.anno.utils.Maths.clamp
-import me.anno.utils.Maths.pow
 import me.anno.utils.Sleep.sleepShortly
 import me.anno.video.FFMPEGMetadata
 import me.anno.video.FFMPEGStream
@@ -136,7 +131,7 @@ class AudioLinePanel(var meta: FFMPEGMetadata, val audio: Audio, style: Style): 
             }
             buffer!!
         } as SoundBuffer
-        val data = soundBuffer.pcm!!
+        val data = soundBuffer.data!!
         if(arrayIndex0+1 > data.capacity() || arrayIndex0 < 0) LOGGER.info("$arrayIndex0 for ${data.capacity()}")
         return data[arrayIndex0] to data[arrayIndex0+1]
     }

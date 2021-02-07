@@ -87,11 +87,12 @@ class SoundPipeline() : Saveable(), Inspectable {
 
     fun process(
         data0: FloatArray,
-        audio: Audio,
         inputDomain: Domain,
         outputDomain: Domain,
         time0: Time, time1: Time
     ): FloatArray {
+
+        val camera = camera
 
         val totalSize = data0.size
         if (totalSize < bufferSize) {
@@ -105,7 +106,7 @@ class SoundPipeline() : Saveable(), Inspectable {
                 val f1 = (offset + bufferSize).toDouble() / totalSize
                 val t0 = time0.mix(time1, f0)
                 val t1 = time0.mix(time1, f1)
-                val partial = process(input, audio, inputDomain, outputDomain, t0, t1)
+                val partial = process(input, inputDomain, outputDomain, t0, t1)
                 System.arraycopy(partial, 0, output, offset, bufferSize)
             }
             return output
@@ -129,8 +130,13 @@ class SoundPipeline() : Saveable(), Inspectable {
 
     }
 
+    var isFirstBuffer = true
     var lastValue = 0f
     fun fixJumps(output: FloatArray, v0: Float, index1: Int, length: Int) {
+        if(isFirstBuffer){
+            isFirstBuffer = false
+            return
+        }
         val v1 = output[index1]
         val v2 = output[index1 + 1]
         val delta = 2 * v1 - (v0 + v2) // flatten, keep the gradient

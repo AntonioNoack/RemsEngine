@@ -20,11 +20,12 @@ package me.anno.input
 // todo filters:
 // done gaussian blur
 // todo depth of field
-// todo motion blur?
+// done motion blur (kind of)
 // done bokeh blur
 // done bloom
 
-// todo open file explorer with chooser on file input
+// done open file explorer with chooser on file input
+// todo file explorer select new file
 // done enum input type with scrollbar
 
 
@@ -34,7 +35,7 @@ package me.anno.input
 // done load svg files as meshes
 
 // low priority
-// todo load plugins
+// done load plugins
 // todo complete logging support
 // todo support most svg files as meshes
 // todo load svg animations?

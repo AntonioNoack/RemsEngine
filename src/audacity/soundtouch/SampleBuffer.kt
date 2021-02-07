@@ -90,6 +90,4 @@ class SampleBuffer() {
 
     fun isEmpty() = samplesInBuffer == 0
 
-
-
 }

@@ -646,7 +646,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
             "Frame Count: ${meta?.videoFrameCount ?: imageSequenceMeta?.frameCount}"
         })
         // infoGroup += vid(UpdatingTextPanel(250, style) { "Video Start Time: ${meta?.videoStartTime}s" })
-        infoGroup += aud(UpdatingTextPanel(250, style) { "Audio Duration: ${meta?.audioDuration}" })
+        infoGroup += aud(UpdatingTextPanel(250, style) { "Audio Duration: ${meta?.audioDuration}s" })
         infoGroup += aud(UpdatingTextPanel(250, style) { "Sample Rate: ${meta?.audioSampleRate} samples/s" })
         infoGroup += aud(UpdatingTextPanel(250, style) { "Sample Count: ${meta?.audioSampleCount} samples" })
 

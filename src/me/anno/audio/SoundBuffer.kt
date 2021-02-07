@@ -15,10 +15,22 @@ import java.nio.ShortBuffer
 
 class SoundBuffer(): ICacheData {
 
-    init { ALBase.check() }
+    var buffer = -1
+    var data: ShortBuffer? = null // pcm = amplitudes by time
+    var sampleRate = 0
 
-    var buffer = alGenBuffers()
-    var pcm: ShortBuffer? = null // pcm = amplitudes by time
+    fun ensurePointer(){
+        if(buffer < 0) buffer = alGenBuffers()
+        if(buffer < 0) throw RuntimeException("Failed to create OpenAL buffer")
+    }
+
+    fun ensureData(){
+        if(data == null) throw RuntimeException("Missing data!")
+        ensurePointer()
+        ALBase.check()
+        alBufferData(buffer, AL_FORMAT_STEREO16, data!!, sampleRate)
+        ALBase.check()
+    }
 
     constructor(file: File): this(){
         load(file)
@@ -29,12 +41,12 @@ class SoundBuffer(): ICacheData {
     }
 
     fun loadRawStereo16(data: ShortBuffer, sampleRate: Int){
-        pcm = data
-        alBufferData(buffer, AL_FORMAT_STEREO16, data, sampleRate)
+        this.data = data
+        this.sampleRate = sampleRate
     }
 
     fun load(waveData: WaveData){
-        pcm = waveData.data.asShortBuffer()
+        data = waveData.data.asShortBuffer()
         alBufferData(buffer, waveData.format, waveData.data, waveData.samplerate)
         waveData.dispose()
         ALBase.check()
@@ -71,7 +83,7 @@ class SoundBuffer(): ICacheData {
             val channels = info.channels()
             val lengthSamples = stb_vorbis_stream_length_in_samples(decoder)
             val pcm = MemoryUtil.memAllocShort(lengthSamples)
-            this.pcm = pcm
+            this.data = pcm
             pcm.limit(stb_vorbis_get_samples_short_interleaved(decoder, channels, pcm) * channels)
             stb_vorbis_close(decoder)
             return pcm
@@ -89,12 +101,14 @@ class SoundBuffer(): ICacheData {
         return buffer
     }
 
-
     override fun destroy(){
-        alDeleteBuffers(buffer)
-        if(pcm != null){
+        if(buffer > -1){
+            alDeleteBuffers(buffer)
+            buffer = -1
+        }
+        if(data != null){
             // val toFree = pcm
-            pcm = null
+            data = null
             // crashes Java 8, even with 15s delay
             // MemoryUtil.memFree(toFree)
         }

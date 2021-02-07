@@ -2,7 +2,6 @@ package me.anno.audio.effects.impl
 
 import me.anno.audio.effects.Domain
 import me.anno.audio.effects.SoundEffect
-import me.anno.audio.effects.SoundPipeline.Companion.bufferSize
 import me.anno.audio.effects.Time
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
@@ -53,7 +52,7 @@ class EqualizerEffect : SoundEffect(Domain.FREQUENCY_DOMAIN, Domain.FREQUENCY_DO
     }
 
     override fun readObjectArray(name: String, values: Array<ISaveable?>) {
-        when(name){
+        when (name) {
             "sliders" -> {
                 values.forEachIndexed { index, iSaveable ->
                     sliders.getOrNull(index)?.copyFrom(iSaveable)
@@ -82,16 +81,30 @@ class EqualizerEffect : SoundEffect(Domain.FREQUENCY_DOMAIN, Domain.FREQUENCY_DO
         val time = time0.localTime + dt / 2
 
         val sliders = sliders.map { it[time] }
-        if(sliders.all { abs(it-0.5) < 1e-3f }){
+        if (sliders.all { abs(it - 0.5) < 1e-3f }) {
+            // println("no change at all")
+            return data
+        }
+
+        val firstSlider = sliders.first()
+        if (sliders.all { abs(it - firstSlider) < 1e-3f }) {
+            // println("all the same")
+            // just multiply everything
+            val amplitude = pow(range, firstSlider - 0.5f)
+            if(amplitude < 1e-7f) {
+                for(i in data.indices) data[i] = 0f
+            } else {
+                for(i in data.indices) data[i] *= amplitude
+            }
             return data
         }
 
         val slidersArray = sliders.toFloatArray()
-        processBalanced(1, bufferSize / 2, 256) { i0, i1 ->
+        processBalanced(1, data.size / 2, 256) { i0, i1 ->
             for (i in i0 until i1) {
                 val frequency = i / dt // in Hz
                 val multiplier = getAmplitude(frequency, slidersArray)
-                if(multiplier != 1f){
+                if (multiplier != 1f) {
                     data[i * 2] *= multiplier
                     data[i * 2 + 1] *= multiplier
                 }
