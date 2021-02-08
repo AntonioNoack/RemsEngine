@@ -1,14 +1,10 @@
 package me.anno.io.utils
 
-import me.anno.config.DefaultConfig
-import me.anno.config.DefaultStyle
-import me.anno.gpu.GFX
 import me.anno.gpu.GFX.gameTime
 import me.anno.gpu.texture.Filtering
 import me.anno.io.base.BaseWriter
 import me.anno.io.config.ConfigBasics
 import me.anno.io.config.ConfigEntry
-import me.anno.studio.rems.RemsStudio
 import me.anno.ui.editor.files.toAllowedFilename
 import me.anno.utils.OS
 import org.joml.Vector3f
@@ -91,11 +87,38 @@ open class StringMap(
     override val values get() = map.values
     override val size get() = map.size
 
-    override fun clear() = synchronized(this) { map.clear() }
+    override fun clear() {
+        wasChanged = isNotEmpty()
+        synchronized(this) { map.clear() }
+    }
+
     override fun isEmpty() = synchronized(this) { map.isEmpty() }
-    override fun put(key: String, value: Any?): Any? = synchronized(this) { map.put(key, value) }
-    override fun putAll(from: Map<out String, Any?>) = synchronized(this) { map.putAll(from) }
-    override fun remove(key: String): Any? = synchronized(this) { map.remove(key) }
+
+    override fun put(key: String, value: Any?) {
+        wasChanged = true
+        synchronized(this) { map.put(key, value) }
+    }
+
+    override fun putAll(from: Map<out String, Any?>) {
+        wasChanged = true
+        synchronized(this) { map.putAll(from) }
+    }
+
+    override fun remove(key: String): Any? = synchronized(this) {
+        wasChanged = true
+        synchronized(this) {
+            map.remove(key)
+        }
+    }
+
+    fun removeAll(keys: Collection<String>) {
+        wasChanged = true
+        synchronized(this) {
+            for (key in keys) {
+                map.remove(key)
+            }
+        }
+    }
 
     operator fun get(key: String, default: String): String {
         return when (val value = this[key]) {
@@ -249,16 +272,25 @@ open class StringMap(
         return this
     }
 
-    var lastSaveTime = gameTime
+    val saveDelay = 1_000_000_000L
+    var lastSaveTime = gameTime - saveDelay - 1
     fun saveMaybe(name: String) {
-        if ((wasChanged) && abs(lastSaveTime - gameTime) > 1_000_000_000) {// only save every 1s
-            // delay in case it needs longer
-            lastSaveTime = gameTime + (60 * 1e9).toLong()
-            thread {
-                save(name)
-                lastSaveTime = gameTime
+        if (wasChanged) {
+            if (abs(lastSaveTime - gameTime) >= saveDelay) {// only save every 1s
+                // delay in case it needs longer
+                lastSaveTime = gameTime + (60 * 1e9).toLong()
+                thread {
+                    save(name)
+                    lastSaveTime = gameTime
+                }
+            } else {
+                thread {
+                    Thread.sleep(saveDelay / 1_000_000 / 10)
+                    saveMaybe(name)
+                }
             }
         }
+
     }
 
     fun save(name: String) {

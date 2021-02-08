@@ -123,7 +123,9 @@ open class Transform(var parent: Transform? = null) : Saveable(),
     private val weightI = ValueWithDefault(1f)
     var weight: Float
         get() = weightI.value
-        set(value) { weightI.value = value }
+        set(value) {
+            weightI.value = value
+        }
 
     fun putValue(list: AnimatedProperty<*>, value: Any, updateHistory: Boolean) {
         val time = global2Kf(editorTime)
@@ -373,9 +375,9 @@ open class Transform(var parent: Transform? = null) : Saveable(),
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
-        // many properties are only written if they changed;
-        // to reduce file sizes
-        writer.writeObject(this, "parent", parent)
+        // many properties are only written if they changed; to reduce file sizes and make things clearer
+        // when copy-pasting stuff
+        // writer.writeObject(this, "parent", parent) // no longer required, as far I can see...
         writer.writeMaybe(this, "name", nameI)
         writer.writeString("comment", comment)
         writer.writeString("tags", tags)
@@ -411,6 +413,13 @@ open class Transform(var parent: Transform? = null) : Saveable(),
             "timelineSlot" -> timelineSlot.value = value
             "visibility" -> visibility = TransformVisibility[value]
             else -> super.readInt(name, value)
+        }
+    }
+
+    override fun readLong(name: String, value: Long) {
+        when (name) {
+            "uuid" -> Unit// hide the warning
+            else -> super.readLong(name, value)
         }
     }
 
