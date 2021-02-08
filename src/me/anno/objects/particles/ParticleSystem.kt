@@ -64,7 +64,9 @@ open class ParticleSystem(parent: Transform? = null) : Transform(parent) {
     var simulationStepI = ValueWithDefault(0.5)
     var simulationStep: Double
         get() = simulationStepI.value
-        set(value) = simulationStepI.set(value)
+        set(value) {
+            simulationStepI.value = value
+        }
 
     val aliveParticles = ArrayList<Particle>(1024)
     val particles = ArrayList<Particle>(1024)
@@ -454,7 +456,7 @@ open class ParticleSystem(parent: Transform? = null) : Transform(parent) {
                 writer.add(it)
             } else {
                 builder.append(it.weight)
-                builder.append(it.uuid)
+                builder.append(it.clickId)
             }
         }
         writer.writeAllInList()

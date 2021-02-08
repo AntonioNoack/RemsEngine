@@ -6,6 +6,7 @@ import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.inspectable.Inspectable
 import me.anno.studio.rems.RemsStudio.root
+import me.anno.utils.types.Sequences.getOrNull
 import org.apache.logging.log4j.LogManager
 
 object Selection {
@@ -23,11 +24,11 @@ object Selection {
     var st: Transform? = null
     var si: Inspectable? = null
 
-    var selectedUUID = -1L
+    var selectedUUID = -1
     var selectedPropName: String? = null
     var needsUpdate = true
 
-    fun select(uuid: Long, name: String?) {
+    fun select(uuid: Int, name: String?) {
         selectedUUID = uuid
         selectedPropName = name
         needsUpdate = true
@@ -58,7 +59,7 @@ object Selection {
         val propName = newName ?: selectedPropName
         // println("$newName:$propName from ${transform?.getClassName()}:${property?.getClassName()}")
         RemsStudio.largeChange("Select ${transform?.name ?: "Nothing"}:$propName") {
-            selectedUUID = transform?.uuid ?: -1
+            selectedUUID = if(transform == null) -1 else root.listOfAll.indexOf(transform)
             selectedPropName = propName
             st = transform
             val property2 =
@@ -76,7 +77,7 @@ object Selection {
         } else {
 
             // re-find the selected transform and property...
-            st = root.listOfAll.firstOrNull { it.uuid == selectedUUID }
+            st = if(selectedUUID < 0) null else root.listOfAll.getOrNull(selectedUUID)
             val selectedTransform = st
             val selectedPropName = selectedPropName
             if (selectedTransform != null && selectedPropName != null) {

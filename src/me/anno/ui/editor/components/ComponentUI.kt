@@ -21,11 +21,14 @@ import me.anno.ui.base.Panel
 import me.anno.ui.input.*
 import me.anno.ui.style.Style
 import me.anno.utils.Color.toHexColor
+import me.anno.utils.structures.ValueWithDefault
+import me.anno.utils.structures.ValueWithDefaultFunc
 import org.joml.Quaternionf
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
 import java.io.File
+import java.lang.IllegalArgumentException
 
 object ComponentUI {
 
@@ -211,6 +214,7 @@ object ComponentUI {
                     .setIsSelectedListener { self.show(null) }
                     .setTooltip(ttt)
             }
+            is ValueWithDefaultFunc<*>, is ValueWithDefault<*> -> throw IllegalArgumentException("Must pass value, not ValueWithDefault(Func)!")
             else -> throw RuntimeException("Type $value not yet implemented!")
         }
     }

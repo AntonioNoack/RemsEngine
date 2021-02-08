@@ -85,15 +85,15 @@ import kotlin.math.*
 class Video(file: File = File(""), parent: Transform? = null) : Audio(file, parent) {
 
     // uv
-    var tiling = AnimatedProperty.tiling()
-    var uvProjection = ValueWithDefault(UVProjection.Planar)
-    var clampMode = ValueWithDefault(Clamping.MIRRORED_REPEAT)
+    val tiling = AnimatedProperty.tiling()
+    val uvProjection = ValueWithDefault(UVProjection.Planar)
+    val clampMode = ValueWithDefault(Clamping.MIRRORED_REPEAT)
 
     // filtering
-    var filtering = ValueWithDefault(DefaultConfig["default.video.nearest", Filtering.LINEAR])
+    val filtering = ValueWithDefault(DefaultConfig["default.video.nearest", Filtering.LINEAR])
 
     // resolution
-    var videoScale = ValueWithDefault(DefaultConfig["default.video.scale", 6])
+    val videoScale = ValueWithDefault(DefaultConfig["default.video.scale", 6])
 
     var lastFile: File? = null
     var lastDuration = 10.0
@@ -125,11 +125,13 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
 
     override fun getEndTime(): Double = when (type) {
         VideoType.IMAGE_SEQUENCE -> imageSequenceMeta?.duration
+        VideoType.IMAGE -> Double.POSITIVE_INFINITY
         else -> meta?.duration
-    } ?: 10.0
+    } ?: Double.POSITIVE_INFINITY
 
     override fun isVisible(localTime: Double): Boolean {
-        return localTime >= 0.0 && (isLooping != LoopingState.PLAY_ONCE || localTime < lastDuration)
+        val looping = isLooping.value
+        return localTime >= 0.0 && (looping != LoopingState.PLAY_ONCE || localTime < lastDuration)
     }
 
     override fun transformLocally(pos: Vector3f, time: Double): Vector3f {
@@ -475,7 +477,8 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                             // use full fps when rendering to correctly render at max fps with time dilation
                             // issues arise, when multiple frames should be interpolated together into one
                             // at this time, we chose the center frame only.
-                            val videoFPS = if (isFinalRendering) sourceFPS else min(sourceFPS, editorVideoFPS.value.dValue)
+                            val videoFPS =
+                                if (isFinalRendering) sourceFPS else min(sourceFPS, editorVideoFPS.value.dValue)
 
                             val frameCount = max(1, (duration * videoFPS).roundToInt())
 
@@ -654,24 +657,34 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
         infoGroup += aud(UpdatingTextPanel(250, style) { "Sample Rate: ${meta?.audioSampleRate} samples/s" })
         infoGroup += aud(UpdatingTextPanel(250, style) { "Sample Count: ${meta?.audioSampleCount} samples" })
 
-        list += vi("File Location", "Source file of this video", null, file, style) { newFile ->
-            if (name == file.name) {
-                name = newFile.name
-            }
-            file = newFile
-        }
+        list += vi("File Location", "Source file of this video", null, file, style) { newFile -> file = newFile }
 
         val uvMap = getGroup("Texture", "", "uvs")
         uvMap += img(vi("Tiling", "(tile count x, tile count y, offset x, offset y)", tiling, style))
-        uvMap += img(vi("UV-Projection", "Can be used for 360°-Videos", null, uvProjection, style) {
-            uvProjection = it
-        })
-        uvMap += img(vi("Filtering", "Pixelated look?", "texture.filtering", null, filtering, style) { filtering = it })
-        uvMap += img(vi("Clamping", "For tiled images", "texture.clamping", null, clampMode, style) { clampMode = it })
+        uvMap += img(
+            vi(
+                "UV-Projection", "Can be used for 360°-Videos",
+                null, uvProjection.value, style
+            ) { uvProjection.value = it })
+        uvMap += img(
+            vi(
+                "Filtering", "Pixelated look?", "texture.filtering",
+                null, filtering.value, style
+            ) { filtering.value = it })
+        uvMap += img(
+            vi(
+                "Clamping",
+                "For tiled images",
+                "texture.clamping",
+                null, clampMode.value, style
+            ) { clampMode.value = it })
 
         val time = getGroup("Time", "", "time")
-        time += vi("Looping Type", "Whether to repeat the song/video", "video.loopingType", null, isLooping, style) {
-            isLooping = it
+        time += vi(
+            "Looping Type", "Whether to repeat the song/video", "video.loopingType",
+            null, isLooping.value, style
+        ) {
+            isLooping.value = it
             AudioManager.requestUpdate()
         }
 
@@ -687,7 +700,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
             videoScales.map { NameDesc(it.key) },
             style
         )
-            .setChangeListener { _, index, _ -> videoScale.set(videoScales[index].value) }
+            .setChangeListener { _, index, _ -> videoScale.value = videoScales[index].value }
             .setIsSelectedListener { show(null) })
 
         editor += vid(EnumInput(
@@ -697,7 +710,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
             EditorFPS.values().filter { it.value * 0.98 <= (meta?.videoFPS ?: 1e85) }.map { NameDesc(it.displayName) },
             style
         )
-            .setChangeListener { _, index, _ -> editorVideoFPS.set(EditorFPS.values()[index]) }
+            .setChangeListener { _, index, _ -> editorVideoFPS.value = EditorFPS.values()[index] }
             .setIsSelectedListener { show(null) })
 
         val color = getGroup("Color Grading (ASC CDL)", "", "color-grading")
@@ -789,11 +802,11 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
 
     override fun readInt(name: String, value: Int) {
         when (name) {
-            "videoScale" -> videoScale.set(value)
-            "filtering" -> filtering.set(filtering.value.find(value))
-            "clamping" -> clampMode.set(Clamping.values().firstOrNull { it.id == value } ?: return)
-            "uvProjection" -> uvProjection.set(UVProjection.values().firstOrNull { it.id == value } ?: return)
-            "editorVideoFPS" -> editorVideoFPS.set(EditorFPS.values().firstOrNull { it.value == value } ?: return)
+            "videoScale" -> videoScale.value = value
+            "filtering" -> filtering.value = filtering.value.find(value)
+            "clamping" -> clampMode.value = Clamping.values().firstOrNull { it.id == value } ?: return
+            "uvProjection" -> uvProjection.value = UVProjection.values().firstOrNull { it.id == value } ?: return
+            "editorVideoFPS" -> editorVideoFPS.value = EditorFPS.values().firstOrNull { it.value == value } ?: return
             else -> super.readInt(name, value)
         }
     }
@@ -801,12 +814,13 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
     override fun getClassName(): String = "Video"
 
     override fun getDefaultDisplayName(): String {
-        return if (file.hasValidName()) when (type) {
+        return if (file.hasValidName()) file.name
+        /*when (type) {
             VideoType.AUDIO -> Dict["Audio", "obj.audio"]
             VideoType.IMAGE -> Dict["Image", "obj.image"]
             VideoType.IMAGE_SEQUENCE -> Dict["Image Sequence", "obj.imageSequence"]
             VideoType.VIDEO -> Dict["Video", "obj.video"]
-        } else Dict["Video", "obj.video"]
+        }*/ else Dict["Video", "obj.video"]
     }
 
     override fun getSymbol(): String {

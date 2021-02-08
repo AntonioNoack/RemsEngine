@@ -23,7 +23,6 @@ import me.anno.ui.style.Style
 import me.anno.utils.Clock
 import me.anno.utils.OS
 import me.anno.utils.Warning
-import me.anno.utils.types.Floats.f3
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3f
 import java.io.File
@@ -94,7 +93,7 @@ object DefaultConfig : StringMap() {
             "Timer" to Timer(null),
             "Cubemap" to {
                 val cube = Video(File(""), null)
-                cube.uvProjection.set(UVProjection.TiledCubemap)
+                cube.uvProjection *= UVProjection.TiledCubemap
                 cube.scale.set(Vector3f(1000f, 1000f, 1000f))
                 cube
             }(),

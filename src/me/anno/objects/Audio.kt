@@ -26,7 +26,7 @@ abstract class Audio(var file: File = File(""), parent: Transform? = null) : GFX
 
     val amplitude = AnimatedProperty.floatPlus(1f)
     var effects = SoundPipeline(this)
-    var isLooping = ValueWithDefaultFunc {
+    val isLooping = ValueWithDefaultFunc {
         if (file.extension.equals("gif", true)) LoopingState.PLAY_LOOP
         else LoopingState.PLAY_ONCE
     }
@@ -101,7 +101,7 @@ abstract class Audio(var file: File = File(""), parent: Transform? = null) : GFX
 
     override fun readInt(name: String, value: Int) {
         when (name) {
-            "isLooping" -> isLooping.set(LoopingState.getState(value))
+            "isLooping" -> isLooping.value = LoopingState.getState(value)
             else -> super.readInt(name, value)
         }
     }

@@ -107,7 +107,7 @@ object ImportFromFile {
                     RemsStudio.largeChange("Added Cubemap") {
                         val cube = Video(file, parent)
                         cube.scale.set(Vector3f(1000f, 1000f, 1000f))
-                        cube.uvProjection.set(UVProjection.Equirectangular)
+                        cube.uvProjection *= UVProjection.Equirectangular
                         cube.name = name
                         if (doSelect) selectTransform(cube)
                         callback(cube)
@@ -117,7 +117,7 @@ object ImportFromFile {
                     RemsStudio.largeChange("Added Cubemap") {
                         val cube = Video(file, parent)
                         cube.scale.set(Vector3f(1000f, 1000f, 1000f))
-                        cube.uvProjection.set(UVProjection.TiledCubemap)
+                        cube.uvProjection *= UVProjection.TiledCubemap
                         cube.name = name
                         if (doSelect) selectTransform(cube)
                         callback(cube)
@@ -132,10 +132,10 @@ object ImportFromFile {
                         if (DefaultConfig["import.decideCubemap", true]) {
                             if (fName.contains("360", true)) {
                                 video.scale.set(Vector3f(1000f, 1000f, 1000f))
-                                video.uvProjection.set(UVProjection.Equirectangular)
+                                video.uvProjection *= UVProjection.Equirectangular
                             } else if (fName.contains("cubemap", true)) {
                                 video.scale.set(Vector3f(1000f, 1000f, 1000f))
-                                video.uvProjection.set(UVProjection.TiledCubemap)
+                                video.uvProjection *= UVProjection.TiledCubemap
                             }
                         }
                         if (doSelect) selectTransform(video)

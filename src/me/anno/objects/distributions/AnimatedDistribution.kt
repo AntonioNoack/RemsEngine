@@ -27,7 +27,9 @@ class AnimatedDistribution(
     val distributionI = ValueWithDefault(distribution)
     var distribution: Distribution
         get() = distributionI.value
-        set(value) = distributionI.set(value)
+        set(value) {
+            distributionI.value = value
+        }
 
     constructor() : this(Type.ANY, 0f)
     constructor(type: Type, defaultValue: Any) : this(ConstantDistribution(), listOf(type), listOf(defaultValue))

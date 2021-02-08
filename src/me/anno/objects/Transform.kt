@@ -66,7 +66,6 @@ open class Transform(var parent: Transform? = null) : Saveable(),
     val timelineSlot = ValueWithDefault(-1)
 
     var visibility = TransformVisibility.VISIBLE
-    var uuid = nextUUID.incrementAndGet()
 
     var position = AnimatedProperty.pos()
     var scale = AnimatedProperty.scale()
@@ -90,10 +89,12 @@ open class Transform(var parent: Transform? = null) : Saveable(),
 
     var timeAnimated = AnimatedProperty.double()
 
-    private val nameI = ValueWithDefaultFunc { getDefaultDisplayName() }
+    var nameI = ValueWithDefaultFunc { getDefaultDisplayName() }
     var name: String
         get() = nameI.value
-        set(value) = nameI.set(value)
+        set(value) {
+            nameI.value = value
+        }
 
     var comment = ""
     var tags = ""
@@ -112,7 +113,9 @@ open class Transform(var parent: Transform? = null) : Saveable(),
     val isCollapsedI = ValueWithDefault(false)
     var isCollapsed: Boolean
         get() = isCollapsedI.value
-        set(value) = isCollapsedI.set(value)
+        set(value) {
+            isCollapsedI.value = value
+        }
 
     var lastLocalColor = Vector4f()
     var lastLocalTime = 0.0
@@ -120,7 +123,7 @@ open class Transform(var parent: Transform? = null) : Saveable(),
     private val weightI = ValueWithDefault(1f)
     var weight: Float
         get() = weightI.value
-        set(value) = weightI.set(value)
+        set(value) { weightI.value = value }
 
     fun putValue(list: AnimatedProperty<*>, value: Any, updateHistory: Boolean) {
         val time = global2Kf(editorTime)
@@ -207,8 +210,8 @@ open class Transform(var parent: Transform? = null) : Saveable(),
         colorGroup += vi("Color Multiplier", "To make things brighter than usually possible", colorMultiplier, style)
 
         val ufd = usesFadingDifferently()
-        if(ufd || getStartTime().isFinite()) colorGroup += vi("Fade In", "Transparency at the start", fadeIn, style)
-        if(ufd || getEndTime().isFinite()) colorGroup += vi("Fade Out", "Transparency at the end", fadeOut, style)
+        if (ufd || getStartTime().isFinite()) colorGroup += vi("Fade In", "Transparency at the start", fadeIn, style)
+        if (ufd || getEndTime().isFinite()) colorGroup += vi("Fade Out", "Transparency at the end", fadeOut, style)
 
         // kind of color...
         colorGroup += vi("Blend Mode", "", null, blendMode, style) { blendMode = it }
@@ -394,7 +397,6 @@ open class Transform(var parent: Transform? = null) : Saveable(),
         writer.writeObjectList(this, "children", children)
         writer.writeMaybe(this, "timelineSlot", timelineSlot)
         writer.writeInt("visibility", visibility.id, false)
-        writer.writeLong("uuid", uuid, true)
     }
 
     override fun readBoolean(name: String, value: Boolean) {
@@ -409,13 +411,6 @@ open class Transform(var parent: Transform? = null) : Saveable(),
             "timelineSlot" -> timelineSlot.value = value
             "visibility" -> visibility = TransformVisibility[value]
             else -> super.readInt(name, value)
-        }
-    }
-
-    override fun readLong(name: String, value: Long) {
-        when (name) {
-            "uuid" -> uuid = value
-            else -> super.readLong(name, value)
         }
     }
 

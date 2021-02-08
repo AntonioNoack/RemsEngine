@@ -10,29 +10,42 @@ import me.anno.objects.animation.TimeValue.Companion.writeValue
  * because they can be set automatically
  * */
 class ValueWithDefault<V>(
-    var value: V,
+    private var state: V,
     private var default: V
 ) {
     constructor(value: V) : this(value, value)
 
-    val isSet get() = value != default
+    var wasSet = false
+    val isSet get() = state != default && wasSet
     fun write(writer: BaseWriter, self: ISaveable?, name: String) {
         if (isSet) {
-            writer.writeValue(self, name, value)
+            writer.writeValue(self, name, state)
         }
     }
 
-    fun clear() {
-        value = default
-    }
+    var value
+        get() = if (wasSet) state else default
+        set(value) {
+            state = value
+            wasSet = true
+        }
 
-    fun set(v: V) {
-        value = v
+    fun reset() {
+        wasSet = false
     }
 
     fun setDefault(v: V) {
-        value = v
+        state = v
         default = v
+    }
+
+    /**
+     * sets the value for a slightly cleaner look
+     * (even if awkward)
+     * can be misleading in the context of numbers...
+     * */
+    operator fun timesAssign(value: V){
+        this.value = value
     }
 
     companion object {

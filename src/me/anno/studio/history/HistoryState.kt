@@ -14,8 +14,6 @@ import me.anno.ui.editor.sceneTabs.SceneTabs
 import me.anno.ui.editor.sceneView.SceneView
 import me.anno.utils.types.Lists.join
 
-// todo remove uuids
-// todo instead use the position in the tree...
 class HistoryState() : Saveable() {
 
     constructor(title: String, code: Any): this(){
@@ -27,14 +25,14 @@ class HistoryState() : Saveable() {
     var code: Any? = null
 
     var root: Transform? = null
-    var selectedUUID = -1L
+    var selectedUUID = -1
     var selectedPropName: String? = null
-    var usedCameras = LongArray(0)
+    var usedCameras = IntArray(0)
     var editorTime = 0.0
 
     override fun hashCode(): Int {
         var result = root.toString().hashCode()
-        result = 31 * result + selectedUUID.toInt()
+        result = 31 * result + selectedUUID
         result = 31 * result + usedCameras.contentHashCode()
         result = 31 * result + editorTime.hashCode()
         return result
@@ -48,6 +46,9 @@ class HistoryState() : Saveable() {
                 other.editorTime == editorTime
     }
 
+    fun Transform.getRoot(): Transform = this.parent?.getRoot() ?: this
+    fun Transform.getUUID() = this.getRoot().listOfAll.indexOf(this)
+
     fun apply() {
         val root = root ?: return
         RemsStudio.root = root
@@ -59,7 +60,7 @@ class HistoryState() : Saveable() {
             window.panel.listOfAll.filterIsInstance<SceneView>().forEachIndexed { index, it ->
                 it.camera = if (index in usedCameras.indices) {
                     val cameraIndex = usedCameras[index]
-                    listOfAll.firstOrNull { camera -> camera.uuid == cameraIndex } as? Camera ?: nullCamera!!
+                    listOfAll.firstOrNull { camera -> camera.getUUID() == cameraIndex } as? Camera ?: nullCamera!!
                 } else {
                     nullCamera!!
                 }
@@ -82,10 +83,10 @@ class HistoryState() : Saveable() {
         }
 
         state.title = title
-        state.selectedUUID = Selection.selectedTransform?.uuid ?: -1L
+        state.selectedUUID = Selection.selectedTransform?.getUUID() ?: -1
         state.usedCameras = windowStack.map { window ->
-            window.panel.listOfAll.filterIsInstance<SceneView>().map { it.camera.uuid }.toList()
-        }.join().toLongArray()
+            window.panel.listOfAll.filterIsInstance<SceneView>().map { it.camera.getUUID() }.toList()
+        }.join().toIntArray()
 
     }
 
@@ -101,8 +102,8 @@ class HistoryState() : Saveable() {
         super.save(writer)
         writer.writeObject(this, "root", root)
         writer.writeString("title", title)
-        writer.writeLong("selectedUUID", selectedUUID)
-        writer.writeLongArray("usedCameras", usedCameras)
+        writer.writeInt("selectedUUID", selectedUUID)
+        writer.writeIntArray("usedCameras", usedCameras)
         writer.writeDouble("editorTime", editorTime)
     }
 
@@ -120,16 +121,30 @@ class HistoryState() : Saveable() {
         }
     }
 
+    override fun readInt(name: String, value: Int) {
+        when(name){
+            "selectedUUID" -> selectedUUID = value
+            else -> super.readInt(name, value)
+        }
+    }
+
     override fun readLong(name: String, value: Long) {
         when (name) {
-            "selectedUUID" -> selectedUUID = value
+            "selectedUUID" -> selectedUUID = value.toInt()
             else -> super.readLong(name, value)
+        }
+    }
+
+    override fun readIntArray(name: String, values: IntArray) {
+        when(name){
+            "usedCameras" -> usedCameras = values
+            else -> super.readIntArray(name, values)
         }
     }
 
     override fun readLongArray(name: String, values: LongArray) {
         when (name) {
-            "usedCameras" -> usedCameras = values
+            "usedCameras" -> usedCameras = values.map { it.toInt() }.toIntArray()
             else -> super.readLongArray(name, values)
         }
     }
