@@ -29,7 +29,6 @@ import org.joml.Matrix4fArrayList
 import org.joml.Vector3f
 import org.joml.Vector4f
 import org.lwjgl.BufferUtils
-import org.lwjgl.glfw.GLFW.glfwSetWindowShouldClose
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL20
@@ -43,11 +42,6 @@ import kotlin.math.*
 // todo - with blending
 // todo enqueue all objects for rendering
 // todo sort blended objects by depth, if rendering with depth
-
-// todo ffmpeg requires 100MB RAM per instance -> do we really need multiple instances, or does one work fine?
-// todo or keep only a certain amount of ffmpeg instances running?
-
-// todo gpu task priority? (low=destroy,rendering/medium=playback/high=ui)
 
 object GFX : GFXBase1() {
 
@@ -69,6 +63,8 @@ object GFX : GFXBase1() {
     var hoveredWindow: Window? = null
 
     val gpuTasks = ConcurrentLinkedQueue<Task>()
+    val lowPriorityGPUTasks = ConcurrentLinkedQueue<Task>()
+
     val audioTasks = ConcurrentLinkedQueue<Task>()
 
     fun addAudioTask(weight: Int, task: () -> Unit) {
@@ -77,11 +73,19 @@ object GFX : GFXBase1() {
     }
 
     fun addGPUTask(w: Int, h: Int, task: () -> Unit) {
-        gpuTasks += (w * h / 1e5).toInt() to task
+        addGPUTask(w, h, false, task)
     }
 
     fun addGPUTask(weight: Int, task: () -> Unit) {
-        gpuTasks += weight to task
+        addGPUTask(weight, false, task)
+    }
+
+    fun addGPUTask(w: Int, h: Int, lowPriority: Boolean, task: () -> Unit) {
+        addGPUTask((w * h / 1e5).toInt(), lowPriority, task)
+    }
+
+    fun addGPUTask(weight: Int, lowPriority: Boolean, task: () -> Unit) {
+        (if(lowPriority) lowPriorityGPUTasks else gpuTasks) += weight to task
     }
 
     lateinit var gameInit: () -> Unit
@@ -288,7 +292,11 @@ object GFX : GFXBase1() {
         ShaderLib.init()
     }
 
-    fun workQueue(queue: ConcurrentLinkedQueue<Task>, all: Boolean) {
+    /**
+     * time limit in seconds
+     * returns whether time is left
+     * */
+    fun workQueue(queue: ConcurrentLinkedQueue<Task>, timeLimit: Float, all: Boolean): Boolean {
         // async work section
 
         // work 1/5th of the tasks by weight...
@@ -301,7 +309,7 @@ object GFX : GFXBase1() {
         var workDone = 0
         val workTime0 = System.nanoTime()
         while (true) {
-            val nextTask = queue.poll() ?: break
+            val nextTask = queue.poll() ?: return true
             try {
                 nextTask.second()
             } catch (e: Throwable) {
@@ -309,10 +317,10 @@ object GFX : GFXBase1() {
             }
             if (Thread.currentThread() == glThread) check()
             workDone += nextTask.first
-            if (workDone >= workTodo && !all) break
+            if (workDone >= workTodo && !all) return false
             val workTime1 = System.nanoTime()
             val workTime = abs(workTime1 - workTime0) * 1e-9f
-            if (workTime * 60f > 1f && !all) break // too much work
+            if (workTime > timeLimit && !all) return false// too much work
         }
 
     }
@@ -329,7 +337,9 @@ object GFX : GFXBase1() {
     }
 
     fun workGPUTasks(all: Boolean) {
-        workQueue(gpuTasks, all)
+        if(workQueue(gpuTasks, 1f/60f, all)){
+            workQueue(lowPriorityGPUTasks, 1f/120f, all)
+        }
     }
 
     fun workEventTasks() {
@@ -452,20 +462,20 @@ object GFX : GFXBase1() {
     }
 
     //override fun cleanUp() {
-        // destroy all used meshes, shaders, ...
-        // not that dearly needed, as the memory
-        // is freed anyways, when the process is killed
-        // Cache.clear()
-        // workGPUTasks(true)
-        /*SimpleBuffer.destroy()
-        CameraModel.destroy()
-        ArrowModel.destroy()
-        CubemapModel.destroy()
-        SpeakerModel.destroy()
-        SphereAxesModel.destroy()
-        SphereModel.destroy()
-        TextureLib.destroy()
-        GL.setCapabilities(null)*/
+    // destroy all used meshes, shaders, ...
+    // not that dearly needed, as the memory
+    // is freed anyways, when the process is killed
+    // Cache.clear()
+    // workGPUTasks(true)
+    /*SimpleBuffer.destroy()
+    CameraModel.destroy()
+    ArrowModel.destroy()
+    CubemapModel.destroy()
+    SpeakerModel.destroy()
+    SphereAxesModel.destroy()
+    SphereModel.destroy()
+    TextureLib.destroy()
+    GL.setCapabilities(null)*/
     /*    super.cleanUp()
     }*/
 

@@ -86,12 +86,11 @@ object VideoProxyCreator : CacheSection("VideoProxies") {
         // ffmpeg -i input.avi -filter:vf scale=720:-1 -c:a copy output.mkv
         if (w < minSize || h < minSize) return
         dst.parentFile?.mkdirs()
-        object : FFMPEGStream(null) {
+        object : FFMPEGStream(null, true) {
             override fun process(process: Process, arguments: List<String>) {
-                // todo filter information, that we don't need (don't spam the console that much, rather create an overview for it)
-                // todo limit number of processes (? can use full 100% and eat all RAM xD)
-                getOutput("Proxy", process.errorStream)
-                getOutput("Proxy", process.inputStream)
+                // filter information, that we don't need (don't spam the console that much, rather create an overview for it)
+                devNull("Proxy", process.errorStream)
+                devNull("Proxy", process.inputStream)
                 process.waitFor()
                 if (tmp.exists()) {
                     if (dst.exists()) dst.deleteRecursively()

@@ -6,7 +6,8 @@ import java.io.File
 import kotlin.concurrent.thread
 
 class FFMPEGAudio(file: File?, val sampleRate: Int, val length: Double) :
-    FFMPEGStream(file) {
+    FFMPEGStream(file, false) {
+    // audio should be fast -> not limited
 
     override fun process(process: Process, arguments: List<String>) {
         // ("starting process for audio $sampleRate x $length")

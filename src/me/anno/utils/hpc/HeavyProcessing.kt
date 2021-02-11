@@ -18,7 +18,7 @@ object HeavyProcessing {
     }
 
     private const val reservedThreadCount = 1 + 1 /* ui + audio?/file-loading/network? */
-    private val threads = max(1, Runtime.getRuntime().availableProcessors() - reservedThreadCount)
+    val threads = max(1, Runtime.getRuntime().availableProcessors() - reservedThreadCount)
 
     fun processUnbalanced(i0: Int, i1: Int, heavy: Boolean, func: (i0: Int, i1: Int) -> Unit) {
         val minCountPerThread = if (heavy) 1 else 5

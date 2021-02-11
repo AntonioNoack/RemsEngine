@@ -10,8 +10,11 @@ import java.io.File
 import java.io.InputStream
 import kotlin.concurrent.thread
 
-class FFMPEGVideo(file: File?, private val frame0: Int, bufferLength: Int) :
-    FFMPEGStream(file) {
+class FFMPEGVideo(file: File, private val frame0: Int, bufferLength: Int) :
+    FFMPEGStream(file, isProcessCountLimited = when(file.extension.toLowerCase()){
+        "webp", "jp2" -> false // webp and jp2 are image formats -> not limited
+        else -> true
+    }) {
 
     override fun process(process: Process, arguments: List<String>) {
         thread {

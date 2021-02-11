@@ -1,18 +1,27 @@
 package me.anno.video
 
+import me.anno.utils.hpc.HeavyProcessing.threads
 import me.anno.video.FFMPEGMetadata.Companion.getMeta
 import org.apache.logging.log4j.LogManager
 import java.io.File
 import java.io.InputStream
+import java.util.concurrent.Semaphore
 import kotlin.concurrent.thread
+import kotlin.math.max
 import kotlin.math.roundToInt
 
-abstract class FFMPEGStream(val file: File?) {
+// ffmpeg requires 100MB RAM per instance -> do we really need multiple instances, or does one work fine
+// done keep only a certain amount of ffmpeg instances running
+abstract class FFMPEGStream(val file: File?, val isProcessCountLimited: Boolean) {
 
     var sourceFPS = -1.0
     var sourceLength = 0.0
 
     companion object {
+        // could be limited by memory as well...
+        // to help to keep the memory and cpu-usage below 100%
+        // 5GB = 50 processes, at 6 cores / 12 threads = 4 ratio
+        val processLimiter = Semaphore(max(2, threads) * 4, true)
         private val LOGGER = LogManager.getLogger(FFMPEGStream::class)
         val frameCountByFile = HashMap<File, Int>()
         fun getInfo(input: File) = (FFMPEGMeta(null).run(
@@ -82,6 +91,7 @@ abstract class FFMPEGStream(val file: File?) {
     abstract fun destroy()
 
     fun run(arguments: List<String>): FFMPEGStream {
+        if (isProcessCountLimited) processLimiter.acquire()
         // LOGGER.info("${(GFX.gameTime/1e9).toInt()} ${arguments.joinToString(" ")}")
         val args = ArrayList<String>(arguments.size + 2)
         args += FFMPEG.ffmpegPathString
@@ -89,6 +99,10 @@ abstract class FFMPEGStream(val file: File?) {
         args += arguments
         val process = ProcessBuilder(args).start()
         process(process, arguments)
+        thread {
+            process.waitFor()
+            processLimiter.release()
+        }
         return this
     }
 
@@ -108,6 +122,15 @@ abstract class FFMPEGStream(val file: File?) {
             while (true) {
                 val line = reader.readLine() ?: break
                 LOGGER.info("[$prefix] $line")
+            }
+        }
+    }
+
+    fun devNull(prefix: String, stream: InputStream) {
+        thread {
+            while (true) {
+                val read = stream.read()
+                if(read < 0) break
             }
         }
     }
