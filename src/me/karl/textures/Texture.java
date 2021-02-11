@@ -1,5 +1,6 @@
 package me.karl.textures;
 
+import me.anno.gpu.texture.Texture2D;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 
@@ -24,8 +25,8 @@ public class Texture {
 	}
 
 	public void bindToUnit(int unit) {
-		GL13.glActiveTexture(GL13.GL_TEXTURE0 + unit);
-		GL11.glBindTexture(type, textureId);
+		Texture2D.Companion.activeSlot(unit);
+		Texture2D.Companion.bindTexture(type,textureId);
 	}
 
 	public void destroy() {

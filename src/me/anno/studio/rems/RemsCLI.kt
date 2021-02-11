@@ -8,6 +8,7 @@ import me.anno.gpu.blending.BlendDepth
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.texture.Texture2D.Companion.bindTexture
 import me.anno.installer.Installer.checkInstall
 import me.anno.io.config.ConfigBasics
 import me.anno.io.text.TextReader
@@ -152,13 +153,13 @@ object RemsCLI {
             GFX.ensureEmptyStack()
             GFX.updateTime()
             Cache.update()
-            GL30.glBindTexture(GL30.GL_TEXTURE_2D, 0)
+            bindTexture(GL30.GL_TEXTURE_2D, 0)
             BlendDepth.reset()
             GL30.glDisable(GL30.GL_CULL_FACE)
             GL30.glDisable(GL30.GL_ALPHA_TEST)
             GFX.check()
             Frame.reset()
-            GFX.workGPUTasks()
+            GFX.workGPUTasks(false)
             GFX.workEventTasks()
             sleepABit()
         }

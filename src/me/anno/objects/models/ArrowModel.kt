@@ -98,4 +98,9 @@ object ArrowModel {
 
     }
 
+    fun destroy(){
+        arrowLineModel.destroy()
+        arrowModel.destroy()
+    }
+
 }

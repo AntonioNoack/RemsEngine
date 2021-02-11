@@ -37,6 +37,21 @@ class Solution(
     // if video, draw a few frames in small
 
     fun draw(selectedTransform: Transform?, draggedTransform: Transform?) {
+        iteratorOverGradients(selectedTransform, draggedTransform, ::drawStripes, ::drawGradient, ::drawVideo)
+    }
+
+    fun iteratorOverGradients(
+        selectedTransform: Transform?, draggedTransform: Transform?,
+        drawStripes: (x0: Int, x1: Int, y: Int, h: Int, offset: Int) -> Unit,
+        drawGradient: (x0: Int, x1: Int, y: Int, h: Int, c0: Vector4f, c1: Vector4f) -> Unit,
+        drawVideo: (
+            x0: Int, x1: Int, y: Int, h: Int,
+            c0: Vector4f, c1: Vector4f,
+            frameOffset: Int, frameWidth: Int,
+            video: Video, meta: FFMPEGMetadata,
+            fract0: Float, fract1: Float
+        ) -> Unit
+    ) {
 
         val y = y0
         val h = y1 - y0
@@ -102,7 +117,7 @@ class Solution(
                             val x1 = x0 + frameWidth
                             val c0x = getLerpedColor(x0)
                             val c1x = getLerpedColor(x1)
-                            draw(x0, x1, y0, h0, c0x, c1x, frameOffset, frameWidth, video, meta, 0f, 1f)
+                            drawVideo(x0, x1, y0, h0, c0x, c1x, frameOffset, frameWidth, video, meta, 0f, 1f)
                         }
 
                         // first frame
@@ -110,7 +125,7 @@ class Solution(
                         if (x1 > ix0) {
                             val f0 = getFraction(ix0, true)
                             val lerpedC1 = getLerpedColor(x1 - 1)
-                            draw(ix0, x1, y0, h0, c0, lerpedC1, frameOffset, frameWidth, video, meta, f0, 1f)
+                            drawVideo(ix0, x1, y0, h0, c0, lerpedC1, frameOffset, frameWidth, video, meta, f0, 1f)
                         }
 
                         // last frame
@@ -118,18 +133,18 @@ class Solution(
                         if (x0 < ix1) {
                             val lerpedC0 = getLerpedColor(x0)
                             val f1 = getFraction(ix1, false)
-                            draw(x0, ix1, y0, h0, lerpedC0, c1, frameOffset, frameWidth, video, meta, 0f, f1)
+                            drawVideo(x0, ix1, y0, h0, lerpedC0, c1, frameOffset, frameWidth, video, meta, 0f, f1)
                         }
 
                     } else {
 
                         val f0 = getFraction(ix0, true)
                         val f1 = getFraction(ix1, false)
-                        draw(ix0, ix1, y0, h0, c0, c1, frameOffset, frameWidth, video, meta, f0, f1)
+                        drawVideo(ix0, ix1, y0, h0, c0, c1, frameOffset, frameWidth, video, meta, f0, f1)
 
                     }
 
-                } else draw(ix0, ix1, y0, h0, c0, c1)
+                } else drawGradient(ix0, ix1, y0, h0, c0, c1)
 
                 if (isStriped) {
                     drawStripes(ix0, ix1, y0, h0, timeOffset)
@@ -140,71 +155,10 @@ class Solution(
     }
 
     fun keepResourcesLoaded() {
-
-        val h = y1 - y0
-        val metas = HashMap<Any, Any>()
-
-        lines.forEach { gradients ->
-            gradients.forEach {
-
-                val tr = it.owner as? Transform
-
-                val video = tr as? Video
-                val meta = if (video == null) null
-                else metas.getOrPut(video) { video.meta ?: Unit } as? FFMPEGMetadata
-
-                // val hasAudio = meta?.hasAudio ?: false
-                val hasVideo = meta?.hasVideo ?: false
-
-                val ix0 = it.x0
-                val ix1 = it.x1
-
-                if (hasVideo) {
-
-                    video!!
-                    meta!!
-
-                    val frameWidth = (h * (1f + relativeVideoBorder) * video.w / video.h).roundToInt()
-
-                    val frameOffset = (-centralTime / (2f * dtHalfLength) * w).toInt() % frameWidth
-
-                    val frameIndex0 = (ix0 - frameOffset) / frameWidth
-                    val frameIndex1 = (ix1 - frameOffset) / frameWidth
-
-                    if (frameIndex0 != frameIndex1) {
-
-                        // split into multiple frames
-
-                        // middle frames
-                        for (frameIndex in frameIndex0 + 1 until frameIndex1) {
-                            val x0 = frameWidth * frameIndex + frameOffset
-                            keepFrameLoaded(x0, frameOffset, frameWidth, video, meta, 0f, 1f)
-                        }
-
-                        // first frame
-                        val f0 = ((ix0 - frameOffset) % frameWidth).toFloat() / frameWidth
-                        keepFrameLoaded(ix0, frameOffset, frameWidth, video, meta, f0, 1f)
-
-                        // last frame
-                        val x0 = frameIndex1 * frameWidth + frameOffset
-                        val x2Mod = (ix1 - frameOffset) % frameWidth
-                        val f1 = if (x2Mod == 0) 1f else x2Mod.toFloat() / frameWidth
-                        keepFrameLoaded(x0, frameOffset, frameWidth, video, meta, 0f, f1)
-
-                    } else {
-
-                        val f0 = ((ix0 - frameOffset) % frameWidth).toFloat() / frameWidth
-                        val x2Mod = (ix1 - frameOffset) % frameWidth
-                        val f1 = if (x2Mod == 0) 1f else x2Mod.toFloat() / frameWidth
-                        keepFrameLoaded(ix0, frameOffset, frameWidth, video, meta, f0, f1)
-
-                    }
-                }
-            }
-        }
+        iteratorOverGradients(null, null, { _, _, _, _, _ -> }, { _, _, _, _, _, _ -> }, ::keepFrameLoaded)
     }
 
-    private fun draw(x0: Int, x1: Int, y: Int, h: Int, c0: Vector4f, c1: Vector4f) {
+    private fun drawGradient(x0: Int, x1: Int, y: Int, h: Int, c0: Vector4f, c1: Vector4f) {
         drawRectGradient(x0, y, x1 - x0, h, c0, c1)
     }
 
@@ -222,7 +176,7 @@ class Solution(
     private fun getCenterX(x0: Int, frameOffset: Int, frameWidth: Int) =
         x0 - nonNegativeModulo(x0 - frameOffset, frameWidth) + frameWidth / 2
 
-    private fun draw(
+    private fun drawVideo(
         x0: Int, x1: Int, y: Int, h: Int,
         c0: Vector4f, c1: Vector4f,
         frameOffset: Int, frameWidth: Int,
@@ -254,9 +208,9 @@ class Solution(
     }
 
     private fun keepFrameLoaded(
-        x0: Int,
-        frameOffset: Int,
-        frameWidth: Int,
+        x0: Int, x1: Int, y: Int, h: Int,
+        c0: Vector4f, c1: Vector4f,
+        frameOffset: Int, frameWidth: Int,
         video: Video, meta: FFMPEGMetadata,
         fract0: Float, fract1: Float
     ) {
@@ -268,7 +222,8 @@ class Solution(
             val timeAtX = getTimeAt(centerX)
             val localTime = clampTime(video.getLocalTimeFromRoot(timeAtX), video)
             // get frame at time
-            video.getFrameAtLocalTime(localTime, frameWidth, meta)
+            val videoWidth = (frameWidth / (1f + relativeVideoBorder)).toInt()
+            video.getFrameAtLocalTime(localTime, videoWidth, meta)
         }
     }
 

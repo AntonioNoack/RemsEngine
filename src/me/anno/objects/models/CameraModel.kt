@@ -44,6 +44,10 @@ object CameraModel {
 
     }
 
+    fun destroy(){
+        cameraModel.destroy()
+    }
+
     private val cameraModel: StaticBuffer = StaticBuffer(
         listOf(
             Attribute("attr0", 3)

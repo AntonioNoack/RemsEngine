@@ -3,171 +3,85 @@
     "class": "Transform",
     "i:*ptr": 1,
     "S:name": "Transition",
-    "d:timeDilation": 1.0,
-    "S:blendMode": "*Inherit",
-    "Video:children": 2,
-    "MaskLayer:children": 3,
-    "i:timelineSlot": -1,
-    "b:editorOnly": false
-  },
-  {
-    "class": "Video",
-    "i:*ptr": 2,
-    "Transform:parent": 1,
-    "S:name": "Video",
-    "AnimatedProperty<pos>:position": {
-      "i:*ptr": 4,
-      "Keyframe:keyframes": {
-        "i:*ptr": 5,
-        "v3:value": [
-          0.0,
-          0.0,
-          -0.001
-        ]
+    "*[]:children": [
+      2,
+      {
+        "class": "Video",
+        "S:name": "Video",
+        "AnimatedProperty:position": {
+          "v3:v": [
+            0,
+            0,
+            -0.001
+          ]
+        },
+        "S:file": "$VIDEOS$/uvOffsetEffect.mp4",
+        "i:videoScale": 1
       },
-      "b:isAnimated": false
-    },
-    "d:timeDilation": 1.0,
-    "S:blendMode": "*Inherit",
-    "i:timelineSlot": 0,
-    "b:editorOnly": false,
-    "S:file": "C:\\Users\\Antonio\\Videos\\uvOffsetEffect.mp4",
-    "i:isLooping": 0,
-    "d:endTime": 10.233333,
-    "i:filtering": 1,
-    "i:clamping": 2,
-    "i:videoScale": 1
-  },
-  {
-    "class": "MaskLayer",
-    "i:*ptr": 3,
-    "Transform:parent": 1,
-    "S:name": "Mask Layer",
-    "AnimatedProperty<scale>:scale": {
-      "i:*ptr": 6,
-      "Keyframe:keyframes": {
-        "i:*ptr": 7,
-        "v3:value": [
-          1.0,
-          1.0,
-          1.0
-        ]
-      },
-      "b:isAnimated": false
-    },
-    "d:timeDilation": 1.0,
-    "S:blendMode": "*Inherit",
-    "Transform:children": 8,
-    "Transform:children": 9,
-    "i:timelineSlot": 0,
-    "b:editorOnly": false,
-    "b:showMask": false,
-    "b:showMasked": false,
-    "b:showFrame": true,
-    "b:isFullscreen": true,
-    "b:isInverted": false
-  },
-  {
-    "class": "Transform",
-    "i:*ptr": 8,
-    "MaskLayer:parent": 3,
-    "S:name": "Mask Folder",
-    "d:timeDilation": 1.0,
-    "S:blendMode": "*Inherit",
-    "Polygon:children": 10,
-    "i:timelineSlot": -1,
-    "b:editorOnly": false
-  },
-  {
-    "class": "Transform",
-    "i:*ptr": 9,
-    "MaskLayer:parent": 3,
-    "S:name": "Masked Folder",
-    "d:timeDilation": 1.0,
-    "S:blendMode": "*Inherit",
-    "Video:children": 11,
-    "i:timelineSlot": -1,
-    "b:editorOnly": false
-  },
-  {
-    "class": "Polygon",
-    "i:*ptr": 10,
-    "Transform:parent": 8,
-    "S:name": "Rectangle",
-    "AnimatedProperty<pos>:position": {
-      "i:*ptr": 12,
-      "Keyframe:keyframes": {
-        "i:*ptr": 13,
-        "v3:value": [
-          -4.220968,
-          0.0,
-          0.0
-        ]
-      },
-      "Keyframe:keyframes": {
-        "i:*ptr": 14,
-        "d:time": 0.23200880444097916,
-        "v3:value": [
-          -0.0032736138,
-          -0.0048325583,
-          7.1549416E-4
-        ]
-      },
-      "b:isAnimated": true
-    },
-    "AnimatedProperty<scale>:scale": {
-      "i:*ptr": 15,
-      "Keyframe:keyframes": {
-        "i:*ptr": 16,
-        "v3:value": [
-          2.0,
-          2.0,
-          1.0
-        ]
-      },
-      "b:isAnimated": false
-    },
-    "AnimatedProperty<skew2D>:skew": {
-      "i:*ptr": 17,
-      "Keyframe:keyframes": {
-        "i:*ptr": 18,
-        "v2:value": [
-          0.22502747,
-          0.0
-        ]
-      },
-      "b:isAnimated": false
-    },
-    "d:timeDilation": 1.0,
-    "S:blendMode": "*Inherit",
-    "i:timelineSlot": 0,
-    "b:editorOnly": false,
-    "AnimatedProperty<int+>:vertexCount": {
-      "i:*ptr": 19,
-      "Keyframe:keyframes": {
-        "i:*ptr": 20,
-        "i:value": 4
-      },
-      "b:isAnimated": false
-    },
-    "b:autoAlign": true,
-    "b:is3D": false,
-    "i:filtering": 1
-  },
-  {
-    "class": "Video",
-    "i:*ptr": 11,
-    "Transform:parent": 9,
-    "S:name": "Video",
-    "d:timeDilation": 1.0,
-    "S:blendMode": "*Inherit",
-    "i:timelineSlot": 0,
-    "b:editorOnly": false,
-    "S:file": "C:\\Users\\Antonio\\Videos\\treemiddle.mp4",
-    "i:isLooping": 0,
-    "d:endTime": 14.1333,
-    "i:filtering": 1,
-    "i:clamping": 2,
-    "i:videoScale": 1
+      {
+        "class": "MaskLayer",
+        "Transform[]:children": [
+          2,
+          {
+            "S:name": "Mask Folder",
+            "Polygon[]:children": [
+              1,
+              {
+                "S:name": "Rectangle",
+                "AnimatedProperty:position": {
+                  "b:isAnimated": true,
+                  "Keyframe[]:vs": [
+                    1,
+                    {
+                      "d:time": 0.23200880444097916,
+                      "v3:value": [
+                        -0.0032736138,
+                        -0.0048325583,
+                        7.1549416E-4
+                      ]
+                    }
+                  ]
+                },
+                "AnimatedProperty:scale": {
+                  "v3:v": [
+                    2,
+                    2,
+                    1
+                  ]
+                },
+                "AnimatedProperty:skew": {
+                  "v2:v": [
+                    0.22502747,
+                    0
+                  ]
+                },
+                "AnimatedProperty:vertexCount": {
+                  "i:v": 4
+                },
+                "b:autoAlign": true,
+                "b:is3D": false,
+                "i:filtering": 1
+              }
+            ]
+          },
+          {
+            "S:name": "Masked Folder",
+            "Video[]:children": [
+              1,
+              {
+                "S:name": "Video",
+                "S:file": "$VIDEOS$/treemiddle.mp4",
+                "i:videoScale": 1
+              }
+            ]
+          }
+        ],
+        "b:showMask": false,
+        "b:showMasked": false,
+        "b:isFullscreen": true,
+        "b:isInverted": false,
+        "b:useMSAA": false
+      }
+    ]
   }
 ]

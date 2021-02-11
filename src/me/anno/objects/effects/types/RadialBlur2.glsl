@@ -2,9 +2,9 @@ void main(){
     // other masking: masking of where rays start; has slight artifacts
     // and may be less intuitive
     vec2 dir = (uv1 - offset) * -pixelating.y;
-    float weightSum = 0;
-    vec4 colorSum = vec4(0);
-    float steps0 = clamp(dot(windowSize, abs(dir)), 1, 1000);
+    float weightSum = 0.0;
+    vec4 colorSum = vec4(0.0);
+    float steps0 = clamp(dot(windowSize, abs(dir)), 1.0, 1000.0);
     float steps = exp(round(log(steps0))), invSteps = 1.0/floor(steps);
     int stepsI = int(steps);
     for(int i=0;i<stepsI;i++){

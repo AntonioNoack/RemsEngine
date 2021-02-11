@@ -13,38 +13,42 @@ import javax.imageio.ImageIO
 
 open class GFXBase1: GFXBase0() {
 
-    fun setIcon(){
+    companion object {
 
-        try {
+        fun setIcon(window: Long){
 
-            val image = GLFWImage.malloc()
-            val buffer = GLFWImage.malloc(1)
+            try {
 
-            val bufferedImage: BufferedImage = loadAssetsImage("icon.png")
-            val w = bufferedImage.width
-            val h = bufferedImage.height
-            val pixels = BufferUtils.createByteBuffer(w * h * 4)
-            for (y in 0 until h) {
-                for (x in 0 until w) {
-                    val color = bufferedImage.getRGB(x, y)
-                    pixels.put(color.shr(16).toByte())
-                    pixels.put(color.shr(8).toByte())
-                    pixels.put(color.toByte())
-                    pixels.put(color.shr(24).toByte())
+                val image = GLFWImage.malloc()
+                val buffer = GLFWImage.malloc(1)
+
+                val bufferedImage: BufferedImage = loadAssetsImage("icon.png")
+                val w = bufferedImage.width
+                val h = bufferedImage.height
+                val pixels = BufferUtils.createByteBuffer(w * h * 4)
+                for (y in 0 until h) {
+                    for (x in 0 until w) {
+                        val color = bufferedImage.getRGB(x, y)
+                        pixels.put(color.shr(16).toByte())
+                        pixels.put(color.shr(8).toByte())
+                        pixels.put(color.toByte())
+                        pixels.put(color.shr(24).toByte())
+                    }
                 }
-            }
-            pixels.flip()
-            image.set(w, h, pixels)
-            buffer.put(0, image)
-            glfwSetWindowIcon(window, buffer)
+                pixels.flip()
+                image.set(w, h, pixels)
+                buffer.put(0, image)
+                glfwSetWindowIcon(window, buffer)
 
-        } catch (e: Exception){
-            e.printStackTrace()
+            } catch (e: Exception){
+                e.printStackTrace()
+            }
+
         }
 
-    }
+        fun loadAssetsImage(name: String) = ImageIO.read(loadResource(name).buffered())
 
-    fun loadAssetsImage(name: String) = ImageIO.read(loadResource(name).buffered())
+    }
 
     fun Int.r() = shr(16).and(255)
     fun Int.g() = shr(8).and(255)

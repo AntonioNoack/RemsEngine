@@ -19,11 +19,13 @@ import me.anno.studio.rems.RemsStudio.project
 import me.anno.studio.rems.RemsStudio.root
 import me.anno.ui.editor.files.ImportFromFile.addChildFromFile
 import me.anno.ui.editor.treeView.TreeViewPanel
-import me.anno.utils.files.FileExplorerSelectWrapper
 import me.anno.utils.Maths.length
+import me.anno.utils.files.FileExplorerSelectWrapper
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWDropCallback
+import org.lwjgl.system.Callback
+import org.lwjgl.system.NativeResource
 import java.awt.Toolkit
 import java.awt.datatransfer.DataFlavor.javaFileListFlavor
 import java.awt.datatransfer.DataFlavor.stringFlavor
@@ -62,7 +64,7 @@ object Input {
     var lastClickTime = 0L
     var keyModState = 0
         set(value) {// check for shift...
-            if(isShiftTrulyDown) lastShiftDown = gameTime
+            if (isShiftTrulyDown) lastShiftDown = gameTime
             field = value
         }
 
@@ -402,7 +404,6 @@ object Input {
                     keyModState = mods
                 }
         }
-
 
     }
 

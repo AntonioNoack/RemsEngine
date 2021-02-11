@@ -70,7 +70,7 @@ object VideoProxyCreator : CacheSection("VideoProxies") {
 
     fun markUsed(uuid: String) {
         init()
-        LOGGER.info("Mark used: $uuid = $startDateTime")
+        // LOGGER.info("Mark used: $uuid = $startDateTime")
         info[uuid] = startDateTime
         info.saveMaybe(configName)
     }
@@ -88,7 +88,8 @@ object VideoProxyCreator : CacheSection("VideoProxies") {
         dst.parentFile?.mkdirs()
         object : FFMPEGStream(null) {
             override fun process(process: Process, arguments: List<String>) {
-                // todo filter information, that we don't need...
+                // todo filter information, that we don't need (don't spam the console that much, rather create an overview for it)
+                // todo limit number of processes (? can use full 100% and eat all RAM xD)
                 getOutput("Proxy", process.errorStream)
                 getOutput("Proxy", process.inputStream)
                 process.waitFor()

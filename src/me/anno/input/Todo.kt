@@ -9,9 +9,6 @@ package me.anno.input
 // done load/save everything
 // done load/save components
 // done gfx arrays with customizable properties
-// todo gfx arrays with replace
-
-
 
 // done animated masks for everything...
 // done e.g. invert multiple polygons with it

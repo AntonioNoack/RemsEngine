@@ -81,4 +81,8 @@ object SpeakerModel {
         }
     }
 
+    fun destroy(){
+        speakerModel.destroy()
+    }
+
 }

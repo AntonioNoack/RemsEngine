@@ -75,7 +75,7 @@ public class GFXBaseDae extends GFXBase0 {
 
     @Override
     public void renderStep() {
-        GFX.INSTANCE.workGPUTasks();
+        GFX.INSTANCE.workGPUTasks(false);
         CacheSection.Companion.updateAll();
         // somehow the texture isn't loading for the test... :/
         scene.getCamera().move();

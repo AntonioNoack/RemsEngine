@@ -10,10 +10,11 @@ import me.anno.video.LastFrame
 import me.anno.video.VFrame
 import java.io.InputStream
 
-
 class BGRAFrame(w: Int, h: Int) : VFrame(w, h, 1) {
 
     private val bgra = Texture2D("bgra-frame", w, h, 1)
+
+    override val isCreated: Boolean get() = bgra.isCreated
 
     override fun load(input: InputStream) {
         val s0 = w * h * 4
@@ -22,7 +23,6 @@ class BGRAFrame(w: Int, h: Int) : VFrame(w, h, 1) {
         if (data.size < s0) throw RuntimeException("not enough data, only ${data.size} of $s0")
         GFX.addGPUTask(w, h) {
             bgra.createRGBA(data)
-            isLoaded = true
         }
     }
 
@@ -33,6 +33,7 @@ class BGRAFrame(w: Int, h: Int) : VFrame(w, h, 1) {
     }
 
     override fun destroy() {
+        super.destroy()
         bgra.destroy()
     }
 

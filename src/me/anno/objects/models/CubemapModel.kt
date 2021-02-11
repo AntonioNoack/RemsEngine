@@ -82,4 +82,9 @@ object CubemapModel {
 
     }
 
+    fun destroy(){
+        cubemapLineModel.destroy()
+        cubemapModel.destroy()
+    }
+
 }

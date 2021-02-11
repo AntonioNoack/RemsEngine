@@ -27,18 +27,21 @@ import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.Color.rgba
+import me.anno.utils.LOGGER
 import me.anno.utils.Sleep.sleepABit
 import me.anno.utils.input.readNBytes2
 import me.anno.utils.types.Strings.getImportType
 import me.anno.video.FFMPEGMetadata.Companion.getMeta
 import me.anno.video.VFrame
 import net.boeckling.crc.CRC64
+import org.apache.commons.imaging.ImageReadException
 import org.apache.commons.imaging.Imaging
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
 import org.lwjgl.opengl.GL11.*
 import java.awt.image.BufferedImage
 import java.io.File
+import java.lang.RuntimeException
 import javax.imageio.ImageIO
 import kotlin.concurrent.thread
 import kotlin.math.floor
@@ -303,7 +306,7 @@ object Thumbs {
             try {
                 when (val ext = srcFile.extension.toLowerCase()) {
                     "png", "jpg", "jpeg" -> transformNSaveNUpload(ImageIO.read(srcFile))
-                    "webp" -> generateVideoFrame(0.0)
+                    "webp", "jp2" -> generateVideoFrame(0.0)
                     "hdr" -> {
                         val src = HDRImage(srcFile, true)
                         val sw = src.width
@@ -329,14 +332,17 @@ object Thumbs {
                     else -> {
                         when (ext.getImportType()) {
                             "Video" -> generateVideoFrame(1.0)
-                            "Image", "Cubemap" -> transformNSaveNUpload(Imaging.getBufferedImage(srcFile))
+                            "Image", "Cubemap" -> {
+                                val image = Imaging.getBufferedImage(srcFile)
+                                transformNSaveNUpload(image)
+                            }
                             // else nothing to do
                         }
                     }
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
-                println(srcFile)
+                LOGGER.warn("${e.message}: $srcFile")
             }
 
         }

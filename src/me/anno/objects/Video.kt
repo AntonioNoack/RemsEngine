@@ -123,11 +123,16 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
     val forceAutoScale get() = DefaultConfig["rendering.video.forceAutoScale", true]
     val forceFullScale get() = DefaultConfig["rendering.video.forceFullScale", false]
 
-    override fun getEndTime(): Double = when (type) {
-        VideoType.IMAGE_SEQUENCE -> imageSequenceMeta?.duration
-        VideoType.IMAGE -> Double.POSITIVE_INFINITY
-        else -> meta?.duration
-    } ?: Double.POSITIVE_INFINITY
+    override fun getEndTime(): Double = when (isLooping.value) {
+        LoopingState.PLAY_ONCE -> {
+            when (type) {
+                VideoType.IMAGE_SEQUENCE -> imageSequenceMeta?.duration
+                VideoType.IMAGE -> Double.POSITIVE_INFINITY
+                else -> meta?.duration
+            } ?: Double.POSITIVE_INFINITY
+        }
+        else -> Double.POSITIVE_INFINITY
+    }
 
     override fun isVisible(localTime: Double): Boolean {
         val looping = isLooping.value
@@ -291,11 +296,11 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
 
                 val frame = getVideoFrame(
                     file, max(1, zoomLevel), frameIndex,
-                    framesPerContainer, videoFPS, 20_000, meta,
+                    framesPerContainer, videoFPS, videoFrameTimeout, meta,
                     true
                 )
 
-                if (frame != null && frame.isLoaded) {
+                if (frame != null && frame.isCreated) {
                     w = frame.w
                     h = frame.h
                     return frame
@@ -349,7 +354,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                     framesPerContainer, videoFPS, videoFrameTimeout, true
                 )
 
-                if (frame != null && frame.isLoaded) {
+                if (frame != null) {
                     w = frame.w
                     h = frame.h
                     draw3DVideo(
@@ -399,9 +404,8 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
     }
 
     private fun drawImage(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
-        val name = file.name
-        when {
-            name.endsWith("svg", true) -> {
+        when(file.extension.toLowerCase()){
+            "svg" -> {
                 val bufferData = MeshCache.getEntry(file.absolutePath, "svg", 0, imageTimeout, true) {
                     val svg = SVGMesh()
                     svg.parse(XMLReader.parse(file.inputStream().buffered()) as XMLElement)
@@ -418,22 +422,15 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                     )
                 }
             }
-            name.endsWith("webp", true) -> {
+            "webp", "jp2" -> {
                 val tiling = tiling[time]
                 // calculate required scale? no, without animation, we don't need to scale it down ;)
                 val texture = getVideoFrame(file, 1, 0, 1, 1.0, imageTimeout, true)
-                if (texture == null || !texture.isLoaded) onMissingImageOrFrame()
+                if (texture == null || !texture.isCreated) onMissingImageOrFrame()
                 else {
                     draw3DVideo(
-                        this,
-                        time,
-                        stack,
-                        texture,
-                        color,
-                        filtering.value,
-                        clampMode.value,
-                        tiling,
-                        uvProjection.value
+                        this, time, stack, texture, color,
+                        filtering.value, clampMode.value, tiling, uvProjection.value
                     )
                 }
             }
@@ -852,7 +849,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
             videoScaleNames["1/64"] = 64
         }
 
-        val videoFrameTimeout = DefaultConfig["ui.video.frameTimeout", 500L]
+        val videoFrameTimeout = DefaultConfig["ui.video.frameTimeout", 20_000L]
         val tiling16x9 = Vector4f(8f, 4.5f, 0f, 0f)
 
         val imageTimeout = DefaultConfig["ui.image.frameTimeout", 5000L]

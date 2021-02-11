@@ -15,7 +15,7 @@ import me.anno.objects.modes.ArraySelectionMode
 import me.anno.objects.modes.LoopingState
 import me.anno.objects.modes.TransformVisibility
 import me.anno.objects.modes.UVProjection
-import me.anno.objects.text.TextRenderMode
+import me.anno.objects.modes.TextRenderMode
 import me.anno.studio.rems.RemsStudio
 import me.anno.ui.base.Panel
 import me.anno.ui.input.*

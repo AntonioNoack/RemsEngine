@@ -14,7 +14,7 @@ import kotlin.math.min
 
 object VideoCache : CacheSection("Videos") {
 
-    fun getVideoFrames(
+    private fun getVideoFrames(
         file: File, scale: Int,
         bufferIndex: Int, bufferLength: Int,
         fps: Double, timeout: Long, async: Boolean
@@ -28,6 +28,9 @@ object VideoCache : CacheSection("Videos") {
         } as? VideoData
     }
 
+    /**
+     * returned frames are guaranteed to be created
+     * */
     fun getVideoFrame(
         file: File, scale: Int, index: Int,
         bufferLength0: Int, fps: Double, timeout: Long,
@@ -45,9 +48,13 @@ object VideoCache : CacheSection("Videos") {
             }
         }
         val videoData = getVideoFrames(file, scale, bufferIndex, bufferLength, fps, timeout, async) ?: return null
-        return videoData.frames.getOrNull(index % bufferLength)
+        val frame = videoData.frames.getOrNull(index % bufferLength)
+        return if(frame?.isCreated == true) frame else null
     }
 
+    /**
+     * returned frames are guaranteed to be created
+     * */
     fun getVideoFrame(
         file: File,
         scale: Int,
@@ -69,7 +76,8 @@ object VideoCache : CacheSection("Videos") {
             }
         }
         val videoData = getVideoFrames(file, scale, bufferIndex, bufferLength, fps, timeout, async) ?: return null
-        return videoData.frames.getOrNull(index % bufferLength)
+        val frame = videoData.frames.getOrNull(index % bufferLength)
+        return if(frame?.isCreated == true) frame else null
     }
 
 

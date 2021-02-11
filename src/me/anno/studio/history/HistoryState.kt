@@ -5,9 +5,9 @@ import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.Camera
 import me.anno.objects.Transform
+import me.anno.studio.StudioBase
 import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.RemsStudio.nullCamera
-import me.anno.studio.rems.RemsStudio.windowStack
 import me.anno.studio.rems.Selection
 import me.anno.studio.rems.Selection.select
 import me.anno.ui.editor.sceneTabs.SceneTabs
@@ -16,7 +16,9 @@ import me.anno.utils.types.Lists.join
 
 class HistoryState() : Saveable() {
 
-    constructor(title: String, code: Any): this(){
+    private val windowStack get() = StudioBase.instance.windowStack
+
+    constructor(title: String, code: Any) : this() {
         this.title = title
         this.code = code
     }
@@ -122,7 +124,7 @@ class HistoryState() : Saveable() {
     }
 
     override fun readInt(name: String, value: Int) {
-        when(name){
+        when (name) {
             "selectedUUID" -> selectedUUID = value
             else -> super.readInt(name, value)
         }
@@ -136,7 +138,7 @@ class HistoryState() : Saveable() {
     }
 
     override fun readIntArray(name: String, values: IntArray) {
-        when(name){
+        when (name) {
             "usedCameras" -> usedCameras = values
             else -> super.readIntArray(name, values)
         }

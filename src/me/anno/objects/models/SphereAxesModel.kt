@@ -58,4 +58,12 @@ object SphereAxesModel {
 
     }
 
+    fun destroy(){
+        sphereAxesModels.forEach {
+            if(it.isInitialized()){
+                it.value.destroy()
+            }
+        }
+    }
+
 }

@@ -7,7 +7,7 @@ import kotlin.math.abs
 
 class RotateJPEG(val mirrorHorizontal: Boolean, val mirrorVertical: Boolean, val angleCW: Int){
     val switchWH = (abs(angleCW) % 180) > 45
-    val angleRadians = -(Math.PI * angleCW / 180).toFloat() // CCW
+    private val angleRadians = -(Math.PI * angleCW / 180).toFloat() // CCW
     fun apply(stack: Matrix4f){
         if(mirrorHorizontal){
             stack.scale(Vector3f(1f, -1f, 1f))

@@ -83,7 +83,7 @@ object ShaderLib {
             "uniform vec3 cgSlope, cgOffset, cgPower;\n" +
             "uniform float cgSaturation;\n" +
             "vec3 colorGrading(vec3 raw){\n" +
-            "   vec3 color = pow(max(vec3(0), raw * cgSlope + cgOffset), cgPower);\n" +
+            "   vec3 color = pow(max(vec3(0.0), raw * cgSlope + cgOffset), cgPower);\n" +
             "   float gray = brightness(color);\n" +
             "   return mix(vec3(gray), color, cgSaturation);\n" +
             "}\n"
@@ -233,7 +233,7 @@ object ShaderLib {
                     "a2 attr0;\n" +
                     "u2 pos, size;\n" +
                     "void main(){\n" +
-                    "   gl_Position = vec4((pos + attr0 * size)*2.-1., 0.0, 1.0);\n" +
+                    "   gl_Position = vec4((pos + attr0 * size)*2.0-1.0, 0.0, 1.0);\n" +
                     "}", "", "" +
                     "u4 color;\n" +
                     "void main(){\n" +
@@ -247,7 +247,7 @@ object ShaderLib {
                     "a2 attr0;\n" +
                     "u2 pos, size;\n" +
                     "void main(){\n" +
-                    "   gl_Position = vec4((pos + attr0 * size)*2.-1., 0.0, 1.0);\n" +
+                    "   gl_Position = vec4((pos + attr0 * size)*2.0-1.0, 0.0, 1.0);\n" +
                     "}", "", "" +
                     "u4 color;\n" +
                     "uniform int offset, stride;\n" +
@@ -266,7 +266,7 @@ object ShaderLib {
                     "u4 uvs;\n" +
                     "u4 lColor, rColor;\n" +
                     "void main(){\n" +
-                    "   gl_Position = vec4((pos + attr0 * size)*2.-1., 0.0, 1.0);\n" +
+                    "   gl_Position = vec4((pos + attr0 * size)*2.0-1.0, 0.0, 1.0);\n" +
                     "   color = attr0.x < 0.5 ? lColor : rColor;\n" +
                     "   uv = mix(uvs.xy, uvs.zw, attr0);\n" +
                     "}", "" + // mixing is done by varying
@@ -277,7 +277,7 @@ object ShaderLib {
                     "uniform sampler2D tex0,tex1,tex2;\n" +
                     "void main(){\n" +
                     "   vec4 texColor;\n" +
-                    "   if(uv.x >= 0 && uv.x <= 1){\n" +
+                    "   if(uv.x >= 0.0 && uv.x <= 1.0){\n" +
                     "       switch(code){" +
                     "           case 0: texColor = texture(tex0, uv).gbar;break;\n" + // ARGB
                     "           case 1: texColor = texture(tex0, uv).bgra;break;\n" + // BGRA
@@ -300,7 +300,7 @@ object ShaderLib {
                     "u2 pos, size;\n" +
                     "u4 tiling;\n" +
                     "void main(){\n" +
-                    "   gl_Position = vec4((pos + attr0 * size)*2.-1., 0.0, 1.0);\n" +
+                    "   gl_Position = vec4((pos + attr0 * size)*2.0-1.0, 0.0, 1.0);\n" +
                     "   uv = (attr0-0.5) * tiling.xy + 0.5 + tiling.zw;\n" +
                     "}", "" +
                     "varying vec2 uv;\n", "" +
@@ -320,7 +320,7 @@ object ShaderLib {
                     "uniform sampler2D tex;\n" +
                     "uniform float am1;\n" +
                     "void main(){\n" +
-                    "   gl_FragColor = (1-am1) * texture(tex, uv);\n" +
+                    "   gl_FragColor = (1.0-am1) * texture(tex, uv);\n" +
                     "}", listOf("tex")
         )
 
@@ -331,7 +331,7 @@ object ShaderLib {
                     "a2 attr0;\n" +
                     "u2 pos, size;\n" +
                     "void main(){\n" +
-                    "   gl_Position = vec4((pos + attr0 * size)*2.-1., 0.0, 1.0);\n" +
+                    "   gl_Position = vec4((pos + attr0 * size)*2.0-1.0, 0.0, 1.0);\n" +
                     "   uv = attr0;\n" +
                     "}", "" +
                     "varying v2 uv;\n", "" +
@@ -412,7 +412,7 @@ object ShaderLib {
                     getTextureLib +
                     getColorForceFieldLib +
                     "void main(){\n" +
-                    "   vec4 color = vec4(1);\n" +
+                    "   vec4 color = vec4(1.0);\n" +
                     "   if($hasForceFieldColor) color *= getForceFieldColor();\n" +
                     "   gl_FragColor = tint * color;\n" +
                     "}", listOf()
@@ -425,7 +425,7 @@ object ShaderLib {
                     "a2 attr1;\n" +
                     "u2 offset, scale;\n" +
                     "void main(){\n" +
-                    "   localPosition = vec3(attr0.xy * scale + offset, 0);\n" +
+                    "   localPosition = vec3(attr0.xy * scale + offset, 0.0);\n" +
                     "   gl_Position = transform * vec4(attr0, 1.0);\n" +
                     positionPostProcessing +
                     "   uv = attr0.xy * 0.5 + 0.5;\n" +
@@ -450,10 +450,10 @@ object ShaderLib {
                     "       float smoothness = distSmooth.y;\n" +
                     "       float appliedGradient = max(smoothness, gradient);\n" +
                     "       float mixingFactor0 = (distance-offset)*0.5/appliedGradient;\n" +
-                    "       float mixingFactor = clamp(mixingFactor0,0,1);\n" +
+                    "       float mixingFactor = clamp(mixingFactor0, 0.0, 1.0);\n" +
                     "       color = mix(color, colorHere, mixingFactor);\n" +
                     "   }\n" +
-                    "   gl_FragDepth = gl_FragCoord.z * (1 + distance * 0.000001);\n" +
+                    "   gl_FragDepth = gl_FragCoord.z * (1.0 + distance * 0.00001);\n" +
                     "   if(color.a <= 0.001) discard;\n" +
                     "   if($hasForceFieldColor) color *= getForceFieldColor();\n" +
                     "   gl_FragColor = color;\n" +
@@ -466,7 +466,7 @@ object ShaderLib {
                 "in vec2 attr1;\n" +
                 "uniform float inset;\n" +
                 "void main(){\n" +
-                "   vec2 betterUV = attr0.xy*2.-1.;\n" +
+                "   vec2 betterUV = attr0.xy;\n" +
                 "   betterUV *= mix(1.0, attr1.r, inset);\n" +
                 "   localPosition = vec3(betterUV, attr0.z);\n" +
                 "   gl_Position = transform * vec4(localPosition, 1.0);\n" +
@@ -479,7 +479,7 @@ object ShaderLib {
         val v3DMasked = v3DBase +
                 "a2 attr0;\n" +
                 "void main(){\n" +
-                "   localPosition = vec3(attr0 * 2 - 1, 0.0);\n" +
+                "   localPosition = vec3(attr0*2.0-1.0, 0.0);\n" +
                 "   gl_Position = transform * vec4(localPosition, 1.0);\n" +
                 "   uv = gl_Position.xyw;\n" +
                 positionPostProcessing +
@@ -504,8 +504,8 @@ object ShaderLib {
                 brightness +
                 getColorForceFieldLib +
                 rgb2uv +
-                "float max(vec3 rgb){return max(rgb.r, max(rgb.g, rgb.b));}\n" +
-                "float min(vec3 rgb){return min(rgb.r, min(rgb.g, rgb.b));}\n" +
+                "float maxV3(vec3 rgb){return max(rgb.r, max(rgb.g, rgb.b));}\n" +
+                "float minV3(vec3 rgb){return min(rgb.r, min(rgb.g, rgb.b));}\n" +
                 "void main(){\n" +
                 "   vec2 uv1 = uv.xy/uv.z;\n" +
                 "   vec2 uv2 = uv1 * 0.5 + 0.5;\n" +
@@ -560,7 +560,7 @@ object ShaderLib {
                 "           vec4 colorHere = texture(tex, uv2 + fi * stepSize);\n" +
                 "           float weight = i == 0 ? 1.0 : exp(-relativeX*relativeX);\n" +
                 "           sum += weight;\n" +
-                "           color += vec4(max(vec3(0), colorHere.rgb - threshold), colorHere.a) * weight;\n" +
+                "           color += vec4(max(vec3(0.0), colorHere.rgb - threshold), colorHere.a) * weight;\n" +
                 "       }\n" +
                 "       color /= sum;\n" +
                 "   }\n" +
@@ -573,7 +573,7 @@ object ShaderLib {
             "3d-blur", "" +
                     "a2 attr0;\n" +
                     "void main(){\n" +
-                    "   gl_Position = vec4(2*attr0-1, 0.0, 1.0);\n" +
+                    "   gl_Position = vec4(attr0*2.0-1.0, 0.0, 1.0);\n" +
                     "   uv = attr0;\n" +
                     "}", "varying vec2 uv;\n",  "" +
                     "precision highp float;\n" +
@@ -730,9 +730,6 @@ object ShaderLib {
                         "void main(){\n" +
                         "   vec4 color = getTexture(tex, getProjectedUVs(uv, uvw))$swizzle;\n" +
                         "   color.rgb = colorGrading(color.rgb);\n" +
-                        // "   color.a = 1.0;\n" +
-                        // "   color.rg = getProjectedUVs(uv, uvw);\n" +
-                        // "   color.b = 0;" +
                         "   if($hasForceFieldColor) color *= getForceFieldColor();\n" +
                         "   gl_FragColor = tint * color;\n" +
                         "}", listOf("tex")
@@ -788,7 +785,8 @@ object ShaderLib {
         val shader = ShaderPlus.create(shaderName, v3D, y3D, f3D)
         shader.use()
         textures.forEachIndexed { index, name ->
-            GL20.glUniform1i(shader[name], index)
+            val texName = shader[name]
+            if(texName >= 0) GL20.glUniform1i(texName, index)
         }
         return shader
     }

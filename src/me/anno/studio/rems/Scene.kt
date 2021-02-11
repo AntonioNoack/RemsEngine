@@ -190,7 +190,7 @@ object Scene {
                     "       switch(toneMapper){\n" +
                     ToneMappers.values().joinToString("") {
                         "" +
-                                "       case ${it.id}: toneMapped = ${it.glslFuncName}(raw);break;\n"
+                                "\t\tcase ${it.id}: toneMapped = ${it.glslFuncName}(raw);break;\n"
                     } +
                     "           default: toneMapped = vec3(1,0,1);\n" +
                     "       }" +
@@ -286,278 +286,270 @@ object Scene {
             else -> true
         }
 
-        // we must have crashed before;
-        // somewhere in this function
-        if (stack.currentIndex > 0) {
-            warn("Must have crashed inside Scene.draw() :/")
-            // cleanup is done with stack.clear()
-        }
+        stack.next {
 
-        stack.clear()
+            stack.identity()
 
-        val mayUseMSAA = mayUseMSAA
-        val samples = if (mayUseMSAA && !isFakeColorRendering) 8 else 1
+            val mayUseMSAA = mayUseMSAA
+            val samples = if (mayUseMSAA && !isFakeColorRendering) 8 else 1
 
-        GFX.check()
-
-        if (!isInited) init()
-
-        RemsStudio.currentlyDrawnCamera = camera
-
-        val (cameraTransform, cameraTime) = camera.getGlobalTransform(time)
-        lastGlobalCameraTransform.set(cameraTransform)
-        lGCTInverted.set(cameraTransform)
-        lGCTInverted.invert()
-
-        // todo optimize to use target directly, if no buffer in-between is required
-        // (for low-performance devices)
-
-        val distortion = camera.distortion[cameraTime]
-        val distortionOffset = camera.distortionOffset[cameraTime]
-        val vignetteStrength = camera.vignetteStrength[cameraTime]
-        val chromaticAberration = camera.chromaticAberration[cameraTime]
-        val toneMapping = camera.toneMapping
-
-        val cgOffset = camera.cgOffset[cameraTime]
-        val cgSlope = camera.cgSlope[cameraTime]
-        val cgPower = camera.cgPower[cameraTime]
-        val cgSaturation = camera.cgSaturation[cameraTime]
-
-        val bloomIntensity = camera.bloomIntensity[cameraTime]
-        val bloomSize = camera.bloomSize[cameraTime]
-        val bloomThreshold = camera.bloomThreshold[cameraTime]
-
-        val needsCG = !cgOffset.is000() || !cgSlope.is1111() || !cgPower.is1111() || cgSaturation != 1f
-        val needsBloom = bloomIntensity > 0f && bloomSize > 0f
-
-        var needsTemporaryBuffer = !isFakeColorRendering
-        if (needsTemporaryBuffer) {
-            needsTemporaryBuffer = true ||// I had issues without (low quality settings), soo...
-                    flipY ||
-                    samples > 1 ||
-                    !distortion.is000() ||
-                    vignetteStrength > 0f ||
-                    chromaticAberration > 0f ||
-                    toneMapping != ToneMappers.RAW8 ||
-                    needsCG ||
-                    needsBloom
-        }
-
-        var buffer: Framebuffer? =
-            if (needsTemporaryBuffer) FBStack["Scene-Main", w, h, samples, usesFPBuffers]
-            else Frame.currentFrame!!.buffer
-
-        Frame(0, 0, w, h, false, buffer) {
-
-            Frame.bind()
-
-            if (camera.useDepth) {
-                GL30.glEnable(GL30.GL_DEPTH_TEST)
-                GL30.glClearDepth(1.0)
-                GL30.glDepthRange(-1.0, 1.0)
-                GL30.glDepthFunc(GL30.GL_LESS)
-                if (buffer != null) {
-                    glClearColor(0f, 0f, 0f, 1f)
-                    GL30.glClear(GL30.GL_DEPTH_BUFFER_BIT or GL30.GL_COLOR_BUFFER_BIT)
-                } else {
-                    GL30.glClear(GL30.GL_DEPTH_BUFFER_BIT)
-                }
-            } else {
-                GL30.glDisable(GL30.GL_DEPTH_TEST)
-                if (buffer != null) {
-                    glClearColor(0f, 0f, 0f, 1f)
-                    GL30.glClear(GL30.GL_COLOR_BUFFER_BIT)
-                }
-            }
-
-            if (buffer == null) {
-                GFX.check()
-                drawRect(x0, y0, w, h, black)
-            }
-
-            // draw the 3D stuff
-            nearZ = camera.nearZ[cameraTime]
-            farZ = camera.farZ[cameraTime]
-
-            GFX.applyCameraTransform(
-                camera, cameraTime, cameraTransform,
-                stack
-            )
-
-            // val white = Vector4f(1f, 1f, 1f, 1f)
-            val white = Vector4f(camera.color[cameraTime])
-            val whiteMultiplier = camera.colorMultiplier[cameraTime]
-            white.x *= whiteMultiplier
-            white.y *= whiteMultiplier
-            white.z *= whiteMultiplier
-
-            // use different settings for white balance etc...
-            // remember the transform for later use
-            lastCameraTransform.set(stack)
-
-            if (!isFakeColorRendering && sceneView != null) {
-                stack.next {
-                    if (sceneView.isLocked2D) {
-                        stack.rotate(Math.PI.toFloat() / 2, xAxis)
-                    }
-                    Grid.draw(stack, cameraTransform)
-                }
-            }
-
-            BlendDepth(if (isFakeColorRendering) null else BlendMode.DEFAULT, camera.useDepth) {
-
-                glDepthMask(true)
-
-                if (!isFinalRendering && camera != nullCamera) {
-                    stack.next { nullCamera?.draw(stack, time, white) }
-                }
-
-                stack.next { scene.draw(stack, time, white) }
-
-                GFX.check()
-
-                if (!isFinalRendering && !isFakeColorRendering) {
-                    drawGizmo(cameraTransform, x0, y0, w, h)
-                    GFX.check()
-                }
-
-                drawSelectionRing(isFakeColorRendering, camera, time)
-
-            }
-        }
-
-        /*val enableCircularDOF = isKeyDown('o') && isKeyDown('f')
-        if(enableCircularDOF){
-            // todo render dof instead of bokeh blur only
-            // make bokeh blur an additional camera effect?
-            val srcBuffer = buffer.msBuffer ?: buffer
-            srcBuffer.ensure()
-            val src = srcBuffer.textures[0]
-            buffer = getNextBuffer("Scene-Bokeh", buffer, 0, true, samples = 1)
-            Frame(buffer){
-                BokehBlur.draw(src, Framebuffer.stack.peek()!!, 0.02f)
-            }
-        }*/
-
-        val lutFile = camera.lut
-        val needsLUT = !isFakeColorRendering && lutFile.exists() && !lutFile.isDirectory
-        val lut = if (needsLUT) getLUT(lutFile, true, 20_000) else null
-
-        if (lut == null && needsLUT && isFinalRendering) throw MissingFrameException(lutFile)
-
-        fun drawColors() {
-
-            /**
-             * Tone Mapping, Distortion, and applying the sqrt operation (reverse pow(, 2.2))
-             * */
-
-            // outputTexture.bind(0, true)
-
-            // todo render at higher resolution for extreme distortion?
-            // msaa should help, too
-            // add camera pseudo effects (red-blue-shift)
-            // then apply tonemapping
-            val shader = sqrtToneMappingShader
-            shader.use()
-            shader.v1("ySign", if (flipY) -1f else 1f)
-            val colorDepth = DefaultConfig["gpu.display.colorDepth", 8]
-
-            val minValue = if (isFakeColorRendering) -1f else 1f / (1 shl colorDepth)
-            shader.v1("minValue", minValue)
-
-            val rel = sqrt(w * h.toFloat())
-            val fxScaleX = 1f * w / rel
-            val fxScaleY = 1f * h / rel
-
-            // artistic scale
-            val caScale = 0.01f
-            if (!isFakeColorRendering) {
-                val ca = chromaticAberration * caScale
-                val cao = camera.chromaticOffset[cameraTime] * caScale
-                val angle = (camera.chromaticAngle[cameraTime] * 2 * Math.PI).toFloat()
-                shader.v2("chromaticAberration", cos(angle) * ca / fxScaleX, sin(angle) * ca / fxScaleY)
-                shader.v2("chromaticOffset", cao)
-            }
-
-            // avg brightness: exp avg(log (luminance + offset4black)) (Reinhard tone mapping paper)
-            // middle gray = 0.18?
-
-            // distortion
-            shader.v3("fxScale", fxScaleX, fxScaleY, 1f + distortion.z)
-            shader.v2("distortion", distortion.x, distortion.y)
-            shader.v2("distortionOffset", distortionOffset)
-            if (!isFakeColorRendering) {
-                // vignette
-                shader.v1("vignetteStrength", DEFAULT_VIGNETTE_STRENGTH * vignetteStrength)
-                shader.v3("vignetteColor", camera.vignetteColor[cameraTime])
-                // randomness against banding
-                // tone mapping
-                shader.v1("toneMapper", toneMapping.id)
-                // color grading
-                shader.v3("cgOffset", cgOffset)
-                shader.v3X("cgSlope", cgSlope)
-                shader.v3X("cgPower", cgPower)
-                shader.v1("cgSaturation", cgSaturation)
-            }
-
-            // draw it!
-            flat01.draw(shader)
             GFX.check()
 
-        }
+            if (!isInited) init()
 
-        if (buffer != null) {
+            RemsStudio.currentlyDrawnCamera = camera
 
-            BlendDepth(null, false) {
+            val (cameraTransform, cameraTime) = camera.getGlobalTransform(time)
+            lastGlobalCameraTransform.set(cameraTransform)
+            lGCTInverted.set(cameraTransform)
+            lGCTInverted.invert()
 
-                if (needsBloom) {
+            // todo optimize to use target directly, if no buffer in-between is required
+            // (for low-performance devices)
 
-                    // create blurred version
-                    GaussianBlur.draw(buffer!!, bloomSize, w, h, 1, bloomThreshold, false, Matrix4fArrayList())
-                    buffer = getNextBuffer("Scene-Bloom", buffer!!, 0, GPUFiltering.TRULY_NEAREST, 1)
+            val distortion = camera.distortion[cameraTime]
+            val distortionOffset = camera.distortionOffset[cameraTime]
+            val vignetteStrength = camera.vignetteStrength[cameraTime]
+            val chromaticAberration = camera.chromaticAberration[cameraTime]
+            val toneMapping = camera.toneMapping
 
-                    // add it on top
-                    Frame(buffer) {
-                        val shader = addBloomShader
-                        shader.use()
-                        shader.v1("intensity", bloomIntensity)
-                        flat01.draw(shader)
+            val cgOffset = camera.cgOffset[cameraTime]
+            val cgSlope = camera.cgSlope[cameraTime]
+            val cgPower = camera.cgPower[cameraTime]
+            val cgSaturation = camera.cgSaturation[cameraTime]
+
+            val bloomIntensity = camera.bloomIntensity[cameraTime]
+            val bloomSize = camera.bloomSize[cameraTime]
+            val bloomThreshold = camera.bloomThreshold[cameraTime]
+
+            val needsCG = !cgOffset.is000() || !cgSlope.is1111() || !cgPower.is1111() || cgSaturation != 1f
+            val needsBloom = bloomIntensity > 0f && bloomSize > 0f
+
+            var needsTemporaryBuffer = !isFakeColorRendering
+            if (needsTemporaryBuffer) {
+                needsTemporaryBuffer = true ||// I had issues without (low quality settings), soo...
+                        flipY ||
+                        samples > 1 ||
+                        !distortion.is000() ||
+                        vignetteStrength > 0f ||
+                        chromaticAberration > 0f ||
+                        toneMapping != ToneMappers.RAW8 ||
+                        needsCG ||
+                        needsBloom
+            }
+
+            var buffer: Framebuffer? =
+                if (needsTemporaryBuffer) FBStack["Scene-Main", w, h, samples, usesFPBuffers]
+                else Frame.currentFrame!!.buffer
+
+            Frame(0, 0, w, h, false, buffer) {
+
+                Frame.bind()
+
+                if (camera.useDepth) {
+                    GL30.glEnable(GL30.GL_DEPTH_TEST)
+                    GL30.glClearDepth(1.0)
+                    GL30.glDepthRange(-1.0, 1.0)
+                    GL30.glDepthFunc(GL30.GL_LESS)
+                    if (buffer != null) {
+                        glClearColor(0f, 0f, 0f, 1f)
+                        GL30.glClear(GL30.GL_DEPTH_BUFFER_BIT or GL30.GL_COLOR_BUFFER_BIT)
+                    } else {
+                        GL30.glClear(GL30.GL_DEPTH_BUFFER_BIT)
                     }
-
+                } else {
+                    GL30.glDisable(GL30.GL_DEPTH_TEST)
+                    if (buffer != null) {
+                        glClearColor(0f, 0f, 0f, 1f)
+                        GL30.glClear(GL30.GL_COLOR_BUFFER_BIT)
+                    }
                 }
 
-                val useLUT = lut != null
-                if (useLUT) {
+                if (buffer == null) {
+                    GFX.check()
+                    drawRect(x0, y0, w, h, black)
+                }
 
-                    buffer = getNextBuffer("Scene-LUT", buffer!!, 0, GPUFiltering.LINEAR, 1)
-                    Frame(buffer) {
-                        drawColors()
+                // draw the 3D stuff
+                nearZ = camera.nearZ[cameraTime]
+                farZ = camera.farZ[cameraTime]
+
+                GFX.applyCameraTransform(
+                    camera, cameraTime, cameraTransform,
+                    stack
+                )
+
+                // val white = Vector4f(1f, 1f, 1f, 1f)
+                val white = Vector4f(camera.color[cameraTime])
+                val whiteMultiplier = camera.colorMultiplier[cameraTime]
+                white.x *= whiteMultiplier
+                white.y *= whiteMultiplier
+                white.z *= whiteMultiplier
+
+                // use different settings for white balance etc...
+                // remember the transform for later use
+                lastCameraTransform.set(stack)
+
+                if (!isFakeColorRendering && sceneView != null) {
+                    stack.next {
+                        if (sceneView.isLocked2D) {
+                            stack.rotate(Math.PI.toFloat() / 2, xAxis)
+                        }
+                        Grid.draw(stack, cameraTransform)
+                    }
+                }
+
+                BlendDepth(if (isFakeColorRendering) null else BlendMode.DEFAULT, camera.useDepth) {
+
+                    glDepthMask(true)
+
+                    if (!isFinalRendering && camera != nullCamera) {
+                        stack.next { nullCamera?.draw(stack, time, white) }
                     }
 
-                    /**
-                     * apply the LUT for sepia looks, cold looks, general color correction, ...
-                     * uses the Unreal Engine "format" of an 256x16 image (or 1024x32)
-                     * */
-                    buffer!!.bindTextures(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-                    lutShader.use()
-                    lut!!.bind(1, GPUFiltering.LINEAR)
-                    lut.clamping(false)
-                    flat01.draw(lutShader)
+                    stack.next { scene.draw(stack, time, white) }
+
                     GFX.check()
 
-                } else {
+                    if (!isFinalRendering && !isFakeColorRendering) {
+                        drawGizmo(cameraTransform, x0, y0, w, h)
+                        GFX.check()
+                    }
 
-                    buffer!!.bindTextures(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-                    drawColors()
+                    drawSelectionRing(isFakeColorRendering, camera, time)
 
                 }
             }
 
-        }
+            /*val enableCircularDOF = isKeyDown('o') && isKeyDown('f')
+            if(enableCircularDOF){
+                // todo render dof instead of bokeh blur only
+                // make bokeh blur an additional camera effect?
+                val srcBuffer = buffer.msBuffer ?: buffer
+                srcBuffer.ensure()
+                val src = srcBuffer.textures[0]
+                buffer = getNextBuffer("Scene-Bokeh", buffer, 0, true, samples = 1)
+                Frame(buffer){
+                    BokehBlur.draw(src, Framebuffer.stack.peek()!!, 0.02f)
+                }
+            }*/
 
-        if (stack.currentIndex != 0) {
-            warn("Some function isn't correctly pushing/popping the stack!")
-            // further analysis by testing each object individually?
+            val lutFile = camera.lut
+            val needsLUT = !isFakeColorRendering && lutFile.exists() && !lutFile.isDirectory
+            val lut = if (needsLUT) getLUT(lutFile, true, 20_000) else null
+
+            if (lut == null && needsLUT && isFinalRendering) throw MissingFrameException(lutFile)
+
+            fun drawColors() {
+
+                /**
+                 * Tone Mapping, Distortion, and applying the sqrt operation (reverse pow(, 2.2))
+                 * */
+
+                // outputTexture.bind(0, true)
+
+                // todo render at higher resolution for extreme distortion?
+                // msaa should help, too
+                // add camera pseudo effects (red-blue-shift)
+                // then apply tonemapping
+                val shader = sqrtToneMappingShader
+                shader.use()
+                shader.v1("ySign", if (flipY) -1f else 1f)
+                val colorDepth = DefaultConfig["gpu.display.colorDepth", 8]
+
+                val minValue = if (isFakeColorRendering) -1f else 1f / (1 shl colorDepth)
+                shader.v1("minValue", minValue)
+
+                val rel = sqrt(w * h.toFloat())
+                val fxScaleX = 1f * w / rel
+                val fxScaleY = 1f * h / rel
+
+                // artistic scale
+                val caScale = 0.01f
+                if (!isFakeColorRendering) {
+                    val ca = chromaticAberration * caScale
+                    val cao = camera.chromaticOffset[cameraTime] * caScale
+                    val angle = (camera.chromaticAngle[cameraTime] * 2 * Math.PI).toFloat()
+                    shader.v2("chromaticAberration", cos(angle) * ca / fxScaleX, sin(angle) * ca / fxScaleY)
+                    shader.v2("chromaticOffset", cao)
+                }
+
+                // avg brightness: exp avg(log (luminance + offset4black)) (Reinhard tone mapping paper)
+                // middle gray = 0.18?
+
+                // distortion
+                shader.v3("fxScale", fxScaleX, fxScaleY, 1f + distortion.z)
+                shader.v2("distortion", distortion.x, distortion.y)
+                shader.v2("distortionOffset", distortionOffset)
+                if (!isFakeColorRendering) {
+                    // vignette
+                    shader.v1("vignetteStrength", DEFAULT_VIGNETTE_STRENGTH * vignetteStrength)
+                    shader.v3("vignetteColor", camera.vignetteColor[cameraTime])
+                    // randomness against banding
+                    // tone mapping
+                    shader.v1("toneMapper", toneMapping.id)
+                    // color grading
+                    shader.v3("cgOffset", cgOffset)
+                    shader.v3X("cgSlope", cgSlope)
+                    shader.v3X("cgPower", cgPower)
+                    shader.v1("cgSaturation", cgSaturation)
+                }
+
+                // draw it!
+                flat01.draw(shader)
+                GFX.check()
+
+            }
+
+            if (buffer != null) {
+
+                BlendDepth(null, false) {
+
+                    if (needsBloom) {
+
+                        // create blurred version
+                        GaussianBlur.draw(buffer!!, bloomSize, w, h, 1, bloomThreshold, false, Matrix4fArrayList())
+                        buffer = getNextBuffer("Scene-Bloom", buffer!!, 0, GPUFiltering.TRULY_NEAREST, 1)
+
+                        // add it on top
+                        Frame(buffer) {
+                            val shader = addBloomShader
+                            shader.use()
+                            shader.v1("intensity", bloomIntensity)
+                            flat01.draw(shader)
+                        }
+
+                    }
+
+                    val useLUT = lut != null
+                    if (useLUT) {
+
+                        buffer = getNextBuffer("Scene-LUT", buffer!!, 0, GPUFiltering.LINEAR, 1)
+                        Frame(buffer) {
+                            drawColors()
+                        }
+
+                        /**
+                         * apply the LUT for sepia looks, cold looks, general color correction, ...
+                         * uses the Unreal Engine "format" of an 256x16 image (or 1024x32)
+                         * */
+                        buffer!!.bindTextures(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+                        lutShader.use()
+                        lut!!.bind(1, GPUFiltering.LINEAR)
+                        lut.clamping(false)
+                        flat01.draw(lutShader)
+                        GFX.check()
+
+                    } else {
+
+                        buffer!!.bindTextures(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+                        drawColors()
+
+                    }
+                }
+
+            }
+
         }
 
         GFX.drawMode = oldDrawMode

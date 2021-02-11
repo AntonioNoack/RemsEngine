@@ -160,6 +160,38 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
         return keyframes.remove(keyframe)
     }
 
+    fun <N : Number> getIntegral(t0: Double, t1: Double, allowNegativeValues: Boolean): Double {
+        val int0 = getIntegral<N>(t0, allowNegativeValues)
+        val int1 = getIntegral<N>(t1, allowNegativeValues)
+        return int1 - int0
+    }
+
+    /**
+     * find the position, where I[t1]-I[t0] = target
+     * with accuracy
+     * */
+    fun <N : Number> findIntegralX(t0: Double, t1: Double, target: Double = 1.0, accuracy: Double = 1e-6): Double {
+        val allowNegativeValues = false
+        val int0 = getIntegral<N>(t0, allowNegativeValues)
+        // bisection
+        var min = t0
+        var max = t1
+        // double has 53 bits mantissa -> should be enough most times
+        val maxIterations = 53
+        for (i in 0 until maxIterations) {
+            if (max - min > accuracy) {
+                val middle = (max + min) * 0.5
+                val intI = getIntegral<N>(middle, allowNegativeValues) - int0
+                if (intI < target) {// right side
+                    min = middle
+                } else {// left side
+                    max = middle
+                }
+            } else break
+        }
+        return (max + min) * 0.5
+    }
+
     fun <N : Number> getIntegral(time: Double, allowNegativeValues: Boolean): Double {
         val minValue = if (allowNegativeValues) Double.NEGATIVE_INFINITY else 0.0
         val size = keyframes.size
@@ -277,7 +309,6 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
             val v1 by lazy { getDouble(v, 1) }
             val v2 by lazy { getDouble(v, 2) }
             val v3 by lazy { getDouble(v, 3) }
-            // todo functions for vectors???...
             when (animatedValue) {
                 is Int -> drivers[0]?.getValue(time, v0)?.toInt() ?: animatedValue
                 is Long -> drivers[0]?.getValue(time, v0)?.toLong() ?: animatedValue
@@ -349,7 +380,13 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
 
                 fun mixContains(a: String, b: String, f: Double): String {
                     val firstIndex = a.indexOf(b, 0, true)
-                    return mixSubstring(a, 0, 0, firstIndex, 0, f) + b + a.substring(mixIndices(firstIndex + b.length, a.length, f))
+                    return mixSubstring(a, 0, 0, firstIndex, 0, f) + b + a.substring(
+                        mixIndices(
+                            firstIndex + b.length,
+                            a.length,
+                            f
+                        )
+                    )
                 }
 
                 val aIsLonger = a.length > b.length
@@ -361,8 +398,20 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
                     a == b -> a
                     aIsLonger && a.startsWith(b, true) -> a.substring(0, mixLength(a.length))
                     bIsLonger && b.startsWith(a, true) -> b.substring(0, mixLength(b.length))
-                    aIsLonger && a.endsWith(b, true) -> a.substring(clamp(((a.length - b.length) * f).roundToInt(), 0, a.length))
-                    bIsLonger && b.endsWith(a, true) -> b.substring(clamp(((b.length - a.length) * g).roundToInt(), 0, b.length))
+                    aIsLonger && a.endsWith(b, true) -> a.substring(
+                        clamp(
+                            ((a.length - b.length) * f).roundToInt(),
+                            0,
+                            a.length
+                        )
+                    )
+                    bIsLonger && b.endsWith(a, true) -> b.substring(
+                        clamp(
+                            ((b.length - a.length) * g).roundToInt(),
+                            0,
+                            b.length
+                        )
+                    )
                     aIsLonger && a.contains(b, true) -> mixContains(a, b, f)
                     bIsLonger && b.contains(a, true) -> mixContains(b, a, g)
                     else -> {

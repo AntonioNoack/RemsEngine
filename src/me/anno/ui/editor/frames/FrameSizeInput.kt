@@ -64,10 +64,21 @@ class FrameSizeInput(title: String, value0: String, style: Style) : PanelListY(s
         override fun compareTo(other: Resolution): Int = sortValue.compareTo(other.sortValue)
     }
 
+    var isSelectedListener: () -> Unit = {}
     var changeListener: (w: Int, h: Int) -> Unit = { _, _ -> }
     fun setChangeListener(listener: (w: Int, h: Int) -> Unit): FrameSizeInput {
         changeListener = listener
         return this
+    }
+
+    fun setIsSelectedListener(listener: () -> Unit): FrameSizeInput {
+        isSelectedListener = listener
+        return this
+    }
+
+    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+        super.onDraw(x0, y0, x1, y1)
+        if(isInFocus) isSelectedListener()
     }
 
     companion object {

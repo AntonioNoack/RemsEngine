@@ -1,105 +1,49 @@
 [
   {
-    "class":"MaskLayer",
-    "i:*ptr":1,
-    "S:name":"Mask Layer",
-    "d:timeDilation":1.0,
-    "S:blendMode":"*Inherit",
-    "Transform:children":2,
-    "Transform:children":3,
-    "b:isVisibleInTimeline":true,
-    "b:showMask":false,
-    "b:showMasked":false,
-    "b:showFrame":true,
-    "b:isFullscreen":false,
-    "b:isInverted":true,
-    "i:type":1,
-    "AnimatedProperty<float01exp>:pixelSize":{
-      "i:*ptr":4,
-      "Keyframe:keyframes":{
-        "i:*ptr":5,
-        "f:value":0.015351087
-      },
-      "b:isAnimated":false
-    }
-  },
-  {
-    "class":"Transform",
-    "i:*ptr":2,
-    "MaskLayer:parent":1,
-    "S:name":"Mask Folder",
-    "d:timeDilation":1.0,
-    "S:blendMode":"*Inherit",
-    "Circle:children":6,
-    "b:isVisibleInTimeline":false
-  },
-  {
-    "class":"Transform",
-    "i:*ptr":3,
-    "MaskLayer:parent":1,
-    "S:name":"Masked Folder",
-    "d:timeDilation":1.0,
-    "S:blendMode":"*Inherit",
-    "Image:children":7,
-    "b:isVisibleInTimeline":false
-  },
-  {
-    "class":"Circle",
-    "i:*ptr":6,
-    "Transform:parent":2,
-    "S:name":"Circle",
-    "AnimatedProperty<pos>:position":{
-      "i:*ptr":8,
-      "Keyframe:keyframes":{
-        "i:*ptr":9,
-        "v3:value":[
-          -0.15833342,
-          0.4187494,
-          0.0
+    "class": "MaskLayer",
+    "i:*ptr": 1,
+    "Transform[]:children": [
+      2,
+      {
+        "S:name": "Mask Folder",
+        "Circle[]:children": [
+          1,
+          {
+            "AnimatedProperty:position": {
+              "v3:v": [
+                -0.15833342,
+                0.4187494,
+                0
+              ]
+            },
+            "AnimatedProperty:scale": {
+              "v3:v": [
+                0.49802887,
+                0.49802983,
+                0.49802983
+              ]
+            }
+          }
         ]
       },
-      "b:isAnimated":false
-    },
-    "AnimatedProperty<scale>:scale":{
-      "i:*ptr":10,
-      "Keyframe:keyframes":{
-        "i:*ptr":11,
-        "v3:value":[
-          0.49802887,
-          0.49802983,
-          0.49802983
+      {
+        "S:name": "Masked Folder",
+        "Video[]:children": [
+          1,
+          {
+            "S:file": "$PICTURES$/Anime/pixiv 73258098.webp"
+          }
         ]
-      },
-      "b:isAnimated":false
-    },
-    "d:timeDilation":1.0,
-    "S:blendMode":"*Inherit",
-    "b:isVisibleInTimeline":true,
-    "AnimatedProperty<float01>:innerRadius":{
-      "i:*ptr":12,
-      "Keyframe:keyframes":{
-        "i:*ptr":13
-      },
-      "b:isAnimated":false
-    },
-    "AnimatedProperty<float>:endDegrees":{
-      "i:*ptr":14,
-      "Keyframe:keyframes":{
-        "i:*ptr":15,
-        "f:value":360.0
-      },
-      "b:isAnimated":false
+      }
+    ],
+    "b:showMask": false,
+    "b:showMasked": false,
+    "b:isFullscreen": false,
+    "b:isInverted": true,
+    "b:useMSAA": false,
+    "i:type": 1,
+    "AnimatedProperty:pixelSize": {
+      "f:v": 0.015351087
     }
-  },
-  {
-    "class":"Image",
-    "i:*ptr":7,
-    "Transform:parent":3,
-    "S:name":"pixiv 73258098.webp",
-    "d:timeDilation":1.0,
-    "S:blendMode":"*Inherit",
-    "b:isVisibleInTimeline":true,
-    "S:file":"C:\\Users\\Antonio\\Pictures\\Anime\\pixiv 73258098.webp",
-    "b:nearestFiltering":false
   }
 ]

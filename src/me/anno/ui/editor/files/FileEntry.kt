@@ -21,6 +21,7 @@ import me.anno.language.translation.NameDesc
 import me.anno.objects.Audio
 import me.anno.objects.Camera
 import me.anno.objects.Video
+import me.anno.objects.modes.LoopingState
 import me.anno.studio.StudioBase
 import me.anno.ui.base.Panel
 import me.anno.ui.base.text.TextPanel
@@ -56,8 +57,6 @@ class FileEntry(
     isParent: Boolean, val file: File, style: Style
 ) :
     PanelGroup(style.getChild("fileEntry")) {
-
-    // todo why is ".." split into two lines???
 
     // todo sometimes the title is missing... or its color... why ever...
 
@@ -131,7 +130,7 @@ class FileEntry(
     override fun getLayoutState(): Any? = Pair(super.getLayoutState(), titlePanel.getLayoutState())
     override fun getVisualState(): Any? {
         val tex = when (val tex = getTexKey()) {
-            is VFrame -> if (tex.isLoaded) tex else null
+            is VFrame -> if (tex.isCreated) tex else null
             is Texture2D -> tex.state
             else -> tex
         }
@@ -169,7 +168,9 @@ class FileEntry(
                     frameIndex = if (isHovered) {
                         if (startTime == 0L) {
                             startTime = GFX.gameTime
-                            val audio = Video(file)
+                            val audio = Video(file).apply {
+                                isLooping.value = LoopingState.PLAY_LOOP
+                            }
                             this.audio = audio
                             GFX.addAudioTask(5) {
                                 audio.startPlayback(-hoverPlaybackDelay, 1.0, Camera())
@@ -294,7 +295,7 @@ class FileEntry(
 
         val image = getFrame(0)
         if (frameIndex > 0) getFrame(bufferLength)
-        if (image != null && image.isLoaded) {
+        if (image != null && image.isCreated) {
             drawTexture(
                 GFX.windowWidth, GFX.windowHeight,
                 image, -1, null

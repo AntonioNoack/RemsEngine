@@ -13,12 +13,15 @@ import me.anno.studio.rems.Selection.select
 import me.anno.studio.rems.Selection.selectProperty
 import me.anno.studio.rems.Selection.selectedTransform
 import me.anno.ui.base.Panel
-import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
+import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
+import org.joml.Vector2d
+import org.joml.Vector3d
+import org.joml.Vector4d
 
 abstract class AnimationDriver : Saveable(), Inspectable {
 
@@ -27,6 +30,31 @@ abstract class AnimationDriver : Saveable(), Inspectable {
 
     fun getValue(time: Double, keyframeValue: Double) =
         getValue0(time * frequency, keyframeValue) * amplitude[time]
+
+    // todo more functions for vectors??... allow only one driver per animated driver??...
+    open fun getValue(time: Double, keyframeValue: Vector2d): Vector2d {
+        return Vector2d(
+            getValue0(time * frequency, keyframeValue.x) * amplitude[time],
+            getValue0(time * frequency, keyframeValue.y) * amplitude[time]
+        )
+    }
+
+    open fun getValue(time: Double, keyframeValue: Vector3d): Vector3d {
+        return Vector3d(
+            getValue0(time * frequency, keyframeValue.x) * amplitude[time],
+            getValue0(time * frequency, keyframeValue.y) * amplitude[time],
+            getValue0(time * frequency, keyframeValue.z) * amplitude[time]
+        )
+    }
+
+    open fun getValue(time: Double, keyframeValue: Vector4d): Vector4d {
+        return Vector4d(
+            getValue0(time * frequency, keyframeValue.x) * amplitude[time],
+            getValue0(time * frequency, keyframeValue.y) * amplitude[time],
+            getValue0(time * frequency, keyframeValue.z) * amplitude[time],
+            getValue0(time * frequency, keyframeValue.w) * amplitude[time]
+        )
+    }
 
     abstract fun getValue0(time: Double, keyframeValue: Double): Double
     override fun getApproxSize() = 5

@@ -145,4 +145,17 @@ object SphereModel {
 
     }
 
+    fun destroy(){
+        sphereLineModels.forEach {
+            if(it.isInitialized()){
+                it.value.destroy()
+            }
+        }
+        sphereModels.forEach {
+            if(it.isInitialized()){
+                it.value.destroy()
+            }
+        }
+    }
+
 }

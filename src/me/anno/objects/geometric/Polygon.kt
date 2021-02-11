@@ -187,8 +187,8 @@ class Polygon(parent: Transform? = null) : GFXTransform(parent) {
             val vertexCount = if (hasDepth) frontCount * 2 + sideCount else frontCount
             val buffer = StaticBuffer(listOf(Attribute("attr0", 3), Attribute("attr1", 2)), vertexCount)
             val angles = FloatArray(n + 1) { i -> (i * Math.PI * 2.0 / n).toFloat() }
-            val sin = angles.map { sin(it) * .5f + .5f }
-            val cos = angles.map { -cos(it) * .5f + .5f }
+            val sin = angles.map { +sin(it) }
+            val cos = angles.map { -cos(it) }
 
             val d1 = -1f
             val d2 = +1f
@@ -202,8 +202,8 @@ class Polygon(parent: Transform? = null) : GFXTransform(parent) {
             outline.add(outline.first())
 
             fun putCenter(depth: Float) {
-                buffer.put(0.5f)
-                buffer.put(0.5f)
+                buffer.put(0f)
+                buffer.put(0f)
                 buffer.put(depth)
                 buffer.put(0f)
                 buffer.put(0f)

@@ -25,7 +25,6 @@ import me.anno.ui.editor.files.FileEntry.Companion.drawLoadingCircle
 import me.anno.ui.editor.stacked.Option
 import me.anno.ui.input.BooleanInput
 import me.anno.ui.style.Style
-import me.anno.utils.Maths.mix
 import me.anno.utils.Maths.next
 import me.anno.utils.hpc.HeavyProcessing.processBalanced
 import me.anno.utils.structures.ValueWithDefault
@@ -84,28 +83,24 @@ open class ParticleSystem(parent: Transform? = null) : Transform(parent) {
 
         val lastTime = particles.lastOrNull()?.birthTime ?: 0.0
         val c0 = spawnRate
-        val integral0 = c0.getIntegral<Float>(lastTime, false)
-        val integral1 = c0.getIntegral<Float>(time, false)
-        val sinceThenIntegral = integral1 - integral0
+        val sinceThenIntegral = c0.getIntegral<Float>(lastTime, time, false)
 
         var missingChildren = sinceThenIntegral.toInt()
-
         if (missingChildren > 0) {
 
             if (onlyFirst) missingChildren = max(1, missingChildren)
 
             val ps = particles.size
 
-            // todo more accurate calculation for changing spawn rates...
-            // - calculate, when the integral since lastTime surpassed 1.0 until we have reached time
-
             // generate new particles
             val newParticles = ArrayList<Particle>()
+            var timeI = lastTime
             for (i in 0 until missingChildren) {
-                val newParticle = createParticle(
-                    ps + i,
-                    mix(lastTime, time, (i + 1.0) / sinceThenIntegral)
-                )
+                // more accurate calculation for changing spawn rates
+                // - calculate, when the integral since lastTime surpassed 1.0 until we have reached time
+                val nextTime = c0.findIntegralX<Float>(timeI, time, 1.0, 1e-9)
+                val newParticle = createParticle(ps + i, nextTime)
+                timeI = nextTime
                 newParticles += newParticle ?: continue
             }
 
@@ -411,8 +406,6 @@ open class ParticleSystem(parent: Transform? = null) : Transform(parent) {
     override fun readDouble(name: String, value: Double) {
         when (name) {
             "simulationStep" -> simulationStep = max(1e-9, value)
-            // "fadeIn" -> fadeIn = max(value, 0.0)
-            // "fadeOut" -> fadeOut = max(value, 0.0)
             else -> super.readDouble(name, value)
         }
     }

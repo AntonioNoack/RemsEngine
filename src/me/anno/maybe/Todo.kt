@@ -9,8 +9,3 @@ package me.anno.maybe
 // todo tut video fade-in, fade-out
 // todo tut reframe: change aspect ratio for different platforms (insta, youtube, ...)
 // done tut pixelating a face or car sign
-
-
-
-
-

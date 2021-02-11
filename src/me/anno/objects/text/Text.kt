@@ -25,6 +25,7 @@ import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.animation.Type
 import me.anno.objects.modes.TextMode
+import me.anno.objects.modes.TextRenderMode
 import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.Selection.selectTransform
 import me.anno.studio.rems.Selection.selectedTransform
@@ -781,7 +782,7 @@ open class Text(parent: Transform? = null) : GFXTransform(parent) {
     override fun passesOnColor() = false // otherwise white shadows of black text wont work
 
     override fun getClassName(): String = "Text"
-    override fun getDefaultDisplayName() = Dict["Text", "obj.text"]
+    override fun getDefaultDisplayName() = (text?.keyframes?.maxBy { it.value.length }?.value ?: "").ifBlank { Dict["Text", "obj.text"] }
     override fun getSymbol() = DefaultConfig["ui.symbol.text", "\uD83D\uDCC4"]
 
     companion object {

@@ -11,6 +11,7 @@ import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.objects.GFXTransform
+import me.anno.objects.Transform
 import me.anno.objects.Video
 import me.anno.objects.effects.MaskType
 import me.anno.objects.geometric.Circle
@@ -161,7 +162,7 @@ object GFXx3D {
         stack: Matrix4fArrayList, texture: VFrame, color: Vector4f,
         filtering: Filtering, clamping: Clamping, tiling: Vector4f?, uvProjection: UVProjection
     ) {
-        if (!texture.isLoaded) throw RuntimeException("Frame must be loaded to be rendered!")
+        if (!texture.isCreated) throw RuntimeException("Frame must be loaded to be rendered!")
         val shader = texture.get3DShader()
         shader3DUniforms(shader, stack, texture.w, texture.h, color, tiling, filtering, uvProjection)
         texture.bind(0, filtering, clamping)
@@ -175,16 +176,16 @@ object GFXx3D {
     }
 
     fun draw3DVideo(
-        video: Video, time: Double,
+        video: GFXTransform, time: Double,
         stack: Matrix4fArrayList, texture: VFrame, color: Vector4f,
         filtering: Filtering, clamping: Clamping, tiling: Vector4f?, uvProjection: UVProjection
     ) {
-        if (!texture.isLoaded) throw RuntimeException("Frame must be loaded to be rendered!")
+        if (!texture.isCreated) throw RuntimeException("Frame must be loaded to be rendered!")
         val shader = texture.get3DShader()
         shader.use()
         video.uploadAttractors(shader, time)
         shader3DUniforms(shader, stack, texture.w, texture.h, color, tiling, filtering, uvProjection)
-        colorGradingUniforms(video, time, shader)
+        colorGradingUniforms(video as? Video, time, shader)
         texture.bind(0, filtering, clamping)
         if (shader == ShaderLib.shader3DYUV) {
             val w = texture.w
@@ -286,14 +287,14 @@ object GFXx3D {
     }
 
     fun draw3DVideo(
-        video: Video, time: Double,
+        video: GFXTransform, time: Double,
         stack: Matrix4fArrayList, texture: Texture2D, color: Vector4f,
         filtering: Filtering, clamping: Clamping, tiling: Vector4f?, uvProjection: UVProjection
     ) {
         val shader = ShaderLib.shader3DRGBA
         shader3DUniforms(shader, stack, texture.w, texture.h, color, tiling, filtering, uvProjection)
         video.uploadAttractors(shader, time)
-        colorGradingUniforms(video, time, shader)
+        colorGradingUniforms(video as? Video, time, shader)
         texture.bind(0, filtering, clamping)
         uvProjection.getBuffer().draw(shader)
         GFX.check()

@@ -3,6 +3,9 @@ package me.anno.gpu.texture
 import me.anno.cache.data.ICacheData
 import me.anno.gpu.GFX
 import me.anno.gpu.TextureLib.invisibleTexture
+import me.anno.gpu.texture.Texture2D.Companion.activeSlot
+import me.anno.gpu.texture.Texture2D.Companion.bindTexture
+import me.anno.gpu.texture.Texture2D.Companion.boundTextureSlot
 import me.anno.gpu.texture.Texture2D.Companion.textureBudgetTotal
 import me.anno.gpu.texture.Texture2D.Companion.textureBudgetUsed
 import org.lwjgl.opengl.GL11
@@ -173,12 +176,12 @@ class Texture3D(val w: Int, val h: Int, val d: Int): ICacheData {
 
     fun forceBind(){
         if(pointer == -1) throw RuntimeException()
-        glBindTexture(GL_TEXTURE_3D, pointer)
+        bindTexture(GL_TEXTURE_3D, pointer)
     }
 
     fun bind(nearest: GPUFiltering){
         if(pointer > -1 && isCreated){
-            glBindTexture(GL_TEXTURE_3D, pointer)
+            bindTexture(GL_TEXTURE_3D, pointer)
             ensureFiltering(nearest)
         } else {
             invisibleTexture.bind(GPUFiltering.LINEAR, Clamping.CLAMP)
@@ -186,7 +189,7 @@ class Texture3D(val w: Int, val h: Int, val d: Int): ICacheData {
     }
 
     fun bind(index: Int, nearest: GPUFiltering){
-        glActiveTexture(GL_TEXTURE0 + index)
+        activeSlot(index)
         bind(nearest)
     }
 

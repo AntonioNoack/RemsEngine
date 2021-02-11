@@ -39,7 +39,7 @@ object AudioManager {
                 ALBase.check()
                 val time = System.nanoTime()
                 try {
-                    GFX.workQueue(GFX.audioTasks)
+                    GFX.workQueue(GFX.audioTasks, false)
                 } catch (e: Exception) {
                     // if(e.message != "ALException: Invalid Name") // why does the error happen???
                     e.printStackTrace()

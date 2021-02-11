@@ -4,6 +4,7 @@ import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX.gameTime
 import me.anno.gpu.GFX.inFocus
 import me.anno.io.utils.StringMap
+import me.anno.studio.StudioBase
 import me.anno.studio.rems.RemsStudio
 import me.anno.ui.base.Panel
 import org.apache.logging.log4j.LogManager
@@ -136,7 +137,7 @@ object ActionManager {
                 return
             }
         }
-        for(window in RemsStudio.windowStack){
+        for(window in StudioBase.instance.windowStack){
             for(panel in window.panel.listOfAll){
                 executeLocally(dx, dy, isContinuous, panel, actions)
             }

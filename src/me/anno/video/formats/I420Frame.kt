@@ -20,6 +20,8 @@ class I420Frame(iw: Int, ih: Int) : VFrame(iw, ih, 2) {
     private val u = Texture2D("i420-u-frame", w2, h2, 1)
     private val v = Texture2D("i420-v-frame", w2, h2, 1)
 
+    override val isCreated: Boolean get() = y.isCreated && u.isCreated && v.isCreated
+
     override fun load(input: InputStream) {
         val s0 = w * h
         val s1 = w2 * h2
@@ -40,7 +42,6 @@ class I420Frame(iw: Int, ih: Int) : VFrame(iw, ih, 2) {
             v.createMonochrome(vData)
             // tasks are executed in order, so this is true
             // (if no exception happened)
-            isLoaded = true
         }
     }
 
@@ -62,6 +63,7 @@ class I420Frame(iw: Int, ih: Int) : VFrame(iw, ih, 2) {
     // 5.1 MB / full channel
     // -> awkward....
     override fun destroy() {
+        super.destroy()
         y.destroy()
         u.destroy()
         v.destroy()

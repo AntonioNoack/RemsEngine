@@ -2,6 +2,8 @@ package me.anno.video.formats
 
 import me.anno.gpu.GFX
 import me.anno.gpu.ShaderLib.shader3DRGBA
+import me.anno.gpu.TextureLib.colorShowTexture
+import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
@@ -17,13 +19,15 @@ class RGBFrame(w: Int, h: Int) : VFrame(w, h, -1) {
 
     private val rgb = Texture2D("rgb-frame", w, h, 1)
 
+    override val isCreated: Boolean get() = rgb.isCreated
+
     override fun load(input: InputStream) {
         val s0 = w * h
         val data = ByteBuffer.allocateDirect(s0 * 4)
         val srcData = input.readNBytes2(s0 * 3)
         if (srcData.isEmpty()) throw LastFrame()
         if (srcData.size < s0 * 3) throw EOFException("Missing data ${srcData.size} < ${s0 * 3} for $w x $h")
-        processBalanced(0, s0, 512) { i0, i1 ->
+        processBalanced(0, s0, 2048) { i0, i1 ->
             for (i in i0 until i1) {
                 val j = i * 4
                 val k = i * 3
@@ -33,9 +37,9 @@ class RGBFrame(w: Int, h: Int) : VFrame(w, h, -1) {
                 data.put(j + 3, -1) // offset is required
             }
         }
+        data.position(0)
         GFX.addGPUTask(w, h) {
             rgb.createRGBA(data)
-            isLoaded = true
         }
     }
 
@@ -46,6 +50,7 @@ class RGBFrame(w: Int, h: Int) : VFrame(w, h, -1) {
     }
 
     override fun destroy() {
+        super.destroy()
         rgb.destroy()
     }
 

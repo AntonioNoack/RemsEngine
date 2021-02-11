@@ -1,14 +1,18 @@
 package me.anno.gpu.shader
 
+import me.anno.cache.data.ICacheData
 import me.anno.gpu.GFX
 import me.anno.gpu.framebuffer.Frame
-import me.anno.cache.data.ICacheData
+import me.anno.ui.editor.files.hasValidName
+import me.anno.ui.editor.files.toAllowedFilename
+import me.anno.utils.OS
 import me.anno.utils.structures.arrays.FloatArrayList
 import org.apache.logging.log4j.LogManager
 import org.joml.*
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL20.*
 import org.lwjgl.opengl.GL21.glUniformMatrix4x3fv
+import java.io.File
 import java.nio.FloatBuffer
 
 open class Shader(
@@ -20,16 +24,18 @@ open class Shader(
 ) : ICacheData {
 
     companion object {
+        private var logShaders = true
         private val LOGGER = LogManager.getLogger(Shader::class)
         private const val attributeName = "in"
         private val matrixBuffer = BufferUtils.createFloatBuffer(16)
         private val identity3 = Matrix3f()
         private val identity4 = Matrix4f()
         private val identity4x3 = Matrix4x3f()
+        const val DefaultGLSLVersion = 150
         var lastProgram = -1
     }
 
-    var glslVersion = 150
+    var glslVersion = DefaultGLSLVersion
 
     private var program = -1
 
@@ -48,19 +54,35 @@ open class Shader(
 
         program = glCreateProgram()
         // the shaders are like a C compilation process, .o-files: after linking, they can be removed
-        val vertexShader = compile(
-            GL_VERTEX_SHADER, ("" +
-                    "#version $glslVersion\n " +
-                    "${varying.replace("varying", "out")} $vertex").replaceShortCuts()
-        )
-        val fragmentShader = compile(
-            GL_FRAGMENT_SHADER, ("" +
-                    "#version $glslVersion\n" +
-                    "precision mediump float; ${varying.replace("varying", "in")} $fragment").replaceShortCuts()
-        )
+        val vertexSource = ("" +
+                "#version $glslVersion\n" +
+                "${varying.replace("varying", "out")} $vertex").replaceShortCuts()
+        val vertexShader = compile(GL_VERTEX_SHADER, vertexSource)
+        val fragmentSource = ("" +
+                "#version $glslVersion\n" +
+                "precision mediump float; ${varying.replace("varying", "in")} ${
+                if (fragment.contains("gl_FragColor") && glslVersion == DefaultGLSLVersion) {
+                    "out vec4 glFragColor;" +
+                            fragment.replace("gl_FragColor", "glFragColor")
+                } else fragment}").replaceShortCuts()
+        val fragmentShader = compile(GL_FRAGMENT_SHADER, fragmentSource)
         glLinkProgram(program)
         glDeleteShader(vertexShader)
         glDeleteShader(fragmentShader)
+        logShader(vertexSource, fragmentSource)
+    }
+
+    fun logShader(vertex: String, fragment: String) {
+        if (logShaders) {
+            val folder = File(OS.desktop, "shaders")
+            folder.mkdirs()
+            fun print(ext: String, data: String){
+                val name = "$shaderName.$ext".toAllowedFilename() ?: return
+                File(folder, name).writeText(data)
+            }
+            print("vert", vertex)
+            print("frag", fragment)
+        }
     }
 
     fun String.replaceShortCuts() = if (disableShorts) this else this
@@ -108,7 +130,9 @@ open class Shader(
                         "${"%1\$3s".format(index + 1)}: $line"
                     }.joinToString("\n")}"
             )
-            throw RuntimeException()
+            /*if(!log.contains("deprecated", true)){
+                throw RuntimeException()
+            }*/
         }
     }
 
@@ -133,7 +157,7 @@ open class Shader(
         if (old != -100) return old
         val loc = glGetAttribLocation(program, name)
         attributeLocations[name] = loc
-        if (loc < 0 && name !in ignoredNames){
+        if (loc < 0 && name !in ignoredNames) {
             LOGGER.warn("Attribute location \"$name\" not found in shader $shaderName")
         }
         return loc

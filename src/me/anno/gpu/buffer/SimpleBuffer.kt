@@ -106,6 +106,13 @@ class SimpleBuffer(val vertices: Array<Vector2f>, name: String) : StaticBuffer(
             ), intArrayOf(0, 1, 2, 0, 2, 3), "attr0"
         )
 
+        fun destroy(){
+            flat01.destroy()
+            flat11.destroy()
+            flatLarge.destroy()
+            flat01Cube.destroy()
+        }
+
     }
 
 }

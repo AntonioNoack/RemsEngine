@@ -51,17 +51,6 @@ object GFXx2D {
         GFX.check()
     }
 
-    fun drawRect(x: Int, y: Int, w: Int, h: Int, color: Vector4f) {
-        if (w == 0 || h == 0) return
-        GFX.check()
-        val shader = ShaderLib.flatShader
-        shader.use()
-        posSize(shader, x, y, w, h)
-        shader.v4("color", color)
-        GFX.flat01.draw(shader)
-        GFX.check()
-    }
-
     fun drawRectStriped(x: Int, y: Int, w: Int, h: Int, offset: Int, stride: Int, color: Vector4f) {
         if (w == 0 || h == 0) return
         GFX.check()
@@ -77,8 +66,47 @@ object GFXx2D {
         GFX.check()
     }
 
+    fun drawRect(x: Int, y: Int, w: Int, h: Int, color: Vector4f) {
+        if (w == 0 || h == 0) return
+        GFX.check()
+        val shader = ShaderLib.flatShader
+        shader.use()
+        posSize(shader, x, y, w, h)
+        shader.v4("color", color)
+        GFX.flat01.draw(shader)
+        GFX.check()
+    }
+
     fun drawRect(x: Int, y: Int, w: Int, h: Int, color: Int) {
         if (w == 0 || h == 0) return
+        GFX.check()
+        val shader = ShaderLib.flatShader
+        shader.use()
+        posSize(shader, x, y, w, h)
+        shader.v4("color", color)
+        GFX.flat01.draw(shader)
+        GFX.check()
+    }
+
+    fun drawRect(x: Int, y: Int, w: Int, h: Int) {
+        if (w == 0 || h == 0) return
+        val shader = ShaderLib.flatShader
+        shader.use()
+        posSize(shader, x, y, w, h)
+        GFX.flat01.draw(shader)
+    }
+
+    fun drawRect(x: Float, y: Float, w: Float, h: Float, color: Vector4f) {
+        GFX.check()
+        val shader = ShaderLib.flatShader
+        shader.use()
+        posSize(shader, x, y, w, h)
+        shader.v4("color", color)
+        GFX.flat01.draw(shader)
+        GFX.check()
+    }
+
+    fun drawRect(x: Float, y: Float, w: Float, h: Float, color: Int) {
         GFX.check()
         val shader = ShaderLib.flatShader
         shader.use()
@@ -100,24 +128,6 @@ object GFXx2D {
         val shader = ShaderLib.flatShader
         shader.use()
         shader.v4("color", color)
-    }
-
-    fun drawRect(x: Int, y: Int, w: Int, h: Int) {
-        if (w == 0 || h == 0) return
-        val shader = ShaderLib.flatShader
-        shader.use()
-        posSize(shader, x, y, w, h)
-        GFX.flat01.draw(shader)
-    }
-
-    fun drawRect(x: Float, y: Float, w: Float, h: Float, color: Int) {
-        GFX.check()
-        val shader = ShaderLib.flatShader
-        shader.use()
-        posSize(shader, x, y, w, h)
-        shader.v4("color", color)
-        GFX.flat01.draw(shader)
-        GFX.check()
     }
 
     // the background color is important for correct subpixel rendering, because we can't blend per channel
@@ -184,7 +194,7 @@ object GFXx2D {
             val w = if (equalSpaced) charWidth else size.first
             if (txt.isNotBlank()) {
                 val texture = FontManager.getString(font, txt, -1)
-                if (texture != null) {
+                if (texture != null && (texture !is Texture2D || texture.isCreated)) {
                     texture.bind(GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
                     val x2 = fx + (w - size.first) / 2
                     shader.v2(
@@ -339,7 +349,7 @@ object GFXx2D {
 
     fun draw2D(texture: VFrame) {
 
-        if (!texture.isLoaded) throw RuntimeException("Frame must be loaded to be rendered!")
+        if (!texture.isCreated) throw RuntimeException("Frame must be loaded to be rendered!")
         val shader = texture.get3DShader()
 
         GFX.check()

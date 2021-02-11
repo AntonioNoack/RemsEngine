@@ -206,8 +206,7 @@ class Framebuffer(
             resolveTo(msBuffer)
             msBuffer.bindTextureI(index, offset, nearest, clamping)
         } else {
-            GL13.glActiveTexture(GL13.GL_TEXTURE0 + offset)
-            textures[index].bind(nearest, clamping)
+            textures[index].bind(offset, nearest, clamping)
         }
     }
 
@@ -220,8 +219,7 @@ class Framebuffer(
             msBuffer.bindTextures(offset, nearest, clamping)
         } else {
             textures.forEachIndexed { index, texture ->
-                GL13.glActiveTexture(GL13.GL_TEXTURE0 + offset + index)
-                texture.bind(nearest, clamping)
+                texture.bind(offset + index, nearest, clamping)
             }
         }
         GFX.check()

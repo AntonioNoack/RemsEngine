@@ -1,6 +1,5 @@
 package me.anno.ui.editor.cutting
 
-import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXx2D.drawRect
 import me.anno.input.Input
@@ -53,9 +52,9 @@ class LayerView(style: Style) : TimelinePanel(style) {
     val height = 50
 
     override fun getTooltipPanel(x: Float, y: Float): Panel? {
-        val video = getTransformAt(x,y) as? Video
-        return if(video != null){
-            VideoPreviewPanel(video, height * 2, style){
+        val video = getTransformAt(x, y) as? Video
+        return if (video != null) {
+            VideoPreviewPanel(video, height * 2, style) {
                 video.getLocalTimeFromRoot(getTimeAt(it))
             }
         } else null

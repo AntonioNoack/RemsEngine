@@ -4,6 +4,7 @@ import java.awt.image.BufferedImage;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 
+import me.anno.gpu.texture.Texture2D;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 import org.lwjgl.opengl.GL13;
@@ -42,8 +43,8 @@ public class TextureUtils {
 
 	protected static int loadTextureToOpenGL(TextureData data, TextureBuilder builder) {
 		int texID = GL11.glGenTextures();
-		GL13.glActiveTexture(GL13.GL_TEXTURE0);
-		GL11.glBindTexture(GL11.GL_TEXTURE_2D, texID);
+		Texture2D.Companion.activeSlot(0);
+		Texture2D.Companion.bindTexture(GL11.GL_TEXTURE_2D, texID);
 		GL11.glPixelStorei(GL11.GL_UNPACK_ALIGNMENT, 1);
 		GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA, data.getWidth(), data.getHeight(), 0, GL12.GL_BGRA,
 				GL11.GL_UNSIGNED_BYTE, data.getBuffer());
@@ -70,7 +71,7 @@ public class TextureUtils {
 			GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL11.GL_REPEAT);
 			GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL11.GL_REPEAT);
 		}
-		GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
+		Texture2D.Companion.bindTexture(GL11.GL_TEXTURE_2D, 0);
 		return texID;
 	}
 

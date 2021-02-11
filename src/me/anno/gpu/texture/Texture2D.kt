@@ -5,7 +5,6 @@ import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.glThread
 import me.anno.gpu.GFX.loadTexturesSync
-import me.anno.gpu.TextureLib.invisibleTexture
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.objects.modes.RotateJPEG
 import org.apache.logging.log4j.LogManager
@@ -23,6 +22,7 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
 import kotlin.concurrent.thread
+import kotlin.math.min
 
 open class Texture2D(
     val name: String,
@@ -141,7 +141,6 @@ open class Texture2D(
                     }
                     return
                 } catch (e: Exception) {
-                    // LOGGER.warn(e.message.toString())
                     img.getRGB(0, 0, w, h, null, 0, w)
                 }
             }
@@ -155,7 +154,8 @@ open class Texture2D(
                 val argb = intData[i]
                 val r = (argb and 0xff0000).shr(16)
                 val b = (argb and 0xff).shl(16)
-                intData[i] = argb and 0xff00ff00.toInt() or r or b
+                val ag = argb and 0xff00ff00.toInt()
+                intData[i] = ag or r or b
             }
         } else {
             for (i in intData.indices) {// argb -> rgba
@@ -165,8 +165,9 @@ open class Texture2D(
                 intData[i] = rgb or a
             }
         }
-        if (sync && Thread.currentThread() != glThread) uploadData(intData)
-        else GFX.addGPUTask(w, h) {
+        if (sync && Thread.currentThread() != glThread) {
+            uploadData(intData)
+        } else GFX.addGPUTask(w, h) {
             uploadData(intData)
         }
     }
@@ -275,14 +276,13 @@ open class Texture2D(
     }
 
     fun uploadData(ints: IntArray) {
+        // if(h > 20) println("using ints: $w $h ${ints.size}")
         GFX.check()
         ensurePointer()
         bindBeforeUpload()
         glTexImage2D(tex2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, ints)
         /*uploadData2(toByteBuffer(ints)) {
-
             GFX.check()
-
         }*/
         isCreated = true
         filtering(filtering)
@@ -422,28 +422,32 @@ open class Texture2D(
 
     private fun bindBeforeUpload() {
         if (pointer == -1) throw RuntimeException()
-        glBindTexture(tex2D, pointer)
+        bindTexture(tex2D, pointer)
     }
 
-    override fun bind(nearest: GPUFiltering, clamping: Clamping) {
+    override fun bind(nearest: GPUFiltering, clamping: Clamping): Boolean {
         if (pointer > -1 && isCreated) {
-            glBindTexture(tex2D, pointer)
+            val result = bindTexture(tex2D, pointer)
             ensureFilterAndClamping(nearest, clamping)
-        } else invisibleTexture.bind(invisibleTexture.filtering, invisibleTexture.clamping)
+            return result
+        } else {
+            throw RuntimeException("Cannot bind non-created texture!")
+            // invisibleTexture.bind(invisibleTexture.filtering, invisibleTexture.clamping)
+        }
     }
 
-    override fun bind(index: Int, nearest: GPUFiltering, clamping: Clamping) {
-        glActiveTexture(GL_TEXTURE0 + index)
-        bind(nearest, clamping)
+    override fun bind(index: Int, nearest: GPUFiltering, clamping: Clamping): Boolean {
+        activeSlot(index)
+        return bind(nearest, clamping)
     }
 
     override fun destroy() {
+        this.isCreated = false
         val pointer = pointer
         if (pointer > -1) {
             texturesToDelete.add(pointer)
         }
         this.pointer = -1
-        this.isCreated = false
     }
 
     fun createDepth() {
@@ -468,6 +472,25 @@ open class Texture2D(
     }
 
     companion object {
+
+        var boundTextureSlot = 0
+        val boundTextures = IntArray(512)
+
+        fun activeSlot(index: Int) {
+            if (index != boundTextureSlot) {
+                glActiveTexture(GL_TEXTURE0 + index)
+                boundTextureSlot = index
+            }
+        }
+
+        fun bindTexture(mode: Int, pointer: Int): Boolean {
+            if (pointer < 0) throw IllegalArgumentException("Pointer must be valid")
+            return if (boundTextures[boundTextureSlot] != pointer) {
+                boundTextures[boundTextureSlot] = pointer
+                glBindTexture(mode, pointer)
+                true
+            } else false
+        }
 
         private val LOGGER = LogManager.getLogger(Texture2D::class)
         val textureBudgetTotal = DefaultConfig["gpu.textureBudget", 1_000_000]

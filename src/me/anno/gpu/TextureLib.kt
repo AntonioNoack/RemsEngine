@@ -8,6 +8,9 @@ object TextureLib {
 
     class IndestructibleTexture2D(name: String, w: Int, h: Int) : Texture2D(name, w, h, 1) {
         override fun destroy() {}
+        fun doDestroy(){
+            super.destroy()
+        }
     }
 
     val invisibleTexture = IndestructibleTexture2D("invisible", 1, 1)
@@ -37,6 +40,15 @@ object TextureLib {
         normalTexture.createRGBA(byteArrayOf(127, 127, 255.toByte(), 255.toByte()))
         blackTexture.createRGBA(byteArrayOf(0, 0, 0, 255.toByte()))
         tick.stop("creating default textures")
+    }
+
+    fun destroy(){
+        invisibleTexture.doDestroy()
+        whiteTexture.doDestroy()
+        stripeTexture.doDestroy()
+        colorShowTexture.doDestroy()
+        normalTexture.doDestroy()
+        blackTexture.doDestroy()
     }
 
 }

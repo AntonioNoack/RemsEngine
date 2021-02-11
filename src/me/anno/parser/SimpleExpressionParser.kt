@@ -1,6 +1,6 @@
 package me.anno.parser
 
-import me.anno.parser.CountingList.Companion.isCounted
+import me.anno.utils.structures.lists.CountingList.Companion.isCounted
 import me.anno.parser.Functions.applyFunc0
 import me.anno.parser.Functions.applyFunc1
 import me.anno.parser.Functions.applyFunc2
@@ -14,6 +14,7 @@ import me.anno.parser.Functions.functions2
 import me.anno.parser.Functions.functions3
 import me.anno.parser.Functions.functions4
 import me.anno.parser.Functions.functions5
+import me.anno.utils.structures.lists.CountingList
 import org.apache.logging.log4j.LogManager
 import java.lang.Exception
 import java.lang.RuntimeException

@@ -19,17 +19,22 @@ import org.lwjgl.glfw.GLFWFramebufferSizeCallback;
 import org.lwjgl.glfw.GLFWKeyCallback;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
+import org.lwjgl.opengl.GLCapabilities;
+import org.lwjgl.opengl.GLDebugMessageCallback;
 import org.lwjgl.opengl.GLUtil;
 import org.lwjgl.system.Callback;
 import org.lwjgl.system.MemoryStack;
+import org.lwjgl.system.NativeResource;
 
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.nio.IntBuffer;
-import java.util.Locale;
+import java.util.ArrayList;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL43.GL_DEBUG_OUTPUT;
+import static org.lwjgl.opengl.GL43.glDebugMessageCallback;
 import static org.lwjgl.system.MemoryUtil.NULL;
 import static org.lwjgl.system.MemoryUtil.memAddress;
 
@@ -147,9 +152,17 @@ public class GFXBase0 {
 
         tick.stop("show window");
 
+        GFXBase1.Companion.setIcon(window);
+
+        tick.stop("setting icon");
+
     }
 
     public void setTitle(String title) {
+        newTitle = title;
+    }
+
+    private void setNewTitle(String title){
         glfwSetWindowTitle(window, title);
     }
 
@@ -174,6 +187,7 @@ public class GFXBase0 {
         });
     }
 
+    GLCapabilities capabilities;
     private void runRenderLoop() {
 
         Clock tick = new Clock();
@@ -183,7 +197,7 @@ public class GFXBase0 {
 
         tick.stop("make context current + vsync");
 
-        GL.createCapabilities();
+        capabilities = GL.createCapabilities();
 
         tick.stop("OpenGL initialization");
 
@@ -317,6 +331,7 @@ public class GFXBase0 {
     }
 
     public static String projectName = "Rem's Studio";
+    private String newTitle = null;
     boolean shouldClose = false;
 
     void windowLoop() {
@@ -331,6 +346,10 @@ public class GFXBase0 {
 
         while (!shouldClose) {
             while (!glfwWindowShouldClose(window) && !shouldClose) {
+                if(newTitle != null){
+                    setNewTitle(title);
+                    newTitle = null;
+                }
                 glfwWaitEvents();
             }
             if (DefaultConfig.INSTANCE.get("window.close.directly", false)) {
@@ -353,8 +372,11 @@ public class GFXBase0 {
 
     }
 
-    public void cleanUp() {
+    public void requestExit() {
+        glfwSetWindowShouldClose(window, true);
     }
+
+    public void cleanUp() { }
 
     public static void main(String[] args) {
         new GFXBase0().run();

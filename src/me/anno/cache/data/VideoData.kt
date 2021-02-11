@@ -4,15 +4,22 @@ import me.anno.studio.rems.RemsStudio.gfxSettings
 import me.anno.video.FFMPEGStream
 import java.io.File
 
-class VideoData(file: File, w: Int, h: Int, index: Int, bufferLength: Int, val fps: Double):
+class VideoData(val file: File, val w: Int, val h: Int, val index: Int, val bufferLength: Int, val fps: Double) :
     ICacheData {
 
     // what about video webp? I think it's pretty rare...
-    val stream = FFMPEGStream.getImageSequence(file, w, h, index * bufferLength,
-        if(file.name.endsWith(".webp", true)) 1 else bufferLength, fps)
+    val stream = FFMPEGStream.getImageSequence(
+        file, w, h, index * bufferLength,
+        if (file.name.endsWith(".webp", true)) 1 else bufferLength, fps
+    )
     val frames = stream.frames
 
+    /*init {// LayerView was not keeping its resources loaded
+        if("128 per second" in file.name) println("get video frames $file $w $h $index $bufferLength $fps")
+    }*/
+
     override fun destroy() {
+        //if("128 per second" in file.name) println("destroy v frames $file $w $h $index $bufferLength $fps")
         stream.destroy()
     }
 

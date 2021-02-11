@@ -46,6 +46,7 @@ import me.anno.utils.types.Casting.castToDouble2
 import me.anno.utils.types.Matrices.skew
 import org.apache.logging.log4j.LogManager
 import org.joml.*
+import java.lang.Exception
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
 
@@ -221,9 +222,7 @@ open class Transform(var parent: Transform? = null) : Saveable(),
         // time
         val timeGroup = getGroup("Time", "", "time")
         timeGroup += vi("Start Time", "Delay the animation", null, timeOffset, style) { timeOffset = it }
-        timeGroup += vi("Time Multiplier", "Speed up the animation", dilationType, timeDilation, style) {
-            timeDilation = it
-        }
+        timeGroup += vi("Time Multiplier", "Speed up the animation", dilationType, timeDilation, style) { timeDilation = it }
         timeGroup += vi("Advanced Time", "Add acceleration/deceleration to your elements", timeAnimated, style)
 
         val editorGroup = getGroup("Editor", "", "editor")
@@ -434,6 +433,8 @@ open class Transform(var parent: Transform? = null) : Saveable(),
         when (name) {
             "timeDilation" -> timeDilation = value
             "timeOffset" -> timeOffset = value
+            "fadeIn" -> if(value >= 0.0) fadeIn.set(value.toFloat())
+            "fadeOut" -> if(value >= 0.0) fadeOut.set(value.toFloat())
             else -> super.readDouble(name, value)
         }
     }
@@ -565,7 +566,21 @@ open class Transform(var parent: Transform? = null) : Saveable(),
 
     override fun isDefaultValue() = false
 
-    fun clone() = TextWriter.toText(this, false).toTransform()
+    fun clone(): Transform {
+        val asString = try {
+            TextWriter.toText(this, false)
+        } catch (e: Exception){
+            e.printStackTrace()
+            ""
+        }
+        try {
+            return asString.toTransform()!!
+        } catch (e: Exception){
+            println(asString)
+            e.printStackTrace()
+            throw RuntimeException("Failed to parse!")
+        }
+    }
     open fun acceptsWeight() = false
     open fun passesOnColor() = true
 

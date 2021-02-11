@@ -6,6 +6,7 @@ import me.anno.gpu.Window
 import me.anno.input.MouseButton
 import me.anno.language.translation.Dict
 import me.anno.studio.Logging
+import me.anno.studio.StudioBase
 import me.anno.studio.rems.RemsStudio
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.text.TextPanel
@@ -57,7 +58,7 @@ class ConsoleOutputPanel(style: Style): TextPanel("", style) {
                 panel.textColor = mixARGB(panel.textColor, color, 0.5f)
                 list += panel
             }
-            RemsStudio.windowStack.add(Window(listPanel, true, 0, 0))
+            StudioBase.instance.windowStack.add(Window(listPanel, true, 0, 0))
         }
     }
 }

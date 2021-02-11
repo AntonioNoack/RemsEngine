@@ -18,6 +18,7 @@ import me.anno.language.translation.NameDesc
 import me.anno.objects.Camera
 import me.anno.objects.text.Text
 import me.anno.studio.GFXSettings
+import me.anno.studio.StudioBase
 import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.studio.StudioBase.Companion.workspace
 import me.anno.studio.rems.ProjectSettings
@@ -27,7 +28,6 @@ import me.anno.studio.rems.RemsStudio.nullCamera
 import me.anno.studio.rems.RemsStudio.project
 import me.anno.studio.rems.RemsStudio.root
 import me.anno.studio.rems.RemsStudio.versionName
-import me.anno.studio.rems.RemsStudio.windowStack
 import me.anno.studio.rems.RenderSettings
 import me.anno.studio.rems.Rendering.renderAudio
 import me.anno.studio.rems.Rendering.renderPart
@@ -76,6 +76,8 @@ import java.net.URL
 import kotlin.concurrent.thread
 
 object UILayouts {
+
+    private val windowStack get() = StudioBase.instance.windowStack
 
     private val LOGGER = LogManager.getLogger(UILayouts::class)
 
@@ -479,6 +481,7 @@ object UILayouts {
         }
 
         options.addAction(debugTitle, "Reload Cache (Ctrl+F5)") { CacheSection.clearAll() }
+        options.addAction(debugTitle, "Clear Cache") { ConfigBasics.cacheFolder.deleteRecursively() }
         options.addAction(debugTitle, "Reload Plugins") { ExtensionLoader.reloadPlugins() }
         // todo overview to show plugins & mods
         // todo marketplace for plugins & mods?

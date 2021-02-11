@@ -31,18 +31,26 @@ class TextReader(val data: String) : BaseReader() {
         assert(skipSpace(), ':')
         assert(skipSpace(), '"')
         val clazz = readString()
-        assert(skipSpace(), ',')
-        assert(skipSpace(), '"')
-        val secondProperty = readString()
-        assert(skipSpace(), ':')
-        var obj = getNewClassInstance(clazz)
-        val ptr = if (secondProperty == "i:*ptr") {
-            readInt()
+        val nc0 = skipSpace()
+        var obj: ISaveable
+        val ptr: Int
+        if(nc0 == ','){
+            assert(skipSpace(), '"')
+            val secondProperty = readString()
+            assert(skipSpace(), ':')
+            obj = getNewClassInstance(clazz)
+            ptr = if (secondProperty == "i:*ptr") {
+                readInt()
+            } else {
+                obj = readProperty(obj, secondProperty)
+                getUnusedPointer() // not used
+            }
+            obj = propertyLoop(obj)
         } else {
-            obj = readProperty(obj, secondProperty)
-            getUnusedPointer() // not used
+            assert(nc0, '}')
+            obj = getNewClassInstance(clazz)
+            ptr = getUnusedPointer()
         }
-        obj = propertyLoop(obj)
         register(obj, ptr)
         return obj
     }

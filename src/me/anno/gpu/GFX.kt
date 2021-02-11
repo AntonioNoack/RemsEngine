@@ -206,10 +206,6 @@ object GFX : GFXBase1() {
         } else null
     }
 
-    fun requestExit() {
-        glfwSetWindowShouldClose(window, true)
-    }
-
     override fun addCallbacks() {
         super.addCallbacks()
         Input.initForGLFW()
@@ -217,7 +213,7 @@ object GFX : GFXBase1() {
 
     fun applyCameraTransform(camera: Camera, time: Double, cameraTransform: Matrix4f, stack: Matrix4fArrayList) {
         val offset = camera.getEffectiveOffset(time)
-        cameraTransform.translate(0f,0f,camera.orbitRadius[time])
+        cameraTransform.translate(0f, 0f, camera.orbitRadius[time])
         val cameraTransform2 = if (offset != 0f) {
             Matrix4f(cameraTransform).translate(0f, 0f, offset)
         } else cameraTransform
@@ -234,7 +230,7 @@ object GFX : GFXBase1() {
             )
             .lookAt(position, lookAt, up.normalize())
         val scale = pow(1f / camera.orbitRadius[time], camera.orthographicness[time])
-        if(scale != 0f && scale.isFinite()) stack.scale(scale)
+        if (scale != 0f && scale.isFinite()) stack.scale(scale)
     }
 
     fun shaderColor(shader: Shader, name: String, color: Vector4f) {
@@ -290,12 +286,9 @@ object GFX : GFXBase1() {
         tick.stop("render step zero")
         TextureLib.init()
         ShaderLib.init()
-        tick.start()
-        setIcon()
-        tick.stop("setting icon")
     }
 
-    fun workQueue(queue: ConcurrentLinkedQueue<Task>) {
+    fun workQueue(queue: ConcurrentLinkedQueue<Task>, all: Boolean) {
         // async work section
 
         // work 1/5th of the tasks by weight...
@@ -309,13 +302,17 @@ object GFX : GFXBase1() {
         val workTime0 = System.nanoTime()
         while (true) {
             val nextTask = queue.poll() ?: break
-            nextTask.second()
+            try {
+                nextTask.second()
+            } catch (e: Throwable) {
+                e.printStackTrace()
+            }
             if (Thread.currentThread() == glThread) check()
             workDone += nextTask.first
-            if (workDone >= workTodo) break
+            if (workDone >= workTodo && !all) break
             val workTime1 = System.nanoTime()
             val workTime = abs(workTime1 - workTime0) * 1e-9f
-            if (workTime * 60f > 1f) break // too much work
+            if (workTime * 60f > 1f && !all) break // too much work
         }
 
     }
@@ -331,8 +328,8 @@ object GFX : GFXBase1() {
         Framebuffer.stack.clear()*/
     }
 
-    fun workGPUTasks() {
-        workQueue(gpuTasks)
+    fun workGPUTasks(all: Boolean) {
+        workQueue(gpuTasks, all)
     }
 
     fun workEventTasks() {
@@ -351,7 +348,7 @@ object GFX : GFXBase1() {
 
         ensureEmptyStack()
 
-        workGPUTasks()
+        workGPUTasks(false)
 
         ensureEmptyStack()
 
@@ -369,7 +366,7 @@ object GFX : GFXBase1() {
 
         check()
 
-        glBindTexture(GL_TEXTURE_2D, 0)
+        Texture2D.bindTexture(GL_TEXTURE_2D, 0)
 
         BlendDepth.reset()
 
@@ -453,5 +450,23 @@ object GFX : GFXBase1() {
             }
         }
     }
+
+    //override fun cleanUp() {
+        // destroy all used meshes, shaders, ...
+        // not that dearly needed, as the memory
+        // is freed anyways, when the process is killed
+        // Cache.clear()
+        // workGPUTasks(true)
+        /*SimpleBuffer.destroy()
+        CameraModel.destroy()
+        ArrowModel.destroy()
+        CubemapModel.destroy()
+        SpeakerModel.destroy()
+        SphereAxesModel.destroy()
+        SphereModel.destroy()
+        TextureLib.destroy()
+        GL.setCapabilities(null)*/
+    /*    super.cleanUp()
+    }*/
 
 }

@@ -3,7 +3,7 @@ package me.anno.objects.animation.drivers
 import me.anno.config.DefaultConfig
 import me.anno.io.base.BaseWriter
 import me.anno.language.translation.Dict
-import me.anno.parser.CountingList
+import me.anno.utils.structures.lists.CountingList
 import me.anno.parser.SimpleExpressionParser.parseDouble
 import me.anno.parser.SimpleExpressionParser.preparse
 import me.anno.ui.base.groups.PanelListY

@@ -145,7 +145,7 @@ class Particle(
         newState.position = position
         newState.dPosition = dPosition
         newState.rotation = oldState.rotation + oldState.dRotation * dt
-        newState.dRotation = oldState.dRotation // todo rotational friction or acceleration???...
+        newState.dRotation = oldState.dRotation
         newState.color = oldState.color
         states.add(newState)
 
