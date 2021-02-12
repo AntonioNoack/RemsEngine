@@ -1,6 +1,6 @@
 package me.anno.objects.animation
 
-import me.anno.ui.base.constraints.AxisAlignment
+import me.anno.utils.Maths.clamp
 import me.anno.utils.types.Casting.castToDouble
 import me.anno.utils.types.Casting.castToDouble2
 import me.anno.utils.types.Casting.castToFloat
@@ -8,17 +8,17 @@ import me.anno.utils.types.Casting.castToFloat2
 import me.anno.utils.types.Casting.castToInt
 import me.anno.utils.types.Casting.castToInt2
 import me.anno.utils.types.Casting.castToLong
+import me.anno.utils.types.Casting.castToString
 import me.anno.utils.types.Casting.castToVector2f
 import me.anno.utils.types.Casting.castToVector3f
 import me.anno.utils.types.Casting.castToVector4d
 import me.anno.utils.types.Casting.castToVector4f
-import me.anno.utils.Maths.clamp
-import me.anno.utils.types.Casting.castToString
+import org.apache.logging.log4j.LogManager
 import org.joml.*
 import kotlin.math.max
 
 class Type(
-    val defaultValue: Any,
+    defaultValue: Any,
     val components: Int,
     val unitScale: Float,
     val hasLinear: Boolean,
@@ -26,6 +26,12 @@ class Type(
     val clampFunc: ((Any?) -> Any)?,
     val acceptOrNull: (Any) -> Any?
 ) {
+
+    val defaultValue = acceptOrNull(clamp(defaultValue).apply {
+        if (this != defaultValue)
+            LOGGER.warn("Value had to be clamped from $defaultValue to $this")
+    })
+        ?: throw IllegalArgumentException("Incompatible default value $defaultValue")
 
     override fun toString() = "Type[${defaultValue.javaClass.simpleName} x $components]"
 
@@ -37,6 +43,8 @@ class Type(
     fun <V> clamp(value: V): V = if (clampFunc != null) clampFunc.invoke(value) as V else value
 
     companion object {
+
+        private val LOGGER = LogManager.getLogger(Type::class)
 
         val ANY = Type(0, 16, 1f, true, true, null) { it }
         val INT = Type(0, 1, 1f, true, true, null, ::castToInt)
@@ -67,6 +75,7 @@ class Type(
         val POSITION_2D = Type(Vector2f(), 2, 1f, true, true, null, ::castToVector2f)
         val SCALE = Type(Vector3f(1f, 1f, 1f), 3, 1f, true, true, null, ::castToVector3f)
         val ROT_YXZ = Type(Vector3f(), 3, 90f, true, true, null, ::castToVector3f)
+        val ROT_Y = Type(0f, 1, 90f, true, true, null, ::castToFloat)
         val ROT_XZ = Type(Vector3f(), 2, 90f, true, true, null, ::castToVector2f)
         val SKEW_2D = Type(Vector2f(), 2, 1f, true, true, null, ::castToVector2f)
         val QUATERNION = Type(Quaternionf(), 4, 1f, true, true, null) { if (it is Quaternionf) it else null }

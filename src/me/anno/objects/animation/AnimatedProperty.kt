@@ -59,6 +59,7 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
         fun pos(defaultValue: Vector3f) = AnimatedProperty(Type.POSITION, defaultValue)
         fun pos2D() = AnimatedProperty<Vector2f>(Type.POSITION_2D)
         fun rotYXZ() = AnimatedProperty<Vector3f>(Type.ROT_YXZ)
+        fun rotY() = AnimatedProperty<Float>(Type.ROT_Y)
         fun rotXZ() = AnimatedProperty<Vector2f>(Type.ROT_XZ)
         fun scale() = AnimatedProperty<Vector3f>(Type.SCALE)
         fun scale(defaultValue: Vector3f) = AnimatedProperty(Type.SCALE, defaultValue)
@@ -72,6 +73,8 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
 
         fun string() = AnimatedProperty(Type.STRING, "")
         fun alignment() = AnimatedProperty(Type.ALIGNMENT, 0f)
+
+        // fun <V> set() = AnimatedProperty(Type.ANY, emptySet<V>())
 
     }
 

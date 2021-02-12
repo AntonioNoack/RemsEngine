@@ -27,6 +27,7 @@ import me.anno.objects.geometric.Polygon
 import me.anno.objects.meshes.Mesh
 import me.anno.objects.particles.ParticleSystem
 import me.anno.objects.particles.TextParticles
+import me.anno.objects.documents.pdf.PDFDocument
 import me.anno.objects.text.Text
 import me.anno.objects.text.Timer
 import me.anno.studio.history.History
@@ -155,6 +156,7 @@ abstract class BaseReader {
                 "BoolArray" -> BoolArray()
                 "TextParticles" -> TextParticles()
                 "SoftLink" -> SoftLink()
+                "PDFDocument" -> PDFDocument()
                 else -> {
                     // just for old stuff; AnimatedProperties must not be loaded directly; always just copied into
                     if (clazz.startsWith("AnimatedProperty<")) AnimatedProperty.any()

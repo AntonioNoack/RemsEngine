@@ -398,11 +398,12 @@ class LayerView(style: Style) : TimelinePanel(style) {
                 var sumDY = (y - Input.mouseDownY) / height
                 if (sumDY < 0) sumDY += 0.5f
                 else sumDY -= 0.5f
-                // todo make sure the timeline slot doesn't have invalid values
-                val newSlot = thisSlot + sumDY.roundToInt()
-                if (newSlot != timelineSlot) {
-                    RemsStudio.largeChange("Changed Timeline Slot") {
-                        timelineSlot = newSlot
+                if(sumDY.isFinite()){
+                    val newSlot = thisSlot + sumDY.roundToInt()
+                    if (newSlot != timelineSlot) {
+                        RemsStudio.largeChange("Changed Timeline Slot") {
+                            timelineSlot = newSlot
+                        }
                     }
                 }
             }

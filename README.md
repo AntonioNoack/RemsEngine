@@ -18,7 +18,7 @@ It is additionally developed with Java, so it works with Windows and Linux.
 
 ## Currently used libraries
 
-* [LWJGL](https://www.lwjgl.org/) (OpenGL + GLFW + OpenAL + stb)
+* [LWJGL](https://www.lwjgl.org/) (Graphics and Audio; OpenGL + GLFW + OpenAL + stb + jemalloc)
 * [JOML](https://github.com/JOML-CI/JOML) (Matrix calculations and transforms for rendering)
 * [FFMpeg](https://ffmpeg.org/) (Video/Image/Audio Import & Export)
 * [HSLuv](https://github.com/hsluv/hsluv-java) (HSL alternative with constant brightness)
@@ -26,7 +26,12 @@ It is additionally developed with Java, so it works with Windows and Linux.
 * [LanguageTool](https://languagetool.org/) (Spellchecking)
 * [JTransforms](https://sites.google.com/site/piotrwendykier/software/jtransforms) (Fast Fourier Transform)
 * [Apache Imaging](https://commons.apache.org/proper/commons-imaging/) (More supported image formats, like .ico)
+* [Apache CLI](https://commons.apache.org/proper/commons-cli/) (Basics of Command Line Interface)
 * [Metadata Extractor](https://github.com/drewnoakes/metadata-extractor) (Detecting rotated JPEG files)
+* [JNA Platform](https://github.com/java-native-access/jna) (Moving files to trash)
+* [Apache PDFBox](https://pdfbox.apache.org/) (Rendering PDFs)
+* [JAI ImageIO Core](https://github.com/jai-imageio/jai-imageio-core) (More image formats for PDF)
+* [JAI ImageIO JPEG2000](https://github.com/jai-imageio/jai-imageio-jpeg2000) (JPEG 2000 support for PDFs)
 <!-- * [Caliko](https://github.com/FedUni/caliko) (FABRIK IK) -->
 
 ## Download

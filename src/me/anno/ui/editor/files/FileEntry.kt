@@ -17,6 +17,7 @@ import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.input.Input
 import me.anno.input.MouseButton
+import me.anno.io.trash.TrashManager.moveToTrash
 import me.anno.language.translation.NameDesc
 import me.anno.objects.Audio
 import me.anno.objects.Camera
@@ -24,28 +25,31 @@ import me.anno.objects.Video
 import me.anno.objects.modes.LoopingState
 import me.anno.studio.StudioBase
 import me.anno.ui.base.Panel
-import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.base.menu.Menu.ask
 import me.anno.ui.base.menu.Menu.askName
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
+import me.anno.ui.base.text.TextPanel
 import me.anno.ui.dragging.Draggable
 import me.anno.ui.editor.files.thumbs.Thumbs
 import me.anno.ui.editor.sceneTabs.SceneTabs
 import me.anno.ui.style.Style
+import me.anno.utils.Maths.mixARGB
+import me.anno.utils.Maths.sq
+import me.anno.utils.Tabs
 import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.files.Files.listFiles2
 import me.anno.utils.files.Files.openInExplorer
-import me.anno.utils.Maths.mixARGB
-import me.anno.utils.Maths.sq
 import me.anno.utils.structures.tuples.Quad
+import me.anno.utils.types.Lists.sumByFloat
+import me.anno.utils.types.Lists.sumByLong
 import me.anno.utils.types.Strings.getImportType
-import me.anno.utils.Tabs
 import me.anno.video.FFMPEGMetadata
 import me.anno.video.VFrame
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
+import java.awt.Desktop
 import java.io.File
 import kotlin.math.ceil
 import kotlin.math.max
@@ -225,7 +229,7 @@ class FileEntry(
                     } else getDefaultIcon()
                 } else getDefaultIcon()
             }
-            "Image" -> getImage()
+            "Image", "PDF" -> getImage()
             else -> getDefaultIcon()
         }
     }
@@ -250,11 +254,6 @@ class FileEntry(
         if (time < 0.0) {
             // countdown-circle, pseudo-loading
             // saves us some computations
-            // todo when we have precomputed images, already here preload the video
-            // load directly from windows? https://en.wikipedia.org/wiki/Windows_thumbnail_cache#:~:text=locality%20of%20Thumbs.-,db%20files.,thumbnails%20in%20each%20sized%20database.
-            // https://stackoverflow.com/questions/1439719/c-sharp-get-thumbnail-from-file-via-windows-api?
-            // how about Linux/Mac?
-            // (maybe after half of the waiting time)
             val relativeTime = ((hoverPlaybackDelay + time) / hoverPlaybackDelay).toFloat()
             drawLoadingCircle(relativeTime, x0, x1, y0, y1)
         }
@@ -323,7 +322,7 @@ class FileEntry(
                         }
                     } else drawDefaultIcon(x0, y0, x1, y1)
                 }
-                "Image" -> drawImageOrThumb(x0, y0, x1, y1)
+                "Image", "PDF" -> drawImageOrThumb(x0, y0, x1, y1)
                 else -> drawDefaultIcon(x0, y0, x1, y1)
             }
         }
@@ -399,7 +398,8 @@ class FileEntry(
             "DragStart" -> {
                 if (StudioBase.dragged?.getOriginal() != file) {
                     StudioBase.dragged =
-                        Draggable(file.toString(), "File", file,
+                        Draggable(
+                            file.toString(), "File", file,
                             TextPanel(file.nameWithoutExtension, style)
                         )
                 }
@@ -413,7 +413,13 @@ class FileEntry(
                 }
             }
             "Rename" -> {
-                askName(x.toInt(), y.toInt(), NameDesc("Rename To...", "", "ui.file.rename2"), file.name, NameDesc("Rename"), { -1 }) {
+                askName(
+                    x.toInt(),
+                    y.toInt(),
+                    NameDesc("Rename To...", "", "ui.file.rename2"),
+                    file.name,
+                    NameDesc("Rename"),
+                    { -1 }) {
                     val allowed = it.toAllowedFilename()
                     if (allowed != null) {
                         val dst = File(file.parentFile, allowed)
@@ -475,18 +481,17 @@ class FileEntry(
                 "",
                 "ui.file.delete.ask"
             ), listOf(
-                /* "Yes" to {
-                     // todo move to OS trash
-                     file.deleteRecursively()
-                     explorer.invalidate()
-                 },*/
                 MenuOption(
                     NameDesc(
-                        "No",
-                        "Don't delete the file, keep it",
-                        "ui.file.delete.no"
+                        "Yes",
+                        "Move the file to the trash",
+                        "ui.file.delete.yes"
                     )
-                ) {},
+                ) {
+                    moveToTrash(file)
+                    explorer.invalidate()
+                },
+                dontDelete,
                 MenuOption(
                     NameDesc(
                         "Yes, permanently",
@@ -501,31 +506,28 @@ class FileEntry(
     }
 
     override fun onDeleteKey(x: Float, y: Float) {
-        if (inFocus.size == 1) {
+        val files = inFocus.mapNotNull { (it as? FileEntry)?.file }
+        if (files.size <= 1) {
             // ask, then delete (or cancel)
             deleteFileMaybe()
-        } else if (inFocus.firstOrNull() == this) {
+        } else if (files.first() === file) {
             // ask, then delete all (or cancel)
             openMenu(NameDesc(
                 "Delete these files? (${inFocus.size}x, ${
-                inFocus
-                    .sumByDouble { (it as? FileEntry)?.file?.length()?.toDouble() ?: 0.0 }
-                    .toLong()
-                    .formatFileSize()
+                files.sumByLong { it.length() }.formatFileSize()
                 })", "", "ui.file.delete.ask.many"
             ), listOf(
-                /*"Yes" to {
-                    // todo put history state or move to OS-trash
-                    inFocus.forEach { (it as? FileEntry)?.file?.deleteRecursively() }
-                    explorer.invalidate()
-                },*/
                 MenuOption(
                     NameDesc(
-                        "No",
-                        "Deletes none of the selected file; keeps them all",
-                        "ui.file.delete.many.no"
+                        "Yes",
+                        "Move the file to the trash",
+                        "ui.file.delete.yes"
                     )
-                ) {},
+                ) {
+                    moveToTrash(files.toTypedArray())
+                    explorer.invalidate()
+                },
+                dontDelete,
                 MenuOption(
                     NameDesc(
                         "Yes, permanently",
@@ -533,12 +535,21 @@ class FileEntry(
                         "ui.file.delete.many.permanently"
                     )
                 ) {
-                    inFocus.forEach { (it as? FileEntry)?.file?.deleteRecursively() }
+                    files.forEach { it.deleteRecursively() }
                     explorer.invalidate()
                 }
             ))
         }
     }
+
+    private val dontDelete get() = MenuOption(
+        NameDesc(
+            "No",
+            "Deletes none of the selected file; keeps them all",
+            "ui.file.delete.many.no"
+        )
+    ) {}
+
 
     override fun onCopyRequested(x: Float, y: Float): String? {
         if (this in inFocus) {// multiple files maybe

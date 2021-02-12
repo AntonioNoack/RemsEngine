@@ -112,7 +112,7 @@ class VideoCreator(
                             when (key.toLowerCase()) {
                                 "speed" -> speed = value.substring(0, value.length - 1).toFloat() // 0.15x
                                 "bitrate" -> {
-                                    // todo parse bitrate? or just display it?
+                                    // parse bitrate? or just display it?
                                 }
                                 // "time" -> elapsedTime = value.parseTime()
                                 "size", "lsize" -> {

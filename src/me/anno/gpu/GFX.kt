@@ -346,7 +346,7 @@ object GFX : GFXBase1() {
         while (eventTasks.isNotEmpty()) {
             try {
                 eventTasks.poll()!!.invoke()
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 e.printStackTrace()
             }
         }

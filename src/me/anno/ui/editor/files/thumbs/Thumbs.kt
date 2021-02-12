@@ -22,6 +22,7 @@ import me.anno.cache.instances.TextureCache.getLateinitTexture
 import me.anno.cache.instances.VideoCache.getVideoFrame
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.texture.*
+import me.anno.objects.documents.pdf.PDFCache
 import me.anno.utils.Color.a
 import me.anno.utils.Color.b
 import me.anno.utils.Color.g
@@ -262,8 +263,6 @@ object Thumbs {
 
                 src.waitToLoad()
 
-                // todo create an image from ffmpeg without using the gpu for downscaling
-                // create frame buffer as target, and then read from it...
                 renderToBufferedImage(w, h) {
                     draw2D(src)
                 }
@@ -329,6 +328,10 @@ object Thumbs {
                     }
                     "ico" -> transformNSaveNUpload(Imaging.getBufferedImage(srcFile))
                     "svg" -> generateSVGFrame()
+                    "pdf" -> {
+                        val doc = PDFCache.getDocument(srcFile, false) ?: return
+                        transformNSaveNUpload(PDFCache.getImage(doc, 1f, 0))
+                    }
                     else -> {
                         when (ext.getImportType()) {
                             "Video" -> generateVideoFrame(1.0)

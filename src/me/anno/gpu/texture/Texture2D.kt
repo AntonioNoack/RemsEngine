@@ -2,6 +2,7 @@ package me.anno.gpu.texture
 
 import me.anno.cache.data.ICacheData
 import me.anno.config.DefaultConfig
+import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.glThread
 import me.anno.gpu.GFX.loadTexturesSync
@@ -22,7 +23,6 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
 import kotlin.concurrent.thread
-import kotlin.math.min
 
 open class Texture2D(
     val name: String,
@@ -131,10 +131,14 @@ open class Texture2D(
         w = img.width
         h = img.height
         isCreated = false
+        val black = black
+        val hasAlpha = img.colorModel.hasAlpha()
         val intData = when (val buffer = img.raster.dataBuffer) {
             is DataBufferByte -> {
                 try {
                     val buffer2 = getBuffer(buffer.data)
+                    // ensure it's opaque
+                    if (!hasAlpha) { for (i in 0 until w * h) buffer2.put(i * 4, -1) }
                     if (sync) uploadData(buffer2)
                     else GFX.addGPUTask(w, h) {
                         uploadData(buffer2)
@@ -150,22 +154,40 @@ open class Texture2D(
             }
         }
         if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN) {
-            for (i in intData.indices) {// argb -> abgr
-                val argb = intData[i]
-                val r = (argb and 0xff0000).shr(16)
-                val b = (argb and 0xff).shl(16)
-                val ag = argb and 0xff00ff00.toInt()
-                intData[i] = ag or r or b
+            if (hasAlpha) {
+                for (i in intData.indices) {// argb -> abgr
+                    val argb = intData[i]
+                    val r = (argb and 0xff0000).shr(16)
+                    val b = (argb and 0xff).shl(16)
+                    val ag = argb and 0xff00ff00.toInt()
+                    intData[i] = ag or r or b
+                }
+            } else {
+                for (i in intData.indices) {// argb -> abgr
+                    val argb = intData[i]
+                    val r = (argb and 0xff0000).shr(16)
+                    val b = (argb and 0xff).shl(16)
+                    val g = argb and 0xff00
+                    intData[i] = black or g or r or b
+                }
             }
         } else {
-            for (i in intData.indices) {// argb -> rgba
-                val argb = intData[i]
-                val a = argb.shr(24) and 255
-                val rgb = argb.and(0xffffff) shl 8
-                intData[i] = rgb or a
+            if (hasAlpha) {
+                for (i in intData.indices) {// argb -> rgba
+                    val argb = intData[i]
+                    val a = argb.shr(24) and 255
+                    val rgb = argb.and(0xffffff) shl 8
+                    intData[i] = rgb or a
+                }
+            } else {
+                for (i in intData.indices) {// argb -> rgba
+                    val argb = intData[i]
+                    val rgb = argb.and(0xffffff) shl 8
+                    intData[i] = black or rgb
+                }
             }
         }
-        if (sync && Thread.currentThread() != glThread) {
+        if (sync && Thread.currentThread() == glThread) {
             uploadData(intData)
         } else GFX.addGPUTask(w, h) {
             uploadData(intData)

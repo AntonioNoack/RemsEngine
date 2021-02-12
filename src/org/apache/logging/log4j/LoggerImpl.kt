@@ -1,15 +1,16 @@
 package org.apache.logging.log4j
 
-import java.lang.RuntimeException
+import org.apache.commons.logging.Log
 import java.util.*
 
-class LoggerImpl(prefix: String?): Logger {
+class LoggerImpl(prefix: String?) : Logger, Log {
 
     fun interleave(msg: String, args: Array<out Object>): String {
-        if(args.isEmpty()) return msg
-        return if(msg.contains("{}")){
+        if (args.isEmpty()) return msg
+        return if (msg.contains("{}")) {
             val parts = msg.split("{}")
-            parts.take(parts.size-1).mapIndexed { index, s -> "$s${args.getOrNull(index)}" }.joinToString("") + parts.last()
+            parts.take(parts.size - 1).mapIndexed { index, s -> "$s${args.getOrNull(index)}" }
+                .joinToString("") + parts.last()
         } else {
             msg.format(Locale.ENGLISH, *args)
             /*val funFormat = String::class.java.getMethod("format", Locale::class.java, Array<Object>(0){ throw RuntimeException() }::class.java)
@@ -18,16 +19,19 @@ class LoggerImpl(prefix: String?): Logger {
         }
     }
 
-    val suffix = if(prefix == null) "" else ":$prefix"
+    val suffix = if (prefix == null) "" else ":$prefix"
 
-    fun print(prefix: String, msg: String){
+    fun print(prefix: String, msg: String) {
         msg.split('\n').forEach { line ->
             println("[$prefix$suffix] $line")
         }
     }
 
     override fun info(msg: String) {
-        print("INFO", msg)
+        when (suffix) {
+            ":ScratchFileBuffer", ":PDFObjectStreamParser" -> Unit
+            else -> print("INFO", msg)
+        }
     }
 
     override fun info(msg: String, vararg obj: java.lang.Object) {
@@ -94,6 +98,84 @@ class LoggerImpl(prefix: String?): Logger {
         warn(msg)
         thrown.printStackTrace()
     }
+
+    override fun warn(o: Any?) {
+        warn(o.toString())
+    }
+
+    override fun warn(o: Any?, throwable: Throwable?) {
+        if (throwable == null) warn(o.toString())
+        else warn(o.toString(), throwable)
+    }
+
+    override fun fatal(o: Any?) {
+        fatal(o.toString())
+    }
+
+    override fun fatal(o: Any?, throwable: Throwable?) {
+        if (throwable == null) fatal(o.toString())
+        else fatal(o.toString(), throwable)
+    }
+
+    override fun info(o: Any?) {
+        info(o.toString())
+    }
+
+    override fun info(o: Any?, throwable: Throwable?) {
+        if (throwable == null) info(o)
+        else info(o.toString(), throwable)
+    }
+
+    override fun error(o: Any?) {
+        error(o.toString())
+    }
+
+    override fun error(o: Any?, throwable: Throwable?) {
+        if (throwable == null) error(o)
+        else error(o.toString(), throwable)
+    }
+
+    override fun debug(o: Any?) {
+        debug(o.toString())
+    }
+
+    override fun debug(o: Any?, throwable: Throwable?) {
+        if (throwable == null) debug(o)
+        else debug(o.toString(), throwable)
+    }
+
+    override fun trace(o: Any?) {
+        error(o)
+    }
+
+    override fun trace(o: Any?, throwable: Throwable?) {
+        error(o, throwable)
+    }
+
+    override fun isTraceEnabled(): Boolean {
+        return true
+    }
+
+    override fun isDebugEnabled(): Boolean {
+        return true
+    }
+
+    override fun isInfoEnabled(): Boolean {
+        return true
+    }
+
+    override fun isWarnEnabled(): Boolean {
+        return true
+    }
+
+    override fun isFatalEnabled(): Boolean {
+        return true
+    }
+
+    override fun isErrorEnabled(): Boolean {
+        return true
+    }
+
 
     // override fun warn(marker: Marker, msg: String, vararg obj: java.lang.Object): Unit = warn(msg, obj)
 

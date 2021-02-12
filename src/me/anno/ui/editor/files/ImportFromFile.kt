@@ -6,6 +6,7 @@ import me.anno.objects.SoftLink
 import me.anno.objects.Transform
 import me.anno.objects.Transform.Companion.toTransform
 import me.anno.objects.Video
+import me.anno.objects.documents.pdf.PDFDocument
 import me.anno.objects.meshes.Mesh
 import me.anno.objects.modes.UVProjection
 import me.anno.objects.text.Text
@@ -74,7 +75,7 @@ object ImportFromFile {
                             if (name2.endsWith("/")) name2 = name2.substring(0, name2.lastIndex)
                             transform.name = name2
                             parent?.addChild(transform)
-                            if(doSelect) selectTransform(transform)
+                            if (doSelect) selectTransform(transform)
                             callback(transform)
                         }
                     }
@@ -157,6 +158,13 @@ object ImportFromFile {
                         mesh.name = name
                         if (doSelect) selectTransform(mesh)
                         callback(mesh)
+                    }
+                }
+                "PDF" -> {
+                    RemsStudio.largeChange("Added PDF") {
+                        val doc = PDFDocument(file, parent)
+                        if (doSelect) selectTransform(doc)
+                        callback(doc)
                     }
                 }
                 "HTML" -> {

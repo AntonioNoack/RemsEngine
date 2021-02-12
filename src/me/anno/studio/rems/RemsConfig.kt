@@ -32,6 +32,7 @@ object RemsConfig {
                     "Image",
                     "png", "jpg", "jpeg", "tiff", "webp", "svg", "ico", "psd", "bmp", "jp2"
                 )
+                addImportMappings("PDF", "pdf")
                 addImportMappings("Cubemap-Equ", "hdr")
                 addImportMappings(
                     "Video",

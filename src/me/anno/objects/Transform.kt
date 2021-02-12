@@ -42,13 +42,13 @@ import me.anno.utils.Maths.next
 import me.anno.utils.structures.ValueWithDefault
 import me.anno.utils.structures.ValueWithDefault.Companion.writeMaybe
 import me.anno.utils.structures.ValueWithDefaultFunc
+import me.anno.utils.types.Casting.castToDouble
 import me.anno.utils.types.Casting.castToDouble2
 import me.anno.utils.types.Matrices.skew
+import me.anno.video.MissingFrameException
 import org.apache.logging.log4j.LogManager
 import org.joml.*
-import java.lang.Exception
 import java.util.concurrent.atomic.AtomicInteger
-import java.util.concurrent.atomic.AtomicLong
 
 open class Transform(var parent: Transform? = null) : Saveable(),
     Inspectable {
@@ -222,7 +222,9 @@ open class Transform(var parent: Transform? = null) : Saveable(),
         // time
         val timeGroup = getGroup("Time", "", "time")
         timeGroup += vi("Start Time", "Delay the animation", null, timeOffset, style) { timeOffset = it }
-        timeGroup += vi("Time Multiplier", "Speed up the animation", dilationType, timeDilation, style) { timeDilation = it }
+        timeGroup += vi("Time Multiplier", "Speed up the animation", dilationType, timeDilation, style) {
+            timeDilation = it
+        }
         timeGroup += vi("Advanced Time", "Add acceleration/deceleration to your elements", timeAnimated, style)
 
         val editorGroup = getGroup("Editor", "", "editor")
@@ -433,8 +435,8 @@ open class Transform(var parent: Transform? = null) : Saveable(),
         when (name) {
             "timeDilation" -> timeDilation = value
             "timeOffset" -> timeOffset = value
-            "fadeIn" -> if(value >= 0.0) fadeIn.set(value.toFloat())
-            "fadeOut" -> if(value >= 0.0) fadeOut.set(value.toFloat())
+            "fadeIn" -> if (value >= 0.0) fadeIn.set(value.toFloat())
+            "fadeOut" -> if (value >= 0.0) fadeOut.set(value.toFloat())
             else -> super.readDouble(name, value)
         }
     }
@@ -569,18 +571,19 @@ open class Transform(var parent: Transform? = null) : Saveable(),
     fun clone(): Transform {
         val asString = try {
             TextWriter.toText(this, false)
-        } catch (e: Exception){
+        } catch (e: Exception) {
             e.printStackTrace()
             ""
         }
         try {
             return asString.toTransform()!!
-        } catch (e: Exception){
+        } catch (e: Exception) {
             println(asString)
             e.printStackTrace()
             throw RuntimeException("Failed to parse!")
         }
     }
+
     open fun acceptsWeight() = false
     open fun passesOnColor() = true
 
@@ -657,9 +660,15 @@ open class Transform(var parent: Transform? = null) : Saveable(),
         return localTime
     }
 
+    fun checkFinalRendering() {
+        if (isFinalRendering) throw MissingFrameException(this)
+    }
+
     open fun getAdditionalChildrenOptions(): List<Option> = emptyList()
 
     open val areChildrenImmutable: Boolean = false
+
+    open fun getRelativeSize() = Vector3f(1f)
 
     companion object {
         // these values MUST NOT be changed
@@ -669,11 +678,10 @@ open class Transform(var parent: Transform? = null) : Saveable(),
         val yAxis: Vector3fc = Vector3f(0f, 1f, 0f)
         val zAxis: Vector3fc = Vector3f(0f, 0f, 1f)
         val nextClickId = AtomicInteger()
-        val nextUUID = AtomicLong()
         fun String.toTransform() = TextReader.fromText(this).first() as? Transform
         const val minAlpha = 0.5f / 255f
         private val LOGGER = LogManager.getLogger(Transform::class)
-        val dilationType = Type(1.0, 1, 1f, true, true, { castToDouble2(it) }, { it is Double })
+        val dilationType = Type(1.0, 1, 1f, true, true, ::castToDouble2, ::castToDouble)
     }
 
 

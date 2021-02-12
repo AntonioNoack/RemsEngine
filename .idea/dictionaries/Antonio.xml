@@ -85,6 +85,8 @@
       <w>inspectable</w>
       <w>iter</w>
       <w>jacobian</w>
+      <w>jemalloc</w>
+      <w>joml</w>
       <w>konqueror</w>
       <w>lateinit</w>
       <w>lavenderblush</w>
@@ -128,6 +130,7 @@
       <w>mids</w>
       <w>mintcream</w>
       <w>mistyrose</w>
+      <w>mpeg</w>
       <w>msaa</w>
       <w>mtllib</w>
       <w>navajowhite</w>

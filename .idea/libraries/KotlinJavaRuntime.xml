@@ -48,29 +48,20 @@
       <root url="jar://$PROJECT_DIR$/lib/customized/javaFx/OpenWithExplorer.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/FABRIK-IK.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/commons-cli-1.4.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/jna-5.7.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/jna-platform-5.7.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/pdfbox-2.0.22-with-libs.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/pdfbox-jai-imageio-core-1.4.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/pdfbox-jai-imageio-jpeg2000-1.4.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/pdfbox-levigo-jbig2-imageio-2.0.jar!/" />
     </CLASSES>
-    <JAVADOC>
-      <root url="jar://$PROJECT_DIR$/lib/lwjgl-glfw-javadoc.jar!/" />
-      <root url="jar://$PROJECT_DIR$/lib/lwjgl-javadoc.jar!/" />
-      <root url="jar://$PROJECT_DIR$/lib/lwjgl-openal-javadoc.jar!/" />
-      <root url="jar://$PROJECT_DIR$/lib/lwjgl-opengl-javadoc.jar!/" />
-      <root url="jar://$PROJECT_DIR$/lib/lwjgl-stb-javadoc.jar!/" />
-      <root url="jar://$PROJECT_DIR$/lib/joml-1.9.24-javadoc.jar!/" />
-      <root url="jar://$PROJECT_DIR$/lib/commons-math3-3.6.1-javadoc.jar!/" />
-    </JAVADOC>
+    <JAVADOC />
     <SOURCES>
       <root url="jar://$KOTLIN_BUNDLED$/lib/kotlin-stdlib-sources.jar!/" />
       <root url="jar://$KOTLIN_BUNDLED$/lib/kotlin-reflect-sources.jar!/" />
       <root url="jar://$KOTLIN_BUNDLED$/lib/kotlin-test-sources.jar!/" />
       <root url="jar://$KOTLIN_BUNDLED$/lib/kotlin-stdlib-jdk7-sources.jar!/" />
       <root url="jar://$KOTLIN_BUNDLED$/lib/kotlin-stdlib-jdk8-sources.jar!/" />
-      <root url="jar://$PROJECT_DIR$/lib/lwjgl-glfw-sources.jar!/" />
-      <root url="jar://$PROJECT_DIR$/lib/lwjgl-openal-sources.jar!/" />
-      <root url="jar://$PROJECT_DIR$/lib/lwjgl-opengl-sources.jar!/" />
-      <root url="jar://$PROJECT_DIR$/lib/lwjgl-sources.jar!/" />
-      <root url="jar://$PROJECT_DIR$/lib/lwjgl-stb-sources.jar!/" />
-      <root url="jar://$PROJECT_DIR$/lib/joml-1.9.24-sources.jar!/" />
-      <root url="jar://$PROJECT_DIR$/lib/commons-math3-3.6.1-sources.jar!/" />
     </SOURCES>
   </library>
 </component>

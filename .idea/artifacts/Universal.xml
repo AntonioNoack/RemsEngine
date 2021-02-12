@@ -63,6 +63,9 @@
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-jemalloc-natives-windows-x86.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-jemalloc-natives-windows.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-jemalloc.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/jna-5.7.0.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/jna-platform-5.7.0.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/pdfbox-2.0.22-with-libs.jar" path-in-jar="/" />
     </root>
   </artifact>
 </component>

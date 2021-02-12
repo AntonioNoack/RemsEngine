@@ -347,7 +347,7 @@ public class GFXBase0 {
         while (!shouldClose) {
             while (!glfwWindowShouldClose(window) && !shouldClose) {
                 if(newTitle != null){
-                    setNewTitle(title);
+                    setNewTitle(newTitle);
                     newTitle = null;
                 }
                 glfwWaitEvents();
