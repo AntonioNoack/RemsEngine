@@ -7,6 +7,7 @@ import me.anno.ui.editor.color.spaces.HSLuv
 import me.anno.ui.editor.color.spaces.HSV
 import me.anno.ui.editor.color.spaces.LinearHSI
 import org.joml.Vector3f
+import org.joml.Vector3fc
 import org.joml.Vector4f
 import kotlin.collections.set
 import kotlin.math.PI
@@ -17,7 +18,7 @@ abstract class ColorSpace(
     val serializationName: String,
     // display
     val glsl: String,
-    val hue0: Vector3f
+    val hue0: Vector3fc
 ) {
 
     constructor(name: NameDesc, glsl: String, hue0: Vector3f) : this(name, name.englishName, glsl, hue0)

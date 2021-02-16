@@ -4,6 +4,10 @@ import me.anno.io.config.ConfigBasics
 import me.anno.io.utils.StringMap
 import me.anno.ui.style.Style
 import me.anno.utils.Maths.mixARGB
+import org.joml.Vector3f
+import org.joml.Vector3fc
+import org.joml.Vector4f
+import org.joml.Vector4fc
 
 object DefaultStyle {
 
@@ -19,6 +23,8 @@ object DefaultStyle {
 
     val fontGray = black or 0xbbbbbb
     val white = -1
+    val white4 = Vector4f(1f) as Vector4fc
+    val white3 = Vector3f(1f) as Vector3fc
 
     val shinyBlue = black or 0x4986f5
     val brightYellow = black or 0xffba50

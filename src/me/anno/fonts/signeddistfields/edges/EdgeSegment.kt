@@ -7,6 +7,7 @@ import me.anno.fonts.signeddistfields.algorithm.SDFMaths.dotProduct
 import me.anno.utils.types.Vectors.minus
 import org.joml.AABBf
 import org.joml.Vector2f
+import org.joml.Vector2fc
 import kotlin.math.abs
 
 abstract class EdgeSegment {
@@ -22,7 +23,7 @@ abstract class EdgeSegment {
     abstract fun moveStartPoint(to: Vector2f)
     abstract fun splitInThirds(parts: Array<EdgeSegment?>, a: Int, b: Int, c: Int)
     abstract fun scanlineIntersections(x: FloatArray, dy: IntArray, y: Float): Int
-    abstract fun signedDistance(origin: Vector2f, param: FloatPtr): SignedDistance
+    abstract fun signedDistance(origin: Vector2fc, param: FloatPtr): SignedDistance
     abstract fun directionChange(param: Float): Vector2f
 
     fun trueSignedDistance(origin: Vector2f): Float {
@@ -32,7 +33,7 @@ abstract class EdgeSegment {
         return distance.distance
     }
 
-    fun distanceToPseudoDistance(distance: SignedDistance, origin: Vector2f, param: Float) {
+    fun distanceToPseudoDistance(distance: SignedDistance, origin: Vector2fc, param: Float) {
         if (param < 0) {
             val dir = direction(0).normalize()
             val aq = origin - point(0)

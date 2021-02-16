@@ -3,6 +3,7 @@ package me.anno.objects.models
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer
 import org.joml.Vector2f
+import org.joml.Vector2fc
 import org.joml.Vector3f
 import kotlin.math.PI
 import kotlin.math.cos
@@ -40,7 +41,7 @@ object ArrowModel {
             vertexCount
         )
 
-        fun addTriangle(a: Vector2f, b: Vector2f, c: Vector2f) {
+        fun addTriangle(a: Vector2fc, b: Vector2fc, c: Vector2fc) {
 
             // from both sides
             buffer.put(a)
@@ -79,7 +80,7 @@ object ArrowModel {
             vertexCount
         )
 
-        fun addLine(a: Vector2f, b: Vector2f){
+        fun addLine(a: Vector2fc, b: Vector2f){
             buffer.put(a)
             buffer.put(0f)
             buffer.put(b)

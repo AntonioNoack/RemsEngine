@@ -4,10 +4,7 @@ import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.utils.types.Strings
-import org.joml.Vector2f
-import org.joml.Vector3f
-import org.joml.Vector4d
-import org.joml.Vector4f
+import org.joml.*
 
 class TextWriter(beautify: Boolean) : BaseWriter(true) {
 
@@ -294,89 +291,102 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
         }
     }
 
-    private fun writeVector2f(value: Vector2f) {
+    private fun writeVector2f(value: Vector2fc) {
         data.append('[')
-        append(value.x)
-        if (value.x != value.y) {
+        val x = value.x()
+        val y = value.y()
+        append(x)
+        if (x != y) {
             data.append(separator)
-            append(value.y)
+            append(y)
         }
         data.append(']')
     }
 
-    private fun writeVector3f(value: Vector3f) {
+    private fun writeVector3f(value: Vector3fc) {
         data.append('[')
-        append(value.x)
-        if (!(value.x == value.y && value.x == value.z)) {
+        val x = value.x()
+        val y = value.y()
+        val z = value.z()
+        append(x)
+        if (!(x == y && x == z)) {
             data.append(separator)
-            append(value.y)
+            append(y)
             data.append(separator)
-            append(value.z)
+            append(z)
         }
         data.append(']')
     }
 
-    private fun writeVector4f(value: Vector4f) {
+    private fun writeVector4f(value: Vector4fc) {
         data.append('[')
+        val x = value.x()
+        val y = value.y()
+        val z = value.z()
+        val w = value.w()
         // compressed writing for gray scale values, which are typical
-        val xyz = !(value.x == value.y && value.x == value.z)
-        val xw = value.x != value.w
-        append(value.x)
+        val xyz = !(x == y && x == z)
+        val xw = x != w
+        append(x)
         if (xyz) {
             data.append(separator)
-            append(value.y)
+            append(y)
             data.append(separator)
-            append(value.z)
+            append(z)
         }
         if (xyz || xw) {
             data.append(separator)
-            append(value.w)
+            append(w)
         }
         data.append(']')
     }
 
-    private fun writeVector4d(value: Vector4d) {
+    private fun writeVector4d(value: Vector4dc) {
         data.append('[')
+        val x = value.x()
+        val y = value.y()
+        val z = value.z()
+        val w = value.w()
         // compressed writing for gray scale values, which are typical
-        val xyz = !(value.x == value.y && value.x == value.z)
-        val xw = value.x != value.w
-        append(value.x)
+        val xyz = !(x == y && x == z)
+        val xw = x != w
+        append(x)
         if (xyz) {
             data.append(separator)
-            append(value.y)
+            append(y)
             data.append(separator)
-            append(value.z)
+            append(z)
         }
         if (xyz || xw) {
             data.append(separator)
-            append(value.w)
+            append(w)
         }
         data.append(']')
     }
 
-    override fun writeVector2f(name: String, value: Vector2f, force: Boolean) {
-        if (force || value.x != 0f || value.y != 0f) {
+    override fun writeVector2f(name: String, value: Vector2fc, force: Boolean) {
+        if (force || value.x() != 0f || value.y() != 0f) {
             writeAttributeStart("v2", name)
             writeVector2f(value)
         }
     }
 
-    override fun writeVector3f(name: String, value: Vector3f, force: Boolean) {
-        if (force || value.x != 0f || value.y != 0f || value.z != 0f) {
+    override fun writeVector3f(name: String, value: Vector3fc, force: Boolean) {
+        if (force || value.x() != 0f || value.y() != 0f || value.z() != 0f) {
             writeAttributeStart("v3", name)
             writeVector3f(value)
         }
     }
 
-    override fun writeVector4f(name: String, value: Vector4f, force: Boolean) {
-        if (force || value.x != 0f || value.y != 0f || value.z != 0f || value.w != 0f) {
+    override fun writeVector4f(name: String, value: Vector4fc, force: Boolean) {
+        if (force || value.x() != 0f || value.y() != 0f || value.z() != 0f || value.w() != 0f) {
             writeAttributeStart("v4", name)
             writeVector4f(value)
         }
     }
 
-    override fun writeVector4d(name: String, value: Vector4d, force: Boolean) {
-        if (force || value.x != 0.0 || value.y != 0.0 || value.z != 0.0 || value.w != 0.0) {
+    override fun writeVector4d(name: String, value: Vector4dc, force: Boolean) {
+        if (force || value.x() != 0.0 || value.y() != 0.0 || value.z() != 0.0 || value.w() != 0.0) {
             writeAttributeStart("v4", name)
             writeVector4d(value)
         }

@@ -8,6 +8,7 @@ import me.anno.objects.forces.types.RelativeForceField
 import me.anno.utils.Maths.pow
 import me.anno.utils.types.Vectors.times
 import org.joml.Vector3f
+import org.joml.Vector3fc
 
 class GravityField : RelativeForceField(
     "Central Gravity",
@@ -16,7 +17,7 @@ class GravityField : RelativeForceField(
 
     val exponent = AnimatedProperty.float(2f)
 
-    override fun getForce(delta: Vector3f, time: Double): Vector3f {
+    override fun getForce(delta: Vector3fc, time: Double): Vector3fc {
         val l = delta.length()
         return delta * (-pow(l, -(exponent[time] + 1f)) + 1e-16f)
     }

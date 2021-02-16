@@ -1,8 +1,6 @@
 package me.anno.utils.types
 
-import org.joml.Vector2f
-import org.joml.Vector3f
-import org.joml.Vector4f
+import org.joml.*
 import java.lang.RuntimeException
 import java.nio.FloatBuffer
 import java.util.*
@@ -30,22 +28,22 @@ object Floats {
         }
     }
 
-    fun FloatBuffer.put3(v: Vector2f){
-        put(v.x)
-        put(v.y)
+    fun FloatBuffer.put3(v: Vector2fc){
+        put(v.x())
+        put(v.y())
     }
 
-    fun FloatBuffer.put3(v: Vector3f){
-        put(v.x)
-        put(v.y)
-        put(v.z)
+    fun FloatBuffer.put3(v: Vector3fc){
+        put(v.x())
+        put(v.y())
+        put(v.z())
     }
 
-    fun FloatBuffer.put3(v: Vector4f){
-        put(v.x)
-        put(v.y)
-        put(v.z)
-        put(v.w)
+    fun FloatBuffer.put3(v: Vector4fc){
+        put(v.x())
+        put(v.y())
+        put(v.z())
+        put(v.w())
     }
 
     private val piF180 = (PI/180).toFloat()

@@ -25,9 +25,7 @@ import me.anno.utils.types.Floats.toRadians
 import me.anno.utils.types.Lists.median
 import org.apache.logging.log4j.LogManager
 import org.apache.pdfbox.pdmodel.PDDocument
-import org.joml.Matrix4fArrayList
-import org.joml.Vector3f
-import org.joml.Vector4f
+import org.joml.*
 import java.io.File
 import kotlin.math.*
 
@@ -80,7 +78,7 @@ open class PDFDocument(var file: File, parent: Transform?) : GFXTransform(parent
         return doc.getPage(firstPage).mediaBox.run { Vector3f(width/referenceScale, height/referenceScale, 1f) }
     }
 
-    override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
+    override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
 
         val file = file
         val doc = meta
@@ -120,10 +118,20 @@ open class PDFDocument(var file: File, parent: Transform?) : GFXTransform(parent
                     if (wasDrawn) {
                         stack.translate(cos * w, sin * h, 0f)
                     }
-                    GFXx3D.draw3DVideo(
-                        this, time, stack, texture, color,
-                        Filtering.LINEAR, Clamping.CLAMP, null, UVProjection.Planar
-                    )
+                    if(texture === colorShowTexture){
+                        stack.next {
+                            stack.scale(w/h, 1f, 1f)
+                            GFXx3D.draw3DVideo(
+                                this, time, stack, texture, color,
+                                Filtering.NEAREST, Clamping.CLAMP, null, UVProjection.Planar
+                            )
+                        }
+                    } else {
+                        GFXx3D.draw3DVideo(
+                            this, time, stack, texture, color,
+                            Filtering.LINEAR, Clamping.CLAMP, null, UVProjection.Planar
+                        )
+                    }
                     wasDrawn = true
                     stack.translate(cos * w, sin * h, 0f)
                 }

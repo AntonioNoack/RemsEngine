@@ -5,6 +5,7 @@ import me.anno.cache.data.VideoData.Companion.framesPerContainer
 import me.anno.cache.instances.ImageCache
 import me.anno.cache.instances.MeshCache
 import me.anno.cache.instances.VideoCache.getVideoFrame
+import me.anno.cache.instances.VideoCache.getVideoFrameDontUpdate
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.isFinalRendering
@@ -13,14 +14,10 @@ import me.anno.gpu.GFXx3D.draw3DVideo
 import me.anno.gpu.SVGxGFX
 import me.anno.gpu.TextureLib
 import me.anno.gpu.TextureLib.colorShowTexture
-import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
-import me.anno.image.svg.SVGMesh
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
-import me.anno.io.xml.XMLElement
-import me.anno.io.xml.XMLReader
 import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
 import me.anno.objects.animation.AnimatedProperty
@@ -58,26 +55,17 @@ import me.anno.utils.types.Strings.getImportType
 import me.anno.video.FFMPEGMetadata
 import me.anno.video.FFMPEGMetadata.Companion.getMeta
 import me.anno.video.ImageSequenceMeta
+import me.anno.video.IsFFMPEGOnly.isFFMPEGOnlyExtension
 import me.anno.video.MissingFrameException
 import me.anno.video.VFrame
-import org.joml.Matrix4f
-import org.joml.Matrix4fArrayList
-import org.joml.Vector3f
-import org.joml.Vector4f
+import org.joml.*
 import java.io.File
 import kotlin.collections.set
 import kotlin.math.*
 
 // todo auto-exposure correction by calculating the exposure, and adjusting the brightness
 
-// idea: hovering needs to be used to predict when the user steps forward in time
-// -> no, that's too taxing; we'd need to pre-render a smaller version
-// todo pre-render small version for scrubbing? can we playback a small version using ffmpeg with no storage overhead?
-
 // todo feature tracking on videos as anchors, e.g. for easy blurry signs, or text above heads (marker on head/eyes)
-
-// todo don't save the keyframes of automatic fade-in/fade-out
-// todo do it without keyframes anyways? would be more stable...
 
 /**
  * Images, Cubemaps, Videos, Audios, joint into one
@@ -139,24 +127,22 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
         return localTime >= 0.0 && (looping != LoopingState.PLAY_ONCE || localTime < lastDuration)
     }
 
-    override fun transformLocally(pos: Vector3f, time: Double): Vector3f {
+    override fun transformLocally(pos: Vector3fc, time: Double): Vector3fc {
         val doScale = uvProjection.value.doScale && w != h
         return if (doScale) {
             val avgSize =
                 if (w * targetHeight > h * targetWidth) w.toFloat() * targetHeight / targetWidth else h.toFloat()
             val sx = w / avgSize
             val sy = h / avgSize
-            Vector3f(pos.x / sx, -pos.y / sy, pos.z)
+            Vector3f(pos.x() / sx, -pos.y() / sy, pos.z())
         } else {
-            Vector3f(pos.x, -pos.y, pos.z)
+            Vector3f(pos.x(), -pos.y(), pos.z())
         }
     }
 
     fun calculateSize(matrix: Matrix4f, w: Int, h: Int): Int? {
 
-        /**
-        gl_Position = transform * vec4(betterUV, 0.0, 1.0);
-         * */
+        // gl_Position = transform * vec4(betterUV, 0.0, 1.0);
 
         // clamp points to edges of screens, if outside, clamp on the z edges
         // -> just generally clamp the polygon...
@@ -224,7 +210,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
     /**
      * todo when final rendering, then sometimes frames are just black...
      * */
-    private fun drawImageSequence(meta: ImageSequenceMeta, stack: Matrix4fArrayList, time: Double, color: Vector4f) {
+    private fun drawImageSequence(meta: ImageSequenceMeta, stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
 
         var wasDrawn = false
 
@@ -312,7 +298,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
 
     }
 
-    private fun drawVideo(meta: FFMPEGMetadata, stack: Matrix4fArrayList, time: Double, color: Vector4f) {
+    private fun drawVideo(meta: FFMPEGMetadata, stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
 
         val forceAuto = isFinalRendering && forceAutoScale
         val forceFull = isFinalRendering && forceFullScale
@@ -349,10 +335,16 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                 val localTime = isLooping[time, duration]
                 val frameIndex = (localTime * videoFPS).toInt() % frameCount
 
-                val frame = getVideoFrame(
+                var frame = getVideoFrame(
                     file, max(1, zoomLevel), frameIndex,
                     framesPerContainer, videoFPS, videoFrameTimeout, true
                 )
+
+                if (frame == null) {
+                    onMissingImageOrFrame()
+                    frame = getVideoFrameDontUpdate(meta, frameIndex, framesPerContainer, videoFPS)
+                    // if(frame == null) LOGGER.warn("Missing frame $file/$frameIndex/$framesPerContainer/$videoFPS")
+                }
 
                 if (frame != null) {
                     w = frame.w
@@ -363,8 +355,6 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                         tiling[time], uvProjection.value
                     )
                     wasDrawn = true
-                } else {
-                    onMissingImageOrFrame()
                 }
 
                 // stack.scale(0.1f)
@@ -384,35 +374,24 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
     }
 
     private fun getImage(): Any? {
-        val name = file.name
-        when {
-            name.endsWith("svg", true) -> {
-                return MeshCache.getEntry(file.absolutePath, "svg", 0, imageTimeout, true) {
-                    val svg = SVGMesh()
-                    svg.parse(XMLReader.parse(file.inputStream().buffered()) as XMLElement)
-                    svg.buffer!!
-                }
-            }
-            name.endsWith("webp", true) -> {
+        val ext = file.extension
+        return when {
+            ext.equals("svg", true) ->
+                MeshCache.getSVG(file, imageTimeout, true)
+            ext.equals("webp", true) ->
                 // calculate required scale? no, without animation, we don't need to scale it down ;)
-                return getVideoFrame(file, 1, 0, 1, 1.0, imageTimeout, true)
-            }
-            else -> {// some image
-                return ImageCache.getImage(file, imageTimeout, true)
-            }
+                getVideoFrame(file, 1, 0, 1, 1.0, imageTimeout, true)
+            else -> // some image
+                ImageCache.getImage(file, imageTimeout, true)
         }
     }
 
-    private fun drawImage(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
-        when(file.extension.toLowerCase()){
-            "svg" -> {
-                val bufferData = MeshCache.getEntry(file.absolutePath, "svg", 0, imageTimeout, true) {
-                    val svg = SVGMesh()
-                    svg.parse(XMLReader.parse(file.inputStream().buffered()) as XMLElement)
-                    val buffer = svg.buffer!!
-                    buffer.setBounds(svg)
-                    buffer
-                } as? StaticBuffer
+    private fun drawImage(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
+        val file = file
+        val ext = file.extension
+        when {
+            ext.equals("svg", true) -> {
+                val bufferData = MeshCache.getSVG(file, imageTimeout, true)
                 if (bufferData == null) onMissingImageOrFrame()
                 else {
                     SVGxGFX.draw3DSVG(
@@ -422,7 +401,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                     )
                 }
             }
-            "webp", "jp2" -> {
+            ext.isFFMPEGOnlyExtension() -> {
                 val tiling = tiling[time]
                 // calculate required scale? no, without animation, we don't need to scale it down ;)
                 val texture = getVideoFrame(file, 1, 0, 1, 1.0, imageTimeout, true)
@@ -443,8 +422,8 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                     w = texture.w
                     h = texture.h
                     draw3DVideo(
-                        this, time, stack, texture, color, this.filtering.value, this.clampMode.value,
-                        tiling, uvProjection.value
+                        this, time, stack, texture, color,
+                        this.filtering.value, this.clampMode.value, tiling, uvProjection.value
                     )
                 }
             }
@@ -554,7 +533,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
 
     var lastAddedEndKeyframesFile: File? = null
 
-    override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
+    override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
 
         needsImageUpdate = false
 
@@ -598,11 +577,11 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                     drawImageSequence(meta, stack, time, color)
                 }
                 VideoType.IMAGE -> drawImage(stack, time, color)
-                VideoType.AUDIO -> drawSpeakers(stack, color, is3D, amplitude[time])
+                VideoType.AUDIO -> drawSpeakers(stack, Vector4f(color), is3D, amplitude[time])
                 else -> throw RuntimeException("$type needs visualization") // for the future
             }
 
-        } else drawSpeakers(stack, color, is3D, amplitude[time])
+        } else drawSpeakers(stack, Vector4f(color), is3D, amplitude[time])
 
     }
 
@@ -830,6 +809,8 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
     }
 
     companion object {
+
+        // private val LOGGER = LogManager.getLogger(Video::class)
 
         val imageSequenceIdentifier = DefaultConfig["video.imageSequence.identifier", "%"]
 

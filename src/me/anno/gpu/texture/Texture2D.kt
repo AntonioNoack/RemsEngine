@@ -138,7 +138,7 @@ open class Texture2D(
                 try {
                     val buffer2 = getBuffer(buffer.data)
                     // ensure it's opaque
-                    if (!hasAlpha) { for (i in 0 until w * h) buffer2.put(i * 4, -1) }
+                    if (!hasAlpha) { for (i in 0 until w * h) buffer2.put(i * 4 + 3, -1) }
                     if (sync) uploadData(buffer2)
                     else GFX.addGPUTask(w, h) {
                         uploadData(buffer2)
@@ -183,7 +183,7 @@ open class Texture2D(
                 for (i in intData.indices) {// argb -> rgba
                     val argb = intData[i]
                     val rgb = argb.and(0xffffff) shl 8
-                    intData[i] = black or rgb
+                    intData[i] = rgb or 0xff
                 }
             }
         }

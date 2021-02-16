@@ -6,7 +6,7 @@ import me.anno.cache.CacheSection
 object SiteSelection : CacheSection("SiteSelection") {
 
     fun parseSites(sites: String): List<IntRange> {
-        if(sites.isBlank()) return listOf(0 until 100000)
+        if (sites.isBlank()) return listOf(0 until maxSite)
         val cacheData = getEntry(sites, timeout, false) {
             val delta = -1
             val list = sites
@@ -16,14 +16,12 @@ object SiteSelection : CacheSection("SiteSelection") {
                 .mapNotNull {
                     val fi = it.indexOf('-')
                     if (fi < 0) {
-                        it.trim().toIntOrNull()?.run { (this+delta) .. (this+delta) }
+                        it.trim().toIntOrNull()?.run { (this + delta)..(this + delta) }
                     } else {
                         it.substring(0, fi).trim().toIntOrNull()?.run {
                             val a = this
-                            it.substring(fi + 1).trim().toIntOrNull()?.run {
-                                val b = this
-                                (a+delta) .. (b+delta)
-                            }
+                            val b = it.substring(fi + 1).trim().toIntOrNull() ?: maxSite
+                            (a + delta)..(b + delta)
                         }
                     }
                 }
@@ -34,5 +32,6 @@ object SiteSelection : CacheSection("SiteSelection") {
     }
 
     private val timeout = 1000L
+    private val maxSite = 100_000_000
 
 }

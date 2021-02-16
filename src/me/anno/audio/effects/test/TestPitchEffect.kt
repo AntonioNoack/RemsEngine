@@ -98,7 +98,7 @@ class TestPitchEffect(
                 val input0 = FloatArray(input.size) { input[it] }
                 val output = fft.apply(input)
                 /*for (i in 0 until blockSize) {
-                    println("${input0[i].f3()} -> ${output[i].f3()}")
+                    LOGGER.info("${input0[i].f3()} -> ${output[i].f3()}")
                 }*/
                 showWaves(input0, "i.${fft.bufferIndex}.in.png")
                 showWaves(output, "i.${fft.bufferIndex}.out.png")

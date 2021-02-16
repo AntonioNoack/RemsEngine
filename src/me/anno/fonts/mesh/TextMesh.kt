@@ -12,6 +12,7 @@ import me.anno.utils.types.Vectors.isInsideTriangle
 import me.anno.utils.types.Vectors.minus
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector2f
+import org.joml.Vector2fc
 import java.awt.Color
 import java.awt.Font
 import java.awt.Graphics2D
@@ -33,8 +34,8 @@ class TextMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
     val name get() = "${font.name},${font.style}-$text"
 
     private val debugImageSize = 1000
-    private fun ix(v: Vector2f) = (debugImageSize / 2 + (v.x - 4.8) * 80).toInt()
-    private fun iy(v: Vector2f) = (debugImageSize / 2 + (v.y + 4.0) * 80).toInt()
+    private fun ix(v: Vector2fc) = (debugImageSize / 2 + (v.x() - 4.8) * 80).toInt()
+    private fun iy(v: Vector2fc) = (debugImageSize / 2 + (v.y() + 4.0) * 80).toInt()
 
     val buffer: StaticBuffer
 
@@ -288,7 +289,7 @@ class TextMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
 
     }
 
-    fun List<Vector2f>.iterateTriangleLines(iterator: (Vector2f, Vector2f) -> Unit) {
+    fun List<Vector2f>.iterateTriangleLines(iterator: (Vector2fc, Vector2fc) -> Unit) {
         for (i in indices step 3) {
             val a = this[i]
             val b = this[i + 1]
@@ -299,7 +300,7 @@ class TextMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
         }
     }
 
-    private fun drawOutline(gfx: Graphics2D, pts: List<Vector2f>) {
+    private fun drawOutline(gfx: Graphics2D, pts: List<Vector2fc>) {
         for (i in pts.indices) {
             val a = pts[i]
             val b = if (i == 0) pts.last() else pts[i - 1]

@@ -11,6 +11,7 @@ import me.anno.utils.ColorParsing.parseColor
 import me.anno.utils.types.Vectors
 import org.joml.AABBf
 import org.joml.Vector3f
+import org.joml.Vector3fc
 import org.joml.Vector4f
 import org.lwjgl.opengl.GL11.GL_LINES
 
@@ -97,7 +98,7 @@ class Mesh(val material: String, val points: ArrayList<Point>, val lines: ArrayL
         this.buffer = buffer
     }
 
-    fun contains(v: Vector3f): Boolean {
+    fun contains(v: Vector3fc): Boolean {
         // todo direct lookup using rough 3d array of the mesh inside?
         val randomDir = Vector3f(0f, 1f, 0f)
         val p = points
@@ -113,7 +114,7 @@ class Mesh(val material: String, val points: ArrayList<Point>, val lines: ArrayL
         return (ctr % 2) == 1
     }
 
-    fun contains(v: Vector3f, bbx: AABBf): Boolean {
+    fun contains(v: Vector3fc, bbx: AABBf): Boolean {
         return if (bbx.testPoint(v)) {
             contains(v)
         } else false

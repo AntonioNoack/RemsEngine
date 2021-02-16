@@ -118,5 +118,27 @@ object Lists {
         return result
     }
 
+    fun <A, B> List<A>.cross(other: List<B>): List<Pair<A, B>> {
+        val result = ArrayList<Pair<A, B>>(size * other.size)
+        for (a in this) {
+            for (b in other) {
+                result += a to b
+            }
+        }
+        return result
+    }
+
+    fun <A, B,C> List<A>.cross(other: List<B>, other2: List<C>): List<Triple<A, B, C>> {
+        val result = ArrayList<Triple<A, B, C>>(size * other.size * other2.size)
+        for (a in this) {
+            for (b in other) {
+                for(c in other2){
+                    result += Triple(a, b, c)
+                }
+            }
+        }
+        return result
+    }
+
 
 }

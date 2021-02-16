@@ -79,7 +79,6 @@ class ImageData(file: File) : ICacheData {
         // find jpeg rotation by checking exif tags...
         // they may appear on other images as well, so we don't filter for tags
         // this surely could be improved for improved performance...
-        val rotation = getRotation(file)
         // get all tags:
         /*for (directory in metadata.directories) {
             for (tag in directory.tags) {
@@ -88,28 +87,16 @@ class ImageData(file: File) : ICacheData {
         }*/
         when (fileExtension.toLowerCase()) {
             "hdr" -> {
-                thread {
-                    val img = HDRImage(file, true)
-                    val w = img.width
-                    val h = img.height
-                    val pixels = img.pixelBuffer
-                    GFX.addGPUTask(w, h) {
-                        texture.setSize(w, h)
-                        texture.create(pixels)
-                    }
+                val img = HDRImage(file, true)
+                val w = img.width
+                val h = img.height
+                val pixels = img.pixelBuffer
+                GFX.addGPUTask(w, h) {
+                    texture.setSize(w, h)
+                    texture.create(pixels)
                 }
             }
-            // read metadata information from jpegs
-            // read the exif rotation header
-            // because some camera images are rotated incorrectly
-            "png", "jpg", "jpeg" -> {
-                texture.create("ImageData-png/jpg", {
-                    ImageIO.read(file) ?: throw IOException("Format of $file is not supported.")
-                }, false)
-                texture.rotation = rotation
-            }
-            // jp2 = jpeg 2000
-            "webp", "jp2" -> {
+            "webp" -> {
                 // calculate required scale? no, without animation, we don't need to scale it down ;)
                 var frame: VFrame?
                 while (true){
@@ -120,23 +107,27 @@ class ImageData(file: File) : ICacheData {
                 frame!!
                 frame.waitToLoad()
                 GFX.addGPUTask(frame.w, frame.h) {
-                    frameToFramebuffer(
-                        frame,
-                        frame.w,
-                        frame.h,
-                        this
-                    )
+                    frameToFramebuffer(frame, frame.w, frame.h, this)
                 }
                 // if(texture?.isLoaded == true) draw3D(stack, texture, color, nearestFiltering, tiling)
             }
             else -> {
-                texture.create("ImageData-any", {
+                // read metadata information from jpegs
+                // read the exif rotation header
+                // because some camera images are rotated incorrectly
+                texture.create("ImageData", {
                     try {
-                        Imaging.getBufferedImage(file) ?: throw IOException("Format of $file is not supported.")
-                    } catch (e: Exception) {
-                        throw IOException("Format of $file is not supported: ${e.message}.")
+                        // try ImageIO first, then Imaging, then give up (we could try FFMPEG, but idk, whether it supports sth useful)
+                        ImageIO.read(file)
+                    } catch (e: Exception){
+                        try {
+                            Imaging.getBufferedImage(file)
+                        } catch (e: Exception){
+                            throw IOException("Format of $file is not supported: ${e.message}")
+                        }
                     }
                 }, false)
+                texture.rotation = getRotation(file)
             }
         }
         /*if(file.name.endsWith(".hdr", true)){

@@ -15,6 +15,10 @@ import java.io.File
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
+/**
+ * todo for long videos it would be more sensible to only create proxies for smaller sections, e.g. 30s
+ * (we know the videos -> we could even decide it on a per-video basis :))
+ * */
 object VideoProxyCreator : CacheSection("VideoProxies") {
 
     const val scale = 4
@@ -45,6 +49,12 @@ object VideoProxyCreator : CacheSection("VideoProxies") {
 
     // check all last instances, which can be deleted...
     lateinit var proxyFolder: File
+
+    fun getProxyFileDontUpdate(src: File): File? {
+        init()
+        val data = getEntryDontUpdate(LastModifiedCache[src]) as? CacheData<*>
+        return data?.value as? File
+    }
 
     fun getProxyFile(src: File): File? {
         init()
@@ -112,7 +122,7 @@ object VideoProxyCreator : CacheSection("VideoProxies") {
 
     private fun getUniqueFilename(file: File): String {
         val completePath = file.toString()
-        val lastModified = LastModifiedCache[file].second
+        val lastModified = LastModifiedCache[file].lastModified
         return "${file.nameWithoutExtension}-" +
                 "${completePath.hashCode().toUInt().toString(36)}-" +
                 "${lastModified.hashCode().toUInt().toString(36)}." +

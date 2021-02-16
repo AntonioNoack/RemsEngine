@@ -108,22 +108,22 @@ object Maths {
                 mixChannel(a, b, 0, f)
     }
 
-    fun mix(a: Vector2f, b: Vector2f, f: Float) = Vector2f(
-        mix(a.x, b.x, f),
-        mix(a.y, b.y, f)
+    fun mix(a: Vector2fc, b: Vector2fc, f: Float) = Vector2f(
+        mix(a.x(), b.x(), f),
+        mix(a.y(), b.y(), f)
     )
 
-    fun mix(a: Vector3f, b: Vector3f, f: Float) = Vector3f(
-        mix(a.x, b.x, f),
-        mix(a.y, b.y, f),
-        mix(a.z, b.z, f)
+    fun mix(a: Vector3fc, b: Vector3fc, f: Float) = Vector3f(
+        mix(a.x(), b.x(), f),
+        mix(a.y(), b.y(), f),
+        mix(a.z(), b.z(), f)
     )
 
-    fun mix(a: Vector4f, b: Vector4f, f: Float) = Vector4f(
-        mix(a.x, b.x, f),
-        mix(a.y, b.y, f),
-        mix(a.z, b.z, f),
-        mix(a.w, b.w, f)
+    fun mix(a: Vector4fc, b: Vector4fc, f: Float) = Vector4f(
+        mix(a.x(), b.x(), f),
+        mix(a.y(), b.y(), f),
+        mix(a.z(), b.z(), f),
+        mix(a.w(), b.w(), f)
     )
 
     fun sigmoid01(x: Float) = 1f / (1f + exp(-x))

@@ -17,7 +17,7 @@ import kotlin.math.max
 open class CacheSection(val name: String): Comparable<CacheSection> {
 
     val cache = HashMap<Any, CacheEntry>(512)
-    private val lockedKeys = HashSet<Any>(512)
+    private val lockedKeys = HashSet<Any>(16)
 
     override fun compareTo(other: CacheSection): Int {
         return name.compareTo(other.name)
@@ -62,30 +62,20 @@ open class CacheSection(val name: String): Comparable<CacheSection> {
         return getEntry(Triple(major, minor, sub), timeout, asyncGenerator, generator)
     }
 
-    fun getEntry(key: Any, timeout: Long, asyncGenerator: Boolean, generator: () -> ICacheData): ICacheData? {
-
-        // old, sync cache
-        /*if(false){// key is FBStack.FBKey -> all textures are missing... why ever...
-            synchronized(cache){
-                val cached = cache[key]
-                if(cached != null){
-                    cached.lastUsed = GFX.gameTime
-                    return cached.data
-                }
-                var data: CacheData? = null
-                try {
-                    data = generator()
-                } catch (e: FileNotFoundException){
-                    LOGGER.warn("FileNotFoundException: ${e.message}")
-                } catch (e: Exception){
-                    e.printStackTrace()
-                }
-                synchronized(cache){
-                    cache[key] = CacheEntry(data, timeout, GFX.gameTime)
-                }
-                return data
+    /**
+     * get the value, no matter whether it actually exists
+     * useful for LODs, if others work as well, just are not as good
+     * */
+    fun getEntryDontUpdate(key: Any): ICacheData? {
+        synchronized(cache){
+            return cache[key]?.run {
+                lastUsed = gameTime
+                data
             }
-        }*/
+        }
+    }
+
+    fun getEntry(key: Any, timeout: Long, asyncGenerator: Boolean, generator: () -> ICacheData): ICacheData? {
 
         // new, async cache
         // only the key needs to be locked, not the whole cache
@@ -102,13 +92,13 @@ open class CacheSection(val name: String): Comparable<CacheSection> {
             var hasKey = false
             while (!hasKey) {
                 synchronized(lockedKeys) {
-                    if (key !in lockedKeys) {
-                        lockedKeys += key
+                    if (lockedKeys.add(key)) {
                         hasKey = true
                     }
                 }
-                if (hasKey) break
-                sleepShortly()
+                if (!hasKey) {
+                    sleepShortly()
+                }
             }
         }
 

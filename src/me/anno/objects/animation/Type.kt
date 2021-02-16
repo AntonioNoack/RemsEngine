@@ -29,7 +29,7 @@ class Type(
 
     val defaultValue = acceptOrNull(clamp(defaultValue).apply {
         if (this != defaultValue)
-            LOGGER.warn("Value had to be clamped from $defaultValue to $this")
+            throw IllegalArgumentException("Value had to be clamped from $defaultValue to $this")
     })
         ?: throw IllegalArgumentException("Incompatible default value $defaultValue")
 
@@ -60,7 +60,7 @@ class Type(
         val DOUBLE = Type(0.0, 1, 1f, true, true, null, ::castToDouble)
         val DOUBLE_PLUS = Type(0.0, 1, 1f, true, true, { max(castToDouble2(it), 0.0) }, ::castToDouble)
         val VEC2 = Type(Vector2f(), 2, 1f, true, true, null, ::castToVector2f)
-        val VEC2_PLUS = Type(Vector2f(), 2, 1f, true, true, { max(castToFloat2(it), 0f) }, ::castToVector2f)
+        val VEC2_PLUS = Type(Vector2f(), 2, 1f, true, true, ::positiveVector2f, ::castToVector2f)
         val VEC3 = Type(Vector3f(), 3, 1f, true, true, null, ::castToVector3f)
         val VEC4 = Type(Vector4f(), 4, 1f, true, true, null, ::castToVector4f)
         val VEC4_PLUS = Type(Vector4f(), 4, 1f, true, true, {
@@ -119,6 +119,12 @@ class Type(
         val STRING = Type("", 1, 1f, false, false, { castToString(it).replace("\r", "") }, ::castToString)
         val ALIGNMENT = Type(0f, 1, 4f, true, false, { clamp(castToFloat2(it), -1f, +1f) }, ::castToFloat)
 
+        private fun positiveVector2f(any: Any?): Any {
+            return castToVector2f(any ?: 0f)?.apply {
+                x = max(x, 0f)
+                y = max(y, 0f)
+            } ?: Vector2f()
+        }
 
     }
 

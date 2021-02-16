@@ -12,6 +12,7 @@ import me.anno.utils.Maths.fract
 import me.anno.utils.Maths.next
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
+import org.joml.Vector4fc
 import kotlin.math.floor
 import kotlin.math.round
 
@@ -19,7 +20,7 @@ object SVGxGFX {
 
     fun draw3DSVG(
         video: Video?, time: Double,
-        stack: Matrix4fArrayList, buffer: StaticBuffer, texture: Texture2D, color: Vector4f,
+        stack: Matrix4fArrayList, buffer: StaticBuffer, texture: Texture2D, color: Vector4fc,
         filtering: Filtering, clamping: Clamping, tiling: Vector4f?
     ) {
 

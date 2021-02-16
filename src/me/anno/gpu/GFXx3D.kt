@@ -28,8 +28,8 @@ object GFXx3D {
 
     fun shader3DUniforms(
         shader: Shader, stack: Matrix4fArrayList,
-        w: Int, h: Int, color: Vector4f,
-        tiling: Vector4f?, filtering: Filtering,
+        w: Int, h: Int, color: Vector4fc,
+        tiling: Vector4fc?, filtering: Filtering,
         uvProjection: UVProjection?
     ) {
 
@@ -61,7 +61,7 @@ object GFXx3D {
 
     }
 
-    fun drawDebugCube(matrix: Matrix4fArrayList, size: Float, color: Vector4f?) {
+    fun drawDebugCube(matrix: Matrix4fArrayList, size: Float, color: Vector4fc?) {
         matrix.scale(0.5f * size, -0.5f * size, 0.5f * size) // flip inside out
         val tex = TextureLib.whiteTexture
         draw3D(
@@ -70,24 +70,24 @@ object GFXx3D {
         )
     }
 
-    fun shader3DUniforms(shader: Shader, stack: Matrix4f, color: Vector4f) {
+    fun shader3DUniforms(shader: Shader, stack: Matrix4f, color: Vector4fc) {
         transformUniform(shader, stack)
         GFX.shaderColor(shader, "tint", color)
         shader.v4("tiling", 1f, 1f, 0f, 0f)
         shader.v1("drawMode", GFX.drawMode.id)
     }
 
-    fun transformUniform(shader: Shader, stack: Matrix4f) {
+    fun transformUniform(shader: Shader, stack: Matrix4fc) {
         GFX.check()
         shader.m4x4("transform", stack)
     }
 
     fun draw3DMasked(
-        stack: Matrix4fArrayList, color: Vector4f,
+        stack: Matrix4fArrayList, color: Vector4fc,
         maskType: MaskType,
         useMaskColor: Float,
         pixelSize: Float,
-        offset: Vector2f,
+        offset: Vector2fc,
         isInverted: Float,
         isFullscreen: Boolean,
         greenScreenSettings: Vector3f
@@ -107,8 +107,8 @@ object GFXx3D {
     }
 
     fun draw3DText(
-        that: GFXTransform?, time: Double, offset: Vector3f,
-        stack: Matrix4fArrayList, buffer: StaticBuffer, color: Vector4f
+        that: GFXTransform?, time: Double, offset: Vector3fc,
+        stack: Matrix4fArrayList, buffer: StaticBuffer, color: Vector4fc
     ) {
         val shader = ShaderLib.shader3DforText
         shader3DUniforms(shader, stack, color)
@@ -120,7 +120,7 @@ object GFXx3D {
 
     fun draw3DTextWithOffset(
         buffer: StaticBuffer,
-        offset: Vector3f
+        offset: Vector3fc
     ) {
         val shader = ShaderLib.shader3DforText
         shader.v3("offset", offset)
@@ -144,7 +144,7 @@ object GFXx3D {
     fun draw3DPolygon(
         polygon: Polygon, time: Double,
         stack: Matrix4fArrayList, buffer: StaticBuffer,
-        texture: Texture2D, color: Vector4f,
+        texture: Texture2D, color: Vector4fc,
         inset: Float,
         filtering: Filtering, clamping: Clamping
     ) {
@@ -159,8 +159,8 @@ object GFXx3D {
     }
 
     fun draw3D(
-        stack: Matrix4fArrayList, texture: VFrame, color: Vector4f,
-        filtering: Filtering, clamping: Clamping, tiling: Vector4f?, uvProjection: UVProjection
+        stack: Matrix4fArrayList, texture: VFrame, color: Vector4fc,
+        filtering: Filtering, clamping: Clamping, tiling: Vector4fc?, uvProjection: UVProjection
     ) {
         if (!texture.isCreated) throw RuntimeException("Frame must be loaded to be rendered!")
         val shader = texture.get3DShader()
@@ -177,7 +177,7 @@ object GFXx3D {
 
     fun draw3DVideo(
         video: GFXTransform, time: Double,
-        stack: Matrix4fArrayList, texture: VFrame, color: Vector4f,
+        stack: Matrix4fArrayList, texture: VFrame, color: Vector4fc,
         filtering: Filtering, clamping: Clamping, tiling: Vector4f?, uvProjection: UVProjection
     ) {
         if (!texture.isCreated) throw RuntimeException("Frame must be loaded to be rendered!")
@@ -197,13 +197,13 @@ object GFXx3D {
     }
 
     fun draw3D(
-        stack: Matrix4fArrayList, texture: Texture2D, color: Vector4f,
-        filtering: Filtering, clamping: Clamping, tiling: Vector4f?, uvProjection: UVProjection
+        stack: Matrix4fArrayList, texture: Texture2D, color: Vector4fc,
+        filtering: Filtering, clamping: Clamping, tiling: Vector4fc?, uvProjection: UVProjection
     ) = draw3D(stack, texture, texture.w, texture.h, color, filtering, clamping, tiling, uvProjection)
 
     fun draw3D(
-        stack: Matrix4fArrayList, texture: Texture2D, w: Int, h: Int, color: Vector4f,
-        filtering: Filtering, clamping: Clamping, tiling: Vector4f?, uvProjection: UVProjection
+        stack: Matrix4fArrayList, texture: Texture2D, w: Int, h: Int, color: Vector4fc,
+        filtering: Filtering, clamping: Clamping, tiling: Vector4fc?, uvProjection: UVProjection
     ) {
         val shader = ShaderLib.shader3D
         shader3DUniforms(shader, stack, w, h, color, tiling, filtering, uvProjection)
@@ -217,12 +217,12 @@ object GFXx3D {
         that: GFXTransform?,
         time: Double,
         stack: Matrix4fArrayList,
-        offset: Vector2f,
-        scale: Vector2f,
+        offset: Vector2fc,
+        scale: Vector2fc,
         texture: Texture2D,
-        color: Vector4f,
+        color: Vector4fc,
         colorCount: Int,
-        colors: Array<Vector4f>,
+        colors: Array<Vector4fc>,
         distances: FloatArray,
         smoothness: FloatArray
     ) {
@@ -246,10 +246,10 @@ object GFXx3D {
         outlineStatsBuffer.position(0)
         for (i in 0 until cc) {
             val colorI = colors[i]
-            outlineStatsBuffer.put(colorI.x)
-            outlineStatsBuffer.put(colorI.y)
-            outlineStatsBuffer.put(colorI.z)
-            outlineStatsBuffer.put(colorI.w)
+            outlineStatsBuffer.put(colorI.x())
+            outlineStatsBuffer.put(colorI.y())
+            outlineStatsBuffer.put(colorI.z())
+            outlineStatsBuffer.put(colorI.w())
         }
         outlineStatsBuffer.position(0)
         shader.v4Array("colors", outlineStatsBuffer)
@@ -273,8 +273,8 @@ object GFXx3D {
 
     fun drawOutlinedText(
         stack: Matrix4fArrayList,
-        offset: Vector2f,
-        scale: Vector2f,
+        offset: Vector2fc,
+        scale: Vector2fc,
         texture: Texture2D
     ) {
         val shader = ShaderLib.shader3DOutlinedText
@@ -288,8 +288,8 @@ object GFXx3D {
 
     fun draw3DVideo(
         video: GFXTransform, time: Double,
-        stack: Matrix4fArrayList, texture: Texture2D, color: Vector4f,
-        filtering: Filtering, clamping: Clamping, tiling: Vector4f?, uvProjection: UVProjection
+        stack: Matrix4fArrayList, texture: Texture2D, color: Vector4fc,
+        filtering: Filtering, clamping: Clamping, tiling: Vector4fc?, uvProjection: UVProjection
     ) {
         val shader = ShaderLib.shader3DRGBA
         shader3DUniforms(shader, stack, texture.w, texture.h, color, tiling, filtering, uvProjection)
@@ -341,7 +341,7 @@ object GFXx3D {
         innerRadius: Float,
         startDegrees: Float,
         endDegrees: Float,
-        color: Vector4f
+        color: Vector4fc
     ) {
         val shader = ShaderLib.shader3DCircle
         shader3DUniforms(shader, stack, 1, 1, color, null, Filtering.NEAREST, null)

@@ -11,9 +11,10 @@ import me.anno.fonts.signeddistfields.algorithm.SDFMaths.sign
 import me.anno.utils.types.Vectors.minus
 import org.joml.AABBf
 import org.joml.Vector2f
+import org.joml.Vector2fc
 import kotlin.math.abs
 
-class LinearSegment(var p0: Vector2f, var p1: Vector2f) : EdgeSegment() {
+class LinearSegment(var p0: Vector2fc, var p1: Vector2fc) : EdgeSegment() {
 
     override fun clone() = LinearSegment(p0, p1)
     override fun point(param: Float) = mix(p0, p1, param)
@@ -28,8 +29,8 @@ class LinearSegment(var p0: Vector2f, var p1: Vector2f) : EdgeSegment() {
     override fun toString() = "[$p0 $p1]"
 
     override fun union(bounds: AABBf) {
-        bounds.union(p0.x, p0.y, 0f)
-        bounds.union(p1.x, p1.y, 0f)
+        bounds.union(p0.x(), p0.y(), 0f)
+        bounds.union(p1.x(), p1.y(), 0f)
     }
 
     override fun moveStartPoint(to: Vector2f) {
@@ -43,16 +44,16 @@ class LinearSegment(var p0: Vector2f, var p1: Vector2f) : EdgeSegment() {
     }
 
     override fun scanlineIntersections(x: FloatArray, dy: IntArray, y: Float): Int {
-        if (y >= p0.y && y < p1.y || y >= p1.y && y < p0.y) {
-            val param: Float = (y - p0.y) / (p1.y - p0.y)
-            x[0] = mix(p0.x, p1.x, param)
-            dy[0] = sign(p1.y - p0.y)
+        if (y >= p0.y() && y < p1.y() || y >= p1.y() && y < p0.y()) {
+            val param: Float = (y - p0.y()) / (p1.y() - p0.y())
+            x[0] = mix(p0.x(), p1.x(), param)
+            dy[0] = sign(p1.y() - p0.y())
             return 1
         }
         return 0
     }
 
-    override fun signedDistance(origin: Vector2f, param: FloatPtr): SignedDistance {
+    override fun signedDistance(origin: Vector2fc, param: FloatPtr): SignedDistance {
         val aq = origin - p0
         val ab = p1 - p0
         param.value = dotProduct(aq, ab) / ab.lengthSquared()

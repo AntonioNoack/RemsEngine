@@ -14,11 +14,12 @@ import me.anno.utils.types.Vectors.plus
 import me.anno.utils.types.Vectors.times
 import org.joml.AABBf
 import org.joml.Vector2f
+import org.joml.Vector2fc
 import kotlin.math.abs
 import kotlin.math.ln
 import kotlin.math.sqrt
 
-class QuadraticSegment(var p0: Vector2f, p10: Vector2f, var p2: Vector2f) : EdgeSegment() {
+class QuadraticSegment(var p0: Vector2fc, p10: Vector2fc, var p2: Vector2fc) : EdgeSegment() {
 
     var p1 = if (p0 == p10 || p10 == p2) (p0 + p2) * 0.5f else p10
 
@@ -60,10 +61,10 @@ class QuadraticSegment(var p0: Vector2f, p10: Vector2f, var p2: Vector2f) : Edge
         union(bounds, p1)
         val bot = (p1 - p0) - (p2 - p1)
         if (bot.x != 0f) {
-            val param = (p1.x - p0.x) / bot.x
+            val param = (p1.x() - p0.x()) / bot.x
             if (param > 0 && param < 1) union(bounds, point(param))
         } else {
-            val param = (p1.y - p0.y) / bot.y
+            val param = (p1.y() - p0.y()) / bot.y
             if (param > 0 && param < 1) union(bounds, point(param))
         }
     }
@@ -92,10 +93,10 @@ class QuadraticSegment(var p0: Vector2f, p10: Vector2f, var p2: Vector2f) : Edge
 
     override fun scanlineIntersections(x: FloatArray, dy: IntArray, y: Float): Int {
         var total = 0
-        var nextDY = if (y > p0.y) 1 else -1
-        x[total] = p0.x;
-        if (p0.y == y) {
-            if (p0.y < p1.y || (p0.y == p1.y && p0.y < p2.y))
+        var nextDY = if (y > p0.y()) 1 else -1
+        x[total] = p0.x()
+        if (p0.y() == y) {
+            if (p0.y() < p1.y() || (p0.y() == p1.y() && p0.y() < p2.y()))
                 dy[total++] = 1
             else
                 nextDY = 1
@@ -104,7 +105,7 @@ class QuadraticSegment(var p0: Vector2f, p10: Vector2f, var p2: Vector2f) : Edge
         val ab = p1 - p0
         val br = p2 - p1 - ab
         val t = FloatArray(2)
-        val solutions = solveQuadratic(t, br.y, 2 * ab.y, p0.y - y)
+        val solutions = solveQuadratic(t, br.y, 2 * ab.y, p0.y() - y)
         // Sort solutions
         if (solutions >= 2 && t[0] > t[1]) {
             val tmp = t[0]
@@ -114,7 +115,7 @@ class QuadraticSegment(var p0: Vector2f, p10: Vector2f, var p2: Vector2f) : Edge
         for (i in 0 until solutions) {
             if (total < 2) {
                 if (t[i] in 0.0..1.0) {
-                    x[total] = p0.x + 2 * t[i] * ab.x + t[i] * t[i] * br.x;
+                    x[total] = p0.x() + 2 * t[i] * ab.x + t[i] * t[i] * br.x
                     if (nextDY * (ab.y + t[i] * br.y) >= 0) {
                         dy[total++] = nextDY
                         nextDY = -nextDY
@@ -123,25 +124,25 @@ class QuadraticSegment(var p0: Vector2f, p10: Vector2f, var p2: Vector2f) : Edge
             } else break
         }
 
-        if (p2.y == y) {
+        if (p2.y() == y) {
             if (nextDY > 0 && total > 0) {
                 total--
                 nextDY = -1
             }
-            if ((p2.y < p1.y || (p2.y == p1.y && p2.y < p0.y)) && total < 2) {
-                x[total] = p2.x
+            if ((p2.y() < p1.y() || (p2.y() == p1.y() && p2.y() < p0.y())) && total < 2) {
+                x[total] = p2.x()
                 if (nextDY < 0) {
                     dy[total++] = -1
                     nextDY = 1
                 }
             }
         }
-        if (nextDY != (if (y >= p2.y) 1 else -1)) {
+        if (nextDY != (if (y >= p2.y()) 1 else -1)) {
             if (total > 0) {
                 total--
             } else {
-                if (abs(p2.y - y) < abs(p0.y - y)) {
-                    x[total] = p2.x
+                if (abs(p2.y() - y) < abs(p0.y() - y)) {
+                    x[total] = p2.x()
                 }
                 dy[total++] = nextDY
             }
@@ -149,7 +150,7 @@ class QuadraticSegment(var p0: Vector2f, p10: Vector2f, var p2: Vector2f) : Edge
         return total
     }
 
-    override fun signedDistance(origin: Vector2f, param: FloatPtr): SignedDistance {
+    override fun signedDistance(origin: Vector2fc, param: FloatPtr): SignedDistance {
 
         val qa = p0 - origin
         val ab = p1 - p0

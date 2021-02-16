@@ -14,10 +14,11 @@ import me.anno.ui.style.Style
 import me.anno.utils.Color.toVecRGBA
 import me.anno.utils.Maths.length
 import org.joml.Vector3f
+import org.joml.Vector3fc
 import org.joml.Vector4f
 import kotlin.math.*
 
-class HSVBoxMain(chooser: ColorChooser, v0: Vector3f, du: Vector3f, dv: Vector3f, style: Style) :
+class HSVBoxMain(chooser: ColorChooser, v0: Vector3fc, du: Vector3fc, dv: Vector3fc, style: Style) :
     HSVBox(chooser, v0, du, dv, 1f, style, 5f, { x, y ->
         chooser.apply {
             when (visualisation) {

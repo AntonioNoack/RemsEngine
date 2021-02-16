@@ -28,6 +28,7 @@ import org.apache.logging.log4j.LogManager
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
+import org.joml.Vector4fc
 import java.io.File
 import kotlin.math.*
 
@@ -66,7 +67,7 @@ open class DocumentList(var file: File, parent: Transform?) : GFXTransform(paren
         return PDFCache.getDocument(src, async)
     }
 
-    override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
+    override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
 
         val file = file
         val doc = meta

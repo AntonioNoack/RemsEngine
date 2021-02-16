@@ -3,10 +3,7 @@ package me.anno.objects.distributions
 import me.anno.objects.models.CubemapModel.cubemapLineModel
 import me.anno.ui.editor.sceneView.Grid
 import me.anno.utils.Maths.max
-import org.joml.Matrix4fArrayList
-import org.joml.Vector2f
-import org.joml.Vector3f
-import org.joml.Vector4f
+import org.joml.*
 import kotlin.math.abs
 
 class CuboidHullDistribution(center: Vector4f, size: Vector4f, rotation: Vector4f = Vector4f()) :
@@ -126,7 +123,7 @@ class CuboidHullDistribution(center: Vector4f, size: Vector4f, rotation: Vector4
         ).transform()
     }
 
-    override fun drawTransformed(stack: Matrix4fArrayList, color: Vector4f) {
+    override fun drawTransformed(stack: Matrix4fArrayList, color: Vector4fc) {
         // draw cube out of lines
         Grid.drawBuffer(stack, color, cubemapLineModel)
     }

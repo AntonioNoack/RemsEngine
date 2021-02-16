@@ -5,6 +5,7 @@ import me.anno.gpu.buffer.StaticBuffer
 import me.anno.utils.types.Vectors.minus
 import me.anno.utils.types.Vectors.plus
 import org.joml.Vector3f
+import org.joml.Vector3fc
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -30,7 +31,7 @@ object SphereModel {
 
         val z = 0.447215f
 
-        fun addTriangle(a: Vector3f, b: Vector3f, c: Vector3f, sub: Int = 0) {
+        fun addTriangle(a: Vector3fc, b: Vector3fc, c: Vector3fc, sub: Int = 0) {
             if (sub < subdivisions) {
                 // subdivide further
                 val ab = (a + b).normalize()
@@ -97,7 +98,7 @@ object SphereModel {
 
         val z = 0.447215f
 
-        fun addTriangle(a: Vector3f, b: Vector3f, c: Vector3f, sub: Int = 0) {
+        fun addTriangle(a: Vector3fc, b: Vector3fc, c: Vector3fc, sub: Int = 0) {
             if (sub < subdivisions) {
                 // subdivide further
                 val ab = (a + b).normalize()

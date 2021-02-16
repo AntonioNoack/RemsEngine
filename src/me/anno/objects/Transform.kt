@@ -253,7 +253,7 @@ open class Transform(var parent: Transform? = null) : Saveable(),
     }
 
     fun getLocalColor(): Vector4f = getLocalColor(parent?.getLocalColor() ?: Vector4f(1f, 1f, 1f, 1f), lastLocalTime)
-    fun getLocalColor(parentColor: Vector4f, localTime: Double): Vector4f {
+    fun getLocalColor(parentColor: Vector4fc, localTime: Double): Vector4f {
         val col = color.getValueAt(localTime)
         val mul = colorMultiplier[localTime]
         val fadeIn = fadeIn[localTime]
@@ -310,7 +310,7 @@ open class Transform(var parent: Transform? = null) : Saveable(),
     /**
      * stack with camera already included
      * */
-    fun draw(stack: Matrix4fArrayList, parentTime: Double, parentColor: Vector4f) {
+    fun draw(stack: Matrix4fArrayList, parentTime: Double, parentColor: Vector4fc) {
 
         val time = getLocalTime(parentTime)
         val color = getLocalColor(parentColor, time)
@@ -335,7 +335,7 @@ open class Transform(var parent: Transform? = null) : Saveable(),
 
     }
 
-    fun drawChildren(stack: Matrix4fArrayList, time: Double, color: Vector4f, parentColor: Vector4f) {
+    fun drawChildren(stack: Matrix4fArrayList, time: Double, color: Vector4fc, parentColor: Vector4fc) {
         val passesOnColor = passesOnColor()
         val childColor = if (passesOnColor) color else parentColor
         if (drawChildrenAutomatically()) {
@@ -345,13 +345,13 @@ open class Transform(var parent: Transform? = null) : Saveable(),
 
     open fun drawChildrenAutomatically() = true
 
-    fun drawChildren(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
+    fun drawChildren(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
         children.forEach { child ->
             drawChild(stack, time, color, child)
         }
     }
 
-    fun drawChild(stack: Matrix4fArrayList, time: Double, color: Vector4f, child: Transform?) {
+    fun drawChild(stack: Matrix4fArrayList, time: Double, color: Vector4fc, child: Transform?) {
         if (child != null) {
             stack.next {
                 child.draw(stack, time, color)
@@ -359,7 +359,7 @@ open class Transform(var parent: Transform? = null) : Saveable(),
         }
     }
 
-    fun drawUICircle(stack: Matrix4fArrayList, scale: Float, inner: Float, color: Vector4f) {
+    fun drawUICircle(stack: Matrix4fArrayList, scale: Float, inner: Float, color: Vector4fc) {
         // draw a small symbol to indicate pivot
         if (!isFinalRendering) {
             stack.next {
@@ -370,7 +370,7 @@ open class Transform(var parent: Transform? = null) : Saveable(),
         }
     }
 
-    open fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
+    open fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
         drawUICircle(stack, 0.02f, 0.7f, color)
     }
 

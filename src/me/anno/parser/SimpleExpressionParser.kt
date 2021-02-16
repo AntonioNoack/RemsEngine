@@ -50,7 +50,7 @@ object SimpleExpressionParser {
             if (i > i0) {
                 list += substring(i0, i)
                 // ("put remaining ${list.last()} at char ${this[i]}")
-            }// else println("put nothing at ${this.getOrNull(i)}")
+            }// else LOGGER.warn("put nothing at ${this.getOrNull(i)}")
             i0 = i + 1
         }
 

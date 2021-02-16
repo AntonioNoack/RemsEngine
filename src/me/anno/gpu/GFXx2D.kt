@@ -16,10 +16,11 @@ import me.anno.video.VFrame
 import org.joml.Matrix4f
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
+import org.joml.Vector4fc
 
 object GFXx2D {
 
-    fun drawRectGradient(x: Int, y: Int, w: Int, h: Int, lColor: Vector4f, rColor: Vector4f) {
+    fun drawRectGradient(x: Int, y: Int, w: Int, h: Int, lColor: Vector4fc, rColor: Vector4fc) {
         if (w == 0 || h == 0) return
         GFX.check()
         val shader = ShaderLib.flatShaderGradient
@@ -34,8 +35,8 @@ object GFXx2D {
     }
 
     fun drawRectGradient(
-        x: Int, y: Int, w: Int, h: Int, lColor: Vector4f, rColor: Vector4f,
-        frame: VFrame, uvs: Vector4f
+        x: Int, y: Int, w: Int, h: Int, lColor: Vector4fc, rColor: Vector4fc,
+        frame: VFrame, uvs: Vector4fc
     ) {
         if (w == 0 || h == 0) return
         GFX.check()
@@ -51,7 +52,7 @@ object GFXx2D {
         GFX.check()
     }
 
-    fun drawRectStriped(x: Int, y: Int, w: Int, h: Int, offset: Int, stride: Int, color: Vector4f) {
+    fun drawRectStriped(x: Int, y: Int, w: Int, h: Int, offset: Int, stride: Int, color: Vector4fc) {
         if (w == 0 || h == 0) return
         GFX.check()
         val shader = ShaderLib.flatShaderStriped
@@ -66,7 +67,7 @@ object GFXx2D {
         GFX.check()
     }
 
-    fun drawRect(x: Int, y: Int, w: Int, h: Int, color: Vector4f) {
+    fun drawRect(x: Int, y: Int, w: Int, h: Int, color: Vector4fc) {
         if (w == 0 || h == 0) return
         GFX.check()
         val shader = ShaderLib.flatShader
@@ -96,7 +97,7 @@ object GFXx2D {
         GFX.flat01.draw(shader)
     }
 
-    fun drawRect(x: Float, y: Float, w: Float, h: Float, color: Vector4f) {
+    fun drawRect(x: Float, y: Float, w: Float, h: Float, color: Vector4fc) {
         GFX.check()
         val shader = ShaderLib.flatShader
         shader.use()
@@ -257,7 +258,7 @@ object GFXx2D {
     fun getTextSize(font: Font, text: String, widthLimit: Int) =
         FontManager.getSize(font, text, widthLimit)
 
-    fun drawTexture(x: Int, y: Int, w: Int, h: Int, texture: ITexture2D, color: Int, tiling: Vector4f?) {
+    fun drawTexture(x: Int, y: Int, w: Int, h: Int, texture: ITexture2D, color: Int, tiling: Vector4fc?) {
         GFX.check()
         val shader = ShaderLib.flatShaderTexture
         shader.use()
@@ -275,7 +276,7 @@ object GFXx2D {
         GFX.check()
     }
 
-    fun drawTexture(matrix: Matrix4fArrayList, w: Int, h: Int, texture: Texture2D, color: Int, tiling: Vector4f?) {
+    fun drawTexture(matrix: Matrix4fArrayList, w: Int, h: Int, texture: Texture2D, color: Int, tiling: Vector4fc?) {
         matrix.scale(w.toFloat() / GFX.windowWidth, h.toFloat() / GFX.windowHeight, 1f)
         GFX.drawMode = ShaderPlus.DrawMode.COLOR
         draw3D(
@@ -284,7 +285,7 @@ object GFXx2D {
         )
     }
 
-    fun drawTexture(w: Int, h: Int, texture: VFrame, color: Int, tiling: Vector4f?) {
+    fun drawTexture(w: Int, h: Int, texture: VFrame, color: Int, tiling: Vector4fc?) {
         val matrix = Matrix4fArrayList()
         matrix.scale(w.toFloat() / GFX.windowWidth, h.toFloat() / GFX.windowHeight, 1f)
         GFX.drawMode = ShaderPlus.DrawMode.COLOR

@@ -257,7 +257,7 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
                 val f = (time - t1) / (t2 - t1)
                 val w = getWeights(frame0, frame1, frame2, frame3, f)
 
-                // println("weights: ${w.print()}")
+                // LOGGER.info("weights: ${w.print()}")
 
                 var wasFirst = true
                 var valueSum: Any? = null
@@ -358,11 +358,11 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
             Type.FLOAT_01, Type.FLOAT_01_EXP,
             Type.FLOAT_PLUS -> ((a as Float) * g + f * (b as Float)).toFloat()
             Type.DOUBLE -> (a as Double) * g + f * (b as Double)
-            Type.SKEW_2D -> (a as Vector2f).lerp(b as Vector2f, f.toFloat(), Vector2f())
+            Type.SKEW_2D -> (a as Vector2f).lerp(b as Vector2fc, f.toFloat(), Vector2f())
             Type.POSITION,
             Type.ROT_YXZ,
-            Type.SCALE -> (a as Vector3f).lerp(b as Vector3f, f.toFloat(), Vector3f())
-            Type.COLOR, Type.TILING -> (a as Vector4f).lerp(b as Vector4f, f.toFloat(), Vector4f())
+            Type.SCALE -> (a as Vector3f).lerp(b as Vector3fc, f.toFloat(), Vector3f())
+            Type.COLOR, Type.TILING -> (a as Vector4f).lerp(b as Vector4fc, f.toFloat(), Vector4f())
             Type.QUATERNION -> (a as Quaternionf).slerp(b as Quaternionf, f.toFloat())
             Type.STRING -> {
 
@@ -440,7 +440,7 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
                         }
                     }
                 }
-                // println("mix($a, $b, $f) = $v")
+                // LOGGER.info("mix($a, $b, $f) = $v")
                 mixedValue
             }
             else -> throw RuntimeException("don't know how to linearly interpolate $a and $b")
@@ -453,8 +453,8 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
             is Float -> a
             is Double -> a
             is Long -> a.toDouble()
-            is Vector2f, is Vector3f, is Vector4f, is Quaternionf -> a
-            is Vector2d, is Vector3d, is Vector4d, is Quaterniond -> a
+            is Vector2fc, is Vector3fc, is Vector4fc, is Quaternionf -> a
+            is Vector2dc, is Vector3dc, is Vector4dc, is Quaterniond -> a
             is String -> a
             else -> throw RuntimeException("don't know how to calc $a")
         } as Any // needed by Intellij Kotlin compiler
@@ -515,7 +515,7 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
                 writer.writeValue(this, "v", value0)
             }
         }
-        for (i in 0 until type.components) {
+        for (i in 0 until min(type.components, drivers.size)) {
             writer.writeObject(this, "driver$i", drivers[i])
         }
     }
@@ -600,7 +600,7 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
             for (i in 0 until type.components) {
                 this.drivers[i] = obj.drivers.getOrNull(i)
             }
-        } else println("copy-from-object $obj is not an AnimatedProperty!")
+        } else LOGGER.warn("copy-from-object $obj is not an AnimatedProperty!")
     }
 
     fun clear() {

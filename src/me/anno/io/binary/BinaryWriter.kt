@@ -4,10 +4,7 @@ import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.binary.BinaryTypes.*
 import me.anno.utils.types.Booleans.toInt
-import org.joml.Vector2f
-import org.joml.Vector3f
-import org.joml.Vector4d
-import org.joml.Vector4f
+import org.joml.*
 import java.io.DataOutputStream
 
 class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
@@ -211,40 +208,40 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         }
     }
 
-    override fun writeVector2f(name: String, value: Vector2f, force: Boolean) {
-        if (force || (value.x != 0f && value.y != 0f)) {
+    override fun writeVector2f(name: String, value: Vector2fc, force: Boolean) {
+        if (force || (value.x() != 0f && value.y() != 0f)) {
             writeAttributeStart(name, VECTOR2F)
-            output.writeFloat(value.x)
-            output.writeFloat(value.y)
+            output.writeFloat(value.x())
+            output.writeFloat(value.y())
         }
     }
 
-    override fun writeVector3f(name: String, value: Vector3f, force: Boolean) {
-        if (force || (value.x != 0f || value.y != 0f || value.z != 0f)) {
+    override fun writeVector3f(name: String, value: Vector3fc, force: Boolean) {
+        if (force || (value.x() != 0f || value.y() != 0f || value.z() != 0f)) {
             writeAttributeStart(name, VECTOR3F)
-            output.writeFloat(value.x)
-            output.writeFloat(value.y)
-            output.writeFloat(value.z)
+            output.writeFloat(value.x())
+            output.writeFloat(value.y())
+            output.writeFloat(value.z())
         }
     }
 
-    override fun writeVector4f(name: String, value: Vector4f, force: Boolean) {
-        if (force || (value.x != 0f || value.y != 0f || value.z != 0f || value.w != 0f)) {
+    override fun writeVector4f(name: String, value: Vector4fc, force: Boolean) {
+        if (force || (value.x() != 0f || value.y() != 0f || value.z() != 0f || value.w() != 0f)) {
             writeAttributeStart(name, VECTOR4F)
-            output.writeFloat(value.x)
-            output.writeFloat(value.y)
-            output.writeFloat(value.z)
-            output.writeFloat(value.w)
+            output.writeFloat(value.x())
+            output.writeFloat(value.y())
+            output.writeFloat(value.z())
+            output.writeFloat(value.w())
         }
     }
 
-    override fun writeVector4d(name: String, value: Vector4d, force: Boolean) {
-        if (force || (value.x != 0.0 || value.y != 0.0 || value.z != 0.0 || value.w != 0.0)) {
+    override fun writeVector4d(name: String, value: Vector4dc, force: Boolean) {
+        if (force || (value.x() != 0.0 || value.y() != 0.0 || value.z() != 0.0 || value.w() != 0.0)) {
             writeAttributeStart(name, VECTOR4D)
-            output.writeDouble(value.x)
-            output.writeDouble(value.y)
-            output.writeDouble(value.z)
-            output.writeDouble(value.w)
+            output.writeDouble(value.x())
+            output.writeDouble(value.y())
+            output.writeDouble(value.z())
+            output.writeDouble(value.w())
         }
     }
 

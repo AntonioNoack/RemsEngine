@@ -3,10 +3,7 @@ package me.anno.io.base
 import me.anno.io.ISaveable
 import me.anno.studio.StudioBase
 import me.anno.utils.files.LocalFile.toLocalPath
-import org.joml.Vector2f
-import org.joml.Vector3f
-import org.joml.Vector4d
-import org.joml.Vector4f
+import org.joml.*
 import java.io.File
 import java.util.*
 
@@ -47,10 +44,10 @@ abstract class BaseWriter(val respectsDefaultValues: Boolean) {
     abstract fun writeString(name: String, value: String?, force: Boolean = false)
     abstract fun writeStringArray(name: String, value: Array<String>, force: Boolean = false)
 
-    abstract fun writeVector2f(name: String, value: Vector2f, force: Boolean = false)
-    abstract fun writeVector3f(name: String, value: Vector3f, force: Boolean = false)
-    abstract fun writeVector4f(name: String, value: Vector4f, force: Boolean = false)
-    abstract fun writeVector4d(name: String, value: Vector4d, force: Boolean = false)
+    abstract fun writeVector2f(name: String, value: Vector2fc, force: Boolean = false)
+    abstract fun writeVector3f(name: String, value: Vector3fc, force: Boolean = false)
+    abstract fun writeVector4f(name: String, value: Vector4fc, force: Boolean = false)
+    abstract fun writeVector4d(name: String, value: Vector4dc, force: Boolean = false)
 
     fun writeFile(name: String, file: File?, workspace: File? = StudioBase.workspace) {
         if (file != null) {

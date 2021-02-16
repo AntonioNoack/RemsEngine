@@ -66,12 +66,12 @@ object ModelWriter {
         if(lines.isNotEmpty()){
 
             val positions = lines.map { it.a } + lines.map { it.b }
-            val x0 = positions.minBy { it.x }!!.x
-            val x1 = positions.maxBy { it.x }!!.x
-            val y0 = positions.minBy { it.y }!!.y
-            val y1 = positions.maxBy { it.y }!!.y
-            val z0 = positions.minBy { it.z }!!.z
-            val z1 = positions.maxBy { it.z }!!.z
+            val x0 = positions.minBy { it.x() }!!.x()
+            val x1 = positions.maxBy { it.x() }!!.x()
+            val y0 = positions.minBy { it.y() }!!.y()
+            val y1 = positions.maxBy { it.y() }!!.y()
+            val z0 = positions.minBy { it.z() }!!.z()
+            val z1 = positions.maxBy { it.z() }!!.z()
 
             dos.writeFloat(x0)
             dos.writeFloat(x1)
@@ -83,12 +83,12 @@ object ModelWriter {
             for (line in lines) {
                 val a = line.a
                 val b = line.b
-                dos.writeShort(normalize2(a.x, x0, x1))
-                dos.writeShort(normalize2(a.y, y0, y1))
-                dos.writeShort(normalize2(a.z, z0, z1))
-                dos.writeShort(normalize2(b.x, x0, x1))
-                dos.writeShort(normalize2(b.y, y0, y1))
-                dos.writeShort(normalize2(b.z, z0, z1))
+                dos.writeShort(normalize2(a.x(), x0, x1))
+                dos.writeShort(normalize2(a.y(), y0, y1))
+                dos.writeShort(normalize2(a.z(), z0, z1))
+                dos.writeShort(normalize2(b.x(), x0, x1))
+                dos.writeShort(normalize2(b.y(), y0, y1))
+                dos.writeShort(normalize2(b.z(), z0, z1))
             }
 
         }

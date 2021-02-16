@@ -18,6 +18,7 @@ import me.anno.utils.types.Vectors.plus
 import me.anno.utils.types.Vectors.times
 import org.joml.AABBf
 import org.joml.Vector2f
+import org.joml.Vector2fc
 import java.lang.RuntimeException
 import kotlin.math.abs
 import kotlin.math.sqrt
@@ -26,7 +27,7 @@ import kotlin.math.sqrt
  * adapted from Multi Channel Signed Distance fields
  * */
 class CubicSegment(
-    var p0: Vector2f, p10: Vector2f, p20: Vector2f, var p3: Vector2f
+    var p0: Vector2fc, p10: Vector2fc, p20: Vector2fc, var p3: Vector2fc
 ) :
     EdgeSegment() {
 
@@ -126,10 +127,10 @@ class CubicSegment(
 
     override fun scanlineIntersections(x: FloatArray, dy: IntArray, y: Float): Int {
         var total = 0
-        var nextDY = if (y > p0.y) 1 else -1
-        x[total] = p0.x
-        if (p0.y == y) {
-            if (p0.y < p1.y || (p0.y == p1.y && (p0.y < p2.y || (p0.y == p2.y && p0.y < p3.y))))
+        var nextDY = if (y > p0.y()) 1 else -1
+        x[total] = p0.x()
+        if (p0.y() == y) {
+            if (p0.y() < p1.y() || (p0.y() == p1.y() && (p0.y() < p2.y() || (p0.y() == p2.y() && p0.y() < p3.y()))))
                 dy[total++] = 1;
             else
                 nextDY = 1;
@@ -139,7 +140,7 @@ class CubicSegment(
         val br = p2 - p1 - ab
         val az = (p3 - p2) - (p2 - p1) - br
         val t = FloatArray(3)
-        val solutions = solveCubic(t, az.y, br.y * 3f, ab.y * 3f, p0.y - y);
+        val solutions = solveCubic(t, az.y, br.y * 3f, ab.y * 3f, p0.y() - y);
         // Sort solutions
         if (solutions >= 2) {
             if (t[0] > t[1]) {
@@ -161,7 +162,7 @@ class CubicSegment(
         for (i in 0 until solutions) {
             if (total < 3) {
                 if (t[i] in 0.0..1.0) {
-                    x[total] = p0.x + 3 * t[i] * ab.x + 3 * t[i] * t[i] * br.x + t[i] * t[i] * t[i] * az.x;
+                    x[total] = p0.x() + 3 * t[i] * ab.x + 3 * t[i] * t[i] * br.x + t[i] * t[i] * t[i] * az.x;
                     if (nextDY * (ab.y + 2 * t[i] * br.y + t[i] * t[i] * az.y) >= 0) {
                         dy[total++] = nextDY;
                         nextDY = -nextDY;
@@ -170,25 +171,25 @@ class CubicSegment(
             } else break
         }
 
-        if (p3.y == y) {
+        if (p3.y() == y) {
             if (nextDY > 0 && total > 0) {
                 total--
                 nextDY = -1
             }
-            if ((p3.y < p2.y || (p3.y == p2.y && (p3.y < p1.y || (p3.y == p1.y && p3.y < p0.y)))) && total < 3) {
-                x[total] = p3.x
+            if ((p3.y() < p2.y() || (p3.y() == p2.y() && (p3.y() < p1.y() || (p3.y() == p1.y() && p3.y() < p0.y())))) && total < 3) {
+                x[total] = p3.x()
                 if (nextDY < 0) {
                     dy[total++] = -1
                     nextDY = 1
                 }
             }
         }
-        if (nextDY != (if (y >= p3.y) 1 else -1)) {
+        if (nextDY != (if (y >= p3.y()) 1 else -1)) {
             if (total > 0) {
                 total--
             } else {
-                if (abs(p3.y - y) < abs(p0.y - y)) {
-                    x[total] = p3.x
+                if (abs(p3.y() - y) < abs(p0.y() - y)) {
+                    x[total] = p3.x()
                 }
                 dy[total++] = nextDY
             }
@@ -196,7 +197,7 @@ class CubicSegment(
         return total
     }
 
-    override fun signedDistance(origin: Vector2f, param: FloatPtr): SignedDistance {
+    override fun signedDistance(origin: Vector2fc, param: FloatPtr): SignedDistance {
         val qa: Vector2f = p0 - origin
         val ab: Vector2f = p1 - p0
         val br: Vector2f = p2 - p1 - ab

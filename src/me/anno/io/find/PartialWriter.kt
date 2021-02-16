@@ -2,10 +2,7 @@ package me.anno.io.find
 
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
-import org.joml.Vector2f
-import org.joml.Vector3f
-import org.joml.Vector4d
-import org.joml.Vector4f
+import org.joml.*
 
 /**
  * a class, that does nothing
@@ -36,13 +33,13 @@ abstract class PartialWriter(respectsDefaultValues: Boolean) : BaseWriter(respec
 
     override fun writeLongArray(name: String, value: LongArray, force: Boolean) {}
 
-    override fun writeVector2f(name: String, value: Vector2f, force: Boolean) {}
+    override fun writeVector2f(name: String, value: Vector2fc, force: Boolean) {}
 
-    override fun writeVector3f(name: String, value: Vector3f, force: Boolean) {}
+    override fun writeVector3f(name: String, value: Vector3fc, force: Boolean) {}
 
-    override fun writeVector4f(name: String, value: Vector4f, force: Boolean) {}
+    override fun writeVector4f(name: String, value: Vector4fc, force: Boolean) {}
 
-    override fun writeVector4d(name: String, value: Vector4d, force: Boolean) {}
+    override fun writeVector4d(name: String, value: Vector4dc, force: Boolean) {}
 
     override fun writeNull(name: String?) {}
 

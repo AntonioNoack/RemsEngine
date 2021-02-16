@@ -13,6 +13,7 @@ import me.anno.utils.Maths.mix
 import me.anno.utils.Maths.nonNegativeModulo
 import me.anno.video.FFMPEGMetadata
 import org.joml.Vector4f
+import org.joml.Vector4fc
 import kotlin.math.floor
 import kotlin.math.roundToInt
 
@@ -43,10 +44,10 @@ class Solution(
     fun iteratorOverGradients(
         selectedTransform: Transform?, draggedTransform: Transform?,
         drawStripes: (x0: Int, x1: Int, y: Int, h: Int, offset: Int) -> Unit,
-        drawGradient: (x0: Int, x1: Int, y: Int, h: Int, c0: Vector4f, c1: Vector4f) -> Unit,
+        drawGradient: (x0: Int, x1: Int, y: Int, h: Int, c0: Vector4fc, c1: Vector4fc) -> Unit,
         drawVideo: (
             x0: Int, x1: Int, y: Int, h: Int,
-            c0: Vector4f, c1: Vector4f,
+            c0: Vector4fc, c1: Vector4fc,
             frameOffset: Int, frameWidth: Int,
             video: Video, meta: FFMPEGMetadata,
             fract0: Float, fract1: Float
@@ -158,7 +159,7 @@ class Solution(
         iteratorOverGradients(null, null, { _, _, _, _, _ -> }, { _, _, _, _, _, _ -> }, ::keepFrameLoaded)
     }
 
-    private fun drawGradient(x0: Int, x1: Int, y: Int, h: Int, c0: Vector4f, c1: Vector4f) {
+    private fun drawGradient(x0: Int, x1: Int, y: Int, h: Int, c0: Vector4fc, c1: Vector4fc) {
         drawRectGradient(x0, y, x1 - x0, h, c0, c1)
     }
 
@@ -169,7 +170,7 @@ class Solution(
     private fun getTimeAt(x: Int) = centralTime + dtHalfLength * mix(-1.0, +1.0, (x - this.x0).toDouble() / this.w)
 
     private fun clampTime(localTime: Double, video: Video): Double {
-        return if (video.isLooping == LoopingState.PLAY_ONCE) clamp(localTime, 0.0, video.lastDuration)
+        return if (video.isLooping.value == LoopingState.PLAY_ONCE) clamp(localTime, 0.0, video.lastDuration)
         else localTime
     }
 
@@ -178,7 +179,7 @@ class Solution(
 
     private fun drawVideo(
         x0: Int, x1: Int, y: Int, h: Int,
-        c0: Vector4f, c1: Vector4f,
+        c0: Vector4fc, c1: Vector4fc,
         frameOffset: Int, frameWidth: Int,
         video: Video, meta: FFMPEGMetadata,
         fract0: Float, fract1: Float
@@ -209,7 +210,7 @@ class Solution(
 
     private fun keepFrameLoaded(
         x0: Int, x1: Int, y: Int, h: Int,
-        c0: Vector4f, c1: Vector4f,
+        c0: Vector4fc, c1: Vector4fc,
         frameOffset: Int, frameWidth: Int,
         video: Video, meta: FFMPEGMetadata,
         fract0: Float, fract1: Float

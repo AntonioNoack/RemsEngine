@@ -18,6 +18,7 @@ import me.anno.utils.ColorParsing
 import me.anno.utils.Maths.mixARGB
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector4f
+import org.joml.Vector4fc
 
 // maximum size???...
 class ColorPalette(
@@ -89,7 +90,7 @@ class ColorPalette(
             this.color = color
         }
 
-        fun setRGBA(color: Vector4f, notify: Boolean) {
+        fun setRGBA(color: Vector4fc, notify: Boolean) {
             setARGB(color.toARGB(), notify)
         }
 

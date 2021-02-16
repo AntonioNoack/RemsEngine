@@ -4,6 +4,9 @@ import kotlin.reflect.KClass;
 
 import java.util.HashMap;
 
+/**
+ * the main logging manager, which should be used
+ * */
 public class LogManager {
 
     private static final Logger logger = new LoggerImpl(null);

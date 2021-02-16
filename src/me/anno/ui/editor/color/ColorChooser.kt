@@ -22,7 +22,9 @@ import me.anno.utils.types.Floats.f3
 import org.apache.logging.log4j.LogManager
 import org.hsluv.HSLuvColorSpace
 import org.joml.Vector3f
+import org.joml.Vector3fc
 import org.joml.Vector4f
+import org.joml.Vector4fc
 import kotlin.math.min
 
 class ColorChooser(style: Style, val withAlpha: Boolean, val owningProperty: AnimatedProperty<*>?) : PanelListY(style) {
@@ -130,7 +132,7 @@ class ColorChooser(style: Style, val withAlpha: Boolean, val owningProperty: Ani
         )
     }
 
-    fun setRGBA(v: Vector4f, notify: Boolean) = setRGBA(v.x, v.y, v.z, v.w, notify)
+    fun setRGBA(v: Vector4fc, notify: Boolean) = setRGBA(v.x(), v.y(), v.z(), v.w(), notify)
     fun setRGBA(r: Float, g: Float, b: Float, a: Float, notify: Boolean) {
         val hsluv = HSLuvColorSpace.rgbToHsluv(
             doubleArrayOf(
@@ -158,7 +160,7 @@ class ColorChooser(style: Style, val withAlpha: Boolean, val owningProperty: Ani
         }
     }
 
-    fun drawColorBox(element: Panel, d0: Vector3f, du: Vector3f, dv: Vector3f, dh: Float, mainBox: Boolean) {
+    fun drawColorBox(element: Panel, d0: Vector3fc, du: Vector3fc, dv: Vector3fc, dh: Float, mainBox: Boolean) {
         drawColorBox(
             element.x, element.y, element.w, element.h,
             d0, du, dv, dh,
@@ -168,7 +170,7 @@ class ColorChooser(style: Style, val withAlpha: Boolean, val owningProperty: Ani
 
     fun drawColorBox(
         x: Int, y: Int, w: Int, h: Int,
-        d0: Vector3f, du: Vector3f, dv: Vector3f, dh: Float,
+        d0: Vector3fc, du: Vector3fc, dv: Vector3fc, dh: Float,
         spaceStyle: ColorVisualisation
     ) {
         val shader = colorSpace.getShader(spaceStyle)
@@ -177,11 +179,11 @@ class ColorChooser(style: Style, val withAlpha: Boolean, val owningProperty: Ani
         val sharpness = min(w, h) * 0.25f + 1f
         when (spaceStyle) {
             ColorVisualisation.WHEEL -> {
-                shader.v3("v0", d0.x + hue * dh, d0.y, d0.z)
+                shader.v3("v0", d0.x() + hue * dh, d0.y(), d0.z())
                 shader.v3("du", du)
                 shader.v3("dv", dv)
                 val hue0 = colorSpace.hue0
-                shader.v2("ringSL", hue0.y, hue0.z)
+                shader.v2("ringSL", hue0.y(), hue0.z())
                 shader.v1("sharpness", sharpness)
                 GFX.flat01.draw(shader)
             }
@@ -191,7 +193,7 @@ class ColorChooser(style: Style, val withAlpha: Boolean, val owningProperty: Ani
                 GFX.flat01.draw(shader)
             }
             ColorVisualisation.BOX -> {
-                shader.v3("v0", d0.x + hue * dh, d0.y, d0.z)
+                shader.v3("v0", d0.x() + hue * dh, d0.y(), d0.z())
                 shader.v3("du", du)
                 shader.v3("dv", dv)
                 // shader.v1("sharpness", sharpness)

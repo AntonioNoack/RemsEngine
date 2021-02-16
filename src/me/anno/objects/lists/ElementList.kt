@@ -7,6 +7,7 @@ import me.anno.objects.distributions.AnimatedDistribution
 import me.anno.objects.particles.Particle
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
+import org.joml.Vector4fc
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -55,14 +56,14 @@ abstract class ElementList : Saveable() {
     abstract fun drawElements(
         stack: Matrix4fArrayList,
         time: Double,
-        color: Vector4f,
+        color: Vector4fc,
         elements: List<Particle>
     )
 
     abstract fun getState(): Any?
 
     fun onDraw(
-        stack: Matrix4fArrayList, time: Double, color: Vector4f,
+        stack: Matrix4fArrayList, time: Double, color: Vector4fc,
         generator: ElementGenerator,
         superOnDraw: () -> Unit
     ) {

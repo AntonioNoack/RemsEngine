@@ -15,11 +15,11 @@ class VideoData(val file: File, val w: Int, val h: Int, val index: Int, val buff
     val frames = stream.frames
 
     /*init {// LayerView was not keeping its resources loaded
-        if("128 per second" in file.name) println("get video frames $file $w $h $index $bufferLength $fps")
+        if("128 per second" in file.name) LOGGER.debug("get video frames $file $w $h $index $bufferLength $fps")
     }*/
 
     override fun destroy() {
-        //if("128 per second" in file.name) println("destroy v frames $file $w $h $index $bufferLength $fps")
+        //if("128 per second" in file.name) LOGGER.debug("destroy v frames $file $w $h $index $bufferLength $fps")
         stream.destroy()
     }
 

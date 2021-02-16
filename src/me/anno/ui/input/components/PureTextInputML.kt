@@ -8,13 +8,12 @@ import me.anno.gpu.GFXx2D.drawRect
 import me.anno.gpu.GFXx2D.getTextSize
 import me.anno.input.Input
 import me.anno.input.MouseButton
-import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelXY
+import me.anno.ui.base.text.TextPanel
 import me.anno.ui.style.Style
-import me.anno.utils.types.Lists.one
 import me.anno.utils.Maths.clamp
 import me.anno.utils.structures.tuples.Quad
 import me.anno.utils.types.Strings.getIndexFromText
@@ -60,13 +59,16 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
             val panel = object : CorrectingTextInput(style) {
                 override val isShowingPlaceholder: Boolean
                     get() = this@PureTextInputML.text.isEmpty()
+
                 // override fun onBackKey(x: Float, y: Float) = this@PureTextInputML.onBackKey(x, y)
                 // override fun onCharTyped(x: Float, y: Float, key: Int) = this@PureTextInputML.onCharTyped(x, y, key)
                 // override fun onEnterKey(x: Float, y: Float) = this@PureTextInputML.onEnterKey(x, y)
                 override fun onMouseDown(x: Float, y: Float, button: MouseButton) =
                     this@PureTextInputML.onMouseDown(x, indexInParent)
+
                 override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) =
                     this@PureTextInputML.onMouseMoved(x, y, dx, dy)
+
                 override fun onCopyRequested(x: Float, y: Float): String? = this@PureTextInputML.onCopyRequested(x, y)
                 override fun onCharTyped2(x: Float, y: Float, key: Int) = this@PureTextInputML.onCharTyped(x, y, key)
                 override fun onEnterKey2(x: Float, y: Float) = this@PureTextInputML.onEnterKey(x, y)
@@ -124,7 +126,7 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
         val font = examplePanel.font
         val textSize = font.sizeInt
         val textColor = examplePanel.textColor or black
-        val isReallyInFocus = isInFocus || children.one { it.isInFocus }
+        val isReallyInFocus = isInFocus || children.any { it.isInFocus }
         if (isReallyInFocus && (showBars || cursor1 != cursor2)) {
             ensureCursorBounds()
             val padding = textSize / 4

@@ -34,6 +34,7 @@ import me.anno.video.MissingFrameException
 import org.joml.Matrix4fArrayList
 import org.joml.Vector3f
 import org.joml.Vector4f
+import org.joml.Vector4fc
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.math.abs
@@ -119,6 +120,7 @@ open class ParticleSystem(parent: Transform? = null) : Transform(parent) {
 
         if (aliveParticles.isNotEmpty()) {
 
+            val simulationStep = simulationStep
             val forces = children.filterIsInstance<ForceField>()
             val hasHeavyComputeForce = forces.any { it is BetweenParticleGravity }
             var currentTime = aliveParticles.map { it.lastTime(simulationStep) }.min() ?: return true
@@ -133,7 +135,6 @@ open class ParticleSystem(parent: Transform? = null) : Transform(parent) {
                 spawnIfRequired(currentTime, false)
 
                 val needsUpdate = aliveParticles.filter { it.lastTime(simulationStep) < currentTime }
-                val simulationStep = simulationStep
 
                 // update all particles, which need an update
                 if (hasHeavyComputeForce) {
@@ -141,24 +142,21 @@ open class ParticleSystem(parent: Transform? = null) : Transform(parent) {
                     val limit = max(65536 / needsUpdate.size, 10)
                     if (needsUpdate.size > limit) {
                         processBalanced(0, limit, 16) { i0, i1 ->
-                            val aliveParticles = ArrayList(aliveParticles)
                             for (i in i0 until i1) needsUpdate[i].step(simulationStep, forces, aliveParticles)
                         }
                         currentTime -= simulationStep // undo the advancing step...
                     } else {
                         processBalanced(0, needsUpdate.size, 16) { i0, i1 ->
-                            val aliveParticles = ArrayList(aliveParticles)
                             for (i in i0 until i1) needsUpdate[i].step(simulationStep, forces, aliveParticles)
                         }
-                        aliveParticles.removeIf { (it.states.size - 2) * simulationStep >= it.lifeTime }
+                        aliveParticles.removeIf { it.hasDied }
                     }
                 } else {
                     // process all
-                    processBalanced(0, needsUpdate.size, 16) { i0, i1 ->
-                        val aliveParticles = ArrayList(aliveParticles)
+                    processBalanced(0, needsUpdate.size, 256) { i0, i1 ->
                         for (i in i0 until i1) needsUpdate[i].step(simulationStep, forces, aliveParticles)
                     }
-                    aliveParticles.removeIf { (it.states.size - 2) * simulationStep >= it.lifeTime }
+                    aliveParticles.removeIf { it.hasDied }
                 }
             }
 
@@ -176,6 +174,8 @@ open class ParticleSystem(parent: Transform? = null) : Transform(parent) {
 
     open fun createParticle(index: Int, time: Double): Particle? {
 
+        val random = random
+
         // find the particle type
         var randomIndex = random.nextFloat() * sumWeight
         var type = children.firstOrNull() ?: Transform()
@@ -191,18 +191,19 @@ open class ParticleSystem(parent: Transform? = null) : Transform(parent) {
         val lifeTime = lifeTime.nextV1(time, random).toDouble()
 
         // create the particle
-        val particle = Particle(type, time, lifeTime, spawnMass.nextV1(time, random))
-        if (spawnSize1D) particle.scale.set(spawnSize.nextV1(time, random))
-        else particle.scale.set(spawnSize.nextV3(time, random))
-        particle.opacity = spawnOpacity.nextV1(time, random)
+        val color3 = spawnColor.nextV3(time, random)
+        val opacity = spawnOpacity.nextV1(time, random)
+        val color4 = Vector4f(color3, opacity)
+        val scale = if (spawnSize1D) Vector3f(spawnSize.nextV1(time, random)) else spawnSize.nextV3(time, random)
+        val particle = Particle(type, time, lifeTime, spawnMass.nextV1(time, random), color4, scale, simulationStep)
 
         // create the initial state
-        val state = ParticleState()
-        state.position = spawnPosition.nextV3(time, random)
-        state.rotation = spawnRotation.nextV3(time, random)
-        state.color = spawnColor.nextV3(time, random)
-        state.dPosition = spawnVelocity.nextV3(time, random)
-        state.dRotation = spawnRotationVelocity.nextV3(time, random)
+        val state = ParticleState(
+            spawnPosition.nextV3(time, random),
+            spawnVelocity.nextV3(time, random),
+            spawnRotation.nextV3(time, random),
+            spawnRotationVelocity.nextV3(time, random)
+        )
 
         // apply the state
         particle.states.add(state)
@@ -246,7 +247,7 @@ open class ParticleSystem(parent: Transform? = null) : Transform(parent) {
 
     open fun needsChildren() = true
 
-    override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
+    override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
 
         super.onDraw(stack, time, color)
 
@@ -280,7 +281,7 @@ open class ParticleSystem(parent: Transform? = null) : Transform(parent) {
     /**
      * draw all particles at this point in time
      * */
-    private fun drawParticles(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
+    private fun drawParticles(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
         val fadeIn = fadeIn[time].toDouble()
         val fadeOut = fadeOut[time].toDouble()
         val simulationStep = simulationStep

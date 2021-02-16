@@ -10,7 +10,7 @@ import me.anno.utils.types.Strings.parseTime
 import org.apache.logging.log4j.LogManager
 import java.io.File
 
-class FFMPEGMetadata(file: File): ICacheData {
+class FFMPEGMetadata(val file: File): ICacheData {
 
     val duration: Double
 
@@ -106,6 +106,8 @@ class FFMPEGMetadata(file: File): ICacheData {
         videoHeight = video?.get("height")?.asText()?.toInt() ?: 0
         videoFPS = video?.get("r_frame_rate")?.asText()?.parseFraction() ?: 30.0
 
+        LOGGER.info("Loaded info about $file")
+
     }
 
     // not working for the problematic file 001.gif
@@ -142,8 +144,9 @@ class FFMPEGMetadata(file: File): ICacheData {
         private val LOGGER = LogManager.getLogger(FFMPEGMetadata::class)
         private val metadataCache = CacheSection("Metadata")
         fun getMeta(file: File, async: Boolean): FFMPEGMetadata? {
-            if(file.isDirectory || !file.exists()) return null
-            return metadataCache.getEntry(LastModifiedCache[file], 300_000, async){
+            val key = LastModifiedCache[file]
+            if(key.isDirectory || !key.exists) return null
+            return metadataCache.getEntry(key, 300_000, async){
                 FFMPEGMetadata(file)
             } as? FFMPEGMetadata
         }

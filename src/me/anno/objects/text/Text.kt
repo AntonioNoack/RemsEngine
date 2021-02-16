@@ -46,10 +46,7 @@ import me.anno.utils.types.Vectors.mulAlpha
 import me.anno.utils.types.Vectors.plus
 import me.anno.utils.types.Vectors.times
 import me.anno.video.MissingFrameException
-import org.joml.Matrix4fArrayList
-import org.joml.Vector2f
-import org.joml.Vector3f
-import org.joml.Vector4f
+import org.joml.*
 import java.awt.font.TextLayout
 import kotlin.math.max
 import kotlin.math.min
@@ -182,7 +179,7 @@ open class Text(parent: Transform? = null) : GFXTransform(parent) {
         } */
     }
 
-    override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
+    override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
 
         val text = text[time]
         if (text.isBlank()) {
@@ -279,7 +276,7 @@ open class Text(parent: Transform? = null) : GFXTransform(parent) {
     }
 
     private fun draw(
-        stack: Matrix4fArrayList, time: Double, color: Vector4f,
+        stack: Matrix4fArrayList, time: Double, color: Vector4fc,
         lineSegmentsWithStyle: PartResult,
         drawMeshes: Boolean, drawTextures: Boolean,
         keys: List<TextSegmentKey>, exampleLayout: TextLayout,
@@ -363,11 +360,11 @@ open class Text(parent: Transform? = null) : GFXTransform(parent) {
 
     private fun drawTexture(
         key: TextSegmentKey, time: Double, stack: Matrix4fArrayList,
-        color: Vector4f, lineDeltaX: Float, lineDeltaY: Float,
+        color: Vector4fc, lineDeltaX: Float, lineDeltaY: Float,
         startIndex: Int, endIndex: Int,
         exampleLayout: TextLayout,
         extraSmoothness: Float,
-        oc1: Vector4f, oc2: Vector4f, oc3: Vector4f
+        oc1: Vector4fc, oc2: Vector4fc, oc3: Vector4fc
     ) {
 
         val sdf2 = getTextTexture(key)
@@ -454,7 +451,7 @@ open class Text(parent: Transform? = null) : GFXTransform(parent) {
 
     private fun drawMesh(
         key: TextSegmentKey, time: Double, stack: Matrix4fArrayList,
-        color: Vector4f, lineDeltaX: Float, lineDeltaY: Float,
+        color: Vector4fc, lineDeltaX: Float, lineDeltaY: Float,
         startIndex: Int, endIndex: Int
     ) {
 

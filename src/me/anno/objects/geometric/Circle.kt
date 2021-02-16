@@ -15,9 +15,7 @@ import me.anno.objects.animation.Type
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
-import org.joml.Matrix4fArrayList
-import org.joml.Vector3f
-import org.joml.Vector4f
+import org.joml.*
 
 class Circle(parent: Transform? = null): GFXTransform(parent){
 
@@ -25,12 +23,12 @@ class Circle(parent: Transform? = null): GFXTransform(parent){
     var startDegrees = AnimatedProperty(Type.ANGLE, 0f)
     var endDegrees = AnimatedProperty(Type.ANGLE,360f)
 
-    override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
+    override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
         draw3DCircle(this, time, stack, innerRadius[time], startDegrees[time], endDegrees[time], color)
     }
 
-    override fun transformLocally(pos: Vector3f, time: Double): Vector3f {
-        return Vector3f(pos.x, -pos.y, pos.z) // why ever y needs to be mirrored...
+    override fun transformLocally(pos: Vector3fc, time: Double): Vector3f {
+        return Vector3f(pos.x(), -pos.y(), pos.z()) // why ever y needs to be mirrored...
     }
 
     override fun createInspector(list: PanelListY, style: Style, getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory) {

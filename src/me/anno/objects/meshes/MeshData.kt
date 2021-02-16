@@ -21,6 +21,7 @@ import me.karl.scene.Scene
 import org.joml.Matrix4f
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
+import org.joml.Vector4fc
 import org.lwjgl.opengl.GL20
 import java.io.File
 
@@ -30,7 +31,7 @@ class MeshData : ICacheData {
     var fbxGeometry: FBXGeometry? = null
     var daeScene: Scene? = null
 
-    fun drawObj(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
+    fun drawObj(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
         for ((material, buffer) in objData!!) {
             val shader = shaderObjMtl
             shader3DUniforms(shader, stack, 1, 1, color, null, Filtering.NEAREST, null)
@@ -40,7 +41,7 @@ class MeshData : ICacheData {
         }
     }
 
-    fun drawDae(stack: Matrix4fArrayList, time: Double, color: Vector4f){
+    fun drawDae(stack: Matrix4fArrayList, time: Double, color: Vector4fc){
         GFX.check()
         val scene = daeScene!!
         val renderer = Mesh.daeRenderer!!
@@ -52,7 +53,7 @@ class MeshData : ICacheData {
     }
 
     // doesn't work :/
-    fun drawFBX(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
+    fun drawFBX(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
 
         val shader = shaderFBX
         shader.use()

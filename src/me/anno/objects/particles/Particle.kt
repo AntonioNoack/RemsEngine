@@ -3,24 +3,32 @@ package me.anno.objects.particles
 import me.anno.gpu.GFX
 import me.anno.objects.Transform
 import me.anno.objects.forces.ForceField
-import me.anno.utils.types.Floats.toRadians
 import me.anno.utils.Maths
 import me.anno.utils.Maths.next
-import me.anno.utils.types.Vectors.plus
-import me.anno.utils.types.Vectors.times
 import me.anno.utils.structures.lists.UnsafeArrayList
 import me.anno.utils.types.Floats.f2
+import me.anno.utils.types.Floats.toRadians
+import me.anno.utils.types.Vectors.plus
+import me.anno.utils.types.Vectors.times
 import me.anno.video.MissingFrameException
-import org.joml.Matrix4fArrayList
-import org.joml.Vector3f
-import org.joml.Vector4f
+import org.joml.*
+import kotlin.math.max
 
 class Particle(
     var type: Transform,
     val birthTime: Double,
     val lifeTime: Double,
-    val mass: Float
+    val mass: Float,
+    val color: Vector4fc,
+    val scale: Vector3fc,
+    simulationStep: Double
 ) {
+
+    private val isScaled = scale.x() != 1f || scale.y() != 1f || scale.z() != 1f
+
+    private val maxStateCount = max((lifeTime / simulationStep).toInt() + 1, 2)
+    val hasDied get() = states.size >= maxStateCount
+    val opacity get() = color.w()
 
     override fun toString(): String {
         return "Particle[${type.getClassName()}, ${birthTime.f2()}]"
@@ -28,12 +36,8 @@ class Particle(
 
     val states = UnsafeArrayList<ParticleState>()
 
-    val position = Vector3f()
-    val rotation = Vector3f()
-    val color = Vector3f(1f)
-
-    var opacity = 1f
-    val scale = Vector3f(1f)
+    private val tmpPosition = Vector3f()
+    private val tmpRotation = Vector3f()
 
     fun lastTime(simulationStep: Double) = birthTime + (states.size - 2) * simulationStep
 
@@ -43,22 +47,20 @@ class Particle(
         return getValue(state0).lerp(getValue(state1), indexF, dst)
     }
 
+    /**
+     * gets the position at index index0, with fractional part indexF
+     * used in force fields to display them
+     * */
     fun getPosition(index0: Int, indexF: Float): Vector3f {
         val state0 = states.getOrElse(index0) { states.last() }
         val state1 = states.getOrElse(index0 + 1) { states.last() }
-        return state0.position.lerp(state1.position, indexF, position)
+        return state0.position.lerp(state1.position, indexF, tmpPosition)
     }
 
     fun getRotation(index0: Int, indexF: Float): Vector3f {
         val state0 = states.getOrElse(index0) { states.last() }
         val state1 = states.getOrElse(index0 + 1) { states.last() }
-        return state0.rotation.lerp(state1.rotation, indexF, rotation)
-    }
-
-    fun getColor(index0: Int, indexF: Float): Vector3f {
-        val state0 = states.getOrElse(index0) { states.last() }
-        val state1 = states.getOrElse(index0 + 1) { states.last() }
-        return state0.color.lerp(state1.color, indexF, color)
+        return state0.rotation.lerp(state1.rotation, indexF, tmpRotation)
     }
 
     fun isAlive(time: Double) = (time - birthTime) in 0.0..lifeTime
@@ -78,12 +80,12 @@ class Particle(
 
     fun draw(
         stack: Matrix4fArrayList,
-        time: Double, color: Vector4f,
+        time: Double, color: Vector4fc,
         simulationStep: Double,
         fadeIn: Double, fadeOut: Double
     ) {
         val lifeOpacity = getLifeOpacity(time, simulationStep, fadeIn, fadeOut).toFloat()
-        val opacity = Maths.clamp(lifeOpacity * opacity, 0f, 1f)
+        val opacity = Maths.clamp(lifeOpacity * this.color.w(), 0f, 1f)
         if (opacity > 1e-3f) {// else not visible
             stack.next {
                 try {
@@ -96,20 +98,18 @@ class Particle(
                     val state0 = states.getOrElse(index0) { states.last() }
                     val state1 = states.getOrElse(index0 + 1) { states.last() }
 
-                    val position = state0.position.lerp(state1.position, indexF, position)
-                    val rotation = state0.rotation.lerp(state1.rotation, indexF, rotation)
+                    val position = state0.position.lerp(state1.position, indexF, tmpPosition)
+                    val rotation = state0.rotation.lerp(state1.rotation, indexF, tmpRotation)
 
-                    if(position.lengthSquared() > 1e-26f) stack.translate(position)
+                    if (position.lengthSquared() > 1e-26f) stack.translate(position)
                     if (rotation.y != 0f) stack.rotateY(rotation.y.toRadians())
                     if (rotation.x != 0f) stack.rotateX(rotation.x.toRadians())
                     if (rotation.z != 0f) stack.rotateZ(rotation.z.toRadians())
-                    if(scale.x != 1f || scale.y != 1f || scale.z != 1f) stack.scale(scale)
-
-                    val color0 = state0.color.lerp(state1.color, indexF, this.color)
+                    if (isScaled) stack.scale(scale)
 
                     // normalize time for calculated functions?
                     // node editor? like in Blender or Unreal Engine
-                    val particleColor = Vector4f(color0, opacity).mul(color)
+                    val particleColor = Vector4f(this.color).mul(color)
                     type.draw(stack, time - birthTime, particleColor)
 
                 } catch (e: IndexOutOfBoundsException) {
@@ -141,12 +141,8 @@ class Particle(
         val dt = simulationStep.toFloat()
         val dPosition = oldState.dPosition + ddPosition * dt
         val position = oldState.position + dPosition * dt
-        val newState = ParticleState()
-        newState.position = position
-        newState.dPosition = dPosition
-        newState.rotation = oldState.rotation + oldState.dRotation * dt
-        newState.dRotation = oldState.dRotation
-        newState.color = oldState.color
+        val newState =
+            ParticleState(position, dPosition, oldState.rotation + oldState.dRotation * dt, oldState.dRotation)
         states.add(newState)
 
     }

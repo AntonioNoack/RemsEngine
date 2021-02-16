@@ -24,15 +24,13 @@ import me.anno.utils.Clock
 import me.anno.utils.Maths.pow
 import me.anno.utils.types.Vectors.minus
 import org.apache.logging.log4j.LogManager
-import org.joml.Matrix4f
-import org.joml.Matrix4fArrayList
-import org.joml.Vector3f
-import org.joml.Vector4f
+import org.joml.*
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL30.*
+import java.lang.Math
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.math.*
@@ -237,7 +235,7 @@ object GFX : GFXBase1() {
         if (scale != 0f && scale.isFinite()) stack.scale(scale)
     }
 
-    fun shaderColor(shader: Shader, name: String, color: Vector4f) {
+    fun shaderColor(shader: Shader, name: String, color: Vector4fc) {
         if (drawMode == ShaderPlus.DrawMode.ID) {
             val id = drawnTransform!!.clickId
             shader.v4(name, id.b() / 255f, id.g() / 255f, id.r() / 255f, 1f)

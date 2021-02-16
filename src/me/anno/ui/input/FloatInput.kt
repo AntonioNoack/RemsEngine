@@ -7,10 +7,7 @@ import me.anno.parser.SimpleExpressionParser
 import me.anno.studio.StudioBase.Companion.shiftSlowdown
 import me.anno.ui.style.Style
 import me.anno.utils.types.AnyToFloat.get
-import org.joml.Quaternionf
-import org.joml.Vector2f
-import org.joml.Vector3f
-import org.joml.Vector4f
+import org.joml.*
 import kotlin.math.max
 import kotlin.math.roundToInt
 import kotlin.math.roundToLong
@@ -101,8 +98,8 @@ open class FloatInput(
                 is Double -> value
                 is Int -> value.roundToInt()
                 is Long -> value.roundToLong()
-                is Vector2f, is Vector3f,
-                is Vector4f, is Quaternionf -> value.toFloat()
+                is Vector2fc, is Vector3fc,
+                is Vector4fc, is Quaternionf -> value.toFloat()
                 else -> throw RuntimeException("Unknown type ${type.defaultValue}")
             }
             val asDouble = when (val clamped = clampFunc(input)) {
@@ -122,7 +119,7 @@ open class FloatInput(
             is Double -> value
             is Int -> value.toDouble()
             is Long -> value.toDouble()
-            is Vector2f, is Vector3f, is Vector4f,
+            is Vector2fc, is Vector3fc, is Vector4fc,
             is Quaternionf -> value[indexInProperty].toDouble()
             else -> throw RuntimeException("Unknown type $value for ${javaClass.simpleName}")
         }

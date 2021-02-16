@@ -25,10 +25,7 @@ import me.anno.ui.editor.frames.FrameSizeInput
 import me.anno.ui.style.Style
 import me.anno.utils.Maths.next
 import me.anno.utils.files.LocalFile.toGlobalFile
-import org.joml.Matrix4f
-import org.joml.Matrix4fArrayList
-import org.joml.Vector2f
-import org.joml.Vector4f
+import org.joml.*
 import org.lwjgl.opengl.GL11.*
 import java.io.File
 import kotlin.math.roundToInt
@@ -58,7 +55,7 @@ class SoftLink(var file: File) : GFXTransform(null) {
     private var lastModified: Any? = null
     private var lastCamera: Camera? = null
 
-    override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
+    override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
         super.onDraw(stack, time, color)
         if (renderToTexture) {
             // render to texture to keep all post-processing settings
@@ -90,7 +87,7 @@ class SoftLink(var file: File) : GFXTransform(null) {
         }
     }
 
-    fun drawScene(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
+    fun drawScene(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
         updateCache()
         val camera = lastCamera
         if (camera != null) {

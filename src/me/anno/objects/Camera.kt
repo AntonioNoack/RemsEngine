@@ -16,10 +16,7 @@ import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
 import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.utils.Maths.pow
-import org.joml.Matrix4fArrayList
-import org.joml.Vector2f
-import org.joml.Vector3f
-import org.joml.Vector4f
+import org.joml.*
 import java.io.File
 
 class Camera(parent: Transform? = null) : Transform(parent) {
@@ -148,7 +145,7 @@ class Camera(parent: Transform? = null) : Transform(parent) {
             .setSimpleClickListener { resetTransform(true) }
     }
 
-    override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
+    override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
 
         if (GFX.isFinalRendering) return
         if (this === currentlyDrawnCamera) return

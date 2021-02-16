@@ -26,10 +26,7 @@ import me.anno.ui.base.Visibility
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
-import org.joml.Matrix4fArrayList
-import org.joml.Vector2f
-import org.joml.Vector3f
-import org.joml.Vector4f
+import org.joml.*
 import org.lwjgl.opengl.GL11.*
 
 class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
@@ -75,7 +72,7 @@ class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
 
     override fun getSymbol() = DefaultConfig["ui.symbol.mask", "\uD83D\uDCA5"]
 
-    override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
+    override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
 
         val showResult = isFinalRendering || (!showMask && !showMasked)
         var needsDefault = false
@@ -165,7 +162,7 @@ class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
 
     override fun drawChildrenAutomatically() = false
 
-    fun drawMask(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
+    fun drawMask(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
 
         Frame(mask) {
 
@@ -194,7 +191,7 @@ class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
 
     }
 
-    fun drawMasked(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
+    fun drawMasked(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
 
         Frame(masked) {
 
@@ -215,7 +212,7 @@ class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
     }
 
     // mask = 0, tex = 1
-    fun drawOnScreen(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
+    fun drawOnScreen(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
 
         GFX.check()
 

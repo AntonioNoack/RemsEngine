@@ -13,6 +13,7 @@ import me.anno.utils.types.Vectors.times
 import org.joml.Matrix4fArrayList
 import org.joml.Vector3f
 import org.joml.Vector4f
+import org.joml.Vector4fc
 
 class BetweenParticleGravity : ForceField(
     "Between-Particle Gravity",
@@ -21,7 +22,7 @@ class BetweenParticleGravity : ForceField(
 
     val exponent = AnimatedProperty.float(2f)
 
-    override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
+    override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
         super.onDraw(stack, time, color)
         drawForcePerParticle(stack, time, color)
     }

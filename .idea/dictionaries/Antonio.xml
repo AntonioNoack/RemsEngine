@@ -53,10 +53,12 @@
       <w>dimgray</w>
       <w>dimgrey</w>
       <w>dodgerblue</w>
+      <w>dont</w>
       <w>emissive</w>
       <w>equirectangular</w>
       <w>fadein</w>
       <w>fastdecode</w>
+      <w>fastmath</w>
       <w>ffmpeg</w>
       <w>ffprobe</w>
       <w>floralwhite</w>

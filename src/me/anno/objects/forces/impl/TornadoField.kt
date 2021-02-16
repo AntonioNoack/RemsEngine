@@ -16,6 +16,7 @@ import me.anno.utils.types.Vectors.times
 import org.joml.Matrix4fArrayList
 import org.joml.Vector3f
 import org.joml.Vector4f
+import org.joml.Vector4fc
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -58,7 +59,7 @@ class TornadoField : ForceField(
         }
     }
 
-    override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
+    override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
         super.onDraw(stack, time, color)
         // draw a tornado of arrows
         for (i in 1 until 5) {

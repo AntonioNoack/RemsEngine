@@ -1,9 +1,6 @@
 package me.anno.objects.distributions
 
-import org.joml.Matrix4fArrayList
-import org.joml.Vector2f
-import org.joml.Vector3f
-import org.joml.Vector4f
+import org.joml.*
 import kotlin.math.sqrt
 
 class GaussianDistribution(center: Vector4f, size: Vector4f, rotation: Vector4f = Vector4f()) : CenterSizeDistribution(
@@ -49,7 +46,7 @@ class GaussianDistribution(center: Vector4f, size: Vector4f, rotation: Vector4f 
         ).mul(gaussianScale).transform()
     }
 
-    override fun drawTransformed(stack: Matrix4fArrayList, color: Vector4f) {
+    override fun drawTransformed(stack: Matrix4fArrayList, color: Vector4fc) {
         val i0 = 0.68f
         val i1 = 0.95f
         val i2 = 0.99f

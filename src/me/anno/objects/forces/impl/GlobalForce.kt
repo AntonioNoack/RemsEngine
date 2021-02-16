@@ -7,6 +7,7 @@ import me.anno.utils.types.Vectors.times
 import org.joml.Matrix4fArrayList
 import org.joml.Vector3f
 import org.joml.Vector4f
+import org.joml.Vector4fc
 
 class GlobalForce : ForceField(
     "Global Force",
@@ -17,7 +18,7 @@ class GlobalForce : ForceField(
         return (getDirection(time) * strength[time]).mul(-1f)
     }
 
-    override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
+    override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
         drawForcePerParticle(stack, time, color)
     }
 

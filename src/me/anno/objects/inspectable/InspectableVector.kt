@@ -2,6 +2,7 @@ package me.anno.objects.inspectable
 
 import me.anno.objects.animation.Type
 import org.joml.Vector4f
+import org.joml.Vector4fc
 
 data class InspectableVector(val value: Vector4f, val title: String, val description: String, val pType: PType) {
 

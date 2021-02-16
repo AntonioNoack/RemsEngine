@@ -22,10 +22,7 @@ import me.anno.utils.Maths.sq
 import me.anno.utils.types.Vectors.avg
 import me.anno.utils.types.Vectors.minus
 import me.anno.utils.types.Vectors.toVec3f
-import org.joml.Matrix4f
-import org.joml.Matrix4fArrayList
-import org.joml.Vector3f
-import org.joml.Vector4f
+import org.joml.*
 import org.lwjgl.opengl.GL20.GL_LINES
 import kotlin.math.atan2
 import kotlin.math.floor
@@ -106,7 +103,7 @@ object Grid {
 
     }
 
-    private fun defaultUniforms(shader: Shader, color: Vector4f) {
+    private fun defaultUniforms(shader: Shader, color: Vector4fc) {
         shader.v4("tint", color)
         shader.v1("drawMode", GFX.drawMode.id)
     }
@@ -134,7 +131,7 @@ object Grid {
         lineBuffer.draw(shader, GL_LINES)
     }
 
-    fun drawLine(stack: Matrix4fArrayList, color: Vector4f, p0: Vector3f, p1: Vector3f) {
+    fun drawLine(stack: Matrix4fArrayList, color: Vector4fc, p0: Vector3fc, p1: Vector3f) {
 
         // rotate, scale, and move correctly
         // (-1,0,0) / (+1,0,0) shall become p0 / p1
@@ -209,9 +206,9 @@ object Grid {
 
     }
 
-    fun drawBuffer(stack: Matrix4fArrayList, color: Vector4f, buffer: StaticBuffer) {
+    fun drawBuffer(stack: Matrix4fArrayList, color: Vector4fc, buffer: StaticBuffer) {
 
-        if (color.w <= 0f) return
+        if (color.w() <= 0f) return
 
         val shader = shader3D
         shader.use()

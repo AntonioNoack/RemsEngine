@@ -23,14 +23,12 @@ import me.anno.ui.input.components.PureTextInput
 import me.anno.ui.input.components.TitlePanel
 import me.anno.ui.input.components.VectorInputComponent
 import me.anno.ui.style.Style
-import me.anno.utils.types.AnyToFloat.getFloat
-import me.anno.utils.types.Lists.one
+import me.anno.utils.Color.toVecRGBA
+import me.anno.utils.ColorParsing
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.pow
-import org.joml.Quaternionf
-import org.joml.Vector2f
-import org.joml.Vector3f
-import org.joml.Vector4f
+import me.anno.utils.types.AnyToFloat.getFloat
+import org.joml.*
 import kotlin.math.max
 
 class VectorInput(
@@ -51,21 +49,21 @@ class VectorInput(
     }
 
     constructor(
-        style: Style, title: String, value: Vector2f, type: Type,
+        style: Style, title: String, value: Vector2fc, type: Type,
         owningProperty: AnimatedProperty<*>? = null
     ) : this(style, title, type, owningProperty) {
         setValue(value, false)
     }
 
     constructor(
-        style: Style, title: String, value: Vector3f, type: Type,
+        style: Style, title: String, value: Vector3fc, type: Type,
         owningProperty: AnimatedProperty<*>? = null
     ) : this(style, title, type, owningProperty) {
         setValue(value, false)
     }
 
     constructor(
-        style: Style, title: String, value: Vector4f, type: Type,
+        style: Style, title: String, value: Vector4fc, type: Type,
         owningProperty: AnimatedProperty<*>? = null
     ) : this(style, title, type, owningProperty) {
         setValue(value, false)
@@ -129,59 +127,82 @@ class VectorInput(
             ?: "[${compX.lastValue}, ${compY.lastValue}, ${compZ?.lastValue ?: 0f}, ${compW?.lastValue ?: 0f}]"
 
     override fun onPaste(x: Float, y: Float, data: String, type: String) {
+        pasteVector(data) ?: pasteScalar(data) ?: pasteColor(data) ?: pasteAnimated(data) ?: super.onPaste(
+            x,
+            y,
+            data,
+            type
+        )
+    }
+
+    private fun pasteVector(data: String): Unit? {
+        return if (data.startsWith("[") && data.endsWith("]") && data.indexOf('{') < 0) {
+            val values = data.substring(1, data.lastIndex).split(',').map { it.trim().toDoubleOrNull() }
+            if (values.size in 1..4) {
+                values[0]?.apply { compX.setValue(this, true) }
+                values[1]?.apply { compY.setValue(this, true) }
+                values.getOrNull(2)?.apply { compZ?.setValue(this, true) }
+                values.getOrNull(3)?.apply { compW?.setValue(this, true) }
+                Unit
+            } else null
+        } else null
+    }
+
+    private fun pasteColor(data: String): Unit? {
+        return when (val color = ColorParsing.parseColorComplex(data)) {
+            is Int -> setValue(color.toVecRGBA(), true)
+            is Vector4f -> setValue(color, true)
+            else -> null
+        }
+    }
+
+    private fun pasteScalar(data: String): Unit? {
         val allComponents = data.toDoubleOrNull()
-        if (allComponents != null) {
+        return if (allComponents != null && allComponents.isFinite()) {
             compX.setValue(allComponents, true)
             compY.setValue(allComponents, true)
             compZ?.setValue(allComponents, true)
             compW?.setValue(allComponents, true)
-        } else {
-            // parse vector
-            if (data.startsWith("[") && data.endsWith("]") && data.indexOf('{') < 0) {
-                val values = data.substring(1, data.lastIndex).split(',').map { it.trim().toDoubleOrNull() }
-                if (values.size in 1..4) {
-                    values[0]?.apply { compX.setValue(this, true) }
-                    values[1]?.apply { compY.setValue(this, true) }
-                    values.getOrNull(2)?.apply { compZ?.setValue(this, true) }
-                    values.getOrNull(3)?.apply { compW?.setValue(this, true) }
-                }
-            } else {
-                try {
-                    val editorTime = editorTime
-                    val animProperty = TextReader.fromText(data).firstOrNull() as? AnimatedProperty<*>
-                    if (animProperty != null) {
-                        if (owningProperty != null) {
-                            owningProperty.copyFrom(animProperty)
-                            when (val value = owningProperty[editorTime]) {
-                                is Vector2f -> setValue(value, true)
-                                is Vector3f -> setValue(value, true)
-                                is Vector4f -> setValue(value, true)
-                                is Quaternionf -> setValue(value, true)
-                                else -> warn("Unknown pasted data type $value")
-                            }
-                        } else {
-                            // get the default value? no, the current value? yes.
-                            val atTime = animProperty[editorTime]!!
-                            setValue(
-                                Vector4f(
-                                    getFloat(atTime, 0, vx),
-                                    getFloat(atTime, 1, vy),
-                                    getFloat(atTime, 2, vz),
-                                    getFloat(atTime, 3, vw)
-                                ), true
-                            )
-                        }
+        } else null
+    }
+
+    private fun pasteAnimated(data: String): Unit? {
+        return try {
+            val editorTime = editorTime
+            val animProperty = TextReader.fromText(data).firstOrNull() as? AnimatedProperty<*>
+            if (animProperty != null) {
+                if (owningProperty != null) {
+                    owningProperty.copyFrom(animProperty)
+                    when (val value = owningProperty[editorTime]) {
+                        is Vector2f -> setValue(value, true)
+                        is Vector3f -> setValue(value, true)
+                        is Vector4f -> setValue(value, true)
+                        is Quaternionf -> setValue(value, true)
+                        else -> warn("Unknown pasted data type $value")
                     }
-                } catch (e: Exception) {
-                    e.printStackTrace()
+                } else {
+                    // get the default value? no, the current value? yes.
+                    val atTime = animProperty[editorTime]!!
+                    setValue(
+                        Vector4f(
+                            getFloat(atTime, 0, vx),
+                            getFloat(atTime, 1, vy),
+                            getFloat(atTime, 2, vz),
+                            getFloat(atTime, 3, vw)
+                        ), true
+                    )
                 }
             }
+            Unit
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
         }
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.onDraw(x0, y0, x1, y1)
-        val focused1 = titleView.isInFocus || valueList.children.one { it.isInFocus }
+        val focused1 = titleView.isInFocus || valueList.children.any { it.isInFocus }
         if (focused1) isSelectedListener?.invoke()
         if (RemsStudio.hideUnusedProperties) {
             val focused2 = focused1 || owningProperty == selectedProperty
@@ -204,29 +225,29 @@ class VectorInput(
     val vz get() = compZ?.lastValue?.toFloat() ?: 0f
     val vw get() = compW?.lastValue?.toFloat() ?: 0f
 
-    fun setValue(v: Vector2f, notify: Boolean) {
-        compX.setValue(v.x, notify)
-        compY.setValue(v.y, notify)
+    fun setValue(v: Vector2fc, notify: Boolean) {
+        compX.setValue(v.x(), notify)
+        compY.setValue(v.y(), notify)
     }
 
-    fun setValue(v: Vector3f, notify: Boolean) {
-        compX.setValue(v.x, notify)
-        compY.setValue(v.y, notify)
-        compZ?.setValue(v.z, notify)
+    fun setValue(v: Vector3fc, notify: Boolean) {
+        compX.setValue(v.x(), notify)
+        compY.setValue(v.y(), notify)
+        compZ?.setValue(v.z(), notify)
     }
 
-    fun setValue(v: Vector4f, notify: Boolean) {
-        compX.setValue(v.x, notify)
-        compY.setValue(v.y, notify)
-        compZ?.setValue(v.z, notify)
-        compW?.setValue(v.w, notify)
+    fun setValue(v: Vector4fc, notify: Boolean) {
+        compX.setValue(v.x(), notify)
+        compY.setValue(v.y(), notify)
+        compZ?.setValue(v.z(), notify)
+        compW?.setValue(v.w(), notify)
     }
 
-    fun setValue(v: Quaternionf, notify: Boolean) {
-        compX.setValue(v.x, notify)
-        compY.setValue(v.y, notify)
-        compZ?.setValue(v.z, notify)
-        compW?.setValue(v.w, notify)
+    fun setValue(v: Quaternionfc, notify: Boolean) {
+        compX.setValue(v.x(), notify)
+        compY.setValue(v.y(), notify)
+        compZ?.setValue(v.z(), notify)
+        compW?.setValue(v.w(), notify)
     }
 
     fun setValue(vi: VectorInput, notify: Boolean) {

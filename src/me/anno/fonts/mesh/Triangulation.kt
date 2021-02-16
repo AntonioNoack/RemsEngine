@@ -4,10 +4,7 @@ import me.anno.mesh.Point
 import me.anno.objects.Transform.Companion.xAxis
 import me.anno.objects.Transform.Companion.yAxis
 import me.anno.utils.types.Vectors.minus
-import org.joml.Vector2d
-import org.joml.Vector2f
-import org.joml.Vector3d
-import org.joml.Vector3f
+import org.joml.*
 import org.the3deers.util.EarCut
 import kotlin.math.abs
 
@@ -20,16 +17,16 @@ object Triangulation {
         return indices.map { index -> points[index] }
     }
 
-    fun ringToTrianglesVec2d(points: List<Vector2d>): List<Vector2d> {
+    fun ringToTrianglesVec2d(points: List<Vector2dc>): List<Vector2dc> {
         val joint = FloatArray(points.size * 2)
         points.forEachIndexed { index, vector2d ->
-            joint[index * 2] = vector2d.x.toFloat(); joint[index * 2 + 1] = vector2d.y.toFloat()
+            joint[index * 2] = vector2d.x().toFloat(); joint[index * 2 + 1] = vector2d.y().toFloat()
         }
         val indices = EarCut.earcut(joint, intArrayOf(), 2)
         return indices.map { index -> points[index] }
     }
 
-    fun ringToTrianglesVec3d(points: List<Vector3d>): List<Vector3d> {
+    fun ringToTrianglesVec3d(points: List<Vector3dc>): List<Vector3dc> {
         if (points.size > 2) {
             val normal = Vector3d()
             for (i in points.indices) {
@@ -46,7 +43,7 @@ object Triangulation {
             val projected = points.map {
                 Vector2d(it.dot(xAxis), it.dot(yAxis))
             }
-            val reverseMap = HashMap<Vector2d, Vector3d>()
+            val reverseMap = HashMap<Vector2dc, Vector3dc>()
             points.forEachIndexed { index, vector3d ->
                 reverseMap[projected[index]] = vector3d
             }
@@ -72,7 +69,7 @@ object Triangulation {
             val projected = points.map {
                 Vector2f(it.position.dot(xAxis), it.position.dot(yAxis))
             }
-            val reverseMap = HashMap<Vector2f, Point>()
+            val reverseMap = HashMap<Vector2fc, Point>()
             points.forEachIndexed { index, vector3d ->
                 reverseMap[projected[index]] = vector3d
             }

@@ -1,21 +1,18 @@
 package me.anno.utils
 
-import org.joml.Intersectiond
-import org.joml.Intersectionf
-import org.joml.Vector2d
-import org.joml.Vector2f
+import org.joml.*
 
 object Intersections {
 
     fun getStrictLineIntersection(
-        v1: Vector2f, v2: Vector2f, v3: Vector2f, v4: Vector2f
+        v1: Vector2fc, v2: Vector2fc, v3: Vector2fc, v4: Vector2fc
     ): Vector2f? {
         val result = Vector2f()
         val intersects = Intersectionf.intersectLineLine(
-            v1.x, v1.y,
-            v2.x, v2.y,
-            v3.x, v3.y,
-            v4.x, v4.y, result
+            v1.x(), v1.y(),
+            v2.x(), v2.y(),
+            v3.x(), v3.y(),
+            v4.x(), v4.y(), result
         )
         if(!intersects) return null
         val d1 = v1.distance(result)
@@ -35,14 +32,14 @@ object Intersections {
 
 
     fun getStrictLineIntersection(
-        v1: Vector2d, v2: Vector2d, v3: Vector2d, v4: Vector2d
+        v1: Vector2dc, v2: Vector2dc, v3: Vector2dc, v4: Vector2dc
     ): Vector2d? {
         val result = Vector2d()
         val intersects = Intersectiond.intersectLineLine(
-            v1.x, v1.y,
-            v2.x, v2.y,
-            v3.x, v3.y,
-            v4.x, v4.y, result
+            v1.x(), v1.y(),
+            v2.x(), v2.y(),
+            v3.x(), v3.y(),
+            v4.x(), v4.y(), result
         )
         if(!intersects) return null
         val d1 = v1.distance(result)

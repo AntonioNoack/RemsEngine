@@ -3,7 +3,6 @@ package me.anno.gpu.shader
 import me.anno.cache.data.ICacheData
 import me.anno.gpu.GFX
 import me.anno.gpu.framebuffer.Frame
-import me.anno.ui.editor.files.hasValidName
 import me.anno.ui.editor.files.toAllowedFilename
 import me.anno.utils.OS
 import me.anno.utils.structures.arrays.FloatArrayList
@@ -28,9 +27,9 @@ open class Shader(
         private val LOGGER = LogManager.getLogger(Shader::class)
         private const val attributeName = "in"
         private val matrixBuffer = BufferUtils.createFloatBuffer(16)
-        private val identity3 = Matrix3f()
-        private val identity4 = Matrix4f()
-        private val identity4x3 = Matrix4x3f()
+        private val identity3 = Matrix3f() as Matrix3fc
+        private val identity4 = Matrix4f() as Matrix4fc
+        private val identity4x3 = Matrix4x3f() as Matrix4x3fc
         const val DefaultGLSLVersion = 150
         var lastProgram = -1
     }
@@ -50,7 +49,7 @@ open class Shader(
     // isn't that much either...
     fun init() {
 
-        // println("$shaderName\nVERTEX:\n$vertex\nVARYING:\n$varying\nFRAGMENT:\n$fragment")
+        // LOGGER.debug("$shaderName\nVERTEX:\n$vertex\nVARYING:\n$varying\nFRAGMENT:\n$fragment")
 
         program = glCreateProgram()
         // the shaders are like a C compilation process, .o-files: after linking, they can be removed
@@ -76,7 +75,7 @@ open class Shader(
         if (logShaders) {
             val folder = File(OS.desktop, "shaders")
             folder.mkdirs()
-            fun print(ext: String, data: String){
+            fun print(ext: String, data: String) {
                 val name = "$shaderName.$ext".toAllowedFilename() ?: return
                 File(folder, name).writeText(data)
             }
@@ -279,11 +278,11 @@ open class Shader(
     fun v3(name: String, all: Float) = v3(name, all, all, all)
     fun v4(name: String, all: Float) = v4(name, all, all, all, all)
 
-    fun v2(name: String, v: Vector2f) = v2(name, v.x, v.y)
-    fun v3(name: String, v: Vector3f) = v3(name, v.x, v.y, v.z)
-    fun v4(name: String, v: Vector4f) = v4(name, v.x, v.y, v.z, v.w)
+    fun v2(name: String, v: Vector2fc) = v2(name, v.x(), v.y())
+    fun v3(name: String, v: Vector3fc) = v3(name, v.x(), v.y(), v.z())
+    fun v4(name: String, v: Vector4fc) = v4(name, v.x(), v.y(), v.z(), v.w())
 
-    fun m3x3(name: String, value: Matrix3f = identity3) {
+    fun m3x3(name: String, value: Matrix3fc = identity3) {
         use()
         val loc = this[name]
         if (loc > -1) {
@@ -292,7 +291,7 @@ open class Shader(
         }
     }
 
-    fun m4x3(name: String, value: Matrix4x3f = identity4x3) {
+    fun m4x3(name: String, value: Matrix4x3fc = identity4x3) {
         use()
         val loc = this[name]
         if (loc > -1) {
@@ -301,7 +300,7 @@ open class Shader(
         }
     }
 
-    fun m4x4(name: String, value: Matrix4f = identity4) {
+    fun m4x4(name: String, value: Matrix4fc = identity4) {
         use()
         val loc = this[name]
         if (loc > -1) {

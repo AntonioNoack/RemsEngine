@@ -22,6 +22,7 @@ import me.anno.ui.style.Style
 import org.joml.Vector2d
 import org.joml.Vector3d
 import org.joml.Vector4d
+import org.joml.Vector4dc
 
 abstract class AnimationDriver : Saveable(), Inspectable {
 
@@ -47,12 +48,12 @@ abstract class AnimationDriver : Saveable(), Inspectable {
         )
     }
 
-    open fun getValue(time: Double, keyframeValue: Vector4d): Vector4d {
+    open fun getValue(time: Double, keyframeValue: Vector4dc): Vector4d {
         return Vector4d(
-            getValue0(time * frequency, keyframeValue.x) * amplitude[time],
-            getValue0(time * frequency, keyframeValue.y) * amplitude[time],
-            getValue0(time * frequency, keyframeValue.z) * amplitude[time],
-            getValue0(time * frequency, keyframeValue.w) * amplitude[time]
+            getValue0(time * frequency, keyframeValue.x()) * amplitude[time],
+            getValue0(time * frequency, keyframeValue.y()) * amplitude[time],
+            getValue0(time * frequency, keyframeValue.z()) * amplitude[time],
+            getValue0(time * frequency, keyframeValue.w()) * amplitude[time]
         )
     }
 

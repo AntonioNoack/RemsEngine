@@ -17,18 +17,18 @@ class SampleBuffer() {
 
     fun ptrBegin() = FloatPtrArrList(backend, bufferPos * channels)
     fun ptrEnd(slackCapacity: Int): FloatPtr {
-        ensureCapacity(samplesInBuffer + slackCapacity)
+        // ensureCapacity(samplesInBuffer + slackCapacity)
         return FloatPtrArrList(backend, samplesInBuffer * channels)
     }
 
-    fun ensureCapacity(samples: Int){
+    /*fun ensureCapacity(samples: Int){
         // managed automatically
-    }
+    }*/
 
     fun numSamples() = samplesInBuffer
 
     fun putSamples(samples: Int){
-        ensureCapacity(samplesInBuffer + samples)
+        // ensureCapacity(samplesInBuffer + samples)
         samplesInBuffer += samples
     }
 

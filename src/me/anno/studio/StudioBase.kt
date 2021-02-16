@@ -485,6 +485,10 @@ abstract class StudioBase(
 
         val shiftSlowdown get() = if (Input.isAltDown) 5f else if (Input.isShiftDown) 0.2f else 1f
 
+        init {
+            System.setProperty("joml.format", "false")
+        }
+
     }
 
 }

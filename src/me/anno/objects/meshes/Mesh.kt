@@ -26,6 +26,7 @@ import me.karl.renderer.AnimatedModelRenderer
 import me.karl.utils.URI
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
+import org.joml.Vector4fc
 import java.io.File
 
 class Mesh(var file: File, parent: Transform?) : GFXTransform(parent) {
@@ -46,7 +47,7 @@ class Mesh(var file: File, parent: Transform?) : GFXTransform(parent) {
     var lastFile: File? = null
     var extension = ""
 
-    override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
+    override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
 
         val file = file
         if (file.hasValidName()) {

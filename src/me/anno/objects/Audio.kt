@@ -16,6 +16,7 @@ import me.anno.utils.structures.ValueWithDefaultFunc
 import me.anno.video.FFMPEGMetadata.Companion.getMeta
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
+import org.joml.Vector4fc
 import java.io.File
 
 // flat playback vs 3D playback
@@ -69,7 +70,7 @@ abstract class Audio(var file: File = File(""), parent: Transform? = null) : GFX
     // to do a separate mode, where resource availability is enforced? -> yes, we have that
     // Transforms, which load resources, should load async, and throw an error, if they don't block, while final-rendering
 
-    override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
+    override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
 
         // to do ensure, that the correct buffer is being generated -> done
         // to do we need to invalidate buffers, if we touch the custom timeline mode, or accelerate/decelerate audio... -> half done

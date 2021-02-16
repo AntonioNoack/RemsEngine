@@ -9,11 +9,10 @@ import me.anno.objects.models.SphereAxesModel.sphereAxesModels
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.editor.sceneView.Grid
 import me.anno.ui.style.Style
-import org.joml.Matrix4fArrayList
-import org.joml.Vector2f
-import org.joml.Vector3f
-import org.joml.Vector4f
+import me.anno.utils.types.Vectors.mulAlpha
+import org.joml.*
 import java.util.*
+import java.util.Random
 
 abstract class Distribution(val displayName: String, val description: String) : Saveable(),
     InspectableAttribute {
@@ -66,17 +65,17 @@ abstract class Distribution(val displayName: String, val description: String) : 
     fun Vector3f.mul(size: Vector4f) = mul(size.x, size.y, size.z)
     fun Vector3f.add(delta: Vector4f) = add(delta.x, delta.y, delta.z)
 
-    open fun draw(stack: Matrix4fArrayList, color: Vector4f) {
+    open fun draw(stack: Matrix4fArrayList, color: Vector4fc) {
         onDraw(stack, color)
     }
 
-    abstract fun onDraw(stack: Matrix4fArrayList, color: Vector4f)
+    abstract fun onDraw(stack: Matrix4fArrayList, color: Vector4fc)
 
-    fun drawSphere(stack: Matrix4fArrayList, color: Vector4f, alpha: Float = 1f) {
+    fun drawSphere(stack: Matrix4fArrayList, color: Vector4fc, alpha: Float = 1f) {
         Grid.drawBuffer(
             stack,
             if (alpha == 1f) color
-            else Vector4f(color.x, color.y, color.z, color.w * alpha),
+            else color.mulAlpha(alpha),
             sphereAxesModels[sphereSubDivision].value
         )
     }

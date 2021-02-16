@@ -63,7 +63,7 @@ abstract class ForceField(val displayName: String, val description: String) : Tr
     }
 
     fun drawPerParticle(
-        stack: Matrix4fArrayList, time: Double, color: Vector4f,
+        stack: Matrix4fArrayList, time: Double, color: Vector4fc,
         applyTransform: (Particle, index0: Int, indexF: Float) -> Unit
     ) {
         super.onDraw(stack, time, color)
@@ -83,7 +83,7 @@ abstract class ForceField(val displayName: String, val description: String) : Tr
                     stack.translate(position)
                     applyTransform(particle, index0, indexF)
                     Grid.drawBuffer(
-                        stack, Vector4f(color.x, color.y, color.z, color.w * opacity),
+                        stack, Vector4f(color.x(), color.y(), color.z(), color.w() * opacity),
                         ArrowModel.arrowLineModel
                     )
                 }
@@ -96,7 +96,7 @@ abstract class ForceField(val displayName: String, val description: String) : Tr
     }
 
     fun drawForcePerParticle(
-        stack: Matrix4fArrayList, time: Double, color: Vector4f
+        stack: Matrix4fArrayList, time: Double, color: Vector4fc
     ) {
         val particles = (parent as? ParticleSystem)?.particles?.filter { it.isAlive(time) } ?: return
         drawPerParticle(stack, time, color) { p , index0, indexF ->

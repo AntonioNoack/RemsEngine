@@ -6,8 +6,8 @@ import me.anno.input.MouseButton
 import me.anno.objects.Camera
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.studio.StudioBase.Companion.dragged
-import me.anno.studio.rems.RemsStudio
 import me.anno.studio.StudioBase.Companion.shiftSlowdown
+import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.Selection.selectedProperty
 import me.anno.studio.rems.Selection.selectedTransform
 import me.anno.ui.base.Visibility
@@ -16,16 +16,15 @@ import me.anno.ui.editor.color.ColorChooser
 import me.anno.ui.input.components.TitlePanel
 import me.anno.ui.style.Style
 import me.anno.utils.Maths.clamp
-import me.anno.utils.types.Lists.one
 import me.anno.utils.Maths.pow
-import org.joml.Vector4f
+import org.joml.Vector4fc
 import kotlin.math.max
 
 // todo color picker
 
 class ColorInput(
     style: Style, title: String,
-    oldValue: Vector4f,
+    oldValue: Vector4fc,
     withAlpha: Boolean,
     private val owningProperty: AnimatedProperty<*>? = null
 ) : PanelListY(style) {
@@ -40,7 +39,7 @@ class ColorInput(
         titleView.focusTextColor = titleView.textColor
         titleView.setSimpleClickListener { contentView.toggleVisibility() }
         this += contentView
-        contentView.setRGBA(oldValue.x, oldValue.y, oldValue.z, oldValue.w, false)
+        contentView.setRGBA(oldValue, false)
         contentView.hide()
     }
 
@@ -81,7 +80,7 @@ class ColorInput(
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        val focused1 = titleView.isInFocus || contentView.listOfAll.one { it.isInFocus }
+        val focused1 = titleView.isInFocus || contentView.listOfAll.any { it.isInFocus }
         if (focused1) isSelectedListener?.invoke()
         if (RemsStudio.hideUnusedProperties) {
             val focused2 = focused1 || (owningProperty == selectedProperty && owningProperty != null)

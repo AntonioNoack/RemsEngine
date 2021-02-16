@@ -267,9 +267,9 @@ class TimeDomainStretch {
      * */
     fun seekBestOverlapPositionFull(refPos: FloatPtr): Int {
 
-        var bestOffs = 0
-        var bestCorr = 0.0
-        var corr = 0.0
+        var bestOffs: Int
+        var bestCorr: Double
+        var corr: Double
 
         bestCorr = FLT_MIN
         bestOffs = 0

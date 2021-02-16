@@ -82,8 +82,8 @@ object FontManager {
             val font2 = getFont(font)
             val averageFontSize = getAvgFontSize(fontSizeIndex)
             CacheData(font2.calculateSize(text, averageFontSize, widthLimit2))
-        } as CacheData<Pair<Int, Int>>
-        return data.value
+        } as CacheData<*>
+        return data.value as Pair<Int, Int>
 
     }
 

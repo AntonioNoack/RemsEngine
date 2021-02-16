@@ -25,10 +25,9 @@ import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.next
 import me.anno.video.MissingFrameException
-import org.joml.Matrix4fArrayList
-import org.joml.Vector3f
-import org.joml.Vector4f
+import org.joml.*
 import java.io.File
+import java.lang.Math
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.sqrt
@@ -45,7 +44,7 @@ class Polygon(parent: Transform? = null) : GFXTransform(parent) {
     var vertexCount = AnimatedProperty.intPlus(5)
     var starNess = AnimatedProperty.float01()
 
-    override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4f) {
+    override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
         val inset = clamp(starNess[time], 0f, 1f)
         val image = getImage(texture, 5000, true)
         if (image == null && texture.hasValidName() && GFX.isFinalRendering) throw MissingFrameException(texture)
@@ -68,16 +67,16 @@ class Polygon(parent: Transform? = null) : GFXTransform(parent) {
         return
     }
 
-    override fun transformLocally(pos: Vector3f, time: Double): Vector3f {
+    override fun transformLocally(pos: Vector3fc, time: Double): Vector3fc {
         val count = vertexCount[time]
-        val z = if (is3D) pos.z else 0f
+        val z = if (is3D) pos.z() else 0f
         return if (autoAlign) {
             if (count == 4) {
-                Vector3f(0.5f * (pos.x + pos.y), 0.5f * (pos.x - pos.y), z)
+                Vector3f(0.5f * (pos.x() + pos.y()), 0.5f * (pos.x() - pos.y()), z)
             } else {
                 Vector3f(sqrt2, -sqrt2, z)
             }
-        } else Vector3f(pos.x, -pos.y, z)
+        } else Vector3f(pos.x(), -pos.y(), z)
     }
 
     override fun createInspector(

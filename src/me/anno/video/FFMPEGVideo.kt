@@ -1,6 +1,7 @@
 package me.anno.video
 
 import me.anno.gpu.GFX
+import me.anno.video.IsFFMPEGOnly.isFFMPEGOnlyExtension
 import me.anno.video.formats.ARGBFrame
 import me.anno.video.formats.BGRAFrame
 import me.anno.video.formats.I420Frame
@@ -11,10 +12,7 @@ import java.io.InputStream
 import kotlin.concurrent.thread
 
 class FFMPEGVideo(file: File, private val frame0: Int, bufferLength: Int) :
-    FFMPEGStream(file, isProcessCountLimited = when(file.extension.toLowerCase()){
-        "webp", "jp2" -> false // webp and jp2 are image formats -> not limited
-        else -> true
-    }) {
+    FFMPEGStream(file, isProcessCountLimited = !file.extension.isFFMPEGOnlyExtension()) {
 
     override fun process(process: Process, arguments: List<String>) {
         thread {
@@ -51,7 +49,7 @@ class FFMPEGVideo(file: File, private val frame0: Int, bufferLength: Int) :
                     "ARGB" -> ARGBFrame(w, h)
                     "BGRA" -> BGRAFrame(w, h)
                     "RGB" -> RGBFrame(w, h)
-                    else -> throw RuntimeException("Unsupported Codec $codec!")
+                    else -> throw RuntimeException("Unsupported Codec $codec for $file")
                 }
                 frame.load(input)
                 synchronized(frames) {
