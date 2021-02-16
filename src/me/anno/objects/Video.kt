@@ -16,6 +16,7 @@ import me.anno.gpu.TextureLib
 import me.anno.gpu.TextureLib.colorShowTexture
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
+import me.anno.gpu.texture.Texture2D
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.language.translation.Dict
@@ -88,12 +89,25 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
     var imageSequenceMeta: ImageSequenceMeta? = null
     val imSeqExampleMeta get() = imageSequenceMeta?.matches?.firstOrNull()?.first?.run { getMeta(this, true) }
 
-    var type = VideoType.AUDIO
+    var type = VideoType.IMAGE
 
     override fun clearCache() {
         lastTexture = null
         needsImageUpdate = true
         lastFile = null
+    }
+
+    override fun startPlayback(globalTime: Double, speed: Double, camera: Camera) {
+        when(type){
+            VideoType.VIDEO, VideoType.AUDIO -> {
+                super.startPlayback(globalTime, speed, camera)
+            }
+            else -> {
+                // image and image sequence cannot contain audio,
+                // so we can avoid getting the metadata for the files with ffmpeg
+                stopPlayback()
+            }
+        }
     }
 
     private var zoomLevel = 0
@@ -347,8 +361,8 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                 }
 
                 if (frame != null) {
-                    w = frame.w
-                    h = frame.h
+                    w = meta.videoWidth
+                    h = meta.videoHeight
                     draw3DVideo(
                         this, time,
                         stack, frame, color, this@Video.filtering.value, this@Video.clampMode.value,
@@ -622,7 +636,10 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
         infoGroup += vid(UpdatingTextPanel(250, style) { "Video Duration: ${meta?.videoDuration}s" })
         infoGroup += img(UpdatingTextPanel(250, style) {
             val meta = meta ?: imSeqExampleMeta
-            "Resolution: ${meta?.videoWidth} x ${meta?.videoHeight}"
+            val frame = getImage() as? Texture2D
+            val w = max(meta?.videoWidth ?: 0, frame?.w ?: 0)
+            val h = max(meta?.videoHeight ?: 0, frame?.h ?: 0)
+            "Resolution: $w x $h"
         })
         infoGroup += vid(UpdatingTextPanel(250, style) { "Frame Rate: ${meta?.videoFPS?.f2()} frames/s" })
         infoGroup += img(UpdatingTextPanel(250, style) {

@@ -1,16 +1,16 @@
 package me.anno.video
 
-import me.anno.io.json.JsonArray
-import me.anno.io.json.JsonObject
-import me.anno.io.json.JsonReader
 import me.anno.cache.CacheSection
 import me.anno.cache.data.ICacheData
 import me.anno.cache.instances.LastModifiedCache
+import me.anno.io.json.JsonArray
+import me.anno.io.json.JsonObject
+import me.anno.io.json.JsonReader
 import me.anno.utils.types.Strings.parseTime
 import org.apache.logging.log4j.LogManager
 import java.io.File
 
-class FFMPEGMetadata(val file: File): ICacheData {
+class FFMPEGMetadata(val file: File) : ICacheData {
 
     val duration: Double
 
@@ -87,8 +87,10 @@ class FFMPEGMetadata(val file: File): ICacheData {
         //      format_name=gif
         //  }}
 
-        val video = streams.firstOrNull { (it as JsonObject)["codec_type"]?.asText().equals("video", true) } as? JsonObject
-        val audio = streams.firstOrNull { (it as JsonObject)["codec_type"]?.asText().equals("audio", true) } as? JsonObject
+        val video =
+            streams.firstOrNull { (it as JsonObject)["codec_type"]?.asText().equals("video", true) } as? JsonObject
+        val audio =
+            streams.firstOrNull { (it as JsonObject)["codec_type"]?.asText().equals("audio", true) } as? JsonObject
 
         duration = format["duration"]?.toString()?.toDouble() ?: getDurationIfMissing(file)
 
@@ -122,7 +124,7 @@ class FFMPEGMetadata(val file: File): ICacheData {
 
         // get and parse the data :)
         val data = String(process.inputStream.readBytes())
-        if(data.isEmpty()) return 0.0
+        if (data.isEmpty()) return 0.0
         else LOGGER.info("Duration, because missing: $data")
         val time = data.split("time=")[1].split(" ")[0]
         // frame=206723 fps=1390 q=-0.0 Lsize=N/A time=00:57:28.87 bitrate=N/A speed=23.2x
@@ -132,10 +134,10 @@ class FFMPEGMetadata(val file: File): ICacheData {
 
     fun String.parseFraction(): Double {
         val i = indexOf('/')
-        if(i < 0) return toDouble()
+        if (i < 0) return toDouble()
         val a = substring(0, i).trim().toDouble()
-        val b = substring(i+1).trim().toDouble()
-        return a/b
+        val b = substring(i + 1).trim().toDouble()
+        return a / b
     }
 
     override fun destroy() {}
@@ -145,8 +147,8 @@ class FFMPEGMetadata(val file: File): ICacheData {
         private val metadataCache = CacheSection("Metadata")
         fun getMeta(file: File, async: Boolean): FFMPEGMetadata? {
             val key = LastModifiedCache[file]
-            if(key.isDirectory || !key.exists) return null
-            return metadataCache.getEntry(key, 300_000, async){
+            if (key.isDirectory || !key.exists) return null
+            return metadataCache.getEntry(key, 300_000, async) {
                 FFMPEGMetadata(file)
             } as? FFMPEGMetadata
         }

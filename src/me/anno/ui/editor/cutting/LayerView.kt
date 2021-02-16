@@ -238,7 +238,12 @@ class LayerView(style: Style) : TimelinePanel(style) {
         }
 
         // if (solution != null) {
-        solution?.draw(selectedTransform, draggedTransform)
+
+        solution?.apply {
+            this.y0 = y
+            this.y1 = y + h
+            draw(selectedTransform, draggedTransform)
+        }
         // val t2 = System.nanoTime()
         // two circle example:
         // 11µs for two sections x 2
@@ -398,7 +403,7 @@ class LayerView(style: Style) : TimelinePanel(style) {
                 var sumDY = (y - Input.mouseDownY) / height
                 if (sumDY < 0) sumDY += 0.5f
                 else sumDY -= 0.5f
-                if(sumDY.isFinite()){
+                if (sumDY.isFinite()) {
                     val newSlot = thisSlot + sumDY.roundToInt()
                     if (newSlot != timelineSlot) {
                         RemsStudio.largeChange("Changed Timeline Slot") {

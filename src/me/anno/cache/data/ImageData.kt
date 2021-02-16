@@ -15,6 +15,7 @@ import me.anno.image.HDRImage
 import me.anno.objects.Video.Companion.imageTimeout
 import me.anno.objects.modes.RotateJPEG
 import me.anno.utils.Sleep.sleepABit
+import me.anno.utils.types.Strings.getImportType
 import me.anno.video.VFrame
 import org.apache.commons.imaging.Imaging
 import org.joml.Matrix4f
@@ -73,6 +74,22 @@ class ImageData(file: File) : ICacheData {
 
     }
 
+    fun useFFMPEG(file: File){
+        // calculate required scale? no, without animation, we don't need to scale it down ;)
+        var frame: VFrame?
+        while (true){
+            frame = getVideoFrame(file, 1, 0, 0, 1.0, imageTimeout, false)
+            if(frame == null) sleepABit()
+            else break
+        }
+        frame!!
+        frame.waitToLoad()
+        GFX.addGPUTask(frame.w, frame.h) {
+            frameToFramebuffer(frame, frame.w, frame.h, this)
+        }
+        // if(texture?.isLoaded == true) draw3D(stack, texture, color, nearestFiltering, tiling)
+    }
+
     init {
 
         val fileExtension = file.extension
@@ -97,37 +114,29 @@ class ImageData(file: File) : ICacheData {
                 }
             }
             "webp" -> {
-                // calculate required scale? no, without animation, we don't need to scale it down ;)
-                var frame: VFrame?
-                while (true){
-                    frame = getVideoFrame(file, 1, 0, 0, 1.0, imageTimeout, false)
-                    if(frame == null) sleepABit()
-                    else break
-                }
-                frame!!
-                frame.waitToLoad()
-                GFX.addGPUTask(frame.w, frame.h) {
-                    frameToFramebuffer(frame, frame.w, frame.h, this)
-                }
-                // if(texture?.isLoaded == true) draw3D(stack, texture, color, nearestFiltering, tiling)
+                useFFMPEG(file)
             }
             else -> {
                 // read metadata information from jpegs
                 // read the exif rotation header
                 // because some camera images are rotated incorrectly
-                texture.create("ImageData", {
-                    try {
-                        // try ImageIO first, then Imaging, then give up (we could try FFMPEG, but idk, whether it supports sth useful)
-                        ImageIO.read(file)
-                    } catch (e: Exception){
+                if(fileExtension.getImportType() == "Video"){
+                    useFFMPEG(file)
+                } else {
+                    texture.create("ImageData", {
                         try {
-                            Imaging.getBufferedImage(file)
+                            // try ImageIO first, then Imaging, then give up (we could try FFMPEG, but idk, whether it supports sth useful)
+                            ImageIO.read(file)
                         } catch (e: Exception){
-                            throw IOException("Format of $file is not supported: ${e.message}")
+                            try {
+                                Imaging.getBufferedImage(file)
+                            } catch (e: Exception){
+                                throw IOException("Format of $file is not supported: ${e.message}")
+                            }
                         }
-                    }
-                }, false)
-                texture.rotation = getRotation(file)
+                    }, false)
+                    texture.rotation = getRotation(file)
+                }
             }
         }
         /*if(file.name.endsWith(".hdr", true)){

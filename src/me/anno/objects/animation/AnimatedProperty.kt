@@ -93,11 +93,13 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
     }
 
     fun set(value: V): AnimatedProperty<V> {
-        checkThread()
-        keyframes.clear()
-        keyframes.add(Keyframe(0.0, clamp(value)))
-        keyframes.sort()
-        return this
+        synchronized(this){
+            checkThread()
+            keyframes.clear()
+            keyframes.add(Keyframe(0.0, clamp(value)))
+            keyframes.sort()
+            return this
+        }
     }
 
     fun addKeyframe(time: Double, value: Any) =
@@ -118,27 +120,29 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
     }
 
     private fun addKeyframeInternal(time: Double, value: V, equalityDt: Double): Keyframe<V> {
-        checkThread()
-        ensureCorrectType(value)
-        if (isAnimated) {
-            keyframes.forEachIndexed { index, it ->
-                if (abs(it.time - time) < equalityDt) {
-                    return keyframes[index].apply {
-                        this.time = time
-                        this.value = value
+        synchronized(this){
+            checkThread()
+            ensureCorrectType(value)
+            if (isAnimated) {
+                keyframes.forEachIndexed { index, it ->
+                    if (abs(it.time - time) < equalityDt) {
+                        return keyframes[index].apply {
+                            this.time = time
+                            this.value = value
+                        }
                     }
                 }
+            } else {
+                keyframes.clear()
             }
-        } else {
-            keyframes.clear()
+            var index = keyframes.binarySearch { it.time.compareTo(time) }
+            if (index < 0) index = -1 - index
+            val interpolation = keyframes.getOrNull(index)?.interpolation ?: Interpolation.SPLINE
+            val newFrame = Keyframe(time, value, interpolation)
+            keyframes.add(newFrame)
+            sort()
+            return newFrame
         }
-        var index = keyframes.binarySearch { it.time.compareTo(time) }
-        if (index < 0) index = -1 - index
-        val interpolation = keyframes.getOrNull(index)?.interpolation ?: Interpolation.SPLINE
-        val newFrame = Keyframe(time, value, interpolation)
-        keyframes.add(newFrame)
-        sort()
-        return newFrame
     }
 
     fun checkThread() {
@@ -160,7 +164,9 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
      * */
     fun remove(keyframe: Keyframe<*>): Boolean {
         checkThread()
-        return keyframes.remove(keyframe)
+        synchronized(this){
+            return keyframes.remove(keyframe)
+        }
     }
 
     fun <N : Number> getIntegral(t0: Double, t1: Double, allowNegativeValues: Boolean): Double {
@@ -196,36 +202,38 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
     }
 
     fun <N : Number> getIntegral(time: Double, allowNegativeValues: Boolean): Double {
-        val minValue = if (allowNegativeValues) Double.NEGATIVE_INFINITY else 0.0
-        val size = keyframes.size
-        return when {
-            size == 0 -> max(minValue, (defaultValue as N).toDouble()) * time
-            size == 1 || !isAnimated -> max(minValue, (keyframes[0].value as N).toDouble()) * time
-            else -> {
-                val startTime: Double
-                val endTime: Double
-                if (time <= 0) {
-                    startTime = time
-                    endTime = 0.0
-                } else {
-                    startTime = 0.0
-                    endTime = time
-                }
-                var sum = 0.0
-                var lastTime = startTime
-                var lastValue = max(minValue, (this[startTime] as N).toDouble())
-                for (kf in keyframes) {
-                    if (kf.time > time) break // we are done
-                    if (kf.time > lastTime) {// a new value
-                        val value = max(minValue, (kf.value as N).toDouble())
-                        sum += (lastValue + value) * (kf.time - lastTime) * 0.5
-                        lastValue = value
-                        lastTime = kf.time
+        synchronized(this){
+            val minValue = if (allowNegativeValues) Double.NEGATIVE_INFINITY else 0.0
+            val size = keyframes.size
+            return when {
+                size == 0 -> max(minValue, (defaultValue as N).toDouble()) * time
+                size == 1 || !isAnimated -> max(minValue, (keyframes[0].value as N).toDouble()) * time
+                else -> {
+                    val startTime: Double
+                    val endTime: Double
+                    if (time <= 0) {
+                        startTime = time
+                        endTime = 0.0
+                    } else {
+                        startTime = 0.0
+                        endTime = time
                     }
+                    var sum = 0.0
+                    var lastTime = startTime
+                    var lastValue = max(minValue, (this[startTime] as N).toDouble())
+                    for (kf in keyframes) {
+                        if (kf.time > time) break // we are done
+                        if (kf.time > lastTime) {// a new value
+                            val value = max(minValue, (kf.value as N).toDouble())
+                            sum += (lastValue + value) * (kf.time - lastTime) * 0.5
+                            lastValue = value
+                            lastTime = kf.time
+                        }
+                    }
+                    val endValue = max(minValue, (this[endTime] as N).toDouble())
+                    sum += (lastValue + endValue) * (time - lastTime) * 0.5
+                    sum
                 }
-                val endValue = max(minValue, (this[endTime] as N).toDouble())
-                sum += (lastValue + endValue) * (time - lastTime) * 0.5
-                sum
             }
         }
     }
@@ -238,63 +246,65 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
     }
 
     fun getAnimatedValue(time: Double): V {
-        val size = keyframes.size
-        return when {
-            size == 0 -> defaultValue
-            size == 1 || !isAnimated -> keyframes[0].value
-            else -> {
+        synchronized(this){
+            val size = keyframes.size
+            return when {
+                size == 0 -> defaultValue
+                size == 1 || !isAnimated -> keyframes[0].value
+                else -> {
 
-                val index = clamp(getIndexBefore(time), 0, keyframes.size - 2)
-                val frame0 = keyframes.getOrElse(index - 1) { keyframes[0] }
-                val frame1 = keyframes[index]
-                val frame2 = keyframes[index + 1]
-                val frame3 = keyframes.getOrElse(index + 2) { keyframes.last() }
-                if (frame1 == frame2) return frame1.value
+                    val index = clamp(getIndexBefore(time), 0, keyframes.size - 2)
+                    val frame0 = keyframes.getOrElse(index - 1) { keyframes[0] }
+                    val frame1 = keyframes[index]
+                    val frame2 = keyframes[index + 1]
+                    val frame3 = keyframes.getOrElse(index + 2) { keyframes.last() }
+                    if (frame1 == frame2) return frame1.value
 
-                val t1 = frame1.time
-                val t2 = frame2.time
+                    val t1 = frame1.time
+                    val t2 = frame2.time
 
-                val f = (time - t1) / (t2 - t1)
-                val w = getWeights(frame0, frame1, frame2, frame3, f)
+                    val f = (time - t1) / (t2 - t1)
+                    val w = getWeights(frame0, frame1, frame2, frame3, f)
 
-                // LOGGER.info("weights: ${w.print()}")
+                    // LOGGER.info("weights: ${w.print()}")
 
-                var wasFirst = true
-                var valueSum: Any? = null
-                var weightSum = 0.0
-                fun addMaybe(value: V, weight: Double) {
-                    if (weightSum == 0.0) {
-                        valueSum = value
-                        weightSum = weight
-                    } else if (weight != 0.0) {
-                        // add value with weight...
-                        if (wasFirst && weightSum != 1.0) {
-                            // we need to multiply valueSum by weightSum
-                            wasFirst = false
-                            valueSum = fromCalc(mul(valueSum!!, weightSum))
-                        }
-                        valueSum = mulAdd(valueSum!!, toCalc(value), weight)
-                        weightSum += weight
-                    }// else done
-                }
+                    var wasFirst = true
+                    var valueSum: Any? = null
+                    var weightSum = 0.0
+                    fun addMaybe(value: V, weight: Double) {
+                        if (weightSum == 0.0) {
+                            valueSum = value
+                            weightSum = weight
+                        } else if (weight != 0.0) {
+                            // add value with weight...
+                            if (wasFirst && weightSum != 1.0) {
+                                // we need to multiply valueSum by weightSum
+                                wasFirst = false
+                                valueSum = fromCalc(mul(valueSum!!, weightSum))
+                            }
+                            valueSum = mulAdd(valueSum!!, toCalc(value), weight)
+                            weightSum += weight
+                        }// else done
+                    }
 
-                addMaybe(frame0.value, w.x)
-                addMaybe(frame1.value, w.y)
-                addMaybe(frame2.value, w.z)
-                addMaybe(frame3.value, w.w)
+                    addMaybe(frame0.value, w.x)
+                    addMaybe(frame1.value, w.y)
+                    addMaybe(frame2.value, w.z)
+                    addMaybe(frame3.value, w.w)
 
-                /*val value = mulAdd(
-                    mulAdd(
+                    /*val value = mulAdd(
                         mulAdd(
-                            mul(toCalc(frame0.value), w.x),
-                            toCalc(frame1.value), w.y
-                        ), toCalc(frame2.value), w.z
-                    ), toCalc(frame3.value), w.w
-                )
+                            mulAdd(
+                                mul(toCalc(frame0.value), w.x),
+                                toCalc(frame1.value), w.y
+                            ), toCalc(frame2.value), w.z
+                        ), toCalc(frame3.value), w.w
+                    )
 
-                return clamp(fromCalc(value))*/
-                return clamp(fromCalc(valueSum!!))
+                    return clamp(fromCalc(value))*/
+                    return clamp(fromCalc(valueSum!!))
 
+                }
             }
         }
     }

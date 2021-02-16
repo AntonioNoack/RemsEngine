@@ -43,11 +43,10 @@ abstract class Audio(var file: File = File(""), parent: Transform? = null) : GFX
     /**
      * is synchronized with the audio thread
      * */
-    fun startPlayback(globalTime: Double, speed: Double, camera: Camera) {
+    open fun startPlayback(globalTime: Double, speed: Double, camera: Camera) {
         // why an exception? because I happened to run into this issue
         if (speed == 0.0) throw IllegalArgumentException("Audio speed must not be 0.0, because that's inaudible")
-        needsUpdate = false
-        component?.stop()
+        stopPlayback()
         val meta = forcedMeta
         if (meta?.hasAudio == true) {
             val component = AudioStreamOpenAL(this, speed, globalTime, camera)
@@ -57,6 +56,7 @@ abstract class Audio(var file: File = File(""), parent: Transform? = null) : GFX
     }
 
     fun stopPlayback() {
+        needsUpdate = false
         component?.stop()
         component = null // for garbage collection
     }

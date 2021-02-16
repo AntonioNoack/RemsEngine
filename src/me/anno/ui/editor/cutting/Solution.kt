@@ -5,6 +5,7 @@ import me.anno.gpu.GFXx2D.drawRectStriped
 import me.anno.objects.Transform
 import me.anno.objects.Video
 import me.anno.objects.modes.LoopingState
+import me.anno.objects.modes.VideoType
 import me.anno.ui.editor.TimelinePanel.Companion.centralTime
 import me.anno.ui.editor.TimelinePanel.Companion.dtHalfLength
 import me.anno.ui.editor.cutting.LayerView.Companion.maxLines
@@ -18,7 +19,7 @@ import kotlin.math.floor
 import kotlin.math.roundToInt
 
 class Solution(
-    val x0: Int, val y0: Int, val x1: Int, val y1: Int,
+    val x0: Int, var y0: Int, val x1: Int, var y1: Int,
     private val referenceTime: Double
 ) {
 
@@ -73,7 +74,7 @@ class Solution(
                 val tr = gradient.owner as? Transform
                 val isStriped = selectedTransform === tr || draggedTransform === tr
 
-                val video = tr as? Video
+                val video = (tr as? Video)?.run { if(type != VideoType.IMAGE) this else null }
                 val meta = if (video == null) null
                 else metas.getOrPut(video) { video.meta ?: Unit } as? FFMPEGMetadata
 
