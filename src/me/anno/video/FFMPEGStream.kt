@@ -43,7 +43,7 @@ abstract class FFMPEGStream(val file: File?, val isProcessCountLimited: Boolean)
         // if we use hardware decoding, we need to use it on the gpu...
         fun getImageSequence(input: File, w: Int, h: Int, startTime: Double, frameCount: Int, fps: Double = 10.0) =
             FFMPEGVideo(
-                input, (startTime * fps).roundToInt(), frameCount
+                input, w, h, (startTime * fps).roundToInt(), frameCount
             ).run(
                 if (getMeta(input, false)?.videoWidth == w) {
                     listOf(

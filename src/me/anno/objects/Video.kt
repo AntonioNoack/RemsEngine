@@ -847,7 +847,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
             videoScaleNames["1/64"] = 64
         }
 
-        val videoFrameTimeout = DefaultConfig["ui.video.frameTimeout", 20_000L]
+        val videoFrameTimeout get() = if(isFinalRendering) 2000L else 10000L
         val tiling16x9 = Vector4f(8f, 4.5f, 0f, 0f)
 
         val imageTimeout = DefaultConfig["ui.image.frameTimeout", 5000L]

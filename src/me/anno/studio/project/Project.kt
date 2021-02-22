@@ -254,7 +254,7 @@ class Project(var name: String, val file: File) : Saveable() {
             .apply {
                 // higher far value to allow other far values to be seen
                 farZ.defaultValue = 5000f
-                timeDilation = 0.0 // the camera has no time, so no motion can be recorded
+                timeDilation.setDefault(0.0) // the camera has no time, so no motion can be recorded
             }
     }
 

@@ -34,7 +34,7 @@ class TextReader(val data: String) : BaseReader() {
         val nc0 = skipSpace()
         var obj: ISaveable
         val ptr: Int
-        if(nc0 == ','){
+        if (nc0 == ',') {
             assert(skipSpace(), '"')
             val secondProperty = readString()
             assert(skipSpace(), ':')
@@ -66,7 +66,7 @@ class TextReader(val data: String) : BaseReader() {
                     else -> throw InvalidFormatException("Unexpected char $next")
                 }
             }
-        } catch (e: Exception){
+        } catch (e: Exception) {
             e.printStackTrace()
         }
     }
@@ -97,57 +97,54 @@ class TextReader(val data: String) : BaseReader() {
     }
 
     private fun readString(): String {
+
         var startIndex = index
-        val str = StringBuilder(32)
-        while (true) {
-            when (next()) {
+        val firstChar = next()
+        if (firstChar == '"') return ""
+
+        var builder0: StringBuilder? = null
+        val dataLength = data.length
+
+        fun appendSpecial(char: Char) {
+            if (builder0 == null) builder0 = StringBuilder(8)
+            val str2 = builder0!!
+            str2.append(data.subSequence(startIndex, index - 2))
+            str2.append(char)
+            startIndex = index
+        }
+
+        fun append(char: Char): Boolean {
+            return when (char) {
                 '\\' -> {
-                    when (next()) {
-                        '\\' -> {
-                            str.append(data.substring(startIndex, index - 1))
-                            startIndex = index
-                        }
-                        'r' -> {
-                            str.append(data.substring(startIndex, index - 2))
-                            str.append('\r')
-                            startIndex = index
-                        }
-                        'n' -> {
-                            str.append(data.substring(startIndex, index - 2))
-                            str.append('\n')
-                            startIndex = index
-                        }
-                        't' -> {
-                            str.append(data.substring(startIndex, index - 2))
-                            str.append('\t')
-                            startIndex = index
-                        }
-                        '"' -> {
-                            str.append(data.substring(startIndex, index - 2))
-                            str.append('"')
-                            startIndex = index
-                        }
-                        '\'' -> {
-                            str.append(data.substring(startIndex, index - 2))
-                            str.append('\'')
-                            startIndex = index
-                        }
-                        'f' -> {
-                            str.append(data.substring(startIndex, index - 2))
-                            str.append(12.toChar())
-                            startIndex = index
-                        }
-                        'b' -> {
-                            str.append(data.substring(startIndex, index - 2))
-                            str.append('\b')
-                            startIndex = index
-                        }
+                    if (index >= dataLength) throw InvalidFormatException("Expected \" at the end of string")
+                    when (data[index++]) {
+                        '\\' -> appendSpecial('\\')
+                        'r' -> appendSpecial('\r')
+                        'n' -> appendSpecial('\n')
+                        't' -> appendSpecial('\t')
+                        '"' -> appendSpecial('"')
+                        '\'' -> appendSpecial('\'')
+                        'f' -> appendSpecial(12.toChar())
+                        'b' -> appendSpecial('\b')
                         else -> throw InvalidFormatException("Unknown escape sequence \\${data[index - 1]}")
                     }
+                    false
                 }
-                '"' -> {
-                    str.append(data.substring(startIndex, index - 1))
-                    return str.toString()
+                '"' -> true
+                else -> false
+            }
+        }
+
+        append(firstChar)
+        while (true) {
+            if (index >= dataLength) throw InvalidFormatException("Expected \" at the end of string")
+            if (append(data[index++])) {
+                val builder = builder0
+                return if (builder == null) {
+                    data.substring(startIndex, index - 1)
+                } else {
+                    builder.append(data.subSequence(startIndex, index - 1))
+                    builder.toString()
                 }
             }
         }
@@ -284,7 +281,7 @@ class TextReader(val data: String) : BaseReader() {
         return Vector4f(rawX, rawY, rawZ, rawW)
     }
 
-    private fun readProperty(obj: ISaveable): ISaveable {
+    fun readProperty(obj: ISaveable): ISaveable {
         assert(skipSpace(), '"')
         val typeName = readString()
         assert(skipSpace(), ':')

@@ -123,7 +123,7 @@ class VideoCreator(
                                 "fps" -> fps = value.toFloat()
                             }
                         } catch (e: Exception) {
-                            LOGGER.warn(e.message ?: "")
+                            LOGGER.warn("${e.javaClass}: ${e.message}")
                         }
                         // LOGGER.info("$key: $value")
                         if (secondIndex == remaining.length) break

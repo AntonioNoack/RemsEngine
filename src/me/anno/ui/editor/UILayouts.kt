@@ -100,7 +100,13 @@ object UILayouts {
     fun createRecentProjectsUI(style: Style, recent: List<DefaultConfig.ProjectHeader>): Panel {
 
         val recentProjects =
-            SettingCategory("Recent Projects", "Your projects of the past", "ui.recentProjects.title", style)
+            SettingCategory(
+                "Recent Projects",
+                "Your projects of the past",
+                "ui.recentProjects.title",
+                true,
+                style
+            )
         recentProjects.show2()
 
         for (project in recent) {

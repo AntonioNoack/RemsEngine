@@ -1,6 +1,8 @@
 package me.anno.gpu.blending
 
+import me.anno.cache.Cache
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.isFinalRendering
 import me.anno.video.MissingFrameException
 import org.lwjgl.opengl.GL11.*
 import java.lang.Exception
@@ -29,6 +31,12 @@ data class BlendDepth(val blendMode: BlendMode?, val depth: Boolean, val depthMa
             throw e
         } catch (e: Exception){
             e.printStackTrace()
+            if(isFinalRendering) throw MissingFrameException(e.message ?: e.javaClass.toString())
+        } catch (e: Error){
+            // e.g. OutOfMemoryError: OpenGL Exception
+            e.printStackTrace()
+            Cache.clear() // dangerous, but maybe it's our only hope to survive
+            if(isFinalRendering) throw MissingFrameException(e.message ?: e.javaClass.toString())
         }
         unbind()
     }

@@ -53,7 +53,7 @@ open class PDFDocument(var file: File, parent: Transform?) : GFXTransform(parent
     }
 
     override fun getClassName(): String = "PDFDocument"
-    override fun getSymbol(): String = ""
+    override fun getSymbol(): String = "\uD83D\uDDCE"
 
     fun getSelectedSitesList() = parseSites(selectedSites)
 

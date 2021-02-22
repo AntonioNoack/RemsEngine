@@ -3,25 +3,33 @@ package me.anno.ui.editor
 import me.anno.input.MouseButton
 import me.anno.language.translation.Dict
 import me.anno.ui.base.Panel
-import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.base.scrolling.ScrollPanelY
+import me.anno.ui.base.text.TextPanel
 import me.anno.ui.input.InputVisibility
 import me.anno.ui.style.Style
-import me.anno.utils.input.Keys.isClickKey
 import me.anno.utils.Maths.mixARGB
+import me.anno.utils.input.Keys.isClickKey
 import kotlin.math.max
 
 open class SettingCategory(
     val title: String,
-    style: Style,
-    val canCopyTitleText: Boolean = false
+    withScrollbar: Boolean,
+    val canCopyTitleText: Boolean,
+    style: Style
 ) : PanelGroup(style) {
 
+    constructor(title: String, style: Style) :
+            this(title, false, false, style)
+
     constructor(title: String, description: String, dictPath: String, style: Style) :
-            this(Dict[title, dictPath], style){
+            this(title, description, dictPath, false, style)
+
+    constructor(title: String, description: String, dictPath: String, withScrollbar: Boolean, style: Style) :
+            this(Dict[title, dictPath], withScrollbar, false, style) {
         setTooltip(Dict[description, "$dictPath.desc"])
     }
 
@@ -43,6 +51,15 @@ open class SettingCategory(
             set(_) {}
     }
 
+    val scrollbar: ScrollPanelY? =
+        if (withScrollbar){
+            object: ScrollPanelY(content, Padding.Zero, style){
+                override var visibility: Visibility
+                    get() = InputVisibility[title]
+                    set(_) {}
+            }
+        } else null
+
     val padding = Padding((titlePanel.font.size * .667f).toInt(), 0, 0, 0)
 
     init {
@@ -50,8 +67,7 @@ open class SettingCategory(
         // titlePanel.enableHoverColor = true
         titlePanel.textColor = mixARGB(titlePanel.textColor, titlePanel.textColor and 0xffffff, 0.5f)
         titlePanel.focusTextColor = -1//titlePanel.textColor
-        content.parent = this
-        content.visibility = Visibility.GONE
+        (scrollbar ?: content).parent = this
     }
 
     fun show2() {
@@ -69,7 +85,7 @@ open class SettingCategory(
     override fun acceptsChar(char: Int) = char.isClickKey()
     override fun isKeyInput() = true
 
-    override val children: List<Panel> = listOf(this.titlePanel, content)
+    override val children: List<Panel> = listOf(this.titlePanel, scrollbar ?: content)
     override fun remove(child: Panel) {
         throw RuntimeException("Not supported!")
     }
@@ -85,11 +101,12 @@ open class SettingCategory(
             minH = 0
         } else {
             titlePanel.calculateSize(w, h)
-            if (content.visibility == Visibility.GONE) {
+            val panel2 = scrollbar ?: content
+            if (panel2.visibility == Visibility.GONE) {
                 minW = titlePanel.minW
                 minH = titlePanel.minH
             } else {
-                content.calculateSize(w - padding.width, h)
+                panel2.calculateSize(w - padding.width, h)
                 minW = max(titlePanel.minW, content.minW + padding.width)
                 minH = titlePanel.minH + content.minH + padding.height
             }
@@ -99,10 +116,11 @@ open class SettingCategory(
     override fun placeInParent(x: Int, y: Int) {
         super.placeInParent(x, y)
         titlePanel.placeInParent(x, y)
-        content.placeInParent(x + padding.left, y + titlePanel.minH + padding.top)
+        val panel2 = scrollbar ?: content
+        panel2.placeInParent(x + padding.left, y + titlePanel.minH + padding.top)
     }
 
-    fun add(child: Panel){
+    fun add(child: Panel) {
         content += child
     }
 

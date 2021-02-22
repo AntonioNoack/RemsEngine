@@ -81,6 +81,7 @@ open class TextInput(title: String, val enableSuggestions: Boolean, style: Style
         setText(keyFile.toString(), true)
     }
 
+    override fun getClassName(): String = "TextInput"
     override fun getCursor(): Long = Cursor.drag
     override fun isKeyInput() = true
 

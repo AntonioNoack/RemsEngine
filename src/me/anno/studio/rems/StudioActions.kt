@@ -199,6 +199,8 @@ object StudioActions {
         keyMap["PureTextInputML.downArrow.typed"] = "MoveDown"
         keyMap["PureTextInput.leftArrow.typed"] = "MoveLeft"
         keyMap["PureTextInput.rightArrow.typed"] = "MoveRight"
+        keyMap["ConsoleInput.upArrow.typed"] = "MoveUp"
+        keyMap["ConsoleInput.downArrow.typed"] = "MoveDown"
 
         return keyMap
 

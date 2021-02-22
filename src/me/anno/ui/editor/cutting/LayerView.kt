@@ -373,7 +373,7 @@ class LayerView(style: Style) : TimelinePanel(style) {
             if (draggedKeyframes != null) {
                 if (draggedKeyframes.isNotEmpty()) {
                     val dilation = transform.listOfInheritance
-                        .fold(1.0) { t0, tx -> t0 * tx.timeDilation }
+                        .fold(1.0) { t0, tx -> t0 * tx.timeDilation.value }
                     val dt = shiftSlowdown * dilation * dx * dtHalfLength * 2 / w
                     if (dt != 0.0) {
                         RemsStudio.incrementalChange("Move Keyframes") {
@@ -387,16 +387,16 @@ class LayerView(style: Style) : TimelinePanel(style) {
                 val thisSlot = this@LayerView.timelineSlot
                 if (dx != 0f) {
                     val dilation = transform.listOfInheritance
-                        .fold(1.0) { t0, tx -> t0 * tx.timeDilation }
+                        .fold(1.0) { t0, tx -> t0 * tx.timeDilation.value }
                     RemsStudio.incrementalChange("Change Time Dilation / Offset") {
                         if (isControlDown) {
                             // todo scale around the time=0 point?
                             // todo first find this point...
                             val factor = clamp(1f - shiftSlowdown * dx / w, 0.01f, 100f)
-                            transform.timeDilation *= factor
+                            transform.timeDilation.value *= factor
                         } else {
                             val dt = shiftSlowdown * dilation * dx * dtHalfLength * 2 / w
-                            transform.timeOffset += dt
+                            transform.timeOffset.value += dt
                         }
                     }
                 }
@@ -518,7 +518,7 @@ class LayerView(style: Style) : TimelinePanel(style) {
         val time = getTimeAt(x)
         files.forEach { file ->
             addChildFromFile(root, file, null, true) {
-                it.timeOffset = time
+                it.timeOffset.value = time
                 it.timelineSlot.value = timelineSlot
             }
         }

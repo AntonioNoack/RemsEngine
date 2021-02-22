@@ -110,7 +110,7 @@ object DefaultConfig : StringMap() {
                 val ps = ParticleSystem(null)
                 ps.name = "Particles"
                 Circle(ps)
-                ps.timeOffset = -5.0
+                ps.timeOffset.value = -5.0
                 ps
             }(),
             "Text Particles" to TextParticles(),

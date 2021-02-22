@@ -1,7 +1,6 @@
 package me.anno.io.text
 
 import me.anno.io.ISaveable
-import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.utils.types.Strings
 import org.joml.*
@@ -10,17 +9,9 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
 
     private val separator = if (beautify) ", " else ","
 
-    val data = StringBuilder(512)
+    val data = StringBuilder(32)
     private var hasObject = false
     private var usedPointers: HashSet<Int>? = null
-
-    operator fun StringBuilder.plusAssign(char: Char) {
-        append(char)
-    }
-
-    operator fun StringBuilder.plusAssign(text: String) {
-        append(text)
-    }
 
     fun open(array: Boolean) {
         data.append(if (array) '[' else '{')
@@ -130,7 +121,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
     override fun writeShort(name: String, value: Short, force: Boolean) {
         if (force || value != 0.toShort()) {
             writeAttributeStart("s", name)
-            data += value.toString()
+            data.append(value)
         }
     }
 
@@ -196,14 +187,13 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
             open(true)
             data.append(value.size)
             for (vs in value) {
-                data += ','
-                data += '['
+                data.append(",[")
                 data.append(vs.size)
                 for (v in value) {
-                    data += ','
-                    data += v.toString()
+                    data.append(',')
+                    data.append(v.toString())
                 }
-                data += ']'
+                data.append(']')
             }
             close(true)
         }
@@ -223,7 +213,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
             data.append(value.size)
             val lastIndex = value.indexOfLast { it != 0.0 }
             for (i in 0 until lastIndex) {
-                data += ','
+                data.append(',')
                 append(value[i])
             }
             close(true)
@@ -236,14 +226,13 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
             open(true)
             data.append(value.size)
             for (vs in value) {
-                data += ','
-                data += '['
+                data.append(",[")
                 data.append(vs.size)
                 for (v in value) {
-                    data += ','
-                    data += v.toString()
+                    data.append(',')
+                    data.append(v.toString())
                 }
-                data += ']'
+                data.append(']')
             }
             close(true)
         }
@@ -440,7 +429,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
     override fun writeObjectImpl(name: String?, value: ISaveable) {
         writeAttributeStart(value.getClassName(), name)
         open(false)
-        if(name == null){
+        if (name == null) {
             writeString("class")
             data.append(':')
             writeString(value.getClassName())
@@ -456,13 +445,13 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
 
     override fun <V : ISaveable> writeObjectArray(self: ISaveable?, name: String, elements: Array<V>, force: Boolean) {
         if (force || elements.isNotEmpty()) {
-            if(elements.isEmpty()){
+            if (elements.isEmpty()) {
                 writeAttributeStart("*[]", name)
                 data.append("[0]")
             } else {
                 val firstType = elements.first().getClassName()
                 val allHaveSameType = elements.all { it.getClassName() == firstType }
-                if(allHaveSameType){
+                if (allHaveSameType) {
                     writeAttributeStart("$firstType[]", name)
                     open(true)
                     data.append(elements.size)
@@ -527,12 +516,12 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
             return writer.toString()
         }
 
-        fun toBuilder(data: ISaveable, beautify: Boolean): StringBuilder {
+        /*fun toBuilder(data: ISaveable, beautify: Boolean): StringBuilder2 {
             val writer = TextWriter(beautify)
             writer.add(data)
             writer.writeAllInList()
             return writer.data
-        }
+        }*/
 
     }
 

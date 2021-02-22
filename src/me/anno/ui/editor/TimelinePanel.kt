@@ -104,8 +104,10 @@ open class TimelinePanel(style: Style) : Panel(style) {
 
             root2child.forEach { t ->
                 // localTime0 = (parentTime - timeOffset) * timeDilation
-                time0 = (time0 - t.timeOffset) * t.timeDilation
-                time1 = (time1 - t.timeOffset) * t.timeDilation
+                val offset = t.timeOffset.value
+                val dilation = t.timeDilation.value
+                time0 = (time0 - offset) * dilation
+                time1 = (time1 - offset) * dilation
             }
 
             // make sure the values are ok-ish

@@ -85,8 +85,8 @@ open class Transform(var parent: Transform? = null) : Saveable(),
 
     var blendMode = BlendMode.UNSPECIFIED
 
-    var timeOffset = 0.0
-    var timeDilation = 1.0
+    var timeOffset = ValueWithDefault(0.0)
+    var timeDilation = ValueWithDefault(1.0)
 
     var timeAnimated = AnimatedProperty.double()
 
@@ -221,10 +221,8 @@ open class Transform(var parent: Transform? = null) : Saveable(),
 
         // time
         val timeGroup = getGroup("Time", "", "time")
-        timeGroup += vi("Start Time", "Delay the animation", null, timeOffset, style) { timeOffset = it }
-        timeGroup += vi("Time Multiplier", "Speed up the animation", dilationType, timeDilation, style) {
-            timeDilation = it
-        }
+        timeGroup += vi("Start Time", "Delay the animation", "", null, timeOffset, style)
+        timeGroup += vi("Time Multiplier", "Speed up the animation", "", dilationType, timeDilation, style)
         timeGroup += vi("Advanced Time", "Add acceleration/deceleration to your elements", timeAnimated, style)
 
         val editorGroup = getGroup("Editor", "", "editor")
@@ -247,7 +245,7 @@ open class Transform(var parent: Transform? = null) : Saveable(),
     }
 
     open fun getLocalTime(parentTime: Double): Double {
-        var localTime0 = (parentTime - timeOffset) * timeDilation
+        var localTime0 = (parentTime - timeOffset.value) * timeDilation.value
         localTime0 += timeAnimated[localTime0]
         return localTime0
     }
@@ -389,8 +387,8 @@ open class Transform(var parent: Transform? = null) : Saveable(),
         writer.writeObject(this, "rotationYXZ", rotationYXZ)
         writer.writeObject(this, "skew", skew)
         writer.writeObject(this, "alignWithCamera", alignWithCamera)
-        writer.writeDouble("timeOffset", timeOffset)
-        if (timeDilation != 1.0) writer.writeDouble("timeDilation", timeDilation, true)
+        writer.writeMaybe(this, "timeOffset", timeOffset)
+        writer.writeMaybe(this, "timeDilation", timeDilation)
         writer.writeObject(this, "timeAnimated", timeAnimated)
         writer.writeObject(this, "color", color)
         writer.writeObject(this, "colorMultiplier", colorMultiplier)
@@ -433,8 +431,8 @@ open class Transform(var parent: Transform? = null) : Saveable(),
 
     override fun readDouble(name: String, value: Double) {
         when (name) {
-            "timeDilation" -> timeDilation = value
-            "timeOffset" -> timeOffset = value
+            "timeDilation" -> timeDilation.value = value
+            "timeOffset" -> timeOffset.value = value
             "fadeIn" -> if (value >= 0.0) fadeIn.set(value.toFloat())
             "fadeOut" -> if (value >= 0.0) fadeOut.set(value.toFloat())
             else -> super.readDouble(name, value)
@@ -593,6 +591,22 @@ open class Transform(var parent: Transform? = null) : Saveable(),
         style: Style, setValue: (V) -> Unit
     ): Panel {
         return vi(Dict[title, "obj.$dictPath"], Dict[ttt, "obj.$dictPath.desc"], type, value, style, setValue)
+    }
+
+    fun <V> vi(
+        title: String, ttt: String, dictPath: String,
+        type: Type?, value: ValueWithDefault<V>,
+        style: Style
+    ) = vi(Dict[title, "obj.$dictPath"], Dict[ttt, "obj.$dictPath.desc"], type, value, style)
+
+    fun <V> vi(
+        title: String, ttt: String,
+        type: Type?, value: ValueWithDefault<V>,
+        style: Style
+    ): Panel {
+        return vi(title, ttt, type, value.value, style) {
+            value.value = it
+        }
     }
 
     /**

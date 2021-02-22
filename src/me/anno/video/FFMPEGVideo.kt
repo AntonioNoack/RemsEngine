@@ -11,8 +11,17 @@ import java.io.File
 import java.io.InputStream
 import kotlin.concurrent.thread
 
-class FFMPEGVideo(file: File, private val frame0: Int, bufferLength: Int) :
+class FFMPEGVideo(
+    file: File,
+    w: Int, h: Int,
+    private val frame0: Int,
+    bufferLength: Int
+) :
     FFMPEGStream(file, isProcessCountLimited = !file.extension.isFFMPEGOnlyExtension()) {
+
+    /*init {
+        LOGGER.info("${file.name.substring(0, min(10, file.name.length))} $w x $h $frame0/$bufferLength")
+    }*/
 
     override fun process(process: Process, arguments: List<String>) {
         thread {

@@ -110,7 +110,7 @@ object RemsCLI {
         val duration0 = parseTime(line, "duration", project.targetDuration)
         val endTime = parseTime(line, "end", startTime + duration0)
 
-        scene.timeOffset += startTime
+        scene.timeOffset.value += startTime
         val duration = endTime - startTime
 
         if (duration < 0 && renderType != Rendering.RenderType.FRAME) throw ParseException("Duration cannot be < 0")

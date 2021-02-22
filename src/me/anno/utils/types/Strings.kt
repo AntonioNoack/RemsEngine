@@ -120,35 +120,18 @@ object Strings {
             lastI = i + 1
         }
         while (i < value.length) {
+            fun append(str: String){
+                put()
+                data.append(str)
+            }
             when (value[i]) {
-                '\\' -> {
-                    put()
-                    data.append("\\\\")
-                }
-                '\t' -> {
-                    put()
-                    data.append("\\t")
-                }
-                '\r' -> {
-                    put()
-                    data.append("\\r")
-                }
-                '\n' -> {
-                    put()
-                    data.append("\\n")
-                }
-                '"' -> {
-                    put()
-                    data.append("\\\"")
-                }
-                '\b' -> {
-                    put()
-                    data.append("\\b")
-                }
-                12.toChar() -> {
-                    put()
-                    data.append("\\f")
-                }
+                '\\' -> append("\\\\")
+                '\t' -> append("\\t")
+                '\r' -> append("\\r")
+                '\n' -> append("\\n")
+                '"' -> append("\\\"")
+                '\b' -> append("\\b")
+                12.toChar() -> append("\\f")
                 else -> {
                 } // nothing
             }

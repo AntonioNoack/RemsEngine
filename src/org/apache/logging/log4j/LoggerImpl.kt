@@ -3,6 +3,7 @@ package org.apache.logging.log4j
 import org.apache.commons.logging.Log
 import java.util.*
 
+
 class LoggerImpl(prefix: String?) : Logger, Log {
 
     fun interleave(msg: String, args: Array<out Object>): String {
@@ -21,15 +22,25 @@ class LoggerImpl(prefix: String?) : Logger, Log {
 
     val suffix = if (prefix == null) "" else ":$prefix"
 
+    fun getTimeStamp(): String {
+        val calendar = Calendar.getInstance()
+        val seconds = calendar.get(Calendar.SECOND)
+        val minutes = calendar.get(Calendar.MINUTE)
+        val hours= calendar.get(Calendar.HOUR_OF_DAY)
+        return "%2d:%2d:%2d".format(hours, minutes, seconds)
+            .replace(' ', '0')
+    }
+
     fun print(prefix: String, msg: String) {
         msg.split('\n').forEach { line ->
-            println("[$prefix$suffix] $line")
+            println("[${getTimeStamp()},$prefix$suffix] $line")
         }
     }
 
     override fun info(msg: String) {
         when (suffix) {
-            ":ScratchFileBuffer", ":PDFObjectStreamParser" -> Unit
+            ":ScratchFileBuffer", ":PDFObjectStreamParser",
+            ":FontFileFinder", ":FontMapperImpl", ":FileSystemFontProvider" -> Unit
             else -> print("INFO", msg)
         }
     }

@@ -31,7 +31,7 @@ enum class GFXSettings(
         }
         init {
             put("ui.editor.useMSAA", false, true, true)
-            put("video.frames.perContainer", 32, 128, 512)
+            put("video.frames.perContainer", 32, 64, 128)
         }
     }
 }
