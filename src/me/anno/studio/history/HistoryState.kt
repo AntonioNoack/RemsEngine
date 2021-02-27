@@ -59,12 +59,16 @@ class HistoryState() : Saveable() {
         val listOfAll = root.listOfAll.toList()
         select(selectedUUID, selectedPropName)
         windowStack.map { window ->
-            window.panel.listOfAll.filterIsInstance<SceneView>().forEachIndexed { index, it ->
-                it.camera = if (index in usedCameras.indices) {
-                    val cameraIndex = usedCameras[index]
-                    listOfAll.firstOrNull { camera -> camera.getUUID() == cameraIndex } as? Camera ?: nullCamera!!
-                } else {
-                    nullCamera!!
+            var index = 0
+            window.panel.listOfAll {
+                if(it is SceneView){
+                    it.camera = if (index in usedCameras.indices) {
+                        val cameraIndex = usedCameras[index]
+                        listOfAll.firstOrNull { camera -> camera.getUUID() == cameraIndex } as? Camera ?: nullCamera!!
+                    } else {
+                        nullCamera!!
+                    }
+                    index++
                 }
             }
         }

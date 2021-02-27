@@ -14,7 +14,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.image.HDRImage
 import me.anno.objects.Video.Companion.imageTimeout
 import me.anno.objects.modes.RotateJPEG
-import me.anno.utils.Sleep.sleepABit
+import me.anno.utils.Sleep.waitUntilDefined
 import me.anno.utils.types.Strings.getImportType
 import me.anno.video.VFrame
 import org.apache.commons.imaging.Imaging
@@ -23,12 +23,11 @@ import org.joml.Vector4f
 import java.io.File
 import java.io.IOException
 import javax.imageio.ImageIO
-import kotlin.concurrent.thread
 
 
 class ImageData(file: File) : ICacheData {
 
-    var texture = Texture2D("image-data",1024, 1024, 1)
+    var texture = Texture2D("image-data", 1024, 1024, 1)
     var framebuffer: Framebuffer? = null
 
     companion object {
@@ -37,24 +36,26 @@ class ImageData(file: File) : ICacheData {
             var rotation: RotateJPEG? = null
             try {
                 val metadata = ImageMetadataReader.readMetadata(file)
-                for(dir in metadata.getDirectoriesOfType(ExifIFD0Directory::class.java)){
+                for (dir in metadata.getDirectoriesOfType(ExifIFD0Directory::class.java)) {
                     val desc = dir.getDescription(ExifIFD0Directory.TAG_ORIENTATION)?.toLowerCase() ?: continue
                     val mirror = "mirror" in desc
                     val mirrorHorizontal = mirror && "hori" in desc
                     val mirrorVertical = mirror && !mirrorHorizontal
-                    val rotationDegrees = if("9" in desc) 90 else if("18" in desc) 180 else if("27" in desc) 270 else 0
-                    if(mirrorHorizontal || mirrorVertical || rotationDegrees != 0) {
+                    val rotationDegrees =
+                        if ("9" in desc) 90 else if ("18" in desc) 180 else if ("27" in desc) 270 else 0
+                    if (mirrorHorizontal || mirrorVertical || rotationDegrees != 0) {
                         rotation = RotateJPEG(mirrorHorizontal, mirrorVertical, rotationDegrees)
                     }
                 }
-            } catch (e: Exception){ }
+            } catch (e: Exception) {
+            }
             return rotation
         }
 
         fun frameToFramebuffer(frame: VFrame, w: Int, h: Int, id: ImageData?): Framebuffer {
             val framebuffer = Framebuffer("webp-temp", w, h, 1, 1, false, Framebuffer.DepthBufferType.NONE)
             id?.framebuffer = framebuffer
-            Frame(framebuffer){
+            Frame(framebuffer) {
                 Frame.bind()
                 id?.texture = framebuffer.textures[0]
                 val shader = frame.get3DShader()
@@ -74,15 +75,11 @@ class ImageData(file: File) : ICacheData {
 
     }
 
-    fun useFFMPEG(file: File){
+    fun useFFMPEG(file: File) {
         // calculate required scale? no, without animation, we don't need to scale it down ;)
-        var frame: VFrame?
-        while (true){
-            frame = getVideoFrame(file, 1, 0, 0, 1.0, imageTimeout, false)
-            if(frame == null) sleepABit()
-            else break
+        val frame = waitUntilDefined {
+            getVideoFrame(file, 1, 0, 0, 1.0, imageTimeout, false)
         }
-        frame!!
         frame.waitToLoad()
         GFX.addGPUTask(frame.w, frame.h) {
             frameToFramebuffer(frame, frame.w, frame.h, this)
@@ -120,17 +117,17 @@ class ImageData(file: File) : ICacheData {
                 // read metadata information from jpegs
                 // read the exif rotation header
                 // because some camera images are rotated incorrectly
-                if(fileExtension.getImportType() == "Video"){
+                if (fileExtension.getImportType() == "Video") {
                     useFFMPEG(file)
                 } else {
                     texture.create("ImageData", {
                         try {
                             // try ImageIO first, then Imaging, then give up (we could try FFMPEG, but idk, whether it supports sth useful)
                             ImageIO.read(file)
-                        } catch (e: Exception){
+                        } catch (e: Exception) {
                             try {
                                 Imaging.getBufferedImage(file)
-                            } catch (e: Exception){
+                            } catch (e: Exception) {
                                 throw IOException("Format of $file is not supported: ${e.message}")
                             }
                         }

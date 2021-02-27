@@ -531,7 +531,9 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
     }
 
     fun sort() {
-        keyframes.sort()
+        synchronized(this){
+            keyframes.sort()
+        }
     }
 
     override fun readSomething(name: String, value: Any?) {

@@ -2,7 +2,7 @@ package me.anno.video
 
 import me.anno.objects.Audio
 import me.anno.objects.Transform
-import me.anno.utils.Sleep.sleepShortly
+import me.anno.utils.Sleep.waitUntil
 import org.apache.logging.log4j.LogManager
 import java.io.File
 import kotlin.concurrent.thread
@@ -23,9 +23,7 @@ class VideoAudioCreator(
         val vbt = VideoBackgroundTask(videoCreator, scene, camera, motionBlurSteps, shutterPercentage)
         vbt.start()
         // wait for the task to finish
-        while (!vbt.isDone) {
-            sleepShortly()
-        }
+        waitUntil { vbt.isDone }
         if (audioSources.isEmpty()) {
             if (output != videoCreator.output) {
                 output.delete()

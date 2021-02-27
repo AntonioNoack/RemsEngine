@@ -8,13 +8,11 @@ import me.anno.utils.Sleep.sleepShortly
 import org.apache.logging.log4j.LogManager
 import java.io.File
 import java.io.FileNotFoundException
-import java.util.concurrent.ConcurrentSkipListMap
 import java.util.concurrent.ConcurrentSkipListSet
 import kotlin.concurrent.thread
-import kotlin.math.abs
 import kotlin.math.max
 
-open class CacheSection(val name: String): Comparable<CacheSection> {
+open class CacheSection(val name: String) : Comparable<CacheSection> {
 
     val cache = HashMap<Any, CacheEntry>(512)
     private val lockedKeys = HashSet<Any>(16)
@@ -66,8 +64,8 @@ open class CacheSection(val name: String): Comparable<CacheSection> {
      * get the value, no matter whether it actually exists
      * useful for LODs, if others work as well, just are not as good
      * */
-    fun getEntryDontUpdate(key: Any): ICacheData? {
-        synchronized(cache){
+    fun getEntryWithoutGenerator(key: Any): ICacheData? {
+        synchronized(cache) {
             return cache[key]?.run {
                 lastUsed = gameTime
                 data
@@ -75,11 +73,16 @@ open class CacheSection(val name: String): Comparable<CacheSection> {
         }
     }
 
-    fun getEntry(key: Any, timeout: Long, asyncGenerator: Boolean, generator: () -> ICacheData): ICacheData? {
+    fun free(key: Any) {
+        lock(key, false)
+        val entry = synchronized(cache) {
+            cache.remove(key)
+        }
+        entry?.destroy()
+        unlock(key)
+    }
 
-        // new, async cache
-        // only the key needs to be locked, not the whole cache
-
+    private fun lock(key: Any, asyncGenerator: Boolean): Unit? {
         if (asyncGenerator) {
             synchronized(lockedKeys) {
                 if (key !in lockedKeys) {
@@ -101,40 +104,68 @@ open class CacheSection(val name: String): Comparable<CacheSection> {
                 }
             }
         }
+        return Unit
+    }
 
+    private fun unlock(key: Any) {
+        synchronized(lockedKeys) { lockedKeys.remove(key) }
+    }
+
+    private fun put(key: Any, data: ICacheData?, timeout: Long) {
+        synchronized(cache) { cache[key] = CacheEntry(data, timeout, gameTime) }
+    }
+
+    fun override(key: Any, data: ICacheData?, timeout: Long){
+        synchronized(cache){
+            val oldValue = cache.put(key, CacheEntry(data, timeout, gameTime))
+            oldValue?.destroy()
+        }
+    }
+
+    private fun generate(generator: () -> ICacheData): ICacheData? {
+        var data: ICacheData? = null
+        try {
+            data = generator()
+        } catch (e: FileNotFoundException) {
+            LOGGER.warn("FileNotFoundException: ${e.message}")
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return data
+    }
+
+    private fun getDirectly(key: Any): Any? {
         val cached: CacheEntry?
         synchronized(cache) { cached = cache[key] }
         if (cached != null) {
             cached.lastUsed = gameTime
-            synchronized(lockedKeys) { lockedKeys.remove(key) }
+            unlock(key)
             return cached.data
         }
+        return Unit
+    }
+
+    fun getEntry(key: Any, timeout: Long, asyncGenerator: Boolean, generator: () -> ICacheData): ICacheData? {
+
+        // new, async cache
+        // only the key needs to be locked, not the whole cache
+
+        lock(key, asyncGenerator) ?: return null
+
+        val cached = getDirectly(key)
+        if (cached != Unit) return cached as ICacheData?
 
         return if (asyncGenerator) {
             thread {
-                var data: ICacheData? = null
-                try {
-                    data = generator()
-                } catch (e: FileNotFoundException) {
-                    LOGGER.warn("FileNotFoundException: ${e.message}")
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
-                synchronized(cache) { cache[key] = CacheEntry(data, timeout, gameTime) }
-                synchronized(lockedKeys) { lockedKeys.remove(key) }
+                val data = generate(generator)
+                put(key, data, timeout)
+                unlock(key)
             }
             null
         } else {
-            var data: ICacheData? = null
-            try {
-                data = generator()
-            } catch (e: FileNotFoundException) {
-                LOGGER.warn("FileNotFoundException: ${e.message}")
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-            synchronized(cache) { cache[key] = CacheEntry(data, timeout, gameTime) }
-            synchronized(lockedKeys) { lockedKeys.remove(key) }
+            val data = generate(generator)
+            put(key, data, timeout)
+            unlock(key)
             data
         }
 
@@ -145,7 +176,7 @@ open class CacheSection(val name: String): Comparable<CacheSection> {
         val time = gameTime
         synchronized(cache) {
             val toRemove =
-                cache.filter { (_, entry) -> abs(entry.lastUsed - time) > max(entry.timeout, minTimeout) * 1_000_000 }
+                cache.filter { (_, entry) -> time - entry.lastUsed > max(entry.timeout, minTimeout) * 1_000_000 }
             toRemove.forEach {
                 cache.remove(it.key)
                 it.value.destroy()
@@ -153,7 +184,9 @@ open class CacheSection(val name: String): Comparable<CacheSection> {
         }
     }
 
-    init { thread { caches += this } }
+    init {
+        thread { caches += this }
+    }
 
     companion object {
 
@@ -165,7 +198,7 @@ open class CacheSection(val name: String): Comparable<CacheSection> {
             }
         }
 
-        fun clearAll(){
+        fun clearAll() {
             caches.forEach {
                 it.clear()
             }

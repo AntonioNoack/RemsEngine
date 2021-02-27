@@ -36,7 +36,6 @@ import me.anno.utils.Clock
 import me.anno.utils.Maths.clamp
 import me.anno.utils.OS
 import me.anno.utils.hpc.ProcessingQueue
-import me.anno.utils.types.Floats.f3
 import me.anno.utils.types.Strings.addSuffix
 import me.anno.utils.types.Strings.filterAlphaNumeric
 import org.apache.logging.log4j.LogManager
@@ -56,14 +55,15 @@ abstract class StudioBase(
     versionSuffix: String? = null
 ) {
 
-    constructor(needsAudio: Boolean, title: String, versionNumber: Int, versionSuffix: String? = null):
+    constructor(needsAudio: Boolean, title: String, versionNumber: Int, versionSuffix: String? = null) :
             this(needsAudio, title, filterAlphaNumeric(title), versionNumber, versionSuffix)
 
     /**
      * version of program as string,
      * x.yy.zz
      * */
-    val versionName = addSuffix("${versionNumber/10000}.${(versionNumber/100)%100}.${versionNumber%100}", versionSuffix)
+    val versionName =
+        addSuffix("${versionNumber / 10000}.${(versionNumber / 100) % 100}.${versionNumber % 100}", versionSuffix)
 
     abstract fun createUI()
     abstract fun onGameLoopStart()
@@ -103,7 +103,7 @@ abstract class StudioBase(
 
     var didNothingCounter = 0
 
-    fun setupNames(){
+    fun setupNames() {
         GFX.title = title
         GFXBase0.projectName = configName
         instance = this
@@ -163,16 +163,19 @@ abstract class StudioBase(
 
             val sparseRedraw = DefaultConfig["ui.sparseRedraw", true]
 
+            val needsRedraw = HashSet<Panel>()
+
+
             val lastFullscreenIndex = windowStack.indexOfLast { it.isFullscreen }
             windowStack.forEachIndexed { index, window ->
                 if (index >= lastFullscreenIndex) {
 
                     val panel0 = window.panel
-                    val allPanels = panel0.listOfVisible.toList()
+                    // val allPanels = panel0.listOfAll.toList()
                     // should be faster than a lot of HashSet-tests
                     val mx = lmx.toInt()
                     val my = lmy.toInt()
-                    allPanels.forEach {
+                    panel0.listOfAll {
                         it.apply {
                             isInFocus = false
                             canBeSeen = (parent?.canBeSeen != false) &&
@@ -182,30 +185,33 @@ abstract class StudioBase(
                         }
                     }
 
-                    val visiblePanels = allPanels.filter { it.canBeSeen }
+                    // val visiblePanels = allPanels.filter { it.canBeSeen }
 
                     for (panel in inFocus) panel.isInFocus = true
 
                     // resolve missing parents...
                     // which still happen...
-                    for (panel in visiblePanels) {
+                    panel0.listOfAll { panel ->
                         if (panel.parent == null && panel !== panel0) {
-                            panel.parent = visiblePanels
+                            panel.parent = panel0.listOfAll
+                                .filter { it.canBeSeen }
                                 .filterIsInstance<PanelGroup>()
-                                .first { parent -> panel in parent.children }
+                                .firstOrNull { parent -> panel in parent.children }
                         }
                     }
 
-                    for (panel in visiblePanels) panel.tickUpdate()
-                    for (panel in visiblePanels) panel.tick()
+                    panel0.listOfAll { panel -> if (panel.canBeSeen) panel.tickUpdate() }
+                    panel0.listOfAll { panel -> if (panel.canBeSeen) panel.tick() }
 
-                    val needsRedraw = window.needsRedraw
-                        .map { it.getOverlayParent() ?: it }
-                        .toHashSet()
+                    needsRedraw.clear()
+                    for(panel in window.needsRedraw){
+                        if(panel.canBeSeen){
+                            val panel2 = panel.getOverlayParent() ?: panel
+                            needsRedraw.add(panel2)
+                        }
+                    }
 
                     val needsLayout = window.needsLayout
-                    needsRedraw.retainAll(visiblePanels)
-
                     if (panel0 in needsLayout || window.lastW != w || window.lastH != h) {
                         window.lastW = w
                         window.lastH = h
@@ -218,7 +224,7 @@ abstract class StudioBase(
                             // recalculate layout
                             panel.calculateSize(panel.lx1 - panel.lx0, panel.ly1 - panel.ly0)
                             panel.place(panel.lx0, panel.ly0, panel.lx1 - panel.lx0, panel.ly1 - panel.ly0)
-                            needsLayout.removeAll(panel.listOfAll)
+                            panel.listOfAll { needsLayout.remove(it) }
                             needsRedraw.add(panel.getOverlayParent() ?: panel)
                         }
                     }
@@ -281,7 +287,9 @@ abstract class StudioBase(
                                                 }
                                             }
                                             wasRedrawn += panel
-                                            needsRedraw.removeAll(panel.listOfAll)
+                                            for (child in panel.listOfAll) {
+                                                needsRedraw.remove(child)
+                                            }
                                         }
 
                                     }

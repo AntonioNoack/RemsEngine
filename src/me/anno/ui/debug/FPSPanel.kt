@@ -9,6 +9,7 @@ import kotlin.math.max
 object FPSPanel {
 
     var font = Font("Consolas", 12f, false, false)
+    val charStrings = Array('z'.toInt() + 1) { it.toChar().toString() }
 
     fun showFPS() {
 
@@ -25,7 +26,7 @@ object FPSPanel {
         for (char in text) {
             GFXx2D.drawText(
                 x, y0 + 1,
-                font, "$char",
+                font, charStrings[char.toInt()],
                 FrameTimes.textColor,
                 FrameTimes.backgroundColor,
                 -1

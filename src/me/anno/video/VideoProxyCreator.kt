@@ -52,7 +52,7 @@ object VideoProxyCreator : CacheSection("VideoProxies") {
 
     fun getProxyFileDontUpdate(src: File): File? {
         init()
-        val data = getEntryDontUpdate(LastModifiedCache[src]) as? CacheData<*>
+        val data = getEntryWithoutGenerator(LastModifiedCache[src]) as? CacheData<*>
         return data?.value as? File
     }
 

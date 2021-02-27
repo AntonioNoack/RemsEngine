@@ -12,7 +12,6 @@ import me.anno.gpu.texture.GPUFiltering
 import me.anno.objects.Transform
 import me.anno.studio.rems.Scene
 import me.anno.utils.Color.rgba
-import me.anno.utils.Sleep.sleepShortly
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL11.*
@@ -55,10 +54,7 @@ class FrameTask(
                 callback()
             } else {
                 // waiting
-                thread {
-                    sleepShortly()
-                    start(callback)
-                }
+                thread { start(callback) }
             }
         }
 

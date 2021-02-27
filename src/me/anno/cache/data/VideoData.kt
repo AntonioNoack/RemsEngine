@@ -1,17 +1,32 @@
 package me.anno.cache.data
 
+import me.anno.cache.instances.VideoCache
+import me.anno.cache.keys.VideoFrameKey
 import me.anno.studio.rems.RemsStudio.gfxSettings
 import me.anno.video.FFMPEGStream
 import java.io.File
 
-class VideoData(val file: File, val w: Int, val h: Int, val index: Int, val bufferLength: Int, val fps: Double) :
+class VideoData(
+    val file: File, val w: Int, val h: Int,
+    val scale: Int, val bufferIndex: Int,
+    bufferLength: Int, val fps: Double,
+    val ownsFrames: Boolean
+) :
     ICacheData {
 
     // what about video webp? I think it's pretty rare...
     val stream = FFMPEGStream.getImageSequence(
-        file, w, h, index * bufferLength,
+        file, w, h, bufferIndex * bufferLength,
         if (file.name.endsWith(".webp", true)) 1 else bufferLength, fps
-    )
+    ) { frame, index ->
+        if (!ownsFrames) {
+            // on frame, if !ownsFrames, register in VideoCache
+            val localIndex = index % bufferLength
+            val key = VideoFrameKey(file, scale, bufferIndex, bufferLength, localIndex, fps)
+            VideoCache.override(key, frame, 5000)
+        }
+    }
+
     val frames = stream.frames
 
     /*init {// LayerView was not keeping its resources loaded
@@ -20,7 +35,9 @@ class VideoData(val file: File, val w: Int, val h: Int, val index: Int, val buff
 
     override fun destroy() {
         //if("128 per second" in file.name) LOGGER.debug("destroy v frames $file $w $h $index $bufferLength $fps")
-        stream.destroy()
+        if (ownsFrames) {
+            stream.destroy()
+        }
     }
 
     companion object {

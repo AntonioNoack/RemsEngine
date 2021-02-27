@@ -25,7 +25,8 @@ import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.Color.rgba
 import me.anno.utils.LOGGER
-import me.anno.utils.Sleep.sleepABit
+import me.anno.utils.Sleep.waitUntil
+import me.anno.utils.Sleep.waitUntilDefined
 import me.anno.utils.input.readNBytes2
 import me.anno.utils.types.Strings.getImportType
 import me.anno.video.FFMPEGMetadata.Companion.getMeta
@@ -230,10 +231,8 @@ object Thumbs {
         val time = max(min(wantedTime, meta.videoDuration - 1 / fps), 0.0)
         val index = (time * fps).roundToInt()
 
-        var src: VFrame? = null
-        while (src == null) {
-            src = getVideoFrame(srcFile, scale, index, 1, fps, 1000L, true)
-            sleepABit()
+        val src = waitUntilDefined {
+            getVideoFrame(srcFile, scale, index, 1, fps, 1000L, true)
         }
 
         src.waitToLoad()

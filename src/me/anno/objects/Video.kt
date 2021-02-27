@@ -5,7 +5,7 @@ import me.anno.cache.data.VideoData.Companion.framesPerContainer
 import me.anno.cache.instances.ImageCache
 import me.anno.cache.instances.MeshCache
 import me.anno.cache.instances.VideoCache.getVideoFrame
-import me.anno.cache.instances.VideoCache.getVideoFrameDontUpdate
+import me.anno.cache.instances.VideoCache.getVideoFrameWithoutGenerator
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.isFinalRendering
@@ -356,7 +356,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
 
                 if (frame == null) {
                     onMissingImageOrFrame()
-                    frame = getVideoFrameDontUpdate(meta, frameIndex, framesPerContainer, videoFPS)
+                    frame = getVideoFrameWithoutGenerator(meta, frameIndex, framesPerContainer, videoFPS)
                     // if(frame == null) LOGGER.warn("Missing frame $file/$frameIndex/$framesPerContainer/$videoFPS")
                 }
 
@@ -472,8 +472,8 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
 
                             val frameCount = max(1, (duration * videoFPS).roundToInt())
 
-                            var minT2 = 0
-                            var maxT2 = 0
+                            var minT2 = Int.MAX_VALUE
+                            var maxT2 = Int.MIN_VALUE
                             val steps = 10
                             for (i in 0 until steps) {
                                 val f0 = mix(minT, maxT, i / (steps - 1.0))

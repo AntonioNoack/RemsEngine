@@ -14,6 +14,7 @@ import me.anno.utils.types.Strings.getImportType
 import me.anno.video.*
 import org.apache.logging.log4j.LogManager
 import java.io.File
+import kotlin.concurrent.thread
 import kotlin.math.max
 import kotlin.math.roundToInt
 
@@ -134,7 +135,9 @@ object Rendering {
                 isRendering = false
                 callback()
             }
-            createOrAppendAudio(targetOutputFile, null)
+            thread {
+                createOrAppendAudio(targetOutputFile, null)
+            }
         }
 
     }

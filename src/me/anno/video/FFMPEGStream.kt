@@ -1,6 +1,8 @@
 package me.anno.video
 
+import me.anno.gpu.GFX
 import me.anno.utils.hpc.HeavyProcessing.threads
+import me.anno.utils.types.Floats.f3
 import me.anno.video.FFMPEGMetadata.Companion.getMeta
 import org.apache.logging.log4j.LogManager
 import java.io.File
@@ -21,7 +23,7 @@ abstract class FFMPEGStream(val file: File?, val isProcessCountLimited: Boolean)
         // could be limited by memory as well...
         // to help to keep the memory and cpu-usage below 100%
         // 5GB = 50 processes, at 6 cores / 12 threads = 4 ratio
-        val processLimiter = Semaphore(max(2, threads) * 4, true)
+        val processLimiter = Semaphore(max(2, threads), true)
         private val LOGGER = LogManager.getLogger(FFMPEGStream::class)
         val frameCountByFile = HashMap<File, Int>()
         fun getInfo(input: File) = (FFMPEGMeta(null).run(
@@ -36,14 +38,15 @@ abstract class FFMPEGStream(val file: File?, val isProcessCountLimited: Boolean)
             )
         ) as FFMPEGMeta).stringData
 
-        fun getImageSequence(input: File, w: Int, h: Int, startFrame: Int, frameCount: Int, fps: Double = 10.0) =
-            getImageSequence(input, w, h, startFrame / fps, frameCount, fps)
+        fun getImageSequence(input: File, w: Int, h: Int, startFrame: Int, frameCount: Int, fps: Double, frameCallback: (VFrame, Int) -> Unit) =
+            getImageSequence(input, w, h, startFrame / fps, frameCount, fps, frameCallback)
 
         // ffmpeg needs to fetch hardware decoded frames (-hwaccel auto) from gpu memory;
         // if we use hardware decoding, we need to use it on the gpu...
-        fun getImageSequence(input: File, w: Int, h: Int, startTime: Double, frameCount: Int, fps: Double = 10.0) =
+        fun getImageSequence(input: File, w: Int, h: Int, startTime: Double, frameCount: Int, fps: Double, frameCallback: (VFrame, Int) -> Unit) =
             FFMPEGVideo(
-                input, w, h, (startTime * fps).roundToInt(), frameCount
+                input, w, h, (startTime * fps).roundToInt(), frameCount,
+                frameCallback
             ).run(
                 if (getMeta(input, false)?.videoWidth == w) {
                     listOf(
@@ -92,7 +95,7 @@ abstract class FFMPEGStream(val file: File?, val isProcessCountLimited: Boolean)
 
     fun run(arguments: List<String>): FFMPEGStream {
         if (isProcessCountLimited) processLimiter.acquire()
-        // LOGGER.info("${(GFX.gameTime/1e9).toInt()} ${arguments.joinToString(" ")}")
+        LOGGER.info("${(GFX.gameTime*1e-9f).f3()} ${arguments.joinToString(" ")}")
         val args = ArrayList<String>(arguments.size + 2)
         args += FFMPEG.ffmpegPathString
         if (arguments.isNotEmpty()) args += "-hide_banner"

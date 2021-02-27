@@ -10,7 +10,7 @@ import me.anno.objects.Camera
 import me.anno.objects.modes.LoopingState
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.mix
-import me.anno.utils.Sleep.sleepShortly
+import me.anno.utils.Sleep.waitUntilDefined
 import me.anno.utils.types.Vectors.minus
 import me.anno.video.FFMPEGMetadata
 import me.anno.video.FFMPEGMetadata.Companion.getMeta
@@ -50,7 +50,15 @@ abstract class AudioStream(
 ) {
 
     constructor(audio: Audio, speed: Double, globalTime: Double, playbackSampleRate: Int, listener: Camera) :
-            this(audio.file, audio.isLooping.value, 0.0, getMeta(audio.file, false)!!, audio, listener, playbackSampleRate) {
+            this(
+                audio.file,
+                audio.isLooping.value,
+                0.0,
+                getMeta(audio.file, false)!!,
+                audio,
+                listener,
+                playbackSampleRate
+            ) {
         configure(audio, speed, globalTime)
     }
 
@@ -121,15 +129,9 @@ abstract class AudioStream(
         val timeout = (ffmpegSliceSampleDuration * 2 * 1000).toLong()
         val soundBuffer =
             AudioCache.getEntry(key, timeout, false) {
-                val sequence = FFMPEGStream.getAudioSequence(file, sliceTime, ffmpegSliceSampleDuration, ffmpegSampleRate)
-                var buffer: SoundBuffer?
-                while (true) {
-                    buffer = sequence.soundBuffer
-                    if (buffer != null) break
-                    // somebody else needs to work on the queue
-                    sleepShortly()
-                }
-                buffer!!
+                val sequence =
+                    FFMPEGStream.getAudioSequence(file, sliceTime, ffmpegSliceSampleDuration, ffmpegSampleRate)
+                waitUntilDefined { sequence.soundBuffer }
             } as SoundBuffer
         val data = soundBuffer.data!!
         return data[arrayIndex0] to data[arrayIndex0 + 1]

@@ -11,6 +11,8 @@ import me.anno.language.translation.Dict
 import me.anno.studio.rems.RemsStudio.project
 import me.anno.utils.Color.hex8
 import me.anno.utils.OS
+import me.anno.utils.Sleep.sleepABit
+import me.anno.utils.Sleep.sleepABit10
 import me.anno.utils.Sleep.sleepShortly
 import me.anno.utils.io.Streams.listen
 import org.apache.logging.log4j.LogManager
@@ -105,7 +107,7 @@ object Spellchecking : CacheSection("Spellchecking") {
                 if (dst.exists()) {
                     callback(dst)
                     break@loop
-                } else sleepShortly()
+                } else sleepABit10()
             }
         }
     }
@@ -133,12 +135,12 @@ object Spellchecking : CacheSection("Spellchecking") {
      * */
     fun start(language: Language): ConcurrentHashMap<Any, Request> {
         val queue = ConcurrentHashMap<Any, Request>()
-        thread {
+        thread(name = "Spellchecking ${language.code}"){
             getExecutable(language) { executable ->
                 LOGGER.info("Starting process for $language")
                 val process = ProcessBuilder("java", "-jar", executable.absolutePath, language.code).start()
                 val input = process.inputStream.bufferedReader()
-                process.errorStream.listen { msg -> LOGGER.warn(msg) }
+                process.errorStream.listen("Spellchecking-Listener ${language.code}"){ msg -> LOGGER.warn(msg) }
                 val output = process.outputStream.bufferedWriter()
                 LOGGER.info(input.readLine())
                 while (!shallStop) {

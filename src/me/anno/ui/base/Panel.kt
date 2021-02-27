@@ -49,15 +49,15 @@ open class Panel(val style: Style) {
     open fun invalidateLayout() {
         parent?.invalidateLayout() ?: {
             val window = window
-                ?: throw RuntimeException("${javaClass.simpleName} is missing parent, state: $oldLayoutState/$oldVisualState")
-            window.needsLayout += this
+            // ?: throw RuntimeException("${javaClass.simpleName} is missing parent, state: $oldLayoutState/$oldVisualState")
+            window?.needsLayout?.add(this)
         }()
     }
 
     open fun invalidateDrawing() {
         val window = window
-            ?: throw RuntimeException("${javaClass.simpleName} is missing parent, state: $oldLayoutState/$oldVisualState")
-        window.needsRedraw += this
+        // ?: throw RuntimeException("${javaClass.simpleName} is missing parent, state: $oldLayoutState/$oldVisualState")
+        window?.needsRedraw?.add(this)
     }
 
     open fun tickUpdate() {}
@@ -370,6 +370,11 @@ open class Panel(val style: Style) {
     open fun isKeyInput() = false
     open fun acceptsChar(char: Int) = true
 
+    fun listOfHierarchy(callback: (Panel) -> Unit){
+        parent?.listOfHierarchy(callback)
+        callback(this)
+    }
+
     val listOfHierarchy: Sequence<Panel>
         get() = sequence {
             parent?.apply {
@@ -378,17 +383,37 @@ open class Panel(val style: Style) {
             yield(this@Panel)
         }
 
+    fun listOfVisible(callback: (Panel) -> Unit){
+        if(canBeSeen){
+            callback(this)
+            if(this is PanelGroup){
+                for(child in children) {
+                    child.listOfAll(callback)
+                }
+            }
+        }
+    }
+
     val listOfVisible: Sequence<Panel>
         get() = sequence {
             if (canBeSeen) {
                 yield(this@Panel)
                 if (this@Panel is PanelGroup) {
                     this@Panel.children.forEach { child ->
-                        yieldAll(child.listOfAll)
+                        yieldAll(child.listOfVisible)
                     }
                 }
             }
         }
+
+    fun listOfAll(callback: (Panel) -> Unit){
+        callback(this)
+        if(this is PanelGroup){
+            for(child in children) {
+                child.listOfAll(callback)
+            }
+        }
+    }
 
     val listOfAll: Sequence<Panel>
         get() = sequence {

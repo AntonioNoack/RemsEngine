@@ -12,7 +12,6 @@ import me.anno.gpu.texture.GPUFiltering
 import me.anno.objects.Camera
 import me.anno.objects.Transform
 import me.anno.studio.rems.Scene
-import me.anno.utils.Sleep.sleepShortly
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL11.*
 import java.util.concurrent.atomic.AtomicInteger
@@ -76,19 +75,13 @@ class VideoBackgroundTask(
                         addNextTask()
                     } else {
                         // waiting
-                        thread {
-                            sleepShortly()
-                            addNextTask()
-                        }
+                        thread { addNextTask() }
                     }
 
                 }
             } else {
                 // waiting for saving to ffmpeg
-                thread {
-                    sleepShortly()
-                    addNextTask()
-                }
+                thread { addNextTask() }
             }
 
         } else {
@@ -169,8 +162,8 @@ class VideoBackgroundTask(
 
     }
 
-    private fun destroy(){
-        GFX.addGPUTask(video.w, video.h){
+    private fun destroy() {
+        GFX.addGPUTask(video.w, video.h) {
             partialFrame.destroy()
             averageFrame.destroy()
         }

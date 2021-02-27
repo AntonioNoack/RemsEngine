@@ -1,19 +1,15 @@
 package me.anno.video
 
 import me.anno.audio.AudioStream
-import me.anno.audio.effects.SoundPipeline
 import me.anno.objects.Audio
 import me.anno.objects.Camera
 import me.anno.objects.Transform
 import me.anno.studio.rems.RemsStudio
 import me.anno.utils.Maths.clamp
-import me.anno.utils.Sleep.sleepShortly
 import org.apache.logging.log4j.LogManager
 import java.io.DataOutputStream
 import java.io.File
 import java.io.IOException
-import java.nio.ShortBuffer
-import java.util.concurrent.atomic.AtomicInteger
 import kotlin.concurrent.thread
 import kotlin.math.ceil
 
@@ -40,6 +36,8 @@ open class AudioCreator(
         // todo allow different audio codecs (if required...)
         val audioCodec = when (output.extension.toLowerCase()) {
             "mp3" -> "libmp3lame"
+            "ogg" -> "libtheora"
+            "oga" -> "libvorbis"
             else -> "aac"
         }
 
@@ -91,7 +89,7 @@ open class AudioCreator(
         videoCreator?.output?.apply {
             // temporary file survives sometimes
             // -> kill it at the end at the very least
-            if(!delete()) deleteOnExit()
+            if (!delete()) deleteOnExit()
         }
         onFinished()
 
@@ -120,7 +118,7 @@ open class AudioCreator(
                 val buffer = buffers.first()
                 // write the data to ffmpeg
                 val size = buffer.capacity()
-                if(buffers.size == 1){
+                if (buffers.size == 1) {
                     for (i in 0 until size) {
                         audioOutput.writeShort(buffer[i].toInt())
                     }

@@ -15,9 +15,9 @@ class FFMPEGVideo(
     file: File,
     w: Int, h: Int,
     private val frame0: Int,
-    bufferLength: Int
-) :
-    FFMPEGStream(file, isProcessCountLimited = !file.extension.isFFMPEGOnlyExtension()) {
+    bufferLength: Int,
+    val frameCallback: (VFrame, Int) -> Unit
+) : FFMPEGStream(file, isProcessCountLimited = !file.extension.isFFMPEGOnlyExtension()) {
 
     /*init {
         LOGGER.info("${file.name.substring(0, min(10, file.name.length))} $w x $h $frame0/$bufferLength")
@@ -62,6 +62,7 @@ class FFMPEGVideo(
                 }
                 frame.load(input)
                 synchronized(frames) {
+                    frameCallback(frame, frames.size)
                     frames.add(frame)
                 }
             } catch (e: LastFrame) {
