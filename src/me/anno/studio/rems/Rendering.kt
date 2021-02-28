@@ -65,7 +65,7 @@ object Rendering {
         val fps = RemsStudio.targetFPS
         val totalFrameCount = max(1, (fps * duration).toInt() + 1)
         val sampleRate = 48000
-        val scene = root.clone()!!
+        val scene = root.clone()
         val audioSources = scene.listOfAll
             .filterIsInstance<Audio>()
             .filter { it.forcedMeta?.hasAudio == true }.toList()
@@ -101,7 +101,7 @@ object Rendering {
         FrameTask(
             width, height,
             RemsStudio.targetFPS,
-            root.clone()!!,
+            root.clone(),
             motionBlurSteps,
             shutterPercentage,
             time,
@@ -126,7 +126,7 @@ object Rendering {
 
         val duration = RemsStudio.targetDuration
         val sampleRate = 48000
-        val scene = root.clone()!!
+        val scene = root.clone()
         val audioSources = scene.listOfAll
             .filterIsInstance<Audio>()
             .filter { it.forcedMeta?.hasAudio == true }.toList()

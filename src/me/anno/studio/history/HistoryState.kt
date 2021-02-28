@@ -82,7 +82,7 @@ class HistoryState() : Saveable() {
 
         if (previous?.root?.toString() != RemsStudio.root.toString()) {
             // create a clone, if it was changed
-            state.root = RemsStudio.root.clone()!!
+            state.root = RemsStudio.root.clone()
         } else {
             // else, just reuse it; this is more memory and storage friendly
             state.root = previous.root

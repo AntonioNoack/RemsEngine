@@ -42,12 +42,13 @@ import kotlin.concurrent.thread
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
-class LayerView(style: Style) : TimelinePanel(style) {
+class LayerView(val timelineSlot: Int, style: Style) : TimelinePanel(style) {
+
+    // todo display audio, name?
+    // done: video
 
     // todo select multiple elements to move them around together
     // todo they shouldn't be parent and children, because that would have awkward results...
-
-    var timelineSlot = 0
 
     val height = 50
 
@@ -446,7 +447,7 @@ class LayerView(style: Style) : TimelinePanel(style) {
                             val lTransparent = Vector4f(lColor.x, lColor.y, lColor.z, 0f)
                             val rColor = transform.color[rTime]
                             val rTransparent = Vector4f(rColor.x, rColor.y, rColor.z, 0f)
-                            val second = transform.clone()!!
+                            val second = transform.clone()
                             second.name = incrementName(transform.name)
                             if (transform.parent != null) {
                                 transform.addAfter(second)
@@ -529,6 +530,5 @@ class LayerView(style: Style) : TimelinePanel(style) {
         minW = w
         minH = height
     }
-
 
 }

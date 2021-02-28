@@ -9,43 +9,27 @@ import me.anno.ui.style.Style
 
 class CuttingView(style: Style) : ScrollPanelY(Padding(0), AxisAlignment.MIN, style) {
 
-    private val addLayerView = TextButton("+", true, style)
-        .setSimpleClickListener { addLayerTop() }
+    private val addLayerButton = TextButton("+", true, style)
+        .setSimpleClickListener { addLayer() }
 
     private val content = this
     private val layers = content.child as PanelListY
 
     init {
         content.setWeight(1f)
-        layers += addLayerView
+        layers += addLayerButton
         for (i in 0 until LayerView.defaultLayerCount) {
-            addLayerTop()
+            addLayer()
         }
     }
 
-    fun createLayer(): LayerView {
-        // todo display audio, name?
-        // done: video
-        return LayerView(style)
-    }
-
-    fun addLayerTop(): LayerView {
-        val v = createLayer()
+    private fun addLayer() {
+        layers.children.remove(addLayerButton)
+        val v = LayerView(layers.children.size, style)
         v.parent = layers
         v.cuttingView = this
-        layers.children.add(0, v)
-        layers.children.forEachIndexed { index, it ->
-            (it as? LayerView)?.timelineSlot = index
-        }
-        return v
-    }
-
-    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        super.onDraw(x0, y0, x1, y1)
-        for ((index, panel) in layers.children.withIndex()) {
-            panel as? LayerView ?: continue
-            panel.timelineSlot = index
-        }
+        layers.children.add(v)
+        layers.children.add(addLayerButton)
     }
 
 }
