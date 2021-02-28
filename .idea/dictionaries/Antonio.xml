@@ -96,8 +96,12 @@
       <w>lemonchiffon</w>
       <w>lerped</w>
       <w>lerps</w>
+      <w>libfdk</w>
       <w>libmp</w>
+      <w>libopus</w>
       <w>libtheora</w>
+      <w>libtwolame</w>
+      <w>libvorbis</w>
       <w>libx</w>
       <w>lightblue</w>
       <w>lightcoral</w>
@@ -190,7 +194,9 @@
       <w>vertice</w>
       <w>veryfast</w>
       <w>veryslow</w>
+      <w>vorbis</w>
       <w>whitesmoke</w>
+      <w>wmav</w>
       <w>yellowgreen</w>
       <w>zerolatency</w>
     </words>

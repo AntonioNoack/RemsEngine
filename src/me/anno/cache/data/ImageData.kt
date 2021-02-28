@@ -14,6 +14,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.image.HDRImage
 import me.anno.objects.Video.Companion.imageTimeout
 import me.anno.objects.modes.RotateJPEG
+import me.anno.utils.LOGGER
 import me.anno.utils.Sleep.waitUntilDefined
 import me.anno.utils.types.Strings.getImportType
 import me.anno.video.VFrame
@@ -21,7 +22,6 @@ import org.apache.commons.imaging.Imaging
 import org.joml.Matrix4f
 import org.joml.Vector4f
 import java.io.File
-import java.io.IOException
 import javax.imageio.ImageIO
 
 
@@ -120,29 +120,24 @@ class ImageData(file: File) : ICacheData {
                 if (fileExtension.getImportType() == "Video") {
                     useFFMPEG(file)
                 } else {
-                    texture.create("ImageData", {
+                    val image = try {
+                        // try ImageIO first, then Imaging, then give up (we could try FFMPEG, but idk, whether it supports sth useful)
+                        ImageIO.read(file)
+                    } catch (e: Exception) {
                         try {
-                            // try ImageIO first, then Imaging, then give up (we could try FFMPEG, but idk, whether it supports sth useful)
-                            ImageIO.read(file)
+                            Imaging.getBufferedImage(file)
                         } catch (e: Exception) {
-                            try {
-                                Imaging.getBufferedImage(file)
-                            } catch (e: Exception) {
-                                throw IOException("Format of $file is not supported: ${e.message}")
-                            }
+                            LOGGER.warn("Cannot read image from file $file: ${e.message}")
+                            null
                         }
-                    }, false)
-                    texture.rotation = getRotation(file)
+                    }
+                    if (image != null) {
+                        texture.create("ImageData", { image }, false)
+                        texture.rotation = getRotation(file)
+                    }
                 }
             }
         }
-        /*if(file.name.endsWith(".hdr", true)){
-
-        } else if(file.name.endsWith(".ico") || file.name.endsWith("")){
-            texture.create {
-                ImageIO.read(file) ?: throw IOException("Format of $file is not supported.")
-            }
-        }*/
     }
 
     override fun destroy() {

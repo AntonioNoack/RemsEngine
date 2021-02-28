@@ -29,39 +29,48 @@ open class AudioCreator(
         camera = cameras.firstOrNull() ?: RemsStudio.nullCamera ?: Camera()
     }
 
+    fun codecByExtension(extension: String) = when (extension.toLowerCase()) {
+        "mp3", "mpg",
+        "mp4", "m4a",
+        "flv", "f4v" -> "libmp3lame"
+        "ogg", "oga",
+        "mkv", "mka",
+        "webm" -> "libvorbis"
+        else -> "aac"
+    }
+
     fun createOrAppendAudio(output: File, videoCreator: VideoCreator?) {
 
         output.delete()
 
         // todo allow different audio codecs (if required...)
-        val audioCodec = when (output.extension.toLowerCase()) {
-            "mp3" -> "libmp3lame"
-            "ogg" -> "libtheora"
-            "oga" -> "libvorbis"
-            else -> "aac"
-        }
+        // quality:
+        // libopus > libvorbis >= libfdk_aac > libmp3lame >= eac3/ac3 > aac > libtwolame > vorbis (dont) > mp2 > wmav2/wmav1 (dont)
+        val audioCodec = codecByExtension(output.extension)
 
         // http://crazedmuleproductions.blogspot.com/2005/12/using-ffmpeg-to-combine-audio-and.html
         // ffmpeg -i video.mp4 -i audio.wav -c:v copy -c:a aac output.mp4
         // add -shortest to use shortest...
+        val rawFormat = "s16be"// signed, 16 bit, big endian
+        val channels = "2" // stereo
         val audioEncodingArguments = if (videoCreator != null) {
             listOf(
                 "-i", videoCreator.output.absolutePath,
-                "-f", "s16be",
-                "-ar", "$sampleRate",
-                "-ac", "2", // stereo
-                "-i", "pipe:0",
-                "-c:v", "copy",
+                "-f", rawFormat,
+                "-ar", sampleRate.toString(),
+                "-ac", channels,
+                "-i", "pipe:0", // output stream
+                "-c:v", "copy", // video is just copied 1:1
                 "-c:a", audioCodec,
                 "-shortest", // audio may be 0.999 buffers longer
                 output.absolutePath
             )
         } else {
             listOf(
-                "-f", "s16be",
-                "-ar", "$sampleRate",
-                "-ac", "2", // stereo
-                "-i", "pipe:0",
+                "-f", rawFormat,
+                "-ar", sampleRate.toString(),
+                "-ac", channels,
+                "-i", "pipe:0", // output stream
                 "-c:a", audioCodec,
                 output.absolutePath
             )
@@ -118,7 +127,7 @@ open class AudioCreator(
                 val buffer = buffers.first()
                 // write the data to ffmpeg
                 val size = buffer.capacity()
-                if (buffers.size == 1) {
+                if (buffers.size == 1) {// no sum required
                     for (i in 0 until size) {
                         audioOutput.writeShort(buffer[i].toInt())
                     }

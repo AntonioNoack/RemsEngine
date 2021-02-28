@@ -405,9 +405,9 @@ class LayerView(style: Style) : TimelinePanel(style) {
                 else sumDY -= 0.5f
                 if (sumDY.isFinite()) {
                     val newSlot = thisSlot + sumDY.roundToInt()
-                    if (newSlot != timelineSlot) {
+                    if (newSlot != transform.timelineSlot.value) {
                         RemsStudio.largeChange("Changed Timeline Slot") {
-                            timelineSlot = newSlot
+                            transform.timelineSlot.value = newSlot
                         }
                     }
                 }

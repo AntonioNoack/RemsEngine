@@ -30,7 +30,7 @@ class VideoCreator(
         if (w % 2 != 0 || h % 2 != 0) throw RuntimeException("width and height must be divisible by 2")
     }
 
-    val t0 = GFX.gameTime
+    val startTime = GFX.gameTime
 
     private val videoOut: OutputStream
     private var process: Process
@@ -48,22 +48,28 @@ class VideoCreator(
          * because I don't know how to send audio and video data to ffmpeg
          * at the same time with only one output stream
          * */
+        val size = "${w}x${h}"
+        val rawFormat = "rgb24"
+        val encoding = "libx264"
+        val constantRateFactor = project?.targetVideoQuality?.toString() ?: "23"
+        val dstFormat = "yuv420p"
+        val fps = fps.toString()
         val videoEncodingArguments = arrayListOf(
             "-f", "rawvideo",
-            "-s", "${w}x${h}",
-            "-r", "$fps",
-            "-pix_fmt", "rgb24",
-            "-i", "pipe:0",
-            "-c:v", "libx264", // encoding
+            "-s", size,
+            "-r", fps,
+            "-pix_fmt", rawFormat,
+            "-i", "pipe:0", // output buffer
+            "-c:v", encoding, // encoding
             "-an", // no audio
-            "-r", "$fps",
-            "-crf", "${project?.targetVideoQuality ?: 23}",
-            "-pix_fmt", "yuv420p",
+            "-r", fps,
+            "-crf", constantRateFactor,
+            "-pix_fmt", dstFormat,
             "-preset", balance.internalName
             // "-qp", "0", // constant quality
         )
 
-        if(type.internalName != null) {
+        if (type.internalName != null) {
             videoEncodingArguments += "-tune"
             videoEncodingArguments += type.internalName
         }
@@ -96,7 +102,7 @@ class VideoCreator(
                     var fps = 0f
                     var quality = 0f
                     var size = 0
-                    val elapsedTime = (GFX.gameTime - t0) * 1e-9
+                    val elapsedTime = (GFX.gameTime - startTime) * 1e-9
                     var bitrate = 0
                     var speed = 0f
                     var remaining = line
@@ -134,12 +140,11 @@ class VideoCreator(
                     val relativeProgress = frameIndex.toDouble() / totalFrameCount
                     // estimate remaining time
                     // round the value to not confuse artists (and to "give" 0.5s "extra" ;))
-                    val remainingTime = if (relativeProgress < 1e-11) "Unknown" else round(
-                        elapsedTime / relativeProgress *
-                                (1.0 - relativeProgress)
-                    ).formatTime()
+                    val remainingTime =
+                        if (relativeProgress < 1e-11) "Unknown"
+                        else round(elapsedTime / relativeProgress * (1.0 - relativeProgress)).formatTime()
                     LOGGER.info(
-                        "Rendering-Progress: ${clamp((relativeProgress * 100).toFloat(), 0f, 100f).f1()}%, " +
+                        "Rendering-Progress: ${formatPercent(relativeProgress)}%, " +
                                 "fps: $fps, " +
                                 "elapsed: ${round(elapsedTime).formatTime()}, " +
                                 "remaining: $remainingTime"
@@ -158,6 +163,8 @@ class VideoCreator(
         LOGGER.info("Total frame count: $totalFrameCount")
 
     }
+
+    private fun formatPercent(progress: Double) = clamp((progress * 100).toFloat(), 0f, 100f).f1()
 
     private val pixelByteCount = w * h * 3
     private val byteArrayBuffer = ByteArray(pixelByteCount)
@@ -189,7 +196,7 @@ class VideoCreator(
                     callback()
                 }
             } catch (e: IOException) {
-                if(!wasClosed){
+                if (!wasClosed) {
                     LOGGER.error("Closing because of ${e.message}")
                     isRendering = false
                     e.printStackTrace()
@@ -208,7 +215,7 @@ class VideoCreator(
             videoOut.close()
         }
         process.waitFor()
-        if(output.exists()) LOGGER.info("Saved video without audio to $output")
+        if (output.exists()) LOGGER.info("Saved video without audio to $output")
     }
 
     companion object {
