@@ -12,6 +12,7 @@ import me.anno.objects.Camera
 import me.anno.objects.Transform
 import me.anno.studio.GFXSettings
 import me.anno.studio.StudioBase
+import me.anno.studio.cli.RemsCLI
 import me.anno.studio.project.Project
 import me.anno.studio.rems.CheckVersion.checkVersion
 import me.anno.ui.editor.PropertyInspector

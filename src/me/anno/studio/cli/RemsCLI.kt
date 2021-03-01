@@ -1,4 +1,4 @@
-package me.anno.studio.rems
+package me.anno.studio.cli
 
 import me.anno.cache.Cache
 import me.anno.gpu.GFX
@@ -14,7 +14,13 @@ import me.anno.io.config.ConfigBasics
 import me.anno.io.text.TextReader
 import me.anno.objects.Transform
 import me.anno.studio.StudioBase
+import me.anno.studio.cli.CommandLines.parseDouble
+import me.anno.studio.cli.CommandLines.parseFloat
+import me.anno.studio.cli.CommandLines.parseInt
 import me.anno.studio.project.Project
+import me.anno.studio.rems.RemsConfig
+import me.anno.studio.rems.RemsStudio
+import me.anno.studio.rems.Rendering
 import me.anno.utils.Sleep.sleepABit
 import me.anno.utils.types.Strings.getImportType
 import org.apache.commons.cli.*
@@ -30,9 +36,10 @@ object RemsCLI {
         val options = Options()
         options.addOption("o", "output", true, "output file")
         options.addOption("i", "input", true, "scene file")
-        options.addOption("fps", true, "frames per second") // todo implement
-        options.addOption("shutter", true, "shutter percentage") // todo implement
-        options.addOption("motionBlurSteps", true, "motion blur steps") // todo implement
+        options.addOption("fps", true, "frames per second")
+        options.addOption("shutter", true, "shutter percentage")
+        options.addOption("motionBlurSteps", true, "motion blur steps")
+        options.addOption("constantRateFactor", "crf", true, "video quality, 0 = lossless, 23 = default, 51 = worst")
         options.addOption("w", "width", true, "width of the rendered result")
         options.addOption("h", "height", true, "height of the rendered result")
         options.addOption("?", "help", false, "shows all options")
@@ -45,7 +52,6 @@ object RemsCLI {
         options.addOption("end", true, "end time in seconds")
         options.addOption("duration", true, "end time after start, in seconds")
         options.addOption("project", true, "project settings, containing resolution, frame size, duration, ...")
-        // todo crf
         // todo balance
         // todo audio samples
         // todo all other relevant factors
@@ -89,6 +95,11 @@ object RemsCLI {
         } else Project("Unknown", File(ConfigBasics.cacheFolder, "project0").apply { mkdirs() })
         RemsStudio.project = project
 
+        project.targetFPS = line.parseDouble("fps", project.targetFPS)
+        project.shutterPercentage = line.parseFloat("shutter", project.shutterPercentage)
+        project.motionBlurSteps = line.parseInt("motionBlurSteps", project.motionBlurSteps)
+        project.targetVideoQuality = line.parseInt("constantRateFactor", project.targetVideoQuality)
+
         val outputFile = if (line.hasOption("output")) {
             File(line.getOptionValue("output"))
         } else project.targetOutputFile
@@ -107,7 +118,8 @@ object RemsCLI {
         }
 
         val startTime = parseTime(line, "start", 0.0)
-        val duration0 = parseTime(line, "duration", project.targetDuration)
+        val duration0 =
+            parseTime(line, "duration", project.targetDuration)
         val endTime = parseTime(line, "end", startTime + duration0)
 
         scene.timeOffset.value += startTime
@@ -142,9 +154,20 @@ object RemsCLI {
 
         var isDone = false
         when (renderType) {
-            Rendering.RenderType.VIDEO -> Rendering.renderVideo(width, height, false) { isDone = true }
-            Rendering.RenderType.AUDIO -> Rendering.renderAudio(false) { isDone = true }
-            Rendering.RenderType.FRAME -> Rendering.renderFrame(width, height, startTime, false) { isDone = true }
+            Rendering.RenderType.VIDEO -> Rendering.renderVideo(
+                width,
+                height,
+                false
+            ) { isDone = true }
+            Rendering.RenderType.AUDIO -> Rendering.renderAudio(
+                false
+            ) { isDone = true }
+            Rendering.RenderType.FRAME -> Rendering.renderFrame(
+                width,
+                height,
+                startTime,
+                false
+            ) { isDone = true }
         }
 
         // update loop (cache, GFX tasks)
@@ -168,6 +191,11 @@ object RemsCLI {
 
         StudioBase.shallStop = true
 
+    }
+
+    fun <V> warn(msg: String, value: V): V {
+        warn(msg)
+        return value
     }
 
     fun initOpenGL() {
@@ -198,6 +226,8 @@ object RemsCLI {
     private fun parseTime(line: CommandLine, name: String, defaultValue: Double): Double {
         return if (line.hasOption(name)) {
             val value = line.getOptionValue(name)
+            // todo parse hh:mm:ss.ms
+            // todo parse mm:ss.ms
             value.toDoubleOrNull() ?: throw ParseException("Could not parse time '$value' for '$name'")
         } else defaultValue
     }
@@ -217,6 +247,10 @@ object RemsCLI {
             source.contains("://") -> URL(source).readText()
             else -> File(source).readText()
         }
+    }
+
+    fun warn(message: String) {
+        LOGGER.warn(message)
     }
 
     fun error(message: String) {
