@@ -8,6 +8,7 @@ import me.anno.gpu.GFX.glThread
 import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.objects.modes.RotateJPEG
+import me.anno.utils.Threads.threadWithName
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
 import org.lwjgl.opengl.GL11
@@ -118,7 +119,9 @@ open class Texture2D(
                     create(createImage(), true)
                 }
             } else {
-                thread { create(createImage(), false) }
+                threadWithName("Create Image") {
+                    create(createImage(), false)
+                }
             }
         } else {
             textureBudgetUsed += requiredBudget
@@ -138,7 +141,9 @@ open class Texture2D(
                 try {
                     val buffer2 = getBuffer(buffer.data)
                     // ensure it's opaque
-                    if (!hasAlpha) { for (i in 0 until w * h) buffer2.put(i * 4 + 3, -1) }
+                    if (!hasAlpha) {
+                        for (i in 0 until w * h) buffer2.put(i * 4 + 3, -1)
+                    }
                     if (sync) uploadData(buffer2)
                     else GFX.addGPUTask(w, h) {
                         uploadData(buffer2)
@@ -270,7 +275,7 @@ open class Texture2D(
         GL15.glBufferData(type, w * h * 4L, GL_STREAM_DRAW)
         val mappedBuffer = GL15.glMapBuffer(type, GL15.GL_WRITE_ONLY)!!
 
-        //thread {
+        //threadWithName("Texture2D::uploadData2") {
 
         val startPosition = mappedBuffer.position()
         mappedBuffer.put(data)

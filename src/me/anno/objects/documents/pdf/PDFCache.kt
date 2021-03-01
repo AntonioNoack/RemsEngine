@@ -5,8 +5,8 @@ import me.anno.cache.CacheSection
 import me.anno.cache.instances.TextureCache
 import me.anno.gpu.GFX
 import me.anno.gpu.texture.Texture2D
-import me.anno.image.Images.withoutAlpha
 import me.anno.utils.Maths
+import me.anno.utils.Threads.threadWithName
 import org.apache.logging.log4j.LogManager
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.rendering.ImageType
@@ -27,7 +27,7 @@ object PDFCache : CacheSection("PDFCache") {
                 LOGGER.error(e.message ?: "Error loading PDF", e)
                 PDDocument()
             }
-            object: CacheData<PDDocument>(doc){
+            object : CacheData<PDDocument>(doc) {
                 override fun destroy() {
                     value.close()
                 }
@@ -37,13 +37,13 @@ object PDFCache : CacheSection("PDFCache") {
     }
 
     fun getTexture(src: File, doc: PDDocument, quality: Float, pageNumber: Int): Texture2D? {
-        val qualityInt = max(1, (quality*2f).roundToInt())
+        val qualityInt = max(1, (quality * 2f).roundToInt())
         val qualityFloat = qualityInt * 0.5f
         val tex = TextureCache.getLateinitTexture(
             Triple(src, qualityInt, pageNumber),
             PDFDocument.timeout
         ) { callback ->
-            thread {
+            threadWithName("PDFCache::getTexture") {
                 val image = getImage(doc, qualityFloat, pageNumber)
                 GFX.addGPUTask(image.width, image.height) {
                     val tex = Texture2D(image)

@@ -1,6 +1,7 @@
 package me.anno.installer
 
 import me.anno.utils.OS
+import me.anno.utils.Threads.threadWithName
 import me.anno.utils.types.Strings.formatDownload
 import me.anno.utils.types.Strings.formatDownloadEnd
 import me.anno.video.FFMPEG
@@ -47,8 +48,10 @@ object Installer {
         // change files to files.phychi.com?
         // create a temporary file, and rename, so we know that we finished the download :)
         val tmp = File(dstFile.parentFile, dstFile.name + ".tmp")
-        thread {
-            val totalURL = "${if (withHttps) "https" else "http"}://remsstudio.phychi.com/download/${fileName.replace(" ", "%20")}"
+        threadWithName("Download $fileName") {
+            val protocol = if (withHttps) "https" else "http"
+            val name = fileName.replace(" ", "%20")
+            val totalURL = "${protocol}://remsstudio.phychi.com/download/${name}"
             try {
                 val con = URL(totalURL).openConnection() as HttpURLConnection
                 val input = con.inputStream.buffered()
@@ -78,7 +81,7 @@ object Installer {
                 LOGGER.info(formatDownloadEnd(fileName, dstFile))
                 callback()
             } catch (e: SSLHandshakeException) {
-                if(withHttps){
+                if (withHttps) {
                     download(fileName, dstFile, false, callback)
                 } else {
                     LOGGER.error("Something went wrong with HTTPS :/. Please update Java, or download $totalURL to $dstFile :)")

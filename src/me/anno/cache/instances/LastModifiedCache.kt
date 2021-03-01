@@ -7,7 +7,7 @@ import kotlin.math.abs
 
 object LastModifiedCache {
 
-    class Result(val file: File, val exists: Boolean, val isDirectory: Boolean, val lastModified: Long){
+    data class Result(val file: File, val exists: Boolean, val isDirectory: Boolean, val lastModified: Long){
         constructor(file: File, exists: Boolean): this(file, exists, if(exists) file.isDirectory else false, if(exists) file.lastModified() else 0L)
         constructor(file: File): this(file, file.exists())
         override fun hashCode(): Int = file.hashCode()

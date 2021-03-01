@@ -8,6 +8,7 @@ import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.TextureLib
 import me.anno.gpu.texture.ITexture2D
 import me.anno.utils.Clock
+import me.anno.utils.Threads.threadWithName
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.f3
 import org.apache.logging.log4j.LogManager
@@ -34,7 +35,7 @@ object FontManager {
     fun requestFontList(callback: (List<String>) -> Unit) {
         if (hasFonts) callback(awtFontList)
         else {
-            thread {
+            threadWithName("FontManager"){
                 synchronized(awtFontList) {
                     hasFonts = true
                     val tick = Clock()

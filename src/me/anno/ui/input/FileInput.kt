@@ -5,14 +5,12 @@ import me.anno.input.MouseButton
 import me.anno.language.translation.NameDesc
 import me.anno.ui.base.SpacePanel
 import me.anno.ui.base.buttons.TextButton
-import me.anno.ui.base.components.Padding
-import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
-import me.anno.ui.base.scrolling.ScrollPanelX
 import me.anno.ui.style.Style
+import me.anno.utils.Threads.threadWithName
 import me.anno.utils.files.FileExplorerSelectWrapper
 import me.anno.utils.files.Files.openInExplorer
 import java.io.File
@@ -38,7 +36,7 @@ class FileInput(title: String, style: Style, f0: File, val isDirectory: Boolean 
         }
         button.apply {
             setSimpleClickListener {
-                thread {
+                threadWithName("SelectFile/Folder") {
                     FileExplorerSelectWrapper.selectFileOrFolder(file, isDirectory) { file ->
                         if (file != null) {
                             changeListener(file)

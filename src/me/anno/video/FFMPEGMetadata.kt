@@ -148,7 +148,7 @@ class FFMPEGMetadata(val file: File) : ICacheData {
         fun getMeta(file: File, async: Boolean): FFMPEGMetadata? {
             val key = LastModifiedCache[file]
             if (key.isDirectory || !key.exists) return null
-            return metadataCache.getEntry(key, 300_000, async) {
+            return metadataCache.getEntry(file, 300_000, async) {
                 FFMPEGMetadata(file)
             } as? FFMPEGMetadata
         }

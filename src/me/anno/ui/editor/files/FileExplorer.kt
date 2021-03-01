@@ -25,6 +25,7 @@ import me.anno.utils.files.Files.openInExplorer
 import me.anno.utils.OS
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.pow
+import me.anno.utils.Threads.threadWithName
 import java.io.File
 import kotlin.concurrent.thread
 import kotlin.math.max
@@ -109,7 +110,7 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
     fun createResults(){
         if(isWorking) return
         isWorking = true
-        thread {
+        threadWithName("FileExplorer-Query"){
 
             val search = Search(searchTerm)
 

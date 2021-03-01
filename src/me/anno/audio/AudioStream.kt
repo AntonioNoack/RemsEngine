@@ -11,6 +11,7 @@ import me.anno.objects.modes.LoopingState
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.mix
 import me.anno.utils.Sleep.waitUntilDefined
+import me.anno.utils.Threads.threadWithName
 import me.anno.utils.types.Vectors.minus
 import me.anno.video.FFMPEGMetadata
 import me.anno.video.FFMPEGMetadata.Companion.getMeta
@@ -169,7 +170,7 @@ abstract class AudioStream(
         // "requesting audio buffer $startTime"
 
         isWaitingForBuffer.set(true)
-        thread {// load all data async
+        threadWithName("AudioStream") {// load all data async
 
             // "[INFO:AudioStream] Working on buffer $queued"
 

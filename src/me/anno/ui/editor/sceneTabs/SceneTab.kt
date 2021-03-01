@@ -10,11 +10,11 @@ import me.anno.objects.Transform
 import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.studio.history.History
 import me.anno.studio.rems.RemsStudio.project
-import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.menu.Menu.ask
 import me.anno.ui.base.menu.Menu.msg
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
+import me.anno.ui.base.text.TextPanel
 import me.anno.ui.dragging.Draggable
 import me.anno.ui.editor.files.FileExplorer
 import me.anno.ui.editor.files.toAllowedFilename
@@ -22,6 +22,7 @@ import me.anno.ui.editor.sceneTabs.SceneTabs.currentTab
 import me.anno.ui.editor.sceneTabs.SceneTabs.open
 import me.anno.ui.editor.sceneView.SceneTabData
 import me.anno.utils.Maths.mixARGB
+import me.anno.utils.Threads.threadWithName
 import java.io.File
 import kotlin.concurrent.thread
 
@@ -94,7 +95,7 @@ class SceneTab(var file: File?, var root: Transform, history: History?) : TextPa
 
     fun save(dst: File, onSuccess: () -> Unit) {
         if (dst.isDirectory) dst.deleteRecursively()
-        thread {
+        threadWithName("SaveScene") {
             try {
                 synchronized(root) {
                     dst.parentFile.mkdirs()
@@ -153,7 +154,8 @@ class SceneTab(var file: File?, var root: Transform, history: History?) : TextPa
         when (action) {
             "DragStart" -> {
                 if (dragged?.getOriginal() != this) {
-                    dragged = Draggable(SceneTabData(this).toString(), "SceneTab", this,
+                    dragged = Draggable(
+                        SceneTabData(this).toString(), "SceneTab", this,
                         TextPanel(shortName, style)
                     )
                 }

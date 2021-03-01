@@ -11,9 +11,9 @@ import me.anno.language.translation.Dict
 import me.anno.studio.rems.RemsStudio.project
 import me.anno.utils.Color.hex8
 import me.anno.utils.OS
-import me.anno.utils.Sleep.sleepABit
 import me.anno.utils.Sleep.sleepABit10
 import me.anno.utils.Sleep.sleepShortly
+import me.anno.utils.Threads.threadWithName
 import me.anno.utils.io.Streams.listen
 import org.apache.logging.log4j.LogManager
 import java.io.File
@@ -31,7 +31,7 @@ object Spellchecking : CacheSection("Spellchecking") {
         val language = language
         if (language == Language.None || sentence.isBlank()) return null
         var sentence2 = sentence.trim()
-        if(allowFirstLowercase) sentence2 = sentence2.capitalize()
+        if (allowFirstLowercase) sentence2 = sentence2.capitalize()
         if (sentence2 == "#quit") return null
         val data = getEntry(Pair(sentence2, language), timeout, true) {
             val answer = SuggestionData(null)
@@ -102,7 +102,7 @@ object Spellchecking : CacheSection("Spellchecking") {
     }
 
     private fun waitForDownload(dst: File, callback: (File) -> Unit) {
-        thread {
+        threadWithName("Spellchecking::waitForDownload") {
             loop@ while (!shallStop) {
                 if (dst.exists()) {
                     callback(dst)
@@ -135,12 +135,12 @@ object Spellchecking : CacheSection("Spellchecking") {
      * */
     fun start(language: Language): ConcurrentHashMap<Any, Request> {
         val queue = ConcurrentHashMap<Any, Request>()
-        thread(name = "Spellchecking ${language.code}"){
+        threadWithName("Spellchecking ${language.code}") {
             getExecutable(language) { executable ->
                 LOGGER.info("Starting process for $language")
                 val process = ProcessBuilder("java", "-jar", executable.absolutePath, language.code).start()
                 val input = process.inputStream.bufferedReader()
-                process.errorStream.listen("Spellchecking-Listener ${language.code}"){ msg -> LOGGER.warn(msg) }
+                process.errorStream.listen("Spellchecking-Listener ${language.code}") { msg -> LOGGER.warn(msg) }
                 val output = process.outputStream.bufferedWriter()
                 LOGGER.info(input.readLine())
                 while (!shallStop) {

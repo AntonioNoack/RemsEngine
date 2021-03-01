@@ -43,9 +43,7 @@ object ConvertMeshes {
         if (ifDstExists || !dstFile.exists()) {
             when (file.extension) {
                 "obj", "fbx" -> {
-                    //thread {
-                        convertMesh(file.extension, file.inputStream().buffered(), dstFile, tags)
-                   // }
+                    convertMesh(file.extension, file.inputStream().buffered(), dstFile, tags)
                 }
             }
         }
@@ -66,7 +64,7 @@ object ConvertMeshes {
             else -> throw RuntimeException()
         }
         val flipV = "v" in tags
-        if(flipV){
+        if (flipV) {
             models.forEach {
                 it.flipV()
             }
@@ -78,7 +76,7 @@ object ConvertMeshes {
             }
         }
         val withUVs = "u" !in tags
-        use(dstFile.outputStream().buffered()){
+        use(dstFile.outputStream().buffered()) {
             writeModels(it, withUVs, models)
         }
         // ModelReader.readModels(dstFile.inputStream().buffered())

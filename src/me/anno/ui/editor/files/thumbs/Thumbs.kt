@@ -25,12 +25,11 @@ import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.Color.rgba
 import me.anno.utils.LOGGER
-import me.anno.utils.Sleep.waitUntil
 import me.anno.utils.Sleep.waitUntilDefined
+import me.anno.utils.Threads.threadWithName
 import me.anno.utils.input.readNBytes2
 import me.anno.utils.types.Strings.getImportType
 import me.anno.video.FFMPEGMetadata.Companion.getMeta
-import me.anno.video.VFrame
 import net.boeckling.crc.CRC64
 import org.apache.commons.imaging.Imaging
 import org.joml.Matrix4fArrayList
@@ -188,7 +187,7 @@ object Thumbs {
 
             }
 
-            thread {
+            threadWithName("Thumbs::renderToBufferedImage()") {
                 val dst = BufferedImage(w, h, 2)
                 val buffer2 = dst.raster.dataBuffer
                 for (i in 0 until w * h) {

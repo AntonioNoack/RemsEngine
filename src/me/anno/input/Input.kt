@@ -20,12 +20,11 @@ import me.anno.studio.rems.RemsStudio.root
 import me.anno.ui.editor.files.ImportFromFile.addChildFromFile
 import me.anno.ui.editor.treeView.TreeViewPanel
 import me.anno.utils.Maths.length
+import me.anno.utils.Threads.threadWithName
 import me.anno.utils.files.FileExplorerSelectWrapper
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWDropCallback
-import org.lwjgl.system.Callback
-import org.lwjgl.system.NativeResource
 import java.awt.Toolkit
 import java.awt.datatransfer.DataFlavor.javaFileListFlavor
 import java.awt.datatransfer.DataFlavor.stringFlavor
@@ -364,7 +363,7 @@ object Input {
                                                 inFocus0?.onEmpty(mouseX, mouseY)
                                             }
                                             GLFW.GLFW_KEY_I -> {
-                                                thread {
+                                                threadWithName("Ctrl+I") {
                                                     if (lastFile == null) lastFile = project?.file
                                                     FileExplorerSelectWrapper.selectFile(lastFile) { file ->
                                                         if (file != null) {

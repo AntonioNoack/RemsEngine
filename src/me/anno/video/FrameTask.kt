@@ -12,6 +12,7 @@ import me.anno.gpu.texture.GPUFiltering
 import me.anno.objects.Transform
 import me.anno.studio.rems.Scene
 import me.anno.utils.Color.rgba
+import me.anno.utils.Threads.threadWithName
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL11.*
@@ -54,7 +55,7 @@ class FrameTask(
                 callback()
             } else {
                 // waiting
-                thread { start(callback) }
+                threadWithName("FrameTask::start") { start(callback) }
             }
         }
 
@@ -78,7 +79,7 @@ class FrameTask(
 
         GFX.check()
 
-        thread {// offload to other thread
+        threadWithName("FrameTask::writeFrame") {// offload to other thread
             // val c1 = Clock()
             val image = BufferedImage(width, height, 1)
             val buffer2 = image.raster.dataBuffer

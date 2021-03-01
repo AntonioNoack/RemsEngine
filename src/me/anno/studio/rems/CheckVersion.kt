@@ -5,8 +5,9 @@ import me.anno.language.translation.NameDesc
 import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.MenuOption
-import me.anno.utils.files.Files.openInExplorer
 import me.anno.utils.OS
+import me.anno.utils.Threads.threadWithName
+import me.anno.utils.files.Files.openInExplorer
 import me.anno.utils.files.OpenInBrowser.openInBrowser
 import org.apache.logging.log4j.LogManager
 import java.io.File
@@ -24,16 +25,16 @@ object CheckVersion {
         return "$mega.$major.$minor"
     }
 
-    private val url get() = "https://remsstudio.phychi.com/version.php?isWindows=${if(OS.isWindows) 1 else 0}"
+    private val url get() = "https://remsstudio.phychi.com/version.php?isWindows=${if (OS.isWindows) 1 else 0}"
 
     fun checkVersion() {
-        thread {
+        threadWithName("CheckVersion") {
             val latestVersion = checkVersion(URL(url))
             if (latestVersion > -1) {
-                if(latestVersion > RemsStudio.versionNumber){
+                if (latestVersion > RemsStudio.versionNumber) {
                     val name = "RemsStudio ${formatVersion(latestVersion)}.${if (OS.isWindows) "exe" else "jar"}"
                     val dst = File(OS.documents, name)
-                    if(!dst.exists()){
+                    if (!dst.exists()) {
                         LOGGER.info("Found newer version: $name")
                         // wait for everything to be loaded xD
                         addEvent {
@@ -43,7 +44,8 @@ object CheckVersion {
                                         URI("https", "remsstudio.phychi.com", "/", "s=download").toURL().openInBrowser()
                                     },
                                     MenuOption(NameDesc("Download with Browser", "", "ui.newVersion.openLink")) {
-                                        URI("https", "remsstudio.phychi.com", "/download/$name", "").toURL().openInBrowser()
+                                        URI("https", "remsstudio.phychi.com", "/download/$name", "").toURL()
+                                            .openInBrowser()
                                     },
                                     MenuOption(NameDesc("Download to ~/Documents", "", "ui.newVersion.download")) {
                                         // download the file
@@ -51,8 +53,10 @@ object CheckVersion {
                                         Installer.download(name, dst) {
                                             Menu.openMenu(
                                                 listOf(
-                                                    MenuOption(NameDesc("Downloaded file to %1", "", "")
-                                                        .with("%1", dst.toString())){
+                                                    MenuOption(
+                                                        NameDesc("Downloaded file to %1", "", "")
+                                                            .with("%1", dst.toString())
+                                                    ) {
                                                         dst.openInExplorer()
                                                     }
                                                 )
@@ -66,7 +70,11 @@ object CheckVersion {
                         LOGGER.warn("Newer version available, but not used! $dst")
                     }
                 } else {
-                    LOGGER.info("The newest version is in use: ${RemsStudio.versionName} (Server: ${formatVersion(latestVersion)})")
+                    LOGGER.info(
+                        "The newest version is in use: ${RemsStudio.versionName} (Server: ${formatVersion(
+                            latestVersion
+                        )})"
+                    )
                 }
             }
         }
@@ -76,19 +84,19 @@ object CheckVersion {
     fun checkVersion(url: URL): Int {
         try {
             val reader = url.openStream().bufferedReader()
-            while(true){
+            while (true) {
                 val line = reader.readLine() ?: break
                 val index = line.indexOf(':')
-                if(index > 0){
-                    val key = line.substring(0,index).trim()
-                    val value = line.substring(index+1).trim()
-                    if(key.equals("VersionId", true)){
+                if (index > 0) {
+                    val key = line.substring(0, index).trim()
+                    val value = line.substring(index + 1).trim()
+                    if (key.equals("VersionId", true)) {
                         return value.toIntOrNull() ?: continue
                     }
                 }
             }
-        } catch (e: IOException){
-            if(url.protocol.equals("https", true)){
+        } catch (e: IOException) {
+            if (url.protocol.equals("https", true)) {
                 return checkVersion(URL(url.toString().replace("https://", "http://")))
             } else {
                 LOGGER.warn("${e.javaClass.name}: ${e.message ?: ""}")

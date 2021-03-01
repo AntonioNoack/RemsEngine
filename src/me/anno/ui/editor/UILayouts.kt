@@ -68,6 +68,7 @@ import me.anno.ui.input.EnumInput
 import me.anno.ui.input.FileInput
 import me.anno.ui.input.TextInput
 import me.anno.ui.style.Style
+import me.anno.utils.Threads.threadWithName
 import me.anno.utils.files.Files.openInExplorer
 import me.anno.utils.files.OpenInBrowser.openInBrowser
 import org.apache.logging.log4j.LogManager
@@ -87,7 +88,7 @@ object UILayouts {
      * @param folder: location of the project
      * */
     fun openProject(name: String, folder: File) {
-        thread {
+        threadWithName("UILayouts::openProject()") {
             RemsStudio.loadProject(name.trim(), folder)
             addEvent {
                 windowStack.clear()

@@ -27,6 +27,7 @@ import me.anno.ui.input.FloatInput
 import me.anno.ui.input.IntInput
 import me.anno.ui.style.Style
 import me.anno.utils.Maths.mixARGB
+import me.anno.utils.Threads.threadWithName
 import me.anno.video.FFMPEGEncodingBalance
 import me.anno.video.FFMPEGEncodingType
 import kotlin.concurrent.thread
@@ -180,7 +181,7 @@ object RenderSettings : Transform() {
             actuallySave()
         } else {
             wasChanged = true
-            thread {
+            threadWithName("RenderSettings::save()") {
                 Thread.sleep(500) // save
                 if (wasChanged) {
                     addEvent {

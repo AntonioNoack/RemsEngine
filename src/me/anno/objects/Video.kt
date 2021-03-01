@@ -809,12 +809,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
 
     override fun getDefaultDisplayName(): String {
         return if (file.hasValidName()) file.name
-        /*when (type) {
-            VideoType.AUDIO -> Dict["Audio", "obj.audio"]
-            VideoType.IMAGE -> Dict["Image", "obj.image"]
-            VideoType.IMAGE_SEQUENCE -> Dict["Image Sequence", "obj.imageSequence"]
-            VideoType.VIDEO -> Dict["Video", "obj.video"]
-        }*/ else Dict["Video", "obj.video"]
+        else Dict["Video", "obj.video"]
     }
 
     override fun getSymbol(): String {

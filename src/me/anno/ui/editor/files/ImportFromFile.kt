@@ -16,6 +16,7 @@ import me.anno.studio.rems.Selection.selectTransform
 import me.anno.ui.base.menu.Menu.ask
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
+import me.anno.utils.Threads.threadWithName
 import me.anno.utils.types.Strings.getImportType
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3f
@@ -45,7 +46,7 @@ object ImportFromFile {
             val directory = Transform(parent)
             directory.name = file.name
             if (depth < DefaultConfig["import.depth.max", 3]) {
-                thread {
+                threadWithName("ImportFromFile") {
                     file.listFiles()?.filter { !it.name.startsWith(".") }?.forEach {
                         addEvent {
                             addChildFromFile(directory, it, useSoftLink, doSelect, depth + 1, callback)
@@ -80,7 +81,7 @@ object ImportFromFile {
                         }
                     }
                     else -> {
-                        thread {
+                        threadWithName("ImportFromFile") {
                             val text = file.readText()
                             try {
                                 val transform = text.toTransform()

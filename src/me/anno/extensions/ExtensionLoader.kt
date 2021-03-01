@@ -7,6 +7,7 @@ import me.anno.extensions.plugins.Plugin
 import me.anno.extensions.plugins.PluginManager
 import me.anno.io.config.ConfigBasics.configFolder
 import me.anno.studio.StudioBase
+import me.anno.utils.Threads.threadWithName
 import me.anno.utils.hpc.HeavyProcessing.processStage
 import org.apache.logging.log4j.LogManager
 import java.io.BufferedReader
@@ -38,7 +39,7 @@ object ExtensionLoader {
                 if (!it.isDirectory) {
                     val name = it.name
                     if (!name.startsWith(".") && name.endsWith(".jar")) {
-                        threads += thread {
+                        threads += threadWithName("ExtensionLoader::getInfos()"){
                             val info = loadInfo(it)
                             // (check if compatible???)
                             if (info != null && checkExtensionRequirements(info)) {

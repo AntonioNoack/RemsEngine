@@ -5,6 +5,7 @@ import me.anno.cache.instances.LastModifiedCache
 import me.anno.gpu.GFX.gameTime
 import me.anno.studio.rems.RemsStudio.root
 import me.anno.utils.Sleep.sleepShortly
+import me.anno.utils.Threads.threadWithName
 import org.apache.logging.log4j.LogManager
 import java.io.File
 import java.io.FileNotFoundException
@@ -16,6 +17,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
 
     val cache = HashMap<Any, CacheEntry>(512)
     private val lockedKeys = HashSet<Any>(16)
+    private val lockedBy = HashMap<Any, String>(16)
 
     override fun compareTo(other: CacheSection): Int {
         return name.compareTo(other.name)
@@ -85,27 +87,30 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
 
     private fun lock(key: Any, asyncGenerator: Boolean): Unit? {
         if (asyncGenerator) {
-            synchronized(lockedKeys) {
-                if (key !in lockedKeys) {
-                    lockedKeys += key
-                } else {
-                    return null
-                } // somebody else is using the cache ;p
-            }
-        } else {
-            var hasKey = false
-            while (!hasKey) {
+            for (i in 0 until 10) {
                 synchronized(lockedKeys) {
                     if (lockedKeys.add(key)) {
-                        hasKey = true
+                        lockedBy[key] = Thread.currentThread().name
+                        return Unit
+                    } // else: somebody else is using the cache ;p
+                }
+                sleepShortly()
+            }
+            /*synchronized(lockedBy) {
+                LOGGER.info("$name:$key is locked by ${lockedBy[key]}, wanted by ${Thread.currentThread().name}")
+            }*/
+            return null
+        } else {
+            while (true) {
+                synchronized(lockedKeys) {
+                    if (lockedKeys.add(key)) {
+                        lockedBy[key] = Thread.currentThread().name
+                        return Unit
                     }
                 }
-                if (!hasKey) {
-                    sleepShortly()
-                }
+                sleepShortly()
             }
         }
-        return Unit
     }
 
     private fun unlock(key: Any) {
@@ -116,8 +121,8 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         synchronized(cache) { cache[key] = CacheEntry(data, timeout, gameTime) }
     }
 
-    fun override(key: Any, data: ICacheData?, timeout: Long){
-        synchronized(cache){
+    fun override(key: Any, data: ICacheData?, timeout: Long) {
+        synchronized(cache) {
             val oldValue = cache.put(key, CacheEntry(data, timeout, gameTime))
             oldValue?.destroy()
         }
@@ -157,7 +162,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         if (cached != Unit) return cached as ICacheData?
 
         return if (asyncGenerator) {
-            thread {
+            threadWithName("$name<$key>") {
                 val data = generate(generator)
                 put(key, data, timeout)
                 unlock(key)

@@ -36,6 +36,19 @@ object Tooltips {
 
     var lastPanel: Panel? = null
 
+    fun draw(panel: Panel) {
+        val w = GFX.width
+        val h = GFX.height
+        val availableW = min(w, (textPanel.font.size * 20).toInt())
+        panel.calculateSize(availableW, h)
+        // container.applyConstraints()
+        val x = min(mouseX.roundToInt() + 10, w - panel.minW)
+        val y = min(mouseY.roundToInt() - 20, h - panel.minH)
+        panel.placeInParent(x, y)
+        panel.applyPlacement(panel.minW, panel.minH)
+        panel.draw(panel.x, panel.y, panel.x + panel.w, panel.y + panel.h)
+    }
+
     fun draw(): Boolean {
 
         if (tooltipReactionTime < 0) return false
@@ -56,20 +69,6 @@ object Tooltips {
         val delta = abs(time - lastMovementTime) / 1_000_000
 
         if (delta >= tooltipReactionTime || lastPanel?.onMovementHideTooltip == false) {
-
-            val w = GFX.width
-            val h = GFX.height
-
-            fun draw(panel: Panel) {
-                val availableW = min(w, (textPanel.font.size * 20).toInt())
-                panel.calculateSize(availableW, h)
-                // container.applyConstraints()
-                val x = min(mouseX.roundToInt() + 10, w - panel.minW)
-                val y = min(mouseY.roundToInt() - 20, h - panel.minH)
-                panel.placeInParent(x, y)
-                panel.applyPlacement(panel.minW, panel.minH)
-                panel.draw(panel.x, panel.y, panel.x + panel.w, panel.y + panel.h)
-            }
 
             val panel = hoveredPanel?.getTooltipPanel(mouseX, mouseY)
             lastPanel = panel

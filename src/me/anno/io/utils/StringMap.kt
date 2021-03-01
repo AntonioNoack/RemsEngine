@@ -7,6 +7,7 @@ import me.anno.io.config.ConfigBasics
 import me.anno.io.config.ConfigEntry
 import me.anno.ui.editor.files.toAllowedFilename
 import me.anno.utils.OS
+import me.anno.utils.Threads.threadWithName
 import org.joml.Vector3f
 import java.io.File
 import kotlin.concurrent.thread
@@ -279,12 +280,12 @@ open class StringMap(
             if (abs(lastSaveTime - gameTime) >= saveDelay) {// only save every 1s
                 // delay in case it needs longer
                 lastSaveTime = gameTime + (60 * 1e9).toLong()
-                thread {
+                threadWithName("StringMap::saveMaybe") {
                     save(name)
                     lastSaveTime = gameTime
                 }
             } else {
-                thread {
+                threadWithName("StringMap::saveMaybe2") {
                     Thread.sleep(saveDelay / 1_000_000 / 10)
                     saveMaybe(name)
                 }

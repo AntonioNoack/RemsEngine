@@ -5,10 +5,10 @@ import me.anno.objects.Audio
 import me.anno.objects.Camera
 import me.anno.objects.modes.LoopingState
 import me.anno.utils.Sleep.sleepShortly
+import me.anno.utils.Threads.threadWithName
 import me.anno.video.FFMPEGMetadata
 import org.lwjgl.openal.AL10.*
 import java.io.File
-import java.lang.RuntimeException
 import java.nio.ShortBuffer
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.concurrent.thread
@@ -18,11 +18,18 @@ import kotlin.math.min
 // only play once, then destroy; it makes things easier
 // (on user input and when finally rendering only)
 
-class AudioStreamOpenAL(file: File, repeat: LoopingState, startTime: Double, meta: FFMPEGMetadata, sender: Audio, listener: Camera):
-    AudioStream(file, repeat, startTime, meta, sender, listener){
+class AudioStreamOpenAL(
+    file: File,
+    repeat: LoopingState,
+    startTime: Double,
+    meta: FFMPEGMetadata,
+    sender: Audio,
+    listener: Camera
+) :
+    AudioStream(file, repeat, startTime, meta, sender, listener) {
 
-    constructor(audio: Audio, speed: Double, globalTime: Double, listener: Camera):
-            this(audio.file, audio.isLooping.value, 0.0, FFMPEGMetadata.getMeta(audio.file, false)!!, audio, listener){
+    constructor(audio: Audio, speed: Double, globalTime: Double, listener: Camera) :
+            this(audio.file, audio.isLooping.value, 0.0, FFMPEGMetadata.getMeta(audio.file, false)!!, audio, listener) {
         configure(audio, speed, globalTime)
     }
 
@@ -32,13 +39,13 @@ class AudioStreamOpenAL(file: File, repeat: LoopingState, startTime: Double, met
     var queued = AtomicLong()
     var processed = 0
 
-    fun checkProcessed(){
+    fun checkProcessed() {
         processed = alGetSourcei(alSource.sourcePtr, AL_BUFFERS_PROCESSED)
         ALBase.check()
     }
 
-    fun start(){
-        if(!isPlaying){
+    fun start() {
+        if (!isPlaying) {
             isPlaying = true
             startTimeNanos = System.nanoTime()
             waitForRequiredBuffers()
@@ -57,8 +64,8 @@ class AudioStreamOpenAL(file: File, repeat: LoopingState, startTime: Double, met
         alSource.pause()
     }*/
 
-    fun stop(){
-        if(!isPlaying) throw RuntimeException()
+    fun stop() {
+        if (!isPlaying) throw RuntimeException()
         isPlaying = false
         alSource.stop()
         alSource.destroy()
@@ -71,21 +78,21 @@ class AudioStreamOpenAL(file: File, repeat: LoopingState, startTime: Double, met
 
 
     fun waitForRequiredBuffers() {
-        if(!isPlaying) return
+        if (!isPlaying) return
         val queued = queued.get()
-        if(!isWaitingForBuffer.get() && queued > 0) checkProcessed()
+        if (!isWaitingForBuffer.get() && queued > 0) checkProcessed()
         // keep 2 on reserve
-        if(queued < processed+5 && !isWaitingForBuffer.get()){
+        if (queued < processed + 5 && !isWaitingForBuffer.get()) {
             // request a buffer
             // only one at a time
             val index = this.queued.getAndIncrement()
             // loading $index...
             requestNextBuffer(startTime + playbackSliceDuration * index, index)
         }
-        thread {
+        threadWithName("AudioStreamOpenAL") {
             sleepShortly()
-            if(isPlaying){
-                GFX.addAudioTask(1){
+            if (isPlaying) {
+                GFX.addAudioTask(1) {
                     waitForRequiredBuffers()
                     ALBase.check()
                 }
@@ -94,16 +101,16 @@ class AudioStreamOpenAL(file: File, repeat: LoopingState, startTime: Double, met
     }
 
     override fun onBufferFilled(stereoBuffer: ShortBuffer, bufferIndex: Long) {
-        if(!isPlaying) return
-        GFX.addAudioTask(10){
-            if(isPlaying) {
+        if (!isPlaying) return
+        GFX.addAudioTask(10) {
+            if (isPlaying) {
                 val isFirstBuffer = bufferIndex == 0L
                 ALBase.check()
                 val soundBuffer = SoundBuffer()
                 ALBase.check()
                 // todo wait until we have enough data to be played back...
                 // todo then it needs to work like this, because that's already perfect:
-                if(isFirstBuffer){
+                if (isFirstBuffer) {
                     val dt = max(0f, (System.nanoTime() - startTimeNanos) * 1e-9f)
                     // "skipping first $dt"
                     // 10s slices -> 2.6s
@@ -113,7 +120,7 @@ class AudioStreamOpenAL(file: File, repeat: LoopingState, startTime: Double, met
                     // what if index > sampleCount? add empty buffer???...
                     val minPlayedSamples = 32 // not correct, but who cares ;) (our users care ssshhh)
                     val skipIndex = min(currentIndex, stereoBuffer.capacity() - 2 * minPlayedSamples)
-                    if(skipIndex > 0){
+                    if (skipIndex > 0) {
                         // "skipping $skipIndex"
                         stereoBuffer.position(skipIndex)
                     }
@@ -126,7 +133,7 @@ class AudioStreamOpenAL(file: File, repeat: LoopingState, startTime: Double, met
                 // ("putting buffer ${soundBuffer.pcm?.capacity()}")
                 alSourceQueueBuffers(alSource.sourcePtr, soundBuffer.buffer)
                 ALBase.check()
-                if(isFirstBuffer){
+                if (isFirstBuffer) {
                     alSource.play()
                     ALBase.check()
                 }

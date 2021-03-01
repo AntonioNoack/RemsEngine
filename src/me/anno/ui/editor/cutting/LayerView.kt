@@ -1,5 +1,7 @@
 package me.anno.ui.editor.cutting
 
+import me.anno.cache.CacheData
+import me.anno.cache.instances.VideoCache
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXx2D.drawRect
 import me.anno.input.Input
@@ -34,6 +36,7 @@ import me.anno.ui.style.Style
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.mix
 import me.anno.utils.Maths.sq
+import me.anno.utils.Threads.threadWithName
 import me.anno.utils.files.Naming.incrementName
 import org.joml.Vector4f
 import java.io.File
@@ -55,9 +58,12 @@ class LayerView(val timelineSlot: Int, style: Style) : TimelinePanel(style) {
     override fun getTooltipPanel(x: Float, y: Float): Panel? {
         val video = getTransformAt(x, y) as? Video
         return if (video != null) {
-            VideoPreviewPanel(video, height * 2, style) {
-                video.getLocalTimeFromRoot(getTimeAt(it))
-            }
+            val data = VideoCache.getEntry(Triple(video, height, video.file), 1000, false) {
+                CacheData(VideoPreviewPanel(video, height * 2, style) {
+                    video.getLocalTimeFromRoot(getTimeAt(it))
+                })
+            } as CacheData<*>
+            data.value as VideoPreviewPanel
         } else null
     }
 
@@ -100,7 +106,7 @@ class LayerView(val timelineSlot: Int, style: Style) : TimelinePanel(style) {
         needsUpdate = false
 
         if (asnyc) {
-            thread { calculateSolution(x0, y0, x1, y1, false) }
+            threadWithName("LayerView::calculateSolution()") { calculateSolution(x0, y0, x1, y1, false) }
             return
         }
 

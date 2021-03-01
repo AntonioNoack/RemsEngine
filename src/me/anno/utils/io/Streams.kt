@@ -1,12 +1,13 @@
 package me.anno.utils.io
 
+import me.anno.utils.Threads.threadWithName
 import java.io.InputStream
 import kotlin.concurrent.thread
 
 object Streams {
 
     fun InputStream.listen(name: String, callback: (String) -> Unit) {
-        thread(name = name) {
+        threadWithName(name) {
             val reader = bufferedReader()
             while (true) {
                 reader.read()

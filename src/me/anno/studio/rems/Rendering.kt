@@ -9,6 +9,7 @@ import me.anno.studio.rems.RemsStudio.shutterPercentage
 import me.anno.studio.rems.RemsStudio.targetOutputFile
 import me.anno.ui.base.menu.Menu.ask
 import me.anno.ui.base.menu.Menu.msg
+import me.anno.utils.Threads.threadWithName
 import me.anno.utils.types.Strings.defaultImportType
 import me.anno.utils.types.Strings.getImportType
 import me.anno.video.*
@@ -135,7 +136,7 @@ object Rendering {
                 isRendering = false
                 callback()
             }
-            thread {
+            threadWithName("Rendering::renderAudio()") {
                 createOrAppendAudio(targetOutputFile, null)
             }
         }
@@ -156,7 +157,11 @@ object Rendering {
         ask(NameDesc("Override %1?").with("%1", targetOutputFile.name), callback)
     }
 
-    enum class RenderType(val importType: String, val extension: String, val defaultName: String = "output.$extension") {
+    enum class RenderType(
+        val importType: String,
+        val extension: String,
+        val defaultName: String = "output.$extension"
+    ) {
         VIDEO("Video", ".mp4"),
         AUDIO("Audio", ".mp3"),
         FRAME("Image", ".png")
