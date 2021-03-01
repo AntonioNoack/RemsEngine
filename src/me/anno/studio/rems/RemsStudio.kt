@@ -22,6 +22,7 @@ import me.anno.ui.editor.sceneTabs.SceneTabs.currentTab
 import me.anno.ui.editor.sceneView.ISceneView
 import me.anno.ui.editor.treeView.TreeView
 import me.anno.utils.OS
+import org.apache.logging.log4j.LogManager
 import java.io.File
 
 // Launch4j
@@ -38,6 +39,8 @@ import java.io.File
 // to do Mod with "hacked"-text effect for text: swizzle characters and introduce others?
 
 object RemsStudio : StudioBase(true, "Rem's Studio", 10003) {
+
+    private val LOGGER = LogManager.getLogger(RemsStudio::class)
 
     override fun onGameInit() {
         RemsConfig.init()
@@ -143,6 +146,8 @@ object RemsStudio : StudioBase(true, "Rem's Studio", 10003) {
     }
 
     fun updateSceneViews() {
+        // if(gameTime > 1e10) throw RuntimeException()
+        // LOGGER.info("UpdateSceneViews ${gameTime / 1e9f}")
         for (window in windowStack) {
             for (panel in window.panel.listOfVisible) {
                 when (panel) {
@@ -163,8 +168,8 @@ object RemsStudio : StudioBase(true, "Rem's Studio", 10003) {
     // - simple color correction
 
     @JvmStatic
-    fun main(args: Array<String>){
-        if(args.isEmpty()){
+    fun main(args: Array<String>) {
+        if (args.isEmpty()) {
             run()
         } else {
             RemsCLI.main(args)

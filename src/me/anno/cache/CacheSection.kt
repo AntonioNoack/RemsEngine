@@ -45,7 +45,8 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         asyncGenerator: Boolean,
         generator: () -> ICacheData
     ): ICacheData? {
-        if (!file.exists() || (!allowDirectories && file.isDirectory)) return null
+        val meta = LastModifiedCache[file]
+        if (!meta.exists || (!allowDirectories && meta.isDirectory)) return null
         return getEntry(file to key, timeout, asyncGenerator, generator)
     }
 

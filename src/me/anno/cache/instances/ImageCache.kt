@@ -18,8 +18,9 @@ object ImageCache: CacheSection("Images"){
     private val LOGGER = LogManager.getLogger(ImageCache::class)
 
     fun getImage(file: File, timeout: Long, asyncGenerator: Boolean): Texture2D? {
-        val texture = if (file.isDirectory || !file.exists()) null
-        else (getEntry(file as Any, timeout, asyncGenerator) {
+        val meta = LastModifiedCache[file]
+        if(meta.isDirectory || !meta.exists) return null
+        val texture = (getEntry(file as Any, timeout, asyncGenerator) {
             ImageData(file)
         } as? ImageData)?.texture
         return if(texture?.isCreated == true) texture else null

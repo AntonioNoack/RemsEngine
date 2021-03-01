@@ -21,7 +21,9 @@ import me.anno.video.VFrame
 import org.apache.commons.imaging.Imaging
 import org.joml.Matrix4f
 import org.joml.Vector4f
+import java.awt.image.BufferedImage
 import java.io.File
+import java.io.IOException
 import javax.imageio.ImageIO
 
 
@@ -120,22 +122,26 @@ class ImageData(file: File) : ICacheData {
                 if (fileExtension.getImportType() == "Video") {
                     useFFMPEG(file)
                 } else {
-                    val image = try {
-                        // try ImageIO first, then Imaging, then give up (we could try FFMPEG, but idk, whether it supports sth useful)
-                        ImageIO.read(file)
-                    } catch (e: Exception) {
-                        try {
-                            Imaging.getBufferedImage(file)
-                        } catch (e: Exception) {
-                            LOGGER.warn("Cannot read image from file $file: ${e.message}")
-                            null
-                        }
-                    }
+                    val image = tryGetImage(file)
                     if (image != null) {
                         texture.create("ImageData", { image }, false)
                         texture.rotation = getRotation(file)
-                    }
+                    } else LOGGER.warn("Could not load $file")
                 }
+            }
+        }
+    }
+
+    fun tryGetImage(file: File): BufferedImage? {
+        return try {
+            // try ImageIO first, then Imaging, then give up (we could try FFMPEG, but idk, whether it supports sth useful)
+            ImageIO.read(file) ?: throw IOException()
+        } catch (e: Exception) {
+            try {
+                Imaging.getBufferedImage(file) ?: throw IOException()
+            } catch (e: Exception) {
+                LOGGER.warn("Cannot read image from file $file: ${e.message}")
+                null
             }
         }
     }

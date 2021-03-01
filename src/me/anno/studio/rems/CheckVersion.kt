@@ -24,9 +24,11 @@ object CheckVersion {
         return "$mega.$major.$minor"
     }
 
+    private val url get() = "https://remsstudio.phychi.com/version.php?isWindows=${if(OS.isWindows) 1 else 0}"
+
     fun checkVersion() {
         thread {
-            val latestVersion = checkVersion(URL("https://remsstudio.phychi.com/version.php?isWindows=${if(OS.isWindows) 1 else 0}"))
+            val latestVersion = checkVersion(URL(url))
             if (latestVersion > -1) {
                 if(latestVersion > RemsStudio.versionNumber){
                     val name = "RemsStudio ${formatVersion(latestVersion)}.${if (OS.isWindows) "exe" else "jar"}"

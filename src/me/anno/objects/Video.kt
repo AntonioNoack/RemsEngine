@@ -541,6 +541,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
 
         if (needsImageUpdate) {
             RemsStudio.updateSceneViews()
+            needsImageUpdate = false
         }
 
     }

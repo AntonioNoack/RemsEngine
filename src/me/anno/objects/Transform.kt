@@ -94,7 +94,7 @@ open class Transform(var parent: Transform? = null) : Saveable(),
     var name: String
         get() = nameI.value
         set(value) {
-            nameI.value = value
+            nameI.value = value.trim()
         }
 
     var comment = ""
