@@ -5,22 +5,20 @@ import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.studio.rems.RemsStudio.project
 import me.anno.studio.rems.Rendering.isRendering
-import me.anno.utils.Maths.clamp
-import me.anno.utils.types.Floats.f1
-import me.anno.utils.types.Strings.formatTime
+import me.anno.video.FFMPEGUtils.processOutput
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL11.*
 import java.io.File
 import java.io.IOException
+import java.io.InputStream
 import java.io.OutputStream
 import kotlin.concurrent.thread
-import kotlin.math.round
 
 class VideoCreator(
     val w: Int, val h: Int,
     val fps: Double,
-    val totalFrameCount: Int,
+    val totalFrameCount: Long,
     balance: FFMPEGEncodingBalance,
     type: FFMPEGEncodingType,
     val output: File
@@ -81,82 +79,8 @@ class VideoCreator(
         if (videoEncodingArguments.isNotEmpty()) args += "-hide_banner"
         args += videoEncodingArguments
         process = ProcessBuilder(args).start()
-        thread {
-            val reader = process.inputStream.bufferedReader()
-            while (true) {
-                val line = reader.readLine() ?: break
-                LOGGER.warn(line)
-            }
-        }
-        thread {
-            val out = process.errorStream.bufferedReader()
-            while (true) {
-                val line = out.readLine() ?: break
-                if (line.contains("unable", true) || line.contains("null", true)) {
-                    LOGGER.error(line)
-                    isRendering = false
-                }
-                // parse the line
-                if (line.indexOf('=') > 0) {
-                    var frameIndex = 0
-                    var fps = 0f
-                    var quality = 0f
-                    var size = 0
-                    val elapsedTime = (GFX.gameTime - startTime) * 1e-9
-                    var bitrate = 0
-                    var speed = 0f
-                    var remaining = line
-                    while (remaining.isNotEmpty()) {
-                        val firstIndex = remaining.indexOf('=')
-                        if (firstIndex < 0) break
-                        val key = remaining.substring(0, firstIndex).trim()
-                        remaining = remaining.substring(firstIndex + 1).trim()
-                        var secondIndex = remaining.indexOf(' ')
-                        if (secondIndex < 0) secondIndex = remaining.length
-                        val value = remaining.substring(0, secondIndex)
-                        try {
-                            when (key.toLowerCase()) {
-                                "speed" -> speed = value.substring(0, value.length - 1).toFloat() // 0.15x
-                                "bitrate" -> {
-                                    // parse bitrate? or just display it?
-                                }
-                                // "time" -> elapsedTime = value.parseTime()
-                                "size", "lsize" -> {
-                                }
-                                "q" -> {
-                                } // quality?
-                                "frame" -> frameIndex = value.toInt()
-                                "fps" -> fps = value.toFloat()
-                            }
-                        } catch (e: Exception) {
-                            LOGGER.warn("${e.javaClass}: ${e.message}")
-                        }
-                        // LOGGER.info("$key: $value")
-                        if (secondIndex == remaining.length) break
-                        remaining = remaining.substring(secondIndex)
-                    }
-                    // update progress bar after this
-                    // + log other statistics
-                    val relativeProgress = frameIndex.toDouble() / totalFrameCount
-                    // estimate remaining time
-                    // round the value to not confuse artists (and to "give" 0.5s "extra" ;))
-                    val remainingTime =
-                        if (relativeProgress < 1e-11) "Unknown"
-                        else round(elapsedTime / relativeProgress * (1.0 - relativeProgress)).formatTime()
-                    LOGGER.info(
-                        "Rendering-Progress: ${formatPercent(relativeProgress)}%, " +
-                                "fps: $fps, " +
-                                "elapsed: ${round(elapsedTime).formatTime()}, " +
-                                "remaining: $remainingTime"
-                    )
-                }// else {
-                // the rest logged is only x264 statistics
-                // LOGGER.debug(line)
-                // }
-                // frame=  151 fps= 11 q=12.0 size=     256kB time=00:00:04.40 bitrate= 476.7kbits/s speed=0.314x
-                // or [libx264 @ 000001c678804000] frame I:1     Avg QP:19.00  size:  2335
-            }
-        }
+        thread { warnOutput(process.inputStream) }
+        thread { processOutput(LOGGER, "Video", startTime, totalFrameCount, process.errorStream) }
 
         videoOut = process.outputStream.buffered()
 
@@ -164,7 +88,13 @@ class VideoCreator(
 
     }
 
-    private fun formatPercent(progress: Double) = clamp((progress * 100).toFloat(), 0f, 100f).f1()
+    fun warnOutput(stream: InputStream) {
+        val reader = stream.bufferedReader()
+        while (true) {
+            val line = reader.readLine() ?: break
+            LOGGER.warn(line)
+        }
+    }
 
     private val pixelByteCount = w * h * 3
     private val byteArrayBuffer = ByteArray(pixelByteCount)
@@ -172,7 +102,7 @@ class VideoCreator(
     private val buffer1 = BufferUtils.createByteBuffer(pixelByteCount)
     private val buffer2 = BufferUtils.createByteBuffer(pixelByteCount)
 
-    fun writeFrame(frame: Framebuffer, frameIndex: Int, callback: () -> Unit) {
+    fun writeFrame(frame: Framebuffer, frameIndex: Long, callback: () -> Unit) {
 
         GFX.check()
 
@@ -180,7 +110,7 @@ class VideoCreator(
         frame.bindDirectly(false)
         Frame.invalidate()
 
-        val buffer = if (frameIndex % 2 == 0) buffer1 else buffer2
+        val buffer = if (frameIndex % 2 == 0L) buffer1 else buffer2
 
         buffer.position(0)
         glReadPixels(0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, buffer)

@@ -18,7 +18,7 @@ import org.joml.Vector4fc
 import kotlin.math.floor
 import kotlin.math.roundToInt
 
-class Solution(
+class LayerStripeSolution(
     val x0: Int, var y0: Int, val x1: Int, var y1: Int,
     private val referenceTime: Double
 ) {
@@ -76,7 +76,7 @@ class Solution(
 
                 val video = (tr as? Video)?.run { if(type != VideoType.IMAGE) this else null }
                 val meta = if (video == null) null
-                else metas.getOrPut(video) { video.meta ?: Unit } as? FFMPEGMetadata
+                else metas.getOrPut(video) { video.forcedMeta ?: Unit } as? FFMPEGMetadata
 
                 val hasAudio = meta?.hasAudio ?: false
                 val hasVideo = meta?.hasVideo ?: false
@@ -94,8 +94,8 @@ class Solution(
 
                     val frameWidth = (h * (1f + relativeVideoBorder) * video.w / video.h).roundToInt()
 
-                    val frameOffset =
-                        (timeOffset % frameWidth + frameWidth) % frameWidth
+                    var frameOffset = timeOffset % frameWidth
+                    if(frameOffset < 0) frameOffset += frameWidth
 
                     val frameIndex0 = floor((ix0 - frameOffset).toFloat() / frameWidth).toInt()
                     val frameIndex1 = floor((ix1 - frameOffset).toFloat() / frameWidth).toInt()

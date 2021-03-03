@@ -41,7 +41,6 @@ import me.anno.utils.files.Naming.incrementName
 import org.joml.Vector4f
 import java.io.File
 import kotlin.collections.set
-import kotlin.concurrent.thread
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -98,7 +97,7 @@ class LayerView(val timelineSlot: Int, style: Style) : TimelinePanel(style) {
     var needsUpdate = false
     var isCalculating = false
 
-    var solution: Solution? = null
+    var solution: LayerStripeSolution? = null
 
     private fun calculateSolution(x0: Int, y0: Int, x1: Int, y1: Int, asnyc: Boolean) {
 
@@ -110,7 +109,7 @@ class LayerView(val timelineSlot: Int, style: Style) : TimelinePanel(style) {
             return
         }
 
-        val solution = Solution(x0, y0, x1, y1, centralTime)
+        val solution = LayerStripeSolution(x0, y0, x1, y1, centralTime)
         val stripes = solution.lines
         // val t1 = System.nanoTime()
         val root = root

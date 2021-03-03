@@ -23,6 +23,7 @@ import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.Rendering
 import me.anno.utils.Sleep.sleepABit
 import me.anno.utils.types.Strings.getImportType
+import me.anno.utils.types.Strings.parseTimeOrNull
 import org.apache.commons.cli.*
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL30
@@ -47,13 +48,13 @@ object RemsCLI {
         options.addOption("n", "no", false, "if asked to override file, answer 'no' automatically")
         options.addOption("y", "yes", false, "if asked to override file, answer 'yes' automatically")
         options.addOption("t", "type", true, "VIDEO (with audio), AUDIO or IMAGE")
-        options.addOption("config", true, "use a special config file") // todo implement
+        // options.addOption("config", true, "use a special config file") // todo implement
         options.addOption("start", true, "start time in seconds")
         options.addOption("end", true, "end time in seconds")
         options.addOption("duration", true, "end time after start, in seconds")
         options.addOption("project", true, "project settings, containing resolution, frame size, duration, ...")
         // todo balance
-        // todo audio samples
+        // options.addOption("samples", true, "audio samples per second & channel, e.g. 41000 or 48000") // todo audio samples
         // todo all other relevant factors
         val parser = DefaultParser()
         try {
@@ -226,9 +227,7 @@ object RemsCLI {
     private fun parseTime(line: CommandLine, name: String, defaultValue: Double): Double {
         return if (line.hasOption(name)) {
             val value = line.getOptionValue(name)
-            // todo parse hh:mm:ss.ms
-            // todo parse mm:ss.ms
-            value.toDoubleOrNull() ?: throw ParseException("Could not parse time '$value' for '$name'")
+            value.parseTimeOrNull() ?: throw ParseException("Could not parse time '$value' for '$name'")
         } else defaultValue
     }
 

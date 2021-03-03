@@ -15,7 +15,6 @@ import me.anno.utils.types.Strings.getImportType
 import me.anno.video.*
 import org.apache.logging.log4j.LogManager
 import java.io.File
-import kotlin.concurrent.thread
 import kotlin.math.max
 import kotlin.math.roundToInt
 
@@ -59,13 +58,11 @@ object Rendering {
         LOGGER.info("Rendering video at $width x $height")
 
         val duration = RemsStudio.targetDuration
-        val tmpFile = File(
-            targetOutputFile.parentFile,
-            targetOutputFile.nameWithoutExtension + ".tmp." + targetOutputFile.extension
-        )
+        val tmpFile = getTmpFile(targetOutputFile)
         val fps = RemsStudio.targetFPS
-        val totalFrameCount = max(1, (fps * duration).toInt() + 1)
-        val sampleRate = 48000
+        val totalFrameCount = max(1, (fps * duration).toLong() + 1)
+        val sampleRate = max(1, RemsStudio.targetSampleRate)
+
         val scene = root.clone()
         val audioSources = scene.listOfAll
             .filterIsInstance<Audio>()
@@ -87,6 +84,9 @@ object Rendering {
         creator.start()
 
     }
+
+    fun getTmpFile(file: File) =
+        File(file.parentFile, file.nameWithoutExtension+".tmp."+ targetOutputFile.extension)
 
     fun renderFrame(width: Int, height: Int, time: Double, ask: Boolean, callback: () -> Unit) {
 
@@ -126,12 +126,13 @@ object Rendering {
         LOGGER.info("Rendering audio")
 
         val duration = RemsStudio.targetDuration
-        val sampleRate = 48000
+        val sampleRate = max(1, RemsStudio.targetSampleRate)
+
         val scene = root.clone()
         val audioSources = scene.listOfAll
             .filterIsInstance<Audio>()
             .filter { it.forcedMeta?.hasAudio == true }.toList()
-        AudioCreator(scene, duration, sampleRate, audioSources).apply {
+        AudioCreator(scene, duration, 1, sampleRate, audioSources).apply {
             onFinished = {
                 isRendering = false
                 callback()

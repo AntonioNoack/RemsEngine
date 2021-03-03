@@ -31,7 +31,7 @@ class FrameTask(
     val shutterPercentage: Float,
     val time: Double,
     val dst: File
-) : AudioCreator(scene, 0.0, 1, emptyList()) {
+) : AudioCreator(scene, 0.0, 1, 1, emptyList()) {
 
     val partialFrame = Framebuffer(
         "VideoBackgroundTask-partial", width, height, 1, 1,

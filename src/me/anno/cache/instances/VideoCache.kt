@@ -15,7 +15,9 @@ import kotlin.math.min
 
 object VideoCache : CacheSection("Videos") {
 
-    var allocateFrameGroups = false
+    // otherwise complicated... we can't request single frames cheaply
+    // we'd need to create copies, but idk...
+    var allocateFrameGroups = true
 
     private fun getVideoFrames(
         file: File, scale: Int,

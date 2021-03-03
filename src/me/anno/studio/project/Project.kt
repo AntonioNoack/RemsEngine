@@ -199,6 +199,7 @@ class Project(var name: String, val file: File) : Saveable() {
     // -> we need to be able to show contents of zip files then
 
     var targetDuration = config["target.duration", 5.0]
+    var targetSampleRate = config["target.sampleRate", 48000]
     var targetSizePercentage = config["target.sizePercentage", 100f]
     var targetWidth = config["target.width", 1920]
     var targetHeight = config["target.height", 1080]
@@ -228,6 +229,7 @@ class Project(var name: String, val file: File) : Saveable() {
         config["target.quality"] = targetVideoQuality
         config["target.motionBlur.steps"] = motionBlurSteps
         config["target.motionBlur.shutterPercentage"] = shutterPercentage
+        config["target.sampleRate"] = targetSampleRate
         config["target.output"] = targetOutputFile.toString()
         config["recent.files"] = SceneTabs.children3
             .filter { it.file != null }

@@ -78,6 +78,7 @@ object RemsStudio : StudioBase(true, "Rem's Studio", 10003) {
     val isPlaying get() = editorTimeDilation != 0.0
 
     val targetDuration get() = project!!.targetDuration
+    val targetSampleRate get() = project!!.targetSampleRate
     val targetFPS get() = project!!.targetFPS
     val targetWidth get() = project?.targetWidth ?: GFX.windowWidth
     val targetHeight get() = project?.targetHeight ?: GFX.windowHeight

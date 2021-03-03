@@ -1,11 +1,13 @@
 package me.anno.video
 
 import me.anno.audio.AudioStream
+import me.anno.gpu.GFX
 import me.anno.objects.Audio
 import me.anno.objects.Camera
 import me.anno.objects.Transform
 import me.anno.studio.rems.RemsStudio
 import me.anno.utils.Maths.clamp
+import me.anno.video.FFMPEGUtils.processOutput
 import org.apache.logging.log4j.LogManager
 import java.io.DataOutputStream
 import java.io.File
@@ -16,9 +18,12 @@ import kotlin.math.ceil
 open class AudioCreator(
     val scene: Transform,
     private val durationSeconds: Double,
+    private val totalFrameCount: Long,
     private val sampleRate: Int,
     val audioSources: List<Audio>
 ) {
+
+    val startTime = GFX.gameTime
 
     var onFinished = {}
 
@@ -80,14 +85,9 @@ open class AudioCreator(
         args += FFMPEG.ffmpegPathString
         if (audioEncodingArguments.isNotEmpty()) args += "-hide_banner"
         args += audioEncodingArguments
+
         val process = ProcessBuilder(args).start()
-        thread {
-            val out = process.errorStream.bufferedReader()
-            while (true) {
-                val line = out.readLine() ?: break
-                LOGGER.info("[FFMPEG-Debug]: $line")
-            }
-        }
+        thread { processOutput(LOGGER, "Audio", startTime, totalFrameCount, process.errorStream) }
 
         val audioOutput = DataOutputStream(process.outputStream.buffered())
         createAudio(audioOutput)

@@ -15,8 +15,7 @@ import me.anno.studio.rems.Scene
 import me.anno.utils.Threads.threadWithName
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL11.*
-import java.util.concurrent.atomic.AtomicInteger
-import kotlin.concurrent.thread
+import java.util.concurrent.atomic.AtomicLong
 
 class VideoBackgroundTask(
     val video: VideoCreator,
@@ -36,8 +35,8 @@ class VideoBackgroundTask(
         true, Framebuffer.DepthBufferType.TEXTURE
     )
 
-    val renderingIndex = AtomicInteger(0)
-    val savingIndex = AtomicInteger(0)
+    val renderingIndex = AtomicLong(0)
+    val savingIndex = AtomicLong(0)
 
     val totalFrameCount = video.totalFrameCount
 
