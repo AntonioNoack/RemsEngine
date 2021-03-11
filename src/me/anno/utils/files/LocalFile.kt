@@ -35,7 +35,7 @@ object LocalFile {
         fun checkIsChild(parent: File?, pathName: String): File? {
             parent ?: return null
             val start = "$pathName/"
-            return if (fileStr.startsWith(start)) {
+            return if (fileStr.startsWith(start, true)) {
                 File(parent, fileStr.substring(start.length))
             } else null
         }
@@ -48,6 +48,7 @@ object LocalFile {
             ?: checkIsChild(OS.pictures, "\$PICTURES\$")
             ?: checkIsChild(OS.videos, "\$VIDEOS\$")
             ?: checkIsChild(OS.home, "\$HOME\$")
+            ?: checkIsChild(OS.home, "\$USER\$")
             ?: File(this)
     }
 

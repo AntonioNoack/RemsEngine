@@ -13,6 +13,8 @@ import me.anno.ui.style.Style
 import me.anno.utils.Threads.threadWithName
 import me.anno.utils.files.FileExplorerSelectWrapper
 import me.anno.utils.files.Files.openInExplorer
+import me.anno.utils.files.LocalFile.toGlobalFile
+import me.anno.utils.files.LocalFile.toLocalPath
 import java.io.File
 import kotlin.concurrent.thread
 
@@ -22,16 +24,14 @@ class FileInput(title: String, style: Style, f0: File, val isDirectory: Boolean 
     val base = TextInput(title, false, style, f0.toString2())
     val base2 = base.base
 
-    val text get() = base.text
+    // val text get() = base.text
 
     init {
         setTooltip(title)
         base.apply {
             this += WrapAlign.LeftCenter
             setChangeListener {
-                this@FileInput.changeListener(
-                    File(it)
-                )
+                this@FileInput.changeListener(it.toGlobalFile())
             }
         }
         button.apply {
@@ -56,9 +56,10 @@ class FileInput(title: String, style: Style, f0: File, val isDirectory: Boolean 
         this += base//ScrollPanelX(base, Padding(), style, AxisAlignment.MIN)
     }
 
-    private fun File.toString2() = toString().replace('\\', '/') // / is easier to type
+    private fun File.toString2() = toLocalPath()
+        // toString().replace('\\', '/') // / is easier to type
 
-    val file get() = File(base.text)
+    val file get() = base.text.toGlobalFile()
 
     var changeListener = { _: File -> }
     fun setChangeListener(listener: (File) -> Unit): FileInput {
@@ -80,7 +81,7 @@ class FileInput(title: String, style: Style, f0: File, val isDirectory: Boolean 
                             "Opens the file in the default file explorer",
                             "ui.file.openInExplorer"
                         )
-                    ) { File(base.text).openInExplorer() }
+                    ) { file.openInExplorer() }
                 ))
             }
             else -> super.onMouseClicked(x, y, button, long)

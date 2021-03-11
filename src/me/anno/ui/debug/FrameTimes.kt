@@ -4,6 +4,7 @@ import me.anno.config.DefaultConfig
 import me.anno.gpu.GFXx2D.drawRect
 import me.anno.ui.base.Panel
 import me.anno.ui.base.text.TextPanel
+import me.anno.utils.Maths.clamp
 import kotlin.math.max
 
 object FrameTimes : Panel(DefaultConfig.style.getChild("fps")) {
@@ -26,7 +27,7 @@ object FrameTimes : Panel(DefaultConfig.style.getChild("fps")) {
         values[nextIndex] = value
         nextIndex = (nextIndex + 1) % width
         val max = values.max()!!
-        maxValue = max(maxValue * 0.995f, max)
+        maxValue = max(maxValue * clamp((1f - 3f * value), 0f, 1f), max)
     }
 
     fun draw() {

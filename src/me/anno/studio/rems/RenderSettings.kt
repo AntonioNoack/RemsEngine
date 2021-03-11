@@ -36,7 +36,7 @@ import kotlin.math.max
 
 object RenderSettings : Transform() {
 
-    // todo render queue
+    // render queue?
 
     override fun getDefaultDisplayName(): String = "Render Settings"
 

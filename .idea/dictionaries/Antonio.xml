@@ -3,12 +3,21 @@
     <words>
       <w>abcdef</w>
       <w>abgr</w>
+      <w>acos</w>
+      <w>acosh</w>
       <w>aliceblue</w>
       <w>animatable</w>
       <w>anno</w>
       <w>antiquewhite</w>
+      <w>arccosine</w>
+      <w>arcsine</w>
+      <w>arctan</w>
+      <w>asin</w>
+      <w>asinh</w>
       <w>asnyc</w>
       <w>asturian</w>
+      <w>atan</w>
+      <w>atanh</w>
       <w>bgra</w>
       <w>blanchedalmond</w>
       <w>blueviolet</w>
@@ -17,6 +26,7 @@
       <w>cacheable</w>
       <w>cadetblue</w>
       <w>catched</w>
+      <w>cbrt</w>
       <w>codepoint</w>
       <w>codepoints</w>
       <w>collada</w>
@@ -82,6 +92,7 @@
       <w>hotpink</w>
       <w>hpluv</w>
       <w>hsluv</w>
+      <w>hypot</w>
       <w>indianred</w>
       <w>infos</w>
       <w>inspectable</w>
@@ -173,6 +184,7 @@
       <w>seagreen</w>
       <w>segoe</w>
       <w>shaders</w>
+      <w>sinh</w>
       <w>skyblue</w>
       <w>skybox</w>
       <w>slateblue</w>
@@ -183,6 +195,7 @@
       <w>starness</w>
       <w>steelblue</w>
       <w>stillimage</w>
+      <w>subarrays</w>
       <w>superfast</w>
       <w>symbola</w>
       <w>tonemapping</w>

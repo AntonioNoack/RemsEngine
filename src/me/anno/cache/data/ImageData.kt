@@ -15,6 +15,8 @@ import me.anno.image.HDRImage
 import me.anno.objects.Video.Companion.imageTimeout
 import me.anno.objects.modes.RotateJPEG
 import me.anno.utils.LOGGER
+import me.anno.utils.Nullable.tryOrException
+import me.anno.utils.Nullable.tryOrNull
 import me.anno.utils.Sleep.waitUntilDefined
 import me.anno.utils.types.Strings.getImportType
 import me.anno.video.VFrame
@@ -23,7 +25,6 @@ import org.joml.Matrix4f
 import org.joml.Vector4f
 import java.awt.image.BufferedImage
 import java.io.File
-import java.io.IOException
 import javax.imageio.ImageIO
 
 
@@ -133,17 +134,10 @@ class ImageData(file: File) : ICacheData {
     }
 
     fun tryGetImage(file: File): BufferedImage? {
-        return try {
-            // try ImageIO first, then Imaging, then give up (we could try FFMPEG, but idk, whether it supports sth useful)
-            ImageIO.read(file) ?: throw IOException()
-        } catch (e: Exception) {
-            try {
-                Imaging.getBufferedImage(file) ?: throw IOException()
-            } catch (e: Exception) {
-                LOGGER.warn("Cannot read image from file $file: ${e.message}")
-                null
-            }
-        }
+        // try ImageIO first, then Imaging, then give up (we could try FFMPEG, but idk, whether it supports sth useful)
+        val image = tryOrNull { ImageIO.read(file) } ?: tryOrException { Imaging.getBufferedImage(file) }
+        if (image is Exception) LOGGER.warn("Cannot read image from file $file: ${image.message}")
+        return image as? BufferedImage
     }
 
     override fun destroy() {

@@ -218,7 +218,7 @@ class LayerStripeSolution(
     ) {
         val f0 = fract0 * (1f + relativeVideoBorder) - relativeVideoBorder * 0.5f
         val f1 = fract1 * (1f + relativeVideoBorder) - relativeVideoBorder * 0.5f
-        if (!(f1 <= 0f || f0 >= 1f)) {
+        if (f1 > 0f && f0 < 1f) {
             // get time at frameIndex
             val centerX = getCenterX(x0, frameOffset, frameWidth)
             val timeAtX = getTimeAt(centerX)

@@ -232,7 +232,7 @@ object UILayouts {
 
             // todo check if all file name parts are valid...
             // todo check if we have write and read access
-            val file = File(fileInput.text)
+            val file = fileInput.file
             var state = 0
             var msg = ""
             when {

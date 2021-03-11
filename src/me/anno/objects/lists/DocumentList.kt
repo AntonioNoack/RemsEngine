@@ -35,7 +35,6 @@ import kotlin.math.*
 // todo different types of lists (x list, y list, grid, linear particle system, random particle system, ...)
 // todo different types of iterators (pdf pages, parts of images, )
 // todo re-project UV textures onto stuff to animate an image exploding (gets UVs from first frame, then just is a particle system or sth else)
-// todo interpolation between lists and sets? could be interesting :)
 
 open class DocumentList(var file: File, parent: Transform?) : GFXTransform(parent) {
 

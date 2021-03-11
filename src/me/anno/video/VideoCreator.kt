@@ -5,13 +5,13 @@ import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.studio.rems.RemsStudio.project
 import me.anno.studio.rems.Rendering.isRendering
+import me.anno.video.FFMPEGStream.Companion.logOutput
 import me.anno.video.FFMPEGUtils.processOutput
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL11.*
 import java.io.File
 import java.io.IOException
-import java.io.InputStream
 import java.io.OutputStream
 import kotlin.concurrent.thread
 
@@ -79,21 +79,13 @@ class VideoCreator(
         if (videoEncodingArguments.isNotEmpty()) args += "-hide_banner"
         args += videoEncodingArguments
         process = ProcessBuilder(args).start()
-        thread { warnOutput(process.inputStream) }
+        thread { logOutput("", process.inputStream, true) }
         thread { processOutput(LOGGER, "Video", startTime, totalFrameCount, process.errorStream) }
 
         videoOut = process.outputStream.buffered()
 
         LOGGER.info("Total frame count: $totalFrameCount")
 
-    }
-
-    fun warnOutput(stream: InputStream) {
-        val reader = stream.bufferedReader()
-        while (true) {
-            val line = reader.readLine() ?: break
-            LOGGER.warn(line)
-        }
     }
 
     private val pixelByteCount = w * h * 3

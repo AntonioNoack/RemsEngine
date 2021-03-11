@@ -6,8 +6,8 @@ open class FFMPEGMeta(file: File?) :
     FFMPEGStream(file, false) {
 
     override fun process(process: Process, arguments: List<String>) {
-        getOutput("error", process.errorStream)
-        getOutput("input", process.inputStream)
+        logOutput("error", process.errorStream, true)
+        logOutput("input", process.inputStream, false)
     }
 
     var stringData = ""

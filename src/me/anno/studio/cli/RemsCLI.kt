@@ -54,14 +54,14 @@ object RemsCLI {
         options.addOption("duration", true, "end time after start, in seconds")
         options.addOption("project", true, "project settings, containing resolution, frame size, duration, ...")
         // todo balance
-        // options.addOption("samples", true, "audio samples per second & channel, e.g. 41000 or 48000") // todo audio samples
+        options.addOption("samples", true, "audio samples per second & channel, e.g. 41000 or 48000")
         // todo all other relevant factors
         val parser = DefaultParser()
         try {
             val line = parser.parse(options, args)
             parse(line, options)
         } catch (e: ParseException) {
-            LOGGER.error("Parsing failed! ${e.message}")
+            error("Parsing failed! ${e.message}")
         }
     }
 
@@ -100,6 +100,7 @@ object RemsCLI {
         project.shutterPercentage = line.parseFloat("shutter", project.shutterPercentage)
         project.motionBlurSteps = line.parseInt("motionBlurSteps", project.motionBlurSteps)
         project.targetVideoQuality = line.parseInt("constantRateFactor", project.targetVideoQuality)
+        project.targetSampleRate = line.parseInt("sampleRate", project.targetSampleRate)
 
         val outputFile = if (line.hasOption("output")) {
             File(line.getOptionValue("output"))
@@ -119,19 +120,18 @@ object RemsCLI {
         }
 
         val startTime = parseTime(line, "start", 0.0)
-        val duration0 =
-            parseTime(line, "duration", project.targetDuration)
+        val duration0 = parseTime(line, "duration", project.targetDuration)
         val endTime = parseTime(line, "end", startTime + duration0)
 
         scene.timeOffset.value += startTime
-        val duration = endTime - startTime
 
+        val duration = endTime - startTime
         if (duration < 0 && renderType != Rendering.RenderType.FRAME) throw ParseException("Duration cannot be < 0")
 
         val output = Rendering.findTargetOutputFile(renderType)
         if (output.isDirectory || output.exists()) {
             if (no) {
-                LOGGER.warn("Aborted, because file already existed!")
+                warn("Aborted, because file already existed!")
                 return
             } else if (!yes) {
                 // ask
@@ -248,17 +248,17 @@ object RemsCLI {
         }
     }
 
+    private fun printHelp(options: Options) {
+        val formatter = HelpFormatter()
+        formatter.printHelp("RemsStudio", options)
+    }
+
     fun warn(message: String) {
         LOGGER.warn(message)
     }
 
     fun error(message: String) {
         LOGGER.error(message)
-    }
-
-    private fun printHelp(options: Options) {
-        val formatter = HelpFormatter()
-        formatter.printHelp("RemsStudio", options)
     }
 
     private val LOGGER = LogManager.getLogger(RemsCLI::class)

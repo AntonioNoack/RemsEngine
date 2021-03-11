@@ -89,6 +89,26 @@ abstract class FFMPEGStream(val file: File?, val isProcessCountLimited: Boolean)
                     // "pipe:1" // 1 = stdout, 2 = stdout
                 )
             ) as FFMPEGAudio
+
+        fun logOutput(prefix: String, stream: InputStream, warn: Boolean) {
+            val reader = stream.bufferedReader()
+            thread {
+                while (true) {
+                    val line = reader.readLine() ?: break
+                    val lineWithPrefix = if(prefix.isEmpty()){
+                        line
+                    } else {
+                        "[$prefix] $line"
+                    }
+                    if(warn){
+                        Companion.LOGGER.warn(lineWithPrefix)
+                    } else {
+                        Companion.LOGGER.info(lineWithPrefix)
+                    }
+                }
+            }
+        }
+
     }
 
     abstract fun destroy()
@@ -118,16 +138,6 @@ abstract class FFMPEGStream(val file: File?, val isProcessCountLimited: Boolean)
 
     var srcW = 0
     var srcH = 0
-
-    fun getOutput(prefix: String, stream: InputStream) {
-        val reader = stream.bufferedReader()
-        thread {
-            while (true) {
-                val line = reader.readLine() ?: break
-                LOGGER.info("[$prefix] $line")
-            }
-        }
-    }
 
     fun devNull(prefix: String, stream: InputStream) {
         thread {

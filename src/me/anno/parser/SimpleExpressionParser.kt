@@ -27,7 +27,6 @@ import kotlin.math.max
  * doesn't care about helpful errors much or top performance
  * no assignments, because it shall be small;
  * no intention for global variables (because it's for artists; it must be good enough via other means)
- * todo ... means repeat last element, whereas otherwise 0?
  * */
 object SimpleExpressionParser {
 

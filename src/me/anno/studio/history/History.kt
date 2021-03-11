@@ -13,6 +13,8 @@ import kotlin.math.max
 
 class History : Saveable() {
 
+    // todo file explorer states?
+
     var currentState: HistoryState? = null
     var nextInsertIndex = 0
         set(value) {
@@ -93,8 +95,6 @@ class History : Saveable() {
             }
         }.reversed())
     }
-
-    // todo file explorer states?
 
     override fun readInt(name: String, value: Int) {
         when (name) {
