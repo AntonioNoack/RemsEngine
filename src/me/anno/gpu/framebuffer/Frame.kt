@@ -16,7 +16,9 @@ class Frame(val x: Int, val y: Int, val w: Int, val h: Int, val changeSize: Bool
         val lastFrame = currentFrame
         currentFrame = this
         try {
+            GFX.check()
             render()
+            GFX.check()
             currentFrame = lastFrame
         } catch (e: Throwable){
             currentFrame = lastFrame

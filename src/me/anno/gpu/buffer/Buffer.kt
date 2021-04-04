@@ -11,7 +11,7 @@ import org.lwjgl.opengl.GL33.glDrawArraysInstanced
 import org.lwjgl.opengl.GL33.glVertexAttribDivisor
 import java.nio.ByteBuffer
 
-abstract class Buffer(val attributes: List<Attribute>, val stride: Int, val usage: Int = GL15.GL_STATIC_DRAW):
+abstract class Buffer(val attributes: List<Attribute>, val stride: Int, val usage: Int = GL15.GL_STATIC_DRAW) :
     ICacheData {
 
     constructor(attributes: List<Attribute>, usage: Int) : this(attributes, attributes.sumBy { it.byteSize }, usage)
@@ -36,21 +36,24 @@ abstract class Buffer(val attributes: List<Attribute>, val stride: Int, val usag
     fun getName() = getName(0)
     fun getName(index: Int) = attributes[index].name
 
+    var locallyAllocated = 0L
+
     fun upload() {
-        if (!isUpToDate) {
-            if (buffer < 0) buffer = glGenBuffers()
-            if (buffer < 0) throw RuntimeException()
-            GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, buffer)
-            if (nioBuffer == null) {
-                createNioBuffer()
-                LOGGER.info("called create nio buffer")
-            }
-            val nio = nioBuffer!!
-            drawLength = nio.position() / stride
-            nio.position(0)
-            GL15.glBufferData(GL15.GL_ARRAY_BUFFER, nio, usage)
-            isUpToDate = true
+        GFX.check()
+        if (buffer < 0) buffer = glGenBuffers()
+        if (buffer < 0) throw IllegalStateException()
+        GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, buffer)
+        if (nioBuffer == null) {
+            createNioBuffer()
+            LOGGER.info("called create nio buffer")
         }
+        val nio = nioBuffer!!
+        drawLength = nio.position() / stride
+        nio.position(0)
+        locallyAllocated = allocate(locallyAllocated, nio.capacity().toLong())
+        GL15.glBufferData(GL15.GL_ARRAY_BUFFER, nio, usage)
+        GFX.check()
+        isUpToDate = true
     }
 
     abstract fun createNioBuffer()
@@ -65,31 +68,64 @@ abstract class Buffer(val attributes: List<Attribute>, val stride: Int, val usag
         return this
     }
 
+    var vao = -1
+
     private fun bindBufferAttributes(shader: Shader, instanced: Boolean) {
-        val instanceDivisor = if(instanced) 1 else 0
+        val instanceDivisor = if (instanced) 1 else 0
+        GFX.check()
         shader.use()
-        attributes.forEach { attr ->
-            val index = shader.getAttributeLocation(attr.name)
-            if (index > -1) {
-                val type = attr.type
-                if (attr.isNativeInt) {
-                    glVertexAttribIPointer(index, attr.components, type.glType, stride, attr.offset)
-                } else {
-                    glVertexAttribPointer(index, attr.components, type.glType, type.normalized, stride, attr.offset)
+        GFX.check()
+        if (vao < 0) {
+            vao = glGenVertexArrays()
+            GFX.check()
+            if (buffer < 0) upload()
+            if (vao < 0) throw IllegalStateException()
+            glBindVertexArray(vao)
+            glBindBuffer(GL_ARRAY_BUFFER, buffer)
+            GFX.check()
+            attributes.forEach { attr ->
+                val index = shader.getAttributeLocation(attr.name)
+                GFX.check()
+                if (index > -1) {
+                    val type = attr.type
+                    if (attr.isNativeInt) {
+                        glVertexAttribIPointer(index, attr.components, type.glType, stride, attr.offset)
+                        GFX.check()
+                    } else {
+                        glVertexAttribPointer(index, attr.components, type.glType, type.normalized, stride, attr.offset)
+                        GFX.check()
+                    }
+                    if (isInstanced[index] != instanced) {
+                        isInstanced[index] = instanced
+                        glVertexAttribDivisor(index, instanceDivisor)
+                        GFX.check()
+                    }
+                    glEnableVertexAttribArray(index)
+                    GFX.check()
                 }
-                if(isInstanced[index] != instanced){
-                    isInstanced[index] = instanced
-                    glVertexAttribDivisor(index, instanceDivisor)
-                }
-                glEnableVertexAttribArray(index)
             }
+        } else {
+            glBindVertexArray(vao)
+            GFX.check()
         }
     }
 
     open fun draw(shader: Shader) = draw(shader, drawMode)
     open fun draw(shader: Shader, mode: Int) {
+        GFX.check()
         bind(shader)
-        draw(mode, 0, drawLength)
+        GFX.check()
+        if(drawLength > 0){
+            draw(mode, 0, drawLength)
+            GFX.check()
+            unbind()
+            GFX.check()
+        }
+    }
+
+    fun unbind() {
+        glBindBuffer(GL_ARRAY_BUFFER, 0)
+        glBindVertexArray(0)
     }
 
     open fun drawInstanced(shader: Shader, base: Buffer) = drawInstanced(shader, base, drawMode)
@@ -97,11 +133,12 @@ abstract class Buffer(val attributes: List<Attribute>, val stride: Int, val usag
         base.bind(shader)
         bindInstanced(shader)
         glDrawArraysInstanced(mode, 0, base.drawLength, drawLength)
+        unbind()
     }
 
     fun bind(shader: Shader) {
         if (!isUpToDate) upload()
-        else if (drawLength > 0) glBindBuffer(GL15.GL_ARRAY_BUFFER, buffer)
+        // else if (drawLength > 0) glBindBuffer(GL15.GL_ARRAY_BUFFER, buffer)
         if (drawLength > 0) {
             bindBufferAttributes(shader, false)
         }
@@ -109,7 +146,7 @@ abstract class Buffer(val attributes: List<Attribute>, val stride: Int, val usag
 
     fun bindInstanced(shader: Shader) {
         if (!isUpToDate) upload()
-        else if (drawLength > 0) glBindBuffer(GL15.GL_ARRAY_BUFFER, buffer)
+        // else if (drawLength > 0) glBindBuffer(GL15.GL_ARRAY_BUFFER, buffer)
         if (drawLength > 0) {
             bindBufferAttributes(shader, true)
         }
@@ -125,15 +162,25 @@ abstract class Buffer(val attributes: List<Attribute>, val stride: Int, val usag
 
     override fun destroy() {
         val buffer = buffer
+        val vao = vao
         if (buffer > -1) {
-            GFX.addGPUTask(1){
+            GFX.addGPUTask(1) {
                 GL15.glDeleteBuffers(buffer)
+                if (vao >= 0) glDeleteVertexArrays(vao)
+                locallyAllocated = allocate(locallyAllocated, 0L)
             }
         }
         this.buffer = -1
+        this.vao = -1
     }
 
     companion object {
+        var allocated = 0L
+        fun allocate(oldValue: Long, newValue: Long): Long {
+            allocated += newValue - oldValue
+            return newValue
+        }
+
         private val LOGGER = LogManager.getLogger(Buffer::class.java)
         private val isInstanced = BooleanArray(128)
     }

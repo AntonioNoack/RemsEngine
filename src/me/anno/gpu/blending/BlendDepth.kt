@@ -23,6 +23,7 @@ data class BlendDepth(val blendMode: BlendMode?, val depth: Boolean, val depthMa
     }
 
     private fun use(render: () -> Unit){
+        GFX.check()
         bind()
         try {
             render()

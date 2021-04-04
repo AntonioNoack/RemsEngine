@@ -60,10 +60,11 @@ open class Shader(
         val fragmentSource = ("" +
                 "#version $glslVersion\n" +
                 "precision mediump float; ${varying.replace("varying", "in")} ${
-                if (fragment.contains("gl_FragColor") && glslVersion == DefaultGLSLVersion) {
-                    "out vec4 glFragColor;" +
-                            fragment.replace("gl_FragColor", "glFragColor")
-                } else fragment}").replaceShortCuts()
+                    if (fragment.contains("gl_FragColor") && glslVersion == DefaultGLSLVersion) {
+                        "out vec4 glFragColor;" +
+                                fragment.replace("gl_FragColor", "glFragColor")
+                    } else fragment
+                }").replaceShortCuts()
         val fragmentShader = compile(GL_FRAGMENT_SHADER, fragmentSource)
         glLinkProgram(program)
         glDeleteShader(vertexShader)
@@ -123,11 +124,12 @@ open class Shader(
         if (log.isNotBlank()) {
             LOGGER.warn(
                 "$log by\n\n${
-                source
-                    .split('\n')
-                    .mapIndexed { index, line ->
-                        "${"%1\$3s".format(index + 1)}: $line"
-                    }.joinToString("\n")}"
+                    source
+                        .split('\n')
+                        .mapIndexed { index, line ->
+                            "${"%1\$3s".format(index + 1)}: $line"
+                        }.joinToString("\n")
+                }"
             )
             /*if(!log.contains("deprecated", true)){
                 throw RuntimeException()
@@ -171,8 +173,8 @@ open class Shader(
         }
     }
 
-    fun v1(name: String, x: Int) {
-        val loc = getUniformLocation(name)
+    fun v1(name: String, x: Int) = v1(getUniformLocation(name), x)
+    fun v1(loc: Int, x: Int) {
         if (loc > -1) {
             val asFloat = x.toFloat()
             if (asFloat.toInt() != x) {
@@ -189,8 +191,8 @@ open class Shader(
         }
     }
 
-    fun v1(name: String, x: Float) {
-        val loc = getUniformLocation(name)
+    fun v1(name: String, x: Float) = v1(getUniformLocation(name), x)
+    fun v1(loc: Int, x: Float) {
         if (loc > -1) {
             val index0 = loc * 4
             if (uniformCache[index0 + 0, Float.NaN] != x) {
@@ -201,8 +203,8 @@ open class Shader(
         }
     }
 
-    fun v2(name: String, x: Float, y: Float) {
-        val loc = getUniformLocation(name)
+    fun v2(name: String, x: Float, y: Float) = v2(getUniformLocation(name), x, y)
+    fun v2(loc: Int, x: Float, y: Float) {
         if (loc > -1) {
             val index0 = loc * 4
             if (
@@ -217,8 +219,8 @@ open class Shader(
         }
     }
 
-    fun v3(name: String, x: Float, y: Float, z: Float) {
-        val loc = getUniformLocation(name)
+    fun v3(name: String, x: Float, y: Float, z: Float) = v3(getUniformLocation(name), x, y, z)
+    fun v3(loc: Int, x: Float, y: Float, z: Float) {
         if (loc > -1) {
             val index0 = loc * 4
             if (
@@ -235,27 +237,43 @@ open class Shader(
         }
     }
 
-    fun v3X(name: String, v: Vector4f) {
-        v3(name, v.x / v.w, v.y / v.w, v.z / v.w)
-    }
+    fun v3X(loc: Int, v: Vector4f) = v3(loc, v.x / v.w, v.y / v.w, v.z / v.w)
+    fun v3X(name: String, v: Vector4f) = v3(name, v.x / v.w, v.y / v.w, v.z / v.w)
 
-    fun v3(name: String, color: Int) {
+    fun v3(name: String, color: Int) = v3(getUniformLocation(name), color)
+    fun v3(loc: Int, color: Int) {
         v3(
-            name,
+            loc,
             (color.shr(16) and 255) / 255f,
             (color.shr(8) and 255) / 255f,
             color.and(255) / 255f
         )
     }
 
-    fun v4(name: String, x: Float, y: Float, z: Float, w: Float) {
-        val loc = getUniformLocation(name)
-        if (loc > -1) glUniform4f(loc, x, y, z, w)
+    fun v4(name: String, x: Float, y: Float, z: Float, w: Float) = v4(getUniformLocation(name), x, y, z, w)
+    fun v4(loc: Int, x: Float, y: Float, z: Float, w: Float) {
+        if (loc > -1) {
+            val index0 = loc * 4
+            if (
+                uniformCache[index0 + 0, Float.NaN] != x ||
+                uniformCache[index0 + 1, Float.NaN] != y ||
+                uniformCache[index0 + 2, Float.NaN] != z ||
+                uniformCache[index0 + 3, Float.NaN] != w
+            ) {
+                uniformCache[index0 + 0] = x
+                uniformCache[index0 + 1] = y
+                uniformCache[index0 + 2] = z
+                uniformCache[index0 + 3] = w
+                use()
+                glUniform4f(loc, x, y, z, w)
+            }
+        }
     }
 
-    fun v4(name: String, color: Int) {
+    fun v4(name: String, color: Int) = v4(getUniformLocation(name), color)
+    fun v4(loc: Int, color: Int) {
         v4(
-            name,
+            loc,
             (color.shr(16) and 255) / 255f,
             (color.shr(8) and 255) / 255f,
             color.and(255) / 255f,
@@ -263,16 +281,23 @@ open class Shader(
         )
     }
 
-
-    fun v4(name: String, color: Int, alpha: Float) {
+    fun v4(name: String, color: Int, alpha: Float) = v4(getUniformLocation(name), color, alpha)
+    fun v4(loc: Int, color: Int, alpha: Float) {
         v4(
-            name,
+            loc,
             color.shr(16).and(255) / 255f,
             color.shr(8).and(255) / 255f,
             color.and(255) / 255f, alpha
         )
     }
 
+    fun v2(loc: Int, all: Float) = v2(loc, all, all)
+    fun v3(loc: Int, all: Float) = v3(loc, all, all, all)
+    fun v4(loc: Int, all: Float) = v4(loc, all, all, all, all)
+
+    fun v2(loc: Int, v: Vector2fc) = v2(loc, v.x(), v.y())
+    fun v3(loc: Int, v: Vector3fc) = v3(loc, v.x(), v.y(), v.z())
+    fun v4(loc: Int, v: Vector4fc) = v4(loc, v.x(), v.y(), v.z(), v.w())
 
     fun v2(name: String, all: Float) = v2(name, all, all)
     fun v3(name: String, all: Float) = v3(name, all, all, all)

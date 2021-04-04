@@ -9,32 +9,26 @@ import me.anno.config.DefaultConfig;
 import me.anno.input.Input;
 import me.anno.language.translation.NameDesc;
 import me.anno.studio.StudioBase;
+import me.anno.ui.base.Panel;
 import me.anno.ui.base.menu.Menu;
 import me.anno.utils.Clock;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.Version;
-import org.lwjgl.glfw.GLFWErrorCallback;
-import org.lwjgl.glfw.GLFWFramebufferSizeCallback;
-import org.lwjgl.glfw.GLFWKeyCallback;
-import org.lwjgl.glfw.GLFWVidMode;
+import org.lwjgl.glfw.*;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GLCapabilities;
-import org.lwjgl.opengl.GLDebugMessageCallback;
 import org.lwjgl.opengl.GLUtil;
 import org.lwjgl.system.Callback;
 import org.lwjgl.system.MemoryStack;
-import org.lwjgl.system.NativeResource;
 
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.nio.IntBuffer;
-import java.util.ArrayList;
 
+import static java.lang.StrictMath.abs;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL43.GL_DEBUG_OUTPUT;
-import static org.lwjgl.opengl.GL43.glDebugMessageCallback;
 import static org.lwjgl.system.MemoryUtil.NULL;
 import static org.lwjgl.system.MemoryUtil.memAddress;
 
@@ -162,9 +156,11 @@ public class GFXBase0 {
         newTitle = title;
     }
 
-    private void setNewTitle(String title){
+    private void setNewTitle(String title) {
         glfwSetWindowTitle(window, title);
     }
+
+    boolean isInFocus = false;
 
     public void addCallbacks() {
         glfwSetKeyCallback(window, keyCallback = new GLFWKeyCallback() {
@@ -185,9 +181,16 @@ public class GFXBase0 {
                 }
             }
         });
+        glfwSetWindowFocusCallback(window, new GLFWWindowFocusCallback() {
+            @Override
+            public void invoke(long window, boolean isInFocus0) {
+                isInFocus = isInFocus0;
+            }
+        });
     }
 
     GLCapabilities capabilities;
+
     private void runRenderLoop() {
 
         Clock tick = new Clock();
@@ -208,6 +211,8 @@ public class GFXBase0 {
 
         while (!destroyed) {
             synchronized (lock2) {
+
+                long startTime = System.nanoTime();
                 renderStep();
 
                 synchronized (lock) {
@@ -215,6 +220,20 @@ public class GFXBase0 {
                         glfwSwapBuffers(window);
                     }
                 }
+                if(!isInFocus) {
+                    try {
+                        // enforce 30 fps, because we don't need more
+                        // and don't want to waste energy
+                        for(int i=0;i<40;i++){
+                            long currentTime = System.nanoTime();
+                            if(abs(currentTime - startTime) < 30_000_000){
+                                // we still need to wait
+                                Thread.sleep(1);
+                            } else break;
+                        }
+                    } catch (InterruptedException ignored){ }
+                }
+
             }
         }
 
@@ -334,7 +353,13 @@ public class GFXBase0 {
     private String newTitle = null;
     boolean shouldClose = false;
 
+    public Panel trapMousePanel;
+    public float trapMouseRadius = 250f;
+
     void windowLoop() {
+
+        Thread.currentThread().setName("GLFW");
+
         /*
          * Start new thread to have the OpenGL context current in and which does
          * the rendering.
@@ -344,11 +369,31 @@ public class GFXBase0 {
             cleanUp();
         }).start();
 
+        boolean cursorIsHidden = false;
+
         while (!shouldClose) {
             while (!glfwWindowShouldClose(window) && !shouldClose) {
-                if(newTitle != null){
+                if (newTitle != null) {
                     setNewTitle(newTitle);
                     newTitle = null;
+                }
+                if (trapMousePanel != null && isInFocus && trapMousePanel == GFX.INSTANCE.getInFocus0()) {
+                    if (!cursorIsHidden) {
+                        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+                        cursorIsHidden = true;
+                    }
+                    float x = Input.INSTANCE.getMouseX();
+                    float y = Input.INSTANCE.getMouseY();
+                    float centerX = GFX.INSTANCE.getWindowWidth() * 0.5f;
+                    float centerY = GFX.INSTANCE.getWindowHeight() * 0.5f;
+                    float dx = x - centerX;
+                    float dy = y - centerY;
+                    if (dx * dx + dy * dy > trapMouseRadius * trapMouseRadius) {
+                        glfwSetCursorPos(window, centerX, centerY);
+                    }
+                } else if (cursorIsHidden) {
+                    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+                    cursorIsHidden = false;
                 }
                 glfwWaitEvents();
             }
@@ -376,7 +421,8 @@ public class GFXBase0 {
         glfwSetWindowShouldClose(window, true);
     }
 
-    public void cleanUp() { }
+    public void cleanUp() {
+    }
 
     public static void main(String[] args) {
         new GFXBase0().run();

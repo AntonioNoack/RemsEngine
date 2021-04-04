@@ -1,6 +1,7 @@
 package me.anno.video
 
 import me.anno.gpu.GFX
+import me.anno.utils.Sleep.sleepShortly
 import me.anno.video.IsFFMPEGOnly.isFFMPEGOnlyExtension
 import me.anno.video.formats.ARGBFrame
 import me.anno.video.formats.BGRAFrame
@@ -49,7 +50,7 @@ class FFMPEGVideo(
     var isFinished = false
     private fun readFrame(input: InputStream) {
         while (w == 0 || h == 0 || codec.isEmpty()) {
-            Thread.sleep(0, 100_000)
+            sleepShortly()
         }
         if (!isDestroyed && !isFinished) {
             try {

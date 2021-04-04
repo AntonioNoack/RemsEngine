@@ -2,8 +2,8 @@ package me.anno.mesh.fbx
 
 fun markCalculatorForJasmin() {
 
-    val marks = 15..25
-    val markCount = 15..19
+    val marks = 10..22
+    val markCount = 13..15
 
     fun line() {
         for (mark in markCount) {

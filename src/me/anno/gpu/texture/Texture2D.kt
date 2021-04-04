@@ -23,7 +23,6 @@ import java.nio.Buffer
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
-import kotlin.concurrent.thread
 
 open class Texture2D(
     val name: String,
@@ -52,6 +51,8 @@ open class Texture2D(
     // only used for images with exif rotation tag...
     var rotation: RotateJPEG? = null
 
+    var locallyAllocated = 0L
+
     fun setSize(width: Int, height: Int) {
         w = width
         h = height
@@ -59,10 +60,12 @@ open class Texture2D(
 
     fun ensurePointer() {
         if (pointer < 0) {
+            GFX.check()
             pointer = createTexture()
             state = Triple(this, pointer, isCreated)
             // many textures can be created by the console log and the fps viewer constantly xD
             // maybe we should use allocation free versions there xD
+            GFX.check()
         }
         if (pointer <= 0) throw RuntimeException()
     }
@@ -70,6 +73,7 @@ open class Texture2D(
     fun create() {
         ensurePointer()
         bindBeforeUpload()
+        locallyAllocated = allocate(locallyAllocated, w * h * 4L)
         if (withMultisampling) {
             glTexImage2DMultisample(tex2D, samples, GL_RGBA8, w, h, false)
         } else {
@@ -83,6 +87,7 @@ open class Texture2D(
     fun create(type: TargetType) {
         ensurePointer()
         bindBeforeUpload()
+        locallyAllocated = allocate(locallyAllocated, w * h * type.bytesPerPixel.toLong())
         if (withMultisampling) {
             glTexImage2DMultisample(tex2D, samples, type.type0, w, h, false)
         } else {
@@ -99,6 +104,7 @@ open class Texture2D(
         ensurePointer()
         bindBeforeUpload()
         GFX.check()
+        locallyAllocated = allocate(locallyAllocated, w * h * 32L)
         if (withMultisampling) {
             glTexImage2DMultisample(tex2D, samples, GL_RGBA32F, w, h, false)
         } else {
@@ -256,6 +262,7 @@ open class Texture2D(
         val t0 = System.nanoTime()
         ensurePointer()
         bindBeforeUpload()
+        locallyAllocated = allocate(locallyAllocated, w * h * 4L)
         glTexImage2D(tex2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
         val t1 = System.nanoTime() // 0.02s for a single 4k texture
         isCreated = true
@@ -307,6 +314,7 @@ open class Texture2D(
         GFX.check()
         ensurePointer()
         bindBeforeUpload()
+        locallyAllocated = allocate(locallyAllocated, w * h * 4L)
         glTexImage2D(tex2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, ints)
         /*uploadData2(toByteBuffer(ints)) {
             GFX.check()
@@ -324,6 +332,7 @@ open class Texture2D(
         ensurePointer()
         bindBeforeUpload()
         GFX.check()
+        locallyAllocated = allocate(locallyAllocated, w * h.toLong())
         glTexImage2D(tex2D, 0, GL_RED, w, h, 0, GL_RED, GL_UNSIGNED_BYTE, data)
         isCreated = true
         filtering(filtering)
@@ -341,6 +350,7 @@ open class Texture2D(
         ensurePointer()
         bindBeforeUpload()
         GFX.check()
+        locallyAllocated = allocate(locallyAllocated, w * h * 4L)
         glTexImage2D(tex2D, 0, GL_R32F, w, h, 0, GL_RED, GL_FLOAT, data)
         isCreated = true
         filtering(filtering)
@@ -358,6 +368,7 @@ open class Texture2D(
         byteBuffer.position(0)
         byteBuffer.put(data)
         byteBuffer.position(0)
+        locallyAllocated = allocate(locallyAllocated, w * h.toLong())
         glTexImage2D(tex2D, 0, GL_RED, w, h, 0, GL_RED, GL_UNSIGNED_BYTE, byteBuffer)
         isCreated = true
         filtering(filtering)
@@ -382,6 +393,7 @@ open class Texture2D(
         bindBeforeUpload()
         GFX.check()
         // rgba32f as internal format is extremely important... otherwise the value is cropped
+        locallyAllocated = allocate(locallyAllocated, w * h * 4L)
         glTexImage2D(tex2D, 0, GL_RGBA32F, w, h, 0, GL_RGBA, GL_FLOAT, buffer)
         isCreated = true
         filtering(filtering)
@@ -402,6 +414,7 @@ open class Texture2D(
         ensurePointer()
         bindBeforeUpload()
         GFX.check()
+        locallyAllocated = allocate(locallyAllocated, w * h * 4L)
         glTexImage2D(tex2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
         isCreated = true
         filtering(filtering)
@@ -472,6 +485,7 @@ open class Texture2D(
         this.isCreated = false
         val pointer = pointer
         if (pointer > -1) {
+            locallyAllocated = allocate(locallyAllocated, 0L)
             texturesToDelete.add(pointer)
         }
         this.pointer = -1
@@ -480,6 +494,7 @@ open class Texture2D(
     fun createDepth() {
         ensurePointer()
         bindBeforeUpload()
+        locallyAllocated = allocate(locallyAllocated, w * h * 4L)
         if (withMultisampling) {
             glTexImage2DMultisample(tex2D, samples, GL_DEPTH_COMPONENT32, w, h, false)
         } else {
@@ -499,6 +514,12 @@ open class Texture2D(
     }
 
     companion object {
+
+        var allocated = 0L
+        fun allocate(oldValue: Long, newValue: Long): Long {
+            allocated += newValue - oldValue
+            return newValue
+        }
 
         var boundTextureSlot = 0
         val boundTextures = IntArray(512)

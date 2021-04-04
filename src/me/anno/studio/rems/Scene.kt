@@ -57,6 +57,7 @@ object Scene {
     // this should give correct color mixing <3
     // (color gamma correction, 2.2 is close to 2.0; shouldn't matter in my opinion)
     // can't remove the heart after this talk: https://www.youtube.com/watch?v=SzoquBerhUc ;)
+    // (Oh The Humanity! - Kate Gregory [C++ on Sea 2019])
 
     lateinit var sqrtToneMappingShader: Shader
     lateinit var lutShader: Shader

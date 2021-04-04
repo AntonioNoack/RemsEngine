@@ -157,6 +157,10 @@ object GFXx2D {
 
         // todo correct distances for everything
 
+        if('\n' in text){
+            throw NotImplementedError("Linebreak for drawTextCharByChar")
+        }
+
         val charWidth = if (equalSpaced)
             getTextSize(font, "x", widthLimit).first
         else 0

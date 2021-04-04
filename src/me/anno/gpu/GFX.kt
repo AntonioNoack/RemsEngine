@@ -428,17 +428,35 @@ object GFX : GFXBase1() {
     }
 
     var glThread: Thread? = null
-    fun check() {
-        if (isDebug) {
-            val currentThread = Thread.currentThread()
-            if (currentThread != glThread) {
-                if (glThread == null) {
-                    glThread = currentThread
-                    currentThread.name = "OpenGL"
-                } else {
-                    throw RuntimeException("GFX.check() called from wrong thread! Always use GFX.addGPUTask { ... }")
-                }
+
+    fun checkIsNotGFXThread(){
+        if(isGFXThread()){
+            throw IllegalAccessException("Cannot call from OpenGL thread")
+        }
+    }
+
+    fun isGFXThread(): Boolean {
+        if(glThread == null) return false
+        val currentThread = Thread.currentThread()
+        return currentThread == glThread
+    }
+
+    fun checkIsGFXThread(){
+        val currentThread = Thread.currentThread()
+        if (currentThread != glThread) {
+            if (glThread == null) {
+                glThread = currentThread
+                currentThread.name = "OpenGL"
+            } else {
+                throw IllegalAccessException("GFX.check() called from wrong thread! Always use GFX.addGPUTask { ... }")
             }
+        }
+    }
+
+    fun check() {
+        // assumes that the first access is indeed from the OpenGL thread
+        if (isDebug) {
+            checkIsGFXThread()
             val error = glGetError()
             if (error != 0) {
                 /*Framebuffer.stack.forEach {

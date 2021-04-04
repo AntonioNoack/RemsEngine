@@ -147,7 +147,6 @@ class VideoBackgroundTask(
                         }
                     }
                 }
-
             }
         }
 

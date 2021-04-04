@@ -94,7 +94,7 @@ open class Panel(val style: Style) {
      * */
     open var weight = 0f
         set(value) {
-            if(value.isFinite()){
+            if (value.isFinite()) {
                 field = value
             }
         }
@@ -125,7 +125,7 @@ open class Panel(val style: Style) {
     open val onMovementHideTooltip = true
     var tooltip: String? = null
 
-    fun requestFocus() = GFX.requestFocus(this, true)
+    open fun requestFocus() = GFX.requestFocus(this, true)
 
     fun drawBackground() {
         // if the children are overlapping, this is incorrect
@@ -370,7 +370,7 @@ open class Panel(val style: Style) {
     open fun isKeyInput() = false
     open fun acceptsChar(char: Int) = true
 
-    fun listOfHierarchy(callback: (Panel) -> Unit){
+    fun listOfHierarchy(callback: (Panel) -> Unit) {
         parent?.listOfHierarchy(callback)
         callback(this)
     }
@@ -383,11 +383,11 @@ open class Panel(val style: Style) {
             yield(this@Panel)
         }
 
-    fun listOfVisible(callback: (Panel) -> Unit){
-        if(canBeSeen){
+    fun listOfVisible(callback: (Panel) -> Unit) {
+        if (canBeSeen) {
             callback(this)
-            if(this is PanelGroup){
-                for(child in children) {
+            if (this is PanelGroup) {
+                for (child in children) {
                     child.listOfAll(callback)
                 }
             }
@@ -406,10 +406,10 @@ open class Panel(val style: Style) {
             }
         }
 
-    fun listOfAll(callback: (Panel) -> Unit){
+    fun listOfAll(callback: (Panel) -> Unit) {
         callback(this)
-        if(this is PanelGroup){
-            for(child in children) {
+        if (this is PanelGroup) {
+            for (child in children) {
                 child.listOfAll(callback)
             }
         }

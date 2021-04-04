@@ -27,6 +27,14 @@ import java.io.File
 
 // Launch4j
 
+// todo Version 2:
+// todo make stuff component based and compile shaders on the fly...
+// would allow easy system for pdf particles and such... maybe...
+
+// todo color to alpha
+// todo alpha to color ???
+// todo discard alpha being > or < than x / map alpha
+
 // todo spline polygon editor inside Rem's Studio, with points, that can be animated (???)
 
 // todo draw frame by frame, only save x,y,radius?
@@ -40,7 +48,7 @@ import java.io.File
 
 object RemsStudio : StudioBase(true, "Rem's Studio", 10003) {
 
-    private val LOGGER = LogManager.getLogger(RemsStudio::class)
+    // private val LOGGER = LogManager.getLogger(RemsStudio::class)
 
     override fun onGameInit() {
         RemsConfig.init()
