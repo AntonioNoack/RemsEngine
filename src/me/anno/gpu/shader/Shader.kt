@@ -307,61 +307,61 @@ open class Shader(
     fun v3(name: String, v: Vector3fc) = v3(name, v.x(), v.y(), v.z())
     fun v4(name: String, v: Vector4fc) = v4(name, v.x(), v.y(), v.z(), v.w())
 
-    fun m3x3(name: String, value: Matrix3fc = identity3) {
-        use()
-        val loc = this[name]
+    fun m3x3(name: String, value: Matrix3fc = identity3) = m3x3(getUniformLocation(name), value)
+    fun m3x3(loc: Int, value: Matrix3fc = identity3) {
         if (loc > -1) {
+            use()
             value.get(matrixBuffer)
             glUniformMatrix3fv(loc, false, matrixBuffer)
         }
     }
 
-    fun m4x3(name: String, value: Matrix4x3fc = identity4x3) {
-        use()
-        val loc = this[name]
+    fun m4x3(name: String, value: Matrix4x3fc = identity4x3) = m4x3(getUniformLocation(name), value)
+    fun m4x3(loc: Int, value: Matrix4x3fc = identity4x3) {
         if (loc > -1) {
+            use()
             value.get(matrixBuffer)
             glUniformMatrix4x3fv(loc, false, matrixBuffer)
         }
     }
 
-    fun m4x4(name: String, value: Matrix4fc = identity4) {
-        use()
-        val loc = this[name]
+    fun m4x4(name: String, value: Matrix4fc = identity4) = m4x4(getUniformLocation(name), value)
+    fun m4x4(loc: Int, value: Matrix4fc = identity4) {
         if (loc > -1) {
+            use()
             value.get(matrixBuffer)
             glUniformMatrix4fv(loc, false, matrixBuffer)
         }
     }
 
-    fun v1Array(name: String, value: FloatBuffer) {
-        use()
-        val loc = this[name]
+    fun v1Array(name: String, value: FloatBuffer) = v1Array(getUniformLocation(name), value)
+    fun v1Array(loc: Int, value: FloatBuffer) {
         if (loc > -1) {
+            use()
             glUniform1fv(loc, value)
         }
     }
 
-    fun v2Array(name: String, value: FloatBuffer) {
-        use()
-        val loc = this[name]
+    fun v2Array(name: String, value: FloatBuffer) = v2Array(getUniformLocation(name), value)
+    fun v2Array(loc: Int, value: FloatBuffer) {
         if (loc > -1) {
+            use()
             glUniform2fv(loc, value)
         }
     }
 
-    fun v3Array(name: String, value: FloatBuffer) {
-        use()
-        val loc = this[name]
+    fun v3Array(name: String, value: FloatBuffer) = v3Array(getUniformLocation(name), value)
+    fun v3Array(loc: Int, value: FloatBuffer) {
         if (loc > -1) {
+            use()
             glUniform3fv(loc, value)
         }
     }
 
-    fun v4Array(name: String, value: FloatBuffer) {
-        use()
-        val loc = this[name]
+    fun v4Array(name: String, value: FloatBuffer) = v4Array(getUniformLocation(name), value)
+    fun v4Array(loc: Int, value: FloatBuffer) {
         if (loc > -1) {
+            use()
             glUniform4fv(loc, value)
         }
     }
