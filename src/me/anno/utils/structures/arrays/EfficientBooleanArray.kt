@@ -5,11 +5,11 @@ import me.anno.io.base.BaseWriter
 
 /**
  * more efficient Boolean Array,
- * upto 8x more efficient
+ * up to 8x more efficient
  * slower access
  * less thread-save
  * */
-class BoolArray(var size: Int) : Saveable() {
+class EfficientBooleanArray(var size: Int) : Saveable() {
 
     constructor() : this(0)
 

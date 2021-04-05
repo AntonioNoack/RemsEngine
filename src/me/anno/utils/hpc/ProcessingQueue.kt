@@ -27,6 +27,7 @@ open class ProcessingQueue(val name: String){
                     e.printStackTrace()
                 }
             }
+            LOGGER.info("Finished $name")
         }
     }
 

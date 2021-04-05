@@ -33,7 +33,7 @@ import me.anno.objects.text.Timer
 import me.anno.studio.history.History
 import me.anno.studio.history.HistoryState
 import me.anno.ui.editor.sceneView.SceneTabData
-import me.anno.utils.structures.arrays.BoolArray
+import me.anno.utils.structures.arrays.EfficientBooleanArray
 import org.apache.logging.log4j.LogManager
 
 abstract class BaseReader {
@@ -153,7 +153,7 @@ abstract class BaseReader {
                 "VelocityFrictionForce" -> VelocityFrictionForce()
                 "History" -> History()
                 "HistoryState" -> HistoryState()
-                "BoolArray" -> BoolArray()
+                "BoolArray" -> EfficientBooleanArray()
                 "TextParticles" -> TextParticles()
                 "SoftLink" -> SoftLink()
                 "PDFDocument" -> PDFDocument()

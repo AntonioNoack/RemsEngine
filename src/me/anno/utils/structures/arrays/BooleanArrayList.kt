@@ -4,7 +4,7 @@ import kotlin.math.max
 
 class BooleanArrayList(val capacity: Int, val defaultValue: Boolean = false) {
 
-    private val buffers = ArrayList<BoolArray>()
+    private val buffers = ArrayList<EfficientBooleanArray>()
     var size = 0
 
     operator fun get(index: Int) = buffers[index / capacity][index % capacity]
@@ -21,7 +21,7 @@ class BooleanArrayList(val capacity: Int, val defaultValue: Boolean = false) {
     }
 
     private fun addBuffer() {
-        buffers.add(BoolArray(capacity, defaultValue))
+        buffers.add(EfficientBooleanArray(capacity, defaultValue))
     }
 
     operator fun set(index: Int, value: Boolean) {
