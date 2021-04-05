@@ -140,21 +140,4 @@ object Maths {
         return y
     }
 
-    /**
-     * reduces errors, because neither push nor pop can be forgotten,
-     * even if errors happen
-     * */
-    fun <V> Matrix4fArrayList.next(run: () -> V): V {
-        pushMatrix()
-        val result: V
-        try {
-            result = run()
-            popMatrix()
-        } catch (e: Throwable){
-            popMatrix()
-            throw e
-        }
-        return result
-    }
-
 }

@@ -232,6 +232,7 @@ class Framebuffer(
             textures.forEach {
                 it.destroy()
             }
+            depthTexture?.destroy()
         }
         if (depthRenderBuffer > -1) {
             glDeleteRenderbuffers(depthRenderBuffer)

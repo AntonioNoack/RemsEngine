@@ -41,7 +41,6 @@ import me.anno.ui.input.BooleanInput
 import me.anno.ui.input.EnumInput
 import me.anno.ui.style.Style
 import me.anno.utils.Maths.mix
-import me.anno.utils.Maths.next
 import me.anno.utils.types.Vectors.mulAlpha
 import me.anno.utils.types.Vectors.plus
 import me.anno.utils.types.Vectors.times

@@ -19,7 +19,6 @@ import me.anno.objects.modes.UVProjection
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
-import me.anno.utils.Maths.next
 import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.utils.types.Floats.toRadians
 import me.anno.utils.types.Lists.median

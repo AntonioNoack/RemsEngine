@@ -5,12 +5,15 @@ import org.apache.logging.log4j.LogManager
 import java.util.concurrent.LinkedBlockingQueue
 import kotlin.concurrent.thread
 
-class ProcessingQueue(val name: String){
+open class ProcessingQueue(val name: String){
 
     private val tasks = LinkedBlockingQueue<() -> Unit>()
 
-    fun start() {
-        thread {
+    private var hasBeenStarted = false
+    open fun start(name: String = this.name, force: Boolean = false) {
+        if(hasBeenStarted && !force) return
+        hasBeenStarted = true
+        thread(name = name) {
             while (!shallShutDown) {
                 try {
                     // will block, until we have new work
@@ -24,7 +27,7 @@ class ProcessingQueue(val name: String){
                     e.printStackTrace()
                 }
             }
-        }.name = name
+        }
     }
 
     operator fun plusAssign(task: () -> Unit) {

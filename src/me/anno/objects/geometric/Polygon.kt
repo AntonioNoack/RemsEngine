@@ -23,7 +23,6 @@ import me.anno.ui.editor.files.hasValidName
 import me.anno.ui.style.Style
 import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.utils.Maths.clamp
-import me.anno.utils.Maths.next
 import me.anno.video.MissingFrameException
 import org.joml.*
 import java.io.File

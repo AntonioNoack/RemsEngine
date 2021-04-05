@@ -2,7 +2,6 @@ package me.anno.objects.distributions
 
 import me.anno.objects.inspectable.InspectableVector
 import me.anno.ui.editor.sceneView.Grid
-import me.anno.utils.Maths.next
 import org.joml.*
 
 class ConstantDistribution(val center: Vector4f) : Distribution(

@@ -11,7 +11,6 @@ import me.anno.gpu.texture.*
 import me.anno.objects.GFXTransform.Companion.uploadAttractors0
 import me.anno.objects.modes.UVProjection
 import me.anno.ui.base.Font
-import me.anno.utils.Maths.next
 import me.anno.video.VFrame
 import org.joml.Matrix4f
 import org.joml.Matrix4fArrayList

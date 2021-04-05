@@ -1,5 +1,7 @@
 package org.joml;
 
+import kotlin.jvm.functions.Function0;
+
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
@@ -11,7 +13,7 @@ import java.util.ArrayList;
  * This {@link Matrix4fArrayList} class inherits from {@link Matrix4f}, so the current/top matrix is always the {@link Matrix4fArrayList}/{@link Matrix4f} itself. This
  * affects all operations in {@link Matrix4f} that take another {@link Matrix4f} as parameter. If a {@link Matrix4fArrayList} is used as argument to those methods,
  * the effective argument will always be the <i>current</i> matrix of the matrix stack.
- * 
+ *
  * @author Kai Burjack, modified by Antonio Noack to be infinite, yet not allocation free
  * users of RemsStudio shouldn't have to worry about tree depth, if their machine is strong enough to handle it
  */
@@ -29,16 +31,20 @@ public class Matrix4fArrayList extends Matrix4f {
      */
     private int currentIndex;
 
-    public Matrix4fArrayList() {}
+    public Matrix4fArrayList() {
+    }
 
-    public int getSize(){
+    public int getSize() {
         return matrices.size();
     }
-    public int getCurrentIndex() { return currentIndex; }
+
+    public int getCurrentIndex() {
+        return currentIndex;
+    }
 
     /**
      * Set the stack pointer to zero and set the current/bottom matrix to {@link #identity() identity}.
-     * 
+     *
      * @return this
      */
     public Matrix4fArrayList clear() {
@@ -49,7 +55,7 @@ public class Matrix4fArrayList extends Matrix4f {
 
     /**
      * Increment the stack pointer by one and set the values of the new current matrix to the one directly below it.
-     * 
+     *
      * @return this
      */
     public Matrix4fArrayList pushMatrix() {
@@ -64,7 +70,7 @@ public class Matrix4fArrayList extends Matrix4f {
      * Decrement the stack pointer by one.
      * <p>
      * This will effectively dispose of the current matrix.
-     * 
+     *
      * @return this
      */
     public Matrix4fArrayList popMatrix() {
@@ -87,12 +93,12 @@ public class Matrix4fArrayList extends Matrix4f {
 
     /*
      * Contract between Matrix4f and Matrix4fStack:
-     * 
+     *
      * - Matrix4f.equals(Matrix4fStack) is true iff all the 16 matrix elements are equal
      * - Matrix4fStack.equals(Matrix4f) is true iff all the 16 matrix elements are equal
      * - Matrix4fStack.equals(Matrix4fStack) is true iff all 16 matrix elements are equal AND the matrix arrays as well as the stack pointer are equal
      * - everything else is inequal
-     * 
+     *
      * (non-Javadoc)
      * @see org.joml.Matrix4f#equals(java.lang.Object)
      */
@@ -130,6 +136,24 @@ public class Matrix4fArrayList extends Matrix4f {
             m.readExternal(in);
             matrices.set(i, m);
         }
+    }
+
+
+    /**
+     * reduces errors, because neither push nor pop can be forgotten,
+     * even if errors happen
+     */
+    public <V> V next(Function0<V> run) {
+        pushMatrix();
+        V result;
+        try {
+            result = run.invoke();
+            popMatrix();
+        } catch (Throwable e) {
+            popMatrix();
+            throw e;
+        }
+        return result;
     }
 
 }

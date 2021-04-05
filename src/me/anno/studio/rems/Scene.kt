@@ -31,7 +31,6 @@ import me.anno.studio.rems.Selection.selectedTransform
 import me.anno.ui.editor.sceneView.Gizmo.drawGizmo
 import me.anno.ui.editor.sceneView.Grid
 import me.anno.ui.editor.sceneView.ISceneView
-import me.anno.utils.Maths.next
 import me.anno.utils.Warning.warn
 import me.anno.utils.types.Vectors.is000
 import me.anno.utils.types.Vectors.is1111

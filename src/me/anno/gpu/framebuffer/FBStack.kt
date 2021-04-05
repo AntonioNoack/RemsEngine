@@ -2,22 +2,27 @@ package me.anno.gpu.framebuffer
 
 import me.anno.cache.CacheSection
 import me.anno.cache.data.ICacheData
+import org.apache.logging.log4j.LogManager
 
 object FBStack : CacheSection("FBStack") {
 
-    class FBStackData : ICacheData {
+    private val LOGGER = LogManager.getLogger(FBStack::class)
+
+    class FBStackData(val key: FBKey) : ICacheData {
         var nextIndex = 0
         val data = ArrayList<Framebuffer>()
         override fun destroy() {
             data.forEach { it.destroy() }
+            LOGGER.info("Destroyed ${data.size} framebuffers of $key")
         }
     }
 
     data class FBKey(val w: Int, val h: Int, val samples: Int, val usesFP: Boolean)
 
     fun getValue(w: Int, h: Int, samples: Int, usesFP: Boolean): FBStackData {
-        return getEntry(FBKey(w, h, samples, usesFP), 1000, false) {
-            FBStackData()
+        val key = FBKey(w, h, samples, usesFP)
+        return getEntry(key, 2100, false) {
+            FBStackData(key)
         } as FBStackData
     }
 
@@ -31,13 +36,11 @@ object FBStack : CacheSection("FBStack") {
                         samples, 1, usesFP,
                         Framebuffer.DepthBufferType.TEXTURE
                     )
-                    // if(!bind) framebuffer.unbind()
                     data.add(framebuffer)
                     nextIndex = data.size
                     data.last()
                 } else {
                     val framebuffer = data[nextIndex++]
-                    // if(bind) framebuffer.bind()
                     framebuffer.name = name
                     framebuffer
                 }

@@ -3,7 +3,6 @@ package me.anno.objects.distributions
 import me.anno.gpu.GFX.toRadians
 import me.anno.language.translation.Dict
 import me.anno.objects.inspectable.InspectableVector
-import me.anno.utils.Maths.next
 import org.joml.*
 import kotlin.math.cos
 import kotlin.math.sin

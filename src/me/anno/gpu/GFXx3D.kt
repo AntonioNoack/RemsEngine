@@ -18,7 +18,6 @@ import me.anno.objects.geometric.Circle
 import me.anno.objects.geometric.Polygon
 import me.anno.objects.modes.UVProjection
 import me.anno.studio.rems.RemsStudio
-import me.anno.utils.Maths.next
 import me.anno.video.VFrame
 import org.joml.*
 import org.lwjgl.BufferUtils

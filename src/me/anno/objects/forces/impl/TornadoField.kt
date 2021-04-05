@@ -9,7 +9,6 @@ import me.anno.objects.particles.Particle
 import me.anno.objects.particles.ParticleState
 import me.anno.objects.forces.ForceField
 import me.anno.ui.editor.sceneView.Grid
-import me.anno.utils.Maths.next
 import me.anno.utils.Maths.pow
 import me.anno.utils.types.Vectors.minus
 import me.anno.utils.types.Vectors.times

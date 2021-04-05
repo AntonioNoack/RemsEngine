@@ -23,7 +23,6 @@ import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.files.ImportFromFile.addChildFromFile
 import me.anno.ui.editor.frames.FrameSizeInput
 import me.anno.ui.style.Style
-import me.anno.utils.Maths.next
 import me.anno.utils.files.LocalFile.toGlobalFile
 import org.joml.*
 import org.lwjgl.opengl.GL11.*

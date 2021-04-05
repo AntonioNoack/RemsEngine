@@ -17,7 +17,6 @@ import me.anno.ui.editor.stacked.Option
 import me.anno.ui.style.Style
 import me.anno.utils.types.Floats.toRadians
 import me.anno.utils.Maths
-import me.anno.utils.Maths.next
 import org.joml.*
 import kotlin.math.abs
 import kotlin.math.atan2

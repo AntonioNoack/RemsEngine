@@ -16,7 +16,6 @@ import me.anno.objects.Transform.Companion.xAxis
 import me.anno.objects.Transform.Companion.yAxis
 import me.anno.objects.Transform.Companion.zAxis
 import me.anno.utils.Maths.distance
-import me.anno.utils.Maths.next
 import me.anno.utils.Maths.pow
 import me.anno.utils.Maths.sq
 import me.anno.utils.types.Vectors.avg
