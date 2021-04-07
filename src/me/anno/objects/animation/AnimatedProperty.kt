@@ -93,7 +93,7 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
     }
 
     fun set(value: V): AnimatedProperty<V> {
-        synchronized(this){
+        synchronized(this) {
             checkThread()
             keyframes.clear()
             keyframes.add(Keyframe(0.0, clamp(value)))
@@ -120,7 +120,7 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
     }
 
     private fun addKeyframeInternal(time: Double, value: V, equalityDt: Double): Keyframe<V> {
-        synchronized(this){
+        synchronized(this) {
             checkThread()
             ensureCorrectType(value)
             if (isAnimated) {
@@ -164,7 +164,7 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
      * */
     fun remove(keyframe: Keyframe<*>): Boolean {
         checkThread()
-        synchronized(this){
+        synchronized(this) {
             return keyframes.remove(keyframe)
         }
     }
@@ -202,7 +202,7 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
     }
 
     fun <N : Number> getIntegral(time: Double, allowNegativeValues: Boolean): Double {
-        synchronized(this){
+        synchronized(this) {
             val minValue = if (allowNegativeValues) Double.NEGATIVE_INFINITY else 0.0
             val size = keyframes.size
             return when {
@@ -246,7 +246,7 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
     }
 
     fun getAnimatedValue(time: Double): V {
-        synchronized(this){
+        synchronized(this) {
             val size = keyframes.size
             return when {
                 size == 0 -> defaultValue
@@ -492,6 +492,8 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
      * */
     fun mul(a: Any, f: Double): Any {
         return when (a) {
+            is Int -> a * f
+            is Long -> a * f
             is Float -> a * f.toFloat()
             is Double -> a * f
             is Vector2f -> a * f.toFloat()
@@ -531,7 +533,7 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
     }
 
     fun sort() {
-        synchronized(this){
+        synchronized(this) {
             keyframes.sort()
         }
     }

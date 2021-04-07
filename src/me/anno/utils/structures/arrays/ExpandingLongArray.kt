@@ -2,10 +2,11 @@ package me.anno.utils.structures.arrays
 
 import kotlin.math.max
 
-class ExpandingLongArray(val capacity: Int) {
+class ExpandingLongArray(
+    private val initCapacity: Int
+) {
 
     var size = 0
-        private set
 
     private var array: LongArray? = null
 
@@ -18,7 +19,7 @@ class ExpandingLongArray(val capacity: Int) {
     operator fun plusAssign(value: Long) {
         val array = array
         if (array == null || size + 1 >= array.size) {
-            val newArray = LongArray(if (array == null) capacity else max(array.size * 2, 16))
+            val newArray = LongArray(if (array == null) initCapacity else max(array.size * 2, 16))
             if (array != null) System.arraycopy(array, 0, newArray, 0, size)
             this.array = newArray
             newArray[size++] = value

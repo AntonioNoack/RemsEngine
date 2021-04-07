@@ -58,11 +58,11 @@ import kotlin.math.min
 
 open class Text(parent: Transform? = null) : GFXTransform(parent) {
 
-    constructor(text: String): this(null){
+    constructor(text: String) : this(null) {
         this.text.set(text)
     }
 
-    constructor(text: String, parent: Transform?): this(parent){
+    constructor(text: String, parent: Transform?) : this(parent) {
         this.text.set(text)
     }
 
@@ -609,20 +609,21 @@ open class Text(parent: Transform? = null) : GFXTransform(parent) {
             }
             .setIsSelectedListener { show(null) }*/
 
-        val fontList = ArrayList<String>()
-        fontList += font.name
-        fontList += menuSeparator
+        val fontList = ArrayList<NameDesc>()
+        fontList += NameDesc(font.name)
+        fontList += NameDesc(menuSeparator)
 
         fun sortFavourites() {
-            fontList.sort()
+            fontList.sortBy { it.name }
             val lastUsedSet = lastUsedFonts.toHashSet()
-            fontList.sortByDescending { if (it == menuSeparator) 1 else if (it in lastUsedSet) 2 else 0 }
+            fontList.sortByDescending { if (it.name == menuSeparator) 1 else if (it.name in lastUsedSet) 2 else 0 }
         }
 
         FontManager.requestFontList { systemFonts ->
             synchronized(fontList) {
-                fontList += systemFonts.filter { it != font.name }
-                sortFavourites()
+                fontList += systemFonts
+                    .filter { it != font.name }
+                    .map { NameDesc(it) }
             }
         }
 
@@ -635,8 +636,7 @@ open class Text(parent: Transform? = null) : GFXTransform(parent) {
             "Font Name",
             "The style of the text",
             "obj.font.name",
-            font.name,
-            fontList.map { NameDesc(it) },
+            font.name, fontList,
             style
         )
             .setChangeListener { it, _, _ ->
@@ -778,7 +778,9 @@ open class Text(parent: Transform? = null) : GFXTransform(parent) {
     override fun passesOnColor() = false // otherwise white shadows of black text wont work
 
     override fun getClassName(): String = "Text"
-    override fun getDefaultDisplayName() = (text?.keyframes?.maxBy { it.value.length }?.value ?: "").ifBlank { Dict["Text", "obj.text"] }
+    override fun getDefaultDisplayName() =
+        (text?.keyframes?.maxBy { it.value.length }?.value ?: "").ifBlank { Dict["Text", "obj.text"] }
+
     override fun getSymbol() = DefaultConfig["ui.symbol.text", "\uD83D\uDCC4"]
 
     companion object {

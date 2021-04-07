@@ -12,11 +12,19 @@ open class ProcessingQueue(val name: String){
     private val tasks = LinkedBlockingQueue<() -> Unit>()
 
     private var hasBeenStarted = false
+    private var shouldStop = false
+
+    fun stop(){
+        shouldStop = true
+        hasBeenStarted = false
+    }
+
     open fun start(name: String = this.name, force: Boolean = false) {
         if(hasBeenStarted && !force) return
         hasBeenStarted = true
+        shouldStop = false
         thread(name = name) {
-            while (!shutdown) {
+            while (!shutdown && !shouldStop) {
                 try {
                     // will block, until we have new work
                     val task = tasks.poll() ?: null
@@ -36,6 +44,7 @@ open class ProcessingQueue(val name: String){
     }
 
     operator fun plusAssign(task: () -> Unit) {
+        if(!hasBeenStarted) start()
         tasks += task
     }
 
