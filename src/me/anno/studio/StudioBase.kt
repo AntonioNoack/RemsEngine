@@ -1,5 +1,6 @@
 package me.anno.studio
 
+import me.anno.Engine
 import me.anno.audio.ALBase
 import me.anno.audio.AudioManager
 import me.anno.cache.CacheSection
@@ -22,7 +23,6 @@ import me.anno.gpu.texture.GPUFiltering
 import me.anno.input.ActionManager
 import me.anno.input.Input
 import me.anno.input.ShowKeys
-import me.anno.language.spellcheck.Spellchecking
 import me.anno.studio.project.Project
 import me.anno.studio.rems.RemsStudio
 import me.anno.ui.base.Panel
@@ -35,7 +35,6 @@ import me.anno.ui.dragging.IDraggable
 import me.anno.utils.Clock
 import me.anno.utils.Maths.clamp
 import me.anno.utils.OS
-import me.anno.utils.hpc.ProcessingQueue
 import me.anno.utils.types.Strings.addSuffix
 import me.anno.utils.types.Strings.filterAlphaNumeric
 import org.apache.logging.log4j.LogManager
@@ -423,8 +422,7 @@ abstract class StudioBase(
             shallStop = true
             ExtensionLoader.unload()
             Cursor.destroy()
-            ProcessingQueue.destroy()
-            Spellchecking.destroy()
+            Engine.shutdown()
             onGameClose()
         }
 
@@ -452,7 +450,6 @@ abstract class StudioBase(
         // console.fontName = "Segoe UI"
         Logging.console = console
         console.setTooltip("Double-click to open history")
-        console.instantTextLoading = true
         console.text = Logging.lastConsoleLines.lastOrNull() ?: ""
         return console
     }

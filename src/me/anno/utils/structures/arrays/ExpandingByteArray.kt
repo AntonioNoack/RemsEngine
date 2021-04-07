@@ -21,8 +21,10 @@ class ExpandingByteArray(val capacity: Int) {
             val newArray = ByteArray(if (array == null) capacity else max(array.size * 2, 16))
             if (array != null) System.arraycopy(array, 0, newArray, 0, size)
             this.array = newArray
+            newArray[size++] = value
+        } else {
+            array[size++] = value
         }
-        array!![size++] = value
     }
 
 }

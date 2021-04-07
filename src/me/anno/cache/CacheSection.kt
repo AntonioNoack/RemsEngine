@@ -94,7 +94,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
                         return Unit
                     } // else: somebody else is using the cache ;p
                 }
-                sleepShortly()
+                sleepShortly(true)
             }
             /*synchronized(lockedBy) {
                 LOGGER.info("$name:$key is locked by ${lockedBy[key]}, wanted by ${Thread.currentThread().name}")
@@ -108,7 +108,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
                         return Unit
                     }
                 }
-                sleepShortly()
+                sleepShortly(true)
             }
         }
     }

@@ -50,7 +50,7 @@ class FFMPEGVideo(
     var isFinished = false
     private fun readFrame(input: InputStream) {
         while (w == 0 || h == 0 || codec.isEmpty()) {
-            sleepShortly()
+            sleepShortly(true)
         }
         if (!isDestroyed && !isFinished) {
             try {

@@ -1,5 +1,6 @@
 package me.anno.language.spellcheck
 
+import me.anno.Engine.shutdown
 import me.anno.cache.CacheSection
 import me.anno.config.DefaultConfig
 import me.anno.installer.Installer
@@ -18,7 +19,6 @@ import me.anno.utils.io.Streams.listen
 import org.apache.logging.log4j.LogManager
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
-import kotlin.concurrent.thread
 import kotlin.streams.toList
 
 object Spellchecking : CacheSection("Spellchecking") {
@@ -103,11 +103,11 @@ object Spellchecking : CacheSection("Spellchecking") {
 
     private fun waitForDownload(dst: File, callback: (File) -> Unit) {
         threadWithName("Spellchecking::waitForDownload") {
-            loop@ while (!shallStop) {
+            loop@ while (!shutdown) {
                 if (dst.exists()) {
                     callback(dst)
                     break@loop
-                } else sleepABit10()
+                } else sleepABit10(true)
             }
         }
     }
@@ -143,8 +143,8 @@ object Spellchecking : CacheSection("Spellchecking") {
                 process.errorStream.listen("Spellchecking-Listener ${language.code}") { msg -> LOGGER.warn(msg) }
                 val output = process.outputStream.bufferedWriter()
                 LOGGER.info(input.readLine())
-                while (!shallStop) {
-                    if (queue.isEmpty()) sleepShortly()
+                while (!shutdown) {
+                    if (queue.isEmpty()) sleepShortly(true)
                     else {
                         val nextTask: Request
                         synchronized(this) {
@@ -160,7 +160,7 @@ object Spellchecking : CacheSection("Spellchecking") {
                         output.write('\n'.toInt())
                         output.flush()
                         var suggestionsString = ""
-                        while (suggestionsString.isEmpty() && !shallStop) {
+                        while (suggestionsString.isEmpty() && !shutdown) {
                             suggestionsString = input.readLine()
                         }
                         try {
@@ -193,11 +193,5 @@ object Spellchecking : CacheSection("Spellchecking") {
     private val LOGGER = LogManager.getLogger(Spellchecking::class)
 
     private const val timeout = 600_000L // 10 min
-
-    private var shallStop = false
-    fun destroy() {
-        LOGGER.info("Shutting down")
-        shallStop = true
-    }
 
 }

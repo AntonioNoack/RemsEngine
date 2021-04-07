@@ -185,7 +185,7 @@ object RemsCLI {
             Frame.reset()
             GFX.workGPUTasks(false)
             GFX.workEventTasks()
-            sleepABit()
+            sleepABit(true)
         }
 
         LOGGER.info("Done")

@@ -23,7 +23,7 @@ class VideoAudioCreator(
         val vbt = VideoBackgroundTask(videoCreator, scene, camera, motionBlurSteps, shutterPercentage)
         vbt.start()
         // wait for the task to finish
-        waitUntil { vbt.isDone }
+        waitUntil(true) { vbt.isDone }
         if (audioSources.isEmpty()) {
             if (output != videoCreator.output) {
                 output.delete()

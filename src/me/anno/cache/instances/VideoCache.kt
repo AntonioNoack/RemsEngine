@@ -49,8 +49,9 @@ object VideoCache : CacheSection("Videos") {
         fps: Double, timeout: Long, async: Boolean
     ): VFrame? {
         val localIndex = index % bufferLength
-        if(allocateFrameGroups){
-            val videoData = getVideoFrames(file, scale, bufferIndex, bufferLength, fps, timeout, async, true) ?: return null
+        if (allocateFrameGroups) {
+            val videoData =
+                getVideoFrames(file, scale, bufferIndex, bufferLength, fps, timeout, async, true) ?: return null
             val frame = videoData.frames.getOrNull(localIndex)
             return if (frame?.isCreated == true) frame else null
         } else {
@@ -61,7 +62,7 @@ object VideoCache : CacheSection("Videos") {
                     fps, timeout, async = false, ownsFrames = false
                 )!!
                 val frames = data.frames
-                waitUntil { frames.size > localIndex }
+                waitUntil(true) { frames.size > localIndex }
                 frames[localIndex]
             } as? VFrame
             return if (frame?.isCreated == true) frame else null
@@ -73,7 +74,7 @@ object VideoCache : CacheSection("Videos") {
         index: Int, bufferIndex: Int, bufferLength: Int,
         fps: Double
     ): VFrame? {
-        if(allocateFrameGroups){
+        if (allocateFrameGroups) {
             val videoData = getVideoFramesWithoutGenerator(file, scale, bufferIndex, bufferLength, fps) ?: return null
             val frame = videoData.frames.getOrNull(index % bufferLength)
             return if (frame?.isCreated == true) frame else null

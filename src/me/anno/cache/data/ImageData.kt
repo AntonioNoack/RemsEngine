@@ -80,7 +80,7 @@ class ImageData(file: File) : ICacheData {
 
     fun useFFMPEG(file: File) {
         // calculate required scale? no, without animation, we don't need to scale it down ;)
-        val frame = waitUntilDefined {
+        val frame = waitUntilDefined(true) {
             getVideoFrame(file, 1, 0, 0, 1.0, imageTimeout, false)
         }
         frame.waitToLoad()

@@ -21,6 +21,6 @@ abstract class VFrame(var w: Int, var h: Int, val code: Int) : ICacheData {
     abstract fun load(input: InputStream)
     fun waitToLoad() {
         if (Thread.currentThread() == glThread) throw RuntimeException("Cannot wait on main thread")
-        waitUntil { isCreated }
+        waitUntil(true) { isCreated }
     }
 }

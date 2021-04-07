@@ -90,7 +90,7 @@ class AudioStreamOpenAL(
             requestNextBuffer(startTime + playbackSliceDuration * index, index)
         }
         threadWithName("AudioStreamOpenAL") {
-            sleepShortly()
+            sleepShortly(true)
             if (isPlaying) {
                 GFX.addAudioTask(1) {
                     waitForRequiredBuffers()

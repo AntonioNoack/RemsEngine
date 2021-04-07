@@ -1,5 +1,7 @@
 package me.anno.utils.hpc
 
+import me.anno.Engine.shutdown
+import me.anno.utils.ShutdownException
 import me.anno.utils.Sleep.sleepShortly
 import org.apache.logging.log4j.LogManager
 import java.util.concurrent.LinkedBlockingQueue
@@ -14,15 +16,17 @@ open class ProcessingQueue(val name: String){
         if(hasBeenStarted && !force) return
         hasBeenStarted = true
         thread(name = name) {
-            while (!shallShutDown) {
+            while (!shutdown) {
                 try {
                     // will block, until we have new work
                     val task = tasks.poll() ?: null
                     if(task == null){
-                        sleepShortly()
+                        sleepShortly(true)
                     } else {
                         task()
                     }
+                } catch (e: ShutdownException){
+                    // nothing to worry about (probably)
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
@@ -37,11 +41,6 @@ open class ProcessingQueue(val name: String){
 
     companion object {
         private val LOGGER = LogManager.getLogger(ProcessingQueue::class)
-        var shallShutDown = false
-        fun destroy(){
-            LOGGER.info("Shutting down")
-            shallShutDown = true
-        }
     }
 
 }

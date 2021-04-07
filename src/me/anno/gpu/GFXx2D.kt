@@ -11,6 +11,7 @@ import me.anno.gpu.texture.*
 import me.anno.objects.GFXTransform.Companion.uploadAttractors0
 import me.anno.objects.modes.UVProjection
 import me.anno.ui.base.Font
+import me.anno.ui.debug.FrameTimes
 import me.anno.video.VFrame
 import org.joml.Matrix4f
 import org.joml.Matrix4fArrayList
@@ -59,7 +60,7 @@ object GFXx2D {
         posSize(shader, x, y, w, h)
         shader.v4("color", color)
         var o = offset % stride
-        if(o < 0) o += stride
+        if (o < 0) o += stride
         shader.v1("offset", o)
         shader.v1("stride", stride)
         GFX.flat01.draw(shader)
@@ -143,6 +144,33 @@ object GFXx2D {
     ) =
         writeText(x, y, font, text, color, backgroundColor, widthLimit, centerX)
 
+
+    var monospaceFont = Font("Consolas", 12f, false, false)
+    val simpleChars = Array('z'.toInt() + 1) { it.toChar().toString() }
+
+    fun drawSimpleTextCharByChar(
+        x0: Int, y0: Int,
+        text: String, font: Font = monospaceFont,
+        textColor: Int = FrameTimes.textColor,
+        backgroundColor: Int = FrameTimes.backgroundColor
+    ) {
+        val sample = font.sample
+        val charWidth = sample.first
+        drawRect(x0, y0, charWidth * text.length, sample.second, FrameTimes.backgroundColor)
+        for (i in text.indices) {
+            val char = text[i]
+            val charInt = char.toInt()
+            if (charInt < simpleChars.size) {
+                drawText(
+                    x0 + i * charWidth, y0,
+                    font, simpleChars[charInt],
+                    textColor, backgroundColor,
+                    -1
+                )
+            }
+        }
+    }
+
     fun drawTextCharByChar(
         x: Int, y: Int,
         font: Font,
@@ -156,7 +184,7 @@ object GFXx2D {
 
         // todo correct distances for everything
 
-        if('\n' in text){
+        if ('\n' in text) {
             throw NotImplementedError("Linebreak for drawTextCharByChar")
         }
 

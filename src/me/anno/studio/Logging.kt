@@ -1,6 +1,6 @@
 package me.anno.studio
 
-import me.anno.ui.base.text.TextPanel
+import me.anno.ui.debug.ConsoleOutputPanel
 import java.io.OutputStream
 import java.io.PrintStream
 import java.util.*
@@ -10,13 +10,13 @@ object Logging {
     private val originalOut = System.out!!
     private val originalErr = System.err!!
 
-    var console: TextPanel? = null
+    var console: ConsoleOutputPanel? = null
 
     val lastConsoleLines = LinkedList<String>()
     var lastConsoleLineCount = 500
     var maxConsoleLineLength = 500
 
-    class OutputPipe(val output: OutputStream, val processMessage: (String) -> String): OutputStream() {
+    class OutputPipe(val output: OutputStream, val processMessage: (String) -> String) : OutputStream() {
         var line = ""
         override fun write(b: Int) {
             when {
@@ -46,8 +46,8 @@ object Logging {
 
     fun setup() {
 
-        System.setOut(PrintStream(OutputPipe(originalOut){ it }))
-        System.setErr(PrintStream(OutputPipe(originalErr){ "[ERR] $it" }))
+        System.setOut(PrintStream(OutputPipe(originalOut) { it }))
+        System.setErr(PrintStream(OutputPipe(originalErr) { "[ERR] $it" }))
 
     }
 }

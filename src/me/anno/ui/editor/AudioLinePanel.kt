@@ -130,7 +130,7 @@ class AudioLinePanel(var meta: FFMPEGMetadata, val audio: Audio, style: Style) :
                 buffer = sequence.soundBuffer
                 if (buffer != null) break
                 // somebody else needs to work on the queue
-                sleepShortly() // wait 0.1ms
+                sleepShortly(true) // wait 0.1ms
             }
             buffer!!
         } as SoundBuffer

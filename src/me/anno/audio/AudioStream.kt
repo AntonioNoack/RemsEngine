@@ -22,7 +22,6 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.ShortBuffer
 import java.util.concurrent.atomic.AtomicBoolean
-import kotlin.concurrent.thread
 import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
@@ -132,7 +131,7 @@ abstract class AudioStream(
             AudioCache.getEntry(key, timeout, false) {
                 val sequence =
                     FFMPEGStream.getAudioSequence(file, sliceTime, ffmpegSliceSampleDuration, ffmpegSampleRate)
-                waitUntilDefined { sequence.soundBuffer }
+                waitUntilDefined(true) { sequence.soundBuffer }
             } as SoundBuffer
         val data = soundBuffer.data!!
         return data[arrayIndex0] to data[arrayIndex0 + 1]

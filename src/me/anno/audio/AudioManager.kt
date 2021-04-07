@@ -39,7 +39,7 @@ object AudioManager {
                 ALBase.check()
                 val time = System.nanoTime()
                 try {
-                    GFX.workQueue(GFX.audioTasks, 1f/60f, false)
+                    GFX.workQueue(GFX.audioTasks, 1f / 60f, false)
                 } catch (e: Exception) {
                     // if(e.message != "ALException: Invalid Name") // why does the error happen???
                     e.printStackTrace()
@@ -56,7 +56,10 @@ object AudioManager {
                     updateTime(editorTime, editorTimeDilation, root)
                 }
                 ALBase.check()
-                sleepShortly()
+                if(!shallStop){
+                    // shall be destroyed by OpenAL itself -> false
+                    sleepShortly(false)
+                }
             }
             destroy()
         }

@@ -230,7 +230,7 @@ object Thumbs {
         val time = max(min(wantedTime, meta.videoDuration - 1 / fps), 0.0)
         val index = (time * fps).roundToInt()
 
-        val src = waitUntilDefined {
+        val src = waitUntilDefined(true) {
             getVideoFrame(srcFile, scale, index, 1, fps, 1000L, true)
         }
 
