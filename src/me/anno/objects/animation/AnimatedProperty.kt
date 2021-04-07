@@ -11,6 +11,7 @@ import me.anno.studio.rems.RemsStudio.root
 import me.anno.utils.Maths
 import me.anno.utils.Maths.clamp
 import me.anno.utils.WrongClassType
+import me.anno.utils.types.AnyToDouble.getDouble
 import me.anno.utils.types.AnyToFloat.get
 import me.anno.utils.types.Vectors.plus
 import me.anno.utils.types.Vectors.times
@@ -310,10 +311,10 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
         val animatedValue = getAnimatedValue(time)
         if (!hasDrivers) return animatedValue
         val v = animatedValue ?: defaultValue ?: 0.0
-        val v0 = v[0].toDouble()
-        val v1 = v[1].toDouble()
-        val v2 = v[2].toDouble()
-        val v3 = v[3].toDouble()
+        val v0 = getDouble(v, 0)
+        val v1 = getDouble(v, 1)
+        val v2 = getDouble(v, 2)
+        val v3 = getDouble(v, 3)
         // replace the components, which have drivers, with the driver values
         return when (animatedValue) {
             is Int -> drivers[0]?.getValue(time, v0)?.toInt() ?: animatedValue
