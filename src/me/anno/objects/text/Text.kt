@@ -488,8 +488,8 @@ open class Text(parent: Transform? = null) : GFXTransform(parent) {
         // basic settings
         writer.writeObject(this, "text", text)
         writer.writeString("font", font.name)
-        writer.writeBoolean("isItalic", font.isItalic, true)
-        writer.writeBoolean("isBold", font.isBold, true)
+        writer.writeBoolean("isItalic", font.isItalic)
+        writer.writeBoolean("isBold", font.isBold)
 
         // alignment
         writer.writeObject(this, "textAlignment", textAlignment)
@@ -626,6 +626,8 @@ open class Text(parent: Transform? = null) : GFXTransform(parent) {
                     .map { NameDesc(it) }
             }
         }
+
+        // todo Consolas is not correctly centered?
 
         // todo general favourites for all enum types?
         // todo at least a generalized form to make it simpler?

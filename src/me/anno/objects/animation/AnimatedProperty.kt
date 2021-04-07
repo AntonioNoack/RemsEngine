@@ -11,7 +11,7 @@ import me.anno.studio.rems.RemsStudio.root
 import me.anno.utils.Maths
 import me.anno.utils.Maths.clamp
 import me.anno.utils.WrongClassType
-import me.anno.utils.types.AnyToDouble.getDouble
+import me.anno.utils.types.AnyToFloat.get
 import me.anno.utils.types.Vectors.plus
 import me.anno.utils.types.Vectors.times
 import org.apache.logging.log4j.LogManager
@@ -263,25 +263,20 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
                     val t1 = frame1.time
                     val t2 = frame2.time
 
-                    val f = (time - t1) / (t2 - t1)
+                    val f = (time - t1) / max(t2 - t1, 1e-16)
                     val w = getWeights(frame0, frame1, frame2, frame3, f)
 
-                    // LOGGER.info("weights: ${w.print()}")
+                    // LOGGER.info("weights: ${w.print()}, values: ${frame0.value}, ${frame1.value}, ${frame2.value}, ${frame3.value}")
 
-                    var wasFirst = true
                     var valueSum: Any? = null
                     var weightSum = 0.0
                     fun addMaybe(value: V, weight: Double) {
                         if (weightSum == 0.0) {
-                            valueSum = value
+                            valueSum = toCalc(value)
+                            if (weight != 1.0) valueSum = mul(valueSum!!, weight)
                             weightSum = weight
                         } else if (weight != 0.0) {
                             // add value with weight...
-                            if (wasFirst && weightSum != 1.0) {
-                                // we need to multiply valueSum by weightSum
-                                wasFirst = false
-                                valueSum = fromCalc(mul(valueSum!!, weightSum))
-                            }
                             valueSum = mulAdd(valueSum!!, toCalc(value), weight)
                             weightSum += weight
                         }// else done
@@ -311,45 +306,42 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
 
     operator fun get(time: Double) = getValueAt(time)
     fun getValueAt(time: Double): V {
-        val animatedValue = if (drivers.all { it != null })
-            type.defaultValue
-        else getAnimatedValue(time)
-        return if (drivers.all { it == null }) animatedValue
-        else {
-            // replace the components, which have drivers, with the driver values
-            val v = animatedValue ?: defaultValue ?: 0.0
-            val v0 = getDouble(v, 0)
-            val v1 by lazy { getDouble(v, 1) }
-            val v2 by lazy { getDouble(v, 2) }
-            val v3 by lazy { getDouble(v, 3) }
-            when (animatedValue) {
-                is Int -> drivers[0]?.getValue(time, v0)?.toInt() ?: animatedValue
-                is Long -> drivers[0]?.getValue(time, v0)?.toLong() ?: animatedValue
-                is Float -> drivers[0]?.getValue(time, v0)?.toFloat() ?: animatedValue
-                is Double -> drivers[0]?.getValue(time, v0) ?: animatedValue
-                is Vector2f -> Vector2f(
-                    drivers[0]?.getValue(time, v0)?.toFloat() ?: animatedValue.x,
-                    drivers[1]?.getValue(time, v1)?.toFloat() ?: animatedValue.y
-                )
-                is Vector3f -> Vector3f(
-                    drivers[0]?.getValue(time, v0)?.toFloat() ?: animatedValue.x,
-                    drivers[1]?.getValue(time, v1)?.toFloat() ?: animatedValue.y,
-                    drivers[2]?.getValue(time, v2)?.toFloat() ?: animatedValue.z
-                )
-                is Vector4f -> Vector4f(
-                    drivers[0]?.getValue(time, v0)?.toFloat() ?: animatedValue.x,
-                    drivers[1]?.getValue(time, v1)?.toFloat() ?: animatedValue.y,
-                    drivers[2]?.getValue(time, v2)?.toFloat() ?: animatedValue.z,
-                    drivers[3]?.getValue(time, v3)?.toFloat() ?: animatedValue.w
-                )
-                is Quaternionf -> Quaternionf(
-                    drivers[0]?.getValue(time, v0)?.toFloat() ?: animatedValue.x,
-                    drivers[1]?.getValue(time, v1)?.toFloat() ?: animatedValue.y,
-                    drivers[2]?.getValue(time, v2)?.toFloat() ?: animatedValue.z,
-                    drivers[3]?.getValue(time, v3)?.toFloat() ?: animatedValue.w
-                )
-                else -> throw RuntimeException("Replacing components with drivers in $animatedValue is not yet supported!")
-            }
+        val hasDrivers = drivers.any { it != null }
+        val animatedValue = getAnimatedValue(time)
+        if (!hasDrivers) return animatedValue
+        val v = animatedValue ?: defaultValue ?: 0.0
+        val v0 = v[0].toDouble()
+        val v1 = v[1].toDouble()
+        val v2 = v[2].toDouble()
+        val v3 = v[3].toDouble()
+        // replace the components, which have drivers, with the driver values
+        return when (animatedValue) {
+            is Int -> drivers[0]?.getValue(time, v0)?.toInt() ?: animatedValue
+            is Long -> drivers[0]?.getValue(time, v0)?.toLong() ?: animatedValue
+            is Float -> drivers[0]?.getValue(time, v0)?.toFloat() ?: animatedValue
+            is Double -> drivers[0]?.getValue(time, v0) ?: animatedValue
+            is Vector2f -> Vector2f(
+                drivers[0]?.getValue(time, v0)?.toFloat() ?: animatedValue.x,
+                drivers[1]?.getValue(time, v1)?.toFloat() ?: animatedValue.y
+            )
+            is Vector3f -> Vector3f(
+                drivers[0]?.getValue(time, v0)?.toFloat() ?: animatedValue.x,
+                drivers[1]?.getValue(time, v1)?.toFloat() ?: animatedValue.y,
+                drivers[2]?.getValue(time, v2)?.toFloat() ?: animatedValue.z
+            )
+            is Vector4f -> Vector4f(
+                drivers[0]?.getValue(time, v0)?.toFloat() ?: animatedValue.x,
+                drivers[1]?.getValue(time, v1)?.toFloat() ?: animatedValue.y,
+                drivers[2]?.getValue(time, v2)?.toFloat() ?: animatedValue.z,
+                drivers[3]?.getValue(time, v3)?.toFloat() ?: animatedValue.w
+            )
+            is Quaternionf -> Quaternionf(
+                drivers[0]?.getValue(time, v0)?.toFloat() ?: animatedValue.x,
+                drivers[1]?.getValue(time, v1)?.toFloat() ?: animatedValue.y,
+                drivers[2]?.getValue(time, v2)?.toFloat() ?: animatedValue.z,
+                drivers[3]?.getValue(time, v3)?.toFloat() ?: animatedValue.w
+            )
+            else -> throw RuntimeException("Replacing components with drivers in $animatedValue is not yet supported!")
         } as V
     }
 

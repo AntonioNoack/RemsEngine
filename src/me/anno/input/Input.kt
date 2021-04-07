@@ -358,6 +358,10 @@ object Input {
                                             GLFW.GLFW_KEY_S -> save()
                                             GLFW.GLFW_KEY_V -> paste()
                                             GLFW.GLFW_KEY_C -> copy()
+                                            GLFW.GLFW_KEY_D -> {
+                                                copy()
+                                                paste()
+                                            }
                                             GLFW.GLFW_KEY_X -> {
                                                 copy()
                                                 inFocus0?.onEmpty(mouseX, mouseY)

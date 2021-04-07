@@ -442,7 +442,7 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
             }
             // draw differently depending on section mode
             when (previous.interpolation) {
-                Interpolation.LINEAR_BOUNDED, Interpolation.LINEAR_UNBOUNDED -> {
+                /*Interpolation.LINEAR_BOUNDED, Interpolation.LINEAR_UNBOUNDED -> {
                     addLine(x, endTime) // done
                 }
                 Interpolation.STEP -> {
@@ -453,7 +453,7 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
                     time = mix(startTime, endTime, 0.5001)
                     addLine(getXAt(time).toInt(), time)
                     addLine(x, endTime)
-                }
+                }*/
                 // Interpolation.SPLINE,
                 else -> {
                     // steps in between are required
