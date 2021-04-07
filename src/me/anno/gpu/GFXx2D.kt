@@ -150,21 +150,27 @@ object GFXx2D {
 
     fun drawSimpleTextCharByChar(
         x0: Int, y0: Int,
+        padding: Int,
         text: String, font: Font = monospaceFont,
         textColor: Int = FrameTimes.textColor,
         backgroundColor: Int = FrameTimes.backgroundColor
     ) {
         val sample = font.sample
         val charWidth = sample.first
-        drawRect(x0, y0, charWidth * text.length, sample.second, FrameTimes.backgroundColor)
+        drawRect(
+            x0, y0,
+            charWidth * text.length + 2 * padding, font.sizeInt + 2 * padding,
+            FrameTimes.backgroundColor
+        )
         for (i in text.indices) {
             val char = text[i]
             val charInt = char.toInt()
             if (charInt < simpleChars.size) {
                 drawText(
-                    x0 + i * charWidth, y0,
+                    x0 + padding + i * charWidth,
+                    y0 + padding,
                     font, simpleChars[charInt],
-                    textColor, backgroundColor,
+                    textColor, backgroundColor.and(0xffffff),
                     -1
                 )
             }

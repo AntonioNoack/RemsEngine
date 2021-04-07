@@ -35,23 +35,20 @@ class ConsoleOutputPanel(style: Style) : Panel(style) {
     var textColor = style.getColor("textColor", DefaultStyle.iconGray)
     var focusTextColor = style.getColor("textColorFocused", -1)
 
-    var padding = style.getPadding("textPadding", 2)
-
     override fun calculateSize(w: Int, h: Int) {
         val text = if (text.isEmpty()) "." else text
         super.calculateSize(w, h)
-        val w2 = sampleWidth * text.length
-        val h2 = sampleHeight
-        minW = max(1, w2 + padding.width)
-        minH = max(1, h2 + padding.height)
+        val w2 = sampleWidth * text.length + 4
+        val h2 = sampleHeight + 4
+        minW = max(1, w2)
+        minH = max(1, h2)
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         GFX.loadTexturesSync.push(true)
         super.onDraw(x0, y0, x1, y1)
         GFXx2D.drawSimpleTextCharByChar(
-            x + padding.left,
-            y + padding.top + 2, // idk...
+            x + 1, y + 2, 2, // idk...
             text, font,
             textColor, backgroundColor
         )

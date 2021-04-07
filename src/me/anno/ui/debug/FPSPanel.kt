@@ -20,7 +20,7 @@ object FPSPanel {
         GFX.loadTexturesSync.push(true)
 
         val text = "${GFX.currentEditorFPS.f1()}, min: ${(1f / FrameTimes.maxValue).f1()}"
-        drawSimpleTextCharByChar(x0 + 1, y0 + 1, text)
+        drawSimpleTextCharByChar(x0, y0, 2, text)
 
         // keep these chars loaded at all times
         for (char in "0123456789.") {
