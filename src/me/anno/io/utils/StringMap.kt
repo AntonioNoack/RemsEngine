@@ -272,8 +272,8 @@ open class StringMap(
         return this
     }
 
-    val saveDelay = 1_000_000_000L
-    var lastSaveTime = gameTime - saveDelay - 1
+    private val saveDelay = 1_000_000_000L
+    private var lastSaveTime = gameTime - saveDelay - 1
     fun saveMaybe(name: String) {
         if (wasChanged) {
             synchronized(this){
