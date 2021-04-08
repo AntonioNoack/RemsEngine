@@ -19,8 +19,7 @@ import kotlin.math.min
  * */
 open class StringMap(
     capacity: Int = 16,
-    val sortKeysWhenSaving: Boolean = true,
-    val saveDefaultValues: Boolean = false
+    val sortKeysWhenSaving: Boolean = true
 ) : ConfigEntry(), MutableMap<String, Any?> {
 
     constructor(data: Map<String, Any?>) : this(data.size + 16) {
@@ -40,7 +39,7 @@ open class StringMap(
         // sorting keys for convenience
         val leMap = if (sortKeysWhenSaving) mapClone.toSortedMap() else mapClone
         for ((name, value) in leMap) {
-            writer.writeSomething(this, name, value, saveDefaultValues)
+            writer.writeSomething(this, name, value, true)
         }
     }
 
@@ -277,17 +276,21 @@ open class StringMap(
     var lastSaveTime = gameTime - saveDelay - 1
     fun saveMaybe(name: String) {
         if (wasChanged) {
-            if (abs(lastSaveTime - gameTime) >= saveDelay) {// only save every 1s
-                // delay in case it needs longer
-                lastSaveTime = gameTime + (60 * 1e9).toLong()
-                threadWithName("StringMap::saveMaybe") {
-                    save(name)
-                    lastSaveTime = gameTime
-                }
-            } else {
-                threadWithName("StringMap::saveMaybe2") {
-                    Thread.sleep(saveDelay / 1_000_000 / 10)
-                    saveMaybe(name)
+            synchronized(this){
+                if (abs(lastSaveTime - gameTime) >= saveDelay) {// only save every 1s
+                    // delay in case it needs longer
+                    lastSaveTime = gameTime + (60 * 1e9).toLong()
+                    threadWithName("StringMap::saveMaybe") {
+                        println("Actually saving $name")
+                        save(name)
+                        lastSaveTime = gameTime
+                    }
+                } else {
+                    threadWithName("StringMap::saveMaybe2") {
+                        println("Saving was delayed $name")
+                        Thread.sleep(saveDelay / 1_000_000 / 10)
+                        saveMaybe(name)
+                    }
                 }
             }
         }

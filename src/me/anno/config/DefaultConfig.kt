@@ -119,7 +119,7 @@ object DefaultConfig : StringMap() {
         )
 
         this["createNewInstancesList"] =
-            StringMap(16, false, saveDefaultValues = true)
+            StringMap(16, false)
                 .addAll(newInstances)
 
         tick.stop("new instances list")

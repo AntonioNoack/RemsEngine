@@ -260,7 +260,8 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
     override fun getMultiSelectablePanel() = this
 
     companion object {
-        val forbiddenCharacters = DefaultConfig["files.forbiddenCharacters", "<>:\"/\\|?*" + (0 .. 31).map { it.toChar() }.joinToString("")].toHashSet()
+        private val forbiddenConfig = DefaultConfig["files.forbiddenCharacters", "<>:\"/\\|?*"] + String(CharArray(32){ it.toChar() })
+        val forbiddenCharacters = forbiddenConfig.toHashSet()
     }
 
 }
