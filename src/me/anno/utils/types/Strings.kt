@@ -2,7 +2,8 @@ package me.anno.utils.types
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX.loadTexturesSync
-import me.anno.gpu.GFXx2D.getTextSize
+import me.anno.gpu.GFXx2D.getSizeX
+import me.anno.gpu.GFXx2D.getTextSizeX
 import me.anno.ui.base.Font
 import me.anno.ui.base.text.TextPanel
 import me.anno.utils.Maths.fract
@@ -27,9 +28,9 @@ object Strings {
         else {
             loadTexturesSync.push(true)
             val stringValue = line.subList(0, min(endIndex, line.size)).joinChars()
-            val measures = getTextSize(font, stringValue, -1)
+            val width = getTextSizeX(font, stringValue, -1)
             loadTexturesSync.pop()
-            measures.first.toFloat()
+            width.toFloat()
         }
     }
 

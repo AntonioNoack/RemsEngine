@@ -15,24 +15,26 @@ import kotlin.math.min
 
 object VideoCache : CacheSection("Videos") {
 
-    // otherwise complicated... we can't request single frames cheaply
-    // we'd need to create copies, but idk...
-    var allocateFrameGroups = true
-
     private fun getVideoFrames(
         file: File, scale: Int,
         bufferIndex: Int, bufferLength: Int,
-        fps: Double, timeout: Long, async: Boolean,
-        ownsFrames: Boolean
+        fps: Double, timeout: Long, async: Boolean
     ): VideoData? {
-        return getEntry(VideoFramesKey(file, scale, bufferIndex, bufferLength, fps), timeout, async) {
-            val meta = getMeta(file, false)!!
-            VideoData(
-                file, meta.videoWidth / scale, meta.videoHeight / scale, scale,
-                bufferIndex, bufferLength, fps,
-                ownsFrames
-            )
-        } as? VideoData
+        return getEntry(VideoFramesKey(file, scale, bufferIndex, bufferLength, fps), timeout, async, ::getVideoFrames) as? VideoData
+    }
+
+    private fun getVideoFrames(key: VideoFramesKey): VideoData {
+        val file = key.file
+        val scale = key.scale
+        val bufferIndex = key.bufferIndex
+        val bufferLength = key.frameLength
+        val fps = key.fps
+        val meta = getMeta(file, false)!!
+        return VideoData(
+            file, meta.videoWidth / scale, meta.videoHeight / scale, scale,
+            bufferIndex, bufferLength, fps,
+            true
+        )
     }
 
     private fun getVideoFramesWithoutGenerator(
@@ -49,24 +51,9 @@ object VideoCache : CacheSection("Videos") {
         fps: Double, timeout: Long, async: Boolean
     ): VFrame? {
         val localIndex = index % bufferLength
-        if (allocateFrameGroups) {
-            val videoData =
-                getVideoFrames(file, scale, bufferIndex, bufferLength, fps, timeout, async, true) ?: return null
-            val frame = videoData.frames.getOrNull(localIndex)
-            return if (frame?.isCreated == true) frame else null
-        } else {
-            val key = VideoFrameKey(file, scale, bufferIndex, bufferLength, localIndex, fps)
-            val frame = getEntry(key, timeout, async) {
-                val data = getVideoFrames(
-                    file, scale, bufferIndex, bufferLength,
-                    fps, timeout, async = false, ownsFrames = false
-                )!!
-                val frames = data.frames
-                waitUntil(true) { frames.size > localIndex }
-                frames[localIndex]
-            } as? VFrame
-            return if (frame?.isCreated == true) frame else null
-        }
+        val videoData = getVideoFrames(file, scale, bufferIndex, bufferLength, fps, timeout, async) ?: return null
+        val frame = videoData.frames.getOrNull(localIndex)
+        return if (frame?.isCreated == true) frame else null
     }
 
     fun getFrameWithoutGenerator(
@@ -74,16 +61,9 @@ object VideoCache : CacheSection("Videos") {
         index: Int, bufferIndex: Int, bufferLength: Int,
         fps: Double
     ): VFrame? {
-        if (allocateFrameGroups) {
-            val videoData = getVideoFramesWithoutGenerator(file, scale, bufferIndex, bufferLength, fps) ?: return null
-            val frame = videoData.frames.getOrNull(index % bufferLength)
-            return if (frame?.isCreated == true) frame else null
-        } else {
-            val localIndex = index % bufferLength
-            val key = VideoFrameKey(file, scale, bufferIndex, bufferLength, localIndex, fps)
-            val frame = getEntryWithoutGenerator(key) as? VFrame
-            return if (frame?.isCreated == true) frame else null
-        }
+        val videoData = getVideoFramesWithoutGenerator(file, scale, bufferIndex, bufferLength, fps) ?: return null
+        val frame = videoData.frames.getOrNull(index % bufferLength)
+        return if (frame?.isCreated == true) frame else null
     }
 
     /**

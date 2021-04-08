@@ -19,12 +19,11 @@ open class CustomListX(style: Style) : PanelListX(style), CustomList {
     }
 
     override fun invalidateLayout() {
-        window!!.needsLayout += this
+        window?.needsLayout?.add(this)
     }
 
     override fun getLayoutState(): Any? {
-        val weights = children.map { it.weight }
-        return Pair(super.getLayoutState(), weights)
+        return children.map { it.weight }
     }
 
     override val customChildren

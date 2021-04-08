@@ -1,6 +1,7 @@
 package me.anno.objects
 
 import me.anno.audio.AudioManager
+import me.anno.audio.AudioTasks
 import me.anno.cache.data.VideoData.Companion.framesPerContainer
 import me.anno.cache.instances.ImageCache
 import me.anno.cache.instances.MeshCache
@@ -95,6 +96,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
         lastTexture = null
         needsImageUpdate = true
         lastFile = null
+        println("clear cache")
     }
 
     override fun startPlayback(globalTime: Double, speed: Double, camera: Camera) {
@@ -269,6 +271,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
     private fun onMissingImageOrFrame() {
         if (isFinalRendering) throw MissingFrameException(file)
         else needsImageUpdate = true
+        // println("missing frame")
     }
 
     fun getFrameAtLocalTime(time: Double, width: Int, meta: FFMPEGMetadata): VFrame? {
@@ -314,6 +317,9 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
 
     private fun drawVideo(meta: FFMPEGMetadata, stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
 
+        val duration = meta.videoDuration
+        lastDuration = duration
+
         val forceAuto = isFinalRendering && forceAutoScale
         val forceFull = isFinalRendering && forceFullScale
         val zoomLevel = when {
@@ -330,10 +336,8 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
 
         var wasDrawn = false
 
-        val sourceFPS = meta.videoFPS
-        val duration = meta.videoDuration
         val isLooping = isLooping.value
-        lastDuration = duration
+        val sourceFPS = meta.videoFPS
 
         if (sourceFPS > 0.0) {
             if (time >= 0.0 && (isLooping != LoopingState.PLAY_ONCE || time <= duration)) {
@@ -531,6 +535,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                 val texture = getImage()
                 if (lastTexture != texture) {
                     needsImageUpdate = true
+                    println("image changed")
                     lastTexture = texture
                 }
             }
@@ -548,6 +553,49 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
 
     var lastAddedEndKeyframesFile: File? = null
 
+    fun update(){
+        val file = file
+        update(file, file.hasValidName())
+    }
+
+    fun update(file: File, hasValidName: Boolean){
+        if(!hasValidName) return
+        if (file !== lastFile) {
+            lastFile = file
+            type = if (file.name.contains(imageSequenceIdentifier)) {
+                VideoType.IMAGE_SEQUENCE
+            } else {
+                when (file.extension.getImportType()) {
+                    "Video" -> VideoType.VIDEO
+                    "Audio" -> VideoType.AUDIO
+                    else -> VideoType.IMAGE
+                }
+            }
+            // async in the future?
+            if (type == VideoType.IMAGE_SEQUENCE) {
+                val imageSequenceMeta = ImageSequenceMeta(file)
+                this.imageSequenceMeta = imageSequenceMeta
+            }
+        }
+        when (type) {
+            VideoType.VIDEO -> {
+                val meta = meta
+                if (meta != null && meta.hasVideo) {
+                    if (file != lastAddedEndKeyframesFile) {
+                        lastAddedEndKeyframesFile = file
+                    }
+                    lastDuration = meta.duration
+                }
+            }
+            VideoType.IMAGE_SEQUENCE -> {
+                imageSequenceMeta!!
+            }
+            // VideoType.IMAGE -> drawImage(stack, time, color)
+            // VideoType.AUDIO -> drawSpeakers(stack, Vector4f(color), is3D, amplitude[time])
+            else -> throw RuntimeException("$type needs visualization") // for the future
+        }
+    }
+
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
 
         needsImageUpdate = false
@@ -555,31 +603,12 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
         val file = file
         if (file.hasValidName()) {
 
-            if (file !== lastFile) {
-                lastFile = file
-                type = if (file.name.contains(imageSequenceIdentifier)) {
-                    VideoType.IMAGE_SEQUENCE
-                } else {
-                    when (file.extension.getImportType()) {
-                        "Video" -> VideoType.VIDEO
-                        "Audio" -> VideoType.AUDIO
-                        else -> VideoType.IMAGE
-                    }
-                }
-                // async in the future?
-                if (type == VideoType.IMAGE_SEQUENCE) {
-                    val imageSequenceMeta = ImageSequenceMeta(file)
-                    this.imageSequenceMeta = imageSequenceMeta
-                }
-            }
+            update(file, true)
 
             when (type) {
                 VideoType.VIDEO -> {
                     val meta = meta
-                    if (meta?.hasVideo == true) {
-                        if (file != lastAddedEndKeyframesFile) {
-                            lastAddedEndKeyframesFile = file
-                        }
+                    if (meta != null && meta.hasVideo) {
                         drawVideo(meta, stack, time, color)
                     }
                     // very intrusive :/
@@ -737,12 +766,12 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                 if (isPaused) {
                     playbackButton.text = getPlaybackTitle(true)
                     if (component == null) {
-                        GFX.addAudioTask(5) {
+                        AudioTasks.addTask(5) {
                             val audio2 = Video(file, null)
                             audio2.startPlayback(0.0, 1.0, nullCamera!!)
                             component = audio2.component
                         }
-                    } else GFX.addAudioTask(1) { stopPlayback() }
+                    } else AudioTasks.addTask(1) { stopPlayback() }
                 } else StudioBase.warn("Separated playback is only available with paused editor")
             }
             .setTooltip("Listen to the audio separated from the rest"))

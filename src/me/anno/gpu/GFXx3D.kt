@@ -1,5 +1,6 @@
 package me.anno.gpu
 
+import me.anno.config.DefaultStyle.white4
 import me.anno.gpu.GFX.windowHeight
 import me.anno.gpu.GFX.windowWidth
 import me.anno.gpu.ShaderLib.maxOutlineColors
@@ -27,7 +28,42 @@ object GFXx3D {
 
     fun shader3DUniforms(
         shader: Shader, stack: Matrix4fArrayList,
-        w: Int, h: Int, color: Vector4fc,
+        w: Int, h: Int, color: Vector4fc?,
+        tiling: Vector4fc?, filtering: Filtering,
+        uvProjection: UVProjection?
+    ) {
+
+        stack.next {
+
+            val doScale2 = (uvProjection?.doScale ?: true) && w != h
+            // val avgSize = sqrt(w * h.toFloat())
+            if (doScale2) {
+                val avgSize =
+                    if (w * RemsStudio.targetHeight > h * RemsStudio.targetWidth) w.toFloat() * RemsStudio.targetHeight / RemsStudio.targetWidth else h.toFloat()
+                val sx = w / avgSize
+                val sy = h / avgSize
+                stack.scale(sx, -sy, 1f)
+            } else {
+                stack.scale(1f, -1f, 1f)
+            }
+
+            transformUniform(shader, stack)
+            shader.v1("filtering", filtering.id)
+            shader.v2("textureDeltaUV", 1f / w, 1f / h)
+
+        }
+
+        GFX.shaderColor(shader, "tint", color)
+        if (tiling != null) shader.v4("tiling", tiling)
+        else shader.v4("tiling", 1f, 1f, 0f, 0f)
+        shader.v1("drawMode", GFX.drawMode.id)
+        shader.v1("uvProjection", uvProjection?.id ?: UVProjection.Planar.id)
+
+    }
+
+    fun shader3DUniforms(
+        shader: Shader, stack: Matrix4fArrayList,
+        w: Int, h: Int, color: Int,
         tiling: Vector4fc?, filtering: Filtering,
         uvProjection: UVProjection?
     ) {
@@ -64,9 +100,16 @@ object GFXx3D {
         matrix.scale(0.5f * size, -0.5f * size, 0.5f * size) // flip inside out
         val tex = TextureLib.whiteTexture
         draw3D(
-            matrix, tex, color ?: Vector4f(1f),
+            matrix, tex, color,
             Filtering.NEAREST, tex.clamping, null, UVProjection.TiledCubemap
         )
+    }
+
+    fun shader3DUniforms(shader: Shader, stack: Matrix4f?, color: Int) {
+        transformUniform(shader, stack)
+        GFX.shaderColor(shader, "tint", color)
+        shader.v4("tiling", 1f, 1f, 0f, 0f)
+        shader.v1("drawMode", GFX.drawMode.id)
     }
 
     fun shader3DUniforms(shader: Shader, stack: Matrix4f, color: Vector4fc) {
@@ -76,7 +119,7 @@ object GFXx3D {
         shader.v1("drawMode", GFX.drawMode.id)
     }
 
-    fun transformUniform(shader: Shader, stack: Matrix4fc) {
+    fun transformUniform(shader: Shader, stack: Matrix4fc?) {
         GFX.check()
         shader.m4x4("transform", stack)
     }
@@ -128,9 +171,9 @@ object GFXx3D {
 
     fun colorGradingUniforms(video: Video?, time: Double, shader: Shader) {
         if (video == null) {
-            shader.v3("cgOffset", Vector3f())
-            shader.v3X("cgSlope", Vector4f(1f))
-            shader.v3X("cgPower", Vector4f(1f))
+            shader.v3("cgOffset", 0f)
+            shader.v3("cgSlope", 1f)
+            shader.v3("cgPower", 1f)
             shader.v1("cgSaturation", 1f)
         } else {
             shader.v3("cgOffset", video.cgOffset[time])
@@ -174,10 +217,27 @@ object GFXx3D {
         GFX.check()
     }
 
+    fun draw3D(
+        stack: Matrix4fArrayList, texture: VFrame, color: Int,
+        filtering: Filtering, clamping: Clamping, tiling: Vector4fc?, uvProjection: UVProjection
+    ) {
+        if (!texture.isCreated) throw RuntimeException("Frame must be loaded to be rendered!")
+        val shader = texture.get3DShader()
+        shader3DUniforms(shader, stack, texture.w, texture.h, color, tiling, filtering, uvProjection)
+        texture.bind(0, filtering, clamping)
+        if (shader == ShaderLib.shader3DYUV) {
+            val w = texture.w
+            val h = texture.h
+            shader.v2("uvCorrection", w.toFloat() / ((w + 1) / 2 * 2), h.toFloat() / ((h + 1) / 2 * 2))
+        }
+        uvProjection.getBuffer().draw(shader)
+        GFX.check()
+    }
+
     fun draw3DVideo(
         video: GFXTransform, time: Double,
         stack: Matrix4fArrayList, texture: VFrame, color: Vector4fc,
-        filtering: Filtering, clamping: Clamping, tiling: Vector4f?, uvProjection: UVProjection
+        filtering: Filtering, clamping: Clamping, tiling: Vector4fc?, uvProjection: UVProjection
     ) {
         if (!texture.isCreated) throw RuntimeException("Frame must be loaded to be rendered!")
         val shader = texture.get3DShader()
@@ -196,12 +256,28 @@ object GFXx3D {
     }
 
     fun draw3D(
-        stack: Matrix4fArrayList, texture: Texture2D, color: Vector4fc,
+        stack: Matrix4fArrayList, texture: Texture2D, color: Vector4fc?,
         filtering: Filtering, clamping: Clamping, tiling: Vector4fc?, uvProjection: UVProjection
     ) = draw3D(stack, texture, texture.w, texture.h, color, filtering, clamping, tiling, uvProjection)
 
     fun draw3D(
-        stack: Matrix4fArrayList, texture: Texture2D, w: Int, h: Int, color: Vector4fc,
+        stack: Matrix4fArrayList, texture: Texture2D, color: Int,
+        filtering: Filtering, clamping: Clamping, tiling: Vector4fc?, uvProjection: UVProjection
+    ) = draw3D(stack, texture, texture.w, texture.h, color, filtering, clamping, tiling, uvProjection)
+
+    fun draw3D(
+        stack: Matrix4fArrayList, texture: Texture2D, w: Int, h: Int, color: Vector4fc?,
+        filtering: Filtering, clamping: Clamping, tiling: Vector4fc?, uvProjection: UVProjection
+    ) {
+        val shader = ShaderLib.shader3D
+        shader3DUniforms(shader, stack, w, h, color, tiling, filtering, uvProjection)
+        texture.bind(0, filtering, clamping)
+        uvProjection.getBuffer().draw(shader)
+        GFX.check()
+    }
+
+    fun draw3D(
+        stack: Matrix4fArrayList, texture: Texture2D, w: Int, h: Int, color: Int,
         filtering: Filtering, clamping: Clamping, tiling: Vector4fc?, uvProjection: UVProjection
     ) {
         val shader = ShaderLib.shader3D

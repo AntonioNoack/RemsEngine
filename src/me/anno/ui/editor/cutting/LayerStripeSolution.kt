@@ -11,6 +11,7 @@ import me.anno.ui.editor.TimelinePanel.Companion.dtHalfLength
 import me.anno.ui.editor.cutting.LayerView.Companion.maxLines
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.mix
+import me.anno.utils.Maths.mixARGB
 import me.anno.utils.Maths.nonNegativeModulo
 import me.anno.video.FFMPEGMetadata
 import org.joml.Vector4f
@@ -45,10 +46,10 @@ class LayerStripeSolution(
     fun iteratorOverGradients(
         selectedTransform: Transform?, draggedTransform: Transform?,
         drawStripes: (x0: Int, x1: Int, y: Int, h: Int, offset: Int) -> Unit,
-        drawGradient: (x0: Int, x1: Int, y: Int, h: Int, c0: Vector4fc, c1: Vector4fc) -> Unit,
+        drawGradient: (x0: Int, x1: Int, y: Int, h: Int, c0: Int, c1: Int) -> Unit,
         drawVideo: (
             x0: Int, x1: Int, y: Int, h: Int,
-            c0: Vector4fc, c1: Vector4fc,
+            c0: Int, c1: Int,
             frameOffset: Int, frameWidth: Int,
             video: Video, meta: FFMPEGMetadata,
             fract0: Float, fract1: Float
@@ -74,9 +75,9 @@ class LayerStripeSolution(
                 val tr = gradient.owner as? Transform
                 val isStriped = selectedTransform === tr || draggedTransform === tr
 
-                val video = (tr as? Video)?.run { if(type != VideoType.IMAGE) this else null }
+                val video = tr as? Video
                 val meta = if (video == null) null
-                else metas.getOrPut(video) { video.forcedMeta ?: Unit } as? FFMPEGMetadata
+                else metas.getOrPut(video) { video.meta ?: Unit } as? FFMPEGMetadata
 
                 val hasAudio = meta?.hasAudio ?: false
                 val hasVideo = meta?.hasVideo ?: false
@@ -108,7 +109,8 @@ class LayerStripeSolution(
                         return lx.toFloat() / frameWidth
                     }
 
-                    fun getLerpedColor(x: Int) = mix(c0, c1, (x - ix0).toFloat() / gradient.w)
+                    fun getLerpedColor(x: Int) =
+                        mixARGB(c0, c1, (x - ix0).toFloat() / gradient.w)
 
                     if (frameIndex0 != frameIndex1) {
                         // split into multiple frames
@@ -146,7 +148,9 @@ class LayerStripeSolution(
 
                     }
 
-                } else drawGradient(ix0, ix1, y0, h0, c0, c1)
+                } else {
+                    drawGradient(ix0, ix1, y0, h0, c0, c1)
+                }
 
                 if (isStriped) {
                     drawStripes(ix0, ix1, y0, h0, timeOffset)
@@ -160,7 +164,7 @@ class LayerStripeSolution(
         iteratorOverGradients(null, null, { _, _, _, _, _ -> }, { _, _, _, _, _, _ -> }, ::keepFrameLoaded)
     }
 
-    private fun drawGradient(x0: Int, x1: Int, y: Int, h: Int, c0: Vector4fc, c1: Vector4fc) {
+    private fun drawGradient(x0: Int, x1: Int, y: Int, h: Int, c0: Int, c1: Int) {
         drawRectGradient(x0, y, x1 - x0, h, c0, c1)
     }
 
@@ -178,9 +182,12 @@ class LayerStripeSolution(
     private fun getCenterX(x0: Int, frameOffset: Int, frameWidth: Int) =
         x0 - nonNegativeModulo(x0 - frameOffset, frameWidth) + frameWidth / 2
 
+    // todo bug: it's invisible, if video is not loaded
+    // todo bug: when clicked, it changes the frames shortly
+
     private fun drawVideo(
         x0: Int, x1: Int, y: Int, h: Int,
-        c0: Vector4fc, c1: Vector4fc,
+        c0: Int, c1: Int,
         frameOffset: Int, frameWidth: Int,
         video: Video, meta: FFMPEGMetadata,
         fract0: Float, fract1: Float
@@ -193,11 +200,11 @@ class LayerStripeSolution(
             // get time at frameIndex
             val centerX = getCenterX(x0, frameOffset, frameWidth)
             val timeAtX = getTimeAt(centerX)
-            val localTime = clampTime(video.getLocalTimeFromRoot(timeAtX), video)
+            val localTime = clampTime(video.getLocalTimeFromRoot(timeAtX, false), video)
             // get frame at time
             val videoWidth = (frameWidth / (1f + relativeVideoBorder)).toInt()
             val frame = video.getFrameAtLocalTime(localTime, videoWidth, meta)
-            if (frame == null) {
+            if (frame == null || !frame.isCreated) {
                 drawRectGradient(x0, y, x1 - x0, h, c0, c1)
             } else {
                 // draw frame
@@ -211,7 +218,7 @@ class LayerStripeSolution(
 
     private fun keepFrameLoaded(
         x0: Int, x1: Int, y: Int, h: Int,
-        c0: Vector4fc, c1: Vector4fc,
+        c0: Int, c1: Int,
         frameOffset: Int, frameWidth: Int,
         video: Video, meta: FFMPEGMetadata,
         fract0: Float, fract1: Float
@@ -222,7 +229,7 @@ class LayerStripeSolution(
             // get time at frameIndex
             val centerX = getCenterX(x0, frameOffset, frameWidth)
             val timeAtX = getTimeAt(centerX)
-            val localTime = clampTime(video.getLocalTimeFromRoot(timeAtX), video)
+            val localTime = clampTime(video.getLocalTimeFromRoot(timeAtX, false), video)
             // get frame at time
             val videoWidth = (frameWidth / (1f + relativeVideoBorder)).toInt()
             video.getFrameAtLocalTime(localTime, videoWidth, meta)

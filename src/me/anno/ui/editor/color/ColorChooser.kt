@@ -40,7 +40,7 @@ class ColorChooser(style: Style, val withAlpha: Boolean, val owningProperty: Ani
         super.calculateSize(min(w, maxWidth), h)
     }
 
-    override fun getVisualState(): Any? = Pair(super.getVisualState(), Triple(hue, saturation, lightness))
+    override fun getVisualState(): Any? = Triple(hue, saturation, lightness)
 
     val rgba get() = Vector4f(colorSpace.toRGB(Vector3f(hue, saturation, lightness)), opacity)
     var visualisation = lastVisualisation ?: ColorVisualisation.WHEEL
@@ -103,13 +103,11 @@ class ColorChooser(style: Style, val withAlpha: Boolean, val owningProperty: Ani
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         if (lastTime != editorTime && owningProperty != null) {
             lastTime = editorTime
-            setRGBA(
-                when (val c = owningProperty[editorTime]) {
-                    is Vector3f -> Vector4f(c, 1f)
-                    is Vector4f -> c
-                    else -> throw RuntimeException()
-                }, false
-            )
+            when (val c = owningProperty[editorTime]) {
+                is Vector3f -> setRGBA(c.x, c.y, c.z, 1f, false)
+                is Vector4f -> setRGBA(c, false)
+                else -> throw RuntimeException()
+            }
         }
         val needsHueChooser = Visibility[visualisation.needsHueChooser]
         hueChooser.visibility = needsHueChooser

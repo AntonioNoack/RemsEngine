@@ -24,13 +24,15 @@ import me.anno.utils.Clock
 import me.anno.utils.Maths.pow
 import me.anno.utils.types.Vectors.minus
 import org.apache.logging.log4j.LogManager
-import org.joml.*
+import org.joml.Matrix4f
+import org.joml.Matrix4fArrayList
+import org.joml.Vector3f
+import org.joml.Vector4fc
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL30.*
-import java.lang.Math
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.math.*
@@ -63,13 +65,6 @@ object GFX : GFXBase1() {
     val gpuTasks = ConcurrentLinkedQueue<Task>()
     val lowPriorityGPUTasks = ConcurrentLinkedQueue<Task>()
 
-    val audioTasks = ConcurrentLinkedQueue<Task>()
-
-    fun addAudioTask(weight: Int, task: () -> Unit) {
-        // could be optimized for release...
-        audioTasks += weight to task
-    }
-
     fun addGPUTask(w: Int, h: Int, task: () -> Unit) {
         addGPUTask(w, h, false, task)
     }
@@ -83,7 +78,7 @@ object GFX : GFXBase1() {
     }
 
     fun addGPUTask(weight: Int, lowPriority: Boolean, task: () -> Unit) {
-        (if(lowPriority) lowPriorityGPUTasks else gpuTasks) += weight to task
+        (if (lowPriority) lowPriorityGPUTasks else gpuTasks) += weight to task
     }
 
     lateinit var gameInit: () -> Unit
@@ -174,7 +169,7 @@ object GFX : GFXBase1() {
         }
     }
 
-    lateinit var windowStack: Stack<Window>
+    val windowStack = Stack<Window>()
 
     fun getPanelAndWindowAt(x: Float, y: Float) = getPanelAndWindowAt(x.toInt(), y.toInt())
     fun getPanelAndWindowAt(x: Int, y: Int): Pair<Panel, Window>? {
@@ -213,11 +208,12 @@ object GFX : GFXBase1() {
         Input.initForGLFW()
     }
 
+    private val tmpMatrix0 = Matrix4f()
     fun applyCameraTransform(camera: Camera, time: Double, cameraTransform: Matrix4f, stack: Matrix4fArrayList) {
         val offset = camera.getEffectiveOffset(time)
         cameraTransform.translate(0f, 0f, camera.orbitRadius[time])
         val cameraTransform2 = if (offset != 0f) {
-            Matrix4f(cameraTransform).translate(0f, 0f, offset)
+            tmpMatrix0.set(cameraTransform).translate(0f, 0f, offset)
         } else cameraTransform
         val fov = camera.getEffectiveFOV(time, offset)
         val near = camera.getEffectiveNear(time, offset)
@@ -235,12 +231,23 @@ object GFX : GFXBase1() {
         if (scale != 0f && scale.isFinite()) stack.scale(scale)
     }
 
-    fun shaderColor(shader: Shader, name: String, color: Vector4fc) {
+    fun shaderColor(shader: Shader, name: String, color: Int) {
         if (drawMode == ShaderPlus.DrawMode.ID) {
             val id = drawnTransform!!.clickId
             shader.v4(name, id.b() / 255f, id.g() / 255f, id.r() / 255f, 1f)
         } else {
             shader.v4(name, color)
+        }
+    }
+
+    fun shaderColor(shader: Shader, name: String, color: Vector4fc?) {
+        if (drawMode == ShaderPlus.DrawMode.ID) {
+            val id = drawnTransform!!.clickId
+            shader.v4(name, id.b() / 255f, id.g() / 255f, id.r() / 255f, 1f)
+        } else if (color != null) {
+            shader.v4(name, color)
+        } else {
+            shader.v4(name, 1f)
         }
     }
 
@@ -335,8 +342,8 @@ object GFX : GFXBase1() {
     }
 
     fun workGPUTasks(all: Boolean) {
-        if(workQueue(gpuTasks, 1f/60f, all)){
-            workQueue(lowPriorityGPUTasks, 1f/120f, all)
+        if (workQueue(gpuTasks, 1f / 60f, all)) {
+            workQueue(lowPriorityGPUTasks, 1f / 120f, all)
         }
     }
 
@@ -429,19 +436,19 @@ object GFX : GFXBase1() {
 
     var glThread: Thread? = null
 
-    fun checkIsNotGFXThread(){
-        if(isGFXThread()){
+    fun checkIsNotGFXThread() {
+        if (isGFXThread()) {
             throw IllegalAccessException("Cannot call from OpenGL thread")
         }
     }
 
     fun isGFXThread(): Boolean {
-        if(glThread == null) return false
+        if (glThread == null) return false
         val currentThread = Thread.currentThread()
         return currentThread == glThread
     }
 
-    fun checkIsGFXThread(){
+    fun checkIsGFXThread() {
         val currentThread = Thread.currentThread()
         if (currentThread != glThread) {
             if (glThread == null) {
@@ -462,16 +469,18 @@ object GFX : GFXBase1() {
                 /*Framebuffer.stack.forEach {
                     LOGGER.info(it.toString())
                 }*/
-                val title = "GLException: ${when (error) {
-                    GL_INVALID_ENUM -> "invalid enum"
-                    GL_INVALID_VALUE -> "invalid value"
-                    GL_INVALID_OPERATION -> "invalid operation"
-                    GL_STACK_OVERFLOW -> throw StackOverflowError("OpenGL Exception")
-                    GL_STACK_UNDERFLOW -> "stack underflow"
-                    GL_OUT_OF_MEMORY -> throw OutOfMemoryError("OpenGL Exception")
-                    GL_INVALID_FRAMEBUFFER_OPERATION -> "invalid framebuffer operation"
-                    else -> "$error"
-                }}"
+                val title = "GLException: ${
+                    when (error) {
+                        GL_INVALID_ENUM -> "invalid enum"
+                        GL_INVALID_VALUE -> "invalid value"
+                        GL_INVALID_OPERATION -> "invalid operation"
+                        GL_STACK_OVERFLOW -> throw StackOverflowError("OpenGL Exception")
+                        GL_STACK_UNDERFLOW -> "stack underflow"
+                        GL_OUT_OF_MEMORY -> throw OutOfMemoryError("OpenGL Exception")
+                        GL_INVALID_FRAMEBUFFER_OPERATION -> "invalid framebuffer operation"
+                        else -> "$error"
+                    }
+                }"
                 throw RuntimeException(title)
             }
         }

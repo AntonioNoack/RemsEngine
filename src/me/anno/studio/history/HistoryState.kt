@@ -1,5 +1,6 @@
 package me.anno.studio.history
 
+import me.anno.gpu.GFX
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
@@ -16,7 +17,7 @@ import me.anno.utils.types.Lists.join
 
 class HistoryState() : Saveable() {
 
-    private val windowStack get() = StudioBase.instance.windowStack
+    private val windowStack get() = GFX.windowStack
 
     constructor(title: String, code: Any) : this() {
         this.title = title

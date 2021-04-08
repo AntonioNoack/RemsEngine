@@ -20,7 +20,7 @@ object SVGxGFX {
     fun draw3DSVG(
         video: Video?, time: Double,
         stack: Matrix4fArrayList, buffer: StaticBuffer, texture: Texture2D, color: Vector4fc,
-        filtering: Filtering, clamping: Clamping, tiling: Vector4f?
+        filtering: Filtering, clamping: Clamping, tiling: Vector4fc?
     ) {
 
         // normalized on y-axis, width unknown
@@ -40,12 +40,15 @@ object SVGxGFX {
         } else {
 
             // uv[1] = (uv[0]-0.5) * tiling.xy + 0.5 + tiling.zw
-            val rx = floor(tiling.z).toInt()
-            val ry = floor(tiling.w).toInt()
-            val fx = fract(tiling.z)
-            val fy = fract(tiling.w)
-            val tx = tiling.x
-            val ty = tiling.y
+            val tx = tiling.x()
+            val ty = tiling.y()
+            val tz = tiling.z()
+            val tw = tiling.w()
+
+            val rx = floor(tz).toInt()
+            val ry = floor(tw).toInt()
+            val fx = fract(tz)
+            val fy = fract(tw)
             val x0 = round(-.5f * tx + fx)
             val x1 = round(+.5f * tx + fx)
             val y0 = round(-.5f * ty + fy)
@@ -53,7 +56,7 @@ object SVGxGFX {
 
             val mirrorRepeat = clamping == Clamping.MIRRORED_REPEAT
 
-            stack.scale(1f / tiling.x, 1f / tiling.y, 1f)
+            stack.scale(1f / tx, 1f / ty, 1f)
 
             val count = (x1-x0) * (y1-y0)
             if(count > DefaultConfig["objects.svg.tilingCountMax", 10_000]){
@@ -64,8 +67,8 @@ object SVGxGFX {
                 for(y in y0.toInt() .. y1.toInt()) {
                     stack.next {
                         stack.translate((x - fx)*sx, (y - fy)*sy, 0f)
-                        var mirrorX = tiling.x < 0
-                        var mirrorY = tiling.y < 0
+                        var mirrorX = tx < 0
+                        var mirrorY = ty < 0
                         if(mirrorRepeat){
                             if((x + rx).and(1) != 0) mirrorX = !mirrorX
                             if((y + ry).and(1) != 0) mirrorY = !mirrorY
@@ -79,10 +82,10 @@ object SVGxGFX {
                         }
                         // calculate left and right borders
                         // works for all tiling values and offsets <3
-                        var a0 = -0.5f * tiling.x - x + fx
-                        var a1 = +0.5f * tiling.x - x + fx
-                        var b0 = -0.5f * tiling.y - y + fy
-                        var b1 = +0.5f * tiling.y - y + fy
+                        var a0 = -0.5f * tx - x + fx
+                        var a1 = +0.5f * tx - x + fx
+                        var b0 = -0.5f * ty - y + fy
+                        var b1 = +0.5f * ty - y + fy
                         // fix mirrored sharks
                         if(mirrorX){ val t = -a0; a0 = -a1; a1 = t }
                         if(mirrorY){ val t = -b0; b0 = -b1; b1 = t }

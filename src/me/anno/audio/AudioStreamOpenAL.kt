@@ -1,17 +1,14 @@
 package me.anno.audio
 
-import me.anno.gpu.GFX
 import me.anno.objects.Audio
 import me.anno.objects.Camera
 import me.anno.objects.modes.LoopingState
-import me.anno.utils.Sleep.sleepShortly
-import me.anno.utils.Threads.threadWithName
+import me.anno.utils.hpc.ProcessingQueue
 import me.anno.video.FFMPEGMetadata
 import org.lwjgl.openal.AL10.*
 import java.io.File
 import java.nio.ShortBuffer
 import java.util.concurrent.atomic.AtomicLong
-import kotlin.concurrent.thread
 import kotlin.math.max
 import kotlin.math.min
 
@@ -89,20 +86,21 @@ class AudioStreamOpenAL(
             // loading $index...
             requestNextBuffer(startTime + playbackSliceDuration * index, index)
         }
-        threadWithName("AudioStreamOpenAL") {
-            sleepShortly(true)
-            if (isPlaying) {
-                GFX.addAudioTask(1) {
-                    waitForRequiredBuffers()
-                    ALBase.check()
-                }
+        if (isPlaying) {
+            AudioTasks.addNextTask(1) {
+                waitForRequiredBuffers()
+                ALBase.check()
             }
         }
     }
 
+    companion object {
+        val taskQueue = ProcessingQueue("ShortTasks")
+    }
+
     override fun onBufferFilled(stereoBuffer: ShortBuffer, bufferIndex: Long) {
         if (!isPlaying) return
-        GFX.addAudioTask(10) {
+        AudioTasks.addTask(10) {
             if (isPlaying) {
                 val isFirstBuffer = bufferIndex == 0L
                 ALBase.check()

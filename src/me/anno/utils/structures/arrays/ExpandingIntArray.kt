@@ -8,6 +8,10 @@ class ExpandingIntArray(
 
     var size = 0
 
+    fun clear(){
+        size = 0
+    }
+
     private var array: IntArray? = null
 
     fun add(value: Int) = plusAssign(value)

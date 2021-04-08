@@ -1,6 +1,7 @@
 package me.anno.input
 
 import me.anno.config.DefaultConfig
+import me.anno.gpu.GFX
 import me.anno.gpu.GFX.gameTime
 import me.anno.gpu.GFX.inFocus
 import me.anno.io.utils.StringMap
@@ -137,8 +138,8 @@ object ActionManager {
                 return
             }
         }
-        for(window in StudioBase.instance.windowStack){
-            for(panel in window.panel.listOfAll){
+        for(window in GFX.windowStack){
+            window.panel.listOfAll { panel ->
                 executeLocally(dx, dy, isContinuous, panel, actions)
             }
         }

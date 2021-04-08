@@ -1,0 +1,107 @@
+package me.anno.objects.animation
+
+import me.anno.utils.strings.StringMixer
+import org.joml.*
+import kotlin.math.roundToInt
+
+object AnimationMaths {
+
+    // to save allocations
+    fun v2(dst: Any?) = dst as? Vector2f ?: Vector2f()
+    fun v3(dst: Any?) = dst as? Vector3f ?: Vector3f()
+    fun v4(dst: Any?) = dst as? Vector4f ?: Vector4f()
+    fun q4(dst: Any?) = dst as? Quaternionf ?: Quaternionf()
+
+    /**
+     * b + a * f
+     * */
+    fun mulAdd(first: Any, second: Any, f: Double, dst: Any?): Any {
+        return when (first) {
+            is Float -> first + (second as Float) * f.toFloat()
+            is Double -> first + (second as Double) * f
+            is Vector2fc -> {
+                second as Vector2fc
+                val g = f.toFloat()
+                val result = v2(dst)
+                result.set(
+                    first.x() + second.x() * g,
+                    first.y() + second.y() * g
+                )
+            }
+            is Vector3fc -> {
+                second as Vector3fc
+                val g = f.toFloat()
+                val result = v3(dst)
+                result.set(
+                    first.x() + second.x() * g,
+                    first.y() + second.y() * g,
+                    first.z() + second.z() * g
+                )
+            }
+            is Vector4fc -> {
+                second as Vector4fc
+                val g = f.toFloat()
+                val result = v4(dst)
+                result.set(
+                    first.x() + second.x() * g,
+                    first.y() + second.y() * g,
+                    first.z() + second.z() * g,
+                    first.w() + second.w() * g
+                )
+            }
+            is String -> StringMixer.mix(first.toString(), second.toString(), f)
+            else -> throw RuntimeException("don't know how to mul-add $second and $first")
+        }
+    }
+
+    /**
+     * a * f
+     * */
+    fun mul(a: Any, f: Double, dst: Any?): Any {
+        return when (a) {
+            is Int -> a * f
+            is Long -> a * f
+            is Float -> a * f.toFloat()
+            is Double -> a * f
+            is Vector2f -> v2(dst).set(a).mul(f.toFloat())
+            is Vector3f -> v3(dst).set(a).mul(f.toFloat())
+            is Vector4f -> v4(dst).set(a).mul(f.toFloat())
+            is String -> a//a.substring(0, clamp((a.length * f).roundToInt(), 0, a.length))
+            else -> throw RuntimeException("don't know how to mul $a")
+        }
+    }
+
+
+    /**
+     * a * (1-f) + f * b
+     * */
+    fun mix(a: Any?, b: Any?, f: Double, type: Type): Any? {
+        val g = 1.0 - f
+        return when (type) {
+            Type.INT,
+            Type.INT_PLUS -> ((a as Int) * g + f * (b as Int)).roundToInt()
+            Type.LONG -> ((a as Long) * g + f * (b as Long)).toLong()
+            Type.FLOAT,
+            Type.FLOAT_01, Type.FLOAT_01_EXP,
+            Type.FLOAT_PLUS -> ((a as Float) * g + f * (b as Float)).toFloat()
+            Type.DOUBLE -> (a as Double) * g + f * (b as Double)
+            Type.SKEW_2D -> (a as Vector2f).lerp(b as Vector2fc, f.toFloat(), Vector2f())
+            Type.POSITION,
+            Type.ROT_YXZ,
+            Type.SCALE -> (a as Vector3f).lerp(b as Vector3fc, f.toFloat(), Vector3f())
+            Type.COLOR, Type.TILING -> (a as Vector4f).lerp(b as Vector4fc, f.toFloat(), Vector4f())
+            Type.QUATERNION -> (a as Quaternionf).slerp(b as Quaternionf, f.toFloat())
+            Type.STRING -> StringMixer.mix(a.toString(), b.toString(), f)
+            else -> throw RuntimeException("don't know how to linearly interpolate $a and $b")
+        }
+    }
+
+    fun mix(a: Int, b: Int, f: Double) = a * (1 - f) + f * b
+    fun mix(a: Long, b: Long, f: Double) = a * (1 - f) + f * b
+    fun mix(a: Float, b: Float, f: Float, g: Float) = a * g + b * f
+    fun mix(a: Double, b: Double, f: Float, g: Float) = a * g + b * f
+    fun mix(a: Vector2f, b: Vector2f, f: Double, dst: Vector2f) = a.lerp(b, f.toFloat(), dst)
+    fun mix(a: Vector3f, b: Vector3f, f: Double, dst: Vector3f) = a.lerp(b, f.toFloat(), dst)
+    fun mix(a: Vector4f, b: Vector4f, f: Double, dst: Vector4f) = a.lerp(b, f.toFloat(), dst)
+
+}

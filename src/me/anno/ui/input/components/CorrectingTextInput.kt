@@ -4,7 +4,9 @@ import me.anno.config.DefaultStyle
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.GFXx2D
+import me.anno.gpu.GFXx2D.getSizeX
 import me.anno.gpu.GFXx2D.getTextSize
+import me.anno.gpu.GFXx2D.getTextSizeX
 import me.anno.language.spellcheck.Spellchecking
 import me.anno.language.spellcheck.Suggestion
 import me.anno.ui.base.text.TextPanel
@@ -99,7 +101,7 @@ abstract class CorrectingTextInput(style: Style) : TextPanel("", style) {
     }
 
     private fun getX(charIndex: Int) = x + padding.left + drawingOffset + if (charIndex <= 0) -1 else
-        getTextSize(font, text.substring(0, min(charIndex, text.length)), -1).first - 1
+        getTextSizeX(font, text.substring(0, min(charIndex, text.length)), -1) - 1
 
     // todo automatically show hints, when the user is typing
     private fun applySuggestion(suggestion: Suggestion, choice: String) {

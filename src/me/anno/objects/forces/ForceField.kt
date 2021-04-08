@@ -118,9 +118,9 @@ abstract class ForceField(val displayName: String, val description: String) : Tr
     fun getDirection(time: Double): Vector3f {
         val rot = rotationYXZ[time]
         val quat = Quaternionf()
-        quat.rotateY(rot.y.toRadians())
-        quat.rotateX(rot.x.toRadians())
-        quat.rotateZ(rot.z.toRadians())
+        quat.rotateY(rot.y().toRadians())
+        quat.rotateX(rot.x().toRadians())
+        quat.rotateZ(rot.z().toRadians())
         return quat.transform(Vector3f(0f,1f,0f))
     }
 

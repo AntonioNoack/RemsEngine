@@ -1,8 +1,8 @@
 package me.anno.objects
 
 import me.anno.audio.AudioStreamOpenAL
+import me.anno.audio.AudioTasks
 import me.anno.audio.effects.SoundPipeline
-import me.anno.gpu.GFX
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.animation.AnimatedProperty
@@ -15,7 +15,6 @@ import me.anno.utils.structures.ValueWithDefault.Companion.writeMaybe
 import me.anno.utils.structures.ValueWithDefaultFunc
 import me.anno.video.FFMPEGMetadata.Companion.getMeta
 import org.joml.Matrix4fArrayList
-import org.joml.Vector4f
 import org.joml.Vector4fc
 import java.io.File
 
@@ -63,7 +62,7 @@ abstract class Audio(var file: File = File(""), parent: Transform? = null) : GFX
 
     override fun onDestroy() {
         super.onDestroy()
-        GFX.addAudioTask(1) { stopPlayback() }
+        AudioTasks.addTask(1) { stopPlayback() }
     }
 
     // we need a flag, whether we draw in editor mode or not -> GFX.isFinalRendering

@@ -10,6 +10,8 @@ import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
 import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
+import me.anno.objects.animation.Integral.findIntegralX
+import me.anno.objects.animation.Integral.getIntegral
 import me.anno.objects.animation.Type
 import me.anno.objects.distributions.*
 import me.anno.objects.forces.ForceField
@@ -83,7 +85,7 @@ open class ParticleSystem(parent: Transform? = null) : Transform(parent) {
 
         val lastTime = particles.lastOrNull()?.birthTime ?: 0.0
         val c0 = spawnRate
-        val sinceThenIntegral = c0.getIntegral<Float>(lastTime, time, false)
+        val sinceThenIntegral = c0.getIntegral(lastTime, time, false)
 
         var missingChildren = sinceThenIntegral.toInt()
         if (missingChildren > 0) {
@@ -98,7 +100,7 @@ open class ParticleSystem(parent: Transform? = null) : Transform(parent) {
             for (i in 0 until missingChildren) {
                 // more accurate calculation for changing spawn rates
                 // - calculate, when the integral since lastTime surpassed 1.0 until we have reached time
-                val nextTime = c0.findIntegralX<Float>(timeI, time, 1.0, 1e-9)
+                val nextTime = c0.findIntegralX(timeI, time, 1.0, 1e-9)
                 val newParticle = createParticle(ps + i, nextTime)
                 timeI = nextTime
                 newParticles += newParticle ?: continue

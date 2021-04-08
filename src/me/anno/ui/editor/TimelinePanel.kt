@@ -3,8 +3,8 @@ package me.anno.ui.editor
 import me.anno.config.DefaultConfig.defaultFont
 import me.anno.config.DefaultStyle
 import me.anno.fonts.FontManager
+import me.anno.fonts.keys.TextCacheKey
 import me.anno.gpu.GFX
-import me.anno.gpu.GFXx2D
 import me.anno.gpu.GFXx2D.drawRect
 import me.anno.gpu.GFXx2D.drawText
 import me.anno.gpu.GFXx2D.flatColor
@@ -32,13 +32,6 @@ import me.anno.utils.Maths.mixARGB
 import me.anno.utils.Maths.pow
 import me.anno.utils.structures.tuples.Quad
 import me.anno.utils.types.Strings.formatTime
-import kotlin.collections.ArrayList
-import kotlin.collections.HashMap
-import kotlin.collections.forEach
-import kotlin.collections.last
-import kotlin.collections.listOf
-import kotlin.collections.minBy
-import kotlin.collections.reversed
 import kotlin.collections.set
 import kotlin.math.abs
 import kotlin.math.roundToInt
@@ -49,7 +42,7 @@ open class TimelinePanel(style: Style) : Panel(style) {
     override fun getVisualState(): Any? =
         Quad(dtHalfLength, centralTime, editorTime, targetDuration)
 
-    var drawnStrings = ArrayList<String>(64)
+    var drawnStrings = ArrayList<TextCacheKey>(64)
 
     val accentColor = style.getColor("accentColor", DefaultStyle.black)
 
@@ -162,9 +155,13 @@ open class TimelinePanel(style: Style) : Panel(style) {
                     val h = m / 60
                     val subTime = ((time % 1) * targetFPS).roundToInt()
                     if (h < 1) "${get0XString(m % 60)}:${get0XString(s % 60)}${if (step < 1f) "/${get0XString(subTime)}" else ""}"
-                    else "${get0XString(h)}:${get0XString(m % 60)}:${get0XString(s % 60)}${if (step < 1f) "/${get0XString(
-                        subTime
-                    )}" else ""}"
+                    else "${get0XString(h)}:${get0XString(m % 60)}:${get0XString(s % 60)}${
+                        if (step < 1f) "/${
+                            get0XString(
+                                subTime
+                            )
+                        }" else ""
+                    }"
                 }
             timestampCache[key] = solution
             return solution
@@ -208,7 +205,9 @@ open class TimelinePanel(style: Style) : Panel(style) {
 
     override fun tickUpdate() {
         super.tickUpdate()
-        drawnStrings.forEach { text -> FontManager.getString(font, text, -1) }
+        for(key in drawnStrings){
+            FontManager.getString(key)
+        }
     }
 
     fun drawTimeAxis(
@@ -249,11 +248,11 @@ open class TimelinePanel(style: Style) : Panel(style) {
                 val x = getXAt(time).roundToInt()
                 if (x > x0 + 1 && x + 2 < x1) {
                     val text = getTimeString(time, timeStep)
-                    drawnStrings.add(text)
-                    GFXx2D.drawText(
-                        x, y0, font,
-                        text, fontColor, backgroundColor, -1, true
-                    )
+                    val key = FontManager.getTextCacheKey(font, text, -1)
+                    if (key != null) {
+                        drawnStrings.add(key)
+                        drawText(x, y0, font, key, fontColor, backgroundColor, true)
+                    }
                 }
             }
         }
@@ -274,13 +273,25 @@ open class TimelinePanel(style: Style) : Panel(style) {
             button.isLeft -> jumpToX(x)
             else -> {
                 val options = listOf(
-                    MenuOption(NameDesc("Set End Here", "Sets the end of the project to here", "ui.timePanel.setEndHere")) {
+                    MenuOption(
+                        NameDesc(
+                            "Set End Here",
+                            "Sets the end of the project to here",
+                            "ui.timePanel.setEndHere"
+                        )
+                    ) {
                         project?.targetDuration = getTimeAt(x)
                     },
                     MenuOption(NameDesc("Jump to Start", "Set the time to 0", "ui.timePanel.jumpToStart")) {
                         jumpToT(0.0)
                     },
-                    MenuOption(NameDesc("Jump to End", "Set the time to the end of the project", "ui.timePanel.jumpToEnd")) {
+                    MenuOption(
+                        NameDesc(
+                            "Jump to End",
+                            "Set the time to the end of the project",
+                            "ui.timePanel.jumpToEnd"
+                        )
+                    ) {
                         jumpToT(targetDuration)
                     }
                 )

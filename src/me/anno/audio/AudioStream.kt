@@ -11,7 +11,7 @@ import me.anno.objects.modes.LoopingState
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.mix
 import me.anno.utils.Sleep.waitUntilDefined
-import me.anno.utils.Threads.threadWithName
+import me.anno.utils.hpc.ProcessingGroup
 import me.anno.utils.types.Vectors.minus
 import me.anno.video.FFMPEGMetadata
 import me.anno.video.FFMPEGMetadata.Companion.getMeta
@@ -67,10 +67,10 @@ abstract class AudioStream(
     }
 
     fun configure(audio: Audio, speed: Double, globalTime: Double) {
-        globalToLocalTime = { time -> audio.getGlobalTransform(time * speed + globalTime).second }
+        globalToLocalTime = { time -> audio.getGlobalTransformTime(time * speed + globalTime).second }
         val amplitude = audio.amplitude
         val color = audio.color
-        localAmplitude = { time -> amplitude[time] * clamp(color[time].w, 0f, 1f) }
+        localAmplitude = { time -> amplitude[time] * clamp(color[time].w(), 0f, 1f) }
     }
 
     val minPerceptibleAmplitude = 1f / 32500f
@@ -86,6 +86,7 @@ abstract class AudioStream(
     // should be at least as long as the ffmpeg response time (0.3s for the start of a FHD video)
     companion object {
         val playbackSliceDuration = 1.0
+        val taskQueue = ProcessingGroup("AudioStream", 0.5f)
     }
 
     // map the real time to the correct time xD
@@ -144,8 +145,8 @@ abstract class AudioStream(
         // todo top/bottom (tested from behind) sounds different: because I could hear it
         // todo timing differences seam to matter, so we need to include them (aww)
 
-        val (camLocal2Global, _) = listener.getGlobalTransform(global1)
-        val (srcLocal2Global, _) = source.getGlobalTransform(global1)
+        val (camLocal2Global, _) = listener.getGlobalTransformTime(global1)
+        val (srcLocal2Global, _) = source.getGlobalTransformTime(global1)
         val camGlobalPos = camLocal2Global.transformPosition(Vector3f())
         val srcGlobalPos = srcLocal2Global.transformPosition(Vector3f())
         val dirGlobal = (camGlobalPos - srcGlobalPos).normalize() // in global space
@@ -169,7 +170,7 @@ abstract class AudioStream(
         // "requesting audio buffer $startTime"
 
         isWaitingForBuffer.set(true)
-        threadWithName("AudioStream") {// load all data async
+        taskQueue += {// load all data async
 
             // "[INFO:AudioStream] Working on buffer $queued"
 

@@ -34,6 +34,7 @@ import me.anno.ui.style.Style
 import me.anno.utils.Color.toARGB
 import me.anno.utils.Maths.clamp
 import org.apache.logging.log4j.LogManager
+import org.joml.Vector4f
 import java.io.File
 
 class TreeViewPanel(val getElement: () -> Transform, style: Style) : PanelListX(style) {
@@ -89,11 +90,12 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style) : PanelListX(
 
     override fun getVisualState(): Any? = Pair(super.getVisualState(), showAddIndex)
 
+    private val tmp0 = Vector4f()
     override fun tickUpdate() {
         super.tickUpdate()
         val transform = getElement()
         val dragged = dragged
-        textColor = black or (transform.getLocalColor().toARGB(180))
+        textColor = black or (transform.getLocalColor(tmp0).toARGB(180))
         showAddIndex = if (
             mouseX.toInt() in lx0..lx1 &&
             mouseY.toInt() in ly0..ly1 &&

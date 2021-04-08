@@ -9,7 +9,7 @@ class StringPart(
     val text: String,
     val font: Font,
     var lineWidth: Float,
-    val codepointLength: Int = text.codePoints().count().toInt()
+    val codepointLength: Int = text.codePointCount(0, text.length)
 ) {
     operator fun plus(v: Vector2f) = StringPart(
         xPos + v.x, yPos + v.y, text, font, lineWidth, codepointLength

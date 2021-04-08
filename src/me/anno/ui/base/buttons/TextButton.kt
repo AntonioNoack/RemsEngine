@@ -3,6 +3,8 @@ package me.anno.ui.base.buttons
 import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFXx2D
 import me.anno.gpu.GFXx2D.drawRect
+import me.anno.gpu.GFXx2D.getSizeX
+import me.anno.gpu.GFXx2D.getSizeY
 import me.anno.gpu.GFXx2D.getTextSize
 import me.anno.input.Input
 import me.anno.input.Input.keysDown
@@ -49,16 +51,18 @@ open class TextButton(title: String, val isSquare: Boolean, style: Style) : Text
     }
 
     var mouseDown = false
+        set(value) {
+            if(field != value){
+                field = value
+                invalidateDrawing()
+            }
+        }
 
     override fun tickUpdate() {
         super.tickUpdate()
         mouseDown = (isHovered && 0 in Input.mouseKeysDown) ||
                 (isInFocus && keysDown.any { it.key.isClickKey() })
         backgroundColor = if (isHovered && !mouseDown) hoveredBackground else normalBackground
-    }
-
-    override fun getVisualState(): Any? {
-        return Triple(super.getVisualState(), mouseDown, isHovered)
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
@@ -72,28 +76,18 @@ open class TextButton(title: String, val isSquare: Boolean, style: Style) : Text
         val limit = if (breaksIntoMultiline) this.w else -1
         val size = getTextSize(font, text, limit)
         GFXx2D.drawText(
-            x + (w - size.first) / 2,
-            y + (h - size.second) / 2,
-            font,
-            text,
-            textColor,
-            backgroundColor,
-            limit
+            x + (w - getSizeX(size)) / 2,
+            y + (h - getSizeY(size)) / 2,
+            font, text, textColor, backgroundColor, limit
         )
 
         drawRect(
-            x + w - borderSize.right,
-            y,
-            borderSize.right,
-            h,
+            x + w - borderSize.right, y, borderSize.right, h,
             getColor(isHovered, mouseDown, rightColor, leftColor)
         ) // right
         drawRect(
-            x,
-            y + h - borderSize.bottom,
-            w,
-            borderSize.bottom,
-            getColor(isHovered, mouseDown, bottomColor, topColor)
+            x, y + h - borderSize.bottom, w,
+            borderSize.bottom, getColor(isHovered, mouseDown, bottomColor, topColor)
         ) // bottom
         drawRect(x, y, borderSize.left, h, getColor(isHovered, mouseDown, leftColor, rightColor)) // left
         drawRect(x, y, w, borderSize.top, getColor(isHovered, mouseDown, topColor, bottomColor)) // top

@@ -1,6 +1,5 @@
 package me.anno.audio
 
-import me.anno.gpu.GFX
 import me.anno.objects.Audio
 import me.anno.objects.Transform
 import me.anno.studio.StudioBase.Companion.shallStop
@@ -39,7 +38,7 @@ object AudioManager {
                 ALBase.check()
                 val time = System.nanoTime()
                 try {
-                    GFX.workQueue(GFX.audioTasks, 1f / 60f, false)
+                    me.anno.audio.AudioTasks.workQueue()
                 } catch (e: Exception) {
                     // if(e.message != "ALException: Invalid Name") // why does the error happen???
                     e.printStackTrace()

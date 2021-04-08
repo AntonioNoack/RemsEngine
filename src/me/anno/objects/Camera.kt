@@ -1,6 +1,7 @@
 package me.anno.objects
 
 import me.anno.config.DefaultConfig
+import me.anno.config.DefaultStyle.white4
 import me.anno.gpu.GFX
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
@@ -43,8 +44,8 @@ class Camera(parent: Transform? = null) : Transform(parent) {
     val orbitRadius = AnimatedProperty.floatPlus(1f)
 
     val cgOffset = AnimatedProperty.vec3()
-    val cgSlope = AnimatedProperty.color(Vector4f(1f, 1f, 1f, 1f))
-    val cgPower = AnimatedProperty.color(Vector4f(1f, 1f, 1f, 1f))
+    val cgSlope = AnimatedProperty.color(white4)
+    val cgPower = AnimatedProperty.color(white4)
     val cgSaturation = AnimatedProperty.float(1f) // only allow +? only 01?
 
     val bloomSize = AnimatedProperty.floatPlus(0.05f)

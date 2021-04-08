@@ -8,6 +8,10 @@ class ExpandingByteArray(
 
     var size = 0
 
+    fun clear(){
+        size = 0
+    }
+
     private var array: ByteArray? = null
 
     fun add(value: Byte) = plusAssign(value)

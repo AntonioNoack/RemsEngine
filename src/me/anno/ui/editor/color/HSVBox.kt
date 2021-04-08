@@ -3,7 +3,6 @@ package me.anno.ui.editor.color
 import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.ui.base.Panel
 import me.anno.ui.style.Style
-import org.joml.Vector3f
 import org.joml.Vector3fc
 
 open class HSVBox(
@@ -14,7 +13,8 @@ open class HSVBox(
     val dh: Float,
     style: Style,
     size: Float,
-    val onValueChanged: (Float, Float) -> Unit): Panel(style){
+    val onValueChanged: (Float, Float) -> Unit
+) : Panel(style) {
 
     init {
         minH = (size * style.getSize("textSize", 14)).toInt()
@@ -25,10 +25,10 @@ open class HSVBox(
     }
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
-        when(action){
+        when (action) {
             "selectColor" -> {
-                if(dragged == null){
-                    onValueChanged((x-this.x)/w, 1f-(y-this.y)/h)
+                if (dragged == null) {
+                    onValueChanged((x - this.x) / w, 1f - (y - this.y) / h)
                 }
             }
             else -> return super.onGotAction(x, y, dx, dy, action, isContinuous)

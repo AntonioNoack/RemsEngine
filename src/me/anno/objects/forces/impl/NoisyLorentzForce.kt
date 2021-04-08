@@ -39,10 +39,10 @@ class NoisyLorentzForce : PerParticleForce(
 
     fun getMagneticField(position: Vector3fc, time: Double): Vector3fc {
         val scale = fieldScale[time]
-        val px = (position.x() * scale.x).toDouble()
-        val py = (position.y() * scale.y).toDouble()
-        val pz = (position.z() * scale.z).toDouble()
-        val pw = (time * scale.w)
+        val px = (position.x() * scale.x()).toDouble()
+        val py = (position.y() * scale.y()).toDouble()
+        val pz = (position.z() * scale.z()).toDouble()
+        val pw = (time * scale.w())
         return Vector3f(
             nx.eval(px, py, pz, pw).toFloat(),
             ny.eval(px, py, pz, pw).toFloat(),

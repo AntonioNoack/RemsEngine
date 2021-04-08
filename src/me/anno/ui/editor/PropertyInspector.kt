@@ -28,9 +28,7 @@ class PropertyInspector(style: Style):
         needsUpdate = true
     }
 
-    override fun getLayoutState(): Any? {
-        return Pair(super.getLayoutState(), selectedInspectable)
-    }
+    override fun getLayoutState(): Any? = selectedInspectable
 
     override fun tickUpdate() {
         super.tickUpdate()

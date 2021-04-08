@@ -157,7 +157,7 @@ object RemsStudio : StudioBase(true, "Rem's Studio", 10003) {
     fun updateSceneViews() {
         // if(gameTime > 1e10) throw RuntimeException()
         // LOGGER.info("UpdateSceneViews ${gameTime / 1e9f}")
-        for (window in windowStack) {
+        for (window in GFX.windowStack) {
             for (panel in window.panel.listOfVisible) {
                 when (panel) {
                     is TreeView, is ISceneView, is TimelinePanel -> {

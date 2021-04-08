@@ -27,9 +27,9 @@ open class Shader(
         private val LOGGER = LogManager.getLogger(Shader::class)
         private const val attributeName = "in"
         private val matrixBuffer = BufferUtils.createFloatBuffer(16)
-        private val identity3 = Matrix3f() as Matrix3fc
-        private val identity4 = Matrix4f() as Matrix4fc
-        private val identity4x3 = Matrix4x3f() as Matrix4x3fc
+        private val identity3: Matrix3fc = Matrix3f()
+        private val identity4: Matrix4fc = Matrix4f()
+        private val identity4x3: Matrix4x3fc = Matrix4x3f()
         const val DefaultGLSLVersion = 150
         var lastProgram = -1
     }
@@ -237,8 +237,13 @@ open class Shader(
         }
     }
 
+    fun v3X(loc: Int, x: Float, y: Float, z: Float, w: Float) = v3(loc, x / w, y / w, z / w)
+    fun v3X(name: String, x: Float, y: Float, z: Float, w: Float) = v3(name, x / w, y / w, z / w)
     fun v3X(loc: Int, v: Vector4f) = v3(loc, v.x / v.w, v.y / v.w, v.z / v.w)
     fun v3X(name: String, v: Vector4f) = v3(name, v.x / v.w, v.y / v.w, v.z / v.w)
+
+    fun v3X(loc: Int, v: Vector4fc) = v3X(loc, v.x(), v.y(), v.z(), v.w())
+    fun v3X(name: String, v: Vector4fc) = v3X(name, v.x(), v.y(), v.z(), v.w())
 
     fun v3(name: String, color: Int) = v3(getUniformLocation(name), color)
     fun v3(loc: Int, color: Int) {
@@ -325,7 +330,7 @@ open class Shader(
         }
     }
 
-    fun m4x4(name: String, value: Matrix4fc = identity4) = m4x4(getUniformLocation(name), value)
+    fun m4x4(name: String, value: Matrix4fc? = identity4) = m4x4(getUniformLocation(name), value ?: identity4)
     fun m4x4(loc: Int, value: Matrix4fc = identity4) {
         if (loc > -1) {
             use()

@@ -70,10 +70,12 @@ class PanelListMultiline(style: Style) : PanelGroup(style), ScrollableY {
     operator fun plusAssign(child: Panel) {
         children.plusAssign(child)
         child.parent = this
+        invalidateLayout()
     }
 
     override fun remove(child: Panel) {
         children.remove(child)
+        invalidateLayout()
     }
 
     fun updateSize(w: Int, h: Int) {

@@ -16,7 +16,7 @@ object MeshCache : CacheSection("Meshes") {
         key: Any,
         timeout: Long,
         asyncGenerator: Boolean,
-        generator: () -> ICacheData
+        generator: (Any) -> ICacheData
     ) = getEntry(file, false, key, timeout, asyncGenerator, generator)
 
     fun getSVG(file: File, timeout: Long, asyncGenerator: Boolean): StaticBuffer? {

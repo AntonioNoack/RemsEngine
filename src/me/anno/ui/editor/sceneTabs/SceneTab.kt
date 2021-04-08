@@ -135,9 +135,7 @@ class SceneTab(var file: File?, var root: Transform, history: History?) : TextPa
                 } else {
                     file = dst
                     save(dst, onSuccess)
-                    rootPanel.listOfAll
-                        .filterIsInstance<FileExplorer>()
-                        .forEach { it.invalidate() }
+                    rootPanel.listOfAll { if(it is FileExplorer) it.invalidate() }
                 }
             } else {
                 msg(

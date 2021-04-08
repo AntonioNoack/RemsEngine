@@ -59,8 +59,8 @@ class SoftLink(var file: File) : GFXTransform(null) {
         if (renderToTexture) {
             // render to texture to keep all post-processing settings
             val resolution = resolution[time]
-            val rx = resolution.x.roundToInt()
-            val ry = resolution.y.roundToInt()
+            val rx = resolution.x().roundToInt()
+            val ry = resolution.y().roundToInt()
             if (rx > 0 && ry > 0 && rx * ry < 16e6) {
                 val fb = FBStack["SoftLink", rx, ry, 1, false]
                 Frame(fb) {
@@ -86,12 +86,13 @@ class SoftLink(var file: File) : GFXTransform(null) {
         }
     }
 
+    private val tmpMatrix0 = Matrix4f()
     fun drawScene(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
         updateCache()
         val camera = lastCamera
         if (camera != null) {
-            val (cameraTransform, _) = camera.getLocalTransform(time, this)
-            val inv = Matrix4f(cameraTransform).invert()
+            val cameraTransform = camera.getLocalTransform(time, this)
+            val inv = tmpMatrix0.set(cameraTransform).invert()
             stack.next {
                 stack.mul(inv)
                 drawChild(stack, time, color, softChild)
@@ -155,7 +156,7 @@ class SoftLink(var file: File) : GFXTransform(null) {
             "Camera Index", "Which camera should be chosen, 0 = none, 1 = first, ...", "",
             Type.INT_PLUS, cameraIndex, style
         ) { cameraIndex = it }
-        list += FrameSizeInput("Resolution", resolution[lastLocalTime].run { "${x.roundToInt()} x ${y.roundToInt()}" }, style)
+        list += FrameSizeInput("Resolution", resolution[lastLocalTime].run { "${x().roundToInt()} x ${y().roundToInt()}" }, style)
             .setChangeListener { w, h -> putValue(resolution, Vector2f(w.toFloat(), h.toFloat()), true) }
             .setIsSelectedListener { show(resolution) }
         // not ready yet

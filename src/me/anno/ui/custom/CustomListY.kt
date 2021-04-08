@@ -20,13 +20,10 @@ class CustomListY(style: Style): PanelListY(style), CustomList {
     }
 
     override fun invalidateLayout() {
-        window!!.needsLayout += this
+        window?.needsLayout?.add(this)
     }
 
-    override fun getLayoutState(): Any? {
-        val weights = children.map { it.weight }
-        return Pair(super.getLayoutState(), weights)
-    }
+    override fun getLayoutState(): Any = children.map { it.weight }
 
     override val customChildren
         get() = children.filter { it !is CustomizingBar }

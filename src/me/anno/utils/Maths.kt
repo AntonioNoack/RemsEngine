@@ -54,6 +54,10 @@ object Maths {
         return (a * (1.0 - f) + b * f).roundToInt()
     }
 
+    fun max(a: Int, b: Int): Int {
+        return if(a > b) a else b
+    }
+
     fun max(a: Float, b: Float): Float {
         return if(a > b) a else b
     }

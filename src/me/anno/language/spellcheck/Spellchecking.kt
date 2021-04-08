@@ -152,7 +152,8 @@ object Spellchecking : CacheSection("Spellchecking") {
                             nextTask = queue.remove(key)!!
                         }
                         var lines = nextTask.sentence.replace("\n", "\\n")
-                        if (lines.any { it > 127.toChar() }) {
+                        val limitChar = 127.toChar()
+                        if (lines.any { it > limitChar }) {
                             lines = lines.codePoints()
                                 .toList().joinToString("") { it.escapeCodepoint() }
                         }

@@ -54,20 +54,17 @@ import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.Color.rgba
-import me.anno.utils.types.Lists.sumByFloat
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.length
 import me.anno.utils.Maths.pow
 import me.anno.utils.OS
 import me.anno.utils.structures.tuples.Quad
+import me.anno.utils.types.Lists.sumByFloat
 import me.anno.utils.types.Vectors.plus
 import me.anno.utils.types.Vectors.times
 import me.anno.utils.types.Vectors.toVec3f
 import org.apache.logging.log4j.LogManager
-import org.joml.Matrix4f
-import org.joml.Matrix4fArrayList
-import org.joml.Vector3f
-import org.joml.Vector4f
+import org.joml.*
 import org.lwjgl.opengl.GL11.*
 import java.awt.image.BufferedImage
 import java.io.File
@@ -129,7 +126,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
 
     init {
         val is2DPanel = TextButton(
-            if(isLocked2D) "2D" else "3D", "Lock the camera; use control to keep the angle",
+            if (isLocked2D) "2D" else "3D", "Lock the camera; use control to keep the angle",
             "ui.sceneView.3dSwitch", true, style
         )
         is2DPanel.instantTextLoading = true
@@ -143,7 +140,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
             // control can be used to avoid rotating the camera
             if (isLocked2D && !isControlDown) {
                 val rot = camera.rotationYXZ
-                val rot0z = rot[camera.lastLocalTime].z
+                val rot0z = rot[camera.lastLocalTime].z()
                 camera.putValue(rot, Vector3f(0f, 0f, rot0z), true)
             }
             is2DPanel.text = if (isLocked2D) "2D" else "3D"
@@ -285,10 +282,10 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
 
-        val mode =
-            if (camera.toneMapping == ToneMappers.RAW8) ShaderPlus.DrawMode.COLOR
-            else ShaderPlus.DrawMode.COLOR_SQUARED
-
+        val mode = if (camera.toneMapping == ToneMappers.RAW8)
+            ShaderPlus.DrawMode.COLOR
+        else
+            ShaderPlus.DrawMode.COLOR_SQUARED
 
         GFX.drawMode = mode
 
@@ -489,7 +486,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
     fun move(dt: Float) {
 
         val camera = camera
-        val (cameraTransform, cameraTime) = camera.getGlobalTransform(editorTime)
+        val (cameraTransform, cameraTime) = camera.getGlobalTransformTime(editorTime)
 
         val radius = camera.orbitRadius[cameraTime]
         val speed = if (radius == 0f) 1f else 0.1f + 0.9f * radius
@@ -556,7 +553,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
                         }
                     }
 
-                    val (_, time) = camera.getGlobalTransform(editorTime)
+                    val (_, time) = camera.getGlobalTransformTime(editorTime)
                     val old = camera.rotationYXZ[time]
                     val rotationSpeed = -10f
                     if (!isLocked2D) {
@@ -585,29 +582,35 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
     }
 
     val global2normUI = Matrix4fArrayList()
+
+    private val global2target = Matrix4f()
+    private val camera2target = Matrix4f()
+    private val target2camera = Matrix4f()
+
     fun move(selected: Transform, dx0: Float, dy0: Float) {
 
         if (!mayControlCamera) return
+        if (dx0 == 0f && dy0 == 0f) return
 
-        val (target2global, localTime) = (selected.parent ?: selected).getGlobalTransform(editorTime)
+        val (target2global, localTime) = (selected.parent ?: selected).getGlobalTransformTime(editorTime)
 
         val camera = camera
-        val (camera2global, cameraTime) = camera.getGlobalTransform(editorTime)
+        val (camera2global, cameraTime) = camera.getGlobalTransformTime(editorTime)
 
         global2normUI.clear()
         GFX.applyCameraTransform(camera, cameraTime, camera2global, global2normUI)
 
         // val inverse = Matrix4f(global2normUI).invert()
 
-        val global2target = Matrix4f(target2global).invert()
+        val global2target = global2target.set(target2global).invert()
 
         // transforms: global to local
         // ->
         // camera local to global, then global to local
         //      obj   cam
         // v' = G2L * L2G * v
-        val camera2target = Matrix4f(camera2global).mul(global2target)
-        val target2camera = Matrix4f(camera2target).invert()
+        val camera2target = camera2target.set(camera2global).mul(global2target)
+        val target2camera = target2camera.set(camera2target).invert()
 
         // where the object is on screen
         val targetZonUI = target2camera.transform(Vector4f(0f, 0f, 0f, 1f)).toVec3f()
@@ -645,16 +648,16 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
                 val oldScale = selected.scale[localTime]
                 val localDelta = target2camera.transformDirection(
                     if (isControlDown) Vector3f(dx0, dy0, 0f)
-                    else Vector3f(delta0, delta0, delta0)
+                    else Vector3f(delta0)
                 )
                 val base = 2f
                 invalidateDrawing()
                 RemsStudio.incrementalChange("Scale Object") {
                     selected.scale.addKeyframe(
                         localTime, Vector3f(
-                            oldScale.x * pow(base, localDelta.x * speed2),
-                            oldScale.y * pow(base, localDelta.y * speed2),
-                            oldScale.z * pow(base, localDelta.z * speed2)
+                            oldScale.x() * pow(base, localDelta.x * speed2),
+                            oldScale.y() * pow(base, localDelta.y * speed2),
+                            oldScale.z() * pow(base, localDelta.z * speed2)
                         )
                     )
                     RemsStudio.updateSceneViews()
@@ -720,7 +723,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
         }
     }
 
-    val cameraTime get() = camera.getGlobalTransform(editorTime).second
+    val cameraTime get() = camera.getGlobalTransformTime(editorTime).second
     val firstCamera get() = root.listOfAll.filterIsInstance<Camera>().firstOrNull()
 
     fun rotateCameraTo(rotation: Vector3f) {
@@ -756,7 +759,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
                     camera.resetTransform(true)
                 } else {
                     // copy the transform
-                    val firstCameraTime = firstCamera.getGlobalTransform(editorTime).second
+                    val firstCameraTime = firstCamera.getGlobalTransformTime(editorTime).second
                     RemsStudio.largeChange("Reset Camera") {
                         camera.cloneTransform(firstCamera, firstCameraTime)
                     }

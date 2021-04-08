@@ -6,6 +6,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.GFXx2D.drawRect
 import me.anno.gpu.GFXx2D.getTextSize
+import me.anno.gpu.GFXx2D.getTextSizeX
 import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.ui.base.components.Padding
@@ -133,12 +134,12 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
             val panel1 = children[cursor1.y] as TextPanel
             val line1 = lines[cursor1.y]
             val cursor1Text = line1.subList(0, cursor1.x).joinChars()
-            val cursorX1 = if (cursor1.x == 0) 0 else getTextSize(font, cursor1Text, -1).first - 1
+            val cursorX1 = if (cursor1.x == 0) 0 else getTextSizeX(font, cursor1Text, -1) - 1
             if (cursor1 != cursor2) {
                 val panel2 = children[cursor2.y] as TextPanel
                 val line2 = lines[cursor2.y]
                 val cursor2Text = line2.subList(0, cursor2.x).joinChars()
-                val cursorX2 = if (cursor2.x == 0) 0 else getTextSize(font, cursor2Text, -1).first - 1
+                val cursorX2 = if (cursor2.x == 0) 0 else getTextSizeX(font, cursor2Text, -1) - 1
                 val minCursor = min(cursor1, cursor2)
                 val maxCursor = max(cursor1, cursor2)
                 val minPanel = children[minCursor.y] as TextPanel

@@ -409,7 +409,7 @@ public class GFXBase0 {
                         return null;
                     });
                     Input.INSTANCE.invalidateLayout();
-                    StudioBase.instance.getWindowStack().peek().setAcceptsClickAway(false);
+                    GFX.INSTANCE.getWindowStack().peek().setAcceptsClickAway(false);
                     return null;
                 });
             }

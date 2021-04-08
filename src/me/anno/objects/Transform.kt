@@ -152,11 +152,13 @@ open class Transform(var parent: Transform? = null) : Saveable(),
         select(this, anim)
     }
 
+    private val tmp0 = Vector4f()
+    private val tmp1 = Vector4f()
     open fun claimResources(pTime0: Double, pTime1: Double, pAlpha0: Float, pAlpha1: Float) {
         val lTime0 = getLocalTime(pTime0)
-        val lAlpha0 = getLocalColor(Vector4f(0f, 0f, 0f, pAlpha0), lTime0).w
+        val lAlpha0 = getLocalColor(tmp0.set(0f, 0f, 0f, pAlpha0), lTime0, tmp0).w
         val lTime1 = getLocalTime(pTime1)
-        val lAlpha1 = getLocalColor(Vector4f(0f, 0f, 0f, pAlpha1), lTime0).w
+        val lAlpha1 = getLocalColor(tmp1.set(0f, 0f, 0f, pAlpha1), lTime0, tmp1).w
         if (lAlpha0 > minAlpha || lAlpha1 > minAlpha) {
             claimLocalResources(lTime0, lTime1)
             children.forEach {
@@ -249,16 +251,51 @@ open class Transform(var parent: Transform? = null) : Saveable(),
         return localTime0
     }
 
-    fun getLocalColor(): Vector4f = getLocalColor(parent?.getLocalColor() ?: Vector4f(1f, 1f, 1f, 1f), lastLocalTime)
-    fun getLocalColor(parentColor: Vector4fc, localTime: Double): Vector4f {
-        val col = color.getValueAt(localTime)
+    fun getLocalColor(dst: Vector4f = Vector4f()): Vector4f {
+        return getLocalColor(
+            parent?.getLocalColor(dst),
+            lastLocalTime, dst
+        )
+    }
+
+    fun updateLocalColor(parentColor: Vector4fc, localTime: Double) {
+        lastLocalColor = getLocalColor(parentColor, localTime, lastLocalColor)
+    }
+
+    fun getLocalAlpha(parentAlpha: Float, localTime: Double, tmp: Vector4f): Float {
+        var col = color.getValueAt(localTime, tmp).w()
+        val fadeIn = fadeIn[localTime]
+        val fadeOut = fadeOut[localTime]
+        val m1 = clamp((localTime - getStartTime()) / fadeIn, 0.0, 1.0)
+        val m2 = clamp((getEndTime() - localTime) / fadeOut, 0.0, 1.0)
+        val fading = (m1 * m2).toFloat()
+        col *= parentAlpha * fading
+        return col
+    }
+
+    fun getLocalColor(parentColor: Vector4fc?, localTime: Double, dst: Vector4f = Vector4f()): Vector4f {
+        // we would need a temporary value for the parent color, as may be parentColor == dst
+        var px = 1f
+        var py = 1f
+        var pz = 1f
+        var pw = 1f
+        if (parentColor != null) {
+            px = parentColor.x()
+            py = parentColor.y()
+            pz = parentColor.z()
+            pw = parentColor.w()
+        }
+        val col = color.getValueAt(localTime, dst)
         val mul = colorMultiplier[localTime]
         val fadeIn = fadeIn[localTime]
         val fadeOut = fadeOut[localTime]
         val m1 = clamp((localTime - getStartTime()) / fadeIn, 0.0, 1.0)
         val m2 = clamp((getEndTime() - localTime) / fadeOut, 0.0, 1.0)
         val fading = (m1 * m2).toFloat()
-        return Vector4f(col).mul(parentColor).mul(mul, mul, mul, fading)
+        if (dst !== col) dst.set(col)
+        if (parentColor != null) dst.mul(px, py, pz, pw)
+        dst.mul(mul, mul, mul, fading)
+        return dst
     }
 
     fun applyTransformLT(transform: Matrix4f, time: Double) {
@@ -273,13 +310,13 @@ open class Transform(var parent: Transform? = null) : Saveable(),
             transform.translate(position)
         }
 
-        if (euler.y != 0f) transform.rotate(toRadians(euler.y), yAxis)
-        if (euler.x != 0f) transform.rotate(toRadians(euler.x), xAxis)
-        if (euler.z != 0f) transform.rotate(toRadians(euler.z), zAxis)
+        if (euler.y() != 0f) transform.rotate(toRadians(euler.y()), yAxis)
+        if (euler.x() != 0f) transform.rotate(toRadians(euler.x()), xAxis)
+        if (euler.z() != 0f) transform.rotate(toRadians(euler.z()), zAxis)
 
-        if (scale.x != 1f || scale.y != 1f || scale.z != 1f) transform.scale(scale)
+        if (scale.x() != 1f || scale.y() != 1f || scale.z() != 1f) transform.scale(scale)
 
-        if (skew.x != 0f || skew.y != 0f) transform.skew(skew.x, skew.y)
+        if (skew.x() != 0f || skew.y() != 0f) transform.skew(skew)
 
         if (alignWithCamera != 0f) {
             transform.alignWithCamera(alignWithCamera)
@@ -310,7 +347,7 @@ open class Transform(var parent: Transform? = null) : Saveable(),
     fun draw(stack: Matrix4fArrayList, parentTime: Double, parentColor: Vector4fc) {
 
         val time = getLocalTime(parentTime)
-        val color = getLocalColor(parentColor, time)
+        val color = getLocalColor(parentColor, time, tmp0)
 
         if (color.w > minAlpha && visibility.isVisible) {
             applyTransformLT(stack, time)
@@ -542,17 +579,45 @@ open class Transform(var parent: Transform? = null) : Saveable(),
         return this
     }
 
-    fun getLocalTransform(globalTime: Double, reference: Transform): Pair<Matrix4f, Double> {
+    fun getLocalTransform(globalTime: Double, reference: Transform): Matrix4f {
         val (parentTransform, parentTime) =
             if (reference === parent) Matrix4f() to globalTime
-            else parent?.getGlobalTransform(globalTime) ?: Matrix4f() to globalTime
+            else parent?.getGlobalTransformTime(globalTime) ?: Matrix4f() to globalTime
+        val localTime = getLocalTime(parentTime)
+        applyTransformLT(parentTransform, localTime)
+        return parentTransform
+    }
+
+    fun getLocalTime(globalTime: Double, reference: Transform): Double {
+        val parentTime =
+            if (reference === parent) globalTime
+            else parent?.getGlobalTime(globalTime) ?: globalTime
+        return getLocalTime(parentTime)
+    }
+
+    fun getLocalTransformTime(globalTime: Double, reference: Transform): Pair<Matrix4f, Double> {
+        val (parentTransform, parentTime) =
+            if (reference === parent) Matrix4f() to globalTime
+            else parent?.getGlobalTransformTime(globalTime) ?: Matrix4f() to globalTime
         val localTime = getLocalTime(parentTime)
         applyTransformLT(parentTransform, localTime)
         return parentTransform to localTime
     }
 
-    fun getGlobalTransform(globalTime: Double): Pair<Matrix4f, Double> {
-        val (parentTransform, parentTime) = parent?.getGlobalTransform(globalTime) ?: Matrix4f() to globalTime
+    fun getGlobalTransform(globalTime: Double): Matrix4f {
+        val (parentTransform, parentTime) = parent?.getGlobalTransformTime(globalTime) ?: Matrix4f() to globalTime
+        val localTime = getLocalTime(parentTime)
+        applyTransformLT(parentTransform, localTime)
+        return parentTransform
+    }
+
+    fun getGlobalTime(globalTime: Double): Double {
+        val parentTime = parent?.getGlobalTime(globalTime) ?: globalTime
+        return getLocalTime(parentTime)
+    }
+
+    fun getGlobalTransformTime(globalTime: Double): Pair<Matrix4f, Double> {
+        val (parentTransform, parentTime) = parent?.getGlobalTransformTime(globalTime) ?: Matrix4f() to globalTime
         val localTime = getLocalTime(parentTime)
         applyTransformLT(parentTransform, localTime)
         return parentTransform to localTime
@@ -664,13 +729,50 @@ open class Transform(var parent: Transform? = null) : Saveable(),
             }
         }
 
-    fun getLocalTimeFromRoot(globalTime: Double): Double {
-        val inh = listOfInheritance.toList().reversed()
-        var localTime = globalTime
-        for (e in inh) {
-            localTime = e.getLocalTime(localTime)
+    fun getDepth(): Int {
+        var element: Transform? = this
+        var ctr = 0
+        while(element != null){
+            element = element.parent
+            ctr++
         }
-        return localTime
+        return ctr
+    }
+
+    private var tmpHierarchy: Array<Transform?>? = null
+    /**
+     * get the local time at that globalTime;
+     * withAllocation = false may allocate as well ;p, but at least it's thread safe,
+     * and it will allocate only, if the hierarchy changes
+     * */
+    fun getLocalTimeFromRoot(globalTime: Double, withAllocation: Boolean): Double {
+        if(withAllocation){
+            val inh = listOfInheritance.toList().reversed()
+            var localTime = globalTime
+            for (e in inh) {
+                localTime = e.getLocalTime(localTime)
+            }
+            return localTime
+        } else {
+            val depth = getDepth()
+            var hierarchy = tmpHierarchy
+            if(hierarchy == null || hierarchy.size < depth){
+                hierarchy = arrayOfNulls(depth)
+                this.tmpHierarchy = hierarchy
+            }
+            var element: Transform? = this
+            var ctr = 0
+            while(element != null){
+                hierarchy[ctr++] = element
+                element = element.parent
+            }
+            var localTime = globalTime
+            for(i in ctr-1 downTo 0){
+                localTime = hierarchy[i]!!
+                    .getLocalTime(localTime)
+            }
+            return localTime
+        }
     }
 
     fun checkFinalRendering() {

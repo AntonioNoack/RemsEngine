@@ -10,10 +10,13 @@ open class PanelContainer(onlyChild: Panel, val padding: Padding, style: Style):
 
     var child: Panel = onlyChild
         set(value) {
-            child.parent = null
-            value.parent?.remove(value)
-            value.parent = this
-            field = value
+            if(field != value){
+                child.parent = null
+                value.parent?.remove(value)
+                value.parent = this
+                field = value
+                invalidateLayout()
+            }
         }
 
     override val children: List<Panel> get() = listOf(child)

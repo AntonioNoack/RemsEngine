@@ -8,6 +8,10 @@ class ExpandingFloatArray(
 
     var size = 0
 
+    fun clear(){
+        size = 0
+    }
+
     private var array: FloatArray? = null
 
     fun add(value: Float) = plusAssign(value)

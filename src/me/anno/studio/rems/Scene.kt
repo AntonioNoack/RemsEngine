@@ -31,7 +31,6 @@ import me.anno.studio.rems.Selection.selectedTransform
 import me.anno.ui.editor.sceneView.Gizmo.drawGizmo
 import me.anno.ui.editor.sceneView.Grid
 import me.anno.ui.editor.sceneView.ISceneView
-import me.anno.utils.Warning.warn
 import me.anno.utils.types.Vectors.is000
 import me.anno.utils.types.Vectors.is1111
 import me.anno.utils.types.Vectors.times
@@ -299,7 +298,7 @@ object Scene {
 
             RemsStudio.currentlyDrawnCamera = camera
 
-            val (cameraTransform, cameraTime) = camera.getGlobalTransform(time)
+            val (cameraTransform, cameraTime) = camera.getGlobalTransformTime(time)
             lastGlobalCameraTransform.set(cameraTransform)
             lGCTInverted.set(cameraTransform)
             lGCTInverted.invert()
@@ -478,8 +477,8 @@ object Scene {
                 // middle gray = 0.18?
 
                 // distortion
-                shader.v3("fxScale", fxScaleX, fxScaleY, 1f + distortion.z)
-                shader.v2("distortion", distortion.x, distortion.y)
+                shader.v3("fxScale", fxScaleX, fxScaleY, 1f + distortion.z())
+                shader.v2("distortion", distortion.x(), distortion.y())
                 shader.v2("distortionOffset", distortionOffset)
                 if (!isFakeColorRendering) {
                     // vignette
@@ -565,7 +564,7 @@ object Scene {
             val stack = stack
             selectedTransform?.apply {
                 BlendDepth(BlendMode.DEFAULT, false) {
-                    val (transform, _) = getGlobalTransform(time)
+                    val (transform, _) = getGlobalTransformTime(time)
                     stack.next {
                         stack.mul(transform)
                         stack.scale(0.02f)

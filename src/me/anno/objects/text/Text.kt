@@ -219,7 +219,7 @@ open class Text(parent: Transform? = null) : GFXTransform(parent) {
 
         // limit the characters
         // cursorLimit1 .. cursorLimit2
-        val textLength = text.codePoints().count().toInt()
+        val textLength = text.codePointCount(0, text.length)
         val startCursor = max(0, startCursor[time])
         var endCursor = min(textLength, endCursor[time])
         if (endCursor < 0) endCursor = textLength
@@ -245,7 +245,7 @@ open class Text(parent: Transform? = null) : GFXTransform(parent) {
 
         val shadowColor = shadowColor[time]
 
-        if (shadowColor.w >= 0f) {
+        if (shadowColor.w() >= 0f) {
             val shadowSmoothness = shadowSmoothness[time]
             val shadowOffset = shadowOffset[time] * (1f / DEFAULT_FONT_HEIGHT)
             stack.next {
@@ -274,6 +274,11 @@ open class Text(parent: Transform? = null) : GFXTransform(parent) {
 
     }
 
+    private val oc0 = Vector4f()
+    private val oc1 = Vector4f()
+    private val oc2 = Vector4f()
+
+    private val tmp0 = Vector4f()
     private fun draw(
         stack: Matrix4fArrayList, time: Double, color: Vector4fc,
         lineSegmentsWithStyle: PartResult,
@@ -286,19 +291,24 @@ open class Text(parent: Transform? = null) : GFXTransform(parent) {
         extraSmoothness: Float
     ) {
 
-        val parentColor = parent?.getLocalColor() ?: Vector4f(1f)
-
-        val oc0: Vector4f
-        val oc1: Vector4f
-        val oc2: Vector4f
+        val oc0 = oc0
+        val oc1 = oc1
+        val oc2 = oc2
         if (useExtraColors && drawTextures) {
-            oc0 = parentColor * outlineColor0[time]
-            oc1 = parentColor * outlineColor1[time]
-            oc2 = parentColor * outlineColor2[time]
+            val parentColor = parent?.getLocalColor(tmp0)
+            if (parentColor != null) {
+                oc0.set(parentColor).mul(outlineColor0[time])
+                oc1.set(parentColor).mul(outlineColor1[time])
+                oc2.set(parentColor).mul(outlineColor2[time])
+            } else {
+                oc0.set(outlineColor0[time])
+                oc1.set(outlineColor1[time])
+                oc2.set(outlineColor2[time])
+            }
         } else {
-            oc0 = color.mulAlpha(outlineColor0[time].w)
-            oc1 = color.mulAlpha(outlineColor1[time].w)
-            oc2 = color.mulAlpha(outlineColor2[time].w)
+            color.mulAlpha(outlineColor0[time].w(), oc0)
+            color.mulAlpha(outlineColor1[time].w(), oc1)
+            color.mulAlpha(outlineColor2[time].w(), oc2)
         }
 
         var charIndex = 0
@@ -357,6 +367,7 @@ open class Text(parent: Transform? = null) : GFXTransform(parent) {
 
     var firstTimeDrawing = false
 
+    private val scale0 = Vector2f()
     private fun drawTexture(
         key: TextSegmentKey, time: Double, stack: Matrix4fArrayList,
         color: Vector4fc, lineDeltaX: Float, lineDeltaY: Float,
@@ -387,18 +398,19 @@ open class Text(parent: Transform? = null) : GFXTransform(parent) {
                     val baseScale =
                         DEFAULT_LINE_HEIGHT / sdfResolution / (exampleLayout.ascent + exampleLayout.descent)
 
-                    val scale = Vector2f(0.5f * texture.w * baseScale, 0.5f * texture.h * baseScale)
+                    val scaleX = 0.5f * texture.w * baseScale
+                    val scaleY = 0.5f * texture.h * baseScale
 
                     /**
                      * character- and alignment offset
                      * */
                     stack.translate(lineDeltaX + xOffset, lineDeltaY, 0f)
-                    stack.scale(scale.x, scale.y, 1f)
+                    stack.scale(scaleX, scaleY, 1f)
 
                     val sdfOffset = sdf.offset
                     val offset = Vector2f(
-                        (lineDeltaX + xOffset) * scale.x,
-                        lineDeltaY * scale.y
+                        (lineDeltaX + xOffset) * scaleX,
+                        lineDeltaY * scaleY
                     ) + sdfOffset
 
                     /**
@@ -407,6 +419,7 @@ open class Text(parent: Transform? = null) : GFXTransform(parent) {
                      * */
                     stack.translate(sdfOffset.x, sdfOffset.y, 0f)
 
+                    scale0.set(scaleX, scaleY)
                     if (firstTimeDrawing) {
 
                         val outline = outlineWidths[time] * sdfResolution
@@ -419,7 +432,7 @@ open class Text(parent: Transform? = null) : GFXTransform(parent) {
 
                         drawOutlinedText(
                             this, time,
-                            stack, offset, scale,
+                            stack, offset, scale0,
                             texture, color, 5,
                             arrayOf(
                                 color, oc1, oc2, oc3,
@@ -433,7 +446,7 @@ open class Text(parent: Transform? = null) : GFXTransform(parent) {
 
                     } else {
 
-                        drawOutlinedText(stack, offset, scale, texture)
+                        drawOutlinedText(stack, offset, scale0, texture)
 
                     }
                 }
@@ -780,7 +793,7 @@ open class Text(parent: Transform? = null) : GFXTransform(parent) {
     override fun passesOnColor() = false // otherwise white shadows of black text wont work
 
     override fun getClassName(): String = "Text"
-    override fun getDefaultDisplayName() =
+    override fun getDefaultDisplayName() = // text can be null!!!
         (text?.keyframes?.maxBy { it.value.length }?.value ?: "").ifBlank { Dict["Text", "obj.text"] }
 
     override fun getSymbol() = DefaultConfig["ui.symbol.text", "\uD83D\uDCC4"]

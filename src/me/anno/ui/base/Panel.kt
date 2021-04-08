@@ -10,9 +10,10 @@ import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.Constraint
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.groups.PanelGroup
-import me.anno.ui.state.Rect
 import me.anno.ui.style.Style
 import me.anno.utils.Tabs
+import me.anno.utils.structures.arrays.ExpandingGenericArray
+import me.anno.utils.types.Booleans.toInt
 import org.apache.logging.log4j.LogManager
 import java.io.File
 
@@ -47,26 +48,38 @@ open class Panel(val style: Style) {
 
     // layout
     open fun invalidateLayout() {
-        parent?.invalidateLayout() ?: {
+        val parent = parent
+        if (parent == null) {
             val window = window
-            // ?: throw RuntimeException("${javaClass.simpleName} is missing parent, state: $oldLayoutState/$oldVisualState")
             window?.needsLayout?.add(this)
-        }()
+        } else parent.invalidateLayout()
     }
 
     open fun invalidateDrawing() {
         val window = window
-        // ?: throw RuntimeException("${javaClass.simpleName} is missing parent, state: $oldLayoutState/$oldVisualState")
         window?.needsRedraw?.add(this)
+        // ?: throw RuntimeException("${javaClass.simpleName} is missing parent, state: $oldLayoutState/$oldVisualState")
     }
 
     open fun tickUpdate() {}
-    open fun getLayoutState(): Any? = Rect(lx0, ly0, lx1, ly1)
-    open fun getVisualState(): Any? = backgroundColor
+
+    var lx0 = 0
+    var ly0 = 0
+    var lx1 = 0
+    var ly1 = 0
+
+    var llx0 = lx0
+    var lly0 = ly0
+    var llx1 = lx1
+    var lly1 = ly1
+
+    open fun getLayoutState(): Any? = null // Rect(lx0, ly0, lx1, ly1)
+    open fun getVisualState(): Any? = null
 
     var oldLayoutState: Any? = null
     var oldVisualState: Any? = null
 
+    var oldStateInt = 0
     fun tick() {
         val newLayoutState = getLayoutState()
         if (newLayoutState != oldLayoutState) {
@@ -74,10 +87,21 @@ open class Panel(val style: Style) {
             oldVisualState = getVisualState()
             invalidateLayout()
         } else {
-            val newVisualState = getVisualState()
-            if (newVisualState != oldVisualState) {
-                oldVisualState = newVisualState
+            val newStateInt = isInFocus.toInt(1) + isHovered.toInt(2) + canBeSeen.toInt(4)
+            if (oldStateInt != newStateInt || llx0 != lx0 || lly0 != ly0 || llx1 != lx1 || lly1 != ly1) {
+                oldStateInt = newStateInt
+                llx0 = lx0
+                lly0 = ly0
+                llx1 = lx1
+                lly1 = ly1
+                oldVisualState = getVisualState()
                 invalidateDrawing()
+            } else {
+                val newVisualState = getVisualState()
+                if (newVisualState != oldVisualState) {
+                    oldVisualState = newVisualState
+                    invalidateDrawing()
+                }
             }
         }
     }
@@ -104,6 +128,13 @@ open class Panel(val style: Style) {
     var backgroundRadiusCorners = style.getInt("background.radius.sides", 15)
 
     var backgroundColor = style.getColor("background", -1)
+        set(value) {
+            if (field != value) {
+                field = value
+                invalidateDrawing()
+            }
+        }
+
     val originalBGColor = backgroundColor
 
     var parent: PanelGroup? = null
@@ -119,6 +150,7 @@ open class Panel(val style: Style) {
     var canBeSeen = true
     var isInFocus = false
     var isHovered = false
+    var wasInFocus = false
 
     val rootPanel: Panel get() = parent?.rootPanel ?: this
 
@@ -146,10 +178,27 @@ open class Panel(val style: Style) {
         }*/
     }
 
-    var lx0 = 0
-    var ly0 = 0
-    var lx1 = 0
-    var ly1 = 0
+    fun updateVisibility(mx: Int, my: Int) {
+        isInFocus = false
+        canBeSeen = (parent?.canBeSeen != false) &&
+                visibility == Visibility.VISIBLE &&
+                lx1 > lx0 && ly1 > ly0
+        isHovered = mx in lx0 until lx1 && my in ly0 until ly1
+        if (this is PanelGroup) {
+            for (child in children) {
+                child.updateVisibility(mx, my)
+            }
+        }
+    }
+
+    fun findMissingParents(parent: PanelGroup? = null) {
+        if(parent != null) this.parent = parent
+        if(this is PanelGroup){
+            for(child in children){
+                child.findMissingParents(this)
+            }
+        }
+    }
 
     /**
      * draw the panel at its last location and size
@@ -157,8 +206,6 @@ open class Panel(val style: Style) {
     fun redraw() {
         draw(lx0, ly0, lx1, ly1)
     }
-
-    var wasInFocus = false
 
     /**
      * draw the panel inside the rectangle (x0 until x1, y0 until y1)
@@ -413,6 +460,26 @@ open class Panel(val style: Style) {
                 child.listOfAll(callback)
             }
         }
+    }
+
+    fun listOfAll(array: ExpandingGenericArray<Panel>) {
+        array += this
+        if (this is PanelGroup) {
+            for (child in children) {
+                child.listOfAll(array)
+            }
+        }
+    }
+
+    fun firstOfAll(predicate: (Panel) -> Boolean): Panel? {
+        if (predicate(this)) return this
+        if (this is PanelGroup) {
+            for (child in children) {
+                val first = child.firstOfAll(predicate)
+                if (first != null) return first
+            }
+        }
+        return null
     }
 
     val listOfAll: Sequence<Panel>

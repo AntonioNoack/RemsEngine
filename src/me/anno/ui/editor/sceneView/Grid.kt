@@ -112,6 +112,7 @@ object Grid {
         shader.v1("drawMode", GFX.drawMode.id)
     }
 
+    private val stack = Matrix4f()
     fun drawLine11(
         x0: Float, y0: Float, x1: Float, y1: Float,
         color: Int, alpha: Float
@@ -119,7 +120,8 @@ object Grid {
         val shader = shader3D
         shader.use()
         GFXTransform.uploadAttractors0(shader)
-        val stack = Matrix4f()
+        val stack = stack
+        stack.identity()
         stack.translate(x0, y0, 0f)
         val angle = atan2(y1 - y0, x1 - x0)
         stack.rotate(angle, zAxis)

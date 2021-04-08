@@ -9,7 +9,7 @@ import me.anno.ui.style.Style
  * */
 abstract class ImagePanel(style: Style): Panel(style){
 
-    override fun getVisualState(): Any? = super.getVisualState() to getTexture()
+    override fun getVisualState(): Any? = getTexture()
 
     abstract fun getTexture(): Texture2D?
 

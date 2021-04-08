@@ -8,6 +8,10 @@ class ExpandingLongArray(
 
     var size = 0
 
+    fun clear(){
+        size = 0
+    }
+
     private var array: LongArray? = null
 
     fun add(value: Long) = plusAssign(value)

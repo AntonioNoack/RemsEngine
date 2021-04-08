@@ -113,9 +113,9 @@ abstract class GFXTransform(parent: Transform?) : Transform(parent) {
                     val weight = attractor.lastInfluence
                     val sharpness = attractor.sharpness[localTime]
                     val scale = attractor.scale[localTime]
-                    buffer.put(sqrt(sy / sx) * weight * scale.z / scale.x)
-                    buffer.put(sqrt(sx / sy) * weight * scale.z / scale.y)
-                    buffer.put(10f / (scale.z * weight * weight))
+                    buffer.put(sqrt(sy / sx) * weight * scale.z() / scale.x())
+                    buffer.put(sqrt(sx / sy) * weight * scale.z() / scale.y())
+                    buffer.put(10f / (scale.z() * weight * weight))
                     buffer.put(sharpness)
                 }
                 buffer.position(0)
@@ -152,10 +152,10 @@ abstract class GFXTransform(parent: Transform?) : Transform(parent) {
                 val localTime = attractor.lastLocalTime
                 val color = attractor.color[localTime]
                 val colorM = attractor.colorMultiplier[localTime]
-                buffer.put(color.x * colorM)
-                buffer.put(color.y * colorM)
-                buffer.put(color.z * colorM)
-                buffer.put(color.w)
+                buffer.put(color.x() * colorM)
+                buffer.put(color.y() * colorM)
+                buffer.put(color.z() * colorM)
+                buffer.put(color.w())
             }
             buffer.position(0)
             glUniform4fv(shader["forceFieldColors"], buffer)
@@ -176,9 +176,9 @@ abstract class GFXTransform(parent: Transform?) : Transform(parent) {
                 val localTime = attractor.lastLocalTime
                 val scale = attractor.scale[localTime]
                 val power = attractor.sharpness[localTime]
-                buffer.put(abs(sy / sx / scale.x))
-                buffer.put(abs(sx / sy / scale.y))
-                buffer.put(abs(1f / scale.z))
+                buffer.put(abs(sy / sx / scale.x()))
+                buffer.put(abs(sx / sy / scale.y()))
+                buffer.put(abs(1f / scale.z()))
                 buffer.put(power)
             }
             buffer.position(0)

@@ -2,13 +2,14 @@ package me.anno.fonts
 
 import me.anno.config.DefaultConfig
 import me.anno.fonts.mesh.TextMeshGroup
+import me.anno.gpu.GFXx2D
 import me.anno.gpu.texture.FakeWhiteTexture
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.ui.base.DefaultRenderingHints.prepareGraphics
-import me.anno.utils.types.Lists.join
 import me.anno.utils.OS
 import me.anno.utils.structures.lists.ExpensiveList
+import me.anno.utils.types.Lists.join
 import me.anno.utils.types.Strings.incrementTab
 import me.anno.utils.types.Strings.joinChars
 import org.apache.logging.log4j.LogManager
@@ -38,8 +39,10 @@ class AWTFont(val font: Font) {
     }
 
     private fun String.containsSpecialChar(): Boolean {
-        for (cp in codePoints()) {
-            if (cp == '\n'.toInt() || cp > 127 || cp == '\t'.toInt()) return true
+        val limit = 127.toChar()
+        for (ci in indices) {
+            val cp = get(ci)
+            if (cp == '\n' || cp == '\t' || cp > limit) return true
         }
         return false
     }
@@ -63,25 +66,36 @@ class AWTFont(val font: Font) {
      * */
     private fun drawString(gfx: Graphics2D, text: String, group: TextMeshGroup?, x: Float, y: Float) {
         val group2 = group ?: getGroup(text)
-        var index = 0
         // some distances still are awkward, because it is using the closest position, not float
         // (useful for 'I's)
         // maybe we could implement detecting, which sections need int positions, and which don't...
-        text.codePoints().forEach { codepoint ->
-            gfx.drawString(
-                String(Character.toChars(codepoint)),
-                x + group2.offsets[index].toFloat(),
-                y
-            )
-            index++
+        if (text.containsSpecialChar()) {
+            var index = 0
+            for (codepoint in text.codePoints()) {
+                gfx.drawString(
+                    String(Character.toChars(codepoint)),
+                    x + group2.offsets[index].toFloat(),
+                    y
+                )
+                index++
+            }
+        } else {
+            for (index in text.indices) {
+                val char = text[index]
+                gfx.drawString(
+                    asciiStrings[char.toInt()],
+                    x + group2.offsets[index].toFloat(),
+                    y
+                )
+            }
         }
     }
 
     private fun spaceBetweenLines(fontSize: Float) = (0.5f * fontSize).roundToInt()
 
-    fun calculateSize(text: String, fontSize: Float, widthLimit: Int): Pair<Int, Int> {
+    fun calculateSize(text: String, fontSize: Float, widthLimit: Int): Int {
 
-        if (text.isEmpty()) return 0 to fontSize.toInt()
+        if (text.isEmpty()) return GFXx2D.getSize(0, fontSize.toInt())
         if (text.containsSpecialChar() || widthLimit > 0) {
             return generateSizeV3(text, fontSize, widthLimit.toFloat())
         }
@@ -93,7 +107,7 @@ class AWTFont(val font: Font) {
         val height = fontHeight * lineCount + (lineCount - 1) * spaceBetweenLines
 
         val width = max(0, lines.map { getStringWidth(getGroup(it)) }.max()!!.roundToInt() + 1)
-        return width to height
+        return GFXx2D.getSize(width, height)
 
     }
 
@@ -255,7 +269,7 @@ class AWTFont(val font: Font) {
     ): PartResult {
 
         val hasAutomaticLineBreak = lineBreakWidth >= 0f
-        val result = ArrayList<StringPart>(2)
+        val result = ArrayList<StringPart>()
         val tabSize = exampleLayout.advance * relativeTabSize
         val charSpacing = fontSize * relativeCharSpacing
         var widthF = 0f
@@ -288,10 +302,10 @@ class AWTFont(val font: Font) {
                             chars.subList(splitIndex,index1).joinChars()
                     )*/
                     index1 = splitIndex
-                    if(index1 > index0 && chars[index1-1] == ' '.toInt() && chars[index1-2] != ' '.toInt()) index1-- // cut off last space
+                    if (index1 > index0 && chars[index1 - 1] == ' '.toInt() && chars[index1 - 2] != ' '.toInt()) index1-- // cut off last space
                     nextLine()
                     index0 = splitIndex
-                    if(index1 == splitIndex && chars[index0] == ' '.toInt()) index0++ // cut off first space
+                    if (index1 == splitIndex && chars[index0] == ' '.toInt()) index0++ // cut off first space
                     index1 = tmp1
                     display()
                 } else {
@@ -338,14 +352,14 @@ class AWTFont(val font: Font) {
 
     }
 
-    private fun generateSizeV3(text: String, fontSize: Float, lineBreakWidth: Float): Pair<Int, Int> {
+    private fun generateSizeV3(text: String, fontSize: Float, lineBreakWidth: Float): Int {
 
         val parts = splitParts(text, fontSize, 4f, 0f, lineBreakWidth)
 
         val width = ceil(parts.width).toInt()
         val height = ceil(parts.height).toInt()
 
-        return width to height
+        return GFXx2D.getSize(width, height)
 
     }
 
@@ -389,6 +403,8 @@ class AWTFont(val font: Font) {
     }
 
     companion object {
+
+        val asciiStrings = Array(128) { it.toChar().toString() }
 
         val splittingOrder: List<Collection<Int>> = listOf(
             listOf(' ').map { it.toInt() },

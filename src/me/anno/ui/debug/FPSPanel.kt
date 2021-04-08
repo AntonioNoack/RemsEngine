@@ -1,13 +1,13 @@
 package me.anno.ui.debug
 
 import me.anno.gpu.GFX
-import me.anno.gpu.GFXx2D
 import me.anno.gpu.GFXx2D.drawSimpleTextCharByChar
-import me.anno.gpu.GFXx2D.monospaceFont
-import me.anno.utils.types.Floats.f1
 import kotlin.math.max
+import kotlin.math.roundToInt
 
 object FPSPanel {
+
+    val text = "xxxxxx, min: xxxxxx".toCharArray()
 
     fun showFPS() {
 
@@ -19,15 +19,73 @@ object FPSPanel {
 
         GFX.loadTexturesSync.push(true)
 
-        val text = "${GFX.currentEditorFPS.f1()}, min: ${(1f / FrameTimes.maxValue).f1()}"
+        formatNumber(text, 0, 6, GFX.currentEditorFPS)
+        formatNumber(text, 13, 6, 1f / FrameTimes.maxValue)
+
         drawSimpleTextCharByChar(x0, y0, 2, text)
 
-        // keep these chars loaded at all times
-        for (char in "0123456789.") {
-            GFXx2D.getTextSize(monospaceFont, "$char", -1)
+        GFX.loadTexturesSync.pop()
+
+    }
+
+    fun getChar(digit: Int) = ((digit % 10) + '0'.toInt()).toChar()
+
+    fun formatNumber(chars: CharArray, index: Int, space: Int, number: Float) {
+
+        if (number < 0) {
+            chars[index] = '-'
+            formatNumber(chars, index + 1, space - 1, -number)
+            return
         }
 
-        GFX.loadTexturesSync.pop()
+        if (number >= 999.5f) {
+            formatNumber(chars, index, space, number.roundToInt())
+        }
+
+        val numberX = (number * 10).roundToInt()
+        chars[index + space - 2] = '.'
+        chars[index + space - 1] = getChar(numberX)
+        formatNumber(chars, index, space - 2, numberX / 10)
+
+    }
+
+    fun formatNumber(chars: CharArray, index: Int, space: Int, number: Int) {
+
+        if (number < 0) {
+            chars[index] = '-'
+            formatNumber(chars, index + 1, space - 1, -number)
+            return
+        }
+
+        var limit = 1
+        for (i in 0 until space) {
+            limit *= 10
+        }
+
+        if (number >= limit) {
+            // all 9, maybe an x for extra much?
+            chars.fill('x', index, index + space)
+            return
+        }
+
+        // can print it :)
+        printNumber(chars, index, space, number)
+
+    }
+
+    fun printNumber(chars: CharArray, index: Int, space: Int, number: Int) {
+
+        // can print it :)
+        chars[index + space - 1] = getChar(number)
+
+        if (space > 1) {
+            // we need to print more
+            if (number >= 10) {
+                printNumber(chars, index, space - 1, number / 10)
+            } else {
+                chars.fill(' ', index, index + space - 1)
+            }
+        }
 
     }
 

@@ -8,6 +8,10 @@ class ExpandingDoubleArray(
 
     var size = 0
 
+    fun clear(){
+        size = 0
+    }
+
     private var array: DoubleArray? = null
 
     fun add(value: Double) = plusAssign(value)

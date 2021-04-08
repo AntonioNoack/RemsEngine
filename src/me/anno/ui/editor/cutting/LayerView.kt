@@ -2,6 +2,7 @@ package me.anno.ui.editor.cutting
 
 import me.anno.cache.CacheData
 import me.anno.cache.instances.VideoCache
+import me.anno.config.DefaultStyle.white4
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXx2D.drawRect
 import me.anno.input.Input
@@ -36,8 +37,8 @@ import me.anno.ui.style.Style
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.mix
 import me.anno.utils.Maths.sq
-import me.anno.utils.Threads.threadWithName
 import me.anno.utils.files.Naming.incrementName
+import me.anno.utils.hpc.ProcessingQueue
 import org.joml.Vector4f
 import java.io.File
 import kotlin.collections.set
@@ -59,7 +60,7 @@ class LayerView(val timelineSlot: Int, style: Style) : TimelinePanel(style) {
         return if (video != null) {
             val data = VideoCache.getEntry(Triple(video, height, video.file), 1000, false) {
                 CacheData(VideoPreviewPanel(video, height * 2, style) {
-                    video.getLocalTimeFromRoot(getTimeAt(it))
+                    video.getLocalTimeFromRoot(getTimeAt(it), false)
                 })
             } as CacheData<*>
             data.value as VideoPreviewPanel
@@ -88,10 +89,13 @@ class LayerView(val timelineSlot: Int, style: Style) : TimelinePanel(style) {
     // we could optimize simple, not manipulated stripes... -> we optimize with linear approximations
 
     companion object {
-        val minAlpha = 1f / 255f
+        val minAlphaInt = 1
+        val minAlpha = minAlphaInt / 255f
         val minDistSq = sq(3f / 255f)
+        val minDistSqInt = 9f
         val maxLines = 5
         val defaultLayerCount = 8
+        val taskQueue = ProcessingQueue("LayerView::calculateSolution")
     }
 
     var needsUpdate = false
@@ -105,74 +109,96 @@ class LayerView(val timelineSlot: Int, style: Style) : TimelinePanel(style) {
         needsUpdate = false
 
         if (asnyc) {
-            threadWithName("LayerView::calculateSolution()") { calculateSolution(x0, y0, x1, y1, false) }
+            taskQueue += { calculateSolution(x0, y0, x1, y1, false) }
             return
         }
 
         val solution = LayerStripeSolution(x0, y0, x1, y1, centralTime)
         val stripes = solution.lines
-        // val t1 = System.nanoTime()
+
         val root = root
-        calculated = findElements()
-        val drawn = calculated.filter { it.timelineSlot.value == timelineSlot }.reversed()
+
+        val transforms = findElements()
+
+        // load all metas
+        for(transform in transforms){
+            if (transform is Video) {
+                transform.update()
+                transform.forcedMeta
+            }
+        }
+
+        this.calculated = transforms
+
+        val drawn = transforms.filter { it.timelineSlot.value == timelineSlot }.reversed()
         this.drawn = drawn
-        // val t2 = System.nanoTime()
-        /*val isHovered = isHovered
-        val draggedTransform = draggedTransform
-        val stripeDelay = 5*/
+
         val stepSize = 1
-        // val additionalStripes = ArrayList<Pair<Int, Gradient>>((x1 - x0) / stripeDelay + 5)
+
         if (drawn.isNotEmpty()) {
-            /*val selectedTransform = if (isHovered && mouseKeysDown.isEmpty()) {
-                getTransformAt(mouseX, mouseY)
-            } else null*/
+
             val leftTime = getTimeAt(x0.toFloat())
             val dt = dtHalfLength * 2.0 / w
-            val white = Vector4f(1f, 1f, 1f, 1f)
+            val white = white4
+
+            val size = transforms.size
+
+            // hashmaps are slower, but thread safe
+            val localTime = DoubleArray(size)
+            val localColor = Array(size) { Vector4f() }
+
+            val parentIndices = IntArray(size)
+            val transformMap = HashMap<Transform, Int>()
+            for (i in transforms.indices) {
+                transformMap[transforms[i]] = i
+            }
+
+            for (i in 1 until transforms.size) {
+                parentIndices[i] = transformMap[transforms[i].parent]!!
+            }
+
+            val drawnIndices = drawn.map { transformMap[it]!! }
+
             for (x in x0 until x1 step stepSize) {
 
                 val i = x - x0
-                var ctr = 0
+                var lineIndex = 0
                 val globalTime = leftTime + i * dt
 
-                // hashmaps are slower, but thread safe
-                val localTime = HashMap<Transform, Double>()
-                val localColor = HashMap<Transform, Vector4f>()
                 val rootTime = root.getLocalTime(globalTime)
-                localTime[root] = rootTime
-                localColor[root] = root.getLocalColor(white, rootTime)
+                localTime[0] = rootTime
+                localColor[0] = root.getLocalColor(white, rootTime)
 
-                for (tr in calculated) {
-                    if (tr !== root) {
-                        val p = tr.parent ?: continue // was deleted
-                        val parentTime = localTime[p] ?: continue // parent was deleted
-                        val localTime0 = tr.getLocalTime(parentTime)
-                        localTime[tr] = localTime0
-                        localColor[tr] = tr.getLocalColor(localColor[p]!!, localTime0)
-                    }
+                for (index in 1 until size) {
+                    val parent = parentIndices[index]
+                    val transform = transforms[index]
+                    val parentTime = localTime[parent]
+                    val localTimeI = transform.getLocalTime(parentTime)
+                    localTime[index] = localTimeI
+                    localColor[index] = transform.getLocalColor(localColor[parent], localTimeI, localColor[index])
                 }
 
-                // smooth transition of ctr???
-                // stripes by index to make visible, that there are multiple objects
-                trs@ for (tr in drawn) {
-                    val color = localColor[tr] ?: continue // was deleted
-                    val time = localTime[tr]!!
-                    var alpha = color.w * alphaMultiplier
-                    if (!tr.isVisible(time)) alpha = 0f
+                trs@ for (index in drawnIndices) {
 
-                    color.w = alpha
+                    val tr = transforms[index]
+
+                    val color = localColor[index]
+                    val time = localTime[index]
+                    val alpha = color.w * alphaMultiplier
+
+                    if (!tr.isVisible(time)) continue
 
                     if (alpha >= minAlpha) {
 
-                        if (ctr >= maxLines) break@trs
-                        val list = stripes[ctr]
+                        color.w = alpha
+
+                        val list = stripes[lineIndex]
                         if (list.isEmpty()) {
                             if (alpha > minAlpha) {
                                 list += Gradient(tr, x, x, color, color)
                             } // else not worth it
                         } else {
                             val last = list.last()
-                            // println("${last.owner === tr} && ${last.isLinear(x, stepSize, color)} && ${last.x1 + stepSize} >= $x")
                             if (last.owner === tr && last.x1 + stepSize >= x && last.isLinear(x, stepSize, color)) {
                                 last.setEnd(x, stepSize, color)
                             } else {
@@ -180,7 +206,7 @@ class LayerView(val timelineSlot: Int, style: Style) : TimelinePanel(style) {
                             }
                         }
 
-                        if (ctr++ >= maxLines) {
+                        if (++lineIndex >= maxLines) {
                             break@trs
                         }
 
@@ -188,20 +214,20 @@ class LayerView(val timelineSlot: Int, style: Style) : TimelinePanel(style) {
 
                 }
             }
-            // val t3 = System.nanoTime()
-            // the calculation is 3x slower, but still, it's now async, so it doesn't matter much
-            // ("${((t2 - t1) * 1e-6).f3()}+${((t3 - t2) * 1e-6).f3()}")
         }
+
         stripes.forEach { list ->
             list.removeIf { !it.needsDrawn() }
         }
+
         this.solution = solution
         isCalculating = false
         invalidateDrawing()
+
     }
 
     var visualStateCtr = 0
-    override fun getVisualState(): Any? =
+    override fun getVisualState() =
         Pair(
             super.getVisualState(),
             if ((isHovered && mouseKeysDown.isNotEmpty()) || isPlaying) visualStateCtr++
@@ -307,17 +333,16 @@ class LayerView(val timelineSlot: Int, style: Style) : TimelinePanel(style) {
         var bestTransform: Transform? = null
         val yInt = y.toInt()
         if (drawn.isNotEmpty()) {
-            val white = Vector4f(1f, 1f, 1f, 1f)
             var ctr = 0
             val globalTime = getTimeAt(x)
             root.lastLocalTime = root.getLocalTime(globalTime)
-            root.lastLocalColor = root.getLocalColor(white, root.lastLocalTime)
+            root.updateLocalColor(white4, root.lastLocalTime)
             for (tr in calculated) {
                 if (tr !== root) {
                     val p = tr.parent ?: continue
                     val localTime = tr.getLocalTime(p.lastLocalTime)
                     tr.lastLocalTime = localTime
-                    tr.lastLocalColor = tr.getLocalColor(p.lastLocalColor, localTime)
+                    tr.updateLocalColor(p.lastLocalColor, localTime)
                 }
             }
             drawn.forEach { tr ->
@@ -449,9 +474,9 @@ class LayerView(val timelineSlot: Int, style: Style) : TimelinePanel(style) {
                             val rTime = cTime + fadingHalf
                             val color = transform.color[cTime]
                             val lColor = transform.color[lTime]
-                            val lTransparent = Vector4f(lColor.x, lColor.y, lColor.z, 0f)
+                            val lTransparent = Vector4f(lColor).apply { w = 0f }
                             val rColor = transform.color[rTime]
-                            val rTransparent = Vector4f(rColor.x, rColor.y, rColor.z, 0f)
+                            val rTransparent = Vector4f(rColor).apply { w = 0f }
                             val second = transform.clone()
                             second.name = incrementName(transform.name)
                             if (transform.parent != null) {

@@ -9,9 +9,7 @@ import java.lang.RuntimeException
 
 class CustomizingBar(var index: Int, sizeX: Int, sizeY: Int, style: Style): SpacePanel(sizeX, sizeY, style){
 
-    override fun getCursor(): Long? = if(minW < minH) Cursor.vResize else Cursor.hResize
-
-    override fun getVisualState(): Any? = super.getVisualState() to isHovered
+    override fun getCursor() = if(minW < minH) Cursor.vResize else Cursor.hResize
 
     private val hoverColor = mixARGB(0x77ffb783, originalBGColor, 0.8f)
 

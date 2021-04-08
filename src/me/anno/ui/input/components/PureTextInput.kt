@@ -3,7 +3,10 @@ package me.anno.ui.input.components
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.GFXx2D.drawRect
+import me.anno.gpu.GFXx2D.getSizeX
+import me.anno.gpu.GFXx2D.getSizeY
 import me.anno.gpu.GFXx2D.getTextSize
+import me.anno.gpu.GFXx2D.getTextSizeX
 import me.anno.input.Input.isControlDown
 import me.anno.input.Input.isShiftDown
 import me.anno.input.Input.mouseKeysDown
@@ -47,7 +50,9 @@ open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edi
         val inst = instantTextLoading
         if (inst) loadTexturesSync.push(true)
         super.calculateSize(w, h)
-        val (w2, h2) = getTextSize(font, text, widthLimit)
+        val size = getTextSize(font, text, widthLimit)
+        val w2 = getSizeX(size)
+        val h2 = getSizeY(size)
         minW = max(1, w2 + padding.width)
         minH = max(1, h2 + padding.height)
         minW2 = minW
@@ -83,7 +88,7 @@ open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edi
     fun calculateOffset(required: Int, cursor: Int) {
         // center the cursor, 1/3 of the width, if possible;
         // clamp left/right
-        drawingOffset = if(isDragging) 0 else -clamp(cursor - w / 3, 0, max(0, required - w))
+        drawingOffset = if (isDragging) 0 else -clamp(cursor - w / 3, 0, max(0, required - w))
     }
 
     var showBars = false
@@ -118,13 +123,11 @@ open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edi
             val padding = textSize / 4
             // to do cache sizes... (low priority, because it has to be in focus for this calculation, so this calculation is rather rare)
             val cursorX1 =
-                if (cursor1 == 0) -1 else getTextSize(font, characters.subList(0, cursor1).joinChars(), -1).first - 1
+                if (cursor1 == 0) -1
+                else getTextSizeX(font, characters.subList(0, cursor1).joinChars(), -1) - 1
             if (cursor1 != cursor2) {
-                val cursorX2 = if (cursor2 == 0) -1 else getTextSize(
-                    font,
-                    characters.subList(0, cursor2).joinChars(),
-                    -1
-                ).first - 1
+                val cursorX2 = if (cursor2 == 0) -1
+                else getTextSizeX(font, characters.subList(0, cursor2).joinChars(), -1) - 1
                 val min = min(cursorX1, cursorX2)
                 val max = max(cursorX1, cursorX2)
                 drawRect(
@@ -141,9 +144,9 @@ open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edi
                     h - 2 * padding,
                     textColor
                 ) // cursor 1
-                calculateOffset(wh.first, cursorX2)
+                calculateOffset(getSizeX(wh), cursorX2)
             } else {
-                calculateOffset(wh.first, cursorX1)
+                calculateOffset(getSizeX(wh), cursorX1)
             }
             if (showBars) drawRect(x + cursorX1 + drawingOffset, y + padding, 2, h - 2 * padding, textColor) // cursor 2
         }
@@ -157,7 +160,7 @@ open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edi
         if (insertion.isNotEmpty()) {
             lastChange = GFX.gameTime
             deleteSelection()
-            insertion.codePoints().forEach {
+            for (it in insertion.codePoints()) {
                 characters.add(cursor1++, it)
             }
             cursor2 = cursor1

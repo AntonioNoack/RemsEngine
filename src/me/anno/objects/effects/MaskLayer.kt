@@ -223,7 +223,7 @@ class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
         val h = GFX.windowHeight
 
         val offset0 = effectOffset[time]
-        val offset = Vector2f(offset0.x, offset0.y)
+        val offset = Vector2f(offset0)
 
         when (type) {
             MaskType.GAUSSIAN_BLUR, MaskType.BLOOM -> {

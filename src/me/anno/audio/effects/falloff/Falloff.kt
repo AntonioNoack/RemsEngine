@@ -21,8 +21,8 @@ abstract class Falloff : SoundEffect(Domain.TIME_DOMAIN, Domain.TIME_DOMAIN) {
     abstract fun getAmplitude(relativeDistance: Float): Float
 
     fun getAmplitude(source: Audio, destination: Camera, globalTime: Double): Float {
-        val position = source.getGlobalTransform(globalTime).first.transformPosition(Vector3f())
-        val camera = destination.getGlobalTransform(globalTime).first.transformPosition(Vector3f())
+        val position = source.getGlobalTransformTime(globalTime).first.transformPosition(Vector3f())
+        val camera = destination.getGlobalTransformTime(globalTime).first.transformPosition(Vector3f())
         val distance = camera.distance(position)
         return getAmplitude(distance/halfDistance)
     }

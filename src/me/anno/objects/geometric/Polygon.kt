@@ -50,7 +50,7 @@ class Polygon(parent: Transform? = null) : GFXTransform(parent) {
         val texture = image ?: whiteTexture
         val count = vertexCount[time]//.roundToInt()
         if (inset == 1f && count % 2 == 0) return// invisible
-        val selfDepth = scale[time].z
+        val selfDepth = scale[time].z()
         stack.next {
             if (autoAlign) {
                 stack.rotate(toRadians(if (count == 4) 45f else 90f), zAxis)

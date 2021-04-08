@@ -36,7 +36,8 @@ object Vectors {
     operator fun Vector4fc.plus(s: Float) = if (s == 0f) this else Vector4f(x() + s, y() + s, z() + s, w() + s)
     operator fun Vector4fc.times(s: Float) = Vector4f(x() * s, y() * s, z() * s, w() * s)
     operator fun Vector4fc.times(s: Vector4fc) = Vector4f(x() * s.x(), y() * s.y(), z() * s.z(), w() * s.w())
-    fun Vector4fc.mulAlpha(m: Float) = Vector4f(x(), y(), z(), w() * m)
+
+    fun Vector4fc.mulAlpha(m: Float, dst: Vector4f = Vector4f()) = dst.set(x(), y(), z(), w() * m)
 
     fun avg(a: Vector2fc, b: Vector2f) = Vector2f(a).add(b).mul(0.5f)
     fun avg(a: Vector2dc, b: Vector2d) = Vector2d(a).add(b).mul(0.5)
@@ -188,6 +189,10 @@ object Vectors {
     fun Vector3f.is000() = x == 0f && y == 0f && z == 0f
     fun Vector3f.is111() = x == 1f && y == 1f && z == 1f
     fun Vector4f.is1111() = x == 1f && y == 1f && z == 1f && w == 1f
+
+    fun Vector3fc.is000() = x() == 0f && y() == 0f && z() == 0f
+    fun Vector3fc.is111() = x() == 1f && y() == 1f && z() == 1f
+    fun Vector4fc.is1111() = x() == 1f && y() == 1f && z() == 1f && w() == 1f
 
     fun Vector3fi(x: Int, y: Int, z: Int) = Vector3f(x.toFloat(), y.toFloat(), z.toFloat())
 

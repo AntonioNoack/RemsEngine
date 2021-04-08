@@ -6,7 +6,10 @@ import me.anno.fonts.FontManager
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.GFXx2D
+import me.anno.gpu.GFXx2D.getSizeX
+import me.anno.gpu.GFXx2D.getSizeY
 import me.anno.gpu.GFXx2D.getTextSize
+import me.anno.gpu.GFXx2D.getTextSizeX
 import me.anno.gpu.texture.Texture2D
 import me.anno.input.MouseButton
 import me.anno.ui.base.Panel
@@ -18,7 +21,7 @@ import me.anno.utils.Maths.mixARGB
 import kotlin.math.max
 import kotlin.math.min
 
-open class TextPanel(open var text: String, style: Style): Panel(style){
+open class TextPanel(text: String, style: Style): Panel(style){
 
     var instantTextLoading = false
     var padding = style.getPadding("textPadding", 2)
@@ -27,7 +30,17 @@ open class TextPanel(open var text: String, style: Style): Panel(style){
     var focusTextColor = style.getColor("textColorFocused", -1)
     val hoverColor get() = mixARGB(textColor, focusTextColor, 0.5f)
 
-    override fun getLayoutState(): Any? {
+    open var text: String = text
+        set(value) {
+            if(field != value){
+                field = value
+                invalidateDrawing()
+            }
+        }
+
+    // make this panel work without states, as states accumulate to 13% of the idle-allocations at runtime
+    // it seems to work...
+    /*override fun getLayoutState(): Any? {
         val texture = if(canBeSeen){
             // keep the texture loaded, in case we need it
             val widthLimit = if(breaksIntoMultiline) w else -1
@@ -44,14 +57,14 @@ open class TextPanel(open var text: String, style: Style): Panel(style){
             FontManager.getString(font, text, widthLimit)
         } else null
         return Triple(super.getVisualState(), (texture as? Texture2D)?.state, effectiveTextColor)
-    }
+    }*/
 
     var breaksIntoMultiline = false
 
     // can be disabled for parents to copy ALL lines, e.g. for a bug report :)
     var disableCopy = false
 
-    fun drawText(x: Int, y: Int, text: String, color: Int): Pair<Int, Int> {
+    fun drawText(x: Int, y: Int, text: String, color: Int): Int {
         return GFXx2D.drawText(this.x + x + padding.left, this.y + y + padding.top, font,
             text, color, backgroundColor, widthLimit)
     }
@@ -66,15 +79,15 @@ open class TextPanel(open var text: String, style: Style): Panel(style){
         val inst = instantTextLoading
         if(inst) loadTexturesSync.push(true)
         super.calculateSize(w, h)
-        val (w2, h2) = getTextSize(font, text, if(breaksIntoMultiline) w - padding.width else -1)
-        minW = max(1, w2 + padding.width)
-        minH = max(1, h2 + padding.height)
+        val size = getTextSize(font, text, if(breaksIntoMultiline) w - padding.width else -1)
+        minW = max(1, getSizeX(size) + padding.width)
+        minH = max(1, getSizeY(size) + padding.height)
         minW2 = minW
         minH2 = minH
         if(inst) loadTexturesSync.pop()
     }
 
-    fun getMaxWidth() = getTextSize(font, text, -1).first + padding.width
+    fun getMaxWidth() = getTextSizeX(font, text, -1) + padding.width
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         val inst = instantTextLoading

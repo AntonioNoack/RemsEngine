@@ -70,7 +70,7 @@ public class Camera implements ICamera {
 	}
 
 	private void updateViewMatrix() {
-		viewMatrix.set(new Matrix4f());
+		viewMatrix.identity();
 		viewMatrix.rotate((float) Math.toRadians(pitch.get()), new Vector3f(1, 0, 0));
 		viewMatrix.rotate((float) Math.toRadians(yaw), new Vector3f(0, 1, 0));
 		Vector3f negativeCameraPos = new Vector3f(-position.x, -position.y, -position.z);

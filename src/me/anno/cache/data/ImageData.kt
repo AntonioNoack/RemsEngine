@@ -3,6 +3,7 @@ package me.anno.cache.data
 import com.drew.imaging.ImageMetadataReader
 import com.drew.metadata.exif.ExifIFD0Directory
 import me.anno.cache.instances.VideoCache.getVideoFrame
+import me.anno.config.DefaultStyle.white4
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXx3D.shader3DUniforms
 import me.anno.gpu.ShaderLib.shader3DYUV
@@ -62,7 +63,7 @@ class ImageData(file: File) : ICacheData {
                 Frame.bind()
                 id?.texture = framebuffer.textures[0]
                 val shader = frame.get3DShader()
-                shader3DUniforms(shader, Matrix4f(), Vector4f(1f, 1f, 1f, 1f))
+                shader3DUniforms(shader, null, -1)
                 frame.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
                 if (shader == shader3DYUV) {
                     val w2 = frame.w

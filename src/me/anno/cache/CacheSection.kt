@@ -9,6 +9,8 @@ import me.anno.utils.Threads.threadWithName
 import org.apache.logging.log4j.LogManager
 import java.io.File
 import java.io.FileNotFoundException
+import java.lang.IllegalStateException
+import java.lang.RuntimeException
 import java.util.concurrent.ConcurrentSkipListSet
 import kotlin.concurrent.thread
 import kotlin.math.max
@@ -39,13 +41,13 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         }
     }
 
-    fun getEntry(
+    fun <V> getEntry(
         file: File,
         allowDirectories: Boolean,
-        key: Any,
+        key: V,
         timeout: Long,
         asyncGenerator: Boolean,
-        generator: () -> ICacheData
+        generator: (Pair<File, V>) -> ICacheData
     ): ICacheData? {
         val meta = LastModifiedCache[file]
         if (!meta.exists || (!allowDirectories && meta.isDirectory)) return null
@@ -58,7 +60,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         sub: Int,
         timeout: Long,
         asyncGenerator: Boolean,
-        generator: () -> ICacheData
+        generator: (Triple<String, String, Int>) -> ICacheData
     ): ICacheData? {
         return getEntry(Triple(major, minor, sub), timeout, asyncGenerator, generator)
     }
@@ -128,10 +130,10 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         }
     }
 
-    private fun generate(generator: () -> ICacheData): ICacheData? {
+    private fun <V> generate(key: V, generator: (V) -> ICacheData): ICacheData? {
         var data: ICacheData? = null
         try {
-            data = generator()
+            data = generator(key)
         } catch (e: FileNotFoundException) {
             LOGGER.warn("FileNotFoundException: ${e.message}")
         } catch (e: Exception) {
@@ -151,7 +153,9 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         return Unit
     }
 
-    fun getEntry(key: Any, timeout: Long, asyncGenerator: Boolean, generator: () -> ICacheData): ICacheData? {
+    fun <V> getEntry(key: V, timeout: Long, asyncGenerator: Boolean, generator: (V) -> ICacheData): ICacheData? {
+
+        if(key == null) throw IllegalStateException("Key must not be null")
 
         // new, async cache
         // only the key needs to be locked, not the whole cache
@@ -163,13 +167,13 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
 
         return if (asyncGenerator) {
             threadWithName("$name<$key>") {
-                val data = generate(generator)
+                val data = generate(key, generator)
                 put(key, data, timeout)
                 unlock(key)
             }
             null
         } else {
-            val data = generate(generator)
+            val data = generate(key, generator)
             put(key, data, timeout)
             unlock(key)
             data

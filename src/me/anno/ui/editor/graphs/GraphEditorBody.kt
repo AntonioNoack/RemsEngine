@@ -2,11 +2,14 @@ package me.anno.ui.editor.graphs
 
 import me.anno.config.DefaultStyle.black
 import me.anno.config.DefaultStyle.white
+import me.anno.fonts.FontManager
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXx2D.drawBorder
 import me.anno.gpu.GFXx2D.drawRect
 import me.anno.gpu.GFXx2D.drawText
 import me.anno.gpu.GFXx2D.drawTexture
+import me.anno.gpu.GFXx2D.getSizeX
+import me.anno.gpu.GFXx2D.getSizeY
 import me.anno.gpu.GFXx2D.getTextSize
 import me.anno.gpu.TextureLib.colorShowTexture
 import me.anno.input.Input.isControlDown
@@ -119,18 +122,19 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
             if (y > y0 + 1 && y + 2 < y1) {
 
                 val text = getValueString(value, valueStep)
+                val key = FontManager.getTextCacheKey(font, text, -1)
+                if(key != null){
 
-                // to keep it loaded
-                drawnStrings.add(text)
+                    // to keep it loaded
+                    drawnStrings.add(key)
 
-                val size = getTextSize(font, text, -1)
-                val h = size.second
-                drawRect(x0 + size.first + 2, y, x1 - x0 - size.first, 1, fontColor and 0x3fffffff)
-                drawText(
-                    x0 + 2, y - h / 2, font,
-                    text, fontColor, backgroundColor, -1
-                )
+                    val size = getTextSize(font, text, -1)
+                    val sizeFirst = getSizeX(size)
+                    val sizeSecond = getSizeY(size)
+                    drawRect(x0 + sizeFirst + 2, y, x1 - x0 - sizeFirst, 1, fontColor and 0x3fffffff)
+                    drawText(x0 + 2, y - sizeSecond / 2, font, key, fontColor, backgroundColor)
 
+                }
             }
         }
 

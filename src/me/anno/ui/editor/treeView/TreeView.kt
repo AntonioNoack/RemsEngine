@@ -11,7 +11,6 @@ import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.RemsStudio.nullCamera
 import me.anno.studio.rems.RemsStudio.root
 import me.anno.ui.base.Panel
-import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelList
@@ -19,6 +18,8 @@ import me.anno.ui.base.scrolling.ScrollPanelXY
 import me.anno.ui.editor.files.ImportFromFile.addChildFromFile
 import me.anno.ui.editor.treeView.TreeViewPanel.Companion.openAddMenu
 import me.anno.ui.style.Style
+import me.anno.utils.structures.arrays.ExpandingGenericArray
+import me.anno.utils.structures.arrays.ExpandingIntArray
 import java.io.File
 
 // todo select multiple elements, filter for common properties, and apply them all together :)
@@ -36,16 +37,21 @@ class TreeView(style: Style) :
 
     var index = 0
 
-    fun updateTree() {
-        val open = ArrayList<Pair<Transform, Int>>()
-        open.add(root to 0)
-        open.add(nullCamera!! to 0)
+    private val openTransforms = ExpandingGenericArray<Transform>(32)
+    private val openIndices = ExpandingIntArray(32)
+
+    private fun updateTree() {
+        openTransforms.clear()
+        openIndices.clear()
+        openTransforms.add(root); openIndices.add(0)
+        openTransforms.add(nullCamera!!); openIndices.add(0)
         // open.add(RenderSettings to 0)
-        index = 0
+        index = -1
         val inset = style.getSize("textSize", 12) / 3
-        while (open.isNotEmpty()) {
-            val (transform, depth) = open.removeAt(open.lastIndex)
-            val panel = getOrCreateChild(index++, transform)
+        while (++index < openTransforms.size) {
+            val transform = openTransforms[index]
+            val depth = openIndices[index]
+            val panel = getOrCreateChild(index, transform)
             //(panel.parent!!.children[0] as SpacePanel).minW = inset * depth + panel.padding.right
             val symbol =
                 if (transform.isCollapsed) DefaultConfig["ui.symbol.collapsed", "\uD83D\uDDBF"]
@@ -53,7 +59,11 @@ class TreeView(style: Style) :
             panel.setText(symbol.trim(), transform.name)
             panel.padding.left = inset * depth + panel.padding.right
             if (!transform.isCollapsed) {
-                open.addAll(transform.children.map { it to (depth + 1) }.reversed())
+                val children = transform.children
+                for(i in children.lastIndex downTo 0){
+                    openTransforms.add(children[i])
+                    openIndices.add(depth+1)
+                }
             }
         }
         for (i in index until list.children.size) {

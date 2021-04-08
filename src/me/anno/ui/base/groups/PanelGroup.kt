@@ -15,8 +15,7 @@ abstract class PanelGroup(style: Style): Panel(style){
     abstract val children: List<Panel>
     abstract fun remove(child: Panel)
 
-    override fun getLayoutState(): Any? = Pair(super.getLayoutState(),
-        children.count { it.visibility == Visibility.VISIBLE })
+    // override fun getLayoutState(): Any? = children.count { it.visibility == Visibility.VISIBLE }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.onDraw(x0, y0, x1, y1)

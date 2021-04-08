@@ -20,7 +20,7 @@ fun main(){
 
         testStream()
         while(true){
-            GFX.workQueue(GFX.audioTasks, 1f, false)
+            AudioTasks.workQueue()
         }
         // testSingleBuffer()
 
@@ -60,7 +60,7 @@ fun testSingleBuffer(){
         buffer2a = buffer2.soundBuffer
         if(buffer2a != null) break
         // work on the queue
-        GFX.workQueue(GFX.audioTasks, 1f, false)
+        AudioTasks.workQueue()
     }
 
     val buffer = buffer2a!!//SoundBuffer(file)

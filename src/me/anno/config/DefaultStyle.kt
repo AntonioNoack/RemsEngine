@@ -23,8 +23,11 @@ object DefaultStyle {
 
     val fontGray = black or 0xbbbbbb
     val white = -1
-    val white4 = Vector4f(1f) as Vector4fc
-    val white3 = Vector3f(1f) as Vector3fc
+
+    val black4: Vector4fc = Vector4f(0f)
+    val black3: Vector3fc = Vector3f(0f)
+    val white4: Vector4fc = Vector4f(1f)
+    val white3: Vector3fc = Vector3f(1f)
 
     val shinyBlue = black or 0x4986f5
     val brightYellow = black or 0xffba50

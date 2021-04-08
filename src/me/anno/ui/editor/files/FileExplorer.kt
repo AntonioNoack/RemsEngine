@@ -50,9 +50,12 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
 
     var folder: File? = project?.scenes ?: File(OS.home, "Documents")
 
-    override fun getLayoutState() = Pair(super.getLayoutState(), folder)
-    override fun getVisualState(): Any? =
-        listOf(super.getVisualState(), uContent.getVisualState(), title.getVisualState(), searchBar.getVisualState())
+    override fun getLayoutState(): Any? = folder
+    override fun getVisualState(): Any? = Triple(
+        uContent.getVisualState(),
+        title.getVisualState(),
+        searchBar.getVisualState()
+    )
 
     val searchBar = TextInput("Search Term", false, style)
         .setChangeListener {

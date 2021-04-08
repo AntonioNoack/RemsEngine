@@ -47,7 +47,7 @@ class GraphEditor(style: Style) : PanelListY(style) {
         super.tickUpdate()
 
         // explicitly even for invisible children
-        controls.listOfAll.forEach {
+        controls.listOfAll {
             it.tickUpdate()
             it.tick()
         }

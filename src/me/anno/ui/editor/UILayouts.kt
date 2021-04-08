@@ -78,7 +78,7 @@ import kotlin.concurrent.thread
 
 object UILayouts {
 
-    private val windowStack get() = StudioBase.instance.windowStack
+    private val windowStack get() = GFX.windowStack
 
     private val LOGGER = LogManager.getLogger(UILayouts::class)
 

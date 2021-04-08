@@ -1,18 +1,20 @@
 package me.anno.objects.animation
 
+import me.anno.config.DefaultStyle.black3
 import me.anno.gpu.GFX.glThread
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
+import me.anno.objects.animation.AnimationMaths.mul
+import me.anno.objects.animation.AnimationMaths.mulAdd
 import me.anno.objects.animation.Interpolation.Companion.getWeights
 import me.anno.objects.animation.TimeValue.Companion.writeValue
 import me.anno.objects.animation.drivers.AnimationDriver
 import me.anno.studio.rems.RemsStudio.root
-import me.anno.utils.Maths
 import me.anno.utils.Maths.clamp
 import me.anno.utils.WrongClassType
+import me.anno.utils.strings.StringMixer
 import me.anno.utils.types.AnyToDouble.getDouble
-import me.anno.utils.types.AnyToFloat.get
 import me.anno.utils.types.Vectors.plus
 import me.anno.utils.types.Vectors.times
 import org.apache.logging.log4j.LogManager
@@ -21,7 +23,6 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
-import kotlin.streams.toList
 
 class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
 
@@ -50,27 +51,27 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
         fun double() = AnimatedProperty<Double>(Type.DOUBLE)
         fun double(defaultValue: Double) = AnimatedProperty(Type.DOUBLE, defaultValue)
         fun vec2() = AnimatedProperty<Vector2f>(Type.VEC2)
-        fun vec2(defaultValue: Vector2f) = AnimatedProperty(Type.VEC2, defaultValue)
-        fun vec3() = AnimatedProperty<Vector3f>(Type.VEC3)
+        fun vec2(defaultValue: Vector2fc) = AnimatedProperty(Type.VEC2, defaultValue)
+        fun vec3() = AnimatedProperty(Type.VEC3, black3)
         fun dir3() = vec3(Vector3f(0f, 1f, 0f))
-        fun vec3(defaultValue: Vector3f) = AnimatedProperty(Type.VEC3, defaultValue)
-        fun vec4() = AnimatedProperty<Vector4f>(Type.VEC4)
-        fun vec4(defaultValue: Vector4f) = AnimatedProperty(Type.VEC4, defaultValue)
+        fun vec3(defaultValue: Vector3fc) = AnimatedProperty(Type.VEC3, defaultValue)
+        fun vec4() = AnimatedProperty<Vector4fc>(Type.VEC4)
+        fun vec4(defaultValue: Vector4fc) = AnimatedProperty(Type.VEC4, defaultValue)
         fun pos() = AnimatedProperty<Vector3f>(Type.POSITION)
-        fun pos(defaultValue: Vector3f) = AnimatedProperty(Type.POSITION, defaultValue)
-        fun pos2D() = AnimatedProperty<Vector2f>(Type.POSITION_2D)
-        fun rotYXZ() = AnimatedProperty<Vector3f>(Type.ROT_YXZ)
+        fun pos(defaultValue: Vector3fc) = AnimatedProperty(Type.POSITION, defaultValue)
+        fun pos2D() = AnimatedProperty<Vector2fc>(Type.POSITION_2D)
+        fun rotYXZ() = AnimatedProperty<Vector3fc>(Type.ROT_YXZ)
         fun rotY() = AnimatedProperty<Float>(Type.ROT_Y)
-        fun rotXZ() = AnimatedProperty<Vector2f>(Type.ROT_XZ)
-        fun scale() = AnimatedProperty<Vector3f>(Type.SCALE)
-        fun scale(defaultValue: Vector3f) = AnimatedProperty(Type.SCALE, defaultValue)
-        fun color() = AnimatedProperty<Vector4f>(Type.COLOR)
-        fun color(defaultValue: Vector4f) = AnimatedProperty(Type.COLOR, defaultValue)
-        fun color3() = AnimatedProperty<Vector3f>(Type.COLOR3)
-        fun color3(defaultValue: Vector3f) = AnimatedProperty(Type.COLOR3, defaultValue)
+        fun rotXZ() = AnimatedProperty<Vector2fc>(Type.ROT_XZ)
+        fun scale() = AnimatedProperty<Vector3fc>(Type.SCALE)
+        fun scale(defaultValue: Vector3fc) = AnimatedProperty(Type.SCALE, defaultValue)
+        fun color() = AnimatedProperty<Vector4fc>(Type.COLOR)
+        fun color(defaultValue: Vector4fc) = AnimatedProperty(Type.COLOR, defaultValue)
+        fun color3() = AnimatedProperty<Vector3fc>(Type.COLOR3)
+        fun color3(defaultValue: Vector3fc) = AnimatedProperty(Type.COLOR3, defaultValue)
         fun quat() = AnimatedProperty<Quaternionf>(Type.QUATERNION)
-        fun skew() = AnimatedProperty<Vector2f>(Type.SKEW_2D)
-        fun tiling() = AnimatedProperty<Vector4f>(Type.TILING)
+        fun skew() = AnimatedProperty<Vector2fc>(Type.SKEW_2D)
+        fun tiling() = AnimatedProperty<Vector4fc>(Type.TILING)
 
         fun string() = AnimatedProperty(Type.STRING, "")
         fun alignment() = AnimatedProperty(Type.ALIGNMENT, 0f)
@@ -170,75 +171,6 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
         }
     }
 
-    fun <N : Number> getIntegral(t0: Double, t1: Double, allowNegativeValues: Boolean): Double {
-        val int0 = getIntegral<N>(t0, allowNegativeValues)
-        val int1 = getIntegral<N>(t1, allowNegativeValues)
-        return int1 - int0
-    }
-
-    /**
-     * find the position, where I[t1]-I[t0] = target
-     * with accuracy
-     * */
-    fun <N : Number> findIntegralX(t0: Double, t1: Double, target: Double = 1.0, accuracy: Double = 1e-6): Double {
-        val allowNegativeValues = false
-        val int0 = getIntegral<N>(t0, allowNegativeValues)
-        // bisection
-        var min = t0
-        var max = t1
-        // double has 53 bits mantissa -> should be enough most times
-        val maxIterations = 53
-        for (i in 0 until maxIterations) {
-            if (max - min > accuracy) {
-                val middle = (max + min) * 0.5
-                val intI = getIntegral<N>(middle, allowNegativeValues) - int0
-                if (intI < target) {// right side
-                    min = middle
-                } else {// left side
-                    max = middle
-                }
-            } else break
-        }
-        return (max + min) * 0.5
-    }
-
-    fun <N : Number> getIntegral(time: Double, allowNegativeValues: Boolean): Double {
-        synchronized(this) {
-            val minValue = if (allowNegativeValues) Double.NEGATIVE_INFINITY else 0.0
-            val size = keyframes.size
-            return when {
-                size == 0 -> max(minValue, (defaultValue as N).toDouble()) * time
-                size == 1 || !isAnimated -> max(minValue, (keyframes[0].value as N).toDouble()) * time
-                else -> {
-                    val startTime: Double
-                    val endTime: Double
-                    if (time <= 0) {
-                        startTime = time
-                        endTime = 0.0
-                    } else {
-                        startTime = 0.0
-                        endTime = time
-                    }
-                    var sum = 0.0
-                    var lastTime = startTime
-                    var lastValue = max(minValue, (this[startTime] as N).toDouble())
-                    for (kf in keyframes) {
-                        if (kf.time > time) break // we are done
-                        if (kf.time > lastTime) {// a new value
-                            val value = max(minValue, (kf.value as N).toDouble())
-                            sum += (lastValue + value) * (kf.time - lastTime) * 0.5
-                            lastValue = value
-                            lastTime = kf.time
-                        }
-                    }
-                    val endValue = max(minValue, (this[endTime] as N).toDouble())
-                    sum += (lastValue + endValue) * (time - lastTime) * 0.5
-                    sum
-                }
-            }
-        }
-    }
-
     operator fun get(t0: Double, t1: Double): List<Keyframe<V>> {
         val i0 = max(0, getIndexBefore(t0))
         val i1 = min(getIndexBefore(t1) + 1, keyframes.size)
@@ -246,7 +178,7 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
         else emptyList()
     }
 
-    fun getAnimatedValue(time: Double): V {
+    fun getAnimatedValue(time: Double, dst: V? = null): V {
         synchronized(this) {
             val size = keyframes.size
             return when {
@@ -274,11 +206,11 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
                     fun addMaybe(value: V, weight: Double) {
                         if (weightSum == 0.0) {
                             valueSum = toCalc(value)
-                            if (weight != 1.0) valueSum = mul(valueSum!!, weight)
+                            if (weight != 1.0) valueSum = mul(valueSum!!, weight, dst)
                             weightSum = weight
                         } else if (weight != 0.0) {
                             // add value with weight...
-                            valueSum = mulAdd(valueSum!!, toCalc(value), weight)
+                            valueSum = mulAdd(valueSum!!, toCalc(value), weight, dst)
                             weightSum += weight
                         }// else done
                     }
@@ -288,16 +220,6 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
                     addMaybe(frame2.value, w.z)
                     addMaybe(frame3.value, w.w)
 
-                    /*val value = mulAdd(
-                        mulAdd(
-                            mulAdd(
-                                mul(toCalc(frame0.value), w.x),
-                                toCalc(frame1.value), w.y
-                            ), toCalc(frame2.value), w.z
-                        ), toCalc(frame3.value), w.w
-                    )
-
-                    return clamp(fromCalc(value))*/
                     return clamp(fromCalc(valueSum!!))
 
                 }
@@ -305,8 +227,10 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
         }
     }
 
-    operator fun get(time: Double) = getValueAt(time)
-    fun getValueAt(time: Double): V {
+    operator fun get(time: Double, dst: V? = null) = getValueAt(time, dst)
+    // todo access with dst types
+
+    fun getValueAt(time: Double, dst: Any? = null): V {
         val hasDrivers = drivers.any { it != null }
         val animatedValue = getAnimatedValue(time)
         if (!hasDrivers) return animatedValue
@@ -321,141 +245,37 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
             is Long -> drivers[0]?.getValue(time, v0)?.toLong() ?: animatedValue
             is Float -> drivers[0]?.getValue(time, v0)?.toFloat() ?: animatedValue
             is Double -> drivers[0]?.getValue(time, v0) ?: animatedValue
-            is Vector2f -> Vector2f(
-                drivers[0]?.getValue(time, v0)?.toFloat() ?: animatedValue.x,
-                drivers[1]?.getValue(time, v1)?.toFloat() ?: animatedValue.y
+            is Vector2f -> AnimationMaths.v2(dst).set(
+                drivers[0]?.getFloatValue(time, v0) ?: animatedValue.x,
+                drivers[1]?.getFloatValue(time, v1) ?: animatedValue.y
             )
-            is Vector3f -> Vector3f(
-                drivers[0]?.getValue(time, v0)?.toFloat() ?: animatedValue.x,
-                drivers[1]?.getValue(time, v1)?.toFloat() ?: animatedValue.y,
-                drivers[2]?.getValue(time, v2)?.toFloat() ?: animatedValue.z
+            is Vector3f -> AnimationMaths.v3(dst).set(
+                drivers[0]?.getFloatValue(time, v0) ?: animatedValue.x,
+                drivers[1]?.getFloatValue(time, v1) ?: animatedValue.y,
+                drivers[2]?.getFloatValue(time, v2) ?: animatedValue.z
             )
-            is Vector4f -> Vector4f(
-                drivers[0]?.getValue(time, v0)?.toFloat() ?: animatedValue.x,
-                drivers[1]?.getValue(time, v1)?.toFloat() ?: animatedValue.y,
-                drivers[2]?.getValue(time, v2)?.toFloat() ?: animatedValue.z,
-                drivers[3]?.getValue(time, v3)?.toFloat() ?: animatedValue.w
+            is Vector4f -> AnimationMaths.v4(dst).set(
+                drivers[0]?.getFloatValue(time, v0) ?: animatedValue.x,
+                drivers[1]?.getFloatValue(time, v1) ?: animatedValue.y,
+                drivers[2]?.getFloatValue(time, v2) ?: animatedValue.z,
+                drivers[3]?.getFloatValue(time, v3) ?: animatedValue.w
             )
-            is Quaternionf -> Quaternionf(
-                drivers[0]?.getValue(time, v0)?.toFloat() ?: animatedValue.x,
-                drivers[1]?.getValue(time, v1)?.toFloat() ?: animatedValue.y,
-                drivers[2]?.getValue(time, v2)?.toFloat() ?: animatedValue.z,
-                drivers[3]?.getValue(time, v3)?.toFloat() ?: animatedValue.w
+            is Quaternionf -> AnimationMaths.q4(dst).set(
+                drivers[0]?.getFloatValue(time, v0) ?: animatedValue.x,
+                drivers[1]?.getFloatValue(time, v1) ?: animatedValue.y,
+                drivers[2]?.getFloatValue(time, v2) ?: animatedValue.z,
+                drivers[3]?.getFloatValue(time, v3) ?: animatedValue.w
             )
             else -> throw RuntimeException("Replacing components with drivers in $animatedValue is not yet supported!")
         } as V
     }
 
-    fun mix(a: Float, b: Float, f: Float, g: Float) = a * g + b * f
-
-    /**
-     * a * (1-f) + f * b
-     * */
-    fun mix(a: V, b: V, f: Double): V {
-        val g = 1.0 - f
-        return when (type) {
-            Type.INT,
-            Type.INT_PLUS -> ((a as Int) * g + f * (b as Int)).roundToInt()
-            Type.LONG -> ((a as Long) * g + f * (b as Long)).toLong()
-            Type.FLOAT,
-            Type.FLOAT_01, Type.FLOAT_01_EXP,
-            Type.FLOAT_PLUS -> ((a as Float) * g + f * (b as Float)).toFloat()
-            Type.DOUBLE -> (a as Double) * g + f * (b as Double)
-            Type.SKEW_2D -> (a as Vector2f).lerp(b as Vector2fc, f.toFloat(), Vector2f())
-            Type.POSITION,
-            Type.ROT_YXZ,
-            Type.SCALE -> (a as Vector3f).lerp(b as Vector3fc, f.toFloat(), Vector3f())
-            Type.COLOR, Type.TILING -> (a as Vector4f).lerp(b as Vector4fc, f.toFloat(), Vector4f())
-            Type.QUATERNION -> (a as Quaternionf).slerp(b as Quaternionf, f.toFloat())
-            Type.STRING -> {
-
-                a as String
-                b as String
-
-                fun mixLength(max: Int): Int {
-                    return clamp(Maths.mix(a.length.toDouble(), b.length.toDouble(), f).roundToInt(), 0, max)
-                }
-
-                fun mixIndices(l0: Int, l1: Int, f: Double): Int {
-                    return Maths.mix(l0.toDouble(), l1.toDouble(), f).roundToInt()
-                }
-
-                fun mixSubstring(s: String, l0: Int, l1: Int, d0: Int, d1: Int, f: Double): String {
-                    return s.substring(mixIndices(l0, l1, f), mixIndices(d0, d1, f))
-                }
-
-                fun mixContains(a: String, b: String, f: Double): String {
-                    val firstIndex = a.indexOf(b, 0, true)
-                    return mixSubstring(a, 0, 0, firstIndex, 0, f) + b + a.substring(
-                        mixIndices(
-                            firstIndex + b.length,
-                            a.length,
-                            f
-                        )
-                    )
-                }
-
-                val aIsLonger = a.length > b.length
-                val bIsLonger = b.length > a.length
-
-                val mixedValue = when {
-                    f <= 0f -> a
-                    f >= 1f -> b
-                    a == b -> a
-                    aIsLonger && a.startsWith(b, true) -> a.substring(0, mixLength(a.length))
-                    bIsLonger && b.startsWith(a, true) -> b.substring(0, mixLength(b.length))
-                    aIsLonger && a.endsWith(b, true) -> a.substring(
-                        clamp(
-                            ((a.length - b.length) * f).roundToInt(),
-                            0,
-                            a.length
-                        )
-                    )
-                    bIsLonger && b.endsWith(a, true) -> b.substring(
-                        clamp(
-                            ((b.length - a.length) * g).roundToInt(),
-                            0,
-                            b.length
-                        )
-                    )
-                    aIsLonger && a.contains(b, true) -> mixContains(a, b, f)
-                    bIsLonger && b.contains(a, true) -> mixContains(b, a, g)
-                    else -> {
-                        val aChars = a.codePoints().toList()
-                        val bChars = b.codePoints().toList()
-                        if (aChars.size == bChars.size) {
-                            // totally different -> mix randomly for hacking-like effect (??...)
-                            val str = StringBuilder(a.length)
-                            val random = java.util.Random(1234)
-                            val shuffled = aChars.indices.shuffled(random)
-                            val shuffleEnd = (g * aChars.size).roundToInt()
-                            for (i in aChars.indices) {
-                                val code = if (shuffled[i] < shuffleEnd) aChars[i] else bChars[i]
-                                str.append(Character.toChars(code))
-                            }
-                            str.toString()
-                        } else {
-                            val aLength = (a.length * g).roundToInt()
-                            val bLength = (b.length * f).roundToInt()
-                            val aEndIndex = clamp(aLength, 0, a.length)
-                            val bStartIndex = clamp(b.length - bLength, 0, b.lastIndex)
-                            a.substring(0, aEndIndex) + b.substring(bStartIndex, b.length)
-                        }
-                    }
-                }
-                // LOGGER.info("mix($a, $b, $f) = $v")
-                mixedValue
-            }
-            else -> throw RuntimeException("don't know how to linearly interpolate $a and $b")
-        } as V
-    }
-
     private fun toCalc(a: V): Any {
         return when (a) {
-            is Int -> a.toDouble()
+            is Int -> a.toDouble() as Any
             is Float -> a
             is Double -> a
-            is Long -> a.toDouble()
+            is Long -> a.toDouble() as Any
             is Vector2fc, is Vector3fc, is Vector4fc, is Quaternionf -> a
             is Vector2dc, is Vector3dc, is Vector4dc, is Quaterniond -> a
             is String -> a
@@ -464,38 +284,6 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
     }
 
     private fun fromCalc(a: Any): V = clampAny(a)
-
-    /**
-     * b + a * f
-     * */
-    private fun mulAdd(first: Any, second: Any, f: Double): Any {
-        return when (first) {
-            is Float -> first + (second as Float) * f.toFloat()
-            is Double -> first + (second as Double) * f
-            is Vector2f -> first + ((second as Vector2f) * f.toFloat())
-            is Vector3f -> first + ((second as Vector3f) * f.toFloat())
-            is Vector4f -> first + ((second as Vector4f) * f.toFloat())
-            is String -> mix(first as V, second as V, f) as Any
-            else -> throw RuntimeException("don't know how to mul-add $second and $first")
-        }
-    }
-
-    /**
-     * a * f
-     * */
-    fun mul(a: Any, f: Double): Any {
-        return when (a) {
-            is Int -> a * f
-            is Long -> a * f
-            is Float -> a * f.toFloat()
-            is Double -> a * f
-            is Vector2f -> a * f.toFloat()
-            is Vector3f -> a * f.toFloat()
-            is Vector4f -> a * f.toFloat()
-            is String -> a//a.substring(0, clamp((a.length * f).roundToInt(), 0, a.length))
-            else -> throw RuntimeException("don't know how to mul $a")
-        }
-    }
 
     private fun getIndexBefore(time: Double): Int {
         // get the index of the time

@@ -29,6 +29,9 @@ abstract class AnimationDriver : Saveable(), Inspectable {
     var frequency = 1.0
     var amplitude = AnimatedProperty.float(1f)
 
+    fun getFloatValue(time: Double, keyframeValue: Double) =
+        getValue(time, keyframeValue).toFloat()
+
     fun getValue(time: Double, keyframeValue: Double) =
         getValue0(time * frequency, keyframeValue) * amplitude[time]
 

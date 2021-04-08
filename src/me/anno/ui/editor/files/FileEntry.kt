@@ -1,5 +1,6 @@
 package me.anno.ui.editor.files
 
+import me.anno.audio.AudioTasks
 import me.anno.cache.instances.ImageCache.getInternalTexture
 import me.anno.cache.instances.VideoCache.getVideoFrame
 import me.anno.config.DefaultStyle.black
@@ -118,7 +119,7 @@ class FileEntry(
         val audio = audio
         if (audio != null && audio.component?.isPlaying == true) {
             this.audio = null
-            GFX.addAudioTask(1) { audio.stopPlayback() }
+            AudioTasks.addTask(1) { audio.stopPlayback() }
         }
     }
 
@@ -131,7 +132,7 @@ class FileEntry(
         this.h = size * 4 / 3
     }
 
-    override fun getLayoutState(): Any? = Pair(super.getLayoutState(), titlePanel.getLayoutState())
+    override fun getLayoutState(): Any? = titlePanel.getLayoutState()
     override fun getVisualState(): Any? {
         val tex = when (val tex = getTexKey()) {
             is VFrame -> if (tex.isCreated) tex else null
@@ -139,12 +140,7 @@ class FileEntry(
             else -> tex
         }
         titlePanel.canBeSeen = canBeSeen
-        return Quad(
-            super.getVisualState(),
-            titlePanel.getVisualState(),
-            tex,
-            meta
-        )
+        return Triple(titlePanel.getVisualState(), tex, meta)
     }
 
     override fun tickUpdate() {
@@ -176,7 +172,7 @@ class FileEntry(
                                 isLooping.value = LoopingState.PLAY_LOOP
                             }
                             this.audio = audio
-                            GFX.addAudioTask(5) {
+                            AudioTasks.addTask(5) {
                                 audio.startPlayback(-hoverPlaybackDelay, 1.0, Camera())
                             }
                             0
