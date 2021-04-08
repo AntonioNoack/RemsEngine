@@ -281,13 +281,11 @@ open class StringMap(
                     // delay in case it needs longer
                     lastSaveTime = gameTime + (60 * 1e9).toLong()
                     threadWithName("StringMap::saveMaybe") {
-                        println("Actually saving $name")
                         save(name)
                         lastSaveTime = gameTime
                     }
                 } else {
                     threadWithName("StringMap::saveMaybe2") {
-                        println("Saving was delayed $name")
                         Thread.sleep(saveDelay / 1_000_000 / 10)
                         saveMaybe(name)
                     }
