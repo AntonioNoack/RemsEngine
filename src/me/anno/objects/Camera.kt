@@ -43,7 +43,8 @@ class Camera(parent: Transform? = null) : Transform(parent) {
 
     val orbitRadius = AnimatedProperty.floatPlus(1f)
 
-    val cgOffset = AnimatedProperty.vec3()
+    val cgOffsetAdd = AnimatedProperty.color3(Vector3f())
+    val cgOffsetSub = AnimatedProperty.color3(Vector3f())
     val cgSlope = AnimatedProperty.color(white4)
     val cgPower = AnimatedProperty.color(white4)
     val cgSaturation = AnimatedProperty.float(1f) // only allow +? only 01?
@@ -123,7 +124,7 @@ class Camera(parent: Transform? = null) : Transform(parent) {
             lut = it
         }
 
-        ColorGrading.createInspector(this, cgPower, cgSaturation, cgSlope, cgOffset, { it }, getGroup, style)
+        ColorGrading.createInspector(this, cgPower, cgSaturation, cgSlope, cgOffsetAdd, cgOffsetSub, { it }, getGroup, style)
 
         val editor = getGroup("Editor", "Settings, which only effect editing", "editor")
         editor += vi(
@@ -200,7 +201,8 @@ class Camera(parent: Transform? = null) : Transform(parent) {
         writer.writeBoolean("useDepth", useDepth)
         writer.writeFile("lut", lut)
         writer.writeObject(this, "cgSaturation", cgSaturation)
-        writer.writeObject(this, "cgOffset", cgOffset)
+        writer.writeObject(this, "cgOffsetAdd", cgOffsetAdd)
+        writer.writeObject(this, "cgOffsetSub", cgOffsetSub)
         writer.writeObject(this, "cgSlope", cgSlope)
         writer.writeObject(this, "cgPower", cgPower)
     }
@@ -230,7 +232,8 @@ class Camera(parent: Transform? = null) : Transform(parent) {
             "bloomThreshold" -> bloomThreshold.copyFrom(value)
             "bloomSize" -> bloomSize.copyFrom(value)
             "cgSaturation" -> cgSaturation.copyFrom(value)
-            "cgOffset" -> cgOffset.copyFrom(value)
+            "cgOffset", "cgOffsetAdd" -> cgOffsetAdd.copyFrom(value)
+            "cgOffsetSub" -> cgOffsetSub.copyFrom(value)
             "cgSlope" -> cgSlope.copyFrom(value)
             "cgPower" -> cgPower.copyFrom(value)
             else -> super.readObject(name, value)

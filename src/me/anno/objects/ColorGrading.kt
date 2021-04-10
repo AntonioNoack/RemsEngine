@@ -15,11 +15,14 @@ object ColorGrading {
         cgPower: AnimatedProperty<*>,
         cgSaturation: AnimatedProperty<*>,
         cgSlope: AnimatedProperty<*>,
-        cgOffset: AnimatedProperty<*>,
+        cgOffsetAdd: AnimatedProperty<*>,
+        cgOffsetSub: AnimatedProperty<*>,
         img: (Panel) -> Panel,
         getGroup: (name: String, ttt: String, id: String) -> SettingCategory,
         style: Style
     ) {
+
+        // todo table for the colors...
 
         val group = getGroup("Color Grading (ASC CDL)", "", "color-grading")
         group.add(img(TextPanel("" +
@@ -33,11 +36,13 @@ object ColorGrading {
 
         val power = t.vi("Power", "sRGB, Linear, ...", "cg.power", cgPower, style)
         val slope = t.vi("Slope", "Intensity or Tint", "cg.slope", cgSlope, style)
-        val offset = t.vi("Offset", "Can be used to color black objects", "cg.offset", cgOffset, style)
+        val offset1 = t.vi("Plus Offset", "Can be used to color black objects", "cg.offset", cgOffsetAdd, style)
+        val offset2 = t.vi("Minus Offset", "Can be used to color white objects", "cg.offset.sub", cgOffsetSub, style)
 
         group.add(img(power))
         group.add(img(slope))
-        group.add(img(offset))
+        group.add(img(offset1))
+        group.add(img(offset2))
 
         val satDesc = "0 = gray scale, 1 = normal, -1 = inverted colors"
         group.add(img(t.vi("Saturation", satDesc, "cg.saturation", cgSaturation, style)))

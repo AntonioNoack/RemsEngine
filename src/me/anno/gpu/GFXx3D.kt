@@ -169,6 +169,9 @@ object GFXx3D {
         buffer.draw(shader)
     }
 
+    private val tmp0 = Vector3f()
+    private val tmp1 = Vector3f()
+    private val tmp2 = Vector4f()
     fun colorGradingUniforms(video: Video?, time: Double, shader: Shader) {
         if (video == null) {
             shader.v3("cgOffset", 0f)
@@ -176,9 +179,11 @@ object GFXx3D {
             shader.v3("cgPower", 1f)
             shader.v1("cgSaturation", 1f)
         } else {
-            shader.v3("cgOffset", video.cgOffset[time])
-            shader.v3X("cgSlope", video.cgSlope[time])
-            shader.v3X("cgPower", video.cgPower[time])
+            tmp0.set(video.cgOffsetAdd[time, tmp0])
+            tmp1.set(video.cgOffsetSub[time, tmp1])
+            shader.v3("cgOffset", tmp0.sub(tmp1))
+            shader.v3X("cgSlope", video.cgSlope[time, tmp2])
+            shader.v3X("cgPower", video.cgPower[time, tmp2])
             shader.v1("cgSaturation", video.cgSaturation[time])
         }
     }

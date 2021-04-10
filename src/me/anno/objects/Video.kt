@@ -116,7 +116,8 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
 
     var editorVideoFPS = ValueWithDefault(EditorFPS.F10)
 
-    val cgOffset = AnimatedProperty.vec3()
+    val cgOffsetAdd = AnimatedProperty.color3(Vector3f())
+    val cgOffsetSub = AnimatedProperty.color3(Vector3f())
     val cgSlope = AnimatedProperty.color(Vector4f(1f, 1f, 1f, 1f))
     val cgPower = AnimatedProperty.color(Vector4f(1f, 1f, 1f, 1f))
     val cgSaturation = AnimatedProperty.float(1f) // only allow +? only 01?
@@ -734,7 +735,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
             .setChangeListener { _, index, _ -> editorVideoFPS.value = EditorFPS.values()[index] }
             .setIsSelectedListener { show(null) })
 
-        ColorGrading.createInspector(this, cgPower, cgSaturation, cgSlope, cgOffset, { img(it) }, getGroup, style)
+        ColorGrading.createInspector(this, cgPower, cgSaturation, cgSlope, cgOffsetAdd, cgOffsetSub, { img(it) }, getGroup, style)
 
         val audio = getGroup("Audio", "", "audio")
         audio += aud(vi("Amplitude", "How loud it is", "audio.amplitude", amplitude, style))
@@ -792,7 +793,8 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
         writer.writeMaybe(this, "clamping", clampMode)
         writer.writeMaybe(this, "videoScale", videoScale)
         writer.writeObject(this, "cgSaturation", cgSaturation)
-        writer.writeObject(this, "cgOffset", cgOffset)
+        writer.writeObject(this, "cgOffsetAdd", cgOffsetAdd)
+        writer.writeObject(this, "cgOffsetSub", cgOffsetSub)
         writer.writeObject(this, "cgSlope", cgSlope)
         writer.writeObject(this, "cgPower", cgPower)
         writer.writeMaybe(this, "uvProjection", uvProjection)
@@ -803,7 +805,8 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
         when (name) {
             "tiling" -> tiling.copyFrom(value)
             "cgSaturation" -> cgSaturation.copyFrom(value)
-            "cgOffset" -> cgOffset.copyFrom(value)
+            "cgOffset", "cgOffsetAdd" -> cgOffsetAdd.copyFrom(value)
+            "cgOffsetSub" -> cgOffsetSub.copyFrom(value)
             "cgSlope" -> cgSlope.copyFrom(value)
             "cgPower" -> cgPower.copyFrom(value)
             else -> super.readObject(name, value)

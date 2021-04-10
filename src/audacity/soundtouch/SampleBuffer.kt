@@ -6,7 +6,7 @@ import kotlin.math.min
 /**
  * https://github.com/audacity/audacity/blob/cce2c7b8830a7bb651d225863b792d23f336323f/lib-src/soundtouch/source/SoundTouch/FIFOSampleBuffer.cpp
  * */
-class SampleBuffer() {
+class SampleBuffer {
 
     private var channels = 0
     private var samplesInBuffer = 0

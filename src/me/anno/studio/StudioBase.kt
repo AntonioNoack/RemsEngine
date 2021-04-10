@@ -434,7 +434,7 @@ abstract class StudioBase(
         }
 
         if (showTutorialKeys) {
-            if (ShowKeys.draw(0, 0, GFX.width, GFX.height)) {
+            if (ShowKeys.draw(0, 0, GFX.height)) {
                 didSomething = true
             }
         }

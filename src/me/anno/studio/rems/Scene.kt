@@ -33,6 +33,7 @@ import me.anno.ui.editor.sceneView.Grid
 import me.anno.ui.editor.sceneView.ISceneView
 import me.anno.utils.types.Vectors.is000
 import me.anno.utils.types.Vectors.is1111
+import me.anno.utils.types.Vectors.minus
 import me.anno.utils.types.Vectors.times
 import me.anno.video.MissingFrameException
 import org.joml.Matrix4f
@@ -312,7 +313,7 @@ object Scene {
             val chromaticAberration = camera.chromaticAberration[cameraTime]
             val toneMapping = camera.toneMapping
 
-            val cgOffset = camera.cgOffset[cameraTime]
+            val cgOffset = camera.cgOffsetAdd[cameraTime] - camera.cgOffsetSub[cameraTime]
             val cgSlope = camera.cgSlope[cameraTime]
             val cgPower = camera.cgPower[cameraTime]
             val cgSaturation = camera.cgSaturation[cameraTime]

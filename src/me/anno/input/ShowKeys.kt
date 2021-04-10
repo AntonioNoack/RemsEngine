@@ -24,29 +24,49 @@ object ShowKeys {
 
     class Key(val keyCode: Int, val isSuperKey: Boolean, var time: Float)
 
-    fun draw(x: Int, y: Int, w: Int, h: Int): Boolean {
+    private const val lower = 0.8f // full strength while hold
+    private fun addKey(keyCode: Int, isSuperKey: Boolean) {
+        var key = activeKeysMap[keyCode]
+        if (key == null) {
+            key = Key(keyCode, isSuperKey, 2f)
+            activeKeys += key
+            activeKeysMap[keyCode] = key
+        } else {
+            key.time =
+                if (key.time < lower) lower
+                else mix(key.time, lower, GFX.deltaTime * 5f)
+        }
+    }
+
+    fun show(text: String, alpha: Float, x0: Int, hmy: Int): Int {
+
+        val bgColor = colors.backgroundColor
+        val textColor = colors.textColor
+        val fontSize = font.sizeInt
+
+        val alphaMask = (alpha * 255).toInt().shl(24) or 0xffffff
+        val color = textColor and alphaMask
+        val w0 = getSizeX(getTextSize(font, text, -1))
+        drawRect(x0 + 5, hmy - 12 - fontSize, w0 + 10, fontSize + 8, bgColor and alphaMask)
+        drawText(
+            x0 + 10, hmy - 10 - fontSize, font, text,
+            color and alphaMask,
+            bgColor and 0xffffff, -1
+        )
+
+        return x0 + w0 + 16
+
+    }
+
+    fun draw(x: Int, y: Int, h: Int): Boolean {
 
         // draw the current keys for a tutorial...
         // fade out keys
         // blink when typed (overexposure to get attention)
 
         // full strength at start is 1
-        val lower = 0.8f // full strength while hold
 
-        fun addKey(keyCode: Int, isSuperKey: Boolean) {
-            var key = activeKeysMap[keyCode]
-            if (key == null) {
-                key = Key(keyCode, isSuperKey, 2f)
-                activeKeys += key
-                activeKeysMap[keyCode] = key
-            } else {
-                key.time =
-                    if (key.time < lower) lower
-                    else mix(key.time, lower, GFX.deltaTime * 5f)
-            }
-        }
-
-        Input.keysDown.keys.forEach { keyCode ->
+        for (keyCode in Input.keysDown.keys) {
             when (keyCode) {
                 GLFW.GLFW_KEY_LEFT_CONTROL,
                 GLFW.GLFW_KEY_RIGHT_CONTROL -> addKey(GLFW.GLFW_KEY_LEFT_CONTROL, true)
@@ -76,26 +96,11 @@ object ShowKeys {
             BlendDepth(BlendMode.DEFAULT, false) {
 
                 var x0 = x
-
-                val bgColor = colors.backgroundColor
-                val textColor = colors.textColor
-
-                val fontSize = font.sizeInt
-                fun show(text: String, alpha: Float) {
-                    val alphaMask = (alpha * 255).toInt().shl(24) or 0xffffff
-                    val color = textColor and alphaMask
-                    val w0 = getSizeX(getTextSize(font, text, -1))
-                    drawRect(x0 + 5, h - y - 12 - fontSize, w0 + 10, fontSize + 8, bgColor and alphaMask)
-                    drawText(x0 + 10, h - y - 10 - fontSize, font, text,
-                        color and alphaMask,
-                        bgColor and 0xffffff, -1)
-                    x0 += w0 + 16
-                }
-
-                activeKeys.forEach { key ->
+                for (key in activeKeys) {
                     val alpha = key.time
-                    val text = KeyCombination.keyMapping.reverse[key.keyCode] ?: key.keyCode.toString()
-                    show(text, alpha)
+                    val text0 = KeyCombination.keyMapping.reverse[key.keyCode]
+                    val text = text0 ?: key.keyCode.toString()
+                    x0 = show(text, alpha, x0, h - y)
                 }
 
             }
