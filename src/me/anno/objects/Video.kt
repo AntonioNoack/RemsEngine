@@ -116,7 +116,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
 
     var editorVideoFPS = ValueWithDefault(EditorFPS.F10)
 
-    val cgOffset = AnimatedProperty.color3(Vector3f())
+    val cgOffset = AnimatedProperty.vec3()
     val cgSlope = AnimatedProperty.color(Vector4f(1f, 1f, 1f, 1f))
     val cgPower = AnimatedProperty.color(Vector4f(1f, 1f, 1f, 1f))
     val cgSaturation = AnimatedProperty.float(1f) // only allow +? only 01?
