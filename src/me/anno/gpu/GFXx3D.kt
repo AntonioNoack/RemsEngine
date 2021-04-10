@@ -299,7 +299,8 @@ object GFXx3D {
         colorCount: Int,
         colors: Array<Vector4fc>,
         distances: FloatArray,
-        smoothness: FloatArray
+        smoothness: FloatArray,
+        depth: Float
     ) {
 
         val shader = ShaderLib.shader3DOutlinedText
@@ -338,6 +339,7 @@ object GFXx3D {
         shader.v1("colorCount", cc)
         shader.v2("offset", offset)
         shader.v2("scale", scale)
+        shader.v1("depth", depth * 0.00001f)
 
         GFX.check()
 

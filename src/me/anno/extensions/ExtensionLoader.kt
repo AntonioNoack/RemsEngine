@@ -25,6 +25,41 @@ object ExtensionLoader {
         ModManager, PluginManager
     )
 
+    fun load() {
+
+        unload()
+
+        pluginsFolder = File(configFolder, "plugins")
+        modsFolder = File(configFolder, "mods")
+
+        fun tryCreate(file: File){
+            try {
+                file.mkdirs()
+            } catch (e: Exception){
+                LOGGER.warn("Failed to create $file")
+            }
+        }
+
+        tryCreate(modsFolder)
+        tryCreate(pluginsFolder)
+
+        val extInfos0 = getInfos()
+        val extInfos = checkDependencies(extInfos0)
+        warnOfMissingDependencies(extInfos, extInfos)
+
+        // load all extensions
+        val extensions = loadExtensions(extInfos)
+        val mods = extensions.filterIsInstance<Mod>()
+        val plugins = extensions.filterIsInstance<Plugin>()
+
+        // init all mods and plugins...
+        ModManager.enable(mods)
+
+        // first mods, then plugins
+        PluginManager.enable(plugins)
+
+    }
+
     fun unload() {
         // plugins may depend on mods -> first disable them
         PluginManager.disable()
@@ -94,41 +129,6 @@ object ExtensionLoader {
             } else LOGGER.warn("Could not load ${ex.name}!")
         }
         return extensions
-    }
-
-    fun load() {
-
-        unload()
-
-        pluginsFolder = File(configFolder, "plugins")
-        modsFolder = File(configFolder, "mods")
-
-        fun tryCreate(file: File){
-            try {
-                file.mkdirs()
-            } catch (e: Exception){
-                LOGGER.warn("Failed to create $file")
-            }
-        }
-
-        tryCreate(modsFolder)
-        tryCreate(pluginsFolder)
-
-        val extInfos0 = getInfos()
-        val extInfos = checkDependencies(extInfos0)
-        warnOfMissingDependencies(extInfos, extInfos)
-
-        // load all extensions
-        val extensions = loadExtensions(extInfos)
-        val mods = extensions.filterIsInstance<Mod>()
-        val plugins = extensions.filterIsInstance<Plugin>()
-
-        // init all mods and plugins...
-        ModManager.enable(mods)
-
-        // first mods, then plugins
-        PluginManager.enable(plugins)
-
     }
 
     fun reloadPlugins() {

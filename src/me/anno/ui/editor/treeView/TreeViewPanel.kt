@@ -22,6 +22,7 @@ import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.Selection.selectTransform
 import me.anno.studio.rems.Selection.selectedTransform
+import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.menu.Menu.askName
 import me.anno.ui.base.menu.Menu.menuSeparator1
@@ -45,6 +46,10 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style) : PanelListX(
     private val accentColor = style.getColor("accentColor", black or 0xff0000)
 
     val symbol = object : TextPanel("", style) {
+        init { textAlignment = AxisAlignment.CENTER }
+        override fun calculateSize(w: Int, h: Int) {
+            calculateSize(w, h, "xx")
+        }
         override fun onCopyRequested(x: Float, y: Float): String? = parent?.onCopyRequested(x, y)
     }
     val text = object : TextPanel("", style) {

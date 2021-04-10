@@ -21,6 +21,7 @@ import me.anno.studio.rems.RemsStudio.targetDuration
 import me.anno.studio.rems.RemsStudio.targetFPS
 import me.anno.studio.rems.Selection
 import me.anno.ui.base.Panel
+import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.custom.CustomContainer.Companion.isCross
@@ -61,7 +62,7 @@ open class TimelinePanel(style: Style) : Panel(style) {
         GFX.loadTexturesSync.push(true)
         val text = getTimeString(editorTime, 0.0)
         val color = mixARGB(fontColor, backgroundColor, 0.8f)
-        drawText(x + w / 2, y + h / 2, timeFont, text, color, backgroundColor, -1, true)
+        drawText(x + w / 2, y + h / 2, timeFont, text, color, backgroundColor, -1, AxisAlignment.CENTER)
         GFX.loadTexturesSync.pop()
     }
 
@@ -251,7 +252,7 @@ open class TimelinePanel(style: Style) : Panel(style) {
                     val key = FontManager.getTextCacheKey(font, text, -1)
                     if (key != null) {
                         drawnStrings.add(key)
-                        drawText(x, y0, font, key, fontColor, backgroundColor, true)
+                        drawText(x, y0, font, key, fontColor, backgroundColor, AxisAlignment.CENTER)
                     }
                 }
             }

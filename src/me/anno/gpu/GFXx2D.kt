@@ -12,6 +12,7 @@ import me.anno.gpu.texture.*
 import me.anno.objects.GFXTransform.Companion.uploadAttractors0
 import me.anno.objects.modes.UVProjection
 import me.anno.ui.base.Font
+import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.debug.FrameTimes
 import me.anno.utils.Maths.clamp
 import me.anno.video.VFrame
@@ -178,18 +179,18 @@ object GFXx2D {
 
     fun drawText(
         x: Int, y: Int, font: Font, text: String,
-        color: Int, backgroundColor: Int, widthLimit: Int, centerX: Boolean = false
-    ) = writeText(x, y, font, text, color, backgroundColor, widthLimit, centerX)
+        color: Int, backgroundColor: Int, widthLimit: Int, alignment: AxisAlignment = AxisAlignment.MIN
+    ) = writeText(x, y, font, text, color, backgroundColor, widthLimit, alignment)
 
 
     fun drawText(
         x: Int, y: Int, font: Font, key: TextCacheKey,
-        color: Int, backgroundColor: Int, centerX: Boolean = false
-    ) = writeText(x, y, font, key, color, backgroundColor, centerX)
+        color: Int, backgroundColor: Int, alignment: AxisAlignment = AxisAlignment.MIN
+    ) = writeText(x, y, font, key, color, backgroundColor, alignment)
 
     val simpleChars = Array('z'.toInt() + 1) { it.toChar().toString() }
     var monospaceFont = Font("Consolas", 12f, false, false)
-    val monospaceKeys = Array(simpleChars.size){ FontManager.getTextCacheKey(monospaceFont, simpleChars[it], -1) }
+    val monospaceKeys = Array(simpleChars.size) { FontManager.getTextCacheKey(monospaceFont, simpleChars[it], -1) }
 
     fun drawSimpleTextCharByChar(
         x0: Int, y0: Int,
@@ -254,7 +255,7 @@ object GFXx2D {
         color: Int,
         backgroundColor: Int,
         widthLimit: Int,
-        centerX: Boolean,
+        alignment: AxisAlignment,
         equalSpaced: Boolean
     ): Int {
 
@@ -266,20 +267,18 @@ object GFXx2D {
 
         val charWidth = if (equalSpaced) getTextSizeX(font, "x", widthLimit) else 0
 
-        if (centerX) {
-            return if (equalSpaced) {
-                drawTextCharByChar(
-                    x - (charWidth * text.length) / 2, y,
-                    font, text, color, backgroundColor,
-                    widthLimit, false, equalSpaced
-                )
-            } else {
-                drawTextCharByChar(
-                    x - getTextSizeX(font, text, widthLimit) / 2, y,
-                    font, text, color, backgroundColor,
-                    widthLimit, false, equalSpaced
-                )
-            }
+        val offset = when (alignment) {
+            AxisAlignment.MIN -> 0
+            AxisAlignment.CENTER -> -charWidth * text.length / 2
+            AxisAlignment.MAX -> -charWidth * text.length
+        }
+
+        if (offset != 0) {
+            drawTextCharByChar(
+                x + offset, y,
+                font, text, color, backgroundColor,
+                widthLimit, AxisAlignment.MIN, equalSpaced
+            )
         }
 
         // todo width limit...
@@ -329,18 +328,18 @@ object GFXx2D {
         font: Font, text: String,
         color: Int, backgroundColor: Int,
         widthLimit: Int,
-        centerX: Boolean = false
+        alignment: AxisAlignment = AxisAlignment.MIN
     ): Int {
 
         GFX.check()
         val tex0 = FontManager.getString(font, text, widthLimit)
         val charByChar = (tex0 == null || tex0 !is Texture2D || !tex0.isCreated) && text.length > 1
         if (charByChar) {
-            return drawTextCharByChar(x, y, font, text, color, backgroundColor, widthLimit, centerX, false)
+            return drawTextCharByChar(x, y, font, text, color, backgroundColor, widthLimit, alignment, false)
         }
 
         val texture = tex0 ?: return getSize(0, font.sizeInt)
-        return writeText(x, y, color, backgroundColor, texture, centerX)
+        return writeText(x, y, color, backgroundColor, texture, alignment)
 
     }
 
@@ -348,7 +347,7 @@ object GFXx2D {
         x: Int, y: Int,
         color: Int, backgroundColor: Int,
         texture: ITexture2D,
-        centerX: Boolean
+        alignment: AxisAlignment
     ): Int {
         val w = texture.w
         val h = texture.h
@@ -356,11 +355,14 @@ object GFXx2D {
             texture.bind(GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
             val shader = ShaderLib.subpixelCorrectTextShader
             shader.use()
-            var x2 = x
-            if (centerX) x2 -= w / 2
+            val xWithOffset = x - when(alignment){
+                AxisAlignment.MIN -> 0
+                AxisAlignment.CENTER -> w / 2
+                AxisAlignment.MAX -> w
+            }
             shader.v2(
                 "pos",
-                (x2 - GFX.windowX).toFloat() / GFX.windowWidth,
+                (xWithOffset - GFX.windowX).toFloat() / GFX.windowWidth,
                 1f - (y - GFX.windowY).toFloat() / GFX.windowHeight
             )
             shader.v2("size", w.toFloat() / GFX.windowWidth, -h.toFloat() / GFX.windowHeight)
@@ -376,7 +378,7 @@ object GFXx2D {
         x: Int, y: Int,
         font: Font, key: TextCacheKey,
         color: Int, backgroundColor: Int,
-        centerX: Boolean = false
+        alignment: AxisAlignment = AxisAlignment.MIN
     ): Int {
 
         GFX.check()
@@ -384,11 +386,11 @@ object GFXx2D {
         val tex0 = FontManager.getString(key)
         val charByChar = tex0 == null || tex0 !is Texture2D || !tex0.isCreated
         if (charByChar) {
-            return drawTextCharByChar(x, y, font, key.text, color, backgroundColor, key.widthLimit, centerX, false)
+            return drawTextCharByChar(x, y, font, key.text, color, backgroundColor, key.widthLimit, alignment, false)
         }
 
         val texture = tex0 ?: return getSize(0, font.sizeInt)
-        return writeText(x, y, color, backgroundColor, texture, centerX)
+        return writeText(x, y, color, backgroundColor, texture, alignment)
 
     }
 
@@ -397,7 +399,7 @@ object GFXx2D {
         x: Int, y: Int,
         key: TextCacheKey,
         color: Int, backgroundColor: Int,
-        centerX: Boolean = false
+        alignment: AxisAlignment = AxisAlignment.MIN
     ): Int {
 
         GFX.check()
@@ -407,12 +409,12 @@ object GFXx2D {
         if (charByChar) {
             return drawTextCharByChar(
                 x, y, key.createFont(), key.text, color,
-                backgroundColor, key.widthLimit, centerX, false
+                backgroundColor, key.widthLimit, alignment, false
             )
         }
 
         val texture = tex0 ?: return getSize(0, getAvgFontSize(key.fontSizeIndex()).roundToInt())
-        return writeText(x, y, color, backgroundColor, texture, centerX)
+        return writeText(x, y, color, backgroundColor, texture, alignment)
 
     }
 

@@ -18,8 +18,6 @@ import me.anno.ui.base.scrolling.ScrollPanelXY
 import me.anno.ui.editor.files.ImportFromFile.addChildFromFile
 import me.anno.ui.editor.treeView.TreeViewPanel.Companion.openAddMenu
 import me.anno.ui.style.Style
-import me.anno.utils.structures.arrays.ExpandingGenericArray
-import me.anno.utils.structures.arrays.ExpandingIntArray
 import java.io.File
 
 // todo select multiple elements, filter for common properties, and apply them all together :)
@@ -35,39 +33,40 @@ class TreeView(style: Style) :
 
     val transformByIndex = ArrayList<Transform>()
 
-    var index = 0
+    private val inset = style.getSize("textSize", 12) / 3
+    private val collapsedSymbol = DefaultConfig["ui.symbol.collapsed", "\uD83D\uDDBF"]
 
-    private val openTransforms = ExpandingGenericArray<Transform>(32)
-    private val openIndices = ExpandingIntArray(32)
-
-    private fun updateTree() {
-        openTransforms.clear()
-        openIndices.clear()
-        openTransforms.add(root); openIndices.add(0)
-        openTransforms.add(nullCamera!!); openIndices.add(0)
-        // open.add(RenderSettings to 0)
-        index = -1
-        val inset = style.getSize("textSize", 12) / 3
-        while (++index < openTransforms.size) {
-            val transform = openTransforms[index]
-            val depth = openIndices[index]
-            val panel = getOrCreateChild(index, transform)
-            //(panel.parent!!.children[0] as SpacePanel).minW = inset * depth + panel.padding.right
-            val symbol =
-                if (transform.isCollapsed) DefaultConfig["ui.symbol.collapsed", "\uD83D\uDDBF"]
-                else transform.getSymbol()
-            panel.setText(symbol.trim(), transform.name)
-            panel.padding.left = inset * depth + panel.padding.right
-            if (!transform.isCollapsed) {
-                val children = transform.children
-                for(i in children.lastIndex downTo 0){
-                    openTransforms.add(children[i])
-                    openIndices.add(depth+1)
-                }
+    private fun addToTree(transform: Transform, depth: Int, index0: Int): Int {
+        var index = index0
+        val panel = getOrCreateChild(index++, transform)
+        //(panel.parent!!.children[0] as SpacePanel).minW = inset * depth + panel.padding.right
+        val symbol = if (transform.isCollapsed) collapsedSymbol else transform.getSymbol()
+        panel.setText(symbol.trim(), transform.name)
+        val padding = panel.padding
+        val left = inset * depth + padding.right
+        if(padding.left != left){
+            padding.left = left
+            invalidateLayout()
+        }
+        if (!transform.isCollapsed) {
+            val children = transform.children
+            for (child in children) {
+                index = addToTree(child, depth + 1, index)
             }
         }
+        invalidateLayout()
+        return index
+    }
+
+    private fun updateTree() {
+        val camIndex = addToTree(nullCamera!!, 0, 0)
+        val index = addToTree(root, 0, camIndex)
         for (i in index until list.children.size) {
-            list.children[i].visibility = Visibility.GONE
+            val child = list.children[i]
+            if(child.visibility != Visibility.GONE){
+                child.visibility = Visibility.GONE
+                invalidateLayout()
+            }
         }
     }
 

@@ -2,7 +2,6 @@ package me.anno.ui.base.text
 
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.iconGray
-import me.anno.fonts.FontManager
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.GFXx2D
@@ -10,18 +9,18 @@ import me.anno.gpu.GFXx2D.getSizeX
 import me.anno.gpu.GFXx2D.getSizeY
 import me.anno.gpu.GFXx2D.getTextSize
 import me.anno.gpu.GFXx2D.getTextSizeX
-import me.anno.gpu.texture.Texture2D
 import me.anno.input.MouseButton
 import me.anno.ui.base.Panel
 import me.anno.ui.base.Visibility
+import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.style.Style
+import me.anno.utils.Maths.mixARGB
 import me.anno.utils.Tabs
 import me.anno.utils.input.Keys.isClickKey
-import me.anno.utils.Maths.mixARGB
 import kotlin.math.max
 import kotlin.math.min
 
-open class TextPanel(text: String, style: Style): Panel(style){
+open class TextPanel(text: String, style: Style) : Panel(style) {
 
     var instantTextLoading = false
     var padding = style.getPadding("textPadding", 2)
@@ -30,9 +29,11 @@ open class TextPanel(text: String, style: Style): Panel(style){
     var focusTextColor = style.getColor("textColorFocused", -1)
     val hoverColor get() = mixARGB(textColor, focusTextColor, 0.5f)
 
+    var textAlignment = AxisAlignment.MIN
+
     open var text: String = text
         set(value) {
-            if(field != value){
+            if (field != value) {
                 field = value
                 invalidateDrawing()
             }
@@ -65,60 +66,75 @@ open class TextPanel(text: String, style: Style): Panel(style){
     var disableCopy = false
 
     fun drawText(x: Int, y: Int, text: String, color: Int): Int {
-        return GFXx2D.drawText(this.x + x + padding.left, this.y + y + padding.top, font,
-            text, color, backgroundColor, widthLimit)
+        return GFXx2D.drawText(
+            this.x + x + padding.left, this.y + y + padding.top, font,
+            text, color, backgroundColor, widthLimit
+        )
     }
 
     var minW2 = 0
     var minH2 = 0
 
-    val widthLimit get() = if(breaksIntoMultiline) w - padding.width else -1
+    val widthLimit get() = if (breaksIntoMultiline) w - padding.width else -1
 
-    override fun calculateSize(w: Int, h: Int) {
-        val text = if(text.isBlank()) "." else text
+    fun calculateSize(w: Int, h: Int, text: String) {
         val inst = instantTextLoading
-        if(inst) loadTexturesSync.push(true)
+        if (inst) loadTexturesSync.push(true)
         super.calculateSize(w, h)
-        val size = getTextSize(font, text, if(breaksIntoMultiline) w - padding.width else -1)
+        val size = getTextSize(font, text, if (breaksIntoMultiline) w - padding.width else -1)
         minW = max(1, getSizeX(size) + padding.width)
         minH = max(1, getSizeY(size) + padding.height)
         minW2 = minW
         minH2 = minH
-        if(inst) loadTexturesSync.pop()
+        if (inst) loadTexturesSync.pop()
+    }
+
+    override fun calculateSize(w: Int, h: Int) {
+        val text = if (text.isBlank()) "." else text
+        calculateSize(w, h, text)
     }
 
     fun getMaxWidth() = getTextSizeX(font, text, -1) + padding.width
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         val inst = instantTextLoading
-        if(inst) loadTexturesSync.push(true)
+        if (inst) loadTexturesSync.push(true)
         super.onDraw(x0, y0, x1, y1)
-        drawText(0,0, text, effectiveTextColor)
-        if(inst) loadTexturesSync.pop()
+        val offset = if (textAlignment == AxisAlignment.MIN) 0
+        else textAlignment.getOffset(w, getMaxWidth())
+        drawText(offset, 0, text, effectiveTextColor)
+        if (inst) loadTexturesSync.pop()
     }
 
     override fun onCopyRequested(x: Float, y: Float): String? {
-        return if(disableCopy) super.onCopyRequested(x, y) else text
+        return if (disableCopy) super.onCopyRequested(x, y) else text
     }
 
     open var enableHoverColor = false
 
-    open val effectiveTextColor get() =
-        if(isHovered && enableHoverColor) hoverColor
-        else if(isInFocus) focusTextColor
-        else textColor
+    open val effectiveTextColor
+        get() =
+            if (isHovered && enableHoverColor) hoverColor
+            else if (isInFocus) focusTextColor
+            else textColor
 
-    override fun getCursor(): Long? = if(onClickListener == null) super.getCursor() else Cursor.drag
+    override fun getCursor(): Long? = if (onClickListener == null) super.getCursor() else Cursor.drag
 
     override fun printLayout(tabDepth: Int) {
-        println("${Tabs.spaces(tabDepth * 2)}${javaClass.simpleName}($weight, ${if(visibility== Visibility.VISIBLE) "v" else "_"}) " +
-                "$x $y += $w $h ($minW $minH) \"${text.substring(0, min(text.length, 20))}\"")
+        println(
+            "${Tabs.spaces(tabDepth * 2)}${javaClass.simpleName}($weight, ${if (visibility == Visibility.VISIBLE) "v" else "_"}) " +
+                    "$x $y += $w $h ($minW $minH) \"${text.substring(0, min(text.length, 20))}\""
+        )
     }
 
     override fun isKeyInput() = onClickListener != null
-    override fun acceptsChar(char: Int) = when(char.toChar()){ '\t', '\n' -> false else -> true }
+    override fun acceptsChar(char: Int) = when (char.toChar()) {
+        '\t', '\n' -> false
+        else -> true
+    }
+
     override fun onKeyDown(x: Float, y: Float, key: Int) {
-        if(key.isClickKey()) onClickListener?.invoke(x,y,MouseButton.LEFT,false)
+        if (key.isClickKey()) onClickListener?.invoke(x, y, MouseButton.LEFT, false)
     }
 
 }

@@ -82,6 +82,7 @@ open class Text(parent: Transform? = null) : GFXTransform(parent) {
     val outlineColor2 = AnimatedProperty.color(Vector4f(0f))
     val outlineWidths = AnimatedProperty.vec4(Vector4f(0f, 1f, 1f, 1f))
     val outlineSmoothness = AnimatedProperty(Type.VEC4_PLUS, Vector4f(0f))
+    var outlineDepth = AnimatedProperty.float()
 
     val shadowColor = AnimatedProperty.color(Vector4f(0f))
     val shadowOffset = AnimatedProperty.pos(Vector3f(0f, 0f, -0.1f))
@@ -430,6 +431,8 @@ open class Text(parent: Transform? = null) : GFXTransform(parent) {
                         val s0 = outlineSmoothness[time] + extraSmoothness
                         val smoothness = s0 * sdfResolution
 
+                        val outlineDepth = outlineDepth[time]
+
                         drawOutlinedText(
                             this, time,
                             stack, offset, scale0,
@@ -439,7 +442,8 @@ open class Text(parent: Transform? = null) : GFXTransform(parent) {
                                 Vector4f(0f)
                             ),
                             floatArrayOf(-1e3f, outline.x, outline.y, outline.z, outline.w),
-                            floatArrayOf(0f, smoothness.x, smoothness.y, smoothness.z, smoothness.w)
+                            floatArrayOf(0f, smoothness.x, smoothness.y, smoothness.z, smoothness.w),
+                            outlineDepth
                         )
 
                         firstTimeDrawing = false
@@ -523,6 +527,7 @@ open class Text(parent: Transform? = null) : GFXTransform(parent) {
         writer.writeObject(this, "outlineColor2", outlineColor2)
         writer.writeObject(this, "outlineWidths", outlineWidths)
         writer.writeObject(this, "outlineSmoothness", outlineSmoothness)
+        writer.writeObject(this, "outlineDepth", outlineDepth)
 
         // shadows
         writer.writeObject(this, "shadowColor", shadowColor)
@@ -770,11 +775,12 @@ open class Text(parent: Transform? = null) : GFXTransform(parent) {
         outline += vi("Color 3", "Third Outline Color", "outline.color3", outlineColor2, style)
         outline += vi("Widths", "[Main, 1st, 2nd, 3rd]", "outline.widths", outlineWidths, style)
         outline += vi(
-            "Smoothness",
-            "How smooth the edge is, [Main, 1st, 2nd, 3rd]",
-            "outline.smoothness",
-            outlineSmoothness,
-            style
+            "Smoothness", "How smooth the edge is, [Main, 1st, 2nd, 3rd]", "outline.smoothness",
+            outlineSmoothness, style
+        )
+        outline += vi(
+            "Depth", "For non-merged SDFs to join close characters correctly; needs a distance from the background",
+            "outline.depth", outlineDepth, style
         )
         outline += vi("Rounded Corners", "Makes corners curvy", "outline.roundCorners", null, roundSDFCorners, style) {
             roundSDFCorners = it

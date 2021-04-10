@@ -438,6 +438,7 @@ object ShaderLib {
                     "uniform sampler2D tex;\n" +
                     "uniform vec4[$maxOutlineColors] colors;\n" +
                     "uniform vec2[$maxOutlineColors] distSmoothness;\n" +
+                    "uniform float depth;\n" +
                     "uniform int colorCount;\n" +
                     "void main(){\n" +
                     "   float distance = texture(tex, uv).r;\n" +
@@ -453,7 +454,7 @@ object ShaderLib {
                     "       float mixingFactor = clamp(mixingFactor0, 0.0, 1.0);\n" +
                     "       color = mix(color, colorHere, mixingFactor);\n" +
                     "   }\n" +
-                    "   gl_FragDepth = gl_FragCoord.z * (1.0 + distance * 0.00001);\n" +
+                    "   if(depth != 0.0) gl_FragDepth = gl_FragCoord.z * (1.0 + distance * depth);\n" +
                     "   if(color.a <= 0.001) discard;\n" +
                     "   if($hasForceFieldColor) color *= getForceFieldColor();\n" +
                     "   gl_FragColor = color;\n" +
