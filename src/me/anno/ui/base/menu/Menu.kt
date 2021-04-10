@@ -4,10 +4,10 @@ import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.Window
 import me.anno.input.Input
+import me.anno.input.MouseButton
 import me.anno.language.translation.NameDesc
 import me.anno.ui.base.Panel
 import me.anno.ui.base.SpacePanel
-import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment
@@ -15,6 +15,7 @@ import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelY
+import me.anno.ui.base.text.TextPanel
 import me.anno.ui.input.components.PureTextInput
 import me.anno.utils.Maths
 import java.util.*
@@ -157,12 +158,39 @@ object Menu {
         list += WrapAlign.LeftTop
         val container = ScrollPanelY(list, Padding(1), style, AxisAlignment.MIN)
         container += WrapAlign.LeftTop
-        lateinit var window: Window
+
+        val window = Window(container, false, 1, 1)
 
         val padding = 4
         val titleValue = title.name
         if (titleValue.isNotEmpty()) {
-            val titlePanel = TextPanel(titleValue, style)
+            // make this window draggable
+            // todo make it resizable somehow...
+            val titlePanel = object: TextPanel(titleValue, style){
+                var leftDown = false
+                var rightDown = false
+                override fun onMouseDown(x: Float, y: Float, button: MouseButton) {
+                    if(button.isLeft) leftDown = true
+                    if(button.isRight) rightDown = true
+                }
+
+                override fun onMouseUp(x: Float, y: Float, button: MouseButton) {
+                    if(button.isLeft) leftDown = false
+                    if(button.isRight) rightDown = false
+                }
+
+                override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
+                    if(leftDown){
+                        // move the window
+                        window.x += dx.roundToInt()
+                        window.y += dy.roundToInt()
+                        invalidateLayout()
+                    } else if(rightDown){
+                        // todo scale somehow...
+
+                    }
+                }
+            }
             titlePanel.setTooltip(title.desc)
             titlePanel.padding.left = padding
             titlePanel.padding.right = padding
@@ -179,10 +207,9 @@ object Menu {
         container.calculateSize(maxWidth, maxHeight)
         container.applyPlacement(min(container.minW, maxWidth), min(container.minH, maxHeight))
 
-        val wx = Maths.clamp(x, 0, max(GFX.width - container.w, 0))
-        val wy = Maths.clamp(y, 0, max(GFX.height - container.h, 0))
+        window.x = Maths.clamp(x, 0, max(GFX.width - container.w, 0))
+        window.y = Maths.clamp(y, 0, max(GFX.height - container.h, 0))
 
-        window = Window(container, false, wx, wy)
         GFX.windowStack.add(window)
         GFX.loadTexturesSync.pop()
 

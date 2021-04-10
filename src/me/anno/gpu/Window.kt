@@ -8,7 +8,7 @@ import org.apache.logging.log4j.LogManager
 import kotlin.math.min
 
 open class Window(
-    val panel: Panel, val isFullscreen: Boolean, val x: Int, val y: Int
+    val panel: Panel, val isFullscreen: Boolean, var x: Int, var y: Int
 ) {
 
     constructor(panel: Panel) : this(panel, true, 0, 0)

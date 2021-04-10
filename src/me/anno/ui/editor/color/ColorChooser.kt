@@ -11,12 +11,16 @@ import me.anno.ui.base.Visibility
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.color.spaces.HSLuv
+import me.anno.ui.editor.color.spaces.HSV
+import me.anno.ui.editor.color.spaces.LinearHSI
 import me.anno.ui.input.EnumInput
 import me.anno.ui.input.components.ColorPalette
 import me.anno.ui.style.Style
+import me.anno.utils.Color.toARGB
 import me.anno.utils.Color.toHexColor
 import me.anno.utils.ColorParsing.parseColorComplex
 import me.anno.utils.Maths.clamp
+import me.anno.utils.structures.tuples.Quad
 import me.anno.utils.types.AnyToFloat.get
 import me.anno.utils.types.Floats.f3
 import org.apache.logging.log4j.LogManager
@@ -40,11 +44,21 @@ class ColorChooser(style: Style, val withAlpha: Boolean, val owningProperty: Ani
         super.calculateSize(min(w, maxWidth), h)
     }
 
-    override fun getVisualState(): Any? = Triple(hue, saturation, lightness)
+    override fun getVisualState() = Quad(hue, saturation, lightness, opacity)
 
     val rgba get() = Vector4f(colorSpace.toRGB(Vector3f(hue, saturation, lightness)), opacity)
     var visualisation = lastVisualisation ?: ColorVisualisation.WHEEL
-    var colorSpace = lastColorSpace ?: ColorSpace[DefaultConfig["default.colorSpace", "HSLuv"]] ?: HSLuv
+    var colorSpace = getDefaultColorSpace()
+        set(value) {
+            if(field != value){
+                val rgb = field.toRGB(Vector3f(hue, saturation, lightness))
+                val newHSL = value.fromRGB(rgb)
+                field = value
+                setHSL(newHSL.x, newHSL.y, newHSL.z, opacity, value, true)
+                colorSpaceInput.setOption(ColorSpace.list.value.indexOf(value))
+                lastColorSpace = value
+            }
+        }
 
     var isDownInRing = false
     private val hslBox = HSVBoxMain(this, Vector3f(), Vector3f(0f, 1f, 0f), Vector3f(0f, 0f, 1f), style)
@@ -57,17 +71,12 @@ class ColorChooser(style: Style, val withAlpha: Boolean, val owningProperty: Ani
         "Color Space",
         "Color Layout: which colors are where?, e.g. color circle", "ui.input.color.colorSpace",
         colorSpace.naming.name,
-        ColorSpace.list.map { it.naming }, style
+        ColorSpace.list.value.map { it.naming }, style
     )
-        .setChangeListener { it, _, _ ->
-            val newColorSpace = ColorSpace[it]
-            lastColorSpace = newColorSpace
-            if (newColorSpace != null && newColorSpace != colorSpace) {
-                val rgb = colorSpace.toRGB(Vector3f(hue, saturation, lightness))
-                val newHSL = newColorSpace.fromRGB(rgb)
-                setHSL(newHSL.x, newHSL.y, newHSL.z, opacity, newColorSpace, true)
-                // onSmallChange("color-space")
-            }
+        .setChangeListener { _, index, _ ->
+            val newColorSpace = ColorSpace.list.value[index]
+            colorSpace = newColorSpace
+            invalidateLayout()
         }
 
     private val styleInput = EnumInput(
@@ -132,19 +141,11 @@ class ColorChooser(style: Style, val withAlpha: Boolean, val owningProperty: Ani
 
     fun setRGBA(v: Vector4fc, notify: Boolean) = setRGBA(v.x(), v.y(), v.z(), v.w(), notify)
     fun setRGBA(r: Float, g: Float, b: Float, a: Float, notify: Boolean) {
-        val hsluv = HSLuvColorSpace.rgbToHsluv(
-            doubleArrayOf(
-                r.toDouble(), g.toDouble(), b.toDouble()
-            )
-        )
-        setHSL(
-            hsluv[0].toFloat() / 360f,
-            hsluv[1].toFloat() / 100f,
-            hsluv[2].toFloat() / 100f,
-            clamp(a, 0f, 1f),
-            colorSpace, notify
-        )
+        val hsl = colorSpace.fromRGB(Vector3f(r, g, b))
+        setHSL(hsl.x, hsl.y, hsl.z, clamp(a, 0f, 1f), colorSpace, notify)
     }
+
+    var rgb = Vector3f()
 
     fun setHSL(h: Float, s: Float, l: Float, a: Float, newColorSpace: ColorSpace, notify: Boolean) {
         hue = h
@@ -152,11 +153,13 @@ class ColorChooser(style: Style, val withAlpha: Boolean, val owningProperty: Ani
         lightness = l
         opacity = clamp(a, 0f, 1f)
         this.colorSpace = newColorSpace
-        val rgb = colorSpace.toRGB(Vector3f(hue, saturation, lightness))
+        rgb = colorSpace.toRGB(Vector3f(hue, saturation, lightness))
         if (notify) {
             changeRGBListener(rgb.x, rgb.y, rgb.z, opacity)
         }
     }
+
+    fun getColor() = Vector4f(rgb, opacity)
 
     fun drawColorBox(element: Panel, d0: Vector3fc, du: Vector3fc, dv: Vector3fc, dh: Float, mainBox: Boolean) {
         drawColorBox(
@@ -235,6 +238,14 @@ class ColorChooser(style: Style, val withAlpha: Boolean, val owningProperty: Ani
         val CircleBarRatio = 0.2f
         var lastVisualisation: ColorVisualisation? = null
         var lastColorSpace: ColorSpace? = null
+        fun getDefaultColorSpace(): ColorSpace {
+            return lastColorSpace ?: DefaultConfig["default.colorSpace", "HSLuv"].run { ColorSpace.list.value.firstOrNull{ it.serializationName == this } } ?: HSLuv
+        }
+        init {
+            HSLuv.toString()
+            HSV.toString()
+            LinearHSI.toString()
+        }
     }
 
 }

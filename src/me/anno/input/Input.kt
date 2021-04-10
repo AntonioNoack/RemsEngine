@@ -17,6 +17,7 @@ import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.studio.rems.RemsStudio.history
 import me.anno.studio.rems.RemsStudio.project
 import me.anno.studio.rems.RemsStudio.root
+import me.anno.ui.base.Panel
 import me.anno.ui.editor.files.ImportFromFile.addChildFromFile
 import me.anno.ui.editor.treeView.TreeViewPanel
 import me.anno.utils.Maths.length
@@ -405,12 +406,12 @@ object Input {
 
     }
 
-    fun empty(){
+    fun empty() {
         inFocus0?.onEmpty(mouseX, mouseY)
     }
 
     fun copy() {
-        // todo combine them into an array?
+        // todo combine all selected values into an array?
         val copied = inFocus0?.onCopyRequested(mouseX, mouseY)
         if (copied != null) {
             val selection = StringSelection(copied)
@@ -418,7 +419,16 @@ object Input {
         }
     }
 
-    fun paste() {
+    fun copy(panel: Panel) {
+        val copied = panel.onCopyRequested(mouseX, mouseY)
+        if (copied != null) {
+            val selection = StringSelection(copied)
+            Toolkit.getDefaultToolkit().systemClipboard.setContents(selection, selection)
+        }
+    }
+
+    fun paste(panel: Panel? = inFocus0) {
+        if (panel == null) return
         val clipboard = Toolkit.getDefaultToolkit().systemClipboard
         /*val flavors = clipboard.availableDataFlavors
         for(flavor in flavors){
@@ -430,7 +440,7 @@ object Input {
             val data = clipboard.getData(stringFlavor)
             if (data is String) {
                 // println(data)
-                inFocus0?.onPaste(mouseX, mouseY, data, "")
+                panel.onPaste(mouseX, mouseY, data, "")
                 return
             }
         } catch (e: UnsupportedFlavorException) {
@@ -457,7 +467,7 @@ object Input {
             val data2 = data?.filterIsInstance<File>()
             if (data2 != null && data2.isNotEmpty()) {
                 // println(data2)
-                inFocus0?.onPasteFiles(mouseX, mouseY, data2)
+                panel.onPasteFiles(mouseX, mouseY, data2)
                 // return
             }
         } catch (e: UnsupportedFlavorException) {

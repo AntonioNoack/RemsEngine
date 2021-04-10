@@ -3,6 +3,7 @@ package me.anno.ui.input
 import me.anno.gpu.GFX
 import me.anno.input.Input
 import me.anno.input.MouseButton
+import me.anno.language.translation.NameDesc
 import me.anno.objects.Camera
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.studio.StudioBase.Companion.dragged
@@ -11,36 +12,89 @@ import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.Selection.selectedProperty
 import me.anno.studio.rems.Selection.selectedTransform
 import me.anno.ui.base.Visibility
-import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.base.constraints.SizeLimitingContainer
+import me.anno.ui.base.groups.PanelListX
+import me.anno.ui.base.menu.Menu
+import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.editor.color.ColorChooser
 import me.anno.ui.input.components.TitlePanel
 import me.anno.ui.style.Style
+import me.anno.utils.Color.toARGB
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.pow
+import org.joml.Vector4f
 import org.joml.Vector4fc
 import kotlin.math.max
 
 // todo color picker
 
 class ColorInput(
-    style: Style, title: String,
+    style: Style,
+    val title: String,
     oldValue: Vector4fc,
     withAlpha: Boolean,
     private val owningProperty: AnimatedProperty<*>? = null
-) : PanelListY(style) {
+) : PanelListX(style) {
 
-    private val contentView = ColorChooser(style, withAlpha, owningProperty)
+    private var contentView = ColorChooser(style, withAlpha, owningProperty)
+
     private val titleView = TitlePanel(title, contentView, style)
+    private val previewField = me.anno.ui.editor.color.PreviewField(titleView, 2, style)
+        .apply {
+            setSimpleClickListener { openColorChooser() }
+            color = oldValue.toARGB()
+        }
+
     private var mouseIsDown = false
+
+    fun getValue() = contentView.getColor()
+    fun setValue(color: Vector4f, notify: Boolean) {
+        previewField.color = color.toARGB()
+        previewField.invalidateDrawing()
+        contentView.setRGBA(color, notify)
+    }
 
     init {
         this += titleView
         titleView.enableHoverColor = true
         titleView.focusTextColor = titleView.textColor
-        titleView.setSimpleClickListener { contentView.toggleVisibility() }
-        this += contentView
         contentView.setRGBA(oldValue, false)
-        contentView.hide()
+        this += previewField
+    }
+
+    fun openColorChooser(){
+        contentView.colorSpace = ColorChooser.getDefaultColorSpace()
+        Menu.openMenuComplex2(
+            Input.mouseX.toInt(), Input.mouseY.toInt(), NameDesc(title), listOf(
+                SizeLimitingContainer(contentView, GFX.windowWidth / 5, -1, style)
+            )
+        )
+    }
+
+    override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
+        when {
+            button.isLeft -> {
+                if(long) openColorChooser()
+            }
+            button.isRight -> {
+                Menu.openMenu(listOf(
+                    // todo we could copy/paste all values :D
+                    MenuOption(NameDesc("Copy Value")) { Input.copy(contentView) },
+                    MenuOption(NameDesc("Paste Value")) { Input.paste(contentView) }
+                ))
+            }
+            else -> {
+                super.onMouseClicked(x, y, button, long)
+            }
+        }
+    }
+
+    override fun onCopyRequested(x: Float, y: Float): String? {
+        return contentView.onCopyRequested(x, y)
+    }
+
+    override fun onPaste(x: Float, y: Float, data: String, type: String) {
+        return contentView.onPaste(x, y, data, type)
     }
 
     override fun onMouseDown(x: Float, y: Float, button: MouseButton) {

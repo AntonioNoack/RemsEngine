@@ -68,7 +68,7 @@ class PropertyInspector(style: Style):
                     }
                     is ColorInput -> {
                         (d as? ColorInput)?.apply {
-                            // contentView.
+                            d.setValue(s.getValue(), false)
                         }
                     }
                     is Checkbox -> {

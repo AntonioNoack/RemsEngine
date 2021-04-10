@@ -23,12 +23,6 @@ abstract class ColorSpace(
 
     constructor(name: NameDesc, glsl: String, hue0: Vector3f) : this(name, name.englishName, glsl, hue0)
 
-    init {
-        values[serializationName] = this
-        values[serializationName.toLowerCase()] = this
-        list += this
-    }
-
     private val shaders = HashMap<ColorVisualisation, Shader>()
 
     fun getShader(type: ColorVisualisation): Shader {
@@ -128,16 +122,12 @@ abstract class ColorSpace(
     fun toRGB(x: Double, y: Double, z: Double, a: Double) = toRGB(x.toFloat(), y.toFloat(), z.toFloat(), a.toFloat())
 
     companion object {
-        val list = ArrayList<ColorSpace>()
-        val values = HashMap<String, ColorSpace>()
-        operator fun get(name: String) = values[name] ?: values[name.toLowerCase()]
-
-        init {
-            HSLuv.toString()
-            HSV.toString()
-            LinearHSI.toString()
+        val list = lazy {
+            ArrayList<ColorSpace>().apply {
+                add(HSLuv)
+                add(HSV)
+            }
         }
-
         /*val RGB = object: ColorSpace("R-GB", "vec3 spaceToRGB(vec3 rgb){ return rgb; }\n",
             Vector3f(0f, 0f, 0f)){
             override fun fromRGB(rgb: Vector3f): Vector3f {

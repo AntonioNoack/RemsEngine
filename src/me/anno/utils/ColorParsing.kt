@@ -34,7 +34,7 @@ object ColorParsing {
     fun parseColorComplex(name: String): Any? {
         // check for HSVuv(h,s,v,a), HSV(h,s,v,a), or #... or RGB(r,g,b,a) or [1,1,0,1]
         fun List<Float>.toVec() = Vector3f(this[0], this[1], this[2])
-        ColorSpace.list.forEach { space ->
+        ColorSpace.list.value.forEach { space ->
             if (name.startsWith(space.serializationName, true)) {
                 val floats = parseFloats(name)
                 val rgb = space.toRGB(floats.toVec())

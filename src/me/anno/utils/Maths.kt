@@ -25,6 +25,14 @@ object Maths {
     fun clamp(x: Float, min: Float, max: Float) = if (x < min) min else if (x < max) x else max
     fun clamp(x: Double, min: Double, max: Double) = if (x < min) min else if (x < max) x else max
 
+    fun smoothStep(x: Float): Float {
+        return when {
+            x <= 0f -> 0f
+            x < 1f -> x*x*(3f-2f*x)
+            else -> 1f
+        }
+    }
+
     fun clamp01(x: Float) = clamp(x, 0f, 1f)
 
     fun pow(base: Float, power: Float) = StrictMath.pow(base.toDouble(), power.toDouble()).toFloat()
@@ -63,33 +71,71 @@ object Maths {
     }
 
     fun max(a: Float, b: Float, c: Float): Float {
-        var max = if(a > b) a else b
-        max = if(max > c) max else c
-        return max
+        var value = if(a > b) a else b
+        value = if(value > c) value else c
+        return value
     }
 
     fun max(a: Float, b: Float, c: Float, d: Float): Float {
-        var max = if(a > b) a else b
-        max = if(max > c) max else c
-        max = if(max > d) max else d
-        return max
+        var value = if(a > b) a else b
+        value = if(value > c) value else c
+        value = if(value > d) value else d
+        return value
     }
 
     fun max(a: Float, b: Float, c: Float, d: Float, e: Float): Float {
-        var max = if(a > b) a else b
-        max = if(max > c) max else c
-        max = if(max > d) max else d
-        max = if(max > e) max else e
-        return max
+        var value = if(a > b) a else b
+        value = if(value > c) value else c
+        value = if(value > d) value else d
+        value = if(value > e) value else e
+        return value
     }
 
     fun max(a: Float, b: Float, c: Float, d: Float, e: Float, f: Float): Float {
-        var max = if(a > b) a else b
-        max = if(max > c) max else c
-        max = if(max > d) max else d
-        max = if(max > e) max else e
-        max = if(max > f) max else f
-        return max
+        var value = if(a > b) a else b
+        value = if(value > c) value else c
+        value = if(value > d) value else d
+        value = if(value > e) value else e
+        value = if(value > f) value else f
+        return value
+    }
+
+    fun min(a: Int, b: Int): Int {
+        return if(a < b) a else b
+    }
+
+    fun min(a: Float, b: Float): Float {
+        return if(a < b) a else b
+    }
+
+    fun min(a: Float, b: Float, c: Float): Float {
+        var value = if(a < b) a else b
+        value = if(value < c) value else c
+        return value
+    }
+
+    fun min(a: Float, b: Float, c: Float, d: Float): Float {
+        var value = if(a < b) a else b
+        value = if(value < c) value else c
+        value = if(value < d) value else d
+        return value
+    }
+
+    fun min(a: Float, b: Float, c: Float, d: Float, e: Float): Float {
+        var value = if(a < b) a else b
+        value = if(value < c) value else c
+        value = if(value < d) value else d
+        value = if(value < e) value else e
+        return value
+    }
+
+    fun min(a: Float, b: Float, c: Float, d: Float, e: Float, f: Float): Float {
+        var value = if(a < b) a else b
+        value = if(value < c) value else c
+        value = if(value < d) value else d
+        value = if(value < e) value else e
+        value = if(value < f) value else f
+        return value
     }
 
     fun mixChannel(a: Int, b: Int, shift: Int, f: Float): Int {

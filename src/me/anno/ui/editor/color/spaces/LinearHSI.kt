@@ -2,11 +2,10 @@ package me.anno.ui.editor.color.spaces
 
 import me.anno.language.translation.NameDesc
 import me.anno.ui.editor.color.ColorSpace
-import me.anno.ui.editor.color.HSVColorSpace
-import me.anno.utils.Maths.mix
-import me.anno.utils.Optimization.simplexAlgorithm
-import me.anno.utils.types.Vectors.times
+import me.anno.utils.Maths
 import org.joml.Vector3f
+import kotlin.math.PI
+import kotlin.math.cos
 
 object LinearHSI : ColorSpace(
     NameDesc("HSI"), "HSI-Linear", "" +
@@ -33,33 +32,57 @@ object LinearHSI : ColorSpace(
             "}", Vector3f(0f, 0.69f, 0.63f)
 ) {
 
-    // not completely correct yet;
-    // use this as a starting point for gradient descent,
-    // if we can't figure it out?
+    // https://www.vocal.com/video/rgb-and-hsvhsihsl-color-space-conversion/
+
     override fun fromRGB(rgb: Vector3f): Vector3f {
-        val hsv = HSVColorSpace.rgbToHSV(rgb.x, rgb.y, rgb.z)
-        // we were too lazy to find the correct solution 😅, so we just use gradient descent to find it
-        val solution = simplexAlgorithm(floatArrayOf(hsv.x, hsv.y, hsv.z), 0.1f, 1e-6f, 250) {
-            val currentRGB = toRGB(Vector3f(it[0], it[1], it[2]))
-            val dr = currentRGB.x - rgb.x
-            val dg = currentRGB.y - rgb.y
-            val db = currentRGB.z - rgb.z
-            dr * dr + dg * dg + db * db
-        }
-        return Vector3f(solution[0], solution[1], solution[2])
+        val r = rgb.x
+        val g = rgb.y
+        val b = rgb.z
+        val max = Maths.max(r, g, b)
+        val min = Maths.min(r, g, b)
+        val delta = max - min
+        var h = when (max) {
+            r -> (g - b) / delta
+            g -> (b - r) / delta + 2f
+            else -> (r - g) / delta + 4f
+        } / 6f
+        if (h < 0f) h += 1f
+        val i = (r + g + b) / 3
+        val s = if (i == 0f) 0f else 1 - min / i
+        return Vector3f(h, s, max)
     }
 
     override fun toRGB(input: Vector3f): Vector3f {
         val h = input.x
         val s = input.y
-        val v = input.z
-        val color = HSVColorSpace.hsvToRGB(h, 1f, 1f)
-        val center = mix(Vector3f(0.5f), color, s)
-        return if (v > 0.5) {
-            mix(center, Vector3f(1f), 2 * v - 1)
-        } else {
-            center * (2 * v)
+        val i = input.z
+        val h6 = h * 6
+        val r: Float
+        val g: Float
+        val b: Float
+        val hAngle = h * PI.toFloat() * 2f
+        val deg60 = PI.toFloat() / 3f
+        when {
+            h6 <= 2f -> {
+                b = i * (1 - s)
+                r = i * (1 + s * cos(hAngle) / (cos(deg60 - h)))
+                g = 3 * i - b - r
+                println("1 $b $r $g")
+            }
+            h6 <= 4f -> {
+                r = i * (1 - s)
+                g = i * (1 + s * cos(2f * deg60 - hAngle) / cos(3f * deg60 - hAngle))
+                b = 3 * i - r - g
+                println("2 $r $g $b")
+            }
+            else -> {
+                g = i * (1 - s)
+                b = i * (1 + s * cos(4f * deg60 - hAngle) / cos(5f * deg60 - hAngle))
+                r = 3 * i - b - g
+                println("3 $g $b $r")
+            }
         }
+        return Vector3f(r, g, b)
     }
 
 }

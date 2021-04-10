@@ -66,6 +66,8 @@ class HSVBoxMain(chooser: ColorChooser, v0: Vector3fc, du: Vector3fc, dv: Vector
         }
     }) {
 
+    override fun getVisualState() = Pair(super.getVisualState(), chooser.getVisualState())
+
     override fun calculateSize(w: Int, h: Int) {
         super.calculateSize(w, h)
         val size = min(w, h)
@@ -98,6 +100,7 @@ class HSVBoxMain(chooser: ColorChooser, v0: Vector3fc, du: Vector3fc, dv: Vector
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+        drawBackground()
         chooser.drawColorBox(this, v0, du, dv, dh, true)
         // show the user, where he is
         fun drawSmallRect() {

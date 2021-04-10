@@ -5,7 +5,7 @@ import me.anno.ui.base.Panel
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.style.Style
 
-class TitlePanel(title: String, val owner: Panel, style: Style) : TextPanel(title, style) {
+class TitlePanel(title: String, var owner: Panel, style: Style) : TextPanel(title, style) {
 
     override fun onMouseDown(x: Float, y: Float, button: MouseButton) {
         owner.onMouseDown(x, y, button)

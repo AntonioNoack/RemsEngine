@@ -69,6 +69,11 @@ class EnumInput(
         this += inputPanel
     }
 
+    fun setOption(index: Int){
+        if(index < 0) return
+        inputPanel.text = options[index].name
+    }
+
     fun setChangeListener(listener: (value: String, index: Int, values: List<NameDesc>) -> Unit): EnumInput {
         changeListener = listener
         return this
