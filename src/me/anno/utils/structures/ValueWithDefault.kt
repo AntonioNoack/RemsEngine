@@ -16,7 +16,7 @@ class ValueWithDefault<V>(
     constructor(value: V) : this(value, value)
 
     var wasSet = false
-    val isSet get() = state != default && wasSet
+    val isSet get() = state != default || wasSet
     fun write(writer: BaseWriter, self: ISaveable?, name: String) {
         if (isSet) {
             writer.writeValue(self, name, state)

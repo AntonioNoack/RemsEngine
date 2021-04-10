@@ -34,14 +34,21 @@ open class Panel(val style: Style) {
 
     fun toggleVisibility() {
         visibility = if (visibility == Visibility.VISIBLE) Visibility.GONE else Visibility.VISIBLE
+        invalidateLayout()
     }
 
     fun hide() {
-        visibility = Visibility.GONE
+        if(visibility != Visibility.GONE){
+            visibility = Visibility.GONE
+            invalidateLayout()
+        }
     }
 
     fun show() {
-        visibility = Visibility.VISIBLE
+        if(visibility != Visibility.VISIBLE){
+            visibility = Visibility.VISIBLE
+            invalidateLayout()
+        }
     }
 
     fun withPadding(l: Int, t: Int, r: Int, b: Int) = PanelContainer(this, Padding(l, t, r, b), style)

@@ -15,7 +15,7 @@ class ValueWithDefaultFunc<V>(
     constructor(value: () -> V): this(value(), value)
 
     var wasSet = false
-    val isSet get() = state != default() && wasSet
+    val isSet get() = state != default() || wasSet
 
     var value
         get() = if(wasSet) state else default()

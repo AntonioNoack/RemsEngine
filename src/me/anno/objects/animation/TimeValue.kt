@@ -84,12 +84,12 @@ open class TimeValue<V>(var time: Double, var value: V) : Saveable() {
                 is String -> writeString(name, v, true)
                 is Vector4d -> writeVector4d(name, v, true)
                 null -> Unit /* mmh ... */
-                is Filtering -> writeInt(name, v.id)
-                is Clamping -> writeInt(name, v.id)
-                is EditorFPS -> writeInt(name, v.value)
-                is LoopingState -> writeInt(name, v.id)
+                is Filtering -> writeInt(name, v.id, true)
+                is Clamping -> writeInt(name, v.id, true)
+                is EditorFPS -> writeInt(name, v.value, true)
+                is LoopingState -> writeInt(name, v.id, true)
                 is ISaveable -> writeObject(self, name, v, true)
-                is UVProjection -> writeInt(name, v.id)
+                is UVProjection -> writeInt(name, v.id, true)
                 else -> throw RuntimeException("todo implement writing $v")
             }
         }

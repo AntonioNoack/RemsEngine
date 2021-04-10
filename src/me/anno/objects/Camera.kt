@@ -122,19 +122,9 @@ class Camera(parent: Transform? = null) : Transform(parent) {
         ) {
             lut = it
         }
-        val cg = getGroup("Color Grading (ASC CDL)", "Adjusting colors, contrast and saturation", "color-grading")
-        cg += vi(
-            "Power",
-            "sRGB, Linear, a kind of contrast", "cg.power",
-            cgPower, style
-        )
-        cg += vi(
-            "Saturation",
-            "0 = gray scale, 1 = normal, -1 = inverted colors", "cg.saturation",
-            cgSaturation, style
-        )
-        cg += vi("Slope", "Intensity or Tint", "cg.slope", cgSlope, style)
-        cg += vi("Offset", "Can be used to color black objects, or add a tint", "cg.offset", cgOffset, style)
+
+        ColorGrading.createInspector(this, cgPower, cgSaturation, cgSlope, cgOffset, { it }, getGroup, style)
+
         val editor = getGroup("Editor", "Settings, which only effect editing", "editor")
         editor += vi(
             "Only Show Target",

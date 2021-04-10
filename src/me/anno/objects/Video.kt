@@ -535,7 +535,6 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                 val texture = getImage()
                 if (lastTexture != texture) {
                     needsImageUpdate = true
-                    println("image changed")
                     lastTexture = texture
                 }
             }
@@ -735,18 +734,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
             .setChangeListener { _, index, _ -> editorVideoFPS.value = EditorFPS.values()[index] }
             .setIsSelectedListener { show(null) })
 
-        val color = getGroup("Color Grading (ASC CDL)", "", "color-grading")
-        color += img(vi("Power", "sRGB, Linear, ...", "cg.power", cgPower, style))
-        color += img(
-            vi(
-                "Saturation",
-                "0 = gray scale, 1 = normal, -1 = inverted colors", "cg.saturation",
-                cgSaturation,
-                style
-            )
-        )
-        color += img(vi("Slope", "Intensity or Tint", "cg.slope", cgSlope, style))
-        color += img(vi("Offset", "Can be used to color black objects", "cg.offset", cgOffset, style))
+        ColorGrading.createInspector(this, cgPower, cgSaturation, cgSlope, cgOffset, { img(it) }, getGroup, style)
 
         val audio = getGroup("Audio", "", "audio")
         audio += aud(vi("Amplitude", "How loud it is", "audio.amplitude", amplitude, style))
