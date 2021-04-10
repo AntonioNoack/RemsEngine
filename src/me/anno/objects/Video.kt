@@ -590,9 +590,8 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
             VideoType.IMAGE_SEQUENCE -> {
                 imageSequenceMeta!!
             }
-            // VideoType.IMAGE -> drawImage(stack, time, color)
-            // VideoType.AUDIO -> drawSpeakers(stack, Vector4f(color), is3D, amplitude[time])
-            else -> throw RuntimeException("$type needs visualization") // for the future
+            // it was a critical bug, oh
+            else -> Unit
         }
     }
 

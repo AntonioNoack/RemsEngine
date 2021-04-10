@@ -29,8 +29,8 @@ import kotlin.math.max
 
 object SignedDistanceField {
 
-    // done, kind of optimize contours
-    // todo switch for depth manipulation of outlined-characters?
+    // done: kind of optimize contours
+    // done: toggle depth manipulation of outlined-characters?
     // todo char spacing for joint strips...
 
     class Contour(val segments: ArrayList<EdgeSegment>) {

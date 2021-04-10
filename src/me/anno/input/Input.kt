@@ -34,7 +34,6 @@ import java.io.File
 import java.util.*
 import kotlin.collections.HashMap
 import kotlin.collections.set
-import kotlin.concurrent.thread
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -313,33 +312,30 @@ object Input {
                             GLFW.GLFW_KEY_TAB -> {
                                 val inFocus0 = inFocus0
                                 if (inFocus0 != null) {
-                                    if (isShiftDown || isControlDown || !inFocus0.isKeyInput() || !inFocus0.acceptsChar(
-                                            '\t'.toInt()
-                                        )
+                                    if (isShiftDown || isControlDown
+                                        || !inFocus0.isKeyInput()
+                                        || !inFocus0.acceptsChar('\t'.toInt())
                                     ) {
                                         // switch between input elements
                                         val root = inFocus0.rootPanel
-                                        // todo only choose effectively visible tabs...
                                         // todo make groups, which are not empty, inputs?
-                                        val list = root.listOfAll.toList()
+                                        val list = root.listOfAll.filter { it.canBeSeen && it.isKeyInput() }.toList()
                                         val index = list.indexOf(inFocus0)
                                         if (index > -1) {
                                             var next = list
                                                 .subList(index + 1, list.size)
-                                                .firstOrNull { it.isKeyInput() }
+                                                .firstOrNull()
                                             if (next == null) {
                                                 // println("no more text input found, starting from top")
                                                 // restart from top
-                                                next = list.firstOrNull { it.isKeyInput() }
+                                                next = list.firstOrNull()
                                             }// else println(next)
                                             if (next != null) {
                                                 inFocus.clear()
                                                 inFocus += next
                                             }
                                         }// else error, child missing
-                                    } else {
-                                        inFocus0.onCharTyped(mouseX, mouseY, '\t'.toInt())
-                                    }
+                                    } else inFocus0.onCharTyped(mouseX, mouseY, '\t'.toInt())
                                 }
                             }
                             GLFW.GLFW_KEY_ESCAPE -> {
@@ -351,22 +347,21 @@ object Input {
                                 } else inFocus0?.onEscapeKey(mouseX, mouseY)
                             }
                             else -> {
-
                                 if (isControlDown) {
                                     if (action == GLFW.GLFW_PRESS) {
                                         when (key) {
                                             GLFW.GLFW_KEY_S -> save()
                                             GLFW.GLFW_KEY_V -> paste()
                                             GLFW.GLFW_KEY_C -> copy()
-                                            GLFW.GLFW_KEY_D -> {
+                                            GLFW.GLFW_KEY_D -> {// duplicate selection
                                                 copy()
                                                 paste()
                                             }
-                                            GLFW.GLFW_KEY_X -> {
+                                            GLFW.GLFW_KEY_X -> {// cut
                                                 copy()
-                                                inFocus0?.onEmpty(mouseX, mouseY)
+                                                empty()
                                             }
-                                            GLFW.GLFW_KEY_I -> {
+                                            GLFW.GLFW_KEY_I -> {// import
                                                 threadWithName("Ctrl+I") {
                                                     if (lastFile == null) lastFile = project?.file
                                                     FileExplorerSelectWrapper.selectFile(lastFile) { file ->
@@ -408,6 +403,10 @@ object Input {
                 }
         }
 
+    }
+
+    fun empty(){
+        inFocus0?.onEmpty(mouseX, mouseY)
     }
 
     fun copy() {
@@ -479,7 +478,6 @@ object Input {
     }
 
     fun save() {
-        // save the project
         project?.save()
     }
 
