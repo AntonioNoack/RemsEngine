@@ -23,7 +23,7 @@ open class Shader(
 ) : ICacheData {
 
     companion object {
-        private var logShaders = true
+        private var logShaders = false
         private val LOGGER = LogManager.getLogger(Shader::class)
         private const val attributeName = "in"
         private val matrixBuffer = BufferUtils.createFloatBuffer(16)

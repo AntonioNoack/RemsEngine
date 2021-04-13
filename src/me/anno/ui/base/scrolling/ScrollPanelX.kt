@@ -96,7 +96,7 @@ open class ScrollPanelX(child: Panel, padding: Padding,
         } else super.onMouseWheel(x, y, dx, dy)
     }
 
-    fun clampScrollPosition(){
+    private fun clampScrollPosition(){
         scrollPosition = clamp(scrollPosition, 0f, maxScrollPosition.toFloat())
     }
 
