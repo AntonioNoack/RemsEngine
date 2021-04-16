@@ -597,6 +597,7 @@ open class Text(parent: Transform? = null) : GFXTransform(parent) {
             "outlineColor1" -> outlineColor1.copyFrom(value)
             "outlineColor2" -> outlineColor2.copyFrom(value)
             "outlineWidths" -> outlineWidths.copyFrom(value)
+            "outlineDepth" -> outlineDepth.copyFrom(value)
             "outlineSmoothness" -> outlineSmoothness.copyFrom(value)
             "startCursor" -> startCursor.copyFrom(value)
             "endCursor" -> endCursor.copyFrom(value)
