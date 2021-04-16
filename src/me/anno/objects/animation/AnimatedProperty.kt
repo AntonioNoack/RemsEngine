@@ -14,6 +14,7 @@ import me.anno.studio.rems.RemsStudio.root
 import me.anno.utils.Maths.clamp
 import me.anno.utils.WrongClassType
 import me.anno.utils.strings.StringMixer
+import me.anno.utils.structures.lists.UnsafeArrayList
 import me.anno.utils.types.AnyToDouble.getDouble
 import me.anno.utils.types.Vectors.plus
 import me.anno.utils.types.Vectors.times
@@ -83,7 +84,7 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
     val drivers = arrayOfNulls<AnimationDriver>(type.components)
 
     var isAnimated = false
-    val keyframes = ArrayList<Keyframe<V>>()
+    val keyframes = UnsafeArrayList<Keyframe<V>>()
 
     fun ensureCorrectType(v: Any?): V {
         return type.acceptOrNull(v!!) as V ?: throw RuntimeException("got $v for $type")

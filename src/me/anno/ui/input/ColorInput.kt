@@ -27,6 +27,10 @@ import org.joml.Vector4fc
 import kotlin.math.max
 
 // todo color picker
+// todo - take screenshot of full screen; all screens? could be hard with multiples in non-regular config...
+// todo - open (new?) window in fullscreen
+// todo - add controls on the bottom, or somewhere..., with a preview of the color
+// todo - select on click, or when dragging + enter then
 
 class ColorInput(
     style: Style,
@@ -36,7 +40,7 @@ class ColorInput(
     private val owningProperty: AnimatedProperty<*>? = null
 ) : PanelListX(style) {
 
-    private var contentView = ColorChooser(style, withAlpha, owningProperty)
+    private val contentView = ColorChooser(style, withAlpha, owningProperty)
 
     private val titleView = TitlePanel(title, contentView, style)
     private val previewField = me.anno.ui.editor.color.PreviewField(titleView, 2, style)
@@ -128,8 +132,7 @@ class ColorInput(
     }
 
     fun noTitle(): ColorInput {
-        titleView.hide()
-        contentView.show()
+        titleView.text = ""
         return this
     }
 
@@ -144,7 +147,10 @@ class ColorInput(
     }
 
     fun setChangeListener(listener: (r: Float, g: Float, b: Float, a: Float) -> Unit): ColorInput {
-        contentView.setChangeRGBListener(listener)
+        contentView.setChangeRGBListener { r, g, b, a ->
+            previewField.color = Vector4f(r, g, b, a).toARGB()
+            listener(r, g, b, a)
+        }
         return this
     }
 

@@ -23,6 +23,7 @@ import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.Rendering
 import me.anno.utils.Sleep.sleepABit
 import me.anno.utils.types.Strings.getImportType
+import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Strings.parseTimeOrNull
 import org.apache.commons.cli.*
 import org.apache.logging.log4j.LogManager
@@ -215,7 +216,7 @@ object RemsCLI {
         val br = System.`in`.bufferedReader()
         while (true) {
             val line = br.readLine() ?: return default
-            if (!line.isBlank()) {
+            if (!line.isBlank2()) {
                 when (line.toLowerCase()) {
                     "t", "true", "y", "yes", "1" -> return true
                     "f", "false", "n", "no", "0" -> return false

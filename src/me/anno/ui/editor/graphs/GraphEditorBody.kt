@@ -123,7 +123,7 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
 
                 val text = getValueString(value, valueStep)
                 val key = FontManager.getTextCacheKey(font, text, -1)
-                if(key != null){
+                if (key != null) {
 
                     // to keep it loaded
                     drawnStrings.add(key)
@@ -383,6 +383,7 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
         x0: Int, x1: Int, y0: Int, y1: Int,
         property: AnimatedProperty<*>
     ) {
+
         val dotSize = dotSize
         val width = dotSize
         val halfWidth = (width + 1) / 2
@@ -390,26 +391,30 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
         val stripeMultiplier = 0.33f // just to make it calmer
         val tiling = Vector4f(1f, (y1 - y0).toFloat() * stripeMultiplier / dotSize, 0f, 0f)
         val h = y1 - y0
-        kfs.forEach { kf ->
-            val tGlobal = kf2Global(kf.time)
-            val x = getXAt(tGlobal).roundToInt() - halfWidth
-            if (x < x1 || x + width >= x0) {// visible
-                val colorVector =
-                    if (property.type == Type.COLOR3)
-                        Vector4f(kf.value as Vector3fc, 1f)
-                    else kf.value as Vector4f
-                val color = colorVector.toARGB()
-                val color2 = Vector4f(colorVector).mul(1f, 1f, 1f, 0.25f).toARGB()
-                if (h > dotSize * 4) {
-                    val border = dotSize
-                    drawRect(x, y0, width, border, color2)
-                    drawTexture(x, y0 + border, width, h - border * 2, colorShowTexture, color, tiling)
-                    drawRect(x, y1 - border, width, border, color2)
-                } else {
-                    drawTexture(x, y0, width, h, colorShowTexture, color, tiling)
+
+        synchronized(property) {
+            for (kf in kfs) {
+                val tGlobal = kf2Global(kf.time)
+                val x = getXAt(tGlobal).roundToInt() - halfWidth
+                if (x < x1 || x + width >= x0) {// visible
+                    val colorVector =
+                        if (property.type == Type.COLOR3)
+                            Vector4f(kf.value as Vector3fc, 1f)
+                        else kf.value as Vector4f
+                    val color = colorVector.toARGB()
+                    val color2 = Vector4f(colorVector).mul(1f, 1f, 1f, 0.25f).toARGB()
+                    if (h > dotSize * 4) {
+                        val border = dotSize
+                        drawRect(x, y0, width, border, color2)
+                        drawTexture(x, y0 + border, width, h - border * 2, colorShowTexture, color, tiling)
+                        drawRect(x, y1 - border, width, border, color2)
+                    } else {
+                        drawTexture(x, y0, width, h, colorShowTexture, color, tiling)
+                    }
                 }
             }
         }
+
     }
 
     // todo draw curve of animation-drivers :)

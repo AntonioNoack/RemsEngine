@@ -23,6 +23,7 @@ import me.anno.ui.style.Style
 import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.utils.types.Floats.toRadians
 import me.anno.utils.types.Lists.median
+import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.joml.Matrix4fArrayList
@@ -49,7 +50,7 @@ open class DocumentList(var file: File, parent: Transform?) : GFXTransform(paren
     var renderQuality = 3f
 
     override fun getDefaultDisplayName(): String {
-        return if (file == null || file.name.isBlank()) "PDF"
+        return if (file == null || file.name.isBlank2()) "PDF"
         else file.name
     }
 

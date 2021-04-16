@@ -1,6 +1,7 @@
 package me.anno.video
 
 import me.anno.gpu.GFX
+import me.anno.utils.ShutdownException
 import me.anno.utils.Sleep.sleepShortly
 import me.anno.video.IsFFMPEGOnly.isFFMPEGOnlyExtension
 import me.anno.video.formats.ARGBFrame
@@ -25,21 +26,29 @@ class FFMPEGVideo(
     }*/
 
     override fun process(process: Process, arguments: List<String>) {
-        thread {
+        thread(name = "$file:error-stream") {
             val out = process.errorStream.bufferedReader()
             val parser = FFMPEGMetaParser()
-            while (true) {
-                val line = out.readLine() ?: break
-                // if('!' in line || "Error" in line) LOGGER.warn("ffmpeg $frame0 ${arguments.joinToString(" ")}: $line")
-                parser.parseLine(line, this)
+            try {
+                while (true) {
+                    val line = out.readLine() ?: break
+                    // if('!' in line || "Error" in line) LOGGER.warn("ffmpeg $frame0 ${arguments.joinToString(" ")}: $line")
+                    parser.parseLine(line, this)
+                }
+            } catch (e: ShutdownException){
+                // ...
             }
         }
-        thread {
+        thread(name = "$file:input-stream") {
             val frameCount = arguments[arguments.indexOf("-vframes") + 1].toInt()
             val input = process.inputStream
-            readFrame(input)
-            for (i in 1 until frameCount) {
+            try {
                 readFrame(input)
+                for (i in 1 until frameCount) {
+                    readFrame(input)
+                }
+            } catch (e: ShutdownException){
+                // ...
             }
             input.close()
         }

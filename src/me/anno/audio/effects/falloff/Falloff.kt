@@ -20,21 +20,34 @@ abstract class Falloff : SoundEffect(Domain.TIME_DOMAIN, Domain.TIME_DOMAIN) {
 
     abstract fun getAmplitude(relativeDistance: Float): Float
 
+    override fun getStateAsImmutableKey(source: Audio, destination: Camera, time0: Time, time1: Time): Any {
+        val amplitude0 = getAmplitude(source, destination, time0.globalTime)
+        val amplitude1 = getAmplitude(source, destination, time1.globalTime)
+        return Pair(amplitude0, amplitude1)
+    }
+
     fun getAmplitude(source: Audio, destination: Camera, globalTime: Double): Float {
         val position = source.getGlobalTransformTime(globalTime).first.transformPosition(Vector3f())
         val camera = destination.getGlobalTransformTime(globalTime).first.transformPosition(Vector3f())
         val distance = camera.distance(position)
-        return getAmplitude(distance/halfDistance)
+        return getAmplitude(distance / halfDistance)
     }
 
-    override fun apply(data: FloatArray, source: Audio, destination: Camera, time0: Time, time1: Time): FloatArray {
+    override fun apply(
+        getDataSrc: (Int) -> FloatArray,
+        dataDst: FloatArray,
+        source: Audio,
+        destination: Camera,
+        time0: Time,
+        time1: Time
+    ) {
+        val dataSrc = getDataSrc(0)
         val amplitude0 = getAmplitude(source, destination, time0.globalTime)
         val amplitude1 = getAmplitude(source, destination, time1.globalTime)
         for (i in 0 until bufferSize) {
             val amplitude = mix(amplitude0, amplitude1, (i + 0.5f) / bufferSize)
-            data[i] *= amplitude
+            dataDst[i] = dataSrc[i] * amplitude
         }
-        return data
     }
 
     override fun save(writer: BaseWriter) {
@@ -54,13 +67,13 @@ abstract class Falloff : SoundEffect(Domain.TIME_DOMAIN, Domain.TIME_DOMAIN) {
         style: Style,
         getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
     ) {
-        list += audio.vi(
+        list.add(audio.vi(
             "Half Distance",
             "Distance, where the amplitude is 50%",
             Type.FLOAT_PLUS_EXP,
             halfDistance,
             style
-        ) { halfDistance = it }
+        ) { halfDistance = it })
     }
 
 }

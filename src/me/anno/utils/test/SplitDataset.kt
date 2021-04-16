@@ -1,5 +1,6 @@
 package me.anno.utils.test
 
+import me.anno.utils.types.Strings.isBlank2
 import java.io.File
 import java.util.*
 import kotlin.math.roundToInt
@@ -14,7 +15,7 @@ fun main() {
 
     val header = lines.first()
 
-    val data = lines.subList(1, lines.size).filter { it.isNotBlank() }
+    val data = lines.subList(1, lines.size).filter { !it.isBlank2() }
     val dataSize = data.size
 
     // split data into equally large sets

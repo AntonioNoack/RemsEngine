@@ -16,6 +16,7 @@ import me.anno.utils.Sleep.sleepABit10
 import me.anno.utils.Sleep.sleepShortly
 import me.anno.utils.Threads.threadWithName
 import me.anno.utils.io.Streams.listen
+import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
@@ -29,7 +30,7 @@ object Spellchecking : CacheSection("Spellchecking") {
 
     fun check(sentence: String, allowFirstLowercase: Boolean, key: Any): List<Suggestion>? {
         val language = language
-        if (language == Language.None || sentence.isBlank()) return null
+        if (language == Language.None || sentence.isBlank2()) return null
         var sentence2 = sentence.trim()
         if (allowFirstLowercase) sentence2 = sentence2.capitalize()
         if (sentence2 == "#quit") return null
@@ -41,7 +42,7 @@ object Spellchecking : CacheSection("Spellchecking") {
         return if (sentence != sentence2) {
             data?.value?.run {
                 val offset =
-                    sentence.withIndex().indexOfFirst { (index, _) -> sentence.substring(0, index + 1).isNotBlank() }
+                    sentence.withIndex().indexOfFirst { (index, _) -> !sentence.substring(0, index + 1).isBlank2() }
                 map {
                     Suggestion(it.start + offset, it.end + offset, it.message, it.shortMessage, it.improvements)
                 }

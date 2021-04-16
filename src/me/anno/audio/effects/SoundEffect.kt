@@ -1,6 +1,7 @@
 package me.anno.audio.effects
 
 import me.anno.io.Saveable
+import me.anno.io.text.TextReader
 import me.anno.objects.Audio
 import me.anno.objects.Camera
 import me.anno.objects.inspectable.Inspectable
@@ -8,27 +9,35 @@ import me.anno.objects.inspectable.Inspectable
 abstract class SoundEffect(val inputDomain: Domain, val outputDomain: Domain) : Saveable(),
     Inspectable {
 
-    open fun reset() {
-        bufferIndex = 0
-    }
-
-    var bufferIndex = 0
-
+    // for the inspector
     lateinit var audio: Audio
 
     abstract fun apply(
-        data: FloatArray,
+        getDataSrc: (Int) -> FloatArray,
+        dataDst: FloatArray,
+        source: Audio,
+        destination: Camera,
+        time0: Time, time1: Time,
+    )
+
+    abstract fun getStateAsImmutableKey(
         source: Audio,
         destination: Camera,
         time0: Time, time1: Time
-    ): FloatArray
+    ): Any
 
     abstract val displayName: String
     abstract val description: String
 
-    abstract fun clone(): SoundEffect
+    open fun clone() = TextReader.fromText(toString()).first() as SoundEffect
 
     override fun getApproxSize() = 10
     override fun isDefaultValue() = false
+
+    companion object {
+        fun copy(src: FloatArray, dst: FloatArray){
+            System.arraycopy(src, 0, dst, 0, src.size)
+        }
+    }
 
 }

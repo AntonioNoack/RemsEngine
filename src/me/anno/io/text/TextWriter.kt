@@ -3,6 +3,7 @@ package me.anno.io.text
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.utils.types.Strings
+import me.anno.utils.types.Strings.isBlank2
 import org.joml.*
 
 class TextWriter(beautify: Boolean) : BaseWriter(true) {
@@ -51,7 +52,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
     }
 
     private fun writeAttributeStart(type: String, name: String?) {
-        if (name != null && name.isNotBlank()) {
+        if (name != null && !name.isBlank2()) {
             next()
             writeTypeNameString(type, name)
             data.append(':')

@@ -15,6 +15,7 @@ import me.anno.ui.style.Style
 import me.anno.utils.Maths.clamp
 import me.anno.utils.structures.tuples.Quad
 import me.anno.utils.types.Strings.getIndexFromText
+import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Strings.joinChars
 import kotlin.math.abs
 import kotlin.math.max
@@ -46,7 +47,7 @@ open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edi
     }
 
     override fun calculateSize(w: Int, h: Int) {
-        val text = if (text.isBlank()) placeholder else text
+        val text = if (text.isBlank2()) placeholder else text
         val inst = instantTextLoading
         if (inst) loadTexturesSync.push(true)
         super.calculateSize(w, h)
@@ -106,14 +107,14 @@ open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edi
     }
 
     override val isShowingPlaceholder: Boolean
-        get() = text.isBlank()
+        get() = text.isBlank2()
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         loadTexturesSync.push(true)
         drawBackground()
         val x = x + padding.left
         val y = y + padding.top
-        val usePlaceholder = text.isBlank()
+        val usePlaceholder = text.isBlank2()
         val textColor = if (usePlaceholder) placeholderColor else effectiveTextColor
         val drawnText = if (usePlaceholder) placeholder else text
         val wh = drawText(drawingOffset, 0, drawnText, textColor)

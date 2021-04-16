@@ -5,7 +5,6 @@ import org.lwjgl.openal.AL10.*
 
 class SoundSource(val loop: Boolean, val relative: Boolean){
 
-
     var sourcePtr = alGenSources()
 
     init {

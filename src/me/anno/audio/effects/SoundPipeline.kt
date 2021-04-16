@@ -23,7 +23,6 @@ import org.jtransforms.fft.FloatFFT_1D
 import kotlin.math.abs
 import kotlin.math.exp
 import kotlin.math.max
-import kotlin.math.min
 
 class SoundPipeline() : Saveable(), Inspectable {
 
@@ -39,26 +38,24 @@ class SoundPipeline() : Saveable(), Inspectable {
         style: Style,
         getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
     ) {
-        stages.forEach { it.audio = audio }
         val effectsGroup = getGroup("Audio Effects", "Audio Effects", "audio-fx")
         effectsGroup += object : StackPanel(
             "Effects Stack",
             "Effects can be added with RMB, are applied one after another",
             options.map { gen ->
-                option { gen().apply { this.audio = this@SoundPipeline.audio } }
+                option { gen().apply { audio = this@SoundPipeline.audio }}
             },
-            stages,
+            effects,
             style
         ) {
 
             override fun onAddComponent(component: Inspectable, index: Int) {
                 component as SoundEffect
-                component.audio = audio
                 RemsStudio.largeChange("Add ${component.displayName}") {
-                    if (index >= stages.size) {
-                        stages.add(component)
+                    if (index >= effects.size) {
+                        effects.add(component)
                     } else {
-                        stages.add(index, component)
+                        effects.add(index, component)
                     }
                 }
             }
@@ -66,7 +63,7 @@ class SoundPipeline() : Saveable(), Inspectable {
             override fun onRemoveComponent(component: Inspectable) {
                 component as SoundEffect
                 RemsStudio.largeChange("Remove ${component.displayName}") {
-                    stages.remove(component)
+                    effects.remove(component)
                 }
             }
 
@@ -79,13 +76,13 @@ class SoundPipeline() : Saveable(), Inspectable {
         }
     }
 
-    val stages = ArrayList<SoundEffect>()
+    val effects = ArrayList<SoundEffect>()
 
-    val fft = FloatFFT_1D(bufferSize.toLong())
+    //val fft = FloatFFT_1D(bufferSize.toLong())
 
     val input = FloatArray(bufferSize)
 
-    fun process(
+    /*fun process(
         data0: FloatArray,
         inputDomain: Domain,
         outputDomain: Domain,
@@ -115,12 +112,12 @@ class SoundPipeline() : Saveable(), Inspectable {
         var data = data0
         var domain = inputDomain
         for (stage in stages) {
-            changeDomain(domain, stage.inputDomain, data)
+            changeDomain(domain, stage.inputDomain, data, fft)
             data = stage.apply(data, audio, camera, time0, time1)
             domain = stage.outputDomain
         }
 
-        changeDomain(domain, outputDomain, data)
+        changeDomain(domain, outputDomain, data, fft)
         if(outputDomain == Domain.TIME_DOMAIN){
             fixJumps(data, lastValue, 0, min(512, bufferSize))
             lastValue = data.last()
@@ -128,12 +125,12 @@ class SoundPipeline() : Saveable(), Inspectable {
 
         return data
 
-    }
+    }*/
 
-    var isFirstBuffer = true
-    var lastValue = 0f
+    //var isFirstBuffer = true
+    /*var lastValue = 0f
     fun fixJumps(output: FloatArray, v0: Float, index1: Int, length: Int) {
-        if(isFirstBuffer){
+        if (isFirstBuffer) {
             isFirstBuffer = false
             return
         }
@@ -148,20 +145,11 @@ class SoundPipeline() : Saveable(), Inspectable {
                 output[index1 + i] -= amplitude * (exp(-i * falloff / length) - lastExponent)
             }
         }
-    }
-
-    private fun changeDomain(src: Domain, dst: Domain, data: FloatArray) {
-        if (src != dst) {
-            when (dst) {
-                Domain.TIME_DOMAIN -> fft.realInverse(data, true)
-                Domain.FREQUENCY_DOMAIN -> fft.realForward(data)
-            }
-        }
-    }
+    }*/
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
-        for (stage in stages) {
+        for (stage in effects) {
             writer.writeObject(this, "stage", stage)
         }
     }
@@ -170,7 +158,7 @@ class SoundPipeline() : Saveable(), Inspectable {
         when (name) {
             "stage" -> {
                 if (value is SoundEffect) {
-                    stages.add(value)
+                    effects.add(value)
                 }
             }
             else -> super.readObject(name, value)
@@ -179,12 +167,12 @@ class SoundPipeline() : Saveable(), Inspectable {
 
     override fun getClassName() = "SoundPipeline"
     override fun getApproxSize() = 100
-    override fun isDefaultValue() = stages.isEmpty()
+    override fun isDefaultValue() = effects.isEmpty()
 
     fun clone(): SoundPipeline {
         val copy = SoundPipeline(audio)
-        copy.stages.addAll(
-            stages.map {
+        copy.effects.addAll(
+            effects.map {
                 it.clone().apply {
                     audio = this@SoundPipeline.audio
                 }
@@ -195,9 +183,22 @@ class SoundPipeline() : Saveable(), Inspectable {
 
     companion object {
 
+        fun changeDomain(
+            src: Domain,
+            dst: Domain, data: FloatArray,
+            fft: FloatFFT_1D = FloatFFT_1D(data.size.toLong())
+        ): FloatFFT_1D {
+            if (src != dst) {
+                when (dst) {
+                    Domain.TIME_DOMAIN -> fft.realInverse(data, true)
+                    Domain.FREQUENCY_DOMAIN -> fft.realForward(data)
+                }
+            }
+            return fft
+        }
+
         // 1024 (48Hz .. 48kHz) or 2048? (24Hz .. 48kHz)
-        const val bufferSize = 1024
-        const val bufferSizeM1 = bufferSize - 1
+        val bufferSize = 4096 * 16
 
         fun option(generator: () -> SoundEffect): Option {
             val sample = generator()

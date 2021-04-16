@@ -11,6 +11,7 @@ import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.text.TextPanel
 import me.anno.utils.Maths.length
+import me.anno.utils.types.Strings.isBlank2
 import kotlin.math.abs
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -81,7 +82,7 @@ object Tooltips {
             } else {
 
                 val tooltipText = hoveredPanel?.getTooltipText(mouseX, mouseY)
-                if (tooltipText != null && tooltipText.isNotBlank()) {
+                if (tooltipText != null && !tooltipText.isBlank2()) {
                     textPanel.text = tooltipText
                     draw(container)
                     return true

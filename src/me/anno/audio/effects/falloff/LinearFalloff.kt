@@ -6,10 +6,6 @@ import kotlin.math.max
 
 class LinearFalloff() : Falloff() {
 
-    constructor(audio: Audio) : this() {
-        this.audio = audio
-    }
-
     constructor(halfDistance: Float) : this() {
         this.halfDistance = halfDistance
     }

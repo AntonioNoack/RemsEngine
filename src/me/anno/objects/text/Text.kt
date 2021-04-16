@@ -41,6 +41,7 @@ import me.anno.ui.input.BooleanInput
 import me.anno.ui.input.EnumInput
 import me.anno.ui.style.Style
 import me.anno.utils.Maths.mix
+import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Vectors.mulAlpha
 import me.anno.utils.types.Vectors.plus
 import me.anno.utils.types.Vectors.times
@@ -182,7 +183,7 @@ open class Text(parent: Transform? = null) : GFXTransform(parent) {
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
 
         val text = text[time]
-        if (text.isBlank()) {
+        if (text.isBlank2()) {
             super.onDraw(stack, time, color)
             return
         }

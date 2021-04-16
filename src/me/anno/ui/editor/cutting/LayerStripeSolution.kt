@@ -1,21 +1,26 @@
 package me.anno.ui.editor.cutting
 
+import me.anno.audio.AudioFXCache
+import me.anno.audio.AudioFXCache.SPLITS
+import me.anno.config.DefaultStyle.black
+import me.anno.gpu.GFXx2D
 import me.anno.gpu.GFXx2D.drawRectGradient
 import me.anno.gpu.GFXx2D.drawRectStriped
 import me.anno.objects.Transform
 import me.anno.objects.Video
 import me.anno.objects.modes.LoopingState
-import me.anno.objects.modes.VideoType
+import me.anno.studio.rems.RemsStudio.nullCamera
 import me.anno.ui.editor.TimelinePanel.Companion.centralTime
 import me.anno.ui.editor.TimelinePanel.Companion.dtHalfLength
 import me.anno.ui.editor.cutting.LayerView.Companion.maxLines
 import me.anno.utils.Maths.clamp
-import me.anno.utils.Maths.mix
+import me.anno.utils.Maths.max
 import me.anno.utils.Maths.mixARGB
 import me.anno.utils.Maths.nonNegativeModulo
 import me.anno.video.FFMPEGMetadata
 import org.joml.Vector4f
-import org.joml.Vector4fc
+import kotlin.math.abs
+import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.roundToInt
 
@@ -36,8 +41,8 @@ class LayerStripeSolution(
 
     // draw a stripe of the current image, or a symbol or sth...
     // done shader for the stripes (less draw calls)
-    // todo if audio, draw audio levels
     // if video, draw a few frames in small
+    // if audio, draw audio levels
 
     fun draw(selectedTransform: Transform?, draggedTransform: Transform?) {
         iteratorOverGradients(selectedTransform, draggedTransform, ::drawStripes, ::drawGradient, ::drawVideo)
@@ -59,7 +64,7 @@ class LayerStripeSolution(
         val y = y0
         val h = y1 - y0
 
-        val deltaX = ((referenceTime - centralTime) * w / (dtHalfLength * 2)).roundToInt()
+        val xTimeCorrection = ((referenceTime - centralTime) * w / (dtHalfLength * 2)).roundToInt()
 
         val metas = HashMap<Any, Any>()
 
@@ -85,8 +90,9 @@ class LayerStripeSolution(
                 val c0 = gradient.c0
                 val c1 = gradient.c1
 
-                val ix0 = gradient.x0 + deltaX
-                val ix1 = gradient.x1 + deltaX + 1
+                // bind gradients to edge, because often the stripe continues
+                val ix0 = if (gradient.x0 == x0) x0 else gradient.x0 + xTimeCorrection
+                val ix1 = if (gradient.x1 + 1 >= x1) x1 else gradient.x1 + xTimeCorrection + 1
 
                 if (hasVideo) {
 
@@ -96,7 +102,7 @@ class LayerStripeSolution(
                     val frameWidth = (h * (1f + relativeVideoBorder) * video.w / video.h).roundToInt()
 
                     var frameOffset = timeOffset % frameWidth
-                    if(frameOffset < 0) frameOffset += frameWidth
+                    if (frameOffset < 0) frameOffset += frameWidth
 
                     val frameIndex0 = floor((ix0 - frameOffset).toFloat() / frameWidth).toInt()
                     val frameIndex1 = floor((ix1 - frameOffset).toFloat() / frameWidth).toInt()
@@ -152,6 +158,71 @@ class LayerStripeSolution(
                     drawGradient(ix0, ix1, y0, h0, c0, c1)
                 }
 
+                if (hasAudio) {
+
+                    val audio = video!!
+
+                    // todo get auto levels for pixels, which equal ranges of audio frames -> min, max, avg?, with weight?
+                    val identifier = audio.toString()
+
+                    // todo get used camera instead of nullCamera
+                    val camera = nullCamera!!
+
+                    val color = if (hasVideo) 0xaa777777.toInt() else 0xff777777.toInt()
+                    val mix = 0.5f
+                    val fineColor = mixARGB(color, 0x77ff77, mix) or black
+                    val okColor = mixARGB(color, 0xffff77, mix) or black
+                    val criticalColor = mixARGB(color, 0xff7777, mix) or black
+
+                    val offset = (if (hasVideo) 0.75f else 0.5f) * h
+                    val scale = if (hasVideo) h / 128e3f else h / 65e3f
+
+                    val tStart = getTimeAt(ix0)
+                    val dt = getTimeAt(ix0 + SPLITS) - tStart
+
+                    val timeStartIndex = floor(tStart / dt).toLong()
+                    val timeEndIndex = ceil(getTimeAt(ix1) / dt).toLong()
+
+                    for (timeIndex in timeStartIndex until timeEndIndex) {
+
+                        val t0 = timeIndex * dt
+                        val t1 = (timeIndex + 1) * dt
+                        val xi = getXAt(t0).roundToInt()
+
+                        // get min, max, avg, of audio at this time point
+                        // time0: Time,
+                        // time1: Time,
+                        // speed: Double,
+                        // domain: Domain,
+                        // async: Boolean
+                        val range = AudioFXCache.getRange(t0, t1, identifier, audio, camera)
+                        if (range != null) {
+                            for (dx in 0 until SPLITS) {
+                                val x = xi + dx
+                                if (x in ix0 until ix1) {
+                                    val minV = range[dx * 2 + 0]
+                                    val maxV = range[dx * 2 + 1]
+                                    val amplitude = max(abs(minV.toInt()), abs(maxV.toInt()))
+                                    val colorMask = when {
+                                        amplitude < 5000 -> black
+                                        amplitude < 28000 -> fineColor
+                                        amplitude < 32000 -> okColor
+                                        else -> criticalColor
+                                    }
+                                    val min = minV * scale + offset
+                                    val max = maxV * scale + offset
+                                    if (max >= min) {
+                                        val y01 = this.y0 + min.toInt()
+                                        val y11 = this.y0 + max.toInt()
+                                        GFXx2D.drawRect(x, y01, 1, y11 + 1 - y01, colorMask)
+                                    }
+                                }
+                            }
+                        }
+
+                    }
+                }
+
                 if (isStriped) {
                     drawStripes(ix0, ix1, y0, h0, timeOffset)
                 }
@@ -172,7 +243,8 @@ class LayerStripeSolution(
         drawRectStriped(x0, y, x1 - x0, h, offset, stripeStride, stripeColor)
     }
 
-    private fun getTimeAt(x: Int) = centralTime + dtHalfLength * mix(-1.0, +1.0, (x - this.x0).toDouble() / this.w)
+    private fun getTimeAt(x: Int) = centralTime + dtHalfLength * ((x - x0).toDouble() / w * 2.0 - 1.0)
+    private fun getXAt(time: Double) = (time - centralTime) / dtHalfLength * 0.5 * w + (x0 + w / 2)
 
     private fun clampTime(localTime: Double, video: Video): Double {
         return if (video.isLooping.value == LoopingState.PLAY_ONCE) clamp(localTime, 0.0, video.lastDuration)

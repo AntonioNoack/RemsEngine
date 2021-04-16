@@ -6,6 +6,7 @@ import me.anno.gpu.framebuffer.Frame
 import me.anno.ui.editor.files.toAllowedFilename
 import me.anno.utils.OS
 import me.anno.utils.structures.arrays.FloatArrayList
+import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import org.joml.*
 import org.lwjgl.BufferUtils
@@ -121,7 +122,7 @@ open class Shader(
 
     private fun postPossibleError(shader: Int, source: String) {
         val log = glGetShaderInfoLog(shader)
-        if (log.isNotBlank()) {
+        if (!log.isBlank2()) {
             LOGGER.warn(
                 "$log by\n\n${
                     source

@@ -18,15 +18,29 @@ import me.anno.utils.hpc.HeavyProcessing.processBalanced
 // todo normalize amplitude effect
 // todo limit amplitude effect (straight cut-off; smooth-cut-off)
 
-class AmplitudeEffect() : SoundEffect(Domain.TIME_DOMAIN, Domain.TIME_DOMAIN) {
+class AmplitudeEffect : SoundEffect(Domain.TIME_DOMAIN, Domain.TIME_DOMAIN) {
 
-    override fun apply(data: FloatArray, source: Audio, destination: Camera, time0: Time, time1: Time): FloatArray {
+    override fun getStateAsImmutableKey(source: Audio, destination: Camera, time0: Time, time1: Time): Any {
+        return source.amplitude.toString()
+    }
+
+    override fun apply(
+        getDataSrc: (Int) -> FloatArray,
+        dataDst: FloatArray,
+        source: Audio,
+        destination: Camera,
+        time0: Time,
+        time1: Time
+    ) {
+
+        val src = getDataSrc(0)
+        val dst = FloatArray(bufferSize)
 
         val amplitude = source.amplitude
         if (!amplitude.isAnimated && amplitude.drivers[0] == null) {
 
             val singleMultiplier = amplitude[time0.localTime]
-            for (i in 0 until bufferSize) data[i] *= singleMultiplier
+            for (i in 0 until bufferSize) dst[i] = src[i] * singleMultiplier
 
         } else {
 
@@ -34,13 +48,11 @@ class AmplitudeEffect() : SoundEffect(Domain.TIME_DOMAIN, Domain.TIME_DOMAIN) {
             val t1 = time1.localTime
             processBalanced(0, bufferSize, false) { i0, i1 ->
                 for (i in i0 until i1) {
-                    data[i] *= amplitude[mix(t0, t1, i.toDouble() / bufferSize)]
+                    dst[i] = src[i] * amplitude[mix(t0, t1, i.toDouble() / bufferSize)]
                 }
             }
 
         }
-        return data
-
     }
 
     override fun createInspector(
@@ -49,10 +61,6 @@ class AmplitudeEffect() : SoundEffect(Domain.TIME_DOMAIN, Domain.TIME_DOMAIN) {
         getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
     ) {
         list += SpacePanel(0, 0, style) // nothing, but it must not be empty, soo...
-    }
-
-    override fun clone(): SoundEffect {
-        return AmplitudeEffect()
     }
 
     override val displayName: String = "Amplitude"

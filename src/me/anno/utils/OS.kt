@@ -20,6 +20,7 @@ object OS {// the os is important for some things, e.g. the allowed file names, 
     val documents = File(home, "Documents")
     val pictures = File(home, "Pictures")
     val videos = File(home, "Videos")
+    val music = File(home, "Music")
 
     fun startProcess(vararg args: String) {
         thread {

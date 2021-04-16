@@ -26,6 +26,7 @@ object LocalFile {
         ?: checkIsChild(OS.documents, "\$DOCUMENTS\$")
         ?: checkIsChild(OS.pictures, "\$PICTURES\$")
         ?: checkIsChild(OS.videos, "\$VIDEOS\$")
+        ?: checkIsChild(OS.music, "\$MUSIC\$")
         ?: checkIsChild(OS.home, "\$HOME\$")
         ?: fileStr
     }
@@ -47,6 +48,7 @@ object LocalFile {
             ?: checkIsChild(OS.documents, "\$DOCUMENTS\$")
             ?: checkIsChild(OS.pictures, "\$PICTURES\$")
             ?: checkIsChild(OS.videos, "\$VIDEOS\$")
+            ?: checkIsChild(OS.music, "\$MUSIC\$")
             ?: checkIsChild(OS.home, "\$HOME\$")
             ?: checkIsChild(OS.home, "\$USER\$")
             ?: File(this)

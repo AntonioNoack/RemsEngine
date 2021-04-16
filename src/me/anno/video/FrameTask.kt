@@ -19,7 +19,7 @@ import org.lwjgl.opengl.GL11.*
 import java.awt.image.BufferedImage
 import java.io.File
 import javax.imageio.ImageIO
-import kotlin.concurrent.thread
+import kotlin.math.roundToLong
 
 
 class FrameTask(
@@ -31,7 +31,7 @@ class FrameTask(
     val shutterPercentage: Float,
     val time: Double,
     val dst: File
-) : AudioCreator(scene, 0.0, 1, 1, emptyList()) {
+) : AudioCreator(scene, 0.0, 1, emptyList()) {
 
     val partialFrame = Framebuffer(
         "VideoBackgroundTask-partial", width, height, 1, 1,

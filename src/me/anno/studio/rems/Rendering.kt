@@ -17,6 +17,7 @@ import org.apache.logging.log4j.LogManager
 import java.io.File
 import kotlin.math.max
 import kotlin.math.roundToInt
+import kotlin.math.roundToLong
 
 object Rendering {
 
@@ -86,7 +87,7 @@ object Rendering {
     }
 
     fun getTmpFile(file: File) =
-        File(file.parentFile, file.nameWithoutExtension+".tmp."+ targetOutputFile.extension)
+        File(file.parentFile, file.nameWithoutExtension + ".tmp." + targetOutputFile.extension)
 
     fun renderFrame(width: Int, height: Int, time: Double, ask: Boolean, callback: () -> Unit) {
 
@@ -132,7 +133,8 @@ object Rendering {
         val audioSources = scene.listOfAll
             .filterIsInstance<Audio>()
             .filter { it.forcedMeta?.hasAudio == true }.toList()
-        AudioCreator(scene, duration, 1, sampleRate, audioSources).apply {
+
+        AudioCreator(scene, duration, sampleRate, audioSources).apply {
             onFinished = {
                 isRendering = false
                 callback()

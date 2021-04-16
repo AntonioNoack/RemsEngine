@@ -13,11 +13,8 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
 import me.anno.utils.Maths.clamp
-import me.anno.utils.Maths.fract
-import me.anno.utils.Maths.mix
 import me.anno.utils.types.Casting.castToFloat2
 import kotlin.math.abs
-import kotlin.math.min
 
 class PitchEffect : SoundEffect(Domain.TIME_DOMAIN, Domain.TIME_DOMAIN) {
 
@@ -46,25 +43,24 @@ class PitchEffect : SoundEffect(Domain.TIME_DOMAIN, Domain.TIME_DOMAIN) {
     var inverseSpeed = false
     var pitch = 1f
 
-    private val phaseOffset = FloatArray(bufferSize / 2)
-
-    override fun reset() {
-        for (i in phaseOffset.indices) phaseOffset[i] = 0f
-    }
-
-    val result = FloatArray(bufferSize)
-
-    private val stretch = TimeDomainStretch()
-
-    init {
-        stretch.setChannels(1)
-    }
-
     var tempo = 1f
     var hasTempo = false
-    var outputOffset = 0
 
-    override fun apply(data: FloatArray, source: Audio, destination: Camera, time0: Time, time1: Time): FloatArray {
+    override fun getStateAsImmutableKey(source: Audio, destination: Camera, time0: Time, time1: Time): Any {
+        return Pair(pitch, tempo)
+    }
+
+    override fun apply(
+        getDataSrc: (Int) -> FloatArray,
+        dataDst: FloatArray,
+        source: Audio,
+        destination: Camera,
+        time0: Time,
+        time1: Time
+    ) {
+
+        val stretch = TimeDomainStretch()
+        stretch.setChannels(1)
 
         if (!hasTempo) {
             // todo can tempo be changed while running???...
@@ -80,52 +76,29 @@ class PitchEffect : SoundEffect(Domain.TIME_DOMAIN, Domain.TIME_DOMAIN) {
         }
 
         // nothing to do, should be exact enough
-        if (tempo in 0.999f..1.001f) return data
+        if (tempo in 0.999f..1.001f) {
+            copy(getDataSrc(0), dataDst)
+            return
+        }
 
-        // put the data
-        stretch.putSamples(data)
+        // give the stretching all data it needs
+        stretch.putSamples(getDataSrc(-1))
+        stretch.putSamples(getDataSrc(+0))
+        stretch.putSamples(getDataSrc(+1))
+
 
         // then read the data, and rescale it to match the output
         val output = stretch.outputBuffer
         val output2 = output.backend
-        val offset = outputOffset
+
+        // todo how do we match this as best as possible with the input and the following buffers?
+        val offset = bufferSize // outputOffset
         val size = output.numSamples() - offset
         if (size > 0) {
-
-            // keep size "constant" (it's not), only use what you need
-            val usedSize = min(size, (data.size * pitch).toInt())
-            val factor = usedSize.toFloat() / data.size
-            // println("$usedSize (${output.numSamples()} - $offset) / ${data.size} -> $factor from $pitch")
-            val maxIndex = size + offset - 1
-
-            var f0 = 0f
-            var i0 = 0
-            for (i in data.indices) {
-                val f1 = (i + 1) * factor
-                val i1 = f1.toInt() + offset
-                data[i] = if (i1 > i1) {
-                    // there are multiple values
-                    // average f0 .. f1
-                    var sum = 0f
-                    sum += output2[i0] * (1f - fract(f0))
-                    sum += output2[i1] * fract(f1)
-                    for (j in i0 + 1 until i1) {
-                        sum += output2[j]
-                    }
-                    sum / (f1 - f0)
-                } else {
-                    // only a single one, lerped
-                    mix(output2[i0], output2[min(i0 + 1, maxIndex)], fract(f0))
-                }
-                f0 = f1
-                i0 = i1
+            for (i in dataDst.indices) {
+                dataDst[i] = output2[i + offset]
             }
-
-            outputOffset += usedSize
-
         }
-
-        return data
 
     }
 

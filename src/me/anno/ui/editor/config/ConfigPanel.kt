@@ -12,6 +12,7 @@ import me.anno.ui.base.scrolling.ScrollPanelXY
 import me.anno.ui.custom.CustomListX
 import me.anno.ui.input.TextInput
 import me.anno.ui.style.Style
+import me.anno.utils.types.Strings.isBlank2
 import kotlin.math.max
 
 // todo allow fields to be added
@@ -57,7 +58,7 @@ class ConfigPanel(val config: StringMap, val isStyle: Boolean, style: Style) : P
 
     private fun applySearch(query: String) {
 
-        if (query.isBlank()) {
+        if (query.isBlank2()) {
 
             createContent(lastNotEmptyTopic)
 

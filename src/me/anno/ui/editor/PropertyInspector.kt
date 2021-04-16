@@ -14,6 +14,7 @@ import me.anno.ui.input.TextInputML
 import me.anno.ui.input.VectorInput
 import me.anno.ui.input.components.Checkbox
 import me.anno.ui.style.Style
+import me.anno.utils.types.Strings.isBlank2
 
 class PropertyInspector(style: Style):
     ScrollPanelY(Padding(3), AxisAlignment.MIN, style.getChild("propertyInspector")){
@@ -102,7 +103,7 @@ class PropertyInspector(style: Style):
                     list += group
                     group
                 }.apply {
-                    if(tooltip?.isNotBlank() != true){
+                    if(tooltip?.isBlank2() != false){
                         tooltip = Dict[description, "obj.$dictSubPath.desc"]
                     }
                 }

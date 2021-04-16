@@ -13,7 +13,7 @@ class VideoAudioCreator(
     durationSeconds: Double, sampleRate: Int, audioSources: List<Audio>,
     val motionBlurSteps: Int, val shutterPercentage: Float,
     val output: File
-) : AudioCreator(scene, durationSeconds, videoCreator.totalFrameCount, sampleRate, audioSources) {
+) : AudioCreator(scene, durationSeconds, sampleRate, audioSources) {
 
     fun start() {
         thread { run() }

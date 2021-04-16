@@ -51,16 +51,16 @@ class VideoCreator(
         val encoding = "libx264"
         val constantRateFactor = project?.targetVideoQuality?.toString() ?: "23"
         val dstFormat = "yuv420p"
-        val fps = fps.toString()
+        val fpsString = fps.toString()
         val videoEncodingArguments = arrayListOf(
             "-f", "rawvideo",
             "-s", size,
-            "-r", fps,
+            "-r", fpsString,
             "-pix_fmt", rawFormat,
             "-i", "pipe:0", // output buffer
             "-c:v", encoding, // encoding
             "-an", // no audio
-            "-r", fps,
+            "-r", fpsString,
             "-crf", constantRateFactor,
             "-pix_fmt", dstFormat,
             "-preset", balance.internalName
@@ -80,7 +80,7 @@ class VideoCreator(
         args += videoEncodingArguments
         process = ProcessBuilder(args).start()
         thread { logOutput("", process.inputStream, true) }
-        thread { processOutput(LOGGER, "Video", startTime, totalFrameCount, process.errorStream) }
+        thread { processOutput(LOGGER, "Video", startTime, fps, totalFrameCount, process.errorStream) }
 
         videoOut = process.outputStream.buffered()
 

@@ -1,6 +1,5 @@
 package me.anno.ui.editor.stacked
 
-import me.anno.gpu.GFX
 import me.anno.input.MouseButton
 import me.anno.io.Saveable
 import me.anno.io.text.TextReader
@@ -32,10 +31,21 @@ class OptionPanel(
                 openMenu(
                     stackPanel.options.map { option ->
                         // todo translate
-                        MenuOption(NameDesc("Prepend %1", option.description, "ui.option.prepend").with("%1", option.title)) {
+                        MenuOption(
+                            NameDesc("Prepend %1", option.description, "ui.option.prepend").with(
+                                "%1",
+                                option.title
+                            )
+                        ) {
                             stackPanel.addComponent(option, index, true)
                         }
-                    } + MenuOption(NameDesc("Remove Component", "Deletes the component", "ui.general.removeComponent")) {
+                    } + MenuOption(
+                        NameDesc(
+                            "Remove Component",
+                            "Deletes the component",
+                            "ui.general.removeComponent"
+                        )
+                    ) {
                         stackPanel.removeComponent(value)
                     }
                 )

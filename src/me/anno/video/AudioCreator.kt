@@ -1,6 +1,6 @@
 package me.anno.video
 
-import me.anno.audio.AudioStream
+import me.anno.audio.AudioStreamRaw.Companion.playbackSliceDuration
 import me.anno.gpu.GFX
 import me.anno.objects.Audio
 import me.anno.objects.Camera
@@ -18,7 +18,6 @@ import kotlin.math.ceil
 open class AudioCreator(
     val scene: Transform,
     private val durationSeconds: Double,
-    private val totalFrameCount: Long,
     private val sampleRate: Int,
     val audioSources: List<Audio>
 ) {
@@ -87,7 +86,9 @@ open class AudioCreator(
         args += audioEncodingArguments
 
         val process = ProcessBuilder(args).start()
-        thread { processOutput(LOGGER, "Audio", startTime, totalFrameCount, process.errorStream) }
+        val targetFPS = 60.0
+        val totalFrameCount = (targetFPS * durationSeconds).toLong()
+        thread { processOutput(LOGGER, "Audio", startTime, targetFPS, totalFrameCount, process.errorStream) }
 
         val audioOutput = DataOutputStream(process.outputStream.buffered())
         createAudio(audioOutput)
@@ -115,14 +116,13 @@ open class AudioCreator(
 
         try {
 
-            val sliceDuration = AudioStream.playbackSliceDuration
+            val sliceDuration = playbackSliceDuration
             val bufferCount = ceil(durationSeconds / sliceDuration).toLong()
 
             val streams = audioSources.map { BufferStream(it, sampleRate, camera) }
 
             for (bufferIndex in 0 until bufferCount) {
-                val startTime = bufferIndex * sliceDuration
-                streams.forEach { it.requestNextBuffer(startTime, bufferIndex) }
+                streams.forEach { it.requestNextBuffer(bufferIndex) }
                 val buffers = streams.map { it.getAndReplace() }
                 val buffer = buffers.first()
                 // write the data to ffmpeg

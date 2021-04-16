@@ -15,6 +15,7 @@ import me.anno.ui.base.Font
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.debug.FrameTimes
 import me.anno.utils.Maths.clamp
+import me.anno.utils.types.Strings.isBlank2
 import me.anno.video.VFrame
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
@@ -299,7 +300,7 @@ object GFXx2D {
             val sizeSecond = getSizeY(size)
             h = sizeSecond
             val w = if (equalSpaced) charWidth else sizeFirst
-            if (txt.isNotBlank()) {
+            if (!txt.isBlank2()) {
                 val texture = FontManager.getString(font, txt, -1)
                 if (texture != null && (texture !is Texture2D || texture.isCreated)) {
                     texture.bind(GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)

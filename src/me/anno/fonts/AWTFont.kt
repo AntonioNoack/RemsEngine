@@ -11,6 +11,7 @@ import me.anno.utils.OS
 import me.anno.utils.structures.lists.ExpensiveList
 import me.anno.utils.types.Lists.join
 import me.anno.utils.types.Strings.incrementTab
+import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Strings.joinChars
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector2f
@@ -127,7 +128,7 @@ class AWTFont(val font: Font) {
         val height = fontHeight * lineCount + (lineCount - 1) * spaceBetweenLines
 
         if (width < 1 || height < 1) return null
-        if (text.isBlank()) {
+        if (text.isBlank2()) {
             // we need some kind of wrapper around texture2D
             // and return an empty/blank texture
             // that the correct size is returned is required by text input fields
@@ -199,7 +200,7 @@ class AWTFont(val font: Font) {
 
         val lines = text.split('\n')
         val splitLines = lines.map {
-            if (it.isBlank()) null
+            if (it.isBlank2()) null
             else splitLine(fonts, it, fontSize, relativeTabSize, relativeCharSpacing, lineBreakWidth)
         }
         val width = splitLines.maxBy { it?.width ?: 0f }?.width ?: 0f

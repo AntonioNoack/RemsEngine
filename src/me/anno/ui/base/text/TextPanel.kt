@@ -17,6 +17,7 @@ import me.anno.ui.style.Style
 import me.anno.utils.Maths.mixARGB
 import me.anno.utils.Tabs
 import me.anno.utils.input.Keys.isClickKey
+import me.anno.utils.types.Strings.isBlank2
 import kotlin.math.max
 import kotlin.math.min
 
@@ -90,7 +91,7 @@ open class TextPanel(text: String, style: Style) : Panel(style) {
     }
 
     override fun calculateSize(w: Int, h: Int) {
-        val text = if (text.isBlank()) "." else text
+        val text = if (text.isBlank2()) "." else text
         calculateSize(w, h, text)
     }
 

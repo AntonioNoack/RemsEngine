@@ -11,6 +11,7 @@ import me.anno.gpu.texture.ITexture2D
 import me.anno.utils.Clock
 import me.anno.utils.Threads.threadWithName
 import me.anno.utils.types.Booleans.toInt
+import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import java.awt.Font
 import java.awt.GraphicsEnvironment
@@ -91,7 +92,7 @@ object FontManager {
         widthLimit: Int
     ): TextCacheKey? {
 
-        if (text.isBlank()) return null
+        if (text.isBlank2()) return null
         val fontSize = font.size
         val fontSizeIndex = getFontSizeIndex(fontSize)
         val sub = fontSizeIndex * 8 + font.isItalic.toInt(4) + font.isBold.toInt(2)

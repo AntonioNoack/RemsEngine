@@ -2,6 +2,7 @@ package me.anno.video
 
 import me.anno.audio.SoundBuffer
 import me.anno.audio.format.WaveReader
+import me.anno.utils.ShutdownException
 import java.io.File
 import kotlin.concurrent.thread
 
@@ -12,15 +13,20 @@ class FFMPEGAudio(file: File?, val sampleRate: Int, val length: Double) :
     override fun process(process: Process, arguments: List<String>) {
         // ("starting process for audio $sampleRate x $length")
         // (arguments)
-        thread {
+        thread(name = "$file:error-stream") {
             val out = process.errorStream.bufferedReader()
             val parser = FFMPEGMetaParser()
-            while (true) {
-                val line = out.readLine() ?: break
-                parser.parseLine(line, this)
+            try {
+                while (true) {
+                    val line = out.readLine() ?: break
+                    parser.parseLine(line, this)
+                }
+            } catch (e: ShutdownException){
+                // ...
             }
+            out.close()
         }
-        thread {
+        thread(name = "$file:input-stream") {
             val input = process.inputStream.buffered()
             val frameCount = (sampleRate * length).toInt()
             input.mark(3)
@@ -29,10 +35,14 @@ class FFMPEGAudio(file: File?, val sampleRate: Int, val length: Double) :
                 return@thread
             }
             input.reset()
-            val wav = WaveReader(input, frameCount)
-            val buffer = SoundBuffer()
-            buffer.loadRawStereo16(wav.stereoPCM, sampleRate)
-            soundBuffer = buffer
+            try {
+                val wav = WaveReader(input, frameCount)
+                val buffer = SoundBuffer()
+                buffer.loadRawStereo16(wav.stereoPCM, sampleRate)
+                soundBuffer = buffer
+            } catch (e: ShutdownException){
+                // ...
+            }
             input.close()
         }
     }

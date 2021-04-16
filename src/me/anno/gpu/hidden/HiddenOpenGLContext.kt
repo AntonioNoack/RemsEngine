@@ -36,49 +36,13 @@ object HiddenOpenGLContext {
 
         GLFW.glfwDefaultWindowHints()
         GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE)
-        // GLFW.glfwWindowHint(GLFW.GLFW_RESIZABLE, GLFW.GLFW_TRUE)
-        // removes scaling options -> how could we replace them?
         GLFW.glfwWindowHint(GLFW.GLFW_DECORATED, GLFW.GLFW_FALSE)
 
-        // tick.stop("window hints");// 0s
-
         // removes scaling options -> how could we replace them?
-        // glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
-
-        // tick.stop("window hints");// 0s
         window = GLFW.glfwCreateWindow(width, height, GFXBase0.projectName, MemoryUtil.NULL, MemoryUtil.NULL)
         if (window == MemoryUtil.NULL) throw RuntimeException("Failed to create the GLFW window")
 
         tick.stop("create window")
-
-        // addCallbacks()
-        // tick.stop("adding callbacks")
-
-        /*val videoMode = GLFW.glfwGetVideoMode(GLFW.glfwGetPrimaryMonitor())
-        if (videoMode != null) GLFW.glfwSetWindowPos(
-            window,
-            (videoMode.width() - width) / 2,
-            (videoMode.height() - height) / 2
-        )
-        MemoryStack.stackPush().use { frame ->
-            val framebufferSize = frame.mallocInt(2)
-            GLFW.nglfwGetFramebufferSize(
-                window,
-                MemoryUtil.memAddress(framebufferSize),
-                MemoryUtil.memAddress(framebufferSize) + 4
-            )
-            width = framebufferSize[0]
-            height = framebufferSize[1]
-        }
-
-        tick.stop("window position")*/
-
-        // GLFW.glfwSetWindowTitle(window, "Hidden Window")
-
-        // tick.stop("window title"); // 0s
-        /*GLFW.glfwShowWindow(window)
-
-        tick.stop("show window")*/
 
         GLFW.glfwMakeContextCurrent(window)
         GLFW.glfwSwapInterval(1)

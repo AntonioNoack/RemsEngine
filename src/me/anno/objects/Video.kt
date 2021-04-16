@@ -578,7 +578,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
             }
         }
         when (type) {
-            VideoType.VIDEO -> {
+            VideoType.VIDEO, VideoType.AUDIO -> {
                 val meta = meta
                 if (meta != null && meta.hasVideo) {
                     if (file != lastAddedEndKeyframesFile) {
@@ -620,7 +620,11 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                     drawImageSequence(meta, stack, time, color)
                 }
                 VideoType.IMAGE -> drawImage(stack, time, color)
-                VideoType.AUDIO -> drawSpeakers(stack, Vector4f(color), is3D, amplitude[time])
+                VideoType.AUDIO -> {
+                    val meta = meta
+                    if(meta != null) lastDuration = meta.videoDuration
+                    drawSpeakers(stack, Vector4f(color), is3D, amplitude[time])
+                }
                 else -> throw RuntimeException("$type needs visualization") // for the future
             }
 

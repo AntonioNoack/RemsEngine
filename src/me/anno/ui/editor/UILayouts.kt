@@ -71,6 +71,7 @@ import me.anno.ui.style.Style
 import me.anno.utils.Threads.threadWithName
 import me.anno.utils.files.Files.openInExplorer
 import me.anno.utils.files.OpenInBrowser.openInBrowser
+import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import java.io.File
 import java.net.URL
@@ -280,7 +281,7 @@ object UILayouts {
         updateFileInputColor()
 
         nameInput.setChangeListener {
-            val newName = if (it.isBlank()) "-" else it.trim()
+            val newName = if (it.isBlank2()) "-" else it.trim()
             if (lastName == fileInput.file.name) {
                 fileInput.setText(File(fileInput.file.parentFile, newName).toString(), false)
                 updateFileInputColor()

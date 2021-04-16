@@ -4,8 +4,10 @@ import me.anno.cache.data.ICacheData
 import me.anno.cache.instances.LastModifiedCache
 import me.anno.gpu.GFX.gameTime
 import me.anno.studio.rems.RemsStudio.root
+import me.anno.utils.ShutdownException
 import me.anno.utils.Sleep.sleepShortly
 import me.anno.utils.Threads.threadWithName
+import me.anno.utils.hpc.ProcessingQueue
 import org.apache.logging.log4j.LogManager
 import java.io.File
 import java.io.FileNotFoundException
@@ -137,7 +139,8 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         } catch (e: FileNotFoundException) {
             LOGGER.warn("FileNotFoundException: ${e.message}")
         } catch (e: Exception) {
-            e.printStackTrace()
+            if(e is ShutdownException) throw e
+            else e.printStackTrace()
         }
         return data
     }
@@ -167,6 +170,34 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
 
         return if (asyncGenerator) {
             threadWithName("$name<$key>") {
+                val data = generate(key, generator)
+                put(key, data, timeout)
+                unlock(key)
+            }
+            null
+        } else {
+            val data = generate(key, generator)
+            put(key, data, timeout)
+            unlock(key)
+            data
+        }
+
+    }
+
+    fun <V> getEntry(key: V, timeout: Long, queue: ProcessingQueue?, generator: (V) -> ICacheData): ICacheData? {
+
+        if(key == null) throw IllegalStateException("Key must not be null")
+
+        // new, async cache
+        // only the key needs to be locked, not the whole cache
+
+        lock(key, queue != null) ?: return null
+
+        val cached = getDirectly(key)
+        if (cached != Unit) return cached as ICacheData?
+
+        return if (queue != null) {
+            queue += {
                 val data = generate(key, generator)
                 put(key, data, timeout)
                 unlock(key)

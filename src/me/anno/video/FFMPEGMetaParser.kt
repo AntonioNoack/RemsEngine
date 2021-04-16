@@ -2,6 +2,7 @@ package me.anno.video
 
 import me.anno.io.utils.StringMap
 import me.anno.utils.Warning.warn
+import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import java.lang.Exception
 import java.lang.RuntimeException
@@ -99,7 +100,7 @@ class FFMPEGMetaParser(): StringMap(){
     }
 
     fun parseLine(line: String, stream: FFMPEGStream){
-        if(line.isBlank()) return
+        if(line.isBlank2()) return
         // if(debug) LOGGER.debug(line)
         val depth = getDepth(line)
         val data = line.trim().specialSplit()

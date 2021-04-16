@@ -5,7 +5,15 @@ import me.anno.ui.base.Panel
 import me.anno.ui.style.Style
 
 class PreviewField(private val refSize: Panel, val padding: Int, style: Style) : Panel(style) {
+
     var color = 0
+        set(value) {
+            if(field != value){
+                field = value
+                invalidateDrawing()
+            }
+        }
+
     override fun calculateSize(w: Int, h: Int) {
         val size = refSize.minH
         minW = size

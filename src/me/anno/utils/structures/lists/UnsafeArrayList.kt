@@ -2,22 +2,28 @@ package me.anno.utils.structures.lists
 
 /**
  * an arraylist, which does not fail with ConcurrentModificationException,
- * and is only thread-safe when adding from a single Thread
+ * and is only thread-safe when modifying from a single Thread
  * (this is the case for our particle system)
  * iterating over it at the same time doesn't matter / needs to be caught separately
  * */
-class UnsafeArrayList<V> : MutableList<V> {
+class UnsafeArrayList<V>(capacity0: Int = 16) : MutableList<V> {
 
-    var backend = arrayOfNulls<Any>(1024)
+    var backend = arrayOfNulls<Any>(capacity0)
 
     override var size = 0
 
     override fun contains(element: V): Boolean {
-        throw NotImplementedError()
+        for (i in 0 until size) {
+            if (element == backend[i]) return true
+        }
+        return false
     }
 
     override fun containsAll(elements: Collection<V>): Boolean {
-        throw NotImplementedError()
+        for (element in elements) {
+            if (!contains(element)) return false
+        }
+        return true
     }
 
     override fun get(index: Int): V {
@@ -25,7 +31,10 @@ class UnsafeArrayList<V> : MutableList<V> {
     }
 
     override fun indexOf(element: V): Int {
-        throw NotImplementedError()
+        for (i in 0 until size) {
+            if (element == backend[i]) return i
+        }
+        return -1
     }
 
     override fun isEmpty(): Boolean = size == 0
@@ -35,7 +44,10 @@ class UnsafeArrayList<V> : MutableList<V> {
     }
 
     override fun lastIndexOf(element: V): Int {
-        throw NotImplementedError()
+        for (i in size - 1 downTo 0) {
+            if (element == backend[i]) return i
+        }
+        return -1
     }
 
     override fun add(element: V): Boolean {
@@ -102,25 +114,51 @@ class UnsafeArrayList<V> : MutableList<V> {
     }
 
     override fun remove(element: V): Boolean {
-        throw NotImplementedError()
+        val index = indexOf(element)
+        if (index < 0) return false
+        removeAt(index)
+        return true
     }
 
     override fun removeAll(elements: Collection<V>): Boolean {
-        throw NotImplementedError()
+        var writeIndex = 0
+        for (readIndex in 0 until size) {
+            val element = backend[readIndex]
+            if (element !in elements) {
+                backend[writeIndex++] = element
+            }// else writeIndex not increasing
+        }
+        val hasChanged = size != writeIndex
+        size = writeIndex
+        return hasChanged
     }
 
     override fun removeAt(index: Int): V {
-        throw NotImplementedError()
+        val element = backend[index]
+        size--
+        for (i in index until size) {
+            backend[i] = backend[i + 1]
+        }
+        return element as V
     }
 
     override fun retainAll(elements: Collection<V>): Boolean {
-        throw NotImplementedError()
+        var writeIndex = 0
+        for (readIndex in 0 until size) {
+            val element = backend[readIndex]
+            if (element in elements) {
+                backend[writeIndex++] = element
+            }// else writeIndex not increasing
+        }
+        val hasChanged = size != writeIndex
+        size = writeIndex
+        return hasChanged
     }
 
     override fun set(index: Int, element: V): V {
-        val old = backend[index]
+        val old = backend[index] as V
         backend[index] = element
-        return old as V
+        return old
     }
 
     override fun subList(fromIndex: Int, toIndex: Int): MutableList<V> {

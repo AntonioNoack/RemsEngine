@@ -2,11 +2,12 @@ package me.anno.objects.documents
 
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
+import me.anno.utils.types.Strings.isBlank2
 
 object SiteSelection : CacheSection("SiteSelection") {
 
     fun parseSites(sites: String): List<IntRange> {
-        if (sites.isBlank()) return listOf(0 until maxSite)
+        if (sites.isBlank2()) return listOf(0 until maxSite)
         val cacheData = getEntry(sites, timeout, false) {
             val delta = -1
             val list = sites

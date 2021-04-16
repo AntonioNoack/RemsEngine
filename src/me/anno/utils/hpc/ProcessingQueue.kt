@@ -5,6 +5,8 @@ import me.anno.utils.ShutdownException
 import me.anno.utils.Sleep.sleepShortly
 import org.apache.logging.log4j.LogManager
 import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.concurrent.thread
 
 open class ProcessingQueue(val name: String){
@@ -23,6 +25,7 @@ open class ProcessingQueue(val name: String){
         if(hasBeenStarted && !force) return
         hasBeenStarted = true
         shouldStop = false
+        LOGGER.info("Starting queue $name")
         thread(name = name) {
             while (!shutdown && !shouldStop) {
                 try {
@@ -35,6 +38,7 @@ open class ProcessingQueue(val name: String){
                     }
                 } catch (e: ShutdownException){
                     // nothing to worry about (probably)
+                    break
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }

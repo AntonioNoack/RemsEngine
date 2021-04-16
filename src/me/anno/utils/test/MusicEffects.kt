@@ -1,5 +1,6 @@
 package me.anno.utils.test
 
+import me.anno.audio.AudioFXCache
 import me.anno.audio.effects.Domain
 import me.anno.audio.effects.Time
 import me.anno.audio.effects.impl.EqualizerEffect
@@ -21,31 +22,34 @@ fun main() {
     val audio = Video(file)
     val camera = Camera()
     val effect = EqualizerEffect()
-    val effects = audio.effects
-    effects.stages += effect
-    effects.audio = audio
-    effects.camera = camera
-    /*val component = BufferStream(audio, 48000, camera)
-    thread { component.requestNextBuffer(0.0, 0) }
-    val buffer = component.getAndReplace()
-    for (i in 0 until 1000) {
-        println(buffer[i * 2 + 48000])
-    }*/
+    val pipeline = audio.pipeline
+    pipeline.effects += effect
+    pipeline.audio = audio
+    pipeline.camera = camera
 
-    for(i in effect.frequencies.indices){
+    for (i in effect.frequencies.indices) {
         effect.sliders[i].set(Math.random().toFloat()) // 0.37457f
     }
 
-    val func = FloatArray(1024*2) { pow(sin(it * Math.PI / 9f).toFloat()*9f, 3f) }
+    val func = FloatArray(1024 * 2) { pow(sin(it * Math.PI / 9f).toFloat() * 9f, 3f) }
     val time = func.size / 48000.0
 
-    fun print(data: FloatArray){
+    fun print(data: FloatArray) {
         val size = 16
-        println("${(0 until size).joinToString { data[1024-size+it].roundToInt().toString() }} | ${(0 until size).joinToString { data[1024+it].roundToInt().toString() }}")
+        println(
+            "${
+                (0 until size).joinToString {
+                    data[1024 - size + it].roundToInt().toString()
+                }
+            } | ${(0 until size).joinToString { data[1024 + it].roundToInt().toString() }}"
+        )
     }
 
     print(func)
-    val result = effects.process(func, Domain.TIME_DOMAIN, Domain.TIME_DOMAIN, Time(0.0, 0.0), Time(time, time))
+
+    val t0 = Time(0.0, 0.0)
+    val t1 = Time(time, time)
+    val result = AudioFXCache.getBuffer(0, audio, camera, t0, t1, 1.0, Domain.TIME_DOMAIN, false)
     print(result)
 
 }

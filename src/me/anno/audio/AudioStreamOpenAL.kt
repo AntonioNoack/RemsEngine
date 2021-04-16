@@ -3,14 +3,14 @@ package me.anno.audio
 import me.anno.objects.Audio
 import me.anno.objects.Camera
 import me.anno.objects.modes.LoopingState
-import me.anno.utils.hpc.ProcessingQueue
+import me.anno.video.AudioCreator.Companion.playbackSampleRate
 import me.anno.video.FFMPEGMetadata
+import org.apache.logging.log4j.LogManager
 import org.lwjgl.openal.AL10.*
 import java.io.File
 import java.nio.ShortBuffer
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.math.max
-import kotlin.math.min
 
 // only play once, then destroy; it makes things easier
 // (on user input and when finally rendering only)
@@ -21,13 +21,19 @@ class AudioStreamOpenAL(
     startTime: Double,
     meta: FFMPEGMetadata,
     sender: Audio,
-    listener: Camera
-) :
-    AudioStream(file, repeat, startTime, meta, sender, listener) {
+    listener: Camera,
+    speed: Double
+) : AudioStream(file, repeat, getIndex(startTime, speed, playbackSampleRate), meta, sender, listener, speed) {
 
     constructor(audio: Audio, speed: Double, globalTime: Double, listener: Camera) :
-            this(audio.file, audio.isLooping.value, 0.0, FFMPEGMetadata.getMeta(audio.file, false)!!, audio, listener) {
-        configure(audio, speed, globalTime)
+            this(
+                audio.file, audio.isLooping.value, globalTime,
+                FFMPEGMetadata.getMeta(audio.file, false)!!,
+                audio, listener, speed
+            )
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(AudioStreamOpenAL::class)
     }
 
     var startTimeNanos = 0L
@@ -49,18 +55,6 @@ class AudioStreamOpenAL(
         } else throw RuntimeException()
     }
 
-    // not supported ;)
-    /*fun unpause(){
-        start(pauseTime)
-    }
-
-    fun pause(){
-        if(!isPlaying) return
-        pauseTime = (System.nanoTime() - startTime)*1e-9f
-        isPlaying = false
-        alSource.pause()
-    }*/
-
     fun stop() {
         if (!isPlaying) throw RuntimeException()
         isPlaying = false
@@ -73,18 +67,19 @@ class AudioStreamOpenAL(
         // ALBase.check()
     }
 
+    val cachedBuffers = 10
 
     fun waitForRequiredBuffers() {
         if (!isPlaying) return
         val queued = queued.get()
         if (!isWaitingForBuffer.get() && queued > 0) checkProcessed()
         // keep 2 on reserve
-        if (queued < processed + 5 && !isWaitingForBuffer.get()) {
+        if (queued < processed + cachedBuffers && !isWaitingForBuffer.get()) {
             // request a buffer
             // only one at a time
             val index = this.queued.getAndIncrement()
             // loading $index...
-            requestNextBuffer(startTime + playbackSliceDuration * index, index)
+            requestNextBuffer(index)
         }
         if (isPlaying) {
             AudioTasks.addNextTask(1) {
@@ -94,50 +89,61 @@ class AudioStreamOpenAL(
         }
     }
 
-    companion object {
-        val taskQueue = ProcessingQueue("ShortTasks")
-    }
+    var hadFirstBuffer = false
 
     override fun onBufferFilled(stereoBuffer: ShortBuffer, bufferIndex: Long) {
         if (!isPlaying) return
         AudioTasks.addTask(10) {
             if (isPlaying) {
-                val isFirstBuffer = bufferIndex == 0L
+
                 ALBase.check()
                 val soundBuffer = SoundBuffer()
                 ALBase.check()
-                // todo wait until we have enough data to be played back...
-                // todo then it needs to work like this, because that's already perfect:
-                if (isFirstBuffer) {
+
+                // todo wait until we have enough data to be played back
+                // then it needs to work like this, because that's already perfect:
+
+                // todo load audio continuously the whole time, so we have it, when it's required
+
+                var isFirstBuffer = false
+                if (!hadFirstBuffer) {
+
                     val dt = max(0f, (System.nanoTime() - startTimeNanos) * 1e-9f)
-                    // "skipping first $dt"
+                    LOGGER.info("Skipping first ${dt}s")
                     // 10s slices -> 2.6s
                     // 1s slices -> 0.55s
+
                     val samples = dt * playbackSampleRate
-                    val currentIndex = samples.toInt() * 2
-                    // what if index > sampleCount? add empty buffer???...
-                    val minPlayedSamples = 32 // not correct, but who cares ;) (our users care ssshhh)
-                    val skipIndex = min(currentIndex, stereoBuffer.capacity() - 2 * minPlayedSamples)
-                    if (skipIndex > 0) {
-                        // "skipping $skipIndex"
-                        stereoBuffer.position(skipIndex)
-                    }
+                    val capacity = stereoBuffer.capacity()
+                    val targetIndex = samples.toInt() * 2
+                    val availableIndex = (bufferIndex + 1) * capacity
+                    if(availableIndex > targetIndex + 256){
+                        if (targetIndex in 1 until capacity) {
+                            // LOGGER.info("Skipping $targetIndex/$capacity")
+                            stereoBuffer.position(targetIndex)
+                        }
+                    }// else delayed, but we have no alternative
+
+                    isFirstBuffer = true
+                    hadFirstBuffer = true
                 }
+
                 soundBuffer.loadRawStereo16(stereoBuffer, playbackSampleRate)
                 soundBuffer.ensureData()
                 buffers.add(soundBuffer)
                 ALBase.check()
-                // ("Invalid Name? alSourceQueueBuffers(${alSource.sourcePtr}, ${soundBuffer.buffer})")
-                // ("putting buffer ${soundBuffer.pcm?.capacity()}")
+
                 alSourceQueueBuffers(alSource.sourcePtr, soundBuffer.buffer)
                 ALBase.check()
                 if (isFirstBuffer) {
                     alSource.play()
                     ALBase.check()
                 }
+
                 // time += openALSliceDuration
                 isWaitingForBuffer.set(false)
                 ALBase.check()
+
             }
         }
     }

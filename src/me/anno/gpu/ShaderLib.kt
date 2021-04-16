@@ -10,6 +10,7 @@ import me.anno.objects.effects.types.GLSLLib
 import me.anno.objects.modes.UVProjection
 import me.anno.studio.rems.Scene.noiseFunc
 import me.anno.utils.Clock
+import me.anno.utils.types.Strings.isBlank2
 import org.lwjgl.opengl.GL20
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -720,7 +721,7 @@ object ShaderLib {
 
         fun createSwizzleShader(swizzle: String): Shader {
             return createShaderPlus(
-                "3d-${if (swizzle.isBlank()) "rgba" else swizzle}",
+                "3d-${if (swizzle.isEmpty()) "rgba" else swizzle}",
                 v3D, y3D, "" +
                         "uniform vec4 tint;\n" +
                         "uniform sampler2D tex;\n" +

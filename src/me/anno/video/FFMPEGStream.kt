@@ -38,12 +38,28 @@ abstract class FFMPEGStream(val file: File?, val isProcessCountLimited: Boolean)
             )
         ) as FFMPEGMeta).stringData
 
-        fun getImageSequence(input: File, w: Int, h: Int, startFrame: Int, frameCount: Int, fps: Double, frameCallback: (VFrame, Int) -> Unit) =
+        fun getImageSequence(
+            input: File,
+            w: Int,
+            h: Int,
+            startFrame: Int,
+            frameCount: Int,
+            fps: Double,
+            frameCallback: (VFrame, Int) -> Unit
+        ) =
             getImageSequence(input, w, h, startFrame / fps, frameCount, fps, frameCallback)
 
         // ffmpeg needs to fetch hardware decoded frames (-hwaccel auto) from gpu memory;
         // if we use hardware decoding, we need to use it on the gpu...
-        fun getImageSequence(input: File, w: Int, h: Int, startTime: Double, frameCount: Int, fps: Double, frameCallback: (VFrame, Int) -> Unit) =
+        fun getImageSequence(
+            input: File,
+            w: Int,
+            h: Int,
+            startTime: Double,
+            frameCount: Int,
+            fps: Double,
+            frameCallback: (VFrame, Int) -> Unit
+        ) =
             FFMPEGVideo(
                 input, w, h, (startTime * fps).roundToInt(), frameCount,
                 frameCallback
@@ -95,15 +111,15 @@ abstract class FFMPEGStream(val file: File?, val isProcessCountLimited: Boolean)
             thread {
                 while (true) {
                     val line = reader.readLine() ?: break
-                    val lineWithPrefix = if(prefix.isEmpty()){
+                    val lineWithPrefix = if (prefix.isEmpty()) {
                         line
                     } else {
                         "[$prefix] $line"
                     }
-                    if(warn){
-                        Companion.LOGGER.warn(lineWithPrefix)
+                    if (warn) {
+                        LOGGER.warn(lineWithPrefix)
                     } else {
-                        Companion.LOGGER.info(lineWithPrefix)
+                        LOGGER.info(lineWithPrefix)
                     }
                 }
             }
@@ -115,14 +131,14 @@ abstract class FFMPEGStream(val file: File?, val isProcessCountLimited: Boolean)
 
     fun run(arguments: List<String>): FFMPEGStream {
         if (isProcessCountLimited) processLimiter.acquire()
-        LOGGER.info("${(GFX.gameTime*1e-9f).f3()} ${arguments.joinToString(" ")}")
+        LOGGER.info("${(GFX.gameTime * 1e-9f).f3()} ${arguments.joinToString(" ")}")
         val args = ArrayList<String>(arguments.size + 2)
         args += FFMPEG.ffmpegPathString
         if (arguments.isNotEmpty()) args += "-hide_banner"
         args += arguments
         val process = ProcessBuilder(args).start()
         process(process, arguments)
-        thread {
+        thread(name = "Waiting4Process,$file") {
             process.waitFor()
             processLimiter.release()
         }
@@ -143,7 +159,7 @@ abstract class FFMPEGStream(val file: File?, val isProcessCountLimited: Boolean)
         thread {
             while (true) {
                 val read = stream.read()
-                if(read < 0) break
+                if (read < 0) break
             }
         }
     }

@@ -3,7 +3,6 @@ package me.anno.cache.data
 import com.drew.imaging.ImageMetadataReader
 import com.drew.metadata.exif.ExifIFD0Directory
 import me.anno.cache.instances.VideoCache.getVideoFrame
-import me.anno.config.DefaultStyle.white4
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXx3D.shader3DUniforms
 import me.anno.gpu.ShaderLib.shader3DYUV
@@ -15,19 +14,16 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.image.HDRImage
 import me.anno.objects.Video.Companion.imageTimeout
 import me.anno.objects.modes.RotateJPEG
-import me.anno.utils.LOGGER
 import me.anno.utils.Nullable.tryOrException
 import me.anno.utils.Nullable.tryOrNull
 import me.anno.utils.Sleep.waitUntilDefined
 import me.anno.utils.types.Strings.getImportType
 import me.anno.video.VFrame
 import org.apache.commons.imaging.Imaging
-import org.joml.Matrix4f
-import org.joml.Vector4f
+import org.apache.logging.log4j.LogManager
 import java.awt.image.BufferedImage
 import java.io.File
 import javax.imageio.ImageIO
-
 
 class ImageData(file: File) : ICacheData {
 
@@ -35,6 +31,8 @@ class ImageData(file: File) : ICacheData {
     var framebuffer: Framebuffer? = null
 
     companion object {
+
+        private val LOGGER = LogManager.getLogger(ImageData::class)
 
         fun getRotation(file: File): RotateJPEG? {
             var rotation: RotateJPEG? = null

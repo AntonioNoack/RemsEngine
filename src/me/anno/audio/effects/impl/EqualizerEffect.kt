@@ -2,10 +2,10 @@ package me.anno.audio.effects.impl
 
 import me.anno.audio.effects.Domain
 import me.anno.audio.effects.SoundEffect
+import me.anno.audio.effects.SoundPipeline.Companion.bufferSize
 import me.anno.audio.effects.Time
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
-import me.anno.io.text.TextReader
 import me.anno.objects.Audio
 import me.anno.objects.Camera
 import me.anno.objects.animation.AnimatedProperty
@@ -46,6 +46,10 @@ class EqualizerEffect : SoundEffect(Domain.FREQUENCY_DOMAIN, Domain.FREQUENCY_DO
         AnimatedProperty.float01(0.5f)
     }
 
+    override fun getStateAsImmutableKey(source: Audio, destination: Camera, time0: Time, time1: Time): Any {
+        return sliders.joinToString()
+    }
+
     override fun save(writer: BaseWriter) {
         super.save(writer)
         writer.writeObjectArray(this, "sliders", sliders)
@@ -75,7 +79,16 @@ class EqualizerEffect : SoundEffect(Domain.FREQUENCY_DOMAIN, Domain.FREQUENCY_DO
         )
     }
 
-    override fun apply(data: FloatArray, source: Audio, destination: Camera, time0: Time, time1: Time): FloatArray {
+    override fun apply(
+        getDataSrc: (Int) -> FloatArray,
+        dataDst: FloatArray,
+        source: Audio,
+        destination: Camera,
+        time0: Time,
+        time1: Time
+    ) {
+
+        val dataSrc = getDataSrc(0)
 
         val dt = time1.localTime - time0.localTime
         val time = time0.localTime + dt / 2
@@ -83,7 +96,8 @@ class EqualizerEffect : SoundEffect(Domain.FREQUENCY_DOMAIN, Domain.FREQUENCY_DO
         val sliders = sliders.map { it[time] }
         if (sliders.all { abs(it - 0.5) < 1e-3f }) {
             // println("no change at all")
-            return data
+            copy(dataSrc, dataDst)
+            return
         }
 
         val firstSlider = sliders.first()
@@ -91,32 +105,27 @@ class EqualizerEffect : SoundEffect(Domain.FREQUENCY_DOMAIN, Domain.FREQUENCY_DO
             // println("all the same")
             // just multiply everything
             val amplitude = pow(range, firstSlider - 0.5f)
-            if(amplitude < 1e-7f) {
-                for(i in data.indices) data[i] = 0f
+            if (amplitude < 1e-7f) {
+                for (i in 0 until bufferSize) dataDst[i] = 0f
             } else {
-                for(i in data.indices) data[i] *= amplitude
+                for (i in 0 until bufferSize) dataDst[i] = dataSrc[i] * amplitude
             }
-            return data
         }
 
         val slidersArray = sliders.toFloatArray()
-        processBalanced(1, data.size / 2, 256) { i0, i1 ->
+        processBalanced(1, bufferSize / 2, 256) { i0, i1 ->
             for (i in i0 until i1) {
                 val frequency = i / dt // in Hz
                 val multiplier = getAmplitude(frequency, slidersArray)
                 if (multiplier != 1f) {
-                    data[i * 2] *= multiplier
-                    data[i * 2 + 1] *= multiplier
+                    val j = i * 2
+                    val k = j + 1
+                    dataDst[j] = dataSrc[j] * multiplier
+                    dataDst[k] = dataSrc[k] * multiplier
                 }
             }
         }
 
-        return data
-
-    }
-
-    override fun clone(): SoundEffect {
-        return TextReader.fromText(toString()).first() as SoundEffect
     }
 
     override val displayName: String = "Equalizer"

@@ -16,10 +16,13 @@ object FFMPEGUtils {
         logger: Logger,
         name: String,
         startTime: Long,
+        targetFPS: Double,
         totalFrameCount: Long,
         stream: InputStream
     ) {
         val out = stream.bufferedReader()
+        var lastTime = GFX.gameTime
+        var progressGuess = 0.0
         while (true) {
             val line = out.readLine() ?: break
             if (line.contains("unable", true) ||
@@ -37,9 +40,13 @@ object FFMPEGUtils {
                 var fps = 0f
                 var quality = 0f
                 var size = 0
-                val elapsedTime = (GFX.gameTime - startTime) * 1e-9
+                val thisTime = GFX.gameTime
+                val deltaTime = thisTime-lastTime
+                lastTime = thisTime
+                val elapsedTime = (thisTime - startTime) * 1e-9
                 var bitrate = 0
-                var speed = 0f
+                var hasFrameInformation = false
+                var speedStr = "?"
                 var remaining = line
                 while (remaining.isNotEmpty()) {
                     val firstIndex = remaining.indexOf('=')
@@ -51,7 +58,17 @@ object FFMPEGUtils {
                     val value = remaining.substring(0, secondIndex)
                     try {
                         when (key.toLowerCase()) {
-                            "speed" -> speed = value.substring(0, value.length - 1).toFloat() // 0.15x
+                            "speed" -> {
+                                // if frame is not delivered (rendering audio only), update frame
+                                speedStr = value
+                                val speed = value.substring(0, value.length-1).toDouble()
+                                if(!hasFrameInformation){
+                                    // time since last: guess fps
+                                    progressGuess += speed * deltaTime * targetFPS / 1e9
+                                    frameIndex = progressGuess.toLong()
+                                    fps = (speed * targetFPS).toFloat()
+                                }
+                            } // 0.15x
                             "bitrate" -> {
                                 // parse bitrate? or just display it?
                             }
@@ -60,7 +77,10 @@ object FFMPEGUtils {
                             }
                             "q" -> {
                             } // quality?
-                            "frame" -> frameIndex = value.toLong()
+                            "frame" -> {
+                                frameIndex = value.toLong()
+                                hasFrameInformation = true
+                            }
                             "fps" -> fps = value.toFloat()
                         }
                     } catch (e: Exception) {
@@ -77,13 +97,17 @@ object FFMPEGUtils {
                 // round the value to not confuse artists (and to "give" 0.5s "extra" ;))
                 val remainingTime =
                     if (frameIndex == 0L) "Unknown"
-                    else round(elapsedTime / relativeProgress * (1.0 - relativeProgress)).formatTime2(0)
+                    else StrictMath
+                        .max(0.0, round(elapsedTime / relativeProgress * (1.0 - relativeProgress)))
+                        .formatTime2(0)
                 val progress =
                     if (frameIndex == totalFrameCount) " Done"
                     else "${formatPercent(relativeProgress)}%".withLength(5)
+                val fpsString = if(name == "Audio") "" else "fps: ${fps.toString().withLength(5)}, "
                 logger.info(
                     "$name-Progress: $progress, " +
-                            "fps: ${fps.toString().withLength(5)}, " +
+                            fpsString +
+                            "speed: ${speedStr.withLength(5)}, " +
                             "elapsed: ${round(elapsedTime).formatTime2(0)}, " +
                             "remaining: $remainingTime"
                 )

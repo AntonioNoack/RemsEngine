@@ -2,7 +2,6 @@ package me.anno.utils.types
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX.loadTexturesSync
-import me.anno.gpu.GFXx2D.getSizeX
 import me.anno.gpu.GFXx2D.getTextSizeX
 import me.anno.ui.base.Font
 import me.anno.ui.base.text.TextPanel
@@ -142,34 +141,48 @@ object Strings {
         return str.filter { it in 'A'..'Z' || it in 'a'..'z' || it in '0'..'9' }
     }
 
+    // made external, so it avoids useless allocations
+    private fun append(i: Int, lastI: Int, value: String, data: StringBuilder, str: String): Int {
+        if (i > lastI) data.append(value, lastI, i)
+        data.append(str)
+        return i + 1
+    }
+
     fun writeEscaped(value: String, data: StringBuilder) {
         var i = 0
         var lastI = 0
-        fun put() {
-            if (i > lastI) {
-                data.append(value.substring(lastI, i))
-            }
-            lastI = i + 1
-        }
         while (i < value.length) {
-            fun append(str: String) {
-                put()
-                data.append(str)
-            }
             when (value[i]) {
-                '\\' -> append("\\\\")
-                '\t' -> append("\\t")
-                '\r' -> append("\\r")
-                '\n' -> append("\\n")
-                '"' -> append("\\\"")
-                '\b' -> append("\\b")
-                12.toChar() -> append("\\f")
+                '\\' -> lastI = append(i, lastI, value, data, "\\\\")
+                '\t' -> lastI = append(i, lastI, value, data, "\\t")
+                '\r' -> lastI = append(i, lastI, value, data, "\\r")
+                '\n' -> lastI = append(i, lastI, value, data, "\\n")
+                '"' -> lastI = append(i, lastI, value, data, "\\\"")
+                '\b' -> lastI = append(i, lastI, value, data, "\\b")
+                12.toChar() -> lastI = append(i, lastI, value, data, "\\f")
                 else -> {
                 } // nothing
             }
             i++
         }
-        put()
+        if (i > lastI) data.append(value, lastI, i)
+    }
+
+    // the normal isBlank() allocates memory, even though it's just a test
+    fun String.isBlank2(): Boolean {
+        for (index in 0 until length) {
+            when (this[index]) {
+                '\u0009', in '\u000a'..'\u000d',
+                '\u0020', '\u0085', '\u00a0',
+                '\u1680', '\u180e',
+                in '\u2000'..'\u200D',
+                '\u2028', '\u2029', '\u202f',
+                '\u205f', '\u2060', '\u3000',
+                '\ufeff' -> Unit
+                else -> return false
+            }
+        }
+        return true
     }
 
 }

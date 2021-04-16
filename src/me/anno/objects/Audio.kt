@@ -25,7 +25,7 @@ import java.io.File
 abstract class Audio(var file: File = File(""), parent: Transform? = null) : GFXTransform(parent) {
 
     val amplitude = AnimatedProperty.floatPlus(1f)
-    var effects = SoundPipeline(this)
+    var pipeline = SoundPipeline(this)
     val isLooping = ValueWithDefaultFunc {
         if (file.extension.equals("gif", true)) LoopingState.PLAY_LOOP
         else LoopingState.PLAY_ONCE
@@ -85,7 +85,8 @@ abstract class Audio(var file: File = File(""), parent: Transform? = null) : GFX
         getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
     ) {
         super.createInspector(list, style, getGroup)
-        effects.apply {
+        pipeline.effects.forEach { it.audio = this }
+        pipeline.apply {
             audio = this@Audio
             createInspector(list, style, getGroup)
         }
@@ -95,7 +96,7 @@ abstract class Audio(var file: File = File(""), parent: Transform? = null) : GFX
         super.save(writer)
         writer.writeFile("file", file)
         writer.writeObject(this, "amplitude", amplitude)
-        writer.writeObject(this, "effects", effects)
+        writer.writeObject(this, "effects", pipeline)
         writer.writeMaybe(this, "isLooping", isLooping)
     }
 
@@ -109,7 +110,7 @@ abstract class Audio(var file: File = File(""), parent: Transform? = null) : GFX
     override fun readObject(name: String, value: ISaveable?) {
         when (name) {
             "amplitude" -> amplitude.copyFrom(value)
-            "effects" -> effects = value as? SoundPipeline ?: return
+            "effects" -> pipeline = value as? SoundPipeline ?: return
             else -> super.readObject(name, value)
         }
     }
