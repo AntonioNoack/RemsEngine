@@ -94,7 +94,7 @@ fun maxDistance(x: DoubleArray): Double {
 
 fun loadMatrix() {
     // load matrix
-    val srcFile = File(OS.downloads, "MMfO.3.data.txt")
+    val srcFile = File(OS.downloads.file, "MMfO.3.data.txt")
     val reader = srcFile.bufferedReader()
     for (lineIndex in 0 until vectorCount) {
         val line = reader.readLine()!!// ?: break

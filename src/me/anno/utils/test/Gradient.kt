@@ -13,5 +13,5 @@ fun main(){
             img.setRGB(x, y, color)
         }
     }
-    ImageIO.write(img, "png", File(OS.desktop, "gradient.png"))
+    ImageIO.write(img, "png", File(OS.desktop.file, "gradient.png"))
 }

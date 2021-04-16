@@ -1,5 +1,5 @@
 package me.anno.ui.editor.files.thumbs
 
-import java.io.File
+import me.anno.io.FileReference
 
-data class ThumbnailKey(val file: File, val size: Int)
+data class ThumbnailKey(val file: FileReference, val size: Int)

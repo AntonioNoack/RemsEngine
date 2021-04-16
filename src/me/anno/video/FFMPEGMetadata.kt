@@ -3,14 +3,15 @@ package me.anno.video
 import me.anno.cache.CacheSection
 import me.anno.cache.data.ICacheData
 import me.anno.cache.instances.LastModifiedCache
+import me.anno.gpu.GFX
 import me.anno.io.json.JsonArray
 import me.anno.io.json.JsonObject
 import me.anno.io.json.JsonReader
+import me.anno.io.FileReference
 import me.anno.utils.types.Strings.parseTime
 import org.apache.logging.log4j.LogManager
-import java.io.File
 
-class FFMPEGMetadata(val file: File) : ICacheData {
+class FFMPEGMetadata(val file: FileReference) : ICacheData {
 
     val duration: Double
 
@@ -38,7 +39,7 @@ class FFMPEGMetadata(val file: File) : ICacheData {
             "-show_format",
             "-show_streams",
             "-print_format", "json",
-            file.absolutePath
+            file.file.absolutePath
         )
 
         val process = ProcessBuilder(args).start()
@@ -113,7 +114,7 @@ class FFMPEGMetadata(val file: File) : ICacheData {
     }
 
     // not working for the problematic file 001.gif
-    fun getDurationIfMissing(file: File): Double {
+    fun getDurationIfMissing(file: FileReference): Double {
 
         val args = listOf(
             // ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 input.mp4
@@ -145,12 +146,12 @@ class FFMPEGMetadata(val file: File) : ICacheData {
     companion object {
         private val LOGGER = LogManager.getLogger(FFMPEGMetadata::class)
         private val metadataCache = CacheSection("Metadata")
-        fun getMeta(file: File, async: Boolean): FFMPEGMetadata? {
+        private fun createMetadata(file: FileReference) = FFMPEGMetadata(file)
+        fun getMeta(file: FileReference, async: Boolean): FFMPEGMetadata? {
             val key = LastModifiedCache[file]
             if (key.isDirectory || !key.exists) return null
-            return metadataCache.getEntry(file, 300_000, async) {
-                FFMPEGMetadata(file)
-            } as? FFMPEGMetadata
+            if (!async) GFX.checkIsNotGFXThread()
+            return metadataCache.getEntry(file, 300_000, async, ::createMetadata) as? FFMPEGMetadata
         }
     }
 

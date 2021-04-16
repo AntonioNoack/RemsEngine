@@ -1,20 +1,23 @@
 package me.anno.video
 
 import me.anno.gpu.GFX
+import me.anno.io.FileReference
 import me.anno.utils.hpc.HeavyProcessing.threads
+import me.anno.utils.hpc.ProcessingQueue
 import me.anno.utils.types.Floats.f3
 import me.anno.video.FFMPEGMetadata.Companion.getMeta
 import org.apache.logging.log4j.LogManager
 import java.io.File
 import java.io.InputStream
 import java.util.concurrent.Semaphore
+import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
 import kotlin.math.max
 import kotlin.math.roundToInt
 
 // ffmpeg requires 100MB RAM per instance -> do we really need multiple instances, or does one work fine
 // done keep only a certain amount of ffmpeg instances running
-abstract class FFMPEGStream(val file: File?, val isProcessCountLimited: Boolean) {
+abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited: Boolean) {
 
     var sourceFPS = -1.0
     var sourceLength = 0.0
@@ -25,7 +28,8 @@ abstract class FFMPEGStream(val file: File?, val isProcessCountLimited: Boolean)
         // 5GB = 50 processes, at 6 cores / 12 threads = 4 ratio
         val processLimiter = Semaphore(max(2, threads), true)
         private val LOGGER = LogManager.getLogger(FFMPEGStream::class)
-        val frameCountByFile = HashMap<File, Int>()
+        val frameCountByFile = HashMap<FileReference, Int>()
+        val waitingQueue = ProcessingQueue("WaitingQueue")
         fun getInfo(input: File) = (FFMPEGMeta(null).run(
             listOf(
                 "-i", input.absolutePath
@@ -39,7 +43,7 @@ abstract class FFMPEGStream(val file: File?, val isProcessCountLimited: Boolean)
         ) as FFMPEGMeta).stringData
 
         fun getImageSequence(
-            input: File,
+            input: FileReference,
             w: Int,
             h: Int,
             startFrame: Int,
@@ -52,7 +56,7 @@ abstract class FFMPEGStream(val file: File?, val isProcessCountLimited: Boolean)
         // ffmpeg needs to fetch hardware decoded frames (-hwaccel auto) from gpu memory;
         // if we use hardware decoding, we need to use it on the gpu...
         fun getImageSequence(
-            input: File,
+            input: FileReference,
             w: Int,
             h: Int,
             startTime: Double,
@@ -86,7 +90,7 @@ abstract class FFMPEGStream(val file: File?, val isProcessCountLimited: Boolean)
                 }
             ) as FFMPEGVideo
 
-        fun getAudioSequence(input: File, startTime: Double, duration: Double, sampleRate: Int) =
+        fun getAudioSequence(input: FileReference, startTime: Double, duration: Double, sampleRate: Int) =
             FFMPEGAudio(input, sampleRate, duration).run(
                 listOf(
                     "-i", input.absolutePath,
@@ -130,19 +134,34 @@ abstract class FFMPEGStream(val file: File?, val isProcessCountLimited: Boolean)
     abstract fun destroy()
 
     fun run(arguments: List<String>): FFMPEGStream {
+
         if (isProcessCountLimited) processLimiter.acquire()
+
         LOGGER.info("${(GFX.gameTime * 1e-9f).f3()} ${arguments.joinToString(" ")}")
+
         val args = ArrayList<String>(arguments.size + 2)
         args += FFMPEG.ffmpegPathString
         if (arguments.isNotEmpty()) args += "-hide_banner"
         args += arguments
+
         val process = ProcessBuilder(args).start()
         process(process, arguments)
-        thread(name = "Waiting4Process,$file") {
-            process.waitFor()
-            processLimiter.release()
+        if (isProcessCountLimited) {
+            waitForRelease(process)
         }
+
         return this
+
+    }
+
+    fun waitForRelease(process: Process) {
+        waitingQueue += {
+            if (process.waitFor(1, TimeUnit.MILLISECONDS)) {
+                processLimiter.release()
+            } else {
+                waitForRelease(process)
+            }
+        }
     }
 
     abstract fun process(process: Process, arguments: List<String>)

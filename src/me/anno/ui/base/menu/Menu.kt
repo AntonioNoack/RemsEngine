@@ -2,6 +2,7 @@ package me.anno.ui.base.menu
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.Window
 import me.anno.input.Input
 import me.anno.input.MouseButton
@@ -204,6 +205,8 @@ object Menu {
 
         val maxWidth = max(300, GFX.width)
         val maxHeight = max(300, GFX.height)
+
+        // could we do the calculation on another thread?
         container.calculateSize(maxWidth, maxHeight)
         container.applyPlacement(min(container.minW, maxWidth), min(container.minH, maxHeight))
 

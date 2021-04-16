@@ -2,23 +2,23 @@ package me.anno.mesh.obj
 
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
+import me.anno.io.FileReference
 import me.anno.utils.files.LocalFile.toGlobalFile
 import org.joml.Vector3f
-import java.io.File
 
 // https://en.wikipedia.org/wiki/Wavefront_.obj_file
 class Material : Saveable() {
     var ambientColor: Vector3f? = null // Ka
-    var ambientTexture: File? = null
+    var ambientTexture: FileReference? = null
     var diffuseColor: Vector3f? = null // Kd
-    var diffuseTexture: File? = null
+    var diffuseTexture: FileReference? = null
     var emissiveColor: Vector3f? = null
-    var emissiveTexture: File? = null
+    var emissiveTexture: FileReference? = null
     var specularColor: Vector3f? = null // Ks
-    var specularTexture: File? = null
+    var specularTexture: FileReference? = null
     var specularExponent = 0f // [0, 1000], Ns
     var opacity = 1f // d, or 1-Tr
-    var opacityTexture: File? = null
+    var opacityTexture: FileReference? = null
     var refractionIndex = 1f // Ni [0.001, 10]
     var model = IlluminationModel.COLOR
     override fun getClassName() = "Material"

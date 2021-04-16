@@ -5,6 +5,7 @@ import me.anno.gpu.GFXx2D.drawRect
 import me.anno.input.Input.mouseX
 import me.anno.input.Input.mouseY
 import me.anno.input.MouseButton
+import me.anno.io.FileReference
 import me.anno.objects.Transform
 import me.anno.objects.Transform.Companion.toTransform
 import me.anno.studio.rems.RemsStudio
@@ -153,7 +154,7 @@ class TreeView(style: Style) :
         return true
     }
 
-    override fun onPasteFiles(x: Float, y: Float, files: List<File>) {
+    override fun onPasteFiles(x: Float, y: Float, files: List<FileReference>) {
         files.forEach { addChildFromFile(root, it, null, true) {} }
     }
 

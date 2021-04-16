@@ -24,6 +24,7 @@ import me.anno.input.Input.mouseX
 import me.anno.input.Input.mouseY
 import me.anno.input.MouseButton
 import me.anno.input.Touch.Companion.touches
+import me.anno.io.FileReference
 import me.anno.language.translation.Dict
 import me.anno.objects.Camera
 import me.anno.objects.Transform
@@ -319,7 +320,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
 
     fun takeScreenshot() {
 
-        val folder = File(OS.pictures, "Screenshots")
+        val folder = File(OS.pictures.file, "Screenshots")
         folder.mkdirs()
         val format = SimpleDateFormat("yyyy-MM-dd_HH.mm.ss")
         var name = format.format(Date())
@@ -910,7 +911,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
         }
     }
 
-    override fun onPasteFiles(x: Float, y: Float, files: List<File>) {
+    override fun onPasteFiles(x: Float, y: Float, files: List<FileReference>) {
         files.forEach { file -> addChildFromFile(root, file, null, true) { } }
         invalidateDrawing()
     }

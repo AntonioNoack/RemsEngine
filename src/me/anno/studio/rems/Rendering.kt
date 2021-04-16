@@ -1,5 +1,6 @@
 package me.anno.studio.rems
 
+import me.anno.io.FileReference
 import me.anno.language.translation.NameDesc
 import me.anno.objects.Audio
 import me.anno.studio.rems.RemsStudio.motionBlurSteps
@@ -17,7 +18,6 @@ import org.apache.logging.log4j.LogManager
 import java.io.File
 import kotlin.math.max
 import kotlin.math.roundToInt
-import kotlin.math.roundToLong
 
 object Rendering {
 
@@ -89,6 +89,9 @@ object Rendering {
     fun getTmpFile(file: File) =
         File(file.parentFile, file.nameWithoutExtension + ".tmp." + targetOutputFile.extension)
 
+    fun getTmpFile(file: FileReference) =
+        FileReference(file.file.parentFile, file.nameWithoutExtension + ".tmp." + targetOutputFile.extension)
+
     fun renderFrame(width: Int, height: Int, time: Double, ask: Boolean, callback: () -> Unit) {
 
         val targetOutputFile = findTargetOutputFile(RenderType.FRAME)
@@ -156,7 +159,7 @@ object Rendering {
         )
     }
 
-    private fun askOverridingIsAllowed(targetOutputFile: File, callback: () -> Unit) {
+    private fun askOverridingIsAllowed(targetOutputFile: FileReference, callback: () -> Unit) {
         ask(NameDesc("Override %1?").with("%1", targetOutputFile.name), callback)
     }
 
@@ -170,16 +173,16 @@ object Rendering {
         FRAME("Image", ".png")
     }
 
-    fun findTargetOutputFile(type: RenderType): File {
+    fun findTargetOutputFile(type: RenderType): FileReference {
         var targetOutputFile = targetOutputFile
         val defaultExtension = type.extension
         val defaultName = type.defaultName
         do {
             val file0 = targetOutputFile
             if (targetOutputFile.exists() && targetOutputFile.isDirectory) {
-                targetOutputFile = File(targetOutputFile, defaultName)
+                targetOutputFile = FileReference(targetOutputFile, defaultName)
             } else if (!targetOutputFile.name.contains('.')) {
-                targetOutputFile = File(targetOutputFile, defaultExtension)
+                targetOutputFile = FileReference(targetOutputFile, defaultExtension)
             }
         } while (file0 !== targetOutputFile)
         val importType = targetOutputFile.extension.getImportType()
@@ -191,7 +194,7 @@ object Rendering {
         if (importType != targetType) {
             // wrong extension -> place it automatically
             val fileName = targetOutputFile.nameWithoutExtension + defaultExtension
-            return File(targetOutputFile.parentFile, fileName)
+            return FileReference(targetOutputFile.file.parentFile, fileName)
         }
         return targetOutputFile
     }

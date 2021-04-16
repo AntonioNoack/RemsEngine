@@ -5,6 +5,7 @@ import me.anno.extensions.mods.Mod
 import me.anno.extensions.mods.ModManager
 import me.anno.extensions.plugins.Plugin
 import me.anno.extensions.plugins.PluginManager
+import me.anno.io.FileReference
 import me.anno.io.config.ConfigBasics.configFolder
 import me.anno.studio.StudioBase
 import me.anno.utils.Threads.threadWithName
@@ -14,31 +15,30 @@ import java.io.BufferedReader
 import java.io.File
 import java.net.URLClassLoader
 import java.util.zip.ZipInputStream
-import kotlin.concurrent.thread
 
 object ExtensionLoader {
 
-    lateinit var pluginsFolder: File
-    lateinit var modsFolder: File
+    lateinit var pluginsFolder: FileReference
+    lateinit var modsFolder: FileReference
 
     val managers = listOf(
         ModManager, PluginManager
     )
 
+    fun tryCreate(file: FileReference){
+        try {
+            file.mkdirs()
+        } catch (e: Exception){
+            LOGGER.warn("Failed to create $file")
+        }
+    }
+
     fun load() {
 
         unload()
 
-        pluginsFolder = File(configFolder, "plugins")
-        modsFolder = File(configFolder, "mods")
-
-        fun tryCreate(file: File){
-            try {
-                file.mkdirs()
-            } catch (e: Exception){
-                LOGGER.warn("Failed to create $file")
-            }
-        }
+        pluginsFolder = FileReference(configFolder, "plugins")
+        modsFolder = FileReference(configFolder, "mods")
 
         tryCreate(modsFolder)
         tryCreate(pluginsFolder)
@@ -66,29 +66,30 @@ object ExtensionLoader {
         ModManager.disable()
     }
 
-    fun getInfos(): List<ExtensionInfo> {
-        val extInfos0 = ArrayList<ExtensionInfo>()
-        val threads = ArrayList<Thread>()
-        fun add(folder: File?) {
-            for (it in folder?.listFiles() ?: emptyArray()) {
-                if (!it.isDirectory) {
-                    val name = it.name
-                    if (!name.startsWith(".") && name.endsWith(".jar")) {
-                        threads += threadWithName("ExtensionLoader::getInfos()"){
-                            val info = loadInfo(it)
-                            // (check if compatible???)
-                            if (info != null && checkExtensionRequirements(info)) {
-                                synchronized(extInfos0) {
-                                    extInfos0 += info
-                                }
+    private fun add(folder: FileReference?, threads: MutableList<Thread>, extInfos0: MutableList<ExtensionInfo>) {
+        for (it in folder?.listFiles() ?: emptyArray()) {
+            if (!it.isDirectory) {
+                val name = it.name
+                if (!name.startsWith(".") && name.endsWith(".jar")) {
+                    threads += threadWithName("ExtensionLoader::getInfos()"){
+                        val info = loadInfo(it)
+                        // (check if compatible???)
+                        if (info != null && checkExtensionRequirements(info)) {
+                            synchronized(extInfos0) {
+                                extInfos0 += info
                             }
                         }
                     }
                 }
             }
         }
-        add(pluginsFolder)
-        add(modsFolder)
+    }
+
+    fun getInfos(): List<ExtensionInfo> {
+        val extInfos0 = ArrayList<ExtensionInfo>()
+        val threads = ArrayList<Thread>()
+        add(pluginsFolder, threads, extInfos0)
+        add(modsFolder, threads, extInfos0)
         threads.forEach { it.join() }
         return extInfos0
     }

@@ -5,6 +5,7 @@ import me.anno.gpu.GFX
 import me.anno.input.ActionManager
 import me.anno.input.Input
 import me.anno.input.Modifiers
+import me.anno.io.FileReference
 import me.anno.io.utils.StringMap
 import me.anno.objects.modes.TransformVisibility
 import me.anno.studio.StudioBase
@@ -69,7 +70,7 @@ object StudioActions {
 
                     when (type) {
                         "File" -> {
-                            GFX.hoveredPanel?.onPasteFiles(Input.mouseX, Input.mouseY, listOf(File(data)))
+                            GFX.hoveredPanel?.onPasteFiles(Input.mouseX, Input.mouseY, listOf(FileReference(data)))
                         }
                         else -> {
                             GFX.hoveredPanel?.onPaste(Input.mouseX, Input.mouseY, data, type)

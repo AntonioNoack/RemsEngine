@@ -33,7 +33,7 @@ object CheckVersion {
             if (latestVersion > -1) {
                 if (latestVersion > RemsStudio.versionNumber) {
                     val name = "RemsStudio ${formatVersion(latestVersion)}.${if (OS.isWindows) "exe" else "jar"}"
-                    val dst = File(OS.documents, name)
+                    val dst = File(OS.documents.file, name)
                     if (!dst.exists()) {
                         LOGGER.info("Found newer version: $name")
                         // wait for everything to be loaded xD

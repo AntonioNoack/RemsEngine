@@ -13,10 +13,10 @@ import me.anno.objects.Audio
 import me.anno.objects.Camera
 import me.anno.objects.modes.LoopingState
 import me.anno.utils.Maths.clamp
+import me.anno.io.FileReference
 import me.anno.utils.hpc.ProcessingQueue
 import me.anno.video.AudioCreator.Companion.playbackSampleRate
 import org.apache.logging.log4j.LogManager
-import java.io.File
 import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.roundToLong
@@ -26,7 +26,7 @@ object AudioFXCache : CacheSection("AudioFX") {
     data class EffectKey(val effect: SoundEffect, val data: Any, val previous: EffectKey?)
     data class PipelineKey(
         val index: Long,
-        val file: File,
+        val file: FileReference,
         val time0: Time,
         val time1: Time,
         val speed: Double,
@@ -55,7 +55,6 @@ object AudioFXCache : CacheSection("AudioFX") {
             if (other !is PipelineKey) return false
 
             if (hashCode != other.hashCode) return false
-
             if (speed != other.speed) return false
             if (is3D != other.is3D) return false
             if (index != other.index) return false

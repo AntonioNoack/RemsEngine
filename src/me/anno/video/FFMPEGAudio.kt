@@ -2,18 +2,19 @@ package me.anno.video
 
 import me.anno.audio.SoundBuffer
 import me.anno.audio.format.WaveReader
+import me.anno.io.FileReference
 import me.anno.utils.ShutdownException
 import java.io.File
 import kotlin.concurrent.thread
 
-class FFMPEGAudio(file: File?, val sampleRate: Int, val length: Double) :
+class FFMPEGAudio(file: FileReference?, val sampleRate: Int, val length: Double) :
     FFMPEGStream(file, false) {
     // audio should be fast -> not limited
 
     override fun process(process: Process, arguments: List<String>) {
         // ("starting process for audio $sampleRate x $length")
         // (arguments)
-        thread(name = "$file:error-stream") {
+        thread(name = "${file?.name}:error-stream") {
             val out = process.errorStream.bufferedReader()
             val parser = FFMPEGMetaParser()
             try {
@@ -26,7 +27,7 @@ class FFMPEGAudio(file: File?, val sampleRate: Int, val length: Double) :
             }
             out.close()
         }
-        thread(name = "$file:input-stream") {
+        thread(name = "${file?.name}:input-stream") {
             val input = process.inputStream.buffered()
             val frameCount = (sampleRate * length).toInt()
             input.mark(3)

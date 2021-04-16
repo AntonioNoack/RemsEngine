@@ -7,6 +7,7 @@ import me.anno.gpu.GFX.gameTime
 import me.anno.input.ActionManager
 import me.anno.input.Input.keyUpCtr
 import me.anno.installer.Installer.checkInstall
+import me.anno.io.FileReference
 import me.anno.language.translation.Dict
 import me.anno.objects.Camera
 import me.anno.objects.Transform
@@ -53,7 +54,7 @@ object RemsStudio : StudioBase(true, "Rem's Studio", 10005) {
     override fun onGameInit() {
         RemsConfig.init()
         gfxSettings = GFXSettings.get(DefaultConfig["editor.gfx", GFXSettings.LOW.id], GFXSettings.LOW)
-        workspace = DefaultConfig["workspace.dir", File(OS.documents, configName)]
+        workspace = DefaultConfig["workspace.dir", FileReference(OS.documents, configName)]
         checkInstall()
         checkVersion()
     }

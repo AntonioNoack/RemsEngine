@@ -7,6 +7,7 @@ import me.anno.gpu.GFXx3D
 import me.anno.gpu.TextureLib.colorShowTexture
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
+import me.anno.io.FileReference
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.GFXTransform
@@ -36,9 +37,9 @@ import kotlin.math.*
 // todo different types of iterators (pdf pages, parts of images, )
 // todo re-project UV textures onto stuff to animate an image exploding (gets UVs from first frame, then just is a particle system or sth else)
 
-open class DocumentList(var file: File, parent: Transform?) : GFXTransform(parent) {
+open class DocumentList(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
 
-    constructor() : this(File(""), null)
+    constructor() : this(FileReference.empty, null)
 
     var selectedSites = ""
 
@@ -62,7 +63,7 @@ open class DocumentList(var file: File, parent: Transform?) : GFXTransform(paren
     val meta get() = getMeta(file, true)
     val forcedMeta get() = getMeta(file, false)!!
 
-    fun getMeta(src: File, async: Boolean): PDDocument? {
+    fun getMeta(src: FileReference, async: Boolean): PDDocument? {
         return PDFCache.getDocument(src, async)
     }
 

@@ -1,6 +1,7 @@
 package me.anno.ui.input
 
 import me.anno.gpu.Cursor
+import me.anno.io.FileReference
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.input.components.PureTextInputML
@@ -64,7 +65,7 @@ open class TextInputML(title: String, style: Style): PanelContainer(
         return this
     }
 
-    override fun onPasteFiles(x: Float, y: Float, files: List<File>) {
+    override fun onPasteFiles(x: Float, y: Float, files: List<FileReference>) {
         val keyFile = files.firstOrNull() ?: return
         setText(keyFile.toString(), true)
     }

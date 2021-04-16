@@ -8,20 +8,19 @@ import me.anno.objects.Transform
 import me.anno.objects.modes.LoopingState
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.mix
-import me.anno.utils.ShutdownException
 import me.anno.utils.Sleep.waitUntilDefined
+import me.anno.io.FileReference
 import me.anno.utils.hpc.ProcessingGroup
 import me.anno.video.AudioCreator.Companion.playbackSampleRate
 import me.anno.video.FFMPEGMetadata
 import me.anno.video.FFMPEGStream.Companion.getAudioSequence
 import org.joml.Vector3f
-import java.io.File
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
 class AudioStreamRaw(
-    val file: File,
+    val file: FileReference,
     val repeat: LoopingState,
     val meta: FFMPEGMetadata,
     val is3D: Boolean,

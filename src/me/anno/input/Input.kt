@@ -13,6 +13,7 @@ import me.anno.gpu.GFX.windowStack
 import me.anno.input.Touch.Companion.onTouchDown
 import me.anno.input.Touch.Companion.onTouchMove
 import me.anno.input.Touch.Companion.onTouchUp
+import me.anno.io.FileReference
 import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.studio.rems.RemsStudio.history
 import me.anno.studio.rems.RemsStudio.project
@@ -32,6 +33,7 @@ import java.awt.datatransfer.DataFlavor.stringFlavor
 import java.awt.datatransfer.StringSelection
 import java.awt.datatransfer.UnsupportedFlavorException
 import java.io.File
+import java.io.FileReader
 import java.util.*
 import kotlin.collections.HashMap
 import kotlin.collections.set
@@ -48,7 +50,7 @@ object Input {
     var mouseX = 0f
     var mouseY = 0f
 
-    var lastFile: File? = null
+    var lastFile: FileReference? = null
 
     var mouseDownX = 0f
     var mouseDownY = 0f
@@ -112,7 +114,7 @@ object Input {
                     framesSinceLastInteraction = 0
                     requestFocus(getPanelAt(mouseX, mouseY), true)
                     inFocus0?.apply {
-                        onPasteFiles(mouseX, mouseY, files.toList().filterNotNull())
+                        onPasteFiles(mouseX, mouseY, files.filterNotNull().map { FileReference(it) })
                     }
                 }
             }
@@ -365,9 +367,9 @@ object Input {
                                             GLFW.GLFW_KEY_I -> {// import
                                                 threadWithName("Ctrl+I") {
                                                     if (lastFile == null) lastFile = project?.file
-                                                    FileExplorerSelectWrapper.selectFile(lastFile) { file ->
+                                                    FileExplorerSelectWrapper.selectFile(lastFile?.file) { file ->
                                                         if (file != null) {
-                                                            lastFile = file
+                                                            lastFile = FileReference(file)
                                                             addEvent { addChildFromFile(root, file, null, true) {} }
                                                         }
                                                     }
@@ -467,7 +469,7 @@ object Input {
             val data2 = data?.filterIsInstance<File>()
             if (data2 != null && data2.isNotEmpty()) {
                 // println(data2)
-                panel.onPasteFiles(mouseX, mouseY, data2)
+                panel.onPasteFiles(mouseX, mouseY, data2.map { FileReference(it) })
                 // return
             }
         } catch (e: UnsupportedFlavorException) {

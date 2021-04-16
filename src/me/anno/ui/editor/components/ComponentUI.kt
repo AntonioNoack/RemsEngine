@@ -4,6 +4,7 @@ import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.blending.blendModes
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
+import me.anno.io.FileReference
 import me.anno.language.Language
 import me.anno.language.translation.NameDesc
 import me.anno.objects.Transform
@@ -150,7 +151,7 @@ object ComponentUI {
                 }
                 .setIsSelectedListener { self.show(null) }
                 .setTooltip(ttt)
-            is File -> FileInput(title, style, value)
+            is FileReference -> FileInput(title, style, value)
                 .setChangeListener {
                     RemsStudio.incrementalChange("Set $title to \"$it\"", title) {
                         setValue(it as V)

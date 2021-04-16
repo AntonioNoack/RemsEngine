@@ -10,6 +10,7 @@ import me.anno.input.Input
 import me.anno.input.Input.mouseX
 import me.anno.input.Input.mouseY
 import me.anno.input.MouseButton
+import me.anno.io.FileReference
 import me.anno.io.utils.StringMap
 import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
@@ -206,7 +207,7 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style) : PanelListX(
         }
     }
 
-    override fun onPasteFiles(x: Float, y: Float, files: List<File>) {
+    override fun onPasteFiles(x: Float, y: Float, files: List<FileReference>) {
         val transform = getElement()
         files.forEach { addChildFromFile(transform, it, null, true) {} }
     }

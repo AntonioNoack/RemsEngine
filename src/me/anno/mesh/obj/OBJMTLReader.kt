@@ -1,5 +1,6 @@
 package me.anno.mesh.obj
 
+import me.anno.io.FileReference
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector2f
 import org.joml.Vector3f
@@ -99,6 +100,15 @@ open class OBJMTLReader(val reader: InputStream){
         val file = File(parent.parentFile, path)
         if(!file.exists()) LOGGER.warn("Missing file $file")
         return file
+    }
+
+    fun readFile(parent: FileReference): FileReference {
+        skipSpaces()
+        val path = readUntilSpace()
+        skipLine()
+        val file = File(parent.file.parentFile, path)
+        if(!file.exists()) LOGGER.warn("Missing file $file")
+        return FileReference(file)
     }
 
 }

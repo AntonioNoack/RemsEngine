@@ -113,7 +113,7 @@ class SVGCurve(points: MutableList<Vector2d>, closed: Boolean, val depth: Double
             gfx.drawLine(ix(c), iy(c), ix(a), iy(a))
         }
 
-        ImageIO.write(img, "png", File(OS.desktop, "svg/${points.first().hashCode() xor points[1].hashCode()}.png"))
+        ImageIO.write(img, "png", File(OS.desktop.file, "svg/${points.first().hashCode() xor points[1].hashCode()}.png"))
 
     }
 

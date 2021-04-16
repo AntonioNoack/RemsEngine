@@ -2,12 +2,14 @@ package me.anno.io.utils
 
 import me.anno.gpu.GFX.gameTime
 import me.anno.gpu.texture.Filtering
+import me.anno.io.FileReference
 import me.anno.io.base.BaseWriter
 import me.anno.io.config.ConfigBasics
 import me.anno.io.config.ConfigEntry
 import me.anno.ui.editor.files.toAllowedFilename
 import me.anno.utils.OS
 import me.anno.utils.Threads.threadWithName
+import me.anno.utils.hpc.ProcessingQueue
 import org.joml.Vector3f
 import java.io.File
 import kotlin.concurrent.thread
@@ -151,12 +153,26 @@ open class StringMap(
     operator fun get(key: String, default: File): File {
         return when (val value = this[key]) {
             is File -> value
+            is FileReference -> value.file
             is String -> parseFile(value)
             null -> {
                 set(key, default)
                 default
             }
             else -> parseFile(value.toString())
+        }
+    }
+
+    operator fun get(key: String, default: FileReference): FileReference {
+        return when (val value = this[key]) {
+            is File -> FileReference(value)
+            is FileReference -> value
+            is String -> FileReference(parseFile(value))
+            null -> {
+                set(key, default)
+                default
+            }
+            else -> FileReference(parseFile(value.toString()))
         }
     }
 
@@ -280,13 +296,13 @@ open class StringMap(
                 if (abs(lastSaveTime - gameTime) >= saveDelay) {// only save every 1s
                     // delay in case it needs longer
                     lastSaveTime = gameTime + (60 * 1e9).toLong()
-                    threadWithName("StringMap::saveMaybe") {
+                    savingQueue += {
                         save(name)
                         lastSaveTime = gameTime
                     }
                 } else {
-                    threadWithName("StringMap::saveMaybe2") {
-                        Thread.sleep(saveDelay / 1_000_000 / 10)
+                    savingQueue += {
+                        Thread.sleep(10)
                         saveMaybe(name)
                     }
                 }
@@ -301,5 +317,9 @@ open class StringMap(
     }
 
     override fun isDefaultValue() = false
+
+    companion object {
+        val savingQueue = ProcessingQueue("StringMap-Saving")
+    }
 
 }

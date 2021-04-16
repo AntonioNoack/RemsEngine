@@ -42,12 +42,12 @@ import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.text.UpdatingTextPanel
 import me.anno.ui.editor.SettingCategory
-import me.anno.ui.editor.files.hasValidName
 import me.anno.ui.input.EnumInput
 import me.anno.ui.style.Style
 import me.anno.utils.Clipping
 import me.anno.utils.Maths.mix
 import me.anno.utils.Maths.pow
+import me.anno.io.FileReference
 import me.anno.utils.structures.ValueWithDefault
 import me.anno.utils.structures.ValueWithDefault.Companion.writeMaybe
 import me.anno.utils.structures.maps.BiMap
@@ -61,7 +61,6 @@ import me.anno.video.IsFFMPEGOnly.isFFMPEGOnlyExtension
 import me.anno.video.MissingFrameException
 import me.anno.video.VFrame
 import org.joml.*
-import java.io.File
 import kotlin.collections.set
 import kotlin.math.*
 
@@ -72,7 +71,7 @@ import kotlin.math.*
 /**
  * Images, Cubemaps, Videos, Audios, joint into one
  * */
-class Video(file: File = File(""), parent: Transform? = null) : Audio(file, parent) {
+class Video(file: FileReference = FileReference(""), parent: Transform? = null) : Audio(file, parent) {
 
     // uv
     val tiling = AnimatedProperty.tiling()
@@ -85,7 +84,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
     // resolution
     val videoScale = ValueWithDefault(DefaultConfig["default.video.scale", 6])
 
-    var lastFile: File? = null
+    var lastFile: FileReference? = null
     var lastDuration = 10.0
     var imageSequenceMeta: ImageSequenceMeta? = null
     val imSeqExampleMeta get() = imageSequenceMeta?.matches?.firstOrNull()?.first?.run { getMeta(this, true) }
@@ -100,7 +99,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
     }
 
     override fun startPlayback(globalTime: Double, speed: Double, camera: Camera) {
-        when(type){
+        when (type) {
             VideoType.VIDEO, VideoType.AUDIO -> {
                 super.startPlayback(globalTime, speed, camera)
             }
@@ -551,15 +550,15 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
 
     }
 
-    var lastAddedEndKeyframesFile: File? = null
+    var lastAddedEndKeyframesFile: FileReference? = null
 
-    fun update(){
+    fun update() {
         val file = file
         update(file, file.hasValidName())
     }
 
-    fun update(file: File, hasValidName: Boolean){
-        if(!hasValidName) return
+    fun update(file: FileReference, hasValidName: Boolean) {
+        if (!hasValidName) return
         if (file !== lastFile) {
             lastFile = file
             type = if (file.name.contains(imageSequenceIdentifier)) {
@@ -622,7 +621,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
                 VideoType.IMAGE -> drawImage(stack, time, color)
                 VideoType.AUDIO -> {
                     val meta = meta
-                    if(meta != null) lastDuration = meta.videoDuration
+                    if (meta != null) lastDuration = meta.videoDuration
                     drawSpeakers(stack, Vector4f(color), is3D, amplitude[time])
                 }
                 else -> throw RuntimeException("$type needs visualization") // for the future
@@ -739,7 +738,17 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
             .setChangeListener { _, index, _ -> editorVideoFPS.value = EditorFPS.values()[index] }
             .setIsSelectedListener { show(null) })
 
-        ColorGrading.createInspector(this, cgPower, cgSaturation, cgSlope, cgOffsetAdd, cgOffsetSub, { img(it) }, getGroup, style)
+        ColorGrading.createInspector(
+            this,
+            cgPower,
+            cgSaturation,
+            cgSlope,
+            cgOffsetAdd,
+            cgOffsetSub,
+            { img(it) },
+            getGroup,
+            style
+        )
 
         val audio = getGroup("Audio", "", "audio")
         audio += aud(vi("Amplitude", "How loud it is", "audio.amplitude", amplitude, style))
@@ -831,7 +840,8 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
     override fun getClassName(): String = "Video"
 
     override fun getDefaultDisplayName(): String {
-        return if (file.hasValidName()) file.name
+        // file can be null
+        return if (file != null && file.hasValidName()) file.name
         else Dict["Video", "obj.video"]
     }
 
@@ -866,7 +876,7 @@ class Video(file: File = File(""), parent: Transform? = null) : Audio(file, pare
             videoScaleNames["1/64"] = 64
         }
 
-        val videoFrameTimeout get() = if(isFinalRendering) 2000L else 10000L
+        val videoFrameTimeout get() = if (isFinalRendering) 2000L else 10000L
         val tiling16x9 = Vector4f(8f, 4.5f, 0f, 0f)
 
         val imageTimeout = DefaultConfig["ui.image.frameTimeout", 5000L]

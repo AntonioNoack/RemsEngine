@@ -11,6 +11,11 @@ class SignedDistance(var distance: Float, var dot: Float): Comparable<SignedDist
         SignedDistance(-1e38f, 1f)
     }
 
+    fun clear(){
+        distance = -1e38f
+        dot = 1f
+    }
+
     fun set(other: SignedDistance){
         distance = other.distance
         dot = other.dot

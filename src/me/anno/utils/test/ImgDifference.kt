@@ -13,10 +13,9 @@ import kotlin.math.abs
 
 fun main() {
 
-    val folder = File(OS.pictures, "Screenshots")
+    val folder = File(OS.pictures.file, "Screenshots")
     val i0 = ImageIO.read(File(folder, "i0.png"))
     val i1 = ImageIO.read(File(folder, "i1.png"))
-
 
     val w = Maths.min(i0.width, i1.width)
     val h = Maths.min(i0.height, i1.height)

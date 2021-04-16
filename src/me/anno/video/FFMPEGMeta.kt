@@ -1,8 +1,8 @@
 package me.anno.video
 
-import java.io.File
+import me.anno.io.FileReference
 
-open class FFMPEGMeta(file: File?) :
+open class FFMPEGMeta(file: FileReference?) :
     FFMPEGStream(file, false) {
 
     override fun process(process: Process, arguments: List<String>) {

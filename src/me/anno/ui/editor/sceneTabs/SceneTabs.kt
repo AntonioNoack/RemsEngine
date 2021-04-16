@@ -2,6 +2,7 @@ package me.anno.ui.editor.sceneTabs
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
+import me.anno.io.FileReference
 import me.anno.io.base.BaseWriter
 import me.anno.language.translation.Dict
 import me.anno.objects.Transform
@@ -26,7 +27,7 @@ object SceneTabs : ScrollPanelX(DefaultConfig.style) {
 
     var currentTab: SceneTab? = null
 
-    fun open(file: File) {
+    fun open(file: FileReference) {
         val opened = children3.firstOrNull { it.file == file }
         if (opened != null) {
             open(opened)
@@ -35,7 +36,7 @@ object SceneTabs : ScrollPanelX(DefaultConfig.style) {
                 addChildFromFile(null, file, false, false) { transform ->
                     var file2 = file
                     if (!file2.extension.equals("json", true)) {
-                        file2 = File(file2.parentFile, file2.name + ".json")
+                        file2 = FileReference(file2.file.parentFile, file2.name + ".json")
                     }
                     val tab = SceneTab(file2, transform, null)
                     content += tab

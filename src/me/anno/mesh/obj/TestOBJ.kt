@@ -6,7 +6,7 @@ import java.io.File
 
 fun main(){
 
-    val obj = OBJReader(File(OS.documents, "plane.obj"))
+    val obj = OBJReader(File(OS.documents.file, "plane.obj"))
     LOGGER.info(obj.pointsByMaterial.toString())
 
 }

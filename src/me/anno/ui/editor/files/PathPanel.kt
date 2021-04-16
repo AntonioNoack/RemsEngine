@@ -1,22 +1,22 @@
 package me.anno.ui.editor.files
 
-import me.anno.ui.base.text.TextPanel
+import me.anno.io.FileReference
 import me.anno.ui.base.groups.PanelListX
+import me.anno.ui.base.text.TextPanel
 import me.anno.ui.style.Style
 import java.io.File
 
-class PathPanel(file: File?, style: Style) : PanelListX(style) {
+class PathPanel(file: FileReference?, style: Style) : PanelListX(style) {
 
-    var oldFile: File? = null
-    var file: File? = file
+    var file: FileReference? = file
         set(value) {
-            if (value != oldFile) {
+            if (field != value) {
                 field = value
                 update()
             }
         }
 
-    var onChangeListener: ((File?) -> Unit)? = null
+    var onChangeListener: ((FileReference?) -> Unit)? = null
 
     fun update() {
         clear()
@@ -29,7 +29,7 @@ class PathPanel(file: File?, style: Style) : PanelListX(style) {
         if (name.isEmpty()) return
 
         val panel = TextPanel(name, style)
-        panel.setSimpleClickListener { onChangeListener?.invoke(file?.parentFile) }
+        panel.setSimpleClickListener { onChangeListener?.invoke(file?.getParent()) }
         panel.setTooltip(file.toString())
         this += panel
 

@@ -1,5 +1,6 @@
 package me.anno.objects.documents.pdf
 
+import me.anno.io.FileReference
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.Transform
@@ -18,7 +19,7 @@ import java.io.File
 import kotlin.math.max
 import kotlin.math.min
 
-open class PDFElementGen(var file: File) : ElementGenerator() {
+open class PDFElementGen(var file: FileReference) : ElementGenerator() {
 
     var selectedSites = ""
 
@@ -42,7 +43,7 @@ open class PDFElementGen(var file: File) : ElementGenerator() {
     val meta get() = getMeta(file, true)
     val forcedMeta get() = getMeta(file, false)!!
 
-    fun getMeta(src: File, async: Boolean): PDDocument? {
+    fun getMeta(src: FileReference, async: Boolean): PDDocument? {
         return PDFCache.getDocument(src, async)
     }
 

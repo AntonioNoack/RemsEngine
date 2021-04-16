@@ -9,6 +9,7 @@ import me.anno.io.utils.StringMap
 import me.anno.studio.rems.RemsConfig
 import me.anno.studio.rems.RemsStudio
 import me.anno.utils.OS
+import me.anno.io.FileReference
 import me.anno.utils.files.Files.formatFileSize
 import org.apache.logging.log4j.LogManager
 import java.io.File
@@ -30,7 +31,7 @@ object VideoProxyCreator : CacheSection("VideoProxies") {
         // test for a video file
         RemsStudio.setupNames()
         RemsConfig.init()
-        getProxyFile(File(OS.videos, "GodRays.mp4"))
+        getProxyFile(FileReference(OS.videos, "GodRays.mp4"))
     }
 
     var isInitialized = false
@@ -38,7 +39,7 @@ object VideoProxyCreator : CacheSection("VideoProxies") {
         if (isInitialized) return
         isInitialized = true
         info = ConfigBasics.loadConfig(configName, StringMap(), false)
-        proxyFolder = File(ConfigBasics.cacheFolder, "proxies").apply { mkdirs() }
+        proxyFolder = File(ConfigBasics.cacheFolder.file, "proxies").apply { mkdirs() }
         deleteOldProxies()
     }
 
@@ -50,22 +51,22 @@ object VideoProxyCreator : CacheSection("VideoProxies") {
     // check all last instances, which can be deleted...
     lateinit var proxyFolder: File
 
-    fun getProxyFileDontUpdate(src: File): File? {
+    fun getProxyFileDontUpdate(src: FileReference): FileReference? {
         init()
         val data = getEntryWithoutGenerator(LastModifiedCache[src]) as? CacheData<*>
-        return data?.value as? File
+        return data?.value as? FileReference
     }
 
-    fun getProxyFile(src: File): File? {
+    fun getProxyFile(src: FileReference): FileReference? {
         init()
         val data = getEntry(LastModifiedCache[src], 10_000, true) {
             if (src.exists() && !src.isDirectory) {
                 val uuid = getUniqueFilename(src)
-                val proxyFile = File(proxyFolder, uuid)
-                val data = CacheData<File?>(null)
+                val proxyFile = FileReference(proxyFolder, uuid)
+                val data = CacheData<FileReference?>(null)
                 if (!proxyFile.exists()) {
                     createProxy(
-                        src, proxyFile, uuid,
+                        src, proxyFile.file, uuid,
                         File(proxyFolder, proxyFile.nameWithoutExtension + ".tmp.${proxyFile.extension}")
                     ) { data.value = proxyFile }
                 } else {
@@ -73,9 +74,9 @@ object VideoProxyCreator : CacheSection("VideoProxies") {
                     data.value = proxyFile
                 }
                 data
-            } else CacheData<File?>(null)
+            } else CacheData<FileReference?>(null)
         } as? CacheData<*>
-        return data?.value as? File
+        return data?.value as? FileReference
     }
 
     fun markUsed(uuid: String) {
@@ -88,7 +89,7 @@ object VideoProxyCreator : CacheSection("VideoProxies") {
     /**
      * scales video down 4x
      * */
-    private fun createProxy(src: File, dst: File, uuid: String, tmp: File, callback: () -> Unit) {
+    private fun createProxy(src: FileReference, dst: File, uuid: String, tmp: File, callback: () -> Unit) {
         init()
         val meta = FFMPEGMetadata.getMeta(src, false) ?: return // error
         val w = (meta.videoWidth / scale.toFloat()).roundToInt() and (1.inv())
@@ -120,7 +121,7 @@ object VideoProxyCreator : CacheSection("VideoProxies") {
         )
     }
 
-    private fun getUniqueFilename(file: File): String {
+    private fun getUniqueFilename(file: FileReference): String {
         val completePath = file.toString()
         val lastModified = LastModifiedCache[file].lastModified
         return "${file.nameWithoutExtension}-" +

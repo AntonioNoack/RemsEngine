@@ -17,19 +17,17 @@ import me.anno.objects.GFXTransform
 import me.anno.objects.Transform
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
-import me.anno.ui.editor.files.hasValidName
 import me.anno.ui.style.Style
+import me.anno.io.FileReference
 import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.video.MissingFrameException
 import me.karl.main.SceneLoader
 import me.karl.renderer.AnimatedModelRenderer
 import me.karl.utils.URI
 import org.joml.Matrix4fArrayList
-import org.joml.Vector4f
 import org.joml.Vector4fc
-import java.io.File
 
-class Mesh(var file: File, parent: Transform?) : GFXTransform(parent) {
+class Mesh(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
 
     companion object {
         // var daeEngine: RenderEngine? = null
@@ -42,9 +40,9 @@ class Mesh(var file: File, parent: Transform?) : GFXTransform(parent) {
 
     // for the start it is nice to be able to import meshes like a torus into the engine :)
 
-    constructor() : this(File(""), null)
+    constructor() : this(FileReference(""), null)
 
-    var lastFile: File? = null
+    var lastFile: FileReference? = null
     var extension = ""
 
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
@@ -71,7 +69,7 @@ class Mesh(var file: File, parent: Transform?) : GFXTransform(parent) {
                         val meshData = MeshData()
                         GFX.addGPUTask(10) {
                             GFX.check()
-                            meshData.daeScene = SceneLoader.loadScene(URI(file), URI(file))
+                            meshData.daeScene = SceneLoader.loadScene(URI(file.file), URI(file.file))
                             GFX.check()
                         }
                         Thread.sleep(100) // wait for the texture to load
@@ -119,7 +117,7 @@ class Mesh(var file: File, parent: Transform?) : GFXTransform(parent) {
                         )
                         // load the model...
                         // assume it's obj first...
-                        val obj = OBJReader(file)
+                        val obj = OBJReader(file.file)
                         // generate mesh data from this obj somehow...
                         val meshData = MeshData()
                         meshData.objData = obj.pointsByMaterial.mapValues {

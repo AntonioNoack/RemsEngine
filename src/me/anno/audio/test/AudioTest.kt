@@ -1,12 +1,11 @@
 package me.anno.audio.test
 
 import me.anno.audio.*
-import me.anno.gpu.GFX
+import me.anno.io.FileReference
 import me.anno.studio.StudioBase
 import me.anno.utils.OS
 import me.anno.video.FFMPEGStream
 import org.joml.Vector3f
-import java.io.File
 
 fun main(){
 
@@ -47,7 +46,7 @@ fun main(){
 
 }
 
-val file = File(OS.home, "Videos\\Captures\\cool cops\\Watch_Dogs 2 2019-10-14 15-26-49.mp4")
+val file = FileReference(OS.videos, "Captures\\cool cops\\Watch_Dogs 2 2019-10-14 15-26-49.mp4")
 
 fun testStream(){
     // AudioStreamOpenAL(file, LoopingState.PLAY_LOOP, 0.0, FFMPEGMetadata(file), Camera()).start()

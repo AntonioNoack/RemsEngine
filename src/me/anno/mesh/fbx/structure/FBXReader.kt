@@ -38,7 +38,7 @@ class FBXReader(input: InputStream) : LittleEndianDataInputStream(input.buffered
         }
 
         if (printDebugMessages) {
-            val out = File(OS.desktop, "fbx.json").outputStream().buffered()
+            val out = File(OS.desktop.file, "fbx.json").outputStream().buffered()
             debug { "${children.size} children" }
             for (node in children) {
                 out.write(node.toString().toByteArray())

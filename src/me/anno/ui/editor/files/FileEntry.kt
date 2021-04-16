@@ -18,6 +18,7 @@ import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.input.Input
 import me.anno.input.MouseButton
+import me.anno.io.FileReference
 import me.anno.io.trash.TrashManager.moveToTrash
 import me.anno.language.translation.NameDesc
 import me.anno.objects.Audio
@@ -42,15 +43,12 @@ import me.anno.utils.Tabs
 import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.files.Files.listFiles2
 import me.anno.utils.files.Files.openInExplorer
-import me.anno.utils.structures.tuples.Quad
-import me.anno.utils.types.Lists.sumByFloat
 import me.anno.utils.types.Lists.sumByLong
 import me.anno.utils.types.Strings.getImportType
 import me.anno.video.FFMPEGMetadata
 import me.anno.video.VFrame
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
-import java.awt.Desktop
 import java.io.File
 import kotlin.math.ceil
 import kotlin.math.max
@@ -59,7 +57,7 @@ import kotlin.math.roundToInt
 
 class FileEntry(
     private val explorer: FileExplorer,
-    isParent: Boolean, val file: File, style: Style
+    isParent: Boolean, val file: FileReference, style: Style
 ) :
     PanelGroup(style.getChild("fileEntry")) {
 
@@ -89,7 +87,7 @@ class FileEntry(
             "music", "musik", "videos", "movies" -> "file/music.png"
             "documents", "dokumente", "downloads" -> "file/text.png"
             "images", "pictures" -> "file/image.png"
-            else -> if (file.listFiles2().isNotEmpty())
+            else -> if (file.file.listFiles2().isNotEmpty())
                 "file/folder.png" else "file/empty_folder.png"
         }
     } else {
@@ -418,21 +416,21 @@ class FileEntry(
                     { -1 }) {
                     val allowed = it.toAllowedFilename()
                     if (allowed != null) {
-                        val dst = File(file.parentFile, allowed)
+                        val dst = File(file.file.parentFile, allowed)
                         if (dst.exists() && !allowed.equals(file.name, true)) {
                             ask(NameDesc("Override existing file?", "", "ui.file.override")) {
-                                file.renameTo(dst)
+                                file.file.renameTo(dst)
                                 explorer.invalidate()
                             }
                         } else {
-                            file.renameTo(dst)
+                            file.file.renameTo(dst)
                             explorer.invalidate()
                         }
                     }
 
                 }
             }
-            "OpenInExplorer" -> file.openInExplorer()
+            "OpenInExplorer" -> file.file.openInExplorer()
             "Delete" -> deleteFileMaybe()
             "OpenOptions" -> {
                 // todo add option to open json in specialized json editor...
@@ -484,7 +482,7 @@ class FileEntry(
                         "ui.file.delete.yes"
                     )
                 ) {
-                    moveToTrash(file)
+                    moveToTrash(file.file)
                     explorer.invalidate()
                 },
                 dontDelete,
@@ -495,7 +493,7 @@ class FileEntry(
                         "ui.file.delete.permanent"
                     )
                 ) {
-                    file.deleteRecursively()
+                    file.file.deleteRecursively()
                     explorer.invalidate()
                 }
             ))
@@ -510,7 +508,7 @@ class FileEntry(
             // ask, then delete all (or cancel)
             openMenu(NameDesc(
                 "Delete these files? (${inFocus.size}x, ${
-                files.sumByLong { it.length() }.formatFileSize()
+                    files.sumByLong { it.length() }.formatFileSize()
                 })", "", "ui.file.delete.ask.many"
             ), listOf(
                 MenuOption(
@@ -520,7 +518,7 @@ class FileEntry(
                         "ui.file.delete.yes"
                     )
                 ) {
-                    moveToTrash(files.toTypedArray())
+                    moveToTrash(files.map { it.file }.toTypedArray())
                     explorer.invalidate()
                 },
                 dontDelete,
@@ -538,19 +536,20 @@ class FileEntry(
         }
     }
 
-    private val dontDelete get() = MenuOption(
-        NameDesc(
-            "No",
-            "Deletes none of the selected file; keeps them all",
-            "ui.file.delete.many.no"
-        )
-    ) {}
+    private val dontDelete
+        get() = MenuOption(
+            NameDesc(
+                "No",
+                "Deletes none of the selected file; keeps them all",
+                "ui.file.delete.many.no"
+            )
+        ) {}
 
 
     override fun onCopyRequested(x: Float, y: Float): String? {
         if (this in inFocus) {// multiple files maybe
-            Input.copyFiles(inFocus.filterIsInstance<FileEntry>().map { it.file })
-        } else Input.copyFiles(listOf(file))
+            Input.copyFiles(inFocus.filterIsInstance<FileEntry>().map { it.file.file })
+        } else Input.copyFiles(listOf(file.file))
         return null
     }
 

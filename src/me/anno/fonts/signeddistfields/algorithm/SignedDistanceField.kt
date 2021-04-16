@@ -12,17 +12,19 @@ import me.anno.fonts.signeddistfields.structs.FloatPtr
 import me.anno.fonts.signeddistfields.structs.SignedDistance
 import me.anno.gpu.GFX
 import me.anno.gpu.texture.Texture2D
+import me.anno.utils.LOGGER
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.mix
-import me.anno.utils.hpc.HeavyProcessing.processBalanced
 import org.joml.AABBf
 import org.joml.Vector2f
+import java.awt.Font
 import java.awt.font.FontRenderContext
 import java.awt.font.TextLayout
 import java.awt.geom.GeneralPath
 import java.awt.geom.PathIterator
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import java.nio.FloatBuffer
 import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.max
@@ -47,13 +49,74 @@ object SignedDistanceField {
 
     private fun vec2d(x: Float, y: Float) = Vector2f(x, y)
 
-    fun create(font: me.anno.ui.base.Font, text: String, round: Boolean) = create(getFont(font), text, round)
+    fun createTexture(font: me.anno.ui.base.Font, text: String, round: Boolean) = createTexture(getFont(font), text, round)
 
-    fun create(font: AWTFont, text: String, round: Boolean) = create(font.font, text, round)
+    fun createTexture(font: AWTFont, text: String, round: Boolean) = createTexture(font.font, text, round)
 
-    fun create(font: java.awt.Font, text: String, roundEdges: Boolean): TextSDF {
+    fun calculateDistances(
+        w: Int, h: Int,
+        minX: Float, maxX: Float,
+        minY: Float, maxY: Float,
+        contours: List<Contour>,
+        roundEdges: Boolean
+    ): FloatBuffer {
 
-        val sdfResolution = sdfResolution
+        val buffer = ByteBuffer.allocateDirect(w * h * 4)
+            .order(ByteOrder.nativeOrder())
+            .asFloatBuffer()
+
+        val maxDistance = max(maxX - minX, maxY - minY)
+        val pointBounds = AABBf()
+        val minDistance = SignedDistance()
+        val origin = Vector2f()
+        val ptr = FloatPtr()
+
+        for (y in 0 until h) {
+
+            val ry = y / (h - 1f)
+            val ly = mix(maxY, minY, ry) // mirrored y for OpenGL
+            for (x in 0 until w) {
+
+                val index = x + y * w
+                val rx = x / (w - 1f)
+                val lx = mix(minX, maxX, rx)
+
+                origin.set(lx, ly)
+                minDistance.clear()
+
+                var closestEdge: EdgeSegment? = null
+
+                pointBounds.setMin(lx - maxDistance, ly - maxDistance, -1f)
+                pointBounds.setMax(lx + maxDistance, ly + maxDistance, +1f)
+
+                for (contour in contours) {
+                    if (contour.bounds.testAABB(pointBounds)) {// this test brings down the complexity from O(chars²) to O(chars)
+                        for (edge in contour.segments) {
+                            val distance = edge.signedDistance(origin, ptr)
+                            if (distance < minDistance) {
+                                minDistance.set(distance)
+                                closestEdge = edge
+                            }
+                        }
+                    }
+                }
+
+                val trueDistance = if (roundEdges) {
+                    if (closestEdge == null) +100f else minDistance.distance
+                } else closestEdge?.trueSignedDistance(origin) ?: +100f
+
+                buffer.put(index, clamp(trueDistance, -maxDistance, +maxDistance) * sdfResolution)
+
+            }
+        }
+
+        buffer.position(0)
+
+        return buffer
+
+    }
+
+    fun calculateContours(font: Font, text: String): List<Contour> {
 
         val contours = ArrayList<Contour>()
         var segments = ArrayList<EdgeSegment>()
@@ -149,12 +212,20 @@ object SignedDistanceField {
 
         }
 
+        return contours
+
+    }
+
+    fun createBuffer(font: Font, text: String, roundEdges: Boolean): FloatBuffer? {
+
+        val contours = calculateContours(font,  text)
+
         if (contours.sumBy { it.segments.size } < 1) {
-            return TextSDF.empty
+            return null
         }
 
         val bounds = AABBf()
-        contours.forEach { contour ->
+        for(contour in contours){
             contour.updateBounds()
             bounds.union(contour.bounds)
         }
@@ -164,6 +235,42 @@ object SignedDistanceField {
         val minY = floor(bounds.minY - padding)
         val maxY = ceil(bounds.maxY + padding)
 
+        val sdfResolution = sdfResolution
+
+        val w = ((maxX - minX) * sdfResolution).toInt()
+        val h = ((maxY - minY) * sdfResolution).toInt()
+
+        if (w < 1 || h < 1) {
+            return null
+        }
+
+        return calculateDistances(w, h, minX, maxX, minY, maxY, contours, roundEdges)
+
+    }
+
+    fun createTexture(font: Font, text: String, roundEdges: Boolean): TextSDF {
+
+        if(text.length > 3) throw IllegalArgumentException()
+
+        val contours = calculateContours(font,  text)
+
+        if (contours.sumBy { it.segments.size } < 1) {
+            return TextSDF.empty
+        }
+
+        val bounds = AABBf()
+        for(contour in contours){
+            contour.updateBounds()
+            bounds.union(contour.bounds)
+        }
+
+        val minX = floor(bounds.minX - padding)
+        val maxX = ceil(bounds.maxX + padding)
+        val minY = floor(bounds.minY - padding)
+        val maxY = ceil(bounds.maxY + padding)
+
+        val sdfResolution = sdfResolution
+
         val w = ((maxX - minX) * sdfResolution).toInt()
         val h = ((maxY - minY) * sdfResolution).toInt()
 
@@ -171,53 +278,7 @@ object SignedDistanceField {
             return TextSDF.empty
         }
 
-        val buffer = ByteBuffer.allocateDirect(w * h * 4)
-            .order(ByteOrder.nativeOrder())
-            .asFloatBuffer()
-
-        val maxDistance = max(maxX - minX, maxY - minY)
-
-        processBalanced(0, h, true) { i0, i1 ->
-            for (y in i0 until i1) {
-                val ry = y / (h - 1f)
-                val ly = mix(maxY, minY, ry) // mirrored y for OpenGL
-                for (x in 0 until w) {
-                    val index = x + y * w
-                    val rx = x / (w - 1f)
-                    val lx = mix(minX, maxX, rx)
-                    val origin = Vector2f(lx, ly)
-                    val minDistance = SignedDistance()
-                    val ptr = FloatPtr()
-                    var closestEdge: EdgeSegment? = null
-                    val pointBounds = AABBf(
-                        lx - maxDistance, ly - maxDistance, -1f,
-                        lx + maxDistance, ly + maxDistance, +1f
-                    )
-                    contours.forEach { contour ->
-                        if (contour.bounds.testAABB(pointBounds)) {// this test brings down the complexity from O(chars²) to O(chars)
-                            contour.segments.forEach { edge ->
-                                val distance = edge.signedDistance(origin, ptr)
-                                if (distance < minDistance) {
-                                    minDistance.set(distance)
-                                    closestEdge = edge
-                                }
-                            }
-                        }
-                    }
-
-                    val trueDistance = if (roundEdges) {
-                        if (closestEdge == null) +100f else minDistance.distance
-                    } else {
-                        closestEdge?.trueSignedDistance(origin) ?: +100f
-                    }
-
-                    buffer.put(index, clamp(trueDistance, -maxDistance, +maxDistance) * sdfResolution)
-
-                }
-            }
-        }
-
-        buffer.position(0)
+        val buffer = calculateDistances(w, h, minX, maxX, minY, maxY, contours, roundEdges)
 
         val tex = Texture2D("SDF", w, h, 1)
         GFX.addGPUTask(w, h) {

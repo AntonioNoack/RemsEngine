@@ -3,18 +3,18 @@ package me.anno.video
 import me.anno.gpu.GFX
 import me.anno.utils.ShutdownException
 import me.anno.utils.Sleep.sleepShortly
+import me.anno.io.FileReference
 import me.anno.video.IsFFMPEGOnly.isFFMPEGOnlyExtension
 import me.anno.video.formats.ARGBFrame
 import me.anno.video.formats.BGRAFrame
 import me.anno.video.formats.I420Frame
 import me.anno.video.formats.RGBFrame
 import org.apache.logging.log4j.LogManager
-import java.io.File
 import java.io.InputStream
 import kotlin.concurrent.thread
 
 class FFMPEGVideo(
-    file: File,
+    file: FileReference,
     w: Int, h: Int,
     private val frame0: Int,
     bufferLength: Int,
@@ -26,7 +26,7 @@ class FFMPEGVideo(
     }*/
 
     override fun process(process: Process, arguments: List<String>) {
-        thread(name = "$file:error-stream") {
+        thread(name = "${file?.name}:error-stream") {
             val out = process.errorStream.bufferedReader()
             val parser = FFMPEGMetaParser()
             try {
@@ -39,7 +39,7 @@ class FFMPEGVideo(
                 // ...
             }
         }
-        thread(name = "$file:input-stream") {
+        thread(name = "${file?.name}:input-stream") {
             val frameCount = arguments[arguments.indexOf("-vframes") + 1].toInt()
             val input = process.inputStream
             try {

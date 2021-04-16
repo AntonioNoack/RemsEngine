@@ -1,5 +1,6 @@
 package me.anno.utils
 
+import me.anno.io.FileReference
 import java.io.File
 import kotlin.concurrent.thread
 
@@ -14,13 +15,13 @@ object OS {// the os is important for some things, e.g. the allowed file names, 
     // and idk about performance
     val isAndroid = isLinux
 
-    val home = File(System.getProperty("user.home"))
-    val downloads = File(home, "Downloads")
-    val desktop = File(home, "Desktop")
-    val documents = File(home, "Documents")
-    val pictures = File(home, "Pictures")
-    val videos = File(home, "Videos")
-    val music = File(home, "Music")
+    val home = FileReference(System.getProperty("user.home"))
+    val downloads = FileReference(home, "Downloads")
+    val desktop = FileReference(home, "Desktop")
+    val documents = FileReference(home, "Documents")
+    val pictures = FileReference(home, "Pictures")
+    val videos = FileReference(home, "Videos")
+    val music = FileReference(home, "Music")
 
     fun startProcess(vararg args: String) {
         thread {

@@ -2,25 +2,26 @@ package me.anno.cache.instances
 
 import me.anno.cache.CacheSection
 import me.anno.cache.data.VideoData
-import me.anno.cache.keys.VideoFrameKey
 import me.anno.cache.keys.VideoFramesKey
-import me.anno.utils.Sleep.waitUntil
+import me.anno.io.FileReference
 import me.anno.video.FFMPEGMetadata
 import me.anno.video.FFMPEGMetadata.Companion.getMeta
 import me.anno.video.VFrame
 import me.anno.video.VideoProxyCreator
-import java.io.File
 import kotlin.math.max
 import kotlin.math.min
 
 object VideoCache : CacheSection("Videos") {
 
     private fun getVideoFrames(
-        file: File, scale: Int,
+        file: FileReference, scale: Int,
         bufferIndex: Int, bufferLength: Int,
         fps: Double, timeout: Long, async: Boolean
     ): VideoData? {
-        return getEntry(VideoFramesKey(file, scale, bufferIndex, bufferLength, fps), timeout, async, ::getVideoFrames) as? VideoData
+        return getEntry(
+            VideoFramesKey(file, scale, bufferIndex, bufferLength, fps),
+            timeout, async, ::getVideoFrames
+        ) as? VideoData
     }
 
     private fun getVideoFrames(key: VideoFramesKey): VideoData {
@@ -38,7 +39,7 @@ object VideoCache : CacheSection("Videos") {
     }
 
     private fun getVideoFramesWithoutGenerator(
-        file: File, scale: Int,
+        file: FileReference, scale: Int,
         bufferIndex: Int, bufferLength: Int,
         fps: Double
     ): VideoData? {
@@ -46,7 +47,7 @@ object VideoCache : CacheSection("Videos") {
     }
 
     fun getFrame(
-        file: File, scale: Int,
+        file: FileReference, scale: Int,
         index: Int, bufferIndex: Int, bufferLength: Int,
         fps: Double, timeout: Long, async: Boolean
     ): VFrame? {
@@ -57,7 +58,7 @@ object VideoCache : CacheSection("Videos") {
     }
 
     fun getFrameWithoutGenerator(
-        file: File, scale: Int,
+        file: FileReference, scale: Int,
         index: Int, bufferIndex: Int, bufferLength: Int,
         fps: Double
     ): VFrame? {
@@ -70,7 +71,7 @@ object VideoCache : CacheSection("Videos") {
      * returned frames are guaranteed to be created
      * */
     fun getVideoFrame(
-        file: File, scale: Int, index: Int,
+        file: FileReference, scale: Int, index: Int,
         bufferLength0: Int, fps: Double, timeout: Long,
         meta: FFMPEGMetadata, async: Boolean
     ): VFrame? {
@@ -122,7 +123,7 @@ object VideoCache : CacheSection("Videos") {
      * returned frames are guaranteed to be created
      * */
     fun getVideoFrame(
-        file: File,
+        file: FileReference,
         scale: Int,
         index: Int,
         bufferLength0: Int,

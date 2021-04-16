@@ -1,5 +1,6 @@
 package me.anno.video
 
+import me.anno.io.FileReference
 import me.anno.objects.Audio
 import me.anno.objects.Transform
 import me.anno.utils.Sleep.waitUntil
@@ -12,7 +13,7 @@ class VideoAudioCreator(
     scene: Transform,
     durationSeconds: Double, sampleRate: Int, audioSources: List<Audio>,
     val motionBlurSteps: Int, val shutterPercentage: Float,
-    val output: File
+    val output: FileReference
 ) : AudioCreator(scene, durationSeconds, sampleRate, audioSources) {
 
     fun start() {

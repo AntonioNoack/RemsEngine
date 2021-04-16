@@ -17,6 +17,7 @@ import me.anno.objects.modes.RotateJPEG
 import me.anno.utils.Nullable.tryOrException
 import me.anno.utils.Nullable.tryOrNull
 import me.anno.utils.Sleep.waitUntilDefined
+import me.anno.io.FileReference
 import me.anno.utils.types.Strings.getImportType
 import me.anno.video.VFrame
 import org.apache.commons.imaging.Imaging
@@ -25,7 +26,7 @@ import java.awt.image.BufferedImage
 import java.io.File
 import javax.imageio.ImageIO
 
-class ImageData(file: File) : ICacheData {
+class ImageData(file: FileReference) : ICacheData {
 
     var texture = Texture2D("image-data", 1024, 1024, 1)
     var framebuffer: Framebuffer? = null
@@ -33,6 +34,8 @@ class ImageData(file: File) : ICacheData {
     companion object {
 
         private val LOGGER = LogManager.getLogger(ImageData::class)
+
+        fun getRotation(file: FileReference): RotateJPEG? = getRotation(file.file)
 
         fun getRotation(file: File): RotateJPEG? {
             var rotation: RotateJPEG? = null
@@ -77,7 +80,7 @@ class ImageData(file: File) : ICacheData {
 
     }
 
-    fun useFFMPEG(file: File) {
+    fun useFFMPEG(file: FileReference) {
         // calculate required scale? no, without animation, we don't need to scale it down ;)
         val frame = waitUntilDefined(true) {
             getVideoFrame(file, 1, 0, 0, 1.0, imageTimeout, false)
@@ -103,7 +106,7 @@ class ImageData(file: File) : ICacheData {
         }*/
         when (fileExtension.toLowerCase()) {
             "hdr" -> {
-                val img = HDRImage(file, true)
+                val img = HDRImage(file.file, true)
                 val w = img.width
                 val h = img.height
                 val pixels = img.pixelBuffer
@@ -122,10 +125,10 @@ class ImageData(file: File) : ICacheData {
                 if (fileExtension.getImportType() == "Video") {
                     useFFMPEG(file)
                 } else {
-                    val image = tryGetImage(file)
+                    val image = tryGetImage(file.file)
                     if (image != null) {
                         texture.create("ImageData", { image }, false)
-                        texture.rotation = getRotation(file)
+                        texture.rotation = getRotation(file.file)
                     } else LOGGER.warn("Could not load $file")
                 }
             }

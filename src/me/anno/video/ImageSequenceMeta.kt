@@ -1,14 +1,15 @@
 package me.anno.video
 
 import me.anno.objects.Video
+import me.anno.io.FileReference
 import org.apache.logging.log4j.LogManager
 import java.io.File
 import kotlin.math.min
 
 
-class ImageSequenceMeta(file: File) {
+class ImageSequenceMeta(file: FileReference) {
 
-    var matches: List<Pair<File, Double>>
+    var matches: List<Pair<FileReference, Double>>
 
     init {
         val key = file.name
@@ -18,16 +19,15 @@ class ImageSequenceMeta(file: File) {
         val prefix = key.substring(0, i0)
         val suffix = key.substring(i1)
         // LOGGER.info("'$prefix' $i0-$i1 '$suffix'")
-        matches = (file.parentFile.listFiles() ?: emptyArray())
+        val file2 = file.file
+        matches = (file2.parentFile.listFiles() ?: emptyArray())
             .mapNotNull { child ->
                 val name = child.name
                 if (name.startsWith(prefix) && name.endsWith(suffix)) {
                     val time = name.substring(i0, name.length - suffix.length).toDoubleOrNull()
                     // LOGGER.info("$child, $name, ${name.substring(i0, i1)}: $time")
                     if (time == null) null
-                    else {
-                        child to time
-                    }
+                    else FileReference(child) to time
                 } else null
             }
             .sortedBy { it.second }
@@ -47,11 +47,11 @@ class ImageSequenceMeta(file: File) {
         return min(index, matches.lastIndex)
     }
 
-    fun getImage(index: Int): File {
+    fun getImage(index: Int): FileReference {
         return matches[index].first
     }
 
-    fun getImage(time: Double): File {
+    fun getImage(time: Double): FileReference {
         return matches[getIndex(time)].first
     }
 
@@ -64,7 +64,7 @@ class ImageSequenceMeta(file: File) {
         @JvmStatic
         fun main(args: Array<String>) {
             val file = File("C:\\Users\\Antonio\\Documents\\Blender\\Image Sequence\\%.jpg")
-            val meta = ImageSequenceMeta(file)
+            val meta = ImageSequenceMeta(FileReference(file))
             LOGGER.info(meta.toString())
             /*meta.matches.forEach { (file, _) ->
                 val src = ImageIO.read(file)

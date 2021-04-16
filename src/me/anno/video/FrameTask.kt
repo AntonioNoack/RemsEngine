@@ -9,6 +9,7 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.ShaderPlus
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
+import me.anno.io.FileReference
 import me.anno.objects.Transform
 import me.anno.studio.rems.Scene
 import me.anno.utils.Color.rgba
@@ -17,9 +18,7 @@ import org.apache.logging.log4j.LogManager
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL11.*
 import java.awt.image.BufferedImage
-import java.io.File
 import javax.imageio.ImageIO
-import kotlin.math.roundToLong
 
 
 class FrameTask(
@@ -30,7 +29,7 @@ class FrameTask(
     val motionBlurSteps: Int,
     val shutterPercentage: Float,
     val time: Double,
-    val dst: File
+    val dst: FileReference
 ) : AudioCreator(scene, 0.0, 1, emptyList()) {
 
     val partialFrame = Framebuffer(
@@ -89,7 +88,7 @@ class FrameTask(
             }
             // c1.stop("wrote to buffered image"), 0.025s on R5 2600, 1080p
             if (dst.exists()) dst.delete()
-            if (!ImageIO.write(image, dst.extension, dst)) {
+            if (!ImageIO.write(image, dst.extension, dst.file)) {
                 LOGGER.warn("Could not find writer for image format ${dst.extension}!")
             } else {
                 // c1.stop("saved to file"), 0.07s on NVME SSD

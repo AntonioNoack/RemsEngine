@@ -1,6 +1,7 @@
 package me.anno.io.config
 
 import me.anno.gpu.GFXBase0.projectName
+import me.anno.io.FileReference
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.io.utils.StringMap
@@ -18,29 +19,29 @@ object ConfigBasics {
     val LOGGER = LogManager.getLogger(ConfigBasics::class)!!
     private val utf8Charset: Charset = Charset.forName("UTF-8")
 
-    val configFolder get() = File(OS.home, ".config/$projectName")
-    val cacheFolder get() = File(OS.home, ".cache/$projectName")
+    val configFolder get() = FileReference(OS.home, ".config/$projectName")
+    val cacheFolder get() = FileReference(OS.home, ".cache/$projectName")
 
     val beautify = true
 
-    fun getConfigFile(localFileName: String): File {
-        return File(configFolder, localFileName)
+    fun getConfigFile(localFileName: String): FileReference {
+        return FileReference(configFolder, localFileName)
     }
 
-    fun save(file: File, data: String){
-        val parentFile = file.parentFile
-        if(!parentFile.exists()) parentFile.mkdirs()
+    fun save(file: FileReference, data: String) {
+        val parentFile = file.file.parentFile
+        if (!parentFile.exists()) parentFile.mkdirs()
         file.writeText(data, utf8Charset)
     }
 
     fun save(localFileName: String, data: String) = save(getConfigFile(localFileName), data)
 
-    fun load(file: File, saveIfMissing: Boolean, getDefault: () -> String): String {
-        return if(file.exists()){
+    fun load(file: FileReference, saveIfMissing: Boolean, getDefault: () -> String): String {
+        return if (file.exists()) {
             file.readText(utf8Charset)
         } else {
             val default = getDefault()
-            if(saveIfMissing) save(file, default)
+            if (saveIfMissing) save(file, default)
             default
         }
     }
@@ -49,14 +50,14 @@ object ConfigBasics {
         load(getConfigFile(localFileName), saveIfMissing, getDefault)
 
 
-    fun loadConfig(file: File, defaultValue: StringMap, saveIfMissing: Boolean): StringMap {
-        val read = load(file, saveIfMissing){
+    fun loadConfig(file: FileReference, defaultValue: StringMap, saveIfMissing: Boolean): StringMap {
+        val read = load(file, saveIfMissing) {
             LOGGER.info("Didn't find $file, using default values")
             TextWriter.toText(defaultValue, beautify)
         }
         val readData = TextReader.fromText(read)
         val map = readData.firstOrNull { it is StringMap } as? StringMap
-        return if(map == null){
+        return if (map == null) {
             LOGGER.info("Config was corrupted, didn't find a config, in $file, got $readData")
             save(file, TextWriter.toText(defaultValue, beautify))
             defaultValue
@@ -66,19 +67,23 @@ object ConfigBasics {
     fun loadConfig(localFileName: String, defaultValue: StringMap, saveIfMissing: Boolean) =
         loadConfig(getConfigFile(localFileName), defaultValue, saveIfMissing)
 
-    fun loadJsonArray(localFileName: String, defaultValue: List<ConfigEntry>, saveIfMissing: Boolean): List<ConfigEntry> {
+    fun loadJsonArray(
+        localFileName: String,
+        defaultValue: List<ConfigEntry>,
+        saveIfMissing: Boolean
+    ): List<ConfigEntry> {
 
-        val data = load(localFileName, saveIfMissing){ TextWriter.toText(defaultValue, beautify) }
+        val data = load(localFileName, saveIfMissing) { TextWriter.toText(defaultValue, beautify) }
 
         val loaded = TextReader.fromText(data)
         val newestEntries = HashMap<String, ConfigEntry>(loaded.size + 10)
 
         fun addIfNewest(entry: ConfigEntry): Boolean {
             val id = entry.id
-            return if(id != null){
+            return if (id != null) {
                 val old = newestEntries[id]
-                if(old != null){
-                    if(entry.version > old.version){
+                if (old != null) {
+                    if (entry.version > old.version) {
                         newestEntries[id] = entry
                         true
                     } else false
@@ -89,7 +94,7 @@ object ConfigBasics {
             } else false
         }
 
-        loaded.forEach {  entry ->
+        loaded.forEach { entry ->
             (entry as? ConfigEntry)?.apply {
                 addIfNewest(this)
             }
@@ -97,14 +102,14 @@ object ConfigBasics {
 
         var wasAugmentedByDefault = false
         defaultValue.forEach { entry ->
-            if(addIfNewest(entry)){
+            if (addIfNewest(entry)) {
                 wasAugmentedByDefault = true
             }
         }
 
         val result = newestEntries.values.toList()
 
-        if(wasAugmentedByDefault){
+        if (wasAugmentedByDefault) {
             save(localFileName, TextWriter.toText(result, beautify))
         }
 

@@ -7,6 +7,8 @@ import me.anno.gpu.GFXBase1
 import me.anno.gpu.TextureLib
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture3D
+import me.anno.studio.StudioBase.Companion.warn
+import me.anno.io.FileReference
 import org.apache.logging.log4j.LogManager
 import java.io.File
 import java.io.FileNotFoundException
@@ -17,14 +19,19 @@ object ImageCache : CacheSection("Images") {
 
     private val LOGGER = LogManager.getLogger(ImageCache::class)
 
-    fun getImage(file: File, timeout: Long, asyncGenerator: Boolean): Texture2D? {
+    fun getImage(file: FileReference, timeout: Long, asyncGenerator: Boolean): Texture2D? {
         val meta = LastModifiedCache[file]
         if (meta.isDirectory || !meta.exists) return null
         val texture = (getEntry(file, timeout, asyncGenerator, ::generateImageData) as? ImageData)?.texture
         return if (texture?.isCreated == true) texture else null
     }
 
-    private fun generateImageData(file: File) = ImageData(file)
+    fun getImage(file: File, timeout: Long, asyncGenerator: Boolean): Texture2D? {
+        warn("Use FileReference, please; because it is faster when hashing")
+        return getImage(FileReference(file), timeout, asyncGenerator)
+    }
+
+    private fun generateImageData(file: FileReference) = ImageData(file)
 
     fun getInternalTexture(name: String, asyncGenerator: Boolean, timeout: Long = 60_000): Texture2D? {
         val texture = getEntry(name, timeout, asyncGenerator, ::generateInternalTexture) as? Texture2D
@@ -47,14 +54,14 @@ object ImageCache : CacheSection("Images") {
         }
     }
 
-    fun getLUT(file: File, asyncGenerator: Boolean, timeout: Long = 5000): Texture3D? {
+    fun getLUT(file: FileReference, asyncGenerator: Boolean, timeout: Long = 5000): Texture3D? {
         val texture = getEntry("LUT" to file, timeout, asyncGenerator, ::generateLUT) as? Texture3D
         return if (texture?.isCreated == true) texture else null
     }
 
-    private fun generateLUT(pair: Pair<String, File>): ICacheData {
+    private fun generateLUT(pair: Pair<String, FileReference>): ICacheData {
         val file = pair.second
-        val img = ImageIO.read(file)
+        val img = ImageIO.read(file.file)
         val sqrt = sqrt(img.width + 0.5f).toInt()
         val tex = Texture3D(sqrt, img.height, sqrt)
         tex.create(img, false)

@@ -3,6 +3,7 @@ package me.anno.video
 import me.anno.gpu.GFX
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.io.FileReference
 import me.anno.studio.rems.RemsStudio.project
 import me.anno.studio.rems.Rendering.isRendering
 import me.anno.video.FFMPEGStream.Companion.logOutput
@@ -21,7 +22,7 @@ class VideoCreator(
     val totalFrameCount: Long,
     balance: FFMPEGEncodingBalance,
     type: FFMPEGEncodingType,
-    val output: File
+    val output: FileReference
 ) {
 
     init {
@@ -36,9 +37,7 @@ class VideoCreator(
     init {
 
         if (output.exists()) output.delete()
-        else if (!output.parentFile.exists()) {
-            output.parentFile?.mkdirs()
-        }
+        else output.file.parentFile.mkdirs()
 
         /**
          * first create the video,

@@ -3,6 +3,7 @@ package me.anno.ui.base.text
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.iconGray
 import me.anno.gpu.Cursor
+import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.GFXx2D
 import me.anno.gpu.GFXx2D.getSizeX

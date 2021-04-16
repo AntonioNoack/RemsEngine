@@ -14,9 +14,13 @@ abstract class EdgeSegment {
 
     abstract fun clone(): EdgeSegment
     abstract fun point(param: Float): Vector2f
+
     fun point(param: Int) = point(param.toFloat())
+
     abstract fun direction(param: Float): Vector2f
+
     fun direction(param: Int) = direction(param.toFloat())
+
     abstract fun length(): Float
     abstract fun reverse()
     abstract fun union(bounds: AABBf)

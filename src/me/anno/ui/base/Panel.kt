@@ -5,6 +5,7 @@ import me.anno.gpu.GFXx2D.drawRect
 import me.anno.gpu.Window
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.input.MouseButton
+import me.anno.io.FileReference
 import me.anno.ui.base.components.Corner.drawRoundedRect
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.Constraint
@@ -353,7 +354,7 @@ open class Panel(val style: Style) {
         parent?.onPaste(x, y, data, type)
     }
 
-    open fun onPasteFiles(x: Float, y: Float, files: List<File>) {
+    open fun onPasteFiles(x: Float, y: Float, files: List<FileReference>) {
         parent?.onPasteFiles(x, y, files) ?: LOGGER.warn("Paste Ignored! $files, ${javaClass.simpleName}")
     }
 

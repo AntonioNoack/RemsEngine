@@ -1,6 +1,7 @@
 package me.anno.studio.rems
 
 import me.anno.config.DefaultConfig
+import me.anno.io.FileReference
 import me.anno.utils.OS
 import java.io.File
 
@@ -11,7 +12,7 @@ object RemsConfig {
         DefaultConfig.createDefaults = {
             it.apply {
 
-                this["ffmpeg.path"] = File(OS.downloads, "lib\\ffmpeg\\bin\\ffmpeg.exe") // I'm not sure about that one ;)
+                this["ffmpeg.path"] = FileReference(OS.downloads, "lib\\ffmpeg\\bin\\ffmpeg.exe") // I'm not sure about that one ;)
                 this["lastUsed.fonts.count"] = 5
                 this["default.video.nearest"] = false
                 this["default.image.nearest"] = false

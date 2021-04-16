@@ -2,6 +2,7 @@ package me.anno.video
 
 import me.anno.audio.AudioStreamRaw.Companion.playbackSliceDuration
 import me.anno.gpu.GFX
+import me.anno.io.FileReference
 import me.anno.objects.Audio
 import me.anno.objects.Camera
 import me.anno.objects.Transform
@@ -43,7 +44,7 @@ open class AudioCreator(
         else -> "aac"
     }
 
-    fun createOrAppendAudio(output: File, videoCreator: VideoCreator?) {
+    fun createOrAppendAudio(output: FileReference, videoCreator: VideoCreator?) {
 
         output.delete()
 
@@ -99,7 +100,7 @@ open class AudioCreator(
         videoCreator?.output?.apply {
             // temporary file survives sometimes
             // -> kill it at the end at the very least
-            if (!delete()) deleteOnExit()
+            if (!delete()) file.deleteOnExit()
         }
         onFinished()
 

@@ -1,7 +1,5 @@
 package me.anno.fonts.signeddistfields.edges
 
-import me.anno.fonts.signeddistfields.structs.FloatPtr
-import me.anno.fonts.signeddistfields.structs.SignedDistance
 import me.anno.fonts.signeddistfields.algorithm.EquationSolver.solveCubic
 import me.anno.fonts.signeddistfields.algorithm.EquationSolver.solveQuadratic
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.crossProduct
@@ -9,6 +7,8 @@ import me.anno.fonts.signeddistfields.algorithm.SDFMaths.dotProduct
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.mix
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.nonZeroSign
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.union
+import me.anno.fonts.signeddistfields.structs.FloatPtr
+import me.anno.fonts.signeddistfields.structs.SignedDistance
 import me.anno.utils.types.Vectors.minus
 import me.anno.utils.types.Vectors.plus
 import me.anno.utils.types.Vectors.times
@@ -72,7 +72,7 @@ class QuadraticSegment(var p0: Vector2fc, p10: Vector2fc, var p2: Vector2fc) : E
     override fun moveStartPoint(to: Vector2f) {
         val origSDir = p0 - p1
         val origP1 = p1
-        p1 = p1 + (p2 - p1) * (crossProduct(p0 - p1, to - p0) / crossProduct(p0 - p1, p2 - p1))
+        p1 += (p2 - p1) * (crossProduct(p0 - p1, to - p0) / crossProduct(p0 - p1, p2 - p1))
         p0 = to
         if (dotProduct(origSDir, p0 - p1) < 0) {
             p1 = origP1
@@ -167,9 +167,10 @@ class QuadraticSegment(var p0: Vector2fc, p10: Vector2fc, var p2: Vector2fc) : E
         param.value = -dotProduct(qa, epDir) / dotProduct(epDir, epDir)
 
         epDir = direction(1f)
-        val distance = (p2 - origin).length(); // distance from B
+        val distance = p2.distance(origin); // distance from B
         if (distance < abs(minDistance)) {
-            minDistance = nonZeroSign(crossProduct(epDir, p2 - origin)) * distance
+            val cross = crossProduct(epDir, p2 - origin)
+            minDistance = if (cross >= 0f) +distance else -distance
             param.value = dotProduct(origin - p1, epDir) / dotProduct(epDir, epDir)
         }
 
@@ -178,32 +179,32 @@ class QuadraticSegment(var p0: Vector2fc, p10: Vector2fc, var p2: Vector2fc) : E
                 val qe = p0 + ab * (2 * t[i]) + br * (t[i] * t[i]) - origin
                 val distance2 = qe.length()
                 if (distance2 <= abs(minDistance)) {
-                    minDistance = nonZeroSign(crossProduct(direction(t[i]), qe)) * distance2;
+                    val cross = crossProduct(direction(t[i]), qe)
+                    minDistance = if (cross >= 0f) distance2 else -distance2
                     param.value = t[i]
                 }
             }
         }
 
         return when {
-            param.value in 0.0..1.0 ->
-                SignedDistance(minDistance, 0f)
-            param.value < .5 ->
-                SignedDistance(
-                    minDistance,
-                    abs(dotProduct(direction(0).normalize(), qa.normalize()))
-                )
-            else ->
-                SignedDistance(
-                    minDistance,
-                    abs(dotProduct(direction(1).normalize(), (p2 - origin).normalize()))
-                )
+            param.value in 0.0..1.0 -> SignedDistance(minDistance, 0f)
+            param.value < .5 -> SignedDistance(minDistance, abs(normalizedDot(direction(0), qa)))
+            else -> SignedDistance(minDistance, abs(dotProduct(direction(1).normalize(), (p2 - origin).normalize())))
         }
+    }
+
+    fun normalizedDot(a: Vector2f, b: Vector2f): Float {
+        val ax = a.x
+        val ay = a.y
+        val bx = b.x
+        val by = b.y
+        return (ax * bx + ay * by) / sqrt((ax * ax + ay * ay) * (bx * bx + by * by))
     }
 
     fun convertToCubic() = CubicSegment(p0, mix(p0, p1, 2f / 3f), mix(p1, p2, 1f / 3f), p2)
 
     override fun directionChange(param: Float): Vector2f {
-        return (p2-p1)-(p1-p0)
+        return (p2 - p1) - (p1 - p0)
     }
 
 }

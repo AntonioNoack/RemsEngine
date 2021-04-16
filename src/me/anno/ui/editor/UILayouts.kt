@@ -12,13 +12,13 @@ import me.anno.input.Input
 import me.anno.input.Input.mouseX
 import me.anno.input.Input.mouseY
 import me.anno.input.MouseButton
+import me.anno.io.FileReference
 import me.anno.io.config.ConfigBasics
 import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
 import me.anno.objects.Camera
 import me.anno.objects.text.Text
 import me.anno.studio.GFXSettings
-import me.anno.studio.StudioBase
 import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.studio.StudioBase.Companion.workspace
 import me.anno.studio.rems.ProjectSettings
@@ -89,6 +89,17 @@ object UILayouts {
      * @param folder: location of the project
      * */
     fun openProject(name: String, folder: File) {
+        threadWithName("UILayouts::openProject()") {
+            RemsStudio.loadProject(name.trim(), folder)
+            addEvent {
+                windowStack.clear()
+                createEditorUI()
+            }
+            DefaultConfig.addToRecentProjects(project!!)
+        }
+    }
+
+    fun openProject(name: String, folder: FileReference) {
         threadWithName("UILayouts::openProject()") {
             RemsStudio.loadProject(name.trim(), folder)
             addEvent {
@@ -207,6 +218,16 @@ object UILayouts {
     lateinit var nameInput: TextInput
     var usableFile: File? = null
 
+    fun rootIsOk(file: FileReference): Boolean {
+        if (file.exists()) return true
+        return rootIsOk(file.file.parentFile ?: return false)
+    }
+
+    fun rootIsOk(file: File): Boolean {
+        if (file.exists()) return true
+        return rootIsOk(file.parentFile ?: return false)
+    }
+
     fun createNewProjectUI(style: Style): Panel {
 
         val newProject = SettingCategory("New Project", "New Workplace", "ui.project.new", style)
@@ -216,10 +237,6 @@ object UILayouts {
         lateinit var fileInput: FileInput
 
         fun updateFileInputColor() {
-            fun rootIsOk(file: File): Boolean {
-                if (file.exists()) return true
-                return rootIsOk(file.parentFile ?: return false)
-            }
 
             var invalidName = ""
             fun fileNameIsOk(file: File): Boolean {
@@ -242,17 +259,17 @@ object UILayouts {
                     // todo translate
                     msg = "Root $dirNameEn does not exist!"
                 }
-                !file.parentFile.exists() -> {
+                !file.file.parentFile.exists() -> {
                     state = -1
                     // todo translate
                     msg = "Parent $dirNameEn does not exist!"
                 }
-                !fileNameIsOk(file) -> {
+                !fileNameIsOk(file.file) -> {
                     state = -2
                     // todo translate
                     msg = "Invalid file name \"$invalidName\""
                 }
-                file.exists() && file.list()?.isNotEmpty() == true -> {
+                file.exists() && file.file.list()?.isNotEmpty() == true -> {
                     state = -1
                     // todo translate
                     msg = "Folder is not empty!"
@@ -267,7 +284,7 @@ object UILayouts {
             } or black
             usableFile = if (state == -2) {
                 null
-            } else file
+            } else file.file
             base.focusTextColor = base.textColor
         }
 
@@ -276,14 +293,14 @@ object UILayouts {
 
         var lastName = nameInput.text
         fileInput =
-            FileInput(Dict["Project Location", "ui.newProject.location"], style, File(workspace, nameInput.text))
+            FileInput(Dict["Project Location", "ui.newProject.location"], style, FileReference(workspace, nameInput.text))
 
         updateFileInputColor()
 
         nameInput.setChangeListener {
             val newName = if (it.isBlank2()) "-" else it.trim()
             if (lastName == fileInput.file.name) {
-                fileInput.setText(File(fileInput.file.parentFile, newName).toString(), false)
+                fileInput.setText(File(fileInput.file.file.parentFile, newName).toString(), false)
                 updateFileInputColor()
             }
             lastName = newName

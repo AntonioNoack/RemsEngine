@@ -8,7 +8,7 @@ import me.anno.objects.Camera
 import me.anno.objects.Video
 import me.anno.utils.Maths.pow
 import me.anno.utils.OS
-import java.io.File
+import me.anno.io.FileReference
 import kotlin.math.roundToInt
 import kotlin.math.sin
 
@@ -16,7 +16,7 @@ import kotlin.math.sin
 
 fun main() {
 
-    val file = File(OS.downloads, "Aitana 11 Raizones.mp4")
+    val file = FileReference(OS.downloads, "Aitana 11 Raizones.mp4")
     if (!file.exists()) throw RuntimeException("Missing file!")
 
     val audio = Video(file)

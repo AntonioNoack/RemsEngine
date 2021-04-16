@@ -75,7 +75,7 @@ open class Shader(
 
     fun logShader(vertex: String, fragment: String) {
         if (logShaders) {
-            val folder = File(OS.desktop, "shaders")
+            val folder = File(OS.desktop.file, "shaders")
             folder.mkdirs()
             fun print(ext: String, data: String) {
                 val name = "$shaderName.$ext".toAllowedFilename() ?: return

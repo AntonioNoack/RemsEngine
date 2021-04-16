@@ -23,6 +23,7 @@ import me.anno.ui.style.Style
 import me.anno.utils.Clock
 import me.anno.utils.OS
 import me.anno.utils.Warning
+import me.anno.io.FileReference
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3f
 import java.io.File
@@ -80,25 +81,25 @@ object DefaultConfig : StringMap() {
         val tick = Clock()
 
         val newInstances: Map<String, Transform> = mapOf(
-            "Mesh" to Mesh(File(OS.documents, "monkey.obj"), null),
+            "Mesh" to Mesh(FileReference(OS.documents, "monkey.obj"), null),
             "Array" to GFXArray(),
-            "Image / Audio / Video" to Video(File(""), null),
+            "Image / Audio / Video" to Video(),
             "Polygon" to Polygon(null),
             "Rectangle" to Rectangle.create(),
             "Circle" to Circle(null),
             "Folder" to Transform(),
             // "Linked Object" to SoftLink(), // non-default, can be created using drag n drop
             "Mask" to MaskLayer.create(null, null),
-            "Text" to Text("Text", null),
-            "Timer" to Timer(null),
+            "Text" to Text("Text"),
+            "Timer" to Timer(),
             "Cubemap" to {
-                val cube = Video(File(""), null)
+                val cube = Video()
                 cube.uvProjection *= UVProjection.TiledCubemap
                 cube.scale.set(Vector3f(1000f, 1000f, 1000f))
                 cube
             }(),
             "Cube" to {
-                val cube = Polygon(null)
+                val cube = Polygon()
                 cube.name = "Cube"
                 cube.autoAlign = true
                 cube.is3D = true
@@ -107,7 +108,7 @@ object DefaultConfig : StringMap() {
             }(),
             "Camera" to Camera(),
             "Particle System" to {
-                val ps = ParticleSystem(null)
+                val ps = ParticleSystem()
                 ps.name = "Particles"
                 Circle(ps)
                 ps.timeOffset.value = -5.0
@@ -126,7 +127,9 @@ object DefaultConfig : StringMap() {
 
     }
 
-    class ProjectHeader(val name: String, val file: File)
+    data class ProjectHeader(val name: String, val file: FileReference){
+        constructor(name: String, file: File): this(name, FileReference(file))
+    }
 
     private val recentProjectCount = 10
     fun getRecentProjects(): ArrayList<ProjectHeader> {
@@ -174,6 +177,12 @@ object DefaultConfig : StringMap() {
 
     fun removeFromRecentProjects(file: File) {
         val recent = getRecentProjects()
+        recent.removeIf { it.file.file == file }
+        updateRecentProjects(recent)
+    }
+
+    fun removeFromRecentProjects(file: FileReference) {
+        val recent = getRecentProjects()
         recent.removeIf { it.file == file }
         updateRecentProjects(recent)
     }
@@ -185,7 +194,7 @@ object DefaultConfig : StringMap() {
     }
 
     fun updateRecentProjects(recent: List<ProjectHeader>) {
-        val usedFiles = HashSet<File>()
+        val usedFiles = HashSet<FileReference>()
         var i = 0
         for (projectI in recent) {
             if (projectI.file !in usedFiles) {

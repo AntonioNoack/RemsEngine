@@ -1,5 +1,6 @@
 package me.anno.audio
 
+import me.anno.io.FileReference
 import me.anno.objects.Audio
 import me.anno.objects.Camera
 import me.anno.objects.modes.LoopingState
@@ -16,9 +17,9 @@ import kotlin.math.max
 // (on user input and when finally rendering only)
 
 class AudioStreamOpenAL(
-    file: File,
+    file: FileReference,
     repeat: LoopingState,
-    startTime: Double,
+    val startTime: Double,
     meta: FFMPEGMetadata,
     sender: Audio,
     listener: Camera,
@@ -100,10 +101,10 @@ class AudioStreamOpenAL(
                 val soundBuffer = SoundBuffer()
                 ALBase.check()
 
-                // todo wait until we have enough data to be played back
+                // wait until we have enough data to be played back
                 // then it needs to work like this, because that's already perfect:
 
-                // todo load audio continuously the whole time, so we have it, when it's required
+                // load audio continuously the whole time, so we have it, when it's required
 
                 var isFirstBuffer = false
                 if (!hadFirstBuffer) {
@@ -113,19 +114,23 @@ class AudioStreamOpenAL(
                     // 10s slices -> 2.6s
                     // 1s slices -> 0.55s
 
-                    val samples = dt * playbackSampleRate
+                    val startOffset = getFraction(startTime, speed, playbackSampleRate)
+                    val samples = dt * playbackSampleRate + startOffset
                     val capacity = stereoBuffer.capacity()
-                    val targetIndex = samples.toInt() * 2
-                    val availableIndex = (bufferIndex + 1) * capacity
-                    if(availableIndex > targetIndex + 256){
-                        if (targetIndex in 1 until capacity) {
-                            // LOGGER.info("Skipping $targetIndex/$capacity")
-                            stereoBuffer.position(targetIndex)
-                        }
-                    }// else delayed, but we have no alternative
+                    val targetIndex = samples.toInt() * 2 - bufferIndex * capacity
+                    if (capacity > targetIndex + 256) {
 
-                    isFirstBuffer = true
-                    hadFirstBuffer = true
+                        LOGGER.info("Skipping $targetIndex/$capacity")
+                        stereoBuffer.position(targetIndex.toInt())
+
+                        isFirstBuffer = true
+                        hadFirstBuffer = true
+
+                    } else {
+                        // else delayed, but we have no alternative
+                        LOGGER.warn("Skipping first buffer completely")
+                        return@addTask
+                    }
                 }
 
                 soundBuffer.loadRawStereo16(stereoBuffer, playbackSampleRate)

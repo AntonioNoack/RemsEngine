@@ -12,6 +12,7 @@ import me.anno.gpu.Cursor
 import me.anno.gpu.Cursor.useCursor
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.inFocus
+import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.GFXBase0
 import me.anno.gpu.GFXx2D.drawRect
 import me.anno.gpu.Window
@@ -24,6 +25,7 @@ import me.anno.gpu.texture.GPUFiltering
 import me.anno.input.ActionManager
 import me.anno.input.Input
 import me.anno.input.ShowKeys
+import me.anno.io.FileReference
 import me.anno.studio.project.Project
 import me.anno.studio.rems.RemsStudio
 import me.anno.ui.base.Panel
@@ -460,6 +462,10 @@ abstract class StudioBase(
     }
 
     fun loadProject(name: String, folder: File) {
+        loadProject(name, FileReference(folder))
+    }
+
+    fun loadProject(name: String, folder: FileReference) {
         val project = Project(name.trim(), folder)
         RemsStudio.project = project
         project.open()

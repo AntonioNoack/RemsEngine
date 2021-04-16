@@ -2,6 +2,7 @@ package me.anno.io.base
 
 import me.anno.io.ISaveable
 import me.anno.studio.StudioBase
+import me.anno.io.FileReference
 import me.anno.utils.files.LocalFile.toLocalPath
 import org.joml.*
 import java.io.File
@@ -49,7 +50,11 @@ abstract class BaseWriter(val respectsDefaultValues: Boolean) {
     abstract fun writeVector4f(name: String, value: Vector4fc, force: Boolean = false)
     abstract fun writeVector4d(name: String, value: Vector4dc, force: Boolean = false)
 
-    fun writeFile(name: String, file: File?, workspace: File? = StudioBase.workspace) {
+    fun writeFile(name: String, file: FileReference?, workspace: FileReference? = StudioBase.workspace) {
+        writeFile(name, file?.file, workspace)
+    }
+
+    fun writeFile(name: String, file: File?, workspace: FileReference? = StudioBase.workspace) {
         if (file != null) {
             writeString(name, file.toLocalPath(workspace))
         } else {

@@ -5,7 +5,7 @@ import java.awt.image.BufferedImage
 import java.io.File
 import javax.imageio.ImageIO
 
-val progress = File(OS.documents, "IdeaProjects/VideoStudio/progress")
+val progress = File(OS.documents.file, "IdeaProjects/VideoStudio/progress")
 
 fun main() {
     // this works, but does it work everywhere??...

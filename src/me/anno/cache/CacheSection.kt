@@ -7,12 +7,10 @@ import me.anno.studio.rems.RemsStudio.root
 import me.anno.utils.ShutdownException
 import me.anno.utils.Sleep.sleepShortly
 import me.anno.utils.Threads.threadWithName
+import me.anno.io.FileReference
 import me.anno.utils.hpc.ProcessingQueue
 import org.apache.logging.log4j.LogManager
-import java.io.File
 import java.io.FileNotFoundException
-import java.lang.IllegalStateException
-import java.lang.RuntimeException
 import java.util.concurrent.ConcurrentSkipListSet
 import kotlin.concurrent.thread
 import kotlin.math.max
@@ -44,12 +42,12 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
     }
 
     fun <V> getEntry(
-        file: File,
+        file: FileReference,
         allowDirectories: Boolean,
         key: V,
         timeout: Long,
         asyncGenerator: Boolean,
-        generator: (Pair<File, V>) -> ICacheData
+        generator: (Pair<FileReference, V>) -> ICacheData
     ): ICacheData? {
         val meta = LastModifiedCache[file]
         if (!meta.exists || (!allowDirectories && meta.isDirectory)) return null
@@ -139,7 +137,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         } catch (e: FileNotFoundException) {
             LOGGER.warn("FileNotFoundException: ${e.message}")
         } catch (e: Exception) {
-            if(e is ShutdownException) throw e
+            if (e is ShutdownException) throw e
             else e.printStackTrace()
         }
         return data
@@ -158,7 +156,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
 
     fun <V> getEntry(key: V, timeout: Long, asyncGenerator: Boolean, generator: (V) -> ICacheData): ICacheData? {
 
-        if(key == null) throw IllegalStateException("Key must not be null")
+        if (key == null) throw IllegalStateException("Key must not be null")
 
         // new, async cache
         // only the key needs to be locked, not the whole cache
@@ -186,7 +184,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
 
     fun <V> getEntry(key: V, timeout: Long, queue: ProcessingQueue?, generator: (V) -> ICacheData): ICacheData? {
 
-        if(key == null) throw IllegalStateException("Key must not be null")
+        if (key == null) throw IllegalStateException("Key must not be null")
 
         // new, async cache
         // only the key needs to be locked, not the whole cache

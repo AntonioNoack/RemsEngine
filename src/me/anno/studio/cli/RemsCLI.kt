@@ -10,6 +10,7 @@ import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2D.Companion.bindTexture
 import me.anno.installer.Installer.checkInstall
+import me.anno.io.FileReference
 import me.anno.io.config.ConfigBasics
 import me.anno.io.text.TextReader
 import me.anno.objects.Transform
@@ -93,8 +94,8 @@ object RemsCLI {
         RemsStudio.root = scene
 
         val project = if (line.hasOption("project")) {
-            Project("Unnamed", File(line.getOptionValue("project")))
-        } else Project("Unknown", File(ConfigBasics.cacheFolder, "project0").apply { mkdirs() })
+            Project("Unnamed", FileReference(line.getOptionValue("project")))
+        } else Project("Unknown", FileReference(ConfigBasics.cacheFolder, "project0").apply { mkdirs() })
         RemsStudio.project = project
 
         project.targetFPS = line.parseDouble("fps", project.targetFPS)
@@ -104,7 +105,7 @@ object RemsCLI {
         project.targetSampleRate = line.parseInt("sampleRate", project.targetSampleRate)
 
         val outputFile = if (line.hasOption("output")) {
-            File(line.getOptionValue("output"))
+            FileReference(line.getOptionValue("output"))
         } else project.targetOutputFile
 
         val renderType = if (line.hasOption("type")) {

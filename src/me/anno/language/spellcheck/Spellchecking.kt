@@ -4,6 +4,7 @@ import me.anno.Engine.shutdown
 import me.anno.cache.CacheSection
 import me.anno.config.DefaultConfig
 import me.anno.installer.Installer
+import me.anno.io.FileReference
 import me.anno.io.json.JsonArray
 import me.anno.io.json.JsonObject
 import me.anno.io.json.JsonReader
@@ -24,7 +25,12 @@ import kotlin.streams.toList
 
 object Spellchecking : CacheSection("Spellchecking") {
 
-    private val path = File(DefaultConfig["spellchecking.path", File(OS.downloads, "lib\\spellchecking").toString()])
+    private val path = File(
+        DefaultConfig[
+                "spellchecking.path",
+                FileReference(OS.downloads, "lib\\spellchecking").toString()
+        ]
+    )
 
     private val language get() = project?.language ?: Language.get(Dict["en-US", "lang.spellcheck"])
 

@@ -19,6 +19,7 @@ import me.anno.objects.modes.UVProjection
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
+import me.anno.io.FileReference
 import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.utils.types.Floats.toRadians
 import me.anno.utils.types.Lists.median
@@ -26,7 +27,6 @@ import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.joml.*
-import java.io.File
 import kotlin.math.*
 
 // todo different types of lists (x list, y list, grid, linear particle system, random particle system, ...)
@@ -34,9 +34,9 @@ import kotlin.math.*
 // todo re-project UV textures onto stuff to animate an image exploding (gets UVs from first frame, then just is a particle system or sth else)
 // todo interpolation between lists and sets? could be interesting :)
 
-open class PDFDocument(var file: File, parent: Transform?) : GFXTransform(parent) {
+open class PDFDocument(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
 
-    constructor() : this(File(""), null)
+    constructor() : this(FileReference(""), null)
 
     var selectedSites = ""
 
@@ -60,7 +60,7 @@ open class PDFDocument(var file: File, parent: Transform?) : GFXTransform(parent
     val meta get() = getMeta(file, true)
     val forcedMeta get() = getMeta(file, false)!!
 
-    fun getMeta(src: File, async: Boolean): PDDocument? {
+    fun getMeta(src: FileReference, async: Boolean): PDDocument? {
         return PDFCache.getDocument(src, async)
     }
 

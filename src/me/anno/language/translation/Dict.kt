@@ -69,7 +69,7 @@ object Dict {
                 LOGGER.warn("Skipped $it, didn't find it")
             }
         }
-        val externalFiles = File(ConfigBasics.configFolder, "lang").listFiles()
+        val externalFiles = File(ConfigBasics.configFolder.file, "lang").listFiles()
         externalFiles?.forEach { file ->
             if (!file.isDirectory && file.name.endsWith(".lang")) {
                 try {
@@ -82,7 +82,7 @@ object Dict {
                 }
             }
         }
-        if(options.isEmpty()){
+        if (options.isEmpty()) {
             options += LanguageOption("", "", "Missing :/")
         }
         return options
@@ -95,7 +95,7 @@ object Dict {
             ?: options.firstOrNull { it.path == "internal/en.lang" } ?: options.first()
     }
 
-    fun loadDefault(){
+    fun loadDefault() {
         load(getDefaultOption().data, true)
     }
 
@@ -104,7 +104,13 @@ object Dict {
         // data, path, name
         val options = getOptions()
         val currentLanguage = getDefaultOption()
-        val input = EnumInput(Dict["Language", "ui.input.language.title"], true, currentLanguage.name, options.map { NameDesc(it.name) }, style)
+        val input = EnumInput(
+            Dict["Language", "ui.input.language.title"],
+            true,
+            currentLanguage.name,
+            options.map { NameDesc(it.name) },
+            style
+        )
         input.setChangeListener { _, index, _ ->
             val option = options[index]
             DefaultConfig["ui.language"] = option.path

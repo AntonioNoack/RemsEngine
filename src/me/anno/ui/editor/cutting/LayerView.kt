@@ -13,6 +13,7 @@ import me.anno.input.Input.mouseX
 import me.anno.input.Input.mouseY
 import me.anno.input.Input.needsLayoutUpdate
 import me.anno.input.MouseButton
+import me.anno.io.FileReference
 import me.anno.io.text.TextReader
 import me.anno.language.translation.NameDesc
 import me.anno.objects.Transform
@@ -545,7 +546,7 @@ class LayerView(val timelineSlot: Int, style: Style) : TimelinePanel(style) {
         }
     }
 
-    override fun onPasteFiles(x: Float, y: Float, files: List<File>) {
+    override fun onPasteFiles(x: Float, y: Float, files: List<FileReference>) {
         val time = getTimeAt(x)
         files.forEach { file ->
             addChildFromFile(root, file, null, true) {

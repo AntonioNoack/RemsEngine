@@ -1,9 +1,9 @@
 package me.anno.cache.keys
 
-import java.io.File
+import me.anno.io.FileReference
 
-data class AudioSliceKey(val file: File, val slice: Long){
-    val hashCode = (file.hashCode()*31) or slice.hashCode()
+data class AudioSliceKey(val file: FileReference, val slice: Long) {
+    val hashCode = (file.hashCode() * 31) or slice.hashCode()
     override fun hashCode() = hashCode
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

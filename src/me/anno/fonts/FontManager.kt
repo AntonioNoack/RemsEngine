@@ -4,6 +4,7 @@ import me.anno.cache.CacheData
 import me.anno.cache.instances.TextCache
 import me.anno.fonts.keys.FontKey
 import me.anno.fonts.keys.TextCacheKey
+import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.GFXx2D
 import me.anno.gpu.TextureLib
@@ -32,7 +33,7 @@ object FontManager {
     fun requestFontList(callback: (List<String>) -> Unit) {
         if (hasFonts) callback(awtFontList)
         else {
-            threadWithName("FontManager"){
+            threadWithName("FontManager") {
                 synchronized(awtFontList) {
                     hasFonts = true
                     val tick = Clock()
@@ -69,7 +70,7 @@ object FontManager {
             loadTexturesSync.push(true)
             val size0 = getSize(font, text, -1)
             val w = GFXx2D.getSizeX(size0)
-            if(w <= widthLimit) return size0
+            if (w <= widthLimit) return size0
             loadTexturesSync.pop()
             val step = fontSize.toInt()
             min(w, widthLimit / step * step)
@@ -82,6 +83,7 @@ object FontManager {
             val averageFontSize = getAvgFontSize(it.fontSizeIndex())
             CacheData(awtFont.calculateSize(text, averageFontSize, it.widthLimit))
         } as CacheData<*>
+
         return data.value as Int
 
     }
@@ -100,7 +102,7 @@ object FontManager {
             loadTexturesSync.push(true)
             val size0 = getSize(font, text, -1)
             val w = GFXx2D.getSizeX(size0)
-            if(w <= widthLimit) return getTextCacheKey(font, text, -1)
+            if (w <= widthLimit) return getTextCacheKey(font, text, -1)
             loadTexturesSync.pop()
             val step = fontSize.toInt()
             min(w, widthLimit / step * step)
@@ -123,7 +125,9 @@ object FontManager {
     fun getString(
         cacheKey: TextCacheKey
     ): ITexture2D? {
-        // must be sync
+        // must be sync:
+        // - textures need to be available
+        // - Java/Windows is not thread-safe
         return TextCache.getEntry(cacheKey, textureTimeout, false) { key ->
             val font2 = getFont(key)
             val averageFontSize = getAvgFontSize(key.fontSizeIndex())
@@ -132,7 +136,8 @@ object FontManager {
         } as? ITexture2D
     }
 
-    fun getFont(key: TextCacheKey): AWTFont = getFont(key.fontName, getAvgFontSize(key.fontSizeIndex()), key.isBold(), key.isItalic())
+    fun getFont(key: TextCacheKey): AWTFont =
+        getFont(key.fontName, getAvgFontSize(key.fontSizeIndex()), key.isBold(), key.isItalic())
 
     fun getFont(font: me.anno.ui.base.Font): AWTFont = getFont(font.name, font.size, font.isBold, font.isItalic)
 

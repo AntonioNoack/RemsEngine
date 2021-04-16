@@ -1,5 +1,6 @@
 package me.anno.ui.simple
 
+import me.anno.gpu.GFX.isFinalRendering
 import me.anno.ui.base.Panel
 import kotlin.math.abs
 
@@ -48,6 +49,7 @@ class SimplePanel(
         px = x + deltaX + (relativeX + 1) * w / 2
         py = y + deltaY + (relativeY + 1) * h / 2
         // hide if half/a third the size is not enough
+        // todo avoid recalculation
         drawable.calculateSize(sizeX, sizeY)
         drawable.placeInParent(px, py)
         if (hideModeX.shallDraw(abs(deltaX + sizeX / 2), w) &&

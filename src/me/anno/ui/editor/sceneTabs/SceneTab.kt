@@ -23,10 +23,10 @@ import me.anno.ui.editor.sceneTabs.SceneTabs.open
 import me.anno.ui.editor.sceneView.SceneTabData
 import me.anno.utils.Maths.mixARGB
 import me.anno.utils.Threads.threadWithName
+import me.anno.io.FileReference
 import java.io.File
-import kotlin.concurrent.thread
 
-class SceneTab(var file: File?, var root: Transform, history: History?) : TextPanel("", DefaultConfig.style) {
+class SceneTab(var file: FileReference?, var root: Transform, history: History?) : TextPanel("", DefaultConfig.style) {
 
     companion object {
         const val maxDisplayNameLength = 15
@@ -93,12 +93,12 @@ class SceneTab(var file: File?, var root: Transform, history: History?) : TextPa
         super.onDraw(x0, y0, x1, y1)
     }
 
-    fun save(dst: File, onSuccess: () -> Unit) {
-        if (dst.isDirectory) dst.deleteRecursively()
+    fun save(dst: FileReference, onSuccess: () -> Unit) {
+        if (dst.isDirectory) dst.file.deleteRecursively()
         threadWithName("SaveScene") {
             try {
                 synchronized(root) {
-                    dst.parentFile.mkdirs()
+                    dst.file.parentFile.mkdirs()
                     val writer = TextWriter(false)
                     writer.add(root)
                     writer.add(history)
@@ -122,7 +122,7 @@ class SceneTab(var file: File?, var root: Transform, history: History?) : TextPa
             // todo replace /,\?,..
             name = name.toAllowedFilename() ?: ""
             if (name.isEmpty()) {
-                val dst = File(project!!.scenes, name)
+                val dst = FileReference(project!!.scenes, name)
                 if (dst.exists()) {
                     // todo translate
                     ask(
@@ -130,11 +130,11 @@ class SceneTab(var file: File?, var root: Transform, history: History?) : TextPa
                             .with("%1", dst.name)
                     ) {
                         file = dst
-                        save(dst, onSuccess)
+                        save(file!!, onSuccess)
                     }
                 } else {
                     file = dst
-                    save(dst, onSuccess)
+                    save(file!!, onSuccess)
                     rootPanel.listOfAll { if(it is FileExplorer) it.invalidate() }
                 }
             } else {

@@ -16,6 +16,7 @@ import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.texture.*
 import me.anno.image.HDRImage
+import me.anno.io.FileReference
 import me.anno.io.config.ConfigBasics
 import me.anno.objects.Video
 import me.anno.objects.documents.pdf.PDFCache
@@ -49,12 +50,12 @@ import kotlin.math.roundToInt
  * */
 object Thumbs {
 
-    private val folder = File(ConfigBasics.cacheFolder, "thumbs")
+    private val folder = File(ConfigBasics.cacheFolder.file, "thumbs")
     private val sizes = intArrayOf(32, 64, 128, 256, 512)
     private val neededSizes = IntArray(sizes.last() + 1)
     private const val timeout = 5000L
 
-    private fun File.getCacheFile(size: Int): File {
+    private fun FileReference.getCacheFile(size: Int): File {
         val hashReadLimit = 256
         val info = LastModifiedCache[this]
         var hash = info.lastModified xor (454781903L * this.length())
@@ -84,7 +85,7 @@ object Thumbs {
         } else sizes.last()
     }
 
-    fun getThumbnail(file: File, neededSize: Int): ITexture2D? {
+    fun getThumbnail(file: FileReference, neededSize: Int): ITexture2D? {
         val size = getSize(neededSize)
         val key = ThumbnailKey(file, size)
         return getLateinitTexture(key, timeout) { callback ->
@@ -92,7 +93,7 @@ object Thumbs {
         }.texture
     }
 
-    private fun upload(srcFile: File, dst: BufferedImage, callback: (Texture2D) -> Unit) {
+    private fun upload(srcFile: FileReference, dst: BufferedImage, callback: (Texture2D) -> Unit) {
         val rotation = ImageData.getRotation(srcFile)
         GFX.addGPUTask(dst.width, dst.height) {
             val texture = Texture2D(dst)
@@ -101,14 +102,14 @@ object Thumbs {
         }
     }
 
-    private fun saveNUpload(srcFile: File, dstFile: File, dst: BufferedImage, callback: (Texture2D) -> Unit) {
+    private fun saveNUpload(srcFile: FileReference, dstFile: File, dst: BufferedImage, callback: (Texture2D) -> Unit) {
         dstFile.parentFile.mkdirs()
         ImageIO.write(dst, destinationFormat, dstFile)
         upload(srcFile, dst, callback)
     }
 
     private fun transformNSaveNUpload(
-        srcFile: File,
+        srcFile: FileReference,
         src: BufferedImage,
         dstFile: File,
         size: Int,
@@ -136,7 +137,7 @@ object Thumbs {
     }
 
     private fun renderToBufferedImage(
-        srcFile: File,
+        srcFile: FileReference,
         dstFile: File,
         callback: (Texture2D) -> Unit,
         w: Int, h: Int, render: () -> Unit
@@ -202,7 +203,7 @@ object Thumbs {
     }
 
     private fun generateVideoFrame(
-        srcFile: File,
+        srcFile: FileReference,
         dstFile: File,
         size: Int,
         callback: (Texture2D) -> Unit,
@@ -243,7 +244,7 @@ object Thumbs {
     }
 
     private fun generateSVGFrame(
-        srcFile: File,
+        srcFile: FileReference,
         dstFile: File,
         size: Int,
         callback: (Texture2D) -> Unit
@@ -272,7 +273,7 @@ object Thumbs {
 
     // png/bmp/jpg?
     private const val destinationFormat = "png"
-    private fun generate(srcFile: File, size: Int, callback: (Texture2D) -> Unit) {
+    private fun generate(srcFile: FileReference, size: Int, callback: (Texture2D) -> Unit) {
 
         if (size < 1) return
 
@@ -296,7 +297,7 @@ object Thumbs {
             try {
                 when (val ext = srcFile.extension.toLowerCase()) {
                     "hdr" -> {
-                        val src = HDRImage(srcFile, true)
+                        val src = HDRImage(srcFile.file, true)
                         val sw = src.width
                         val sh = src.height
                         if (max(sw, sh) < size) return generate(srcFile, size / 2, callback)
@@ -318,10 +319,10 @@ object Thumbs {
                     "webp" -> generateVideoFrame(srcFile, dstFile, size, callback, 0.0)
                     else -> {
                         val image = try {
-                            ImageIO.read(srcFile)
+                            ImageIO.read(srcFile.file)
                         } catch (e: Exception) {
                             try {
-                                Imaging.getBufferedImage(srcFile)
+                                Imaging.getBufferedImage(srcFile.file)
                             } catch (e: Exception) {
                                 when (ext.getImportType()) {
                                     "Video" -> {

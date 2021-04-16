@@ -1,7 +1,6 @@
 package me.anno.fonts.mesh
 
 import me.anno.fonts.FontManager
-import me.anno.gpu.GFXx2D.drawRect
 import me.anno.ui.base.DefaultRenderingHints.prepareGraphics
 import me.anno.utils.OS
 import java.awt.Color
@@ -12,7 +11,7 @@ import java.awt.image.BufferedImage
 import java.io.File
 import javax.imageio.ImageIO
 
-fun main(){
+fun main() {
 
     val te = "Te"
     val t = "T"
@@ -20,9 +19,9 @@ fun main(){
 
     val w = 512
 
-    val fs = w/5f
+    val fs = w / 5f
     val font = FontManager.getFont("Verdana", fs, false, false).font
-    val img = BufferedImage(w,w,1)
+    val img = BufferedImage(w, w, 1)
     val gfx = img.graphics as Graphics2D
     gfx.prepareGraphics(font) // yes, values are changing: single letters are assigned fraction widths now too
 
@@ -38,7 +37,7 @@ fun main(){
     gfx.translate(3, 3)
 
     val fh = sl.ascent + sl.descent
-    fun drawString(str: String, x: Float){
+    fun drawString(str: String, x: Float) {
         val wi = width(str)
         gfx.color = Color.DARK_GRAY
         gfx.drawRect(x.toInt(), 0, wi.toInt(), fh.toInt())
@@ -55,13 +54,13 @@ fun main(){
     drawString(e, width(t))
     gfx.translate(0, fs.toInt())
 
-    val correctOffset = width(te)-width(e)
+    val correctOffset = width(te) - width(e)
     drawString(t, 0f)
     drawString(e, correctOffset)
     gfx.translate(0, fs.toInt())
 
     gfx.dispose()
-    ImageIO.write(img, "png", File(OS.desktop, "font2.png"))
+    ImageIO.write(img, "png", File(OS.desktop.file, "font2.png"))
 
 
 }

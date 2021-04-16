@@ -1,31 +1,35 @@
 package me.anno.mesh.obj
 
+import me.anno.io.FileReference
 import org.apache.logging.log4j.LogManager
 import java.io.EOFException
 import java.io.File
 
-class MTLReader(val file: File): OBJMTLReader(file.inputStream().buffered()){
+class MTLReader(val file: FileReference) : OBJMTLReader(file.inputStream().buffered()) {
+
+    constructor(file: File) : this(FileReference(file))
 
     companion object {
         private val LOGGER = LogManager.getLogger(MTLReader::class)
     }
 
     val materials = HashMap<String, Material>()
+
     init {
         // load all materials
         // the full spec ofc is again very complex...
         try {
             lateinit var material: Material
             lateinit var materialName: String
-            while(true){
+            while (true) {
                 skipSpaces()
                 val char0 = next()
-                if(char0 == '#'.toInt()){
+                if (char0 == '#'.toInt()) {
                     // just a comment
                     skipLine()
                 } else {
                     putBack(char0)
-                    when(val name = readUntilSpace()){
+                    when (val name = readUntilSpace()) {
                         "newmtl" -> {
                             skipSpaces()
                             materialName = readUntilSpace()
@@ -50,7 +54,8 @@ class MTLReader(val file: File): OBJMTLReader(file.inputStream().buffered()){
                             skipSpaces()
                             val modelIndex = readUntilSpace().toInt()
                             skipLine()
-                            material.model = IlluminationModel.values().firstOrNull { it.id == modelIndex } ?: material.model
+                            material.model =
+                                IlluminationModel.values().firstOrNull { it.id == modelIndex } ?: material.model
                         }
                         // bump maps, displacement maps, decal maps exists;
                         // also there is additional parameters for texture blending, scale,
@@ -62,7 +67,8 @@ class MTLReader(val file: File): OBJMTLReader(file.inputStream().buffered()){
                     }
                 }
             }
-        } catch (e: EOFException){}
+        } catch (e: EOFException) {
+        }
         reader.close()
     }
 }

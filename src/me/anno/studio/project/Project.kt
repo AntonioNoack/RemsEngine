@@ -2,6 +2,7 @@ package me.anno.studio.project
 
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.GFX
+import me.anno.io.FileReference
 import me.anno.io.Saveable
 import me.anno.io.config.ConfigBasics
 import me.anno.io.json.JsonArray
@@ -30,11 +31,13 @@ import org.apache.logging.log4j.LogManager
 import java.io.File
 import kotlin.math.roundToInt
 
-class Project(var name: String, val file: File) : Saveable() {
+class Project(var name: String, val file: FileReference) : Saveable() {
 
-    val configFile = File(file, "config.json")
-    val uiFile = File(file, "ui.json")
-    val tabsFile = File(file, "tabs.json")
+    constructor(name: String, file: File): this(name, FileReference(file))
+
+    val configFile = FileReference(file, "config.json")
+    val uiFile = FileReference(file, "ui.json")
+    val tabsFile = FileReference(file, "tabs.json")
 
     val config: StringMap
 
@@ -47,7 +50,7 @@ class Project(var name: String, val file: File) : Saveable() {
         config = ConfigBasics.loadConfig(configFile, defaultConfig, true)
     }
 
-    val scenes = File(file, "Scenes")
+    val scenes = FileReference(file, "Scenes")
 
     init {
         scenes.mkdirs()
@@ -64,7 +67,7 @@ class Project(var name: String, val file: File) : Saveable() {
         fun tabsDefault() {
             val tab =
                 SceneTab(
-                    File(scenes, "Root.json"),
+                    FileReference(scenes, "Root.json"),
                     Transform().run {
                         name = "Root"
                         Camera(this)
@@ -204,7 +207,7 @@ class Project(var name: String, val file: File) : Saveable() {
     var targetWidth = config["target.width", 1920]
     var targetHeight = config["target.height", 1080]
     var targetFPS = config["target.fps", 30.0]
-    var targetOutputFile = config["target.output", File(file, "output.mp4")]
+    var targetOutputFile = config["target.output", FileReference(file, "output.mp4")]
     var targetVideoQuality = config["target.quality", 23]
     var motionBlurSteps = config["target.motionBlur.steps", 8]
     var shutterPercentage = config["target.motionBlur.shutterPercentage", 1f]

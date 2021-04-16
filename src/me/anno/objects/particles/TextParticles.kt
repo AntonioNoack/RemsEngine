@@ -13,7 +13,6 @@ import me.anno.objects.text.Text
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
-import me.anno.utils.Maths
 import me.anno.utils.types.Strings.joinChars
 import org.joml.Vector3f
 import kotlin.streams.toList
@@ -60,10 +59,10 @@ class TextParticles : ParticleSystem() {
                 val keys = createKeys(segments)
                 CacheData(segments to keys)
             } as CacheData<*>
-            val dataValue = data.value as Pair<PartResult, List<TextSegmentKey>>
+            val dataValue = data.value as Pair<*, *>
 
-            val lineSegmentsWithStyle = dataValue.first
-            val keys = dataValue.second
+            val lineSegmentsWithStyle = dataValue.first as PartResult
+            val keys = dataValue.second as List<TextSegmentKey>
 
             val exampleLayout = lineSegmentsWithStyle.exampleLayout
             val scaleX = TextMesh.DEFAULT_LINE_HEIGHT / (exampleLayout.ascent + exampleLayout.descent)

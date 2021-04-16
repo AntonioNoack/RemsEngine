@@ -1,7 +1,6 @@
 package me.anno.objects
 
 import me.anno.cache.instances.LastModifiedCache
-import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.GFX.windowHeight
 import me.anno.gpu.GFX.windowWidth
 import me.anno.gpu.GFXx3D.draw3DVideo
@@ -23,15 +22,15 @@ import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.files.ImportFromFile.addChildFromFile
 import me.anno.ui.editor.frames.FrameSizeInput
 import me.anno.ui.style.Style
+import me.anno.io.FileReference
 import me.anno.utils.files.LocalFile.toGlobalFile
 import org.joml.*
 import org.lwjgl.opengl.GL11.*
-import java.io.File
 import kotlin.math.roundToInt
 
-class SoftLink(var file: File) : GFXTransform(null) {
+class SoftLink(var file: FileReference) : GFXTransform(null) {
 
-    constructor() : this(File(""))
+    constructor() : this(FileReference.empty)
 
     var softChild = Transform()
 
@@ -103,15 +102,12 @@ class SoftLink(var file: File) : GFXTransform(null) {
     }
 
     fun drawSceneWithPostProcessing(time: Double) {
-        val wasFinalRendering = isFinalRendering
-        isFinalRendering = true
         updateCache()
         val camera = lastCamera ?: Camera()
         Scene.draw(
             camera, softChild, 0, 0, windowWidth, windowHeight, time, true,
             ShaderPlus.DrawMode.COLOR, null
         )
-        isFinalRendering = wasFinalRendering
     }
 
     override fun drawChildrenAutomatically(): Boolean = false

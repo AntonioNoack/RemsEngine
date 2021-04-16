@@ -15,6 +15,7 @@ import me.anno.ui.base.Font
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.debug.FrameTimes
 import me.anno.utils.Maths.clamp
+import me.anno.utils.Maths.max
 import me.anno.utils.types.Strings.isBlank2
 import me.anno.video.VFrame
 import org.joml.Matrix4fArrayList
@@ -263,7 +264,17 @@ object GFXx2D {
         // todo correct distances for everything
 
         if ('\n' in text) {
-            throw NotImplementedError("Linebreak for drawTextCharByChar")
+            var sizeX = 0
+            val split = text.split('\n')
+            split.forEachIndexed { index, s ->
+                val size = drawTextCharByChar(
+                    x, y + index * font.sizeInt, font, s,
+                    color, backgroundColor,
+                    widthLimit, alignment, equalSpaced
+                )
+                sizeX = max(getSizeX(size), sizeX)
+            }
+            return getSize(sizeX, split.size * font.sizeInt)
         }
 
         val charWidth = if (equalSpaced) getTextSizeX(font, "x", widthLimit) else 0
@@ -294,7 +305,7 @@ object GFXx2D {
         var fx = x
         var h = font.sizeInt
         for (char in text) {
-            val txt = "$char"
+            val txt = char.toString()
             val size = FontManager.getSize(font, txt, -1)
             val sizeFirst = getSizeX(size)
             val sizeSecond = getSizeY(size)
@@ -356,7 +367,7 @@ object GFXx2D {
             texture.bind(GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
             val shader = ShaderLib.subpixelCorrectTextShader
             shader.use()
-            val xWithOffset = x - when(alignment){
+            val xWithOffset = x - when (alignment) {
                 AxisAlignment.MIN -> 0
                 AxisAlignment.CENTER -> w / 2
                 AxisAlignment.MAX -> w

@@ -7,8 +7,8 @@ import me.anno.io.text.TextReader
 import me.anno.objects.Transform
 import me.anno.studio.history.History
 import me.anno.ui.editor.sceneTabs.SceneTab
+import me.anno.io.FileReference
 import me.anno.utils.files.LocalFile.toGlobalFile
-import java.io.File
 
 class SceneTabData() : Saveable() {
 
@@ -18,7 +18,7 @@ class SceneTabData() : Saveable() {
         history = tab.history
     }
 
-    var file: File? = null
+    var file: FileReference? = null
     var transform: Transform? = null
     var history: History? = null
 

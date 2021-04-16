@@ -10,19 +10,19 @@ import me.anno.objects.modes.LoopingState
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
+import me.anno.io.FileReference
 import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.utils.structures.ValueWithDefault.Companion.writeMaybe
 import me.anno.utils.structures.ValueWithDefaultFunc
 import me.anno.video.FFMPEGMetadata.Companion.getMeta
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4fc
-import java.io.File
 
 // flat playback vs 3D playback
 // respect scale? nah, rather not xD
 // (it becomes pretty complicated, I think)
 
-abstract class Audio(var file: File = File(""), parent: Transform? = null) : GFXTransform(parent) {
+abstract class Audio(var file: FileReference = FileReference(""), parent: Transform? = null) : GFXTransform(parent) {
 
     val amplitude = AnimatedProperty.floatPlus(1f)
     var pipeline = SoundPipeline(this)

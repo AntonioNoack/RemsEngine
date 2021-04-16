@@ -53,7 +53,7 @@ object ImageWriter {
                 }
             }
         }
-        ImageIO.write(img, if (name.endsWith(".jpg")) "jpg" else "png", File(OS.desktop, name))
+        ImageIO.write(img, if (name.endsWith(".jpg")) "jpg" else "png", File(OS.desktop.file, name))
     }
 
 }

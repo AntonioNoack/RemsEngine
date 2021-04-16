@@ -3,6 +3,7 @@ package me.anno.ui.editor.files
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.input.Input
+import me.anno.io.FileReference
 import me.anno.language.translation.NameDesc
 import me.anno.objects.Transform
 import me.anno.objects.Transform.Companion.toTransform
@@ -20,14 +21,13 @@ import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.input.TextInput
 import me.anno.ui.style.Style
-import me.anno.utils.files.Files.listFiles2
-import me.anno.utils.files.Files.openInExplorer
-import me.anno.utils.OS
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.pow
+import me.anno.utils.OS
 import me.anno.utils.Threads.threadWithName
+import me.anno.utils.files.Files.listFiles2
+import me.anno.utils.files.Files.openInExplorer
 import java.io.File
-import kotlin.concurrent.thread
 import kotlin.math.max
 
 // todo the text size is quite small on my x360 -> get the font size for the ui from the OS :)
@@ -46,9 +46,9 @@ import kotlin.math.max
 // todo a stack or history to know where we were...
 // todo left list of relevant places? todo drag stuff in there
 
-class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
+class FileExplorer(style: Style) : PanelListY(style.getChild("fileExplorer")) {
 
-    var folder: File? = project?.scenes ?: File(OS.home, "Documents")
+    var folder: FileReference? = project?.scenes ?: OS.documents
 
     override fun getLayoutState(): Any? = folder
     override fun getVisualState(): Any? = Triple(
@@ -70,7 +70,7 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
     var entrySize = 64f
     val minEntrySize = 32f
 
-    fun invalidate(){
+    fun invalidate() {
         isValid = 0f
         invalidateLayout()
     }
@@ -104,34 +104,34 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
         uContent += content.setWeight(3f)
     }
 
-    fun removeOldFiles(){
+    fun removeOldFiles() {
         content.children.forEach { (it as? FileEntry)?.stopPlayback() }
         content.clear()
     }
 
     var isWorking = false
-    fun createResults(){
-        if(isWorking) return
+    fun createResults() {
+        if (isWorking) return
         isWorking = true
-        threadWithName("FileExplorer-Query"){
+        threadWithName("FileExplorer-Query") {
 
             val search = Search(searchTerm)
 
-            val children = folder?.listFiles2() ?: File.listRoots().toList()
+            val children = folder?.file?.listFiles2() ?: File.listRoots().toList()
             val newFiles = children.joinToString { it.name }
-            if(lastFiles != newFiles){
+            if (lastFiles != newFiles) {
                 lastFiles = newFiles
-                val parent = folder?.parentFile
-                if(parent != null){
-                    val fe = FileEntry(this, true, parent, style)
-                    GFX.addGPUTask(1){ removeOldFiles(); content += fe }
+                val parent = folder?.file?.parentFile
+                if (parent != null) {
+                    val fe = FileEntry(this, true, FileReference(parent), style)
+                    GFX.addGPUTask(1) { removeOldFiles(); content += fe }
                 } else {
-                    GFX.addGPUTask(1){ removeOldFiles() }
+                    GFX.addGPUTask(1) { removeOldFiles() }
                 }
                 val tmpCount = 64
                 var tmpList = ArrayList<FileEntry>(tmpCount)
-                fun put(){
-                    if(tmpList.isNotEmpty()){
+                fun put() {
+                    if (tmpList.isNotEmpty()) {
                         val list = tmpList
                         addEvent {
                             list.forEach { content += it }
@@ -143,10 +143,10 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
                 }
                 children.sortedBy { !it.isDirectory }.forEach { file ->
                     val name = file.name
-                    if(!name.startsWith(".") && search.matches(name)){
-                        val fe = FileEntry(this, false, file, style)
+                    if (!name.startsWith(".") && search.matches(name)) {
+                        val fe = FileEntry(this, false, FileReference(file), style)
                         tmpList.add(fe)
-                        if(tmpList.size >= tmpCount) put()
+                        if (tmpList.size >= tmpCount) put()
                     }
                 }
                 put()
@@ -162,7 +162,7 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.onDraw(x0, y0, x1, y1)
-        if(isValid <= 0f){
+        if (isValid <= 0f) {
             isValid = 5f // depending on amount of files?
             title.file = folder// ?.toString() ?: "This Computer"
             title.tooltip = folder?.toString() ?: "This Computer"
@@ -170,23 +170,23 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
         } else isValid -= GFX.deltaTime
     }
 
-    override fun onPasteFiles(x: Float, y: Float, files: List<File>) {
+    override fun onPasteFiles(x: Float, y: Float, files: List<FileReference>) {
         // todo create links? or truly copy them?
         // todo or just switch?
         folder = files.first()
-        if(!folder!!.isDirectory){
-            folder = folder!!.parentFile
+        if (!folder!!.isDirectory) {
+            folder = folder!!.getParent()
         }
         invalidate()
     }
 
     override fun onPaste(x: Float, y: Float, data: String, type: String) {
-        when(type){
+        when (type) {
             "Transform" -> {
                 pasteTransform(data)
             }
             else -> {
-                if(!pasteTransform(data)){
+                if (!pasteTransform(data)) {
                     super.onPaste(x, y, data, type)
                 }
             }
@@ -197,49 +197,67 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
         val transform = data.toTransform() ?: return false
         var name = transform.name.toAllowedFilename() ?: transform.getDefaultDisplayName()
         // make .json lowercase
-        if(name.endsWith(".json", true)){
-            name = name.substring(0, name.length-5)
+        if (name.endsWith(".json", true)) {
+            name = name.substring(0, name.length - 5)
         }
         name += ".json"
         // todo replace vs add new?
-        File(folder, name).writeText(data)
+        FileReference(folder!!, name).writeText(data)
         invalidate()
         return true
     }
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
-        when(action){
+        when (action) {
             "OpenOptions" -> {
                 val home = folder
                 openMenu(
                     listOf(
-                    MenuOption(NameDesc("Create Folder", "Creates a new directory", "ui.newFolder")) {
-                        askName(x.toInt(), y.toInt(), NameDesc("Name", "", "ui.newFolder.askName"), "", NameDesc("Create"), { -1 }){
-                            val validName = it.toAllowedFilename()
-                            if(validName != null){
-                                File(home, validName).mkdirs()
-                                invalidate()
+                        MenuOption(NameDesc("Create Folder", "Creates a new directory", "ui.newFolder")) {
+                            askName(
+                                x.toInt(),
+                                y.toInt(),
+                                NameDesc("Name", "", "ui.newFolder.askName"),
+                                "",
+                                NameDesc("Create"),
+                                { -1 }) {
+                                val validName = it.toAllowedFilename()
+                                if (validName != null) {
+                                    FileReference(home!!, validName).mkdirs()
+                                    invalidate()
+                                }
                             }
-                        }
-                    },
-                    MenuOption(NameDesc("Create Component", "Create a new folder component", "ui.newComponent")) {
-                        askName(x.toInt(), y.toInt(), NameDesc("Name", "", "ui.newComponent.askName"), "", NameDesc("Create"), { -1 }){
-                            val validName = it.toAllowedFilename()
-                            if(validName != null){
-                                File(home, "${validName}.json").writeText(Transform()
-                                    .apply { name = it }
-                                    .toString())
-                                invalidate()
+                        },
+                        MenuOption(NameDesc("Create Component", "Create a new folder component", "ui.newComponent")) {
+                            askName(
+                                x.toInt(),
+                                y.toInt(),
+                                NameDesc("Name", "", "ui.newComponent.askName"),
+                                "",
+                                NameDesc("Create"),
+                                { -1 }) {
+                                val validName = it.toAllowedFilename()
+                                if (validName != null) {
+                                    FileReference(home!!, "${validName}.json").writeText(Transform()
+                                        .apply { name = it }
+                                        .toString())
+                                    invalidate()
+                                }
                             }
+                        },
+                        MenuOption(
+                            NameDesc(
+                                "Open In Explorer",
+                                "Show the file in your default file explorer",
+                                "ui.file.openInExplorer"
+                            )
+                        ) {
+                            folder?.openInExplorer()
                         }
-                    },
-                    MenuOption(NameDesc("Open In Explorer", "Show the file in your default file explorer", "ui.file.openInExplorer")) {
-                        folder?.openInExplorer()
-                    }
-                ))
+                    ))
             }
             "Back" -> {
-                folder = folder?.parentFile
+                folder = folder?.getParent()
                 invalidate()
             }
             else -> return super.onGotAction(x, y, dx, dy, action, isContinuous)
@@ -248,8 +266,8 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
     }
 
     override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float) {
-        if(Input.isControlDown){
-            entrySize = clamp(entrySize * pow(1.05f, dy), minEntrySize, max(w/2f, 20f))
+        if (Input.isControlDown) {
+            entrySize = clamp(entrySize * pow(1.05f, dy), minEntrySize, max(w / 2f, 20f))
             val esi = entrySize.toInt()
             content.childWidth = esi
             content.childHeight = esi * 4 / 3
@@ -260,7 +278,8 @@ class FileExplorer(style: Style): PanelListY(style.getChild("fileExplorer")){
     override fun getMultiSelectablePanel() = this
 
     companion object {
-        private val forbiddenConfig = DefaultConfig["files.forbiddenCharacters", "<>:\"/\\|?*"] + String(CharArray(32){ it.toChar() })
+        private val forbiddenConfig =
+            DefaultConfig["files.forbiddenCharacters", "<>:\"/\\|?*"] + String(CharArray(32) { it.toChar() })
         val forbiddenCharacters = forbiddenConfig.toHashSet()
     }
 

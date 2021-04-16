@@ -6,6 +6,7 @@ import me.anno.gpu.TextureLib;
 import me.anno.gpu.texture.Clamping;
 import me.anno.gpu.texture.GPUFiltering;
 import me.anno.gpu.texture.Texture2D;
+import me.anno.io.FileReference;
 import me.anno.video.MissingFrameException;
 import me.karl.animatedModel.AnimatedModel;
 import me.karl.scene.ICamera;

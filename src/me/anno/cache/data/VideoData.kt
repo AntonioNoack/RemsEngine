@@ -2,17 +2,16 @@ package me.anno.cache.data
 
 import me.anno.cache.instances.VideoCache
 import me.anno.cache.keys.VideoFrameKey
+import me.anno.io.FileReference
 import me.anno.studio.rems.RemsStudio.gfxSettings
 import me.anno.video.FFMPEGStream
-import java.io.File
 
 class VideoData(
-    val file: File, val w: Int, val h: Int,
+    val file: FileReference, val w: Int, val h: Int,
     val scale: Int, val bufferIndex: Int,
     bufferLength: Int, val fps: Double,
     val ownsFrames: Boolean
-) :
-    ICacheData {
+) : ICacheData {
 
     // what about video webp? I think it's pretty rare...
     val stream = FFMPEGStream.getImageSequence(

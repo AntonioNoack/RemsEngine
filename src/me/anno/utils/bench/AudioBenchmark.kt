@@ -1,4 +1,4 @@
-package me.anno.utils.test
+package me.anno.utils.bench
 
 import me.anno.Engine
 import me.anno.audio.AudioFXCache
@@ -8,15 +8,12 @@ import me.anno.objects.Video
 import me.anno.utils.Maths.mix
 import me.anno.utils.OS
 import me.anno.utils.Sleep
-import java.io.File
+import me.anno.io.FileReference
 
 fun main() {
 
-    // todo the shown amplitudes, or the playback are not accurate
-    // todo probably, there is an offset of one buffer
-
     // it requires twice the time to listen too ...
-    // todo optimize until it's at least 10x real time,
+    // done optimize until it's at least 10x real time,
     // especially because it should be non-blocking
 
     // Thread.sleep(10000)
@@ -24,7 +21,7 @@ fun main() {
     val async = true
 
     val start = System.nanoTime()
-    val audio = Video(File(OS.downloads, "Bring Me The Horizon Dear Diary.mp3"))
+    val audio = Video(FileReference(OS.downloads, "Bring Me The Horizon Dear Diary.mp3"))
     val camera = Camera()
     val t0 = 0.0
     val t1 = (2 * 60 + 45).toDouble() // 2 min 45

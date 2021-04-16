@@ -5,14 +5,13 @@ import me.anno.audio.effects.Time
 import me.anno.objects.Audio
 import me.anno.objects.Camera
 import me.anno.objects.modes.LoopingState
+import me.anno.io.FileReference
 import me.anno.video.FFMPEGMetadata
 import me.anno.video.FFMPEGMetadata.Companion.getMeta
-import java.io.File
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.ShortBuffer
 import java.util.concurrent.atomic.AtomicBoolean
-import kotlin.math.floor
 
 // only play once, then destroy; it makes things easier
 // (on user input and when finally rendering only)
@@ -33,7 +32,7 @@ import kotlin.math.floor
  * done audio becoming quiet in the distance
  * */
 abstract class AudioStream(
-    val file: File,
+    val file: FileReference,
     val repeat: LoopingState,
     val startIndex: Long,
     val meta: FFMPEGMetadata,
@@ -46,9 +45,17 @@ abstract class AudioStream(
     // should be as short as possible for fast calculation
     // should be at least as long as the ffmpeg response time (0.3s for the start of a FHD video)
     companion object {
+
         fun getIndex(globalTime: Double, speed: Double, playbackSampleRate: Int): Long {
-            return floor((globalTime / speed) * playbackSampleRate.toDouble() / bufferSize.toDouble()).toLong()
+            val progressedSamples = ((globalTime / speed) * playbackSampleRate).toLong()
+            return Math.floorDiv(progressedSamples, bufferSize.toLong())
         }
+
+        fun getFraction(globalTime: Double, speed: Double, playbackSampleRate: Int): Long {
+            val progressedSamples = ((globalTime / speed) * playbackSampleRate).toLong()
+            return Math.floorMod(progressedSamples, bufferSize.toLong())
+        }
+
     }
 
     constructor(audio: Audio, speed: Double, globalTime: Double, playbackSampleRate: Int, listener: Camera) :

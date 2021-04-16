@@ -140,14 +140,14 @@ open class Text(parent: Transform? = null) : GFXTransform(parent) {
 
     val shallLoadAsync get() = !forceVariableBuffer
     fun getTextMesh(key: TextSegmentKey): TextRepBase? {
-        return TextCache.getEntry(key, textMeshTimeout, shallLoadAsync) {
+        return TextCache.getEntry(key, textMeshTimeout, shallLoadAsync) { key ->
             TextMeshGroup(key.font, key.text, key.charSpacing, forceVariableBuffer)
         } as? TextRepBase
     }
 
-    fun getTextTexture(key: TextSegmentKey): TextSDFGroup? {
-        val entry = TextCache.getEntry(key to 1, textMeshTimeout, shallLoadAsync) {
-            TextSDFGroup(key.font, key.text, charSpacing, forceVariableBuffer)
+    fun getSDFTexture(key: TextSegmentKey): TextSDFGroup? {
+        val entry = TextCache.getEntry(key to 1, textMeshTimeout, shallLoadAsync) { (keyInstance, _) ->
+            TextSDFGroup(keyInstance.font, keyInstance.text, keyInstance.charSpacing)
         } ?: return null
         if (entry !is TextSDFGroup) throw RuntimeException("Got different class for $key to 1: ${entry.javaClass.simpleName}")
         return entry
@@ -189,6 +189,7 @@ open class Text(parent: Transform? = null) : GFXTransform(parent) {
         }
 
         val visualState = getVisualState(text)
+
         val data = TextCache.getEntry(visualState, 1000L, false) {
             val segments = splitSegments(text)
             val keys = createKeys(segments)
@@ -217,7 +218,7 @@ open class Text(parent: Transform? = null) : GFXTransform(parent) {
 
         val renderingMode = renderingMode
         val drawMeshes = renderingMode == TextRenderMode.MESH
-        val drawTextures = !drawMeshes
+        val drawSDFTextures = !drawMeshes
 
         // limit the characters
         // cursorLimit1 .. cursorLimit2
@@ -254,7 +255,7 @@ open class Text(parent: Transform? = null) : GFXTransform(parent) {
                 stack.translate(shadowOffset)
                 draw(
                     stack, time, color * shadowColor,
-                    lineSegmentsWithStyle, drawMeshes, drawTextures,
+                    lineSegmentsWithStyle, drawMeshes, drawSDFTextures,
                     keys, exampleLayout,
                     width, lineOffset,
                     dx, dy, scaleX, scaleY,
@@ -266,7 +267,7 @@ open class Text(parent: Transform? = null) : GFXTransform(parent) {
 
         draw(
             stack, time, color,
-            lineSegmentsWithStyle, drawMeshes, drawTextures,
+            lineSegmentsWithStyle, drawMeshes, drawSDFTextures,
             keys, exampleLayout,
             width, lineOffset,
             dx, dy, scaleX, scaleY,
@@ -284,7 +285,7 @@ open class Text(parent: Transform? = null) : GFXTransform(parent) {
     private fun draw(
         stack: Matrix4fArrayList, time: Double, color: Vector4fc,
         lineSegmentsWithStyle: PartResult,
-        drawMeshes: Boolean, drawTextures: Boolean,
+        drawMeshes: Boolean, drawSDFTexture: Boolean,
         keys: List<TextSegmentKey>, exampleLayout: TextLayout,
         width: Float, lineOffset: Float,
         dx: Float, dy: Float, scaleX: Float, scaleY: Float,
@@ -296,7 +297,7 @@ open class Text(parent: Transform? = null) : GFXTransform(parent) {
         val oc0 = oc0
         val oc1 = oc1
         val oc2 = oc2
-        if (useExtraColors && drawTextures) {
+        if (useExtraColors && drawSDFTexture) {
             val parentColor = parent?.getLocalColor(tmp0)
             if (parentColor != null) {
                 oc0.set(parentColor).mul(outlineColor0[time])
@@ -349,8 +350,8 @@ open class Text(parent: Transform? = null) : GFXTransform(parent) {
                     )
                 }
 
-                if (drawTextures) {
-                    drawTexture(
+                if (drawSDFTexture) {
+                    drawSDFTexture(
                         key, time, stack, color,
                         lineDeltaX, lineDeltaY,
                         localMin, localMax,
@@ -370,7 +371,7 @@ open class Text(parent: Transform? = null) : GFXTransform(parent) {
     var firstTimeDrawing = false
 
     private val scale0 = Vector2f()
-    private fun drawTexture(
+    private fun drawSDFTexture(
         key: TextSegmentKey, time: Double, stack: Matrix4fArrayList,
         color: Vector4fc, lineDeltaX: Float, lineDeltaY: Float,
         startIndex: Int, endIndex: Int,
@@ -379,7 +380,7 @@ open class Text(parent: Transform? = null) : GFXTransform(parent) {
         oc1: Vector4fc, oc2: Vector4fc, oc3: Vector4fc
     ) {
 
-        val sdf2 = getTextTexture(key)
+        val sdf2 = getSDFTexture(key)
         if (sdf2 == null) {
             if (isFinalRendering) throw MissingFrameException("Text-Texture (291) $font: '$text'")
             needsUpdate = true
@@ -390,6 +391,7 @@ open class Text(parent: Transform? = null) : GFXTransform(parent) {
 
         sdf2.charByChar = renderingMode != TextRenderMode.SDF_JOINED
         sdf2.roundCorners = roundSDFCorners
+
         sdf2.draw(startIndex, endIndex) { _, sdf, xOffset ->
 
             val texture = sdf?.texture
