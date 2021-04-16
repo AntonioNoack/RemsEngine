@@ -250,8 +250,6 @@ object SignedDistanceField {
 
     fun createTexture(font: Font, text: String, roundEdges: Boolean): TextSDF {
 
-        if(text.length > 3) throw IllegalArgumentException()
-
         val contours = calculateContours(font,  text)
 
         if (contours.sumBy { it.segments.size } < 1) {
