@@ -49,12 +49,13 @@ object VideoCache : CacheSection("Videos") {
     fun getFrame(
         file: FileReference, scale: Int,
         index: Int, bufferIndex: Int, bufferLength: Int,
-        fps: Double, timeout: Long, async: Boolean
+        fps: Double, timeout: Long, async: Boolean,
+        needsToBeCreated: Boolean = true
     ): VFrame? {
         val localIndex = index % bufferLength
         val videoData = getVideoFrames(file, scale, bufferIndex, bufferLength, fps, timeout, async) ?: return null
         val frame = videoData.frames.getOrNull(localIndex)
-        return if (frame?.isCreated == true) frame else null
+        return if (!needsToBeCreated || frame?.isCreated == true) frame else null
     }
 
     fun getFrameWithoutGenerator(

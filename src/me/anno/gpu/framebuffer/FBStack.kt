@@ -12,8 +12,10 @@ object FBStack : CacheSection("FBStack") {
         var nextIndex = 0
         val data = ArrayList<Framebuffer>()
         override fun destroy() {
-            data.forEach { it.destroy() }
-            LOGGER.info("Destroyed ${data.size} framebuffers of $key")
+            if(data.isNotEmpty()){
+                data.forEach { it.destroy() }
+                LOGGER.info("Destroyed ${data.size} framebuffers of $key")
+            }
         }
     }
 

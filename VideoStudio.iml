@@ -19,10 +19,15 @@
       <sourceFolder url="file://$MODULE_DIR$/assets" type="java-resource" />
       <excludeFolder url="file://$MODULE_DIR$/ffmpeg-4.2.3" />
       <excludeFolder url="file://$MODULE_DIR$/lib" />
+      <excludeFolder url="file://$MODULE_DIR$/maven" />
       <excludeFolder url="file://$MODULE_DIR$/progress" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
+    <orderEntry type="library" name="LWJGL" level="project" />
+    <orderEntry type="library" name="JavaNativeAccess" level="project" />
+    <orderEntry type="library" name="PDFBox" level="project" />
+    <orderEntry type="library" name="Other" level="project" />
   </component>
 </module>

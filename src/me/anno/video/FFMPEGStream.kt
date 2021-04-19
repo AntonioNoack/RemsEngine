@@ -51,8 +51,7 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
             frameCount: Int,
             fps: Double,
             frameCallback: (VFrame, Int) -> Unit
-        ) =
-            getImageSequence(input, w, h, startFrame / fps, frameCount, fps, frameCallback)
+        ) = getImageSequence(input, w, h, startFrame / fps, frameCount, fps, frameCallback)
 
         // ffmpeg needs to fetch hardware decoded frames (-hwaccel auto) from gpu memory;
         // if we use hardware decoding, we need to use it on the gpu...
@@ -64,32 +63,31 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
             frameCount: Int,
             fps: Double,
             frameCallback: (VFrame, Int) -> Unit
-        ) =
-            FFMPEGVideo(
+        ): FFMPEGVideo {
+            val meta = getMeta(input, false)
+            val args = arrayListOf(
+                "-ss", "$startTime", // must be placed here!!!
+                "-i", input.absolutePath
+            )
+            if (StrictMath.abs(fps - (meta?.videoFPS ?: 0.0001)) > 0.01) {
+                // 2x slower
+                args += listOf("-r", "$fps")
+            }
+            if (meta?.videoWidth != w) {
+                args += listOf("-vf", "scale=$w:$h")
+            }
+            args += listOf(
+                "-vframes", "$frameCount",
+                // "-movflags", "faststart", // has no effect :(
+                "-f", "rawvideo", "-" // format
+            )
+            val video = FFMPEGVideo(
                 input, w, h, (startTime * fps).roundToInt(), frameCount,
                 frameCallback
-            ).run(
-                if (getMeta(input, false)?.videoWidth == w) {
-                    listOf(
-                        "-i", input.absolutePath,
-                        "-ss", "$startTime",
-                        "-r", "$fps",
-                        "-vframes", "$frameCount",
-                        // "-movflags", "faststart", // has no effect :(
-                        "-f", "rawvideo", "-" // format
-                    )
-                } else {
-                    listOf(
-                        "-i", input.absolutePath,
-                        "-ss", "$startTime",
-                        "-vf", "scale=$w:$h",
-                        "-r", "$fps",
-                        "-vframes", "$frameCount",
-                        // "-movflags", "faststart", // has no effect :(
-                        "-f", "rawvideo", "-" // format
-                    )
-                }
-            ) as FFMPEGVideo
+            )
+            video.run(args)
+            return video
+        }
 
         fun getAudioSequence(input: FileReference, startTime: Double, duration: Double, sampleRate: Int) =
             FFMPEGAudio(input, sampleRate, duration).run(

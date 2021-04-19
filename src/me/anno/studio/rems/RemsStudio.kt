@@ -57,7 +57,7 @@ import java.io.File
 
 // to do Mod with "hacked"-text effect for text: swizzle characters and introduce others?
 
-object RemsStudio : StudioBase(true, "Rem's Studio", 10005) {
+object RemsStudio : StudioBase(true, "Rem's Studio", 10100) {
 
     // private val LOGGER = LogManager.getLogger(RemsStudio::class)
 

@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="JavaNativeAccess">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/jna-5.7.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/jna-platform-5.7.0.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
