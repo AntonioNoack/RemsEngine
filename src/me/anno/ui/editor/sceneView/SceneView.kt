@@ -404,7 +404,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
                 Scene.draw(camera, root, 0, 0, rw, rh, editorTime, false, mode, this)
                 GFX.check()
                 val localX = (clickX - this.x).roundToInt()
-                val localH = fb.h
+                val localH = GFX.height
                 val localY = localH - 1 - (clickY - this.y).roundToInt()
                 glFlush(); glFinish() // wait for everything to be drawn
                 glPixelStorei(GL_UNPACK_ALIGNMENT, 1)

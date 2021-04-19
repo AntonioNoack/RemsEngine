@@ -62,7 +62,7 @@ class HarmonicDriver: AnimationDriver(){
         }
     }
 
-    override fun getValue0(time: Double, keyframeValue: Double): Double {
+    override fun getValue0(time: Double, keyframeValue: Double, index: Int): Double {
         val w0 = time * 2.0 * PI
         return harmonics.withIndex().sumByDouble { (index, it) -> it * sin((index + 1f) * w0) }
     }

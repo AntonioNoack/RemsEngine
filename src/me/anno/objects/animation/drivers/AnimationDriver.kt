@@ -29,38 +29,37 @@ abstract class AnimationDriver : Saveable(), Inspectable {
     var frequency = 1.0
     var amplitude = AnimatedProperty.float(1f)
 
-    fun getFloatValue(time: Double, keyframeValue: Double) =
-        getValue(time, keyframeValue).toFloat()
+    fun getFloatValue(time: Double, keyframeValue: Double, index: Int) =
+        getValue(time, keyframeValue, index).toFloat()
 
-    fun getValue(time: Double, keyframeValue: Double) =
-        getValue0(time * frequency, keyframeValue) * amplitude[time]
+    fun getValue(time: Double, keyframeValue: Double, index: Int) =
+        getValue0(time * frequency, keyframeValue, 0) * amplitude[time]
 
-    // todo more functions for vectors??... allow only one driver per animated driver??...
     open fun getValue(time: Double, keyframeValue: Vector2d): Vector2d {
         return Vector2d(
-            getValue0(time * frequency, keyframeValue.x) * amplitude[time],
-            getValue0(time * frequency, keyframeValue.y) * amplitude[time]
+            getValue0(time * frequency, keyframeValue.x, 0) * amplitude[time],
+            getValue0(time * frequency, keyframeValue.y, 1) * amplitude[time]
         )
     }
 
     open fun getValue(time: Double, keyframeValue: Vector3d): Vector3d {
         return Vector3d(
-            getValue0(time * frequency, keyframeValue.x) * amplitude[time],
-            getValue0(time * frequency, keyframeValue.y) * amplitude[time],
-            getValue0(time * frequency, keyframeValue.z) * amplitude[time]
+            getValue0(time * frequency, keyframeValue.x, 0) * amplitude[time],
+            getValue0(time * frequency, keyframeValue.y, 1) * amplitude[time],
+            getValue0(time * frequency, keyframeValue.z, 2) * amplitude[time]
         )
     }
 
     open fun getValue(time: Double, keyframeValue: Vector4dc): Vector4d {
         return Vector4d(
-            getValue0(time * frequency, keyframeValue.x()) * amplitude[time],
-            getValue0(time * frequency, keyframeValue.y()) * amplitude[time],
-            getValue0(time * frequency, keyframeValue.z()) * amplitude[time],
-            getValue0(time * frequency, keyframeValue.w()) * amplitude[time]
+            getValue0(time * frequency, keyframeValue.x(), 0) * amplitude[time],
+            getValue0(time * frequency, keyframeValue.y(), 1) * amplitude[time],
+            getValue0(time * frequency, keyframeValue.z(), 2) * amplitude[time],
+            getValue0(time * frequency, keyframeValue.w(), 3) * amplitude[time]
         )
     }
 
-    abstract fun getValue0(time: Double, keyframeValue: Double): Double
+    abstract fun getValue0(time: Double, keyframeValue: Double, index: Int): Double
     override fun getApproxSize() = 5
     override fun isDefaultValue() = false
 

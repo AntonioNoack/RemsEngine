@@ -33,7 +33,7 @@ package me.anno.input
 
 // low priority
 // done load plugins
-// todo complete logging support
+// done complete logging support
 // todo support most svg files as meshes
 // todo load svg animations?
 

@@ -25,7 +25,7 @@ class PerlinNoiseDriver: AnimationDriver(){
         return noiseInstance
     }
 
-    override fun getValue0(time: Double, keyframeValue: Double): Double {
+    override fun getValue0(time: Double, keyframeValue: Double, index: Int): Double {
         val falloff = falloff[time]
         val octaves = clamp(octaves, 0, 16)
         return getValue(time, getNoise(), falloff.toDouble(), octaves) / getMaxValue(falloff, min(octaves, 10))

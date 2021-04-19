@@ -4,6 +4,7 @@ import me.anno.gpu.GFX
 import me.anno.io.FileReference
 import me.anno.utils.hpc.HeavyProcessing.threads
 import me.anno.utils.hpc.ProcessingQueue
+import me.anno.utils.process.BetterProcessBuilder
 import me.anno.utils.types.Floats.f3
 import me.anno.video.FFMPEGMetadata.Companion.getMeta
 import org.apache.logging.log4j.LogManager
@@ -139,12 +140,11 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
 
         LOGGER.info("${(GFX.gameTime * 1e-9f).f3()} ${arguments.joinToString(" ")}")
 
-        val args = ArrayList<String>(arguments.size + 2)
-        args += FFMPEG.ffmpegPathString
-        if (arguments.isNotEmpty()) args += "-hide_banner"
-        args += arguments
+        val builder = BetterProcessBuilder(FFMPEG.ffmpegPathString, arguments.size + 1, true)
+        if (arguments.isNotEmpty()) builder += "-hide_banner"
+        builder += arguments
 
-        val process = ProcessBuilder(args).start()
+        val process = builder.start()
         process(process, arguments)
         if (isProcessCountLimited) {
             waitForRelease(process)

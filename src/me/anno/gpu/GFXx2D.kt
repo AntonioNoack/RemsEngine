@@ -261,20 +261,22 @@ object GFXx2D {
         equalSpaced: Boolean
     ): Int {
 
-        // todo correct distances for everything
+        // todo correct char distances for everything
 
         if ('\n' in text) {
             var sizeX = 0
             val split = text.split('\n')
-            split.forEachIndexed { index, s ->
+            val lineOffset = font.sizeInt * 3 / 2
+            for(index in split.indices){
+                val s = split[index]
                 val size = drawTextCharByChar(
-                    x, y + index * font.sizeInt, font, s,
+                    x, y + index * lineOffset, font, s,
                     color, backgroundColor,
                     widthLimit, alignment, equalSpaced
                 )
                 sizeX = max(getSizeX(size), sizeX)
             }
-            return getSize(sizeX, split.size * font.sizeInt)
+            return getSize(sizeX, (split.size - 1) * lineOffset + font.sizeInt)
         }
 
         val charWidth = if (equalSpaced) getTextSizeX(font, "x", widthLimit) else 0

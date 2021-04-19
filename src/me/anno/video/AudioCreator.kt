@@ -8,10 +8,10 @@ import me.anno.objects.Camera
 import me.anno.objects.Transform
 import me.anno.studio.rems.RemsStudio
 import me.anno.utils.Maths.clamp
+import me.anno.utils.process.BetterProcessBuilder
 import me.anno.video.FFMPEGUtils.processOutput
 import org.apache.logging.log4j.LogManager
 import java.io.DataOutputStream
-import java.io.File
 import java.io.IOException
 import kotlin.concurrent.thread
 import kotlin.math.ceil
@@ -81,12 +81,11 @@ open class AudioCreator(
             )
         }
 
-        val args = ArrayList<String>(audioEncodingArguments.size + 2)
-        args += FFMPEG.ffmpegPathString
-        if (audioEncodingArguments.isNotEmpty()) args += "-hide_banner"
-        args += audioEncodingArguments
+        val builder = BetterProcessBuilder(FFMPEG.ffmpegPathString, audioEncodingArguments.size + 2, true)
+        if (audioEncodingArguments.isNotEmpty()) builder += "-hide_banner"
+        builder += audioEncodingArguments
 
-        val process = ProcessBuilder(args).start()
+        val process = builder.start()
         val targetFPS = 60.0
         val totalFrameCount = (targetFPS * durationSeconds).toLong()
         thread { processOutput(LOGGER, "Audio", startTime, targetFPS, totalFrameCount, process.errorStream) }

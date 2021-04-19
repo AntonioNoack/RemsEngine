@@ -1,14 +1,15 @@
 package me.anno.objects
 
 import me.anno.cache.instances.LastModifiedCache
-import me.anno.gpu.GFX.windowHeight
-import me.anno.gpu.GFX.windowWidth
+import me.anno.config.DefaultConfig
+import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.GFXx3D.draw3DVideo
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.shader.ShaderPlus
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
+import me.anno.io.FileReference
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.language.translation.Dict
@@ -22,9 +23,13 @@ import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.files.ImportFromFile.addChildFromFile
 import me.anno.ui.editor.frames.FrameSizeInput
 import me.anno.ui.style.Style
-import me.anno.io.FileReference
 import me.anno.utils.files.LocalFile.toGlobalFile
-import org.joml.*
+import me.anno.utils.structures.ValueWithDefault
+import me.anno.utils.structures.ValueWithDefault.Companion.writeMaybe
+import org.joml.Matrix4f
+import org.joml.Matrix4fArrayList
+import org.joml.Vector2f
+import org.joml.Vector4fc
 import org.lwjgl.opengl.GL11.*
 import kotlin.math.roundToInt
 
@@ -32,12 +37,22 @@ class SoftLink(var file: FileReference) : GFXTransform(null) {
 
     constructor() : this(FileReference.empty)
 
+    init { timelineSlot.setDefault(0) }
+
     var softChild = Transform()
 
     /**
      * which camera is chosen from the scene
      * */
     var cameraIndex = 0
+
+    // uv
+    val tiling = AnimatedProperty.tiling()
+    val uvProjection = ValueWithDefault(UVProjection.Planar)
+    val clampMode = ValueWithDefault(Clamping.MIRRORED_REPEAT)
+
+    // filtering
+    val filtering = ValueWithDefault(DefaultConfig["default.video.nearest", Filtering.LINEAR])
 
     var resolution = AnimatedProperty.vec2(Vector2f(1920f, 1080f))
 
@@ -68,8 +83,8 @@ class SoftLink(var file: FileReference) : GFXTransform(null) {
                     drawSceneWithPostProcessing(time)
                 }
                 draw3DVideo(
-                    this, time, stack, fb.textures[0], color, Filtering.LINEAR, Clamping.CLAMP,
-                    null, UVProjection.Planar
+                    this, time, stack, fb.textures[0], color, filtering.value, clampMode.value,
+                    tiling[time], uvProjection.value
                 )
             }
         } else {
@@ -104,10 +119,16 @@ class SoftLink(var file: FileReference) : GFXTransform(null) {
     fun drawSceneWithPostProcessing(time: Double) {
         updateCache()
         val camera = lastCamera ?: Camera()
+        val size = resolution[time]
+        val w = StrictMath.max(size.x().roundToInt(), 4)
+        val h = StrictMath.max(size.y().roundToInt(), 4)
+        val wasFinalRendering = isFinalRendering
+        isFinalRendering = true
         Scene.draw(
-            camera, softChild, 0, 0, windowWidth, windowHeight, time, true,
+            camera, softChild, 0, 0, w, h, time, true,
             ShaderPlus.DrawMode.COLOR, null
         )
+        isFinalRendering = wasFinalRendering
     }
 
     override fun drawChildrenAutomatically(): Boolean = false
@@ -152,11 +173,27 @@ class SoftLink(var file: FileReference) : GFXTransform(null) {
             "Camera Index", "Which camera should be chosen, 0 = none, 1 = first, ...", "",
             Type.INT_PLUS, cameraIndex, style
         ) { cameraIndex = it }
-        list += FrameSizeInput("Resolution", resolution[lastLocalTime].run { "${x().roundToInt()} x ${y().roundToInt()}" }, style)
+        list += FrameSizeInput(
+            "Resolution",
+            resolution[lastLocalTime].run { "${x().roundToInt()} x ${y().roundToInt()}" },
+            style
+        )
             .setChangeListener { w, h -> putValue(resolution, Vector2f(w.toFloat(), h.toFloat()), true) }
             .setIsSelectedListener { show(resolution) }
+        list += vi("Tiling", "(tile count x, tile count y, offset x, offset y)", tiling, style)
+        list += vi(
+            "UV-Projection", "Can be used for 360°-Videos", null, uvProjection.value, style
+        ) { uvProjection.value = it }
+        list +=
+            vi(
+                "Filtering", "Pixelated look?", "texture.filtering", null, filtering.value, style
+            ) { filtering.value = it }
+        list +=
+            vi(
+                "Clamping", "For tiled images", "texture.clamping", null, clampMode.value, style
+            ) { clampMode.value = it }
         // not ready yet
-        // link += vi("Enable Postprocessing", "", "", null, renderToTexture, style){ renderToTexture = it }
+        link += vi("Enable Postprocessing", "", "", null, renderToTexture, style) { renderToTexture = it }
     }
 
     override fun save(writer: BaseWriter) {
@@ -166,11 +203,16 @@ class SoftLink(var file: FileReference) : GFXTransform(null) {
         writer.writeFile("file", file)
         writer.writeInt("cameraIndex", cameraIndex)
         writer.writeBoolean("renderToTexture", renderToTexture)
+        writer.writeObject(this, "tiling", tiling)
+        writer.writeMaybe(this, "filtering", filtering)
+        writer.writeMaybe(this, "clamping", clampMode)
+        writer.writeMaybe(this, "uvProjection", uvProjection)
     }
 
     override fun readObject(name: String, value: ISaveable?) {
         when (name) {
             "resolution" -> resolution.copyFrom(value)
+            "tiling" -> tiling.copyFrom(value)
             else -> super.readObject(name, value)
         }
     }
@@ -185,6 +227,9 @@ class SoftLink(var file: FileReference) : GFXTransform(null) {
     override fun readInt(name: String, value: Int) {
         when (name) {
             "cameraIndex" -> cameraIndex = value
+            "filtering" -> filtering.value = filtering.value.find(value)
+            "clamping" -> clampMode.value = Clamping.values().firstOrNull { it.id == value } ?: return
+            "uvProjection" -> uvProjection.value = UVProjection.values().firstOrNull { it.id == value } ?: return
             else -> super.readInt(name, value)
         }
     }

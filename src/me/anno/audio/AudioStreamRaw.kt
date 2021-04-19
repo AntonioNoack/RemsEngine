@@ -166,7 +166,7 @@ class AudioStreamRaw(
 
     }
 
-    fun getTime(bufferIndex: Long) = speed * bufferIndex.toDouble() * bufferSize / playbackSampleRate
+    private fun getTime(bufferIndex: Long) = speed * bufferIndex.toDouble() * bufferSize / playbackSampleRate
 
     fun getBuffer(
         bufferIndex: Long

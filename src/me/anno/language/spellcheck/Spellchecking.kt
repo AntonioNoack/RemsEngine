@@ -17,6 +17,7 @@ import me.anno.utils.Sleep.sleepABit10
 import me.anno.utils.Sleep.sleepShortly
 import me.anno.utils.Threads.threadWithName
 import me.anno.utils.io.Streams.listen
+import me.anno.utils.process.BetterProcessBuilder
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import java.io.File
@@ -145,7 +146,11 @@ object Spellchecking : CacheSection("Spellchecking") {
         threadWithName("Spellchecking ${language.code}") {
             getExecutable(language) { executable ->
                 LOGGER.info("Starting process for $language")
-                val process = ProcessBuilder("java", "-jar", executable.absolutePath, language.code).start()
+                val builder = BetterProcessBuilder("java", 3, true)
+                builder += "-jar"
+                builder += executable.absolutePath
+                builder += language.code
+                val process = builder.start()
                 val input = process.inputStream.bufferedReader()
                 process.errorStream.listen("Spellchecking-Listener ${language.code}") { msg -> LOGGER.warn(msg) }
                 val output = process.outputStream.bufferedWriter()

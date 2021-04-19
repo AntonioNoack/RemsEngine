@@ -10,7 +10,6 @@ import me.anno.objects.effects.types.GLSLLib
 import me.anno.objects.modes.UVProjection
 import me.anno.studio.rems.Scene.noiseFunc
 import me.anno.utils.Clock
-import me.anno.utils.types.Strings.isBlank2
 import org.lwjgl.opengl.GL20
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -56,26 +55,52 @@ object ShaderLib {
             "}\n"
 
 
+    // from http://www.java-gaming.org/index.php?topic=35123.0
+    // https://stackoverflow.com/questions/13501081/efficient-bicubic-filtering-code-in-glsl
+    private const val foreignBicubicInterpolation = "" +
+            "vec4 cubic(float v){\n" +
+            "    vec4 n = vec4(1.0, 2.0, 3.0, 4.0) - v;\n" +
+            "    vec4 s = n * n * n;\n" +
+            "    float x = s.x;\n" +
+            "    float y = s.y - 4.0 * s.x;\n" +
+            "    float z = s.z - 4.0 * s.y + 6.0 * s.x;\n" +
+            "    float w = 6.0 - x - y - z;\n" +
+            "    return vec4(x, y, z, w) * (1.0/6.0);\n" +
+            "}\n" +
+            "vec4 textureBicubic(sampler2D sampler, vec2 texCoords){\n" +
+
+            "   vec2 texSize = textureSize(sampler, 0);\n" +
+            "   vec2 invTexSize = 1.0 / texSize;\n" +
+
+            "   texCoords = texCoords * texSize - 0.5;\n" +
+
+            "    vec2 fxy = fract(texCoords);\n" +
+            "    texCoords -= fxy;\n" +
+
+            "    vec4 xCubic = cubic(fxy.x);\n" +
+            "    vec4 yCubic = cubic(fxy.y);\n" +
+
+            "    vec4 c = texCoords.xxyy + vec2(-0.5, +1.5).xyxy;\n" +
+
+            "    vec4 s = vec4(xCubic.xz + xCubic.yw, yCubic.xz + yCubic.yw);\n" +
+            "    vec4 offset = c + vec4(xCubic.yw, yCubic.yw) / s;\n" +
+
+            "    offset *= invTexSize.xxyy;\n" +
+
+            "    vec4 sample0 = texture(sampler, offset.xz);\n" +
+            "    vec4 sample1 = texture(sampler, offset.yz);\n" +
+            "    vec4 sample2 = texture(sampler, offset.xw);\n" +
+            "    vec4 sample3 = texture(sampler, offset.yw);\n" +
+            "    float sx = s.x / (s.x + s.y);\n" +
+            "    float sy = s.z / (s.z + s.w);\n" +
+            "    return mix(mix(sample3, sample2, sx), mix(sample1, sample0, sx), sy);\n" +
+            "}"
+
     const val bicubicInterpolation = "" +
-            // https://www.paulinternet.nl/?page=bicubic
-            "vec4 cubicInterpolation(vec4 p0, vec4 p1, vec4 p2, vec4 p3, float x){\n" +
-            "   return p1 + 0.5 * x*(p2 - p0 + x*(2.0*p0 - 5.0*p1 + 4.0*p2 - p3 + x*(3.0*(p1 - p2) + p3 - p0)));\n" +
-            "}\n" +
-            "vec4 cubicInterpolation(sampler2D tex, vec2 uv, float du, float x){\n" +
-            "   vec4 p0 = texture(tex, vec2(uv.x - du, uv.y));\n" +
-            "   vec4 p1 = texture(tex, vec2(uv.x     , uv.y));\n" +
-            "   vec4 p2 = texture(tex, vec2(uv.x + du, uv.y));\n" +
-            "   vec4 p3 = texture(tex, vec2(uv.x+2*du, uv.y));\n" +
-            "   return cubicInterpolation(p0, p1, p2, p3, x);\n" +
-            "}\n" +
+            // keine Artifakte mehr, aber deutlich weicher...
+            foreignBicubicInterpolation +
             "vec4 bicubicInterpolation(sampler2D tex, vec2 uv, vec2 duv){\n" +
-            "   uv -= 0.5 * duv;\n" +
-            "   vec2 xy = fract(uv / duv);\n" +
-            "   vec4 p0 = cubicInterpolation(tex, vec2(uv.x, uv.y - duv.y), duv.x, xy.x);\n" +
-            "   vec4 p1 = cubicInterpolation(tex, vec2(uv.x, uv.y        ), duv.x, xy.x);\n" +
-            "   vec4 p2 = cubicInterpolation(tex, vec2(uv.x, uv.y + duv.y), duv.x, xy.x);\n" +
-            "   vec4 p3 = cubicInterpolation(tex, vec2(uv.x, uv.y+2*duv.y), duv.x, xy.x);\n" +
-            "   return cubicInterpolation(p0, p1, p2, p3, xy.y);\n" +
+            "   return textureBicubic(tex, uv);\n" +
             "}\n"
 
     // https://en.wikipedia.org/wiki/ASC_CDL
@@ -98,7 +123,7 @@ object ShaderLib {
             "   );\n" +
             "}\n"
 
-    const val yuv2rgb ="" +
+    const val yuv2rgb = "" +
             "vec3 yuv2rgb(vec3 yuv){" +
             "   yuv -= vec3(${16f / 255f}, 0.5, 0.5);\n" +
             "   return vec3(" +
@@ -109,7 +134,7 @@ object ShaderLib {
 
     val maxColorForceFields = DefaultConfig["objects.attractors.color.maxCount", 12]
     val getColorForceFieldLib = "" +
-            // additional weights?...
+// additional weights?...
             "uniform int forceFieldColorCount;\n" +
             "uniform vec4 forceFieldBaseColor;\n" +
             "uniform vec4[$maxColorForceFields] forceFieldColors;\n" +
@@ -291,7 +316,7 @@ object ShaderLib {
                     "   }\n" +
                     "   else texColor = vec4(1.0);\n" +
                     "   gl_FragColor = color * texColor;\n" +
-                    "}", listOf("tex0","tex1","tex2")
+                    "}", listOf("tex0", "tex1", "tex2")
         )
 
         flatShaderTexture = Shader(
@@ -325,7 +350,7 @@ object ShaderLib {
                     "}", listOf("tex")
         )
 
-        // with texture
+// with texture
         subpixelCorrectTextShader = Shader(
             "subpixelCorrectTextShader",
             "" +
@@ -355,12 +380,13 @@ object ShaderLib {
 
         val positionPostProcessing = "" +
                 "   zDistance = gl_Position.w;\n"
-        // this mapping only works with well tesselated geometry
-        // or we need to add it to the fragment shader instead
-        //"   const float far = 1000;\n" +
-        //"   const float near = 0.001;\n" +
-        //"   gl_Position.z = 2.0*log(gl_Position.w*near + 1)/log(far*near + 1) - 1;\n" +
-        //"   gl_Position.z *= gl_Position.w;"
+
+            // this mapping only works with well tesselated geometry
+            // or we need to add it to the fragment shader instead
+            //"   const float far = 1000;\n" +
+            //"   const float near = 0.001;\n" +
+            //"   gl_Position.z = 2.0*log(gl_Position.w*near + 1)/log(far*near + 1) - 1;\n" +
+            //"   gl_Position.z *= gl_Position.w;"
 
         val v3DBase = "" +
                 "u4x4 transform;\n"
@@ -461,7 +487,16 @@ object ShaderLib {
                     "   gl_FragColor = color;\n" +
                     "}", listOf("tex")
         )
-        shader3DOutlinedText.ignoreUniformWarnings(listOf("tiling", "filtering", "uvProjection", "forceFieldUVCount", "textureDeltaUV", "attr1"))
+        shader3DOutlinedText.ignoreUniformWarnings(
+            listOf(
+                "tiling",
+                "filtering",
+                "uvProjection",
+                "forceFieldUVCount",
+                "textureDeltaUV",
+                "attr1"
+            )
+        )
 
         val v3DPolygon = v3DBase +
                 "a3 attr0;\n" +
@@ -537,7 +572,8 @@ object ShaderLib {
                 "   gl_FragColor = tint * color;\n" +
                 "   gl_FragColor.a = min(gl_FragColor.a, 1.0);\n" +
                 "}"
-        shader3DMasked = createShaderPlus("3d-masked", v3DMasked, y3DMasked, f3DMasked, listOf("maskTex", "tex", "tex2"))
+        shader3DMasked =
+            createShaderPlus("3d-masked", v3DMasked, y3DMasked, f3DMasked, listOf("maskTex", "tex", "tex2"))
         shader3DMasked.ignoreUniformWarnings(listOf("tiling"))
 
         val f3DGaussianBlur = "" +
@@ -570,14 +606,14 @@ object ShaderLib {
                 "}"
         shader3DGaussianBlur = createShader("3d-blur", v3DMasked, y3DMasked, f3DGaussianBlur, listOf("tex"))
 
-        // somehow becomes dark for large |steps|-values
+// somehow becomes dark for large |steps|-values
         shader3DBoxBlur = createShader(
             "3d-blur", "" +
                     "a2 attr0;\n" +
                     "void main(){\n" +
                     "   gl_Position = vec4(attr0*2.0-1.0, 0.0, 1.0);\n" +
                     "   uv = attr0;\n" +
-                    "}", "varying vec2 uv;\n",  "" +
+                    "}", "varying vec2 uv;\n", "" +
                     "precision highp float;\n" +
                     "uniform sampler2D tex;\n" +
                     "uniform vec2 stepSize;\n" +
@@ -663,7 +699,7 @@ object ShaderLib {
             )
         )
 
-        // create the obj+mtl shader
+// create the obj+mtl shader
         shaderObjMtl = createShaderPlus(
             "obj/mtl",
             v3DBase +
@@ -690,7 +726,7 @@ object ShaderLib {
                     "}", listOf("tex")
         )
 
-        // create the fbx shader
+// create the fbx shader
         shaderFBX = FBXShader.getShader(v3DBase, positionPostProcessing, y3D, getTextureLib)
 
         shader3DYUV = createShaderPlus(
@@ -788,7 +824,7 @@ object ShaderLib {
         shader.use()
         textures.forEachIndexed { index, name ->
             val texName = shader[name]
-            if(texName >= 0) GL20.glUniform1i(texName, index)
+            if (texName >= 0) GL20.glUniform1i(texName, index)
         }
         return shader
     }

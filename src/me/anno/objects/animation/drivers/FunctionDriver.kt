@@ -48,7 +48,7 @@ class FunctionDriver : AnimationDriver() {
         }
     }
 
-    override fun getValue0(time: Double, keyframeValue: Double): Double {
+    override fun getValue0(time: Double, keyframeValue: Double, index: Int): Double {
         val formulaParts = formulaParts ?: return 0.0
         return parseDouble(
             CountingList(formulaParts), mapOf(

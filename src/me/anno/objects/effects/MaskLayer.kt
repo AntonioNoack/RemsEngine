@@ -47,14 +47,14 @@ class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
     // limit to [0,1]?
     // nice effects can be created with values outside of [0,1], so while [0,1] is the valid range,
     // numbers outside [0,1] give artists more control
-    val useMaskColor = AnimatedProperty.float()
-    val blurThreshold = AnimatedProperty.float()
-    val effectOffset = AnimatedProperty.pos2D()
+    private val useMaskColor = AnimatedProperty.float()
+    private val blurThreshold = AnimatedProperty.float()
+    private val effectOffset = AnimatedProperty.pos2D()
 
-    val greenScreenSimilarity = AnimatedProperty.float01(0.03f)
-    val greenScreenSmoothness = AnimatedProperty.float01(0.01f)
-    val greenScreenSpillValue = AnimatedProperty.float01(0.15f)
-    fun greenScreenSettings(time: Double) =
+    private val greenScreenSimilarity = AnimatedProperty.float01(0.03f)
+    private val greenScreenSmoothness = AnimatedProperty.float01(0.01f)
+    private val greenScreenSpillValue = AnimatedProperty.float01(0.15f)
+    private fun greenScreenSettings(time: Double) =
         Vector3f(greenScreenSimilarity[time], greenScreenSmoothness[time], greenScreenSpillValue[time])
 
     // not animated, because it's not meant to be transitioned, but instead to be a little helper

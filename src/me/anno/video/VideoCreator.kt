@@ -6,12 +6,12 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.io.FileReference
 import me.anno.studio.rems.RemsStudio.project
 import me.anno.studio.rems.Rendering.isRendering
+import me.anno.utils.process.BetterProcessBuilder
 import me.anno.video.FFMPEGStream.Companion.logOutput
 import me.anno.video.FFMPEGUtils.processOutput
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL11.*
-import java.io.File
 import java.io.IOException
 import java.io.OutputStream
 import kotlin.concurrent.thread
@@ -51,7 +51,7 @@ class VideoCreator(
         val constantRateFactor = project?.targetVideoQuality?.toString() ?: "23"
         val dstFormat = "yuv420p"
         val fpsString = fps.toString()
-        val videoEncodingArguments = arrayListOf(
+        val videoEncodingArguments = listOf(
             "-f", "rawvideo",
             "-s", size,
             "-r", fpsString,
@@ -66,18 +66,17 @@ class VideoCreator(
             // "-qp", "0", // constant quality
         )
 
+        val builder = BetterProcessBuilder(FFMPEG.ffmpegPathString, videoEncodingArguments.size + 4, true)
+        if (videoEncodingArguments.isNotEmpty()) builder += "-hide_banner"
+
+        builder += videoEncodingArguments
         if (type.internalName != null) {
-            videoEncodingArguments += "-tune"
-            videoEncodingArguments += type.internalName
+            builder += "-tune"
+            builder += type.internalName
         }
+        builder += output.absolutePath
 
-        videoEncodingArguments += output.absolutePath
-
-        val args = ArrayList<String>(videoEncodingArguments.size + 2)
-        args += FFMPEG.ffmpegPathString
-        if (videoEncodingArguments.isNotEmpty()) args += "-hide_banner"
-        args += videoEncodingArguments
-        process = ProcessBuilder(args).start()
+        process = builder.start()
         thread { logOutput("", process.inputStream, true) }
         thread { processOutput(LOGGER, "Video", startTime, fps, totalFrameCount, process.errorStream) }
 

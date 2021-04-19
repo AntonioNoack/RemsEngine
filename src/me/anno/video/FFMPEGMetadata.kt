@@ -4,10 +4,11 @@ import me.anno.cache.CacheSection
 import me.anno.cache.data.ICacheData
 import me.anno.cache.instances.LastModifiedCache
 import me.anno.gpu.GFX
+import me.anno.io.FileReference
 import me.anno.io.json.JsonArray
 import me.anno.io.json.JsonObject
 import me.anno.io.json.JsonReader
-import me.anno.io.FileReference
+import me.anno.utils.process.BetterProcessBuilder
 import me.anno.utils.types.Strings.parseTime
 import org.apache.logging.log4j.LogManager
 
@@ -33,7 +34,6 @@ class FFMPEGMetadata(val file: FileReference) : ICacheData {
     init {
 
         val args = listOf(
-            FFMPEG.ffprobePathString,
             "-v", "quiet",
             "-print_format", "json",
             "-show_format",
@@ -42,7 +42,10 @@ class FFMPEGMetadata(val file: FileReference) : ICacheData {
             file.file.absolutePath
         )
 
-        val process = ProcessBuilder(args).start()
+        val builder = BetterProcessBuilder(FFMPEG.ffprobePathString, args.size, true)
+        builder += args
+
+        val process = builder.start()
 
         // get and parse the data :)
         val data = JsonReader(process.inputStream.buffered()).readObject()
@@ -118,10 +121,13 @@ class FFMPEGMetadata(val file: FileReference) : ICacheData {
 
         val args = listOf(
             // ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 input.mp4
-            FFMPEG.ffmpegPathString, "-i", file.absolutePath, "-f", "null", "-"
+            "-i", file.absolutePath, "-f", "null", "-"
         )
 
-        val process = ProcessBuilder(args).start()
+        val builder = BetterProcessBuilder(FFMPEG.ffmpegPathString, args.size, true)
+        builder += args
+
+        val process = builder.start()
 
         // get and parse the data :)
         val data = String(process.inputStream.readBytes())

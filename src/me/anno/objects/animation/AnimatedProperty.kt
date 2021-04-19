@@ -13,17 +13,13 @@ import me.anno.objects.animation.drivers.AnimationDriver
 import me.anno.studio.rems.RemsStudio.root
 import me.anno.utils.Maths.clamp
 import me.anno.utils.WrongClassType
-import me.anno.utils.strings.StringMixer
 import me.anno.utils.structures.lists.UnsafeArrayList
 import me.anno.utils.types.AnyToDouble.getDouble
-import me.anno.utils.types.Vectors.plus
-import me.anno.utils.types.Vectors.times
 import org.apache.logging.log4j.LogManager
 import org.joml.*
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.roundToInt
 
 class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
 
@@ -229,7 +225,6 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
     }
 
     operator fun get(time: Double, dst: V? = null) = getValueAt(time, dst)
-    // todo access with dst types
 
     fun getValueAt(time: Double, dst: Any? = null): V {
         val hasDrivers = drivers.any { it != null }
@@ -242,33 +237,38 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
         val v3 = getDouble(v, 3)
         // replace the components, which have drivers, with the driver values
         return when (animatedValue) {
-            is Int -> drivers[0]?.getValue(time, v0)?.toInt() ?: animatedValue
-            is Long -> drivers[0]?.getValue(time, v0)?.toLong() ?: animatedValue
-            is Float -> drivers[0]?.getValue(time, v0)?.toFloat() ?: animatedValue
-            is Double -> drivers[0]?.getValue(time, v0) ?: animatedValue
+            is Int -> drivers[0]?.getValue(time, v0, 0)?.toInt() ?: animatedValue
+            is Long -> drivers[0]?.getValue(time, v0, 0)?.toLong() ?: animatedValue
+            is Float -> getFloat(0, time, v0, animatedValue)
+            is Double -> drivers[0]?.getValue(time, v0, 0) ?: animatedValue
             is Vector2f -> AnimationMaths.v2(dst).set(
-                drivers[0]?.getFloatValue(time, v0) ?: animatedValue.x,
-                drivers[1]?.getFloatValue(time, v1) ?: animatedValue.y
+                getFloat(0, time, v0, animatedValue.x),
+                getFloat(1, time, v1, animatedValue.y)
             )
             is Vector3f -> AnimationMaths.v3(dst).set(
-                drivers[0]?.getFloatValue(time, v0) ?: animatedValue.x,
-                drivers[1]?.getFloatValue(time, v1) ?: animatedValue.y,
-                drivers[2]?.getFloatValue(time, v2) ?: animatedValue.z
+                getFloat(0, time, v0, animatedValue.x),
+                getFloat(1, time, v1, animatedValue.y),
+                getFloat(2, time, v2, animatedValue.z)
             )
             is Vector4f -> AnimationMaths.v4(dst).set(
-                drivers[0]?.getFloatValue(time, v0) ?: animatedValue.x,
-                drivers[1]?.getFloatValue(time, v1) ?: animatedValue.y,
-                drivers[2]?.getFloatValue(time, v2) ?: animatedValue.z,
-                drivers[3]?.getFloatValue(time, v3) ?: animatedValue.w
+                getFloat(0, time, v0, animatedValue.x),
+                getFloat(1, time, v1, animatedValue.y),
+                getFloat(2, time, v2, animatedValue.z),
+                getFloat(3, time, v3, animatedValue.w)
             )
             is Quaternionf -> AnimationMaths.q4(dst).set(
-                drivers[0]?.getFloatValue(time, v0) ?: animatedValue.x,
-                drivers[1]?.getFloatValue(time, v1) ?: animatedValue.y,
-                drivers[2]?.getFloatValue(time, v2) ?: animatedValue.z,
-                drivers[3]?.getFloatValue(time, v3) ?: animatedValue.w
+                getFloat(0, time, v0, animatedValue.x),
+                getFloat(1, time, v1, animatedValue.y),
+                getFloat(2, time, v2, animatedValue.z),
+                getFloat(3, time, v3, animatedValue.w)
             )
             else -> throw RuntimeException("Replacing components with drivers in $animatedValue is not yet supported!")
         } as V
+    }
+
+    private fun getFloat(driverIndex: Int, time: Double, vi: Double, av: Float): Float {
+        val driver = drivers[driverIndex]
+        return driver?.getFloatValue(time, vi, driverIndex) ?: av
     }
 
     private fun toCalc(a: V): Any {

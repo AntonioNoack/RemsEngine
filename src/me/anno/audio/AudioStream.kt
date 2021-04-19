@@ -16,12 +16,12 @@ import java.util.concurrent.atomic.AtomicBoolean
 // only play once, then destroy; it makes things easier
 // (on user input and when finally rendering only)
 
-// todo viewing the audio levels is more important than effects
-// todo especially editing the audio levels is important (amplitude)
+// done viewing the audio levels is more important than effects
+// done especially editing the audio levels is important (amplitude)
 
 
-// todo does not work, if the buffers aren't filled fast enough -> always fill them fast enough...
-// todo or restart playing...
+// idk does not work, if the buffers aren't filled fast enough -> always fill them fast enough...
+// idk or restart playing...
 
 /**
  * todo audio effects:
@@ -75,10 +75,10 @@ abstract class AudioStream(
     }
 
     fun getTime(index: Long): Time = getTime((index * bufferSize).toDouble() / playbackSampleRate)
-    fun getTime(globalTime: Double): Time = Time(globalToLocalTime(globalTime), globalTime)
+    private fun getTime(globalTime: Double): Time = Time(globalToLocalTime(globalTime), globalTime)
 
     // todo is this correct with the speed?
-    fun globalToLocalTime(time: Double) = source.getGlobalTime(time * speed)
+    private fun globalToLocalTime(time: Double) = source.getGlobalTime(time * speed)
 
     var isWaitingForBuffer = AtomicBoolean(false)
 

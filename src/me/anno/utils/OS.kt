@@ -1,7 +1,7 @@
 package me.anno.utils
 
 import me.anno.io.FileReference
-import java.io.File
+import me.anno.utils.process.BetterProcessBuilder
 import kotlin.concurrent.thread
 
 object OS {// the os is important for some things, e.g. the allowed file names, and the home directory
@@ -25,7 +25,9 @@ object OS {// the os is important for some things, e.g. the allowed file names, 
 
     fun startProcess(vararg args: String) {
         thread {
-            ProcessBuilder(args.toList()).start()
+            val builder = BetterProcessBuilder(null, args.size, true)
+            builder.addAll(args)
+            builder.start()
         }
     }
 

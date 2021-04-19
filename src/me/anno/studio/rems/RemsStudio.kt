@@ -28,6 +28,16 @@ import java.io.File
 
 // Launch4j
 
+// todo create proxies only for sections of video
+// todo proxies for faster playback? e.g. every 10th frame? idk...
+
+// todo proxy creation uses 100% cpu... prevent that somehow, or decrease process priority?
+// it uses 36% on its own -> heavier weight?
+
+// nearby frame compression (small changes between frames, could use lower resolution) on the gpu side? maybe...
+// -> would maybe allow 60fps playback better
+
+
 // todo Version 2:
 // todo make stuff component based and compile shaders on the fly...
 // would allow easy system for pdf particles and such... maybe...
