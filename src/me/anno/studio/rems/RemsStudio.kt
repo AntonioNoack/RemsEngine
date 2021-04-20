@@ -23,8 +23,6 @@ import me.anno.ui.editor.sceneTabs.SceneTabs.currentTab
 import me.anno.ui.editor.sceneView.ISceneView
 import me.anno.ui.editor.treeView.TreeView
 import me.anno.utils.OS
-import org.apache.logging.log4j.LogManager
-import java.io.File
 
 // Launch4j
 
@@ -57,7 +55,7 @@ import java.io.File
 
 // to do Mod with "hacked"-text effect for text: swizzle characters and introduce others?
 
-object RemsStudio : StudioBase(true, "Rem's Studio", 10100) {
+object RemsStudio : StudioBase(true, "Rem's Studio", 10101) {
 
     // private val LOGGER = LogManager.getLogger(RemsStudio::class)
 

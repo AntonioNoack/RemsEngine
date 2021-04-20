@@ -53,6 +53,7 @@ import me.anno.utils.structures.ValueWithDefault.Companion.writeMaybe
 import me.anno.utils.structures.maps.BiMap
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.f2
+import me.anno.utils.types.Strings.formatTime2
 import me.anno.utils.types.Strings.getImportType
 import me.anno.video.FFMPEGMetadata
 import me.anno.video.FFMPEGMetadata.Companion.getMeta
@@ -63,6 +64,9 @@ import me.anno.video.VFrame
 import org.joml.*
 import kotlin.collections.set
 import kotlin.math.*
+
+// game, where everything is explicitly rendered on 5-10 cubemaps first? lol
+// sadly this doesn't make for any content yet, so it's this raw just a bad idea
 
 // todo auto-exposure correction by calculating the exposure, and adjusting the brightness
 
@@ -79,10 +83,10 @@ class Video(file: FileReference = FileReference(""), parent: Transform? = null) 
     val clampMode = ValueWithDefault(Clamping.MIRRORED_REPEAT)
 
     // filtering
-    val filtering = ValueWithDefault(DefaultConfig["default.video.nearest", Filtering.LINEAR])
+    val filtering = ValueWithDefault(DefaultConfig["default.video.nearest", Filtering.CUBIC])
 
     // resolution
-    val videoScale = ValueWithDefault(DefaultConfig["default.video.scale", 6])
+    val videoScale = ValueWithDefault(DefaultConfig["default.video.scale", 1])
 
     var lastFile: FileReference? = null
     var lastDuration = 10.0
@@ -113,7 +117,7 @@ class Video(file: FileReference = FileReference(""), parent: Transform? = null) 
 
     private var zoomLevel = 0
 
-    var editorVideoFPS = ValueWithDefault(EditorFPS.F10)
+    var editorVideoFPS = ValueWithDefault(EditorFPS.F60)
 
     val cgOffsetAdd = AnimatedProperty.color3(Vector3f())
     val cgOffsetSub = AnimatedProperty.color3(Vector3f())
@@ -358,13 +362,13 @@ class Video(file: FileReference = FileReference(""), parent: Transform? = null) 
                     framesPerContainer, videoFPS, videoFrameTimeout, true
                 )
 
-                if (frame == null) {
+                if (frame == null || !frame.isCreated) {
                     onMissingImageOrFrame()
                     frame = getVideoFrameWithoutGenerator(meta, frameIndex, framesPerContainer, videoFPS)
                     // if(frame == null) LOGGER.warn("Missing frame $file/$frameIndex/$framesPerContainer/$videoFPS")
                 }
 
-                if (frame != null) {
+                if (frame != null && !frame.isDestroyed) {
                     w = meta.videoWidth
                     h = meta.videoHeight
                     draw3DVideo(
@@ -663,9 +667,9 @@ class Video(file: FileReference = FileReference(""), parent: Transform? = null) 
         infoGroup += UpdatingTextPanel(250, style) { "Type: ${type.name}" }
         infoGroup += UpdatingTextPanel(250, style) {
             if (type == VideoType.IMAGE) null
-            else "Duration: ${meta?.duration ?: imageSequenceMeta?.duration}"
+            else "Duration: ${(meta?.duration ?: imageSequenceMeta?.duration).formatTime2(2)}"
         }
-        infoGroup += vid(UpdatingTextPanel(250, style) { "Video Duration: ${meta?.videoDuration}s" })
+        infoGroup += vid(UpdatingTextPanel(250, style) { "Video Duration: ${meta?.videoDuration.formatTime2(2)}" })
         infoGroup += img(UpdatingTextPanel(250, style) {
             val meta = meta ?: imSeqExampleMeta
             val frame = getImage() as? Texture2D
@@ -678,7 +682,7 @@ class Video(file: FileReference = FileReference(""), parent: Transform? = null) 
             "Frame Count: ${meta?.videoFrameCount ?: imageSequenceMeta?.frameCount}"
         })
         // infoGroup += vid(UpdatingTextPanel(250, style) { "Video Start Time: ${meta?.videoStartTime}s" })
-        infoGroup += aud(UpdatingTextPanel(250, style) { "Audio Duration: ${meta?.audioDuration}s" })
+        infoGroup += aud(UpdatingTextPanel(250, style) { "Audio Duration: ${meta?.audioDuration.formatTime2(2)}" })
         infoGroup += aud(UpdatingTextPanel(250, style) { "Sample Rate: ${meta?.audioSampleRate} samples/s" })
         infoGroup += aud(UpdatingTextPanel(250, style) { "Sample Count: ${meta?.audioSampleCount} samples" })
 

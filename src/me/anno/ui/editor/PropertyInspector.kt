@@ -2,6 +2,7 @@ package me.anno.ui.editor
 
 import me.anno.language.translation.Dict
 import me.anno.objects.inspectable.Inspectable
+import me.anno.studio.rems.Selection
 import me.anno.studio.rems.Selection.selectedInspectable
 import me.anno.ui.base.Panel
 import me.anno.ui.base.scrolling.ScrollPanelY

@@ -9,6 +9,7 @@ import me.anno.utils.Maths.fract
 import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.structures.lists.ExpensiveList
 import me.anno.utils.types.Floats.f1
+import me.anno.utils.types.Strings.formatTime2
 import java.io.File
 import java.util.*
 import kotlin.math.abs
@@ -75,17 +76,19 @@ object Strings {
         return seconds
     }
 
-    fun Double.formatTime(): String {
+    fun Double.formatTime(fractions: Int = 0): String {
+        if (fractions > 0) {
+            val fractionString = "%.${fractions}f".format(Locale.ENGLISH, fract(this))
+            return formatTime(0) + fractionString.substring(1)
+        }
         val seconds = toLong()
         if (seconds < 60) return "${seconds}s"
         if (seconds < 3600) return "${seconds / 60}m ${seconds % 60}s"
         return "${seconds / 3600}h ${(seconds / 60) % 60}m ${seconds % 60}s"
     }
 
-    fun format2(i: Long) = if (i < 10) "0$i" else i.toString()
-    fun format2(i: Int) = if (i < 10) "0$i" else i.toString()
-
-    fun Double.formatTime2(fractions: Int): String {
+    fun Double?.formatTime2(fractions: Int): String {
+        if(this == null || this.isNaN()) return "Unknown"
         if (fractions > 0) {
             val fractionString = "%.${fractions}f".format(Locale.ENGLISH, fract(this))
             return formatTime2(0) + fractionString.substring(1)
@@ -93,6 +96,9 @@ object Strings {
         val seconds = toLong()
         return "${format2(seconds / 3600)}:${format2((seconds / 60) % 60)}:${format2(seconds % 60)}"
     }
+
+    fun format2(i: Long) = if (i < 10) "0$i" else i.toString()
+    fun format2(i: Int) = if (i < 10) "0$i" else i.toString()
 
     fun String.withLength(length: Int, atTheStart: Boolean = true): String {
         val spaces = length - this.length
@@ -112,7 +118,7 @@ object Strings {
                 "$fileName " +
                 "(${length1.formatFileSize()}/${contentLength.formatFileSize()}, ${(length1 * 100f / contentLength).f1()}%) " +
                 "with ${speed.toLong().formatFileSize()}/s, " +
-                "${remainingTime.formatTime()} remaining"
+                "${remainingTime.formatTime(0)} remaining"
     }
 
     fun formatDownloadEnd(fileName: String, dst: File) = "Downloaded $fileName ($dst)"

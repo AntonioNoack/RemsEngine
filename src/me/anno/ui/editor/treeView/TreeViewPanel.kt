@@ -21,6 +21,7 @@ import me.anno.objects.Transform.Companion.toTransform
 import me.anno.objects.effects.MaskLayer
 import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.studio.rems.RemsStudio
+import me.anno.studio.rems.Selection
 import me.anno.studio.rems.Selection.selectTransform
 import me.anno.studio.rems.Selection.selectedTransform
 import me.anno.ui.base.constraints.AxisAlignment
@@ -147,6 +148,7 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style) : PanelListX(
                         transform.isCollapsed = target
                     }
                 } else {
+                    Selection.clear()
                     selectTransform(transform)
                 }
             }

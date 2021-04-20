@@ -29,7 +29,7 @@ class LayerStripeSolution(
     private val referenceTime: Double
 ) {
 
-    val stripeStride = 5
+    private val stripeStride = 5
 
     val w = x1 - x0
     val lines = Array(maxLines) {
@@ -45,11 +45,16 @@ class LayerStripeSolution(
     // if audio, draw audio levels
 
     fun draw(selectedTransform: Transform?, draggedTransform: Transform?) {
-        iteratorOverGradients(selectedTransform, draggedTransform, ::drawStripes, ::drawGradient, ::drawVideo)
+        iteratorOverGradients(selectedTransform, draggedTransform, true, ::drawStripes, ::drawGradient, ::drawVideo)
     }
 
-    fun iteratorOverGradients(
+    fun keepResourcesLoaded() {
+        iteratorOverGradients(null, null, false, { _, _, _, _, _ -> }, { _, _, _, _, _, _ -> }, ::keepFrameLoaded)
+    }
+
+    private fun iteratorOverGradients(
         selectedTransform: Transform?, draggedTransform: Transform?,
+        drawAudio: Boolean,
         drawStripes: (x0: Int, x1: Int, y: Int, h: Int, offset: Int) -> Unit,
         drawGradient: (x0: Int, x1: Int, y: Int, h: Int, c0: Int, c1: Int) -> Unit,
         drawVideo: (
@@ -196,7 +201,7 @@ class LayerStripeSolution(
                         // domain: Domain,
                         // async: Boolean
                         val range = AudioFXCache.getRange(t0, t1, identifier, audio, camera)
-                        if (range != null) {
+                        if (range != null && drawAudio) {
                             for (dx in 0 until SPLITS) {
                                 val x = xi + dx
                                 if (x in ix0 until ix1) {
@@ -229,10 +234,6 @@ class LayerStripeSolution(
 
             }
         }
-    }
-
-    fun keepResourcesLoaded() {
-        iteratorOverGradients(null, null, { _, _, _, _, _ -> }, { _, _, _, _, _, _ -> }, ::keepFrameLoaded)
     }
 
     private fun drawGradient(x0: Int, x1: Int, y: Int, h: Int, c0: Int, c1: Int) {

@@ -28,6 +28,12 @@ object Selection {
     var selectedPropName: String? = null
     var needsUpdate = true
 
+    fun clear(){
+        selectedUUID = -1
+        selectedPropName = null
+        needsUpdate = true
+    }
+
     fun select(uuid: Int, name: String?) {
         selectedUUID = uuid
         selectedPropName = name
@@ -35,7 +41,9 @@ object Selection {
     }
 
     fun selectProperty(property: ISaveable) {
-        select(selectedTransform!!, property)
+        if(selectedProperty == property){
+            select(selectedTransform!!, null)
+        } else select(selectedTransform!!, property)
     }
 
     fun selectTransform(transform: Transform?) {

@@ -89,7 +89,8 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
 
     private fun lock(key: Any, asyncGenerator: Boolean): Unit? {
         if (asyncGenerator) {
-            for (i in 0 until 10) {
+            // sleeping on the OpenGL-Thread isn't healthy, because we pose tons of requests
+            /*for (i in 0 until 10) {
                 synchronized(lockedKeys) {
                     if (lockedKeys.add(key)) {
                         lockedBy[key] = Thread.currentThread().name
@@ -97,10 +98,16 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
                     } // else: somebody else is using the cache ;p
                 }
                 sleepShortly(true)
-            }
+            }*/
             /*synchronized(lockedBy) {
                 LOGGER.info("$name:$key is locked by ${lockedBy[key]}, wanted by ${Thread.currentThread().name}")
             }*/
+            synchronized(lockedKeys) {
+                if (lockedKeys.add(key)) {
+                    lockedBy[key] = Thread.currentThread().name
+                    return Unit
+                } // else: somebody else is using the cache ;p
+            }
             return null
         } else {
             while (true) {
