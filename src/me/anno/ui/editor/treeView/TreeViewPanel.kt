@@ -21,8 +21,8 @@ import me.anno.objects.Transform.Companion.toTransform
 import me.anno.objects.effects.MaskLayer
 import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.studio.rems.RemsStudio
-import me.anno.studio.rems.Selection
 import me.anno.studio.rems.Selection.selectTransform
+import me.anno.studio.rems.Selection.selectTransformMaybe
 import me.anno.studio.rems.Selection.selectedTransform
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelListX
@@ -38,7 +38,6 @@ import me.anno.utils.Color.toARGB
 import me.anno.utils.Maths.clamp
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector4f
-import java.io.File
 
 class TreeViewPanel(val getElement: () -> Transform, style: Style) : PanelListX(style) {
 
@@ -48,10 +47,14 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style) : PanelListX(
     private val accentColor = style.getColor("accentColor", black or 0xff0000)
 
     val symbol = object : TextPanel("", style) {
-        init { textAlignment = AxisAlignment.CENTER }
+        init {
+            textAlignment = AxisAlignment.CENTER
+        }
+
         override fun calculateSize(w: Int, h: Int) {
             calculateSize(w, h, "xx")
         }
+
         override fun onCopyRequested(x: Float, y: Float): String? = parent?.onCopyRequested(x, y)
     }
     val text = object : TextPanel("", style) {
@@ -148,8 +151,7 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style) : PanelListX(
                         transform.isCollapsed = target
                     }
                 } else {
-                    Selection.clear()
-                    selectTransform(transform)
+                    selectTransformMaybe(transform)
                 }
             }
             button.isRight -> openAddMenu(transform)

@@ -75,26 +75,6 @@ class AudioStreamRaw(
 
     }
 
-    /*private fun getAmplitudesSync(index: Double, floatPair: FloatPair, shortPair: ShortPair): FloatPair {
-        if (index < 0f) return floatPair.set(0f, 0f)
-        // multiply by local time dependent amplitude
-        val localAmplitude = localAmplitude(index / ffmpegSampleRate)
-        if (localAmplitude < minPerceptibleAmplitude) return floatPair.set(0f, 0f)
-        val i0 = index.toLong()
-        val data0: ShortPair = getMaxAmplitudesSync(i0, shortPair)
-        if (index.toInt().toDouble() == index) { // <3, data doesn't need to be interpolated
-            return floatPair.set(data0.left * localAmplitude, data0.right * localAmplitude)
-        }
-        val firstLeft = data0.left
-        val firstRight = data0.right
-        val data1: ShortPair = getMaxAmplitudesSync(i0 + 1, shortPair)
-        val f = (index - i0).toFloat() // sollte ok sein; hohe Präzession ist hier nicht notwendig
-        return floatPair.set(
-            mix(firstLeft, data1.left, f) * localAmplitude,
-            mix(firstRight, data1.right, f) * localAmplitude
-        )
-    }*/
-
     private var lastSliceIndex = Long.MAX_VALUE
     private var lastSoundBuffer: SoundBuffer? = null
 

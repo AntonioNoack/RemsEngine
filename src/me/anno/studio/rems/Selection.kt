@@ -50,6 +50,12 @@ object Selection {
         select(transform, null)
     }
 
+    fun selectTransformMaybe(transform: Transform?) {
+        // if already selected, don't inspect that property/driver
+        if(selectedTransform == transform) clear()
+        select(transform, null)
+    }
+
     fun select(transform: Transform?, property: ISaveable?) {
 
         if (transform != null){

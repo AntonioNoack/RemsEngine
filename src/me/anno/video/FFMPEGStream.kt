@@ -92,8 +92,8 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
         fun getAudioSequence(input: FileReference, startTime: Double, duration: Double, sampleRate: Int) =
             FFMPEGAudio(input, sampleRate, duration).run(
                 listOf(
+                    "-ss", "$startTime", // important!!!
                     "-i", input.absolutePath,
-                    "-ss", "$startTime",
                     "-t", "$duration", // duration
                     "-ar", "$sampleRate",
                     // -aq quality, codec specific
