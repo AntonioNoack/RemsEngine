@@ -35,6 +35,7 @@ class MeshData : ICacheData {
     fun drawObj(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
         for ((material, buffer) in objData!!) {
             val shader = shaderObjMtl
+            shader.use()
             shader3DUniforms(shader, stack, 1, 1, color, null, Filtering.NEAREST, null)
             getTexture(material.diffuseTexture, whiteTexture).bind(0, whiteTexture.filtering, whiteTexture.clamping)
             buffer.draw(shader)

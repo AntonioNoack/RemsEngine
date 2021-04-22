@@ -135,6 +135,7 @@ object GFXx3D {
         greenScreenSettings: Vector3f
     ) {
         val shader = ShaderLib.shader3DMasked
+        shader.use()
         shader3DUniforms(shader, stack, color)
         shader.v1("useMaskColor", useMaskColor)
         shader.v1("invertMask", isInverted)
@@ -153,6 +154,7 @@ object GFXx3D {
         stack: Matrix4fArrayList, buffer: StaticBuffer, color: Vector4fc
     ) {
         val shader = ShaderLib.shader3DforText
+        shader.use()
         shader3DUniforms(shader, stack, color)
         shader.v3("offset", offset)
         that?.uploadAttractors(shader, time) ?: GFXTransform.uploadAttractors0(shader)
@@ -165,6 +167,7 @@ object GFXx3D {
         offset: Vector3fc
     ) {
         val shader = ShaderLib.shader3DforText
+        shader.use()
         shader.v3("offset", offset)
         buffer.draw(shader)
     }
@@ -211,6 +214,7 @@ object GFXx3D {
     ) {
         if (!texture.isCreated) throw RuntimeException("Frame must be loaded to be rendered!")
         val shader = texture.get3DShader()
+        shader.use()
         shader3DUniforms(shader, stack, texture.w, texture.h, color, tiling, filtering, uvProjection)
         texture.bind(0, filtering, clamping)
         if (shader == ShaderLib.shader3DYUV) {
@@ -228,6 +232,7 @@ object GFXx3D {
     ) {
         if (!texture.isCreated) throw RuntimeException("Frame must be loaded to be rendered!")
         val shader = texture.get3DShader()
+        shader.use()
         shader3DUniforms(shader, stack, texture.w, texture.h, color, tiling, filtering, uvProjection)
         texture.bind(0, filtering, clamping)
         if (shader == ShaderLib.shader3DYUV) {
@@ -275,6 +280,7 @@ object GFXx3D {
         filtering: Filtering, clamping: Clamping, tiling: Vector4fc?, uvProjection: UVProjection
     ) {
         val shader = ShaderLib.shader3D
+        shader.use()
         shader3DUniforms(shader, stack, w, h, color, tiling, filtering, uvProjection)
         texture.bind(0, filtering, clamping)
         uvProjection.getBuffer().draw(shader)
@@ -286,6 +292,7 @@ object GFXx3D {
         filtering: Filtering, clamping: Clamping, tiling: Vector4fc?, uvProjection: UVProjection
     ) {
         val shader = ShaderLib.shader3D
+        shader.use()
         shader3DUniforms(shader, stack, w, h, color, tiling, filtering, uvProjection)
         texture.bind(0, filtering, clamping)
         uvProjection.getBuffer().draw(shader)
@@ -309,6 +316,7 @@ object GFXx3D {
     ) {
 
         val shader = ShaderLib.shader3DOutlinedText
+        shader.use()
         transformUniform(shader, stack)
         that?.uploadAttractors(shader, time) ?: GFXTransform.uploadAttractors0(shader)
 
@@ -360,6 +368,7 @@ object GFXx3D {
         texture: Texture2D
     ) {
         val shader = ShaderLib.shader3DOutlinedText
+        shader.use()
         transformUniform(shader, stack)
         shader.v2("offset", offset)
         shader.v2("scale", scale)
@@ -374,6 +383,7 @@ object GFXx3D {
         filtering: Filtering, clamping: Clamping, tiling: Vector4fc?, uvProjection: UVProjection
     ) {
         val shader = ShaderLib.shader3DRGBA
+        shader.use()
         shader3DUniforms(shader, stack, texture.w, texture.h, color, tiling, filtering, uvProjection)
         video.uploadAttractors(shader, time)
         colorGradingUniforms(video as? Video, time, shader)
@@ -389,6 +399,7 @@ object GFXx3D {
         isFullscreen: Boolean
     ) {
         val shader = ShaderLib.shader3DGaussianBlur
+        shader.use()
         transformUniform(shader, stack)
         if (isFirst) shader.v2("stepSize", 0f, 1f / h)
         else shader.v2("stepSize", 1f / w, 0f)
@@ -405,6 +416,7 @@ object GFXx3D {
         isFirst: Boolean
     ) {
         val shader = ShaderLib.shader3DBoxBlur
+        shader.use()
         transformUniform(shader, stack)
         if (isFirst) {
             shader.v2("stepSize", 0f, 1f / h)
@@ -426,6 +438,7 @@ object GFXx3D {
         color: Vector4fc
     ) {
         val shader = ShaderLib.shader3DCircle
+        shader.use()
         shader3DUniforms(shader, stack, 1, 1, color, null, Filtering.NEAREST, null)
         that?.uploadAttractors(shader, time) ?: GFXTransform.uploadAttractors0(shader)
         var a0 = startDegrees

@@ -257,6 +257,7 @@ object GFX : GFXBase1() {
     fun copy(alpha: Float) {
         check()
         val shader = copyShader
+        shader.use()
         shader.v1("am1", 1f - alpha)
         flat01.draw(shader)
         check()
@@ -265,6 +266,7 @@ object GFX : GFXBase1() {
     fun copy() {
         check()
         val shader = copyShader
+        shader.use()
         shader.v1("am1", 0f)
         flat01.draw(shader)
         check()
@@ -274,6 +276,7 @@ object GFX : GFXBase1() {
         check()
         BlendDepth(BlendMode.DST_ALPHA, false) {
             val shader = copyShader
+            shader.use()
             shader.v1("am1", 0f)
             flat01.draw(shader)
         }

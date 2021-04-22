@@ -64,6 +64,7 @@ class ImageData(file: FileReference) : ICacheData {
                 Frame.bind()
                 id?.texture = framebuffer.textures[0]
                 val shader = frame.get3DShader()
+                shader.use()
                 shader3DUniforms(shader, null, -1)
                 frame.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
                 if (shader == shader3DYUV) {

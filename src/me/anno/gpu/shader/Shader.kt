@@ -5,7 +5,6 @@ import me.anno.gpu.GFX
 import me.anno.gpu.framebuffer.Frame
 import me.anno.ui.editor.files.toAllowedFilename
 import me.anno.utils.OS
-import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import org.joml.*
@@ -32,8 +31,13 @@ open class Shader(
         private val identity4: Matrix4fc = Matrix4f()
         private val identity4x3: Matrix4x3fc = Matrix4x3f()
         const val DefaultGLSLVersion = 150
+        const val UniformCacheSize = 256
+        const val UniformCacheSizeX4 = UniformCacheSize*4
+        var safeShaderBinding = false
         var lastProgram = -1
     }
+
+    val safeShaderBinding = Companion.safeShaderBinding
 
     var glslVersion = DefaultGLSLVersion
 
@@ -41,7 +45,7 @@ open class Shader(
 
     private val uniformLocations = HashMap<String, Int>()
     private val attributeLocations = HashMap<String, Int>()
-    private val uniformCache = FloatArrayList(128, Float.NaN)
+    private val uniformCache = FloatArray(UniformCacheSizeX4){ Float.NaN }
 
     val pointer get() = program
     private val ignoredNames = HashSet<String>()
@@ -66,11 +70,13 @@ open class Shader(
                                 fragment.replace("gl_FragColor", "glFragColor")
                     } else fragment
                 }").replaceShortCuts()
+
         val fragmentShader = compile(GL_FRAGMENT_SHADER, fragmentSource)
         glLinkProgram(program)
         glDeleteShader(vertexShader)
         glDeleteShader(fragmentShader)
         logShader(vertexSource, fragmentSource)
+
     }
 
     fun logShader(vertex: String, fragment: String) {
@@ -145,7 +151,7 @@ open class Shader(
     fun getUniformLocation(name: String): Int {
         val old = uniformLocations.getOrDefault(name, -100)
         if (old != -100) return old
-        use()
+        if(safeShaderBinding) use()
         val loc = glGetUniformLocation(program, name)
         uniformLocations[name] = loc
         if (loc < 0 && name !in ignoredNames) {
@@ -157,6 +163,7 @@ open class Shader(
     fun getAttributeLocation(name: String): Int {
         val old = attributeLocations.getOrDefault(name, -100)
         if (old != -100) return old
+        if(safeShaderBinding) use()
         val loc = glGetAttribLocation(program, name)
         attributeLocations[name] = loc
         if (loc < 0 && name !in ignoredNames) {
@@ -166,7 +173,7 @@ open class Shader(
     }
 
     fun use() {
-        Frame.currentFrame?.bind()
+        Frame.bindMaybe()
         if (program == -1) init()
         if (program != lastProgram) {
             glUseProgram(program)
@@ -178,16 +185,23 @@ open class Shader(
     fun v1(loc: Int, x: Int) {
         if (loc > -1) {
             val asFloat = x.toFloat()
-            if (asFloat.toInt() != x) {
-                // cannot be represented as a float -> cannot currently be cached
-                uniformCache[loc * 4] = Float.NaN
-                use()
-                glUniform1i(loc, x)
-            } else if (uniformCache[loc * 4, Float.NaN] != asFloat) {
-                // it has changed
-                uniformCache[loc * 4] = asFloat
-                use()
-                glUniform1i(loc, x)
+            when{
+                asFloat.toInt() != x -> {
+                    // cannot be represented as a float -> cannot currently be cached
+                    if(loc < UniformCacheSize) uniformCache[loc * 4] = Float.NaN
+                    if(safeShaderBinding) use()
+                    glUniform1i(loc, x)
+                }
+                loc >= UniformCacheSize -> {
+                    if(safeShaderBinding) use()
+                    glUniform1i(loc, x)
+                }
+                uniformCache[loc * 4] != asFloat -> {
+                    // it has changed
+                    uniformCache[loc * 4] = asFloat
+                    if(safeShaderBinding) use()
+                    glUniform1i(loc, x)
+                }
             }
         }
     }
@@ -195,11 +209,16 @@ open class Shader(
     fun v1(name: String, x: Float) = v1(getUniformLocation(name), x)
     fun v1(loc: Int, x: Float) {
         if (loc > -1) {
-            val index0 = loc * 4
-            if (uniformCache[index0 + 0, Float.NaN] != x) {
-                uniformCache[index0 + 0] = x
-                use()
+            if(loc >= UniformCacheSize){
+                if(safeShaderBinding) use()
                 glUniform1f(loc, x)
+            } else {
+                val index0 = loc * 4
+                if (uniformCache[index0 + 0] != x) {
+                    uniformCache[index0 + 0] = x
+                    if(safeShaderBinding) use()
+                    glUniform1f(loc, x)
+                }
             }
         }
     }
@@ -207,15 +226,20 @@ open class Shader(
     fun v2(name: String, x: Float, y: Float) = v2(getUniformLocation(name), x, y)
     fun v2(loc: Int, x: Float, y: Float) {
         if (loc > -1) {
-            val index0 = loc * 4
-            if (
-                uniformCache[index0 + 0, Float.NaN] != x ||
-                uniformCache[index0 + 1, Float.NaN] != y
-            ) {
-                uniformCache[index0 + 0] = x
-                uniformCache[index0 + 1] = y
-                use()
+            if(loc >= UniformCacheSize){
+                if(safeShaderBinding) use()
                 glUniform2f(loc, x, y)
+            } else {
+                val index0 = loc * 4
+                if (
+                    uniformCache[index0 + 0] != x ||
+                    uniformCache[index0 + 1] != y
+                ) {
+                    uniformCache[index0 + 0] = x
+                    uniformCache[index0 + 1] = y
+                    if(safeShaderBinding) use()
+                    glUniform2f(loc, x, y)
+                }
             }
         }
     }
@@ -223,17 +247,22 @@ open class Shader(
     fun v3(name: String, x: Float, y: Float, z: Float) = v3(getUniformLocation(name), x, y, z)
     fun v3(loc: Int, x: Float, y: Float, z: Float) {
         if (loc > -1) {
-            val index0 = loc * 4
-            if (
-                uniformCache[index0 + 0, Float.NaN] != x ||
-                uniformCache[index0 + 1, Float.NaN] != y ||
-                uniformCache[index0 + 2, Float.NaN] != z
-            ) {
-                uniformCache[index0 + 0] = x
-                uniformCache[index0 + 1] = y
-                uniformCache[index0 + 2] = z
-                use()
+            if(loc >= UniformCacheSize){
+                if(safeShaderBinding) use()
                 glUniform3f(loc, x, y, z)
+            } else {
+                val index0 = loc * 4
+                if (
+                    uniformCache[index0 + 0] != x ||
+                    uniformCache[index0 + 1] != y ||
+                    uniformCache[index0 + 2] != z
+                ) {
+                    uniformCache[index0 + 0] = x
+                    uniformCache[index0 + 1] = y
+                    uniformCache[index0 + 2] = z
+                    if(safeShaderBinding) use()
+                    glUniform3f(loc, x, y, z)
+                }
             }
         }
     }
@@ -259,19 +288,24 @@ open class Shader(
     fun v4(name: String, x: Float, y: Float, z: Float, w: Float) = v4(getUniformLocation(name), x, y, z, w)
     fun v4(loc: Int, x: Float, y: Float, z: Float, w: Float) {
         if (loc > -1) {
-            val index0 = loc * 4
-            if (
-                uniformCache[index0 + 0, Float.NaN] != x ||
-                uniformCache[index0 + 1, Float.NaN] != y ||
-                uniformCache[index0 + 2, Float.NaN] != z ||
-                uniformCache[index0 + 3, Float.NaN] != w
-            ) {
-                uniformCache[index0 + 0] = x
-                uniformCache[index0 + 1] = y
-                uniformCache[index0 + 2] = z
-                uniformCache[index0 + 3] = w
-                use()
+            if(loc >= UniformCacheSize){
+                if(safeShaderBinding) use()
                 glUniform4f(loc, x, y, z, w)
+            } else {
+                val index0 = loc * 4
+                if (
+                    uniformCache[index0 + 0] != x ||
+                    uniformCache[index0 + 1] != y ||
+                    uniformCache[index0 + 2] != z ||
+                    uniformCache[index0 + 3] != w
+                ) {
+                    uniformCache[index0 + 0] = x
+                    uniformCache[index0 + 1] = y
+                    uniformCache[index0 + 2] = z
+                    uniformCache[index0 + 3] = w
+                    if(safeShaderBinding) use()
+                    glUniform4f(loc, x, y, z, w)
+                }
             }
         }
     }
@@ -316,7 +350,7 @@ open class Shader(
     fun m3x3(name: String, value: Matrix3fc = identity3) = m3x3(getUniformLocation(name), value)
     fun m3x3(loc: Int, value: Matrix3fc = identity3) {
         if (loc > -1) {
-            use()
+            if(safeShaderBinding) use()
             value.get(matrixBuffer)
             glUniformMatrix3fv(loc, false, matrixBuffer)
         }
@@ -325,7 +359,7 @@ open class Shader(
     fun m4x3(name: String, value: Matrix4x3fc = identity4x3) = m4x3(getUniformLocation(name), value)
     fun m4x3(loc: Int, value: Matrix4x3fc = identity4x3) {
         if (loc > -1) {
-            use()
+            if(safeShaderBinding) use()
             value.get(matrixBuffer)
             glUniformMatrix4x3fv(loc, false, matrixBuffer)
         }
@@ -334,7 +368,7 @@ open class Shader(
     fun m4x4(name: String, value: Matrix4fc? = identity4) = m4x4(getUniformLocation(name), value ?: identity4)
     fun m4x4(loc: Int, value: Matrix4fc = identity4) {
         if (loc > -1) {
-            use()
+            if(safeShaderBinding) use()
             value.get(matrixBuffer)
             glUniformMatrix4fv(loc, false, matrixBuffer)
         }
@@ -343,7 +377,7 @@ open class Shader(
     fun v1Array(name: String, value: FloatBuffer) = v1Array(getUniformLocation(name), value)
     fun v1Array(loc: Int, value: FloatBuffer) {
         if (loc > -1) {
-            use()
+            if(safeShaderBinding) use()
             glUniform1fv(loc, value)
         }
     }
@@ -351,7 +385,7 @@ open class Shader(
     fun v2Array(name: String, value: FloatBuffer) = v2Array(getUniformLocation(name), value)
     fun v2Array(loc: Int, value: FloatBuffer) {
         if (loc > -1) {
-            use()
+            if(safeShaderBinding) use()
             glUniform2fv(loc, value)
         }
     }
@@ -359,7 +393,7 @@ open class Shader(
     fun v3Array(name: String, value: FloatBuffer) = v3Array(getUniformLocation(name), value)
     fun v3Array(loc: Int, value: FloatBuffer) {
         if (loc > -1) {
-            use()
+            if(safeShaderBinding) use()
             glUniform3fv(loc, value)
         }
     }
@@ -367,7 +401,7 @@ open class Shader(
     fun v4Array(name: String, value: FloatBuffer) = v4Array(getUniformLocation(name), value)
     fun v4Array(loc: Int, value: FloatBuffer) {
         if (loc > -1) {
-            use()
+            if(safeShaderBinding) use()
             glUniform4fv(loc, value)
         }
     }

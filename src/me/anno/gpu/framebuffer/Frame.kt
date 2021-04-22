@@ -56,6 +56,10 @@ class Frame(val x: Int, val y: Int, val w: Int, val h: Int, val changeSize: Bool
             currentFrame!!.bind()
         }
 
+        fun bindMaybe(){
+            currentFrame?.bind()
+        }
+
         fun reset(){
             lastBoundFrame = null
             currentFrame = null

@@ -12,7 +12,6 @@ import me.anno.gpu.Cursor
 import me.anno.gpu.Cursor.useCursor
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.inFocus
-import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.GFXBase0
 import me.anno.gpu.GFXx2D.drawRect
 import me.anno.gpu.Window
@@ -134,7 +133,7 @@ abstract class StudioBase(
     private var lastMouseX = Input.mouseX
     private var lastMouseY = Input.mouseY
 
-    open fun onShutdown(){
+    open fun onShutdown() {
         shallStop = true
         ExtensionLoader.unload()
         Cursor.destroy()
@@ -197,14 +196,18 @@ abstract class StudioBase(
 
     }
 
-    fun updateVSync(){
+    fun updateVSync() {
         val vsync = DefaultConfig["debug.ui.enableVsync", Build.isDebug]
         if (vsync != GFXBase0.enableVsync) {
             GFXBase0.setVsyncEnabled(vsync)
         }
     }
 
-    fun processMouseMovement(){
+    fun setVsyncEnabled(enabled: Boolean) {
+        DefaultConfig["debug.ui.enableVsync"] = enabled
+    }
+
+    fun processMouseMovement() {
         if (lastMouseX == Input.mouseX && lastMouseY == Input.mouseY) {
             ActionManager.onMouseIdle()
         } else {
@@ -213,14 +216,14 @@ abstract class StudioBase(
         }
     }
 
-    fun updateHoveredAndCursor(){
+    fun updateHoveredAndCursor() {
         val hovered = GFX.getPanelAndWindowAt(Input.mouseX, Input.mouseY)
         GFX.hoveredPanel = hovered?.first
         GFX.hoveredWindow = hovered?.second
         updateCursor(hovered?.first)
     }
 
-    fun updateCursor(hoveredPanel: Panel?){
+    fun updateCursor(hoveredPanel: Panel?) {
         hoveredPanel?.getCursor()?.useCursor()
     }
 
