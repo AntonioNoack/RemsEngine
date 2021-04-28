@@ -149,7 +149,7 @@ object Thumbs {
 
             GFX.check()
 
-            val fb2 = FBStack["generateVideoFrame", w, h, 8, false]
+            val fb2 = FBStack["generateVideoFrame", w, h, 4, false, 8]
 
             BlendDepth(null, false) {
 

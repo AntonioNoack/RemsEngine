@@ -80,6 +80,8 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
+// todo disable ui circles via some check-button at the top bar
+
 // todo search elements
 // todo search with tags
 // todo search properties
@@ -335,7 +337,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
 
             GFX.check()
 
-            val fb: Framebuffer = FBStack["screenshot", w, h, 8, false]
+            val fb: Framebuffer = FBStack["screenshot", w, h, 4, false, 8]
 
             GFX.check()
 
@@ -390,7 +392,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
         val camera = camera
         GFX.check()
 
-        val fb: Framebuffer = FBStack["resolveClick", rw, rh, 1, false]
+        val fb: Framebuffer = FBStack["resolveClick", rw, rh, 4, false, 1]
         val width = fb.w
         val height = fb.h
 

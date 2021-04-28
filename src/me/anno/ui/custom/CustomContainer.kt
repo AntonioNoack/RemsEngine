@@ -14,7 +14,7 @@ import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.editor.sceneView.SceneView
 import me.anno.ui.style.Style
 
-class CustomContainer(default: Panel, style: Style) : PanelContainer(default, Padding(0), style) {
+class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) : PanelContainer(default, Padding(0), style) {
 
     override fun calculateSize(w: Int, h: Int) {
         child.calculateSize(w, h)
@@ -44,7 +44,7 @@ class CustomContainer(default: Panel, style: Style) : PanelContainer(default, Pa
 
     private fun changeType() {
         fun action(action: () -> Panel): () -> Unit = { changeTo(action()) }
-        val options = TypeLibrary.typeList
+        val options = library.typeList
             .map { MenuOption(NameDesc(it.displayName, "", ""), action { it.constructor() }) }
             .toMutableList()
         options += MenuOption(NameDesc("Remove This Element", "", "ui.customize.remove")) {
@@ -58,7 +58,7 @@ class CustomContainer(default: Panel, style: Style) : PanelContainer(default, Pa
             val index = indexInParent
             if (parent is CustomListX) {
                 val children = parent.children
-                val view = CustomContainer(SceneView(style), style)
+                val view = CustomContainer(SceneView(style), library, style)
                 val bar = CustomizingBar(0, 3, 0, style)
                 bar.parent = parent
                 view.parent = parent
@@ -73,7 +73,7 @@ class CustomContainer(default: Panel, style: Style) : PanelContainer(default, Pa
                 replaced.parent = parent
                 children[index] = replaced
                 replaced.weight = this.weight
-                replaced.add(CustomContainer(SceneView(style), style))
+                replaced.add(CustomContainer(SceneView(style), library, style))
                 replaced.add(this)
             }
             Unit
@@ -83,7 +83,7 @@ class CustomContainer(default: Panel, style: Style) : PanelContainer(default, Pa
             val index = indexInParent
             if (parent is CustomListX) {
                 val children = parent.children
-                val view = CustomContainer(SceneView(style), style)
+                val view = CustomContainer(SceneView(style), library, style)
                 val bar = CustomizingBar(0, 3, 0, style)
                 bar.parent = parent
                 view.parent = parent
@@ -99,7 +99,7 @@ class CustomContainer(default: Panel, style: Style) : PanelContainer(default, Pa
                 children[index] = replaced
                 replaced.weight = this.weight
                 replaced.add(this)
-                replaced.add(CustomContainer(SceneView(style), style))
+                replaced.add(CustomContainer(SceneView(style), library, style))
                 parent.update()
             }
             Unit
@@ -109,7 +109,7 @@ class CustomContainer(default: Panel, style: Style) : PanelContainer(default, Pa
             val index = indexInParent
             if (parent is CustomListY) {
                 val children = parent.children
-                val view = CustomContainer(SceneView(style), style)
+                val view = CustomContainer(SceneView(style), library, style)
                 val bar = CustomizingBar(0, 0, 3, style)
                 bar.parent = parent
                 view.parent = parent
@@ -124,7 +124,7 @@ class CustomContainer(default: Panel, style: Style) : PanelContainer(default, Pa
                 replaced.parent = parent
                 children[index] = replaced
                 replaced.weight = this.weight
-                replaced.add(CustomContainer(SceneView(style), style))
+                replaced.add(CustomContainer(SceneView(style), library, style))
                 replaced.add(this)
                 parent.update()
             }
@@ -135,7 +135,7 @@ class CustomContainer(default: Panel, style: Style) : PanelContainer(default, Pa
             val index = indexInParent
             if (parent is CustomListY) {
                 val children = parent.children
-                val view = CustomContainer(SceneView(style), style)
+                val view = CustomContainer(SceneView(style), library, style)
                 val bar = CustomizingBar(0, 0, 3, style)
                 bar.parent = parent
                 view.parent = parent
@@ -151,7 +151,7 @@ class CustomContainer(default: Panel, style: Style) : PanelContainer(default, Pa
                 children[index] = replaced
                 replaced.weight = this.weight
                 replaced.add(this)
-                replaced.add(CustomContainer(SceneView(style), style))
+                replaced.add(CustomContainer(SceneView(style), library, style))
                 parent.update()
             }
             Unit

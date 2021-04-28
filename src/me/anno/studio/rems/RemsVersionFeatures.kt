@@ -4,6 +4,7 @@ import me.anno.config.VersionFeatures
 import me.anno.io.utils.StringMap
 import me.anno.objects.Transform
 import me.anno.objects.documents.pdf.PDFDocument
+import me.anno.objects.geometric.LinePolygon
 import me.anno.studio.StudioBase
 
 class RemsVersionFeatures(oldVersion: Int) : VersionFeatures(oldVersion) {
@@ -15,7 +16,7 @@ class RemsVersionFeatures(oldVersion: Int) : VersionFeatures(oldVersion) {
         list[name] = value.toString()
     }
 
-    fun removeInstance(config: StringMap, name: String){
+    fun removeInstance(config: StringMap, name: String) {
         val list = config["createNewInstancesList"] as? StringMap ?: return
         list.remove(name)
     }
@@ -25,8 +26,13 @@ class RemsVersionFeatures(oldVersion: Int) : VersionFeatures(oldVersion) {
         // when new stuff is added, it can be forced upon the user
         // DefaultConfig["createNewInstancesList"].removeAll { it is NewType }
         // DefaultConfig["createNewInstancesList"].add("newName" to NewType())
+
         addVersion(10002) {
             addInstance(config, "PDF Document", PDFDocument())
+        }
+
+        addVersion(10102) {
+            addInstance(config, "Line", LinePolygon())
         }
 
         config["version"] = StudioBase.instance.versionNumber

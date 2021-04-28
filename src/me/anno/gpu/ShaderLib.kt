@@ -245,6 +245,50 @@ object ShaderLib {
             "   }\n" +
             "}\n"
 
+
+    val positionPostProcessing = "" +
+            "   zDistance = gl_Position.w;\n"
+
+    // this mapping only works with well tesselated geometry
+    // or we need to add it to the fragment shader instead
+    //"   const float far = 1000;\n" +
+    //"   const float near = 0.001;\n" +
+    //"   gl_Position.z = 2.0*log(gl_Position.w*near + 1)/log(far*near + 1) - 1;\n" +
+    //"   gl_Position.z *= gl_Position.w;"
+
+    val v3DBase = "" +
+            "u4x4 transform;\n"
+
+    val v3D = v3DBase +
+            "a3 attr0;\n" +
+            "a2 attr1;\n" +
+            "u4 tiling;\n" +
+            "void main(){\n" +
+            "   localPosition = attr0;\n" +
+            "   gl_Position = transform * vec4(localPosition, 1.0);\n" +
+            positionPostProcessing +
+            "   uv = (attr1-0.5) * tiling.xy + 0.5 + tiling.zw;\n" +
+            "   uvw = attr0;\n" +
+            "}"
+
+    val y3D = "" +
+            "varying v2 uv;\n" +
+            "varying v3 uvw;\n" +
+            "varying v3 localPosition;\n" +
+            "varying float zDistance;\n"
+
+    val f3D = "" +
+            "u4 tint;" +
+            "uniform sampler2D tex;\n" +
+            getTextureLib +
+            getColorForceFieldLib +
+            "void main(){\n" +
+            "   vec4 color = getTexture(tex, getProjectedUVs(uv, uvw));\n" +
+            "   if($hasForceFieldColor) color *= getForceFieldColor();\n" +
+            "   gl_FragColor = tint * color;\n" +
+            "}"
+
+
     fun init() {
 
         val tick = Clock()
@@ -377,48 +421,6 @@ object ShaderLib {
 
         subpixelCorrectTextShader.use()
         GL20.glUniform1i(subpixelCorrectTextShader["tex"], 0)
-
-        val positionPostProcessing = "" +
-                "   zDistance = gl_Position.w;\n"
-
-            // this mapping only works with well tesselated geometry
-            // or we need to add it to the fragment shader instead
-            //"   const float far = 1000;\n" +
-            //"   const float near = 0.001;\n" +
-            //"   gl_Position.z = 2.0*log(gl_Position.w*near + 1)/log(far*near + 1) - 1;\n" +
-            //"   gl_Position.z *= gl_Position.w;"
-
-        val v3DBase = "" +
-                "u4x4 transform;\n"
-
-        val v3D = v3DBase +
-                "a3 attr0;\n" +
-                "a2 attr1;\n" +
-                "u4 tiling;\n" +
-                "void main(){\n" +
-                "   localPosition = attr0;\n" +
-                "   gl_Position = transform * vec4(localPosition, 1.0);\n" +
-                positionPostProcessing +
-                "   uv = (attr1-0.5) * tiling.xy + 0.5 + tiling.zw;\n" +
-                "   uvw = attr0;\n" +
-                "}"
-
-        val y3D = "" +
-                "varying v2 uv;\n" +
-                "varying v3 uvw;\n" +
-                "varying v3 localPosition;\n" +
-                "varying float zDistance;\n"
-
-        val f3D = "" +
-                "u4 tint;" +
-                "uniform sampler2D tex;\n" +
-                getTextureLib +
-                getColorForceFieldLib +
-                "void main(){\n" +
-                "   vec4 color = getTexture(tex, getProjectedUVs(uv, uvw));\n" +
-                "   if($hasForceFieldColor) color *= getForceFieldColor();\n" +
-                "   gl_FragColor = tint * color;\n" +
-                "}"
 
         shader3D = createShaderPlus("3d", v3D, y3D, f3D, listOf("tex"))
         shader3DforText = createShaderPlus(

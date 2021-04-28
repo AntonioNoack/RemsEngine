@@ -73,7 +73,7 @@ abstract class Buffer(val attributes: List<Attribute>, val stride: Int, val usag
     private fun bindBufferAttributes(shader: Shader, instanced: Boolean) {
         val instanceDivisor = if (instanced) 1 else 0
         GFX.check()
-        if(shader.safeShaderBinding) shader.use()
+        shader.potentiallyUse()
         if (vao < 0) {
             vao = glGenVertexArrays()
             if (buffer < 0) upload()

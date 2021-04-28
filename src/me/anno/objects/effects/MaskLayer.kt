@@ -84,8 +84,8 @@ class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
 
                 val w = GFX.windowWidth
                 val h = GFX.windowHeight
-                mask = FBStack["mask", w, h, samples, true]
-                masked = FBStack["masked", w, h, samples, true]
+                mask = FBStack["mask", w, h, 4, true, samples]
+                masked = FBStack["masked", w, h, 4, true, samples]
 
                 BlendDepth(null, false) {
 
@@ -254,7 +254,7 @@ class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
             }
             MaskType.BOKEH_BLUR -> {
 
-                val temp = FBStack["mask-bokeh", w, h, 1, true]
+                val temp = FBStack["mask-bokeh", w, h, 4, true, 1]
 
                 val src0 = masked
                 src0.bindTexture0(0, src0.textures[0].filtering, src0.textures[0].clamping)

@@ -349,24 +349,35 @@ open class Transform(var parent: Transform? = null) : Saveable(),
         val time = getLocalTime(parentTime)
         val color = getLocalColor(parentColor, time, tmp0)
 
-        if (color.w > minAlpha && visibility.isVisible) {
+        draw(stack, time, parentColor, color)
+
+    }
+
+    fun draw(stack: Matrix4fArrayList, time: Double, parentColor: Vector4fc, color: Vector4fc) {
+
+        if (color.w() > minAlpha && visibility.isVisible) {
             applyTransformLT(stack, time)
-            GFX.drawnTransform = this
-            val doBlending = when (GFX.drawMode) {
-                ShaderPlus.DrawMode.COLOR_SQUARED, ShaderPlus.DrawMode.COLOR -> true
-                else -> false
-            }
-            if (doBlending) {
-                BlendDepth(blendMode, GFX.currentCamera.useDepth) {
-                    onDraw(stack, time, color)
-                    drawChildren(stack, time, color, parentColor)
-                }
-            } else {
+            drawDirectly(stack, time, parentColor, color)
+        }
+
+    }
+
+    fun drawDirectly(stack: Matrix4fArrayList, time: Double, parentColor: Vector4fc, color: Vector4fc) {
+
+        GFX.drawnTransform = this
+        val doBlending = when (GFX.drawMode) {
+            ShaderPlus.DrawMode.COLOR_SQUARED, ShaderPlus.DrawMode.COLOR -> true
+            else -> false
+        }
+        if (doBlending) {
+            BlendDepth(blendMode, GFX.currentCamera.useDepth) {
                 onDraw(stack, time, color)
                 drawChildren(stack, time, color, parentColor)
             }
+        } else {
+            onDraw(stack, time, color)
+            drawChildren(stack, time, color, parentColor)
         }
-
     }
 
     fun drawChildren(stack: Matrix4fArrayList, time: Double, color: Vector4fc, parentColor: Vector4fc) {

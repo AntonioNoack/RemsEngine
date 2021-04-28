@@ -8,66 +8,135 @@ object FBStack : CacheSection("FBStack") {
 
     private val LOGGER = LogManager.getLogger(FBStack::class)
 
-    class FBStackData(val key: FBKey) : ICacheData {
+    abstract class FBStackData(val w: Int, val h: Int, val samples: Int, val targetType: TargetType) : ICacheData {
+
         var nextIndex = 0
         val data = ArrayList<Framebuffer>()
+
         override fun destroy() {
-            if(data.isNotEmpty()){
+            if (data.isNotEmpty()) {
                 data.forEach { it.destroy() }
-                LOGGER.info("Destroyed ${data.size} framebuffers of $key")
+                printDestroyed(data.size)
+                data.clear()
             }
+        }
+
+        fun getFrame(name: String): Framebuffer {
+            return if (nextIndex >= data.size) {
+                val framebuffer = Framebuffer(
+                    name, w, h,
+                    samples, arrayOf(targetType),
+                    Framebuffer.DepthBufferType.TEXTURE
+                )
+                data.add(framebuffer)
+                nextIndex = data.size
+                data.last()
+            } else {
+                val framebuffer = data[nextIndex++]
+                framebuffer.name = name
+                framebuffer
+            }
+        }
+
+        abstract fun printDestroyed(size: Int)
+
+    }
+
+    data class FBKey1(val w: Int, val h: Int, val channels: Int, val usesFP: Boolean, val samples: Int)
+    class FBStackData1(val key: FBKey1) :
+        FBStackData(key.w, key.h, key.samples, getTargetType(key.channels, key.usesFP)) {
+        override fun printDestroyed(size: Int) {
+            LOGGER.info("Destroyed ${size} framebuffers of ${key.w} x ${key.h}, samples: ${key.samples}, fp: ${key.usesFP}")
         }
     }
 
-    data class FBKey(val w: Int, val h: Int, val samples: Int, val usesFP: Boolean)
+    data class FBKey2(val w: Int, val h: Int, val targetType: TargetType, val samples: Int)
+    class FBStackData2(val key: FBKey2) : FBStackData(key.w, key.h, key.samples, key.targetType) {
+        override fun printDestroyed(size: Int) {
+            LOGGER.info("Destroyed ${data.size} framebuffers of ${key.w} x ${key.h}, samples: ${key.samples}, type: ${key.targetType}")
+        }
+    }
 
-    fun getValue(w: Int, h: Int, samples: Int, usesFP: Boolean): FBStackData {
-        val key = FBKey(w, h, samples, usesFP)
+    fun getValue(w: Int, h: Int, channels: Int, usesFP: Boolean, samples: Int): FBStackData {
+        val key = FBKey1(w, h, channels, usesFP, samples)
         return getEntry(key, 2100, false) {
-            FBStackData(key)
+            FBStackData1(key)
         } as FBStackData
     }
 
-    operator fun get(name: String, w: Int, h: Int, samples: Int, usesFP: Boolean): Framebuffer {
-        val value = getValue(w, h, samples, usesFP)
+    fun getValue(w: Int, h: Int, targetType: TargetType, samples: Int): FBStackData {
+        val key = FBKey2(w, h, targetType, samples)
+        return getEntry(key, 2100, false) {
+            FBStackData2(key)
+        } as FBStackData
+    }
+
+    operator fun get(name: String, w: Int, h: Int, channels: Int, usesFP: Boolean, samples: Int): Framebuffer {
+        val value = getValue(w, h, channels, usesFP, samples)
         synchronized(value) {
-            value.apply {
-                return if (nextIndex >= data.size) {
-                    val framebuffer = Framebuffer(
-                        name, w, h,
-                        samples, 1, usesFP,
-                        Framebuffer.DepthBufferType.TEXTURE
-                    )
-                    data.add(framebuffer)
-                    nextIndex = data.size
-                    data.last()
-                } else {
-                    val framebuffer = data[nextIndex++]
-                    framebuffer.name = name
-                    framebuffer
-                }
+            return value.getFrame(name)
+        }
+    }
+
+    operator fun get(name: String, w: Int, h: Int, targetType: TargetType, samples: Int): Framebuffer {
+        val value = getValue(w, h, targetType, samples)
+        synchronized(value) {
+            return value.getFrame(name)
+        }
+    }
+
+    fun getTargetType(channels: Int, usesFP: Boolean): TargetType {
+        return if (usesFP) {
+            when (channels) {
+                1 -> TargetType.FloatTarget1
+                2 -> TargetType.FloatTarget2
+                3 -> TargetType.FloatTarget3
+                else -> TargetType.FloatTarget4
+            }
+        } else {
+            when (channels) {
+                1 -> TargetType.UByteTarget1
+                2 -> TargetType.UByteTarget2
+                3 -> TargetType.UByteTarget3
+                else -> TargetType.UByteTarget4
             }
         }
     }
 
     fun clear(w: Int, h: Int) {
-        for (j in 0 until 8) clear(w, h, 1 shl j)
+        synchronized(cache) {
+            for (value in cache.values) {
+                val data = value.data
+                if (data is FBStackData && data.w == w && data.h == h) {
+                    data.nextIndex = 0
+                }
+            }
+        }
     }
 
     fun clear(w: Int, h: Int, samples: Int) {
-        getValue(w, h, samples, true).nextIndex = 0
-        getValue(w, h, samples, false).nextIndex = 0
+        synchronized(cache) {
+            for (value in cache.values) {
+                val data = value.data
+                if (data is FBStackData && data.w == w && data.h == h && data.samples == samples) {
+                    data.nextIndex = 0
+                }
+            }
+        }
     }
 
     fun reset() {
         resetFBStack()
     }
 
-    fun resetFBStack() {
+    private fun resetFBStack() {
         synchronized(cache) {
-            cache.values.forEach {
-                (it.data as? FBStackData)?.apply {
-                    nextIndex = 0
+            synchronized(cache) {
+                for (value in cache.values) {
+                    val data = value.data
+                    if (data is FBStackData) {
+                        data.nextIndex = 0
+                    }
                 }
             }
         }

@@ -34,6 +34,7 @@ import me.anno.studio.rems.Rendering.renderPart
 import me.anno.studio.rems.Rendering.renderSetPercent
 import me.anno.studio.rems.Selection.selectTransform
 import me.anno.studio.rems.Selection.selectedTransform
+import me.anno.studio.rems.ui.RemsStudioUITypeLibrary
 import me.anno.ui.base.Panel
 import me.anno.ui.base.SpacePanel
 import me.anno.ui.base.Visibility
@@ -69,7 +70,6 @@ import me.anno.ui.input.FileInput
 import me.anno.ui.input.TextInput
 import me.anno.ui.style.Style
 import me.anno.utils.Threads.threadWithName
-import me.anno.utils.files.Files.openInExplorer
 import me.anno.utils.files.OpenInBrowser.openInBrowser
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
@@ -293,7 +293,11 @@ object UILayouts {
 
         var lastName = nameInput.text
         fileInput =
-            FileInput(Dict["Project Location", "ui.newProject.location"], style, FileReference(workspace, nameInput.text))
+            FileInput(
+                Dict["Project Location", "ui.newProject.location"],
+                style,
+                FileReference(workspace, nameInput.text)
+            )
 
         updateFileInputColor()
 
@@ -561,19 +565,21 @@ object UILayouts {
         val animationWindow = CustomListX(style)
         customUI.add(animationWindow, 2f)
 
+        val library = RemsStudioUITypeLibrary()
+
         val treeFiles = CustomListY(style)
-        treeFiles += CustomContainer(TreeView(style), style)
-        treeFiles += CustomContainer(FileExplorer(style), style)
-        animationWindow.add(CustomContainer(treeFiles, style), 0.5f)
-        animationWindow.add(CustomContainer(SceneView(style), style), 2f)
-        animationWindow.add(CustomContainer(PropertyInspector(style), style), 0.5f)
+        treeFiles += CustomContainer(TreeView(style), library, style)
+        treeFiles += CustomContainer(FileExplorer(style), library, style)
+        animationWindow.add(CustomContainer(treeFiles, library, style), 0.5f)
+        animationWindow.add(CustomContainer(SceneView(style), library, style), 2f)
+        animationWindow.add(CustomContainer(PropertyInspector(style), library, style), 0.5f)
         animationWindow.setWeight(1f)
 
         val timeline = GraphEditor(style)
-        customUI.add(CustomContainer(timeline, style), 0.25f)
+        customUI.add(CustomContainer(timeline, library, style), 0.25f)
 
         val linear = CuttingView(style)
-        customUI.add(CustomContainer(linear, style), 0.25f)
+        customUI.add(CustomContainer(linear, library, style), 0.25f)
 
         return customUI
 

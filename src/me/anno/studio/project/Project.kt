@@ -16,6 +16,7 @@ import me.anno.objects.Camera
 import me.anno.objects.Transform
 import me.anno.studio.history.History
 import me.anno.studio.rems.RemsStudio.editorTime
+import me.anno.studio.rems.ui.RemsStudioUITypeLibrary
 import me.anno.ui.base.Panel
 import me.anno.ui.custom.*
 import me.anno.ui.editor.UILayouts.createDefaultMainUI
@@ -136,7 +137,8 @@ class Project(var name: String, val file: FileReference) : Saveable() {
 
     fun loadUI2(): Panel? {
         return use(uiFile.inputStream()) { fis ->
-            val types = TypeLibrary.types
+            val library = RemsStudioUITypeLibrary()
+            val types = library.types
             val notFound = HashSet<String>()
             val style = style
             fun load(arr: JsonArray?): Panel? {
@@ -159,7 +161,7 @@ class Project(var name: String, val file: FileReference) : Saveable() {
                             obj.addChild(child)
                         }
                         obj.setWeight(weight)
-                    } else CustomContainer(obj, style).setWeight(weight)
+                    } else CustomContainer(obj, library, style).setWeight(weight)
                 } catch (e: Exception) {
                     e.printStackTrace()
                     null

@@ -55,7 +55,7 @@ import me.anno.utils.OS
 
 // to do Mod with "hacked"-text effect for text: swizzle characters and introduce others?
 
-object RemsStudio : StudioBase(true, "Rem's Studio", 10101) {
+object RemsStudio : StudioBase(true, "Rem's Studio", 10102) {
 
     // private val LOGGER = LogManager.getLogger(RemsStudio::class)
 

@@ -17,7 +17,7 @@ import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
 import org.joml.*
 
-class Circle(parent: Transform? = null): GFXTransform(parent){
+open class Circle(parent: Transform? = null): GFXTransform(parent){
 
     var innerRadius = AnimatedProperty.float01()
     var startDegrees = AnimatedProperty(Type.ANGLE, 0f)

@@ -44,8 +44,6 @@ import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.math.roundToInt
 
-// todo remove unnecessary checks, whether files exist and when they were created: much too expensive (0.2ms)
-
 abstract class StudioBase(
     val needsAudio: Boolean,
     val title: String,
@@ -65,10 +63,15 @@ abstract class StudioBase(
         addSuffix("${versionNumber / 10000}.${(versionNumber / 100) % 100}.${versionNumber % 100}", versionSuffix)
 
     abstract fun createUI()
-    abstract fun onGameLoopStart()
-    abstract fun onGameLoopEnd()
-    abstract fun onGameClose()
-    abstract fun onGameInit()
+
+    open fun onGameLoopStart(){}
+    open fun onGameLoopEnd(){}
+
+    open fun onGameInit(){
+        DefaultConfig.init()
+    }
+
+    open fun onGameClose(){}
 
     val startClock = Clock()
     fun tick(name: String) {

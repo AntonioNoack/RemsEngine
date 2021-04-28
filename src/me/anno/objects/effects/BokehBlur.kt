@@ -41,10 +41,10 @@ object BokehBlur {
         BlendDepth(null, false) {
             val fp = Scene.usesFPBuffers
 
-            val r = FBStack["bokeh-r", w, h, 1, fp]
-            val g = FBStack["bokeh-g", w, h, 1, fp]
-            val b = FBStack["bokeh-b", w, h, 1, fp]
-            val a = FBStack["bokeh-a", w, h, 1, fp]
+            val r = FBStack["bokeh-r", w, h, 4, fp, 1]
+            val g = FBStack["bokeh-g", w, h, 4, fp, 1]
+            val b = FBStack["bokeh-b", w, h, 4, fp, 1]
+            val a = FBStack["bokeh-a", w, h, 4, fp, 1]
 
             val pixelRadius = relativeToH * h
             val normRadius = pixelRadius / KERNEL_RADIUS
