@@ -1,5 +1,6 @@
 package me.anno.ui.input
 
+import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
 import me.anno.input.Input
 import me.anno.input.MouseButton
@@ -46,7 +47,7 @@ class ColorInput(
     private val previewField = me.anno.ui.editor.color.PreviewField(titleView, 2, style)
         .apply {
             setSimpleClickListener { openColorChooser() }
-            color = oldValue.toARGB()
+            color = oldValue.toARGB() or black
         }
 
     private var mouseIsDown = false

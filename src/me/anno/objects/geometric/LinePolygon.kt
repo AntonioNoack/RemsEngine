@@ -28,6 +28,8 @@ import kotlin.math.floor
  * */
 class LinePolygon : Transform() {
 
+    // todo if closed, modulo positions make sense, so a line could swirl around multiple times
+
     override fun getClassName(): String = "LinePolygon"
     override fun getDefaultDisplayName(): String = "Line"
 

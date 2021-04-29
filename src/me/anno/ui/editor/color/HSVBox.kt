@@ -17,7 +17,7 @@ open class HSVBox(
 ) : Panel(style) {
 
     init {
-        minH = (size * style.getSize("textSize", 14)).toInt()
+        minH = (size * style.getSize("fontSize", 14)).toInt()
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {

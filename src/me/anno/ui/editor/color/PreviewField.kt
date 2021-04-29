@@ -6,6 +6,8 @@ import me.anno.ui.style.Style
 
 class PreviewField(private val refSize: Panel, val padding: Int, style: Style) : Panel(style) {
 
+    // todo show alpha with chess field
+
     var color = 0
         set(value) {
             if(field != value){

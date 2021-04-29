@@ -34,7 +34,7 @@ class TreeView(style: Style) :
 
     val transformByIndex = ArrayList<Transform>()
 
-    private val inset = style.getSize("textSize", 12) / 3
+    private val inset = style.getSize("fontSize", 12) / 3
     private val collapsedSymbol = DefaultConfig["ui.symbol.collapsed", "\uD83D\uDDBF"]
 
     private fun addToTree(transform: Transform, depth: Int, index0: Int): Int {

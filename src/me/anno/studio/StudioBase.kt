@@ -42,6 +42,7 @@ import org.lwjgl.opengl.GL11.*
 import java.io.File
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
+import kotlin.ConcurrentModificationException
 import kotlin.math.roundToInt
 
 abstract class StudioBase(
@@ -274,11 +275,15 @@ abstract class StudioBase(
 
     fun findRedraws(window: Window, needsRedraw: MutableSet<Panel>) {
         needsRedraw.clear()
-        for (panel in window.needsRedraw) {
-            if (panel.canBeSeen) {
-                val panel2 = panel.getOverlayParent() ?: panel
-                needsRedraw.add(panel2)
+        try {
+            for (panel in window.needsRedraw) {
+                if (panel.canBeSeen) {
+                    val panel2 = panel.getOverlayParent() ?: panel
+                    needsRedraw.add(panel2)
+                }
             }
+        } catch (e: ConcurrentModificationException){
+            // something async has changed stuff... should not happen
         }
     }
 

@@ -3,6 +3,7 @@ package me.anno.ui.editor.treeView
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.black
 import me.anno.config.DefaultStyle.midGray
+import me.anno.config.DefaultStyle.white
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX.inFocus
 import me.anno.gpu.GFXx2D.drawRect
@@ -34,8 +35,12 @@ import me.anno.ui.base.text.TextPanel
 import me.anno.ui.dragging.Draggable
 import me.anno.ui.editor.files.ImportFromFile.addChildFromFile
 import me.anno.ui.style.Style
+import me.anno.utils.Color.b
+import me.anno.utils.Color.g
+import me.anno.utils.Color.r
 import me.anno.utils.Color.toARGB
 import me.anno.utils.Maths.clamp
+import me.anno.utils.Maths.sq
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector4f
 
@@ -98,24 +103,35 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style) : PanelListX(
     val padding get() = symbol.padding
     val font get() = symbol.font
 
-    override fun getVisualState(): Any? = Pair(super.getVisualState(), showAddIndex)
-
     private val tmp0 = Vector4f()
     override fun tickUpdate() {
         super.tickUpdate()
         val transform = getElement()
         val dragged = dragged
-        textColor = black or (transform.getLocalColor(tmp0).toARGB(180))
-        showAddIndex = if (
+        var backgroundColor = originalBGColor
+        var textColor = black or (transform.getLocalColor(tmp0).toARGB(180))
+        val showAddIndex = if (
             mouseX.toInt() in lx0..lx1 &&
             mouseY.toInt() in ly0..ly1 &&
             dragged is Draggable && dragged.getOriginal() is Transform
         ) {
             clamp(((mouseY - this.y) / this.h * 3).toInt(), 0, 2)
         } else null
+        if(this.showAddIndex != showAddIndex) invalidateDrawing()
+        this.showAddIndex = showAddIndex
         val isInFocus = isInFocus || selectedTransform == transform
         if (isHovered) textColor = hoverColor
         if (isInFocus) textColor = accentColor
+        val colorDifference = sq(textColor.r()-backgroundColor.r()) +
+                sq(textColor.g()-backgroundColor.g()) +
+                sq(textColor.b()-backgroundColor.b())
+        backgroundColor = if(colorDifference < 512){// too similar colors
+            if(textColor.g() > 127) black
+            else white
+        } else originalBGColor
+        this.textColor = textColor
+        text.backgroundColor = backgroundColor
+        symbol.backgroundColor = backgroundColor
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
@@ -124,7 +140,7 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style) : PanelListX(
         if (showAddIndex != null) {
             val x = x + padding.left
             val textSize = font.sizeInt
-            val indent = textSize
+            val indent = textSize + 0
             val lineWidth = textSize * 7
             val lineColor = midGray
             when (showAddIndex) {

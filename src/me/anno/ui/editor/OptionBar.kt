@@ -12,7 +12,7 @@ import me.anno.ui.style.Style
 class OptionBar(style: Style) : PanelListX(null, style.getChild("options")) {
 
     init {
-        spacing = style.getSize("textSize", 12) / 2
+        spacing = style.getSize("fontSize", 12) / 2
     }
 
     class Major(val name: String, val action: (() -> Unit)?, style: Style) : TextPanel(name, style) {

@@ -33,17 +33,13 @@ object DefaultStyle {
     val brightYellow = black or 0xffba50
 
     val baseTheme = Style(null, null)
-    /*val lightTheme = baseTheme.getStyle("light")
-    val darkTheme = baseTheme.getStyle("dark")*/
 
     init {
 
-        val textSize = 15
-        val smallTextSize = textSize * 12 / 15
+        val fontSize = 15
 
         set("fontName", "Verdana")
-        set("textSize", textSize)
-        set("small.textSize", smallTextSize)
+        set("fontSize", fontSize)
 
         // light / dark
         set("small.textColor", fontGray, black)
@@ -74,13 +70,9 @@ object DefaultStyle {
 
         set("spacer.width", 0)
         set("spacer.menu.width", 1)
-        set("treeView.inset", textSize/2)
+        set("treeView.inset", fontSize/2)
 
         set("textPadding", 2)
-        set("italic.propertyInspector.textItalic", true)
-        set("fileExplorer.textSize", smallTextSize)
-        set("header.textSize", textSize * 2)
-        set("header.small.textSize", textSize * 3 / 2)
 
         for((key, value) in loadStyle("style.config")){
             baseTheme.values[key] = value
