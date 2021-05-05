@@ -26,6 +26,9 @@ import me.anno.utils.OS
 
 // Launch4j
 
+// todo mode to move vertices of rectangle one by one (requires clever transforms, or a new type of GFXTransform)
+// for perspective matching: e.g. moving a fake image onto another image
+
 // todo create proxies only for sections of video
 // todo proxies for faster playback? e.g. every 10th frame? idk...
 

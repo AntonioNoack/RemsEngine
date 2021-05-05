@@ -1,5 +1,6 @@
 package me.anno.mesh
 
+import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.shader.Shader
@@ -15,21 +16,27 @@ import org.joml.Vector3fc
 import org.joml.Vector4f
 import org.lwjgl.opengl.GL11.GL_LINES
 
-class Mesh(val material: String, val points: ArrayList<Point>, val lines: ArrayList<Line>) {
+class Mesh(val material: String, val points: List<Point>?, val lines: List<Line>?) {
 
-    fun flipV() = points.forEach { it.flipV() }
-    fun scale(scale: Float) = points.forEach { it.scale(scale) }
+    fun flipV() = points?.forEach { it.flipV() }
+    fun scale(scale: Float){
+        points?.forEach { it.scale(scale) }
+        lines?.forEach { it.scale(scale) }
+    }
 
     fun switchYZ() {
-        points.forEach { it.switchYZ() }
+        points?.forEach { it.switchYZ() }
+        lines?.forEach { it.switchYZ() }
     }
 
     fun switchXZ() {
-        points.forEach { it.switchXZ() }
+        points?.forEach { it.switchXZ() }
+        lines?.forEach { it.switchXZ() }
     }
 
     fun translate(delta: Vector3f) {
-        points.forEach { it.translate(delta) }
+        points?.forEach { it.translate(delta) }
+        lines?.forEach { it.translate(delta) }
     }
 
     val tint = (try {
@@ -42,18 +49,22 @@ class Mesh(val material: String, val points: ArrayList<Point>, val lines: ArrayL
     fun getBounds(): AABBf {
         if (bounds.maxX < bounds.minX) {
             // needs recalculation
-            points.forEach { pt ->
+            points?.forEach { pt ->
                 bounds.union(pt.position)
+            }
+            lines?.forEach { line ->
+                bounds.union(line.a)
+                bounds.union(line.b)
             }
         }
         return bounds
     }
 
-    val hasUV get() = points[0].uv != null
+    val hasUV get() = points != null && points.isNotEmpty() && points[0].uv != null
     var buffer: StaticBuffer? = null
 
     fun draw(shader: Shader, alpha: Float, materialOverride: Map<String, Vector4f>) {
-        if (points.isNotEmpty()) {
+        if (points != null && points.isNotEmpty()) {
             if (buffer == null) fillBuffer()
             val tint = materialOverride[material] ?: tint
             val finalAlpha = alpha * tint.w
@@ -69,17 +80,17 @@ class Mesh(val material: String, val points: ArrayList<Point>, val lines: ArrayL
     }
 
     fun draw(shader: Shader, tint: Vector4f) {
-        if (points.isNotEmpty()) {
+        if (points != null && points.isNotEmpty()) {
             if (buffer == null) fillBuffer()
             shader.v4("tint", tint.x, tint.y, tint.z, tint.w)
-            if (isControlDown && isKeyDown('l')) {
-
+            if (isControlDown && !isFinalRendering && isKeyDown('l')) {
                 buffer?.draw(shader, GL_LINES)
             } else buffer?.draw(shader)
         }
     }
 
     fun fillBuffer() {
+        points!!
         val withUV = hasUV
         val attr = if (withUV) attrUV else attrNoUV
         val buffer = StaticBuffer(attr, points.size)
@@ -103,12 +114,14 @@ class Mesh(val material: String, val points: ArrayList<Point>, val lines: ArrayL
         val randomDir = Vector3f(0f, 1f, 0f)
         val p = points
         var ctr = 0
-        for (i in p.indices step 3) {
-            val a = p[i].position
-            val b = p[i + 1].position
-            val c = p[i + 2].position
-            if (Vectors.rayTriangleIntersection(v, randomDir, a, b, c, 1e10f) != null) {
-                ctr++
+        if(p != null){
+            for (i in p.indices step 3) {
+                val a = p[i].position
+                val b = p[i + 1].position
+                val c = p[i + 2].position
+                if (Vectors.rayTriangleIntersection(v, randomDir, a, b, c, 1e10f) != null) {
+                    ctr++
+                }
             }
         }
         return (ctr % 2) == 1
@@ -120,7 +133,7 @@ class Mesh(val material: String, val points: ArrayList<Point>, val lines: ArrayL
         } else false
     }
 
-    override fun toString() = "$material x ${points.size}"
+    override fun toString() = "$material x ${points?.size}"
 
     companion object {
         val attrNoUV = listOf(

@@ -28,8 +28,11 @@ import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
 import org.joml.*
 import org.lwjgl.opengl.GL11.*
+import java.net.URL
 
-class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
+open class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
+
+    override fun getDocumentationURL(): URL? = URL("https://remsstudio.phychi.com/?s=learn/masks")
 
     // just a little expensive...
     // todo why is multisampling sometimes black?

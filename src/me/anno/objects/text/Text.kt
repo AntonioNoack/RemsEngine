@@ -48,6 +48,7 @@ import me.anno.utils.types.Vectors.times
 import me.anno.video.MissingFrameException
 import org.joml.*
 import java.awt.font.TextLayout
+import java.net.URL
 import kotlin.math.max
 import kotlin.math.min
 
@@ -66,6 +67,8 @@ open class Text(parent: Transform? = null) : GFXTransform(parent) {
     constructor(text: String, parent: Transform?) : this(parent) {
         this.text.set(text)
     }
+
+    override fun getDocumentationURL(): URL? = URL("https://remsstudio.phychi.com/?s=learn/text")
 
     val backgroundColor = AnimatedProperty.color()
 

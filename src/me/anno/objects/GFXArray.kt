@@ -58,6 +58,13 @@ class GFXArray(parent: Transform? = null) : GFXTransform(parent) {
         }
     }
 
+    override fun readDouble(name: String, value: Double) {
+        when(name){
+            "perChildDelay" -> perChildDelay.set(value)
+            else -> super.readDouble(name, value)
+        }
+    }
+
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
         super.onDraw(stack, time, color)
 

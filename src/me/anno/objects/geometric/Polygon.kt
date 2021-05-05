@@ -26,13 +26,16 @@ import me.anno.io.FileReference
 import me.anno.video.MissingFrameException
 import org.joml.*
 import java.lang.Math
+import java.net.URL
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.sqrt
 
-class Polygon(parent: Transform? = null) : GFXTransform(parent) {
+open class Polygon(parent: Transform? = null) : GFXTransform(parent) {
 
     // todo round edges?
+
+    override fun getDocumentationURL(): URL? = URL("https://remsstudio.phychi.com/?s=learn/geometry")
 
     var texture = FileReference("")
     var autoAlign = false

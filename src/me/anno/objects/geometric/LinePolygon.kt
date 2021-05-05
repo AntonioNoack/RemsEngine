@@ -5,11 +5,16 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFXx3D
 import me.anno.gpu.ShaderLib
 import me.anno.gpu.ShaderLib.y3D
+import me.anno.gpu.shader.Shader
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
+import me.anno.objects.GFXTransform
 import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
+import me.anno.objects.attractors.EffectColoring
+import me.anno.objects.attractors.EffectMorphing
 import me.anno.objects.modes.UVProjection
+import me.anno.studio.rems.Scene.noiseFunc
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
@@ -26,7 +31,7 @@ import kotlin.math.floor
  * creates a outline shape, which can be animated
  * like https://youtu.be/ToTWaZtGOj8?t=87 (1:27, Linus Tech Tips, Upload date Apr 28, 2021)
  * */
-class LinePolygon : Transform() {
+class LinePolygon(parent: Transform? = null) : GFXTransform(parent) {
 
     // todo if closed, modulo positions make sense, so a line could swirl around multiple times
 
@@ -76,7 +81,9 @@ class LinePolygon : Transform() {
 
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
 
-        val points = children
+        // todo coloring and morphing needs to be applied to the children
+
+        val points = children.filter { it !is EffectMorphing && it !is EffectColoring }
         if (points.isEmpty()) {
             super.onDraw(stack, time, color)
         } else if (points.size == 1) {
@@ -86,17 +93,17 @@ class LinePolygon : Transform() {
             val transforms = points.map { it.getLocalTransform(time, this) }
             val positions = transforms.map { getPosition(it) }
 
-            val times = children.map { it.getLocalTime(time) }
-            val colors = children.mapIndexed { index, it -> it.getLocalColor(color, times[index]) }
+            val times = points.map { it.getLocalTime(time) }
+            val colors = points.mapIndexed { index, it -> it.getLocalColor(color, times[index]) }
 
             val lineStrength = lineStrength[time] * 0.5f
 
-            val scales = children.mapIndexed { index, it ->
+            val scales = points.mapIndexed { index, it ->
                 val s = it.scale[times[index]]
                 (s.x() + s.y()) * lineStrength
             }
 
-            val size = children.size
+            val size = points.size
             val lastIndex = size - 1
 
             fun getPosition(i0: Int) = positions[i0]
@@ -199,6 +206,8 @@ class LinePolygon : Transform() {
             // todo use correct forward direction
             val forward = Vector3f(0f, 0f, 1f)
 
+            val shader = shader.value
+
             fun drawSegment(i0: Float, i1: Float, alpha: Float) {
                 val p0 = getPosition(i0)
                 val p1 = getPosition(i1)
@@ -208,6 +217,7 @@ class LinePolygon : Transform() {
                 val d0 = dx * (getScale(i0) * alpha)
                 val d1 = dx * (getScale(i1) * alpha)
                 drawSegment(
+                    shader,
                     Vector3f(p0).add(d0), Vector3f(p0).sub(d0),
                     Vector3f(p1).add(d1), Vector3f(p1).sub(d1),
                     getColor(i0).mulAlpha(alpha),
@@ -216,10 +226,17 @@ class LinePolygon : Transform() {
                 )
             }
 
+            shader.use()
+            uploadAttractors(shader, time)
             for (i in 1 until mappedIndices.size) {
                 val i0 = mappedIndices[i - 1]
                 val i1 = mappedIndices[i]
                 drawSegment(i0, i1, 1f)
+            }
+
+            val isClosed = isClosed[time]
+            if (isClosed > 0f && mappedIndices.size > 2) {
+                drawSegment(mappedIndices.first(), mappedIndices.last(), isClosed)
             }
 
             for (i in mappedIndices) {
@@ -231,11 +248,6 @@ class LinePolygon : Transform() {
                 }
             }
 
-            val isClosed = isClosed[time]
-            if (isClosed > 0f && mappedIndices.size > 2) {
-                drawSegment(mappedIndices.first(), mappedIndices.last(), isClosed)
-            }
-
         }
 
     }
@@ -245,13 +257,13 @@ class LinePolygon : Transform() {
     }
 
     private fun drawSegment(
+        shader: Shader,
         a0: Vector3f, a1: Vector3f,
         b0: Vector3f, b1: Vector3f,
         c0: Vector4f, c1: Vector4f,
         stack: Matrix4fArrayList
     ) {
         GFX.check()
-        val shader = shader.value
         shader.use()
         GFXx3D.shader3DUniforms(shader, stack, -1)
         shader.v3("pos0", a0)
@@ -279,21 +291,24 @@ class LinePolygon : Transform() {
                         "u3 pos0, pos1, pos2, pos3;\n" +
                         "u4 col0, col1;\n" +
                         "void main(){\n" +
-                        "   vec3 att = attr0*0.5+0.5;\n" +
+                        "   vec2 att = attr0.xy*0.5+0.5;\n" +
                         "   localPosition = mix(mix(pos0, pos1, att.x), mix(pos2, pos3, att.x), att.y);\n" +
                         "   gl_Position = transform * vec4(localPosition, 1.0);\n" +
                         ShaderLib.positionPostProcessing +
                         "   uv = attr1;\n" +
                         "   uvw = attr0;\n" +
                         "   colX = mix(col0, col1, att.y);\n" +
-                        "}", y3D + "varying vec4 colX;\n", "" +
+                        "}", y3D + "" +
+                        "varying vec4 colX;\n", "" +
                         "u4 tint;" +
-                        "uniform sampler2D tex;\n" +
                         ShaderLib.getTextureLib +
                         ShaderLib.getColorForceFieldLib +
+                        noiseFunc +
                         "void main(){\n" +
                         "   vec4 color = colX;\n" +
                         "   if(${ShaderLib.hasForceFieldColor}) color *= getForceFieldColor();\n" +
+                        // does work, just the error should be cleaner...
+                        // "   gl_FragDepth += 0.01 * random(uv);\n" +
                         "   gl_FragColor = tint * color;\n" +
                         "}", listOf()
             )

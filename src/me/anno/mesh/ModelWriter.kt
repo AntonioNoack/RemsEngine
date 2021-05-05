@@ -21,12 +21,12 @@ object ModelWriter {
         dos.writeUTF(mesh.material)
 
         val points = mesh.points
-        dos.writeInt(points.size)
+        dos.writeInt(points?.size ?: 0)
 
         // objects are not that large...
         // therefore compression to a byte should be ok
 
-        if (points.isNotEmpty()) {
+        if (points != null && points.isNotEmpty()) {
 
             val position = points.map { it.position }
             val x0 = position.minBy { it.x }!!.x
@@ -62,8 +62,8 @@ object ModelWriter {
         }
 
         val lines = mesh.lines
-        dos.writeInt(lines.size)
-        if(lines.isNotEmpty()){
+        dos.writeInt(lines?.size ?: 0)
+        if(lines != null && lines.isNotEmpty()){
 
             val positions = lines.map { it.a } + lines.map { it.b }
             val x0 = positions.minBy { it.x() }!!.x()

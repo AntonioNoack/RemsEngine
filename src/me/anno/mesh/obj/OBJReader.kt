@@ -58,26 +58,30 @@ class OBJReader(input: InputStream, val file: File?) : OBJMTLReader(input) {
                             // do I care? not really...
                             skipSpaces()
                             val name = readUntilSpace()
-                            model = Model(name, arrayListOf(Mesh(
-                                lastMaterial,
-                                ArrayList(defaultSize),
-                                ArrayList(16)
-                            )))
+                            model = Model(
+                                name, arrayListOf(
+                                    Mesh(
+                                        lastMaterial,
+                                        ArrayList(defaultSize),
+                                        ArrayList(16)
+                                    )
+                                )
+                            )
                             mesh = model.meshes[0]
                             skipLine()
                         }
                         "usemtl" -> {
                             skipSpaces()
                             val materialName = readUntilSpace()
-                            val material = materials.getOrPut(materialName){ Material() }
+                            val material = materials.getOrPut(materialName) { Material() }
                             var points = pointsByMaterial[material]
                             if (points == null) {
                                 points = ArrayList(defaultSize * 8)
                                 pointsByMaterial[material] = points
                             }
-                            if(model != null){
+                            if (model != null) {
                                 // clear the model, if it was unknown...
-                                if(model.meshes.last().points.isEmpty()){
+                                if (model.meshes.last().points!!.isEmpty()) {
                                     (model.meshes as MutableList).apply {
                                         removeAt(lastIndex)
                                     }
@@ -114,9 +118,10 @@ class OBJReader(input: InputStream, val file: File?) : OBJMTLReader(input) {
                                 }
                             }
 
-                            if(mesh != null){
-                                for(i in 1 until points.size){
-                                    mesh.lines.add(Line(points[i-1], points[i]))
+                            if (mesh != null) {
+                                val lines = mesh.lines as ArrayList<Line>
+                                for (i in 1 until points.size) {
+                                    lines.add(Line(points[i - 1], points[i]))
                                 }
                             }
 
@@ -146,7 +151,10 @@ class OBJReader(input: InputStream, val file: File?) : OBJMTLReader(input) {
                             }
 
                             fun putPoint(point: Point) {
-                                mesh?.points?.add(point)
+                                if(mesh != null){
+                                    val p = mesh.points as ArrayList<Point>
+                                    p.add(point)
+                                }
                                 val (coordinates, normal, uv) = point
                                 byMaterialPoints.add(coordinates.x)
                                 byMaterialPoints.add(-coordinates.y) // y is flipped
@@ -173,10 +181,10 @@ class OBJReader(input: InputStream, val file: File?) : OBJMTLReader(input) {
                                 else -> {
                                     // triangulate the points correctly
                                     val triangles = Triangulation.ringToTrianglesPoint(points)
-                                    for(i in triangles.indices step 3){
+                                    for (i in triangles.indices step 3) {
                                         putPoint(triangles[i])
-                                        putPoint(triangles[i+1])
-                                        putPoint(triangles[i+2])
+                                        putPoint(triangles[i + 1])
+                                        putPoint(triangles[i + 2])
                                     }
                                 }
                             }

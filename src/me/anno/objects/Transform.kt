@@ -29,6 +29,7 @@ import me.anno.studio.rems.Selection.selectTransform
 import me.anno.studio.rems.Selection.selectedTransform
 import me.anno.ui.base.Panel
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.base.text.LinkPanel
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.TimelinePanel
 import me.anno.ui.editor.TimelinePanel.Companion.global2Kf
@@ -47,6 +48,7 @@ import me.anno.utils.types.Matrices.skew
 import me.anno.video.MissingFrameException
 import org.apache.logging.log4j.LogManager
 import org.joml.*
+import java.net.URL
 import java.util.concurrent.atomic.AtomicInteger
 
 open class Transform(var parent: Transform? = null) : Saveable(),
@@ -98,6 +100,8 @@ open class Transform(var parent: Transform? = null) : Saveable(),
 
     var comment = ""
     var tags = ""
+
+    open fun getDocumentationURL(): URL? = null
 
     open fun getSymbol() = DefaultConfig["ui.symbol.folder", "\uD83D\uDCC1"]
     open fun getDefaultDisplayName() =
@@ -186,6 +190,13 @@ open class Transform(var parent: Transform? = null) : Saveable(),
         list += TextInputML("Comment", style, comment)
             .setChangeListener { comment = it }
             .setIsSelectedListener { show(null) }
+
+        val docs = getDocumentationURL()
+        if(docs != null){
+            val docsPanel = LinkPanel(docs, style)
+            docsPanel.setTooltip("Learn more")
+            list += docsPanel
+        }
 
         // todo dedicated tags-input field
         // todo sort for tags
@@ -408,8 +419,12 @@ open class Transform(var parent: Transform? = null) : Saveable(),
         // draw a small symbol to indicate pivot
         if (!isFinalRendering) {
             stack.next {
-                if (scale != 1f) stack.scale(scale)
-                stack.alignWithCamera(1f)
+                /*val w = GFX.windowWidth
+                val h = GFX.windowHeight
+                stack.m00(scale*h/w);stack.m01(0f);stack.m02(0f)
+                stack.m10(0f);stack.m11(scale);stack.m12(0f)
+                stack.m20(0f);stack.m21(0f);stack.m22(scale)*/
+                stack.scale(scale)
                 draw3DCircle(null, 0.0, stack, inner, 0f, 360f, color)
             }
         }

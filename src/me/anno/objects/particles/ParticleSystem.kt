@@ -36,6 +36,7 @@ import org.joml.Matrix4fArrayList
 import org.joml.Vector3f
 import org.joml.Vector4f
 import org.joml.Vector4fc
+import java.net.URL
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.math.abs
@@ -43,6 +44,8 @@ import kotlin.math.max
 import kotlin.math.min
 
 open class ParticleSystem(parent: Transform? = null) : Transform(parent) {
+
+    override fun getDocumentationURL(): URL? = URL("https://remsstudio.phychi.com/?s=learn/particle-systems")
 
     val spawnColor = AnimatedDistribution(Type.COLOR3, listOf(Vector3f(1f), Vector3f(0f), Vector3f(0f)))
     val spawnPosition = AnimatedDistribution(Type.POSITION, listOf(Vector3f(0f), Vector3f(1f), Vector3f(0f)))

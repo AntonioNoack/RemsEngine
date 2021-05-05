@@ -32,9 +32,7 @@ object DeferredBuffers {
     fun createDeferredShader(
         settings: DeferredSettings,
         shaderName: String, v3D: String, y3D: String, f3D: String, textures: List<String>): Shader {
-        val layers = settings.layers
-        val out = layers.withIndex().joinToString("") { (index, name) -> "layout (location = $index) out ${name.glslType} ${name.name};\n" }
-        val shader = Shader(shaderName, v3D, y3D, out + f3D, true)
+        val shader = Shader(shaderName, v3D, y3D, settings.f3D + f3D, true)
         shader.glslVersion = 330
         shader.use()
         textures.forEachIndexed { index, textureName ->

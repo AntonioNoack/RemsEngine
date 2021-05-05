@@ -9,6 +9,7 @@ package me.anno.maybe
 // todo tut video fade-in, fade-out
 // todo tut reframe: change aspect ratio for different platforms (insta, youtube, ...)
 // todo tut series on how to recreate some https://www.youtube.com/channel/UCS8JFK_pTWShPr2b2OMAWKQ video part by part
+// todo tut on moving lines https://youtu.be/ToTWaZtGOj8?t=87
 // done tut pixelating a face or car sign
 
 // todo developing environment with direct debugging for string operations and such...

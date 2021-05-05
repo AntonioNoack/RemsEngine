@@ -10,6 +10,7 @@ object Cursor {
     var vResize = 0L
     var editText = 0L
     var drag = 0L
+    val hand get() = drag
     var crossHair = 0L
 
     fun init(){

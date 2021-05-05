@@ -46,6 +46,7 @@ object DefaultStyle {
         set("textColor", fontGray, black)
         set("options.textColor", fontGray, black)
         set("italic.propertyInspector.textColor", fontGray, black)
+        set("link.textColor", shinyBlue, brightYellow)
 
         set("textColorFocused", white, shinyBlue)
 

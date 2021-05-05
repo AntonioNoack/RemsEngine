@@ -62,6 +62,7 @@ import me.anno.video.IsFFMPEGOnly.isFFMPEGOnlyExtension
 import me.anno.video.MissingFrameException
 import me.anno.video.VFrame
 import org.joml.*
+import java.net.URL
 import kotlin.collections.set
 import kotlin.math.*
 
@@ -94,6 +95,12 @@ class Video(file: FileReference = FileReference(""), parent: Transform? = null) 
     val imSeqExampleMeta get() = imageSequenceMeta?.matches?.firstOrNull()?.first?.run { getMeta(this, true) }
 
     var type = VideoType.IMAGE
+
+    override fun getDocumentationURL(): URL? = when(type){
+        VideoType.IMAGE -> URL("https://remsstudio.phychi.com/?s=learn/images")
+        VideoType.VIDEO, VideoType.IMAGE_SEQUENCE -> URL("https://remsstudio.phychi.com/?s=learn/videos")
+        else -> null
+    }
 
     override fun clearCache() {
         lastTexture = null

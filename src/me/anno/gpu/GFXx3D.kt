@@ -73,14 +73,18 @@ object GFXx3D {
             val doScale2 = (uvProjection?.doScale ?: true) && w != h
             // val avgSize = sqrt(w * h.toFloat())
             if (doScale2) {
-                val avgSize =
-                    if (w * RemsStudio.targetHeight > h * RemsStudio.targetWidth) w.toFloat() * RemsStudio.targetHeight / RemsStudio.targetWidth else h.toFloat()
+
+                val avgSize = if (w * RemsStudio.targetHeight > h * RemsStudio.targetWidth)
+                    w.toFloat() * RemsStudio.targetHeight / RemsStudio.targetWidth
+                else
+                    h.toFloat()
+
                 val sx = w / avgSize
                 val sy = h / avgSize
+
                 stack.scale(sx, -sy, 1f)
-            } else {
-                stack.scale(1f, -1f, 1f)
-            }
+                
+            } else stack.scale(1f, -1f, 1f)
 
             transformUniform(shader, stack)
             shader.v1("filtering", filtering.id)

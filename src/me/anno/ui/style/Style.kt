@@ -16,6 +16,7 @@ class Style(val prefix: String?, val suffix: String?){
 
     private fun getValue(name: String, defaultValue: Int) = getValue(name, name, defaultValue)
     private fun getValue(fullName: String, name: String, defaultValue: Int): Int {
+
         val value = values[name]
         return if(value != null) getMaybe(fullName, value, defaultValue)
         else {
@@ -143,7 +144,7 @@ class Style(val prefix: String?, val suffix: String?){
     fun getChild(space: String): Style {
         val cached = children[space]
         if(cached != null) return cached
-        val child = Style(append(space, prefix), suffix)
+        val child = Style(append(prefix, space), suffix)
         child.values = values
         children[space] = child
         return child
