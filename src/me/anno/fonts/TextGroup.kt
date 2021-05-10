@@ -15,7 +15,7 @@ import kotlin.streams.toList
  * */
 abstract class TextGroup(
     val font: Font, val text: String,
-    private val charSpacing: Float
+    var charSpacing: Float
 ) : TextRepBase() {
 
     val alignment = getAlignments(font)

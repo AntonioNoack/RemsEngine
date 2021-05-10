@@ -27,7 +27,15 @@ open class TextPanel(text: String, style: Style) : Panel(style) {
     var instantTextLoading = false
     var padding = style.getPadding("textPadding", 2)
     var font = style.getFont("text", DefaultConfig.defaultFont)
+
     var textColor = style.getColor("textColor", iconGray)
+        set(value) {
+            if(field != value){
+                invalidateDrawing()
+                field = value
+            }
+        }
+
     var focusTextColor = style.getColor("textColorFocused", -1)
     val hoverColor get() = mixARGB(textColor, focusTextColor, 0.5f)
 

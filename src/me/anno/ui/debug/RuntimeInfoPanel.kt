@@ -1,16 +1,18 @@
 package me.anno.ui.debug
 
 import me.anno.gpu.GFX.gameTime
+import me.anno.gpu.buffer.Buffer
+import me.anno.gpu.texture.Texture2D
 import me.anno.language.translation.Dict
-import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.constraints.WrapAlign
+import me.anno.ui.base.text.SimpleTextPanel
 import me.anno.ui.style.Style
-import me.anno.utils.files.Files.formatFileSize
+import me.anno.utils.types.Floats.f1
 import kotlin.math.abs
 
-class RuntimeInfoPanel(style: Style) : TextPanel("", style) {
+class RuntimeInfoPanel(style: Style) : SimpleTextPanel(style) {
 
-    var updateInterval = 2000_000_000
+    var updateInterval = 500_000_000
     var lastUpdate = 0L
 
     override fun tickUpdate() {
@@ -25,13 +27,15 @@ class RuntimeInfoPanel(style: Style) : TextPanel("", style) {
 
     private fun getDebugText(): String {
         val runtime = Runtime.getRuntime()
-        val usedMemory = runtime.totalMemory() - runtime.freeMemory()
-        return Dict["Memory: %1", "ui.debug.ramUsage"].replace("%1", usedMemory.formatFileSize())
+        val memory = runtime.totalMemory() - runtime.freeMemory()
+        val videoMemory = Texture2D.allocated + Buffer.allocated
+        return Dict["RAM/VRAM: %1/%2 MB", "ui.debug.ramUsage2"]
+            .replace("%1", (memory.toFloat()/(1 shl 20)).f1())
+            .replace("%2", (videoMemory.toFloat()/(1 shl 20)).f1())
     }
 
     init {
         text = getDebugText()
-        font = font.withSize(font.size * 2 / 3)
         textColor = textColor and 0x7fffffff
         add(WrapAlign.RightBottom)
     }

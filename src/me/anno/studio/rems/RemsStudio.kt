@@ -26,6 +26,8 @@ import me.anno.utils.OS
 
 // Launch4j
 
+// todo settings should open in a window, that does not cover everything, just maybe 90%
+
 // todo if a resource is requested, and there is a mutex limitation, it should be rejected instead of queued
 // so we don't put strain on the cpu & memory, if we don't really need the resource
 // this is the case for audio in the timeline, when just scrolling

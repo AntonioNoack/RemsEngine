@@ -70,7 +70,10 @@ object StudioActions {
 
                     when (type) {
                         "File" -> {
-                            GFX.hoveredPanel?.onPasteFiles(Input.mouseX, Input.mouseY, listOf(FileReference(data)))
+                            GFX.hoveredPanel?.onPasteFiles(
+                                Input.mouseX, Input.mouseY,
+                                data.split("\n").map { FileReference(it) }
+                            )
                         }
                         else -> {
                             GFX.hoveredPanel?.onPaste(Input.mouseX, Input.mouseY, data, type)

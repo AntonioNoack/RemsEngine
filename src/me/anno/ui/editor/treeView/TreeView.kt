@@ -55,7 +55,7 @@ class TreeView(style: Style) :
                 index = addToTree(child, depth + 1, index)
             }
         }
-        invalidateLayout()
+        // invalidateLayout()
         return index
     }
 
@@ -64,10 +64,7 @@ class TreeView(style: Style) :
         val index = addToTree(root, 0, camIndex)
         for (i in index until list.children.size) {
             val child = list.children[i]
-            if(child.visibility != Visibility.GONE){
-                child.visibility = Visibility.GONE
-                invalidateLayout()
-            }
+            child.visibility = Visibility.GONE
         }
     }
 

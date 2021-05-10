@@ -26,6 +26,13 @@ open class Panel(val style: Style) {
     val depth: Int get() = 1 + (parent?.depth ?: 0)
 
     open var visibility = Visibility.VISIBLE
+        set(value) {
+            if(field != value){
+                invalidateLayout()
+                field = value
+            }
+        }
+
     var window: Window? = null
         get() {
             if (field != null) return field

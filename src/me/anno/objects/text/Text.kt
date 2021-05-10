@@ -143,13 +143,13 @@ open class Text(parent: Transform? = null) : GFXTransform(parent) {
 
     val shallLoadAsync get() = !forceVariableBuffer
     fun getTextMesh(key: TextSegmentKey): TextRepBase? {
-        return TextCache.getEntry(key, textMeshTimeout, shallLoadAsync) { key ->
-            TextMeshGroup(key.font, key.text, key.charSpacing, forceVariableBuffer)
+        return TextCache.getEntry(key, textMeshTimeout, shallLoadAsync) { keyInstance ->
+            TextMeshGroup(keyInstance.font, keyInstance.text, keyInstance.charSpacing, forceVariableBuffer)
         } as? TextRepBase
     }
 
     fun getSDFTexture(key: TextSegmentKey): TextSDFGroup? {
-        val entry = TextCache.getEntry(key to 1, textMeshTimeout, shallLoadAsync) { (keyInstance, _) ->
+        val entry = TextCache.getEntry(key to 1, textMeshTimeout, false) { (keyInstance, _) ->
             TextSDFGroup(keyInstance.font, keyInstance.text, keyInstance.charSpacing)
         } ?: return null
         if (entry !is TextSDFGroup) throw RuntimeException("Got different class for $key to 1: ${entry.javaClass.simpleName}")
@@ -835,7 +835,8 @@ open class Text(parent: Transform? = null) : GFXTransform(parent) {
 
     override fun getClassName(): String = "Text"
     override fun getDefaultDisplayName() = // text can be null!!!
-        (text?.keyframes?.maxBy { it.value.length }?.value ?: "").ifBlank { Dict["Text", "obj.text"] }
+        if(text == null) "" else (text.keyframes.maxBy { it.value.length }?.value ?: text.defaultValue)
+            .ifBlank { Dict["Text", "obj.text"] }
 
     override fun getSymbol() = DefaultConfig["ui.symbol.text", "\uD83D\uDCC4"]
 

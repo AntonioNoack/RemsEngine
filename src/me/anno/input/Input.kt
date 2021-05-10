@@ -10,6 +10,8 @@ import me.anno.gpu.GFX.inFocus0
 import me.anno.gpu.GFX.requestFocus
 import me.anno.gpu.GFX.window
 import me.anno.gpu.GFX.windowStack
+import me.anno.gpu.Window
+import me.anno.input.Input.toMouseButton
 import me.anno.input.Touch.Companion.onTouchDown
 import me.anno.input.Touch.Companion.onTouchMove
 import me.anno.input.Touch.Companion.onTouchUp
@@ -157,111 +159,12 @@ object Input {
             }
         }
 
-        var mouseStart = 0L
-        var windowWasClosed = false
         GLFW.glfwSetMouseButtonCallback(window) { _, button, action, mods ->
             addEvent {
                 framesSinceLastInteraction = 0
                 when (action) {
-                    GLFW.GLFW_PRESS -> {
-
-                        // find the clicked element
-                        mouseDownX = mouseX
-                        mouseDownY = mouseY
-                        mouseMovementSinceMouseDown = 0f
-
-                        windowWasClosed = false
-                        val panelWindow = getPanelAndWindowAt(mouseX, mouseY)
-                        if (panelWindow != null) {
-                            val mouseButton = button.toMouseButton()
-                            while (windowStack.isNotEmpty()) {
-                                val peek = windowStack.peek()
-                                if (panelWindow.second == peek || !peek.acceptsClickAway(mouseButton)) break
-                                windowStack.pop().destroy()
-                                windowWasClosed = true
-                            }
-                        }
-
-                        val singleSelect = isControlDown
-                        val multiSelect = isShiftDown
-
-                        val mouseTarget = getPanelAt(mouseX, mouseY)
-                        val selectionTarget = mouseTarget?.getMultiSelectablePanel()
-                        val inFocusTarget = inFocus0?.getMultiSelectablePanel()
-                        val joinedParent = inFocusTarget?.parent
-
-                        if ((singleSelect || multiSelect) && selectionTarget != null && joinedParent == selectionTarget.parent) {
-                            if (inFocus0 != inFocusTarget) requestFocus(inFocusTarget, true)
-                            if (singleSelect) {
-                                if (selectionTarget in inFocus) inFocus -= selectionTarget
-                                else inFocus += selectionTarget
-                            } else {
-                                val index0 = inFocusTarget!!.indexInParent
-                                val index1 = selectionTarget.indexInParent
-                                // todo we should use the last selected as reference point...
-                                val minIndex = min(index0, index1)
-                                val maxIndex = max(index0, index1)
-                                for (index in minIndex..maxIndex) {
-                                    inFocus += joinedParent!!.children[index]
-                                }
-                            }
-                            // LOGGER.info(inFocus)
-                        } else {
-                            requestFocus(panelWindow?.first, true)
-                        }
-
-                        if (!windowWasClosed) {
-
-                            inFocus0?.onMouseDown(mouseX, mouseY, button.toMouseButton())
-                            ActionManager.onKeyDown(button)
-                            mouseStart = System.nanoTime()
-                            mouseKeysDown.add(button)
-                            keysDown[button] = gameTime
-
-                        }
-
-                    }
-                    GLFW.GLFW_RELEASE -> {
-
-                        keyUpCtr++
-
-                        inFocus0?.onMouseUp(mouseX, mouseY, button.toMouseButton())
-
-                        ActionManager.onKeyUp(button)
-                        ActionManager.onKeyTyped(button)
-
-                        val longClickMillis = DefaultConfig["longClick", 300]
-                        val currentNanos = System.nanoTime()
-                        val isClick = mouseMovementSinceMouseDown < maxClickDistance && !windowWasClosed
-
-                        if (isClick) {
-
-                            val isDoubleClick = abs(lastClickTime - currentNanos) / 1_000_000 < longClickMillis &&
-                                    length(mouseX - lastClickX, mouseY - lastClickY) < maxClickDistance
-
-                            if (isDoubleClick) {
-
-                                ActionManager.onKeyDoubleClick(button)
-                                inFocus0?.onDoubleClick(mouseX, mouseY, button.toMouseButton())
-
-                            } else {
-
-                                val mouseDuration = currentNanos - mouseStart
-                                val isLongClick = mouseDuration / 1_000_000 >= longClickMillis
-                                inFocus0?.onMouseClicked(mouseX, mouseY, button.toMouseButton(), isLongClick)
-
-                            }
-
-                            lastClickX = mouseX
-                            lastClickY = mouseY
-                            lastClickTime = currentNanos
-
-                        }
-
-                        mouseKeysDown.remove(button)
-                        keysDown.remove(button)
-
-                    }
+                    GLFW.GLFW_PRESS -> onMousePress(button)
+                    GLFW.GLFW_RELEASE -> onMouseRelease(button)
                 }
                 keyModState = mods
             }
@@ -405,6 +308,126 @@ object Input {
                     keyModState = mods
                 }
         }
+
+    }
+
+    fun onClickIntoWindow(button: Int, panelWindow: Pair<Panel, Window>?){
+        if (panelWindow != null) {
+            val mouseButton = button.toMouseButton()
+            while (windowStack.isNotEmpty()) {
+                val peek = windowStack.peek()
+                if (panelWindow.second == peek || !peek.acceptsClickAway(mouseButton)) break
+                windowStack.pop().destroy()
+                windowWasClosed = true
+            }
+        }
+    }
+
+    var mouseStart = 0L
+    var windowWasClosed = false
+    var maySelectByClick = false
+
+    fun onMousePress(button: Int){
+
+        // find the clicked element
+        mouseDownX = mouseX
+        mouseDownY = mouseY
+        mouseMovementSinceMouseDown = 0f
+
+        windowWasClosed = false
+        val panelWindow = getPanelAndWindowAt(mouseX, mouseY)
+        onClickIntoWindow(button, panelWindow)
+
+        val singleSelect = isControlDown
+        val multiSelect = isShiftDown
+
+        val mouseTarget = getPanelAt(mouseX, mouseY)
+        val selectionTarget = mouseTarget?.getMultiSelectablePanel()
+        val inFocusTarget = inFocus0?.getMultiSelectablePanel()
+        val joinedParent = inFocusTarget?.parent
+
+        maySelectByClick = if ((singleSelect || multiSelect) && selectionTarget != null && joinedParent == selectionTarget.parent) {
+            if (inFocus0 != inFocusTarget) requestFocus(inFocusTarget, true)
+            if (singleSelect) {
+                if (selectionTarget in inFocus) inFocus -= selectionTarget
+                else inFocus += selectionTarget
+            } else {
+                val index0 = inFocusTarget!!.indexInParent
+                val index1 = selectionTarget.indexInParent
+                // todo we should use the last selected as reference point...
+                val minIndex = min(index0, index1)
+                val maxIndex = max(index0, index1)
+                for (index in minIndex..maxIndex) {
+                    inFocus += joinedParent!!.children[index]
+                }
+            }
+            // LOGGER.info(inFocus)
+            false
+        } else {
+            if(mouseTarget in inFocus){
+                true
+            } else {
+                requestFocus(mouseTarget, true)
+                false
+            }
+        }
+
+        if (!windowWasClosed) {
+
+            inFocus0?.onMouseDown(mouseX, mouseY, button.toMouseButton())
+            ActionManager.onKeyDown(button)
+            mouseStart = System.nanoTime()
+            mouseKeysDown.add(button)
+            keysDown[button] = gameTime
+
+        }
+
+    }
+
+    fun onMouseRelease(button: Int){
+
+        keyUpCtr++
+
+        inFocus0?.onMouseUp(mouseX, mouseY, button.toMouseButton())
+
+        ActionManager.onKeyUp(button)
+        ActionManager.onKeyTyped(button)
+
+        val longClickMillis = DefaultConfig["longClick", 300]
+        val currentNanos = System.nanoTime()
+        val isClick = mouseMovementSinceMouseDown < maxClickDistance && !windowWasClosed
+
+        if (isClick) {
+
+            if(maySelectByClick){
+                val panelWindow = getPanelAndWindowAt(mouseX, mouseY)
+                requestFocus(panelWindow?.first, true)
+            }
+
+            val isDoubleClick = abs(lastClickTime - currentNanos) / 1_000_000 < longClickMillis &&
+                    length(mouseX - lastClickX, mouseY - lastClickY) < maxClickDistance
+
+            if (isDoubleClick) {
+
+                ActionManager.onKeyDoubleClick(button)
+                inFocus0?.onDoubleClick(mouseX, mouseY, button.toMouseButton())
+
+            } else {
+
+                val mouseDuration = currentNanos - mouseStart
+                val isLongClick = mouseDuration / 1_000_000 >= longClickMillis
+                inFocus0?.onMouseClicked(mouseX, mouseY, button.toMouseButton(), isLongClick)
+
+            }
+
+            lastClickX = mouseX
+            lastClickY = mouseY
+            lastClickTime = currentNanos
+
+        }
+
+        mouseKeysDown.remove(button)
+        keysDown.remove(button)
 
     }
 

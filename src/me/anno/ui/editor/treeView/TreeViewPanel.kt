@@ -8,6 +8,8 @@ import me.anno.gpu.Cursor
 import me.anno.gpu.GFX.inFocus
 import me.anno.gpu.GFXx2D.drawRect
 import me.anno.input.Input
+import me.anno.input.Input.mouseDownX
+import me.anno.input.Input.mouseDownY
 import me.anno.input.Input.mouseX
 import me.anno.input.Input.mouseY
 import me.anno.input.MouseButton
@@ -117,16 +119,16 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style) : PanelListX(
         ) {
             clamp(((mouseY - this.y) / this.h * 3).toInt(), 0, 2)
         } else null
-        if(this.showAddIndex != showAddIndex) invalidateDrawing()
+        if (this.showAddIndex != showAddIndex) invalidateDrawing()
         this.showAddIndex = showAddIndex
         val isInFocus = isInFocus || selectedTransform == transform
         if (isHovered) textColor = hoverColor
         if (isInFocus) textColor = accentColor
-        val colorDifference = sq(textColor.r()-backgroundColor.r()) +
-                sq(textColor.g()-backgroundColor.g()) +
-                sq(textColor.b()-backgroundColor.b())
-        backgroundColor = if(colorDifference < 512){// too similar colors
-            if(textColor.g() > 127) black
+        val colorDifference = sq(textColor.r() - backgroundColor.r()) +
+                sq(textColor.g() - backgroundColor.g()) +
+                sq(textColor.b() - backgroundColor.b())
+        backgroundColor = if (colorDifference < 512) {// too similar colors
+            if (textColor.g() > 127) black
             else white
         } else originalBGColor
         this.textColor = textColor
@@ -236,12 +238,14 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style) : PanelListX(
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
         when (action) {
             "DragStart" -> {
-                val transform = getElement()
-                if (dragged?.getOriginal() != transform) {
-                    dragged = Draggable(
-                        transform.stringify(), "Transform", transform,
-                        TextPanel(transform.name, style)
-                    )
+                if (contains(mouseDownX, mouseDownY)) {
+                    val transform = getElement()
+                    if (dragged?.getOriginal() != transform) {
+                        dragged = Draggable(
+                            transform.stringify(), "Transform", transform,
+                            TextPanel(transform.name, style)
+                        )
+                    }
                 }
             }
             else -> return super.onGotAction(x, y, dx, dy, action, isContinuous)

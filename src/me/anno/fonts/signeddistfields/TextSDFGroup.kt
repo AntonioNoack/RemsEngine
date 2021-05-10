@@ -52,9 +52,6 @@ class TextSDFGroup(
         }
     }
 
-    data class SDFStringKey(val font: Font, val text: String, val roundCorners: Boolean)
-    data class SDFCharKey(val font: Font, val codePoint: Int, val roundCorners: Boolean)
-
     private fun drawSlowly(
         startIndex: Int, endIndex: Int,
         drawBuffer: (StaticBuffer?, TextSDF?, offset: Float) -> Unit

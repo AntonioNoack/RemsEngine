@@ -17,6 +17,8 @@ import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.input.Input
+import me.anno.input.Input.mouseDownX
+import me.anno.input.Input.mouseDownY
 import me.anno.input.MouseButton
 import me.anno.io.FileReference
 import me.anno.io.trash.TrashManager.moveToTrash
@@ -395,10 +397,19 @@ class FileEntry(
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
         when (action) {
             "DragStart" -> {
-                if (StudioBase.dragged?.getOriginal() != file) {
-                    val textPanel = TextPanel(file.nameWithoutExtension, style)
-                    val draggable = Draggable(file.toString(), "File", file, textPanel)
-                    StudioBase.dragged = draggable
+                // todo select the file, if the mouse goes up, not down
+                if (inFocus.any { it.contains(mouseDownX, mouseDownY) } && StudioBase.dragged?.getOriginal() != file) {
+                    val inFocus = inFocus.filterIsInstance<FileEntry>().map { it.file }
+                    if (inFocus.size == 1) {
+                        val textPanel = TextPanel(file.nameWithoutExtension, style)
+                        val draggable = Draggable(file.toString(), "File", file, textPanel)
+                        StudioBase.dragged = draggable
+                    } else {
+                        val textPanel = TextPanel(inFocus.joinToString("\n") { it.nameWithoutExtension }, style)
+                        val draggable =
+                            Draggable(inFocus.joinToString("\n") { it.toString() }, "File", inFocus, textPanel)
+                        StudioBase.dragged = draggable
+                    }
                 }
             }
             "Enter" -> {
