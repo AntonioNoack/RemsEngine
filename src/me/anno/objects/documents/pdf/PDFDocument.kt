@@ -7,6 +7,7 @@ import me.anno.gpu.GFXx3D
 import me.anno.gpu.TextureLib.colorShowTexture
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
+import me.anno.io.FileReference
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.GFXTransform
@@ -19,7 +20,7 @@ import me.anno.objects.modes.UVProjection
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
-import me.anno.io.FileReference
+import me.anno.utils.Clipping
 import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.utils.types.Floats.toRadians
 import me.anno.utils.types.Lists.median
@@ -75,7 +76,7 @@ open class PDFDocument(var file: FileReference, parent: Transform?) : GFXTransfo
         }.median(0f)
         if (pageCount < 1) return Vector3f(1f)
         val firstPage = getSelectedSitesList().firstOrNull()?.first ?: return Vector3f(1f)
-        return doc.getPage(firstPage).mediaBox.run { Vector3f(width/referenceScale, height/referenceScale, 1f) }
+        return doc.getPage(firstPage).mediaBox.run { Vector3f(width / referenceScale, height / referenceScale, 1f) }
     }
 
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
@@ -105,32 +106,36 @@ open class PDFDocument(var file: FileReference, parent: Transform?) : GFXTransfo
         stack.next {
             pages.forEach {
                 for (pageNumber in max(it.first, 0)..min(it.last, numberOfPages - 1)) {
-                    var texture = getTexture(file, doc, quality, pageNumber)
-                    if (texture == null) {
-                        checkFinalRendering()
-                        texture = colorShowTexture
-                    }
-                    // find out the correct size for the image
-                    // find also the correct y offset...
                     val mediaBox = doc.getPage(pageNumber).mediaBox
                     val w = mediaBox.width * scale
                     val h = mediaBox.height * scale
                     if (wasDrawn) {
                         stack.translate(cos * w, sin * h, 0f)
                     }
-                    if(texture === colorShowTexture){
-                        stack.next {
-                            stack.scale(w/h, 1f, 1f)
+                    val x = w / h
+                    // only query page, if it's visible
+                    if (isVisible(stack, x)) {
+                        var texture = getTexture(file, doc, quality, pageNumber)
+                        if (texture == null) {
+                            checkFinalRendering()
+                            texture = colorShowTexture
+                        }
+                        // find out the correct size for the image
+                        // find also the correct y offset...
+                        if (texture === colorShowTexture) {
+                            stack.next {
+                                stack.scale(x, 1f, 1f)
+                                GFXx3D.draw3DVideo(
+                                    this, time, stack, texture, color,
+                                    Filtering.NEAREST, Clamping.CLAMP, null, UVProjection.Planar
+                                )
+                            }
+                        } else {
                             GFXx3D.draw3DVideo(
                                 this, time, stack, texture, color,
-                                Filtering.NEAREST, Clamping.CLAMP, null, UVProjection.Planar
+                                Filtering.LINEAR, Clamping.CLAMP, null, UVProjection.Planar
                             )
                         }
-                    } else {
-                        GFXx3D.draw3DVideo(
-                            this, time, stack, texture, color,
-                            Filtering.LINEAR, Clamping.CLAMP, null, UVProjection.Planar
-                        )
                     }
                     wasDrawn = true
                     stack.translate(cos * w, sin * h, 0f)
@@ -141,6 +146,24 @@ open class PDFDocument(var file: FileReference, parent: Transform?) : GFXTransfo
             super.onDraw(stack, time, color)
         }
     }
+
+    fun isVisible(matrix: Matrix4f, x: Float): Boolean {
+
+        fun getPoint(x: Float, y: Float): Vector4f? {
+            val vec = matrix.transformProject(Vector4f(x, y, 0f, 1f))
+            return if (vec.x in -1f..1f && vec.y in -1f..1f && vec.z in -1f..1f) null
+            else vec
+        }
+
+        val v000 = getPoint(+x, +1f) ?: return true
+        val v001 = getPoint(+x, -1f) ?: return true
+        val v010 = getPoint(-x, +1f) ?: return true
+        val v011 = getPoint(-x, -1f) ?: return true
+
+        return Clipping.isRoughlyVisible(listOf(v000, v001, v010, v011))
+
+    }
+
 
     override fun createInspector(
         list: PanelListY,
