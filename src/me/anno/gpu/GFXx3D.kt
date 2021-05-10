@@ -1,9 +1,10 @@
 package me.anno.gpu
 
-import me.anno.config.DefaultStyle.white4
+import me.anno.gpu.GFX.currentCamera
 import me.anno.gpu.GFX.windowHeight
 import me.anno.gpu.GFX.windowWidth
 import me.anno.gpu.ShaderLib.maxOutlineColors
+import me.anno.gpu.blending.BlendDepth
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.shader.Shader
@@ -11,8 +12,8 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
+import me.anno.input.Input
 import me.anno.objects.GFXTransform
-import me.anno.objects.Transform
 import me.anno.objects.Video
 import me.anno.objects.effects.MaskType
 import me.anno.objects.geometric.Circle
@@ -20,8 +21,11 @@ import me.anno.objects.geometric.Polygon
 import me.anno.objects.modes.UVProjection
 import me.anno.studio.rems.RemsStudio
 import me.anno.video.VFrame
+import ofx.mio.OpticalFlow
 import org.joml.*
 import org.lwjgl.BufferUtils
+import org.lwjgl.opengl.GL11.GL_DEPTH_TEST
+import org.lwjgl.opengl.GL11.glDisable
 import kotlin.math.min
 
 object GFXx3D {
@@ -83,7 +87,7 @@ object GFXx3D {
                 val sy = h / avgSize
 
                 stack.scale(sx, -sy, 1f)
-                
+
             } else stack.scale(1f, -1f, 1f)
 
             transformUniform(shader, stack)
@@ -267,6 +271,43 @@ object GFXx3D {
         }
         uvProjection.getBuffer().draw(shader)
         GFX.check()
+    }
+
+    fun draw3DVideo(
+        video: GFXTransform, time: Double,
+        stack: Matrix4fArrayList, v0: VFrame, v1: VFrame, interpolation: Float, color: Vector4fc,
+        filtering: Filtering, clamping: Clamping, tiling: Vector4fc?, uvProjection: UVProjection
+    ) {
+
+        if (!v0.isCreated || !v1.isCreated) throw RuntimeException("Frame must be loaded to be rendered!")
+
+        val t0 = v0.getTextures()
+        val t1 = v1.getTextures()
+
+        val lambda = 0.01f
+        val blurAmount = 0.05f
+        BlendDepth(null,false){
+            // interpolate all textures
+            val interpolated = t0.zip(t1).map { (x0, x1) -> OpticalFlow.run(lambda, blurAmount, interpolation, x0, x1) }
+            // bind them
+            v0.bind2(0, filtering, clamping, interpolated)
+        }
+
+        val shader = v0.get3DShader()
+        shader.use()
+        video.uploadAttractors(shader, time)
+        shader3DUniforms(shader, stack, v0.w, v0.h, color, tiling, filtering, uvProjection)
+        colorGradingUniforms(video as? Video, time, shader)
+
+        if (shader == ShaderLib.shader3DYUV) {
+            val w = v0.w
+            val h = v0.h
+            shader.v2("uvCorrection", w.toFloat() / ((w + 1) / 2 * 2), h.toFloat() / ((h + 1) / 2 * 2))
+        }
+
+        uvProjection.getBuffer().draw(shader)
+        GFX.check()
+
     }
 
     fun draw3D(

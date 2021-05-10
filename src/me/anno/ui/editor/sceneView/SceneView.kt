@@ -122,8 +122,8 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
 
     val controls = ArrayList<SimplePanel>()
 
-    val pad = 3
-    val iconSize = 32
+    val iconSize = style.getSize("fontSize", 12) * 2
+    val pad = (iconSize + 4) / 8
 
     // we need the depth for post processing effects like dof
 

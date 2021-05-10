@@ -6,7 +6,7 @@ import me.anno.fonts.FontManager
 import me.anno.fonts.keys.TextCacheKey
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXx2D.drawRect
-import me.anno.gpu.GFXx2D.drawText
+import me.anno.gpu.GFXx2D.drawSimpleTextCharByChar
 import me.anno.gpu.GFXx2D.flatColor
 import me.anno.input.Input
 import me.anno.input.MouseButton
@@ -38,6 +38,8 @@ import kotlin.math.abs
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
 
+// todo subpixel adjusted lines, only if subpixel rendering affects x-axis
+
 open class TimelinePanel(style: Style) : Panel(style) {
 
     override fun getVisualState(): Any? =
@@ -62,7 +64,7 @@ open class TimelinePanel(style: Style) : Panel(style) {
         GFX.loadTexturesSync.push(true)
         val text = getTimeString(editorTime, 0.0)
         val color = mixARGB(fontColor, backgroundColor, 0.8f)
-        drawText(x + w / 2, y + h / 2, timeFont, text, color, backgroundColor, -1, AxisAlignment.CENTER)
+        drawSimpleTextCharByChar(x + w / 2, y + h / 2, 0, text, color, backgroundColor, AxisAlignment.CENTER)
         GFX.loadTexturesSync.pop()
     }
 
@@ -206,7 +208,7 @@ open class TimelinePanel(style: Style) : Panel(style) {
 
     override fun tickUpdate() {
         super.tickUpdate()
-        for(key in drawnStrings){
+        for (key in drawnStrings) {
             FontManager.getString(key)
         }
     }
@@ -247,14 +249,10 @@ open class TimelinePanel(style: Style) : Panel(style) {
             for (stepIndex in maxStepIndex downTo minStepIndex) {
                 val time = stepIndex * timeStep
                 val x = getXAt(time).roundToInt()
-                if (x > x0 + 1 && x + 2 < x1) {
-                    val text = getTimeString(time, timeStep)
-                    val key = FontManager.getTextCacheKey(font, text, -1)
-                    if (key != null) {
-                        drawnStrings.add(key)
-                        drawText(x, y0, font, key, fontColor, backgroundColor, AxisAlignment.CENTER)
-                    }
-                }
+                val text = getTimeString(time, timeStep)
+                drawSimpleTextCharByChar(
+                    x, y0, 2, text, fontColor, backgroundColor, AxisAlignment.CENTER
+                )
             }
         }
 

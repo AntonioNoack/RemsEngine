@@ -58,10 +58,10 @@ import kotlin.math.roundToInt
 class FileEntry(
     private val explorer: FileExplorer,
     isParent: Boolean, val file: FileReference, style: Style
-) :
-    PanelGroup(style.getChild("fileEntry")) {
+) : PanelGroup(style.getChild("fileEntry")) {
 
     // todo sometimes the title is missing... or its color... why ever...
+    // draw using fast-draw? missing special chars are an issue...
 
     private var audio: Audio? = null
 
@@ -82,13 +82,17 @@ class FileEntry(
     private val size get() = explorer.entrySize.toInt()
 
     private val importType = file.extension.getImportType()
-    private var iconPath = if (file.isDirectory) {
-        when (file.name.toLowerCase()) {
-            "music", "musik", "videos", "movies" -> "file/music.png"
-            "documents", "dokumente", "downloads" -> "file/text.png"
-            "images", "pictures" -> "file/image.png"
-            else -> if (file.file.listFiles2().isNotEmpty())
-                "file/folder.png" else "file/empty_folder.png"
+    private var iconPath = if (isParent || file.isDirectory) {
+        if (isParent) {
+            "file/folder.png"
+        } else {
+            when (file.name.toLowerCase()) {
+                "music", "musik", "videos", "movies" -> "file/music.png"
+                "documents", "dokumente", "downloads" -> "file/text.png"
+                "images", "pictures", "bilder" -> "file/image.png"
+                else -> if (file.file.listFiles2().isNotEmpty())
+                    "file/folder.png" else "file/empty_folder.png"
+            }
         }
     } else {
         when (importType) {
@@ -166,9 +170,9 @@ class FileEntry(
                     frameIndex = if (isHovered) {
                         if (startTime == 0L) {
                             startTime = GFX.gameTime
-                            val audio = Video(file).apply {
-                                isLooping.value = LoopingState.PLAY_LOOP
-                            }
+                            val audio = Video(file)
+                            audio.isLooping.value = LoopingState.PLAY_LOOP
+                            audio.update()// sets audio.type, which is required for startPlayback
                             this.audio = audio
                             AudioTasks.addTask(5) {
                                 audio.startPlayback(-hoverPlaybackDelay, 1.0, Camera())
@@ -364,7 +368,7 @@ class FileEntry(
         return
 
         // todo extra start button for Isabell, and disabled auto-play
-        // todo settings xD
+        // todo change this in the settings xD
 
         // todo tiles on background to show transparency? ofc only in the area of the image
 
@@ -374,6 +378,7 @@ class FileEntry(
      * draws the title
      * */
     private fun drawText(x0: Int, y0: Int, x1: Int, y1: Int) {
+        // GFXx2D.drawSimpleTextCharByChar(x0 + max(0, deltaX), y0, 0, titlePanel.text)
         titlePanel.w = x1 - x0
         titlePanel.minW = x1 - x0
         titlePanel.calculateSize(x1 - x0, y1 - y0)
@@ -391,11 +396,9 @@ class FileEntry(
         when (action) {
             "DragStart" -> {
                 if (StudioBase.dragged?.getOriginal() != file) {
-                    StudioBase.dragged =
-                        Draggable(
-                            file.toString(), "File", file,
-                            TextPanel(file.nameWithoutExtension, style)
-                        )
+                    val textPanel = TextPanel(file.nameWithoutExtension, style)
+                    val draggable = Draggable(file.toString(), "File", file, textPanel)
+                    StudioBase.dragged = draggable
                 }
             }
             "Enter" -> {
@@ -407,57 +410,52 @@ class FileEntry(
                 }
             }
             "Rename" -> {
-                askName(
-                    x.toInt(),
-                    y.toInt(),
-                    NameDesc("Rename To...", "", "ui.file.rename2"),
-                    file.name,
-                    NameDesc("Rename"),
-                    { -1 }) {
-                    val allowed = it.toAllowedFilename()
-                    if (allowed != null) {
-                        val dst = File(file.file.parentFile, allowed)
-                        if (dst.exists() && !allowed.equals(file.name, true)) {
-                            ask(NameDesc("Override existing file?", "", "ui.file.override")) {
-                                file.file.renameTo(dst)
-                                explorer.invalidate()
-                            }
-                        } else {
-                            file.file.renameTo(dst)
-                            explorer.invalidate()
-                        }
-                    }
-
-                }
+                val title = NameDesc("Rename To...", "", "ui.file.rename2")
+                askName(x.toInt(), y.toInt(), title, file.name, NameDesc("Rename"), { -1 }, ::renameTo)
             }
             "OpenInExplorer" -> file.file.openInExplorer()
             "Delete" -> deleteFileMaybe()
             "OpenOptions" -> {
                 // todo add option to open json in specialized json editor...
-                openMenu(
-                    listOf(
-                        MenuOption(NameDesc("Rename", "Change the name of this file", "ui.file.rename")) {
-                            onGotAction(x, y, dx, dy, "Rename", false)
-                        },
-                        MenuOption(
-                            NameDesc(
-                                "Open in Explorer",
-                                "Open the file in your default file explorer",
-                                "ui.file.openInExplorer"
-                            )
-                        ) { file.openInExplorer() },
-                        MenuOption(
-                            NameDesc(
-                                "Delete", "Delete this file", "ui.file.delete"
-                            ),
-                            this::deleteFileMaybe
-                        )
-                    )
+                val rename = MenuOption(NameDesc("Rename", "Change the name of this file", "ui.file.rename")) {
+                    onGotAction(x, y, dx, dy, "Rename", false)
+                }
+                val openInExplorer = MenuOption(
+                    NameDesc(
+                        "Open in Explorer",
+                        "Open the file in your default file explorer",
+                        "ui.file.openInExplorer"
+                    ), ::openInExplorer
                 )
+                val delete = MenuOption(
+                    NameDesc("Delete", "Delete this file", "ui.file.delete"),
+                    ::deleteFileMaybe
+                )
+                openMenu(listOf(rename, openInExplorer, delete))
             }
             else -> return super.onGotAction(x, y, dx, dy, action, isContinuous)
         }
         return true
+    }
+
+    fun openInExplorer() {
+        file.openInExplorer()
+    }
+
+    fun renameTo(newName: String) {
+        val allowed = newName.toAllowedFilename()
+        if (allowed != null) {
+            val dst = File(file.file.parentFile, allowed)
+            if (dst.exists() && !allowed.equals(file.name, true)) {
+                ask(NameDesc("Override existing file?", "", "ui.file.override")) {
+                    file.file.renameTo(dst)
+                    explorer.invalidate()
+                }
+            } else {
+                file.file.renameTo(dst)
+                explorer.invalidate()
+            }
+        }
     }
 
     override fun onDoubleClick(x: Float, y: Float, button: MouseButton) {
@@ -469,34 +467,38 @@ class FileEntry(
     }
 
     private fun deleteFileMaybe() {
-        openMenu(
+        val title = NameDesc(
+            "Delete this file? (${file.length().formatFileSize()})",
+            "",
+            "ui.file.delete.ask"
+        )
+        val moveToTrash = MenuOption(
             NameDesc(
-                "Delete this file? (${file.length().formatFileSize()})",
-                "",
-                "ui.file.delete.ask"
-            ), listOf(
-                MenuOption(
-                    NameDesc(
-                        "Yes",
-                        "Move the file to the trash",
-                        "ui.file.delete.yes"
-                    )
-                ) {
-                    moveToTrash(file.file)
-                    explorer.invalidate()
-                },
+                "Yes",
+                "Move the file to the trash",
+                "ui.file.delete.yes"
+            )
+        ) {
+            moveToTrash(file.file)
+            explorer.invalidate()
+        }
+        val deletePermanently = MenuOption(
+            NameDesc(
+                "Yes, permanently",
+                "Deletes the file; file cannot be recovered",
+                "ui.file.delete.permanent"
+            )
+        ) {
+            file.deleteRecursively()
+            explorer.invalidate()
+        }
+        openMenu(
+            title, listOf(
+                moveToTrash,
                 dontDelete,
-                MenuOption(
-                    NameDesc(
-                        "Yes, permanently",
-                        "Deletes the file; file cannot be recovered",
-                        "ui.file.delete.permanent"
-                    )
-                ) {
-                    file.file.deleteRecursively()
-                    explorer.invalidate()
-                }
-            ))
+                deletePermanently
+            )
+        )
     }
 
     override fun onDeleteKey(x: Float, y: Float) {
@@ -506,33 +508,32 @@ class FileEntry(
             deleteFileMaybe()
         } else if (files.first() === file) {
             // ask, then delete all (or cancel)
-            openMenu(NameDesc(
+            val title = NameDesc(
                 "Delete these files? (${inFocus.size}x, ${
                     files.sumByLong { it.length() }.formatFileSize()
                 })", "", "ui.file.delete.ask.many"
-            ), listOf(
-                MenuOption(
-                    NameDesc(
-                        "Yes",
-                        "Move the file to the trash",
-                        "ui.file.delete.yes"
-                    )
-                ) {
-                    moveToTrash(files.map { it.file }.toTypedArray())
-                    explorer.invalidate()
-                },
-                dontDelete,
-                MenuOption(
-                    NameDesc(
-                        "Yes, permanently",
-                        "Deletes all selected files; forever; files cannot be recovered",
-                        "ui.file.delete.many.permanently"
-                    )
-                ) {
-                    files.forEach { it.deleteRecursively() }
-                    explorer.invalidate()
-                }
-            ))
+            )
+            val moveToTrash = MenuOption(
+                NameDesc(
+                    "Yes",
+                    "Move the file to the trash",
+                    "ui.file.delete.yes"
+                )
+            ) {
+                moveToTrash(files.map { it.file }.toTypedArray())
+                explorer.invalidate()
+            }
+            val deletePermanently = MenuOption(
+                NameDesc(
+                    "Yes, permanently",
+                    "Deletes all selected files; forever; files cannot be recovered",
+                    "ui.file.delete.many.permanently"
+                )
+            ) {
+                files.forEach { it.deleteRecursively() }
+                explorer.invalidate()
+            }
+            openMenu(title, listOf(moveToTrash, dontDelete, deletePermanently))
         }
     }
 
@@ -544,7 +545,6 @@ class FileEntry(
                 "ui.file.delete.many.no"
             )
         ) {}
-
 
     override fun onCopyRequested(x: Float, y: Float): String? {
         if (this in inFocus) {// multiple files maybe

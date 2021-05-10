@@ -32,6 +32,7 @@ class PitchEffect : SoundEffect(Domain.TIME_DOMAIN, Domain.TIME_DOMAIN) {
         style: Style,
         getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
     ) {
+        // todo effect broken, dragging not working?
         list += audio.vi(
             "Inverse Speed",
             "Making something play faster, increases the pitch; this is undone by this node",
@@ -85,7 +86,6 @@ class PitchEffect : SoundEffect(Domain.TIME_DOMAIN, Domain.TIME_DOMAIN) {
         stretch.putSamples(getDataSrc(-1))
         stretch.putSamples(getDataSrc(+0))
         stretch.putSamples(getDataSrc(+1))
-
 
         // then read the data, and rescale it to match the output
         val output = stretch.outputBuffer

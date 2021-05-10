@@ -6,6 +6,9 @@ import kotlin.math.roundToInt
 
 data class Font(val name: String, val size: Float, val isBold: Boolean, val isItalic: Boolean) {
 
+    constructor(name: String, size: Int, isBold: Boolean, isItalic: Boolean):
+            this(name, size.toFloat(), isBold, isItalic)
+
     val sizeInt = size.roundToInt()
     val sizeIndex = FontManager.getFontSizeIndex(size)
 

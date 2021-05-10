@@ -17,6 +17,8 @@ import me.anno.ui.style.Style
 import kotlin.math.max
 import kotlin.math.roundToInt
 
+// todo scale image down with subpixel rendering?
+
 class ImageButton(
     val path: String,
     val size: Int,

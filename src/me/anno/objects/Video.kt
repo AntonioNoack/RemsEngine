@@ -18,6 +18,7 @@ import me.anno.gpu.TextureLib.colorShowTexture
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2D
+import me.anno.io.FileReference
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.language.translation.Dict
@@ -45,9 +46,9 @@ import me.anno.ui.editor.SettingCategory
 import me.anno.ui.input.EnumInput
 import me.anno.ui.style.Style
 import me.anno.utils.Clipping
+import me.anno.utils.Maths.fract
 import me.anno.utils.Maths.mix
 import me.anno.utils.Maths.pow
-import me.anno.io.FileReference
 import me.anno.utils.structures.ValueWithDefault
 import me.anno.utils.structures.ValueWithDefault.Companion.writeMaybe
 import me.anno.utils.structures.maps.BiMap
@@ -96,7 +97,7 @@ class Video(file: FileReference = FileReference(""), parent: Transform? = null) 
 
     var type = VideoType.IMAGE
 
-    override fun getDocumentationURL(): URL? = when(type){
+    override fun getDocumentationURL(): URL? = when (type) {
         VideoType.IMAGE -> URL("https://remsstudio.phychi.com/?s=learn/images")
         VideoType.VIDEO, VideoType.IMAGE_SEQUENCE -> URL("https://remsstudio.phychi.com/?s=learn/videos")
         else -> null
@@ -326,6 +327,8 @@ class Video(file: FileReference = FileReference(""), parent: Transform? = null) 
 
     }
 
+    private var lastFrame: VFrame? = null
+
     private fun drawVideo(meta: FFMPEGMetadata, stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
 
         val duration = meta.videoDuration
@@ -362,28 +365,40 @@ class Video(file: FileReference = FileReference(""), parent: Transform? = null) 
 
                 // draw the current texture
                 val localTime = isLooping[time, duration]
-                val frameIndex = (localTime * videoFPS).toInt() % frameCount
+                val frameIndexD = localTime * videoFPS
 
-                var frame = getVideoFrame(
-                    file, max(1, zoomLevel), frameIndex,
-                    framesPerContainer, videoFPS, videoFrameTimeout, true
-                )
+                val frameIndex0 = floor(frameIndexD).toInt() % frameCount
+                val frame0 = getFrame(zoomLevel, meta, frameIndex0, videoFPS)
 
-                if (frame == null || !frame.isCreated) {
-                    onMissingImageOrFrame()
-                    frame = getVideoFrameWithoutGenerator(meta, frameIndex, framesPerContainer, videoFPS)
-                    // if(frame == null) LOGGER.warn("Missing frame $file/$frameIndex/$framesPerContainer/$videoFPS")
-                }
+                val filtering = this@Video.filtering.value
+                val clamp = this@Video.clampMode.value
 
-                if (frame != null && !frame.isDestroyed) {
-                    w = meta.videoWidth
-                    h = meta.videoHeight
-                    draw3DVideo(
-                        this, time,
-                        stack, frame, color, this@Video.filtering.value, this@Video.clampMode.value,
-                        tiling[time], uvProjection.value
-                    )
-                    wasDrawn = true
+                // todo why is it still flickering???
+                val useInterpolation = false
+                if(!useInterpolation){
+                    if (frame0 != null) {
+                        w = meta.videoWidth
+                        h = meta.videoHeight
+                        draw3DVideo(
+                            this, time, stack, frame0, color, filtering, clamp,
+                            tiling[time], uvProjection.value
+                        )
+                        wasDrawn = true
+                        lastFrame = frame0
+                    }
+                } else {
+                    val interpolation = fract(frameIndexD).toFloat()
+                    val frameIndex1 = ceil(frameIndexD).toInt() % frameCount
+                    val frame1 = getFrame(zoomLevel, meta, frameIndex1, videoFPS)
+                    if (frame0 != null && frame1 != null) {
+                        w = meta.videoWidth
+                        h = meta.videoHeight
+                        draw3DVideo(
+                            this, time, stack, frame0, frame1, interpolation, color, filtering, clamp,
+                            tiling[time], uvProjection.value
+                        )
+                        wasDrawn = true
+                    }
                 }
 
                 // stack.scale(0.1f)
@@ -400,6 +415,25 @@ class Video(file: FileReference = FileReference(""), parent: Transform? = null) 
                 Filtering.NEAREST, Clamping.REPEAT, tiling16x9, uvProjection.value
             )
         }
+    }
+
+    fun getFrame(zoomLevel: Int, meta: FFMPEGMetadata, frameIndex0: Int, videoFPS: Double): VFrame? {
+
+        val zl = max(1, zoomLevel)
+        val fpc = framesPerContainer
+        val vft = videoFrameTimeout
+
+        var frame0 = getVideoFrame(file, zl, frameIndex0, fpc, videoFPS, vft, true)
+
+        if (frame0 == null || !frame0.isCreated || frame0.isDestroyed) {
+            onMissingImageOrFrame()
+            frame0 = getVideoFrameWithoutGenerator(meta, frameIndex0, fpc, videoFPS)
+            if(frame0 == null || !frame0.isCreated || frame0.isDestroyed) frame0 = lastFrame
+        }
+
+        if(frame0 == null || !frame0.isCreated || frame0.isDestroyed) return null
+        return frame0
+
     }
 
     private fun getImage(): Any? {

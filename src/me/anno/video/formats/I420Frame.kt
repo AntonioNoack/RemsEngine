@@ -47,6 +47,8 @@ class I420Frame(iw: Int, ih: Int) : VFrame(iw, ih, 2) {
 
     override fun get3DShader() = shader3DYUV
 
+    override fun getTextures(): List<Texture2D> = listOf(y, u, v)
+
     override fun bind(offset: Int, nearestFiltering: GPUFiltering, clamping: Clamping) {
         v.bind(offset + 2, nearestFiltering, clamping)
         u.bind(offset + 1, nearestFiltering, clamping)

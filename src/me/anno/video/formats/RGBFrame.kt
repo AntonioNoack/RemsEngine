@@ -44,6 +44,7 @@ class RGBFrame(w: Int, h: Int) : VFrame(w, h, -1) {
     }
 
     override fun get3DShader() = shader3DRGBA
+    override fun getTextures(): List<Texture2D> = listOf(rgb)
 
     override fun bind(offset: Int, nearestFiltering: GPUFiltering, clamping: Clamping) {
         rgb.bind(offset, nearestFiltering, clamping)

@@ -9,8 +9,8 @@ import kotlin.math.max
 
 object FrameTimes : Panel(DefaultConfig.style.getChild("fps")) {
 
-    val width = 200
-    val height = 50
+    val width = 200 / 15 * max(DefaultConfig.style.getSize("fontSize", 12), 12)
+    val height = width / 4
 
     val colors = TextPanel("", style)
     val textColor = colors.textColor

@@ -1,5 +1,6 @@
 package me.anno.gpu
 
+import me.anno.config.DefaultConfig
 import me.anno.fonts.FontManager
 import me.anno.fonts.FontManager.getAvgFontSize
 import me.anno.fonts.keys.TextCacheKey
@@ -14,6 +15,7 @@ import me.anno.objects.modes.UVProjection
 import me.anno.ui.base.Font
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.debug.FrameTimes
+import me.anno.utils.LOGGER
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.max
 import me.anno.utils.types.Strings.isBlank2
@@ -191,23 +193,31 @@ object GFXx2D {
     ) = writeText(x, y, font, key, color, backgroundColor, alignment)
 
     val simpleChars = Array('z'.toInt() + 1) { it.toChar().toString() }
-    var monospaceFont = Font("Consolas", 12f, false, false)
-    val monospaceKeys = Array(simpleChars.size) { FontManager.getTextCacheKey(monospaceFont, simpleChars[it], -1) }
+    var monospaceFont = lazy { Font("Consolas", DefaultConfig.style.getSize("fontSize", 12), false, false) }
+    val monospaceKeys = lazy { Array(simpleChars.size) { FontManager.getTextCacheKey(monospaceFont.value, simpleChars[it], -1) } }
 
     fun drawSimpleTextCharByChar(
         x0: Int, y0: Int,
         padding: Int,
         text: CharArray,
         textColor: Int = FrameTimes.textColor,
-        backgroundColor: Int = FrameTimes.backgroundColor
+        backgroundColor: Int = FrameTimes.backgroundColor,
+        alignment: AxisAlignment = AxisAlignment.MIN
     ) {
-        val font = monospaceFont
-        val keys = monospaceKeys
+        val font = monospaceFont.value
+        val keys = monospaceKeys.value
         val charWidth = font.sampleWidth
+        val size = text.size
+        val width = charWidth * size
+        val offset = -when (alignment) {
+            AxisAlignment.MIN -> 0
+            AxisAlignment.CENTER -> width / 2
+            AxisAlignment.MAX -> width
+        }
         drawRect(
-            x0, y0,
+            x0 + offset, y0,
             charWidth * text.size + 2 * padding, font.sizeInt + 2 * padding,
-            FrameTimes.backgroundColor
+            backgroundColor
         )
         for (i in text.indices) {
             val char = text[i]
@@ -215,7 +225,7 @@ object GFXx2D {
             if (charInt < simpleChars.size) {
                 val key = keys[charInt] ?: continue
                 drawText(
-                    x0 + padding + i * charWidth, y0 + padding,
+                    x0 + offset + padding + i * charWidth, y0 + padding,
                     font, key, textColor, backgroundColor.and(0xffffff)
                 )
             }
@@ -227,15 +237,24 @@ object GFXx2D {
         padding: Int,
         text: String,
         textColor: Int = FrameTimes.textColor,
-        backgroundColor: Int = FrameTimes.backgroundColor
+        backgroundColor: Int = FrameTimes.backgroundColor,
+        alignment: AxisAlignment = AxisAlignment.MIN
     ) {
-        val font = monospaceFont
-        val keys = monospaceKeys
+
+        val font = monospaceFont.value
+        val keys = monospaceKeys.value
         val charWidth = font.sampleWidth
+        val size = text.length
+        val width = charWidth * size
+        val offset = -when (alignment) {
+            AxisAlignment.MIN -> 0
+            AxisAlignment.CENTER -> width / 2
+            AxisAlignment.MAX -> width
+        }
         drawRect(
-            x0, y0,
+            x0 + offset, y0,
             charWidth * text.length + 2 * padding, font.sizeInt + 2 * padding,
-            FrameTimes.backgroundColor
+            backgroundColor
         )
         for (i in text.indices) {
             val char = text[i]
@@ -243,7 +262,7 @@ object GFXx2D {
             if (charInt < simpleChars.size) {
                 val key = keys[charInt] ?: continue
                 drawText(
-                    x0 + padding + i * charWidth, y0 + padding,
+                    x0 + offset + padding + i * charWidth, y0 + padding,
                     font, key, textColor, backgroundColor.and(0xffffff)
                 )
             }
@@ -267,7 +286,7 @@ object GFXx2D {
             var sizeX = 0
             val split = text.split('\n')
             val lineOffset = font.sizeInt * 3 / 2
-            for(index in split.indices){
+            for (index in split.indices) {
                 val s = split[index]
                 val size = drawTextCharByChar(
                     x, y + index * lineOffset, font, s,
@@ -326,7 +345,7 @@ object GFXx2D {
                     shader.v2("size", sizeFirst.toFloat() / GFX.windowWidth, -h.toFloat() / GFX.windowHeight)
                     GFX.flat01.draw(shader)
                     GFX.check()
-                }
+                } else LOGGER.warn("Texture for $txt is null")
             }
             fx += w
         }
@@ -365,6 +384,7 @@ object GFXx2D {
     ): Int {
         val w = texture.w
         val h = texture.h
+        // done if pixel is on the border of the drawn rectangle, make it grayscale, so we see no color seams
         if (texture !is Texture2D || texture.isCreated) {
             texture.bind(GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
             val shader = ShaderLib.subpixelCorrectTextShader
@@ -374,12 +394,15 @@ object GFXx2D {
                 AxisAlignment.CENTER -> w / 2
                 AxisAlignment.MAX -> w
             }
+            val windowWidth = GFX.windowWidth.toFloat()
+            val windowHeight = GFX.windowHeight.toFloat()
             shader.v2(
                 "pos",
-                (xWithOffset - GFX.windowX).toFloat() / GFX.windowWidth,
-                1f - (y - GFX.windowY).toFloat() / GFX.windowHeight
+                (xWithOffset - GFX.windowX) / windowWidth,
+                1f - (y - GFX.windowY) / windowHeight
             )
-            shader.v2("size", w.toFloat() / GFX.windowWidth, -h.toFloat() / GFX.windowHeight)
+            shader.v2("size", w / windowWidth, -h / windowHeight)
+            shader.v2("windowSize", windowWidth, windowHeight)
             shader.v4("textColor", color)
             shader.v4("backgroundColor", backgroundColor)
             GFX.flat01.draw(shader)

@@ -1,9 +1,9 @@
 package me.anno.video
 
 import me.anno.gpu.GFX
-import me.anno.utils.ShutdownException
-import me.anno.utils.Sleep.sleepShortly
 import me.anno.io.FileReference
+import me.anno.utils.ShutdownException
+import me.anno.utils.Sleep.waitUntil
 import me.anno.video.IsFFMPEGOnly.isFFMPEGOnlyExtension
 import me.anno.video.formats.ARGBFrame
 import me.anno.video.formats.BGRAFrame
@@ -35,7 +35,7 @@ class FFMPEGVideo(
                     // if('!' in line || "Error" in line) LOGGER.warn("ffmpeg $frame0 ${arguments.joinToString(" ")}: $line")
                     parser.parseLine(line, this)
                 }
-            } catch (e: ShutdownException){
+            } catch (e: ShutdownException) {
                 // ...
             }
         }
@@ -47,7 +47,7 @@ class FFMPEGVideo(
                 for (i in 1 until frameCount) {
                     readFrame(input)
                 }
-            } catch (e: ShutdownException){
+            } catch (e: ShutdownException) {
                 // ...
             }
             input.close()
@@ -57,10 +57,10 @@ class FFMPEGVideo(
     val frames = ArrayList<VFrame>(bufferLength)
 
     var isFinished = false
+
+    // todo what do we do, if we run out of memory?
     private fun readFrame(input: InputStream) {
-        while (w == 0 || h == 0 || codec.isEmpty()) {
-            sleepShortly(true)
-        }
+        waitUntil(true) { w != 0 && h != 0 && codec.isNotEmpty() }
         if (!isDestroyed && !isFinished) {
             try {
                 val frame = when (codec) {

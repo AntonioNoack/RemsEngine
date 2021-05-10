@@ -96,7 +96,7 @@ open class Text(parent: Transform? = null) : GFXTransform(parent) {
     val endCursor = AnimatedProperty.int(-1)
 
     // automatic line break after length x
-    var lineBreakWidth = -1f
+    var lineBreakWidth = 0f
 
     // todo allow style by HTML/.md? :D
     var textMode = TextMode.RAW
@@ -236,13 +236,13 @@ open class Text(parent: Transform? = null) : GFXTransform(parent) {
             return
         }
 
-        val lbw = lineBreakWidth
-        if (lbw >= 0f && !isFinalRendering && selectedTransform === this) {
-            // draw the line
+        val lineBreakWidth = lineBreakWidth
+        if (lineBreakWidth > 0f && !isFinalRendering && selectedTransform === this) {
+            // draw the borders
             // why 0.81? correct x-scale? (off by ca ~ x0.9)
             val x0 = dx + width * 0.5f
-            val minX = x0 - 0.81f * lbw
-            val maxX = x0 + 0.81f * lbw
+            val minX = x0 - 0.81f * lineBreakWidth
+            val maxX = x0 + 0.81f * lineBreakWidth
             val y0 = dy - lineOffset * 0.75f
             val y1 = y0 + totalHeight
             Grid.drawLine(stack, color, Vector3f(minX, y0, 0f), Vector3f(minX, y1, 0f))
@@ -284,22 +284,27 @@ open class Text(parent: Transform? = null) : GFXTransform(parent) {
     private val oc1 = Vector4f()
     private val oc2 = Vector4f()
 
-    private val tmp0 = Vector4f()
-    private fun draw(
-        stack: Matrix4fArrayList, time: Double, color: Vector4fc,
-        lineSegmentsWithStyle: PartResult,
-        drawMeshes: Boolean, drawSDFTexture: Boolean,
-        keys: List<TextSegmentKey>, exampleLayout: TextLayout,
-        width: Float, lineOffset: Float,
-        dx: Float, dy: Float, scaleX: Float, scaleY: Float,
-        startCursor: Int, endCursor: Int,
-        useExtraColors: Boolean,
-        extraSmoothness: Float
-    ) {
+    private fun correctColor(c0: Vector4fc, c1: Vector4f) {
+        if (c1.w < 1f / 255f) {
+            c1.set(c0.x(), c0.y(), c0.z(), c1.w)
+        }
+    }
 
-        val oc0 = oc0
-        val oc1 = oc1
-        val oc2 = oc2
+    /**
+     * if the alpha of a color is zero, it should be assigned the weighted sum if the neighbor colors
+     * or the shader needs to be improved
+     * let's just try the easiest way to correct the issue in 99% of all cases
+     * */
+    private fun correctColors(color: Vector4fc, oc0: Vector4f, oc1: Vector4f, oc2: Vector4f) {
+        correctColor(color, oc0)
+        correctColor(oc0, oc1)
+        correctColor(oc1, oc2)
+    }
+
+    private fun getOutlineColors(
+        useExtraColors: Boolean, drawSDFTexture: Boolean, time: Double, color: Vector4fc,
+        oc0: Vector4f, oc1: Vector4f, oc2: Vector4f
+    ) {
         if (useExtraColors && drawSDFTexture) {
             val parentColor = parent?.getLocalColor(tmp0)
             if (parentColor != null) {
@@ -316,6 +321,29 @@ open class Text(parent: Transform? = null) : GFXTransform(parent) {
             color.mulAlpha(outlineColor1[time].w(), oc1)
             color.mulAlpha(outlineColor2[time].w(), oc2)
         }
+
+        correctColors(color, oc0, oc1, oc2)
+
+    }
+
+    private val tmp0 = Vector4f()
+    private fun draw(
+        stack: Matrix4fArrayList, time: Double, color: Vector4fc,
+        lineSegmentsWithStyle: PartResult,
+        drawMeshes: Boolean, drawSDFTexture: Boolean,
+        keys: List<TextSegmentKey>, exampleLayout: TextLayout,
+        width: Float, lineOffset: Float,
+        dx: Float, dy: Float, scaleX: Float, scaleY: Float,
+        startCursor: Int, endCursor: Int,
+        useExtraColors: Boolean,
+        extraSmoothness: Float
+    ) {
+
+        val oc0 = oc0
+        val oc1 = oc1
+        val oc2 = oc2
+
+        getOutlineColors(useExtraColors, drawSDFTexture, time, color, oc0, oc1, oc2)
 
         var charIndex = 0
 
@@ -814,7 +842,7 @@ open class Text(parent: Transform? = null) : GFXTransform(parent) {
     companion object {
 
         val tabSpaceType = Type.FLOAT_PLUS.withDefaultValue(4f)
-        val lineBreakType = Type.FLOAT.withDefaultValue(-1f)
+        val lineBreakType = Type.FLOAT_PLUS.withDefaultValue(0f)
 
         val textMeshTimeout = 5000L
         val lastUsedFonts = arrayOfNulls<String>(max(0, DefaultConfig["lastUsed.fonts.count", 5]))

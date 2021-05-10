@@ -2,15 +2,11 @@ package me.anno.ui.editor.graphs
 
 import me.anno.config.DefaultStyle.black
 import me.anno.config.DefaultStyle.white
-import me.anno.fonts.FontManager
 import me.anno.gpu.GFX
+import me.anno.gpu.GFXx2D
 import me.anno.gpu.GFXx2D.drawBorder
 import me.anno.gpu.GFXx2D.drawRect
-import me.anno.gpu.GFXx2D.drawText
 import me.anno.gpu.GFXx2D.drawTexture
-import me.anno.gpu.GFXx2D.getSizeX
-import me.anno.gpu.GFXx2D.getSizeY
-import me.anno.gpu.GFXx2D.getTextSize
 import me.anno.gpu.TextureLib.colorShowTexture
 import me.anno.input.Input.isControlDown
 import me.anno.input.Input.isShiftDown
@@ -32,6 +28,7 @@ import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.RemsStudio.editorTime
 import me.anno.studio.rems.RemsStudio.isPaused
 import me.anno.studio.rems.Selection.selectedProperty
+import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.editor.TimelinePanel
@@ -104,11 +101,17 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
 
     private fun drawValueAxis(x0: Int, y0: Int, x1: Int, y1: Int) {
 
+        val font = GFXx2D.monospaceFont.value
+        val fontHeight = font.size
+        val yOffset = fontHeight.toInt() / 2
+
         val minValue = centralValue - dvHalfHeight
         val maxValue = centralValue + dvHalfHeight
 
         val deltaValue = 2 * dvHalfHeight
-        val valueStep = getValueStep(deltaValue * 0.2f)
+
+        val textLines = clamp(h * 0.7f / fontHeight, 2f, 5f)
+        val valueStep = getValueStep(deltaValue / textLines)
 
         val minStepIndex = (minValue / valueStep).toInt() - 1
         val maxStepIndex = (maxValue / valueStep).toInt() + 1
@@ -117,25 +120,23 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
         val backgroundColor = backgroundColor and 0xffffff // transparent background
 
         for (stepIndex in maxStepIndex downTo minStepIndex) {
+
             val value = stepIndex * valueStep
             val y = getYAt(value).roundToInt()
-            if (y > y0 + 1 && y + 2 < y1) {
 
-                val text = getValueString(value, valueStep)
-                val key = FontManager.getTextCacheKey(font, text, -1)
-                if (key != null) {
+            val text = getValueString(value, valueStep)
+            val width = font.sampleWidth * text.length
+            drawRect(x + width + 2, y, w - width - 2, 1, fontColor and 0x3fffffff)
+            GFXx2D.drawSimpleTextCharByChar(
+                x + 2,
+                y - yOffset,
+                0,
+                text,
+                fontColor,
+                backgroundColor,
+                AxisAlignment.MIN
+            )
 
-                    // to keep it loaded
-                    drawnStrings.add(key)
-
-                    val size = getTextSize(font, text, -1)
-                    val sizeFirst = getSizeX(size)
-                    val sizeSecond = getSizeY(size)
-                    drawRect(x0 + sizeFirst + 2, y, x1 - x0 - sizeFirst, 1, fontColor and 0x3fffffff)
-                    drawText(x0 + 2, y - sizeSecond / 2, font, key, fontColor, backgroundColor)
-
-                }
-            }
         }
 
     }

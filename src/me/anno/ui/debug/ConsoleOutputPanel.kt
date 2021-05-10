@@ -27,12 +27,12 @@ class ConsoleOutputPanel(style: Style) : Panel(style) {
             invalidateDrawing()
         }
 
-    val font = GFXx2D.monospaceFont
 
     var textColor = style.getColor("textColor", DefaultStyle.iconGray)
     var focusTextColor = style.getColor("textColorFocused", -1)
 
     override fun calculateSize(w: Int, h: Int) {
+        val font = GFXx2D.monospaceFont.value
         val text = if (text.isEmpty()) "." else text
         super.calculateSize(w, h)
         val w2 = font.sampleWidth * text.length + 4

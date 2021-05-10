@@ -44,15 +44,14 @@ import static org.lwjgl.system.MemoryUtil.memAddress;
 public class GFXBase0 {
 
     public static boolean enableVsync = true;
+    private static int lastVsyncInterval = -1;
 
     public static void setVsyncEnabled(boolean enabled) {
         enableVsync = enabled;
-        glfwSwapInterval(enableVsync ? 1 : 0);
     }
 
     public static void toggleVsync() {
         enableVsync = !enableVsync;
-        glfwSwapInterval(enableVsync ? 1 : 0);
     }
 
     static Logger LOGGER = LogManager.getLogger(GFXBase0.class);
@@ -191,12 +190,20 @@ public class GFXBase0 {
 
     GLCapabilities capabilities;
 
+    private void updateVsync(){
+        int targetInterval = isInFocus ? enableVsync ? 1 : 0 : 2;
+        if(lastVsyncInterval != targetInterval){
+            glfwSwapInterval(targetInterval);
+            lastVsyncInterval = targetInterval;
+        }
+    }
+
     private void runRenderLoop() {
 
         Clock tick = new Clock();
 
         glfwMakeContextCurrent(window);
-        glfwSwapInterval(enableVsync ? 1 : 0);
+        updateVsync();
 
         tick.stop("make context current + vsync");
 
@@ -220,13 +227,16 @@ public class GFXBase0 {
                         glfwSwapBuffers(window);
                     }
                 }
+
+                updateVsync();
+
                 if(!isInFocus) {
                     try {
                         // enforce 30 fps, because we don't need more
                         // and don't want to waste energy
                         for(int i=0;i<40;i++){
                             long currentTime = System.nanoTime();
-                            if(abs(currentTime - startTime) < 30_000_000){
+                            if(abs(currentTime - startTime) < 29_500_000){
                                 // we still need to wait
                                 Thread.sleep(1);
                             } else break;

@@ -27,6 +27,7 @@ class BGRAFrame(w: Int, h: Int) : VFrame(w, h, 1) {
     }
 
     override fun get3DShader() = shader3DBGRA
+    override fun getTextures(): List<Texture2D> = listOf(bgra)
 
     override fun bind(offset: Int, nearestFiltering: GPUFiltering, clamping: Clamping) {
         bgra.bind(offset, nearestFiltering, clamping)

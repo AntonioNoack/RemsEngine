@@ -15,43 +15,59 @@ open class PanelListY(sorter: Comparator<Panel>?, style: Style) : PanelList(sort
 
     override fun calculateSize(w: Int, h: Int) {
         super.calculateSize(w, h)
+
+        val x = x
         var maxX = x
         var constantSum = 0
-        var variableSum = 0f
+        var weightSum = 0f
+
+        val availableW = w - padding.width
+        val availableH = h - padding.height
+
         for (child in children.filter { it.visibility != Visibility.GONE }) {
-            child.calculateSize(w, h)
+            child.calculateSize(availableW, availableH)
+            // apply constraints?
             constantSum += child.minH
             maxX = max(maxX, child.x + child.minW)
-            variableSum += max(0f, child.weight)
+            weightSum += max(0f, child.weight)
         }
+
         val spaceCount = children.size - 1
         constantSum += spacing * spaceCount
         sumConst = constantSum
-        sumWeight = variableSum
-        minH = sumConst
-        minW = maxX - x
+        sumWeight = weightSum
+
+        minH = constantSum + padding.height
+        minW = (maxX - x) + padding.width
+
     }
 
     override fun placeInParent(x: Int, y: Int) {
         super.placeInParent(x, y)
 
         var perWeight = 0f
-        val perConst = 1f
+        val perConst = 1f // could be used to force elements into the available space
 
-        if (h > sumConst) {
-            val extraAvailable = max(0, h - sumConst)
-            perWeight = extraAvailable / max(sumWeight, 1e-9f)
+        val availableW = w - padding.width
+        val availableH = h - padding.height
+
+        if (availableH > sumConst && sumWeight > 1e-16f) {
+            val extraAvailable = availableH - sumConst
+            perWeight = extraAvailable / sumWeight
         }
 
-        var yCtr = y
+        var currentY = y + padding.top
+        val childX = x + padding.left
+
         for (child in children.filter { it.visibility != Visibility.GONE }) {
             var childH = (perConst * child.minH + perWeight * max(0f, child.weight)).roundToInt()
-            val previousH = yCtr-y
-            childH = min(childH, h - previousH)
-            child.calculateSize(w, childH)
-            child.placeInParent(x, yCtr)
-            child.applyPlacement(w, childH)
-            yCtr += childH + spacing
+            val currentH = currentY - y
+            val remainingH = availableH - currentH
+            childH = min(childH, remainingH)
+            child.calculateSize(availableW, childH)
+            child.placeInParent(childX, currentY)
+            child.applyPlacement(availableW, childH)
+            currentY += childH + spacing
         }
 
     }

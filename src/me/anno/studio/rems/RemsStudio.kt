@@ -26,6 +26,13 @@ import me.anno.utils.OS
 
 // Launch4j
 
+// todo if a resource is requested, and there is a mutex limitation, it should be rejected instead of queued
+// so we don't put strain on the cpu & memory, if we don't really need the resource
+// this is the case for audio in the timeline, when just scrolling
+
+// todo calculate in-between frames for video by motion vectors; https://www.youtube.com/watch?v=PEe-ZeVbTLo
+// 30 -> 60 fps
+
 // todo mode to move vertices of rectangle one by one (requires clever transforms, or a new type of GFXTransform)
 // for perspective matching: e.g. moving a fake image onto another image
 

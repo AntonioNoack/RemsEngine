@@ -48,7 +48,7 @@ class FileReference(val file: File) {
     fun listFiles() = file.listFiles()
     fun list() = file.list()
 
-    fun getParent() = FileReference(file.parentFile)
+    fun getParent() = if(file.parentFile == null) null else FileReference(file.parentFile)
 
     fun renameTo(newName: File) = file.renameTo(newName)
     fun renameTo(newName: FileReference) = file.renameTo(newName.file)

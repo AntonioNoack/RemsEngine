@@ -231,15 +231,23 @@ object Thumbs {
         val time = max(min(wantedTime, meta.videoDuration - 1 / fps), 0.0)
         val index = (time * fps).roundToInt()
 
+        // LOGGER.info("requesting frame $index / $time / $fps fps from $srcFile")
+
         val src = waitUntilDefined(true) {
             getVideoFrame(srcFile, scale, index, 1, fps, 1000L, true)
         }
 
+        // LOGGER.info("got frame for $srcFile")
+
         src.waitToLoad()
+
+        // LOGGER.info("loaded frame for $srcFile")
 
         renderToBufferedImage(srcFile, dstFile, callback, w, h) {
             draw2D(src)
         }
+
+        // LOGGER.info("rendered $srcFile")
 
     }
 
@@ -280,6 +288,7 @@ object Thumbs {
         val dstFile = srcFile.getCacheFile(size)
         if (dstFile.exists()) {
 
+            // LOGGER.info("cached preview for $srcFile exists")
             val image = ImageIO.read(dstFile)
             val rotation = ImageData.getRotation(srcFile)
             GFX.addGPUTask(size, size) {
@@ -289,6 +298,8 @@ object Thumbs {
             }
 
         } else {
+
+            // LOGGER.info("cached preview for $srcFile needs to be created")
 
             // generate the image,
             // upload the result to the gpu
@@ -319,18 +330,22 @@ object Thumbs {
                     "webp" -> generateVideoFrame(srcFile, dstFile, size, callback, 0.0)
                     else -> {
                         val image = try {
-                            ImageIO.read(srcFile.file)
+                            ImageIO.read(srcFile.file)!!
                         } catch (e: Exception) {
                             try {
-                                Imaging.getBufferedImage(srcFile.file)
+                                Imaging.getBufferedImage(srcFile.file)!!
                             } catch (e: Exception) {
-                                when (ext.getImportType()) {
+                                when (val importType = ext.getImportType()) {
                                     "Video" -> {
+                                        LOGGER.info("generating frame for $srcFile")
                                         generateVideoFrame(srcFile, dstFile, size, callback, 1.0)
                                         null
                                     }
                                     // else nothing to do
-                                    else -> null
+                                    else -> {
+                                        LOGGER.info("ImageIO failed, Imaging failed, importType '$importType' != getImportType for $srcFile")
+                                        null
+                                    }
                                 }
                             }
                         }

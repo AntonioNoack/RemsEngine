@@ -394,26 +394,33 @@ object ShaderLib {
                     "}", listOf("tex")
         )
 
-// with texture
+        // with texture
         subpixelCorrectTextShader = Shader(
             "subpixelCorrectTextShader",
             "" +
                     "a2 attr0;\n" +
-                    "u2 pos, size;\n" +
+                    "uniform vec2 pos, size;\n" +
+                    "uniform vec2 windowSize;\n" +
                     "void main(){\n" +
-                    "   gl_Position = vec4((pos + attr0 * size)*2.0-1.0, 0.0, 1.0);\n" +
+                    "   vec2 localPos = pos + attr0 * size;\n" +
+                    "   gl_Position = vec4(localPos*2.0-1.0, 0.0, 1.0);\n" +
+                    "   position = localPos * windowSize;\n" +
                     "   uv = attr0;\n" +
                     "}", "" +
-                    "varying v2 uv;\n", "" +
-                    "uniform vec4 textColor;" +
-                    "uniform vec4 backgroundColor;\n" +
+                    "varying v2 uv, position;\n", "" +
+                    "uniform vec4 textColor, backgroundColor;\n" +
+                    "uniform vec2 windowSize;\n" +
                     "uniform sampler2D tex;\n" +
                     brightness +
                     "void main(){\n" +
                     "   vec3 textMask = texture(tex, uv).rgb;\n" +
                     "   vec3 mixing = brightness(textColor) > brightness(backgroundColor) ? textMask.rgb : textMask.rgb;\n" +
                     "   mixing *= textColor.a;\n" +
-                    "   vec4 color = mix(backgroundColor, textColor, vec4(mixing, dot(mixing,vec3(${1f / 3f}))));\n" +
+                    "   float mixingAlpha = brightness(mixing);\n" +
+                    // todo we only need to check the axis, which is affected by subpixel-rendering, e.g. x on my screen
+                    "   if(position.x < 1.0 || position.y < 1.0 || position.x > windowSize.x - 1.0 || position.y > windowSize.y - 1.0)\n" +
+                    "       mixing = vec3(mixingAlpha);\n" + // on the border; color seams would become apparent here
+                    "   vec4 color = mix(backgroundColor, textColor, vec4(mixing, mixingAlpha));\n" +
                     "   if(color.a < 0.001) discard;\n" +
                     "   gl_FragColor = vec4(color.rgb, 1.0);\n" +
                     "}"

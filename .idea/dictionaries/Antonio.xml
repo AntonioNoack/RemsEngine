@@ -19,6 +19,7 @@
       <w>atan</w>
       <w>atanh</w>
       <w>bgra</w>
+      <w>bilder</w>
       <w>blanchedalmond</w>
       <w>blueviolet</w>
       <w>bokeh</w>
@@ -27,6 +28,7 @@
       <w>cadetblue</w>
       <w>catched</w>
       <w>cbrt</w>
+      <w>cholesky</w>
       <w>codepoint</w>
       <w>codepoints</w>
       <w>collada</w>
@@ -57,6 +59,7 @@
       <w>darkturquoise</w>
       <w>darkviolet</w>
       <w>deblocking</w>
+      <w>decomp</w>
       <w>deeppink</w>
       <w>deepskyblue</w>
       <w>deformer</w>
@@ -64,10 +67,12 @@
       <w>dimgray</w>
       <w>dimgrey</w>
       <w>dodgerblue</w>
+      <w>dokumente</w>
       <w>dont</w>
       <w>emissive</w>
       <w>equirectangular</w>
       <w>fadein</w>
+      <w>farneback</w>
       <w>fastdecode</w>
       <w>fastmath</w>
       <w>ffmpeg</w>
@@ -152,6 +157,7 @@
       <w>mpeg</w>
       <w>msaa</w>
       <w>mtllib</w>
+      <w>musik</w>
       <w>navajowhite</w>
       <w>ness</w>
       <w>nglfw</w>

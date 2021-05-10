@@ -62,6 +62,7 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style) : PanelListX(
 
         override fun onCopyRequested(x: Float, y: Float): String? = parent?.onCopyRequested(x, y)
     }
+
     val text = object : TextPanel("", style) {
         override fun onCopyRequested(x: Float, y: Float): String? = parent?.onCopyRequested(x, y)
     }
@@ -100,7 +101,6 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style) : PanelListX(
 
     // override val effectiveTextColor: Int get() = textColor
     val hoverColor get() = symbol.hoverColor
-    val padding get() = symbol.padding
     val font get() = symbol.font
 
     private val tmp0 = Vector4f()
@@ -136,6 +136,7 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style) : PanelListX(
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.onDraw(x0, y0, x1, y1)
+        // draw the paste-preview
         val showAddIndex = showAddIndex
         if (showAddIndex != null) {
             val x = x + padding.left

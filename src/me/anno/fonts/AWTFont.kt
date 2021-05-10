@@ -245,11 +245,23 @@ class AWTFont(val font: Font) {
             lastValidSplitIndex = max(0, lastValidSplitIndex - 1)
 
             val charsOfInterest = chars.subList(firstSplitIndex, firstSplitIndex + lastValidSplitIndex + 1)
+            var foundSolution = false
             search@ for (splittingChars in splittingOrder) {
                 for ((index, char) in charsOfInterest.withIndex().reversed()) {
                     if (char in splittingChars) {
                         // found the best splitting char <3
                         lastValidSplitIndex = min(index + 1, lastValidSplitIndex)
+                        foundSolution = true
+                        break@search
+                    }
+                }
+            }
+
+            if(!foundSolution){// prefer to split upper case characters
+                search@ for ((index, charV) in charsOfInterest.withIndex().reversed()) {
+                    val char = charV.toChar()
+                    if (char.isUpperCase()) {
+                        lastValidSplitIndex = min(index, lastValidSplitIndex)
                         break@search
                     }
                 }
@@ -269,7 +281,7 @@ class AWTFont(val font: Font) {
         lineBreakWidth: Float
     ): PartResult {
 
-        val hasAutomaticLineBreak = lineBreakWidth >= 0f
+        val hasAutomaticLineBreak = lineBreakWidth > 0f
         val result = ArrayList<StringPart>()
         val tabSize = exampleLayout.advance * relativeTabSize
         val charSpacing = fontSize * relativeCharSpacing

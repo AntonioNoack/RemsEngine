@@ -29,6 +29,7 @@ class ARGBFrame(w: Int, h: Int) : VFrame(w, h, 0) {
     }
 
     override fun get3DShader() = shader3DARGB
+    override fun getTextures(): List<Texture2D> = listOf(argb)
 
     override fun bind(offset: Int, nearestFiltering: GPUFiltering, clamping: Clamping) {
         argb.bind(offset, nearestFiltering, clamping)

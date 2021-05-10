@@ -1,6 +1,7 @@
 package me.anno.ui.base.groups
 
 import me.anno.ui.base.Panel
+import me.anno.ui.base.components.Padding
 import me.anno.ui.style.Style
 
 abstract class PanelList(val sorter: Comparator<Panel>?, style: Style) : PanelGroup(style) {
@@ -8,6 +9,8 @@ abstract class PanelList(val sorter: Comparator<Panel>?, style: Style) : PanelGr
     override val children = ArrayList<Panel>()
     var spacing = style.getSize("spacer.width", 0)
     var disableConstantSpaceForWeightedChildren = false
+
+    val padding = Padding(0)
 
     fun clear() = children.clear()
 

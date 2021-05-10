@@ -4,6 +4,8 @@ import me.anno.gpu.GFX
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.animation.Type
 import me.anno.parser.SimpleExpressionParser
+import me.anno.parser.SimpleExpressionParser.toBool
+import me.anno.parser.SimpleExpressionParser.toDouble
 import me.anno.studio.StudioBase.Companion.shiftSlowdown
 import me.anno.ui.style.Style
 import me.anno.utils.types.AnyToFloat.get
@@ -94,6 +96,7 @@ open class FloatInput(
             setValue(value, notify)
         } else {
             val input: Any = when (type.defaultValue) {
+                is Boolean -> value >= 0.5
                 is Float -> value.toFloat()
                 is Double -> value
                 is Int -> value.roundToInt()
@@ -103,6 +106,7 @@ open class FloatInput(
                 else -> throw RuntimeException("Unknown type ${type.defaultValue}")
             }
             val asDouble = when (val clamped = clampFunc(input)) {
+                is Boolean -> clamped.toDouble()
                 is Float -> clamped.toDouble()
                 is Double -> clamped
                 is Int -> clamped.toDouble()
@@ -115,13 +119,14 @@ open class FloatInput(
 
     fun getValue(value: Any): Double {
         return when (value) {
+            is Boolean -> value.toDouble()
             is Float -> value.toDouble()
             is Double -> value
             is Int -> value.toDouble()
             is Long -> value.toDouble()
             is Vector2fc, is Vector3fc, is Vector4fc,
             is Quaternionf -> value[indexInProperty].toDouble()
-            else -> throw RuntimeException("Unknown type $value for ${javaClass.simpleName}")
+            else -> throw RuntimeException("Unknown type $value for ${value.javaClass.simpleName}")
         }
     }
 

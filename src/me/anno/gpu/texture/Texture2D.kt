@@ -470,10 +470,7 @@ open class Texture2D(
             val result = bindTexture(tex2D, pointer)
             ensureFilterAndClamping(nearest, clamping)
             return result
-        } else {
-            throw RuntimeException("Cannot bind non-created texture!")
-            // invisibleTexture.bind(invisibleTexture.filtering, invisibleTexture.clamping)
-        }
+        } else throw IllegalStateException("Cannot bind non-created texture!")
     }
 
     override fun bind(index: Int, nearest: GPUFiltering, clamping: Clamping): Boolean {
@@ -482,6 +479,7 @@ open class Texture2D(
     }
 
     override fun destroy() {
+        GFX.checkIsGFXThread()
         this.isCreated = false
         val pointer = pointer
         if (pointer > -1) {
