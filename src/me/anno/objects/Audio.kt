@@ -1,7 +1,7 @@
 package me.anno.objects
 
-import me.anno.audio.AudioStreamOpenAL
-import me.anno.audio.AudioTasks
+import me.anno.audio.openal.AudioStreamOpenAL
+import me.anno.audio.openal.AudioTasks
 import me.anno.audio.effects.SoundPipeline
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter

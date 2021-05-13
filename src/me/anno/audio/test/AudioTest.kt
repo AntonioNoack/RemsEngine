@@ -1,6 +1,6 @@
 package me.anno.audio.test
 
-import me.anno.audio.*
+import me.anno.audio.openal.*
 import me.anno.io.FileReference
 import me.anno.studio.StudioBase
 import me.anno.utils.OS

@@ -1,4 +1,4 @@
-package me.anno.audio
+package me.anno.audio.openal
 
 import me.anno.studio.Build.isDebug
 import org.lwjgl.openal.AL10.*

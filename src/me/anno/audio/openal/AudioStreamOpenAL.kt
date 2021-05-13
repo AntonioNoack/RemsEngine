@@ -1,5 +1,6 @@
-package me.anno.audio
+package me.anno.audio.openal
 
+import me.anno.audio.*
 import me.anno.io.FileReference
 import me.anno.objects.Audio
 import me.anno.objects.Camera
@@ -8,13 +9,15 @@ import me.anno.video.AudioCreator.Companion.playbackSampleRate
 import me.anno.video.FFMPEGMetadata
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.openal.AL10.*
-import java.io.File
 import java.nio.ShortBuffer
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.math.max
 
 // only play once, then destroy; it makes things easier
 // (on user input and when finally rendering only)
+
+// todo destroy OpenAL context when stopping playing, and recreate when starting
+// todo to fix "AL lib: (EE) ALCwasapiPlayback_mixerProc: Failed to get padding: 0x88890004"
 
 class AudioStreamOpenAL(
     file: FileReference,
@@ -57,7 +60,7 @@ class AudioStreamOpenAL(
     }
 
     fun stop() {
-        if (!isPlaying) throw RuntimeException()
+        if (!isPlaying) return
         isPlaying = false
         alSource.stop()
         alSource.destroy()

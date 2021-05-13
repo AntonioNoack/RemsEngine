@@ -1,4 +1,4 @@
-package me.anno.audio
+package me.anno.audio.openal
 
 import me.anno.gpu.GFX.workQueue
 import me.anno.gpu.Task

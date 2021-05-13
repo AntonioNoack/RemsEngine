@@ -1,9 +1,9 @@
 package me.anno.studio
 
 import me.anno.Engine
-import me.anno.audio.ALBase
-import me.anno.audio.AudioManager
-import me.anno.audio.AudioTasks
+import me.anno.audio.openal.ALBase
+import me.anno.audio.openal.AudioManager
+import me.anno.audio.openal.AudioTasks
 import me.anno.cache.CacheSection
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style

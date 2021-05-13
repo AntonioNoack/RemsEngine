@@ -1,5 +1,6 @@
-package me.anno.audio
+package me.anno.audio.openal
 
+import me.anno.audio.openal.AudioManager.openALSession
 import me.anno.cache.data.ICacheData
 import org.lwjgl.openal.AL10.*
 import org.lwjgl.stb.STBVorbis.*
@@ -13,14 +14,18 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.ShortBuffer
 
-class SoundBuffer(): ICacheData {
+class SoundBuffer: ICacheData {
 
     var buffer = -1
+    var session = -1
     var data: ShortBuffer? = null // pcm = amplitudes by time
     var sampleRate = 0
 
     fun ensurePointer(){
-        if(buffer < 0) buffer = alGenBuffers()
+        if(buffer < 0 || session != openALSession){
+            buffer = alGenBuffers()
+            session = openALSession
+        }
         if(buffer < 0) throw RuntimeException("Failed to create OpenAL buffer")
     }
 
@@ -32,12 +37,14 @@ class SoundBuffer(): ICacheData {
         ALBase.check()
     }
 
+    constructor()
+
     constructor(file: File): this(){
         load(file)
     }
 
     constructor(waveData: WaveData): this(){
-        load(waveData)
+        loadWAV(waveData)
     }
 
     fun loadRawStereo16(data: ShortBuffer, sampleRate: Int){
@@ -45,7 +52,8 @@ class SoundBuffer(): ICacheData {
         this.sampleRate = sampleRate
     }
 
-    fun load(waveData: WaveData){
+    fun loadWAV(waveData: WaveData){
+        ensurePointer()
         data = waveData.data.asShortBuffer()
         alBufferData(buffer, waveData.format, waveData.data, waveData.samplerate)
         waveData.dispose()
@@ -56,6 +64,7 @@ class SoundBuffer(): ICacheData {
         STBVorbisInfo.malloc().use { info ->
             val pcm = readVorbis(file, info)
             val format = if(info.channels() == 1) AL_FORMAT_MONO16 else AL_FORMAT_STEREO16
+            ensurePointer()
             alBufferData(buffer, format, pcm, info.sample_rate())
             ALBase.check()
         }
@@ -65,7 +74,7 @@ class SoundBuffer(): ICacheData {
         val name = file.name
         when(val ending = name.split('.').last().toLowerCase()){
             "ogg" -> loadOGG(file)
-            "wav" -> load(WaveData.create(file.inputStream()))
+            "wav" -> loadWAV(WaveData.create(file.inputStream()))
             else -> throw RuntimeException("Unknown audio format $ending!")
         }
     }
@@ -102,7 +111,7 @@ class SoundBuffer(): ICacheData {
     }
 
     override fun destroy(){
-        if(buffer > -1){
+        if(buffer > -1 && session == openALSession){
             alDeleteBuffers(buffer)
             buffer = -1
         }

@@ -1,6 +1,6 @@
 package me.anno.ui.editor.files
 
-import me.anno.audio.AudioTasks
+import me.anno.audio.openal.AudioTasks
 import me.anno.cache.instances.ImageCache.getInternalTexture
 import me.anno.cache.instances.VideoCache.getVideoFrame
 import me.anno.config.DefaultStyle.black

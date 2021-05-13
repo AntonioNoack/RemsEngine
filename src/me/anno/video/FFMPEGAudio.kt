@@ -1,10 +1,9 @@
 package me.anno.video
 
-import me.anno.audio.SoundBuffer
+import me.anno.audio.openal.SoundBuffer
 import me.anno.audio.format.WaveReader
 import me.anno.io.FileReference
 import me.anno.utils.ShutdownException
-import java.io.File
 import kotlin.concurrent.thread
 
 class FFMPEGAudio(file: FileReference?, val sampleRate: Int, val length: Double) :

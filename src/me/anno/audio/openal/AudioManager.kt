@@ -1,4 +1,4 @@
-package me.anno.audio
+package me.anno.audio.openal
 
 import me.anno.objects.Audio
 import me.anno.objects.Transform
@@ -9,12 +9,15 @@ import me.anno.studio.rems.RemsStudio.editorTimeDilation
 import me.anno.studio.rems.RemsStudio.nullCamera
 import me.anno.studio.rems.RemsStudio.root
 import me.anno.utils.Sleep.sleepShortly
+import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
 import org.lwjgl.openal.AL
 import org.lwjgl.openal.ALC
 import org.lwjgl.openal.ALC10.*
+import org.lwjgl.openal.EXTDisconnect.ALC_CONNECTED
 import java.nio.ByteBuffer
 import java.nio.IntBuffer
+import javax.sound.sampled.AudioSystem
 import kotlin.concurrent.thread
 import kotlin.math.abs
 
@@ -27,6 +30,8 @@ object AudioManager {
     private var device = 0L
     private var context = 0L
 
+    var openALSession = 0
+
     var needsUpdate = false
     var lastUpdate = 0L
     var ctr = 0
@@ -38,7 +43,7 @@ object AudioManager {
                 ALBase.check()
                 val time = System.nanoTime()
                 try {
-                    me.anno.audio.AudioTasks.workQueue()
+                    AudioTasks.workQueue()
                 } catch (e: Exception) {
                     // if(e.message != "ALException: Invalid Name") // why does the error happen???
                     e.printStackTrace()
@@ -55,13 +60,51 @@ object AudioManager {
                     updateTime(editorTime, editorTimeDilation, root)
                 }
                 ALBase.check()
-                if(!shallStop){
+                if (!shallStop) {
                     // shall be destroyed by OpenAL itself -> false
                     sleepShortly(false)
                 }
+                checkIsDestroyed()
             }
             destroy()
         }
+    }
+
+    var lastCheckedTime = 0L
+    var lastDeviceConfig = 0
+    fun checkIsDestroyed() {
+        // todo detect if the primary audio device was changed by the user...
+        val time = System.nanoTime()
+        if (abs(time - lastCheckedTime) > 500_000_000) {
+            lastCheckedTime = time
+            // 0.1ms -> it would be fine to even check it every time
+            val audioDevices = AudioSystem.getMixerInfo()
+            // val t1 = System.nanoTime()
+            if (audioDevices.isNotEmpty()) {
+                val currentConfig = audioDevices.size
+                if (currentConfig != lastDeviceConfig) {
+                    LOGGER.info("Devices changed -> Reconnecting")
+                    val needsReconnect = lastDeviceConfig != 0
+                    lastDeviceConfig = currentConfig
+                    if (needsReconnect) reconnect()
+                    return
+                } else {
+                    // maybe it died anyways?...
+                    val answer = intArrayOf(0)
+                    alcGetIntegerv(device, ALC_CONNECTED, answer)
+                    if (answer[0] == 0) {
+                        LOGGER.warn("Audio playing device disconnected")
+                        reconnect()
+                    }
+                }
+            }
+        }
+    }
+
+    fun reconnect() {
+        stop()
+        destroy()
+        init()
     }
 
     fun stop(transform: Transform = root) {
@@ -98,6 +141,7 @@ object AudioManager {
     }
 
     fun init() {
+        openALSession++ // new session
         device = alcOpenDevice(null as ByteBuffer?)
         if (device == 0L) throw IllegalStateException("Failed to open default OpenAL device")
         val deviceCaps = ALC.createCapabilities(device)
@@ -113,5 +157,7 @@ object AudioManager {
         alcCloseDevice(device)
         device = 0L
     }
+
+    private val LOGGER = LogManager.getLogger(AudioManager::class)
 
 }
