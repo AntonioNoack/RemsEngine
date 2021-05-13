@@ -30,6 +30,9 @@ object AudioManager {
     private var device = 0L
     private var context = 0L
 
+    // which session is the current one
+    // resources from old session shall not be used,
+    // as all pointers will be invalid!
     var openALSession = 0
 
     var needsUpdate = false
@@ -70,14 +73,16 @@ object AudioManager {
         }
     }
 
-    var lastCheckedTime = 0L
-    var lastDeviceConfig = 0
-    fun checkIsDestroyed() {
+    private var lastCheckedTime = 0L
+    private var lastDeviceConfig = 0
+    private fun checkIsDestroyed() {
         // todo detect if the primary audio device was changed by the user...
         val time = System.nanoTime()
         if (abs(time - lastCheckedTime) > 500_000_000) {
             lastCheckedTime = time
             // 0.1ms -> it would be fine to even check it every time
+            // we could consider only playback devices, but realistically the audio config shouldn't change often
+            // (AudioSystem.getMixer(mixerInfo).isLineSupported(Line.Info(playback ? SourceDataLine.class : TargetDataLine.class)))
             val audioDevices = AudioSystem.getMixerInfo()
             // val t1 = System.nanoTime()
             if (audioDevices.isNotEmpty()) {
@@ -142,6 +147,8 @@ object AudioManager {
 
     fun init() {
         openALSession++ // new session
+        // gibt nur "OpenAL Soft" auf Windows zurück -> relativ nutzlos
+        // LOGGER.info(alcGetString(0L, ALC_DEFAULT_DEVICE_SPECIFIER))
         device = alcOpenDevice(null as ByteBuffer?)
         if (device == 0L) throw IllegalStateException("Failed to open default OpenAL device")
         val deviceCaps = ALC.createCapabilities(device)
@@ -154,6 +161,7 @@ object AudioManager {
 
     fun destroy() {
         ALBase.check()
+        alcDestroyContext(context)
         alcCloseDevice(device)
         device = 0L
     }

@@ -1,6 +1,5 @@
 package me.anno.audio.openal
 
-import me.anno.audio.openal.ALBase
 import org.lwjgl.BufferUtils
 import org.lwjgl.openal.AL10.AL_FORMAT_STEREO16
 import org.lwjgl.openal.ALC10
@@ -26,7 +25,7 @@ class AudioRecording {
         alcCaptureStart(device)
 
         val infoBuffer = BufferUtils.createIntBuffer(1)
-        while(true){
+        while (true) {
 
             // parallely somehow play the audio...
             // this is kind of awkward...
