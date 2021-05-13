@@ -8,12 +8,10 @@ import me.anno.cache.instances.MeshCache
 import me.anno.cache.instances.VideoCache.getVideoFrame
 import me.anno.cache.instances.VideoCache.getVideoFrameWithoutGenerator
 import me.anno.config.DefaultConfig
-import me.anno.gpu.GFX
+import me.anno.gpu.*
 import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.GFXx3D.draw3D
 import me.anno.gpu.GFXx3D.draw3DVideo
-import me.anno.gpu.SVGxGFX
-import me.anno.gpu.TextureLib
 import me.anno.gpu.TextureLib.colorShowTexture
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
@@ -24,6 +22,8 @@ import me.anno.io.base.BaseWriter
 import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
 import me.anno.objects.animation.AnimatedProperty
+import me.anno.objects.lists.Element
+import me.anno.objects.lists.SplittableElement
 import me.anno.objects.models.SpeakerModel.drawSpeakers
 import me.anno.objects.modes.EditorFPS
 import me.anno.objects.modes.LoopingState
@@ -77,7 +77,8 @@ import kotlin.math.*
 /**
  * Images, Cubemaps, Videos, Audios, joint into one
  * */
-class Video(file: FileReference = FileReference(""), parent: Transform? = null) : Audio(file, parent) {
+class Video(file: FileReference = FileReference(""), parent: Transform? = null) : Audio(file, parent),
+    SplittableElement {
 
     // uv
     val tiling = AnimatedProperty.tiling()
@@ -354,7 +355,9 @@ class Video(file: FileReference = FileReference(""), parent: Transform? = null) 
         val sourceFPS = meta.videoFPS
 
         if (sourceFPS > 0.0) {
-            if (time >= 0.0 && (isLooping != LoopingState.PLAY_ONCE || time <= duration)) {
+            val scale = GFXx3D.getScale(meta.videoWidth, meta.videoHeight)
+            val isVisible = Clipping.isPlaneVisible(stack, meta.videoWidth / scale, meta.videoHeight / scale)
+            if (time >= 0.0 && (isLooping != LoopingState.PLAY_ONCE || time <= duration) && isVisible) {
 
                 // use full fps when rendering to correctly render at max fps with time dilation
                 // issues arise, when multiple frames should be interpolated together into one
@@ -375,7 +378,7 @@ class Video(file: FileReference = FileReference(""), parent: Transform? = null) 
 
                 // todo why is it still flickering???
                 val useInterpolation = false
-                if(!useInterpolation){
+                if (!useInterpolation) {
                     if (frame0 != null) {
                         w = meta.videoWidth
                         h = meta.videoHeight
@@ -428,10 +431,10 @@ class Video(file: FileReference = FileReference(""), parent: Transform? = null) 
         if (frame0 == null || !frame0.isCreated || frame0.isDestroyed) {
             onMissingImageOrFrame()
             frame0 = getVideoFrameWithoutGenerator(meta, frameIndex0, fpc, videoFPS)
-            if(frame0 == null || !frame0.isCreated || frame0.isDestroyed) frame0 = lastFrame
+            if (frame0 == null || !frame0.isCreated || frame0.isDestroyed) frame0 = lastFrame
         }
 
-        if(frame0 == null || !frame0.isCreated || frame0.isDestroyed) return null
+        if (frame0 == null || !frame0.isCreated || frame0.isDestroyed) return null
         return frame0
 
     }
@@ -910,15 +913,9 @@ class Video(file: FileReference = FileReference(""), parent: Transform? = null) 
         init {
             videoScaleNames["Auto"] = 0
             videoScaleNames["Original"] = 1
-            videoScaleNames["1/2"] = 2
-            videoScaleNames["1/3"] = 3
-            videoScaleNames["1/4"] = 4
-            videoScaleNames["1/6"] = 6
-            videoScaleNames["1/8"] = 8
-            videoScaleNames["1/12"] = 12
-            videoScaleNames["1/16"] = 16
-            videoScaleNames["1/32"] = 32
-            videoScaleNames["1/64"] = 64
+            for (i in listOf(2, 3, 4, 6, 8, 12, 16, 32, 64)) {
+                videoScaleNames["1/$i"] = i
+            }
         }
 
         val videoFrameTimeout get() = if (isFinalRendering) 2000L else 10000L
@@ -926,6 +923,56 @@ class Video(file: FileReference = FileReference(""), parent: Transform? = null) 
 
         val imageTimeout = DefaultConfig["ui.image.frameTimeout", 5000L]
 
+    }
+
+    override fun getSplittingModes(): List<String> {
+        return listOf("Video", "Audio", "Both")
+    }
+
+    override fun getSplitElement(mode: String, index: Int): Element {
+
+        // todo create a transform, where only a single frame is visible
+        // todo we should create a frames filter option for that probably...
+
+        val hasVideo: Boolean
+        val hasAudio: Boolean
+        when (mode) {
+            "Video" -> {
+                hasVideo = true
+                hasAudio = false
+            }
+            "Audio" -> {
+                hasVideo = false
+                hasAudio = true
+            }
+            else -> {
+                hasVideo = true
+                hasAudio = true
+            }
+        }
+
+        val child = clone() as Video
+        if (!hasAudio) child.amplitude.set(0f)
+        if (!hasVideo) child.scale.set(Vector3f())
+
+        val color = child.color
+        val meta = forcedMeta!!
+        val time = meta.videoFPS * (index + 0.1)
+        val oldColor = color[time]
+        color.clear()
+        val epsilon = 1e-9
+        color.addKeyframe(time - epsilon, Vector4f(oldColor).apply { w = 0f })
+        color.addKeyframe(time, Vector4f(oldColor))
+        color.addKeyframe(time + epsilon, Vector4f(oldColor).apply { w = 0f })
+        child.timeOffset.value = time
+        child.timeDilation.value = epsilon
+
+        return Element(meta.videoWidth, meta.videoHeight, child)
+
+    }
+
+    override fun getSplitLength(mode: String): Int {
+        return forcedMeta?.videoFrameCount ?: 0
     }
 
 }

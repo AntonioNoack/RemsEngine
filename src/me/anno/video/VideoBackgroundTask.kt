@@ -13,6 +13,7 @@ import me.anno.objects.Camera
 import me.anno.objects.Transform
 import me.anno.studio.rems.Scene
 import me.anno.utils.Threads.threadWithName
+import me.anno.video.FrameTask.Companion.missingResource
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL11.*
 import java.util.concurrent.atomic.AtomicLong
@@ -166,17 +167,6 @@ class VideoBackgroundTask(
             partialFrame.destroy()
             averageFrame.destroy()
         }
-    }
-
-    companion object {
-        private val LOGGER = LogManager.getLogger(VideoBackgroundTask::class)
-        var missingResource = ""
-            set(value) {
-                if (field != value) {
-                    LOGGER.info("Waiting for $value")
-                }
-                field = value
-            }
     }
 
 }

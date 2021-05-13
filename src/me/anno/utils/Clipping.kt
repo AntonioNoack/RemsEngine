@@ -1,5 +1,6 @@
 package me.anno.utils
 
+import org.joml.Matrix4f
 import org.joml.Vector4f
 import org.joml.Vector4fc
 import kotlin.math.abs
@@ -10,58 +11,72 @@ object Clipping {
 
     fun check(v0: Vector4fc, axis1: Vector4fc, axis2: Vector4fc, getValue: (Vector4fc) -> Float): Vector4fc? {
         val val0 = getValue(v0)
-        if(val0 in -1f .. 1f) return v0 // it's fine
+        if (val0 in -1f..1f) return v0 // it's fine
         val val1p = getValue(axis1)
         val val2p = getValue(axis2)
         // decide which one is better... is this important? idk...
-        if((val0 > 1f && val1p > 1f) || (val0 < -1f && val1p < -1f)) return lerpMaybe(v0, axis2, val0, val2p, getValue)
-        if((val0 > 1f && val2p > 1f) || (val0 < -1f && val2p < -1f)) return lerpMaybe(v0, axis1, val0, val1p, getValue)
+        if ((val0 > 1f && val1p > 1f) || (val0 < -1f && val1p < -1f)) return lerpMaybe(v0, axis2, val0, val2p, getValue)
+        if ((val0 > 1f && val2p > 1f) || (val0 < -1f && val2p < -1f)) return lerpMaybe(v0, axis1, val0, val1p, getValue)
         val v1IsBetter = abs(val1p - val0) > abs(val2p - val0)
-        return if(v1IsBetter){
+        return if (v1IsBetter) {
             lerpMaybe(v0, axis1, val0, val1p, getValue)
         } else {
             lerpMaybe(v0, axis2, val0, val2p, getValue)
         }
     }
 
-    fun lerpMaybe(v0: Vector4fc, v1: Vector4fc, val0: Float, val1: Float, getValue: (Vector4f) -> Float): Vector4f? {
-        if((val0 > 1f && val1 > 1f) || (val0 < -1f && val1 < -1f)) return null // impossible
-        val cuttingPoint = if(val0 < 0f) -1f else 1f
+    inline fun lerpMaybe(v0: Vector4fc, v1: Vector4fc, val0: Float, val1: Float, getValue: (Vector4f) -> Float): Vector4f? {
+        if ((val0 > 1f && val1 > 1f) || (val0 < -1f && val1 < -1f)) return null // impossible
+        val cuttingPoint = if (val0 < 0f) -1f else 1f
         // linear combination, such that the new value is cuttingPoint
         val d1 = abs(val0 - cuttingPoint)
         val d2 = abs(val1 - cuttingPoint)
-        return Vector4f(v0).lerp(v1, d1/(d1+d2))
+        return Vector4f(v0).lerp(v1, d1 / (d1 + d2))
         // ("${v0.print()} ${v1.print()} -> ${result.print()} ($val0 $val1 -> ${getValue(result)})")
+    }
+
+    fun getPoint(matrix: Matrix4f, x: Float, y: Float, z: Float = 0f): Vector4f? {
+        val vec = matrix.transformProject(Vector4f(x, y, z, 1f))
+        return if (vec.x in -1f..1f && vec.y in -1f..1f && vec.z in -1f..1f) null
+        else vec
+    }
+
+    fun isPlaneVisible(matrix: Matrix4f, dx: Float, dy: Float): Boolean {
+        val v000 = getPoint(matrix, +dx, +dy) ?: return true
+        val v001 = getPoint(matrix, +dx, -dy) ?: return true
+        val v010 = getPoint(matrix, -dx, +dy) ?: return true
+        val v011 = getPoint(matrix, -dx, -dy) ?: return true
+        return isRoughlyVisible(listOf(v000, v001, v010, v011))
     }
 
     fun isRoughlyVisible(points: Iterable<Vector4f>): Boolean {
 
         var allNegative = true
         var allPositive = true
-        for(v in points){
-            if(v.x >= -1f) allNegative = false
-            if(v.x <= +1f) allPositive = false
+        for (v in points) {
+            if (v.x >= -1f) allNegative = false
+            if (v.x <= +1f) allPositive = false
         }
 
-        if(allNegative || allPositive) return false
+        if (allNegative || allPositive) return false
 
         allNegative = true
         allPositive = true
-        for(v in points){
-            if(v.y >= -1f) allNegative = false
-            if(v.y <= +1f) allPositive = false
+        for (v in points) {
+            if (v.y >= -1f) allNegative = false
+            if (v.y <= +1f) allPositive = false
         }
 
-        if(allNegative || allPositive) return false
+        if (allNegative || allPositive) return false
 
         allNegative = true
         allPositive = true
-        for(v in points){
-            if(v.z >= -1f) allNegative = false
-            if(v.z <= +1f) allPositive = false
+        for (v in points) {
+            if (v.z >= -1f) allNegative = false
+            if (v.z <= +1f) allPositive = false
         }
 
-        if(allNegative || allPositive) return false
+        if (allNegative || allPositive) return false
 
         return true
 
@@ -84,11 +99,11 @@ object Clipping {
             val x10 = getValue(v10)
             val x11 = getValue(v11)
 
-            if(x00 < -1f && x01 < -1f && x10 < -1f && x11 < -1f) return false
-            if(x00 > +1f && x01 > +1f && x10 > +1f && x11 > +1f) return false
+            if (x00 < -1f && x01 < -1f && x10 < -1f && x11 < -1f) return false
+            if (x00 > +1f && x01 > +1f && x10 > +1f && x11 > +1f) return false
 
             // find, which value is crossing...
-            if((x00 < -1f && x01 < -1f && x10 < -1f) || x00 > +1f && x01 > +1f && x10 > +1f){
+            if ((x00 < -1f && x01 < -1f && x10 < -1f) || x00 > +1f && x01 > +1f && x10 > +1f) {
                 // we need to use x11, with any of the others
                 v01 = check(v01, v00, v11, getValue) ?: return false
                 v10 = check(v10, v00, v11, getValue) ?: return false
@@ -107,9 +122,9 @@ object Clipping {
 
         }
 
-        if(!checkAll { it.x() } || !checkAll { it.y() } || !checkAll { it.z() }) return null
+        if (!checkAll { it.x() } || !checkAll { it.y() } || !checkAll { it.z() }) return null
 
-        // aprintln("${v00.print()} ${v01.print()} ${v10.print()} ${v11.print()}")
+        // ("${v00.print()} ${v01.print()} ${v10.print()} ${v11.print()}")
 
         val minZ = min(min(v00.z(), v01.z()), min(v10.z(), v11.z()))
         val maxZ = max(min(v00.z(), v01.z()), min(v10.z(), v11.z()))

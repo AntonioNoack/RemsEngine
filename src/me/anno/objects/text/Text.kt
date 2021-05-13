@@ -11,46 +11,32 @@ import me.anno.fonts.mesh.TextMesh.Companion.DEFAULT_LINE_HEIGHT
 import me.anno.fonts.mesh.TextMeshGroup
 import me.anno.fonts.mesh.TextRepBase
 import me.anno.fonts.signeddistfields.TextSDFGroup
-import me.anno.fonts.signeddistfields.algorithm.SignedDistanceField.sdfResolution
-import me.anno.gpu.GFX.isFinalRendering
-import me.anno.gpu.GFXx3D.draw3DText
-import me.anno.gpu.GFXx3D.draw3DTextWithOffset
-import me.anno.gpu.GFXx3D.drawOutlinedText
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.language.translation.Dict
-import me.anno.language.translation.NameDesc
 import me.anno.objects.GFXTransform
 import me.anno.objects.Transform
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.animation.Type
+import me.anno.objects.lists.Element
+import me.anno.objects.lists.SplittableElement
 import me.anno.objects.modes.TextMode
 import me.anno.objects.modes.TextRenderMode
+import me.anno.objects.text.TextInspector.createInspectorWithoutSuperImpl
 import me.anno.studio.rems.RemsStudio
-import me.anno.studio.rems.Selection.selectTransform
-import me.anno.studio.rems.Selection.selectedTransform
 import me.anno.ui.base.Font
-import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelListY
-import me.anno.ui.base.menu.Menu.menuSeparator
 import me.anno.ui.editor.SettingCategory
-import me.anno.ui.editor.color.spaces.HSLuv
-import me.anno.ui.editor.sceneView.Grid
-import me.anno.ui.input.BooleanInput
-import me.anno.ui.input.EnumInput
 import me.anno.ui.style.Style
 import me.anno.utils.Maths.mix
-import me.anno.utils.types.Strings.isBlank2
-import me.anno.utils.types.Vectors.mulAlpha
-import me.anno.utils.types.Vectors.plus
-import me.anno.utils.types.Vectors.times
-import me.anno.video.MissingFrameException
-import org.joml.*
-import java.awt.font.TextLayout
+import org.joml.Matrix4fArrayList
+import org.joml.Vector3f
+import org.joml.Vector4f
+import org.joml.Vector4fc
 import java.net.URL
 import kotlin.math.max
-import kotlin.math.min
+import kotlin.streams.toList
 
 // todo background "color" in the shape of a plane? for selections and such
 
@@ -58,7 +44,7 @@ import kotlin.math.min
 
 // todo Kapitälchen
 
-open class Text(parent: Transform? = null) : GFXTransform(parent) {
+open class Text(parent: Transform? = null) : GFXTransform(parent), SplittableElement {
 
     constructor(text: String) : this(null) {
         this.text.set(text)
@@ -159,11 +145,6 @@ open class Text(parent: Transform? = null) : GFXTransform(parent) {
     fun getDrawDX(width: Float, time: Double): Float {
         val blockAlignmentX01 = blockAlignmentX[time] * .5f + .5f
         return (blockAlignmentX01 - 1f) * width
-        /* when (blockAlignmentX) {
-            AxisAlignment.MIN -> -width
-            AxisAlignment.CENTER -> -width / 2
-            AxisAlignment.MAX -> 0f
-        } */
     }
 
     fun getDrawDY(lineOffset: Float, totalHeight: Float, time: Double): Float {
@@ -176,353 +157,21 @@ open class Text(parent: Transform? = null) : GFXTransform(parent) {
         } else {
             mix(dy1, dy2, blockAlignmentY11)
         }
-        /* when (blockAlignmentY) {
-            AxisAlignment.MIN -> dy0
-            AxisAlignment.CENTER -> dy1
-            AxisAlignment.MAX -> dy2
-        } */
     }
 
-    override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
-
-        val text = text[time]
-        if (text.isBlank2()) {
-            super.onDraw(stack, time, color)
-            return
-        }
-
-        val visualState = getVisualState(text)
-
-        val data = TextCache.getEntry(visualState, 1000L, false) {
+    fun getSegments(text: String): Pair<PartResult, List<TextSegmentKey>> {
+        val data = TextCache.getEntry(getVisualState(text), 1000L, false) {
             val segments = splitSegments(text)
             val keys = createKeys(segments)
             CacheData(segments to keys)
         } as CacheData<*>
-        val dataValue = data.value as Pair<PartResult, List<TextSegmentKey>>
-
-        val lineSegmentsWithStyle = dataValue.first
-        val keys = dataValue.second
-
-        val exampleLayout = lineSegmentsWithStyle.exampleLayout
-        val scaleX = DEFAULT_LINE_HEIGHT / (exampleLayout.ascent + exampleLayout.descent)
-        val scaleY = 1f / (exampleLayout.ascent + exampleLayout.descent)
-        val width = lineSegmentsWithStyle.width * scaleX
-        val height = lineSegmentsWithStyle.height * scaleY
-
-        val lineOffset = -DEFAULT_LINE_HEIGHT * relativeLineSpacing[time]
-
-        // min and max x are cached for long texts with thousands of lines (not really relevant)
-        // actual text height vs baseline? for height
-
-        val totalHeight = lineOffset * height
-
-        val dx = getDrawDX(width, time)
-        val dy = getDrawDY(lineOffset, totalHeight, time)
-
-        val renderingMode = renderingMode
-        val drawMeshes = renderingMode == TextRenderMode.MESH
-        val drawSDFTextures = !drawMeshes
-
-        // limit the characters
-        // cursorLimit1 .. cursorLimit2
-        val textLength = text.codePointCount(0, text.length)
-        val startCursor = max(0, startCursor[time])
-        var endCursor = min(textLength, endCursor[time])
-        if (endCursor < 0) endCursor = textLength
-
-        if (startCursor > endCursor) {
-            // invisible
-            super.onDraw(stack, time, color)
-            return
-        }
-
-        val lineBreakWidth = lineBreakWidth
-        if (lineBreakWidth > 0f && !isFinalRendering && selectedTransform === this) {
-            // draw the borders
-            // why 0.81? correct x-scale? (off by ca ~ x0.9)
-            val x0 = dx + width * 0.5f
-            val minX = x0 - 0.81f * lineBreakWidth
-            val maxX = x0 + 0.81f * lineBreakWidth
-            val y0 = dy - lineOffset * 0.75f
-            val y1 = y0 + totalHeight
-            Grid.drawLine(stack, color, Vector3f(minX, y0, 0f), Vector3f(minX, y1, 0f))
-            Grid.drawLine(stack, color, Vector3f(maxX, y0, 0f), Vector3f(maxX, y1, 0f))
-        }
-
-        val shadowColor = shadowColor[time]
-
-        if (shadowColor.w() >= 0f) {
-            val shadowSmoothness = shadowSmoothness[time]
-            val shadowOffset = shadowOffset[time] * (1f / DEFAULT_FONT_HEIGHT)
-            stack.next {
-                stack.translate(shadowOffset)
-                draw(
-                    stack, time, color * shadowColor,
-                    lineSegmentsWithStyle, drawMeshes, drawSDFTextures,
-                    keys, exampleLayout,
-                    width, lineOffset,
-                    dx, dy, scaleX, scaleY,
-                    startCursor, endCursor,
-                    false, shadowSmoothness
-                )
-            }
-        }
-
-        draw(
-            stack, time, color,
-            lineSegmentsWithStyle, drawMeshes, drawSDFTextures,
-            keys, exampleLayout,
-            width, lineOffset,
-            dx, dy, scaleX, scaleY,
-            startCursor, endCursor,
-            true, 0f
-        )
-
+        return data.value as Pair<PartResult, List<TextSegmentKey>>
     }
 
-    private val oc0 = Vector4f()
-    private val oc1 = Vector4f()
-    private val oc2 = Vector4f()
-
-    private fun correctColor(c0: Vector4fc, c1: Vector4f) {
-        if (c1.w < 1f / 255f) {
-            c1.set(c0.x(), c0.y(), c0.z(), c1.w)
+    override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
+        TextRenderer.draw(this, stack, time, color) {
+            super.draw(stack, time, color)
         }
-    }
-
-    /**
-     * if the alpha of a color is zero, it should be assigned the weighted sum if the neighbor colors
-     * or the shader needs to be improved
-     * let's just try the easiest way to correct the issue in 99% of all cases
-     * */
-    private fun correctColors(color: Vector4fc, oc0: Vector4f, oc1: Vector4f, oc2: Vector4f) {
-        correctColor(color, oc0)
-        correctColor(oc0, oc1)
-        correctColor(oc1, oc2)
-    }
-
-    private fun getOutlineColors(
-        useExtraColors: Boolean, drawSDFTexture: Boolean, time: Double, color: Vector4fc,
-        oc0: Vector4f, oc1: Vector4f, oc2: Vector4f
-    ) {
-        if (useExtraColors && drawSDFTexture) {
-            val parentColor = parent?.getLocalColor(tmp0)
-            if (parentColor != null) {
-                oc0.set(parentColor).mul(outlineColor0[time])
-                oc1.set(parentColor).mul(outlineColor1[time])
-                oc2.set(parentColor).mul(outlineColor2[time])
-            } else {
-                oc0.set(outlineColor0[time])
-                oc1.set(outlineColor1[time])
-                oc2.set(outlineColor2[time])
-            }
-        } else {
-            color.mulAlpha(outlineColor0[time].w(), oc0)
-            color.mulAlpha(outlineColor1[time].w(), oc1)
-            color.mulAlpha(outlineColor2[time].w(), oc2)
-        }
-
-        correctColors(color, oc0, oc1, oc2)
-
-    }
-
-    private val tmp0 = Vector4f()
-    private fun draw(
-        stack: Matrix4fArrayList, time: Double, color: Vector4fc,
-        lineSegmentsWithStyle: PartResult,
-        drawMeshes: Boolean, drawSDFTexture: Boolean,
-        keys: List<TextSegmentKey>, exampleLayout: TextLayout,
-        width: Float, lineOffset: Float,
-        dx: Float, dy: Float, scaleX: Float, scaleY: Float,
-        startCursor: Int, endCursor: Int,
-        useExtraColors: Boolean,
-        extraSmoothness: Float
-    ) {
-
-        val oc0 = oc0
-        val oc1 = oc1
-        val oc2 = oc2
-
-        getOutlineColors(useExtraColors, drawSDFTexture, time, color, oc0, oc1, oc2)
-
-        var charIndex = 0
-
-        firstTimeDrawing = true
-
-        val textAlignment01 = textAlignment[time] * .5f + .5f
-        for ((index, part) in lineSegmentsWithStyle.parts.withIndex()) {
-
-            val startIndex = charIndex
-            val partLength = part.codepointLength
-            val endIndex = charIndex + partLength
-
-            val localMin = max(0, startCursor - startIndex)
-            val localMax = min(partLength, endCursor - startIndex)
-
-            if (localMin < localMax) {
-
-                val key = keys[index]
-
-                val offsetX = (width - part.lineWidth * scaleX) * textAlignment01
-                /* when (textAlignment) {
-                    AxisAlignment.MIN -> 0f
-                    AxisAlignment.CENTER -> (width - part.lineWidth * scaleX) / 2f
-                    AxisAlignment.MAX -> (width - part.lineWidth * scaleX)
-                } */
-
-                val lineDeltaX = dx + part.xPos * scaleX + offsetX
-                val lineDeltaY = dy + part.yPos * scaleY * lineOffset
-
-                if (drawMeshes) {
-                    drawMesh(
-                        key, time, stack, color,
-                        lineDeltaX, lineDeltaY,
-                        localMin, localMax
-                    )
-                }
-
-                if (drawSDFTexture) {
-                    drawSDFTexture(
-                        key, time, stack, color,
-                        lineDeltaX, lineDeltaY,
-                        localMin, localMax,
-                        exampleLayout,
-                        extraSmoothness,
-                        oc0, oc1, oc2
-                    )
-                }
-
-            }
-
-            charIndex = endIndex
-
-        }
-    }
-
-    var firstTimeDrawing = false
-
-    private val scale0 = Vector2f()
-    private fun drawSDFTexture(
-        key: TextSegmentKey, time: Double, stack: Matrix4fArrayList,
-        color: Vector4fc, lineDeltaX: Float, lineDeltaY: Float,
-        startIndex: Int, endIndex: Int,
-        exampleLayout: TextLayout,
-        extraSmoothness: Float,
-        oc1: Vector4fc, oc2: Vector4fc, oc3: Vector4fc
-    ) {
-
-        val sdf2 = getSDFTexture(key)
-        if (sdf2 == null) {
-            if (isFinalRendering) throw MissingFrameException("Text-Texture (291) $font: '$text'")
-            needsUpdate = true
-            return
-        }
-
-        val sdfResolution = sdfResolution
-
-        sdf2.charByChar = renderingMode != TextRenderMode.SDF_JOINED
-        sdf2.roundCorners = roundSDFCorners
-
-        sdf2.draw(startIndex, endIndex) { _, sdf, xOffset ->
-
-            val texture = sdf?.texture
-            if (texture != null && texture.isCreated) {
-
-                stack.next {
-
-                    val baseScale =
-                        DEFAULT_LINE_HEIGHT / sdfResolution / (exampleLayout.ascent + exampleLayout.descent)
-
-                    val scaleX = 0.5f * texture.w * baseScale
-                    val scaleY = 0.5f * texture.h * baseScale
-
-                    /**
-                     * character- and alignment offset
-                     * */
-                    stack.translate(lineDeltaX + xOffset, lineDeltaY, 0f)
-                    stack.scale(scaleX, scaleY, 1f)
-
-                    val sdfOffset = sdf.offset
-                    val offset = Vector2f(
-                        (lineDeltaX + xOffset) * scaleX,
-                        lineDeltaY * scaleY
-                    ) + sdfOffset
-
-                    /**
-                     * offset, because the textures are always centered; don't start from the bottom left
-                     * (text mesh does)
-                     * */
-                    stack.translate(sdfOffset.x, sdfOffset.y, 0f)
-
-                    scale0.set(scaleX, scaleY)
-                    if (firstTimeDrawing) {
-
-                        val outline = outlineWidths[time] * sdfResolution
-                        outline.y = max(0f, outline.y) + outline.x
-                        outline.z = max(0f, outline.z) + outline.y
-                        outline.w = max(0f, outline.w) + outline.z
-
-                        val s0 = outlineSmoothness[time] + extraSmoothness
-                        val smoothness = s0 * sdfResolution
-
-                        val outlineDepth = outlineDepth[time]
-
-                        drawOutlinedText(
-                            this, time,
-                            stack, offset, scale0,
-                            texture, color, 5,
-                            arrayOf(
-                                color, oc1, oc2, oc3,
-                                Vector4f(0f)
-                            ),
-                            floatArrayOf(-1e3f, outline.x, outline.y, outline.z, outline.w),
-                            floatArrayOf(0f, smoothness.x, smoothness.y, smoothness.z, smoothness.w),
-                            outlineDepth
-                        )
-
-                        firstTimeDrawing = false
-
-                    } else {
-
-                        drawOutlinedText(stack, offset, scale0, texture)
-
-                    }
-                }
-
-            } else if (sdf?.isValid != true) {
-
-                if (isFinalRendering) throw MissingFrameException("Text-Texture (367) $font: '$text'")
-                needsUpdate = true
-
-            }
-
-        }
-    }
-
-    private fun drawMesh(
-        key: TextSegmentKey, time: Double, stack: Matrix4fArrayList,
-        color: Vector4fc, lineDeltaX: Float, lineDeltaY: Float,
-        startIndex: Int, endIndex: Int
-    ) {
-
-        val textMesh = getTextMesh(key)
-        if (textMesh == null) {
-            if (isFinalRendering) throw MissingFrameException("Text-Mesh (383) $font: '$text'")
-            needsUpdate = true
-            return
-        }
-
-        textMesh.draw(startIndex, endIndex) { buffer, _, xOffset ->
-            buffer!!
-            val offset = Vector3f(lineDeltaX + xOffset, lineDeltaY, 0f)
-            if (firstTimeDrawing) {
-                draw3DText(this, time, offset, stack, buffer, color)
-                firstTimeDrawing = false
-            } else {
-                draw3DTextWithOffset(buffer, offset)
-            }
-        }
-
     }
 
     fun invalidate() {
@@ -649,185 +298,7 @@ open class Text(parent: Transform? = null) : GFXTransform(parent) {
         list: PanelListY,
         style: Style,
         getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
-    ) {
-
-        list += vi("Text", "", "", text, style)
-        /*list += TextInputML("Text", style, text[lastLocalTime])
-            .setChangeListener {
-                RemsStudio.incrementalChange("text") {
-                    getSelfWithShadows().forEach { c ->
-                        c.putValue(c.text, it, true)
-                    }
-                }
-            }
-            .setIsSelectedListener { show(null) }*/
-
-        val fontList = ArrayList<NameDesc>()
-        fontList += NameDesc(font.name)
-        fontList += NameDesc(menuSeparator)
-
-        fun sortFavourites() {
-            fontList.sortBy { it.name }
-            val lastUsedSet = lastUsedFonts.toHashSet()
-            fontList.sortByDescending { if (it.name == menuSeparator) 1 else if (it.name in lastUsedSet) 2 else 0 }
-        }
-
-        FontManager.requestFontList { systemFonts ->
-            synchronized(fontList) {
-                fontList += systemFonts
-                    .filter { it != font.name }
-                    .map { NameDesc(it) }
-            }
-        }
-
-        // todo Consolas is not correctly centered?
-
-        // todo general favourites for all enum types?
-        // todo at least a generalized form to make it simpler?
-
-        val fontGroup = getGroup("Font", "", "font")
-
-        fontGroup += EnumInput(
-            "Font Name",
-            "The style of the text",
-            "obj.font.name",
-            font.name, fontList,
-            style
-        )
-            .setChangeListener { it, _, _ ->
-                RemsStudio.largeChange("Change Font to '$it'") {
-                    getSelfWithShadows().forEach { c -> c.font = c.font.withName(it) }
-                }
-                invalidate()
-                putLastUsedFont(it)
-                sortFavourites()
-            }
-            .setIsSelectedListener { show(null) }
-        fontGroup += BooleanInput("Italic", font.isItalic, style)
-            .setChangeListener {
-                RemsStudio.largeChange("Italic: $it") {
-                    getSelfWithShadows().forEach { c -> c.font = c.font.withItalic(it) }
-                }
-                invalidate()
-            }
-            .setIsSelectedListener { show(null) }
-        fontGroup += BooleanInput("Bold", font.isBold, style)
-            .setChangeListener {
-                RemsStudio.largeChange("Bold: $it") {
-                    getSelfWithShadows().forEach { c -> c.font = c.font.withBold(it) }
-                }
-                invalidate()
-            }
-            .setIsSelectedListener { show(null) }
-
-        val alignGroup = getGroup("Alignment", "", "alignment")
-        fun align(title: String, value: AnimatedProperty<*>) {
-            // , xAxis: Boolean, set: (self: Text, AxisAlignment) -> Unit
-            alignGroup += vi(title, "", "", value, style)
-            /* operator fun AxisAlignment.get(x: Boolean) = if (x) xName else yName
-             alignGroup += EnumInput(
-                 title, true,
-                 value[xAxis],
-                 AxisAlignment.values().map { NameDesc(it[xAxis]) }, style
-             )
-                 .setIsSelectedListener { show(null) }
-                 .setChangeListener { name, _, _ ->
-                     val alignment = AxisAlignment.values().first { it[xAxis] == name }
-                     RemsStudio.largeChange("Set $title to $name") {
-                         getSelfWithShadows().forEach { set(it, alignment) }
-                     }
-                     invalidate()
-                 }*/
-        }
-
-        align("Text Alignment", textAlignment)//, true)// { self, it -> self.textAlignment = it }
-        align("Block Alignment X", blockAlignmentX)//, true)// { self, it -> self.blockAlignmentX = it }
-        align("Block Alignment Y", blockAlignmentY)//, false)// { self, it -> self.blockAlignmentY = it }
-
-        val spaceGroup = getGroup("Spacing", "", "spacing")
-        // make this element separable from the parent???
-        spaceGroup += vi(
-            "Character Spacing",
-            "Space between individual characters",
-            "text.characterSpacing",
-            null, relativeCharSpacing, style
-        ) {
-            RemsStudio.incrementalChange("char space") { relativeCharSpacing = it }
-            invalidate()
-        }
-        spaceGroup += vi(
-            "Line Spacing",
-            "How much lines are apart from each other",
-            "text.lineSpacing",
-            relativeLineSpacing, style
-        )
-        spaceGroup += vi(
-            "Tab Size", "Relative tab size, in widths of o's", "text.tabSpacing",
-            tabSpaceType, relativeTabSize, style
-        ) {
-            RemsStudio.incrementalChange("tab size") { relativeTabSize = it }
-            invalidate()
-        }
-        spaceGroup += vi(
-            "Line Break Width",
-            "How broad the text shall be, at maximum; < 0 = no limit", "text.widthLimit",
-            lineBreakType, lineBreakWidth, style
-        ) {
-            RemsStudio.incrementalChange("line break width") { lineBreakWidth = it }
-            invalidate()
-        }
-
-        val ops = getGroup("Operations", "", "operations")
-        ops += TextButton("Create Shadow", false, style)
-            .setSimpleClickListener {
-                // such a mess is the result of copying colors from the editor ;)
-                val signalColor = Vector4f(HSLuv.toRGB(Vector3f(0.000f, 0.934f, 0.591f)), 1f)
-                val shadow = clone() as Text
-                shadow.name = "Shadow"
-                shadow.comment = "Keep \"shadow\" in the name for automatic property inheritance"
-                // this avoids user reports, from people, who can't see their shadow
-                // making something black should be simple
-                shadow.color.set(signalColor)
-                shadow.position.set(Vector3f(0.01f, -0.01f, -0.001f))
-                shadow.relativeLineSpacing = relativeLineSpacing // evil ;)
-                RemsStudio.largeChange("Add Text Shadow") { addChild(shadow) }
-                selectTransform(shadow)
-            }
-
-        val rpgEffects = getGroup("RPG Effects", "", "rpg-effects")
-        rpgEffects += vi("Start Cursor", "The first character index to be drawn", startCursor, style)
-        rpgEffects += vi("End Cursor", "The last character index to be drawn; -1 = unlimited", endCursor, style)
-
-        val outline = getGroup("Outline", "", "outline")
-        outline.setTooltip("Needs Rendering Mode = SDF or Merged SDF")
-        outline += vi(
-            "Rendering Mode",
-            "Mesh: Sharp, Signed Distance Fields: with outline", "text.renderingMode",
-            null, renderingMode, style
-        ) { renderingMode = it }
-        outline += vi("Color 1", "First Outline Color", "outline.color1", outlineColor0, style)
-        outline += vi("Color 2", "Second Outline Color", "outline.color2", outlineColor1, style)
-        outline += vi("Color 3", "Third Outline Color", "outline.color3", outlineColor2, style)
-        outline += vi("Widths", "[Main, 1st, 2nd, 3rd]", "outline.widths", outlineWidths, style)
-        outline += vi(
-            "Smoothness", "How smooth the edge is, [Main, 1st, 2nd, 3rd]", "outline.smoothness",
-            outlineSmoothness, style
-        )
-        outline += vi(
-            "Depth", "For non-merged SDFs to join close characters correctly; needs a distance from the background",
-            "outline.depth", outlineDepth, style
-        )
-        outline += vi("Rounded Corners", "Makes corners curvy", "outline.roundCorners", null, roundSDFCorners, style) {
-            roundSDFCorners = it
-            invalidate()
-        }
-
-        val shadows = getGroup("Shadow", "", "shadow")
-        shadows += vi("Color", "", "shadow.color", shadowColor, style)
-        shadows += vi("Offset", "", "shadow.offset", shadowOffset, style)
-        shadows += vi("Smoothness", "", "shadow.smoothness", shadowSmoothness, style)
-
-    }
+    ) = createInspectorWithoutSuperImpl(list, style, getGroup)
 
     fun getSelfWithShadows() = getShadows() + this
     fun getShadows() = children.filter { it.name.contains("shadow", true) && it is Text } as List<Text>
@@ -835,7 +306,7 @@ open class Text(parent: Transform? = null) : GFXTransform(parent) {
 
     override fun getClassName(): String = "Text"
     override fun getDefaultDisplayName() = // text can be null!!!
-        if(text == null) "" else (text.keyframes.maxBy { it.value.length }?.value ?: text.defaultValue)
+        if (text == null) "" else (text.keyframes.maxBy { it.value.length }?.value ?: text.defaultValue)
             .ifBlank { Dict["Text", "obj.text"] }
 
     override fun getSymbol() = DefaultConfig["ui.symbol.text", "\uD83D\uDCC4"]
@@ -863,6 +334,76 @@ open class Text(parent: Transform? = null) : GFXTransform(parent) {
             }
         }
 
+    }
+
+    override fun getSplittingModes(): List<String> {
+        return listOf("Letters", "Words", "Sentences", "Lines")
+    }
+
+    override fun getSplitElement(mode: String, index: Int): Element {
+        val text = text[0.0]
+        val word = when (mode) {
+            "Letters" -> String(Character.toChars(text.codePoints().toList()[index]))
+            "Words" -> splitWords(text)[index]
+            "Sentences" -> splitSentences(text)[index]
+            "Lines" -> text.split('\n')[index]
+            else -> "?"
+        }
+        val child = clone() as Text
+        child.text.set(word)
+        val (segments, _) = child.getSegments(word)
+        val part0 = segments.parts[0]
+        val width = part0.lineWidth
+        val height = 0f // ???
+        return Element(width, height, 0f, child)
+    }
+
+    fun splitWords(str: String): List<String> {
+        // todo better criterion (?)
+        return str.split(' ')
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+    }
+
+    fun splitSentences(str: String): List<String> {
+        val result = ArrayList<String>()
+        var hasEndSymbols = false
+        var lastI = 0
+        for (i in str.indices) {
+            when (str[i]) {
+                '.', '!', '?' -> {
+                    hasEndSymbols = true
+                }
+                '\n' -> {
+                    if (i > lastI) result += str.substring(lastI, i)
+                    lastI = i + 1
+                    hasEndSymbols = false
+                }
+                ' ', '\t' -> {
+                    // ignore
+                }
+                else -> {// a letter
+                    if (hasEndSymbols) {
+                        if (i > lastI) result += str.substring(lastI, i).trim()
+                        lastI = i
+                        hasEndSymbols = false
+                    }
+                }
+            }
+        }
+        if (str.length > lastI) result += str.substring(lastI)
+        return result
+    }
+
+    override fun getSplitLength(mode: String): Int {
+        val text = text[0.0]
+        return when (mode) {
+            "Letters" -> text.codePointCount(0, text.length)
+            "Words" -> splitWords(text).size
+            "Sentences" -> splitSentences(text).size
+            "Lines" -> text.count { it == '\n' }
+            else -> 0
+        }
     }
 
 }

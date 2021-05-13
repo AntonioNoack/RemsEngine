@@ -22,6 +22,7 @@ import kotlin.math.roundToInt
 object Rendering {
 
     var isRendering = false
+    val div = 4
 
     private val LOGGER = LogManager.getLogger(Rendering::class)
 
@@ -32,17 +33,17 @@ object Rendering {
     fun renderSetPercent(ask: Boolean, callback: () -> Unit) {
         val project = project!!
         renderVideo(
-            max(2, (project.targetWidth * project.targetSizePercentage / 100).roundToInt()),
-            max(2, (project.targetHeight * project.targetSizePercentage / 100).roundToInt()),
+            max(div, (project.targetWidth * project.targetSizePercentage / 100).roundToInt()),
+            max(div, (project.targetHeight * project.targetSizePercentage / 100).roundToInt()),
             ask, callback
         )
     }
 
     fun renderVideo(width: Int, height: Int, ask: Boolean, callback: () -> Unit) {
 
-        if (width % 2 != 0 || height % 2 != 0) return renderVideo(
-            width / 2 * 2,
-            height / 2 * 2,
+        if (width % div != 0 || height % div != 0) return renderVideo(
+            width / div * div,
+            height / div * div,
             ask, callback
         )
 

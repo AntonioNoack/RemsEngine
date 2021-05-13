@@ -121,7 +121,6 @@ class AudioStreamRaw(
         // todo decide on loudness depending on speaker orientation and size (e.g. Nierencharcteristik)
         // todo mix left and right channel depending on orientation and speaker size
         // todo top/bottom (tested from behind) sounds different: because I could hear it
-        // todo timing differences seam to matter, so we need to include them (aww)
 
         val localTime = globalToLocalTime(globalTime)
         val amplitude = abs(localAmplitude(localTime))

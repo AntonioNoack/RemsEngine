@@ -17,7 +17,6 @@ import org.joml.Vector4f
 import java.util.*
 import kotlin.collections.ArrayList
 
-// todo use meshes as distribution containers...
 class AnimatedDistribution(
     distribution: Distribution = ConstantDistribution(),
     val types: List<Type>,

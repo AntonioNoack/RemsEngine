@@ -19,6 +19,7 @@ import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL11.*
 import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
+import kotlin.math.abs
 
 
 class FrameTask(
@@ -176,10 +177,14 @@ class FrameTask(
 
     companion object {
         private val LOGGER = LogManager.getLogger(FrameTask::class)
+        var lastPrinted = 0L
         var missingResource = ""
             set(value) {
                 if (field != value) {
-                    LOGGER.info("Waiting for $value")
+                    if (value.isNotEmpty() && abs(GFX.gameTime - lastPrinted) > 1000_000_000) {
+                        lastPrinted = GFX.gameTime
+                        LOGGER.info("Waiting for $value")
+                    }
                 }
                 field = value
             }

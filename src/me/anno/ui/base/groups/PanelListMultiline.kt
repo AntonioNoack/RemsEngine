@@ -28,7 +28,7 @@ class PanelListMultiline(style: Style) : PanelGroup(style), ScrollableY {
     }
 
     override fun invalidateLayout() {
-        window!!.needsLayout += this
+        window?.needsLayout?.add(this)
     }
 
     override fun getLayoutState() =

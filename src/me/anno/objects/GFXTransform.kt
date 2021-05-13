@@ -189,6 +189,10 @@ abstract class GFXTransform(parent: Transform?) : Transform(parent) {
 
     companion object {
 
+        fun uploadAttractors(transform: GFXTransform?, shader: Shader, time: Double){
+            transform?.uploadAttractors(shader, time) ?: uploadAttractors0(shader)
+        }
+
         fun uploadAttractors0(shader: Shader) {
 
             // localScale, localOffset not needed

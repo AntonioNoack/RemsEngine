@@ -34,6 +34,7 @@ import kotlin.math.sqrt
 open class Polygon(parent: Transform? = null) : GFXTransform(parent) {
 
     // todo round edges?
+    // lines can be used temporarily, as long, as it's not implemented
 
     override fun getDocumentationURL(): URL? = URL("https://remsstudio.phychi.com/?s=learn/geometry")
 

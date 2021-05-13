@@ -1,6 +1,5 @@
 package me.anno.gpu
 
-import me.anno.gpu.GFX.currentCamera
 import me.anno.gpu.GFX.windowHeight
 import me.anno.gpu.GFX.windowWidth
 import me.anno.gpu.ShaderLib.maxOutlineColors
@@ -12,7 +11,6 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
-import me.anno.input.Input
 import me.anno.objects.GFXTransform
 import me.anno.objects.Video
 import me.anno.objects.effects.MaskType
@@ -24,15 +22,18 @@ import me.anno.video.VFrame
 import ofx.mio.OpticalFlow
 import org.joml.*
 import org.lwjgl.BufferUtils
-import org.lwjgl.opengl.GL11.GL_DEPTH_TEST
-import org.lwjgl.opengl.GL11.glDisable
 import kotlin.math.min
 
 object GFXx3D {
 
+    fun getScale(w: Int, h: Int): Float = getScale(w.toFloat(), h.toFloat())
+    fun getScale(w: Float, h: Float): Float {
+        return if (w * RemsStudio.targetHeight > h * RemsStudio.targetWidth) RemsStudio.targetWidth / (w * RemsStudio.targetHeight) else 1f / h
+    }
+
     fun shader3DUniforms(
         shader: Shader, stack: Matrix4fArrayList,
-        w: Int, h: Int, color: Vector4fc?,
+        w: Int, h: Int,
         tiling: Vector4fc?, filtering: Filtering,
         uvProjection: UVProjection?
     ) {
@@ -40,12 +41,10 @@ object GFXx3D {
         stack.next {
 
             val doScale2 = (uvProjection?.doScale ?: true) && w != h
-            // val avgSize = sqrt(w * h.toFloat())
             if (doScale2) {
-                val avgSize =
-                    if (w * RemsStudio.targetHeight > h * RemsStudio.targetWidth) w.toFloat() * RemsStudio.targetHeight / RemsStudio.targetWidth else h.toFloat()
-                val sx = w / avgSize
-                val sy = h / avgSize
+                val scale = getScale(w, h)
+                val sx = w * scale
+                val sy = h * scale
                 stack.scale(sx, -sy, 1f)
             } else {
                 stack.scale(1f, -1f, 1f)
@@ -57,7 +56,6 @@ object GFXx3D {
 
         }
 
-        GFX.shaderColor(shader, "tint", color)
         if (tiling != null) shader.v4("tiling", tiling)
         else shader.v4("tiling", 1f, 1f, 0f, 0f)
         shader.v1("drawMode", GFX.drawMode.id)
@@ -67,41 +65,22 @@ object GFXx3D {
 
     fun shader3DUniforms(
         shader: Shader, stack: Matrix4fArrayList,
+        w: Int, h: Int, color: Vector4fc?,
+        tiling: Vector4fc?, filtering: Filtering,
+        uvProjection: UVProjection?
+    ) {
+        shader3DUniforms(shader, stack, w, h, tiling, filtering, uvProjection)
+        GFX.shaderColor(shader, "tint", color)
+    }
+
+    fun shader3DUniforms(
+        shader: Shader, stack: Matrix4fArrayList,
         w: Int, h: Int, color: Int,
         tiling: Vector4fc?, filtering: Filtering,
         uvProjection: UVProjection?
     ) {
-
-        stack.next {
-
-            val doScale2 = (uvProjection?.doScale ?: true) && w != h
-            // val avgSize = sqrt(w * h.toFloat())
-            if (doScale2) {
-
-                val avgSize = if (w * RemsStudio.targetHeight > h * RemsStudio.targetWidth)
-                    w.toFloat() * RemsStudio.targetHeight / RemsStudio.targetWidth
-                else
-                    h.toFloat()
-
-                val sx = w / avgSize
-                val sy = h / avgSize
-
-                stack.scale(sx, -sy, 1f)
-
-            } else stack.scale(1f, -1f, 1f)
-
-            transformUniform(shader, stack)
-            shader.v1("filtering", filtering.id)
-            shader.v2("textureDeltaUV", 1f / w, 1f / h)
-
-        }
-
+        shader3DUniforms(shader, stack, w, h, tiling, filtering, uvProjection)
         GFX.shaderColor(shader, "tint", color)
-        if (tiling != null) shader.v4("tiling", tiling)
-        else shader.v4("tiling", 1f, 1f, 0f, 0f)
-        shader.v1("drawMode", GFX.drawMode.id)
-        shader.v1("uvProjection", uvProjection?.id ?: UVProjection.Planar.id)
-
     }
 
     fun drawDebugCube(matrix: Matrix4fArrayList, size: Float, color: Vector4fc?) {
@@ -165,7 +144,7 @@ object GFXx3D {
         shader.use()
         shader3DUniforms(shader, stack, color)
         shader.v3("offset", offset)
-        that?.uploadAttractors(shader, time) ?: GFXTransform.uploadAttractors0(shader)
+        GFXTransform.uploadAttractors(that, shader, time)
         buffer.draw(shader)
         GFX.check()
     }
@@ -286,7 +265,7 @@ object GFXx3D {
 
         val lambda = 0.01f
         val blurAmount = 0.05f
-        BlendDepth(null,false){
+        BlendDepth(null, false) {
             // interpolate all textures
             val interpolated = t0.zip(t1).map { (x0, x1) -> OpticalFlow.run(lambda, blurAmount, interpolation, x0, x1) }
             // bind them
@@ -363,7 +342,7 @@ object GFXx3D {
         val shader = ShaderLib.shader3DOutlinedText
         shader.use()
         transformUniform(shader, stack)
-        that?.uploadAttractors(shader, time) ?: GFXTransform.uploadAttractors0(shader)
+        GFXTransform.uploadAttractors(that, shader, time)
 
         GFX.shaderColor(shader, "tint", color)
 
@@ -485,7 +464,7 @@ object GFXx3D {
         val shader = ShaderLib.shader3DCircle
         shader.use()
         shader3DUniforms(shader, stack, 1, 1, color, null, Filtering.NEAREST, null)
-        that?.uploadAttractors(shader, time) ?: GFXTransform.uploadAttractors0(shader)
+        GFXTransform.uploadAttractors(that, shader, time)
         var a0 = startDegrees
         var a1 = endDegrees
         // if the two arrows switch sides, flip the circle

@@ -16,6 +16,8 @@ import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.animation.Type
 import me.anno.objects.documents.SiteSelection.parseSites
 import me.anno.objects.documents.pdf.PDFCache.getTexture
+import me.anno.objects.lists.Element
+import me.anno.objects.lists.SplittableElement
 import me.anno.objects.modes.UVProjection
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
@@ -27,7 +29,10 @@ import me.anno.utils.types.Lists.median
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import org.apache.pdfbox.pdmodel.PDDocument
-import org.joml.*
+import org.joml.Matrix4f
+import org.joml.Matrix4fArrayList
+import org.joml.Vector3f
+import org.joml.Vector4fc
 import kotlin.math.*
 
 // todo different types of lists (x list, y list, grid, linear particle system, random particle system, ...)
@@ -35,7 +40,7 @@ import kotlin.math.*
 // todo re-project UV textures onto stuff to animate an image exploding (gets UVs from first frame, then just is a particle system or sth else)
 // todo interpolation between lists and sets? could be interesting :)
 
-open class PDFDocument(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
+open class PDFDocument(var file: FileReference, parent: Transform?) : GFXTransform(parent), SplittableElement {
 
     constructor() : this(FileReference(""), null)
 
@@ -79,6 +84,8 @@ open class PDFDocument(var file: FileReference, parent: Transform?) : GFXTransfo
         return doc.getPage(firstPage).mediaBox.run { Vector3f(width / referenceScale, height / referenceScale, 1f) }
     }
 
+    fun getQuality() = if (isFinalRendering) renderQuality else editorQuality
+
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
 
         val file = file
@@ -87,16 +94,12 @@ open class PDFDocument(var file: FileReference, parent: Transform?) : GFXTransfo
             super.onDraw(stack, time, color)
             return checkFinalRendering()
         }
-        val quality = if (isFinalRendering) renderQuality else editorQuality
+        val quality = getQuality()
         val numberOfPages = doc.numberOfPages
         val pages = getSelectedSitesList()
         val direction = -direction[time].toRadians()
         // find reference scale: median height (or width, or height if height > width?)
-        val referenceScale = (0 until min(10, numberOfPages)).map {
-            doc.getPage(it).mediaBox.run {
-                height//if (windowWidth > windowHeight) height else width
-            }
-        }.median(0f)
+        val referenceScale = getReferenceScale(doc, numberOfPages)
         var wasDrawn = false
         val padding = padding[time]
         val cos = cos(direction)
@@ -147,23 +150,9 @@ open class PDFDocument(var file: FileReference, parent: Transform?) : GFXTransfo
         }
     }
 
-    fun isVisible(matrix: Matrix4f, x: Float): Boolean {
-
-        fun getPoint(x: Float, y: Float): Vector4f? {
-            val vec = matrix.transformProject(Vector4f(x, y, 0f, 1f))
-            return if (vec.x in -1f..1f && vec.y in -1f..1f && vec.z in -1f..1f) null
-            else vec
-        }
-
-        val v000 = getPoint(+x, +1f) ?: return true
-        val v001 = getPoint(+x, -1f) ?: return true
-        val v010 = getPoint(-x, +1f) ?: return true
-        val v011 = getPoint(-x, -1f) ?: return true
-
-        return Clipping.isRoughlyVisible(listOf(v000, v001, v010, v011))
-
+    private fun isVisible(matrix: Matrix4f, x: Float): Boolean {
+        return Clipping.isPlaneVisible(matrix, x, 1f)
     }
-
 
     override fun createInspector(
         list: PanelListY,
@@ -212,6 +201,53 @@ open class PDFDocument(var file: FileReference, parent: Transform?) : GFXTransfo
             "direction" -> direction.copyFrom(value)
             else -> super.readObject(name, value)
         }
+    }
+
+    fun getReferenceScale(doc: PDDocument, numberOfPages: Int): Float {
+        return (0 until min(10, numberOfPages)).map {
+            doc.getPage(it).mediaBox.run {
+                height//if (windowWidth > windowHeight) height else width
+            }
+        }.median(0f)
+    }
+
+    override fun getSplitElement(mode: String, index: Int): Element {
+        val doc = meta!!
+        val numberOfPages = doc.numberOfPages
+        val pages = getSelectedSitesList()
+        var remainingIndex = index
+        var pageNumber = 0
+        for (it in pages) {
+            val start = max(it.first, 0)
+            val end = min(it.last + 1, numberOfPages)
+            val length = max(0, end - start)
+            if (remainingIndex < length) {
+                pageNumber = start + remainingIndex
+                break
+            }
+            remainingIndex -= length
+        }
+        val child = clone() as PDFDocument
+        child.selectedSites = "$pageNumber"
+        val mediaBox = doc.getPage(pageNumber).mediaBox
+        val scale = 1f / getReferenceScale(doc, numberOfPages)
+        val w = mediaBox.width * scale
+        val h = mediaBox.height * scale
+        return Element(w, h, 0f, child)
+    }
+
+    override fun getSplitLength(mode: String): Int {
+        val doc = meta!!
+        val numberOfPages = doc.numberOfPages
+        val pages = getSelectedSitesList()
+        var sum = 0
+        for (it in pages) {
+            val start = max(it.first, 0)
+            val end = min(it.last + 1, numberOfPages)
+            val length = max(0, end - start)
+            sum += length
+        }
+        return sum
     }
 
     companion object {
