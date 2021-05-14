@@ -435,8 +435,11 @@ object ShaderLib {
                     "a3 attr0;\n" +
                     "a2 attr1;\n" +
                     "u3 offset;\n" +
+                    getUVForceFieldLib +
                     "void main(){\n" +
-                    "   localPosition = attr0 + offset;\n" +
+                    "   vec3 localPos0 = attr0 + offset;\n" +
+                    "   vec2 pseudoUV2 = getForceFieldUVs(localPos0.xy*.5+.5);\n" +
+                    "   localPosition = $hasForceFieldUVs ? vec3(pseudoUV2*2.0-1.0, attr0.z + offset.z) : localPos0;\n" +
                     "   gl_Position = transform * vec4(localPosition, 1.0);\n" +
                     positionPostProcessing +
                     "   vertexId = gl_VertexID;\n" +
@@ -459,9 +462,12 @@ object ShaderLib {
                     "a3 attr0;\n" +
                     "a2 attr1;\n" +
                     "u2 offset, scale;\n" +
+                    getUVForceFieldLib +
                     "void main(){\n" +
                     "   uv = attr0.xy * 0.5 + 0.5;\n" +
-                    "   localPosition = vec3(attr0.xy * scale + offset, 0.0);\n" +
+                    "   vec2 localPos0 = attr0.xy * scale + offset;\n" +
+                    "   vec2 pseudoUV2 = getForceFieldUVs(localPos0*.5+.5);\n" +
+                    "   localPosition = vec3($hasForceFieldUVs ? pseudoUV2*2.0-1.0 : localPos0, 0);\n" +
                     "   gl_Position = transform * vec4(localPosition, 1.0);\n" +
                     positionPostProcessing +
                     "}", y3D, "" +

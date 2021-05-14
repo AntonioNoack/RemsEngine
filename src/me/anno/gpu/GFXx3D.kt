@@ -5,6 +5,8 @@ import me.anno.gpu.GFX.windowWidth
 import me.anno.gpu.ShaderLib.maxOutlineColors
 import me.anno.gpu.blending.BlendDepth
 import me.anno.gpu.buffer.SimpleBuffer
+import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01Cube
+import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01CubeX10
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Clamping
@@ -13,6 +15,7 @@ import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.objects.GFXTransform
 import me.anno.objects.Video
+import me.anno.objects.attractors.EffectMorphing
 import me.anno.objects.effects.MaskType
 import me.anno.objects.geometric.Circle
 import me.anno.objects.geometric.Polygon
@@ -336,19 +339,18 @@ object GFXx3D {
         colors: Array<Vector4fc>,
         distances: FloatArray,
         smoothness: FloatArray,
-        depth: Float
+        depth: Float,
+        hasUVAttractors: Boolean
     ) {
 
         val shader = ShaderLib.shaderSDFText
         shader.use()
-        transformUniform(shader, stack)
+
         GFXTransform.uploadAttractors(that, shader, time)
 
         GFX.shaderColor(shader, "tint", color)
 
         shader.v1("drawMode", GFX.drawMode.id)
-
-        texture.bind(0, GPUFiltering.LINEAR, Clamping.CLAMP)
 
         val cc = min(colorCount, maxOutlineColors)
         /**
@@ -374,22 +376,18 @@ object GFXx3D {
         outlineStatsBuffer.position(0)
         shader.v2Array("distSmoothness", outlineStatsBuffer)
         shader.v1("colorCount", cc)
-        shader.v2("offset", offset)
-        shader.v2("scale", scale)
         shader.v1("depth", depth * 0.00001f)
 
-        GFX.check()
+        drawOutlinedText(stack, offset, scale, texture, hasUVAttractors)
 
-        UVProjection.Planar.getBuffer().draw(shader)
-
-        GFX.check()
     }
 
     fun drawOutlinedText(
         stack: Matrix4fArrayList,
         offset: Vector2fc,
         scale: Vector2fc,
-        texture: Texture2D
+        texture: Texture2D,
+        hasUVAttractors: Boolean
     ) {
         val shader = ShaderLib.shaderSDFText
         shader.use()
@@ -397,7 +395,9 @@ object GFXx3D {
         shader.v2("offset", offset)
         shader.v2("scale", scale)
         texture.bind(0, GPUFiltering.LINEAR, Clamping.CLAMP)
-        UVProjection.Planar.getBuffer().draw(shader)
+        // if we have a force field applied, subdivide the geometry
+        val buffer = if(hasUVAttractors) flat01CubeX10.value else flat01Cube
+        buffer.draw(shader)
         GFX.check()
     }
 

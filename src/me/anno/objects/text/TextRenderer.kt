@@ -6,6 +6,7 @@ import me.anno.fonts.mesh.TextMesh
 import me.anno.fonts.signeddistfields.algorithm.SignedDistanceField
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXx3D
+import me.anno.objects.attractors.EffectMorphing
 import me.anno.objects.modes.TextRenderMode
 import me.anno.studio.rems.Selection
 import me.anno.ui.editor.sceneView.Grid
@@ -255,6 +256,8 @@ object TextRenderer {
         sdf2.charByChar = element.renderingMode != TextRenderMode.SDF_JOINED
         sdf2.roundCorners = element.roundSDFCorners
 
+        val hasUVAttractors = element.children.any { it is EffectMorphing }
+
         sdf2.draw(startIndex, endIndex) { _, sdf, xOffset ->
 
             val texture = sdf?.texture
@@ -312,16 +315,12 @@ object TextRenderer {
                         ),
                         floatArrayOf(-1e3f, outline.x, outline.y, outline.z, outline.w),
                         floatArrayOf(0f, smoothness.x, smoothness.y, smoothness.z, smoothness.w),
-                        outlineDepth
+                        outlineDepth, hasUVAttractors
                     )
 
                     firstTimeDrawing = false
 
-                } else {
-
-                    GFXx3D.drawOutlinedText(stack, offset, scale, texture)
-
-                }
+                } else GFXx3D.drawOutlinedText(stack, offset, scale, texture, hasUVAttractors)
 
             } else if (sdf?.isValid != true) {
 

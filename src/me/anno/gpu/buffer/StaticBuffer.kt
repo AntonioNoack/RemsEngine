@@ -22,6 +22,13 @@ open class StaticBuffer(attributes: List<Attribute>, val vertexCount: Int, usage
         }
     }
 
+    constructor(floats: FloatArray, attributes: List<Attribute>) : this(
+        attributes,
+        floats.size / attributes.sumBy { it.components }
+    ) {
+        put(floats)
+    }
+
     init {
         createNioBuffer()
     }

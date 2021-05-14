@@ -36,16 +36,16 @@ class SimpleBuffer(val vertices: Array<Vector2f>, name: String) : StaticBuffer(
         // or add a sphere additionally? (then without our effects)
         private fun createFlatLarge(): StaticBuffer {
             val step = 10f
-            val iList = -10 .. 10
+            val iList = -10..10
             val buffer = StaticBuffer(
                 listOf(Attribute("attr0", 2)),
                 4 * (4 * iList.toList().size - 3)
             )
             buffer.quads()
-            for((index, i) in iList.withIndex()){
+            for ((index, i) in iList.withIndex()) {
                 val l = pow(step, i.toFloat())
                 val s = l / step
-                if(index == 0){
+                if (index == 0) {
                     // first face: just a quad
                     buffer.put(-l, -l)
                     buffer.put(-l, l)
@@ -53,9 +53,9 @@ class SimpleBuffer(val vertices: Array<Vector2f>, name: String) : StaticBuffer(
                     buffer.put(l, -l)
                 } else {
                     // secondary faces: quad rings
-                    for(j in 0 until 4){
-                        fun put(x0: Float, y0: Float){
-                            when(j){
+                    for (j in 0 until 4) {
+                        fun put(x0: Float, y0: Float) {
+                            when (j) {
                                 0 -> buffer.put(+x0, +y0)
                                 1 -> buffer.put(-x0, -y0)
                                 2 -> buffer.put(-y0, +x0)
@@ -97,6 +97,63 @@ class SimpleBuffer(val vertices: Array<Vector2f>, name: String) : StaticBuffer(
             intArrayOf(0, 1, 2, 0, 2, 3)
         )
 
+        val flat01CubeX10 = lazy {
+
+            // create a fine grid
+            val sizeX = 20
+            val sizeY = 20
+            val vertices = FloatArray((sizeX + 1) * (sizeY + 1) * 5)
+            var vi = 0
+            for (i in 0..sizeX) {
+                val i01 = i.toFloat() / sizeX
+                val i11 = i01 * 2 - 1
+                for (j in 0..sizeY) {
+                    val j01 = j.toFloat() / sizeY
+                    val j11 = j01 * 2 - 1
+                    vertices[vi++] = i11
+                    vertices[vi++] = j11
+                    vertices[vi++] = 0f
+                    vertices[vi++] = i01
+                    vertices[vi++] = j01
+                }
+            }
+
+            val quadCount = sizeX * sizeY
+            val jointData = FloatArray(quadCount * 20)
+
+            val di = 1f / sizeX
+            val dj = 1f / sizeY
+
+            var ji = 0
+            fun put(x: Float, y: Float) {
+                jointData[ji++] = x * 2 - 1
+                jointData[ji++] = y * 2 - 1
+                jointData[ji++] = 0f
+                jointData[ji++] = x
+                jointData[ji++] = y
+            }
+
+            for (i in 0 until sizeX) {
+                val i01 = i.toFloat() / sizeX
+                for (j in 0 until sizeY) {
+                    val j01 = j.toFloat() / sizeY
+                    put(i01, j01)
+                    put(i01 + di, j01)
+                    put(i01 + di, j01 + dj)
+                    put(i01, j01 + dj)
+                }
+            }
+
+            StaticBuffer(
+                jointData,
+                listOf(
+                    Attribute("attr0", 3),
+                    Attribute("attr1", 2)
+                )
+            ).quads()
+
+        }
+
         val flat11 = SimpleBuffer(
             arrayOf(
                 Vector2f(-1f, -1f),
@@ -106,7 +163,7 @@ class SimpleBuffer(val vertices: Array<Vector2f>, name: String) : StaticBuffer(
             ), intArrayOf(0, 1, 2, 0, 2, 3), "attr0"
         )
 
-        fun destroy(){
+        fun destroy() {
             flat01.destroy()
             flat11.destroy()
             flatLarge.destroy()
