@@ -56,12 +56,9 @@ import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.f2
 import me.anno.utils.types.Strings.formatTime2
 import me.anno.utils.types.Strings.getImportType
-import me.anno.video.FFMPEGMetadata
+import me.anno.video.*
 import me.anno.video.FFMPEGMetadata.Companion.getMeta
-import me.anno.video.ImageSequenceMeta
 import me.anno.video.IsFFMPEGOnly.isFFMPEGOnlyExtension
-import me.anno.video.MissingFrameException
-import me.anno.video.VFrame
 import org.joml.*
 import java.net.URL
 import kotlin.collections.set
@@ -134,8 +131,8 @@ class Video(file: FileReference = FileReference(""), parent: Transform? = null) 
     val cgPower = AnimatedProperty.color(Vector4f(1f, 1f, 1f, 1f))
     val cgSaturation = AnimatedProperty.float(1f) // only allow +? only 01?
 
-    var w = 16
-    var h = 9
+    var lastW = 16
+    var lastH = 9
 
     val forceAutoScale get() = DefaultConfig["rendering.video.forceAutoScale", true]
     val forceFullScale get() = DefaultConfig["rendering.video.forceFullScale", false]
@@ -157,12 +154,12 @@ class Video(file: FileReference = FileReference(""), parent: Transform? = null) 
     }
 
     override fun transformLocally(pos: Vector3fc, time: Double): Vector3fc {
-        val doScale = uvProjection.value.doScale && w != h
+        val doScale = uvProjection.value.doScale && lastW != lastH
         return if (doScale) {
             val avgSize =
-                if (w * targetHeight > h * targetWidth) w.toFloat() * targetHeight / targetWidth else h.toFloat()
-            val sx = w / avgSize
-            val sy = h / avgSize
+                if (lastW * targetHeight > lastH * targetWidth) lastW.toFloat() * targetHeight / targetWidth else lastH.toFloat()
+            val sx = lastW / avgSize
+            val sy = lastH / avgSize
             Vector3f(pos.x() / sx, -pos.y() / sy, pos.z())
         } else {
             Vector3f(pos.x(), -pos.y(), pos.z())
@@ -257,8 +254,8 @@ class Video(file: FileReference = FileReference(""), parent: Transform? = null) 
                 val frame = ImageCache.getImage(meta.getImage(localTime), 5L, true)
                 if (frame == null || !frame.isCreated) onMissingImageOrFrame()
                 else {
-                    w = frame.w
-                    h = frame.h
+                    lastW = frame.w
+                    lastH = frame.h
                     draw3DVideo(
                         this, time,
                         stack, frame, color, this@Video.filtering.value, this@Video.clampMode.value,
@@ -317,8 +314,8 @@ class Video(file: FileReference = FileReference(""), parent: Transform? = null) 
                 )
 
                 if (frame != null && frame.isCreated) {
-                    w = frame.w
-                    h = frame.h
+                    lastW = frame.w
+                    lastH = frame.h
                     return frame
                 }
             }
@@ -380,8 +377,8 @@ class Video(file: FileReference = FileReference(""), parent: Transform? = null) 
                 val useInterpolation = false
                 if (!useInterpolation) {
                     if (frame0 != null) {
-                        w = meta.videoWidth
-                        h = meta.videoHeight
+                        lastW = meta.videoWidth
+                        lastH = meta.videoHeight
                         draw3DVideo(
                             this, time, stack, frame0, color, filtering, clamp,
                             tiling[time], uvProjection.value
@@ -394,8 +391,8 @@ class Video(file: FileReference = FileReference(""), parent: Transform? = null) 
                     val frameIndex1 = ceil(frameIndexD).toInt() % frameCount
                     val frame1 = getFrame(zoomLevel, meta, frameIndex1, videoFPS)
                     if (frame0 != null && frame1 != null) {
-                        w = meta.videoWidth
-                        h = meta.videoHeight
+                        lastW = meta.videoWidth
+                        lastH = meta.videoHeight
                         draw3DVideo(
                             this, time, stack, frame0, frame1, interpolation, color, filtering, clamp,
                             tiling[time], uvProjection.value
@@ -485,8 +482,8 @@ class Video(file: FileReference = FileReference(""), parent: Transform? = null) 
                 if (texture == null || !texture.isCreated) onMissingImageOrFrame()
                 else {
                     texture.rotation?.apply(stack)
-                    w = texture.w
-                    h = texture.h
+                    lastW = texture.w
+                    lastH = texture.h
                     draw3DVideo(
                         this, time, stack, texture, color,
                         this.filtering.value, this.clampMode.value, tiling, uvProjection.value
@@ -973,6 +970,19 @@ class Video(file: FileReference = FileReference(""), parent: Transform? = null) 
 
     override fun getSplitLength(mode: String): Int {
         return forcedMeta?.videoFrameCount ?: 0
+    }
+
+    override fun clone(): Transform {
+        val clone = super.clone() as Video
+        clone.lastFrame = lastFrame
+        clone.lastW = lastW
+        clone.lastH = lastH
+        clone.lastDuration = lastDuration
+        clone.lastFile = lastFile
+        clone.lastAddedEndKeyframesFile = lastAddedEndKeyframesFile
+        clone.type = type
+        clone.needsImageUpdate = needsImageUpdate
+        return clone
     }
 
 }

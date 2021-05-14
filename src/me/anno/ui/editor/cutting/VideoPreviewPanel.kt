@@ -11,7 +11,7 @@ import org.joml.Vector4f
 class VideoPreviewPanel(val video: Video, val height: Int, style: Style, val getTime: (x: Float) -> Double) :
     Panel(style) {
 
-    val width = height * video.w / video.h
+    val width = height * video.lastW / video.lastH
 
     init { backgroundColor = 0xff777777.toInt() }
 

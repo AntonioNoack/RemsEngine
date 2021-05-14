@@ -13,7 +13,6 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
 import me.anno.utils.types.Floats.put3
-import org.joml.Vector3f
 import org.joml.Vector3fc
 import org.joml.Vector4f
 import org.lwjgl.opengl.GL20.glUniform3fv
@@ -106,8 +105,8 @@ abstract class GFXTransform(parent: Transform?) : Transform(parent) {
             val loc2 = shader["forceFieldUVSpecs"]
             if (loc2 > -1) {
                 buffer.position(0)
-                val sx = if (this is Video) 1f / w else 1f
-                val sy = if (this is Video) 1f / h else 1f
+                val sx = if (this is Video) 1f / lastW else 1f
+                val sy = if (this is Video) 1f / lastH else 1f
                 for (attractor in attractors) {
                     val localTime = attractor.lastLocalTime
                     val weight = attractor.lastInfluence
@@ -170,8 +169,8 @@ abstract class GFXTransform(parent: Transform?) : Transform(parent) {
             buffer.position(0)
             glUniform4fv(shader["forceFieldPositionsNWeights"], buffer)
             buffer.position(0)
-            val sx = if (this is Video) 1f / w else 1f
-            val sy = if (this is Video) 1f / h else 1f
+            val sx = if (this is Video) 1f / lastW else 1f
+            val sy = if (this is Video) 1f / lastH else 1f
             for (attractor in attractors) {
                 val localTime = attractor.lastLocalTime
                 val scale = attractor.scale[localTime]

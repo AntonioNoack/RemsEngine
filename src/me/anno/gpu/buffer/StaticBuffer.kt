@@ -47,6 +47,12 @@ open class StaticBuffer(attributes: List<Attribute>, val vertexCount: Int, usage
         put(v.x(), v.y())
     }
 
+    fun put(v: FloatArray) {
+        for (vi in v) {
+            put(vi)
+        }
+    }
+
     fun put(v: Vector3fc) {
         put(v.x(), v.y(), v.z())
     }

@@ -27,13 +27,15 @@ import me.anno.utils.OS
 // Launch4j
 
 // todo settings should open in a window, that does not cover everything, just maybe 90%
+// todo project settings and render settings maybe should be windows instead of being inspectables
 
 // todo if a resource is requested, and there is a mutex limitation, it should be rejected instead of queued
 // so we don't put strain on the cpu & memory, if we don't really need the resource
 // this is the case for audio in the timeline, when just scrolling
 
-// todo calculate in-between frames for video by motion vectors; https://www.youtube.com/watch?v=PEe-ZeVbTLo
+// todo calculate in-between frames for video by motion vectors; https://www.youtube.com/watch?v=PEe-ZeVbTLo ?
 // 30 -> 60 fps
+// the topic is complicated...
 
 // todo mode to move vertices of rectangle one by one (requires clever transforms, or a new type of GFXTransform)
 // for perspective matching: e.g. moving a fake image onto another image
@@ -41,8 +43,9 @@ import me.anno.utils.OS
 // todo create proxies only for sections of video
 // todo proxies for faster playback? e.g. every 10th frame? idk...
 
-// todo proxy creation uses 100% cpu... prevent that somehow, or decrease process priority?
+// proxy creation uses 100% cpu... prevent that somehow, or decrease process priority?
 // it uses 36% on its own -> heavier weight?
+// -> idk how on Windows; done for Linux
 
 // nearby frame compression (small changes between frames, could use lower resolution) on the gpu side? maybe...
 // -> would maybe allow 60fps playback better
@@ -56,9 +59,10 @@ import me.anno.utils.OS
 // todo alpha to color ???
 // todo discard alpha being > or < than x / map alpha
 
-// todo spline polygon editor inside Rem's Studio, with points, that can be animated (???)
+// todo splines for the polygon line
 
 // todo draw frame by frame, only save x,y,radius?
+// todo record drawing, and use meta-ball like shapes (maybe)
 
 // todo translations for everything...
 // todo limit the history to entries with 5x the same name? how exactly?...
@@ -67,7 +71,7 @@ import me.anno.utils.OS
 
 // to do Mod with "hacked"-text effect for text: swizzle characters and introduce others?
 
-object RemsStudio : StudioBase(true, "Rem's Studio", 10102) {
+object RemsStudio : StudioBase(true, "Rem's Studio", 10103) {
 
     // private val LOGGER = LogManager.getLogger(RemsStudio::class)
 

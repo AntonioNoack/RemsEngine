@@ -656,7 +656,7 @@ open class Transform(var parent: Transform? = null) : Saveable(),
 
     override fun isDefaultValue() = false
 
-    fun clone(): Transform {
+    open fun clone(): Transform {
         val asString = try {
             TextWriter.toText(this, false)
         } catch (e: Exception) {

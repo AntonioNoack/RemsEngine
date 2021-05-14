@@ -4,16 +4,15 @@ import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX.toRadians
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer
+import me.anno.image.css.CSSReader
+import me.anno.image.svg.SVGTransform.applyTransform
+import me.anno.image.svg.gradient.Formula
 import me.anno.image.svg.gradient.LinearGradient
 import me.anno.image.svg.gradient.RadialGradient
-import me.anno.image.svg.tokenizer.SVGTokenizer
 import me.anno.io.xml.XMLElement
-import me.anno.objects.Transform.Companion.zAxis
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.length
 import me.anno.utils.OS
-import me.anno.utils.types.Lists.indexOf2
-import me.anno.utils.types.Matrices.skew
 import org.apache.logging.log4j.LogManager
 import org.joml.*
 import java.awt.Color
@@ -50,9 +49,16 @@ class SVGMesh {
 
     val transform = Matrix4dArrayList()
 
-    fun parse(svg: XMLElement) {
-        parseChildren(svg.children, null)
-        val viewBox = (svg["viewBox"] ?: "0 0 100 100").split(' ').map { it.toDouble() }
+    class CSSData {
+        val values = HashMap<String, String>()
+    }
+
+    val ids = HashMap<String, CSSData>()
+    val classes = HashMap<String, CSSData>()
+
+    fun parse(xml: XMLElement) {
+        parseChildren(xml.children, null)
+        val viewBox = (xml["viewBox"] ?: "0 0 100 100").split(' ').map { it.toDouble() }
         val w = viewBox[2]
         val h = viewBox[3]
         createMesh(viewBox[0], viewBox[1], w, h)
@@ -112,7 +118,7 @@ class SVGMesh {
                             transform.popMatrix()
                         }
                     }
-                    "switch", "foreignobject", "i:pgfref", "i:pgf" -> {
+                    "switch", "foreignobject", "i:pgfref", "i:pgf", "defs" -> {
                         parseChildren(this.children, parentGroup)
                     }
                     "lineargradient" -> {
@@ -130,103 +136,39 @@ class SVGMesh {
                             c4.44-0.63,10.97-0.56,18.3-0.56s12.16,1.21,15.22,1.88c21.85,4.79,22.77,21.98,24.77,40.68
                             C104.94,108.37,106.65,124.08,101.28,124.08z"/>
                              * */
-                            styles[id] = LinearGradient(this.children)
-                            // todo use gradients as styles
+                            styles[id] = LinearGradient(this@SVGMesh, this)
                             // used by fill:url(#id)
                         }
                     }
                     "radialgradient" -> {
                         val id = this["id"]
                         if (id != null) {
-                            /**
-                            Example:
-                            <radialGradient id="hairHighlights_1_" cx="61.0759" cy="94.7296" r="23.3126"
-                            gradientTransform="matrix(0.9867 -0.1624 -0.1833 -1.1132 16.8427 148.0534)" gradientUnits="userSpaceOnUse">
-                            <stop  offset="0.7945" style="stop-color:#6D4C41;stop-opacity:0"/>
-                            <stop  offset="1" style="stop-color:#6D4C41"/>
-                             * */
-                            styles[id] = RadialGradient(this.children)
+                            styles[id] = RadialGradient(this@SVGMesh, this)
+                        }
+                    }
+                    "style" -> {
+                        val id = this["id"]
+                        when (val type = this["type"]?.toLowerCase()) {
+                            "text/css" -> {
+                                val content = this.children.filterIsInstance<String>().joinToString("\n")
+                                CSSReader(this@SVGMesh, content)
+                            }
+                            null, "" -> {
+                                if (id != null) styles[id] = SVGStyle(this@SVGMesh, this)
+                            }
+                            else -> {
+                                LOGGER.warn("Unknown style type $type")
+                            }
                         }
                     }
                     "metadata" -> {
                     } // I don't think, that I care...
                     else -> {
                         // idc
-                        // throw RuntimeException("Unknown svg element $type")
+                        LOGGER.warn("Unknown svg element $type")
                     }
                 }
             }
-        }
-    }
-
-    private fun applyTransform(matrix: Matrix4d, actions: String) {
-        val tokens = SVGTokenizer(actions).tokens
-        var i = 0
-        while (i + 2 < tokens.size) {
-            val name = tokens[i] as? String
-            if (name != null && tokens[i + 1] == '(') {
-                val endIndex = tokens.indexOf2(')', i, true)
-                if (endIndex < 0) return
-                val params = tokens.subList(i + 2, endIndex)
-                    .filterIsInstance<Double>()
-                when (name.toLowerCase()) {
-                    "translate" -> {
-                        if (params.isNotEmpty()) {
-                            matrix.translate(
-                                params[0],
-                                params.getOrElse(1) { 0.0 },
-                                params.getOrElse(2) { 0.0 })
-                        }
-                    }
-                    "scale" -> {
-                        if (params.isNotEmpty()) {
-                            matrix.scale(
-                                params[0],
-                                params.getOrElse(1) { 1.0 },
-                                params.getOrElse(2) { 1.0 })
-                        }
-                    }
-                    "matrix" -> {
-                        if (params.size == 6) {
-                            transform.mul(
-                                Matrix4d(
-                                    params[0], params[1], 0.0, params[2],
-                                    params[3], params[4], 0.0, params[5],
-                                    0.0, 0.0, 1.0, 0.0,
-                                    0.0, 0.0, 0.0, 1.0
-                                )
-                            )
-                        }
-                    }
-                    "rotate" -> {
-                        when (params.size) {
-                            1 -> {
-                                transform.rotate(toRadians(params[0]), zAxis)
-                            }
-                            3 -> {
-                                val dx = params[1]
-                                val dy = params[2]
-                                transform.translate(-dx, -dy, 0.0)
-                                transform.rotate(toRadians(params[0]), zAxis)
-                                transform.translate(dx, dy, 0.0)
-                            }
-                        }
-                    }
-                    "skewx" -> {
-                        if (params.size == 1) {
-                            transform.skew(params[0], 0.0)
-                        }
-                    }
-                    "skewy" -> {
-                        if (params.size == 1) {
-                            transform.skew(0.0, params[0])
-                        }
-                    }
-                    else -> throw RuntimeException("Unknown transform $name($params)")
-                }
-                i = endIndex
-            }// else unknown stuff...
-            i++
         }
     }
 
@@ -242,7 +184,7 @@ class SVGMesh {
         fun ix(v: Vector2dc) = debugImageSize / 2 + ((v.x() - x0) * scale).roundToInt()
         fun iy(v: Vector2dc) = debugImageSize / 2 + ((v.y() - y0) * scale).roundToInt()
         curves.forEach {
-            val color = it.color or 0x333333
+            val color = it.gradient.averageColor or 0x333333
             val triangles = it.triangles
             gfx.color = Color(color, false)
             for (i in triangles.indices step 3) {
@@ -258,34 +200,51 @@ class SVGMesh {
     }
 
     fun createMesh(x0: Double, y0: Double, w: Double, h: Double) {
-        val cx = x0 + w / 2
-        val cy = y0 + h / 2
-        val scale = 1f / h
+        val cx = x0 + w * 0.5
+        val cy = y0 + h * 0.5
+        val scale = 2.0 / h
         val totalPointCount = curves.sumBy { it.triangles.size }
-        val totalDoubleCount = totalPointCount * 7 // xyz, rgba
         if (totalPointCount > 0) {
-            val buffer = StaticBuffer(
-                listOf(
-                    Attribute("attr0", 3), Attribute("attr1", 4)
-                ), totalDoubleCount
-            )
+            val buffer = StaticBuffer(attr, totalPointCount)
+            val formula = Formula()
+            val c0 = Vector4f()
+            val c1 = Vector4f()
+            val c2 = Vector4f()
+            val c3 = Vector4f()
+            val stops = Vector4f()
             this.buffer = buffer
-            curves.forEach {
-                val color = it.color
-                val r = color.shr(16).and(255) / 255f
-                val g = color.shr(8).and(255) / 255f
-                val b = color.and(255) / 255f
-                val a = color.shr(24).and(255) / 255f
-                val depth = it.depth.toFloat()
-                it.triangles.forEach { v ->
-                    buffer.put(((v.x() - cx) * scale).toFloat(), ((v.y() - cy) * scale).toFloat(), depth)
-                    //buffer.put(Math.random().toDouble(), Math.random().toDouble(), Math.random().toDouble(), Math.random().toDouble())
+            curves.forEach { curve ->
+                val xs = curve.triangles.map { it.x() }
+                val ys = curve.triangles.map { it.y() }
+                val minX = xs.min()!!
+                val maxX = xs.max()!!
+                val minY = ys.min()!!
+                val maxY = ys.max()!!
+                val scaleX = 1.0 / max(1e-9, maxX - minX)
+                val scaleY = 1.0 / max(1e-9, maxY - minY)
+                // upload all shapes
+                val gradient = curve.gradient
+                gradient.fill(formula, c0, c1, c2, c3, stops)
+                if (gradient.colors.size > 1) println("$gradient -> $formula")
+                val padding = gradient.spreadMethod.id.toFloat()
+                val depth = curve.depth.toFloat()
+                curve.triangles.forEach { v ->
+                    val vx = v.x()
+                    val vy = v.y()
+                    buffer.put(((vx - cx) * scale).toFloat(), ((vy - cy) * scale).toFloat(), depth)
+                    buffer.put(((vx - minX) * scaleX).toFloat(), ((vy - minY) * scaleY).toFloat())
+                    buffer.put(formula.v, formula.x, formula.y)
+                    buffer.put(formula.xx, formula.xy, formula.yy)
+                    buffer.put(c0)
+                    buffer.put(c1)
+                    buffer.put(c2)
+                    buffer.put(c3)
+                    buffer.put(stops)
+                    buffer.put(padding)
                     // LOGGER.info(Vector3d((v.x-x0)*scale, (v.y-y0)*scale, it.depth).print())
-                    buffer.put(r, g, b, a)
                 }
             }
         }
-        // LOGGER.info("created buffer $x $y $scale of curves with size $totalPointCount")
     }
 
     fun convertStyle(xml: XMLElement) {
@@ -483,11 +442,11 @@ class SVGMesh {
         val cos = cos(angle)
         val sin = sin(angle)
 
-        val idxh = (x1 - x2) / 2
-        val idyh = (y1 - y2) / 2
+        val localX = (x1 - x2) / 2.0
+        val localY = (y1 - y2) / 2.0
 
-        val x12 = cos * idxh + sin * idyh
-        val y12 = -sin * idxh + cos * idyh
+        val x12 = cos * localX + sin * localY
+        val y12 = -sin * localX + cos * localY
 
         val scaleCorrection = length(x12 / rx, y12 / ry)
         if (scaleCorrection > 1f) {
@@ -509,7 +468,7 @@ class SVGMesh {
         val qx = (x12 - cx2) / rx
         val qy = (y12 - cy2) / ry
 
-        val twoPi = (2 * PI).toDouble()
+        val twoPi = 2.0 * PI
 
         val theta0 = angle(1.0, 0.0, qx, qy)
         var deltaTheta = angle(qx, qy, -(x12 + cx2) / rx, -(y12 + cy2) / ry)// % twoPi
@@ -525,10 +484,10 @@ class SVGMesh {
         val steps = max(3, (abs(angleDegrees) * stepsPerDegree).roundToInt())
         for (i in 1 until steps) {
             val theta = theta0 + deltaTheta * i / steps
-            val localX = rx * cos(theta)
-            val localY = ry * sin(theta)
-            val rotX = cos * localX - sin * localY
-            val rotY = sin * localX + cos * localY
+            val localX2 = rx * cos(theta)
+            val localY2 = ry * sin(theta)
+            val rotX = cos * localX2 - sin * localY2
+            val rotY = sin * localX2 + cos * localY2
             lineTo(cx + rotX, cy + rotY)
         }
 
@@ -650,37 +609,63 @@ class SVGMesh {
     }
 
     fun addRectangle(xml: XMLElement, style: SVGStyle, fill: Boolean) {
+
         init(style, fill)
-        val rx = max(xml["rx"]?.toDoubleOrNull() ?: 0.0, 0.0)
-        val ry = max(xml["ry"]?.toDoubleOrNull() ?: 0.0, 0.0)
+
+        val rx = max(xml["rx"]?.toDouble() ?: 0.0, 0.0)
+        val ry = max(xml["ry"]?.toDouble() ?: 0.0, 0.0)
+
         val x = xml["x"]!!.toDouble()
         val y = xml["y"]!!.toDouble()
         val w = xml["width"]!!.toDouble()
         val h = xml["height"]!!.toDouble()
 
+        val curveSteps = max(rx, ry).roundToInt()
+
         if (rx > 0f || ry > 0f) {
 
+            // top line
             moveTo(x + rx, y)
             lineTo(x + w - rx, y)
-            // todo curve down
-            moveTo(x, y + ry)
+            // curve down
+            for (i in 1 until curveSteps) {
+                addCirclePoint(x + w - rx, y + ry, rx, ry, i, 3, curveSteps)
+            }
+            // right line
+            lineTo(x + w, y + ry)
             lineTo(x + w, y + h - ry)
-            // todo curve
-            moveTo(x + w - rx, y + h)
+            // curve from right to bottom
+            for (i in 1 until curveSteps) {
+                addCirclePoint(x + w - rx, y + h - ry, rx, ry, i, 0, curveSteps)
+            }
+            // bottom line
+            lineTo(x + w - rx, y + h)
             lineTo(x + rx, y + h)
-            // todo curve
-            // todo curve once more somewhere...
-            close()
+            // curve from bottom to left
+            for (i in 1 until curveSteps) {
+                addCirclePoint(x + rx, y + h - ry, rx, ry, i, 1, curveSteps)
+            }
+            // left line
+            lineTo(x, y + h - ry)
+            lineTo(x, y + ry)
+            for (i in 1 until curveSteps) {
+                addCirclePoint(x + rx, y + ry, rx, ry, i, 2, curveSteps)
+            }
 
         } else {
             moveTo(x, y)
             lineTo(x + w, y)
             lineTo(x + w, y + h)
             lineTo(x, y + h)
-            close()
         }
 
+        close()
         endElement()
+    }
+
+    fun addCirclePoint(x: Double, y: Double, rx: Double, ry: Double, i: Int, q: Int, steps: Int) {
+        val angle = (i + q * steps) * 0.5 * PI / steps
+        lineTo(x + rx * cos(angle), y + ry * sin(angle))
     }
 
     fun addCircle(xml: XMLElement, style: SVGStyle, fill: Boolean) {
@@ -775,16 +760,14 @@ class SVGMesh {
 
         if (currentCurve.isNotEmpty()) {
             curves += SVGCurve(
-                ArrayList(
-                    currentCurve
-                        .map {
-                            val v = transform.transform(Vector4d(it.x, it.y, 0.0, 1.0))
-                            Vector2d(v.x, v.y)
-                        }
-                ),
+                currentCurve.map {
+                    val v = transform.transform(Vector4d(it.x, it.y, 0.0, 1.0))
+                    Vector2d(v.x, v.y)
+                },
                 closed, z,
                 if (currentFill) currentStyle.fill!! else currentStyle.stroke!!,
-                if (currentFill) 0.0 else currentStyle.strokeWidth)
+                if (currentFill) 0.0 else currentStyle.strokeWidth
+            )
             currentCurve.clear()
         }
 
@@ -794,6 +777,20 @@ class SVGMesh {
 
     companion object {
         private val LOGGER = LogManager.getLogger(SVGMesh::class)
+
+        val attr = listOf(
+            Attribute("aLocalPosition", 3),
+            Attribute("aLocalPos2", 2),
+            Attribute("aFormula0", 4),
+            Attribute("aFormula1", 2),
+            Attribute("aColor0", 4),
+            Attribute("aColor1", 4),
+            Attribute("aColor2", 4),
+            Attribute("aColor3", 4),
+            Attribute("aStops", 4),
+            Attribute("aPadding", 1)
+        )
+
     }
 
 }

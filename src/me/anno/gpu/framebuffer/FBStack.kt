@@ -46,14 +46,16 @@ object FBStack : CacheSection("FBStack") {
     class FBStackData1(val key: FBKey1) :
         FBStackData(key.w, key.h, key.samples, getTargetType(key.channels, key.usesFP)) {
         override fun printDestroyed(size: Int) {
-            LOGGER.info("Destroyed ${size} framebuffers of ${key.w} x ${key.h}, samples: ${key.samples}, fp: ${key.usesFP}")
+            val fs = if(size == 1) "1 framebuffer" else "$size framebuffers"
+            LOGGER.info("Freed $fs of size ${key.w} x ${key.h}, samples: ${key.samples}, fp: ${key.usesFP}")
         }
     }
 
     data class FBKey2(val w: Int, val h: Int, val targetType: TargetType, val samples: Int)
     class FBStackData2(val key: FBKey2) : FBStackData(key.w, key.h, key.samples, key.targetType) {
         override fun printDestroyed(size: Int) {
-            LOGGER.info("Destroyed ${data.size} framebuffers of ${key.w} x ${key.h}, samples: ${key.samples}, type: ${key.targetType}")
+            val fs = if(size == 1) "1 framebuffer" else "$size framebuffers"
+            LOGGER.info("Freed $fs of size ${key.w} x ${key.h}, samples: ${key.samples}, type: ${key.targetType}")
         }
     }
 

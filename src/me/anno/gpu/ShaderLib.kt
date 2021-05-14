@@ -642,21 +642,37 @@ object ShaderLib {
                     "}", listOf("tex")
         )
 
-        val v3DSVG = v3DBase +
-                "a3 attr0;\n" +
-                "a4 attr1;\n" +
+        val vSVG = v3DBase +
+                "a3 aLocalPosition;\n" +
+                "a2 aLocalPos2;\n" +
+                "a4 aFormula0;\n" +
+                "a2 aFormula1;\n" +
+                "a4 aColor0, aColor1, aColor2, aColor3;\n" +
+                "a4 aStops;\n" +
+                "a1 aPadding;\n" +
                 "void main(){\n" +
-                "   localPosition = attr0;\n" +
+                "   localPosition = aLocalPosition;\n" +
                 "   gl_Position = transform * vec4(localPosition, 1.0);\n" +
                 positionPostProcessing +
-                "   uv = attr0.xy;\n" +
-                "   color0 = attr1;\n" +
+                "   color0 = aColor0;\n" +
+                "   color1 = aColor1;\n" +
+                "   color2 = aColor2;\n" +
+                "   color3 = aColor3;\n" +
+                "   stops = aStops;\n" +
+                "   padding = aPadding;\n" +
+                "   localPos2 = aLocalPos2;\n" +
+                "   formula0 = aFormula0;\n" +
+                "   formula1 = aFormula1;\n" +
                 "}"
 
-        val y3DSVG = y3D +
-                "varying v4 color0;\n"
+        val ySVG = y3D +
+                "varying v4 color0, color1, color2, color3, stops;\n" +
+                "varying v4 formula0;\n" +
+                "varying v2 formula1;\n" +
+                "varying v1 padding;\n" +
+                "varying v2 localPos2;\n"
 
-        val f3DSVG = "" +
+        val fSVG = "" +
                 "uniform vec4 tint;" +
                 "uniform sampler2D tex;\n" +
                 "uniform vec4 uvLimits;\n" +
@@ -667,15 +683,39 @@ object ShaderLib {
                 "bool isInLimits(float value, vec2 minMax){\n" +
                 "   return value >= minMax.x && value <= minMax.y;\n" +
                 "}\n" +
+                "vec4 mix(vec4 a, vec4 b, float stop, vec2 stops){\n" +
+                "   return mix(a, b, clamp((stop-stops.x)/(stops.y-stops.x), 0, 1));\n" +
+                "}\n" +
                 "void main(){\n" +
-                "   vec4 color = color0;\n" +
+                // apply the formula; polynomial of 2nd degree
+                "   float stopValue = \n" + //
+                "       dot(formula0, vec4(1.0, localPos2.xy, localPos2.x * localPos2.x)) +\n" +
+                "       dot(formula1, localPos2.xy * localPos2.y);\n" +
+                "   if(formula0.w > 0.0) stopValue = sqrt(max(stopValue, 0.0));\n" +
+                "   if(stopValue < 0.0 || stopValue > 1.0){" +
+                "       if(padding < 0.5){\n" + // clamp
+                "           stopValue = clamp(stopValue, 0.0, 1.0);\n" +
+                "       } else if(padding < 1.5){\n" + // repeat mirrored, and yes, it looks like magic xD
+                "           stopValue = 1.0 - abs(fract(stopValue*0.5)*2.0-1.0);\n" +
+                "       } else {\n" + // repeat
+                "           stopValue = fract(stopValue);\n" +
+                "       }\n" +
+                "   }\n" +
+                // find the correct color
+                "   vec4 color = \n" +
+                "       stopValue <= stops.x ? color0:\n" +
+                "       stopValue >= stops.w ? color3:\n" +
+                "       stopValue <  stops.y ? mix(color0, color1, stopValue, stops.xy):\n" +
+                "       stopValue <  stops.z ? mix(color1, color2, stopValue, stops.yz):\n" +
+                "                              mix(color2, color3, stopValue, stops.zw);\n" +
+                // "   color.rgb = fract(vec3(stopValue));\n" +
                 "   color.rgb = colorGrading(color.rgb);\n" +
                 "   if($hasForceFieldColor) color *= getForceFieldColor();\n" +
                 "   gl_FragColor = isInLimits(uv.x, uvLimits.xz) && isInLimits(uv.y, uvLimits.yw) ?\n" +
                 "       tint * color * getTexture(tex, uv * 0.5 + 0.5) : vec4(0.0);\n" +
                 "}"
 
-        shader3DSVG = createShaderPlus("3d-svg", v3DSVG, y3DSVG, f3DSVG, listOf("tex"))
+        shader3DSVG = createShaderPlus("3d-svg", vSVG, ySVG, fSVG, listOf("tex"))
 
         val v3DCircle = v3DBase +
                 "a2 attr0;\n" + // angle, inner/outer

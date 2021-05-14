@@ -104,7 +104,7 @@ class LayerStripeSolution(
                     video!!
                     meta!!
 
-                    val frameWidth = (h * (1f + relativeVideoBorder) * video.w / video.h).roundToInt()
+                    val frameWidth = (h * (1f + relativeVideoBorder) * video.lastW / video.lastH).roundToInt()
 
                     var frameOffset = timeOffset % frameWidth
                     if (frameOffset < 0) frameOffset += frameWidth

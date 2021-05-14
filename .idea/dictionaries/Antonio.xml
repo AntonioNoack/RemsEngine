@@ -63,9 +63,11 @@
       <w>deeppink</w>
       <w>deepskyblue</w>
       <w>deformer</w>
+      <w>defs</w>
       <w>desaturate</w>
       <w>dimgray</w>
       <w>dimgrey</w>
+      <w>doctype</w>
       <w>dodgerblue</w>
       <w>dokumente</w>
       <w>dont</w>
@@ -79,6 +81,7 @@
       <w>ffprobe</w>
       <w>floralwhite</w>
       <w>fmpeg</w>
+      <w>foreignobject</w>
       <w>forestgreen</w>
       <w>fprobe</w>
       <w>fract</w>
@@ -136,6 +139,7 @@
       <w>lightsteelblue</w>
       <w>lightyellow</w>
       <w>limegreen</w>
+      <w>lineargradient</w>
       <w>lwjgl</w>
       <w>mediumaquamarine</w>
       <w>mediumblue</w>
@@ -174,11 +178,13 @@
       <w>papayawhip</w>
       <w>peachpuff</w>
       <w>perlin</w>
+      <w>pgfref</w>
       <w>phychi</w>
       <w>pickable</w>
       <w>powderblue</w>
       <w>premultiplied</w>
       <w>quat</w>
+      <w>radialgradient</w>
       <w>rasterization</w>
       <w>rawvideo</w>
       <w>remsstudio</w>
@@ -192,6 +198,8 @@
       <w>segoe</w>
       <w>shaders</w>
       <w>sinh</w>
+      <w>skewx</w>
+      <w>skewy</w>
       <w>skyblue</w>
       <w>skybox</w>
       <w>slateblue</w>
@@ -207,6 +215,7 @@
       <w>symbola</w>
       <w>tonemapping</w>
       <w>treemiddle</w>
+      <w>triangulator</w>
       <w>uchimura</w>
       <w>ultrafast</w>
       <w>unifont</w>
