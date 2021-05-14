@@ -646,7 +646,7 @@ object ShaderLib {
                 "a3 aLocalPosition;\n" +
                 "a2 aLocalPos2;\n" +
                 "a4 aFormula0;\n" +
-                "a2 aFormula1;\n" +
+                "a1 aFormula1;\n" +
                 "a4 aColor0, aColor1, aColor2, aColor3;\n" +
                 "a4 aStops;\n" +
                 "a1 aPadding;\n" +
@@ -668,7 +668,7 @@ object ShaderLib {
         val ySVG = y3D +
                 "varying v4 color0, color1, color2, color3, stops;\n" +
                 "varying v4 formula0;\n" +
-                "varying v2 formula1;\n" +
+                "varying v1 formula1;\n" +
                 "varying v1 padding;\n" +
                 "varying v2 localPos2;\n"
 
@@ -682,16 +682,17 @@ object ShaderLib {
                 ascColorDecisionList +
                 "bool isInLimits(float value, vec2 minMax){\n" +
                 "   return value >= minMax.x && value <= minMax.y;\n" +
-                "}\n" +
+                "}\n" + // sqrt and ² for better color mixing
                 "vec4 mix(vec4 a, vec4 b, float stop, vec2 stops){\n" +
-                "   return mix(a, b, clamp((stop-stops.x)/(stops.y-stops.x), 0, 1));\n" +
+                "   float f = clamp((stop-stops.x)/(stops.y-stops.x), 0, 1);\n" +
+                "   return vec4(sqrt(mix(a.rgb*a.rgb, b.rgb*b.rgb, f)), mix(a.a, b.a, f));\n" +
                 "}\n" +
                 "void main(){\n" +
                 // apply the formula; polynomial of 2nd degree
-                "   float stopValue = \n" + //
-                "       dot(formula0, vec4(1.0, localPos2.xy, localPos2.x * localPos2.x)) +\n" +
-                "       dot(formula1, localPos2.xy * localPos2.y);\n" +
-                "   if(formula0.w > 0.0) stopValue = sqrt(max(stopValue, 0.0));\n" +
+                "   vec2 delta = localPos2 - formula0.xy;\n" +
+                "   vec2 dir = formula0.zw;\n" +
+                "   vec2 deltaXDir = delta * dir;\n" +
+                "   float stopValue = formula1 > 0.5 ? length(deltaXDir) : dot(dir, delta);\n" +
                 "   if(stopValue < 0.0 || stopValue > 1.0){" +
                 "       if(padding < 0.5){\n" + // clamp
                 "           stopValue = clamp(stopValue, 0.0, 1.0);\n" +

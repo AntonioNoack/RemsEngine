@@ -225,7 +225,7 @@ class SVGMesh {
                 // upload all shapes
                 val gradient = curve.gradient
                 gradient.fill(formula, c0, c1, c2, c3, stops)
-                if (gradient.colors.size > 1) println("$gradient -> $formula")
+                // if (gradient.colors.size > 1) println("$gradient -> $formula")
                 val padding = gradient.spreadMethod.id.toFloat()
                 val depth = curve.depth.toFloat()
                 curve.triangles.forEach { v ->
@@ -233,8 +233,9 @@ class SVGMesh {
                     val vy = v.y()
                     buffer.put(((vx - cx) * scale).toFloat(), ((vy - cy) * scale).toFloat(), depth)
                     buffer.put(((vx - minX) * scaleX).toFloat(), ((vy - minY) * scaleY).toFloat())
-                    buffer.put(formula.v, formula.x, formula.y)
-                    buffer.put(formula.xx, formula.xy, formula.yy)
+                    buffer.put(formula.position.x.toFloat(), formula.position.y.toFloat())
+                    buffer.put(formula.directionOrRadius.x.toFloat(), formula.directionOrRadius.y.toFloat())
+                    buffer.put(if(formula.isCircle) 1f else 0f)
                     buffer.put(c0)
                     buffer.put(c1)
                     buffer.put(c2)
@@ -776,13 +777,14 @@ class SVGMesh {
     fun close() = end(true)
 
     companion object {
+
         private val LOGGER = LogManager.getLogger(SVGMesh::class)
 
         val attr = listOf(
             Attribute("aLocalPosition", 3),
             Attribute("aLocalPos2", 2),
             Attribute("aFormula0", 4),
-            Attribute("aFormula1", 2),
+            Attribute("aFormula1", 1),
             Attribute("aColor0", 4),
             Attribute("aColor1", 4),
             Attribute("aColor2", 4),

@@ -2,6 +2,8 @@ package me.anno.image.svg.gradient
 
 import me.anno.image.svg.SVGMesh
 import me.anno.io.xml.XMLElement
+import me.anno.utils.types.Vectors.print
+import org.joml.Vector2d
 
 /**
 Example:
@@ -18,30 +20,27 @@ class RadialGradient : Gradient1D {
 
     constructor(mesh: SVGMesh, xmlElement: XMLElement) : super(xmlElement) {
         parseStops(mesh, xmlElement.children)
-        cx = xmlElement["cx"]?.toFloat() ?: cx
-        cy = xmlElement["cy"]?.toFloat() ?: cy
-        r = xmlElement["r"]?.toFloat() ?: r
+        position.set(
+            xmlElement["cx"]?.toDouble() ?: position.x,
+            xmlElement["cy"]?.toDouble() ?: position.y
+        )
+        r = xmlElement["r"]?.toDouble() ?: r
     }
 
-    var cx = 0.5f
-    var cy = 0.5f
-    var r = 0.5f
+    val position = Vector2d()
+    var r = 0.5
 
     // fx, fy, und fr sind irgendwie komplizierter...
     // kA, ob man die mit einem Polynom 2. Grades darstellen kann;
     // vermutlich nicht
 
     override fun fillFormula(formula: Formula) {
-        // todo this is awkward...
-        formula.v = 0f
-        formula.x = 0f
-        formula.y = 0f
-        formula.xx = 0.25f / (r * r)
-        formula.yy = 0.25f / (r * r)
-        formula.xy = 0f
-        formula.translate(-cx, -cy)
+        val invR = 1 / r // why inverted???
+        formula.position.set(0.5-position.x, 0.5-position.y)
+        formula.directionOrRadius.set(invR)
+        formula.isCircle = true
     }
 
-    override fun toString(): String = "RadialGradient($cx $cy $r)"
+    override fun toString(): String = "RadialGradient(${position.print()} $r)"
 
 }

@@ -22,15 +22,18 @@ class CSSReader {
 
         var i = 0
         while (i < str.length) {
+
             val lastI = i
             i = str.indexOf('{', i)
             if (i < 0) break // done
+
             val prefix = str.substring(lastI, i).trim()
             val endIndex = str.indexOf('}', i + 1)
             if (endIndex < 0) {
                 LOGGER.warn("Unexpected end of CSS")
                 break
             }
+
             val content = str.substring(i + 1, endIndex)
             i = endIndex + 1
             val container = when {
@@ -45,6 +48,7 @@ class CSSReader {
                     null
                 }
             }
+
             // interpret the stuff
             if(container != null){
                 val keyValuePairs = content
