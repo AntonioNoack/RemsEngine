@@ -80,6 +80,7 @@ class ColorInput(
         when {
             button.isLeft -> {
                 if(long) openColorChooser()
+                else super.onMouseClicked(x, y, button, long)
             }
             button.isRight -> {
                 Menu.openMenu(listOf(

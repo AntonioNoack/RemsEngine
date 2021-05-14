@@ -26,6 +26,10 @@ import me.anno.utils.OS
 
 // Launch4j
 
+// todo comparison black and white to see what is too dark (?)
+// todo when mixing strings, \n and spaces have a special role:
+// todo - substring should not be longer in a line than the total
+
 // todo tree view distances are broken somehow...
 
 // todo settings should open in a window, that does not cover everything, just maybe 90%
