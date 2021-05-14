@@ -48,9 +48,6 @@ import org.joml.Vector4f
 
 class TreeViewPanel(val getElement: () -> Transform, style: Style) : PanelListX(style) {
 
-    // todo double click to edit name
-    // todo text shadow, if text color and background color are close
-
     private val accentColor = style.getColor("accentColor", black or 0xff0000)
 
     val symbol = object : TextPanel("", style) {
@@ -93,7 +90,7 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style) : PanelListX(
     override fun onDoubleClick(x: Float, y: Float, button: MouseButton) {
         when {
             button.isLeft -> {
-                askName(x.toInt(), y.toInt(), NameDesc(), getElement().name, NameDesc("Change Name"), { textColor }) {
+                askName(this.x, this.y, NameDesc(), getElement().name, NameDesc("Change Name"), { textColor }) {
                     getElement().name = it
                 }
             }
@@ -177,9 +174,7 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style) : PanelListX(
         }
     }
 
-    override fun onCopyRequested(x: Float, y: Float): String? {
-        /*BinaryWriter(DataOutputStream(File(OS.desktop, "raw.bin").outputStream()))
-            .writeObject(null,null,getElement(),true)*/
+    override fun onCopyRequested(x: Float, y: Float): String {
         return getElement().stringify()
     }
 

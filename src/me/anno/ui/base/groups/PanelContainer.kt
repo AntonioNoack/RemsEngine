@@ -36,7 +36,7 @@ open class PanelContainer(onlyChild: Panel, val padding: Padding, style: Style):
 
     override fun placeInParent(x: Int, y: Int) {
         super.placeInParent(x, y)
-        child.placeInParent(x + padding.left, y + padding.right)
+        child.placeInParent(x + padding.left, y + padding.top)
     }
 
     companion object {

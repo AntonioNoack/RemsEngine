@@ -26,6 +26,8 @@ import me.anno.utils.OS
 
 // Launch4j
 
+// todo tree view distances are broken somehow...
+
 // todo settings should open in a window, that does not cover everything, just maybe 90%
 // todo project settings and render settings maybe should be windows instead of being inspectables
 

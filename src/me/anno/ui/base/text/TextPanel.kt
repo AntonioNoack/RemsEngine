@@ -3,7 +3,6 @@ package me.anno.ui.base.text
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.iconGray
 import me.anno.gpu.Cursor
-import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.GFXx2D
 import me.anno.gpu.GFXx2D.getSizeX
@@ -75,9 +74,9 @@ open class TextPanel(text: String, style: Style) : Panel(style) {
     // can be disabled for parents to copy ALL lines, e.g. for a bug report :)
     var disableCopy = false
 
-    fun drawText(x: Int, y: Int, text: String, color: Int): Int {
+    fun drawText(dx: Int, dy: Int, text: String, color: Int): Int {
         return GFXx2D.drawText(
-            this.x + x + padding.left, this.y + y + padding.top, font,
+            this.x + dx + padding.left, this.y + dy + padding.top, font,
             text, color, backgroundColor, widthLimit
         )
     }
@@ -91,7 +90,8 @@ open class TextPanel(text: String, style: Style) : Panel(style) {
         val inst = instantTextLoading
         if (inst) loadTexturesSync.push(true)
         super.calculateSize(w, h)
-        val size = getTextSize(font, text, if (breaksIntoMultiline) w - padding.width else -1)
+        val limit = if (breaksIntoMultiline) w - padding.width else -1
+        val size = getTextSize(font, text, limit)
         minW = max(1, getSizeX(size) + padding.width)
         minH = max(1, getSizeY(size) + padding.height)
         minW2 = minW

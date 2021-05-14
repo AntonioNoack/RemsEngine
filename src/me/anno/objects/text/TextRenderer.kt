@@ -9,7 +9,6 @@ import me.anno.gpu.GFXx3D
 import me.anno.objects.modes.TextRenderMode
 import me.anno.studio.rems.Selection
 import me.anno.ui.editor.sceneView.Grid
-import me.anno.utils.types.AnyToFloat.get
 import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Vectors.mulAlpha
 import me.anno.utils.types.Vectors.times
@@ -261,66 +260,67 @@ object TextRenderer {
             val texture = sdf?.texture
             if (texture != null && texture.isCreated) {
 
-                stack.next {
+                val baseScale =
+                    TextMesh.DEFAULT_LINE_HEIGHT / sdfResolution / (exampleLayout.ascent + exampleLayout.descent)
 
-                    val baseScale =
-                        TextMesh.DEFAULT_LINE_HEIGHT / sdfResolution / (exampleLayout.ascent + exampleLayout.descent)
+                val scaleX = 0.5f * texture.w * baseScale
+                val scaleY = 0.5f * texture.h * baseScale
+                val scale = scale0
 
-                    val scaleX = 0.5f * texture.w * baseScale
-                    val scaleY = 0.5f * texture.h * baseScale
+                val sdfOffset = sdf.offset
+                val offset = Vector2f(
+                    (lineDeltaX + xOffset) * scaleX,
+                    lineDeltaY * scaleY
+                ).add(sdfOffset)
 
-                    /**
-                     * character- and alignment offset
-                     * */
-                    stack.translate(lineDeltaX + xOffset, lineDeltaY, 0f)
-                    stack.scale(scaleX, scaleY, 1f)
+                /**
+                 * character- and alignment offset
+                 * */
+                val charAlignOffsetX = lineDeltaX + xOffset
+                val charAlignOffsetY = lineDeltaY + 0f
 
-                    val sdfOffset = sdf.offset
-                    val offset = Vector2f(
-                        (lineDeltaX + xOffset) * scaleX,
-                        lineDeltaY * scaleY
-                    ).add(sdfOffset)
+                /**
+                 * offset, because the textures are always centered; don't start from the bottom left
+                 * (text mesh does)
+                 * */
+                val sdfX = sdfOffset.x * scaleX
+                val sdfY = sdfOffset.y * scaleY
 
-                    /**
-                     * offset, because the textures are always centered; don't start from the bottom left
-                     * (text mesh does)
-                     * */
-                    stack.translate(sdfOffset.x, sdfOffset.y, 0f)
+                offset.set(charAlignOffsetX + sdfX, charAlignOffsetY + sdfY)
+                scale.set(scaleX, scaleY)
 
-                    scale0.set(scaleX, scaleY)
-                    if (firstTimeDrawing) {
+                if (firstTimeDrawing) {
 
-                        val outline = element.outlineWidths[time] * sdfResolution
-                        outline.y = max(0f, outline.y) + outline.x
-                        outline.z = max(0f, outline.z) + outline.y
-                        outline.w = max(0f, outline.w) + outline.z
+                    val outline = element.outlineWidths[time] * sdfResolution
+                    outline.y = max(0f, outline.y) + outline.x
+                    outline.z = max(0f, outline.z) + outline.y
+                    outline.w = max(0f, outline.w) + outline.z
 
-                        val s0 = Vector4f(extraSmoothness).add(element.outlineSmoothness[time])
+                    val s0 = Vector4f(extraSmoothness).add(element.outlineSmoothness[time])
 
-                        val smoothness = s0 * sdfResolution
+                    val smoothness = s0 * sdfResolution
 
-                        val outlineDepth = element.outlineDepth[time]
+                    val outlineDepth = element.outlineDepth[time]
 
-                        GFXx3D.drawOutlinedText(
-                            element, time,
-                            stack, offset, scale0,
-                            texture, color, 5,
-                            arrayOf(
-                                color, oc1, oc2, oc3,
-                                Vector4f(0f)
-                            ),
-                            floatArrayOf(-1e3f, outline.x, outline.y, outline.z, outline.w),
-                            floatArrayOf(0f, smoothness.x, smoothness.y, smoothness.z, smoothness.w),
-                            outlineDepth
-                        )
+                    GFXx3D.drawOutlinedText(
+                        element, time,
+                        stack, offset, scale,
+                        texture, color, 5,
+                        arrayOf(
+                            color, oc1, oc2, oc3,
+                            Vector4f(0f)
+                        ),
+                        floatArrayOf(-1e3f, outline.x, outline.y, outline.z, outline.w),
+                        floatArrayOf(0f, smoothness.x, smoothness.y, smoothness.z, smoothness.w),
+                        outlineDepth
+                    )
 
-                        firstTimeDrawing = false
+                    firstTimeDrawing = false
 
-                    } else {
+                } else {
 
-                        GFXx3D.drawOutlinedText(stack, offset, scale0, texture)
+                    GFXx3D.drawOutlinedText(stack, offset, scale, texture)
 
-                    }
                 }
 
             } else if (sdf?.isValid != true) {

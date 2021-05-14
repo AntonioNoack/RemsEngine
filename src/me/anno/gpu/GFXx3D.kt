@@ -339,7 +339,7 @@ object GFXx3D {
         depth: Float
     ) {
 
-        val shader = ShaderLib.shader3DOutlinedText
+        val shader = ShaderLib.shaderSDFText
         shader.use()
         transformUniform(shader, stack)
         GFXTransform.uploadAttractors(that, shader, time)
@@ -391,7 +391,7 @@ object GFXx3D {
         scale: Vector2fc,
         texture: Texture2D
     ) {
-        val shader = ShaderLib.shader3DOutlinedText
+        val shader = ShaderLib.shaderSDFText
         shader.use()
         transformUniform(shader, stack)
         shader.v2("offset", offset)

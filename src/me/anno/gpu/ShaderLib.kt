@@ -26,7 +26,7 @@ object ShaderLib {
     lateinit var shader3DPolygon: Shader
     lateinit var shader3D: Shader
     lateinit var shader3DforText: Shader
-    lateinit var shader3DOutlinedText: Shader
+    lateinit var shaderSDFText: Shader
     lateinit var shader3DRGBA: Shader
     lateinit var shader3DYUV: Shader
     lateinit var shader3DARGB: Shader
@@ -440,8 +440,7 @@ object ShaderLib {
                     "   gl_Position = transform * vec4(localPosition, 1.0);\n" +
                     positionPostProcessing +
                     "   vertexId = gl_VertexID;\n" +
-                    "}",
-            y3D + "" +
+                    "}", y3D + "" +
                     "flat varying int vertexId;\n", "" +
                     "u4 tint;" +
                     noiseFunc +
@@ -455,18 +454,17 @@ object ShaderLib {
         )
         shader3DforText.ignoreUniformWarnings(listOf("tiling", "forceFieldUVCount"))
 
-        shader3DOutlinedText = createShaderPlus(
+        shaderSDFText = createShaderPlus(
             "3d-text-withOutline", v3DBase +
                     "a3 attr0;\n" +
                     "a2 attr1;\n" +
                     "u2 offset, scale;\n" +
                     "void main(){\n" +
-                    "   localPosition = vec3(attr0.xy * scale + offset, 0.0);\n" +
-                    "   gl_Position = transform * vec4(attr0, 1.0);\n" +
-                    positionPostProcessing +
                     "   uv = attr0.xy * 0.5 + 0.5;\n" +
-                    "}",
-            y3D, "" +
+                    "   localPosition = vec3(attr0.xy * scale + offset, 0.0);\n" +
+                    "   gl_Position = transform * vec4(localPosition, 1.0);\n" +
+                    positionPostProcessing +
+                    "}", y3D, "" +
                     "u4 tint;" +
                     noiseFunc +
                     getTextureLib +
@@ -496,7 +494,7 @@ object ShaderLib {
                     "   gl_FragColor = color;\n" +
                     "}", listOf("tex")
         )
-        shader3DOutlinedText.ignoreUniformWarnings(
+        shaderSDFText.ignoreUniformWarnings(
             listOf(
                 "tiling",
                 "filtering",
@@ -615,7 +613,7 @@ object ShaderLib {
                 "}"
         shader3DGaussianBlur = createShader("3d-blur", v3DMasked, y3DMasked, f3DGaussianBlur, listOf("tex"))
 
-// somehow becomes dark for large |steps|-values
+        // somehow becomes dark for large |steps|-values
         shader3DBoxBlur = createShader(
             "3d-blur", "" +
                     "a2 attr0;\n" +
@@ -749,7 +747,7 @@ object ShaderLib {
             )
         )
 
-// create the obj+mtl shader
+        // create the obj+mtl shader
         shaderObjMtl = createShaderPlus(
             "obj/mtl",
             v3DBase +
@@ -776,7 +774,7 @@ object ShaderLib {
                     "}", listOf("tex")
         )
 
-// create the fbx shader
+        // create the fbx shader
         shaderFBX = FBXShader.getShader(v3DBase, positionPostProcessing, y3D, getTextureLib)
 
         shader3DYUV = createShaderPlus(
