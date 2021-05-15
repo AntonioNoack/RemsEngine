@@ -1,5 +1,7 @@
 package me.anno.audio
 
+import me.anno.audio.AudioPools.FAPool
+import me.anno.audio.AudioPools.SAPool
 import me.anno.audio.effects.Domain
 import me.anno.audio.effects.SoundEffect
 import me.anno.audio.effects.SoundEffect.Companion.copy
@@ -9,14 +11,15 @@ import me.anno.audio.effects.Time
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.cache.data.ICacheData
+import me.anno.io.FileReference
 import me.anno.objects.Audio
 import me.anno.objects.Camera
 import me.anno.objects.modes.LoopingState
 import me.anno.utils.Maths.clamp
-import me.anno.io.FileReference
 import me.anno.utils.hpc.ProcessingQueue
 import me.anno.video.AudioCreator.Companion.playbackSampleRate
 import org.apache.logging.log4j.LogManager
+import java.util.concurrent.Semaphore
 import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.roundToLong
@@ -102,7 +105,13 @@ object AudioFXCache : CacheSection("AudioFX") {
             left, right, domain == Domain.TIME_DOMAIN
         )
 
-        override fun destroy() {}
+        override fun destroy() {
+            FAPool.returnBuffer(timeLeft)
+            FAPool.returnBuffer(freqLeft)
+            FAPool.returnBuffer(timeRight)
+            FAPool.returnBuffer(freqRight)
+        }
+
     }
 
     fun getBuffer(
@@ -120,7 +129,7 @@ object AudioFXCache : CacheSection("AudioFX") {
             left!!
             LOGGER.info(left.size.toString())
             val other = if (domain == Domain.TIME_DOMAIN) Domain.FREQUENCY_DOMAIN else Domain.TIME_DOMAIN
-            val left2 = FloatArray(left.size)
+            val left2 = FAPool[left.size]
             copy(left, left2)
             changeDomain(domain, other, left2)
             left = left2
@@ -130,7 +139,7 @@ object AudioFXCache : CacheSection("AudioFX") {
             right = if (domain == Domain.TIME_DOMAIN) buffer.freqRight else buffer.timeRight
             right!!
             val other = if (domain == Domain.TIME_DOMAIN) Domain.FREQUENCY_DOMAIN else Domain.TIME_DOMAIN
-            val right2 = FloatArray(right.size)
+            val right2 = FAPool[right.size]
             copy(right, right2)
             changeDomain(domain, other, right2)
             right = right2
@@ -139,12 +148,16 @@ object AudioFXCache : CacheSection("AudioFX") {
         return left to right
     }
 
+    // limit the calls to this function, at max 32 simultaneously
+    // this fixes the running out of memory issues from 13-15th May 2021
+    private val rawDataLimiter = Semaphore(32)
     fun getRawData(
         source: Audio,
         destination: Camera,
         key: PipelineKey
     ): AudioData {
-        return getEntry(key to "", timeout, false) {
+        rawDataLimiter.acquire()
+        val entry = getEntry(key to "", timeout, false) {
             val meta = source.forcedMeta!!
             val stream = AudioStreamRaw(
                 key.file, key.repeat,
@@ -155,6 +168,8 @@ object AudioFXCache : CacheSection("AudioFX") {
             val pair = stream.getBuffer(key.index)
             AudioData(pair.first, pair.second, Domain.TIME_DOMAIN)
         } as AudioData
+        rawDataLimiter.release()
+        return entry
     }
 
     fun getBuffer(
@@ -172,8 +187,8 @@ object AudioFXCache : CacheSection("AudioFX") {
                 // get previous data, and process it
                 val effect = effectKey.effect
                 val previousKey = pipelineKey.previousKey!!
-                val left = FloatArray(bufferSize)
-                val right = FloatArray(bufferSize)
+                val left = FAPool[bufferSize]
+                val right = FAPool[bufferSize]
                 val cachedSolutions = HashMap<Long, Pair<FloatArray, FloatArray>>()
                 effect.apply({ deltaIndex ->
                     val newIndex = deltaIndex + key.index
@@ -260,6 +275,12 @@ object AudioFXCache : CacheSection("AudioFX") {
 
     }
 
+    class ShortData: CacheData<ShortArray?>(null){
+        override fun destroy() {
+            SAPool.returnBuffer(value)
+        }
+    }
+
     fun getRange(
         index0: Long,
         index1: Long,
@@ -270,10 +291,10 @@ object AudioFXCache : CacheSection("AudioFX") {
     ): ShortArray? {
         val queue = if (async) rangingProcessing2 else null
         val entry = getEntry(RangeKey(index0, index1, identifier), 10000, queue) {
-            val data = CacheData<ShortArray?>(null)
+            val data = ShortData()
             rangingProcessing += {
                 val splits = SPLITS
-                val values = ShortArray(splits * 2)
+                val values = SAPool[splits * 2]
                 var lastBufferIndex = 0L
                 lateinit var buffer: Pair<FloatArray, FloatArray>
                 val bufferSizeM1 = bufferSize - 1
@@ -317,8 +338,8 @@ object AudioFXCache : CacheSection("AudioFX") {
                 data.value = values
             }
             data
-        } as? CacheData<*> ?: return null
-        return entry.value as? ShortArray
+        } as? ShortData ?: return null
+        return entry.value
     }
 
     fun getKey(

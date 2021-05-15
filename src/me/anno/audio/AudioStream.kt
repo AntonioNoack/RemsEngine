@@ -3,14 +3,13 @@ package me.anno.audio
 import me.anno.audio.effects.SoundPipeline.Companion.bufferSize
 import me.anno.audio.effects.Time
 import me.anno.audio.openal.SoundBuffer
-import me.anno.gpu.pooling.ByteBufferPool
+import me.anno.utils.pooling.ByteBufferPool
 import me.anno.objects.Audio
 import me.anno.objects.Camera
 import me.anno.objects.modes.LoopingState
 import me.anno.io.FileReference
 import me.anno.video.FFMPEGMetadata
 import me.anno.video.FFMPEGMetadata.Companion.getMeta
-import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.ShortBuffer
 import java.util.concurrent.atomic.AtomicBoolean
@@ -48,7 +47,7 @@ abstract class AudioStream(
     // should be at least as long as the ffmpeg response time (0.3s for the start of a FHD video)
     companion object {
 
-        val bufferPool = ByteBufferPool(32)
+        val bufferPool = ByteBufferPool(32, true)
 
         fun getIndex(globalTime: Double, speed: Double, playbackSampleRate: Int): Long {
             val progressedSamples = ((globalTime / speed) * playbackSampleRate).toLong()
@@ -95,8 +94,7 @@ abstract class AudioStream(
         isWaitingForBuffer.set(true)
         AudioStreamRaw.taskQueue += {// load all data async
 
-            val byteBuffer = bufferPool
-                .get(bufferSize * 2 * 2)
+            val byteBuffer = bufferPool[bufferSize * 2 * 2]
                 .order(ByteOrder.nativeOrder())
             val stereoBuffer = byteBuffer.asShortBuffer()
 

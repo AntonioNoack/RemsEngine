@@ -34,13 +34,12 @@ class AmplitudeEffect : SoundEffect(Domain.TIME_DOMAIN, Domain.TIME_DOMAIN) {
     ) {
 
         val src = getDataSrc(0)
-        val dst = FloatArray(bufferSize)
 
         val amplitude = source.amplitude
         if (!amplitude.isAnimated && amplitude.drivers[0] == null) {
 
             val singleMultiplier = amplitude[time0.localTime]
-            for (i in 0 until bufferSize) dst[i] = src[i] * singleMultiplier
+            for (i in 0 until bufferSize) dataDst[i] = src[i] * singleMultiplier
 
         } else {
 
@@ -48,7 +47,7 @@ class AmplitudeEffect : SoundEffect(Domain.TIME_DOMAIN, Domain.TIME_DOMAIN) {
             val t1 = time1.localTime
             processBalanced(0, bufferSize, false) { i0, i1 ->
                 for (i in i0 until i1) {
-                    dst[i] = src[i] * amplitude[mix(t0, t1, i.toDouble() / bufferSize)]
+                    dataDst[i] = src[i] * amplitude[mix(t0, t1, i.toDouble() / bufferSize)]
                 }
             }
 

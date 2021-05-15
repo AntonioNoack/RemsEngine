@@ -10,6 +10,7 @@ import me.anno.video.formats.BGRAFrame
 import me.anno.video.formats.I420Frame
 import me.anno.video.formats.RGBFrame
 import org.apache.logging.log4j.LogManager
+import java.io.IOException
 import java.io.InputStream
 import kotlin.concurrent.thread
 
@@ -78,6 +79,9 @@ class FFMPEGVideo(
                     frameCallback(frame, frames.size)
                     frames.add(frame)
                 }
+            } catch (e: IOException) {
+                frameCountByFile[file!!] = frames.size + frame0
+                isFinished = true
             } catch (e: LastFrame) {
                 frameCountByFile[file!!] = frames.size + frame0
                 isFinished = true

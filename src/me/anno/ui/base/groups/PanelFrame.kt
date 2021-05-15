@@ -1,6 +1,8 @@
 package me.anno.ui.base.groups
 
+import me.anno.parser.SimpleExpressionParser.isValue
 import me.anno.ui.base.Panel
+import me.anno.ui.base.Visibility
 import me.anno.ui.style.Style
 import kotlin.math.max
 
@@ -26,6 +28,11 @@ open class PanelFrame(sorter: Comparator<Panel>?, style: Style): PanelList(sorte
         children.forEach { child ->
             child.place(x, y, w, h)
         }
+    }
+
+    // if they are overlapping, we need to redraw the others as well
+    override fun drawsOverlaysOverChildren(lx0: Int, ly0: Int, lx1: Int, ly1: Int): Boolean {
+        return children.count { it.visibility == Visibility.VISIBLE } > 1
     }
 
     // todo if they are overlapping, and the lower one can be placed inside the upper one,

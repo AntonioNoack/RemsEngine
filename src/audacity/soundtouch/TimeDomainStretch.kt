@@ -1,5 +1,6 @@
 package audacity.soundtouch
 
+import me.anno.audio.AudioPools.FAPool
 import me.anno.utils.Maths.clamp
 import kotlin.math.max
 import kotlin.math.sqrt
@@ -532,7 +533,7 @@ class TimeDomainStretch {
         if (overlapLength > prevOvl) {
             // ensure that 'pMidBuffer' is aligned to 16 byte boundary for efficiency
             // impossible in Java, but maybe already done in the backend
-            pMidBuffer = FloatArray(overlapLength * 2)// +4, align
+            pMidBuffer = FAPool[overlapLength * 2]// +4, align
             clearMidBuffer()
         }
     }

@@ -1,5 +1,6 @@
 package me.anno.audio
 
+import me.anno.audio.AudioPools.FAPool
 import me.anno.audio.effects.SoundPipeline.Companion.bufferSize
 import me.anno.audio.openal.SoundBuffer
 import me.anno.cache.instances.AudioCache
@@ -190,8 +191,8 @@ class AudioStreamRaw(
         val updateInterval = 1024
         val updateMask = updateInterval - 1
 
-        val leftBuffer = FloatArray(sampleCount)
-        val rightBuffer = FloatArray(sampleCount)
+        val leftBuffer = FAPool[sampleCount]
+        val rightBuffer = FAPool[sampleCount]
 
         val s0 = ShortPair()
         val s1 = ShortPair()

@@ -78,55 +78,6 @@ class SoundPipeline() : Saveable(), Inspectable {
 
     val effects = ArrayList<SoundEffect>()
 
-    //val fft = FloatFFT_1D(bufferSize.toLong())
-
-    val input = FloatArray(bufferSize)
-
-    /*fun process(
-        data0: FloatArray,
-        inputDomain: Domain,
-        outputDomain: Domain,
-        time0: Time, time1: Time
-    ): FloatArray {
-
-        val camera = camera
-
-        val totalSize = data0.size
-        if (totalSize < bufferSize) {
-            throw IllegalArgumentException("Input is too small!")
-        } else if (totalSize > bufferSize) {
-            if (totalSize % bufferSize != 0) throw RuntimeException("Size must be a match, modulo")
-            val output = FloatArray(totalSize)
-            for (offset in data0.indices step bufferSize) {
-                System.arraycopy(data0, offset, input, 0, bufferSize)
-                val f0 = offset.toDouble() / totalSize
-                val f1 = (offset + bufferSize).toDouble() / totalSize
-                val t0 = time0.mix(time1, f0)
-                val t1 = time0.mix(time1, f1)
-                val partial = process(input, inputDomain, outputDomain, t0, t1)
-                System.arraycopy(partial, 0, output, offset, bufferSize)
-            }
-            return output
-        }
-
-        var data = data0
-        var domain = inputDomain
-        for (stage in stages) {
-            changeDomain(domain, stage.inputDomain, data, fft)
-            data = stage.apply(data, audio, camera, time0, time1)
-            domain = stage.outputDomain
-        }
-
-        changeDomain(domain, outputDomain, data, fft)
-        if(outputDomain == Domain.TIME_DOMAIN){
-            fixJumps(data, lastValue, 0, min(512, bufferSize))
-            lastValue = data.last()
-        }
-
-        return data
-
-    }*/
-
     //var isFirstBuffer = true
     /*var lastValue = 0f
     fun fixJumps(output: FloatArray, v0: Float, index1: Int, length: Int) {

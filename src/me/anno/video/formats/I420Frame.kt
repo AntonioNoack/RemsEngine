@@ -27,24 +27,17 @@ class I420Frame(iw: Int, ih: Int) : VFrame(iw, ih, 2) {
     override fun load(input: InputStream) {
         val s0 = w * h
         val s1 = w2 * h2
-        val yData = input.readNBytes2(s0, Texture2D.byteArrayPool[s0])
-        if (yData.isEmpty()) throw LastFrame()
-        if (yData.size < s0) throw RuntimeException("not enough data, only ${yData.size} of $s0")
+        val yData = input.readNBytes2(s0, Texture2D.byteBufferPool[s0])
         GFX.addGPUTask(w, h) {
             y.createMonochrome(yData)
-            Texture2D.byteArrayPool += yData
         }
-        val uData = input.readNBytes2(s1, Texture2D.byteArrayPool[s0])
-        if (uData.size < s1) throw RuntimeException("not enough data, only ${uData.size} of $s1")
+        val uData = input.readNBytes2(s1, Texture2D.byteBufferPool[s0])
         GFX.addGPUTask(w2, h2) {
             u.createMonochrome(uData)
-            Texture2D.byteArrayPool += uData
         }
-        val vData = input.readNBytes2(s1, Texture2D.byteArrayPool[s0])
-        if (vData.size < s1) throw RuntimeException("not enough data, only ${vData.size} of $s1")
+        val vData = input.readNBytes2(s1, Texture2D.byteBufferPool[s0])
         GFX.addGPUTask(w2, h2) {
             v.createMonochrome(vData)
-            Texture2D.byteArrayPool += vData
             // tasks are executed in order, so this is true
             // (if no exception happened)
         }

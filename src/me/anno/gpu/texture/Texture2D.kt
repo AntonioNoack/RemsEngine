@@ -7,10 +7,10 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFX.glThread
 import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.framebuffer.TargetType
-import me.anno.gpu.pooling.ByteArrayPool
-import me.anno.gpu.pooling.ByteBufferPool
 import me.anno.objects.modes.RotateJPEG
 import me.anno.utils.Threads.threadWithName
+import me.anno.utils.pooling.ByteArrayPool
+import me.anno.utils.pooling.ByteBufferPool
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
 import org.lwjgl.opengl.GL11
@@ -520,8 +520,8 @@ open class Texture2D(
 
     companion object {
 
-        val byteBufferPool = ByteBufferPool(64)
-        val byteArrayPool = ByteArrayPool(64)
+        val byteBufferPool = ByteBufferPool(64, true)
+        val byteArrayPool = ByteArrayPool(64, true)
 
         var allocated = 0L
         fun allocate(oldValue: Long, newValue: Long): Long {
