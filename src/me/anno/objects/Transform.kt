@@ -45,6 +45,7 @@ import me.anno.utils.structures.ValueWithDefaultFunc
 import me.anno.utils.types.Casting.castToDouble
 import me.anno.utils.types.Casting.castToDouble2
 import me.anno.utils.types.Matrices.skew
+import me.anno.utils.types.Strings.isBlank2
 import me.anno.video.MissingFrameException
 import org.apache.logging.log4j.LogManager
 import org.joml.*
@@ -95,7 +96,12 @@ open class Transform(var parent: Transform? = null) : Saveable(),
     var name: String
         get() = nameI.value
         set(value) {
-            nameI.value = value.trim()
+            val v = value.trim()
+            if(v.isBlank2()){
+                nameI.reset()
+            } else {
+                nameI.value = v
+            }
         }
 
     var comment = ""

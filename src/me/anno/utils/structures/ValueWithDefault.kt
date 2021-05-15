@@ -10,13 +10,14 @@ import me.anno.objects.animation.TimeValue.Companion.writeValue
  * because they can be set automatically
  * */
 class ValueWithDefault<V>(
-    private var state: V,
+    private var state: V?,
     private var default: V
 ) {
-    constructor(value: V) : this(value, value)
+
+    constructor(value: V) : this(null, value)
 
     var wasSet = false
-    val isSet get() = state != default || wasSet
+    val isSet get() = state != null && (state != default || wasSet)
     fun write(writer: BaseWriter, self: ISaveable?, name: String) {
         if (isSet) {
             writer.writeValue(self, name, state)
@@ -24,7 +25,7 @@ class ValueWithDefault<V>(
     }
 
     var value
-        get() = if (wasSet) state else default
+        get() = if (isSet) state!! else default
         set(value) {
             state = value
             wasSet = true
@@ -32,11 +33,12 @@ class ValueWithDefault<V>(
 
     fun reset() {
         wasSet = false
+        state = null
     }
 
     fun setDefault(v: V) {
-        state = v
         default = v
+        state = null
     }
 
     /**

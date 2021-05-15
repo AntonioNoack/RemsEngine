@@ -28,4 +28,7 @@ open class PanelFrame(sorter: Comparator<Panel>?, style: Style): PanelList(sorte
         }
     }
 
+    // todo if they are overlapping, and the lower one can be placed inside the upper one,
+    // todo draw only the necessary parts for it
+
 }

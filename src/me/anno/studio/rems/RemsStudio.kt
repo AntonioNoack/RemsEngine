@@ -26,6 +26,8 @@ import me.anno.utils.OS
 
 // Launch4j
 
+// todo change the blue timeline color (3rd channel) to sth brighter
+
 // todo comparison black and white to see what is too dark (?)
 // todo when mixing strings, \n and spaces have a special role:
 // todo - substring should not be longer in a line than the total

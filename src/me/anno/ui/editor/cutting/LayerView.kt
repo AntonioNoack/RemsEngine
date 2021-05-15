@@ -54,7 +54,7 @@ class LayerView(val timelineSlot: Int, style: Style) : TimelinePanel(style) {
     // todo select multiple elements to move them around together
     // todo they shouldn't be parent and children, because that would have awkward results...
 
-    val height = 50
+    val height = style.getSize("fontSize", 15) * 3
 
     override fun getTooltipPanel(x: Float, y: Float): Panel? {
         val video = getTransformAt(x, y) as? Video

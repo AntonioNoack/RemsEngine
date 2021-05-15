@@ -10,6 +10,7 @@ import me.anno.language.translation.Dict
 import me.anno.studio.Logging
 import me.anno.ui.base.Panel
 import me.anno.ui.base.buttons.TextButton
+import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.debug.console.COLine
 import me.anno.ui.debug.console.ConsoleLogFullscreen
@@ -27,6 +28,8 @@ open class SimpleTextPanel(style: Style) : Panel(style) {
             invalidateDrawing()
         }
 
+    var alignment = AxisAlignment.MIN
+
     var textColor = style.getColor("textColor", DefaultStyle.iconGray)
     var focusTextColor = style.getColor("textColorFocused", -1)
 
@@ -43,9 +46,14 @@ open class SimpleTextPanel(style: Style) : Panel(style) {
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         GFX.loadTexturesSync.push(true)
         super.onDraw(x0, y0, x1, y1)
+        val offset = when(alignment){
+            AxisAlignment.MIN -> 1
+            AxisAlignment.CENTER -> w/2
+            AxisAlignment.MAX -> w-1
+        }
         GFXx2D.drawSimpleTextCharByChar(
-            x + 1, y + 2, 2, // idk...
-            text, textColor, backgroundColor
+            x + offset, y + 2, 2, // idk...
+            text, textColor, backgroundColor, alignment
         )
         GFX.loadTexturesSync.pop()
     }

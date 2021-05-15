@@ -110,10 +110,9 @@ class ImageData(file: FileReference) : ICacheData {
                 val img = HDRImage(file.file, true)
                 val w = img.width
                 val h = img.height
-                val pixels = img.pixelBuffer
                 GFX.addGPUTask(w, h) {
                     texture.setSize(w, h)
-                    texture.create(pixels)
+                    texture.create(img.pixelBuffer, img.byteBuffer)
                 }
             }
             "webp" -> {

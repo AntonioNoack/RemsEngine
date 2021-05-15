@@ -5,7 +5,10 @@ import me.anno.io.FileReference
 import me.anno.utils.ShutdownException
 import me.anno.utils.Sleep.waitUntil
 import me.anno.video.IsFFMPEGOnly.isFFMPEGOnlyExtension
-import me.anno.video.formats.*
+import me.anno.video.formats.ARGBFrame
+import me.anno.video.formats.BGRAFrame
+import me.anno.video.formats.I420Frame
+import me.anno.video.formats.RGBFrame
 import org.apache.logging.log4j.LogManager
 import java.io.InputStream
 import kotlin.concurrent.thread
@@ -44,6 +47,8 @@ class FFMPEGVideo(
                 for (i in 1 until frameCount) {
                     readFrame(input)
                 }
+            } catch (e: OutOfMemoryError) {
+                LOGGER.warn("Engine has run out of memory!!")
             } catch (e: ShutdownException) {
                 // ...
             }

@@ -7,6 +7,8 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFX.glThread
 import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.framebuffer.TargetType
+import me.anno.gpu.pooling.ByteArrayPool
+import me.anno.gpu.pooling.ByteBufferPool
 import me.anno.objects.modes.RotateJPEG
 import me.anno.utils.Threads.threadWithName
 import org.apache.logging.log4j.LogManager
@@ -206,7 +208,7 @@ open class Texture2D(
     }
 
     fun getBuffer(bytes: ByteArray): ByteBuffer {
-        val buffer = ByteBuffer.allocateDirect(w * h * 4)
+        val buffer = byteBufferPool.get(w * h * 4)
         when (bytes.size / (w * h)) {
             1 -> {
                 for (i in 0 until w * h) {
@@ -264,6 +266,7 @@ open class Texture2D(
         bindBeforeUpload()
         locallyAllocated = allocate(locallyAllocated, w * h * 4L)
         glTexImage2D(tex2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
+        byteBufferPool.returnBuffer(buffer)
         val t1 = System.nanoTime() // 0.02s for a single 4k texture
         isCreated = true
         filtering(filtering)
@@ -303,7 +306,7 @@ open class Texture2D(
     }*/
 
     fun toByteBuffer(ints: IntArray): ByteBuffer {
-        val buffer = ByteBuffer.allocateDirect(ints.size * 4)
+        val buffer = byteBufferPool.get(ints.size * 4)
         for (i in ints) buffer.putInt(i)
         buffer.position(0)
         return buffer
@@ -334,6 +337,7 @@ open class Texture2D(
         GFX.check()
         locallyAllocated = allocate(locallyAllocated, w * h.toLong())
         glTexImage2D(tex2D, 0, GL_RED, w, h, 0, GL_RED, GL_UNSIGNED_BYTE, data)
+        byteBufferPool.returnBuffer(data)
         isCreated = true
         filtering(filtering)
         clamping(clamping)
@@ -364,12 +368,13 @@ open class Texture2D(
         ensurePointer()
         bindBeforeUpload()
         GFX.check()
-        val byteBuffer = ByteBuffer.allocateDirect(data.size)
+        val byteBuffer = byteBufferPool.get(data.size)
         byteBuffer.position(0)
         byteBuffer.put(data)
         byteBuffer.position(0)
         locallyAllocated = allocate(locallyAllocated, w * h.toLong())
         glTexImage2D(tex2D, 0, GL_RED, w, h, 0, GL_RED, GL_UNSIGNED_BYTE, byteBuffer)
+        byteBufferPool.returnBuffer(byteBuffer)
         isCreated = true
         filtering(filtering)
         clamping(clamping)
@@ -378,23 +383,24 @@ open class Texture2D(
 
     fun create(data: FloatArray) {
         checkSize(4, data.size)
-        val byteBuffer = ByteBuffer
-            .allocateDirect(data.size * 4)
+        val byteBuffer = byteBufferPool
+            .get(data.size * 4)
             .order(ByteOrder.nativeOrder())
         byteBuffer.position(0)
         val floatBuffer = byteBuffer.asFloatBuffer()
         floatBuffer.put(data)
         floatBuffer.position(0)
-        create(floatBuffer)
+        create(floatBuffer, byteBuffer)
     }
 
-    fun create(buffer: FloatBuffer) {
+    fun create(buffer: FloatBuffer, byteBuffer: ByteBuffer?) {
         ensurePointer()
         bindBeforeUpload()
         GFX.check()
         // rgba32f as internal format is extremely important... otherwise the value is cropped
         locallyAllocated = allocate(locallyAllocated, w * h * 4L)
         glTexImage2D(tex2D, 0, GL_RGBA32F, w, h, 0, GL_RGBA, GL_FLOAT, buffer)
+        byteBufferPool.returnBuffer(byteBuffer)
         isCreated = true
         filtering(filtering)
         GFX.check()
@@ -402,7 +408,7 @@ open class Texture2D(
 
     fun createRGBA(data: ByteArray) {
         checkSize(4, data.size)
-        val byteBuffer = ByteBuffer.allocateDirect(data.size)
+        val byteBuffer = byteBufferPool.get(data.size)
         byteBuffer.position(0)
         byteBuffer.put(data)
         byteBuffer.position(0)
@@ -416,6 +422,7 @@ open class Texture2D(
         GFX.check()
         locallyAllocated = allocate(locallyAllocated, w * h * 4L)
         glTexImage2D(tex2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
+        byteBufferPool.returnBuffer(buffer)
         isCreated = true
         filtering(filtering)
         clamping(clamping)
@@ -512,6 +519,9 @@ open class Texture2D(
     }
 
     companion object {
+
+        val byteBufferPool = ByteBufferPool(64)
+        val byteArrayPool = ByteArrayPool(64)
 
         var allocated = 0L
         fun allocate(oldValue: Long, newValue: Long): Long {

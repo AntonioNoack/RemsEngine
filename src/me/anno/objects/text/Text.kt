@@ -304,8 +304,7 @@ open class Text(parent: Transform? = null) : GFXTransform(parent), SplittableEle
 
     override fun getClassName(): String = "Text"
     override fun getDefaultDisplayName() = // text can be null!!!
-        if (text == null) "" else (text.keyframes.maxBy { it.value.length }?.value ?: text.defaultValue)
-            .ifBlank { Dict["Text", "obj.text"] }
+        (text?.keyframes?.maxBy { it.value.length }?.value ?: text?.defaultValue)?.ifBlank { Dict["Text", "obj.text"] }
 
     override fun getSymbol() = DefaultConfig["ui.symbol.text", "\uD83D\uDCC4"]
 

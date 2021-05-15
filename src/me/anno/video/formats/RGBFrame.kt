@@ -2,8 +2,6 @@ package me.anno.video.formats
 
 import me.anno.gpu.GFX
 import me.anno.gpu.ShaderLib.shader3DRGBA
-import me.anno.gpu.TextureLib.colorShowTexture
-import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
@@ -13,7 +11,6 @@ import me.anno.video.LastFrame
 import me.anno.video.VFrame
 import java.io.EOFException
 import java.io.InputStream
-import java.nio.ByteBuffer
 
 class RGBFrame(w: Int, h: Int) : VFrame(w, h, -1) {
 
@@ -23,8 +20,8 @@ class RGBFrame(w: Int, h: Int) : VFrame(w, h, -1) {
 
     override fun load(input: InputStream) {
         val s0 = w * h
-        val data = ByteBuffer.allocateDirect(s0 * 4)
-        val srcData = input.readNBytes2(s0 * 3)
+        val data = Texture2D.byteBufferPool.get(s0 * 4)
+        val srcData = input.readNBytes2(s0 * 3, Texture2D.byteArrayPool[s0 * 3])
         if (srcData.isEmpty()) throw LastFrame()
         if (srcData.size < s0 * 3) throw EOFException("Missing data ${srcData.size} < ${s0 * 3} for $w x $h")
         processBalanced(0, s0, 2048) { i0, i1 ->
@@ -38,6 +35,7 @@ class RGBFrame(w: Int, h: Int) : VFrame(w, h, -1) {
             }
         }
         data.position(0)
+        Texture2D.byteArrayPool.returnBuffer(srcData)
         GFX.addGPUTask(w, h) {
             rgb.createRGBA(data)
         }

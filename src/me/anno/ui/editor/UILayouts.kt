@@ -40,7 +40,9 @@ import me.anno.ui.base.SpacePanel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.components.Padding
+import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.constraints.WrapAlign
+import me.anno.ui.base.groups.PanelFrame
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.menu.Menu.ask
@@ -547,10 +549,10 @@ object UILayouts {
 
         ui += SpacePanel(0, 1, style)
 
-        val bottom = PanelListX(style)
-        bottom += RemsStudio.createConsole().setWeight(1f)
-        bottom += RuntimeInfoPanel(style)
-        ui += bottom
+        val bottom2 = PanelFrame(style)
+        bottom2 += RemsStudio.createConsole()
+        bottom2 += RuntimeInfoPanel(style).apply { alignment = AxisAlignment.MAX }.setWeight(1f)
+        ui += bottom2
 
         windowStack.clear()
         windowStack += Window(ui)

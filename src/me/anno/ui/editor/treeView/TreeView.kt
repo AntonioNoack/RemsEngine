@@ -42,7 +42,7 @@ class TreeView(style: Style) :
         val panel = getOrCreateChild(index++, transform)
         //(panel.parent!!.children[0] as SpacePanel).minW = inset * depth + panel.padding.right
         val symbol = if (transform.isCollapsed) collapsedSymbol else transform.getSymbol()
-        panel.setText(symbol.trim(), transform.name)
+        panel.setText(symbol.trim(), transform.name.ifBlank { transform.getDefaultDisplayName() })
         val padding = panel.padding
         val left = inset * depth + padding.right
         if(padding.left != left){

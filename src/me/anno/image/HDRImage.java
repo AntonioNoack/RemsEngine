@@ -24,6 +24,7 @@ public class HDRImage {
     private int height;
 
     private float[] pixels;
+    private ByteBuffer nioBytes;
     private FloatBuffer nioPixels;
 
     public int getWidth() {
@@ -39,6 +40,10 @@ public class HDRImage {
     }
     public FloatBuffer getPixelBuffer() {
         return nioPixels;
+    }
+
+    public ByteBuffer getByteBuffer() {
+        return nioBytes;
     }
 
     public HDRImage(InputStream input, boolean useNioBuffer) throws IOException {
@@ -144,7 +149,7 @@ public class HDRImage {
         DataInput din = new DataInputStream(in);
 
         if(useNioBuffer){
-            ByteBuffer bytes = ByteBuffer.allocateDirect(width * height * 4 * 4);
+            ByteBuffer bytes = nioBytes = ByteBuffer.allocateDirect(width * height * 4 * 4);
             bytes.order(ByteOrder.nativeOrder());
             bytes.position(0);
             nioPixels = bytes.asFloatBuffer();
