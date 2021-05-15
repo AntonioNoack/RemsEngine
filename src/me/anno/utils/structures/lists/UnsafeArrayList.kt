@@ -1,5 +1,7 @@
 package me.anno.utils.structures.lists
 
+import java.util.function.Predicate
+
 /**
  * an arraylist, which does not fail with ConcurrentModificationException,
  * and is only thread-safe when modifying from a single Thread
@@ -118,6 +120,19 @@ class UnsafeArrayList<V>(capacity0: Int = 16) : MutableList<V> {
         if (index < 0) return false
         removeAt(index)
         return true
+    }
+
+    override fun removeIf(p0: Predicate<in V>): Boolean {
+        var writeIndex = 0
+        for (readIndex in 0 until size) {
+            val element = backend[readIndex]
+            if (!p0.test(element as V)) {
+                backend[writeIndex++] = element
+            }// else writeIndex not increasing
+        }
+        val hasChanged = size != writeIndex
+        size = writeIndex
+        return hasChanged
     }
 
     override fun removeAll(elements: Collection<V>): Boolean {
