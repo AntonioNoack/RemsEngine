@@ -31,8 +31,8 @@ object Installer {
     // all files need to be checked every time
     fun checkInstall() {
         if (!FFMPEG.isInstalled && OS.isWindows) {
-            downloadMaybe("ffmpeg.exe", ffmpegPath)
-            downloadMaybe("ffprobe.exe", ffprobePath)
+            downloadMaybe("ffmpeg/bin/ffmpeg.exe", ffmpegPath)
+            downloadMaybe("ffmpeg/bin/ffprobe.exe", ffprobePath)
         }
     }
 

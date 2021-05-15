@@ -16,6 +16,8 @@ class SizeLimitingContainer(
         val limitedW = if (sizeX < 0) w else Maths.min(w, sizeX)
         val limitedH = if (sizeY < 0) h else Maths.min(h, sizeY)
         super.calculateSize(limitedW, limitedH)
+        minW = kotlin.math.min(minW, sizeX)
+        minH = kotlin.math.min(minH, sizeY)
     }
 
 }

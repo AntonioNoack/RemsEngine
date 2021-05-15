@@ -23,6 +23,7 @@ import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.studio.StudioBase.Companion.workspace
 import me.anno.studio.rems.ProjectSettings
 import me.anno.studio.rems.RemsStudio
+import me.anno.studio.rems.RemsStudio.createConsole
 import me.anno.studio.rems.RemsStudio.gfxSettings
 import me.anno.studio.rems.RemsStudio.nullCamera
 import me.anno.studio.rems.RemsStudio.project
@@ -41,6 +42,7 @@ import me.anno.ui.base.Visibility
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment
+import me.anno.ui.base.constraints.SizeLimitingContainer
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelFrame
 import me.anno.ui.base.groups.PanelListX
@@ -386,6 +388,9 @@ object UILayouts {
             RemsStudio.showFPS,
             style
         ).setChangeListener { DefaultConfig["debug.ui.showFPS"] = it }
+
+        val fontSize = style.getSize("fontSize", 15)
+        welcome += SizeLimitingContainer(createConsole(), fontSize * 25, fontSize * 2, style)
 
         val scroll = ScrollPanelY(welcome, Padding(5), style)
         scroll += WrapAlign.Center

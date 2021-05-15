@@ -33,7 +33,12 @@ class LoggerImpl(prefix: String?) : Logger, Log {
 
     fun print(prefix: String, msg: String) {
         msg.split('\n').forEach { line ->
-            println("[${getTimeStamp()},$prefix$suffix] $line")
+            val line2 = "[${getTimeStamp()},$prefix$suffix] $line"
+            if(prefix == "ERR!"){
+                System.err.println(line2)
+            } else {
+                println(line2)
+            }
         }
     }
 
