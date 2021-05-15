@@ -150,6 +150,7 @@ object AudioFXCache : CacheSection("AudioFX") {
 
     // limit the calls to this function, at max 32 simultaneously
     // this fixes the running out of memory issues from 13-15th May 2021
+    // I don't know where these problems came from... in Release 1.1.2, they were fine
     private val rawDataLimiter = Semaphore(32)
     fun getRawData(
         source: Audio,
