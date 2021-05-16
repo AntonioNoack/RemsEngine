@@ -92,12 +92,16 @@ open class Transform(var parent: Transform? = null) : Saveable(),
 
     var timeAnimated = AnimatedProperty.double()
 
+    // todo update this value before drawing everything...
+    var indexInParent = 0
+    var drawnChildCount = 0
+
     var nameI = ValueWithDefaultFunc { getDefaultDisplayName() }
     var name: String
         get() = nameI.value
         set(value) {
             val v = value.trim()
-            if(v.isBlank2()){
+            if (v.isBlank2()) {
                 nameI.reset()
             } else {
                 nameI.value = v
@@ -106,6 +110,9 @@ open class Transform(var parent: Transform? = null) : Saveable(),
 
     var comment = ""
     var tags = ""
+
+    // todo display warnings, if applicable
+    var mostRecentWarning = ""
 
     open fun getDocumentationURL(): URL? = null
 
@@ -198,7 +205,7 @@ open class Transform(var parent: Transform? = null) : Saveable(),
             .setIsSelectedListener { show(null) }
 
         val docs = getDocumentationURL()
-        if(docs != null){
+        if (docs != null) {
             val docsPanel = LinkPanel(docs, style)
             docsPanel.setTooltip("Learn more")
             list += docsPanel
@@ -408,7 +415,11 @@ open class Transform(var parent: Transform? = null) : Saveable(),
     open fun drawChildrenAutomatically() = true
 
     fun drawChildren(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
-        children.forEach { child ->
+        val size = children.size
+        drawnChildCount = size
+        for (i in 0 until size) {
+            val child = children[i]
+            child.indexInParent = i
             drawChild(stack, time, color, child)
         }
     }
@@ -764,7 +775,7 @@ open class Transform(var parent: Transform? = null) : Saveable(),
     fun getDepth(): Int {
         var element: Transform? = this
         var ctr = 0
-        while(element != null){
+        while (element != null) {
             element = element.parent
             ctr++
         }
@@ -772,13 +783,14 @@ open class Transform(var parent: Transform? = null) : Saveable(),
     }
 
     private var tmpHierarchy: Array<Transform?>? = null
+
     /**
      * get the local time at that globalTime;
      * withAllocation = false may allocate as well ;p, but at least it's thread safe,
      * and it will allocate only, if the hierarchy changes
      * */
     fun getLocalTimeFromRoot(globalTime: Double, withAllocation: Boolean): Double {
-        if(withAllocation){
+        if (withAllocation) {
             val inh = listOfInheritance.toList().reversed()
             var localTime = globalTime
             for (e in inh) {
@@ -788,18 +800,18 @@ open class Transform(var parent: Transform? = null) : Saveable(),
         } else {
             val depth = getDepth()
             var hierarchy = tmpHierarchy
-            if(hierarchy == null || hierarchy.size < depth){
+            if (hierarchy == null || hierarchy.size < depth) {
                 hierarchy = arrayOfNulls(depth)
                 this.tmpHierarchy = hierarchy
             }
             var element: Transform? = this
             var ctr = 0
-            while(element != null){
+            while (element != null) {
                 hierarchy[ctr++] = element
                 element = element.parent
             }
             var localTime = globalTime
-            for(i in ctr-1 downTo 0){
+            for (i in ctr - 1 downTo 0) {
                 localTime = hierarchy[i]!!
                     .getLocalTime(localTime)
             }

@@ -1,5 +1,7 @@
 package me.anno.objects.meshes
 
+import me.anno.cache.data.ICacheData
+import me.anno.cache.instances.ImageCache.getImage
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.GFX.matrixBufferFBX
@@ -10,21 +12,17 @@ import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2D
-import me.anno.objects.Transform.Companion.yAxis
-import me.anno.cache.data.ICacheData
-import me.anno.cache.instances.ImageCache.getImage
 import me.anno.io.FileReference
 import me.anno.mesh.fbx.model.FBXGeometry
 import me.anno.mesh.obj.Material
+import me.anno.objects.Transform.Companion.yAxis
 import me.anno.video.MissingFrameException
 import me.karl.main.Camera
 import me.karl.scene.Scene
 import org.joml.Matrix4f
 import org.joml.Matrix4fArrayList
-import org.joml.Vector4f
 import org.joml.Vector4fc
 import org.lwjgl.opengl.GL20
-import java.io.File
 
 class MeshData : ICacheData {
 
@@ -43,7 +41,7 @@ class MeshData : ICacheData {
         }
     }
 
-    fun drawDae(stack: Matrix4fArrayList, time: Double, color: Vector4fc){
+    fun drawDae(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
         GFX.check()
         val scene = daeScene!!
         val renderer = Mesh.daeRenderer!!
@@ -80,18 +78,19 @@ class MeshData : ICacheData {
 
                 val bp = bone.parent
                 val parentMatrix = bp?.localJointMatrix
-                val angle = 1f * (GFX.gameTime/3 * 1e-9f).rem(1f)
+                val angle = 1f * (GFX.gameTime / 3 * 1e-9f).rem(1f)
 
-                val dx = jointMatrix[3,0] - (bp?.transform?.get(3,0) ?: 0f)
-                val dy = jointMatrix[3,1] - (bp?.transform?.get(3,1) ?: 0f)
-                val dz = jointMatrix[3,2] - (bp?.transform?.get(3,2) ?: 0f)
+                val dx = jointMatrix[3, 0] - (bp?.transform?.get(3, 0) ?: 0f)
+                val dy = jointMatrix[3, 1] - (bp?.transform?.get(3, 1) ?: 0f)
+                val dz = jointMatrix[3, 2] - (bp?.transform?.get(3, 2) ?: 0f)
 
                 // effectively bone-space parent-2-child-transform
-                val translateMat = Matrix4f().translate(dx, dy, dz).rotate(angle, yAxis) // Vector3f(dx,dy,dz).normalize()
+                val translateMat =
+                    Matrix4f().translate(dx, dy, dz).rotate(angle, yAxis) // Vector3f(dx,dy,dz).normalize()
 
                 var jointMat = translateMat// .mul(rotationMat)
 
-                if(parentMatrix != null){
+                if (parentMatrix != null) {
                     jointMat.mul(parentMatrix)
                     //jointMat = Matrix4f(parentMatrix).mul(jointMat)
                 }

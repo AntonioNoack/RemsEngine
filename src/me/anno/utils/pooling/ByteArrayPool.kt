@@ -3,7 +3,7 @@ package me.anno.utils.pooling
 open class ByteArrayPool(val size: Int, val exactMatchesOnly: Boolean) {
 
     val available = arrayOfNulls<ByteArray>(size)
-    operator fun get(size: Int): ByteArray {
+    operator fun get(size: Int, clear: Boolean): ByteArray {
         val maxSize = if (exactMatchesOnly) size else size * 2
         synchronized(this) {
             for (i in 0 until this.size) {
@@ -11,6 +11,11 @@ open class ByteArrayPool(val size: Int, val exactMatchesOnly: Boolean) {
                 if (candidate != null) {
                     if (candidate.size in size..maxSize) {
                         available[i] = null
+                        if (clear) {
+                            for (j in 0 until size) {
+                                candidate[j] = 0
+                            }
+                        }
                         return candidate
                     }
                 }

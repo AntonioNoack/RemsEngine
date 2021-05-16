@@ -6,6 +6,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer
+import me.anno.io.FileReference
 import me.anno.io.base.BaseWriter
 import me.anno.language.translation.Dict
 import me.anno.mesh.fbx.model.FBXGeometry
@@ -18,7 +19,6 @@ import me.anno.objects.Transform
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
-import me.anno.io.FileReference
 import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.video.MissingFrameException
 import me.karl.main.SceneLoader
@@ -83,29 +83,28 @@ class Mesh(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
 
                 }
                 "fbx" -> {
+
                     // load the 3D model
                     val data = getMesh(file, "Mesh-FBX", 1000, true) {
-                        val fbxGeometry =
-                            FBXReader(file.inputStream().buffered()).fbxObjects.filterIsInstance<FBXGeometry>().first()
+                        val reader = FBXReader(file.inputStream().buffered())
+                        val geometries = reader.fbxObjects.filterIsInstance<FBXGeometry>()
+                        val buffers = geometries.map {
+                            it.generateMesh("coords", "normals", "materialIndex", true, 1, maxWeightsDefault)
+                        }
+                        val jointBuffer = StaticBuffer.join(buffers)
+                        // join all geometries
+                        // todo assign the materials, and correct the material indices... (and then don't join them)
+                        // todo or import them in a hierarchy and set the mesh selectors (by index or similar)
                         val meshData = MeshData()
-                        meshData.objData = mapOf(
-                            Material() to fbxGeometry.generateMesh(
-                                "xyz",
-                                "normals",
-                                "materialIndex",
-                                true,
-                                1,
-                                maxWeightsDefault
-                            )
-                        )
-                        meshData.fbxGeometry = fbxGeometry
+                        meshData.objData = mapOf(Material() to jointBuffer)
+                        meshData.fbxGeometry = geometries[0]
                         meshData
                     } as? MeshData
 
                     if (isFinalRendering && data == null) throw MissingFrameException(file)
 
-                    stack.scale(0.01f, -0.01f, 0.01f)
                     data?.drawFBX(stack, time, color) ?: super.onDraw(stack, time, color)
+
                 }
                 "obj" -> {
                     // load the 3D model

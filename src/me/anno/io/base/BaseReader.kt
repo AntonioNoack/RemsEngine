@@ -159,6 +159,7 @@ abstract class BaseReader {
                 "SoftLink" -> SoftLink()
                 "PDFDocument" -> PDFDocument()
                 "LinePolygon" -> LinePolygon()
+                "FourierTransform" -> FourierTransform()
                 else -> {
                     // just for old stuff; AnimatedProperties must not be loaded directly; always just copied into
                     if (clazz.startsWith("AnimatedProperty<")) AnimatedProperty.any()

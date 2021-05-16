@@ -6,7 +6,6 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.utils.input.readNBytes2
-import me.anno.video.LastFrame
 import me.anno.video.VFrame
 import java.io.InputStream
 
@@ -27,15 +26,15 @@ class I420Frame(iw: Int, ih: Int) : VFrame(iw, ih, 2) {
     override fun load(input: InputStream) {
         val s0 = w * h
         val s1 = w2 * h2
-        val yData = input.readNBytes2(s0, Texture2D.byteBufferPool[s0])
+        val yData = input.readNBytes2(s0, Texture2D.byteBufferPool[s0, false])
         GFX.addGPUTask(w, h) {
             y.createMonochrome(yData)
         }
-        val uData = input.readNBytes2(s1, Texture2D.byteBufferPool[s0])
+        val uData = input.readNBytes2(s1, Texture2D.byteBufferPool[s0, false])
         GFX.addGPUTask(w2, h2) {
             u.createMonochrome(uData)
         }
-        val vData = input.readNBytes2(s1, Texture2D.byteBufferPool[s0])
+        val vData = input.readNBytes2(s1, Texture2D.byteBufferPool[s0, false])
         GFX.addGPUTask(w2, h2) {
             v.createMonochrome(vData)
             // tasks are executed in order, so this is true

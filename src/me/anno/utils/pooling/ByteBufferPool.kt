@@ -5,8 +5,8 @@ import java.nio.ByteBuffer
 open class ByteBufferPool(val size: Int, val exactMatchesOnly: Boolean) {
 
     val available = arrayOfNulls<ByteBuffer>(size)
-    operator fun get(size: Int): ByteBuffer {
-        val maxSize = if(exactMatchesOnly) size else size*2
+    operator fun get(size: Int, clear: Boolean): ByteBuffer {
+        val maxSize = if (exactMatchesOnly) size else size * 2
         synchronized(this) {
             for (i in 0 until this.size) {
                 val candidate = available[i]
@@ -15,6 +15,11 @@ open class ByteBufferPool(val size: Int, val exactMatchesOnly: Boolean) {
                     if (candidateSize in size..maxSize) {
                         available[i] = null
                         candidate.position(0)
+                        if (clear) {
+                            for (j in 0 until size) {
+                                candidate.put(j, 0)
+                            }
+                        }
                         return candidate
                     }
                 }

@@ -101,7 +101,7 @@ class Texture3D(val w: Int, val h: Int, val d: Int) : ICacheData {
         ensurePointer()
         forceBind()
         GFX.check()
-        val byteBuffer = byteBufferPool.get(data.size)
+        val byteBuffer = byteBufferPool[data.size, false]
         byteBuffer.position(0)
         byteBuffer.put(data)
         byteBuffer.position(0)
@@ -115,7 +115,7 @@ class Texture3D(val w: Int, val h: Int, val d: Int) : ICacheData {
 
     fun create(data: FloatArray) {
         if (w * h * d * 4 != data.size) throw RuntimeException("incorrect size!")
-        val byteBuffer = byteBufferPool.get(data.size * 4)
+        val byteBuffer = byteBufferPool[data.size * 4, false]
         byteBuffer.order(ByteOrder.nativeOrder())
         byteBuffer.position(0)
         val floatBuffer = byteBuffer.asFloatBuffer()
@@ -142,7 +142,7 @@ class Texture3D(val w: Int, val h: Int, val d: Int) : ICacheData {
         ensurePointer()
         forceBind()
         GFX.check()
-        val byteBuffer = byteBufferPool.get(data.size)
+        val byteBuffer = byteBufferPool[data.size, false]
         byteBuffer.position(0)
         byteBuffer.put(data)
         byteBuffer.position(0)

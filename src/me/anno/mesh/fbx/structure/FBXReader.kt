@@ -12,19 +12,93 @@ import java.util.zip.InflaterInputStream
 // todo create a fbx reader to transform this Video Studio into our own game engine? :)
 // todo this data is only a decoded representation -> get the data out of it, including animations <3
 
-class FBXReader(input: InputStream) : LittleEndianDataInputStream(input.buffered()),
-    FBXNodeBase {
-
-    override val children = ArrayList<FBXNode>()
+class FBXReader(input: InputStream) : LittleEndianDataInputStream(input.buffered()) {
 
     val fbxObjects = ArrayList<FBXObject>()
-    val fbxObjectMap = HashMap<Long, FBXObject>()
+    private val objectById = HashMap<Long, FBXObject>()
+
     val root = FBXObject(FBXNode("Root", arrayOf(0L, "Root", "")))
 
     var major = 0
     var minor = 0
 
-    fun getObject(node: FBXNode, nameOrType: String): FBXObject? {
+    init {
+
+        val majorSections = ArrayList<FBXNode>()
+
+        try {
+
+            readHeader()
+
+            val version = major * 1000 + minor
+            val version7500 = version >= 7500
+
+            // the end is the empty node
+            try {
+                while (true) {
+                    majorSections += readBinaryNode(version7500)
+                }
+            } catch (e: EmptyNodeException) {
+            }
+
+        } catch (e: UnknownHeaderException) {
+            try {
+                while (true) {
+                    majorSections += readASCIINode()
+                }
+            } catch (e: EmptyNodeException) {
+            }
+        }
+
+        if (printDebugMessages) {
+            saveMajorSections(majorSections)
+        }
+
+        objectById[root.ptr] = root
+
+        // transform nodes into objects
+        collectObjects(majorSections)
+        connectNodes(majorSections)
+
+        if (printDebugMessages) {
+            debug {
+                root.toString(0, 0){ parent, child ->
+                    when(child){
+                        is FBXAnimationCurve, is FBXAnimationCurveNode -> false
+                        is FBXNodeAttribute -> false // flags like Skeleton, and size, why ever...
+                       // is FBXModel -> parent !is FBXDeformer
+                        else -> true
+                    }
+                }
+            }
+        }
+
+        // apply operations to objects
+        defineSkeletons()
+
+    }
+
+    private fun saveMajorSections(majorSections: List<FBXNode>) {
+        val out = File(OS.desktop.file, "fbx.yaml").outputStream().buffered()
+        debug { "${majorSections.size} major sections" }
+        for (section in majorSections) {
+            out.write(section.toString().toByteArray())
+            out.write('\n'.toInt())
+        }
+        out.close()
+    }
+
+    private fun collectObjects(majorSections: List<FBXNode>) {
+        for (nodes in majorSections) {
+            for (node in nodes.children) {
+                if (node.properties.isNotEmpty()) {
+                    createObject(node)
+                }
+            }
+        }
+    }
+
+    private fun getObject(node: FBXNode, nameOrType: String): FBXObject? {
         return when (nameOrType) {
             "Model" -> FBXModel(node)
             "Geometry" -> FBXGeometry(node)
@@ -42,107 +116,70 @@ class FBXReader(input: InputStream) : LittleEndianDataInputStream(input.buffered
         }
     }
 
-    init {
-
-        try {
-
-            readHeader()
-
-            val version = major * 1000 + minor
-            val version7500 = version >= 7500
-
-            // the end is the empty node
-            try {
-                while (true) {
-                    children += readBinary(version7500)
-                }
-            } catch (e: EmptyNodeException) {
-            }
-
-        } catch (e: UnknownHeaderException) {
-            try {
-                while (true) {
-                    children += readASCII()
-                }
-            } catch (e: EmptyNodeException) {
-            }
+    private fun createObject(node: FBXNode) {
+        val fbxObject = getObject(node, node.nameOrType)
+        if (fbxObject != null) {
+            fbxObject.applyProperties(node)
+            fbxObjects.add(fbxObject)
+            objectById[fbxObject.ptr] = fbxObject
         }
+    }
 
-        if (printDebugMessages) {
-            val out = File(OS.desktop.file, "fbx.json").outputStream().buffered()
-            debug { "${children.size} children" }
-            for (node in children) {
-                out.write(node.toString().toByteArray())
-                out.write('\n'.toInt())
-            }
-            out.close()
-        }
-
-        fbxObjectMap[root.ptr] = root
-
-        children.forEach { nodes ->
-            nodes.children.forEach { node ->
-                if (node.properties.isNotEmpty()) {
-                    val fbxObject = getObject(node, node.nameOrType)
-                    if (fbxObject != null) {
-                        fbxObject.applyProperties(node)
-                        fbxObjects += fbxObject
-                        fbxObjectMap[fbxObject.ptr] = fbxObject
+    private fun connectNodes(majorSections: List<FBXNode>) {
+        for (majorSection in majorSections) {
+            if (majorSection.nameOrType == "Connections") {
+                for (connection in majorSection.children) {
+                    if (connection.nameOrType == "C") {
+                        applyConnection(connection)
                     }
                 }
             }
         }
+    }
 
-        children.filter { it.nameOrType == "Connections" }.forEach { connections ->
-            connections.children.forEach { node ->
-                when (node.nameOrType) {
-                    "C" -> {
-                        // a connection (child, parent)
-                        val p = node.properties
-                        val type = p[0] as String
-                        val n1 = fbxObjectMap[p[1] as Long]
-                        val n2 = fbxObjectMap[p[2] as Long]
-                        if (n1 == null || n2 == null) {
-                            // Missing pointers actually occur;
-                            // but it's good to check anyways
-                            // if(n1 == null) println("Missing ${p[1]}")
-                            // if(n2 == null) println("Missing ${p[2]}")
-                        } else {
-                            when (type) {
-                                "OO" -> {
-                                    // add parent-child relation
-                                    assert(p.size == 3)
-                                    n2.children.add(n1)
-                                }
-                                "OP" -> {
-                                    // add object override
-                                    assert(p.size == 4)
-                                    val propertyName = p[3] as String
-                                    n1.overrides[propertyName] = n2
-                                }
-                                else -> throw RuntimeException("Unknown connection type $type")
-                            }
-                        }
-                    }
+    private fun applyConnection(node: FBXNode) {
+        // a connection (child, parent)
+        val p = node.properties
+        val type = p[0] as String
+        val child = objectById[p[1] as Long]
+        val parent = objectById[p[2] as Long]
+        if (child == null || parent == null) {
+            // Missing pointers actually occur;
+            // but it's good to check anyways
+            // if(n1 == null) println("Missing ${p[1]}")
+            // if(n2 == null) println("Missing ${p[2]}")
+        } else connect(child, parent, type, p.getOrNull(3) as? String)
+    }
+
+    private fun connect(child: FBXObject, parent: FBXObject, type: String, propertyName: String?) {
+        when (type) {
+            "OO" -> {
+                // add parent-child relation
+                parent.children.add(child)
+            }
+            "OP" -> {
+                // add object override
+                parent.overrides.add(propertyName!! to child)
+            }
+            else -> throw RuntimeException("Unknown connection type $type")
+        }
+    }
+
+    private fun defineSkeletons() {
+        for (geometry in fbxObjects) {
+            if (geometry is FBXGeometry) {
+                try {
+                    geometry.findBoneWeights()
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
-                Unit
             }
         }
-
-        if (printDebugMessages) {
-            debug { root }
-        }
-
-        fbxObjects.filterIsInstance<FBXGeometry>().forEach {
-            val realBone = root.children.filterIsInstance<FBXModel>().getOrNull(1)
-            if (realBone != null) it.findBoneWeights(realBone)
-        }
-
     }
 
     class UnknownHeaderException : RuntimeException()
 
-    fun readHeader() {
+    private fun readHeader() {
         if (!input.markSupported()) throw RuntimeException("Input must support marking for ascii fbx files")
         val magic = "Kaydara FBX Binary  "
         input.mark(magic.length + 1)
@@ -168,11 +205,11 @@ class FBXReader(input: InputStream) : LittleEndianDataInputStream(input.buffered
         if (printDebugMessages) LOGGER.debug(msg().toString())
     }
 
-    fun readASCIIProperties(name: String, mayReadObject: Boolean, node: FBXNode?): List<Any> {
+    private fun readASCIIProperties(name: String, mayReadObject: Boolean, node: FBXNode?): List<Any> {
         val values = ArrayList<Any>()
-        // todo read the list of values
-        // todo they may contain blocks (new nodes)
-        // todo and names, arrays, numbers, strings
+        // read the list of values
+        // they may contain blocks (new nodes)
+        // and names, arrays, numbers, strings
         var hasComma = true
         while (true) {
             when (val first = readCharSkipSpacesNoNL()) {
@@ -203,69 +240,87 @@ class FBXReader(input: InputStream) : LittleEndianDataInputStream(input.buffered
                     node!!
                     // if (hasComma) throw IllegalStateException("{}-Block is missing name")
                     val child = FBXNode(name, values.toTypedArray())
-                    readASCIIBody(child)
+                    readASCIINodeBlock(child)
                     node.children.add(child)
                     return emptyList()
                 }
-                '*' -> {
-                    // array with size
-                    val size = readNumber(readCharSkipSpaces()).toInt()
-                    assert(readCharSkipSpaces(), '{')
-                    assert(readCharSkipSpaces(), 'a')
-                    assert(readCharSkipSpaces(), ':')
-                    // todo read all *size numbers
-                    // todo how do we know whether it's doubles or longs? idk...
-                    when (name) {
-                        "Vertices", "Matrix", "Transform", "TransformLink" -> {
-                            val values2 = DoubleArray(size)
-                            for (i in 0 until size) {
-                                if (i > 0) assert(readCharSkipSpaces(), ',')
-                                val value = readNumber(readCharSkipSpaces())
-                                values2[i] = value.toDouble()
-                            }
-                            values.add(values2)
-                        }
-                        "Normals", "UV", "Weights" -> {
-                            val values2 = FloatArray(size)
-                            for (i in 0 until size) {
-                                if (i > 0) assert(readCharSkipSpaces(), ',')
-                                val value = readNumber(readCharSkipSpaces())
-                                values2[i] = value.toFloat()
-                            }
-                            values.add(values2)
-                        }
-                        "Edges", "Indexes", "PolygonVertexIndex", "ColorIndex", "UVIndex" -> {
-                            val values2 = IntArray(size)
-                            for (i in 0 until size) {
-                                if (i > 0) assert(readCharSkipSpaces(), ',')
-                                val value = readNumber(readCharSkipSpaces())
-                                values2[i] = value.toInt()
-                            }
-                            values.add(values2)
-                        }
-                        else -> {
-                            values.ensureCapacity(size)
-                            for (i in 0 until size) {
-                                if (i > 0) assert(readCharSkipSpaces(), ',')
-                                val value = readNumber(readCharSkipSpaces())
-                                values.add(value.toLongOrNull() ?: value.toDouble())
-                            }
-                        }
-                    }
-                    var last = readCharSkipSpaces()
-                    // support dangling comma
-                    if (last == ',') last = readCharSkipSpaces()
-                    assert(last, '}')
-                    return values
-                }
+                '*' -> return readASCIIArray(name, values)
                 else -> {
-                    TODO("property starting with $first, ${readString()}")
+                    throw RuntimeException("Unexpected property starting with '$first'")
                 }
             }
         }
     }
 
-    fun readASCII(): FBXNode {
+    private fun readASCIIDoubleArray(size: Int): DoubleArray {
+        val values = DoubleArray(size)
+        for (i in 0 until size) {
+            if (i > 0) assert(readCharSkipSpaces(), ',')
+            val value = readNumber(readCharSkipSpaces())
+            values[i] = value.toDouble()
+        }
+        return values
+    }
+
+    private fun readASCIIFloatArray(size: Int): FloatArray {
+        val values = FloatArray(size)
+        for (i in 0 until size) {
+            if (i > 0) assert(readCharSkipSpaces(), ',')
+            val value = readNumber(readCharSkipSpaces())
+            values[i] = value.toFloat()
+        }
+        return values
+    }
+
+    private fun readASCIIIntArray(size: Int): IntArray {
+        val values = IntArray(size)
+        for (i in 0 until size) {
+            if (i > 0) assert(readCharSkipSpaces(), ',')
+            val value = readNumber(readCharSkipSpaces())
+            values[i] = value.toInt()
+        }
+        return values
+    }
+
+    private fun readASCIIArray(name: String, values: ArrayList<Any>): List<Any> {
+        // array with size
+        val size = readNumber(readCharSkipSpaces()).toInt()
+        assert(readCharSkipSpaces(), '{')
+        assert(readCharSkipSpaces(), 'a')
+        assert(readCharSkipSpaces(), ':')
+        // read all *size numbers
+        // how do we know whether it's doubles or longs
+        // we could try all elements or decide based on the type
+        when (name) {
+            "Vertices", "Matrix", "Transform", "TransformLink" -> {
+                values.add(readASCIIDoubleArray(size))
+            }
+            // smoothing isn't used yet... what does it mean?
+            "Normals", "UV", "Weights", "Smoothing", "Colors" -> {
+                values.add(readASCIIFloatArray(size))
+            }
+            // NormalsW is the winding order/errors, see https://stackoverflow.com/questions/38815549/rewinding-indexes-of-a-polygon
+            "Edges", "Indexes", "PolygonVertexIndex", "ColorIndex", "UVIndex", "Materials", "NormalsW" -> {
+                values.add(readASCIIIntArray(size))
+            }
+            else -> {
+                if (size > 10) LOGGER.warn("TODO: '$name' in FBX should be assigned pre-defined type")
+                values.ensureCapacity(size)
+                for (i in 0 until size) {
+                    if (i > 0) assert(readCharSkipSpaces(), ',')
+                    val value = readNumber(readCharSkipSpaces())
+                    values.add(value.toLongOrNull() ?: value.toDouble())
+                }
+            }
+        }
+        var last = readCharSkipSpaces()
+        // support dangling comma
+        if (last == ',') last = readCharSkipSpaces()
+        assert(last, '}')
+        return values
+    }
+
+    private fun readASCIINode(): FBXNode {
         val nameOrType = try {
             readRawName()
         } catch (e: EOFException) {
@@ -274,11 +329,11 @@ class FBXReader(input: InputStream) : LittleEndianDataInputStream(input.buffered
         assert(readCharSkipSpaces(), ':')
         val properties = readASCIIProperties(nameOrType, false, null).toTypedArray()
         val node = FBXNode(nameOrType, properties)
-        readASCIIBody(node)
+        readASCIINodeBlock(node)
         return node
     }
 
-    fun readASCIIBody(node: FBXNode) {
+    private fun readASCIINodeBlock(node: FBXNode) {
         while (true) {
             when (val next = readCharSkipSpaces()) {
                 '}' -> return
@@ -288,7 +343,7 @@ class FBXReader(input: InputStream) : LittleEndianDataInputStream(input.buffered
                     assert(readCharSkipSpaces(), ':')
                     val values = readASCIIProperties(propertyName, true, node)
                     // do sth with the data...
-                    if(values.isNotEmpty()){
+                    if (values.isNotEmpty()) {
                         val child = if (values.size == 1 && values[0] is FBXNode) {
                             values[0] as FBXNode
                         } else FBXNode(propertyName, values.toTypedArray())
@@ -302,7 +357,7 @@ class FBXReader(input: InputStream) : LittleEndianDataInputStream(input.buffered
         }
     }
 
-    fun readBinary(version7500: Boolean): FBXNode {
+    private fun readBinaryNode(version7500: Boolean): FBXNode {
 
         val endOffset = if (version7500) readLong() else readUInt()
         if (endOffset == 0L) throw EmptyNodeException
@@ -319,7 +374,7 @@ class FBXReader(input: InputStream) : LittleEndianDataInputStream(input.buffered
         if (position < endOffset) {
 
             while (position < endOffset - zeroBlockLength) {
-                node.children += readBinary(version7500)
+                node.children += readBinaryNode(version7500)
             }
 
             for (i in 0 until zeroBlockLength) {
@@ -336,7 +391,7 @@ class FBXReader(input: InputStream) : LittleEndianDataInputStream(input.buffered
 
     }
 
-    fun readBinaryProperty(input: FBXReader): Any {
+    private fun readBinaryProperty(input: FBXReader): Any {
         return when (val type = input.read()) {
             // primitive types
             'Y'.toInt() -> {
@@ -408,9 +463,8 @@ class FBXReader(input: InputStream) : LittleEndianDataInputStream(input.buffered
 
     }
 
-
     companion object {
-        var printDebugMessages = false
+        var printDebugMessages = true
         private val LOGGER = LogManager.getLogger(FBXReader::class)
     }
 

@@ -2,6 +2,7 @@ package me.anno.studio.rems
 
 import me.anno.config.VersionFeatures
 import me.anno.io.utils.StringMap
+import me.anno.objects.FourierTransform
 import me.anno.objects.Transform
 import me.anno.objects.documents.pdf.PDFDocument
 import me.anno.objects.geometric.LinePolygon
@@ -33,6 +34,10 @@ class RemsVersionFeatures(oldVersion: Int) : VersionFeatures(oldVersion) {
 
         addVersion(10102) {
             addInstance(config, "Line", LinePolygon())
+        }
+
+        addVersion(10104){
+            addInstance(config, "Fourier Transform", FourierTransform())
         }
 
         config["version"] = StudioBase.instance.versionNumber

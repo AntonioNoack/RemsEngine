@@ -2,6 +2,7 @@ package me.anno.cache
 
 import me.anno.cache.data.ICacheData
 import me.anno.cache.instances.LastModifiedCache
+import me.anno.gpu.GFX
 import me.anno.gpu.GFX.gameTime
 import me.anno.studio.rems.RemsStudio.root
 import me.anno.utils.ShutdownException
@@ -26,6 +27,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
     }
 
     fun clear() {
+        GFX.checkIsGFXThread()
         synchronized(cache) {
             cache.values.forEach { it.destroy() }
             cache.clear()

@@ -85,11 +85,10 @@ abstract class Audio(var file: FileReference = FileReference(""), parent: Transf
         getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
     ) {
         super.createInspector(list, style, getGroup)
+        val pipeline = pipeline
         pipeline.effects.forEach { it.audio = this }
-        pipeline.apply {
-            audio = this@Audio
-            createInspector(list, style, getGroup)
-        }
+        pipeline.audio = this
+        pipeline.createInspector(list, style, getGroup)
     }
 
     override fun save(writer: BaseWriter) {

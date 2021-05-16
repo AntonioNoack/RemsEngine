@@ -177,8 +177,8 @@ object Spellchecking : CacheSection("Spellchecking") {
                         var suggestionsString = ""
                         while ((suggestionsString.isEmpty() || !suggestionsString.startsWith("[")) && !shutdown) {
                             suggestionsString = input.readLine()
-                            // a random, awkward case, when "Program" is requested in German
-                            if (suggestionsString == "[COMPOUND: Program") {
+                            // a random, awkward case, when "Program" or "Transform" is requested in German
+                            if (suggestionsString.startsWith( "[COMPOUND")) {
                                 suggestionsString = "[" + input.readLine()
                             }
                         }

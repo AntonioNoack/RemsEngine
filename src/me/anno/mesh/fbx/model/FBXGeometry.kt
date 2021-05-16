@@ -5,6 +5,7 @@ import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.mesh.fbx.model.FBXShader.maxWeightsDefault
 import me.anno.mesh.fbx.structure.FBXNode
+import me.anno.mesh.fbx.structure.FBXReader
 import org.apache.logging.log4j.LogManager
 import kotlin.math.max
 import kotlin.math.min
@@ -197,36 +198,51 @@ class FBXGeometry(node: FBXNode) : FBXObject(node) {
 
     val bones = ArrayList<FBXDeformer>()
     var nextBoneIndex = 0
-    fun findBoneWeights(model: FBXModel) {
+    fun findBoneWeights() {
+
+        val deformers = this.children.filterIsInstance<FBXDeformer>()
+        if(FBXReader.printDebugMessages) LOGGER.info("Deformers: ${deformers.size}")
+        if (deformers.size != 1) {
+            if (deformers.size > 1) LOGGER.warn("Unexpected multiple deformers for root under geometry")
+            return
+        }
+
+        val rootDeformer = deformers[0]
+        val bones: List<FBXDeformer> = rootDeformer.children.filterIsInstance<FBXDeformer>()
+        if(FBXReader.printDebugMessages) LOGGER.info("Bones: ${bones.size}")
+        if (bones.isEmpty()) return
+
+        val bonesByName = bones.associateBy { it.name.split(' ').last() }
+
+        fun getModel(deformer: FBXDeformer) = deformer.children.first { it is FBXModel } as FBXModel
+
         val todo = ArrayList<Pair<FBXModel, FBXDeformer>>(100)
-        val deformer = children
-            .filterIsInstance<FBXDeformer>()
-            .firstOrNull() ?: return
-        val bones = deformer.children
-            .filterIsInstance<FBXDeformer>()
-        val boneMap = bones
-            .associateBy { it.name.split(' ').last() }
-        todo += model to (boneMap[model.name] ?: throw RuntimeException("Bone ${model.name} wasn't found"))
+
+        val rootBone = bones[0]
+        todo += getModel(rootBone) to rootBone
+
         while (todo.isNotEmpty()) {
-            val (lastModel, lastBone) = todo.removeAt(todo.lastIndex)
-            findBoneWeights(lastBone)
-            lastModel.children.filterIsInstance<FBXModel>()
-                .forEach { model2 ->
-                    val bone = boneMap[model2.name]
-                    if (bone != null) {
-                        bone.parent = lastBone
-                        todo += model2 to bone
+            val (model, bone) = todo.removeAt(todo.lastIndex)
+            findBoneWeights(bone)
+            for (childModel in model.children) {
+                if (childModel is FBXModel) {
+                    val childBone = bonesByName[childModel.name]
+                    if (childBone != null) {
+                        childBone.parent = bone
+                        todo += childModel to childBone
                     } // else end bone without transform
                 }
+            }
         }
+
     }
 
-    fun findBoneWeights(bone: FBXDeformer) {
+    private fun findBoneWeights(bone: FBXDeformer) {
         val weights = bone.weights ?: return
         val indices = bone.indices ?: return
         bones += bone
         val boneIndex = nextBoneIndex++
-        println("$boneIndex: ${bone.name}, ${bone.depth}")
+        if(FBXReader.printDebugMessages) LOGGER.info("Bone $boneIndex: ${bone.name}, ${bone.depth}")
         bone.index = boneIndex
         indices.forEachIndexed { index, vertIndex ->
             addWeight(vertIndex, boneIndex, weights[index].toFloat())

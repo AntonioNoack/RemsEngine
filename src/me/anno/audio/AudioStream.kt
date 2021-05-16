@@ -94,7 +94,7 @@ abstract class AudioStream(
         isWaitingForBuffer.set(true)
         AudioStreamRaw.taskQueue += {// load all data async
 
-            val byteBuffer = bufferPool[bufferSize * 2 * 2]
+            val byteBuffer = bufferPool[bufferSize * 2 * 2, false]
                 .order(ByteOrder.nativeOrder())
             val stereoBuffer = byteBuffer.asShortBuffer()
 
@@ -102,8 +102,6 @@ abstract class AudioStream(
 
             val left = floats.first
             val right = floats.second
-
-            // printFloats(left)
 
             for (i in 0 until bufferSize) {
                 stereoBuffer.put(floatToShort(left[i]))

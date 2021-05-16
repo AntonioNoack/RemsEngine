@@ -63,6 +63,7 @@
       <w>deeppink</w>
       <w>deepskyblue</w>
       <w>deformer</w>
+      <w>deformers</w>
       <w>defs</w>
       <w>desaturate</w>
       <w>dimgray</w>
@@ -102,13 +103,16 @@
       <w>hpluv</w>
       <w>hsluv</w>
       <w>hypot</w>
+      <w>imag</w>
       <w>indianred</w>
       <w>infos</w>
       <w>inspectable</w>
       <w>iter</w>
+      <w>ivec</w>
       <w>jacobian</w>
       <w>jemalloc</w>
       <w>joml</w>
+      <w>kaydara</w>
       <w>konqueror</w>
       <w>lateinit</w>
       <w>lavenderblush</w>

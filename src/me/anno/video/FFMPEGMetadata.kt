@@ -31,6 +31,10 @@ class FFMPEGMetadata(val file: FileReference) : ICacheData {
     val videoHeight: Int
     val videoFrameCount: Int
 
+    override fun toString(): String {
+        return "FFMPEGMetadata(file: $file, audio: $hasAudio, video: $hasVideo)"
+    }
+
     init {
 
         val args = listOf(

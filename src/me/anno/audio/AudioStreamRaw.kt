@@ -5,13 +5,13 @@ import me.anno.audio.effects.SoundPipeline.Companion.bufferSize
 import me.anno.audio.openal.SoundBuffer
 import me.anno.cache.instances.AudioCache
 import me.anno.cache.keys.AudioSliceKey
+import me.anno.io.FileReference
 import me.anno.objects.Audio
 import me.anno.objects.Transform
 import me.anno.objects.modes.LoopingState
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.mix
 import me.anno.utils.Sleep.waitUntilDefined
-import me.anno.io.FileReference
 import me.anno.utils.hpc.ProcessingGroup
 import me.anno.video.AudioCreator.Companion.playbackSampleRate
 import me.anno.video.FFMPEGMetadata
@@ -27,8 +27,8 @@ class AudioStreamRaw(
     val meta: FFMPEGMetadata,
     val is3D: Boolean,
     val speed: Double,
-    val source: Audio,
-    val destination: Transform,
+    val source: Audio?,
+    val destination: Transform?,
     val playbackSampleRate: Int = 48000
 ) {
 
@@ -42,10 +42,12 @@ class AudioStreamRaw(
     }
 
     fun globalToLocalTime(time: Double): Double {
+        if (source == null) return time
         return source.getLocalTimeFromRoot(time, false)
     }
 
     fun localAmplitude(time: Double): Float {
+        if (source == null) return 1f
         return source.amplitude[time] * clamp(source.color[time].w(), 0f, 1f)
     }
 
@@ -132,6 +134,9 @@ class AudioStreamRaw(
 
         if (!is3D) return t0.set(amplitude, amplitude)
 
+        source!!
+        destination!!
+
         val (dstLocal2Global, _) = destination.getGlobalTransformTime(globalTime)
         val (srcLocal2Global, _) = source.getGlobalTransformTime(globalTime)
         val dstGlobalPos = dstLocal2Global.transformPosition(Vector3f())
@@ -153,8 +158,8 @@ class AudioStreamRaw(
         bufferIndex: Long
     ): Pair<FloatArray, FloatArray> {
 
-        val startTime = getTime(bufferIndex)
-        val endTime = getTime(bufferIndex + 1)
+        val time0 = getTime(bufferIndex + 0)
+        val time1 = getTime(bufferIndex + 1)
 
         // "[INFO:AudioStream] Working on buffer $queued"
         // LOGGER.info("$startTime/$bufferIndex")
@@ -172,31 +177,30 @@ class AudioStreamRaw(
         // sound recorded at 0.01x speed is really rare, and at the edge (10Hz -> 10.000Hz)
         // slower frequencies can't be that easily recorded (besides the song/noise of wind (alias air pressure zones changing))
 
-        val dtx = (endTime - startTime) / sampleCount
+        val dtx = (time1 - time0) / sampleCount
         val ffmpegSampleRate = ffmpegSampleRate
 
-        val local0 = globalToLocalTime(startTime)
+        val local0 = globalToLocalTime(time0)
         var index0 = ffmpegSampleRate * local0
 
-        val transfer0 = calculateLoudness(startTime, SimpleTransfer(0f, 0f))
+        val transfer0 = SimpleTransfer(0f, 0f)
 
-        // will be in first iteration
-        var local1 = local0
-        var index1 = index0
-        val transfer1 = SimpleTransfer(0f, 0f)
+        // linear approximation, if possible
+        // this is possible, if the time is linear, and the amplitude not too crazy, I guess
 
-        // todo linear approximation, if possible
-        // todo this is possible, if the time is linear, and the amplitude not too crazy, I guess
+        val updateInterval = min(bufferSize, 1024)
 
-        val updateInterval = 1024
-        val updateMask = updateInterval - 1
-
-        val leftBuffer = FAPool[sampleCount]
-        val rightBuffer = FAPool[sampleCount]
+        val leftBuffer = FAPool[sampleCount, true]
+        val rightBuffer = FAPool[sampleCount, true]
 
         val s0 = ShortPair()
         val s1 = ShortPair()
         val s2 = ShortPair()
+
+        // will be in first iteration
+        var local1 = local0
+        var index1 = index0
+        val transfer1 = calculateLoudness(time0, SimpleTransfer(0f, 0f)) as SimpleTransfer
 
         var fraction = 0.0
         val deltaFraction = 1.0 / updateInterval
@@ -206,14 +210,14 @@ class AudioStreamRaw(
 
         while (++sampleIndex < sampleCount) {
 
-            if (sampleIndex and updateMask == 0) {
+            if (sampleIndex % updateInterval == 0) {
 
                 // load loudness from camera
 
                 transfer0.set(transfer1)
                 index0 = index1
 
-                val global1 = startTime + (sampleIndex + updateInterval + 1) * dtx
+                val global1 = time0 + (sampleIndex + updateInterval + 1) * dtx
                 local1 = globalToLocalTime(global1)
 
                 transfer1.set(calculateLoudness(global1, transfer1))
@@ -238,6 +242,7 @@ class AudioStreamRaw(
 
             }
 
+            // todo inc by dv instead of mixing
             val indexJ = mix(index0, index1, fraction)
 
             // average values from index0 to index1

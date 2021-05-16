@@ -533,7 +533,7 @@ class TimeDomainStretch {
         if (overlapLength > prevOvl) {
             // ensure that 'pMidBuffer' is aligned to 16 byte boundary for efficiency
             // impossible in Java, but maybe already done in the backend
-            pMidBuffer = FAPool[overlapLength * 2]// +4, align
+            pMidBuffer = FAPool[overlapLength * 2, true]// +4, align
             clearMidBuffer()
         }
     }

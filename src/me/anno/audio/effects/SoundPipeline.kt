@@ -149,7 +149,7 @@ class SoundPipeline() : Saveable(), Inspectable {
         }
 
         // 1024 (48Hz .. 48kHz) or 2048? (24Hz .. 48kHz)
-        val bufferSize = 4096 * 16
+        val bufferSize = 4096
 
         fun option(generator: () -> SoundEffect): Option {
             val sample = generator()

@@ -4,6 +4,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.ShaderLib
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderPlus
+import me.anno.utils.LOGGER
 import me.anno.utils.Maths
 
 object FBXShader {
@@ -13,6 +14,7 @@ object FBXShader {
         y3D: String, getTextureLib: String
     ): Shader {
         val maxBones = Maths.clamp((GFX.maxVertexUniforms - (16 * 3)) / 16, 4, 256)
+        LOGGER.info("Max number of bones: $maxBones")
         return ShaderLib.createShaderPlus(
             "fbx", v3DBase +
                     "a3 coords;\n" +
@@ -23,12 +25,13 @@ object FBXShader {
                     "a4 weightValues;\n" +
                     "uniform mat4x4 transforms[$maxBones];\n" +
                     "void main(){\n" +
-                    "   vec3 localPosition0 = (transforms[weightIndices.x] * vec4(coords, 1.0)).xyz * weightValues.x;\n" + //  * weightValues.x
-                    "   if(weightValues.y > 0.01) localPosition0 += (transforms[weightIndices.y] * vec4(coords, 1.0)).xyz * weightValues.y;\n" +
-                    "   if(weightValues.z > 0.01) localPosition0 += (transforms[weightIndices.z] * vec4(coords, 1.0)).xyz * weightValues.z;\n" +
-                    "   if(weightValues.w > 0.01) localPosition0 += (transforms[int(weightIndices.w)] * vec4(coords, 1.0)).xyz * weightValues.w;\n" +
+                    "   vec4 coords4 = vec4(coords, 1.0);\n" +
+                    "                        vec3 localPosition0  = (transforms[weightIndices.x] * coords4).xyz * weightValues.x;\n" +
+                    "   if(weightValues.y > 0.01) localPosition0 += (transforms[weightIndices.y] * coords4).xyz * weightValues.y;\n" +
+                    "   if(weightValues.z > 0.01) localPosition0 += (transforms[weightIndices.z] * coords4).xyz * weightValues.z;\n" +
+                    "   if(weightValues.w > 0.01) localPosition0 += (transforms[weightIndices.w] * coords4).xyz * weightValues.w;\n" +
                     "   localPosition = localPosition0;\n" +
-                    "   gl_Position = transform * vec4(localPosition0, 1.0);\n" + // already include second transform? yes, we should probably do that
+                    "   gl_Position = transform * coords4;//vec4(localPosition0, 1.0);\n" + // already include second transform? yes, we should probably do that
                     "   uv = uvs;\n" +
                     "   normal = normals;\n" +
                     positionPostProcessing +

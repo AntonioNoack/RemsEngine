@@ -208,7 +208,7 @@ open class Texture2D(
     }
 
     fun getBuffer(bytes: ByteArray): ByteBuffer {
-        val buffer = byteBufferPool.get(w * h * 4)
+        val buffer = byteBufferPool[w * h * 4, false]
         when (bytes.size / (w * h)) {
             1 -> {
                 for (i in 0 until w * h) {
@@ -306,7 +306,7 @@ open class Texture2D(
     }*/
 
     fun toByteBuffer(ints: IntArray): ByteBuffer {
-        val buffer = byteBufferPool.get(ints.size * 4)
+        val buffer = byteBufferPool[ints.size * 4, false]
         for (i in ints) buffer.putInt(i)
         buffer.position(0)
         return buffer
@@ -368,7 +368,7 @@ open class Texture2D(
         ensurePointer()
         bindBeforeUpload()
         GFX.check()
-        val byteBuffer = byteBufferPool.get(data.size)
+        val byteBuffer = byteBufferPool[data.size, false]
         byteBuffer.position(0)
         byteBuffer.put(data)
         byteBuffer.position(0)
@@ -383,8 +383,7 @@ open class Texture2D(
 
     fun create(data: FloatArray) {
         checkSize(4, data.size)
-        val byteBuffer = byteBufferPool
-            .get(data.size * 4)
+        val byteBuffer = byteBufferPool[data.size * 4, false]
             .order(ByteOrder.nativeOrder())
         byteBuffer.position(0)
         val floatBuffer = byteBuffer.asFloatBuffer()
@@ -408,7 +407,7 @@ open class Texture2D(
 
     fun createRGBA(data: ByteArray) {
         checkSize(4, data.size)
-        val byteBuffer = byteBufferPool.get(data.size)
+        val byteBuffer = byteBufferPool[data.size, false]
         byteBuffer.position(0)
         byteBuffer.put(data)
         byteBuffer.position(0)

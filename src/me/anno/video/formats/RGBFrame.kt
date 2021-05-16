@@ -20,8 +20,8 @@ class RGBFrame(w: Int, h: Int) : VFrame(w, h, -1) {
 
     override fun load(input: InputStream) {
         val s0 = w * h
-        val data = Texture2D.byteBufferPool.get(s0 * 4)
-        val srcData = input.readNBytes2(s0 * 3, Texture2D.byteArrayPool[s0 * 3])
+        val data = Texture2D.byteBufferPool[s0 * 4, false]
+        val srcData = input.readNBytes2(s0 * 3, Texture2D.byteArrayPool[s0 * 3, false])
         if (srcData.isEmpty()) throw LastFrame()
         if (srcData.size < s0 * 3) throw EOFException("Missing data ${srcData.size} < ${s0 * 3} for $w x $h")
         processBalanced(0, s0, 2048) { i0, i1 ->

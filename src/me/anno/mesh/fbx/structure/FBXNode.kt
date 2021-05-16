@@ -13,28 +13,41 @@ class FBXNode(val nameOrType: String, val properties: Array<Any>) : FBXNodeBase 
 
     override val children = ArrayList<FBXNode>()
 
+    fun listToString(type: Char, list: List<Any>): String {
+        val lengthLimit = 150
+        val builder = StringBuilder(50)
+        builder.append('[')
+        builder.append(type)
+        builder.append(':')
+        builder.append(list.size.toString())
+        var length = builder.length
+        for (element in list) {
+            val valueStr = element.toString()
+            length += valueStr.length + 2
+            if (length < lengthLimit) {
+                builder.append(", ")
+                builder.append(valueStr)
+            } else break
+        }
+        builder.append(']')
+        return builder.toString()
+    }
+
+    fun toString(it: Any): String {
+        return when (it) {
+            is IntArray -> listToString('i', it.toList())
+            is LongArray -> listToString('l', it.toList())
+            is FloatArray -> listToString('f', it.toList())
+            is DoubleArray -> listToString('d', it.toList())
+            else -> it.toString()
+        }
+    }
+
+    fun format(it: Any) = "${toString(it)}:${it.javaClass.simpleName}"
+
     fun toString(depth: Int): String = "${Tabs.spaces(depth * 2)}$nameOrType: " +
-            "${
-                properties.joinToString(", ", "[", "]") {
-                    "${
-                        when (it) {
-                            is IntArray -> "[i:${it.size}, " + it.filterIndexed { index, _ -> index < 50 }
-                                .joinToString()
-                            is LongArray -> "[l:${it.size}, " + it.filterIndexed { index, _ -> index < 50 }
-                                .joinToString()
-                            is FloatArray -> "[f:${it.size}, " + it.filterIndexed { index, _ -> index < 50 }
-                                .joinToString()
-                            is DoubleArray -> "[d:${it.size}, " + it.filterIndexed { index, _ -> index < 50 }
-                                .joinToString()
-                            else -> it.toString()
-                        }
-                    }:${it.javaClass.simpleName}"
-                }
-            }\n${
-                children.joinToString("") {
-                    it.toString(depth + 1)
-                }
-            }"
+            properties.joinToString(", ", "[", "]") { format(it) } + "\n" +
+            children.joinToString("") { it.toString(depth + 1) }
 
     override fun toString() = toString(0)
 

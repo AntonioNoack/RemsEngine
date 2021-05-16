@@ -146,4 +146,15 @@ open class StaticBuffer(attributes: List<Attribute>, val vertexCount: Int, usage
         val nio = ByteBuffer.allocateDirect(byteSize).order(ByteOrder.nativeOrder())
         nioBuffer = nio
     }
+
+    companion object {
+        fun join(buffers: List<StaticBuffer>): StaticBuffer {
+            val vertexCount = buffers.sumBy { it.vertexCount }
+            val sample = buffers.first()
+            val joint = StaticBuffer(sample.attributes, vertexCount)
+            for (buffer in buffers) joint.put(buffer)
+            return joint
+        }
+    }
+
 }

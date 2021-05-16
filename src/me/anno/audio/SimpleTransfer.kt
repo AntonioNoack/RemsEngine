@@ -5,7 +5,7 @@ import me.anno.utils.types.Floats.f2
 open class SimpleTransfer(l2l: Float, r2r: Float) : AudioTransfer(l2l, r2r, 0f, 0f) {
 
     override fun l2l(f: Float, s: AudioTransfer) = l2l * (1f - f) + f * s.l2l
-    override fun r2r(f: Float, s:AudioTransfer) = r2r * (1f - f) + f * s.r2r
+    override fun r2r(f: Float, s: AudioTransfer) = r2r * (1f - f) + f * s.r2r
     override fun l2r(f: Float, s: AudioTransfer) = 0f
     override fun r2l(f: Float, s: AudioTransfer) = 0f
 
@@ -28,10 +28,17 @@ open class SimpleTransfer(l2l: Float, r2r: Float) : AudioTransfer(l2l, r2r, 0f, 
     }
 
     override fun set(other: AudioTransfer): SimpleTransfer {
-        if(other === this) return this
+        if (other === this) return this
         l2l = other.l2l
         r2r = other.r2r
         return this
+    }
+
+    fun set1100() {
+        l2l = 1f
+        r2r = 1f
+        l2r = 0f
+        r2l = 0f
     }
 
     override fun isZero(): Boolean = l2l == 0f && r2r == 0f

@@ -2,6 +2,7 @@ package me.anno.objects
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
+import me.anno.io.FileReference
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.language.translation.Dict
@@ -70,6 +71,8 @@ class GFXArray(parent: Transform? = null) : GFXTransform(parent) {
 
         // todo make text replacement simpler???
         val instanceCount = instanceCount[time]
+        drawnChildCount = instanceCount
+
         if (instanceCount > 0 && children.isNotEmpty()) {
             val seed = selectionSeed[time]
             val random = Random(seed)
@@ -90,7 +93,9 @@ class GFXArray(parent: Transform? = null) : GFXTransform(parent) {
     ) {
 
         val childIndex = selectionMode[index, children.size, random]
-        drawChild(transform, time, color, children[childIndex])
+        val child = children[childIndex]
+        child.indexInParent = index
+        drawChild(transform, time, color, child)
 
         if (index + 1 < instanceCount) {
 
