@@ -24,7 +24,7 @@ import kotlin.streams.toList
 
 open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edit")) {
 
-    val characters = ArrayList<Int>()
+    private val characters = ArrayList<Int>()
 
     init {
         instantTextLoading = true

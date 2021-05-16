@@ -4,8 +4,11 @@ import java.io.EOFException
 import java.io.InputStream
 import java.lang.StringBuilder
 
-// to avoid the import of fasterxml.json (17MB) we create our own solution
+// to avoid the import of fasterXML.json (17MB) we create our own solution
 class JsonReader(val data: InputStream) {
+
+    constructor(data: ByteArray): this(data.inputStream())
+    constructor(data: String): this(data.toByteArray())
 
     var index = 0
     var tmpChar = 0.toChar()
@@ -159,16 +162,18 @@ class JsonReader(val data: InputStream) {
     // we want ours to always work
     // we can't really put it elsewhere without prefix, because Kotlin will use the wrong import...
     fun assert(i: Char, c1: Char, c2: Char){
-        if(i != c1 && i != c2) throw RuntimeException("Expected $c1 or $c2, but got $i")
+        if(i != c1 && i != c2) throw JsonFormatException("Expected $c1 or $c2, but got $i")
     }
 
     fun assert(i: Char, c: Char){
-        if(i != c) throw RuntimeException("Expected $c, but got $i")
+        if(i != c) throw JsonFormatException("Expected $c, but got $i")
     }
 
     fun assert(i: Char, c: Char, msg: String){
-        if(i != c) throw RuntimeException(msg)
+        if(i != c) throw JsonFormatException(msg)
     }
+
+    class JsonFormatException(message: String): RuntimeException(message)
 
 
 

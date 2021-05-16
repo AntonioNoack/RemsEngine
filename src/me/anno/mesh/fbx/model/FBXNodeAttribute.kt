@@ -6,7 +6,7 @@ class FBXNodeAttribute(node: FBXNode): FBXObject(node){
     // what is this???
     // looks like this class adds out-of-spec attributes...
     // like camera switching
-    val typeFlags = node["TypeFlags"].firstOrNull()?.properties ?: emptyArray()
+    val typeFlags = node.getFirst("TypeFlags")?.properties ?: emptyArray()
     override fun onReadProperty70(name: String, value: Any) {
         // ...
     }

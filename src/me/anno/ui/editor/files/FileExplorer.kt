@@ -26,7 +26,6 @@ import me.anno.utils.Maths.pow
 import me.anno.utils.OS
 import me.anno.utils.Threads.threadWithName
 import me.anno.utils.files.Files.listFiles2
-import me.anno.utils.files.Files.openInExplorer
 import java.io.File
 import kotlin.math.max
 
@@ -105,7 +104,7 @@ class FileExplorer(style: Style) : PanelListY(style.getChild("fileExplorer")) {
     }
 
     fun removeOldFiles() {
-        content.children.forEach { (it as? FileEntry)?.stopPlayback() }
+        content.children.forEach { (it as? FileExplorerEntry)?.stopPlayback() }
         content.clear()
     }
 
@@ -123,13 +122,13 @@ class FileExplorer(style: Style) : PanelListY(style.getChild("fileExplorer")) {
                 lastFiles = newFiles
                 val parent = folder?.file?.parentFile
                 if (parent != null) {
-                    val fe = FileEntry(this, true, FileReference(parent), style)
+                    val fe = FileExplorerEntry(this, true, FileReference(parent), style)
                     GFX.addGPUTask(1) { removeOldFiles(); content += fe }
                 } else {
                     GFX.addGPUTask(1) { removeOldFiles() }
                 }
                 val tmpCount = 64
-                var tmpList = ArrayList<FileEntry>(tmpCount)
+                var tmpList = ArrayList<FileExplorerEntry>(tmpCount)
                 fun put() {
                     if (tmpList.isNotEmpty()) {
                         val list = tmpList
@@ -144,14 +143,14 @@ class FileExplorer(style: Style) : PanelListY(style.getChild("fileExplorer")) {
                 children.sortedBy { !it.isDirectory }.forEach { file ->
                     val name = file.name
                     if (!name.startsWith(".") && search.matches(name)) {
-                        val fe = FileEntry(this, false, FileReference(file), style)
+                        val fe = FileExplorerEntry(this, false, FileReference(file), style)
                         tmpList.add(fe)
                         if (tmpList.size >= tmpCount) put()
                     }
                 }
                 put()
             } else {
-                val fe = content.children.filterIsInstance<FileEntry>()
+                val fe = content.children.filterIsInstance<FileExplorerEntry>()
                 fe.forEach {
                     it.visibility = Visibility[search.matches(it.file.name)]
                 }

@@ -180,16 +180,16 @@ class FBXGeometry(node: FBXNode) : FBXObject(node) {
         sum
     }()
 
-    val normals = LayerElementDoubles(node["LayerElementNormal"].first(), 3)
+    val normals = LayerElementDoubles(node.getFirst("LayerElementNormal")!!, 3)
 
     // val vertexColors = node["LayerElementColor"].map { LayerElementDA(it, 3) }
 
     // are we interested in vertex colors?
     // are we interested in UVs? yes
 
-    val uvs = node["LayerElementUV"].map { LayerElementDoubles(it, 2) }
+    val uvs = node.mapAll("LayerElementUV") { LayerElementDoubles(it, 2) }
 
-    val materialIDs = node["LayerElementMaterial"].firstOrNull()?.run {
+    val materialIDs = node.getFirst("LayerElementMaterial")?.run {
         LayerElementInts(this, 1)
     }
 
@@ -202,14 +202,13 @@ class FBXGeometry(node: FBXNode) : FBXObject(node) {
         val deformer = children
             .filterIsInstance<FBXDeformer>()
             .firstOrNull() ?: return
-        val boneMap = deformer.children
+        val bones = deformer.children
             .filterIsInstance<FBXDeformer>()
+        val boneMap = bones
             .associateBy { it.name.split(' ').last() }
-        LOGGER.info(boneMap.keys.toString())
         todo += model to (boneMap[model.name] ?: throw RuntimeException("Bone ${model.name} wasn't found"))
-        while (true) {
-            val (lastModel, lastBone) = todo.lastOrNull() ?: break
-            todo.removeAt(todo.lastIndex)
+        while (todo.isNotEmpty()) {
+            val (lastModel, lastBone) = todo.removeAt(todo.lastIndex)
             findBoneWeights(lastBone)
             lastModel.children.filterIsInstance<FBXModel>()
                 .forEach { model2 ->

@@ -52,6 +52,7 @@ import me.anno.ui.base.menu.Menu.msg
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.Menu.openMenuComplex2
 import me.anno.ui.base.menu.MenuOption
+import me.anno.ui.base.scrolling.ScrollPanelX
 import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.custom.CustomContainer
@@ -390,7 +391,10 @@ object UILayouts {
         ).setChangeListener { DefaultConfig["debug.ui.showFPS"] = it }
 
         val fontSize = style.getSize("fontSize", 15)
-        welcome += SizeLimitingContainer(createConsole(), fontSize * 25, fontSize * 2, style)
+        val spx = ScrollPanelX(createConsole(), Padding.Zero, style, AxisAlignment.MIN)
+        val slc = SizeLimitingContainer(spx, fontSize * 25, -1, style)
+        slc.padding.top = fontSize / 2
+        welcome += slc
 
         val scroll = ScrollPanelY(welcome, Padding(5), style)
         scroll += WrapAlign.Center
@@ -483,20 +487,22 @@ object UILayouts {
 
         options.addAction(
             projectTitle,
-            Dict["Settings", "ui.top.project.settings"]
-        ) { selectTransform(ProjectSettings) }
+            Dict["Change Language", ""]
+        ) {
+            val panel = ProjectSettings.createSpellcheckingPanel(style)
+            openMenuComplex2(NameDesc("Change Project Language"), listOf(panel))
+        }
+
         options.addAction(projectTitle, Dict["Save", "ui.top.project.save"]) {
             Input.save()
             LOGGER.info("Saved the project")
         }
 
         options.addAction(projectTitle, Dict["Load", "ui.top.project.load"]) {
-            openMenuComplex2(
-                NameDesc("Load Project", "", "ui.loadProject"), listOf(
-                    createRecentProjectsUI(menuStyle, getRecentProjects()),
-                    createNewProjectUI(menuStyle)
-                )
-            )
+            val name = NameDesc("Load Project", "", "ui.loadProject")
+            val openRecentProject = createRecentProjectsUI(menuStyle, getRecentProjects())
+            val createNewProject = createNewProjectUI(menuStyle)
+            openMenuComplex2(name, listOf(openRecentProject, createNewProject))
         }
 
         options.addAction(projectTitle, Dict["Reset UI", "ui.top.resetUI"]) {

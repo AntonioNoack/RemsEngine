@@ -8,8 +8,8 @@ class FBXMaterial(data: FBXNode) : FBXObject(data) {
 
     // todo how are textures connected to the properties?
 
-    val shadingModel = data["ShadingModel"].firstOrNull()?.properties?.get(0) as? String
-    val multiLayer = data["Multilayer"].firstOrNull()?.properties?.get(0) as? Int ?: 0 // 1 = clear coat???
+    val shadingModel = data.getFirst("ShadingModel")?.properties?.get(0) as? String
+    val multiLayer = data.getFirst("Multilayer")?.properties?.get(0) as? Int ?: 0 // 1 = clear coat???
 
     val ambient = Vector4f(0f, 0f, 0f, 1f)
     val transparency = Vector4f(0f, 0f, 0f, 0f)

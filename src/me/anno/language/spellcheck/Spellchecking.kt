@@ -163,7 +163,9 @@ object Spellchecking : CacheSection("Spellchecking") {
                             val key = queue.keys().nextElement()
                             nextTask = queue.remove(key)!!
                         }
-                        var lines = nextTask.sentence.replace("\n", "\\n")
+                        var lines = nextTask.sentence
+                            .replace("\\", "\\\\")
+                            .replace("\n", "\\n")
                         val limitChar = 127.toChar()
                         if (lines.any { it > limitChar }) {
                             lines = lines.codePoints()
@@ -173,11 +175,15 @@ object Spellchecking : CacheSection("Spellchecking") {
                         output.write('\n'.toInt())
                         output.flush()
                         var suggestionsString = ""
-                        while (suggestionsString.isEmpty() && !shutdown) {
+                        while ((suggestionsString.isEmpty() || !suggestionsString.startsWith("[")) && !shutdown) {
                             suggestionsString = input.readLine()
+                            // a random, awkward case, when "Program" is requested in German
+                            if (suggestionsString == "[COMPOUND: Program") {
+                                suggestionsString = "[" + input.readLine()
+                            }
                         }
                         try {
-                            val suggestionsJson = JsonReader(suggestionsString.toByteArray().inputStream()).readArray()
+                            val suggestionsJson = JsonReader(suggestionsString).readArray()
                             val suggestionsList = suggestionsJson.map { suggestion ->
                                 suggestion as JsonObject
                                 val start = suggestion["start"]!!.asText().toInt()
@@ -191,6 +197,10 @@ object Spellchecking : CacheSection("Spellchecking") {
                             }
                             nextTask.callback(suggestionsList)
                         } catch (e: Exception) {
+                            File(
+                                OS.desktop.file,
+                                "${System.currentTimeMillis()}.txt"
+                            ).writeText("$lines\n$suggestionsString")
                             LOGGER.error(suggestionsString)
                             e.printStackTrace()
                         }

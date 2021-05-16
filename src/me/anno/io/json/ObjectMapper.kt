@@ -149,7 +149,7 @@ object ObjectMapper {
     }
 
     fun <V> readValue(value: ByteArray, clazz: Class<V>): V {
-        return convertValue(JsonReader(value.inputStream()).readObject(), clazz)
+        return convertValue(JsonReader(value).readObject(), clazz)
     }
 
     fun <V> readValue(value: InputStream, clazz: Class<V>): V {

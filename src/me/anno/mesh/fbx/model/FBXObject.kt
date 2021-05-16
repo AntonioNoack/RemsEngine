@@ -17,37 +17,41 @@ open class FBXObject(node: FBXNode) {
         (node.getProperty("Version") ?: node.getProperty("GeometryVersion") ?: node.getProperty("KeyVer")) as? Int
 
     fun applyProperties(data: FBXNode) {
-        data["Properties70"].forEach { ps ->
-            ps.children.map { it.properties }.forEach { p ->
-                val name = p[0] as String
-                val type = p[1] as String
-                val offset = 4
-                val value = when (type) {
-                    "Color", "ColorRGB", "Vector", "Vector3D", "Lcl Rotation", "Lcl Translation", "Lcl Scaling" -> {
-                        Vector3f(
-                            (p[offset] as Double).toFloat(),
-                            (p[offset + 1] as Double).toFloat(),
-                            (p[offset + 2] as Double).toFloat()
-                        )
-                    }
-                    "Number", "double", "FieldOfView", "FieldOfViewX", "FieldOfViewY"
-                    -> (p[offset] as Double).toFloat()
-                    "KTime" -> p[offset] as Long
-                    "KString", "KRefUrl", "charptr" -> p[offset] as String
-                    "int", "Integer", "enum", "Action" -> p[offset] as Int
-                    "bool", "Bool" -> when (val value = p[offset]) {
-                        is Int -> value != 0
-                        is Boolean -> value
-                        else -> throw RuntimeException("$value is not a boolean")
-                    }
-                    "Visibility" -> p[offset] as Double
-                    "object" -> null // doesn't have a value
-                    else -> throw RuntimeException("Unknown type $type for $name, example value: ${p.filterIndexed { index, _ -> index >= offset }.joinToString()}")
-                }
-                if (value != null) {
-                    onReadProperty70(name, value)
-                }
+        for(property in data.children.filter { it.nameOrType == "Properties70" }){
+            applyProperty(property)
+        }
+    }
+
+    fun applyProperty(property: FBXNode){
+        for(child in property.children){
+            applyProperty(child.properties)
+        }
+    }
+
+    fun applyProperty(p: Array<Any>){
+        val name = p[0] as String
+        val type = p[1] as String
+        val offset = 4
+        val value = when (type) {
+            "Color", "ColorRGB", "Vector", "Vector3D", "Lcl Rotation", "Lcl Translation", "Lcl Scaling" -> {
+                Vector3f(getFloat(p[offset]), getFloat(p[offset + 1]), getFloat(p[offset + 2]))
             }
+            "Number", "double", "FieldOfView", "FieldOfViewX", "FieldOfViewY" -> getFloat(p[offset])
+            "KTime" -> getLong(p[offset])
+            "KString", "KRefUrl", "charptr" -> p[offset].toString()
+            "int", "Integer", "enum", "Action" -> getBool(p[offset])
+            "bool", "Bool" -> when (val value = p[offset]) {
+                is Int -> value != 0
+                is Long -> value != 0
+                is Boolean -> value
+                else -> throw RuntimeException("$value, ${value.javaClass.simpleName} is not a boolean")
+            }
+            "Visibility" -> getFloat(p[offset])
+            "object" -> null // doesn't have a value
+            else -> throw RuntimeException("Unknown type $type for $name, example value: ${p.filterIndexed { index, _ -> index >= offset }.joinToString()}")
+        }
+        if (value != null) {
+            onReadProperty70(name, value)
         }
     }
 
@@ -66,5 +70,60 @@ open class FBXObject(node: FBXNode) {
             children.joinToString("") { it.toString(depth + 1) }
 
     override fun toString() = toString(0)
+
+    companion object {
+
+        fun getFloat(any: Any?): Float {
+            return when(any){
+                is Float -> any
+                is Double -> any.toFloat()
+                is Int -> any.toFloat()
+                is Long -> any.toFloat()
+                else -> any.toString().toFloat()
+            }
+        }
+
+        fun getDouble(any: Any?): Double {
+            return when(any){
+                is Float -> any.toDouble()
+                is Double -> any
+                is Int -> any.toDouble()
+                is Long -> any.toDouble()
+                else -> any.toString().toDouble()
+            }
+        }
+
+        fun getInt(any: Any?): Int {
+            return when(any){
+                is Float -> any.toInt()
+                is Double -> any.toInt()
+                is Int -> any
+                is Long -> any.toInt()
+                else -> any.toString().toInt()
+            }
+        }
+
+        fun getLong(any: Any?): Long {
+            return when(any){
+                is Float -> any.toLong()
+                is Double -> any.toLong()
+                is Int -> any.toLong()
+                is Long -> any
+                else -> any.toString().toLong()
+            }
+        }
+
+        fun getBool(any: Any?): Boolean {
+            return when(any){
+                is Float -> any != 0f
+                is Double -> any != 0.0 && any.isFinite()
+                is Int -> any != 0
+                is Long -> any != 0
+                is Boolean -> any
+                else -> any.toString().toBoolean()
+            }
+        }
+
+    }
 
 }

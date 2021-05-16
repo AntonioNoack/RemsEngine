@@ -20,6 +20,8 @@ import java.util.logging.Level
 import kotlin.math.max
 import kotlin.math.min
 
+// todo second console output panel, which has the default font?
+
 open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
 
     // todo open path, if clicked on

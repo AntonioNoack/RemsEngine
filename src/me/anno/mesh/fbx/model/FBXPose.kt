@@ -6,7 +6,7 @@ class FBXPose(data: FBXNode): FBXObject(data) {
 
     // number of pose nodes = NbPoseNodes
 
-    val poseNodes = data["PoseNode"].map { PoseNode(it) }
+    val poseNodes = data.mapAll("PoseNode") { PoseNode(it) }
 
     class PoseNode(data: FBXNode){
         val id = data.getProperty("Node") as Long

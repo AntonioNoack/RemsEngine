@@ -4,15 +4,18 @@ import me.anno.mesh.fbx.structure.FBXNode
 import me.anno.utils.types.Vectors.print
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3f
+import org.joml.Vector3fc
 
 class FBXModel(data: FBXNode) : FBXObject(data) {
 
     // val shading = data.getProperty("Shading") as? Boolean ?: true
     // val culling = data.getProperty("Culling") as? String ?: "CullingOff" // CullingOff, ...
 
-    var localTranslation = Vector3f()
-    var localRotation = Vector3f()
-    var localScale = Vector3f(1f)
+    val localTranslation = Vector3f()
+    val localRotation = Vector3f()
+    val localScale = Vector3f(1f)
+    val preRotation = Vector3f()
+    val postRotation = Vector3f()
 
     val rotationPivot = Vector3f()
     val scalingPivot = Vector3f()
@@ -33,9 +36,11 @@ class FBXModel(data: FBXNode) : FBXObject(data) {
             "DefaultAttributeIndex" -> {
                 // int:0 ???
             }
-            "Lcl Translation" -> localTranslation = value as Vector3f
-            "Lcl Rotation" -> localRotation = value as Vector3f
-            "Lcl Scaling" -> localScale = value as Vector3f
+            "Lcl Translation" -> localTranslation.set(value as Vector3f)
+            "Lcl Rotation" -> localRotation.set(value as Vector3f)
+            "Lcl Scaling" -> localScale.set(value as Vector3f)
+            "PreRotation" -> preRotation.set(value as Vector3f) // todo what is that?
+            "PostRotation" -> postRotation.set(value as Vector3f)
             "RotationActive" -> rotationActive = value as Boolean
             "Show" -> show = value as Boolean
             "MultiTake", "InheritType", "ManipulationMode",

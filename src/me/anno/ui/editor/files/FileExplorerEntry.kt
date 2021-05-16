@@ -57,10 +57,27 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
-class FileEntry(
+class FileExplorerEntry(
     private val explorer: FileExplorer,
     isParent: Boolean, val file: FileReference, style: Style
 ) : PanelGroup(style.getChild("fileEntry")) {
+
+    // todo back mouse key works, but forward does not
+
+    // todo .lnk files for windows
+    // todo .url files
+    // todo icons from exe files?
+
+    // todo icons for 3d meshes
+    // todo icons for project files
+    // todo asset files like unity, and then icons for them? (we want a unity-like engine, just with Kotlin)
+
+
+    // todo load fbx files
+    // todo load separate fbx animations
+    // todo play them together
+
+
 
     // todo sometimes the title is missing... or its color... why ever...
     // draw using fast-draw? missing special chars are an issue...
@@ -399,7 +416,7 @@ class FileEntry(
             "DragStart" -> {
                 // todo select the file, if the mouse goes up, not down
                 if (inFocus.any { it.contains(mouseDownX, mouseDownY) } && StudioBase.dragged?.getOriginal() != file) {
-                    val inFocus = inFocus.filterIsInstance<FileEntry>().map { it.file }
+                    val inFocus = inFocus.filterIsInstance<FileExplorerEntry>().map { it.file }
                     if (inFocus.size == 1) {
                         val textPanel = TextPanel(file.nameWithoutExtension, style)
                         val draggable = Draggable(file.toString(), "File", file, textPanel)
@@ -513,7 +530,7 @@ class FileEntry(
     }
 
     override fun onDeleteKey(x: Float, y: Float) {
-        val files = inFocus.mapNotNull { (it as? FileEntry)?.file }
+        val files = inFocus.mapNotNull { (it as? FileExplorerEntry)?.file }
         if (files.size <= 1) {
             // ask, then delete (or cancel)
             deleteFileMaybe()
@@ -559,7 +576,7 @@ class FileEntry(
 
     override fun onCopyRequested(x: Float, y: Float): String? {
         if (this in inFocus) {// multiple files maybe
-            Input.copyFiles(inFocus.filterIsInstance<FileEntry>().map { it.file.file })
+            Input.copyFiles(inFocus.filterIsInstance<FileExplorerEntry>().map { it.file.file })
         } else Input.copyFiles(listOf(file.file))
         return null
     }
