@@ -8,12 +8,15 @@ import me.anno.gpu.GFXx2D.getSize
 import me.anno.gpu.GFXx2D.getSizeX
 import me.anno.gpu.GFXx2D.getSizeY
 import me.anno.io.FileReference
+import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
+import me.anno.objects.animation.AnimatedProperty
 import me.anno.objects.animation.Type
 import me.anno.objects.modes.LoopingState
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
+import me.anno.utils.Maths
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.fract
 import me.anno.utils.Maths.max
@@ -21,7 +24,9 @@ import me.anno.utils.Maths.mix
 import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.video.FFMPEGMetadata
 import me.anno.video.MissingFrameException
+import org.joml.Matrix4f
 import org.joml.Matrix4fArrayList
+import org.joml.Vector3f
 import org.joml.Vector4fc
 import kotlin.math.floor
 import kotlin.math.sqrt
@@ -31,25 +36,39 @@ import kotlin.math.sqrt
 // todo option for logarithmic transform
 // todo option for min and max index
 
-class FourierTransform : Transform() {
+// todo write a wiki entry about this
 
-    override fun getDefaultDisplayName(): String = "Fourier Transform"
+class FourierTransform : Transform() {
 
     val meta get() = FFMPEGMetadata.getMeta(file, true)
     val forcedMeta get() = FFMPEGMetadata.getMeta(file, false)
 
-    // todo why are soo few stripes displayed?
-    // todo playing audio slowly and quickly is broken?
+    // effect properties; default is logarithmic x scale
+    val rotLin = AnimatedProperty.rotYXZ()
+    val rotLog = AnimatedProperty.rotYXZ()
+    val scaOff = AnimatedProperty.scale(Vector3f(1f, 0f, 1f))
+    val scaLin = AnimatedProperty.scale(Vector3f(0f, 0f, 0f))
+    val scaLog = AnimatedProperty.scale(Vector3f(0f, 1f, 0f))
+    val posLin = AnimatedProperty.pos()
+    val posLog = AnimatedProperty.pos()
 
     // should be 60 fps, so sampleRate = 60 * bufferSize
     var sampleRate = 48000
     var bufferSize = 512
 
+    var minBufferIndex = -1
+    var maxBufferIndex = -1
+
     // todo implement using half buffers...
     var enableHalfBuffers = true
 
-    // todo support audio effects stack?
+    // support audio effects stack? no, the user can go the extra step of rendering it,
+    // it they need something that specific; if I get many requests for it, I can implement it later
     var file = FileReference("")
+
+    // todo we need references
+    // todo for that we need to drag transforms into other fields: transformInput
+    // they are problematic in regards to reloading the scene... the input will have a different value...
     var getIndexParent: Transform? = null
 
     fun getIndexAndSize(): Int {
@@ -90,9 +109,6 @@ class FourierTransform : Transform() {
 
         stack.next {
 
-            // todo index = index in first parent with more than x children? we need references...
-            // todo for that we need to drag transforms into other fields...
-
             val indexSize = getIndexAndSize()
             val index = getSizeX(indexSize)
             val size = getSizeY(indexSize)
@@ -110,12 +126,18 @@ class FourierTransform : Transform() {
                     val buff1 = getBuffer(meta, bufferTime1, bufferTime2)
                     if (buff0 != null && buff1 != null) {
 
-                        val relativeIndex0 = index.toFloat() / size
-                        val relativeIndex1 = (index + 1f) / size
                         val bufferSize = buff0.first.size / 4 // half is mirrored, half is real/imaginary
 
-                        var indexInBuffer0 = (relativeIndex0 * bufferSize).toInt()
-                        var indexInBuffer1 = (relativeIndex1 * bufferSize).toInt()
+                        val minIndex = clamp(minBufferIndex, 0, bufferSize - 1)
+                        val maxIndex0 = kotlin.math.max(minIndex, maxBufferIndex)
+                        val maxIndex = if (maxBufferIndex < 0) bufferSize - 1 else maxIndex0
+                        val deltaIndex = 1 + maxIndex - minIndex
+
+                        val relativeIndex0 = index.toFloat() / size
+                        val relativeIndex1 = (index + 1f) / size
+
+                        var indexInBuffer0 = minIndex + (relativeIndex0 * deltaIndex).toInt()
+                        var indexInBuffer1 = minIndex + (relativeIndex1 * deltaIndex).toInt()
 
                         if (indexInBuffer1 <= indexInBuffer0) indexInBuffer1 = indexInBuffer0 + 1
                         if (indexInBuffer0 >= bufferSize) indexInBuffer0 = bufferSize - 1
@@ -125,9 +147,9 @@ class FourierTransform : Transform() {
                         val amplitude0 = getAmplitude(indexInBuffer0, indexInBuffer1, buff0)
                         val amplitude1 = getAmplitude(indexInBuffer0, indexInBuffer1, buff1)
                         val amplitude = mix(amplitude0, amplitude1, fractIndex)
-                        val relativeAmplitude = amplitude / 32e3f
-                        // todo interpolate all matching positions
-                        stack.scale(1f, relativeAmplitude, 1f)
+
+                        applyTransform(stack, time, amplitude)
+
                     } else throw RuntimeException("null, why???")
                 } else lastWarning = "Missing audio source"
             }
@@ -148,10 +170,39 @@ class FourierTransform : Transform() {
         }
     }
 
+    fun applyTransform(stack: Matrix4f, time: Double, amplitude: Float) {
+
+        // first position, then rotation, and then scale
+        // skew??? nah... for consistency maybe, but really there shouldn't be a user using it...
+
+        val value = amplitude / 32767f
+        val logValue = clampedLogarithm(value, 100f)
+
+        val translation = Vector3f(logValue).mul(posLog[time]).add(Vector3f(posLin[time]).mul(value))
+        stack.translate(translation)
+
+        val rotation = Vector3f(logValue).mul(rotLog[time]).add(Vector3f(rotLin[time]).mul(value))
+        stack.rotateY(rotation.y)
+        stack.rotateX(rotation.x)
+        stack.rotateZ(rotation.z)
+
+        val scale = Vector3f(logValue).mul(scaLog[time]).add(Vector3f(scaLin[time]).mul(value)).add(scaOff[time])
+        stack.scale(scale)
+
+    }
+
+    // logarithm-like function for values from [0,1] to [0,1]
+    fun clampedLogarithm(value: Float, sharpness: Float): Float {
+        val vx = value * sharpness
+        return Maths.log(vx + 1f) / Maths.log(sharpness + 1f)
+    }
+
     fun getAmplitude(index0: Int, index1: Int, buffer: Pair<FloatArray, FloatArray>): Float {
         return (getAmplitude(index0, index1, buffer.first) + getAmplitude(index0, index1, buffer.second)) * 0.5f
     }
 
+    // interpolate all matching positions
+    // todo use a gaussian filter instead (optional)
     fun getAmplitude(index0: Int, index1: Int, buffer: FloatArray): Float {
         var sum = 0f
         if (index1 <= index0) throw IllegalArgumentException()
@@ -201,20 +252,32 @@ class FourierTransform : Transform() {
         fourier.add(vi("Audio File", "", null, file, style) { file = it })
         fourier.add(
             vi(
-                "Sample Rate",
-                "What the highest frequency should be. Higher frequencies may be reflected",
-                sampleRateType,
-                sampleRate,
-                style
+                "Sample Rate", "What the highest frequency should be. Higher frequencies may be reflected",
+                sampleRateType, sampleRate, style
             ) { sampleRate = max(64, it) })
         fourier.add(
             vi(
-                "Buffer Size",
-                "Should be at least twice the buffer size",
-                bufferSizeType,
-                bufferSize,
-                style
+                "Buffer Size", "Should be at least twice the buffer size",
+                bufferSizeType, bufferSize, style
             ) { bufferSize = max(64, it) })
+        fourier.add(
+            vi(
+                "Buffer Min", "-1 = disabled",
+                null, minBufferIndex, style
+            ) { minBufferIndex = it })
+        fourier.add(
+            vi(
+                "Buffer Max", "-1 = disabled",
+                null, maxBufferIndex, style
+            ) { maxBufferIndex = it })
+        val amplitude = getGroup("Amplitude", "", "")
+        amplitude.add(vi("Position, Linear", "", posLin, style))
+        amplitude.add(vi("Position, Logarithmic", "", posLog, style))
+        amplitude.add(vi("Rotation, Linear", "", rotLin, style))
+        amplitude.add(vi("Rotation, Logarithmic", "", rotLog, style))
+        amplitude.add(vi("Scale, Offset", "", scaOff, style))
+        amplitude.add(vi("Scale, Linear", "", scaLin, style))
+        amplitude.add(vi("Scale, Logarithmic", "", scaLog, style))
     }
 
     override fun drawChildrenAutomatically(): Boolean = false
@@ -224,6 +287,28 @@ class FourierTransform : Transform() {
         writer.writeFile("file", file)
         writer.writeInt("sampleRate", sampleRate)
         writer.writeInt("bufferSize", bufferSize)
+        writer.writeInt("minBufferIndex", minBufferIndex)
+        writer.writeInt("maxBufferIndex", maxBufferIndex)
+        writer.writeObject(this, "posLin", posLin)
+        writer.writeObject(this, "posLog", posLog)
+        writer.writeObject(this, "rotLin", rotLin)
+        writer.writeObject(this, "rotLog", rotLog)
+        writer.writeObject(this, "scaOff", scaOff)
+        writer.writeObject(this, "scaLin", scaLin)
+        writer.writeObject(this, "scaLog", scaLog)
+    }
+
+    override fun readObject(name: String, value: ISaveable?) {
+        when(name){
+            "posLin" -> posLin.copyFrom(value)
+            "posLog" -> posLog.copyFrom(value)
+            "rotLin" -> rotLin.copyFrom(value)
+            "rotLog" -> rotLog.copyFrom(value)
+            "scaOff" -> scaOff.copyFrom(value)
+            "scaLin" -> scaLin.copyFrom(value)
+            "scaLog" -> scaLog.copyFrom(value)
+            else -> super.readObject(name, value)
+        }
     }
 
     override fun readString(name: String, value: String) {
@@ -237,11 +322,14 @@ class FourierTransform : Transform() {
         when (name) {
             "sampleRate" -> sampleRate = max(64, value)
             "bufferSize" -> bufferSize = max(64, value)
+            "minBufferIndex" -> minBufferIndex = value
+            "maxBufferIndex" -> maxBufferIndex = value
             else -> super.readInt(name, value)
         }
     }
 
     override fun getClassName(): String = "FourierTransform"
+    override fun getDefaultDisplayName(): String = "Fourier Transform"
 
     companion object {
         val sampleRateType =

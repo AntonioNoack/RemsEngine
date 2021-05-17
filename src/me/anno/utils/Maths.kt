@@ -36,6 +36,7 @@ object Maths {
     fun clamp01(x: Float) = clamp(x, 0f, 1f)
 
     fun pow(base: Float, power: Float) = StrictMath.pow(base.toDouble(), power.toDouble()).toFloat()
+    fun log(base: Float) = StrictMath.log(base.toDouble()).toFloat()
 
     fun length(dx: Float, dy: Float) = sqrt(dx * dx + dy * dy)
     fun length(dx: Double, dy: Double) = sqrt(dx * dx + dy * dy)
