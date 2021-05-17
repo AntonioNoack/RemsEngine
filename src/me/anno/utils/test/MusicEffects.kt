@@ -4,11 +4,11 @@ import me.anno.audio.AudioFXCache
 import me.anno.audio.effects.Domain
 import me.anno.audio.effects.Time
 import me.anno.audio.effects.impl.EqualizerEffect
+import me.anno.io.FileReference
 import me.anno.objects.Camera
 import me.anno.objects.Video
 import me.anno.utils.Maths.pow
 import me.anno.utils.OS
-import me.anno.io.FileReference
 import kotlin.math.roundToInt
 import kotlin.math.sin
 
@@ -18,6 +18,8 @@ fun main() {
 
     val file = FileReference(OS.downloads, "Aitana 11 Raizones.mp4")
     if (!file.exists()) throw RuntimeException("Missing file!")
+
+    val bufferSize = 1024
 
     val audio = Video(file)
     val camera = Camera()
@@ -49,7 +51,7 @@ fun main() {
 
     val t0 = Time(0.0, 0.0)
     val t1 = Time(time, time)
-    val result = AudioFXCache.getBuffer(0, audio, camera, t0, t1, 1.0, Domain.TIME_DOMAIN, false)
+    val result = AudioFXCache.getBuffer(audio, camera, t0, t1, bufferSize, Domain.TIME_DOMAIN, false)
     print(result)
 
 }

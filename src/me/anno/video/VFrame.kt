@@ -10,6 +10,7 @@ import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.utils.Sleep.waitUntil
 import java.io.InputStream
+import java.util.concurrent.Semaphore
 
 abstract class VFrame(var w: Int, var h: Int, val code: Int) : ICacheData {
 
@@ -48,6 +49,10 @@ abstract class VFrame(var w: Int, var h: Int, val code: Int) : ICacheData {
     fun waitToLoad() {
         if (Thread.currentThread() == glThread) throw RuntimeException("Cannot wait on main thread")
         waitUntil(true) { isCreated }
+    }
+
+    companion object {
+        val creationLimiter = Semaphore(32)
     }
 
 }

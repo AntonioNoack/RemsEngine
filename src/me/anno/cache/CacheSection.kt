@@ -6,9 +6,9 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFX.gameTime
 import me.anno.studio.rems.RemsStudio.root
 import me.anno.utils.ShutdownException
-import me.anno.utils.Sleep.sleepShortly
 import me.anno.utils.Threads.threadWithName
 import me.anno.io.FileReference
+import me.anno.utils.Sleep
 import me.anno.utils.hpc.ProcessingQueue
 import org.apache.logging.log4j.LogManager
 import java.io.FileNotFoundException
@@ -19,8 +19,6 @@ import kotlin.math.max
 open class CacheSection(val name: String) : Comparable<CacheSection> {
 
     val cache = HashMap<Any, CacheEntry>(512)
-    private val lockedKeys = HashSet<Any>(16)
-    private val lockedBy = HashMap<Any, String>(16)
 
     override fun compareTo(other: CacheSection): Int {
         return name.compareTo(other.name)
@@ -31,7 +29,6 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         synchronized(cache) {
             cache.values.forEach { it.destroy() }
             cache.clear()
-            lockedKeys.clear() // mmh...
         }
     }
 
@@ -72,71 +69,24 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
      * useful for LODs, if others work as well, just are not as good
      * */
     fun getEntryWithoutGenerator(key: Any): ICacheData? {
-        synchronized(cache) {
-            return cache[key]?.run {
-                lastUsed = gameTime
-                data
-            }
-        }
+        val value = synchronized(cache) { cache[key] } ?: return null
+        value.lastUsed = gameTime
+        return value.data
     }
 
     fun free(key: Any) {
-        lock(key, false)
-        val entry = synchronized(cache) {
-            cache.remove(key)
-        }
+        val entry = synchronized(cache) { cache.remove(key) }
         entry?.destroy()
-        unlock(key)
-    }
-
-    private fun lock(key: Any, asyncGenerator: Boolean): Unit? {
-        if (asyncGenerator) {
-            // sleeping on the OpenGL-Thread isn't healthy, because we pose tons of requests
-            /*for (i in 0 until 10) {
-                synchronized(lockedKeys) {
-                    if (lockedKeys.add(key)) {
-                        lockedBy[key] = Thread.currentThread().name
-                        return Unit
-                    } // else: somebody else is using the cache ;p
-                }
-                sleepShortly(true)
-            }*/
-            /*synchronized(lockedBy) {
-                LOGGER.info("$name:$key is locked by ${lockedBy[key]}, wanted by ${Thread.currentThread().name}")
-            }*/
-            synchronized(lockedKeys) {
-                if (lockedKeys.add(key)) {
-                    lockedBy[key] = Thread.currentThread().name
-                    return Unit
-                } // else: somebody else is using the cache ;p
-            }
-            return null
-        } else {
-            while (true) {
-                synchronized(lockedKeys) {
-                    if (lockedKeys.add(key)) {
-                        lockedBy[key] = Thread.currentThread().name
-                        return Unit
-                    }
-                }
-                sleepShortly(true)
-            }
-        }
-    }
-
-    private fun unlock(key: Any) {
-        synchronized(lockedKeys) { lockedKeys.remove(key) }
-    }
-
-    private fun put(key: Any, data: ICacheData?, timeout: Long) {
-        synchronized(cache) { cache[key] = CacheEntry(data, timeout, gameTime) }
     }
 
     fun override(key: Any, data: ICacheData?, timeout: Long) {
-        synchronized(cache) {
-            val oldValue = cache.put(key, CacheEntry(data, timeout, gameTime))
-            oldValue?.destroy()
+        checkKey(key)
+        val oldValue = synchronized(cache) {
+            val entry = CacheEntry(timeout, gameTime)
+            entry.data = data
+            cache.put(key, entry)
         }
+        oldValue?.destroy()
     }
 
     private fun <V> generate(key: V, generator: (V) -> ICacheData): ICacheData? {
@@ -152,70 +102,94 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         return data
     }
 
-    private fun getDirectly(key: Any): Any? {
-        val cached: CacheEntry?
-        synchronized(cache) { cached = cache[key] }
-        if (cached != null) {
-            cached.lastUsed = gameTime
-            unlock(key)
-            return cached.data
-        }
-        return Unit
-    }
-
     fun <V> getEntry(key: V, timeout: Long, asyncGenerator: Boolean, generator: (V) -> ICacheData): ICacheData? {
 
         if (key == null) throw IllegalStateException("Key must not be null")
 
+        checkKey(key)
+
         // new, async cache
         // only the key needs to be locked, not the whole cache
 
-        lock(key, asyncGenerator) ?: return null
-
-        val cached = getDirectly(key)
-        if (cached != Unit) return cached as ICacheData?
-
-        return if (asyncGenerator) {
-            threadWithName("$name<$key>") {
-                val data = generate(key, generator)
-                put(key, data, timeout)
-                unlock(key)
+        var needsGenerator = false
+        val entry = synchronized(cache){
+            cache.getOrPut(key){
+                needsGenerator = true
+                CacheEntry(timeout, gameTime)
             }
-            null
-        } else {
-            val data = generate(key, generator)
-            put(key, data, timeout)
-            unlock(key)
-            data
         }
 
+        entry.lastUsed = gameTime
+
+        if(needsGenerator){
+            if (asyncGenerator) {
+                threadWithName("$name<$key>") {
+                    entry.data = generate(key, generator)
+                    if(entry.hasBeenDestroyed){
+                        LOGGER.warn("Value for $name<$key> was directly destroyed")
+                        entry.data?.destroy()
+                    }
+                }
+            } else entry.data = generate(key, generator)
+        }
+
+        if(!asyncGenerator){
+            Sleep.waitUntil(true){
+                entry.hasValue
+            }
+        }
+
+        if(entry.hasBeenDestroyed){
+            return getEntry(key, timeout, asyncGenerator, generator)
+        }
+
+        return entry.data
+
+    }
+
+    fun checkKey(key: Any){
+        if(key != key) throw IllegalStateException("Key must equal itself")
+        if(key.hashCode() != key.hashCode()) throw IllegalStateException("Hash-function of a key must be the same")
     }
 
     fun <V> getEntry(key: V, timeout: Long, queue: ProcessingQueue?, generator: (V) -> ICacheData): ICacheData? {
 
         if (key == null) throw IllegalStateException("Key must not be null")
 
+        checkKey(key)
+
         // new, async cache
         // only the key needs to be locked, not the whole cache
-
-        lock(key, queue != null) ?: return null
-
-        val cached = getDirectly(key)
-        if (cached != Unit) return cached as ICacheData?
-
-        return if (queue != null) {
-            queue += {
-                val data = generate(key, generator)
-                put(key, data, timeout)
-                unlock(key)
+        var needsGenerator = false
+        val entry = synchronized(cache){
+            cache.getOrPut(key){
+                needsGenerator = true
+                CacheEntry(timeout, gameTime)
             }
-            null
-        } else {
-            val data = generate(key, generator)
-            put(key, data, timeout)
-            unlock(key)
-            data
         }
+
+        entry.lastUsed = gameTime
+
+        if(needsGenerator){
+            if (queue != null) {
+                queue += {
+                    entry.data = generate(key, generator)
+                    if(entry.hasBeenDestroyed){
+                        LOGGER.warn("Value for $name<$key> was directly destroyed")
+                        entry.data?.destroy()
+                    }
+                }
+            } else entry.data = generate(key, generator)
+        }
+
+
+        if(queue == null){
+            Sleep.waitUntil(true){
+                entry.hasValue
+            }
+        }
+
+        return entry.data
 
     }
 
@@ -223,11 +197,14 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         val minTimeout = 300L
         val time = gameTime
         synchronized(cache) {
-            val toRemove =
-                cache.filter { (_, entry) -> time - entry.lastUsed > max(entry.timeout, minTimeout) * 1_000_000 }
-            toRemove.forEach {
-                cache.remove(it.key)
-                it.value.destroy()
+            val toRemove = cache.filter { (_, entry) -> time - entry.lastUsed > max(entry.timeout, minTimeout) * 1_000_000 }
+            for(it in toRemove){
+                val v2 = cache.remove(it.key) ?: throw IllegalStateException("This cannot be null, except we have race-conditions")
+                try {
+                    v2.destroy()
+                } catch (e: Exception){
+                    e.printStackTrace()
+                }
             }
         }
     }

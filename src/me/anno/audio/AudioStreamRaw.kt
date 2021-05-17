@@ -2,6 +2,7 @@ package me.anno.audio
 
 import me.anno.audio.AudioPools.FAPool
 import me.anno.audio.effects.SoundPipeline.Companion.bufferSize
+import me.anno.audio.effects.Time
 import me.anno.audio.openal.SoundBuffer
 import me.anno.cache.instances.AudioCache
 import me.anno.cache.keys.AudioSliceKey
@@ -26,7 +27,6 @@ class AudioStreamRaw(
     val repeat: LoopingState,
     val meta: FFMPEGMetadata,
     val is3D: Boolean,
-    val speed: Double,
     val source: Audio?,
     val destination: Transform?,
     val playbackSampleRate: Int = 48000
@@ -152,14 +152,11 @@ class AudioStreamRaw(
 
     }
 
-    private fun getTime(bufferIndex: Long) = speed * bufferIndex.toDouble() * bufferSize / playbackSampleRate
-
     fun getBuffer(
-        bufferIndex: Long
+        bufferSize: Int,
+        time0: Double,
+        time1: Double
     ): Pair<FloatArray, FloatArray> {
-
-        val time0 = getTime(bufferIndex + 0)
-        val time1 = getTime(bufferIndex + 1)
 
         // "[INFO:AudioStream] Working on buffer $queued"
         // LOGGER.info("$startTime/$bufferIndex")

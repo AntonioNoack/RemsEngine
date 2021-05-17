@@ -20,6 +20,8 @@ fun main() {
 
     val async = true
 
+    val bufferSize = 1024
+
     val start = System.nanoTime()
     val audio = Video(FileReference(OS.downloads, "Bring Me The Horizon Dear Diary.mp3"))
     val camera = Camera()
@@ -32,9 +34,9 @@ fun main() {
         val f1 = (i + 1).toDouble() / steps
         val i1 = mix(t0, t1, f1)
         if(async){
-            AudioFXCache.getRange(i0, i1, identifier, audio, camera, true)
+            AudioFXCache.getRange(bufferSize, i0, i1, identifier, audio, camera, true)
         } else {
-            while (AudioFXCache.getRange(i0, i1, identifier, audio, camera, false) == null){
+            while (AudioFXCache.getRange(bufferSize, i0, i1, identifier, audio, camera, false) == null){
                 Sleep.sleepShortly(true)
             }
         }

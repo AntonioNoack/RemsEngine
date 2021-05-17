@@ -78,7 +78,7 @@ object AudioManager {
     private fun checkIsDestroyed() {
         // todo detect if the primary audio device was changed by the user...
         val time = System.nanoTime()
-        if (abs(time - lastCheckedTime) > 500_000_000) {
+        if (abs(time - lastCheckedTime) > 100_000_000) {
             lastCheckedTime = time
             // 0.1ms -> it would be fine to even check it every time
             // we could consider only playback devices, but realistically the audio config shouldn't change often
@@ -107,7 +107,7 @@ object AudioManager {
     }
 
     fun reconnect() {
-        stop()
+        // stop()
         destroy()
         init()
     }

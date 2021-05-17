@@ -19,11 +19,11 @@ class BGRAFrame(w: Int, h: Int) : VFrame(w, h, 1) {
     override fun load(input: InputStream) {
         val s0 = w * h * 4
         val data = input.readNBytes2(s0, Texture2D.byteArrayPool[s0, false])
-        if (data.isEmpty()) throw LastFrame()
-        if (data.size < s0) throw RuntimeException("not enough data, only ${data.size} of $s0")
+        creationLimiter.acquire()
         GFX.addGPUTask(w, h) {
             bgra.createRGBA(data)
             Texture2D.byteArrayPool.returnBuffer(data)
+            creationLimiter.release()
         }
     }
 

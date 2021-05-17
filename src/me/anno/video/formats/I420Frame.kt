@@ -11,8 +11,6 @@ import java.io.InputStream
 
 class I420Frame(iw: Int, ih: Int) : VFrame(iw, ih, 2) {
 
-    // todo cache these byte buffers; typically we have large videos, so there will be equally sizes buffers frequently created and destroyed
-
     // this is correct, confirmed by example
     private val w2 = (w + 1) / 2
     private val h2 = (h + 1) / 2
@@ -27,16 +25,22 @@ class I420Frame(iw: Int, ih: Int) : VFrame(iw, ih, 2) {
         val s0 = w * h
         val s1 = w2 * h2
         val yData = input.readNBytes2(s0, Texture2D.byteBufferPool[s0, false])
+        creationLimiter.acquire()
         GFX.addGPUTask(w, h) {
             y.createMonochrome(yData)
+            creationLimiter.release()
         }
         val uData = input.readNBytes2(s1, Texture2D.byteBufferPool[s0, false])
+        creationLimiter.acquire()
         GFX.addGPUTask(w2, h2) {
             u.createMonochrome(uData)
+            creationLimiter.release()
         }
         val vData = input.readNBytes2(s1, Texture2D.byteBufferPool[s0, false])
+        creationLimiter.acquire()
         GFX.addGPUTask(w2, h2) {
             v.createMonochrome(vData)
+            creationLimiter.release()
             // tasks are executed in order, so this is true
             // (if no exception happened)
         }

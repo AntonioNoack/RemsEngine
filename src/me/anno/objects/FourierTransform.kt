@@ -40,6 +40,13 @@ class FourierTransform : Transform() {
     val meta get() = FFMPEGMetadata.getMeta(file, true)
     val forcedMeta get() = FFMPEGMetadata.getMeta(file, false)
 
+    // todo why are soo few stripes displayed?
+    // todo playing audio slowly and quickly is broken?
+
+    // should be 60 fps, so sampleRate = 60 * bufferSize
+    val sampleRate = 48000
+    val bufferSize = 512
+
     // todo support audio effects stack?
     var file = FileReference("")
     var getIndexParent: Transform? = null
@@ -92,14 +99,13 @@ class FourierTransform : Transform() {
                 // get the two nearest fourier transforms, and interpolate them
                 val meta = forcedMeta
                 if (meta != null) {
-                    val sampleRate = 48000
-                    val bufferIndex = AudioFXCache.getIndex(time, sampleRate)
+                    val bufferIndex = AudioFXCache.getIndex(time, bufferSize, sampleRate)
                     val bufferIndex0 = floor(bufferIndex).toLong()
-                    val bufferTime0 = Time(AudioFXCache.getTime(bufferIndex0 + 0, sampleRate))
-                    val bufferTime1 = Time(AudioFXCache.getTime(bufferIndex0 + 1, sampleRate))
-                    val bufferTime2 = Time(AudioFXCache.getTime(bufferIndex0 + 2, sampleRate))
-                    val buff0 = getBuffer(meta, bufferIndex0 + 0, bufferTime0, bufferTime1)
-                    val buff1 = getBuffer(meta, bufferIndex0 + 1, bufferTime1, bufferTime2)
+                    val bufferTime0 = Time(AudioFXCache.getTime(bufferIndex0 + 0, bufferSize, sampleRate))
+                    val bufferTime1 = Time(AudioFXCache.getTime(bufferIndex0 + 1, bufferSize, sampleRate))
+                    val bufferTime2 = Time(AudioFXCache.getTime(bufferIndex0 + 2, bufferSize, sampleRate))
+                    val buff0 = getBuffer(meta, bufferTime0, bufferTime1)
+                    val buff1 = getBuffer(meta, bufferTime1, bufferTime2)
                     if (buff0 != null && buff1 != null) {
 
                         val relativeIndex0 = index.toFloat() / size
@@ -139,10 +145,6 @@ class FourierTransform : Transform() {
 
         }
     }
-
-    class MiniCache(var data: Pair<FloatArray, FloatArray>? = null, var index: Long = 0)
-
-    val lastBuffers = Array(10) { MiniCache() }
 
     fun getAmplitude(index0: Int, index1: Int, buffer: Pair<FloatArray, FloatArray>): Float {
         return (getAmplitude(index0, index1, buffer.first) + getAmplitude(index0, index1, buffer.second)) * 0.5f
@@ -188,44 +190,27 @@ class FourierTransform : Transform() {
     // todo option to change the domain? may be nice, but otherwise, it's really fast...
 
     fun getKey(sampleIndex0: Long): AudioFXCache.PipelineKey {
-        val sampleRate = 48000
-        val t0 = Time(AudioFXCache.getTime(sampleIndex0 + 0, sampleRate))
-        val t1 = Time(AudioFXCache.getTime(sampleIndex0 + 1, sampleRate))
-        return getKey(sampleIndex0, t0, t1)
+        val t0 = Time(AudioFXCache.getTime(sampleIndex0 + 0, bufferSize, sampleRate))
+        val t1 = Time(AudioFXCache.getTime(sampleIndex0 + 1, bufferSize, sampleRate))
+        return getKey(t0, t1)
     }
 
-    fun getKey(sampleIndex0: Long, sampleTime0: Time, sampleTime1: Time): AudioFXCache.PipelineKey {
+    fun getKey(sampleTime0: Time, sampleTime1: Time): AudioFXCache.PipelineKey {
         return AudioFXCache.PipelineKey(
-            sampleIndex0,
-            file,
-            sampleTime0,
-            sampleTime1,
-            1.0,
-            false,
-            "",
-            loopingState,
-            null
+            file, sampleTime0, sampleTime1, bufferSize, false, "",
+            loopingState, null
         )
     }
 
     fun getBuffer(
         meta: FFMPEGMetadata,
-        bufferIndex: Long,
         sampleTime0: Time,
         sampleTime1: Time
     ): Pair<FloatArray, FloatArray>? {
-        val data = AudioFXCache.getBuffer0(meta, getKey(bufferIndex, sampleTime0, sampleTime1), false)
+        val data = AudioFXCache.getBuffer0(meta, getKey(sampleTime0, sampleTime1), false)
         if (isFinalRendering && data == null) throw MissingFrameException(file)
         if (data == null) return null
-        val data2 = data.getBuffersOfDomain(Domain.FREQUENCY_DOMAIN)
-        for (buffer in lastBuffers) {
-            if (buffer.data == null) {
-                buffer.data = data2
-                buffer.index = bufferIndex
-                return data2
-            }
-        }
-        return data2
+        return data.getBuffersOfDomain(Domain.FREQUENCY_DOMAIN)
     }
 
     override fun createInspector(

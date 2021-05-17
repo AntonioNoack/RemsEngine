@@ -2,6 +2,7 @@ package me.anno.ui.editor.cutting
 
 import me.anno.audio.AudioFXCache
 import me.anno.audio.AudioFXCache.SPLITS
+import me.anno.audio.effects.SoundPipeline.Companion.bufferSize
 import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFXx2D
 import me.anno.gpu.GFXx2D.drawRectGradient
@@ -200,7 +201,7 @@ class LayerStripeSolution(
                         // speed: Double,
                         // domain: Domain,
                         // async: Boolean
-                        val range = AudioFXCache.getRange(t0, t1, identifier, audio, camera)
+                        val range = AudioFXCache.getRange(bufferSize, t0, t1, identifier, audio, camera)
                         if (range != null && drawAudio) {
                             for (dx in 0 until SPLITS) {
                                 val x = xi + dx

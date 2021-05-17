@@ -46,7 +46,10 @@ open class Texture2D(
     var state: Triple<Texture2D, Int, Boolean>? = null
 
     var pointer = -1
+
     var isCreated = false
+    var isDestroyed = false
+
     var filtering = GPUFiltering.TRULY_NEAREST
     var clamping = Clamping.CLAMP
 
@@ -61,6 +64,7 @@ open class Texture2D(
     }
 
     fun ensurePointer() {
+        if (isDestroyed) throw RuntimeException("Destroyed")
         if (pointer < 0) {
             GFX.check()
             pointer = createTexture()
@@ -84,6 +88,7 @@ open class Texture2D(
         filtering(filtering)
         clamping(clamping)
         isCreated = true
+        if(isDestroyed) destroy()
     }
 
     fun create(type: TargetType) {
@@ -486,7 +491,8 @@ open class Texture2D(
 
     override fun destroy() {
         GFX.checkIsGFXThread()
-        this.isCreated = false
+        isCreated = false
+        isDestroyed = true
         val pointer = pointer
         if (pointer > -1) {
             locallyAllocated = allocate(locallyAllocated, 0L)

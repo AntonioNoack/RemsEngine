@@ -35,7 +35,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 abstract class AudioStream(
     val file: FileReference,
     val repeat: LoopingState,
-    val startIndex: Long,
+    var startIndex: Long,
     val meta: FFMPEGMetadata,
     val source: Audio,
     val destination: Camera,

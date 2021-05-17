@@ -22,7 +22,7 @@ import kotlin.math.max
 class AudioStreamOpenAL(
     file: FileReference,
     repeat: LoopingState,
-    val startTime: Double,
+    var startTime: Double,
     meta: FFMPEGMetadata,
     sender: Audio,
     listener: Camera,
@@ -40,8 +40,11 @@ class AudioStreamOpenAL(
         private val LOGGER = LogManager.getLogger(AudioStreamOpenAL::class)
     }
 
+    val startTime0 = startTime
+
     var startTimeNanos = 0L
-    val alSource = SoundSource(false, true)
+    var realStartTimeNanos = 0L
+    var alSource = SoundSource(false, true)
 
     var queued = AtomicLong()
     var processed = 0
@@ -55,6 +58,7 @@ class AudioStreamOpenAL(
         if (!isPlaying) {
             isPlaying = true
             startTimeNanos = System.nanoTime()
+            realStartTimeNanos = startTimeNanos
             waitForRequiredBuffers()
         } else throw RuntimeException()
     }
@@ -73,8 +77,24 @@ class AudioStreamOpenAL(
 
     val cachedBuffers = 10
 
+    fun checkSession() {
+        if (alSource.checkSessionWasReset()) {
+            // reset all progress
+            val time = System.nanoTime()
+            // find start time and start index
+            val deltaTime = (time - realStartTimeNanos) * 1e-9
+            startTime = startTime0 + deltaTime * speed
+            startIndex = getIndex(startTime, speed, playbackSampleRate)
+            hadFirstBuffer = false
+            queued.set(0)
+            processed
+            startTimeNanos = time
+        }
+    }
+
     fun waitForRequiredBuffers() {
         if (!isPlaying) return
+        checkSession()
         val queued = queued.get()
         if (!isWaitingForBuffer.get() && queued > 0) checkProcessed()
         // keep 2 on reserve
@@ -100,6 +120,8 @@ class AudioStreamOpenAL(
         AudioTasks.addTask(10) {
             if (isPlaying) {
 
+                checkSession()
+
                 ALBase.check()
                 val soundBuffer = SoundBuffer()
                 ALBase.check()
@@ -109,7 +131,6 @@ class AudioStreamOpenAL(
 
                 // load audio continuously the whole time, so we have it, when it's required
 
-                var isFirstBuffer = false
                 if (!hadFirstBuffer) {
 
                     val dt = max(0f, (System.nanoTime() - startTimeNanos) * 1e-9f)
@@ -126,7 +147,6 @@ class AudioStreamOpenAL(
                         LOGGER.info("Skipping $targetIndex/$capacity")
                         stereoBuffer.position(targetIndex.toInt())
 
-                        isFirstBuffer = true
                         hadFirstBuffer = true
 
                     } else {
@@ -143,10 +163,9 @@ class AudioStreamOpenAL(
 
                 alSourceQueueBuffers(alSource.sourcePtr, soundBuffer.buffer)
                 ALBase.check()
-                if (isFirstBuffer) {
-                    alSource.play()
-                    ALBase.check()
-                }
+
+                alSource.play()
+                ALBase.check()
 
                 // time += openALSliceDuration
                 isWaitingForBuffer.set(false)
