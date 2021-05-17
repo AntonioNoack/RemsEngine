@@ -356,7 +356,7 @@ class Video(file: FileReference = FileReference(""), parent: Transform? = null) 
 
         if (sourceFPS > 0.0) {
             val scale = GFXx3D.getScale(meta.videoWidth, meta.videoHeight)
-            val isVisible = Clipping.isPlaneVisible(stack, meta.videoWidth / scale, meta.videoHeight / scale)
+            val isVisible = Clipping.isPlaneVisible(stack, meta.videoWidth * scale, meta.videoHeight * scale)
             if (time >= 0.0 && (isLooping != LoopingState.PLAY_ONCE || time <= duration) && isVisible) {
 
                 // use full fps when rendering to correctly render at max fps with time dilation

@@ -112,7 +112,7 @@ class FourierTransform : Transform() {
 
                         val relativeIndex0 = index.toFloat() / size
                         val relativeIndex1 = (index + 1f) / size
-                        val bufferSize = buff0.first.size / 2
+                        val bufferSize = buff0.first.size / 4 // half is mirrored, half is real/imaginary
 
                         var indexInBuffer0 = (relativeIndex0 * bufferSize).toInt()
                         var indexInBuffer1 = (relativeIndex1 * bufferSize).toInt()

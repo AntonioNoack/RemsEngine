@@ -89,7 +89,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         oldValue?.destroy()
     }
 
-    private fun <V> generateSavely(key: V, generator: (V) -> ICacheData?): ICacheData? {
+    private fun <V> generateSafely(key: V, generator: (V) -> ICacheData?): ICacheData? {
         var data: ICacheData? = null
         try {
             data = generator(key)
@@ -120,7 +120,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         return if (accessTry < limit) {
             // we're good to go, and can make our request
             getEntryWithCallback(key, timeout, asyncGenerator, {
-                val value = generateSavely(key, generator)
+                val value = generateSafely(key, generator)
                 limiter.decrementAndGet()
                 value
             }) { limiter.decrementAndGet() }
@@ -143,7 +143,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         return if (accessTry < limit) {
             // we're good to go, and can make our request
             getEntryWithCallback(key, timeout, queue, {
-                val value = generateSavely(key, generator)
+                val value = generateSafely(key, generator)
                 limiter.decrementAndGet()
                 value
             }) { limiter.decrementAndGet() }
@@ -178,13 +178,13 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         if (needsGenerator) {
             if (asyncGenerator) {
                 threadWithName("$name<$key>") {
-                    entry.data = generateSavely(key, generator)
+                    entry.data = generateSafely(key, generator)
                     if (entry.hasBeenDestroyed) {
                         LOGGER.warn("Value for $name<$key> was directly destroyed")
                         entry.data?.destroy()
                     }
                 }
-            } else entry.data = generateSavely(key, generator)
+            } else entry.data = generateSafely(key, generator)
         } else ifNotGenerating?.invoke()
 
         if (!asyncGenerator) entry.waitForValue()
@@ -216,13 +216,13 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         if (needsGenerator) {
             if (queue != null) {
                 queue += {
-                    entry.data = generateSavely(key, generator)
+                    entry.data = generateSafely(key, generator)
                     if (entry.hasBeenDestroyed) {
                         LOGGER.warn("Value for $name<$key> was directly destroyed")
                         entry.data?.destroy()
                     }
                 }
-            } else entry.data = generateSavely(key, generator)
+            } else entry.data = generateSafely(key, generator)
         }else ifNotGenerating?.invoke()
 
         if (queue == null) entry.waitForValue()
@@ -281,6 +281,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         }
 
         private val LOGGER = LogManager.getLogger(CacheSection::class)
+
     }
 
 }
