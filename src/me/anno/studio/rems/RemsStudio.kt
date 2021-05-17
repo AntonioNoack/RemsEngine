@@ -32,8 +32,6 @@ import me.anno.utils.OS
 // todo when mixing strings, \n and spaces have a special role:
 // todo - substring should not be longer in a line than the total
 
-// todo tree view distances are broken somehow...
-
 // todo settings should open in a window, that does not cover everything, just maybe 90%
 // todo project settings and render settings maybe should be windows instead of being inspectables
 
@@ -69,7 +67,7 @@ import me.anno.utils.OS
 
 // todo splines for the polygon line
 
-// todo draw frame by frame, only save x,y,radius?
+// todo sketching: draw frame by frame, only save x,y,radius?
 // todo record drawing, and use meta-ball like shapes (maybe)
 
 // todo translations for everything...

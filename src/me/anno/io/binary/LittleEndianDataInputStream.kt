@@ -44,8 +44,7 @@ open class LittleEndianDataInputStream(val input: InputStream) : InputStream() {
     fun readCharSkipSpaces(): Char {
         while (true) {
             when (val char = readChar()) {
-                ' ', '\t', '\n' -> {
-                }
+                ' ', '\t', '\n' -> Unit
                 else -> return char
             }
         }
@@ -54,8 +53,7 @@ open class LittleEndianDataInputStream(val input: InputStream) : InputStream() {
     fun readCharSkipSpacesNoNL(): Char {
         while (true) {
             when (val char = readChar()) {
-                ' ', '\t' -> {
-                }
+                ' ', '\t' -> Unit
                 else -> return char
             }
         }
@@ -66,9 +64,7 @@ open class LittleEndianDataInputStream(val input: InputStream) : InputStream() {
         str.append(first)
         while (true) {
             when (val char = read().toChar()) {
-                in '0'..'9', 'e', '+', '-', '.' -> {
-                    str.append(char)
-                }
+                in '0'..'9', 'e', '+', '-', '.' -> str.append(char)
                 else -> {
                     putBack(char)
                     return str.toString()
@@ -82,11 +78,13 @@ open class LittleEndianDataInputStream(val input: InputStream) : InputStream() {
         while (true) {
             when (val char = read().toChar()) {
                 '\\' -> {
-                    TODO("escaped stuff")
+                    when (val second = read().toChar()) {
+                        '\\' -> str.append('\\')
+                        '"' -> str.append('"')
+                        else -> throw RuntimeException("Todo \\$second")
+                    }
                 }
-                '"' -> {
-                    return str.toString()
-                }
+                '"' -> return str.toString()
                 else -> str.append(char)
             }
         }
@@ -98,9 +96,7 @@ open class LittleEndianDataInputStream(val input: InputStream) : InputStream() {
         str.append(first)
         while (true) {
             when (val char = read().toChar()) {
-                in 'A'..'Z', in 'a'..'z', in '0'..'9', '_' -> {
-                    str.append(char)
-                }
+                in 'A'..'Z', in 'a'..'z', in '0'..'9', '_' -> str.append(char)
                 else -> {
                     putBack(char)
                     return str.toString()
