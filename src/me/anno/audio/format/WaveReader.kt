@@ -118,7 +118,7 @@ class WaveReader(val input: InputStream, frameCount: Int) {
 
     fun readTag() = String(readNBytes(4))
 
-    fun readNBytes(n: Int) = input.readNBytes2(n)
+    fun readNBytes(n: Int): ByteArray = input.readNBytes2(n, true)
 
     fun readShort(): Int {
         val a = input.read()

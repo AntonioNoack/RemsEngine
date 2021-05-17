@@ -10,7 +10,6 @@ import me.anno.studio.rems.RemsStudio.nullCamera
 import me.anno.studio.rems.RemsStudio.root
 import me.anno.utils.Sleep.sleepShortly
 import org.apache.logging.log4j.LogManager
-import org.joml.Matrix4f
 import org.lwjgl.openal.AL
 import org.lwjgl.openal.ALC
 import org.lwjgl.openal.ALC10.*
@@ -23,9 +22,9 @@ import kotlin.math.abs
 
 object AudioManager {
 
-    var cameraMatrix = Matrix4f()
-    var soundSourceMap = HashMap<String, SoundSource>()
-    var soundBuffers = ArrayList<SoundBuffer>()
+    // var cameraMatrix = Matrix4f()
+    // var soundSourceMap = HashMap<String, SoundSource>()
+    // var soundBuffers = ArrayList<SoundBuffer>()
 
     private var device = 0L
     private var context = 0L

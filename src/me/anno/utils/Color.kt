@@ -2,7 +2,6 @@ package me.anno.utils
 
 import me.anno.config.DefaultStyle.black
 import me.anno.utils.Maths.clamp
-import org.joml.Vector3f
 import org.joml.Vector3fc
 import org.joml.Vector4f
 import org.joml.Vector4fc
@@ -17,6 +16,8 @@ object Color {
     fun Int.a() = shr(24) and 255
 
     fun Int.mulAlpha(alpha: Float): Int = rgba(r(), g(), b(), (a() * alpha).roundToInt())
+    fun Int.mulARGB(other: Int): Int =
+        rgba(r() * other.r() / 255, g() * other.g() / 255, b() * other.b() / 255, a() * other.a() / 255)
 
     fun rgba(r: Byte, g: Byte, b: Byte, a: Byte): Int = r.toInt().and(255).shl(16) or
             g.toInt().and(255).shl(8) or
@@ -51,7 +52,7 @@ object Color {
     fun hex8(f: Float) = hex8(clamp((255 * f).roundToInt(), 0, 255))
 
     fun Int.toHexColor(): String {
-        return if(this and black == black) "#${hex24(this)}"
+        return if (this and black == black) "#${hex24(this)}"
         else "#${hex32(this)}"
     }
 

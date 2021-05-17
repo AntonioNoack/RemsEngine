@@ -8,6 +8,7 @@ import me.anno.io.utils.StringMap
 import me.anno.utils.OS
 import org.apache.logging.log4j.LogManager
 import java.io.File
+import java.io.IOException
 import java.nio.charset.Charset
 
 /**
@@ -37,9 +38,16 @@ object ConfigBasics {
     fun save(localFileName: String, data: String) = save(getConfigFile(localFileName), data)
 
     fun load(file: FileReference, saveIfMissing: Boolean, getDefault: () -> String): String {
-        return if (file.exists()) {
-            file.readText(utf8Charset)
-        } else {
+        val value = if (file.exists()) {
+            try {
+                file.readText(utf8Charset)
+            } catch (e: IOException){
+                e.printStackTrace()
+                null
+            }
+        } else null
+        return if(value != null) value
+        else {
             val default = getDefault()
             if (saveIfMissing) save(file, default)
             default

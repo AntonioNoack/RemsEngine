@@ -1,6 +1,7 @@
 package me.anno.video
 
 import me.anno.gpu.GFX
+import me.anno.input.Input
 import me.anno.io.FileReference
 import me.anno.utils.ShutdownException
 import me.anno.utils.Sleep.waitUntil
@@ -23,8 +24,15 @@ class FFMPEGVideo(
 ) : FFMPEGStream(file, isProcessCountLimited = !file.extension.isFFMPEGOnlyExtension()) {
 
     /*init {
-        LOGGER.info("${file.name.substring(0, min(10, file.name.length))} $w x $h $frame0/$bufferLength")
+        val meta = getMeta(file, false)!!
+        if(frame0 >= meta.videoFrameCount) throw IllegalArgumentException()
     }*/
+
+    // todo somebody is requesting all frames, when a video has nearly finished... why??... too much...
+    init {
+        if(Input.isKeyDown('x')) throw IllegalArgumentException("Too many requests, error!!!")
+        LOGGER.info("${file.name.substring(0, kotlin.math.min(10, file.name.length))} $w x $h $frame0/$bufferLength")
+    }
 
     override fun process(process: Process, arguments: List<String>) {
         thread(name = "${file?.name}:error-stream") {
@@ -109,6 +117,8 @@ class FFMPEGVideo(
 
     companion object {
         private val LOGGER = LogManager.getLogger(FFMPEGVideo::class.java)
+        var lastRequest = 0L
+        var requestRate = 0.0
     }
 
 }

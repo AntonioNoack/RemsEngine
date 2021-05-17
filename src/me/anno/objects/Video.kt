@@ -46,6 +46,7 @@ import me.anno.ui.editor.SettingCategory
 import me.anno.ui.input.EnumInput
 import me.anno.ui.style.Style
 import me.anno.utils.Clipping
+import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.fract
 import me.anno.utils.Maths.mix
 import me.anno.utils.Maths.pow
@@ -70,6 +71,8 @@ import kotlin.math.*
 // todo auto-exposure correction by calculating the exposure, and adjusting the brightness
 
 // todo feature tracking on videos as anchors, e.g. for easy blurry signs, or text above heads (marker on head/eyes)
+
+// todo ask the user whether he wants to proceed, if there are warnings in the scene
 
 /**
  * Images, Cubemaps, Videos, Audios, joint into one
@@ -516,28 +519,32 @@ class Video(file: FileReference = FileReference(""), parent: Transform? = null) 
                             // use full fps when rendering to correctly render at max fps with time dilation
                             // issues arise, when multiple frames should be interpolated together into one
                             // at this time, we chose the center frame only.
-                            val videoFPS =
-                                if (isFinalRendering) sourceFPS else min(sourceFPS, editorVideoFPS.value.dValue)
+                            val videoFPS = if (isFinalRendering) sourceFPS else min(sourceFPS, editorVideoFPS.value.dValue)
+
+                            // calculate how many buffers are required from start to end
+                            // clamp to max number of buffers, or maybe 20
+                            val buff0 = (minT * videoFPS).toInt()
+                            val buff1 = (maxT * videoFPS).toInt()
+                            val steps = clamp(2+(buff1-buff0)/ framesPerContainer, 2, 20)
 
                             val frameCount = max(1, (duration * videoFPS).roundToInt())
 
-                            var minT2 = Int.MAX_VALUE
-                            var maxT2 = Int.MIN_VALUE
-                            val steps = 10
-                            for (i in 0 until steps) {
-                                val f0 = mix(minT, maxT, i / (steps - 1.0))
+                            var lastBuffer = -1
+                            for(step in 0 until steps){
+                                val f0 = mix(minT, maxT, step / (steps - 1.0))
                                 val localTime0 = isLooping[f0, duration]
-                                val frame = (localTime0 * videoFPS).toInt() % frameCount
-                                minT2 = if (i == 0) frame else min(frame, minT2)
-                                maxT2 = if (i == 0) frame else max(frame, maxT2)
+                                val frameIndex = (localTime0 * videoFPS).toInt()
+                                if(frameIndex < 0 || frameIndex >= frameCount) continue
+                                val buffer = frameIndex / framesPerContainer
+                                if(buffer != lastBuffer){
+                                    lastBuffer = buffer
+                                    getVideoFrame(
+                                        file, max(1, zoomLevel), frameIndex,
+                                        framesPerContainer, videoFPS, videoFrameTimeout, true
+                                    )
+                                }
                             }
 
-                            for (frameIndex in minT2..maxT2 step framesPerContainer) {
-                                getVideoFrame(
-                                    file, max(1, zoomLevel), frameIndex,
-                                    framesPerContainer, videoFPS, videoFrameTimeout, true
-                                )
-                            }
                         }
                     }
                 }
@@ -621,6 +628,7 @@ class Video(file: FileReference = FileReference(""), parent: Transform? = null) 
                 this.imageSequenceMeta = imageSequenceMeta
             }
         }
+        lastWarning = null
         when (type) {
             VideoType.VIDEO, VideoType.AUDIO -> {
                 val meta = meta
@@ -630,9 +638,20 @@ class Video(file: FileReference = FileReference(""), parent: Transform? = null) 
                     }
                     lastDuration = meta.duration
                 }
+                if (meta == null) {
+                    lastWarning = if (file.exists()) {
+                        "Video file is invalid"
+                    } else {
+                        "File does not exist"
+                    }
+                }
             }
             VideoType.IMAGE_SEQUENCE -> {
-                imageSequenceMeta!!
+                val meta = imageSequenceMeta!!
+                if(!meta.isValid) lastWarning = "No image sequence matches found"
+            }
+            VideoType.IMAGE -> {
+                // todo check if the image is valid...
             }
             // it was a critical bug, oh
             else -> Unit
@@ -672,7 +691,10 @@ class Video(file: FileReference = FileReference(""), parent: Transform? = null) 
                 else -> throw RuntimeException("$type needs visualization") // for the future
             }
 
-        } else drawSpeakers(stack, Vector4f(color), is3D, amplitude[time])
+        } else {
+            drawSpeakers(stack, Vector4f(color), is3D, amplitude[time])
+            lastWarning = "Invalid filename"
+        }
 
     }
 

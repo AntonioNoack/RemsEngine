@@ -93,11 +93,24 @@ object GFXx2D {
 
     fun drawRectStriped(x: Int, y: Int, w: Int, h: Int, offset: Int, stride: Int, color: Vector4fc) {
         if (w == 0 || h == 0) return
-        GFX.check()
         val shader = ShaderLib.flatShaderStriped
         shader.use()
-        posSize(shader, x, y, w, h)
         shader.v4("color", color)
+        drawRectStriped(x, y, w, h, offset, stride, shader)
+    }
+
+    fun drawRectStriped(x: Int, y: Int, w: Int, h: Int, offset: Int, stride: Int, color: Int) {
+        if (w == 0 || h == 0) return
+        val shader = ShaderLib.flatShaderStriped
+        shader.use()
+        shader.v4("color", color)
+        drawRectStriped(x, y, w, h, offset, stride, shader)
+    }
+
+    fun drawRectStriped(x: Int, y: Int, w: Int, h: Int, offset: Int, stride: Int, shader: Shader) {
+        if (w == 0 || h == 0) return
+        GFX.check()
+        posSize(shader, x, y, w, h)
         var o = offset % stride
         if (o < 0) o += stride
         shader.v1("offset", o)
@@ -194,7 +207,8 @@ object GFXx2D {
 
     val simpleChars = Array('z'.toInt() + 1) { it.toChar().toString() }
     var monospaceFont = lazy { Font("Consolas", DefaultConfig.style.getSize("fontSize", 12), false, false) }
-    val monospaceKeys = lazy { Array(simpleChars.size) { FontManager.getTextCacheKey(monospaceFont.value, simpleChars[it], -1) } }
+    val monospaceKeys =
+        lazy { Array(simpleChars.size) { FontManager.getTextCacheKey(monospaceFont.value, simpleChars[it], -1) } }
 
     fun drawSimpleTextCharByChar(
         x0: Int, y0: Int,

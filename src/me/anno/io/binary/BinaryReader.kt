@@ -41,7 +41,7 @@ class BinaryReader(val input: DataInputStream) : BaseReader() {
             id >= +0 -> knownNames[id]
             else -> {
                 val length = -id - 2
-                val bytes = input.readNBytes2(length)
+                val bytes = input.readNBytes2(length, true)
                 val value = String(bytes)
                 knownNames += value
                 value

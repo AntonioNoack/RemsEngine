@@ -4,6 +4,7 @@ import me.anno.cache.instances.VideoCache
 import me.anno.cache.keys.VideoFrameKey
 import me.anno.io.FileReference
 import me.anno.studio.rems.RemsStudio.gfxSettings
+import me.anno.video.FFMPEGMetadata
 import me.anno.video.FFMPEGStream
 
 class VideoData(
@@ -12,6 +13,13 @@ class VideoData(
     bufferLength: Int, val fps: Double,
     val ownsFrames: Boolean
 ) : ICacheData {
+
+    init {
+        val meta = FFMPEGMetadata.getMeta(file, false)!!
+        val frame0 = bufferIndex * bufferLength
+        if(frame0 <=-bufferLength || frame0 >= meta.videoFrameCount)
+            throw IllegalArgumentException("Access of frames is out of bounds: $frame0/${meta.videoFrameCount}")
+    }
 
     // what about video webp? I think it's pretty rare...
     val stream = FFMPEGStream.getImageSequence(

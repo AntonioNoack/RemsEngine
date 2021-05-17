@@ -18,6 +18,7 @@ import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.max
 import me.anno.utils.Maths.mixARGB
 import me.anno.utils.Maths.nonNegativeModulo
+import me.anno.utils.types.Strings.isBlank2
 import me.anno.video.FFMPEGMetadata
 import org.joml.Vector4f
 import kotlin.math.abs
@@ -38,7 +39,9 @@ class LayerStripeSolution(
     }
 
     private val relativeVideoBorder = 0.1f
-    private val stripeColor = Vector4f(1f, 1f, 1f, 0.2f)
+    private val stripeColorSelected = 0x33ffffff
+    private val stripeColorWarning = 0x33ffff77
+    private val stripeColorError = 0xffff7777.toInt()
 
     // draw a stripe of the current image, or a symbol or sth...
     // done shader for the stripes (less draw calls)
@@ -50,13 +53,13 @@ class LayerStripeSolution(
     }
 
     fun keepResourcesLoaded() {
-        iteratorOverGradients(null, null, false, { _, _, _, _, _ -> }, { _, _, _, _, _, _ -> }, ::keepFrameLoaded)
+        iteratorOverGradients(null, null, false, { _, _, _, _, _, _ -> }, { _, _, _, _, _, _ -> }, ::keepFrameLoaded)
     }
 
     private fun iteratorOverGradients(
         selectedTransform: Transform?, draggedTransform: Transform?,
         drawAudio: Boolean,
-        drawStripes: (x0: Int, x1: Int, y: Int, h: Int, offset: Int) -> Unit,
+        drawStripes: (x0: Int, x1: Int, y: Int, h: Int, offset: Int, color: Int) -> Unit,
         drawGradient: (x0: Int, x1: Int, y: Int, h: Int, c0: Int, c1: Int) -> Unit,
         drawVideo: (
             x0: Int, x1: Int, y: Int, h: Int,
@@ -229,8 +232,12 @@ class LayerStripeSolution(
                     }
                 }
 
-                if (isStriped) {
-                    drawStripes(ix0, ix1, y0, h0, timeOffset)
+                val hasError = tr?.lastWarning != null
+                if (isStriped || hasError) {
+                    // check if the video element has an error
+                    // if so, add red stripes
+                    val color = if (hasError) stripeColorError else stripeColorSelected
+                    drawStripes(ix0, ix1, y0, h0, timeOffset, color)
                 }
 
             }
@@ -241,8 +248,8 @@ class LayerStripeSolution(
         drawRectGradient(x0, y, x1 - x0, h, c0, c1)
     }
 
-    private fun drawStripes(x0: Int, x1: Int, y: Int, h: Int, offset: Int) {
-        drawRectStriped(x0, y, x1 - x0, h, offset, stripeStride, stripeColor)
+    private fun drawStripes(x0: Int, x1: Int, y: Int, h: Int, offset: Int, color: Int) {
+        drawRectStriped(x0, y, x1 - x0, h, offset, stripeStride, color)
     }
 
     private fun getTimeAt(x: Int) = centralTime + dtHalfLength * ((x - x0).toDouble() / w * 2.0 - 1.0)

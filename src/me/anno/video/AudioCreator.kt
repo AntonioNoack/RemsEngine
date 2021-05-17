@@ -122,7 +122,7 @@ open class AudioCreator(
             val streams = audioSources.map { BufferStream(it, sampleRate, camera) }
 
             for (bufferIndex in 0 until bufferCount) {
-                streams.forEach { it.requestNextBuffer(bufferIndex) }
+                streams.forEach { it.requestNextBuffer(bufferIndex, 0) }
                 val buffers = streams.map { it.getAndReplace() }
                 val buffer = buffers.first()
                 // write the data to ffmpeg

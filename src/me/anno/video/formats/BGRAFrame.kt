@@ -6,7 +6,6 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.utils.input.readNBytes2
-import me.anno.video.LastFrame
 import me.anno.video.VFrame
 import java.io.InputStream
 
@@ -18,7 +17,7 @@ class BGRAFrame(w: Int, h: Int) : VFrame(w, h, 1) {
 
     override fun load(input: InputStream) {
         val s0 = w * h * 4
-        val data = input.readNBytes2(s0, Texture2D.byteArrayPool[s0, false])
+        val data = input.readNBytes2(s0, Texture2D.byteArrayPool[s0, false], true)
         creationLimiter.acquire()
         GFX.addGPUTask(w, h) {
             bgra.createRGBA(data)

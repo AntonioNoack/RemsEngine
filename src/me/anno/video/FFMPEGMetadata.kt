@@ -3,7 +3,6 @@ package me.anno.video
 import me.anno.cache.CacheSection
 import me.anno.cache.data.ICacheData
 import me.anno.cache.instances.LastModifiedCache
-import me.anno.gpu.GFX
 import me.anno.io.FileReference
 import me.anno.io.json.JsonArray
 import me.anno.io.json.JsonObject
@@ -11,6 +10,7 @@ import me.anno.io.json.JsonReader
 import me.anno.utils.process.BetterProcessBuilder
 import me.anno.utils.types.Strings.parseTime
 import org.apache.logging.log4j.LogManager
+import kotlin.math.ceil
 
 class FFMPEGMetadata(val file: FileReference) : ICacheData {
 
@@ -29,7 +29,7 @@ class FFMPEGMetadata(val file: FileReference) : ICacheData {
     val videoDuration: Double
     val videoWidth: Int
     val videoHeight: Int
-    val videoFrameCount: Int
+    var videoFrameCount: Int
 
     override fun toString(): String {
         return "FFMPEGMetadata(file: $file, audio: $hasAudio, video: $hasVideo)"
@@ -111,12 +111,16 @@ class FFMPEGMetadata(val file: FileReference) : ICacheData {
         hasVideo = video != null
         videoStartTime = video?.get("start_time")?.asText()?.toDouble() ?: 0.0
         videoDuration = video?.get("duration")?.asText()?.toDouble() ?: duration
-        videoFrameCount = video?.get("nb_frames")?.asText()?.toInt() ?: 1
+        videoFrameCount = video?.get("nb_frames")?.asText()?.toInt() ?: 0
         videoWidth = video?.get("width")?.asText()?.toInt() ?: 0
         videoHeight = video?.get("height")?.asText()?.toInt() ?: 0
         videoFPS = video?.get("r_frame_rate")?.asText()?.parseFraction() ?: 30.0
 
-        LOGGER.info("Loaded info about $file")
+        if (videoFrameCount == 0) {
+            videoFrameCount = ceil(videoDuration * videoFPS).toInt()
+        }
+
+        LOGGER.info("Loaded info about $file: $duration * $videoFPS / $audioDuration * $audioSampleRate")
 
     }
 

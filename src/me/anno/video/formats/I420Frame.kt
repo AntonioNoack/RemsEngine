@@ -24,19 +24,19 @@ class I420Frame(iw: Int, ih: Int) : VFrame(iw, ih, 2) {
     override fun load(input: InputStream) {
         val s0 = w * h
         val s1 = w2 * h2
-        val yData = input.readNBytes2(s0, Texture2D.byteBufferPool[s0, false])
+        val yData = input.readNBytes2(s0, Texture2D.byteBufferPool[s0, false], true)
         creationLimiter.acquire()
         GFX.addGPUTask(w, h) {
             y.createMonochrome(yData)
             creationLimiter.release()
         }
-        val uData = input.readNBytes2(s1, Texture2D.byteBufferPool[s0, false])
+        val uData = input.readNBytes2(s1, Texture2D.byteBufferPool[s0, false], true)
         creationLimiter.acquire()
         GFX.addGPUTask(w2, h2) {
             u.createMonochrome(uData)
             creationLimiter.release()
         }
-        val vData = input.readNBytes2(s1, Texture2D.byteBufferPool[s0, false])
+        val vData = input.readNBytes2(s1, Texture2D.byteBufferPool[s0, false], true)
         creationLimiter.acquire()
         GFX.addGPUTask(w2, h2) {
             v.createMonochrome(vData)

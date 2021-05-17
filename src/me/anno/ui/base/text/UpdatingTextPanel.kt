@@ -3,6 +3,7 @@ package me.anno.ui.base.text
 import me.anno.gpu.GFX
 import me.anno.ui.base.Visibility
 import me.anno.ui.style.Style
+import me.anno.utils.types.Strings.isBlank2
 import kotlin.math.abs
 
 class UpdatingTextPanel (updateMillis: Long, style: Style, val getValue: () -> String?): TextPanel(getValue() ?: "", style){

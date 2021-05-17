@@ -29,6 +29,11 @@ import kotlin.math.roundToLong
 
 object AudioFXCache : CacheSection("AudioFX") {
 
+    // limit the number of requests for performance,
+    // and accumulating many for the future is useless,
+    // when the user is just scrolling through time
+    private const val rangeRequestLimit = 8
+
     data class EffectKey(val effect: SoundEffect, val data: Any, val previous: EffectKey?)
 
     data class PipelineKey(
@@ -190,6 +195,7 @@ object AudioFXCache : CacheSection("AudioFX") {
         destination: Camera?,
         key: PipelineKey
     ): AudioData {
+        // we cannot simply return null from this function, so getEntryLimited isn't an option
         rawDataLimiter.acquire()
         val entry = getEntry(key to "", timeout, false) {
             val stream = AudioStreamRaw(
@@ -335,7 +341,7 @@ object AudioFXCache : CacheSection("AudioFX") {
         async: Boolean = true
     ): ShortArray? {
         val queue = if (async) rangingProcessing2 else null
-        val entry = getEntry(RangeKey(index0, index1, identifier), 10000, queue) {
+        val entry = getEntryLimited(RangeKey(index0, index1, identifier), 10000, queue, rangeRequestLimit) {
             val data = ShortData()
             rangingProcessing += {
                 val splits = SPLITS
@@ -411,6 +417,10 @@ object AudioFXCache : CacheSection("AudioFX") {
 
     fun getTime(index: Long, bufferSize: Int, sampleRate: Int): Double {
         return index * bufferSize.toDouble() / sampleRate
+    }
+
+    fun getTime(index: Long, fraction: Double, bufferSize: Int, sampleRate: Int): Double {
+        return (index + fraction) * bufferSize.toDouble() / sampleRate
     }
 
     fun printFloats(floats: FloatArray) {

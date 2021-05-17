@@ -18,7 +18,7 @@ fun main() {
     val meta = fourier.forcedMeta!!
 
     val keyIndices = 1..3
-    val keys = keyIndices.map { fourier.getKey(it.toLong()) }
+    val keys = keyIndices.map { fourier.getKey(it.toLong(), false) }
 
     println(meta)
 

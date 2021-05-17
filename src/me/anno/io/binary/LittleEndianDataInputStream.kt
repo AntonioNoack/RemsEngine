@@ -122,14 +122,14 @@ open class LittleEndianDataInputStream(val input: InputStream) : InputStream() {
     }
 
     fun readNBytes2(n: Int): ByteArray {
-        val v = input.readNBytes2(n)
+        val v = input.readNBytes2(n, true)
         position += n
         return v
     }
 
     fun readLength8String(): String {
         val length = input.read()
-        val bytes = input.readNBytes2(length)
+        val bytes = input.readNBytes2(length, true)
         position += length + 1
         return String(bytes)
     }

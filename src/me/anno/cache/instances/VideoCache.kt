@@ -11,16 +11,20 @@ import me.anno.video.VideoProxyCreator
 import kotlin.math.max
 import kotlin.math.min
 
+// todo visualize, what is loaded (resolution, audio & video) for future debugging
+
 object VideoCache : CacheSection("Videos") {
+
+    private val videoGenLimit = 16
 
     private fun getVideoFrames(
         file: FileReference, scale: Int,
         bufferIndex: Int, bufferLength: Int,
         fps: Double, timeout: Long, async: Boolean
     ): VideoData? {
-        return getEntry(
+        return getEntryLimited(
             VideoFramesKey(file, scale, bufferIndex, bufferLength, fps),
-            timeout, async, ::getVideoFrames
+            timeout, async, videoGenLimit, ::getVideoFrames
         ) as? VideoData
     }
 

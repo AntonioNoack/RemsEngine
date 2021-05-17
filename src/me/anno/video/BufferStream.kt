@@ -22,7 +22,7 @@ class BufferStream(
         return filledBuffers.set(index, null)!!
     }
 
-    override fun onBufferFilled(stereoBuffer: ShortBuffer, bufferIndex: Long) {
+    override fun onBufferFilled(stereoBuffer: ShortBuffer, bufferIndex: Long, session: Int) {
         filledBuffers.add(stereoBuffer)
     }
 

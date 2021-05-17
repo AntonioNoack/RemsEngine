@@ -3,11 +3,11 @@ package me.anno.audio
 import me.anno.audio.effects.SoundPipeline.Companion.bufferSize
 import me.anno.audio.effects.Time
 import me.anno.audio.openal.SoundBuffer
-import me.anno.utils.pooling.ByteBufferPool
+import me.anno.io.FileReference
 import me.anno.objects.Audio
 import me.anno.objects.Camera
 import me.anno.objects.modes.LoopingState
-import me.anno.io.FileReference
+import me.anno.utils.pooling.ByteBufferPool
 import me.anno.video.FFMPEGMetadata
 import me.anno.video.FFMPEGMetadata.Companion.getMeta
 import java.nio.ByteOrder
@@ -77,7 +77,7 @@ abstract class AudioStream(
         source.pipeline.audio = source
     }
 
-    fun getTime(index: Long): Time = getTime((index * bufferSize).toDouble() / playbackSampleRate)
+    fun getTime(index: Long): Time = getTime((index * bufferSize * speed).toDouble() / playbackSampleRate)
     private fun getTime(globalTime: Double): Time = Time(globalToLocalTime(globalTime), globalTime)
 
     // todo is this correct with the speed?
@@ -89,7 +89,7 @@ abstract class AudioStream(
 
     val buffers = ArrayList<SoundBuffer>()
 
-    fun requestNextBuffer(bufferIndex: Long) {
+    fun requestNextBuffer(bufferIndex: Long, session: Int) {
 
         isWaitingForBuffer.set(true)
         AudioStreamRaw.taskQueue += {// load all data async
@@ -98,7 +98,7 @@ abstract class AudioStream(
                 .order(ByteOrder.nativeOrder())
             val stereoBuffer = byteBuffer.asShortBuffer()
 
-            val floats = AudioFXCache.getBuffer(startIndex + bufferIndex, this, false)!!
+            val floats = AudioFXCache.getBuffer(bufferIndex, this, false)!!
 
             val left = floats.first
             val right = floats.second
@@ -110,7 +110,7 @@ abstract class AudioStream(
 
             stereoBuffer.position(0)
 
-            onBufferFilled(stereoBuffer, bufferIndex)
+            onBufferFilled(stereoBuffer, bufferIndex, session)
 
         }
 
@@ -129,6 +129,6 @@ abstract class AudioStream(
         }
     }
 
-    abstract fun onBufferFilled(stereoBuffer: ShortBuffer, bufferIndex: Long)
+    abstract fun onBufferFilled(stereoBuffer: ShortBuffer, bufferIndex: Long, session: Int)
 
 }

@@ -1,6 +1,7 @@
 package me.anno.cache
 
 import me.anno.cache.data.ICacheData
+import me.anno.utils.Sleep
 
 class CacheEntry(
     var timeout: Long,
@@ -15,6 +16,10 @@ class CacheEntry(
 
     var hasValue = false
     var hasBeenDestroyed = false
+
+    fun waitForValue(){
+        Sleep.waitUntil(true){ hasValue }
+    }
 
     fun destroy() {
         if(hasBeenDestroyed) throw IllegalStateException()

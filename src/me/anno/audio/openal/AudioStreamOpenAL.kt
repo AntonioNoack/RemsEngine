@@ -101,9 +101,9 @@ class AudioStreamOpenAL(
         if (queued < processed + cachedBuffers && !isWaitingForBuffer.get()) {
             // request a buffer
             // only one at a time
-            val index = this.queued.getAndIncrement()
+            val index = startIndex + this.queued.getAndIncrement()
             // loading $index...
-            requestNextBuffer(index)
+            requestNextBuffer(index, alSource.session)
         }
         if (isPlaying) {
             AudioTasks.addNextTask(1) {
@@ -115,16 +115,12 @@ class AudioStreamOpenAL(
 
     var hadFirstBuffer = false
 
-    override fun onBufferFilled(stereoBuffer: ShortBuffer, bufferIndex: Long) {
+    override fun onBufferFilled(stereoBuffer: ShortBuffer, bufferIndex: Long, session: Int) {
         if (!isPlaying) return
         AudioTasks.addTask(10) {
             if (isPlaying) {
 
                 checkSession()
-
-                ALBase.check()
-                val soundBuffer = SoundBuffer()
-                ALBase.check()
 
                 // wait until we have enough data to be played back
                 // then it needs to work like this, because that's already perfect:
@@ -141,21 +137,30 @@ class AudioStreamOpenAL(
                     val startOffset = getFraction(startTime, speed, playbackSampleRate)
                     val samples = dt * playbackSampleRate + startOffset
                     val capacity = stereoBuffer.capacity()
-                    val targetIndex = samples.toInt() * 2 - bufferIndex * capacity
-                    if (capacity > targetIndex + 256) {
+                    val targetIndex = samples.toInt() * 2 - (bufferIndex - startIndex) * capacity
+                    if (targetIndex < 0 && -targetIndex >= capacity) {
+                        // this buffer is too new (?)...
+                        LOGGER.warn("Buffer is too new, probably something has changed")
+                        // return@addTask
+                    }
+
+                    if (capacity > targetIndex + 256 && targetIndex >= 0) {
 
                         LOGGER.info("Skipping $targetIndex/$capacity")
                         stereoBuffer.position(targetIndex.toInt())
 
-                        hadFirstBuffer = true
-
                     } else {
                         // else delayed, but we have no alternative
                         LOGGER.warn("Skipping first buffer completely")
-                        return@addTask
                     }
+
+                    hadFirstBuffer = true
+
                 }
 
+                ALBase.check()
+                val soundBuffer = SoundBuffer()
+                ALBase.check()
                 soundBuffer.loadRawStereo16(stereoBuffer, playbackSampleRate)
                 soundBuffer.ensureData()
                 buffers.add(soundBuffer)

@@ -30,6 +30,7 @@ import me.anno.studio.rems.Selection.selectedTransform
 import me.anno.ui.base.Panel
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.text.LinkPanel
+import me.anno.ui.base.text.UpdatingTextPanel
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.TimelinePanel
 import me.anno.ui.editor.TimelinePanel.Companion.global2Kf
@@ -38,6 +39,7 @@ import me.anno.ui.editor.stacked.Option
 import me.anno.ui.input.TextInput
 import me.anno.ui.input.TextInputML
 import me.anno.ui.style.Style
+import me.anno.utils.Color.mulARGB
 import me.anno.utils.Maths.clamp
 import me.anno.utils.structures.ValueWithDefault
 import me.anno.utils.structures.ValueWithDefault.Companion.writeMaybe
@@ -112,7 +114,7 @@ open class Transform(var parent: Transform? = null) : Saveable(),
     var tags = ""
 
     // todo display warnings, if applicable
-    var mostRecentWarning = ""
+    var lastWarning: String? = null
 
     open fun getDocumentationURL(): URL? = null
 
@@ -203,6 +205,10 @@ open class Transform(var parent: Transform? = null) : Saveable(),
         list += TextInputML("Comment", style, comment)
             .setChangeListener { comment = it }
             .setIsSelectedListener { show(null) }
+
+        val warningPanel = UpdatingTextPanel(500, style){ lastWarning }
+        warningPanel.textColor = warningPanel.textColor.mulARGB(0xffff3333.toInt())
+        list += warningPanel
 
         val docs = getDocumentationURL()
         if (docs != null) {
