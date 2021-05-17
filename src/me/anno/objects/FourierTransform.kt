@@ -248,29 +248,30 @@ class FourierTransform : Transform() {
         getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
     ) {
         super.createInspector(list, style, getGroup)
-        val fourier = getGroup("Fourier Transform", "", "")
+        val fourier = getGroup("Fourier Transform", "", "fourier")
         fourier.add(vi("Audio File", "", null, file, style) { file = it })
         fourier.add(
             vi(
-                "Sample Rate", "What the highest frequency should be. Higher frequencies may be reflected",
+                "Sample Rate", "What the highest frequency should be",
+                // higher frequencies are eliminated, because we interpolate samples (I think...)
                 sampleRateType, sampleRate, style
             ) { sampleRate = max(64, it) })
         fourier.add(
             vi(
-                "Buffer Size", "Should be at least twice the buffer size",
+                "Buffer Size", "Should be at least twice the buffer size, 'Resolution' of the fourier transform, and length of samples per batch",
                 bufferSizeType, bufferSize, style
             ) { bufferSize = max(64, it) })
         fourier.add(
             vi(
-                "Buffer Min", "-1 = disabled",
+                "Buffer Min", "Use only a part of the fourier transform; -1 = disabled",
                 null, minBufferIndex, style
             ) { minBufferIndex = it })
         fourier.add(
             vi(
-                "Buffer Max", "-1 = disabled",
+                "Buffer Max", "Use only a part of the fourier transform; -1 = disabled",
                 null, maxBufferIndex, style
             ) { maxBufferIndex = it })
-        val amplitude = getGroup("Amplitude", "", "")
+        val amplitude = getGroup("Amplitude", "", "amplitude")
         amplitude.add(vi("Position, Linear", "", posLin, style))
         amplitude.add(vi("Position, Logarithmic", "", posLog, style))
         amplitude.add(vi("Rotation, Linear", "", rotLin, style))

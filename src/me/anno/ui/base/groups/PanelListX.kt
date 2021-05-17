@@ -37,8 +37,8 @@ open class PanelListX(sorter: Comparator<Panel>?, style: Style): PanelList(sorte
         sumConst = constantSum
         sumWeight = weightSum
 
-        minW = constantSum + padding.height
-        minH = (maxY - y) + padding.width
+        minW = constantSum + padding.width
+        minH = (maxY - y) + padding.height
 
     }
 

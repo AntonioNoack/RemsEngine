@@ -74,6 +74,8 @@ import kotlin.math.*
 
 // todo ask the user whether he wants to proceed, if there are warnings in the scene
 
+// todo this class is too long, split its parts
+
 /**
  * Images, Cubemaps, Videos, Audios, joint into one
  * */

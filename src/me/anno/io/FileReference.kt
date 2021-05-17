@@ -8,6 +8,9 @@ import java.nio.charset.Charset
 /**
  * doesn't call toLowerCase() for each comparison,
  * so it's hopefully a lot faster
+ *
+ * we don't modify files a lot, but we do use them for comparisons a lot
+ * because of that, this "performance-wrapper" exists
  * */
 class FileReference(val file: File) {
 
