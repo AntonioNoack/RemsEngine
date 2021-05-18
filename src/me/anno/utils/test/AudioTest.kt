@@ -27,7 +27,7 @@ fun main() {
     val size = 128
     val step = 1
 
-    val max = buffers.map { v -> v.map { abs(it) }.max()!! }.max()!!
+    val max = buffers.maxOf { v -> v.maxOf { abs(it) } }
 
     for (i in 1 until buffers.size) {
         val b0 = buffers[i - 1]

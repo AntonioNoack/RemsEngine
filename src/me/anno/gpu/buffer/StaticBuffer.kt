@@ -24,7 +24,7 @@ open class StaticBuffer(attributes: List<Attribute>, val vertexCount: Int, usage
 
     constructor(floats: FloatArray, attributes: List<Attribute>) : this(
         attributes,
-        floats.size / attributes.sumBy { it.components }
+        floats.size / attributes.sumOf { it.components }
     ) {
         put(floats)
     }
@@ -142,14 +142,15 @@ open class StaticBuffer(attributes: List<Attribute>, val vertexCount: Int, usage
     }
 
     final override fun createNioBuffer() {
-        val byteSize = vertexCount * attributes.sumBy { it.byteSize }
+        val byteSize = vertexCount * attributes.sumOf { it.byteSize }
         val nio = ByteBuffer.allocateDirect(byteSize).order(ByteOrder.nativeOrder())
         nioBuffer = nio
     }
 
     companion object {
-        fun join(buffers: List<StaticBuffer>): StaticBuffer {
-            val vertexCount = buffers.sumBy { it.vertexCount }
+        fun join(buffers: List<StaticBuffer>): StaticBuffer? {
+            if(buffers.isEmpty()) return null
+            val vertexCount = buffers.sumOf { it.vertexCount }
             val sample = buffers.first()
             val joint = StaticBuffer(sample.attributes, vertexCount)
             for (buffer in buffers) joint.put(buffer)

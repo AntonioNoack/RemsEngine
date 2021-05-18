@@ -9,6 +9,7 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.input.EnumInput
 import me.anno.ui.input.IntInput
 import me.anno.ui.style.Style
+import java.util.*
 
 class FrameSizeInput(title: String, value0: String, style: Style) : PanelListY(style) {
 
@@ -84,7 +85,7 @@ class FrameSizeInput(title: String, value0: String, style: Style) : PanelListY(s
     companion object {
 
         fun String.parseResolution(): Resolution? {
-            val wh = toLowerCase()
+            val wh = lowercase(Locale.getDefault())
                 .replace('×', 'x') // utf8 x -> ascii x
                 .split('x')
             val w = parseDouble(wh[0])?.toInt() ?: return null

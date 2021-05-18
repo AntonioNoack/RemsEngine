@@ -70,7 +70,7 @@ class Mesh(val material: String, val points: List<Point>?, val lines: List<Line>
             val finalAlpha = alpha * tint.w
             if (finalAlpha > 0.5 / 255f) {
                 shader.v4("tint", tint.x, tint.y, tint.z, tint.w * alpha)
-                if (isControlDown && 'L'.toInt() in keysDown) {
+                if (isControlDown && 'L'.code in keysDown) {
                     buffer?.draw(shader, GL_LINES)
                 } else {
                     buffer?.draw(shader)

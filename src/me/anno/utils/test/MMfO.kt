@@ -81,14 +81,14 @@ val vectors = Array(vectorCount) {
 
 fun maxDistance(x: DoubleArray): Double {
 
-    return IntArray(vectorCount) { it }.map {
+    return IntArray(vectorCount) { it }.maxOf {
         var sum = 0.0
         val vector = vectors[it]
         for (i in 0 until dims) {
             sum += abs(x[i] - vector[i])
         }
         sum
-    }.max()!!
+    }
 
 }
 

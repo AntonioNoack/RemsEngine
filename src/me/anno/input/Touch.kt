@@ -35,7 +35,7 @@ class Touch(val touchId: Int, var x: Float, var y: Float): Comparable<Touch> {
                 touches.add(touch)
             } else {
                 // find the minimum id
-                val min = touches.withIndex().minBy { it.value.touchId }!!
+                val min = touches.withIndex().minByOrNull { it.value.touchId }!!
                 val minIndex = min.index
                 onTouchUp(min.value) // up, even if it isn't...
                 touches[minIndex] = touch

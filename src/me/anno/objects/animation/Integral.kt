@@ -41,8 +41,8 @@ object Integral {
             val minValue = if (allowNegativeValues) Double.NEGATIVE_INFINITY else 0.0
             val size = keyframes.size
             return when {
-                size == 0 -> max(minValue, (defaultValue as N).toDouble()) * time
-                size == 1 || !isAnimated -> max(minValue, (keyframes[0].value as N).toDouble()) * time
+                size == 0 -> max(minValue, defaultValue.toDouble()) * time
+                size == 1 || !isAnimated -> max(minValue, keyframes[0].value.toDouble()) * time
                 else -> {
                     val startTime: Double
                     val endTime: Double
@@ -55,7 +55,7 @@ object Integral {
                     }
                     var sum = 0.0
                     var lastTime = startTime
-                    var lastValue = max(minValue, (this[startTime] as N).toDouble())
+                    var lastValue = max(minValue, this[startTime].toDouble())
                     for (kf in keyframes) {
                         if (kf.time > time) break // we are done
                         if (kf.time > lastTime) {// a new value
@@ -65,7 +65,7 @@ object Integral {
                             lastTime = kf.time
                         }
                     }
-                    val endValue = max(minValue, (this[endTime] as N).toDouble())
+                    val endValue = max(minValue, this[endTime].toDouble())
                     sum += (lastValue + endValue) * (time - lastTime) * 0.5
                     sum
                 }

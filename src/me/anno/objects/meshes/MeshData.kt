@@ -24,7 +24,7 @@ import org.joml.Matrix4fArrayList
 import org.joml.Vector4fc
 import org.lwjgl.opengl.GL20
 
-class MeshData : ICacheData {
+open class MeshData : ICacheData {
 
     var objData: Map<Material, StaticBuffer>? = null
     var fbxGeometry: FBXGeometry? = null
@@ -58,7 +58,7 @@ class MeshData : ICacheData {
         val shader = shaderFBX
         shader.use()
 
-        for ((material, buffer) in objData!!) {
+        for ((material, buffer) in objData ?: return) {
 
             // todo calculate all bone transforms, and upload them to the shader...
             val geo = fbxGeometry!!

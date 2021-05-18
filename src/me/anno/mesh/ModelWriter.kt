@@ -29,12 +29,12 @@ object ModelWriter {
         if (points != null && points.isNotEmpty()) {
 
             val position = points.map { it.position }
-            val x0 = position.minBy { it.x }!!.x
-            val x1 = position.maxBy { it.x }!!.x
-            val y0 = position.minBy { it.y }!!.y
-            val y1 = position.maxBy { it.y }!!.y
-            val z0 = position.minBy { it.z }!!.z
-            val z1 = position.maxBy { it.z }!!.z
+            val x0 = position.minByOrNull { it.x }!!.x
+            val x1 = position.maxByOrNull  { it.x }!!.x
+            val y0 = position.minByOrNull { it.y }!!.y
+            val y1 = position.maxByOrNull { it.y }!!.y
+            val z0 = position.minByOrNull { it.z }!!.z
+            val z1 = position.maxByOrNull { it.z }!!.z
 
             dos.writeFloat(x0)
             dos.writeFloat(x1)
@@ -66,12 +66,12 @@ object ModelWriter {
         if(lines != null && lines.isNotEmpty()){
 
             val positions = lines.map { it.a } + lines.map { it.b }
-            val x0 = positions.minBy { it.x() }!!.x()
-            val x1 = positions.maxBy { it.x() }!!.x()
-            val y0 = positions.minBy { it.y() }!!.y()
-            val y1 = positions.maxBy { it.y() }!!.y()
-            val z0 = positions.minBy { it.z() }!!.z()
-            val z1 = positions.maxBy { it.z() }!!.z()
+            val x0 = positions.minByOrNull { it.x() }!!.x()
+            val x1 = positions.maxByOrNull { it.x() }!!.x()
+            val y0 = positions.minByOrNull { it.y() }!!.y()
+            val y1 = positions.maxByOrNull { it.y() }!!.y()
+            val z0 = positions.minByOrNull { it.z() }!!.z()
+            val z1 = positions.maxByOrNull { it.z() }!!.z()
 
             dos.writeFloat(x0)
             dos.writeFloat(x1)
@@ -113,10 +113,10 @@ object ModelWriter {
 
     fun writeModels(output: OutputStream, withUVs: Boolean, models: List<Model>) {
 
-        output.write('M'.toInt())
-        output.write('E'.toInt())
-        output.write('S'.toInt())
-        output.write('H'.toInt())
+        output.write('M'.code)
+        output.write('E'.code)
+        output.write('S'.code)
+        output.write('H'.code)
 
         // write custom file format
         val wrapper = DeflaterOutputStream(output)

@@ -84,7 +84,7 @@ class AWTFont(val font: Font) {
             for (index in text.indices) {
                 val char = text[index]
                 gfx.drawString(
-                    asciiStrings[char.toInt()],
+                    asciiStrings[char.code],
                     x + group2.offsets[index].toFloat(),
                     y
                 )
@@ -107,7 +107,7 @@ class AWTFont(val font: Font) {
         val fontHeight = fontMetrics.height
         val height = fontHeight * lineCount + (lineCount - 1) * spaceBetweenLines
 
-        val width = max(0, lines.map { getStringWidth(getGroup(it)) }.max()!!.roundToInt() + 1)
+        val width = max(0, lines.map { getStringWidth(getGroup(it)) }.maxOrNull()!!.roundToInt() + 1)
         return GFXx2D.getSize(width, height)
 
     }
@@ -182,7 +182,7 @@ class AWTFont(val font: Font) {
         exampleLayout.ascent + exampleLayout.descent
     }
 
-    private fun isSpace(char: Int) = char == '\t'.toInt() || char == ' '.toInt()
+    private fun isSpace(char: Int) = char == '\t'.code || char == ' '.code
 
     fun splitParts(
         text: String,
@@ -203,7 +203,7 @@ class AWTFont(val font: Font) {
             if (it.isBlank2()) null
             else splitLine(fonts, it, fontSize, relativeTabSize, relativeCharSpacing, lineBreakWidth)
         }
-        val width = splitLines.maxBy { it?.width ?: 0f }?.width ?: 0f
+        val width = splitLines.maxByOrNull  { it?.width ?: 0f }?.width ?: 0f
         var lineCount = 0
         val parts = splitLines.mapNotNull { partResult ->
             val offsetY = actualFontSize * lineCount
@@ -315,10 +315,10 @@ class AWTFont(val font: Font) {
                             chars.subList(splitIndex,index1).joinChars()
                     )*/
                     index1 = splitIndex
-                    if (index1 > index0 && chars[index1 - 1] == ' '.toInt() && chars[index1 - 2] != ' '.toInt()) index1-- // cut off last space
+                    if (index1 > index0 && chars[index1 - 1] == ' '.code && chars[index1 - 2] != ' '.code) index1-- // cut off last space
                     nextLine()
                     index0 = splitIndex
-                    if (index1 == splitIndex && chars[index0] == ' '.toInt()) index0++ // cut off first space
+                    if (index1 == splitIndex && chars[index0] == ' '.code) index0++ // cut off first space
                     index1 = tmp1
                     display()
                 } else {
@@ -343,7 +343,7 @@ class AWTFont(val font: Font) {
 
         while (index1 < chars.size) {
             when (val char = chars[index1]) {
-                '\t'.toInt() -> {
+                '\t'.code -> {
                     display()
                     index0++ // skip \t too
                     currentX = incrementTab(currentX, tabSize, relativeTabSize)
@@ -420,10 +420,10 @@ class AWTFont(val font: Font) {
         val asciiStrings = Array(128) { it.toChar().toString() }
 
         val splittingOrder: List<Collection<Int>> = listOf(
-            listOf(' ').map { it.toInt() },
-            listOf('-').map { it.toInt() },
-            listOf('/', '\\', ':', '-', '*', '?', '=', '&', '|', '!', '#').map { it.toInt() }.toSortedSet(),
-            listOf(',', '.').map { it.toInt() }
+            listOf(' ').map { it.code },
+            listOf('-').map { it.code },
+            listOf('/', '\\', ':', '-', '*', '?', '=', '&', '|', '!', '#').map { it.code }.toSortedSet(),
+            listOf(',', '.').map { it.code }
         )
 
         // I get pixel errors with running on multiple threads

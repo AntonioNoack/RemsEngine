@@ -127,7 +127,7 @@ open class ParticleSystem(parent: Transform? = null) : Transform(parent) {
             val simulationStep = simulationStep
             val forces = children.filterIsInstance<ForceField>()
             val hasHeavyComputeForce = forces.any { it is BetweenParticleGravity }
-            var currentTime = aliveParticles.map { it.lastTime(simulationStep) }.min() ?: return true
+            var currentTime = aliveParticles.map { it.lastTime(simulationStep) }.minOrNull() ?: return true
             while (currentTime < time) {
 
                 // 10 ms timeout

@@ -38,6 +38,7 @@ import org.joml.Vector4f
 import org.lwjgl.opengl.GL11.*
 import java.awt.image.BufferedImage
 import java.io.File
+import java.util.*
 import javax.imageio.ImageIO
 import kotlin.concurrent.thread
 import kotlin.math.floor
@@ -306,7 +307,7 @@ object Thumbs {
             // save the file
 
             try {
-                when (val ext = srcFile.extension.toLowerCase()) {
+                when (val ext = srcFile.extension.lowercase(Locale.getDefault())) {
                     "hdr" -> {
                         val src = HDRImage(srcFile.file, true)
                         val sw = src.width

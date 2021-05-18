@@ -273,15 +273,15 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
 
     private fun toCalc(a: V): Any {
         return when (a) {
-            is Int -> a.toDouble() as Any
+            is Int -> a.toDouble()
             is Float -> a
             is Double -> a
-            is Long -> a.toDouble() as Any
+            is Long -> a.toDouble()
             is Vector2fc, is Vector3fc, is Vector4fc, is Quaternionf -> a
             is Vector2dc, is Vector3dc, is Vector4dc, is Quaterniond -> a
             is String -> a
             else -> throw RuntimeException("don't know how to calc $a")
-        } as Any // needed by Intellij Kotlin compiler
+        } // needed by Intellij Kotlin compiler
     }
 
     private fun fromCalc(a: Any): V = clampAny(a)

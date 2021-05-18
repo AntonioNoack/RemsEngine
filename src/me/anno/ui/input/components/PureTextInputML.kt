@@ -291,7 +291,7 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
     private fun findStartingWhitespace(line: List<Int>): List<Int> {
         var i = 0
         while (i < line.size && when (line[i]) {
-                ' '.toInt(), '\t'.toInt() -> true
+                ' '.code, '\t'.code -> true
                 else -> false
             }
         ) {
@@ -304,7 +304,7 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
         lastChangeTime = GFX.gameTime
         deleteSelection()
         when (insertion) {
-            '\n'.toInt() -> {
+            '\n'.code -> {
                 // split the line here
                 val line0 = lines[cursor1.y]
                 val line1 = line0.subList(cursor1.x, line0.size)
@@ -317,7 +317,7 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
                 cursor1 = CursorPosition(0, cursor1.y + 1)
                 cursor2 = cursor1
             }
-            '\r'.toInt() -> {
+            '\r'.code -> {
             } // ignore, because it's useless ^^
             else -> {
                 // just insert the key :)
@@ -567,7 +567,7 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
     }
 
     override fun onEnterKey(x: Float, y: Float) {
-        insert('\n'.toInt(), true)
+        insert('\n'.code, true)
     }
 
     override fun getCursor() = Cursor.editText

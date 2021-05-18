@@ -13,6 +13,7 @@ import java.io.File
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.ShortBuffer
+import java.util.*
 
 class SoundBuffer: ICacheData {
 
@@ -70,9 +71,9 @@ class SoundBuffer: ICacheData {
         }
     }
 
-    fun load(file: File){
+    fun load(file: File) {
         val name = file.name
-        when(val ending = name.split('.').last().toLowerCase()){
+        when (val ending = name.split('.').last().lowercase(Locale.getDefault())) {
             "ogg" -> loadOGG(file)
             "wav" -> loadWAV(WaveData.create(file.inputStream()))
             else -> throw RuntimeException("Unknown audio format $ending!")

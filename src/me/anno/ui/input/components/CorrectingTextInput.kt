@@ -84,7 +84,7 @@ abstract class CorrectingTextInput(style: Style) : TextPanel("", style) {
 
     override fun onCharTyped(x: Float, y: Float, key: Int) {
         val suggestion = lastSuggestion
-        if (key == '\t'.toInt() && suggestion?.improvements?.isNotEmpty() == true) {
+        if (key == '\t'.code && suggestion?.improvements?.isNotEmpty() == true) {
             applySuggestion(suggestion, suggestion.improvements[0])
         } else {
             onCharTyped2(x, y, key)

@@ -12,17 +12,10 @@ class LayerViewComputer(val view: LayerView) {
     var isCalculating = false
     lateinit var calculated: List<Transform>
 
-    fun calculateSolution(x0: Int, y0: Int, x1: Int, y1: Int, asnyc: Boolean) {
+    fun calculateSolution(x0: Int, y0: Int, x1: Int, y1: Int) {
 
         isCalculating = true
         view.needsUpdate = false
-
-        if (asnyc) {
-            LayerView.taskQueue += {
-                calculateSolution(x0, y0, x1, y1, false)
-            }
-            return
-        }
 
         val solution = LayerStripeSolution(x0, y0, x1, y1, TimelinePanel.centralTime)
         val stripes = solution.lines
@@ -123,7 +116,6 @@ class LayerViewComputer(val view: LayerView) {
                         }
 
                     }
-
                 }
             }
         }
@@ -133,7 +125,6 @@ class LayerViewComputer(val view: LayerView) {
         }
 
         view.solution = solution
-        isCalculating = false
         view.invalidateDrawing()
 
     }

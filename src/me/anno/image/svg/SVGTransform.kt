@@ -6,6 +6,7 @@ import me.anno.objects.Transform
 import me.anno.utils.types.Lists.indexOf2
 import me.anno.utils.types.Matrices.skew
 import org.joml.Matrix4d
+import java.util.*
 
 object SVGTransform {
 
@@ -19,7 +20,7 @@ object SVGTransform {
                 if (endIndex < 0) return
                 val params = tokens.subList(i + 2, endIndex)
                     .filterIsInstance<Double>()
-                when (name.toLowerCase()) {
+                when (name.lowercase(Locale.getDefault())) {
                     "translate" -> {
                         if (params.isNotEmpty()) {
                             transform.translate(

@@ -9,11 +9,11 @@ class JsonWriter(val output: OutputStream) {
     private var isKeyValue = false
 
     private fun writeString(value: String){
-        output.write('"'.toInt())
+        output.write('"'.code)
         val sb = StringBuilder()
         Strings.writeEscaped(value, sb)
         output.write(sb.toString().toByteArray())
-        output.write('"'.toInt())
+        output.write('"'.code)
     }
 
     fun keyValue(key: String) {
@@ -24,7 +24,7 @@ class JsonWriter(val output: OutputStream) {
 
     private fun next(){
         if(!first){
-            output.write(if(isKeyValue) ':'.toInt() else ','.toInt())
+            output.write(if (isKeyValue) ':'.code else ','.code)
         }
         isKeyValue = false
         first = false
@@ -66,12 +66,12 @@ class JsonWriter(val output: OutputStream) {
 
     fun open(array: Boolean) {
         next()
-        output.write(if (array) '['.toInt() else '{'.toInt())
+        output.write(if (array) '['.code else '{'.code)
         first = true
     }
 
     fun close(array: Boolean) {
-        output.write(if (array) ']'.toInt() else '}'.toInt())
+        output.write(if (array) ']'.code else '}'.code)
         first = false
     }
 

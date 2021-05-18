@@ -205,7 +205,7 @@ object GFXx2D {
         color: Int, backgroundColor: Int, alignment: AxisAlignment = AxisAlignment.MIN
     ) = writeText(x, y, font, key, color, backgroundColor, alignment)
 
-    val simpleChars = Array('z'.toInt() + 1) { it.toChar().toString() }
+    val simpleChars = Array('z'.code + 1) { it.toChar().toString() }
     var monospaceFont = lazy { Font("Consolas", DefaultConfig.style.getSize("fontSize", 12), false, false) }
     val monospaceKeys =
         lazy { Array(simpleChars.size) { FontManager.getTextCacheKey(monospaceFont.value, simpleChars[it], -1) } }
@@ -235,7 +235,7 @@ object GFXx2D {
         )
         for (i in text.indices) {
             val char = text[i]
-            val charInt = char.toInt()
+            val charInt = char.code
             if (charInt < simpleChars.size) {
                 val key = keys[charInt] ?: continue
                 drawText(
@@ -272,7 +272,7 @@ object GFXx2D {
         )
         for (i in text.indices) {
             val char = text[i]
-            val charInt = char.toInt()
+            val charInt = char.code
             if (charInt < simpleChars.size) {
                 val key = keys[charInt] ?: continue
                 drawText(

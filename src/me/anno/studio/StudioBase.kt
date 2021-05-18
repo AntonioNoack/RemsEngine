@@ -297,7 +297,7 @@ abstract class StudioBase(
             needsLayout.clear()
         } else {
             while (needsLayout.isNotEmpty()) {
-                val panel = needsLayout.minBy { it.depth }!!
+                val panel = needsLayout.minByOrNull { it.depth }!!
                 // recalculate layout
                 panel.calculateSize(panel.lx1 - panel.lx0, panel.ly1 - panel.ly0)
                 panel.place(panel.lx0, panel.ly0, panel.lx1 - panel.lx0, panel.ly1 - panel.ly0)
@@ -372,7 +372,7 @@ abstract class StudioBase(
                 } else {
 
                     while (needsRedraw.isNotEmpty()) {
-                        val panel = needsRedraw.minBy { it.depth }!!
+                        val panel = needsRedraw.minByOrNull { it.depth }!!
                         GFX.loadTexturesSync.clear()
                         GFX.loadTexturesSync.push(false)
                         if (panel.canBeSeen) {

@@ -54,6 +54,7 @@ open class PDFDocument(var file: FileReference, parent: Transform?) : GFXTransfo
     var renderQuality = 3f
 
     override fun getDefaultDisplayName(): String {
+        // file can be null
         return if (file == null || file.name.isBlank2()) "PDF"
         else file.name
     }

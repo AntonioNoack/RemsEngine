@@ -96,7 +96,7 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
     }
 
     private fun getValueStep(value: Float): Float {
-        return valueFractions.minBy { abs(it - value) }!!
+        return valueFractions.minByOrNull { abs(it - value) }!!
     }
 
     private fun drawValueAxis(x0: Int, y0: Int, x1: Int, y1: Int) {
@@ -702,7 +702,7 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
     override fun onCopyRequested(x: Float, y: Float): String? {
         // copy keyframes
         // left anker or center? left for now
-        val time0 = selectedKeyframes.minBy { it.time }?.time ?: 0.0
+        val time0 = selectedKeyframes.minByOrNull { it.time }?.time ?: 0.0
         return TextWriter.toText(
             selectedKeyframes
                 .map { Keyframe(it.time - time0, it.value) }

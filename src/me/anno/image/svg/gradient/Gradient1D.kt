@@ -9,6 +9,8 @@ import me.anno.utils.ColorParsing.parseColor
 import me.anno.utils.LOGGER
 import me.anno.utils.types.Vectors.print
 import org.joml.Vector4f
+import java.util.*
+import kotlin.collections.ArrayList
 
 // todo sub-tesselation and per-vertex colors?
 // todo a + bx + cy, and color0 - color1? looks sensible :)
@@ -36,7 +38,7 @@ open class Gradient1D {
     var spreadMethod = SpreadMethod.PAD
 
     constructor(xmlElement: XMLElement) {
-        spreadMethod = when (xmlElement["spreadMethod"]?.toLowerCase()) {
+        spreadMethod = when (xmlElement["spreadMethod"]?.lowercase(Locale.getDefault())) {
             "pad" -> SpreadMethod.PAD
             "reflect" -> SpreadMethod.REFLECT
             "repeat" -> SpreadMethod.REPEAT

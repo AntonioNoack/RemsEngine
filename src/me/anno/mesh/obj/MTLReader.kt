@@ -24,7 +24,7 @@ class MTLReader(val file: FileReference) : OBJMTLReader(file.inputStream().buffe
             while (true) {
                 skipSpaces()
                 val char0 = next()
-                if (char0 == '#'.toInt()) {
+                if (char0 == '#'.code) {
                     // just a comment
                     skipLine()
                 } else {

@@ -83,7 +83,7 @@ class FBXReader(input: InputStream) : LittleEndianDataInputStream(input.buffered
         debug { "${majorSections.size} major sections" }
         for (section in majorSections) {
             out.write(section.toString().toByteArray())
-            out.write('\n'.toInt())
+            out.write('\n'.code)
         }
         out.close()
     }
@@ -394,41 +394,41 @@ class FBXReader(input: InputStream) : LittleEndianDataInputStream(input.buffered
     private fun readBinaryProperty(input: FBXReader): Any {
         return when (val type = input.read()) {
             // primitive types
-            'Y'.toInt() -> {
+            'Y'.code -> {
                 // signed int, 16
                 (input.read() + input.read() * 256).toShort()
             }
-            'C'.toInt() -> {
+            'C'.code -> {
                 // 1 bit boolean in 1 byte
                 (input.read() > 0)
             }
-            'I'.toInt() -> {
+            'I'.code -> {
                 // 32 bit int
                 input.readInt()
             }
-            'F'.toInt() -> {
+            'F'.code -> {
                 // float
                 Float.fromBits(input.readInt())
             }
-            'D'.toInt() -> {
+            'D'.code -> {
                 Double.fromBits(input.readLong())
             }
-            'L'.toInt() -> {
+            'L'.code -> {
                 input.readLong()
             }
             // array of primitives
-            'f'.toInt(), 'd'.toInt(), 'l'.toInt(), 'i'.toInt(), 'b'.toInt() -> {
+            'f'.code, 'd'.code, 'l'.code, 'i'.code, 'b'.code -> {
                 val arrayLength = input.readInt()
                 val encoding = input.readInt()
                 val compressedLength = input.readInt()
                 when (encoding) {
                     0 -> {
                         when (type) {
-                            'f'.toInt() -> FloatArray(arrayLength) { Float.fromBits(input.readInt()) }
-                            'd'.toInt() -> DoubleArray(arrayLength) { Double.fromBits(input.readLong()) }
-                            'l'.toInt() -> LongArray(arrayLength) { input.readLong() }
-                            'i'.toInt() -> IntArray(arrayLength) { input.readInt() }
-                            'b'.toInt() -> BooleanArray(arrayLength) { input.read() > 0 }
+                            'f'.code -> FloatArray(arrayLength) { Float.fromBits(input.readInt()) }
+                            'd'.code -> DoubleArray(arrayLength) { Double.fromBits(input.readLong()) }
+                            'l'.code -> LongArray(arrayLength) { input.readLong() }
+                            'i'.code -> IntArray(arrayLength) { input.readInt() }
+                            'b'.code -> BooleanArray(arrayLength) { input.read() > 0 }
                             else -> throw RuntimeException()
                         }
                     }
@@ -439,22 +439,22 @@ class FBXReader(input: InputStream) : LittleEndianDataInputStream(input.buffered
                         // ("${bytes.size} zip = ${allBytes.size} raw, for ${type.toChar()} * $arrayLength")
                         val decoder = LittleEndianDataInputStream(InflaterInputStream(bytes.inputStream()))
                         when (type) {
-                            'f'.toInt() -> FloatArray(arrayLength) { Float.fromBits(decoder.readInt()) }
-                            'd'.toInt() -> DoubleArray(arrayLength) { Double.fromBits(decoder.readLong()) }
-                            'l'.toInt() -> LongArray(arrayLength) { decoder.readLong() }
-                            'i'.toInt() -> IntArray(arrayLength) { decoder.readInt() }
-                            'b'.toInt() -> BooleanArray(arrayLength) { decoder.read() > 0 }
+                            'f'.code -> FloatArray(arrayLength) { Float.fromBits(decoder.readInt()) }
+                            'd'.code -> DoubleArray(arrayLength) { Double.fromBits(decoder.readLong()) }
+                            'l'.code -> LongArray(arrayLength) { decoder.readLong() }
+                            'i'.code -> IntArray(arrayLength) { decoder.readInt() }
+                            'b'.code -> BooleanArray(arrayLength) { decoder.read() > 0 }
                             else -> throw RuntimeException()
                         }
                     }
                     else -> throw RuntimeException("Unknown encoding $encoding")
                 }
             }
-            'R'.toInt(), 'S'.toInt() -> {
+            'R'.code, 'S'.code -> {
                 // raw or string
                 val length = input.readInt()
                 val bytes = input.readNBytes2(length)
-                if (type == 'R'.toInt()) {
+                if (type == 'R'.code) {
                     bytes
                 } else String(bytes)
             }

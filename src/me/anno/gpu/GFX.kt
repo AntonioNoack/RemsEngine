@@ -313,7 +313,7 @@ object GFX : GFXBase1() {
         val framesForWork = 5
         if (Thread.currentThread() == glThread) check()
 
-        val workTodo = max(1000, queue.sumBy { it.first } / framesForWork)
+        val workTodo = max(1000, queue.sumOf { it.first } / framesForWork)
         var workDone = 0
         val workTime0 = System.nanoTime()
         while (true) {

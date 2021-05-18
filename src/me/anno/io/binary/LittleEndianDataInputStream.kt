@@ -12,7 +12,7 @@ open class LittleEndianDataInputStream(val input: InputStream) : InputStream() {
 
     fun putBack(char: Char) {
         if (putBack >= 0) throw IllegalStateException()
-        putBack = char.toInt()
+        putBack = char.code
     }
 
     override fun read(): Int {
@@ -33,7 +33,7 @@ open class LittleEndianDataInputStream(val input: InputStream) : InputStream() {
         if (char == ';') {
             while (true) {
                 val char2 = read()
-                if (char2 == '\n'.toInt()) {
+                if (char2 == '\n'.code) {
                     return readChar()
                 }
             }

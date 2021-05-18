@@ -12,6 +12,8 @@ import me.anno.utils.Threads.threadWithName
 import me.anno.utils.hpc.ProcessingQueue
 import org.joml.Vector3f
 import java.io.File
+import java.util.*
+import kotlin.collections.HashMap
 import kotlin.concurrent.thread
 import kotlin.math.abs
 import kotlin.math.min
@@ -250,7 +252,7 @@ open class StringMap(
             is Float -> !value.isNaN() && value != 0f
             is Double -> !value.isNaN() && value != 0.0
             is String -> {
-                when (value.toLowerCase()) {
+                when (value.lowercase(Locale.getDefault())) {
                     "true", "t" -> true
                     "false", "f" -> false
                     else -> default
@@ -269,7 +271,7 @@ open class StringMap(
             is Boolean -> if (value) Filtering.NEAREST else Filtering.LINEAR
             is Int -> default.find(value)
             is String -> {
-                when (value.toLowerCase()) {
+                when (value.lowercase(Locale.getDefault())) {
                     "true", "t", "nearest" -> Filtering.NEAREST
                     "false", "f", "linear" -> Filtering.LINEAR
                     "cubic", "bicubic" -> Filtering.CUBIC

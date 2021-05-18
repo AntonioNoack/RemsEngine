@@ -18,7 +18,7 @@ fun main() {
         var sum = 0
         for (str in randomStrings) {
             for(i in 0 until turns){
-                sum += str.toCharArray().sumBy { it.toInt() }
+                sum += str.toCharArray().sumOf { it.code }
             }
         }
     }
@@ -29,8 +29,8 @@ fun main() {
         for (str in randomStrings) {
             for(i in 0 until turns){
                 val chars = str.toCharArray()
-                for(c in chars){
-                    sum += c.toInt()
+                for(c in chars) {
+                    sum += c.code
                 }
             }
         }
@@ -41,8 +41,8 @@ fun main() {
         var sum = 0
         for (str in randomStrings) {
             for(i in 0 until turns){
-                for(c in str){
-                    sum += c.toInt()
+                for(c in str) {
+                    sum += c.code
                 }
             }
         }
@@ -53,8 +53,8 @@ fun main() {
         var sum = 0
         for (str in randomStrings) {
             for(i in 0 until turns){
-                for(j in str.indices){
-                    sum += str[j].toInt()
+                for(j in str.indices) {
+                    sum += str[j].code
                 }
             }
         }
@@ -65,8 +65,8 @@ fun main() {
         var sum = 0
         for (str in randomStrings) {
             for(i in 0 until turns){
-                for(j in 0 until str.length){
-                    sum += str[j].toInt()
+                for(j in 0 until str.length) {
+                    sum += str[j].code
                 }
             }
         }

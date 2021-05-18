@@ -59,7 +59,7 @@ object GaussianBlur {
                 // smallerW /= 2
                 // smallerH /= 2
                 smallerW = max(10, w / subSteps)
-                if (debug && 'J'.toInt() in Input.keysDown) smallerH = max(10, h / subSteps)
+                if (debug && 'J'.code in Input.keysDown) smallerH = max(10, h / subSteps)
                 // smallerH /= 2
                 // smallerH = max(10, h / subSteps)
                 size = pixelSize * smallerW / w
@@ -75,7 +75,7 @@ object GaussianBlur {
                 }
             }
 
-            if (debug && 'I'.toInt() in Input.keysDown) println("$w,$h -> $smallerW,$smallerH")
+            if (debug && 'I'.code in Input.keysDown) println("$w,$h -> $smallerW,$smallerH")
 
             drawBlur(
                 FBStack["mask-gaussian-blur-0", smallerW, smallerH, 4, true, 1], smallerW, smallerH,

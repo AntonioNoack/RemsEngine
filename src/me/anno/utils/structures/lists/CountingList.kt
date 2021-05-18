@@ -14,9 +14,9 @@ class CountingList(capacity: Int = 16): MutableList<Any> {
     private val internal = ArrayList<Any>(capacity)
     private val counters = IntArray(isCounted.size)
 
-    fun update(char: Char, delta: Int){
-        val ci = char.toInt() - minCounted
-        if(ci in counters.indices){
+    fun update(char: Char, delta: Int) {
+        val ci = char.code - minCounted
+        if (ci in counters.indices) {
             counters[ci] += delta
         }
     }
@@ -33,9 +33,9 @@ class CountingList(capacity: Int = 16): MutableList<Any> {
     }
 
     override fun contains(element: Any): Boolean {
-        if(element is Char){
-            val ci = element.toInt() - minCounted
-            if(ci < isCounted.size && isCounted[ci]){
+        if(element is Char) {
+            val ci = element.code - minCounted
+            if (ci < isCounted.size && isCounted[ci]) {
                 return counters[ci] > 0
             }
         }
@@ -85,14 +85,14 @@ class CountingList(capacity: Int = 16): MutableList<Any> {
     companion object {
         private val notSupported get() = RuntimeException("Operation not supported, because of laziness ;)")
         private const val countedCharacters = "+-/*^!()[]"
-        private val minCounted = countedCharacters.min()!!.toInt()
-        private val maxCountedChar = countedCharacters.max()!!
-        private val maxCounted = countedCharacters.max()!!.toInt()
+        private val minCounted = countedCharacters.minOrNull()!!.code
+        private val maxCountedChar = countedCharacters.maxOrNull()!!
+        private val maxCounted = countedCharacters.maxOrNull()!!.code
         private val isCounted = BooleanArray(maxCounted + 1 - minCounted)
         fun Any.isCounted() = this is Char && this < maxCountedChar
         init {
             countedCharacters.forEach {
-                isCounted[it.toInt() - minCounted] = true
+                isCounted[it.code - minCounted] = true
             }
         }
     }

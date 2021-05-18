@@ -13,6 +13,8 @@ import me.anno.ui.custom.CustomListX
 import me.anno.ui.input.TextInput
 import me.anno.ui.style.Style
 import me.anno.utils.types.Strings.isBlank2
+import java.util.*
+import kotlin.collections.ArrayList
 import kotlin.math.max
 
 // todo allow fields to be added
@@ -70,7 +72,7 @@ class ConfigPanel(val config: StringMap, val isStyle: Boolean, style: Style) : P
                 .split(',')
                 .map { it.trim() }
                 .filter { it.isNotEmpty() }
-                .map { it.toLowerCase() }
+                .map { it.lowercase(Locale.getDefault()) }
 
             if (lastTopic.isNotEmpty()) createContent("")
             contentList.forEach { (name, ui) ->
@@ -101,7 +103,7 @@ class ConfigPanel(val config: StringMap, val isStyle: Boolean, style: Style) : P
                 }
             )
         }
-        for (topic in topics.sortedBy { it.toLowerCase() }) {
+        for (topic in topics.sortedBy { it.lowercase(Locale.getDefault()) }) {
             if (topic.isNotEmpty()) {
                 val lastIndex = topic.lastIndexOf('.')
                 val topicName = topic.substring(lastIndex + 1)
@@ -162,7 +164,7 @@ class ConfigPanel(val config: StringMap, val isStyle: Boolean, style: Style) : P
             val subList = PanelListY(style)
             subList.setTooltip(entry.fullName)
             entry.createPanels(subList)
-            val searchKey = entry.fullName.toLowerCase()
+            val searchKey = entry.fullName.lowercase(Locale.getDefault())
             contentList += searchKey to subList
             contentListUI += subList
             subChain.append(searchKey)
@@ -185,7 +187,7 @@ class ConfigPanel(val config: StringMap, val isStyle: Boolean, style: Style) : P
                 val subList = PanelListY(style)
                 subList.setTooltip(entry.fullName)
                 entry.createPanels(subList)
-                val searchKey = entry.fullName.toLowerCase()
+                val searchKey = entry.fullName.lowercase(Locale.getDefault())
                 contentList += searchKey to subList
                 contentListUI += subList
                 subChain2.append(searchKey)

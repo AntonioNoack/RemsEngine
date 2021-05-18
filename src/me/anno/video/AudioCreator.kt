@@ -13,6 +13,7 @@ import me.anno.video.FFMPEGUtils.processOutput
 import org.apache.logging.log4j.LogManager
 import java.io.DataOutputStream
 import java.io.IOException
+import java.util.*
 import kotlin.concurrent.thread
 import kotlin.math.ceil
 
@@ -34,7 +35,7 @@ open class AudioCreator(
         camera = cameras.firstOrNull() ?: RemsStudio.nullCamera ?: Camera()
     }
 
-    fun codecByExtension(extension: String) = when (extension.toLowerCase()) {
+    fun codecByExtension(extension: String) = when (extension.lowercase(Locale.getDefault())) {
         "mp3", "mpg",
         "mp4", "m4a",
         "flv", "f4v" -> "libmp3lame"
@@ -133,7 +134,7 @@ open class AudioCreator(
                     }
                 } else {
                     for (i in 0 until size) {
-                        val sum = buffers.sumBy { it[i].toInt() }
+                        val sum = buffers.sumOf { it[i].toInt() }
                         audioOutput.writeShort(clamp(sum, Short.MIN_VALUE.toInt(), Short.MAX_VALUE.toInt()))
                     }
                 }
@@ -146,8 +147,8 @@ open class AudioCreator(
             val msg = e.message!!
             // pipe has been ended will be thrown, if we write more audio bytes than required
             // this really isn't an issue xD
-            if ("pipe has been ended" !in msg.toLowerCase() &&
-                "pipe is being closed" !in msg.toLowerCase()
+            if ("pipe has been ended" !in msg.lowercase(Locale.getDefault()) &&
+                "pipe is being closed" !in msg.lowercase(Locale.getDefault())
             ) {
                 throw e
             }

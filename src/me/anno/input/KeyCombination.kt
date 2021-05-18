@@ -3,6 +3,7 @@ package me.anno.input
 import me.anno.utils.structures.maps.BiMap
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.glfw.GLFW.*
+import java.util.*
 
 class KeyCombination(val key: Int, val modifiers: Int, val type: Type){
 
@@ -43,11 +44,16 @@ class KeyCombination(val key: Int, val modifiers: Int, val type: Type){
 
         val keyMapping = BiMap<String, Int>(200)
         fun put(key: Int, vararg buttons: String){
-            buttons.forEach { keyMapping[it] = key; keyMapping[it.toLowerCase()] = key; keyMapping[it.toUpperCase()] = key }
+            buttons.forEach {
+                keyMapping[it] = key
+                keyMapping[it.lowercase(Locale.getDefault())] = key
+                keyMapping[it.uppercase(Locale.getDefault())] = key
+            }
         }
+
         init {
-            for(c in 'a' .. 'z') keyMapping["$c"] = GLFW_KEY_A + (c.toInt() - 'a'.toInt())
-            for(c in '0' .. '9') keyMapping["$c"] = GLFW_KEY_0 + (c.toInt() - '0'.toInt())
+            for(c in 'a' .. 'z') keyMapping["$c"] = GLFW_KEY_A + (c.code - 'a'.code)
+            for(c in '0' .. '9') keyMapping["$c"] = GLFW_KEY_0 + (c.code - '0'.code)
             put(GLFW_KEY_SPACE, " ", "space")
             put(GLFW_KEY_ENTER, "\n", "enter")
             put(GLFW_KEY_BACKSPACE, "<--", "backspace")
@@ -89,9 +95,9 @@ class KeyCombination(val key: Int, val modifiers: Int, val type: Type){
         }
 
         fun getButton(button: String): Int {
-            val asKey = keyMapping[button] ?: keyMapping[button.toLowerCase()]
-            if(asKey != null) return asKey
-            return when(button.toLowerCase()){
+            val asKey = keyMapping[button] ?: keyMapping[button.lowercase(Locale.getDefault())]
+            if (asKey != null) return asKey
+            return when (button.lowercase(Locale.getDefault())) {
                 // kp = key pad = num pad probably
                 "kp," -> GLFW_KEY_KP_DECIMAL
                 "kp/" -> GLFW_KEY_KP_DIVIDE
@@ -102,7 +108,7 @@ class KeyCombination(val key: Int, val modifiers: Int, val type: Type){
                 "kp=" -> GLFW_KEY_KP_EQUAL
                 else -> {
                     val asInt = button.toIntOrNull()
-                    if(asInt != null) return asInt
+                    if (asInt != null) return asInt
                     LOGGER.warn("Button unknown: $button")
                     -1
                 }
@@ -111,8 +117,8 @@ class KeyCombination(val key: Int, val modifiers: Int, val type: Type){
 
         fun parse(button: String, event: String, modifiers: String): KeyCombination? {
             val key = getButton(button)
-            if(key < 0) return null
-            val type = when(event.toLowerCase()){
+            if (key < 0) return null
+            val type = when (event.lowercase(Locale.getDefault())) {
                 "down", "d" -> Type.DOWN
                 "press" -> Type.PRESS
                 "typed", "t" -> Type.TYPED
@@ -122,15 +128,16 @@ class KeyCombination(val key: Int, val modifiers: Int, val type: Type){
                 else -> return null
             }
             var mods = 0
-            for(c in modifiers){
-                when(c.toLowerCase()){
+            for (c in modifiers) {
+                when (c.lowercaseChar()) {
                     'c' -> mods = mods or GLFW_MOD_CONTROL
                     's' -> mods = mods or GLFW_MOD_SHIFT
                     'a' -> mods = mods or GLFW_MOD_ALT
                     'x' -> mods = mods or GLFW_MOD_SUPER
                     'n' -> mods = mods or GLFW_MOD_NUM_LOCK
                     'l' -> mods = mods or GLFW_MOD_CAPS_LOCK
-                    ' ' -> {}
+                    ' ' -> {
+                    }
                     else -> LOGGER.warn("Unknown action modifier '$c'")
                 }
             }

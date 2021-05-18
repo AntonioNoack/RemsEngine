@@ -10,6 +10,7 @@ import me.anno.utils.Maths.sq
 import me.anno.utils.structures.maps.BiMap
 import org.joml.Vector3f
 import org.joml.Vector4f
+import java.util.*
 
 object ColorParsing {
 
@@ -61,26 +62,26 @@ object ColorParsing {
     fun parseColor(name: String): Int? {
         if (name.startsWith("#")) {
             return when (name.length) {
-                4 -> (hex[name[1].toInt()] * 0x110000 + hex[name[2].toInt()] * 0x1100 + hex[name[3].toInt()] * 0x11) or black
-                5 -> (hex[name[1].toInt()] * 0x11000000 + hex[name[1].toInt()] * 0x110000 + hex[name[2].toInt()] * 0x1100 + hex[name[3].toInt()] * 0x11)
+                4 -> (hex[name[1].code] * 0x110000 + hex[name[2].code] * 0x1100 + hex[name[3].code] * 0x11) or black
+                5 -> (hex[name[1].code] * 0x11000000 + hex[name[1].code] * 0x110000 + hex[name[2].code] * 0x1100 + hex[name[3].code] * 0x11)
                 7 -> name.substring(1).toInt(16) or black
                 9 -> name.substring(1).toLong(16).toInt()
                 else -> throw RuntimeException("Unknown color $name")
             }
         }
-        val lcName = name.trim().toLowerCase()
+        val lcName = name.trim().lowercase(Locale.getDefault())
         return if (lcName == "none") null
         else colorMap[lcName]?.or(black) ?: throw RuntimeException("Unknown color $name")
     }
 
     private val hex by lazy {
-        val array = IntArray('f'.toInt() + 1)
+        val array = IntArray('f'.code + 1)
         for (i in 0 until 10) {
-            array[i + '0'.toInt()] = i
+            array[i + '0'.code] = i
         }
         for ((index, it) in "abcdef".withIndex()) {
-            array[it.toInt()] = index + 10
-            array[it.toUpperCase().toInt()] = index + 10
+            array[it.code] = index + 10
+            array[it.uppercaseChar().code] = index + 10
         }
         array
     }
@@ -96,7 +97,7 @@ object ColorParsing {
         val r = this.r()
         val g = this.g()
         val b = this.b()
-        return colorMap.entries.minBy {
+        return colorMap.entries.minByOrNull {
             val other = it.value
             sq(r - other.r()) + sq(g - other.g()) + sq(b - other.b())
         }!!.key

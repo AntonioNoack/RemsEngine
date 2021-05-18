@@ -10,6 +10,7 @@ import me.anno.gpu.GFXx2D.getTextSize
 import me.anno.gpu.blending.BlendDepth
 import me.anno.gpu.blending.BlendMode
 import me.anno.ui.base.text.TextPanel
+import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.mix
 import org.lwjgl.glfw.GLFW
 
@@ -38,21 +39,25 @@ object ShowKeys {
         }
     }
 
-    fun show(text: String, alpha: Float, x0: Int, hmy: Int): Int {
+    fun drawKey(text: String, alpha: Float, x0: Int, hmy: Int): Int {
 
         val bgColor = colors.backgroundColor
         val textColor = colors.textColor
         val fontSize = font.sizeInt
 
-        val alphaMask = (alpha * 255).toInt().shl(24) or 0xffffff
+        // background
+        val rgbMask = 0xffffff
+        val alphaMask = clamp(alpha * 255, 0f, 255f).toInt().shl(24) or rgbMask
         val color = textColor and alphaMask
         val w0 = getSizeX(getTextSize(font, text, -1))
         drawRect(x0 + 5, hmy - 12 - fontSize, w0 + 10, fontSize + 8, bgColor and alphaMask)
-        drawText(
-            x0 + 10, hmy - 10 - fontSize, font, text,
-            color and alphaMask,
-            bgColor and 0xffffff, -1
-        )
+
+        // text
+        val textColor2 = color and alphaMask
+        val bgColor2 = bgColor and rgbMask
+        val x = x0 + 10
+        val y = hmy - 10 - fontSize
+        drawText(x, y, font, text, textColor2, bgColor2, -1)
 
         return x0 + w0 + 16
 
@@ -100,7 +105,7 @@ object ShowKeys {
                     val alpha = key.time
                     val text0 = KeyCombination.keyMapping.reverse[key.keyCode]
                     val text = text0 ?: key.keyCode.toString()
-                    x0 = show(text, alpha, x0, h - y)
+                    x0 = drawKey(text, alpha, x0, h - y)
                 }
 
             }

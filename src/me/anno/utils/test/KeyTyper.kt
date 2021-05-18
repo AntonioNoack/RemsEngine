@@ -3,6 +3,8 @@ package me.anno.utils.test
 import java.awt.Robot
 import java.awt.event.KeyEvent
 import java.io.File
+import java.util.*
+import kotlin.collections.HashMap
 
 fun main(){
 
@@ -12,7 +14,7 @@ fun main(){
     val keyMap = HashMap<String, Int>()
     for(i in 0 until 1000){
         val chars = KeyEvent.getKeyText(i)
-        if("unknown" !in chars.toLowerCase()) println(chars)
+        if ("unknown" !in chars.lowercase(Locale.getDefault())) println(chars)
         keyMap[chars] = i
     }
 
@@ -36,7 +38,7 @@ fun main(){
 
             val keyCode = when(char){
                 in 'a' .. 'z', in 'A' .. 'Z', in '0' .. '9' -> {
-                    keyMap[char.toUpperCase().toString()]
+                    keyMap[char.uppercaseChar().toString()]
                 }
                 '|' -> keyMap[""]
                 '!' -> shift('1')
@@ -64,9 +66,9 @@ fun main(){
                 }
                 '>' -> {
                     isUpper2 = true
-                    KeyEvent.getExtendedKeyCodeForChar('<'.toInt())
+                    KeyEvent.getExtendedKeyCodeForChar('<'.code)
                 }
-                else -> KeyEvent.getExtendedKeyCodeForChar(char.toInt())
+                else -> KeyEvent.getExtendedKeyCodeForChar(char.code)
                 //else -> continue@loop
             }!!
 

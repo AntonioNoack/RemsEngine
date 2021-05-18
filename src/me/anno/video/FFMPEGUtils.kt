@@ -8,6 +8,7 @@ import me.anno.utils.types.Strings.formatTime2
 import me.anno.utils.types.Strings.withLength
 import org.apache.logging.log4j.Logger
 import java.io.InputStream
+import java.util.*
 import kotlin.math.round
 
 object FFMPEGUtils {
@@ -38,13 +39,13 @@ object FFMPEGUtils {
                 // Audio: size=     346kB time=00:00:22.08 bitrate= 128.2kbits/s speed=4.54x
                 var frameIndex = 0L
                 var fps = 0f
-                var quality = 0f
-                var size = 0
+                // var quality = 0f
+                // var size = 0
                 val thisTime = GFX.gameTime
                 val deltaTime = thisTime-lastTime
                 lastTime = thisTime
                 val elapsedTime = (thisTime - startTime) * 1e-9
-                var bitrate = 0
+                // var bitrate = 0
                 var hasFrameInformation = false
                 var speedStr = "?"
                 var remaining = line
@@ -57,12 +58,12 @@ object FFMPEGUtils {
                     if (secondIndex < 0) secondIndex = remaining.length
                     val value = remaining.substring(0, secondIndex)
                     try {
-                        when (key.toLowerCase()) {
+                        when (key.lowercase(Locale.getDefault())) {
                             "speed" -> {
                                 // if frame is not delivered (rendering audio only), update frame
                                 speedStr = value
-                                val speed = value.substring(0, value.length-1).toDouble()
-                                if(!hasFrameInformation){
+                                val speed = value.substring(0, value.length - 1).toDouble()
+                                if (!hasFrameInformation) {
                                     // time since last: guess fps
                                     progressGuess += speed * deltaTime * targetFPS / 1e9
                                     frameIndex = progressGuess.toLong()

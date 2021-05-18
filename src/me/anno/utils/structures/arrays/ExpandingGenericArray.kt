@@ -19,7 +19,7 @@ class ExpandingGenericArray<V>(
         array!![index] = value
     }
 
-    operator fun get(index: Int) = array!![index] as V
+    operator fun get(index: Int): V = array!![index] as V
     operator fun plusAssign(value: V) {
         val array = array
         if (array == null || size + 1 >= array.size) {

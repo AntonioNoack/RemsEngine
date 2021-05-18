@@ -28,8 +28,8 @@ object SiteSelection : CacheSection("SiteSelection") {
                 }
                 .filter { !it.isEmpty() }
             CacheData(list)
-        } as CacheData<List<IntRange>>
-        return cacheData.value
+        } as CacheData<*>
+        return cacheData.value as List<IntRange>
     }
 
     private val timeout = 1000L

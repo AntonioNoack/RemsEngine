@@ -38,8 +38,6 @@ import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.mix
 import me.anno.utils.Maths.sq
 import me.anno.utils.hpc.ProcessingQueue
-import org.joml.Vector4f
-import kotlin.collections.set
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -140,7 +138,16 @@ class LayerView(val timelineSlot: Int, style: Style) : TimelinePanel(style) {
 
         if (needsUpdate && !computer.isCalculating) {
             lastTime = GFX.gameTime
-            computer.calculateSolution(x0, y0, x1, y1, true)
+            taskQueue += {
+                try {
+                    // may throw a null pointer exception,
+                    // if the scene changes while calculating
+                    computer.calculateSolution(x0, y0, x1, y1)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    computer.isCalculating = false
+                }
+            }
         }
 
         this.solution?.apply {

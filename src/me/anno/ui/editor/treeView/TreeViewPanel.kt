@@ -45,6 +45,8 @@ import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.sq
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector4f
+import java.util.*
+import kotlin.collections.ArrayList
 
 class TreeViewPanel(val getElement: () -> Transform, style: Style) : PanelListX(style) {
 
@@ -311,7 +313,7 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style) : PanelListX(
                 openMenu(
                     mouseX, mouseY, NameDesc("Add Child", "", "ui.objects.add"),
                     options.entries
-                        .sortedBy { (key, _) -> key.toLowerCase() }
+                        .sortedBy { (key, _) -> key.lowercase(Locale.getDefault()) }
                         .map { (key, value) ->
                             val sample = if (value is Transform) value.clone() else value.toString().toTransform()
                             MenuOption(NameDesc(key, sample?.getDefaultDisplayName() ?: "", ""), add {

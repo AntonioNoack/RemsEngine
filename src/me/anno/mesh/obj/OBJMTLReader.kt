@@ -17,8 +17,9 @@ open class OBJMTLReader(val reader: InputStream){
 
     fun skipSpaces(){
         while(true){
-            when(val next = next()){
-                ' '.toInt(), '\t'.toInt(), '\r'.toInt(), '\n'.toInt() -> { }
+            when (val next = next()) {
+                ' '.code, '\t'.code, '\r'.code, '\n'.code -> {
+                }
                 else -> {
                     putBack(next)
                     return
@@ -29,7 +30,7 @@ open class OBJMTLReader(val reader: InputStream){
 
     fun skipLine(){
         while(true){
-            if(next() == '\n'.toInt()){
+            if (next() == '\n'.code) {
                 // done :)
                 return
             }
@@ -40,7 +41,7 @@ open class OBJMTLReader(val reader: InputStream){
     fun next(): Int {
         val char = if(putBack >= 0) putBack else reader.read()
         putBack = -1
-        if(char == '\r'.toInt()) return next()
+        if (char == '\r'.code) return next()
         if(char < 0) throw EOFException()
         return char
     }
@@ -52,8 +53,8 @@ open class OBJMTLReader(val reader: InputStream){
     fun readUntilSpace(): String {
         val builder = StringBuilder()
         while(true){
-            when(val char = next()){
-                ' '.toInt(), '\t'.toInt(), '\n'.toInt() -> {
+            when (val char = next()) {
+                ' '.code, '\t'.code, '\n'.code -> {
                     putBack(char)
                     return builder.toString()
                 }

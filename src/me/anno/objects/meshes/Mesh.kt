@@ -26,6 +26,7 @@ import me.karl.renderer.AnimatedModelRenderer
 import me.karl.utils.URI
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4fc
+import java.util.*
 
 class Mesh(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
 
@@ -51,7 +52,7 @@ class Mesh(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
         if (file.hasValidName()) {
 
             if (file !== lastFile) {
-                extension = file.extension.toLowerCase()
+                extension = file.extension.lowercase(Locale.getDefault())
                 lastFile = file
             }
 
@@ -96,8 +97,8 @@ class Mesh(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
                         // todo assign the materials, and correct the material indices... (and then don't join them)
                         // todo or import them in a hierarchy and set the mesh selectors (by index or similar)
                         val meshData = MeshData()
-                        meshData.objData = mapOf(Material() to jointBuffer)
-                        meshData.fbxGeometry = geometries[0]
+                        meshData.objData = if(jointBuffer == null) null else mapOf(Material() to jointBuffer)
+                        meshData.fbxGeometry = geometries.getOrNull(0)
                         meshData
                     } as? MeshData
 

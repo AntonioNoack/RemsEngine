@@ -350,9 +350,10 @@ object AudioFXCache : CacheSection("AudioFX") {
                 lateinit var buffer: Pair<FloatArray, FloatArray>
                 val bufferSizeM1 = bufferSize - 1
                 for (split in 0 until splits) {
+
                     var min = +1e5f
                     var max = -1e5f
-                    val speed = 1.0
+
                     val deltaIndex = index1 - index0
                     val index0i = index0 + deltaIndex * split / splits
                     val index1i = StrictMath.min(index0i + 256, index0 + deltaIndex * (split + 1) / splits)

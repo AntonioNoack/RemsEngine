@@ -38,8 +38,6 @@ import me.anno.studio.rems.RemsStudio.isPaused
 import me.anno.studio.rems.RemsStudio.nullCamera
 import me.anno.studio.rems.RemsStudio.project
 import me.anno.studio.rems.RemsStudio.root
-import me.anno.studio.rems.RemsStudio.targetHeight
-import me.anno.studio.rems.RemsStudio.targetWidth
 import me.anno.studio.rems.Scene
 import me.anno.studio.rems.Selection
 import me.anno.studio.rems.Selection.selectTransform
@@ -77,7 +75,6 @@ import kotlin.concurrent.thread
 import kotlin.math.atan2
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.roundToInt
 
 // todo disable ui circles via some check-button at the top bar
 
@@ -354,42 +351,53 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
 
     }
 
-    fun resolveClick(clickX: Float, clickY: Float, rw: Int, rh: Int) {
+    fun getPixels(
+        camera: Camera,
+        diameter: Int,
+        localX: Int,
+        localY: Int,
+        width: Int,
+        height: Int,
+        fb: Framebuffer,
+        mode: ShaderPlus.DrawMode
+    ): IntArray {
+        val buffer = IntArray(diameter * diameter)
+        val dx = x + stableSize.dx
+        val dy = y + stableSize.dy
+        Frame(dx, dy, fb.w, fb.h, false, fb) {
+            val radius = diameter / 2
+            val x0 = max(localX - radius, 0)
+            val y0 = max(localY - radius, 0)
+            val x1 = min(localX + radius + 1, fb.w)
+            val y1 = min(localY + radius + 1, fb.h)
+            Frame.bind()
+            // draw only the clicked area
+            glEnable(GL_SCISSOR_TEST)
+            glScissor(x0, y0, x1 - x0, y1 - y0)
+            Scene.draw(camera, root, dx, dy, width, height, editorTime, false, mode, this)
+            glFlush(); glFinish() // wait for everything to be drawn
+            glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
+            glReadPixels(x0, y0, x1 - x0, y1 - y0, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
+            glDisable(GL_SCISSOR_TEST)
+        }
+        return buffer
+    }
+
+    fun resolveClick(clickX: Float, clickY: Float, width: Int, height: Int) {
 
         val camera = camera
         GFX.check()
 
-        val fb: Framebuffer = FBStack["resolveClick", rw, rh, 4, false, 1]
-        val width = fb.w
-        val height = fb.h
+        val fb: Framebuffer = FBStack["resolveClick", GFX.width, GFX.height, 4, false, 1]
 
         val radius = 2
         val diameter = radius * 2 + 1
 
-        fun getPixels(mode: ShaderPlus.DrawMode): IntArray {
-            // draw only the clicked area?
-            val buffer = IntArray(diameter * diameter)
-            Frame(fb) {
-                Scene.draw(camera, root, 0, 0, rw, rh, editorTime, false, mode, this)
-                GFX.check()
-                val localX = (clickX - this.x).roundToInt()
-                val localH = GFX.height
-                val localY = localH - 1 - (clickY - this.y).roundToInt()
-                glFlush(); glFinish() // wait for everything to be drawn
-                glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
-                glReadPixels(
-                    max(localX - radius, 0),
-                    max(localY - radius, 0),
-                    min(diameter, width),
-                    min(diameter, height),
-                    GL_RGBA, GL_UNSIGNED_BYTE, buffer
-                )
-            }
-            return buffer
-        }
+        val localX = clickX.toInt()
+        val localY = GFX.height - clickY.toInt()
 
-        val idBuffer = getPixels(ShaderPlus.DrawMode.ID)
-        val depthBuffer = getPixels(ShaderPlus.DrawMode.DEPTH)
+        val idBuffer = getPixels(camera, diameter, localX, localY, width, height, fb, ShaderPlus.DrawMode.ID)
+        val depthBuffer = getPixels(camera, diameter, localX, localY, width, height, fb, ShaderPlus.DrawMode.DEPTH)
 
         val depthImportance = 10
         var bestDistance = 256 * depthImportance + diameter * diameter
@@ -398,8 +406,8 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
         // sometimes the depth buffer seems to contain copies of the idBuffer -.-
         // still, in my few tests, it seemed to have worked :)
         // (clicking on the camera line in front of a cubemap)
-        // (idBuffer.joinToString { it.toUInt().toString(16) })
-        // (depthBuffer.joinToString { it.toUInt().toString(16) })
+        // LOGGER.info(idBuffer.joinToString { it.toUInt().toString(16) })
+        // LOGGER.info(depthBuffer.joinToString { it.toUInt().toString(16) })
 
         // convert that color to an id
         idBuffer.forEachIndexed { index, value ->
@@ -818,23 +826,10 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
             }
 
             if (!isProcessed && wasInFocus) {
-                var rw = w
-                var rh = h
-                var dx = 0
-                var dy = 0
-
                 addGPUTask(w, h) {
-                    val camera = camera
-                    if (camera.onlyShowTarget) {
-                        if (w * targetHeight > targetWidth * h) {
-                            rw = h * targetWidth / targetHeight
-                            dx = (w - rw) / 2
-                        } else {
-                            rh = w * targetHeight / targetWidth
-                            dy = (h - rh) / 2
-                        }
-                    }
-                    resolveClick(x - dx, y - dy, rw, rh)
+                    val w = stableSize.stableWidth
+                    val h = stableSize.stableHeight
+                    resolveClick(x, y, w, h)
                 }
             }
         }

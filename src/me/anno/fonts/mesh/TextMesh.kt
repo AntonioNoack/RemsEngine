@@ -252,7 +252,7 @@ class TextMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
             }
         }
 
-        val triangles = ArrayList<Vector2f>(outerFragments.sumBy { it.triangles.size })
+        val triangles = ArrayList<Vector2f>(outerFragments.sumOf { it.triangles.size })
         outerFragments.forEach {
             triangles += it.triangles
         }
@@ -338,10 +338,10 @@ class TextMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
         init {
             val x = ring.map { it.x }
             val y = ring.map { it.y }
-            minX = x.min()!!
-            minY = y.min()!!
-            maxX = x.max()!!
-            maxY = y.max()!!
+            minX = x.minOrNull()!!
+            minY = y.minOrNull()!!
+            maxX = x.maxOrNull()!!
+            maxY = y.maxOrNull()!!
         }
 
         val size = triangleSize(triangles)
@@ -364,7 +364,7 @@ class TextMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
         const val DEFAULT_FONT_HEIGHT = 20f
 
         fun mergeRings2(outer: MutableList<Vector2f>, innerList: List<List<Vector2f>>) {
-            innerList.sortedBy { it.map { p -> p.x }.min()!! }.forEach { inner ->
+            innerList.sortedBy { it.minOfOrNull { p -> p.x }!! }.forEach { inner ->
                 mergeRings(outer, inner)
             }
         }

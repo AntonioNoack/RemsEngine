@@ -52,6 +52,7 @@ import me.anno.video.VFrame
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
 import java.io.File
+import java.util.*
 import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
@@ -105,7 +106,7 @@ class FileExplorerEntry(
         if (isParent) {
             "file/folder.png"
         } else {
-            when (file.name.toLowerCase()) {
+            when (file.name.lowercase(Locale.getDefault())) {
                 "music", "musik", "videos", "movies" -> "file/music.png"
                 "documents", "dokumente", "downloads" -> "file/text.png"
                 "images", "pictures", "bilder" -> "file/image.png"

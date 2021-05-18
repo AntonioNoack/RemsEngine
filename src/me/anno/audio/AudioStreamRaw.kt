@@ -195,7 +195,7 @@ class AudioStreamRaw(
         val s2 = ShortPair()
 
         // will be in first iteration
-        var local1 = local0
+        var local1: Double
         var index1 = index0
         val transfer1 = calculateLoudness(time0, SimpleTransfer(0f, 0f)) as SimpleTransfer
 

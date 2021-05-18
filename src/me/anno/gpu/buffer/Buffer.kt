@@ -14,8 +14,8 @@ import java.nio.ByteBuffer
 abstract class Buffer(val attributes: List<Attribute>, val stride: Int, val usage: Int = GL15.GL_STATIC_DRAW) :
     ICacheData {
 
-    constructor(attributes: List<Attribute>, usage: Int) : this(attributes, attributes.sumBy { it.byteSize }, usage)
-    constructor(attributes: List<Attribute>) : this(attributes, attributes.sumBy { it.byteSize })
+    constructor(attributes: List<Attribute>, usage: Int) : this(attributes, attributes.sumOf { it.byteSize }, usage)
+    constructor(attributes: List<Attribute>) : this(attributes, attributes.sumOf { it.byteSize })
 
     init {
         var offset = 0L

@@ -14,7 +14,10 @@ import org.apache.logging.log4j.LogManager
 import java.io.BufferedReader
 import java.io.File
 import java.net.URLClassLoader
+import java.util.*
 import java.util.zip.ZipInputStream
+import kotlin.collections.ArrayList
+import kotlin.collections.HashSet
 
 object ExtensionLoader {
 
@@ -200,7 +203,7 @@ object ExtensionLoader {
                         if (index > 0) {
                             val key = line.substring(0, index).trim()
                             val value = line.substring(index + 1).trim()
-                            when (key.toLowerCase()) {
+                            when (key.lowercase(Locale.getDefault())) {
                                 "plugin-name", "pluginname", "name" -> {
                                     name = value
                                     isPluginNotMod = true
@@ -237,10 +240,10 @@ object ExtensionLoader {
                     }
                     uuid = uuid.trim()
                     if (uuid.isEmpty()) uuid = name.trim()
-                    uuid = uuid.toLowerCase()
+                    uuid = uuid.lowercase(Locale.getDefault())
                     if (name.isNotEmpty()) {
                         val dependencyList =
-                            dependencies.toLowerCase().split(',')
+                            dependencies.lowercase(Locale.getDefault()).split(',')
                                 .map { it.trim() }.filter { it.isNotEmpty() }
                         return ExtensionInfo(
                             uuid, file,

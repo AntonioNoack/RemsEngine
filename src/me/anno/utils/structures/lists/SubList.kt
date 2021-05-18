@@ -68,7 +68,7 @@ class SubList<V>(
             override fun hasPrevious(): Boolean = iterIndex > 0
             override fun nextIndex(): Int = iterIndex
 
-            override fun previous(): V = backend[--iterIndex] as V
+            override fun previous(): V = backend[--iterIndex]
 
             override fun previousIndex(): Int = iterIndex - 1
 
@@ -78,7 +78,7 @@ class SubList<V>(
 
             override fun hasNext(): Boolean = iterIndex < size
 
-            override fun next(): V = backend[iterIndex++] as V
+            override fun next(): V = backend[iterIndex++]
 
             override fun remove() {
                 throw NotImplementedError()
@@ -110,7 +110,7 @@ class SubList<V>(
     override fun set(index: Int, element: V): V {
         val old = backend[index]
         backend[index] = element
-        return old as V
+        return old
     }
 
     override fun subList(fromIndex: Int, toIndex: Int): MutableList<V> {

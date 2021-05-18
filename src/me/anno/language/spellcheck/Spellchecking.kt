@@ -18,6 +18,7 @@ import me.anno.utils.Sleep.sleepShortly
 import me.anno.utils.Threads.threadWithName
 import me.anno.utils.io.Streams.listen
 import me.anno.utils.process.BetterProcessBuilder
+import me.anno.utils.strings.StringHelper.titlecase
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import java.io.File
@@ -39,7 +40,7 @@ object Spellchecking : CacheSection("Spellchecking") {
         val language = language
         if (language == Language.None || sentence.isBlank2()) return null
         var sentence2 = sentence.trim()
-        if (allowFirstLowercase) sentence2 = sentence2.capitalize()
+        if (allowFirstLowercase) sentence2 = sentence2.titlecase()
         if (sentence2 == "#quit") return null
         val data = getEntry(Pair(sentence2, language), timeout, true) {
             val answer = SuggestionData(null)
@@ -172,7 +173,7 @@ object Spellchecking : CacheSection("Spellchecking") {
                                 .toList().joinToString("") { it.escapeCodepoint() }
                         }
                         output.write(lines)
-                        output.write('\n'.toInt())
+                        output.write('\n'.code)
                         output.flush()
                         var suggestionsString = ""
                         while ((suggestionsString.isEmpty() || !suggestionsString.startsWith("[")) && !shutdown) {

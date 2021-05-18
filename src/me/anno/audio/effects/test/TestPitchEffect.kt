@@ -84,7 +84,7 @@ class TestPitchEffect(
 
             fun showWaves(data: FloatArray, name: String) {
                 val img = BufferedImage(blockSize, blockSize, 1)
-                val amplitude = blockSize / (2f * data.map { abs(it) }.max()!!)
+                val amplitude = blockSize / (2f * data.map { abs(it) }.maxOrNull()!!)
                 for (i in 0 until blockSize) {
                     val y = clamp(blockSize / 2 + (amplitude * data[i]).roundToInt(), 0, blockSize - 1)
                     for (j in 0 until y) {

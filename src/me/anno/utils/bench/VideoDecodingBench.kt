@@ -15,7 +15,7 @@ fun main() {
     // todo short vs long video? idk...
 
     // doesn't matter, still 1frame/40s for 1.6GB file, and 9 min + 23 s length, 35211 frames (60 fps)
-    val folderExternal = File("E:\\Videos\\")
+    // val folderExternal = File("E:\\Videos\\")
     val folderInternal = OS.documents
 
     val file = FileReference(folderInternal, "Large World.mp4")

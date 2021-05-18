@@ -44,7 +44,7 @@ class TextMeshGroup(
             vertexCount += characters[codepoint]!!.vertexCount
         }
         val buffer = StaticBuffer(b0.attributes, vertexCount)
-        val components = b0.attributes.sumBy { it.components }
+        val components = b0.attributes.sumOf { it.components }
         codepoints.forEachIndexed { index, codePoint ->
             val offset = offsets[index] * baseScale
             val subBuffer = characters[codePoint]!!

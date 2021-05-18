@@ -347,7 +347,7 @@ object Scene {
 
         var buffer: Framebuffer? =
             if (needsTemporaryBuffer) FBStack["Scene-Main", w, h, 4, usesFPBuffers, samples]
-            else Frame.currentFrame!!.buffer
+            else Frame.currentFrame?.buffer
 
         val x = if (needsTemporaryBuffer) 0 else x0
         val y = if (needsTemporaryBuffer) 0 else GFX.height - (y0 + h)

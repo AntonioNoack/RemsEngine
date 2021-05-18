@@ -19,6 +19,8 @@ import org.apache.logging.log4j.LogManager
 import java.lang.Exception
 import java.lang.RuntimeException
 import java.lang.StrictMath.pow
+import java.util.*
+import kotlin.collections.HashSet
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -352,7 +354,7 @@ object SimpleExpressionParser {
         for (i in indices) {
             val name = this[i] as? String ?: continue
             if (getOrNull(i + 1) != '(') {
-                val replacement = constants[name] ?: constants[name.toLowerCase()]
+                val replacement = constants[name] ?: constants[name.lowercase(Locale.getDefault())]
                 if (replacement != null) {
                     this[i] = replacement
                 }

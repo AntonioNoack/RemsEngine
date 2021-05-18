@@ -162,12 +162,12 @@ class SVGCurve(Vector2ds: List<Vector2d>, closed: Boolean, val depth: Double, va
         val gfx = img.graphics as Graphics2D
 
         val xs = Vector2ds.map { it.x }
-        val minX = xs.min()!!
-        val maxX = xs.max()!!
+        val minX = xs.minOrNull()!!
+        val maxX = xs.maxOrNull()!!
 
         val ys = Vector2ds.map { it.y }
-        val minY = ys.min()!!
-        val maxY = ys.max()!!
+        val minY = ys.minOrNull()!!
+        val maxY = ys.maxOrNull()!!
 
         val avgX = (maxX + minX) / 2
         val avgY = (maxY + minY) / 2

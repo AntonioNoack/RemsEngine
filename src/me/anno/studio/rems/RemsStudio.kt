@@ -26,11 +26,15 @@ import me.anno.utils.OS
 
 // Launch4j
 
+// todo configurable background color (render settings)
+// todo scene settings: render duration & size and such should be inside there as well
+
+
+
 // todo when mixing strings, \n and spaces have a special role:
 // todo - substring should not be longer in a line than the total
 
 // todo settings should open in a window, that does not cover everything, just maybe 90%
-// todo project settings and render settings maybe should be windows instead of being inspectables
 
 // todo if a resource is requested, and there is a mutex limitation, it should be rejected instead of queued
 // so we don't put strain on the cpu & memory, if we don't really need the resource

@@ -31,6 +31,7 @@ import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL30
 import java.io.File
 import java.net.URL
+import java.util.*
 
 object RemsCLI {
 
@@ -109,7 +110,7 @@ object RemsCLI {
         } else project.targetOutputFile
 
         val renderType = if (line.hasOption("type")) {
-            when (val type = line.getOptionValue("type").toLowerCase()) {
+            when (val type = line.getOptionValue("type").lowercase(Locale.getDefault())) {
                 "video" -> Rendering.RenderType.VIDEO
                 "audio" -> Rendering.RenderType.AUDIO
                 "image" -> Rendering.RenderType.FRAME
@@ -218,7 +219,7 @@ object RemsCLI {
         while (true) {
             val line = br.readLine() ?: return default
             if (!line.isBlank2()) {
-                when (line.toLowerCase()) {
+                when (line.lowercase(Locale.getDefault())) {
                     "t", "true", "y", "yes", "1" -> return true
                     "f", "false", "n", "no", "0" -> return false
                 }

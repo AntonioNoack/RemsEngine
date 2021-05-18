@@ -1,6 +1,7 @@
 package me.anno.utils.test
 
 import java.io.File
+import java.util.*
 
 fun main(){
     println(
@@ -11,11 +12,9 @@ fun main(){
 }
 
 fun countLines(file: File): Int {
-    return if(file.isDirectory){
-        file.listFiles()?.sumBy {
-            countLines(it)
-        } ?: 0
-    } else when(file.extension.toLowerCase()){
+    return if (file.isDirectory) {
+        file.listFiles()?.sumOf { countLines(it) } ?: 0
+    } else when (file.extension.lowercase(Locale.getDefault())) {
         "kt", "java" -> {
             file.readLines().size
         }

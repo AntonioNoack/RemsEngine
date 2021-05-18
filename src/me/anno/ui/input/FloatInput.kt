@@ -22,7 +22,7 @@ open class FloatInput(
 ) : NumberInput(style, title, type, owningProperty, indexInProperty) {
 
     var lastValue: Double = getValue(type.defaultValue)
-    var changeListener = { value: Double -> }
+    var changeListener: (value: Double) -> Unit = { }
 
     init {
         inputPanel.setChangeListener {
@@ -81,7 +81,7 @@ open class FloatInput(
         val dy0 = dy * size
         val delta = dx0 - dy0
         // chose between exponential and linear curve, depending on the use-case
-        var value = lastValue as Double
+        var value = lastValue
         if (type.hasLinear || value == 0.0) value += delta * 0.1 * type.unitScale
         if (type.hasExponential) value *= StrictMath.pow(
             if (lastValue < 0) 1.0 / 1.03 else 1.03,

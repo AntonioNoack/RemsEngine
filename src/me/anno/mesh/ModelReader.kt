@@ -72,10 +72,10 @@ object ModelReader {
     }
 
     fun readModels(input: InputStream): List<Model> {
-        if (input.read() != 'M'.toInt()) throw RuntimeException()
-        if (input.read() != 'E'.toInt()) throw RuntimeException()
-        if (input.read() != 'S'.toInt()) throw RuntimeException()
-        if (input.read() != 'H'.toInt()) throw RuntimeException()
+        if (input.read() != 'M'.code) throw RuntimeException()
+        if (input.read() != 'E'.code) throw RuntimeException()
+        if (input.read() != 'S'.code) throw RuntimeException()
+        if (input.read() != 'H'.code) throw RuntimeException()
         val inflater = InflaterInputStream(input)
         val dis = DataInputStream(inflater)
         val withUVs = dis.readBoolean()
@@ -89,7 +89,7 @@ object ModelReader {
 
     fun readMeshes(input: InputStream): List<Mesh> {
         val models = readModels(input)
-        val list = ArrayList<Mesh>(models.sumBy { it.meshes.size })
+        val list = ArrayList<Mesh>(models.sumOf { it.meshes.size })
         for (model in models) {
             if(model.localTranslation.length() > 1e-7f){
                 model.meshes.forEach { mesh ->

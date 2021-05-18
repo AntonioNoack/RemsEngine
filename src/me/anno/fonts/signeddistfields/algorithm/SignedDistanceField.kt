@@ -220,7 +220,7 @@ object SignedDistanceField {
 
         val contours = calculateContours(font,  text)
 
-        if (contours.sumBy { it.segments.size } < 1) {
+        if (contours.sumOf { it.segments.size } < 1) {
             return null
         }
 
@@ -252,7 +252,7 @@ object SignedDistanceField {
 
         val contours = calculateContours(font,  text)
 
-        if (contours.sumBy { it.segments.size } < 1) {
+        if (contours.sumOf { it.segments.size } < 1) {
             return TextSDF.empty
         }
 

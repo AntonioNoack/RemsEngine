@@ -20,7 +20,7 @@ object Logging {
         var line = ""
         override fun write(b: Int) {
             when {
-                b == '\n'.toInt() -> {
+                b == '\n'.code -> {
                     // only accept non-empty lines?
                     val lines = lastConsoleLines
                     if (lines.size > lastConsoleLineCount) lines.removeFirst()

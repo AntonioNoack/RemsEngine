@@ -62,7 +62,7 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
             val newId = currentNameTypes.size
             currentNameTypes[nameType] = newId
             writeTypeString(name)
-            output.writeByte(type.toInt())
+            output.writeByte(type.code)
         }
     }
 
@@ -247,12 +247,12 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
 
     override fun writeNull(name: String?) {
         if (name != null) writeAttributeStart(name, OBJECT_NULL)
-        else output.write(OBJECT_NULL.toInt())
+        else output.write(OBJECT_NULL.code)
     }
 
     override fun writePointer(name: String?, className: String, ptr: Int) {
         if (name != null) writeAttributeStart(name, OBJECT_PTR)
-        else output.write(OBJECT_PTR.toInt())
+        else output.write(OBJECT_PTR.code)
         output.writeInt(ptr)
     }
 
@@ -262,7 +262,7 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
 
     override fun writeObjectImpl(name: String?, value: ISaveable) {
         if (name != null) writeAttributeStart(name, OBJECT_IMPL)
-        else output.write(OBJECT_IMPL.toInt())
+        else output.write(OBJECT_IMPL.code)
         usingType(value.getClassName()) {
             writeTypeString(currentClass)
             output.writeInt(getPointer(value)!!)

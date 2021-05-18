@@ -113,7 +113,7 @@ object Lists {
     }
 
     fun <V> List<List<V>>.join(): ArrayList<V> {
-        val result = ArrayList<V>(sumBy { it.size })
+        val result = ArrayList<V>(sumOf { it.size })
         for (entries in this) result += entries
         return result
     }

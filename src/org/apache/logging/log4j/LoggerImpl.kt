@@ -6,7 +6,7 @@ import java.util.*
 
 class LoggerImpl(prefix: String?) : Logger, Log {
 
-    fun interleave(msg: String, args: Array<out Object>): String {
+    fun interleave(msg: String, args: Array<out Any>): String {
         if (args.isEmpty()) return msg
         return if (msg.contains("{}")) {
             val parts = msg.split("{}")
@@ -50,7 +50,7 @@ class LoggerImpl(prefix: String?) : Logger, Log {
         }
     }
 
-    override fun info(msg: String, vararg obj: java.lang.Object) {
+    override fun info(msg: String, vararg obj: Any) {
         info(interleave(msg, obj))
     }
 
@@ -67,7 +67,7 @@ class LoggerImpl(prefix: String?) : Logger, Log {
         print("ERR!", msg)
     }
 
-    override fun error(msg: String, vararg obj: java.lang.Object) {
+    override fun error(msg: String, vararg obj: Any) {
         error(interleave(msg, obj))
     }
 
@@ -80,7 +80,7 @@ class LoggerImpl(prefix: String?) : Logger, Log {
         print("SEVERE", msg)
     }
 
-    override fun severe(msg: String, vararg obj: java.lang.Object) {
+    override fun severe(msg: String, vararg obj: Any) {
         error(interleave(msg, obj))
     }
 
@@ -93,7 +93,7 @@ class LoggerImpl(prefix: String?) : Logger, Log {
         print("FATAL", msg)
     }
 
-    override fun fatal(msg: String, vararg obj: java.lang.Object) {
+    override fun fatal(msg: String, vararg obj: Any) {
         fatal(interleave(msg, obj))
     }
 
@@ -106,7 +106,7 @@ class LoggerImpl(prefix: String?) : Logger, Log {
         print("WARN", msg)
     }
 
-    override fun warn(msg: String, vararg obj: java.lang.Object) {
+    override fun warn(msg: String, vararg obj: Any) {
         warn(interleave(msg, obj))
     }
 

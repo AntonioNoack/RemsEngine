@@ -24,6 +24,7 @@ import org.apache.commons.imaging.Imaging
 import org.apache.logging.log4j.LogManager
 import java.awt.image.BufferedImage
 import java.io.File
+import java.util.*
 import javax.imageio.ImageIO
 
 class ImageData(file: FileReference) : ICacheData {
@@ -42,7 +43,7 @@ class ImageData(file: FileReference) : ICacheData {
             try {
                 val metadata = ImageMetadataReader.readMetadata(file)
                 for (dir in metadata.getDirectoriesOfType(ExifIFD0Directory::class.java)) {
-                    val desc = dir.getDescription(ExifIFD0Directory.TAG_ORIENTATION)?.toLowerCase() ?: continue
+                    val desc = dir.getDescription(ExifIFD0Directory.TAG_ORIENTATION)?.lowercase(Locale.getDefault()) ?: continue
                     val mirror = "mirror" in desc
                     val mirrorHorizontal = mirror && "hori" in desc
                     val mirrorVertical = mirror && !mirrorHorizontal
@@ -105,7 +106,7 @@ class ImageData(file: FileReference) : ICacheData {
                 println(tag)
             }
         }*/
-        when (fileExtension.toLowerCase()) {
+        when (fileExtension.lowercase(Locale.getDefault())) {
             "hdr" -> {
                 val img = HDRImage(file.file, true)
                 val w = img.width

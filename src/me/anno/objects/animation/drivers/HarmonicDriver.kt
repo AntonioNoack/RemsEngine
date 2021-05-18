@@ -36,14 +36,12 @@ class HarmonicDriver: AnimationDriver(){
     // update by time? would be possible... but still...
     private fun updateHarmonics(){
         val prepared = preparse(harmonicsFormula)
-        if(prepared != null){
-            for(i in 0 until maxHarmonics){
-                val n = i + 1.0
-                harmonics[i] = parseDouble(
-                    CountingList(prepared), mapOf(
-                        "n" to n, "i" to n
-                    ))?.toFloat() ?: harmonics[i]
-            }
+        for(i in 0 until maxHarmonics){
+            val n = i + 1.0
+            harmonics[i] = parseDouble(
+                CountingList(prepared), mapOf(
+                    "n" to n, "i" to n
+                ))?.toFloat() ?: harmonics[i]
         }
     }
 

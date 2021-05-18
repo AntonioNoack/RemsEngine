@@ -28,7 +28,7 @@ object FPSPanel {
 
     }
 
-    fun getChar(digit: Int) = ((digit % 10) + '0'.toInt()).toChar()
+    fun getChar(digit: Int) = ((digit % 10) + '0'.code).toChar()
 
     fun formatNumber(chars: CharArray, index: Int, space: Int, number: Float) {
 

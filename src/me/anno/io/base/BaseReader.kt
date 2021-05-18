@@ -85,13 +85,13 @@ abstract class BaseReader {
     }
 
     fun assert(isValue: Char, shallValue: Char) {
-        if (isValue != shallValue.toLowerCase() && isValue != shallValue.toUpperCase()) {
+        if (isValue != shallValue.lowercaseChar() && isValue != shallValue.uppercaseChar()) {
             throw InvalidFormatException("Expected $shallValue but got $isValue")
         }
     }
 
     fun assert(isValue: Char, shallValue: Char, context: String) {
-        if (isValue != shallValue.toLowerCase() && isValue != shallValue.toUpperCase()) {
+        if (isValue != shallValue.lowercaseChar() && isValue != shallValue.uppercaseChar()) {
             throw InvalidFormatException("Expected $shallValue but got $isValue for $context")
         }
     }

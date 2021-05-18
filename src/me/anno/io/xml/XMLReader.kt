@@ -3,16 +3,17 @@ package me.anno.io.xml
 import java.io.ByteArrayOutputStream
 import java.io.EOFException
 import java.io.InputStream
+import java.util.*
 
 object XMLReader {
 
     fun InputStream.skipSpaces(): Int {
         while (true) {
             when (val char = read()) {
-                ' '.toInt(),
-                '\t'.toInt(),
-                '\r'.toInt(),
-                '\n'.toInt() -> {
+                ' '.code,
+                '\t'.code,
+                '\r'.code,
+                '\n'.code -> {
                 }
                 -1 -> throw EOFException()
                 else -> return char
@@ -24,8 +25,8 @@ object XMLReader {
         var name = ""
         while (true) {
             when (val char = read()) {
-                ' '.toInt(), '\t'.toInt(), '\r'.toInt(), '\n'.toInt() -> return name to ' '.toInt()
-                '>'.toInt(), '='.toInt() -> return name to char
+                ' '.code, '\t'.code, '\r'.code, '\n'.code -> return name to ' '.code
+                '>'.code, '='.code -> return name to char
                 -1 -> throw EOFException()
                 else -> name += char.toChar()
             }
@@ -36,10 +37,10 @@ object XMLReader {
         val str = StringBuilder(20)
         while (true) {
             when (val char = read()) {
-                '\\'.toInt() -> {
+                '\\'.code -> {
                     str.append(
                         when (val second = read()) {
-                            '\\'.toInt() -> "\\"
+                            '\\'.code -> "\\"
                             /*'U'.toInt(), 'u'.toInt() -> {
                                 val str2 = "${read().toChar()}${read().toChar()}${read().toChar()}${read().toChar()}"
                                 val value = str2.toIntOrNull(16) ?: {
@@ -131,9 +132,9 @@ object XMLReader {
     fun parse(input: InputStream) = parse(null, input)
     fun parse(firstChar: Int?, input: InputStream): Any? {
         val first = firstChar ?: input.skipSpaces()
-        if (first == '<'.toInt()) {
+        if (first == '<'.code) {
             val (name, end) = input.readTypeUntilSpaceOrEnd()
-            val lowerCaseName = name.toLowerCase()
+            val lowerCaseName = name.lowercase(Locale.getDefault())
             when {
                 name.startsWith("?") -> {
                     // <?xml version="1.0" encoding="utf-8"?>
@@ -152,8 +153,8 @@ object XMLReader {
                     var ctr = 1
                     while (ctr > 0) {
                         when (input.read()) {
-                            '<'.toInt() -> ctr++
-                            '>'.toInt() -> ctr--
+                            '<'.code -> ctr++
+                            '>'.code -> ctr--
                         }
                     }
                     return parse(null, input)
@@ -168,7 +169,7 @@ object XMLReader {
             val xmlElement = XMLElement(name)
             // / is the end of an element
             var end2 = end
-            if (end == ' '.toInt()) {
+            if (end == ' '.code) {
                 var next = -1
                 // read the properties
                 propertySearch@ while (true) {
@@ -183,7 +184,7 @@ object XMLReader {
                     xmlElement[if (next < 0) propName else "${next.toChar()}$propName"] = value
                     next = input.skipSpaces()
                     when (next) {
-                        '/'.toInt(), '>'.toInt() -> {
+                        '/'.code, '>'.code -> {
                             end2 = next
                             break@propertySearch
                         }
@@ -192,11 +193,11 @@ object XMLReader {
             }
 
             when (end2) {
-                '/'.toInt() -> {
+                '/'.code -> {
                     assert(input.read(), '>')
                     return xmlElement
                 }
-                '>'.toInt() -> {
+                '>'.code -> {
                     // read the body (all children)
                     var next: Int? = null
                     children@ while (true) {
@@ -206,7 +207,7 @@ object XMLReader {
                             endElement -> return xmlElement
                             is String -> {
                                 xmlElement.children.add(child)
-                                next = '<'.toInt()
+                                next = '<'.code
                             }
                             null -> throw RuntimeException()
                             else -> xmlElement.children.add(child)
@@ -223,12 +224,12 @@ object XMLReader {
         if(first != 0) str.append(first.toChar())
         while (true) {
             when (val char = input.read()) {
-                '\\'.toInt() -> {
+                '\\'.code -> {
                     when (val second = input.read()) {
                         else -> throw RuntimeException("Special character \\${second.toChar()} not yet implemented")
                     }
                 }
-                '<'.toInt() -> return str.toString()
+                '<'.code -> return str.toString()
                 -1 -> throw EOFException()
                 else -> str.append(char.toChar())
             }

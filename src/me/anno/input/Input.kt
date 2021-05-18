@@ -200,7 +200,7 @@ object Input {
                         when (key) {
                             GLFW.GLFW_KEY_ENTER, GLFW.GLFW_KEY_KP_ENTER -> {
                                 if (isShiftDown || isControlDown) {
-                                    inFocus0?.onCharTyped(mouseX, mouseY, '\n'.toInt())
+                                    inFocus0?.onCharTyped(mouseX, mouseY, '\n'.code)
                                 } else {
                                     inFocus0?.onEnterKey(mouseX, mouseY)
                                 }
@@ -220,7 +220,7 @@ object Input {
                                 if (inFocus0 != null) {
                                     if (isShiftDown || isControlDown
                                         || !inFocus0.isKeyInput()
-                                        || !inFocus0.acceptsChar('\t'.toInt())
+                                        || !inFocus0.acceptsChar('\t'.code)
                                     ) {
                                         // switch between input elements
                                         val root = inFocus0.rootPanel
@@ -241,7 +241,7 @@ object Input {
                                                 inFocus += next
                                             }
                                         }// else error, child missing
-                                    } else inFocus0.onCharTyped(mouseX, mouseY, '\t'.toInt())
+                                    } else inFocus0.onCharTyped(mouseX, mouseY, '\t'.code)
                                 }
                             }
                             GLFW.GLFW_KEY_ESCAPE -> {
@@ -517,7 +517,7 @@ object Input {
     }
 
     fun isKeyDown(key: Char): Boolean {
-        return key.toUpperCase().toInt() in keysDown
+        return key.uppercaseChar().code in keysDown
     }
 
 }

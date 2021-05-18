@@ -48,7 +48,7 @@ class OBJReader(input: InputStream, val file: File?) : OBJMTLReader(input) {
                 // read the line
                 skipSpaces()
                 val char0 = next()
-                if (char0 == '#'.toInt()) {
+                if (char0 == '#'.code) {
                     // just a comment
                     skipLine()
                 } else {
@@ -106,9 +106,9 @@ class OBJReader(input: InputStream, val file: File?) : OBJMTLReader(input) {
                             val points = ArrayList<Vector3f>()
                             pts@ while (true) {
                                 when (val next = next()) {
-                                    ' '.toInt(), '\t'.toInt() -> {
+                                    ' '.code, '\t'.code -> {
                                     }
-                                    '\n'.toInt() -> break@pts
+                                    '\n'.code -> break@pts
                                     else -> {
                                         // support negative indices? haven't seen them in the wild yet...
                                         putBack(next)
@@ -131,9 +131,9 @@ class OBJReader(input: InputStream, val file: File?) : OBJMTLReader(input) {
                             val points = ArrayList<Point>()
                             pts@ while (true) {
                                 when (val next = next()) {
-                                    ' '.toInt(), '\t'.toInt() -> {
+                                    ' '.code, '\t'.code -> {
                                     }
-                                    '\n'.toInt() -> break@pts
+                                    '\n'.code -> break@pts
                                     else -> {
                                         // support negative indices? haven't seen them in the wild yet...
                                         putBack(next)
@@ -151,7 +151,7 @@ class OBJReader(input: InputStream, val file: File?) : OBJMTLReader(input) {
                             }
 
                             fun putPoint(point: Point) {
-                                if(mesh != null){
+                                if (mesh != null) {
                                     val p = mesh.points as ArrayList<Point>
                                     p.add(point)
                                 }

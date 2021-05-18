@@ -17,6 +17,6 @@ enum class FFMPEGEncodingBalance(val nameDesc: NameDesc, val internalName: Strin
     S2(NameDesc("Smaller"), "slower", 0.833f),
     S3(NameDesc("Smallest"), "veryslow", 1f);
     companion object {
-        operator fun get(value: Float) = values().minBy { abs(value - it.value) }!!
+        operator fun get(value: Float) = values().minByOrNull { abs(value - it.value) }!!
     }
 }

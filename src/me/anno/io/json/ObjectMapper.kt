@@ -17,7 +17,7 @@ object ObjectMapper {
     }
 
     fun OutputStream.write(c: Char){
-        write(c.toInt())
+        write(c.code)
     }
 
     fun OutputStream.write(str: String){
@@ -48,7 +48,7 @@ object ObjectMapper {
             "java.lang.Float" ->   output.writeStr((instance as Float?) ?: "null")
             "java.lang.Double" ->  output.writeStr((instance as Double?) ?: "null")
             else -> {
-                output.write('{'.toInt())
+                output.write('{'.code)
                 var isFirstProperty = true
                 clazz.declaredFields.forEach { field ->
                     if(!Modifier.isStatic(field.modifiers)){
@@ -58,7 +58,7 @@ object ObjectMapper {
                             } catch (e: Exception){ e.printStackTrace() }
                             // field.trySetAccessible()
                         }
-                        if(!isFirstProperty){ output.write(','.toInt()) }
+                        if(!isFirstProperty){ output.write(','.code) }
                         output.write('"')
                         writeJsonString(output, field.name)
                         output.write('"')
@@ -130,13 +130,13 @@ object ObjectMapper {
                         isFirstProperty = false
                     }
                 }
-                output.write('}'.toInt())
+                output.write('}'.code)
             }
         }
     }
 
     fun writeArray(output: OutputStream, value: Array<*>){
-        output.write('['.toInt())
+        output.write('['.code)
         for(i in value.indices){
             if(i != 0) output.write(',')
             when(val vi = value[i]){

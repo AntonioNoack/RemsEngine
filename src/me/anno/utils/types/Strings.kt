@@ -54,7 +54,7 @@ object Strings {
 
     fun String.getImportType(): String =
         DefaultConfig["import.mapping.$this"]?.toString()
-            ?: DefaultConfig["import.mapping.${toLowerCase()}"]?.toString()
+            ?: DefaultConfig["import.mapping.${lowercase(Locale.getDefault())}"]?.toString()
             ?: DefaultConfig["import.mapping.*"]?.toString() ?: defaultImportType
 
     // 00:57:28.87 -> 57 * 60 + 28.87

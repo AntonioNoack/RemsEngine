@@ -19,6 +19,7 @@ import java.awt.Color
 import java.awt.Graphics2D
 import java.awt.image.BufferedImage
 import java.io.File
+import java.util.*
 import javax.imageio.ImageIO
 import kotlin.math.*
 
@@ -72,14 +73,14 @@ class SVGMesh {
         children.forEach {
             (it as? XMLElement)?.apply {
                 convertStyle(this)
-                parentGroup?.properties?.forEach { key, value ->
+                parentGroup?.properties?.forEach { (key, value) ->
                     // todo apply transforms differently
                     if (key !in this.properties) {
                         this[key] = value
                     }
                 }
                 val style = SVGStyle(this@SVGMesh, this)
-                when (type.toLowerCase()) {
+                when (type.lowercase(Locale.getDefault())) {
                     "circle" -> {
                         if (style.isFill) addCircle(this, style, true)
                         if (style.isStroke) addCircle(this, style, false)
@@ -148,7 +149,7 @@ class SVGMesh {
                     }
                     "style" -> {
                         val id = this["id"]
-                        when (val type = this["type"]?.toLowerCase()) {
+                        when (val type = this["type"]?.lowercase(Locale.getDefault())) {
                             "text/css" -> {
                                 val content = this.children.filterIsInstance<String>().joinToString("\n")
                                 CSSReader(this@SVGMesh, content)
@@ -203,7 +204,7 @@ class SVGMesh {
         val cx = x0 + w * 0.5
         val cy = y0 + h * 0.5
         val scale = 2.0 / h
-        val totalPointCount = curves.sumBy { it.triangles.size }
+        val totalPointCount = curves.sumOf { it.triangles.size }
         if (totalPointCount > 0) {
             val buffer = StaticBuffer(attr, totalPointCount)
             val formula = Formula()
@@ -214,12 +215,10 @@ class SVGMesh {
             val stops = Vector4f()
             this.buffer = buffer
             curves.forEach { curve ->
-                val xs = curve.triangles.map { it.x() }
-                val ys = curve.triangles.map { it.y() }
-                val minX = xs.min()!!
-                val maxX = xs.max()!!
-                val minY = ys.min()!!
-                val maxY = ys.max()!!
+                val minX = curve.triangles.minOf { it.x() }
+                val maxX = curve.triangles.maxOf { it.x() }
+                val minY = curve.triangles.minOf { it.y() }
+                val maxY = curve.triangles.maxOf { it.y() }
                 val scaleX = 1.0 / max(1e-9, maxX - minX)
                 val scaleY = 1.0 / max(1e-9, maxY - minY)
                 // upload all shapes
@@ -228,14 +227,14 @@ class SVGMesh {
                 // if (gradient.colors.size > 1) println("$gradient -> $formula")
                 val padding = gradient.spreadMethod.id.toFloat()
                 val depth = curve.depth.toFloat()
-                curve.triangles.forEach { v ->
+                for (v in curve.triangles) {
                     val vx = v.x()
                     val vy = v.y()
                     buffer.put(((vx - cx) * scale).toFloat(), ((vy - cy) * scale).toFloat(), depth)
                     buffer.put(((vx - minX) * scaleX).toFloat(), ((vy - minY) * scaleY).toFloat())
                     buffer.put(formula.position.x.toFloat(), formula.position.y.toFloat())
                     buffer.put(formula.directionOrRadius.x.toFloat(), formula.directionOrRadius.y.toFloat())
-                    buffer.put(if(formula.isCircle) 1f else 0f)
+                    buffer.put(if (formula.isCircle) 1f else 0f)
                     buffer.put(c0)
                     buffer.put(c1)
                     buffer.put(c2)
