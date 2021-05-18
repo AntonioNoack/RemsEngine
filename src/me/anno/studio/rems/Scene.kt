@@ -283,9 +283,8 @@ object Scene {
             else -> true
         }
 
-        stack.next {
-            drawScene(scene, camera, time, x0, y0, w, h, flipY, isFakeColorRendering, sceneView)
-        }
+        stack.clear()
+        drawScene(scene, camera, time, x0, y0, w, h, flipY, isFakeColorRendering, sceneView)
 
         GFX.drawMode = oldDrawMode
 
@@ -335,7 +334,7 @@ object Scene {
 
         var needsTemporaryBuffer = !isFakeColorRendering
         if (needsTemporaryBuffer) {
-            needsTemporaryBuffer = false ||// I had issues without (low quality settings), soo...
+            needsTemporaryBuffer = // issues are resolved: clipping was missing maybe...
                     flipY ||
                     samples > 1 ||
                     !distortion.is000() ||

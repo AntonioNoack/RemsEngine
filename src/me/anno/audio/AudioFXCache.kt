@@ -290,7 +290,7 @@ object AudioFXCache : CacheSection("AudioFX") {
         t0: Double,
         t1: Double,
         identifier: String,
-        audio: Audio,
+        source: Audio,
         destination: Camera,
         async: Boolean = true
     ): ShortArray? {
@@ -298,7 +298,7 @@ object AudioFXCache : CacheSection("AudioFX") {
         var index1 = (t1 * playbackSampleRate).roundToLong()
         index1 = StrictMath.max(index1, index0 + SPLITS)
         // what if dt is too large, because we are viewing it from a distance -> approximate
-        return getRange(bufferSize, index0, index1, identifier, audio, destination, async)
+        return getRange(bufferSize, index0, index1, identifier, source, destination, async)
     }
 
     private fun getTime(index: Long, audio: Audio): Time {
@@ -336,7 +336,7 @@ object AudioFXCache : CacheSection("AudioFX") {
         index0: Long,
         index1: Long,
         identifier: String,
-        audio: Audio,
+        source: Audio,
         destination: Camera,
         async: Boolean = true
     ): ShortArray? {
@@ -360,10 +360,10 @@ object AudioFXCache : CacheSection("AudioFX") {
 
                         val bufferIndex = Math.floorDiv(i, bufferSize.toLong())
                         if (i == index0 || lastBufferIndex != bufferIndex) {
-                            val time0 = getTime(bufferIndex, audio)
-                            val time1 = getTime(bufferIndex + 1, audio)
+                            val time0 = getTime(bufferIndex, source)
+                            val time1 = getTime(bufferIndex + 1, source)
                             buffer = getBuffer(
-                                audio, destination, time0, time1, bufferSize,
+                                source, destination, time0, time1, bufferSize,
                                 Domain.TIME_DOMAIN, false
                             )!!
                             lastBufferIndex = bufferIndex

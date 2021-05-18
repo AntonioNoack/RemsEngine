@@ -211,28 +211,20 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
         val type = property.type
         val halfSize = dotSize / 2
 
-        val blueish = 0x7799ff
-        val red = 0xff0000
-        val green = 0x00ff00
-        val blue = 0x0000ff
+        val blueish = 0x7799ff or black
+        val red = 0xfa5157 or black
+        val green = 0x1fa34a or black
+        val blue = 0x4a8cf8 or black
 
         val channelCount = property.type.components
         val valueColors = intArrayOf(
-            if (channelCount == 1) white else red,
+            if (type.defaultValue is Float || type.defaultValue is Double)
+                blueish
+            else if (channelCount == 1)
+                white
+            else red,
             green, blue, white
         )
-
-        when (type) {
-            Type.FLOAT -> {
-                valueColors[0] = blueish
-            }
-            else -> {
-            }
-        }
-
-        for (i in 0 until 4) {
-            valueColors[i] = (valueColors[i] or black) and 0x7fffffff
-        }
 
         fun drawDot(x: Int, y: Int, color: Int, willBeSelected: Boolean) {
             if (willBeSelected) {// draw outline, if point is selected

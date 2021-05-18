@@ -2,7 +2,6 @@ package me.anno.ui.editor.sceneView
 
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.black
-import me.anno.config.DefaultStyle.deepDark
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.addGPUTask
 import me.anno.gpu.GFX.deltaTime
@@ -14,6 +13,7 @@ import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.framebuffer.StableWindowSize
 import me.anno.gpu.shader.ShaderPlus
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
@@ -59,7 +59,6 @@ import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.length
 import me.anno.utils.Maths.pow
 import me.anno.utils.OS
-import me.anno.utils.structures.tuples.Quad
 import me.anno.utils.types.Lists.sumByFloat
 import me.anno.utils.types.Vectors.plus
 import me.anno.utils.types.Vectors.times
@@ -124,6 +123,8 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
 
     val iconSize = style.getSize("fontSize", 12) * 2
     val pad = (iconSize + 4) / 8
+
+    val borderThickness = style.getSize("blackWhiteBorderThickness", 2)
 
     // we need the depth for post processing effects like dof
 
@@ -190,14 +191,14 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
     }
 
     override fun getVisualState(): Any? =
-        Quad(super.getVisualState(), editorTime, goodW, goodH)
+        Triple(editorTime, stableSize.stableWidth, stableSize.stableHeight)
 
     override fun tickUpdate() {
         super.tickUpdate()
         parseKeyInput()
         parseTouchInput()
         claimResources()
-        updateSize()
+        stableSize.updateSize(w - 2 * borderThickness, h - 2 * borderThickness, camera.onlyShowTarget)
     }
 
     var mode = SceneDragMode.MOVE
@@ -225,11 +226,6 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
     // switch between manual control and autopilot for time :)
     // -> do this by disabling controls when playing, excepts when it's the inspector camera (?)
     val mayControlCamera get() = camera === nullCamera || isPaused
-    var lastW = 0
-    var lastH = 0
-    var lastSizeUpdate = GFX.gameTime
-    var goodW = 0
-    var goodH = 0
 
     fun claimResources() {
         // this is expensive, so do it only when the time changed
@@ -239,49 +235,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
         root.claimResources(et, et + 5.0 * if (edt == 0.0) 1.0 else edt, 1f, 1f)
     }
 
-    var dx = 0
-    var dy = 0
-    var rw = 0
-    var rh = 0
-
-    fun updateSize() {
-
-        dx = 0
-        dy = 0
-        rw = w
-        rh = h
-
-        val camera = camera
-        if (camera.onlyShowTarget) {
-            if (w * targetHeight > targetWidth * h) {
-                rw = h * targetWidth / targetHeight
-                dx = (w - rw) / 2
-            } else {
-                rh = w * targetHeight / targetWidth
-                dy = (h - rh) / 2
-            }
-        }
-
-        // check if the size stayed the same;
-        // because resizing all framebuffers is expensive (causes lag)
-        val matchesSize = lastW == rw && lastH == rh
-        val wasNotRecentlyUpdated = lastSizeUpdate + 1e8 < GFX.gameTime
-        if (matchesSize) {
-            if (wasNotRecentlyUpdated) {
-                goodW = rw
-                goodH = rh
-            }
-        } else {
-            lastSizeUpdate = GFX.gameTime
-            lastW = rw
-            lastH = rh
-        }
-
-        if (goodW == 0 || goodH == 0) {
-            goodW = rw
-            goodH = rh
-        }
-    }
+    val stableSize = StableWindowSize()
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
 
@@ -294,19 +248,32 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
 
         GFX.check()
 
-        drawRect(x, y, w, h, deepDark)
-        drawRect(x + dx, y + dy, rw, rh, black)
+        val bt = borderThickness
+        val bth = bt / 2
 
-        if (goodW > 0 && goodH > 0) {
-            Scene.draw(
-                camera, root,
-                x + dx, y + dy, goodW, goodH,
-                editorTime, false,
-                mode, this
-            )
+        val dx = stableSize.dx + borderThickness
+        val dy = stableSize.dy + borderThickness
+
+        drawRect(x, y, w, h, -1)
+        drawRect(x + bth, y + bth, w - 2 * bth, h - 2 * bth, black)
+
+        val rw = min(stableSize.stableWidth, w - 2 * bt)
+        val rh = min(stableSize.stableHeight, h - 2 * bt)
+        if (rw > 0 && rh > 0) {
+            GFX.clip2(// why just -1*bt instead of -2*bt???
+                max(x0, x + dx), max(y0, y + bt),
+                min(x1, x + w - bt), min(y1, y + h - bt)
+            ) {
+                Scene.draw(
+                    camera, root,
+                    x + dx, y + dy, rw, rh,
+                    editorTime, false,
+                    mode, this
+                )
+            }
         }
 
-        GFX.clip(x0, y0, x1, y1) {
+        GFX.clip2(x0, y0, x1, y1) {
 
             BlendDepth(BlendMode.DEFAULT, false) {
                 controls.forEach {
@@ -330,8 +297,8 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
         name += ".png"
         if (File(folder, name).exists()) return // image already exists somehow...
 
-        val w = rw
-        val h = rh
+        val w = stableSize.stableWidth
+        val h = stableSize.stableHeight
 
         addGPUTask(w, h) {
 

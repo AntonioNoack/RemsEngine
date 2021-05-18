@@ -90,8 +90,7 @@ class LayerStripeSolution(
                 val isStriped = selectedTransform === tr || draggedTransform === tr
 
                 val video = tr as? Video
-                val meta = if (video == null) null
-                else metas.getOrPut(video) { video.meta ?: Unit } as? FFMPEGMetadata
+                val meta = if (video == null) null else metas.getOrPut(video) { video.meta ?: Unit } as? FFMPEGMetadata
 
                 val hasAudio = meta?.hasAudio ?: false
                 val hasVideo = meta?.hasVideo ?: false

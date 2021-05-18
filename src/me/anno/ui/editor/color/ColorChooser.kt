@@ -4,6 +4,7 @@ import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.windowStack
 import me.anno.gpu.GFXx2D.posSize
+import me.anno.input.Input
 import me.anno.objects.animation.AnimatedProperty
 import me.anno.studio.rems.RemsStudio.editorTime
 import me.anno.ui.base.Panel
@@ -213,7 +214,7 @@ class ColorChooser(style: Style, val withAlpha: Boolean, val owningProperty: Ani
     override fun onCopyRequested(x: Float, y: Float): String {
         val cssCompatible = DefaultConfig["editor.copyColorsCSS-compatible", false]
         val useAlpha = DefaultConfig["editor.copyColorsCSS-withAlpha", true]
-        return if (cssCompatible) {
+        return if (cssCompatible != Input.isShiftDown) {
             colorSpace.toRGB(hue, saturation, lightness, if(useAlpha) opacity else 1f).toHexColor()
         } else {
             "${colorSpace.serializationName}(${hue.f3()},${saturation.f3()},${lightness.f3()},${opacity.f3()})"
