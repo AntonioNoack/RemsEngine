@@ -1,6 +1,6 @@
 package me.anno.utils.test
 
-import me.anno.objects.animation.AnimatedProperty
+import me.anno.animation.AnimatedProperty
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3f
 import java.util.*

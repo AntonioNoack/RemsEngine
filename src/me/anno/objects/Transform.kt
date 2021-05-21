@@ -15,8 +15,8 @@ import me.anno.io.base.BaseWriter
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.language.translation.Dict
-import me.anno.objects.animation.AnimatedProperty
-import me.anno.objects.animation.Type
+import me.anno.animation.AnimatedProperty
+import me.anno.animation.Type
 import me.anno.objects.inspectable.Inspectable
 import me.anno.objects.modes.TransformVisibility
 import me.anno.objects.particles.ParticleSystem

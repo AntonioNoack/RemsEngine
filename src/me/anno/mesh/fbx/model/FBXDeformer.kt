@@ -14,8 +14,8 @@ class FBXDeformer(data: FBXNode): FBXObject(data){
     val depth: Int get() = (parent?.depth ?: -1) + 1
 
     val mode = data.getProperty("Mode") as? String // Total1 or
-    val transform = data.getM4x4("Transform")
-    val transformLink = data.getM4x4("TransformLink")
+    val transform = data.getM4x4("Transform") // "refers to the global initial position of the node containing the link"
+    val transformLink = data.getM4x4("TransformLink") // "refers to global initial position of the link node"
 
     val indices = data.getIntArray("Indexes")
     val weights = data.getDoubleArray("Weights")

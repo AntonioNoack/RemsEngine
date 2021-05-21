@@ -14,7 +14,8 @@ import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.editor.sceneView.SceneView
 import me.anno.ui.style.Style
 
-class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) : PanelContainer(default, Padding(0), style) {
+class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) :
+    PanelContainer(default, Padding(0), style) {
 
     override fun calculateSize(w: Int, h: Int) {
         child.calculateSize(w, h)
@@ -42,6 +43,60 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
         drawTexture(x + w - 14, y + 2, 12, 12, icon, white, null)
     }
 
+    private fun addBefore(index: Int, parent: CustomList) {
+        val children = parent.children
+        val view = CustomContainer(SceneView(style), library, style)
+        val bar = CustomizingBar(0, 3, 0, style)
+        bar.parent = parent
+        view.parent = parent
+        children.add(index + 0, view)
+        children.add(index + 1, bar)
+        view.weight = 1f
+        parent.update()
+    }
+
+    private fun addAfter(index: Int, parent: CustomList) {
+        val children = parent.children
+        val view = CustomContainer(SceneView(style), library, style)
+        val bar = CustomizingBar(0, 3, 0, style)
+        bar.parent = parent
+        view.parent = parent
+        children.add(index + 1, bar)
+        children.add(index + 2, view)
+        view.weight = 1f
+        parent.update()
+    }
+
+    private fun replace(index: Int, parent: CustomList, isY: Boolean, firstThis: Boolean) {
+        val children = parent.children
+        val replaced = CustomList(isY, style)
+        replaced.parent = parent
+        children[index] = replaced
+        replaced.weight = this.weight
+        if (firstThis) {
+            replaced.add(this)
+            replaced.add(CustomContainer(SceneView(style), library, style))
+        } else {
+            replaced.add(CustomContainer(SceneView(style), library, style))
+            replaced.add(this)
+        }
+        parent.update()
+    }
+
+    fun addPanel(isYAction: Boolean, firstThis: Boolean){
+        val parent = parent!!
+        val index = indexInParent
+        parent as CustomList
+        if (isYAction == parent.isY){
+            if(firstThis){
+                addAfter(index, parent)
+            } else {
+                addBefore(index, parent)
+            }
+        }
+        else replace(index, parent, isYAction, firstThis)
+    }
+
     private fun changeType() {
         fun action(action: () -> Panel): () -> Unit = { changeTo(action()) }
         val options = library.typeList
@@ -54,107 +109,16 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
             Unit
         }
         options += MenuOption(NameDesc("Add Panel Before", "", "ui.customize.addBefore")) {
-            val parent = parent!!
-            val index = indexInParent
-            if (parent is CustomListX) {
-                val children = parent.children
-                val view = CustomContainer(SceneView(style), library, style)
-                val bar = CustomizingBar(0, 3, 0, style)
-                bar.parent = parent
-                view.parent = parent
-                children.add(index, view)
-                children.add(index + 1, bar)
-                view.weight = 1f
-                parent.update()
-            } else {
-                parent as CustomListY
-                val children = parent.children
-                val replaced = CustomListX(style)
-                replaced.parent = parent
-                children[index] = replaced
-                replaced.weight = this.weight
-                replaced.add(CustomContainer(SceneView(style), library, style))
-                replaced.add(this)
-            }
-            Unit
+            addPanel(false, firstThis = false)
         }
         options += MenuOption(NameDesc("Add Panel After", "", "ui.customize.addAfter")) {
-            val parent = parent!!
-            val index = indexInParent
-            if (parent is CustomListX) {
-                val children = parent.children
-                val view = CustomContainer(SceneView(style), library, style)
-                val bar = CustomizingBar(0, 3, 0, style)
-                bar.parent = parent
-                view.parent = parent
-                children.add(index + 1, bar)
-                children.add(index + 2, view)
-                view.weight = 1f
-                parent.update()
-            } else {
-                parent as CustomListY
-                val children = parent.children
-                val replaced = CustomListX(style)
-                replaced.parent = parent
-                children[index] = replaced
-                replaced.weight = this.weight
-                replaced.add(this)
-                replaced.add(CustomContainer(SceneView(style), library, style))
-                parent.update()
-            }
-            Unit
+            addPanel(false, firstThis = true)
         }
         options += MenuOption(NameDesc("Add Panel Above", "", "ui.customize.addAbove")) {
-            val parent = parent!!
-            val index = indexInParent
-            if (parent is CustomListY) {
-                val children = parent.children
-                val view = CustomContainer(SceneView(style), library, style)
-                val bar = CustomizingBar(0, 0, 3, style)
-                bar.parent = parent
-                view.parent = parent
-                children.add(index, view)
-                children.add(index + 1, bar)
-                view.weight = 1f
-                parent.update()
-            } else {
-                parent as CustomListX
-                val children = parent.children
-                val replaced = CustomListY(style)
-                replaced.parent = parent
-                children[index] = replaced
-                replaced.weight = this.weight
-                replaced.add(CustomContainer(SceneView(style), library, style))
-                replaced.add(this)
-                parent.update()
-            }
-            Unit
+            addPanel(true, firstThis = false)
         }
         options += MenuOption(NameDesc("Add Panel Below", "", "ui.customize.addBelow")) {
-            val parent = parent!!
-            val index = indexInParent
-            if (parent is CustomListY) {
-                val children = parent.children
-                val view = CustomContainer(SceneView(style), library, style)
-                val bar = CustomizingBar(0, 0, 3, style)
-                bar.parent = parent
-                view.parent = parent
-                children.add(index + 1, bar)
-                children.add(index + 2, view)
-                view.weight = 1f
-                parent.update()
-            } else {
-                parent as CustomListX
-                val children = parent.children
-                val replaced = CustomListY(style)
-                replaced.parent = parent
-                children[index] = replaced
-                replaced.weight = this.weight
-                replaced.add(this)
-                replaced.add(CustomContainer(SceneView(style), library, style))
-                parent.update()
-            }
-            Unit
+            addPanel(true, firstThis = false)
         }
         openMenu(x + w - 16, y, NameDesc("Customize UI", "", "ui.customize.title"), options)
     }

@@ -19,10 +19,10 @@ import me.anno.input.MouseButton
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.language.translation.NameDesc
-import me.anno.objects.animation.AnimatedProperty
-import me.anno.objects.animation.Interpolation
-import me.anno.objects.animation.Keyframe
-import me.anno.objects.animation.Type
+import me.anno.animation.AnimatedProperty
+import me.anno.animation.Interpolation
+import me.anno.animation.Keyframe
+import me.anno.animation.Type
 import me.anno.studio.StudioBase.Companion.updateAudio
 import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.RemsStudio.editorTime

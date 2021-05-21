@@ -103,6 +103,8 @@ open class MeshData : ICacheData {
 
                 // (mat)
 
+                mat.identity()
+
                 for (i in 0 until 16) {
                     matrixBufferFBX.put(mat.get(i / 4, i and 3))
                 }

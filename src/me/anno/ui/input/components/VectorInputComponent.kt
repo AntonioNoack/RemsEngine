@@ -1,7 +1,7 @@
 package me.anno.ui.input.components
 
-import me.anno.objects.animation.AnimatedProperty
-import me.anno.objects.animation.Type
+import me.anno.animation.AnimatedProperty
+import me.anno.animation.Type
 import me.anno.ui.input.FloatInput
 import me.anno.ui.input.VectorInput
 import me.anno.ui.style.Style

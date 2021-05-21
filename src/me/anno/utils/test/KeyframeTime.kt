@@ -1,8 +1,8 @@
 package me.anno.utils.test
 
 import me.anno.io.text.TextReader
-import me.anno.objects.animation.AnimatedProperty
-import me.anno.objects.animation.Interpolation
+import me.anno.animation.AnimatedProperty
+import me.anno.animation.Interpolation
 
 fun main(){
 

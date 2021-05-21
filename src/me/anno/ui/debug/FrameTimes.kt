@@ -20,14 +20,23 @@ object FrameTimes : Panel(DefaultConfig.style.getChild("fps")) {
         minH = height
     }
 
-    var maxValue = 0f
-    val values = FloatArray(width)
-    var nextIndex = 0
-    fun putValue(value: Float) {
-        values[nextIndex] = value
-        nextIndex = (nextIndex + 1) % width
-        val max = values.maxOrNull()!!
-        maxValue = max(maxValue * clamp((1f - 3f * value), 0f, 1f), max)
+    val timeContainer = TimeContainer(width, textColor)
+    val containers = arrayListOf(timeContainer)
+
+    fun putTime(value: Float){
+        putValue(value, textColor)
+    }
+
+    fun putValue(value: Float, color: Int){
+        for(container in containers){
+            if(container.color == color){
+                container.putValue(value)
+                return
+            }
+        }
+        val container = TimeContainer(width, color)
+        containers.add(container)
+        container.putValue(value)
     }
 
     fun draw() {
@@ -37,14 +46,25 @@ object FrameTimes : Panel(DefaultConfig.style.getChild("fps")) {
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         drawBackground()
-        val indexOffset = nextIndex - 1 + width
-        for (x in x0 until x1) {
-            val i = x - this.x
-            val v = values[(indexOffset + i) % width]
-            val barHeight = (height * v / maxValue).toInt()
-            val barColor = textColor
-            drawRect(x, y + height - barHeight, 1, barHeight, barColor)
+
+        if(containers.isEmpty()) return
+
+        val maxValue = containers.maxOf { it.maxValue }
+
+        containers.sortByDescending { it.maxValue }
+        for(container in containers){
+            val nextIndex = container.nextIndex
+            val values = container.values
+            val barColor = container.color
+            val indexOffset = nextIndex - 1 + width
+            for (x in x0 until x1) {
+                val i = x - this.x
+                val v = values[(indexOffset + i) % width]
+                val barHeight = (height * v / maxValue).toInt()
+                drawRect(x, y + height - barHeight, 1, barHeight, barColor)
+            }
         }
+
     }
 
 }

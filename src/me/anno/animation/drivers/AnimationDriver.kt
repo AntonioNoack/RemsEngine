@@ -1,4 +1,4 @@
-package me.anno.objects.animation.drivers
+package me.anno.animation.drivers
 
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
@@ -6,8 +6,8 @@ import me.anno.io.base.BaseWriter
 import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
 import me.anno.objects.Transform
-import me.anno.objects.animation.AnimatedProperty
-import me.anno.objects.animation.Type
+import me.anno.animation.AnimatedProperty
+import me.anno.animation.Type
 import me.anno.objects.inspectable.Inspectable
 import me.anno.studio.rems.Selection.select
 import me.anno.studio.rems.Selection.selectProperty

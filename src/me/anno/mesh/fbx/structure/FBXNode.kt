@@ -123,9 +123,13 @@ class FBXNode(val nameOrType: String, val properties: Array<Any>) : FBXNodeBase 
         val da = getDoubleArray(name) ?: return null
         if (da.size != 16) throw RuntimeException("Got mat4x4 of size ${da.size}, expected 16")
         val m = Matrix4f()
-        // correct
+        // "correct"
+        // where do I know from, that it's correct?
+        // the position comes last -> column-major format
+        // and this would suggest, that this was incorrect...
         for (i in 0 until 16) {
-            m.set(i / 4, i and 3, da[i].toFloat())
+            // m.set(i / 4, i and 3, da[i].toFloat())
+            m.set(i and 3, i / 4, da[i].toFloat())
         }
         return m
     }

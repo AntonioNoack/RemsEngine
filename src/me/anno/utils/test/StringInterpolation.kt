@@ -1,7 +1,7 @@
 package me.anno.utils.test
 
-import me.anno.objects.animation.AnimatedProperty
-import me.anno.objects.animation.Interpolation
+import me.anno.animation.AnimatedProperty
+import me.anno.animation.Interpolation
 import org.apache.logging.log4j.LogManager
 
 fun test(a: String, b: String, t: Double, expected: String){

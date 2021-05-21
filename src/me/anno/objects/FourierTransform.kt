@@ -10,8 +10,8 @@ import me.anno.gpu.GFXx2D.getSizeY
 import me.anno.io.FileReference
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
-import me.anno.objects.animation.AnimatedProperty
-import me.anno.objects.animation.Type
+import me.anno.animation.AnimatedProperty
+import me.anno.animation.Type
 import me.anno.objects.modes.LoopingState
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory

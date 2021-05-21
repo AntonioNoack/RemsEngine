@@ -1,8 +1,8 @@
 package me.anno.utils.test
 
-import me.anno.objects.animation.AnimatedProperty
-import me.anno.objects.animation.Integral.findIntegralX
-import me.anno.objects.animation.Integral.getIntegral
+import me.anno.animation.AnimatedProperty
+import me.anno.animation.Integral.findIntegralX
+import me.anno.animation.Integral.getIntegral
 import me.anno.utils.LOGGER
 
 fun main() {

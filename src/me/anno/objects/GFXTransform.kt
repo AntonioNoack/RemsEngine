@@ -6,7 +6,7 @@ import me.anno.gpu.ShaderLib.uvForceFieldBuffer
 import me.anno.gpu.shader.Shader
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
-import me.anno.objects.animation.AnimatedProperty
+import me.anno.animation.AnimatedProperty
 import me.anno.objects.attractors.EffectColoring
 import me.anno.objects.attractors.EffectMorphing
 import me.anno.ui.base.groups.PanelListY

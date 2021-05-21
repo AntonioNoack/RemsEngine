@@ -2,7 +2,7 @@ package me.anno.objectsV2.components.color
 
 import me.anno.gpu.shader.Shader
 import me.anno.io.base.BaseWriter
-import me.anno.objects.animation.AnimatedProperty
+import me.anno.animation.AnimatedProperty
 import me.anno.objectsV2.Component
 import me.anno.objectsV2.components.shaders.FragmentShaderComponent
 import me.anno.objectsV2.components.shaders.ShaderEnvironment

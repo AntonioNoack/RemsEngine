@@ -3,7 +3,7 @@ package me.anno.studio.rems
 import me.anno.io.ISaveable
 import me.anno.io.find.PropertyFinder
 import me.anno.objects.Transform
-import me.anno.objects.animation.AnimatedProperty
+import me.anno.animation.AnimatedProperty
 import me.anno.objects.inspectable.Inspectable
 import me.anno.studio.rems.RemsStudio.root
 import me.anno.utils.types.Sequences.getOrNull

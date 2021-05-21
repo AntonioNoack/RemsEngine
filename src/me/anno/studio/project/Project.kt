@@ -23,9 +23,9 @@ import me.anno.ui.editor.UILayouts.createDefaultMainUI
 import me.anno.ui.editor.sceneTabs.SceneTab
 import me.anno.ui.editor.sceneTabs.SceneTabs
 import me.anno.ui.editor.sceneView.SceneTabData
-import me.anno.utils.types.Casting.castToFloat
+import me.anno.utils.bugs.SumOf
 import me.anno.utils.files.Files.use
-import me.anno.utils.types.Lists.sumByFloat
+import me.anno.utils.types.Casting.castToFloat
 import me.anno.video.FFMPEGEncodingBalance
 import me.anno.video.FFMPEGEncodingType
 import org.apache.logging.log4j.LogManager
@@ -36,7 +36,7 @@ import kotlin.math.roundToInt
 // todo option to reset the timeline
 class Project(var name: String, val file: FileReference) : Saveable() {
 
-    constructor(name: String, file: File): this(name, FileReference(file))
+    constructor(name: String, file: File) : this(name, FileReference(file))
 
     val configFile = FileReference(file, "config.json")
     val uiFile = FileReference(file, "ui.json")
@@ -148,8 +148,8 @@ class Project(var name: String, val file: FileReference) : Saveable() {
                 return try {
                     val type = arr[0] as? String ?: return null
                     val obj = when (type) {
-                        "CustomListX" -> CustomListX(style)
-                        "CustomListY" -> CustomListY(style)
+                        "CustomListX" -> CustomList(false, style)
+                        "CustomListY" -> CustomList(true, style)
                         else -> types[type]?.constructor?.invoke()
                     }
                     if (obj == null) {
@@ -179,7 +179,7 @@ class Project(var name: String, val file: FileReference) : Saveable() {
     fun saveUI() {
         use(uiFile.outputStream()) { fos ->
             val writer = JsonWriter(fos)
-            val cdc = mainUI as CustomListY
+            val cdc = mainUI as CustomList
             fun write(c: Panel, w: Float) {
                 if (c is CustomContainer) {
                     return write(c.child, w)
@@ -188,7 +188,7 @@ class Project(var name: String, val file: FileReference) : Saveable() {
                 writer.write(c.getClassName())
                 writer.write((w * 1000f).roundToInt())
                 if (c is CustomList) {
-                    val weightSum = c.customChildren.sumByFloat { it.weight }
+                    val weightSum = SumOf.sumOf(c.customChildren) { it.weight }
                     for (chi in c.customChildren) {
                         write(chi, chi.weight / weightSum)
                     }

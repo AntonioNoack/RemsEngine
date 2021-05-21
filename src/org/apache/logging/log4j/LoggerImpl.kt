@@ -3,7 +3,6 @@ package org.apache.logging.log4j
 import org.apache.commons.logging.Log
 import java.util.*
 
-
 class LoggerImpl(prefix: String?) : Logger, Log {
 
     fun interleave(msg: String, args: Array<out Any>): String {

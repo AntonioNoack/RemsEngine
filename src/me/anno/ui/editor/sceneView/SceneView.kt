@@ -2,9 +2,11 @@ package me.anno.ui.editor.sceneView
 
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.black
+import me.anno.config.DefaultStyle.deepDark
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.addGPUTask
 import me.anno.gpu.GFX.deltaTime
+import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.GFX.windowStack
 import me.anno.gpu.GFXx2D.drawRect
 import me.anno.gpu.Window
@@ -57,12 +59,15 @@ import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.length
 import me.anno.utils.Maths.pow
 import me.anno.utils.OS
-import me.anno.utils.types.Lists.sumByFloat
+import me.anno.utils.bugs.SumOf.sumOf
 import me.anno.utils.types.Vectors.plus
 import me.anno.utils.types.Vectors.times
 import me.anno.utils.types.Vectors.toVec3f
 import org.apache.logging.log4j.LogManager
-import org.joml.*
+import org.joml.Matrix4f
+import org.joml.Matrix4fArrayList
+import org.joml.Vector3f
+import org.joml.Vector4f
 import org.lwjgl.opengl.GL11.*
 import java.awt.image.BufferedImage
 import java.io.File
@@ -70,7 +75,6 @@ import java.lang.Math.toDegrees
 import java.text.SimpleDateFormat
 import java.util.*
 import javax.imageio.ImageIO
-import kotlin.collections.ArrayList
 import kotlin.concurrent.thread
 import kotlin.math.atan2
 import kotlin.math.max
@@ -228,11 +232,12 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
         // this is expensive, so do it only when the time changed
         val edt = editorTimeDilation
         val et = editorTime
-        // load the next five seconds of data
-        root.claimResources(et, et + 5.0 * if (edt == 0.0) 1.0 else edt, 1f, 1f)
+        val loadedTimeSeconds = 3.0
+        // load the next 3 seconds of data
+        root.claimResources(et, et + loadedTimeSeconds * if (edt == 0.0) 1.0 else edt, 1f, 1f)
     }
 
-    val stableSize = StableWindowSize()
+    private val stableSize = StableWindowSize()
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
 
@@ -253,17 +258,20 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
 
         drawRect(x, y, w, h, -1)
         drawRect(x + bth, y + bth, w - 2 * bth, h - 2 * bth, black)
+        drawRect(x + bt, y + bt, w - 2 * bt, h - 2 * bt, deepDark)
 
         val rw = min(stableSize.stableWidth, w - 2 * bt)
         val rh = min(stableSize.stableHeight, h - 2 * bt)
+        val x00 = x + dx
+        val y00 = y + dy
         if (rw > 0 && rh > 0) {
             GFX.clip2(// why just -1*bt instead of -2*bt???
-                max(x0, x + dx), max(y0, y + bt),
-                min(x1, x + w - bt), min(y1, y + h - bt)
+                max(x0, x00), max(y0, y00),
+                min(x1, x00 + rw), min(y1, y00 + rh)
             ) {
                 Scene.draw(
                     camera, root,
-                    x + dx, y + dy, rw, rh,
+                    x00, y00, stableSize.stableWidth, stableSize.stableHeight,
                     editorTime, false,
                     mode, this
                 )
@@ -510,8 +518,8 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
                     // rotating is the hardest on a touchpad, because we need to click right
                     // -> rotation
                     // axes: angle, zoom,
-                    val dx = touches.sumByFloat { it.x - it.lastX } * size * 0.5f
-                    val dy = touches.sumByFloat { it.y - it.lastY } * size * 0.5f
+                    val dx = sumOf(touches) { it.x - it.lastX } * size * 0.5f
+                    val dy = sumOf(touches) { it.y - it.lastY } * size * 0.5f
 
                     val t0 = touches[0]
                     val t1 = touches[1]
@@ -549,8 +557,8 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
                 val first = touches.first()
                 val speed = 10f / 3f
                 if (contains(first.x, first.y)) {
-                    val dx = speed * touches.sumByFloat { it.x - it.lastX } * size
-                    val dy = speed * touches.sumByFloat { it.y - it.lastY } * size
+                    val dx = speed * sumOf(touches) { it.x - it.lastX } * size
+                    val dy = speed * sumOf(touches) { it.y - it.lastY } * size
                     move(camera, dx, dy)
                     touches.forEach { it.update() }
                     invalidateDrawing()

@@ -45,7 +45,6 @@ import me.anno.utils.Tabs
 import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.files.Files.listFiles2
 import me.anno.utils.files.Files.openInExplorer
-import me.anno.utils.types.Lists.sumByLong
 import me.anno.utils.types.Strings.getImportType
 import me.anno.video.FFMPEGMetadata
 import me.anno.video.VFrame
@@ -539,7 +538,7 @@ class FileExplorerEntry(
             // ask, then delete all (or cancel)
             val title = NameDesc(
                 "Delete these files? (${inFocus.size}x, ${
-                    files.sumByLong { it.length() }.formatFileSize()
+                    files.sumOf { it.length() }.formatFileSize()
                 })", "", "ui.file.delete.ask.many"
             )
             val moveToTrash = MenuOption(

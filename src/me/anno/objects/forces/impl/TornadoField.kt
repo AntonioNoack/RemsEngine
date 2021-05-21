@@ -2,7 +2,7 @@ package me.anno.objects.forces.impl
 
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
-import me.anno.objects.animation.AnimatedProperty
+import me.anno.animation.AnimatedProperty
 import me.anno.objects.inspectable.InspectableAnimProperty
 import me.anno.objects.models.ArrowModel.arrowLineModel
 import me.anno.objects.particles.Particle

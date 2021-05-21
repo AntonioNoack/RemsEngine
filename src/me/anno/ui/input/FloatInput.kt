@@ -1,10 +1,9 @@
 package me.anno.ui.input
 
 import me.anno.gpu.GFX
-import me.anno.objects.animation.AnimatedProperty
-import me.anno.objects.animation.Type
+import me.anno.animation.AnimatedProperty
+import me.anno.animation.Type
 import me.anno.parser.SimpleExpressionParser
-import me.anno.parser.SimpleExpressionParser.toBool
 import me.anno.parser.SimpleExpressionParser.toDouble
 import me.anno.studio.StudioBase.Companion.shiftSlowdown
 import me.anno.ui.style.Style

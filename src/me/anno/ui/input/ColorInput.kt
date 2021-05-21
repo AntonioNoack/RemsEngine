@@ -6,7 +6,7 @@ import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.language.translation.NameDesc
 import me.anno.objects.Camera
-import me.anno.objects.animation.AnimatedProperty
+import me.anno.animation.AnimatedProperty
 import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.studio.StudioBase.Companion.shiftSlowdown
 import me.anno.studio.rems.RemsStudio

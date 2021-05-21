@@ -5,8 +5,7 @@ import me.anno.io.binary.BinaryWriter
 import me.anno.io.config.ConfigBasics
 import me.anno.io.text.TextWriter
 import me.anno.io.utils.StringMap
-import me.anno.objects.animation.AnimatedProperty
-import me.anno.objects.animation.Keyframe
+import me.anno.animation.AnimatedProperty
 import me.anno.utils.files.Files.use
 import org.apache.logging.log4j.LogManager
 import java.io.ByteArrayInputStream
@@ -15,7 +14,6 @@ import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.util.zip.DeflaterOutputStream
 import java.util.zip.InflaterInputStream
-import kotlin.math.log
 
 fun main() {
     // in this test with a homogenous array,

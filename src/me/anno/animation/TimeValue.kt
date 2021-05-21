@@ -1,4 +1,4 @@
-package me.anno.objects.animation
+package me.anno.animation
 
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering

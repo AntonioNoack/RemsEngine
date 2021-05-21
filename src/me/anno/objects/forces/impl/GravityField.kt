@@ -3,11 +3,10 @@ package me.anno.objects.forces.impl
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.inspectable.InspectableAnimProperty
-import me.anno.objects.animation.AnimatedProperty
+import me.anno.animation.AnimatedProperty
 import me.anno.objects.forces.types.RelativeForceField
 import me.anno.utils.Maths.pow
 import me.anno.utils.types.Vectors.times
-import org.joml.Vector3f
 import org.joml.Vector3fc
 
 class GravityField : RelativeForceField(

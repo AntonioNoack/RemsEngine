@@ -9,6 +9,10 @@ object FPSPanel {
 
     val text = "xxxxxx, min: xxxxxx".toCharArray()
 
+    fun add(nanos: Long, color: Int) {
+        FrameTimes.putValue(nanos * 1e-9f, color)
+    }
+
     fun showFPS() {
 
         val x0 = max(0, GFX.width - FrameTimes.width)
@@ -19,8 +23,9 @@ object FPSPanel {
 
         GFX.loadTexturesSync.push(true)
 
+        val maxTime = FrameTimes.timeContainer.maxValue
         formatNumber(text, 0, 6, GFX.currentEditorFPS)
-        formatNumber(text, 13, 6, 1f / FrameTimes.maxValue)
+        formatNumber(text, 13, 6, 1f / maxTime)
 
         drawSimpleTextCharByChar(x0, y0, 2, text)
 

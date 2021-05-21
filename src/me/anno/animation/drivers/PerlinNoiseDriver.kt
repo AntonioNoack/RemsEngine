@@ -1,10 +1,10 @@
-package me.anno.objects.animation.drivers
+package me.anno.animation.drivers
 
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.Transform
-import me.anno.objects.animation.AnimatedProperty
-import me.anno.objects.animation.Type
+import me.anno.animation.AnimatedProperty
+import me.anno.animation.Type
 import me.anno.ui.base.Panel
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style

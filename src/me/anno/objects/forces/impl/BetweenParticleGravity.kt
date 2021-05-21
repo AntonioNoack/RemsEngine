@@ -2,7 +2,7 @@ package me.anno.objects.forces.impl
 
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
-import me.anno.objects.animation.AnimatedProperty
+import me.anno.animation.AnimatedProperty
 import me.anno.objects.forces.ForceField
 import me.anno.objects.inspectable.InspectableAnimProperty
 import me.anno.objects.particles.Particle
@@ -12,7 +12,6 @@ import me.anno.utils.types.Vectors.minus
 import me.anno.utils.types.Vectors.times
 import org.joml.Matrix4fArrayList
 import org.joml.Vector3f
-import org.joml.Vector4f
 import org.joml.Vector4fc
 
 class BetweenParticleGravity : ForceField(

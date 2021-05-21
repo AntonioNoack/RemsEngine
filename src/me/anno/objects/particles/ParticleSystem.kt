@@ -9,10 +9,10 @@ import me.anno.io.text.TextWriter
 import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
 import me.anno.objects.Transform
-import me.anno.objects.animation.AnimatedProperty
-import me.anno.objects.animation.Integral.findIntegralX
-import me.anno.objects.animation.Integral.getIntegral
-import me.anno.objects.animation.Type
+import me.anno.animation.AnimatedProperty
+import me.anno.animation.Integral.findIntegralX
+import me.anno.animation.Integral.getIntegral
+import me.anno.animation.Type
 import me.anno.objects.distributions.*
 import me.anno.objects.forces.ForceField
 import me.anno.objects.forces.impl.BetweenParticleGravity
@@ -27,10 +27,10 @@ import me.anno.ui.editor.files.FileExplorerEntry.Companion.drawLoadingCircle
 import me.anno.ui.editor.stacked.Option
 import me.anno.ui.input.BooleanInput
 import me.anno.ui.style.Style
+import me.anno.utils.bugs.SumOf
 import me.anno.utils.hpc.HeavyProcessing.processBalanced
 import me.anno.utils.structures.ValueWithDefault
 import me.anno.utils.structures.ValueWithDefault.Companion.writeMaybe
-import me.anno.utils.types.Lists.sumByFloat
 import me.anno.video.MissingFrameException
 import org.joml.Matrix4fArrayList
 import org.joml.Vector3f
@@ -269,7 +269,7 @@ open class ParticleSystem(parent: Transform? = null) : Transform(parent) {
             dist.distribution.draw(stack, color)
         }
 
-        sumWeight = children.filterNot { it is ForceField }.sumByFloat { it.weight }
+        sumWeight = SumOf.sumOf(children.filterNot { it is ForceField }){ it.weight }// .sumOf { it.weight }
         if (needsChildren() && (time < 0f || children.isEmpty() || sumWeight <= 0.0)) return
 
         if (step(time)) {

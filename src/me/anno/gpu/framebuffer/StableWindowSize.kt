@@ -18,6 +18,9 @@ class StableWindowSize {
 
     fun updateSize(width: Int, height: Int, onlyShowTarget: Boolean) {
 
+        var stableWidth = 0
+        var stableHeight = 0
+
         // check if the size stayed the same;
         // because resizing all framebuffers is expensive (causes lag)
         val matchesSize = lastW == width && lastH == height
@@ -38,29 +41,24 @@ class StableWindowSize {
             stableHeight = height
         }
 
-        calculateOffsets(onlyShowTarget)
-
-    }
-
-    fun calculateOffsets(onlyShowTarget: Boolean){
-
-        val w = stableWidth
-        val h = stableHeight
-
+        // must be first for the frame to be centered
         if (onlyShowTarget) {
-            if (w * RemsStudio.targetHeight > RemsStudio.targetWidth * h) {
-                stableWidth = h * RemsStudio.targetWidth / RemsStudio.targetHeight
-                dx = (w - stableWidth) / 2
+            if (stableWidth * RemsStudio.targetHeight > RemsStudio.targetWidth * stableHeight) {
+                stableWidth = stableHeight * RemsStudio.targetWidth / RemsStudio.targetHeight
+                dx = (width - stableWidth) / 2
                 dy = 0
             } else {
-                stableHeight = w * RemsStudio.targetHeight / RemsStudio.targetWidth
-                dy = (h - stableHeight) / 2
+                stableHeight = stableWidth * RemsStudio.targetHeight / RemsStudio.targetWidth
+                dy = (height - stableHeight) / 2
                 dx = 0
             }
         } else {
             dx = 0
             dy = 0
         }
+
+        this.stableWidth = stableWidth
+        this.stableHeight = stableHeight
 
     }
 

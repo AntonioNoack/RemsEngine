@@ -2,10 +2,9 @@ package me.anno.ui.editor.color
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
-import me.anno.gpu.GFX.windowStack
 import me.anno.gpu.GFXx2D.posSize
 import me.anno.input.Input
-import me.anno.objects.animation.AnimatedProperty
+import me.anno.animation.AnimatedProperty
 import me.anno.studio.rems.RemsStudio.editorTime
 import me.anno.ui.base.Panel
 import me.anno.ui.base.SpacePanel
@@ -18,7 +17,6 @@ import me.anno.ui.editor.color.spaces.LinearHSI
 import me.anno.ui.input.EnumInput
 import me.anno.ui.input.components.ColorPalette
 import me.anno.ui.style.Style
-import me.anno.utils.Color.toARGB
 import me.anno.utils.Color.toHexColor
 import me.anno.utils.ColorParsing.parseColorComplex
 import me.anno.utils.Maths.clamp
@@ -26,7 +24,6 @@ import me.anno.utils.structures.tuples.Quad
 import me.anno.utils.types.AnyToFloat.get
 import me.anno.utils.types.Floats.f3
 import org.apache.logging.log4j.LogManager
-import org.hsluv.HSLuvColorSpace
 import org.joml.Vector3f
 import org.joml.Vector3fc
 import org.joml.Vector4f

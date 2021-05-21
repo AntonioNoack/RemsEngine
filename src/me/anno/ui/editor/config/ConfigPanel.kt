@@ -9,7 +9,7 @@ import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelXY
-import me.anno.ui.custom.CustomListX
+import me.anno.ui.custom.CustomList
 import me.anno.ui.input.TextInput
 import me.anno.ui.style.Style
 import me.anno.utils.types.Strings.isBlank2
@@ -23,7 +23,7 @@ class ConfigPanel(val config: StringMap, val isStyle: Boolean, style: Style) : P
     val deep = style.getChild("deep")
     val searchBar = PanelListX(deep)
 
-    val mainBox = CustomListX(style)
+    val mainBox = CustomList(false, style)
     val topicTree = PanelListY(style)
     val contentListUI = PanelListY(style)
     val contentList = ArrayList<Pair<String, Panel>>()

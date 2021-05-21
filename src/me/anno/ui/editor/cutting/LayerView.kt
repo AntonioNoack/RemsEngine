@@ -18,7 +18,7 @@ import me.anno.io.text.TextReader
 import me.anno.language.translation.NameDesc
 import me.anno.objects.Transform
 import me.anno.objects.Video
-import me.anno.objects.animation.Keyframe
+import me.anno.animation.Keyframe
 import me.anno.studio.StudioBase
 import me.anno.studio.StudioBase.Companion.shiftSlowdown
 import me.anno.studio.rems.RemsStudio
@@ -145,8 +145,8 @@ class LayerView(val timelineSlot: Int, style: Style) : TimelinePanel(style) {
                     computer.calculateSolution(x0, y0, x1, y1)
                 } catch (e: Exception) {
                     e.printStackTrace()
-                    computer.isCalculating = false
                 }
+                computer.isCalculating = false
             }
         }
 

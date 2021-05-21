@@ -420,7 +420,7 @@ object GFX : GFXBase1() {
         val thisTime = System.nanoTime()
         rawDeltaTime = (thisTime - lastTime) * 1e-9f
         deltaTime = min(rawDeltaTime, 0.1f)
-        FrameTimes.putValue(rawDeltaTime)
+        FrameTimes.putTime(rawDeltaTime)
 
         val newFPS = 1f / rawDeltaTime
         currentEditorFPS = min(currentEditorFPS + (newFPS - currentEditorFPS) * 0.05f, newFPS)

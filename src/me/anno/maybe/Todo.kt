@@ -1,5 +1,8 @@
 package me.anno.maybe
 
+// todo only override audio of a target file:
+// this is would be great to change the amplitude of an external video permanently
+
 // todo tutorials for various effects:
 // todo tut play video/audio backwards effect
 // todo tut make gradient effect

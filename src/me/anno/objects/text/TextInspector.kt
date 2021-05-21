@@ -2,7 +2,7 @@ package me.anno.objects.text
 
 import me.anno.fonts.FontManager
 import me.anno.language.translation.NameDesc
-import me.anno.objects.animation.AnimatedProperty
+import me.anno.animation.AnimatedProperty
 import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.Selection
 import me.anno.ui.base.buttons.TextButton

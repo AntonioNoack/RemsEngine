@@ -1,4 +1,4 @@
-package me.anno.objects.animation.drivers
+package me.anno.animation.drivers
 
 import me.anno.config.DefaultConfig
 import me.anno.io.base.BaseWriter

@@ -2,6 +2,7 @@
 package org.apache.commons.logging;
 
 public interface Log {
+
     void debug(Object o);
 
     void debug(Object o, Throwable throwable);

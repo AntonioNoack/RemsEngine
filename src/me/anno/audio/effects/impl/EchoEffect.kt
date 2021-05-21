@@ -7,12 +7,11 @@ import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.Audio
 import me.anno.objects.Camera
-import me.anno.objects.animation.AnimatedProperty
+import me.anno.animation.AnimatedProperty
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
 import java.util.*
-import kotlin.math.floor
 import kotlin.math.log2
 import kotlin.math.min
 

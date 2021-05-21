@@ -7,7 +7,7 @@ import me.anno.io.FileReference
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.language.translation.Dict
-import me.anno.objects.animation.AnimatedProperty
+import me.anno.animation.AnimatedProperty
 import me.anno.objects.effects.ToneMappers
 import me.anno.objects.models.CameraModel.drawCamera
 import me.anno.studio.rems.RemsStudio
@@ -19,7 +19,6 @@ import me.anno.ui.style.Style
 import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.utils.Maths.pow
 import org.joml.*
-import java.io.File
 
 class Camera(parent: Transform? = null) : Transform(parent) {
 

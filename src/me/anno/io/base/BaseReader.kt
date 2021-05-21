@@ -12,11 +12,11 @@ import me.anno.io.ISaveable
 import me.anno.io.InvalidFormatException
 import me.anno.io.utils.StringMap
 import me.anno.objects.*
-import me.anno.objects.animation.AnimatedProperty
-import me.anno.objects.animation.Keyframe
-import me.anno.objects.animation.drivers.FunctionDriver
-import me.anno.objects.animation.drivers.HarmonicDriver
-import me.anno.objects.animation.drivers.PerlinNoiseDriver
+import me.anno.animation.AnimatedProperty
+import me.anno.animation.Keyframe
+import me.anno.animation.drivers.FunctionDriver
+import me.anno.animation.drivers.HarmonicDriver
+import me.anno.animation.drivers.PerlinNoiseDriver
 import me.anno.objects.attractors.EffectColoring
 import me.anno.objects.attractors.EffectMorphing
 import me.anno.objects.distributions.*

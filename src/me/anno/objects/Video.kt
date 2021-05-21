@@ -21,7 +21,7 @@ import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
-import me.anno.objects.animation.AnimatedProperty
+import me.anno.animation.AnimatedProperty
 import me.anno.objects.lists.Element
 import me.anno.objects.lists.SplittableElement
 import me.anno.objects.models.SpeakerModel.drawSpeakers

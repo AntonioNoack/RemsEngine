@@ -1,4 +1,4 @@
-package me.anno.objects.animation
+package me.anno.animation
 
 import me.anno.utils.Maths.clamp
 import me.anno.utils.types.Casting.castToDouble

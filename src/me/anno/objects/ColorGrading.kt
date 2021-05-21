@@ -1,11 +1,9 @@
 package me.anno.objects
 
-import me.anno.objects.animation.AnimatedProperty
+import me.anno.animation.AnimatedProperty
 import me.anno.ui.base.Panel
-import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.SettingCategory
-import me.anno.ui.input.ColorInput
 import me.anno.ui.style.Style
 
 object ColorGrading {

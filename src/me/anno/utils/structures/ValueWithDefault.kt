@@ -2,7 +2,7 @@ package me.anno.utils.structures
 
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
-import me.anno.objects.animation.TimeValue.Companion.writeValue
+import me.anno.animation.TimeValue.Companion.writeValue
 
 /**
  * class for values, which have not the typical default value

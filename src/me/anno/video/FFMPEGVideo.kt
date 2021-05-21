@@ -23,17 +23,6 @@ class FFMPEGVideo(
     val frameCallback: (VFrame, Int) -> Unit
 ) : FFMPEGStream(file, isProcessCountLimited = !file.extension.isFFMPEGOnlyExtension()) {
 
-    /*init {
-        val meta = getMeta(file, false)!!
-        if(frame0 >= meta.videoFrameCount) throw IllegalArgumentException()
-    }*/
-
-    // todo somebody is requesting all frames, when a video has nearly finished... why??... too much...
-    init {
-        if(Input.isKeyDown('x')) throw IllegalArgumentException("Too many requests, error!!!")
-        LOGGER.info("${file.name.substring(0, kotlin.math.min(10, file.name.length))} $w x $h $frame0/$bufferLength")
-    }
-
     override fun process(process: Process, arguments: List<String>) {
         thread(name = "${file?.name}:error-stream") {
             val out = process.errorStream.bufferedReader()

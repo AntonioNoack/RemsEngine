@@ -5,7 +5,7 @@ import me.anno.audio.openal.AudioTasks
 import me.anno.audio.effects.SoundPipeline
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
-import me.anno.objects.animation.AnimatedProperty
+import me.anno.animation.AnimatedProperty
 import me.anno.objects.modes.LoopingState
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory

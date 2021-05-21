@@ -8,8 +8,8 @@ import me.anno.io.FileReference
 import me.anno.language.Language
 import me.anno.language.translation.NameDesc
 import me.anno.objects.Transform
-import me.anno.objects.animation.AnimatedProperty
-import me.anno.objects.animation.Type
+import me.anno.animation.AnimatedProperty
+import me.anno.animation.Type
 import me.anno.objects.effects.MaskType
 import me.anno.objects.effects.ToneMappers
 import me.anno.objects.modes.ArraySelectionMode
@@ -28,7 +28,6 @@ import org.joml.Quaternionf
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
-import java.io.File
 import java.lang.IllegalArgumentException
 
 object ComponentUI {

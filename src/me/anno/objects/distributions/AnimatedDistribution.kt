@@ -5,8 +5,8 @@ import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.inspectable.InspectableVector
 import me.anno.objects.Transform
-import me.anno.objects.animation.AnimatedProperty
-import me.anno.objects.animation.Type
+import me.anno.animation.AnimatedProperty
+import me.anno.animation.Type
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.style.Style
 import me.anno.utils.structures.ValueWithDefault

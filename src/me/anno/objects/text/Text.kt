@@ -16,8 +16,8 @@ import me.anno.io.base.BaseWriter
 import me.anno.language.translation.Dict
 import me.anno.objects.GFXTransform
 import me.anno.objects.Transform
-import me.anno.objects.animation.AnimatedProperty
-import me.anno.objects.animation.Type
+import me.anno.animation.AnimatedProperty
+import me.anno.animation.Type
 import me.anno.objects.lists.Element
 import me.anno.objects.lists.SplittableElement
 import me.anno.objects.modes.TextMode

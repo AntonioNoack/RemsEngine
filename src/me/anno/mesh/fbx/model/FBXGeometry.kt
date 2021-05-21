@@ -1,5 +1,8 @@
 package me.anno.mesh.fbx.model
 
+import me.anno.animation.skeletal.SkeletalHierarchy
+import me.anno.animation.skeletal.SkeletalWeights
+import me.anno.animation.skeletal.Skeleton
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.buffer.StaticBuffer
@@ -7,6 +10,8 @@ import me.anno.mesh.fbx.model.FBXShader.maxWeightsDefault
 import me.anno.mesh.fbx.structure.FBXNode
 import me.anno.mesh.fbx.structure.FBXReader
 import org.apache.logging.log4j.LogManager
+import org.joml.Vector3f
+import java.util.*
 import kotlin.math.max
 import kotlin.math.min
 
@@ -15,19 +20,50 @@ class FBXGeometry(node: FBXNode) : FBXObject(node) {
     val xyz = node.getDoubleArray("Vertices")!!
     val vertexCount = xyz.size / 3
     val faces = node.getIntArray("PolygonVertexIndex")!! // polygons, each: 0, 1, 2, 3 ... , ~8
-    val weights = FloatArray(vertexCount * maxWeightsDefault * 2)
+
+    val weightValues = FloatArray(vertexCount * maxWeightsDefault)
+    val weightIndices = IntArray(vertexCount * maxWeightsDefault)
 
     fun addWeight(vertexIndex: Int, boneIndex: Int, weight: Float) {
-        var baseIndex = vertexIndex * maxWeightsDefault * 2
-        for (i in 0 until maxWeightsDefault) {
-            val oldWeight = weights[baseIndex]
+        val i0 = vertexIndex * maxWeightsDefault
+        for (i in i0 until i0 + maxWeightsDefault) {
+            val oldWeight = weightValues[i]
             if (weight > oldWeight) {
-                weights[baseIndex++] = weight
-                weights[baseIndex] = boneIndex.toFloat()
+                weightValues[i] = weight
+                weightIndices[i] = boneIndex
                 break
             }
-            baseIndex += 2
         }
+    }
+
+    fun generateSkeleton(): Skeleton {
+
+        val weights = SkeletalWeights(maxWeightsDefault, weightIndices, weightValues) // so simple <3
+        val boneMap = bones.withIndex().associate { (index, bone) -> bone to index }
+        val names = bones.map { it.name }.toTypedArray()
+        val parentIndices = bones.map { boneMap[it.parent] ?: -1 }.toIntArray()
+        val hierarchy: SkeletalHierarchy = object : SkeletalHierarchy(names, parentIndices) {
+
+            override fun removeBones(kept: SortedSet<Int>): SkeletalHierarchy {
+                throw NotImplementedError()
+            }
+
+            override fun calculateBonePositions(pts: FloatArray, bonePositions: FloatArray): FloatArray {
+                for (i in bones.indices) {
+                    val bone = bones[i]
+                    // todo compute the position of every bone in its rest transform
+                    // todo or is the position already given by bone.transform?/bone.transformLink?
+                    val transform = bone.transform!!
+                    val pos = transform.transformPosition(Vector3f())
+                    bonePositions[i * 3 + 0] = pos.x
+                    bonePositions[i * 3 + 1] = pos.y
+                    bonePositions[i * 3 + 2] = pos.z
+                }
+                return bonePositions
+            }
+
+        }
+        return Skeleton(hierarchy, weights)
     }
 
     fun generateMesh(
@@ -56,7 +92,7 @@ class FBXGeometry(node: FBXNode) : FBXObject(node) {
 
         if (weightCount > 0) {
             attributes += Attribute("weightValues", weightCount)
-            attributes += Attribute("weightIndices", weightCount)
+            attributes += Attribute("weightIndices", AttributeType.SINT8, weightCount)
         }
 
         val relevantUVMaps = Array(uvMapCount) { uvs[it] }
@@ -90,35 +126,32 @@ class FBXGeometry(node: FBXNode) : FBXObject(node) {
             }
             if (materialIndexName != null) {
                 // material index
-                materialIDs?.put(vertIndex, totalVertIndex, faceIndex, buffer, materialInts) ?: {
+                materialIDs?.put(vertIndex, totalVertIndex, faceIndex, buffer, materialInts) ?: run {
                     if (materialInts) {
                         buffer.putInt(0)
                     } else {
                         buffer.put(0f)
                     }
-                }()
+                }
             }
             if (weightCount > 0) {
                 // weights (yes, they are a bit more complicated, as they are not given directly)
-                var weightBaseIndex = vertIndex * maxWeightsDefault * 2
+                val wIndex0 = vertIndex * maxWeightsDefault
+                val wIndex1 = wIndex0 + weightCount
                 var weightSum = 0f
-                for (i in 0 until weightCount) {// count weights for normalization
-                    weightSum += weights[weightBaseIndex]
-                    weightBaseIndex += 2
+                for (i in wIndex0 until wIndex1) {// count weights for normalization
+                    weightSum += weightValues[i]
                 }
                 val minWeight = 0.01f
                 val weightNormFactor = 1f / max(minWeight, weightSum)
-                weightBaseIndex -= weightCount * 2
-                buffer.put(max(minWeight, weights[weightBaseIndex]) * weightNormFactor)
-                weightBaseIndex += 2
-                for (i in 1 until weightCount) {// weight values
-                    buffer.put(weights[weightBaseIndex] * weightNormFactor)
-                    weightBaseIndex += 2
+                weightSum = 0f
+                for (i in wIndex0 until wIndex1) {// weight values
+                    val value = weightValues[i] * weightNormFactor
+                    buffer.put(if (i == wIndex1 - 1) 1f - weightSum else value)
+                    weightSum += value
                 }
-                weightBaseIndex -= weightCount * 2 - 1
-                for (i in 0 until weightCount) {// weight indices
-                    buffer.put(weights[weightBaseIndex])
-                    weightBaseIndex += 2
+                for (i in wIndex0 until wIndex1) {// weight indices
+                    buffer.putUByte(weightIndices[i])
                 }
             }
             if (maxUVs > 0) {
@@ -166,7 +199,8 @@ class FBXGeometry(node: FBXNode) : FBXObject(node) {
 
     }
 
-    val faceCount = {// OMG lol
+    val faceCount = run {
+        // OMG lol
         var j = -1
         var sum = 0
         for (i in faces) {
@@ -179,7 +213,7 @@ class FBXGeometry(node: FBXNode) : FBXObject(node) {
             }
         }
         sum
-    }()
+    }
 
     val normals = LayerElementDoubles(node.getFirst("LayerElementNormal")!!, 3)
 
@@ -201,7 +235,7 @@ class FBXGeometry(node: FBXNode) : FBXObject(node) {
     fun findBoneWeights() {
 
         val deformers = this.children.filterIsInstance<FBXDeformer>()
-        if(FBXReader.printDebugMessages) LOGGER.info("Deformers: ${deformers.size}")
+        if (FBXReader.printDebugMessages) LOGGER.info("Deformers: ${deformers.size}")
         if (deformers.size != 1) {
             if (deformers.size > 1) LOGGER.warn("Unexpected multiple deformers for root under geometry")
             return
@@ -209,7 +243,7 @@ class FBXGeometry(node: FBXNode) : FBXObject(node) {
 
         val rootDeformer = deformers[0]
         val bones: List<FBXDeformer> = rootDeformer.children.filterIsInstance<FBXDeformer>()
-        if(FBXReader.printDebugMessages) LOGGER.info("Bones: ${bones.size}")
+        if (FBXReader.printDebugMessages) LOGGER.info("Bones: ${bones.size}")
         if (bones.isEmpty()) return
 
         val bonesByName = bones.associateBy { it.name.split(' ').last() }
@@ -242,7 +276,7 @@ class FBXGeometry(node: FBXNode) : FBXObject(node) {
         val indices = bone.indices ?: return
         bones += bone
         val boneIndex = nextBoneIndex++
-        if(FBXReader.printDebugMessages) LOGGER.info("Bone $boneIndex: ${bone.name}, ${bone.depth}")
+        if (FBXReader.printDebugMessages) LOGGER.info("Bone $boneIndex: ${bone.name}, ${bone.depth}")
         bone.index = boneIndex
         indices.forEachIndexed { index, vertIndex ->
             addWeight(vertIndex, boneIndex, weights[index].toFloat())

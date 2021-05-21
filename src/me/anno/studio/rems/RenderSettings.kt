@@ -4,7 +4,7 @@ import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.black
 import me.anno.language.translation.NameDesc
 import me.anno.objects.Transform
-import me.anno.objects.animation.Type
+import me.anno.animation.Type
 import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.studio.rems.RemsStudio.editorTime
 import me.anno.studio.rems.RemsStudio.project
@@ -30,7 +30,6 @@ import me.anno.utils.Maths.mixARGB
 import me.anno.utils.Threads.threadWithName
 import me.anno.video.FFMPEGEncodingBalance
 import me.anno.video.FFMPEGEncodingType
-import kotlin.concurrent.thread
 import kotlin.math.abs
 import kotlin.math.max
 

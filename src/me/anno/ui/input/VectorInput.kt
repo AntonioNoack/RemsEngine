@@ -7,8 +7,8 @@ import me.anno.input.Input.isShiftDown
 import me.anno.input.MouseButton
 import me.anno.io.text.TextReader
 import me.anno.objects.Camera
-import me.anno.objects.animation.AnimatedProperty
-import me.anno.objects.animation.Type
+import me.anno.animation.AnimatedProperty
+import me.anno.animation.Type
 import me.anno.studio.StudioBase.Companion.shiftSlowdown
 import me.anno.studio.StudioBase.Companion.warn
 import me.anno.studio.rems.RemsStudio

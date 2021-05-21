@@ -1,4 +1,4 @@
-package me.anno.objects.animation
+package me.anno.animation
 
 import me.anno.io.base.BaseWriter
 import me.anno.utils.types.AnyToFloat

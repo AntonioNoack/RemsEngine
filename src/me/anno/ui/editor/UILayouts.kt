@@ -56,8 +56,7 @@ import me.anno.ui.base.scrolling.ScrollPanelX
 import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.custom.CustomContainer
-import me.anno.ui.custom.CustomListX
-import me.anno.ui.custom.CustomListY
+import me.anno.ui.custom.CustomList
 import me.anno.ui.debug.RuntimeInfoPanel
 import me.anno.ui.editor.config.ConfigPanel
 import me.anno.ui.editor.cutting.CuttingView
@@ -572,15 +571,15 @@ object UILayouts {
 
     fun createDefaultMainUI(style: Style): Panel {
 
-        val customUI = CustomListY(style)
+        val customUI = CustomList(true, style)
         customUI.setWeight(10f)
 
-        val animationWindow = CustomListX(style)
+        val animationWindow = CustomList(false, style)
         customUI.add(animationWindow, 2f)
 
         val library = RemsStudioUITypeLibrary()
 
-        val treeFiles = CustomListY(style)
+        val treeFiles = CustomList(true, style)
         treeFiles += CustomContainer(TreeView(style), library, style)
         treeFiles += CustomContainer(FileExplorer(style), library, style)
         animationWindow.add(CustomContainer(treeFiles, library, style), 0.5f)

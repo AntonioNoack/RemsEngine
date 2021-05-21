@@ -3,8 +3,8 @@ package me.anno.ui.input.components
 import me.anno.input.Input.isControlDown
 import me.anno.input.Input.mouseKeysDown
 import me.anno.input.MouseButton
-import me.anno.objects.animation.AnimatedProperty
-import me.anno.objects.animation.drivers.AnimationDriver
+import me.anno.animation.AnimatedProperty
+import me.anno.animation.drivers.AnimationDriver
 import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.RemsStudio.editorTime
 import me.anno.studio.rems.Selection.selectProperty

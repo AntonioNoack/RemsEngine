@@ -2,17 +2,15 @@ package me.anno.objects
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
-import me.anno.io.FileReference
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.language.translation.Dict
-import me.anno.objects.animation.AnimatedProperty
+import me.anno.animation.AnimatedProperty
 import me.anno.objects.modes.ArraySelectionMode
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
 import org.joml.*
-import java.util.*
 import java.util.Random
 
 class GFXArray(parent: Transform? = null) : GFXTransform(parent) {

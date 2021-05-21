@@ -30,6 +30,8 @@ enum class GFXSettings(
             HIGH.data[key] = high
         }
         init {
+            // small frames per container are theoretically good, but practially,
+            // with a lof of videos (I tested 4x 1080p @ 30fps), we need to prefetch more
             put("ui.editor.useMSAA", false, true, true)
             put("video.frames.perContainer", 32, 64, 128)
         }

@@ -1,10 +1,9 @@
 package me.anno.ui.editor.graphs
 
-import me.anno.objects.animation.Interpolation
+import me.anno.animation.Interpolation
 import me.anno.studio.rems.Selection.selectedProperty
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.Visibility
-import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelX

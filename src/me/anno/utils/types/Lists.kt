@@ -30,7 +30,7 @@ object Lists {
         }
     }
 
-    fun <V> Iterable<V>.sumByFloat(func: (V) -> Float): Float {
+    /*fun <V> Iterable<V>.sumByFloat(func: (V) -> Float): Float {
         var sum = 0f
         for (entry in this) {
             sum += func(entry)
@@ -54,7 +54,7 @@ object Lists {
             sum += func(entry)
         }
         return sum
-    }
+    }*/
 
     fun <V> MutableList<V>.pop(): V? {
         if (isEmpty()) return null
