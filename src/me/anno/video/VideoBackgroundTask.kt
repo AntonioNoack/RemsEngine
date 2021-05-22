@@ -14,7 +14,6 @@ import me.anno.objects.Transform
 import me.anno.studio.rems.Scene
 import me.anno.utils.Threads.threadWithName
 import me.anno.video.FrameTask.Companion.missingResource
-import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL11.*
 import java.util.concurrent.atomic.AtomicLong
 
@@ -26,71 +25,69 @@ class VideoBackgroundTask(
     val shutterPercentage: Float
 ) {
 
-    val partialFrame = Framebuffer(
+    private val partialFrame = Framebuffer(
         "VideoBackgroundTask-partial", video.w, video.h, 1, 1,
         false, Framebuffer.DepthBufferType.TEXTURE
     )
 
-    val averageFrame = Framebuffer(
+    private val averageFrame = Framebuffer(
         "VideoBackgroundTask-sum", video.w, video.h, 1, 1,
         true, Framebuffer.DepthBufferType.TEXTURE
     )
 
-    val renderingIndex = AtomicLong(0)
-    val savingIndex = AtomicLong(0)
-
-    val totalFrameCount = video.totalFrameCount
+    private val renderingIndex = AtomicLong(0)
+    private val savingIndex = AtomicLong(0)
+    private val totalFrameCount = video.totalFrameCount
 
     var isDone = false
 
     fun start() {
-
-        if (renderingIndex.get() < totalFrameCount) addNextTask()
-        else video.close()
-
+        if (renderingIndex.get() < totalFrameCount) {
+            addNextTask()
+        } else video.close()
     }
 
     var isDoneRenderingAndSaving = false
 
-    fun addNextTask() {
+    private fun addNextTask() {
 
-        if (!isDoneRenderingAndSaving) {// not done yet
-
-            /**
-             * runs on GPU thread
-             * */
-            val ri = renderingIndex.get()
-            if (ri < totalFrameCount && ri < savingIndex.get() + 2) {
-                GFX.addGPUTask(1000, 1000) {
-
-                    val frameIndex = renderingIndex.get()
-                    if (renderFrame(frameIndex / video.fps)) {
-                        renderingIndex.incrementAndGet()
-                        video.writeFrame(averageFrame, frameIndex) {
-                            // it was saved -> everything works well :)
-                            val si = savingIndex.incrementAndGet()
-                            if (si == totalFrameCount) {
-                                isDoneRenderingAndSaving = true
-                            } else if (si > totalFrameCount) throw RuntimeException("too many saves: $si, $totalFrameCount")
-                        }
-                        addNextTask()
-                    } else {
-                        // waiting
-                        threadWithName("VBT/1") { addNextTask() }
-                    }
-
-                }
-            } else {
-                // waiting for saving to ffmpeg
-                threadWithName("VBT/2") { addNextTask() }
-            }
-
-        } else {
+        if (isDoneRenderingAndSaving) {
             video.close()
             destroy()
             isDone = true
+            return
         }
 
+
+        /**
+         * runs on GPU thread
+         * */
+        val ri = renderingIndex.get()
+        if (ri < totalFrameCount && ri < savingIndex.get() + 2) {
+            GFX.addGPUTask(video.w, video.h, ::tryRenderingFrame)
+        } else {
+            // waiting for saving to ffmpeg
+            threadWithName("VBT/2") { addNextTask() }
+        }
+
+    }
+
+    private fun tryRenderingFrame() {
+        val frameIndex = renderingIndex.get()
+        if (renderFrame(frameIndex / video.fps)) {
+            renderingIndex.incrementAndGet()
+            video.writeFrame(averageFrame, frameIndex) {
+                // it was saved -> everything works well :)
+                val si = savingIndex.incrementAndGet()
+                if (si == totalFrameCount) {
+                    isDoneRenderingAndSaving = true
+                } else if (si > totalFrameCount) throw RuntimeException("too many saves: $si, $totalFrameCount")
+            }
+            addNextTask()
+        } else {
+            // waiting
+            threadWithName("VBT/1") { addNextTask() }
+        }
     }
 
     private fun renderFrame(time: Double): Boolean {

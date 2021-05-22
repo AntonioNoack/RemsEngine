@@ -5,7 +5,6 @@ import me.anno.mesh.fbx.structure.FBXNode
 class FBXPose(data: FBXNode): FBXObject(data) {
 
     // number of pose nodes = NbPoseNodes
-
     val poseNodes = data.mapAll("PoseNode") { PoseNode(it) }
 
     class PoseNode(data: FBXNode){

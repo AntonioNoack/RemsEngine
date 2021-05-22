@@ -24,6 +24,7 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
     var sourceLength = 0.0
 
     companion object {
+
         // could be limited by memory as well...
         // to help to keep the memory and cpu-usage below 100%
         // 5GB = 50 processes, at 6 cores / 12 threads = 4 ratio
@@ -78,7 +79,7 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
             }
             args += listOf(
                 "-vframes", "$frameCount",
-                // "-movflags", "faststart", // has no effect :(
+                // "-movflags", "faststart", // didn't have noticeable effect, maybe it does now (??...)
                 "-f", "rawvideo", "-" // format
             )
             val video = FFMPEGVideo(
@@ -109,16 +110,12 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
                 )
             ) as FFMPEGAudio
 
-        fun logOutput(prefix: String, stream: InputStream, warn: Boolean) {
+        fun logOutput(prefix: String?, stream: InputStream, warn: Boolean) {
             val reader = stream.bufferedReader()
             thread {
                 while (true) {
                     val line = reader.readLine() ?: break
-                    val lineWithPrefix = if (prefix.isEmpty()) {
-                        line
-                    } else {
-                        "[$prefix] $line"
-                    }
+                    val lineWithPrefix = if (prefix == null) line else "[$prefix] $line"
                     if (warn) {
                         LOGGER.warn(lineWithPrefix)
                     } else {

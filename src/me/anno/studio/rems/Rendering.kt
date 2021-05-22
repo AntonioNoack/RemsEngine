@@ -56,6 +56,8 @@ object Rendering {
             }
         }
 
+        val isGif = targetOutputFile.extension.equals("gif", true)
+
         isRendering = true
         LOGGER.info("Rendering video at $width x $height")
 
@@ -66,23 +68,32 @@ object Rendering {
         val sampleRate = max(1, RemsStudio.targetSampleRate)
 
         val scene = root.clone()
-        val audioSources = scene.listOfAll
+
+        // todo make gifs with audio
+        val audioSources = if(isGif) emptyList() else scene.listOfAll
             .filterIsInstance<Audio>()
             .filter { it.forcedMeta?.hasAudio == true }.toList()
+
         val balance = project?.ffmpegBalance ?: FFMPEGEncodingBalance.M0
         val type = project?.ffmpegFlags ?: FFMPEGEncodingType.DEFAULT
+
+        val videoCreator = VideoCreator(
+            width, height,
+            RemsStudio.targetFPS, totalFrameCount, balance, type,
+            if (audioSources.isEmpty()) targetOutputFile else tmpFile
+        )
+
         val creator = VideoAudioCreator(
-            VideoCreator(
-                width, height,
-                RemsStudio.targetFPS, totalFrameCount, balance, type,
-                if (audioSources.isEmpty()) targetOutputFile else tmpFile
-            ), scene, duration, sampleRate, audioSources,
+            videoCreator, scene, duration, sampleRate, audioSources,
             motionBlurSteps, shutterPercentage, targetOutputFile
         )
+
         creator.onFinished = {
             isRendering = false
             callback()
         }
+
+        videoCreator.init()
         creator.start()
 
     }

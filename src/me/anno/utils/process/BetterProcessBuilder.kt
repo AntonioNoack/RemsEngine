@@ -1,6 +1,7 @@
 package me.anno.utils.process
 
 import me.anno.utils.OS
+import org.apache.logging.log4j.LogManager
 
 class BetterProcessBuilder(
     program: String?,
@@ -54,9 +55,17 @@ class BetterProcessBuilder(
     }
 
     fun start(): Process {
+        LOGGER.info(args.joinToString(" ") {
+            if (' ' in it) "\"${it.replace("\"", "\\\"")}\""
+            else it
+        })
         val builder = ProcessBuilder(args)
         builder.directory(OS.home.file)
         return builder.start()
+    }
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(BetterProcessBuilder::class)
     }
 
 }

@@ -10,8 +10,9 @@ import kotlin.math.abs
 import kotlin.math.min
 
 class MorphTarget(
-        private val indices: IntArray,
-        private val deltas: FloatArray) {
+    private val indices: IntArray,
+    private val deltas: FloatArray
+) {
 
     init {
         // if (indices.isEmpty()) throw IllegalArgumentException("Target must not be empty!")
@@ -25,7 +26,8 @@ class MorphTarget(
     val minIndex = indices.firstOrNull() ?: 0
     val maxIndex = indices.lastOrNull() ?: 0
 
-    override fun toString() = "MorphTarget(size: ${indices.size}, min: ${indices.minOrNull()}, max: ${indices.maxOrNull()})"
+    override fun toString() =
+        "MorphTarget(size: ${indices.size}, min: ${indices.minOrNull()}, max: ${indices.maxOrNull()})"
 
     fun withWeight(weight: Float) = WeightedTarget(this, weight)
 
@@ -35,9 +37,9 @@ class MorphTarget(
             // points[vertexIndex].position.add(amount * deltas[i0], amount * deltas[i0 + 1], amount * deltas[i0 + 2])
             val i0 = index * 3
             val i1 = vertexIndex * 6
-            points[i1+0] += amount * deltas[i0+0]
-            points[i1+1] += amount * deltas[i0+1]
-            points[i1+2] += amount * deltas[i0+2]
+            points[i1 + 0] += amount * deltas[i0 + 0]
+            points[i1 + 1] += amount * deltas[i0 + 1]
+            points[i1 + 2] += amount * deltas[i0 + 2]
         }
     }
 
@@ -54,27 +56,28 @@ class MorphTarget(
 
     fun createSingularGPUMesh(mesh: MorphingBase, pts: FloatArray, buffer0: StaticBuffer? = null): StaticBuffer {
         val section = mesh.getGroup("body")
-        val buffer = buffer0 ?: StaticBuffer(singularAttr, (section.last-section.first+1) * 3)
+        val buffer = buffer0 ?: StaticBuffer(singularAttr, (section.last - section.first + 1) * 3)
         val points = mesh.points
         val addedCoordinates = FloatArray(points.size * 3)
         for ((i0, i) in indices.withIndex()) {
             val ai = i0 * 3
             val bi = i * 3
             addedCoordinates[bi] = deltas[ai]
-            addedCoordinates[bi+1] = deltas[ai+1]
-            addedCoordinates[bi+2] = deltas[ai+2]
+            addedCoordinates[bi + 1] = deltas[ai + 1]
+            addedCoordinates[bi + 2] = deltas[ai + 2]
         }
-        fun add(i: Int){
+        fun add(i: Int) {
             val pt = points[i]
             val i0 = i * 6
             // buffer.put(pt.position)
             buffer.put(pts[i0 + 0], pts[i0 + 1], pts[i0 + 2])
-            val ai = i*3
-            buffer.put(addedCoordinates[ai], addedCoordinates[ai+1], addedCoordinates[ai+2])
+            val ai = i * 3
+            buffer.put(addedCoordinates[ai], addedCoordinates[ai + 1], addedCoordinates[ai + 2])
             // buffer.put(pt.normal)
             buffer.put(pts[i0 + 3], pts[i0 + 4], pts[i0 + 5])
             buffer.put(pt.u, pt.v)
         }
+
         val faces = mesh.faces
         for (fi in section) {
             val face = faces[fi]
@@ -92,10 +95,10 @@ class MorphTarget(
         val nullTarget = MorphTarget(IntArray(0), FloatArray(0))
 
         val singularAttr = listOf(
-                Attribute("target0", 3),
-                Attribute("target1", 3),
-                Attribute("normals", 3),
-                Attribute("uvs", 2)
+            Attribute("target0", 3),
+            Attribute("target1", 3),
+            Attribute("normals", 3),
+            Attribute("uvs", 2)
         )
 
         /*val singularTest = lazy {
@@ -109,8 +112,8 @@ class MorphTarget(
 
         fun combineTargets(targets0: List<WeightedTarget>): MorphTarget {
             val targets = targets0
-                    .filter { !it.isUseless }
-                    .sortedBy { it.weight } // for better addition? not really costly
+                .filter { !it.isUseless }
+                .sortedBy { it.weight } // for better addition? not really costly
             if (targets.isEmpty()) return nullTarget
             val minIndex = targets.minOf { it.target.minIndex }
             val maxIndex = targets.maxOf { it.target.maxIndex } + 1
@@ -148,7 +151,7 @@ class MorphTarget(
                             dx += weight * target.deltas[i0]
                             dy += weight * target.deltas[i0 + 1]
                             dz += weight * target.deltas[i0 + 2]
-                            wTarget.nextIndex = min(target.indices.lastIndex, nextIndex+1)
+                            wTarget.nextIndex = min(target.indices.lastIndex, nextIndex + 1)
                         }// else not in this target
                     }
                     compactIndices[compactIndex] = index

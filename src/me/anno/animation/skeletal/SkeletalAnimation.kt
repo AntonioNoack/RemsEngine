@@ -8,6 +8,7 @@ import org.joml.Matrix4x3f
 import org.joml.Vector3f
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL21
+import java.nio.FloatBuffer
 
 // finally working with http://rodolphe-vaillant.fr/?e=77
 // not 100% correctly though...
@@ -39,6 +40,7 @@ open class SkeletalAnimation(val skeleton: Skeleton, val mesh: MorphingMesh) {
                     positions[if (index == 0) boneCount else parentIndices[index]], positions[index],
                     Vector3f(), Vector3f(-3f), Vector3f(3f))
         }
+
         for ((index, bone) in bones.withIndex()) {
             boneByName[bone.name] = bone
             if (index > 0) {
@@ -152,8 +154,9 @@ open class SkeletalAnimation(val skeleton: Skeleton, val mesh: MorphingMesh) {
     }
 
     companion object {
-        val maxBoneCount = 163
-        val skeletalBuffer = BufferUtils.createFloatBuffer(12 * maxBoneCount)
+        const val maxBoneCount = 256
+        val skeletalBuffer: FloatBuffer =
+            BufferUtils.createFloatBuffer(12 * maxBoneCount)
     }
 
 }

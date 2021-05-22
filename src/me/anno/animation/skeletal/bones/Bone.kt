@@ -9,13 +9,14 @@ import org.joml.Vector3f
  * Each Animated Skeleton has this abstraction layer to simplify calculations
  * */
 class Bone(
-        val index: Int,
-        val name: String,
-        val head: Vector3f,
-        val tail: Vector3f,
-        val rotation: Vector3f,
-        val minRotation: Vector3f,
-        val maxRotation: Vector3f) {
+    val index: Int,
+    val name: String,
+    val head: Vector3f,
+    val tail: Vector3f,
+    val rotation: Vector3f,
+    val minRotation: Vector3f,
+    val maxRotation: Vector3f
+) {
 
     /**
      * deltas for bones
@@ -49,21 +50,21 @@ class Bone(
     val canMoveY = maxRotation.y > minRotation.y
     val canMoveZ = maxRotation.z > minRotation.z
 
-    fun limit(min: Float, max: Float){
+    fun limit(min: Float, max: Float) {
         minRotation.set(min)
         maxRotation.set(max)
     }
 
-    fun lock(mask: Int){
-        if(mask and 1 != 0){
+    fun lock(mask: Int) {
+        if (mask and 1 != 0) {
             minRotation.x = 0f
             maxRotation.x = 0f
         }
-        if(mask and 2 != 0){
+        if (mask and 2 != 0) {
             minRotation.y = 0f
             maxRotation.y = 0f
         }
-        if(mask and 4 != 0){
+        if (mask and 4 != 0) {
             minRotation.z = 0f
             maxRotation.z = 0f
         }

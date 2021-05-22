@@ -46,6 +46,22 @@ class Mesh(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
     var lastFile: FileReference? = null
     var extension = ""
 
+    fun loadModel(file: FileReference, key: String, load: (MeshData) -> Unit, getData: (MeshData) -> Any?): MeshData? {
+        val meshData1 = getMesh(file, key, 1000, true) {
+            val meshData = MeshData()
+            try {
+                load(meshData)
+            } catch (e: Exception) {
+                meshData.lastWarning = e.message ?: e.javaClass.name
+            }
+            meshData
+        } as? MeshData
+        if (isFinalRendering && meshData1 == null) throw MissingFrameException(file)
+        val renderData = if (meshData1 != null) getData(meshData1) else null
+        lastWarning = if (renderData == null) meshData1?.lastWarning ?: "Loading" else null
+        return if (renderData == null) null else meshData1
+    }
+
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
 
         val file = file
@@ -56,7 +72,8 @@ class Mesh(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
                 lastFile = file
             }
 
-            when (extension) {// todo decide on file magic instead
+            // todo decide on file magic instead
+            when (extension) {
                 "dae" -> {
 
                     GFX.check()
@@ -70,7 +87,12 @@ class Mesh(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
                         val meshData = MeshData()
                         GFX.addGPUTask(10) {
                             GFX.check()
-                            meshData.daeScene = SceneLoader.loadScene(URI(file.file), URI(file.file))
+                            try {
+                                meshData.daeScene = SceneLoader.loadScene(URI(file.file), URI(file.file))
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                                meshData.lastWarning = e.message
+                            }
                             GFX.check()
                         }
                         Thread.sleep(100) // wait for the texture to load
@@ -80,36 +102,37 @@ class Mesh(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
                     if (isFinalRendering && data == null) throw MissingFrameException(file)
 
                     // stack.scale(0.01f, -0.01f, 0.01f)
-                    if (data?.daeScene != null) data.drawDae(stack, time, color) ?: super.onDraw(stack, time, color)
+                    if (data?.daeScene != null) data.drawDae(stack, time, color)
+                    else {
+                        lastWarning = data?.lastWarning ?: "Loading"
+                        super.onDraw(stack, time, color)
+                    }
 
                 }
                 "fbx" -> {
 
                     // load the 3D model
-                    val data = getMesh(file, "Mesh-FBX", 1000, true) {
+                    val data = loadModel(file, "Mesh-FBX", { meshData ->
                         val reader = FBXReader(file.inputStream().buffered())
                         val geometries = reader.fbxObjects.filterIsInstance<FBXGeometry>()
-                        val buffers = geometries.map {
-                            it.generateMesh("coords", "normals", "materialIndex", true, 1, maxWeightsDefault)
-                        }
-                        val jointBuffer = StaticBuffer.join(buffers)
                         // join all geometries
                         // todo assign the materials, and correct the material indices... (and then don't join them)
                         // todo or import them in a hierarchy and set the mesh selectors (by index or similar)
-                        val meshData = MeshData()
-                        meshData.objData = if(jointBuffer == null) null else mapOf(Material() to jointBuffer)
-                        meshData.fbxGeometry = geometries.getOrNull(0)
-                        meshData
-                    } as? MeshData
+                        val m0 = Material()
+                        meshData.fbxData = geometries.map {
+                            val buffer =
+                                it.generateMesh("coords", "normals", "materialIndex", true, 1, maxWeightsDefault)
+                            FBXData(it, mapOf(m0 to buffer))
+                        }
+                    }) { it.fbxData }
 
-                    if (isFinalRendering && data == null) throw MissingFrameException(file)
-
-                    data?.drawFBX(stack, time, color) ?: super.onDraw(stack, time, color)
+                    if (data?.fbxData != null) data.drawFBX(stack, time, color)
+                    else super.onDraw(stack, time, color)
 
                 }
                 "obj" -> {
                     // load the 3D model
-                    val data = getMesh(file, "Mesh-OBJ", 1000, true) {
+                    val data = loadModel(file, "Mesh-OBJ", { meshData ->
                         val attributes = listOf(
                             Attribute("coords", 3),
                             Attribute("uvs", 2),
@@ -119,22 +142,26 @@ class Mesh(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
                         // assume it's obj first...
                         val obj = OBJReader(file.file)
                         // generate mesh data from this obj somehow...
-                        val meshData = MeshData()
                         meshData.objData = obj.pointsByMaterial.mapValues {
                             val buffer = StaticBuffer(attributes, it.value.size)
                             it.value.forEach { v -> buffer.put(v) }
                             buffer
                         }
-                        meshData
-                    } as? MeshData
+                    }) { it.objData }
 
-                    if (isFinalRendering && data == null) throw MissingFrameException(file)
+                    if (data?.objData != null) data.drawObj(stack, time, color)
+                    else super.onDraw(stack, time, color)
 
-                    data?.drawObj(stack, time, color) ?: super.onDraw(stack, time, color)
+                }
+                else -> {
+                    lastWarning = "Extension '$extension' is not supported"
                 }
             }
 
-        } else super.onDraw(stack, time, color)
+        } else {
+            lastWarning = "Missing file"
+            super.onDraw(stack, time, color)
+        }
 
     }
 

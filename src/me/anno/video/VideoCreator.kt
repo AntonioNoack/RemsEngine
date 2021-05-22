@@ -20,8 +20,8 @@ class VideoCreator(
     val w: Int, val h: Int,
     val fps: Double,
     val totalFrameCount: Long,
-    balance: FFMPEGEncodingBalance,
-    type: FFMPEGEncodingType,
+    val balance: FFMPEGEncodingBalance,
+    val type: FFMPEGEncodingType,
     val output: FileReference
 ) {
 
@@ -31,13 +31,15 @@ class VideoCreator(
 
     val startTime = GFX.gameTime
 
-    private val videoOut: OutputStream
-    private var process: Process
+    private lateinit var videoOut: OutputStream
+    private lateinit var process: Process
 
-    init {
+    fun init() {
 
         if (output.exists()) output.delete()
         else output.file.parentFile.mkdirs()
+
+        val isGIF = output.extension.equals("gif", true)
 
         /**
          * first create the video,
@@ -49,22 +51,46 @@ class VideoCreator(
         val rawFormat = "rgb24"
         val encoding = "libx264"
         val constantRateFactor = project?.targetVideoQuality?.toString() ?: "23"
-        val dstFormat = "yuv420p"
+
+        // Incompatible pixel format 'yuv420p' for codec 'gif', auto-selecting format 'bgr8'
+        val dstFormat = if (isGIF) "bgr8" else "yuv420p"
         val fpsString = fps.toString()
-        val videoEncodingArguments = listOf(
+
+        val videoEncodingArguments = arrayListOf(
             "-f", "rawvideo",
             "-s", size,
             "-r", fpsString,
             "-pix_fmt", rawFormat,
             "-i", "pipe:0", // output buffer
-            "-c:v", encoding, // encoding
+        )
+
+        if(!isGIF){
+            videoEncodingArguments += listOf(
+                "-c:v", encoding, // encoding
+            )
+        }
+
+        videoEncodingArguments += listOf(
             "-an", // no audio
             "-r", fpsString,
-            "-crf", constantRateFactor,
-            "-pix_fmt", dstFormat,
-            "-preset", balance.internalName
             // "-qp", "0", // constant quality
         )
+
+        if(!isGIF){
+            videoEncodingArguments += listOf(
+                "-crf", constantRateFactor
+            )
+        }
+
+        videoEncodingArguments += listOf(
+            "-pix_fmt", dstFormat
+        )
+
+        if(!isGIF){
+            videoEncodingArguments += listOf(
+                "-preset", balance.internalName
+            )
+        }
 
         val builder = BetterProcessBuilder(FFMPEG.ffmpegPathString, videoEncodingArguments.size + 4, true)
         if (videoEncodingArguments.isNotEmpty()) builder += "-hide_banner"
@@ -77,13 +103,12 @@ class VideoCreator(
         builder += output.absolutePath
 
         process = builder.start()
-        thread { logOutput("", process.inputStream, true) }
+        logOutput(null, process.inputStream, true)
         thread { processOutput(LOGGER, "Video", startTime, fps, totalFrameCount, process.errorStream) }
 
         videoOut = process.outputStream.buffered()
 
         LOGGER.info("Total frame count: $totalFrameCount")
-
     }
 
     private val pixelByteCount = w * h * 3

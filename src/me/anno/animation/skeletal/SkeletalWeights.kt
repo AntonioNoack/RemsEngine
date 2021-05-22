@@ -14,21 +14,7 @@ class SkeletalWeights(
 ) {
 
     init {
-
         if (indices.size != weights.size) throw IllegalArgumentException()
-
-        // create a histogram of values...
-        /*val histSize = 20
-        val histogram = IntArray(histSize)
-
-        weights.forEach {
-            if(it > 0f)
-            histogram[(it*(histSize-1)).toInt()]++
-        }
-
-        val max = histogram.max()!!
-        println(histogram.joinToString { "${it.toFloat()/max}" })*/
-
     }
 
     /**

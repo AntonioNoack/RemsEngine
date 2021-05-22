@@ -78,6 +78,7 @@
       <w>farneback</w>
       <w>fastdecode</w>
       <w>fastmath</w>
+      <w>faststart</w>
       <w>ffmpeg</w>
       <w>ffprobe</w>
       <w>floralwhite</w>
@@ -162,6 +163,7 @@
       <w>mids</w>
       <w>mintcream</w>
       <w>mistyrose</w>
+      <w>movflags</w>
       <w>mpeg</w>
       <w>msaa</w>
       <w>mtllib</w>
@@ -229,6 +231,7 @@
       <w>vertice</w>
       <w>veryfast</w>
       <w>veryslow</w>
+      <w>vframes</w>
       <w>vorbis</w>
       <w>vram</w>
       <w>whitesmoke</w>

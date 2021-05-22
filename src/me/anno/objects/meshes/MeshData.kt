@@ -10,6 +10,7 @@ import me.anno.gpu.ShaderLib.shaderFBX
 import me.anno.gpu.ShaderLib.shaderObjMtl
 import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.gpu.buffer.StaticBuffer
+import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2D
 import me.anno.io.FileReference
@@ -26,8 +27,10 @@ import org.lwjgl.opengl.GL20
 
 open class MeshData : ICacheData {
 
+    var lastWarning: String? = null
+
     var objData: Map<Material, StaticBuffer>? = null
-    var fbxGeometry: FBXGeometry? = null
+    var fbxData: List<FBXData>? = null
     var daeScene: Scene? = null
 
     fun drawObj(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
@@ -55,74 +58,92 @@ open class MeshData : ICacheData {
     // doesn't work :/
     fun drawFBX(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
 
+        val data = fbxData ?: return
+
         val shader = shaderFBX
         shader.use()
 
-        for ((material, buffer) in objData ?: return) {
+        for (datum in data) {
+            val geo = datum.geometry
+            for ((material, buffer) in datum.objData) {
+                drawFBX(stack, time, color, shader, geo, material, buffer)
+            }
+        }
 
-            // todo calculate all bone transforms, and upload them to the shader...
-            val geo = fbxGeometry!!
-            // todo is weight 0 automatically set, and 1-sum???
-            // todo root motion might be saved in object...
+    }
 
-            // todo reset the matrixBuffer somehow??
-            matrixBufferFBX.position(0)
-            geo.bones.forEach { bone ->
+    fun drawFBX(
+        stack: Matrix4fArrayList,
+        time: Double,
+        color: Vector4fc,
+        shader: Shader,
+        geo: FBXGeometry,
+        material: Material,
+        buffer: StaticBuffer
+    ) {
 
-                // todo apply local translation and rotation...
-                // global -> local -> rotated local -> global
-                // stack.get(GFX.matrixBufferFBX)
+        // todo calculate all bone transforms, and upload them to the shader...
+        // todo is weight 0 automatically set, and 1-sum???
+        // todo root motion might be saved in object...
 
-                val jointMatrix = bone.transform!!
-                val invJointMatrix = bone.transformLink!!
+        // todo reset the matrixBuffer somehow??
+        matrixBufferFBX.position(0)
+        geo.bones.forEach { bone ->
 
-                val bp = bone.parent
-                val parentMatrix = bp?.localJointMatrix
-                val angle = 1f * (GFX.gameTime / 3 * 1e-9f).rem(1f)
+            // todo apply local translation and rotation...
+            // global -> local -> rotated local -> global
+            // stack.get(GFX.matrixBufferFBX)
 
-                val dx = jointMatrix[3, 0] - (bp?.transform?.get(3, 0) ?: 0f)
-                val dy = jointMatrix[3, 1] - (bp?.transform?.get(3, 1) ?: 0f)
-                val dz = jointMatrix[3, 2] - (bp?.transform?.get(3, 2) ?: 0f)
+            val jointMatrix = bone.transform!!
+            val invJointMatrix = bone.transformLink!!
 
-                // effectively bone-space parent-2-child-transform
-                val translateMat =
-                    Matrix4f().translate(dx, dy, dz).rotate(angle, yAxis) // Vector3f(dx,dy,dz).normalize()
+            val bp = bone.parent
+            val parentMatrix = bp?.localJointMatrix
+            val angle = 1f * (GFX.gameTime / 3 * 1e-9f).rem(1f)
 
-                var jointMat = translateMat// .mul(rotationMat)
+            val dx = jointMatrix[3, 0] - (bp?.transform?.get(3, 0) ?: 0f)
+            val dy = jointMatrix[3, 1] - (bp?.transform?.get(3, 1) ?: 0f)
+            val dz = jointMatrix[3, 2] - (bp?.transform?.get(3, 2) ?: 0f)
 
-                if (parentMatrix != null) {
-                    jointMat.mul(parentMatrix)
-                    //jointMat = Matrix4f(parentMatrix).mul(jointMat)
-                }
+            // effectively bone-space parent-2-child-transform
+            val translateMat =
+                Matrix4f().translate(dx, dy, dz).rotate(angle, yAxis) // Vector3f(dx,dy,dz).normalize()
 
+            var jointMat = translateMat// .mul(rotationMat)
 
-                bone.localJointMatrix = jointMat
-
-                val mat = Matrix4f(jointMat)
-                mat.mul(invJointMatrix) // invJointMatrix
-
-                // (mat)
-
-                mat.identity()
-
-                for (i in 0 until 16) {
-                    matrixBufferFBX.put(mat.get(i / 4, i and 3))
-                }
-
+            if (parentMatrix != null) {
+                jointMat.mul(parentMatrix)
+                //jointMat = Matrix4f(parentMatrix).mul(jointMat)
             }
 
-            matrixBufferFBX.position(0)
-            GFX.check()
-            GL20.glUniformMatrix4fv(shader["transforms"], false, matrixBufferFBX)
-            GFX.check()
 
-            shader3DUniforms(shader, stack, 1, 1, color, null, Filtering.NEAREST, null)
-            getTexture(material.diffuseTexture, whiteTexture).bind(0, whiteTexture.filtering, whiteTexture.clamping)
-            buffer.draw(shader)
-            GFX.check()
+            bone.localJointMatrix = jointMat
+
+            val mat = Matrix4f(jointMat)
+            mat.mul(invJointMatrix) // invJointMatrix
+
+            // (mat)
+
+            mat.identity()
+
+            for (i in 0 until 16) {
+                matrixBufferFBX.put(mat.get(i / 4, i and 3))
+            }
 
         }
+
+        matrixBufferFBX.position(0)
+        GFX.check()
+        GL20.glUniformMatrix4fv(shader["transforms"], false, matrixBufferFBX)
+        GFX.check()
+
+        shader3DUniforms(shader, stack, 1, 1, color, null, Filtering.NEAREST, null)
+        getTexture(material.diffuseTexture, whiteTexture).bind(0, whiteTexture.filtering, whiteTexture.clamping)
+        buffer.draw(shader)
+        GFX.check()
+
     }
+
 
     override fun destroy() {
         objData?.entries?.forEach {
