@@ -1,10 +1,12 @@
 package me.anno.objects.meshes
 
+import me.anno.animation.skeletal.SkeletalAnimation
 import me.anno.cache.data.ICacheData
 import me.anno.cache.instances.ImageCache.getImage
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.GFX.matrixBufferFBX
+import me.anno.gpu.GFX.savedHeight
 import me.anno.gpu.GFXx3D.shader3DUniforms
 import me.anno.gpu.ShaderLib.shaderFBX
 import me.anno.gpu.ShaderLib.shaderObjMtl
@@ -15,15 +17,13 @@ import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2D
 import me.anno.io.FileReference
 import me.anno.mesh.fbx.model.FBXGeometry
+import me.anno.mesh.fbx.model.FBXModel
 import me.anno.mesh.obj.Material
-import me.anno.objects.Transform.Companion.yAxis
 import me.anno.video.MissingFrameException
 import me.karl.main.Camera
 import me.karl.scene.Scene
-import org.joml.Matrix4f
-import org.joml.Matrix4fArrayList
-import org.joml.Vector4fc
-import org.lwjgl.opengl.GL20
+import org.joml.*
+import kotlin.math.sin
 
 open class MeshData : ICacheData {
 
@@ -65,11 +65,33 @@ open class MeshData : ICacheData {
 
         for (datum in data) {
             val geo = datum.geometry
-            for ((material, buffer) in datum.objData) {
-                drawFBX(stack, time, color, shader, geo, material, buffer)
+            val model = geo.parents.filterIsInstance<FBXModel>().firstOrNull()
+            stack.next {
+
+                if(model != null){
+
+                    stack.rot(model.preRotation)
+
+                    stack.translate(model.localTranslation)
+                    stack.scale(model.localScale)
+                    stack.rot(model.localRotation)
+
+                    stack.rot(model.postRotation)
+
+                }
+
+                for ((material, buffer) in datum.objData) {
+                    drawFBX(stack, time, color, shader, geo, datum.animation, material, buffer)
+                }
+
             }
         }
+    }
 
+    fun Matrix4f.rot(v: Vector3f){
+        rotateX(v.x)
+        rotateY(v.y)
+        rotateZ(v.z)
     }
 
     fun drawFBX(
@@ -78,6 +100,7 @@ open class MeshData : ICacheData {
         color: Vector4fc,
         shader: Shader,
         geo: FBXGeometry,
+        animation: SkeletalAnimation,
         material: Material,
         buffer: StaticBuffer
     ) {
@@ -88,7 +111,18 @@ open class MeshData : ICacheData {
 
         // todo reset the matrixBuffer somehow??
         matrixBufferFBX.position(0)
-        geo.bones.forEach { bone ->
+
+        // todo get animation
+
+        val rot = Vector3f(0f, sin(time.toFloat()), 0f)
+        animation.bones.forEach { bone ->
+            bone.rotation.set(rot)
+        }
+
+        shader.v1("boneLimit", animation.skeleton.boneCount - 1)
+        animation.updateAllAndUpload(shader["transforms"], Matrix4x3f())
+
+        /*geo.bones.forEach { bone ->
 
             // todo apply local translation and rotation...
             // global -> local -> rotated local -> global
@@ -135,7 +169,7 @@ open class MeshData : ICacheData {
         matrixBufferFBX.position(0)
         GFX.check()
         GL20.glUniformMatrix4fv(shader["transforms"], false, matrixBufferFBX)
-        GFX.check()
+        GFX.check()*/
 
         shader3DUniforms(shader, stack, 1, 1, color, null, Filtering.NEAREST, null)
         getTexture(material.diffuseTexture, whiteTexture).bind(0, whiteTexture.filtering, whiteTexture.clamping)
@@ -151,6 +185,7 @@ open class MeshData : ICacheData {
         }
         // fbxGeometry?.destroy()
         daeScene?.animatedModel?.destroy()
+        fbxData?.forEach { it.objData.values.forEach { buffer -> buffer.destroy() } }
     }
 
     companion object {

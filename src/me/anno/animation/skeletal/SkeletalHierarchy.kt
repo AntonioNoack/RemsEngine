@@ -15,6 +15,6 @@ abstract class SkeletalHierarchy(
     fun getName(index: Int) = names[index]
     fun getParentName(index: Int) = names[parentIndices[index]]
 
-    abstract fun calculateBonePositions(pts: FloatArray, bonePositions: FloatArray): FloatArray
+    abstract fun updateLocalBindPoses(animation: SkeletalAnimation)
 
 }

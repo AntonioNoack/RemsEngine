@@ -15,10 +15,11 @@ import java.util.*
  * the MakeHuman transforms outside of MakeHuman, for my own projects.
  * */
 class AnchoredSkeletalHierarchy(
-        names: Array<String>,
-        parentIndices: IntArray,
-        val meshAnchor0: IntArray,
-        val meshAnchors: Array<IntArray>): SkeletalHierarchy(names, parentIndices) {
+    names: Array<String>,
+    parentIndices: IntArray,
+    val meshAnchor0: IntArray,
+    val meshAnchors: Array<IntArray>
+) : SkeletalHierarchy(names, parentIndices) {
 
     init {
         if (names.size != parentIndices.size) throw IllegalArgumentException()
@@ -31,7 +32,7 @@ class AnchoredSkeletalHierarchy(
 
     override fun removeBones(kept: SortedSet<Int>): AnchoredSkeletalHierarchy {
 
-        if(0 !in kept) throw IllegalArgumentException("Root must be kept")
+        if (0 !in kept) throw IllegalArgumentException("Root must be kept")
 
         val boneCount = names.size
 
@@ -54,23 +55,24 @@ class AnchoredSkeletalHierarchy(
         }.toIntArray()
 
         val filteredAnchors = meshAnchors
-                .filterIndexed { index, _ -> index in kept }
-                .toTypedArray()
+            .filterIndexed { index, _ -> index in kept }
+            .toTypedArray()
 
         return AnchoredSkeletalHierarchy(keptNames.toTypedArray(), keptParentsRemapped, meshAnchor0, filteredAnchors)
 
     }
 
-    override fun cutByNames(kept: Set<String>): AnchoredSkeletalHierarchy = removeBones(kept.map { getBone(it) }.toSortedSet())
+    override fun cutByNames(kept: Set<String>): AnchoredSkeletalHierarchy =
+        removeBones(kept.map { getBone(it) }.toSortedSet())
 
-    override fun calculateBonePositions(pts: FloatArray, bonePositions: FloatArray): FloatArray {
+    fun calculateBonePositions(pts: FloatArray, bonePositions: FloatArray): FloatArray {
         // return bonePositions
         val average = Vector3f()
         var i = 0
         for (anchor in meshAnchors) {
             average.set(0f)
             for (index in anchor) {
-                average.add(pts[index*6], pts[index*6+1], pts[index*6+2])
+                average.add(pts[index * 6], pts[index * 6 + 1], pts[index * 6 + 2])
             }
             average.div(anchor.size.toFloat())
             bonePositions[i++] = average.x
@@ -79,7 +81,7 @@ class AnchoredSkeletalHierarchy(
         }
         average.set(0f)
         for (index in meshAnchor0) {
-            average.add(pts[index*6], pts[index*6+1], pts[index*6+2])
+            average.add(pts[index * 6], pts[index * 6 + 1], pts[index * 6 + 2])
         }
         average.div(meshAnchor0.size.toFloat())
         bonePositions[i++] = average.x
@@ -102,6 +104,30 @@ class AnchoredSkeletalHierarchy(
     }
 
     override fun toString() = names.joinToString()
+
+    override fun updateLocalBindPoses(animation: SkeletalAnimation) {
+
+        val bones = animation.bones
+
+        val boneCount = names.size
+        val parentIndices = parentIndices
+
+        val mesh = animation.morphingMesh!!
+
+        val bonePositions = calculateBonePositions(mesh.points, animation.bonePositions)
+        for ((index, bone) in bones.withIndex()) {
+            val i0 = (if (index == 0) boneCount else parentIndices[index]) * 3
+            val i1 = index * 3
+            bone.head.set(bonePositions[i0], bonePositions[i0 + 1], bonePositions[i0 + 2])
+            bone.tail.set(bonePositions[i1], bonePositions[i1 + 1], bonePositions[i1 + 2])
+            bone.updateDelta()
+        }
+
+        for (bone in bones) {
+            bone.updateLocalBindPose()
+        }
+
+    }
 
     companion object {
 

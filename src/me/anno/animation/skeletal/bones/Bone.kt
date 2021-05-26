@@ -15,7 +15,8 @@ class Bone(
     val tail: Vector3f,
     val rotation: Vector3f,
     val minRotation: Vector3f,
-    val maxRotation: Vector3f
+    val maxRotation: Vector3f,
+    val usesPositionForBindPose: Boolean
 ) {
 
     /**
@@ -79,9 +80,11 @@ class Bone(
     // todo for fbx we do know the bind pose: it's "GetLink()->EvaluateLocalTransform(FBXSDK_TIME_INFINITE)"
     // by https://forums.autodesk.com/t5/fbx-forum/manually-building-bindpose-matrices-in-fbx-sdk/td-p/7440504
     fun updateLocalBindPose() {
-        localBindPose.identity()
-        if (index > 0) {
-            localBindPose.translate(delta)
+        if (usesPositionForBindPose) {
+            localBindPose.identity()
+            if (index > 0) {
+                localBindPose.translate(delta)
+            }
         }
     }
 
@@ -99,32 +102,29 @@ class Bone(
     }
 
     fun updateTransform(tmp: Matrix4x3f) {
-        if (index == 0) {
 
+        if (index == 0) {
             // jointWorldTransform_j = jointWorldTransform_parent(j) * localBindPose_j * animatedTransform_j
             localBindPose.mul(animatedTransform, jointWorldTransform)
-
             // globalBindTransform_j = globalBindTransform_parent * localBindPose_j
             globalBindTransform.set(localBindPose)
-
-            // skinning = jointWorldTransform * inv(globalBindTransform)
-            jointWorldTransform.mul(globalBindTransform.invert(tmp), skinningMatrix)
-
         } else {
-
             val parent = parent!!
-
             // jointWorldTransform_j = jointWorldTransform_parent(j) * localBindPose_j * animatedTransform_j
             parent.jointWorldTransform.mul(localBindPose, tmp)
             tmp.mul(animatedTransform, jointWorldTransform)
-
             // globalBindTransform_j = globalBindTransform_parent * localBindPose_j
             parent.globalBindTransform.mul(localBindPose, globalBindTransform)
-
-            // skinning = jointWorldTransform * inv(globalBindTransform)
-            jointWorldTransform.mul(globalBindTransform.invert(tmp), skinningMatrix)
-
         }
+
+        // skinning = jointWorldTransform * inv(globalBindTransform)
+        jointWorldTransform.mul(globalBindTransform.invert(tmp), skinningMatrix)
+
+        if (skinningMatrix.get(FloatArray(12), 0).any { it.isNaN() }) {
+            skinningMatrix.identity()
+            // throw IllegalStateException("NaN:\n$skinningMatrix from $jointWorldTransform * inv($globalBindTransform), inv = $tmp")
+        }
+
     }
 
     fun createAxes(): List<BoneAxis> {

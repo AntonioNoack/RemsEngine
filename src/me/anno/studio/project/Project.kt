@@ -185,7 +185,11 @@ class Project(var name: String, val file: FileReference) : Saveable() {
                     return write(c.child, w)
                 }
                 writer.open(true)
-                writer.write(c.getClassName())
+                if(c is CustomList){
+                    writer.write(if(c.isY) "CustomListY" else "CustomListX")
+                } else {
+                    writer.write(c.getClassName())
+                }
                 writer.write((w * 1000f).roundToInt())
                 if (c is CustomList) {
                     val weightSum = SumOf.sumOf(c.customChildren) { it.weight }

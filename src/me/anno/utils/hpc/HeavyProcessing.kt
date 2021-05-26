@@ -16,7 +16,7 @@ object HeavyProcessing {
     private const val reservedThreadCount = 1 + 1 /* ui + audio?/file-loading/network? */
     val threads = max(1, Runtime.getRuntime().availableProcessors() - reservedThreadCount)
 
-    fun processUnbalanced(i0: Int, i1: Int, heavy: Boolean, func: (i0: Int, i1: Int) -> Unit) {
+    inline fun processUnbalanced(i0: Int, i1: Int, heavy: Boolean, crossinline func: (i0: Int, i1: Int) -> Unit) {
         val minCountPerThread = if (heavy) 1 else 5
         val count = i1 - i0
         val threadCount = clamp(count / minCountPerThread, 1,
@@ -46,11 +46,11 @@ object HeavyProcessing {
                 if (nextIndex >= i1) break
                 func(nextIndex, nextIndex + 1)
             }
-            otherThreads.forEach { it.join() }
+            for(thread in otherThreads) thread.join()
         }
     }
 
-    fun processBalanced(i0: Int, i1: Int, minCountPerThread: Int, func: (i0: Int, i1: Int) -> Unit) {
+    inline fun processBalanced(i0: Int, i1: Int, minCountPerThread: Int, crossinline func: (i0: Int, i1: Int) -> Unit) {
         val count = i1 - i0
         val threadCount = clamp(count / minCountPerThread, 1,
             threads
@@ -67,15 +67,15 @@ object HeavyProcessing {
             val threadId = threadCount - 1
             val startIndex = i0 + threadId * count / threadCount
             func(startIndex, i1)
-            otherThreads.forEach { it.join() }
+            for(thread in otherThreads) thread.join()
         }
     }
 
-    fun processBalanced(i0: Int, i1: Int, heavy: Boolean, func: (i0: Int, i1: Int) -> Unit) {
+    inline fun processBalanced(i0: Int, i1: Int, heavy: Boolean, crossinline func: (i0: Int, i1: Int) -> Unit) {
         processBalanced(i0, i1, if (heavy) 1 else 512, func)
     }
 
-    fun <V> processStage(entries: List<V>, doIO: Boolean, stage: (V) -> Unit) {
+    inline fun <V> processStage(entries: List<V>, doIO: Boolean, crossinline stage: (V) -> Unit) {
         if (doIO) {
             entries.map {
                 thread {

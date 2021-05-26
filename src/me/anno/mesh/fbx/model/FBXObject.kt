@@ -11,6 +11,8 @@ open class FBXObject(node: FBXNode) {
     val subType = node.properties.getOrNull(2) as? String ?: "#"
 
     val children = ArrayList<FBXObject>()
+    val parents = ArrayList<FBXObject>()
+
     val overrides = ArrayList<Pair<String, FBXObject>>()
 
     // not used

@@ -5,8 +5,8 @@ import me.anno.gpu.buffer.StaticBuffer
 import me.anno.utils.structures.maps.WeightedMap
 
 class MorphingMesh(
-        val base: MorphingBase,
-        val targetState: WeightedMap<MorphTarget>
+    val base: MorphingBase,
+    val targetState: WeightedMap<MorphTarget>
 ) {
 
     constructor(base: MorphingBase) : this(base, WeightedMap())

@@ -1,5 +1,8 @@
 package me.anno.utils.types
 
+import me.anno.utils.types.Floats.f2
+import me.anno.utils.types.Floats.f2s
+import me.anno.utils.types.Vectors.f2
 import org.joml.*
 
 object Vectors {
@@ -180,6 +183,22 @@ object Vectors {
     fun Vector4fc.print() = "(${x()} ${y()} ${z()} ${w()})"
     fun Vector4dc.print() = "(${x()} ${y()} ${z()} ${w()})"
     fun Vector4ic.print() = "(${x()} ${y()} ${z()} ${w()})"
+
+    fun Matrix4fc.print() = "" +
+            "[(${get(0,0)} ${get(1,0)} ${get(2,0)} ${get(3,0)})\n" +
+            " (${get(0,1)} ${get(1,1)} ${get(2,1)} ${get(3,1)})\n" +
+            " (${get(0,2)} ${get(1,2)} ${get(2,2)} ${get(3,2)})\n" +
+            " (${get(0,3)} ${get(1,3)} ${get(2,3)} ${get(3,3)})]"
+
+    fun Matrix4x3f.print() = "" +
+            "[(${m00()} ${m10()} ${m20()} ${m30()})\n" +
+            " (${m01()} ${m11()} ${m21()} ${m31()})\n" +
+            " (${m02()} ${m12()} ${m22()} ${m32()})]"
+
+    fun Matrix4x3f.f2() = "" +
+            "[(${m00().f2s()} ${m10().f2s()} ${m20().f2s()} ${m30().f2s()})\n" +
+            " (${m01().f2s()} ${m11().f2s()} ${m21().f2s()} ${m31().f2s()})\n" +
+            " (${m02().f2s()} ${m12().f2s()} ${m22().f2s()} ${m32().f2s()})]"
 
     fun Vector4fc.toVec3f(): Vector3f {
         val w = w()

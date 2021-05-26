@@ -60,5 +60,13 @@ object Floats {
     fun Double.f2() = "%.2f".format(Locale.ENGLISH,this)
     fun Double.f1() = "%.1f".format(Locale.ENGLISH,this)
 
+    fun Float.f3s() = "% .3f".format(Locale.ENGLISH,this)
+    fun Float.f2s() = "% .2f".format(Locale.ENGLISH,this)
+    fun Float.f1s() = "% .1f".format(Locale.ENGLISH,this)
+
+    fun Double.f3s() = "% .3f".format(Locale.ENGLISH,this)
+    fun Double.f2s() = "% .2f".format(Locale.ENGLISH,this)
+    fun Double.f1s() = "% .1f".format(Locale.ENGLISH,this)
+
 
 }

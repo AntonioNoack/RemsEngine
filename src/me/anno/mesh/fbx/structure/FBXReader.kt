@@ -156,6 +156,7 @@ class FBXReader(input: InputStream) : LittleEndianDataInputStream(input.buffered
             "OO" -> {
                 // add parent-child relation
                 parent.children.add(child)
+                child.parents.add(parent)
             }
             "OP" -> {
                 // add object override

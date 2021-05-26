@@ -1,6 +1,6 @@
 package me.anno.mesh.fbx.model
 
-import me.anno.animation.skeletal.SkeletalHierarchy
+import me.anno.animation.skeletal.FBXSkeletalHierarchy
 import me.anno.animation.skeletal.SkeletalWeights
 import me.anno.animation.skeletal.Skeleton
 import me.anno.gpu.buffer.Attribute
@@ -10,8 +10,6 @@ import me.anno.mesh.fbx.model.FBXShader.maxWeightsDefault
 import me.anno.mesh.fbx.structure.FBXNode
 import me.anno.mesh.fbx.structure.FBXReader
 import org.apache.logging.log4j.LogManager
-import org.joml.Vector3f
-import java.util.*
 import kotlin.math.max
 import kotlin.math.min
 
@@ -37,32 +35,11 @@ class FBXGeometry(node: FBXNode) : FBXObject(node) {
     }
 
     fun generateSkeleton(): Skeleton {
-
         val weights = SkeletalWeights(maxWeightsDefault, weightIndices, weightValues) // so simple <3
         val boneMap = bones.withIndex().associate { (index, bone) -> bone to index }
         val names = bones.map { it.name }.toTypedArray()
         val parentIndices = bones.map { boneMap[it.parent] ?: -1 }.toIntArray()
-        val hierarchy: SkeletalHierarchy = object : SkeletalHierarchy(names, parentIndices) {
-
-            override fun removeBones(kept: SortedSet<Int>): SkeletalHierarchy {
-                throw NotImplementedError()
-            }
-
-            override fun calculateBonePositions(pts: FloatArray, bonePositions: FloatArray): FloatArray {
-                for (i in bones.indices) {
-                    val bone = bones[i]
-                    // todo compute the position of every bone in its rest transform
-                    // todo or is the position already given by bone.transform?/bone.transformLink?
-                    val transform = bone.transform!!
-                    val pos = transform.transformPosition(Vector3f())
-                    bonePositions[i * 3 + 0] = pos.x
-                    bonePositions[i * 3 + 1] = pos.y
-                    bonePositions[i * 3 + 2] = pos.z
-                }
-                return bonePositions
-            }
-
-        }
+        val hierarchy = FBXSkeletalHierarchy(names, parentIndices, bones)
         return Skeleton(hierarchy, weights)
     }
 
@@ -151,7 +128,9 @@ class FBXGeometry(node: FBXNode) : FBXObject(node) {
                     weightSum += value
                 }
                 for (i in wIndex0 until wIndex1) {// weight indices
-                    buffer.putUByte(weightIndices[i])
+                    val index = weightIndices[i]
+                    buffer.putUByte(index)
+                    if(index < 0 || index >= bones.size) throw IllegalStateException("$index >= ${bones.size}")
                 }
             }
             if (maxUVs > 0) {
@@ -199,21 +178,22 @@ class FBXGeometry(node: FBXNode) : FBXObject(node) {
 
     }
 
-    val faceCount = run {
-        // OMG lol
+    private fun initFaceCount(): Int {
         var j = -1
-        var sum = 0
+        var faceCount = 0
         for (i in faces) {
             if (i < 0) {
                 // end vertex
-                if (j > 0) sum += j
+                if (j > 0) faceCount += j
                 j = -1
             } else {
                 j++
             }
         }
-        sum
+        return faceCount
     }
+
+    var faceCount = initFaceCount()
 
     val normals = LayerElementDoubles(node.getFirst("LayerElementNormal")!!, 3)
 

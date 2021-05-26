@@ -97,10 +97,11 @@ open class AudioCreator(
         LOGGER.info(if (videoCreator != null) "Saved video with audio to $output" else "Saved audio to $output")
 
         // delete the temporary file
-        videoCreator?.output?.apply {
+        if(videoCreator != null){
+            val tmp = videoCreator.output
             // temporary file survives sometimes
             // -> kill it at the end at the very least
-            if (!delete()) file.deleteOnExit()
+            if(!tmp.delete()) tmp.file.deleteOnExit()
         }
         onFinished()
 

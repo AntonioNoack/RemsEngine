@@ -130,9 +130,6 @@ class AudioStreamOpenAL(
                 if (!hadFirstBuffer) {
 
                     val dt = max(0f, (System.nanoTime() - startTimeNanos) * 1e-9f)
-                    LOGGER.info("Skipping first ${dt}s")
-                    // 10s slices -> 2.6s
-                    // 1s slices -> 0.55s
 
                     val startOffset = getFraction(startTime, speed, playbackSampleRate)
                     val samples = dt * playbackSampleRate + startOffset
@@ -146,12 +143,12 @@ class AudioStreamOpenAL(
 
                     if (capacity > targetIndex + 256 && targetIndex >= 0) {
 
-                        LOGGER.info("Skipping $targetIndex/$capacity")
+                        LOGGER.info("Skipping ${dt}s, $targetIndex/$capacity")
                         stereoBuffer.position(targetIndex.toInt())
 
                     } else {
                         // else delayed, but we have no alternative
-                        LOGGER.warn("Skipping first buffer completely")
+                        LOGGER.warn("Skipping first ${dt}s = first buffer completely")
                     }
 
                     hadFirstBuffer = true

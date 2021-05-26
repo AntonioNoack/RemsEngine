@@ -52,6 +52,7 @@ class Mesh(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
             try {
                 load(meshData)
             } catch (e: Exception) {
+                e.printStackTrace()
                 meshData.lastWarning = e.message ?: e.javaClass.name
             }
             meshData

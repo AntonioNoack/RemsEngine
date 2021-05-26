@@ -55,7 +55,7 @@ class BetterProcessBuilder(
     }
 
     fun start(): Process {
-        LOGGER.info(args.joinToString(" ") {
+        LOGGER.debug(args.joinToString(" ") {
             if (' ' in it) "\"${it.replace("\"", "\\\"")}\""
             else it
         })

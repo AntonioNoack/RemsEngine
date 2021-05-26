@@ -13,7 +13,6 @@ import me.anno.utils.pooling.ByteArrayPool
 import me.anno.utils.pooling.ByteBufferPool
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
-import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL13.GL_TEXTURE0
 import org.lwjgl.opengl.GL30.*
 import org.lwjgl.opengl.GL32.GL_TEXTURE_2D_MULTISAMPLE
@@ -58,6 +57,9 @@ open class Texture2D(
 
     var locallyAllocated = 0L
 
+    var createdW = 0
+    var createdH = 0
+
     fun setSize(width: Int, height: Int) {
         w = width
         h = height
@@ -76,19 +78,30 @@ open class Texture2D(
         if (pointer <= 0) throw RuntimeException()
     }
 
+    // todo is BGRA really faster than RGBA? we should try that and maybe use it...
+
+    fun texImage2D(w: Int, h: Int, type: TargetType, data: ByteBuffer?) {
+        if (createdW == w && createdH == h) {
+            if (data == null) return
+            glTexSubImage2D(tex2D, 0, 0, 0, w, h, type.type1, type.fillType, data)
+        } else {
+            glTexImage2D(tex2D, 0, type.type0, w, h, 0, type.type1, type.fillType, data)
+            createdW = w
+            createdH = h
+        }
+    }
+
     fun create() {
         ensurePointer()
         bindBeforeUpload()
         locallyAllocated = allocate(locallyAllocated, w * h * 4L)
         if (withMultisampling) {
             glTexImage2DMultisample(tex2D, samples, GL_RGBA8, w, h, false)
-        } else {
-            glTexImage2D(tex2D, 0, GL_RGBA8, w, h, 0, GL11.GL_RGBA, GL_UNSIGNED_BYTE, null as ByteBuffer?)
-        }
+        } else texImage2D(w, h, TargetType.UByteTarget4, null)
         filtering(filtering)
         clamping(clamping)
         isCreated = true
-        if(isDestroyed) destroy()
+        if (isDestroyed) destroy()
     }
 
     fun create(type: TargetType) {
@@ -97,9 +110,7 @@ open class Texture2D(
         locallyAllocated = allocate(locallyAllocated, w * h * type.bytesPerPixel.toLong())
         if (withMultisampling) {
             glTexImage2DMultisample(tex2D, samples, type.type0, w, h, false)
-        } else {
-            glTexImage2D(tex2D, 0, type.type0, w, h, 0, type.type1, type.fillType, null as ByteBuffer?)
-        }
+        } else texImage2D(w, h, type, null)
         filtering(filtering)
         clamping(clamping)
         isCreated = true
@@ -114,9 +125,7 @@ open class Texture2D(
         locallyAllocated = allocate(locallyAllocated, w * h * 32L)
         if (withMultisampling) {
             glTexImage2DMultisample(tex2D, samples, GL_RGBA32F, w, h, false)
-        } else {
-            glTexImage2D(tex2D, 0, GL_RGBA32F, w, h, 0, GL_RGBA, GL_FLOAT, null as ByteBuffer?)
-        }
+        } else texImage2D(w, h, TargetType.FloatTarget4, null)
         GFX.check()
         filtering(filtering)
         clamping(clamping)
@@ -270,7 +279,8 @@ open class Texture2D(
         ensurePointer()
         bindBeforeUpload()
         locallyAllocated = allocate(locallyAllocated, w * h * 4L)
-        glTexImage2D(tex2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
+        texImage2D(w, h, TargetType.UByteTarget4, buffer)
+        // glTexImage2D(tex2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
         byteBufferPool.returnBuffer(buffer)
         val t1 = System.nanoTime() // 0.02s for a single 4k texture
         isCreated = true
@@ -331,7 +341,6 @@ open class Texture2D(
         filtering(filtering)
         clamping(clamping)
         GFX.check()
-
     }
 
     fun createMonochrome(data: ByteBuffer) {
@@ -341,7 +350,8 @@ open class Texture2D(
         bindBeforeUpload()
         GFX.check()
         locallyAllocated = allocate(locallyAllocated, w * h.toLong())
-        glTexImage2D(tex2D, 0, GL_RED, w, h, 0, GL_RED, GL_UNSIGNED_BYTE, data)
+        texImage2D(w, h, TargetType.UByteTarget1, data)
+        // glTexImage2D(tex2D, 0, GL_RED, w, h, 0, GL_RED, GL_UNSIGNED_BYTE, data)
         byteBufferPool.returnBuffer(data)
         isCreated = true
         filtering(filtering)
@@ -378,7 +388,8 @@ open class Texture2D(
         byteBuffer.put(data)
         byteBuffer.position(0)
         locallyAllocated = allocate(locallyAllocated, w * h.toLong())
-        glTexImage2D(tex2D, 0, GL_RED, w, h, 0, GL_RED, GL_UNSIGNED_BYTE, byteBuffer)
+        texImage2D(w, h, TargetType.UByteTarget1, byteBuffer)
+        // glTexImage2D(tex2D, 0, GL_RED, w, h, 0, GL_RED, GL_UNSIGNED_BYTE, byteBuffer)
         byteBufferPool.returnBuffer(byteBuffer)
         isCreated = true
         filtering(filtering)
@@ -403,7 +414,8 @@ open class Texture2D(
         GFX.check()
         // rgba32f as internal format is extremely important... otherwise the value is cropped
         locallyAllocated = allocate(locallyAllocated, w * h * 4L)
-        glTexImage2D(tex2D, 0, GL_RGBA32F, w, h, 0, GL_RGBA, GL_FLOAT, buffer)
+        texImage2D(w, h, TargetType.FloatTarget4, byteBuffer)
+        // glTexImage2D(tex2D, 0, GL_RGBA32F, w, h, 0, GL_RGBA, GL_FLOAT, buffer)
         byteBufferPool.returnBuffer(byteBuffer)
         isCreated = true
         filtering(filtering)
@@ -425,7 +437,8 @@ open class Texture2D(
         bindBeforeUpload()
         GFX.check()
         locallyAllocated = allocate(locallyAllocated, w * h * 4L)
-        glTexImage2D(tex2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
+        texImage2D(w, h, TargetType.UByteTarget4, buffer)
+        // glTexImage2D(tex2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
         byteBufferPool.returnBuffer(buffer)
         isCreated = true
         filtering(filtering)
