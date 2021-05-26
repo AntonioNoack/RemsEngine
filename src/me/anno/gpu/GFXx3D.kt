@@ -15,7 +15,6 @@ import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.objects.GFXTransform
 import me.anno.objects.Video
-import me.anno.objects.attractors.EffectMorphing
 import me.anno.objects.effects.MaskType
 import me.anno.objects.geometric.Circle
 import me.anno.objects.geometric.Polygon
@@ -122,7 +121,7 @@ object GFXx3D {
         offset: Vector2fc,
         isInverted: Float,
         isFullscreen: Boolean,
-        greenScreenSettings: Vector3f
+        settings: Vector4f
     ) {
         val shader = ShaderLib.shader3DMasked
         shader.use()
@@ -131,7 +130,7 @@ object GFXx3D {
         shader.v1("invertMask", isInverted)
         shader.v1("maskType", maskType.id)
         shader.v2("pixelating", pixelSize * windowHeight / windowWidth, pixelSize)
-        shader.v3("greenScreenSettings", greenScreenSettings)
+        shader.v4("settings", settings)
         shader.v2("offset", offset)
         shader.v2("windowSize", windowWidth.toFloat(), windowHeight.toFloat())
         val buffer = if (isFullscreen) SimpleBuffer.flatLarge else SimpleBuffer.flat11

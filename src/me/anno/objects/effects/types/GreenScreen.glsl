@@ -1,9 +1,9 @@
 void main(){
     // blur? is already good enough, I think...
     inverseEffect = clamp(mask.a, 0.0, 1.0);
-    float similarity = greenScreenSettings.x;
-    float smoothness = greenScreenSettings.y;
-    float spill = greenScreenSettings.z;
+    float similarity = settings.x;
+    float smoothness = settings.y;
+    float spill = settings.z;
     vec4 keyColor = mask;
     color = texture(tex, uv2);
     float isGrayscale = 1.0 - clamp((maxV3(keyColor.rgb)-minV3(keyColor.rgb))*50.0, 0.0, 1.0);

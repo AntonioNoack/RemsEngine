@@ -1,5 +1,6 @@
 package me.anno.objects.effects
 
+import me.anno.animation.AnimatedProperty
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.isFinalRendering
@@ -16,7 +17,6 @@ import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.GFXTransform
 import me.anno.objects.Transform
-import me.anno.animation.AnimatedProperty
 import me.anno.objects.geometric.Circle
 import me.anno.objects.geometric.Polygon
 import me.anno.studio.rems.Scene.mayUseMSAA
@@ -26,7 +26,10 @@ import me.anno.ui.base.Visibility
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
-import org.joml.*
+import org.joml.Matrix4fArrayList
+import org.joml.Vector2f
+import org.joml.Vector4f
+import org.joml.Vector4fc
 import org.lwjgl.opengl.GL11.*
 import java.net.URL
 
@@ -54,11 +57,17 @@ open class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
     private val blurThreshold = AnimatedProperty.float()
     private val effectOffset = AnimatedProperty.pos2D()
 
+    // transition mask???... idk... when would you try to blur between stuff, and can't do it on a normal transform object?
+    private val transitionProgress = AnimatedProperty.float01(0.5f)
+    private val transitionSmoothness = AnimatedProperty.float01exp(0.5f)
+    private fun transitionSettings(time: Double) =
+        Vector4f(transitionProgress[time], transitionSmoothness[time], 0f, 0f)
+
     private val greenScreenSimilarity = AnimatedProperty.float01(0.03f)
     private val greenScreenSmoothness = AnimatedProperty.float01(0.01f)
     private val greenScreenSpillValue = AnimatedProperty.float01(0.15f)
     private fun greenScreenSettings(time: Double) =
-        Vector3f(greenScreenSimilarity[time], greenScreenSmoothness[time], greenScreenSpillValue[time])
+        Vector4f(greenScreenSimilarity[time], greenScreenSmoothness[time], greenScreenSpillValue[time], 0f)
 
     // not animated, because it's not meant to be transitioned, but instead to be a little helper
     var isInverted = false
@@ -137,6 +146,8 @@ open class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
         writer.writeObject(this, "greenScreenSimilarity", greenScreenSimilarity)
         writer.writeObject(this, "greenScreenSmoothness", greenScreenSmoothness)
         writer.writeObject(this, "greenScreenSpillValue", greenScreenSpillValue)
+        writer.writeObject(this, "transitionProgress", transitionProgress)
+        writer.writeObject(this, "transitionSmoothness", transitionSmoothness)
     }
 
     override fun readBoolean(name: String, value: Boolean) {
@@ -159,6 +170,8 @@ open class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
             "greenScreenSimilarity" -> greenScreenSimilarity.copyFrom(value)
             "greenScreenSmoothness" -> greenScreenSmoothness.copyFrom(value)
             "greenScreenSpillValue" -> greenScreenSpillValue.copyFrom(value)
+            "transitionProgress" -> transitionProgress.copyFrom(value)
+            "transitionSmoothness" -> transitionSmoothness.copyFrom(value)
             else -> super.readObject(name, value)
         }
     }
@@ -219,6 +232,8 @@ open class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
 
         GFX.check()
 
+        val type = type
+
         val pixelSize = effectSize[time]
         val isInverted = if (isInverted) 1f else 0f
 
@@ -227,6 +242,9 @@ open class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
 
         val offset0 = effectOffset[time]
         val offset = Vector2f(offset0)
+
+        val settings = if (type == MaskType.GREEN_SCREEN) greenScreenSettings(time)
+        else transitionSettings(time)
 
         when (type) {
             MaskType.GAUSSIAN_BLUR, MaskType.BLOOM -> {
@@ -251,7 +269,7 @@ open class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
                     type, useMaskColor[time],
                     pixelSize, offset, isInverted,
                     isFullscreen,
-                    greenScreenSettings(time)
+                    settings
                 )
 
             }
@@ -273,7 +291,7 @@ open class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
                     type, useMaskColor[time],
                     0f, offset, isInverted,
                     isFullscreen,
-                    greenScreenSettings(time)
+                    settings
                 )
 
             }
@@ -310,7 +328,7 @@ open class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
                     type, useMaskColor[time],
                     pixelSize, offset, isInverted,
                     isFullscreen,
-                    greenScreenSettings(time)
+                    settings
                 )
 
             }
@@ -357,15 +375,24 @@ open class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
             useExperimentalMSAA,
             style
         ) { useExperimentalMSAA = it }
-        val greenScreen =
-            getGroup("Green Screen", "Type needs to be green-screen; cuts out a specific color", "greenScreen")
-        list += SpyPanel(style) { greenScreen.visibility = Visibility[type == MaskType.GREEN_SCREEN] }
+
+        val greenScreen = getGroup("Green Screen", "Type needs to be green-screen; cuts out a specific color", "greenScreen")
         greenScreen += vi("Similarity", "", greenScreenSimilarity, style)
         greenScreen += vi("Smoothness", "", greenScreenSmoothness, style)
         greenScreen += vi("Spill Value", "", greenScreenSpillValue, style)
+
+        val transition = getGroup("Transition", "Type needs to be transition", "transition")
+        transition += vi("Progress", "", transitionProgress, style)
+        transition += vi("Smoothness", "", transitionSmoothness, style)
         val editor = getGroup("Editor", "", "editor")
         editor += vi("Show Mask", "for debugging purposes; shows the stencil", null, showMask, style) { showMask = it }
         editor += vi("Show Masked", "for debugging purposes", null, showMasked, style) { showMasked = it }
+
+        list += SpyPanel(style) {
+            greenScreen.visibility = Visibility[type == MaskType.GREEN_SCREEN]
+            transition.visibility = Visibility[type == MaskType.TRANSITION]
+        }
+
     }
 
     override fun readInt(name: String, value: Int) {

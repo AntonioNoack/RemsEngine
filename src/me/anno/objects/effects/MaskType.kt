@@ -4,6 +4,7 @@ import me.anno.language.translation.NameDesc
 
 enum class MaskType(val id: Int, val naming: NameDesc){
     MASKING(0, NameDesc("Masking", "", "obj.maskType.masking")),
+    TRANSITION(9,NameDesc("Transition", "Use a grayscale image as a transition pattern", "obj.maskType.transition")),
     PIXELATING(1, NameDesc("Pixelating", "", "obj.maskType.pixelating")),
     GAUSSIAN_BLUR(2, NameDesc("Gaussian Blur", "", "obj.maskType.gaussianBlur")),
     RADIAL_BLUR_1(7, NameDesc("Radial Blur (1)", "", "obj.maskType.radialBlur1")),

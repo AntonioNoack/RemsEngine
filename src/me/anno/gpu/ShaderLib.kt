@@ -550,7 +550,7 @@ object ShaderLib {
                 "uniform vec2 windowSize, offset;\n" +
                 "uniform int maskType;\n" +
                 "uniform float maxSteps;\n" +
-                "uniform vec3 greenScreenSettings;\n" +
+                "uniform vec4 settings;\n" +
                 brightness +
                 getColorForceFieldLib +
                 rgb2uv +
@@ -564,6 +564,7 @@ object ShaderLib {
                 "   float effect, inverseEffect;\n" +
                 "   switch(maskType){\n" +
                 GLSLLib.case(MaskType.MASKING.id, "me/anno/objects/effects/types/Masking.glsl") +
+                GLSLLib.case(MaskType.TRANSITION.id, "me/anno/objects/effects/types/Transition.glsl") +
                 GLSLLib.case(MaskType.PIXELATING.id, "me/anno/objects/effects/types/Pixelating.glsl") +
                 GLSLLib.case(MaskType.RADIAL_BLUR_1.id, "me/anno/objects/effects/types/RadialBlur1.glsl") +
                 GLSLLib.case(MaskType.RADIAL_BLUR_2.id, "me/anno/objects/effects/types/RadialBlur2.glsl") +
