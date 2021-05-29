@@ -26,6 +26,14 @@ object VideoProxyCreator : CacheSection("VideoProxies") {
     const val minSize = 16
     const val minSizeForScaling = scale * minSize
 
+    private const val configName = "ProxyCache.json"
+
+    // create a metadata file, where last used (Rem's Studio starting time) is written
+    lateinit var info: StringMap
+
+    // check all last instances, which can be deleted...
+    lateinit var proxyFolder: File
+
     @JvmStatic
     fun main(args: Array<String>) {
         // test for a video file
@@ -42,14 +50,6 @@ object VideoProxyCreator : CacheSection("VideoProxies") {
         proxyFolder = File(ConfigBasics.cacheFolder.file, "proxies").apply { mkdirs() }
         deleteOldProxies()
     }
-
-    private val configName = "ProxyCache.json"
-
-    // create a metadata file, where last used (Rem's Studio starting time) is written
-    lateinit var info: StringMap
-
-    // check all last instances, which can be deleted...
-    lateinit var proxyFolder: File
 
     fun getProxyFileDontUpdate(src: FileReference): FileReference? {
         init()

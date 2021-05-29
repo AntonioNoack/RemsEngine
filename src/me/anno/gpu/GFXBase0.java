@@ -26,7 +26,6 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.nio.IntBuffer;
 
-import static java.lang.StrictMath.abs;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
@@ -190,9 +189,9 @@ public class GFXBase0 {
 
     GLCapabilities capabilities;
 
-    private void updateVsync(){
+    private void updateVsync() {
         int targetInterval = isInFocus ? enableVsync ? 1 : 0 : 2;
-        if(lastVsyncInterval != targetInterval){
+        if (lastVsyncInterval != targetInterval) {
             glfwSwapInterval(targetInterval);
             lastVsyncInterval = targetInterval;
         }
@@ -216,10 +215,10 @@ public class GFXBase0 {
         GFX.gameInit.invoke();
         renderStep0();
 
+        long lastTime = System.nanoTime();
+
         while (!destroyed) {
             synchronized (lock2) {
-
-                long startTime = System.nanoTime();
                 renderStep();
 
                 synchronized (lock) {
@@ -230,20 +229,21 @@ public class GFXBase0 {
 
                 updateVsync();
 
-                if(!isInFocus) {
-                    try {
-                        // enforce 30 fps, because we don't need more
-                        // and don't want to waste energy
-                        for(int i=0;i<40;i++){
-                            long currentTime = System.nanoTime();
-                            if(abs(currentTime - startTime) < 29_500_000){
-                                // we still need to wait
-                                Thread.sleep(1);
-                            } else break;
-                        }
-                    } catch (InterruptedException ignored){ }
-                }
+                if (!isInFocus) {
 
+                    // enforce 30 fps, because we don't need more
+                    // and don't want to waste energy
+                    long currentTime = System.nanoTime();
+                    long waitingTime = 30 - (currentTime - lastTime) / 1_000_000;
+                    lastTime = currentTime;
+
+                    if (waitingTime > 0) try {
+                        // wait does not work, causes IllegalMonitorState exception
+                        Thread.sleep(waitingTime);
+                    } catch (InterruptedException ignored) {
+                    }
+
+                }
             }
         }
 
@@ -272,9 +272,7 @@ public class GFXBase0 {
                                 break;// idc
                             case '\n':
                                 String info = line.toString().trim();
-                                if (info.startsWith("[LWJGL]")) {
-                                    // idc...
-                                } else {
+                                if (!info.startsWith("[LWJGL]")) {
                                     int index = info.indexOf(':');
                                     if (index > 0) {
                                         String key = info.substring(0, index).trim().toLowerCase();
@@ -317,7 +315,7 @@ public class GFXBase0 {
                                         // awkward...
                                         LOGGER.info(info);
                                     }
-                                }
+                                } // else idc
                                 // LOGGER.info(line.toString());
                                 line = new StringBuilder();
                                 break;

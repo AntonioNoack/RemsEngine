@@ -93,6 +93,8 @@ class FBXGeometry(node: FBXNode) : FBXObject(node) {
         val vertices = xyz
         val normals = normals
 
+        val weightIndexLimit = max(0, bones.lastIndex)
+
         fun put(vertIndex: Int, totalVertIndex: Int) {
             val vo = vertIndex * 3
             // xyz
@@ -130,7 +132,7 @@ class FBXGeometry(node: FBXNode) : FBXObject(node) {
                 for (i in wIndex0 until wIndex1) {// weight indices
                     val index = weightIndices[i]
                     buffer.putUByte(index)
-                    if(index < 0 || index >= bones.size) throw IllegalStateException("$index >= ${bones.size}")
+                    if(index < 0 || index > weightIndexLimit) throw IllegalStateException("$index >= ${bones.size}")
                 }
             }
             if (maxUVs > 0) {

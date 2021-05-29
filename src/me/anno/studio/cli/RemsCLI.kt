@@ -150,11 +150,7 @@ object RemsCLI {
         val height = parseSize(line, "height", project.targetHeight)
 
         // init OpenGL, shaders and textures
-        if (renderType != Rendering.RenderType.AUDIO) {
-            initOpenGL()
-            TextureLib.init()
-            ShaderLib.init()
-        }
+        if (renderType != Rendering.RenderType.AUDIO) initGFX()
 
         var isDone = false
         when (renderType) {
@@ -202,8 +198,10 @@ object RemsCLI {
         return value
     }
 
-    fun initOpenGL() {
+    fun initGFX(){
         HiddenOpenGLContext.createOpenGL()
+        TextureLib.init()
+        ShaderLib.init()
     }
 
     fun init() {

@@ -1,0 +1,15 @@
+<component name="libraryTable">
+  <library name="jGLTF">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../jGLTF/out/artifacts/jGLTF_jar/jGLTF.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/fasterxml json/jackson-annotations-2.9.9.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/fasterxml json/jackson-dataformat-cbor-2.10.3.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/fasterxml json/jackson-databind-2.9.9.3.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/lib/java/fasterxml json/jackson-core-2.10.0.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="file://$PROJECT_DIR$/../jGLTF/src" />
+    </SOURCES>
+  </library>
+</component>

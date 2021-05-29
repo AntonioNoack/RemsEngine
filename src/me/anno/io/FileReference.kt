@@ -61,6 +61,7 @@ class FileReference(val file: File) {
 
     fun lastModified() = file.lastModified()
     fun exists() = file.exists()
+    fun toUri() = file.toURI()
 
     override fun equals(other: Any?): Boolean {
         return other is FileReference && other.hashCode == hashCode && other.absolutePath == absolutePath

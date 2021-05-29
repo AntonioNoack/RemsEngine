@@ -7,6 +7,7 @@ import org.lwjgl.Version
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.opengl.GL
+import org.lwjgl.opengl.GLCapabilities
 import org.lwjgl.system.MemoryUtil
 
 /**
@@ -21,6 +22,8 @@ object HiddenOpenGLContext {
     private var errorCallback: GLFWErrorCallback? = null
 
     private val LOGGER = LogManager.getLogger(HiddenOpenGLContext::class)
+
+    var capabilities: GLCapabilities? = null
 
     fun createOpenGL() {
 
@@ -46,7 +49,7 @@ object HiddenOpenGLContext {
 
         GLFW.glfwMakeContextCurrent(window)
         GLFW.glfwSwapInterval(1)
-        GL.createCapabilities()
+        capabilities = GL.createCapabilities()
 
     }
 

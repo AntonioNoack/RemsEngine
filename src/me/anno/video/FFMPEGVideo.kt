@@ -1,7 +1,6 @@
 package me.anno.video
 
 import me.anno.gpu.GFX
-import me.anno.input.Input
 import me.anno.io.FileReference
 import me.anno.utils.ShutdownException
 import me.anno.utils.Sleep.waitUntil

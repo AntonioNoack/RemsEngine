@@ -31,5 +31,6 @@
     <orderEntry type="library" name="JavaNativeAccess" level="project" />
     <orderEntry type="library" name="PDFBox" level="project" />
     <orderEntry type="library" name="Other" level="project" />
+    <orderEntry type="library" name="jGLTF" level="project" />
   </component>
 </module>

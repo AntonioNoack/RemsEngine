@@ -12,7 +12,9 @@ import me.anno.utils.Sleep.waitUntil
 import java.io.InputStream
 import java.util.concurrent.Semaphore
 
-abstract class VFrame(var w: Int, var h: Int, val code: Int) : ICacheData {
+abstract class VFrame(
+    var w: Int, var h: Int, val code: Int
+) : ICacheData {
 
     open val isCreated = false
     var isDestroyed = false

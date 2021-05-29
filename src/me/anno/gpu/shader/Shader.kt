@@ -93,13 +93,22 @@ open class Shader(
         }
     }
 
+    // this function probably could be made more efficient...
     fun String.replaceShortCuts() = if (disableShorts) this else this
         .replace("\n", " \n ")
         .replace(";", " ; ")
+        .replace(" u1i ", " uniform int ")
+        .replace(" u2i ", " uniform ivec2 ")
+        .replace(" u3i ", " uniform ivec3 ")
+        .replace(" u4i ", " uniform ivec4 ")
         .replace(" u1 ", " uniform float ")
         .replace(" u2 ", " uniform vec2 ")
         .replace(" u3 ", " uniform vec3 ")
         .replace(" u4 ", " uniform vec4 ")
+        .replace(" u1f ", " uniform float ")
+        .replace(" u2f ", " uniform vec2 ")
+        .replace(" u3f ", " uniform vec3 ")
+        .replace(" u4f ", " uniform vec4 ")
         .replace(" u2x2 ", " uniform mat2 ")
         .replace(" u3x3 ", " uniform mat3 ")
         .replace(" u4x4 ", " uniform mat4 ")

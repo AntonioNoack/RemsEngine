@@ -153,6 +153,7 @@ open class SkeletalAnimation(val skeleton: Skeleton, usesPositionForBindPoses: B
 
         skeletalBuffer.position(0)
         GFX.check()
+        // only update the bones we need
         GL21C.nglUniformMatrix4x3fv(uniform, max(1, bones.size), false, MemoryUtil.memAddress(skeletalBuffer))
         // GL21.glUniformMatrix4x3fv(uniform, false, skeletalBuffer)
         GFX.check()
