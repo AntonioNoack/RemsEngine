@@ -28,8 +28,7 @@ class AudioStreamRaw(
     val meta: FFMPEGMetadata,
     val is3D: Boolean,
     val source: Audio?,
-    val destination: Transform?,
-    val playbackSampleRate: Int = 48000
+    val destination: Transform?
 ) {
 
     // todo if out of bounds, and not recoverable, just stop

@@ -420,6 +420,7 @@ open class Panel(val style: Style) {
 
     open fun drawsOverlaysOverChildren(lx0: Int, ly0: Int, lx1: Int, ly1: Int) = false
 
+    // todo overlays don't work perfectly: the cross over the scrollbar is blinking when regularly redrawing...
     // first or null would be correct, however our overlays are all the same
     // (the small cross, which should be part of the ui instead)
     //, so we can use the last one

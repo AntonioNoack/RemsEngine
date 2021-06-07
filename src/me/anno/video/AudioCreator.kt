@@ -9,6 +9,7 @@ import me.anno.objects.Transform
 import me.anno.studio.rems.RemsStudio
 import me.anno.utils.Maths.clamp
 import me.anno.utils.process.BetterProcessBuilder
+import me.anno.video.Codecs.audioCodecByExtension
 import me.anno.video.FFMPEGUtils.processOutput
 import org.apache.logging.log4j.LogManager
 import java.io.DataOutputStream
@@ -35,16 +36,6 @@ open class AudioCreator(
         camera = cameras.firstOrNull() ?: RemsStudio.nullCamera ?: Camera()
     }
 
-    fun codecByExtension(extension: String) = when (extension.lowercase(Locale.getDefault())) {
-        "mp3", "mpg",
-        "mp4", "m4a",
-        "flv", "f4v" -> "libmp3lame"
-        "ogg", "oga",
-        "mkv", "mka",
-        "webm" -> "libvorbis"
-        else -> "aac"
-    }
-
     fun createOrAppendAudio(output: FileReference, videoCreator: VideoCreator?) {
 
         output.delete()
@@ -52,7 +43,7 @@ open class AudioCreator(
         // todo allow different audio codecs (if required...)
         // quality:
         // libopus > libvorbis >= libfdk_aac > libmp3lame >= eac3/ac3 > aac > libtwolame > vorbis (dont) > mp2 > wmav2/wmav1 (dont)
-        val audioCodec = codecByExtension(output.extension)
+        val audioCodec = audioCodecByExtension(output.extension) ?: return
 
         // http://crazedmuleproductions.blogspot.com/2005/12/using-ffmpeg-to-combine-audio-and.html
         // ffmpeg -i video.mp4 -i audio.wav -c:v copy -c:a aac output.mp4
@@ -60,7 +51,7 @@ open class AudioCreator(
         val rawFormat = "s16be"// signed, 16 bit, big endian
         val channels = "2" // stereo
         val audioEncodingArguments = if (videoCreator != null) {
-            listOf(
+            arrayListOf(
                 "-i", videoCreator.output.absolutePath,
                 "-f", rawFormat,
                 "-ar", sampleRate.toString(),
@@ -72,7 +63,7 @@ open class AudioCreator(
                 output.absolutePath
             )
         } else {
-            listOf(
+            arrayListOf(
                 "-f", rawFormat,
                 "-ar", sampleRate.toString(),
                 "-ac", channels,

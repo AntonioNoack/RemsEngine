@@ -24,14 +24,24 @@ object FFMPEGUtils {
         val out = stream.bufferedReader()
         var lastTime = GFX.gameTime
         var progressGuess = 0.0
+        var hasFailed = false
+        val lines = ArrayList<String>()
         while (true) {
+
             val line = out.readLine() ?: break
-            if (line.contains("unable", true) ||
-                line.contains("null", true)
-            ) {
-                logger.error(line)
-                Rendering.isRendering = false
+            lines += line
+
+            if(!hasFailed){
+                if (line.contains("unable", true) ||
+                    line.contains("null", true) ||
+                    line.contains("error", true) ||
+                    line.contains("failed", true)
+                ) {
+                    Rendering.isRendering = false
+                    hasFailed = true
+                }
             }
+
             // parse the line
             if (line.indexOf('=') > 0) {
                 // Video: frame=   65 fps=0.0 q=28.0 size=       0kB time=00:00:00.63 bitrate=   0.6kbits/s speed=1.26x
@@ -42,7 +52,7 @@ object FFMPEGUtils {
                 // var quality = 0f
                 // var size = 0
                 val thisTime = GFX.gameTime
-                val deltaTime = thisTime-lastTime
+                val deltaTime = thisTime - lastTime
                 lastTime = thisTime
                 val elapsedTime = (thisTime - startTime) * 1e-9
                 // var bitrate = 0
@@ -104,7 +114,7 @@ object FFMPEGUtils {
                 val progress =
                     if (frameIndex == totalFrameCount) " Done"
                     else "${formatPercent(relativeProgress)}%".withLength(5)
-                val fpsString = if(name == "Audio") "" else "fps: ${fps.toString().withLength(5)}, "
+                val fpsString = if (name == "Audio") "" else "fps: ${fps.toString().withLength(5)}, "
                 logger.info(
                     "$name-Progress: $progress, " +
                             fpsString +
@@ -118,6 +128,10 @@ object FFMPEGUtils {
             // }
             // frame=  151 fps= 11 q=12.0 size=     256kB time=00:00:04.40 bitrate= 476.7kbits/s speed=0.314x
             // or [libx264 @ 000001c678804000] frame I:1     Avg QP:19.00  size:  2335
+        }
+        if (hasFailed) {
+            for (line in lines)
+                logger.error(line)
         }
     }
 

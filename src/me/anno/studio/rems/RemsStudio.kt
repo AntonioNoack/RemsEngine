@@ -29,6 +29,10 @@ import me.anno.utils.OS
 // todo 3d model gltf support
 // todo fbx skeletal animations
 // todo scripting?...
+// todo gizmos
+
+// todo scene, where we can drag meshes and stuff into
+// todo tree view for ecs
 
 // todo for game engines: easy way to call C/C++, maybe other languages as well, like JavaScript or Lua (as a game engine)
 // todo text file editor with syntax highlighting??..

@@ -7,6 +7,7 @@ import me.anno.io.FileReference
 import me.anno.studio.rems.RemsStudio.project
 import me.anno.studio.rems.Rendering.isRendering
 import me.anno.utils.process.BetterProcessBuilder
+import me.anno.video.Codecs.videoCodecByExtension
 import me.anno.video.FFMPEGStream.Companion.logOutput
 import me.anno.video.FFMPEGUtils.processOutput
 import org.apache.logging.log4j.LogManager
@@ -14,6 +15,7 @@ import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL11.*
 import java.io.IOException
 import java.io.OutputStream
+import java.util.*
 import kotlin.concurrent.thread
 
 class VideoCreator(
@@ -39,7 +41,8 @@ class VideoCreator(
         if (output.exists()) output.delete()
         else output.file.parentFile.mkdirs()
 
-        val isGIF = output.extension.equals("gif", true)
+        val extension = output.extension.lowercase(Locale.getDefault())
+        val isGIF = extension == "gif"
 
         /**
          * first create the video,
@@ -49,7 +52,7 @@ class VideoCreator(
          * */
         val size = "${w}x${h}"
         val rawFormat = "rgb24"
-        val encoding = "libx264"
+        val encoding = videoCodecByExtension(extension) // "libx264"
         val constantRateFactor = project?.targetVideoQuality?.toString() ?: "23"
 
         // Incompatible pixel format 'yuv420p' for codec 'gif', auto-selecting format 'bgr8'
@@ -64,9 +67,9 @@ class VideoCreator(
             "-i", "pipe:0", // output buffer
         )
 
-        if(!isGIF){
+        if (!isGIF && encoding != null) {
             videoEncodingArguments += listOf(
-                "-c:v", encoding, // encoding
+                "-c:v", encoding
             )
         }
 
@@ -76,7 +79,7 @@ class VideoCreator(
             // "-qp", "0", // constant quality
         )
 
-        if(!isGIF){
+        if (!isGIF) {
             videoEncodingArguments += listOf(
                 "-crf", constantRateFactor
             )
@@ -86,7 +89,8 @@ class VideoCreator(
             "-pix_fmt", dstFormat
         )
 
-        if(!isGIF){
+        if (encoding == "libx264") {
+            // other codecs support other values
             videoEncodingArguments += listOf(
                 "-preset", balance.internalName
             )

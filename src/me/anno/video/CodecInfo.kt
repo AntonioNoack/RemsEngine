@@ -18,7 +18,7 @@ object CodecInfo {
 
     // libopus > libvorbis >= libfdk_aac > libmp3lame >= eac3/ac3 > aac > libtwolame > vorbis > mp2 > wmav2/wmav1
 
-    val containerFormats: List<Pair<List<String>, List<String>>> = listOf(
+    val audioCodecList: List<Pair<List<String>, List<String>>> = listOf(
         listOf("mkv", "mka") to listOf("opus", "vorbis", "mp2", "mp3", "lc-acc", "he-acc", "ac3", "eac3"),
         listOf("mp4", "m4a") to listOf("mp2", "mp3", "lc-acc", "he-acc", "ac3"),
         listOf("flv", "f4v") to listOf("mp3", "lc-acc", "he-acc"),
@@ -27,9 +27,9 @@ object CodecInfo {
         listOf("ps/ts") to listOf("mp2", "mp3", "lc-acc", "he-acc", "ac3"),
         listOf("m2ts") to listOf("ac3", "eac3"),
         listOf("vob") to listOf("mp2", "ac3"),
-        listOf("rmvb") to listOf("vorbis", "he-acc"),
-        listOf("webm") to listOf("vorbis", "opus"),
-        listOf("ogg") to listOf("vorbis", "opus")
+        listOf("rmvb") to listOf("libvorbis", "he-acc"),
+        listOf("webm") to listOf("libvorbis", "opus"),
+        listOf("ogg") to listOf("libvorbis", "opus")
     )
 
 }

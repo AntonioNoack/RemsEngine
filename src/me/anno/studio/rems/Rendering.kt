@@ -3,6 +3,7 @@ package me.anno.studio.rems
 import me.anno.io.FileReference
 import me.anno.language.translation.NameDesc
 import me.anno.objects.Audio
+import me.anno.objects.Transform
 import me.anno.studio.rems.RemsStudio.motionBlurSteps
 import me.anno.studio.rems.RemsStudio.project
 import me.anno.studio.rems.RemsStudio.root
@@ -39,6 +40,14 @@ object Rendering {
         )
     }
 
+    fun filterAudio(scene: Transform): List<Audio> {
+        return scene.listOfAll
+            .filterIsInstance<Audio>()
+            .filter {
+                it.forcedMeta?.hasAudio == true && (it.amplitude.isAnimated || it.amplitude[0.0] * 32e3f > 1f)
+            }.toList()
+    }
+
     fun renderVideo(width: Int, height: Int, ask: Boolean, callback: () -> Unit) {
 
         if (width % div != 0 || height % div != 0) return renderVideo(
@@ -70,9 +79,7 @@ object Rendering {
         val scene = root.clone()
 
         // todo make gifs with audio
-        val audioSources = if(isGif) emptyList() else scene.listOfAll
-            .filterIsInstance<Audio>()
-            .filter { it.forcedMeta?.hasAudio == true }.toList()
+        val audioSources = if (isGif) emptyList() else filterAudio(scene)
 
         val balance = project?.ffmpegBalance ?: FFMPEGEncodingBalance.M0
         val type = project?.ffmpegFlags ?: FFMPEGEncodingType.DEFAULT
@@ -145,9 +152,9 @@ object Rendering {
         val sampleRate = max(1, RemsStudio.targetSampleRate)
 
         val scene = root.clone()
-        val audioSources = scene.listOfAll
-            .filterIsInstance<Audio>()
-            .filter { it.forcedMeta?.hasAudio == true }.toList()
+        val audioSources = filterAudio(scene)
+
+        // todo if is empty, send a warning instead of doing something
 
         AudioCreator(scene, duration, sampleRate, audioSources).apply {
             onFinished = {
