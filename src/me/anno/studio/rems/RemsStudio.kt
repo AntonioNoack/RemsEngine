@@ -24,6 +24,36 @@ import me.anno.ui.editor.sceneView.ISceneView
 import me.anno.ui.editor.treeView.TreeView
 import me.anno.utils.OS
 
+
+// todo mesh preview, primarily for other projects
+// todo 3d model gltf support
+// todo fbx skeletal animations
+// todo scripting?...
+
+// todo for game engines: easy way to call C/C++, maybe other languages as well, like JavaScript or Lua (as a game engine)
+// todo text file editor with syntax highlighting??..
+
+// todo usable entity component system? our current way is probably to limited to Rem's Studio only
+
+// todo shared code and mesh base, and the engine/compiler collects all required resources for the exported scenes?
+// could be a really nice system :)
+
+// todo games, which we want to develop:
+//  - city builder
+//          on a globe would be cool
+//          with districts, giant world, connecting multiple cities together
+//  - underground survival after apocalypse/crash: many dungeons, water einbrüche, food resources, building electricity system,
+//          and resource management
+//  - minecraft like game with easy modding and plugin support, without version barriers, with Minecraft-Mod support
+//  - gta / grand theft waifu,
+//          money/car/heist stealing game with 3rd person shooting and car driving as main game loop
+//          low poly style, because that's the only possible way for a hobby programmer
+//  - GTA x Minecraft? it would be nice to build in such a world... low poly could allow that by placing assets, and then
+//          creating personal levels or bases with that
+
+
+
+
 // Launch4j
 
 // todo configurable background color (render settings)

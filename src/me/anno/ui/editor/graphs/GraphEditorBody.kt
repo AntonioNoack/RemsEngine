@@ -47,6 +47,8 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
+// todo major and minor x, maybe y lines
+
 // todo make music x times calmer, if another audio line (voice) is on as an optional feature
 // todo move multiple keyframes at a time
 

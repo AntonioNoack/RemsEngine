@@ -1,8 +1,8 @@
-package me.anno.objectsV2
+package me.anno.ecs
 
 import me.anno.objects.Transform
-import me.anno.objectsV2.components.DrawableComponent
-import me.anno.objectsV2.components.shaders.FragmentShaderComponent
+import me.anno.ecs.components.DrawableComponent
+import me.anno.ecs.components.shaders.FragmentShaderComponent
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4fc
 

@@ -1,4 +1,4 @@
-package me.anno.objectsV2.components.shaders
+package me.anno.ecs.components.shaders
 
 enum class VariableType {
     UNIFORM_V1,

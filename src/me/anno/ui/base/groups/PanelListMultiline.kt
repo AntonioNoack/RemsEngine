@@ -11,6 +11,7 @@ import me.anno.utils.Maths.clamp
 import me.anno.utils.structures.tuples.Quad
 import kotlin.math.max
 
+// todo space between entries instead of towards the end
 class PanelListMultiline(style: Style) : PanelGroup(style), ScrollableY {
 
     override val children = ArrayList<Panel>(256)
@@ -32,8 +33,7 @@ class PanelListMultiline(style: Style) : PanelGroup(style), ScrollableY {
     }
 
     override fun getLayoutState() =
-        Triple(
-            super.getLayoutState(),
+        Pair(
             children.count { it.visibility == Visibility.VISIBLE },
             Quad(
                 childWidth,
@@ -58,7 +58,7 @@ class PanelListMultiline(style: Style) : PanelGroup(style), ScrollableY {
         updateSize(w, h)
 
         for (child in children) {
-            if(child.visibility == Visibility.VISIBLE){
+            if (child.visibility == Visibility.VISIBLE) {
                 child.calculateSize(calcChildWidth, calcChildHeight)
                 // child.applyConstraints()
             }
@@ -102,7 +102,7 @@ class PanelListMultiline(style: Style) : PanelGroup(style), ScrollableY {
         val scroll = scrollPosition.toInt()
         var i = 0
         for (child in children) {
-            if(child.visibility == Visibility.VISIBLE){
+            if (child.visibility == Visibility.VISIBLE) {
                 val ix = i % columns
                 val iy = i / columns
                 val cx = x + ix * (calcChildWidth + spacing) + spacing
@@ -149,7 +149,7 @@ class PanelListMultiline(style: Style) : PanelGroup(style), ScrollableY {
         } else super.onMouseWheel(x, y, dx, dy)
     }
 
-    fun clampScrollPosition() {
+    private fun clampScrollPosition() {
         scrollPosition = clamp(scrollPosition, 0f, maxScrollPosition.toFloat())
     }
 

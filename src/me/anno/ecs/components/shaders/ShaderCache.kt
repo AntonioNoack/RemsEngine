@@ -1,4 +1,4 @@
-package me.anno.objectsV2.components.shaders
+package me.anno.ecs.components.shaders
 
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection

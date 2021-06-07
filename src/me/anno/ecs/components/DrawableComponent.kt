@@ -1,6 +1,6 @@
-package me.anno.objectsV2.components
+package me.anno.ecs.components
 
-import me.anno.objectsV2.components.shaders.FragmentShaderComponent
+import me.anno.ecs.components.shaders.FragmentShaderComponent
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4fc
 

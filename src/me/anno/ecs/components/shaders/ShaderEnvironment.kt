@@ -1,6 +1,6 @@
-package me.anno.objectsV2.components.shaders
+package me.anno.ecs.components.shaders
 
-import me.anno.objectsV2.Component
+import me.anno.ecs.Component
 
 class ShaderEnvironment {
 

@@ -29,7 +29,7 @@ import me.anno.utils.files.Files.listFiles2
 import java.io.File
 import kotlin.math.max
 
-// todo the text size is quite small on my x360 -> get the font size for the ui from the OS :)
+// done the text size is quite small on my x360 -> get the font size for the ui from the OS :)
 // todo double click is not working in touch mode?
 // todo make file path clickable to quickly move to a grandparent folder :)
 
@@ -48,13 +48,12 @@ import kotlin.math.max
 class FileExplorer(style: Style) : PanelListY(style.getChild("fileExplorer")) {
 
     var folder: FileReference? = project?.scenes ?: OS.documents
-
-    override fun getLayoutState(): Any? = folder
-    override fun getVisualState(): Any? = Triple(
-        uContent.getVisualState(),
-        title.getVisualState(),
-        searchBar.getVisualState()
-    )
+        set(value) {
+            if(field != value){
+                invalidate()
+                field = value
+            }
+        }
 
     val searchBar = TextInput("Search Term", false, style)
         .setChangeListener {

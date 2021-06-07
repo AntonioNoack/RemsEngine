@@ -58,7 +58,6 @@ open class TimelinePanel(style: Style) : Panel(style) {
     val font = style.getFont("tinyText", defaultFont)
     val fontColor = style.getColor("textColor", DefaultStyle.fontGray)
     val endColor = style.getColor("endColor", mixARGB(fontColor, 0xffff0000.toInt(), 0.5f))
-    val timeFont = font.withSize(20f)
 
     fun drawCurrentTime() {
         GFX.loadTexturesSync.push(true)

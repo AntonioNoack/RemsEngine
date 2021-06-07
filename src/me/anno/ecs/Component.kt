@@ -1,4 +1,4 @@
-package me.anno.objectsV2
+package me.anno.ecs
 
 import me.anno.objects.Transform
 

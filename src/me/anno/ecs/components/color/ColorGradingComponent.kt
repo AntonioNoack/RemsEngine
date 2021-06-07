@@ -1,12 +1,12 @@
-package me.anno.objectsV2.components.color
+package me.anno.ecs.components.color
 
 import me.anno.gpu.shader.Shader
 import me.anno.io.base.BaseWriter
 import me.anno.animation.AnimatedProperty
-import me.anno.objectsV2.Component
-import me.anno.objectsV2.components.shaders.FragmentShaderComponent
-import me.anno.objectsV2.components.shaders.ShaderEnvironment
-import me.anno.objectsV2.components.shaders.VariableType
+import me.anno.ecs.Component
+import me.anno.ecs.components.shaders.FragmentShaderComponent
+import me.anno.ecs.components.shaders.ShaderEnvironment
+import me.anno.ecs.components.shaders.VariableType
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style

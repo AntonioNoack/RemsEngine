@@ -32,6 +32,8 @@ class AudioStreamRaw(
     val playbackSampleRate: Int = 48000
 ) {
 
+    // todo if out of bounds, and not recoverable, just stop
+
     // should be as short as possible for fast calculation
     // should be at least as long as the ffmpeg response time (0.3s for the start of a FHD video)
     companion object {
@@ -129,7 +131,7 @@ class AudioStreamRaw(
         val localTime = globalToLocalTime(globalTime)
         val amplitude = abs(localAmplitude(localTime))
         if (amplitude < minPerceptibleAmplitude) {
-            return ZeroTransfer
+            return t0.set(0f, 0f)
         }
 
         if (!is3D) return t0.set(amplitude, amplitude)
