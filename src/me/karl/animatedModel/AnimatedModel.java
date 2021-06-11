@@ -1,5 +1,6 @@
 package me.karl.animatedModel;
 
+import me.anno.io.FileReference;
 import me.karl.animation.Animation;
 import me.karl.animation.Animator;
 import me.karl.openglObjects.Vao;
@@ -24,7 +25,7 @@ public class AnimatedModel {
 
 	// skin
 	private final Vao model;
-	private final List<File> textures;
+	private final List<FileReference> textures;
 
 	// skeleton
 	private final Joint rootJoint;
@@ -54,7 +55,7 @@ public class AnimatedModel {
 	 *            this entity.
 	 * 
 	 */
-	public AnimatedModel(Vao model, List<File> textures, Joint rootJoint, int jointCount) {
+	public AnimatedModel(Vao model, List<FileReference> textures, Joint rootJoint, int jointCount) {
 		this.model = model;
 		this.textures = textures;
 		this.rootJoint = rootJoint;
@@ -73,7 +74,7 @@ public class AnimatedModel {
 	/**
 	 * @return The diffuse texture for this entity.
 	 */
-	public List<File> getTextures() {
+	public List<FileReference> getTextures() {
 		return textures;
 	}
 

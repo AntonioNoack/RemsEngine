@@ -1,5 +1,6 @@
 package me.karl.loaders;
 
+import me.anno.io.FileReference;
 import me.karl.animatedModel.AnimatedModel;
 import me.karl.animatedModel.Joint;
 import me.karl.colladaLoader.ColladaLoader;
@@ -29,7 +30,7 @@ public class AnimatedModelLoader {
 		AnimatedModelData entityData = ColladaLoader.loadColladaModel(modelFile, GeneralSettings.MAX_WEIGHTS);
 		Vao model = createVao(entityData.getMeshData());
 		List<String> tex = entityData.getTextureData().textures;
-		ArrayList<File> textures = new ArrayList<>();
+		ArrayList<FileReference> textures = new ArrayList<>();
 		for(String name : tex){
 			textures.add(modelFile.getParent().getChild(name).file);
 		}

@@ -115,7 +115,9 @@ class Mesh(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
                         GFX.addGPUTask(10) {
                             GFX.check()
                             try {
-                                meshData.daeScene = SceneLoader.loadScene(URI(file.file), URI(file.file))
+                                meshData.daeScene = SceneLoader.loadScene(URI(file), URI(file))
+                                // for consistency between Obj and Dae files
+                                meshData.daeScene?.lightDirection?.set(1f, 0f, 0f)
                             } catch (e: Exception) {
                                 e.printStackTrace()
                                 meshData.lastWarning = e.message
@@ -129,11 +131,13 @@ class Mesh(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
                     if (isFinalRendering && data == null) throw MissingFrameException(file)
 
                     // stack.scale(0.01f, -0.01f, 0.01f)
-                    if (data?.daeScene != null) data.drawDae(stack, time, color)
-                    else {
-                        lastWarning = data?.lastWarning ?: "Loading"
-                        super.onDraw(stack, time, color)
-                    }
+                    if (data?.daeScene != null){
+                        stack.next {
+                            if (powerOf10Correction != 0)
+                                stack.scale(pow(10f, powerOf10Correction.toFloat()))
+                            data.drawDae(stack, time, color)
+                        }
+                    } else super.onDraw(stack, time, color)
 
                 }
                 "fbx" -> {

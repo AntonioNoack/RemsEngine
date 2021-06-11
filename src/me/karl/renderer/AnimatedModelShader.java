@@ -52,7 +52,8 @@ public class AnimatedModelShader extends ShaderProgram {
 	private static final String FRAGMENT_SHADER = "" +
 			"#version 150\n" +
 
-			"const vec2 lightBias = vec2(0.7, 0.6);//just indicates the balance between diffuse and ambient lighting\n" +
+			// "const vec2 lightBias = vec2(0.7, 0.6);//just indicates the balance between diffuse and ambient lighting\n" +
+			"const vec2 lightBias = vec2(0.5, 0.5);//just indicates the balance between diffuse and ambient lighting\n" +
 
 			"in vec2 pass_textureCoords;\n" +
 			"in vec3 pass_normal;\n" +
@@ -63,7 +64,8 @@ public class AnimatedModelShader extends ShaderProgram {
 			"void main(void){\n" +
 			"	vec4 diffuseColour = texture(diffuseMap, pass_textureCoords);\n" +
 			"	vec3 unitNormal = normalize(pass_normal);\n" +
-			"	float diffuseLight = max(dot(-lightDirection, unitNormal), 0.0) * lightBias.x + lightBias.y;\n" +
+			// "	float diffuseLight = max(dot(-lightDirection, unitNormal), 0.0) * lightBias.x + lightBias.y;\n" +
+			"	float diffuseLight = lightBias.y - dot(lightDirection, unitNormal) * lightBias.x;\n" +
 			"	vec4 color = vec4(diffuseColour.rgb * diffuseLight, diffuseColour.a), tint = vec4(1.0);\n" +
 			"	float zDistance = 1.0;\n" +
 			"	gl_FragColor = color;\n" +

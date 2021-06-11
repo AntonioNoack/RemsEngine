@@ -48,12 +48,12 @@ public class AnimatedModelRenderer {
      */
     public void render(AnimatedModel entity, ICamera camera, Vector3f lightDir) {
         prepare(camera, lightDir);
-        List<File> tex = entity.getTextures();
+        List<FileReference> tex = entity.getTextures();
         Texture2D texture = null;
-        File file0;
+        FileReference file0;
         if (!tex.isEmpty() && (file0 = tex.get(0)) != null) {
             texture = ImageCache.INSTANCE.getImage(file0, 1000L, true);
-            if (texture == null && GFX.INSTANCE.isFinalRendering() && hasValidName(file0)) {
+            if (texture == null && GFX.INSTANCE.isFinalRendering() && file0.hasValidName()) {
                 throw new MissingFrameException(file0);
             }
         }

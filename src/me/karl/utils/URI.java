@@ -1,5 +1,6 @@
 package me.karl.utils;
 
+import me.anno.io.FileReference;
 import me.anno.utils.OS;
 
 import java.io.*;
@@ -16,9 +17,9 @@ public class URI {
 
     private CharSequence path;
     private String name;
-    public File file;
+    public FileReference file;
 
-    public URI(File file) {
+    public URI(FileReference file) {
         this.file = file;
     }
 
@@ -57,13 +58,13 @@ public class URI {
     }
 
     public URI getParent() {
-        if (file != null) return new URI(file.getParentFile());
+        if (file != null) return new URI(file.getParent());
         int si = path.toString().lastIndexOf(FILE_SEPARATOR);
         return new URI(path.toString().substring(0, si));
     }
 
     public URI getChild(String name) {
-        if (file != null) return new URI(new File(file, name));
+        if (file != null) return new URI(new FileReference(file, name));
         return new URI(this, name);
     }
 
@@ -80,7 +81,7 @@ public class URI {
         return new FileInputStream(file == null ? new File(
                 new File(OS.INSTANCE.getDocuments().getFile(),
                         "IdeaProjects\\VideoStudio\\src\\me\\karl"),
-                path.toString().substring(1)) : file);
+                path.toString().substring(1)) : file.getFile());
         // return Class.class.getResourceAsStream(path);
     }
 
