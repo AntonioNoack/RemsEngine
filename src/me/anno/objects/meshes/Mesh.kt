@@ -1,5 +1,9 @@
 package me.anno.objects.meshes
 
+import de.javagl.jgltf.model.io.GltfModelReader
+import me.anno.animation.AnimatedProperty
+import me.anno.animation.Type
+import me.anno.cache.instances.LastModifiedCache
 import me.anno.cache.instances.MeshCache.getMesh
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
@@ -7,11 +11,15 @@ import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.io.FileReference
+import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.language.translation.Dict
 import me.anno.mesh.fbx.model.FBXGeometry
 import me.anno.mesh.fbx.model.FBXShader.maxWeightsDefault
 import me.anno.mesh.fbx.structure.FBXReader
+import me.anno.mesh.gltf.ExternalCameraImpl
+import me.anno.mesh.gltf.GltfLogger
+import me.anno.mesh.gltf.GltfViewerLwjgl
 import me.anno.mesh.obj.Material
 import me.anno.mesh.obj.OBJReader
 import me.anno.objects.GFXTransform
@@ -19,25 +27,42 @@ import me.anno.objects.Transform
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
+import me.anno.utils.Maths.pow
 import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.video.MissingFrameException
 import me.karl.main.SceneLoader
 import me.karl.renderer.AnimatedModelRenderer
 import me.karl.utils.URI
+import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4fc
 import java.util.*
 
 class Mesh(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
 
+    // todo select animation from the available ones
+    // todo lerp animations
+
     companion object {
+
         // var daeEngine: RenderEngine? = null
+        val gltfReader = GltfModelReader()
         var daeRenderer: AnimatedModelRenderer? = null
+
+        init {
+            GltfLogger.setup()
+            LogManager.disableLogger("MatrixOps")
+            LogManager.disableLogger("RenderCommandUtils")
+            LogManager.disableLogger("GlContextLwjgl")
+        }
+
     }
 
     // todo types of lights
     // todo shadows, ...
     // todo types of shading/rendering?
+
+    val animationIndex = AnimatedProperty.int()
 
     // for the start it is nice to be able to import meshes like a torus into the engine :)
 
@@ -45,6 +70,7 @@ class Mesh(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
 
     var lastFile: FileReference? = null
     var extension = ""
+    var powerOf10Correction = 0
 
     fun loadModel(file: FileReference, key: String, load: (MeshData) -> Unit, getData: (MeshData) -> Any?): MeshData? {
         val meshData1 = getMesh(file, key, 1000, true) {
@@ -66,7 +92,7 @@ class Mesh(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
 
         val file = file
-        if (file.hasValidName()) {
+        if (file.hasValidName() && LastModifiedCache[file].exists) {
 
             if (file !== lastFile) {
                 extension = file.extension.lowercase(Locale.getDefault())
@@ -127,8 +153,13 @@ class Mesh(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
                         }
                     }) { it.fbxData }
 
-                    if (data?.fbxData != null) data.drawFBX(stack, time, color)
-                    else super.onDraw(stack, time, color)
+                    if (data?.fbxData != null) {
+                        stack.next {
+                            if (powerOf10Correction != 0)
+                                stack.scale(pow(10f, powerOf10Correction.toFloat()))
+                            data.drawFBX(stack, time, color)
+                        }
+                    } else super.onDraw(stack, time, color)
 
                 }
                 "obj" -> {
@@ -150,8 +181,33 @@ class Mesh(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
                         }
                     }) { it.objData }
 
-                    if (data?.objData != null) data.drawObj(stack, time, color)
-                    else super.onDraw(stack, time, color)
+                    if (data?.objData != null) {
+                        stack.next {
+                            if (powerOf10Correction != 0)
+                                stack.scale(pow(10f, powerOf10Correction.toFloat()))
+                            data.drawObj(stack, time, color)
+                        }
+                    } else super.onDraw(stack, time, color)
+
+                }
+                "gltf", "glb" -> {
+                    val data = loadModel(file, "Mesh-GLTF", {
+
+                        val model = gltfReader.read(file.toUri())
+                        val viewer = GltfViewerLwjgl()
+                        val camera = ExternalCameraImpl()
+                        viewer.setup(camera, model)
+                        it.gltfData = GlTFData(viewer, model, camera)
+
+                    }) { it.gltfData }
+
+                    if (data?.gltfData != null) {
+                        stack.next {
+                            if (powerOf10Correction != 0)
+                                stack.scale(pow(10f, powerOf10Correction.toFloat()))
+                            data.drawGlTF(stack, time, color, animationIndex[time])
+                        }
+                    } else super.onDraw(stack, time, color)
 
                 }
                 else -> {
@@ -173,17 +229,40 @@ class Mesh(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
     ) {
         super.createInspector(list, style, getGroup)
         list += vi("File", "", null, file, style) { file = it }
+        list += vi(
+            "Scale Correction, 10^N",
+            "Often file formats are incorrect in size by a factor of 100. Use +/- 2 to correct this issue easily",
+            Type.INT, powerOf10Correction, style
+        ) { powerOf10Correction = it }
+        // todo use names instead
+        list += vi("Animation Index", "", animationIndex, style)
     }
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
         writer.writeFile("file", file)
+        writer.writeInt("powerOf10", powerOf10Correction)
+        writer.writeObject(this, "animationIndex", animationIndex)
+    }
+
+    override fun readObject(name: String, value: ISaveable?) {
+        when (name) {
+            "animationIndex" -> animationIndex.copyFrom(value)
+            else -> super.readObject(name, value)
+        }
     }
 
     override fun readString(name: String, value: String) {
         when (name) {
             "file" -> file = value.toGlobalFile()
             else -> super.readString(name, value)
+        }
+    }
+
+    override fun readInt(name: String, value: Int) {
+        when (name) {
+            "powerOf10" -> powerOf10Correction = value
+            else -> super.readInt(name, value)
         }
     }
 

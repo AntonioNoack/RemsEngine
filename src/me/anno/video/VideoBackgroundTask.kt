@@ -1,5 +1,6 @@
 package me.anno.video
 
+import me.anno.animation.AnimatedProperty
 import me.anno.gpu.GFX
 import me.anno.gpu.blending.BlendDepth
 import me.anno.gpu.blending.BlendMode
@@ -21,8 +22,8 @@ class VideoBackgroundTask(
     val video: VideoCreator,
     val scene: Transform,
     val camera: Camera,
-    val motionBlurSteps: Int,
-    val shutterPercentage: Float
+    val motionBlurSteps: AnimatedProperty<Int>,
+    val shutterPercentage: AnimatedProperty<Float>
 ) {
 
     private val partialFrame = Framebuffer(
@@ -100,6 +101,8 @@ class VideoBackgroundTask(
         val drawMode = ShaderPlus.DrawMode.COLOR
 
         var needsMoreSources = false
+        val motionBlurSteps = motionBlurSteps[time]
+        val shutterPercentage = shutterPercentage[time]
 
         if (motionBlurSteps < 2 || shutterPercentage <= 1e-3f) {
             Frame(0, 0, video.w, video.h, false, averageFrame) {

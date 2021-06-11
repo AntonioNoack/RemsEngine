@@ -2,8 +2,9 @@ package org.apache.logging.log4j
 
 import org.apache.commons.logging.Log
 import java.util.*
+import java.util.logging.Level
 
-class LoggerImpl(prefix: String?) : Logger, Log {
+class LoggerImpl(val prefix: String?) : Logger, Log {
 
     fun interleave(msg: String, args: Array<out Any>): String {
         if (args.isEmpty()) return msg
@@ -25,24 +26,27 @@ class LoggerImpl(prefix: String?) : Logger, Log {
         val calendar = Calendar.getInstance()
         val seconds = calendar.get(Calendar.SECOND)
         val minutes = calendar.get(Calendar.MINUTE)
-        val hours= calendar.get(Calendar.HOUR_OF_DAY)
+        val hours = calendar.get(Calendar.HOUR_OF_DAY)
         return "%2d:%2d:%2d".format(hours, minutes, seconds)
             .replace(' ', '0')
     }
 
     fun print(prefix: String, msg: String) {
-        msg.split('\n').forEach { line ->
-            val line2 = "[${getTimeStamp()},$prefix$suffix] $line"
-            if(prefix == "ERR!"){
-                System.err.println(line2)
-            } else {
-                println(line2)
+        if (LogManager.isEnabled(this)) {
+            msg.split('\n').forEach { line ->
+                val line2 = "[${getTimeStamp()},$prefix$suffix] $line"
+                if (prefix == "ERR!") {
+                    System.err.println(line2)
+                } else {
+                    println(line2)
+                }
             }
         }
     }
 
     override fun info(msg: String) {
         when (suffix) {
+            // todo use logging settings instead of this blacklist
             ":ScratchFileBuffer", ":PDFObjectStreamParser",
             ":FontFileFinder", ":FontMapperImpl", ":FileSystemFontProvider" -> Unit
             else -> print("INFO", msg)
@@ -167,28 +171,32 @@ class LoggerImpl(prefix: String?) : Logger, Log {
         error(o, throwable)
     }
 
+    override fun isLoggable(level: Level): Boolean {
+        return LogManager.isEnabled(this)
+    }
+
     override fun isTraceEnabled(): Boolean {
-        return true
+        return LogManager.isEnabled(this)
     }
 
     override fun isDebugEnabled(): Boolean {
-        return true
+        return LogManager.isEnabled(this)
     }
 
     override fun isInfoEnabled(): Boolean {
-        return true
+        return LogManager.isEnabled(this)
     }
 
     override fun isWarnEnabled(): Boolean {
-        return true
+        return LogManager.isEnabled(this)
     }
 
     override fun isFatalEnabled(): Boolean {
-        return true
+        return LogManager.isEnabled(this)
     }
 
     override fun isErrorEnabled(): Boolean {
-        return true
+        return LogManager.isEnabled(this)
     }
 
 

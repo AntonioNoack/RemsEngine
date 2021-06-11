@@ -85,8 +85,10 @@ class PropertyInspector(style: Style):
                     }
                 }
             }
-            if(src.hasNext() != dst.hasNext()){
-                // we (would?) need to update the structure...
+            if(src.hasNext() != dst.hasNext() && selected != null){
+                // we need to update the structure...
+                lastSelected = null
+                tickUpdate()
             }
         }
     }

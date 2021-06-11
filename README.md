@@ -30,7 +30,7 @@ It is additionally developed with Java, so it works with Windows and Linux.
 * [Metadata Extractor](https://github.com/drewnoakes/metadata-extractor) (Detecting rotated JPEG files)
 * [JNA Platform](https://github.com/java-native-access/jna) (Moving files to trash)
 * [Apache PDFBox](https://pdfbox.apache.org/) (Rendering PDFs)
-* [JAI ImageIO Core](https://github.com/jai-imageio/jai-imageio-core) (More image formats for PDF)
+* [JAI ImageIO Core](https://github.com/jai-imageio/jai-imageio-core) (More image formats for PDFs)
 * [JAI ImageIO JPEG2000](https://github.com/jai-imageio/jai-imageio-jpeg2000) (JPEG 2000 support for PDFs)
 <!-- * [Caliko](https://github.com/FedUni/caliko) (FABRIK IK) -->
 

@@ -775,7 +775,7 @@ object ShaderLib {
                     getColorForceFieldLib +
                     "void main(){\n" +
                     "   vec4 color = getTexture(tex, uv);\n" +
-                    "   color.rgb *= 0.5 + 0.5 * dot(vec3(1.0, 0.0, 0.0), normal);\n" +
+                    "   color.rgb *= 0.5 + 0.5 * dot(vec3(-1.0, 0.0, 0.0), normal);\n" +
                     "   if($hasForceFieldColor) color *= getForceFieldColor();\n" +
                     "   gl_FragColor = tint * color;\n" +
                     "}", listOf("tex")

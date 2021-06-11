@@ -1,5 +1,7 @@
 package me.anno.io.utils
 
+import me.anno.animation.AnimatedProperty
+import me.anno.animation.Type
 import me.anno.gpu.GFX.gameTime
 import me.anno.gpu.texture.Filtering
 import me.anno.io.FileReference
@@ -8,13 +10,10 @@ import me.anno.io.config.ConfigBasics
 import me.anno.io.config.ConfigEntry
 import me.anno.ui.editor.files.toAllowedFilename
 import me.anno.utils.OS
-import me.anno.utils.Threads.threadWithName
 import me.anno.utils.hpc.ProcessingQueue
 import org.joml.Vector3f
 import java.io.File
 import java.util.*
-import kotlin.collections.HashMap
-import kotlin.concurrent.thread
 import kotlin.math.abs
 import kotlin.math.min
 
@@ -290,11 +289,37 @@ open class StringMap(
         return this
     }
 
+    fun <V> getAnimated(key: String, type: Type): AnimatedProperty<V> {
+        val v = when (val value = this[key]) {
+            is AnimatedProperty<*> -> {
+                return if (value.type == type) {
+                    value as AnimatedProperty<V>
+                } else {
+                    val v2 = AnimatedProperty<V>(type)
+                    v2.copyFrom(type)
+                    set(key, v2)
+                    v2
+                }
+            }
+            is Int -> value
+            is Long -> value
+            is Float -> value
+            is Double -> value
+            is String -> value
+            null -> type.defaultValue
+            else -> value
+        }
+        val v2 = AnimatedProperty<V>(type)
+        v2.set(v as V)
+        set(key, v2)
+        return v2
+    }
+
     private val saveDelay = 1_000_000_000L
     private var lastSaveTime = gameTime - saveDelay - 1
     fun saveMaybe(name: String) {
         if (wasChanged) {
-            synchronized(this){
+            synchronized(this) {
                 if (abs(lastSaveTime - gameTime) >= saveDelay) {// only save every 1s
                     // delay in case it needs longer
                     lastSaveTime = gameTime + (60 * 1e9).toLong()

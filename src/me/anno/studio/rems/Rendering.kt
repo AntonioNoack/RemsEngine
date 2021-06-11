@@ -126,8 +126,8 @@ object Rendering {
             width, height,
             RemsStudio.targetFPS,
             root.clone(),
-            motionBlurSteps,
-            shutterPercentage,
+            motionBlurSteps[time],
+            shutterPercentage[time],
             time,
             targetOutputFile
         ).start(callback)

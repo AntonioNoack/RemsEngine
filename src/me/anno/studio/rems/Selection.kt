@@ -1,11 +1,12 @@
 package me.anno.studio.rems
 
+import me.anno.animation.AnimatedProperty
 import me.anno.io.ISaveable
 import me.anno.io.find.PropertyFinder
 import me.anno.objects.Transform
-import me.anno.animation.AnimatedProperty
 import me.anno.objects.inspectable.Inspectable
 import me.anno.studio.rems.RemsStudio.root
+import me.anno.utils.structures.maps.BiMap
 import me.anno.utils.types.Sequences.getOrNull
 import org.apache.logging.log4j.LogManager
 
@@ -28,7 +29,7 @@ object Selection {
     var selectedPropName: String? = null
     var needsUpdate = true
 
-    fun clear(){
+    fun clear() {
         selectedUUID = -1
         selectedPropName = null
         needsUpdate = true
@@ -41,7 +42,7 @@ object Selection {
     }
 
     fun selectProperty(property: ISaveable) {
-        if(selectedProperty == property){
+        if (selectedProperty == property) {
             select(selectedTransform!!, null)
         } else select(selectedTransform!!, property)
     }
@@ -52,15 +53,15 @@ object Selection {
 
     fun selectTransformMaybe(transform: Transform?) {
         // if already selected, don't inspect that property/driver
-        if(selectedTransform == transform) clear()
+        if (selectedTransform == transform) clear()
         select(transform, null)
     }
 
     fun select(transform: Transform?, property: ISaveable?) {
 
-        if (transform != null){
+        if (transform != null) {
             val loi = transform.listOfInheritance.toList()
-            if(loi.withIndex().any { (index, t) -> index > 0 && t.areChildrenImmutable }) {
+            if (loi.withIndex().any { (index, t) -> index > 0 && t.areChildrenImmutable }) {
                 val lot = loi.last { it.areChildrenImmutable }
                 LOGGER.info("Selected immutable element ${transform.name}, selecting the parent ${lot.name}")
                 select(lot, null)
@@ -73,7 +74,7 @@ object Selection {
         val propName = newName ?: selectedPropName
         // println("$newName:$propName from ${transform?.getClassName()}:${property?.getClassName()}")
         RemsStudio.largeChange("Select ${transform?.name ?: "Nothing"}:$propName") {
-            selectedUUID = if(transform == null) -1 else root.listOfAll.indexOf(transform)
+            selectedUUID = getIdFromTransform(transform)
             selectedPropName = propName
             st = transform
             val property2 =
@@ -91,7 +92,7 @@ object Selection {
         } else {
 
             // re-find the selected transform and property...
-            st = if(selectedUUID < 0) null else root.listOfAll.getOrNull(selectedUUID)
+            st = getTransformFromId()
             val selectedTransform = st
             val selectedPropName = selectedPropName
             if (selectedTransform != null && selectedPropName != null) {
@@ -108,6 +109,32 @@ object Selection {
             needsUpdate = false
 
         }
+    }
+
+    private fun getIdFromTransform(transform: Transform?): Int {
+        var id = if (transform == null) -1 else root.listOfAll.indexOf(transform)
+        // a special value
+        if (transform != null && id == -1) {
+            id = getSpecialUUID(transform)
+        }
+        return id
+    }
+
+    private fun getTransformFromId(): Transform? {
+        return when {
+            selectedUUID < 0 -> null
+            selectedUUID < specialIdOffset -> root.listOfAll.getOrNull(selectedUUID)
+            else -> specialIds.reverse.getOrDefault(selectedUUID, null)
+        }
+    }
+
+    private const val specialIdOffset = 1_000_000_000
+    private val specialIds = BiMap<Transform, Int>(32)
+    private fun getSpecialUUID(t: Transform): Int {
+        if (t in specialIds) return specialIds[t]!!
+        val id = specialIds.size + specialIdOffset
+        specialIds[t] = id
+        return id
     }
 
 }

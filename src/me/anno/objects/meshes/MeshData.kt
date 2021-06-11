@@ -6,11 +6,11 @@ import me.anno.cache.instances.ImageCache.getImage
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.GFX.matrixBufferFBX
-import me.anno.gpu.GFX.savedHeight
 import me.anno.gpu.GFXx3D.shader3DUniforms
 import me.anno.gpu.ShaderLib.shaderFBX
 import me.anno.gpu.ShaderLib.shaderObjMtl
 import me.anno.gpu.TextureLib.whiteTexture
+import me.anno.gpu.blending.BlendDepth
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Filtering
@@ -31,6 +31,7 @@ open class MeshData : ICacheData {
 
     var objData: Map<Material, StaticBuffer>? = null
     var fbxData: List<FBXData>? = null
+    var gltfData: GlTFData? = null
     var daeScene: Scene? = null
 
     fun drawObj(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
@@ -41,6 +42,32 @@ open class MeshData : ICacheData {
             getTexture(material.diffuseTexture, whiteTexture).bind(0, whiteTexture.filtering, whiteTexture.clamping)
             buffer.draw(shader)
             GFX.check()
+        }
+    }
+
+    /**
+     * todo looping modes for the animation...
+     * see also {@link de.javagl.jgltf.model.animation.AnimationManager#performStep(long)}
+     * */
+    fun drawGlTF(stack: Matrix4fArrayList, time: Double, color: Vector4fc, animationIndex: Int) {
+        // todo for the correct rendering with lighting, we need to split perspective and world matrix
+        // the perspective matrix should be the first one, so we could use it's inverse to extract the world matrix :)
+        val data = gltfData!!
+        val viewer = data.viewer
+        val camera = data.camera
+        // todo clickable gltf
+        // todo non-color mode?
+        // todo update color
+        // todo somehow only the first animation is playing correctly...
+        camera.update(stack)
+        val animation = data.animations.getOrNull(animationIndex)
+        if(animation != null){
+            val timeF = time.toFloat()
+            animation.update((timeF-animation.startTimeS) % animation.durationS)
+        }
+        // viewer.animationManager.setTime(time.toFloat())
+        BlendDepth(null, true) {
+            viewer.glRender()
         }
     }
 
@@ -68,7 +95,7 @@ open class MeshData : ICacheData {
             val model = geo.parents.filterIsInstance<FBXModel>().firstOrNull()
             stack.next {
 
-                if(model != null){
+                if (model != null) {
 
                     stack.rot(model.preRotation)
 
@@ -88,7 +115,7 @@ open class MeshData : ICacheData {
         }
     }
 
-    fun Matrix4f.rot(v: Vector3f){
+    fun Matrix4f.rot(v: Vector3f) {
         rotateX(v.x)
         rotateY(v.y)
         rotateZ(v.z)

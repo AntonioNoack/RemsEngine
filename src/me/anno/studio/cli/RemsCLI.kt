@@ -100,8 +100,9 @@ object RemsCLI {
         RemsStudio.project = project
 
         project.targetFPS = line.parseDouble("fps", project.targetFPS)
-        project.shutterPercentage = line.parseFloat("shutter", project.shutterPercentage)
-        project.motionBlurSteps = line.parseInt("motionBlurSteps", project.motionBlurSteps)
+        // todo re-enable shutter percentage & motion blur steps
+        // project.shutterPercentage.set(line.parseFloat("shutter", project.shutterPercentage))
+        // project.motionBlurSteps.set(line.parseInt("motionBlurSteps", project.motionBlurSteps))
         project.targetVideoQuality = line.parseInt("constantRateFactor", project.targetVideoQuality)
         project.targetSampleRate = line.parseInt("sampleRate", project.targetSampleRate)
 

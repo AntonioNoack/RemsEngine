@@ -1,5 +1,6 @@
 package me.anno.studio.project
 
+import me.anno.animation.Type
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.GFX
 import me.anno.io.FileReference
@@ -18,7 +19,8 @@ import me.anno.studio.history.History
 import me.anno.studio.rems.RemsStudio.editorTime
 import me.anno.studio.rems.ui.RemsStudioUITypeLibrary
 import me.anno.ui.base.Panel
-import me.anno.ui.custom.*
+import me.anno.ui.custom.CustomContainer
+import me.anno.ui.custom.CustomList
 import me.anno.ui.editor.UILayouts.createDefaultMainUI
 import me.anno.ui.editor.sceneTabs.SceneTab
 import me.anno.ui.editor.sceneTabs.SceneTabs
@@ -217,8 +219,8 @@ class Project(var name: String, val file: FileReference) : Saveable() {
     var targetFPS = config["target.fps", 30.0]
     var targetOutputFile = config["target.output", FileReference(file, "output.mp4")]
     var targetVideoQuality = config["target.quality", 23]
-    var motionBlurSteps = config["target.motionBlur.steps", 8]
-    var shutterPercentage = config["target.motionBlur.shutterPercentage", 1f]
+    var motionBlurSteps = config.getAnimated<Int>("target.motionBlur.steps", MotionBlurType)
+    var shutterPercentage = config.getAnimated<Float>("target.motionBlur.shutterPercentage", ShutterPercentageType)
     var nullCamera = createNullCamera(config["camera.null"] as? Camera)
     var language = Language.get(config["language", Language.AmericanEnglish.code])
     var ffmpegFlags = FFMPEGEncodingType[config["target.ffmpegFlags.id", FFMPEGEncodingType.DEFAULT.id]]
@@ -273,6 +275,8 @@ class Project(var name: String, val file: FileReference) : Saveable() {
 
     companion object {
         private val LOGGER = LogManager.getLogger(Project::class)
+        val MotionBlurType = Type.INT_PLUS.withDefaultValue(8)
+        val ShutterPercentageType = Type.FLOAT_PLUS.withDefaultValue(1f)
     }
 
 }

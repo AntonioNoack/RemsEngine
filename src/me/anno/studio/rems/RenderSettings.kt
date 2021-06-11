@@ -1,10 +1,10 @@
 package me.anno.studio.rems
 
+import me.anno.animation.Type
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.black
 import me.anno.language.translation.NameDesc
 import me.anno.objects.Transform
-import me.anno.animation.Type
 import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.studio.rems.RemsStudio.editorTime
 import me.anno.studio.rems.RemsStudio.project
@@ -98,19 +98,31 @@ object RenderSettings : Transform() {
             }
             .setTooltip("0 = lossless, 23 = default, 51 = worst; worse results have smaller file sizes")
 
-        list += IntInput("Motion-Blur-Steps", project.motionBlurSteps, Type.INT_PLUS, style)
-            .setChangeListener {
-                project.motionBlurSteps = it.toInt()
-                save()
-            }
-            .setTooltip("0,1 = no motion blur, e.g. 16 = decent motion blur, sub-frames per frame")
+        // todo still cannot be animated... why???
+        // todo why is the field not showing up?
+        val mbs = vi(
+            "Motion-Blur-Steps",
+            "0,1 = no motion blur, e.g. 16 = decent motion blur, sub-frames per frame",
+            project.motionBlurSteps, style
+        ) as IntInput
+        val mbsListener = mbs.changeListener
+        mbs.setChangeListener {
+            mbsListener(it)
+            save()
+        }
+        list += mbs
 
-        list += FloatInput("Shutter-Percentage", project.shutterPercentage, Type.FLOAT_PLUS, style)
-            .setChangeListener {
-                project.shutterPercentage = it.toFloat()
-                save()
-            }
-            .setTooltip("[Motion Blur] 1 = full frame is used; 0.1 = only 1/10th of a frame time is used")
+        val shp = vi(
+            "Shutter-Percentage",
+            "[Motion Blur] 1 = full frame is used; 0.1 = only 1/10th of a frame time is used",
+            project.shutterPercentage, style
+        ) as FloatInput
+        val shpListener = shp.changeListener
+        shp.setChangeListener {
+            shpListener(it)
+            save()
+        }
+        list += shp
 
         list += EnumInput(
             "Encoding Speed / Compression",
@@ -175,6 +187,7 @@ object RenderSettings : Transform() {
     var lastSavePoint = 0L
     var wasChanged = false
     fun save() {
+        // todo class to only execute stuff every x ms
         val time = System.nanoTime()
         if (abs(time - lastSavePoint) > 500_000_000L) {// 500ms, saving 2/s
             actuallySave()

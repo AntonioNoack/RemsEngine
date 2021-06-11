@@ -548,7 +548,15 @@ open class Texture2D(
         }
 
         var boundTextureSlot = 0
-        val boundTextures = IntArray(512)
+        val boundTextures = IntArray(64){ -1 }
+
+        fun invalidateBinding(){
+            boundTextureSlot = -1
+            activeSlot(0)
+            for(i in boundTextures.indices){
+                boundTextures[i] = -1
+            }
+        }
 
         fun activeSlot(index: Int) {
             if (index != boundTextureSlot) {
