@@ -1,18 +1,14 @@
 package me.anno.io.base
 
-import com.sun.javafx.geom.Vec4d
 import me.anno.io.FileReference
 import me.anno.io.ISaveable
 import me.anno.studio.StudioBase
-import me.anno.utils.LOGGER
 import me.anno.utils.files.LocalFile.toLocalPath
 import org.joml.*
-import java.io.DataOutputStream
 import java.io.File
-import java.io.ObjectOutputStream
 import java.io.Serializable
 
-abstract class BaseWriter(val respectsDefaultValues: Boolean) {
+abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
 
     val todo = ArrayList<ISaveable>(256)
     private val listed = HashSet<ISaveable>()
@@ -108,7 +104,7 @@ abstract class BaseWriter(val respectsDefaultValues: Boolean) {
 
         }
 
-        val canDiscard = respectsDefaultValues && value.isDefaultValue()
+        val canDiscard = canSkipDefaultValues && value.isDefaultValue()
         if (force || !canDiscard) {
 
             val ptr = getOrCreatePtr(value)
@@ -197,8 +193,14 @@ abstract class BaseWriter(val respectsDefaultValues: Boolean) {
         writeListEnd()
     }
 
+    /**
+     * this is a general function to save a value
+     * if you know the type, please use one of the other functions,
+     * because they may be faster
+     * */
     fun writeSomething(self: ISaveable?, name: String, value: Any?, forceSaving: Boolean) {
         when (value) {
+            // native types
             is Boolean -> writeBoolean(name, value, forceSaving)
             is Char -> writeChar(name, value, forceSaving)
             is Byte -> writeByte(name, value, forceSaving)
@@ -208,38 +210,42 @@ abstract class BaseWriter(val respectsDefaultValues: Boolean) {
             is Float -> writeFloat(name, value, forceSaving)
             is Double -> writeDouble(name, value, forceSaving)
             is String -> writeString(name, value, forceSaving)
+            // saveable
             is ISaveable -> writeObject(self, name, value)
+            // lists & arrays
             is List<*> -> {
                 // try to save the list
                 if (value.isNotEmpty()) {
                     when (val sample = value[0]) {
-
-                        else -> {
-                            // todo implement saving a list of $sample
-                            LOGGER.warn("Not yet implemented: saving a list of $sample")
-                        }
+                        is String -> writeStringArray(name, toArray(value), forceSaving)
+                        is Vector2f -> writeVector2fArray(name, toArray(value), forceSaving)
+                        is Vector3f -> writeVector3fArray(name, toArray(value), forceSaving)
+                        is Vector4f -> writeVector4fArray(name, toArray(value), forceSaving)
+                        is Vector2d -> writeVector2dArray(name, toArray(value), forceSaving)
+                        is Vector3d -> writeVector3dArray(name, toArray(value), forceSaving)
+                        is Vector4d -> writeVector4dArray(name, toArray(value), forceSaving)
+                        else -> throw RuntimeException("Not yet implemented: saving a list of ${sample?.javaClass}")
                     }
                 } // else if is force saving, then this won't work, because of the weak generics in Java :/
             }
             is Array<*> -> {
                 if (value.isNotEmpty()) {
                     when (val sample = value[0]) {
-                        is Vector2fc -> writeVector2fArray(name, value as Array<Vector2fc>, forceSaving)
-                        is Vector3fc -> writeVector3fArray(name, value as Array<Vector3fc>, forceSaving)
-                        is Vector4fc -> writeVector4fArray(name, value as Array<Vector4fc>, forceSaving)
-                        is Vector2d -> writeVector2dArray(name, value as Array<Vector2dc>, forceSaving)
-                        is Vector3d -> writeVector3dArray(name, value as Array<Vector3dc>, forceSaving)
-                        is Vector4d -> writeVector4dArray(name, value as Array<Vector4dc>, forceSaving)
-                        is String -> writeStringArray(name, value as Array<String>, forceSaving)
-                        is FloatArray -> writeFloatArray2D(name, value as Array<FloatArray>, forceSaving)
-                        is DoubleArray -> writeDoubleArray2D(name, value as Array<DoubleArray>, forceSaving)
+                        is String -> writeStringArray(name, cast(value), forceSaving)
+                        is Vector2fc -> writeVector2fArray(name, cast(value), forceSaving)
+                        is Vector3fc -> writeVector3fArray(name, cast(value), forceSaving)
+                        is Vector4fc -> writeVector4fArray(name, cast(value), forceSaving)
+                        is Vector2d -> writeVector2dArray(name, cast(value), forceSaving)
+                        is Vector3d -> writeVector3dArray(name, cast(value), forceSaving)
+                        is Vector4d -> writeVector4dArray(name, cast(value), forceSaving)
+                        is FloatArray -> writeFloatArray2D(name, cast(value), forceSaving)
+                        is DoubleArray -> writeDoubleArray2D(name, cast(value), forceSaving)
                         is ISaveable -> writeObjectArray(self, name, value as Array<ISaveable>, forceSaving)
-                        else -> {
-                            throw RuntimeException("Not yet implemented: saving an array of $sample")
-                        }
+                        else -> throw RuntimeException("Not yet implemented: saving an array of $sample")
                     }
                 } // else if is force saving, then this won't work, because of the weak generics in Java :/
             }
+            // native arrays
             is BooleanArray -> writeBooleanArray(name, value, forceSaving)
             is CharArray -> writeCharArray(name, value, forceSaving)
             is ByteArray -> writeByteArray(name, value, forceSaving)
@@ -261,17 +267,29 @@ abstract class BaseWriter(val respectsDefaultValues: Boolean) {
             is Matrix3dc -> writeMatrix3x3d(name, value, forceSaving)
             is Matrix4x3dc -> writeMatrix4x3d(name, value, forceSaving)
             is Matrix4dc -> writeMatrix4x4d(name, value, forceSaving)
+            // files
             is File -> writeString(name, value.toString(), forceSaving)
             is FileReference -> writeString(name, value.toString(), forceSaving)
+            // null
             null -> writeObject(self, name, null, forceSaving)
+            // java-serializable
             is Serializable -> {
                 // implement it?...
-                throw RuntimeException("Could not serialize field $name with value $value of class ${value::class.java}, Serializable")
+                throw RuntimeException("Could not serialize field $name with value $value of class ${value.javaClass}, Serializable")
             }
             else -> {
-                throw RuntimeException("todo implement saving an $value of class ${value::class.java}, maybe it needs to be me.anno.io.[I]Saveable?")
+                throw RuntimeException("todo implement saving an $value of class ${value.javaClass}, maybe it needs to be me.anno.io.[I]Saveable?")
             }
         }
+    }
+
+    // makes the code a little nicer
+    fun <V> cast(input: Any): V {
+        return input as V
+    }
+
+    inline fun <reified V> toArray(value: List<Any?>): Array<V> {
+        return value.filterIsInstance<V>().toTypedArray()
     }
 
 }

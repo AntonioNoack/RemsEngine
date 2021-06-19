@@ -1,15 +1,13 @@
 package me.anno.io
 
 import me.anno.io.base.BaseWriter
-import me.anno.io.serialization.NotSerializableProperty
-import me.anno.io.serialization.SerializableProperty
+import me.anno.io.serialization.CachedReflections
 import org.joml.*
-import java.lang.reflect.Field
-import java.lang.reflect.Modifier
-import kotlin.reflect.KVisibility
-import kotlin.reflect.full.declaredMemberProperties
-import kotlin.reflect.full.findAnnotation
-import kotlin.reflect.jvm.isAccessible
+import java.util.concurrent.ConcurrentHashMap
+import kotlin.collections.component1
+import kotlin.collections.component2
+import kotlin.collections.set
+import kotlin.reflect.KClass
 
 interface ISaveable {
 
@@ -88,42 +86,28 @@ interface ISaveable {
      * */
     fun isDefaultValue(): Boolean
 
-    fun saveSerializableProperties(writer: BaseWriter) {
+    /**
+     * tries to insert value into all properties with matching name
+     * returns true on success
+     * */
+    fun readSerializableProperty(name: String, value: Any?): Boolean {
         val clazz = this::class
-        for (field in clazz.declaredMemberProperties) {
-            val getter = field.getter
-            val isPublic = field.visibility == KVisibility.PUBLIC
-            val serial = field.findAnnotation<SerializableProperty>()
-            val needsSerialization =
-                serial != null || (isPublic && field.findAnnotation<NotSerializableProperty>() == null)
-            if (needsSerialization) {
-                try {
-                    // save the field
-                    var name = serial?.name
-                    if (name == null || name.isEmpty()) name = field.name
-                    // make sure we can access it
-                    getter.isAccessible = true
-                    val value = getter.call(this)
-                    val forceSaving = serial?.forceSaving ?: value is Boolean
-                    writer.writeSomething(this, name, value, forceSaving)
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
-            }
-        }
+        val reflections = reflectionCache.getOrPut(clazz) { CachedReflections(clazz) }
+        return reflections.set(this, name, value)
     }
 
-    fun isMethodPublic(field: Field, modifiers: Int): Boolean {
-        if (Modifier.isPublic(modifiers)) return true
-        val getter = try {
-            javaClass.getDeclaredMethod("get${field.name.capitalize()}")
-        } catch (e: NoSuchMethodException) {
-            null
+    fun saveSerializableProperties(writer: BaseWriter) {
+        val clazz = this::class
+        val reflections = reflectionCache.getOrPut(clazz) { CachedReflections(clazz) }
+        for ((name, field) in reflections.properties) {
+            val value = field.getter.call(name)
+            writer.writeSomething(this, name, value, field.forceSaving ?: value is Boolean)
         }
-        return getter != null && Modifier.isPublic(getter.modifiers)
     }
 
     companion object {
+
+        val reflectionCache = ConcurrentHashMap<KClass<*>, CachedReflections>()
 
         val objectTypeRegistry = HashMap<String, () -> ISaveable>()
 
