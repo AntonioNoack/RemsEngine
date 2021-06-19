@@ -18,6 +18,7 @@ import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.editor.color.ColorChooser
+import me.anno.ui.editor.color.PreviewField
 import me.anno.ui.input.components.TitlePanel
 import me.anno.ui.style.Style
 import me.anno.utils.Color.toARGB
@@ -44,7 +45,7 @@ class ColorInput(
     private val contentView = ColorChooser(style, withAlpha, owningProperty)
 
     private val titleView = TitlePanel(title, contentView, style)
-    private val previewField = me.anno.ui.editor.color.PreviewField(titleView, 2, style)
+    private val previewField = PreviewField(titleView, 2, style)
         .apply {
             setSimpleClickListener { openColorChooser() }
             color = oldValue.toARGB() or black
@@ -60,11 +61,12 @@ class ColorInput(
     }
 
     init {
+        // switched order for consistent alignment
+        this += previewField
         this += titleView
         titleView.enableHoverColor = true
         titleView.focusTextColor = titleView.textColor
         contentView.setRGBA(oldValue, false)
-        this += previewField
     }
 
     fun openColorChooser(){

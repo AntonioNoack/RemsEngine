@@ -9,7 +9,9 @@ import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.mix
 import kotlin.math.min
 
-open class Scrollbar(style: Style): Panel(style.getChild("scrollbar")){
+open class Scrollbar(style: Style) : Panel(style.getChild("scrollbar")) {
+
+    // todo change color depending on hover x mouse down
 
     val activeAlpha = 0.2f
 
@@ -26,10 +28,10 @@ open class Scrollbar(style: Style): Panel(style.getChild("scrollbar")){
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
 
-        val isActive = Input.mouseX.toInt() in x0 .. x1 && Input.mouseY.toInt() in y0 .. y1
-        wasActive = mix(wasActive, if(isActive) 1f else 0f, min(1f, 5f * deltaTime))
+        val isActive = Input.mouseX.toInt() in x0..x1 && Input.mouseY.toInt() in y0..y1
+        wasActive = mix(wasActive, if (isActive) 1f else 0f, min(1f, 5f * deltaTime))
 
-        drawRect(x0, y0, x1-x0, y1-y0, multiplyAlpha(scrollBackground, activeAlpha * wasActive))
+        drawRect(x0, y0, x1 - x0, y1 - y0, multiplyAlpha(scrollBackground, activeAlpha * wasActive))
 
     }
 

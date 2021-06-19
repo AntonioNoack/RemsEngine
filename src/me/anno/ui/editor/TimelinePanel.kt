@@ -26,6 +26,7 @@ import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.custom.CustomContainer.Companion.isCross
 import me.anno.ui.style.Style
+import me.anno.utils.Color.mulAlpha
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.fract
 import me.anno.utils.Maths.mix
@@ -35,6 +36,7 @@ import me.anno.utils.structures.tuples.Quad
 import me.anno.utils.types.Strings.formatTime
 import kotlin.collections.set
 import kotlin.math.abs
+import kotlin.math.floor
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
 
@@ -258,7 +260,16 @@ open class TimelinePanel(style: Style) : Panel(style) {
     }
 
     fun drawLine(time: Double, y0: Int, y1: Int, color: Int) {
-        drawRect(getXAt(time).roundToInt(), y0 + 2, 1, y1 - y0 - 4, color)
+        // if there are sub-pixels, we could use those...
+        val x = getXAt(time).toFloat()
+        val xFloor = floor(x)
+        val x0 = xFloor.toInt()
+        val alpha1 = x - xFloor
+        val alpha0 = 1f - alpha1
+        // simple interpolation
+        // it looks way better than without (it looks a little lagging without)
+        drawRect(x0 + 0, y0 + 2, 1, y1 - y0 - 4, color.mulAlpha(alpha0))
+        drawRect(x0 + 1, y0 + 2, 1, y1 - y0 - 4, color.mulAlpha(alpha1))
     }
 
     fun getTimeStep(time: Double): Double {

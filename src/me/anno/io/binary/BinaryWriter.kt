@@ -235,6 +235,23 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         }
     }
 
+    override fun writeVector2d(name: String, value: Vector2dc, force: Boolean) {
+        if (force || (value.x() != 0.0 || value.y() != 0.0)) {
+            writeAttributeStart(name, VECTOR2D)
+            output.writeDouble(value.x())
+            output.writeDouble(value.y())
+        }
+    }
+
+    override fun writeVector3d(name: String, value: Vector3dc, force: Boolean) {
+        if (force || (value.x() != 0.0 || value.y() != 0.0 || value.z() != 0.0)) {
+            writeAttributeStart(name, VECTOR3D)
+            output.writeDouble(value.x())
+            output.writeDouble(value.y())
+            output.writeDouble(value.z())
+        }
+    }
+
     override fun writeVector4d(name: String, value: Vector4dc, force: Boolean) {
         if (force || (value.x() != 0.0 || value.y() != 0.0 || value.z() != 0.0 || value.w() != 0.0)) {
             writeAttributeStart(name, VECTOR4D)
@@ -243,6 +260,30 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
             output.writeDouble(value.z())
             output.writeDouble(value.w())
         }
+    }
+
+    override fun writeMatrix3f(name: String, value: Matrix3fc, force: Boolean) {
+        TODO("Not yet implemented")
+    }
+
+    override fun writeMatrix4x3f(name: String, value: Matrix4x3fc, force: Boolean) {
+        TODO("Not yet implemented")
+    }
+
+    override fun writeMatrix4f(name: String, value: Matrix4fc, force: Boolean) {
+        TODO("Not yet implemented")
+    }
+
+    override fun writeMatrix3d(name: String, value: Matrix3dc, force: Boolean) {
+        TODO("Not yet implemented")
+    }
+
+    override fun writeMatrix4x3d(name: String, value: Matrix4x3dc, force: Boolean) {
+        TODO("Not yet implemented")
+    }
+
+    override fun writeMatrix4d(name: String, value: Matrix4dc, force: Boolean) {
+        TODO("Not yet implemented")
     }
 
     override fun writeNull(name: String?) {

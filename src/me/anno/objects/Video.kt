@@ -808,15 +808,8 @@ class Video(file: FileReference = FileReference(""), parent: Transform? = null) 
             .setIsSelectedListener { show(null) })
 
         ColorGrading.createInspector(
-            this,
-            cgPower,
-            cgSaturation,
-            cgSlope,
-            cgOffsetAdd,
-            cgOffsetSub,
-            { img(it) },
-            getGroup,
-            style
+            this, cgPower, cgSaturation, cgSlope, cgOffsetAdd, cgOffsetSub,
+            { img(it) }, getGroup, style
         )
 
         val audio = getGroup("Audio", "", "audio")

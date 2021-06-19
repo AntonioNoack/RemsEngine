@@ -5,6 +5,7 @@ import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.glThread
+import me.anno.gpu.GFX.isGFXThread
 import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.objects.modes.RotateJPEG
@@ -503,13 +504,19 @@ open class Texture2D(
     }
 
     override fun destroy() {
-        GFX.checkIsGFXThread()
         isCreated = false
         isDestroyed = true
         val pointer = pointer
         if (pointer > -1) {
-            locallyAllocated = allocate(locallyAllocated, 0L)
-            texturesToDelete.add(pointer)
+            if (!isGFXThread()) {
+                GFX.addGPUTask(1){
+                    locallyAllocated = allocate(locallyAllocated, 0L)
+                    texturesToDelete.add(pointer)
+                }
+            } else {
+                locallyAllocated = allocate(locallyAllocated, 0L)
+                texturesToDelete.add(pointer)
+            }
         }
         this.pointer = -1
     }
@@ -548,12 +555,12 @@ open class Texture2D(
         }
 
         var boundTextureSlot = 0
-        val boundTextures = IntArray(64){ -1 }
+        val boundTextures = IntArray(64) { -1 }
 
-        fun invalidateBinding(){
+        fun invalidateBinding() {
             boundTextureSlot = -1
             activeSlot(0)
-            for(i in boundTextures.indices){
+            for (i in boundTextures.indices) {
                 boundTextures[i] = -1
             }
         }

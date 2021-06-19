@@ -1,8 +1,20 @@
 package me.anno.ecs
 
-import me.anno.objects.Transform
+import me.anno.io.NamedSaveable
 
-abstract class Component : Transform() {
+abstract class Component : NamedSaveable() {
+
+    var entity: Entity? = null
+
+    open fun onCreate() {}
+
+    open fun onDestroy() {}
+
+    open fun onBeginPlay() {}
+
+    open fun onUpdate() {}
+
+    open fun onPhysicsUpdate() {}
 
     override fun getApproxSize(): Int = 1000
     override fun isDefaultValue(): Boolean = false

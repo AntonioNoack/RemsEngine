@@ -41,7 +41,7 @@ class ColorGradingComponent : Component(), FragmentShaderComponent {
         shader.v1(env[this, "saturation", VariableType.UNIFORM_V1], saturation[time])
     }
 
-    override fun createInspector(
+    /*override fun createInspector(
         list: PanelListY,
         style: Style,
         getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
@@ -50,7 +50,7 @@ class ColorGradingComponent : Component(), FragmentShaderComponent {
         list += vi("Offset", "", offset, style)
         list += vi("Power", "", power, style)
         list += vi("Saturation", "", saturation, style)
-    }
+    }*/
 
     override fun save(writer: BaseWriter) {
         super.save(writer)

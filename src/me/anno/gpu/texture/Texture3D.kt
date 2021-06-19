@@ -52,7 +52,7 @@ class Texture3D(val w: Int, val h: Int, val d: Int) : ICacheData {
     }
 
     fun create(createImage: () -> BufferedImage) {
-        val requiredBudget = textureBudgetUsed + w * h
+        val requiredBudget = textureBudgetUsed + w * h * d
         if (requiredBudget > textureBudgetTotal) {
             threadWithName("Create Image") { create(createImage(), false) }
         } else {

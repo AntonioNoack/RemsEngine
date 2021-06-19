@@ -14,6 +14,7 @@ import me.anno.ui.style.Style
 
 class VignetteComponent: Component(), FragmentShaderComponent {
 
+    val color = AnimatedProperty.color()
     val strength = AnimatedProperty.float(1f)
 
     override fun getShaderComponent(env: ShaderEnvironment): String {
@@ -32,16 +33,15 @@ class VignetteComponent: Component(), FragmentShaderComponent {
         shader.v1(env[this, "strength", VariableType.UNIFORM_V1], strength[time])
     }
 
-    override fun createInspector(
+    /*override fun createInspector(
         list: PanelListY,
         style: Style,
         getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
     ) {
-        // todo name and description?...
         val group = getGroup("Component", "", "")
         group += vi("Color", "", color, style)
         group += vi("Strength", "", strength, style)
-    }
+    }*/
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
@@ -54,6 +54,8 @@ class VignetteComponent: Component(), FragmentShaderComponent {
             else -> super.readObject(name, value)
         }
     }
+
+    override fun getClassName(): String = "VignetteComponent"
 
 
 }

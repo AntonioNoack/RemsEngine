@@ -52,7 +52,7 @@ class SwizzleRGBAComponent : Component(), FragmentShaderComponent {
 
     override fun getClassName(): String = "SwizzleRGBAComponent"
 
-    override fun createInspector(
+    /*override fun createInspector(
         list: PanelListY,
         style: Style,
         getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
@@ -62,7 +62,7 @@ class SwizzleRGBAComponent : Component(), FragmentShaderComponent {
         list += vi("B", "", "", null, swizzleB, style)
         list += vi("A", "", "", null, swizzleA, style)
         list += vi("Strength", "", strength, style)
-    }
+    }*/
 
     override fun save(writer: BaseWriter) {
         super.save(writer)

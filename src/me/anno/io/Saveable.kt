@@ -3,9 +3,7 @@ package me.anno.io
 import me.anno.io.base.BaseWriter
 import me.anno.io.text.TextWriter
 import org.apache.logging.log4j.LogManager
-import org.joml.Vector2f
-import org.joml.Vector3f
-import org.joml.Vector4f
+import org.joml.*
 
 abstract class Saveable : ISaveable {
 
@@ -54,6 +52,20 @@ abstract class Saveable : ISaveable {
     override fun readVector3fArray(name: String, values: Array<Vector3f>) = readSomething(name, values)
     override fun readVector4f(name: String, value: Vector4f) = readSomething(name, value)
     override fun readVector4fArray(name: String, values: Array<Vector4f>) = readSomething(name, values)
+
+    override fun readVector2d(name: String, value: Vector2d) = readSomething(name, value)
+    override fun readVector2dArray(name: String, values: Array<Vector2d>) = readSomething(name, values)
+    override fun readVector3d(name: String, value: Vector3d) = readSomething(name, value)
+    override fun readVector3dArray(name: String, values: Array<Vector3d>) = readSomething(name, values)
+    override fun readVector4d(name: String, value: Vector4d) = readSomething(name, value)
+    override fun readVector4dArray(name: String, values: Array<Vector4d>) = readSomething(name, values)
+
+    override fun readMatrix3f(name: String, value: Matrix3f) = readSomething(name, value)
+    override fun readMatrix4x3f(name: String, value: Matrix4x3f) = readSomething(name, value)
+    override fun readMatrix4f(name: String, value: Matrix4f) = readSomething(name, value)
+    override fun readMatrix3d(name: String, value: Matrix3d) = readSomething(name, value)
+    override fun readMatrix4x3d(name: String, value: Matrix4x3d) = readSomething(name, value)
+    override fun readMatrix4d(name: String, value: Matrix4d) = readSomething(name, value)
 
     open fun readSomething(name: String, value: Any?) = warnMissingParam(name)
 

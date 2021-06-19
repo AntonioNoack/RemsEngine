@@ -5,9 +5,7 @@ import me.anno.io.InvalidFormatException
 import me.anno.io.base.BaseReader
 import me.anno.io.base.UnknownClassException
 import org.apache.logging.log4j.LogManager
-import org.joml.Vector2f
-import org.joml.Vector3f
-import org.joml.Vector4f
+import org.joml.*
 import java.io.EOFException
 
 /**
@@ -281,6 +279,49 @@ class TextReader(val data: String) : BaseReader() {
         return Vector4f(rawX, rawY, rawZ, rawW)
     }
 
+    private fun readVector2d(): Vector2d {
+        assert(skipSpace(), '[', "Start of Vector")
+        val rawX = readDouble()
+        val sep0 = skipSpace()
+        if (sep0 == ']') return Vector2d(rawX)
+        assert(sep0, ',', "Separator of Vector")
+        val rawY = readDouble()
+        assert(skipSpace(), ']', "End of Vector")
+        return Vector2d(rawX, rawY)
+    }
+
+    private fun readVector3d(): Vector3d {
+        assert(skipSpace(), '[', "Start of Vector")
+        val rawX = readDouble()
+        val sep0 = skipSpace()
+        if (sep0 == ']') return Vector3d(rawX) // monotone / grayscale
+        assert(sep0, ',', "Separator of Vector")
+        val rawY = readDouble()
+        assert(skipSpace(), ',', "Separator of Vector")
+        val rawZ = readDouble()
+        assert(skipSpace(), ']', "End of Vector")
+        return Vector3d(rawX, rawY, rawZ)
+    }
+
+    private fun readVector4d(): Vector4d {
+        assert(skipSpace(), '[', "Start of Vector")
+        val rawX = readDouble()
+        val sep0 = skipSpace()
+        if (sep0 == ']') return Vector4d(rawX) // monotone
+        assert(sep0, ',', "Separator of Vector")
+        val rawY = readDouble()
+        val sep1 = skipSpace()
+        if (sep1 == ']') return Vector4d(rawX, rawX, rawX, rawY) // white with alpha
+        assert(sep1, ',', "Separator of Vector")
+        val rawZ = readDouble()
+        val sep2 = skipSpace()
+        if (sep2 == ']') return Vector4d(rawX, rawY, rawZ, 1.0) // opaque color
+        assert(sep2, ',', "Separator of Vector")
+        val rawW = readDouble()
+        assert(skipSpace(), ']', "End of Vector")
+        return Vector4d(rawX, rawY, rawZ, rawW)
+    }
+
     fun readProperty(obj: ISaveable): ISaveable {
         assert(skipSpace(), '"')
         val typeName = readString()
@@ -396,6 +437,9 @@ class TextReader(val data: String) : BaseReader() {
             "v2" -> obj.readVector2f(name, readVector2f())
             "v3" -> obj.readVector3f(name, readVector3f())
             "v4" -> obj.readVector4f(name, readVector4f())
+            "v2d" -> obj.readVector2d(name, readVector2d())
+            "v3d" -> obj.readVector3d(name, readVector3d())
+            "v4d" -> obj.readVector4d(name, readVector4d())
             "v2[]" -> {
                 val v0 = Vector2f()
                 obj.readVector2fArray(
@@ -426,6 +470,39 @@ class TextReader(val data: String) : BaseReader() {
                         { array, index, value -> array[index] = value })
                 )
             }
+            "v2d[]" -> {
+                val v0 = Vector2d()
+                obj.readVector2dArray(
+                    name,
+                    readTypedArray("vector2f",
+                        { Array(it) { v0 } },
+                        { readVector2d() },
+                        { array, index, value -> array[index] = value })
+                )
+            }
+            "v3d[]" -> {
+                val v0 = Vector3d()
+                obj.readVector3dArray(
+                    name,
+                    readTypedArray("vector3f",
+                        { Array(it) { v0 } },
+                        { readVector3d() },
+                        { array, index, value -> array[index] = value })
+                )
+            }
+            "v4d[]" -> {
+                val v0 = Vector4d()
+                obj.readVector4dArray(
+                    name,
+                    readTypedArray("vector4f",
+                        { Array(it) { v0 } },
+                        { readVector4d() },
+                        { array, index, value -> array[index] = value })
+                )
+            }
+            "m3" -> obj.readMatrix3f(name, Matrix3f(readVector3f(), readVector3f(), readVector3f()))
+            "m4x3" -> obj.readMatrix4x3f(name, Matrix4x3f(readVector3f(), readVector3f(), readVector3f(), readVector3f()))
+            "m4" -> obj.readMatrix4f(name, Matrix4f(readVector4f(), readVector4f(), readVector4f(), readVector4f()))
             "S" -> obj.readString(name, readStringValue())
             "S[]" -> obj.readStringArray(
                 name,

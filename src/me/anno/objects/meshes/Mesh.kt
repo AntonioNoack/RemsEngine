@@ -40,8 +40,11 @@ import java.util.*
 
 class Mesh(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
 
-    // todo select animation from the available ones
     // todo lerp animations
+
+    // todo types of lights
+    // todo shadows, ...
+    // todo types of shading/rendering?
 
     companion object {
 
@@ -57,10 +60,6 @@ class Mesh(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
         }
 
     }
-
-    // todo types of lights
-    // todo shadows, ...
-    // todo types of shading/rendering?
 
     val animationIndex = AnimatedProperty.int()
 
@@ -124,7 +123,6 @@ class Mesh(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
                             }
                             GFX.check()
                         }
-                        Thread.sleep(100) // wait for the texture to load
                         meshData
                     } as? MeshData
 

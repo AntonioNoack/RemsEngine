@@ -1,5 +1,7 @@
 package me.anno.utils.process
 
+import me.anno.config.DefaultConfig
+import me.anno.utils.Maths.clamp
 import me.anno.utils.OS
 import org.apache.logging.log4j.LogManager
 
@@ -15,10 +17,15 @@ class BetterProcessBuilder(
         if (isLowPriority) {
             when {
                 OS.isLinux -> {
-                    // todo test whether this works
-                    // args += "nice"
-                    // args += "-n"
-                    // args += "10" // -20 .. +19, 0 = user_space, < 0 = super, > 0 = lower
+                    // task: test whether this works
+                    // -> seems to work in WSL :)
+                    // -20 .. +19, 0 = user_space, < 0 = super, > 0 = lower
+                    val niceness = clamp(DefaultConfig["cpu.linux.subprocess-niceness", 10], -20, 19)
+                    if (niceness > 0) {
+                        args += "nice"
+                        args += "-n"
+                        args += niceness.toString()
+                    }
                 }
                 OS.isWindows -> {
                     // todo find a working way on windows...

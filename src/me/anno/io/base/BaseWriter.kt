@@ -1,12 +1,11 @@
 package me.anno.io.base
 
+import me.anno.io.FileReference
 import me.anno.io.ISaveable
 import me.anno.studio.StudioBase
-import me.anno.io.FileReference
 import me.anno.utils.files.LocalFile.toLocalPath
 import org.joml.*
 import java.io.File
-import java.util.*
 
 abstract class BaseWriter(val respectsDefaultValues: Boolean) {
 
@@ -48,7 +47,19 @@ abstract class BaseWriter(val respectsDefaultValues: Boolean) {
     abstract fun writeVector2f(name: String, value: Vector2fc, force: Boolean = false)
     abstract fun writeVector3f(name: String, value: Vector3fc, force: Boolean = false)
     abstract fun writeVector4f(name: String, value: Vector4fc, force: Boolean = false)
+
+    abstract fun writeVector2d(name: String, value: Vector2dc, force: Boolean = false)
+    abstract fun writeVector3d(name: String, value: Vector3dc, force: Boolean = false)
     abstract fun writeVector4d(name: String, value: Vector4dc, force: Boolean = false)
+
+    // matrices, which are commonly used in game development
+    abstract fun writeMatrix3f(name: String, value: Matrix3fc, force: Boolean = false)
+    abstract fun writeMatrix4x3f(name: String, value: Matrix4x3fc, force: Boolean = false)
+    abstract fun writeMatrix4f(name: String, value: Matrix4fc, force: Boolean = false)
+
+    abstract fun writeMatrix3d(name: String, value: Matrix3dc, force: Boolean = false)
+    abstract fun writeMatrix4x3d(name: String, value: Matrix4x3dc, force: Boolean = false)
+    abstract fun writeMatrix4d(name: String, value: Matrix4dc, force: Boolean = false)
 
     fun writeFile(name: String, file: FileReference?, workspace: FileReference? = StudioBase.workspace) {
         writeFile(name, file?.file, workspace)

@@ -331,6 +331,33 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
         data.append(']')
     }
 
+    private fun writeVector2d(value: Vector2dc) {
+        data.append('[')
+        val x = value.x()
+        val y = value.y()
+        append(x)
+        if (x != y) {
+            data.append(separator)
+            append(y)
+        }
+        data.append(']')
+    }
+
+    private fun writeVector3d(value: Vector3dc) {
+        data.append('[')
+        val x = value.x()
+        val y = value.y()
+        val z = value.z()
+        append(x)
+        if (!(x == y && x == z)) {
+            data.append(separator)
+            append(y)
+            data.append(separator)
+            append(z)
+        }
+        data.append(']')
+    }
+
     private fun writeVector4d(value: Vector4dc) {
         data.append('[')
         val x = value.x()
@@ -375,11 +402,49 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
         }
     }
 
+    override fun writeVector2d(name: String, value: Vector2dc, force: Boolean) {
+        if (force || value.x() != 0.0 || value.y() != 0.0) {
+            writeAttributeStart("v2", name)
+            writeVector2d(value)
+        }
+    }
+
+    override fun writeVector3d(name: String, value: Vector3dc, force: Boolean) {
+        if (force || value.x() != 0.0 || value.y() != 0.0 || value.z() != 0.0) {
+            writeAttributeStart("v3", name)
+            writeVector3d(value)
+        }
+    }
+
     override fun writeVector4d(name: String, value: Vector4dc, force: Boolean) {
         if (force || value.x() != 0.0 || value.y() != 0.0 || value.z() != 0.0 || value.w() != 0.0) {
             writeAttributeStart("v4", name)
             writeVector4d(value)
         }
+    }
+
+    override fun writeMatrix3f(name: String, value: Matrix3fc, force: Boolean) {
+        TODO("Not yet implemented")
+    }
+
+    override fun writeMatrix4x3f(name: String, value: Matrix4x3fc, force: Boolean) {
+        TODO("Not yet implemented")
+    }
+
+    override fun writeMatrix4f(name: String, value: Matrix4fc, force: Boolean) {
+        TODO("Not yet implemented")
+    }
+
+    override fun writeMatrix3d(name: String, value: Matrix3dc, force: Boolean) {
+        TODO("Not yet implemented")
+    }
+
+    override fun writeMatrix4x3d(name: String, value: Matrix4x3dc, force: Boolean) {
+        TODO("Not yet implemented")
+    }
+
+    override fun writeMatrix4d(name: String, value: Matrix4dc, force: Boolean) {
+        TODO("Not yet implemented")
     }
 
     override fun writeNull(name: String?) {

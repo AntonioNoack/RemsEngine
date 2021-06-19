@@ -20,8 +20,6 @@ object ColorGrading {
         style: Style
     ) {
 
-        // todo table for the colors...
-
         val group = getGroup("Color Grading (ASC CDL)", "", "color-grading")
         group.add(img(TextPanel("" +
                 "1. tint by slope\n" +

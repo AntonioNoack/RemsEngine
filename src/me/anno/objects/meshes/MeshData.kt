@@ -50,6 +50,9 @@ open class MeshData : ICacheData {
      * see also {@link de.javagl.jgltf.model.animation.AnimationManager#performStep(long)}
      * */
     fun drawGlTF(stack: Matrix4fArrayList, time: Double, color: Vector4fc, animationIndex: Int) {
+
+        // todo make textures and material properties customizable (maybe...)
+
         // todo for the correct rendering with lighting, we need to split perspective and world matrix
         // the perspective matrix should be the first one, so we could use it's inverse to extract the world matrix :)
         val data = gltfData!!
@@ -60,10 +63,13 @@ open class MeshData : ICacheData {
         // todo update color
         // todo somehow only the first animation is playing correctly...
         camera.update(stack)
-        val animation = data.animations.getOrNull(animationIndex)
-        if(animation != null){
-            val timeF = time.toFloat()
-            animation.update((timeF-animation.startTimeS) % animation.durationS)
+        val animations = data.animations
+        if(animations != null){
+            val animation = animations.getOrNull(animationIndex)
+            if(animation != null){
+                val timeF = time.toFloat()
+                animation.update((timeF-animation.startTimeS) % animation.durationS)
+            }
         }
         // viewer.animationManager.setTime(time.toFloat())
         BlendDepth(null, true) {
