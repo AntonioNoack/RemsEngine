@@ -152,6 +152,21 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         }
     }
 
+    override fun writeChar(name: String, value: Char, force: Boolean) {
+        if (force || value != 0.toChar()) {
+            writeAttributeStart(name, CHAR)
+            output.writeChar(value.code)
+        }
+    }
+
+    override fun writeCharArray(name: String, value: CharArray, force: Boolean) {
+        if (force || value.isNotEmpty()) {
+            writeAttributeStart(name, CHAR_ARRAY)
+            output.writeInt(value.size)
+            for (c in value) output.writeChar(c.code)
+        }
+    }
+
     override fun writeDouble(name: String, value: Double, force: Boolean) {
         if (force || value != 0.0) {
             writeAttributeStart(name, DOUBLE)
@@ -216,12 +231,27 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         }
     }
 
+    override fun writeVector2fArray(name: String, values: Array<Vector2fc>, force: Boolean) {
+        writeGenericArray(name, values, force, VECTOR2F_ARRAY) { v ->
+            output.writeFloat(v.x())
+            output.writeFloat(v.y())
+        }
+    }
+
     override fun writeVector3f(name: String, value: Vector3fc, force: Boolean) {
         if (force || (value.x() != 0f || value.y() != 0f || value.z() != 0f)) {
             writeAttributeStart(name, VECTOR3F)
             output.writeFloat(value.x())
             output.writeFloat(value.y())
             output.writeFloat(value.z())
+        }
+    }
+
+    override fun writeVector3fArray(name: String, values: Array<Vector3fc>, force: Boolean) {
+        writeGenericArray(name, values, force, VECTOR3F_ARRAY) { v ->
+            output.writeFloat(v.x())
+            output.writeFloat(v.y())
+            output.writeFloat(v.z())
         }
     }
 
@@ -235,11 +265,27 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         }
     }
 
+    override fun writeVector4fArray(name: String, values: Array<Vector4fc>, force: Boolean) {
+        writeGenericArray(name, values, force, VECTOR4F_ARRAY) { v ->
+            output.writeFloat(v.x())
+            output.writeFloat(v.y())
+            output.writeFloat(v.z())
+            output.writeFloat(v.w())
+        }
+    }
+
     override fun writeVector2d(name: String, value: Vector2dc, force: Boolean) {
         if (force || (value.x() != 0.0 || value.y() != 0.0)) {
             writeAttributeStart(name, VECTOR2D)
             output.writeDouble(value.x())
             output.writeDouble(value.y())
+        }
+    }
+
+    override fun writeVector2dArray(name: String, values: Array<Vector2dc>, force: Boolean) {
+        writeGenericArray(name, values, force, VECTOR2D_ARRAY) { v ->
+            output.writeDouble(v.x())
+            output.writeDouble(v.y())
         }
     }
 
@@ -249,6 +295,14 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
             output.writeDouble(value.x())
             output.writeDouble(value.y())
             output.writeDouble(value.z())
+        }
+    }
+
+    override fun writeVector3dArray(name: String, values: Array<Vector3dc>, force: Boolean) {
+        writeGenericArray(name, values, force, VECTOR3D_ARRAY) { v ->
+            output.writeDouble(v.x())
+            output.writeDouble(v.y())
+            output.writeDouble(v.z())
         }
     }
 
@@ -262,7 +316,16 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         }
     }
 
-    override fun writeMatrix3f(name: String, value: Matrix3fc, force: Boolean) {
+    override fun writeVector4dArray(name: String, values: Array<Vector4dc>, force: Boolean) {
+        writeGenericArray(name, values, force, VECTOR4D_ARRAY) { v ->
+            output.writeDouble(v.x())
+            output.writeDouble(v.y())
+            output.writeDouble(v.z())
+            output.writeDouble(v.w())
+        }
+    }
+
+    override fun writeMatrix3x3f(name: String, value: Matrix3fc, force: Boolean) {
         TODO("Not yet implemented")
     }
 
@@ -270,11 +333,11 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         TODO("Not yet implemented")
     }
 
-    override fun writeMatrix4f(name: String, value: Matrix4fc, force: Boolean) {
+    override fun writeMatrix4x4f(name: String, value: Matrix4fc, force: Boolean) {
         TODO("Not yet implemented")
     }
 
-    override fun writeMatrix3d(name: String, value: Matrix3dc, force: Boolean) {
+    override fun writeMatrix3x3d(name: String, value: Matrix3dc, force: Boolean) {
         TODO("Not yet implemented")
     }
 
@@ -282,7 +345,7 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         TODO("Not yet implemented")
     }
 
-    override fun writeMatrix4d(name: String, value: Matrix4dc, force: Boolean) {
+    override fun writeMatrix4x4d(name: String, value: Matrix4dc, force: Boolean) {
         TODO("Not yet implemented")
     }
 
@@ -312,7 +375,7 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         }
     }
 
-    private fun <V> writeGenericArray(
+    private inline fun <V> writeGenericArray(
         name: String,
         elements: Array<V>,
         force: Boolean,
@@ -328,7 +391,7 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         }
     }
 
-    private fun <V> writeGenericList(
+    private inline fun <V> writeGenericList(
         name: String,
         elements: List<V>,
         force: Boolean,
@@ -383,30 +446,6 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
                 element.save(this)
                 writeObjectEnd()
             }
-        }
-    }
-
-    override fun writeVector2fArray(name: String, elements: Array<Vector2f>, force: Boolean) {
-        writeGenericArray(name, elements, force, VECTOR2F_ARRAY) {
-            output.writeFloat(it.x)
-            output.writeFloat(it.y)
-        }
-    }
-
-    override fun writeVector3fArray(name: String, elements: Array<Vector3f>, force: Boolean) {
-        writeGenericArray(name, elements, force, VECTOR3F_ARRAY) {
-            output.writeFloat(it.x)
-            output.writeFloat(it.y)
-            output.writeFloat(it.z)
-        }
-    }
-
-    override fun writeVector4fArray(name: String, elements: Array<Vector4f>, force: Boolean) {
-        writeGenericArray(name, elements, force, VECTOR4F_ARRAY) {
-            output.writeFloat(it.x)
-            output.writeFloat(it.y)
-            output.writeFloat(it.z)
-            output.writeFloat(it.w)
         }
     }
 

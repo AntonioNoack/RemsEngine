@@ -474,7 +474,7 @@ class TextReader(val data: String) : BaseReader() {
                 val v0 = Vector2d()
                 obj.readVector2dArray(
                     name,
-                    readTypedArray("vector2f",
+                    readTypedArray("vector2d",
                         { Array(it) { v0 } },
                         { readVector2d() },
                         { array, index, value -> array[index] = value })
@@ -484,7 +484,7 @@ class TextReader(val data: String) : BaseReader() {
                 val v0 = Vector3d()
                 obj.readVector3dArray(
                     name,
-                    readTypedArray("vector3f",
+                    readTypedArray("vector3d",
                         { Array(it) { v0 } },
                         { readVector3d() },
                         { array, index, value -> array[index] = value })
@@ -494,15 +494,19 @@ class TextReader(val data: String) : BaseReader() {
                 val v0 = Vector4d()
                 obj.readVector4dArray(
                     name,
-                    readTypedArray("vector4f",
+                    readTypedArray("vector4d",
                         { Array(it) { v0 } },
                         { readVector4d() },
                         { array, index, value -> array[index] = value })
                 )
             }
-            "m3" -> obj.readMatrix3f(name, Matrix3f(readVector3f(), readVector3f(), readVector3f()))
+            "m3x3" -> obj.readMatrix3x3f(name, Matrix3f(readVector3f(), readVector3f(), readVector3f()))
             "m4x3" -> obj.readMatrix4x3f(name, Matrix4x3f(readVector3f(), readVector3f(), readVector3f(), readVector3f()))
-            "m4" -> obj.readMatrix4f(name, Matrix4f(readVector4f(), readVector4f(), readVector4f(), readVector4f()))
+            "m4x4" -> obj.readMatrix4x4f(name, Matrix4f(readVector4f(), readVector4f(), readVector4f(), readVector4f()))
+            "m3x3d" -> obj.readMatrix3x3d(name, Matrix3d(readVector3d(), readVector3d(), readVector3d()))
+            // todo constructor is missing...
+            // "m4x3d" -> obj.readMatrix4x3d(name, Matrix4x3d(readVector3d(), readVector3d(), readVector3d(), readVector3d()))
+            "m4x4d" -> obj.readMatrix4x4d(name, Matrix4d(readVector4d(), readVector4d(), readVector4d(), readVector4d()))
             "S" -> obj.readString(name, readStringValue())
             "S[]" -> obj.readStringArray(
                 name,

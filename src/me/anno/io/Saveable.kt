@@ -60,12 +60,12 @@ abstract class Saveable : ISaveable {
     override fun readVector4d(name: String, value: Vector4d) = readSomething(name, value)
     override fun readVector4dArray(name: String, values: Array<Vector4d>) = readSomething(name, values)
 
-    override fun readMatrix3f(name: String, value: Matrix3f) = readSomething(name, value)
+    override fun readMatrix3x3f(name: String, value: Matrix3f) = readSomething(name, value)
     override fun readMatrix4x3f(name: String, value: Matrix4x3f) = readSomething(name, value)
-    override fun readMatrix4f(name: String, value: Matrix4f) = readSomething(name, value)
-    override fun readMatrix3d(name: String, value: Matrix3d) = readSomething(name, value)
+    override fun readMatrix4x4f(name: String, value: Matrix4f) = readSomething(name, value)
+    override fun readMatrix3x3d(name: String, value: Matrix3d) = readSomething(name, value)
     override fun readMatrix4x3d(name: String, value: Matrix4x3d) = readSomething(name, value)
-    override fun readMatrix4d(name: String, value: Matrix4d) = readSomething(name, value)
+    override fun readMatrix4x4d(name: String, value: Matrix4d) = readSomething(name, value)
 
     open fun readSomething(name: String, value: Any?) = warnMissingParam(name)
 

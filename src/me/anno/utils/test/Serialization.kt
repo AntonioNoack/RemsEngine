@@ -20,7 +20,7 @@ class Serialization : Saveable() {
     var withDifferentName = "different name"
 
     @SerializableProperty("", true)
-    var savingNull = 0
+    var savingZero = 0
 
     override fun getClassName(): String = "Test"
 

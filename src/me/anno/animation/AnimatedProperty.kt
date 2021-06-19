@@ -1,15 +1,14 @@
 package me.anno.animation
 
+import me.anno.animation.AnimationMaths.mul
+import me.anno.animation.AnimationMaths.mulAdd
+import me.anno.animation.Interpolation.Companion.getWeights
+import me.anno.animation.drivers.AnimationDriver
 import me.anno.config.DefaultStyle.black3
 import me.anno.gpu.GFX.glThread
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
-import me.anno.animation.AnimationMaths.mul
-import me.anno.animation.AnimationMaths.mulAdd
-import me.anno.animation.Interpolation.Companion.getWeights
-import me.anno.animation.TimeValue.Companion.writeValue
-import me.anno.animation.drivers.AnimationDriver
 import me.anno.studio.rems.RemsStudio.root
 import me.anno.utils.Maths.clamp
 import me.anno.utils.WrongClassType
@@ -306,7 +305,7 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
             // isAnimated = false is default
             val value0 = keyframes.firstOrNull()?.value
             if (value0 != null && value0 != defaultValue) {
-                writer.writeValue(this, "v", value0)
+                writer.writeSomething(this, "v", value0, true)
             }
         }
         for (i in 0 until min(type.components, drivers.size)) {

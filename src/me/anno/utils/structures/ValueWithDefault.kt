@@ -2,7 +2,6 @@ package me.anno.utils.structures
 
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
-import me.anno.animation.TimeValue.Companion.writeValue
 
 /**
  * class for values, which have not the typical default value
@@ -20,7 +19,7 @@ class ValueWithDefault<V>(
     val isSet get() = state != null && (state != default || wasSet)
     fun write(writer: BaseWriter, self: ISaveable?, name: String) {
         if (isSet) {
-            writer.writeValue(self, name, state)
+            writer.writeSomething(self, name, state, true)
         }
     }
 
@@ -46,7 +45,7 @@ class ValueWithDefault<V>(
      * (even if awkward)
      * can be misleading in the context of numbers...
      * */
-    operator fun timesAssign(value: V){
+    operator fun timesAssign(value: V) {
         this.value = value
     }
 

@@ -1,14 +1,11 @@
 package me.anno.animation
 
-import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.Filtering
-import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
-import me.anno.objects.modes.EditorFPS
-import me.anno.objects.modes.LoopingState
-import me.anno.objects.modes.UVProjection
-import org.joml.*
+import org.joml.Quaternionf
+import org.joml.Vector2f
+import org.joml.Vector3f
+import org.joml.Vector4f
 
 open class TimeValue<V>(var time: Double, var value: V) : Saveable() {
 
@@ -19,7 +16,7 @@ open class TimeValue<V>(var time: Double, var value: V) : Saveable() {
     override fun save(writer: BaseWriter) {
         super.save(writer)
         writer.writeDouble("time", time)
-        writer.writeValue(this, "value", value)
+        writer.writeSomething(this, "value", value, true)
     }
 
     override fun readDouble(name: String, value: Double) {
@@ -68,31 +65,6 @@ open class TimeValue<V>(var time: Double, var value: V) : Saveable() {
                 else -> throw RuntimeException("todo implement Keyframe.getValue(index) for $value")
             } as V
         )
-    }
-
-    companion object {
-        fun BaseWriter.writeValue(self: ISaveable?, name: String, v: Any?) {
-            when (v) {
-                is Boolean -> writeBoolean(name, v, true)
-                is Int -> writeInt(name, v, true)
-                is Long -> writeLong(name, v, true)
-                is Float -> writeFloat(name, v, true)
-                is Double -> writeDouble(name, v, true)
-                is Vector2f -> writeVector2f(name, v, true)
-                is Vector3f -> writeVector3f(name, v, true)
-                is Vector4f -> writeVector4f(name, v, true)
-                is String -> writeString(name, v, true)
-                is Vector4d -> writeVector4d(name, v, true)
-                null -> Unit /* mmh ... */
-                is Filtering -> writeInt(name, v.id, true)
-                is Clamping -> writeInt(name, v.id, true)
-                is EditorFPS -> writeInt(name, v.value, true)
-                is LoopingState -> writeInt(name, v.id, true)
-                is ISaveable -> writeObject(self, name, v, true)
-                is UVProjection -> writeInt(name, v.id, true)
-                else -> throw RuntimeException("todo implement writing $v")
-            }
-        }
     }
 
 }

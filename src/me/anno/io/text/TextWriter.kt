@@ -98,6 +98,27 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
         }
     }
 
+    override fun writeChar(name: String, value: Char, force: Boolean) {
+        if (force || value != 0.toChar()) {
+            writeAttributeStart("c", name)
+            data.append(value.code.toString())
+        }
+    }
+
+    override fun writeCharArray(name: String, value: CharArray, force: Boolean) {
+        if (force || value.isNotEmpty()) {
+            writeAttributeStart("c[]", name)
+            open(true)
+            data.append(value.size)
+            val lastIndex = value.indexOfLast { it != 0.toChar() }
+            for (i in 0 until lastIndex) {
+                data.append(',')
+                data.append(value[i].code.toString())
+            }
+            close(true)
+        }
+    }
+
     override fun writeByte(name: String, value: Byte, force: Boolean) {
         if (force || value != 0.toByte()) {
             writeAttributeStart("B", name)
@@ -388,10 +409,28 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
         }
     }
 
+    override fun writeVector2fArray(name: String, values: Array<Vector2fc>, force: Boolean) {
+        if (force || values.isNotEmpty()) {
+            writeAttributeStart("v2[]", name)
+            open(true)
+            for (it in values) writeVector2f(it)
+            close(true)
+        }
+    }
+
     override fun writeVector3f(name: String, value: Vector3fc, force: Boolean) {
         if (force || value.x() != 0f || value.y() != 0f || value.z() != 0f) {
             writeAttributeStart("v3", name)
             writeVector3f(value)
+        }
+    }
+
+    override fun writeVector3fArray(name: String, values: Array<Vector3fc>, force: Boolean) {
+        if (force || values.isNotEmpty()) {
+            writeAttributeStart("v3[]", name)
+            open(true)
+            for (it in values) writeVector3f(it)
+            close(true)
         }
     }
 
@@ -402,10 +441,28 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
         }
     }
 
+    override fun writeVector4fArray(name: String, values: Array<Vector4fc>, force: Boolean) {
+        if (force || values.isNotEmpty()) {
+            writeAttributeStart("v4[]", name)
+            open(true)
+            for (it in values) writeVector4f(it)
+            close(true)
+        }
+    }
+
     override fun writeVector2d(name: String, value: Vector2dc, force: Boolean) {
         if (force || value.x() != 0.0 || value.y() != 0.0) {
             writeAttributeStart("v2", name)
             writeVector2d(value)
+        }
+    }
+
+    override fun writeVector2dArray(name: String, values: Array<Vector2dc>, force: Boolean) {
+        if (force || values.isNotEmpty()) {
+            writeAttributeStart("v2d[]", name)
+            open(true)
+            for (it in values) writeVector2d(it)
+            close(true)
         }
     }
 
@@ -416,6 +473,15 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
         }
     }
 
+    override fun writeVector3dArray(name: String, values: Array<Vector3dc>, force: Boolean) {
+        if (force || values.isNotEmpty()) {
+            writeAttributeStart("v3d[]", name)
+            open(true)
+            for (it in values) writeVector3d(it)
+            close(true)
+        }
+    }
+
     override fun writeVector4d(name: String, value: Vector4dc, force: Boolean) {
         if (force || value.x() != 0.0 || value.y() != 0.0 || value.z() != 0.0 || value.w() != 0.0) {
             writeAttributeStart("v4", name)
@@ -423,7 +489,16 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
         }
     }
 
-    override fun writeMatrix3f(name: String, value: Matrix3fc, force: Boolean) {
+    override fun writeVector4dArray(name: String, values: Array<Vector4dc>, force: Boolean) {
+        if (force || values.isNotEmpty()) {
+            writeAttributeStart("v4d[]", name)
+            open(true)
+            for (it in values) writeVector4d(it)
+            close(true)
+        }
+    }
+
+    override fun writeMatrix3x3f(name: String, value: Matrix3fc, force: Boolean) {
         TODO("Not yet implemented")
     }
 
@@ -431,11 +506,11 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
         TODO("Not yet implemented")
     }
 
-    override fun writeMatrix4f(name: String, value: Matrix4fc, force: Boolean) {
+    override fun writeMatrix4x4f(name: String, value: Matrix4fc, force: Boolean) {
         TODO("Not yet implemented")
     }
 
-    override fun writeMatrix3d(name: String, value: Matrix3dc, force: Boolean) {
+    override fun writeMatrix3x3d(name: String, value: Matrix3dc, force: Boolean) {
         TODO("Not yet implemented")
     }
 
@@ -443,7 +518,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
         TODO("Not yet implemented")
     }
 
-    override fun writeMatrix4d(name: String, value: Matrix4dc, force: Boolean) {
+    override fun writeMatrix4x4d(name: String, value: Matrix4dc, force: Boolean) {
         TODO("Not yet implemented")
     }
 
@@ -463,33 +538,6 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
 
     override fun writeListEnd() {
         close(true)
-    }
-
-    override fun writeVector2fArray(name: String, elements: Array<Vector2f>, force: Boolean) {
-        if (force || elements.isNotEmpty()) {
-            writeAttributeStart("v2[]", name)
-            open(true)
-            elements.forEach { writeVector2f(it) }
-            close(true)
-        }
-    }
-
-    override fun writeVector3fArray(name: String, elements: Array<Vector3f>, force: Boolean) {
-        if (force || elements.isNotEmpty()) {
-            writeAttributeStart("v3[]", name)
-            open(true)
-            elements.forEach { writeVector3f(it) }
-            close(true)
-        }
-    }
-
-    override fun writeVector4fArray(name: String, elements: Array<Vector4f>, force: Boolean) {
-        if (force || elements.isNotEmpty()) {
-            writeAttributeStart("v4[]", name)
-            open(true)
-            elements.forEach { writeVector4f(it) }
-            close(true)
-        }
     }
 
     override fun writeObjectImpl(name: String?, value: ISaveable) {

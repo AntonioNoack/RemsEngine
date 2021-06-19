@@ -2,7 +2,6 @@ package me.anno.utils.structures
 
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
-import me.anno.animation.TimeValue.Companion.writeValue
 
 /**
  * class for values, which have not the typical default value
@@ -10,15 +9,16 @@ import me.anno.animation.TimeValue.Companion.writeValue
  * because they can be set automatically
  * */
 class ValueWithDefaultFunc<V>(
-    private var state: V?, private var default: () -> V) {
+    private var state: V?, private var default: () -> V
+) {
     constructor(value: V) : this(null, { value })
-    constructor(value: () -> V): this(null, value)
+    constructor(value: () -> V) : this(null, value)
 
     var wasSet = false
     val isSet get() = state != null && (state != default() || wasSet)
 
     var value
-        get() = if(isSet) state!! else default()
+        get() = if (isSet) state!! else default()
         set(value) {
             state = value
             wasSet = true
@@ -31,7 +31,7 @@ class ValueWithDefaultFunc<V>(
 
     fun write(writer: BaseWriter, self: ISaveable?, name: String) {
         if (isSet) {
-            writer.writeValue(self, name, state)
+            writer.writeSomething(self, name, state, true)
         }
     }
 
