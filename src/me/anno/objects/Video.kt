@@ -25,10 +25,10 @@ import me.anno.animation.AnimatedProperty
 import me.anno.objects.lists.Element
 import me.anno.objects.lists.SplittableElement
 import me.anno.objects.models.SpeakerModel.drawSpeakers
-import me.anno.objects.modes.EditorFPS
 import me.anno.objects.modes.LoopingState
 import me.anno.objects.modes.UVProjection
 import me.anno.objects.modes.VideoType
+import me.anno.objects.modes.editorFPS
 import me.anno.studio.StudioBase
 import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.RemsStudio.isPaused
@@ -128,7 +128,7 @@ class Video(file: FileReference = FileReference(""), parent: Transform? = null) 
 
     private var zoomLevel = 0
 
-    var editorVideoFPS = ValueWithDefault(EditorFPS.F60)
+    var editorVideoFPS = ValueWithDefault(60)
 
     val cgOffsetAdd = AnimatedProperty.color3(Vector3f())
     val cgOffsetSub = AnimatedProperty.color3(Vector3f())
@@ -305,7 +305,7 @@ class Video(file: FileReference = FileReference(""), parent: Transform? = null) 
                 val rawZoomLevel = meta.videoWidth / width
                 val zoomLevel = getCacheableZoomLevel(rawZoomLevel)
 
-                val videoFPS = min(sourceFPS, editorVideoFPS.value.dValue)
+                val videoFPS = min(sourceFPS, editorVideoFPS.value.toDouble())
                 val frameCount = max(1, (duration * videoFPS).roundToInt())
 
                 // draw the current texture
@@ -364,7 +364,7 @@ class Video(file: FileReference = FileReference(""), parent: Transform? = null) 
                 // use full fps when rendering to correctly render at max fps with time dilation
                 // issues arise, when multiple frames should be interpolated together into one
                 // at this time, we chose the center frame only.
-                val videoFPS = if (isFinalRendering) sourceFPS else min(sourceFPS, editorVideoFPS.value.dValue)
+                val videoFPS = if (isFinalRendering) sourceFPS else min(sourceFPS, editorVideoFPS.value.toDouble())
 
                 val frameCount = max(1, (duration * videoFPS).roundToInt())
 
@@ -521,7 +521,7 @@ class Video(file: FileReference = FileReference(""), parent: Transform? = null) 
                             // use full fps when rendering to correctly render at max fps with time dilation
                             // issues arise, when multiple frames should be interpolated together into one
                             // at this time, we chose the center frame only.
-                            val videoFPS = if (isFinalRendering) sourceFPS else min(sourceFPS, editorVideoFPS.value.dValue)
+                            val videoFPS = if (isFinalRendering) sourceFPS else min(sourceFPS, editorVideoFPS.value.toDouble())
 
                             // calculate how many buffers are required from start to end
                             // clamp to max number of buffers, or maybe 20
@@ -800,11 +800,11 @@ class Video(file: FileReference = FileReference(""), parent: Transform? = null) 
         editor += vid(EnumInput(
             "Preview FPS",
             "Smoother preview, heavier calculation",
-            editorVideoFPS.value.displayName,
-            EditorFPS.values().filter { it.value * 0.98 <= (meta?.videoFPS ?: 1e85) }.map { NameDesc(it.displayName) },
+            editorVideoFPS.value.toString(),
+            editorFPS.filter { it * 0.98 <= (meta?.videoFPS ?: 1e85) }.map { NameDesc(it.toString()) },
             style
         )
-            .setChangeListener { _, index, _ -> editorVideoFPS.value = EditorFPS.values()[index] }
+            .setChangeListener { _, index, _ -> editorVideoFPS.value = editorFPS[index] }
             .setIsSelectedListener { show(null) })
 
         ColorGrading.createInspector(
@@ -894,7 +894,7 @@ class Video(file: FileReference = FileReference(""), parent: Transform? = null) 
             "filtering" -> filtering.value = filtering.value.find(value)
             "clamping" -> clampMode.value = Clamping.values().firstOrNull { it.id == value } ?: return
             "uvProjection" -> uvProjection.value = UVProjection.values().firstOrNull { it.id == value } ?: return
-            "editorVideoFPS" -> editorVideoFPS.value = EditorFPS.values().firstOrNull { it.value == value } ?: return
+            "editorVideoFPS" -> editorVideoFPS.value = clamp(value, 1, 1000)
             else -> super.readInt(name, value)
         }
     }

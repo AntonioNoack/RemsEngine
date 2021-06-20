@@ -4,9 +4,7 @@ import me.anno.io.ISaveable
 import me.anno.io.base.BaseReader
 import me.anno.io.binary.BinaryTypes.*
 import me.anno.utils.input.readNBytes2
-import org.joml.Vector2f
-import org.joml.Vector3f
-import org.joml.Vector4f
+import org.joml.*
 import java.io.DataInputStream
 
 /**
@@ -74,6 +72,35 @@ class BinaryReader(val input: DataInputStream) : BaseReader() {
         return readObject(clazz)
     }
 
+    private fun readBooleanArray() = BooleanArray(input.readInt()) { input.readBoolean() }
+    private fun readByteArray() = ByteArray(input.readInt()) { input.readByte() }
+    private fun readShortArray() = ShortArray(input.readInt()) { input.readShort() }
+    private fun readIntArray() = IntArray(input.readInt()) { input.readInt() }
+    private fun readLongArray() = LongArray(input.readInt()) { input.readLong() }
+    private fun readFloatArray() = FloatArray(input.readInt()) { input.readFloat() }
+    private fun readDoubleArray() = DoubleArray(input.readInt()) { input.readDouble() }
+    private fun readStringArray() = Array(input.readInt()) { readEfficientString()!! }
+    private fun readObjectOrNull(): ISaveable? {
+        return when (val subType = input.read().toChar()) {
+            OBJECT_IMPL -> readObject()
+            OBJECT_PTR -> content[input.readInt()]!!
+            OBJECT_NULL -> null
+            else -> throw RuntimeException("Unknown sub-type $subType")
+        }
+    }
+
+    private fun readHeterogeneousObjectArray() = Array(input.readInt()) { readObjectOrNull() }
+    private fun readHomogeneousObjectArray(type: String): Array<ISaveable?> {
+        return Array(input.readInt()) {
+            when (val subType = input.read().toChar()) {
+                OBJECT_IMPL -> readObject(type)
+                OBJECT_PTR -> content[input.readInt()]!!
+                OBJECT_NULL -> null
+                else -> throw RuntimeException("Unknown sub-type $subType")
+            }
+        }
+    }
+
     fun readObject(clazz: String): ISaveable {
         val obj = getNewClassInstance(clazz)
         usingType(clazz) {
@@ -85,22 +112,39 @@ class BinaryReader(val input: DataInputStream) : BaseReader() {
                 val typeName = readTypeName(typeId)
                 val name = typeName.name
                 when (typeName.type) {
-                    BOOL -> obj.readBoolean(name, input.readByte() != 0.toByte())
-                    BOOL_ARRAY -> obj.readBooleanArray(name, BooleanArray(input.readInt()) { input.readBoolean() })
+
+                    BOOL -> obj.readBoolean(name, input.readBoolean())
+                    BOOL_ARRAY -> obj.readBooleanArray(name, readBooleanArray())
+                    BOOL_ARRAY_2D -> obj.readBooleanArray2D(name, Array(input.readInt()) { readBooleanArray() })
+
                     BYTE -> obj.readByte(name, input.readByte())
-                    BYTE_ARRAY -> obj.readByteArray(name, ByteArray(input.readInt()) { input.readByte() })
+                    BYTE_ARRAY -> obj.readByteArray(name, readByteArray())
+                    BYTE_ARRAY_2D -> obj.readByteArray2D(name, Array(input.readInt()) { readByteArray() })
+
                     SHORT -> obj.readShort(name, input.readShort())
-                    SHORT_ARRAY -> obj.readShortArray(name, ShortArray(input.readInt()) { input.readShort() })
+                    SHORT_ARRAY -> obj.readShortArray(name, readShortArray())
+                    SHORT_ARRAY_2D -> obj.readShortArray2D(name, Array(input.readInt()) { readShortArray() })
+
                     INT -> obj.readInt(name, input.readInt())
-                    INT_ARRAY -> obj.readIntArray(name, IntArray(input.readInt()) { input.readInt() })
+                    INT_ARRAY -> obj.readIntArray(name, readIntArray())
+                    INT_ARRAY_2D -> obj.readIntArray2D(name, Array(input.readInt()) { readIntArray() })
+
                     LONG -> obj.readLong(name, input.readLong())
-                    LONG_ARRAY -> obj.readLongArray(name, LongArray(input.readInt()) { input.readLong() })
+                    LONG_ARRAY -> obj.readLongArray(name, readLongArray())
+                    LONG_ARRAY_2D -> obj.readLongArray2D(name, Array(input.readInt()) { readLongArray() })
+
                     FLOAT -> obj.readFloat(name, input.readFloat())
-                    FLOAT_ARRAY -> obj.readFloatArray(name, FloatArray(input.readInt()) { input.readFloat() })
+                    FLOAT_ARRAY -> obj.readFloatArray(name, readFloatArray())
+                    FLOAT_ARRAY_2D -> obj.readFloatArray2D(name, Array(input.readInt()) { readFloatArray() })
+
                     DOUBLE -> obj.readDouble(name, input.readDouble())
-                    DOUBLE_ARRAY -> obj.readDoubleArray(name, DoubleArray(input.readInt()) { input.readDouble() })
+                    DOUBLE_ARRAY -> obj.readDoubleArray(name, readDoubleArray())
+                    DOUBLE_ARRAY_2D -> obj.readDoubleArray2D(name, Array(input.readInt()) { readDoubleArray() })
+
                     STRING -> obj.readString(name, readEfficientString()!!)
-                    STRING_ARRAY -> obj.readStringArray(name, Array(input.readInt()) { readEfficientString()!! })
+                    STRING_ARRAY -> obj.readStringArray(name, readStringArray())
+                    STRING_ARRAY_2D -> obj.readStringArray2D(name, Array(input.readInt()) { readStringArray() })
+
                     OBJECT_IMPL -> obj.readObject(name, readObject())
                     OBJECT_PTR -> {
                         val ptr2 = input.readInt()
@@ -111,34 +155,32 @@ class BinaryReader(val input: DataInputStream) : BaseReader() {
                             obj.readObject(name, child)
                         }
                     }
+
                     OBJECT_NULL -> obj.readObject(name, null)
-                    OBJECT_ARRAY -> {
-                        obj.readObjectArray(name, Array(input.readInt()) {
-                            when (val subType = input.read().toChar()) {
-                                OBJECT_IMPL -> readObject()
-                                OBJECT_PTR -> content[input.readInt()]!!
-                                OBJECT_NULL -> null
-                                else -> throw RuntimeException("Unknown sub-type $subType")
-                            }
-                        })
-                    }
+                    OBJECT_ARRAY -> obj.readObjectArray(name, readHeterogeneousObjectArray())
+                    OBJECT_ARRAY_2D -> obj.readObjectArray2D(name, Array(input.readInt()){ readHeterogeneousObjectArray() })
+
                     OBJECTS_HOMOGENOUS_ARRAY -> {
                         val type = readTypeString()
-                        obj.readObjectArray(name, Array(input.readInt()) {
-                            when (val subType = input.read().toChar()) {
-                                OBJECT_IMPL -> readObject(type)
-                                OBJECT_PTR -> content[input.readInt()]!!
-                                OBJECT_NULL -> null
-                                else -> throw RuntimeException("Unknown sub-type $subType")
-                            }
-                        })
+                        obj.readObjectArray(name, readHomogeneousObjectArray(type))
                     }
+
                     VECTOR2F -> obj.readVector2f(name, readVector2f())
-                    VECTOR2F_ARRAY -> obj.readVector2fArray(name, Array(input.readInt()){ readVector2f() })
                     VECTOR3F -> obj.readVector3f(name, readVector3f())
-                    VECTOR3F_ARRAY -> obj.readVector3fArray(name, Array(input.readInt()){ readVector3f()})
                     VECTOR4F -> obj.readVector4f(name, readVector4f())
-                    VECTOR4F_ARRAY -> obj.readVector4fArray(name, Array(input.readInt()){ readVector4f() })
+
+                    VECTOR2F_ARRAY -> obj.readVector2fArray(name, Array(input.readInt()) { readVector2f() })
+                    VECTOR3F_ARRAY -> obj.readVector3fArray(name, Array(input.readInt()) { readVector3f() })
+                    VECTOR4F_ARRAY -> obj.readVector4fArray(name, Array(input.readInt()) { readVector4f() })
+
+                    VECTOR2D -> obj.readVector2d(name, readVector2d())
+                    VECTOR3D -> obj.readVector3d(name, readVector3d())
+                    VECTOR4D -> obj.readVector4d(name, readVector4d())
+
+                    VECTOR2D_ARRAY -> obj.readVector2dArray(name, Array(input.readInt()) { readVector2d() })
+                    VECTOR3D_ARRAY -> obj.readVector3dArray(name, Array(input.readInt()) { readVector3d() })
+                    VECTOR4D_ARRAY -> obj.readVector4dArray(name, Array(input.readInt()) { readVector4d() })
+
                     else -> throw RuntimeException("Unknown type ${typeName.type}")
                 }
             }
@@ -150,6 +192,11 @@ class BinaryReader(val input: DataInputStream) : BaseReader() {
     private fun readVector2f() = Vector2f(input.readFloat(), input.readFloat())
     private fun readVector3f() = Vector3f(input.readFloat(), input.readFloat(), input.readFloat())
     private fun readVector4f() = Vector4f(input.readFloat(), input.readFloat(), input.readFloat(), input.readFloat())
+
+    private fun readVector2d() = Vector2d(input.readDouble(), input.readDouble())
+    private fun readVector3d() = Vector3d(input.readDouble(), input.readDouble(), input.readDouble())
+    private fun readVector4d() =
+        Vector4d(input.readDouble(), input.readDouble(), input.readDouble(), input.readDouble())
 
     override fun readAllInList() {
         val nameType = readTypeName()

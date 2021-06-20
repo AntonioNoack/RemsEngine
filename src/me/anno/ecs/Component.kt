@@ -19,4 +19,7 @@ abstract class Component : NamedSaveable() {
     override fun getApproxSize(): Int = 1000
     override fun isDefaultValue(): Boolean = false
 
+    // todo automatic property inspector by reflection
+    // todo property inspector annotations, e.g. Range, ExecuteInEditMode, HideInInspector, GraphicalValueTracker...
+
 }

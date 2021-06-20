@@ -7,6 +7,9 @@ import me.anno.utils.files.LocalFile.toLocalPath
 import org.joml.*
 import java.io.File
 import java.io.Serializable
+import java.lang.Exception
+import kotlin.reflect.full.declaredMemberExtensionFunctions
+import kotlin.reflect.full.declaredMemberFunctions
 
 abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
 
@@ -20,46 +23,55 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
     fun getPointer(value: ISaveable) = pointers[value]
 
     abstract fun writeBoolean(name: String, value: Boolean, force: Boolean = true)
-    abstract fun writeBooleanArray(name: String, value: BooleanArray, force: Boolean = false)
+    abstract fun writeBooleanArray(name: String, values: BooleanArray, force: Boolean = false)
+    abstract fun writeBooleanArray2D(name: String, values: Array<BooleanArray>, force: Boolean = false)
 
     abstract fun writeChar(name: String, value: Char, force: Boolean = false)
-    abstract fun writeCharArray(name: String, value: CharArray, force: Boolean = false)
+    abstract fun writeCharArray(name: String, values: CharArray, force: Boolean = false)
+    abstract fun writeCharArray2D(name: String, values: Array<CharArray>, force: Boolean = false)
 
     abstract fun writeByte(name: String, value: Byte, force: Boolean = false)
-    abstract fun writeByteArray(name: String, value: ByteArray, force: Boolean = false)
+    abstract fun writeByteArray(name: String, values: ByteArray, force: Boolean = false)
+    abstract fun writeByteArray2D(name: String, values: Array<ByteArray>, force: Boolean = false)
 
     abstract fun writeShort(name: String, value: Short, force: Boolean = false)
-    abstract fun writeShortArray(name: String, value: ShortArray, force: Boolean = false)
+    abstract fun writeShortArray(name: String, values: ShortArray, force: Boolean = false)
+    abstract fun writeShortArray2D(name: String, values: Array<ShortArray>, force: Boolean = false)
 
     abstract fun writeInt(name: String, value: Int, force: Boolean = false)
-    abstract fun writeIntArray(name: String, value: IntArray, force: Boolean = false)
+    abstract fun writeIntArray(name: String, values: IntArray, force: Boolean = false)
+    abstract fun writeIntArray2D(name: String, values: Array<IntArray>, force: Boolean = false)
 
     abstract fun writeLong(name: String, value: Long, force: Boolean = false)
-    abstract fun writeLongArray(name: String, value: LongArray, force: Boolean = false)
+    abstract fun writeLongArray(name: String, values: LongArray, force: Boolean = false)
+    abstract fun writeLongArray2D(name: String, values: Array<LongArray>, force: Boolean = false)
 
     abstract fun writeFloat(name: String, value: Float, force: Boolean = false)
-    abstract fun writeFloatArray(name: String, value: FloatArray, force: Boolean = false)
-    abstract fun writeFloatArray2D(name: String, value: Array<FloatArray>, force: Boolean = false)
+    abstract fun writeFloatArray(name: String, values: FloatArray, force: Boolean = false)
+    abstract fun writeFloatArray2D(name: String, values: Array<FloatArray>, force: Boolean = false)
 
     abstract fun writeDouble(name: String, value: Double, force: Boolean = false)
-    abstract fun writeDoubleArray(name: String, value: DoubleArray, force: Boolean = false)
-    abstract fun writeDoubleArray2D(name: String, value: Array<DoubleArray>, force: Boolean = false)
+    abstract fun writeDoubleArray(name: String, values: DoubleArray, force: Boolean = false)
+    abstract fun writeDoubleArray2D(name: String, values: Array<DoubleArray>, force: Boolean = false)
 
     abstract fun writeString(name: String, value: String?, force: Boolean = false)
-    abstract fun writeStringArray(name: String, value: Array<String>, force: Boolean = false)
+    abstract fun writeStringArray(name: String, values: Array<String>, force: Boolean = false)
+    abstract fun writeStringArray2D(name: String, values: Array<Array<String>>, force: Boolean = false)
 
     abstract fun writeVector2f(name: String, value: Vector2fc, force: Boolean = false)
-    abstract fun writeVector2fArray(name: String, values: Array<Vector2fc>, force: Boolean = false)
     abstract fun writeVector3f(name: String, value: Vector3fc, force: Boolean = false)
-    abstract fun writeVector3fArray(name: String, values: Array<Vector3fc>, force: Boolean = false)
     abstract fun writeVector4f(name: String, value: Vector4fc, force: Boolean = false)
+
+    abstract fun writeVector2fArray(name: String, values: Array<Vector2fc>, force: Boolean = false)
+    abstract fun writeVector3fArray(name: String, values: Array<Vector3fc>, force: Boolean = false)
     abstract fun writeVector4fArray(name: String, values: Array<Vector4fc>, force: Boolean = false)
 
     abstract fun writeVector2d(name: String, value: Vector2dc, force: Boolean = false)
-    abstract fun writeVector2dArray(name: String, values: Array<Vector2dc>, force: Boolean = false)
     abstract fun writeVector3d(name: String, value: Vector3dc, force: Boolean = false)
-    abstract fun writeVector3dArray(name: String, values: Array<Vector3dc>, force: Boolean = false)
     abstract fun writeVector4d(name: String, value: Vector4dc, force: Boolean = false)
+
+    abstract fun writeVector2dArray(name: String, values: Array<Vector2dc>, force: Boolean = false)
+    abstract fun writeVector3dArray(name: String, values: Array<Vector3dc>, force: Boolean = false)
     abstract fun writeVector4dArray(name: String, values: Array<Vector4dc>, force: Boolean = false)
 
     // matrices, which are commonly used in game development
@@ -140,11 +152,11 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
     open fun <V : ISaveable> writeObjectList(
         self: ISaveable?,
         name: String,
-        elements: List<V>,
+        values: List<V>,
         force: Boolean = false
     ) {
-        if (force || elements.isNotEmpty()) {
-            writeObjectArray(self, name, Array<ISaveable>(elements.size) { elements[it] } as Array<V>, force)
+        if (force || values.isNotEmpty()) {
+            writeObjectArray(self, name, Array<ISaveable>(values.size) { values[it] } as Array<V>, force)
         }
     }
 
@@ -154,7 +166,17 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
     abstract fun <V : ISaveable> writeObjectArray(
         self: ISaveable?,
         name: String,
-        elements: Array<V>,
+        values: Array<V>,
+        force: Boolean = false
+    )
+
+    /**
+     * saves a 2d array of objects of different classes
+     * */
+    abstract fun <V : ISaveable> writeObjectArray2D(
+        self: ISaveable?,
+        name: String,
+        values: Array<Array<V>>,
         force: Boolean = false
     )
 
@@ -165,7 +187,7 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
     abstract fun <V : ISaveable> writeHomogenousObjectArray(
         self: ISaveable?,
         name: String,
-        elements: Array<V>,
+        values: Array<V>,
         force: Boolean = false
     )
 
@@ -231,16 +253,24 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
             is Array<*> -> {
                 if (value.isNotEmpty()) {
                     when (val sample = value[0]) {
+
                         is String -> writeStringArray(name, cast(value), forceSaving)
+
                         is Vector2fc -> writeVector2fArray(name, cast(value), forceSaving)
                         is Vector3fc -> writeVector3fArray(name, cast(value), forceSaving)
                         is Vector4fc -> writeVector4fArray(name, cast(value), forceSaving)
                         is Vector2d -> writeVector2dArray(name, cast(value), forceSaving)
                         is Vector3d -> writeVector3dArray(name, cast(value), forceSaving)
                         is Vector4d -> writeVector4dArray(name, cast(value), forceSaving)
+
+                        // todo other native 2d arrays
                         is FloatArray -> writeFloatArray2D(name, cast(value), forceSaving)
                         is DoubleArray -> writeDoubleArray2D(name, cast(value), forceSaving)
+
                         is ISaveable -> writeObjectArray(self, name, value as Array<ISaveable>, forceSaving)
+
+                        is Array<*> -> TODO("implement reading 2d array, of string or objects")
+
                         else -> throw RuntimeException("Not yet implemented: saving an array of $sample")
                     }
                 } // else if is force saving, then this won't work, because of the weak generics in Java :/
@@ -275,6 +305,22 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
             // java-serializable
             is Serializable -> {
                 // implement it?...
+
+                // if it is an enum, write its value
+                // enums always are Serializable
+                val clazz = value::class.java
+                try {
+                    val getId = clazz.getMethod("getId")
+                    val id = getId.invoke(value)
+                    if(id is Int){
+                        // all good :)
+                        writeInt(name, id, forceSaving)
+                        return
+                    }
+                } catch (e: Exception){
+                    e.printStackTrace()
+                }
+
                 throw RuntimeException("Could not serialize field $name with value $value of class ${value.javaClass}, Serializable")
             }
             else -> {

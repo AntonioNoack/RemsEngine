@@ -73,81 +73,21 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         }
     }
 
-    override fun writeBooleanArray(name: String, value: BooleanArray, force: Boolean) {
-        if (force || value.isNotEmpty()) {
+    override fun writeBooleanArray(name: String, values: BooleanArray, force: Boolean) {
+        if (force || values.isNotEmpty()) {
             writeAttributeStart(name, BOOL_ARRAY)
-            output.writeInt(value.size)
-            for (v in value) output.write(if (v) 1 else 0)
+            output.writeInt(values.size)
+            for (v in values) output.write(if (v) 1 else 0)
         }
     }
 
-    override fun writeByte(name: String, value: Byte, force: Boolean) {
-        if (force || value != 0.toByte()) {
-            writeAttributeStart(name, BYTE)
-            output.writeByte(value.toInt())
-        }
-    }
-
-    override fun writeByteArray(name: String, value: ByteArray, force: Boolean) {
-        if (force || value.isNotEmpty()) {
-            writeAttributeStart(name, BYTE_ARRAY)
-            output.writeInt(value.size)
-            output.write(value)
-        }
-    }
-
-    override fun writeShort(name: String, value: Short, force: Boolean) {
-        if (force || value != 0.toShort()) {
-            writeAttributeStart(name, 's')
-            output.writeShort(value.toInt())
-        }
-    }
-
-    override fun writeShortArray(name: String, value: ShortArray, force: Boolean) {
-        if (force || value.isNotEmpty()) {
-            writeAttributeStart(name, SHORT_ARRAY)
-            output.writeInt(value.size)
-            for (v in value) output.writeShort(v.toInt())
-        }
-    }
-
-    override fun writeInt(name: String, value: Int, force: Boolean) {
-        if (force || value != 0) {
-            writeAttributeStart(name, INT)
-            output.writeInt(value)
-        }
-    }
-
-    override fun writeIntArray(name: String, value: IntArray, force: Boolean) {
-        if (force || value.isNotEmpty()) {
-            writeAttributeStart(name, INT_ARRAY)
-            output.writeInt(value.size)
-            for (v in value) output.writeInt(v)
-        }
-    }
-
-    override fun writeFloat(name: String, value: Float, force: Boolean) {
-        if (force || value != 0f) {
-            writeAttributeStart(name, FLOAT)
-            output.writeFloat(value)
-        }
-    }
-
-    override fun writeFloatArray(name: String, value: FloatArray, force: Boolean) {
-        if (force || value.isNotEmpty()) {
-            writeAttributeStart(name, FLOAT_ARRAY)
-            output.writeInt(value.size)
-            for (v in value) output.writeFloat(v)
-        }
-    }
-
-    override fun writeFloatArray2D(name: String, value: Array<FloatArray>, force: Boolean) {
-        if (force || value.isNotEmpty()) {
-            writeAttributeStart(name, FLOAT_ARRAY_2D)
-            output.writeInt(value.size)
-            for (vs in value) {
+    override fun writeBooleanArray2D(name: String, values: Array<BooleanArray>, force: Boolean) {
+        if (force || values.isNotEmpty()) {
+            writeAttributeStart(name, BOOL_ARRAY_2D)
+            output.writeInt(values.size)
+            for (vs in values) {
                 output.writeInt(vs.size)
-                for (v in vs) output.writeFloat(v)
+                for (v in vs) output.write(if (v) 1 else 0)
             }
         }
     }
@@ -159,11 +99,153 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         }
     }
 
-    override fun writeCharArray(name: String, value: CharArray, force: Boolean) {
-        if (force || value.isNotEmpty()) {
+    override fun writeCharArray(name: String, values: CharArray, force: Boolean) {
+        if (force || values.isNotEmpty()) {
             writeAttributeStart(name, CHAR_ARRAY)
-            output.writeInt(value.size)
-            for (c in value) output.writeChar(c.code)
+            output.writeInt(values.size)
+            for (c in values) output.writeChar(c.code)
+        }
+    }
+
+    override fun writeCharArray2D(name: String, values: Array<CharArray>, force: Boolean) {
+        if (force || values.isNotEmpty()) {
+            writeAttributeStart(name, CHAR_ARRAY_2D)
+            output.writeInt(values.size)
+            for (vs in values) {
+                output.writeInt(vs.size)
+                for (v in vs) output.writeChar(v.code)
+            }
+        }
+    }
+
+
+    override fun writeByte(name: String, value: Byte, force: Boolean) {
+        if (force || value != 0.toByte()) {
+            writeAttributeStart(name, BYTE)
+            output.writeByte(value.toInt())
+        }
+    }
+
+    override fun writeByteArray(name: String, values: ByteArray, force: Boolean) {
+        if (force || values.isNotEmpty()) {
+            writeAttributeStart(name, BYTE_ARRAY)
+            output.writeInt(values.size)
+            output.write(values)
+        }
+    }
+
+    override fun writeByteArray2D(name: String, values: Array<ByteArray>, force: Boolean) {
+        if (force || values.isNotEmpty()) {
+            writeAttributeStart(name, BYTE_ARRAY_2D)
+            output.writeInt(values.size)
+            for (vs in values) {
+                output.writeInt(vs.size)
+                output.write(vs)
+            }
+        }
+    }
+
+    override fun writeShort(name: String, value: Short, force: Boolean) {
+        if (force || value != 0.toShort()) {
+            writeAttributeStart(name, 's')
+            output.writeShort(value.toInt())
+        }
+    }
+
+    override fun writeShortArray(name: String, values: ShortArray, force: Boolean) {
+        if (force || values.isNotEmpty()) {
+            writeAttributeStart(name, SHORT_ARRAY)
+            output.writeInt(values.size)
+            for (v in values) output.writeShort(v.toInt())
+        }
+    }
+
+    override fun writeShortArray2D(name: String, values: Array<ShortArray>, force: Boolean) {
+        if (force || values.isNotEmpty()) {
+            writeAttributeStart(name, SHORT_ARRAY_2D)
+            output.writeInt(values.size)
+            for (vs in values) {
+                output.writeInt(vs.size)
+                for (v in vs) output.writeShort(v.toInt())
+            }
+        }
+    }
+
+    override fun writeInt(name: String, value: Int, force: Boolean) {
+        if (force || value != 0) {
+            writeAttributeStart(name, INT)
+            output.writeInt(value)
+        }
+    }
+
+    override fun writeIntArray(name: String, values: IntArray, force: Boolean) {
+        if (force || values.isNotEmpty()) {
+            writeAttributeStart(name, INT_ARRAY)
+            output.writeInt(values.size)
+            for (v in values) output.writeInt(v)
+        }
+    }
+
+    override fun writeIntArray2D(name: String, values: Array<IntArray>, force: Boolean) {
+        if (force || values.isNotEmpty()) {
+            writeAttributeStart(name, INT_ARRAY_2D)
+            output.writeInt(values.size)
+            for (vs in values) {
+                output.writeInt(vs.size)
+                for (v in vs) output.writeInt(v)
+            }
+        }
+    }
+
+    override fun writeLong(name: String, value: Long, force: Boolean) {
+        if (force || value != 0L) {
+            writeAttributeStart(name, LONG)
+            output.writeLong(value)
+        }
+    }
+
+    override fun writeLongArray(name: String, values: LongArray, force: Boolean) {
+        if (force || values.isNotEmpty()) {
+            writeAttributeStart(name, LONG_ARRAY)
+            output.writeInt(values.size)
+            for (v in values) output.writeLong(v)
+        }
+    }
+
+    override fun writeLongArray2D(name: String, values: Array<LongArray>, force: Boolean) {
+        if (force || values.isNotEmpty()) {
+            writeAttributeStart(name, LONG_ARRAY_2D)
+            output.writeInt(values.size)
+            for (vs in values) {
+                output.writeInt(vs.size)
+                for (v in vs) output.writeLong(v)
+            }
+        }
+    }
+
+    override fun writeFloat(name: String, value: Float, force: Boolean) {
+        if (force || value != 0f) {
+            writeAttributeStart(name, FLOAT)
+            output.writeFloat(value)
+        }
+    }
+
+    override fun writeFloatArray(name: String, values: FloatArray, force: Boolean) {
+        if (force || values.isNotEmpty()) {
+            writeAttributeStart(name, FLOAT_ARRAY)
+            output.writeInt(values.size)
+            for (v in values) output.writeFloat(v)
+        }
+    }
+
+    override fun writeFloatArray2D(name: String, values: Array<FloatArray>, force: Boolean) {
+        if (force || values.isNotEmpty()) {
+            writeAttributeStart(name, FLOAT_ARRAY_2D)
+            output.writeInt(values.size)
+            for (vs in values) {
+                output.writeInt(vs.size)
+                for (v in vs) output.writeFloat(v)
+            }
         }
     }
 
@@ -174,19 +256,19 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         }
     }
 
-    override fun writeDoubleArray(name: String, value: DoubleArray, force: Boolean) {
-        if (force || value.isNotEmpty()) {
+    override fun writeDoubleArray(name: String, values: DoubleArray, force: Boolean) {
+        if (force || values.isNotEmpty()) {
             writeAttributeStart(name, DOUBLE_ARRAY)
-            output.writeInt(value.size)
-            for (v in value) output.writeDouble(v)
+            output.writeInt(values.size)
+            for (v in values) output.writeDouble(v)
         }
     }
 
-    override fun writeDoubleArray2D(name: String, value: Array<DoubleArray>, force: Boolean) {
-        if (force || value.isNotEmpty()) {
+    override fun writeDoubleArray2D(name: String, values: Array<DoubleArray>, force: Boolean) {
+        if (force || values.isNotEmpty()) {
             writeAttributeStart(name, DOUBLE_ARRAY_2D)
-            output.writeInt(value.size)
-            for (vs in value) {
+            output.writeInt(values.size)
+            for (vs in values) {
                 output.writeInt(vs.size)
                 for (v in vs) output.writeDouble(v)
             }
@@ -200,26 +282,22 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         }
     }
 
-    override fun writeStringArray(name: String, value: Array<String>, force: Boolean) {
-        if (force || value.isNotEmpty()) {
+    override fun writeStringArray(name: String, values: Array<String>, force: Boolean) {
+        if (force || values.isNotEmpty()) {
             writeAttributeStart(name, STRING_ARRAY)
-            output.writeInt(value.size)
-            for (v in value) writeEfficientString(v)
+            output.writeInt(values.size)
+            for (v in values) writeEfficientString(v)
         }
     }
 
-    override fun writeLong(name: String, value: Long, force: Boolean) {
-        if (force || value != 0L) {
-            writeAttributeStart(name, LONG)
-            output.writeLong(value)
-        }
-    }
-
-    override fun writeLongArray(name: String, value: LongArray, force: Boolean) {
-        if (force || value.isNotEmpty()) {
-            writeAttributeStart(name, LONG_ARRAY)
-            output.writeInt(value.size)
-            for (v in value) output.writeLong(v)
+    override fun writeStringArray2D(name: String, values: Array<Array<String>>, force: Boolean) {
+        if (force || values.isNotEmpty()) {
+            writeAttributeStart(name, STRING_ARRAY_2D)
+            output.writeInt(values.size)
+            for (vs in values) {
+                output.writeInt(vs.size)
+                for (v in vs) writeEfficientString(v)
+            }
         }
     }
 
@@ -406,15 +484,15 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         }
     }
 
-    override fun <V : ISaveable> writeObjectArray(self: ISaveable?, name: String, elements: Array<V>, force: Boolean) {
-        if (force || elements.isNotEmpty()) {
-            if (elements.isNotEmpty()) {
-                val firstType = elements.first().getClassName()
-                val allSameType = elements.all { it.getClassName() == firstType }
+    override fun <V : ISaveable> writeObjectArray(self: ISaveable?, name: String, values: Array<V>, force: Boolean) {
+        if (force || values.isNotEmpty()) {
+            if (values.isNotEmpty()) {
+                val firstType = values.first().getClassName()
+                val allSameType = values.all { it.getClassName() == firstType }
                 if (allSameType) {
-                    writeHomogenousObjectArray(self, name, elements, force)
+                    writeHomogenousObjectArray(self, name, values, force)
                 } else {
-                    writeGenericArray(name, elements, force, OBJECT_ARRAY) {
+                    writeGenericArray(name, values, force, OBJECT_ARRAY) {
                         writeObject(null, null, it, true)
                     }
                 }
@@ -423,11 +501,19 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
                 output.writeInt(0)
             }
         }
-
     }
 
-    override fun <V : ISaveable> writeObjectList(self: ISaveable?, name: String, elements: List<V>, force: Boolean) {
-        writeGenericList(name, elements, force) {
+    override fun <V : ISaveable> writeObjectArray2D(
+        self: ISaveable?,
+        name: String,
+        values: Array<Array<V>>,
+        force: Boolean
+    ) {
+        TODO("Not yet implemented")
+    }
+
+    override fun <V : ISaveable> writeObjectList(self: ISaveable?, name: String, values: List<V>, force: Boolean) {
+        writeGenericList(name, values, force) {
             writeObject(null, null, it, true)
         }
     }
@@ -435,14 +521,14 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
     override fun <V : ISaveable> writeHomogenousObjectArray(
         self: ISaveable?,
         name: String,
-        elements: Array<V>,
+        values: Array<V>,
         force: Boolean
     ) {
-        if (force || elements.isNotEmpty()) {
+        if (force || values.isNotEmpty()) {
             writeAttributeStart(name, OBJECTS_HOMOGENOUS_ARRAY)
-            writeTypeString(elements.firstOrNull()?.getClassName() ?: "")
-            output.writeInt(elements.size)
-            for (element in elements) {
+            writeTypeString(values.firstOrNull()?.getClassName() ?: "")
+            output.writeInt(values.size)
+            for (element in values) {
                 element.save(this)
                 writeObjectEnd()
             }
