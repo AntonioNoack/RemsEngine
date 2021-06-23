@@ -24,6 +24,8 @@ import me.anno.ui.editor.sceneView.ISceneView
 import me.anno.ui.editor.treeView.TreeView
 import me.anno.utils.OS
 
+// todo print list of time-points for sites like YouTube
+// todo we could set markers in the editor :)
 
 // todo mesh preview, primarily for other projects
 // todo 3d model gltf support

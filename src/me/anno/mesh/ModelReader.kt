@@ -32,7 +32,7 @@ object ModelReader {
         }
         val lineCount = dis.readInt()
         val lines = ArrayList<Line>(lineCount)
-        if(lineCount != 0){
+        if (lineCount != 0) {
             val x0 = dis.readFloat()
             val x1 = dis.readFloat()
             val y0 = dis.readFloat()
@@ -91,7 +91,7 @@ object ModelReader {
         val models = readModels(input)
         val list = ArrayList<Mesh>(models.sumOf { it.meshes.size })
         for (model in models) {
-            if(model.localTranslation.length() > 1e-7f){
+            if (model.localTranslation.length() > 1e-7f) {
                 model.meshes.forEach { mesh ->
                     mesh.translate(model.localTranslation)
                 }

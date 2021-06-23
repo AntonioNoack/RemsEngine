@@ -111,6 +111,8 @@ interface ISaveable {
         val reflections = reflectionCache.getOrPut(clazz) { CachedReflections(clazz) }
         for ((name, field) in reflections.properties) {
             val value = field.getter.call(name)
+            // todo if the type is explicitely given, however not deductable (empty array), and the saving is forced,
+            // todo use the field.type
             writer.writeSomething(this, name, value, field.forceSaving ?: value is Boolean)
         }
     }

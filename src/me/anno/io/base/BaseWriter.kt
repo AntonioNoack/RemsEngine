@@ -263,7 +263,12 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
                         is Vector3d -> writeVector3dArray(name, cast(value), forceSaving)
                         is Vector4d -> writeVector4dArray(name, cast(value), forceSaving)
 
-                        // todo other native 2d arrays
+                        is BooleanArray -> writeBooleanArray2D(name, cast(value), forceSaving)
+                        is CharArray -> writeCharArray2D(name, cast(value), forceSaving)
+                        is ByteArray -> writeByteArray2D(name, cast(value), forceSaving)
+                        is ShortArray -> writeCharArray2D(name, cast(value), forceSaving)
+                        is IntArray -> writeIntArray2D(name, cast(value), forceSaving)
+                        is LongArray -> writeLongArray2D(name, cast(value), forceSaving)
                         is FloatArray -> writeFloatArray2D(name, cast(value), forceSaving)
                         is DoubleArray -> writeDoubleArray2D(name, cast(value), forceSaving)
 

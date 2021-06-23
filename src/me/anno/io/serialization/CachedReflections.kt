@@ -36,9 +36,9 @@ class CachedReflections(val properties: Map<String, CachedProperty>) {
             val map = HashMap<String, CachedProperty>()
             properties.map { field ->
                 val isPublic = field.visibility == KVisibility.PUBLIC
-                val serial = field.findAnnotation<SerializableProperty>()
+                val serial = field.findAnnotation<SerializedProperty>()
                 val needsSerialization =
-                    serial != null || (isPublic && field.findAnnotation<NotSerializableProperty>() == null)
+                    serial != null || (isPublic && field.findAnnotation<NotSerializedProperty>() == null)
                 if (needsSerialization) {
                     try {
                         // save the field

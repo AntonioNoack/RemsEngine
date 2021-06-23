@@ -3,18 +3,25 @@ package me.anno.ecs
 import me.anno.io.ISaveable
 import me.anno.io.NamedSaveable
 import me.anno.io.base.BaseWriter
+import me.anno.io.serialization.NotSerializedProperty
+import me.anno.io.serialization.SerializedProperty
 
 // entities would be an idea to make effects more modular
 // it could apply new effects to both the camera and image sources
 
 class Entity : NamedSaveable() {
 
+    @SerializedProperty
     val components = ArrayList<Component>()
 
+    @SerializedProperty
     var parent: Entity? = null
 
+    @NotSerializedProperty
     val children = ArrayList<Entity>()
 
+    @SerializedProperty
+    var isEnabled = true
 
     fun update() {
         for (component in components) component.onUpdate()
@@ -67,8 +74,9 @@ class Entity : NamedSaveable() {
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
-        writer.writeObjectList(this, "children", children)
-        writer.writeObjectList(this, "components", components)
+        saveSerializableProperties(writer)
+        // writer.writeObjectList(this, "children", children)
+        // writer.writeObjectList(this, "components", components)
     }
 
     override fun readObject(name: String, value: ISaveable?) {

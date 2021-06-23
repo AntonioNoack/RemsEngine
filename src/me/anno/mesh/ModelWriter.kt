@@ -13,10 +13,10 @@ object ModelWriter {
         else ((x - min) / (max - min + 1e-35f) * 255).roundToInt()
 
     fun normalize2(x: Float, min: Float, max: Float) =
-        if (max == min) 65535/2
+        if (max == min) 65535 / 2
         else ((x - min) / (max - min + 1e-35f) * 65535).roundToInt()
 
-    fun writeMesh(dos: DataOutputStream, withUVs: Boolean, mesh: Mesh){
+    fun writeMesh(dos: DataOutputStream, withUVs: Boolean, mesh: Mesh) {
 
         dos.writeUTF(mesh.material)
 
@@ -30,7 +30,7 @@ object ModelWriter {
 
             val position = points.map { it.position }
             val x0 = position.minByOrNull { it.x }!!.x
-            val x1 = position.maxByOrNull  { it.x }!!.x
+            val x1 = position.maxByOrNull { it.x }!!.x
             val y0 = position.minByOrNull { it.y }!!.y
             val y1 = position.maxByOrNull { it.y }!!.y
             val z0 = position.minByOrNull { it.z }!!.z
@@ -63,7 +63,7 @@ object ModelWriter {
 
         val lines = mesh.lines
         dos.writeInt(lines?.size ?: 0)
-        if(lines != null && lines.isNotEmpty()){
+        if (lines != null && lines.isNotEmpty()) {
 
             val positions = lines.map { it.a } + lines.map { it.b }
             val x0 = positions.minByOrNull { it.x() }!!.x()

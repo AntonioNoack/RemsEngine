@@ -5,12 +5,12 @@ import java.lang.RuntimeException
 object ShaderPlus {
 
     fun create(name: String, vertex: String, varying: String, fragment: String): Shader {
-        return Shader(name, vertex, varying, makeUniversal(fragment))
+        return Shader(name, vertex, varying, makeFragmentShaderUniversal(fragment))
     }
 
-    fun makeUniversal(shader: String): String {
+    fun makeFragmentShaderUniversal(fragmentSource: String): String {
 
-        val raw = shader.trim()
+        val raw = fragmentSource.trim()
         if(!raw.endsWith("}")) throw RuntimeException()
         return "" +
                 "uniform int drawMode;\n" +

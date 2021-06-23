@@ -16,6 +16,7 @@ import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2D
 import me.anno.io.FileReference
+import me.anno.mesh.assimp.AssimpMesh
 import me.anno.mesh.fbx.model.FBXGeometry
 import me.anno.mesh.fbx.model.FBXModel
 import me.anno.mesh.obj.Material
@@ -33,12 +34,25 @@ open class MeshData : ICacheData {
     var fbxData: List<FBXData>? = null
     var gltfData: GlTFData? = null
     var daeScene: Scene? = null
+    var assimpMeshes: Array<AssimpMesh>? = null
+
+    fun drawAssimp(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
+        // todo draw it
+        // todo bind the correct shader, best gltf
+        // todo upload the required uniforms
+
+        /*for(model in assimpMeshes!!){
+            model.render()
+        }*/
+    }
 
     fun drawObj(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
-        for ((material, buffer) in objData!!) {
-            val shader = shaderObjMtl
-            shader.use()
-            shader3DUniforms(shader, stack, 1, 1, color, null, Filtering.NEAREST, null)
+        val objData = objData!!
+        if(objData.isEmpty()) return
+        val shader = shaderObjMtl
+        shader.use()
+        shader3DUniforms(shader, stack, 1, 1, color, null, Filtering.NEAREST, null)
+        for ((material, buffer) in objData) {
             getTexture(material.diffuseTexture, whiteTexture).bind(0, whiteTexture.filtering, whiteTexture.clamping)
             buffer.draw(shader)
             GFX.check()
@@ -64,11 +78,11 @@ open class MeshData : ICacheData {
         // todo somehow only the first animation is playing correctly...
         camera.update(stack)
         val animations = data.animations
-        if(animations != null){
+        if (animations != null) {
             val animation = animations.getOrNull(animationIndex)
-            if(animation != null){
+            if (animation != null) {
                 val timeF = time.toFloat()
-                animation.update((timeF-animation.startTimeS) % animation.durationS)
+                animation.update((timeF - animation.startTimeS) % animation.durationS)
             }
         }
         // viewer.animationManager.setTime(time.toFloat())

@@ -3,8 +3,8 @@ package me.anno.utils.test
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
-import me.anno.io.serialization.NotSerializableProperty
-import me.anno.io.serialization.SerializableProperty
+import me.anno.io.serialization.NotSerializedProperty
+import me.anno.io.serialization.SerializedProperty
 import me.anno.io.text.TextReader
 
 class TestClass : Saveable() {
@@ -12,16 +12,16 @@ class TestClass : Saveable() {
     var publicName = "public name"
     private var privateName = "private name"
 
-    @NotSerializableProperty
+    @NotSerializedProperty
     var notSerializable = "not serializable"
 
-    @SerializableProperty
+    @SerializedProperty
     private var serializable = "serializable"
 
-    @SerializableProperty("anotherName")
+    @SerializedProperty("anotherName")
     var withDifferentName = "different name"
 
-    @SerializableProperty("", true)
+    @SerializedProperty("", true)
     var savingZero = 0
 
     override fun getClassName(): String = "Test"

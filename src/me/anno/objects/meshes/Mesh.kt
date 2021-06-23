@@ -6,7 +6,6 @@ import me.anno.animation.Type
 import me.anno.cache.instances.LastModifiedCache
 import me.anno.cache.instances.MeshCache.getMesh
 import me.anno.config.DefaultConfig
-import me.anno.gpu.GFX
 import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer
@@ -14,13 +13,10 @@ import me.anno.io.FileReference
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.language.translation.Dict
-import me.anno.mesh.fbx.model.FBXGeometry
-import me.anno.mesh.fbx.model.FBXShader.maxWeightsDefault
-import me.anno.mesh.fbx.structure.FBXReader
+import me.anno.mesh.assimp.AnimatedMeshesLoader
 import me.anno.mesh.gltf.ExternalCameraImpl
 import me.anno.mesh.gltf.GltfLogger
 import me.anno.mesh.gltf.GltfViewerLwjgl
-import me.anno.mesh.obj.Material
 import me.anno.mesh.obj.OBJReader
 import me.anno.objects.GFXTransform
 import me.anno.objects.Transform
@@ -30,9 +26,7 @@ import me.anno.ui.style.Style
 import me.anno.utils.Maths.pow
 import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.video.MissingFrameException
-import me.karl.main.SceneLoader
 import me.karl.renderer.AnimatedModelRenderer
-import me.karl.utils.URI
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4fc
@@ -100,7 +94,7 @@ class Mesh(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
 
             // todo decide on file magic instead
             when (extension) {
-                "dae" -> {
+                /*"dae" -> {
 
                     GFX.check()
                     if (daeRenderer == null) {
@@ -191,7 +185,7 @@ class Mesh(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
                         }
                     } else super.onDraw(stack, time, color)
 
-                }
+                }*/
                 "gltf", "glb" -> {
                     val data = loadModel(file, "Mesh-GLTF", {
 
@@ -213,8 +207,28 @@ class Mesh(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
 
                 }
                 else -> {
-                    lastWarning = "Extension '$extension' is not supported"
+
+                    // load the 3D model
+                    val data = loadModel(file, "Assimp", { meshData ->
+                        // load the model...
+                        // assume it's obj first...
+                        val reader = AnimatedMeshesLoader()
+                        val meshes = reader.load(file.toString(), file.getParent().toString())
+                        meshData.assimpMeshes = meshes
+                    }) { it.assimpMeshes }
+
+                    if (data?.assimpMeshes != null) {
+                        stack.next {
+                            if (powerOf10Correction != 0)
+                                stack.scale(pow(10f, powerOf10Correction.toFloat()))
+                            data.drawAssimp(stack, time, color)
+                        }
+                    } else super.onDraw(stack, time, color)
+
                 }
+                /*else -> {
+                    lastWarning = "Extension '$extension' is not supported"
+                }*/
             }
 
         } else {

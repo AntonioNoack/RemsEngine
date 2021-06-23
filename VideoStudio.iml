@@ -32,5 +32,8 @@
     <orderEntry type="library" name="PDFBox" level="project" />
     <orderEntry type="library" name="Other" level="project" />
     <orderEntry type="library" name="jGLTF" level="project" />
+    <orderEntry type="library" name="JBullet2" level="project" />
+    <orderEntry type="library" name="lwjgl-assimp-javadoc" level="project" />
+    <orderEntry type="library" name="LWJGL-Assimp" level="project" />
   </component>
 </module>

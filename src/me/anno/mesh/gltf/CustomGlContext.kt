@@ -1,23 +1,37 @@
 package me.anno.mesh.gltf
 
 import de.javagl.jgltf.viewer.lwjgl.GlContextLwjgl
+import me.anno.gpu.GFX
+import me.anno.gpu.ShaderLib.positionPostProcessing
 import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.ShaderPlus
 
 object CustomGlContext : GlContextLwjgl() {
 
     // todo hashmap<string, shader> to reuse shaders
     val shaders = ArrayList<Shader>()
     override fun createGlProgram(vertexShaderSource: String, fragmentShaderSource: String): Int {
-        // todo for Rem's Studio create a clickable, tint-able shader
-        val shader = Shader("Gltf", vertexShaderSource, "", fragmentShaderSource, true)
+        var plusVertexShader = vertexShaderSource.trim()
+        if (!plusVertexShader.endsWith("}")) throw RuntimeException()
+        plusVertexShader = plusVertexShader.substring(0, plusVertexShader.length-1) +
+                positionPostProcessing +
+                "}"
+        val plusFragmentShader = "" +
+                "uniform vec4 tint;\n" +
+                ShaderPlus.makeFragmentShaderUniversal(fragmentShaderSource)
+        val shader = Shader("Gltf", plusVertexShader, "varying float zDistance;\n", plusFragmentShader, true)
         val index = shaders.size
         shaders.add(shader)
-        shader.use()
+        useGlProgram(index)
         return index
     }
 
     override fun useGlProgram(glProgram: Int) {
-        shaders[glProgram].use()
+        val shader = shaders[glProgram]
+        shader.use()
+        shader.v1("drawMode", GFX.drawMode.id)
+        // todo use the correct tint
+        GFX.shaderColor(shader, "tint", -1)
     }
 
     override fun deleteGlProgram(glProgram: Int) {
@@ -92,7 +106,6 @@ object CustomGlContext : GlContextLwjgl() {
     override fun setFrontFace(mode: Int) {
         // super.setFrontFace(mode)
     }
-
 
 
 }

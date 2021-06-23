@@ -41,6 +41,7 @@ object Maths {
     fun length(dx: Float, dy: Float) = sqrt(dx * dx + dy * dy)
     fun length(dx: Double, dy: Double) = sqrt(dx * dx + dy * dy)
     fun length(dx: Float, dy: Float, dz: Float) = sqrt(dx * dx + dy * dy + dz * dz)
+    fun length(dx: Double, dy: Double, dz: Double) = sqrt(dx * dx + dy * dy + dz * dz)
     fun distance(x0: Float, y0: Float, x1: Float, y1: Float) = length(x1 - x0, y1 - y0)
     fun distance(x0: Double, y0: Double, x1: Double, y1: Double) = length(x1 - x0, y1 - y0)
     fun mix(a: Short, b: Short, f: Double): Double {

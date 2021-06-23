@@ -17,6 +17,7 @@ class MeshComponent: Component() {
     // (and cheating, but there always will be cheaters, soo...)
 
     // todo custom shading environment, so we can easily convert every shader into something clickable
+    // todo also make it deferred / forward/backward compatible
 
 
     override fun getClassName(): String = "MeshComponent"

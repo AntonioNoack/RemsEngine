@@ -862,7 +862,7 @@ object ShaderLib {
     ): Shader {
         val shader = Shader(shaderName, v3D, y3D, f3D, true)
         shader.use()
-        textures.forEachIndexed { index, name ->
+        for ((index, name) in textures.withIndex()) {
             GL20.glUniform1i(shader[name], index)
         }
         return shader
@@ -877,7 +877,7 @@ object ShaderLib {
     ): Shader {
         val shader = ShaderPlus.create(shaderName, v3D, y3D, f3D)
         shader.use()
-        textures.forEachIndexed { index, name ->
+        for ((index, name) in textures.withIndex()) {
             val texName = shader[name]
             if (texName >= 0) GL20.glUniform1i(texName, index)
         }
@@ -887,7 +887,7 @@ object ShaderLib {
     fun createShader(shaderName: String, v3D: String, y3D: String, f3D: String, textures: List<String>): Shader {
         val shader = Shader(shaderName, v3D, y3D, f3D)
         shader.use()
-        textures.forEachIndexed { index, name ->
+        for ((index, name) in textures.withIndex()) {
             GL20.glUniform1i(shader[name], index)
         }
         return shader

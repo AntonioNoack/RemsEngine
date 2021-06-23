@@ -119,8 +119,8 @@ class PanelListMultiline(style: Style) : PanelGroup(style), ScrollableY {
 
     override val maxScrollPosition get() = max(0, minH2 - h)
     val scrollbar = ScrollbarY(this, style)
-    val scrollbarWidth = style.getSize("scrollbar.width", 8)
-    val scrollbarPadding = style.getSize("scrollbar.padding", 1)
+    val scrollbarWidth = style.getSize("scrollbarWidth", 8)
+    val scrollbarPadding = style.getSize("scrollbarPadding", 1)
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.onDraw(x0, y0, x1, y1)

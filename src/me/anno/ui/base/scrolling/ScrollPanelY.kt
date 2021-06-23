@@ -47,8 +47,8 @@ open class ScrollPanelY(child: Panel, padding: Padding,
 
     override val maxScrollPosition get() = max(0, child.minH + padding.height - h)
     val scrollbar = ScrollbarY(this, style)
-    val scrollbarWidth = style.getSize("scrollbar.width", 8)
-    val scrollbarPadding = style.getSize("scrollbar.padding", 1)
+    val scrollbarWidth = style.getSize("scrollbarWidth", 8)
+    val scrollbarPadding = style.getSize("scrollbarPadding", 1)
 
     override fun calculateSize(w: Int, h: Int) {
         super.calculateSize(w, h)
