@@ -1,10 +1,12 @@
 package ofx.mio
 
 import me.anno.gpu.GFX.flat01
+import me.anno.gpu.RenderSettings.useFrame
 import me.anno.gpu.ShaderLib.createShader
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.shader.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
@@ -20,9 +22,9 @@ object OpticalFlow {
 
         // flow process
 
-        Frame(flowT){
+        useFrame(flowT, Renderer.colorRenderer){
             Frame.bind()
-            val flow = flowShader.value
+            val flow = flowShader.value.value
             flow.use()
             flow.v2("scale", 1f, 1f)
             flow.v2("offset", 1f/w, 1f/h)
@@ -34,14 +36,14 @@ object OpticalFlow {
 
         // blur process
 
-        val blur = blurShader.value
+        val blur = blurShader.value.value
         blur.use()
         blur.v1("blurSize", blurAmount)
         blur.v1("sigma", blurAmount*0.5f)
         blur.v2("texOffset", 2f, 2f)
 
         val blurH = FBStack["blurH", w, h, 4, false, 1]
-        Frame(blurH){
+        useFrame(blurH, Renderer.colorRenderer){
             Frame.bind()
             flowT.bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
             blur.v1("horizontalPass", 1f)
@@ -49,7 +51,7 @@ object OpticalFlow {
         }
 
         val blurV = FBStack["blurV", w, h, 4, false, 1]
-        Frame(blurV){
+        useFrame(blurV, Renderer.colorRenderer){
             Frame.bind()
             blurH.bindTexture0(0, GPUFiltering.LINEAR, Clamping.CLAMP)
             blur.v1("horizontalPass", 0f)
@@ -57,12 +59,12 @@ object OpticalFlow {
         }
 
         val result = FBStack["reposition", w, h, 4, false, 1]
-        Frame(result){
+        useFrame(result, Renderer.colorRenderer){
 
             Frame.bind()
 
             // reposition
-            val repos = repositionShader.value
+            val repos = repositionShader.value.value
             repos.use()
             repos.v2("amt", displacement * 0.25f)
 

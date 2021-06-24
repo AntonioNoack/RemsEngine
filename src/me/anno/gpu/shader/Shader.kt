@@ -12,7 +12,6 @@ import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL20.*
 import org.lwjgl.opengl.GL21.glUniformMatrix4x3fv
 import java.io.File
-import java.lang.IllegalStateException
 import java.nio.FloatBuffer
 
 open class Shader(
@@ -78,6 +77,15 @@ open class Shader(
         glDeleteShader(fragmentShader)
         logShader(vertexSource, fragmentSource)
 
+    }
+
+    fun setTextureIndices(textures: List<String>?) {
+        use()
+        if (textures == null) return
+        for ((index, name) in textures.withIndex()) {
+            val texName = getUniformLocation(name)
+            if (texName >= 0) glUniform1i(texName, index)
+        }
     }
 
     fun logShader(vertex: String, fragment: String) {
@@ -154,7 +162,7 @@ open class Shader(
         }
     }
 
-    fun ignoreUniformWarnings(names: List<String>) {
+    fun ignoreUniformWarnings(names: Collection<String>) {
         ignoredNames += names
     }
 
@@ -192,9 +200,9 @@ open class Shader(
         } else false
     }
 
-    fun potentiallyUse(){
-        if (safeShaderBinding){
-            if(use()){
+    fun potentiallyUse() {
+        if (safeShaderBinding) {
+            if (use()) {
                 throw IllegalStateException("Shader $shaderName wasn't bound!")
             }
         }

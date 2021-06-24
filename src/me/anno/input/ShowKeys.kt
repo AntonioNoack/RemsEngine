@@ -7,8 +7,7 @@ import me.anno.gpu.GFXx2D.drawRect
 import me.anno.gpu.GFXx2D.drawText
 import me.anno.gpu.GFXx2D.getSizeX
 import me.anno.gpu.GFXx2D.getTextSize
-import me.anno.gpu.blending.BlendDepth
-import me.anno.gpu.blending.BlendMode
+import me.anno.gpu.RenderSettings.renderDefault
 import me.anno.ui.base.text.TextPanel
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.mix
@@ -98,7 +97,7 @@ object ShowKeys {
 
         if (activeKeys.isNotEmpty()) {
 
-            BlendDepth(BlendMode.DEFAULT, false) {
+            renderDefault {
 
                 var x0 = x
                 for (key in activeKeys) {

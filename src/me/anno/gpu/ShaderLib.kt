@@ -1,8 +1,8 @@
 package me.anno.gpu
 
 import me.anno.config.DefaultConfig
+import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.Shader
-import me.anno.gpu.shader.ShaderPlus
 import me.anno.gpu.texture.Filtering
 import me.anno.mesh.fbx.model.FBXShader
 import me.anno.objects.effects.MaskType
@@ -18,28 +18,28 @@ import kotlin.math.PI
 
 object ShaderLib {
 
-    lateinit var flatShader: Shader
-    lateinit var flatShaderStriped: Shader
-    lateinit var flatShaderGradient: Shader
-    lateinit var flatShaderTexture: Shader
-    lateinit var subpixelCorrectTextShader: Shader
-    lateinit var shader3DPolygon: Shader
-    lateinit var shader3D: Shader
-    lateinit var shader3DforText: Shader
-    lateinit var shaderSDFText: Shader
-    lateinit var shader3DRGBA: Shader
-    lateinit var shader3DYUV: Shader
-    lateinit var shader3DARGB: Shader
-    lateinit var shader3DBGRA: Shader
-    lateinit var shader3DCircle: Shader
-    lateinit var shader3DSVG: Shader
-    lateinit var lineShader3D: Shader
-    lateinit var shader3DMasked: Shader
-    lateinit var shader3DGaussianBlur: Shader
-    lateinit var shader3DBoxBlur: Shader
-    lateinit var shaderObjMtl: Shader
-    lateinit var shaderFBX: Shader
-    lateinit var copyShader: Shader
+    lateinit var flatShader: BaseShader
+    lateinit var flatShaderStriped: BaseShader
+    lateinit var flatShaderGradient: BaseShader
+    lateinit var flatShaderTexture: BaseShader
+    lateinit var subpixelCorrectTextShader: BaseShader
+    lateinit var shader3DPolygon: BaseShader
+    lateinit var shader3D: BaseShader
+    lateinit var shader3DforText: BaseShader
+    lateinit var shaderSDFText: BaseShader
+    lateinit var shader3DRGBA: BaseShader
+    lateinit var shader3DYUV: BaseShader
+    lateinit var shader3DARGB: BaseShader
+    lateinit var shader3DBGRA: BaseShader
+    lateinit var shader3DCircle: BaseShader
+    lateinit var shader3DSVG: BaseShader
+    lateinit var lineShader3D: BaseShader
+    lateinit var shader3DMasked: BaseShader
+    lateinit var shader3DGaussianBlur: BaseShader
+    lateinit var shader3DBoxBlur: BaseShader
+    lateinit var shaderObjMtl: BaseShader
+    lateinit var shaderFBX: BaseShader
+    lateinit var copyShader: BaseShader
 
     /**
      * our code only uses 3, I think
@@ -297,7 +297,7 @@ object ShaderLib {
 
         // color only for a rectangle
         // (can work on more complex shapes)
-        flatShader = Shader(
+        flatShader = BaseShader(
             "flatShader",
             "" +
                     "a2 attr0;\n" +
@@ -311,7 +311,7 @@ object ShaderLib {
                     "}"
         )
 
-        flatShaderStriped = Shader(
+        flatShaderStriped = BaseShader(
             "flatShader",
             "" +
                     "a2 attr0;\n" +
@@ -363,7 +363,7 @@ object ShaderLib {
                     "}", listOf("tex0", "tex1", "tex2")
         )
 
-        flatShaderTexture = Shader(
+        flatShaderTexture = BaseShader(
             "flatShaderTexture",
             "" +
                     "a2 attr0;\n" +
@@ -395,7 +395,7 @@ object ShaderLib {
         )
 
         // with texture
-        subpixelCorrectTextShader = Shader(
+        subpixelCorrectTextShader = BaseShader(
             "subpixelCorrectTextShader",
             "" +
                     "a2 attr0;\n" +
@@ -425,9 +425,7 @@ object ShaderLib {
                     "   gl_FragColor = vec4(color.rgb, 1.0);\n" +
                     "}"
         )
-
-        subpixelCorrectTextShader.use()
-        GL20.glUniform1i(subpixelCorrectTextShader["tex"], 0)
+        subpixelCorrectTextShader.setTextureIndices(listOf("tex"))
 
         shader3D = createShaderPlus("3d", v3D, y3D, f3D, listOf("tex"))
         shader3DforText = createShaderPlus(
@@ -810,7 +808,7 @@ object ShaderLib {
                     "}", listOf("texY", "texU", "texV")
         )
 
-        fun createSwizzleShader(swizzle: String): Shader {
+        fun createSwizzleShader(swizzle: String): BaseShader {
             return createShaderPlus(
                 "3d-${if (swizzle.isEmpty()) "rgba" else swizzle}",
                 v3D, y3D, "" +
@@ -833,7 +831,7 @@ object ShaderLib {
         shader3DARGB = createSwizzleShader(".gbar")
         shader3DBGRA = createSwizzleShader(".bgra")
 
-        lineShader3D = Shader(
+        lineShader3D = BaseShader(
             "3d-lines",
             "in vec3 attr0;\n" +
                     "uniform mat4 transform;\n" +
@@ -859,12 +857,9 @@ object ShaderLib {
         y3D: String,
         f3D: String,
         textures: List<String>
-    ): Shader {
-        val shader = Shader(shaderName, v3D, y3D, f3D, true)
-        shader.use()
-        for ((index, name) in textures.withIndex()) {
-            GL20.glUniform1i(shader[name], index)
-        }
+    ): BaseShader {
+        val shader = BaseShader(shaderName, v3D, y3D, f3D)
+        shader.setTextureIndices(textures)
         return shader
     }
 
@@ -874,22 +869,15 @@ object ShaderLib {
         y3D: String,
         f3D: String,
         textures: List<String>
-    ): Shader {
-        val shader = ShaderPlus.create(shaderName, v3D, y3D, f3D)
-        shader.use()
-        for ((index, name) in textures.withIndex()) {
-            val texName = shader[name]
-            if (texName >= 0) GL20.glUniform1i(texName, index)
-        }
+    ): BaseShader {
+        val shader = BaseShader(shaderName, v3D, y3D, f3D)
+        shader.setTextureIndices(textures)
         return shader
     }
 
-    fun createShader(shaderName: String, v3D: String, y3D: String, f3D: String, textures: List<String>): Shader {
-        val shader = Shader(shaderName, v3D, y3D, f3D)
-        shader.use()
-        for ((index, name) in textures.withIndex()) {
-            GL20.glUniform1i(shader[name], index)
-        }
+    fun createShader(shaderName: String, v3D: String, y3D: String, f3D: String, textures: List<String>): BaseShader {
+        val shader = BaseShader(shaderName, v3D, y3D, f3D)
+        shader.setTextureIndices(textures)
         return shader
     }
 

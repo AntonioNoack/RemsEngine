@@ -26,7 +26,7 @@ object CameraModel {
         val scaleY = scaleZ * tan(GFX.toRadians(fov) / 2f)
         val scaleX = scaleY * RemsStudio.targetWidth / RemsStudio.targetHeight
         stack.scale(scaleX, scaleY, scaleZ)
-        val shader = ShaderLib.lineShader3D
+        val shader = ShaderLib.lineShader3D.value
 
         // todo show the standard level only on user request, or when DOF is enabled
         // todo render the intersections instead

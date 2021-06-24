@@ -8,12 +8,14 @@ import me.anno.cache.instances.VideoCache.getVideoFrame
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXx2D
 import me.anno.gpu.GFXx2D.draw2D
+import me.anno.gpu.RenderSettings.renderPurely
+import me.anno.gpu.RenderSettings.useFrame
 import me.anno.gpu.SVGxGFX
 import me.anno.gpu.TextureLib
 import me.anno.gpu.TextureLib.whiteTexture
-import me.anno.gpu.blending.BlendDepth
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
+import me.anno.gpu.shader.Renderer
 import me.anno.gpu.texture.*
 import me.anno.image.HDRImage
 import me.anno.io.FileReference
@@ -152,9 +154,9 @@ object Thumbs {
 
             val fb2 = FBStack["generateVideoFrame", w, h, 4, false, 8]
 
-            BlendDepth(null, false) {
+            renderPurely {
 
-                Frame(0, 0, w, h, false, fb2) {
+                useFrame(0, 0, w, h, false, fb2, Renderer.colorRenderer) {
 
                     Frame.bind()
 
@@ -172,7 +174,7 @@ object Thumbs {
                 }
 
                 // cannot read from separate framebuffer, only from null... why ever...
-                Frame(0, 0, w, h, false, null) {
+                useFrame(0, 0, w, h, false, null, Renderer.colorRenderer) {
 
                     fb2.bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
                     GFX.copy()

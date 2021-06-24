@@ -5,20 +5,21 @@ import me.anno.gpu.GFX
 import me.anno.gpu.ShaderLib.positionPostProcessing
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderPlus
+import org.joml.Vector4f
 
 object CustomGlContext : GlContextLwjgl() {
+
+    val tint = Vector4f()
 
     // todo hashmap<string, shader> to reuse shaders
     val shaders = ArrayList<Shader>()
     override fun createGlProgram(vertexShaderSource: String, fragmentShaderSource: String): Int {
         var plusVertexShader = vertexShaderSource.trim()
         if (!plusVertexShader.endsWith("}")) throw RuntimeException()
-        plusVertexShader = plusVertexShader.substring(0, plusVertexShader.length-1) +
+        plusVertexShader = plusVertexShader.substring(0, plusVertexShader.length - 1) +
                 positionPostProcessing +
                 "}"
-        val plusFragmentShader = "" +
-                "uniform vec4 tint;\n" +
-                ShaderPlus.makeFragmentShaderUniversal(fragmentShaderSource)
+        val plusFragmentShader = ShaderPlus.makeFragmentShaderUniversal("", fragmentShaderSource)
         val shader = Shader("Gltf", plusVertexShader, "varying float zDistance;\n", plusFragmentShader, true)
         val index = shaders.size
         shaders.add(shader)
@@ -30,8 +31,7 @@ object CustomGlContext : GlContextLwjgl() {
         val shader = shaders[glProgram]
         shader.use()
         shader.v1("drawMode", GFX.drawMode.id)
-        // todo use the correct tint
-        GFX.shaderColor(shader, "tint", -1)
+        GFX.shaderColor(shader, "tint", tint)
     }
 
     override fun deleteGlProgram(glProgram: Int) {

@@ -30,7 +30,7 @@ object GFXx2D {
     fun drawRectGradient(x: Int, y: Int, w: Int, h: Int, lColor: Vector4fc, rColor: Vector4fc) {
         if (w == 0 || h == 0) return
         GFX.check()
-        val shader = ShaderLib.flatShaderGradient
+        val shader = ShaderLib.flatShaderGradient.value
         shader.use()
         whiteTexture.bind(0, whiteTexture.filtering, whiteTexture.clamping)
         posSize(shader, x, y, w, h)
@@ -44,7 +44,7 @@ object GFXx2D {
     fun drawRectGradient(x: Int, y: Int, w: Int, h: Int, lColor: Int, rColor: Int) {
         if (w == 0 || h == 0) return
         GFX.check()
-        val shader = ShaderLib.flatShaderGradient
+        val shader = ShaderLib.flatShaderGradient.value
         shader.use()
         whiteTexture.bind(0, whiteTexture.filtering, whiteTexture.clamping)
         posSize(shader, x, y, w, h)
@@ -61,7 +61,7 @@ object GFXx2D {
     ) {
         if (w == 0 || h == 0) return
         GFX.check()
-        val shader = ShaderLib.flatShaderGradient
+        val shader = ShaderLib.flatShaderGradient.value
         shader.use()
         frame.bind(0, GPUFiltering.TRULY_LINEAR, Clamping.CLAMP)
         posSize(shader, x, y, w, h)
@@ -79,7 +79,7 @@ object GFXx2D {
     ) {
         if (w == 0 || h == 0) return
         GFX.check()
-        val shader = ShaderLib.flatShaderGradient
+        val shader = ShaderLib.flatShaderGradient.value
         shader.use()
         frame.bind(0, GPUFiltering.TRULY_LINEAR, Clamping.CLAMP)
         posSize(shader, x, y, w, h)
@@ -93,7 +93,7 @@ object GFXx2D {
 
     fun drawRectStriped(x: Int, y: Int, w: Int, h: Int, offset: Int, stride: Int, color: Vector4fc) {
         if (w == 0 || h == 0) return
-        val shader = ShaderLib.flatShaderStriped
+        val shader = ShaderLib.flatShaderStriped.value
         shader.use()
         shader.v4("color", color)
         drawRectStriped(x, y, w, h, offset, stride, shader)
@@ -101,7 +101,7 @@ object GFXx2D {
 
     fun drawRectStriped(x: Int, y: Int, w: Int, h: Int, offset: Int, stride: Int, color: Int) {
         if (w == 0 || h == 0) return
-        val shader = ShaderLib.flatShaderStriped
+        val shader = ShaderLib.flatShaderStriped.value
         shader.use()
         shader.v4("color", color)
         drawRectStriped(x, y, w, h, offset, stride, shader)
@@ -122,7 +122,7 @@ object GFXx2D {
     fun drawRect(x: Int, y: Int, w: Int, h: Int, color: Vector4fc) {
         if (w == 0 || h == 0) return
         GFX.check()
-        val shader = ShaderLib.flatShader
+        val shader = ShaderLib.flatShader.value
         shader.use()
         posSize(shader, x, y, w, h)
         shader.v4("color", color)
@@ -133,7 +133,7 @@ object GFXx2D {
     fun drawRect(x: Int, y: Int, w: Int, h: Int, color: Int) {
         if (w == 0 || h == 0) return
         GFX.check()
-        val shader = ShaderLib.flatShader
+        val shader = ShaderLib.flatShader.value
         shader.use()
         posSize(shader, x, y, w, h)
         shader.v4("color", color)
@@ -143,7 +143,7 @@ object GFXx2D {
 
     fun drawRect(x: Int, y: Int, w: Int, h: Int) {
         if (w == 0 || h == 0) return
-        val shader = ShaderLib.flatShader
+        val shader = ShaderLib.flatShader.value
         shader.use()
         posSize(shader, x, y, w, h)
         GFX.flat01.draw(shader)
@@ -151,7 +151,7 @@ object GFXx2D {
 
     fun drawRect(x: Float, y: Float, w: Float, h: Float, color: Vector4fc) {
         GFX.check()
-        val shader = ShaderLib.flatShader
+        val shader = ShaderLib.flatShader.value
         shader.use()
         posSize(shader, x, y, w, h)
         shader.v4("color", color)
@@ -161,7 +161,7 @@ object GFXx2D {
 
     fun drawRect(x: Float, y: Float, w: Float, h: Float, color: Int) {
         GFX.check()
-        val shader = ShaderLib.flatShader
+        val shader = ShaderLib.flatShader.value
         shader.use()
         posSize(shader, x, y, w, h)
         shader.v4("color", color)
@@ -178,7 +178,7 @@ object GFXx2D {
     }
 
     fun flatColor(color: Int) {
-        val shader = ShaderLib.flatShader
+        val shader = ShaderLib.flatShader.value
         shader.use()
         shader.v4("color", color)
     }
@@ -330,7 +330,7 @@ object GFXx2D {
 
         // todo width limit...
 
-        val shader = ShaderLib.subpixelCorrectTextShader
+        val shader = ShaderLib.subpixelCorrectTextShader.value
         shader.use()
         shader.v4("textColor", color)
         shader.v4("backgroundColor", backgroundColor)
@@ -401,7 +401,7 @@ object GFXx2D {
         // done if pixel is on the border of the drawn rectangle, make it grayscale, so we see no color seams
         if (texture !is Texture2D || texture.isCreated) {
             texture.bind(GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-            val shader = ShaderLib.subpixelCorrectTextShader
+            val shader = ShaderLib.subpixelCorrectTextShader.value
             shader.use()
             val xWithOffset = x - when (alignment) {
                 AxisAlignment.MIN -> 0
@@ -480,7 +480,7 @@ object GFXx2D {
 
     fun drawTexture(x: Int, y: Int, w: Int, h: Int, texture: ITexture2D, color: Int, tiling: Vector4fc?) {
         GFX.check()
-        val shader = ShaderLib.flatShaderTexture
+        val shader = ShaderLib.flatShaderTexture.value
         shader.use()
         posSize(shader, x, y, w, h)
         shader.v4("color", color)
@@ -498,22 +498,26 @@ object GFXx2D {
 
     fun drawTexture(matrix: Matrix4fArrayList, w: Int, h: Int, texture: Texture2D, color: Int, tiling: Vector4fc?) {
         matrix.scale(w.toFloat() / GFX.windowWidth, h.toFloat() / GFX.windowHeight, 1f)
-        GFX.drawMode = ShaderPlus.DrawMode.COLOR
+        // GFX.drawMode = ShaderPlus.DrawMode.COLOR
+        //RenderSettings.renderer.use(Renderer.colorRenderer) {
         draw3D(
             matrix, texture, color,
             Filtering.LINEAR, Clamping.CLAMP, tiling, UVProjection.Planar
         )
+        //}
     }
 
     fun drawTexture(w: Int, h: Int, texture: VFrame, color: Int, tiling: Vector4fc?) {
         val matrix = Matrix4fArrayList()
         matrix.scale(w.toFloat() / GFX.windowWidth, h.toFloat() / GFX.windowHeight, 1f)
-        GFX.drawMode = ShaderPlus.DrawMode.COLOR
-        uploadAttractors0(texture.get3DShader())
+        uploadAttractors0(texture.get3DShader().value)
+        // GFX.drawMode = ShaderPlus.DrawMode.COLOR
+        //RenderSettings.renderer.use(Renderer.colorRenderer) {
         draw3D(
             matrix, texture, color,
             Filtering.LINEAR, Clamping.CLAMP, tiling, UVProjection.Planar
         )
+        // }
     }
 
     fun drawCircle(
@@ -528,8 +532,8 @@ object GFXx2D {
         stack.translate(rx, ry, 0f)
         stack.scale(2f * radiusX / GFX.windowWidth, 2f * radiusY / GFX.windowHeight, 1f)
 
-        GFX.drawMode = ShaderPlus.DrawMode.COLOR
-
+        // GFX.drawMode = ShaderPlus.DrawMode.COLOR
+        // RenderSettings.renderer.use(Renderer.colorRenderer) {
         // not perfect, but pretty good
         // anti-aliasing for the rough edges
         // not very economical, could be improved
@@ -542,6 +546,7 @@ object GFXx2D {
                 }
             }
         }
+        // }
 
     }
 
@@ -571,7 +576,7 @@ object GFXx2D {
     fun draw2D(texture: VFrame) {
 
         if (!texture.isCreated) throw RuntimeException("Frame must be loaded to be rendered!")
-        val shader = texture.get3DShader()
+        val shader = texture.get3DShader().value
 
         GFX.check()
 
@@ -587,7 +592,7 @@ object GFXx2D {
         disableAdvancedGraphicalFeatures(shader)
 
         texture.bind(0, Filtering.LINEAR, Clamping.CLAMP)
-        if (shader == ShaderLib.shader3DYUV) {
+        if (shader == ShaderLib.shader3DYUV.value) {
             val w = texture.w
             val h = texture.h
             shader.v2("uvCorrection", w.toFloat() / ((w + 1) / 2 * 2), h.toFloat() / ((h + 1) / 2 * 2))

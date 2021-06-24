@@ -4,9 +4,9 @@ import me.anno.config.DefaultConfig.style
 import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.toRadians
+import me.anno.gpu.RenderSettings.blendMode
 import me.anno.gpu.ShaderLib.shader3D
 import me.anno.gpu.TextureLib.whiteTexture
-import me.anno.gpu.blending.BlendDepth
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer
@@ -117,7 +117,7 @@ object Grid {
         x0: Float, y0: Float, x1: Float, y1: Float,
         color: Int, alpha: Float
     ) {
-        val shader = shader3D
+        val shader = shader3D.value
         shader.use()
         GFXTransform.uploadAttractors0(shader)
         val stack = stack
@@ -144,7 +144,7 @@ object Grid {
             stack.rotateZ(+atan2(dif.y, dif.x))
             stack.rotateY(-atan2(dif.z, sqrt(sq(dif.x, dif.y))))
 
-            val shader = shader3D
+            val shader = shader3D.value
             shader.use()
             GFXTransform.uploadAttractors0(shader)
             shader.m4x4("transform", stack)
@@ -157,7 +157,7 @@ object Grid {
 
     private fun drawLine(stack: Matrix4fArrayList, color: Int, alpha: Float) {
 
-        val shader = shader3D
+        val shader = shader3D.value
         shader.use()
         GFXTransform.uploadAttractors0(shader)
         shader.m4x4("transform", stack)
@@ -172,7 +172,7 @@ object Grid {
 
         if (GFX.isFinalRendering) return
 
-        BlendDepth(BlendMode.ADD, false) {
+        blendMode.use(BlendMode.ADD) {
 
             val distance = cameraTransform.transformProject(Vector4f(0f, 0f, 0f, 1f)).toVec3f().length()
             val log = log10(distance)
@@ -211,7 +211,7 @@ object Grid {
 
         if (color.w() <= 0f) return
 
-        val shader = shader3D
+        val shader = shader3D.value
         shader.use()
         GFXTransform.uploadAttractors0(shader)
         shader.m4x4("transform", stack)
@@ -225,7 +225,7 @@ object Grid {
 
         if (alpha <= 0f) return
 
-        val shader = shader3D
+        val shader = shader3D.value
         shader.use()
         GFXTransform.uploadAttractors0(shader)
         shader.m4x4("transform", stack)

@@ -1,11 +1,14 @@
 package me.anno.objects.effects
 
 import me.anno.gpu.GFX.flat01
+import me.anno.gpu.RenderSettings.renderPurely
+import me.anno.gpu.RenderSettings.useFrame
 import me.anno.gpu.ShaderLib.createShaderNoShorts
-import me.anno.gpu.blending.BlendDepth
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.shader.BaseShader
+import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
@@ -26,8 +29,8 @@ object BokehBlur {
     private const val KERNEL_RADIUS = 8
     private const val KERNEL_COUNT = KERNEL_RADIUS * 2 + 1
 
-    private var compositionShader: Shader? = null
-    private var perChannelShader: Shader? = null
+    private var compositionShader: BaseShader? = null
+    private var perChannelShader: BaseShader? = null
 
     private val filterTexture = Texture2D("bokeh", KERNEL_COUNT, 1, 1)
 
@@ -38,7 +41,8 @@ object BokehBlur {
 
         if (compositionShader == null) init()
 
-        BlendDepth(null, false) {
+        renderPurely {
+
             val fp = Scene.usesFPBuffers
 
             val r = FBStack["bokeh-r", w, h, 4, fp, 1]
@@ -66,7 +70,7 @@ object BokehBlur {
         normRadius: Float, w: Int, h: Int,
         r: Framebuffer, g: Framebuffer, b: Framebuffer, a: Framebuffer
     ) {
-        val shader = perChannelShader!!
+        val shader = perChannelShader!!.value
         shader.use()
         uniforms(shader, w, h, normRadius)
         drawChannel(shader, r, w, h, xAxis)
@@ -80,12 +84,12 @@ object BokehBlur {
     private val zAxis = Vector4f(0f, 0f, 1f, 0f)
     private val wAxis = Vector4f(0f, 0f, 0f, 1f)
 
-    private fun uniforms(shader: Shader, w: Int, h: Int, normRadius: Float){
+    private fun uniforms(shader: Shader, w: Int, h: Int, normRadius: Float) {
         val radius = normRadius * KERNEL_RADIUS
         shader.v2("stepVal", radius / w, radius / h)
         val radiusI = clamp(radius.roundToInt(), KERNEL_RADIUS, 64)
         shader.v1("radius", radiusI)
-        shader.v1("multiplier", KERNEL_RADIUS.toFloat()/radiusI)
+        shader.v1("multiplier", KERNEL_RADIUS.toFloat() / radiusI)
     }
 
     fun drawY(
@@ -94,9 +98,9 @@ object BokehBlur {
         target: Framebuffer
     ) {
 
-        Frame(w, h, true, target) {
+        useFrame(0, 0, w, h, true, target, Renderer.colorRenderer) {
 
-            val shader = compositionShader!!
+            val shader = compositionShader!!.value
             shader.use()
             uniforms(shader, w, h, normRadius)
 
@@ -115,7 +119,7 @@ object BokehBlur {
     }
 
     fun drawChannel(shader: Shader, target: Framebuffer, w: Int, h: Int, channel: Vector4f) {
-        Frame(w, h, true, target) {
+        useFrame(0, 0, w, h, true, target, Renderer.colorRenderer) {
             Frame.bind()
             shader.v4("channelSelection", channel)
             flat01.draw(shader)
@@ -280,7 +284,7 @@ object BokehBlur {
 
     }
 
-    fun destroy(){
+    fun destroy() {
         filterTexture.destroy()
         compositionShader?.destroy()
         perChannelShader?.destroy()

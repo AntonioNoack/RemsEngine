@@ -1,11 +1,12 @@
 package me.anno.gpu
 
 import me.anno.config.DefaultConfig
+import me.anno.gpu.RenderSettings.blendMode
+import me.anno.gpu.RenderSettings.depthMode
+import me.anno.gpu.RenderSettings.useFrame
 import me.anno.gpu.ShaderLib.copyShader
-import me.anno.gpu.blending.BlendDepth
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.SimpleBuffer
-import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderPlus
 import me.anno.gpu.texture.Texture2D
@@ -50,7 +51,10 @@ object GFX : GFXBase1() {
     // for final rendering we need to use the GPU anyways;
     // so just use a static variable
     var isFinalRendering = false
-    var drawMode = ShaderPlus.DrawMode.COLOR_SQUARED
+
+    // var drawMode = ShaderPlus.DrawMode.COLOR_SQUARED
+    val drawMode get() = RenderSettings.currentRenderer.drawMode
+
     var supportsAnisotropicFiltering = false
     var anisotropy = 1f
 
@@ -140,7 +144,7 @@ object GFX : GFXBase1() {
         check()
         if (w < 1 || h < 1) throw java.lang.RuntimeException("w < 1 || h < 1 not allowed, got $w x $h")
         val realY = height - (y + h)
-        Frame(x, realY, w, h, false) {
+        useFrame(x, realY, w, h, false) {
             render()
         }
     }
@@ -256,7 +260,7 @@ object GFX : GFXBase1() {
 
     fun copy(alpha: Float) {
         check()
-        val shader = copyShader
+        val shader = copyShader.value
         shader.use()
         shader.v1("am1", 1f - alpha)
         flat01.draw(shader)
@@ -265,7 +269,7 @@ object GFX : GFXBase1() {
 
     fun copy() {
         check()
-        val shader = copyShader
+        val shader = copyShader.value
         shader.use()
         shader.v1("am1", 0f)
         flat01.draw(shader)
@@ -274,11 +278,13 @@ object GFX : GFXBase1() {
 
     fun copyNoAlpha() {
         check()
-        BlendDepth(BlendMode.DST_ALPHA, false) {
-            val shader = copyShader
-            shader.use()
-            shader.v1("am1", 0f)
-            flat01.draw(shader)
+        blendMode.use(BlendMode.DST_ALPHA) {
+            depthMode.use(false) {
+                val shader = copyShader.value
+                shader.use()
+                shader.v1("am1", 0f)
+                flat01.draw(shader)
+            }
         }
         check()
     }
@@ -386,7 +392,7 @@ object GFX : GFXBase1() {
 
         Texture2D.bindTexture(GL_TEXTURE_2D, 0)
 
-        BlendDepth.reset()
+        // BlendDepth.reset()
 
         glDisable(GL_CULL_FACE)
         glDisable(GL_ALPHA_TEST)

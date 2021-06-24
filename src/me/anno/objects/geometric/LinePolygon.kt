@@ -206,7 +206,7 @@ class LinePolygon(parent: Transform? = null) : GFXTransform(parent) {
             // todo use correct forward direction
             val forward = Vector3f(0f, 0f, 1f)
 
-            val shader = shader.value
+            val shader = shader.value.value
 
             fun drawSegment(i0: Float, i1: Float, alpha: Float) {
                 val p0 = getPosition(i0)

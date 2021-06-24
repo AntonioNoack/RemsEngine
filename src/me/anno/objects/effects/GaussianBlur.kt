@@ -2,10 +2,11 @@ package me.anno.objects.effects
 
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXx3D
-import me.anno.gpu.blending.BlendDepth
+import me.anno.gpu.RenderSettings.renderPurely
+import me.anno.gpu.RenderSettings.useFrame
 import me.anno.gpu.framebuffer.FBStack
-import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.shader.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.input.Input
@@ -22,7 +23,7 @@ object GaussianBlur {
         localTransform: Matrix4fArrayList, size: Float, pixelSize: Float
     ) {
         // step1
-        Frame(w, h, true, target) {
+        useFrame(0, 0, w, h, true, target, Renderer.colorRenderer) {
             GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT)
             GFXx3D.draw3DGaussianBlur(localTransform, size, w, h, threshold, isFirst, isFullscreen)
         }
@@ -44,7 +45,7 @@ object GaussianBlur {
 
         var size = pixelSize
 
-        BlendDepth(null, false) {
+        renderPurely {
 
             val steps = pixelSize * h
             val subSteps = (steps / 10f).toInt()
@@ -65,7 +66,7 @@ object GaussianBlur {
                 size = pixelSize * smallerW / w
                 // draw image on smaller thing...
                 val temp2 = FBStack["mask-gaussian-blur-2", smallerW, smallerH, 4, true, 1]// temp[2]
-                Frame(smallerW, smallerH, false, temp2) {
+                useFrame(0, 0, smallerW, smallerH, false, temp2, Renderer.colorRenderer) {
                     // glClearColor(0f, 0f, 0f, 0f)
                     // glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
                     // draw texture 0 (masked) onto temp2

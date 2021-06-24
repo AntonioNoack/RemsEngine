@@ -14,11 +14,12 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFX.inFocus
 import me.anno.gpu.GFXBase0
 import me.anno.gpu.GFXx2D.drawRect
+import me.anno.gpu.RenderSettings.renderDefault
+import me.anno.gpu.RenderSettings.useFrame
 import me.anno.gpu.Window
-import me.anno.gpu.blending.BlendDepth
-import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
+import me.anno.gpu.shader.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.input.ActionManager
@@ -40,9 +41,7 @@ import me.anno.utils.types.Strings.filterAlphaNumeric
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL11.*
 import java.io.File
-import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
-import kotlin.ConcurrentModificationException
 import kotlin.math.roundToInt
 
 abstract class StudioBase(
@@ -65,14 +64,14 @@ abstract class StudioBase(
 
     abstract fun createUI()
 
-    open fun onGameLoopStart(){}
-    open fun onGameLoopEnd(){}
+    open fun onGameLoopStart() {}
+    open fun onGameLoopEnd() {}
 
-    open fun onGameInit(){
+    open fun onGameInit() {
         DefaultConfig.init()
     }
 
-    open fun onGameClose(){}
+    open fun onGameClose() {}
 
     val startClock = Clock()
     fun tick(name: String) {
@@ -176,7 +175,7 @@ abstract class StudioBase(
 
         if (isFirstFrame) tick("window drawing")
 
-        Frame(0, 0, w, h, false, null) {
+        useFrame(0, 0, w, h, false, null, Renderer.colorRenderer) {
             if (drawUIOverlay(w, h)) didSomething = true
         }
 
@@ -282,7 +281,7 @@ abstract class StudioBase(
                     needsRedraw.add(panel2)
                 }
             }
-        } catch (e: ConcurrentModificationException){
+        } catch (e: ConcurrentModificationException) {
             // something async has changed stuff... should not happen
         }
     }
@@ -322,7 +321,7 @@ abstract class StudioBase(
             window.calculateFullLayout(w, h, isFirstFrame)
         }
 
-        Frame(panel0.x, panel0.y, panel0.w, panel0.h, false, null) {
+        useFrame(panel0.x, panel0.y, panel0.w, panel0.h, false, null, Renderer.colorRenderer) {
             panel0.canBeSeen = true
             panel0.draw(panel0.x, panel0.y, panel0.x + panel0.w, panel0.y + panel0.h)
         }
@@ -351,7 +350,7 @@ abstract class StudioBase(
             GFX.deltaX = panel0.x
             GFX.deltaY = h - (panel0.y + panel0.h)
 
-            BlendDepth(BlendMode.DEFAULT, false) {
+            renderDefault {
 
                 val buffer = window.buffer
                 if (panel0 in needsRedraw) {
@@ -361,7 +360,7 @@ abstract class StudioBase(
                     GFX.loadTexturesSync.clear()
                     GFX.loadTexturesSync.push(true)
 
-                    Frame(panel0.x, panel0.y, panel0.w, panel0.h, true, buffer) {
+                    useFrame(panel0.x, panel0.y, panel0.w, panel0.h, true, buffer, Renderer.colorRenderer) {
                         Frame.bind()
                         glClearColor(0f, 0f, 0f, 0f)
                         glClear(GL_COLOR_BUFFER_BIT)
@@ -378,10 +377,11 @@ abstract class StudioBase(
                         if (panel.canBeSeen) {
                             val y = panel.ly0
                             val h2 = panel.ly1 - panel.ly0
-                            Frame(
+                            useFrame(
                                 panel.lx0, h - (y + h2),
                                 panel.lx1 - panel.lx0, h2,
-                                false, buffer
+                                false, buffer,
+                                Renderer.colorRenderer
                             ) { panel.redraw() }
                         }
                         wasRedrawn += panel
@@ -408,9 +408,8 @@ abstract class StudioBase(
     }
 
     open fun drawCachedImage(w: Int, h: Int, window: Window, panel0: Panel, wasRedrawn: Collection<Panel>) {
-        Frame(panel0.x, h - (panel0.y + panel0.h), panel0.w, panel0.h, false, null) {
-
-            BlendDepth(BlendMode.DEFAULT, false) {
+        useFrame(panel0.x, h - (panel0.y + panel0.h), panel0.w, panel0.h, false, null) {
+            renderDefault {
 
                 window.buffer.bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
                 GFX.copy()

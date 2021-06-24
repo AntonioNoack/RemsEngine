@@ -5,6 +5,7 @@ import me.anno.config.DefaultStyle.deepDark
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.gameTime
 import me.anno.gpu.GFXx2D.drawRect
+import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.ShaderPlus
 import me.anno.objects.Camera
 import me.anno.studio.rems.Scene
@@ -136,7 +137,7 @@ class ScenePreview(style: Style) : PanelList(null, style.getChild("sceneView")),
             x + dx, y + dy,
             goodW, goodH,
             editorTime, false,
-            ShaderPlus.DrawMode.COLOR,
+            Renderer.colorRenderer,
             this
         )
 

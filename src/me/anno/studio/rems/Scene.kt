@@ -7,16 +7,21 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFX.flat01
 import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.GFXx2D.drawRect
+import me.anno.gpu.RenderSettings.blendMode
+import me.anno.gpu.RenderSettings.depthMode
+import me.anno.gpu.RenderSettings.renderDefault
+import me.anno.gpu.RenderSettings.renderPurely
+import me.anno.gpu.RenderSettings.useFrame
 import me.anno.gpu.ShaderLib.ascColorDecisionList
 import me.anno.gpu.ShaderLib.brightness
 import me.anno.gpu.ShaderLib.createShader
-import me.anno.gpu.blending.BlendDepth
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.shader.BaseShader
+import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Shader
-import me.anno.gpu.shader.ShaderPlus
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture3D
@@ -40,7 +45,8 @@ import me.anno.video.MissingFrameException
 import org.joml.Matrix4f
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
-import org.lwjgl.opengl.GL11.*
+import org.lwjgl.opengl.GL11.glClearColor
+import org.lwjgl.opengl.GL11.glDepthMask
 import org.lwjgl.opengl.GL30
 import kotlin.math.cos
 import kotlin.math.sin
@@ -58,9 +64,9 @@ object Scene {
     // can't remove the heart after this talk: https://www.youtube.com/watch?v=SzoquBerhUc ;)
     // (Oh The Humanity! - Kate Gregory [C++ on Sea 2019])
 
-    lateinit var sqrtToneMappingShader: Shader
-    lateinit var lutShader: Shader
-    lateinit var addBloomShader: Shader
+    lateinit var sqrtToneMappingShader: BaseShader
+    lateinit var lutShader: BaseShader
+    lateinit var addBloomShader: BaseShader
 
     val noiseFunc = "" +
             "float random(vec2 co){\n" +
@@ -133,7 +139,7 @@ object Scene {
 
         // add randomness against banding
 
-        sqrtToneMappingShader = Shader("sqrt/tone-mapping",
+        sqrtToneMappingShader = BaseShader("sqrt/tone-mapping",
             "" +
                     "in vec2 attr0;\n" +
                     "uniform float ySign;\n" +
@@ -269,24 +275,23 @@ object Scene {
     val stack = Matrix4fArrayList()
     fun draw(
         camera: Camera, scene: Transform, x0: Int, y0: Int, w: Int, h: Int, time: Double,
-        flipY: Boolean, drawMode: ShaderPlus.DrawMode, sceneView: ISceneView?
+        flipY: Boolean, renderer: Renderer, sceneView: ISceneView?
     ) {
 
         GFX.currentCamera = camera
 
-        val oldDrawMode = GFX.drawMode
-        GFX.drawMode = drawMode
-        usesFPBuffers = sceneView?.usesFPBuffers ?: camera.toneMapping != ToneMappers.RAW8
+        // todo use renderer...
+        useFrame(renderer) {
 
-        val isFakeColorRendering = when (drawMode) {
-            ShaderPlus.DrawMode.COLOR, ShaderPlus.DrawMode.COLOR_SQUARED -> false
-            else -> true
+            usesFPBuffers = sceneView?.usesFPBuffers ?: camera.toneMapping != ToneMappers.RAW8
+
+            val isFakeColorRendering = renderer.isFakeColor
+
+            stack.clear()
+            drawScene(scene, camera, time, x0, y0, w, h, flipY, isFakeColorRendering, sceneView)
+
         }
 
-        stack.clear()
-        drawScene(scene, camera, time, x0, y0, w, h, flipY, isFakeColorRendering, sceneView)
-
-        GFX.drawMode = oldDrawMode
 
     }
 
@@ -335,14 +340,14 @@ object Scene {
         var needsTemporaryBuffer = !isFakeColorRendering
         if (needsTemporaryBuffer) {
             needsTemporaryBuffer = // issues are resolved: clipping was missing maybe...
-                    flipY ||
-                    samples > 1 ||
-                    !distortion.is000() ||
-                    vignetteStrength > 0f ||
-                    chromaticAberration > 0f ||
-                    toneMapping != ToneMappers.RAW8 ||
-                    needsCG || needsBloom ||
-                    w > GFX.width || h > GFX.height
+                flipY ||
+                        samples > 1 ||
+                        !distortion.is000() ||
+                        vignetteStrength > 0f ||
+                        chromaticAberration > 0f ||
+                        toneMapping != ToneMappers.RAW8 ||
+                        needsCG || needsBloom ||
+                        w > GFX.width || h > GFX.height
         }
 
         var buffer: Framebuffer? =
@@ -352,7 +357,7 @@ object Scene {
         val x = if (needsTemporaryBuffer) 0 else x0
         val y = if (needsTemporaryBuffer) 0 else GFX.height - (y0 + h)
 
-        Frame(x, y, w, h, false, buffer) {
+        useFrame(x, y, w, h, false, buffer) {
 
             Frame.bind()
 
@@ -409,26 +414,29 @@ object Scene {
                 drawGrid(cameraTransform, sceneView)
             }
 
-            BlendDepth(if (isFakeColorRendering) null else BlendMode.DEFAULT, camera.useDepth) {
+            blendMode.use(if (isFakeColorRendering) null else BlendMode.DEFAULT) {
+                depthMode.use(camera.useDepth) {
 
-                glDepthMask(true)
+                    glDepthMask(true)
 
-                if (!isFinalRendering && camera != nullCamera) {
-                    stack.next { nullCamera?.draw(stack, time, white) }
-                }
+                    if (!isFinalRendering && camera != nullCamera) {
+                        stack.next { nullCamera?.draw(stack, time, white) }
+                    }
 
-                stack.next { scene.draw(stack, time, white) }
+                    stack.next { scene.draw(stack, time, white) }
 
-                GFX.check()
-
-                if (!isFinalRendering && !isFakeColorRendering) {
-                    drawGizmo(cameraTransform, x0, y0, w, h)
                     GFX.check()
+
+                    if (!isFinalRendering && !isFakeColorRendering) {
+                        drawGizmo(cameraTransform, x0, y0, w, h)
+                        GFX.check()
+                    }
+
+                    drawSelectionRing(isFakeColorRendering, camera, time)
+
                 }
-
-                drawSelectionRing(isFakeColorRendering, camera, time)
-
             }
+
         }
 
         /*val enableCircularDOF = isKeyDown('o') && isKeyDown('f')
@@ -452,7 +460,7 @@ object Scene {
 
         if (buffer != null && needsTemporaryBuffer) {
 
-            BlendDepth(null, false) {
+            renderPurely {
 
                 if (needsBloom) {
                     buffer = applyBloom(buffer!!, w, h, bloomSize, bloomIntensity, bloomThreshold)
@@ -463,6 +471,7 @@ object Scene {
                 } else {
                     drawWithoutLUT(buffer!!, isFakeColorRendering, camera, cameraTime, w, h, flipY)
                 }
+
             }
 
         }
@@ -481,7 +490,7 @@ object Scene {
     ) {
 
         val lutBuffer = getNextBuffer("Scene-LUT", buffer, 0, GPUFiltering.LINEAR, 1)
-        Frame(lutBuffer) {
+        useFrame(lutBuffer) {
             drawColors(isFakeColorRendering, camera, cameraTime, w, h, flipY)
         }
 
@@ -490,6 +499,7 @@ object Scene {
          * uses the Unreal Engine "format" of an 256x16 image (or 1024x32)
          * */
         lutBuffer.bindTextures(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+        val lutShader = lutShader.value
         lutShader.use()
         lut.bind(1, GPUFiltering.LINEAR)
         lut.clamping(false)
@@ -521,8 +531,8 @@ object Scene {
         val bloomed = getNextBuffer("Scene-Bloom", buffer, 0, GPUFiltering.TRULY_NEAREST, 1)
 
         // add it on top
-        Frame(bloomed) {
-            val shader = addBloomShader
+        useFrame(bloomed) {
+            val shader = addBloomShader.value
             shader.use()
             shader.v1("intensity", bloomIntensity)
             flat01.draw(shader)
@@ -548,7 +558,7 @@ object Scene {
         // msaa should help, too
         // add camera pseudo effects (red-blue-shift)
         // then apply tonemapping
-        val shader = sqrtToneMappingShader
+        val shader = sqrtToneMappingShader.value
         shader.use()
         shader.v1("ySign", if (flipY) -1f else 1f)
         val colorDepth = DefaultConfig["gpu.display.colorDepth", 8]
@@ -635,7 +645,7 @@ object Scene {
         if (!isFinalRendering && !isFakeColorRendering && selectedTransform != camera) { // seeing the own camera is irritating xD
             val stack = stack
             selectedTransform?.apply {
-                BlendDepth(BlendMode.DEFAULT, false) {
+                renderDefault {
                     val (transform, _) = getGlobalTransformTime(time)
                     stack.next {
                         stack.mul(transform)

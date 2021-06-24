@@ -4,8 +4,9 @@ import de.javagl.jgltf.model.io.GltfModelReader
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.windowStack
+import me.anno.gpu.RenderSettings.blendMode
+import me.anno.gpu.RenderSettings.depthMode
 import me.anno.gpu.Window
-import me.anno.gpu.blending.BlendDepth
 import me.anno.gpu.blending.BlendMode
 import me.anno.input.Input
 import me.anno.io.FileReference
@@ -72,8 +73,10 @@ fun main() {
 
                     extCamera.update(transform)
 
-                    BlendDepth(BlendMode.DEFAULT, true) {
-                        viewer.glRender()
+                    blendMode.use(BlendMode.DEFAULT) {
+                        depthMode.use(true) {
+                            viewer.glRender()
+                        }
                     }
 
                     GFX.check()

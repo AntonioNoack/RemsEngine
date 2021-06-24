@@ -226,6 +226,7 @@ class Framebuffer(
     }
 
     fun destroy() {
+        msBuffer?.destroy()
         if (pointer > -1) {
             glDeleteFramebuffers(pointer)
             pointer = -1

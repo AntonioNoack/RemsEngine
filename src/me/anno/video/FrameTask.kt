@@ -1,12 +1,14 @@
 package me.anno.video
 
 import me.anno.gpu.GFX
-import me.anno.gpu.blending.BlendDepth
+import me.anno.gpu.RenderSettings.blendMode
+import me.anno.gpu.RenderSettings.depthMode
+import me.anno.gpu.RenderSettings.useFrame
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
-import me.anno.gpu.shader.ShaderPlus
+import me.anno.gpu.shader.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.io.FileReference
@@ -106,16 +108,16 @@ class FrameTask(
         GFX.isFinalRendering = true
 
         // is this correct??? mmh...
-        val drawMode = ShaderPlus.DrawMode.COLOR
+        val renderer = Renderer.colorRenderer
 
         var needsMoreSources = false
 
         if (motionBlurSteps < 2 || shutterPercentage <= 1e-3f) {
-            Frame(0, 0, width, height, false, averageFrame) {
+            useFrame(0, 0, width, height, false, averageFrame) {
                 try {
                     Scene.draw(
                         camera, scene, 0, 0, width, height,
-                        time, true, drawMode, null
+                        time, true, renderer, null
                     )
                     if (!GFX.isFinalRendering) throw RuntimeException()
                 } catch (e: MissingFrameException) {
@@ -124,7 +126,7 @@ class FrameTask(
                 }
             }
         } else {
-            Frame(averageFrame) {
+            useFrame(averageFrame) {
 
                 Frame.bind()
                 glClearColor(0f, 0f, 0f, 0f)
@@ -133,12 +135,12 @@ class FrameTask(
                 var i = 0
                 while (i++ < motionBlurSteps && !needsMoreSources) {
                     FBStack.clear(width, height)
-                    Frame(partialFrame) {
+                    useFrame(partialFrame, renderer) {
                         try {
                             Scene.draw(
                                 camera, scene, 0, 0, width, height,
                                 time + (i - motionBlurSteps / 2f) * shutterPercentage / (fps * motionBlurSteps),
-                                true, drawMode, null
+                                true, renderer, null
                             )
                             if (!GFX.isFinalRendering) throw RuntimeException()
                         } catch (e: MissingFrameException) {
@@ -148,9 +150,11 @@ class FrameTask(
                     }
                     if (!needsMoreSources) {
                         partialFrame.bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-                        BlendDepth(BlendMode.PURE_ADD, false) {
-                            // write with alpha 1/motionBlurSteps
-                            GFX.copy(1f / motionBlurSteps)
+                        blendMode.use(BlendMode.PURE_ADD) {
+                            depthMode.use(false) {
+                                // write with alpha 1/motionBlurSteps
+                                GFX.copy(1f / motionBlurSteps)
+                            }
                         }
                     }
                 }

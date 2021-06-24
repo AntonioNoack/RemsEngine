@@ -14,9 +14,11 @@ object DeferredBuffers {
 
     fun getBaseBuffer(settings: DeferredSettings): Framebuffer {
         val layers = settings.layers
-        return Framebuffer("main", 1, 1, 1,
+        return Framebuffer(
+            "main", 1, 1, 1,
             Array(layers.size) { layers[it].type },
-            Framebuffer.DepthBufferType.TEXTURE)
+            Framebuffer.DepthBufferType.TEXTURE
+        )
     }
 
     fun getLightBuffer(settings: DeferredSettings): Framebuffer {
@@ -24,20 +26,21 @@ object DeferredBuffers {
     }
 
     val defaultLayers = listOf(
-        DeferredLayer("vec4", "finalColor", TargetType.UByteTarget4), // rgb + reflectivity?
-        DeferredLayer("vec3", "finalNormal", TargetType.FloatTarget4), // [-1,+1]*0.5+0.5
-        DeferredLayer("vec3", "finalPosition", TargetType.FloatTarget4) // world space? or relative to the player for better precision?
+        // rgb + reflectivity?
+        DeferredLayer("vec4", DeferredLayerType.COLOR.glslName, TargetType.UByteTarget4),
+        // [-1,+1]*0.5+0.5
+        DeferredLayer("vec3", DeferredLayerType.NORMAL.glslName, TargetType.FloatTarget4),
+        // world space? or relative to the player for better precision?
+        DeferredLayer("vec3", DeferredLayerType.POSITION.glslName, TargetType.FloatTarget4)
     )
 
     fun createDeferredShader(
         settings: DeferredSettings,
-        shaderName: String, v3D: String, y3D: String, f3D: String, textures: List<String>): Shader {
+        shaderName: String, v3D: String, y3D: String, f3D: String, textures: List<String>
+    ): Shader {
         val shader = Shader(shaderName, v3D, y3D, settings.f3D + f3D, true)
         shader.glslVersion = 330
-        shader.use()
-        textures.forEachIndexed { index, textureName ->
-            GL20.glUniform1i(shader[textureName], index)
-        }
+        shader.setTextureIndices(textures)
         return shader
     }
 

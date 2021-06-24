@@ -4,6 +4,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.ShaderLib
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.AttributeType
+import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.Shader
 import me.anno.utils.Maths
 import org.apache.logging.log4j.LogManager
@@ -28,7 +29,7 @@ object FBXShader {
     fun getShader(
         v3DBase: String, positionPostProcessing: String,
         y3D: String, getTextureLib: String
-    ): Shader {
+    ): BaseShader {
         maxBones = Maths.clamp((GFX.maxVertexUniforms - (16 * 3)) / 16, 4, 256)
         LOGGER.info("Max number of bones: $maxBones")
         return ShaderLib.createShaderPlus(

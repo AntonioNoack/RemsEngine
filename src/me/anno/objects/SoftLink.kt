@@ -15,6 +15,8 @@ import me.anno.io.base.BaseWriter
 import me.anno.language.translation.Dict
 import me.anno.animation.AnimatedProperty
 import me.anno.animation.Type
+import me.anno.gpu.RenderSettings.useFrame
+import me.anno.gpu.shader.Renderer
 import me.anno.objects.modes.UVProjection
 import me.anno.objects.text.Text
 import me.anno.studio.rems.Scene
@@ -77,7 +79,7 @@ class SoftLink(var file: FileReference) : GFXTransform(null) {
             val ry = resolution.y().roundToInt()
             if (rx > 0 && ry > 0 && rx * ry < 16e6) {
                 val fb = FBStack["SoftLink", rx, ry, 4, false, 1]
-                Frame(fb) {
+                useFrame(fb) {
                     Frame.bind()
                     glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
                     drawSceneWithPostProcessing(time)
@@ -126,7 +128,7 @@ class SoftLink(var file: FileReference) : GFXTransform(null) {
         isFinalRendering = true
         Scene.draw(
             camera, softChild, 0, 0, w, h, time, true,
-            ShaderPlus.DrawMode.COLOR, null
+            Renderer.colorRenderer, null
         )
         isFinalRendering = wasFinalRendering
     }

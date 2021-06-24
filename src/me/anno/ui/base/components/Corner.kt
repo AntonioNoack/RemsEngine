@@ -2,9 +2,6 @@ package me.anno.ui.base.components
 
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.a
-import me.anno.gpu.GFX.b
-import me.anno.gpu.GFX.g
-import me.anno.gpu.GFX.r
 import me.anno.gpu.GFXx2D
 import me.anno.gpu.GFXx2D.drawRect
 import me.anno.gpu.ShaderLib
@@ -39,10 +36,10 @@ object Corner {
     val bottomRight = corner(false, my = false)
 
     fun drawRoundedRect(
-            x: Int, y: Int, w: Int, h: Int,
-            radiusX: Int, radiusY: Int,
-            color: Int,
-            topLeft: Boolean, topRight: Boolean, bottomLeft: Boolean, bottomRight: Boolean
+        x: Int, y: Int, w: Int, h: Int,
+        radiusX: Int, radiusY: Int,
+        color: Int,
+        topLeft: Boolean, topRight: Boolean, bottomLeft: Boolean, bottomRight: Boolean
     ) {
         if (w > 0 && h > 0) {
             if (radiusX > 0 && radiusY > 0 && (topLeft || topRight || bottomLeft || bottomRight)) {
@@ -84,7 +81,7 @@ object Corner {
     fun drawCorner(x: Int, y: Int, w: Int, h: Int, corner: StaticBuffer) {
         if (w == 0 || h == 0) return
         GFX.check()
-        val shader = ShaderLib.flatShader
+        val shader = ShaderLib.flatShader.value
         shader.use()
         GFXx2D.posSize(shader, x, y, w, h)
         corner.draw(shader)
@@ -94,7 +91,7 @@ object Corner {
     fun drawCorner(x: Int, y: Int, w: Int, h: Int, color: Int, corner: StaticBuffer) {
         if (w == 0 || h == 0 || color.a() <= 0f) return
         GFX.check()
-        val shader = ShaderLib.flatShader
+        val shader = ShaderLib.flatShader.value
         shader.use()
         GFXx2D.posSize(shader, x, y, w, h)
         shader.v4("color", color)

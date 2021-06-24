@@ -10,7 +10,6 @@ import me.anno.gpu.GFXx3D.shader3DUniforms
 import me.anno.gpu.ShaderLib.shaderFBX
 import me.anno.gpu.ShaderLib.shaderObjMtl
 import me.anno.gpu.TextureLib.whiteTexture
-import me.anno.gpu.blending.BlendDepth
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Filtering
@@ -19,6 +18,7 @@ import me.anno.io.FileReference
 import me.anno.mesh.assimp.AssimpMesh
 import me.anno.mesh.fbx.model.FBXGeometry
 import me.anno.mesh.fbx.model.FBXModel
+import me.anno.mesh.gltf.CustomGlContext
 import me.anno.mesh.obj.Material
 import me.anno.video.MissingFrameException
 import me.karl.main.Camera
@@ -48,8 +48,8 @@ open class MeshData : ICacheData {
 
     fun drawObj(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
         val objData = objData!!
-        if(objData.isEmpty()) return
-        val shader = shaderObjMtl
+        if (objData.isEmpty()) return
+        val shader = shaderObjMtl.value
         shader.use()
         shader3DUniforms(shader, stack, 1, 1, color, null, Filtering.NEAREST, null)
         for ((material, buffer) in objData) {
@@ -72,11 +72,13 @@ open class MeshData : ICacheData {
         val data = gltfData!!
         val viewer = data.viewer
         val camera = data.camera
-        // todo clickable gltf
         // todo non-color mode?
-        // todo update color
+        // update color
+        CustomGlContext.tint.set(color)
         // todo somehow only the first animation is playing correctly...
         camera.update(stack)
+
+        // viewer.animationManager.setTime(time.toFloat())
         val animations = data.animations
         if (animations != null) {
             val animation = animations.getOrNull(animationIndex)
@@ -85,10 +87,9 @@ open class MeshData : ICacheData {
                 animation.update((timeF - animation.startTimeS) % animation.durationS)
             }
         }
-        // viewer.animationManager.setTime(time.toFloat())
-        BlendDepth(null, true) {
-            viewer.glRender()
-        }
+
+        viewer.glRender()
+
     }
 
     fun drawDae(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
@@ -107,7 +108,7 @@ open class MeshData : ICacheData {
 
         val data = fbxData ?: return
 
-        val shader = shaderFBX
+        val shader = shaderFBX.value
         shader.use()
 
         for (datum in data) {

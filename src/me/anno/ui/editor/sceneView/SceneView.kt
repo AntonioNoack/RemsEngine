@@ -6,17 +6,16 @@ import me.anno.config.DefaultStyle.deepDark
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.addGPUTask
 import me.anno.gpu.GFX.deltaTime
-import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.GFX.windowStack
 import me.anno.gpu.GFXx2D.drawRect
+import me.anno.gpu.RenderSettings.renderDefault
+import me.anno.gpu.RenderSettings.useFrame
 import me.anno.gpu.Window
-import me.anno.gpu.blending.BlendDepth
-import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.StableWindowSize
-import me.anno.gpu.shader.ShaderPlus
+import me.anno.gpu.shader.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.input.Input.isControlDown
@@ -242,11 +241,11 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
 
         val mode = if (camera.toneMapping == ToneMappers.RAW8)
-            ShaderPlus.DrawMode.COLOR
+            Renderer.colorRenderer
         else
-            ShaderPlus.DrawMode.COLOR_SQUARED
+            Renderer.colorSqRenderer
 
-        GFX.drawMode = mode
+        // GFX.drawMode = mode
 
         GFX.check()
 
@@ -280,7 +279,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
 
         GFX.clip2(x0, y0, x1, y1) {
 
-            BlendDepth(BlendMode.DEFAULT, false) {
+            renderDefault {
                 controls.forEach {
                     it.draw(x, y, w, h, x0, y0, x1, y1)
                 }
@@ -313,14 +312,14 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
 
             GFX.check()
 
-            fun getPixels(mode: ShaderPlus.DrawMode): IntArray {
+            fun getPixels(renderer: Renderer): IntArray {
                 // draw only the clicked area?
                 val buffer = IntArray(w * h)
-                Frame(fb) {
+                useFrame(fb, renderer) {
                     GFX.check()
-                    Scene.draw(camera, root, 0, 0, w, h, editorTime, true, mode, this)
+                    Scene.draw(camera, root, 0, 0, w, h, editorTime, true, renderer, this)
                     fb.bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-                    Frame(fb.msBuffer) {
+                    useFrame(fb.msBuffer) {
                         Frame.bind()
                         glFlush(); glFinish() // wait for everything to be drawn
                         glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
@@ -333,7 +332,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
 
             GFX.check()
 
-            val data = getPixels(ShaderPlus.DrawMode.COLOR)
+            val data = getPixels(Renderer.colorRenderer)
             thread {
 
                 val image = BufferedImage(w, h, 1)
@@ -367,12 +366,12 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
         width: Int,
         height: Int,
         fb: Framebuffer,
-        mode: ShaderPlus.DrawMode
+        renderer: Renderer
     ): IntArray {
         val buffer = IntArray(diameter * diameter)
         val dx = x + stableSize.dx
         val dy = y + stableSize.dy
-        Frame(dx, dy, fb.w, fb.h, false, fb) {
+        useFrame(dx, dy, fb.w, fb.h, false, fb, renderer) {
             val radius = diameter / 2
             val x0 = max(localX - radius, 0)
             val y0 = max(localY - radius, 0)
@@ -382,7 +381,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
             // draw only the clicked area
             glEnable(GL_SCISSOR_TEST)
             glScissor(x0, y0, x1 - x0, y1 - y0)
-            Scene.draw(camera, root, dx, dy, width, height, editorTime, false, mode, this)
+            Scene.draw(camera, root, dx, dy, width, height, editorTime, false, renderer, this)
             glFlush(); glFinish() // wait for everything to be drawn
             glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
             glReadPixels(x0, y0, x1 - x0, y1 - y0, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
@@ -404,8 +403,8 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
         val localX = clickX.toInt()
         val localY = GFX.height - clickY.toInt()
 
-        val idBuffer = getPixels(camera, diameter, localX, localY, width, height, fb, ShaderPlus.DrawMode.ID)
-        val depthBuffer = getPixels(camera, diameter, localX, localY, width, height, fb, ShaderPlus.DrawMode.DEPTH)
+        val idBuffer = getPixels(camera, diameter, localX, localY, width, height, fb, Renderer.idRenderer)
+        val depthBuffer = getPixels(camera, diameter, localX, localY, width, height, fb, Renderer.depthRenderer)
 
         val depthImportance = 10
         var bestDistance = 256 * depthImportance + diameter * diameter

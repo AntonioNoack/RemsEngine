@@ -1,10 +1,11 @@
 package me.anno.objects.effects
 
 import me.anno.gpu.GFXx3D
-import me.anno.gpu.blending.BlendDepth
+import me.anno.gpu.RenderSettings.renderPurely
+import me.anno.gpu.RenderSettings.useFrame
 import me.anno.gpu.framebuffer.FBStack
-import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.shader.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import org.joml.Matrix4fArrayList
@@ -24,7 +25,7 @@ object BoxBlur {
         steps: Int
     ) {
         // step1
-        Frame(target) {
+        useFrame(target, Renderer.colorRenderer) {
             GFXx3D.draw3DBoxBlur(localTransform, steps, w, h, isFirst)
         }
         target.bindTexture0(
@@ -44,7 +45,7 @@ object BoxBlur {
 
         src.bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
 
-        BlendDepth(null, false) {
+        renderPurely {
 
             // first is y, then x
             drawBlur(

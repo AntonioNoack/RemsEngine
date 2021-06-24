@@ -4,7 +4,6 @@ import me.anno.cache.Cache
 import me.anno.gpu.GFX
 import me.anno.gpu.ShaderLib
 import me.anno.gpu.TextureLib
-import me.anno.gpu.blending.BlendDepth
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.texture.Texture2D
@@ -16,7 +15,6 @@ import me.anno.io.text.TextReader
 import me.anno.objects.Transform
 import me.anno.studio.StudioBase
 import me.anno.studio.cli.CommandLines.parseDouble
-import me.anno.studio.cli.CommandLines.parseFloat
 import me.anno.studio.cli.CommandLines.parseInt
 import me.anno.studio.project.Project
 import me.anno.studio.rems.RemsConfig
@@ -178,7 +176,7 @@ object RemsCLI {
             GFX.updateTime()
             Cache.update()
             bindTexture(GL30.GL_TEXTURE_2D, 0)
-            BlendDepth.reset()
+            // BlendDepth.reset()
             GL30.glDisable(GL30.GL_CULL_FACE)
             GL30.glDisable(GL30.GL_ALPHA_TEST)
             GFX.check()
@@ -199,7 +197,7 @@ object RemsCLI {
         return value
     }
 
-    fun initGFX(){
+    fun initGFX() {
         HiddenOpenGLContext.createOpenGL()
         TextureLib.init()
         ShaderLib.init()

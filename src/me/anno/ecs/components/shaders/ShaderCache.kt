@@ -3,18 +3,18 @@ package me.anno.ecs.components.shaders
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.gpu.ShaderLib.createShader
-import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.BaseShader
 
-object ShaderCache: CacheSection("Shader") {
+object ShaderCache : CacheSection("Shader") {
 
-    class ShaderData(shader: Shader): CacheData<Shader>(shader) {
+    class ShaderData(shader: BaseShader) : CacheData<BaseShader>(shader) {
         override fun destroy() {
             value.destroy()
         }
     }
 
     fun getShader(name: String, vertex: String, varying: String, fragment: String, textures: List<String>): ShaderData {
-        return getEntry(vertex to fragment, timeout, false){
+        return getEntry(vertex to fragment, timeout, false) {
             ShaderData(createShader(name, vertex, varying, fragment, textures))
         } as ShaderData
     }

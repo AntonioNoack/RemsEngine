@@ -5,19 +5,21 @@ import com.drew.metadata.exif.ExifIFD0Directory
 import me.anno.cache.instances.VideoCache.getVideoFrame
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXx3D.shader3DUniforms
+import me.anno.gpu.RenderSettings.useFrame
 import me.anno.gpu.ShaderLib.shader3DYUV
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.shader.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.HDRImage
+import me.anno.io.FileReference
 import me.anno.objects.Video.Companion.imageTimeout
 import me.anno.objects.modes.RotateJPEG
 import me.anno.utils.Nullable.tryOrException
 import me.anno.utils.Nullable.tryOrNull
 import me.anno.utils.Sleep.waitUntilDefined
-import me.anno.io.FileReference
 import me.anno.utils.types.Strings.getImportType
 import me.anno.video.VFrame
 import org.apache.commons.imaging.Imaging
@@ -43,7 +45,8 @@ class ImageData(file: FileReference) : ICacheData {
             try {
                 val metadata = ImageMetadataReader.readMetadata(file)
                 for (dir in metadata.getDirectoriesOfType(ExifIFD0Directory::class.java)) {
-                    val desc = dir.getDescription(ExifIFD0Directory.TAG_ORIENTATION)?.lowercase(Locale.getDefault()) ?: continue
+                    val desc = dir.getDescription(ExifIFD0Directory.TAG_ORIENTATION)?.lowercase(Locale.getDefault())
+                        ?: continue
                     val mirror = "mirror" in desc
                     val mirrorHorizontal = mirror && "hori" in desc
                     val mirrorVertical = mirror && !mirrorHorizontal
@@ -61,14 +64,15 @@ class ImageData(file: FileReference) : ICacheData {
         fun frameToFramebuffer(frame: VFrame, w: Int, h: Int, id: ImageData?): Framebuffer {
             val framebuffer = Framebuffer("webp-temp", w, h, 1, 1, false, Framebuffer.DepthBufferType.NONE)
             id?.framebuffer = framebuffer
-            Frame(framebuffer) {
+            useFrame(framebuffer, Renderer.colorRenderer) {
                 Frame.bind()
                 id?.texture = framebuffer.textures[0]
-                val shader = frame.get3DShader()
+                val shader0 = frame.get3DShader()
+                val shader = shader0.value
                 shader.use()
                 shader3DUniforms(shader, null, -1)
                 frame.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-                if (shader == shader3DYUV) {
+                if (shader0 == shader3DYUV) {
                     val w2 = frame.w
                     val h2 = frame.h
                     shader.v2("uvCorrection", w2.toFloat() / ((w2 + 1) / 2 * 2), h2.toFloat() / ((h2 + 1) / 2 * 2))

@@ -3,13 +3,12 @@ package me.anno.gpu.blending
 import me.anno.language.translation.NameDesc
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL30.*
-import java.lang.RuntimeException
 
 // todo custom blend modes? -> maybe... could be customizable...
 class BlendMode(
     val naming: NameDesc,
     val id: String
-){
+) {
 
     var src = GL_SRC_ALPHA
     var dst = GL_ONE_MINUS_SRC_ALPHA
@@ -37,18 +36,23 @@ class BlendMode(
         return this
     }
 
-    fun apply(){
-        if(this != UNSPECIFIED){
-            if(lastFunc != func || lastFuncAlpha != funcAlpha){
+    fun apply() {
+        if (this != UNSPECIFIED) {
+            if (lastFunc != func || lastFuncAlpha != funcAlpha) {
                 lastFunc = func
                 lastFuncAlpha = funcAlpha
                 glBlendEquationSeparate(func.mode, funcAlpha.mode)
             }
-            if(lastMode !== this && (func.hasParams || funcAlpha.hasParams)){
+            if (lastMode !== this && (func.hasParams || funcAlpha.hasParams)) {
                 glBlendFuncSeparate(src, dst, srcAlpha, dstAlpha)
                 lastMode = this
             }
         } else throw RuntimeException("UNSPECIFIED can't be applied!")
+    }
+
+    fun forceApply(){
+        glBlendEquationSeparate(func.mode, funcAlpha.mode)
+        glBlendFuncSeparate(src, dst, srcAlpha, dstAlpha)
     }
 
     fun copy(displayName: NameDesc, id: String): BlendMode {

@@ -5,12 +5,13 @@ import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.GFXx3D
-import me.anno.gpu.blending.BlendDepth
+import me.anno.gpu.RenderSettings.renderPurely
+import me.anno.gpu.RenderSettings.useFrame
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
-import me.anno.gpu.shader.ShaderPlus
+import me.anno.gpu.shader.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.io.ISaveable
@@ -99,7 +100,7 @@ open class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
                 mask = FBStack["mask", w, h, 4, true, samples]
                 masked = FBStack["masked", w, h, 4, true, samples]
 
-                BlendDepth(null, false) {
+                renderPurely {
 
                     // (low priority)
                     // to do calculate the size on screen to limit overhead
@@ -112,6 +113,7 @@ open class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
                     BlendMode.DEFAULT.apply()
 
                     drawMasked(stack, time, color)
+
                 }
 
                 drawOnScreen(stack, time, color)
@@ -180,7 +182,7 @@ open class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
 
     fun drawMask(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
 
-        Frame(mask) {
+        useFrame(mask, Renderer.colorRenderer) {
 
             Frame.bind()
 
@@ -195,12 +197,7 @@ open class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
                 glClearColor(0f, 0f, 0f, 0f)
                 glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
-                val oldDrawMode = GFX.drawMode
-                if (oldDrawMode == ShaderPlus.DrawMode.COLOR_SQUARED) GFX.drawMode = ShaderPlus.DrawMode.COLOR
-
                 drawChild(stack, time, color, child)
-
-                GFX.drawMode = oldDrawMode
 
             }
         }
@@ -209,19 +206,14 @@ open class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
 
     fun drawMasked(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
 
-        Frame(masked) {
+        useFrame(masked, Renderer.colorRenderer) {
 
             Frame.bind()
-
-            val oldDrawMode = GFX.drawMode
-            if (oldDrawMode == ShaderPlus.DrawMode.COLOR_SQUARED) GFX.drawMode = ShaderPlus.DrawMode.COLOR
 
             glClearColor(0f, 0f, 0f, 0f)
             glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
             drawChild(stack, time, color, children.getOrNull(1))
-
-            GFX.drawMode = oldDrawMode
 
         }
 
@@ -252,13 +244,13 @@ open class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
                 // done first blur everything, then mask
                 // the artist could notice the fps going down, and act on his own (screenshot, rendering once, ...) ;)
 
-                val oldDrawMode = GFX.drawMode
-                if (oldDrawMode == ShaderPlus.DrawMode.COLOR_SQUARED) GFX.drawMode = ShaderPlus.DrawMode.COLOR
+                // val oldDrawMode = GFX.drawMode
+                // if (oldDrawMode == ShaderPlus.DrawMode.COLOR_SQUARED) GFX.drawMode = ShaderPlus.DrawMode.COLOR
 
                 val threshold = blurThreshold[time]
                 GaussianBlur.draw(masked, pixelSize, w, h, 2, threshold, isFullscreen, stack)
 
-                GFX.drawMode = oldDrawMode
+                // GFX.drawMode = oldDrawMode
                 masked.bindTexture0(1, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
                 mask.bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
 
@@ -376,7 +368,8 @@ open class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
             style
         ) { useExperimentalMSAA = it }
 
-        val greenScreen = getGroup("Green Screen", "Type needs to be green-screen; cuts out a specific color", "greenScreen")
+        val greenScreen =
+            getGroup("Green Screen", "Type needs to be green-screen; cuts out a specific color", "greenScreen")
         greenScreen += vi("Similarity", "", greenScreenSimilarity, style)
         greenScreen += vi("Smoothness", "", greenScreenSmoothness, style)
         greenScreen += vi("Spill Value", "", greenScreenSpillValue, style)

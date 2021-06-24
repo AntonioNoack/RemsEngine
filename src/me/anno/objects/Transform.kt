@@ -1,12 +1,14 @@
 package me.anno.objects
 
+import me.anno.animation.AnimatedProperty
+import me.anno.animation.Type
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.glThread
 import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.GFX.toRadians
 import me.anno.gpu.GFXx3D.draw3DCircle
-import me.anno.gpu.blending.BlendDepth
+import me.anno.gpu.RenderSettings
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.shader.ShaderPlus
 import me.anno.io.ISaveable
@@ -15,8 +17,6 @@ import me.anno.io.base.BaseWriter
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.language.translation.Dict
-import me.anno.animation.AnimatedProperty
-import me.anno.animation.Type
 import me.anno.objects.inspectable.Inspectable
 import me.anno.objects.modes.TransformVisibility
 import me.anno.objects.particles.ParticleSystem
@@ -206,7 +206,7 @@ open class Transform(var parent: Transform? = null) : Saveable(),
             .setChangeListener { comment = it }
             .setIsSelectedListener { show(null) }
 
-        val warningPanel = UpdatingTextPanel(500, style){ lastWarning }
+        val warningPanel = UpdatingTextPanel(500, style) { lastWarning }
         warningPanel.textColor = warningPanel.textColor.mulARGB(0xffff3333.toInt())
         list += warningPanel
 
@@ -399,8 +399,9 @@ open class Transform(var parent: Transform? = null) : Saveable(),
             ShaderPlus.DrawMode.COLOR_SQUARED, ShaderPlus.DrawMode.COLOR -> true
             else -> false
         }
+
         if (doBlending) {
-            BlendDepth(blendMode, GFX.currentCamera.useDepth) {
+            RenderSettings.blendMode.use(blendMode) {
                 onDraw(stack, time, color)
                 drawChildren(stack, time, color, parentColor)
             }

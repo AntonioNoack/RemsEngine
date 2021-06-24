@@ -3,7 +3,7 @@ package me.anno.video
 import me.anno.cache.data.ICacheData
 import me.anno.gpu.GFX.glThread
 import me.anno.gpu.framebuffer.Framebuffer
-import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.GPUFiltering
@@ -19,7 +19,7 @@ abstract class VFrame(
     open val isCreated = false
     var isDestroyed = false
 
-    abstract fun get3DShader(): Shader
+    abstract fun get3DShader(): BaseShader
 
     abstract fun getTextures(): List<Texture2D>
 

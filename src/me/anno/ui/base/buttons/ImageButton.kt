@@ -3,8 +3,7 @@ package me.anno.ui.base.buttons
 import me.anno.cache.instances.ImageCache.getInternalTexture
 import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFXx2D
-import me.anno.gpu.blending.BlendDepth
-import me.anno.gpu.blending.BlendMode
+import me.anno.gpu.RenderSettings.renderDefault
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.input.Input.mouseDownX
@@ -56,7 +55,7 @@ class ImageButton(
         }
         drawBackground()
         val icon = icon ?: return
-        BlendDepth(BlendMode.DEFAULT, false) {
+        renderDefault {
             icon.bind(0, GPUFiltering.LINEAR, Clamping.CLAMP)
             val scale = ((w - padding.width).toFloat() / max(icon.w, icon.h))
             val iw = (icon.w * scale).roundToInt()

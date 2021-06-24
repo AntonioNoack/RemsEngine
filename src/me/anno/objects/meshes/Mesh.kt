@@ -51,6 +51,8 @@ class Mesh(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
             LogManager.disableLogger("MatrixOps")
             LogManager.disableLogger("RenderCommandUtils")
             LogManager.disableLogger("GlContextLwjgl")
+            LogManager.disableLogger("GltfRenderData")
+            LogManager.disableLogger("DefaultRenderedGltfModel")
         }
 
     }
