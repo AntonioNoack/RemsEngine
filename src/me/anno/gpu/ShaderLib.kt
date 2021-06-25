@@ -472,6 +472,7 @@ object ShaderLib {
                     noiseFunc +
                     getTextureLib +
                     getColorForceFieldLib +
+                    "uniform vec4 tint;\n" +
                     "uniform sampler2D tex;\n" +
                     "uniform vec4[$maxOutlineColors] colors;\n" +
                     "uniform vec2[$maxOutlineColors] distSmoothness;\n" +
@@ -480,7 +481,7 @@ object ShaderLib {
                     "void main(){\n" +
                     "   float distance = texture(tex, uv).r;\n" +
                     "   float gradient = length(vec2(dFdx(distance), dFdy(distance)));\n" +
-                    "   vec4 color = colors[0];\n" +
+                    "   vec4 color = tint;\n" +
                     "   for(int i=0;i<colorCount;i++){" +
                     "       vec4 colorHere = colors[i];\n" +
                     "       vec2 distSmooth = distSmoothness[i];\n" +
@@ -494,7 +495,8 @@ object ShaderLib {
                     "   if(depth != 0.0) gl_FragDepth = gl_FragCoord.z * (1.0 + distance * depth);\n" +
                     "   if(color.a <= 0.001) discard;\n" +
                     "   if($hasForceFieldColor) color *= getForceFieldColor();\n" +
-                    "   gl_FragColor = color;\n" +
+                    "   vec3 finalColor = color.rgb;\n" +
+                    "   float finalAlpha = color.a;\n" +
                     "}", listOf("tex")
         )
         shaderSDFText.ignoreUniformWarnings(

@@ -9,7 +9,7 @@ object ShaderPlus {
     fun makeFragmentShaderUniversal(varyingSource: String, fragmentSource: String): String {
         val hasFinalColor = "finalColor" in fragmentSource
         val hasZDistance = "zDistance" in varyingSource
-        val hasTint = "tint" in fragmentSource
+        val hasTint = "vec4 tint;" in fragmentSource
         val raw = fragmentSource.trim()
         if (!raw.endsWith("}")) throw RuntimeException()
         return "" +
@@ -20,11 +20,11 @@ object ShaderPlus {
                 (if (hasFinalColor) "" +
                         "switch(drawMode){\n" +
                         "       case ${DrawMode.COLOR_SQUARED.id}:\n" +
-                        "           vec3 tmpCol = finalColor * tint.rgb;\n" +
+                        "           vec3 tmpCol = ${if (hasTint) "finalColor" else "finalColor * tint.rgb"};\n" +
                         "           gl_FragColor = vec4(tmpCol * tmpCol, clamp(finalAlpha, 0, 1) * tint.a);\n" +
                         "           break;\n" +
                         "       case ${DrawMode.COLOR.id}:\n" +
-                        "           gl_FragColor = vec4(finalColor * tint.rgb, clamp(finalAlpha, 0, 1) * tint.a);\n" +
+                        "           gl_FragColor = vec4(${if (hasTint) "finalColor" else "finalColor * tint.rgb"}, clamp(finalAlpha, 0, 1) * tint.a);\n" +
                         "           break;\n" +
                         "       case ${DrawMode.ID.id}:\n" +
                         "           if(finalAlpha < 0.01) discard;\n" +
