@@ -15,5 +15,5 @@ enable BUILD_SHARED_LIBRARIES
 build for x64 (64 bit windows) (or x86 for 32 bit windows)
 Windows 7 is the lowest supported windows, which supports touch
 the resulting dll can be found as glfw3.dll inside (~ = home = C:/Users/yourName/) ~/CMakeBuilds/large-number-in-hex/build/BuildName/src
-it needs to be packed into lwjgl-glfw-natives-windows(-x86)(-touch).jar; and %appdata%/../Temp/lwjglUsername needs to be deleted, so lwjgl updates the file
+it needs to be packed into lwjgl-glfw-natives-windows(-x86)(-touch).jar; and %appdata%/../Local/Temp/lwjglUsername needs to be deleted, so lwjgl updates the file
 (alternatively for direct consumers, the file in Temp/lwjglUsername could be updated; it's not recommended though, because it's a temporary content and it could be deleted)

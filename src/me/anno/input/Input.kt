@@ -137,13 +137,13 @@ object Input {
             }
         }
 
-        GLFW.glfwSetCursorPosCallback(window) { _, xpos, ypos ->
+        GLFW.glfwSetCursorPosCallback(window) { _, xPosition, yPosition ->
             addEvent {
 
                 if (keysDown.isNotEmpty()) framesSinceLastInteraction = 0
 
-                val newX = xpos.toFloat()
-                val newY = ypos.toFloat()
+                val newX = xPosition.toFloat()
+                val newY = yPosition.toFloat()
 
                 val dx = newX - mouseX
                 val dy = newY - mouseY
@@ -170,11 +170,11 @@ object Input {
             }
         }
 
-        GLFW.glfwSetScrollCallback(window) { _, xoffset, yoffset ->
+        GLFW.glfwSetScrollCallback(window) { _, xOffset, yOffset ->
             addEvent {
                 framesSinceLastInteraction = 0
                 val clicked = getPanelAt(mouseX, mouseY)
-                clicked?.onMouseWheel(mouseX, mouseY, xoffset.toFloat(), yoffset.toFloat())
+                clicked?.onMouseWheel(mouseX, mouseY, xOffset.toFloat(), yOffset.toFloat())
             }
         }
 

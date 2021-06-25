@@ -1204,7 +1204,7 @@ static LRESULT CALLBACK windowProc(HWND hWnd, UINT uMsg,
             // packed together.
             // Message parameters need to be decoded:
             unsigned int numInputs = (unsigned int) wParam; // Number of actual per-contact messages
-			TOUCHINPUT* ti = calloc(numInputs, sizeof(TOUCHINPUT));// TOUCHINPUT[numInputs]; // Allocate the storage for the parameters of the per-contact messages
+			TOUCHINPUT* ti = calloc(numInputs, sizeof(TOUCHINPUT));// Allocate the storage for the parameters of the per-contact messages
             if (ti == NULL)
 			{
                 break;
@@ -1217,7 +1217,7 @@ static LRESULT CALLBACK windowProc(HWND hWnd, UINT uMsg,
                 // handler.
                 for (unsigned int i = 0; i < numInputs; ++i)
                 {
-					
+
 					int flags = ti[i].dwFlags;
 					TOUCHINPUT tii = ti[i];
 					int reportedIndex = tii.dwID;// touch contact id
@@ -1229,27 +1229,23 @@ static LRESULT CALLBACK windowProc(HWND hWnd, UINT uMsg,
 					pt.x = tii.x / 100;
 					pt.y = tii.y / 100;
 					ScreenToClient(hWnd, &pt);
-					int x = pt.x;
-					int y = pt.y;
+
+					int x = pt.x * 100 + tii.x % 100;
+					int y = pt.y * 100 + tii.y % 100;
 					int pressure = 255;// todo somehow get pressure...
-                    if (flags & TOUCHEVENTF_DOWN)
-                    {
+
+                    if (flags & TOUCHEVENTF_DOWN) {
 						// on touch down
 						if (window->callbacks.key)
-							window->callbacks.key((GLFWwindow*) 0, reportedIndex, x, y, -1);
-						// _glfwInputKey(window + reportedIndex, i, x, y, -1);
-                    }
-                    else if(flags & TOUCHEVENTF_MOVE)
-                    {
+							window->callbacks.key((GLFWwindow*) (((char*) window)+1), reportedIndex, x, y, -1);
+                    } else if(flags & TOUCHEVENTF_MOVE) {
 						// on touch move
 						if (window->callbacks.key)
-							window->callbacks.key((GLFWwindow*) 0, reportedIndex, x, y, pressure);
-                    }
-                    else if(flags & TOUCHEVENTF_UP)
-                    {
+							window->callbacks.key((GLFWwindow*) (((char*) window)+1), reportedIndex, x, y, pressure);
+                    } else if(flags & TOUCHEVENTF_UP) {
 						// on touch up
 						if (window->callbacks.key)
-							window->callbacks.key((GLFWwindow*) 0, reportedIndex, x, y, -2);
+							window->callbacks.key((GLFWwindow*) (((char*) window)+1), reportedIndex, x, y, -2);
                     }
                 }
             }
@@ -1257,9 +1253,9 @@ static LRESULT CALLBACK windowProc(HWND hWnd, UINT uMsg,
 			free(ti);
 			return 0;// Antonio: idk, am not sure
         }
-		
+
 #endif
-		
+
     }
 
     return DefWindowProcW(hWnd, uMsg, wParam, lParam);

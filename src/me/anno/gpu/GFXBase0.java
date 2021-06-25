@@ -43,6 +43,13 @@ import static org.lwjgl.system.MemoryUtil.memAddress;
  * <p>
  * modified by Antonio Noack
  * including all os natives has luckily only very few overhead :) (&lt; 1 MiB)
+ *
+ * todo rewrite this such that we can have multiple windows, which may be nice for the color picker, and maybe other stuff,
+ * todo e.g. having multiple editor windows
+ *
+ * todo rebuild and recompile the glfw driver, which handles the touch input, so the input can be assigned to the window
+ * (e.g. add 1 to the pointer)
+ *
  */
 public class GFXBase0 {
 
@@ -94,7 +101,8 @@ public class GFXBase0 {
     public void run() {
         try {
 
-            // loadRenderDoc();
+            // todo there should be a way to switch this at runtime, or at least some runtime argument...
+            loadRenderDoc();
 
             init();
             windowLoop();
