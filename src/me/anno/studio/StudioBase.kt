@@ -344,11 +344,10 @@ abstract class StudioBase(
             didSomething = true
 
             GFX.ensureEmptyStack()
-            // Framebuffer.stack.push(null)
             Frame.reset()
 
             GFX.deltaX = panel0.x
-            GFX.deltaY = h - (panel0.y + panel0.h)
+            GFX.deltaY = panel0.y
 
             renderDefault {
 
