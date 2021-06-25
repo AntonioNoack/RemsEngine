@@ -121,6 +121,7 @@ class FrameTask(
                     )
                     if (!GFX.isFinalRendering) throw RuntimeException()
                 } catch (e: MissingFrameException) {
+                    // e.printStackTrace()
                     missingResource = e.message ?: ""
                     needsMoreSources = true
                 }
@@ -144,6 +145,7 @@ class FrameTask(
                             )
                             if (!GFX.isFinalRendering) throw RuntimeException()
                         } catch (e: MissingFrameException) {
+                            // e.printStackTrace()
                             missingResource = e.message ?: ""
                             needsMoreSources = true
                         }
@@ -184,11 +186,9 @@ class FrameTask(
         var lastPrinted = 0L
         var missingResource = ""
             set(value) {
-                if (field != value) {
-                    if (value.isNotEmpty() && abs(GFX.gameTime - lastPrinted) > 1000_000_000) {
-                        lastPrinted = GFX.gameTime
-                        LOGGER.info("Waiting for $value")
-                    }
+                if (value.isNotEmpty() && abs(GFX.gameTime - lastPrinted) > 1000_000_000) {
+                    lastPrinted = GFX.gameTime
+                    LOGGER.info("Waiting for $value")
                 }
                 field = value
             }

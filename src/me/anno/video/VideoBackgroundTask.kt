@@ -115,6 +115,7 @@ class VideoBackgroundTask(
                     )
                     if (!GFX.isFinalRendering) throw RuntimeException()
                 } catch (e: MissingFrameException) {
+                    // e.printStackTrace()
                     missingResource = e.message ?: ""
                     needsMoreSources = true
                 }
@@ -138,6 +139,7 @@ class VideoBackgroundTask(
                             )
                             if (!GFX.isFinalRendering) throw RuntimeException()
                         } catch (e: MissingFrameException) {
+                            // e.printStackTrace()
                             missingResource = e.message ?: ""
                             needsMoreSources = true
                         }

@@ -14,7 +14,7 @@ import java.nio.charset.Charset
  * */
 class FileReference(val file: File) {
 
-    constructor():this("")
+    constructor() : this("")
     constructor(parent: File, name: String) : this(File(parent, name))
     constructor(parent: FileReference, name: String) : this(File(parent.file, name))
 
@@ -25,9 +25,10 @@ class FileReference(val file: File) {
 
     val name = file.name
     val absolutePath = file.absolutePath
+    val shortPath = file.toString()
     val hashCode = absolutePath.hashCode()
 
-    val hasValidName = !toString().isBlank2()
+    val hasValidName = !shortPath.isBlank2()
     fun hasValidName() = hasValidName
 
     fun inputStream() = file.inputStream()
@@ -52,7 +53,7 @@ class FileReference(val file: File) {
     fun listFiles() = file.listFiles()
     fun list() = file.list()
 
-    fun getParent() = if(file.parentFile == null) null else FileReference(file.parentFile)
+    fun getParent() = if (file.parentFile == null) null else FileReference(file.parentFile)
 
     fun renameTo(newName: File) = file.renameTo(newName)
     fun renameTo(newName: FileReference) = file.renameTo(newName.file)
