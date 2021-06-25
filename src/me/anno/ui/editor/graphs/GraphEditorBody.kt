@@ -3,10 +3,10 @@ package me.anno.ui.editor.graphs
 import me.anno.config.DefaultStyle.black
 import me.anno.config.DefaultStyle.white
 import me.anno.gpu.GFX
-import me.anno.gpu.GFXx2D
-import me.anno.gpu.GFXx2D.drawBorder
-import me.anno.gpu.GFXx2D.drawRect
-import me.anno.gpu.GFXx2D.drawTexture
+import me.anno.gpu.drawing.GFXx2D
+import me.anno.gpu.drawing.GFXx2D.drawBorder
+import me.anno.gpu.drawing.DrawRectangles.drawRect
+import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.TextureLib.colorShowTexture
 import me.anno.input.Input.isControlDown
 import me.anno.input.Input.isShiftDown
@@ -23,6 +23,7 @@ import me.anno.animation.AnimatedProperty
 import me.anno.animation.Interpolation
 import me.anno.animation.Keyframe
 import me.anno.animation.Type
+import me.anno.gpu.drawing.DrawTexts
 import me.anno.studio.StudioBase.Companion.updateAudio
 import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.RemsStudio.editorTime
@@ -103,7 +104,7 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
 
     private fun drawValueAxis(x0: Int, y0: Int, x1: Int, y1: Int) {
 
-        val font = GFXx2D.monospaceFont.value
+        val font = DrawTexts.monospaceFont.value
         val fontHeight = font.size
         val yOffset = fontHeight.toInt() / 2
 
@@ -129,14 +130,9 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
             val text = getValueString(value, valueStep)
             val width = font.sampleWidth * text.length
             drawRect(x + width + 2, y, w - width - 2, 1, fontColor and 0x3fffffff)
-            GFXx2D.drawSimpleTextCharByChar(
-                x + 2,
-                y - yOffset,
-                0,
-                text,
-                fontColor,
-                backgroundColor,
-                AxisAlignment.MIN
+            DrawTexts.drawSimpleTextCharByChar(
+                x + 2, y - yOffset, 0,
+                text, fontColor, backgroundColor, AxisAlignment.MIN
             )
 
         }

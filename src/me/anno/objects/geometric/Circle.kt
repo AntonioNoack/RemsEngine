@@ -1,7 +1,7 @@
 package me.anno.objects.geometric
 
 import me.anno.config.DefaultConfig
-import me.anno.gpu.GFXx3D.draw3DCircle
+import me.anno.gpu.drawing.GFXx3D.draw3DCircle
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.shader.Shader

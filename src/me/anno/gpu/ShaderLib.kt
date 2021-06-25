@@ -540,7 +540,6 @@ object ShaderLib {
 
         val f3DMasked = "" +
                 "precision highp float;\n" +
-                "uniform vec4 tint;" +
                 "uniform sampler2D maskTex, tex, tex2;\n" +
                 "uniform float useMaskColor;\n" +
                 "uniform float invertMask;\n" +
@@ -581,8 +580,8 @@ object ShaderLib {
                 "   }\n" +
                 "   if(color.a <= 0.001) discard;\n" +
                 "   if($hasForceFieldColor) color *= getForceFieldColor();\n" +
-                "   gl_FragColor = tint * color;\n" +
-                "   gl_FragColor.a = min(gl_FragColor.a, 1.0);\n" +
+                "   vec3 finalColor = color.rgb;\n" +
+                "   float finalAlpha = min(color.a, 1.0);\n" +
                 "}"
         shader3DMasked =
             createShaderPlus("3d-masked", v3DMasked, y3DMasked, f3DMasked, listOf("maskTex", "tex", "tex2"))
@@ -676,7 +675,6 @@ object ShaderLib {
                 "varying v2 localPos2;\n"
 
         val fSVG = "" +
-                "uniform vec4 tint;" +
                 "uniform sampler2D tex;\n" +
                 "uniform vec4 uvLimits;\n" +
                 getTextureLib +
@@ -715,8 +713,14 @@ object ShaderLib {
                 // "   color.rgb = fract(vec3(stopValue));\n" +
                 "   color.rgb = colorGrading(color.rgb);\n" +
                 "   if($hasForceFieldColor) color *= getForceFieldColor();\n" +
-                "   gl_FragColor = isInLimits(uv.x, uvLimits.xz) && isInLimits(uv.y, uvLimits.yw) ?\n" +
-                "       tint * color * getTexture(tex, uv * 0.5 + 0.5) : vec4(0.0);\n" +
+                "   if(isInLimits(uv.x, uvLimits.xz) && isInLimits(uv.y, uvLimits.yw)){" +
+                "       vec4 color2 = color * getTexture(tex, uv * 0.5 + 0.5);\n" +
+                "       vec3 finalColor = color2.rgb;\n" +
+                "       float finalAlpha = color2.a;\n" +
+                "   } else {" +
+                "       vec3 finalColor = vec3(0);\n" +
+                "       float finalAlpha = 0.0;\n" +
+                "   }" +
                 "}"
 
         shader3DSVG = createShaderPlus("3d-svg", vSVG, ySVG, fSVG, listOf("tex"))
@@ -767,7 +771,6 @@ object ShaderLib {
                     positionPostProcessing +
                     "}", y3D + "" +
                     "varying vec3 normal;\n", "" +
-                    "uniform vec4 tint;" +
                     "uniform sampler2D tex;\n" +
                     getTextureLib +
                     getColorForceFieldLib +
@@ -775,7 +778,8 @@ object ShaderLib {
                     "   vec4 color = getTexture(tex, uv);\n" +
                     "   color.rgb *= 0.5 + 0.5 * dot(vec3(-1.0, 0.0, 0.0), normal);\n" +
                     "   if($hasForceFieldColor) color *= getForceFieldColor();\n" +
-                    "   gl_FragColor = tint * color;\n" +
+                    "   vec3 finalColor = color.rgb;\n" +
+                    "   float finalAlpha = color.a;\n" +
                     "}", listOf("tex")
         )
 
@@ -785,7 +789,6 @@ object ShaderLib {
         shader3DYUV = createShaderPlus(
             "3d-yuv",
             v3D, y3D, "" +
-                    "uniform vec4 tint;\n" +
                     "uniform sampler2D texY, texU, texV;\n" +
                     "uniform vec2 uvCorrection;\n" +
                     getTextureLib +
@@ -804,7 +807,8 @@ object ShaderLib {
                     "   vec4 color = vec4(yuv2rgb(yuv), 1.0);\n" +
                     "   color.rgb = colorGrading(color.rgb);\n" +
                     "   if($hasForceFieldColor) color *= getForceFieldColor();\n" +
-                    "   gl_FragColor = tint * color;\n" +
+                    "   vec3 finalColor = color.rgb;\n" +
+                    "   float finalAlpha = color.a;\n" +
                     "}", listOf("texY", "texU", "texV")
         )
 
@@ -812,7 +816,6 @@ object ShaderLib {
             return createShaderPlus(
                 "3d-${if (swizzle.isEmpty()) "rgba" else swizzle}",
                 v3D, y3D, "" +
-                        "uniform vec4 tint;\n" +
                         "uniform sampler2D tex;\n" +
                         getTextureLib +
                         getColorForceFieldLib +
@@ -822,7 +825,8 @@ object ShaderLib {
                         "   vec4 color = getTexture(tex, getProjectedUVs(uv, uvw))$swizzle;\n" +
                         "   color.rgb = colorGrading(color.rgb);\n" +
                         "   if($hasForceFieldColor) color *= getForceFieldColor();\n" +
-                        "   gl_FragColor = tint * color;\n" +
+                        "   vec3 finalColor = color.rgb;\n" +
+                        "   float finalAlpha = color.a;\n" +
                         "}", listOf("tex")
             )
         }
@@ -851,6 +855,8 @@ object ShaderLib {
 
     }
 
+    // once was used to skip over abbreviation symbols;
+    // however, the overhead shouldn't be a problem -> ignored
     fun createShaderNoShorts(
         shaderName: String,
         v3D: String,

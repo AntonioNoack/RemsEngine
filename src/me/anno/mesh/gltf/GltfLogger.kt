@@ -20,6 +20,10 @@ object GltfLogger {
                 }
             }
 
+            override fun isLoggable(logger: Logger, level: Level): Boolean {
+                return LogManager.isEnabled(LogManager.getLogger(logger.clazz))
+            }
+
             override fun log(logger: Logger, lvl: Level, msg: String, exception: Exception) {
                 exception.printStackTrace()
                 log(logger, lvl, "$msg, $exception")

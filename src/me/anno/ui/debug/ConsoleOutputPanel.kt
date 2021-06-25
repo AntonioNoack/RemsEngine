@@ -1,14 +1,11 @@
 package me.anno.ui.debug
 
 import me.anno.config.DefaultStyle
-import me.anno.gpu.GFX
 import me.anno.gpu.GFX.windowStack
-import me.anno.gpu.GFXx2D
 import me.anno.gpu.Window
 import me.anno.input.MouseButton
 import me.anno.language.translation.Dict
 import me.anno.studio.Logging
-import me.anno.ui.base.Panel
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.text.SimpleTextPanel
@@ -17,7 +14,6 @@ import me.anno.ui.debug.console.ConsoleLogFullscreen
 import me.anno.ui.style.Style
 import me.anno.utils.Maths.mixARGB
 import java.util.logging.Level
-import kotlin.math.max
 import kotlin.math.min
 
 // todo second console output panel, which has the default font?

@@ -1,7 +1,7 @@
 package me.anno.ui.editor.sceneView
 
 import me.anno.config.DefaultStyle
-import me.anno.gpu.GFXx2D.drawRect
+import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.objects.Transform
 import org.joml.Matrix4f
 import org.joml.Vector3f

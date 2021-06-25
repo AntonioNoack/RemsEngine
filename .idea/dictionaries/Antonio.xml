@@ -168,6 +168,7 @@
       <w>mpeg</w>
       <w>msaa</w>
       <w>mtllib</w>
+      <w>multisample</w>
       <w>musik</w>
       <w>navajowhite</w>
       <w>ness</w>
@@ -196,6 +197,8 @@
       <w>rasterization</w>
       <w>rawvideo</w>
       <w>remsstudio</w>
+      <w>renderbuffer</w>
+      <w>renderbuffers</w>
       <w>rigidbody</w>
       <w>rosybrown</w>
       <w>royalblue</w>

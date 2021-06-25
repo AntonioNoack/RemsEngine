@@ -114,6 +114,8 @@ import me.anno.utils.OS
 
 // to do Mod with "hacked"-text effect for text: swizzle characters and introduce others?
 
+// todo cutting (control+x) only cuts one
+
 object RemsStudio : StudioBase(true, "Rem's Studio", 10105) {
 
     // private val LOGGER = LogManager.getLogger(RemsStudio::class)

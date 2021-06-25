@@ -2,9 +2,13 @@ package me.anno.gpu.deferred
 
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.Shader
+import me.anno.utils.Color.a
+import me.anno.utils.Color.b
+import me.anno.utils.Color.g
+import me.anno.utils.Color.r
 import kotlin.math.max
 
-class DeferredSettings2(
+class DeferredSettingsV2(
     val layerTypes: List<DeferredLayerType>,
     fpLights: Boolean
 ) {
@@ -12,11 +16,11 @@ class DeferredSettings2(
     class Layer(val type: DeferredLayerType, val textureName: String, val mapping: String)
 
     val layers = ArrayList<Layer>()
-    val layers2 = ArrayList<DeferredLayer>()
+    val layers2: ArrayList<DeferredLayer>
 
     init {
 
-        val maxTextures = 16
+        val maxTextures = layerTypes.size
         val spaceInLayers = IntArray(maxTextures) { 4 }
         val needsHighPrecision = BooleanArray(maxTextures)
         var usedTextures0 = 0
@@ -33,6 +37,7 @@ class DeferredSettings2(
             if (layerType.needsHighPrecision) needsHighPrecision[layerIndex] = true
         }
 
+        layers2 = ArrayList(usedTextures0)
         for (i in 0 until usedTextures0) {
             val layer2 = DeferredLayer(
                 "vec4", "defLayer$i",
@@ -44,7 +49,7 @@ class DeferredSettings2(
 
     }
 
-    val settingsV1 = DeferredSettings(layers2, fpLights)
+    val settingsV1 = DeferredSettingsV1(layers2, fpLights)
 
     fun createBaseBuffer() = DeferredBuffers.getBaseBuffer(settingsV1)
     fun createLightBuffer() = DeferredBuffers.getLightBuffer(settingsV1)
@@ -56,24 +61,68 @@ class DeferredSettings2(
     }
 
     val glslPostProcessingStart = layers.joinToString("") { layer ->
-        "${glslTypes[layer.type.dimensions-1]} ${layer.type.glslName} = texture2d(uv, ${layer.textureName}).${layer.mapping};\n"
+        "${glslTypes[layer.type.dimensions - 1]} ${layer.type.glslName} = texture2d(uv, ${layer.textureName}).${layer.mapping};\n"
     }
 
-    // todo for each shader define default values for the deferred layer values (color, normal, ...), if they are not defined
 
     fun createShader(
         shaderName: String,
         vertexSource: String,
         varyingSource: String,
         fragmentSource: String,
-        textures: List<String>
+        textures: List<String>?
     ): Shader {
         // what do we do, if the position is missing? we cannot do anything...
         val vertex = vertexSource + ""
         val varying = varyingSource + ""
-        val fragment = fragmentSource.substring(0, fragmentSource.lastIndexOf('}')) +
-                glslFragmentShaderEnd + "}"
-        val shader = Shader(shaderName, vertex, varying, fragment)
+        val fragment = StringBuilder(16)
+        fragment.append(fragmentSource.substring(0, fragmentSource.lastIndexOf('}')))
+        // for each shader define default values for the deferred layer values (color, normal, ...), if they are not defined
+        for (type in layerTypes) {
+            if (type.glslName !in fragment) {
+                fragment.append(glslTypes[type.dimensions - 1])
+                fragment.append(' ')
+                fragment.append(type.glslName)
+                fragment.append(" = ")
+                when (type.dimensions) {
+                    1 -> {
+                        fragment.append('(')
+                        fragment.append(type.defaultValueARGB.b() / 255f)
+                        fragment.append(";\n")
+                    }
+                    2 -> {
+                        fragment.append("vec2(")
+                        fragment.append(type.defaultValueARGB.g() / 255f)
+                        fragment.append(", ")
+                        fragment.append(type.defaultValueARGB.b() / 255f)
+                        fragment.append(");\n")
+                    }
+                    3 -> {
+                        fragment.append("vec3(")
+                        fragment.append(type.defaultValueARGB.r() / 255f)
+                        fragment.append(", ")
+                        fragment.append(type.defaultValueARGB.g() / 255f)
+                        fragment.append(", ")
+                        fragment.append(type.defaultValueARGB.b() / 255f)
+                        fragment.append(");\n")
+                    }
+                    4 -> {
+                        fragment.append("vec4(")
+                        fragment.append(type.defaultValueARGB.a() / 255f)
+                        fragment.append(", ")
+                        fragment.append(type.defaultValueARGB.r() / 255f)
+                        fragment.append(", ")
+                        fragment.append(type.defaultValueARGB.g() / 255f)
+                        fragment.append(", ")
+                        fragment.append(type.defaultValueARGB.b() / 255f)
+                        fragment.append(");\n")
+                    }
+                }
+            }
+        }
+        fragment.append(glslFragmentShaderEnd)
+        fragment.append("}")
+        val shader = Shader(shaderName, vertex, varying, fragment.toString())
         shader.setTextureIndices(textures)
         return shader
     }

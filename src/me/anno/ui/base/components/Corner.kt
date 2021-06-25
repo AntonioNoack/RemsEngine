@@ -2,8 +2,8 @@ package me.anno.ui.base.components
 
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.a
-import me.anno.gpu.GFXx2D
-import me.anno.gpu.GFXx2D.drawRect
+import me.anno.gpu.drawing.GFXx2D
+import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.ShaderLib
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer

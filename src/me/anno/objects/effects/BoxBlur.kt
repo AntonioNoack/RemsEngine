@@ -1,6 +1,6 @@
 package me.anno.objects.effects
 
-import me.anno.gpu.GFXx3D
+import me.anno.gpu.drawing.GFXx3D
 import me.anno.gpu.RenderSettings.renderPurely
 import me.anno.gpu.RenderSettings.useFrame
 import me.anno.gpu.framebuffer.FBStack

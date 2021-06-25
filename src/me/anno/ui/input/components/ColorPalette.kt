@@ -1,8 +1,9 @@
 package me.anno.ui.input.components
 
 import me.anno.config.DefaultStyle.black
-import me.anno.gpu.GFXx2D
 import me.anno.gpu.TextureLib
+import me.anno.gpu.drawing.DrawRectangles
+import me.anno.gpu.drawing.DrawTextures
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.input.MouseButton
@@ -75,10 +76,11 @@ class ColorPalette(
             // draw border/background depending on hover/focus
             val backgroundColor = if (isHovered) if (isInFocus) focusHoverColor else hoverColor
             else if (isInFocus) focusColor else backgroundColor
-            GFXx2D.drawRect(x, y, w, h, backgroundColor)
+            DrawRectangles.drawRect(x, y, w, h, backgroundColor)
             TextureLib.colorShowTexture.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.REPEAT)
-            GFXx2D.drawTexture(x + 1, y + 1, w - 2, h - 2, TextureLib.colorShowTexture, -1, Vector4f(2f, 2f, 0f, 0f))
-            GFXx2D.drawRect(x + 1, y + 1, w - 2, h - 2, color)
+            val tiling = Vector4f(2f, 2f, 0f, 0f)
+            DrawTextures.drawTexture(x + 1, y + 1, w - 2, h - 2, TextureLib.colorShowTexture, -1, tiling)
+            DrawRectangles.drawRect(x + 1, y + 1, w - 2, h - 2, color)
         }
 
         override fun onCopyRequested(x: Float, y: Float): String? {

@@ -4,9 +4,8 @@ import com.drew.imaging.ImageMetadataReader
 import com.drew.metadata.exif.ExifIFD0Directory
 import me.anno.cache.instances.VideoCache.getVideoFrame
 import me.anno.gpu.GFX
-import me.anno.gpu.GFXx3D.shader3DUniforms
+import me.anno.gpu.drawing.GFXx3D.shader3DUniforms
 import me.anno.gpu.RenderSettings.useFrame
-import me.anno.gpu.ShaderLib.shader3DYUV
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.Renderer
@@ -72,11 +71,7 @@ class ImageData(file: FileReference) : ICacheData {
                 shader.use()
                 shader3DUniforms(shader, null, -1)
                 frame.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-                if (shader0 == shader3DYUV) {
-                    val w2 = frame.w
-                    val h2 = frame.h
-                    shader.v2("uvCorrection", w2.toFloat() / ((w2 + 1) / 2 * 2), h2.toFloat() / ((h2 + 1) / 2 * 2))
-                }
+                frame.bindUVCorrection(shader)
                 GFX.flat01.draw(shader)
                 GFX.check()
             }

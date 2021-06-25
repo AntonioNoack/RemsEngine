@@ -4,9 +4,10 @@ import me.anno.audio.AudioFXCache
 import me.anno.audio.AudioFXCache.SPLITS
 import me.anno.audio.effects.SoundPipeline.Companion.bufferSize
 import me.anno.config.DefaultStyle.black
-import me.anno.gpu.GFXx2D
-import me.anno.gpu.GFXx2D.drawRectGradient
-import me.anno.gpu.GFXx2D.drawRectStriped
+import me.anno.gpu.drawing.GFXx2D
+import me.anno.gpu.drawing.DrawGradients.drawRectGradient
+import me.anno.gpu.drawing.DrawRectangles
+import me.anno.gpu.drawing.DrawStriped.drawRectStriped
 import me.anno.objects.Transform
 import me.anno.objects.Video
 import me.anno.objects.modes.LoopingState
@@ -18,7 +19,6 @@ import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.max
 import me.anno.utils.Maths.mixARGB
 import me.anno.utils.Maths.nonNegativeModulo
-import me.anno.utils.types.Strings.isBlank2
 import me.anno.video.FFMPEGMetadata
 import org.joml.Vector4f
 import kotlin.math.abs
@@ -222,7 +222,7 @@ class LayerStripeSolution(
                                     if (max >= min) {
                                         val y01 = this.y0 + min.toInt()
                                         val y11 = this.y0 + max.toInt()
-                                        GFXx2D.drawRect(x, y01, 1, y11 + 1 - y01, colorMask)
+                                        DrawRectangles.drawRect(x, y01, 1, y11 + 1 - y01, colorMask)
                                     }
                                 }
                             }

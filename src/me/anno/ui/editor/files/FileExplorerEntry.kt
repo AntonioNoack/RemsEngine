@@ -8,9 +8,9 @@ import me.anno.fonts.FontManager
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.clip2Dual
 import me.anno.gpu.GFX.inFocus
-import me.anno.gpu.GFXx2D
-import me.anno.gpu.GFXx2D.drawTexture
-import me.anno.gpu.GFXx3D
+import me.anno.gpu.drawing.GFXx2D
+import me.anno.gpu.drawing.DrawTextures.drawTexture
+import me.anno.gpu.drawing.GFXx3D
 import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering

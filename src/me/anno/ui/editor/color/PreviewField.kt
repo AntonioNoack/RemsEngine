@@ -1,6 +1,6 @@
 package me.anno.ui.editor.color
 
-import me.anno.gpu.GFXx2D
+import me.anno.gpu.drawing.DrawRectangles
 import me.anno.ui.base.Panel
 import me.anno.ui.style.Style
 
@@ -10,7 +10,7 @@ class PreviewField(private val refSize: Panel, val padding: Int, style: Style) :
 
     var color = 0
         set(value) {
-            if(field != value){
+            if (field != value) {
                 field = value
                 invalidateDrawing()
             }
@@ -23,6 +23,6 @@ class PreviewField(private val refSize: Panel, val padding: Int, style: Style) :
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        GFXx2D.drawRect(x + padding, y + padding, w - 2 * padding, h - 2 * padding, color)
+        DrawRectangles.drawRect(x + padding, y + padding, w - 2 * padding, h - 2 * padding, color)
     }
 }

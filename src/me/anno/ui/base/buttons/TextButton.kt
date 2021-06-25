@@ -1,11 +1,11 @@
 package me.anno.ui.base.buttons
 
 import me.anno.config.DefaultStyle.black
-import me.anno.gpu.GFXx2D
-import me.anno.gpu.GFXx2D.drawRect
-import me.anno.gpu.GFXx2D.getSizeX
-import me.anno.gpu.GFXx2D.getSizeY
-import me.anno.gpu.GFXx2D.getTextSize
+import me.anno.gpu.drawing.GFXx2D.getSizeX
+import me.anno.gpu.drawing.GFXx2D.getSizeY
+import me.anno.gpu.drawing.DrawRectangles.drawRect
+import me.anno.gpu.drawing.DrawTexts
+import me.anno.gpu.drawing.DrawTexts.getTextSize
 import me.anno.input.Input
 import me.anno.input.Input.keysDown
 import me.anno.input.MouseButton
@@ -52,7 +52,7 @@ open class TextButton(title: String, val isSquare: Boolean, style: Style) : Text
 
     var mouseDown = false
         set(value) {
-            if(field != value){
+            if (field != value) {
                 field = value
                 invalidateDrawing()
             }
@@ -75,7 +75,7 @@ open class TextButton(title: String, val isSquare: Boolean, style: Style) : Text
 
         val limit = if (breaksIntoMultiline) this.w else -1
         val size = getTextSize(font, text, limit)
-        GFXx2D.drawText(
+        DrawTexts.drawText(
             x + (w - getSizeX(size)) / 2,
             y + (h - getSizeY(size)) / 2,
             font, text, textColor, backgroundColor, limit

@@ -2,7 +2,7 @@ package me.anno.ui.editor.color
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
-import me.anno.gpu.GFXx2D.posSize
+import me.anno.gpu.drawing.GFXx2D.posSize
 import me.anno.input.Input
 import me.anno.animation.AnimatedProperty
 import me.anno.studio.rems.RemsStudio.editorTime

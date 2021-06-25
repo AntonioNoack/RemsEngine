@@ -1,6 +1,6 @@
 package me.anno.ui.base
 
-import me.anno.gpu.GFXx2D.drawTexture
+import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.texture.Texture2D
 import me.anno.ui.style.Style
 

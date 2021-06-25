@@ -2,8 +2,14 @@ package me.anno.gpu.shader
 
 import me.anno.gpu.GFX
 import me.anno.gpu.RenderSettings
-import me.anno.gpu.deferred.DeferredSettings2
+import me.anno.gpu.deferred.DeferredSettingsV2
 
+/**
+ * converts a shader with color, normal, tint and such into
+ *  a) a clickable / depth-able shader
+ *  b) a flat color shader
+ *  c) a deferred shader
+ * */
 class BaseShader(
     val name: String,
     val vertexSource: String,
@@ -30,6 +36,7 @@ class BaseShader(
         shader.setTextureIndices(textures)
         shader.ignoreUniformWarnings(ignoredUniforms)
         shader.v1("drawMode", ShaderPlus.DrawMode.COLOR.id)
+        shader.v4("tint", 1f, 1f, 1f, 1f)
         GFX.check()
         shader
     }
@@ -51,12 +58,14 @@ class BaseShader(
         this.textures = textures
     }
 
-    private val deferredShaders = HashMap<DeferredSettings2, Shader>()
-    operator fun get(settings: DeferredSettings2): Shader {
+    private val deferredShaders = HashMap<DeferredSettingsV2, Shader>()
+    operator fun get(settings: DeferredSettingsV2): Shader {
         return deferredShaders.getOrPut(settings) {
-            val shader =
-                settings.createPostProcessingShader(name, vertexSource, varyingSource, fragmentSource, textures)
+            val shader = settings.createShader(name, vertexSource, varyingSource, fragmentSource, textures)
+            shader.setTextureIndices(textures)
             shader.ignoreUniformWarnings(ignoredUniforms)
+            shader.v1("drawMode", ShaderPlus.DrawMode.COLOR.id)
+            shader.v4("tint", 1f, 1f, 1f, 1f)
             shader
         }
     }
@@ -68,13 +77,5 @@ class BaseShader(
         for (shader in deferredShaders) shader.value.destroy()
         // deferredShaders.clear()
     }
-
-    // todo converts a shader with color, normal, tint and such into
-    //  a) a clickable / depth-able shader
-    //  b) a flat color shader
-    //  c) a deferred shader
-    // todo the render engine decides how it is rendered...
-    // todo this could include multiple passes as well...
-
 
 }

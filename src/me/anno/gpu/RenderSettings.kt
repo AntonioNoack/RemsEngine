@@ -10,24 +10,27 @@ import org.lwjgl.opengl.GL11.*
 
 object RenderSettings {
 
-    // der Renderer wird nicht global sondern pro Framebuffer gesetzt; macht zumindest den meisten Sinn
+    // the renderer is set per framebuffer; makes the most sense
+    // additionally, it would be possible to set the blend-mode and depth there in a game setting
+    // (not that practical in RemsStudio)
     // val renderer = SecureStack(Renderer.colorRenderer)
 
     val blendMode = object : SecureStack<BlendMode?>(BlendMode.DEFAULT) {
-        override fun onChangeValue(v: BlendMode?) {
-            if (v == null) {
+        // could be optimized
+        override fun onChangeValue(newValue: BlendMode?, oldValue: BlendMode?) {
+            if (newValue == null) {
                 glDisable(GL_BLEND)
             } else {
                 // todo if is parent, then use the parent value
                 glEnable(GL_BLEND)
-                v.forceApply()
+                newValue.forceApply()
             }
         }
     }
 
     val depthMode = object : SecureStack<Boolean>(false) {
-        override fun onChangeValue(v: Boolean) {
-            if (v) {
+        override fun onChangeValue(newValue: Boolean, oldValue: Boolean) {
+            if (newValue) {
                 glEnable(GL_DEPTH_TEST)
             } else {
                 glDisable(GL_DEPTH_TEST)
@@ -35,14 +38,32 @@ object RenderSettings {
         }
     }
 
-    inline fun renderPurely(render: () -> Unit){
-        blendMode.use(null){
+    val cullMode = object : SecureStack<Int>(0) {
+        override fun onChangeValue(newValue: Int, oldValue: Int) {
+            if (newValue != 0) {
+                glEnable(GL_CULL_FACE)
+                glCullFace(newValue)
+            } else {
+                glDisable(GL_CULL_FACE)
+            }
+        }
+    }
+
+    val scissorTest = object: SecureStack<Boolean>(false){
+        override fun onChangeValue(newValue: Boolean, oldValue: Boolean) {
+            if(newValue) glEnable(GL_SCISSOR_TEST)
+            else glDisable(GL_SCISSOR_TEST)
+        }
+    }
+
+    inline fun renderPurely(render: () -> Unit) {
+        blendMode.use(null) {
             depthMode.use(false, render)
         }
     }
 
-    inline fun renderDefault(render: () -> Unit){
-        blendMode.use(BlendMode.DEFAULT){
+    inline fun renderDefault(render: () -> Unit) {
+        blendMode.use(BlendMode.DEFAULT) {
             depthMode.use(false, render)
         }
     }
@@ -60,12 +81,10 @@ object RenderSettings {
     val changeSizes = BooleanArray(maxSize)
 
     val framebuffer = object : SecureStack<Framebuffer?>(null) {
-
-        override fun onChangeValue(v: Framebuffer?) {
+        override fun onChangeValue(newValue: Framebuffer?, oldValue: Framebuffer?) {
             val index = size - 1
-            Frame.bind(null, v, changeSizes[index], xs[index], ys[index], ws[index], hs[index])
+            Frame.bind(newValue, changeSizes[index], xs[index], ys[index], ws[index], hs[index])
         }
-
     }
 
     inline fun useFrame(
@@ -76,52 +95,10 @@ object RenderSettings {
         val index = framebuffer.size
         xs[index] = xs[index - 1]
         ys[index] = ys[index - 1]
-        // todo is this correct?
         ws[index] = buffer?.w ?: GFX.width
         hs[index] = buffer?.h ?: GFX.height
         changeSizes[index] = false
         renderers[index] = renderer
-        framebuffer.use(currentBuffer, render)
-    }
-
-    inline fun useFrame(
-        renderer: Renderer,
-        render: () -> Unit
-    ) { useFrame(currentBuffer, renderer, render) }
-
-    inline fun useFrame(
-        buffer: Framebuffer?,
-        render: () -> Unit
-    ) { useFrame(buffer, currentRenderer, render) }
-
-    inline fun useFrame(
-        x: Int, y: Int, w: Int, h: Int,
-        changeSize: Boolean,
-        render: () -> Unit
-    ) {
-        val index = framebuffer.size
-        xs[index] = x
-        ys[index] = y
-        ws[index] = w
-        hs[index] = h
-        changeSizes[index] = changeSize
-        renderers[index] = currentRenderer
-        framebuffer.use(currentBuffer, render)
-    }
-
-    inline fun useFrame(
-        x: Int, y: Int, w: Int, h: Int,
-        changeSize: Boolean,
-        buffer: Framebuffer?,
-        render: () -> Unit
-    ) {
-        val index = framebuffer.size
-        xs[index] = x
-        ys[index] = y
-        ws[index] = w
-        hs[index] = h
-        changeSizes[index] = changeSize
-        renderers[index] = currentRenderer
         framebuffer.use(buffer, render)
     }
 
@@ -141,5 +118,17 @@ object RenderSettings {
         renderers[index] = renderer
         framebuffer.use(buffer, render)
     }
+
+    inline fun useFrame(renderer: Renderer, render: () -> Unit) =
+        useFrame(currentBuffer, renderer, render)
+
+    inline fun useFrame(buffer: Framebuffer?, render: () -> Unit) =
+        useFrame(buffer, currentRenderer, render)
+
+    inline fun useFrame(x: Int, y: Int, w: Int, h: Int, changeSize: Boolean, render: () -> Unit) =
+        useFrame(x, y, w, h, changeSize, currentBuffer, currentRenderer, render)
+
+    inline fun useFrame(x: Int, y: Int, w: Int, h: Int, changeSize: Boolean, buffer: Framebuffer?, render: () -> Unit) =
+        useFrame(x, y, w, h, changeSize, buffer, currentRenderer, render)
 
 }

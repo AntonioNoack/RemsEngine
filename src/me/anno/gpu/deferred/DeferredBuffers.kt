@@ -3,7 +3,6 @@ package me.anno.gpu.deferred
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.Shader
-import org.lwjgl.opengl.GL20
 
 /**
  * used by some game tests of me
@@ -12,7 +11,7 @@ import org.lwjgl.opengl.GL20
  * */
 object DeferredBuffers {
 
-    fun getBaseBuffer(settings: DeferredSettings): Framebuffer {
+    fun getBaseBuffer(settings: DeferredSettingsV1): Framebuffer {
         val layers = settings.layers
         return Framebuffer(
             "main", 1, 1, 1,
@@ -21,7 +20,7 @@ object DeferredBuffers {
         )
     }
 
-    fun getLightBuffer(settings: DeferredSettings): Framebuffer {
+    fun getLightBuffer(settings: DeferredSettingsV1): Framebuffer {
         return Framebuffer("light", 1, 1, 1, 1, settings.fpLights, Framebuffer.DepthBufferType.NONE)
     }
 
@@ -35,7 +34,7 @@ object DeferredBuffers {
     )
 
     fun createDeferredShader(
-        settings: DeferredSettings,
+        settings: DeferredSettingsV1,
         shaderName: String, v3D: String, y3D: String, f3D: String, textures: List<String>
     ): Shader {
         val shader = Shader(shaderName, v3D, y3D, settings.f3D + f3D, true)

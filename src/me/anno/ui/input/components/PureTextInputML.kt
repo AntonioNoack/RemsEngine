@@ -4,9 +4,8 @@ import me.anno.config.DefaultStyle.black
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.loadTexturesSync
-import me.anno.gpu.GFXx2D.drawRect
-import me.anno.gpu.GFXx2D.getTextSize
-import me.anno.gpu.GFXx2D.getTextSizeX
+import me.anno.gpu.drawing.DrawRectangles.drawRect
+import me.anno.gpu.drawing.DrawTexts.getTextSizeX
 import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.ui.base.components.Padding

@@ -1,7 +1,7 @@
 package me.anno.ui.debug
 
 import me.anno.gpu.GFX
-import me.anno.gpu.GFXx2D.drawSimpleTextCharByChar
+import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import kotlin.math.max
 import kotlin.math.roundToInt
 

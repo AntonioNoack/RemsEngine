@@ -7,7 +7,8 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFX.addGPUTask
 import me.anno.gpu.GFX.deltaTime
 import me.anno.gpu.GFX.windowStack
-import me.anno.gpu.GFXx2D.drawRect
+import me.anno.gpu.drawing.DrawRectangles.drawRect
+import me.anno.gpu.RenderSettings
 import me.anno.gpu.RenderSettings.renderDefault
 import me.anno.gpu.RenderSettings.useFrame
 import me.anno.gpu.Window
@@ -280,8 +281,8 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
         GFX.clip2(x0, y0, x1, y1) {
 
             renderDefault {
-                controls.forEach {
-                    it.draw(x, y, w, h, x0, y0, x1, y1)
+                for (control in controls) {
+                    control.draw(x, y, w, h, x0, y0, x1, y1)
                 }
             }
 
@@ -379,13 +380,13 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
             val y1 = min(localY + radius + 1, fb.h)
             Frame.bind()
             // draw only the clicked area
-            glEnable(GL_SCISSOR_TEST)
-            glScissor(x0, y0, x1 - x0, y1 - y0)
-            Scene.draw(camera, root, dx, dy, width, height, editorTime, false, renderer, this)
-            glFlush(); glFinish() // wait for everything to be drawn
-            glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
-            glReadPixels(x0, y0, x1 - x0, y1 - y0, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
-            glDisable(GL_SCISSOR_TEST)
+            RenderSettings.scissorTest.use(true) {
+                glScissor(x0, y0, x1 - x0, y1 - y0)
+                Scene.draw(camera, root, dx, dy, width, height, editorTime, false, renderer, this)
+                glFlush(); glFinish() // wait for everything to be drawn
+                glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
+                glReadPixels(x0, y0, x1 - x0, y1 - y0, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
+            }
         }
         return buffer
     }

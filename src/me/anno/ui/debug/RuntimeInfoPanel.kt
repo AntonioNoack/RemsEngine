@@ -25,6 +25,7 @@ class RuntimeInfoPanel(style: Style) : SimpleTextPanel(style) {
         }
     }
 
+    // todo onclick show more details about the ram and vram usage, e.g. allocated textures, with and without multisampling, ...
     private fun getDebugText(): String {
         val runtime = Runtime.getRuntime()
         val memory = runtime.totalMemory() - runtime.freeMemory()

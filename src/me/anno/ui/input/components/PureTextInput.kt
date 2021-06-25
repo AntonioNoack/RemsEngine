@@ -2,11 +2,11 @@ package me.anno.ui.input.components
 
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.loadTexturesSync
-import me.anno.gpu.GFXx2D.drawRect
-import me.anno.gpu.GFXx2D.getSizeX
-import me.anno.gpu.GFXx2D.getSizeY
-import me.anno.gpu.GFXx2D.getTextSize
-import me.anno.gpu.GFXx2D.getTextSizeX
+import me.anno.gpu.drawing.DrawRectangles.drawRect
+import me.anno.gpu.drawing.DrawTexts.getTextSize
+import me.anno.gpu.drawing.DrawTexts.getTextSizeX
+import me.anno.gpu.drawing.GFXx2D.getSizeX
+import me.anno.gpu.drawing.GFXx2D.getSizeY
 import me.anno.input.Input.isControlDown
 import me.anno.input.Input.isShiftDown
 import me.anno.input.Input.mouseKeysDown

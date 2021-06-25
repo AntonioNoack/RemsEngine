@@ -1,7 +1,8 @@
 package me.anno.ui.base
 
 import me.anno.fonts.FontManager
-import me.anno.gpu.GFXx2D
+import me.anno.gpu.drawing.GFXx2D
+import me.anno.gpu.drawing.DrawTexts
 import kotlin.math.roundToInt
 
 data class Font(val name: String, val size: Float, val isBold: Boolean, val isItalic: Boolean) {
@@ -12,7 +13,7 @@ data class Font(val name: String, val size: Float, val isBold: Boolean, val isIt
     val sizeInt = size.roundToInt()
     val sizeIndex = FontManager.getFontSizeIndex(size)
 
-    val sampleSize = GFXx2D.getTextSize(this, "w", -1)
+    val sampleSize = DrawTexts.getTextSize(this, "w", -1)
     val sampleWidth = GFXx2D.getSizeX(sampleSize)
     val sampleHeight = GFXx2D.getSizeY(sampleSize)
 

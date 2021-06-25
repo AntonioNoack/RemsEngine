@@ -3,10 +3,9 @@ package me.anno.objects
 import me.anno.cache.instances.LastModifiedCache
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX.isFinalRendering
-import me.anno.gpu.GFXx3D.draw3DVideo
+import me.anno.gpu.drawing.GFXx3D.draw3DVideo
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
-import me.anno.gpu.shader.ShaderPlus
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.io.FileReference

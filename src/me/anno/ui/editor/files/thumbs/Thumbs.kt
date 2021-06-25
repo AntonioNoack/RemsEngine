@@ -6,13 +6,13 @@ import me.anno.cache.instances.MeshCache
 import me.anno.cache.instances.TextureCache.getLateinitTexture
 import me.anno.cache.instances.VideoCache.getVideoFrame
 import me.anno.gpu.GFX
-import me.anno.gpu.GFXx2D
-import me.anno.gpu.GFXx2D.draw2D
 import me.anno.gpu.RenderSettings.renderPurely
 import me.anno.gpu.RenderSettings.useFrame
 import me.anno.gpu.SVGxGFX
 import me.anno.gpu.TextureLib
 import me.anno.gpu.TextureLib.whiteTexture
+import me.anno.gpu.drawing.DrawTextures
+import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.shader.Renderer
@@ -163,7 +163,7 @@ object Thumbs {
                     glClearColor(0f, 0f, 0f, 0f)
                     glClear(GL_COLOR_BUFFER_BIT)
 
-                    GFXx2D.drawTexture(
+                    drawTexture(
                         0, 0, w, h,
                         TextureLib.colorShowTexture,
                         -1, Vector4f(4f, 4f, 0f, 0f)
@@ -247,7 +247,7 @@ object Thumbs {
         // LOGGER.info("loaded frame for $srcFile")
 
         renderToBufferedImage(srcFile, dstFile, callback, w, h) {
-            draw2D(src)
+            drawTexture(src)
         }
 
         // LOGGER.info("rendered $srcFile")

@@ -5,9 +5,9 @@ import me.anno.config.DefaultStyle
 import me.anno.fonts.FontManager
 import me.anno.fonts.keys.TextCacheKey
 import me.anno.gpu.GFX
-import me.anno.gpu.GFXx2D.drawRect
-import me.anno.gpu.GFXx2D.drawSimpleTextCharByChar
-import me.anno.gpu.GFXx2D.flatColor
+import me.anno.gpu.drawing.GFXx2D.flatColor
+import me.anno.gpu.drawing.DrawRectangles.drawRect
+import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.language.translation.NameDesc

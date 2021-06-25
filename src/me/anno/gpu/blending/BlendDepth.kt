@@ -69,28 +69,22 @@ data class BlendDepth(val blendMode: BlendMode?, val depth: Boolean, val depthMa
         }
 
         if (depth) {
-            //if(!depthIsEnabled){
             glEnable(GL_DEPTH_TEST)
-            depthIsEnabled = true
-            //}
         } else {
-            //if(depthIsEnabled){
             glDisable(GL_DEPTH_TEST)
-            depthIsEnabled = false
-            //}
         }
+        depthIsEnabled = depth
 
         if (depthMask) {
             if (!depthMaskIsEnabled) {
                 glDepthMask(true)
-                depthMaskIsEnabled = true
             }
         } else {
             if (depthMaskIsEnabled) {
                 glDepthMask(false)
-                depthMaskIsEnabled = false
             }
         }
+        depthMaskIsEnabled = depthMask
 
     }
 

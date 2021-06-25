@@ -1,7 +1,7 @@
 package me.anno.fonts.mesh
 
 import me.anno.fonts.signeddistfields.TextSDF
-import me.anno.gpu.GFXx2D.drawRect
+import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.ui.base.DefaultRenderingHints

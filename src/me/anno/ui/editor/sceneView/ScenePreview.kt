@@ -4,9 +4,8 @@ import me.anno.config.DefaultStyle.black
 import me.anno.config.DefaultStyle.deepDark
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.gameTime
-import me.anno.gpu.GFXx2D.drawRect
+import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.shader.Renderer
-import me.anno.gpu.shader.ShaderPlus
 import me.anno.objects.Camera
 import me.anno.studio.rems.Scene
 import me.anno.studio.rems.RemsStudio.editorTime
@@ -19,7 +18,6 @@ import me.anno.ui.style.Style
 import me.anno.utils.types.Floats.toDegrees
 import me.anno.utils.Maths.clamp01
 import me.anno.utils.Maths.length
-import me.anno.utils.Maths.mix
 import me.anno.utils.Maths.mixAngle
 import me.anno.utils.types.Vectors.minus
 import me.anno.utils.types.Vectors.times

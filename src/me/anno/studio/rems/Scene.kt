@@ -6,7 +6,8 @@ import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.flat01
 import me.anno.gpu.GFX.isFinalRendering
-import me.anno.gpu.GFXx2D.drawRect
+import me.anno.gpu.drawing.DrawRectangles.drawRect
+import me.anno.gpu.RenderSettings
 import me.anno.gpu.RenderSettings.blendMode
 import me.anno.gpu.RenderSettings.depthMode
 import me.anno.gpu.RenderSettings.renderDefault
@@ -280,7 +281,6 @@ object Scene {
 
         GFX.currentCamera = camera
 
-        // todo use renderer...
         useFrame(renderer) {
 
             usesFPBuffers = sceneView?.usesFPBuffers ?: camera.toneMapping != ToneMappers.RAW8
@@ -352,70 +352,71 @@ object Scene {
 
         var buffer: Framebuffer? =
             if (needsTemporaryBuffer) FBStack["Scene-Main", w, h, 4, usesFPBuffers, samples]
-            else Frame.currentFrame?.buffer
+            else RenderSettings.currentBuffer
+
+        // println("$needsTemporaryBuffer ? $buffer")
 
         val x = if (needsTemporaryBuffer) 0 else x0
         val y = if (needsTemporaryBuffer) 0 else GFX.height - (y0 + h)
 
-        useFrame(x, y, w, h, false, buffer) {
 
-            Frame.bind()
+        blendMode.use(if (isFakeColorRendering) null else BlendMode.DEFAULT) {
+            depthMode.use(camera.useDepth) {
 
-            glClearColor(0f, 0f, 0f, 1f)
+                useFrame(x, y, w, h, false, buffer) {
 
-            if (camera.useDepth) {
-                GL30.glEnable(GL30.GL_DEPTH_TEST)
-                GL30.glClearDepth(1.0)
-                GL30.glDepthRange(-1.0, 1.0)
-                GL30.glDepthFunc(GL30.GL_LESS)
-                if (buffer != null) {
-                    if (needsTemporaryBuffer) {
-                        GL30.glClear(GL30.GL_DEPTH_BUFFER_BIT or GL30.GL_COLOR_BUFFER_BIT)
+                    Frame.bind()
+
+                    glClearColor(0f, 0f, 0f, 1f)
+
+                    if (camera.useDepth) {
+                        GL30.glClearDepth(1.0)
+                        GL30.glDepthRange(-1.0, 1.0)
+                        GL30.glDepthFunc(GL30.GL_LESS)
+                        if (buffer != null) {
+                            if (needsTemporaryBuffer) {
+                                GL30.glClear(GL30.GL_DEPTH_BUFFER_BIT or GL30.GL_COLOR_BUFFER_BIT)
+                            } else {
+                                drawRect(x, y, w, h, black)
+                                GL30.glClear(GL30.GL_DEPTH_BUFFER_BIT)
+                            }
+                        } else {
+                            GL30.glClear(GL30.GL_DEPTH_BUFFER_BIT)
+                        }
                     } else {
-                        drawRect(x, y, w, h, black)
-                        GL30.glClear(GL30.GL_DEPTH_BUFFER_BIT)
+                        if (buffer != null) {
+                            GL30.glClear(GL30.GL_COLOR_BUFFER_BIT)
+                        }
                     }
-                } else {
-                    GL30.glClear(GL30.GL_DEPTH_BUFFER_BIT)
-                }
-            } else {
-                GL30.glDisable(GL30.GL_DEPTH_TEST)
-                if (buffer != null) {
-                    GL30.glClear(GL30.GL_COLOR_BUFFER_BIT)
-                }
-            }
 
-            if (buffer == null) {
-                GFX.check()
-                drawRect(x, y, w, h, black)
-            }
+                    if (buffer == null) {
+                        GFX.check()
+                        drawRect(x, y, w, h, black)
+                    }
 
-            // draw the 3D stuff
-            nearZ = camera.nearZ[cameraTime]
-            farZ = camera.farZ[cameraTime]
+                    // draw the 3D stuff
+                    nearZ = camera.nearZ[cameraTime]
+                    farZ = camera.farZ[cameraTime]
 
-            GFX.applyCameraTransform(
-                camera, cameraTime, cameraTransform,
-                stack
-            )
+                    GFX.applyCameraTransform(
+                        camera, cameraTime, cameraTransform,
+                        stack
+                    )
 
-            // val white = Vector4f(1f, 1f, 1f, 1f)
-            val white = Vector4f(camera.color[cameraTime])
-            val whiteMultiplier = camera.colorMultiplier[cameraTime]
-            val whiteAlpha = white.w
-            white.mul(whiteMultiplier)
-            white.w = whiteAlpha
+                    // val white = Vector4f(1f, 1f, 1f, 1f)
+                    val white = Vector4f(camera.color[cameraTime])
+                    val whiteMultiplier = camera.colorMultiplier[cameraTime]
+                    val whiteAlpha = white.w
+                    white.mul(whiteMultiplier)
+                    white.w = whiteAlpha
 
-            // use different settings for white balance etc...
-            // remember the transform for later use
-            lastCameraTransform.set(stack)
+                    // use different settings for white balance etc...
+                    // remember the transform for later use
+                    lastCameraTransform.set(stack)
 
-            if (!isFakeColorRendering && sceneView != null) {
-                drawGrid(cameraTransform, sceneView)
-            }
-
-            blendMode.use(if (isFakeColorRendering) null else BlendMode.DEFAULT) {
-                depthMode.use(camera.useDepth) {
+                    if (!isFakeColorRendering && sceneView != null) {
+                        drawGrid(cameraTransform, sceneView)
+                    }
 
                     glDepthMask(true)
 

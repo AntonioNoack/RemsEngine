@@ -3,11 +3,11 @@ package me.anno.input
 import me.anno.config.DefaultConfig.defaultFont
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.GFX
-import me.anno.gpu.GFXx2D.drawRect
-import me.anno.gpu.GFXx2D.drawText
-import me.anno.gpu.GFXx2D.getSizeX
-import me.anno.gpu.GFXx2D.getTextSize
 import me.anno.gpu.RenderSettings.renderDefault
+import me.anno.gpu.drawing.GFXx2D.getSizeX
+import me.anno.gpu.drawing.DrawRectangles.drawRect
+import me.anno.gpu.drawing.DrawTexts.drawText
+import me.anno.gpu.drawing.DrawTexts.getTextSize
 import me.anno.ui.base.text.TextPanel
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.mix

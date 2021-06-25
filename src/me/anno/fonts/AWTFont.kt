@@ -2,7 +2,7 @@ package me.anno.fonts
 
 import me.anno.config.DefaultConfig
 import me.anno.fonts.mesh.TextMeshGroup
-import me.anno.gpu.GFXx2D
+import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.texture.FakeWhiteTexture
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D

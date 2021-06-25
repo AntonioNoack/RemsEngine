@@ -9,7 +9,6 @@ import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL13
 import org.lwjgl.opengl.GL30.*
 import org.lwjgl.opengl.GL32
-import java.util.*
 import kotlin.system.exitProcess
 
 class Framebuffer(
@@ -62,6 +61,7 @@ class Framebuffer(
         needsBlit = true
         if (pointer < 0) create()
         glBindFramebuffer(GL_FRAMEBUFFER, pointer)
+        Frame.lastPtr = pointer
         if (viewport) glViewport(0, 0, w, h)
         //stack.push(this)
         if (withMultisampling) {
@@ -100,6 +100,7 @@ class Framebuffer(
         pointer = glGenFramebuffers()
         if (pointer < 0) throw RuntimeException()
         glBindFramebuffer(GL_FRAMEBUFFER, pointer)
+        Frame.lastPtr = pointer
         //stack.push(this)
         GFX.check()
         textures = Array(targets.size) { index ->
@@ -156,29 +157,48 @@ class Framebuffer(
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, renderBuffer)
     }
 
-    private fun resolveTo(target: Framebuffer?) {
-        if(!needsBlit) return
-        needsBlit = true
+    private fun resolveTo(target: Framebuffer) {
+        if (!needsBlit) return
+        needsBlit = false
         try {
+
+            val w = w
+            val h = h
+
             GFX.check()
-            if (target != null) {
-                // ensure that it exists
+
+            // ensure that it exists
+            if (target.pointer < 0) {
                 target.bind(w, h)
-                target.unbind()
             }
+
+            // ensure that we exist
+            if (pointer < 0) {
+                bind(w, h)
+            }
+
             GFX.check()
-            glBindFramebuffer(GL_DRAW_FRAMEBUFFER, target?.pointer ?: 0)
+
+            // LOGGER.info("Blit: $pointer -> ${target.pointer}")
+            glBindFramebuffer(GL_DRAW_FRAMEBUFFER, target.pointer)
             glBindFramebuffer(GL_READ_FRAMEBUFFER, pointer)
             // if(target == null) glDrawBuffer(GL_BACK)?
+
             GFX.check()
+
             // LOGGER.info("Blit $w $h into target $target")
             glBlitFramebuffer(
                 0, 0, w, h,
-                0, 0, target?.w ?: GFX.width, target?.h ?: GFX.height,
+                0, 0, w, h,
                 GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT,
                 GL11.GL_NEAREST
             )
+
             GFX.check()
+
+            // restore the old binding
+            Frame.bind()
+
         } catch (e: Exception) {
             e.printStackTrace()
             exitProcess(1)
@@ -218,7 +238,7 @@ class Framebuffer(
             GFX.check()
             msBuffer.bindTextures(offset, nearest, clamping)
         } else {
-            textures.forEachIndexed { index, texture ->
+            for ((index, texture) in textures.withIndex()) {
                 texture.bind(offset + index, nearest, clamping)
             }
         }
@@ -229,8 +249,9 @@ class Framebuffer(
         msBuffer?.destroy()
         if (pointer > -1) {
             glDeleteFramebuffers(pointer)
+            Frame.invalidate()
             pointer = -1
-            textures.forEach {
+            for (it in textures) {
                 it.destroy()
             }
             depthTexture?.destroy()
@@ -241,49 +262,18 @@ class Framebuffer(
         }
     }
 
-    /*fun use(x: Int, y: Int, w: Int, h: Int, rendering: () -> Unit){
-        bind(w, h, false)
-        glViewport(x, y, w, h)
-        rendering()
-        unbind()
-    }*/
-
-    /*private fun unbindUntil(){
-        var popped = stack.pop()
-        while(popped !== this) popped = stack.pop()!!
-        stack.pop()!!.bind(true)
-    }*/
-
-    private fun unbind() {
-        /*val popped = stack.pop()
-        if (popped !== this) {
-            stack.forEach {
-                LOGGER.warn(it.toString())
-            }
-            throw RuntimeException("Unbind is incorrect... why? am $this, got $popped")
-        }
-        if (stack.isNotEmpty()) {
-            stack.pop()?.bind(true) ?: {
-                glBindFramebuffer(GL_FRAMEBUFFER, 0)
-                glViewport(0, 0, GFX.width, GFX.height)
-            }()
-        } else {
-            glBindFramebuffer(GL_FRAMEBUFFER, 0)
-            glViewport(0, 0, GFX.width, GFX.height)
-        }*/
-    }
-
     companion object {
 
         val LOGGER = LogManager.getLogger(Framebuffer::class)!!
 
-        //val stack = Stack<Framebuffer?>()
+        // val stack = Stack<Framebuffer?>()
 
         fun bindNullDirectly() = bindNull()
 
         private fun bindNull() {
             glBindFramebuffer(GL_FRAMEBUFFER, 0)
-            //stack.push(null)
+            Frame.lastPtr = 0
+            // stack.push(null)
         }
 
     }

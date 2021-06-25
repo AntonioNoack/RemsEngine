@@ -6,7 +6,7 @@ import me.anno.cache.instances.ImageCache.getImage
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.GFX.matrixBufferFBX
-import me.anno.gpu.GFXx3D.shader3DUniforms
+import me.anno.gpu.drawing.GFXx3D.shader3DUniforms
 import me.anno.gpu.ShaderLib.shaderFBX
 import me.anno.gpu.ShaderLib.shaderObjMtl
 import me.anno.gpu.TextureLib.whiteTexture

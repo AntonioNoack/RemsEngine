@@ -1,9 +1,8 @@
 package me.anno.ui.base
 
 import me.anno.gpu.GFX
-import me.anno.gpu.GFXx2D.drawRect
+import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.Window
-import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.input.MouseButton
 import me.anno.io.FileReference
 import me.anno.ui.base.components.Corner.drawRoundedRect
@@ -16,7 +15,6 @@ import me.anno.utils.Tabs
 import me.anno.utils.structures.arrays.ExpandingGenericArray
 import me.anno.utils.types.Booleans.toInt
 import org.apache.logging.log4j.LogManager
-import java.io.File
 
 open class Panel(val style: Style) {
 
@@ -27,7 +25,7 @@ open class Panel(val style: Style) {
 
     open var visibility = Visibility.VISIBLE
         set(value) {
-            if(field != value){
+            if (field != value) {
                 invalidateLayout()
                 field = value
             }
@@ -46,14 +44,14 @@ open class Panel(val style: Style) {
     }
 
     fun hide() {
-        if(visibility != Visibility.GONE){
+        if (visibility != Visibility.GONE) {
             visibility = Visibility.GONE
             invalidateLayout()
         }
     }
 
     fun show() {
-        if(visibility != Visibility.VISIBLE){
+        if (visibility != Visibility.VISIBLE) {
             visibility = Visibility.VISIBLE
             invalidateLayout()
         }
@@ -121,11 +119,11 @@ open class Panel(val style: Style) {
         }
     }
 
-    var cachedVisuals = Framebuffer(
+    /*var cachedVisuals = Framebuffer(
         "panel", 1, 1, 1, 1, false,
         Framebuffer.DepthBufferType.NONE
     )
-    var renderOnRequestOnly = false
+    var renderOnRequestOnly = false*/
 
     /**
      * this weight is used inside some layouts
@@ -207,9 +205,9 @@ open class Panel(val style: Style) {
     }
 
     fun findMissingParents(parent: PanelGroup? = null) {
-        if(parent != null) this.parent = parent
-        if(this is PanelGroup){
-            for(child in children){
+        if (parent != null) this.parent = parent
+        if (this is PanelGroup) {
+            for (child in children) {
                 child.findMissingParents(this)
             }
         }

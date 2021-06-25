@@ -1,7 +1,7 @@
 package me.anno.ui.editor.treeView
 
 import me.anno.config.DefaultConfig
-import me.anno.gpu.GFXx2D.drawRect
+import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.input.Input.mouseX
 import me.anno.input.Input.mouseY
 import me.anno.input.MouseButton
@@ -19,7 +19,6 @@ import me.anno.ui.base.scrolling.ScrollPanelXY
 import me.anno.ui.editor.files.ImportFromFile.addChildFromFile
 import me.anno.ui.editor.treeView.TreeViewPanel.Companion.openAddMenu
 import me.anno.ui.style.Style
-import java.io.File
 
 // todo select multiple elements, filter for common properties, and apply them all together :)
 

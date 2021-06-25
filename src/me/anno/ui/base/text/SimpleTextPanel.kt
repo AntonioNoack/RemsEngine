@@ -2,23 +2,11 @@ package me.anno.ui.base.text
 
 import me.anno.config.DefaultStyle
 import me.anno.gpu.GFX
-import me.anno.gpu.GFX.windowStack
-import me.anno.gpu.GFXx2D
-import me.anno.gpu.Window
-import me.anno.input.MouseButton
-import me.anno.language.translation.Dict
-import me.anno.studio.Logging
+import me.anno.gpu.drawing.DrawTexts
 import me.anno.ui.base.Panel
-import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.constraints.AxisAlignment
-import me.anno.ui.base.groups.PanelList
-import me.anno.ui.debug.console.COLine
-import me.anno.ui.debug.console.ConsoleLogFullscreen
 import me.anno.ui.style.Style
-import me.anno.utils.Maths.mixARGB
-import java.util.logging.Level
 import kotlin.math.max
-import kotlin.math.min
 
 open class SimpleTextPanel(style: Style) : Panel(style) {
 
@@ -34,7 +22,7 @@ open class SimpleTextPanel(style: Style) : Panel(style) {
     var focusTextColor = style.getColor("textColorFocused", -1)
 
     override fun calculateSize(w: Int, h: Int) {
-        val font = GFXx2D.monospaceFont.value
+        val font = DrawTexts.monospaceFont.value
         val text = if (text.isEmpty()) "." else text
         super.calculateSize(w, h)
         val w2 = font.sampleWidth * text.length + 4
@@ -51,7 +39,7 @@ open class SimpleTextPanel(style: Style) : Panel(style) {
             AxisAlignment.CENTER -> w/2
             AxisAlignment.MAX -> w-1
         }
-        GFXx2D.drawSimpleTextCharByChar(
+        DrawTexts.drawSimpleTextCharByChar(
             x + offset, y + 2, 2, // idk...
             text, textColor, backgroundColor, alignment
         )

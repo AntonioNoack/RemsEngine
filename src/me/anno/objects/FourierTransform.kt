@@ -4,9 +4,9 @@ import me.anno.audio.AudioFXCache
 import me.anno.audio.effects.Domain
 import me.anno.audio.effects.Time
 import me.anno.gpu.GFX.isFinalRendering
-import me.anno.gpu.GFXx2D.getSize
-import me.anno.gpu.GFXx2D.getSizeX
-import me.anno.gpu.GFXx2D.getSizeY
+import me.anno.gpu.drawing.GFXx2D.getSize
+import me.anno.gpu.drawing.GFXx2D.getSizeX
+import me.anno.gpu.drawing.GFXx2D.getSizeY
 import me.anno.io.FileReference
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter

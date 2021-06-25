@@ -4,7 +4,7 @@ import me.anno.cache.CacheData
 import me.anno.cache.instances.VideoCache
 import me.anno.config.DefaultStyle.white4
 import me.anno.gpu.GFX
-import me.anno.gpu.GFXx2D.drawRect
+import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.input.Input
 import me.anno.input.Input.isControlDown
 import me.anno.input.Input.keysDown

@@ -2,7 +2,7 @@ package me.anno.objects.geometric
 
 import me.anno.cache.CacheSection
 import me.anno.gpu.GFX
-import me.anno.gpu.GFXx3D
+import me.anno.gpu.drawing.GFXx3D
 import me.anno.gpu.ShaderLib
 import me.anno.gpu.ShaderLib.y3D
 import me.anno.gpu.shader.Shader

@@ -10,8 +10,8 @@ import me.anno.cache.instances.VideoCache.getVideoFrameWithoutGenerator
 import me.anno.config.DefaultConfig
 import me.anno.gpu.*
 import me.anno.gpu.GFX.isFinalRendering
-import me.anno.gpu.GFXx3D.draw3D
-import me.anno.gpu.GFXx3D.draw3DVideo
+import me.anno.gpu.drawing.GFXx3D.draw3D
+import me.anno.gpu.drawing.GFXx3D.draw3DVideo
 import me.anno.gpu.TextureLib.colorShowTexture
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
@@ -22,6 +22,7 @@ import me.anno.io.base.BaseWriter
 import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
 import me.anno.animation.AnimatedProperty
+import me.anno.gpu.drawing.GFXx3D
 import me.anno.objects.lists.Element
 import me.anno.objects.lists.SplittableElement
 import me.anno.objects.models.SpeakerModel.drawSpeakers

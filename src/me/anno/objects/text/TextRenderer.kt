@@ -5,7 +5,7 @@ import me.anno.fonts.PartResult
 import me.anno.fonts.mesh.TextMesh
 import me.anno.fonts.signeddistfields.algorithm.SignedDistanceField
 import me.anno.gpu.GFX
-import me.anno.gpu.GFXx3D
+import me.anno.gpu.drawing.GFXx3D
 import me.anno.objects.attractors.EffectMorphing
 import me.anno.objects.modes.TextRenderMode
 import me.anno.studio.rems.Selection

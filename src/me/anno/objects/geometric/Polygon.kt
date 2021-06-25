@@ -5,7 +5,7 @@ import me.anno.cache.instances.MeshCache
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.toRadians
-import me.anno.gpu.GFXx3D.draw3DPolygon
+import me.anno.gpu.drawing.GFXx3D.draw3DPolygon
 import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer

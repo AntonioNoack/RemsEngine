@@ -6,7 +6,7 @@ import me.anno.config.DefaultStyle.midGray
 import me.anno.config.DefaultStyle.white
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX.inFocus
-import me.anno.gpu.GFXx2D.drawRect
+import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.input.Input
 import me.anno.input.Input.mouseDownX
 import me.anno.input.Input.mouseDownY

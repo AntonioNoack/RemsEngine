@@ -4,11 +4,11 @@ import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.iconGray
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX.loadTexturesSync
-import me.anno.gpu.GFXx2D
-import me.anno.gpu.GFXx2D.getSizeX
-import me.anno.gpu.GFXx2D.getSizeY
-import me.anno.gpu.GFXx2D.getTextSize
-import me.anno.gpu.GFXx2D.getTextSizeX
+import me.anno.gpu.drawing.GFXx2D.getSizeX
+import me.anno.gpu.drawing.GFXx2D.getSizeY
+import me.anno.gpu.drawing.DrawTexts
+import me.anno.gpu.drawing.DrawTexts.getTextSize
+import me.anno.gpu.drawing.DrawTexts.getTextSizeX
 import me.anno.input.MouseButton
 import me.anno.ui.base.Panel
 import me.anno.ui.base.Visibility
@@ -75,7 +75,7 @@ open class TextPanel(text: String, style: Style) : Panel(style) {
     var disableCopy = false
 
     fun drawText(dx: Int, dy: Int, text: String, color: Int): Int {
-        return GFXx2D.drawText(
+        return DrawTexts.drawText(
             this.x + dx + padding.left, this.y + dy + padding.top, font,
             text, color, backgroundColor, widthLimit
         )

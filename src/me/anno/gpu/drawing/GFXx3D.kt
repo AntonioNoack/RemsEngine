@@ -1,9 +1,12 @@
-package me.anno.gpu
+package me.anno.gpu.drawing
 
+import me.anno.gpu.GFX
 import me.anno.gpu.GFX.windowHeight
 import me.anno.gpu.GFX.windowWidth
 import me.anno.gpu.RenderSettings.renderPurely
+import me.anno.gpu.ShaderLib
 import me.anno.gpu.ShaderLib.maxOutlineColors
+import me.anno.gpu.TextureLib
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01Cube
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01CubeX10
@@ -207,11 +210,7 @@ object GFXx3D {
         shader.use()
         shader3DUniforms(shader, stack, texture.w, texture.h, color, tiling, filtering, uvProjection)
         texture.bind(0, filtering, clamping)
-        if (shader0 == ShaderLib.shader3DYUV) {
-            val w = texture.w
-            val h = texture.h
-            shader.v2("uvCorrection", w.toFloat() / ((w + 1) / 2 * 2), h.toFloat() / ((h + 1) / 2 * 2))
-        }
+        texture.bindUVCorrection(shader)
         uvProjection.getBuffer().draw(shader)
         GFX.check()
     }
@@ -226,11 +225,7 @@ object GFXx3D {
         shader.use()
         shader3DUniforms(shader, stack, texture.w, texture.h, color, tiling, filtering, uvProjection)
         texture.bind(0, filtering, clamping)
-        if (shader0 == ShaderLib.shader3DYUV) {
-            val w = texture.w
-            val h = texture.h
-            shader.v2("uvCorrection", w.toFloat() / ((w + 1) / 2 * 2), h.toFloat() / ((h + 1) / 2 * 2))
-        }
+        texture.bindUVCorrection(shader)
         uvProjection.getBuffer().draw(shader)
         GFX.check()
     }
@@ -248,11 +243,7 @@ object GFXx3D {
         shader3DUniforms(shader, stack, texture.w, texture.h, color, tiling, filtering, uvProjection)
         colorGradingUniforms(video as? Video, time, shader)
         texture.bind(0, filtering, clamping)
-        if (shader0 == ShaderLib.shader3DYUV) {
-            val w = texture.w
-            val h = texture.h
-            shader.v2("uvCorrection", w.toFloat() / ((w + 1) / 2 * 2), h.toFloat() / ((h + 1) / 2 * 2))
-        }
+        texture.bindUVCorrection(shader)
         uvProjection.getBuffer().draw(shader)
         GFX.check()
     }
@@ -270,6 +261,7 @@ object GFXx3D {
 
         val lambda = 0.01f
         val blurAmount = 0.05f
+
         renderPurely {
             // interpolate all textures
             val interpolated = t0.zip(t1).map { (x0, x1) -> OpticalFlow.run(lambda, blurAmount, interpolation, x0, x1) }
@@ -283,13 +275,7 @@ object GFXx3D {
         video.uploadAttractors(shader, time)
         shader3DUniforms(shader, stack, v0.w, v0.h, color, tiling, filtering, uvProjection)
         colorGradingUniforms(video as? Video, time, shader)
-
-        if (shader0 == ShaderLib.shader3DYUV) {
-            val w = v0.w
-            val h = v0.h
-            shader.v2("uvCorrection", w.toFloat() / ((w + 1) / 2 * 2), h.toFloat() / ((h + 1) / 2 * 2))
-        }
-
+        v0.bindUVCorrection(shader)
         uvProjection.getBuffer().draw(shader)
         GFX.check()
 

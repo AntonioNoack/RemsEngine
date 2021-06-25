@@ -4,6 +4,7 @@ import me.anno.cache.data.ICacheData
 import me.anno.gpu.GFX.glThread
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.BaseShader
+import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.GPUFiltering
@@ -51,6 +52,12 @@ abstract class VFrame(
     fun waitToLoad() {
         if (Thread.currentThread() == glThread) throw RuntimeException("Cannot wait on main thread")
         waitUntil(true) { isCreated }
+    }
+
+    fun bindUVCorrection(shader: Shader) {
+        val w = w
+        val h = h
+        shader.v2("uvCorrection", w.toFloat() / ((w + 1) / 2 * 2), h.toFloat() / ((h + 1) / 2 * 2))
     }
 
     companion object {

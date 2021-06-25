@@ -13,7 +13,7 @@ import me.anno.gpu.Cursor.useCursor
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.inFocus
 import me.anno.gpu.GFXBase0
-import me.anno.gpu.GFXx2D.drawRect
+import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.RenderSettings.renderDefault
 import me.anno.gpu.RenderSettings.useFrame
 import me.anno.gpu.Window

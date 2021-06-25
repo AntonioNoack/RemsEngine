@@ -1,9 +1,9 @@
 package me.anno.ui.editor.color
 
 import me.anno.config.DefaultStyle.black
-import me.anno.gpu.GFXx2D.drawRect
-import me.anno.gpu.GFXx2D.drawRectGradient
-import me.anno.gpu.GFXx2D.drawTexture
+import me.anno.gpu.drawing.DrawRectangles.drawRect
+import me.anno.gpu.drawing.DrawGradients.drawRectGradient
+import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.TextureLib
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering

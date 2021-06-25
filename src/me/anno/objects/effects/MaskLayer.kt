@@ -4,7 +4,7 @@ import me.anno.animation.AnimatedProperty
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.isFinalRendering
-import me.anno.gpu.GFXx3D
+import me.anno.gpu.drawing.GFXx3D
 import me.anno.gpu.RenderSettings.renderPurely
 import me.anno.gpu.RenderSettings.useFrame
 import me.anno.gpu.blending.BlendMode

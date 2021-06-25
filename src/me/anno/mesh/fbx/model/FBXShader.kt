@@ -61,7 +61,6 @@ object FBXShader {
                     "}", y3D + "" +
                     "varying vec3 normal;\n" +
                     "varying vec4 wei;\n", "" +
-                    "uniform vec4 tint;" +
                     "uniform sampler2D tex;\n" +
                     getTextureLib +
                     ShaderLib.getColorForceFieldLib +
@@ -70,7 +69,8 @@ object FBXShader {
                     "   color.a = 1;\n" +
                     "   color.rgb *= 0.5 + 0.5 * dot(vec3(1.0, 0.0, 0.0), normal);\n" +
                     "   if(${ShaderLib.hasForceFieldColor}) color *= getForceFieldColor();\n" +
-                    "   gl_FragColor = tint * color;\n" +
+                    "   vec3 finalColor = color;\n" +
+                    "   float finalAlpha = 1.0;\n" +
                     "}", listOf()
         )
     }

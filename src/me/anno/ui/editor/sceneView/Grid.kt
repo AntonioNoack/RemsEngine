@@ -11,6 +11,7 @@ import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.ShaderPlus
 import me.anno.objects.GFXTransform
 import me.anno.objects.Transform.Companion.xAxis
 import me.anno.objects.Transform.Companion.yAxis

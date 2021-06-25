@@ -1,6 +1,7 @@
 package me.anno.ui.editor.cutting
 
-import me.anno.gpu.GFXx2D
+import me.anno.gpu.drawing.DrawGradients
+import me.anno.gpu.drawing.GFXx2D
 import me.anno.input.Input.mouseX
 import me.anno.objects.Video
 import me.anno.ui.base.Panel
@@ -32,7 +33,7 @@ class VideoPreviewPanel(val video: Video, val height: Int, style: Style, val get
         if(frame == null){
             // println("Missing frame for ${video.name}")
         } else {
-            GFXx2D.drawRectGradient(
+            DrawGradients.drawRectGradient(
                 x0, y0, x1 - x0, y1 - y0, color, color, frame,
                 Vector4f(0f, 0f, 1f, 1f)
             )

@@ -3,10 +3,9 @@ package me.anno.ui.input.components
 import me.anno.config.DefaultStyle
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX.loadTexturesSync
-import me.anno.gpu.GFXx2D
-import me.anno.gpu.GFXx2D.getSizeX
-import me.anno.gpu.GFXx2D.getTextSize
-import me.anno.gpu.GFXx2D.getTextSizeX
+import me.anno.gpu.drawing.DrawRectangles
+import me.anno.gpu.drawing.GFXx2D
+import me.anno.gpu.drawing.DrawTexts.getTextSizeX
 import me.anno.language.spellcheck.Spellchecking
 import me.anno.language.spellcheck.Suggestion
 import me.anno.ui.base.text.TextPanel
@@ -47,7 +46,7 @@ abstract class CorrectingTextInput(style: Style) : TextPanel("", style) {
                 val startX = getX(s.start)
                 val endX = getX(s.end)
                 val theY = this.y + this.h - padding.bottom - 1
-                GFXx2D.drawRect(startX, theY, endX - startX, 1, 0xffff00 or DefaultStyle.black)
+                DrawRectangles.drawRect(startX, theY, endX - startX, 1, 0xffff00 or DefaultStyle.black)
             }
             if(isHovered && !isInFocus){
                 requestFocus()

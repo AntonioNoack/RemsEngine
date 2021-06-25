@@ -1,7 +1,7 @@
 package me.anno.ui.editor.color
 
 import me.anno.config.DefaultStyle
-import me.anno.gpu.GFXx2D.drawRect
+import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.ui.style.Style
 import me.anno.utils.Maths.clamp
 import org.joml.Vector3f

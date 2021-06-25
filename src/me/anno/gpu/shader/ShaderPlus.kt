@@ -7,23 +7,24 @@ object ShaderPlus {
     }
 
     fun makeFragmentShaderUniversal(varyingSource: String, fragmentSource: String): String {
-        val hasFinalAlpha = "finalAlpha" in fragmentSource
+        val hasFinalColor = "finalColor" in fragmentSource
         val hasZDistance = "zDistance" in varyingSource
         val hasTint = "tint" in fragmentSource
         val raw = fragmentSource.trim()
         if (!raw.endsWith("}")) throw RuntimeException()
         return "" +
                 "uniform int drawMode;\n" +
+                (if (hasTint) "" else "uniform vec4 tint;\n") +
                 "" + raw.substring(0, raw.length - 1) + "" +
-                (if (hasTint) "" else "vec4 tint = vec4(1);\n") +
                 (if (hasZDistance) "" else "float zDistance = 0;\n") +
-                (if (hasFinalAlpha) "" +
+                (if (hasFinalColor) "" +
                         "switch(drawMode){\n" +
                         "       case ${DrawMode.COLOR_SQUARED.id}:\n" +
-                        "           gl_FragColor = vec4(finalColor * finalColor, clamp(finalAlpha, 0, 1));\n" +
+                        "           vec3 tmpCol = finalColor * tint.rgb;\n" +
+                        "           gl_FragColor = vec4(tmpCol * tmpCol, clamp(finalAlpha, 0, 1) * tint.a);\n" +
                         "           break;\n" +
                         "       case ${DrawMode.COLOR.id}:\n" +
-                        "           gl_FragColor = vec4(finalColor, clamp(finalAlpha, 0, 1));\n" +
+                        "           gl_FragColor = vec4(finalColor * tint.rgb, clamp(finalAlpha, 0, 1) * tint.a);\n" +
                         "           break;\n" +
                         "       case ${DrawMode.ID.id}:\n" +
                         "           if(finalAlpha < 0.01) discard;\n" +
@@ -37,16 +38,21 @@ object ShaderPlus {
                         "       case ${DrawMode.COPY.id}:\n" +
                         "           gl_FragColor = vec4(finalColor, finalAlpha);\n" +
                         "           break;\n" +
+                        "       case ${DrawMode.TINT.id}:\n" +
+                        "           gl_FragColor = tint;\n" +
+                        "           break;\n" +
                         "   }\n" +
                         "}"
                 else "" +
                         "switch(drawMode){\n" +
                         "       case ${DrawMode.COLOR_SQUARED.id}:\n" +
+                        "           gl_FragColor.rgb *= tint.rgb;\n" +
                         "           gl_FragColor.rgb *= gl_FragColor.rgb;\n" +
-                        "           gl_FragColor.a = clamp(gl_FragColor.a, 0, 1);\n" +
+                        "           gl_FragColor.a = clamp(gl_FragColor.a, 0, 1) * tint.a;\n" +
                         "           break;\n" +
                         "       case ${DrawMode.COLOR.id}:\n" +
-                        "           gl_FragColor.a = clamp(gl_FragColor.a, 0, 1);\n" +
+                        "           gl_FragColor.rgb *= tint.rgb;\n" +
+                        "           gl_FragColor.a = clamp(gl_FragColor.a, 0, 1) * tint.a;\n" +
                         "           break;\n" +
                         "       case ${DrawMode.ID.id}:\n" +
                         "           if(gl_FragColor.a < 0.01) discard;\n" +
@@ -59,6 +65,9 @@ object ShaderPlus {
                         "           break;\n" +
                         "       case ${DrawMode.COPY.id}:\n" +
                         "           break;\n" +
+                        "       case ${DrawMode.TINT.id}:\n" +
+                        "           gl_FragColor = tint;\n" +
+                        "           break;\n" +
                         "   }\n" +
                         "}"
                         )
@@ -70,7 +79,8 @@ object ShaderPlus {
         COLOR(1),
         ID(2),
         DEPTH(3),
-        COPY(4)
+        COPY(4),
+        TINT(5)
     }
 
 }

@@ -7,7 +7,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFX.glThread
 import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.GFX.toRadians
-import me.anno.gpu.GFXx3D.draw3DCircle
+import me.anno.gpu.drawing.GFXx3D.draw3DCircle
 import me.anno.gpu.RenderSettings
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.shader.ShaderPlus

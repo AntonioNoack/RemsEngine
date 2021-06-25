@@ -2,6 +2,7 @@ package me.anno.mesh.gltf
 
 import de.javagl.jgltf.viewer.lwjgl.GlContextLwjgl
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.shaderColor
 import me.anno.gpu.ShaderLib.positionPostProcessing
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderPlus
@@ -31,7 +32,7 @@ object CustomGlContext : GlContextLwjgl() {
         val shader = shaders[glProgram]
         shader.use()
         shader.v1("drawMode", GFX.drawMode.id)
-        GFX.shaderColor(shader, "tint", tint)
+        shaderColor(shader, "tint", tint)
     }
 
     override fun deleteGlProgram(glProgram: Int) {

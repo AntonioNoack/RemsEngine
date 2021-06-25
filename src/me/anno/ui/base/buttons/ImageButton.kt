@@ -2,8 +2,8 @@ package me.anno.ui.base.buttons
 
 import me.anno.cache.instances.ImageCache.getInternalTexture
 import me.anno.config.DefaultStyle.black
-import me.anno.gpu.GFXx2D
 import me.anno.gpu.RenderSettings.renderDefault
+import me.anno.gpu.drawing.DrawTextures
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.input.Input.mouseDownX
@@ -60,7 +60,7 @@ class ImageButton(
             val scale = ((w - padding.width).toFloat() / max(icon.w, icon.h))
             val iw = (icon.w * scale).roundToInt()
             val ih = (icon.h * scale).roundToInt()
-            GFXx2D.drawTexture(x + (w - iw) / 2, y + (h - ih) / 2, iw, ih, icon, tint, null)
+            DrawTextures.drawTexture(x + (w - iw) / 2, y + (h - ih) / 2, iw, ih, icon, tint, null)
         }
     }
 
