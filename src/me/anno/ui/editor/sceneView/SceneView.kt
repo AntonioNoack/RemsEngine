@@ -7,11 +7,11 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFX.addGPUTask
 import me.anno.gpu.GFX.deltaTime
 import me.anno.gpu.GFX.windowStack
-import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.RenderState
 import me.anno.gpu.RenderState.renderDefault
 import me.anno.gpu.RenderState.useFrame
 import me.anno.gpu.Window
+import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
@@ -420,7 +420,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
         // LOGGER.info(depthBuffer.joinToString { it.toUInt().toString(16) })
 
         // convert that color to an id
-        idBuffer.forEachIndexed { index, value ->
+        for ((index, value) in idBuffer.withIndex()) {
             val depth = depthBuffer[index] and 255
             val result = value.and(0xffffff)
             val x = (index % diameter) - radius

@@ -278,14 +278,14 @@ object ShaderLib {
             "varying float zDistance;\n"
 
     val f3D = "" +
-            "u4 tint;" +
             "uniform sampler2D tex;\n" +
             getTextureLib +
             getColorForceFieldLib +
             "void main(){\n" +
             "   vec4 color = getTexture(tex, getProjectedUVs(uv, uvw));\n" +
             "   if($hasForceFieldColor) color *= getForceFieldColor();\n" +
-            "   gl_FragColor = tint * color;\n" +
+            "   vec3 finalColor = color.rgb;\n" +
+            "   float finalAlpha = color.a;\n" +
             "}"
 
 
@@ -422,7 +422,8 @@ object ShaderLib {
                     "       mixing = vec3(mixingAlpha);\n" + // on the border; color seams would become apparent here
                     "   vec4 color = mix(backgroundColor, textColor, vec4(mixing, mixingAlpha));\n" +
                     "   if(color.a < 0.001) discard;\n" +
-                    "   gl_FragColor = vec4(color.rgb, 1.0);\n" +
+                    "   vec3 finalColor = color.rgb;\n" +
+                    "   float finalAlpha = 1.0;\n" +
                     "}"
         )
         subpixelCorrectTextShader.setTextureIndices(listOf("tex"))
@@ -443,14 +444,13 @@ object ShaderLib {
                     "   vertexId = gl_VertexID;\n" +
                     "}", y3D + "" +
                     "flat varying int vertexId;\n", "" +
-                    "u4 tint;" +
                     noiseFunc +
                     getTextureLib +
                     getColorForceFieldLib +
                     "void main(){\n" +
-                    "   vec4 color = vec4(1.0);\n" +
-                    "   if($hasForceFieldColor) color *= getForceFieldColor();\n" +
-                    "   gl_FragColor = tint * color;\n" +
+                    "   vec4 finalColor2 = ($hasForceFieldColor) ? getForceFieldColor() : vec4(1.0);\n" +
+                    "   vec3 finalColor = finalColor2.rgb;\n" +
+                    "   float finalAlpha = finalColor2.a;\n" +
                     "}", listOf()
         )
         shader3DforText.ignoreUniformWarnings(listOf("tiling", "forceFieldUVCount"))
@@ -469,7 +469,6 @@ object ShaderLib {
                     "   gl_Position = transform * vec4(localPosition, 1.0);\n" +
                     positionPostProcessing +
                     "}", y3D, "" +
-                    "u4 tint;" +
                     noiseFunc +
                     getTextureLib +
                     getColorForceFieldLib +
@@ -481,7 +480,7 @@ object ShaderLib {
                     "void main(){\n" +
                     "   float distance = texture(tex, uv).r;\n" +
                     "   float gradient = length(vec2(dFdx(distance), dFdy(distance)));\n" +
-                    "   vec4 color = tint;\n" +
+                    "   vec4 color = colors[0];\n" +
                     "   for(int i=0;i<colorCount;i++){" +
                     "       vec4 colorHere = colors[i];\n" +
                     "       vec2 distSmooth = distSmoothness[i];\n" +
@@ -737,12 +736,9 @@ object ShaderLib {
                 "}"
 
         val f3DCircle = "" +
-                "u4 tint;\n" + // rgba
                 getColorForceFieldLib +
                 "void main(){\n" +
-                "   vec4 color = vec4(1.0);\n" +
-                "   if($hasForceFieldColor) color *= getForceFieldColor();\n" +
-                "   gl_FragColor = tint * color;\n" +
+                "   gl_FragColor = ($hasForceFieldColor) ? getForceFieldColor() : vec4(1);\n" +
                 "}"
 
         shader3DCircle = createShaderPlus("3dCircle", v3DCircle, y3D, f3DCircle, listOf())

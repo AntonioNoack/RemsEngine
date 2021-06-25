@@ -122,7 +122,7 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
             checkThread()
             ensureCorrectType(value)
             if (isAnimated) {
-                keyframes.forEachIndexed { index, it ->
+                for ((index, it) in keyframes.withIndex()) {
                     if (abs(it.time - time) < equalityDt) {
                         return keyframes[index].apply {
                             this.time = time
@@ -384,7 +384,7 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
         if (obj is AnimatedProperty<*>) {
             isAnimated = obj.isAnimated
             keyframes.clear()
-            obj.keyframes.forEach { src ->
+            for (src in obj.keyframes) {
                 val castValue = type.acceptOrNull(src.value!!)
                 if (castValue != null) {
                     val dst = Keyframe(src.time, clamp(castValue as V), src.interpolation)

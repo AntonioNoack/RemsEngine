@@ -42,7 +42,7 @@ class LayerViewComputer(val view: LayerView) {
             compute(x0, x1, root, transforms, drawn, stripes)
         }
 
-        stripes.forEach { list ->
+        for (list in stripes) {
             list.removeIf { !it.needsDrawn() }
         }
 
@@ -107,7 +107,7 @@ class LayerViewComputer(val view: LayerView) {
                 val color = localColor[index]
                 val time = localTime[index]
 
-                when(process(x, stepSize, tr, color, time, stripes, lineIndex)){
+                when (process(x, stepSize, tr, color, time, stripes, lineIndex)) {
                     5 -> break@trs
                     10 -> lineIndex++
                 }

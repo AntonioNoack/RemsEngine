@@ -5,7 +5,6 @@ import me.anno.animation.skeletal.constraint.Constraint
 import me.anno.animation.skeletal.morphing.MorphingMesh
 import me.anno.gpu.GFX
 import me.anno.utils.types.Vectors.f2
-import me.anno.utils.types.Vectors.print
 import org.joml.Matrix4x3f
 import org.joml.Vector3f
 import org.lwjgl.BufferUtils
@@ -112,7 +111,9 @@ open class SkeletalAnimation(val skeleton: Skeleton, usesPositionForBindPoses: B
     }
 
     fun updateConstraints() {
-        constraints.forEach { it.apply() }
+        for (it in constraints) {
+            it.apply()
+        }
     }
 
     fun update(startIndex: Int, endIndex: Int) {
@@ -142,7 +143,7 @@ open class SkeletalAnimation(val skeleton: Skeleton, usesPositionForBindPoses: B
             val matrix = bone.skinningMatrix
             skeletalBuffer.position(12 * boneIndex)
             matrix.get(skeletalBuffer)
-            if(first) println("$boneIndex/${bones.size}/${skeleton.hierarchy.getName(boneIndex)}:\n${matrix.f2()}")
+            if (first) println("$boneIndex/${bones.size}/${skeleton.hierarchy.getName(boneIndex)}:\n${matrix.f2()}")
         }
         first = false
 

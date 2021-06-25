@@ -47,7 +47,6 @@ import org.joml.Matrix4f
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
 import org.lwjgl.opengl.GL11.glClearColor
-import org.lwjgl.opengl.GL11.glDepthMask
 import org.lwjgl.opengl.GL30
 import kotlin.math.cos
 import kotlin.math.sin
@@ -295,6 +294,40 @@ object Scene {
 
     }
 
+    fun clearColors(
+        camera: Camera, buffer: Framebuffer?, needsTemporaryBuffer: Boolean,
+        x: Int, y: Int, w: Int, h: Int
+    ) {
+
+        glClearColor(0f, 0f, 0f, 1f)
+
+        if (camera.useDepth) {
+            GL30.glClearDepth(1.0)
+            GL30.glDepthRange(-1.0, 1.0)
+            GL30.glDepthFunc(GL30.GL_LESS)
+            if (buffer != null) {
+                if (needsTemporaryBuffer) {
+                    GL30.glClear(GL30.GL_DEPTH_BUFFER_BIT or GL30.GL_COLOR_BUFFER_BIT)
+                } else {
+                    drawRect(x, y, w, h, black)
+                    GL30.glClear(GL30.GL_DEPTH_BUFFER_BIT)
+                }
+            } else {
+                GL30.glClear(GL30.GL_DEPTH_BUFFER_BIT)
+            }
+        } else {
+            if (buffer != null) {
+                GL30.glClear(GL30.GL_COLOR_BUFFER_BIT)
+            }
+        }
+
+        if (buffer == null) {
+            GFX.check()
+            drawRect(x, y, w, h, black)
+        }
+
+    }
+
     fun drawScene(
         scene: Transform, camera: Camera,
         time: Double,
@@ -366,32 +399,7 @@ object Scene {
 
                     Frame.bind()
 
-                    glClearColor(0f, 0f, 0f, 1f)
-
-                    if (camera.useDepth) {
-                        GL30.glClearDepth(1.0)
-                        GL30.glDepthRange(-1.0, 1.0)
-                        GL30.glDepthFunc(GL30.GL_LESS)
-                        if (buffer != null) {
-                            if (needsTemporaryBuffer) {
-                                GL30.glClear(GL30.GL_DEPTH_BUFFER_BIT or GL30.GL_COLOR_BUFFER_BIT)
-                            } else {
-                                drawRect(x, y, w, h, black)
-                                GL30.glClear(GL30.GL_DEPTH_BUFFER_BIT)
-                            }
-                        } else {
-                            GL30.glClear(GL30.GL_DEPTH_BUFFER_BIT)
-                        }
-                    } else {
-                        if (buffer != null) {
-                            GL30.glClear(GL30.GL_COLOR_BUFFER_BIT)
-                        }
-                    }
-
-                    if (buffer == null) {
-                        GFX.check()
-                        drawRect(x, y, w, h, black)
-                    }
+                    clearColors(camera, buffer, needsTemporaryBuffer, x, y, w, h)
 
                     // draw the 3D stuff
                     nearZ = camera.nearZ[cameraTime]
@@ -413,14 +421,16 @@ object Scene {
                     // remember the transform for later use
                     lastCameraTransform.set(stack)
 
-                    if (!isFakeColorRendering && sceneView != null) {
-                        drawGrid(cameraTransform, sceneView)
-                    }
-
-                    glDepthMask(true)
-
                     if (!isFinalRendering && camera != nullCamera) {
                         stack.next { nullCamera?.draw(stack, time, white) }
+                    }
+
+                    if (!isFakeColorRendering && !isFinalRendering && sceneView != null) {
+                        // todo why is this add not working???
+                        // it is working for the scene components...
+                        blendMode.use(BlendMode.ADD) {
+                            drawGrid(cameraTransform, sceneView)
+                        }
                     }
 
                     stack.next { scene.draw(stack, time, white) }

@@ -4,10 +4,8 @@ import me.anno.config.DefaultConfig.style
 import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.toRadians
-import me.anno.gpu.RenderState.blendMode
 import me.anno.gpu.ShaderLib.shader3D
 import me.anno.gpu.TextureLib.whiteTexture
-import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.shader.Shader
@@ -27,6 +25,11 @@ import kotlin.math.atan2
 import kotlin.math.floor
 import kotlin.math.log10
 import kotlin.math.sqrt
+
+
+// todo grid add mode is broken
+// todo color input window is broken
+// todo the elk guy is broken somehow
 
 object Grid {
 
@@ -170,40 +173,34 @@ object Grid {
     // allow more/full grid customization?
     fun draw(stack: Matrix4fArrayList, cameraTransform: Matrix4f) {
 
-        if (GFX.isFinalRendering) return
+        val distance = cameraTransform.transformProject(Vector4f(0f, 0f, 0f, 1f)).toVec3f().length()
+        val log = log10(distance)
+        val f = log - floor(log)
+        val cameraDistance = 10f * pow(10f, floor(log))
 
-        blendMode.use(BlendMode.ADD) {
+        stack.scale(cameraDistance)
 
-            val distance = cameraTransform.transformProject(Vector4f(0f, 0f, 0f, 1f)).toVec3f().length()
-            val log = log10(distance)
-            val f = log - floor(log)
-            val cameraDistance = 10f * pow(10f, floor(log))
+        stack.rotate(toRadians(90f), xAxis)
 
-            stack.scale(cameraDistance)
+        val gridAlpha = 0.05f
 
-            stack.rotate(toRadians(90f), xAxis)
+        drawGrid(stack, gridAlpha * (1f - f))
 
-            val gridAlpha = 0.05f
+        stack.scale(10f)
 
-            drawGrid(stack, gridAlpha * (1f - f))
+        drawGrid(stack, gridAlpha)
 
-            stack.scale(10f)
+        stack.scale(10f)
 
-            drawGrid(stack, gridAlpha)
+        drawGrid(stack, gridAlpha * f)
 
-            stack.scale(10f)
+        drawLine(stack, xAxisColor, 0.15f) // x
 
-            drawGrid(stack, gridAlpha * f)
+        stack.rotate(toRadians(90f), yAxis)
+        drawLine(stack, yAxisColor, 0.15f) // y
 
-            drawLine(stack, xAxisColor, 0.15f) // x
-
-            stack.rotate(toRadians(90f), yAxis)
-            drawLine(stack, yAxisColor, 0.15f) // y
-
-            stack.rotate(toRadians(90f), zAxis)
-            drawLine(stack, zAxisColor, 0.15f) // z
-
-        }
+        stack.rotate(toRadians(90f), zAxis)
+        drawLine(stack, zAxisColor, 0.15f) // z
 
     }
 

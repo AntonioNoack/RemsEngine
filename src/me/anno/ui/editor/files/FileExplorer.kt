@@ -49,7 +49,7 @@ class FileExplorer(style: Style) : PanelListY(style.getChild("fileExplorer")) {
 
     var folder: FileReference? = project?.scenes ?: OS.documents
         set(value) {
-            if(field != value){
+            if (field != value) {
                 invalidate()
                 field = value
             }
@@ -132,7 +132,9 @@ class FileExplorer(style: Style) : PanelListY(style.getChild("fileExplorer")) {
                     if (tmpList.isNotEmpty()) {
                         val list = tmpList
                         addEvent {
-                            list.forEach { content += it }
+                            for (it in list) {
+                                content += it
+                            }
                             // force layout update
                             Input.invalidateLayout()
                         }

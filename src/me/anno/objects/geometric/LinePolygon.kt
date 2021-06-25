@@ -300,7 +300,6 @@ class LinePolygon(parent: Transform? = null) : GFXTransform(parent) {
                         "   colX = mix(col0, col1, att.y);\n" +
                         "}", y3D + "" +
                         "varying vec4 colX;\n", "" +
-                        "u4 tint;" +
                         ShaderLib.getTextureLib +
                         ShaderLib.getColorForceFieldLib +
                         noiseFunc +
@@ -309,7 +308,7 @@ class LinePolygon(parent: Transform? = null) : GFXTransform(parent) {
                         "   if(${ShaderLib.hasForceFieldColor}) color *= getForceFieldColor();\n" +
                         // does work, just the error should be cleaner...
                         // "   gl_FragDepth += 0.01 * random(uv);\n" +
-                        "   gl_FragColor = tint * color;\n" +
+                        "   gl_FragColor = color;\n" +
                         "}", listOf()
             )
         }

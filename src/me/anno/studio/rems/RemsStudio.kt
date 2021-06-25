@@ -158,8 +158,8 @@ object RemsStudio : StudioBase(true, "Rem's Studio", 10105) {
     val targetDuration get() = project!!.targetDuration
     val targetSampleRate get() = project!!.targetSampleRate
     val targetFPS get() = project!!.targetFPS
-    val targetWidth get() = project?.targetWidth ?: GFX.windowWidth
-    val targetHeight get() = project?.targetHeight ?: GFX.windowHeight
+    val targetWidth get() = project?.targetWidth ?: GFX.width
+    val targetHeight get() = project?.targetHeight ?: GFX.height
     val targetOutputFile get() = project!!.targetOutputFile
     val motionBlurSteps get() = project!!.motionBlurSteps
     val shutterPercentage get() = project!!.shutterPercentage

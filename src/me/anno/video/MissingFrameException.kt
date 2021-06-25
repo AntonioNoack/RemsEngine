@@ -12,8 +12,7 @@ class MissingFrameException(msg: String) : RuntimeException(msg) {
     companion object {
         fun toString(src: Transform): String {
             val str = src.toString()
-            return if(str.isEmpty()) src.getClassName()
-            else str
+            return str.ifEmpty { src.getClassName() }
         }
     }
 }

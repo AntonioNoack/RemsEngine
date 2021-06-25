@@ -34,6 +34,7 @@ import org.lwjgl.opengl.EXTTextureFilterAnisotropic
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL30.*
+import java.nio.FloatBuffer
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.math.*
@@ -105,7 +106,8 @@ object GFX : GFXBase1() {
 
     val flat01 = SimpleBuffer.flat01
 
-    val matrixBufferFBX = BufferUtils.createFloatBuffer(16 * 256)
+    val matrixBufferFBX: FloatBuffer =
+        BufferUtils.createFloatBuffer(16 * 256)
 
     var rawDeltaTime = 0f
     var deltaTime = 0f

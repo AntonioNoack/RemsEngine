@@ -73,7 +73,7 @@ class ColorInput(
         contentView.colorSpace = ColorChooser.getDefaultColorSpace()
         Menu.openMenuComplex2(
             Input.mouseX.toInt(), Input.mouseY.toInt(), NameDesc(title), listOf(
-                SizeLimitingContainer(contentView, GFX.windowWidth / 5, -1, style)
+                SizeLimitingContainer(contentView, GFX.width / 5, -1, style)
             )
         )
     }
