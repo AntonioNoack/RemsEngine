@@ -37,7 +37,7 @@ class BlendMode(
     }
 
     fun apply() {
-        if (this != UNSPECIFIED) {
+        if (this != INHERIT) {
             if (lastFunc != func || lastFuncAlpha != funcAlpha) {
                 lastFunc = func
                 lastFuncAlpha = funcAlpha
@@ -62,6 +62,10 @@ class BlendMode(
         return mode
     }
 
+    override fun toString(): String {
+        return naming.name
+    }
+
     companion object {
 
         var lastFunc: BlendFunc? = null
@@ -74,7 +78,7 @@ class BlendMode(
         SUBTRACT("Subtract", 2, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         */
 
-        val UNSPECIFIED = BlendMode(NameDesc("Parent", "", "gpu.blendMode.parent"), "*Inherit")
+        val INHERIT = BlendMode(NameDesc("Parent", "", "gpu.blendMode.parent"), "*Inherit")
         val DEFAULT = BlendMode(NameDesc("Default", "", "gpu.blendMode.default"), "*Blend")
         val ADD = BlendMode(NameDesc("Add", "", "gpu.blendMode.add"), "Add")
             .set(GL_SRC_ALPHA, GL_ONE)
@@ -108,7 +112,7 @@ class BlendMode(
             .set(GL_ONE, GL_ZERO, GL_ZERO, GL_ONE)
             .set(BlendFunc.ADD)
 
-        operator fun get(code: String) = blendModes[code] ?: UNSPECIFIED
+        operator fun get(code: String) = blendModes[code] ?: INHERIT
     }
 
 }

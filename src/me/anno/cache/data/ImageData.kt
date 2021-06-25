@@ -5,7 +5,7 @@ import com.drew.metadata.exif.ExifIFD0Directory
 import me.anno.cache.instances.VideoCache.getVideoFrame
 import me.anno.gpu.GFX
 import me.anno.gpu.drawing.GFXx3D.shader3DUniforms
-import me.anno.gpu.RenderSettings.useFrame
+import me.anno.gpu.RenderState.useFrame
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.Renderer

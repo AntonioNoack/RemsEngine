@@ -1,7 +1,7 @@
 package me.anno.gpu.shader
 
 import me.anno.gpu.GFX
-import me.anno.gpu.RenderSettings
+import me.anno.gpu.RenderState
 import me.anno.gpu.deferred.DeferredSettingsV2
 
 /**
@@ -43,7 +43,7 @@ class BaseShader(
 
     val value: Shader
         get() {
-            val renderer = RenderSettings.currentRenderer
+            val renderer = RenderState.currentRenderer
             return when (renderer.deferredSettings) {
                 null -> flatShader.value
                 else -> get(renderer.deferredSettings)

@@ -4,14 +4,13 @@ import me.anno.config.DefaultConfig.style
 import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.toRadians
-import me.anno.gpu.RenderSettings.blendMode
+import me.anno.gpu.RenderState.blendMode
 import me.anno.gpu.ShaderLib.shader3D
 import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.shader.Shader
-import me.anno.gpu.shader.ShaderPlus
 import me.anno.objects.GFXTransform
 import me.anno.objects.Transform.Companion.xAxis
 import me.anno.objects.Transform.Companion.yAxis

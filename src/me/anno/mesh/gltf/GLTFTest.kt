@@ -4,8 +4,8 @@ import de.javagl.jgltf.model.io.GltfModelReader
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.windowStack
-import me.anno.gpu.RenderSettings.blendMode
-import me.anno.gpu.RenderSettings.depthMode
+import me.anno.gpu.RenderState.blendMode
+import me.anno.gpu.RenderState.depthMode
 import me.anno.gpu.Window
 import me.anno.gpu.blending.BlendMode
 import me.anno.input.Input

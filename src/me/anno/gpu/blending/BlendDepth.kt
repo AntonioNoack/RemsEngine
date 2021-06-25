@@ -7,7 +7,7 @@ import me.anno.video.MissingFrameException
 import org.lwjgl.opengl.GL11.*
 import java.util.*
 
-data class BlendDepth(val blendMode: BlendMode?, val depth: Boolean, val depthMask: Boolean = true) {
+/*data class BlendDepth(val blendMode: BlendMode?, val depth: Boolean, val depthMask: Boolean = true) {
 
     private var underThis: BlendDepth? = null
     private var actualBlendMode = blendMode
@@ -115,4 +115,4 @@ data class BlendDepth(val blendMode: BlendMode?, val depth: Boolean, val depthMa
 
     }
 
-}
+}*/

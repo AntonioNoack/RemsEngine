@@ -8,9 +8,9 @@ import me.anno.gpu.GFX.addGPUTask
 import me.anno.gpu.GFX.deltaTime
 import me.anno.gpu.GFX.windowStack
 import me.anno.gpu.drawing.DrawRectangles.drawRect
-import me.anno.gpu.RenderSettings
-import me.anno.gpu.RenderSettings.renderDefault
-import me.anno.gpu.RenderSettings.useFrame
+import me.anno.gpu.RenderState
+import me.anno.gpu.RenderState.renderDefault
+import me.anno.gpu.RenderState.useFrame
 import me.anno.gpu.Window
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
@@ -260,8 +260,10 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
         drawRect(x + bth, y + bth, w - 2 * bth, h - 2 * bth, black)
         drawRect(x + bt, y + bt, w - 2 * bt, h - 2 * bt, deepDark)
 
-        val rw = min(stableSize.stableWidth, w - 2 * bt)
-        val rh = min(stableSize.stableHeight, h - 2 * bt)
+        val wx = stableSize.stableWidth
+        val wy = stableSize.stableHeight
+        val rw = min(wx, w - 2 * bt)
+        val rh = min(wy, h - 2 * bt)
         val x00 = x + dx
         val y00 = y + dy
         if (rw > 0 && rh > 0) {
@@ -271,7 +273,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
             ) {
                 Scene.draw(
                     camera, root,
-                    x00, y00, stableSize.stableWidth, stableSize.stableHeight,
+                    x00, y00, wx, wy,
                     editorTime, false,
                     mode, this
                 )
@@ -380,7 +382,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
             val y1 = min(localY + radius + 1, fb.h)
             Frame.bind()
             // draw only the clicked area
-            RenderSettings.scissorTest.use(true) {
+            RenderState.scissorTest.use(true) {
                 glScissor(x0, y0, x1 - x0, y1 - y0)
                 Scene.draw(camera, root, dx, dy, width, height, editorTime, false, renderer, this)
                 glFlush(); glFinish() // wait for everything to be drawn

@@ -6,17 +6,17 @@ import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.flat01
 import me.anno.gpu.GFX.isFinalRendering
-import me.anno.gpu.drawing.DrawRectangles.drawRect
-import me.anno.gpu.RenderSettings
-import me.anno.gpu.RenderSettings.blendMode
-import me.anno.gpu.RenderSettings.depthMode
-import me.anno.gpu.RenderSettings.renderDefault
-import me.anno.gpu.RenderSettings.renderPurely
-import me.anno.gpu.RenderSettings.useFrame
+import me.anno.gpu.RenderState
+import me.anno.gpu.RenderState.blendMode
+import me.anno.gpu.RenderState.depthMode
+import me.anno.gpu.RenderState.renderDefault
+import me.anno.gpu.RenderState.renderPurely
+import me.anno.gpu.RenderState.useFrame
 import me.anno.gpu.ShaderLib.ascColorDecisionList
 import me.anno.gpu.ShaderLib.brightness
 import me.anno.gpu.ShaderLib.createShader
 import me.anno.gpu.blending.BlendMode
+import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
@@ -275,7 +275,7 @@ object Scene {
     // rendering must be done in sync with the rendering thread (OpenGL limitation) anyways, so one object is enough
     val stack = Matrix4fArrayList()
     fun draw(
-        camera: Camera, scene: Transform, x0: Int, y0: Int, w: Int, h: Int, time: Double,
+        camera: Camera, scene: Transform, x: Int, y: Int, w: Int, h: Int, time: Double,
         flipY: Boolean, renderer: Renderer, sceneView: ISceneView?
     ) {
 
@@ -288,7 +288,7 @@ object Scene {
             val isFakeColorRendering = renderer.isFakeColor
 
             stack.clear()
-            drawScene(scene, camera, time, x0, y0, w, h, flipY, isFakeColorRendering, sceneView)
+            drawScene(scene, camera, time, x, y, w, h, flipY, isFakeColorRendering, sceneView)
 
         }
 
@@ -352,13 +352,12 @@ object Scene {
 
         var buffer: Framebuffer? =
             if (needsTemporaryBuffer) FBStack["Scene-Main", w, h, 4, usesFPBuffers, samples]
-            else RenderSettings.currentBuffer
+            else RenderState.currentBuffer
 
         // println("$needsTemporaryBuffer ? $buffer")
 
         val x = if (needsTemporaryBuffer) 0 else x0
-        val y = if (needsTemporaryBuffer) 0 else GFX.height - (y0 + h)
-
+        val y = if (needsTemporaryBuffer) 0 else y0// GFX.height - (y0 + h)
 
         blendMode.use(if (isFakeColorRendering) null else BlendMode.DEFAULT) {
             depthMode.use(camera.useDepth) {
@@ -429,7 +428,7 @@ object Scene {
                     GFX.check()
 
                     if (!isFinalRendering && !isFakeColorRendering) {
-                        drawGizmo(cameraTransform, x0, y0, w, h)
+                        drawGizmo(cameraTransform, x, y, w, h)
                         GFX.check()
                     }
 
@@ -467,13 +466,16 @@ object Scene {
                     buffer = applyBloom(buffer!!, w, h, bloomSize, bloomIntensity, bloomThreshold)
                 }
 
-                if (lut != null) {
-                    drawWithLUT(buffer!!, isFakeColorRendering, camera, cameraTime, w, h, flipY, lut)
-                } else {
-                    drawWithoutLUT(buffer!!, isFakeColorRendering, camera, cameraTime, w, h, flipY)
+                useFrame(x0, y0, w, h, false) {
+                    if (lut != null) {
+                        drawWithLUT(buffer!!, isFakeColorRendering, camera, cameraTime, w, h, flipY, lut)
+                    } else {
+                        drawWithoutLUT(buffer!!, isFakeColorRendering, camera, cameraTime, w, h, flipY)
+                    }
                 }
 
             }
+
 
         }
 

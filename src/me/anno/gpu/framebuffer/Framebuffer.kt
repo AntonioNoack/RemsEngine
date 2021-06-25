@@ -167,15 +167,14 @@ class Framebuffer(
 
             GFX.check()
 
-            // ensure that it exists
-            if (target.pointer < 0) {
-                target.bind(w, h)
-            }
-
             // ensure that we exist
             if (pointer < 0) {
                 bind(w, h)
             }
+
+            // ensure that it exists
+            // + bind it, it seems important
+            target.bind(w, h)
 
             GFX.check()
 
@@ -190,6 +189,7 @@ class Framebuffer(
             glBlitFramebuffer(
                 0, 0, w, h,
                 0, 0, w, h,
+                // we may want to GL_STENCIL_BUFFER_BIT, if present
                 GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT,
                 GL11.GL_NEAREST
             )
@@ -197,6 +197,7 @@ class Framebuffer(
             GFX.check()
 
             // restore the old binding
+            Frame.invalidate()
             Frame.bind()
 
         } catch (e: Exception) {

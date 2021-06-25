@@ -8,6 +8,7 @@ import kotlin.Unit;
 import me.anno.config.DefaultConfig;
 import me.anno.input.Input;
 import me.anno.language.translation.NameDesc;
+import me.anno.studio.Build;
 import me.anno.studio.StudioBase;
 import me.anno.ui.base.Panel;
 import me.anno.ui.base.menu.Menu;
@@ -17,17 +18,20 @@ import org.apache.logging.log4j.Logger;
 import org.lwjgl.Version;
 import org.lwjgl.glfw.*;
 import org.lwjgl.opengl.GL;
+import org.lwjgl.opengl.GL43;
 import org.lwjgl.opengl.GLCapabilities;
 import org.lwjgl.opengl.GLUtil;
 import org.lwjgl.system.Callback;
 import org.lwjgl.system.MemoryStack;
 
+import java.io.File;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.nio.IntBuffer;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.KHRDebug.GL_DEBUG_OUTPUT;
 import static org.lwjgl.system.MemoryUtil.NULL;
 import static org.lwjgl.system.MemoryUtil.memAddress;
 
@@ -69,8 +73,28 @@ public class GFXBase0 {
     final Object lock2 = new Object();
     boolean destroyed;
 
+    public void loadRenderDoc() {
+        // must be executed before OpenGL-init
+        if (Build.INSTANCE.isDebug()) {
+            try {
+                // todo this path should be customizable
+                // if renderdoc is install on linux, or given in the path, we could use it as well with loadLibrary()
+                // at least this is the default location for RenderDoc
+                String file = "C:/Program Files/RenderDoc/renderdoc.dll";
+                if (new File(file).exists()) {
+                    System.load(file);
+                } else LOGGER.warn("Did not find RenderDoc, searched '" + file + "'");
+            } catch (Exception e) {
+                LOGGER.warn("Could not initialize RenderDoc");
+                e.printStackTrace();
+            }
+        }
+    }
+
     public void run() {
         try {
+
+            // loadRenderDoc();
 
             init();
             windowLoop();
@@ -109,6 +133,9 @@ public class GFXBase0 {
         glfwDefaultWindowHints();
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
         glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+        if (Build.INSTANCE.isDebug()) {
+            glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
+        }
         // removes scaling options -> how could we replace them?
         // glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
 
@@ -333,6 +360,14 @@ public class GFXBase0 {
     }
 
     public void renderStep0() {
+        if (Build.INSTANCE.isDebug()) {
+            // System.loadLibrary("renderdoc");
+            GL43.glDebugMessageCallback((source, type, id, severity, length, message, nothing) -> {
+                System.out.println("source: " + source + ", type: " + type + ", id: " + id + ", severity: " + severity +
+                        ", length: " + length + ", message: " + message);
+            }, 0);
+            glEnable(GL_DEBUG_OUTPUT);
+        }
     }
 
     public void renderStep() {
@@ -344,10 +379,10 @@ public class GFXBase0 {
         float aspect = (float) width / height;
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
-        glOrtho(-1.0f * aspect, +1.0f * aspect, -1.0f, +1.0f, -1.0f, +1.0f);
+        glOrtho(-aspect, aspect, -1f, +1f, -1f, +1f);
 
         glMatrixMode(GL_MODELVIEW);
-        glRotatef(elapsed * 10.0f, 0, 0, 1);
+        glRotatef(elapsed * 10f, 0, 0, 1);
         glBegin(GL_QUADS);
         glVertex2f(-0.5f, -0.5f);
         glVertex2f(+0.5f, -0.5f);

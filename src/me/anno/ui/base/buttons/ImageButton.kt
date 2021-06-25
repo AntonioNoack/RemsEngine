@@ -2,7 +2,7 @@ package me.anno.ui.base.buttons
 
 import me.anno.cache.instances.ImageCache.getInternalTexture
 import me.anno.config.DefaultStyle.black
-import me.anno.gpu.RenderSettings.renderDefault
+import me.anno.gpu.RenderState.renderDefault
 import me.anno.gpu.drawing.DrawTextures
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering

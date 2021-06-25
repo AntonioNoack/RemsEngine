@@ -13,10 +13,10 @@ import me.anno.gpu.Cursor.useCursor
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.inFocus
 import me.anno.gpu.GFXBase0
-import me.anno.gpu.drawing.DrawRectangles.drawRect
-import me.anno.gpu.RenderSettings.renderDefault
-import me.anno.gpu.RenderSettings.useFrame
+import me.anno.gpu.RenderState.renderDefault
+import me.anno.gpu.RenderState.useFrame
 import me.anno.gpu.Window
+import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.shader.Renderer
@@ -375,11 +375,10 @@ abstract class StudioBase(
                         GFX.loadTexturesSync.clear()
                         GFX.loadTexturesSync.push(false)
                         if (panel.canBeSeen) {
-                            val y = panel.ly0
-                            val h2 = panel.ly1 - panel.ly0
                             useFrame(
-                                panel.lx0, h - (y + h2),
-                                panel.lx1 - panel.lx0, h2,
+                                panel.lx0, panel.ly0,
+                                panel.lx1 - panel.lx0,
+                                panel.ly1 - panel.ly0,
                                 false, buffer,
                                 Renderer.colorRenderer
                             ) { panel.redraw() }
@@ -408,7 +407,18 @@ abstract class StudioBase(
     }
 
     open fun drawCachedImage(w: Int, h: Int, window: Window, panel0: Panel, wasRedrawn: Collection<Panel>) {
-        useFrame(panel0.x, h - (panel0.y + panel0.h), panel0.w, panel0.h, false, null) {
+        /*useFrame(panel0.x, h - (panel0.y + panel0.h), panel0.w, panel0.h, false, null) {
+            renderDefault {
+
+                window.buffer.bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+                GFX.copy()
+
+                if (showRedraws) {
+                    showRedraws(wasRedrawn)
+                }
+            }
+        }*/
+        useFrame(panel0.x, panel0.y, panel0.w, panel0.h, false, null) {
             renderDefault {
 
                 window.buffer.bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)

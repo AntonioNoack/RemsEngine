@@ -8,7 +8,7 @@ import me.anno.gpu.GFX.glThread
 import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.GFX.toRadians
 import me.anno.gpu.drawing.GFXx3D.draw3DCircle
-import me.anno.gpu.RenderSettings
+import me.anno.gpu.RenderState
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.shader.ShaderPlus
 import me.anno.io.ISaveable
@@ -87,7 +87,7 @@ open class Transform(var parent: Transform? = null) : Saveable(),
     open fun getStartTime(): Double = Double.NEGATIVE_INFINITY
     open fun getEndTime(): Double = Double.POSITIVE_INFINITY
 
-    var blendMode = BlendMode.UNSPECIFIED
+    var blendMode = BlendMode.INHERIT
 
     var timeOffset = ValueWithDefault(0.0)
     var timeDilation = ValueWithDefault(1.0)
@@ -401,7 +401,7 @@ open class Transform(var parent: Transform? = null) : Saveable(),
         }
 
         if (doBlending) {
-            RenderSettings.blendMode.use(blendMode) {
+            RenderState.blendMode.use(blendMode) {
                 onDraw(stack, time, color)
                 drawChildren(stack, time, color, parentColor)
             }
@@ -480,7 +480,7 @@ open class Transform(var parent: Transform? = null) : Saveable(),
         writer.writeObject(this, "colorMultiplier", colorMultiplier)
         writer.writeObject(this, "fadeIn", fadeIn)
         writer.writeObject(this, "fadeOut", fadeOut)
-        if (blendMode !== BlendMode.UNSPECIFIED) writer.writeString("blendMode", blendMode.id)
+        if (blendMode !== BlendMode.INHERIT) writer.writeString("blendMode", blendMode.id)
         writer.writeObjectList(this, "children", children)
         writer.writeMaybe(this, "timelineSlot", timelineSlot)
         writer.writeInt("visibility", visibility.id, false)

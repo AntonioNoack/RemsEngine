@@ -3,7 +3,7 @@ package me.anno.gpu.drawing
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.windowHeight
 import me.anno.gpu.GFX.windowWidth
-import me.anno.gpu.RenderSettings.renderPurely
+import me.anno.gpu.RenderState.renderPurely
 import me.anno.gpu.ShaderLib
 import me.anno.gpu.ShaderLib.maxOutlineColors
 import me.anno.gpu.TextureLib

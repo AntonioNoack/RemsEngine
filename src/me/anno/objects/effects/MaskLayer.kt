@@ -4,9 +4,10 @@ import me.anno.animation.AnimatedProperty
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.isFinalRendering
+import me.anno.gpu.RenderState.renderDefault
 import me.anno.gpu.drawing.GFXx3D
-import me.anno.gpu.RenderSettings.renderPurely
-import me.anno.gpu.RenderSettings.useFrame
+import me.anno.gpu.RenderState.renderPurely
+import me.anno.gpu.RenderState.useFrame
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
@@ -100,17 +101,17 @@ open class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
                 mask = FBStack["mask", w, h, 4, true, samples]
                 masked = FBStack["masked", w, h, 4, true, samples]
 
-                renderPurely {
+                renderDefault {
 
                     // (low priority)
                     // to do calculate the size on screen to limit overhead
                     // to do this additionally requires us to recalculate the transform
 
-                    BlendMode.DEFAULT.apply()
+                    // BlendMode.DEFAULT.apply()
 
                     drawMask(stack, time, color)
 
-                    BlendMode.DEFAULT.apply()
+                    // BlendMode.DEFAULT.apply()
 
                     drawMasked(stack, time, color)
 

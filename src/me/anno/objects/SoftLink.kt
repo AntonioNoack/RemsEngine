@@ -14,7 +14,7 @@ import me.anno.io.base.BaseWriter
 import me.anno.language.translation.Dict
 import me.anno.animation.AnimatedProperty
 import me.anno.animation.Type
-import me.anno.gpu.RenderSettings.useFrame
+import me.anno.gpu.RenderState.useFrame
 import me.anno.gpu.shader.Renderer
 import me.anno.objects.modes.UVProjection
 import me.anno.objects.text.Text

@@ -1,20 +1,21 @@
 package me.anno.gpu.framebuffer
 
 import me.anno.gpu.GFX
-import me.anno.gpu.RenderSettings
+import me.anno.gpu.RenderState
 import org.lwjgl.opengl.GL11.glViewport
+import kotlin.math.abs
 
 object Frame {
 
     fun bind() {
-        val index = RenderSettings.framebuffer.size - 1
+        val index = RenderState.framebuffer.size - 1
         bind(
-            RenderSettings.currentBuffer,
-            RenderSettings.changeSizes[index],
-            RenderSettings.xs[index],
-            RenderSettings.ys[index],
-            RenderSettings.ws[index],
-            RenderSettings.hs[index]
+            RenderState.currentBuffer,
+            RenderState.changeSizes[index],
+            RenderState.xs[index],
+            RenderState.ys[index],
+            RenderState.ws[index],
+            RenderState.hs[index]
         )
     }
 
@@ -23,7 +24,7 @@ object Frame {
     }
 
     fun reset() {
-        lastPtr = -2
+        lastPtr = -2 - abs(lastPtr)
     }
 
     fun invalidate() {
@@ -38,7 +39,7 @@ object Frame {
 
     fun bind(buffer: Framebuffer?, changeSize: Boolean, x: Int, y: Int, w: Int, h: Int) {
 
-        if(buffer != null && buffer.pointer <= 0){
+        if (buffer != null && buffer.pointer <= 0) {
             buffer.ensure()
         }
 
@@ -56,7 +57,14 @@ object Frame {
                 Framebuffer.bindNullDirectly()
             }
 
-            glViewport(x - GFX.deltaX, y - GFX.deltaY, w, h)
+            val x1 = x - GFX.deltaX
+            val y1 = y - GFX.deltaY
+
+            val height = buffer?.h ?: GFX.height
+
+            // this is mirrored
+            glViewport(x1, height - (y1 + h), w, h)
+
             lastX = x
             lastY = y
             lastW = w
@@ -64,7 +72,7 @@ object Frame {
             lastPtr = ptr
 
             GFX.windowX = x
-            GFX.windowY = GFX.height - (y + h)
+            GFX.windowY = y//GFX.height - (y + h)
             GFX.windowWidth = w
             GFX.windowHeight = h
 

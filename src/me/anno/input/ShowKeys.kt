@@ -3,7 +3,7 @@ package me.anno.input
 import me.anno.config.DefaultConfig.defaultFont
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.GFX
-import me.anno.gpu.RenderSettings.renderDefault
+import me.anno.gpu.RenderState.renderDefault
 import me.anno.gpu.drawing.GFXx2D.getSizeX
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawTexts.drawText

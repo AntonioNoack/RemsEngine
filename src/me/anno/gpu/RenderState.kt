@@ -8,7 +8,7 @@ import me.anno.gpu.shader.Renderer.Companion.colorRenderer
 import me.anno.utils.structures.SecureStack
 import org.lwjgl.opengl.GL11.*
 
-object RenderSettings {
+object RenderState {
 
     // the renderer is set per framebuffer; makes the most sense
     // additionally, it would be possible to set the blend-mode and depth there in a game setting
@@ -18,12 +18,22 @@ object RenderSettings {
     val blendMode = object : SecureStack<BlendMode?>(BlendMode.DEFAULT) {
         // could be optimized
         override fun onChangeValue(newValue: BlendMode?, oldValue: BlendMode?) {
+            // println("Blending: $newValue <- $oldValue")
             if (newValue == null) {
                 glDisable(GL_BLEND)
             } else {
                 // todo if is parent, then use the parent value
                 glEnable(GL_BLEND)
-                newValue.forceApply()
+                var self: BlendMode? = newValue
+                var index = index
+                if (self == BlendMode.INHERIT) {
+                    while (self == BlendMode.INHERIT) {
+                        self = values[index--]
+                    }
+                    onChangeValue(self, oldValue)
+                } else {
+                    self?.forceApply()
+                }
             }
         }
     }
@@ -49,9 +59,9 @@ object RenderSettings {
         }
     }
 
-    val scissorTest = object: SecureStack<Boolean>(false){
+    val scissorTest = object : SecureStack<Boolean>(false) {
         override fun onChangeValue(newValue: Boolean, oldValue: Boolean) {
-            if(newValue) glEnable(GL_SCISSOR_TEST)
+            if (newValue) glEnable(GL_SCISSOR_TEST)
             else glDisable(GL_SCISSOR_TEST)
         }
     }
@@ -93,8 +103,8 @@ object RenderSettings {
         render: () -> Unit
     ) {
         val index = framebuffer.size
-        xs[index] = xs[index - 1]
-        ys[index] = ys[index - 1]
+        xs[index] = 0//xs[index - 1]
+        ys[index] = 0//ys[index - 1]
         ws[index] = buffer?.w ?: GFX.width
         hs[index] = buffer?.h ?: GFX.height
         changeSizes[index] = false

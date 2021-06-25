@@ -6,12 +6,11 @@ import me.anno.cache.instances.MeshCache
 import me.anno.cache.instances.TextureCache.getLateinitTexture
 import me.anno.cache.instances.VideoCache.getVideoFrame
 import me.anno.gpu.GFX
-import me.anno.gpu.RenderSettings.renderPurely
-import me.anno.gpu.RenderSettings.useFrame
+import me.anno.gpu.RenderState.renderPurely
+import me.anno.gpu.RenderState.useFrame
 import me.anno.gpu.SVGxGFX
 import me.anno.gpu.TextureLib
 import me.anno.gpu.TextureLib.whiteTexture
-import me.anno.gpu.drawing.DrawTextures
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame

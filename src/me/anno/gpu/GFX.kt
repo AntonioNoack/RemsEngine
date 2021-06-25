@@ -1,9 +1,9 @@
 package me.anno.gpu
 
 import me.anno.config.DefaultConfig
-import me.anno.gpu.RenderSettings.blendMode
-import me.anno.gpu.RenderSettings.depthMode
-import me.anno.gpu.RenderSettings.useFrame
+import me.anno.gpu.RenderState.blendMode
+import me.anno.gpu.RenderState.depthMode
+import me.anno.gpu.RenderState.useFrame
 import me.anno.gpu.ShaderLib.copyShader
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.SimpleBuffer
@@ -53,7 +53,7 @@ object GFX : GFXBase1() {
     var isFinalRendering = false
 
     // var drawMode = ShaderPlus.DrawMode.COLOR_SQUARED
-    val drawMode get() = RenderSettings.currentRenderer.drawMode
+    val drawMode get() = RenderState.currentRenderer.drawMode
 
     var supportsAnisotropicFiltering = false
     var anisotropy = 1f
@@ -139,18 +139,19 @@ object GFX : GFXBase1() {
         if (panel != null) inFocus += panel
     }
 
-    fun clip(x: Int, y: Int, w: Int, h: Int, render: () -> Unit) {
+    inline fun clip(x: Int, y: Int, w: Int, h: Int, render: () -> Unit) {
         // from the bottom to the top
         check()
         if (w < 1 || h < 1) throw java.lang.RuntimeException("w < 1 || h < 1 not allowed, got $w x $h")
-        val realY = height - (y + h)
-        useFrame(x, realY, w, h, false) {
+        // val height = RenderState.currentBuffer?.h ?: height
+        // val realY = height - (y + h)
+        useFrame(x, y, w, h, false) {
             render()
         }
     }
 
-    fun clip2(x0: Int, y0: Int, x1: Int, y1: Int, render: () -> Unit) = clip(x0, y0, x1 - x0, y1 - y0, render)
-    fun clip2Save(x0: Int, y0: Int, x1: Int, y1: Int, render: () -> Unit) {
+    inline fun clip2(x0: Int, y0: Int, x1: Int, y1: Int, render: () -> Unit) = clip(x0, y0, x1 - x0, y1 - y0, render)
+    inline fun clip2Save(x0: Int, y0: Int, x1: Int, y1: Int, render: () -> Unit) {
         val w = x1 - x0
         val h = y1 - y0
         if (w > 0 && h > 0) {
@@ -158,7 +159,7 @@ object GFX : GFXBase1() {
         }
     }
 
-    fun clip2Dual(
+    inline fun clip2Dual(
         x0: Int, y0: Int, x1: Int, y1: Int,
         x2: Int, y2: Int, x3: Int, y3: Int,
         render: (x0: Int, y0: Int, x1: Int, y1: Int) -> Unit
@@ -290,6 +291,7 @@ object GFX : GFXBase1() {
     }
 
     override fun renderStep0() {
+        super.renderStep0()
         val tick = Clock()
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1) // OpenGL is evil ;), for optimizations, we might set it back
         supportsAnisotropicFiltering = GL.getCapabilities().GL_EXT_texture_filter_anisotropic
