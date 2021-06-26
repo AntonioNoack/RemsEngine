@@ -7,8 +7,6 @@ import me.anno.cache.instances.LastModifiedCache
 import me.anno.cache.instances.MeshCache.getMesh
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX.isFinalRendering
-import me.anno.gpu.buffer.Attribute
-import me.anno.gpu.buffer.StaticBuffer
 import me.anno.io.FileReference
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
@@ -17,7 +15,6 @@ import me.anno.mesh.assimp.AnimatedMeshesLoader
 import me.anno.mesh.gltf.ExternalCameraImpl
 import me.anno.mesh.gltf.GltfLogger
 import me.anno.mesh.gltf.GltfViewerLwjgl
-import me.anno.mesh.obj.OBJReader
 import me.anno.objects.GFXTransform
 import me.anno.objects.Transform
 import me.anno.ui.base.groups.PanelListY

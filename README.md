@@ -32,8 +32,15 @@ It is additionally developed with Java, so it works with Windows and Linux.
 * [Apache PDFBox](https://pdfbox.apache.org/) (Rendering PDFs)
 * [JAI ImageIO Core](https://github.com/jai-imageio/jai-imageio-core) (More image formats for PDFs)
 * [JAI ImageIO JPEG2000](https://github.com/jai-imageio/jai-imageio-jpeg2000) (JPEG 2000 support for PDFs)
+* [jGLTF](https://github.com/AntonioNoack/jGLTF) (jGLTF for glTF files, modified)
+<!-- * Assimp is in work -->
 <!-- * [Caliko](https://github.com/FedUni/caliko) (FABRIK IK) -->
 
 ## Download
 
 **[Download on the official website](https://remsstudio.phychi.com/?s=download)**
+
+## Build
+
+To build Rem's Studio, I am using Intellij Idea (the community edition is free). It should work in other IDEs as well, you just need to add all libraries.
+In Intellij Idea set the memory of the compiler (Settings/Build/Compiler) to more than 700 MB, as it becomes awfully slow with that amount, or even crashes.

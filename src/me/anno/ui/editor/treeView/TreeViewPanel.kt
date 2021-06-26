@@ -6,6 +6,7 @@ import me.anno.config.DefaultStyle.midGray
 import me.anno.config.DefaultStyle.white
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX.inFocus
+import me.anno.gpu.GFX.lastTouchedCamera
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.input.Input
 import me.anno.input.Input.mouseDownX
@@ -24,12 +25,12 @@ import me.anno.objects.Transform.Companion.toTransform
 import me.anno.objects.effects.MaskLayer
 import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.studio.rems.RemsStudio
+import me.anno.studio.rems.RemsStudio.nullCamera
 import me.anno.studio.rems.Selection.selectTransform
 import me.anno.studio.rems.Selection.selectTransformMaybe
 import me.anno.studio.rems.Selection.selectedTransform
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelListX
-import me.anno.ui.base.menu.Menu.askName
 import me.anno.ui.base.menu.Menu.menuSeparator1
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
@@ -44,9 +45,9 @@ import me.anno.utils.Color.toARGB
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.sq
 import org.apache.logging.log4j.LogManager
+import org.joml.Vector3f
 import org.joml.Vector4f
 import java.util.*
-import kotlin.collections.ArrayList
 
 class TreeViewPanel(val getElement: () -> Transform, style: Style) : PanelListX(style) {
 
@@ -92,9 +93,26 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style) : PanelListX(
     override fun onDoubleClick(x: Float, y: Float, button: MouseButton) {
         when {
             button.isLeft -> {
-                askName(this.x, this.y, NameDesc(), getElement().name, NameDesc("Change Name"), { textColor }) {
-                    getElement().name = it
+                // instead of asking for the name, move the camera towards the target
+                // todo also zoom in/out correctly to match the object...
+                // identify the currently used camera
+                val camera = lastTouchedCamera ?: nullCamera ?: return
+                val obj = getElement()
+                val time = RemsStudio.editorTime
+                // calculate the movement, which would be necessary
+                val cameraToWorld = camera.parent?.getGlobalTransform(time)
+                val objectToWorld = obj.getGlobalTransform(time)
+                val objectWorldPosition = objectToWorld.transformPosition(Vector3f(0f, 0f, 0f))
+                val objectCameraPosition = if (cameraToWorld == null) objectWorldPosition else cameraToWorld.invert()
+                    .transformPosition(objectWorldPosition)
+                println(objectCameraPosition)
+                // apply this movement
+                RemsStudio.largeChange("Move Camera to Object") {
+                    camera.position.addKeyframe(camera.lastLocalTime, objectCameraPosition)
                 }
+                /* askName(this.x, this.y, NameDesc(), getElement().name, NameDesc("Change Name"), { textColor }) {
+                     getElement().name = it
+                 }*/
             }
             else -> super.onDoubleClick(x, y, button)
         }

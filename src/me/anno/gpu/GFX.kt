@@ -63,6 +63,7 @@ object GFX : GFXBase1() {
     var maxVertexUniforms = 0
 
     lateinit var currentCamera: Camera
+    var lastTouchedCamera: Camera? = null
 
     var hoveredPanel: Panel? = null
     var hoveredWindow: Window? = null

@@ -96,7 +96,7 @@ import kotlin.math.min
 // then say the number + change axis
 // then press enter to apply the change
 
-class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), ISceneView {
+open class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), ISceneView {
 
     constructor(sceneView: SceneView) : this(DefaultConfig.style) {
         camera = sceneView.camera
@@ -189,6 +189,10 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
         controls.forEach {
             children += it.drawable
         }
+    }
+
+    open fun onInteraction(){
+        GFX.lastTouchedCamera = camera
     }
 
     override fun getVisualState(): Any? =
@@ -804,7 +808,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
     }
 
     override fun onDoubleClick(x: Float, y: Float, button: MouseButton) {
-
+        onInteraction()
         invalidateDrawing()
         if (button.isLeft) {
             val xi = x.toInt()
@@ -820,9 +824,8 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
     }
 
     override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
-
+        onInteraction()
         invalidateDrawing()
-
         if ((parent as? CustomContainer)?.clicked(x, y) != true) {
 
             var isProcessed = false
@@ -871,10 +874,12 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
     }
 
     override fun onEmpty(x: Float, y: Float) {
+        onInteraction()
         deleteSelectedTransform()
     }
 
     override fun onDeleteKey(x: Float, y: Float) {
+        onInteraction()
         deleteSelectedTransform()
     }
 
@@ -891,6 +896,7 @@ class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), IS
     }
 
     override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float) {
+        onInteraction()
         invalidateDrawing()
         RemsStudio.incrementalChange("Zoom In / Out") {
             val radius = camera.orbitRadius[cameraTime]

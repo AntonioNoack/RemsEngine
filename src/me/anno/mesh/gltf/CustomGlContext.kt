@@ -6,7 +6,15 @@ import me.anno.gpu.GFX.shaderColor
 import me.anno.gpu.ShaderLib.positionPostProcessing
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderPlus
+import me.anno.gpu.texture.Clamping
+import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.Texture2D
+import me.anno.utils.LOGGER
 import org.joml.Vector4f
+import org.lwjgl.opengl.GL11.GL_NEAREST
+import org.lwjgl.opengl.GL14
+import org.lwjgl.opengl.GL20
+import java.nio.ByteBuffer
 
 object CustomGlContext : GlContextLwjgl() {
 
@@ -14,6 +22,8 @@ object CustomGlContext : GlContextLwjgl() {
 
     // todo hashmap<string, shader> to reuse shaders
     val shaders = ArrayList<Shader>()
+    lateinit var currentShader: Shader
+
     override fun createGlProgram(vertexShaderSource: String, fragmentShaderSource: String): Int {
         var plusVertexShader = vertexShaderSource.trim()
         if (!plusVertexShader.endsWith("}")) throw RuntimeException()
@@ -24,6 +34,7 @@ object CustomGlContext : GlContextLwjgl() {
         val shader = Shader("Gltf", plusVertexShader, "varying float zDistance;\n", plusFragmentShader, true)
         val index = shaders.size
         shaders.add(shader)
+        currentShader = shader
         useGlProgram(index)
         return index
     }
@@ -33,6 +44,7 @@ object CustomGlContext : GlContextLwjgl() {
         shader.use()
         shader.v1("drawMode", GFX.drawMode.id)
         shaderColor(shader, "tint", tint)
+        currentShader = shader
     }
 
     override fun deleteGlProgram(glProgram: Int) {
@@ -45,16 +57,6 @@ object CustomGlContext : GlContextLwjgl() {
 
     override fun getAttributeLocation(glProgram: Int, attributeName: String): Int {
         return shaders[glProgram].getAttributeLocation(attributeName)
-    }
-
-    override fun enable(states: MutableIterable<Number>) {
-        // super.enable(states)
-        // println("enabling ${states.map { getStateName(it as Int) }}")
-    }
-
-    override fun disable(states: MutableIterable<Number>) {
-        // super.disable(states)
-        // println("disabling ${states.map { getStateName(it as Int) }}")
     }
 
     /*fun getStateName(state: Int): String {
@@ -78,6 +80,16 @@ object CustomGlContext : GlContextLwjgl() {
 
     override fun setDepthRange(zNear: Float, zFar: Float) {
         // super.setDepthRange(zNear, zFar)
+    }
+
+    override fun enable(states: MutableIterable<Number>) {
+        // super.enable(states)
+        // println("enabling ${states.map { getStateName(it as Int) }}")
+    }
+
+    override fun disable(states: MutableIterable<Number>) {
+        // super.disable(states)
+        // println("disabling ${states.map { getStateName(it as Int) }}")
     }
 
     override fun setBlendColor(r: Float, g: Float, b: Float, a: Float) {
@@ -107,6 +119,57 @@ object CustomGlContext : GlContextLwjgl() {
     override fun setFrontFace(mode: Int) {
         // super.setFrontFace(mode)
     }
+
+    val textures = ArrayList<Texture2D>()
+    override fun setUniformSampler(location: Int, textureIndex: Int, glTexture: Int) {
+        val tex = textures[glTexture]
+        tex.bind(textureIndex, tex.filtering, tex.clamping)
+        GL20.glUniform1i(location, textureIndex)
+    }
+
+    override fun createGlTexture(
+        pixelData: ByteBuffer,
+        internalFormat: Int,
+        width: Int,
+        height: Int,
+        format: Int,
+        type: Int
+    ): Int {
+        val index = textures.size
+        val tex = Texture2D("jGLTF", width, height, 1)
+        tex.createRGBA(pixelData) // internal format & format always will be GL_RGBA
+        textures.add(tex)
+        return index
+    }
+
+    override fun deleteGlTexture(glTexture: Int) {
+        // should never be called
+        textures[glTexture].destroy()
+    }
+
+    override fun setGlTextureParameters(glTexture: Int, minFilter: Int, magFilter: Int, wrapS: Int, wrapT: Int) {
+
+        /*
+        * int minFilter = something or else GltfConstants.GL_NEAREST_MIPMAP_LINEAR
+        * int magFilter = something or else GltfConstants.GL_LINEAR
+        * */
+
+        val tex = textures[glTexture]
+        if (magFilter == GL_NEAREST) {
+            tex.filtering = GPUFiltering.NEAREST
+        }
+
+        if(wrapS != wrapT) LOGGER.warn("Asymmetric wrapping not supported: $wrapS/$wrapT")
+        for(clamping in Clamping.values()){
+            if(clamping.mode == wrapS || clamping.mode == wrapT){
+                tex.clamping = clamping
+                break
+            }
+        }
+
+    }
+
+
 
 
 }

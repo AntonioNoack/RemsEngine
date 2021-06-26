@@ -48,8 +48,6 @@ class GltfViewerLwjgl : AbstractGltfViewer<Any?>() {
 
     fun glRender() {
         doRender()
-        // todo just use normal textures, so we don't have to invalidate the state
-        Texture2D.invalidateBinding()
     }
 
     /**
