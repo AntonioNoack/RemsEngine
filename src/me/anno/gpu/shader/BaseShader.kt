@@ -3,6 +3,7 @@ package me.anno.gpu.shader
 import me.anno.gpu.GFX
 import me.anno.gpu.RenderState
 import me.anno.gpu.deferred.DeferredSettingsV2
+import kotlin.math.max
 
 /**
  * converts a shader with color, normal, tint and such into
@@ -17,6 +18,7 @@ class BaseShader(
     val fragmentSource: String
 ) {
 
+    var glslVersion = Shader.DefaultGLSLVersion
     var textures: List<String>? = null
     var ignoredUniforms = HashSet<String>()
 
@@ -33,6 +35,7 @@ class BaseShader(
         fragment += "}"
         GFX.check()
         val shader = ShaderPlus.create(name, vertexSource, varyingSource, fragment)
+        shader.glslVersion = glslVersion
         shader.setTextureIndices(textures)
         shader.ignoreUniformWarnings(ignoredUniforms)
         shader.v1("drawMode", ShaderPlus.DrawMode.COLOR.id)
@@ -62,6 +65,7 @@ class BaseShader(
     operator fun get(settings: DeferredSettingsV2): Shader {
         return deferredShaders.getOrPut(settings) {
             val shader = settings.createShader(name, vertexSource, varyingSource, fragmentSource, textures)
+            shader.glslVersion = max(shader.glslVersion, glslVersion)
             shader.setTextureIndices(textures)
             shader.ignoreUniformWarnings(ignoredUniforms)
             shader.v1("drawMode", ShaderPlus.DrawMode.COLOR.id)

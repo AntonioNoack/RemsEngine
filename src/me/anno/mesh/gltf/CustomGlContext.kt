@@ -9,10 +9,9 @@ import me.anno.gpu.shader.ShaderPlus
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
-import me.anno.utils.LOGGER
+import org.apache.logging.log4j.LogManager
 import org.joml.Vector4f
 import org.lwjgl.opengl.GL11.GL_NEAREST
-import org.lwjgl.opengl.GL14
 import org.lwjgl.opengl.GL20
 import java.nio.ByteBuffer
 
@@ -20,11 +19,22 @@ object CustomGlContext : GlContextLwjgl() {
 
     val tint = Vector4f()
 
-    // todo hashmap<string, shader> to reuse shaders
     val shaders = ArrayList<Shader>()
+
+    // val shaderCache = HashMap<String, Int>()
     lateinit var currentShader: Shader
 
     override fun createGlProgram(vertexShaderSource: String, fragmentShaderSource: String): Int {
+
+        val index = shaders.size
+        /*val key = vertexShaderSource + fragmentShaderSource
+        val cache = shaderCache.getOrPut(key) { index }
+        if (cache < index) {
+            LOGGER.info("Reusing shader ${key.hashCode()}/$index")
+            useGlProgram(index)
+            return cache
+        }*/
+
         var plusVertexShader = vertexShaderSource.trim()
         if (!plusVertexShader.endsWith("}")) throw RuntimeException()
         plusVertexShader = plusVertexShader.substring(0, plusVertexShader.length - 1) +
@@ -32,11 +42,10 @@ object CustomGlContext : GlContextLwjgl() {
                 "}"
         val plusFragmentShader = ShaderPlus.makeFragmentShaderUniversal("", fragmentShaderSource)
         val shader = Shader("Gltf", plusVertexShader, "varying float zDistance;\n", plusFragmentShader, true)
-        val index = shaders.size
         shaders.add(shader)
-        currentShader = shader
         useGlProgram(index)
         return index
+
     }
 
     override fun useGlProgram(glProgram: Int) {
@@ -159,9 +168,9 @@ object CustomGlContext : GlContextLwjgl() {
             tex.filtering = GPUFiltering.NEAREST
         }
 
-        if(wrapS != wrapT) LOGGER.warn("Asymmetric wrapping not supported: $wrapS/$wrapT")
-        for(clamping in Clamping.values()){
-            if(clamping.mode == wrapS || clamping.mode == wrapT){
+        if (wrapS != wrapT) LOGGER.warn("Asymmetric wrapping not supported: $wrapS/$wrapT")
+        for (clamping in Clamping.values()) {
+            if (clamping.mode == wrapS || clamping.mode == wrapT) {
                 tex.clamping = clamping
                 break
             }
@@ -169,7 +178,7 @@ object CustomGlContext : GlContextLwjgl() {
 
     }
 
-
+    private val LOGGER = LogManager.getLogger(CustomGlContext::class)
 
 
 }

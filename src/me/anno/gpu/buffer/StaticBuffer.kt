@@ -136,7 +136,7 @@ open class StaticBuffer(attributes: List<Attribute>, val vertexCount: Int, usage
         maxY = svg.maxY
     }
 
-    fun clear() {
+    open fun clear() {
         nioBuffer!!.position(0)
         isUpToDate = false
     }

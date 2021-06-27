@@ -17,4 +17,5 @@ interface ITexture2D: ICacheData {
         return bind(index, if(filtering.baseIsNearest) GPUFiltering.NEAREST else GPUFiltering.LINEAR, clamping)
     }
 
+
 }

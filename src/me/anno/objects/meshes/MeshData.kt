@@ -6,20 +6,23 @@ import me.anno.cache.instances.ImageCache.getImage
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.GFX.matrixBufferFBX
-import me.anno.gpu.drawing.GFXx3D.shader3DUniforms
+import me.anno.gpu.ShaderLib.shaderAssimp
 import me.anno.gpu.ShaderLib.shaderFBX
 import me.anno.gpu.ShaderLib.shaderObjMtl
 import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.gpu.buffer.StaticBuffer
+import me.anno.gpu.drawing.GFXx3D.shader3DUniforms
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2D
 import me.anno.io.FileReference
-import me.anno.mesh.assimp.AssimpMesh
+import me.anno.mesh.assimp.AnimGameItem
 import me.anno.mesh.fbx.model.FBXGeometry
 import me.anno.mesh.fbx.model.FBXModel
 import me.anno.mesh.gltf.CustomGlContext
 import me.anno.mesh.obj.Material
+import me.anno.objects.GFXTransform
+import me.anno.objects.GFXTransform.Companion.uploadAttractors
 import me.anno.video.MissingFrameException
 import me.karl.main.Camera
 import me.karl.scene.Scene
@@ -34,16 +37,45 @@ open class MeshData : ICacheData {
     var fbxData: List<FBXData>? = null
     var gltfData: GlTFData? = null
     var daeScene: Scene? = null
-    var assimpMeshes: Array<AssimpMesh>? = null
+    var assimpModel: AnimGameItem? = null
 
-    fun drawAssimp(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
-        // todo draw it
+    fun drawAssimp(
+        transform: GFXTransform?,
+        stack: Matrix4fArrayList,
+        time: Double,
+        color: Vector4fc,
+        animationIndex: Int
+    ) {
+        val shader = shaderAssimp.value
+        shader.use()
+        shader3DUniforms(shader, stack, color)
+        uploadAttractors(transform, shader, time)
+        // draw it
         // todo bind the correct shader, best gltf
-        // todo upload the required uniforms
-
-        /*for(model in assimpMeshes!!){
-            model.render()
-        }*/
+        // todo test different renderers: PBR, normal-black-white, ...
+        // upload the required uniforms
+        // todo bind emission textures
+        // todo emission colors
+        // todo other material properties
+        // todo play animation
+        val model0 = assimpModel!!
+        val animation = model0.animations.values.toList().getOrNull(animationIndex)
+        shader.v1("hasAnimation", if (animation == null) 0f else 1f)
+        if (animation != null) {
+            model0.uploadJointMatrices(shader, animation, time)
+        }
+        val diffuse = Vector4f()
+        for (model in model0.meshes) {
+            val material = model.material
+            val texturePath = material?.texture
+            val textureOrNull = if (texturePath == null) null else getImage(texturePath, 1000, true)
+            val texture = textureOrNull ?: whiteTexture
+            texture.bind(0)
+            diffuse.set(color)
+            if (material != null) diffuse.mul(material.diffuse)
+            GFX.shaderColor(shader, "tint", diffuse)
+            model.buffer.draw(shader)
+        }
     }
 
     fun drawObj(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
@@ -53,7 +85,7 @@ open class MeshData : ICacheData {
         shader.use()
         shader3DUniforms(shader, stack, 1, 1, color, null, Filtering.NEAREST, null)
         for ((material, buffer) in objData) {
-            getTexture(material.diffuseTexture, whiteTexture).bind(0, whiteTexture.filtering, whiteTexture.clamping)
+            getTexture(material.diffuseTexture, whiteTexture).bind(0)
             buffer.draw(shader)
             GFX.check()
         }

@@ -77,16 +77,6 @@ fun processBuffer(buffer: AIVector3D.Buffer): StaticBuffer {
 
 }
 
-fun processVertices(mesh: AIMesh, data: MutableList<Float>) {
-    val vertices = mesh.mVertices()
-    while (vertices.remaining() > 0) {
-        val vertex = vertices.get()
-        data.add(vertex.x())
-        data.add(vertex.y())
-        data.add(vertex.z())
-    }
-}
-
 fun processMaterial(material: AIMaterial) {
 
     val color = AIColor4D.create()

@@ -5,7 +5,6 @@ import de.javagl.jgltf.viewer.AbstractGltfViewer
 import de.javagl.jgltf.viewer.GlContext
 import de.javagl.jgltf.viewer.lwjgl.GlContextLwjgl
 import me.anno.gpu.GFX
-import me.anno.gpu.texture.Texture2D
 
 class GltfViewerLwjgl : AbstractGltfViewer<Any?>() {
 
@@ -24,25 +23,18 @@ class GltfViewerLwjgl : AbstractGltfViewer<Any?>() {
     }
 
     override fun getWidth(): Int {
-        return GFX.width
+        return GFX.windowWidth
     }
 
     override fun getHeight(): Int {
-        return GFX.height
+        return GFX.windowHeight
     }
 
-    override fun triggerRendering() {
-        // Warning.warn("got redraw request")
-    }
+    override fun triggerRendering() {}
 
-    override fun prepareRender() {
-        // Nothing to do here
-    }
+    override fun prepareRender() {}
 
     public override fun render() {
-        // GL11.glColorMask(true, true, true, true)
-        // GL11.glDepthMask(true)
-        // GL11.glClear(GL11.GL_COLOR_BUFFER_BIT or GL11.GL_DEPTH_BUFFER_BIT)
         renderGltfModels()
     }
 

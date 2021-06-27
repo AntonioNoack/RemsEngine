@@ -511,10 +511,10 @@ object Scene {
          * apply the LUT for sepia looks, cold looks, general color correction, ...
          * uses the Unreal Engine "format" of an 256x16 image (or 1024x32)
          * */
-        lutBuffer.bindTextures(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
         val lutShader = lutShader.value
         lutShader.use()
         lut.bind(1, GPUFiltering.LINEAR)
+        lutBuffer.bindTextures(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
         lut.clamping(false)
         flat01.draw(lutShader)
         GFX.check()

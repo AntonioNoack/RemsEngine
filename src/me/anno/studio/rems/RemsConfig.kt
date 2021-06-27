@@ -3,16 +3,16 @@ package me.anno.studio.rems
 import me.anno.config.DefaultConfig
 import me.anno.io.FileReference
 import me.anno.utils.OS
-import java.io.File
 
 object RemsConfig {
 
-    fun init(){
+    fun init() {
 
         DefaultConfig.createDefaults = {
             it.apply {
 
-                this["ffmpeg.path"] = FileReference(OS.downloads, "lib\\ffmpeg\\bin\\ffmpeg.exe") // I'm not sure about that one ;)
+                this["ffmpeg.path"] =
+                    FileReference(OS.downloads, "lib\\ffmpeg\\bin\\ffmpeg.exe") // I'm not sure about that one ;)
                 this["lastUsed.fonts.count"] = 5
                 this["default.video.nearest"] = false
                 this["default.image.nearest"] = false
@@ -31,7 +31,7 @@ object RemsConfig {
                 addImportMappings("Transform", "json")
                 addImportMappings(
                     "Image",
-                    "png", "jpg", "jpeg", "tiff", "webp", "svg", "ico", "psd", "bmp", "jp2"
+                    "png", "jpg", "jpeg", "tiff", "webp", "svg", "ico", "psd", "bmp", "jp2", "tga"
                 )
                 addImportMappings("PDF", "pdf")
                 addImportMappings("Cubemap-Equ", "hdr")
@@ -44,7 +44,7 @@ object RemsConfig {
                     "mov", "qt", "mts", "m2ts", "ts", "rm", "rmvb", "viv", "asf", "amv"
                 )
                 addImportMappings("Text", "txt")
-                addImportMappings("Mesh", "obj", "fbx", "dae", "gltf", "glb")
+                addImportMappings("Mesh", "obj", "fbx", "dae", "gltf", "glb", "md2", "md5mesh")
                 // not yet supported
                 // addImportMappings("Markdown", "md")
                 addImportMappings("Audio", "mp3", "wav", "m4a", "ogg")

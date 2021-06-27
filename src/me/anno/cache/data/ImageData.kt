@@ -13,6 +13,7 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.HDRImage
+import me.anno.image.tga.TargaImage
 import me.anno.io.FileReference
 import me.anno.objects.Video.Companion.imageTimeout
 import me.anno.objects.modes.RotateJPEG
@@ -117,6 +118,18 @@ class ImageData(file: FileReference) : ICacheData {
             }
             "webp" -> {
                 useFFMPEG(file)
+            }
+            "tga" -> {
+                val image = TargaImage.decode(file.inputStream().buffered())
+                texture.w = image.width
+                texture.h = image.height
+                GFX.addGPUTask(image.width, image.height){
+                    if(image.hasAlpha){
+                        texture.createRGBA(image.pixels)
+                    } else {
+                        texture.createRGB(image.pixels)
+                    }
+                }
             }
             else -> {
                 // read metadata information from jpegs

@@ -21,10 +21,7 @@ import org.lwjgl.opengl.GL32.glTexImage2DMultisample
 import java.awt.image.BufferedImage
 import java.awt.image.DataBufferByte
 import java.awt.image.DataBufferInt
-import java.nio.Buffer
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
-import java.nio.FloatBuffer
+import java.nio.*
 
 open class Texture2D(
     val name: String,
@@ -344,6 +341,32 @@ open class Texture2D(
         GFX.check()
     }
 
+    fun createRGBA(ints: IntBuffer) {
+        checkSize(1, ints.capacity())
+        GFX.check()
+        ensurePointer()
+        bindBeforeUpload()
+        locallyAllocated = allocate(locallyAllocated, w * h * 4L)
+        glTexImage2D(tex2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, ints)
+        isCreated = true
+        filtering(filtering)
+        clamping(clamping)
+        GFX.check()
+    }
+
+    fun createRGB(ints: IntBuffer) {
+        checkSize(1, ints.capacity())
+        GFX.check()
+        ensurePointer()
+        bindBeforeUpload()
+        locallyAllocated = allocate(locallyAllocated, w * h * 3L)
+        glTexImage2D(tex2D, 0, GL_RGB8, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, ints)
+        isCreated = true
+        filtering(filtering)
+        clamping(clamping)
+        GFX.check()
+    }
+
     fun createMonochrome(data: ByteBuffer) {
         checkSize(1, data)
         GFX.check()
@@ -502,6 +525,9 @@ open class Texture2D(
         activeSlot(index)
         return bind(nearest, clamping)
     }
+
+    fun bind() = bind(filtering, clamping)
+    fun bind(index: Int) = bind(index, filtering, clamping)
 
     override fun destroy() {
         isCreated = false

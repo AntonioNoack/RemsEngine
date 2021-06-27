@@ -1,24 +1,36 @@
 package me.anno.mesh.assimp
 
-import org.lwjgl.opengl.GL30.*
-import org.lwjgl.system.MemoryUtil
-import java.nio.ByteBuffer
-import java.nio.FloatBuffer
+import me.anno.gpu.buffer.Attribute
+import me.anno.gpu.buffer.AttributeType
+import me.anno.gpu.buffer.IndexedStaticBuffer
 import kotlin.math.sqrt
 
 
 open class AssimpMesh(
     positions: FloatArray,
-    textCoords: FloatArray,
+    uvs: FloatArray,
     normals: FloatArray,
+    colors: FloatArray,
     indices: IntArray,
-    jointIndices: IntArray = IntArray(MAX_WEIGHTS * positions.size / 3 * 4),
-    weights: FloatArray = FloatArray(MAX_WEIGHTS * positions.size / 3 * 4)
+    jointIndices: IntArray?,
+    weights: FloatArray?
 ) {
 
-    var vaoId = 0
+    companion object {
+        const val MAX_WEIGHTS = 4
+        val attributes = listOf(
+            Attribute("coords", 3),
+            Attribute("uvs", 2),
+            Attribute("normals", 3),
+            Attribute("colors", 4),
+            Attribute("weights", MAX_WEIGHTS),
+            Attribute("indices", AttributeType.SINT32, MAX_WEIGHTS)
+        )
+    }
 
-    private val vboIdList = IntArray(6) { -1 }
+    var animations: List<Animation>? = null
+
+    val buffer: IndexedStaticBuffer
 
     var vertexCount = 0
     var material: Material? = null
@@ -36,164 +48,70 @@ open class AssimpMesh(
         boundingRadius = sqrt(radiusSq)
     }
 
-    fun startRender() {
-
-        renderReference.value
-
-        // todo bind all relevant textures
-        // todo - color
-        // todo - normal
-        // todo - alpha?
-        // todo - occlusion
-
-        /*val texture = material?.texture
-        if (texture != null) {
-            // Activate first texture bank
-            glActiveTexture(GL_TEXTURE0)
-            // Bind the texture
-            glBindTexture(GL_TEXTURE_2D, texture.getId())
-        }
-
-        val normalMap = material?.normalMap
-        if (normalMap != null) {
-            // Activate second texture bank
-            glActiveTexture(GL_TEXTURE1)
-            // Bind the texture
-            glBindTexture(GL_TEXTURE_2D, normalMap.getId())
-        }*/
-
-        // Draw the mesh
-        glBindVertexArray(vaoId)
-
-    }
-
-    fun endRender() {
-        // Restore state
-        glBindVertexArray(0)
-        glBindTexture(GL_TEXTURE_2D, 0)
-    }
-
-    fun render() {
-        startRender()
-        glDrawElements(GL_TRIANGLES, vertexCount, GL_UNSIGNED_INT, 0)
-        endRender()
-    }
-
-    /*fun renderList(gameItems: List<GameItem>, consumer: Consumer<GameItem?>) {
-        initRender()
-        for (gameItem in gameItems) {
-            if (gameItem.isInsideFrustum()) {
-                // Set up data required by GameItem
-                consumer.accept(gameItem)
-                // Render this game item
-                glDrawElements(GL_TRIANGLES, vertexCount, GL_UNSIGNED_INT, 0)
-            }
-        }
-        endRender()
-    }*/
-
-    fun cleanUp() {
-
-        glDisableVertexAttribArray(0)
-
-        // Delete the VBOs
-        glBindBuffer(GL_ARRAY_BUFFER, 0)
-        for (vboId in vboIdList) {
-            glDeleteBuffers(vboId)
-        }
-
-        // Delete the texture
-        /*val texture: Texture = material.getTexture()
-        if (texture != null) {
-            texture.cleanup()
-        }*/
-
-        // Delete the VAO
-        glBindVertexArray(0)
-        glDeleteVertexArrays(vaoId)
-
-    }
-
-    fun deleteBuffers() {
-
-        // Delete the VBOs
-        glBindBuffer(GL_ARRAY_BUFFER, 0)
-        for (vboId in vboIdList) {
-            glDeleteBuffers(vboId)
-        }
-
-        // Delete the VAO
-        glBindVertexArray(0)
-        glDeleteVertexArrays(vaoId)
-
-    }
-
-    fun create(
-        buffer: FloatBuffer, data: FloatArray,
-        index: Int, size: Int
-    ) {
-        buffer.position(0)
-        buffer.put(data)
-        buffer.position(0)
-        buffer.limit(data.size)
-        glBindBuffer(GL_ARRAY_BUFFER, vboIdList[index])
-        glBufferData(GL_ARRAY_BUFFER, buffer, GL_STATIC_DRAW)
-        glEnableVertexAttribArray(0)
-        glVertexAttribPointer(index, size, GL_FLOAT, false, 0, 0)
-    }
-
-    fun create(
-        buffer: ByteBuffer, data: IntArray,
-        index: Int, size: Int
-    ) {
-        buffer.position(0)
-        buffer.asIntBuffer().put(data)
-        buffer.position(0)
-        buffer.limit(data.size)
-        glBindBuffer(GL_ARRAY_BUFFER, vboIdList[index])
-        glBufferData(GL_ARRAY_BUFFER, buffer, GL_STATIC_DRAW)
-        glEnableVertexAttribArray(0)
-        glVertexAttribPointer(index, size, GL_FLOAT, false, 0, 0)
+    fun destroy() {
+        buffer.destroy()
     }
 
     init {
         calculateBoundingRadius(positions)
-    }
+        val pointCount = positions.size / 3
+        val buffer = IndexedStaticBuffer(attributes, pointCount, indices)
+        for (i in 0 until pointCount) {
 
-    val renderReference = lazy {
-        var byteBuffer: ByteBuffer? = null
-        try {
+            // upload all data of one vertex
 
-            vertexCount = indices.size
-            vaoId = glGenVertexArrays()
-            glBindVertexArray(vaoId)
+            buffer.put(positions[i * 3])
+            buffer.put(positions[i * 3 + 1])
+            buffer.put(positions[i * 3 + 2])
 
-            glGenBuffers(vboIdList)
-
-            byteBuffer = MemoryUtil.memAlloc(positions.size / 3 * 4 * 4)
-            val dataBuffer = byteBuffer.asFloatBuffer()
-
-            create(dataBuffer, positions, 0, 3)
-            create(dataBuffer, textCoords, 1, 2)
-            create(dataBuffer, normals, 2, 3)
-            create(dataBuffer, weights, 3, MAX_WEIGHTS)
-            create(byteBuffer, jointIndices, 4, MAX_WEIGHTS)
-
-            // Index VBO
-            val vboId = vboIdList[5]
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vboId)
-            glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW)
-            glBindBuffer(GL_ARRAY_BUFFER, 0)
-            glBindVertexArray(0)
-
-        } finally {
-            if (byteBuffer != null) {
-                MemoryUtil.memFree(byteBuffer)
+            if (uvs.size > i * 2 + 1) {
+                buffer.put(uvs[i * 2])
+                buffer.put(uvs[i * 2 + 1])
+            } else {
+                buffer.put(0f, 0f)
             }
+
+            buffer.put(normals[i * 3])
+            buffer.put(normals[i * 3 + 1])
+            buffer.put(normals[i * 3 + 2])
+
+            if (colors.size > i * 4 + 3) {
+                buffer.put(colors[i * 4])
+                buffer.put(colors[i * 4 + 1])
+                buffer.put(colors[i * 4 + 2])
+                buffer.put(colors[i * 4 + 3])
+            } else {
+                buffer.put(1f, 1f, 1f, 1f)
+            }
+
+            if (weights != null && weights.isNotEmpty()) {
+                val w0 = weights[i * 4]
+                val w1 = weights[i * 4 + 1]
+                val w2 = weights[i * 4 + 2]
+                val w3 = weights[i * 4 + 3]
+                val normalisation = 1f / (w0 + w1 + w2 + w3)
+                buffer.put(w0 * normalisation)
+                buffer.put(w1 * normalisation)
+                buffer.put(w2 * normalisation)
+                buffer.put(w3 * normalisation)
+            } else {
+                buffer.put(1f, 0f, 0f, 0f)
+            }
+
+            if (jointIndices != null && jointIndices.isNotEmpty()) {
+                buffer.putInt(jointIndices[i * 4])
+                buffer.putInt(jointIndices[i * 4 + 1])
+                buffer.putInt(jointIndices[i * 4 + 2])
+                buffer.putInt(jointIndices[i * 4 + 3])
+            } else {
+                buffer.putInt(0)
+                buffer.putInt(0)
+                buffer.putInt(0)
+                buffer.putInt(0)
+            }
+
         }
+        this.buffer = buffer
     }
 
-    companion object {
-        const val MAX_WEIGHTS = 4
-    }
 }

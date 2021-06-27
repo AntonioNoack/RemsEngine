@@ -70,34 +70,42 @@ abstract class Buffer(val attributes: List<Attribute>, val stride: Int, val usag
 
     var vao = -1
 
-    private fun bindBufferAttributes(shader: Shader, instanced: Boolean) {
+    fun bindAttribute(shader: Shader, attr: Attribute, instanced: Boolean) {
         val instanceDivisor = if (instanced) 1 else 0
+        val index = shader.getAttributeLocation(attr.name)
+        if (index > -1) {
+            val type = attr.type
+            if (attr.isNativeInt) {
+                glVertexAttribIPointer(index, attr.components, type.glType, stride, attr.offset)
+            } else {
+                glVertexAttribPointer(index, attr.components, type.glType, type.normalized, stride, attr.offset)
+            }
+            if (isInstanced[index] != instanced) {
+                GFX.check()
+                isInstanced[index] = instanced
+                glVertexAttribDivisor(index, instanceDivisor)
+                GFX.check()
+            }
+            glEnableVertexAttribArray(index)
+        }
+    }
+
+    open fun createVAO(shader: Shader, instanced: Boolean) {
+        vao = glGenVertexArrays()
+        if (buffer < 0) upload()
+        if (vao < 0) throw IllegalStateException()
+        glBindVertexArray(vao)
+        glBindBuffer(GL_ARRAY_BUFFER, buffer)
+        for (attr in attributes) {
+            bindAttribute(shader, attr, instanced)
+        }
+    }
+
+    fun bindBufferAttributes(shader: Shader, instanced: Boolean) {
         GFX.check()
         shader.potentiallyUse()
         if (vao < 0) {
-            vao = glGenVertexArrays()
-            if (buffer < 0) upload()
-            if (vao < 0) throw IllegalStateException()
-            glBindVertexArray(vao)
-            glBindBuffer(GL_ARRAY_BUFFER, buffer)
-            attributes.forEach { attr ->
-                val index = shader.getAttributeLocation(attr.name)
-                if (index > -1) {
-                    val type = attr.type
-                    if (attr.isNativeInt) {
-                        glVertexAttribIPointer(index, attr.components, type.glType, stride, attr.offset)
-                    } else {
-                        glVertexAttribPointer(index, attr.components, type.glType, type.normalized, stride, attr.offset)
-                    }
-                    if (isInstanced[index] != instanced) {
-                        GFX.check()
-                        isInstanced[index] = instanced
-                        glVertexAttribDivisor(index, instanceDivisor)
-                        GFX.check()
-                    }
-                    glEnableVertexAttribArray(index)
-                }
-            }
+            createVAO(shader, instanced)
         } else {
             glBindVertexArray(vao)
         }
@@ -107,7 +115,7 @@ abstract class Buffer(val attributes: List<Attribute>, val stride: Int, val usag
     open fun draw(shader: Shader) = draw(shader, drawMode)
     open fun draw(shader: Shader, mode: Int) {
         bind(shader)
-        if(drawLength > 0){
+        if (drawLength > 0) {
             draw(mode, 0, drawLength)
             unbind()
             GFX.check()
@@ -143,11 +151,11 @@ abstract class Buffer(val attributes: List<Attribute>, val stride: Int, val usag
         }
     }
 
-    fun draw(first: Int, length: Int) {
-        glDrawArrays(drawMode, first, length)
+    open fun draw(first: Int, length: Int) {
+        draw(drawMode, first, length)
     }
 
-    fun draw(mode: Int, first: Int, length: Int) {
+    open fun draw(mode: Int, first: Int, length: Int) {
         glDrawArrays(mode, first, length)
     }
 
@@ -173,7 +181,7 @@ abstract class Buffer(val attributes: List<Attribute>, val stride: Int, val usag
         }
 
         private val LOGGER = LogManager.getLogger(Buffer::class.java)
-        private val isInstanced = BooleanArray(128)
+        val isInstanced = BooleanArray(128)
     }
 
 }

@@ -2,15 +2,14 @@ package me.anno.gpu
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.shader.BaseShader
-import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Filtering
+import me.anno.mesh.assimp.AnimGameItem
 import me.anno.mesh.fbx.model.FBXShader
 import me.anno.objects.effects.MaskType
 import me.anno.objects.effects.types.GLSLLib
 import me.anno.objects.modes.UVProjection
 import me.anno.studio.rems.Scene.noiseFunc
 import me.anno.utils.Clock
-import org.lwjgl.opengl.GL20
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
@@ -38,6 +37,7 @@ object ShaderLib {
     lateinit var shader3DGaussianBlur: BaseShader
     lateinit var shader3DBoxBlur: BaseShader
     lateinit var shaderObjMtl: BaseShader
+    lateinit var shaderAssimp: BaseShader
     lateinit var shaderFBX: BaseShader
     lateinit var copyShader: BaseShader
 
@@ -780,6 +780,52 @@ object ShaderLib {
                     "   float finalAlpha = color.a;\n" +
                     "}", listOf("tex")
         )
+
+        shaderAssimp = createShaderPlus(
+            "assimp",
+            v3DBase +
+                    "a3 coords;\n" +
+                    "a2 uvs;\n" +
+                    "a3 normals;\n" +
+                    "a4 colors;\n" +
+                    "a4 weights;\n" +
+                    "ai4 indices;\n" +
+                    "uniform float hasAnimation;\n" +
+                    "uniform mat4x3 jointTransforms[${AnimGameItem.maxBones}];\n" +
+                    "void main(){\n" +
+                    "   localPosition = coords;\n" +
+                    "   normal = normals;\n" +
+                    "   if(hasAnimation > 0.5){\n" +
+                    "       mat4x3 jointMat;\n" +
+                    "       jointMat  = jointTransforms[indices.x];// * weights.x;\n" +
+                    //"       jointMat += jointTransforms[indices.y] * weights.y;\n" +
+                    //"       jointMat += jointTransforms[indices.z] * weights.z;\n" +
+                    //"       jointMat += jointTransforms[indices.w] * weights.w;\n" +
+                    // "       localPosition = jointMat * vec4(localPosition, 1.0);\n" +
+                    // "       normal = jointMat * vec4(normal, 0.0);\n" +
+                    "   }" +
+                    "   gl_Position = transform * vec4(localPosition, 1.0);\n" +
+                    "   uv = uvs;\n" +
+                    "   normal = normals;\n" +
+                    "   weight = weights;\n" +
+                    "   vColor = colors;\n" +
+                    positionPostProcessing +
+                    "}", y3D + "" +
+                    "varying vec3 normal;\n" +
+                    "varying vec4 weight;\n" +
+                    "varying vec4 vColor;\n", "" +
+                    "uniform sampler2D tex;\n" +
+                    getTextureLib +
+                    getColorForceFieldLib +
+                    "void main(){\n" +
+                    "   vec4 color = vColor * getTexture(tex, uv);\n" +
+                    "   color.rgb *= 0.5 + 0.5 * dot(vec3(-1.0, 0.0, 0.0), normal);\n" +
+                    "   if($hasForceFieldColor) color *= getForceFieldColor();\n" +
+                    "   vec3 finalColor = color.rgb;\n" +
+                    "   float finalAlpha = color.a;\n" +
+                    "}", listOf("tex")
+        )
+        shaderAssimp.glslVersion = 330
 
         // create the fbx shader
         shaderFBX = FBXShader.getShader(v3DBase, positionPostProcessing, y3D, getTextureLib)

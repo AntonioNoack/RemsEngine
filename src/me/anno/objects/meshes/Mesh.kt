@@ -12,9 +12,7 @@ import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.language.translation.Dict
 import me.anno.mesh.assimp.AnimatedMeshesLoader
-import me.anno.mesh.gltf.ExternalCameraImpl
 import me.anno.mesh.gltf.GltfLogger
-import me.anno.mesh.gltf.GltfViewerLwjgl
 import me.anno.objects.GFXTransform
 import me.anno.objects.Transform
 import me.anno.ui.base.groups.PanelListY
@@ -184,7 +182,9 @@ class Mesh(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
                         }
                     } else super.onDraw(stack, time, color)
 
-                }*/
+                }
+                // assimp can load gltf files <3
+                // -> we can give up/remove jGLTF
                 "gltf", "glb" -> {
                     val data = loadModel(file, "Mesh-GLTF", {
 
@@ -204,7 +204,7 @@ class Mesh(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
                         }
                     } else super.onDraw(stack, time, color)
 
-                }
+                }*/
                 else -> {
 
                     // load the 3D model
@@ -213,14 +213,14 @@ class Mesh(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
                         // assume it's obj first...
                         val reader = AnimatedMeshesLoader()
                         val meshes = reader.load(file.toString(), file.getParent().toString())
-                        meshData.assimpMeshes = meshes
-                    }) { it.assimpMeshes }
+                        meshData.assimpModel = meshes
+                    }) { it.assimpModel }
 
-                    if (data?.assimpMeshes != null) {
+                    if (data?.assimpModel != null) {
                         stack.next {
                             if (powerOf10Correction != 0)
                                 stack.scale(pow(10f, powerOf10Correction.toFloat()))
-                            data.drawAssimp(stack, time, color)
+                            data.drawAssimp(this, stack, time, color, animationIndex[time])
                         }
                     } else super.onDraw(stack, time, color)
 
