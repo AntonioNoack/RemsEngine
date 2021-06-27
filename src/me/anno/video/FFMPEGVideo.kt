@@ -5,10 +5,7 @@ import me.anno.io.FileReference
 import me.anno.utils.ShutdownException
 import me.anno.utils.Sleep.waitUntil
 import me.anno.video.IsFFMPEGOnly.isFFMPEGOnlyExtension
-import me.anno.video.formats.ARGBFrame
-import me.anno.video.formats.BGRAFrame
-import me.anno.video.formats.I420Frame
-import me.anno.video.formats.RGBFrame
+import me.anno.video.formats.*
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
 import java.io.InputStream
@@ -67,6 +64,7 @@ class FFMPEGVideo(
                     "ARGB" -> ARGBFrame(w, h)
                     "BGRA" -> BGRAFrame(w, h)
                     "RGB" -> RGBFrame(w, h)
+                    "BGR" -> BGRFrame(w, h)
                     // "Y4" -> YUVAFrame(w, h)
                     else -> throw RuntimeException("Unsupported Codec $codec for $file")
                 }

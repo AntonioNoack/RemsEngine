@@ -4,8 +4,8 @@ import com.drew.imaging.ImageMetadataReader
 import com.drew.metadata.exif.ExifIFD0Directory
 import me.anno.cache.instances.VideoCache.getVideoFrame
 import me.anno.gpu.GFX
-import me.anno.gpu.drawing.GFXx3D.shader3DUniforms
 import me.anno.gpu.RenderState.useFrame
+import me.anno.gpu.drawing.GFXx3D.shader3DUniforms
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.Renderer
@@ -13,7 +13,6 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.HDRImage
-import me.anno.image.tga.TargaImage
 import me.anno.io.FileReference
 import me.anno.objects.Video.Companion.imageTimeout
 import me.anno.objects.modes.RotateJPEG
@@ -116,10 +115,7 @@ class ImageData(file: FileReference) : ICacheData {
                     texture.create(img.pixelBuffer, img.byteBuffer)
                 }
             }
-            "webp" -> {
-                useFFMPEG(file)
-            }
-            "tga" -> {
+            /*"tga" -> {
                 val image = TargaImage.decode(file.inputStream().buffered())
                 texture.w = image.width
                 texture.h = image.height
@@ -130,7 +126,8 @@ class ImageData(file: FileReference) : ICacheData {
                         texture.createRGB(image.pixels)
                     }
                 }
-            }
+            }*/
+            "webp", "tga" -> useFFMPEG(file)
             else -> {
                 // read metadata information from jpegs
                 // read the exif rotation header

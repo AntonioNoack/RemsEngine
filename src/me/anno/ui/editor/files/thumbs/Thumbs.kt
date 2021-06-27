@@ -329,7 +329,7 @@ object Thumbs {
                             dstFile, size, callback
                         )
                     }
-                    "webp" -> generateVideoFrame(srcFile, dstFile, size, callback, 0.0)
+                    "webp", "tga" -> generateVideoFrame(srcFile, dstFile, size, callback, 0.0)
                     else -> {
                         val image = try {
                             ImageIO.read(srcFile.file)!!
