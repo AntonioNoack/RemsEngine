@@ -9,13 +9,4 @@ class Node(val name: String, val parentNode: Node?, val transformation: Matrix4f
         children.add(child)
     }
 
-    fun findByName(name: String): Node? {
-        if (this.name == name) return this
-        for (child in children) {
-            val found = child.findByName(name)
-            if (found != null) return found
-        }
-        return null
-    }
-
 }

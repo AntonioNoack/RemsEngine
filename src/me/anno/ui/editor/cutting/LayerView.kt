@@ -32,7 +32,8 @@ import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.dragging.Draggable
 import me.anno.ui.editor.TimelinePanel
-import me.anno.ui.editor.files.ImportFromFile.addChildFromFile
+import me.anno.ui.editor.files.FileContentImporter
+import me.anno.studio.rems.ui.TransformFileImporter.addChildFromFile
 import me.anno.ui.style.Style
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.mix
@@ -388,7 +389,7 @@ class LayerView(val timelineSlot: Int, style: Style) : TimelinePanel(style) {
     override fun onPasteFiles(x: Float, y: Float, files: List<FileReference>) {
         val time = getTimeAt(x)
         files.forEach { file ->
-            addChildFromFile(root, file, null, true) {
+            addChildFromFile(root, file, FileContentImporter.SoftLinkMode.ASK, true) {
                 it.timeOffset.value = time
                 it.timelineSlot.value = timelineSlot
             }

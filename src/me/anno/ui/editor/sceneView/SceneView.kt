@@ -47,7 +47,9 @@ import me.anno.studio.rems.Selection.selectedTransform
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.custom.CustomContainer
-import me.anno.ui.editor.files.ImportFromFile.addChildFromFile
+import me.anno.ui.editor.files.FileContentImporter
+import me.anno.studio.rems.ui.TransformFileImporter.addChildFromFile
+import me.anno.studio.rems.ui.TransformTreeView.Companion.zoomToObject
 import me.anno.ui.simple.SimplePanel
 import me.anno.ui.style.Style
 import me.anno.utils.Color.a
@@ -191,7 +193,7 @@ open class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")
         }
     }
 
-    open fun onInteraction(){
+    open fun onInteraction() {
         GFX.lastTouchedCamera = camera
     }
 
@@ -397,7 +399,7 @@ open class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")
         return buffer
     }
 
-    fun resolveClick(clickX: Float, clickY: Float, width: Int, height: Int) {
+    fun resolveClick(clickX: Float, clickY: Float, width: Int, height: Int, callback: (Transform?) -> Unit) {
 
         val camera = camera
         GFX.check()
@@ -446,11 +448,13 @@ open class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")
                     transform = nullCamera
                 }
             }
-            selectTransform(transform)
-        } else selectTransform(null)
+            callback(transform)
+            // selectTransform(transform)
+        } else {
+            callback(null)
+            // selectTransform(null)
+        }
         GFX.check()
-
-        invalidateDrawing()
 
     }
 
@@ -807,6 +811,14 @@ open class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")
         }
     }
 
+    fun resolveClick(x: Float, y: Float, onClick: (Transform?) -> Unit) {
+        val w = stableSize.stableWidth
+        val h = stableSize.stableHeight
+        addGPUTask(w, h) {
+            resolveClick(x, y, w, h, onClick)
+        }
+    }
+
     override fun onDoubleClick(x: Float, y: Float, button: MouseButton) {
         onInteraction()
         invalidateDrawing()
@@ -819,7 +831,13 @@ open class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")
                     return
                 }
             }
-            goFullscreen()
+            // goFullscreen()
+            // zoom on that object instead
+            resolveClick(x, y) {
+                if (it != null) {
+                    zoomToObject(it)
+                }
+            }
         }
     }
 
@@ -839,10 +857,9 @@ open class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")
             }
 
             if (!isProcessed && wasInFocus) {
-                addGPUTask(w, h) {
-                    val w = stableSize.stableWidth
-                    val h = stableSize.stableHeight
-                    resolveClick(x, y, w, h)
+                resolveClick(x, y) {
+                    selectTransform(it)
+                    invalidateDrawing()
                 }
             }
         }
@@ -891,7 +908,7 @@ open class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")
     }
 
     override fun onPasteFiles(x: Float, y: Float, files: List<FileReference>) {
-        files.forEach { file -> addChildFromFile(root, file, null, true) { } }
+        files.forEach { file -> addChildFromFile(root, file, FileContentImporter.SoftLinkMode.ASK, true) { } }
         invalidateDrawing()
     }
 

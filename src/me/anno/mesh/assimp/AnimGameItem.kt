@@ -1,5 +1,6 @@
 package me.anno.mesh.assimp
 
+import me.anno.ecs.Entity
 import me.anno.gpu.GFX
 import me.anno.gpu.shader.Shader
 import me.anno.utils.Maths
@@ -8,34 +9,53 @@ import org.lwjgl.opengl.GL21
 import org.lwjgl.system.MemoryUtil
 import kotlin.math.min
 
-class AnimGameItem(val meshes: Array<AssimpMesh>, val animations: Map<String, Animation>) {
+class AnimGameItem(
+    val hierarchy: Entity,
+    val animations: Map<String, Animation>
+) {
 
     fun uploadJointMatrices(shader: Shader, animation: Animation, time: Double) {
         val location = shader.getUniformLocation("jointTransforms")
         if (location < 0) return
         // most times the duration is specified in milli seconds
         val frameCount = animation.frames.size
-        var frameIndex = (time * frameCount / animation.duration).toInt() % frameCount
-        if (frameIndex < 0) frameIndex += frameCount
-        val frame = animation.frames[frameIndex]
-        val matrices = frame.matrices
-        // todo interpolate frames
+        var frameIndexFloat = ((time * frameCount / animation.duration) % frameCount).toFloat()
+        if (frameIndexFloat < 0) frameIndexFloat += frameCount
+        val frameIndex0 = frameIndexFloat.toInt()
+        val frameIndex1 = (frameIndex0 + 1) % frameCount
+        val frames = animation.frames
+        val frame0 = frames[frameIndex0]
+        val frame1 = frames[frameIndex1]
+        val fraction = frameIndexFloat - frameIndex0
+        val invFraction = 1f - fraction
+        val matrices0 = frame0.matrices
+        val matrices1 = frame1.matrices
         shader.use()
-        val boneCount = min(matrices.size, maxBones)
-        matrixBuffer.limit(12 * boneCount)
+        val boneCount = min(matrices0.size, maxBones)
+        matrixBuffer.limit(matrixSize * boneCount)
         for (index in 0 until boneCount) {
-            val matrix = matrices[index]
-            matrix.identity()
-            matrixBuffer.position(index * 12)
-            matrix.get(matrixBuffer)
+            val matrix0 = matrices0[index]
+            val matrix1 = matrices1[index]
+            tmpBuffer.position(0)
+            val offset = index * matrixSize
+            matrixBuffer.position(offset)
+            matrix0.get(matrixBuffer)
+            matrix1.get(tmpBuffer)
+            // matrix interpolation
+            for (i in 0 until matrixSize) {
+                val j = offset + i
+                matrixBuffer.put(j, matrixBuffer[j] * invFraction + fraction * tmpBuffer[i])
+            }
         }
         matrixBuffer.position(0)
         GL21.glUniformMatrix4x3fv(location, false, matrixBuffer)
     }
 
     companion object {
-        val maxBones = Maths.clamp((GFX.maxVertexUniforms - (16 * 3)) / 16, 4, 256)
-        val matrixBuffer = MemoryUtil.memAllocFloat(12 * maxBones)
+        val matrixSize = 12
+        val maxBones = Maths.clamp((GFX.maxVertexUniforms - (matrixSize * 3)) / matrixSize, 4, 256)
+        val matrixBuffer = MemoryUtil.memAllocFloat(matrixSize * maxBones)
+        val tmpBuffer = MemoryUtil.memAllocFloat(matrixSize)
         private val LOGGER = LogManager.getLogger(AnimGameItem::class)
     }
 

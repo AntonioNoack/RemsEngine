@@ -107,7 +107,7 @@ class Timer(parent: Transform? = null): Text("", parent) {
     }
 
     override fun getClassName() = "Timer"
-    override fun getDefaultDisplayName() = Dict["Timer", "obj.timer"]
-    override fun getSymbol() = DefaultConfig["ui.symbol.timer", "\uD83D\uDD51"]
+    override val defaultDisplayName = Dict["Timer", "obj.timer"]
+    override val symbol = DefaultConfig["ui.symbol.timer", "\uD83D\uDD51"]
 
 }

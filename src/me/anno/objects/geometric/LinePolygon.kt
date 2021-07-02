@@ -36,7 +36,7 @@ class LinePolygon(parent: Transform? = null) : GFXTransform(parent) {
     // todo if closed, modulo positions make sense, so a line could swirl around multiple times
 
     override fun getClassName(): String = "LinePolygon"
-    override fun getDefaultDisplayName(): String = "Line"
+    override val defaultDisplayName: String = "Line"
 
     val startOffset = AnimatedProperty.float(0f)
     val endOffset = AnimatedProperty.float(0f)

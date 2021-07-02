@@ -10,11 +10,11 @@ import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.studio.rems.RemsStudio.root
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.scrolling.ScrollPanelX
-import me.anno.ui.editor.files.ImportFromFile.addChildFromFile
+import me.anno.ui.editor.files.FileContentImporter
+import me.anno.studio.rems.ui.TransformFileImporter.addChildFromFile
 import me.anno.ui.editor.sceneView.SceneTabData
 import me.anno.utils.types.Lists.getOrPrevious
 import org.apache.logging.log4j.LogManager
-import java.io.File
 
 // may there only be once instance? yes
 object SceneTabs : ScrollPanelX(DefaultConfig.style) {
@@ -33,7 +33,7 @@ object SceneTabs : ScrollPanelX(DefaultConfig.style) {
             open(opened)
         } else {
             GFX.addGPUTask(1) {
-                addChildFromFile(null, file, false, false) { transform ->
+                addChildFromFile(null, file, FileContentImporter.SoftLinkMode.COPY_CONTENT, false) { transform ->
                     var file2 = file
                     if (!file2.extension.equals("json", true)) {
                         file2 = FileReference(file2.file.parentFile, file2.name + ".json")

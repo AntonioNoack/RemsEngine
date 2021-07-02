@@ -3,6 +3,7 @@ package me.anno.ecs
 import me.anno.io.NamedSaveable
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
+import java.lang.StringBuilder
 
 abstract class Component : NamedSaveable() {
 
@@ -32,5 +33,16 @@ abstract class Component : NamedSaveable() {
 
     // todo nice ui inputs for array types and maps
 
+    override fun toString(): String {
+        return "${getClassName()}('$name')"
+    }
+
+    fun toString(depth: Int): StringBuilder {
+        val builder = StringBuilder()
+        for(i in 0 until depth) builder.append('\t')
+        builder.append(toString())
+        builder.append('\n')
+        return builder
+    }
 
 }

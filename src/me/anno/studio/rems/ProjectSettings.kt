@@ -12,7 +12,7 @@ import me.anno.ui.style.Style
 
 object ProjectSettings : Transform() {
 
-    override fun getDefaultDisplayName(): String = "Project Settings"
+    override val defaultDisplayName: String = "Project Settings"
 
     override fun createInspector(
         list: PanelListY,

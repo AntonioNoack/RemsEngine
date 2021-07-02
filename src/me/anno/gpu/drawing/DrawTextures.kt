@@ -2,6 +2,7 @@ package me.anno.gpu.drawing
 
 import me.anno.gpu.GFX
 import me.anno.gpu.ShaderLib
+import me.anno.gpu.ShaderLib.shader3D
 import me.anno.gpu.shader.ShaderPlus
 import me.anno.gpu.texture.*
 import me.anno.objects.GFXTransform
@@ -56,15 +57,16 @@ object DrawTextures {
         GFX.check()
 
         shader.use()
-        shader.v1("filtering", Filtering.LINEAR.id)
+        GFXTransform.uploadAttractors0(shader)
+        GFXx3D.shader3DUniforms(shader, null, -1)
+        /*shader.v1("filtering", Filtering.LINEAR.id)
         shader.v2("textureDeltaUV", 1f / texture.w, 1f / texture.h)
         shader.m4x4("transform", null)
         shader.v4("tint", 1f)
         shader.v4("tiling", 1f, 1f, 0f, 0f)
         shader.v1("drawMode", ShaderPlus.DrawMode.COLOR.id)
-        shader.v1("uvProjection", UVProjection.Planar.id)
-
-        GFXx2D.disableAdvancedGraphicalFeatures(shader)
+        shader.v1("uvProjection", UVProjection.Planar.id)*/
+        // GFXx2D.disableAdvancedGraphicalFeatures(shader)
 
         texture.bind(0, Filtering.LINEAR, Clamping.CLAMP)
         texture.bindUVCorrection(shader)

@@ -56,8 +56,8 @@ open class Circle(parent: Transform? = null): GFXTransform(parent){
     }
 
     override fun getClassName(): String = "Circle"
-    override fun getDefaultDisplayName() = Dict["Circle", "obj.circle"]
-    override fun getSymbol() = DefaultConfig["ui.style.circle", "◯"]
+    override val defaultDisplayName = Dict["Circle", "obj.circle"]
+    override val symbol = DefaultConfig["ui.style.circle", "◯"]
 
     companion object {
 

@@ -105,8 +105,8 @@ object RenderState {
         val index = framebuffer.size
         xs[index] = 0//xs[index - 1]
         ys[index] = 0//ys[index - 1]
-        ws[index] = buffer?.w ?: GFX.width
-        hs[index] = buffer?.h ?: GFX.height
+        ws[index] = -1
+        hs[index] = -1
         changeSizes[index] = false
         renderers[index] = renderer
         framebuffer.use(buffer, render)

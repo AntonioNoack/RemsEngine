@@ -20,8 +20,8 @@ class EffectColoring: Transform() {
     init { color.set(Vector4f(1f, 0f, 0f, 1f)) }
 
     override fun getClassName() = "EffectColoring"
-    override fun getDefaultDisplayName() = Dict["Effect: Coloring", "obj.effect.coloring"]
-    override fun getSymbol() = DefaultConfig["ui.symbol.fx.coloring", "\uD83C\uDFA8"]
+    override val defaultDisplayName = Dict["Effect: Coloring", "obj.effect.coloring"]
+    override val symbol = DefaultConfig["ui.symbol.fx.coloring", "\uD83C\uDFA8"]
 
     override fun createInspector(
         list: PanelListY,

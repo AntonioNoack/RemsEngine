@@ -1,10 +1,12 @@
 package me.anno.objects.documents.pdf
 
+import me.anno.animation.AnimatedProperty
+import me.anno.animation.Type
 import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.GFX.windowHeight
 import me.anno.gpu.GFX.windowWidth
-import me.anno.gpu.drawing.GFXx3D
 import me.anno.gpu.TextureLib.colorShowTexture
+import me.anno.gpu.drawing.GFXx3D
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.io.FileReference
@@ -12,8 +14,6 @@ import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.GFXTransform
 import me.anno.objects.Transform
-import me.anno.animation.AnimatedProperty
-import me.anno.animation.Type
 import me.anno.objects.documents.SiteSelection.parseSites
 import me.anno.objects.documents.pdf.PDFCache.getTexture
 import me.anno.objects.lists.Element
@@ -53,14 +53,15 @@ open class PDFDocument(var file: FileReference, parent: Transform?) : GFXTransfo
     var editorQuality = 3f
     var renderQuality = 3f
 
-    override fun getDefaultDisplayName(): String {
-        // file can be null
-        return if (file == null || file.name.isBlank2()) "PDF"
-        else file.name
-    }
+    override val defaultDisplayName: String
+        get() {
+            // file can be null
+            return if (file == null || file.name.isBlank2()) "PDF"
+            else file.name
+        }
 
     override fun getClassName(): String = "PDFDocument"
-    override fun getSymbol(): String = "\uD83D\uDDCE"
+    override val symbol: String = "\uD83D\uDDCE"
 
     fun getSelectedSitesList() = parseSites(selectedSites)
 

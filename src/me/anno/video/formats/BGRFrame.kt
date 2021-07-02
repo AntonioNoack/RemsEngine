@@ -9,11 +9,7 @@ import me.anno.video.VFrame
 import java.io.EOFException
 import java.io.InputStream
 
-class BGRFrame(w: Int, h: Int) : VFrame(w, h, -1) {
-
-    private val rgb = Texture2D("rgb-frame", w, h, 1)
-
-    override val isCreated: Boolean get() = rgb.isCreated
+class BGRFrame(w: Int, h: Int) : RGBFrame(w, h) {
 
     override fun load(input: InputStream) {
         val s0 = w * h
@@ -32,21 +28,9 @@ class BGRFrame(w: Int, h: Int) : VFrame(w, h, -1) {
         data.position(0)
         creationLimiter.acquire()
         GFX.addGPUTask(w, h) {
-            rgb.createRGBA(data)
+            rgb.createRGB(data)
             creationLimiter.release()
         }
-    }
-
-    override fun get3DShader() = shader3DRGBA
-    override fun getTextures(): List<Texture2D> = listOf(rgb)
-
-    override fun bind(offset: Int, nearestFiltering: GPUFiltering, clamping: Clamping) {
-        rgb.bind(offset, nearestFiltering, clamping)
-    }
-
-    override fun destroy() {
-        super.destroy()
-        rgb.destroy()
     }
 
 }

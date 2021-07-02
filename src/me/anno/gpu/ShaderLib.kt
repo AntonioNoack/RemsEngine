@@ -781,6 +781,7 @@ object ShaderLib {
                     "}", listOf("tex")
         )
 
+        val maxBones = AnimGameItem.maxBones
         shaderAssimp = createShaderPlus(
             "assimp",
             v3DBase +
@@ -791,18 +792,18 @@ object ShaderLib {
                     "a4 weights;\n" +
                     "ai4 indices;\n" +
                     "uniform float hasAnimation;\n" +
-                    "uniform mat4x3 jointTransforms[${AnimGameItem.maxBones}];\n" +
+                    "uniform mat4x3 jointTransforms[$maxBones];\n" +
                     "void main(){\n" +
                     "   localPosition = coords;\n" +
                     "   normal = normals;\n" +
                     "   if(hasAnimation > 0.5){\n" +
                     "       mat4x3 jointMat;\n" +
-                    "       jointMat  = jointTransforms[indices.x];// * weights.x;\n" +
-                    //"       jointMat += jointTransforms[indices.y] * weights.y;\n" +
-                    //"       jointMat += jointTransforms[indices.z] * weights.z;\n" +
-                    //"       jointMat += jointTransforms[indices.w] * weights.w;\n" +
-                    // "       localPosition = jointMat * vec4(localPosition, 1.0);\n" +
-                    // "       normal = jointMat * vec4(normal, 0.0);\n" +
+                    "       jointMat  = jointTransforms[indices.x] * weights.x;\n" +
+                    "       if(weights.y > 0){ jointMat += jointTransforms[indices.y] * weights.y;\n" +
+                    "       if(weights.z > 0){ jointMat += jointTransforms[indices.z] * weights.z;\n" +
+                    "       if(weights.w > 0){ jointMat += jointTransforms[indices.w] * weights.w; }}}\n" +
+                    "       localPosition = jointMat * vec4(localPosition, 1.0);\n" +
+                    "       normal = jointMat * vec4(normal, 0.0);\n" +
                     "   }" +
                     "   gl_Position = transform * vec4(localPosition, 1.0);\n" +
                     "   uv = uvs;\n" +

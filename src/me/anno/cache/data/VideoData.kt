@@ -6,6 +6,7 @@ import me.anno.io.FileReference
 import me.anno.studio.rems.RemsStudio.gfxSettings
 import me.anno.video.FFMPEGMetadata
 import me.anno.video.FFMPEGStream
+import kotlin.math.max
 
 class VideoData(
     val file: FileReference, val w: Int, val h: Int,
@@ -17,7 +18,7 @@ class VideoData(
     init {
         val meta = FFMPEGMetadata.getMeta(file, false)!!
         val frame0 = bufferIndex * bufferLength
-        if(frame0 <=-bufferLength || frame0 >= meta.videoFrameCount)
+        if (frame0 <= -bufferLength || frame0 >= max(1, meta.videoFrameCount))
             throw IllegalArgumentException("Access of frames is out of bounds: $frame0/${meta.videoFrameCount}")
     }
 

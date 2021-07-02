@@ -9,9 +9,9 @@ import me.anno.video.VFrame
 import java.io.EOFException
 import java.io.InputStream
 
-class RGBFrame(w: Int, h: Int) : VFrame(w, h, -1) {
+open class RGBFrame(w: Int, h: Int) : VFrame(w, h, -1) {
 
-    private val rgb = Texture2D("rgb-frame", w, h, 1)
+    val rgb = Texture2D("rgb-frame", w, h, 1)
 
     override val isCreated: Boolean get() = rgb.isCreated
 
@@ -32,7 +32,7 @@ class RGBFrame(w: Int, h: Int) : VFrame(w, h, -1) {
         data.position(0)
         creationLimiter.acquire()
         GFX.addGPUTask(w, h) {
-            rgb.createRGBA(data)
+            rgb.createRGB(data)
             creationLimiter.release()
         }
     }

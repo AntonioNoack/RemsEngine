@@ -151,8 +151,8 @@ open class Polygon(parent: Transform? = null) : GFXTransform(parent) {
     }
 
     override fun getClassName() = "Polygon"
-    override fun getDefaultDisplayName() = Dict["Polygon", "obj.polygon"]
-    override fun getSymbol() =
+    override val defaultDisplayName = Dict["Polygon", "obj.polygon"]
+    override val symbol =
         if (vertexCount.isAnimated) DefaultConfig["ui.symbol.polygon.any", "⭐"]
         else when (vertexCount[0.0]) {
             3 -> DefaultConfig["ui.symbol.polygon.3", "△"]

@@ -131,6 +131,7 @@ object FontManager {
             val font2 = getFont(key)
             val averageFontSize = getAvgFontSize(key.fontSizeIndex())
             val texture = font2.generateTexture(key.text, averageFontSize, key.widthLimit)
+            if(texture == null) LOGGER.warn("Texture for '$key' was null")
             texture ?: TextureLib.nullTexture
         } as? ITexture2D
     }

@@ -4,12 +4,11 @@ import me.anno.animation.AnimatedProperty
 import me.anno.animation.Type
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
-import me.anno.gpu.GFX.glThread
 import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.GFX.toRadians
-import me.anno.gpu.drawing.GFXx3D.draw3DCircle
 import me.anno.gpu.RenderState
 import me.anno.gpu.blending.BlendMode
+import me.anno.gpu.drawing.GFXx3D.draw3DCircle
 import me.anno.gpu.shader.ShaderPlus
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
@@ -22,7 +21,6 @@ import me.anno.objects.modes.TransformVisibility
 import me.anno.objects.particles.ParticleSystem
 import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.RemsStudio.editorTime
-import me.anno.studio.rems.RemsStudio.root
 import me.anno.studio.rems.Scene
 import me.anno.studio.rems.Selection.select
 import me.anno.studio.rems.Selection.selectTransform
@@ -41,6 +39,7 @@ import me.anno.ui.input.TextInputML
 import me.anno.ui.style.Style
 import me.anno.utils.Color.mulARGB
 import me.anno.utils.Maths.clamp
+import me.anno.utils.structures.Hierarchical
 import me.anno.utils.structures.ValueWithDefault
 import me.anno.utils.structures.ValueWithDefault.Companion.writeMaybe
 import me.anno.utils.structures.ValueWithDefaultFunc
@@ -54,17 +53,27 @@ import org.joml.*
 import java.net.URL
 import java.util.concurrent.atomic.AtomicInteger
 
-open class Transform(var parent: Transform? = null) : Saveable(),
-    Inspectable {
+open class Transform() : Saveable(),
+    Inspectable, Hierarchical<Transform> {
 
     // todo generally "play" the animation of a single transform for testing purposes?
     // todo maybe only for video or audio? for audio it would be simple :)
     // useful for audio, video, particle systems, generally animations
     // only available if the rest is stopped? yes.
 
-    init {
-        parent?.addChild(this)
+    final override var parent: Transform? = null
+
+    constructor(parent: Transform?) : this() {
+        this.parent = parent
+        parent?.children?.add(this)
     }
+
+    override val symbol: String
+        get() = DefaultConfig["ui.symbol.folder", "\uD83D\uDCC1"]
+    override val description: String
+        get() = ""
+    override val defaultDisplayName: String
+        get() = if (getClassName() == "Transform") Dict["Folder", "obj.folder"] else getClassName()
 
     val clickId = nextClickId.incrementAndGet()
 
@@ -98,8 +107,8 @@ open class Transform(var parent: Transform? = null) : Saveable(),
     var indexInParent = 0
     var drawnChildCount = 0
 
-    var nameI = ValueWithDefaultFunc { getDefaultDisplayName() }
-    var name: String
+    var nameI = ValueWithDefaultFunc { defaultDisplayName }
+    override var name: String
         get() = nameI.value
         set(value) {
             val v = value.trim()
@@ -118,19 +127,16 @@ open class Transform(var parent: Transform? = null) : Saveable(),
 
     open fun getDocumentationURL(): URL? = null
 
-    open fun getSymbol() = DefaultConfig["ui.symbol.folder", "\uD83D\uDCC1"]
-    open fun getDefaultDisplayName() =
-        if (getClassName() == "Transform") Dict["Folder", "obj.folder"] else getClassName()
-
     open fun isVisible(localTime: Double) = true
 
     val rightPointingTriangle = "▶"
     val bottomPointingTriangle = "▼"
     val folder = "\uD83D\uDCC1"
 
-    val children = ArrayList<Transform>()
+    override val children = ArrayList<Transform>()
+
     val isCollapsedI = ValueWithDefault(false)
-    var isCollapsed: Boolean
+    override var isCollapsed: Boolean
         get() = isCollapsedI.value
         set(value) {
             isCollapsedI.value = value
@@ -572,7 +578,10 @@ open class Transform(var parent: Transform? = null) : Saveable(),
         }
     }
 
-    fun contains(t: Transform): Boolean {
+    override fun getClassName(): String = "Transform"
+    override fun getApproxSize(): Int = 1024 + listOfAll.count()
+
+    /*fun contains(t: Transform): Boolean {
         if (t === this) return true
         if (children != null) {// can be null on init
             for (child in children) {
@@ -580,26 +589,23 @@ open class Transform(var parent: Transform? = null) : Saveable(),
             }
         }
         return false
-    }
+    }*/
 
-    override fun getClassName(): String = "Transform"
-    override fun getApproxSize(): Int = 1024 + listOfAll.count()
-
-    fun addBefore(child: Transform) {
+    /*override fun addBefore(child: Transform) {
         val p = parent!!
         val index = p.children.indexOf(this)
         p.children.add(index, child)
         child.parent = p
     }
 
-    fun addAfter(child: Transform) {
+    override fun addAfter(child: Transform) {
         val p = parent!!
         val index = p.children.indexOf(this)
         p.children.add(index + 1, child)
         child.parent = p
     }
 
-    fun addChild(child: Transform) {
+    override fun addChild(child: Transform) {
         if (
             glThread != null &&
             Thread.currentThread() != glThread &&
@@ -611,10 +617,10 @@ open class Transform(var parent: Transform? = null) : Saveable(),
         children += child
     }
 
-    fun removeChild(child: Transform) {
+    override fun removeChild(child: Transform) {
         child.parent = null
         children.remove(child)
-    }
+    }*/
 
     fun stringify(): String {
         val myParent = parent
@@ -673,10 +679,10 @@ open class Transform(var parent: Transform? = null) : Saveable(),
         return parentTransform to localTime
     }
 
-    fun removeFromParent() {
+    /*fun removeFromParent() {
         parent?.removeChild(this)
         parent = null
-    }
+    }*/
 
     override fun isDefaultValue() = false
 
@@ -751,7 +757,7 @@ open class Transform(var parent: Transform? = null) : Saveable(),
     }
 
     open fun onDestroy() {}
-    open fun destroy() {
+    override fun destroy() {
         if (selectedTransform === this) {
             selectTransform(null)
         }
@@ -759,13 +765,13 @@ open class Transform(var parent: Transform? = null) : Saveable(),
         onDestroy()
     }
 
-    val listOfAll: Sequence<Transform>
+    /*val listOfAll: Sequence<Transform>
         get() = sequence {
             yield(this@Transform)
             children.forEach { child ->
                 yieldAll(child.listOfAll)
             }
-        }
+        }*/
 
     /**
      * return from this to root all parents

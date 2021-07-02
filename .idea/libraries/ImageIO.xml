@@ -1,0 +1,30 @@
+<component name="libraryTable">
+  <library name="ImageIO">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/imageio/common-image-3.7.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/imageio/common-io-3.7.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/imageio/common-lang-3.7.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/imageio/imageio-batik-3.7.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/imageio/imageio-bmp-3.7.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/imageio/imageio-core-3.7.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/imageio/imageio-metadata-3.7.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/imageio/imageio-tga-3.7.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/imageio/imageio-tiff-3.7.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/imageio/imageio-webp-3.7.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/imageio/imageio-xwd-3.7.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/imageio/imageio-hdr-3.7.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/imageio/imageio-icns-3.7.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/imageio/imageio-iff-3.7.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/imageio/imageio-jpeg-3.7.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/imageio/imageio-pcx-3.7.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/imageio/imageio-pict-3.7.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/imageio/imageio-pnm-3.7.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/imageio/imageio-psd-3.7.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/imageio/imageio-sgi-3.7.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/imageio/imageio-thumbsdb-3.7.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/imageio/batik-all-1.14.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

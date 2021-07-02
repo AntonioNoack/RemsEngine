@@ -2,35 +2,39 @@ package me.anno.objects.forces
 
 import me.anno.config.DefaultConfig
 import me.anno.language.translation.Dict
-import me.anno.objects.inspectable.InspectableAnimProperty
 import me.anno.objects.Transform
+import me.anno.objects.forces.impl.*
+import me.anno.objects.inspectable.InspectableAnimProperty
 import me.anno.objects.models.ArrowModel
 import me.anno.objects.particles.Particle
 import me.anno.objects.particles.ParticleState
 import me.anno.objects.particles.ParticleSystem
-import me.anno.objects.forces.impl.*
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.sceneView.Grid
 import me.anno.ui.editor.stacked.Option
 import me.anno.ui.style.Style
-import me.anno.utils.types.Floats.toRadians
 import me.anno.utils.Maths
+import me.anno.utils.types.Floats.toRadians
 import org.joml.*
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.floor
 
-abstract class ForceField(val displayName: String, val description: String) : Transform() {
+abstract class ForceField(val displayName: String, val descriptionI: String) : Transform() {
 
-    constructor(displayName: String, description: String, dictSubPath: String):
+    constructor(displayName: String, description: String, dictSubPath: String) :
             this(Dict[displayName, "obj.force.$dictSubPath"], Dict[description, "obj.force.$dictSubPath.desc"])
 
     val strength = scale
 
-    override fun getSymbol() = DefaultConfig["ui.symbol.forceField", "⇶"]
-    override fun getDefaultDisplayName(): String = displayName
+    override val symbol: String
+        get() = DefaultConfig["ui.symbol.forceField", "⇶"]
+    override val defaultDisplayName: String
+        get() = displayName
+    override val description: String
+        get() = descriptionI
 
     override fun isDefaultValue() = false
     override fun getApproxSize() = 25
@@ -71,7 +75,7 @@ abstract class ForceField(val displayName: String, val description: String) : Tr
         val system = parent as? ParticleSystem ?: return
         val stepSize = system.simulationStep
         val t0 = System.nanoTime()
-        for(particle in system.particles){
+        for (particle in system.particles) {
             val opacity = particle.opacity * particle.getLifeOpacity(time, stepSize, 0.5, 0.5).toFloat()
             if (opacity > 0f) {
                 val index = (time - particle.birthTime) / stepSize
@@ -87,7 +91,7 @@ abstract class ForceField(val displayName: String, val description: String) : Tr
                     )
                 }
                 val t1 = System.nanoTime()
-                if(abs(t1-t0) > 10_000_000) break // spend at max 10ms here
+                if (abs(t1 - t0) > 10_000_000) break // spend at max 10ms here
             }
         }
         stack.pushMatrix()
@@ -98,12 +102,12 @@ abstract class ForceField(val displayName: String, val description: String) : Tr
         stack: Matrix4fArrayList, time: Double, color: Vector4fc
     ) {
         val particles = (parent as? ParticleSystem)?.particles?.filter { it.isAlive(time) } ?: return
-        drawPerParticle(stack, time, color) { p , index0, indexF ->
+        drawPerParticle(stack, time, color) { p, index0, indexF ->
             val state0 = p.states.getOrElse(index0) { p.states.last() }
-            val state1 = p.states.getOrElse(index0+1) { p.states.last() }
+            val state1 = p.states.getOrElse(index0 + 1) { p.states.last() }
             val otherParticles = particles.filter { it !== p }
             val force0 = getForce(state0, time, otherParticles)
-            val force = if(state0 === state1){
+            val force = if (state0 === state1) {
                 force0
             } else {
                 val force1 = getForce(state1, time, otherParticles)
@@ -121,7 +125,7 @@ abstract class ForceField(val displayName: String, val description: String) : Tr
         quat.rotateY(rot.y().toRadians())
         quat.rotateX(rot.x().toRadians())
         quat.rotateZ(rot.z().toRadians())
-        return quat.transform(Vector3f(0f,1f,0f))
+        return quat.transform(Vector3f(0f, 1f, 0f))
     }
 
     companion object {

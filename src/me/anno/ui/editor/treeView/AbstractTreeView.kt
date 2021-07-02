@@ -9,20 +9,27 @@ import me.anno.io.FileReference
 import me.anno.objects.Transform
 import me.anno.objects.Transform.Companion.toTransform
 import me.anno.studio.rems.RemsStudio
-import me.anno.studio.rems.RemsStudio.nullCamera
 import me.anno.studio.rems.RemsStudio.root
+import me.anno.studio.rems.Selection
 import me.anno.ui.base.Panel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.scrolling.ScrollPanelXY
-import me.anno.ui.editor.files.ImportFromFile.addChildFromFile
-import me.anno.ui.editor.treeView.TreeViewPanel.Companion.openAddMenu
+import me.anno.ui.editor.files.FileContentImporter
+import me.anno.studio.rems.ui.TransformFileImporter.addChildFromFile
 import me.anno.ui.style.Style
+import me.anno.utils.structures.Hierarchical
+import org.joml.Vector4f
 
 // todo select multiple elements, filter for common properties, and apply them all together :)
 
-class TreeView(style: Style) :
+abstract class AbstractTreeView<V : Hierarchical<V>>(
+    val sources: List<V>,
+    val openAddMenu: (parent: V) -> Unit,
+    val fileContentImporter: FileContentImporter<V>,
+    style: Style
+) :
     ScrollPanelXY(Padding(5), style.getChild("treeView")) {
 
     val list = content as PanelList
@@ -31,25 +38,44 @@ class TreeView(style: Style) :
         padding.top = 16
     }
 
-    val transformByIndex = ArrayList<Transform>()
+    val elementByIndex = ArrayList<V>()
+
+    abstract val selectedTransform: V?
+
+    // Selection.select(element, null)
+    abstract fun selectElement(element: V?)
+
+    // zoomToObject
+    abstract fun focusOnElement(element: V)
+
+    fun selectElementMaybe(element: V?) {
+        // if already selected, don't inspect that property/driver
+        if (Selection.selectedTransform == element) Selection.clear()
+        selectElement(element)
+    }
+
+    open fun getLocalColor(element: V, dst: Vector4f): Vector4f {
+        dst.set(1f)
+        return dst
+    }
 
     private val inset = style.getSize("fontSize", 12) / 3
     private val collapsedSymbol = DefaultConfig["ui.symbol.collapsed", "\uD83D\uDDBF"]
 
-    private fun addToTree(transform: Transform, depth: Int, index0: Int): Int {
+    private fun addToTree(element: V, depth: Int, index0: Int): Int {
         var index = index0
-        val panel = getOrCreateChild(index++, transform)
+        val panel = getOrCreateChild(index++, element)
         //(panel.parent!!.children[0] as SpacePanel).minW = inset * depth + panel.padding.right
-        val symbol = if (transform.isCollapsed) collapsedSymbol else transform.getSymbol()
-        panel.setText(symbol.trim(), transform.name.ifBlank { transform.getDefaultDisplayName() })
+        val symbol = if (element.isCollapsed) collapsedSymbol else element.symbol
+        panel.setText(symbol.trim(), element.name.ifBlank { element.defaultDisplayName })
         val padding = panel.padding
         val left = inset * depth + padding.right
-        if(padding.left != left){
+        if (padding.left != left) {
             padding.left = left
             invalidateLayout()
         }
-        if (!transform.isCollapsed) {
-            val children = transform.children
+        if (!element.isCollapsed) {
+            val children = element.children
             for (child in children) {
                 index = addToTree(child, depth + 1, index)
             }
@@ -59,8 +85,10 @@ class TreeView(style: Style) :
     }
 
     private fun updateTree() {
-        val camIndex = addToTree(nullCamera!!, 0, 0)
-        val index = addToTree(root, 0, camIndex)
+        var index = 0
+        for (element in sources) {
+            index = addToTree(element, 0, index)
+        }
         for (i in index until list.children.size) {
             val child = list.children[i]
             child.visibility = Visibility.GONE
@@ -110,22 +138,23 @@ class TreeView(style: Style) :
 
     override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
         if (button.isRight) {
-            openAddMenu(root)
+            // correct? maybe 😄
+            openAddMenu(sources.last())
         } else super.onMouseClicked(x, y, button, long)
     }
 
     var focused: Panel? = null
     var takenElement: Transform? = null
 
-    fun getOrCreateChild(index: Int, transform0: Transform): TreeViewPanel {
+    fun getOrCreateChild(index: Int, element: V): AbstractTreeViewPanel<*> {
         if (index < list.children.size) {
-            transformByIndex[index] = transform0
-            val panel = list.children[index] as TreeViewPanel
+            elementByIndex[index] = element
+            val panel = list.children[index] as AbstractTreeViewPanel<*>
             panel.visibility = Visibility.VISIBLE
             return panel
         }
-        transformByIndex += transform0
-        val child = TreeViewPanel({ transformByIndex[index] }, style)
+        elementByIndex += element
+        val child = AbstractTreeViewPanel({ elementByIndex[index] }, openAddMenu, fileContentImporter, this, style)
         child.padding.left = 4
         // todo checkbox with custom icons
         list += child
@@ -151,7 +180,7 @@ class TreeView(style: Style) :
     }
 
     override fun onPasteFiles(x: Float, y: Float, files: List<FileReference>) {
-        files.forEach { addChildFromFile(root, it, null, true) {} }
+        files.forEach { addChildFromFile(root, it, FileContentImporter.SoftLinkMode.ASK, true) {} }
     }
 
 }

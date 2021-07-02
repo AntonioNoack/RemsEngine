@@ -1,68 +1,156 @@
 package me.anno.mesh.assimp
 
+import me.anno.ecs.Entity
+import me.anno.io.FileReference
 import me.anno.mesh.assimp.AnimGameItem.Companion.maxBones
+import me.anno.mesh.assimp.AnimatedMeshesLoader2.boneTransform2
+import me.anno.mesh.assimp.AnimatedMeshesLoader2.getDuration
+import me.anno.mesh.assimp.AssimpTree.convert
+import me.anno.utils.OS
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
 import org.joml.Quaternionf
+import org.joml.Vector3d
 import org.lwjgl.assimp.*
 import org.lwjgl.assimp.Assimp.aiImportFile
-import java.util.stream.Collectors
+import java.io.File
+import java.nio.charset.StandardCharsets
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.streams.toList
 
 
-class AnimatedMeshesLoader : StaticMeshesLoader() {
+object AnimatedMeshesLoader : StaticMeshesLoader() {
 
-    companion object {
-        private val LOGGER = LogManager.getLogger(StaticMeshesLoader::class)
-    }
+    // todo also load morph targets
+
+    private val LOGGER = LogManager.getLogger(StaticMeshesLoader::class)
 
     override fun load(resourcePath: String, texturesDir: String?, flags: Int): AnimGameItem {
         val aiScene: AIScene = aiImportFile(resourcePath, flags) ?: throw Exception("Error loading model")
+        val metadata = aiScene.mMetaData()
+        if (metadata != null) {
+            // UnitScaleFactor
+            val keys = metadata.mKeys()
+            val values = metadata.mValues()
+            for (i in 0 until metadata.mNumProperties()) {
+                val key = keys[i].dataString()
+                val valueRaw = values[i]
+                val valueType = valueRaw.mType()
+                val value = when (valueType) {
+                    0 -> valueRaw.mData(1)[0] // bool
+                    1 -> valueRaw.mData(4).int // int
+                    2 -> valueRaw.mData(8).long // long, unsigned
+                    3 -> valueRaw.mData(4).float // float
+                    4 -> {// string
+                        val buff = valueRaw.mData(256)
+                        val length = buff.int
+                        buff.limit(buff.position() + length)
+                        "$length: '${StandardCharsets.UTF_8.decode(buff)}'"
+                    }
+                    5 -> {
+                        // aivector3d
+                        // todo doubles or floats?
+                        val buffer = valueRaw.mData(12 * 8).asDoubleBuffer()
+                        Vector3d(buffer[0], buffer[1], buffer[2])
+                    }
+                    else -> continue
+                }
+                println("metadata $key: $valueType, $value")
+            }
+        }
         val materials = loadMaterials(aiScene, texturesDir)
         val boneList = ArrayList<Bone>()
-        val meshes = loadMeshes(aiScene, materials, boneList)
-        val animations = loadAnimations(aiScene, boneList)
-        LOGGER.info("Found ${meshes.size} meshes and ${animations.size} animations in $resourcePath")
+        val boneMap = HashMap<String, Bone>()
+        val meshes = loadMeshes(aiScene, materials, boneList, boneMap)
+        val animations = loadAnimations(aiScene, boneList, boneMap)
+        val nameFile = File(resourcePath)
+        var name = nameFile.name
+        if (name == "scene.gltf") name = nameFile.parentFile.name
+        FileReference(OS.desktop, "$name-${resourcePath.hashCode()}.txt")
+            .writeText(
+                "" +
+                        "${boneList.map { "${it.name}: ${it.offsetMatrix}" }}\n" +
+                        "$meshes"
+            )
+        // LOGGER.info("Found ${meshes.size} meshes and ${animations.size} animations on ${boneList.size} bones, in $resourcePath")
+        // println(animations)
         return AnimGameItem(meshes, animations)
     }
 
-    fun loadMeshes(aiScene: AIScene, materials: Array<Material>, boneList: ArrayList<Bone>): Array<AssimpMesh> {
+    private fun loadMeshes(
+        aiScene: AIScene,
+        materials: Array<Material>,
+        boneList: ArrayList<Bone>,
+        boneMap: HashMap<String, Bone>
+    ): Entity {
+
         val numMeshes = aiScene.mNumMeshes()
-        val aiMeshes = aiScene.mMeshes()!!
-        return Array(numMeshes) {
-            val aiMesh = AIMesh.create(aiMeshes[it])
-            processMesh(aiMesh, materials, boneList)
-        }
+        val meshes = if (numMeshes > 0) {
+            val aiMeshes = aiScene.mMeshes()!!
+            Array(numMeshes) {
+                val aiMesh = AIMesh.create(aiMeshes[it])
+                processMesh(aiMesh, materials, boneList, boneMap)
+            }
+        } else emptyArray()
+        return buildScene(aiScene, meshes)
+
     }
 
-    fun loadAnimations(aiScene: AIScene, boneList: List<Bone>): Map<String, Animation> {
+    private fun loadAnimations(
+        aiScene: AIScene,
+        boneList: List<Bone>,
+        boneMap: HashMap<String, Bone>
+    ): Map<String, Animation> {
         val root = aiScene.mRootNode()!!
-        val rootNode = buildNodesTree(root, null)
-        val globalInverseTransformation = toMatrix(root.mTransformation()).invert()
-        return processAnimations(
+        // val rootNode = buildNodesTree(root, null)
+        // Unit-Matrix -> walking dae dude is correct
+        // todo the static model of the engine is incorrect as well... we are missing something...
+        val globalInverseTransformation = convert(root.mTransformation()).invert()
+        /*return processAnimations(
             aiScene, boneList, rootNode,
+            globalInverseTransformation
+        )*/
+        return processAnimations2(
+            aiScene, boneList, boneMap, root,
             globalInverseTransformation
         )
     }
 
-    fun buildNodesTree(aiNode: AINode, parentNode: Node?): Node {
-        val nodeName = aiNode.mName().dataString()
-        val node = Node(nodeName, parentNode, toMatrix(aiNode.mTransformation()))
-        val numChildren = aiNode.mNumChildren()
-        if (numChildren > 0) {
-            val aiChildren = aiNode.mChildren()!!
-            for (i in 0 until numChildren) {
-                val aiChildNode = AINode.create(aiChildren[i])
-                val childNode = buildNodesTree(aiChildNode, node)
-                node.addChild(childNode)
+    private fun processAnimations2(
+        aiScene: AIScene, boneList: List<Bone>, boneMap: HashMap<String, Bone>,
+        rootNode: AINode, globalInverseTransformation: Matrix4f
+    ): Map<String, Animation> {
+        // Process all animations
+        val numAnimations = aiScene.mNumAnimations()
+        val animations = HashMap<String, Animation>(numAnimations)
+        val aiAnimations = aiScene.mAnimations()
+        LOGGER.info("loading animations: $numAnimations")
+        for (i in 0 until numAnimations) {
+            val aiAnimation = AIAnimation.create(aiAnimations!![i])
+            val animNodeCache = createAnimationCache(aiAnimation)
+            val maxFrames = calcAnimationMaxFrames(aiAnimation)
+            val interpolation = if (maxFrames == 1) 1 else max(1, 30 / maxFrames)
+            val maxFramesV2 = maxFrames * interpolation
+            val duration0 = getDuration(animNodeCache)
+            val timeScale = duration0 / (maxFramesV2 - 1.0)
+            val frames = Array(maxFramesV2) { frameIndex ->
+                val animatedFrame = AnimatedFrame()
+                boneTransform2(
+                    aiScene, rootNode, frameIndex * timeScale,
+                    animatedFrame.matrices, globalInverseTransformation, boneList, boneMap, animNodeCache
+                )
+                animatedFrame
             }
+            var tps = aiAnimation.mTicksPerSecond()
+            if (tps < 1e-16) tps = 1000.0
+            val duration = aiAnimation.mDuration() / tps
+            val animation = Animation(aiAnimation.mName().dataString(), frames, duration)
+            animations[animation.name] = animation
         }
-        return node
+        return animations
     }
 
-    fun processAnimations(
+    private fun processAnimations(
         aiScene: AIScene, boneList: List<Bone>,
         rootNode: Node, globalInverseTransformation: Matrix4f
     ): Map<String, Animation> {
@@ -73,15 +161,15 @@ class AnimatedMeshesLoader : StaticMeshesLoader() {
         LOGGER.info("loading animations: $numAnimations")
         for (i in 0 until numAnimations) {
             val aiAnimation = AIAnimation.create(aiAnimations!![i])
+            val animNodeCache = createAnimationCache(aiAnimation)
             val maxFrames = calcAnimationMaxFrames(aiAnimation)
-            val frames: MutableList<AnimatedFrame> = ArrayList()
-            for (j in 0 until maxFrames) {
+            val frames = Array(maxFrames) { frameIndex ->
                 val animatedFrame = AnimatedFrame()
                 buildFrameMatrices(
-                    aiAnimation, boneList, animatedFrame, j, rootNode,
+                    aiAnimation, animNodeCache, boneList, animatedFrame, frameIndex, rootNode,
                     rootNode.transformation, globalInverseTransformation
                 )
-                frames.add(animatedFrame)
+                animatedFrame
             }
             var tps = aiAnimation.mTicksPerSecond()
             if (tps < 1e-16) tps = 1000.0
@@ -93,26 +181,36 @@ class AnimatedMeshesLoader : StaticMeshesLoader() {
     }
 
     fun buildFrameMatrices(
-        aiAnimation: AIAnimation, boneList: List<Bone>, animatedFrame: AnimatedFrame, frame: Int,
-        node: Node, parentTransformation: Matrix4f, globalInverseTransform: Matrix4f
+        aiAnimation: AIAnimation,
+        animNodeCache: Map<String, AINodeAnim>,
+        bones: List<Bone>,
+        animatedFrame: AnimatedFrame,
+        frame: Int,
+        node: Node,
+        parentTransformation: Matrix4f,
+        globalInverseTransform: Matrix4f
     ) {
         val nodeName = node.name
-        val aiNodeAnim = findAIAnimNode(aiAnimation, nodeName)
-        var nodeTransform: Matrix4f = node.transformation
+        val aiNodeAnim = animNodeCache[nodeName]
+        var nodeTransform = node.transformation
         if (aiNodeAnim != null) {
             nodeTransform = buildNodeTransformationMatrix(aiNodeAnim, frame)
         }
         val nodeGlobalTransform = Matrix4f(parentTransformation).mul(nodeTransform)
-        val affectedBones = boneList.filter { it.name == nodeName }
-        for (bone: Bone in affectedBones) {
+        // todo there probably shouldn't be multiple bones... or can they?...
+        // todo if not, we can use a hashmap, which is n times as fast
+        // todo -> there is, because there is multiple meshes, one for each material...
+        val affectedBones = bones.filter { it.name == nodeName }
+        // if(affectedBones.size > 1) println("filtering nodes for name $nodeName, found ${affectedBones.size} bones, bones: ${bones.map { it.name }}")
+        for (bone in affectedBones) {
             val boneTransform = Matrix4f(globalInverseTransform)
                 .mul(nodeGlobalTransform)
                 .mul(bone.offsetMatrix)
             animatedFrame.setMatrix(bone.id, boneTransform)
         }
-        for (childNode: Node in node.children) {
+        for (childNode in node.children) {
             buildFrameMatrices(
-                aiAnimation, boneList, animatedFrame, frame, childNode, nodeGlobalTransform,
+                aiAnimation, animNodeCache, bones, animatedFrame, frame, childNode, nodeGlobalTransform,
                 globalInverseTransform
             )
         }
@@ -147,18 +245,16 @@ class AnimatedMeshesLoader : StaticMeshesLoader() {
         return nodeTransform
     }
 
-    fun findAIAnimNode(aiAnimation: AIAnimation, nodeName: String): AINodeAnim? {
-        var result: AINodeAnim? = null
+    fun createAnimationCache(aiAnimation: AIAnimation): HashMap<String, AINodeAnim> {
         val numAnimNodes = aiAnimation.mNumChannels()
         val aiChannels = aiAnimation.mChannels()
+        val map = HashMap<String, AINodeAnim>(numAnimNodes)
         for (i in 0 until numAnimNodes) {
             val aiNodeAnim = AINodeAnim.create(aiChannels!![i])
-            if ((nodeName == aiNodeAnim.mNodeName().dataString())) {
-                result = aiNodeAnim
-                break
-            }
+            val name = aiNodeAnim.mNodeName().dataString()
+            map[name] = aiNodeAnim
         }
-        return result
+        return map
     }
 
     fun calcAnimationMaxFrames(aiAnimation: AIAnimation): Int {
@@ -177,67 +273,100 @@ class AnimatedMeshesLoader : StaticMeshesLoader() {
     }
 
     fun processBones(
-        aiMesh: AIMesh, boneList: ArrayList<Bone>,
+        aiMesh: AIMesh,
+        boneList: ArrayList<Bone>,
+        boneMap: HashMap<String, Bone>,
         boneIds: IntArray, weights: FloatArray
     ) {
+
         val weightSet: MutableMap<Int, MutableList<VertexWeight>> = HashMap()
         val numBones = aiMesh.mNumBones()
-        val aiBones = aiMesh.mBones()
-        boneList.ensureCapacity(boneList.size + numBones)
-        for (i in 0 until numBones) {
-            val aiBone = AIBone.create(aiBones!![i])
-            val id = boneList.size
-            val bone = Bone(id, aiBone.mName().dataString(), toMatrix(aiBone.mOffsetMatrix()))
-            boneList.add(bone)
-            val numWeights = aiBone.mNumWeights()
-            val aiWeights = aiBone.mWeights()
-            for (j in 0 until numWeights) {
-                val aiWeight = aiWeights[j]
-                val vw = VertexWeight(
-                    bone.id, aiWeight.mVertexId(),
-                    aiWeight.mWeight()
-                )
-                var vertexWeightList = weightSet[vw.vertexId]
-                if (vertexWeightList == null) {
-                    vertexWeightList = ArrayList()
-                    weightSet[vw.vertexId] = vertexWeightList
+
+        if (numBones > 0) {
+
+            val aiBones = aiMesh.mBones()!!
+            boneList.ensureCapacity(boneList.size + numBones)
+
+            for (i in 0 until numBones) {
+
+                val aiBone = AIBone.create(aiBones[i])
+                val boneName = aiBone.mName().dataString()
+                val boneTransform = convert(aiBone.mOffsetMatrix())
+
+                var bone = boneMap[boneName]
+                if (bone == null) {
+                    bone = Bone(boneList.size, boneName, boneTransform)
+                    boneList.add(bone)
+                    boneMap[boneName] = bone
                 }
-                vertexWeightList.add(vw)
+
+                val numWeights = aiBone.mNumWeights()
+                val aiWeights = aiBone.mWeights()
+                for (j in 0 until numWeights) {
+                    val aiWeight = aiWeights[j]
+                    val vw = VertexWeight(
+                        bone.id, aiWeight.mVertexId(),
+                        aiWeight.mWeight()
+                    )
+                    var vertexWeightList = weightSet[vw.vertexId]
+                    if (vertexWeightList == null) {
+                        vertexWeightList = ArrayList(4)
+                        weightSet[vw.vertexId] = vertexWeightList
+                    }
+                    vertexWeightList.add(vw)
+                }
+
             }
         }
+
         val numVertices = aiMesh.mNumVertices()
         val maxBoneId = maxBones - 1
         for (i in 0 until numVertices) {
-            val vertexWeightList: List<VertexWeight>? = weightSet[i]
-            val size = vertexWeightList?.size ?: 0
-            val i4 = i * 4
-            weights[i4] = 1f
-            for (j in 0 until size) {
-                val vw = vertexWeightList!![j]
-                weights[i4 + j] = vw.weight
-                boneIds[i4 + j] = min(vw.boneId, maxBoneId)
+            val vertexWeightList = weightSet[i]
+            if (vertexWeightList != null) {
+                vertexWeightList.sortByDescending { it.weight }
+                val size = vertexWeightList.size
+                val i4 = i * 4
+                weights[i4] = 1f
+                for (j in 0 until size) {
+                    val vw = vertexWeightList[j]
+                    weights[i4 + j] = vw.weight
+                    boneIds[i4 + j] = min(vw.boneId, maxBoneId)
+                }
+            } else {
+                val i4 = i * 4
+                weights[i4] = 1f
             }
         }
+
     }
 
-    fun processMesh(aiMesh: AIMesh, materials: Array<Material>, boneList: ArrayList<Bone>): AssimpMesh {
+    fun processMesh(
+        aiMesh: AIMesh,
+        materials: Array<Material>,
+        boneList: ArrayList<Bone>,
+        boneMap: HashMap<String, Bone>
+    ): AssimpMesh {
 
-        // todo directly use arrays, as they are more efficient
+
         val vertexCount = aiMesh.mNumVertices()
         val vertices = FloatArray(vertexCount * 3)
         val uvs = FloatArray(vertexCount * 2)
         val normals = FloatArray(vertexCount * 3)
-        val indices = ArrayList<Int>()
         val boneIds = IntArray(vertexCount * 4)
         val weights = FloatArray(vertexCount * 4)
         val colors = FloatArray(vertexCount * 4)
+
+        // todo directly use an array
+        //  - we can force triangles, and know the count that way, or quickly walk through it...
+        val indices = ArrayList<Int>()
 
         processVertices(aiMesh, vertices)
         processNormals(aiMesh, normals)
         processUVs(aiMesh, uvs)
         processIndices(aiMesh, indices)
         processVertexColors(aiMesh, colors)
-        processBones(aiMesh, boneList, boneIds, weights)
+        processBones(aiMesh, boneList, boneMap, boneIds, weights)
 
         val mesh = AssimpMesh(
             vertices, uvs,
@@ -245,6 +374,9 @@ class AnimatedMeshesLoader : StaticMeshesLoader() {
             indices.toIntArray(),
             boneIds, weights
         )
+        // todo calculate the transform and set it
+        // todo use it for correct rendering
+        // mesh.transform.set(convert())
 
         val materialIdx = aiMesh.mMaterialIndex()
         if (materialIdx in materials.indices) {
@@ -255,12 +387,5 @@ class AnimatedMeshesLoader : StaticMeshesLoader() {
 
     }
 
-    fun toMatrix(m: AIMatrix4x4): Matrix4f {
-        return Matrix4f(
-            m.a1(), m.b1(), m.c1(), m.d1(),
-            m.a2(), m.b2(), m.c2(), m.d2(),
-            m.a3(), m.b3(), m.c3(), m.d3(),
-            m.a4(), m.b4(), m.c4(), m.d4()
-        )
-    }
+
 }

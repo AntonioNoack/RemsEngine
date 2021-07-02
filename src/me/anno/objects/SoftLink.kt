@@ -21,7 +21,8 @@ import me.anno.objects.text.Text
 import me.anno.studio.rems.Scene
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
-import me.anno.ui.editor.files.ImportFromFile.addChildFromFile
+import me.anno.ui.editor.files.FileContentImporter
+import me.anno.studio.rems.ui.TransformFileImporter.addChildFromFile
 import me.anno.ui.editor.frames.FrameSizeInput
 import me.anno.ui.style.Style
 import me.anno.utils.files.LocalFile.toGlobalFile
@@ -143,7 +144,7 @@ class SoftLink(var file: FileReference) : GFXTransform(null) {
                 if (file.isDirectory) {
                     softChild = Text("Use scene files!")
                 } else {
-                    addChildFromFile(Transform(), file, false, false) { transform ->
+                    addChildFromFile(Transform(), file, FileContentImporter.SoftLinkMode.COPY_CONTENT, false) { transform ->
                         softChild = transform
                         lastCamera = transform.listOfAll
                             .filterIsInstance<Camera>()
@@ -244,7 +245,7 @@ class SoftLink(var file: FileReference) : GFXTransform(null) {
 
     override val areChildrenImmutable: Boolean = true
 
-    override fun getDefaultDisplayName(): String = Dict["Linked Object", "obj.softLink"]
+    override val defaultDisplayName: String = Dict["Linked Object", "obj.softLink"]
     override fun getClassName() = "SoftLink"
 
     companion object {

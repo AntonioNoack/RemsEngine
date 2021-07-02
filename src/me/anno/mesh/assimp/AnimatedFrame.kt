@@ -12,4 +12,8 @@ class AnimatedFrame {
         matrices[index].set(matrix)
         // if(index == 10) println(matrix) // samples
     }
+
+    override fun toString(): String {
+        return matrices.size.toString()//matrices.joinToString("\n"){ "\t${it.print()}"}
+    }
 }

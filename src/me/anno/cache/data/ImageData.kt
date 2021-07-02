@@ -4,9 +4,9 @@ import com.drew.imaging.ImageMetadataReader
 import com.drew.metadata.exif.ExifIFD0Directory
 import me.anno.cache.instances.VideoCache.getVideoFrame
 import me.anno.gpu.GFX
+import me.anno.gpu.RenderState.renderPurely
 import me.anno.gpu.RenderState.useFrame
 import me.anno.gpu.drawing.GFXx3D.shader3DUniforms
-import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.texture.Clamping
@@ -60,20 +60,20 @@ class ImageData(file: FileReference) : ICacheData {
             return rotation
         }
 
-        fun frameToFramebuffer(frame: VFrame, w: Int, h: Int, id: ImageData?): Framebuffer {
+        fun frameToFramebuffer(frame: VFrame, w: Int, h: Int, result: ImageData?): Framebuffer {
             val framebuffer = Framebuffer("webp-temp", w, h, 1, 1, false, Framebuffer.DepthBufferType.NONE)
-            id?.framebuffer = framebuffer
-            useFrame(framebuffer, Renderer.colorRenderer) {
-                Frame.bind()
-                id?.texture = framebuffer.textures[0]
-                val shader0 = frame.get3DShader()
-                val shader = shader0.value
-                shader.use()
-                shader3DUniforms(shader, null, -1)
-                frame.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-                frame.bindUVCorrection(shader)
-                GFX.flat01.draw(shader)
-                GFX.check()
+            result?.framebuffer = framebuffer
+            useFrame(framebuffer, Renderer.copyRenderer) {
+                renderPurely {
+                    val shader = frame.get3DShader().value
+                    shader.use()
+                    shader3DUniforms(shader, null, -1)
+                    frame.bind(0, GPUFiltering.LINEAR, Clamping.CLAMP)
+                    frame.bindUVCorrection(shader)
+                    GFX.flat01.draw(shader)
+                    GFX.check()
+                    result?.texture = framebuffer.textures[0]
+                }
             }
             GFX.check()
             return framebuffer
@@ -112,7 +112,7 @@ class ImageData(file: FileReference) : ICacheData {
                 val h = img.height
                 GFX.addGPUTask(w, h) {
                     texture.setSize(w, h)
-                    texture.create(img.pixelBuffer, img.byteBuffer)
+                    texture.createFloat(img.byteBuffer)
                 }
             }
             /*"tga" -> {
@@ -127,7 +127,9 @@ class ImageData(file: FileReference) : ICacheData {
                     }
                 }
             }*/
-            "webp", "tga" -> useFFMPEG(file)
+            // , "tga" use ImageIO for tga;
+            // ImageIO says it can do webp, however it doesn't understand most pics...
+            "webp" -> useFFMPEG(file)
             else -> {
                 // read metadata information from jpegs
                 // read the exif rotation header

@@ -23,6 +23,7 @@
       <excludeFolder url="file://$MODULE_DIR$/maven" />
       <excludeFolder url="file://$MODULE_DIR$/opencv-4.5.2" />
       <excludeFolder url="file://$MODULE_DIR$/progress" />
+      <excludeFolder url="file://$MODULE_DIR$/ports" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
@@ -35,5 +36,8 @@
     <orderEntry type="library" name="JBullet2" level="project" />
     <orderEntry type="library" name="lwjgl-assimp-javadoc" level="project" />
     <orderEntry type="library" name="LWJGL-Assimp" level="project" />
+    <orderEntry type="library" name="common-image-3.7.0" level="project" />
+    <orderEntry type="library" name="ImageIO" level="project" />
+    <orderEntry type="library" name="jMonkeyImporter" level="project" />
   </component>
 </module>

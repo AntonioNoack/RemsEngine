@@ -102,7 +102,7 @@ public class GFXBase0 {
         try {
 
             // todo there should be a way to switch this at runtime, or at least some runtime argument...
-            loadRenderDoc();
+            // loadRenderDoc();
 
             init();
             windowLoop();

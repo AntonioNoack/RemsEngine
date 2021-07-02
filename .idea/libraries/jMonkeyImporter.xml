@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="jMonkeyImporter">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../jMonkeyImporter/out/artifacts/jMonkeyImporter_jar/jMonkeyImporter.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="file://$PROJECT_DIR$/../jMonkeyImporter/src" />
+    </SOURCES>
+  </library>
+</component>

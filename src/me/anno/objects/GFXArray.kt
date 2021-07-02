@@ -25,7 +25,7 @@ class GFXArray(parent: Transform? = null) : GFXTransform(parent) {
 
     // per child skew?
 
-    override fun getSymbol() = DefaultConfig["ui.symbol.array", "[[["]
+    override val symbol = DefaultConfig["ui.symbol.array", "[[["]
 
     val instanceCount = AnimatedProperty.intPlus(10)
     var selectionSeed = AnimatedProperty.long()
@@ -165,7 +165,7 @@ class GFXArray(parent: Transform? = null) : GFXTransform(parent) {
     }
 
     override fun getClassName() = "GFXArray"
-    override fun getDefaultDisplayName() = Dict["Array", "obj.array"]
+    override val defaultDisplayName = Dict["Array", "obj.array"]
 
 
 }

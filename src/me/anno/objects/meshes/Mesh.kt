@@ -12,7 +12,9 @@ import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.language.translation.Dict
 import me.anno.mesh.assimp.AnimatedMeshesLoader
+import me.anno.mesh.gltf.ExternalCameraImpl
 import me.anno.mesh.gltf.GltfLogger
+import me.anno.mesh.gltf.GltfViewerLwjgl
 import me.anno.objects.GFXTransform
 import me.anno.objects.Transform
 import me.anno.ui.base.groups.PanelListY
@@ -184,8 +186,8 @@ class Mesh(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
 
                 }
                 // assimp can load gltf files <3
-                // -> we can give up/remove jGLTF
-                "gltf", "glb" -> {
+                // -> we can give up/remove jGLTF*/
+                /*"gltf", "glb" -> {
                     val data = loadModel(file, "Mesh-GLTF", {
 
                         val model = gltfReader.read(file.toUri())
@@ -211,7 +213,7 @@ class Mesh(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
                     val data = loadModel(file, "Assimp", { meshData ->
                         // load the model...
                         // assume it's obj first...
-                        val reader = AnimatedMeshesLoader()
+                        val reader = AnimatedMeshesLoader
                         val meshes = reader.load(file.toString(), file.getParent().toString())
                         meshData.assimpModel = meshes
                     }) { it.assimpModel }
@@ -282,7 +284,7 @@ class Mesh(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
     }
 
     override fun getClassName() = "Mesh"
-    override fun getDefaultDisplayName() = Dict["Mesh", "obj.mesh"]
-    override fun getSymbol() = DefaultConfig["ui.symbol.mesh", "\uD83D\uDC69"]
+    override val defaultDisplayName = Dict["Mesh", "obj.mesh"]
+    override val symbol = DefaultConfig["ui.symbol.mesh", "\uD83D\uDC69"]
 
 }

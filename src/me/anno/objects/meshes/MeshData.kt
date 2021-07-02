@@ -3,6 +3,7 @@ package me.anno.objects.meshes
 import me.anno.animation.skeletal.SkeletalAnimation
 import me.anno.cache.data.ICacheData
 import me.anno.cache.instances.ImageCache.getImage
+import me.anno.ecs.Entity
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.GFX.matrixBufferFBX
@@ -12,11 +13,14 @@ import me.anno.gpu.ShaderLib.shaderObjMtl
 import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.drawing.GFXx3D.shader3DUniforms
+import me.anno.gpu.drawing.GFXx3D.transformUniform
 import me.anno.gpu.shader.Shader
+import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2D
 import me.anno.io.FileReference
 import me.anno.mesh.assimp.AnimGameItem
+import me.anno.mesh.assimp.AssimpModel
 import me.anno.mesh.fbx.model.FBXGeometry
 import me.anno.mesh.fbx.model.FBXModel
 import me.anno.mesh.gltf.CustomGlContext
@@ -59,22 +63,79 @@ open class MeshData : ICacheData {
         // todo other material properties
         // todo play animation
         val model0 = assimpModel!!
-        val animation = model0.animations.values.toList().getOrNull(animationIndex)
+        val animation = model0.animations.toSortedMap().values.toList().getOrNull(animationIndex)
         shader.v1("hasAnimation", if (animation == null) 0f else 1f)
         if (animation != null) {
             model0.uploadJointMatrices(shader, animation, time)
         }
-        val diffuse = Vector4f()
-        for (model in model0.meshes) {
-            val material = model.material
-            val texturePath = material?.texture
-            val textureOrNull = if (texturePath == null) null else getImage(texturePath, 1000, true)
-            val texture = textureOrNull ?: whiteTexture
-            texture.bind(0)
-            diffuse.set(color)
-            if (material != null) diffuse.mul(material.diffuse)
-            GFX.shaderColor(shader, "tint", diffuse)
-            model.buffer.draw(shader)
+
+        /*val diffuse = Vector4f()
+        for (model in model0.hierarchy) {
+            stack.next {
+                // todo this isn't yet correct
+                // todo is it just local?
+                stack.mul(model.transform)
+                transformUniform(shader, stack)
+                for (mesh in model.meshes) {
+                    val material = mesh.material
+                    val texturePath = material?.texture
+                    val textureOrNull = if (texturePath == null) null else getImage(texturePath, 1000, true)
+                    val texture = textureOrNull ?: whiteTexture
+                    texture.bind(0, Filtering.LINEAR, Clamping.REPEAT)
+                    diffuse.set(color)
+                    if (material != null) diffuse.mul(material.diffuse)
+                    GFX.shaderColor(shader, "tint", diffuse)
+                    mesh.buffer.draw(shader)
+                }
+            }
+        }*/
+
+        drawHierarchy(shader, stack, color, model0.hierarchy)
+
+    }
+
+    fun vec3(v: Vector3d): Vector3f = Vector3f(v.x.toFloat(), v.y.toFloat(), v.z.toFloat())
+    fun quat(q: Quaterniond): Quaternionf = Quaternionf(q.x.toFloat(), q.y.toFloat(), q.z.toFloat(), q.w.toFloat())
+
+    fun drawHierarchy(shader: Shader, stack: Matrix4fArrayList, color: Vector4fc, entity: Entity) {
+        stack.next {
+
+            val transform = entity.transform
+            // val local = transform.localTransform
+            /*stack.mul(
+                local.m00().toFloat(), local.m01().toFloat(), local.m02().toFloat(), 0f,
+                local.m10().toFloat(), local.m11().toFloat(), local.m12().toFloat(), 0f,
+                local.m20().toFloat(), local.m21().toFloat(), local.m22().toFloat(), 0f,
+                local.m30().toFloat(), local.m31().toFloat(), local.m32().toFloat(), 1f,
+            )*/
+            stack.translate(vec3(transform.localPosition))
+            stack.rotate(quat(transform.localRotation))
+            stack.scale(vec3(transform.localScale))
+
+
+            val assimpModel = entity.getComponent<AssimpModel>()
+            if (assimpModel != null) {
+
+                transformUniform(shader, stack)
+
+                val diffuse = Vector4f()
+                for (mesh in assimpModel.meshes) {
+                    val material = mesh.material
+                    val texturePath = material?.texture
+                    val textureOrNull = if (texturePath == null) null else getImage(texturePath, 1000, true)
+                    val texture = textureOrNull ?: whiteTexture
+                    texture.bind(0, Filtering.LINEAR, Clamping.REPEAT)
+                    diffuse.set(color)
+                    if (material != null) diffuse.mul(material.diffuse)
+                    GFX.shaderColor(shader, "tint", diffuse)
+                    mesh.buffer.draw(shader)
+                }
+            }
+
+            for (child in entity.children) {
+                drawHierarchy(shader, stack, color, child)
+            }
+
         }
     }
 

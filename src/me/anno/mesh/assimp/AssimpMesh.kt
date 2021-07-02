@@ -3,6 +3,9 @@ package me.anno.mesh.assimp
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.buffer.IndexedStaticBuffer
+import org.joml.Matrix4f
+import org.joml.Matrix4x3f
+import org.joml.Matrix4x3fArrayList
 import kotlin.math.sqrt
 
 
@@ -24,9 +27,11 @@ open class AssimpMesh(
             Attribute("normals", 3),
             Attribute("colors", 4),
             Attribute("weights", MAX_WEIGHTS),
-            Attribute("indices", AttributeType.SINT32, MAX_WEIGHTS)
+            Attribute("indices", AttributeType.UINT8, MAX_WEIGHTS, true)
         )
     }
+
+    val transform = Matrix4x3f()
 
     var animations: List<Animation>? = null
 
@@ -99,14 +104,11 @@ open class AssimpMesh(
             }
 
             if (jointIndices != null && jointIndices.isNotEmpty()) {
-                buffer.putInt(jointIndices[i * 4])
-                buffer.putInt(jointIndices[i * 4 + 1])
-                buffer.putInt(jointIndices[i * 4 + 2])
-                buffer.putInt(jointIndices[i * 4 + 3])
+                buffer.putUByte(jointIndices[i * 4])
+                buffer.putUByte(jointIndices[i * 4 + 1])
+                buffer.putUByte(jointIndices[i * 4 + 2])
+                buffer.putUByte(jointIndices[i * 4 + 3])
             } else {
-                buffer.putInt(0)
-                buffer.putInt(0)
-                buffer.putInt(0)
                 buffer.putInt(0)
             }
 

@@ -195,7 +195,7 @@ class FileExplorer(style: Style) : PanelListY(style.getChild("fileExplorer")) {
 
     fun pasteTransform(data: String): Boolean {
         val transform = data.toTransform() ?: return false
-        var name = transform.name.toAllowedFilename() ?: transform.getDefaultDisplayName()
+        var name = transform.name.toAllowedFilename() ?: transform.defaultDisplayName
         // make .json lowercase
         if (name.endsWith(".json", true)) {
             name = name.substring(0, name.length - 5)

@@ -59,13 +59,16 @@ class FFMPEGVideo(
         waitUntil(true) { w != 0 && h != 0 && codec.isNotEmpty() }
         if (!isDestroyed && !isFinished) {
             try {
+                // LOGGER.info("$codec from $file")
                 val frame = when (codec) {
                     "I420" -> I420Frame(w, h)
                     "ARGB" -> ARGBFrame(w, h)
                     "BGRA" -> BGRAFrame(w, h)
+                    "RGBA" -> RGBAFrame(w, h)
                     "RGB" -> RGBFrame(w, h)
                     "BGR" -> BGRFrame(w, h)
-                    // "Y4" -> YUVAFrame(w, h)
+                    "Y4" -> Y4Frame(w, h)
+                    // todo y800
                     else -> throw RuntimeException("Unsupported Codec $codec for $file")
                 }
                 frame.load(input)

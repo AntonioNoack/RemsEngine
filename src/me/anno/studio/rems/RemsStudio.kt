@@ -21,7 +21,7 @@ import me.anno.ui.editor.TimelinePanel
 import me.anno.ui.editor.UILayouts
 import me.anno.ui.editor.sceneTabs.SceneTabs.currentTab
 import me.anno.ui.editor.sceneView.ISceneView
-import me.anno.ui.editor.treeView.TreeView
+import me.anno.studio.rems.ui.TransformTreeView
 import me.anno.utils.OS
 
 // todo print list of time-points for sites like YouTube
@@ -115,6 +115,10 @@ import me.anno.utils.OS
 // to do Mod with "hacked"-text effect for text: swizzle characters and introduce others?
 
 // todo cutting (control+x) only cuts one
+
+// todo zoom in on point in 2D using mouse position
+
+// todo when playing video, and the time hasn't been touched manually, slide the time panel, when the time reaches the end: slide by 1x window width
 
 object RemsStudio : StudioBase(true, "Rem's Studio", 10105) {
 
@@ -230,7 +234,7 @@ object RemsStudio : StudioBase(true, "Rem's Studio", 10105) {
         for (window in GFX.windowStack) {
             for (panel in window.panel.listOfVisible) {
                 when (panel) {
-                    is TreeView, is ISceneView, is TimelinePanel -> {
+                    is TransformTreeView, is ISceneView, is TimelinePanel -> {
                         panel.invalidateDrawing()
                     }
                     is PropertyInspector -> {

@@ -34,7 +34,7 @@ object VideoCache : CacheSection("Videos") {
         val bufferIndex = key.bufferIndex
         val bufferLength = key.frameLength
         val fps = key.fps
-        val meta = getMeta(file, false)!!
+        val meta = getMeta(file, false) ?: throw RuntimeException("Meta was not found for $key!")
         return VideoData(
             file, meta.videoWidth / scale, meta.videoHeight / scale, scale,
             bufferIndex, bufferLength, fps,

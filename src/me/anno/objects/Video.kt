@@ -1,5 +1,6 @@
 package me.anno.objects
 
+import me.anno.animation.AnimatedProperty
 import me.anno.audio.openal.AudioManager
 import me.anno.audio.openal.AudioTasks
 import me.anno.cache.data.VideoData.Companion.framesPerContainer
@@ -8,11 +9,14 @@ import me.anno.cache.instances.MeshCache
 import me.anno.cache.instances.VideoCache.getVideoFrame
 import me.anno.cache.instances.VideoCache.getVideoFrameWithoutGenerator
 import me.anno.config.DefaultConfig
-import me.anno.gpu.*
+import me.anno.gpu.GFX
 import me.anno.gpu.GFX.isFinalRendering
+import me.anno.gpu.SVGxGFX
+import me.anno.gpu.TextureLib
+import me.anno.gpu.TextureLib.colorShowTexture
+import me.anno.gpu.drawing.GFXx3D
 import me.anno.gpu.drawing.GFXx3D.draw3D
 import me.anno.gpu.drawing.GFXx3D.draw3DVideo
-import me.anno.gpu.TextureLib.colorShowTexture
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2D
@@ -21,8 +25,6 @@ import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
-import me.anno.animation.AnimatedProperty
-import me.anno.gpu.drawing.GFXx3D
 import me.anno.objects.lists.Element
 import me.anno.objects.lists.SplittableElement
 import me.anno.objects.models.SpeakerModel.drawSpeakers
@@ -58,9 +60,13 @@ import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.f2
 import me.anno.utils.types.Strings.formatTime2
 import me.anno.utils.types.Strings.getImportType
-import me.anno.video.*
+import me.anno.video.FFMPEGMetadata
 import me.anno.video.FFMPEGMetadata.Companion.getMeta
+import me.anno.video.ImageSequenceMeta
 import me.anno.video.IsFFMPEGOnly.isFFMPEGOnlyExtension
+import me.anno.video.MissingFrameException
+import me.anno.video.VFrame
+import org.apache.logging.log4j.LogManager
 import org.joml.*
 import java.net.URL
 import kotlin.collections.set
@@ -111,7 +117,7 @@ class Video(file: FileReference = FileReference(""), parent: Transform? = null) 
         lastTexture = null
         needsImageUpdate = true
         lastFile = null
-        println("clear cache")
+        LOGGER.info("Clear cache")
     }
 
     override fun startPlayback(globalTime: Double, speed: Double, camera: Camera) {
@@ -522,24 +528,25 @@ class Video(file: FileReference = FileReference(""), parent: Transform? = null) 
                             // use full fps when rendering to correctly render at max fps with time dilation
                             // issues arise, when multiple frames should be interpolated together into one
                             // at this time, we chose the center frame only.
-                            val videoFPS = if (isFinalRendering) sourceFPS else min(sourceFPS, editorVideoFPS.value.toDouble())
+                            val videoFPS =
+                                if (isFinalRendering) sourceFPS else min(sourceFPS, editorVideoFPS.value.toDouble())
 
                             // calculate how many buffers are required from start to end
                             // clamp to max number of buffers, or maybe 20
                             val buff0 = (minT * videoFPS).toInt()
                             val buff1 = (maxT * videoFPS).toInt()
-                            val steps = clamp(2+(buff1-buff0)/ framesPerContainer, 2, 20)
+                            val steps = clamp(2 + (buff1 - buff0) / framesPerContainer, 2, 20)
 
                             val frameCount = max(1, (duration * videoFPS).roundToInt())
 
                             var lastBuffer = -1
-                            for(step in 0 until steps){
+                            for (step in 0 until steps) {
                                 val f0 = mix(minT, maxT, step / (steps - 1.0))
                                 val localTime0 = isLooping[f0, duration]
                                 val frameIndex = (localTime0 * videoFPS).toInt()
-                                if(frameIndex < 0 || frameIndex >= frameCount) continue
+                                if (frameIndex < 0 || frameIndex >= frameCount) continue
                                 val buffer = frameIndex / framesPerContainer
-                                if(buffer != lastBuffer){
+                                if (buffer != lastBuffer) {
                                     lastBuffer = buffer
                                     getVideoFrame(
                                         file, max(1, zoomLevel), frameIndex,
@@ -651,7 +658,7 @@ class Video(file: FileReference = FileReference(""), parent: Transform? = null) 
             }
             VideoType.IMAGE_SEQUENCE -> {
                 val meta = imageSequenceMeta!!
-                if(!meta.isValid) lastWarning = "No image sequence matches found"
+                if (!meta.isValid) lastWarning = "No image sequence matches found"
             }
             VideoType.IMAGE -> {
                 // todo check if the image is valid...
@@ -902,24 +909,26 @@ class Video(file: FileReference = FileReference(""), parent: Transform? = null) 
 
     override fun getClassName(): String = "Video"
 
-    override fun getDefaultDisplayName(): String {
-        // file can be null
-        return if (file != null && file.hasValidName()) file.name
-        else Dict["Video", "obj.video"]
-    }
-
-    override fun getSymbol(): String {
-        return when (if (file.hasValidName()) type else VideoType.VIDEO) {
-            VideoType.AUDIO -> DefaultConfig["ui.symbol.audio", "\uD83D\uDD09"]
-            VideoType.IMAGE -> DefaultConfig["ui.symbol.image", "\uD83D\uDDBC️️"]
-            VideoType.VIDEO -> DefaultConfig["ui.symbol.video", "\uD83C\uDF9E️"]
-            VideoType.IMAGE_SEQUENCE -> DefaultConfig["ui.symbol.imageSequence", "\uD83C\uDF9E️"]
+    override val defaultDisplayName: String
+        get() {
+            // file can be null
+            return if (file != null && file.hasValidName()) file.name
+            else Dict["Video", "obj.video"]
         }
-    }
+
+    override val symbol: String
+        get() {
+            return when (if (file.hasValidName()) type else VideoType.VIDEO) {
+                VideoType.AUDIO -> DefaultConfig["ui.symbol.audio", "\uD83D\uDD09"]
+                VideoType.IMAGE -> DefaultConfig["ui.symbol.image", "\uD83D\uDDBC️️"]
+                VideoType.VIDEO -> DefaultConfig["ui.symbol.video", "\uD83C\uDF9E️"]
+                VideoType.IMAGE_SEQUENCE -> DefaultConfig["ui.symbol.imageSequence", "\uD83C\uDF9E️"]
+            }
+        }
 
     companion object {
 
-        // private val LOGGER = LogManager.getLogger(Video::class)
+        private val LOGGER = LogManager.getLogger(Video::class)
 
         val imageSequenceIdentifier = DefaultConfig["video.imageSequence.identifier", "%"]
 

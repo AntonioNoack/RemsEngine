@@ -37,7 +37,7 @@ object RenderSettings : Transform() {
 
     // render queue?
 
-    override fun getDefaultDisplayName(): String = "Render Settings"
+    override val defaultDisplayName: String = "Render Settings"
 
     override fun createInspector(
         list: PanelListY,
@@ -47,7 +47,7 @@ object RenderSettings : Transform() {
 
         val project = project!!
 
-        list += TextPanel(getDefaultDisplayName(), style)
+        list += TextPanel(defaultDisplayName, style)
             .apply { focusTextColor = textColor }
         list += vi("Duration", "Video length in seconds", Type.FLOAT_PLUS, targetDuration, style) {
             project.targetDuration = it

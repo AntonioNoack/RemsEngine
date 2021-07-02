@@ -1,6 +1,9 @@
 package me.anno.mesh.assimp
 
+import me.anno.ecs.Entity
+import me.anno.ecs.components.render.MeshRenderer
 import me.anno.io.FileReference
+import me.anno.mesh.assimp.AssimpTree.convert
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector4f
 import org.lwjgl.assimp.*
@@ -12,24 +15,71 @@ open class StaticMeshesLoader {
 
     companion object {
         val defaultFlags = aiProcess_GenSmoothNormals or aiProcess_JoinIdenticalVertices or aiProcess_Triangulate or
-                aiProcess_FixInfacingNormals or aiProcess_PreTransformVertices // <- disables animations
+                aiProcess_FixInfacingNormals// or aiProcess_PreTransformVertices // <- disables animations
         private val LOGGER = LogManager.getLogger(StaticMeshesLoader::class)
     }
 
     open fun load(resourcePath: String, texturesDir: String?, flags: Int = defaultFlags): AnimGameItem {
-        val aiScene: AIScene = aiImportFile(resourcePath, flags) ?: throw Exception("Error loading model")
+        val aiScene: AIScene = aiImportFile(resourcePath, flags or aiProcess_PreTransformVertices)
+            ?: throw Exception("Error loading model")
         val materials = loadMaterials(aiScene, texturesDir)
         val meshes = loadMeshes(aiScene, materials)
         return AnimGameItem(meshes, emptyMap())
     }
 
-    fun loadMeshes(aiScene: AIScene, materials: Array<Material>): Array<AssimpMesh> {
+    // todo convert assimp mesh such that it's a normal mesh; because all meshes should be the same to create :)
+    fun buildScene(aiScene: AIScene, sceneMeshes: Array<AssimpMesh>, aiNode: AINode): Entity {
+
+        val entity = Entity()
+        entity.name = aiNode.mName().dataString()
+
+        val transform = entity.transform
+        transform.setLocal(convert(aiNode.mTransformation()))
+
+        val meshCount = aiNode.mNumMeshes()
+        if (meshCount > 0) {
+
+            val renderer = MeshRenderer()
+            entity.addComponent(renderer)
+
+            val model = AssimpModel()
+            // model.name = aiNode.mName().dataString()
+            // model.transform.set(convert(aiNode.mTransformation()))
+            val meshIndices = aiNode.mMeshes()!!
+            for (i in 0 until meshCount) {
+                val mesh = sceneMeshes[meshIndices[i]]
+                model.meshes.add(mesh)
+            }
+
+            entity.addComponent(model)
+
+        }
+
+        val childCount = aiNode.mNumChildren()
+        if (childCount > 0) {
+            val children = aiNode.mChildren()!!
+            for (i in 0 until childCount) {
+                val childNode = AINode.create(children[i])
+                entity.addChild(buildScene(aiScene, sceneMeshes, childNode))
+            }
+        }
+
+        return entity
+
+    }
+
+    fun buildScene(aiScene: AIScene, sceneMeshes: Array<AssimpMesh>): Entity {
+        return buildScene(aiScene, sceneMeshes, aiScene.mRootNode()!!)
+    }
+
+    fun loadMeshes(aiScene: AIScene, materials: Array<Material>): Entity {
         val numMeshes = aiScene.mNumMeshes()
         val aiMeshes = aiScene.mMeshes()
-        return Array(numMeshes) { i ->
+        val meshes = Array(numMeshes) { i ->
             val aiMesh = AIMesh.create(aiMeshes!![i])
             processMesh(aiMesh, materials)
         }
+        return buildScene(aiScene, meshes)
     }
 
     fun loadMaterials(aiScene: AIScene, texturesDir: String?): Array<Material> {

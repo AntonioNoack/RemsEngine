@@ -155,12 +155,12 @@ object Thumbs {
 
             renderPurely {
 
-                useFrame(0, 0, w, h, false, fb2, Renderer.colorRenderer) {
+                useFrame(fb2, Renderer.colorRenderer) {
 
                     Frame.bind()
 
-                    glClearColor(0f, 0f, 0f, 0f)
-                    glClear(GL_COLOR_BUFFER_BIT)
+                    glClearColor(0f, 0f, 0f, 1f)
+                    glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
                     drawTexture(
                         0, 0, w, h,
@@ -172,6 +172,8 @@ object Thumbs {
 
                 }
 
+                // todo this was incorrect and returned the other side
+                // todo now the result is just empty... why??
                 // cannot read from separate framebuffer, only from null... why ever...
                 useFrame(0, 0, w, h, false, null, Renderer.colorRenderer) {
 
@@ -182,7 +184,7 @@ object Thumbs {
                     glFlush(); glFinish() // wait for everything to be drawn
                     glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
 
-                    glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
+                    glReadPixels(0, GFX.width - h, w, h, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
 
                     GFX.check()
 
@@ -246,7 +248,9 @@ object Thumbs {
         // LOGGER.info("loaded frame for $srcFile")
 
         renderToBufferedImage(srcFile, dstFile, callback, w, h) {
-            drawTexture(src)
+            renderPurely {
+                drawTexture(src)
+            }
         }
 
         // LOGGER.info("rendered $srcFile")
@@ -329,7 +333,9 @@ object Thumbs {
                             dstFile, size, callback
                         )
                     }
-                    "webp", "tga" -> generateVideoFrame(srcFile, dstFile, size, callback, 0.0)
+                    // , "tga" use ImageIO for tga;
+                    // ImageIO says it can do webp, however it doesn't understand most pics...
+                    "webp" -> generateVideoFrame(srcFile, dstFile, size, callback, 0.0)
                     else -> {
                         val image = try {
                             ImageIO.read(srcFile.file)!!

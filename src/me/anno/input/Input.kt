@@ -11,7 +11,6 @@ import me.anno.gpu.GFX.requestFocus
 import me.anno.gpu.GFX.window
 import me.anno.gpu.GFX.windowStack
 import me.anno.gpu.Window
-import me.anno.input.Input.toMouseButton
 import me.anno.input.Touch.Companion.onTouchDown
 import me.anno.input.Touch.Companion.onTouchMove
 import me.anno.input.Touch.Companion.onTouchUp
@@ -21,8 +20,9 @@ import me.anno.studio.rems.RemsStudio.history
 import me.anno.studio.rems.RemsStudio.project
 import me.anno.studio.rems.RemsStudio.root
 import me.anno.ui.base.Panel
-import me.anno.ui.editor.files.ImportFromFile.addChildFromFile
-import me.anno.ui.editor.treeView.TreeViewPanel
+import me.anno.ui.editor.files.FileContentImporter
+import me.anno.studio.rems.ui.TransformFileImporter.addChildFromFile
+import me.anno.ui.editor.treeView.AbstractTreeViewPanel
 import me.anno.utils.Maths.length
 import me.anno.utils.Threads.threadWithName
 import me.anno.utils.files.FileExplorerSelectWrapper
@@ -35,9 +35,6 @@ import java.awt.datatransfer.DataFlavor.stringFlavor
 import java.awt.datatransfer.StringSelection
 import java.awt.datatransfer.UnsupportedFlavorException
 import java.io.File
-import java.io.FileReader
-import java.util.*
-import kotlin.collections.HashMap
 import kotlin.collections.set
 import kotlin.math.abs
 import kotlin.math.max
@@ -208,7 +205,7 @@ object Input {
                             GLFW.GLFW_KEY_DELETE -> {
                                 // tree view selections need to be removed, because they would be illogical to keep
                                 // (because the underlying Transform changes)
-                                val inFocusTreeViews = inFocus.filterIsInstance<TreeViewPanel>()
+                                val inFocusTreeViews = inFocus.filterIsInstance<AbstractTreeViewPanel<*>>()
                                 inFocus.forEach { it.onDeleteKey(mouseX, mouseY) }
                                 inFocus.removeAll(inFocusTreeViews)
                             }
@@ -273,7 +270,14 @@ object Input {
                                                     FileExplorerSelectWrapper.selectFile(lastFile?.file) { file ->
                                                         if (file != null) {
                                                             lastFile = FileReference(file)
-                                                            addEvent { addChildFromFile(root, file, null, true) {} }
+                                                            addEvent {
+                                                                addChildFromFile(
+                                                                    root,
+                                                                    file,
+                                                                    FileContentImporter.SoftLinkMode.ASK,
+                                                                    true
+                                                                ) {}
+                                                            }
                                                         }
                                                     }
                                                 }
@@ -311,7 +315,7 @@ object Input {
 
     }
 
-    fun onClickIntoWindow(button: Int, panelWindow: Pair<Panel, Window>?){
+    fun onClickIntoWindow(button: Int, panelWindow: Pair<Panel, Window>?) {
         if (panelWindow != null) {
             val mouseButton = button.toMouseButton()
             while (windowStack.isNotEmpty()) {
@@ -327,7 +331,7 @@ object Input {
     var windowWasClosed = false
     var maySelectByClick = false
 
-    fun onMousePress(button: Int){
+    fun onMousePress(button: Int) {
 
         // find the clicked element
         mouseDownX = mouseX
@@ -346,31 +350,32 @@ object Input {
         val inFocusTarget = inFocus0?.getMultiSelectablePanel()
         val joinedParent = inFocusTarget?.parent
 
-        maySelectByClick = if ((singleSelect || multiSelect) && selectionTarget != null && joinedParent == selectionTarget.parent) {
-            if (inFocus0 != inFocusTarget) requestFocus(inFocusTarget, true)
-            if (singleSelect) {
-                if (selectionTarget in inFocus) inFocus -= selectionTarget
-                else inFocus += selectionTarget
+        maySelectByClick =
+            if ((singleSelect || multiSelect) && selectionTarget != null && joinedParent == selectionTarget.parent) {
+                if (inFocus0 != inFocusTarget) requestFocus(inFocusTarget, true)
+                if (singleSelect) {
+                    if (selectionTarget in inFocus) inFocus -= selectionTarget
+                    else inFocus += selectionTarget
+                } else {
+                    val index0 = inFocusTarget!!.indexInParent
+                    val index1 = selectionTarget.indexInParent
+                    // todo we should use the last selected as reference point...
+                    val minIndex = min(index0, index1)
+                    val maxIndex = max(index0, index1)
+                    for (index in minIndex..maxIndex) {
+                        inFocus += joinedParent!!.children[index]
+                    }
+                }
+                // LOGGER.info(inFocus)
+                false
             } else {
-                val index0 = inFocusTarget!!.indexInParent
-                val index1 = selectionTarget.indexInParent
-                // todo we should use the last selected as reference point...
-                val minIndex = min(index0, index1)
-                val maxIndex = max(index0, index1)
-                for (index in minIndex..maxIndex) {
-                    inFocus += joinedParent!!.children[index]
+                if (mouseTarget in inFocus) {
+                    true
+                } else {
+                    requestFocus(mouseTarget, true)
+                    false
                 }
             }
-            // LOGGER.info(inFocus)
-            false
-        } else {
-            if(mouseTarget in inFocus){
-                true
-            } else {
-                requestFocus(mouseTarget, true)
-                false
-            }
-        }
 
         if (!windowWasClosed) {
 
@@ -384,7 +389,7 @@ object Input {
 
     }
 
-    fun onMouseRelease(button: Int){
+    fun onMouseRelease(button: Int) {
 
         keyUpCtr++
 
@@ -399,7 +404,7 @@ object Input {
 
         if (isClick) {
 
-            if(maySelectByClick){
+            if (maySelectByClick) {
                 val panelWindow = getPanelAndWindowAt(mouseX, mouseY)
                 requestFocus(panelWindow?.first, true)
             }

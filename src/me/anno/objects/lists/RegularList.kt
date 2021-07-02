@@ -40,7 +40,7 @@ class RegularList(parent: Transform? = null) : GFXTransform(parent) {
 
     // per child skew?
 
-    override fun getSymbol() = DefaultConfig["ui.symbol.array", "[[["]
+    override val symbol = DefaultConfig["ui.symbol.array", "[[["]
 
     val instanceCount = AnimatedProperty.intPlus(10)
     var selectionSeed = AnimatedProperty.long()
@@ -176,6 +176,6 @@ class RegularList(parent: Transform? = null) : GFXTransform(parent) {
     }
 
     override fun getClassName() = "RegularList"
-    override fun getDefaultDisplayName() = Dict["List", "obj.list"]
+    override val defaultDisplayName = Dict["List", "obj.list"]
 
 }

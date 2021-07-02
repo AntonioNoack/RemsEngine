@@ -429,10 +429,10 @@ open class Texture2D(
         val floatBuffer = byteBuffer.asFloatBuffer()
         floatBuffer.put(data)
         floatBuffer.position(0)
-        create(floatBuffer, byteBuffer)
+        createFloat(byteBuffer)
     }
 
-    fun create(buffer: FloatBuffer, byteBuffer: ByteBuffer?) {
+    fun createFloat(byteBuffer: ByteBuffer?) {
         ensurePointer()
         bindBeforeUpload()
         GFX.check()
@@ -462,6 +462,21 @@ open class Texture2D(
         GFX.check()
         locallyAllocated = allocate(locallyAllocated, w * h * 4L)
         texImage2D(w, h, TargetType.UByteTarget4, buffer)
+        // glTexImage2D(tex2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
+        byteBufferPool.returnBuffer(buffer)
+        isCreated = true
+        filtering(filtering)
+        clamping(clamping)
+        GFX.check()
+    }
+
+    fun createRGB(buffer: ByteBuffer) {
+        checkSize(4, buffer)
+        ensurePointer()
+        bindBeforeUpload()
+        GFX.check()
+        locallyAllocated = allocate(locallyAllocated, w * h * 4L)
+        texImage2D(w, h, TargetType.UByteTarget3, buffer)
         // glTexImage2D(tex2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
         byteBufferPool.returnBuffer(buffer)
         isCreated = true
@@ -513,7 +528,16 @@ open class Texture2D(
         bindTexture(tex2D, pointer)
     }
 
-    override fun bind(nearest: GPUFiltering, clamping: Clamping): Boolean {
+    /*override fun bind(nearest: GPUFiltering, clamping: Clamping): Boolean {
+        if (pointer > -1 && isCreated) {
+            val result = bindTexture(tex2D, pointer)
+            ensureFilterAndClamping(nearest, clamping)
+            return result
+        } else throw IllegalStateException("Cannot bind non-created texture!")
+    }*/
+
+    override fun bind(index: Int, nearest: GPUFiltering, clamping: Clamping): Boolean {
+        activeSlot(index)
         if (pointer > -1 && isCreated) {
             val result = bindTexture(tex2D, pointer)
             ensureFilterAndClamping(nearest, clamping)
@@ -521,12 +545,6 @@ open class Texture2D(
         } else throw IllegalStateException("Cannot bind non-created texture!")
     }
 
-    override fun bind(index: Int, nearest: GPUFiltering, clamping: Clamping): Boolean {
-        activeSlot(index)
-        return bind(nearest, clamping)
-    }
-
-    fun bind() = bind(filtering, clamping)
     fun bind(index: Int) = bind(index, filtering, clamping)
 
     override fun destroy() {
@@ -535,11 +553,13 @@ open class Texture2D(
         val pointer = pointer
         if (pointer > -1) {
             if (!isGFXThread()) {
-                GFX.addGPUTask(1){
+                GFX.addGPUTask(1) {
+                    invalidateBinding()
                     locallyAllocated = allocate(locallyAllocated, 0L)
                     texturesToDelete.add(pointer)
                 }
             } else {
+                invalidateBinding()
                 locallyAllocated = allocate(locallyAllocated, 0L)
                 texturesToDelete.add(pointer)
             }
@@ -614,7 +634,9 @@ open class Texture2D(
 
         private var creationIndex = 0
         private val creationIndices = IntArray(16)
+
         private fun createTexture(): Int {
+            GFX.checkIsGFXThread()
             if (creationIndex == 0 || creationIndex == creationIndices.size) {
                 creationIndex = 0
                 glGenTextures(creationIndices)

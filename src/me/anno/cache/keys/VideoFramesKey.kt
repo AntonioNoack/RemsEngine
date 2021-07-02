@@ -11,7 +11,7 @@ data class VideoFramesKey(
 ) {
 
     override fun toString(): String {
-        return "${file.name}, ${scale}x, $bufferIndex*$frameLength @${fps}fps"
+        return "$file, ${scale}x, $bufferIndex*$frameLength @${fps}fps"
     }
 
     val hashCode = generateHashCode()

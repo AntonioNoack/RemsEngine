@@ -8,10 +8,10 @@ import me.anno.fonts.FontManager
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.clip2Dual
 import me.anno.gpu.GFX.inFocus
-import me.anno.gpu.drawing.GFXx2D
-import me.anno.gpu.drawing.DrawTextures.drawTexture
-import me.anno.gpu.drawing.GFXx3D
 import me.anno.gpu.TextureLib.whiteTexture
+import me.anno.gpu.drawing.DrawTextures.drawTexture
+import me.anno.gpu.drawing.GFXx2D
+import me.anno.gpu.drawing.GFXx3D
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.ITexture2D
@@ -57,6 +57,8 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
+// todo drag no longer works :/
+
 class FileExplorerEntry(
     private val explorer: FileExplorer,
     isParent: Boolean, val file: FileReference, style: Style
@@ -76,7 +78,6 @@ class FileExplorerEntry(
     // todo load fbx files
     // todo load separate fbx animations
     // todo play them together
-
 
 
     // todo sometimes the title is missing... or its color... why ever...
@@ -488,7 +489,8 @@ class FileExplorerEntry(
 
     override fun onDoubleClick(x: Float, y: Float, button: MouseButton) {
         if (file.isDirectory) {
-            super.onDoubleClick(x, y, button)
+            explorer.folder = file
+            // super.onDoubleClick(x, y, button)
         } else {
             SceneTabs.open(file)
         }

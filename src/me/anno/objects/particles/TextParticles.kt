@@ -176,7 +176,7 @@ class TextParticles : ParticleSystem() {
         }
     }
 
-    override fun getDefaultDisplayName(): String = "Text Particles"
+    override val defaultDisplayName: String = "Text Particles"
     override fun getClassName() = "TextParticles"
 
 }

@@ -15,9 +15,12 @@ import me.anno.ui.debug.FrameTimes
 import me.anno.utils.LOGGER
 import me.anno.utils.Maths
 import me.anno.utils.types.Strings.isBlank2
+import org.apache.logging.log4j.LogManager
 import kotlin.math.roundToInt
 
 object DrawTexts {
+
+    private val LOGGER = LogManager.getLogger(DrawTexts::class)
 
     val simpleChars = Array('z'.code + 1) { it.toChar().toString() }
     var monospaceFont = lazy { Font("Consolas", DefaultConfig.style.getSize("fontSize", 12), false, false) }
@@ -163,7 +166,7 @@ object DrawTexts {
             if (!txt.isBlank2()) {
                 val texture = FontManager.getString(font, txt, -1)
                 if (texture != null && (texture !is Texture2D || texture.isCreated)) {
-                    texture.bind(GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+                    texture.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
                     val x2 = fx + (w - sizeFirst) / 2
                     shader.v2(
                         "pos",
@@ -173,7 +176,9 @@ object DrawTexts {
                     shader.v2("size", sizeFirst.toFloat() / GFX.windowWidth, -h.toFloat() / GFX.windowHeight)
                     GFX.flat01.draw(shader)
                     GFX.check()
-                } else LOGGER.warn("Texture for $txt is null")
+                } else {
+                    LOGGER.warn("Texture for '$txt' is null/not created, $texture")
+                }
             }
             fx += w
         }
@@ -214,7 +219,7 @@ object DrawTexts {
         val h = texture.h
         // done if pixel is on the border of the drawn rectangle, make it grayscale, so we see no color seams
         if (texture !is Texture2D || texture.isCreated) {
-            texture.bind(GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+            texture.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
             val shader = ShaderLib.subpixelCorrectTextShader.value
             shader.use()
             val xWithOffset = x - when (alignment) {

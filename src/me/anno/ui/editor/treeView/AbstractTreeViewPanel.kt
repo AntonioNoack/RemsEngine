@@ -1,12 +1,10 @@
 package me.anno.ui.editor.treeView
 
-import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.black
 import me.anno.config.DefaultStyle.midGray
 import me.anno.config.DefaultStyle.white
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX.inFocus
-import me.anno.gpu.GFX.lastTouchedCamera
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.input.Input
 import me.anno.input.Input.mouseDownX
@@ -15,28 +13,20 @@ import me.anno.input.Input.mouseX
 import me.anno.input.Input.mouseY
 import me.anno.input.MouseButton
 import me.anno.io.FileReference
-import me.anno.io.utils.StringMap
+import me.anno.io.ISaveable
+import me.anno.io.text.TextReader
+import me.anno.io.text.TextWriter
 import me.anno.language.translation.Dict
-import me.anno.language.translation.NameDesc
 import me.anno.objects.Camera
-import me.anno.objects.Rectangle
 import me.anno.objects.Transform
-import me.anno.objects.Transform.Companion.toTransform
-import me.anno.objects.effects.MaskLayer
 import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.studio.rems.RemsStudio
-import me.anno.studio.rems.RemsStudio.nullCamera
-import me.anno.studio.rems.Selection.selectTransform
-import me.anno.studio.rems.Selection.selectTransformMaybe
 import me.anno.studio.rems.Selection.selectedTransform
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelListX
-import me.anno.ui.base.menu.Menu.menuSeparator1
-import me.anno.ui.base.menu.Menu.openMenu
-import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.dragging.Draggable
-import me.anno.ui.editor.files.ImportFromFile.addChildFromFile
+import me.anno.ui.editor.files.FileContentImporter
 import me.anno.ui.style.Style
 import me.anno.utils.Color.b
 import me.anno.utils.Color.g
@@ -44,12 +34,15 @@ import me.anno.utils.Color.r
 import me.anno.utils.Color.toARGB
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.sq
-import org.apache.logging.log4j.LogManager
-import org.joml.Vector3f
+import me.anno.utils.structures.Hierarchical
 import org.joml.Vector4f
-import java.util.*
 
-class TreeViewPanel(val getElement: () -> Transform, style: Style) : PanelListX(style) {
+class AbstractTreeViewPanel<V : Hierarchical<V>>(
+    val getElement: () -> V,
+    val openAddMenu: (parent: V) -> Unit,
+    val fileContentImporter: FileContentImporter<V>,
+    val castedParent: AbstractTreeView<V>, style: Style
+) : PanelListX(style) {
 
     private val accentColor = style.getColor("accentColor", black or 0xff0000)
 
@@ -90,34 +83,6 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style) : PanelListX(
             text.textColor = value
         }
 
-    override fun onDoubleClick(x: Float, y: Float, button: MouseButton) {
-        when {
-            button.isLeft -> {
-                // instead of asking for the name, move the camera towards the target
-                // todo also zoom in/out correctly to match the object...
-                // identify the currently used camera
-                val camera = lastTouchedCamera ?: nullCamera ?: return
-                val obj = getElement()
-                val time = RemsStudio.editorTime
-                // calculate the movement, which would be necessary
-                val cameraToWorld = camera.parent?.getGlobalTransform(time)
-                val objectToWorld = obj.getGlobalTransform(time)
-                val objectWorldPosition = objectToWorld.transformPosition(Vector3f(0f, 0f, 0f))
-                val objectCameraPosition = if (cameraToWorld == null) objectWorldPosition else cameraToWorld.invert()
-                    .transformPosition(objectWorldPosition)
-                println(objectCameraPosition)
-                // apply this movement
-                RemsStudio.largeChange("Move Camera to Object") {
-                    camera.position.addKeyframe(camera.lastLocalTime, objectCameraPosition)
-                }
-                /* askName(this.x, this.y, NameDesc(), getElement().name, NameDesc("Change Name"), { textColor }) {
-                     getElement().name = it
-                 }*/
-            }
-            else -> super.onDoubleClick(x, y, button)
-        }
-    }
-
     // override val effectiveTextColor: Int get() = textColor
     val hoverColor get() = symbol.hoverColor
     val font get() = symbol.font
@@ -128,7 +93,8 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style) : PanelListX(
         val transform = getElement()
         val dragged = dragged
         var backgroundColor = originalBGColor
-        var textColor = black or (transform.getLocalColor(tmp0).toARGB(180))
+        val textColor0 = castedParent.getLocalColor(transform, tmp0)
+        var textColor = black or (textColor0.toARGB(180))
         val showAddIndex = if (
             mouseX.toInt() in lx0..lx1 &&
             mouseY.toInt() in ly0..ly1 &&
@@ -180,37 +146,47 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style) : PanelListX(
                     RemsStudio.largeChange(if (transform.isCollapsed) "Expanded ${transform.name}" else "Collapsed ${transform.name}") {
                         val target = !transform.isCollapsed
                         // remove children from the selection???...
-                        inFocus.filterIsInstance<TreeViewPanel>().forEach {
+                        inFocus.filterIsInstance<AbstractTreeViewPanel<*>>().forEach {
                             val transform2 = it.getElement()
                             transform2.isCollapsed = target
                         }
                         transform.isCollapsed = target
                     }
                 } else {
-                    selectTransformMaybe(transform)
+                    castedParent.selectElementMaybe(transform)
                 }
             }
             button.isRight -> openAddMenu(transform)
         }
     }
 
+    override fun onDoubleClick(x: Float, y: Float, button: MouseButton) {
+        when {
+            button.isLeft -> {
+                castedParent.focusOnElement(getElement())
+            }
+            else -> super.onDoubleClick(x, y, button)
+        }
+    }
+
     override fun onCopyRequested(x: Float, y: Float): String {
-        return getElement().stringify()
+        return stringify(getElement())
     }
 
     override fun onPaste(x: Float, y: Float, data: String, type: String) {
         try {
-            val child = data.toTransform() ?: return super.onPaste(x, y, data, type)
-            val original = (dragged as? Draggable)?.getOriginal() as? Transform
+            val child0 = TextReader.fromText(data).first()
+            val child = child0 as? V ?: return super.onPaste(x, y, data, type)
+            val original = (dragged as? Draggable)?.getOriginal() as? V
             val relativeY = (y - this.y) / this.h
-            val e = getElement()
+            val element = getElement()
             RemsStudio.largeChange("Moved Component") {
                 if (relativeY < 0.33f) {
                     // paste on top
-                    if (e.parent != null) {
-                        e.addBefore(child)
+                    if (element.parent != null) {
+                        element.addBefore(child)
                     } else {
-                        e.addChild(child)
+                        element.addChild(child)
                     }
                     // we can't remove the element, if it's the parent
                     if (original !in child.listOfAll) {
@@ -218,8 +194,8 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style) : PanelListX(
                     }
                 } else if (relativeY < 0.67f) {
                     // paste as child
-                    e.addChild(child)
-                    if (e != original) {
+                    element.addChild(child)
+                    if (element != original) {
                         // we can't remove the element, if it's the parent
                         if (original !in child.listOfAll) {
                             original?.removeFromParent()
@@ -227,17 +203,18 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style) : PanelListX(
                     }
                 } else {
                     // paste below
-                    if (e.parent != null) {
-                        e.addAfter(child)
+                    if (element.parent != null) {
+                        element.addAfter(child)
                     } else {
-                        e.addChild(child)
+                        element.addChild(child)
                     }
                     // we can't remove the element, if it's the parent
                     if (original !in child.listOfAll) {
                         original?.removeFromParent()
                     }
                 }
-                selectTransform(child)
+                castedParent.selectElement(child)
+                // selectTransform(child)
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -247,18 +224,21 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style) : PanelListX(
 
     override fun onPasteFiles(x: Float, y: Float, files: List<FileReference>) {
         val transform = getElement()
-        files.forEach { addChildFromFile(transform, it, null, true) {} }
+        for (it in files) {
+            fileContentImporter.addChildFromFile(transform, it, FileContentImporter.SoftLinkMode.ASK, true) {}
+        }
     }
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
         when (action) {
             "DragStart" -> {
                 if (contains(mouseDownX, mouseDownY)) {
-                    val transform = getElement()
-                    if (dragged?.getOriginal() != transform) {
+                    val element = getElement()
+                    if (dragged?.getOriginal() != element) {
                         dragged = Draggable(
-                            transform.stringify(), "Transform", transform,
-                            TextPanel(transform.name, style)
+                            // todo content type...
+                            stringify(element), "Transform", element,
+                            TextPanel(element.name, style)
                         )
                     }
                 }
@@ -274,7 +254,9 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style) : PanelListX(
 
     override fun onDeleteKey(x: Float, y: Float) {
         RemsStudio.largeChange("Deleted Component ${getElement().name}") {
-            getElement().destroy()
+            val element = getElement()
+            element.removeFromParent()
+            for (it in element.listOfAll) it.destroy()
         }
     }
 
@@ -282,68 +264,25 @@ class TreeViewPanel(val getElement: () -> Transform, style: Style) : PanelListX(
     override fun getCursor() = Cursor.drag
 
     override fun getTooltipText(x: Float, y: Float): String? {
-        val transform = getElement()
-        return if (transform is Camera)
-            transform.getDefaultDisplayName() + Dict[", drag onto scene to view", "ui.treeView.dragCameraToView"]
-        else transform.getDefaultDisplayName()
+        val element = getElement()
+        return if (element is Camera) {
+            element.defaultDisplayName + Dict[", drag onto scene to view", "ui.treeView.dragCameraToView"]
+        } else element.defaultDisplayName
     }
 
     // multiple values can be selected
     override fun getMultiSelectablePanel() = this
 
+    override fun getClassName(): String = "TreeViewPanel"
+
     companion object {
-        private val LOGGER = LogManager.getLogger(TreeViewPanel::class)
-        fun openAddMenu(baseTransform: Transform) {
-            fun add(action: (Transform) -> Transform): () -> Unit = { selectTransform(action(baseTransform)) }
-            val options = DefaultConfig["createNewInstancesList"] as? StringMap
-            if (options != null) {
-                val extras = ArrayList<MenuOption>()
-                if (baseTransform.parent != null) {
-                    extras += menuSeparator1
-                    extras += MenuOption(
-                        NameDesc(
-                            "Add Mask",
-                            "Creates a mask component, which can be used for many effects",
-                            "ui.objects.addMask"
-                        )
-                    ) {
-                        val parent = baseTransform.parent!!
-                        val i = parent.children.indexOf(baseTransform)
-                        if (i < 0) throw RuntimeException()
-                        val mask = MaskLayer.create(listOf(Rectangle.create()), listOf(baseTransform))
-                        mask.isFullscreen = true
-                        parent.setChildAt(mask, i)
-                    }
-                }
-                val additional = baseTransform.getAdditionalChildrenOptions().map { option ->
-                    MenuOption(NameDesc(option.title, option.description, "")) {
-                        RemsStudio.largeChange("Added ${option.title}") {
-                            val new = option.generator() as Transform
-                            baseTransform.addChild(new)
-                            selectTransform(new)
-                        }
-                    }
-                }
-                if (additional.isNotEmpty()) {
-                    extras += menuSeparator1
-                    extras += additional
-                }
-                openMenu(
-                    mouseX, mouseY, NameDesc("Add Child", "", "ui.objects.add"),
-                    options.entries
-                        .sortedBy { (key, _) -> key.lowercase(Locale.getDefault()) }
-                        .map { (key, value) ->
-                            val sample = if (value is Transform) value.clone() else value.toString().toTransform()
-                            MenuOption(NameDesc(key, sample?.getDefaultDisplayName() ?: "", ""), add {
-                                val newT = if (value is Transform) value.clone() else value.toString().toTransform()
-                                newT!!
-                                it.addChild(newT)
-                                newT
-                            })
-                        } + extras
-                )
-            } else LOGGER.warn(Dict["Reset the config to enable this menu!", "config.warn.needsReset.forMenu"])
+
+        fun stringify(element: Any?): String {
+            return if (element is ISaveable) {
+                TextWriter.toText(element, false)
+            } else element.toString()
         }
+
     }
 
 }

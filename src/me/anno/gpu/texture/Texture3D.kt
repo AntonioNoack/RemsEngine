@@ -181,18 +181,14 @@ class Texture3D(val w: Int, val h: Int, val d: Int) : ICacheData {
         bindTexture(GL_TEXTURE_3D, pointer)
     }
 
-    fun bind(nearest: GPUFiltering) {
+    fun bind(index: Int, nearest: GPUFiltering) {
+        activeSlot(index)
         if (pointer > -1 && isCreated) {
             bindTexture(GL_TEXTURE_3D, pointer)
             ensureFiltering(nearest)
         } else {
-            invisibleTexture.bind(GPUFiltering.LINEAR, Clamping.CLAMP)
+            invisibleTexture.bind(index, GPUFiltering.LINEAR, Clamping.CLAMP)
         }
-    }
-
-    fun bind(index: Int, nearest: GPUFiltering) {
-        activeSlot(index)
-        bind(nearest)
     }
 
     override fun destroy() {
@@ -200,6 +196,7 @@ class Texture3D(val w: Int, val h: Int, val d: Int) : ICacheData {
         if (pointer > -1) {
             GFX.addGPUTask(1) {
                 glDeleteTextures(pointer)
+                Texture2D.invalidateBinding()
             }
         }
         this.pointer = -1

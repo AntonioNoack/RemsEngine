@@ -37,11 +37,14 @@ object Frame {
     var lastH = 0
     var lastPtr = -1
 
-    fun bind(buffer: Framebuffer?, changeSize: Boolean, x: Int, y: Int, w: Int, h: Int) {
+    fun bind(buffer: Framebuffer?, changeSize: Boolean, x: Int, y: Int, w0: Int, h0: Int) {
 
         if (buffer != null && buffer.pointer <= 0) {
             buffer.ensure()
         }
+
+        val w = if (w0 < 0) buffer?.w ?: GFX.width else w0
+        val h = if (h0 < 0) buffer?.h ?: GFX.height else h0
 
         val ptr = buffer?.pointer ?: -1
         // println("$ptr/$lastPtr")
@@ -60,7 +63,9 @@ object Frame {
             val x1 = x - GFX.deltaX
             val y1 = y - GFX.deltaY
 
+            val width = buffer?.w ?: GFX.width
             val height = buffer?.h ?: GFX.height
+            if (w > width || h > height) throw IllegalStateException("Viewport cannot be larger than frame! $w > $width || $h > $height, frame: $buffer")
 
             // this is mirrored
             glViewport(x1, height - (y1 + h), w, h)

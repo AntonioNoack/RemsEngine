@@ -84,7 +84,7 @@ open class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
     var type = MaskType.MASKING
     val effectSize = AnimatedProperty.float01exp(0.01f)
 
-    override fun getSymbol() = DefaultConfig["ui.symbol.mask", "\uD83D\uDCA5"]
+    override val symbol = DefaultConfig["ui.symbol.mask", "\uD83D\uDCA5"]
 
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
 
@@ -195,7 +195,7 @@ open class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
 
             } else {
 
-                glClearColor(0f, 0f, 0f, 0f)
+                glClearColor(0f, 0f, 0f, 1f)
                 glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
                 drawChild(stack, time, color, child)
@@ -211,7 +211,7 @@ open class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
 
             Frame.bind()
 
-            glClearColor(0f, 0f, 0f, 0f)
+            glClearColor(0f, 0f, 0f, 1f)
             glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
             drawChild(stack, time, color, children.getOrNull(1))
@@ -396,7 +396,7 @@ open class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
         }
     }
 
-    override fun getDefaultDisplayName() = "Mask Layer"
+    override val defaultDisplayName = "Mask Layer"
     override fun getClassName() = "MaskLayer"
 
     companion object {

@@ -66,8 +66,8 @@ import me.anno.ui.editor.graphs.GraphEditor
 import me.anno.ui.editor.sceneTabs.SceneTabs
 import me.anno.ui.editor.sceneView.ScenePreview
 import me.anno.ui.editor.sceneView.SceneView
-import me.anno.ui.editor.treeView.TreeView
-import me.anno.ui.editor.treeView.TreeViewPanel.Companion.openAddMenu
+import me.anno.studio.rems.ui.TransformTreeView
+import me.anno.studio.rems.ui.TransformTreeView.Companion.openAddMenu
 import me.anno.ui.input.BooleanInput
 import me.anno.ui.input.EnumInput
 import me.anno.ui.input.FileInput
@@ -580,7 +580,7 @@ object UILayouts {
         val library = RemsStudioUITypeLibrary()
 
         val treeFiles = CustomList(true, style)
-        treeFiles += CustomContainer(TreeView(style), library, style)
+        treeFiles += CustomContainer(TransformTreeView(style), library, style)
         treeFiles += CustomContainer(FileExplorer(style), library, style)
         animationWindow.add(CustomContainer(treeFiles, library, style), 0.5f)
         animationWindow.add(CustomContainer(SceneView(style), library, style), 2f)
