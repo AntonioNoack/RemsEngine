@@ -177,7 +177,11 @@ object DrawTexts {
                     GFX.flat01.draw(shader)
                     GFX.check()
                 } else {
-                    LOGGER.warn("Texture for '$txt' is null/not created, $texture")
+                    LOGGER.warn("Texture for '$txt' is ${
+                        if(texture == null) "null" 
+                        else if(texture is Texture2D && texture.isDestroyed) "destroyed"
+                        else "not created"
+                    }, $texture")
                 }
             }
             fx += w

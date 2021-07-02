@@ -109,7 +109,7 @@ class KeyCombination(val key: Int, val modifiers: Int, val type: Type){
                 "kp*" -> GLFW_KEY_KP_MULTIPLY
                 "kp-" -> GLFW_KEY_KP_SUBTRACT
                 "kp+" -> GLFW_KEY_KP_ADD
-                "kpenter", "kp\n" -> GLFW_KEY_KP_ENTER
+                "kpenter", "kp\n", "kp\\n" -> GLFW_KEY_KP_ENTER
                 "kp=" -> GLFW_KEY_KP_EQUAL
                 else -> {
                     val asInt = button.toIntOrNull()

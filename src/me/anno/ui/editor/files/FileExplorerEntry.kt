@@ -432,8 +432,7 @@ class FileExplorerEntry(
             }
             "Enter" -> {
                 if (file.isDirectory) {
-                    explorer.folder = file
-                    explorer.invalidate()
+                    explorer.switchTo(file)
                 } else {// todo check if it's a compressed thing we can enter
                     return false
                 }
@@ -487,13 +486,16 @@ class FileExplorerEntry(
         }
     }
 
+    // todo change to action
     override fun onDoubleClick(x: Float, y: Float, button: MouseButton) {
-        if (file.isDirectory) {
-            explorer.folder = file
-            // super.onDoubleClick(x, y, button)
-        } else {
-            SceneTabs.open(file)
-        }
+        if(button.isLeft){
+            if (file.isDirectory) {
+                explorer.switchTo(file)
+                // super.onDoubleClick(x, y, button)
+            } else {
+                SceneTabs.open(file)
+            }
+        } else super.onDoubleClick(x, y, button)
     }
 
     private fun deleteFileMaybe() {

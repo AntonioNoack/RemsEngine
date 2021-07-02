@@ -1,5 +1,6 @@
 package me.anno.studio.rems
 
+import me.anno.animation.AnimatedProperty
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.baseTheme
 import me.anno.gpu.GFX
@@ -159,13 +160,13 @@ object RemsStudio : StudioBase(true, "Rem's Studio", 10105) {
     val isPaused get() = editorTimeDilation == 0.0
     val isPlaying get() = editorTimeDilation != 0.0
 
-    val targetDuration get() = project!!.targetDuration
-    val targetSampleRate get() = project!!.targetSampleRate
-    val targetFPS get() = project!!.targetFPS
-    val targetWidth get() = project?.targetWidth ?: GFX.width
-    val targetHeight get() = project?.targetHeight ?: GFX.height
-    val targetOutputFile get() = project!!.targetOutputFile
-    val motionBlurSteps get() = project!!.motionBlurSteps
+    val targetDuration get(): Double = project?.targetDuration ?: Double.POSITIVE_INFINITY
+    val targetSampleRate get(): Int = project?.targetSampleRate ?: 48000
+    val targetFPS get(): Double = project?.targetFPS ?: 60.0
+    val targetWidth get(): Int = project?.targetWidth ?: GFX.width
+    val targetHeight get(): Int = project?.targetHeight ?: GFX.height
+    val targetOutputFile get(): FileReference = project!!.targetOutputFile
+    val motionBlurSteps get(): AnimatedProperty<Int> = project!!.motionBlurSteps
     val shutterPercentage get() = project!!.shutterPercentage
     val history get() = currentTab?.history
     val nullCamera get() = project?.nullCamera

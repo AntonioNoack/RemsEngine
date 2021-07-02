@@ -7,6 +7,7 @@ import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
+import me.anno.utils.structures.Hierarchical
 
 // entities would be an idea to make effects more modular
 // it could apply new effects to both the camera and image sources
@@ -14,19 +15,24 @@ import me.anno.io.text.TextWriter
 // todo hide the mutable list,
 // todo keep track of size of hierarchy
 
-open class Entity : NamedSaveable() {
+open class Entity() : NamedSaveable(), Hierarchical<Entity> {
+
+    constructor(parent: Entity?) : this() {
+        parent?.add(this)
+    }
+
+    constructor(name: String) : this() {
+        this.name = name
+    }
 
     @SerializedProperty
     val components = ArrayList<Component>()
 
     @SerializedProperty
-    var parent: Entity? = null
+    override var parent: Entity? = null
 
     @NotSerializedProperty
-    private val childList = ArrayList<Entity>()
-
-    @NotSerializedProperty
-    val children: List<Entity> = childList
+    override val children = ArrayList<Entity>()
 
     @SerializedProperty
     var isEnabled = true
@@ -34,7 +40,7 @@ open class Entity : NamedSaveable() {
     var transform = Transform()
 
     // for the UI
-    var isCollapsed = false
+    override var isCollapsed = false
 
     fun update() {
         for (component in components) component.onUpdate()
@@ -62,20 +68,20 @@ open class Entity : NamedSaveable() {
 
     fun setParent(parent: Entity, keepWorldPosition: Boolean) {
         if (parent == this.parent) return
-        this.parent?.childList?.remove(this)
+        this.parent?.children?.remove(this)
         if (keepWorldPosition) {
             // todo update transform
 
         }
-        parent.childList.add(this)
+        parent.children.add(this)
         this.parent = parent
     }
 
-    fun destroy() {
+    override fun destroy() {
         // todo call onDestroy of all components
 
         // todo some event based system? or just callable functions? idk...
-        this.parent?.childList?.remove(this)
+        this.parent?.children?.remove(this)
     }
 
     fun addComponent(component: Component) {
@@ -83,7 +89,7 @@ open class Entity : NamedSaveable() {
         component.entity = this
     }
 
-    fun addChild(entity: Entity) {
+    override fun addChild(entity: Entity) {
         entity.setParent(this, false)
     }
 
@@ -115,9 +121,9 @@ open class Entity : NamedSaveable() {
     override fun readObjectArray(name: String, values: Array<ISaveable?>) {
         when (name) {
             "children" -> {
-                childList.clear()
+                children.clear()
                 val entities = values.filterIsInstance<Entity>()
-                childList.addAll(entities)
+                children.addAll(entities)
                 entities.forEach { it.parent = this }
             }
             "components" -> {
@@ -151,7 +157,7 @@ open class Entity : NamedSaveable() {
     fun add(component: Component) = addComponent(component)
 
     fun remove(entity: Entity) {
-        childList.remove(entity)
+        children.remove(entity)
         if (entity.parent == this) {
             entity.parent = null
         }
@@ -164,5 +170,11 @@ open class Entity : NamedSaveable() {
     val sizeOfHierarchy get(): Int = components.size + children.sumOf { 1 + it.sizeOfHierarchy }
 
     fun clone() = TextReader.fromText(TextWriter.toText(this, false))[0] as Entity
+
+    override val symbol: String
+        get() = ""
+
+    override val defaultDisplayName: String
+        get() = "Entity"
 
 }

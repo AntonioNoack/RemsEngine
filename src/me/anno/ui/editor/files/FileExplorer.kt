@@ -3,6 +3,7 @@ package me.anno.ui.editor.files
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.input.Input
+import me.anno.input.MouseButton
 import me.anno.io.FileReference
 import me.anno.language.translation.NameDesc
 import me.anno.objects.Transform
@@ -26,6 +27,7 @@ import me.anno.utils.Maths.pow
 import me.anno.utils.OS
 import me.anno.utils.Threads.threadWithName
 import me.anno.utils.files.Files.listFiles2
+import org.apache.logging.log4j.LogManager
 import java.io.File
 import kotlin.math.max
 
@@ -42,18 +44,10 @@ import kotlin.math.max
 
 // todo list view
 
-// todo a stack or history to know where we were...
+// done a stack or history to know where we were
 // todo left list of relevant places? todo drag stuff in there
 
 class FileExplorer(style: Style) : PanelListY(style.getChild("fileExplorer")) {
-
-    var folder: FileReference? = project?.scenes ?: OS.documents
-        set(value) {
-            if (field != value) {
-                invalidate()
-                field = value
-            }
-        }
 
     val searchBar = TextInput("Search Term", false, style)
         .setChangeListener {
@@ -61,6 +55,11 @@ class FileExplorer(style: Style) : PanelListY(style.getChild("fileExplorer")) {
             invalidate()
         }
         .setWeight(1f)
+
+    var historyIndex = 0
+    val history = arrayListOf<FileReference?>(project?.scenes ?: OS.documents)
+
+    val folder get() = history[historyIndex]
 
     var searchTerm = ""
     var isValid = 0f
@@ -90,7 +89,7 @@ class FileExplorer(style: Style) : PanelListY(style.getChild("fileExplorer")) {
         topBar += searchBar
         this += uContent
         title.onChangeListener = {
-            folder = it
+            switchTo(it)
             invalidate()
         }
         uContent += ScrollPanelY(
@@ -173,10 +172,7 @@ class FileExplorer(style: Style) : PanelListY(style.getChild("fileExplorer")) {
     override fun onPasteFiles(x: Float, y: Float, files: List<FileReference>) {
         // todo create links? or truly copy them?
         // todo or just switch?
-        folder = files.first()
-        if (!folder!!.isDirectory) {
-            folder = folder!!.getParent()
-        }
+        switchTo(files.first())
         invalidate()
     }
 
@@ -208,6 +204,7 @@ class FileExplorer(style: Style) : PanelListY(style.getChild("fileExplorer")) {
     }
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
+        println(action)
         when (action) {
             "OpenOptions" -> {
                 val home = folder
@@ -256,13 +253,44 @@ class FileExplorer(style: Style) : PanelListY(style.getChild("fileExplorer")) {
                         }
                     ))
             }
-            "Back" -> {
-                folder = folder?.getParent()
-                invalidate()
-            }
+            "Back", "Backward" -> back()
+            "Forward" -> forward()
             else -> return super.onGotAction(x, y, dx, dy, action, isContinuous)
         }
         return true
+    }
+
+    fun back() {
+        if (historyIndex > 0) {
+            historyIndex--
+            invalidate()
+        } else {
+            val element = folder?.getParent()
+            history.clear()
+            history.add(element)
+            historyIndex = 0
+            invalidate()
+        }
+    }
+
+    fun forward() {
+        if (historyIndex + 1 < history.size) {
+            historyIndex++
+            invalidate()
+        } else {
+            LOGGER.info("End of history reached!")
+        }
+    }
+
+    fun switchTo(folder: FileReference?) {
+        if (folder != null && !folder.isDirectory) {
+            switchTo(folder.getParent())
+        } else {
+            while (history.lastIndex > historyIndex) history.removeAt(history.lastIndex)
+            history.add(folder)
+            historyIndex++
+            invalidate()
+        }
     }
 
     override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float) {
@@ -277,7 +305,10 @@ class FileExplorer(style: Style) : PanelListY(style.getChild("fileExplorer")) {
     // multiple elements can be selected
     override fun getMultiSelectablePanel() = this
 
+    override fun getClassName(): String = "FileExplorer"
+
     companion object {
+        private val LOGGER = LogManager.getLogger(FileExplorer::class)
         private val forbiddenConfig =
             DefaultConfig["files.forbiddenCharacters", "<>:\"/\\|?*"] + String(CharArray(32) { it.toChar() })
         val forbiddenCharacters = forbiddenConfig.toHashSet()

@@ -4,22 +4,26 @@ import me.anno.ecs.Entity
 
 class RootEntity : Entity() {
 
-    val world = Entity()
+    // will be shared over the network, and available to all clients
+    // should be written only to by the server, or for particle effects
+    val globallyShared = Entity("Globally Shared")
 
     // only enabled in scene editor
-    val playerPrefab = Entity()
+    val playerPrefab = Entity("Player Prefab")
 
     // can be created using the prefab
-    val localPlayers = Entity()//ArrayList<LocalPlayer>()
+    val localPlayers = Entity("Local Players")//ArrayList<LocalPlayer>()
 
-    // e.g. for custom ui layouts
-    val locallyShared = Entity()
+    // e.g. for custom ui layouts,
+    // will not be shared with the server
+    val locallyShared = Entity("Locally Shared")
 
-    // what about their UI? mmh...
-    val remotePlayers = Entity()//ArrayList<RemotePlayer>()
+    // remote players, will be controlled by the server connection
+    // if the server is local, it may be controlled by the remotely playing
+    val remotePlayers = Entity("Remote Players")//ArrayList<RemotePlayer>()
 
     init {
-        addChild(world)
+        addChild(globallyShared)
         addChild(playerPrefab)
         addChild(locallyShared)
         addChild(localPlayers)
@@ -46,5 +50,7 @@ class RootEntity : Entity() {
         localPlayers.remove(player)
 
     }
+
+    override fun getClassName(): String = "RootEntity"
 
 }

@@ -11,6 +11,7 @@ import me.anno.gpu.GFX.requestFocus
 import me.anno.gpu.GFX.window
 import me.anno.gpu.GFX.windowStack
 import me.anno.gpu.Window
+import me.anno.input.MouseButton.Companion.toMouseButton
 import me.anno.input.Touch.Companion.onTouchDown
 import me.anno.input.Touch.Companion.onTouchMove
 import me.anno.input.Touch.Companion.onTouchUp
@@ -19,9 +20,9 @@ import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.studio.rems.RemsStudio.history
 import me.anno.studio.rems.RemsStudio.project
 import me.anno.studio.rems.RemsStudio.root
+import me.anno.studio.rems.ui.TransformFileImporter.addChildFromFile
 import me.anno.ui.base.Panel
 import me.anno.ui.editor.files.FileContentImporter
-import me.anno.studio.rems.ui.TransformFileImporter.addChildFromFile
 import me.anno.ui.editor.treeView.AbstractTreeViewPanel
 import me.anno.utils.Maths.length
 import me.anno.utils.Threads.threadWithName
@@ -88,13 +89,6 @@ object Input {
 
     fun invalidateLayout() {
         framesSinceLastInteraction = 0
-    }
-
-    fun Int.toMouseButton() = when (this) {
-        0 -> MouseButton.LEFT
-        1 -> MouseButton.RIGHT
-        2 -> MouseButton.MIDDLE
-        else -> MouseButton.UNKNOWN
     }
 
     fun initForGLFW() {

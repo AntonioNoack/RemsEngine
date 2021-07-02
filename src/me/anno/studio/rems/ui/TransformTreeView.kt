@@ -27,7 +27,7 @@ import java.util.*
 class TransformTreeView(style: Style) :
     AbstractTreeView<Transform>(listOf(nullCamera!!, root), Companion::openAddMenu, TransformFileImporter, style) {
 
-    override val selectedTransform: Transform?
+    override val selectedElement: Transform?
         get() = Selection.selectedTransform
 
     override fun selectElement(element: Transform?) {
@@ -115,5 +115,7 @@ class TransformTreeView(style: Style) :
             } else LOGGER.warn(Dict["Reset the config to enable this menu!", "config.warn.needsReset.forMenu"])
         }
     }
+
+    override fun getClassName(): String = "TreeView"
 
 }

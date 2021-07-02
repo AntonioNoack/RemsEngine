@@ -29,8 +29,7 @@ abstract class AbstractTreeView<V : Hierarchical<V>>(
     val openAddMenu: (parent: V) -> Unit,
     val fileContentImporter: FileContentImporter<V>,
     style: Style
-) :
-    ScrollPanelXY(Padding(5), style.getChild("treeView")) {
+) : ScrollPanelXY(Padding(5), style.getChild("treeView")) {
 
     val list = content as PanelList
 
@@ -40,7 +39,7 @@ abstract class AbstractTreeView<V : Hierarchical<V>>(
 
     val elementByIndex = ArrayList<V>()
 
-    abstract val selectedTransform: V?
+    abstract val selectedElement: V?
 
     // Selection.select(element, null)
     abstract fun selectElement(element: V?)

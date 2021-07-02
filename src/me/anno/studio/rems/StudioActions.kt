@@ -15,6 +15,7 @@ import java.io.File
 import kotlin.math.round
 
 object StudioActions {
+
     fun register() {
 
         fun setEditorTimeDilation(dilation: Double): Boolean {
@@ -167,7 +168,9 @@ object StudioActions {
         keyMap["FileEntry.f2.press"] = "Rename"
         keyMap["FileEntry.right.down"] = "OpenOptions"
         keyMap["FileExplorer.right.down"] = "OpenOptions"
-        keyMap["FileExplorer.mousebackward.down"] = "Back"
+        keyMap["FileExplorer.mouseBackward.down"] = "Back"
+        keyMap["FileExplorer.mouseForward.down"] = "Forward"
+        keyMap["FileExplorerEntry.left.double"] = "Enter"
         keyMap["TreeViewPanel.left.press"] = "DragStart"
 
         keyMap["HSVBox.left.down"] = "selectColor"
