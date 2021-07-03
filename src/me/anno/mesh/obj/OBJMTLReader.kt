@@ -1,22 +1,22 @@
 package me.anno.mesh.obj
 
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
+import me.anno.io.files.FileReference.Companion.getReference
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector2f
 import org.joml.Vector3f
 import java.io.EOFException
 import java.io.File
 import java.io.InputStream
-import java.lang.StringBuilder
 
-open class OBJMTLReader(val reader: InputStream){
+open class OBJMTLReader(val reader: InputStream) {
 
     companion object {
         private val LOGGER = LogManager.getLogger(OBJMTLReader::class)
     }
 
-    fun skipSpaces(){
-        while(true){
+    fun skipSpaces() {
+        while (true) {
             when (val next = next()) {
                 ' '.code, '\t'.code, '\r'.code, '\n'.code -> {
                 }
@@ -28,8 +28,8 @@ open class OBJMTLReader(val reader: InputStream){
         }
     }
 
-    fun skipLine(){
-        while(true){
+    fun skipLine() {
+        while (true) {
             if (next() == '\n'.code) {
                 // done :)
                 return
@@ -39,20 +39,20 @@ open class OBJMTLReader(val reader: InputStream){
 
     var putBack = -1
     fun next(): Int {
-        val char = if(putBack >= 0) putBack else reader.read()
+        val char = if (putBack >= 0) putBack else reader.read()
         putBack = -1
         if (char == '\r'.code) return next()
-        if(char < 0) throw EOFException()
+        if (char < 0) throw EOFException()
         return char
     }
 
-    fun putBack(char: Int){
+    fun putBack(char: Int) {
         putBack = char
     }
 
     fun readUntilSpace(): String {
         val builder = StringBuilder()
-        while(true){
+        while (true) {
             when (val char = next()) {
                 ' '.code, '\t'.code, '\n'.code -> {
                     putBack(char)
@@ -99,7 +99,7 @@ open class OBJMTLReader(val reader: InputStream){
         val path = readUntilSpace()
         skipLine()
         val file = File(parent.parentFile, path)
-        if(!file.exists()) LOGGER.warn("Missing file $file")
+        if (!file.exists()) LOGGER.warn("Missing file $file")
         return file
     }
 
@@ -107,9 +107,9 @@ open class OBJMTLReader(val reader: InputStream){
         skipSpaces()
         val path = readUntilSpace()
         skipLine()
-        val file = File(parent.file.parentFile, path)
-        if(!file.exists()) LOGGER.warn("Missing file $file")
-        return FileReference(file)
+        val file = getReference(parent.getParent(), path)
+        if (!file.exists) LOGGER.warn("Missing file $file")
+        return file
     }
 
 }

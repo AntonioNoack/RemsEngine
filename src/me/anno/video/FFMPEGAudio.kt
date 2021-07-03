@@ -2,7 +2,7 @@ package me.anno.video
 
 import me.anno.audio.openal.SoundBuffer
 import me.anno.audio.format.WaveReader
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
 import me.anno.utils.ShutdownException
 import kotlin.concurrent.thread
 

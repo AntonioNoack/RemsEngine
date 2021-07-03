@@ -3,7 +3,7 @@ package me.anno.cache.instances
 import me.anno.cache.CacheSection
 import me.anno.cache.data.VideoData
 import me.anno.cache.keys.VideoFramesKey
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
 import me.anno.video.FFMPEGMetadata
 import me.anno.video.FFMPEGMetadata.Companion.getMeta
 import me.anno.video.VFrame

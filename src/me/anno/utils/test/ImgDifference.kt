@@ -1,5 +1,6 @@
 package me.anno.utils.test
 
+import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
@@ -13,9 +14,9 @@ import kotlin.math.abs
 
 fun main() {
 
-    val folder = File(OS.pictures.file, "Screenshots")
-    val i0 = ImageIO.read(File(folder, "i0.png"))
-    val i1 = ImageIO.read(File(folder, "i1.png"))
+    val folder = getReference(OS.pictures, "Screenshots")
+    val i0 = ImageIO.read(folder.getChild("i0.png")!!.inputStream())
+    val i1 = ImageIO.read(folder.getChild("i1.png")!!.inputStream())
 
     val w = Maths.min(i0.width, i1.width)
     val h = Maths.min(i0.height, i1.height)

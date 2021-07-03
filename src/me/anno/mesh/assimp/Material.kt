@@ -1,6 +1,6 @@
 package me.anno.mesh.assimp
 
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
 import org.joml.Vector4f
 
 class Material(val ambient: Vector4f, val diffuse: Vector4f, val specular: Vector4f, var alpha: Float) {

@@ -6,17 +6,14 @@ import me.anno.gpu.TextureLib;
 import me.anno.gpu.texture.Clamping;
 import me.anno.gpu.texture.GPUFiltering;
 import me.anno.gpu.texture.Texture2D;
-import me.anno.io.FileReference;
+import me.anno.io.files.FileReference;
 import me.anno.video.MissingFrameException;
 import me.karl.animatedModel.AnimatedModel;
 import me.karl.scene.ICamera;
 import org.joml.Vector3f;
 import org.lwjgl.opengl.GL11;
 
-import java.io.File;
 import java.util.List;
-
-import static me.anno.ui.editor.files.AllowedFileNamesKt.hasValidName;
 
 /**
  * This class deals with rendering an animated entity. Nothing particularly new

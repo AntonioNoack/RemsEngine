@@ -1,7 +1,8 @@
 package me.anno.video
 
 import me.anno.objects.Video
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
+import me.anno.io.files.FileReference.Companion.getReference
 import org.apache.logging.log4j.LogManager
 import java.io.File
 import kotlin.math.min
@@ -19,15 +20,15 @@ class ImageSequenceMeta(file: FileReference) {
         val prefix = key.substring(0, i0)
         val suffix = key.substring(i1)
         // LOGGER.info("'$prefix' $i0-$i1 '$suffix'")
-        val file2 = file.file
-        matches = (file2.parentFile.listFiles() ?: emptyArray())
+        // val file2 = file.unsafeFile
+        matches = (file.getParent()?.listChildren() ?: emptyList())
             .mapNotNull { child ->
                 val name = child.name
                 if (name.startsWith(prefix) && name.endsWith(suffix)) {
                     val time = name.substring(i0, name.length - suffix.length).toDoubleOrNull()
                     // LOGGER.info("$child, $name, ${name.substring(i0, i1)}: $time")
                     if (time == null) null
-                    else FileReference(child) to time
+                    else child to time
                 } else null
             }
             .sortedBy { it.second }
@@ -64,7 +65,7 @@ class ImageSequenceMeta(file: FileReference) {
         @JvmStatic
         fun main(args: Array<String>) {
             val file = File("C:\\Users\\Antonio\\Documents\\Blender\\Image Sequence\\%.jpg")
-            val meta = ImageSequenceMeta(FileReference(file))
+            val meta = ImageSequenceMeta(getReference(file))
             LOGGER.info(meta.toString())
             /*meta.matches.forEach { (file, _) ->
                 val src = ImageIO.read(file)

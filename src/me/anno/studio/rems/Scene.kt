@@ -463,7 +463,7 @@ object Scene {
         }*/
 
         val lutFile = camera.lut
-        val needsLUT = !isFakeColorRendering && lutFile.exists() && !lutFile.isDirectory
+        val needsLUT = !isFakeColorRendering && lutFile.exists && !lutFile.isDirectory
         val lut = if (needsLUT) getLUT(lutFile, true, 20_000) else null
 
         if (lut == null && needsLUT && isFinalRendering) throw MissingFrameException(lutFile)

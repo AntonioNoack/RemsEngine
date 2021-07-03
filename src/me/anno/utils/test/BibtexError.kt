@@ -10,7 +10,7 @@ fun main(){
     // the error was missing(?) \url tags... in bibtex
     // why ever you have to set them in JabRef... I've the feeling it should be done automatically
  
-    val file = File(OS.desktop.file, "test.txt")
+    val file = File(OS.desktop.unsafeFile, "test.txt")
     val str = file.readText()
 
     var i = 0

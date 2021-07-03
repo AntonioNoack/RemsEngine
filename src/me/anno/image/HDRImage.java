@@ -1,5 +1,7 @@
 package me.anno.image;
 
+import me.anno.io.files.FileReference;
+
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBuffer;
 import java.io.BufferedInputStream;
@@ -52,8 +54,14 @@ public class HDRImage {
         }
     }
 
+    public HDRImage(FileReference file, boolean useNioBuffer) throws IOException {
+        try (InputStream in = new BufferedInputStream(file.inputStream())) {
+            read(in, useNioBuffer);
+        }
+    }
+
     public HDRImage(File file, boolean useNioBuffer) throws IOException {
-        try (InputStream in = new BufferedInputStream(new FileInputStream(file));) {
+        try (InputStream in = new BufferedInputStream(new FileInputStream(file))) {
             read(in, useNioBuffer);
         }
     }

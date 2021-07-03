@@ -1,12 +1,11 @@
 package me.anno.video
 
 import me.anno.animation.AnimatedProperty
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
 import me.anno.objects.Audio
 import me.anno.objects.Transform
 import me.anno.utils.Sleep.waitUntil
 import org.apache.logging.log4j.LogManager
-import java.io.File
 import kotlin.concurrent.thread
 
 class VideoAudioCreator(

@@ -1,6 +1,6 @@
 package me.anno.cache.keys
 
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
 
 data class AudioSliceKey(val file: FileReference, val slice: Long) {
     val hashCode = (file.hashCode() * 31) or slice.hashCode()

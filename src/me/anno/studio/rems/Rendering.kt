@@ -1,6 +1,7 @@
 package me.anno.studio.rems
 
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
+import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.language.translation.NameDesc
 import me.anno.objects.Audio
 import me.anno.objects.Transform
@@ -59,7 +60,7 @@ object Rendering {
         if (isRendering) return onAlreadyRendering()
 
         val targetOutputFile = findTargetOutputFile(RenderType.VIDEO)
-        if (targetOutputFile.exists() && ask) {
+        if (targetOutputFile.exists && ask) {
             return askOverridingIsAllowed(targetOutputFile) {
                 renderVideo(width, height, false, callback)
             }
@@ -109,12 +110,12 @@ object Rendering {
         File(file.parentFile, file.nameWithoutExtension + ".tmp." + targetOutputFile.extension)
 
     fun getTmpFile(file: FileReference) =
-        FileReference(file.file.parentFile, file.nameWithoutExtension + ".tmp." + targetOutputFile.extension)
+        getReference(file.getParent(), file.nameWithoutExtension + ".tmp." + targetOutputFile.extension)
 
     fun renderFrame(width: Int, height: Int, time: Double, ask: Boolean, callback: () -> Unit) {
 
         val targetOutputFile = findTargetOutputFile(RenderType.FRAME)
-        if (targetOutputFile.exists() && ask) {
+        if (targetOutputFile.exists && ask) {
             return askOverridingIsAllowed(targetOutputFile) {
                 renderFrame(width, height, time, false, callback)
             }
@@ -139,7 +140,7 @@ object Rendering {
         if (isRendering) return onAlreadyRendering()
 
         val targetOutputFile = findTargetOutputFile(RenderType.AUDIO)
-        if (targetOutputFile.exists() && ask) {
+        if (targetOutputFile.exists && ask) {
             return askOverridingIsAllowed(targetOutputFile) {
                 renderAudio(false, callback)
             }
@@ -198,10 +199,10 @@ object Rendering {
         val defaultName = type.defaultName
         do {
             val file0 = targetOutputFile
-            if (targetOutputFile.exists() && targetOutputFile.isDirectory) {
-                targetOutputFile = FileReference(targetOutputFile, defaultName)
+            if (targetOutputFile.exists && targetOutputFile.isDirectory) {
+                targetOutputFile = getReference(targetOutputFile, defaultName)
             } else if (!targetOutputFile.name.contains('.')) {
-                targetOutputFile = FileReference(targetOutputFile, defaultExtension)
+                targetOutputFile = getReference(targetOutputFile, defaultExtension)
             }
         } while (file0 !== targetOutputFile)
         val importType = targetOutputFile.extension.getImportType()
@@ -213,7 +214,7 @@ object Rendering {
         if (importType != targetType) {
             // wrong extension -> place it automatically
             val fileName = targetOutputFile.nameWithoutExtension + defaultExtension
-            return FileReference(targetOutputFile.file.parentFile, fileName)
+            return getReference(targetOutputFile.getParent(), fileName)
         }
         return targetOutputFile
     }

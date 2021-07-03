@@ -3,8 +3,9 @@ package me.anno.ui.editor.files
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.input.Input
-import me.anno.input.MouseButton
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
+import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.files.FileRootRef
 import me.anno.language.translation.NameDesc
 import me.anno.objects.Transform
 import me.anno.objects.Transform.Companion.toTransform
@@ -28,7 +29,6 @@ import me.anno.utils.OS
 import me.anno.utils.Threads.threadWithName
 import me.anno.utils.files.Files.listFiles2
 import org.apache.logging.log4j.LogManager
-import java.io.File
 import kotlin.math.max
 
 // done the text size is quite small on my x360 -> get the font size for the ui from the OS :)
@@ -57,7 +57,7 @@ class FileExplorer(style: Style) : PanelListY(style.getChild("fileExplorer")) {
         .setWeight(1f)
 
     var historyIndex = 0
-    val history = arrayListOf<FileReference?>(project?.scenes ?: OS.documents)
+    val history = arrayListOf(project?.scenes ?: OS.documents)
 
     val folder get() = history[historyIndex]
 
@@ -114,13 +114,13 @@ class FileExplorer(style: Style) : PanelListY(style.getChild("fileExplorer")) {
 
             val search = Search(searchTerm)
 
-            val children = folder?.file?.listFiles2() ?: File.listRoots().toList()
+            val children: List<FileReference> = folder.listFiles2()
             val newFiles = children.joinToString { it.name }
             if (lastFiles != newFiles) {
                 lastFiles = newFiles
-                val parent = folder?.file?.parentFile
+                val parent = folder.getParent()
                 if (parent != null) {
-                    val fe = FileExplorerEntry(this, true, FileReference(parent), style)
+                    val fe = FileExplorerEntry(this, true, parent, style)
                     GFX.addGPUTask(1) { removeOldFiles(); content += fe }
                 } else {
                     GFX.addGPUTask(1) { removeOldFiles() }
@@ -143,7 +143,7 @@ class FileExplorer(style: Style) : PanelListY(style.getChild("fileExplorer")) {
                 children.sortedBy { !it.isDirectory }.forEach { file ->
                     val name = file.name
                     if (!name.startsWith(".") && search.matches(name)) {
-                        val fe = FileExplorerEntry(this, false, FileReference(file), style)
+                        val fe = FileExplorerEntry(this, false, file, style)
                         tmpList.add(fe)
                         if (tmpList.size >= tmpCount) put()
                     }
@@ -164,7 +164,7 @@ class FileExplorer(style: Style) : PanelListY(style.getChild("fileExplorer")) {
         if (isValid <= 0f) {
             isValid = 5f // depending on amount of files?
             title.file = folder// ?.toString() ?: "This Computer"
-            title.tooltip = folder?.toString() ?: "This Computer"
+            title.tooltip = if (folder == FileRootRef) "This Computer" else folder.toString()
             createResults()
         } else isValid -= GFX.deltaTime
     }
@@ -198,13 +198,12 @@ class FileExplorer(style: Style) : PanelListY(style.getChild("fileExplorer")) {
         }
         name += ".json"
         // todo replace vs add new?
-        FileReference(folder!!, name).writeText(data)
+        folder.getChild(name)!!.writeText(data)
         invalidate()
         return true
     }
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
-        println(action)
         when (action) {
             "OpenOptions" -> {
                 val home = folder
@@ -220,7 +219,7 @@ class FileExplorer(style: Style) : PanelListY(style.getChild("fileExplorer")) {
                                 { -1 }) {
                                 val validName = it.toAllowedFilename()
                                 if (validName != null) {
-                                    FileReference(home!!, validName).mkdirs()
+                                    getReference(home, validName)!!.mkdirs()
                                     invalidate()
                                 }
                             }
@@ -235,7 +234,7 @@ class FileExplorer(style: Style) : PanelListY(style.getChild("fileExplorer")) {
                                 { -1 }) {
                                 val validName = it.toAllowedFilename()
                                 if (validName != null) {
-                                    FileReference(home!!, "${validName}.json").writeText(Transform()
+                                    getReference(home, "${validName}.json")!!.writeText(Transform()
                                         .apply { name = it }
                                         .toString())
                                     invalidate()
@@ -249,7 +248,7 @@ class FileExplorer(style: Style) : PanelListY(style.getChild("fileExplorer")) {
                                 "ui.file.openInExplorer"
                             )
                         ) {
-                            folder?.openInExplorer()
+                            folder.openInExplorer()
                         }
                     ))
             }
@@ -265,7 +264,7 @@ class FileExplorer(style: Style) : PanelListY(style.getChild("fileExplorer")) {
             historyIndex--
             invalidate()
         } else {
-            val element = folder?.getParent()
+            val element = folder.getParent() ?: return
             history.clear()
             history.add(element)
             historyIndex = 0
@@ -283,7 +282,8 @@ class FileExplorer(style: Style) : PanelListY(style.getChild("fileExplorer")) {
     }
 
     fun switchTo(folder: FileReference?) {
-        if (folder != null && !folder.isDirectory) {
+        folder ?: return
+        if (!folder.isDirectoryOrCompressed) {
             switchTo(folder.getParent())
         } else {
             while (history.lastIndex > historyIndex) history.removeAt(history.lastIndex)

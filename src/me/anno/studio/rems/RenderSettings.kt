@@ -146,7 +146,7 @@ object RenderSettings : Transform() {
                 textColor = mixARGB(
                     originalColor, when {
                         file.isDirectory -> 0xff0000 or black
-                        file.exists() -> 0xffff00 or black
+                        file.exists -> 0xffff00 or black
                         else -> 0x00ff00 or black
                     }, 0.5f
                 )

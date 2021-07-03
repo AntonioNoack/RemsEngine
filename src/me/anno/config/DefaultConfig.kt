@@ -23,7 +23,8 @@ import me.anno.ui.style.Style
 import me.anno.utils.Clock
 import me.anno.utils.OS
 import me.anno.utils.Warning
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
+import me.anno.io.files.FileReference.Companion.getReference
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3f
 import java.io.File
@@ -81,7 +82,7 @@ object DefaultConfig : StringMap() {
         val tick = Clock()
 
         val newInstances: Map<String, Transform> = mapOf(
-            "Mesh" to Mesh(FileReference(OS.documents, "monkey.obj"), null),
+            "Mesh" to Mesh(getReference(OS.documents, "monkey.obj"), null),
             "Array" to GFXArray(),
             "Image / Audio / Video" to Video(),
             "Polygon" to Polygon(null),
@@ -92,28 +93,28 @@ object DefaultConfig : StringMap() {
             "Mask" to MaskLayer.create(null, null),
             "Text" to Text("Text"),
             "Timer" to Timer(),
-            "Cubemap" to {
+            "Cubemap" to run {
                 val cube = Video()
                 cube.uvProjection *= UVProjection.TiledCubemap
                 cube.scale.set(Vector3f(1000f, 1000f, 1000f))
                 cube
-            }(),
-            "Cube" to {
+            },
+            "Cube" to run {
                 val cube = Polygon()
                 cube.name = "Cube"
                 cube.autoAlign = true
                 cube.is3D = true
                 cube.vertexCount.set(4)
                 cube
-            }(),
+            },
             "Camera" to Camera(),
-            "Particle System" to {
+            "Particle System" to run {
                 val ps = ParticleSystem()
                 ps.name = "Particles"
                 Circle(ps)
                 ps.timeOffset.value = -5.0
                 ps
-            }(),
+            },
             "Text Particles" to TextParticles(),
             "Effect: Coloring" to EffectColoring(),
             "Effect: Morphing" to EffectMorphing()
@@ -128,16 +129,16 @@ object DefaultConfig : StringMap() {
     }
 
     data class ProjectHeader(val name: String, val file: FileReference){
-        constructor(name: String, file: File): this(name, FileReference(file))
+        constructor(name: String, file: File): this(name, getReference(file))
     }
 
     private val recentProjectCount = 10
     fun getRecentProjects(): ArrayList<ProjectHeader> {
         val projects = ArrayList<ProjectHeader>()
-        val usedFiles = HashSet<File>()
+        val usedFiles = HashSet<FileReference>()
         for (i in 0 until recentProjectCount) {
             val name = this["recent.projects[$i].name"] as? String ?: continue
-            val file = File(this["recent.projects[$i].file"] as? String ?: continue)
+            val file = getReference(this["recent.projects[$i].file"] as? String ?: continue)
             if (file !in usedFiles) {
                 projects += ProjectHeader(name, file)
                 usedFiles += file
@@ -146,11 +147,11 @@ object DefaultConfig : StringMap() {
         // load projects, which were forgotten because the config was deleted
         if (DefaultConfig["recent.projects.detectAutomatically", true]) {
             try {
-                for (folder in workspace.listFiles() ?: emptyArray()) {
+                for (folder in workspace.listChildren() ?: emptyList()) {
                     if (folder !in usedFiles) {
                         if (folder.isDirectory) {
-                            val configFile = File(folder, "config.json")
-                            if (configFile.exists()) {
+                            val configFile = getReference(folder, "config.json")
+                            if (configFile.exists) {
                                 try {
                                     val config = TextReader.fromText(configFile.readText()).firstOrNull() as? StringMap
                                     if (config != null) {
@@ -177,7 +178,7 @@ object DefaultConfig : StringMap() {
 
     fun removeFromRecentProjects(file: File) {
         val recent = getRecentProjects()
-        recent.removeIf { it.file.file == file }
+        recent.removeIf { it.file.unsafeFile == file }
         updateRecentProjects(recent)
     }
 

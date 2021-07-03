@@ -1,7 +1,8 @@
 package me.anno.utils.files
 
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
 import me.anno.io.config.ConfigBasics
+import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.studio.StudioBase
 import me.anno.utils.OS
 import java.io.File
@@ -33,9 +34,9 @@ object LocalFile {
         ?: fileStr
     }
 
-    fun FileReference.toLocalPath(workspace: FileReference? = StudioBase.workspace): String {
+    /*fun FileReference.toLocalPath(workspace: FileReference? = StudioBase.workspace): String {
         return absolutePath.toLocalPath(workspace)
-    }
+    }*/
 
     fun File.toLocalPath(workspace: FileReference? = StudioBase.workspace): String {
         return toString().toLocalPath(workspace)
@@ -46,7 +47,7 @@ object LocalFile {
         parent ?: return null
         val start = "$pathName/"
         return if (fileStr.startsWith(start, true)) {
-            FileReference(parent, fileStr.substring(start.length))
+            getReference(parent, fileStr.substring(start.length))
         } else null
     }
 
@@ -65,7 +66,7 @@ object LocalFile {
             ?: checkIsChild2(fileStr, OS.music, "\$MUSIC\$")
             ?: checkIsChild2(fileStr, OS.home, "\$HOME\$")
             ?: checkIsChild2(fileStr, OS.home, "\$USER\$")
-            ?: FileReference(this)
+            ?: getReference(this)
 
     }
 

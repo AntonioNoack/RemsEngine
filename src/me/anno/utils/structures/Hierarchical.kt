@@ -61,7 +61,12 @@ interface Hierarchical<V: Hierarchical<V>> {
         parent = null
     }
 
-    fun destroy()
+    fun onDestroy()
+
+    fun destroy(){
+        // removeFromParent()
+        onDestroy()
+    }
 
     val listOfAll: Sequence<V>
         get() = sequence {

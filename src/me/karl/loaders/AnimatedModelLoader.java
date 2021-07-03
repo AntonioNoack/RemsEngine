@@ -1,6 +1,6 @@
 package me.karl.loaders;
 
-import me.anno.io.FileReference;
+import me.anno.io.files.FileReference;
 import me.karl.animatedModel.AnimatedModel;
 import me.karl.animatedModel.Joint;
 import me.karl.colladaLoader.ColladaLoader;
@@ -13,7 +13,6 @@ import me.karl.openglObjects.Vao;
 import me.karl.textures.Texture;
 import me.karl.utils.URI;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 

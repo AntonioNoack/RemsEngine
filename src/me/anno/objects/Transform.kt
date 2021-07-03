@@ -756,11 +756,13 @@ open class Transform() : Saveable(),
         return ComponentUI.vi(this, title, ttt, values, style)
     }
 
-    open fun onDestroy() {}
-    override fun destroy() {
+    override fun onDestroy() {
         if (selectedTransform === this) {
             selectTransform(null)
         }
+    }
+
+    override fun destroy() {
         removeFromParent()
         onDestroy()
     }

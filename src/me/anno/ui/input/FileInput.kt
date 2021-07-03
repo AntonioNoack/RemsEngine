@@ -2,7 +2,8 @@ package me.anno.ui.input
 
 import me.anno.config.DefaultConfig
 import me.anno.input.MouseButton
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
+import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.language.translation.NameDesc
 import me.anno.ui.base.SpacePanel
 import me.anno.ui.base.buttons.TextButton
@@ -17,12 +18,11 @@ import me.anno.utils.files.Files.openInExplorer
 import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.utils.files.LocalFile.toLocalPath
 import java.io.File
-import java.sql.Ref
 
 class FileInput(title: String, style: Style, f0: FileReference, val isDirectory: Boolean = false) : PanelListX(style) {
 
     val button = TextButton(DefaultConfig["ui.symbol.folder", "\uD83D\uDCC1"], true, style)
-    val base = TextInput(title, false, style, f0.file.toString2())
+    val base = TextInput(title, false, style, f0.toString2())
     val base2 = base.base
 
     // val text get() = base.text
@@ -38,9 +38,9 @@ class FileInput(title: String, style: Style, f0: FileReference, val isDirectory:
         button.apply {
             setSimpleClickListener {
                 threadWithName("SelectFile/Folder") {
-                    FileExplorerSelectWrapper.selectFileOrFolder(file.file, isDirectory) { file ->
+                    FileExplorerSelectWrapper.selectFileOrFolder(file.unsafeFile, isDirectory) { file ->
                         if (file != null) {
-                            changeListener(FileReference(file))
+                            changeListener(getReference(file))
                             base.setText(file.toString2(), false)
                         }
                     }
@@ -61,7 +61,7 @@ class FileInput(title: String, style: Style, f0: FileReference, val isDirectory:
     private fun FileReference.toString2() = toLocalPath()
     // toString().replace('\\', '/') // / is easier to type
 
-    val file get() = base.text.toGlobalFile()
+    val file get(): FileReference = base.text.toGlobalFile()
 
     var changeListener = { _: FileReference -> }
     fun setChangeListener(listener: (FileReference) -> Unit): FileInput {
@@ -83,7 +83,7 @@ class FileInput(title: String, style: Style, f0: FileReference, val isDirectory:
                             "Opens the file in the default file explorer",
                             "ui.file.openInExplorer"
                         )
-                    ) { file.file.openInExplorer() }
+                    ) { file.openInExplorer() }
                 ))
             }
             else -> super.onMouseClicked(x, y, button, long)

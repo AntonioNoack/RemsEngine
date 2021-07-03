@@ -1,7 +1,7 @@
 package me.anno.studio.rems.ui
 
 import me.anno.config.DefaultConfig
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
 import me.anno.language.translation.NameDesc
 import me.anno.objects.SoftLink
 import me.anno.objects.Transform
@@ -32,7 +32,7 @@ object TransformFileImporter : FileContentImporter<Transform>() {
 
     override fun import(
         parent: Transform?,
-        file: File,
+        file: FileReference,
         useSoftLink: SoftLinkMode,
         doSelect: Boolean,
         depth: Int,
@@ -50,9 +50,9 @@ object TransformFileImporter : FileContentImporter<Transform>() {
                     }
                 ))
                 SoftLinkMode.CREATE_LINK -> {
-                    val transform = SoftLink(FileReference(file))
+                    val transform = SoftLink(file)
                     RemsStudio.largeChange("Added ${transform.name} to ${file.name}") {
-                        var name2 = "${file.parentFile?.parentFile?.name}/${file.parentFile?.name}/${file.name}"
+                        var name2 = "${file.getParent()?.getParent()?.name}/${file.getParent()?.name}/${file.name}"
                         name2 = name2.replace("/Scenes/Root", "/")
                         name2 = name2.replace("/Scenes/", "/")
                         if (name2.endsWith(".json")) name2 = name2.substring(0, name2.length - 5)
@@ -90,7 +90,7 @@ object TransformFileImporter : FileContentImporter<Transform>() {
             }
             "Cubemap-Equ" -> {
                 RemsStudio.largeChange("Added Cubemap") {
-                    val cube = Video(FileReference(file), parent)
+                    val cube = Video(file, parent)
                     cube.scale.set(Vector3f(1000f, 1000f, 1000f))
                     cube.uvProjection *= UVProjection.Equirectangular
                     cube.name = name
@@ -100,7 +100,7 @@ object TransformFileImporter : FileContentImporter<Transform>() {
             }
             "Cubemap-Tiles" -> {
                 RemsStudio.largeChange("Added Cubemap") {
-                    val cube = Video(FileReference(file), parent)
+                    val cube = Video(file, parent)
                     cube.scale.set(Vector3f(1000f, 1000f, 1000f))
                     cube.uvProjection *= UVProjection.TiledCubemap
                     cube.name = name
@@ -111,7 +111,7 @@ object TransformFileImporter : FileContentImporter<Transform>() {
             "Video", "Image", "Audio" -> {// the same, really ;)
                 // rather use a list of keywords?
                 RemsStudio.largeChange("Added Video") {
-                    val video = Video(FileReference(file), parent)
+                    val video = Video(file, parent)
                     val fName = file.name
                     video.name = fName
                     if (DefaultConfig["import.decideCubemap", true]) {
@@ -137,7 +137,7 @@ object TransformFileImporter : FileContentImporter<Transform>() {
             }
             "Mesh" -> {
                 RemsStudio.largeChange("Added Mesh") {
-                    val mesh = Mesh(FileReference(file), parent)
+                    val mesh = Mesh(file, parent)
                     mesh.name = name
                     if (doSelect) selectTransform(mesh)
                     callback(mesh)
@@ -145,7 +145,7 @@ object TransformFileImporter : FileContentImporter<Transform>() {
             }
             "PDF" -> {
                 RemsStudio.largeChange("Added PDF") {
-                    val doc = PDFDocument(FileReference(file), parent)
+                    val doc = PDFDocument(file, parent)
                     if (doSelect) selectTransform(doc)
                     callback(doc)
                 }

@@ -9,7 +9,8 @@ import me.anno.gpu.RenderState.depthMode
 import me.anno.gpu.Window
 import me.anno.gpu.blending.BlendMode
 import me.anno.input.Input
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
+import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.studio.StudioBase
 import me.anno.ui.base.Panel
 import me.anno.utils.Maths.pow
@@ -23,7 +24,7 @@ fun main() {
     GltfLogger.setup()
 
     val reader = GltfModelReader()
-    val model = reader.read(FileReference(OS.downloads, "BarramundiFish.gltf").toUri())
+    val model = reader.read(getReference(OS.downloads, "BarramundiFish.gltf").toUri())
     // LOGGER.info(asset)
 
     val extCamera = ExternalCameraImpl()

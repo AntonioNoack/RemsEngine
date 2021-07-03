@@ -1,12 +1,11 @@
 package me.karl.animatedModel;
 
-import me.anno.io.FileReference;
+import me.anno.io.files.FileReference;
 import me.karl.animation.Animation;
 import me.karl.animation.Animator;
 import me.karl.openglObjects.Vao;
 import org.joml.Matrix4f;
 
-import java.io.File;
 import java.util.List;
 
 /**

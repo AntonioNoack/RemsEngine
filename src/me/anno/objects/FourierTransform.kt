@@ -7,11 +7,12 @@ import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.drawing.GFXx2D.getSize
 import me.anno.gpu.drawing.GFXx2D.getSizeX
 import me.anno.gpu.drawing.GFXx2D.getSizeY
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.animation.AnimatedProperty
 import me.anno.animation.Type
+import me.anno.io.files.EmptyRef
 import me.anno.objects.modes.LoopingState
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
@@ -64,7 +65,7 @@ class FourierTransform : Transform() {
 
     // support audio effects stack? no, the user can go the extra step of rendering it,
     // it they need something that specific; if I get many requests for it, I can implement it later
-    var file = FileReference("")
+    var file: FileReference = EmptyRef
 
     // todo we need references
     // todo for that we need to drag transforms into other fields: transformInput

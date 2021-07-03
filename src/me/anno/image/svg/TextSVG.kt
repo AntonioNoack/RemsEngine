@@ -21,7 +21,7 @@ fun main(){
             "</svg> "
 
     testSVG(text)
-    testSVG(File(OS.downloads.file, "tiger.svg").readText())
+    testSVG(File(OS.downloads.unsafeFile, "tiger.svg").readText())
 
 }
 

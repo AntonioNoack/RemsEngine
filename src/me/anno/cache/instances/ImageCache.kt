@@ -8,7 +8,8 @@ import me.anno.gpu.TextureLib
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture3D
 import me.anno.studio.StudioBase.Companion.warn
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
+import me.anno.io.files.FileReference.Companion.getReference
 import org.apache.logging.log4j.LogManager
 import java.io.File
 import java.io.FileNotFoundException
@@ -28,7 +29,7 @@ object ImageCache : CacheSection("Images") {
 
     fun getImage(file: File, timeout: Long, asyncGenerator: Boolean): Texture2D? {
         warn("Use FileReference, please; because it is faster when hashing")
-        return getImage(FileReference(file), timeout, asyncGenerator)
+        return getImage(getReference(file), timeout, asyncGenerator)
     }
 
     private fun generateImageData(file: FileReference) = ImageData(file)
@@ -61,7 +62,7 @@ object ImageCache : CacheSection("Images") {
 
     private fun generateLUT(pair: Pair<String, FileReference>): ICacheData {
         val file = pair.second
-        val img = ImageIO.read(file.file)
+        val img = ImageIO.read(file.inputStream())
         val sqrt = sqrt(img.width + 0.5f).toInt()
         val tex = Texture3D(sqrt, img.height, sqrt)
         tex.create(img, false)

@@ -1,7 +1,8 @@
 package me.anno.utils.test
 
 import com.twelvemonkeys.imageio.plugins.tga.TGAImageReaderSpi
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
+import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.utils.OS
 import org.apache.commons.imaging.Imaging
 import java.io.File
@@ -19,7 +20,7 @@ fun main() {
     }
     TGAImageReaderSpi()
     if (image != null) {
-        ImageIO.write(image, "png", FileReference(OS.desktop, "guard1_body.png").file)
+        ImageIO.write(image, "png", getReference(OS.desktop, "guard1_body.png").unsafeFile)
     } else println("image could not be read")
 
 }

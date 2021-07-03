@@ -3,7 +3,8 @@ package me.anno.mesh.assimp
 import de.javagl.jgltf.model.GltfConstants.GL_ARRAY_BUFFER
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
+import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.utils.Color.a
 import me.anno.utils.Color.b
 import me.anno.utils.Color.g
@@ -25,7 +26,7 @@ fun main() {
     // todo if we are lucky, we can use assimp to load all models and play all skeletal animations
     // todo this would really be great <3
 
-    val file = FileReference(OS.documents, "redMonkey.glb")
+    val file = getReference(OS.documents, "redMonkey.glb")
     val scene = aiImportFile(file.toString(), 0)
 
     if (scene != null) {

@@ -1,10 +1,9 @@
 package me.anno.ui.editor.files
 
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.style.Style
-import java.io.File
 
 class PathPanel(file: FileReference?, style: Style) : PanelListX(style) {
 

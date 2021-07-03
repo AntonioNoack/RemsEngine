@@ -3,9 +3,10 @@ package me.anno.studio.project
 import me.anno.animation.Type
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.GFX
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
 import me.anno.io.Saveable
 import me.anno.io.config.ConfigBasics
+import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.json.JsonArray
 import me.anno.io.json.JsonReader
 import me.anno.io.json.JsonWriter
@@ -18,6 +19,7 @@ import me.anno.objects.Transform
 import me.anno.studio.history.History
 import me.anno.studio.rems.RemsStudio.editorTime
 import me.anno.studio.rems.ui.RemsStudioUITypeLibrary
+import me.anno.studio.rems.ui.TransformTreeView
 import me.anno.ui.base.Panel
 import me.anno.ui.custom.CustomContainer
 import me.anno.ui.custom.CustomList
@@ -38,11 +40,11 @@ import kotlin.math.roundToInt
 // todo option to reset the timeline
 class Project(var name: String, val file: FileReference) : Saveable() {
 
-    constructor(name: String, file: File) : this(name, FileReference(file))
+    constructor(name: String, file: File) : this(name, getReference(file))
 
-    val configFile = FileReference(file, "config.json")
-    val uiFile = FileReference(file, "ui.json")
-    val tabsFile = FileReference(file, "tabs.json")
+    val configFile = getReference(file, "config.json")
+    val uiFile = getReference(file, "ui.json")
+    val tabsFile = getReference(file, "tabs.json")
 
     val config: StringMap
 
@@ -55,7 +57,7 @@ class Project(var name: String, val file: FileReference) : Saveable() {
         config = ConfigBasics.loadConfig(configFile, defaultConfig, true)
     }
 
-    val scenes = FileReference(file, "Scenes")
+    val scenes = getReference(file, "Scenes")
 
     init {
         scenes.mkdirs()
@@ -72,7 +74,7 @@ class Project(var name: String, val file: FileReference) : Saveable() {
         fun tabsDefault() {
             val tab =
                 SceneTab(
-                    FileReference(scenes, "Root.json"),
+                    getReference(scenes, "Root.json"),
                     Transform().run {
                         name = "Root"
                         Camera(this)
@@ -90,7 +92,7 @@ class Project(var name: String, val file: FileReference) : Saveable() {
 
         // tabs
         try {
-            if (tabsFile.exists()) {
+            if (tabsFile.exists) {
                 val loadedUIData = TextReader
                     .fromText(tabsFile.readText())
                 val sceneTabs = loadedUIData
@@ -115,7 +117,7 @@ class Project(var name: String, val file: FileReference) : Saveable() {
 
         // main ui
         try {
-            if (uiFile.exists()) {
+            if (uiFile.exists) {
                 val loadedUIData = loadUI2()
                 if (loadedUIData != null) {
                     mainUI = loadedUIData
@@ -152,6 +154,7 @@ class Project(var name: String, val file: FileReference) : Saveable() {
                     val obj = when (type) {
                         "CustomListX" -> CustomList(false, style)
                         "CustomListY" -> CustomList(true, style)
+                        "TreeView" -> TransformTreeView(style)
                         else -> types[type]?.constructor?.invoke()
                     }
                     if (obj == null) {
@@ -217,7 +220,7 @@ class Project(var name: String, val file: FileReference) : Saveable() {
     var targetWidth = config["target.width", 1920]
     var targetHeight = config["target.height", 1080]
     var targetFPS = config["target.fps", 30.0]
-    var targetOutputFile = config["target.output", FileReference(file, "output.mp4")]
+    var targetOutputFile = config["target.output", getReference(file, "output.mp4")]
     var targetVideoQuality = config["target.quality", 23]
     var motionBlurSteps = config.getAnimated<Int>("target.motionBlur.steps", MotionBlurType)
     var shutterPercentage = config.getAnimated<Float>("target.motionBlur.shutterPercentage", ShutterPercentageType)

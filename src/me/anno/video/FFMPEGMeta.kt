@@ -1,6 +1,6 @@
 package me.anno.video
 
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
 
 open class FFMPEGMeta(file: FileReference?) :
     FFMPEGStream(file, false) {

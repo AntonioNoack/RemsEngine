@@ -1,13 +1,13 @@
 package me.anno.io.config
 
 import me.anno.gpu.GFXBase0.projectName
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
+import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.io.utils.StringMap
 import me.anno.utils.OS
 import org.apache.logging.log4j.LogManager
-import java.io.File
 import java.io.IOException
 import java.nio.charset.Charset
 
@@ -20,25 +20,25 @@ object ConfigBasics {
     val LOGGER = LogManager.getLogger(ConfigBasics::class)!!
     private val utf8Charset: Charset = Charset.forName("UTF-8")
 
-    val configFolder get() = FileReference(OS.home, ".config/$projectName")
-    val cacheFolder get() = FileReference(OS.home, ".cache/$projectName")
+    val configFolder get() = getReference(OS.home, ".config/$projectName")
+    val cacheFolder get() = getReference(OS.home, ".cache/$projectName")
 
     val beautify = true
 
     fun getConfigFile(localFileName: String): FileReference {
-        return FileReference(configFolder, localFileName)
+        return getReference(configFolder, localFileName)
     }
 
     fun save(file: FileReference, data: String) {
-        val parentFile = file.file.parentFile
-        if (!parentFile.exists()) parentFile.mkdirs()
+        val parentFile = file.getParent()!!
+        if (!parentFile.exists) parentFile.mkdirs()
         file.writeText(data, utf8Charset)
     }
 
     fun save(localFileName: String, data: String) = save(getConfigFile(localFileName), data)
 
     fun load(file: FileReference, saveIfMissing: Boolean, getDefault: () -> String): String {
-        val value = if (file.exists()) {
+        val value = if (file.exists) {
             try {
                 file.readText(utf8Charset)
             } catch (e: IOException){

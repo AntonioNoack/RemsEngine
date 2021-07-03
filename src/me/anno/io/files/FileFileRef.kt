@@ -1,0 +1,68 @@
+package me.anno.io.files
+
+import java.io.File
+import java.net.URI
+
+class FileFileRef(val file: File) :
+    FileReference(beautifyPath(file.absolutePath)) {
+
+    companion object {
+
+        fun beautifyPath(path: String): String {
+            var p = path.replace('\\', '/')
+            while (p.endsWith('/')) p = p.substring(0, p.length - 1)
+            return p
+        }
+
+    }
+
+    override fun inputStream() = file.inputStream()
+
+    override fun outputStream() = file.outputStream()
+
+    override fun length() = file.length()
+
+    override fun deleteRecursively(): Boolean = file.deleteRecursively()
+
+    override fun deleteOnExit() {
+        file.deleteOnExit()
+    }
+
+    override fun delete(): Boolean = file.delete()
+
+    override fun mkdirs(): Boolean = file.mkdirs()
+
+    override fun listChildren(): List<FileReference>? {
+        return if(isDirectory){
+            file.listFiles()?.map { FileFileRef(it) }
+        } else {
+            zipFileForDirectory?.listChildren()
+        }
+    }
+
+    override fun getParent() = getReference(file.parentFile)
+
+    override fun renameTo(newName: FileReference) = file.renameTo(File(newName.absolutePath))
+
+    override fun getChild(name: String): FileReference {
+        return if (isDirectory) {
+            getReference(this, name)
+        } else {
+            getReference(zipFileForDirectory,name)
+        }
+    }
+
+    override val exists: Boolean
+        get() = file.exists()
+
+    override val lastModified: Long
+        get() = file.lastModified()
+
+    override fun toUri(): URI {
+        return URI("file://$absolutePath")
+    }
+
+    override val isDirectory: Boolean
+        get() = file.isDirectory
+
+}

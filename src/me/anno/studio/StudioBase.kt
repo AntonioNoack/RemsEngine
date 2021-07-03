@@ -25,7 +25,8 @@ import me.anno.gpu.texture.GPUFiltering
 import me.anno.input.ActionManager
 import me.anno.input.Input
 import me.anno.input.ShowKeys
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
+import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.studio.project.Project
 import me.anno.studio.rems.RemsStudio
 import me.anno.ui.base.Panel
@@ -481,7 +482,7 @@ abstract class StudioBase(
     }
 
     fun loadProject(name: String, folder: File) {
-        loadProject(name, FileReference(folder))
+        loadProject(name, getReference(folder))
     }
 
     fun loadProject(name: String, folder: FileReference) {

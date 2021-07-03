@@ -13,7 +13,7 @@ import me.anno.input.Input.mouseX
 import me.anno.input.Input.mouseY
 import me.anno.input.Input.needsLayoutUpdate
 import me.anno.input.MouseButton
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
 import me.anno.io.text.TextReader
 import me.anno.language.translation.NameDesc
 import me.anno.objects.Transform

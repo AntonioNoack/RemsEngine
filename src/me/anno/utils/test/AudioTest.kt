@@ -1,7 +1,8 @@
 package me.anno.utils.test
 
 import me.anno.audio.AudioFXCache
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
+import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.objects.FourierTransform
 import me.anno.utils.OS
 import kotlin.math.abs
@@ -14,7 +15,7 @@ fun main() {
     val cache = AudioFXCache
     val fourier = FourierTransform()
 
-    fourier.file = FileReference(OS.downloads.file, "Aitana 11 Raizones.mp4")
+    fourier.file = getReference(OS.downloads, "Aitana 11 Raizones.mp4")
     val meta = fourier.forcedMeta!!
 
     val keyIndices = 1..3

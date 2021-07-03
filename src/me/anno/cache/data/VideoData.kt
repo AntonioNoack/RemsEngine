@@ -2,7 +2,7 @@ package me.anno.cache.data
 
 import me.anno.cache.instances.VideoCache
 import me.anno.cache.keys.VideoFrameKey
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
 import me.anno.studio.rems.RemsStudio.gfxSettings
 import me.anno.video.FFMPEGMetadata
 import me.anno.video.FFMPEGStream

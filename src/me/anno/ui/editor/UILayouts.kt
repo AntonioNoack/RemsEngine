@@ -12,8 +12,9 @@ import me.anno.input.Input
 import me.anno.input.Input.mouseX
 import me.anno.input.Input.mouseY
 import me.anno.input.MouseButton
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
 import me.anno.io.config.ConfigBasics
+import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
 import me.anno.objects.Camera
@@ -131,7 +132,7 @@ object UILayouts {
             tp.enableHoverColor = true
             tp.setTooltip(project.file.absolutePath)
             thread {// file search can use some time
-                if (!project.file.exists()) {
+                if (!project.file.exists) {
                     tp.textColor = 0xff0000 or black
                     tp.setTooltip(
                         Dict["%1, not found!", "ui.recentProjects.projectNotFound"].replace(
@@ -143,7 +144,7 @@ object UILayouts {
             }
             tp.setOnClickListener { _, _, button, _ ->
                 fun open() {// open zip?
-                    if (project.file.exists() && project.file.isDirectory) {
+                    if (project.file.exists && project.file.isDirectory) {
                         openProject(project.name, project.file)
                     } else msg(NameDesc("File not found!", "", "ui.recentProjects.fileNotFound"))
                 }
@@ -223,8 +224,8 @@ object UILayouts {
     var usableFile: File? = null
 
     fun rootIsOk(file: FileReference): Boolean {
-        if (file.exists()) return true
-        return rootIsOk(file.file.parentFile ?: return false)
+        if (file.exists) return true
+        return rootIsOk(file.getParent() ?: return false)
     }
 
     fun rootIsOk(file: File): Boolean {
@@ -243,6 +244,7 @@ object UILayouts {
         fun updateFileInputColor() {
 
             var invalidName = ""
+
             fun fileNameIsOk(file: File): Boolean {
                 if (file.name.isEmpty() && file.parentFile == null) return true // root drive
                 if (file.name.toAllowedFilename() != file.name) {
@@ -250,6 +252,10 @@ object UILayouts {
                     return false
                 }
                 return fileNameIsOk(file.parentFile ?: return true)
+            }
+
+            fun fileNameIsOk(file: FileReference): Boolean {
+                return fileNameIsOk(file.unsafeFile)
             }
 
             // todo check if all file name parts are valid...
@@ -263,17 +269,17 @@ object UILayouts {
                     // todo translate
                     msg = "Root $dirNameEn does not exist!"
                 }
-                !file.file.parentFile.exists() -> {
+                !file.getParent()!!.exists -> {
                     state = -1
                     // todo translate
                     msg = "Parent $dirNameEn does not exist!"
                 }
-                !fileNameIsOk(file.file) -> {
+                !fileNameIsOk(file) -> {
                     state = -2
                     // todo translate
                     msg = "Invalid file name \"$invalidName\""
                 }
-                file.exists() && file.file.list()?.isNotEmpty() == true -> {
+                file.exists && file.listChildren()?.isNotEmpty() == true -> {
                     state = -1
                     // todo translate
                     msg = "Folder is not empty!"
@@ -288,7 +294,7 @@ object UILayouts {
             } or black
             usableFile = if (state == -2) {
                 null
-            } else file.file
+            } else file.unsafeFile
             base.focusTextColor = base.textColor
         }
 
@@ -300,7 +306,7 @@ object UILayouts {
             FileInput(
                 Dict["Project Location", "ui.newProject.location"],
                 style,
-                FileReference(workspace, nameInput.text)
+                getReference(workspace, nameInput.text)
             )
 
         updateFileInputColor()
@@ -308,7 +314,7 @@ object UILayouts {
         nameInput.setChangeListener {
             val newName = if (it.isBlank2()) "-" else it.trim()
             if (lastName == fileInput.file.name) {
-                fileInput.setText(File(fileInput.file.file.parentFile, newName).toString(), false)
+                fileInput.setText(getReference(fileInput.file.getParent(), newName).toString(), false)
                 updateFileInputColor()
             }
             lastName = newName

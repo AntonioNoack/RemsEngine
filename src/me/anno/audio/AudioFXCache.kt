@@ -13,7 +13,7 @@ import me.anno.cache.CacheSection
 import me.anno.cache.data.ICacheData
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.gameTime
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
 import me.anno.objects.Audio
 import me.anno.objects.Camera
 import me.anno.objects.modes.LoopingState

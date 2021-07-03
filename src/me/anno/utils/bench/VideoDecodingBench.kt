@@ -1,12 +1,12 @@
 package me.anno.utils.bench
 
 import me.anno.cache.instances.VideoCache
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
+import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.objects.Video
 import me.anno.utils.LOGGER
 import me.anno.utils.OS
 import me.anno.utils.Sleep
-import java.io.File
 
 fun main() {
 
@@ -18,7 +18,7 @@ fun main() {
     // val folderExternal = File("E:\\Videos\\")
     val folderInternal = OS.documents
 
-    val file = FileReference(folderInternal, "Large World.mp4")
+    val file = getReference(folderInternal, "Large World.mp4")
     val meta = Video(file).forcedMeta!!
     val frameCount = meta.videoFrameCount
     val fps = meta.videoFPS

@@ -17,7 +17,7 @@ import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.texture.*
 import me.anno.image.HDRImage
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
 import me.anno.io.config.ConfigBasics
 import me.anno.objects.Video
 import me.anno.objects.documents.pdf.PDFCache
@@ -52,7 +52,7 @@ import kotlin.math.roundToInt
  * */
 object Thumbs {
 
-    private val folder = File(ConfigBasics.cacheFolder.file, "thumbs")
+    private val folder = File(ConfigBasics.cacheFolder.unsafeFile, "thumbs")
     private val sizes = intArrayOf(32, 64, 128, 256, 512)
     private val neededSizes = IntArray(sizes.last() + 1)
     private const val timeout = 5000L
@@ -314,7 +314,7 @@ object Thumbs {
             try {
                 when (val ext = srcFile.extension.lowercase(Locale.getDefault())) {
                     "hdr" -> {
-                        val src = HDRImage(srcFile.file, true)
+                        val src = HDRImage(srcFile, true)
                         val sw = src.width
                         val sh = src.height
                         if (max(sw, sh) < size) return generate(srcFile, size / 2, callback)
@@ -338,10 +338,10 @@ object Thumbs {
                     "webp" -> generateVideoFrame(srcFile, dstFile, size, callback, 0.0)
                     else -> {
                         val image = try {
-                            ImageIO.read(srcFile.file)!!
+                            ImageIO.read(srcFile.inputStream())!!
                         } catch (e: Exception) {
                             try {
-                                Imaging.getBufferedImage(srcFile.file)!!
+                                Imaging.getBufferedImage(srcFile.inputStream())!!
                             } catch (e: Exception) {
                                 when (val importType = ext.getImportType()) {
                                     "Video" -> {

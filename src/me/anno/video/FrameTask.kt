@@ -11,7 +11,7 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
 import me.anno.objects.Transform
 import me.anno.studio.rems.Scene
 import me.anno.utils.Color.rgba
@@ -90,8 +90,8 @@ class FrameTask(
                 buffer2.setElem(i, rgba(pixels[j], pixels[j + 1], pixels[j + 2], -1))
             }
             // c1.stop("wrote to buffered image"), 0.025s on R5 2600, 1080p
-            if (dst.exists()) dst.delete()
-            if (!ImageIO.write(image, dst.extension, dst.file)) {
+            if (dst.exists) dst.delete()
+            if (!ImageIO.write(image, dst.extension, dst.unsafeFile)) {
                 LOGGER.warn("Could not find writer for image format ${dst.extension}!")
             } else {
                 // c1.stop("saved to file"), 0.07s on NVME SSD

@@ -9,7 +9,8 @@ import me.anno.io.utils.StringMap
 import me.anno.studio.rems.RemsConfig
 import me.anno.studio.rems.RemsStudio
 import me.anno.utils.OS
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
+import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.utils.files.Files.formatFileSize
 import org.apache.logging.log4j.LogManager
 import java.io.File
@@ -39,7 +40,7 @@ object VideoProxyCreator : CacheSection("VideoProxies") {
         // test for a video file
         RemsStudio.setupNames()
         RemsConfig.init()
-        getProxyFile(FileReference(OS.videos, "GodRays.mp4"))
+        getProxyFile(getReference(OS.videos, "GodRays.mp4"))
     }
 
     var isInitialized = false
@@ -47,7 +48,7 @@ object VideoProxyCreator : CacheSection("VideoProxies") {
         if (isInitialized) return
         isInitialized = true
         info = ConfigBasics.loadConfig(configName, StringMap(), false)
-        proxyFolder = File(ConfigBasics.cacheFolder.file, "proxies").apply { mkdirs() }
+        proxyFolder = File(ConfigBasics.cacheFolder.unsafeFile, "proxies").apply { mkdirs() }
         deleteOldProxies()
     }
 
@@ -60,13 +61,13 @@ object VideoProxyCreator : CacheSection("VideoProxies") {
     fun getProxyFile(src: FileReference): FileReference? {
         init()
         val data = getEntry(LastModifiedCache[src], 10_000, true) {
-            if (src.exists() && !src.isDirectory) {
+            if (src.exists && !src.isDirectory) {
                 val uuid = getUniqueFilename(src)
-                val proxyFile = FileReference(proxyFolder, uuid)
+                val proxyFile = getReference(proxyFolder, uuid)
                 val data = CacheData<FileReference?>(null)
-                if (!proxyFile.exists()) {
+                if (!proxyFile.exists) {
                     createProxy(
-                        src, proxyFile.file, uuid,
+                        src, proxyFile.unsafeFile, uuid,
                         File(proxyFolder, proxyFile.nameWithoutExtension + ".tmp.${proxyFile.extension}")
                     ) { data.value = proxyFile }
                 } else {

@@ -26,7 +26,7 @@ import me.anno.input.Input.mouseX
 import me.anno.input.Input.mouseY
 import me.anno.input.MouseButton
 import me.anno.input.Touch.Companion.touches
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
 import me.anno.language.translation.Dict
 import me.anno.objects.Camera
 import me.anno.objects.Transform
@@ -302,7 +302,7 @@ open class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")
 
     fun takeScreenshot() {
 
-        val folder = File(OS.pictures.file, "Screenshots")
+        val folder = File(OS.pictures.unsafeFile, "Screenshots")
         folder.mkdirs()
         val format = SimpleDateFormat("yyyy-MM-dd_HH.mm.ss")
         var name = format.format(Date())

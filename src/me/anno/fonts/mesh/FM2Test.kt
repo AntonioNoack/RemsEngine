@@ -60,7 +60,7 @@ fun main() {
     gfx.translate(0, fs.toInt())
 
     gfx.dispose()
-    ImageIO.write(img, "png", File(OS.desktop.file, "font2.png"))
+    ImageIO.write(img, "png", File(OS.desktop.unsafeFile, "font2.png"))
 
 
 }

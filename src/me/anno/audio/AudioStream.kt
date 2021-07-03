@@ -3,7 +3,7 @@ package me.anno.audio
 import me.anno.audio.effects.SoundPipeline.Companion.bufferSize
 import me.anno.audio.effects.Time
 import me.anno.audio.openal.SoundBuffer
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
 import me.anno.objects.Audio
 import me.anno.objects.Camera
 import me.anno.objects.modes.LoopingState

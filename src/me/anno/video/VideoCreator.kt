@@ -3,7 +3,7 @@ package me.anno.video
 import me.anno.gpu.GFX
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
 import me.anno.studio.rems.RemsStudio.project
 import me.anno.studio.rems.Rendering.isRendering
 import me.anno.utils.process.BetterProcessBuilder
@@ -38,8 +38,8 @@ class VideoCreator(
 
     fun init() {
 
-        if (output.exists()) output.delete()
-        else output.file.parentFile.mkdirs()
+        if (output.exists) output.delete()
+        else output.getParent()?.mkdirs()
 
         val extension = output.extension.lowercase(Locale.getDefault())
         val isGIF = extension == "gif"
@@ -164,7 +164,7 @@ class VideoCreator(
             videoOut.close()
         }
         process.waitFor()
-        if (output.exists()) LOGGER.info("Saved video without audio to $output")
+        if (output.exists) LOGGER.info("Saved video without audio to $output")
     }
 
     companion object {

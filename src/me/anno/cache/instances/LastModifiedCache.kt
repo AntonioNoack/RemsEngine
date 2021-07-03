@@ -1,7 +1,7 @@
 package me.anno.cache.instances
 
 import me.anno.gpu.GFX.gameTime
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.abs
 
@@ -13,10 +13,10 @@ object LastModifiedCache {
             file,
             exists,
             if (exists) file.isDirectory else false,
-            if (exists) file.lastModified() else 0L
+            if (exists) file.lastModified else 0L
         )
 
-        constructor(file: FileReference) : this(file, file.exists())
+        constructor(file: FileReference) : this(file, file.exists)
 
     }
 

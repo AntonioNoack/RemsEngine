@@ -1,6 +1,7 @@
 package me.anno.utils.files
 
 import me.anno.config.DefaultConfig
+import me.anno.io.files.FileReference
 import me.anno.utils.OS
 import org.apache.logging.log4j.LogManager
 import java.awt.Desktop
@@ -33,6 +34,9 @@ object Files {
     }
 
     fun File.listFiles2(includeHiddenFiles: Boolean = OS.isWindows) = listFiles()?.filter {
+        !it.name.equals("desktop.ini", true) && (!name.startsWith('.') || !includeHiddenFiles) } ?: emptyList()
+
+    fun FileReference.listFiles2(includeHiddenFiles: Boolean = OS.isWindows) = listChildren()?.filter {
         !it.name.equals("desktop.ini", true) && (!name.startsWith('.') || !includeHiddenFiles) } ?: emptyList()
 
     fun File.openInExplorer(){

@@ -8,7 +8,8 @@ import me.anno.objects.Video
 import me.anno.utils.Maths.mix
 import me.anno.utils.OS
 import me.anno.utils.Sleep
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
+import me.anno.io.files.FileReference.Companion.getReference
 
 fun main() {
 
@@ -23,7 +24,7 @@ fun main() {
     val bufferSize = 1024
 
     val start = System.nanoTime()
-    val audio = Video(FileReference(OS.downloads, "Bring Me The Horizon Dear Diary.mp3"))
+    val audio = Video(getReference(OS.downloads, "Bring Me The Horizon Dear Diary.mp3"))
     val camera = Camera()
     val t0 = 0.0
     val t1 = (2 * 60 + 45).toDouble() // 2 min 45

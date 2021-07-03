@@ -13,7 +13,7 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.HDRImage
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
 import me.anno.objects.Video.Companion.imageTimeout
 import me.anno.objects.modes.RotateJPEG
 import me.anno.utils.Nullable.tryOrException
@@ -37,7 +37,7 @@ class ImageData(file: FileReference) : ICacheData {
 
         private val LOGGER = LogManager.getLogger(ImageData::class)
 
-        fun getRotation(file: FileReference): RotateJPEG? = getRotation(file.file)
+        fun getRotation(file: FileReference): RotateJPEG? = getRotation(file.unsafeFile)
 
         fun getRotation(file: File): RotateJPEG? {
             var rotation: RotateJPEG? = null
@@ -107,7 +107,7 @@ class ImageData(file: FileReference) : ICacheData {
         }*/
         when (fileExtension.lowercase(Locale.getDefault())) {
             "hdr" -> {
-                val img = HDRImage(file.file, true)
+                val img = HDRImage(file, true)
                 val w = img.width
                 val h = img.height
                 GFX.addGPUTask(w, h) {
@@ -137,14 +137,18 @@ class ImageData(file: FileReference) : ICacheData {
                 if (fileExtension.getImportType() == "Video") {
                     useFFMPEG(file)
                 } else {
-                    val image = tryGetImage(file.file)
+                    val image = tryGetImage(file)
                     if (image != null) {
                         texture.create("ImageData", { image }, false)
-                        texture.rotation = getRotation(file.file)
+                        texture.rotation = getRotation(file)
                     } else LOGGER.warn("Could not load $file")
                 }
             }
         }
+    }
+
+    fun tryGetImage(file: FileReference): BufferedImage? {
+        return tryGetImage(file.unsafeFile)
     }
 
     fun tryGetImage(file: File): BufferedImage? {

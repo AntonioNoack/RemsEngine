@@ -4,7 +4,7 @@ import me.anno.Engine.shutdown
 import me.anno.cache.CacheSection
 import me.anno.config.DefaultConfig
 import me.anno.installer.Installer
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.json.JsonArray
 import me.anno.io.json.JsonObject
 import me.anno.io.json.JsonReader
@@ -30,7 +30,7 @@ object Spellchecking : CacheSection("Spellchecking") {
     private val path = File(
         DefaultConfig[
                 "spellchecking.path",
-                FileReference(OS.downloads, "lib\\spellchecking").toString()
+                getReference(OS.downloads, "lib\\spellchecking").toString()
         ]
     )
 
@@ -179,7 +179,7 @@ object Spellchecking : CacheSection("Spellchecking") {
                         while ((suggestionsString.isEmpty() || !suggestionsString.startsWith("[")) && !shutdown) {
                             suggestionsString = input.readLine()
                             // a random, awkward case, when "Program" or "Transform" is requested in German
-                            if (suggestionsString.startsWith( "[COMPOUND")) {
+                            if (suggestionsString.startsWith("[COMPOUND")) {
                                 suggestionsString = "[" + input.readLine()
                             }
                         }
@@ -198,10 +198,9 @@ object Spellchecking : CacheSection("Spellchecking") {
                             }
                             nextTask.callback(suggestionsList)
                         } catch (e: Exception) {
-                            File(
-                                OS.desktop.file,
-                                "${System.currentTimeMillis()}.txt"
-                            ).writeText("$lines\n$suggestionsString")
+                            OS.desktop
+                                .getChild("${System.currentTimeMillis()}.txt")!!
+                                .writeText("$lines\n$suggestionsString")
                             LOGGER.error(suggestionsString)
                             e.printStackTrace()
                         }

@@ -17,16 +17,18 @@ import me.anno.language.translation.Dict
 import me.anno.objects.GFXTransform
 import me.anno.objects.Transform
 import me.anno.animation.AnimatedProperty
+import me.anno.io.files.EmptyRef
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
 import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.utils.Maths.clamp
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
 import me.anno.video.MissingFrameException
 import org.joml.*
 import java.lang.Math
 import java.net.URL
+import javax.annotation.processing.Filer
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.sqrt
@@ -38,7 +40,7 @@ open class Polygon(parent: Transform? = null) : GFXTransform(parent) {
 
     override fun getDocumentationURL(): URL? = URL("https://remsstudio.phychi.com/?s=learn/geometry")
 
-    var texture = FileReference("")
+    var texture: FileReference = EmptyRef
     var autoAlign = false
     var filtering = Filtering.LINEAR
 

@@ -3,7 +3,7 @@ package me.anno.video
 import me.anno.cache.CacheSection
 import me.anno.cache.data.ICacheData
 import me.anno.cache.instances.LastModifiedCache
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
 import me.anno.io.json.JsonArray
 import me.anno.io.json.JsonObject
 import me.anno.io.json.JsonReader
@@ -43,7 +43,7 @@ class FFMPEGMetadata(val file: FileReference) : ICacheData {
             "-show_format",
             "-show_streams",
             "-print_format", "json",
-            file.file.absolutePath
+            file.absolutePath
         )
 
         val builder = BetterProcessBuilder(FFMPEG.ffprobePathString, args.size, true)

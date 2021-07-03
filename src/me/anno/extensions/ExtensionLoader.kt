@@ -5,8 +5,9 @@ import me.anno.extensions.mods.Mod
 import me.anno.extensions.mods.ModManager
 import me.anno.extensions.plugins.Plugin
 import me.anno.extensions.plugins.PluginManager
-import me.anno.io.FileReference
 import me.anno.io.config.ConfigBasics.configFolder
+import me.anno.io.files.FileReference
+import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.studio.StudioBase
 import me.anno.utils.Threads.threadWithName
 import me.anno.utils.hpc.HeavyProcessing.processStage
@@ -16,8 +17,6 @@ import java.io.File
 import java.net.URLClassLoader
 import java.util.*
 import java.util.zip.ZipInputStream
-import kotlin.collections.ArrayList
-import kotlin.collections.HashSet
 
 object ExtensionLoader {
 
@@ -28,10 +27,10 @@ object ExtensionLoader {
         ModManager, PluginManager
     )
 
-    fun tryCreate(file: FileReference){
+    fun tryCreate(file: FileReference) {
         try {
             file.mkdirs()
-        } catch (e: Exception){
+        } catch (e: Exception) {
             LOGGER.warn("Failed to create $file")
         }
     }
@@ -40,8 +39,8 @@ object ExtensionLoader {
 
         unload()
 
-        pluginsFolder = FileReference(configFolder, "plugins")
-        modsFolder = FileReference(configFolder, "mods")
+        pluginsFolder = getReference(configFolder, "plugins")
+        modsFolder = getReference(configFolder, "mods")
 
         tryCreate(modsFolder)
         tryCreate(pluginsFolder)
@@ -70,11 +69,11 @@ object ExtensionLoader {
     }
 
     private fun add(folder: FileReference?, threads: MutableList<Thread>, extInfos0: MutableList<ExtensionInfo>) {
-        for (it in folder?.listFiles() ?: emptyArray()) {
+        for (it in folder?.listChildren() ?: emptyList()) {
             if (!it.isDirectory) {
                 val name = it.name
                 if (!name.startsWith(".") && name.endsWith(".jar")) {
-                    threads += threadWithName("ExtensionLoader::getInfos()"){
+                    threads += threadWithName("ExtensionLoader::getInfos()") {
                         val info = loadInfo(it)
                         // (check if compatible???)
                         if (info != null && checkExtensionRequirements(info)) {
@@ -99,16 +98,18 @@ object ExtensionLoader {
 
     fun checkExtensionRequirements(info: ExtensionInfo): Boolean {
         val instance = StudioBase.instance
-        if(instance.versionNumber in info.minVersion until info.maxVersion){
+        if (instance.versionNumber in info.minVersion until info.maxVersion) {
             // check if the mod was not disabled
-            val isDisabled = DefaultConfig["extensions.isDisabled.${info.uuid}",false]
-            if(isDisabled){
+            val isDisabled = DefaultConfig["extensions.isDisabled.${info.uuid}", false]
+            if (isDisabled) {
                 LOGGER.info("Ignored extension \"${info.name}\", because it was disabled")
             } else return true
         } else {
-            LOGGER.warn("Extension \"${info.name}\" is incompatible " +
-                    "with ${instance.title} version ${instance.versionName}!, " +
-                    "${info.minVersion} <= ${instance.versionNumber} < ${info.maxVersion}")
+            LOGGER.warn(
+                "Extension \"${info.name}\" is incompatible " +
+                        "with ${instance.title} version ${instance.versionName}!, " +
+                        "${info.minVersion} <= ${instance.versionNumber} < ${info.maxVersion}"
+            )
         }
         return false
     }
@@ -179,6 +180,10 @@ object ExtensionLoader {
             }
         }
         return remaining
+    }
+
+    fun loadInfo(file: FileReference): ExtensionInfo? {
+        return loadInfo(file.unsafeFile)
     }
 
     fun loadInfo(file: File): ExtensionInfo? {

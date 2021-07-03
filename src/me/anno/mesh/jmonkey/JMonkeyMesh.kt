@@ -9,7 +9,8 @@ import com.jme3.scene.*
 import com.jme3.scene.control.Control
 import com.jme3.system.JmeSystem
 import com.jme3.texture.plugins.TGALoader
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
+import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.mesh.jmonkey.BufferConverter.convertFloats
 import me.anno.mesh.jmonkey.BufferConverter.convertInt32
 import me.anno.mesh.jmonkey.BufferConverter.convertUByte
@@ -201,7 +202,7 @@ object JMonkeyMesh {
 }
 
 fun tgaTest() {
-    val file = FileReference("C:\\Users\\Antonio\\Downloads\\ogldev-source\\Content/guard1_body.tga")
+    val file = getReference("C:\\Users\\Antonio\\Downloads\\ogldev-source\\Content/guard1_body.tga")
     val image = TGALoader.load(file.inputStream(), false)
     val data = image.data
     println(image)
@@ -209,8 +210,8 @@ fun tgaTest() {
 }
 
 fun fbxTest() {
-    val file = FileReference(OS.downloads, "azeria/scene.gltf")
-    // val file = FileReference(OS.documents, "CuteGhost.fbx")
+    val file = getReference(OS.downloads, "azeria/scene.gltf")
+    // val file = getReference(OS.documents, "CuteGhost.fbx")
     JMonkeyMesh.readModel(file)
 }
 

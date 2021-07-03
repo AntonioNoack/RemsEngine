@@ -1,6 +1,6 @@
 package me.anno.video
 
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
 import me.anno.objects.Transform
 import java.io.File
 

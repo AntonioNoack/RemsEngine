@@ -171,6 +171,8 @@ open class Entity() : NamedSaveable(), Hierarchical<Entity> {
 
     fun clone() = TextReader.fromText(TextWriter.toText(this, false))[0] as Entity
 
+    override fun onDestroy() {}
+
     override val symbol: String
         get() = ""
 

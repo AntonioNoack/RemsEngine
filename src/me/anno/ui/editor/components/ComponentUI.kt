@@ -4,7 +4,7 @@ import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.blending.blendModes
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
 import me.anno.language.Language
 import me.anno.language.translation.NameDesc
 import me.anno.objects.Transform

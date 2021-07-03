@@ -91,7 +91,7 @@ class TestPitchEffect(
                         img.setRGB(i, j, -1)
                     }
                 }
-                ImageIO.write(img, "png", File(OS.desktop.file, name))
+                ImageIO.write(img, "png", File(OS.desktop.unsafeFile, name))
             }
 
             fun compare(input: FloatArray) {

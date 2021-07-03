@@ -1,13 +1,14 @@
 package me.anno.mesh.obj
 
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
+import me.anno.io.files.FileReference.Companion.getReference
 import org.apache.logging.log4j.LogManager
 import java.io.EOFException
 import java.io.File
 
 class MTLReader(val file: FileReference) : OBJMTLReader(file.inputStream().buffered()) {
 
-    constructor(file: File) : this(FileReference(file))
+    constructor(file: File) : this(getReference(file))
 
     companion object {
         private val LOGGER = LogManager.getLogger(MTLReader::class)

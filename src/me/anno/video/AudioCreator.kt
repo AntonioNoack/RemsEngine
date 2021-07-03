@@ -2,7 +2,7 @@ package me.anno.video
 
 import me.anno.audio.AudioStreamRaw.Companion.playbackSliceDuration
 import me.anno.gpu.GFX
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
 import me.anno.objects.Audio
 import me.anno.objects.Camera
 import me.anno.objects.Transform
@@ -92,7 +92,7 @@ open class AudioCreator(
             val tmp = videoCreator.output
             // temporary file survives sometimes
             // -> kill it at the end at the very least
-            if(!tmp.delete()) tmp.file.deleteOnExit()
+            if(!tmp.delete()) tmp.deleteOnExit()
         }
         onFinished()
 

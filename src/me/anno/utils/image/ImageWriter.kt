@@ -55,7 +55,7 @@ object ImageWriter {
                 }
             }
         }
-        ImageIO.write(img, if (name.endsWith(".jpg")) "jpg" else "png", File(OS.desktop.file, name))
+        ImageIO.write(img, if (name.endsWith(".jpg")) "jpg" else "png", File(OS.desktop.unsafeFile, name))
     }
 
     fun getColor(x: Float): Int {
@@ -89,7 +89,7 @@ object ImageWriter {
                 }
             }
         }
-        ImageIO.write(img, if (name.endsWith(".jpg")) "jpg" else "png", File(OS.desktop.file, name))
+        ImageIO.write(img, if (name.endsWith(".jpg")) "jpg" else "png", File(OS.desktop.unsafeFile, name))
     }
 
 }

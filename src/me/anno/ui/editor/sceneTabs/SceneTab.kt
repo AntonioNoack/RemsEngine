@@ -23,8 +23,8 @@ import me.anno.ui.editor.sceneTabs.SceneTabs.open
 import me.anno.ui.editor.sceneView.SceneTabData
 import me.anno.utils.Maths.mixARGB
 import me.anno.utils.Threads.threadWithName
-import me.anno.io.FileReference
-import java.io.File
+import me.anno.io.files.FileReference
+import me.anno.io.files.FileReference.Companion.getReference
 
 class SceneTab(var file: FileReference?, var root: Transform, history: History?) : TextPanel("", DefaultConfig.style) {
 
@@ -94,11 +94,11 @@ class SceneTab(var file: FileReference?, var root: Transform, history: History?)
     }
 
     fun save(dst: FileReference, onSuccess: () -> Unit) {
-        if (dst.isDirectory) dst.file.deleteRecursively()
+        if (dst.isDirectory) dst.deleteRecursively()
         threadWithName("SaveScene") {
             try {
                 synchronized(root) {
-                    dst.file.parentFile.mkdirs()
+                    dst.getParent()?.mkdirs()
                     val writer = TextWriter(false)
                     writer.add(root)
                     writer.add(history)
@@ -122,8 +122,8 @@ class SceneTab(var file: FileReference?, var root: Transform, history: History?)
             // todo replace /,\?,..
             name = name.toAllowedFilename() ?: ""
             if (name.isEmpty()) {
-                val dst = FileReference(project!!.scenes, name)
-                if (dst.exists()) {
+                val dst = getReference(project!!.scenes, name)
+                if (dst.exists) {
                     // todo translate
                     ask(
                         NameDesc("Override %1?", "Replaces the old file", "ui.file.override")

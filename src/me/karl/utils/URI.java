@@ -1,6 +1,6 @@
 package me.karl.utils;
 
-import me.anno.io.FileReference;
+import me.anno.io.files.FileReference;
 import me.anno.utils.OS;
 
 import java.io.*;
@@ -64,7 +64,7 @@ public class URI {
     }
 
     public URI getChild(String name) {
-        if (file != null) return new URI(new FileReference(file, name));
+        if (file != null) return new URI(FileReference.Companion.getReference(file, name));
         return new URI(this, name);
     }
 
@@ -79,9 +79,9 @@ public class URI {
 
     public InputStream getInputStream() throws FileNotFoundException {
         return new FileInputStream(file == null ? new File(
-                new File(OS.INSTANCE.getDocuments().getFile(),
+                new File(OS.INSTANCE.getDocuments().getUnsafeFile(),
                         "IdeaProjects\\VideoStudio\\src\\me\\karl"),
-                path.toString().substring(1)) : file.getFile());
+                path.toString().substring(1)) : file.getUnsafeFile());
         // return Class.class.getResourceAsStream(path);
     }
 

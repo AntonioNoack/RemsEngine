@@ -165,7 +165,7 @@ class AWTFont(val font: Font) {
     }
 
     fun debug(image: BufferedImage) {
-        val parent = File(OS.desktop.file, "img")
+        val parent = File(OS.desktop.unsafeFile, "img")
         parent.mkdir()
         ImageIO.write(image, "png", File(parent, "${ctr++}.png"))
     }

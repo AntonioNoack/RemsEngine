@@ -15,7 +15,8 @@ import me.anno.input.MouseButton.Companion.toMouseButton
 import me.anno.input.Touch.Companion.onTouchDown
 import me.anno.input.Touch.Companion.onTouchMove
 import me.anno.input.Touch.Companion.onTouchUp
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
+import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.studio.rems.RemsStudio.history
 import me.anno.studio.rems.RemsStudio.project
@@ -107,7 +108,7 @@ object Input {
                     framesSinceLastInteraction = 0
                     requestFocus(getPanelAt(mouseX, mouseY), true)
                     inFocus0?.apply {
-                        onPasteFiles(mouseX, mouseY, files.filterNotNull().map { FileReference(it) })
+                        onPasteFiles(mouseX, mouseY, files.filterNotNull().map { getReference(it) })
                     }
                 }
             }
@@ -258,24 +259,7 @@ object Input {
                                                 copy()
                                                 empty()
                                             }
-                                            GLFW.GLFW_KEY_I -> {// import
-                                                threadWithName("Ctrl+I") {
-                                                    if (lastFile == null) lastFile = project?.file
-                                                    FileExplorerSelectWrapper.selectFile(lastFile?.file) { file ->
-                                                        if (file != null) {
-                                                            lastFile = FileReference(file)
-                                                            addEvent {
-                                                                addChildFromFile(
-                                                                    root,
-                                                                    file,
-                                                                    FileContentImporter.SoftLinkMode.ASK,
-                                                                    true
-                                                                ) {}
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
+                                            GLFW.GLFW_KEY_I -> import()
                                             GLFW.GLFW_KEY_H -> history?.display()
                                             GLFW.GLFW_KEY_A -> inFocus0?.onSelectAll(mouseX, mouseY)
                                         }
@@ -434,6 +418,26 @@ object Input {
         inFocus0?.onEmpty(mouseX, mouseY)
     }
 
+    fun import(){
+        threadWithName("Ctrl+I") {
+            if (lastFile == null) lastFile = project?.file
+            FileExplorerSelectWrapper.selectFile(lastFile?.unsafeFile) { file ->
+                if (file != null) {
+                    val lastFileLocal = getReference(file)
+                    lastFile = lastFileLocal
+                    addEvent {
+                        addChildFromFile(
+                            root,
+                            lastFileLocal,
+                            FileContentImporter.SoftLinkMode.ASK,
+                            true
+                        ) {}
+                    }
+                }
+            }
+        }
+    }
+
     fun copy() {
         // todo combine all selected values into an array?
         val copied = inFocus0?.onCopyRequested(mouseX, mouseY)
@@ -491,7 +495,7 @@ object Input {
             val data2 = data?.filterIsInstance<File>()
             if (data2 != null && data2.isNotEmpty()) {
                 // println(data2)
-                panel.onPasteFiles(mouseX, mouseY, data2.map { FileReference(it) })
+                panel.onPasteFiles(mouseX, mouseY, data2.map { getReference(it) })
                 // return
             }
         } catch (e: UnsupportedFlavorException) {

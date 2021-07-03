@@ -7,14 +7,13 @@ import me.anno.cache.instances.LastModifiedCache
 import me.anno.cache.instances.MeshCache.getMesh
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX.isFinalRendering
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
+import me.anno.io.files.EmptyRef
 import me.anno.language.translation.Dict
 import me.anno.mesh.assimp.AnimatedMeshesLoader
-import me.anno.mesh.gltf.ExternalCameraImpl
 import me.anno.mesh.gltf.GltfLogger
-import me.anno.mesh.gltf.GltfViewerLwjgl
 import me.anno.objects.GFXTransform
 import me.anno.objects.Transform
 import me.anno.ui.base.groups.PanelListY
@@ -58,7 +57,7 @@ class Mesh(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
 
     // for the start it is nice to be able to import meshes like a torus into the engine :)
 
-    constructor() : this(FileReference(""), null)
+    constructor() : this(EmptyRef, null)
 
     var lastFile: FileReference? = null
     var extension = ""

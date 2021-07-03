@@ -67,7 +67,7 @@ class BetterProcessBuilder(
             else it
         })
         val builder = ProcessBuilder(args)
-        builder.directory(OS.home.file)
+        builder.directory(OS.home.unsafeFile)
         return builder.start()
     }
 

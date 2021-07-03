@@ -1,12 +1,11 @@
 package me.anno.ui.input
 
 import me.anno.gpu.Cursor
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.input.components.PureTextInputML
 import me.anno.ui.style.Style
-import java.io.File
 
 // todo line numbers? :)
 open class TextInputML(title: String, style: Style): PanelContainer(

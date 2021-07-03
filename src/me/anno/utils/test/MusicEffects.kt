@@ -4,7 +4,8 @@ import me.anno.audio.AudioFXCache
 import me.anno.audio.effects.Domain
 import me.anno.audio.effects.Time
 import me.anno.audio.effects.impl.EqualizerEffect
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
+import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.objects.Camera
 import me.anno.objects.Video
 import me.anno.utils.Maths.pow
@@ -16,8 +17,8 @@ import kotlin.math.sin
 
 fun main() {
 
-    val file = FileReference(OS.downloads, "Aitana 11 Raizones.mp4")
-    if (!file.exists()) throw RuntimeException("Missing file!")
+    val file = OS.downloads.getChild("Aitana 11 Raizones.mp4")!!
+    if (!file.exists) throw RuntimeException("Missing file!")
 
     val bufferSize = 1024
 

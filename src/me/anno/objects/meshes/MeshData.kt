@@ -18,7 +18,7 @@ import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2D
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
 import me.anno.mesh.assimp.AnimGameItem
 import me.anno.mesh.assimp.AssimpModel
 import me.anno.mesh.fbx.model.FBXGeometry

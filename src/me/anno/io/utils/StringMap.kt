@@ -4,10 +4,11 @@ import me.anno.animation.AnimatedProperty
 import me.anno.animation.Type
 import me.anno.gpu.GFX.gameTime
 import me.anno.gpu.texture.Filtering
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
 import me.anno.io.base.BaseWriter
 import me.anno.io.config.ConfigBasics
 import me.anno.io.config.ConfigEntry
+import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.ui.editor.files.toAllowedFilename
 import me.anno.utils.OS
 import me.anno.utils.hpc.ProcessingQueue
@@ -151,10 +152,11 @@ open class StringMap(
         return File(str)
     }
 
+    @Deprecated("You should use FileReferences")
     operator fun get(key: String, default: File): File {
         return when (val value = this[key]) {
             is File -> value
-            is FileReference -> value.file
+            is FileReference -> value.unsafeFile
             is String -> parseFile(value)
             null -> {
                 set(key, default)
@@ -166,14 +168,14 @@ open class StringMap(
 
     operator fun get(key: String, default: FileReference): FileReference {
         return when (val value = this[key]) {
-            is File -> FileReference(value)
+            is File -> getReference(value)
             is FileReference -> value
-            is String -> FileReference(parseFile(value))
+            is String -> getReference(parseFile(value))
             null -> {
                 set(key, default)
                 default
             }
-            else -> FileReference(parseFile(value.toString()))
+            else -> getReference(parseFile(value.toString()))
         }
     }
 

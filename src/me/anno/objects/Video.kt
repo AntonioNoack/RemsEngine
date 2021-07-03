@@ -20,9 +20,10 @@ import me.anno.gpu.drawing.GFXx3D.draw3DVideo
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2D
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
+import me.anno.io.files.EmptyRef
 import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
 import me.anno.objects.lists.Element
@@ -86,7 +87,7 @@ import kotlin.math.*
 /**
  * Images, Cubemaps, Videos, Audios, joint into one
  * */
-class Video(file: FileReference = FileReference(""), parent: Transform? = null) : Audio(file, parent),
+class Video(file: FileReference = EmptyRef, parent: Transform? = null) : Audio(file, parent),
     SplittableElement {
 
     // uv
@@ -649,7 +650,7 @@ class Video(file: FileReference = FileReference(""), parent: Transform? = null) 
                     lastDuration = meta.duration
                 }
                 if (meta == null) {
-                    lastWarning = if (file.exists()) {
+                    lastWarning = if (file.exists) {
                         "Video file is invalid"
                     } else {
                         "File does not exist"

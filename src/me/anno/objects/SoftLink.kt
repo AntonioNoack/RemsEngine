@@ -8,7 +8,7 @@ import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.language.translation.Dict
@@ -16,6 +16,7 @@ import me.anno.animation.AnimatedProperty
 import me.anno.animation.Type
 import me.anno.gpu.RenderState.useFrame
 import me.anno.gpu.shader.Renderer
+import me.anno.io.files.EmptyRef
 import me.anno.objects.modes.UVProjection
 import me.anno.objects.text.Text
 import me.anno.studio.rems.Scene
@@ -37,7 +38,7 @@ import kotlin.math.roundToInt
 
 class SoftLink(var file: FileReference) : GFXTransform(null) {
 
-    constructor() : this(FileReference.empty)
+    constructor() : this(EmptyRef)
 
     init { timelineSlot.setDefault(0) }
 
@@ -140,7 +141,7 @@ class SoftLink(var file: FileReference) : GFXTransform(null) {
         if (listOfInheritance.count { it is SoftLink } > maxDepth) {// preventing loops
             softChild = Text("Too many links!")
         } else {
-            if (file.exists()) {
+            if (file.exists) {
                 if (file.isDirectory) {
                     softChild = Text("Use scene files!")
                 } else {

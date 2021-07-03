@@ -1,6 +1,7 @@
 package me.anno.io.binary
 
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
+import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.text.TextWriter
 import me.anno.objects.Camera
 import me.anno.objects.Transform
@@ -47,7 +48,7 @@ fun main(){
     // load all files into the cache
     candidates.forEach { it.save(BinaryWriter(DataOutputStream(ByteArrayOutputStream()))) }
 
-    val file = FileReference(OS.desktop, "raw.bin")
+    val file = getReference(OS.desktop, "raw.bin")
 
     // binary
     val bin0 = System.nanoTime()

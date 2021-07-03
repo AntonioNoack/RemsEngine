@@ -2,7 +2,8 @@ package me.anno.mesh.assimp
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.render.MeshRenderer
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
+import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.mesh.assimp.AssimpTree.convert
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector4f
@@ -115,7 +116,7 @@ open class StaticMeshesLoader {
         val specular = getColor(aiMaterial, color, AI_MATKEY_COLOR_SPECULAR)
 
         val material = Material(ambient, diffuse, specular, 1.0f)
-        material.texture = if (texture == null) null else FileReference(texture)
+        material.texture = if (texture == null) null else getReference(texture)
         return material
 
     }

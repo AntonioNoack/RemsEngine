@@ -1,7 +1,7 @@
 package me.anno.video
 
 import me.anno.gpu.GFX
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
 import me.anno.utils.ShutdownException
 import me.anno.utils.Sleep.waitUntil
 import me.anno.video.IsFFMPEGOnly.isFFMPEGOnlyExtension

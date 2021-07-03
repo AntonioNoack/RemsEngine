@@ -1,6 +1,6 @@
 package me.anno.cache.keys
 
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
 
 data class VideoFrameKey(
     val file: FileReference,

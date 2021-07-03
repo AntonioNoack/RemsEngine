@@ -1,6 +1,6 @@
 package me.anno.io.base
 
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
 import me.anno.io.ISaveable
 import me.anno.studio.StudioBase
 import me.anno.utils.files.LocalFile.toLocalPath
@@ -8,8 +8,6 @@ import org.joml.*
 import java.io.File
 import java.io.Serializable
 import java.lang.Exception
-import kotlin.reflect.full.declaredMemberExtensionFunctions
-import kotlin.reflect.full.declaredMemberFunctions
 
 abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
 
@@ -85,7 +83,7 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
     abstract fun writeMatrix4x4d(name: String, value: Matrix4dc, force: Boolean = false)
 
     fun writeFile(name: String, file: FileReference?, workspace: FileReference? = StudioBase.workspace) {
-        writeFile(name, file?.file, workspace)
+        writeFile(name, file?.unsafeFile, workspace)
     }
 
     fun writeFile(name: String, file: File?, workspace: FileReference? = StudioBase.workspace) {

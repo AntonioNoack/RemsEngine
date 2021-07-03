@@ -2,7 +2,7 @@ package me.anno.mesh.obj
 
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
 import me.anno.utils.files.LocalFile.toGlobalFile
 import org.joml.Vector3f
 

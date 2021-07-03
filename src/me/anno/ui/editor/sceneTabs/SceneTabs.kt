@@ -2,8 +2,9 @@ package me.anno.ui.editor.sceneTabs
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
 import me.anno.io.base.BaseWriter
+import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.language.translation.Dict
 import me.anno.objects.Transform
 import me.anno.studio.StudioBase.Companion.dragged
@@ -36,7 +37,7 @@ object SceneTabs : ScrollPanelX(DefaultConfig.style) {
                 addChildFromFile(null, file, FileContentImporter.SoftLinkMode.COPY_CONTENT, false) { transform ->
                     var file2 = file
                     if (!file2.extension.equals("json", true)) {
-                        file2 = FileReference(file2.file.parentFile, file2.name + ".json")
+                        file2 = getReference(file2.getParent(), file2.name + ".json")
                     }
                     val tab = SceneTab(file2, transform, null)
                     content += tab

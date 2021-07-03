@@ -7,7 +7,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.texture.Texture2D
 import me.anno.utils.Maths
 import me.anno.utils.Threads.threadWithName
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
 import org.apache.logging.log4j.LogManager
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.rendering.ImageType
@@ -21,7 +21,7 @@ object PDFCache : CacheSection("PDFCache") {
     fun getDocument(src: FileReference, async: Boolean): PDDocument? {
         val data = getEntry(src, timeout, async) {
             val doc = try {
-                PDDocument.load(src.file)
+                PDDocument.load(src.inputStream())
             } catch (e: Exception) {
                 LOGGER.error(e.message ?: "Error loading PDF", e)
                 PDDocument()

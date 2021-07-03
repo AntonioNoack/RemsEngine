@@ -205,7 +205,7 @@ class SVGCurve(Vector2ds: List<Vector2d>, closed: Boolean, val depth: Double, va
         ImageIO.write(
             img,
             "png",
-            File(OS.desktop.file, "svg/${Vector2ds.first().hashCode() xor Vector2ds[1].hashCode()}.png")
+            File(OS.desktop.unsafeFile, "svg/${Vector2ds.first().hashCode() xor Vector2ds[1].hashCode()}.png")
         )
 
     }

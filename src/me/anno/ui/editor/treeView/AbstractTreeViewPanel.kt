@@ -12,7 +12,7 @@ import me.anno.input.Input.mouseDownY
 import me.anno.input.Input.mouseX
 import me.anno.input.Input.mouseY
 import me.anno.input.MouseButton
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
 import me.anno.io.ISaveable
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
@@ -256,7 +256,7 @@ class AbstractTreeViewPanel<V : Hierarchical<V>>(
         RemsStudio.largeChange("Deleted Component ${getElement().name}") {
             val element = getElement()
             element.removeFromParent()
-            for (it in element.listOfAll) it.destroy()
+            for (it in element.listOfAll.toList()) it.destroy()
         }
     }
 

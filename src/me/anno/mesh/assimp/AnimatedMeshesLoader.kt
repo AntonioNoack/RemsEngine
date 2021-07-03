@@ -1,7 +1,8 @@
 package me.anno.mesh.assimp
 
 import me.anno.ecs.Entity
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
+import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.mesh.assimp.AnimGameItem.Companion.maxBones
 import me.anno.mesh.assimp.AnimatedMeshesLoader2.boneTransform2
 import me.anno.mesh.assimp.AnimatedMeshesLoader2.getDuration
@@ -66,7 +67,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         val nameFile = File(resourcePath)
         var name = nameFile.name
         if (name == "scene.gltf") name = nameFile.parentFile.name
-        FileReference(OS.desktop, "$name-${resourcePath.hashCode()}.txt")
+        getReference(OS.desktop, "$name-${resourcePath.hashCode()}.txt")
             .writeText(
                 "" +
                         "${boneList.map { "${it.name}: ${it.offsetMatrix}" }}\n" +

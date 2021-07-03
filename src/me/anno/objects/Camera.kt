@@ -3,11 +3,12 @@ package me.anno.objects
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.white4
 import me.anno.gpu.GFX
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.language.translation.Dict
 import me.anno.animation.AnimatedProperty
+import me.anno.io.files.EmptyRef
 import me.anno.objects.effects.ToneMappers
 import me.anno.objects.models.CameraModel.drawCamera
 import me.anno.studio.rems.RemsStudio
@@ -28,7 +29,7 @@ class Camera(parent: Transform? = null) : Transform(parent) {
 
     // orthographic-ness by setting the camera back some amount, and narrowing the view
 
-    var lut = FileReference("")
+    var lut: FileReference = EmptyRef
     val nearZ = AnimatedProperty.floatPlus(0.001f)
     val farZ = AnimatedProperty.floatPlus(1000f)
     val fovYDegrees = AnimatedProperty.float(90f)

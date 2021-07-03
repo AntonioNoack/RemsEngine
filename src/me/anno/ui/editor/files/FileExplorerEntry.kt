@@ -20,7 +20,7 @@ import me.anno.input.Input
 import me.anno.input.Input.mouseDownX
 import me.anno.input.Input.mouseDownY
 import me.anno.input.MouseButton
-import me.anno.io.FileReference
+import me.anno.io.files.FileReference
 import me.anno.io.trash.TrashManager.moveToTrash
 import me.anno.language.translation.NameDesc
 import me.anno.objects.Audio
@@ -57,14 +57,10 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
-// todo drag no longer works :/
-
 class FileExplorerEntry(
     private val explorer: FileExplorer,
     isParent: Boolean, val file: FileReference, style: Style
 ) : PanelGroup(style.getChild("fileEntry")) {
-
-    // todo back mouse key works, but forward does not
 
     // todo .lnk files for windows
     // todo .url files
@@ -78,10 +74,6 @@ class FileExplorerEntry(
     // todo load fbx files
     // todo load separate fbx animations
     // todo play them together
-
-
-    // todo sometimes the title is missing... or its color... why ever...
-    // draw using fast-draw? missing special chars are an issue...
 
     private var audio: Audio? = null
 
@@ -110,7 +102,7 @@ class FileExplorerEntry(
                 "music", "musik", "videos", "movies" -> "file/music.png"
                 "documents", "dokumente", "downloads" -> "file/text.png"
                 "images", "pictures", "bilder" -> "file/image.png"
-                else -> if (file.file.listFiles2().isNotEmpty())
+                else -> if (file.listFiles2().isNotEmpty())
                     "file/folder.png" else "file/empty_folder.png"
             }
         }
@@ -431,7 +423,7 @@ class FileExplorerEntry(
                 }
             }
             "Enter" -> {
-                if (file.isDirectory) {
+                if (file.isDirectoryOrCompressed) {
                     explorer.switchTo(file)
                 } else {// todo check if it's a compressed thing we can enter
                     return false
@@ -441,7 +433,7 @@ class FileExplorerEntry(
                 val title = NameDesc("Rename To...", "", "ui.file.rename2")
                 askName(x.toInt(), y.toInt(), title, file.name, NameDesc("Rename"), { -1 }, ::renameTo)
             }
-            "OpenInExplorer" -> file.file.openInExplorer()
+            "OpenInExplorer" -> file.openInExplorer()
             "Delete" -> deleteFileMaybe()
             "OpenOptions" -> {
                 // todo add option to open json in specialized json editor...
@@ -473,23 +465,22 @@ class FileExplorerEntry(
     fun renameTo(newName: String) {
         val allowed = newName.toAllowedFilename()
         if (allowed != null) {
-            val dst = File(file.file.parentFile, allowed)
-            if (dst.exists() && !allowed.equals(file.name, true)) {
+            val dst = file.getParent()!!.getChild(allowed)!!
+            if (dst.exists && !allowed.equals(file.name, true)) {
                 ask(NameDesc("Override existing file?", "", "ui.file.override")) {
-                    file.file.renameTo(dst)
+                    file.renameTo(dst)
                     explorer.invalidate()
                 }
             } else {
-                file.file.renameTo(dst)
+                file.renameTo(dst)
                 explorer.invalidate()
             }
         }
     }
 
-    // todo change to action
     override fun onDoubleClick(x: Float, y: Float, button: MouseButton) {
         if(button.isLeft){
-            if (file.isDirectory) {
+            if (file.isDirectoryOrCompressed) {
                 explorer.switchTo(file)
                 // super.onDoubleClick(x, y, button)
             } else {
@@ -511,7 +502,7 @@ class FileExplorerEntry(
                 "ui.file.delete.yes"
             )
         ) {
-            moveToTrash(file.file)
+            moveToTrash(file.unsafeFile)
             explorer.invalidate()
         }
         val deletePermanently = MenuOption(
@@ -552,7 +543,7 @@ class FileExplorerEntry(
                     "ui.file.delete.yes"
                 )
             ) {
-                moveToTrash(files.map { it.file }.toTypedArray())
+                moveToTrash(files.map { it.unsafeFile }.toTypedArray())
                 explorer.invalidate()
             }
             val deletePermanently = MenuOption(
@@ -580,12 +571,14 @@ class FileExplorerEntry(
 
     override fun onCopyRequested(x: Float, y: Float): String? {
         if (this in inFocus) {// multiple files maybe
-            Input.copyFiles(inFocus.filterIsInstance<FileExplorerEntry>().map { it.file.file })
-        } else Input.copyFiles(listOf(file.file))
+            Input.copyFiles(inFocus.filterIsInstance<FileExplorerEntry>().map { it.file.unsafeFile })
+        } else Input.copyFiles(listOf(file.unsafeFile))
         return null
     }
 
     override fun getMultiSelectablePanel() = this
+
+    override fun getClassName(): String = "FileEntry"
 
     override fun printLayout(tabDepth: Int) {
         super.printLayout(tabDepth)
