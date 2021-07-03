@@ -33,7 +33,7 @@ class FileFileRef(val file: File) :
     override fun mkdirs(): Boolean = file.mkdirs()
 
     override fun listChildren(): List<FileReference>? {
-        return if(isDirectory){
+        return if (isDirectory) {
             file.listFiles()?.map { FileFileRef(it) }
         } else {
             zipFileForDirectory?.listChildren()
@@ -46,9 +46,13 @@ class FileFileRef(val file: File) :
 
     override fun getChild(name: String): FileReference {
         return if (isDirectory) {
-            getReference(this, name)
+            if ('/' in name || '\\' in name) {
+                getReference(this, name)
+            } else {
+                FileFileRef(File(file, name))
+            }
         } else {
-            getReference(zipFileForDirectory,name)
+            getReference(zipFileForDirectory, name)
         }
     }
 

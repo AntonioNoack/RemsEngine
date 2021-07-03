@@ -49,17 +49,21 @@ abstract class FileReference(val absolutePath: String) {
             parent ?: return InvalidRef
             var result: FileReference? = parent
             val name1 = name.replace('\\', '/')
-            val parts = name1.split('/')
-            for (partialName in parts) {
-                if (!partialName.isBlank2()) {
-                    result = if (partialName == "..") {
-                        result?.getParent()
-                    } else {
-                        result?.getChild(partialName)
+            return if ('/' !in name1) {
+                result?.getChild(name)
+            } else {
+                val parts = name1.split('/')
+                for (partialName in parts) {
+                    if (!partialName.isBlank2()) {
+                        result = if (partialName == "..") {
+                            result?.getParent()
+                        } else {
+                            result?.getChild(partialName)
+                        }
                     }
                 }
-            }
-            return result ?: InvalidRef
+                result
+            } ?: InvalidRef
         }
 
     }
@@ -195,5 +199,7 @@ abstract class FileReference(val absolutePath: String) {
     fun toLocalPath(workspace: FileReference? = StudioBase.workspace): String {
         return absolutePath.toLocalPath(workspace)
     }
+
+    // todo support for ffmpeg to read all zip files
 
 }

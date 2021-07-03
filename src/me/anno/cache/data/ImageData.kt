@@ -25,6 +25,7 @@ import org.apache.commons.imaging.Imaging
 import org.apache.logging.log4j.LogManager
 import java.awt.image.BufferedImage
 import java.io.File
+import java.io.InputStream
 import java.util.*
 import javax.imageio.ImageIO
 
@@ -37,9 +38,9 @@ class ImageData(file: FileReference) : ICacheData {
 
         private val LOGGER = LogManager.getLogger(ImageData::class)
 
-        fun getRotation(file: FileReference): RotateJPEG? = getRotation(file.unsafeFile)
+        fun getRotation(file: FileReference): RotateJPEG? = getRotation(file.inputStream())
 
-        fun getRotation(file: File): RotateJPEG? {
+        fun getRotation(file: InputStream): RotateJPEG? {
             var rotation: RotateJPEG? = null
             try {
                 val metadata = ImageMetadataReader.readMetadata(file)

@@ -2,6 +2,8 @@ package me.anno.io.base
 
 import me.anno.io.files.FileReference
 import me.anno.io.ISaveable
+import me.anno.io.files.EmptyRef
+import me.anno.io.files.InvalidRef
 import me.anno.studio.StudioBase
 import me.anno.utils.files.LocalFile.toLocalPath
 import org.joml.*
@@ -83,7 +85,11 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
     abstract fun writeMatrix4x4d(name: String, value: Matrix4dc, force: Boolean = false)
 
     fun writeFile(name: String, file: FileReference?, workspace: FileReference? = StudioBase.workspace) {
-        writeFile(name, file?.unsafeFile, workspace)
+        if(file == null || file == EmptyRef || file == InvalidRef){
+            writeString(name, null)
+        } else {
+            writeString(name, file.toLocalPath(workspace))
+        }
     }
 
     fun writeFile(name: String, file: File?, workspace: FileReference? = StudioBase.workspace) {
