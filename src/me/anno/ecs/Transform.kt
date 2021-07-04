@@ -49,7 +49,7 @@ class Transform {
     }
 
     // todo only update if changed to save resources
-    fun update(parent: Transform) {
+    fun update(parent: Transform?) {
 
         /*localTransform.identity()
 
@@ -62,7 +62,12 @@ class Transform {
 
         localTransform.scale(localScale)*/
 
-        worldTransform.set(parent.worldTransform)
+        if(parent == null){
+            worldTransform.identity()
+        } else {
+            worldTransform.set(parent.worldTransform)
+        }
+
         worldTransform.mul(localTransform)
 
     }

@@ -44,12 +44,12 @@ import me.anno.studio.rems.Scene
 import me.anno.studio.rems.Selection
 import me.anno.studio.rems.Selection.selectTransform
 import me.anno.studio.rems.Selection.selectedTransform
+import me.anno.studio.rems.ui.TransformFileImporter.addChildFromFile
+import me.anno.studio.rems.ui.TransformTreeView.Companion.zoomToObject
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.custom.CustomContainer
 import me.anno.ui.editor.files.FileContentImporter
-import me.anno.studio.rems.ui.TransformFileImporter.addChildFromFile
-import me.anno.studio.rems.ui.TransformTreeView.Companion.zoomToObject
 import me.anno.ui.simple.SimplePanel
 import me.anno.ui.style.Style
 import me.anno.utils.Color.a
@@ -72,7 +72,6 @@ import org.joml.Vector3f
 import org.joml.Vector4f
 import org.lwjgl.opengl.GL11.*
 import java.awt.image.BufferedImage
-import java.io.File
 import java.lang.Math.toDegrees
 import java.text.SimpleDateFormat
 import java.util.*
@@ -302,13 +301,14 @@ open class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")
 
     fun takeScreenshot() {
 
-        val folder = File(OS.pictures.unsafeFile, "Screenshots")
+        val folder = OS.pictures.getChild("Screenshots")!!
         folder.mkdirs()
+
         val format = SimpleDateFormat("yyyy-MM-dd_HH.mm.ss")
         var name = format.format(Date())
-        if (File(folder, "$name.png").exists()) name += "_${System.nanoTime()}"
+        if (folder.getChild("$name.png")!!.exists) name += "_${System.nanoTime()}"
         name += ".png"
-        if (File(folder, name).exists()) return // image already exists somehow...
+        if (folder.getChild(name)!!.exists) return // image already exists somehow...
 
         val w = stableSize.stableWidth
         val h = stableSize.stableHeight
@@ -353,8 +353,8 @@ open class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")
                 }
 
                 // todo actions for console messages, e.g. opening a file
-                val file = File(folder, name)
-                ImageIO.write(image, "png", file)
+                val file = folder.getChild(name)!!
+                ImageIO.write(image, "png", file.outputStream())
                 LOGGER.info(
                     Dict["Saved screenshot to %1", "ui.sceneView.savedScreenshot"].replace(
                         "%1",

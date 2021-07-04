@@ -1,12 +1,13 @@
 package me.anno.fonts.mesh
 
 import me.anno.fonts.signeddistfields.TextSDF
-import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer
+import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.ui.base.DefaultRenderingHints
 import me.anno.utils.Maths.distance
 import me.anno.utils.OS
+import me.anno.utils.files.Files.use
 import me.anno.utils.types.Vectors.avg
 import me.anno.utils.types.Vectors.isInsideTriangle
 import me.anno.utils.types.Vectors.minus
@@ -23,7 +24,6 @@ import java.awt.geom.PathIterator
 import java.awt.image.BufferedImage
 import java.io.File
 import javax.imageio.ImageIO
-import kotlin.collections.ArrayList
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -222,7 +222,11 @@ class TextMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
         val outerFragments = fragments.filter { !it.isInside }
         // "found ${outerFragments.size} outer rings"
 
-        if (img != null) ImageIO.write(img, "png", File(OS.desktop.unsafeFile, "text1.png"))
+        if (img != null) {
+            use(OS.desktop.getChild("text1.png")!!.outputStream()) {
+                ImageIO.write(img, "png", it)
+            }
+        }
 
         var wasChanged = false
         outerFragments.forEach { outer ->

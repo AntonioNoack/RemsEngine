@@ -59,7 +59,7 @@ object Files {
         }
     }
 
-    fun <I : Closeable, V> use(closeable: I, run: (I) -> V): V {
+    inline fun <I : Closeable, V> use(closeable: I, run: (I) -> V): V {
         val result = run(closeable)
         closeable.close()
         return result

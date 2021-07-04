@@ -1,6 +1,8 @@
 package me.anno.ecs.components.mesh
 
 import me.anno.ecs.Component
+import me.anno.gpu.buffer.Attribute
+import me.anno.gpu.buffer.AttributeType
 import me.anno.mesh.assimp.Material
 import org.joml.AABBf
 import org.lwjgl.opengl.GL11.GL_TRIANGLES
@@ -99,6 +101,18 @@ class Mesh: Component() {
     }
 
     companion object {
+
+        // custom attributes for shaders? idk...
+        const val MAX_WEIGHTS = 4
+        val attributes = listOf(
+            Attribute("coords", 3),
+            Attribute("uvs", 2),
+            Attribute("normals", 3),
+            Attribute("colors", 4),
+            Attribute("weights", MAX_WEIGHTS),
+            Attribute("indices", AttributeType.UINT8, MAX_WEIGHTS, true)
+        )
+
         fun AABBf.clear() {
             minX = Float.POSITIVE_INFINITY
             minY = Float.POSITIVE_INFINITY

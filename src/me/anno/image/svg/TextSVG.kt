@@ -4,9 +4,8 @@ import me.anno.io.xml.XMLElement
 import me.anno.io.xml.XMLReader
 import me.anno.utils.OS
 import java.io.ByteArrayInputStream
-import java.io.File
 
-fun main(){
+fun main() {
 
 
     val text = "<svg height=\"100\" width=\"100\">\n" +
@@ -21,14 +20,14 @@ fun main(){
             "</svg> "
 
     testSVG(text)
-    testSVG(File(OS.downloads.unsafeFile, "tiger.svg").readText())
+    testSVG(OS.downloads.getChild("tiger.svg")!!.readText())
 
 }
 
-fun testSVG(text: String){
+fun testSVG(text: String) {
     SVGMesh().parse(XMLReader.parse(ByteArrayInputStream(text.toByteArray())) as XMLElement)
 }
 
-fun testXML(text: String){
+fun testXML(text: String) {
     println(XMLReader.parse(ByteArrayInputStream(text.toByteArray())))
 }

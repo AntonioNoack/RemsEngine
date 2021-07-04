@@ -2,7 +2,7 @@ package me.anno.ecs.components.anim
 
 import org.joml.Matrix4f
 
-class SkinAnimation : Animation() {
+class BoneByBoneAnimation : Animation() {
 
     val joints = ArrayList<Joint>()
 

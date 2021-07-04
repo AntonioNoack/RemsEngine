@@ -2,6 +2,7 @@ package me.anno.ecs.components.camera
 
 import me.anno.ecs.Component
 import me.anno.ecs.annotations.Range
+import me.anno.ecs.components.player.LocalPlayer.Companion.currentLocalPlayer
 
 // todo like the studio camera,
 // todo function to blend to the next one
@@ -16,15 +17,22 @@ class Camera : Component() {
     var near = 0.01
 
     @Range(1e-308, 1e308)
-    var far = 5000
+    var far = 5000.0
 
     var postProcessingEffects = ArrayList<PPE>()
 
     class PPE
 
-
     fun use(blendingTime: Double) {
-        // todo blend between the cameras...
+        val player = currentLocalPlayer!!
+        val state = player.camera
+        // only if not already set as target
+        if(state.currentCamera != this){
+            state.cameraBlendingTime = blendingTime
+            state.cameraBlendingProgress = 0.0
+            state.previousCamera = state.currentCamera
+            state.currentCamera = this
+        }
     }
 
     override fun getClassName(): String = "CameraComponent"

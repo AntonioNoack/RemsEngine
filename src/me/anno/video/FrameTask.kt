@@ -91,7 +91,7 @@ class FrameTask(
             }
             // c1.stop("wrote to buffered image"), 0.025s on R5 2600, 1080p
             if (dst.exists) dst.delete()
-            if (!ImageIO.write(image, dst.extension, dst.unsafeFile)) {
+            if (!ImageIO.write(image, dst.extension, dst.outputStream())) {
                 LOGGER.warn("Could not find writer for image format ${dst.extension}!")
             } else {
                 // c1.stop("saved to file"), 0.07s on NVME SSD

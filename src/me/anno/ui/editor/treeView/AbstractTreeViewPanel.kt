@@ -41,51 +41,56 @@ class AbstractTreeViewPanel<V : Hierarchical<V>>(
     val getElement: () -> V,
     val openAddMenu: (parent: V) -> Unit,
     val fileContentImporter: FileContentImporter<V>,
+    val showSymbol: Boolean,
     val castedParent: AbstractTreeView<V>, style: Style
 ) : PanelListX(style) {
 
     private val accentColor = style.getColor("accentColor", black or 0xff0000)
 
-    val symbol = object : TextPanel("", style) {
-        init {
-            textAlignment = AxisAlignment.CENTER
-        }
+    val symbol: TextPanel? = if(showSymbol){
+        object : TextPanel("", style) {
+            init {
+                textAlignment = AxisAlignment.CENTER
+            }
 
-        override fun calculateSize(w: Int, h: Int) {
-            calculateSize(w, h, "xx")
-        }
+            override fun calculateSize(w: Int, h: Int) {
+                calculateSize(w, h, "xx")
+            }
 
-        override fun onCopyRequested(x: Float, y: Float): String? = parent?.onCopyRequested(x, y)
-    }
+            override fun onCopyRequested(x: Float, y: Float): String? = parent?.onCopyRequested(x, y)
+        }
+    } else null
 
     val text = object : TextPanel("", style) {
         override fun onCopyRequested(x: Float, y: Float): String? = parent?.onCopyRequested(x, y)
     }
 
     init {
-        symbol.enableHoverColor = true
+        if(symbol != null){
+            symbol.enableHoverColor = true
+            this += symbol
+        }
         text.enableHoverColor = true
-        this += symbol
         this += text
     }
 
     fun setText(symbol: String, name: String) {
-        this.symbol.text = symbol
+        this.symbol?.text = symbol
         this.text.text = name
     }
 
     var showAddIndex: Int? = null
 
     var textColor
-        get() = symbol.textColor
+        get() = (symbol ?: text).textColor
         set(value) {
-            symbol.textColor = value
+            symbol?.textColor = value
             text.textColor = value
         }
 
     // override val effectiveTextColor: Int get() = textColor
-    val hoverColor get() = symbol.hoverColor
-    val font get() = symbol.font
+    val hoverColor get() = (symbol ?: text).hoverColor
+    val font get() = (symbol ?: text).font
 
     private val tmp0 = Vector4f()
     override fun tickUpdate() {
@@ -116,7 +121,7 @@ class AbstractTreeViewPanel<V : Hierarchical<V>>(
         } else originalBGColor
         this.textColor = textColor
         text.backgroundColor = backgroundColor
-        symbol.backgroundColor = backgroundColor
+        symbol?.backgroundColor = backgroundColor
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {

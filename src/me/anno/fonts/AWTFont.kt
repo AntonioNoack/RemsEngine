@@ -8,6 +8,7 @@ import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.ui.base.DefaultRenderingHints.prepareGraphics
 import me.anno.utils.OS
+import me.anno.utils.files.Files.use
 import me.anno.utils.structures.lists.ExpensiveList
 import me.anno.utils.types.Lists.join
 import me.anno.utils.types.Strings.incrementTab
@@ -21,7 +22,6 @@ import java.awt.Graphics2D
 import java.awt.font.FontRenderContext
 import java.awt.font.TextLayout
 import java.awt.image.BufferedImage
-import java.io.File
 import javax.imageio.ImageIO
 import kotlin.math.ceil
 import kotlin.math.max
@@ -165,9 +165,10 @@ class AWTFont(val font: Font) {
     }
 
     fun debug(image: BufferedImage) {
-        val parent = File(OS.desktop.unsafeFile, "img")
-        parent.mkdir()
-        ImageIO.write(image, "png", File(parent, "${ctr++}.png"))
+        OS.desktop.getChild("img")?.mkdirs()
+        use(OS.desktop.getChild("img/${ctr++}.png")!!.outputStream()) {
+            ImageIO.write(image, "png", it)
+        }
     }
 
     private val renderContext by lazy {
@@ -203,7 +204,7 @@ class AWTFont(val font: Font) {
             if (it.isBlank2()) null
             else splitLine(fonts, it, fontSize, relativeTabSize, relativeCharSpacing, lineBreakWidth)
         }
-        val width = splitLines.maxByOrNull  { it?.width ?: 0f }?.width ?: 0f
+        val width = splitLines.maxByOrNull { it?.width ?: 0f }?.width ?: 0f
         var lineCount = 0
         val parts = splitLines.mapNotNull { partResult ->
             val offsetY = actualFontSize * lineCount
@@ -257,7 +258,7 @@ class AWTFont(val font: Font) {
                 }
             }
 
-            if(!foundSolution){// prefer to split upper case characters
+            if (!foundSolution) {// prefer to split upper case characters
                 search@ for ((index, charV) in charsOfInterest.withIndex().reversed()) {
                     val char = charV.toChar()
                     if (char.isUpperCase()) {

@@ -200,7 +200,7 @@ object UILayouts {
     }
 
     fun loadLastProject(
-        usableFile: File?, nameInput: TextInput,
+        usableFile: FileReference?, nameInput: TextInput,
         recent: List<DefaultConfig.ProjectHeader>
     ) {
         if (recent.isEmpty()) loadNewProject(usableFile, nameInput)
@@ -210,7 +210,7 @@ object UILayouts {
         }
     }
 
-    fun loadNewProject(usableFile: File?, nameInput: TextInput) {
+    fun loadNewProject(usableFile: FileReference?, nameInput: TextInput) {
         val file = usableFile
         if (file != null) {
             openProject(nameInput.text, file)
@@ -221,7 +221,7 @@ object UILayouts {
 
     private const val dirNameEn = "directory" // vs folder ^^
     lateinit var nameInput: TextInput
-    var usableFile: File? = null
+    var usableFile: FileReference? = null
 
     fun rootIsOk(file: FileReference): Boolean {
         if (file.exists) return true
@@ -294,7 +294,7 @@ object UILayouts {
             } or black
             usableFile = if (state == -2) {
                 null
-            } else file.unsafeFile
+            } else file
             base.focusTextColor = base.textColor
         }
 

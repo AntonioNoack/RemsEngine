@@ -28,6 +28,7 @@ abstract class AbstractTreeView<V : Hierarchical<V>>(
     val sources: List<V>,
     val openAddMenu: (parent: V) -> Unit,
     val fileContentImporter: FileContentImporter<V>,
+    val showSymbols: Boolean,
     style: Style
 ) : ScrollPanelXY(Padding(5), style.getChild("treeView")) {
 
@@ -153,7 +154,7 @@ abstract class AbstractTreeView<V : Hierarchical<V>>(
             return panel
         }
         elementByIndex += element
-        val child = AbstractTreeViewPanel({ elementByIndex[index] }, openAddMenu, fileContentImporter, this, style)
+        val child = AbstractTreeViewPanel({ elementByIndex[index] }, openAddMenu, fileContentImporter, showSymbols, this, style)
         child.padding.left = 4
         // todo checkbox with custom icons
         list += child

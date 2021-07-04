@@ -149,10 +149,10 @@ class ImageData(file: FileReference) : ICacheData {
     }
 
     fun tryGetImage(file: FileReference): BufferedImage? {
-        return tryGetImage(file.unsafeFile)
+        return tryGetImage(file.inputStream())
     }
 
-    fun tryGetImage(file: File): BufferedImage? {
+    fun tryGetImage(file: InputStream): BufferedImage? {
         // try ImageIO first, then Imaging, then give up (we could try FFMPEG, but idk, whether it supports sth useful)
         val image = tryOrNull { ImageIO.read(file) } ?: tryOrException { Imaging.getBufferedImage(file) }
         if (image is Exception) LOGGER.warn("Cannot read image from file $file: ${image.message}")

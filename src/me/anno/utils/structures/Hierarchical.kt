@@ -1,6 +1,6 @@
 package me.anno.utils.structures
 
-interface Hierarchical<V: Hierarchical<V>> {
+interface Hierarchical<V : Hierarchical<V>> {
 
     var isCollapsed: Boolean
 
@@ -63,7 +63,7 @@ interface Hierarchical<V: Hierarchical<V>> {
 
     fun onDestroy()
 
-    fun destroy(){
+    fun destroy() {
         // removeFromParent()
         onDestroy()
     }
@@ -75,5 +75,34 @@ interface Hierarchical<V: Hierarchical<V>> {
                 yieldAll(child.listOfAll)
             }
         }
+
+    fun depthFirstTraversal(func: (V) -> Boolean): V? {
+        this as V
+        if (func(this)) return this
+        for (child in children) {
+            val result = child.depthFirstTraversal(func)
+            if (result != null) return result
+        }
+        return null
+    }
+
+    fun breathFirstTraversal(func: (V) -> Boolean): V? {
+        val queue = ArrayList<V>()
+        val wasExplored = HashSet<V>()
+        queue.add(this as V)
+        wasExplored.add(this)
+        var readIndex = 0
+        while (readIndex < queue.size) {
+            val v = queue[readIndex++]
+            if (func(v)) return v
+            for (child in children) {
+                if (child !in wasExplored) {
+                    wasExplored.add(child)
+                    queue.add(child)
+                }
+            }
+        }
+        return null
+    }
 
 }

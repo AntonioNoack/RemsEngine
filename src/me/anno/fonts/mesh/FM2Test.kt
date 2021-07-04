@@ -3,6 +3,7 @@ package me.anno.fonts.mesh
 import me.anno.fonts.FontManager
 import me.anno.ui.base.DefaultRenderingHints.prepareGraphics
 import me.anno.utils.OS
+import me.anno.utils.files.Files.use
 import java.awt.Color
 import java.awt.Graphics2D
 import java.awt.font.FontRenderContext
@@ -60,7 +61,8 @@ fun main() {
     gfx.translate(0, fs.toInt())
 
     gfx.dispose()
-    ImageIO.write(img, "png", File(OS.desktop.unsafeFile, "font2.png"))
-
+    use(OS.desktop.getChild("font2.png")!!.outputStream()){
+        ImageIO.write(img, "png", it)
+    }
 
 }

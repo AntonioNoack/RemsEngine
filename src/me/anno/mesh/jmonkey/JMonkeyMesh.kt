@@ -17,6 +17,7 @@ import me.anno.mesh.jmonkey.BufferConverter.convertUByte
 import me.anno.utils.OS
 import org.apache.logging.log4j.LogManager
 
+
 // todo we're going to use jMonkey, if it supports all animations <3
 // todo maybe it even supports TGA completely, then we can remove the ImageIO stuff, which works partially only <3
 
@@ -55,56 +56,56 @@ object JMonkeyMesh {
             for (clip in composer.animClips) {
                 val tracks0 = clip.tracks
                 val tracks = tracks0.filterIsInstance<TransformTrack>()
-                for(track in tracks){
+                /*for(track in tracks){
                     println(track.times?.joinToString())
                     println(track.translations?.joinToString())
                     println(track.rotations?.joinToString())
                     println(track.scales?.joinToString())
-                }
-                LOGGER.info("Found animation ${clip.name} of length ${clip.length}")
+                }*/
+                LOGGER.info("Found animation ${clip.name} of length ${clip.length}: ${tracks.size} tracks, with ${tracks.sumOf { it.times?.size ?: 0 }} values in total")
             }
         } else LOGGER.info("Found no animations")
         val skinningControl = getComponent(model, SkinningControl::class.java)
-        println(skinningControl)
-        if(skinningControl != null){
+        // println(skinningControl)
+        if (skinningControl != null) {
             val armature = skinningControl.armature
-            println(armature)
+            // println(armature)
             // the magic function:
             // println(armature.computeSkinningMatrices())
             // todo we could store animations in two ways:
             //  - skinning matrices (fastest, less flexible (no IK support))
             //  - local transforms (slower, more flexible)
             // inverse kinematics may be possible using transforms and blend spaces only
-            println(skinningControl.targets.joinToString())
-            println(skinningControl.isHardwareSkinningUsed)
-            println(skinningControl.isHardwareSkinningPreferred)
+            // println(skinningControl.targets.joinToString())
+            // println(skinningControl.isHardwareSkinningUsed)
+            // println(skinningControl.isHardwareSkinningPreferred)
         }
         // todo convert all animations and the hierarchy
         printTree(model, 0)
 
         model.depthFirstTraversal {
             // println("$it: ${it.localTransform}")
-            for(i in 0 until it.numControls){
+            for (i in 0 until it.numControls) {
                 println("$it: ${it.getControl(i)}")
             }
         }
 
     }
 
-   /* fun cloneHierarchy(element: Spatial): Any? {
-        when(element){
-            is Geometry -> {
-                // todo create mesh
-                return convertMesh(element)
-            }
-            is Node -> {
-                // todo cameras, lights, ...
-                // they are controls, what ever that means...
+    /* fun cloneHierarchy(element: Spatial): Any? {
+         when(element){
+             is Geometry -> {
+                 // todo create mesh
+                 return convertMesh(element)
+             }
+             is Node -> {
+                 // todo cameras, lights, ...
+                 // they are controls, what ever that means...
 
-            }
-            else -> return null
-        }
-    }*/
+             }
+             else -> return null
+         }
+     }*/
 
     fun <V : Control> getComponent(element: Spatial, clazz: Class<V>): V? {
         var composer = element.getControl(clazz)
@@ -210,9 +211,12 @@ fun tgaTest() {
 }
 
 fun fbxTest() {
-    val file = getReference(OS.downloads, "azeria/scene.gltf")
     // val file = getReference(OS.documents, "CuteGhost.fbx")
-    JMonkeyMesh.readModel(file)
+    JMonkeyMesh.readModel(getReference(OS.downloads, "azeria/scene.gltf"))
+    // officially broken:
+    // JMonkeyMesh.readModel(getReference(OS.downloads, "Jumping Down.fbx"))
+    // officially broken as well, crashes the engine as j3o:
+    JMonkeyMesh.readModel(getReference(OS.downloads, "taryk/scene.gltf"))
 }
 
 fun main() {

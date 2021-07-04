@@ -1,7 +1,7 @@
 package me.anno.engine.ui
 
 import me.anno.ecs.Entity
-import me.anno.engine.RootEntity
+import me.anno.engine.ECSWorld
 import me.anno.ui.editor.treeView.AbstractTreeView
 import me.anno.ui.style.Style
 
@@ -23,8 +23,14 @@ import me.anno.ui.style.Style
 // todo switch between programming language styles easily, throughout the code?... idk whether that's possible...
 // maybe on a per-function-basis
 
-class ECSTreeView(val root: RootEntity, isGaming: Boolean, style: Style) : AbstractTreeView<Entity>(
-    if (isGaming) listOf(root.globallyShared, root.playerPrefab, root.locallyShared, root.localPlayers, root.remotePlayers)
+class ECSTreeView(val root: ECSWorld, isGaming: Boolean, style: Style) : AbstractTreeView<Entity>(
+    if (isGaming) listOf(
+        root.globallyShared,
+        root.playerPrefab,
+        root.locallyShared,
+        root.localPlayers,
+        root.remotePlayers
+    )
     else listOf(root.globallyShared, root.playerPrefab, root.locallyShared),
     {
         // todo open add menu
@@ -32,6 +38,7 @@ class ECSTreeView(val root: RootEntity, isGaming: Boolean, style: Style) : Abstr
         it.add(Entity())
     },
     ECSFileImporter,
+    false,
     style
 ) {
 

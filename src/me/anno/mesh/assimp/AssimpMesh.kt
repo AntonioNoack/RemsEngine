@@ -6,6 +6,7 @@ import me.anno.gpu.buffer.IndexedStaticBuffer
 import org.joml.Matrix4f
 import org.joml.Matrix4x3f
 import org.joml.Matrix4x3fArrayList
+import kotlin.math.max
 import kotlin.math.sqrt
 
 
@@ -58,7 +59,9 @@ open class AssimpMesh(
     }
 
     init {
+
         calculateBoundingRadius(positions)
+
         val pointCount = positions.size / 3
         val buffer = IndexedStaticBuffer(attributes, pointCount, indices)
         for (i in 0 until pointCount) {
@@ -90,7 +93,7 @@ open class AssimpMesh(
             }
 
             if (weights != null && weights.isNotEmpty()) {
-                val w0 = weights[i * 4]
+                val w0 = max(weights[i * 4], 1e-5f)
                 val w1 = weights[i * 4 + 1]
                 val w2 = weights[i * 4 + 2]
                 val w3 = weights[i * 4 + 3]
@@ -114,6 +117,7 @@ open class AssimpMesh(
 
         }
         this.buffer = buffer
+
     }
 
 }

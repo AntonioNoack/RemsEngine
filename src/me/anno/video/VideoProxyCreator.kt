@@ -33,7 +33,7 @@ object VideoProxyCreator : CacheSection("VideoProxies") {
     lateinit var info: StringMap
 
     // check all last instances, which can be deleted...
-    lateinit var proxyFolder: File
+    lateinit var proxyFolder: FileReference
 
     @JvmStatic
     fun main(args: Array<String>) {
@@ -48,7 +48,7 @@ object VideoProxyCreator : CacheSection("VideoProxies") {
         if (isInitialized) return
         isInitialized = true
         info = ConfigBasics.loadConfig(configName, StringMap(), false)
-        proxyFolder = File(ConfigBasics.cacheFolder.unsafeFile, "proxies").apply { mkdirs() }
+        proxyFolder = ConfigBasics.cacheFolder.getChild("proxies")!!.apply { mkdirs() }
         deleteOldProxies()
     }
 
@@ -67,8 +67,8 @@ object VideoProxyCreator : CacheSection("VideoProxies") {
                 val data = CacheData<FileReference?>(null)
                 if (!proxyFile.exists) {
                     createProxy(
-                        src, proxyFile.unsafeFile, uuid,
-                        File(proxyFolder, proxyFile.nameWithoutExtension + ".tmp.${proxyFile.extension}")
+                        src, proxyFile, uuid,
+                        proxyFolder.getChild(proxyFile.nameWithoutExtension + ".tmp.${proxyFile.extension}")!!
                     ) { data.value = proxyFile }
                 } else {
                     markUsed(uuid)
@@ -90,24 +90,24 @@ object VideoProxyCreator : CacheSection("VideoProxies") {
     /**
      * scales video down 4x
      * */
-    private fun createProxy(src: FileReference, dst: File, uuid: String, tmp: File, callback: () -> Unit) {
+    private fun createProxy(src: FileReference, dst: FileReference, uuid: String, tmp: FileReference, callback: () -> Unit) {
         init()
         val meta = FFMPEGMetadata.getMeta(src, false) ?: return // error
         val w = (meta.videoWidth / scale.toFloat()).roundToInt() and (1.inv())
         val h = (meta.videoHeight / scale.toFloat()).roundToInt() and (1.inv())
         // ffmpeg -i input.avi -filter:vf scale=720:-1 -c:a copy output.mkv
         if (w < minSize || h < minSize) return
-        dst.parentFile?.mkdirs()
+        dst.getParent()?.mkdirs()
         object : FFMPEGStream(null, true) {
             override fun process(process: Process, arguments: List<String>) {
                 // filter information, that we don't need (don't spam the console that much, rather create an overview for it)
                 devNull("Proxy", process.errorStream)
                 devNull("Proxy", process.inputStream)
                 process.waitFor()
-                if (tmp.exists()) {
-                    if (dst.exists()) dst.deleteRecursively()
+                if (tmp.exists) {
+                    if (dst.exists) dst.deleteRecursively()
                     tmp.renameTo(dst)
-                    if (dst.exists()) {
+                    if (dst.exists) {
                         markUsed(uuid)
                         callback()
                     } else LOGGER.warn("$dst is somehow missing")
@@ -135,8 +135,8 @@ object VideoProxyCreator : CacheSection("VideoProxies") {
         var deleted = 0
         var kept = 0
         var freed = 0L
-        proxyFolder.listFiles()?.forEach { file ->
-            if (!file.isDirectory && abs(info[file.name, file.lastModified()] - startDateTime) > proxyValidityTimeout) {
+        proxyFolder.listChildren()?.forEach { file ->
+            if (!file.isDirectory && abs(info[file.name, file.lastModified] - startDateTime) > proxyValidityTimeout) {
                 freed += file.length()
                 file.delete()
                 deleted++

@@ -3,6 +3,8 @@ package me.anno.gpu.shader
 import me.anno.cache.data.ICacheData
 import me.anno.gpu.GFX
 import me.anno.gpu.framebuffer.Frame
+import me.anno.io.files.FileReference
+import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.ui.editor.files.toAllowedFilename
 import me.anno.utils.OS
 import me.anno.utils.types.Strings.isBlank2
@@ -90,11 +92,11 @@ open class Shader(
 
     fun logShader(vertex: String, fragment: String) {
         if (logShaders) {
-            val folder = File(OS.desktop.unsafeFile, "shaders")
+            val folder = OS.desktop.getChild("shaders")!!
             folder.mkdirs()
             fun print(ext: String, data: String) {
                 val name = "$shaderName.$ext".toAllowedFilename() ?: return
-                File(folder, name).writeText(data)
+                getReference(folder, name).writeText(data)
             }
             print("vert", vertex)
             print("frag", fragment)
@@ -178,7 +180,7 @@ open class Shader(
         uniformLocations[name] = loc
         if (loc < 0 && name !in ignoredNames) {
             LOGGER.warn("Uniform location \"$name\" not found in shader $shaderName")
-            if(name == "tint"){
+            if (name == "tint") {
                 println(vertex)
                 println(varying)
                 println(fragment)

@@ -2,6 +2,7 @@ package me.anno.utils.image
 
 import me.anno.utils.Color.rgba
 import me.anno.utils.OS
+import me.anno.utils.files.Files.use
 import me.anno.utils.hpc.HeavyProcessing.processBalanced
 import java.awt.image.BufferedImage
 import java.io.File
@@ -55,7 +56,9 @@ object ImageWriter {
                 }
             }
         }
-        ImageIO.write(img, if (name.endsWith(".jpg")) "jpg" else "png", File(OS.desktop.unsafeFile, name))
+        use(OS.desktop.getChild(name)!!.outputStream()){
+            ImageIO.write(img, if (name.endsWith(".jpg")) "jpg" else "png", it)
+        }
     }
 
     fun getColor(x: Float): Int {
@@ -89,7 +92,9 @@ object ImageWriter {
                 }
             }
         }
-        ImageIO.write(img, if (name.endsWith(".jpg")) "jpg" else "png", File(OS.desktop.unsafeFile, name))
+        use(OS.desktop.getChild(name)!!.outputStream()){
+            ImageIO.write(img, if (name.endsWith(".jpg")) "jpg" else "png", it)
+        }
     }
 
 }

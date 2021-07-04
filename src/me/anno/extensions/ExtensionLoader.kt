@@ -149,7 +149,7 @@ object ExtensionLoader {
     fun load(ex: ExtensionInfo): Extension? {
         // create the main extension instance
         // load the classes
-        val child = URLClassLoader(arrayOf(ex.file.toURI().toURL()), javaClass.classLoader)
+        val child = URLClassLoader(arrayOf(ex.file.toUri().toURL()), javaClass.classLoader)
         val classToLoad = Class.forName(ex.mainClass, true, child)
         // call with arguments??..., e.g. config or StudioBase or sth...
         val ext = classToLoad.newInstance() as? Extension
@@ -183,10 +183,6 @@ object ExtensionLoader {
     }
 
     fun loadInfo(file: FileReference): ExtensionInfo? {
-        return loadInfo(file.unsafeFile)
-    }
-
-    fun loadInfo(file: File): ExtensionInfo? {
         ZipInputStream(file.inputStream().buffered()).use { zis ->
             while (true) {
                 val entry = zis.nextEntry ?: break

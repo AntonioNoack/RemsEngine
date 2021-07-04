@@ -12,8 +12,13 @@ import me.anno.utils.structures.Hierarchical
 // entities would be an idea to make effects more modular
 // it could apply new effects to both the camera and image sources
 
-// todo hide the mutable list,
+// hide the mutable children list, -> not possible with the general approach
 // todo keep track of size of hierarchy
+
+// todo load from file whenever something changes;
+//  - other way around: when a file changes, update all nodes
+
+// todo delta settings & control: only saves as values, what was changed from the prefab
 
 open class Entity() : NamedSaveable(), Hierarchical<Entity> {
 
@@ -23,6 +28,18 @@ open class Entity() : NamedSaveable(), Hierarchical<Entity> {
 
     constructor(name: String) : this() {
         this.name = name
+    }
+
+    constructor(name: String, vararg cs: Component) : this(name) {
+        for (c in cs) {
+            addComponent(c)
+        }
+    }
+
+    constructor(vararg cs: Component) : this() {
+        for (c in cs) {
+            addComponent(c)
+        }
     }
 
     @SerializedProperty
@@ -135,6 +152,26 @@ open class Entity() : NamedSaveable(), Hierarchical<Entity> {
 
     inline fun <reified V> getComponent(): V? {
         return components.firstOrNull { it is V } as V?
+    }
+
+    inline fun <reified V> getComponentInChildren(): V? {
+        return depthFirstTraversal { getComponent<V>() != null }?.getComponent<V>()
+    }
+
+    inline fun <reified V> getComponents(): List<V> {
+        return components.filterIsInstance<V>()
+    }
+
+    inline fun <reified V> getComponentsInChildren(): List<V> {
+        val result = ArrayList<V>()
+        val todo = ArrayList<Entity>()
+        todo.add(this)
+        while (todo.isNotEmpty()) {
+            val entity = todo.removeAt(todo.lastIndex)
+            result.addAll(entity.getComponents())
+            todo.addAll(entity.children)
+        }
+        return result
     }
 
     override fun toString(): String {

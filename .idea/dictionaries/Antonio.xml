@@ -99,6 +99,7 @@
       <w>greenyellow</w>
       <w>highp</w>
       <w>himmelblau</w>
+      <w>homepath</w>
       <w>hori</w>
       <w>hotpink</w>
       <w>hpluv</w>
@@ -120,6 +121,7 @@
       <w>lavenderblush</w>
       <w>lawngreen</w>
       <w>lemonchiffon</w>
+      <w>lerp</w>
       <w>lerped</w>
       <w>lerps</w>
       <w>libfdk</w>
@@ -198,6 +200,7 @@
       <w>rasterization</w>
       <w>rawvideo</w>
       <w>remsstudio</w>
+      <w>renderable</w>
       <w>renderbuffer</w>
       <w>renderbuffers</w>
       <w>renderdoc</w>

@@ -176,12 +176,6 @@ object DefaultConfig : StringMap() {
         addToRecentProjects(ProjectHeader(project.name, project.file))
     }
 
-    fun removeFromRecentProjects(file: File) {
-        val recent = getRecentProjects()
-        recent.removeIf { it.file.unsafeFile == file }
-        updateRecentProjects(recent)
-    }
-
     fun removeFromRecentProjects(file: FileReference) {
         val recent = getRecentProjects()
         recent.removeIf { it.file == file }

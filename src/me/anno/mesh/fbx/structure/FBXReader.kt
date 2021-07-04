@@ -79,7 +79,7 @@ class FBXReader(input: InputStream) : LittleEndianDataInputStream(input.buffered
     }
 
     private fun saveMajorSections(majorSections: List<FBXNode>) {
-        val out = File(OS.desktop.unsafeFile, "fbx.yaml").outputStream().buffered()
+        val out = OS.desktop.getChild("fbx.yaml")!!.outputStream().buffered()
         debug { "${majorSections.size} major sections" }
         for (section in majorSections) {
             out.write(section.toString().toByteArray())

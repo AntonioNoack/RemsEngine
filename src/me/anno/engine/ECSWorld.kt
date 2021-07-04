@@ -2,7 +2,7 @@ package me.anno.engine
 
 import me.anno.ecs.Entity
 
-class RootEntity : Entity() {
+class ECSWorld : Entity() {
 
     // will be shared over the network, and available to all clients
     // should be written only to by the server, or for particle effects

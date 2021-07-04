@@ -571,8 +571,8 @@ class FileExplorerEntry(
 
     override fun onCopyRequested(x: Float, y: Float): String? {
         if (this in inFocus) {// multiple files maybe
-            Input.copyFiles(inFocus.filterIsInstance<FileExplorerEntry>().map { it.file.unsafeFile })
-        } else Input.copyFiles(listOf(file.unsafeFile))
+            Input.copyFiles(inFocus.filterIsInstance<FileExplorerEntry>().map { it.file })
+        } else Input.copyFiles(listOf(file))
         return null
     }
 

@@ -508,12 +508,19 @@ object Input {
         LOGGER.warn("Unsupported Data Flavor")
     }
 
-    fun copyFiles(files: List<File>) {
+    fun copyFiles(files: List<FileReference>) {
+        Toolkit
+            .getDefaultToolkit()
+            .systemClipboard
+            .setContents(FileTransferable(files.map { it.unsafeFile }), null)
+    }
+
+    /*fun copyFiles(files: List<File>) {
         Toolkit
             .getDefaultToolkit()
             .systemClipboard
             .setContents(FileTransferable(files), null)
-    }
+    }*/
 
     fun save() {
         project?.save()

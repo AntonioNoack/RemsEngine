@@ -194,6 +194,8 @@ abstract class FileReference(val absolutePath: String) {
         return absolutePath
     }
 
+    // todo remove most references to this function as far as possible
+    @Deprecated("This function only is defined, if the reference is an actual file", ReplaceWith("inputStream(),outputStream()"))
     val unsafeFile get() = (this as FileFileRef).file
 
     fun toLocalPath(workspace: FileReference? = StudioBase.workspace): String {

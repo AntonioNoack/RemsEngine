@@ -10,7 +10,6 @@ import me.anno.studio.StudioBase
 import me.anno.studio.rems.StudioActions
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.debug.ConsoleOutputPanel
-import me.anno.ui.editor.UILayouts
 
 class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
 
@@ -31,7 +30,7 @@ class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
         // todo base shaders, which can be easily made touch-able
 
         // for testing directly jump in the editor
-        val loadedScene = RootEntity()
+        val loadedScene = ECSWorld()
         val style = style
 
         val list = PanelListY(style)

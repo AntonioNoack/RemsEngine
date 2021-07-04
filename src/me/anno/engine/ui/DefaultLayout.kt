@@ -1,6 +1,6 @@
 package me.anno.engine.ui
 
-import me.anno.engine.RootEntity
+import me.anno.engine.ECSWorld
 import me.anno.ui.base.Panel
 import me.anno.ui.custom.CustomContainer
 import me.anno.ui.custom.CustomList
@@ -16,7 +16,7 @@ import me.anno.ui.style.Style
 
 object DefaultLayout {
 
-    fun createDefaultMainUI(rootEntity: RootEntity, isGaming: Boolean, style: Style): Panel {
+    fun createDefaultMainUI(world: ECSWorld, isGaming: Boolean, style: Style): Panel {
 
         // val pseudoProject = Project("pseudo", File.createTempFile("sth",""))
         // project = pseudoProject
@@ -28,10 +28,10 @@ object DefaultLayout {
         customUI.add(animationWindow, 2f)
 
         // todo use a different library, because we have different elements
-        val library = ECSTypeLibrary(rootEntity, isGaming).library
+        val library = ECSTypeLibrary(world, isGaming).library
 
         val treeFiles = CustomList(true, style)
-        treeFiles += CustomContainer(ECSTreeView(rootEntity, isGaming, style), library, style)
+        treeFiles += CustomContainer(ECSTreeView(world, isGaming, style), library, style)
         treeFiles += CustomContainer(FileExplorer(style), library, style)
         animationWindow.add(CustomContainer(treeFiles, library, style), 0.5f)
         animationWindow.add(CustomContainer(SceneView(style), library, style), 2f)
