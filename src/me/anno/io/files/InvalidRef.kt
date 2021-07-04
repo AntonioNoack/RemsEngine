@@ -57,4 +57,8 @@ object InvalidRef : FileReference("") {
         return URI("file://invalid")
     }
 
+    override fun toString(): String {
+        return "InvalidRef"
+    }
+
 }

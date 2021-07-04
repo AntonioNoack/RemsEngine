@@ -45,7 +45,7 @@ class FileFileRef(val file: File) :
     override fun renameTo(newName: FileReference) = file.renameTo(File(newName.absolutePath))
 
     override fun getChild(name: String): FileReference {
-        return if (isDirectory) {
+        return if (!exists || isDirectory) {
             if ('/' in name || '\\' in name) {
                 getReference(this, name)
             } else {

@@ -37,7 +37,5 @@
     <orderEntry type="library" name="lwjgl-assimp-javadoc" level="project" />
     <orderEntry type="library" name="LWJGL-Assimp" level="project" />
     <orderEntry type="library" name="common-image-3.7.0" level="project" />
-    <orderEntry type="library" name="ImageIO" level="project" />
-    <orderEntry type="library" name="jMonkeyImporter" level="project" />
   </component>
 </module>

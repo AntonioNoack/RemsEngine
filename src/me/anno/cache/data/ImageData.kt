@@ -13,6 +13,7 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.HDRImage
+import me.anno.image.tar.TGAImage
 import me.anno.io.files.FileReference
 import me.anno.objects.Video.Companion.imageTimeout
 import me.anno.objects.modes.RotateJPEG
@@ -24,7 +25,6 @@ import me.anno.video.VFrame
 import org.apache.commons.imaging.Imaging
 import org.apache.logging.log4j.LogManager
 import java.awt.image.BufferedImage
-import java.io.File
 import java.io.InputStream
 import java.util.*
 import javax.imageio.ImageIO
@@ -116,20 +116,13 @@ class ImageData(file: FileReference) : ICacheData {
                     texture.createFloat(img.byteBuffer)
                 }
             }
-            /*"tga" -> {
-                val image = TargaImage.decode(file.inputStream().buffered())
-                texture.w = image.width
-                texture.h = image.height
-                GFX.addGPUTask(image.width, image.height){
-                    if(image.hasAlpha){
-                        texture.createRGBA(image.pixels)
-                    } else {
-                        texture.createRGB(image.pixels)
-                    }
-                }
-            }*/
-            // , "tga" use ImageIO for tga;
+            "tga" -> {
+                val img = TGAImage.read(file.inputStream(), false)
+                    .createBufferedImage()
+                texture.create(img, false)
+            }
             // ImageIO says it can do webp, however it doesn't understand most pics...
+            // tga was incomplete as well -> we're using our own solution
             "webp" -> useFFMPEG(file)
             else -> {
                 // read metadata information from jpegs

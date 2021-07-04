@@ -17,6 +17,7 @@ import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.texture.*
 import me.anno.image.HDRImage
+import me.anno.image.tar.TGAImage
 import me.anno.io.files.FileReference
 import me.anno.io.config.ConfigBasics
 import me.anno.objects.Video
@@ -323,6 +324,16 @@ object Thumbs {
                         val dst = src.createBufferedImage(w, h)
                         saveNUpload(srcFile, dstFile, dst, callback)
                     }
+                    "tga" -> {
+                        val src = TGAImage.read(srcFile.inputStream(), false)
+                        val sw = src.width
+                        val sh = src.height
+                        if (max(sw, sh) < size) return generate(srcFile, size / 2, callback)
+                        val (w, h) = scale(sw, sh, size)
+                        if (w < 2 || h < 2) return
+                        val dst = src.createBufferedImage(w, h)
+                        saveNUpload(srcFile, dstFile, dst, callback)
+                    }
                     "svg" -> generateSVGFrame(srcFile, dstFile, size, callback)
                     // "png", "jpg", "jpeg" -> transformNSaveNUpload(ImageIO.read(srcFile))
                     // "ico" -> transformNSaveNUpload(Imaging.getBufferedImage(srcFile))
@@ -333,7 +344,6 @@ object Thumbs {
                             dstFile, size, callback
                         )
                     }
-                    // , "tga" use ImageIO for tga;
                     // ImageIO says it can do webp, however it doesn't understand most pics...
                     "webp" -> generateVideoFrame(srcFile, dstFile, size, callback, 0.0)
                     else -> {

@@ -20,22 +20,11 @@ import java.nio.FloatBuffer;
 // modified for our needs
 // This class is used to convert a HDR format image
 // into a three-dimensional float array representing the RGB channels of the original image.
-public class HDRImage {
-
-    private int width;
-    private int height;
+public class HDRImage extends Image {
 
     private float[] pixels;
     private ByteBuffer nioBytes;
     private FloatBuffer nioPixels;
-
-    public int getWidth() {
-        return width;
-    }
-
-    public int getHeight() {
-        return height;
-    }
 
     public float[] getPixelArray() {
         return pixels;
@@ -66,6 +55,7 @@ public class HDRImage {
         }
     }
 
+    @Override
     public BufferedImage createBufferedImage() {
         return createBufferedImage(width, height);
     }
@@ -74,6 +64,7 @@ public class HDRImage {
         return 0xff000000 | (r << 16) | (g << 8) | b;
     }
 
+    @Override
     public BufferedImage createBufferedImage(int w, int h) {
         BufferedImage img = new BufferedImage(w, h, 1);
         DataBuffer buffer = img.getRaster().getDataBuffer();

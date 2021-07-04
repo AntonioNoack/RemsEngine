@@ -22,6 +22,7 @@ object VideoCache : CacheSection("Videos") {
         bufferIndex: Int, bufferLength: Int,
         fps: Double, timeout: Long, async: Boolean
     ): VideoData? {
+        if(!LastModifiedCache[file].exists) return null
         return getEntryLimited(
             VideoFramesKey(file, scale, bufferIndex, bufferLength, fps),
             timeout, async, videoGenLimit, ::getVideoFrames
