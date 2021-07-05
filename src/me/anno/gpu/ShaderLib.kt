@@ -714,13 +714,15 @@ object ShaderLib {
                 // "   color.rgb = fract(vec3(stopValue));\n" +
                 "   color.rgb = colorGrading(color.rgb);\n" +
                 "   if($hasForceFieldColor) color *= getForceFieldColor();\n" +
+                "   vec3 finalColor;\n" +
+                "   float finalAlpha;\n" +
                 "   if(isInLimits(uv.x, uvLimits.xz) && isInLimits(uv.y, uvLimits.yw)){" +
                 "       vec4 color2 = color * getTexture(tex, uv * 0.5 + 0.5);\n" +
-                "       vec3 finalColor = color2.rgb;\n" +
-                "       float finalAlpha = color2.a;\n" +
+                "       finalColor = color2.rgb;\n" +
+                "       finalAlpha = color2.a;\n" +
                 "   } else {" +
-                "       vec3 finalColor = vec3(0);\n" +
-                "       float finalAlpha = 0.0;\n" +
+                "       finalColor = vec3(0);\n" +
+                "       finalAlpha = 0.0;\n" +
                 "   }" +
                 "}"
 

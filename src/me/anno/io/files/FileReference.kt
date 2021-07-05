@@ -23,7 +23,8 @@ abstract class FileReference(val absolutePath: String) {
 
     // done if there is a !!, it's into a zip file -> it only needs to be a slash;
     // all zip files should be detected automatically
-    // todo if # at the start (?), then it's a local resource
+    // todo if res:// at the start (?), then it's a local resource
+    // todo other protocols as well, so like an URI replacement?
 
     companion object {
 

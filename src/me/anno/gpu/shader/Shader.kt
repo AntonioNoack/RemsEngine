@@ -154,7 +154,7 @@ open class Shader(
         val log = glGetShaderInfoLog(shader)
         if (!log.isBlank2()) {
             LOGGER.warn(
-                "$log by\n\n${
+                "$log by $shaderName\n\n${
                     source
                         .split('\n')
                         .mapIndexed { index, line ->

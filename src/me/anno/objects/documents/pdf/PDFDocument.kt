@@ -254,8 +254,15 @@ open class PDFDocument(var file: FileReference, parent: Transform?) : GFXTransfo
     }
 
     companion object {
+
         private val LOGGER = LogManager.getLogger(PDFDocument::class)
         val timeout = 20_000L
+
+        init {
+            // spams the output with it's drawing calls; using the error stream...
+            LogManager.disableLogger("GlyphRenderer")
+        }
+
     }
 
 }

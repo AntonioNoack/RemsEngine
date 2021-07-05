@@ -2,10 +2,13 @@ package me.anno.gpu.framebuffer
 
 import me.anno.gpu.GFX
 import me.anno.gpu.RenderState
+import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL11.glViewport
 import kotlin.math.abs
 
 object Frame {
+
+    private val LOGGER = LogManager.getLogger(Frame::class)
 
     fun bind() {
         val index = RenderState.framebuffer.size - 1
@@ -65,7 +68,7 @@ object Frame {
 
             val width = buffer?.w ?: GFX.width
             val height = buffer?.h ?: GFX.height
-            if (w > width || h > height) throw IllegalStateException("Viewport cannot be larger than frame! $w > $width || $h > $height, frame: $buffer")
+            if (w > width || h > height) LOGGER.warn("Viewport cannot be larger than frame! $w > $width || $h > $height, frame: $buffer")
 
             // this is mirrored
             glViewport(x1, height - (y1 + h), w, h)

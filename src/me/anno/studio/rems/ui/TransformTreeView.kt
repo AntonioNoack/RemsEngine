@@ -18,6 +18,7 @@ import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.editor.treeView.AbstractTreeView
 import me.anno.ui.style.Style
+import me.anno.utils.structures.lists.UpdatingList
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3f
 import java.util.*
@@ -25,7 +26,11 @@ import java.util.*
 // todo select multiple elements, filter for common properties, and apply them all together :)
 
 class TransformTreeView(style: Style) :
-    AbstractTreeView<Transform>(listOf(nullCamera!!, root), Companion::openAddMenu, TransformFileImporter, true, style) {
+    AbstractTreeView<Transform>(
+        UpdatingList { listOf(nullCamera!!, root) },
+        Companion::openAddMenu,
+        TransformFileImporter, true, style
+    ) {
 
     override val selectedElement: Transform?
         get() = Selection.selectedTransform

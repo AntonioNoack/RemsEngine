@@ -16,15 +16,11 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * <code>TextureManager</code> provides static methods for building a
- * <code>Texture</code> object. Typically, the information supplied is the
- * filename and the texture properties.
- *
  * @author Mark Powell
  * @author Joshua Slack - cleaned, commented, added ability to read 16bit true color and color-mapped TGAs.
  * @author Kirill Vainer - ported to jME3
  * @author Antonio Noack - added black & white support; fixed naming (?), tested with crytek sponza; fixed 32 bit color order(?)
- *                          at least for my test cases, everything was correct, and the same as Gimp
+ * at least for my test cases, everything was correct, and the same as Gimp
  * @version $Id: TGALoader.java 4131 2009-03-19 20:15:28Z blaine.dev $
  */
 public class TGAImage extends Image {
@@ -95,7 +91,7 @@ public class TGAImage extends Image {
      * @param in   InputStream of an uncompressed 24b RGB or 32b RGBA TGA
      * @param flip Flip the image vertically
      * @return <code>Image</code> object that contains the
-     * image, either as a RGB888 or RGBA8888
+     * image, either as a R8, a RGB888 or RGBA8888
      * @throws java.io.IOException if an I/O error occurs
      */
     public static TGAImage read(InputStream in, boolean flip) throws IOException {
@@ -173,17 +169,16 @@ public class TGAImage extends Image {
                 int alphaSize = cMapDepth - (3 * bitsPerColor);
                 float scalar = 255f / ((1 << bitsPerColor) - 1);
                 float alphaScalar = 255f / ((1 << alphaSize) - 1);
+                int r, g, b, a = 255;
                 for (int i = 0; i < cMapLength; i++) {
                     int offset = cMapDepth * i;
-                    entry.b = (byte) (int) (getBitsAsByte(cMapData, offset, bitsPerColor) * scalar);
-                    entry.g = (byte) (int) (getBitsAsByte(cMapData, offset + bitsPerColor, bitsPerColor) * scalar);
-                    entry.r = (byte) (int) (getBitsAsByte(cMapData, offset + (2 * bitsPerColor), bitsPerColor) * scalar);
-                    if (alphaSize <= 0) {
-                        entry.a = (byte) 255;
-                    } else {
-                        entry.a = (byte) (int) (getBitsAsByte(cMapData, offset + (3 * bitsPerColor), alphaSize) * alphaScalar);
+                    b = (int) (getBitsAsByte(cMapData, offset, bitsPerColor) * scalar);
+                    g = (int) (getBitsAsByte(cMapData, offset + bitsPerColor, bitsPerColor) * scalar);
+                    r = (int) (getBitsAsByte(cMapData, offset + (2 * bitsPerColor), bitsPerColor) * scalar);
+                    if (alphaSize > 0) {
+                        a = (int) (getBitsAsByte(cMapData, offset + (3 * bitsPerColor), alphaSize) * alphaScalar);
                     }
-                    cMapEntries[i] = entry.getABGR();
+                    cMapEntries[i] = abgr(r, g, b, a);
                 }
             }
         }
@@ -228,7 +223,7 @@ public class TGAImage extends Image {
 
     }
 
-    static int readColorMapped(int pixelDepth, int width, int height, boolean flip, byte[] rawData, int dl, DataInputStream dis, int[] cMapEntries) throws IOException {
+    private static int readColorMapped(int pixelDepth, int width, int height, boolean flip, byte[] rawData, int dl, DataInputStream dis, int[] cMapEntries) throws IOException {
 
         int rawDataIndex = 0;
         int bytesPerIndex = pixelDepth / 8;
@@ -285,7 +280,7 @@ public class TGAImage extends Image {
 
     }
 
-    static int readTrueColor(int pixelDepth, int width, int height, boolean flip, byte[] rawData, int dl, DataInputStream dis) throws IOException {
+    private static int readTrueColor(int pixelDepth, int width, int height, boolean flip, byte[] rawData, int dl, DataInputStream dis) throws IOException {
 
         int rawDataIndex = 0;
 
@@ -556,6 +551,10 @@ public class TGAImage extends Image {
     private static short flipEndian(short signedShort) {
         int input = signedShort & 0xFFFF;
         return (short) (input << 8 | (input & 0xFF00) >>> 8);
+    }
+
+    private static int abgr(int r, int g, int b, int a) {
+        return ((b & 255) << 16) | ((g & 255) << 8) | (r & 255) | ((a & 255) << 24);
     }
 
     static class ColorMapEntry {
