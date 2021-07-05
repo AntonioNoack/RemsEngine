@@ -283,7 +283,7 @@ class FileExplorer(style: Style) : PanelListY(style.getChild("fileExplorer")) {
 
     fun switchTo(folder: FileReference?) {
         folder ?: return
-        if (!folder.isDirectoryOrCompressed) {
+        if (!folder.isDirectoryOrPacked) {
             switchTo(folder.getParent())
         } else {
             while (history.lastIndex > historyIndex) history.removeAt(history.lastIndex)

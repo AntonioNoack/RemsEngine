@@ -44,13 +44,11 @@ import me.anno.utils.Maths.sq
 import me.anno.utils.Tabs
 import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.files.Files.listFiles2
-import me.anno.utils.files.Files.openInExplorer
 import me.anno.utils.types.Strings.getImportType
 import me.anno.video.FFMPEGMetadata
 import me.anno.video.VFrame
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
-import java.io.File
 import java.util.*
 import kotlin.math.ceil
 import kotlin.math.max
@@ -423,7 +421,7 @@ class FileExplorerEntry(
                 }
             }
             "Enter" -> {
-                if (file.isDirectoryOrCompressed) {
+                if (file.isDirectoryOrPacked) {
                     explorer.switchTo(file)
                 } else {// todo check if it's a compressed thing we can enter
                     return false
@@ -480,7 +478,7 @@ class FileExplorerEntry(
 
     override fun onDoubleClick(x: Float, y: Float, button: MouseButton) {
         if(button.isLeft){
-            if (file.isDirectoryOrCompressed) {
+            if (file.isDirectoryOrPacked) {
                 explorer.switchTo(file)
                 // super.onDoubleClick(x, y, button)
             } else {

@@ -53,6 +53,9 @@ object InvalidRef : FileReference("") {
     override val lastModified: Long
         get() = 0L
 
+    override val lastAccessed: Long
+        get() = 0L
+
     override fun toUri(): URI {
         return URI("file://invalid")
     }

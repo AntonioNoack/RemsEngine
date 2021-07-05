@@ -1,7 +1,10 @@
 package me.anno.io.files
 
 import java.io.File
+import java.io.IOException
 import java.net.URI
+import java.nio.file.Files
+import java.nio.file.attribute.BasicFileAttributes
 
 class FileFileRef(val file: File) :
     FileReference(beautifyPath(file.absolutePath)) {
@@ -61,6 +64,18 @@ class FileFileRef(val file: File) :
 
     override val lastModified: Long
         get() = file.lastModified()
+
+    override val lastAccessed: Long
+        get() {
+            return try {
+                Files.readAttributes(
+                    file.toPath(),
+                    BasicFileAttributes::class.java
+                )?.lastAccessTime()?.toMillis() ?: 0L
+            } catch (ignored: IOException) {
+                0L
+            }
+        }
 
     override fun toUri(): URI {
         return URI("file://$absolutePath")

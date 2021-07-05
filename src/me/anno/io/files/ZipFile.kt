@@ -16,8 +16,8 @@ class ZipFile(
     val lcName = name.lowercase()
 
     override var lastModified = 0L
+    override var lastAccessed = 0L
 
-    var lastAccessed = 0L
     var compressedSize = 0L
     var size = 0L
     var data: ByteArray? = null

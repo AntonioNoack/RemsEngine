@@ -164,10 +164,10 @@ abstract class FileReference(val absolutePath: String) {
 
     abstract val isDirectory: Boolean
 
-    val isDirectoryOrCompressed get() = isDirectory || isCompressed.value
-    val isCompressed = lazy { !isDirectory && isZipFile() }
+    val isDirectoryOrPacked get() = isDirectory || isPacked.value
+    val isPacked = lazy { !isDirectory && isZipFile() }
 
-    fun isZipFile(): Boolean {
+    private fun isZipFile(): Boolean {
         val zis = ZipInputStream(inputStream())
         return try {
             zis.nextEntry != null
@@ -180,6 +180,8 @@ abstract class FileReference(val absolutePath: String) {
 
     abstract val exists: Boolean
     abstract val lastModified: Long
+    abstract val lastAccessed: Long
+
     abstract fun toUri(): URI
 
     override fun equals(other: Any?): Boolean {

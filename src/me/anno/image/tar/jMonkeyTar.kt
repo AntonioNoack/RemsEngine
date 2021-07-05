@@ -6,11 +6,8 @@ import me.anno.utils.OS
 import me.anno.utils.files.Files.use
 import javax.imageio.ImageIO
 
-// todo try all tar images you can find, whether they are supported by the jMonkey tar plugin
 fun main() {
-
     convert(OS.downloads)
-
 }
 
 fun convert(file: FileReference) {
