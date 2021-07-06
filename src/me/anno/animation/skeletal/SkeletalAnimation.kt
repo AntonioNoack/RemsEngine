@@ -5,6 +5,7 @@ import me.anno.animation.skeletal.constraint.Constraint
 import me.anno.animation.skeletal.morphing.MorphingMesh
 import me.anno.gpu.GFX
 import me.anno.utils.types.Vectors.f2
+import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4x3f
 import org.joml.Vector3f
 import org.lwjgl.BufferUtils
@@ -143,7 +144,7 @@ open class SkeletalAnimation(val skeleton: Skeleton, usesPositionForBindPoses: B
             val matrix = bone.skinningMatrix
             skeletalBuffer.position(12 * boneIndex)
             matrix.get(skeletalBuffer)
-            if (first) println("$boneIndex/${bones.size}/${skeleton.hierarchy.getName(boneIndex)}:\n${matrix.f2()}")
+            if (first) LOGGER.info("$boneIndex/${bones.size}/${skeleton.hierarchy.getName(boneIndex)}:\n${matrix.f2()}")
         }
         first = false
 
@@ -162,6 +163,7 @@ open class SkeletalAnimation(val skeleton: Skeleton, usesPositionForBindPoses: B
     }
 
     companion object {
+        private val LOGGER = LogManager.getLogger(SkeletalAnimation::class)
         const val maxBoneCount = 256
         val uniform4x3 = Matrix4x3f()
         val skeletalBuffer: FloatBuffer =

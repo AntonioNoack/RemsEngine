@@ -68,6 +68,7 @@ class FFMPEGVideo(
                     "RGB" -> RGBFrame(w, h)
                     "BGR" -> BGRFrame(w, h)
                     "Y4" -> Y4Frame(w, h)
+                    "444P" -> I444Frame(w, h)
                     // todo y800
                     else -> throw RuntimeException("Unsupported Codec $codec for $file")
                 }

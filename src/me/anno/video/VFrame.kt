@@ -54,7 +54,7 @@ abstract class VFrame(
         waitUntil(true) { isCreated }
     }
 
-    fun bindUVCorrection(shader: Shader) {
+    open fun bindUVCorrection(shader: Shader) {
         val w = w
         val h = h
         shader.v2("uvCorrection", w.toFloat() / ((w + 1) / 2 * 2), h.toFloat() / ((h + 1) / 2 * 2))

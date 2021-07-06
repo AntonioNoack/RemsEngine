@@ -213,7 +213,8 @@ open class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
 
             Frame.bind()
 
-            glClearColor(0f, 0f, 0f, 1f)
+            // alpha muss auch hier 0 sein, für den greenscreen
+            glClearColor(0f, 0f, 0f, 0f)
             glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
             drawChild(stack, time, color, children.getOrNull(1))

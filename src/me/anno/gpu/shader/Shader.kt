@@ -180,11 +180,6 @@ open class Shader(
         uniformLocations[name] = loc
         if (loc < 0 && name !in ignoredNames) {
             LOGGER.warn("Uniform location \"$name\" not found in shader $shaderName")
-            if (name == "tint") {
-                println(vertex)
-                println(varying)
-                println(fragment)
-            }
         }
         return loc
     }

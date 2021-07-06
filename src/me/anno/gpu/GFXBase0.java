@@ -376,7 +376,7 @@ public class GFXBase0 {
                 LOGGER.warn(message2 +
                         ", source: " + getDebugSourceName(source) +
                         ", type: " + getDebugTypeName(type) +
-                        // mmh, not correct
+                        // mmh, not correct, at least for my simple sample I got a non-mapped code
                         ", id: " + GFX.INSTANCE.getErrorTypeName(id) +
                         ", severity: " + getDebugSeverityName(severity)
                 );
