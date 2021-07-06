@@ -62,7 +62,7 @@ class Transform {
 
         localTransform.scale(localScale)*/
 
-        if(parent == null){
+        if (parent == null) {
             worldTransform.identity()
         } else {
             worldTransform.set(parent.worldTransform)
@@ -85,6 +85,22 @@ class Transform {
         pos.set(localTransform.m30().toDouble(), localTransform.m31().toDouble(), localTransform.m32().toDouble())
         localTransform.getNormalizedRotation(rot)
         sca.set(localTransform.getScale(Vector3f()))
+    }
+
+    fun distanceSquaredGlobally(v: Vector3d): Double {
+        val w = worldTransform
+        val x = w.m30() - v.x
+        val y = w.m31() - v.y
+        val z = w.m32() - v.z
+        return x * x + y * y + z * z
+    }
+
+    fun dotViewDir(pos2: Vector3d, dir: Vector3d): Double {
+        val w = worldTransform
+        val x = w.m30() - pos2.x
+        val y = w.m31() - pos2.y
+        val z = w.m32() - pos2.z
+        return dir.dot(x, y, z)
     }
 
     var needsLocalUpdate = false

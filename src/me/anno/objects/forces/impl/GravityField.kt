@@ -43,6 +43,6 @@ class GravityField : RelativeForceField(
         }
     }
 
-    override fun getClassName() = "GravityField"
+    override val className get() = "GravityField"
 
 }

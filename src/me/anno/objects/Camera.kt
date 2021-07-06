@@ -255,7 +255,7 @@ class Camera(parent: Transform? = null) : Transform(parent) {
         }
     }
 
-    override fun getClassName() = "Camera"
+    override val className get() = "Camera"
     override val defaultDisplayName = Dict["Camera", "obj.camera"]
     override val symbol = DefaultConfig["ui.symbol.camera", "\uD83C\uDFA5"]
 

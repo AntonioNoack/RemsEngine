@@ -1,5 +1,6 @@
 package me.anno.utils.test
 
+import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.utils.OS
 import me.anno.utils.Optimization.simplexAlgorithm
 import java.io.File
@@ -94,8 +95,8 @@ fun maxDistance(x: DoubleArray): Double {
 
 fun loadMatrix() {
     // load matrix
-    val srcFile = File(OS.downloads.unsafeFile, "MMfO.3.data.txt")
-    val reader = srcFile.bufferedReader()
+    val srcFile = getReference(OS.downloads, "MMfO.3.data.txt")
+    val reader = srcFile.inputStream().bufferedReader()
     for (lineIndex in 0 until vectorCount) {
         val line = reader.readLine()!!// ?: break
         val values = line.split(',')

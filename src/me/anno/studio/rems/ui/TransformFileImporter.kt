@@ -22,7 +22,6 @@ import me.anno.utils.Threads.threadWithName
 import me.anno.utils.types.Strings.getImportType
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3f
-import java.io.File
 
 object TransformFileImporter : FileContentImporter<Transform>() {
 

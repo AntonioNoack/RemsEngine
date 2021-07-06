@@ -128,6 +128,6 @@ class CuboidHullDistribution(center: Vector4f, size: Vector4f, rotation: Vector4
         Grid.drawBuffer(stack, color, cubemapLineModel)
     }
 
-    override fun getClassName() = "CuboidHullDistribution"
+    override val className get() = "CuboidHullDistribution"
 
 }

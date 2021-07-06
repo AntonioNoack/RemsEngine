@@ -58,7 +58,7 @@ class SceneTabData() : Saveable() {
     }
 
     override fun isDefaultValue() = false
-    override fun getClassName() = "SceneTabData"
-    override fun getApproxSize() = 1_000_000
+    override val className get() = "SceneTabData"
+    override val approxSize = 1_000_000
 
 }

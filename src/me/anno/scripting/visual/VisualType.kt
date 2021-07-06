@@ -14,6 +14,6 @@ class VisualType: NamedVisual() {
         GENERIC(null), // can be anything
     }
 
-    override fun getClassName(): String = "VisualType"
+    override val className get() = "VisualType"
 
 }

@@ -18,6 +18,6 @@ class CameraState: Component() {
     // todo draw: first cam 1, then cam 2, and then blend them together
 
 
-    override fun getClassName(): String = "CameraStateComponent"
+    override val className get() = "CameraStateComponent"
 
 }

@@ -52,9 +52,9 @@ open class Entity() : NamedSaveable(), Hierarchical<Entity> {
     override val children = ArrayList<Entity>()
 
     @SerializedProperty
-    var isEnabled = true
+    override var isEnabled = true
 
-    var transform = Transform()
+    val transform = Transform()
 
     // for the UI
     override var isCollapsed = false
@@ -77,9 +77,9 @@ open class Entity() : NamedSaveable(), Hierarchical<Entity> {
         (drawable as DrawableComponent).draw(stack, time, color, fragmentEffects)
     * */
 
-    override fun getClassName(): String = "Entity"
+    override val className get() = "Entity"
 
-    override fun getApproxSize(): Int = 1000
+    override val approxSize get() = 1000
 
     override fun isDefaultValue(): Boolean = false
 
@@ -155,7 +155,7 @@ open class Entity() : NamedSaveable(), Hierarchical<Entity> {
     }
 
     inline fun <reified V> getComponentInChildren(): V? {
-        return depthFirstTraversal { getComponent<V>() != null }?.getComponent<V>()
+        return simpleTraversal(true) { getComponent<V>() != null }?.getComponent<V>()
     }
 
     inline fun <reified V> getComponents(): List<V> {

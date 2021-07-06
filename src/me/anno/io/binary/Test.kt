@@ -94,7 +94,7 @@ fun main(){
         val reader = BinaryReader(dis)
         reader.readAllInList()
         val content = reader.sortedContent
-        for(c in content) println(c.getClassName())
+        for(c in content) println(c.className)
     }
 
 }

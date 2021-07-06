@@ -30,7 +30,7 @@ class Particle(
     val opacity get() = color.w()
 
     override fun toString(): String {
-        return "Particle[${type.getClassName()}, ${birthTime.f2()}]"
+        return "Particle[${type.className}, ${birthTime.f2()}]"
     }
 
     val states = UnsafeArrayList<ParticleState>()

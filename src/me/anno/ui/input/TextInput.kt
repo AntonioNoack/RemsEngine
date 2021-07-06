@@ -85,7 +85,7 @@ open class TextInput(title: String, val enableSuggestions: Boolean, style: Style
         base.requestFocus()
     }
 
-    override fun getClassName(): String = "TextInput"
+    override val className get() = "TextInput"
     override fun getCursor(): Long = Cursor.drag
     override fun isKeyInput() = true
 

@@ -291,8 +291,8 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
         return (if (rawIndex < 0) -rawIndex - 1 else rawIndex) - 1
     }
 
-    override fun getClassName(): String = "AnimatedProperty"
-    override fun getApproxSize(): Int = 10
+    override val className get() = "AnimatedProperty"
+    override val approxSize get() = 10
 
     override fun save(writer: BaseWriter) {
         super.save(writer)

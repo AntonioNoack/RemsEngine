@@ -48,7 +48,11 @@ class BaseShader(
         get() {
             val renderer = RenderState.currentRenderer
             return when (renderer.deferredSettings) {
-                null -> flatShader.value
+                null -> {
+                    val shader = flatShader.value
+                    shader.v1("drawMode", renderer.drawMode.id)
+                    shader
+                }
                 else -> get(renderer.deferredSettings)
             }
         }

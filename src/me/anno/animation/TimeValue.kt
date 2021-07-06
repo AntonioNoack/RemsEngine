@@ -9,8 +9,8 @@ import org.joml.Vector4f
 
 open class TimeValue<V>(var time: Double, var value: V) : Saveable() {
 
-    override fun getClassName() = "TimeValue"
-    override fun getApproxSize() = 1
+    override val className get() = "TimeValue"
+    override val approxSize = 1
     override fun isDefaultValue() = false
 
     override fun save(writer: BaseWriter) {

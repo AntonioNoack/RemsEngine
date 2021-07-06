@@ -130,6 +130,6 @@ class EqualizerEffect : SoundEffect(Domain.FREQUENCY_DOMAIN, Domain.FREQUENCY_DO
 
     override val displayName: String = "Equalizer"
     override val description: String = "Changes the volume highs/mids/lows"
-    override fun getClassName() = "EqualizerEffect"
+    override val className get() = "EqualizerEffect"
 
 }

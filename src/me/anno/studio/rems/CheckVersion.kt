@@ -1,6 +1,8 @@
 package me.anno.studio.rems
 
 import me.anno.installer.Installer
+import me.anno.io.files.FileReference
+import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.language.translation.NameDesc
 import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.ui.base.menu.Menu
@@ -33,8 +35,8 @@ object CheckVersion {
             if (latestVersion > -1) {
                 if (latestVersion > RemsStudio.versionNumber) {
                     val name = "RemsStudio ${formatVersion(latestVersion)}.${if (OS.isWindows) "exe" else "jar"}"
-                    val dst = File(OS.documents.unsafeFile, name)
-                    if (!dst.exists()) {
+                    val dst = getReference(OS.documents, name)
+                    if (!dst.exists) {
                         LOGGER.info("Found newer version: $name")
                         // wait for everything to be loaded xD
                         addEvent {

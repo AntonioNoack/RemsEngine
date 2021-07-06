@@ -78,6 +78,6 @@ class TornadoField : ForceField(
         }
     }
 
-    override fun getClassName() = "TornadoField"
+    override val className get() = "TornadoField"
 
 }

@@ -106,7 +106,7 @@ class Timer(parent: Transform? = null): Text("", parent) {
         list += vi("Format", "ss=sec, mm=min, hh=hours, dd=days, s3=millis", null, format, style){ format = it }
     }
 
-    override fun getClassName() = "Timer"
+    override val className get() = "Timer"
     override val defaultDisplayName = Dict["Timer", "obj.timer"]
     override val symbol = DefaultConfig["ui.symbol.timer", "\uD83D\uDD51"]
 

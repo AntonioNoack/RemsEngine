@@ -4,6 +4,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.Window
 import me.anno.input.MouseButton
+import me.anno.io.Saveable
 import me.anno.io.files.FileReference
 import me.anno.ui.base.components.Corner.drawRoundedRect
 import me.anno.ui.base.components.Padding
@@ -536,7 +537,7 @@ open class Panel(val style: Style) {
     val indexInParent get() = parent?.children?.indexOf(this) ?: -1
     val isRootElement get() = parent == null
 
-    open fun getClassName() = javaClass.simpleName
+    open val className: String = javaClass.simpleName
 
     companion object {
         private val LOGGER = LogManager.getLogger(Panel::class)

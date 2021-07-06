@@ -3,7 +3,6 @@ package me.anno.gpu.shader
 import me.anno.cache.data.ICacheData
 import me.anno.gpu.GFX
 import me.anno.gpu.framebuffer.Frame
-import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.ui.editor.files.toAllowedFilename
 import me.anno.utils.OS
@@ -13,7 +12,6 @@ import org.joml.*
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL20.*
 import org.lwjgl.opengl.GL21.glUniformMatrix4x3fv
-import java.io.File
 import java.nio.FloatBuffer
 
 open class Shader(
@@ -173,8 +171,8 @@ open class Shader(
     }
 
     fun getUniformLocation(name: String): Int {
-        val old = uniformLocations.getOrDefault(name, -100)
-        if (old != -100) return old
+        val old = uniformLocations[name]
+        if (old != null) return old
         if (safeShaderBinding) use()
         val loc = glGetUniformLocation(program, name)
         uniformLocations[name] = loc
@@ -190,8 +188,8 @@ open class Shader(
     }
 
     fun getAttributeLocation(name: String): Int {
-        val old = attributeLocations.getOrDefault(name, -100)
-        if (old != -100) return old
+        val old = attributeLocations[name]
+        if (old != null) return old
         if (safeShaderBinding) use()
         val loc = glGetAttribLocation(program, name)
         attributeLocations[name] = loc

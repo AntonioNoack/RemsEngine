@@ -282,7 +282,7 @@ class Mesh(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
         }
     }
 
-    override fun getClassName() = "Mesh"
+    override val className get() = "Mesh"
     override val defaultDisplayName = Dict["Mesh", "obj.mesh"]
     override val symbol = DefaultConfig["ui.symbol.mesh", "\uD83D\uDC69"]
 

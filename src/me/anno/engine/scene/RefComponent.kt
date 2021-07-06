@@ -10,6 +10,6 @@ class RefComponent: Component() {
     @SerializedProperty
     var location: FileReference = EmptyRef
 
-    override fun getClassName(): String = "RefComponent"
+    override val className get() = "RefComponent"
 
 }

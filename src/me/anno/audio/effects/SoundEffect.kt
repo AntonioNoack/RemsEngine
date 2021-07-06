@@ -31,7 +31,7 @@ abstract class SoundEffect(val inputDomain: Domain, val outputDomain: Domain) : 
 
     open fun clone() = TextReader.fromText(toString()).first() as SoundEffect
 
-    override fun getApproxSize() = 10
+    override val approxSize = 10
     override fun isDefaultValue() = false
 
     companion object {

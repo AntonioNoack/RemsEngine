@@ -20,7 +20,7 @@ import kotlin.streams.toList
 class TextParticles : ParticleSystem() {
 
     val text = object : Text() {
-        override fun getApproxSize(): Int = this@TextParticles.getApproxSize()
+        override val approxSize get() = this@TextParticles.approxSize
     }
 
     override fun needsChildren() = false
@@ -177,6 +177,6 @@ class TextParticles : ParticleSystem() {
     }
 
     override val defaultDisplayName: String = "Text Particles"
-    override fun getClassName() = "TextParticles"
+    override val className get() = "TextParticles"
 
 }

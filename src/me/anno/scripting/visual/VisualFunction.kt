@@ -19,6 +19,6 @@ open class VisualFunction : NamedVisual() {
         // todo then run all following nodes...
     }
 
-    override fun getClassName(): String = "VisualFunction"
+    override val className get() = "VisualFunction"
 
 }

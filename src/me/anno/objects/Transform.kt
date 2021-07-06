@@ -73,13 +73,14 @@ open class Transform() : Saveable(),
     override val description: String
         get() = ""
     override val defaultDisplayName: String
-        get() = if (getClassName() == "Transform") Dict["Folder", "obj.folder"] else getClassName()
+        get() = if (className == "Transform") Dict["Folder", "obj.folder"] else className
 
     val clickId = nextClickId.incrementAndGet()
 
     val timelineSlot = ValueWithDefault(-1)
 
     var visibility = TransformVisibility.VISIBLE
+    override var isEnabled = true
 
     var position = AnimatedProperty.pos()
     var scale = AnimatedProperty.scale()
@@ -205,7 +206,7 @@ open class Transform() : Saveable(),
         getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
     ) {
 
-        list += TextInput("Name (${getClassName()})", style, name)
+        list += TextInput("Name ($className)", style, name)
             .setChangeListener { name = if (it.isEmpty()) "-" else it }
             .setIsSelectedListener { show(null) }
         list += TextInputML("Comment", style, comment)
@@ -578,8 +579,8 @@ open class Transform() : Saveable(),
         }
     }
 
-    override fun getClassName(): String = "Transform"
-    override fun getApproxSize(): Int = 1024 + listOfAll.count()
+    override val className get() = "Transform"
+    override val approxSize get() = 1024 + listOfAll.count()
 
     /*fun contains(t: Transform): Boolean {
         if (t === this) return true

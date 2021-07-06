@@ -24,6 +24,6 @@ class Rigidbody : Component() {
             }
         }
 
-    override fun getClassName(): String = "Rigidbody"
+    override val className get() = "Rigidbody"
 
 }

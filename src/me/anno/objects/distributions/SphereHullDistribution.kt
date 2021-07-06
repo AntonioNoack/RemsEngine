@@ -39,6 +39,6 @@ class SphereHullDistribution(center: Vector4f, size: Vector4f, rotation: Vector4
         drawSphere(stack, color, 1f)
     }
 
-    override fun getClassName() = "SphereHullDistribution"
+    override val className get() = "SphereHullDistribution"
 
 }

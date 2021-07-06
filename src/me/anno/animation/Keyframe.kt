@@ -14,8 +14,8 @@ class Keyframe<V>(
     override fun compareTo(other: Keyframe<V>): Int = time.compareTo(other.time)
 
     override fun isDefaultValue() = false
-    override fun getClassName(): String = "Keyframe"
-    override fun getApproxSize(): Int = 1
+    override val className get() = "Keyframe"
+    override val approxSize get() = 1
 
     override fun save(writer: BaseWriter) {
         super.save(writer)

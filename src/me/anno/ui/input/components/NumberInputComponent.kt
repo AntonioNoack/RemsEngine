@@ -67,7 +67,7 @@ open class NumberInputComponent(
         if (owningProperty != null && (!button.isLeft || long)) {
             val oldDriver = owningProperty.drivers[indexInProperty]
             AnimationDriver.openDriverSelectionMenu(oldDriver) { driver ->
-                RemsStudio.largeChange("Changed driver to ${driver?.getClassName()}") {
+                RemsStudio.largeChange("Changed driver to ${driver?.className}") {
                     owningProperty.drivers[indexInProperty] = driver
                     if (driver != null) selectProperty(driver)
                     else {

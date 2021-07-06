@@ -13,6 +13,6 @@ class MeshCollider : Collider() {
         TODO("Not yet implemented")
     }
 
-    override fun getClassName(): String = "MeshCollider"
+    override val className get() = "MeshCollider"
 
 }

@@ -75,7 +75,7 @@ class PerlinNoiseDriver: AnimationDriver(){
         }
     }
 
-    override fun getClassName() = "PerlinNoiseDriver"
+    override val className get() = "PerlinNoiseDriver"
     override fun getDisplayName() = "Noise"
 
     companion object {

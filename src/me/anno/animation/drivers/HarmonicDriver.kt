@@ -65,7 +65,7 @@ class HarmonicDriver: AnimationDriver(){
         return harmonics.withIndex().sumByDouble { (index, it) -> it * sin((index + 1f) * w0) }
     }
 
-    override fun getClassName() = "HarmonicDriver"
+    override val className get() = "HarmonicDriver"
     override fun getDisplayName() = Dict["Harmonics h(n)", "driver.harmonic"]
 
     companion object {

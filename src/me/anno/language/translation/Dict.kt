@@ -69,7 +69,7 @@ object Dict {
                 LOGGER.warn("Skipped $it, didn't find it")
             }
         }
-        val externalFiles = File(ConfigBasics.configFolder.unsafeFile, "lang").listFiles()
+        val externalFiles = ConfigBasics.configFolder.getChild("lang")!!.listChildren()
         externalFiles?.forEach { file ->
             if (!file.isDirectory && file.name.endsWith(".lang")) {
                 try {

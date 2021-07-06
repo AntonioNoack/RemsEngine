@@ -606,12 +606,12 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
     }
 
     override fun writeObjectImpl(name: String?, value: ISaveable) {
-        writeAttributeStart(value.getClassName(), name)
+        writeAttributeStart(value.className, name)
         open(false)
         if (name == null) {
             writeString("class")
             data.append(':')
-            writeString(value.getClassName())
+            writeString(value.className)
             hasObject = true
         }
         val pointer = getPointer(value)!!
@@ -628,8 +628,8 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
                 writeAttributeStart("*[]", name)
                 data.append("[0]")
             } else {
-                val firstType = values.first().getClassName()
-                val allHaveSameType = values.all { it.getClassName() == firstType }
+                val firstType = values.first().className
+                val allHaveSameType = values.all { it.className == firstType }
                 if (allHaveSameType) {
                     writeAttributeStart("$firstType[]", name)
                     open(true)

@@ -197,7 +197,7 @@ class SVGMesh {
                 gfx.drawLine(ix(c), iy(c), ix(a), iy(a))
             }
         }
-        ImageIO.write(img, "png", File(OS.desktop.unsafeFile, "svg/tiger.png"))
+        ImageIO.write(img, "png", OS.desktop.getChild("svg/tiger.png")!!.outputStream())
     }
 
     fun createMesh(x0: Double, y0: Double, w: Double, h: Double) {

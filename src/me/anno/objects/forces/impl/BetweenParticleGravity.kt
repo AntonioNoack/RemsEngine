@@ -64,6 +64,6 @@ class BetweenParticleGravity : ForceField(
         }
     }
 
-    override fun getClassName() = "MultiGravityForce"
+    override val className get() = "MultiGravityForce"
 
 }

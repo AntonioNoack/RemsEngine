@@ -14,6 +14,7 @@ import me.anno.input.Input.mouseY
 import me.anno.input.MouseButton
 import me.anno.io.files.FileReference
 import me.anno.io.config.ConfigBasics
+import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
@@ -255,7 +256,7 @@ object UILayouts {
             }
 
             fun fileNameIsOk(file: FileReference): Boolean {
-                return fileNameIsOk(file.unsafeFile)
+                return file is FileFileRef && fileNameIsOk(file.file)
             }
 
             // todo check if all file name parts are valid...

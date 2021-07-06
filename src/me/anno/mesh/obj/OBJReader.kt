@@ -1,6 +1,7 @@
 package me.anno.mesh.obj
 
 import me.anno.fonts.mesh.Triangulation
+import me.anno.io.files.FileReference
 import me.anno.mesh.Line
 import me.anno.mesh.Mesh
 import me.anno.mesh.Model
@@ -16,6 +17,7 @@ import java.io.InputStream
 class OBJReader(input: InputStream, val file: File?) : OBJMTLReader(input) {
 
     constructor(file: File) : this(file.inputStream().buffered(), null)
+    constructor(file: FileReference) : this(file.inputStream().buffered(), null)
 
     companion object {
         private val LOGGER = LogManager.getLogger(OBJReader::class)

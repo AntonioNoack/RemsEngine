@@ -14,6 +14,6 @@ class VelocityFrictionForce : PerParticleForce(
         return (state.dPosition * strength[time]).mul(-1f)
     }
 
-    override fun getClassName() = "VelocityFrictionForce"
+    override val className get() = "VelocityFrictionForce"
 
 }

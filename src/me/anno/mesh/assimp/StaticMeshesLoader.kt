@@ -1,8 +1,7 @@
 package me.anno.mesh.assimp
 
 import me.anno.ecs.Entity
-import me.anno.ecs.components.render.MeshRenderer
-import me.anno.io.files.FileReference
+import me.anno.ecs.components.mesh.MeshRenderer
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.mesh.assimp.AssimpTree.convert
 import org.apache.logging.log4j.LogManager

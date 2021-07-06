@@ -16,6 +16,6 @@ class VisualNode: NamedVisual() {
         FUNCTION_CALL
     }
 
-    override fun getClassName(): String = "VisualNode"
+    override val className get() = "VisualNode"
 
 }

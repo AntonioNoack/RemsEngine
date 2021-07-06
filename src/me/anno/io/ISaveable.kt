@@ -11,13 +11,17 @@ import kotlin.reflect.KClass
 
 interface ISaveable {
 
-    fun getClassName(): String
+    /**
+     * class id for saving instances of this class
+     * needs to be unique for that class, and needs to be registered
+     * */
+    val className: String
 
     /**
      * a guess, small objects shouldn't contain large ones
      * (e.g. human containing building vs building containing human)
      * */
-    fun getApproxSize(): Int
+    val approxSize: Int
 
     /**
      * write all data, which needs to be recovered, to the writer

@@ -445,7 +445,7 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
     override fun writeObjectImpl(name: String?, value: ISaveable) {
         if (name != null) writeAttributeStart(name, OBJECT_IMPL)
         else output.write(OBJECT_IMPL.code)
-        usingType(value.getClassName()) {
+        usingType(value.className) {
             writeTypeString(currentClass)
             output.writeInt(getPointer(value)!!)
             value.save(this)
@@ -487,8 +487,8 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
     override fun <V : ISaveable> writeObjectArray(self: ISaveable?, name: String, values: Array<V>, force: Boolean) {
         if (force || values.isNotEmpty()) {
             if (values.isNotEmpty()) {
-                val firstType = values.first().getClassName()
-                val allSameType = values.all { it.getClassName() == firstType }
+                val firstType = values.first().className
+                val allSameType = values.all { it.className == firstType }
                 if (allSameType) {
                     writeHomogenousObjectArray(self, name, values, force)
                 } else {
@@ -526,7 +526,7 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
     ) {
         if (force || values.isNotEmpty()) {
             writeAttributeStart(name, OBJECTS_HOMOGENOUS_ARRAY)
-            writeTypeString(values.firstOrNull()?.getClassName() ?: "")
+            writeTypeString(values.firstOrNull()?.className ?: "")
             output.writeInt(values.size)
             for (element in values) {
                 element.save(this)

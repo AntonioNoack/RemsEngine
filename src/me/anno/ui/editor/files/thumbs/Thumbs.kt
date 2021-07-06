@@ -53,12 +53,12 @@ import kotlin.math.roundToInt
  * */
 object Thumbs {
 
-    private val folder = File(ConfigBasics.cacheFolder.unsafeFile, "thumbs")
+    private val folder = ConfigBasics.cacheFolder.getChild("thumbs")!!
     private val sizes = intArrayOf(32, 64, 128, 256, 512)
     private val neededSizes = IntArray(sizes.last() + 1)
     private const val timeout = 5000L
 
-    private fun FileReference.getCacheFile(size: Int): File {
+    private fun FileReference.getCacheFile(size: Int): FileReference {
         val hashReadLimit = 256
         val info = LastModifiedCache[this]
         var hash = info.lastModified xor (454781903L * this.length())
@@ -70,7 +70,7 @@ object Thumbs {
         }
         var hashString = hash.toULong().toString(16)
         while (hashString.length < 16) hashString = "0$hashString"
-        return File(folder, "$size/${hashString.substring(0, 2)}/${hashString.substring(2)}.$destinationFormat")
+        return folder.getChild("$size/${hashString.substring(0, 2)}/${hashString.substring(2)}.$destinationFormat")!!
     }
 
     init {
@@ -105,16 +105,16 @@ object Thumbs {
         }
     }
 
-    private fun saveNUpload(srcFile: FileReference, dstFile: File, dst: BufferedImage, callback: (Texture2D) -> Unit) {
-        dstFile.parentFile.mkdirs()
-        ImageIO.write(dst, destinationFormat, dstFile)
+    private fun saveNUpload(srcFile: FileReference, dstFile: FileReference, dst: BufferedImage, callback: (Texture2D) -> Unit) {
+        dstFile.getParent()!!.mkdirs()
+        ImageIO.write(dst, destinationFormat, dstFile.outputStream())
         upload(srcFile, dst, callback)
     }
 
     private fun transformNSaveNUpload(
         srcFile: FileReference,
         src: BufferedImage,
-        dstFile: File,
+        dstFile: FileReference,
         size: Int,
         callback: (Texture2D) -> Unit
     ) {
@@ -141,7 +141,7 @@ object Thumbs {
 
     private fun renderToBufferedImage(
         srcFile: FileReference,
-        dstFile: File,
+        dstFile: FileReference,
         callback: (Texture2D) -> Unit,
         w: Int, h: Int, render: () -> Unit
     ) {
@@ -209,7 +209,7 @@ object Thumbs {
 
     private fun generateVideoFrame(
         srcFile: FileReference,
-        dstFile: File,
+        dstFile: FileReference,
         size: Int,
         callback: (Texture2D) -> Unit,
         wantedTime: Double
@@ -260,7 +260,7 @@ object Thumbs {
 
     private fun generateSVGFrame(
         srcFile: FileReference,
-        dstFile: File,
+        dstFile: FileReference,
         size: Int,
         callback: (Texture2D) -> Unit
     ) {
@@ -293,10 +293,10 @@ object Thumbs {
         if (size < 1) return
 
         val dstFile = srcFile.getCacheFile(size)
-        if (dstFile.exists()) {
+        if (dstFile.exists) {
 
             // LOGGER.info("cached preview for $srcFile exists")
-            val image = ImageIO.read(dstFile)
+            val image = ImageIO.read(dstFile.inputStream())
             val rotation = ImageData.getRotation(srcFile)
             GFX.addGPUTask(size, size) {
                 val texture = Texture2D(image)

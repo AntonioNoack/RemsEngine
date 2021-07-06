@@ -4,6 +4,7 @@ import me.anno.Engine.shutdown
 import me.anno.cache.CacheSection
 import me.anno.config.DefaultConfig
 import me.anno.installer.Installer
+import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.json.JsonArray
 import me.anno.io.json.JsonObject
@@ -27,12 +28,7 @@ import kotlin.streams.toList
 
 object Spellchecking : CacheSection("Spellchecking") {
 
-    private val path = File(
-        DefaultConfig[
-                "spellchecking.path",
-                getReference(OS.downloads, "lib\\spellchecking").toString()
-        ]
-    )
+    private val path = DefaultConfig["spellchecking.path", getReference(OS.downloads, "lib\\spellchecking")]
 
     private val language get() = project?.language ?: Language.get(Dict["en-US", "lang.spellcheck"])
 
@@ -81,14 +77,14 @@ object Spellchecking : CacheSection("Spellchecking") {
         Language.values().toList() to "allCompact.jar"
     )
 
-    private val requestedDownloads = HashSet<File>()
-    private fun getExecutable(language: Language, callback: (File) -> Unit) {
+    private val requestedDownloads = HashSet<FileReference>()
+    private fun getExecutable(language: Language, callback: (FileReference) -> Unit) {
         LOGGER.info("Requesting executable for language ${language.naming.name}")
         var fileName: String? = null
         for ((languages, fileNameMaybe) in libraries) {
             if (language in languages) {
-                val dst = File(path, fileNameMaybe)
-                if (dst.exists()) {// done :)
+                val dst = getReference(path, fileNameMaybe)
+                if (dst.exists) {// done :)
                     callback(dst)
                     return
                 } else if (dst in requestedDownloads) {
@@ -97,7 +93,7 @@ object Spellchecking : CacheSection("Spellchecking") {
                 if (fileName == null) fileName = fileNameMaybe
             }
         }
-        val dst = File(path, fileName!!)
+        val dst = getReference(path, fileName!!)
         val answer = if (dst in requestedDownloads) {
             true
         } else {
@@ -110,10 +106,10 @@ object Spellchecking : CacheSection("Spellchecking") {
         }
     }
 
-    private fun waitForDownload(dst: File, callback: (File) -> Unit) {
+    private fun waitForDownload(dst: FileReference, callback: (FileReference) -> Unit) {
         threadWithName("Spellchecking::waitForDownload") {
             loop@ while (!shutdown) {
-                if (dst.exists()) {
+                if (dst.exists) {
                     callback(dst)
                     break@loop
                 } else sleepABit10(true)
@@ -121,8 +117,8 @@ object Spellchecking : CacheSection("Spellchecking") {
         }
     }
 
-    private fun download(dst: File, callback: (File) -> Unit) {
-        if (dst.exists()) {
+    private fun download(dst: FileReference, callback: (FileReference) -> Unit) {
+        if (dst.exists) {
             callback(dst)
         } else {
             Installer.download("spelling/${dst.name}", dst) {

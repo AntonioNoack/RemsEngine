@@ -1,7 +1,7 @@
 package org.apache.commons.logging;
 
 import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.LoggerImpl;
+import me.anno.logging.LoggerImpl;
 
 /**
  * simple wrapper to join all loggers from all packages

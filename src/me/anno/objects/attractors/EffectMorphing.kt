@@ -16,7 +16,7 @@ class EffectMorphing: Transform() {
     val influence = AnimatedProperty.float(1f)
     val sharpness = AnimatedProperty.float(20f)
 
-    override fun getClassName() = "EffectMorphing"
+    override val className get() = "EffectMorphing"
     override val defaultDisplayName = Dict["Effect: Morphing", "obj.effect.morphing"]
     override val symbol = DefaultConfig["ui.symbol.fx.morphing", "\uD83D\uDCA0"]
 

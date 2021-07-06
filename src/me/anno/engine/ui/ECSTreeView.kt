@@ -53,6 +53,6 @@ class ECSTreeView(val root: ECSWorld, isGaming: Boolean, style: Style) : Abstrac
         // todo focus on the element by inverting the camera transform and such...
     }
 
-    override fun getClassName(): String = "ECSTreeView"
+    override val className get() = "ECSTreeView"
 
 }

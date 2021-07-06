@@ -64,6 +64,6 @@ class AmplitudeEffect : SoundEffect(Domain.TIME_DOMAIN, Domain.TIME_DOMAIN) {
 
     override val displayName: String = "Amplitude"
     override val description: String = "Changes the volume"
-    override fun getClassName() = "AmplitudeEffect"
+    override val className get() = "AmplitudeEffect"
 
 }

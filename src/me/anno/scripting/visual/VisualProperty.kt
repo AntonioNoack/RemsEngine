@@ -7,6 +7,6 @@ class VisualProperty(
     var defaultValue: VisualValue? = null
     var value: VisualValue? = null
 
-    override fun getClassName(): String = "VisualProperty"
+    override val className get() = "VisualProperty"
 
 }

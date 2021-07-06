@@ -48,7 +48,7 @@ class ConstantDistribution(val center: Vector4f) : Distribution(
         Grid.drawLine(stack, color, Vector3f(0f, 0f, -l), Vector3f(0f, 0f, +l))
     }
 
-    override fun getClassName() = "ConstantDistribution"
+    override val className get() = "ConstantDistribution"
 
     companion object {
         private val displayLength = 0.1f

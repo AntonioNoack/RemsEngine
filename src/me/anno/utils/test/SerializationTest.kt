@@ -24,9 +24,9 @@ class TestClass : Saveable() {
     @SerializedProperty("", true)
     var savingZero = 0
 
-    override fun getClassName(): String = "Test"
+    override val className get() = "Test"
 
-    override fun getApproxSize(): Int = 1
+    override val approxSize get() = 1
 
     override fun isDefaultValue(): Boolean = false
 

@@ -3,6 +3,7 @@ package me.anno.utils.structures
 interface Hierarchical<V : Hierarchical<V>> {
 
     var isCollapsed: Boolean
+    var isEnabled: Boolean
 
     val symbol: String
 
@@ -76,29 +77,41 @@ interface Hierarchical<V : Hierarchical<V>> {
             }
         }
 
-    fun depthFirstTraversal(func: (V) -> Boolean): V? {
+    fun simpleTraversal(processDisabled: Boolean, func: (V) -> Boolean): V? {
+        return depthFirstTraversal(processDisabled, func)
+    }
+
+    fun depthFirstTraversal(processDisabled: Boolean, func: (V) -> Boolean): V? {
         this as V
-        if (func(this)) return this
-        for (child in children) {
-            val result = child.depthFirstTraversal(func)
-            if (result != null) return result
+        if (processDisabled || isEnabled) {
+            if (func(this)) return this
+            for (child in children) {
+                if (processDisabled || child.isEnabled) {
+                    val result = child.depthFirstTraversal(processDisabled, func)
+                    if (result != null) return result
+                }
+            }
         }
         return null
     }
 
-    fun breathFirstTraversal(func: (V) -> Boolean): V? {
-        val queue = ArrayList<V>()
-        val wasExplored = HashSet<V>()
-        queue.add(this as V)
-        wasExplored.add(this)
-        var readIndex = 0
-        while (readIndex < queue.size) {
-            val v = queue[readIndex++]
-            if (func(v)) return v
-            for (child in children) {
-                if (child !in wasExplored) {
-                    wasExplored.add(child)
-                    queue.add(child)
+    fun breathFirstTraversal(processDisabled: Boolean, func: (V) -> Boolean): V? {
+        if (processDisabled || isEnabled) {
+            val queue = ArrayList<V>()
+            val wasExplored = HashSet<V>()
+            queue.add(this as V)
+            wasExplored.add(this)
+            var readIndex = 0
+            while (readIndex < queue.size) {
+                val v = queue[readIndex++]
+                if (func(v)) return v
+                for (child in children) {
+                    if (processDisabled || child.isEnabled) {
+                        if (child !in wasExplored) {
+                            wasExplored.add(child)
+                            queue.add(child)
+                        }
+                    }
                 }
             }
         }

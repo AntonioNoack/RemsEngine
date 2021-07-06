@@ -20,7 +20,7 @@ fun main() {
 
     for (shape in shapes) {
         var name = shape.name
-        if (name.isEmpty()) name = shape.getClassName()
+        if (name.isEmpty()) name = shape.className
         renderSDF(shape, "$name.png")
     }
 

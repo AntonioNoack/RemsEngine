@@ -8,6 +8,6 @@ class AssimpModel: Component() {
     val meshes = ArrayList<AssimpMesh>()
     val transform = Matrix4f()
 
-    override fun getClassName(): String = "AssimpModel"
+    override val className get() = "AssimpModel"
 
 }

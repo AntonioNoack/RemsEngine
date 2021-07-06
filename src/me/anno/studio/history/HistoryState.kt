@@ -163,9 +163,9 @@ class HistoryState() : Saveable() {
         }
     }
 
-    override fun getClassName() = "HistoryState"
+    override val className get() = "HistoryState"
 
-    override fun getApproxSize(): Int = 1_000_000_000
+    override val approxSize get() = 1_000_000_000
 
     override fun isDefaultValue() = false
 

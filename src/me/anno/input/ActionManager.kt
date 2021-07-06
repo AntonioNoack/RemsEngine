@@ -108,7 +108,7 @@ object ActionManager {
         val x = Input.mouseX
         val y = Input.mouseY
         targetSearch@ while(panel != null){
-            val clazz = panel.getClassName()
+            val clazz = panel.className
             val actions = localActions[clazz to combination] ?: localActions["*" to combination]
             if(actions != null){
                 for(action in actions){

@@ -12,6 +12,6 @@ class ConvexCollider: Component() {
     @SerializedProperty
     val points = ArrayList<Vector3d>()
 
-    override fun getClassName(): String = "ConvexCollider"
+    override val className get() = "ConvexCollider"
 
 }

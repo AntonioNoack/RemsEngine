@@ -576,7 +576,7 @@ class FileExplorerEntry(
 
     override fun getMultiSelectablePanel() = this
 
-    override fun getClassName(): String = "FileEntry"
+    override val className get() = "FileEntry"
 
     override fun printLayout(tabDepth: Int) {
         super.printLayout(tabDepth)

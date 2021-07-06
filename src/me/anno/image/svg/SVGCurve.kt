@@ -2,6 +2,7 @@ package me.anno.image.svg
 
 import me.anno.fonts.mesh.Triangulation
 import me.anno.image.svg.gradient.Gradient1D
+import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.utils.OS
 import me.anno.utils.types.Vectors.plus
 import org.joml.Vector2d
@@ -202,11 +203,8 @@ class SVGCurve(Vector2ds: List<Vector2d>, closed: Boolean, val depth: Double, va
             gfx.drawLine(ix(c), iy(c), ix(a), iy(a))
         }
 
-        ImageIO.write(
-            img,
-            "png",
-            File(OS.desktop.unsafeFile, "svg/${Vector2ds.first().hashCode() xor Vector2ds[1].hashCode()}.png")
-        )
+        val fileName = "svg/${Vector2ds.first().hashCode() xor Vector2ds[1].hashCode()}.png"
+        ImageIO.write(img, "png", OS.desktop.getChild(fileName)!!.outputStream())
 
     }
 

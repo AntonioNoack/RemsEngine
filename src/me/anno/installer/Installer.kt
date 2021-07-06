@@ -1,5 +1,7 @@
 package me.anno.installer
 
+import me.anno.io.files.FileReference
+import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.utils.OS
 import me.anno.utils.Threads.threadWithName
 import me.anno.utils.types.Strings.formatDownload
@@ -36,18 +38,18 @@ object Installer {
         }
     }
 
-    fun downloadMaybe(src: String, dst: File) {
-        if (!dst.exists()) download(src, dst) {}
+    fun downloadMaybe(src: String, dst: FileReference) {
+        if (!dst.exists) download(src, dst) {}
         else LOGGER.info("$src already is downloaded :)")
     }
 
-    fun download(fileName: String, dstFile: File, callback: () -> Unit) =
+    fun download(fileName: String, dstFile: FileReference, callback: () -> Unit) =
         download(fileName, dstFile, true, callback)
 
-    fun download(fileName: String, dstFile: File, withHttps: Boolean = true, callback: () -> Unit) {
+    fun download(fileName: String, dstFile: FileReference, withHttps: Boolean = true, callback: () -> Unit) {
         // change files to files.phychi.com?
         // create a temporary file, and rename, so we know that we finished the download :)
-        val tmp = File(dstFile.parentFile, dstFile.name + ".tmp")
+        val tmp = getReference(dstFile.getParent(), dstFile.name + ".tmp")
         threadWithName("Download $fileName") {
             val protocol = if (withHttps) "https" else "http"
             val name = fileName.replace(" ", "%20")
@@ -55,7 +57,7 @@ object Installer {
             try {
                 val con = URL(totalURL).openConnection() as HttpURLConnection
                 val input = con.inputStream.buffered()
-                dstFile.parentFile.mkdirs()
+                dstFile.getParent()?.mkdirs()
                 val output = tmp.outputStream().buffered()
                 val totalLength = con.contentLength.toLong()
                 val buffer = ByteArray(DEFAULT_BUFFER_SIZE)

@@ -1,11 +1,11 @@
 package me.anno.utils
 
+import me.anno.io.files.FileReference
 import org.apache.commons.imaging.Imaging
 import java.awt.image.BufferedImage
-import java.io.File
 import javax.imageio.ImageIO
 
-val progress = File(OS.documents.unsafeFile, "IdeaProjects/VideoStudio/progress")
+val progress = OS.documents.getChild("IdeaProjects/VideoStudio/progress")!!
 
 fun main() {
     // this works, but does it work everywhere??...
@@ -17,13 +17,13 @@ fun main() {
         "fav128.ico" // Imaging
     )
     fileNames.forEach {
-        val file = File(progress, it)
+        val file = progress.getChild(it)!!
         test(file, ::imageIOTest)
         test(file, ::imagingTest)
     }
 }
 
-fun test(file: File, loadFunc: (file: File) -> BufferedImage) {
+fun test(file: FileReference, loadFunc: (file: FileReference) -> BufferedImage) {
     try {
         val image = loadFunc(file)
         println(image.run { "${file.name}: $width x $height, ${image.colorModel}" })
@@ -32,10 +32,10 @@ fun test(file: File, loadFunc: (file: File) -> BufferedImage) {
     }
 }
 
-fun imageIOTest(file: File): BufferedImage {
-    return ImageIO.read(file)
+fun imageIOTest(file: FileReference): BufferedImage {
+    return ImageIO.read(file.inputStream())
 }
 
-fun imagingTest(file: File): BufferedImage {
-    return Imaging.getBufferedImage(file)
+fun imagingTest(file: FileReference): BufferedImage {
+    return Imaging.getBufferedImage(file.inputStream())
 }

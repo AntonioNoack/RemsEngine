@@ -219,7 +219,7 @@ class FileExplorer(style: Style) : PanelListY(style.getChild("fileExplorer")) {
                                 { -1 }) {
                                 val validName = it.toAllowedFilename()
                                 if (validName != null) {
-                                    getReference(home, validName)!!.mkdirs()
+                                    getReference(home, validName).mkdirs()
                                     invalidate()
                                 }
                             }
@@ -234,7 +234,7 @@ class FileExplorer(style: Style) : PanelListY(style.getChild("fileExplorer")) {
                                 { -1 }) {
                                 val validName = it.toAllowedFilename()
                                 if (validName != null) {
-                                    getReference(home, "${validName}.json")!!.writeText(Transform()
+                                    getReference(home, "${validName}.json").writeText(Transform()
                                         .apply { name = it }
                                         .toString())
                                     invalidate()
@@ -305,7 +305,7 @@ class FileExplorer(style: Style) : PanelListY(style.getChild("fileExplorer")) {
     // multiple elements can be selected
     override fun getMultiSelectablePanel() = this
 
-    override fun getClassName(): String = "FileExplorer"
+    override val className get() = "FileExplorer"
 
     companion object {
         private val LOGGER = LogManager.getLogger(FileExplorer::class)

@@ -181,7 +181,7 @@ class TextReader(val data: String) : BaseReader() {
             when (val next = skipSpace()) {
                 ',' -> obj = readProperty(obj)
                 '}' -> return obj
-                else -> throw InvalidFormatException("Unexpected char $next in object of class ${obj.getClassName()}")
+                else -> throw InvalidFormatException("Unexpected char $next in object of class ${obj.className}")
             }
         }
     }
@@ -370,7 +370,7 @@ class TextReader(val data: String) : BaseReader() {
             assert(skipSpace(), '"')
             val clazz = readString()
             // could be different in lists
-            return if (clazz == obj.getClassName()) obj
+            return if (clazz == obj.className) obj
             else getNewClassInstance(clazz)
         }
         var (type, name) = splitTypeName(typeName)

@@ -354,6 +354,6 @@ open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edi
         get() = text.isNotEmpty()
         set(_) {}
 
-    override fun getClassName() = "PureTextInput"
+    override val className get() = "PureTextInput"
 
 }

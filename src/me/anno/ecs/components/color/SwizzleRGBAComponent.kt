@@ -50,7 +50,7 @@ class SwizzleRGBAComponent : Component(), FragmentShaderComponent {
 
     val strength = AnimatedProperty.float(1f)
 
-    override fun getClassName(): String = "SwizzleRGBAComponent"
+    override val className get() = "SwizzleRGBAComponent"
 
     /*override fun createInspector(
         list: PanelListY,

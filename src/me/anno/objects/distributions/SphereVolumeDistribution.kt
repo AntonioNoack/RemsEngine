@@ -41,6 +41,6 @@ class SphereVolumeDistribution(center: Vector4f, size: Vector4f, rotation: Vecto
         drawSphere(stack, color, 1f)
     }
 
-    override fun getClassName() = "SphereDistribution"
+    override val className get() = "SphereDistribution"
 
 }

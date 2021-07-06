@@ -1,22 +1,21 @@
-package me.anno.ecs.components.render
+package me.anno.ecs.components.mesh
 
 import me.anno.ecs.Component
-import me.anno.ecs.components.mesh.Mesh
 
 // todo animated mesh renderer as well...
 // todo which then uses bones :)
 
 class MeshRenderer : Component() {
 
-    val meshes = ArrayList<Mesh>()
+    val meshes = ArrayList<MeshComponent>()
 
-    var mesh: Mesh?
+    var mesh: MeshComponent?
         get() = meshes.getOrNull(0)
         set(value) {
             meshes.clear()
             if (value != null) meshes.add(value)
         }
 
-    override fun getClassName(): String = "MeshRenderer"
+    override val className get() = "MeshRenderer"
 
 }

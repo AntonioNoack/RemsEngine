@@ -9,6 +9,6 @@ class ScriptComponent: Component() {
     // todo lua from Java/Kotlin?
     // todo JavaScript from Java/Kotlin?
 
-    override fun getClassName(): String = "ScriptComponent"
+    override val className get() = "ScriptComponent"
 
 }

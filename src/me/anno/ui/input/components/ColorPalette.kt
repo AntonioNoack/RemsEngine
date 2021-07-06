@@ -28,7 +28,7 @@ class ColorPalette(
     style: Style
 ) : PanelGroup(style) {
 
-    override fun getClassName(): String = "ColorPalette"
+    override val className get() = "ColorPalette"
 
     override val children: List<Panel> = Array(dimX * dimY) {
         ColorField(this, it % dimX, it / dimX, 0, style)
@@ -58,7 +58,7 @@ class ColorPalette(
             this.h = constSize
         }
 
-        override fun getClassName(): String = "ColorPaletteEntry"
+        override val className get() = "ColorPaletteEntry"
 
         var color
             get() = palette.getColor(paletteX, paletteY)

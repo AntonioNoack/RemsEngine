@@ -96,6 +96,6 @@ class NoisyLorentzForce : PerParticleForce(
         }
     }
 
-    override fun getClassName() = "NoisyLorentzForce"
+    override val className get() = "NoisyLorentzForce"
 
 }

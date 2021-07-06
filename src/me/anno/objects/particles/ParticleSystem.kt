@@ -306,7 +306,7 @@ open class ParticleSystem(parent: Transform? = null) : Transform(parent) {
 
         var viCtr = 0
         fun vi(name: String, description: String, property: AnimatedDistribution) {
-            fun getName() = "$name: ${property.distribution.getClassName().split("Distribution").first()}"
+            fun getName() = "$name: ${property.distribution.className.split("Distribution").first()}"
             val group = getGroup(getName(), "", "$viCtr")
             group.setTooltip(description)
             group.add(SpyPanel(style) {
@@ -476,7 +476,7 @@ open class ParticleSystem(parent: Transform? = null) : Transform(parent) {
     }
 
     override fun acceptsWeight() = true
-    override fun getClassName() = "ParticleSystem"
+    override val className get() = "ParticleSystem"
     override val defaultDisplayName: String = Dict["Particle System", "obj.particles"]
     override val symbol = DefaultConfig["ui.symbol.particleSystem", "❄"]
 

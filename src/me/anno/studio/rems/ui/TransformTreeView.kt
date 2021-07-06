@@ -121,6 +121,6 @@ class TransformTreeView(style: Style) :
         }
     }
 
-    override fun getClassName(): String = "TreeView"
+    override val className get() = "TreeView"
 
 }

@@ -33,8 +33,8 @@ open class StringMap(
     var wasChanged = false
     val map = HashMap<String, Any?>(capacity)
 
-    override fun getClassName(): String = "SMap"
-    override fun getApproxSize(): Int = 1_000_000
+    override val className get() = "SMap"
+    override val approxSize get() = 1_000_000
     override fun save(writer: BaseWriter) {
         super.save(writer)
         // avoid locking up the program up while waiting for IO

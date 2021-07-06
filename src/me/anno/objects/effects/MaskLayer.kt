@@ -188,7 +188,7 @@ open class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
             Frame.bind()
 
             val child = children.getOrNull(0)
-            if (child?.getClassName() == "Transform" && child.children.isEmpty()) {
+            if (child?.className == "Transform" && child.children.isEmpty()) {
 
                 glClearColor(1f, 1f, 1f, 1f)
                 glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
@@ -397,7 +397,7 @@ open class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
     }
 
     override val defaultDisplayName = "Mask Layer"
-    override fun getClassName() = "MaskLayer"
+    override val className get() = "MaskLayer"
 
     companion object {
         fun create(mask: List<Transform>?, masked: List<Transform>?): MaskLayer {

@@ -14,7 +14,7 @@ abstract class Saveable : ISaveable {
 
     private fun warnMissingParam(name: String) {
         if (name == "*ptr") throw RuntimeException()
-        LogManager.getLogger(Saveable::class).warn("Unknown param ${getClassName()}.$name")
+        LogManager.getLogger(Saveable::class).warn("Unknown param $className.$name")
     }
 
     override fun readBoolean(name: String, value: Boolean) = readSomething(name, value)

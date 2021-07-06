@@ -21,8 +21,8 @@ class Material : Saveable() {
     var opacityTexture: FileReference? = null
     var refractionIndex = 1f // Ni [0.001, 10]
     var model = IlluminationModel.COLOR
-    override fun getClassName() = "Material"
-    override fun getApproxSize(): Int = 10
+    override val className get() = "Material"
+    override val approxSize get() = 10
     override fun isDefaultValue() = false
     override fun save(writer: BaseWriter) {
         super.save(writer)

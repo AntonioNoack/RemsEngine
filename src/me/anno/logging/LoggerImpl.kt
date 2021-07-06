@@ -1,6 +1,9 @@
-package org.apache.logging.log4j
+package me.anno.logging
 
 import org.apache.commons.logging.Log
+import org.apache.logging.log4j.LogManager
+import org.apache.logging.log4j.Logger
+import org.apache.logging.log4j.Marker
 import java.util.*
 import java.util.logging.Level
 

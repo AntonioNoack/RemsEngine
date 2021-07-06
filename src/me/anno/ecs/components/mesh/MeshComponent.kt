@@ -3,9 +3,12 @@ package me.anno.ecs.components.mesh
 import me.anno.ecs.Component
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.AttributeType
-import me.anno.mesh.assimp.Material
+import me.anno.gpu.buffer.IndexedStaticBuffer
+import me.anno.gpu.shader.Shader
+import me.anno.mesh.assimp.AssimpMesh
 import org.joml.AABBf
 import org.lwjgl.opengl.GL11.GL_TRIANGLES
+import kotlin.math.max
 
 
 // todo MeshComponent + MeshRenderComponent (+ AnimatableComponent) = animated skeleton
@@ -22,8 +25,7 @@ import org.lwjgl.opengl.GL11.GL_TRIANGLES
 // todo also make it deferred / forward/backward compatible
 
 
-
-class Mesh: Component() {
+class MeshComponent : Component() {
 
     // todo morph targets
     // normals? maybe
@@ -49,6 +51,8 @@ class Mesh: Component() {
 
     // one per triangle
     var materialIndices = IntArray(0)
+
+    // todo sort them by material/shader, and create multiple buffers (or sub-buffers) for them
     var indices: IntArray? = null
 
     // to allow for quads, and strips and such
@@ -100,6 +104,103 @@ class Mesh: Component() {
         // todo check whether all variables are set correctly
     }
 
+    override val className get() = "MeshComponent"
+
+    // far into the future:
+    // todo instanced animations for hundrets of humans:
+    // todo bake animations into textures, and use indices + weights
+
+    var needsMeshUpdate = true
+    var buffer: IndexedStaticBuffer? = null
+
+    fun updateMesh() {
+
+        needsMeshUpdate = false
+
+        calculateAABB()
+
+        // todo if normals are null, calculate them
+
+        val positions = positions!!
+        val normals = normals!!
+        val uvs = uvs
+        val colors = color0
+        val weights = boneWeights
+        val jointIndices = boneIndices
+
+        val indices = indices!!
+
+        val pointCount = positions.size / 3
+        val buffer = IndexedStaticBuffer(AssimpMesh.attributes, pointCount, indices)
+        for (i in 0 until pointCount) {
+
+            // upload all data of one vertex
+
+            buffer.put(positions[i * 3])
+            buffer.put(positions[i * 3 + 1])
+            buffer.put(positions[i * 3 + 2])
+
+            if (uvs != null && uvs.size > i * 2 + 1) {
+                buffer.put(uvs[i * 2])
+                buffer.put(uvs[i * 2 + 1])
+            } else {
+                buffer.put(0f, 0f)
+            }
+
+            buffer.put(normals[i * 3])
+            buffer.put(normals[i * 3 + 1])
+            buffer.put(normals[i * 3 + 2])
+
+            if (colors != null && colors.size > i * 4 + 3) {
+                buffer.put(colors[i * 4])
+                buffer.put(colors[i * 4 + 1])
+                buffer.put(colors[i * 4 + 2])
+                buffer.put(colors[i * 4 + 3])
+            } else {
+                buffer.put(1f, 1f, 1f, 1f)
+            }
+
+            if (weights != null && weights.isNotEmpty()) {
+                val w0 = max(weights[i * 4], 1e-5f)
+                val w1 = weights[i * 4 + 1]
+                val w2 = weights[i * 4 + 2]
+                val w3 = weights[i * 4 + 3]
+                val normalisation = 1f / (w0 + w1 + w2 + w3)
+                buffer.put(w0 * normalisation)
+                buffer.put(w1 * normalisation)
+                buffer.put(w2 * normalisation)
+                buffer.put(w3 * normalisation)
+            } else {
+                buffer.put(1f, 0f, 0f, 0f)
+            }
+
+            if (jointIndices != null && jointIndices.isNotEmpty()) {
+                buffer.putByte(jointIndices[i * 4])
+                buffer.putByte(jointIndices[i * 4 + 1])
+                buffer.putByte(jointIndices[i * 4 + 2])
+                buffer.putByte(jointIndices[i * 4 + 3])
+            } else {
+                buffer.putInt(0)
+            }
+
+        }
+
+        this.buffer = buffer
+
+    }
+
+    fun draw(shader: Shader, materialIndex: Int) {
+        // todo respect the material index
+        // upload the data to the gpu, if it has changed
+        if (needsMeshUpdate) updateMesh()
+        buffer?.draw(shader)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        buffer?.destroy()
+    }
+
     companion object {
 
         // custom attributes for shaders? idk...
@@ -122,11 +223,5 @@ class Mesh: Component() {
             maxZ = Float.NEGATIVE_INFINITY
         }
     }
-
-    override fun getClassName(): String = "MeshComponent"
-
-    // far into the future:
-    // todo instanced animations for hundrets of humans:
-    // todo bake animations into textures, and use indices + weights
 
 }

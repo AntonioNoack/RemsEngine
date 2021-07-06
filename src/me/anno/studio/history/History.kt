@@ -129,9 +129,9 @@ class History : Saveable() {
         }
     }
 
-    override fun getApproxSize(): Int = 1_500_000_000
+    override val approxSize get() = 1_500_000_000
     override fun isDefaultValue(): Boolean = false
-    override fun getClassName(): String = "History"
+    override val className get() = "History"
 
     companion object {
         val LOGGER = LogManager.getLogger(History::class)

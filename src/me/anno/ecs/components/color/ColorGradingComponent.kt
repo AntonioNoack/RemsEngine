@@ -20,7 +20,7 @@ class ColorGradingComponent : Component(), FragmentShaderComponent {
     val power = AnimatedProperty.color(Vector4f(1f))
     val saturation = AnimatedProperty.float(1f)
 
-    override fun getClassName(): String = "ColorGradingComponent"
+    override val className get() = "ColorGradingComponent"
 
     override fun getShaderComponent(env: ShaderEnvironment): String {
         val colorTmp = env[this, "cgcTmp1", VariableType.TEMPORARY]

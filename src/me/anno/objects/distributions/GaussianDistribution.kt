@@ -58,7 +58,7 @@ class GaussianDistribution(center: Vector4f, size: Vector4f, rotation: Vector4f 
         drawSphere(stack, color, sqrt((i2 - i1) / i0))
     }
 
-    override fun getClassName() = "GaussianDistribution"
+    override val className get() = "GaussianDistribution"
 
     companion object {
         const val gaussianScale = 0.5f // to be better comparable to sphere hull and sphere volume

@@ -9,7 +9,7 @@ import java.net.URL
 
 open class LinkPanel(val link: URL, style: Style) : TextPanel(link.toString(), style.getChild("link")) {
 
-    override fun getClassName(): String = "LinkPanel"
+    override val className get() = "LinkPanel"
 
     override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
         when {

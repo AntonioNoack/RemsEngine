@@ -58,7 +58,7 @@ class FunctionDriver : AnimationDriver() {
         ) ?: 0.0
     }
 
-    override fun getClassName() = "FunctionDriver"
+    override val className get() = "FunctionDriver"
     override fun getDisplayName() =
         if (formula.length <= maxFormulaDisplayLength) formula
         else Dict["Function f(time)", "driver.function"]

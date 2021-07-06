@@ -127,12 +127,12 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
 
             if (value in listed) {
 
-                writePointer(name, value.getClassName(), ptr)
+                writePointer(name, value.className, ptr)
 
             } else {
 
                 listed += value
-                val canInclude = self == null || self.getApproxSize() > value.getApproxSize()
+                val canInclude = self == null || self.approxSize > value.approxSize
                 if (canInclude) {
 
                     writeObjectImpl(name, value)
@@ -140,7 +140,7 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
                 } else {
 
                     todo += value
-                    writePointer(name, value.getClassName(), ptr)
+                    writePointer(name, value.className, ptr)
 
                 }
             }

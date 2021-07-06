@@ -55,7 +55,7 @@ class VignetteComponent: Component(), FragmentShaderComponent {
         }
     }
 
-    override fun getClassName(): String = "VignetteComponent"
+    override val className get() = "VignetteComponent"
 
 
 }

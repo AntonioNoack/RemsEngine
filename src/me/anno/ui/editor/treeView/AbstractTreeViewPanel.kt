@@ -278,7 +278,7 @@ class AbstractTreeViewPanel<V : Hierarchical<V>>(
     // multiple values can be selected
     override fun getMultiSelectablePanel() = this
 
-    override fun getClassName(): String = "TreeViewPanel"
+    override val className get() = "TreeViewPanel"
 
     companion object {
 

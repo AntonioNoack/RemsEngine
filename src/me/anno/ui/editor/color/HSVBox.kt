@@ -36,6 +36,6 @@ open class HSVBox(
         return true
     }
 
-    override fun getClassName() = "HSVBox"
+    override val className get() = "HSVBox"
 
 }

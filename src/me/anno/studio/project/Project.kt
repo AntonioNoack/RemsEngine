@@ -193,7 +193,7 @@ class Project(var name: String, val file: FileReference) : Saveable() {
                 if(c is CustomList){
                     writer.write(if(c.isY) "CustomListY" else "CustomListX")
                 } else {
-                    writer.write(c.getClassName())
+                    writer.write(c.className)
                 }
                 writer.write((w * 1000f).roundToInt())
                 if (c is CustomList) {
@@ -229,8 +229,8 @@ class Project(var name: String, val file: FileReference) : Saveable() {
     var ffmpegFlags = FFMPEGEncodingType[config["target.ffmpegFlags.id", FFMPEGEncodingType.DEFAULT.id]]
     var ffmpegBalance = FFMPEGEncodingBalance[config["target.encodingBalance", 0.5f]]
 
-    override fun getClassName() = "Project"
-    override fun getApproxSize() = 1000
+    override val className get() = "Project"
+    override val approxSize = 1000
     override fun isDefaultValue() = false
 
     fun open() {}

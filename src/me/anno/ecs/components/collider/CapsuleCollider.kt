@@ -16,7 +16,7 @@ class CapsuleCollider : Collider() {
     @SerializedProperty
     var radius = 1.0
 
-    override fun getClassName(): String = "CapsuleCollider"
+    override val className get() = "CapsuleCollider"
 
     override fun getSignedDistance(deltaPosition: Vector3d, movement: Vector3d): Double {
         deltaPosition.absolute()

@@ -51,6 +51,6 @@ class ECSWorld : Entity() {
 
     }
 
-    override fun getClassName(): String = "RootEntity"
+    override val className get() = "RootEntity"
 
 }

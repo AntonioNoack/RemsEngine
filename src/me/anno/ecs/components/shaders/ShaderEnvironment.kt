@@ -19,7 +19,7 @@ class ShaderEnvironment {
             }
         }
 
-        val joinedKey = Triple(key.getClassName(), name, type)
+        val joinedKey = Triple(key.className, name, type)
         val cached = variables[joinedKey]
         if (cached != null) return cached
         val count = usedVariables[name] ?: 0

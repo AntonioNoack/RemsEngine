@@ -4,19 +4,18 @@ import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Entity
 import me.anno.ecs.components.camera.Camera
 import me.anno.ecs.components.player.LocalPlayer
-import me.anno.ecs.components.render.MeshRenderer
+import me.anno.ecs.components.mesh.MeshRenderer
 import me.anno.engine.ECSWorld
 import me.anno.gpu.RenderState.renderDefault
 import me.anno.gpu.RenderState.useFrame
 import me.anno.gpu.framebuffer.FBStack
+import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.ui.base.Panel
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.mix
-import org.joml.Matrix4d
-import org.joml.Matrix4dArrayList
-import org.joml.Matrix4x3d
-import org.joml.Vector3d
+import org.joml.*
+import org.lwjgl.opengl.GL11.glClearColor
 
 // todo controls
 // todo show the scene
@@ -68,6 +67,7 @@ class ECSSceneView(val world: ECSWorld) : Panel(style) {
     val camTransformTmp = Matrix4x3d()
     val camInverseTmp = Matrix4d()
     val tmp3 = Vector3d()
+    val tmp4f = Vector4f()
 
     // todo we could do the blending of the scenes using stencil tests <3 (very efficient)
     //  - however it would limit us to a single renderer...
@@ -111,6 +111,9 @@ class ECSSceneView(val world: ECSWorld) : Panel(style) {
         // todo create the different pipeline stages: opaque, transparent, post-processing, ...
         useFrame(dst) {
             renderDefault {
+                Frame.bind()
+                tmp4f.set(previousCamera.clearColor).lerp(camera.clearColor, blend.toFloat())
+                glClearColor(tmp4f.x, tmp4f.y, tmp4f.z, 1f)
                 drawScene(viewTransform, camInverse, world, null)
             }
         }
@@ -128,7 +131,7 @@ class ECSSceneView(val world: ECSWorld) : Panel(style) {
         if (renderer != null) {
             // todo render the mesh
             val meshes = renderer.meshes
-            for(mesh in meshes){
+            for (mesh in meshes) {
 
             }
         }

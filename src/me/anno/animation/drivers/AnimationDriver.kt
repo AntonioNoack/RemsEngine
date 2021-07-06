@@ -60,7 +60,7 @@ abstract class AnimationDriver : Saveable(), Inspectable {
     }
 
     abstract fun getValue0(time: Double, keyframeValue: Double, index: Int): Double
-    override fun getApproxSize() = 5
+    override val approxSize = 5
     override fun isDefaultValue() = false
 
     open fun createInspector(

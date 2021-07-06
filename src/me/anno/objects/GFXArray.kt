@@ -164,7 +164,7 @@ class GFXArray(parent: Transform? = null) : GFXTransform(parent) {
 
     }
 
-    override fun getClassName() = "GFXArray"
+    override val className get() = "GFXArray"
     override val defaultDisplayName = Dict["Array", "obj.array"]
 
 

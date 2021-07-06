@@ -247,7 +247,7 @@ class SoftLink(var file: FileReference) : GFXTransform(null) {
     override val areChildrenImmutable: Boolean = true
 
     override val defaultDisplayName: String = Dict["Linked Object", "obj.softLink"]
-    override fun getClassName() = "SoftLink"
+    override val className get() = "SoftLink"
 
     companion object {
         const val maxDepth = 5

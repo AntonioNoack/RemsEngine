@@ -3,6 +3,7 @@ package me.anno.utils.types
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.drawing.DrawTexts.getTextSizeX
+import me.anno.io.files.FileReference
 import me.anno.ui.base.Font
 import me.anno.ui.base.text.TextPanel
 import me.anno.utils.Maths.fract
@@ -120,7 +121,7 @@ object Strings {
                 "${remainingTime.formatTime(0)} remaining"
     }
 
-    fun formatDownloadEnd(fileName: String, dst: File) = "Downloaded $fileName ($dst)"
+    fun formatDownloadEnd(fileName: String, dst: FileReference) = "Downloaded $fileName ($dst)"
 
     fun incrementTab(x0: Float, tabSize: Float, relativeTabSize: Float): Float {
         var x = x0

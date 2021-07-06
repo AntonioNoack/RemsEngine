@@ -24,7 +24,7 @@ class LorentzForce : PerParticleForce(
         // Grid.drawLine(stack, color * blue, Vector3f(0f, 0f, 0f), Vector3f(0f, -1f, 0f))
     //}
 
-    override fun getClassName() = "LorentzForce"
+    override val className get() = "LorentzForce"
 
     companion object {
         // must be lazy, because it calls shader.compile()

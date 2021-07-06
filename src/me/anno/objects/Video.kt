@@ -908,7 +908,7 @@ class Video(file: FileReference = EmptyRef, parent: Transform? = null) : Audio(f
         }
     }
 
-    override fun getClassName(): String = "Video"
+    override val className get() = "Video"
 
     override val defaultDisplayName: String
         get() {

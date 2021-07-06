@@ -3,6 +3,7 @@ package me.anno.ecs.components.camera
 import me.anno.ecs.Component
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.player.LocalPlayer.Companion.currentLocalPlayer
+import org.joml.Vector4f
 
 // todo like the studio camera,
 // todo function to blend to the next one
@@ -21,13 +22,15 @@ class Camera : Component() {
 
     var postProcessingEffects = ArrayList<PPE>()
 
+    val clearColor = Vector4f(0f, 0f, 0f, 1f)
+
     class PPE
 
     fun use(blendingTime: Double) {
         val player = currentLocalPlayer!!
         val state = player.camera
         // only if not already set as target
-        if(state.currentCamera != this){
+        if (state.currentCamera != this) {
             state.cameraBlendingTime = blendingTime
             state.cameraBlendingProgress = 0.0
             state.previousCamera = state.currentCamera
@@ -35,7 +38,7 @@ class Camera : Component() {
         }
     }
 
-    override fun getClassName(): String = "CameraComponent"
+    override val className get() = "CameraComponent"
 
     companion object {
 

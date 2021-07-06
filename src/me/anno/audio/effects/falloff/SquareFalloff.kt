@@ -16,6 +16,6 @@ class SquareFalloff() : Falloff() {
     override val description: String = "Sound falloff ~ 1/(1+distance²)"
     override fun clone(): SoundEffect = SquareFalloff(halfDistance)
 
-    override fun getClassName() = "SquareFalloffEffect"
+    override val className get() = "SquareFalloffEffect"
 
 }

@@ -154,8 +154,8 @@ class AnimatedDistribution(
         }
     }
 
-    override fun getApproxSize(): Int = 35
+    override val approxSize get() = 35
     override fun isDefaultValue(): Boolean = !distributionI.isSet && channels.all { it.isDefaultValue() }
-    override fun getClassName(): String = "AnimatedDistribution"
+    override val className get() = "AnimatedDistribution"
 
 }

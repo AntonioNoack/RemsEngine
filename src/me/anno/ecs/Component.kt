@@ -22,7 +22,7 @@ abstract class Component : NamedSaveable() {
 
     open fun onPhysicsUpdate() {}
 
-    override fun getApproxSize(): Int = 1000
+    override val approxSize get() = 1000
     override fun isDefaultValue(): Boolean = false
 
     open fun onClick() {}
@@ -36,7 +36,7 @@ abstract class Component : NamedSaveable() {
     val changedPropertiesInInstance = HashSet<String>()
 
     override fun toString(): String {
-        return "${getClassName()}('$name')"
+        return "$className('$name')"
     }
 
     fun toString(depth: Int): StringBuilder {

@@ -22,6 +22,6 @@ class GlobalForce : ForceField(
         drawForcePerParticle(stack, time, color)
     }
 
-    override fun getClassName() = "GlobalForce"
+    override val className get() = "GlobalForce"
 
 }

@@ -8,7 +8,7 @@ abstract class NamedVisual : Saveable() {
     var description: String = ""
     var color: Int = 0
 
-    override fun getApproxSize(): Int = 100
+    override val approxSize get() = 100
     override fun isDefaultValue(): Boolean = false
 
 }

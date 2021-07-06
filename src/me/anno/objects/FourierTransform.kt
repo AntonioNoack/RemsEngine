@@ -330,7 +330,7 @@ class FourierTransform : Transform() {
         }
     }
 
-    override fun getClassName(): String = "FourierTransform"
+    override val className get() = "FourierTransform"
     override val defaultDisplayName: String = "Fourier Transform"
 
     companion object {

@@ -19,7 +19,7 @@ class EffectColoring: Transform() {
 
     init { color.set(Vector4f(1f, 0f, 0f, 1f)) }
 
-    override fun getClassName() = "EffectColoring"
+    override val className get() = "EffectColoring"
     override val defaultDisplayName = Dict["Effect: Coloring", "obj.effect.coloring"]
     override val symbol = DefaultConfig["ui.symbol.fx.coloring", "\uD83C\uDFA8"]
 

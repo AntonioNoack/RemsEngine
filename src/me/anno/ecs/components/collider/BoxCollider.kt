@@ -14,7 +14,7 @@ class BoxCollider : Collider() {
     @SerializedProperty
     var halfExtends = Vector3d(1.0)
 
-    override fun getClassName(): String = "BoxCollider"
+    override val className get() = "BoxCollider"
 
     override fun getSignedDistance(deltaPosition: Vector3d, movement: Vector3d): Double {
         // todo corner roundness

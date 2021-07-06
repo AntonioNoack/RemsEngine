@@ -302,7 +302,7 @@ open class Text(parent: Transform? = null) : GFXTransform(parent), SplittableEle
     fun getShadows() = children.filter { it.name.contains("shadow", true) && it is Text } as List<Text>
     override fun passesOnColor() = false // otherwise white shadows of black text wont work
 
-    override fun getClassName(): String = "Text"
+    override val className get() = "Text"
     override val defaultDisplayName = // text can be null!!!
         if (text == null) Dict["Text", "obj.text"]
         else (text.keyframes.maxByOrNull { it.value.length }?.value

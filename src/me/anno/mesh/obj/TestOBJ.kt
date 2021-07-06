@@ -5,8 +5,6 @@ import me.anno.utils.OS
 import java.io.File
 
 fun main(){
-
-    val obj = OBJReader(File(OS.documents.unsafeFile, "plane.obj"))
+    val obj = OBJReader(OS.documents.getChild( "plane.obj")!!)
     LOGGER.info(obj.pointsByMaterial.toString())
-
 }
