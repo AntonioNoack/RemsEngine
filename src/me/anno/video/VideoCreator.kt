@@ -56,7 +56,7 @@ class VideoCreator(
         val constantRateFactor = project?.targetVideoQuality?.toString() ?: "23"
 
         // Incompatible pixel format 'yuv420p' for codec 'gif', auto-selecting format 'bgr8'
-        val dstFormat = if (isGIF) "bgr8" else "yuv444p"//"yuv420p"
+        val dstFormat = if (isGIF) "bgr8" else "yuv420p"
         val fpsString = fps.toString()
 
         val videoEncodingArguments = arrayListOf(

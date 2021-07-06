@@ -7,6 +7,7 @@ import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.io.utils.StringMap
 import me.anno.utils.OS
+import me.anno.utils.structures.CachedValue
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
 import java.nio.charset.Charset
@@ -20,8 +21,12 @@ object ConfigBasics {
     val LOGGER = LogManager.getLogger(ConfigBasics::class)!!
     private val utf8Charset: Charset = Charset.forName("UTF-8")
 
-    val configFolder get() = getReference(OS.home, ".config/$projectName")
-    val cacheFolder get() = getReference(OS.home, ".cache/$projectName")
+    // this value is often requested!, it must not be changed
+    private val configFolderI = CachedValue { getReference(OS.home, ".config/$projectName") }
+    private val cachedFolderI = CachedValue { getReference(OS.home, ".cache/$projectName") }
+
+    val configFolder get() = configFolderI.value
+    val cacheFolder get() = cachedFolderI.value
 
     val beautify = true
 
@@ -41,12 +46,12 @@ object ConfigBasics {
         val value = if (file.exists) {
             try {
                 file.readText(utf8Charset)
-            } catch (e: IOException){
+            } catch (e: IOException) {
                 e.printStackTrace()
                 null
             }
         } else null
-        return if(value != null) value
+        return if (value != null) value
         else {
             val default = getDefault()
             if (saveIfMissing) save(file, default)

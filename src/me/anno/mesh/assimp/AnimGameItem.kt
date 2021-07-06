@@ -18,12 +18,12 @@ class AnimGameItem(
         val location = shader.getUniformLocation("jointTransforms")
         if (location < 0) return
         // most times the duration is specified in milli seconds
-        val frameCount = animation.frames.size
+        val frames = animation.frames
+        val frameCount = frames.size
         var frameIndexFloat = ((time * frameCount / animation.duration) % frameCount).toFloat()
         if (frameIndexFloat < 0) frameIndexFloat += frameCount
-        val frameIndex0 = frameIndexFloat.toInt()
+        val frameIndex0 = frameIndexFloat.toInt() % frameCount
         val frameIndex1 = (frameIndex0 + 1) % frameCount
-        val frames = animation.frames
         val frame0 = frames[frameIndex0]
         val frame1 = frames[frameIndex1]
         val fraction = frameIndexFloat - frameIndex0

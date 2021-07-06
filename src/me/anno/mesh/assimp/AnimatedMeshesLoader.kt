@@ -19,7 +19,6 @@ import java.nio.charset.StandardCharsets
 import kotlin.math.max
 import kotlin.math.min
 
-
 object AnimatedMeshesLoader : StaticMeshesLoader() {
 
     // todo also load morph targets
@@ -56,7 +55,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
                     }
                     else -> continue
                 }
-                println("metadata $key: $valueType, $value")
+                LOGGER.info("Metadata $key: $valueType, $value")
             }
         }
         val materials = loadMaterials(aiScene, texturesDir)
@@ -125,7 +124,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         val numAnimations = aiScene.mNumAnimations()
         val animations = HashMap<String, Animation>(numAnimations)
         val aiAnimations = aiScene.mAnimations()
-        LOGGER.info("loading animations: $numAnimations")
+        LOGGER.info("Loading animations: $numAnimations")
         for (i in 0 until numAnimations) {
             val aiAnimation = AIAnimation.create(aiAnimations!![i])
             val animNodeCache = createAnimationCache(aiAnimation)
@@ -159,7 +158,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         val numAnimations = aiScene.mNumAnimations()
         val animations = HashMap<String, Animation>(numAnimations)
         val aiAnimations = aiScene.mAnimations()
-        LOGGER.info("loading animations: $numAnimations")
+        LOGGER.info("Loading animations: $numAnimations")
         for (i in 0 until numAnimations) {
             val aiAnimation = AIAnimation.create(aiAnimations!![i])
             val animNodeCache = createAnimationCache(aiAnimation)

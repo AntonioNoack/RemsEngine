@@ -34,6 +34,7 @@ class History : Saveable() {
     }
 
     fun update(title: String, code: Any) {
+        // todo hier liegt ein Problem, das ist extrem langsam
         val last = states.lastOrNull()
         if (last?.code == code) {
             last.capture(last)
