@@ -187,15 +187,17 @@ open class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
 
             Frame.bind()
 
+            // alpha needs to be 0 for some masks like the green screen!!
+
             val child = children.getOrNull(0)
             if (child?.className == "Transform" && child.children.isEmpty()) {
 
-                glClearColor(1f, 1f, 1f, 1f)
+                glClearColor(1f, 1f, 1f, 0f)
                 glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
             } else {
 
-                glClearColor(0f, 0f, 0f, 1f)
+                glClearColor(0f, 0f, 0f, 0f)
                 glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
                 drawChild(stack, time, color, child)

@@ -36,11 +36,13 @@ class FileFileRef(val file: File) :
     override fun mkdirs(): Boolean = file.mkdirs()
 
     override fun listChildren(): List<FileReference>? {
-        return if (isDirectory) {
-            file.listFiles()?.map { FileFileRef(it) }
-        } else {
-            zipFileForDirectory?.listChildren()
-        }
+        return if (exists) {
+            if (isDirectory) {
+                file.listFiles()?.map { FileFileRef(it) }
+            } else {
+                zipFileForDirectory?.listChildren()
+            }
+        } else null
     }
 
     override fun getParent() = getReference(file.parentFile)

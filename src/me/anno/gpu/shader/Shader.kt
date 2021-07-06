@@ -77,6 +77,8 @@ open class Shader(
         glDeleteShader(fragmentShader)
         logShader(vertexSource, fragmentSource)
 
+        GFX.check()
+
     }
 
     fun setTextureIndices(textures: List<String>?) {
@@ -200,7 +202,9 @@ open class Shader(
     }
 
     fun use(): Boolean {
+        GFX.check()
         Frame.bindMaybe()
+        GFX.check()
         if (program == -1) init()
         return if (program != lastProgram) {
             glUseProgram(program)

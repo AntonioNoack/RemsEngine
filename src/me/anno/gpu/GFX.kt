@@ -30,10 +30,12 @@ import org.joml.Matrix4fArrayList
 import org.joml.Vector3f
 import org.joml.Vector4fc
 import org.lwjgl.BufferUtils
+import org.lwjgl.opengl.ARBImaging.GL_TABLE_TOO_LARGE
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL30.*
+import org.lwjgl.opengl.GL45.GL_CONTEXT_LOST
 import java.nio.FloatBuffer
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -483,20 +485,24 @@ object GFX : GFXBase1() {
                 /*Framebuffer.stack.forEach {
                     LOGGER.info(it.toString())
                 }*/
-                val title = "GLException: ${
-                    when (error) {
-                        GL_INVALID_ENUM -> "invalid enum"
-                        GL_INVALID_VALUE -> "invalid value"
-                        GL_INVALID_OPERATION -> "invalid operation"
-                        GL_STACK_OVERFLOW -> throw StackOverflowError("OpenGL Exception")
-                        GL_STACK_UNDERFLOW -> "stack underflow"
-                        GL_OUT_OF_MEMORY -> throw OutOfMemoryError("OpenGL Exception")
-                        GL_INVALID_FRAMEBUFFER_OPERATION -> "invalid framebuffer operation"
-                        else -> "$error"
-                    }
-                }"
+                val title = "GLException: ${getErrorTypeName(error)}"
                 throw RuntimeException(title)
             }
+        }
+    }
+
+    fun getErrorTypeName(error: Int): String {
+        return when (error) {
+            GL_INVALID_ENUM -> "invalid enum"
+            GL_INVALID_VALUE -> "invalid value"
+            GL_INVALID_OPERATION -> "invalid operation"
+            GL_STACK_OVERFLOW -> throw StackOverflowError("OpenGL Exception")
+            GL_STACK_UNDERFLOW -> "stack underflow"
+            GL_OUT_OF_MEMORY -> throw OutOfMemoryError("OpenGL Exception")
+            GL_INVALID_FRAMEBUFFER_OPERATION -> "invalid framebuffer operation"
+            GL_CONTEXT_LOST -> "context lost"
+            GL_TABLE_TOO_LARGE -> "table too large (arb imaging)"
+            else -> "$error"
         }
     }
 

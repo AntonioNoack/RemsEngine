@@ -23,12 +23,14 @@ import org.lwjgl.opengl.GLCapabilities;
 import org.lwjgl.opengl.GLUtil;
 import org.lwjgl.system.Callback;
 import org.lwjgl.system.MemoryStack;
+import org.lwjgl.system.MemoryUtil;
 
 import java.io.File;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.nio.IntBuffer;
 
+import static me.anno.gpu.debug.OpenGLDebug.*;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.KHRDebug.GL_DEBUG_OUTPUT;
@@ -43,13 +45,12 @@ import static org.lwjgl.system.MemoryUtil.memAddress;
  * <p>
  * modified by Antonio Noack
  * including all os natives has luckily only very few overhead :) (&lt; 1 MiB)
- *
+ * <p>
  * todo rewrite this such that we can have multiple windows, which may be nice for the color picker, and maybe other stuff,
  * todo e.g. having multiple editor windows
- *
+ * <p>
  * todo rebuild and recompile the glfw driver, which handles the touch input, so the input can be assigned to the window
  * (e.g. add 1 to the pointer)
- *
  */
 public class GFXBase0 {
 
@@ -371,12 +372,19 @@ public class GFXBase0 {
         if (Build.INSTANCE.isDebug()) {
             // System.loadLibrary("renderdoc");
             GL43.glDebugMessageCallback((source, type, id, severity, length, message, nothing) -> {
-                System.out.println("source: " + source + ", type: " + type + ", id: " + id + ", severity: " + severity +
-                        ", length: " + length + ", message: " + message);
+                String message2 = message != 0 ? MemoryUtil.memUTF8(message) : null;
+                LOGGER.warn(message2 +
+                        ", source: " + getDebugSourceName(source) +
+                        ", type: " + getDebugTypeName(type) +
+                        // mmh, not correct
+                        ", id: " + GFX.INSTANCE.getErrorTypeName(id) +
+                        ", severity: " + getDebugSeverityName(severity)
+                );
             }, 0);
             glEnable(GL_DEBUG_OUTPUT);
         }
     }
+
 
     public void renderStep() {
 
