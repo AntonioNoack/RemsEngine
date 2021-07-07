@@ -5,7 +5,7 @@ import org.apache.logging.log4j.LogManager
 import org.lwjgl.glfw.GLFW.*
 import java.util.*
 
-class KeyCombination(val key: Int, val modifiers: Int, val type: Type){
+class KeyCombination(val key: Int, val modifiers: Int, val type: Type) {
 
     val hash = key.shl(8) + modifiers * 6 + type.hash
 
@@ -15,7 +15,7 @@ class KeyCombination(val key: Int, val modifiers: Int, val type: Type){
 
     val isWritingKey = !isControl && !isAlt && !(key == GLFW_KEY_SPACE && isShift)
 
-    enum class Type(val hash: Int){
+    enum class Type(val hash: Int) {
         DOWN(0),
         PRESS(1),
         PRESS_UNSAFE(2),
@@ -43,7 +43,7 @@ class KeyCombination(val key: Int, val modifiers: Int, val type: Type){
         operator fun get(key: Int) = keyMapping.reverse[key]
 
         val keyMapping = BiMap<String, Int>(200)
-        fun put(key: Int, vararg buttons: String){
+        fun put(key: Int, vararg buttons: String) {
             buttons.forEach {
                 keyMapping[it] = key
                 keyMapping[it.lowercase(Locale.getDefault())] = key
@@ -52,8 +52,8 @@ class KeyCombination(val key: Int, val modifiers: Int, val type: Type){
         }
 
         init {
-            for(c in 'a' .. 'z') keyMapping["$c"] = GLFW_KEY_A + (c.code - 'a'.code)
-            for(c in '0' .. '9') keyMapping["$c"] = GLFW_KEY_0 + (c.code - '0'.code)
+            for (c in 'a'..'z') keyMapping["$c"] = GLFW_KEY_A + (c.code - 'a'.code)
+            for (c in '0'..'9') keyMapping["$c"] = GLFW_KEY_0 + (c.code - '0'.code)
             put(GLFW_KEY_SPACE, " ", "space")
             put(GLFW_KEY_ENTER, "\n", "enter")
             put(GLFW_KEY_BACKSPACE, "<--", "backspace")
@@ -72,7 +72,7 @@ class KeyCombination(val key: Int, val modifiers: Int, val type: Type){
             put(GLFW_KEY_DOWN, "bottomArrow", "arrowBottom", "downArrow", "arrowDown")
             put(GLFW_KEY_PAGE_UP, "pageUp")
             put(GLFW_KEY_PAGE_DOWN, "pageDown")
-            for(i in 1 .. 25) put(GLFW_KEY_F1 - 1 + i, "f$i")
+            for (i in 1..25) put(GLFW_KEY_F1 - 1 + i, "f$i")
             put(GLFW_KEY_KP_ADD, "+")
             put(GLFW_KEY_KP_SUBTRACT, "-")
             put(GLFW_KEY_KP_MULTIPLY, "*")
@@ -83,16 +83,16 @@ class KeyCombination(val key: Int, val modifiers: Int, val type: Type){
             put(GLFW_MOUSE_BUTTON_MIDDLE, "middle")
             put(GLFW_MOUSE_BUTTON_5, "mouseForward")
             put(GLFW_MOUSE_BUTTON_4, "mouseBackward")
-            for(i in 0 .. 9) put(GLFW_KEY_KP_0 + i, "kp$i", "num$i", "numpad$i", "numblock$i")
+            for (i in 0..9) put(GLFW_KEY_KP_0 + i, "kp$i", "num$i", "numpad$i", "numblock$i")
             put(GLFW_KEY_PRINT_SCREEN, "print", "printScreen")
             put(GLFW_KEY_MENU, "menu", "printMenu")
-            put(GLFW_KEY_LEFT_CONTROL, "control", "ctrl")
+            put(GLFW_KEY_LEFT_CONTROL, "l-control", "l-ctrl", "control", "ctrl")
             put(GLFW_KEY_RIGHT_CONTROL, "r-control", "r-ctrl")
-            put(GLFW_KEY_LEFT_SHIFT, "shift")
+            put(GLFW_KEY_LEFT_SHIFT, "l-shift", "shift")
             put(GLFW_KEY_RIGHT_SHIFT, "r-shift")
-            put(GLFW_KEY_LEFT_SUPER, "super")
-            put(GLFW_KEY_RIGHT_SUPER, "r-shift")
-            put(GLFW_KEY_LEFT_ALT, "alt")
+            put(GLFW_KEY_LEFT_SUPER, "l-windows", "l-super", "windows", "super")
+            put(GLFW_KEY_RIGHT_SUPER, "r-windows", "r-shift")
+            put(GLFW_KEY_LEFT_ALT, "l-alt", "alt")
             put(GLFW_KEY_RIGHT_ALT, "r-alt")
             put(GLFW_KEY_COMMA, ",", "comma")
             put(GLFW_KEY_PERIOD, ".", "period", "dot")

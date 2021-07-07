@@ -360,7 +360,7 @@ open class Texture2D(
         ensurePointer()
         bindBeforeUpload()
         locallyAllocated = allocate(locallyAllocated, w * h * 3L)
-        glTexImage2D(tex2D, 0, GL_RGB8, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, ints)
+        glTexImage2D(tex2D, 0, GL_RGB8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, ints)
         isCreated = true
         filtering(filtering)
         clamping(clamping)
