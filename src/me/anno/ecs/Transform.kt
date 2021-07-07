@@ -72,19 +72,33 @@ class Transform {
 
     }
 
-    fun setLocal(localTransform: Matrix4f) {
-        /*localTransform.set(
-            values.m00().toDouble(), values.m01().toDouble(), values.m02().toDouble(), values.m03().toDouble(),
-            values.m10().toDouble(), values.m11().toDouble(), values.m12().toDouble(), values.m13().toDouble(),
-            values.m20().toDouble(), values.m21().toDouble(), values.m22().toDouble(), values.m23().toDouble()
+    fun setLocal(values: Matrix4f) {
+        localTransform.set(
+            values.m00().toDouble(), values.m01().toDouble(), values.m02().toDouble(),
+            values.m10().toDouble(), values.m11().toDouble(), values.m12().toDouble(),
+            values.m20().toDouble(), values.m21().toDouble(), values.m22().toDouble(),
+            values.m30().toDouble(), values.m31().toDouble(), values.m32().toDouble(),
         )
-        updateLocal()
-        invalidate()*/
+        // updateLocal()
+        // invalidate()
         // todo this is 99% correct, now update the matrix
         // todo where is the ghost rotation coming from?
-        pos.set(localTransform.m30().toDouble(), localTransform.m31().toDouble(), localTransform.m32().toDouble())
-        localTransform.getNormalizedRotation(rot)
-        sca.set(localTransform.getScale(Vector3f()))
+        pos.set(values.m30().toDouble(), values.m31().toDouble(), values.m32().toDouble())
+        values.getUnnormalizedRotation(rot)
+        sca.set(values.getScale(Vector3f()))
+
+        /*synchronized(Unit) {
+            println("comparison:")
+            println(values)
+            println(localTransform)
+            println(
+                Matrix4d()
+                    .translate(pos)
+                    .rotate(rot)
+                    .scale(sca)
+            )
+        }*/
+
     }
 
     fun distanceSquaredGlobally(v: Vector3d): Double {

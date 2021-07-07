@@ -74,7 +74,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
             )
         // LOGGER.info("Found ${meshes.size} meshes and ${animations.size} animations on ${boneList.size} bones, in $resourcePath")
         // println(animations)
-        return AnimGameItem(meshes, animations)
+        return AnimGameItem(meshes, boneList, animations)
     }
 
     private fun loadMeshes(

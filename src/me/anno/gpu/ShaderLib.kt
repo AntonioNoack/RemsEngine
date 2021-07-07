@@ -794,6 +794,7 @@ object ShaderLib {
                     "a4 weights;\n" +
                     "ai4 indices;\n" +
                     "uniform float hasAnimation;\n" +
+                    "uniform mat4x3 localTransform;\n" +
                     "uniform mat4x3 jointTransforms[$maxBones];\n" +
                     "void main(){\n" +
                     "   localPosition = coords;\n" +
@@ -807,9 +808,10 @@ object ShaderLib {
                     "       localPosition = jointMat * vec4(localPosition, 1.0);\n" +
                     "       normal = jointMat * vec4(normal, 0.0);\n" +
                     "   }" +
+                    "   normal = localTransform * vec4(normal, 0.0);\n" +
+                    "   localPosition = localTransform * vec4(localPosition, 1.0);\n" +
                     "   gl_Position = transform * vec4(localPosition, 1.0);\n" +
                     "   uv = uvs;\n" +
-                    "   normal = normals;\n" +
                     "   weight = weights;\n" +
                     "   vColor = colors;\n" +
                     positionPostProcessing +

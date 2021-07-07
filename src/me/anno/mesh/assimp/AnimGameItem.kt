@@ -11,6 +11,7 @@ import kotlin.math.min
 
 class AnimGameItem(
     val hierarchy: Entity,
+    val bones: List<Bone>,
     val animations: Map<String, Animation>
 ) {
 

@@ -11,8 +11,4 @@ class Bone(
 
     val skinningMatrix = Matrix4f()
 
-    /* init {
-         println("$id $name $offsetMatrix")
-     }*/
-
 }

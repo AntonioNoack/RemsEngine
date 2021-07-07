@@ -50,6 +50,7 @@ open class MeshData : ICacheData {
         color: Vector4fc,
         animationIndex: Int
     ) {
+
         val shader = shaderAssimp.value
         shader.use()
         shader3DUniforms(shader, stack, color)
@@ -90,53 +91,75 @@ open class MeshData : ICacheData {
             }
         }*/
 
-        drawHierarchy(shader, stack, color, model0.hierarchy)
+        transformUniform(shader, stack)
+
+        val localStack = Matrix4x3fArrayList()
+        drawHierarchy(shader, localStack, color, model0, model0.hierarchy)
+
+        // draw skeleton for debugging purposes
+        // makes sense for the working skeletons, but is broken for the incorrect ones...
+        // so at least that seems to be correct...
+        /*for(bone in model0.bones){
+            stack.next {
+                stack.mul(Matrix4f(bone.offsetMatrix).invert())
+                GFXx3D.draw3DCircle(null, 0.0, stack, 0.7f, 0f, 360f, color)
+            }
+        }*/
+
 
     }
 
     fun vec3(v: Vector3d): Vector3f = Vector3f(v.x.toFloat(), v.y.toFloat(), v.z.toFloat())
     fun quat(q: Quaterniond): Quaternionf = Quaternionf(q.x.toFloat(), q.y.toFloat(), q.z.toFloat(), q.w.toFloat())
 
-    fun drawHierarchy(shader: Shader, stack: Matrix4fArrayList, color: Vector4fc, entity: Entity) {
-        stack.next {
-
-            val transform = entity.transform
-            // val local = transform.localTransform
-            /*stack.mul(
-                local.m00().toFloat(), local.m01().toFloat(), local.m02().toFloat(), 0f,
-                local.m10().toFloat(), local.m11().toFloat(), local.m12().toFloat(), 0f,
-                local.m20().toFloat(), local.m21().toFloat(), local.m22().toFloat(), 0f,
-                local.m30().toFloat(), local.m31().toFloat(), local.m32().toFloat(), 1f,
-            )*/
-            stack.translate(vec3(transform.localPosition))
-            stack.rotate(quat(transform.localRotation))
-            stack.scale(vec3(transform.localScale))
+    fun drawHierarchy(
+        shader: Shader,
+        stack: Matrix4x3fArrayList,
+        color: Vector4fc,
+        model0: AnimGameItem,
+        entity: Entity
+    ) {
+        stack.pushMatrix()
 
 
-            val assimpModel = entity.getComponent<AssimpModel>()
-            if (assimpModel != null) {
+        val transform = entity.transform
+        val local = transform.localTransform
 
-                transformUniform(shader, stack)
+        // this moves the engine parts correctly, but ruins the rotation of the ghost
+        // and scales it totally incorrectly
+        stack.mul(
+            Matrix4x3f(
+                local.m00().toFloat(), local.m01().toFloat(), local.m02().toFloat(),
+                local.m10().toFloat(), local.m11().toFloat(), local.m12().toFloat(),
+                local.m20().toFloat(), local.m21().toFloat(), local.m22().toFloat(),
+                local.m30().toFloat(), local.m31().toFloat(), local.m32().toFloat(),
+            )
+        )
 
-                val diffuse = Vector4f()
-                for (mesh in assimpModel.meshes) {
-                    val material = mesh.material
-                    val texturePath = material?.texture
-                    val textureOrNull = if (texturePath == null) null else getImage(texturePath, 1000, true)
-                    val texture = textureOrNull ?: whiteTexture
-                    texture.bind(0, Filtering.LINEAR, Clamping.REPEAT)
-                    diffuse.set(color)
-                    if (material != null) diffuse.mul(material.diffuse)
-                    GFX.shaderColor(shader, "tint", diffuse)
-                    mesh.buffer.draw(shader)
-                }
+        val assimpModel = entity.getComponent<AssimpModel>()
+        if (assimpModel != null) {
+
+            shader.m4x3("localTransform", stack)
+
+            val diffuse = Vector4f()
+            for (mesh in assimpModel.meshes) {
+                val material = mesh.material
+                val texturePath = material?.diffuseMap
+                val textureOrNull = if (texturePath == null) null else getImage(texturePath, 1000, true)
+                val texture = textureOrNull ?: whiteTexture
+                texture.bind(0, Filtering.LINEAR, Clamping.REPEAT)
+                diffuse.set(color)
+                if (material != null) diffuse.mul(material.diffuse)
+                GFX.shaderColor(shader, "tint", diffuse)
+                mesh.buffer.draw(shader)
             }
-
-            for (child in entity.children) {
-                drawHierarchy(shader, stack, color, child)
-            }
-
         }
+
+        for (child in entity.children) {
+            drawHierarchy(shader, stack, color, model0, child)
+        }
+
+        stack.popMatrix()
     }
 
     fun drawObj(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {

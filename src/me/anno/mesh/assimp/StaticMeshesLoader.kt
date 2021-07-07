@@ -24,7 +24,7 @@ open class StaticMeshesLoader {
             ?: throw Exception("Error loading model")
         val materials = loadMaterials(aiScene, texturesDir)
         val meshes = loadMeshes(aiScene, materials)
-        return AnimGameItem(meshes, emptyMap())
+        return AnimGameItem(meshes, emptyList(), emptyMap())
     }
 
     // todo convert assimp mesh such that it's a normal mesh; because all meshes should be the same to create :)
@@ -115,7 +115,7 @@ open class StaticMeshesLoader {
         val specular = getColor(aiMaterial, color, AI_MATKEY_COLOR_SPECULAR)
 
         val material = Material(ambient, diffuse, specular, 1.0f)
-        material.texture = if (texture == null) null else getReference(texture)
+        material.diffuseMap = if (texture == null) null else getReference(texture)
         return material
 
     }
