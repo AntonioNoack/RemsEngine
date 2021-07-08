@@ -6,6 +6,7 @@ import me.anno.io.files.FileReference
 import me.anno.studio.rems.RemsStudio.gfxSettings
 import me.anno.video.FFMPEGMetadata
 import me.anno.video.FFMPEGStream
+import org.apache.logging.log4j.LogManager
 import kotlin.math.max
 
 class VideoData(
@@ -19,7 +20,7 @@ class VideoData(
         val meta = FFMPEGMetadata.getMeta(file, false)!!
         val frame0 = bufferIndex * bufferLength
         if (frame0 <= -bufferLength || frame0 >= max(1, meta.videoFrameCount))
-            throw IllegalArgumentException("Access of frames is out of bounds: $frame0/${meta.videoFrameCount}")
+            LOGGER.warn("Access of frames is out of bounds: $frame0/${meta.videoFrameCount}")
     }
 
     // what about video webp? I think it's pretty rare...
@@ -49,6 +50,7 @@ class VideoData(
     }
 
     companion object {
+        private val LOGGER = LogManager.getLogger(VideoData::class)
         // crashes once were common
         // now that this is fixed,
         // we can use a larger buffer size like 128 instead of 16 frames

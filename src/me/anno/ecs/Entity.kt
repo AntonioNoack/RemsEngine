@@ -8,6 +8,9 @@ import me.anno.io.serialization.SerializedProperty
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.utils.structures.Hierarchical
+import me.anno.utils.types.Floats.f2
+import me.anno.utils.types.Floats.f2s
+import me.anno.utils.types.Vectors.print
 
 // entities would be an idea to make effects more modular
 // it could apply new effects to both the camera and image sources
@@ -185,6 +188,25 @@ open class Entity() : NamedSaveable(), Hierarchical<Entity> {
         val nextDepth = depth + 1
         for (child in children)
             text.append(child.toString(nextDepth))
+        for (component in components)
+            text.append(component.toString(nextDepth))
+        return text
+    }
+
+    fun toStringWithTransforms(depth: Int): StringBuilder {
+        val text = StringBuilder()
+        for (i in 0 until depth) text.append('\t')
+        val p = transform.localPosition
+        val r = transform.localRotation
+        val s = transform.localScale
+        text.append(
+            "Entity((${p.x.f2s()},${p.y.f2s()},${p.z.f2s()})," +
+                    "(${r.x.f2s()},${r.y.f2s()},${r.z.f2s()},${r.w.f2s()})," +
+                    "(${s.x.f2s()},${s.y.f2s()},${s.z.f2s()}),'$name',$sizeOfHierarchy):\n"
+        )
+        val nextDepth = depth + 1
+        for (child in children)
+            text.append(child.toStringWithTransforms(nextDepth))
         for (component in components)
             text.append(component.toString(nextDepth))
         return text

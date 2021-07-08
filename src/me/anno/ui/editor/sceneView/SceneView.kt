@@ -925,6 +925,10 @@ open class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")
                 val factor = pow(1.02f, delta)
                 val newOrbitDistance = radius * factor
                 camera.putValue(camera.orbitRadius, newOrbitDistance, false)
+                if (camera == nullCamera) {
+                    camera.putValue(camera.farZ, camera.farZ[cameraTime] * factor, false)
+                    camera.putValue(camera.nearZ, camera.nearZ[cameraTime] * factor, false)
+                }
             }
         }
     }

@@ -10,7 +10,7 @@ import me.anno.gpu.GFX.isFinalRendering
 import me.anno.io.files.FileReference
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
-import me.anno.io.files.EmptyRef
+import me.anno.io.files.InvalidRef
 import me.anno.language.translation.Dict
 import me.anno.mesh.assimp.AnimatedMeshesLoader
 import me.anno.mesh.gltf.GltfLogger
@@ -57,7 +57,7 @@ class Mesh(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
 
     // for the start it is nice to be able to import meshes like a torus into the engine :)
 
-    constructor() : this(EmptyRef, null)
+    constructor() : this(InvalidRef, null)
 
     var lastFile: FileReference? = null
     var extension = ""
@@ -210,10 +210,8 @@ class Mesh(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
 
                     // load the 3D model
                     val data = loadModel(file, "Assimp", { meshData ->
-                        // load the model...
-                        // assume it's obj first...
                         val reader = AnimatedMeshesLoader
-                        val meshes = reader.load(file.toString(), file.getParent().toString())
+                        val meshes = reader.load(file)
                         meshData.assimpModel = meshes
                     }) { it.assimpModel }
 

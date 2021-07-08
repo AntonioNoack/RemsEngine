@@ -2,27 +2,51 @@ package me.anno.mesh.assimp
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.MeshRenderer
-import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.files.FileFileRef
+import me.anno.io.files.FileReference
+import me.anno.io.files.InvalidRef
 import me.anno.mesh.assimp.AssimpTree.convert
+import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector4f
 import org.lwjgl.assimp.*
 import org.lwjgl.assimp.Assimp.*
+import org.lwjgl.system.MemoryUtil
+import java.nio.ByteBuffer
 import java.nio.IntBuffer
 
 
 open class StaticMeshesLoader {
 
     companion object {
+
         val defaultFlags = aiProcess_GenSmoothNormals or aiProcess_JoinIdenticalVertices or aiProcess_Triangulate or
-                aiProcess_FixInfacingNormals// or aiProcess_PreTransformVertices // <- disables animations
+                aiProcess_FixInfacingNormals or aiProcess_GlobalScale
+
+        // or aiProcess_PreTransformVertices // <- disables animations
         private val LOGGER = LogManager.getLogger(StaticMeshesLoader::class)
+
     }
 
-    open fun load(resourcePath: String, texturesDir: String?, flags: Int = defaultFlags): AnimGameItem {
-        val aiScene: AIScene = aiImportFile(resourcePath, flags or aiProcess_PreTransformVertices)
-            ?: throw Exception("Error loading model")
-        val materials = loadMaterials(aiScene, texturesDir)
+    fun fileToBuffer(resourcePath: FileReference): ByteBuffer {
+        val bytes = resourcePath.inputStream().readBytes()
+        val byteBuffer = MemoryUtil.memAlloc(bytes.size)
+        byteBuffer.put(bytes)
+        byteBuffer.flip()
+        return byteBuffer
+    }
+
+    fun loadFile(file: FileReference, flags: Int): AIScene {
+        return if (file is FileFileRef) {
+            aiImportFile(file.absolutePath, flags)
+        } else {
+            aiImportFileFromMemory(fileToBuffer(file), flags, file.extension)
+        } ?: throw Exception("Error loading model, ${aiGetErrorString()}")
+    }
+
+    open fun load(file: FileReference, resources: FileReference, flags: Int = defaultFlags): AnimGameItem {
+        val aiScene = loadFile(file, flags or aiProcess_PreTransformVertices)
+        val materials = loadMaterials(aiScene, resources)
         val meshes = loadMeshes(aiScene, materials)
         return AnimGameItem(meshes, emptyList(), emptyMap())
     }
@@ -82,7 +106,7 @@ open class StaticMeshesLoader {
         return buildScene(aiScene, meshes)
     }
 
-    fun loadMaterials(aiScene: AIScene, texturesDir: String?): Array<Material> {
+    fun loadMaterials(aiScene: AIScene, texturesDir: FileReference): Array<Material> {
         val numMaterials = aiScene.mNumMaterials()
         val aiMaterials = aiScene.mMaterials()
         return Array(numMaterials) {
@@ -105,7 +129,7 @@ open class StaticMeshesLoader {
 
     fun processMaterial(
         aiMaterial: AIMaterial,
-        texturesDir: String?
+        texturesDir: FileReference
     ): Material {
 
         val color = AIColor4D.create()
@@ -115,29 +139,22 @@ open class StaticMeshesLoader {
         val specular = getColor(aiMaterial, color, AI_MATKEY_COLOR_SPECULAR)
 
         val material = Material(ambient, diffuse, specular, 1.0f)
-        material.diffuseMap = if (texture == null) null else getReference(texture)
+        material.diffuseMap = texture
         return material
 
     }
 
-    fun getPath(aiMaterial: AIMaterial, type: Int, texturesDir: String?): String? {
+    fun getPath(aiMaterial: AIMaterial, type: Int, parentFolder: FileReference): FileReference {
+        if (parentFolder == InvalidRef) return InvalidRef
         val path = AIString.calloc()
         aiGetMaterialTexture(
             aiMaterial, type, 0, path, null as IntBuffer?,
             null, null, null, null, null
         )
-        val textPath = path.dataString() ?: null
-        var texture: String? = null
-        if (textPath != null && textPath.isNotEmpty()) {
-            var textureFile = ""
-            if (texturesDir != null && texturesDir.isNotEmpty()) {
-                textureFile += "$texturesDir/"
-            }
-            textureFile += textPath
-            textureFile = textureFile.replace("//", "/")
-            texture = textureFile
-        }
-        return texture
+        val path0 = path.dataString() ?: return InvalidRef
+        if (path0.isBlank2()) return InvalidRef
+        val path1 = path0.replace("//", "/")
+        return parentFolder.getChild(path1)
     }
 
     fun getColor(aiMaterial: AIMaterial, color: AIColor4D, flag: String): Vector4f {

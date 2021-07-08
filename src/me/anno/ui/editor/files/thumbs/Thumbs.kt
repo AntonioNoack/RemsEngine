@@ -18,8 +18,8 @@ import me.anno.gpu.shader.Renderer
 import me.anno.gpu.texture.*
 import me.anno.image.HDRImage
 import me.anno.image.tar.TGAImage
-import me.anno.io.files.FileReference
 import me.anno.io.config.ConfigBasics
+import me.anno.io.files.FileReference
 import me.anno.objects.Video
 import me.anno.objects.documents.pdf.PDFCache
 import me.anno.utils.Color.a
@@ -39,7 +39,6 @@ import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
 import org.lwjgl.opengl.GL11.*
 import java.awt.image.BufferedImage
-import java.io.File
 import java.util.*
 import javax.imageio.ImageIO
 import kotlin.concurrent.thread
@@ -53,7 +52,7 @@ import kotlin.math.roundToInt
  * */
 object Thumbs {
 
-    private val folder = ConfigBasics.cacheFolder.getChild("thumbs")!!
+    private val folder = ConfigBasics.cacheFolder.getChild("thumbs")
     private val sizes = intArrayOf(32, 64, 128, 256, 512)
     private val neededSizes = IntArray(sizes.last() + 1)
     private const val timeout = 5000L
@@ -105,7 +104,12 @@ object Thumbs {
         }
     }
 
-    private fun saveNUpload(srcFile: FileReference, dstFile: FileReference, dst: BufferedImage, callback: (Texture2D) -> Unit) {
+    private fun saveNUpload(
+        srcFile: FileReference,
+        dstFile: FileReference,
+        dst: BufferedImage,
+        callback: (Texture2D) -> Unit
+    ) {
         dstFile.getParent()!!.mkdirs()
         ImageIO.write(dst, destinationFormat, dstFile.outputStream())
         upload(srcFile, dst, callback)
@@ -120,10 +124,12 @@ object Thumbs {
     ) {
         val sw = src.width
         val sh = src.height
+        if (min(sw, sh) < 1) return
         if (max(sw, sh) < size) {
             return generate(srcFile, size / 2, callback)
         }
         val (w, h) = scale(sw, sh, size)
+        if (min(w, h) < 1) return
         if (w == sw && h == sh) {
             upload(srcFile, src, callback)
         } else {

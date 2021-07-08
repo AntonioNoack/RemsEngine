@@ -3,18 +3,15 @@ package me.anno.mesh.assimp
 import me.anno.ecs.Entity
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.files.InvalidRef
 import me.anno.mesh.assimp.AnimGameItem.Companion.maxBones
 import me.anno.mesh.assimp.AnimatedMeshesLoader2.boneTransform2
 import me.anno.mesh.assimp.AnimatedMeshesLoader2.getDuration
 import me.anno.mesh.assimp.AssimpTree.convert
 import me.anno.utils.OS
 import org.apache.logging.log4j.LogManager
-import org.joml.Matrix4f
-import org.joml.Quaternionf
-import org.joml.Vector3d
+import org.joml.*
 import org.lwjgl.assimp.*
-import org.lwjgl.assimp.Assimp.aiImportFile
-import java.io.File
 import java.nio.charset.StandardCharsets
 import kotlin.math.max
 import kotlin.math.min
@@ -25,25 +22,91 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
 
     private val LOGGER = LogManager.getLogger(StaticMeshesLoader::class)
 
-    override fun load(resourcePath: String, texturesDir: String?, flags: Int): AnimGameItem {
-        val aiScene: AIScene = aiImportFile(resourcePath, flags) ?: throw Exception("Error loading model")
+    fun matrixFix(metadata: Map<String, Any>): Matrix3f {
+
+        var unitScaleFactor = 1f
+
+        val upAxis = (metadata["UpAxis"] as? Int) ?: 1
+        val upAxisSign = (metadata["UpAxisSign"] as? Int) ?: 1
+
+        val frontAxis = (metadata["FrontAxis"] as? Int) ?: 2
+        val frontAxisSign = (metadata["FrontAxisSign"] as? Int) ?: 1
+
+        val coordAxis = (metadata["CoordAxis"] as? Int) ?: 0
+        val coordAxisSign = (metadata["CoordAxisSign"] as? Int) ?: 1
+
+        unitScaleFactor = (metadata["UnitScaleFactor"] as? Double)?.toFloat() ?: unitScaleFactor
+
+        val upVec = Vector3f()
+        val forwardVec = Vector3f()
+        val rightVec = Vector3f()
+
+        upVec[upAxis] = upAxisSign * unitScaleFactor
+        forwardVec[frontAxis] = frontAxisSign * unitScaleFactor
+        rightVec[coordAxis] = coordAxisSign * unitScaleFactor
+
+        return Matrix3f(rightVec, upVec, forwardVec)
+
+        // Scene->mRootNode->mTransformation = mat;
+
+    }
+
+    operator fun Vector3f.set(index: Int, value: Float) {
+        when (index) {
+            0 -> x = value
+            1 -> y = value
+            2 -> z = value
+        }
+    }
+
+    fun load(file: FileReference) = load(file, file.getParent() ?: InvalidRef, defaultFlags)
+    override fun load(file: FileReference, resources: FileReference, flags: Int): AnimGameItem {
+        // val store = aiCreatePropertyStore()!!
+        // aiSetImportPropertyFloat(store, AI_CONFIG_GLOBAL_SCALE_FACTOR_KEY, 1f)
+        // val aiScene: AIScene = aiImportFileExWithProperties(resourcePath, flags, null, store)
+        //     ?: throw Exception("Error loading model '$resourcePath'")
+        val aiScene = loadFile(file, flags)
+        val metadata = loadMetadata(aiScene)
+        val matrixFix = matrixFix(metadata)
+        val materials = loadMaterials(aiScene, resources)
+        val boneList = ArrayList<Bone>()
+        val boneMap = HashMap<String, Bone>()
+        val meshes = loadMeshes(aiScene, materials, boneList, boneMap)
+        val animations = loadAnimations(aiScene, boneList, boneMap)
+        var name = file.name
+        if (name == "scene.gltf") name = file.getParent()!!.name
+        val txt = "" +
+                "metadata:\n$metadata\n" +
+                "matrix fix:\n$matrixFix\n" +
+                "bones:\n${boneList.map { "${it.name}: ${it.offsetMatrix}" }}\n" +
+                "hierarchy:\n${meshes.toStringWithTransforms(0)}"
+        val ref = getReference(OS.desktop, "$name-${file.hashCode()}.txt")
+        LOGGER.info("$file.metadata: ")
+        if (!ref.exists || ref.readText() != txt) ref.writeText(txt)
+        // LOGGER.info("Found ${meshes.size} meshes and ${animations.size} animations on ${boneList.size} bones, in $resourcePath")
+        // println(animations)
+        return AnimGameItem(meshes, boneList, animations)
+    }
+
+    private fun loadMetadata(aiScene: AIScene): Map<String, Any> {
         val metadata = aiScene.mMetaData()
-        if (metadata != null) {
+        return if (metadata != null) {
+            val map = HashMap<String, Any>()
             // UnitScaleFactor
             val keys = metadata.mKeys()
             val values = metadata.mValues()
             for (i in 0 until metadata.mNumProperties()) {
                 val key = keys[i].dataString()
                 val valueRaw = values[i]
-                val valueType = valueRaw.mType()
-                val value = when (valueType) {
+                val value = when (valueRaw.mType()) {
                     0 -> valueRaw.mData(1)[0] // bool
                     1 -> valueRaw.mData(4).int // int
                     2 -> valueRaw.mData(8).long // long, unsigned
                     3 -> valueRaw.mData(4).float // float
                     4 -> {// string
-                        val buff = valueRaw.mData(256)
-                        val length = buff.int
+                        val capacity = 2048
+                        val buff = valueRaw.mData(capacity)
+                        val length = max(0, min(capacity - 4, buff.int))
                         buff.limit(buff.position() + length)
                         "$length: '${StandardCharsets.UTF_8.decode(buff)}'"
                     }
@@ -55,26 +118,11 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
                     }
                     else -> continue
                 }
-                LOGGER.info("Metadata $key: $valueType, $value")
+                // LOGGER.info("Metadata $key: $valueType, $value")
+                map[key] = value
             }
-        }
-        val materials = loadMaterials(aiScene, texturesDir)
-        val boneList = ArrayList<Bone>()
-        val boneMap = HashMap<String, Bone>()
-        val meshes = loadMeshes(aiScene, materials, boneList, boneMap)
-        val animations = loadAnimations(aiScene, boneList, boneMap)
-        val nameFile = File(resourcePath)
-        var name = nameFile.name
-        if (name == "scene.gltf") name = nameFile.parentFile.name
-        getReference(OS.desktop, "$name-${resourcePath.hashCode()}.txt")
-            .writeText(
-                "" +
-                        "${boneList.map { "${it.name}: ${it.offsetMatrix}" }}\n" +
-                        "$meshes"
-            )
-        // LOGGER.info("Found ${meshes.size} meshes and ${animations.size} animations on ${boneList.size} bones, in $resourcePath")
-        // println(animations)
-        return AnimGameItem(meshes, boneList, animations)
+            return map
+        } else emptyMap()
     }
 
     private fun loadMeshes(
@@ -102,14 +150,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         boneMap: HashMap<String, Bone>
     ): Map<String, Animation> {
         val root = aiScene.mRootNode()!!
-        // val rootNode = buildNodesTree(root, null)
-        // Unit-Matrix -> walking dae dude is correct
-        // todo the static model of the engine is incorrect as well... we are missing something...
         val globalInverseTransformation = convert(root.mTransformation()).invert()
-        /*return processAnimations(
-            aiScene, boneList, rootNode,
-            globalInverseTransformation
-        )*/
         return processAnimations2(
             aiScene, boneList, boneMap, root,
             globalInverseTransformation

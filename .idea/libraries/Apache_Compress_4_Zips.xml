@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="Apache Compress 4 Zips">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/compress/commons-compress-1.20.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/compress/xz-1.9.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

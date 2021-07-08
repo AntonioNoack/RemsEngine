@@ -27,8 +27,8 @@ object FileRootRef : FileReference("null") {
 
     override fun listChildren() = File.listRoots().map { getReference(it) }
 
-    override fun getChild(name: String): FileReference? {
-        return listChildren().firstOrNull { it.name == name }
+    override fun getChild(name: String): FileReference {
+        return listChildren().firstOrNull { it.name == name } ?: InvalidRef
     }
 
     override fun getParent() = null

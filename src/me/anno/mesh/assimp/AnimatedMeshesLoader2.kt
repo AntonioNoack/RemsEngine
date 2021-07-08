@@ -117,8 +117,6 @@ object AnimatedMeshesLoader2 : StaticMeshesLoader() {
             val rotation = interpolateRotation(animationTime, aiNodeAnim)
             val translation = interpolatePosition(animationTime, aiNodeAnim)
 
-            // println("$scale $rotation $translation")
-
             localTransform.identity()
                 .translate(translation)
                 .rotate(rotation)

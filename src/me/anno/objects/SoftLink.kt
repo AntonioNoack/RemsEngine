@@ -16,7 +16,7 @@ import me.anno.animation.AnimatedProperty
 import me.anno.animation.Type
 import me.anno.gpu.RenderState.useFrame
 import me.anno.gpu.shader.Renderer
-import me.anno.io.files.EmptyRef
+import me.anno.io.files.InvalidRef
 import me.anno.objects.modes.UVProjection
 import me.anno.objects.text.Text
 import me.anno.studio.rems.Scene
@@ -38,7 +38,7 @@ import kotlin.math.roundToInt
 
 class SoftLink(var file: FileReference) : GFXTransform(null) {
 
-    constructor() : this(EmptyRef)
+    constructor() : this(InvalidRef)
 
     init { timelineSlot.setDefault(0) }
 

@@ -4,10 +4,13 @@ import me.anno.studio.StudioBase
 import me.anno.utils.files.Files.openInExplorer
 import me.anno.utils.files.LocalFile.toLocalPath
 import me.anno.utils.types.Strings.isBlank2
+import org.apache.commons.compress.archivers.sevenz.SevenZFile
+import org.apache.commons.compress.archivers.zip.ZipFile
+import org.apache.commons.compress.utils.SeekableInMemoryByteChannel
+import org.apache.logging.log4j.LogManager
 import java.io.*
 import java.net.URI
 import java.nio.charset.Charset
-import java.util.zip.ZipInputStream
 
 /**
  * doesn't call toLowerCase() for each comparison,
@@ -27,6 +30,8 @@ abstract class FileReference(val absolutePath: String) {
     // todo other protocols as well, so like an URI replacement?
 
     companion object {
+
+        private val LOGGER = LogManager.getLogger(FileReference::class)
 
         fun getReference(str: String): FileReference {
             if (str.isBlank2()) return EmptyRef
@@ -69,7 +74,7 @@ abstract class FileReference(val absolutePath: String) {
 
     }
 
-    abstract fun getChild(name: String): FileReference?
+    abstract fun getChild(name: String): FileReference
 
     /*constructor() : this("")
     constructor(parent: File, name: String) : this(File(parent, name))
@@ -148,15 +153,15 @@ abstract class FileReference(val absolutePath: String) {
     abstract fun listChildren(): List<FileReference>?
 
     val zipFileForDirectory
-        get(): ZipFile? {
+        get(): FileReference? {
             var zipFile = zipFile ?: return null
             if (!zipFile.isDirectory) {
-                zipFile = ZipCache.getMeta(zipFile, false) ?: return null
+                zipFile = ZipCache.getMeta2(zipFile, false) ?: return null
             }
             return zipFile
         }
 
-    private val zipFile get() = ZipCache.getMeta(this, false)
+    private val zipFile get() = ZipCache.getMeta2(this, false)
 
     abstract fun getParent(): FileReference?
 
@@ -166,16 +171,37 @@ abstract class FileReference(val absolutePath: String) {
     abstract val isDirectory: Boolean
 
     val isDirectoryOrPacked get() = isDirectory || isPacked.value
-    val isPacked = lazy { !isDirectory && isZipFile() }
+    val isPacked = lazy {
+        !isDirectory && isZipFile()
+    }
 
     private fun isZipFile(): Boolean {
-        val zis = ZipInputStream(inputStream())
-        return try {
-            zis.nextEntry != null
-        } catch (e: IOException) {
-            false
-        } finally {
-            zis.close()
+        if (extension.equals("7z", true)) {
+            val zis = if (this is FileFileRef) SevenZFile(file) else
+                SevenZFile(SeekableInMemoryByteChannel(inputStream().readBytes()))
+            return try {
+                val result = zis.nextEntry != null
+                LOGGER.info("Checking $absolutePath for zip file, success")
+                result
+            } catch (e: IOException) {
+                LOGGER.info("Checking $absolutePath for zip file, ${e.message}")
+                false
+            } finally {
+                zis.close()
+            }
+        } else {
+            val zis = if (this is FileFileRef) ZipFile(file) else
+                ZipFile(SeekableInMemoryByteChannel(inputStream().readBytes()))
+            return try {
+                val result = zis.entries.hasMoreElements()
+                LOGGER.info("Checking $absolutePath for zip file, success")
+                result
+            } catch (e: IOException) {
+                LOGGER.info("Checking $absolutePath for zip file, ${e.message}")
+                false
+            } finally {
+                zis.close()
+            }
         }
     }
 
@@ -197,13 +223,18 @@ abstract class FileReference(val absolutePath: String) {
         return absolutePath
     }
 
-    @Deprecated("This function only is defined, if the reference is an actual file", ReplaceWith("inputStream(),outputStream()"))
-    val unsafeFile get() = (this as FileFileRef).file
+    @Deprecated(
+        "This function only is defined, if the reference is an actual file",
+        ReplaceWith("inputStream(),outputStream()")
+    )
+    val unsafeFile
+        get() = (this as FileFileRef).file
 
     fun toLocalPath(workspace: FileReference? = StudioBase.workspace): String {
         return absolutePath.toLocalPath(workspace)
     }
 
     // todo support for ffmpeg to read all zip files
+
 
 }

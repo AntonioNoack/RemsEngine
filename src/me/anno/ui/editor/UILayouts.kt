@@ -12,10 +12,11 @@ import me.anno.input.Input
 import me.anno.input.Input.mouseX
 import me.anno.input.Input.mouseY
 import me.anno.input.MouseButton
-import me.anno.io.files.FileReference
 import me.anno.io.config.ConfigBasics
 import me.anno.io.files.FileFileRef
+import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.files.InvalidRef
 import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
 import me.anno.objects.Camera
@@ -38,6 +39,8 @@ import me.anno.studio.rems.Rendering.renderSetPercent
 import me.anno.studio.rems.Selection.selectTransform
 import me.anno.studio.rems.Selection.selectedTransform
 import me.anno.studio.rems.ui.RemsStudioUITypeLibrary
+import me.anno.studio.rems.ui.TransformTreeView
+import me.anno.studio.rems.ui.TransformTreeView.Companion.openAddMenu
 import me.anno.ui.base.Panel
 import me.anno.ui.base.SpacePanel
 import me.anno.ui.base.Visibility
@@ -68,8 +71,6 @@ import me.anno.ui.editor.graphs.GraphEditor
 import me.anno.ui.editor.sceneTabs.SceneTabs
 import me.anno.ui.editor.sceneView.ScenePreview
 import me.anno.ui.editor.sceneView.SceneView
-import me.anno.studio.rems.ui.TransformTreeView
-import me.anno.studio.rems.ui.TransformTreeView.Companion.openAddMenu
 import me.anno.ui.input.BooleanInput
 import me.anno.ui.input.EnumInput
 import me.anno.ui.input.FileInput
@@ -226,6 +227,7 @@ object UILayouts {
 
     fun rootIsOk(file: FileReference): Boolean {
         if (file.exists) return true
+        if (file == InvalidRef) return false
         return rootIsOk(file.getParent() ?: return false)
     }
 
@@ -270,7 +272,7 @@ object UILayouts {
                     // todo translate
                     msg = "Root $dirNameEn does not exist!"
                 }
-                !file.getParent()!!.exists -> {
+                file.getParent()?.exists != true -> {
                     state = -1
                     // todo translate
                     msg = "Parent $dirNameEn does not exist!"

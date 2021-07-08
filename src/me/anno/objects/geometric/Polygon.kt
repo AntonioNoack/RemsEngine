@@ -17,7 +17,7 @@ import me.anno.language.translation.Dict
 import me.anno.objects.GFXTransform
 import me.anno.objects.Transform
 import me.anno.animation.AnimatedProperty
-import me.anno.io.files.EmptyRef
+import me.anno.io.files.InvalidRef
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
@@ -40,7 +40,7 @@ open class Polygon(parent: Transform? = null) : GFXTransform(parent) {
 
     override fun getDocumentationURL(): URL? = URL("https://remsstudio.phychi.com/?s=learn/geometry")
 
-    var texture: FileReference = EmptyRef
+    var texture: FileReference = InvalidRef
     var autoAlign = false
     var filtering = Filtering.LINEAR
 

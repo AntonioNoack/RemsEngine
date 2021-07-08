@@ -12,7 +12,7 @@ import me.anno.gpu.texture.Filtering
 import me.anno.io.files.FileReference
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
-import me.anno.io.files.EmptyRef
+import me.anno.io.files.InvalidRef
 import me.anno.objects.GFXTransform
 import me.anno.objects.Transform
 import me.anno.objects.documents.SiteSelection.parseSites
@@ -43,7 +43,7 @@ import kotlin.math.*
 
 open class PDFDocument(var file: FileReference, parent: Transform?) : GFXTransform(parent), SplittableElement {
 
-    constructor() : this(EmptyRef, null)
+    constructor() : this(InvalidRef, null)
 
     var selectedSites = ""
 
@@ -57,7 +57,7 @@ open class PDFDocument(var file: FileReference, parent: Transform?) : GFXTransfo
     override val defaultDisplayName: String
         get() {
             // file can be null
-            return if (file == EmptyRef || file.name.isBlank2()) "PDF"
+            return if (file == InvalidRef || file.name.isBlank2()) "PDF"
             else file.name
         }
 

@@ -2,8 +2,10 @@ package me.anno.ui.input
 
 import me.anno.config.DefaultConfig
 import me.anno.input.MouseButton
+import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.files.InvalidRef
 import me.anno.language.translation.NameDesc
 import me.anno.ui.base.SpacePanel
 import me.anno.ui.base.buttons.TextButton
@@ -14,7 +16,6 @@ import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.style.Style
 import me.anno.utils.Threads.threadWithName
 import me.anno.utils.files.FileExplorerSelectWrapper
-import me.anno.utils.files.Files.openInExplorer
 import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.utils.files.LocalFile.toLocalPath
 import java.io.File
@@ -38,7 +39,18 @@ class FileInput(title: String, style: Style, f0: FileReference, val isDirectory:
         button.apply {
             setSimpleClickListener {
                 threadWithName("SelectFile/Folder") {
-                    FileExplorerSelectWrapper.selectFileOrFolder(file.unsafeFile, isDirectory) { file ->
+                    var file2 = file
+                    while (file2 != InvalidRef && !file2.exists) {
+                        val file3 = file2.getParent() ?: InvalidRef
+                        if (file3 == InvalidRef || file3 == file2 || file3.exists) {
+                            file2 = file3
+                            break
+                        } else {
+                            file2 = file3
+                        }
+                    }
+                    val file3 = if (file2 == InvalidRef) null else (file2 as? FileFileRef)?.file
+                    FileExplorerSelectWrapper.selectFileOrFolder(file3, isDirectory) { file ->
                         if (file != null) {
                             changeListener(getReference(file))
                             base.setText(file.toString2(), false)

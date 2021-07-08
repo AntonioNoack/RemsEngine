@@ -1,18 +1,19 @@
 package me.anno.io.files
 
+import org.apache.commons.compress.archivers.sevenz.SevenZFile
 import java.io.FileNotFoundException
 import java.io.InputStream
 import java.io.OutputStream
 import java.net.URI
-import java.util.zip.ZipInputStream
 
-class ZipFile(
+abstract class ZipFileBase(
     absolutePath: String,
-    val getZipStream: () -> ZipInputStream,
-    val relativePath: String, override val isDirectory: Boolean, val parent: ZipFile?
+    val relativePath: String,
+    override val isDirectory: Boolean,
+    val _parent: FileReference
 ) : FileReference(absolutePath) {
 
-    val children = if (isDirectory) HashMap<String, ZipFile>() else null
+    val children = if (isDirectory) HashMap<String, ZipFileBase>() else null
     val lcName = name.lowercase()
 
     override var lastModified = 0L
@@ -28,20 +29,10 @@ class ZipFile(
         val data = data
         return if (size <= 0) {
             ByteArray(0).inputStream()
-        } else if (data == null) {
-            val zis = getZipStream()
-            while (true) {
-                val entry = zis.nextEntry ?: break
-                if (entry.name == relativePath) {
-                    // target found
-                    return zis
-                }
-            }
-            throw FileNotFoundException(relativePath)
-        } else {
-            data.inputStream()
-        }
+        } else data?.inputStream() ?: return getInputStream()
     }
+
+    abstract fun getInputStream(): InputStream
 
     override fun outputStream(): OutputStream {
         throw RuntimeException("Writing into zip files is not yet supported")
@@ -51,11 +42,13 @@ class ZipFile(
     fun listFiles() = children?.values
 
     fun get(path: String) = getLc(path.replace('\\', '/').lowercase())
-    private fun getLc(path: String): ZipFile? {
+    private fun getLc(path: String): FileReference? {
         if (path.isEmpty() && !isDirectory)
-            return ZipCache.getMeta(this, false)
-        if (!isDirectory)
-            return ZipCache.getMeta(this, false)?.getLc(path)
+            return ZipCache.getMeta2(this, false)
+        if (!isDirectory) {
+            val m = ZipCache.getMeta2(this, false) as? ZipFileBase
+            return m?.getLc(path)
+        }
         val index = path.indexOf('/')
         return if (index < 0) {
             children!![path]
@@ -66,10 +59,10 @@ class ZipFile(
         }
     }
 
-    override fun getChild(name: String): FileReference? {
-        if (children == null) return null
+    override fun getChild(name: String): FileReference {
+        if (children == null) return InvalidRef
         val c0 = children.values.filter { it.name.equals(name, true) }
-        return c0.firstOrNull { it.name == name } ?: c0.firstOrNull()
+        return c0.firstOrNull { it.name == name } ?: c0.firstOrNull() ?: InvalidRef
     }
 
     override val exists: Boolean get() = true
@@ -104,8 +97,8 @@ class ZipFile(
         }
     }
 
-    override fun getParent(): FileReference? {
-        return parent
+    override fun getParent(): FileReference {
+        return _parent
     }
 
     override fun renameTo(newName: FileReference): Boolean {

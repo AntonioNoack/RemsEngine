@@ -6,12 +6,12 @@ import me.anno.audio.effects.SoundPipeline
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.animation.AnimatedProperty
-import me.anno.io.files.EmptyRef
 import me.anno.objects.modes.LoopingState
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
 import me.anno.io.files.FileReference
+import me.anno.io.files.InvalidRef
 import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.utils.structures.ValueWithDefault.Companion.writeMaybe
 import me.anno.utils.structures.ValueWithDefaultFunc
@@ -23,7 +23,7 @@ import org.joml.Vector4fc
 // respect scale? nah, rather not xD
 // (it becomes pretty complicated, I think)
 
-abstract class Audio(var file: FileReference = EmptyRef, parent: Transform? = null) : GFXTransform(parent) {
+abstract class Audio(var file: FileReference = InvalidRef, parent: Transform? = null) : GFXTransform(parent) {
 
     val amplitude = AnimatedProperty.floatPlus(1f)
     var pipeline = SoundPipeline(this)

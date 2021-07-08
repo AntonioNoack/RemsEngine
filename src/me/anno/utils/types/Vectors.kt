@@ -183,6 +183,8 @@ object Vectors {
     fun Vector4fc.print() = "(${x()} ${y()} ${z()} ${w()})"
     fun Vector4dc.print() = "(${x()} ${y()} ${z()} ${w()})"
     fun Vector4ic.print() = "(${x()} ${y()} ${z()} ${w()})"
+    fun Quaternionf.print() = "(${x()} ${y()} ${z()} ${w()})"
+    fun Quaterniond.print() = "(${x()} ${y()} ${z()} ${w()})"
 
     fun Matrix4fc.print() = "" +
             "[(${get(0,0)} ${get(1,0)} ${get(2,0)} ${get(3,0)})\n" +

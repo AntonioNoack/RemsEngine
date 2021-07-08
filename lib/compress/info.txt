@@ -1,0 +1,2 @@
+wenn man 7z-Dateien entpacken möchte, braucht man die XZ-Bibliothek
+https://mvnrepository.com/artifact/org.tukaani/xz/1.7#gradle

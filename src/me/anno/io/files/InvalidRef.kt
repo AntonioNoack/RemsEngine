@@ -42,7 +42,7 @@ object InvalidRef : FileReference("") {
     }
 
     // a local file...
-    override fun getChild(name: String): FileReference? = null
+    override fun getChild(name: String): FileReference = InvalidRef
 
     override val isDirectory: Boolean
         get() = false

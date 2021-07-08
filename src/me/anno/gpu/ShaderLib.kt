@@ -809,6 +809,7 @@ object ShaderLib {
                     "       normal = jointMat * vec4(normal, 0.0);\n" +
                     "   }" +
                     "   normal = localTransform * vec4(normal, 0.0);\n" +
+                    "   normal = normalize(normal);\n" +
                     "   localPosition = localTransform * vec4(localPosition, 1.0);\n" +
                     "   gl_Position = transform * vec4(localPosition, 1.0);\n" +
                     "   uv = uvs;\n" +
