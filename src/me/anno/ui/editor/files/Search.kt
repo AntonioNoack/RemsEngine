@@ -98,6 +98,10 @@ class Search(val term: String) {
         }
     }
 
+    fun isNotEmpty() = expr.isNotEmpty()
+    fun isEmpty() = expr.isEmpty()
+    fun matchesAll() = isEmpty()
+
     fun matches(name: String): Boolean {
         if (expr.isEmpty()) return true
         val expr = ArrayList(expr)
@@ -107,7 +111,9 @@ class Search(val term: String) {
             val value = name.contains(term, true)
             expr[i] = value
         }
-        return matches(expr)
+        val result = matches(expr)
+        // println("$name x ${this.expr} ? $result")
+        return result
     }
 
     fun matches(expr: ArrayList<Any>): Boolean {

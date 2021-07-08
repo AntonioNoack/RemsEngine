@@ -1,6 +1,8 @@
 package me.anno.mesh.assimp
 
 import me.anno.ecs.Entity
+import me.anno.ecs.components.mesh.Material
+import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
@@ -317,7 +319,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         aiMesh: AIMesh,
         boneList: ArrayList<Bone>,
         boneMap: HashMap<String, Bone>,
-        boneIds: IntArray, weights: FloatArray
+        boneIds: ByteArray, weights: FloatArray
     ) {
 
         val weightSet: MutableMap<Int, MutableList<VertexWeight>> = HashMap()
@@ -372,7 +374,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
                 for (j in 0 until size) {
                     val vw = vertexWeightList[j]
                     weights[i4 + j] = vw.weight
-                    boneIds[i4 + j] = min(vw.boneId, maxBoneId)
+                    boneIds[i4 + j] = min(vw.boneId, maxBoneId).toByte()
                 }
             } else {
                 val i4 = i * 4
@@ -387,14 +389,13 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         materials: Array<Material>,
         boneList: ArrayList<Bone>,
         boneMap: HashMap<String, Bone>
-    ): AssimpMesh {
-
+    ): MeshComponent {
 
         val vertexCount = aiMesh.mNumVertices()
         val vertices = FloatArray(vertexCount * 3)
         val uvs = FloatArray(vertexCount * 2)
         val normals = FloatArray(vertexCount * 3)
-        val boneIds = IntArray(vertexCount * 4)
+        val boneIds = ByteArray(vertexCount * 4)
         val weights = FloatArray(vertexCount * 4)
         val colors = FloatArray(vertexCount * 4)
 
@@ -409,12 +410,20 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         processVertexColors(aiMesh, colors)
         processBones(aiMesh, boneList, boneMap, boneIds, weights)
 
-        val mesh = AssimpMesh(
-            vertices, uvs,
+        val mesh = MeshComponent()
+        mesh.positions = vertices
+        mesh.normals = normals
+        mesh.uvs = uvs
+        mesh.color0 = colors
+        mesh.indices = indices.toIntArray()
+        mesh.boneIndices = boneIds
+        mesh.boneWeights = weights
+        /*
+        AssimpMesh( vertices, uvs,
             normals, colors,
             indices.toIntArray(),
-            boneIds, weights
-        )
+            boneIds, weights)
+        * */
         // todo calculate the transform and set it
         // todo use it for correct rendering
         // mesh.transform.set(convert())

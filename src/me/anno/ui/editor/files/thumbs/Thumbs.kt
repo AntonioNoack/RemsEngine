@@ -162,7 +162,7 @@ object Thumbs {
 
             renderPurely {
 
-                useFrame(fb2, Renderer.colorRenderer) {
+                useFrame(0, 0, w, h, false, fb2, Renderer.colorRenderer) {
 
                     Frame.bind()
 
@@ -191,7 +191,7 @@ object Thumbs {
                     glFlush(); glFinish() // wait for everything to be drawn
                     glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
 
-                    glReadPixels(0, GFX.width - h, w, h, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
+                    glReadPixels(0, GFX.height - h, w, h, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
 
                     GFX.check()
 

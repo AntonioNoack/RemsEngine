@@ -27,15 +27,15 @@ object DefaultLayout {
         val animationWindow = CustomList(false, style)
         customUI.add(animationWindow, 2f)
 
-        // todo use a different library, because we have different elements
-        val library = ECSTypeLibrary(world, isGaming).library
+        val libraryBase = ECSTypeLibrary(world, isGaming)
+        val library = libraryBase.library
 
         val treeFiles = CustomList(true, style)
-        treeFiles += CustomContainer(ECSTreeView(world, isGaming, style), library, style)
+        treeFiles += CustomContainer(ECSTreeView(libraryBase, isGaming, style), library, style)
         treeFiles += CustomContainer(FileExplorer(style), library, style)
         animationWindow.add(CustomContainer(treeFiles, library, style), 0.5f)
         animationWindow.add(CustomContainer(SceneView(style), library, style), 2f)
-        animationWindow.add(CustomContainer(PropertyInspector(style), library, style), 0.5f)
+        animationWindow.add(CustomContainer(PropertyInspector({ libraryBase.selection }, style), library, style), 0.5f)
         animationWindow.setWeight(1f)
 
         if (!isGaming) {

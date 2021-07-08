@@ -1,8 +1,6 @@
 package me.anno.utils.types
 
-import me.anno.utils.types.Floats.f2
 import me.anno.utils.types.Floats.f2s
-import me.anno.utils.types.Vectors.f2
 import org.joml.*
 
 object Vectors {
@@ -46,8 +44,12 @@ object Vectors {
     fun avg(a: Vector2dc, b: Vector2d) = Vector2d(a).add(b).mul(0.5)
     fun avg(a: Vector3fc, b: Vector3f) = Vector3f(a).add(b).mul(0.5f)
 
-    fun avg(a: Vector2fc, b: Vector2fc, c: Vector2fc) = Vector2f((a.x() + b.x() + c.x()) / 3f, (a.y() + b.y() + c.y()) / 3f)
-    fun avg(a: Vector2dc, b: Vector2dc, c: Vector2dc) = Vector2d((a.x() + b.x() + c.x()) / 3f, (a.y() + b.y() + c.y()) / 3f)
+    fun avg(a: Vector2fc, b: Vector2fc, c: Vector2fc) =
+        Vector2f((a.x() + b.x() + c.x()) / 3f, (a.y() + b.y() + c.y()) / 3f)
+
+    fun avg(a: Vector2dc, b: Vector2dc, c: Vector2dc) =
+        Vector2d((a.x() + b.x() + c.x()) / 3f, (a.y() + b.y() + c.y()) / 3f)
+
     fun avg(a: Vector3fc, b: Vector3fc, c: Vector3fc) =
         Vector3f((a.x() + b.x() + c.x()) / 3f, (a.y() + b.y() + c.y()) / 3f, (a.z() + b.z() + c.z()) / 3f)
 
@@ -186,11 +188,18 @@ object Vectors {
     fun Quaternionf.print() = "(${x()} ${y()} ${z()} ${w()})"
     fun Quaterniond.print() = "(${x()} ${y()} ${z()} ${w()})"
 
+    fun Vector2fc.toVector3d() = Vector2d(this)
+    fun Vector2dc.toVector3f() = Vector2f(x().toFloat(), y().toFloat())
+    fun Vector3fc.toVector3d() = Vector3d(this)
+    fun Vector3dc.toVector3f() = Vector3f(x().toFloat(), y().toFloat(), z().toFloat())
+    fun Vector4fc.toVector3d() = Vector4d(this)
+    fun Vector4dc.toVector3f() = Vector4f(x().toFloat(), y().toFloat(), z().toFloat(), w().toFloat())
+
     fun Matrix4fc.print() = "" +
-            "[(${get(0,0)} ${get(1,0)} ${get(2,0)} ${get(3,0)})\n" +
-            " (${get(0,1)} ${get(1,1)} ${get(2,1)} ${get(3,1)})\n" +
-            " (${get(0,2)} ${get(1,2)} ${get(2,2)} ${get(3,2)})\n" +
-            " (${get(0,3)} ${get(1,3)} ${get(2,3)} ${get(3,3)})]"
+            "[(${get(0, 0)} ${get(1, 0)} ${get(2, 0)} ${get(3, 0)})\n" +
+            " (${get(0, 1)} ${get(1, 1)} ${get(2, 1)} ${get(3, 1)})\n" +
+            " (${get(0, 2)} ${get(1, 2)} ${get(2, 2)} ${get(3, 2)})\n" +
+            " (${get(0, 3)} ${get(1, 3)} ${get(2, 3)} ${get(3, 3)})]"
 
     fun Matrix4x3f.print() = "" +
             "[(${m00()} ${m10()} ${m20()} ${m30()})\n" +

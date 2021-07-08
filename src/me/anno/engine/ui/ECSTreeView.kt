@@ -23,29 +23,24 @@ import me.anno.ui.style.Style
 // todo switch between programming language styles easily, throughout the code?... idk whether that's possible...
 // maybe on a per-function-basis
 
-class ECSTreeView(val root: ECSWorld, isGaming: Boolean, style: Style) : AbstractTreeView<Entity>(
-    if (isGaming) listOf(
-        root.globallyShared,
-        root.playerPrefab,
-        root.locallyShared,
-        root.localPlayers,
-        root.remotePlayers
-    )
-    else listOf(root.globallyShared, root.playerPrefab, root.locallyShared),
-    {
-        // todo open add menu
-        // temporary solution:
-        it.add(Entity())
-    },
-    ECSFileImporter,
-    false,
-    style
-) {
+class ECSTreeView(val library: ECSTypeLibrary, isGaming: Boolean, style: Style) :
+    AbstractTreeView<Entity>(
+        listOfVisible(library.world, isGaming),
+        {
+            // todo open add menu for often created entities: camera, light, nodes, ...
+            // we could use which prefabs were most often created :)
+            // temporary solution:
+            it.add(Entity())
+        },
+        ECSFileImporter,
+        false,
+        style
+    ) {
 
-    override var selectedElement: Entity? = null
+    override val selectedElement: Entity? = library.selection as? Entity
 
     override fun selectElement(element: Entity?) {
-        selectedElement = element
+        library.selection = element
     }
 
     override fun focusOnElement(element: Entity) {
@@ -54,5 +49,18 @@ class ECSTreeView(val root: ECSWorld, isGaming: Boolean, style: Style) : Abstrac
     }
 
     override val className get() = "ECSTreeView"
+
+    companion object {
+        fun listOfVisible(root: ECSWorld, isGaming: Boolean): List<Entity> {
+            return if (isGaming) listOf(
+                root.globallyShared,
+                root.playerPrefab,
+                root.locallyShared,
+                root.localPlayers,
+                root.remotePlayers
+            )
+            else listOf(root.globallyShared, root.playerPrefab, root.locallyShared)
+        }
+    }
 
 }

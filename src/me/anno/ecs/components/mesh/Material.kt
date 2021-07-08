@@ -3,6 +3,8 @@ package me.anno.ecs.components.mesh
 import me.anno.gpu.blending.PipelineStage
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.Shader
+import me.anno.io.files.FileReference
+import me.anno.io.files.InvalidRef
 import org.joml.*
 import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL21
@@ -12,6 +14,20 @@ class Material {
     val shaderOverrides = HashMap<String, TypeValue>()
     var pipelineStage: PipelineStage? = null
     var shader: BaseShader? = null
+
+    var diffuseBase = Vector4f(1f)
+    var diffuseMap: FileReference = InvalidRef
+
+    var normalTex: FileReference = InvalidRef
+
+    var emissiveBase = Vector4f(1f)
+    var emissiveMap: FileReference = InvalidRef
+
+    var displacementMap: FileReference = InvalidRef
+
+    var occlusionMap: FileReference = InvalidRef
+
+
 
     operator fun set(name: String, type: GLSLType, value: Any) {
         shaderOverrides[name] = TypeValue(type, value)

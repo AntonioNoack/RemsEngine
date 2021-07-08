@@ -24,10 +24,7 @@ import me.anno.ui.style.Style
 import me.anno.utils.Color.toHexColor
 import me.anno.utils.structures.ValueWithDefault
 import me.anno.utils.structures.ValueWithDefaultFunc
-import org.joml.Quaternionf
-import org.joml.Vector2f
-import org.joml.Vector3f
-import org.joml.Vector4f
+import org.joml.*
 import java.lang.IllegalArgumentException
 
 object ComponentUI {
@@ -88,7 +85,7 @@ object ComponentUI {
             is Vector2f -> VectorInput(style, title, value, type ?: Type.VEC2)
                 .setChangeListener { x, y, _, _ ->
                     RemsStudio.incrementalChange("Set $title to ($x,$y)", title) {
-                        setValue(Vector2f(x, y) as V)
+                        setValue(Vector2f(x.toFloat(), y.toFloat()) as V)
                     }
                 }
                 .setIsSelectedListener { self.show(null) }
@@ -107,7 +104,7 @@ object ComponentUI {
                     VectorInput(style, title, value, type ?: Type.VEC3)
                         .setChangeListener { x, y, z, _ ->
                             RemsStudio.incrementalChange("Set $title to ($x,$y,$z)", title) {
-                                setValue(Vector3f(x, y, z) as V)
+                                setValue(Vector3f(x.toFloat(), y.toFloat(), z.toFloat()) as V)
                             }
                         }
                         .setIsSelectedListener { self.show(null) }
@@ -127,7 +124,7 @@ object ComponentUI {
                     VectorInput(style, title, value, type)
                         .setChangeListener { x, y, z, w ->
                             RemsStudio.incrementalChange("Set $title to ($x,$y,$z,$w)", title) {
-                                setValue(Vector4f(x, y, z, w) as V)
+                                setValue(Vector4f(x.toFloat(), y.toFloat(), z.toFloat(), w.toFloat()) as V)
                             }
                         }
                         .setIsSelectedListener { self.show(null) }
@@ -265,7 +262,7 @@ object ComponentUI {
             is Vector2f -> VectorInput(title, values, time, style)
                 .setChangeListener { x, y, _, _ ->
                     RemsStudio.incrementalChange("Set $title to ($x,$y)", title) {
-                        self.putValue(values, Vector2f(x, y), false)
+                        self.putValue(values, Vector2f(x.toFloat(), y.toFloat()), false)
                     }
                 }
                 .setIsSelectedListener(sl)
@@ -284,7 +281,7 @@ object ComponentUI {
                     VectorInput(title, values, time, style)
                         .setChangeListener { x, y, z, _ ->
                             RemsStudio.incrementalChange("Set $title to ($x,$y,$z)", title) {
-                                self.putValue(values, Vector3f(x, y, z), false)
+                                self.putValue(values, Vector3f(x.toFloat(), y.toFloat(), z.toFloat()), false)
                             }
                         }
                         .setIsSelectedListener(sl)
@@ -304,7 +301,7 @@ object ComponentUI {
                     VectorInput(title, values, time, style)
                         .setChangeListener { x, y, z, w ->
                             RemsStudio.incrementalChange("Set $title to ($x,$y,$z,$w)", title) {
-                                self.putValue(values, Vector4f(x, y, z, w), false)
+                                self.putValue(values, Vector4f(x.toFloat(), y.toFloat(), z.toFloat(), w.toFloat()), false)
                             }
                         }
                         .setIsSelectedListener(sl)

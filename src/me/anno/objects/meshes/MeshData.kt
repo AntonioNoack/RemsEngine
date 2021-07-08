@@ -149,9 +149,9 @@ open class MeshData : ICacheData {
                 val texture = textureOrNull ?: whiteTexture
                 texture.bind(0, Filtering.LINEAR, Clamping.REPEAT)
                 diffuse.set(color)
-                if (material != null) diffuse.mul(material.diffuse)
+                if (material != null) diffuse.mul(material.diffuseBase)
                 GFX.shaderColor(shader, "tint", diffuse)
-                mesh.buffer.draw(shader)
+                mesh.draw(shader, 0)
             }
         }
 

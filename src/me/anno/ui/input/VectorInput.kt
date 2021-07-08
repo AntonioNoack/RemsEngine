@@ -1,5 +1,7 @@
 package me.anno.ui.input
 
+import me.anno.animation.AnimatedProperty
+import me.anno.animation.Type
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
 import me.anno.input.Input.isControlDown
@@ -7,8 +9,6 @@ import me.anno.input.Input.isShiftDown
 import me.anno.input.MouseButton
 import me.anno.io.text.TextReader
 import me.anno.objects.Camera
-import me.anno.animation.AnimatedProperty
-import me.anno.animation.Type
 import me.anno.studio.StudioBase.Companion.shiftSlowdown
 import me.anno.studio.StudioBase.Companion.warn
 import me.anno.studio.rems.RemsStudio
@@ -27,6 +27,7 @@ import me.anno.utils.Color.toVecRGBA
 import me.anno.utils.ColorParsing
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.pow
+import me.anno.utils.types.AnyToDouble.getDouble
 import me.anno.utils.types.AnyToFloat.getFloat
 import org.joml.*
 import kotlin.math.max
@@ -71,6 +72,34 @@ class VectorInput(
 
     constructor(
         style: Style, title: String, value: Quaternionf,
+        type: Type = Type.QUATERNION
+    ) : this(style, title, type) {
+        setValue(value, false)
+    }
+
+    constructor(
+        style: Style, title: String, value: Vector2dc, type: Type,
+        owningProperty: AnimatedProperty<*>? = null
+    ) : this(style, title, type, owningProperty) {
+        setValue(value, false)
+    }
+
+    constructor(
+        style: Style, title: String, value: Vector3dc, type: Type,
+        owningProperty: AnimatedProperty<*>? = null
+    ) : this(style, title, type, owningProperty) {
+        setValue(value, false)
+    }
+
+    constructor(
+        style: Style, title: String, value: Vector4dc, type: Type,
+        owningProperty: AnimatedProperty<*>? = null
+    ) : this(style, title, type, owningProperty) {
+        setValue(value, false)
+    }
+
+    constructor(
+        style: Style, title: String, value: Quaterniond,
         type: Type = Type.QUATERNION
     ) : this(style, title, type) {
         setValue(value, false)
@@ -127,12 +156,11 @@ class VectorInput(
             ?: "[${compX.lastValue}, ${compY.lastValue}, ${compZ?.lastValue ?: 0f}, ${compW?.lastValue ?: 0f}]"
 
     override fun onPaste(x: Float, y: Float, data: String, type: String) {
-        pasteVector(data) ?: pasteScalar(data) ?: pasteColor(data) ?: pasteAnimated(data) ?: super.onPaste(
-            x,
-            y,
-            data,
-            type
-        )
+        pasteVector(data)
+            ?: pasteScalar(data)
+            ?: pasteColor(data)
+            ?: pasteAnimated(data)
+            ?: super.onPaste(x, y, data, type)
     }
 
     private fun pasteVector(data: String): Unit? {
@@ -250,6 +278,31 @@ class VectorInput(
         compW?.setValue(v.w(), notify)
     }
 
+    fun setValue(v: Vector2dc, notify: Boolean) {
+        compX.setValue(v.x(), notify)
+        compY.setValue(v.y(), notify)
+    }
+
+    fun setValue(v: Vector3dc, notify: Boolean) {
+        compX.setValue(v.x(), notify)
+        compY.setValue(v.y(), notify)
+        compZ?.setValue(v.z(), notify)
+    }
+
+    fun setValue(v: Vector4dc, notify: Boolean) {
+        compX.setValue(v.x(), notify)
+        compY.setValue(v.y(), notify)
+        compZ?.setValue(v.z(), notify)
+        compW?.setValue(v.w(), notify)
+    }
+
+    fun setValue(v: Quaterniondc, notify: Boolean) {
+        compX.setValue(v.x(), notify)
+        compY.setValue(v.y(), notify)
+        compZ?.setValue(v.z(), notify)
+        compW?.setValue(v.w(), notify)
+    }
+
     fun setValue(vi: VectorInput, notify: Boolean) {
         compX.setValue(vi.vx, notify)
         compY.setValue(vi.vy, notify)
@@ -257,10 +310,10 @@ class VectorInput(
         compW?.setValue(vi.vw, notify)
     }
 
-    var changeListener: (x: Float, y: Float, z: Float, w: Float) -> Unit = { _, _, _, _ ->
+    var changeListener: (x: Double, y: Double, z: Double, w: Double) -> Unit = { _, _, _, _ ->
     }
 
-    fun setChangeListener(listener: (x: Float, y: Float, z: Float, w: Float) -> Unit): VectorInput {
+    fun setChangeListener(listener: (x: Double, y: Double, z: Double, w: Double) -> Unit): VectorInput {
         changeListener = listener
         return this
     }
@@ -347,10 +400,10 @@ class VectorInput(
             pureTextInput.text = getFloat(defaultValue, index).toString()
         }
         changeListener(
-            getFloat(defaultValue, 0),
-            getFloat(defaultValue, 1),
-            getFloat(defaultValue, 2),
-            getFloat(defaultValue, 3)
+            getDouble(defaultValue, 0),
+            getDouble(defaultValue, 1),
+            getDouble(defaultValue, 2),
+            getDouble(defaultValue, 3)
         )
     }
 

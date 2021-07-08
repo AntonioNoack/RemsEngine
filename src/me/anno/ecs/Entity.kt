@@ -1,5 +1,7 @@
 package me.anno.ecs
 
+import me.anno.animation.Type
+import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.io.ISaveable
 import me.anno.io.NamedSaveable
 import me.anno.io.base.BaseWriter
@@ -7,10 +9,17 @@ import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
+import me.anno.objects.inspectable.Inspectable
+import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.editor.SettingCategory
+import me.anno.ui.editor.stacked.Option
+import me.anno.ui.editor.stacked.StackPanel
+import me.anno.ui.input.TextInput
+import me.anno.ui.input.VectorInput
+import me.anno.ui.style.Style
 import me.anno.utils.structures.Hierarchical
-import me.anno.utils.types.Floats.f2
+import me.anno.utils.structures.lists.UpdatingList
 import me.anno.utils.types.Floats.f2s
-import me.anno.utils.types.Vectors.print
 
 // entities would be an idea to make effects more modular
 // it could apply new effects to both the camera and image sources
@@ -23,7 +32,7 @@ import me.anno.utils.types.Vectors.print
 
 // todo delta settings & control: only saves as values, what was changed from the prefab
 
-open class Entity() : NamedSaveable(), Hierarchical<Entity> {
+open class Entity() : NamedSaveable(), Hierarchical<Entity>, Inspectable {
 
     constructor(parent: Entity?) : this() {
         parent?.add(this)
@@ -175,6 +184,51 @@ open class Entity() : NamedSaveable(), Hierarchical<Entity> {
             todo.addAll(entity.children)
         }
         return result
+    }
+
+    override fun createInspector(
+        list: PanelListY,
+        style: Style,
+        getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
+    ) {
+        // todo implement the properties and stuff
+        // todo add history support (undoing stuff)
+        list.add(TextInput("Name", style, name).setChangeListener { name = it })
+        list.add(TextInput("Description", style, description).setChangeListener { description = it })
+        list.add(VectorInput(style, "Position", transform.localPosition, Type.POSITION)
+            .setChangeListener { x, y, z, _ -> transform.localPosition.set(x, y, z) })
+        list.add(VectorInput(style, "Rotation", transform.localRotation, Type.ROT_YXZ)
+            .setChangeListener { x, y, z, _ -> transform.setLocalEulerAngle(x, y, z) })
+        list.add(VectorInput(style, "Scale", transform.localScale, Type.SCALE)
+            .setChangeListener { x, y, z, _ -> transform.localScale.set(x, y, z) })
+        list.add(
+            object : StackPanel(
+                "Components",
+                "Customize properties and behaviours",
+                getComponentOptions(),
+                components,
+                style
+            ) {
+                override fun onAddComponent(component: Inspectable, index: Int) {
+                    components.add(index, component as Component)
+                }
+
+                override fun onRemoveComponent(component: Inspectable) {
+                    components.remove(component)
+                }
+
+                override fun getOptionFromInspectable(inspectable: Inspectable): Option {
+                    inspectable as Component
+                    return Option(inspectable.className, "") { inspectable }
+                }
+
+            }
+        )
+    }
+
+    fun getComponentOptions(): List<Option> {
+        // todo registry over all options... / search the raw files + search all scripts
+        return UpdatingList { listOf(Option("MeshComponent", "") { MeshComponent() }) }
     }
 
     override fun toString(): String {

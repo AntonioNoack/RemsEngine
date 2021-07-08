@@ -2,13 +2,11 @@ package me.anno.ui.editor
 
 import me.anno.language.translation.Dict
 import me.anno.objects.inspectable.Inspectable
-import me.anno.studio.rems.Selection
-import me.anno.studio.rems.Selection.selectedInspectable
 import me.anno.ui.base.Panel
-import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.input.ColorInput
 import me.anno.ui.input.FloatInput
 import me.anno.ui.input.TextInputML
@@ -17,47 +15,47 @@ import me.anno.ui.input.components.Checkbox
 import me.anno.ui.style.Style
 import me.anno.utils.types.Strings.isBlank2
 
-class PropertyInspector(style: Style):
-    ScrollPanelY(Padding(3), AxisAlignment.MIN, style.getChild("propertyInspector")){
+class PropertyInspector(val getInspectable: () -> Inspectable?, style: Style) :
+    ScrollPanelY(Padding(3), AxisAlignment.MIN, style.getChild("propertyInspector")) {
 
     val list = child as PanelListY
     val secondaryList = PanelListY(style)
     var lastSelected: Inspectable? = null
     private var needsUpdate = false
 
-    fun invalidate(){
+    fun invalidate() {
         // println("updating property inspector")
         needsUpdate = true
     }
 
-    override fun getLayoutState(): Any? = selectedInspectable
+    override fun getLayoutState(): Any? = getInspectable()
 
     override fun tickUpdate() {
         super.tickUpdate()
-        val selected = selectedInspectable
-        if(selected != lastSelected){
+        val selected = getInspectable()
+        if (selected != lastSelected) {
             lastSelected = selected
             needsUpdate = false
             list.clear()
-            if(selected != null){
+            if (selected != null) {
                 createInspector(selected, list, style)
             }
-        } else if(needsUpdate){
+        } else if (needsUpdate) {
             invalidateDrawing()
             lastSelected = selected
             needsUpdate = false
             secondaryList.clear()
-            if(selected != null){
+            if (selected != null) {
                 createInspector(selected, secondaryList, style)
             }
             // is matching required? not really
             val src = secondaryList.listOfAll.iterator()
             val dst = list.listOfAll.iterator()
             // works as long as the structure stays the same
-            while(src.hasNext() && dst.hasNext()){
+            while (src.hasNext() && dst.hasNext()) {
                 val s = src.next()
                 val d = dst.next()
-                when(s){
+                when (s) {
                     is FloatInput -> {
                         (d as? FloatInput)?.apply {
                             d.setValue(s.lastValue, false)
@@ -85,7 +83,7 @@ class PropertyInspector(style: Style):
                     }
                 }
             }
-            if(src.hasNext() != dst.hasNext() && selected != null){
+            if (src.hasNext() != dst.hasNext() && selected != null) {
                 // we need to update the structure...
                 lastSelected = null
                 tickUpdate()
@@ -93,20 +91,20 @@ class PropertyInspector(style: Style):
         }
     }
 
-    operator fun plusAssign(panel: Panel){
+    operator fun plusAssign(panel: Panel) {
         list += panel
     }
 
     companion object {
-        fun createInspector(ins: Inspectable, list: PanelListY, style: Style){
+        fun createInspector(ins: Inspectable, list: PanelListY, style: Style) {
             val groups = HashMap<String, SettingCategory>()
-            ins.createInspector(list, style){ title, description, dictSubPath ->
-                groups.getOrPut(dictSubPath){
+            ins.createInspector(list, style) { title, description, dictSubPath ->
+                groups.getOrPut(dictSubPath) {
                     val group = SettingCategory(Dict[title, "obj.$dictSubPath"], style)
                     list += group
                     group
                 }.apply {
-                    if(tooltip?.isBlank2() != false){
+                    if (tooltip?.isBlank2() != false) {
                         tooltip = Dict[description, "obj.$dictSubPath.desc"]
                     }
                 }

@@ -1,6 +1,8 @@
 package me.anno.mesh.assimp
 
 import me.anno.ecs.Entity
+import me.anno.ecs.components.mesh.Material
+import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MeshRenderer
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
@@ -52,7 +54,7 @@ open class StaticMeshesLoader {
     }
 
     // todo convert assimp mesh such that it's a normal mesh; because all meshes should be the same to create :)
-    fun buildScene(aiScene: AIScene, sceneMeshes: Array<AssimpMesh>, aiNode: AINode): Entity {
+    fun buildScene(aiScene: AIScene, sceneMeshes: Array<MeshComponent>, aiNode: AINode): Entity {
 
         val entity = Entity()
         entity.name = aiNode.mName().dataString()
@@ -92,7 +94,7 @@ open class StaticMeshesLoader {
 
     }
 
-    fun buildScene(aiScene: AIScene, sceneMeshes: Array<AssimpMesh>): Entity {
+    fun buildScene(aiScene: AIScene, sceneMeshes: Array<MeshComponent>): Entity {
         return buildScene(aiScene, sceneMeshes, aiScene.mRootNode()!!)
     }
 
@@ -133,13 +135,31 @@ open class StaticMeshesLoader {
     ): Material {
 
         val color = AIColor4D.create()
-        val texture = getPath(aiMaterial, aiTextureType_DIFFUSE, texturesDir)
-        val ambient = getColor(aiMaterial, color, AI_MATKEY_COLOR_AMBIENT)
-        val diffuse = getColor(aiMaterial, color, AI_MATKEY_COLOR_DIFFUSE)
-        val specular = getColor(aiMaterial, color, AI_MATKEY_COLOR_SPECULAR)
+        // val ambient = getColor(aiMaterial, color, AI_MATKEY_COLOR_AMBIENT)
+        // val specular = getColor(aiMaterial, color, AI_MATKEY_COLOR_SPECULAR)
 
-        val material = Material(ambient, diffuse, specular, 1.0f)
-        material.diffuseMap = texture
+        val material = Material()
+
+        // diffuse
+        val diffuse = getColor(aiMaterial, color, AI_MATKEY_COLOR_DIFFUSE)
+        if (diffuse != null) material.diffuseBase.set(diffuse)
+        material.diffuseMap = getPath(aiMaterial, aiTextureType_DIFFUSE, texturesDir)
+
+        // emissive
+        val emissive = getColor(aiMaterial, color, AI_MATKEY_COLOR_EMISSIVE)
+        if (emissive != null) material.emissiveBase = emissive
+        material.emissiveMap = getPath(aiMaterial, aiTextureType_EMISSIVE, texturesDir)
+
+        // normal
+        material.normalTex = getPath(aiMaterial, aiTextureType_NORMALS, texturesDir)
+
+        // other stuff
+        material.displacementMap = getPath(aiMaterial, aiTextureType_DISPLACEMENT, texturesDir)
+        material.occlusionMap = getPath(aiMaterial, aiTextureType_LIGHTMAP, texturesDir)
+
+        // todo metallic & roughness
+
+
         return material
 
     }
@@ -157,34 +177,41 @@ open class StaticMeshesLoader {
         return parentFolder.getChild(path1)
     }
 
-    fun getColor(aiMaterial: AIMaterial, color: AIColor4D, flag: String): Vector4f {
+    fun getColor(aiMaterial: AIMaterial, color: AIColor4D, flag: String): Vector4f? {
         val result = aiGetMaterialColor(aiMaterial, flag, aiTextureType_NONE, 0, color)
         return if (result == 0) {
             Vector4f(color.r(), color.g(), color.b(), color.a())
-        } else Vector4f(1f)
+        } else null
     }
 
-    fun processMesh(aiMesh: AIMesh, materials: Array<Material>): AssimpMesh {
+    fun processMesh(aiMesh: AIMesh, materials: Array<Material>): MeshComponent {
 
         val vertexCount = aiMesh.mNumVertices()
         val vertices = FloatArray(vertexCount * 3)
-        val textures = FloatArray(vertexCount * 2)
+        val uvs = FloatArray(vertexCount * 2)
         val normals = FloatArray(vertexCount * 3)
         val indices = ArrayList<Int>()
         val colors = FloatArray(vertexCount * 4)
 
         processVertices(aiMesh, vertices)
         processNormals(aiMesh, normals)
-        processUVs(aiMesh, textures)
+        processUVs(aiMesh, uvs)
         processIndices(aiMesh, indices)
         processVertexColors(aiMesh, colors)
 
-        val mesh = AssimpMesh(
+        /*val mesh = AssimpMesh(
             vertices, textures,
             normals, colors,
             indices.toIntArray(),
             null, null
-        )
+        )*/
+
+        val mesh = MeshComponent()
+        mesh.positions = vertices
+        mesh.normals = normals
+        mesh.uvs = uvs
+        mesh.color0 = colors
+        mesh.indices = indices.toIntArray()
 
         val materialIdx = aiMesh.mMaterialIndex()
         if (materialIdx >= 0 && materialIdx < materials.size) {

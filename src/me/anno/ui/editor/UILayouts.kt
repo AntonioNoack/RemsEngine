@@ -36,6 +36,7 @@ import me.anno.studio.rems.RenderSettings
 import me.anno.studio.rems.Rendering.renderAudio
 import me.anno.studio.rems.Rendering.renderPart
 import me.anno.studio.rems.Rendering.renderSetPercent
+import me.anno.studio.rems.Selection
 import me.anno.studio.rems.Selection.selectTransform
 import me.anno.studio.rems.Selection.selectedTransform
 import me.anno.studio.rems.ui.RemsStudioUITypeLibrary
@@ -593,7 +594,12 @@ object UILayouts {
         treeFiles += CustomContainer(FileExplorer(style), library, style)
         animationWindow.add(CustomContainer(treeFiles, library, style), 0.5f)
         animationWindow.add(CustomContainer(SceneView(style), library, style), 2f)
-        animationWindow.add(CustomContainer(PropertyInspector(style), library, style), 0.5f)
+        animationWindow.add(
+            CustomContainer(
+                PropertyInspector({ Selection.selectedInspectable }, style),
+                library, style
+            ), 0.5f
+        )
         animationWindow.setWeight(1f)
 
         val timeline = GraphEditor(style)

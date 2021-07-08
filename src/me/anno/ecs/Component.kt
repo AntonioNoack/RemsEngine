@@ -3,14 +3,21 @@ package me.anno.ecs
 import me.anno.io.NamedSaveable
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
+import me.anno.objects.inspectable.Inspectable
+import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.base.text.TextPanel
+import me.anno.ui.editor.SettingCategory
+import me.anno.ui.input.BooleanInput
+import me.anno.ui.input.TextInput
+import me.anno.ui.style.Style
 
-abstract class Component : NamedSaveable() {
+abstract class Component : NamedSaveable(), Inspectable {
 
     @NotSerializedProperty
-    var entity: Entity? = null
+    open var entity: Entity? = null
 
     @SerializedProperty
-    var isEnabled = true
+    open var isEnabled = true
 
     open fun onCreate() {}
 
@@ -45,6 +52,21 @@ abstract class Component : NamedSaveable() {
         builder.append(toString())
         builder.append('\n')
         return builder
+    }
+
+    override fun createInspector(
+        list: PanelListY,
+        style: Style,
+        getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
+    ) {
+        // todo create title bar, where you can change the script
+        // todo save values to history
+        list.add(BooleanInput(
+            "Is Enabled", "When a component is disabled, its functions won't be called.",
+            isEnabled, style
+        ).setChangeListener { isEnabled = it })
+        list.add(TextInput("Name", style, name).setChangeListener { name = it })
+        list.add(TextInput("Description", style, name).setChangeListener { description = it })
     }
 
     // todo instead of using reflection on all properties, we just need to save the prefab and all changed properties

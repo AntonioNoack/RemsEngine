@@ -74,7 +74,9 @@ class FileExplorer(style: Style) : PanelListY(style.getChild("fileExplorer")) {
 
     val uContent = PanelListX(style)
     val content = PanelListMultiline(style)
-    var lastFiles = ""
+    var lastFiles = emptyList<String>()
+    var lastSearch = true
+
     val favourites = PanelListY(style)
 
     val title = PathPanel(folder, style)
@@ -114,10 +116,41 @@ class FileExplorer(style: Style) : PanelListY(style.getChild("fileExplorer")) {
 
             val search = Search(searchTerm)
 
-            val children: List<FileReference> = folder.listFiles2()
-            val newFiles = children.joinToString { it.name }
-            if (lastFiles != newFiles) {
+            var level0: List<FileReference> = folder.listFiles2()
+                .filter { !it.name.startsWith('.') }
+            val newFiles = level0.map { it.name }
+            val newSearch = search.isNotEmpty()
+
+            if (lastFiles != newFiles || lastSearch != newSearch) {
+
                 lastFiles = newFiles
+                lastSearch = newSearch
+
+                // when searching something, also include sub-folders up to depth of xyz
+                val searchDepth = 3
+                val fileLimit = 10000
+                if (search.isNotEmpty() && level0.size < fileLimit) {
+                    var lastLevel = level0
+                    var nextLevel = ArrayList<FileReference>()
+                    for (i in 0 until searchDepth) {
+                        for (file in lastLevel) {
+                            if (file.name.startsWith('.')) continue
+                            if (file.isDirectory || when (file.extension.lowercase()) {
+                                    "zip", "rar", "7z", "s7z", "jar", "tar", "gz", "xz",
+                                    "bz2", "lz", "lz4", "lzma", "lzo", "z", "zst" -> file.isPacked.value
+                                    else -> false
+                                }
+                            ) {
+                                nextLevel.addAll(file.listChildren() ?: continue)
+                            }
+                        }
+                        level0 = level0 + nextLevel
+                        if (level0.size > fileLimit) break
+                        lastLevel = nextLevel
+                        nextLevel = ArrayList()
+                    }
+                }
+
                 val parent = folder.getParent()
                 if (parent != null) {
                     val fe = FileExplorerEntry(this, true, parent, style)
@@ -125,8 +158,10 @@ class FileExplorer(style: Style) : PanelListY(style.getChild("fileExplorer")) {
                 } else {
                     GFX.addGPUTask(1) { removeOldFiles() }
                 }
+
                 val tmpCount = 64
                 var tmpList = ArrayList<FileExplorerEntry>(tmpCount)
+
                 fun put() {
                     if (tmpList.isNotEmpty()) {
                         val list = tmpList
@@ -140,18 +175,24 @@ class FileExplorer(style: Style) : PanelListY(style.getChild("fileExplorer")) {
                         tmpList = ArrayList(tmpCount)
                     }
                 }
-                children.sortedBy { !it.isDirectory }.forEach { file ->
-                    val name = file.name
-                    if (!name.startsWith(".") && search.matches(name)) {
-                        val fe = FileExplorerEntry(this, false, file, style)
-                        tmpList.add(fe)
-                        if (tmpList.size >= tmpCount) put()
-                    }
+
+                for (file in level0.filter { it.isDirectory }) {
+                    val fe = FileExplorerEntry(this, false, file, style)
+                    tmpList.add(fe)
+                    if (tmpList.size >= tmpCount) put()
                 }
+
+                for (file in level0.filter { !it.isDirectory }) {
+                    val fe = FileExplorerEntry(this, false, file, style)
+                    tmpList.add(fe)
+                    if (tmpList.size >= tmpCount) put()
+                }
+
                 put()
+
             } else {
                 val fe = content.children.filterIsInstance<FileExplorerEntry>()
-                fe.forEach {
+                for (it in fe) {
                     it.visibility = Visibility[search.matches(it.file.name)]
                 }
             }
@@ -198,7 +239,7 @@ class FileExplorer(style: Style) : PanelListY(style.getChild("fileExplorer")) {
         }
         name += ".json"
         // todo replace vs add new?
-        folder.getChild(name)!!.writeText(data)
+        folder.getChild(name).writeText(data)
         invalidate()
         return true
     }

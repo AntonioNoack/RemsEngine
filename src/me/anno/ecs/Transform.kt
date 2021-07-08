@@ -4,6 +4,9 @@ import org.joml.*
 
 class Transform {
 
+    val worldTransform = Matrix4x3d()
+    val localTransform = Matrix4x3d()
+
     private val pos = Vector3d()
     var localPosition: Vector3d
         get() = pos
@@ -27,6 +30,10 @@ class Transform {
             invalidateGlobal()
         }
 
+    fun setLocalEulerAngle(x: Double, y: Double, z: Double) {
+        localRotation.set(Quaterniond().rotateY(y).rotateX(x).rotateZ(z))
+    }
+
     private val sca = Vector3d(1.0)
     var localScale: Vector3d
         get() = sca
@@ -38,9 +45,6 @@ class Transform {
                 .scale(value)
             invalidateGlobal()
         }
-
-    val worldTransform = Matrix4x3d()
-    val localTransform = Matrix4x3d()
 
     fun updateLocal() {
         pos.set(localTransform.m30(), localTransform.m31(), localTransform.m32())
@@ -124,7 +128,7 @@ class Transform {
         needsGlobalUpdate = true
     }
 
-    fun invalidate() {
+    fun invalidateLocal() {
         needsLocalUpdate = true
     }
 

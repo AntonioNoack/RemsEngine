@@ -176,6 +176,7 @@ abstract class FileReference(val absolutePath: String) {
     }
 
     private fun isZipFile(): Boolean {
+        // todo only read the first bytes...
         if (extension.equals("7z", true)) {
             val zis = if (this is FileFileRef) SevenZFile(file) else
                 SevenZFile(SeekableInMemoryByteChannel(inputStream().readBytes()))
@@ -190,17 +191,15 @@ abstract class FileReference(val absolutePath: String) {
                 zis.close()
             }
         } else {
-            val zis = if (this is FileFileRef) ZipFile(file) else
-                ZipFile(SeekableInMemoryByteChannel(inputStream().readBytes()))
             return try {
+                val zis = if (this is FileFileRef) ZipFile(file) else
+                ZipFile(SeekableInMemoryByteChannel(inputStream().readBytes()))
                 val result = zis.entries.hasMoreElements()
                 LOGGER.info("Checking $absolutePath for zip file, success")
                 result
             } catch (e: IOException) {
                 LOGGER.info("Checking $absolutePath for zip file, ${e.message}")
                 false
-            } finally {
-                zis.close()
             }
         }
     }

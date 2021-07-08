@@ -10,6 +10,7 @@ import me.anno.studio.StudioBase
 import me.anno.studio.rems.StudioActions
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.debug.ConsoleOutputPanel
+import me.anno.ui.editor.OptionBar
 
 class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
 
@@ -34,12 +35,13 @@ class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
         val style = style
 
         val list = PanelListY(style)
-        // todo add controls
+        val controls = OptionBar(style)
+        list.add(controls)
+        // todo different controls
+
         list += DefaultLayout.createDefaultMainUI(loadedScene, false, style)
-        // todo add console output
         list += ConsoleOutputPanel(style)
         windowStack.add(Window(list))
-
 
         StudioActions.register()
         ActionManager.init()
@@ -48,7 +50,7 @@ class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
 
     companion object {
         @JvmStatic
-        fun main(args: Array<String>){
+        fun main(args: Array<String>) {
             RemsEngine().run()
         }
     }

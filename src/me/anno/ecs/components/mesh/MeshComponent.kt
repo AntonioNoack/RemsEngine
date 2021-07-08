@@ -5,7 +5,6 @@ import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.buffer.IndexedStaticBuffer
 import me.anno.gpu.shader.Shader
-import me.anno.mesh.assimp.AssimpMesh
 import org.joml.AABBf
 import org.lwjgl.opengl.GL11.GL_TRIANGLES
 import kotlin.math.max
@@ -48,6 +47,14 @@ class MeshComponent : Component() {
 
     // todo allow multiple materials? should make our life easier :), we just need to split the indices...
     var materials = ArrayList<Material>()
+    var material: Material?
+        get() = materials.getOrNull(0)
+        set(value) {
+            materials.clear()
+            if (value != null) {
+                materials.add(value)
+            }
+        }
 
     // one per triangle
     var materialIndices = IntArray(0)
@@ -131,7 +138,7 @@ class MeshComponent : Component() {
         val indices = indices!!
 
         val pointCount = positions.size / 3
-        val buffer = IndexedStaticBuffer(AssimpMesh.attributes, pointCount, indices)
+        val buffer = IndexedStaticBuffer(attributes, pointCount, indices)
         for (i in 0 until pointCount) {
 
             // upload all data of one vertex
@@ -222,6 +229,7 @@ class MeshComponent : Component() {
             maxY = Float.NEGATIVE_INFINITY
             maxZ = Float.NEGATIVE_INFINITY
         }
+
     }
 
 }
